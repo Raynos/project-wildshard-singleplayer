@@ -24,8 +24,8 @@ export function activeGrade(def: ChunkDef): { grade: ChunkGrade; look: ChunkLook
 }
 
 /** the ground layers the terrain loads: the boreal set (canopy litter, moss, tiling breakup) unless `?ground=v1` */
-export function groundSet(def: ChunkDef): { layers: readonly string[]; tints: readonly RGB[]; boreal: { normalK: readonly number[] } | null } {
+export function groundSet(def: ChunkDef): { layers: readonly string[]; tints: readonly RGB[]; boreal: { normalK: readonly number[]; trailDust: readonly number[]; grassTint: readonly number[] } | null } {
   const b = def.assets.boreal;
   if (b && lookV1('ground')) return { layers: b.v1.groundLayers, tints: b.v1.groundTints, boreal: null };
-  return { layers: def.assets.groundLayers, tints: def.assets.groundTints, boreal: b ? { normalK: b.normalK } : null };
+  return { layers: def.assets.groundLayers, tints: def.assets.groundTints, boreal: b ? { normalK: b.normalK, trailDust: b.trailDust, grassTint: b.grassTint } : null };
 }

@@ -200,9 +200,9 @@ export class PineDayNight {
   /** the weather's multipliers (see PineSkyMod); identity = no weather */
   readonly mod: PineSkyMod = { overcast: 0, fogDist: 1, fogHeight: 1, mist: 0 };
   /** the look loop's layer over every preset (PH-L1 / L4, ChunkLook; Sky sets it, `?grade=v1` leaves the identity): × the
-   *  volumetric in-scatter, × the distance fog, + the grade saturation, × the sky's fill (IBL + hemisphere) — the presets'
+   *  volumetric in-scatter, × the distance fog, + the grade saturation, × the sky's fill (IBL + hemisphere), × the dome by day — the presets'
    *  numbers untouched */
-  readonly look = { vol: 1, fogDist: 1, sat: 0, ambient: 1 };
+  readonly look = { vol: 1, fogDist: 1, sat: 0, ambient: 1, sky: 1 };
   /** the dome: add it to the scene; Sky.update keeps it on the camera */
   readonly dome: THREE.Mesh;
   private readonly u = {
@@ -437,6 +437,9 @@ export class PineDayNight {
       if (ov > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 0.92; this.fogCol.lerp(tmpC.setRGB(g * 0.95, g * 0.98, g * 1.03), ov * 0.85); }
       const mist = Math.min(1, Math.max(0, this.mod.mist));
       if (mist > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 1.08; this.fogCol.lerp(tmpC.setRGB(g * 0.96, g, g * 1.05), mist * 0.6); }
+      // the look loop's sky (by day): the dome — and so the IBL rendered from it — × look.sky; the fog colour above stays
+      const skyK = 1 + (this.look.sky - 1) * (1 - pineNightAt(p));
+      this.u.uGainA.value *= skyK; this.u.uGainB.value *= skyK;
     }
     this.u.uGrey.value = 0.92 * ov;
     this.u.uFlat.value.copy(this.fogCol).multiplyScalar(1.05);

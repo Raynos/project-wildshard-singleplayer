@@ -116,7 +116,10 @@ export interface ChunkAssets {
    * breakup, with per-layer normal strengths. `v1` is the ground before the look loop — its layers / tints, the plain
    * shader — built by `?ground=v1` (src/world/lookFlags.ts). Absent: the plain shader.
    */
-  boreal?: { normalK: [number, number, number, number]; v1: { groundLayers: [string, string, string, string]; groundTints: [RGB, RGB, RGB, RGB] } };
+  /** `trailDust`: the trail layer pulled toward its own luminance × this tint by `amount` ([r, g, b, amount]) — dry, dusty
+   *  compacted soil instead of the set's grey-violet pebbles (PH-L1 round 3); `grassTint` × the grass tufts' colour (the dry
+   *  golden-olive boreal grass, not a lime lawn) */
+  boreal?: { normalK: [number, number, number, number]; trailDust: [number, number, number, number]; grassTint: RGB; v1: { groundLayers: [string, string, string, string]; groundTints: [RGB, RGB, RGB, RGB] } };
 }
 
 /** Which tree builder to use and what it should be textured with. */
@@ -281,6 +284,8 @@ export interface ChunkLook {
   sat: number;
   /** × the sky's fill light (the IBL and the hemisphere): lighter shade under the canopy, the sun untouched */
   ambient: number;
+  /** × the sky dome's brightness by day (the photo targets' paler sky; the IBL follows it, the fog colour does not) */
+  sky: number;
   /** × the ground-mist sheets under a high sun (1 at dawn, dusk and night: the mist is the morning's and the night's) */
   dayMist: number;
 }

@@ -11,6 +11,7 @@ import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '../chunks/registry';
+import { groundSet } from './lookFlags';
 import { GrassPainterly } from './GrassPainterly';
 import { GrassV2 } from '../nalati/look/grass';
 import { LOOK_V2 } from '../nalati/look/flag';
@@ -101,6 +102,8 @@ export class Grass {
   private tmpS = new THREE.Vector3();
   private tmpN = new THREE.Vector3();
   private tmpC = new THREE.Color();
+  /** × every tuft's colour: the chunk's boreal grass tint (PH-L1 round 3; `?ground=v1` = 1) */
+  private tint = new THREE.Color(...(groundSet(getActiveChunk()).boreal?.grassTint ?? [1, 1, 1]));
   private zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
   private meshColor!: THREE.InstancedBufferAttribute;
   private flowerColor!: THREE.InstancedBufferAttribute;
@@ -371,7 +374,7 @@ export class Grass {
       this.tmpC.r = lerp(this.tmpC.r, 0.78, floorMix * 0.6);
       this.tmpC.g = lerp(this.tmpC.g, 0.62, floorMix * 0.6);
       this.tmpC.b = lerp(this.tmpC.b, 0.34, floorMix * 0.6);
-      colArr[idx * 3] = this.tmpC.r; colArr[idx * 3 + 1] = this.tmpC.g; colArr[idx * 3 + 2] = this.tmpC.b;
+      colArr[idx * 3] = this.tmpC.r * this.tint.r; colArr[idx * 3 + 1] = this.tmpC.g * this.tint.g; colArr[idx * 3 + 2] = this.tmpC.b * this.tint.b;
       // flowers: a few per cell in open, grassy clearings
       const fr = rng.next();
       if (fk < KF && g > 0.45 && canopy < 0.35 && fr < 0.06) {

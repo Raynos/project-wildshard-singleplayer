@@ -40,11 +40,15 @@ const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 7
  *    the open it stays pale and dry;
  *  - moss: feather-moss carpets in patches over the litter, most where the canopy is dense (the grass layer, sampled
  *    rotated at 2.7 m, desaturated and tinted moss green; flatter normal, fully rough);
- *  - per-layer normal strength (`normalK`, e.g. the crags' rock stronger).
+ *  - per-layer normal strength (`normalK`, e.g. the crags' rock stronger);
+ *  - heath: darker olive bilberry / heather mats in ~1.5 m patches over the open floor and the grass;
+ *  - ragged trail verges (the litter eats into the trail's edge by a noise);
+ *  - the trails' dust (`trailDust`): the path set's grey-violet pebbles pulled toward a dry, warm soil.
  * Same textures (no new samplers), one program ('terrain-splat-boreal').
  */
 const BOREAL_COMMON = /* glsl */`
           uniform vec4 uNormalK;
+          uniform vec4 uTrailDust;
           float vnoise(vec2 p) {
             vec2 i = floor(p), f = fract(p), q = f * f * (3.0 - 2.0 * f);
             return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), q.x), mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), q.x), q.y);
@@ -85,6 +89,12 @@ const BOREAL_MAP = /* glsl */`
           vec2 tuv = vWPos.xz;
           vec4 w = vSplat;
           w = pow(max(w, vec4(0.0)), vec4(2.2)); w /= max(w.x + w.y + w.z + w.w, 1e-5); // guarded (E67)
+          // the trails' edges broken by the litter (a ragged, trodden verge instead of a clean 11 m gravel band)
+          {
+            float erode = vnoise(tuv * 0.35) * 0.6 + vnoise(ROT_F * tuv * 1.3 + 4.0) * 0.4;
+            float wt = w.w * smoothstep(0.1, 0.6, w.w + (erode - 0.5) * 0.7);
+            w.x += w.w - wt; w.w = wt;
+          }
           float kFar = smoothstep(18.0, 70.0, camDist);
           vec2 gx = dFdx(tuv), gy = dFdy(tuv);
           float tb = smoothstep(0.3, 0.7, vnoise(tuv * 0.11));
@@ -95,6 +105,7 @@ const BOREAL_MAP = /* glsl */`
             float wi = w[i];
             if (wi < 0.004) continue;
             vec4 l = sampleB(tDiff, i, tuv, kFar, tb, gx, gy); l.rgb *= uTints[i];
+            if (i == 3) l.rgb = mix(l.rgb, vec3(dot(l.rgb, vec3(0.299, 0.587, 0.114))) * uTrailDust.rgb, uTrailDust.a); // dusty soil
             alb += l * wi;
             vec3 n = sampleN(i, tuv, kFar, gx, gy);
             n.xy *= uNormalK[i];
@@ -108,9 +119,12 @@ const BOREAL_MAP = /* glsl */`
           float openN = smoothstep(0.25, 0.75, vnoise(ROT_F * tuv * 0.05 + 11.0) * 0.7 + vnoise(tuv * 0.23) * 0.3);
           float open = w.x * (1.0 - cano) * mix(0.35, 0.8, openN);
           if (open > 0.004) {
-            vec3 gr = sampleS(tDiff, 1, ROT_M * tuv + 5.3, kFar, ROT_M * gx, ROT_M * gy).rgb * vec3(0.7, 0.76, 0.5);
+            vec3 gr = sampleS(tDiff, 1, ROT_M * tuv + 5.3, kFar, ROT_M * gx, ROT_M * gy).rgb * vec3(0.62, 0.68, 0.44);
             alb.rgb = mix(alb.rgb, gr, open);
           }
+          // heath: bilberry / heather mats on the open floor and the grass (darker olive, ~1.5 m patches), none on trails / rock
+          float heath = smoothstep(0.44, 0.72, vnoise(ROT_B * tuv * 0.62 + 2.0) * 0.7 + vnoise(tuv * 1.9) * 0.3) * (w.x + w.y) * (1.0 - 0.6 * cano);
+          alb.rgb = mix(alb.rgb, alb.rgb * vec3(0.52, 0.62, 0.36), heath * 0.85);
           // feather moss: patches over the litter, thickest in the shade
           float mossN = vnoise(tuv * 0.07) * 0.65 + vnoise(ROT_M * tuv * 0.29 + 3.1) * 0.35;
           float moss = w.x * smoothstep(0.45, 0.68, mossN) * (0.3 + 0.7 * cano);
@@ -473,6 +487,7 @@ export class Terrain {
       tArm: { value: layers.armMap },
       uTints: { value: ground.tints.map((t) => new THREE.Vector3(...t)) },
       uNormalK: { value: new THREE.Vector4(...(ground.boreal?.normalK ?? [1, 1, 1, 1])) },
+      uTrailDust: { value: new THREE.Vector4(...(ground.boreal?.trailDust ?? [1, 1, 1, 0])) },
     };
     const boreal = ground.boreal !== null;
     mat.onBeforeCompile = (shader) => {

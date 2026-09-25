@@ -38,7 +38,7 @@ def load_config(shard=DEFAULT_SHARD, path=None):
         sys.exit(f'palette-delta: no regions for {shard} ({p}); write one for the shard\'s loop cameras')
     cfg = json.loads(p.read_text())
     return {'regions': {m: [(n, tuple(r)) for n, r in regs] for m, regs in cfg['regions'].items()},
-            'filters': cfg['filters'], 'weights': cfg.get('fitWeights', {})}
+            'filters': cfg['filters'], 'weights': cfg.get('fitWeights', {}), 'greyAnchor': cfg.get('greyAnchor', 3.0)}
 
 
 def arg_parser(desc):

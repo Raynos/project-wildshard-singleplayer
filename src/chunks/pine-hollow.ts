@@ -137,12 +137,15 @@ const TERRAIN = buildTerrain(1337, {
     const og = oldGrowthMask(x, z);
     const creek = nearestOnPolyline(CREEK, x, z).d;
     const crag = ridgeWeight(x, z) + denWallWeight(x, z);
-    const rock = smoothstep(0.16, 0.34, slope) + smoothstep(0.55, 0.75, n2.fbm(x * 0.02, z * 0.02, 3) + smoothstep(14, 24, h) * 0.3)
+    // the pond's dish (PH-L1 round 3): its gentle carved bank is soil, litter and shrubs to the water, not slope scree
+    const dish = smoothstep(POND.r + 16, POND.r + 3, Math.hypot(x - POND.x, z - POND.z));
+    const rock = smoothstep(0.16, 0.34, slope) * (1 - 0.85 * dish) + smoothstep(0.55, 0.75, n2.fbm(x * 0.02, z * 0.02, 3) + smoothstep(14, 24, h) * 0.3)
       + smoothstep(0.35, 0.8, crag) * 0.8 + smoothstep(CREEK_BED.half + 2.5, CREEK_BED.half, creek) * 0.8;
     const pads = smoothstep(HAMLET.r + 2, HAMLET.r - 8, Math.hypot(x - HAMLET.x, z - HAMLET.z)) * 0.55
       + smoothstep(LOOKOUT.r + 2, LOOKOUT.r - 2, Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z)) * 0.6
       + smoothstep(DEN.r, DEN.r - 14, Math.hypot(x - DEN.x, z - DEN.z)) * 0.45;
-    const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + t.cabinMask(x, z) * 0.3 + smoothstep(0.35, 0.6, t.pondMask(x, z)) * 0.7 + pads;
+    // the pond's bare shore is a narrow band at the water (PH-L1 round 3: it was a 10 m gravel apron up the bank)
+    const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + t.cabinMask(x, z) * 0.3 + smoothstep(0.62, 0.88, t.pondMask(x, z)) * 0.7 + pads;
     const grassN = n.fbm(x * 0.012 + 50, z * 0.012, 4);
     const clearing = smoothstep(KINGS_CLEARING.blend, KINGS_CLEARING.r - 6, Math.hypot(x - KINGS_CLEARING.x, z - KINGS_CLEARING.z));
     const grass = Math.max(smoothstep(-0.05, 0.35, grassN) * smoothstep(0.25, 0.08, slope) * (1 - smoothstep(2, 10, h) * 0.5) * (1 - og * 0.7), clearing * 0.9);
@@ -225,10 +228,12 @@ export const PINE_HOLLOW: ChunkDef = {
     // PH-L8 (the look loop, art/pine-hollow/round-14-look-loop/): the floor is Poly Haven's pine-needle litter
     // (forrest_ground_03) on the boreal shader — canopy-warmed litter, moss patches, tiling breakup; `?ground=v1` = before
     groundLayers: ['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
-    groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.8, 0.66, 0.52]],
+    groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [1.0, 0.98, 0.94], [0.95, 0.8, 0.6]],
     slabRock: 'rock_ground',
     boreal: {
       normalK: [1.2, 1.0, 1.4, 1.1],
+      trailDust: [1.25, 1.02, 0.7, 0.6],
+      grassTint: [0.8, 0.74, 0.55],
       v1: {
         groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
         groundTints: [[0.78, 0.74, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.62, 0.56, 0.5]],
@@ -247,9 +252,9 @@ export const PINE_HOLLOW: ChunkDef = {
     /** the old-growth's pines and firs stand a quarter taller (its giants are their own species, PH-B4) */
     scale: (x, z) => 1 + oldGrowthMask(x, z) * 0.25,
     species: speciesMix,
-    // PH-L8: the boreal understory the look loop's targets carpet the floor with — bilberry shrubs × 4, ferns × 1.5 and
+    // PH-L8: the boreal understory the look loop's targets carpet the floor with — bilberry shrubs × 12 (round 3: the open floor too), ferns × 1.5 and
     // into the dense shade (the old-growth)
-    understory: { ferns: 1.5, shrubs: 4, fernCanopy: true },
+    understory: { ferns: 1.5, shrubs: 12, fernCanopy: true },
     // PH-L1 round 2 (the Blender species set read as park land in the Hollow): the grove's second candidate grid
     infill: { x: HOLLOW_GROVE.x, z: HOLLOW_GROVE.z, r: HOLLOW_GROVE.r },
   },
@@ -313,7 +318,7 @@ export const PINE_HOLLOW: ChunkDef = {
   // (its presets untouched); the learned LUT fits the rest. `?grade=v1` = the grade before the loop.
   look: {
     grade: { shadowTint: [0.95, 0.97, 1.03] },
-    curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25, ambient: 1.3,
+    curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25, ambient: 1.3, sky: 1.18,
   },
   spawn: SPAWN,
 };

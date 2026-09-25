@@ -15,7 +15,7 @@ recompositions), so the fit is per material, not per pixel:
 1. for every region of the shard's palette-regions JSON (same rectangles, same material filters) each capture pixel gets a
    target by Reinhard transfer in CIELAB — its offset from the capture's mean, scaled by the ratio of the spreads
    (clamped 0.7–1.4), re-centred on the mockup's mean — giving (source, target) colour pairs;
-2. a coarse identity lattice (7³, low weight) and the grey axis anchor every colour the regions never see (the sword,
+2. a coarse identity lattice (7³, low weight) and the grey axis (weight `greyAnchor`, default 3) anchor every colour the regions never see (the sword,
    the hands, the HUD-free rest of the frame) to "leave it alone";
 3. each of the 33³ nodes moves by the kernel-weighted mean displacement of the pairs near it (Gaussian, σ = 0.08 in
    display sRGB) shrunk toward zero where the pairs are sparse (λ), then the displacement field is smoothed
@@ -80,7 +80,7 @@ def pairs(mock_dir, game_pat, rng, cfg):
     # identity anchors: a coarse lattice + the grey axis
     lat = np.stack(np.meshgrid(*[np.linspace(0, 1, 7)] * 3, indexing='ij'), -1).reshape(-1, 3)
     grey = np.repeat(np.linspace(0, 1, 33)[:, None], 3, 1)
-    for a, w in ((lat, 0.6), (grey, 3.0)):
+    for a, w in ((lat, 0.6), (grey, cfg['greyAnchor'])):
         src.append(a); dst.append(a); wt.append(np.full(len(a), w))
     return np.concatenate(src), np.concatenate(dst), np.concatenate(wt)
 

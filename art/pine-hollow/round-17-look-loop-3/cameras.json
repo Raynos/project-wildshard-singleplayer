@@ -1,0 +1,434 @@
+{
+  "about": "Pine Hollow look loop round 17 (PH-L1 round 3): 9-angle cameras at the ridge, the den and the hamlet, round 14's method. ridge = round 0's anchor (100, 131) facing the ridge cabin (118, 142) under the crags; den = (170, 165) facing NW to the den's floor (190, 186) and the bear cave; hamlet = the S road spur's end (-118, -134) facing E over the lodge, trader and mill to (-150, -138). `cameras` filled in on the first run and reused verbatim.",
+  "query": "chunk=pine-hollow&mute=1&nolock=1&skipintro=1&sw=0&perf=0&tod=0.4167&clock=1000000&weather=clear&bossGod=1",
+  "fp": {
+    "device": "iPhone 16 Pro (UA, DPR 3, touch)",
+    "viewport": [
+      390,
+      844
+    ],
+    "query": "tier=phone&touch",
+    "pitch": -0.06
+  },
+  "god": {
+    "viewport": [
+      1600,
+      900
+    ],
+    "query": "tier=desktop",
+    "fovV": 72,
+    "topUp": 90,
+    "diagUp": 45,
+    "diagOut": 55
+  },
+  "anchors": [
+    {
+      "id": "ridge",
+      "name": "The Ridge (the ridge cabin)",
+      "P": {
+        "x": 100,
+        "z": 131
+      },
+      "faceTo": {
+        "x": 118,
+        "z": 142
+      },
+      "groundY": 3.532,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": -2.119,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": -0.549,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": -3.69,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": 1.022,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            100,
+            93.532,
+            131
+          ],
+          "look": [
+            100,
+            3.532,
+            131
+          ],
+          "fovV": 72,
+          "up": [
+            0.853,
+            0,
+            0.521
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            53.069,
+            48.532,
+            102.32
+          ],
+          "look": [
+            117.066,
+            3.532,
+            141.429
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            128.68,
+            48.532,
+            84.069
+          ],
+          "look": [
+            100,
+            3.532,
+            131
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            71.32,
+            48.532,
+            177.931
+          ],
+          "look": [
+            100,
+            3.532,
+            131
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            146.931,
+            48.532,
+            159.68
+          ],
+          "look": [
+            100,
+            3.532,
+            131
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "den",
+      "name": "The Den (Old Blackpaw's cave)",
+      "P": {
+        "x": 170,
+        "z": 165
+      },
+      "faceTo": {
+        "x": 190,
+        "z": 186
+      },
+      "groundY": 4.617,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": 170,
+          "z": 165,
+          "yaw": -2.381,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": 170,
+          "z": 165,
+          "yaw": -0.81,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": 170,
+          "z": 165,
+          "yaw": -3.951,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": 170,
+          "z": 165,
+          "yaw": 0.761,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            170,
+            94.617,
+            165
+          ],
+          "look": [
+            170,
+            4.617,
+            165
+          ],
+          "fovV": 72,
+          "up": [
+            0.69,
+            0,
+            0.724
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            132.069,
+            49.617,
+            125.172
+          ],
+          "look": [
+            183.793,
+            4.617,
+            179.483
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            209.828,
+            49.617,
+            127.069
+          ],
+          "look": [
+            170,
+            4.617,
+            165
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            130.172,
+            49.617,
+            202.931
+          ],
+          "look": [
+            170,
+            4.617,
+            165
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            207.931,
+            49.617,
+            204.828
+          ],
+          "look": [
+            170,
+            4.617,
+            165
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "hamlet",
+      "name": "The mill hamlet (the lodge)",
+      "P": {
+        "x": -118,
+        "z": -134
+      },
+      "faceTo": {
+        "x": -150,
+        "z": -138
+      },
+      "groundY": -0.687,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": -118,
+          "z": -134,
+          "yaw": 1.446,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": -118,
+          "z": -134,
+          "yaw": 3.017,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": -118,
+          "z": -134,
+          "yaw": -0.124,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": -118,
+          "z": -134,
+          "yaw": 4.588,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            -118,
+            89.313,
+            -134
+          ],
+          "look": [
+            -118,
+            -0.687,
+            -134
+          ],
+          "fovV": 72,
+          "up": [
+            -0.992,
+            0,
+            -0.124
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            -63.425,
+            44.313,
+            -127.178
+          ],
+          "look": [
+            -137.846,
+            -0.687,
+            -136.481
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            -124.822,
+            44.313,
+            -79.425
+          ],
+          "look": [
+            -118,
+            -0.687,
+            -134
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            -111.178,
+            44.313,
+            -188.575
+          ],
+          "look": [
+            -118,
+            -0.687,
+            -134
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            -172.575,
+            44.313,
+            -140.822
+          ],
+          "look": [
+            -118,
+            -0.687,
+            -134
+          ],
+          "fovV": 72
+        }
+      ]
+    }
+  ]
+}
