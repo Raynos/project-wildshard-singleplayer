@@ -15,6 +15,7 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { RAPIER_WASM_URL } from '../physics/wasmUrl';
 import { navmeshUrl } from '../physics/navmeshUrl';
 import { pineHeroUrls } from '../world/pineHero';
+import { pineSkyKeyUrls } from '../world/pineSkyKeys';
 import { PINE_CREATURE_RIGS, pineCreatureRigUrl } from '../entities/pineCreatureRigs';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
@@ -35,7 +36,9 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   const props = uniq([...lod('rock_moss_set_01'), ...lod('tree_stump_01'), ...lod('dead_tree_trunk')]);
   const skyJson = `/assets/baked/${def.slug}/sky.json`;
   const pair = bakedSkyUrls(def.sky.hdri); // the gain-mapped JPEG + PNG in place of the .hdr (src/world/BakedSky.ts)
-  const sky = [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${def.sky.hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])];
+  const sky = [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${def.sky.hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : []),
+    // PH-P3: Pine Hollow's clock blends seven sky keys over a day — all of them at the bar, not fetched as the hours turn (E44)
+    ...(def.slug === 'pine-hollow' ? pineSkyKeyUrls().filter((f) => f in PUBLIC_BYTES) : [])];
   // per shard: only what its boot really reads, so DOWNLOAD's declared total is honest (it was Driftwood's ~2 MB against
   // Pine Hollow's ~20 MB of layers, cards, cabins and props): a low-poly shard reads only its baked terrain, a treeless
   // one (trees.factory 'none') no tree textures, an open-water one (ocean) builds no cabins or props
