@@ -14,7 +14,8 @@ Writes art/music/round-3-pine-hollow/:
   <style>/<slot>-alt-<seed>.m4a the runner-up take per slot (45 s) and the dawn pick in full, for a veto
   sfx/<model>/<family>.m4a      each sound's best take per model (beds: 15 s), mono
   index.html                    the page
-Previews are AAC 64 kb/s (music stereo, sfx mono), levelled to -18 LUFS (sfx -20), so no take wins by being louder.
+Previews are AAC 64 kb/s (music stereo, sfx mono). Raw takes are levelled to -18 LUFS (sfx -20), so no take wins by being
+louder; what ships is heard as shipped (-18 LUFS calm, the boss phases gaining weight on top, the sting at -16).
 """
 
 from __future__ import annotations
@@ -33,6 +34,7 @@ STYLES = ("piano", "orchestral", "folk")
 STYLE_TITLE = {"piano": "Piano + ambient", "orchestral": "Warm orchestral", "folk": "Folk"}
 PHASES = {"1": "I, the Warden", "2": "II, Lanterns Fall", "3": "III, the Last Light"}
 MODELS = {"moss": "MOSS-SoundEffect v2", "sa3-medium": "Stable Audio 3 Medium"}
+RAW_DIR = {"moss": "moss", "sa3-medium": "medium"}  # the generators' folder names in the raw dir
 
 
 def esc(x: object) -> str:
@@ -43,13 +45,15 @@ def ff(args: list[str]) -> None:
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *args], check=True)
 
 
-def enc(inputs: list[str], dest: Path, filt: str, mono: bool = False, lufs: float = -18.0) -> str:
-    """ffmpeg filter graph `filt` over `inputs` ([out] label) -> loudnorm -> AAC 64k; returns the page-relative path"""
+def enc(inputs: list[str], dest: Path, filt: str, mono: bool = False, lufs: float | None = -18.0) -> str:
+    """ffmpeg filter graph `filt` over `inputs` ([out] label) -> loudnorm (lufs=None: as shipped, already levelled, so the
+    boss phases keep their difference in weight) -> AAC 64k; returns the page-relative path"""
     dest.parent.mkdir(parents=True, exist_ok=True)
     args = []
     for i in inputs:
         args += ["-i", i]
-    ff(args + ["-filter_complex", f"{filt};[out]loudnorm=I={lufs}:TP=-1.5[o]", "-map", "[o]", "-ac", "1" if mono else "2",
+    norm = "anull" if lufs is None else f"loudnorm=I={lufs}:TP=-1.5"
+    ff(args + ["-filter_complex", f"{filt};[out]{norm}[o]", "-map", "[o]", "-ac", "1" if mono else "2",
                "-ar", "48000", "-c:a", "aac", "-b:a", "64k", "-movflags", "+faststart", str(dest)])
     return str(dest.relative_to(ART))
 
@@ -72,7 +76,7 @@ def music_section(raw: Path) -> tuple[str, int]:
         # theme 1 (kept): calm + tension, one loop from loopStart
         p = base["slots"]["pine"]
         t1 = enc([str(MUSIC / style / p["calm"]), str(MUSIC / style / p["tension"])], out / "theme1.m4a",
-                 f"[0][1]amix=inputs=2:normalize=0,atrim={p['loopStart']}:{p['loopEnd']},asetpts=N/SR/TB[out]")
+                 f"[0][1]amix=inputs=2:normalize=0,atrim={p['loopStart']}:{p['loopEnd']},asetpts=N/SR/TB[out]", lufs=None)
         blocks.append(f'<div class="slot"><h3>Theme 1 <span class="tag">kept</span></h3><p class="meta">Pine Hollow by day, as the game plays it with danger near (calm + tension).</p>{audio(t1, "Theme 1, one loop")}</div>')
         # night: 2 loops, tension in on the second
         n = man["slots"]["night"]
@@ -80,7 +84,7 @@ def music_section(raw: Path) -> tuple[str, int]:
         nb = enc([str(d / n["calm"]), str(d / n["tension"])], out / "night-built.m4a",
                  f"[0]atrim={n['loopStart']}:{n['loopEnd']},asetpts=N/SR/TB,aloop=loop=1:size={int(L * 48000)}[c];"
                  f"[1]atrim={n['loopStart']}:{n['loopEnd']},asetpts=N/SR/TB,aloop=loop=1:size={int(L * 48000)},"
-                 f"volume='if(lt(t,{L:.3f}),0,1)':eval=frame[t];[c][t]amix=inputs=2:normalize=0[out]")
+                 f"volume='if(lt(t,{L:.3f}),0,1)':eval=frame[t];[c][t]amix=inputs=2:normalize=0[out]", lufs=None)
         clips = [audio(nb, "As built", f"{n['bpm']:.0f} bpm, a {L:.0f} s loop heard twice: calm, then the tension layer joins")]
         # boss: one loop per phase
         b = man["slots"]["boss"]
@@ -89,10 +93,10 @@ def music_section(raw: Path) -> tuple[str, int]:
             g = b["phases"][ph]
             f = enc([str(d / b["calm"]), str(d / b["layers"][0]), str(d / b["layers"][1])], out / f"boss-phase{ph}.m4a",
                     f"[0]atrim={b['loopStart']}:{b['loopEnd']},asetpts=N/SR/TB[a];[1]atrim={b['loopStart']}:{b['loopEnd']},asetpts=N/SR/TB,volume={g[0]}[bb];"
-                    f"[2]atrim={b['loopStart']}:{b['loopEnd']},asetpts=N/SR/TB,volume={g[1]}[dd];[a][bb][dd]amix=inputs=3:normalize=0[out]")
+                    f"[2]atrim={b['loopStart']}:{b['loopEnd']},asetpts=N/SR/TB,volume={g[1]}[dd];[a][bb][dd]amix=inputs=3:normalize=0[out]", lufs=None)
             bars.append(audio(f, f"Phase {name}", f"bass {g[0]:.0%}, drums {g[1]:.0%}"))
         sting = man["stings"]["dawn"]
-        sd = enc([str(d / sting)], out / "sting-dawn.m4a", "[0]anull[out]", lufs=-16.0)
+        sd = enc([str(d / sting)], out / "sting-dawn.m4a", "[0]anull[out]", lufs=None)
         alts = {}
         for slot in ("night", "boss", "dawn"):
             rec = v3["slots"][slot]
@@ -128,7 +132,7 @@ def sfx_section(sfx_raw: Path) -> tuple[str, str, int]:
         cells = []
         for m in MODELS:
             r = rank[m][fam][0]
-            wav = sfx_raw / m / fam / f"{r['seed']}.wav"
+            wav = sfx_raw / RAW_DIR[m] / fam / f"{r['seed']}.wav"
             if not wav.exists():
                 cells.append("<td class='empty'>missing</td>")
                 continue

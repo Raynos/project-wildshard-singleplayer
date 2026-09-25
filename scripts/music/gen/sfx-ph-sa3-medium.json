@@ -4,31 +4,6 @@
     "bark-miller-1": [
       {
         "family": "bark-miller-1",
-        "seed": 3,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-miller-1",
-          "kind": "oneshot",
-          "seed": 3,
-          "prompt": "A cheerful, round-voiced middle-aged miller saying 'Oh-ho!' with a warm laugh in it. Close voice recording, no music.",
-          "desc": "a cheerful plump man saying oh ho",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.92,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.353,
-        "rank": 2,
-        "best_match": "a lever-action rifle being cycled",
-        "peak": 0.711
-      },
-      {
-        "family": "bark-miller-1",
         "seed": 2,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -47,8 +22,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.108,
-        "rank": 2,
+        "p": 0.749,
+        "rank": 1,
         "best_match": "an older man clearing his throat",
         "peak": 0.821
       },
@@ -72,10 +47,35 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.104,
-        "rank": 2,
+        "p": 0.716,
+        "rank": 1,
         "best_match": "an older man clearing his throat",
         "peak": 0.652
+      },
+      {
+        "family": "bark-miller-1",
+        "seed": 3,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-miller-1",
+          "kind": "oneshot",
+          "seed": 3,
+          "prompt": "A cheerful, round-voiced middle-aged miller saying 'Oh-ho!' with a warm laugh in it. Close voice recording, no music.",
+          "desc": "a cheerful plump man saying oh ho",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 0.92,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.35
+        },
+        "p": 0.386,
+        "rank": 2,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.711
       }
     ],
     "bark-miller-2": [
@@ -99,7 +99,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.772,
+        "p": 0.812,
         "rank": 1,
         "best_match": "a man humming a happy little tune",
         "peak": 0.69
@@ -124,7 +124,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.278,
+        "p": 0.289,
         "rank": 2,
         "best_match": "a crossbow being cranked and cocked with a ratchet",
         "peak": 0.853
@@ -158,31 +158,6 @@
     "bark-miller-3": [
       {
         "family": "bark-miller-3",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-miller-3",
-          "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A stout middle-aged man grunting with effort as he heaves a heavy flour sack onto his shoulder, a short 'hup!'. Close voice recording, no music.",
-          "desc": "a man grunting as he lifts a heavy sack",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.95,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.956,
-        "rank": 1,
-        "best_match": "a man grunting as he lifts a heavy sack",
-        "peak": 0.41
-      },
-      {
-        "family": "bark-miller-3",
         "seed": 3,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -201,7 +176,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.891,
+        "p": 0.994,
         "rank": 1,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.58
@@ -226,13 +201,63 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.618,
+        "p": 0.993,
         "rank": 1,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.53
+      },
+      {
+        "family": "bark-miller-3",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-miller-3",
+          "kind": "oneshot",
+          "seed": 1,
+          "prompt": "A stout middle-aged man grunting with effort as he heaves a heavy flour sack onto his shoulder, a short 'hup!'. Close voice recording, no music.",
+          "desc": "a man grunting as he lifts a heavy sack",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 0.95,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.35
+        },
+        "p": 0.987,
+        "rank": 1,
+        "best_match": "a man grunting as he lifts a heavy sack",
+        "peak": 0.41
       }
     ],
     "bark-miller-4": [
+      {
+        "family": "bark-miller-4",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-miller-4",
+          "kind": "oneshot",
+          "seed": 1,
+          "prompt": "A jolly, stout middle-aged man laughing a short, hearty belly laugh. Close voice recording, no music.",
+          "desc": "a man laughing heartily",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 0.95,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.35
+        },
+        "p": 0.964,
+        "rank": 1,
+        "best_match": "a man laughing heartily",
+        "peak": 0.837
+      },
       {
         "family": "bark-miller-4",
         "seed": 3,
@@ -253,7 +278,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.826,
+        "p": 0.962,
         "rank": 1,
         "best_match": "a man laughing heartily",
         "peak": 0.732
@@ -278,35 +303,10 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.817,
+        "p": 0.909,
         "rank": 1,
         "best_match": "a man laughing heartily",
         "peak": 0.893
-      },
-      {
-        "family": "bark-miller-4",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-miller-4",
-          "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A jolly, stout middle-aged man laughing a short, hearty belly laugh. Close voice recording, no music.",
-          "desc": "a man laughing heartily",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.95,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.803,
-        "rank": 1,
-        "best_match": "a man laughing heartily",
-        "peak": 0.837
       }
     ],
     "bark-miller-5": [
@@ -331,7 +331,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.0,
-        "rank": 13,
+        "rank": 10,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.747
       },
@@ -356,7 +356,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.0,
-        "rank": 23,
+        "rank": 21,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.953
       },
@@ -381,37 +381,12 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.0,
-        "rank": 31,
+        "rank": 28,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.85
       }
     ],
     "bark-miller-6": [
-      {
-        "family": "bark-miller-6",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-miller-6",
-          "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A stout middle-aged man puffing out his cheeks and blowing out a tired 'phew'. Close voice recording, one sound only, no music.",
-          "desc": "a man puffing and blowing out his cheeks",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.96,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.49,
-        "rank": 1,
-        "best_match": "a man grunting as he lifts a heavy sack",
-        "peak": 0.369
-      },
       {
         "family": "bark-miller-6",
         "seed": 2,
@@ -432,10 +407,35 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.059,
-        "rank": 2,
+        "p": 0.835,
+        "rank": 1,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.709
+      },
+      {
+        "family": "bark-miller-6",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-miller-6",
+          "kind": "oneshot",
+          "seed": 1,
+          "prompt": "A stout middle-aged man puffing out his cheeks and blowing out a tired 'phew'. Close voice recording, one sound only, no music.",
+          "desc": "a man puffing and blowing out his cheeks",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 0.96,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.35
+        },
+        "p": 0.653,
+        "rank": 1,
+        "best_match": "a man grunting as he lifts a heavy sack",
+        "peak": 0.369
       },
       {
         "family": "bark-miller-6",
@@ -457,8 +457,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.023,
-        "rank": 8,
+        "p": 0.026,
+        "rank": 6,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.751
       }
@@ -509,7 +509,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.022,
+        "p": 0.023,
         "rank": 4,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.771
@@ -561,8 +561,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.024,
-        "rank": 5,
+        "p": 0.374,
+        "rank": 1,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.422
       },
@@ -586,8 +586,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.013,
-        "rank": 10,
+        "p": 0.046,
+        "rank": 6,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.417
       },
@@ -611,8 +611,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.004,
-        "rank": 17,
+        "p": 0.006,
+        "rank": 10,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.612
       }
@@ -638,8 +638,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.6
         },
-        "p": 0.002,
-        "rank": 6,
+        "p": 0.054,
+        "rank": 4,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.692
       },
@@ -663,8 +663,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.6
         },
-        "p": 0.0,
-        "rank": 8,
+        "p": 0.043,
+        "rank": 5,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.562
       },
@@ -688,8 +688,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.6
         },
-        "p": 0.0,
-        "rank": 13,
+        "p": 0.003,
+        "rank": 9,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.757
       }
@@ -715,8 +715,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.011,
-        "rank": 13,
+        "p": 0.012,
+        "rank": 11,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.435
       },
@@ -741,7 +741,7 @@
           "mps_driver_gb": 12.6
         },
         "p": 0.0,
-        "rank": 17,
+        "rank": 14,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.32
       },
@@ -766,7 +766,7 @@
           "mps_driver_gb": 12.6
         },
         "p": 0.0,
-        "rank": 17,
+        "rank": 12,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.51
       }
@@ -792,8 +792,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.004,
-        "rank": 7,
+        "p": 0.072,
+        "rank": 6,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.673
       },
@@ -817,8 +817,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.002,
-        "rank": 7,
+        "p": 0.008,
+        "rank": 6,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.756
       },
@@ -843,7 +843,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.0,
-        "rank": 16,
+        "rank": 12,
         "best_match": "a man grunting as he lifts a heavy sack",
         "peak": 0.479
       }
@@ -895,7 +895,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.002,
-        "rank": 9,
+        "rank": 8,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.868
       },
@@ -920,7 +920,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.002,
-        "rank": 8,
+        "rank": 7,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.657
       }
@@ -946,7 +946,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.991,
+        "p": 1.0,
         "rank": 1,
         "best_match": "an older man sighing heavily",
         "peak": 0.255
@@ -971,7 +971,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.866,
+        "p": 0.989,
         "rank": 1,
         "best_match": "an older man sighing heavily",
         "peak": 0.479
@@ -996,8 +996,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.099,
-        "rank": 2,
+        "p": 0.771,
+        "rank": 1,
         "best_match": "a man puffing and blowing out his cheeks",
         "peak": 0.618
       }
@@ -1024,7 +1024,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.0,
-        "rank": 17,
+        "rank": 13,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.701
       },
@@ -1049,7 +1049,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.0,
-        "rank": 30,
+        "rank": 25,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.667
       },
@@ -1074,7 +1074,7 @@
           "mps_driver_gb": 12.35
         },
         "p": 0.0,
-        "rank": 23,
+        "rank": 20,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.68
       }
@@ -1100,7 +1100,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.987,
+        "p": 0.999,
         "rank": 1,
         "best_match": "an older man clearing his throat",
         "peak": 0.766
@@ -1125,7 +1125,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.979,
+        "p": 0.998,
         "rank": 1,
         "best_match": "an older man clearing his throat",
         "peak": 1.0
@@ -1150,7 +1150,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.84,
+        "p": 0.989,
         "rank": 1,
         "best_match": "an older man clearing his throat",
         "peak": 0.843
@@ -1177,33 +1177,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.002,
-        "rank": 6,
-        "best_match": "an older man clearing his throat",
-        "peak": 1.0
-      },
-      {
-        "family": "bark-ranger-8",
-        "seed": 2,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-ranger-8",
-          "kind": "oneshot",
-          "seed": 2,
-          "prompt": "A gruff older man giving a short, low, dry chuckle. Close voice recording, one sound only, no music.",
-          "desc": "an older man chuckling quietly",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.85,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.002,
-        "rank": 7,
+        "p": 0.118,
+        "rank": 2,
         "best_match": "an older man clearing his throat",
         "peak": 1.0
       },
@@ -1227,38 +1202,38 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.002,
-        "rank": 7,
+        "p": 0.05,
+        "rank": 3,
         "best_match": "an older man clearing his throat",
         "peak": 0.881
-      }
-    ],
-    "bark-trader-1": [
+      },
       {
-        "family": "bark-trader-1",
-        "seed": 1,
+        "family": "bark-ranger-8",
+        "seed": 2,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
           "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
           "backend": "PyTorch mps fp32",
-          "family": "bark-trader-1",
+          "family": "bark-ranger-8",
           "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A sly, husky-voiced woman trader saying 'Well, well...' with a knowing smile in her voice. Close voice recording, no music.",
-          "desc": "a sly woman saying well well",
+          "seed": 2,
+          "prompt": "A gruff older man giving a short, low, dry chuckle. Close voice recording, one sound only, no music.",
+          "desc": "an older man chuckling quietly",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.07,
+          "gen_time_s": 0.85,
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.953,
-        "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.491
-      },
+        "p": 0.041,
+        "rank": 3,
+        "best_match": "an older man clearing his throat",
+        "peak": 1.0
+      }
+    ],
+    "bark-trader-1": [
       {
         "family": "bark-trader-1",
         "seed": 2,
@@ -1279,7 +1254,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.948,
+        "p": 0.962,
         "rank": 1,
         "best_match": "a sly woman saying well well",
         "peak": 0.439
@@ -1304,10 +1279,35 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.895,
+        "p": 0.962,
         "rank": 1,
         "best_match": "a sly woman saying well well",
         "peak": 0.471
+      },
+      {
+        "family": "bark-trader-1",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-1",
+          "kind": "oneshot",
+          "seed": 1,
+          "prompt": "A sly, husky-voiced woman trader saying 'Well, well...' with a knowing smile in her voice. Close voice recording, no music.",
+          "desc": "a sly woman saying well well",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.07,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.35
+        },
+        "p": 0.959,
+        "rank": 1,
+        "best_match": "a sly woman saying well well",
+        "peak": 0.491
       }
     ],
     "bark-trader-2": [
@@ -1408,8 +1408,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.082,
-        "rank": 6,
+        "p": 0.328,
+        "rank": 1,
         "best_match": "a woman humming curiously",
         "peak": 0.545
       },
@@ -1433,8 +1433,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.026,
-        "rank": 5,
+        "p": 0.227,
+        "rank": 1,
         "best_match": "a sly woman saying well well",
         "peak": 0.526
       },
@@ -1458,38 +1458,13 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.007,
-        "rank": 12,
+        "p": 0.009,
+        "rank": 6,
         "best_match": "a wet, creaking creature groan close by",
         "peak": 0.441
       }
     ],
     "bark-trader-4": [
-      {
-        "family": "bark-trader-4",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-trader-4",
-          "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A husky-voiced woman giving a short, soft, amused laugh. Close voice recording, no music.",
-          "desc": "a woman laughing softly",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.86,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.057,
-        "rank": 3,
-        "best_match": "a man laughing heartily",
-        "peak": 0.645
-      },
       {
         "family": "bark-trader-4",
         "seed": 3,
@@ -1510,10 +1485,35 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.033,
-        "rank": 3,
+        "p": 0.874,
+        "rank": 1,
         "best_match": "a man laughing heartily",
         "peak": 0.577
+      },
+      {
+        "family": "bark-trader-4",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-4",
+          "kind": "oneshot",
+          "seed": 1,
+          "prompt": "A husky-voiced woman giving a short, soft, amused laugh. Close voice recording, no music.",
+          "desc": "a woman laughing softly",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 0.86,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.35
+        },
+        "p": 0.762,
+        "rank": 1,
+        "best_match": "a man laughing heartily",
+        "peak": 0.645
       },
       {
         "family": "bark-trader-4",
@@ -1535,8 +1535,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.021,
-        "rank": 3,
+        "p": 0.741,
+        "rank": 1,
         "best_match": "a man laughing heartily",
         "peak": 0.696
       }
@@ -1562,7 +1562,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.752,
+        "p": 0.81,
         "rank": 1,
         "best_match": "a woman tutting and clicking her tongue",
         "peak": 0.733
@@ -1587,7 +1587,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.504,
+        "p": 0.518,
         "rank": 1,
         "best_match": "a woman tutting and clicking her tongue",
         "peak": 0.689
@@ -1639,7 +1639,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.058,
+        "p": 0.061,
         "rank": 3,
         "best_match": "a sly woman saying well well",
         "peak": 0.524
@@ -1664,8 +1664,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.049,
-        "rank": 5,
+        "p": 0.058,
+        "rank": 4,
         "best_match": "a sly woman saying well well",
         "peak": 0.425
       },
@@ -1689,8 +1689,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.014,
-        "rank": 8,
+        "p": 0.015,
+        "rank": 7,
         "best_match": "a lever-action rifle being cycled",
         "peak": 0.382
       }
@@ -1716,8 +1716,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.04,
-        "rank": 6,
+        "p": 0.065,
+        "rank": 3,
         "best_match": "a sly woman saying well well",
         "peak": 0.645
       },
@@ -1741,8 +1741,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.012,
-        "rank": 8,
+        "p": 0.013,
+        "rank": 6,
         "best_match": "a crossbow being cranked and cocked with a ratchet",
         "peak": 0.538
       },
@@ -1766,8 +1766,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.001,
-        "rank": 13,
+        "p": 0.002,
+        "rank": 8,
         "best_match": "a crossbow being cranked and cocked with a ratchet",
         "peak": 0.573
       }
@@ -1793,8 +1793,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.372,
-        "rank": 2,
+        "p": 0.944,
+        "rank": 1,
         "best_match": "a sly woman saying well well",
         "peak": 0.389
       },
@@ -1818,8 +1818,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.173,
-        "rank": 2,
+        "p": 0.927,
+        "rank": 1,
         "best_match": "a sly woman saying well well",
         "peak": 0.445
       },
@@ -1843,8 +1843,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.35
         },
-        "p": 0.055,
-        "rank": 3,
+        "p": 0.767,
+        "rank": 1,
         "best_match": "a sly woman saying well well",
         "peak": 0.32
       }
@@ -2024,7 +2024,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.97,
+        "p": 0.963,
         "rank": 1,
         "best_match": "a fire crackling in a fireplace inside a quiet cabin",
         "peak": 0.697,
@@ -2059,7 +2059,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.945,
+        "p": 0.941,
         "rank": 1,
         "best_match": "a fire crackling in a fireplace inside a quiet cabin",
         "peak": 1.0,
@@ -2131,7 +2131,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.5,
+        "p": 0.465,
         "rank": 1,
         "best_match": "water dripping in a dark cave",
         "peak": 1.0,
@@ -2166,7 +2166,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.006,
+        "p": 0.003,
         "rank": 3,
         "best_match": "a bear growling low",
         "peak": 0.545,
@@ -2202,7 +2202,7 @@
           "mps_driver_gb": 12.59
         },
         "p": 0.0,
-        "rank": 31,
+        "rank": 36,
         "best_match": "a bear growling low",
         "peak": 0.673,
         "seam": {
@@ -2238,7 +2238,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.692,
+        "p": 0.703,
         "rank": 1,
         "best_match": "a babbling forest creek",
         "peak": 0.297,
@@ -2251,41 +2251,6 @@
           "end_s": 13.25,
           "bars": 8,
           "loop_s": 8.0
-        }
-      },
-      {
-        "family": "bed-creek",
-        "seed": 3,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bed-creek",
-          "kind": "bed",
-          "seed": 3,
-          "prompt": "Ambience of a clear forest creek: water babbling and trickling over stones, a steady gentle flow. Continuous field recording, no music.",
-          "desc": "a babbling forest creek",
-          "duration_s": 30,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 3.14,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.59
-        },
-        "p": 0.642,
-        "rank": 1,
-        "best_match": "a babbling forest creek",
-        "peak": 0.264,
-        "seam": {
-          "min_bars": 8,
-          "score": 0.587,
-          "similarity": 0.589,
-          "level_match": 0.987,
-          "start_s": 2.25,
-          "end_s": 11.25,
-          "bars": 9,
-          "loop_s": 9.0
         }
       },
       {
@@ -2321,6 +2286,41 @@
           "end_s": 22.75,
           "bars": 12,
           "loop_s": 12.0
+        }
+      },
+      {
+        "family": "bed-creek",
+        "seed": 3,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bed-creek",
+          "kind": "bed",
+          "seed": 3,
+          "prompt": "Ambience of a clear forest creek: water babbling and trickling over stones, a steady gentle flow. Continuous field recording, no music.",
+          "desc": "a babbling forest creek",
+          "duration_s": 30,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 3.14,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.59
+        },
+        "p": 0.452,
+        "rank": 1,
+        "best_match": "a babbling forest creek",
+        "peak": 0.264,
+        "seam": {
+          "min_bars": 8,
+          "score": 0.587,
+          "similarity": 0.589,
+          "level_match": 0.987,
+          "start_s": 2.25,
+          "end_s": 11.25,
+          "bars": 9,
+          "loop_s": 9.0
         }
       }
     ],
@@ -2380,7 +2380,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.952,
+        "p": 0.958,
         "rank": 1,
         "best_match": "a dawn chorus of songbirds in a forest",
         "peak": 0.401,
@@ -2415,7 +2415,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.929,
+        "p": 0.903,
         "rank": 1,
         "best_match": "a dawn chorus of songbirds in a forest",
         "peak": 0.308,
@@ -2452,8 +2452,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.61
         },
-        "p": 0.016,
-        "rank": 11,
+        "p": 0.02,
+        "rank": 8,
         "best_match": "a dawn chorus of songbirds in a forest",
         "peak": 0.179,
         "seam": {
@@ -2487,7 +2487,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.006,
+        "p": 0.008,
         "rank": 8,
         "best_match": "a dawn chorus of songbirds in a forest",
         "peak": 0.261,
@@ -2523,7 +2523,7 @@
           "mps_driver_gb": 12.59
         },
         "p": 0.004,
-        "rank": 11,
+        "rank": 14,
         "best_match": "a dawn chorus of songbirds in a forest",
         "peak": 0.391,
         "seam": {
@@ -2629,7 +2629,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.035,
+        "p": 0.025,
         "rank": 5,
         "best_match": "water dripping in a dark cave",
         "peak": 0.701,
@@ -2666,7 +2666,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.915,
+        "p": 0.918,
         "rank": 1,
         "best_match": "crickets chirping and an owl hooting at night",
         "peak": 0.181,
@@ -2736,7 +2736,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.223,
+        "p": 0.188,
         "rank": 2,
         "best_match": "eerie far-off creature calls in a foggy night forest",
         "peak": 0.209,
@@ -2753,41 +2753,6 @@
       }
     ],
     "bed-nightfog": [
-      {
-        "family": "bed-nightfog",
-        "seed": 2,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bed-nightfog",
-          "kind": "bed",
-          "seed": 2,
-          "prompt": "Ambience of a foggy forest at night: an eerie stillness, faint far-off hollow groaning calls of unknown creatures echoing between the trees, a twig snapping in the distance. Unsettling, continuous field recording, no music.",
-          "desc": "eerie far-off creature calls in a foggy night forest",
-          "duration_s": 30,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 2.87,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.59
-        },
-        "p": 0.378,
-        "rank": 2,
-        "best_match": "an eerie creature call echoing through foggy woods",
-        "peak": 0.347,
-        "seam": {
-          "min_bars": 8,
-          "score": 0.612,
-          "similarity": 0.665,
-          "level_match": 0.734,
-          "start_s": 9.75,
-          "end_s": 25.75,
-          "bars": 16,
-          "loop_s": 16.0
-        }
-      },
       {
         "family": "bed-nightfog",
         "seed": 1,
@@ -2825,6 +2790,41 @@
       },
       {
         "family": "bed-nightfog",
+        "seed": 2,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bed-nightfog",
+          "kind": "bed",
+          "seed": 2,
+          "prompt": "Ambience of a foggy forest at night: an eerie stillness, faint far-off hollow groaning calls of unknown creatures echoing between the trees, a twig snapping in the distance. Unsettling, continuous field recording, no music.",
+          "desc": "eerie far-off creature calls in a foggy night forest",
+          "duration_s": 30,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 2.87,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.59
+        },
+        "p": 0.28,
+        "rank": 2,
+        "best_match": "an eerie creature call echoing through foggy woods",
+        "peak": 0.347,
+        "seam": {
+          "min_bars": 8,
+          "score": 0.612,
+          "similarity": 0.665,
+          "level_match": 0.734,
+          "start_s": 9.75,
+          "end_s": 25.75,
+          "bars": 16,
+          "loop_s": 16.0
+        }
+      },
+      {
+        "family": "bed-nightfog",
         "seed": 3,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -2843,7 +2843,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.15,
+        "p": 0.113,
         "rank": 2,
         "best_match": "an eerie creature call echoing through foggy woods",
         "peak": 0.213,
@@ -2860,6 +2860,41 @@
       }
     ],
     "bed-oldgrowth": [
+      {
+        "family": "bed-oldgrowth",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bed-oldgrowth",
+          "kind": "bed",
+          "seed": 1,
+          "prompt": "Ambience deep in a hushed ancient old-growth forest: near silence, giant trunks creaking slowly in the wind high above, deep heavy water drops falling from the canopy, a raven far away. Continuous field recording, no music.",
+          "desc": "a hushed ancient forest with creaking trunks and drips",
+          "duration_s": 30,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 3.14,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.59
+        },
+        "p": 0.014,
+        "rank": 9,
+        "best_match": "rain pattering on a forest canopy",
+        "peak": 0.905,
+        "seam": {
+          "min_bars": 8,
+          "score": 0.562,
+          "similarity": 0.571,
+          "level_match": 0.946,
+          "start_s": 9.5,
+          "end_s": 19.5,
+          "bars": 10,
+          "loop_s": 10.0
+        }
+      },
       {
         "family": "bed-oldgrowth",
         "seed": 3,
@@ -2929,41 +2964,6 @@
           "bars": 11,
           "loop_s": 11.0
         }
-      },
-      {
-        "family": "bed-oldgrowth",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bed-oldgrowth",
-          "kind": "bed",
-          "seed": 1,
-          "prompt": "Ambience deep in a hushed ancient old-growth forest: near silence, giant trunks creaking slowly in the wind high above, deep heavy water drops falling from the canopy, a raven far away. Continuous field recording, no music.",
-          "desc": "a hushed ancient forest with creaking trunks and drips",
-          "duration_s": 30,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 3.14,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.59
-        },
-        "p": 0.006,
-        "rank": 14,
-        "best_match": "a dawn chorus of songbirds in a forest",
-        "peak": 0.905,
-        "seam": {
-          "min_bars": 8,
-          "score": 0.562,
-          "similarity": 0.571,
-          "level_match": 0.946,
-          "start_s": 9.5,
-          "end_s": 19.5,
-          "bars": 10,
-          "loop_s": 10.0
-        }
       }
     ],
     "bed-pond": [
@@ -3004,41 +3004,6 @@
       },
       {
         "family": "bed-pond",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bed-pond",
-          "kind": "bed",
-          "seed": 1,
-          "prompt": "Ambience at the edge of a still forest pond: frogs croaking in a chorus, the haunting wail of a loon far across the water, dragonflies buzzing past, gentle water lapping at the reeds. Continuous field recording, no music.",
-          "desc": "frogs croaking by a pond with a loon calling",
-          "duration_s": 30,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 3.04,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.59
-        },
-        "p": 0.009,
-        "rank": 3,
-        "best_match": "a dawn chorus of songbirds in a forest",
-        "peak": 0.16,
-        "seam": {
-          "min_bars": 8,
-          "score": 0.627,
-          "similarity": 0.656,
-          "level_match": 0.85,
-          "start_s": 8.5,
-          "end_s": 27.5,
-          "bars": 19,
-          "loop_s": 19.0
-        }
-      },
-      {
-        "family": "bed-pond",
         "seed": 3,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -3057,8 +3022,8 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.035,
-        "rank": 6,
+        "p": 0.116,
+        "rank": 3,
         "best_match": "an eerie creature call echoing through foggy woods",
         "peak": 0.289,
         "seam": {
@@ -3070,6 +3035,41 @@
           "end_s": 26.5,
           "bars": 18,
           "loop_s": 18.0
+        }
+      },
+      {
+        "family": "bed-pond",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bed-pond",
+          "kind": "bed",
+          "seed": 1,
+          "prompt": "Ambience at the edge of a still forest pond: frogs croaking in a chorus, the haunting wail of a loon far across the water, dragonflies buzzing past, gentle water lapping at the reeds. Continuous field recording, no music.",
+          "desc": "frogs croaking by a pond with a loon calling",
+          "duration_s": 30,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 3.04,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.59
+        },
+        "p": 0.018,
+        "rank": 3,
+        "best_match": "a dawn chorus of songbirds in a forest",
+        "peak": 0.16,
+        "seam": {
+          "min_bars": 8,
+          "score": 0.627,
+          "similarity": 0.656,
+          "level_match": 0.85,
+          "start_s": 8.5,
+          "end_s": 27.5,
+          "bars": 19,
+          "loop_s": 19.0
         }
       }
     ],
@@ -3129,7 +3129,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.85,
+        "p": 0.839,
         "rank": 1,
         "best_match": "rain pattering on a forest canopy",
         "peak": 0.349,
@@ -3164,7 +3164,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.863,
+        "p": 0.853,
         "rank": 1,
         "best_match": "rain pattering on a forest canopy",
         "peak": 0.493,
@@ -3201,7 +3201,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.428,
+        "p": 0.401,
         "rank": 2,
         "best_match": "rain pattering on a forest canopy",
         "peak": 0.579,
@@ -3212,41 +3212,6 @@
           "level_match": 0.982,
           "start_s": 3.5,
           "end_s": 12.5,
-          "bars": 9,
-          "loop_s": 9.0
-        }
-      },
-      {
-        "family": "bed-rain-open",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bed-rain-open",
-          "kind": "bed",
-          "seed": 1,
-          "prompt": "Ambience of steady rain falling in an open clearing: rain hissing and splashing on grass and puddles, close and wide. Continuous field recording, no music.",
-          "desc": "rain falling in an open field",
-          "duration_s": 30,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 3.07,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.59
-        },
-        "p": 0.12,
-        "rank": 2,
-        "best_match": "rain pattering on a forest canopy",
-        "peak": 0.633,
-        "seam": {
-          "min_bars": 8,
-          "score": 0.632,
-          "similarity": 0.646,
-          "level_match": 0.926,
-          "start_s": 8.75,
-          "end_s": 17.75,
           "bars": 9,
           "loop_s": 9.0
         }
@@ -3271,7 +3236,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.104,
+        "p": 0.131,
         "rank": 2,
         "best_match": "rain pattering on a forest canopy",
         "peak": 0.472,
@@ -3285,44 +3250,44 @@
           "bars": 8,
           "loop_s": 8.0
         }
-      }
-    ],
-    "bed-ridge": [
+      },
       {
-        "family": "bed-ridge",
-        "seed": 2,
+        "family": "bed-rain-open",
+        "seed": 1,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
           "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
           "backend": "PyTorch mps fp32",
-          "family": "bed-ridge",
+          "family": "bed-rain-open",
           "kind": "bed",
-          "seed": 2,
-          "prompt": "Ambience on an exposed granite mountain ridge: strong gusting wind howling and whistling over the rocks, a hawk crying far away. Continuous field recording, no music.",
-          "desc": "strong wind howling over a rocky mountain ridge",
+          "seed": 1,
+          "prompt": "Ambience of steady rain falling in an open clearing: rain hissing and splashing on grass and puddles, close and wide. Continuous field recording, no music.",
+          "desc": "rain falling in an open field",
           "duration_s": 30,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 2.96,
+          "gen_time_s": 3.07,
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.149,
-        "rank": 3,
-        "best_match": "eerie far-off creature calls in a foggy night forest",
-        "peak": 0.28,
+        "p": 0.125,
+        "rank": 2,
+        "best_match": "rain pattering on a forest canopy",
+        "peak": 0.633,
         "seam": {
           "min_bars": 8,
-          "score": 0.686,
-          "similarity": 0.698,
-          "level_match": 0.943,
-          "start_s": 3.25,
-          "end_s": 25.25,
-          "bars": 22,
-          "loop_s": 22.0
+          "score": 0.632,
+          "similarity": 0.646,
+          "level_match": 0.926,
+          "start_s": 8.75,
+          "end_s": 17.75,
+          "bars": 9,
+          "loop_s": 9.0
         }
-      },
+      }
+    ],
+    "bed-ridge": [
       {
         "family": "bed-ridge",
         "seed": 3,
@@ -3343,9 +3308,9 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.148,
+        "p": 0.156,
         "rank": 3,
-        "best_match": "eerie far-off creature calls in a foggy night forest",
+        "best_match": "an eerie creature call echoing through foggy woods",
         "peak": 0.302,
         "seam": {
           "min_bars": 8,
@@ -3356,6 +3321,41 @@
           "end_s": 27.75,
           "bars": 19,
           "loop_s": 19.0
+        }
+      },
+      {
+        "family": "bed-ridge",
+        "seed": 2,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bed-ridge",
+          "kind": "bed",
+          "seed": 2,
+          "prompt": "Ambience on an exposed granite mountain ridge: strong gusting wind howling and whistling over the rocks, a hawk crying far away. Continuous field recording, no music.",
+          "desc": "strong wind howling over a rocky mountain ridge",
+          "duration_s": 30,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 2.96,
+          "model_load_s": 8.3,
+          "mps_driver_gb": 12.59
+        },
+        "p": 0.107,
+        "rank": 3,
+        "best_match": "eerie far-off creature calls in a foggy night forest",
+        "peak": 0.28,
+        "seam": {
+          "min_bars": 8,
+          "score": 0.686,
+          "similarity": 0.698,
+          "level_match": 0.943,
+          "start_s": 3.25,
+          "end_s": 25.25,
+          "bars": 22,
+          "loop_s": 22.0
         }
       },
       {
@@ -3450,7 +3450,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.474,
+        "p": 0.467,
         "rank": 1,
         "best_match": "a waterfall pouring into a pool",
         "peak": 0.359,
@@ -3485,7 +3485,7 @@
           "model_load_s": 8.3,
           "mps_driver_gb": 12.59
         },
-        "p": 0.146,
+        "p": 0.199,
         "rank": 2,
         "best_match": "rain pattering on a forest canopy",
         "peak": 0.449,

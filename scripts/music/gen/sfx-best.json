@@ -1,9 +1,9 @@
 {
   "rule": "lower CLAP rank wins, ties to the higher p; ships only in the top 5",
   "wins": {
-    "moss": 38,
-    "sa3-medium": 29,
-    "synth": 3,
+    "moss": 51,
+    "sa3-medium": 51,
+    "synth": 6,
     "kept-round-2": 2
   },
   "families": {
@@ -419,14 +419,40 @@
       "round": "pine-hollow",
       "into": "best",
       "kept": {
-        "winner": "moss",
+        "winner": "kept-round-2",
         "moss": {
-          "rank": 3,
-          "p": 0.047
+          "rank": 10,
+          "p": 0.01
         },
         "sa3-medium": {
-          "rank": 3,
-          "p": 0.008
+          "rank": 8,
+          "p": 0.011
+        },
+        "round": "pine-hollow",
+        "into": "best",
+        "kept": {
+          "winner": "kept-round-2",
+          "moss": {
+            "rank": 10,
+            "p": 0.01
+          },
+          "sa3-medium": {
+            "rank": 8,
+            "p": 0.011
+          },
+          "round": "pine-hollow",
+          "into": "best",
+          "kept": {
+            "winner": "moss",
+            "moss": {
+              "rank": 3,
+              "p": 0.047
+            },
+            "sa3-medium": {
+              "rank": 3,
+              "p": 0.008
+            }
+          }
         }
       }
     },
@@ -443,14 +469,40 @@
       "round": "pine-hollow",
       "into": "best",
       "kept": {
-        "winner": "sa3-medium",
+        "winner": "kept-round-2",
         "moss": {
-          "rank": 6,
-          "p": 0.004
+          "rank": 10,
+          "p": 0.001
         },
         "sa3-medium": {
-          "rank": 4,
-          "p": 0.025
+          "rank": 20,
+          "p": 0.001
+        },
+        "round": "pine-hollow",
+        "into": "best",
+        "kept": {
+          "winner": "kept-round-2",
+          "moss": {
+            "rank": 10,
+            "p": 0.001
+          },
+          "sa3-medium": {
+            "rank": 20,
+            "p": 0.001
+          },
+          "round": "pine-hollow",
+          "into": "best",
+          "kept": {
+            "winner": "sa3-medium",
+            "moss": {
+              "rank": 6,
+              "p": 0.004
+            },
+            "sa3-medium": {
+              "rank": 4,
+              "p": 0.025
+            }
+          }
         }
       }
     },
@@ -885,6 +937,500 @@
       "sa3-medium": {
         "rank": 3,
         "p": 0.038
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-hollow": {
+      "winner": "moss",
+      "moss": {
+        "rank": 4,
+        "p": 0.053
+      },
+      "sa3-medium": {
+        "rank": 8,
+        "p": 0.02
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-pond": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.753
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.143
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-cabin": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.945
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.963
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-creek": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.924
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.703
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-waterfall": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.839
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.554
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-mill": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.957
+      },
+      "sa3-medium": {
+        "rank": 4,
+        "p": 0.113
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-ridge": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.579
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.156
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-oldgrowth": {
+      "winner": "moss",
+      "moss": {
+        "rank": 2,
+        "p": 0.364
+      },
+      "sa3-medium": {
+        "rank": 9,
+        "p": 0.014
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-cave": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.888
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.465
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-night": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.737
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.918
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-nightfog": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 3,
+        "p": 0.122
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.314
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-rain-canopy": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.797
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.861
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-rain-open": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.775
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.401
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bed-dawn": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.982
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.978
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-1": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 33,
+        "p": 0.0
+      },
+      "sa3-medium": {
+        "rank": 4,
+        "p": 0.054
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-2": {
+      "winner": "synth",
+      "moss": {
+        "rank": 8,
+        "p": 0.002
+      },
+      "sa3-medium": {
+        "rank": 11,
+        "p": 0.012
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-3": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.755
+      },
+      "sa3-medium": {
+        "rank": 6,
+        "p": 0.072
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-4": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 10,
+        "p": 0.002
+      },
+      "sa3-medium": {
+        "rank": 5,
+        "p": 0.013
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-5": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.907
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 1.0
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-6": {
+      "winner": "synth",
+      "moss": {
+        "rank": 28,
+        "p": 0.0
+      },
+      "sa3-medium": {
+        "rank": 13,
+        "p": 0.0
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-7": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.298
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.999
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-ranger-8": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 7,
+        "p": 0.015
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.118
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-1": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.363
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.749
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-2": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.588
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.812
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-3": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.801
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.994
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-4": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.974
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.964
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-5": {
+      "winner": "synth",
+      "moss": {
+        "rank": 8,
+        "p": 0.005
+      },
+      "sa3-medium": {
+        "rank": 10,
+        "p": 0.0
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-6": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.996
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.835
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-7": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 6,
+        "p": 0.072
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.015
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-miller-8": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.215
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.374
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-1": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 4,
+        "p": 0.045
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.962
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-2": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 19,
+        "p": 0.0
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.013
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-3": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.395
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.328
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-4": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 4,
+        "p": 0.147
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.874
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-5": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 34,
+        "p": 0.001
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.81
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-6": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 15,
+        "p": 0.002
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.061
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-7": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 9,
+        "p": 0.005
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.065
+      },
+      "round": "pine-hollow",
+      "into": "pine-hollow"
+    },
+    "bark-trader-8": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 4,
+        "p": 0.02
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.944
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
