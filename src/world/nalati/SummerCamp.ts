@@ -8,9 +8,9 @@
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3 } from './paint';
 import { addYurt, yurtSolid } from './Yurt';
-import { PC, addKazan, addCart, addGroundRug, addChest, addBarrel } from './props';
+import { PC, addCart, addGroundRug, addBarrel } from './props';
 import { SUMMER_CAMP } from './layout';
-import { ModelSink, modelsOn } from './glbPaint';
+import { ModelSink } from './glbPaint';
 import { addKazanModel, addChestModel } from './modelProps';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import type { ColliderDesc } from '../registry';
@@ -24,8 +24,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   const colliders: Box[] = [];
   const descs: ColliderDesc[] = [];
   const cx = SUMMER_CAMP.x, cz = SUMMER_CAMP.z;
-  const models = modelsOn('props'); // the GLB kazan / chest (modelProps.ts), like the spring camp
-  const sink = new ModelSink();
+  const sink = new ModelSink(); // the GLB kazan / chest (modelProps.ts), like the spring camp
   const Y = [{ a: 70, d: 9, r: 2.9, flue: true, pal: 1 }, { a: 175, d: 9.5, r: 2.6, flue: false, pal: 0 }, { a: -60, d: 9, r: 2.7, flue: true, pal: 2, old: true }];
   for (const y of Y) {
     const a = (y.a * Math.PI) / 180, x = cx + Math.cos(a) * y.d, z = cz + Math.sin(a) * y.d;
@@ -37,10 +36,9 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
     descs.push(...yurtSolid(spec, top.height));
     if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
   }
-  smoke.emitter(models ? addKazanModel(sink, ground, cx + 1, cz - 1, colliders) : addKazan(kit, ground, cx + 1, cz - 1, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
+  smoke.emitter(addKazanModel(sink, ground, cx + 1, cz - 1, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
   addCart(kit, ground, cx - 7, cz + 7.5, 0.6, colliders);
-  if (models) addChestModel(sink, ground, cx + 3.5, cz + 3.5, 2.2, colliders);
-  else addChest(kit, ground, cx + 3.5, cz + 3.5, 2.2, colliders);
+  addChestModel(sink, ground, cx + 3.5, cz + 3.5, 2.2, colliders);
   addBarrel(kit, ground, cx - 3.2, cz - 4.6, colliders);
   addGroundRug(kit, ground, cx - 1.5, cz + 4.2, 0.3, 1.4, 2.0, 3);
   addGroundRug(kit, ground, cx + 4.8, cz - 3.2, 1.2, 1.2, 1.8, 2);
@@ -87,6 +85,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   group.add(mesh);
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
-  if (sink.size > 0) { tris += sink.tris(); void sink.flush(group, sky); }
+  tris += sink.tris();
+  void sink.flush(group, sky);
   return { name: 'summerCamp', object: group, colliders, surface: 'wood', descs, tris };
 }

@@ -13,7 +13,8 @@
  * every other painterly mesh, plus `sky.setupMaterial` for the CSM shadows. The phone tier loads `<name>.phone.glb`
  * (the 512² atlas). `rot` in a placement is the yaw about +y (0 = the model's front faces +Z).
  *
- * `modelsOn(part)` is the adoption flag the POI builders read (`?models=0|1`; see below).
+ * `modelsOn(part)` is the adoption flag the rocks, balbals and creatures read (`?models=0|1`; see below). The camp props
+ * are always the models (modelProps.ts; E136, the user's pick).
  *
  * Model shading — "Driftwood's shading for generated models" (NALATI-MERGE L3; on since N20, the user's pick; look v2
  * calls `setModelShade(true, scene)` once so a builder's clones get their own bake): the low-poly kit's AO bake (src/world/lowpolyKit.ts bakeAO — hemisphere rays
@@ -69,14 +70,15 @@ export interface ModelLook {
 }
 
 /**
- * The adoption flags. By default the balbals, the rocks and the camp props are the generated models; the yurts are
- * procedural (the camp orbit, 2026-09-23: the generated yurt's felt read stained up close; N20, the user's pick over
- * NALATI-MERGE D1's Blender yurt, whose model left the tree). `?models=0` → every POI procedural, `?models=1` → every model
- * on, `?creatures=glb` / `?creatures=proc` → the rigged creature GLBs
+ * The adoption flags. By default the balbals and the rocks are the generated models; the yurts are procedural (the camp
+ * orbit, 2026-09-23: the generated yurt's felt read stained up close; N20, the user's pick over NALATI-MERGE D1's Blender
+ * yurt, whose model left the tree). The camp props have no switch: they are the models (E136, the user's pick; their
+ * procedural twins are gone). `?models=0` → the rocks, balbals and creatures procedural, `?models=1` → every one a model,
+ * `?creatures=glb` / `?creatures=proc` → the rigged creature GLBs
  * (src/entities/glbCreatures.ts, on by default since 2026-09-23; `proc` = the procedural creatures) alone.
  */
-export type ModelPart = 'props' | 'rocks' | 'balbal' | 'creatures';
-const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { props: true, rocks: true, balbal: true, creatures: true };
+export type ModelPart = 'rocks' | 'balbal' | 'creatures';
+const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { rocks: true, balbal: true, creatures: true };
 
 export function modelsOn(part: ModelPart): boolean {
   if (typeof location === 'undefined') return PART_DEFAULT[part];
@@ -386,7 +388,6 @@ export class ModelSink {
     if (!l) { l = []; this.lists.set(name, l); }
     l.push(p);
   }
-  get size(): number { let n = 0; for (const l of this.lists.values()) n += l.length; return n; }
   /** the triangles these placements will draw */
   tris(): number { let n = 0; for (const [k, l] of this.lists) n += MODEL_TRIS[k] * l.length; return n; }
   flush(parent: THREE.Object3D, sky: Sky, look: Partial<Record<NalatiModelName, ModelLook>> = {}): Promise<unknown> {
