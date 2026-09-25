@@ -15,6 +15,7 @@ import { CHUNK_HALF } from '../core/config';
 import { heightAt, normalAt } from '../world/Heightfield';
 import { fogUniforms } from '../world/Atmosphere';
 import { toonUniforms } from '../world/stylize';
+import { waterView } from '../world/waterSurface';
 import type { ChunkPoi } from '../chunks/ChunkDef';
 import type { Explore } from './Explore';
 
@@ -32,6 +33,8 @@ export class MiniMap {
   private readonly canvas: HTMLCanvasElement;
   private readonly arrow: HTMLElement;
   private drawn = false;
+  /** the clock's part of the day the shot was taken in (EXPLORE-V2 V3: re-shot when it moves on, not once a session) */
+  private shotKey = '';
   private readonly pois: readonly ChunkPoi[];
   /** the square the map shows: the land and every pin, not the whole chunk (an island in its sea fills the sheet) */
   private readonly view: { x: number; z: number; half: number };
@@ -124,13 +127,17 @@ export class MiniMap {
     return { x: (x0 + x1) / 2, z: (z0 + z1) / 2, half: Math.min(CHUNK_HALF, Math.max(x1 - x0, z1 - z0) / 2 + 24) };
   }
 
-  /** the shard from above, once: the rendered shot (+ the forest's crowns painted over it), else the heightfield relief */
+  /** a clock shard's hour in eighths of its day (the photoreal clock: `sky.pine.phase`); a fixed sky is always the same shot */
+  private dayKey(): string { const ph = this.world.game.sky.pine?.phase; return ph === undefined ? 'fixed' : String(Math.floor(ph * 8)); }
+
+  /** the shard from above, once per part of the day: the rendered shot (+ the forest's crowns painted over it), else the heightfield relief */
   private draw(): void {
-    if (this.drawn) return;
+    const key = this.dayKey();
+    if (this.drawn && key === this.shotKey) return;
     const shot = this.shoot();
     const g = this.canvas.getContext('2d');
     if (!g) return;
-    this.drawn = true;
+    this.drawn = true; this.shotKey = key;
     if (shot) {
       this.canvas.width = shot.width; this.canvas.height = shot.height;
       g.drawImage(shot, 0, 0);
@@ -162,6 +169,7 @@ export class MiniMap {
     cam.position.set(vx, EYE, vz); cam.up.set(0, 0, 1); cam.lookAt(vx, 0, vz); // up = +Z: north at the top, screen right = −X (east)
     cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     fogUniforms.fogDistDensity.value = 0; fogUniforms.fogHeightDensity.value = 0;
+    waterView.uTopDown.value = 1; // the pond reflects its sky from up here, not its black deep body (V3)
     toonUniforms.uFogStart.value = 1e6; toonUniforms.uFogEnd.value = 2e6; // the low-poly shard's colour-ramp haze
     for (const [o] of hidden) o.visible = false;
     const ao = composer.passes.filter((q) => q.enabled && 'configuration' in q); // N8AO: its screen-space radius means nothing from 1.4 km up
@@ -181,6 +189,7 @@ export class MiniMap {
       for (const [s, k] of suns) s.intensity = k;
       fogUniforms.fogDistDensity.value = fog.dist; fogUniforms.fogHeightDensity.value = fog.height;
       toonUniforms.uFogStart.value = fog.start; toonUniforms.uFogEnd.value = fog.end;
+      waterView.uTopDown.value = 0;
       cam.position.copy(saved.pos); cam.quaternion.copy(saved.quat); cam.up.copy(saved.up);
       cam.fov = saved.fov; cam.near = saved.near; cam.far = saved.far;
       cam.updateProjectionMatrix(); cam.updateMatrixWorld();

@@ -15,15 +15,19 @@
  *   fullMap.setPois(() => MapPoi[])        // a shard's own points of interest (Driftwood: its places with discovery + the
  *                                          // quest's markers, src/game/quest/Places.ts); unset = the cabins / pond as before
  *   fullMap.setQuest(() => MapQuest|null)  // the quest in full — title, objective, sub-steps — for the MAP tab's card (E51)
+ *   fullMap.setZones(MapZone[])            // the shard's zone names under the pins (Pine Hollow, PH-C9)
+ *   fullMap.setFeatures({ trees, roofs })  // the shard's real trees + extra roofs on the ground layer (Minimap.setFeatures)
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
-import { LAYER_PPM, type Minimap } from './Minimap';
+import { LAYER_PPM, type MapFeatures, type Minimap } from './Minimap';
 
 /** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond) */
 export interface MapPoi { x: number; z: number; label: string; kind: 'place' | 'unknown' | 'quest' }
 /** the quest in full for the MAP tab's quest card (the HUD only shows its short chip, E51): chapter title, objective, sub-steps */
 export interface MapQuest { title: string; objective: string; hint: string }
+/** a zone's name on the full map (setZones) */
+export interface MapZone { x: number; z: number; label: string }
 
 const FOG_BRIGHTNESS = 0.3;
 const ZOOM_MIN = 1, ZOOM_MAX = 6;
@@ -90,6 +94,11 @@ export class FullMap {
    *  `declutter`: a quest marker's label that would cover a place's name goes above its diamond (NALATI-MERGE F11: the
    *  elder's "BAQYT ATA" sat on "NOMAD CAMP"). Off by default, so a shard that does not ask draws exactly as before */
   setPois(source: () => MapPoi[], opts: { declutter?: boolean } = {}): void { this.poiSource = source; this.declutter = opts.declutter === true; }
+  /** the shard's zone names (Pine Hollow: THE RIDGE, THE OLD-GROWTH, …), big faint caps under the pins up to 2.5× */
+  setZones(zones: readonly MapZone[]): void { this.zones = zones; }
+  private zones: readonly MapZone[] = [];
+  /** the shard's real trees + extra roofs for the ground layer (Minimap.setFeatures) */
+  setFeatures(f: MapFeatures): void { this.minimap.setFeatures(f); }
   /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
   setQuest(source: () => MapQuest | null): void { this.questSource = source; }
   get quest(): MapQuest | null { return this.questSource?.() ?? null; }
@@ -186,7 +195,7 @@ export class FullMap {
       ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * this.dpr; ctx.strokeText(label, px, py + r + 3 * this.dpr);
       ctx.fillText(label, px, py + r + 3 * this.dpr);
     };
-    if (this.poiSource) this.drawPois(this.poiSource(), sx, sz, fs, poi);
+    if (this.poiSource) this.drawPois(this.poiSource(), sx, sz, fs);
     else {
       CABIN_SITES.forEach((c, i) => poi(c.x, c.z, `CABIN ${i + 1}`, '#8fe3ff'));
       if (hasPond()) poi(POND.x, POND.z, 'THE POND', '#6fb8e8');
@@ -245,52 +254,82 @@ export class FullMap {
     this.ctx.restore();
   }
 
-  /** a shard's own POIs: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top) */
-  private drawPois(list: MapPoi[], sx: (x: number) => number, sz: (z: number) => number, fs: number, poi: (x: number, z: number, label: string, color: string) => void): void {
-    const ctx = this.ctx, d = this.dpr;
-    for (const p of list) {
-      if (p.kind === 'place') poi(p.x, p.z, p.label, '#e6f2f8');
-      else if (p.kind === 'unknown') {
-        const px = sx(p.x), py = sz(p.z), r = Math.max(3.5 * d, fs * 0.3);
-        ctx.fillStyle = 'rgba(196, 220, 232, 0.35)'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.8)'; ctx.lineWidth = 1.5 * d;
-        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = 'rgba(230, 242, 248, 0.7)'; ctx.fillText('?', px, py + r + 3 * d);
+  /**
+   * A shard's own POIs: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top),
+   * and under them the shard's zone names (setZones: big faint caps).
+   * `declutter` (setPois): every label takes the first free spot of below / above / right / left of its dot — the quest
+   * markers' first, then the places in list order, then the "?"s, then the zone names — against every dot and every label
+   * already placed. A place's name with no free spot is left off at this zoom (its dot stays; zoom in and it comes back); a
+   * quest label always shows. NALATI-MERGE F11 (the elder's "BAQYT ATA" on "NOMAD CAMP"), PH-C9 (Pine Hollow's clusters:
+   * the hamlet's lodge + mill, the Den's cave, the pond's islet + waterfall, the crossroads' cabin all overlapped at 1×).
+   */
+  private drawPois(list: MapPoi[], sx: (x: number) => number, sz: (z: number) => number, fs: number): void {
+    const ctx = this.ctx, d = this.dpr, gap = 3 * d, pad = 2 * d;
+    const dotR = (p: MapPoi): number => (p.kind === 'quest' ? Math.max(6 * d, fs * 0.55) : p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(3.5 * d, fs * 0.3));
+    const text = (p: MapPoi): string => (p.kind === 'unknown' ? '?' : p.label);
+    const taken: Box[] = [];
+    const W = this.canvas.width, H = this.canvas.height;
+    // a box that runs off the frame counts as taken too (the E road's "Creek bridge" was clipped at the chunk's east edge)
+    const hits = (b: Box): boolean => b.x0 < 0 || b.y0 < 0 || b.x1 > W || b.y1 > H || taken.some((t) => b.x0 < t.x1 && b.x1 > t.x0 && b.y0 < t.y1 && b.y1 > t.y0);
+    /** each label's spot: [centre x, top y], or null = left off at this zoom */
+    const spot = new Map<MapPoi, [number, number] | null>();
+    const zoneFs = fs * 1.15, zoneFont = `600 ${zoneFs}px Rajdhani, sans-serif`, poiFont = ctx.font;
+    const zones: { label: string; at: [number, number] }[] = [];
+    if (this.declutter) {
+      for (const p of list) { const px = sx(p.x), py = sz(p.z), r = dotR(p); taken.push({ x0: px - r, y0: py - r, x1: px + r, y1: py + r }); }
+      const order = [...list.filter((p) => p.kind === 'quest'), ...list.filter((p) => p.kind === 'place'), ...list.filter((p) => p.kind === 'unknown')];
+      for (const p of order) {
+        const px = sx(p.x), py = sz(p.z), r = dotR(p), w = ctx.measureText(text(p)).width;
+        const spots: [number, number][] = [[px, py + r + gap], [px, py - r - gap - fs], [px + r + gap + w / 2, py - fs / 2], [px - r - gap - w / 2, py - fs / 2]];
+        let got: [number, number] | null = null;
+        for (const [cx, top] of spots) {
+          const b = { x0: cx - w / 2 - pad, y0: top, x1: cx + w / 2 + pad, y1: top + fs };
+          if (!hits(b)) { taken.push(b); got = [cx, top]; break; }
+        }
+        spot.set(p, got ?? (p.kind === 'quest' ? spots[0] ?? null : null));
       }
     }
-    // declutter: the boxes the place names (and the "?"s) take, then each quest label's, so a marker's label that would
-    // land on one goes above its diamond instead
-    const taken: Box[] = [];
-    if (this.declutter) {
-      for (const p of list) {
-        if (p.kind === 'quest') continue;
-        const px = sx(p.x), py = sz(p.z), r = p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(3.5 * d, fs * 0.3);
-        taken.push(labelBox(ctx, p.kind === 'place' ? p.label : '?', px, py + r + 3 * d, fs));
+    if (this._zoom <= 2.5) {
+      ctx.font = zoneFont;
+      for (const zn of this.zones) {
+        const cx = sx(zn.x), top = sz(zn.z) - zoneFs / 2, w = ctx.measureText(zn.label).width;
+        const b = { x0: cx - w / 2 - pad, y0: top, x1: cx + w / 2 + pad, y1: top + zoneFs };
+        if (this.declutter && hits(b)) continue;
+        taken.push(b); zones.push({ label: zn.label, at: [cx, top] });
+      }
+      // the zone names: under everything, big and faint
+      ctx.fillStyle = 'rgba(230, 242, 248, 0.5)'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.55)'; ctx.lineWidth = 3 * d;
+      for (const zn of zones) { ctx.strokeText(zn.label, zn.at[0], zn.at[1]); ctx.fillText(zn.label, zn.at[0], zn.at[1]); }
+      ctx.font = poiFont;
+    }
+    const labelAt = (p: MapPoi): [number, number] | null => (this.declutter ? spot.get(p) ?? null : [sx(p.x), sz(p.z) + dotR(p) + gap]);
+    for (const p of list) {
+      const px = sx(p.x), py = sz(p.z), r = dotR(p), at = labelAt(p);
+      if (p.kind === 'place') {
+        ctx.fillStyle = '#e6f2f8'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * d;
+        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        if (at) {
+          ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * d;
+          ctx.strokeText(p.label, at[0], at[1]); ctx.fillText(p.label, at[0], at[1]);
+        }
+      } else if (p.kind === 'unknown') {
+        ctx.fillStyle = 'rgba(196, 220, 232, 0.35)'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.8)'; ctx.lineWidth = 1.5 * d;
+        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        if (at) { ctx.fillStyle = 'rgba(230, 242, 248, 0.7)'; ctx.fillText('?', at[0], at[1]); }
       }
     }
     const pulse = (performance.now() % 1600) / 1600;
     for (const p of list) {
       if (p.kind !== 'quest') continue;
-      const px = sx(p.x), py = sz(p.z), r = Math.max(6 * d, fs * 0.55);
-      let ly = py + r + 3 * d;
-      if (this.declutter) {
-        const below = labelBox(ctx, p.label, px, ly, fs), above = labelBox(ctx, p.label, px, py - r - 3 * d - fs, fs);
-        const hits = (b: Box) => taken.some((t) => b.x0 < t.x1 && b.x1 > t.x0 && b.y0 < t.y1 && b.y1 > t.y0);
-        const pick = hits(below) && !hits(above) ? above : below;
-        ly = pick.y0; taken.push(pick);
-      }
+      const px = sx(p.x), py = sz(p.z), r = dotR(p), at = labelAt(p) ?? [px, py + r + gap];
       ctx.strokeStyle = `rgba(143, 227, 255, ${0.7 * (1 - pulse)})`; ctx.lineWidth = 2 * d;
       ctx.beginPath(); ctx.arc(px, py, r * (1.2 + pulse * 1.6), 0, Math.PI * 2); ctx.stroke();
       ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * d;
       ctx.beginPath(); ctx.moveTo(px, py - r); ctx.lineTo(px + r, py); ctx.lineTo(px, py + r); ctx.lineTo(px - r, py); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * d;
-      ctx.strokeText(p.label, px, ly); ctx.fillText(p.label, px, ly);
+      ctx.strokeText(p.label, at[0], at[1]); ctx.fillText(p.label, at[0], at[1]);
     }
   }
 }
 
 interface Box { x0: number; y0: number; x1: number; y1: number }
-/** the box a centred, top-baseline label takes at (x, top) in the current font (fs px tall) */
-function labelBox(ctx: CanvasRenderingContext2D, label: string, x: number, top: number, fs: number): Box {
-  const w = ctx.measureText(label).width;
-  return { x0: x - w / 2, y0: top, x1: x + w / 2, y1: top + fs };
-}

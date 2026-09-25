@@ -43,6 +43,12 @@ export interface WaterMaterialOptions {
 
 /** the rain on the water (PH-L10, src/pinehollow/weather.ts): 0 … 1 rings on every water surface (pond, creek, puddles) */
 export const waterWeather = { uRainRings: { value: 0 } };
+/**
+ * The World Explorer map's top-down shot (src/explore/MiniMap.ts, EXPLORE-V2 V3): 1 while it renders. Straight down the
+ * Fresnel term is its 2 % floor, so the pond showed its near-black deep body: a black hole on the map. For the shot the
+ * surface reflects like a map reads water: most of the clock's sky over the pond (dawn, noon, night follow on their own).
+ */
+export const waterView = { uTopDown: { value: 0 } };
 
 export interface WaterMaterial { material: THREE.MeshPhysicalMaterial }
 
@@ -54,7 +60,7 @@ const WX = WIND_DIR.x.toFixed(3), WZ = WIND_DIR.z.toFixed(3);
 const FRAG_PARS = /* glsl */`
   uniform float uWindTime;
   uniform sampler2D uSkyline; uniform vec4 uSkyC; uniform float uForestSinEl; uniform vec3 uForestAlbedo;
-  uniform vec3 uShallow; uniform vec3 uDeep; uniform float uRainRings; uniform float uFade;
+  uniform vec3 uShallow; uniform vec3 uDeep; uniform float uRainRings; uniform float uFade; uniform float uTopDown;
   varying vec4 vWaterA; varying vec3 vWaterW; varying float vGust;
   vec2 waterSkyAt( vec2 p ) {
     float az = atan( p.y, p.x ) * 0.1591549 + 0.5;
@@ -163,6 +169,10 @@ const COMPOSE_GLSL = /* glsl */`
     float NdotV = clamp( dot( normal, geometryViewDir ), 0.0, 1.0 );
     float F = 0.02 + 0.98 * pow( clamp( 1.0 - NdotV, 0.0, 1.0 ), 5.0 );
     vec3 spec = reflectedLight.directSpecular + reflectedLight.indirectSpecular;
+    // the map's top-down shot (waterView): most of the sky, as a map reads water (spec already carries the 2 % Fresnel)
+    float Fm = mix( F, 0.7, uTopDown );
+    spec = mix( spec, min( spec * ( Fm / max( F, 1e-3 ) ), vec3( 2.0 ) ), uTopDown );
+    F = Fm;
     vec3 body = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;
     // the light falling on the surface (irradiance / pi): what lights the foam, a white diffuse layer
     vec3 lightIn = body / max( diffuseColor.rgb, vec3( 1e-3 ) );
@@ -198,6 +208,7 @@ export function createWaterMaterial(sky: Sky, opts: WaterMaterialOptions): Water
     uShallow: { value: new THREE.Color(0.042, 0.04, 0.02) },
     uDeep: { value: new THREE.Color(0.005, 0.01, 0.008) },
     uRainRings: waterWeather.uRainRings,
+    uTopDown: waterView.uTopDown,
     uFade: opts.fade ?? { value: 1 },
   };
   const mat = new THREE.MeshPhysicalMaterial({

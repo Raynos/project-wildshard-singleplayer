@@ -29,7 +29,7 @@
  * full map's pins (main.ts `fullMap.setPois`: named once explored, "?" before) — no names on the minimap itself. A wolf lying hidden in long grass (`mem.hidden`, Pack.ts) is not on it (the stealth rule).
  */
 import { CHUNK_HALF, CHUNK_SIZE, SEED } from '../core/config';
-import { heightAt, trailDistance, TRAILS, CABIN_SITES, POND, hasPond } from '../world/Heightfield';
+import { heightAt, trailDistance, TRAILS, CABIN_SITES, POND, hasPond, pondMask, waterLevel, streamAt } from '../world/Heightfield';
 import { Noise2D, smoothstep } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk, onActiveChunkChange } from '../chunks/registry';
@@ -51,6 +51,13 @@ export interface MinimapAnimal {
   state?: string;
   /** Animal.mem — a wolf with `hidden` 1 (lying still in long grass, Pack.ts) is off the map */
   mem?: Record<string, number>;
+}
+
+/** a shard's own map features (Minimap.setFeatures) */
+export interface MapFeatures {
+  trees?: readonly { x: number; z: number; height: number }[];
+  /** `rot`: the site's yaw (Ry); `w` × `d` metres (default the cabins' 9 × 7) */
+  roofs?: readonly { x: number; z: number; rot: number; w?: number; d?: number }[];
 }
 
 /** a named place on the maps (the minimap's labels, the full map's pins) */
@@ -122,6 +129,8 @@ const GRASS_LO: RGB = [104, 118, 58], GRASS_HI: RGB = [150, 158, 84];   // olive
 const FLOOR: RGB = [72, 78, 44];                                            // forest floor under the canopy
 const ROCK: RGB = [122, 118, 108];
 const WATER = '#3b607c', WATER_EDGE = '#2a4458';
+// still + running water painted by depth (the pond's real shore, its islet, the creek): slate shallows → deep slate blue
+const WATER_SHALLOW: RGB = [92, 132, 152], WATER_DEEP: RGB = [46, 80, 110];
 const TRAIL_EDGE = 'rgba(80, 64, 44, 0.85)', TRAIL = '#a08a66';
 const CROWN_DARK = '#2b4229', CROWN_MID = '#3c5a34', CROWN_LIGHT = '#66864a', CROWN_SHADOW = 'rgba(18, 34, 20, 0.5)';
 const ROOF = '#74523a', ROOF_RIDGE = '#9a7a58', ROOF_SHADOW = 'rgba(0, 0, 0, 0.45)';
@@ -206,6 +215,14 @@ export class Minimap {
 
   /** The painted terrain layer and fog coverage, for the full map (src/ui/Map.ts). */
   get layers(): { terrain: HTMLCanvasElement; cover: HTMLCanvasElement } { if (this.layerDirty) this.paintLayer(); return { terrain: this.layer, cover: this.cover }; }
+
+  /**
+   * A shard's own map features (Pine Hollow, C9): its real trees (forest.trees — the crowns then sit where the pines stand, so
+   * the old-growth's giants, the King's clearing, the Ridge's bare crags and the Den's bowl read) and extra roofs (the mill
+   * hamlet). Unset = the density-noise stipple and the chunk's cabins, as before.
+   */
+  setFeatures(f: MapFeatures): void { this.features = f; this.layerDirty = true; }
+  private features: MapFeatures = {};
 
   setVisible(v: boolean): void {
     if (v === this.visible) return;
@@ -358,6 +375,13 @@ export class Minimap {
   private crowns: number[] | null = null;
   private crownList(): number[] {
     if (this.crowns) return this.crowns;
+    const real = this.features.trees;
+    if (real && real.length > 0) {
+      const out: number[] = [];
+      for (const t of real) if (Math.abs(t.x) < CHUNK_HALF && Math.abs(t.z) < CHUNK_HALF) out.push(CHUNK_HALF - t.x, CHUNK_HALF - t.z, Math.max(1.4, t.height * 0.15));
+      this.crowns = out;
+      return out;
+    }
     const F = getActiveChunk().forest, density = new Noise2D(SEED + 5);
     const rng = new Rng(SEED + 4242);
     const cell = 5, half = CHUNK_HALF - 6;
@@ -425,6 +449,10 @@ export class Minimap {
         mix(GRASS_LO, GRASS_HI, alt, col);
         mix(col, FLOOR, grove * 0.8, col);
         mix(col, ROCK, smoothstep(0.14, 0.4, slope), col);
+        // water by depth: the pond inside its basin (its real shore, the islet stays land), the creek's running surface
+        const still = pondMask(wx, wz) > 0 ? waterLevel() - hij : -1;
+        const run = streamAt(wx, wz), wd = Math.max(still, run === null ? -1 : run - hij);
+        if (wd > 0.02) { mix(WATER_SHALLOW, WATER_DEEP, smoothstep(0.1, 2.5, wd), col); sh = 0.88 + 0.12 * shade; }
       }
       const o = (j * N + i) * 4;
       data[o] = col[0] * sh; data[o + 1] = col[1] * sh; data[o + 2] = col[2] * sh; data[o + 3] = 255;
@@ -434,8 +462,8 @@ export class Minimap {
     const cellPx = step * ppm; // sample i sits at u0 + i·step: centre each texel on its sample
     ctx.drawImage(small, 0, 0, N, N, -cellPx / 2, -cellPx / 2, N * cellPx, N * cellPx);
 
-    // pond
-    if (hasPond()) {
+    // pond: a painted disc only where the ground pass has no basin to paint by depth (the pond's real shore is above)
+    if (hasPond() && (painted || ocean !== null || pondMask(POND.x, POND.z) <= 0)) {
       const u = toU(POND.x), v = toV(POND.z), r = POND.r * ppm;
       ctx.beginPath(); ctx.arc(u, v, r * 1.12, 0, Math.PI * 2); ctx.fillStyle = WATER_EDGE; ctx.fill();
       const g = ctx.createRadialGradient(u - r * 0.3, v - r * 0.3, r * 0.1, u, v, r);
@@ -495,8 +523,9 @@ export class Minimap {
     }
 
     // cabin roofs: a rotated rectangle with a ridge line and a soft shadow
-    for (const c of CABIN_SITES) {
-      const w = 9 * ppm, dpt = 7 * ppm;
+    const roofs: readonly { x: number; z: number; rot: number; w?: number; d?: number }[] = [...CABIN_SITES, ...(this.features.roofs ?? [])];
+    for (const c of roofs) {
+      const w = (c.w ?? 9) * ppm, dpt = (c.d ?? 7) * ppm;
       ctx.save();
       ctx.translate(toU(c.x), toV(c.z));
       ctx.rotate(-c.rot); // Ry(rot) turns +x toward −z; on screen (u, v) = (−x, −z) that is anticlockwise, canvas rotate() is clockwise

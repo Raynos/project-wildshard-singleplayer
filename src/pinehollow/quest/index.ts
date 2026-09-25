@@ -37,13 +37,13 @@ import type { CompendiumState } from '../../ui/compendium/state';
 import type { TreeInstance } from '../../world/placement';
 import { heightAt } from '../../world/Heightfield';
 import { PINE_PHASES } from '../../world/PineDayNight';
-import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, type PineLandmarks } from '../../world/PineLandmarks';
+import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../../world/PineLandmarks';
 import { Flags, test } from '../../world/interact/flags';
 import { Interactables, type InteractEvent } from '../../world/interact/Interactables';
 import type { Place } from '../../world/interact/types';
 import { QuestState, lineFor, type NpcDef } from '../../game/quest/quest';
 import { DialogueBox, ObjectiveLine, RewardCaption } from '../../game/quest/QuestUI';
-import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../../chunks/pineHollowLayout';
+import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../../chunks/pineHollowLayout';
 import { KING_KIND } from '../antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
 import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, SECRET_FLAGS, type Spot } from './table';
@@ -459,7 +459,11 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   h.fullMap.setPois((): MapPoi[] => [
     ...PINE_HOLLOW_POIS.map((p): MapPoi => (flags.has(`seen:${p.id}`) ? { x: p.x, z: p.z, label: p.name, kind: 'place' } : { x: p.x, z: p.z, label: '?', kind: 'unknown' })),
     ...liveMarkers().map((m): MapPoi => ({ x: m.x, z: m.z, label: m.label, kind: 'quest' })),
-  ]);
+  ], { declutter: true });
+  // the zones a place's name does not already say (the Ridge, the old-growth, the Hollow), the real pines, the hamlet's roofs
+  const placeNames = new Set(PINE_HOLLOW_POIS.map((p) => p.name.toUpperCase()));
+  h.fullMap.setZones(PINE_HOLLOW_ZONES.filter((zn) => !placeNames.has(zn.label)));
+  h.fullMap.setFeatures({ trees: h.trees, roofs: pineHamletBuildings().map((b) => ({ x: b.x, z: b.z, rot: b.rot, w: b.spec.L + 1, d: b.spec.W + 1 })) });
 
   // ── the event achievements, read back from the flags (a save from before an achievement still earns it) ──
   const syncFeats = (): void => {
