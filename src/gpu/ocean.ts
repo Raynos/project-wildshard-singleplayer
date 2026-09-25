@@ -13,7 +13,7 @@
  */
 import type * as THREE from 'three';
 import {
-  abs, attribute, cameraPosition, clamp, cos, cross, dFdx, dFdy, dot, exp, float, floor, frontFacing, length, max, mix,
+  abs, attribute, cameraPosition, cameraViewMatrix, clamp, cos, cross, dFdx, dFdy, dot, exp, float, floor, frontFacing, fwidth, length, max, mix,
   modelWorldMatrix, normalize, output, positionLocal, pow, reflect, select, sin, smoothstep, step, texture, varying, vec2, vec3, vec4, fract,
 } from 'three/tsl';
 import type { Node } from 'three/webgpu';
@@ -37,6 +37,19 @@ function gerstner(p: Node<'vec2'>, t: Node<'float'>, damp: Node<'float'>): Node<
   return d.mul(damp);
 }
 
+/** waves.ts WAVES_NORMAL_GLSL `gerstnerNormal(p, t, damp)` → the smooth surface normal at rest point p (E151) */
+function gerstnerNormal(p: Node<'vec2'>, t: Node<'float'>, damp: Node<'float'>): Node<'vec3'> {
+  let tx: Node<'vec3'> = vec3(0), tz: Node<'vec3'> = vec3(0);
+  for (const [wx, wz, a, len, speed, q] of WAVES) {
+    const k = TAU / len, qak = (q / (k * a * WAVES.length)) * a * k, ak = a * k;
+    const ph = p.x.mul(wx).add(p.y.mul(wz)).sub(t.mul(speed)).mul(k).toVar();
+    const c = cos(ph), s = sin(ph);
+    tx = tx.add(vec3(s.mul(-wx * wx * qak), c.mul(wx * ak), s.mul(-wx * wz * qak)));
+    tz = tz.add(vec3(s.mul(-wx * wz * qak), c.mul(wz * ak), s.mul(-wz * wz * qak)));
+  }
+  return normalize(cross(vec3(0, 0, 1).add(tz.mul(damp)), vec3(1, 0, 0).add(tx.mul(damp))));
+}
+
 /** stylize-style hash21 (Ocean's own copy) */
 function hash21(pIn: Node<'vec2'>): Node<'float'> {
   const p0 = fract(pIn.mul(vec2(123.34, 456.21)));
@@ -53,6 +66,8 @@ export function registerOcean(): void {
     const T = gpuUniforms().toon, F = gpuUniforms().fog;
     const fogColor = sceneFogColor();
 
+    const defs = src.defines ?? {};
+    const faceted = 'SEA_FACETED' in defs, banded = 'SEA_BANDED' in defs; // Ocean.seaLook() (E151)
     const m = toonCopy(src, ToonStandardNodeMaterial);
     m.fog = false;               // applied by hand below, before the premultiply (Ocean's GLSL chunk order)
     m.premultipliedAlpha = false; // (the shader output is premultiplied by hand; the pipeline's blend state is the WebGL material's)
@@ -60,12 +75,16 @@ export function registerOcean(): void {
     // ── vertex ──
     const depth = attribute<'float'>('depth', 'float'), seed = attribute<'float'>('seed', 'float');
     const damp = smoothstep(0, 1.5, depth).mul(0.65).add(0.35).toVar();
-    const g = gerstner(positionLocal.xz, uTime, damp).toVar();
+    // the rest point as its own vec2, not a swizzle of positionLocal: Chrome's Tint (Metal) failed the whole vertex stage on
+    // that swizzle view ("swizzle view instruction still has usages after lowering"), so the WebGPU sea never drew (E151)
+    const rest = vec2(positionLocal.x, positionLocal.z).toVar();
+    const g = gerstner(rest, uTime, damp).toVar();
     const wob = vec3(sin(uTime.mul(0.7).add(seed.mul(6.2831))).mul(0.3), 0, cos(uTime.mul(0.6).add(seed.mul(6.2831)).add(1.7)).mul(0.3));
     const transformed = positionLocal.add(g).add(wob);
     m.positionNode = transformed;
     const vCrest = varying(g.y.div(max(damp, 0.35)), 'vCrest');
     const W = varying(modelWorldMatrix.mul(vec4(transformed, 1)).xyz, 'vOceanW').toVar();
+    const vRest = varying(rest, 'vRest'), vDamp = varying(damp, 'vDamp'); // (the mesh sits at x = z = 0: local xz is world xz)
 
     // ── colour ──
     const suv = W.xz.add(uChunkHalf).div(uChunkHalf.mul(2));
@@ -82,11 +101,17 @@ export function registerOcean(): void {
     const shoreD = still.div(max(slope, 0.012)).toVar();
     const V = normalize(cameraPosition.sub(W)).toVar();
     const fn0 = normalize(cross(dFdx(W), dFdy(W)));
-    const fn = fn0.mul(select(fn0.y.lessThan(0), float(-1), float(1))).toVar();
+    // E151: the waves' own normal per pixel (smooth), or the grid facet's (?sea=v1)
+    const fn = (faceted ? fn0.mul(select(fn0.y.lessThan(0), float(-1), float(1))) : gerstnerNormal(vRest, uTime, vDamp)).toVar();
+    if (!faceted) m.normalNode = cameraViewMatrix.mul(vec4(fn.mul(select(frontFacing, float(1), float(-1))), 0)).xyz.normalize();
     const path = col.div(max(abs(V.y), 0.22));
     const opac = float(1).sub(exp(path.mul(-0.85)));
     const tt = smoothstep(0, 1, pow(clamp(still.div(uDeepDepth), 0, 1), 0.9));
-    const water0 = mix(uShallow, uDeep, tt).mul(clamp(fn.x.mul(4.2).add(fn.z.mul(2.6)).add(1), 0.58, 1.48));
+    // the facet grade (?sea=v1), or the smooth normal's at 2.6×, banded in 10 % steps (Ocean.ts, E151)
+    const gr0 = fn.x.mul(4.2).add(fn.z.mul(2.6)).mul(faceted ? 1 / 0.14 : 2.6 / 0.1).toVar();
+    const gw = clamp(fwidth(gr0), 0.02, 0.5);
+    const gr = faceted || !banded ? gr0 : floor(gr0).add(smoothstep(float(0.5).sub(gw), float(0.5).add(gw), fract(gr0)));
+    const water0 = mix(uShallow, uDeep, tt).mul(clamp(gr.mul(faceted ? 0.14 : 0.1).add(1), 0.58, 1.48));
     const water = mix(water0, water0.mul(vec3(0.12, 0.3, 0.75)), T.uToonNight);
     // foam
     const n = toonNoise(W.xz.mul(0.55).add(uTime.mul(0.15))).toVar();

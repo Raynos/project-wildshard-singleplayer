@@ -63,3 +63,20 @@ ${WAVES.map(([wx, wz, a, len, speed, q]) => {
   }).join('\n')}
   return d * damp;
 }`;
+
+/**
+ * E151: the surface normal of the same waves at rest point `p` — the analytic Gerstner tangents (∂S/∂x, ∂S/∂z) crossed,
+ * so the sea can be lit and graded smoothly per pixel instead of per 4 m grid facet (the phone's big light / dark
+ * triangles). Standalone: it evaluates the table itself (src/gpu/ocean.ts mirrors it in TSL).
+ */
+export const WAVES_NORMAL_GLSL = /* glsl */`
+vec3 gerstnerNormal(vec2 p, float t, float damp) {
+  vec3 tx = vec3(0.0), tz = vec3(0.0);
+${WAVES.map(([wx, wz, a, len, speed, q]) => {
+    const k = TAU / len, qak = (q / (k * a * WAVES.length)) * a * k, ak = a * k;
+    return `  { float ph = ${k.toFixed(6)} * (${wx.toFixed(4)} * p.x + ${wz.toFixed(4)} * p.y - ${speed.toFixed(4)} * t); float c = cos(ph), s = sin(ph);
+    tx += vec3(${(-wx * wx * qak).toFixed(6)} * s, ${(wx * ak).toFixed(6)} * c, ${(-wx * wz * qak).toFixed(6)} * s);
+    tz += vec3(${(-wx * wz * qak).toFixed(6)} * s, ${(wz * ak).toFixed(6)} * c, ${(-wz * wz * qak).toFixed(6)} * s); }`;
+  }).join('\n')}
+  return normalize(cross(vec3(0.0, 0.0, 1.0) + tz * damp, vec3(1.0, 0.0, 0.0) + tx * damp));
+}`;
