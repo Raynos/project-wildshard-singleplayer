@@ -93,6 +93,19 @@ export const TIER_TABLE = {
 export const TIER_CONFIG = TIER_TABLE[TIER];
 
 /**
+ * E142 (Pine Hollow on Jake's iPhone: 14 fps / 71 ms in the old-growth): the photoreal shard's phone knobs on top of the
+ * phone row. A shard is picked by reloading with `?chunk=` (registry.ts), so the URL names it before any module reads the
+ * table (read here directly: importing the registry would load every chunk def ahead of the tier). `?phknobs=0` = the
+ * phone row as it was.
+ *  - trees hi → lo cards and the shadow cascade at 60 m, not 80 (E94 keeps the two together so no crown or shadow changes
+ *    shape in view): fewer full-detail crowns in the main pass and ~40 % less cascade area to draw casters into
+ *  - the grass carpet 40 slots per 4 m cell, not 56 (−29 % alpha-tested blades; the bottom half of the screen was blades)
+ */
+export const PINE_HOLLOW_PHONE = { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40 } as const;
+const PAGE_QUERY = typeof location === 'undefined' ? new URLSearchParams() : new URLSearchParams(location.search);
+if (TIER === 'phone' && PAGE_QUERY.get('chunk') === 'pine-hollow' && PAGE_QUERY.get('phknobs') !== '0') Object.assign(TIER_CONFIG, PINE_HOLLOW_PHONE);
+
+/**
  * The player's graphics prefs — the menu's Settings ▸ Graphics rows (src/ui/Menu.ts), read once at boot, so a
  * change needs a restart. 'auto' = the tier default above. The old DBG pill kept a tier / dpr / aa / meter
  * override under 'ws.debug'; the pill is gone and that key is dropped once so a stale override stops applying.

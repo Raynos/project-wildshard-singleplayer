@@ -28,12 +28,6 @@ export type XZ = [number, number];
 export const SPAWN = { x: 0, z: -235, yaw: Math.PI };
 /** where every path meets */
 export const CROSSROADS = { x: 0, z: -10 };
-/**
- * The Hollow's pine grove (PH-L1 round 2, with the Blender species set: B4 trees A): the bowl's forest × (1 + `boost`) inside
- * `r` of the centre, fading out over the last 40 % — the dense Scots-pine stand of the look loop's targets, not open park
- * land. The trails (9–13 m), the cabin pads, the zipline's cut and the density noise's clearings stay open (placement.ts).
- */
-export const HOLLOW_GROVE = { x: 0, z: -45, r: 120, boost: 1.4 };
 /** the three log cabins (src/world/Cabin.ts builds one per site) — none moved in v2, two renamed (see CABIN_NAMES) */
 export const CABIN_SITES: { x: number; z: number; rot: number }[] = [
   { x: -14, z: -34, rot: 0.35 },  // the ranger's cabin (v1 "Hollow cabin"): SE of the crossroads, as on map A

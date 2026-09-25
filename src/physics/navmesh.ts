@@ -159,6 +159,8 @@ export class Navmesh {
   /**
    * A random walkable point about `radius` from `p` and reachable from it (the polys searched are connected to `p`'s),
    * for a creature of `agentRadius` — a wander target. Null when `p` is off the mesh.
+   * navcat bounds the polys it searches, not the point: in open ground one big poly can put the point 2× `radius` away
+   * (E143's thinner forest: 46 m for 20 asked), so up to 4 draws, the first within 1.5 × `radius`, else the nearest.
    */
   randomPointNear(p: XYZ, radius: number, agentRadius = 0, rand: () => number = Math.random, out = new THREE.Vector3()): THREE.Vector3 | null {
     const t0 = performance.now();
@@ -166,8 +168,14 @@ export class Navmesh {
       const { mesh } = this.layerFor(agentRadius);
       const s = findNearestPoly(this.nearest, mesh, toVec3(p, this.a), SNAP, DEFAULT_QUERY_FILTER);
       if (!s.success) return null;
-      const r = findRandomPointAroundCircle(mesh, s.nodeRef, s.position, radius, DEFAULT_QUERY_FILTER, rand);
-      return r.success ? out.set(r.position[0], r.position[1], r.position[2]) : null;
+      let best = Infinity;
+      for (let i = 0; i < 4 && best > radius * 1.5; i++) {
+        const r = findRandomPointAroundCircle(mesh, s.nodeRef, s.position, radius, DEFAULT_QUERY_FILTER, rand);
+        if (!r.success) continue;
+        const d = Math.hypot(r.position[0] - s.position[0], r.position[2] - s.position[2]);
+        if (d < best) { best = d; out.set(r.position[0], r.position[1], r.position[2]); }
+      }
+      return best < Infinity ? out : null;
     } finally { this.count(t0); }
   }
 

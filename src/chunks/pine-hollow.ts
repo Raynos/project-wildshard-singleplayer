@@ -14,7 +14,7 @@ import { TREE_SPECIES, type SpeciesWeights } from '../world/treeSpecies';
 import {
   SPAWN, CABIN_SITES, RIDGE, ridgeFootZ, LOOKOUT, ZIPLINE, POND, ISLET, WATERFALL, RIDGE_STREAM, CREEK, CREEK_BED, CREEK_BRIDGE,
   DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS, GRADED, PINE_HOLLOW_POIS,
-  nearestOnPolyline, creekBedAt, creekWaterAt, HOLLOW_GROVE,
+  nearestOnPolyline, creekBedAt, creekWaterAt,
 } from './pineHollowLayout';
 import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
@@ -162,6 +162,9 @@ function ziplineDistance(x: number, z: number): number {
   return nearestOnPolyline([[ZIPLINE.from.x, ZIPLINE.from.z], [ZIPLINE.to.x, ZIPLINE.to.z]], x, z).d;
 }
 
+/** E143: the keep multiplier on the whole forest (the look loop's was 1, with the Hollow grove's × 2.4 on top) */
+const FOREST_KEEP = 0.7;
+
 /**
  * Forest keep multiplier (ChunkForest.density): the old-growth nearly solid, the ridge's crags sparse; bare (0: no tree,
  * no undergrowth) on the hamlet's pad, the King's arena, the lookout's pad and the Den's floor; the creek, the zipline's
@@ -174,8 +177,10 @@ function forestDensity(x: number, z: number): number {
   if (Math.hypot(x - DEN.x, z - DEN.z) < 14 || Math.hypot(x - BEAR_CAVE.x, z - BEAR_CAVE.z) < 9) return 0;
   if (nearestOnPolyline(CREEK, x, z).d < 7 || ziplineDistance(x, z) < ZIPLINE.corridor) return 0.02;
   if (Math.hypot(x - WATERFALL.foot.x, z - WATERFALL.foot.z) < 10 || Math.hypot(x - CREEK_BRIDGE.x, z - CREEK_BRIDGE.z) < 10) return 0.02;
-  const grove = 1 + HOLLOW_GROVE.boost * smoothstep(HOLLOW_GROVE.r, HOLLOW_GROVE.r * 0.6, Math.hypot(x - HOLLOW_GROVE.x, z - HOLLOW_GROVE.z)); // the Hollow's pines (PH-L1 r2)
-  return (1 + oldGrowthMask(x, z) * 3) * grove * (1 - smoothstep(0.3, 0.9, ridgeWeight(x, z)) * 0.6); // × 4 saturates the old-growth at its 8.5 m grid
+  // E143 (Jake: "way too many trees … green, green, green foliage" — a hunting shard needs sight lines): the whole shard at
+  // FOREST_KEEP of the look loop's forest and the old-growth × 1.6, not × 4 (which saturated its 8.5 m grid into a wall),
+  // and no Hollow grove (PH-L1 round 2's × 2.4 and its second grid): paths, clearings and animals at 40–80 m read again
+  return FOREST_KEEP * (1 + oldGrowthMask(x, z) * 0.6) * (1 - smoothstep(0.3, 0.9, ridgeWeight(x, z)) * 0.6);
 }
 
 /** a + (b − a)·t over species weights */
@@ -252,11 +257,10 @@ export const PINE_HOLLOW: ChunkDef = {
     /** the old-growth's pines and firs stand a quarter taller (its giants are their own species, PH-B4) */
     scale: (x, z) => 1 + oldGrowthMask(x, z) * 0.25,
     species: speciesMix,
-    // PH-L8: the boreal understory the look loop's targets carpet the floor with — bilberry shrubs × 12 (round 3: the open floor too), ferns × 1.5 and
-    // into the dense shade (the old-growth)
-    understory: { ferns: 1.5, shrubs: 12, fernCanopy: true },
-    // PH-L1 round 2 (the Blender species set read as park land in the Hollow): the grove's second candidate grid
-    infill: { x: HOLLOW_GROVE.x, z: HOLLOW_GROVE.z, r: HOLLOW_GROVE.r },
+    // PH-L8: the boreal understory — bilberry shrubs and ferns. E143: back from the look loop's round 3 (shrubs × 12 over the
+    // open floor, ferns × 1.5 filling the dense shade) to shrubs × 2.5 and ferns × 1 in their clusters, so the floor reads
+    // and a deer's legs show; the Hollow's second tree grid (`infill`, PH-L1 round 2) is gone with its grove
+    understory: { ferns: 1, shrubs: 2.5, fernCanopy: false },
   },
   // Fauna: MANY SMALL GROUPS across the whole shard (user: "I don't want to search endlessly in an empty
   // forest" — nor nine boars in one clearing). `layoutFauna` lays a ~60 m grid of cells over the chunk (25 m
