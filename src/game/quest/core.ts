@@ -138,7 +138,7 @@ export function placesWithDiscovery(pts: PlacePoint[], flags: Flags, toast: (t: 
     mapPois: () => {
       out.length = 0;
       for (const p of pts) out.push({ x: p.x, z: p.z, label: p.label, kind: flags.has(`seen:${p.id}`) ? 'place' : 'unknown' });
-      for (const m of markers()) out.push({ x: m.x, z: m.z, label: m.label, kind: 'quest' });
+      for (const m of markers()) out.push({ x: m.x, z: m.z, label: m.label, short: m.short, kind: 'quest' }); // the map labels a marker by its short name (E130)
       return out;
     },
   };

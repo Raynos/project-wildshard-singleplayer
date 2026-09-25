@@ -15,13 +15,19 @@
  *   fullMap.setPois(() => MapPoi[])        // a shard's own points of interest (Driftwood: its places with discovery + the
  *                                          // quest's markers, src/game/quest/Places.ts); unset = the cabins / pond as before
  *   fullMap.setQuest(() => MapQuest|null)  // the quest in full — title, objective, sub-steps — for the MAP tab's card (E51)
+ *
+ * Labels (E130 C): a quest marker is labelled with its short name behind a small cyan ◆ (the glyph says "a shard / goal waits
+ * here" instead of the word); a marker at a place of the same name puts its ◆ on that place's label (an undiscovered one then
+ * shows the marker's name, not "?"). Every label is laid out against the others, the markers and your arrow: it tries below,
+ * above, right, left, then a line further, and takes the first spot that is free.
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
 import { LAYER_PPM, type Minimap } from './Minimap';
 
-/** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond) */
-export interface MapPoi { x: number; z: number; label: string; kind: 'place' | 'unknown' | 'quest' }
+/** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond);
+ *  `short` = a quest marker's short name ("SEA CAVE" for "SEA CAVE SHARD") — the map labels it with that */
+export interface MapPoi { x: number; z: number; label: string; kind: 'place' | 'unknown' | 'quest'; short?: string }
 /** the quest in full for the MAP tab's quest card (the HUD only shows its short chip, E51): chapter title, objective, sub-steps */
 export interface MapQuest { title: string; objective: string; hint: string }
 
@@ -30,6 +36,9 @@ const ZOOM_MIN = 1, ZOOM_MAX = 6;
 const TILE_PX = 256;          // a zoom tile's side, device px
 const TILE_CACHE = 64;        // tiles kept (256 KB each)
 const TILE_BUDGET_MS = 6;     // painting new tiles, per frame
+const CYAN = '#8fe3ff';
+/** metres: a quest marker this close to a place of its name tags that place's label instead of carrying its own */
+const MERGE_M = 30;
 const ctx2d = (c: HTMLCanvasElement): CanvasRenderingContext2D => { const ctx = c.getContext('2d'); if (!ctx) throw new Error('FullMap: no 2d context'); return ctx; };
 
 export class FullMap {
@@ -45,8 +54,6 @@ export class FullMap {
   private pinchDist = 0; private pinchZoom = 1;
   onToggle?: (open: boolean) => void;
   private poiSource: (() => MapPoi[]) | null = null;
-  /** move a quest marker's label off a place's label it would cover (setPois' `declutter`; Nalati only) */
-  private declutter = false;
   private questSource: (() => MapQuest | null) | null = null;
   /** the zoom changed (pinch / wheel / setZoom) — the menu's zoom chips follow */
   onZoom?: (zoom: number) => void;
@@ -86,10 +93,9 @@ export class FullMap {
   }
 
   get isOpen(): boolean { return this.open; }
-  /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open;
-   *  `declutter`: a quest marker's label that would cover a place's name goes above its diamond (NALATI-MERGE F11: the
-   *  elder's "BAQYT ATA" sat on "NOMAD CAMP"). Off by default, so a shard that does not ask draws exactly as before */
-  setPois(source: () => MapPoi[], opts: { declutter?: boolean } = {}): void { this.poiSource = source; this.declutter = opts.declutter === true; }
+  /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open.
+   *  (`declutter` is kept for its callers: every label is laid out apart now, E130 — NALATI-MERGE F11's elder included) */
+  setPois(source: () => MapPoi[], _opts: { declutter?: boolean } = {}): void { this.poiSource = source; }
   /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
   setQuest(source: () => MapQuest | null): void { this.questSource = source; }
   get quest(): MapQuest | null { return this.questSource?.() ?? null; }
@@ -174,27 +180,17 @@ export class FullMap {
     ctx.strokeStyle = 'rgba(143, 227, 255, 0.55)'; ctx.lineWidth = 1.5 * this.dpr;
     ctx.strokeRect(ox, oy, side, side);
 
-    // points of interest
+    // points of interest (their labels laid out clear of each other, the markers and your arrow)
     const fs = Math.max(11 * this.dpr, side * 0.022 / this._zoom);
-    ctx.font = `${fs}px JetBrains Mono, Menlo, monospace`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    const poi = (x: number, z: number, label: string, color: string) => {
-      const px = sx(x), py = sz(z), r = Math.max(4 * this.dpr, fs * 0.35);
-      ctx.fillStyle = color; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * this.dpr;
-      ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.92)';
-      ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * this.dpr; ctx.strokeText(label, px, py + r + 3 * this.dpr);
-      ctx.fillText(label, px, py + r + 3 * this.dpr);
-    };
-    if (this.poiSource) this.drawPois(this.poiSource(), sx, sz, fs, poi);
-    else {
-      CABIN_SITES.forEach((c, i) => poi(c.x, c.z, `CABIN ${i + 1}`, '#8fe3ff'));
-      if (hasPond()) poi(POND.x, POND.z, 'THE POND', '#6fb8e8');
-    }
+    const px = sx(pos.x), py = sz(pos.z), r = Math.max(7 * this.dpr, fs * 0.6);
+    const list: Pin[] = this.poiSource ? this.poiSource() : [
+      ...CABIN_SITES.map((c, i): Pin => ({ x: c.x, z: c.z, label: `CABIN ${i + 1}`, kind: 'place', color: '#8fe3ff' })),
+      ...(hasPond() ? [{ x: POND.x, z: POND.z, label: 'THE POND', kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
+    ];
+    this.drawPois(list, sx, sz, fs, { x: px, y: py, r: r * 2.2 });
 
     // you
     const deg = 180 - (yaw * 180) / Math.PI;
-    const px = sx(pos.x), py = sz(pos.z), r = Math.max(7 * this.dpr, fs * 0.6);
     ctx.save();
     ctx.translate(px, py); ctx.rotate((deg * Math.PI) / 180);
     ctx.fillStyle = '#ffffff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * this.dpr;
@@ -245,52 +241,84 @@ export class FullMap {
     this.ctx.restore();
   }
 
-  /** a shard's own POIs: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top) */
-  private drawPois(list: MapPoi[], sx: (x: number) => number, sz: (z: number) => number, fs: number, poi: (x: number, z: number, label: string, color: string) => void): void {
+  /** the points of interest: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top);
+   *  then every label, placed where it covers no other label, marker or your arrow (`you`) */
+  private drawPois(list: Pin[], sx: (x: number) => number, sz: (z: number) => number, fs: number, you: { x: number; y: number; r: number }): void {
     const ctx = this.ctx, d = this.dpr;
-    for (const p of list) {
-      if (p.kind === 'place') poi(p.x, p.z, p.label, '#e6f2f8');
-      else if (p.kind === 'unknown') {
-        const px = sx(p.x), py = sz(p.z), r = Math.max(3.5 * d, fs * 0.3);
-        ctx.fillStyle = 'rgba(196, 220, 232, 0.35)'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.8)'; ctx.lineWidth = 1.5 * d;
-        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = 'rgba(230, 242, 248, 0.7)'; ctx.fillText('?', px, py + r + 3 * d);
+    ctx.font = `${fs}px JetBrains Mono, Menlo, monospace`;
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    const pins = list.map((p) => {
+      const r = p.kind === 'quest' ? Math.max(6 * d, fs * 0.55) : p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(3.5 * d, fs * 0.3);
+      return { p, x: sx(p.x), y: sz(p.z), r, text: p.kind === 'unknown' ? '?' : p.kind === 'quest' ? (p.short ?? p.label) : p.label, glyph: p.kind === 'quest', own: true };
+    });
+    // a quest marker at a place of its own name (LOOKOUT at THE LOOKOUT) puts its ◆ on that place's label, one marker a place
+    for (const q of pins) {
+      if (q.p.kind !== 'quest') continue;
+      const name = q.text.toUpperCase();
+      let best: (typeof pins)[number] | null = null, bestD = MERGE_M * MERGE_M;
+      for (const o of pins) {
+        if (o.p.kind === 'quest' || o.glyph) continue;
+        const real = o.p.label.toUpperCase(), dd = (o.p.x - q.p.x) ** 2 + (o.p.z - q.p.z) ** 2;
+        if (dd < bestD && (real.includes(name) || name.includes(real))) { best = o; bestD = dd; }
       }
+      if (best) { best.glyph = true; if (best.p.kind === 'unknown') best.text = q.text; q.own = false; }
     }
-    // declutter: the boxes the place names (and the "?"s) take, then each quest label's, so a marker's label that would
-    // land on one goes above its diamond instead
-    const taken: Box[] = [];
-    if (this.declutter) {
-      for (const p of list) {
-        if (p.kind === 'quest') continue;
-        const px = sx(p.x), py = sz(p.z), r = p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(3.5 * d, fs * 0.3);
-        taken.push(labelBox(ctx, p.kind === 'place' ? p.label : '?', px, py + r + 3 * d, fs));
-      }
+    // markers: places + "?" under the quest diamonds
+    for (const m of pins) {
+      if (m.p.kind === 'quest') continue;
+      ctx.fillStyle = m.p.kind === 'place' ? (m.p.color ?? '#e6f2f8') : 'rgba(196, 220, 232, 0.35)';
+      ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = (m.p.kind === 'place' ? 2 : 1.5) * d;
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     }
     const pulse = (performance.now() % 1600) / 1600;
-    for (const p of list) {
-      if (p.kind !== 'quest') continue;
-      const px = sx(p.x), py = sz(p.z), r = Math.max(6 * d, fs * 0.55);
-      let ly = py + r + 3 * d;
-      if (this.declutter) {
-        const below = labelBox(ctx, p.label, px, ly, fs), above = labelBox(ctx, p.label, px, py - r - 3 * d - fs, fs);
-        const hits = (b: Box) => taken.some((t) => b.x0 < t.x1 && b.x1 > t.x0 && b.y0 < t.y1 && b.y1 > t.y0);
-        const pick = hits(below) && !hits(above) ? above : below;
-        ly = pick.y0; taken.push(pick);
-      }
+    for (const m of pins) {
+      if (m.p.kind !== 'quest') continue;
       ctx.strokeStyle = `rgba(143, 227, 255, ${0.7 * (1 - pulse)})`; ctx.lineWidth = 2 * d;
-      ctx.beginPath(); ctx.arc(px, py, r * (1.2 + pulse * 1.6), 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * d;
-      ctx.beginPath(); ctx.moveTo(px, py - r); ctx.lineTo(px + r, py); ctx.lineTo(px, py + r); ctx.lineTo(px - r, py); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * d;
-      ctx.strokeText(p.label, px, ly); ctx.fillText(p.label, px, ly);
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.r * (1.2 + pulse * 1.6), 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = CYAN; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * d;
+      diamond(ctx, m.x, m.y, m.r); ctx.fill(); ctx.stroke();
     }
+    // labels: ◆-tagged first, then places, then "?"; each takes the first candidate spot that is free (else the least covered)
+    const taken: Box[] = [{ x0: you.x - you.r, y0: you.y - you.r, x1: you.x + you.r, y1: you.y + you.r }];
+    for (const m of pins) taken.push({ x0: m.x - m.r, y0: m.y - m.r, x1: m.x + m.r, y1: m.y + m.r });
+    const rank = (m: (typeof pins)[number]): number => (m.glyph ? 0 : m.p.kind === 'place' ? 1 : 2);
+    const gw = fs * 0.62, gap = fs * 0.3, pad = 2 * d;
+    for (const m of pins.filter((q) => q.own).sort((a, b) => rank(a) - rank(b))) {
+      const w = ctx.measureText(m.text).width + (m.glyph ? gw + gap : 0), h = fs, o = m.r + 3 * d;
+      const spots: [number, number][] = [
+        [m.x - w / 2, m.y + o], [m.x - w / 2, m.y - o - h], [m.x + o + d, m.y - h / 2], [m.x - o - d - w, m.y - h / 2],
+        [m.x - w / 2, m.y + o + h + pad], [m.x - w / 2, m.y - o - 2 * h - pad], [m.x + o + d, m.y + h / 2 + pad], [m.x - o - d - w, m.y + h / 2 + pad],
+        [m.x + o + d, m.y - 1.5 * h - pad], [m.x - o - d - w, m.y - 1.5 * h - pad],
+      ];
+      let pick: Box | null = null, least = Infinity;
+      for (const [x0, y0] of spots) {
+        const b = { x0: x0 - pad, y0: y0 - pad, x1: x0 + w + pad, y1: y0 + h + pad };
+        let hit = 0;
+        for (const t of taken) hit += Math.max(0, Math.min(b.x1, t.x1) - Math.max(b.x0, t.x0)) * Math.max(0, Math.min(b.y1, t.y1) - Math.max(b.y0, t.y0));
+        if (hit < least) { least = hit; pick = b; }
+        if (hit === 0) break;
+      }
+      if (!pick) continue;
+      taken.push(pick);
+      let x = pick.x0 + pad;
+      const y = pick.y0 + pad;
+      if (m.glyph) {
+        ctx.fillStyle = CYAN; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 1.5 * d;
+        diamond(ctx, x + gw / 2, y + h * 0.48, gw / 2); ctx.fill(); ctx.stroke();
+        x += gw + gap;
+      }
+      ctx.fillStyle = m.p.kind === 'unknown' && !m.glyph ? 'rgba(230, 242, 248, 0.7)' : m.p.kind === 'quest' ? CYAN : 'rgba(255, 255, 255, 0.92)';
+      ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * d;
+      ctx.strokeText(m.text, x, y); ctx.fillText(m.text, x, y);
+    }
+    ctx.textAlign = 'center';
   }
 }
 
-interface Box { x0: number; y0: number; x1: number; y1: number }
-/** the box a centred, top-baseline label takes at (x, top) in the current font (fs px tall) */
-function labelBox(ctx: CanvasRenderingContext2D, label: string, x: number, top: number, fs: number): Box {
-  const w = ctx.measureText(label).width;
-  return { x0: x - w / 2, y0: top, x1: x + w / 2, y1: top + fs };
+/** a pin as the map draws it: a MapPoi, with a dot colour for the built-in cabins / pond */
+type Pin = MapPoi & { color?: string };
+function diamond(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
+  ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath();
 }
+
+interface Box { x0: number; y0: number; x1: number; y1: number }
