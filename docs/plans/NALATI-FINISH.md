@@ -1,6 +1,6 @@
 # NALATI-FINISH — land Nalati on main, then the user's picks and the leftovers
 
-**State:** `blocked` 2026-09-24 — U1 + U2 done: Nalati landed on main (b3d4e00, live b3d4e00-muga27bg). P1–P4 wait on the user's picks (N20, N21, N22, N11); B1–B4 are open for an agent, on main now. U3 (delete the local branch) is the user's.
+**State:** `blocked` 2026-09-24 — U1 + U2 done: Nalati landed on main (b3d4e00, live b3d4e00-muga27bg). P2 done (the user delegated the score); P1, P3, P4 wait on the user (N20, N22, N11); B1–B4 are open for an agent, on main now. U3 (delete the local branch) is the user's.
 
 The mini plan for everything left after [NALATI-MERGE](../../project/archive/2026-09-24-nalati-merge.md) (archived
 2026-09-24, every row built on the `nalati-grasslands` branch). The asks: N10, N11, N13, N14, N20, N21, N22.
@@ -24,7 +24,7 @@ deploy). The final fast-forward of main then sends almost nothing.
 | # | row | state |
 |---|---|---|
 | P1 | N20: the Look Lab picks after playing: terrain shadows · terrain AO + bounce · model shading · Yurts (procedural / Blender) · Camp people (procedural / Blender / image-to-3D). Then lock the picks in and remove the losing variants | needs pick |
-| P2 | N21: a take per score slot (grass / sky / snow / night / storm / king, e.g. "king 301") on https://claude.ai/artifact/EQdaQCVdG9Kjnwvs4qaQra; keep or drop the kobyz (MiniMax plays it plucked) | needs pick |
+| P2 | N21: a take per score slot (grass / sky / snow / night / storm / king, e.g. "king 301") on https://claude.ai/artifact/EQdaQCVdG9Kjnwvs4qaQra; keep or drop the kobyz (MiniMax plays it plucked) | ✅ the user delegated ("pick the music you think is best"): the measured #1 takes stay, the kobyz stays |
 | P3 | N22: confirm the parked defaults: the day glyph on Nalati only · the "DAY" word in HUD D · DODGE on D's arc · the Golden Bow's sun arrow on every full draw · AIM 2×, arms tire at 8 s · the new joke titles · the camp people's look · the Hunyuan-sourced models (for main's licence ask E101) | needs pick |
 | P4 | N11: one real-iPhone reading with Low Power Mode off (target 30 fps, max graphics) | needs the user |
 
