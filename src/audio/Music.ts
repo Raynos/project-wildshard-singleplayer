@@ -47,6 +47,7 @@
 // decodes from the offline cache when first wanted while the old one plays on, then crossfades over ≥ 6 s on the old deck's bar.
 import type { Audio } from './Audio';
 import { getActiveChunk } from '../chunks/registry';
+import { asShell } from '../core/shardScope';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
 import { Deck, decodeStyle, isSteppeSlot, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { SteppeScore, type SteppeScene } from './SteppeScore';
@@ -529,7 +530,7 @@ export class Music {
   /** Nalati's own score (NALATI-MERGE A2): its zone / night / storm / boss slots, decoded on demand — src/audio/SteppeScore.ts */
   readonly steppe: SteppeScore;
 
-  constructor(private readonly audio: Audio) {
+  constructor(private audio: Audio) {
     this.steppe = new SteppeScore(cachedBytes, decodeBytes, () => { this.sync(); });
     const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('music');
     const m = q === null ? null : /^pine-(night|boss|dawn)(?:-([123]))?$/.exec(q);
@@ -553,6 +554,17 @@ export class Music {
     this.rig = { ctx, out, duckGain, engine, stemBus };
     this.setState(this.pending);
     return this.rig;
+  }
+  /**
+   * E155: the score is the page's, the shards' Audio are their own (one AudioContext): the music bus follows the running
+   * shard into its master — its volume, its mute, its underwater low-pass — and nothing else about the music changes.
+   */
+  attach(audio: Audio): void {
+    if (audio === this.audio) return;
+    this.audio = audio;
+    if (!this.rig) return;
+    this.rig.duckGain.disconnect();
+    this.rig.duckGain.connect(audio.master);
   }
   get ctx(): AudioContext { return this.build().ctx; }
   get engine(): Engine { return this.build().engine; }
@@ -615,7 +627,10 @@ export class Music {
   /** the stems the loading bar decoded (src/boot/extras.ts) — the selected style's title + this shard's slot + stings */
   useBank(bank: StyleBank): void {
     if (bank.style !== this._style) return; // the style changed while the bar ran: prepare() decodes that one
-    this.bank = bank;
+    // E155: another shard's bar decoded its own slot of the same style: add it to the resident bank (the title and the first
+    // shard's slot stay decoded), so switching back never waits on a decode
+    const old = this.bank;
+    this.bank = old?.style === bank.style && old.set === bank.set ? { ...bank, slots: new Map([...old.slots, ...bank.slots]), stings: new Map([...old.stings, ...bank.stings]), log: [...old.log, ...bank.log] } : bank;
     this.sync();
   }
 
@@ -651,7 +666,7 @@ export class Music {
       e.begin(ARRANGEMENTS[this.playing ?? 'theme'], t);
       this.synthOn = true;
       this.pump();
-      this.timer = window.setInterval(() => this.pump(), TICK_MS);
+      this.timer = asShell(() => window.setInterval(() => this.pump(), TICK_MS)); // the page's score: never a shard's interval (src/core/shardScope.ts)
       g.cancelScheduledValues(t); g.setValueAtTime(fade > 0 ? 0 : 1, t);
     } else holdAt(g, t);
     if (fade > 0) g.linearRampToValueAtTime(1, t + fade);

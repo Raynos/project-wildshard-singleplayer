@@ -105,7 +105,13 @@ export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: n
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
-interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; shade: GainNode; shadeLp: BiquadFilterNode; muffle: BiquadFilterNode; noise: AudioBuffer }
+interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; shade: GainNode; shadeLp: BiquadFilterNode; muffle: BiquadFilterNode; comp: DynamicsCompressorNode; noise: AudioBuffer }
+
+/**
+ * The page's one AudioContext (E155: every resident shard has its own Audio — its buses, beds, samples — on this one
+ * context; iOS unlocks a context once, and a parked shard's graph is simply cut from the speakers, see `park`).
+ */
+let sharedCtx: AudioContext | undefined;
 
 export class Audio {
   listenerYaw = 0;
@@ -147,12 +153,14 @@ export class Audio {
     const w: { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext } = window; // old Safari: prefixed only
     const AC = w.AudioContext ?? w.webkitAudioContext;
     if (AC === undefined) throw new Error('WebAudio unsupported');
-    const ctx = new AC({ latencyHint: 'interactive' });
+    const ctx = sharedCtx ?? new AC({ latencyHint: 'interactive' });
+    sharedCtx = ctx;
     const master = ctx.createGain(); master.gain.value = this._muted ? 0 : 0.6;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.16;
     const muffle = ctx.createBiquadFilter(); muffle.type = 'lowpass'; muffle.frequency.value = 20000; muffle.Q.value = 0.5;
-    master.connect(muffle).connect(comp).connect(ctx.destination);
+    master.connect(muffle).connect(comp);
+    if (!this._parked) comp.connect(ctx.destination);
     // sfx + ambient share a `world` gain, so the title screen can hush the (frozen) world while the music plays on the master
     const world = ctx.createGain(); world.gain.value = this._worldMuted ? 0 : 1; world.connect(master);
     const sfx = ctx.createGain(); sfx.gain.value = 1; sfx.connect(world);
@@ -163,8 +171,30 @@ export class Audio {
     ambient.connect(shadeLp).connect(shade).connect(world);
     const len = ctx.sampleRate * 2, noise = ctx.createBuffer(1, len, ctx.sampleRate), d = noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    this.g = { ctx, master, world, sfx, ambient, shade, shadeLp, muffle, noise };
+    this.g = { ctx, master, world, sfx, ambient, shade, shadeLp, muffle, comp, noise };
     return this.g;
+  }
+
+  private _parked = false;
+  /**
+   * A parked shard's sound (E155): its whole graph — beds, hums, the music routed through its master — is cut from the
+   * speakers (the compressor's output), whatever its gains say; `park(false)` connects it again. Nothing is rebuilt.
+   */
+  park(on: boolean): void {
+    if (on === this._parked) return;
+    this._parked = on;
+    const g = this.g; if (!g) return;
+    if (on) g.comp.disconnect(); else g.comp.connect(g.ctx.destination);
+  }
+  get parked(): boolean { return this._parked; }
+  /** evicted for good: its graph is cut from the speakers and its schedulers stop (the shared context lives on for the others) */
+  evict(): void {
+    this.park(true);
+    if (!this.g) return;
+    this.stopBed();
+    this.hum?.stop(); this.hum = undefined;
+    clearTimeout(this.bubbleTimer);
+    this.g.master.disconnect();
   }
   get ctx(): AudioContext { return this.graph().ctx; }
   get master(): GainNode { return this.graph().master; }
@@ -1561,7 +1591,7 @@ export class Audio {
     }
   }
 
-  dispose(): void { clearTimeout(this.larkTimer); clearTimeout(this.cricketTimer); clearTimeout(this.crackleTimer); clearTimeout(this.birdTimer); clearTimeout(this.surfTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); if (this.g) void this.g.ctx.close(); }
+  dispose(): void { clearTimeout(this.larkTimer); clearTimeout(this.cricketTimer); clearTimeout(this.crackleTimer); clearTimeout(this.birdTimer); clearTimeout(this.surfTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
 }
 
 export { Audio as GameAudio };

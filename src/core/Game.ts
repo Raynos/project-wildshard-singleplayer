@@ -501,6 +501,7 @@ export class Game {
     const loop = (now?: number) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
       if (this.dead) return; // a core system died (faults.ts): the fatal modal is up, nothing more to draw
+      if (this.stopped) return; // parked (stop()): the chain ends here; resume() starts a new one
       schedule(loop);
       lastRun = performance.now();
       const cap = frameCapFps(slug);
@@ -563,8 +564,45 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
-    this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
+    this.kickLoop = () => { if (!this.dead && !this.stopped && performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
+    this.restart = () => { lastRun = performance.now(); forceFrame = false; this.clock.getDelta(); requestAnimationFrame(loop); };
     setLoopState('running');
     loop();
+  }
+
+  /** the loop is parked (stop): no tick, no draw, no animation frame asked for */
+  private stopped = false;
+  private restart: (() => void) | null = null;
+  /** true between stop() and resume() */
+  get isStopped(): boolean { return this.stopped; }
+  /**
+   * Park the loop (SHARD-CACHE, E155: another shard is playing): the running chain ends at its next frame and nothing
+   * ticks or draws until resume(). The world stays built, its GPU resources resident.
+   */
+  stop(): void { this.stopped = true; }
+  /** Start the parked loop again; the first frame's dt is sane (the clock is read, not accumulated over the park). */
+  resume(): void {
+    if (!this.stopped) return;
+    this.stopped = false;
+    this.resize(); // the window may have changed while it was parked (its resize listener was quiet)
+    this.restart?.();
+  }
+
+  /**
+   * Evict (SHARD-CACHE M4): stop for good and give back the GPU. The scene's geometries, the composer's targets and the
+   * renderer are disposed, then the WebGL context itself is dropped — the browser frees every texture, buffer and
+   * program of it at once. Materials and textures are NOT disposed one by one: a module cache (a pickup's orb texture, a
+   * shared depth material) can be in a resident shard's scene too, and a `dispose` event reaches every renderer that
+   * uploaded it — that shard would drop its copy (and its program) and stall re-making them. The Game is unusable after.
+   */
+  dispose(): void {
+    this.stopped = true;
+    this.dead = true;
+    this.scene.traverse((o) => { (o as Partial<THREE.Mesh>).geometry?.dispose(); });
+    try { this._composer?.dispose(); } catch (e) { console.warn('[shard] the composer did not dispose', e); }
+    this.renderer.renderLists.dispose();
+    this.renderer.dispose();
+    this.renderer.forceContextLoss();
+    this.scene.clear();
   }
 }

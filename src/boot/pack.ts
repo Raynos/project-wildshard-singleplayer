@@ -72,6 +72,34 @@ function handToWorker(url: string, blob: Blob): void {
 }
 
 /**
+ * The running build's slots. A page builds a shard more than once (E155: the shard host builds each shard in the page,
+ * and rebuilds an evicted one), so the fetch layer and the URL modifier are installed once and answer from the latest
+ * pack; an earlier build's slots (their blobs and blob: URLs) are let go with it.
+ */
+let current: Map<string, Slot> | null = null;
+let layered = false;
+function installPackLayer(fetchNow: typeof window.fetch): void {
+  if (layered) return;
+  layered = true;
+  window.fetch = (input, init) => {
+    const req = input instanceof Request ? input : null;
+    const method = (init?.method ?? req?.method ?? 'GET').toUpperCase();
+    const p = pathOf(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
+    const slot = method === 'GET' ? current?.get(p) : undefined;
+    if (slot === undefined) return fetchNow(input, init);
+    return slot.blob.then(
+      (blob) => new Response(blob, { status: 200, headers: { 'content-type': slot.type, 'content-length': String(slot.size) } }),
+      () => fetchNow(input, init),
+    );
+  };
+  // <img>-based loaders (Safari's GLTFLoader textures): a packed file that has landed is loaded from memory
+  DefaultLoadingManager.setURLModifier((url) => {
+    const u = tierUrl(url);
+    return current?.get(pathOf(u))?.url ?? versionedUrl(u);
+  });
+}
+
+/**
  * Start streaming `pack` and answer every GET of a packed path from it. Installed after the byte counter and the
  * service worker (so each part is cached like any other asset). Resolves when the pack has streamed to its end (or
  * failed and handed its files to per-file requests): src/boot/extras.ts queues the art and audio after it, so they do not
@@ -89,6 +117,9 @@ export function streamPack(whole: PackDef, plan: Plan<BootStep>, files: ChunkFil
     slots.set(p, { type, size, blob, resolve, reject, url: null });
   }
   const fetchNow = window.fetch.bind(window);
+  installPackLayer(fetchNow);
+  if (current) for (const old of current.values()) if (old.url !== null) URL.revokeObjectURL(old.url);
+  current = slots;
   interface PartRequest { res: Promise<Response>; bypassed: boolean }
   /** `bypassed`: no worker controls the page as the request goes out — it goes straight to the network, uncached */
   const request = (part: PackPart): PartRequest => {
@@ -152,22 +183,5 @@ export function streamPack(whole: PackDef, plan: Plan<BootStep>, files: ChunkFil
     for (const s of slots.values()) if (s.url === null) s.reject(e);
   });
 
-  window.fetch = (input, init) => {
-    const req = input instanceof Request ? input : null;
-    const method = (init?.method ?? req?.method ?? 'GET').toUpperCase();
-    const p = pathOf(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
-    const slot = method === 'GET' ? slots.get(p) : undefined;
-    if (slot === undefined) return fetchNow(input, init);
-    return slot.blob.then(
-      (blob) => new Response(blob, { status: 200, headers: { 'content-type': slot.type, 'content-length': String(slot.size) } }),
-      () => fetchNow(input, init),
-    );
-  };
-
-  // <img>-based loaders (Safari's GLTFLoader textures): a packed file that has landed is loaded from memory
-  DefaultLoadingManager.setURLModifier((url) => {
-    const u = tierUrl(url);
-    return slots.get(pathOf(u))?.url ?? versionedUrl(u);
-  });
   return streamed;
 }

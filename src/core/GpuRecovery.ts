@@ -51,6 +51,13 @@ export interface RecoveryHost {
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number } | null;
   /** this page IS a recovery reload: the resume screen is up from index.html — drop it once the world draws */
   resumed: boolean;
+  /**
+   * E155: the shard is parked (another resident shard is playing) — a context it loses now is not the player's problem:
+   * no resume screen, no reload; `onLostParked` tells the shard host, which evicts it (it rebuilds on the way back).
+   * An evicted shard's own `forceContextLoss` lands here too.
+   */
+  parked?: () => boolean;
+  onLostParked?: () => void;
 }
 
 /**
@@ -229,8 +236,12 @@ export function installGpuRecovery(host: RecoveryHost): void {
     }, 500);
   };
 
-  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); lose('context lost'); });
-  canvas.addEventListener('webglcontextrestored', () => { void restore(); });
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    if (host.parked?.() === true) { console.warn('[gl] a parked shard lost its context'); host.onLostParked?.(); return; }
+    lose('context lost');
+  });
+  canvas.addEventListener('webglcontextrestored', () => { if (host.parked?.() !== true) void restore(); });
 
   const hide = (): void => {
     if (hidden) return; // visibilitychange and pagehide both land here

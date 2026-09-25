@@ -99,30 +99,46 @@ function versionedFetch(net: typeof window.fetch): typeof window.fetch {
   };
 }
 
+/** the running boot's counter (one per shard build — E155 builds several in one page; the fetch layer is installed once) */
+interface Counting { sourceOf: Map<string, ByteKey>; reader: (k: ByteKey) => ByteProgress; seen: Set<string>; finished: Set<string>; plan: Plan<BootStep> }
+let counting: Counting | null = null;
+let counterInstalled = false;
+
 export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): void {
   const sourceOf = new Map<string, ByteKey>();
   for (const key of Object.keys(files) as ByteKey[]) for (const f of files[key]) sourceOf.set(f, key);
   const readers = new Map<ByteKey, ByteProgress>();
-  const reader = (k: ByteKey) => { let r = readers.get(k); if (!r) { r = plan.reader(k); readers.set(k, r); } return r; };
-  const seen = new Set<string>();     // files whose bytes were counted by the tee
-  const finished = new Set<string>();
+  const reader = (k: ByteKey): ByteProgress => { let r = readers.get(k); if (!r) { r = plan.reader(k); readers.set(k, r); } return r; };
+  // files whose bytes were counted by the tee / credited at all — per build: a later shard's bar counts its own
+  counting = { sourceOf, reader, seen: new Set<string>(), finished: new Set<string>(), plan };
+  installCounter();
+}
+
+/** the boot is done: later fetches are nobody's bar (and the plan — with everything its steps closed over — can go) */
+export function releaseByteCounter(): void { counting = null; }
+
+/** the fetch layer + the resource-timing watch, once per page; they read the running boot's `counting` */
+function installCounter(): void {
+  if (counterInstalled) return;
+  counterInstalled = true;
 
   const orig = versionedFetch(window.fetch.bind(window)); // the innermost layer: the network sees `?v=` (versionedUrl)
   window.fetch = async (input, init) => {
+    const c = counting;
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const p = pathOf(url);
-    const key = sourceOf.get(p);
-    if (!key || seen.has(p)) return orig(input, init);
-    seen.add(p);
+    const key = c?.sourceOf.get(p);
+    if (!c || !key || c.seen.has(p)) return orig(input, init);
+    c.seen.add(p);
     const res = await orig(input, init);
     if (!res.ok || !res.body) { return res; }
-    const r = reader(key);
+    const r = c.reader(key);
     const [a, b] = res.body.tee();
     // drain the twin, crediting bytes as they land; the caller consumes `a` untouched
     (async () => {
       const rd = b.getReader();
       for (;;) { const { done, value } = await rd.read(); if (done) break; r.add(value.byteLength); }
-      finished.add(p); plan.fileDone(key);
+      c.finished.add(p); c.plan.fileDone(key);
     })().catch(() => undefined);
     return new Response(a, { status: res.status, statusText: res.statusText, headers: res.headers });
   };
@@ -130,13 +146,15 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
   // <img>-loaded files never pass through fetch: credit them when resource timing reports them done.
   if ('PerformanceObserver' in window) {
     const po = new PerformanceObserver((list) => {
+      const c = counting;
+      if (!c) return;
       for (const e of list.getEntries() as PerformanceResourceTiming[]) {
         const p = pathOf(e.name);
-        const key = sourceOf.get(p);
-        if (!key || seen.has(p) || finished.has(p)) continue;
-        finished.add(p);
-        reader(key).add(e.encodedBodySize || e.transferSize || (TABLE[p] ?? 0) || 0);
-        plan.fileDone(key);
+        const key = c.sourceOf.get(p);
+        if (!key || c.seen.has(p) || c.finished.has(p)) continue;
+        c.finished.add(p);
+        c.reader(key).add(e.encodedBodySize || e.transferSize || (TABLE[p] ?? 0) || 0);
+        c.plan.fileDone(key);
       }
     });
     po.observe({ type: 'resource', buffered: true });
