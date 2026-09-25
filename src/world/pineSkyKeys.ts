@@ -31,3 +31,9 @@ export const PINE_SKY_KEYS = {
 } as const satisfies Record<string, SkyKey>;
 
 export type SkyKeyName = keyof typeof PINE_SKY_KEYS;
+
+/**
+ * Every key's baked pair (PH-P3): Pine Hollow's boot downloads all seven at the bar (src/boot/manifest.ts, the `sky`
+ * source, in the boot pack), so the clock never fetches a key mid-play and a whole day runs offline (E44).
+ */
+export const pineSkyKeyUrls = (): string[] => Object.values(PINE_SKY_KEYS).flatMap((k) => [`/assets/hdri/${k.id}_2k.key.jpg`, `/assets/hdri/${k.id}_2k.key.gain.png`]);

@@ -207,9 +207,12 @@ describe('per-shard step nouns (steps.ts SHARD_STEPS)', () => {
   it('Pine Hollow names its own steps and keeps the shared weights, under its own timing key', () => {
     useShardSteps('pine-hollow');
     expect(STEP_INFO.cards.label).toBe('Pine branch cards');
-    expect(STEP_INFO.sky.label).toBe('Sky · HDRI → PMREM');
-    expect(STEP_INFO.weapon.label).toBe('Crossbow · HUD');
+    expect(STEP_INFO.sky.label).toBe('Sky · day / night keys');
+    expect(STEP_INFO.weapon.label).toBe('Crossbow · lever-action · longbow');
+    expect(STEP_INFO.edge.label).toBe('Pond · creek · horizon');
     expect(byteLabel('trees')).toBe('pine bark · twigs');
+    expect(byteLabel('props')).toBe('landmarks · creatures'); // PH-P3: the hero props + the creature hulls are what that download is
+    expect(byteLabel('art')).toBe('title art');                // not overridden: the shared noun
     expect(shardTimingKey()).toBe(':pine-hollow');
     useShardSteps('driftwood-isle');
     for (const k of BOOT_STEPS) expect(STEP_INFO[k].weight).toBeGreaterThan(0);

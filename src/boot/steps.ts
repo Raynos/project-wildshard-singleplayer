@@ -39,22 +39,39 @@ export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
 
 /**
  * A shard's own loading-screen nouns and weights, over the shared steps (the step KEYS are the boot's; what each one
- * builds differs per shard). `trees` is the byte label of the `cards` step's download. The same table as the Nalati
- * branch's (N-merge), with Pine Hollow's nouns: the photoreal shard's HDRI sky, its splat terrain, the baked pine branch
- * cards, 1 770 Scots pines, three log cabins, the herds and the crossbow. Its weights stay the shared ones (they were
- * measured on Pine Hollow).
+ * builds differs per shard), and the nouns of its downloads (`bytes`: what the DOWNLOAD line names while those bytes
+ * land). The same table as the Nalati branch's (N-merge). Pine Hollow's (PINE-HOLLOW-REMASTER PH-P3), each what that
+ * step really builds there: the day / night sky keys blended into the PMREM, the splat terrain, the baked pine branch
+ * cards and the pines, the pond, the creek + waterfall and the painted horizon at the chunk's edge, the three cabins +
+ * the mill hamlet + the landmarks (the fire lookout and its zipline, the footbridge, the standing stones), the rocks and
+ * logs, the herds on their generated hulls, and the three weapons. Its weights stay the shared ones (they were measured
+ * on Pine Hollow).
  */
-const SHARD_STEPS: Readonly<Record<string, Partial<Record<BootStep | 'trees', Partial<StepInfo>>>>> = {
+interface ShardSteps {
+  readonly steps: Partial<Record<BootStep, Partial<StepInfo>>>;
+  readonly bytes?: Partial<Record<ByteKey, string>>;
+}
+const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
   'pine-hollow': {
-    sky: { label: 'Sky · HDRI → PMREM' },
-    terrain: { label: 'Terrain · heightfield + splat' },
-    cards: { label: 'Pine branch cards' },
-    forest: { label: 'Forest · Scots pines' },
-    grass: { label: 'Grass · ferns · litter' },
-    cabins: { label: 'Log cabins' },
-    animals: { label: 'Herds' },
-    weapon: { label: 'Crossbow · HUD' },
-    trees: { label: 'pine bark · twigs' },
+    steps: {
+      sky: { label: 'Sky · day / night keys' },
+      terrain: { label: 'Terrain · heightfield + splat' },
+      cards: { label: 'Pine branch cards' },
+      forest: { label: 'Forest · Scots pines' },
+      edge: { label: 'Pond · creek · horizon' },
+      grass: { label: 'Grass · ferns · litter' },
+      cabins: { label: 'Cabins · hamlet · landmarks' },
+      props: { label: 'Rocks · logs' },
+      animals: { label: 'Herds · elk · deer · boar · bears' },
+      weapon: { label: 'Crossbow · lever-action · longbow' },
+    },
+    bytes: {
+      sky: 'sky keys · dawn to moonlight',
+      trees: 'pine bark · twigs',
+      cabins: 'cabin timber · stone · props',
+      props: 'landmarks · creatures',
+      music: 'music · every style',
+    },
   },
 };
 
@@ -66,7 +83,7 @@ let shard: string | null = null;
 export function useShardSteps(slug: string): void {
   const o = SHARD_STEPS[slug];
   shard = o ? slug : null;
-  for (const k of BOOT_STEPS) STEP_INFO[k] = { label: o?.[k]?.label ?? BASE_INFO[k].label, weight: o?.[k]?.weight ?? BASE_INFO[k].weight };
+  for (const k of BOOT_STEPS) STEP_INFO[k] = { label: o?.steps[k]?.label ?? BASE_INFO[k].label, weight: o?.steps[k]?.weight ?? BASE_INFO[k].weight };
 }
 /** '' for the shared table, else `:<slug>` — the timing store keys a shard with its own steps separately */
 export const shardTimingKey = (): string => (shard ? `:${shard}` : '');
@@ -82,5 +99,5 @@ export type ByteKey = (typeof BYTE_SOURCES)[number];
 const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', physics: 'physics', cabins: 'cabins', props: 'props', art: 'menu', music: 'audio', sfx: 'audio' };
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
 const LABELS: Partial<Record<ByteKey, string>> = { trees: 'tree bark · twigs', baked: 'baked textures', art: 'title art', music: 'music · every style', sfx: 'sound effects · every set' };
-// a shard may name its own tree bytes (SHARD_STEPS: Pine Hollow's pine bark)
-export const byteLabel = (key: ByteKey): string => (key === 'trees' && shard ? SHARD_STEPS[shard]?.trees?.label : undefined) ?? LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();
+// a shard may name its own downloads (SHARD_STEPS `bytes`: Pine Hollow's sky keys, pine bark, landmarks · creatures)
+export const byteLabel = (key: ByteKey): string => (shard ? SHARD_STEPS[shard]?.bytes?.[key] : undefined) ?? LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();

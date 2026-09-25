@@ -47,7 +47,8 @@ const HELP = `bench-load — headless load-performance ruler
   --viewport=1280x720    page size (DPR 1)
   --query=tier=phone     extra URL params appended to the page URL (e.g. tier=phone&skipintro=1)
   --gpu=metal            metal = the host GPU through ANGLE (same stack as iOS Safari); swiftshader = software GL
-  --ci                   check bench.budget.json; exit code = number of rows over budget
+  --ci                   check bench.budget.json (the rows of the benched shard: chunk= in --query, else Driftwood Isle);
+                         exit code = number of rows over budget
   --compare a.json b.json   print a before/after table of two result files and exit
   --help
 
@@ -68,6 +69,8 @@ const PORT = Number(flag('port', '4175'));
 const [VW, VH] = flag('viewport', '1280x720').split('x').map(Number);
 const GPU = flag('gpu', 'metal');
 const QUERY = flag('query', ''); // extra URL params, e.g. --query=tier=phone&skipintro=1
+// the shard benched (`chunk=` in --query; the default boot is Driftwood Isle): budget rows name theirs (`shard`, default Driftwood)
+const SHARD = new URLSearchParams(QUERY).get('chunk') ?? 'driftwood-isle';
 const CI = has('ci');
 let URL_BASE = flag('url', '');
 
@@ -346,6 +349,7 @@ function budgetTable(byKey, budget) {
   const lines = ['| budget | measured | threshold | |', '|---|---|---|---|'];
   let failed = 0;
   for (const b of budget.rows) {
+    if ((b.shard ?? 'driftwood-isle') !== SHARD) continue; // another shard's budget (PINE-HOLLOW PH-P3)
     const r = byKey[b.cond]; const v = r ? r[b.metric] : undefined;
     let cell, verdict;
     if (v === undefined || v === null) { cell = 'n/a'; verdict = 'SKIP'; }
