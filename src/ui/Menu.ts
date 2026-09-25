@@ -478,6 +478,9 @@ export class GameMenu {
       dbg.append(el('ws-gmenu-label', 'Ground cover'), live('coverTint', 'Ground tint'), live('coverReach', 'Slope reach'), live('coverBlend', 'Far colour blend'), far,
         el('ws-gmenu-note', 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Far stand-ins reloads the page.'));
     }
+    // E158: the other shards' files download in the background once this one is playable (the next session obeys a change)
+    const bg: { v: OptionValue<'prefetch'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];
+    dbg.append(el('ws-gmenu-label', 'Other shards'), picker('Download in background', bg, () => setting('prefetch'), (v) => { saveSetting('prefetch', v); }, (fn) => { onSettingChange('prefetch', fn); }));
     dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());

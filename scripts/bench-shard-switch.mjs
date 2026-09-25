@@ -8,7 +8,7 @@
 //      (src/boot/shardPrefetch.ts, `window.__ws_prefetch`) runs, and record how long it took and what it stored;
 //   2. navigate to `?chunk=<slug>` for every other shard and record the bytes that crossed the (emulated) network
 //      until that shard is playable.
-// Modes: `prefetch` (the default boot) and `baseline` (`&prefetch=0`: the first switch downloads the shard, as before
+// Modes: `prefetch` (the default boot) and `baseline` (the Debug switch off via the saved settings: the first switch downloads the shard, as before
 // E158). The baseline samples frames for as long as the prefetch run's prefetch took, so the two frame-time windows
 // compare like for like.
 //
@@ -83,7 +83,9 @@ try {
     if (net) { await cdp.send('Network.enable'); await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: net.latency, downloadThroughput: net.down, uploadThroughput: net.up }); }
     if (CPU > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
     await page.addInitScript(INIT);
-    const q = (slug) => `${BASE}/?nolock=1&mute=1&${TIER_Q}&chunk=${slug}${mode === 'baseline' ? '&prefetch=0' : ''}`;
+    // the background download off (pause ▸ Settings ▸ Debug; no URL switches — AGENTS.md): the saved settings, before any script runs
+    if (mode === 'baseline') await page.addInitScript(() => { localStorage.setItem('ws.settings.v1', JSON.stringify({ prefetch: 'off' })); });
+    const q = (slug) => `${BASE}/?nolock=1&mute=1&${TIER_Q}&chunk=${slug}`;
     const out = { errors, cold: null, prefetch: null, frames: null, switches: {} };
 
     // 1. the cold shard

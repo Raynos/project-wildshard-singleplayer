@@ -115,6 +115,9 @@ export const OPTION_VALUES = {
   coverReach: ['on', 'off'],
   coverBlend: ['on', 'off'],
   coverFar: ['on', 'off', 'far'],
+  // E158: download the other shards' files in the background once this one is playable (src/boot/shardPrefetch.ts) — the
+  // debug menu only (no URL switch); the bench scripts turn it off through the saved settings
+  prefetch: ['on', 'off'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -131,12 +134,14 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   coverTint: { def: 'on', params: [], url: () => null }, coverReach: { def: 'on', params: [], url: () => null }, // the debug menu only
   coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
+  prefetch: { def: 'on', params: [], url: () => null },
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), tier: option('tier'), touch: option('touch'), time: option('time'),
   pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
   coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'),
+  prefetch: option('prefetch'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

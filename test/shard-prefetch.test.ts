@@ -62,14 +62,14 @@ describe('shardBootRequests: the boot request list of each shard', () => {
 describe('prefetchVeto: when the background download must not run', () => {
   it('runs by default under a controlling worker', async () => {
     const { sp } = await load('desktop');
-    expect(sp.prefetchVeto({ search: '', controlled: true })).toBeNull();
-    expect(sp.prefetchVeto({ search: '?chunk=pine-hollow&prefetch=1', controlled: true, saveData: false })).toBeNull();
+    expect(sp.prefetchVeto({ controlled: true })).toBeNull();
+    expect(sp.prefetchVeto({ off: false, controlled: true, saveData: false })).toBeNull();
   });
-  it('is off with ?prefetch=0, without a worker and on the OS data saver — never by connection type', async () => {
+  it('is off by the Debug switch, without a worker and on the OS data saver — never by connection type', async () => {
     const { sp } = await load('desktop');
-    expect(sp.prefetchVeto({ search: '?prefetch=0', controlled: true })).toBe('?prefetch=0');
-    expect(sp.prefetchVeto({ search: '', controlled: false })).toBe('no service worker');
-    expect(sp.prefetchVeto({ search: '', controlled: true, saveData: true })).toBe('Save-Data');
+    expect(sp.prefetchVeto({ off: true, controlled: true })).toBe('switched off (Settings ▸ Debug)');
+    expect(sp.prefetchVeto({ controlled: false })).toBe('no service worker');
+    expect(sp.prefetchVeto({ controlled: true, saveData: true })).toBe('Save-Data');
   });
 });
 

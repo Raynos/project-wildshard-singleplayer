@@ -30,7 +30,7 @@ const TIER = flag('tier', 'phone');
 const PORT = Number(flag('port', '4193'));
 const NET = { wifi: { latency: 20, down: 30e6 / 8, up: 15e6 / 8 }, none: null }[flag('net', 'wifi')];
 const [VW, VH] = TIER === 'phone' ? [390, 844] : [1280, 720];
-const PAGE = `/?nolock=1&mute=1&prefetch=0&chunk=pine-hollow&${TIER === 'phone' ? 'touch=1&tier=phone' : 'tier=desktop'}`;
+const PAGE = `/?nolock=1&mute=1&chunk=pine-hollow&${TIER === 'phone' ? 'touch=1&tier=phone' : 'tier=desktop'}`;
 // the texture: the tier's copy of Pine Hollow's leafy-grass normal map (in the phone pack / a desktop boot read)
 const TEXTURE = TIER === 'phone' ? 'public/assets/tex/leafy_grass/nor_gl_1k.jpg' : 'public/assets/tex/leafy_grass/nor_gl.jpg';
 const GLTF = 'public/assets/models/stone_fire_pit/stone_fire_pit.gltf';
@@ -69,6 +69,8 @@ try {
     reqs.push({ url: req.url(), bySW: Boolean(req.serviceWorker()), fromSW: Boolean(res?.fromServiceWorker()), body: sizes?.responseBodySize ?? 0, headers: sizes?.responseHeadersSize ?? 0 });
   })()); });
   const page = await ctx.newPage();
+  // the background download off (pause ▸ Settings ▸ Debug; no URL switches — AGENTS.md): the saved settings, before any script runs
+  await page.addInitScript(() => { localStorage.setItem('ws.settings.v1', JSON.stringify({ prefetch: 'off' })); });
   const mark = async () => { await within(Promise.all(inflight), 10_000); const n = reqs.length; return () => reqs.slice(n); };
   // 1. two launches of build A: everything the boot reads is in the worker's cache
   let since = await mark();

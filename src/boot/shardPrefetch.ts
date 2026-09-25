@@ -17,11 +17,13 @@
  *
  * Polite: starts a few seconds after playable and only when idle; at most CONCURRENCY files in flight; nothing new while
  * the tab is hidden; on Wi-Fi and cellular alike (the user's pick), off on the OS's data saver (Save-Data), without a controlling worker (dev, `?sw=0`, the native shells), and
- * with `?prefetch=0`. The current shard goes first: whatever its own boot fetched before the worker controlled the page
+ * with pause ▸ Settings ▸ Debug ▸ Download in background (`setting('prefetch')`; no URL switch). The current shard goes first:
+ * whatever its own boot fetched before the worker controlled the page
  * (a first visit on a slow link, the ≤ 2.5 s cap in src/boot/sw.ts) is stored now instead of on the next launch.
  *
  * `window.__ws_prefetch` (the bench / tests): `{ state, done }` — `done` resolves with the final report.
  */
+import { setting } from '../ui/Settings';
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { CHUNKS } from '../chunks/registry';
 import { bootFiles } from './extras';
@@ -86,7 +88,8 @@ export function shardPrefetchList(def: ChunkDef): string[] {
 }
 
 export interface PrefetchEnv {
-  search: string;
+  /** pause ▸ Settings ▸ Debug ▸ Download in background is Off */
+  off?: boolean;
   /** a service worker controls the page (its caches are where the files go) */
   controlled: boolean;
   /** the OS's data saver (Android Data Saver, Chromium's Save-Data; iOS Low Data Mode does not reach the page) */
@@ -95,10 +98,10 @@ export interface PrefetchEnv {
 
 /**
  * Why the background download must not run here, or null when it may. Wi-Fi and cellular alike (the user's pick, E158):
- * only the player's explicit data saver and `?prefetch=0` turn it off — never the connection type.
+ * only the player's explicit data saver and the Debug menu's switch turn it off — never the connection type.
  */
 export function prefetchVeto(env: PrefetchEnv): string | null {
-  if (new URLSearchParams(env.search).get('prefetch') === '0') return '?prefetch=0';
+  if (env.off === true) return 'switched off (Settings ▸ Debug)';
   if (!env.controlled) return 'no service worker';
   if (env.saveData === true) return 'Save-Data';
   return null;
@@ -162,7 +165,7 @@ const visible = (): Promise<void> => new Promise((resolve) => {
  */
 export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
   const state: PrefetchState = { status: 'waiting', startedAt: 0, endedAt: 0, shards: {} };
-  const veto = prefetchVeto({ search: location.search, controlled: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null, ...connection() });
+  const veto = prefetchVeto({ off: setting('prefetch') === 'off', controlled: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null, ...connection() });
   const finish = (status: PrefetchState['status'], reason?: string): PrefetchState => {
     state.status = status;
     if (reason !== undefined) state.reason = reason;
