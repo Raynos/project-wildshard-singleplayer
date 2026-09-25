@@ -38,8 +38,8 @@ node scripts/scorecard.mjs --compare=baseline --against=e155
   `vite preview` on a free port (from 4281). A second run of the same sha reuses the build.
 - One headless Chromium for the whole run: ANGLE Metal, `--mute-audio`, `&mute=1`, back/forward cache off. It waits
   while 3 headless browsers already run on the machine (AGENTS.md), and closes everything at the end.
-- A full run (3 shards × 2 viewports, 3 poses each, the 4G cold loads, both switch routes) takes about 25 minutes;
-  `--runs=2 --retouch` about an hour. `node scripts/scorecard.mjs --help` lists every flag.
+- A full run (3 shards × 2 viewports, 3 poses each, the 4G cold loads, both switch routes) takes about 32 minutes;
+  `--runs=2 --retouch` about 70. Use `run_in_background`: it outlives a 10-minute tool timeout. `node scripts/scorecard.mjs --help` lists every flag.
 - Output: `progress/scorecard/<tag>.json` (every row, its runs and the raw measurements), `<tag>.md` (the tables, and
   the verdict with `--compare`), and the pose shots in `progress/scorecard/<tag>/`.
 
@@ -48,6 +48,9 @@ node scripts/scorecard.mjs --compare=baseline --against=e155
 - Time of day midday and Pine Hollow's weather clear: the saved Settings the game reads (`ws.settings.v1`), written
   before the page's first script. `?weather=clear` holds Nalati's storm cycle at its clear phase.
 - `Math.random` is a seeded mulberry32 stream from the first script on, so creatures spawn the same way each load.
+- On the measured page creatures are calm (`animals.calm`: they still walk, graze and animate, but do not react to the
+  player) and Pine Hollow's named elites have no aware / engage radius. Without that the Imperial Bull charged the pond
+  pose and killed the player mid-sample (SSIM 0.22 between two runs of the same build).
 - `?skipintro=1&nolock=1&mute=1`, the phone at `?touch=1&tier=phone`, the desktop at `?tier=desktop`.
 - Network: Chrome's DevTools throttle at 30 Mbit/s, 20 ms, applied to the service worker's own fetches too (the
   bench-load method). CPU unthrottled. A second cold load per shard runs at "Fast 4G" (9 Mbit/s, 170 ms).
@@ -80,7 +83,7 @@ Measured on the warm page, 5 s after it became playable, after a forced GC.
 | `mem.glTexBytes` | GPU texture bytes of the renderer's WebGL context, counted at the API: every `texImage2D/3D`, `texStorage2D/3D`, `compressedTexImage2D/3D`, `copyTexImage2D` and `generateMipmap`, sized by internal format (compressed formats by block size: BCn, ETC2, ASTC, PVRTC), minus `deleteTexture`. Render targets, shadow maps and PMREM are in it. RGB formats count as 4 bytes a texel (the GPU pads them). |
 | `mem.glRbBytes` | Renderbuffers (MSAA targets), × samples. |
 | `mem.glBufBytes` | Vertex / index / uniform buffers (`bufferData`). |
-| `mem.sceneTexBytes` | An estimate from a scene traversal: every texture a material, uniform, background or environment holds, width × height × bytes a texel × 4/3 for mips; a compressed texture by its mip data. It misses render targets, so it reads well under `glTexBytes`. The gap is the render targets. |
+| `mem.sceneTexBytes` | An estimate from a scene traversal: every texture a material, uniform, background or environment holds, width × height × bytes a texel × 4/3 for mips; a compressed texture by its mip data. It misses render targets, so it reads well under `glTexBytes`. The gap is mostly render targets and shadow maps. |
 | `mem.textures / geometries / programs` | `renderer.info`. |
 
 The JSON also keeps the 12 largest GL textures (`glTop`: bytes, size, internal format, levels), and whether any
@@ -89,7 +92,7 @@ upload was compressed (`glCompressedUploads`): E157 should turn that from 0 into
 ### Runtime and look
 
 Three fixed poses a shard, from `scripts/physics-baseline.mjs`: Driftwood pier (the spawn), beach, wreck; Nalati camp,
-bridge, plains; Pine Hollow gate, cabin, pond. The player is teleported there on the warm page, pitch 0, and left
+bridge, plains; Pine Hollow gate, cabin, pond. The player is teleported there on the warm page (onto the static floor under a ray, so the pier pose stands on the deck), pitch 0, and left
 5 s to settle.
 
 | row | what it is |
@@ -98,7 +101,7 @@ bridge, plains; Pine Hollow gate, cabin, pond. The player is teleported there on
 | `pose.<name>.frameP95Ms` | The 95th percentile interval between drawn frames. |
 | `pose.<name>.cpuP50Ms / cpuP95Ms` | Main-thread ms a drawn frame inside `requestAnimationFrame` callbacks (the game loop, draw submission included). Unlike fps it is not capped by vsync, so it moves when the work does. |
 | `pose.<name>.calls / trisK` | Draw calls and triangles of the last frame (`game.lastFrame`), the median over the sample. |
-| `pose.<name>.ssim` | SSIM of the pose's screenshot (JPEG, quality 80, CSS pixels) against its golden in `progress/scorecard/baseline/`, on luma with a 7 × 7 window (skimage's default), computed in the page. The row passes at ≥ 0.98. A pose whose run-to-run SSIM is below that is re-budgeted in `scorecard.budget.json` with the measured noise as the why. |
+| `pose.<name>.ssim` | SSIM of the pose's screenshot (JPEG, quality 80, CSS pixels) against its golden in `progress/scorecard/baseline/`, on luma with a 7 × 7 window (skimage's default), computed in the page. The row passes at ≥ min(0.98, the baseline's own run-2-vs-golden SSIM − 0.01): a pose that moves by itself between two runs of the same build (grass in the wind, a grazing herd) gets its floor from that measured noise. |
 
 ### Switch route
 
@@ -141,12 +144,19 @@ Run-to-run noise of the committed baseline: see *Noise* in `progress/scorecard/b
 `scorecard.budget.json` `rules` are checked on top of the row-by-row rule. The user approved these on 2026-09-25 (E160),
 and they fail `--compare`:
 
-- first-play cold transfer ≤ 1.5 × today, per shard and viewport;
-- Cache Storage for all three shards ≤ 300 MB;
-- cold time to play no worse than today; on Fast 4G, Driftwood ≤ 22 s and Pine Hollow ≤ 40 s (bench.budget.json's
-  rows), Nalati no worse than its baseline;
-- warm time to play and the switch times no worse than today, with *improve* as the printed goal;
-- bytes re-downloaded after a one-texture change ≤ 2 MB.
+| rule | ceiling | today (baseline) |
+|---|---|---|
+| first-play cold transfer ≤ 1.5 × today | Driftwood 30.1 / 31.6 MiB · Nalati 43.4 / 52.1 · Pine Hollow 53.8 / 137.0 (phone / desktop) | 20.1 / 21.1 · 29.0 / 34.8 · 35.8 / 91.4 |
+| Cache Storage, all three shards | ≤ 300 MB | 66.7 MiB phone · 127.5 MiB desktop |
+| cold time to play | no worse than the baseline (wifi and Fast 4G) | |
+| Fast 4G, Driftwood | ≤ 22 s (bench.budget.json's row) | **23.9 s phone / 22.9 s desktop: today's main already misses it** |
+| Fast 4G, Pine Hollow phone | ≤ 40 s (bench.budget.json's row is the phone tier; desktop is held to no worse) | 35.3 s (desktop 83.4 s) |
+| Fast 4G, Nalati | the baseline + its band: ≤ 35.5 s phone, ≤ 40.8 s desktop | 32.1 / 36.9 s |
+| warm time to play, switch times | no worse than the baseline; *improve* is the printed goal | |
+| re-download after a one-texture change | ≤ 2 MB | **19.7 MiB phone (the whole Pine Hollow boot pack), 2.5 MiB desktop: already missed** |
+
+Rows today's main already misses fail every `--compare` until the work fixes them or the user re-budgets them: the
+Driftwood 4G ceiling and the one-texture re-download (E158 / E161's cache work is what should bring the latter down).
 
 ## What headless cannot measure
 

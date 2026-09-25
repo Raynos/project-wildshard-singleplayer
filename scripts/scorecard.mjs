@@ -86,6 +86,7 @@ const HELP = `scorecard — the regression scorecard (docs/design/scorecard.md)
   --goldens             write the pose shots as the goldens (progress/scorecard/baseline/)
   --compare=<tag|file>  check this run against a baseline; exit 1 on a regression or a missed enforced rule
   --against=<tag|file>  with --compare and no browser: compare two existing result files
+  --rerender            no browser: rewrite progress/scorecard/<tag>.md from its JSON (after a budget edit)
   --timeout=240         seconds per load`;
 
 // ── args ──
@@ -111,6 +112,12 @@ if (!(NET in NETS)) { console.error(`--net=${NET}: wifi | 4g | none`); process.e
 const budget = JSON.parse(readFileSync(BUDGET_FILE, 'utf8'));
 const loadResult = (x) => JSON.parse(readFileSync(x.endsWith('.json') ? resolvePath(x) : join(OUT_DIR, `${x}.json`), 'utf8'));
 
+if (has('rerender')) { // no browser: rewrite <tag>.md from <tag>.json (a budget edit since the run, a report change)
+  const tag = flag('tag', 'baseline');
+  writeFileSync(join(OUT_DIR, `${tag}.md`), renderMarkdown(loadResult(tag)));
+  console.error(`> rewrote ${rel(join(OUT_DIR, `${tag}.md`))}`);
+  process.exit(0);
+}
 if (COMPARE && AGAINST) { // no browser: verdict of two result files
   const { text, regressions } = compareResults(loadResult(COMPARE), loadResult(AGAINST));
   console.log(text);
