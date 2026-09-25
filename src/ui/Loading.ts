@@ -3,6 +3,7 @@ import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';
 import { LOAD_SHELL_HTML } from '../boot/shell';
+import { isDev } from '../core/devMode';
 import './loading.css';
 
 /**
@@ -11,8 +12,12 @@ import './loading.css';
  * weighted steps) as integers that read 100 only when the fraction is exactly 1, an elapsed
  * clock, and one row per step with its wall ms and live detail. Nothing here eases, animates
  * on a timer or guesses. `done()` fades it out and resolves when it is gone.
+ *
+ * Players (E140, the user's 4a) see only the shard's display name, one bar (both tracks, half each) and a short line;
+ * the tracks, the step log, the tier line and "Loading chunk · <slug>" are developer mode's (`<html data-dev>`, set by
+ * index.html before the first paint — src/core/devMode.ts; loading.css does the hiding).
  */
-type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier';
+type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line';
 
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
@@ -39,8 +44,8 @@ export class Loading {
       document.body.append(this.root);
     }
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
-    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot') };
-    this.els.slug.textContent = chunk.slug;
+    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line') };
+    this.els.slug.textContent = isDev() ? chunk.slug : chunk.displayName;
     this.els.tier.textContent = `${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${nav.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}`;
     this.rowsEl = this.els.rows;
     const tick = (): void => { this.tickClock(); this.raf = requestAnimationFrame(tick); };
@@ -75,6 +80,10 @@ export class Loading {
     const dl = `${(v.download * 100).toFixed(1)}%`, su = `${(v.setup * 100).toFixed(1)}%`;
     if (this.els.dlBar.style.width !== dl) this.els.dlBar.style.width = dl;
     if (this.els.suBar.style.width !== su) this.els.suBar.style.width = su;
+    // the player's one bar: download and setup, half each (each only grows, so the sum does); 100 only when both are
+    const all = (v.download + v.setup) / 2, allW = `${(all * 100).toFixed(1)}%`;
+    if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
+    set(this.els.line, v.done ? 'Ready' : `${v.download < 1 ? 'Downloading' : 'Building the world'} · ${pct(all)}%`);
     set(this.els.dlFact, v.bytesTotal > 0
       ? `${formatMB(v.bytesRead)} / ${formatMB(v.bytesTotal)} · ${v.filesDone} / ${v.filesTotal} files${v.bytes && v.bytes.done < v.bytes.total ? ` · ${v.bytes.label}` : ''}`
       : 'nothing declared');

@@ -60,6 +60,9 @@
       document.addEventListener('gesturestart', (e) => e.preventDefault());
       // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)
       if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
+      // developer mode (E140, src/core/devMode.ts reads the same key and param): the loading screen's details, the frame meter,
+      // the build id show only under <html data-dev> — set here, before the first paint of the loading panel
+      try { const d = new URLSearchParams(location.search).get('dev'); if (d === null ? localStorage.getItem('ws.dev') === '1' : d !== '0') document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }
     </script>
     <canvas id="game"></canvas>
     <div id="hud"></div>
@@ -70,7 +73,8 @@
 </div>
 <div class="ws-load-body">
 <div class="ws-glass ws-load-panel">
-<div class="ws-load-title">Loading chunk · <b data-el="slug"></b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
+<div class="ws-load-title"><span class="ws-load-kicker">Loading chunk ·</span><b data-el="slug"></b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
+<div class="ws-load-simple"><div class="ws-load-bar"><div class="ws-load-fill" data-el="bar"></div></div><div class="ws-load-line" data-el="line">Loading</div></div>
 <div class="ws-load-meta ws-load-meta-1">
 <div><span>tier</span><span data-el="tier"></span></div>
 </div>

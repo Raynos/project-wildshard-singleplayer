@@ -10,12 +10,15 @@
  * tier · DPR, GL losses). A tap on the panel or anywhere else closes it. The pill cancels its own touch events (no
  * double-tap zoom, no callout / selection on iOS) and toggles on pointerup, so it never starts a look drag. Desktop keeps
  * the one-line readout, click-through as before.
+ * Developer mode only (E140, the user's 3a; src/core/devMode.ts): players never see it; the Settings ▸ Developer switch
+ * shows / hides it live. `?perf=0` hides it even in developer mode, `?perf=1` shows it (with the budget check) without it.
  * `?perf=1` adds the budget check: the worst draw calls / triangles of the last ~10 s against the tier's budget
  * (phone ≤ 110 calls, ≤ 1.6 M triangles — project/archive/2026-09-23-nalati.md, the phone-tier handoff; desktop shows the maxima only),
  * `OK` / `OVER` on the meter (red when over), and `window.__perfBudget` for scripted checks.
  */
 import type { Game } from '../core/Game';
 import { TIER } from '../core/tier';
+import { isDev, onDev } from '../core/devMode';
 import './perf.css';
 
 const PAINT_MS = 500;
@@ -57,7 +60,10 @@ export class Perf {
     for (const n of [root, ...root.querySelectorAll('*'), panel, ...panel.querySelectorAll('*')]) n.setAttribute('draggable', 'false');
     document.addEventListener('pointerdown', (e) => { if (e.target instanceof Node && !root.contains(e.target)) this.open(false); }, true);
     document.querySelectorAll<HTMLElement>('.ws-game-fps').forEach((e) => { e.hidden = true; }); // the HUD's old faint readout; this meter replaces it
-    if (new URLSearchParams(location.search).get('perf') === '0') { this.userHidden = true; this.root.hidden = true; }
+    const param = new URLSearchParams(location.search).get('perf');
+    const hide = (): boolean => (param === '0' ? true : param === '1' ? false : !isDev());
+    this.userHidden = hide(); this.root.hidden = this.userHidden;
+    onDev(() => { this.userHidden = hide(); if (this.active) this.setActive(true); });
     if (this.budgetOn) Object.assign(window, { __perfBudget: this.budget });
     game.onUpdate(() => this.update(performance.now()));
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
@@ -65,7 +71,8 @@ export class Perf {
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
-  setActive(on: boolean): void { this.root.hidden = on ? this.userHidden : true; if (!on || this.userHidden) this.open(false); }
+  setActive(on: boolean): void { this.active = on; this.root.hidden = on ? this.userHidden : true; if (!on || this.userHidden) this.open(false); }
+  private active = true; // until the menu first hides it (main.ts)
   /** the details panel over the minimap (phones) */
   private open(on: boolean): void { const show = on && this.root.hidden === false; this.panel.classList.toggle('open', show); this.root.classList.toggle('open', show); }
   private userHidden = false;

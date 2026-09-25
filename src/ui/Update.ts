@@ -3,7 +3,12 @@
  * Bookmarked as a home-screen PWA on iOS there is no address bar, so this is the only
  * way to pull a new deploy. It also polls /version.json (no-store) on load and whenever
  * the app returns to the foreground; when the server has a newer build the pill lights up.
+ *
+ * E140 (the user's 6a): players see the pill only when a new build is waiting ("New version · tap to update"). Developer
+ * mode (src/core/devMode.ts) shows it always, with the build id ("f86b4c3 · reload", "new f86b4c3 · tap to update").
  */
+import { isDev, onDev } from '../core/devMode';
+
 declare const __BUILD_ID__: string;
 
 /** `<sha>-<stamp>` → the sha, or the time token: Vercel CLI builds have no git checkout */
@@ -12,7 +17,7 @@ const sha = shortBuild(__BUILD_ID__);
 const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
-el.innerHTML = `<span class="ws-update-dot"></span><span data-el="text">${sha} · reload</span>`;
+el.innerHTML = '<span class="ws-update-dot"></span><span data-el="text"></span>';
 document.body.append(el);
 
 let busy = false;
@@ -37,12 +42,21 @@ el.addEventListener('pointerup', () => { void reload(); });
 el.addEventListener('click', () => { void reload(); });
 
 let newer = false;
+let newLabel = '';
+/** the pill's words: a player reads "New version", a developer the build ids */
+const paint = (): void => {
+  const text = el.querySelector('[data-el="text"]');
+  if (!text || busy) return;
+  text.textContent = !newer ? `${sha} · reload` : isDev() ? `new ${newLabel} · tap to update` : 'New version · tap to update';
+};
 const lightUp = (label: string): void => {
   newer = true;
+  newLabel = label;
   el.classList.add('newer');
-  const text = el.querySelector('[data-el="text"]');
-  if (text) text.textContent = `new ${label} · tap to update`;
+  paint();
+  sync();
 };
+paint();
 // the worker found a new build (installed, waiting) — same pill, no toast
 window.addEventListener('ws-sw-waiting', () => { lightUp('build'); });
 
@@ -59,15 +73,13 @@ void check();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void check(); });
 setInterval(check, 5 * 60 * 1000);
 
-// Only show while on the loading / title screen; hide once the player has entered the chunk.
+// Only show while on the loading / title screen; hide once the player has entered the chunk. Players: only when a new build waits.
 const hud = document.getElementById('hud');
-const sync = (): void => {
+function sync(): void {
   const onTitle = document.querySelector('.ws-load') !== null || (hud?.classList.contains('intro') ?? false);
-  el.classList.toggle('visible', onTitle); // menu-only: never over the game view, even when a newer build exists
-};
+  el.classList.toggle('visible', onTitle && (newer || isDev())); // menu-only: never over the game view, even when a newer build exists
+}
 sync();
+onDev(() => { paint(); sync(); });
 new MutationObserver(sync).observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });
 if (hud) new MutationObserver(sync).observe(hud, { attributes: true, attributeFilter: ['class'] });
-
-// oxlint-disable-next-line unicorn/require-module-specifiers -- side-effect script loaded by index.html: the bare export marks it as a module (import/unambiguous)
-export {};

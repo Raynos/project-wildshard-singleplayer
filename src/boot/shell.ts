@@ -12,7 +12,8 @@ export const LOAD_SHELL_HTML = `<div class="ws-load-head">
 </div>
 <div class="ws-load-body">
 <div class="ws-glass ws-load-panel">
-<div class="ws-load-title">Loading chunk · <b data-el="slug"></b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
+<div class="ws-load-title"><span class="ws-load-kicker">Loading chunk ·</span><b data-el="slug"></b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
+<div class="ws-load-simple"><div class="ws-load-bar"><div class="ws-load-fill" data-el="bar"></div></div><div class="ws-load-line" data-el="line">Loading</div></div>
 <div class="ws-load-meta ws-load-meta-1">
 <div><span>tier</span><span data-el="tier"></span></div>
 </div>

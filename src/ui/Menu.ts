@@ -31,6 +31,8 @@ import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
+import { isDev, onDev } from '../core/devMode';
+import { devSwitchRows } from './devSwitch';
 
 export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings' | 'feedback';
 const TABS: { id: MenuTab; label: string }[] = [
@@ -347,6 +349,8 @@ export class GameMenu {
     exit.addEventListener('click', () => { this.close(true); this.onExit?.(); });
     const p = el('ws-gmenu-card', '<div class="ws-gmenu-cardtitle">Settings</div>');
     const dbg = el('ws-gmenu-card debug', '<div class="ws-gmenu-cardtitle">Debug<small>for playtests — goes away when the game ships</small></div>');
+    // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
+    dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; });
     panel.append(resume, exit, p, dbg);
 
     const sw = (key: SettingKey, label: string) => {
@@ -457,7 +461,8 @@ export class GameMenu {
     const caps: { v: OptionValue<'fps'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: '30', text: '30' }, { v: '60', text: 'Uncapped' }];
     dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
     dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
-    dbg.append(this.buildReview());
+    // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
+    p.append(this.buildReview(), ...devSwitchRows());
   }
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
   private applies(): void {

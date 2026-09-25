@@ -12,7 +12,7 @@ describe('loading shell', () => {
   });
 
   it('has every hook Loading reads', () => {
-    for (const key of ['slug', 'tier', 'clock', 'dlFact', 'dlPct', 'dlBar', 'suFact', 'suPct', 'suBar', 'rows', 'foot']) {
+    for (const key of ['slug', 'tier', 'clock', 'dlFact', 'dlPct', 'dlBar', 'suFact', 'suPct', 'suBar', 'rows', 'foot', 'bar', 'line']) {
       expect(LOAD_SHELL_HTML).toContain(`data-el="${key}"`);
     }
   });

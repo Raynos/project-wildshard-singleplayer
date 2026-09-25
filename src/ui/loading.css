@@ -62,3 +62,13 @@
   .ws-load .ws-load-meta div { font-size: 10.5px; }
   .ws-load .ws-load-foot { padding: 0 16px calc(14px + env(safe-area-inset-bottom, 0px)); font-size: 8.5px; letter-spacing: 0.14em; }
 }
+
+/* players vs developer mode (E140, the user's 4a): players see the shard's name, one bar and a short line; the tracks, the
+   step log, the tier line, the clock and "Loading chunk ·" show only under <html data-dev> (index.html sets it before this
+   panel paints — src/core/devMode.ts) */
+.ws-load .ws-load-simple { margin-top: 14px; }
+.ws-load .ws-load-line { margin-top: 9px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); font-variant-numeric: tabular-nums; }
+:root:not([data-dev]) .ws-load .ws-load-kicker, :root:not([data-dev]) .ws-load .ws-load-clock, :root:not([data-dev]) .ws-load .ws-load-meta,
+:root:not([data-dev]) .ws-load .ws-load-track, :root:not([data-dev]) .ws-load .ws-load-log { display: none; }
+:root:not([data-dev]) .ws-load .ws-load-title b { margin-left: 0; }
+:root[data-dev] .ws-load .ws-load-simple { display: none; }
