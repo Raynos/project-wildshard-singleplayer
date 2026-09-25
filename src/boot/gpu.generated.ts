@@ -10,7 +10,6 @@ export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; read
     "/assets/horizon/driftwood-isle-night.webp": "/assets/gpu/horizon/driftwood-isle-night-f949f086.ktx2",
     "/assets/horizon/pine-hollow-day-phone.webp": "/assets/gpu/horizon/pine-hollow-day-phone-9230f06c.ktx2",
     "/assets/horizon/pine-hollow-night-phone.webp": "/assets/gpu/horizon/pine-hollow-night-phone-2b765c4e.ktx2",
-    "/assets/models/Lantern_01/Lantern_01_lod.phone.glb": "/assets/gpu/models/Lantern_01/Lantern_01_lod.phone-cb8f5638.glb",
     "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.phone.glb": "/assets/gpu/models/dead_tree_trunk/dead_tree_trunk_lod.phone-6cc05129.glb",
     "/assets/models/driftwood-blender/lm-ao.phone.webp": "/assets/gpu/models/driftwood-blender/lm-ao.phone-9f6766dc.ktx2",
     "/assets/models/driftwood-blender/lm-bounce.phone.webp": "/assets/gpu/models/driftwood-blender/lm-bounce.phone-582c92be.ktx2",
@@ -19,6 +18,7 @@ export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; read
     "/assets/models/hatchet/textures/hatchet_arm_1k.phone.webp": "/assets/gpu/models/hatchet/textures/hatchet_arm_1k.phone-f064fee3.ktx2",
     "/assets/models/hatchet/textures/hatchet_diff_1k.phone.webp": "/assets/gpu/models/hatchet/textures/hatchet_diff_1k-961e709c.ktx2",
     "/assets/models/hatchet/textures/hatchet_nor_gl_1k.phone.webp": "/assets/gpu/models/hatchet/textures/hatchet_nor_gl_1k-0b4b01f2.ktx2",
+    "/assets/models/Lantern_01/Lantern_01_lod.phone.glb": "/assets/gpu/models/Lantern_01/Lantern_01_lod.phone-cb8f5638.glb",
     "/assets/models/pine-hollow-hero/beaver-dam-lod1/beaver-dam-lod1.glb": "/assets/gpu/models/pine-hollow-hero/beaver-dam-lod1/beaver-dam-lod1-c9b1bd73.glb",
     "/assets/models/pine-hollow-hero/beaver-dam/beaver-dam.phone.glb": "/assets/gpu/models/pine-hollow-hero/beaver-dam/beaver-dam.phone-21614a74.glb",
     "/assets/models/pine-hollow-hero/canoe-lod1/canoe-lod1.glb": "/assets/gpu/models/pine-hollow-hero/canoe-lod1/canoe-lod1-e0db5ef9.glb",
@@ -159,7 +159,5 @@ export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; read
     "/assets/tex/wood_trunk_wall/diffuse_1k.phone.webp": "/assets/gpu/tex/wood_trunk_wall/diffuse_1k.phone-620ed2c0.ktx2",
     "/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp": "/assets/gpu/tex/wood_trunk_wall/nor_gl_1k.phone-d83dea27.ktx2",
   },
-  desktop: {
-
-  },
+  desktop: {},
 };

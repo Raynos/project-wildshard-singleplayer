@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// ktx2-ab.mjs — the E157 A/B: the same poses in each shard with the images (`tex=img`) and the KTX2 textures (`tex=ktx2`),
+// ktx2-ab.mjs — the E157 A/B: the same poses in each shard with the images and the KTX2 textures (the saved `tex` setting),
 // on the iPhone portrait the user judges on (iPhone 16 Pro UA, 390×844 @3, touch, the phone tier). Every DOM layer but the
 // game canvas is hidden, the clock is held (`tod` + a day of ~3 years), the weather clear; per pose the player is spawned,
 // the loop runs 4 s, then stops drawing (game.frameGate) and the frozen frame is captured.
@@ -60,11 +60,13 @@ try {
     for (const mode of MODES) {
       const tex = mode.startsWith('img') ? 'img' : 'ktx2';
       const ctx = await browser.newContext({ userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } });
+      // the textures are a saved setting (pause ▸ Settings ▸ Debug ▸ GPU textures), never a URL switch; no background prefetch
+      await ctx.addInitScript((t) => { try { localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: t, prefetch: 'off' })); } catch { /* */ } }, tex);
       const page = await ctx.newPage();
       const errors = [];
       page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
       page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
-      const url = `${URL_BASE}/?chunk=${shard}&mute=1&skipintro=1&nolock=1&sw=0&tier=phone&touch=1&clock=100000000&${spec.q}&tex=${tex}`;
+      const url = `${URL_BASE}/?chunk=${shard}&mute=1&skipintro=1&nolock=1&sw=0&tier=phone&touch=1&clock=100000000&${spec.q}`;
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => Boolean(window.__world?.game && window.__world.player), undefined, { timeout: 300000, polling: 500 });
       await sleep(8000);

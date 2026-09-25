@@ -11,9 +11,9 @@
  * Images: the texture loaders ask (src/core/ktx2.ts); models: `tierUrl` itself swaps a .glb / .gltf (src/boot/bytes.ts),
  * so three's loaders, the boot pack and the manifest all see the same file.
  *
- * The switch is the player's (the look is their call): `?tex=ktx2` / `?tex=img` for a page, main menu ▸ Settings ▸
- * Textures for good; 'auto' is TEX_DEFAULT. Only the default's files are in the boot manifest / pack, so the default path
- * never downloads both sets.
+ * The switch is the player's (the look is their call): pause ▸ Settings ▸ Debug ▸ GPU textures (saves and reloads; no URL
+ * switch — the A/B scripts write the saved setting); 'auto' is TEX_DEFAULT. Only the default's files are in the boot
+ * manifest / pack, so the default path never downloads both sets.
  */
 import { GPU_FILES } from './gpu.generated';
 import { TIER } from '../core/tier';

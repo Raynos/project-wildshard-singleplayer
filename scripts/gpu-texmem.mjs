@@ -9,7 +9,7 @@
 // After the settle the page's scene is walked: every texture a material or ShaderMaterial uniform holds is matched to
 // its WebGLTexture (renderer.properties) and labelled with the mesh that draws it, so the table says whose bytes they are.
 //
-//   node scripts/gpu-texmem.mjs --url=http://localhost:4391 --chunk=pine-hollow --tier=phone [--query=tex=ktx2] [--tag=x]
+//   node scripts/gpu-texmem.mjs --url=http://localhost:4391 --chunk=pine-hollow --tier=phone [--tex=ktx2|img] [--tag=x]
 //   … --query=nopack=1 --record     also merge the files this boot loaded into scripts/bake-ktx2.list.json (bake-ktx2's list)
 //
 // Phone: 390×844 @3, iPhone UA, `touch=1&tier=phone`. Desktop: 1600×900 @1, `tier=desktop`. One headless Chromium on
@@ -25,6 +25,9 @@ const URL_BASE = flag('url', 'http://localhost:4391');
 const CHUNK = flag('chunk', 'pine-hollow');
 const TIER = flag('tier', 'phone');
 const EXTRA = flag('query', '');
+/** --tex=ktx2|img: the textures (E157) — a saved setting (pause ▸ Settings ▸ Debug ▸ GPU textures), never a URL switch;
+ * the background prefetch of the other shards (E158) is off either way, so it adds nothing to the ledger */
+const TEX = flag('tex', '');
 const TAG = flag('tag', 'latest');
 const SETTLE = Number(flag('settle', '10')) * 1000;
 const TOP = Number(flag('top', '25'));
@@ -222,6 +225,7 @@ try {
     ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
     : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
   await ctx.addInitScript(ledger);
+  await ctx.addInitScript((tex) => { try { localStorage.setItem('ws.settings.v1', JSON.stringify({ prefetch: 'off', ...(tex === '' ? {} : { tex }) })); } catch { /* */ } }, TEX);
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
@@ -233,11 +237,11 @@ try {
   const readyS = (Date.now() - t0) / 1000;
   await sleep(SETTLE);
   const r = await page.evaluate(report, TOP);
-  const out = { tag: TAG, chunk: CHUNK, tier: TIER, query: q, readyS, when: new Date().toISOString(), errors: errors.slice(0, 20), ...r };
+  const out = { tag: TAG, chunk: CHUNK, tier: TIER, tex: TEX, query: q, readyS, when: new Date().toISOString(), errors: errors.slice(0, 20), ...r };
   mkdirSync(resolvePath(ROOT, 'progress/texmem'), { recursive: true });
   const file = resolvePath(ROOT, `progress/texmem/${TAG}-${CHUNK}-${TIER}.json`);
   writeFileSync(file, `${JSON.stringify(out, null, 1)}\n`);
-  console.log(`[texmem] ${CHUNK} ${TIER} ${EXTRA === '' ? '(default)' : EXTRA} · ready ${readyS.toFixed(0)} s`);
+  console.log(`[texmem] ${CHUNK} ${TIER} tex=${TEX === '' ? '(default)' : TEX} ${EXTRA} · ready ${readyS.toFixed(0)} s`);
   console.log(`  textures ${r.textureMB} MB in ${r.textures} (compressed ${r.compressedMB} MB in ${r.compressedTextures}) · in scene ${r.inSceneMB} MB · render targets ${r.renderTargetMB} MB · renderbuffers ${r.renderbufferMB} MB · JS heap ${r.jsHeapMB} MB`);
   console.log(`  by format ${JSON.stringify(r.byFormat)}`);
   for (const [k, v] of Object.entries(r.byClass).sort((a, b) => b[1].mb - a[1].mb).slice(0, 30)) console.log(`  ${String(v.mb.toFixed(1)).padStart(7)} MB ${String(v.n).padStart(4)}  ${k}`);
