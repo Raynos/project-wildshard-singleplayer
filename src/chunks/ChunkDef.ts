@@ -399,6 +399,10 @@ export interface ChunkDef {
   /** the title's EXPLORE WORLD is offered on this shard (project/archive/2026-09-23-explore-world.md; the models it shows are what the
    *  shard's setup registers — src/explore/registry.ts); omitted = play only */
   explore?: boolean;
+  /** this load's bake variant (a Look Lab pick that moves the ground — Nalati's N23 edge, `.edge`): the baked terrain and
+   *  navmesh are read from `terrain<variant>.bin` / `navmesh<variant>.bin` (scripts/bake-chunk.mjs / bake-navmesh.mjs
+   *  VARIANTS); omitted or '' = the plain bake */
+  bakeVariant?: string;
 }
 
 /** a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) */

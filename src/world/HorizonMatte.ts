@@ -34,6 +34,8 @@ import { TIER } from '../core/tier';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
 const RADIUS = 2300;
+/** the band's radius: the sea (Ocean.ts) fades out just inside it, so the painted islands stand on its far edge (E125) */
+export const HORIZON_RADIUS = RADIUS;
 const FADE_IN = 1.5;
 
 /**

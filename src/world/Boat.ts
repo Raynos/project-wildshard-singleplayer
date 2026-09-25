@@ -20,8 +20,7 @@ import { SEED } from '../core/config';
 import type { Sky } from './Sky';
 import { heightAt } from './Heightfield';
 import { waveHeight, seaDamp } from './waves';
-import { attachFogUniforms } from './Atmosphere';
-import { patchSway, swayDepthMaterial } from './wind';
+import { swayDepthMaterial } from './wind';
 import { LowPolyKit, lowPolyMaterial, beam, log, plank, rope, sagLine } from './lowpolyKit';
 import type { ColliderDesc } from './registry';
 
@@ -234,10 +233,9 @@ export class Boat {
     for (const g of parts) if (!g.hasAttribute('aSway')) g.setAttribute('aSway', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 2), 2));
     const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
-    mat.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); };
-    mat.customProgramCacheKey = () => 'boat-sway';
-    this.sky.setupMaterial(mat);
+    // the kit's shared two-sided material: fog + wind sway + E112's shadow-normal flip (a sheet wound away from the sun
+    // no longer reads its own shadow — v1's hull is all such sheets)
+    const mat = lowPolyMaterial(this.sky);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
     this.mesh.customDepthMaterial = swayDepthMaterial();
@@ -256,10 +254,14 @@ export class Boat {
    * in two tones and a dark wale band under the cap; the sheer rises to the stem and, less, to the transom; stem post,
    * keel strip, ribs, three thwarts, quarter posts, rudder + tiller, oars, a rope coil and a lantern. The sail is a
    * bellied triangle on a boom, lashed to the mast, with a forestay, shrouds and a sheet — its own two-sided mesh that
-   * casts but never receives (the E110 fix). ~2.4k triangles, 2 draw calls (+ the mooring lines).
+   * casts but never receives (the E110 fix). The thin gear (oars, lashings, boom, tiller, rigging, coil, lantern) is a third
+   * mesh that receives but never casts. ~2.3k triangles, 3 draw calls (+ the mooring lines).
    */
   private buildV2(): void {
-    const kit = new LowPolyKit(SEED ^ 0x0b0a8), rig = new LowPolyKit(SEED ^ 0x5a11);
+    // kit: the hull + timbers (casts, receives); rig: the sail (casts only); gear: the thin bits — oars, lashings, boom,
+    // tiller, rigging, coil, lantern — which receive but don't cast: at the phone's ~10–15 cm shadow texels a 3–6 cm spar
+    // casts a dotted chain of blobs across the floor boards
+    const kit = new LowPolyKit(SEED ^ 0x0b0a8), rig = new LowPolyKit(SEED ^ 0x5a11), gear = new LowPolyKit(SEED ^ 0x9ea5);
     const K = {
       plankA: '#b27b45', plankB: '#9e6a39', wale: '#6b4630', cap: '#583a25', inner: '#8c6038', floorA: '#bc8d5b', floorB: '#a97c4c',
       rib: '#7a5132', post: '#6b4630', mast: '#94643a', sail: '#f2e9d6', sailB: '#e8dec8', patch: '#a99a80', rope: '#d8bf8a',
@@ -385,7 +387,7 @@ export class Boat {
     thwart(MAST_T, 0.66, 0.3); thwart(0.55, 0.64, 0.32); thwart(0.86, 0.66, 0.5);
     // rowlocks on the cap by the middle thwart, cleats fore and aft for the mooring lines
     { const s = station(0.55), xs = outer(s, PROF.length - 1)[0] - 0.04;
-      for (const sd of [-1, 1]) kit.add(new THREE.BoxGeometry(0.06, 0.12, 0.1).translate(sd * xs, s.sheer + 0.06, s.z + 0.3), K.iron, { jitter: 0.04 }); }
+      for (const sd of [-1, 1]) gear.add(new THREE.BoxGeometry(0.06, 0.12, 0.1).translate(sd * xs, s.sheer + 0.06, s.z + 0.3), K.iron, { jitter: 0.04 }); }
     const cz = [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3], cs = cz.map((z) => station((z + LENGTH / 2) / LENGTH));
     cs.forEach((s, i) => { kit.add(new THREE.BoxGeometry(0.3, 0.06, 0.1).translate(0, s.sheer + 0.03, (cz[i] ?? 0)), K.post, { jitter: 0.04 }); });
     this.cleatY = cs.map((s) => s.sheer + 0.06);
@@ -396,31 +398,31 @@ export class Boat {
     kit.add(log(V(0, FLOOR, mz), V(0, mastTop, mz), 0.085, 0.055, 8, 0.3), K.mast, { jitter: 0.05 });
     kit.add(new THREE.BoxGeometry(0.13, 0.12, 0.13).translate(0, mastTop + 0.04, mz), K.post, { jitter: 0.04 });
     const lash = (y: number, r: number, h = 0.07) => {
-      for (let k = 0; k < 2; k++) kit.add(new THREE.TorusGeometry(r, 0.022, 3, 7).rotateX(Math.PI / 2).translate(0, y + (k - 0.5) * h, mz), K.rope, { jitter: 0.06 });
+      for (let k = 0; k < 2; k++) gear.add(new THREE.TorusGeometry(r, 0.022, 3, 7).rotateX(Math.PI / 2).translate(0, y + (k - 0.5) * h, mz), K.rope, { jitter: 0.06 });
     };
     lash(0.73, 0.085); lash(BOOM_Y + 0.04, 0.08); lash(2.9, 0.075); lash(mastTop - 0.28, 0.064);
     const boomEnd = V(0, BOOM_Y + 0.12, mz + BOOM_L);
-    kit.add(log(V(0, BOOM_Y, mz + 0.06), boomEnd, 0.05, 0.042, 6, 0.4), K.mast, { jitter: 0.05 });
-    kit.add(new THREE.TorusGeometry(0.06, 0.02, 3, 6).translate(0, boomEnd.y, boomEnd.z - 0.12), K.rope, { jitter: 0.06 });
+    gear.add(log(V(0, BOOM_Y, mz + 0.06), boomEnd, 0.05, 0.042, 6, 0.4), K.mast, { jitter: 0.05 });
+    gear.add(new THREE.TorusGeometry(0.06, 0.02, 3, 6).translate(0, boomEnd.y, boomEnd.z - 0.12), K.rope, { jitter: 0.06 });
     {
       const rud = new THREE.Shape([[0, 1.0], [0.13, 1.0], [0.13, 0.25], [0.5, -0.05], [0.44, -0.55], [0, -0.6]].map(([z, y]) => new THREE.Vector2(z, y)));
       kit.add(new THREE.ExtrudeGeometry(rud, { depth: 0.06, bevelEnabled: false }).rotateY(-Math.PI / 2).translate(0.03, 0, sN.z + 0.03), K.post, { jitter: 0.05 });
-      kit.add(log(V(0, 1.0, sN.z + 0.1), V(0, 0.92, sN.z - 1.2), 0.035, 0.028, 6), K.mast, { jitter: 0.05 });
+      gear.add(log(V(0, 1.0, sN.z + 0.1), V(0, 0.92, sN.z - 1.2), 0.035, 0.028, 6), K.mast, { jitter: 0.05 });
     }
 
     // ── gear: two oars on the thwarts, a rope coil on the floor, a lantern on the port quarter post ──
     for (const x of [-0.42, -0.58]) {
       const a = V(x, 0.74, -0.35 + (x + 0.5) * 0.4), b = V(x + 0.08, 0.72, 2.25);
-      kit.add(log(a, b, 0.032, 0.03, 6), K.oar, { jitter: 0.05 });
-      kit.add(new THREE.BoxGeometry(0.03, 0.14, 0.62).translate(b.x + 0.01, b.y - 0.02, b.z + 0.26), K.oar, { jitter: 0.05 });
+      gear.add(log(a, b, 0.032, 0.03, 6), K.oar, { jitter: 0.05 });
+      gear.add(new THREE.BoxGeometry(0.03, 0.14, 0.62).translate(b.x + 0.01, b.y - 0.02, b.z + 0.26), K.oar, { jitter: 0.05 });
     }
-    for (let k = 0; k < 3; k++) kit.add(new THREE.TorusGeometry(0.2 - (k % 2) * 0.03, 0.04, 4, 9).rotateX(Math.PI / 2).translate(0.3, FLOOR + 0.045 + k * 0.07, mz - 0.55), K.rope, { jitter: 0.06 });
+    for (let k = 0; k < 3; k++) gear.add(new THREE.TorusGeometry(0.2 - (k % 2) * 0.03, 0.04, 4, 9).rotateX(Math.PI / 2).translate(0.3, FLOOR + 0.045 + k * 0.07, mz - 0.55), K.rope, { jitter: 0.06 });
     {
       const lx = -(outer(sN, PROF.length - 1)[0] - 0.08), ly = sN.sheer + 0.36, lz = sN.z - 0.07;
-      kit.add(new THREE.BoxGeometry(0.03, 0.03, 0.2).translate(lx, ly + 0.02, lz - 0.1), K.iron, { jitter: 0.02 });
-      kit.add(new THREE.BoxGeometry(0.13, 0.18, 0.13).translate(lx, ly - 0.14, lz - 0.2), K.glass, { jitter: 0.02 });
-      kit.add(new THREE.ConeGeometry(0.11, 0.09, 4, 1).rotateY(Math.PI / 4).translate(lx, ly - 0.005, lz - 0.2), K.iron, { jitter: 0.02 });
-      kit.add(new THREE.BoxGeometry(0.15, 0.03, 0.15).translate(lx, ly - 0.24, lz - 0.2), K.iron, { jitter: 0.02 });
+      gear.add(new THREE.BoxGeometry(0.03, 0.03, 0.2).translate(lx, ly + 0.02, lz - 0.1), K.iron, { jitter: 0.02 });
+      gear.add(new THREE.BoxGeometry(0.13, 0.18, 0.13).translate(lx, ly - 0.14, lz - 0.2), K.glass, { jitter: 0.02 });
+      gear.add(new THREE.ConeGeometry(0.11, 0.09, 4, 1).rotateY(Math.PI / 4).translate(lx, ly - 0.005, lz - 0.2), K.iron, { jitter: 0.02 });
+      gear.add(new THREE.BoxGeometry(0.15, 0.03, 0.15).translate(lx, ly - 0.24, lz - 0.2), K.iron, { jitter: 0.02 });
     }
 
     // ── the sail: a triangle, tack at the gooseneck, head at the masthead, clew at the boom end; a belly to leeward ──
@@ -456,10 +458,10 @@ export class Boat {
       rig.addPainted(g);
       // rigging: forestay to the stem head, a shroud to each side, the sheet from the boom end down to the stern thwart
       const top = V(0, mastTop - 0.3, mz), stemTop = V(0, stemHead.y - 0.1, stemHead.z + 0.06);
-      rig.add(rope(sagLine(top, stemTop, 0.04, 4), 0.016), K.rope, { jitter: 0.04 });
-      for (const sd of [-1, 1]) rig.add(rope(sagLine(top, V(sd * (outer(mast, PROF.length - 1)[0] - 0.04), mast.sheer + 0.02, mz + 0.35), 0.03, 3), 0.014), K.rope, { jitter: 0.04 });
+      gear.add(rope(sagLine(top, stemTop, 0.04, 4), 0.016), K.rope, { jitter: 0.04 });
+      for (const sd of [-1, 1]) gear.add(rope(sagLine(top, V(sd * (outer(mast, PROF.length - 1)[0] - 0.04), mast.sheer + 0.02, mz + 0.35), 0.03, 3), 0.014), K.rope, { jitter: 0.04 });
       const s86 = station(0.86);
-      rig.add(rope(sagLine(V(0, boomEnd.y - 0.04, boomEnd.z - 0.3), V(0.1, 0.72, s86.z), 0.05, 3), 0.016), K.rope, { jitter: 0.04 });
+      gear.add(rope(sagLine(V(0, boomEnd.y - 0.04, boomEnd.z - 0.3), V(0.1, 0.72, s86.z), 0.05, 3), 0.016), K.rope, { jitter: 0.04 });
     }
 
     const hullGeo = kit.finish({ ao: { strength: 0.5, downDark: 0.22 } });
@@ -468,8 +470,11 @@ export class Boat {
     this.sail = new THREE.Mesh(rig.finish({ ao: false }), lowPolyMaterial(this.sky));
     this.sail.castShadow = true; this.sail.receiveShadow = false;
     this.sail.customDepthMaterial = swayDepthMaterial();
+    const gearMesh = new THREE.Mesh(gear.finish({ ao: false }), lowPolyMaterial(this.sky));
+    gearMesh.castShadow = false; gearMesh.receiveShadow = true;
+    this.mesh.add(gearMesh);
     this.ropeMat = lowPolyMaterial(this.sky);
-    this.triangles = hullGeo.getAttribute('position').count / 3 + this.sail.geometry.getAttribute('position').count / 3;
+    this.triangles = [hullGeo, this.sail.geometry, gearMesh.geometry].reduce((n, g) => n + g.getAttribute('position').count / 3, 0);
   }
 
   /** triangles in the hull + sail meshes (the mooring lines aside) */

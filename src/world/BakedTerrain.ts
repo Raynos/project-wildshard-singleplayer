@@ -38,8 +38,8 @@ function parsePlacement(buf: ArrayBuffer, at: number): BakedPlacement | null {
   return { length, bits: new Uint8Array(buf, head, (length + 7) >> 3), checksum: { counts, sum: dv.getFloat64(at + 16 + kinds * 4, true) } };
 }
 
-export const bakedTerrainUrl = (slug: string): string | null => {
-  const url = `/assets/baked/${slug}/terrain.bin`;
+export const bakedTerrainUrl = (slug: string, variant = ''): string | null => {
+  const url = `/assets/baked/${slug}/terrain${variant}.bin`;
   return url in PUBLIC_BYTES ? url : null;
 };
 
@@ -109,7 +109,7 @@ export function bakedUndergrowth(): BakedPlacement | null {
 export async function loadBakedTerrain(): Promise<boolean> {
   const def = getActiveChunk();
   if (installedFor === def.slug) return true;
-  const url = bakedTerrainUrl(def.slug);
+  const url = bakedTerrainUrl(def.slug, def.bakeVariant); // a variant's bake (N23's edge) is fetched outside the boot pack
   if (!url || new URLSearchParams(location.search).has('nobake')) return false; // ?nobake=1: A/B against the analytic field
   try {
     const res = await fetch(url);

@@ -33,6 +33,9 @@ import { heightAt } from './Heightfield';
 import { SEED } from '../core/config';
 import { LowPolyKit, log, beam, plank, rock, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
 import { swayDepthMaterial } from './wind';
+import { rockLook, rockGeometry, rockIsSmooth, rockMaterial, REEF_ROCK } from './rockKit';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 import { boxDesc, type ColliderDesc } from './registry';
@@ -631,10 +634,27 @@ export class Wreck {
       [-4.4, -1.5, 0.9], [-3.8, -6.5, 1.2], [4.3, -5.8, 0.8], [6.8, 4, 0.7], [-6.3, 7.5, 0.8], [6.2, 10.5, 1.4], [-2.0, 12.4, 1.1],
       [7.5, -3.8, 0.6], [6.2, 3.2, 0.5], [8.5, 7.0, 0.9],
     ];
+    // E114: ?rocks=a|b|c swaps in a candidate rock look (rockKit.ts); the current look stays the default
+    const look = rockLook(), lookRng = new Rng(SEED ^ 0x70c5), smoothRocks: THREE.BufferGeometry[] = [];
     for (const [lx, lz, r] of rocks) {
       const [x, z] = hw(lx, lz), y = heightAt(x, z);
-      kit.addTopped(rock(r, 1, rng, 0.62, 0.3), rng.next() < 0.5 ? C.rock : C.rockB, rng.next() < 0.6 ? C.moss : C.weed, { matrix: wm(x, y + r * 0.2, z, rng.range(0, 6)), minY: 0.62, jitter: 0.08 });
+      const g = rock(r, 1, rng, 0.62, 0.3), side = rng.next() < 0.5 ? C.rock : C.rockB, top = rng.next() < 0.6 ? C.moss : C.weed, m = wm(x, y + r * 0.2, z, rng.range(0, 6));
+      if (look === 'current') kit.addTopped(g, side, top, { matrix: m, minY: 0.62, jitter: 0.08 });
+      else {
+        // burn the draws addTopped would have taken (one per face), so everything after the rocks is placed as today
+        for (let i = g.getAttribute('position').count / 3; i > 0; i--) rng.next();
+        g.dispose();
+        const alt = rockGeometry(look, r, lookRng, { squash: 0.62, palette: REEF_ROCK, moss: top === C.moss ? 0.9 : 0.5 });
+        if (rockIsSmooth(look)) { alt.applyMatrix4(m); smoothRocks.push(alt); } else kit.addPainted(alt, m);
+      }
       if (r > 0.9) this.colliders.push({ x, z, hw: r * 0.8, hd: r * 0.8, rot: 0, yTop: y + r * 0.7, yBottom: y - 2 });
+    }
+    if (look !== 'current' && smoothRocks.length > 0) {
+      // the smooth look keeps its own normals, so it can't join the flat-shaded kit: all its rocks are one more draw
+      const rm = new THREE.Mesh(mergeGeometries(smoothRocks, false), rockMaterial(this.sky, look));
+      for (const s of smoothRocks) s.dispose();
+      rm.name = 'wreck-rocks'; rm.castShadow = true; rm.receiveShadow = true;
+      this.group.add(rm);
     }
     // flotsam: planks lying in the shallows by the stern, a spar leaning on the hull
     for (let k = 0; k < 6; k++) {

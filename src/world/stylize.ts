@@ -36,6 +36,8 @@ export const toonUniforms = {
   uToonRim: { value: new THREE.Color(1.3, 0.95, 0.6) },
   /** terminator band colour × strength (×albedo²-ish saturated) */
   uToonTerm: { value: new THREE.Color(0.4, 0.16, 0.06) },
+  /** how much of that warm band also rims a cast shadow's edge (1 = as much as a facet's turn, 0 = none; E123) */
+  uToonEdge: { value: 1 },
   /** 0..1 how much the shade band keeps of the sun's facet grade (0 = flat toon shade) */
   uToonShadeGrade: { value: 0.0 },
   /** cloud shadows (L4): strength 0..1, scroll time (s), wind (m/s xz), feature size (m) */
@@ -61,6 +63,7 @@ const TOON_GLSL = /* glsl */`
 uniform vec3 uToonLift;
 uniform vec3 uToonRim;
 uniform vec3 uToonTerm;
+uniform float uToonEdge;
 uniform float uToonShadeGrade;
 uniform float uCloudShadow;
 uniform float uToonNight;
@@ -108,7 +111,8 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 		float NdL = dot( geometryNormal, directLight.direction );
 		// a hard step on the facet's turn to the light (a facet is lit or it is shade); a softer one on the cast shadow, whose
 		// PCF penumbra is dithered noise that a hard threshold would turn into speckle
-		float band = smoothstep( 0.14, 0.2, NdL ) * smoothstep( 0.25, 0.75, shadow );
+		float faceLit = smoothstep( 0.14, 0.2, NdL ), inSun = smoothstep( 0.25, 0.75, shadow );
+		float band = faceLit * inSun;
 		float grade = 0.8 + 0.2 * saturate( NdL );                  // the lit band keeps a faint facet grade
 		vec3 alb = material.diffuseContribution;
 		float cloud = toonCloud( geometryPosition );                  // L4: drifting cloud shade dims the lit band, never flips it
@@ -116,7 +120,9 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 			+ sunCol * vec3( 0.7, 1.0, 1.05 ) * band * cloud * toonCaustics( geometryPosition );   // caustics: a cool cyan-white, not the sun's yellow
 		// the terminator: a thin warm, saturated band where the ramp turns (kept faint: on a flat-shaded model a whole
 		// facet sits in it, and PCF acne makes a shadow-ratio edge unreliable)
-		float term = band * ( 1.0 - band ) * 4.0;
+		// E123: the facet's turn and the cast shadow's edge are weighed apart — the edge's share is uToonEdge (the band is as
+		// wide as the shadow map's penumbra, 20–30 cm on the phone's old 1024² map: an orange halo round every shadow)
+		float term = ( faceLit * ( 1.0 - faceLit ) * inSun + uToonEdge * inSun * ( 1.0 - inSun ) * faceLit ) * 4.0;
 		vec3 satAlb = alb * alb / max( max( alb.r, max( alb.g, alb.b ) ), 1e-3 );
 		reflectedLight.directDiffuse += RECIPROCAL_PI * ( alb * irr + satAlb * uToonTerm * term * sunCol );
 		// rim on the lit side of vertical-ish faces (never the ground)

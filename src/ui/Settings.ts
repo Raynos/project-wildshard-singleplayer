@@ -115,6 +115,7 @@ export const OPTION_VALUES = {
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
   // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's picks are locked in (N20, the user: terrain
   // shadows off, terrain AO off, model shading on, yurts procedural, camp people the image-to-3D models) and their switches gone
+  edge: ['off', 'on'],                                 // N23: the berm + spruce lines hiding the slab's edge (src/chunks/nalatiEdge.ts) — a second terrain bake, on the next load
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -136,13 +137,14 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   pinesky: { def: 'clock', params: ['pinesky'], url: (q) => (q.get('tod') === 'sunset-fixed' ? 'sunset' : q.get('pinesky')) }, // ?tod=sunset-fixed: the before shots
   weather: { def: 'live', params: ['weather', 'weatherT'], url: (q) => q.get('weather') },            // ?weather=rain&weatherT=0.5: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
+  edge: { def: 'on', params: ['edge'], url: (q) => onOff(q.get('edge')) },                            // on by default: the user's pick after the N23 board ("Edge on", 2026-09-25); ?edge=0 = the old look
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
-  lighting: option('lighting'), sky: option('sky'), post: option('post'), pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
+  lighting: option('lighting'), sky: option('sky'), post: option('post'), pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'), edge: option('edge'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

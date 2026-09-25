@@ -47,7 +47,7 @@ function hash21(pIn: Node<'vec2'>): Node<'float'> {
 export function registerOcean(): void {
   registerPort('ocean-v2', (src) => {
     const h = harvest(src);
-    const uTime = hFloat(h, 'uTime'), uDeepDepth = hFloat(h, 'uDeepDepth'), uLevel = hFloat(h, 'uLevel'), uChunkHalf = hFloat(h, 'uChunkHalf');
+    const uTime = hFloat(h, 'uTime'), uDeepDepth = hFloat(h, 'uDeepDepth'), uLevel = hFloat(h, 'uLevel'), uChunkHalf = hFloat(h, 'uChunkHalf'), uSeaEnd = hFloat(h, 'uSeaEnd');
     const uShallow = hVec3(h, 'uShallow'), uDeep = hVec3(h, 'uDeep');
     const tSea = need(h, 'tSea').value as THREE.Texture;
     const T = gpuUniforms().toon, F = gpuUniforms().fog;
@@ -98,7 +98,13 @@ export function registerOcean(): void {
     const p3 = mix(float(5), float(2.2), fract(ph.add(0.5)));
     const l3 = float(1).sub(smoothstep(0.08, 0.22, abs(d0.sub(p3)))).mul(step(0.55, toonNoise(W.xz.mul(0.7).add(13)))).mul(0.8);
     const lace = max(l1, max(l2, l3)).mul(inC).mul(float(1).sub(smoothstep(6, 9, shoreD))).mul(step(0, still));
-    const ring = smoothstep(0.45, 0.65, sea.g.add(n.sub(0.5).mul(0.3))).mul(step(0.25, n)).mul(sin(uTime.mul(2.4).add(sea.g.mul(9))).mul(0.25).add(0.75)).mul(inC);
+    // rings (E125): the proximity back in metres, wobbled wider than a texel, drawn as a broken collar + an outward ripple
+    const od = float(1).sub(sea.g).mul(3).add(n.sub(0.5).mul(0.5)).add(toonNoise(W.xz.mul(1.3).sub(uTime.mul(0.2))).sub(0.5).mul(0.35)).toVar();
+    const rn = toonNoise(W.xz.mul(2.4).add(vec2(uTime.mul(0.35), uTime.mul(-0.25)))).toVar();
+    const r1 = float(1).sub(smoothstep(0.22, 0.3, od.sub(vCrest.mul(0.4)))).mul(step(0.42, rn));
+    const rp = fract(uTime.mul(0.3).add(n.mul(0.25))).toVar();
+    const r2 = float(1).sub(smoothstep(0.05, 0.14, abs(od.sub(mix(float(0.45), float(1.9), rp))))).mul(step(0.5, rn)).mul(float(1).sub(rp)).mul(0.9);
+    const ring = max(r1, r2).mul(smoothstep(0, 0.12, sea.g)).mul(inC);
     const cap = smoothstep(0.2, 0.26, vCrest).mul(step(0.62, toonNoise(W.xz.mul(0.2).add(3.1)))).mul(smoothstep(2.5, 8, still)).mul(0.85);
     const foam = clamp(max(max(lace, ring), cap), 0, 1).toVar();
     m.colorNode = vec4(mix(water, vec3(1), foam), 1);
@@ -117,8 +123,9 @@ export function registerOcean(): void {
     const win = smoothstep(0.6, 0.7, abs(dot(fn, V)));
     const skyU = mix(fogColor, T.uFogZenith, 0.5).mul(1.4);
     const addBelow = mix(uDeep.mul(1.6).add(uShallow.mul(0.15)), skyU, win);
-    const waterA = clamp(select(frontFacing, aTop, float(1)), 0, 1).toVar();
-    const waterAdd = select(frontFacing, addTop, addBelow);
+    const seaEnd = float(1).sub(smoothstep(uSeaEnd.sub(300), uSeaEnd, length(W.xz.sub(cameraPosition.xz)))); // ends at the painted horizon (E125)
+    const waterA = clamp(select(frontFacing, aTop, float(1)), 0, 1).mul(seaEnd).toVar();
+    const waterAdd = select(frontFacing, addTop, addBelow).mul(seaEnd);
     const lit = select(frontFacing, output.rgb, vec3(0)); // below: diffuseColor is black in the GLSL
     const straight = lit.mul(waterA).add(waterAdd).div(max(waterA, 1e-3));
     const { col: fc, factor } = fogAt(W);

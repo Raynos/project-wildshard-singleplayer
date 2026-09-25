@@ -1,7 +1,8 @@
 /**
  * Bushes — low-poly shrubs for Driftwood Isle: clumps of two to four squashed icosahedra in
  * island greens, a quarter of them dotted with red hibiscus. One flat-shaded vertex-coloured
- * mesh, no colliders (you walk through them).
+ * mesh, no colliders (you walk through them). `?bush=a|b|c` swaps in one of the E116 candidate looks (bushKit.ts: leaf
+ * clump / sculpted canopy / leaf cards) — the user's pick; without it, the current look.
  *
  *   const bushes = new Bushes(sky).build(Bushes.scatterIsland(seed));
  *   scene.add(bushes.mesh);
@@ -16,6 +17,7 @@ import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 import { attachFogUniforms } from './Atmosphere';
 import { patchSway, swayByHeight, swayDepthMaterial } from './wind';
+import { bushLook, bushParts, bushMaterial, bushDepthMaterial } from './bushKit';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
@@ -25,6 +27,8 @@ const FLOWER = new THREE.Color('#d8302f'), FLOWER2 = new THREE.Color('#e8603a');
 export class Bushes {
   mesh!: THREE.Mesh;
   count = 0;
+  /** what was built (the board's in-world camera finds a patch from these) */
+  readonly specs: BushSpec[] = [];
 
   constructor(private sky: Sky) {}
 
@@ -53,6 +57,21 @@ export class Bushes {
   }
 
   build(specs: BushSpec[]): this {
+    this.specs.push(...specs);
+    const look = bushLook();
+    if (look !== 'current') {
+      const rng = new Rng(0x5ea1 ^ 0xb5 ^ 0xe116);
+      const parts: THREE.BufferGeometry[] = [];
+      for (const b of specs) { parts.push(...bushParts(look, b, heightAt(b.x, b.z), rng)); this.count++; }
+      if (parts.length === 0) console.warn('[bushes] nothing placed — %d candidates rejected', specs.length);
+      const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
+      for (const p of parts) p.dispose();
+      geo.computeBoundingSphere();
+      this.mesh = new THREE.Mesh(geo, bushMaterial(this.sky, look));
+      this.mesh.castShadow = TIER_CONFIG.bushShadows; this.mesh.receiveShadow = true;
+      this.mesh.customDepthMaterial = bushDepthMaterial(look);
+      return this;
+    }
     const rng = new Rng(0x5ea1 ^ 0xb5);
     const parts: THREE.BufferGeometry[] = [];
     const c = new THREE.Color();

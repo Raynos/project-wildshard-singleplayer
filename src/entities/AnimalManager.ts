@@ -559,8 +559,13 @@ export class AnimalManager {
 
   // ── per frame ──────────────────────────────────────────────────────────────────────────
 
-  /** `camera`: the view — the far herd skips the far animals outside it, as three's frustum test skips a rig */
-  update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, camera: THREE.PerspectiveCamera | null = null): void {
+  /**
+   * `viewPos` is where the frame is seen from — the player, or Explore's free camera (main.ts `viewer()`, E125).
+   * Drawing (visible / castShadow / draw LOD / fur shells / animation rate) is measured from it; the AI, the
+   * hitboxes and the footfalls stay on `playerPos`. Explore parks the player 3 km away, so a player-measured cull
+   * hid every animal there. `camera`: the view — the far herd skips the far animals outside it (PH-P2).
+   */
+  update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
     this.clock += dt;
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
@@ -588,12 +593,17 @@ export class AnimalManager {
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
       if (a === undefined || a.hidden) continue;
-      const d2 = a.position.distanceToSquared(playerPos);
+      const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
       a.update(dt, t, near);
       if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
-      a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
+      // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
+      const hide = TIER_CONFIG.animalHideDist;
+      const fade = d2 < (hide * 0.85) ** 2 ? 1 : Math.max(0, Math.min(1, (hide - Math.sqrt(d2)) / (hide * 0.15)));
+      a.mesh.visible = fade > 0;
+      const sc = a.scale * fade * fade * (3 - 2 * fade);
+      if (a.mesh.scale.x !== sc) a.mesh.scale.setScalar(sc);
       const fr = this.farRigs.get(a);
       // the rig's cull sphere: the model's bind-pose sphere + 0.6 m, as AnimalFactory.instantiate pads it
       const radius = fr === undefined ? 0 : ((fr.model.geometry.boundingSphere?.radius ?? 3) + 0.6) * a.scale;

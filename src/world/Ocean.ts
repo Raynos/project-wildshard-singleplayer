@@ -30,6 +30,7 @@ import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 import { WAVES_GLSL, waveClock } from './waves';
 import { isStylized, toonUniforms } from './stylize';
+import { HORIZON_RADIUS } from './HorizonMatte';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
@@ -111,6 +112,9 @@ export class Ocean {
       Object.assign(shader.uniforms, this.uniforms, {
         uShallow: { value: shallow }, uDeep: { value: deep }, uDeepDepth: { value: def.deepDepth }, uLevel: { value: def.level },
         tSea: { value: this.seaTex }, uChunkHalf: { value: CHUNK_HALF },
+        // the sea ends where the painted horizon stands (E125): past it, the far plane cut it on a hard straight line above the
+        // matte's islands when seen from altitude. The stylized sky is the one that paints the band (HorizonMatte.build)
+        uSeaEnd: { value: isStylized() ? HORIZON_RADIUS : 1e7 },
       });
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
@@ -130,7 +134,7 @@ export class Ocean {
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform vec3 uShallow; uniform vec3 uDeep; uniform float uDeepDepth; uniform float uTime; uniform float uLevel;
-          uniform sampler2D tSea; uniform float uChunkHalf;
+          uniform sampler2D tSea; uniform float uChunkHalf; uniform float uSeaEnd;
           ${isStylized() ? '' : 'uniform vec3 uFogZenith;'} // the stylized shard's fog chunk declares it (stylize.ts)
           varying float vCrest; varying vec3 vOceanW;
           float hash21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -173,7 +177,15 @@ export class Ocean {
             float p3 = mix(5.0, 2.2, fract(ph + 0.5));
             float l3 = (1.0 - smoothstep(0.08, 0.22, abs(d0 - p3))) * step(0.55, vnoise(vOceanW.xz * 0.7 + 13.0)) * 0.8;
             float lace = max(l1, max(l2, l3)) * inC * (1.0 - smoothstep(6.0, 9.0, shoreD)) * step(0.0, still);   // never where a crest pokes over the sand
-            float ring = smoothstep(0.45, 0.65, sea.g + (n - 0.5) * 0.3) * step(0.25, n) * (0.75 + 0.25 * sin(uTime * 2.4 + sea.g * 9.0)) * inC;
+            // rings round what stands in the water (E125): a broken lace collar hugging it + a thin ripple walking outward.
+            // G is a ~1 m-texel proximity field, so any iso-line of it is the texel polygon (it drew as solid white hexagons):
+            // turn it back into metres, wobble that by noise wider than a texel, and draw only thin broken bands of it
+            float od = (1.0 - sea.g) * 3.0 + (n - 0.5) * 0.5 + (vnoise(vOceanW.xz * 1.3 - uTime * 0.2) - 0.5) * 0.35;
+            float rn = vnoise(vOceanW.xz * 2.4 + vec2(uTime * 0.35, -uTime * 0.25));
+            float r1 = (1.0 - smoothstep(0.22, 0.3, od - vCrest * 0.4)) * step(0.42, rn);
+            float rp = fract(uTime * 0.3 + n * 0.25);
+            float r2 = (1.0 - smoothstep(0.05, 0.14, abs(od - mix(0.45, 1.9, rp)))) * step(0.5, rn) * (1.0 - rp) * 0.9;
+            float ring = max(r1, r2) * smoothstep(0.0, 0.12, sea.g) * inC;
             float cap = smoothstep(0.2, 0.26, vCrest) * step(0.62, vnoise(vOceanW.xz * 0.2 + 3.1)) * smoothstep(2.5, 8.0, still) * 0.85;
             float foam = clamp(max(max(lace, ring), cap), 0.0, 1.0);
             diffuseColor.rgb = mix(water, vec3(1.0), foam);
@@ -202,8 +214,10 @@ export class Ocean {
           }`)
         .replace('#include <opaque_fragment>', /* glsl */`
           {
-            float a = clamp(waterA, 0.0, 1.0);
-            vec3 premul = outgoingLight * a + waterAdd;
+            // fade out over the last 300 m before the painted horizon, so the islands' feet stand on the sea's own far edge
+            float seaEnd = 1.0 - smoothstep(uSeaEnd - 300.0, uSeaEnd, length(vOceanW.xz - cameraPosition.xz));
+            float a = clamp(waterA, 0.0, 1.0) * seaEnd;
+            vec3 premul = outgoingLight * a + waterAdd * seaEnd;
             gl_FragColor = vec4(premul / max(a, 1e-3), a);       // PREMULTIPLIED_ALPHA multiplies it back
           }`);
     };
@@ -220,10 +234,10 @@ export class Ocean {
 
   /**
    * Foam rings (W2) around every collider box that pierces the sea surface — pier piles, boulders, hulls, the boat.
-   * Stamps a 1.8 m proximity falloff into the sea texture's G channel (once, at build; call again if the set changes).
+   * Stamps a 3 m proximity falloff (the shader reads (1 − G) × 3 back as metres) into the sea texture's G channel (once, at build; call again if the set changes).
    */
   foamAround(boxes: readonly ColliderBox[]): void {
-    const cell = CHUNK_SIZE / SEA_RES, reach = 1.1, prox = new Float32Array(SEA_RES * SEA_RES);
+    const cell = CHUNK_SIZE / SEA_RES, reach = 3.0, prox = new Float32Array(SEA_RES * SEA_RES);
     for (const b of boxes) {
       if (!(b.yBottom < this.level + 0.3 && b.yTop > this.level - 0.3)) continue;
       const r = Math.hypot(b.hw, b.hd) + reach;
