@@ -462,9 +462,6 @@ export class GameMenu {
     // the frame cap (PINE-HOLLOW PH-P1, tier.ts frameCapFps; live): Auto = Pine Hollow's phone tier at a locked 30, else uncapped
     const caps: { v: OptionValue<'fps'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: '30', text: '30' }, { v: '60', text: 'Uncapped' }];
     dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
-    // E142: the render scale follows the frame time (src/core/dynamicResolution.ts; live): Auto = Pine Hollow's phone tier
-    const dyn: { v: OptionValue<'dynres'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];
-    dbg.append(picker('Dynamic resolution', dyn, () => setting('dynres'), (v) => { saveSetting('dynres', v); }, (fn) => { onSettingChange('dynres', fn); }));
     dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());

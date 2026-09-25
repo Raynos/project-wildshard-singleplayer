@@ -7,19 +7,24 @@
  * path) can only be read on the device. This does it in ~60 s, from the fps pill's panel (developer mode: tap the pill ▸
  * RUN PROBE) or `?probe=1` (runs 15 s after the world is entered):
  *
- *   as played        the cap and dynamic resolution as they are
- *   uncapped         no 30 fps cap, dynamic resolution off: the frame's real cost (every row below is uncapped too)
+ *   as played        the 30 fps cap as it is
+ *   uncapped         no 30 fps cap: the frame's real cost (every row below is uncapped too)
  *   no HUD blur      every backdrop-filter off (the HUD glass, the touch discs)
  *   no HUD           the whole DOM HUD hidden (iOS compositing of the overlay)
- *   scale 1.0        the canvas at pixel ratio 1 (fill-rate: GPU pixel work)
+ *   flat terrain     the ground's splat shader swapped for a flat-coloured lit material (the splat fetches + noise)
+ *   no cards         the forest's needle cards hidden (the alpha-tested crown layers)
  *   no shadows       the shadow map not redrawn
  *   no post          the scene straight to the canvas (no colour chain, bloom, god rays, SMAA)
  *   no scene         nothing drawn but the post chain (the floor: JS + post + compositing)
+ *
+ * Every row renders at the game's own fixed render scale (the phone's 2×): resolution is not a lever (E142, Jake:
+ * dynamic resolution is "a complete bullshit hack") — the rows isolate real costs to cut at 2×.
  *
  * Per row: fps, the frame's p50 (ms between drawn frames), the main thread's p50 (input → the frame submitted: all the
  * JavaScript, three's draw submission included), and `wait` = frame − main thread (≈ the GPU / compositor the next frame
  * waited for). A row that drops `wait` a lot names the bottleneck. Nothing is saved: every switch is restored at the end.
  */
+import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import { overrideSetting } from './Settings';
 
@@ -28,6 +33,18 @@ export interface ProbeRow { phase: string; fps: number; frameMs: number; jsMs: n
 const SETTLE_MS = 1800, MEASURE_MS = 4500;
 
 interface Phase { name: string; set: (on: boolean) => void }
+
+/** the scene's visible meshes whose material's program key passes `key` (the terrain's 'terrain-splat*', the forest's 'needles*') */
+function meshesByProgram(scene: THREE.Object3D, key: (k: string) => boolean): THREE.Mesh[] {
+  const out: THREE.Mesh[] = [];
+  const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
+  scene.traverse((o) => {
+    if (!isMesh(o)) return;
+    const m: unknown = o.material;
+    if (m instanceof THREE.Material && key(m.customProgramCacheKey())) out.push(o);
+  });
+  return out;
+}
 
 /** p50 of the last `count` slots of a ring that ends (exclusive) at `end` */
 function lastP50(ring: Float32Array, end: number, count: number): number {
@@ -47,15 +64,29 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
   const r = game.renderer, composer = game.composer, hud = document.getElementById('hud');
   const style = document.createElement('style');
   document.head.append(style);
-  const ratio = r.getPixelRatio();
   const passes = composer.passes;
   const first = passes[0];
+  // the terrain's stand-in: lit like the ground (PBR, rough), no splat fetches, no noise
+  const plain = new THREE.MeshStandardMaterial({ color: 0x5a5040, roughness: 1, metalness: 0 });
+  const swapped = new Map<THREE.Mesh, THREE.Mesh['material']>(), hiddenCards: THREE.Mesh[] = [];
   const phases: Phase[] = [
     { name: 'as played', set: () => undefined },
     { name: 'uncapped', set: () => undefined },
     { name: 'no HUD blur', set: (on) => { style.textContent = on ? '* { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }' : ''; } },
     { name: 'no HUD', set: (on) => { if (hud) hud.style.visibility = on ? 'hidden' : ''; } },
-    { name: 'scale 1.0', set: (on) => { r.setPixelRatio(on ? 1 : ratio); game.resize(); } },
+    {
+      name: 'flat terrain', set: (on) => {
+        if (on) {
+          for (const m of meshesByProgram(game.scene, (k) => k.startsWith('terrain-splat'))) { swapped.set(m, m.material); m.material = plain; }
+        } else { for (const [m, mat] of swapped) m.material = mat; swapped.clear(); }
+      },
+    },
+    {
+      name: 'no cards', set: (on) => {
+        if (on) { for (const m of meshesByProgram(game.scene, (k) => k.startsWith('needles'))) { if (m.visible) { m.visible = false; hiddenCards.push(m); } } }
+        else { for (const m of hiddenCards) m.visible = true; hiddenCards.length = 0; }
+      },
+    },
     { name: 'no shadows', set: (on) => { r.shadowMap.autoUpdate = !on; } },
     {
       name: 'no post', set: (on) => {
@@ -68,9 +99,8 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
   const rows: ProbeRow[] = [];
   try {
     for (const [i, ph] of phases.entries()) {
-      // row 0 as played; every other row uncapped, dynamic resolution held at the full scale
+      // row 0 as played; every other row uncapped
       overrideSetting('fps', i === 0 ? null : '60');
-      overrideSetting('dynres', i === 0 ? null : 'off');
       ph.set(true);
       progress(`${i + 1}/${phases.length} ${ph.name}…`);
       await sleep(SETTLE_MS);
@@ -83,8 +113,9 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
     }
   } finally {
     for (const ph of phases) ph.set(false);
-    overrideSetting('fps', null); overrideSetting('dynres', null);
+    overrideSetting('fps', null);
     style.remove();
+    plain.dispose();
     running = false;
   }
   return rows;
