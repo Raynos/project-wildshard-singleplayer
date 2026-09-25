@@ -1,0 +1,122 @@
+[
+ {
+  "shard": "pine-hollow",
+  "pose": "hollow",
+  "ssim": 0.9540646114041387,
+  "psnr": 34.098587629447465,
+  "floor_ssim": 0.9834091819424984,
+  "floor_psnr": 44.148765518585975,
+  "crop_ssim": 0.9925557596800859,
+  "crop_psnr": 41.919036864316716,
+  "crop_floor_ssim": 0.9966759612689087,
+  "crop_floor_psnr": 44.90695011468871
+ },
+ {
+  "shard": "pine-hollow",
+  "pose": "ground",
+  "ssim": 0.9386823040045611,
+  "psnr": 32.593863600190076,
+  "floor_ssim": 0.9969068160824112,
+  "floor_psnr": 46.046216510304426,
+  "crop_ssim": 0.9632581205682471,
+  "crop_psnr": 36.22419516569275,
+  "crop_floor_ssim": 0.9981828644892085,
+  "crop_floor_psnr": 48.737498072346305
+ },
+ {
+  "shard": "pine-hollow",
+  "pose": "stones",
+  "ssim": 0.9154909798470222,
+  "psnr": 30.65963105199511,
+  "floor_ssim": 0.9892785036942252,
+  "floor_psnr": 40.873950939040114,
+  "crop_ssim": 0.9094379676466188,
+  "crop_psnr": 30.877780193154894,
+  "crop_floor_ssim": 0.9870851044780196,
+  "crop_floor_psnr": 39.599178638095786
+ },
+ {
+  "shard": "pine-hollow",
+  "pose": "bark",
+  "ssim": 0.9349537844292152,
+  "psnr": 34.07261886333543,
+  "floor_ssim": 0.9943231786051149,
+  "floor_psnr": 45.157103734231974,
+  "crop_ssim": 0.9655181218874355,
+  "crop_psnr": 36.154144969147936,
+  "crop_floor_ssim": 0.9979306785211008,
+  "crop_floor_psnr": 48.84251554162791
+ },
+ {
+  "shard": "nalati-grasslands",
+  "pose": "spawn",
+  "ssim": 0.9716516604240851,
+  "psnr": 39.35790921845956,
+  "floor_ssim": 0.9995890539908755,
+  "floor_psnr": 56.08181408164447,
+  "crop_ssim": 0.9851827534744796,
+  "crop_psnr": 43.929196511983825,
+  "crop_floor_ssim": 0.9997763573362975,
+  "crop_floor_psnr": 62.15765000914779
+ },
+ {
+  "shard": "nalati-grasslands",
+  "pose": "ground",
+  "ssim": 0.9799275132914974,
+  "psnr": 41.77838508493461,
+  "floor_ssim": 0.9996247831927264,
+  "floor_psnr": 59.33661915354321,
+  "crop_ssim": 0.9765373836273633,
+  "crop_psnr": 41.329186090486864,
+  "crop_floor_ssim": 0.9996963208844379,
+  "crop_floor_psnr": 60.73135664170037
+ },
+ {
+  "shard": "nalati-grasslands",
+  "pose": "turn",
+  "ssim": 0.9397402906636744,
+  "psnr": 32.14786239855509,
+  "floor_ssim": 0.9962622252497987,
+  "floor_psnr": 45.331052416434154,
+  "crop_ssim": 0.9762895981330586,
+  "crop_psnr": 40.838122351410405,
+  "crop_floor_ssim": 0.9997906457311592,
+  "crop_floor_psnr": 61.55512889749208
+ },
+ {
+  "shard": "driftwood-isle",
+  "pose": "spawn",
+  "ssim": 0.9960836076140828,
+  "psnr": 42.79551843282639,
+  "floor_ssim": 0.9956580984030333,
+  "floor_psnr": 42.99100751575676,
+  "crop_ssim": 0.9931378761005026,
+  "crop_psnr": 41.01612684078781,
+  "crop_floor_ssim": 0.9941729508643794,
+  "crop_floor_psnr": 42.31283902614866
+ },
+ {
+  "shard": "driftwood-isle",
+  "pose": "sand",
+  "ssim": 0.9990388956812568,
+  "psnr": 50.611222005179684,
+  "floor_ssim": 0.9985445528284119,
+  "floor_psnr": 46.95843019607888,
+  "crop_ssim": 0.9992968183773258,
+  "crop_psnr": 56.73859492207618,
+  "crop_floor_ssim": 0.9992878499948975,
+  "crop_floor_psnr": 54.6539272096322
+ },
+ {
+  "shard": "driftwood-isle",
+  "pose": "turn",
+  "ssim": 0.9946637702844864,
+  "psnr": 40.7323321053039,
+  "floor_ssim": 0.9921115277099172,
+  "floor_psnr": 37.88513925505269,
+  "crop_ssim": 0.989401764742086,
+  "crop_psnr": 36.31970535411332,
+  "crop_floor_ssim": 0.9832674418811823,
+  "crop_floor_psnr": 32.89735417869133
+ }
+]
