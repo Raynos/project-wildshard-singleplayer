@@ -104,6 +104,7 @@ import { installPineCombat } from './pinehollow';
 import { installPineQuest } from './pinehollow/quest';
 import { installPineWeather } from './pinehollow/weather';
 import { installPineLoadout } from './pinehollow/loadout';
+import { installPineLife } from './pinehollow/life';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -585,6 +586,11 @@ async function main() {
   // PH-L10 / C7: the dawn fog + the showers (the sky, the fog, the wet PBR, the rain, the puddles, the rings, the herds' shelter)
   const pineWeather = chunk.slug === 'pine-hollow' ? installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null }) : null;
   if (pineWeather) pineLoadout?.useRain(() => pineWeather.weather.rain); // wet bolts drop, pitch-tipped ones fly true
+  // PH-M5 / F2: the forest's small life (ravens to a kill, the owl, a woodpecker, hares, the ravens' breadcrumbs) in one draw,
+  // and the harvest's skinning beat; the carcass waits for the ravens (src/pinehollow/life/)
+  const pineLife = chunk.slug === 'pine-hollow' ? installPineLife({ game, sky, player, animals, weapons, audio, trees: forest.trees, trunks: forest.factory.variants, params,
+    places: compendium ? () => compendium.state.def.entries.flatMap((e) => (e.place ? [{ id: e.id, ...e.place }] : [])) : null,
+    visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' }) : null;
   player.onStep = (sprinting) => {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
@@ -679,13 +685,16 @@ async function main() {
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyE' || !hud.entered) return;
     if (nearest) nearest.onInteract();
-    else if (carcass) {
+    else if (carcass && pineLife?.busy !== true) {
       harvested.add(carcass);
       const drops = harvestOf(carcass.kind, carcass.variant);
-      for (const id of drops) inventory.add(id);
-      hud.toast(`${drops.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`);
-      audio.hitMarker();
-      carcass.fadeOut();
+      const give = (): void => {
+        for (const id of drops) inventory.add(id);
+        hud.toast(`${drops.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`);
+        audio.hitMarker();
+      };
+      if (pineLife) pineLife.harvest(carcass, give); // PH-F2: the skinning beat, then the drops; the carcass stays for the ravens
+      else { give(); carcass.fadeOut(); }
     }
   });
 
@@ -788,6 +797,6 @@ async function main() {
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, pineLife };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));
