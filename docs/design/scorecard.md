@@ -32,6 +32,12 @@ node scripts/scorecard.mjs --url=http://localhost:4173 --tag=try --shards=pine-h
 
 # re-print a verdict from two result files, no browser
 node scripts/scorecard.mjs --compare=baseline --against=e155
+
+# re-measure one section into an existing result of the same build (here: the one-texture row)
+node scripts/scorecard.mjs --serve=/tmp/scorecard-<sha> --tag=baseline --patch --no-load --no-poses --no-switch --retouch
+
+# a request-count change: every request of each load, with when it started and whether the worker served it
+node scripts/scorecard.mjs --url=… --tag=try --shards=pine-hollow --viewports=phone --no-poses --no-switch --dump-urls
 ```
 
 - `--export=<ref>`: `git archive <ref>` into `/tmp/scorecard-<sha>`, `node_modules` symlinked, `vite build`, then
@@ -139,12 +145,17 @@ records:
 
 ### One-texture change (`--retouch`)
 
-The same tree is built a second time into `dist-retouch/` with one texture re-encoded
-(`/assets/tex/leafy_grass/nor_gl_1k.jpg`, Pine Hollow's ground normal map; in the phone boot pack, a file of its own on
-desktop). A context loads build A cold and warm; then the origin serves build B, and the page is reloaded until it runs
-B's entry script, the waiting service worker adopted the way the build pill does. `retouch/<vp>/netBytes` is every byte
-downloaded after the switch of builds. Every build also stamps a new build id into the code bundle, so the code is
-re-downloaded in this row too, as it is on every deploy.
+The same tree is built a second time into `dist-retouch/` with one texture re-encoded (sips, the same picture, new bytes):
+`/assets/hdri/qwantani_mid_morning_puresky_2k.key.jpg`, one of the two Pine Hollow sky keys the pinned midday reads, on
+both tiers (in the phone boot pack, a file of its own on desktop). It was a ground normal map until 2026-09-25: since
+E157 a returning player boots KTX2, which never reads the JPEG a KTX2 twin replaces, so that row measured no texture at
+all. A context loads build A cold and warm; then the origin serves build B, and the page is reloaded until it runs B's
+entry script, the waiting service worker adopted the way the build pill does.
+
+`retouch/<vp>/netBytes` counts the **re-downloads**: files build A had already fetched, compared by name without their
+version (`?v=`, the `-<hash>` suffix). The edited file counts, and so does the code bundle, which every build re-stamps
+with its build id. A file A never fetched (a sound first played during B) is not a re-download: it is in
+`retouch/<vp>/allNetBytes` (info) only.
 
 ## The noise band
 
@@ -161,19 +172,23 @@ Run-to-run noise of the committed baseline: see *Noise* in `progress/scorecard/b
 `scorecard.budget.json` `rules` are checked on top of the row-by-row rule. The user approved these on 2026-09-25 (E160),
 and they fail `--compare`:
 
-| rule | ceiling | today (baseline) |
+| rule | ceiling | the 2026-09-25 baseline on main 5486794 |
 |---|---|---|
-| first-play cold transfer ≤ 1.5 × today | Driftwood 30.1 / 31.6 MiB · Nalati 43.4 / 52.1 · Pine Hollow 53.8 / 137.0 (phone / desktop) | 20.1 / 21.1 · 29.0 / 34.8 · 35.8 / 91.4 |
-| Cache Storage, all three shards | ≤ 300 MB | 66.7 MiB phone · 127.5 MiB desktop |
+| first-play cold transfer ≤ 1.5 × the first baseline (7893668) | Driftwood 30.1 / 31.6 MiB · Nalati 43.4 / 52.1 · Pine Hollow 53.8 / 137.0 (phone / desktop) | 20.4 / 21.4 · 29.4 / 35.4 · 34.2 / 90.8 |
+| Cache Storage, all three shards | ≤ 300 MB | 132.5 MiB phone · 123.8 MiB desktop |
 | cold time to play | no worse than the baseline (wifi and Fast 4G) | |
-| Fast 4G, Driftwood | ≤ 22 s (bench.budget.json's row) | **23.9 s phone / 22.9 s desktop: today's main already misses it** |
-| Fast 4G, Pine Hollow phone | ≤ 40 s (bench.budget.json's row is the phone tier; desktop is held to no worse) | 35.3 s (desktop 83.4 s) |
-| Fast 4G, Nalati | the baseline + its band: ≤ 35.5 s phone, ≤ 40.8 s desktop | 32.1 / 36.9 s |
+| Fast 4G, Driftwood | ≤ 22 s (bench.budget.json's row) — **the user is deciding** | **23.7 s phone / 23.1 s desktop: missed** |
+| Fast 4G, Pine Hollow phone | ≤ 40 s (bench.budget.json's row is the phone tier; desktop is held to no worse) | 34.5 s (desktop 83.3 s) |
+| Fast 4G, Nalati | ≤ 35.5 s phone, ≤ 40.8 s desktop (the first baseline + its band) | 31.1 / 37.2 s |
 | warm time to play, switch times | no worse than the baseline; *improve* is the printed goal | |
-| re-download after a one-texture change | ≤ 2 MB | **19.7 MiB phone (the whole Pine Hollow boot pack), 2.5 MiB desktop: already missed** |
+| re-download after a one-texture change | ≤ 2 MB — **the user is deciding** | 1.42 MiB phone / 1.40 MiB desktop: met, **but only because the phone boot packs are broken on this main** (below) |
 
-Rows today's main already misses fail every `--compare` until the work fixes them or the user re-budgets them: the
-Driftwood 4G ceiling and the one-texture re-download (E158 / E161's cache work is what should bring the latter down).
+**The phone boot packs on main 5486794 (and in production):** `scripts/bake-packs.mjs` cannot load
+`src/core/shardScope.ts` (a TypeScript parameter property, which node's type stripping rejects), so a clean build emits
+no pack parts; the build only warns, every part 404s, and the phone boots one request per packed file. Fixed by 80dfc2c
+(on the scorecard branch). With packs served, the one-texture change re-downloads the pack part that holds the file:
+3.83 MiB on the phone (a 2.6 MiB part + the 1.1 MiB code bundle), which misses the 2 MB rule. The scorecard checks the
+served parts before every run and says so at the head of the report.
 
 ## What headless cannot measure
 

@@ -66,8 +66,9 @@ const NETS = {
   '4g': { latency: 170, down: 9e6 / 8, up: 1.5e6 / 8 },
   none: null,
 };
-// the texture --retouch re-encodes when none is named: a Pine Hollow ground normal map (inside the phone boot pack; a file of its own on desktop)
-const RETOUCH_DEFAULT = '/assets/tex/leafy_grass/nor_gl_1k.jpg';
+// the file --retouch re-encodes when none is named: a Pine Hollow sky key (in the phone boot pack, a file of its own on
+// desktop). Not a ground texture: since E157 a returning player boots KTX2, which never reads the JPEG a KTX2 twin replaces
+const RETOUCH_DEFAULT = '/assets/hdri/qwantani_mid_morning_puresky_2k.key.jpg'; // one of the two keys the pinned midday reads, on both tiers
 const RETOUCH_SHARD = 'pine-hollow';
 
 const HELP = `scorecard — the regression scorecard (docs/design/scorecard.md)
@@ -89,6 +90,8 @@ const HELP = `scorecard — the regression scorecard (docs/design/scorecard.md)
   --compare=<tag|file>  check this run against a baseline; exit 1 on a regression or a missed enforced rule
   --against=<tag|file>  with --compare and no browser: compare two existing result files
   --rerender            no browser: rewrite progress/scorecard/<tag>.md from its JSON (after a budget edit)
+  --patch               measure only the sections asked for and put them into <tag>.json (same build), e.g.
+                        --tag=baseline --patch --no-load --no-poses --no-switch --retouch
   --timeout=240         seconds per load`;
 
 // ── args ──
@@ -337,7 +340,20 @@ try {
 }
 
 // ── rows ──
-const result = { tag: TAG, build, url: URL_BASE, packCheck: PACK_CHECK, at: new Date().toISOString(), host: `${process.platform} ${process.arch} node ${process.version}`, net: NET, cpu: CPU, runs: RUNS, sampleMs: SAMPLE_MS, rows: buildRows(runs), raw: runs };
+let result = { tag: TAG, build, url: URL_BASE, packCheck: PACK_CHECK, at: new Date().toISOString(), host: `${process.platform} ${process.arch} node ${process.version}`, net: NET, cpu: CPU, runs: RUNS, sampleMs: SAMPLE_MS, rows: buildRows(runs), raw: runs };
+if (has('patch')) {
+  // --patch: this run's sections replace the same sections of the result the tag names (its other sections are kept)
+  const into = loadResult(TAG);
+  if (into.build !== build) { console.error(`--patch: ${TAG}.json is build ${into.build}, this server is ${build}`); process.exit(2); }
+  runs.forEach((r, i) => {
+    const t = into.raw[i]; if (!t) return;
+    Object.assign(t.shards, r.shards); Object.assign(t.switches, r.switches);
+    if (r.retouch) t.retouch = r.retouch;
+  });
+  into.rows = buildRows(into.raw);
+  into.patched = [...(into.patched ?? []), { at: result.at, sections: argv.filter((a) => a.startsWith('--')).join(' ') }];
+  result = into;
+}
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(join(OUT_DIR, `${TAG}.json`), `${JSON.stringify(result, null, 1)}\n`);
 let md = renderMarkdown(result);
@@ -430,7 +446,9 @@ async function load(ctx, net, url, label, preset = NET) {
   // the boot: every request that started before playable (the background download starts after it: E158 waits 4 s)
   const toPlay = account(net.log, from, net.log.length, m.playEpoch ?? Infinity);
   console.error(`  ${label.padEnd(34)} ${status} play ${fmtS(m.playMs)} · ${fmtMB(toPlay.bytes)} MB net · ${toPlay.requests} req · longest ${m.longTaskMaxMs ?? '?'} ms · sw=${m.swController} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
-  return { page, status, errors, from, netBytes: toPlay.bytes, requests: toPlay.requests, swFetches: toPlay.swFetches, byType: toPlay.byType, reqByType: toPlay.reqByType, ...m };
+  // --dump-urls: every request of the load, [started ms after navigation, 'sw' | 'page<sw' | 'page', path, net bytes]
+  const urls = has('dump-urls') ? net.log.slice(from).map((r) => [r.s - t0, r.bySW ? 'sw' : r.fromSW ? 'page<sw' : 'page', r.url.replace(URL_BASE, ''), r.bySW || !r.fromSW ? r.body + r.headers : 0]) : undefined;
+  return { page, status, errors, from, netBytes: toPlay.bytes, requests: toPlay.requests, swFetches: toPlay.swFetches, byType: toPlay.byType, reqByType: toPlay.reqByType, urls, ...m };
 }
 
 /** wait until no request has finished for quietMs (a background prefetch / the SW's precache), at most maxMs */
@@ -477,12 +495,12 @@ async function measureShard(shard, vp, run, shots) {
     // (E158 downloads the other shards + the KTX2 sets for ~100 MB after play: wait for it, up to 4 min)
     const quietMs = await waitQuiet(net, 6000, 240_000);
     const bg = account(net.log, cold.from, net.log.length, Infinity, cold.playEpoch ?? Infinity);
-    out.cold = { status: cold.status, errors: cold.errors, playMs: cold.playMs, netBytes: cold.netBytes, requests: cold.requests, swFetches: cold.swFetches, longTaskMaxMs: cold.longTaskMaxMs, longTasks: cold.longTasks, byType: cold.byType, reqByType: cold.reqByType, swController: cold.swController,
+    out.cold = { status: cold.status, errors: cold.errors, playMs: cold.playMs, netBytes: cold.netBytes, requests: cold.requests, swFetches: cold.swFetches, longTaskMaxMs: cold.longTaskMaxMs, longTasks: cold.longTasks, byType: cold.byType, reqByType: cold.reqByType, swController: cold.swController, urls: cold.urls,
       idleNetBytes: account(net.log, cold.from).bytes, idleWaitMs: quietMs, bgNetBytes: bg.bytes, bgSwFetches: bg.swFetches, bgRequests: bg.requests, bgByType: bg.byType };
     console.error(`    background after play: ${fmtMB(bg.bytes)} MB · ${bg.swFetches} worker fetches · ${bg.requests} page requests (quiet after ${(quietMs / 1000).toFixed(0)} s)`);
     await within(cold.page.close(), 10_000);
     const warm = await load(ctx, net, url, `${shard}/${vp} warm`);
-    out.warm = { status: warm.status, errors: warm.errors, playMs: warm.playMs, netBytes: warm.netBytes, requests: warm.requests, swFetches: warm.swFetches, longTaskMaxMs: warm.longTaskMaxMs, longTasks: warm.longTasks, byType: warm.byType, reqByType: warm.reqByType, swController: warm.swController };
+    out.warm = { status: warm.status, errors: warm.errors, playMs: warm.playMs, netBytes: warm.netBytes, requests: warm.requests, swFetches: warm.swFetches, longTaskMaxMs: warm.longTaskMaxMs, longTasks: warm.longTasks, byType: warm.byType, reqByType: warm.reqByType, swController: warm.swController, urls: warm.urls };
     const page = warm.page;
     if (warm.status === 'ok') {
       // creatures keep walking, grazing and animating, but stop reacting to the player: an elite charging the pose (Pine
@@ -759,6 +777,9 @@ async function retouchRow() {
       preview.kill('SIGTERM'); await sleep(800);
       preview = await startPreview(bDir, PORT);
       const buildB = await buildIdOf(URL_BASE);
+      // a RE-download is a file build A had already fetched: its name without the ?v= / -<hash> version (so B's new code
+      // bundle and the edited file count; a lazily played sound A never fetched does not)
+      const fetchedA = new Set(net.log.filter(crossedNet).map((r) => unversioned(r.url)));
       const from = net.mark();
       // the returning player: load until the page runs build B (its entry script is B's), the waiting worker adopted
       // the way the build pill does (SKIP_WAITING)
@@ -781,7 +802,11 @@ async function retouchRow() {
       }
       await net.settle();
       const acc = account(net.log, from);
-      Object.assign(row, { buildA, buildB, loads, reached: running.endsWith(entryB), netBytes: acc.bytes, byType: acc.byType, biggest: net.log.slice(from).filter((r) => r.body > 0 && !(r.fromSW && !r.bySW)).sort((x, y) => y.body - x.body).slice(0, 5).map((r) => [r.url.replace(URL_BASE, ''), r.body]) });
+      const again = net.log.slice(from).filter((r) => crossedNet(r) && fetchedA.has(unversioned(r.url)));
+      const reBytes = again.reduce((n, r) => n + r.body + r.headers, 0);
+      Object.assign(row, { buildA, buildB, loads, reached: running.endsWith(entryB), netBytes: reBytes, allNetBytes: acc.bytes, byType: acc.byType,
+        biggest: again.sort((x, y) => y.body - x.body).slice(0, 5).map((r) => [r.url.replace(URL_BASE, ''), r.body]),
+        newFiles: net.log.slice(from).filter((r) => crossedNet(r) && !fetchedA.has(unversioned(r.url))).map((r) => [r.url.replace(URL_BASE, ''), r.body]).slice(0, 10) });
       console.error(`  re-downloaded ${fmtMB(row.netBytes)} MB over ${loads} load(s) · runs B: ${row.reached} · biggest ${row.biggest.map(([u, b]) => `${u} ${fmtMB(b)}`).join(', ')}`);
     } catch (e) { row.error = String(e.message ?? e).split('\n')[0]; } finally { await within(ctx.close(), 10_000); }
     out.viewports[vp] = row;
@@ -855,7 +880,10 @@ function buildRows(allRuns) {
       });
       if (sw.storage?.caches !== null && sw.storage?.caches !== undefined) put(`switch/${vp}/cacheStorageBytes`, 'bytes', 'Cache Storage after all 3 shards', sw.storage.caches);
     }
-    for (const [vp, rt] of Object.entries(r.retouch?.viewports ?? {})) if (typeof rt.netBytes === 'number') put(`retouch/${vp}/netBytes`, 'bytes', `re-download after a one-texture change (${r.retouch.shard})`, rt.netBytes);
+    for (const [vp, rt] of Object.entries(r.retouch?.viewports ?? {})) {
+      if (typeof rt.netBytes === 'number') put(`retouch/${vp}/netBytes`, 'bytes', `re-download after a one-texture change (${r.retouch.shard})`, rt.netBytes);
+      if (typeof rt.allNetBytes === 'number') put(`retouch/${vp}/allNetBytes`, 'info', 'every byte after the build change (new files included)', rt.allNetBytes);
+    }
   }
   const rows = {};
   for (const e of acc.values()) {
@@ -982,10 +1010,13 @@ function renderMarkdown(res) {
     for (const vp of ONLY_VPS) if (R[`switch/${vp}/cacheStorageBytes`]) out += `\n- ${vp}: Cache Storage after all three shards: **${v(`switch/${vp}/cacheStorageBytes`)} MB**; downloaded after the first play until idle: ${v(`switch/${vp}/prefetchBytes`, 'bytes')} MB`;
     out += '\n';
   }
-  const rt = Object.keys(R).filter((k) => k.startsWith('retouch/'));
+  const rt = Object.keys(R).filter((k) => k.startsWith('retouch/') && k.endsWith('/netBytes'));
   if (rt.length > 0) {
-    out += `\n## one-texture change (${res.raw[0].retouch?.texture})\n\n`;
-    for (const k of rt) out += `- ${k}: **${v(k)} MB** re-downloaded by a returning player (${JSON.stringify(res.raw[0].retouch.viewports[k.split('/')[1]]?.biggest ?? [])})\n`;
+    out += `\n## one-texture change (${res.raw[0].retouch?.texture})\n\nA re-download is a file build A had already fetched (the edited file, the code bundle every build re-stamps); files A never fetched (a sound first played in B) are in the second figure only.\n\n`;
+    for (const k of rt) {
+      const vpk = k.split('/')[1], d = res.raw[0].retouch.viewports[vpk];
+      out += `- ${k}: **${v(k)} MB** re-downloaded by a returning player; ${v(`retouch/${vpk}/allNetBytes`, 'bytes')} MB downloaded in all (${JSON.stringify(d?.biggest ?? [])})\n`;
+    }
   }
   if (res.runs > 1) {
     // run-to-run noise per row kind: the spread is (max − min) / median of the runs; the band a compare allows is
@@ -1129,6 +1160,10 @@ function fmtKind(v, kind) {
   if (kind === 'frame' || kind === 'fps') return v.toFixed(1);
   return String(Math.round(v * 10) / 10);
 }
+/** a URL's path without its version: the ?v= query and a vite / content-hash suffix (-<8 chars> before the extension) */
+/** did this request's bytes cross the network (a worker fetch, or a page response the worker did not serve)? */
+function crossedNet(r) { return r.bySW ? true : !r.fromSW && r.body > 0; }
+function unversioned(u) { let p = u; try { p = new URL(u).pathname; } catch { /* a path already */ } return p.replace(/-[\w-]{8}(\.[a-z0-9]+)$/i, '$1'); }
 function rel(p) { return p.startsWith(ROOT) ? p.slice(ROOT.length + 1) : p; }
 function sleep(ms) { return new Promise((resolve) => { setTimeout(resolve, ms); }); }
 function within(p, ms) { return Promise.race([Promise.resolve(p).catch(() => null), new Promise((resolve) => { setTimeout(resolve, ms, null).unref(); })]); }
