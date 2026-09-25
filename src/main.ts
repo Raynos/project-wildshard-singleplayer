@@ -143,8 +143,8 @@ const shell: { music: Music | null } = { music: null };
 /** the page's shard host (main() makes it): each shard's GPU recovery asks it whether that shard is parked */
 let hostRef: ShardHost | null = null;
 
-/** how many built shards stay in memory (the user, E159: two); `?shardcap=N` for a test */
-const SHARD_CAP = ((): number => { const n = Number.parseInt(new URLSearchParams(location.search).get('shardcap') ?? '', 10); return Number.isFinite(n) && n >= 1 ? n : 2; })();
+/** how many built shards stay in memory (the user, E159: two; a test sets another with `__shardHost.setCap`) */
+const SHARD_CAP = 2;
 
 async function main() {
   const host = new ShardHost({ build: buildShard, cap: SHARD_CAP });
@@ -172,7 +172,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   brand();
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/boot/steps.ts)
-  const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); }, { totals: declareTotals(files) });
+  const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
+  const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
   window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
@@ -973,7 +974,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
 
   // ── the shard host's handles on this world (src/shard/ShardHost.ts, E155) ──
   return {
-    slug, handle, renderer: game.renderer, scene: game.scene,
+    slug, handle, renderer: game.renderer, scene: game.scene, bootSteps,
     park: () => {
       if (hud.entered) hud.exitToMenu(); // in the world (the complete card's Next shard): to its title first, as the pause menu's exit does
       weapons.setEnabled(false); perf.setActive(false);

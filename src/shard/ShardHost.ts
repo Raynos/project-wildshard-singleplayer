@@ -13,7 +13,7 @@
  *   evict      the least recently used when a new one must be built past the cap: its renderer disposed and its WebGL
  *              context dropped, its physics world freed, its listeners removed, its elements gone
  *
- *   const host = new ShardHost({ build, cap: 2 });
+ *   const host = new ShardHost({ build, cap: 2 });   // host.setCap(n): a test's knob
  *   await host.start('driftwood-isle');             // the first shard: exactly the boot a single-shard page had
  *   host.switchTo('pine-hollow', { enter: true });  // the deck's ENTER WORLD on another card (src/shard/switch.ts)
  *
@@ -42,6 +42,8 @@ export interface ShardWorld {
   /** its renderer, for the memory numbers */
   readonly renderer: THREE.WebGLRenderer;
   readonly scene: THREE.Scene;
+  /** its boot's steps, wall ms each (the timings of a build / rebuild) */
+  readonly bootSteps: Readonly<Record<string, number>>;
 }
 
 export type ShardBuilder = (slug: string, first: boolean) => Promise<ShardWorld>;
@@ -52,13 +54,14 @@ interface Resident { world: ShardWorld; scope: ShardScope; saved: ShardSnapshot 
 const SHELL_GLOBALS = new Set(['__ws_sw', '__shardHost', '__e155', '__hf']);
 
 /** one switch, timed (the test and the report read these) */
-export interface SwitchTiming { from: string | null; to: string; kind: 'first' | 'resident' | 'build' | 'rebuild'; ms: number; evicted: string[]; at: number }
+export interface SwitchTiming { from: string | null; to: string; kind: 'first' | 'resident' | 'build' | 'rebuild'; ms: number; evicted: string[]; at: number; steps?: Readonly<Record<string, number>> | undefined }
 
 /** params that belong to the page's first shard only: a later build must not spawn at its `?at=` or skip its title */
 const ONE_SHOT = ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop'];
 
 export class ShardHost {
-  readonly cap: number;
+  /** how many built shards stay resident (the running one included) */
+  private capacity: number;
   /** least → most recently used */
   private readonly resident = new Map<string, Resident>();
   private running: Resident | null = null;
@@ -75,12 +78,16 @@ export class ShardHost {
 
   constructor(o: { build: ShardBuilder; cap: number }) {
     this.build = o.build;
-    this.cap = Math.max(1, Math.floor(o.cap));
+    this.capacity = Math.max(1, Math.floor(o.cap));
     installScopes();
     trackDisposeListeners();
     this.pageGlobals = new Set(Object.keys(window).filter((k) => k.startsWith('__')));
     registerShaderChunks(THREE.ShaderChunk); // three's own chunks, before the first shard patches them
   }
+
+  get cap(): number { return this.capacity; }
+  /** a test's knob (the E155 script measures all three shards resident): takes effect at the next build */
+  setCap(n: number): void { this.capacity = Math.max(1, Math.floor(n)); }
 
   /** the shard running now */
   get active(): string | null { return this.running?.world.slug ?? this.building; }
@@ -97,7 +104,7 @@ export class ShardHost {
     const t0 = performance.now();
     this.busy = true;
     try { await this.buildNew(slug, true); } finally { this.busy = false; }
-    this.timings.push({ from: null, to: slug, kind: 'first', ms: performance.now() - t0, evicted: [], at: t0 });
+    this.timings.push({ from: null, to: slug, kind: 'first', ms: performance.now() - t0, evicted: [], at: t0, steps: this.resident.get(slug)?.world.bootSteps });
   }
 
   /**
@@ -120,11 +127,11 @@ export class ShardHost {
       return Promise.resolve();
     }
     this.busy = true;
-    const evicted = [...this.resident.keys()].slice(0, Math.max(0, this.resident.size - this.cap + 1)); // least recently used first
+    const evicted = [...this.resident.keys()].slice(0, Math.max(0, this.resident.size - this.capacity + 1)); // least recently used first
     for (const s of evicted) this.evict(s);
     const kind = this.built.has(slug) ? 'rebuild' : 'build';
     return this.buildNew(slug, false)
-      .then(() => { this.timings.push({ from: from?.world.slug ?? null, to: slug, kind, ms: performance.now() - t0, evicted, at: t0 }); return undefined; })
+      .then(() => { this.timings.push({ from: from?.world.slug ?? null, to: slug, kind, ms: performance.now() - t0, evicted, at: t0, steps: this.resident.get(slug)?.world.bootSteps }); return undefined; })
       .finally(() => { this.busy = false; });
   }
 
