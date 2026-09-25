@@ -35,7 +35,7 @@ import { TIER } from '../core/tier';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
 import type { PalmSpec } from './Palms';
-import { rockLook, rockGeometry, rockMaterial, SHORE_ROCK, type NewRockLook } from './rockKit';
+import { rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
 import { Rng } from '../core/rng';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -113,12 +113,6 @@ export interface BlenderIslandCtx {
   palmSpecs: PalmSpec[];
   /** merged world-space meshes the area replaces (bushes) */
   replace: (THREE.Mesh | null)[];
-  /**
-   * the shore boulders (Boulders.ts, merged in world space). With the old rocks (`?rocks=now`) the area drops them for the
-   * Blender boulders standing on the same spots; in rockKit's look (B, the default — E114) the Blender boulders are not
-   * built and these stay, so the area's rocks are the game's own (and they are what their colliders were made from)
-   */
-  rocks: THREE.Mesh | null;
   /** GroundCover's group: its instanced plants are hidden inside the area, its static logs dropped there */
   cover: THREE.Object3D | null;
 }
@@ -288,19 +282,16 @@ export class BlenderIsland {
       return tz * n + tx;
     };
     const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []);
-    // E114: in rockKit's look the loose rocks are rockKit's too — the boulders (rock*, rockb*: the shore boulders' spots,
-    // drawn by Boulders.ts instead) are skipped, the small scattered rocks (smallrock*) rebuilt below. The crag plates
-    // on the cliffs (cliff*) stay the Blender ones
-    const look = rockLook(), ownRocks = look !== 'current';
+    // E114: the loose rocks are rockKit's — the boulders (rock*, rockb*: the shore boulders' spots, drawn by Boulders.ts
+    // instead) are skipped, the small scattered rocks (smallrock*) rebuilt below. The crag plates on the cliffs (cliff*)
+    // stay the Blender ones
     const smallRocks: number[] = [];
     for (let i = 0; i < used; i++) {
       const pi = f[i * 10] ?? 0, kind = meta.protos[pi]?.kind ?? 'small';
       const x = f[i * 10 + 1] ?? 0, z = f[i * 10 + 3] ?? 0;
-      if (ownRocks) {
-        const name = meta.protos[pi]?.name ?? '';
-        if (/^rockb?\d+$/.test(name)) continue;
-        if (/^smallrock\d+$/.test(name)) { smallRocks.push(i); continue; }
-      }
+      const name = meta.protos[pi]?.name ?? '';
+      if (/^rockb?\d+$/.test(name)) continue;
+      if (/^smallrock\d+$/.test(name)) { smallRocks.push(i); continue; }
       if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else covers[tileOf(x, z, VT)]?.push(i);
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
@@ -365,8 +356,8 @@ export class BlenderIsland {
       this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false, coverMat), far: null, cover: true });
       this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
     }
-    if (ownRocks && smallRocks.length > 0) {
-      const rm = this.smallRocks(smallRocks, f, protos, look, rockMaterial(ctx.sky, look));
+    if (smallRocks.length > 0) {
+      const rm = this.smallRocks(smallRocks, f, protos, rockMaterial(ctx.sky));
       this.group.add(rm);
       this.stats.propTris += rm.geometry.getAttribute('position').count / 3;
     }
@@ -392,7 +383,6 @@ export class BlenderIsland {
       });
     }
     for (const r of ctx.replace) if (r) dropTriangles(r.geometry, (x, z) => !inArea(x, z));
-    if (ctx.rocks && !ownRocks) dropTriangles(ctx.rocks.geometry, (x, z) => !inArea(x, z));
     if (ctx.cover) {
       const clipped = new Set<THREE.Material>();
       ctx.cover.traverse((o) => {
@@ -412,7 +402,7 @@ export class BlenderIsland {
    * E114: the scattered small rocks as rockKit rocks — each at its placement's spot, tilt and yaw, as wide and as tall as
    * the Blender rock it replaces; one lighter build (detail −1) since there are ~400. One mesh, one draw.
    */
-  private smallRocks(items: number[], f: Float32Array, protos: Proto[], look: NewRockLook, material: THREE.Material): THREE.Mesh {
+  private smallRocks(items: number[], f: Float32Array, protos: Proto[], material: THREE.Material): THREE.Mesh {
     const size = new Map<number, { half: number; top: number }>();
     const sizeOf = (pi: number): { half: number; top: number } => {
       const hit = size.get(pi);
@@ -435,7 +425,7 @@ export class BlenderIsland {
       const r = (half * sc) / 1.1, sq = THREE.MathUtils.clamp((top * sc) / (0.92 * r), 0.4, 0.9);
       // the paint's ground line a little under the centre, as on the shore boulders: these sit only ~0.1 m deep, and a
       // ground line that high put nearly all of a small rock in the foot's dark and the ground's AO (they drew black)
-      const g = rockGeometry(look, r, rng, { squash: sq, palette: SHORE_ROCK, moss: rng.range(0.3, 0.8), ground: -0.25 * r * sq, detail: -1 });
+      const g = rockGeometry(r, rng, { squash: sq, palette: SHORE_ROCK, moss: rng.range(0.3, 0.8), ground: -0.25 * r * sq, detail: -1 });
       g.applyMatrix4(m.compose(t, q, one));
       parts.push(g);
     }

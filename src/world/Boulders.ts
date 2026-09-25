@@ -1,6 +1,6 @@
 /**
- * Boulders — grey faceted low-poly rocks for Driftwood Isle: jittered icosahedra sunk into the
- * ground, flat-shaded vertex colours, all in one mesh. Placement is the caller's (a list of
+ * Boulders — Driftwood Isle's shore boulders: rockKit rocks (smooth painted, E114) sunk into the
+ * ground, all in one mesh. Placement is the caller's (a list of
  * `{ x, z, r, rot? }`); `scatterShore()` is the beach rule: rocks along the water line and a few
  * out in the surf, away from the pier corridor.
  *
@@ -8,7 +8,7 @@
  *   scene.add(rocks.mesh); player.colliders.push(...rocks.colliders);
  */
 import * as THREE from 'three';
-import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, ROAD_WIDTH } from '../core/config';
 import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
@@ -17,11 +17,9 @@ import type { Sky } from './Sky';
 import type { ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { WRECK } from '../chunks/driftwood-isle';
-import { rockLook, rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
+import { rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
-
-const ROCK = new THREE.Color('#7a7e84'), ROCK_LIGHT = new THREE.Color('#9da1a7'), ROCK_DARK = new THREE.Color('#565a60');
 
 export class Boulders {
   mesh!: THREE.Mesh;
@@ -64,69 +62,22 @@ export class Boulders {
   }
 
   build(specs: BoulderSpec[]): this {
-    const rng = new Rng(0x5ea1 ^ 0xb0);
     const parts: THREE.BufferGeometry[] = [];
-    const c = new THREE.Color();
-    // E114: the rocks are built in rockKit's look — B (smooth painted) by default, ?rocks=now the old icosahedra below
-    const look = rockLook(), lookRng = new Rng(0x5ea1 ^ 0x70c5);
+    const rng = new Rng(0x5ea1 ^ 0x70c5);
     for (const b of specs) {
-      if (look !== 'current') {
-        const g = rockGeometry(look, b.r, lookRng, { squash: b.squash ?? 0.7, palette: SHORE_ROCK, moss: lookRng.range(0.25, 0.85), ground: -0.35 * b.r * (b.squash ?? 0.7) });
-        this.place(g, b, parts);
-        continue;
-      }
-      const detail = b.r > 2 ? 1 : 0;
-      // IcosahedronGeometry is NON-indexed (every face owns its corners): weld it first, or each face's copy of a
-      // corner takes its own jitter and the faces split into see-through cracks (E114)
-      const ico = new THREE.IcosahedronGeometry(b.r, detail);
-      ico.deleteAttribute('normal'); ico.deleteAttribute('uv');
-      const g = mergeVertices(ico);
-      ico.dispose();
-      const pos = g.getAttribute('position');
-      // jitter the (shared) vertices radially, then squash — on the welded sphere so faces stay closed
-      for (let i = 0; i < pos.count; i++) {
-        const v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
-        const k = 1 + (rng.next() - 0.5) * 0.26;
-        v.multiplyScalar(k);
-        v.y *= b.squash ?? 0.7;
-        pos.setXYZ(i, v.x, v.y, v.z);
-      }
-      g.rotateY(b.rot ?? 0);
-      const y = heightAt(b.x, b.z);
-      const [nx, , nz] = normalAt(b.x, b.z, 1.5);
-      g.rotateX(nz * 0.6); g.rotateZ(-nx * 0.6); // lean with the slope a little
-      g.translate(b.x, y + b.r * (b.squash ?? 0.7) * 0.35, b.z);
-      g.deleteAttribute('uv'); g.deleteAttribute('normal');
-      const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.getAttribute('position').count, col = new Float32Array(n * 3);
-      const p = ni.getAttribute('position');
-      for (let i = 0; i < n; i += 3) {
-        // facet colour: lighter on up-facing faces, darker down low (wet), a little jitter
-        const ay = (p.getY(i) + p.getY(i + 1) + p.getY(i + 2)) / 3 - y;
-        const up = THREE.MathUtils.clamp((ay / Math.max(0.3, b.r)) * 0.8 + 0.4, 0, 1);
-        c.lerpColors(ROCK_DARK, ROCK_LIGHT, up).lerp(ROCK, 0.35).multiplyScalar(0.9 + rng.next() * 0.2);
-        for (let j = 0; j < 3; j++) { col[(i + j) * 3] = c.r; col[(i + j) * 3 + 1] = c.g; col[(i + j) * 3 + 2] = c.b; }
-      }
-      ni.setAttribute('color', new THREE.BufferAttribute(col, 3));
-      parts.push(ni);
-      this.collide(b, y, p);
-      this.count++;
+      const g = rockGeometry(b.r, rng, { squash: b.squash ?? 0.7, palette: SHORE_ROCK, moss: rng.range(0.25, 0.85), ground: -0.35 * b.r * (b.squash ?? 0.7) });
+      this.place(g, b, parts);
     }
     // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
     if (parts.length === 0) console.warn('[boulders] nothing placed — %d candidates rejected', specs.length);
     const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
-    let mat: THREE.MeshStandardMaterial;
-    if (look === 'current') {
-      mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
-      this.sky.setupMaterial(mat);
-    } else mat = rockMaterial(this.sky, look);
-    this.mesh = new THREE.Mesh(geo, mat);
+    this.mesh = new THREE.Mesh(geo, rockMaterial(this.sky));
     this.mesh.castShadow = TIER_CONFIG.boulderShadows; this.mesh.receiveShadow = true;
     return this;
   }
 
-  /** a rockKit rock (centred, non-indexed, painted) posed like the current ones: yawed, leaned with the slope, half sunk */
+  /** a rockKit rock (centred, non-indexed, painted) posed on its spot: yawed, leaned with the slope, half sunk */
   private place(g: THREE.BufferGeometry, b: BoulderSpec, parts: THREE.BufferGeometry[]): void {
     g.rotateY(b.rot ?? 0);
     const y = heightAt(b.x, b.z);

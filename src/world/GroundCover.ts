@@ -45,7 +45,7 @@ import { LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, low
 import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../chunks/driftwood-isle';
 import { Cove } from './Cove';
 import { windUniforms } from './wind';
-import { rockLook, rockGeometry } from './rockKit';
+import { rockGeometry } from './rockKit';
 import { TIER } from '../core/tier';
 import { lowPolyGroundColor } from './Terrain';
 import type { Sky } from './Sky';
@@ -213,15 +213,15 @@ export class GroundCover {
       }
       k.addParts(grassTuft(rng, 0.2), { jitter: 0.08 });
     }, 0x6c04);
-    const look = rockLook(), lookRng = new Rng(SEED ^ 0x70c6);
+    const rockRng = new Rng(SEED ^ 0x70c6);
     const pebbleGeo = geo((k) => {
       for (let i = 0; i < 3; i++) {
         const r = rng.range(0.1, 0.22), a = rng.range(0, 6.28), d = i === 0 ? 0 : rng.range(0.2, 0.35);
         const m = new THREE.Matrix4().makeTranslation(Math.cos(a) * d, r * 0.2, Math.sin(a) * d);
-        // E114: the pebbles in rockKit's look too (B by default, ?rocks=now the old; flat-shaded here: the ground cover is one faceted material)
-        const legacy = rock(r, 0, rng, 0.6, 0.25);
-        if (look === 'current') k.addTopped(legacy, '#7d8187', '#6d9a44', { matrix: m, minY: 0.7, jitter: 0.08 });
-        else { legacy.dispose(); k.addPainted(rockGeometry(look, r, lookRng, { squash: 0.6, moss: 0.5, ground: -0.2 * r }), m); }
+        // E114: the pebbles are rockKit rocks too (flat-shaded here: the ground cover is one faceted material). The old
+        // pebble is still built for the draws it takes, so everything after is placed as it always was
+        rock(r, 0, rng, 0.6, 0.25).dispose();
+        k.addPainted(rockGeometry(r, rockRng, { squash: 0.6, moss: 0.5, ground: -0.2 * r }), m);
       }
     }, 0x6c05);
 
