@@ -35,6 +35,52 @@ const WARM_TURNS = 4;
 /** the three slots of one fixed step, in order: `pre` readies the world, `step` advances it, `post` moves against it */
 export type FixedPhase = 'pre' | 'step' | 'post';
 
+/**
+ * E142 (the 30-fps-at-2× lane): the god rays' passes only while the sun can be in the picture. GodRaysEffect.update
+ * copies the scene's depth at full size, draws the sun disc + halo into it (depth-tested), blurs that and marches the
+ * rays toward the sun's screen point — every frame, though with the sun outside the view the mask is empty and the rays
+ * are black, which the SCREEN blend leaves as the image. So: while the sun's bounds are outside the camera's frustum (or
+ * it is hidden, or the rays are at 0), the passes are skipped and the rays' target is cleared once. The same picture;
+ * −0.06…−0.15 ms on the M5 at 1206×2622 at the six E142 poses (the sun was out of view at all of them).
+ * `?rayskip=0` = the passes every frame.
+ */
+function skipRaysOffscreen(rays: GodRaysEffect, camera: THREE.Camera, disc: THREE.Mesh): void {
+  const update = rays.update.bind(rays);
+  const frustum = new THREE.Frustum(), m = new THREE.Matrix4(), box = new THREE.Box3(), sphere = new THREE.Sphere(), v = new THREE.Vector3();
+  const clearColor = new THREE.Color();
+  const target: unknown = Reflect.get(rays, 'renderTargetB'); // the rays' output (`rays.texture`'s target; not in the typings)
+  if (!(target instanceof THREE.WebGLRenderTarget)) return;
+  let cleared = false;
+  const inView = (): boolean => {
+    if (!disc.visible || rays.blendMode.opacity.value <= 0) return false;
+    // the disc's world bounds, and each child's (the halo sprite faces the camera: its half-diagonal around its centre)
+    box.makeEmpty();
+    disc.traverseVisible((o) => {
+      if (o instanceof THREE.Sprite) {
+        o.getWorldPosition(v);
+        const e = o.matrixWorld.elements, r = Math.hypot(e[0], e[1], e[2]) * Math.SQRT1_2;
+        box.expandByPoint(v.clone().addScalar(r)); box.expandByPoint(v.clone().addScalar(-r));
+      } else box.expandByObject(o, false);
+    });
+    if (box.isEmpty()) return false;
+    box.getBoundingSphere(sphere);
+    frustum.setFromProjectionMatrix(m.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    return frustum.intersectsSphere(sphere);
+  };
+  rays.update = (renderer, inputBuffer, deltaTime) => {
+    if (inView()) { cleared = false; update(renderer, inputBuffer, deltaTime); return; }
+    if (cleared) return;
+    const prev = renderer.getRenderTarget(), alpha = renderer.getClearAlpha();
+    renderer.getClearColor(clearColor);
+    renderer.setRenderTarget(target);
+    renderer.setClearColor(0x000000, 0);
+    renderer.clear(true, false, false);
+    renderer.setClearColor(clearColor, alpha);
+    renderer.setRenderTarget(prev);
+    cleared = true;
+  };
+}
+
 export class Game {
   renderer: THREE.WebGLRenderer;
   scene = new THREE.Scene();
@@ -222,6 +268,7 @@ export class Game {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
         exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
       });
+      if (!clean && phoneCut('rayskip')) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc);
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
       const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
