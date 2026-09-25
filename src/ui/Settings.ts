@@ -108,6 +108,7 @@ export const OPTION_VALUES = {
   pinesky: ['clock', 'sunset'],                        // Pine Hollow: the day / night clock (PH-L2, src/world/PineDayNight.ts) or the pre-remaster fixed HDRI sunset — Jake picks (a reload)
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/pinehollow/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
+  dynres: ['auto', 'on', 'off'],                       // dynamic resolution (src/core/dynamicResolution.ts, E142): auto = Pine Hollow's phone tier; on = any shard — live
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -122,11 +123,12 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   pinesky: { def: 'clock', params: ['pinesky'], url: (q) => (q.get('tod') === 'sunset-fixed' ? 'sunset' : q.get('pinesky')) }, // ?tod=sunset-fixed: the before shots
   weather: { def: 'live', params: ['weather', 'weatherT'], url: (q) => q.get('weather') },            // ?weather=rain&weatherT=0.5: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
+  dynres: { def: 'auto', params: ['dynres'], url: (q) => { const v = q.get('dynres'); return v === '0' ? 'off' : v === '1' ? 'on' : v; } }, // ?dynres=0 / ?dynres=1
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), tier: option('tier'), touch: option('touch'), time: option('time'),
-  pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
+  pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'), dynres: option('dynres'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

@@ -11,7 +11,9 @@ import { GradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG, frameCapFps } from './tier';
+import { TIER, TIER_CONFIG, frameCapFps } from './tier';
+import { DynamicResolution } from './dynamicResolution';
+import { setting } from '../ui/Settings';
 import { installLookV2Fog } from '../nalati/look/fog';
 import { buildLookV2Chain } from '../nalati/look/grade';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
@@ -303,6 +305,8 @@ export class Game {
    * moving (particles, camera shake). Overlapping stops take the longer. The sky and the post chain always run real time.
    */
   hitStop(seconds: number): void { this.stopLeft = Math.max(this.stopLeft, seconds); }
+  /** dynamic resolution (src/core/dynamicResolution.ts, E142) — set by start(); `dynres.state` is what it decided and why */
+  dynres: DynamicResolution | null = null;
   /** skip n8ao's depth-free transparency pre-pass (buildComposer; PH-P2) — a live switch for A/B captures */
   aoLeanTransparency = true;
   /** the PBR chain's split-tone / look grade (buildComposer; its uniforms are live — the look loop tunes them in place) */
@@ -391,6 +395,14 @@ export class Game {
     // steps catch up (2 × 1/60), and input read in that frame has everything since the last one.
     const slug = getActiveChunk().slug;
     let lastDrawn = -Infinity;
+    // dynamic resolution (E142): the render scale follows the drawn frames' timing. Settings ▸ Debug ▸ Dynamic resolution:
+    // Auto = Pine Hollow's phone tier; `?dynres=0|1`; `?dynresmin=` the floor (1.2 by default: under it the 3× screen
+    // upscales too far — E70). The WebGPU path keeps its own scale.
+    const dynMin = Number(new URLSearchParams(location.search).get('dynresmin') ?? '1.2');
+    const dyn = gpu ? null : new DynamicResolution(this.renderer.getPixelRatio(), Number.isFinite(dynMin) ? dynMin : 1.2, (pr) => { this.renderer.setPixelRatio(pr); this.resize(); });
+    this.dynres = dyn;
+    const dynWanted = (): boolean => { const d = setting('dynres'); return d === 'on' || (d === 'auto' && TIER === 'phone' && slug === 'pine-hollow'); };
+    let prevDrawnAt = -1;
     const loop = (now?: number) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
       if (this.dead) return; // a core system died (faults.ts): the fatal modal is up, nothing more to draw
@@ -402,8 +414,8 @@ export class Game {
         if (t - lastDrawn < 1000 / cap - FRAME_CAP_SLACK_MS) return;
         lastDrawn = t;
       }
-      if (this.hold) { this.clock.getDelta(); return; } // the context is lost / being rebuilt (GpuRecovery.ts): a draw now would re-link every program in one stall
-      if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
+      if (this.hold) { this.clock.getDelta(); prevDrawnAt = -1; return; } // the context is lost / being rebuilt (GpuRecovery.ts): a draw now would re-link every program in one stall
+      if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); prevDrawnAt = -1; return; } // keep the clock moving so the next frame's dt is sane
       forceFrame = false;
       this.renderer.info.reset();
       const realDt = Math.min(0.1, this.clock.getDelta());
@@ -436,6 +448,12 @@ export class Game {
         if (gpu) gpu.render(); else composer.render(realDt);
       } catch (e) { this.fault(this.renderSystem, e); return; }
       if (this.captures.length > 0) this.flushCaptures();
+      if (dyn) {
+        const at = now ?? lastRun;
+        dyn.setEnabled(dynWanted());
+        if (prevDrawnAt >= 0) dyn.frame(at - prevDrawnAt, performance.now() - lastRun, 1000 / (cap > 0 ? cap : 60), at);
+        prevDrawnAt = at;
+      }
       if (gpu) { this.lastFrame.calls = gpu.info.calls; this.lastFrame.triangles = gpu.info.triangles; }
       else { this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles; }
       this.frameMs[this.frameI] = realDt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
