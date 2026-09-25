@@ -126,9 +126,14 @@ writeArtModule();
 
 // Boot packs (scripts/bake-packs.mjs → public/assets/packs/<slug>.<tier>-<hash>.bin + src/boot/packs.generated.ts): each
 // shard's boot files for a tier as one streamed file (src/boot/pack.ts). After the byte table: the tier's file names
-// come from it. Never fatal — without a pack the boot fetches file by file.
+// come from it. Fatal for `vite build` (2026-09-25: a TS parameter property in a module the bake imports broke it, the
+// build only warned, and production shipped every phone boot unpacked — ~115 extra requests); the dev server only warns
+// (without a pack the boot fetches file by file).
 try { execSync('node --import ./scripts/bake-loader.mjs scripts/bake-packs.mjs', { stdio: 'inherit' }); }
-catch (e) { console.warn('[pack] boot packs failed — the boot fetches file by file', e); }
+catch (e) {
+  if (process.argv.includes('build')) throw new Error('[pack] boot packs failed — refusing to build without them (scripts/bake-packs.mjs)', { cause: e });
+  console.warn('[pack] boot packs failed — the boot fetches file by file', e);
+}
 
 const versionPlugin = (): Plugin => ({
   name: 'wildshard-version',
