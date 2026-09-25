@@ -10,6 +10,12 @@ scripts/music/gen/sfx-ph-<set>.json; no comparison page (scripts/music/gen/ph_pa
 optional `group` (an NPC's barks, the footstep surfaces) keeps its siblings out of its CLAP competitors, so near-identical
 descriptions do not rank each other down. With --stage, beds encode stereo at BED_KBPS (Pine Hollow has 14 of them).
 
+--only fam,fam,... (with --stage): a later round of a few families (the remaster's sound gaps). Only those families' takes
+are ranked (against every family's description, as ever), and only their rows in sfx-ph-<set>.json, their entries in
+<dir>/<set>/sfx.json and their files are replaced; every other family keeps what its own round decided (a new competitor
+reshuffles near-tied takes of families nobody asked to change: in the gaps round 9 old families would have swapped
+takes and bark-miller-7 dropped out). The per-model summary is left as it is.
+
 Reads <raw>/<model>/<family>/<seed>.wav + .json (gen_sfx.py / gen_sfx_moss.py / gen_sfx_ezaudio.py / MiniMax via
 sfx_minimax.py). For every take:
   CLAP (laion/clap-htsat-fused, the model's own logit scale): softmax of its own family description against every
@@ -92,7 +98,11 @@ def main() -> None:
     ap.add_argument("raw")
     ap.add_argument("--jobs", default="sfx-jobs.json")
     ap.add_argument("--stage", default=None, help="write each model's set under this dir instead of public/assets/sfx/")
+    ap.add_argument("--only", default="", help="with --stage: rank and ship only these families (comma list); the rest keep their round's")
     args = ap.parse_args()
+    only = {f for f in args.only.split(",") if f}
+    if only and not args.stage:
+        raise SystemExit("--only needs --stage")
     raw = Path(args.raw)
     fams = json.loads((HERE / args.jobs).read_text())["families"]
     out_root, prefix = (Path(args.stage), "sfx-ph-") if args.stage else (OUT, "sfx-")
@@ -111,6 +121,8 @@ def main() -> None:
         for wav in sorted((raw / model).glob("*/*.wav")):
             side = json.loads(wav.with_suffix(".json").read_text())
             fam = side["family"]
+            if only and fam not in only:
+                continue
             x, sr = sf.read(str(wav), always_2d=True)
             y = x.mean(1).astype(np.float32)
             y48 = librosa.resample(y, orig_sr=sr, target_sr=48000)
@@ -148,20 +160,35 @@ def main() -> None:
                           "mean_gen_s": round(float(np.mean(gens)), 2),
                           "mps_driver_gb_max": max((r["side"].get("mps_driver_gb") or 0) for r in takes)}
         tag = meta["set"] or model
-        (HERE / f"{prefix}{tag}.json").write_text(json.dumps(
-            {"model": meta["title"], "families": {f: [{k: v for k, v in r.items() if k != "wav"} for r in rs] for f, rs in by_fam.items()}},
-            indent=2) + "\n")
+        rows = {f: [{k: v for k, v in r.items() if k != "wav"} for r in rs] for f, rs in by_fam.items()}
+        if only:  # every other family keeps its own round's rows
+            rows = {**json.loads((HERE / f"{prefix}{tag}.json").read_text())["families"], **rows}
+        (HERE / f"{prefix}{tag}.json").write_text(json.dumps({"model": meta["title"], "families": rows}, indent=2) + "\n")
         if meta["set"] is None:
             continue
 
         # ---- ship this model's set
         dest = out_root / meta["set"]
         dest.mkdir(parents=True, exist_ok=True)
-        for old in dest.glob("*.m4a"):  # this folder holds only this script's output
-            old.unlink()
         man: dict = {"model": meta["title"], "credit": meta["credit"], "licence": meta["licence"],
                      "beds": {}, "hums": {}, "oneshots": {}, "provenance": []}
         total, skipped = 0, []
+        if only:  # keep the other families' entries and files; drop these families' old ones
+            man = json.loads((dest / "sfx.json").read_text())
+            gone: list[str] = []
+            for fam in only:
+                kind = fams[fam]["kind"]
+                sec, key = (man["oneshots"], fam) if kind == "oneshot" else (man["beds" if kind == "bed" else "hums"], fam.split("-", 1)[1])
+                e = sec.pop(key, None)
+                if e is not None:
+                    gone += e["files"] if "files" in e else [e["file"]]
+            man["provenance"] = [p for p in man["provenance"] if p["file"] not in gone]
+            for f in gone:
+                (dest / f).unlink(missing_ok=True)
+            skipped = [f for f in man.get("synth_keeps", []) if f not in only]
+        else:
+            for old in dest.glob("*.m4a"):  # this folder holds only this script's output
+                old.unlink()
         for fam, rs in sorted(by_fam.items()):
             kind = fams[fam]["kind"]
             if rs[0]["rank"] > SHIP_MAX_RANK:  # its best take sounds more like some other family: the synth keeps it
@@ -194,13 +221,15 @@ def main() -> None:
         man["synth_keeps"] = sorted(skipped)
         (dest / "sfx.json").write_text(json.dumps(man, indent=2, ensure_ascii=False) + "\n")
         summary[model].update(shipped=len(by_fam) - len(skipped), synth_keeps=sorted(skipped), bytes=total)
-        print(f"{meta['set']}: {total / 1e6:.2f} MB, ships {len(by_fam) - len(skipped)} of {len(by_fam)}, synth keeps {skipped}", flush=True)
+        print(f"{meta['set']}: {total / 1e6:.2f} MB {'added' if only else ''}, {'ranked' if only else 'ships'} {len(by_fam)}, synth keeps {sorted(skipped)}", flush=True)
 
     peaks = HERE / "sfx-peaks.json"  # measured peak RSS per model process (/usr/bin/time -l), written from the run logs
     if peaks.exists():
         for m, gb in json.loads(peaks.read_text()).items():
             if m in summary:
                 summary[m]["peak_gb"] = gb
+    if args.stage and only:
+        return
     if args.stage:
         (HERE / "sfx-ph-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
         return

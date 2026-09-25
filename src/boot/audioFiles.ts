@@ -10,6 +10,10 @@
  * style (public/assets/music/pine-hollow-<style>/: calm-night, the Antler King's phases, the dawn sting) and its SFX set
  * (public/assets/sfx/pine-hollow/: the zoned beds, the one-shots, the barks), and leaves out the base styles' Driftwood slot
  * ('island' — never played on Pine Hollow; a shard change reloads). Driftwood's list is exactly what it was.
+ *
+ * The one SFX set carries another shard's sounds too (NALATI-MERGE A1: an entry tagged `shard: 'nalati'` — the steppe's
+ * creatures, weapons, weather and ten beds; preload.ts decodes them on the steppe only). Pine Hollow's bar leaves those out
+ * as it leaves out 'island': 49 families, ~2.4 MB and ~80 requests it never plays (the phone's 180-request row).
  */
 import { MUSIC_MANIFESTS, SFX_MANIFESTS } from './audio.generated';
 import { PUBLIC_BYTES } from './bytes.generated';
@@ -53,6 +57,23 @@ export function shardMusicSets(slug: string): string[] {
 export const shardSfxSets = (slug: string): string[] => (slug === PINE && Object.hasOwn(SFX_MANIFESTS, PINE) ? [PINE] : []);
 /** a base style's slots this shard never plays (Pine Hollow: Driftwood's 'island') */
 const unplayed = (slug: string): readonly string[] => (slug === PINE ? ['island'] : []);
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+/** the files of `m`'s beds / hums / one-shots tagged for another shard (`shard: 'nalati'`), which `slug` never plays */
+function otherShardFiles(m: unknown, slug: string): Set<string> {
+  const out = new Set<string>();
+  if (slug !== PINE || !isObj(m)) return out;
+  for (const sec of ['beds', 'hums', 'oneshots']) {
+    const entries = m[sec];
+    if (!isObj(entries)) continue;
+    for (const v of Object.values(entries)) if (isObj(v) && typeof v['shard'] === 'string') for (const f of manifestFiles(v)) out.add(f);
+  }
+  return out;
+}
+/** the files of SFX set `set` for shard `slug` (URLs): all of them, but another shard's own sounds */
+function sfxFilesFor(set: string, slug: string): string[] {
+  const m = SFX_MANIFESTS[set], skip = otherShardFiles(m, slug), dir = sfxDir(set);
+  return filesOf(dir, m).filter((p) => !skip.has(p.slice(dir.length)));
+}
 /** the manifest without `drop`'s slots */
 function withoutSlots(m: unknown, drop: readonly string[]): unknown {
   if (drop.length === 0 || typeof m !== 'object' || m === null || Array.isArray(m)) return m;
@@ -62,11 +83,12 @@ function withoutSlots(m: unknown, drop: readonly string[]): unknown {
 }
 
 /** the loading bar's `music` and `sfx` byte sources for shard `slug`: every file of every style / set (the selected one
- *  first), then the shard's own sets. Without a slug (or on Driftwood): the base styles and sets, every slot. */
+ *  first; on Pine Hollow without another shard's own sounds), then the shard's own sets. Without a slug (or on Driftwood):
+ *  the base styles and sets, every slot. */
 export function audioFiles(slug = ''): { music: string[]; sfx: string[] } {
   const drop = unplayed(slug);
   return {
     music: [...musicStyles().flatMap((s) => filesOf(musicDir(s), withoutSlots(MUSIC_MANIFESTS[s], drop))), ...shardMusicSets(slug).flatMap((s) => filesOf(musicDir(s), MUSIC_MANIFESTS[s]))],
-    sfx: [...sfxSets().flatMap((s) => filesOf(sfxDir(s), SFX_MANIFESTS[s])), ...shardSfxSets(slug).flatMap((s) => filesOf(sfxDir(s), SFX_MANIFESTS[s]))],
+    sfx: [...sfxSets().flatMap((s) => sfxFilesFor(s, slug)), ...shardSfxSets(slug).flatMap((s) => filesOf(sfxDir(s), SFX_MANIFESTS[s]))],
   };
 }

@@ -531,7 +531,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
         if (r < 0.3) { place(wood, p.x, p.y + 0.18, p.z); } // hitches up the trunk
         else if (r < 0.42 && d < 110) voice('woodpecker_call', p, 0.8);
         // the drum: the set's burst (the synth roll when the set is not there)
-        else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice('woodpecker_drum', p, 0.8); }
+        else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice('woodpecker_drum', p, 0.8); if (drumVoiced) drumOn = 1.9; } // the set's bursts run ~2 s
       }
     }
     if (night > 0.45 || d > 110) { p.b2 = 0; p.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30; return; }

@@ -1,0 +1,350 @@
+{
+ "url": "http://localhost:4351",
+ "when": "2026-09-25T04:28:42.189Z",
+ "steps": [
+  {
+   "step": "lever: dry fire on an empty gun",
+   "log": [
+    {
+     "t": 5436,
+     "kind": "sfx",
+     "name": "leverDry",
+     "ok": true
+    }
+   ]
+  },
+  {
+   "step": "lever: three rounds through the loading gate",
+   "log": [
+    {
+     "t": 7274,
+     "kind": "sfx",
+     "name": "leverRoundIn",
+     "ok": true
+    },
+    {
+     "t": 7673,
+     "kind": "sfx",
+     "name": "leverRoundIn",
+     "ok": true
+    },
+    {
+     "t": 8074,
+     "kind": "sfx",
+     "name": "leverRoundIn",
+     "ok": true
+    },
+    {
+     "t": 8074,
+     "kind": "sfx",
+     "name": "leverCycle",
+     "ok": true
+    }
+   ]
+  },
+  {
+   "step": "longbow: draw + loose",
+   "log": [
+    {
+     "t": 12474,
+     "kind": "sfx",
+     "name": "longbowDraw",
+     "ok": true
+    },
+    {
+     "t": 13240,
+     "kind": "sfx",
+     "name": "longbowLoose",
+     "ok": true
+    }
+   ]
+  },
+  {
+   "step": "bolt on rock (Weapons.onImpact, ground → stone probe)",
+   "log": [
+    {
+     "t": 16152,
+     "kind": "sfx",
+     "name": "boltImpact-rock",
+     "ok": true
+    },
+    {
+     "t": 16839,
+     "kind": "sfx",
+     "name": "woodpecker_drum",
+     "ok": true
+    }
+   ],
+   "extra": {
+    "rockAt": [
+     5.9,
+     0.5,
+     -220.8
+    ],
+    "fromPlayer": 15
+   }
+  },
+  {
+   "step": "woodpecker: settles, drums / calls (22 s)",
+   "log": [
+    {
+     "t": 26857,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    },
+    {
+     "t": 31223,
+     "kind": "sfx",
+     "name": "woodpecker_drum",
+     "ok": true
+    },
+    {
+     "t": 38989,
+     "kind": "sfx",
+     "name": "woodpecker_drum",
+     "ok": true
+    }
+   ]
+  },
+  {
+   "step": "woodpecker: flushed (walk up to it)",
+   "log": [
+    {
+     "t": 39690,
+     "kind": "sfx",
+     "name": "woodpecker_call",
+     "ok": true
+    }
+   ],
+   "extra": "perch"
+  },
+  {
+   "step": "ravens: breadcrumbs overtake you",
+   "log": [
+    {
+     "t": 42663,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    }
+   ],
+   "extra": "cabin-1"
+  },
+  {
+   "step": "ravens: to a fresh kill (arrive, circle, land)",
+   "log": [
+    {
+     "t": 47489,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    },
+    {
+     "t": 49655,
+     "kind": "sfx",
+     "name": "deer_snort",
+     "ok": true
+    },
+    {
+     "t": 50489,
+     "kind": "music",
+     "name": "mode:alert"
+    },
+    {
+     "t": 55555,
+     "kind": "music",
+     "name": "mode:calm"
+    },
+    {
+     "t": 67654,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    },
+    {
+     "t": 74286,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    }
+   ],
+   "extra": "down"
+  },
+  {
+   "step": "ravens: walk up, they lift off",
+   "log": [
+    {
+     "t": 77187,
+     "kind": "sfx",
+     "name": "raven_flap",
+     "ok": true
+    },
+    {
+     "t": 77287,
+     "kind": "zone",
+     "name": "creek"
+    },
+    {
+     "t": 79887,
+     "kind": "sfx",
+     "name": "raven_caw",
+     "ok": true
+    }
+   ],
+   "extra": [
+    "ground",
+    "ground",
+    "off",
+    "off"
+   ]
+  },
+  {
+   "step": "skinning beat (two strokes)",
+   "log": [
+    {
+     "t": 81587,
+     "kind": "sfx",
+     "name": "skinCut-a",
+     "ok": true
+    },
+    {
+     "t": 82021,
+     "kind": "sfx",
+     "name": "skinCut-b",
+     "ok": true
+    }
+   ],
+   "extra": "harvest"
+  },
+  {
+   "step": "night (the clock)",
+   "log": [
+    {
+     "t": 85355,
+     "kind": "bed",
+     "name": "night",
+     "ok": false,
+     "detail": "up 0.74 (decoding)"
+    },
+    {
+     "t": 85355,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": false,
+     "detail": "up 0.27 (decoding)"
+    },
+    {
+     "t": 85373,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 85374,
+     "kind": "bed",
+     "name": "night",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 85454,
+     "kind": "wire",
+     "name": "clock:night",
+     "ok": true,
+     "detail": "1.00"
+    },
+    {
+     "t": 85454,
+     "kind": "music",
+     "name": "scene:night"
+    },
+    {
+     "t": 85495,
+     "kind": "music",
+     "name": "deck:night",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 92487,
+     "kind": "sfx",
+     "name": "raven_caw",
+     "ok": true
+    }
+   ]
+  },
+  {
+   "step": "owl: onto a snag near you, hoots (30 s)",
+   "log": [
+    {
+     "t": 97004,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 102185,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    },
+    {
+     "t": 104019,
+     "kind": "sfx",
+     "name": "owl_hoot",
+     "ok": true
+    },
+    {
+     "t": 107586,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    },
+    {
+     "t": 120319,
+     "kind": "sfx",
+     "name": "raven_pair",
+     "ok": true
+    }
+   ],
+   "extra": {
+    "snagNear": [
+     -213,
+     -98
+    ],
+    "night": 1
+   }
+  }
+ ],
+ "lazyAudioFetches": [],
+ "failedAudio": [],
+ "errors": [],
+ "bootMs": 2930,
+ "manifest": {
+  "decoded": 49
+ },
+ "deer": {
+  "kind": "deer",
+  "at": [
+   -218,
+   -217
+  ]
+ },
+ "triggers": {
+  "leverDry": true,
+  "leverRoundIn": true,
+  "longbowLoose": true,
+  "boltImpact-rock": true,
+  "woodpecker_drum": true,
+  "woodpecker_call": true,
+  "raven_caw": true,
+  "raven_pair": true,
+  "raven_flap": true,
+  "skinCut-a": true,
+  "skinCut-b": true,
+  "owl_hoot": true,
+  "no audio fetched after the bar": true
+ }
+}

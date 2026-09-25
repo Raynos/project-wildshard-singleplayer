@@ -1467,12 +1467,95 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
      "bark-trader-8-2-aebeb467.m4a"
     ],
     "gain": 1
+   },
+   "boltImpact-rock": {
+    "files": [
+     "boltImpact-rock-5-8817d8c7.m4a",
+     "boltImpact-rock-3-91f80620.m4a"
+    ],
+    "gain": 1
+   },
+   "longbowLoose": {
+    "files": [
+     "longbowLoose-4-aaeb804d.m4a"
+    ],
+    "gain": 1
+   },
+   "raven_caw": {
+    "files": [
+     "raven_caw-4-29cdf0f3.m4a",
+     "raven_caw-6-23989150.m4a"
+    ],
+    "gain": 1
+   },
+   "raven_pair": {
+    "files": [
+     "raven_pair-1-f8070ef6.m4a",
+     "raven_pair-2-d6566778.m4a"
+    ],
+    "gain": 1
+   },
+   "raven_flap": {
+    "files": [
+     "raven_flap-3-d8de68a0.m4a",
+     "raven_flap-1-ef724c18.m4a"
+    ],
+    "gain": 1
+   },
+   "owl_hoot": {
+    "files": [
+     "owl_hoot-3-cdbe93cd.m4a",
+     "owl_hoot-1-805b5cfa.m4a"
+    ],
+    "gain": 1
+   },
+   "woodpecker_drum": {
+    "files": [
+     "woodpecker_drum-1-6125f4ba.m4a",
+     "woodpecker_drum-2-1ce56686.m4a"
+    ],
+    "gain": 1
+   },
+   "woodpecker_call": {
+    "files": [
+     "woodpecker_call-3-caf7f9bc.m4a",
+     "woodpecker_call-1-82e24909.m4a"
+    ],
+    "gain": 1
+   },
+   "skinCut-a": {
+    "files": [
+     "skinCut-a-1-a68e8922.m4a",
+     "skinCut-a-2-22d9c5b6.m4a"
+    ],
+    "gain": 1
+   },
+   "skinCut-b": {
+    "files": [
+     "skinCut-b-3-f5ea4aeb.m4a",
+     "skinCut-b-1-63445de8.m4a"
+    ],
+    "gain": 1
+   },
+   "leverDry": {
+    "files": [
+     "leverDry-2-6fc79d84.m4a",
+     "leverDry-3-4d807418.m4a"
+    ],
+    "gain": 1
+   },
+   "leverRoundIn": {
+    "files": [
+     "leverRoundIn-3-c42635c5.m4a",
+     "leverRoundIn-1-ad1c3d11.m4a"
+    ],
+    "gain": 1
    }
   },
   "sprite": {
-   "file": "oneshots-f725b069.m4a",
+   "file": "oneshots-2e703ba3.m4a",
    "gap": 0.2,
-   "duration": 122.531,
+   "duration": 162.036,
    "clips": {
     "deer_snort-2-29cb5be9.m4a": [
      0.2,
@@ -1725,6 +1808,98 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "bark-trader-8-2-aebeb467.m4a": [
      120.845167,
      1.486312
+    ],
+    "boltImpact-rock-5-8817d8c7.m4a": [
+     122.531479,
+     0.825042
+    ],
+    "boltImpact-rock-3-91f80620.m4a": [
+     123.556521,
+     0.682667
+    ],
+    "longbowLoose-4-aaeb804d.m4a": [
+     124.439188,
+     1.103875
+    ],
+    "raven_caw-4-29cdf0f3.m4a": [
+     125.743062,
+     1.5
+    ],
+    "raven_caw-6-23989150.m4a": [
+     127.443062,
+     1.374333
+    ],
+    "raven_pair-1-f8070ef6.m4a": [
+     129.017396,
+     2.834
+    ],
+    "raven_pair-2-d6566778.m4a": [
+     132.051396,
+     2.896604
+    ],
+    "raven_flap-3-d8de68a0.m4a": [
+     135.148,
+     1.649917
+    ],
+    "raven_flap-1-ef724c18.m4a": [
+     136.997917,
+     1.621458
+    ],
+    "owl_hoot-3-cdbe93cd.m4a": [
+     138.819375,
+     3
+    ],
+    "owl_hoot-1-805b5cfa.m4a": [
+     142.019375,
+     3
+    ],
+    "woodpecker_drum-1-6125f4ba.m4a": [
+     145.219375,
+     2
+    ],
+    "woodpecker_drum-2-1ce56686.m4a": [
+     147.419375,
+     2
+    ],
+    "woodpecker_call-3-caf7f9bc.m4a": [
+     149.619375,
+     2.500021
+    ],
+    "woodpecker_call-1-82e24909.m4a": [
+     152.319396,
+     2.500021
+    ],
+    "skinCut-a-1-a68e8922.m4a": [
+     155.019417,
+     0.2935
+    ],
+    "skinCut-a-2-22d9c5b6.m4a": [
+     155.512917,
+     1
+    ],
+    "skinCut-b-3-f5ea4aeb.m4a": [
+     156.712917,
+     0.842458
+    ],
+    "skinCut-b-1-63445de8.m4a": [
+     157.755375,
+     0.933021
+    ],
+    "leverDry-2-6fc79d84.m4a": [
+     158.888396,
+     0.679146
+    ],
+    "leverDry-3-4d807418.m4a": [
+     159.767542,
+     0.589083
+    ],
+    "leverRoundIn-3-c42635c5.m4a": [
+     160.556625,
+     0.516312
+    ],
+    "leverRoundIn-1-ad1c3d11.m4a": [
+     161.272938,
+     0.563625
     ]
    }
   }

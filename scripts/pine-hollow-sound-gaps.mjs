@@ -118,10 +118,19 @@ try {
 
   // ── the owl (night): the clock to night, the owl onto a snag near you, a hoot or two ──
   await step('night (the clock)', () => page.evaluate(() => { window.__pineQuest.night(); }), 9000);
-  await step('owl: perches near you and hoots (25 s)', () => page.evaluate(() => {
-    const p = window.__world.player.position; const ok = window.__pineLife.owlNow(p.x, p.z) ? 'on a snag near you' : window.__pineLife.owlNow() && 'on its own round';
-    return { ok, night: window.__world.sky.pine?.night };
-  }), 25000);
+  await step('owl: onto a snag near you, hoots (30 s)', () => page.evaluate(() => {
+    // owlNow(x, z) wants a snag within 20 m of (x, z): walk a grid out from here until one takes, then stand 30 m off it
+    const w = window.__world, p = w.player.position, life = window.__pineLife;
+    for (let r = 0; r <= 240; r += 30) {
+      for (let k = 0; k < Math.max(1, Math.round(r / 15)); k++) {
+        const a = (k / Math.max(1, Math.round(r / 15))) * Math.PI * 2, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r;
+        if (!life.owlNow(x, z)) continue;
+        w.player.spawn(x + 30, z, 0);
+        return { snagNear: [Math.round(x), Math.round(z)], night: w.sky.pine?.night };
+      }
+    }
+    return 'no snag';
+  }), 30000);
 } catch (e) { report.errors.push(`driver: ${String(e)}`); }
 await browser.close();
 

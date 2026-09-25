@@ -21,7 +21,18 @@ describe('the loading bar\'s audio per shard', () => {
     const own = p.sfx.filter((f) => f.startsWith('/assets/sfx/pine-hollow/'));
     expect(own.some((f) => f.includes('/bed-hollow-'))).toBe(true);
     expect(own.some((f) => f.includes('/oneshots-'))).toBe(true); // the one-shots + barks: one sprite (test/pine-sfx-sprite.test.ts)
-    for (const f of d.sfx) expect(p.sfx).toContain(f); // every base set still comes along
+    // every base set still comes along — but for another shard's own sounds (the one set's `shard: 'nalati'` entries)
+    const best = SFX_MANIFESTS['best'], steppe = new Set<string>();
+    for (const sec of ['beds', 'hums', 'oneshots']) {
+      const entries: unknown = typeof best === 'object' && best !== null ? (best as Record<string, unknown>)[sec] : undefined;
+      for (const v of Object.values(typeof entries === 'object' && entries !== null ? entries : {})) {
+        const e = v as { shard?: unknown; files?: unknown; file?: unknown };
+        if (e.shard !== 'nalati') continue;
+        for (const f of Array.isArray(e.files) ? e.files : [e.file]) steppe.add(`/assets/sfx/best/${String(f)}`);
+      }
+    }
+    expect(steppe.size).toBeGreaterThan(0);
+    for (const f of d.sfx) { if (steppe.has(f)) expect(p.sfx).not.toContain(f); else expect(p.sfx).toContain(f); }
   });
 });
 

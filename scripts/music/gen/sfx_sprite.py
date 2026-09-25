@@ -6,7 +6,10 @@ load lane: the bar fetched the set one file at a time, 228 requests on a phone c
 
 Run at the end of sfx_merge.py's merge_ph (which rebuilds public/assets/sfx/pine-hollow/ from the stage dir and would
 otherwise un-pack it), and by hand. Idempotent: a set whose sfx.json already has a `sprite` and none of the packed files is
-left as it is (the beds step skips a bed that is already mono).
+left as it is (the beds step skips a bed that is already mono). A set with a sprite AND new one-shot files (merge_ph
+--only: a later round added families) is re-packed: a take already in the sprite is sourced from its lossless take as
+ever, or else from its slice of the old sprite's decode; the old clips keep their order (and so their offsets), the new
+ones follow, and a clip no family lists any more is dropped.
 
 Sprite. Every file under sfx.json "oneshots" (every family, the barks too) laid end to end on one 48 kHz mono timeline with
 GAP (0.2 s) of silence before the first clip, between clips and after the last, encoded as ONE AAC-LC 48 kHz mono .m4a at
@@ -59,6 +62,10 @@ TOL_S = 0.001
 # a re-derived take is "the shipped file" when it lines up at lag 0 with the same level: AAC smears clicks and substitutes
 # noise (exact in spectrum, not in waveform), so a correct re-derivation can correlate as low as ~0.7; another take gives ~0
 MATCH_MIN, MATCH_DB = 0.5, 0.5
+# a take compared with its slice of an older SPRITE (a re-pack): that sprite was cut from the same lossless takes (lag 0
+# proven), but its encode (57 kb/s over the file) sits further from them in level than a 64 kb/s file of its own: measured
+# up to 0.76 dB on the gaps round's re-pack
+SPRITE_DB = 1.0
 RAW_DIR = {"moss": "moss", "sa3-medium": "medium"}  # sfx-raw-dir/<model>/<family>/<seed>.wav
 # ffmpeg's `-ac 2` (stems.encode) put a mono take in each channel at -3.01 dB (swresample's centre mix level); WebAudio
 # up-mixes a mono buffer to L = R = m ("speakers"), so the mono file carries that same per-channel level
@@ -202,8 +209,8 @@ def matches(src: np.ndarray, shipped: np.ndarray) -> tuple[int, float, float]:
     return lag, r, float(10 * np.log10((src[:n] ** 2).sum() / max((shipped[:n] ** 2).sum(), 1e-20)))
 
 
-def same(m: tuple[int, float, float]) -> bool:
-    return m[0] == 0 and m[1] >= MATCH_MIN and abs(m[2]) <= MATCH_DB
+def same(m: tuple[int, float, float], db: float = MATCH_DB) -> bool:
+    return m[0] == 0 and m[1] >= MATCH_MIN and abs(m[2]) <= db
 
 
 # ─────────────── the sprite ───────────────
@@ -220,10 +227,14 @@ def pack(ph: Path, lossless: Lossless | None) -> None:
     if "sprite" in man and not have:
         print(f"sprite: already packed ({man['sprite']['file']}, {len(man['sprite']['clips'])} clips) - nothing to do")
         return
-    missing = [f for f, _ in order if not (ph / f).exists()]
+    # a later round's files next to the packed set: the packed takes come out of the old sprite
+    old = man.get("sprite")
+    old_dec = ff_decode(ph / old["file"])[0] if old and (ph / old["file"]).exists() else None
+    old_clips: dict[str, list[float]] = old["clips"] if old_dec is not None else {}
+    missing = [f for f, _ in order if not (ph / f).exists() and f not in old_clips]
     if missing:
         raise SystemExit(f"sprite: {len(missing)} one-shot files are missing and there is no sprite to keep: {missing[:5]}")
-    rates = {int(probe(ph / f)["bit_rate"]) for f, _ in order}
+    rates = {int(probe(ph / f)["bit_rate"]) for f, _ in order if (ph / f).exists()}
     print(f"sprite: {len(order)} one-shots, their rates {min(rates) // 1000}-{max(rates) // 1000} kb/s -> one file, {KBPS} kb/s where it sounds")
 
     prov = {p["file"]: p for p in man.get("provenance", [])}
@@ -233,13 +244,19 @@ def pack(ph: Path, lossless: Lossless | None) -> None:
     srcs: dict[str, np.ndarray] = {}
     origin: dict[str, str] = {}
     pos = gap
+    def shipped_of(f: str) -> np.ndarray:
+        if (ph / f).exists():
+            return ff_decode(ph / f)[0]
+        a, n = round(old_clips[f][0] * SR), round(old_clips[f][1] * SR)
+        return old_dec[a:a + n]  # its slice of the old sprite (lag 0: proven when that sprite was packed)
+
     for f, fam in order:
-        shipped = ff_decode(ph / f)[0]
+        shipped = shipped_of(f)
         src, how = shipped, "aac"
         if lossless is not None and f in prov and lossless.wav(prov[f], fam).exists():
             y, _ = lossless.take(prov[f], fam, "oneshot")
             m = matches(y[0], shipped)
-            if same(m):
+            if same(m, MATCH_DB if (ph / f).exists() else SPRITE_DB):
                 src, how = y[0], "lossless"
             else:
                 print(f"  {f}: the raw take does not match the shipped file (lag {m[0]}, r {m[1]:.3f}, {m[2]:+.2f} dB) - its shipped decode is packed")
@@ -258,18 +275,18 @@ def pack(ph: Path, lossless: Lossless | None) -> None:
     if fails:
         tmp.unlink()
         raise SystemExit(f"sprite: {fails} clip offsets are off by more than {TOL_S * 1000:.0f} ms - nothing written")
-    for old in ph.glob("oneshots-*.m4a"):
-        old.unlink()
+    before = sum((ph / f).stat().st_size for f, _ in order if (ph / f).exists()) + sum(o.stat().st_size for o in ph.glob("oneshots-*.m4a"))
+    for o in ph.glob("oneshots-*.m4a"):
+        o.unlink()
     name = content_name(tmp, "oneshots")
     man["sprite"] = {"file": name, "gap": GAP, "duration": round(min(len(d) for d in decs.values()) / SR, 6), "clips": clips}  # decoded
     man_path.write_text(json.dumps(man, indent=2, ensure_ascii=False) + "\n")
-    before = sum((ph / f).stat().st_size for f, _ in order)
     for f, _ in order:
-        (ph / f).unlink()
+        (ph / f).unlink(missing_ok=True)
     after = (ph / name).stat().st_size
     p = probe(ph / name)
     print(f"sprite: {name} {after / 1e3:.1f} kB ({p['codec_name']} {p['profile']} {p['sample_rate']} Hz {p['channels']} ch {int(p['bit_rate']) // 1000} kb/s, "
-          f"{len(timeline[0]) / SR:.2f} s) replaces {len(order)} files, {before / 1e3:.1f} kB; "
+          f"{len(timeline[0]) / SR:.2f} s) holds {len(order)} takes (was {before / 1e3:.1f} kB); "
           f"sources: {sum(1 for v in origin.values() if v == 'lossless')} lossless, {sum(1 for v in origin.values() if v == 'aac')} shipped AAC")
 
 
