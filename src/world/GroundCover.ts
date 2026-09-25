@@ -147,21 +147,32 @@ function bladeTri(a: number, w: number, h: number, lean: number): THREE.BufferGe
   const ox = Math.cos(a) * 0.05, oz = Math.sin(a) * 0.05, px = -Math.sin(a) * w, pz = Math.cos(a) * w;
   return tris([ox - px, 0, oz - pz, ox + px, 0, oz + pz, ox + Math.cos(a) * h * lean, h, oz + Math.sin(a) * h * lean]);
 }
-/** a frond as one triangle: `w`× its length wide at a third of the way out, pitched up by `pitch`, turned to `yaw` */
-function frondTri(yaw: number, len: number, w: number, pitch: number): THREE.BufferGeometry {
-  const hw = (len * w) / 2;
-  return tris([-hw, 0, len * 0.3, hw, 0, len * 0.3, 0, -0.3 * len, len]).rotateX(-pitch).rotateY(yaw);
-}
 /** a flat flower chip of radius r, tipped by `tilt` rad: one triangle */
 function chip(r: number, tilt: number): THREE.BufferGeometry {
   const v: number[] = [];
   for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2; v.push(Math.cos(a) * r, 0, Math.sin(a) * r); }
   return tris(v).rotateX(-tilt);
 }
-/** a broad leaf as a diamond (two triangles) on a short rise: length `len`, width `w`, pitched up by `pitch` */
-function leafDiamond(yaw: number, len: number, w: number, pitch: number, up: number): THREE.BufferGeometry {
-  const m = len * 0.45;
-  return tris([0, 0, 0, w / 2, 0, m, 0, 0, len, 0, 0, 0, 0, 0, len, -w / 2, 0, m]).rotateX(-pitch).rotateY(yaw).translate(0, up, 0);
+/** parts copied (the kit disposes what it is given) */
+const cloneParts = (parts: Part[]): Part[] => parts.map(([g, c]) => [g.clone(), c]);
+/**
+ * E156: a plant's leaves as far-model kites. lowpolyKit's `leaf` is four triangles — base B, crease M, sides L / R, tip T,
+ * in the order [B M L] [B R M] [M T L] [M R T] — and becomes the two of its outline, [B L R] [L T R]. Anything that is
+ * not a leaf (stems) is dropped. The parts are the near model's own, so the far one keeps its leaves where they are.
+ */
+const KITE_SHADE = 0.82;
+function kites(parts: Part[]): Part[] {
+  const out: Part[] = [];
+  for (const [g, c] of parts) {
+    const p = g.getAttribute('position');
+    if (g.getIndex() !== null || p.count !== 12) continue;
+    const at = (i: number): [number, number, number] => [p.getX(i), p.getY(i), p.getZ(i)];
+    const B = at(0), L = at(2), R = at(4), T = at(7);
+    // ×KITE_SHADE: a kite is one flat face, where the leaf's crease put half of it in its own shade (measured: the kites
+    // read 8 % brighter than the leaves they stand for, at the dune fringe, phone tier)
+    out.push([tris([...B, ...L, ...R, ...L, ...T, ...R]), new THREE.Color(c).multiplyScalar(KITE_SHADE)]);
+  }
+  return out;
 }
 
 /**
@@ -250,9 +261,13 @@ export class GroundCover {
     const rng = new Rng(SEED ^ 0x6c0e);
     // a tuft: two bunches of blades so one instance reads as a clump
     const tuftGeo = geo((k) => { k.addParts(grassTuft(rng, 0.42), { jitter: 0.08 }); k.addParts(grassTuft(rng, 0.32), { matrix: new THREE.Matrix4().makeTranslation(0.12, 0, 0.08), jitter: 0.08 }); }, 0x6c01);
-    const fernGeo = geo(fern(rng, 0.75), 0x6c02);
+    const fernParts = fern(rng, 0.75);
+    const fernGeo = geo(cloneParts(fernParts), 0x6c02);
+    /** the hibiscus's leaves (drawn inside its kit callback, in the same order as before: the rng sequence holds) */
+    let hibParts: Part[] = [];
     const hibGeo = geo((k) => {
-      k.addParts(fern(rng, 0.42), { jitter: 0.08 });
+      hibParts = fern(rng, 0.42);
+      k.addParts(cloneParts(hibParts), { jitter: 0.08 });
       for (const [x, y, z] of [[0, 0.32, 0], [0.18, 0.26, 0.1], [-0.14, 0.24, 0.12]] as const) k.addParts(openEnded(hibiscus(0.09)), { matrix: new THREE.Matrix4().makeRotationX(-0.5).setPosition(x, y, z), jitter: 0.05 });
     }, 0x6c03);
     const daisyGeo = geo((k) => {
@@ -319,17 +334,19 @@ export class GroundCover {
     };
     // the far models: a few triangles each, the near model's silhouette from 25 m on (its flowers as flat chips)
     const farRng = new Rng(SEED ^ 0x6cf0);
-    const farTuftGeo = geo((k) => { for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + farRng.range(-0.4, 0.4); k.add(bladeTri(a, 0.08, farRng.range(0.32, 0.46), farRng.range(0.2, 0.45)), [PLANT.grassTip, PLANT.grass, PLANT.grassB][i] ?? PLANT.grass); } }, 0x6cf1);
-    const farFernGeo = geo((k) => { for (let i = 0; i < 6; i++) k.add(frondTri((i / 6) * Math.PI * 2 + farRng.range(-0.25, 0.25), 0.75 * farRng.range(0.75, 1.1), 0.2, farRng.range(0.45, 0.85)), i % 3 === 0 ? PLANT.leafLight : i % 2 ? PLANT.leaf : PLANT.leafB); }, 0x6cf2);
+    // E156: the fern, hibiscus and bush far models are their near models' own leaves as 2-triangle kites (the same outline,
+    // no crease), so the plant keeps its silhouette through the handover. The old hand-made ones showed 15–28 % of the
+    // near plant's side-on area and grew 4–7× in view as you crossed the near edge: the pop Jake filmed at the dune fringe.
+    const farTuftGeo = geo((k) => { for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + farRng.range(-0.4, 0.4); k.add(bladeTri(a, 0.09, farRng.range(0.32, 0.46), farRng.range(0.2, 0.45)), [PLANT.grassTip, PLANT.grass, PLANT.grassB][i] ?? PLANT.grass); } }, 0x6cf1);
+    const farFernGeo = geo(kites(fernParts), 0x6cf2);
     const farHibGeo = geo((k) => {
-      for (let i = 0; i < 4; i++) k.add(frondTri((i / 4) * Math.PI * 2 + farRng.range(-0.25, 0.25), 0.42 * farRng.range(0.75, 1.1), 0.2, farRng.range(0.45, 0.85)), i % 2 ? PLANT.leaf : PLANT.leafB);
+      k.addParts(kites(hibParts), { jitter: 0.08 });
       for (const [x, y, z] of [[0, 0.32, 0], [0.18, 0.26, 0.1], [-0.14, 0.24, 0.12]] as const) k.add(chip(0.1, 0.5).translate(x, y, z), PLANT.hibiscus);
     }, 0x6cf3);
     const farDaisyGeo = geo((k) => {
       for (let i = 0; i < 2; i++) k.add(bladeTri(i * Math.PI, 0.03, 0.18, 0.3), PLANT.grass);
       for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2, d = farRng.range(0.08, 0.2); k.add(chip(0.065, 0).translate(Math.cos(a) * d, farRng.range(0.14, 0.26), Math.sin(a) * d), i % 2 ? '#f6f2e6' : '#fbe9a0'); }
     }, 0x6cf4);
-    const farBushGeo = geo((k) => { for (let i = 0; i < 4; i++) { const len = farRng.range(0.65, 0.95); k.add(leafDiamond((i / 4) * Math.PI * 2 + farRng.range(-0.3, 0.3), len, len * 0.62, farRng.range(0.35, 0.8), farRng.range(0.15, 0.45)), i % 2 ? PLANT.leafDark : PLANT.leaf); } }, 0x6cf5);
     kind('tuft', tuftGeo, 5200, [14, 34], [0.9, 1.5],
       (h, sl, td) => (grass(h, sl) * 1.6 + beach(h) * 0.18 + this.dune(h) * 0.7) * off(td),
       (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); },
@@ -359,7 +376,8 @@ export class GroundCover {
     }, 0x6c09);
     kind('starfish', starGeo, 300, [8, 20], [1.1, 1.8], (h) => beach(h) * 0.09,
       (_h, r, out) => { const v = r.next(); if (v < 0.25) out.setRGB(0.55, 0.45, 1.3); else if (v < 0.5) out.setRGB(1.05, 0.95, 0.6); else out.setRGB(1, 1, 1); });
-    const bushGeo = geo(openEnded(broadClump(rng, 1.0)), 0x6c07);
+    const bushParts = openEnded(broadClump(rng, 1.0));
+    const bushGeo = geo(cloneParts(bushParts), 0x6c07), farBushGeo = geo(kites(bushParts), 0x6cf5);
     kind('bush', bushGeo, 900, [16, 38], [0.8, 1.6], (h, sl, td, sd, palm) => (this.edge(h, sl) * 0.3 + palm * 0.3 + grass(h, sl) * 0.015) * off(td) + jungle(sd) * grass(h, sl) * 0.06, undefined, [farBushGeo, [30, 76], 4000, 1]);
     const span = Math.ceil((2 * Math.max(this.rMax, this.rFar)) / CELL) + 1;
     this.cacheMax = Math.max(96, Math.round(span * span * 1.4));
