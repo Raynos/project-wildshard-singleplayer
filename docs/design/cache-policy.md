@@ -22,6 +22,7 @@ files that must never be cached.
 | `/sw.js` | `no-store` | `sw.js` is how a new build is discovered: the browser byte-compares it on `reg.update()`. A cached copy is an update the player can never take. |
 | `/version.json` | `no-store` | The title-screen build pill (`src/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
 | `/asset-index.json` | `no-store` | The byte table the loading screen sums; regenerated every build. Network-first in the SW with the last copy as the offline fallback. |
+| `/asset-manifest.json` | `no-store` | E160 / E161: every file under `public/assets` (packs included) → its content hash (sha256, first 8 hex). What the build names: the worker reads it on `activate` to keep exactly those entries and drop the rest. Fetched by the worker only, never by the page. |
 | `/manifest.webmanifest` | `no-store` | Small, and the icons/start_url it names must follow the build. Network-first in the SW. |
 
 ## The service worker's three caches (`src/pwa/sw.js`)
@@ -31,7 +32,7 @@ They expire on three different clocks, which is why there are three:
 | cache | holds | expires |
 |---|---|---|
 | `ws-immutable` | `/assets/<name>-<hash>.*` — the emitted bundle | never wiped; `activate` prunes it to the files the new build's `sw.js` names (`__BUNDLE__`), so a deploy costs only the chunks that changed |
-| `ws-static-<assetsHash>` | `/assets/tex|models|hdri|baked|packs/**`, every `.m4a` under `/assets/music|sfx/**`, `/basis/**`, `/fonts/**` (precached at install since E44), root icons — what the loading bar streams, cached as it passes through | keyed by a hash of the `public/assets` file list + sizes; a JS-only deploy keeps the whole cache. An asset change names a new cache, and `activate` **migrates** every entry of the old one whose decoded size still matches the new `/asset-index.json` (fetched `no-store`) before dropping it — so adding, resizing or removing one file costs only that file. Before 2026-09-18 it rolled the whole cache: the first launch after such a deploy re-downloaded everything. |
+| `ws-static-<assetsHash>` | `/assets/**` that is not the hashed bundle: the boot packs, the art, the bakes, every `.m4a` under `/assets/music|sfx/**`; `/basis/**`, `/fonts/**` (precached at install since E44), root icons — what the loading bar streams, cached as it passes through, plus the other shards' boot files (E158, below) | keyed by a hash of the `public/assets` (+ basis, fonts) files' **content** (E160; it was list + sizes, so a same-size edit kept the name). A JS-only deploy keeps the whole cache. An asset change names a new cache, and `activate` **carries over by content**: a `<path>?v=<h>` entry while `/asset-manifest.json` still says `h`, a content-named file (a pack part, `<name>-<hash8>.m4a`) while the manifest lists it, an unversioned entry only when its body hashes to the manifest's `h` (it moves to the `?v=` key). Everything else is dropped and counted (E161: `[sw] gc: freed … MB` in the worker's console, `gc` in the VERSION reply). Before E160 the migration matched decoded **size** (a same-size re-bake stayed stale, which is why the baked files were purged on every activate) and skipped the packs (absent from `asset-index.json`): every asset deploy re-downloaded every pack. |
 | `ws-shell-<build>` | `index.html`, `manifest.webmanifest`, `asset-index.json` | keyed by the build id (`<sha>-<content hash>`); dropped on `activate` of the next build |
 
 `__BUILD_ID__` in `sw.js` is `vite.config.ts`'s `BUILD_ID` **plus** a content hash of the emitted
@@ -40,6 +41,37 @@ reinstall a byte-identical `sw.js`) and the player's cache survives it.
 
 Cross-origin requests (Google Fonts) are never intercepted: offline, the title screen falls back
 to the system font stack that `hud.css` declares after Rajdhani / JetBrains Mono.
+
+## Content-addressed URLs and pack parts (E160, 2026-09-25)
+
+The user: a bigger download is fine, "but don't invalidate those as much". A deploy now re-downloads only the files whose
+bytes changed:
+
+- **`?v=<hash8>` on every unhashed asset.** `src/boot/versions.generated.ts` (vite.config.ts `writeVersionsModule`) holds
+  the content hash of every file under `public/assets` whose name is not already content-addressed
+  (`vite/assetHashes.ts contentNamed`: the packs, `<name>-<hash8>.<ext>`). `versionedUrl` (src/boot/bytes.ts) puts it on
+  every fetch after the byte counter and on the loading manager's URLs (Safari's `<img>`-loaded glTF textures). The
+  worker answers any `/assets/…?v=` request cache-first: the key names the bytes. Unversioned requests (an `<img>` in the
+  DOM, a worker's fetch) keep the old routes.
+- **Boot packs in parts.** `scripts/bake-packs.mjs` cuts each shard's pack into content-addressed parts of 1.5–4 MB at
+  path-determined points (Pine Hollow's 18 MB phone boot: 8 parts; Nalati 2; Driftwood 1), so one changed texture costs
+  its part, not the pack. `src/boot/pack.ts` streams them in order, the next one requested at 75 % of the current.
+- **Measured**: see "Verified" below (E160 rows).
+
+## The other shards, in the background (E158, 2026-09-25)
+
+`src/boot/shardPrefetch.ts`, started by main.ts once the shard is playable: every file another shard's boot reads on
+this tier (its pack parts + declared files, the same list `test/shard-prefetch.test.ts` holds equal to the boot's own,
++ the few files its world reads undeclared: LUT, horizon, Pine Hollow's rifle / knife / birds / NPCs / chalk, Nalati's
+camp people) is posted one URL at a time to the worker (`PREFETCH`), which skips what it holds and stores the rest
+(`fetch(…, { priority: 'low' })`, 2 in flight, idle-scheduled, paused while hidden). Wi-Fi and cellular alike (the
+user's pick); off on Save-Data, with `?prefetch=0`, and without a controlling worker. `window.__ws_prefetch` exposes the
+state and a `done` promise; `scripts/bench-shard-switch.mjs` is the ruler.
+
+The same module fills the current shard first: a part the boot fetched before the worker controlled the page (a first
+visit on a slow link) is also handed to the worker by `pack.ts` (`STORE`, the bytes it already holds). Before, the
+bench's Pine Hollow 4g/warm run re-downloaded the whole pack (17.5 MB) — it had gone past the worker and Chromium's HTTP
+cache did not keep it.
 
 ## What the loading screen's DOWNLOAD track can and cannot tell you
 

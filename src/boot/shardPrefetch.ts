@@ -5,7 +5,7 @@
  * loading bar has nothing to download, and it works offline. A revisit already cost ~0 bytes (bench.budget.json "warm
  * transfer"); this makes the FIRST visit a revisit.
  *
- * The list is the boot's own, not a copy of it (`shardBootRequests`): the shard's boot pack for this tier, then every
+ * The list is the boot's own, not a copy of it (`shardBootRequests`): the shard's boot pack parts for this tier, then every
  * file its `bootFiles` declares that the pack does not carry — the files the loading bar counts, which are exactly the
  * files a boot reads (plan.done() throws unless DOWNLOAD is at 100 %), with the network's `?v=` (versionedUrl) applied.
  * test/shard-prefetch.test.ts proves the equality against main.ts's own composition (pack + bootFetches + extraFetches +
@@ -51,7 +51,7 @@ export function shardBootRequests(def: ChunkDef): string[] {
   const pack = packFor(def);
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
   const declared = Object.values(files).flat().filter((p) => !packed.has(p));
-  return [...new Set([...(pack ? [pack.url] : []), ...declared])].map(versionedUrl);
+  return [...new Set([...(pack ? pack.parts.map((part) => part.url) : []), ...declared])].map(versionedUrl);
 }
 
 /**

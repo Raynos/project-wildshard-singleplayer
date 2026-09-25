@@ -33,7 +33,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
         // main.ts: streamPack(pack) · prefetch(bootFetches(...) minus packed) · prefetchAfter(extraFetches(files)) — and the
         // physics source (Rapier's WASM, the navmesh) fetched by src/physics at boot
         const boot = new Set([
-          ...(pack ? [pack.url] : []),
+          ...(pack ? pack.parts.map((part) => part.url) : []),
           ...bootFetches(def, files).filter((p) => !packed.has(p)),
           ...extraFetches(files),
           ...files.physics,
@@ -47,12 +47,12 @@ describe('shardBootRequests: the boot request list of each shard', () => {
     });
   }
 
-  it('names the tier pack on the phone and none on the desktop', async () => {
+  it('names the tier pack parts first on the phone, and no pack on the desktop', async () => {
     const phone = await load('phone');
     expect(phone.CHUNKS.filter((d) => phone.packFor(d) !== null).length).toBe(phone.CHUNKS.length); // every shard has a phone pack
     for (const def of phone.CHUNKS) {
       const pack = phone.packFor(def);
-      if (pack) expect(phone.sp.shardBootRequests(def)[0]).toBe(pack.url);
+      if (pack) expect(phone.sp.shardBootRequests(def).slice(0, pack.parts.length)).toEqual(pack.parts.map((part) => part.url));
     }
     const desktop = await load('desktop');
     for (const def of desktop.CHUNKS) expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe(false);
@@ -70,5 +70,31 @@ describe('prefetchVeto: when the background download must not run', () => {
     expect(sp.prefetchVeto({ search: '?prefetch=0', controlled: true })).toBe('?prefetch=0');
     expect(sp.prefetchVeto({ search: '', controlled: false })).toBe('no service worker');
     expect(sp.prefetchVeto({ search: '', controlled: true, saveData: true })).toBe('Save-Data');
+  });
+});
+
+describe('lateReads and the ?v= URLs (E160)', () => {
+  it('names only files the build ships, tier by tier', async () => {
+    for (const tier of ['phone', 'desktop'] as const) {
+      const { CHUNKS, sp } = await load(tier);
+      const { PUBLIC_BYTES } = await import('../src/boot/bytes.generated');
+      for (const def of CHUNKS) {
+        const late = sp.lateReads(def);
+        for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
+        if (def.slug !== 'driftwood-isle') expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);
+      }
+    }
+  });
+  it('versions every unhashed asset and leaves content-named ones alone', async () => {
+    const { versionedUrl } = await load('desktop');
+    const { ASSET_VERSIONS } = await import('../src/boot/versions.generated');
+    const { PUBLIC_BYTES } = await import('../src/boot/bytes.generated');
+    for (const p of Object.keys(PUBLIC_BYTES)) {
+      const u = versionedUrl(p);
+      if (/-[0-9a-f]{8}\.[a-z0-9]+$/.test(p)) expect(u, p).toBe(p);
+      else expect(u, p).toBe(`${p}?v=${ASSET_VERSIONS[p] ?? ''}`);
+    }
+    expect(versionedUrl('/assets/packs/pine-hollow.phone-12345678.bin')).toBe('/assets/packs/pine-hollow.phone-12345678.bin');
+    expect(versionedUrl('/assets/tex/x.jpg?v=1')).toBe('/assets/tex/x.jpg?v=1');
   });
 });

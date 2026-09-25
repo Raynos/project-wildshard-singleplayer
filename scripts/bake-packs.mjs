@@ -11,7 +11,15 @@
 //   public/assets/packs/<slug>.<tier>-<hash8>.bin   content-addressed (a changed file makes a new name), cache-first
 //                                                   in the SW; gitignored and left out of the byte table — every
 //                                                   build regenerates it from the committed files
-//   src/boot/packs.generated.ts                     slug → tier → { url, bytes, files: [path, offset, size, type][] }
+//   src/boot/packs.generated.ts                     slug → tier → { parts: { url, bytes, files: [path, offset, size, type][] }[] }
+//
+// PARTS (E160, the user: "don't invalidate those as much"): one pack per shard meant any edit to any of its files named a
+// new pack — Pine Hollow's phone players re-downloaded 18 MB for one repainted texture. A pack is now a few parts, each
+// content-addressed on its own, so an edit costs its part. The cuts depend on the files' paths, not their bytes, so an
+// edit does not move them: once a part holds PART_MIN it ends after a file whose path hashes to 0 mod 4 (or at PART_MAX
+// whatever the path), never between a glTF's textures and the .gltf that follows them (Safari reads those textures
+// through <img>: they must land first). A resized file can move at most the cut after it; the next hash cut re-aligns.
+// Pine Hollow's 18 MB phone boot is ~8 parts; the requests row (bench.budget.json) has the room.
 //
 // glTF textures go before their .gltf: Safari's GLTFLoader loads textures through <img>, which the pack's fetch
 // interception cannot see — src/boot/pack.ts hands those loaders a blob: URL instead, which only works when the
@@ -55,19 +63,38 @@ function packOrder(paths) {
   return out;
 }
 
-/** one line per packed file — a diff of the generated module reads as "which files moved in or out of which pack" */
+/** one line per packed file — a diff of the generated module reads as "which files moved in or out of which part" */
 function pretty(packs) {
-  const tier = (name, d) => [
-    `    ${JSON.stringify(name)}: {`,
-    `      url: ${JSON.stringify(d.url)},`,
-    `      bytes: ${d.bytes},`,
-    '      files: [',
-    ...d.files.map((f) => `        ${JSON.stringify(f)},`),
-    '      ],',
-    '    },',
+  const part = (d) => [
+    '      {',
+    `        url: ${JSON.stringify(d.url)},`,
+    `        bytes: ${d.bytes},`,
+    '        files: [',
+    ...d.files.map((f) => `          ${JSON.stringify(f)},`),
+    '        ],',
+    '      },',
   ].join('\n');
+  const tier = (name, d) => [`    ${JSON.stringify(name)}: pack([`, ...d.parts.map(part), '    ]),'].join('\n');
   const shard = (slug, tiers) => [`  ${JSON.stringify(slug)}: {`, ...Object.entries(tiers).map(([n, d]) => tier(n, d)), '  },'].join('\n');
   return ['{', ...Object.entries(packs).map(([slug, tiers]) => shard(slug, tiers)), '}'].join('\n');
+}
+
+const PART_MIN = 1.5 * (1 << 20), PART_MAX = 4 << 20;
+const pathHash = (p) => createHash('sha256').update(p).digest()[0];
+
+/** the boot's files, in boot order, cut into parts by the path rule above */
+function partsOf(paths) {
+  const parts = [];
+  let cur = [], bytes = 0;
+  paths.forEach((p, i) => {
+    cur.push(p);
+    bytes += readFileSync(resolve(PUBLIC, `.${p}`)).length;
+    const next = paths[i + 1];
+    const texture = /\/textures\/[^/]+$/.test(p);
+    const cut = next === undefined || (!texture && (bytes >= PART_MAX || (bytes >= PART_MIN && pathHash(p) % 4 === 0)));
+    if (cut) { parts.push(cur); cur = []; bytes = 0; }
+  });
+  return parts;
 }
 
 if (!CHECK) mkdirSync(PACK_DIR, { recursive: true });
@@ -75,29 +102,34 @@ const packs = {};
 const keep = new Set();
 for (const def of CHUNKS) {
   for (const tierName of TIERS) {
-    const paths = packOrder(bootFetches(def, chunkFiles(def)));
+    const files = chunkFiles(def);
+    const paths = packOrder(bootFetches(def, files));
     if (paths.length < 2) continue;
-    const bodies = paths.map((p) => {
-      const f = resolve(PUBLIC, `.${p}`);
-      if (!existsSync(f)) throw new Error(`bake-packs: ${def.slug} boots ${p} but public has no such file`);
-      return readFileSync(f);
+    for (const p of paths) if (!existsSync(resolve(PUBLIC, `.${p}`))) throw new Error(`bake-packs: ${def.slug} boots ${p} but public has no such file`);
+    const parts = partsOf(paths).map((group) => {
+      const bodies = group.map((p) => readFileSync(resolve(PUBLIC, `.${p}`)));
+      const blob = Buffer.concat(bodies);
+      const name = `${def.slug}.${tierName}-${createHash('sha256').update(blob).digest('hex').slice(0, 8)}.bin`;
+      keep.add(name);
+      let o = 0;
+      const rows = group.map((p, i) => { const n = bodies[i].length; const row = [p, o, n, typeOf(p)]; o += n; return row; });
+      const out = resolve(PACK_DIR, name);
+      if (!CHECK && !existsSync(out)) writeFileSync(out, blob);
+      return { url: `/assets/packs/${name}`, bytes: blob.length, files: rows };
     });
-    const blob = Buffer.concat(bodies);
-    const name = `${def.slug}.${tierName}-${createHash('sha256').update(blob).digest('hex').slice(0, 8)}.bin`;
-    keep.add(name);
-    let o = 0;
-    const files = paths.map((p, i) => { const n = bodies[i].length; const row = [p, o, n, typeOf(p)]; o += n; return row; });
-    packs[def.slug] = { ...packs[def.slug], [tierName]: { url: `/assets/packs/${name}`, bytes: blob.length, files } };
-    const out = resolve(PACK_DIR, name);
-    if (!CHECK && !existsSync(out)) writeFileSync(out, blob);
-    console.log(`[pack] ${def.slug}.${tierName}: ${files.length} files, ${(blob.length / 1e6).toFixed(2)} MB → /assets/packs/${name}`);
+    packs[def.slug] = { ...packs[def.slug], [tierName]: { parts } };
+    const total = parts.reduce((s, x) => s + x.bytes, 0);
+    console.log(`[pack] ${def.slug}.${tierName}: ${paths.length} files, ${(total / 1e6).toFixed(2)} MB in ${parts.length} parts (${parts.map((x) => (x.bytes / 1e6).toFixed(1)).join(' + ')} MB)`);
   }
 }
 
 const ts = `// generated by scripts/bake-packs.mjs from public/assets — do not edit. Regenerated by every vite build / dev.
-// slug → tier → the boot pack: its URL, size and [path, offset, size, content-type] per packed file (src/boot/pack.ts).
+// slug → tier → the boot pack, in content-addressed parts: each part's URL, size and [path, offset in the part, size,
+// content-type] per packed file (src/boot/pack.ts). \`files\` / \`bytes\` are the whole pack's.
 export type PackFile = readonly [path: string, offset: number, size: number, type: string];
-export interface PackDef { readonly url: string; readonly bytes: number; readonly files: readonly PackFile[] }
+export interface PackPart { readonly url: string; readonly bytes: number; readonly files: readonly PackFile[] }
+export interface PackDef { readonly parts: readonly PackPart[]; readonly bytes: number; readonly files: readonly PackFile[] }
+const pack = (parts: readonly PackPart[]): PackDef => ({ parts, bytes: parts.reduce((s, p) => s + p.bytes, 0), files: parts.flatMap((p) => p.files) });
 export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> = ${pretty(packs)};
 `;
 const prev = existsSync(OUT_TS) ? readFileSync(OUT_TS, 'utf8') : '';

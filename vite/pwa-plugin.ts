@@ -7,8 +7,9 @@
  *                 a byte-different worker (the browser installs it, the build pill adopts it); a REBUILD OF THE
  *                 SAME TREE is the same worker. (BUILD_ID alone carries `Date.now()` — on its own it would make
  *                 every rebuild a new cache name, and `activate` would then drop the player's shell each time.)
- *   __ASSET_ID__  a hash of the public/assets file list + sizes alone, so the static cache (the 70 MB of
- *                 unhashed art) survives a JS-only deploy instead of being re-downloaded.
+ *   __ASSET_ID__  a hash of the public/assets (+ basis, fonts) files' CONTENT alone (E160: it was list + sizes), so the
+ *                 static cache survives a JS-only deploy, and any byte change to the art names a new one (activate
+ *                 then keeps, by content hash, every entry that is still current — src/pwa/sw.js).
  *   __BUNDLE__    the emitted `/assets/<name>-<hash>.*` paths: precached at install, and the prune list.
  *   __FONTS__     the self-hosted `/fonts/*.woff2`: precached at install, so an offline launch has its type even though
  *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
@@ -21,7 +22,8 @@
  */
 import type { Plugin } from 'vite';
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { hashTree } from './assetHashes';
 import { join } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
@@ -30,20 +32,14 @@ function contentStamp(rows: string[]): string {
   return createHash('sha256').update([...rows].sort().join('\n')).digest('hex').slice(0, 10);
 }
 
-/** `<rel>:<size>` for every file under public/<sub>, sorted — the unhashed assets the static cache holds. */
+/**
+ * `<rel>:<content hash>` for every file under public/<sub>, sorted — the unhashed assets the static cache holds. By
+ * CONTENT, not size (E160): a same-size edit or re-bake used to keep the cache's name, and the worker went on serving the
+ * old bytes under the old key.
+ */
 function publicStamp(root: string, subs: string[]): string[] {
   const rows: string[] = [];
-  const walk = (dir: string, rel: string): void => {
-    for (const e of readdirSync(dir, { withFileTypes: true })) {
-      if (e.name === '.DS_Store') continue;
-      if (e.isDirectory()) walk(join(dir, e.name), `${rel}${e.name}/`);
-      else rows.push(`${rel}${e.name}:${statSync(join(dir, e.name)).size}`);
-    }
-  };
-  for (const sub of subs) {
-    const dir = join(root, 'public', sub);
-    if (existsSync(dir)) walk(dir, `${sub}/`);
-  }
+  for (const sub of subs) for (const [p, h] of Object.entries(hashTree(sub, root))) rows.push(`${p.slice(1)}:${h}`);
   return rows;
 }
 

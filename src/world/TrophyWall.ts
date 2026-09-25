@@ -23,6 +23,7 @@ import type { AnimalFactory } from '../entities/AnimalFactory';
 import type { CompendiumState } from '../ui/compendium/state';
 import type { TrophySlot } from '../ui/compendium/types';
 import { loadHandFont } from '../ui/compendium/Journal';
+import { versionedUrl } from '../boot/bytes';
 
 export interface TrophyWallOptions {
   anchor: THREE.Object3D;
@@ -211,7 +212,7 @@ export class TrophyWall {
     if (url === undefined) return;
     const img = new Image();
     img.decoding = 'async';
-    img.src = url;
+    img.src = versionedUrl(url); // the `?v=` the worker caches it under (E160), as the background download fetched it
     try { await Promise.all([img.decode(), loadHandFont()]); } catch { return; }
     this.chalkImg = img;
     this.buildChalk();

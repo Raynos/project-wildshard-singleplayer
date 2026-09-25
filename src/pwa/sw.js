@@ -5,8 +5,8 @@
  *   __BUILD_ID__  `<vite.config BUILD_ID>-<content hash of every emitted file + the public/ list>`. A deploy
  *                 that changes bytes is a byte-different worker (the browser installs it); a rebuild of the
  *                 same tree is the SAME worker, so a rebuild does not throw the player's 70 MB away.
- *   __ASSET_ID__  a hash of the public/assets file list + sizes alone, so the static cache survives a
- *                 JS-only deploy instead of being re-downloaded.
+ *   __ASSET_ID__  a hash of the public/assets (+ basis, fonts) files' content alone (E160: it was list + sizes), so the
+ *                 static cache survives a JS-only deploy, and any byte change names a new one.
  *   __BUNDLE__    the emitted /assets/<name>-<hash>.* paths of this build — the worker's only name for the
  *                 content-addressed set (gauntlet had load-manifest.json for this); precached at install,
  *                 and `activate` PRUNES the immutable cache to it.
@@ -36,9 +36,11 @@
  *             names another build's code, or a code file the host no longer serves fails the install, so the old
  *             worker keeps serving (E144). Icons and fonts are tolerant; everything only what is missing; hashed
  *             images on use.
- *   activate  migrate the previous ws-static-* entries whose size still matches asset-index.json into the new
- *             static cache, drop stale ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
+ *   activate  carry the previous ws-static-* entries that are still current BY CONTENT into the new static cache and
+ *             drop everything /asset-manifest.json no longer names (E160 / E161, gcStatic below), drop stale
+ *             ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
  *   fetch     hashed bundle: cache-first into ws-immutable;
+ *             `/assets/…?v=<content hash>` (src/boot/bytes.ts versionedUrl, E160): cache-first into the static cache;
  *             tex / models / hdri / basis / fonts / icons / music + sfx audio: cache-first into the static cache;
  *             the music / sfx manifests (music.json, sfx.json) are compiled into the bundle and never fetched;
  *             offline (navigator.onLine false) network-first answers from the cache without trying the network;
@@ -54,6 +56,7 @@
  *                                        already runs (src/boot/sw.ts `announce()`, E95).
  *             { type: 'PREFETCH', url } → E158: that file into its cache unless it is there (src/boot/shardPrefetch.ts, the
  *                                        other shards' boot files after playable); answers { type: 'PREFETCHED', status, bytes }.
+ *             { type: 'STORE', url, blob } → a content-named file the page fetched before we controlled it (src/boot/pack.ts).
  */
 const BUILD = '__BUILD_ID__';
 const ASSETS = '__ASSET_ID__';
@@ -65,6 +68,11 @@ const SHELL = `ws-shell-${BUILD}`;
 const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
 const KEEP = [SHELL, STATIC, IMMUTABLE_CACHE];
+/** E160: a name that carries its content hash (a pack, `<name>-<hash8>.m4a`) — vite/assetHashes.ts contentNamed: keep in step */
+const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$/;
+const FONT_SET = new Set(FONTS);
+/** what the last activate freed and kept (the VERSION reply and the console) */
+const gc = { entries: 0, bytes: 0, caches: 0, kept: 0, migrated: 0, hashed: 0 };
 
 /** Install fails without these: an incomplete shell must not pretend to be installed. */
 const SHELL_CRITICAL = ['/index.html', '/manifest.webmanifest'];
@@ -173,59 +181,103 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      await migrateStatic();
-      await purgeBaked(); // a same-size re-bake would otherwise be served from the previous build's entry forever
-      for (const k of await caches.keys()) if (k.startsWith('ws-') && !KEEP.includes(k)) await caches.delete(k);
+      const named = await assetManifest(); // null offline: nothing is dropped that cannot be verified
+      await migrateStatic(named);
+      await gcStatic(named);
+      for (const k of await caches.keys()) if (k.startsWith('ws-') && !KEEP.includes(k)) { gc.caches++; await caches.delete(k); }
       await pruneImmutable();
+      if (gc.entries > 0 || gc.caches > 0) console.info(`[sw] gc: freed ${(gc.bytes / 1048576).toFixed(2)} MB in ${gc.entries} entries + ${gc.caches} old caches; kept ${gc.kept} (${gc.migrated} carried over, ${gc.hashed} verified by hash)`);
       await self.clients.claim();
     })(),
   );
 });
 
 /**
- * A new static cache name (one asset added, resized or removed) used to mean the previous 30 MB were thrown
- * away and the next launch re-downloaded all of it — DOWNLOAD read 100 % but every fetching step took
- * seconds (the 16 s cabins step of 2026-09-18). Carry every entry of the old ws-static-* caches over whose
- * decoded size still equals the byte the new build declares in /asset-index.json (fetched no-store); a
- * changed file is skipped and re-fetched lazily by cacheFirst, an absent one is dropped with the old cache.
- * Entries the index does not list (icons, fonts, basis) move as they are.
+ * E160 / E161 — keep what the build names, by content; drop the rest.
+ *
+ * `/asset-manifest.json` (vite.config.ts, fetched no-store) is every file under public/assets with its content hash —
+ * packs included. The page asks for an unhashed file as `<path>?v=<hash8>` (src/boot/bytes.ts versionedUrl), so an entry's
+ * KEY says which bytes it holds:
+ *   `<path>?v=<h>`         current while the manifest still says h for that path;
+ *   a content-named path   (a pack, `<name>-<hash8>.m4a`, CONTENT_NAMED_RE) current while the manifest lists it;
+ *   an unhashed `<path>`   (an <img> or a worker asked without `?v=`, or a cache from before E160) current only when its
+ *                          body hashes to the manifest's h — then it moves to `<path>?v=<h>`, the key the page asks for.
+ * Before E160 the old cache's entries were carried over when their SIZE matched (a same-size edit or re-bake stayed
+ * stale; the baked terrain was purged every deploy for that reason) and the packs, absent from asset-index.json, were
+ * never carried over: every asset deploy re-downloaded every pack.
  */
-async function migrateStatic() {
+
+/** path → hash8 of every file this build ships under public/assets, or null (offline at activate: verify nothing, drop nothing) */
+async function assetManifest() {
+  try {
+    const r = await fetch(abs('/asset-manifest.json'), { cache: 'no-store' });
+    if (r.ok) return await r.json();
+  } catch { /* offline */ }
+  return null;
+}
+
+async function hash8(res) {
+  const d = new Uint8Array(await crypto.subtle.digest('SHA-256', await res.arrayBuffer()));
+  return Array.from(d.subarray(0, 4), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function sizeOf(res) {
+  const len = res.headers.get('content-length');
+  return len ? Number(len) : (await res.clone().arrayBuffer()).byteLength;
+}
+
+/**
+ * The verdict on one static entry: 'keep', 'drop', or the key it moves to (an unhashed entry whose bytes are current).
+ * `fromOld`: it sits in a previous build's cache, whose unhashed entries prove nothing without their hash.
+ */
+async function verdict(req, res, named, fromOld) {
+  const url = new URL(req.url);
+  const p = url.pathname;
+  if (!p.startsWith('/assets/')) return p.startsWith('/fonts/') && !FONT_SET.has(p) ? 'drop' : 'keep'; // icons, fonts, basis
+  const want = named[p];
+  if (typeof want !== 'string') return 'drop'; // no longer shipped (an old pack, a removed file)
+  const v = url.searchParams.get('v');
+  if (v !== null) return v === want ? 'keep' : 'drop'; // an older version of the file
+  if (CONTENT_NAMED_RE.test(p)) return 'keep';
+  if (!fromOld) return 'keep'; // stored under this cache's name, and the name is the content of every asset: current
+  gc.hashed++;
+  return (await hash8(res.clone())) === want ? `${abs(p)}?v=${want}` : 'drop';
+}
+
+/** A new static cache name = some asset's bytes changed. Carry every entry of the old caches that is still current. */
+async function migrateStatic(named) {
   const old = (await caches.keys()).filter((k) => k.startsWith('ws-static-') && k !== STATIC);
   if (old.length === 0) return;
-  let sizes = null;
-  try {
-    const r = await fetch(abs('/asset-index.json'), { cache: 'no-store' });
-    if (r.ok) sizes = await r.json();
-  } catch { /* offline at activate: migrate by name only */ }
   const next = await caches.open(STATIC);
   for (const k of old) {
     const prev = await caches.open(k);
     for (const req of await prev.keys()) {
       try {
-        if (await next.match(req, MATCH_OPTS)) continue;
         const res = await prev.match(req, MATCH_OPTS);
         if (!res) continue;
-        const p = new URL(req.url).pathname;
-        // baked terrain/sky (/assets/baked/<slug>/*) is regenerated every build at the SAME byte size — a size match
-        // proves nothing (Driftwood's re-baked island served the first flat-seafloor bake to every phone: empty
-        // palm/boulder merges → "e[0].index"). Never carry them over; they are small and re-fetch on the new build.
-        if (p.startsWith('/assets/baked/')) continue;
-        if (sizes && p.startsWith('/assets/')) {
-          const want = sizes[p];
-          if (typeof want !== 'number') continue; // no longer in the build
-          if ((await res.clone().arrayBuffer()).byteLength !== want) continue; // edited in place: re-fetch lazily
-        }
-        await next.put(req, res);
+        const to = named ? await verdict(req, res, named, true) : 'keep'; // offline: carry as is (verified next time)
+        if (to === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); continue; }
+        const key = to === 'keep' ? req : to;
+        if (await next.match(key, MATCH_OPTS)) continue;
+        await next.put(key, res);
+        gc.migrated++;
       } catch { /* one bad entry must not stop the migration */ }
     }
   }
 }
 
-/** Every /assets/baked/** entry out of the static cache: baked terrain / sky are rebuilt per deploy at the same byte size. */
-async function purgeBaked() {
-  const c = await caches.open(STATIC);
-  for (const req of await c.keys()) if (new URL(req.url).pathname.startsWith('/assets/baked/')) await c.delete(req, MATCH_OPTS);
+/** Every entry of the current static cache the build no longer names: gone (a JS-only deploy prunes nothing it still ships). */
+async function gcStatic(named) {
+  if (!named) return;
+  const cache = await caches.open(STATIC);
+  for (const req of await cache.keys()) {
+    try {
+      const res = await cache.match(req, MATCH_OPTS);
+      if (!res) continue;
+      if ((await verdict(req, res, named, false)) === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); await cache.delete(req, MATCH_OPTS); }
+      else gc.kept++;
+    } catch { /* keep what cannot be judged */ }
+  }
 }
 
 /** Drop only the content-addressed entries this build no longer names. An empty bundle list → no prune (never a wipe). */
@@ -246,7 +298,27 @@ self.addEventListener('message', (event) => {
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
   else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD })));
   else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
+  else if (data.type === 'STORE' && typeof data.url === 'string' && data.blob instanceof Blob) event.waitUntil(reply(event, storeOne(data.url, data.blob)));
 });
+
+/**
+ * E158: a content-named file the page downloaded BEFORE this worker controlled it (a first visit on a slow link: the boot
+ * waits ≤ 2.5 s for the claim, then streams its pack past us). Without this the pack was never in the cache: the next
+ * launch fetched all of it again (the bench's Pine Hollow 4g/warm row: 18 MB net) and an offline launch had no world.
+ * The page hands over the bytes it already holds (src/boot/pack.ts), so nothing is downloaded twice. Content-named paths
+ * only: the name is the proof of the bytes.
+ * @param {string} u
+ * @param {Blob} blob
+ */
+async function storeOne(u, blob) {
+  const url = new URL(u, self.registration.scope);
+  const out = (status, bytes = 0) => ({ type: 'STORED', status, bytes });
+  if (url.origin !== self.location.origin || !CONTENT_NAMED_RE.test(url.pathname)) return out('failed');
+  const cache = await caches.open(cacheFor(url.pathname));
+  if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
+  await cache.put(url.href, new Response(blob, { headers: { 'content-type': blob.type || 'application/octet-stream', 'content-length': String(blob.size) } }));
+  return out('stored', blob.size);
+}
 
 /**
  * E158: one file of another shard's boot (src/boot/shardPrefetch.ts), into the cache its request would be served from.
@@ -302,7 +374,7 @@ async function version() {
     entries += n;
     bytes += b;
   }
-  return { type: 'VERSION', build: BUILD, assets: ASSETS, caches: perCache, entries, bytes };
+  return { type: 'VERSION', build: BUILD, assets: ASSETS, caches: perCache, entries, bytes, gc };
 }
 
 self.addEventListener('fetch', (event) => {
@@ -321,7 +393,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(networkFirst(req, SHELL));
     return;
   }
-  if (url.pathname.startsWith('/assets/baked/')) { // fresh bake first, cache only as the offline fallback
+  if (url.pathname.startsWith('/assets/') && url.searchParams.has('v')) { // E160: `?v=<content hash>` names its bytes, forever
+    event.respondWith(cacheFirst(req, STATIC));
+    return;
+  }
+  if (url.pathname.startsWith('/assets/baked/')) { // unversioned: fresh bake first, cache only as the offline fallback
     event.respondWith(networkFirst(req, STATIC));
     return;
   }

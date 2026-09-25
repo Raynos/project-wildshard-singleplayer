@@ -50,19 +50,21 @@ export function tierUrl(url: string): string {
   const u = `${m[1]}.phone.${m[2] === 'glb' ? 'glb' : 'webp'}`;
   return u in TABLE ? u : url;
 }
-// three's GLTFLoader (props, cabin clutter, their textures) and every other loader on the default manager
-DefaultLoadingManager.setURLModifier(tierUrl);
+// three's GLTFLoader (props, cabin clutter, their textures) and every other loader on the default manager — the tier's copy,
+// as the network names it (`?v=`: an <img>-loaded glTF texture on Safari never passes through the counted fetch)
+DefaultLoadingManager.setURLModifier((url) => versionedUrl(tierUrl(url)));
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
 /**
- * The URL the network sees for a file that is edited in place (public/assets/nalati/**, vite.config.ts
- * `writeVersionsModule`): `<path>?v=<content hash>`, so a changed file is a new URL to the HTTP cache and the service
- * worker. Everything above the network (the byte counter, the pack, the prefetch queue) keys files by path and never
- * sees the query. Any other URL, or one that already carries a query: as is.
+ * The URL the network sees for a file under public/assets whose name is not content-addressed (vite.config.ts
+ * `writeVersionsModule`; E160 — it was public/assets/nalati/ alone): `<path>?v=<content hash>`, so a changed file is a new
+ * URL to the HTTP cache and the service worker, and an unchanged one keeps its URL and its cached copy across deploys.
+ * Everything above the network (the byte counter, the pack, the prefetch queue) keys files by path and never sees the
+ * query. A content-named file (a pack, the audio), any other URL, or one that already carries a query: as is.
  */
 export function versionedUrl(url: string): string {
-  if (!url.includes('/assets/nalati/') || url.includes('?')) return url;
+  if (!url.includes('/assets/') || url.includes('?')) return url;
   const v = ASSET_VERSIONS[pathOf(url)];
   return v === undefined ? url : `${url}?v=${v}`;
 }
