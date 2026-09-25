@@ -32,8 +32,10 @@
  *   ws-shell-<build>        the few KB that change every build: index.html, manifest.webmanifest,
  *                           asset-index.json.
  *
- *   install   precache the critical shell (strict — a failed shell fails install, so the old worker keeps
- *             serving), then the bundle's code + icons (tolerant, only what is missing; hashed images on use).
+ *   install   precache the critical shell, then the bundle's code, both strict: a failed shell, an index.html that
+ *             names another build's code, or a code file the host no longer serves fails the install, so the old
+ *             worker keeps serving (E144). Icons and fonts are tolerant; everything only what is missing; hashed
+ *             images on use.
  *   activate  migrate the previous ws-static-* entries whose size still matches asset-index.json into the new
  *             static cache, drop stale ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
  *   fetch     hashed bundle: cache-first into ws-immutable;
@@ -41,7 +43,8 @@
  *             the music / sfx manifests (music.json, sfx.json) are compiled into the bundle and never fetched;
  *             offline (navigator.onLine false) network-first answers from the cache without trying the network;
  *             the document: cache-first with a background revalidate (a flapping link must never hold the
- *             first paint); a `?v=` reload from the build pill (src/ui/Update.ts) is network-first;
+ *             first paint); a `?v=` reload from the build pill (src/ui/Update.ts) is network-first; a network copy
+ *             is stored only when it is this build's own document (another build's would outlive its deploy);
  *             asset-index.json / sw.js / manifest.webmanifest: network-first, cache fallback;
  *             version.json: untouched (network-only — the build pill must see the server, not us);
  *             cross-origin (Google Fonts) and `?sw=0`: untouched.
@@ -94,23 +97,72 @@ const MATCH_OPTS = { ignoreVary: true };
 
 const abs = (p) => new URL(p, self.registration.scope).href;
 
-/** `cache.add` only what is missing: a deploy must not spend the player's bytes re-fetching bytes it still has. */
-async function fillMissing(cache, urls) {
-  await Promise.all(urls.map(async (u) => ((await cache.match(abs(u), MATCH_OPTS)) ? undefined : cache.add(u).catch(() => undefined))));
+/**
+ * `cache.add` only what is missing: a deploy must not spend the player's bytes re-fetching bytes it still has.
+ * `strict`: a file that cannot be fetched rejects (the install fails) instead of being skipped.
+ */
+async function fillMissing(cache, urls, strict = false) {
+  await Promise.all(urls.map(async (u) => {
+    if (await cache.match(abs(u), MATCH_OPTS)) return;
+    await (strict ? cache.add(u) : cache.add(u).catch(() => undefined));
+  }));
+}
+
+const BUNDLE_SET = new Set(BUNDLE);
+/** the hashed code a document names (its entry script, its stylesheet): `/assets/<name>-<hash>.js|css` */
+const CODE_REF_RE = /\/assets\/[^/"'?#\s]+-[\w-]{8}\.(?:js|css)/g;
+
+/**
+ * The code files a document names that this worker's build does not hold: [] for this build's own index.html.
+ * Such a document boots only while its own deploy is live on the host; kept in the shell it outlives that deploy
+ * and freezes the loader (E144). An empty BUNDLE (the dev worker) has nothing to compare against: always [].
+ * @param {Response} res
+ */
+async function foreignRefs(res) {
+  if (BUNDLE.length === 0) return [];
+  const refs = (await res.text()).match(CODE_REF_RE);
+  return refs ? [...new Set(refs)].filter((p) => !BUNDLE_SET.has(p)) : [];
+}
+
+/**
+ * Keep a network copy of the document in the shell only when it is this build's own (E144). Another build's copy
+ * is still served (it is live, so its chunks are on the host right now) but never stored: that build arrives with
+ * its own worker, and this nudges the browser to go and fetch it.
+ */
+async function putDocument(cache, key, res) {
+  if (!res.ok) return;
+  if ((await foreignRefs(res.clone())).length > 0) {
+    self.registration.update().catch(() => undefined);
+    return;
+  }
+  await cache.put(key, res);
 }
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const shell = await caches.open(SHELL);
-      await shell.addAll(SHELL_CRITICAL); // throws → install fails → the old worker keeps serving
+      // The document must be THIS build's (E144). The host serves one deploy at a time and 404s every other deploy's
+      // /assets (Vercel has no skew protection here), and deploys land minutes apart. A worker whose sw.js came from
+      // deploy N but whose index.html or bundle was fetched after N+1 went live held a document it could not boot.
+      // The pill adopted it, the reload ran the index chunk, and then `import(main)` 404'd: a loader frozen at
+      // 00:00.0 and nothing else. A mismatch fails the install instead: the old worker keeps serving, and the next
+      // update() fetches the live sw.js and tries again.
+      const doc = await fetch(abs('/index.html'), { cache: 'no-store' });
+      if (!doc.ok) throw new Error(`install: /index.html ${doc.status}`);
+      const foreign = await foreignRefs(doc.clone());
+      if (foreign.length > 0) throw new Error(`install: /index.html is another build's (${foreign.join(', ')})`);
+      await shell.put(abs('/index.html'), doc);
+      await shell.addAll(SHELL_CRITICAL.filter((p) => p !== '/index.html')); // throws → install fails → the old worker keeps serving
       await fillMissing(shell, SHELL_OPTIONAL);
       // The entry chunk was requested by the HTML before this worker controlled anything (a first visit), so
       // it never passed through `fetch` below; name it here or the second boot is not all-cache. Immutable on
       // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
       // Code and styles only: the hashed images (every shard's hero stills, portrait AND landscape, ~2 MB) are cached
       // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
-      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p) && !p.includes(OPT_IN)));
+      // STRICT (E144): a code file that cannot be fetched (the host moved on to a newer deploy mid-install) fails the
+      // install. A worker missing its own main chunk must never become the one that serves the document.
+      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p) && !p.includes(OPT_IN)), true);
       await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
     })(),
   );
@@ -262,19 +314,19 @@ self.addEventListener('fetch', (event) => {
 async function documentResponse(event, req, url) {
   const cache = await caches.open(SHELL);
   const key = abs('/index.html');
-  if (url.searchParams.has('v')) return networkFirst(req, SHELL, key);
+  if (url.searchParams.has('v')) return networkFirst(req, SHELL, key, true);
   const hit = await cache.match(key, MATCH_OPTS);
   if (hit) {
     if (offline()) return hit; // no revalidate that can only fail
     event.waitUntil(
       fetch(req)
-        .then((res) => (res.ok ? cache.put(key, res.clone()) : undefined))
+        .then((res) => putDocument(cache, key, res))
         .catch(() => undefined),
     );
     return hit;
   }
   const res = await fetch(req);
-  if (res.ok) cache.put(key, res.clone()).catch(() => undefined);
+  putDocument(cache, key, res.clone()).catch(() => undefined);
   return res;
 }
 
@@ -287,8 +339,11 @@ async function cacheFirst(req, name) {
   return res;
 }
 
-/** @param {string} [key] store/match under this URL instead of the request's own (the document's `?v=` reload) */
-async function networkFirst(req, name, key) {
+/**
+ * @param {string} [key] store/match under this URL instead of the request's own (the document's `?v=` reload)
+ * @param {boolean} [doc] the document: stored only when it is this build's own (putDocument, E144)
+ */
+async function networkFirst(req, name, key, doc = false) {
   const cache = await caches.open(name);
   if (offline()) {
     const hit = await cache.match(key ?? req, MATCH_OPTS);
@@ -296,7 +351,8 @@ async function networkFirst(req, name, key) {
   }
   try {
     const res = await fetch(req);
-    if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
+    if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
+    else if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
     return res;
   } catch (e) {
     const hit = await cache.match(key ?? req, MATCH_OPTS);

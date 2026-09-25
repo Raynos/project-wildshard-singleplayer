@@ -21,21 +21,18 @@
  * entry point is wrapped so the modal itself never throws.
  */
 import { DescribedError, describeError, emitFault, loopState, onFault, type Fault } from '../core/faults';
-import { ErrorReporter, safeUrl, type ErrorPayload, type ReportOutcome, type SendResult } from '../core/errorReport';
+import { ErrorReporter, safeUrl, sendReport as send, type ReportOutcome } from '../core/errorReport';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { installLifeTrace } from '../core/lifeTrace';
 import { currentPose, reloadWithPicks } from './ReloadPrompt';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER } from '../core/tier';
+// reloads from this modal (and the boot's stuck-loader recovery, src/boot/stuck.ts) inside RELOAD_WINDOW_MS before
+// RELOAD HERE stops returning to the spot: one shared budget
+import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
 
 declare const __BUILD_ID__: string; // vite.config.ts define
 
-/** the native shells (Capacitor) have no same-origin /api: they post to production (CORS in api/errors.ts) */
-const ERRORS_URL = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/errors' : '/api/errors';
-/** reloads from this modal inside RELOAD_WINDOW_MS before RELOAD HERE stops returning to the spot */
-const RELOADS_MAX = 2;
-const RELOAD_WINDOW_MS = 120_000;
-const RELOAD_KEY = 'wsErrReloads'; // sessionStorage (not `ws.`: the native save mirror copies ws.*)
 const CHIP_MS = 7000;
 
 let root: HTMLElement | null = null;
@@ -106,11 +103,6 @@ function meta(): string {
 }
 
 // ── reloads ──
-function recentReloads(): number[] {
-  const now = Date.now();
-  try { return (JSON.parse(session()?.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => typeof t === 'number' && now - t < RELOAD_WINDOW_MS); } catch { return []; }
-}
-function countReload(): void { try { session()?.setItem(RELOAD_KEY, JSON.stringify([...recentReloads(), Date.now()])); } catch { /* not counted */ } }
 /** the address without the params that must not follow a reload: a forced crash, the cache-buster */
 function cleanHref(): URL { const u = new URL(location.href); u.searchParams.delete('crash'); u.searchParams.delete('v'); return u; }
 
@@ -248,12 +240,6 @@ export function showError(message: string, stack = ''): void {
   try {
     showFatal(message, stack, report('boot', new DescribedError(message, stack), { fatal: true }));
   } catch { /* the modal must never throw */ }
-}
-
-async function send(p: ErrorPayload): Promise<SendResult> {
-  const res = await fetch(ERRORS_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(p), keepalive: true });
-  if (res.ok) return 'ok';
-  return res.status === 429 || res.status >= 500 ? 'retry' : 'reject';
 }
 
 function context(): Record<string, string | number | boolean | number[] | null> {

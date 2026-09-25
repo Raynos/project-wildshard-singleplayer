@@ -13,7 +13,8 @@
  * - **Offline:** a send that fails on the network (or a 429 / 5xx) waits in localStorage (QUEUE_MAX, newest kept) and
  *   goes on the next `online` / boot. A 4xx other than 429 is dropped: the server said the report itself is wrong.
  *
- * Pure (no DOM): storage, the clock, the timer and the transport are injected, so test/error-report.test.ts drives it.
+ * Pure (no DOM): storage, the clock, the timer and the transport are injected, so test/error-report.test.ts drives it
+ * (`sendReport` below is the real transport the pages inject).
  */
 import { describeError } from './faults';
 
@@ -181,6 +182,16 @@ export class ErrorReporter {
   private saveSession(): void {
     try { this.deps.session?.setItem(SESSION_KEY, JSON.stringify({ n: this.reports, keys: [...this.sentKeys].slice(-50) })); } catch { /* not remembered: may resend after a reload */ }
   }
+}
+
+/** the native shells (Capacitor) have no same-origin /api: they post to production (CORS in api/errors.ts) */
+const ERRORS_URL = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/errors' : '/api/errors';
+
+/** The real transport (src/ui/ErrorModal.ts, src/boot/stuck.ts): one POST to api/errors.ts. */
+export async function sendReport(p: ErrorPayload): Promise<SendResult> {
+  const res = await fetch(ERRORS_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(p), keepalive: true });
+  if (res.ok) return 'ok';
+  return res.status === 429 || res.status >= 500 ? 'retry' : 'reject';
 }
 
 /** The URL for a report: no fragment, and nothing that looks like a secret. */

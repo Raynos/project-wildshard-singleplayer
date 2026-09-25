@@ -76,7 +76,9 @@ export function pwaPlugin(buildId: string): Plugin {
     configResolved(c) {
       root = c.root;
     },
-    generateBundle(_o, bundle) {
+    // `post`: after vite:css-post has emitted the one stylesheet (cssCodeSplit off) — before, BUNDLE never named it, so the
+    // worker never precached it and every activation pruned it: an offline launch after an update had no styles (E144)
+    generateBundle: { order: 'post', handler(_o, bundle) {
       const src = swSource();
       const assetRows = publicStamp(root, ['assets', 'basis', 'fonts']);
       const assets = contentStamp(assetRows);
@@ -87,7 +89,7 @@ export function pwaPlugin(buildId: string): Plugin {
       const hashed = Object.keys(bundle).filter((name) => /^assets\/[^/]+-[\w-]{8}\.\w+$/.test(name)).map((name) => `/${name}`).sort();
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: stamp(src, build, assets, hashed) });
       this.info(`sw.js emitted (ws-shell-${build}, ws-static-${assets}, ws-immutable: ${hashed.length} files)`);
-    },
+    } },
     // Preview mirrors the production host: the same vercel.json rules, last match wins per header.
     configurePreviewServer(server) {
       const rules = vercelHeaders(root);

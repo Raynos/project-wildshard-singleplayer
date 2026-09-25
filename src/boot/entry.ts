@@ -4,7 +4,12 @@
  * (project/archive/2026-09-22-load-perf.md, "longest main-thread task ≤ 100 ms"). Importing three.js first, in its own task, leaves
  * the game's own graph (src/main.ts) to evaluate against a three that already ran — two tasks under the line. The
  * title shell is already painted from index.html, so nothing waits on this but the boot itself.
+ *
+ * Both imports can fail before the error modal is armed (main.ts arms it): a chunk the host no longer serves, a network
+ * gone mid-boot. src/boot/stuck.ts watches the promise so that never leaves a frozen loader (E144).
  */
+import { guardBoot } from './stuck';
+
 const task = (): Promise<void> => new Promise((resolve) => { setTimeout(resolve, 0); });
 
 /** resolves once src/main.ts has been evaluated (its `main()` is then running) */
@@ -13,3 +18,4 @@ export const entered: Promise<unknown> = (async () => {
   await task();
   return import('../main');
 })();
+guardBoot(entered);
