@@ -246,3 +246,10 @@
 #hud:not(.nalati-d) .ws-touch:not(.lockable) .ws-touch-disc.aim, #hud:not(.nalati-d) .ws-touch:not(.lockable) .ws-touch-disc.throw { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 2); bottom: var(--row); }
 #hud:not(.nalati-d) .ws-touch.lockable .ws-touch-disc.aim, #hud:not(.nalati-d) .ws-touch.lockable .ws-touch-disc.throw { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 3); bottom: var(--row); }
 #hud:not(.nalati-d) .ws-touch-use { bottom: calc(var(--row) + var(--disc) + 14px); }
+
+/* ── E152 (the user, 2026-09-25): HOVER was a tab on the bar's top edge, right over MOVE — "too close to the movement".
+   Now a small tab on the LEFT EDGE, halfway up the screen: flush with the edge, rounded on the inside, icon over a tiny
+   label; the hit area reaches 44 px wide. Lit (.on) while riding, as before. ── */
+#hud .ws-touch .ws-touch-hover { left: env(safe-area-inset-left, 0px); bottom: auto; top: 46%; transform: translateY(-50%); flex-direction: column; justify-content: center; gap: 4px; width: 38px; height: 62px; padding: 0; border: 1px solid var(--ws-cyan-line); border-left: 0; border-radius: 0 12px 12px 0; font-size: 6.5px; letter-spacing: 0.16em; }
+#hud .ws-touch .ws-touch-hover::after { inset: -8px -10px -8px 0; }
+#hud .ws-touch .ws-touch-hover svg { width: 20px; height: 20px; }
