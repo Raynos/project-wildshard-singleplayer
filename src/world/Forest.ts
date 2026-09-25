@@ -135,6 +135,10 @@ export class Forest {
       return { bm, ids };
     };
     const needles = mk([...V.map((v) => v.cardsHi), ...V.map((v) => v.cardsLo)], this.factory.needleMaterial, true, this.factory.needleDepth);
+    // E142: the needle cards draw front to back (a crown is 16–32 alpha-tested card layers deep; a near crown's depth then
+    // rejects the far ones' fragments before they shade). Same image — alpha test + depth write is order-free — and on the
+    // M5 ruler (1206×2622) −0.08 ms at the stones, −0.12 ms in the old-growth for ~0.05 ms of CPU sort (918 trees)
+    needles.bm.sortObjects = true;
     const far = mk(V.map((v) => v.far), this.factory.farMaterial, false);
     // the species set's trunks swap to their lo bark past treeHiDist (a second geometry per variant in the same batch)
     const trunkLo = V.some((v) => v.trunkLo !== undefined && v.trunkLo !== v.trunk);
