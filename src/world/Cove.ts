@@ -131,7 +131,7 @@ export class Cove {
       new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz, 'YXZ')), new THREE.Vector3(s, s, s));
     const boulder = (x: number, y: number, z: number, r: number, side: string, top: string, squash = 0.8, rough = 0.28): void =>
       kit.addTopped(rock(r, 1, rng, squash, rough), side, top, { matrix: m4(x, y, z, rng.range(0, 6.28)), minY: 0.6, jitter: 0.08 });
-    // E114: ?rocks=a|b|c — the loose outdoor rocks (tidepool rims, the plunge pool) in a candidate look (rockKit.ts); the
+    // E114: the loose outdoor rocks (tidepool rims, the plunge pool) in rockKit's look (B by default, ?rocks=now the old); the
     // crag and the cave walls stay as they are (they are structure). The draws `boulder` would take are burnt, so
     // everything after is placed as today.
     const look = rockLook(), lookRng = new Rng(SEED ^ 0x70c7), smoothRocks: THREE.BufferGeometry[] = [];
@@ -140,7 +140,7 @@ export class Cove {
       const g = rock(r, 1, rng, squash, 0.28), m = m4(x, y, z, rng.range(0, 6.28));
       for (let i = g.getAttribute('position').count / 3; i > 0; i--) rng.next();
       g.dispose();
-      const alt = rockGeometry(look, r, lookRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3 });
+      const alt = rockGeometry(look, r, lookRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3, ground: -0.2 * r });
       if (rockIsSmooth(look)) { alt.applyMatrix4(m); smoothRocks.push(alt); } else kit.addPainted(alt, m);
     };
     const starfish = (x: number, y: number, z: number, r: number, col: string): void => {

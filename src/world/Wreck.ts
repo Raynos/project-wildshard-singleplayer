@@ -634,7 +634,7 @@ export class Wreck {
       [-4.4, -1.5, 0.9], [-3.8, -6.5, 1.2], [4.3, -5.8, 0.8], [6.8, 4, 0.7], [-6.3, 7.5, 0.8], [6.2, 10.5, 1.4], [-2.0, 12.4, 1.1],
       [7.5, -3.8, 0.6], [6.2, 3.2, 0.5], [8.5, 7.0, 0.9],
     ];
-    // E114: ?rocks=a|b|c swaps in a candidate rock look (rockKit.ts); the current look stays the default
+    // E114: the reef rocks in rockKit's look — B (smooth painted) by default, ?rocks=now the old icosahedra
     const look = rockLook(), lookRng = new Rng(SEED ^ 0x70c5), smoothRocks: THREE.BufferGeometry[] = [];
     for (const [lx, lz, r] of rocks) {
       const [x, z] = hw(lx, lz), y = heightAt(x, z);
@@ -644,7 +644,7 @@ export class Wreck {
         // burn the draws addTopped would have taken (one per face), so everything after the rocks is placed as today
         for (let i = g.getAttribute('position').count / 3; i > 0; i--) rng.next();
         g.dispose();
-        const alt = rockGeometry(look, r, lookRng, { squash: 0.62, palette: REEF_ROCK, moss: top === C.moss ? 0.9 : 0.5 });
+        const alt = rockGeometry(look, r, lookRng, { squash: 0.62, palette: REEF_ROCK, moss: top === C.moss ? 0.9 : 0.5, ground: -0.2 * r });
         if (rockIsSmooth(look)) { alt.applyMatrix4(m); smoothRocks.push(alt); } else kit.addPainted(alt, m);
       }
       if (r > 0.9) this.colliders.push({ x, z, hw: r * 0.8, hd: r * 0.8, rot: 0, yTop: y + r * 0.7, yBottom: y - 2 });
