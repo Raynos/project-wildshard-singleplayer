@@ -122,6 +122,9 @@ export class HUD {
   private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
+  /** the band's width, measured when it resizes (build()'s fit): placeMark ran every frame and read clientWidth after the
+   *  frame's HUD writes — a forced layout per frame (E142 aggro-perf) */
+  private bandW = -1;
   private feed!: HTMLElement; private toasts!: ToastStack; private toastBox!: HTMLElement;
   private healthVal!: HTMLElement; private healthBar!: HTMLElement;
   private ammoCount!: HTMLElement; private ammoNum!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
@@ -198,7 +201,7 @@ export class HUD {
     compass.append(band);
     compass.append(el('div', 'ws-game-notch'));
     // px/deg scales with the band (90 vw on a phone, fixed on desktop): ticks and cardinals are laid out in `--ppd` units
-    const fit = (): void => { const w = band.clientWidth; if (!w) return; this.ppd = w / BAND_DEGREES; band.style.setProperty('--ppd', `${this.ppd}px`); this.last.headingDeg = undefined; this.lastMark.house = this.lastMark.paw = Number.NaN; };
+    const fit = (): void => { const w = band.clientWidth; this.bandW = w; if (!w) return; this.ppd = w / BAND_DEGREES; band.style.setProperty('--ppd', `${this.ppd}px`); this.last.headingDeg = undefined; this.lastMark.house = this.lastMark.paw = Number.NaN; };
     new ResizeObserver(fit).observe(band);
     fit();
     this.range = el('div', 'ws-game-range'); compass.append(this.range);
@@ -398,7 +401,8 @@ export class HUD {
     let px = Number.NaN;
     if (!Number.isNaN(rel)) {
       const r = ((rel + 540) % 360) - 180; // −180..180 around the heading
-      const half = this.band.clientWidth / 2 - MARKER_INSET;
+      if (this.bandW < 0) this.bandW = this.band.clientWidth; // before the observer's first report: measured once, then by fit() (0 while the band is hidden)
+      const half = this.bandW / 2 - MARKER_INSET;
       px = Math.round(Math.max(-half, Math.min(half, r * this.ppd)) * 2) / 2;
     }
     if (px === this.lastMark[key] || (Number.isNaN(px) && Number.isNaN(this.lastMark[key]))) return;

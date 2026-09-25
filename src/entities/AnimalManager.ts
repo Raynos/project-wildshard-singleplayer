@@ -18,6 +18,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
 import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
+import { AnimalGroup } from './animalMatrices';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
@@ -317,7 +318,8 @@ interface FarRig extends FarMember {
 /** the bearings `steerNav` tries round a blocked heading (rad, each side) */
 const NAV_FAN = [0.4, 0.8, 1.2, 1.6, 2.1, 2.6];
 export class AnimalManager {
-  group = new THREE.Group();
+  /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
+  group = new AnimalGroup();
   animals: Animal[] = [];
   herds: Herd[] = [];
   factory: AnimalFactory;
@@ -534,7 +536,7 @@ export class AnimalManager {
     if (caster !== null) this.casters.set(a, caster);
     const fur = rig.materials[0];
     if (fur !== undefined) this.farRigs.set(a, { mesh: a.mesh, tint: fur.color, model, mask: null });
-    this.group.add(a.mesh);
+    this.group.add(a.mesh); this.group.own(a);
     this.animals.push(a);
     const tune = this.tuningFor(a);
     this.brains.set(a, {

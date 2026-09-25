@@ -371,6 +371,9 @@ export class Animal {
 
   /** the physics body while near the player (src/physics/creatures.ts hands it out and takes it back) */
   motor: CharacterMotor | null = null;
+  /** the last update left the skeleton's pose as it was (the far LOD): the animals' group may keep its bones' world
+   *  matrices while the root stands still too (src/entities/animalMatrices.ts) */
+  poseFrozen = false;
 
   /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
   get stunned(): boolean { return this.stunT > 0; }
@@ -401,6 +404,7 @@ export class Animal {
 
   /** Integrate motion and animate. `t` = global seconds; `near` = within animation LOD range. */
   update(dt: number, t: number, near: boolean): void {
+    this.poseFrozen = false;
     const d = this.model.dims;
     const x0 = this.position.x, z0 = this.position.z;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
@@ -492,6 +496,7 @@ export class Animal {
     if (!near) {
       // far LOD: just move the root; skip pose maths (skeleton keeps its last pose)
       this.applyRoot();
+      this.poseFrozen = true;
       return;
     }
 

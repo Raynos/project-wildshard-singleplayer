@@ -79,6 +79,26 @@ function hookAudio(): void {
   }
 }
 
+/**
+ * The on-phone A/B switches (E142: Jake's fight read gpu~ 35–48 ms against 0 walking — the GPU / compositor, not the
+ * game logic): each one takes one suspect out while he plays, and the panel's gpu~ row says within ~2 s what it cost.
+ * Nothing is saved; a reload (or tapping it again) brings it back.
+ *   anim   every CSS animation / transition in the HUD (the engaged elite's skull pulse, blinks, sheens)
+ *   blur   every backdrop-filter (the glass discs, chips)
+ *   elite  the elite's bar + the minimap skulls
+ *   map    the minimap
+ *   hud    the whole HUD (the touch controls too — stand still)
+ *   post   the post chain (the scene straight to the canvas)
+ */
+const AB: readonly { id: string; css?: string }[] = [
+  { id: 'anim', css: '#hud *, #hud *::before, #hud *::after { animation: none !important; transition: none !important; }' },
+  { id: 'blur', css: '* { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }' },
+  { id: 'elite', css: '.ws-elite, .ws-elite-skulls { display: none !important; }' },
+  { id: 'map', css: '.ws-minimap { display: none !important; }' },
+  { id: 'hud', css: '#hud { visibility: hidden !important; }' },
+  { id: 'post' },
+];
+
 interface RecFrame { t: number; frame: number; update: number; render: number; gpu: number; buckets: number[]; subs: number[]; nav: number; top: string; topMs: number }
 
 export class PerfHud {
@@ -98,6 +118,31 @@ export class PerfHud {
     this.dom = new DomWrites(own);
     try { const s = localStorage.getItem(STORE); if (s !== null) this.lastRecText = s; } catch { this.lastRecText = ''; }
   }
+
+  /** the A/B switches into `host` (buttons; `guard` cancels a touch so it never reaches the look layer) */
+  mountSwitches(host: HTMLElement, guard: (e: Event) => void): void {
+    const style = document.createElement('style');
+    document.head.append(style);
+    const off = new Set<string>();
+    for (const ab of AB) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ws-perf-btn ws-perf-ab'; b.textContent = ab.id;
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, guard, { passive: false });
+      b.addEventListener('pointerdown', guard);
+      b.addEventListener('pointerup', (e) => {
+        guard(e);
+        const now = !off.has(ab.id);
+        if (now) off.add(ab.id); else off.delete(ab.id);
+        b.classList.toggle('off', now);
+        style.textContent = AB.filter((x) => off.has(x.id) && x.css !== undefined).map((x) => x.css).join('\n');
+        if (ab.id === 'post') { const passes = this.game.composer.passes, first = passes[0]; for (const p of passes) if (p !== first) p.enabled = !now; if (first) first.renderToScreen = now; } // (the composer is built after the panel)
+        this.abLabel = [...off].join(' ');
+      });
+      host.append(b);
+    }
+  }
+  /** what the A/B switches have off (the panel's text and a recording say so) */
+  private abLabel = '';
 
   /** a source of counts (main.ts: the animals, the elite, Rapier) — read only when the panel paints or records */
   addCounts(fn: () => Counts): void { this.counters.push(fn); }
@@ -184,6 +229,7 @@ export class PerfHud {
     L.push(`gpu mem: ${g('textures')} textures · ${g('geometries')} geometries`);
     L.push('DEVICE');
     L.push(device(this.game));
+    if (this.abLabel !== '') L.push(`A/B OFF: ${this.abLabel}`);
     this.out.textContent = L.join('\n');
     this.drawSpark();
   }
@@ -211,7 +257,7 @@ export class PerfHud {
     frameCost.onFrame = null;
     frameCost.on = this.open || FORCE;
     this.dom.set(this.open);
-    const text = recSummary(r.frames, r.maxCounts, this.game);
+    const text = recSummary(r.frames, r.maxCounts, this.game, this.abLabel);
     this.lastRecText = text;
     try { localStorage.setItem(STORE, text); } catch { /* not kept this session */ }
     this.onRecDone?.(text);
@@ -228,12 +274,13 @@ function device(game: Game): string {
 function pct(v: number[], p: number): number { const s = [...v].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(s.length * p))] ?? 0; }
 
 /** the recording's summary: what Jake pastes back */
-function recSummary(frames: readonly RecFrame[], max: Counts, game: Game): string {
+function recSummary(frames: readonly RecFrame[], max: Counts, game: Game, abOff: string): string {
   const L: string[] = [];
   const secs = frames.length > 0 ? ((frames[frames.length - 1]?.t ?? 0) / 1000) : 0;
   L.push(`WILDSHARD PERF REC · build ${buildId() || '?'} · ${new Date().toISOString().slice(0, 16)}`);
   L.push(`${location.pathname}${location.search}`);
   L.push(device(game).replace('\n', ' · '));
+  if (abOff !== '') L.push(`A/B off at the end: ${abOff}`);
   L.push(`${frames.length} frames in ${f1(secs)} s = ${f1(frames.length / Math.max(0.001, secs))} fps`);
   L.push(`${pad('ms', 9)}   p50    p95    max`);
   const row = (name: string, v: number[]): void => { L.push(`${pad(name, 9)}${num(pct(v, 0.5))} ${num(pct(v, 0.95))} ${num(pct(v, 1))}`); };

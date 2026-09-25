@@ -24,6 +24,25 @@ export interface SkullMark { x: number; z: number; shown: boolean; dead: boolean
 
 const SKULL = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C7 2 3.5 5.6 3.5 10.2c0 2.6 1.1 4.6 2.9 5.9V19c0 .9.7 1.6 1.6 1.6h.9v-2.2h1.4v2.2h3.4v-2.2h1.4v2.2h.9c.9 0 1.6-.7 1.6-1.6v-2.9c1.8-1.3 2.9-3.3 2.9-5.9C20.5 5.6 17 2 12 2zm-3.6 11.6a2.1 2.1 0 1 1 0-4.2 2.1 2.1 0 0 1 0 4.2zm7.2 0a2.1 2.1 0 1 1 0-4.2 2.1 2.1 0 0 1 0 4.2zM12 16.2l-1.2-2.1h2.4z"/></svg>`;
 const MINI_R = 110;   // the minimap's view radius (m) — src/ui/Minimap.ts VIEW_RADIUS
+
+/** CSS `ease-in-out` (cubic-bezier(0.42, 0, 0.58, 1)) at x ∈ [0, 1] */
+function easeInOut(x: number): number {
+  // solve bx(t) = x by Newton, then by = y(t); both control points' x mirror, so t starts at x
+  let t = x;
+  for (let i = 0; i < 6; i++) {
+    const bx = 3 * (1 - t) * (1 - t) * t * 0.42 + 3 * (1 - t) * t * t * 0.58 + t * t * t - x;
+    const dx = 3 * (1 - t) * (1 - t) * 0.42 + 6 * (1 - t) * t * (0.58 - 0.42) + 3 * t * t * (1 - 0.58);
+    if (Math.abs(bx) < 1e-5 || dx === 0) break;
+    t = Math.min(1, Math.max(0, t - bx / dx));
+  }
+  return 3 * (1 - t) * t * t + t * t * t; // y control points 0 and 1
+}
+/** the engaged skull's glow at time `t` s: elite.css's former `ws-elite-pulse 0.6s ease-in-out infinite alternate`, from
+ *  drop-shadow(0 0 4px rgba(255,170,60,.7)) to drop-shadow(0 0 14px rgba(255,200,90,1)) */
+function skullPulse(t: number): string {
+  const u = (t / 0.6) % 2, k = easeInOut(u < 1 ? u : 2 - u);
+  return `drop-shadow(0 0 ${(4 + 10 * k).toFixed(1)}px rgba(255, ${Math.round(170 + 30 * k)}, ${Math.round(60 + 30 * k)}, ${(0.7 + 0.3 * k).toFixed(2)}))`;
+}
 const _v = new THREE.Vector3();
 
 export class EliteBar {
@@ -33,6 +52,9 @@ export class EliteBar {
   private ban: HTMLElement; private banName: HTMLElement;
   private chev: HTMLElement;
   private skullLayer: HTMLElement | null = null; private skullEls: HTMLElement[] = [];
+  /** the skull layer's half-width, measured when it resizes, and what each skull was last written (E142 aggro-perf:
+   *  skulls() ran every frame and read clientWidth after the frame's HUD writes — a forced layout per frame) */
+  private skullR = -1; private skullLast: string[] = [];
   private frac = 1; private lagFrac = 1; private lagT = 0; private capT = 0; private banT = 0;
   private mode: 'head' | 'pinned' = 'head';
 
@@ -75,7 +97,8 @@ export class EliteBar {
     this.bar.classList.toggle('broken', broken);
     // over its head but out of sight (a wall between): the world-anchored name fades out rather than show through it
     this.bar.classList.toggle('occluded', occluded && mode === 'head');
-    if (mode === 'pinned' || head === null) { this.bar.style.transform = ''; this.bar.classList.remove('offscreen', 'dim'); return; }
+    // (classList.remove writes the class attribute even when neither is there — toggle(…, false) does not)
+    if (mode === 'pinned' || head === null) { this.barTf(''); this.bar.classList.toggle('offscreen', false); this.bar.classList.toggle('dim', false); return; }
     // over its head: project; off screen → clamp to the edge, the arrow points at it
     _v.copy(head).project(camera);
     const w = innerWidth, h = innerHeight;
@@ -95,9 +118,13 @@ export class EliteBar {
     // under the toast column (ToastStack): the world-anchored name steps back (the bar's box: 250 × ~64 above the point)
     const T = toastArea, hw = inside ? 125 : 85;
     this.bar.classList.toggle('dim', T.bottom > T.top && x + hw > T.left && x - hw < T.right && y > T.top && y - 64 < T.bottom);
-    this.arrow.style.transform = `rotate(${ang.toFixed(3)}rad)`;
-    this.bar.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+    const at = `rotate(${ang.toFixed(3)}rad)`;
+    if (at !== this.arrowLast) { this.arrowLast = at; this.arrow.style.transform = at; }
+    this.barTf(`translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`);
   }
+  // E142 aggro-perf: set() runs every frame of a fight — only a changed transform is written (the pinned bar wrote '' a frame)
+  private barLast = ''; private arrowLast = '';
+  private barTf(tf: string): void { if (tf !== this.barLast) { this.barLast = tf; this.bar.style.transform = tf; } }
   private write(): void { this.fill.style.transform = `scaleX(${this.frac.toFixed(4)})`; this.lag.style.transform = `scaleX(${this.lagFrac.toFixed(4)})`; }
 
   caption(text: string, seconds = 2.6): void {
@@ -135,10 +162,13 @@ export class EliteBar {
       if (!(mini instanceof HTMLElement)) return;
       this.skullLayer = document.createElement('div'); this.skullLayer.className = 'ws-elite-skulls';
       mini.append(this.skullLayer);
+      const layer = this.skullLayer;
+      new ResizeObserver(() => { this.skullR = layer.clientWidth / 2; }).observe(layer);
     }
     const layer = this.skullLayer;
     while (this.skullEls.length < list.length) { const e = document.createElement('i'); e.className = 'ws-elite-mapskull'; e.innerHTML = SKULL; layer.append(e); this.skullEls.push(e); }
-    const r = layer.clientWidth / 2;
+    if (this.skullR < 0) this.skullR = layer.clientWidth / 2; // before the observer's first report: measured once
+    const r = this.skullR;
     for (let i = 0; i < list.length; i++) {
       const s = list[i], e = this.skullEls[i];
       if (!s || !e) continue;
@@ -146,9 +176,15 @@ export class EliteBar {
       const on = s.shown && r > 0 && Math.hypot(dx, dy) < r - 9;
       e.classList.toggle('show', on);
       if (!on) continue;
-      e.style.transform = `translate(${(r + dx).toFixed(1)}px, ${(r + dy).toFixed(1)}px)`;
+      const tf = `translate(${(r + dx).toFixed(1)}px, ${(r + dy).toFixed(1)}px)`, cd = `${Math.round((1 - s.countdown) * 360)}deg`;
       e.classList.toggle('dead', s.dead); e.classList.toggle('engaged', s.engaged);
-      e.style.setProperty('--cd', `${Math.round((1 - s.countdown) * 360)}deg`);
+      // the engaged skull's pulse, written with the game's frame (elite.css had it as an infinite CSS filter animation:
+      // on iOS that repainted the skull and re-composited the page at the display's rate, 60–120 Hz, over the canvas)
+      const fl = s.engaged ? skullPulse(performance.now() / 1000) : '';
+      if (this.skullLast[i * 3 + 2] !== fl) { this.skullLast[i * 3 + 2] = fl; e.style.filter = fl; }
+      // only what changed is written (a still player's skulls write nothing)
+      if (this.skullLast[i * 3] !== tf) { this.skullLast[i * 3] = tf; e.style.transform = tf; }
+      if (this.skullLast[i * 3 + 1] !== cd) { this.skullLast[i * 3 + 1] = cd; e.style.setProperty('--cd', cd); }
     }
   }
 

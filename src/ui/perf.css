@@ -46,4 +46,9 @@
   .ws-perf-panel .ws-perf-btn { appearance: none; -webkit-appearance: none; margin: 0 0 0 4px; padding: 3px 8px; border: 1px solid var(--ws-cyan-line); background: rgba(13, 27, 38, 0.9); color: var(--ws-cyan); font: inherit; font-size: 8px; letter-spacing: 0.16em; touch-action: none; }
   .ws-perf-panel .ws-perf-rec-out { margin: 4px 0 0; font: inherit; font-size: 7px; line-height: 1.3; white-space: pre-wrap; word-break: break-all; -webkit-user-select: text; user-select: text; }
   .ws-perf-panel .ws-perf-rec-out:empty { display: none; }
+  /* E142: the A/B switches — a lit one has that thing OFF */
+  .ws-perf-panel .ws-perf-abrow { flex-wrap: wrap; }
+  .ws-perf-panel .ws-perf-abs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+  .ws-perf-panel .ws-perf-ab { margin: 0; padding: 5px 7px; }
+  .ws-perf-panel .ws-perf-ab.off { background: var(--ws-cyan); color: #06121a; }
 }
