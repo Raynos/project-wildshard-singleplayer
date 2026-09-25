@@ -8,7 +8,6 @@
  *   tex/<name>.webp          1024², seamless (tiled 2×2 in progress/nalati-look/assets-textures.jpg), sRGB albedo
  *   tex/<name>.phone.webp     512², the phone tier's copy
  *   cards.webp / cards.phone.webp   the grass + flower card atlas (2048×1024 / 1024×512, straight alpha — see GRASS_CARDS)
- *   backdrop.webp / backdrop.phone.webp   the 360° matte backdrop (src/world/PaintedBackdrop.ts loads it itself)
  *
  * Nothing is fetched until someone asks: every loader is lazy, cached per file, and picks the tier's file itself
  * (`TIER_CONFIG.maxTexture <= 1024` → `.phone.webp`). The files are sRGB albedo, evenly lit (the painted light comes
@@ -29,10 +28,9 @@
  * Spruce (spruce agent, the 'spruce' TreeFactory): trunk uv = (angle / 2π × 2, height / 1.6 m) → `bark`, RepeatWrapping.
  * Yurts (poi-agent): the wall cylinder's uv = (angle / 2π × 6, height / wall height) → `felt` (its ornament band runs
  * across the middle third, tiling horizontally — keep v in 0..1 over the wall so there is exactly one band).
- * Grass (grass-agent, src/world/GrassPainterly.ts): see GRASS_CARDS below — a card instance maps its quad to one cell.
+ * Grass (src/nalati/look/grass.ts, the near-field cards): see GRASS_CARDS below — a card instance maps its quad to one cell.
  *
- * Bytes (measured): desktop 3.61 MB — backdrop 0.83 · cards 0.89 · the seven tiles 1.90; phone 1.18 MB — backdrop 0.26 ·
- * cards 0.32 · tiles 0.61. Nothing here is in the boot manifest: a module that adopts a file loads it lazily.
+ * Bytes (measured): desktop 2.78 MB — cards 0.89 · the seven tiles 1.90; phone 0.92 MB — cards 0.32 · tiles 0.61. Nothing here is in the boot manifest: a module that adopts a file loads it lazily.
  */
 import * as THREE from 'three';
 import { loadTexture } from '../core/assets';
@@ -95,7 +93,7 @@ export interface GrassCard { kind: GrassCardKind; u0: number; v0: number; u1: nu
  * bottom edge, centred, straight (unpremultiplied) alpha with the colour bled out under the transparent texels (no
  * key-colour fringes in the mips). Row 0 (bottom, v 0..0.5): eight grass clumps; row 1 (top): the flowers.
  *
- * Grass-agent adoption (GrassPainterly.ts): a card clump is a camera-facing (or 2–3 crossed) quad per instance, uv from
+ * Grass-agent adoption (src/nalati/look/grass.ts buildCards): a card clump is a camera-facing (or 2–3 crossed) quad per instance, uv from
  * `GRASS_CARDS[i]`, `alphaTest: 0.5` + `alphaToCoverage` on desktop (MSAA), `alphaTest` alone on the phone; bend the
  * top verts with the same wind / trample vector as the blades. Tint by the instance's ground colour × tone so the cards
  * take the hills' gold / green patches, keep the painted texel detail. Cards are for the MID ring (the far LOD the

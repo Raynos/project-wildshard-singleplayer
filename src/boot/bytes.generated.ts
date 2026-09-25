@@ -391,8 +391,6 @@ export const PUBLIC_BYTES = {
   "/assets/music/pine-hollow-piano/night-calm-e935c4a1.m4a": 598252,
   "/assets/music/pine-hollow-piano/night-tension-48423068.m4a": 403828,
   "/assets/music/pine-hollow-piano/sting-dawn-6b0b4004.m4a": 98488,
-  "/assets/nalati/backdrop.phone.webp": 258476,
-  "/assets/nalati/backdrop.webp": 826308,
   "/assets/nalati/cards.phone.webp": 318112,
   "/assets/nalati/cards.webp": 892054,
   "/assets/nalati/models/balbal.glb": 200076,

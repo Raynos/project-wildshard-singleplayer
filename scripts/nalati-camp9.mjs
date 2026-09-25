@@ -9,8 +9,7 @@
 //   <tag>-sheet-pairs.jpg       engine | target for each of the nine, 3×3 (the target = the round-4 codex remaster)
 //   <tag>-budget.json / .md     frame ms, calls, tris per angle vs the phone budget (≤ 150 calls / ≤ 2.0 M tris)
 //
-//   node scripts/nalati-camp9.mjs --tag=v2-step1 --look=v2      # the port's render path (?look=v2)
-//   node scripts/nalati-camp9.mjs --tag=v1                       # the current path, for comparison
+//   node scripts/nalati-camp9.mjs --tag=v2-step1
 //   node scripts/nalati-camp9.mjs --tag=x --only=1,5 --query=foo=1 --desktop   # a subset; --desktop = tier=desktop for all
 //
 // One headless Chromium on Metal, vsync on (AGENTS.md), two page loads (the FP context, the free-camera context),
@@ -30,7 +29,6 @@ const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`
 const has = (name) => argv.includes(`--${name}`);
 const URL_BASE = flag('url', 'http://127.0.0.1:5188');
 const TAG = flag('tag', 'latest');
-const LOOK = flag('look', '');
 const EXTRA = flag('query', '');
 const SETTLE = Number(flag('settle', '7')) * 1000;
 const TIMEOUT = Number(flag('timeout', '240')) * 1000;
@@ -42,7 +40,7 @@ mkdirSync(OUT, { recursive: true });
 const P = DEF.anchorP;
 const query = (touch) => [
   'chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', `tier=${TIER}`, touch ? 'touch' : '',
-  `x=${P.x}`, `z=${P.z}`, 'yaw=-0.95', 'pitch=-0.1', LOOK ? `look=${LOOK}` : '', EXTRA,
+  `x=${P.x}`, `z=${P.z}`, 'yaw=-0.95', 'pitch=-0.1', EXTRA,
 ].filter(Boolean).join('&');
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -139,7 +137,7 @@ try {
       g.fillStyle = '#ffd98a'; g.fillText(args.title, G + 4, c.height - 1);
       for (let q = 0.85; q >= 0.4; q -= 0.05) { const u = c.toDataURL('image/jpeg', q); if (u.length * 0.75 < 490 * 1024) return u.split(',')[1]; }
       return c.toDataURL('image/jpeg', 0.35).split(',')[1];
-    }, { cells, pairs, title: `${TAG}${LOOK ? ` · look=${LOOK}` : ''} · tier=${TIER}` });
+    }, { cells, pairs, title: `${TAG} · tier=${TIER}` });
     writeFileSync(resolvePath(OUT, `${TAG}-sheet-${pairs ? 'pairs' : 'engine'}.jpg`), Buffer.from(b64, 'base64'));
   }
 } finally {
@@ -149,7 +147,7 @@ try {
 // ── the budget table ──
 const B = { calls: 150, tris: 2.0e6 };
 const md = [
-  `# camp 9-angle — ${TAG}${LOOK ? ` (look=${LOOK})` : ''}, tier=${TIER}`, '',
+  `# camp 9-angle — ${TAG}, tier=${TIER}`, '',
   'Frame ms: headless Chromium on the Mac GPU, vsync-capped (16.7 = keeping up) — not an iPhone reading; the calls / tris carry over.', '',
   '| n | angle | p50 ms | p95 ms | calls | tris (M) | budget |', '|---|---|---|---|---|---|---|',
   ...rows.map((r) => `| ${r.n} | ${r.id} | ${r.p50.toFixed(1)} | ${r.p95.toFixed(1)} | ${r.calls} | ${(r.tris / 1e6).toFixed(2)} | ${r.calls <= B.calls && r.tris <= B.tris ? 'ok' : 'OVER'} |`),

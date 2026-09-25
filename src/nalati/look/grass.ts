@@ -18,10 +18,10 @@
  *   tField  the GrassField 4 m lattice itself (height, tone, bloom, drift species), GPU-bilinear = the CPU's bilinear
  *   tGround the painted ground colour under it (the roots sink into it)
  *   tMask   1 m: road beds + verges (`trailGrass`), yurt floors, the exact painted splat, × (1 − `dressingCover`),
- *           0 on spruce trunks — rebuilt when the dressing lands (`reseedPainterlyGrass()`)
+ *           0 on spruce trunks — rebuilt when the dressing lands (`reseedGrassV2()`)
  *   tHeight 1 m: the terrain height (half float) the blades stand on
  * Bent by the one Wind (`windGust`, WIND_GLSL) and the trample map + live movers (`trampleBend`, TRAMPLE_GLSL) —
- * `update()` drives `wind.update` / `trample.push` / `trample.update` exactly as GrassPainterly does.
+ * `update()` drives `wind.update` / `trample.push` / `trample.update`.
  *
  * Lit like the prototype: wrap diffuse from the key (the cheat key, painterly uPSunDir / uPSunRef), a sky / ground
  * hemisphere, translucency looking into the sun, self-occlusion toward the roots; fogged by the v2 fog; graded by the
@@ -226,7 +226,7 @@ void main() {
   vec4 msk = texture(tMask, hUV(xz));
   float H0 = fld.r * 1.5 * msk.r * msk.g;
   float r = gHash12(cell + 5.1), r2 = gHash12(cell + 8.7);
-  // GrassField.flowerKindAt, in the shader: drifts from the field's bloom, the drift's own species, a third strays
+  // which flower (if any): drifts from the field's bloom, the drift's own species, a third strays
   float keep = step(r, 0.16 + 0.84 * fld.b) * step(0.18, H0);
   bool plateau = fld.g > 0.5;
   float sp = fld.a;
@@ -457,7 +457,7 @@ export function terrainHeightTexture(): THREE.DataTexture {
 }
 
 const instances = new Set<GrassV2>();
-/** the dressing landed: every v2 carpet re-bakes its mask (GrassPainterly's `reseedPainterlyGrass` calls it) */
+/** the dressing landed: every v2 carpet re-bakes its mask (wireNalati calls it once the dressing is built) */
 export function reseedGrassV2(): void { for (const g of instances) g.reseed(); }
 
 const _frustum = new THREE.Frustum(), _pv = new THREE.Matrix4(), _box = new THREE.Box3();
@@ -583,7 +583,7 @@ export class GrassV2 {
     })();
   }
 
-  /** the dressing landed (`reseedPainterlyGrass`): bake the fine mask again with its cover */
+  /** the dressing landed (`reseedGrassV2`): bake the fine mask again with its cover */
   reseed(): void { void this.bakeMask(); }
 
   /**
@@ -628,7 +628,7 @@ export class GrassV2 {
   }
 
   update(dt: number, playerPos: THREE.Vector3): void {
-    // the player parts the grass and leaves a trail; the wind and the trample advance (as GrassPainterly.update)
+    // the player parts the grass and leaves a trail; the wind and the trample advance
     const vx = Number.isNaN(this.lastPX) || dt <= 0 ? 0 : (playerPos.x - this.lastPX) / dt;
     const vz = Number.isNaN(this.lastPZ) || dt <= 0 ? 0 : (playerPos.z - this.lastPZ) / dt;
     this.lastPX = playerPos.x; this.lastPZ = playerPos.z;

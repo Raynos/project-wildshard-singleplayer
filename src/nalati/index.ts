@@ -7,14 +7,14 @@
  * Already done by the shared boot for this shard (driven by `src/chunks/nalati-grasslands.ts`):
  *   · the painted terrain + slab (Terrain.ts painterly branch), the painted sky / sun / planet / clouds (Sky.ts),
  *     the Nalati horizon ring (Horizon.ts, `ChunkDef.horizon`), fog + grade (the def's values)
- *   · grass: main.ts still builds `Grass` for every dry shard — the grass agent's painterly mode lives in Grass.ts
+ *   · grass: main.ts still builds `Grass` for every dry shard — on this one it is the GPU blade rings (src/nalati/look/grass.ts)
  *   · trees: bootstrap's Forest from `trees.factory` (the spruce agent's `'spruce'` factory + `forest.mask`)
  *   · animals: AnimalManager from `fauna` (wolves / horses / sheep register as species)
  *   · the weapon: `ChunkDef.weapon` (the Driftwood sword until the bow / sabre land)
  *
  * Each section below is one system; its owner fills it in. Keep main.ts untouched — add here.
  */
-import { Color, Material, Mesh, Vector3, type Object3D } from 'three';
+import { Color, Vector3, type Object3D } from 'three';
 import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
@@ -28,7 +28,6 @@ import { buildOutcrops } from './outcrops';
 import { buildCragRock } from './cragRock';
 import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
-import { reseedPainterlyGrass } from '../world/GrassPainterly';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
 import { wireElites, type NalatiElites } from './elites';
 import { wireWeather, type NalatiWeather } from './weather';
@@ -43,9 +42,9 @@ import type { NalatiKit } from '../player/nalatiKit';
 import { nalatiWetAt } from './wet';
 import { wireNightEnemies } from './nightEnemies';
 import { Stealth } from './stealth';
-import { PaintedBackdrop } from '../world/PaintedBackdrop';
 import { wireSound, type NalatiSound } from './sound';
-import { LOOK_V2, wireLookV2 } from './look';
+import { wireLookV2 } from './look';
+import { reseedGrassV2 } from './look/grass';
 import { wireRide, type Ride } from './ride';
 import { wireStormTitan, type StormTitan } from './stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from '../player/nalatiSkins';
@@ -151,7 +150,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   await registerChunked(activeRegistry(), { id: 'nalati-crag-rock', name: 'Crag rock', category: 'nature', file: 'src/nalati/cragRock.ts', colliders: crags.descs, surface: 'rock' }, 150, macrotask);
   groups['crags'] = crags.group;
 
-  // ── grass + wind (grass agent, B1): the painterly carpet is Grass.ts (main.ts builds it); the Wind object goes here ──
+  // ── grass + wind (grass agent, B1): the blade rings are Grass.ts → look/grass.ts (main.ts builds it); the Wind object goes here ──
 
   // ── spruce (spruce agent, B6): the Forest is built by bootstrap from `trees.factory`; anything extra goes here ──
 
@@ -165,7 +164,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/world/nalati/dressing/ ──
   const dressing = await new NalatiDressing(sky, ctx.forest).build(macrotask);
-  reseedPainterlyGrass(); // grass seeded before the dressing regrows around its boulders / shrubs (dressingCover)
+  reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
   dressing.addTo(game.scene, [...pois.colliders, ...outcrops.colliders, ...crags.colliders]);   // the clutter keeps clear of these
   await dressing.place(activeRegistry(), macrotask);
   groups['dressing'] = dressing.group;
@@ -183,26 +182,9 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   weather.bind({ stormHold: () => titan.engaged });   // the storm that called him rages on until he falls
   updates.push((dt, t) => { titan.update(dt, t); });
 
-  // ── painted backdrop (painted-asset agent, look pass): the 360° matte painting of the real Nalati past the horizon rings —
-  //    src/world/PaintedBackdrop.ts (loads on its own, the boot does not wait). It takes the far range over from the
-  //    procedural PainterlyRange (hidden while the painting shows). `?backdrop=0` = off, for before / after shots. ──
-  // Look v2 (?look=v2, src/nalati/look/): ONE seamless 360° panorama on a sky dome instead — the painting is the sky, the
-  // clouds, the planet, the sun and the far range; the fog takes its colour from it (docs/design/nalati/handoff/port-v2.md)
-  if (LOOK_V2) await wireLookV2({ game, sky, weather, updates, groups, forest: ctx.forest });
-  else if (new URLSearchParams(location.search).get('backdrop') !== '0') {
-    void (async () => {
-      const bd = await PaintedBackdrop.load(game.renderer);
-      if (bd === null) return;
-      sky.clouds.add(bd.mesh);
-      const range = sky.clouds.getObjectByName('painted-range');
-      if (range) range.visible = false;
-      // the painting is the far snow range: the geometric Nalati range rings (Horizon.ts rings 2 + 3, r 1950 / 2480) stand
-      // down; rings 0 + 1 (800 / 1400 m: the plateau rolling on, the Avral foothills) stay in front as the near / mid parallax
-      game.scene.traverse((o) => { if (o instanceof Mesh && o.material instanceof Material && /^ridge[23]$/.test(o.material.name)) o.visible = false; });
-      groups['backdrop'] = bd.mesh;
-      updates.push(() => { bd.update(weather.look, weather.weather.overcast, weather.weather.rain, weather.weather.flash); });
-    })();
-  }
+  // ── the look (src/nalati/look/): ONE seamless 360° panorama on a sky dome — the painting is the sky, the clouds, the
+  //    planet, the sun and the far range; the fog takes its colour from it (docs/design/nalati/handoff/port-v2.md) ──
+  await wireLookV2({ game, sky, weather, updates, groups, forest: ctx.forest });
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/nalati/elites.ts ──
   const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.phase, storm: () => weather.weather.stormActive });

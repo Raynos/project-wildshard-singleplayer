@@ -14,7 +14,6 @@ import { attachFogUniforms } from '../world/Atmosphere';
 import type { Sky } from '../world/Sky';
 import { RIVER, BROOK } from '../chunks/nalati-grasslands';
 import { CHUNK_HALF } from '../core/config';
-import { LOOK_V2 } from './look/flag';
 
 const VERT = /* glsl */`
 attribute float depth;
@@ -102,27 +101,21 @@ export class NalatiWater {
   group = new THREE.Group();
   private uniforms = {
     uTime: { value: 0 },
-    uShallow: { value: new THREE.Color(0.56, 0.72, 0.72) },
-    uDeep: { value: new THREE.Color(0.2, 0.44, 0.52) },
+    // the glacial Kunes as the mockups paint it from above — milky turquoise over the bars, deep teal-blue in the channels
+    uShallow: { value: new THREE.Color(0.3, 0.6, 0.62) },
+    uDeep: { value: new THREE.Color(0.06, 0.28, 0.4) },
     uSky: { value: new THREE.Color(0.62, 0.78, 0.98) },
     uFoam: { value: new THREE.Color(0.95, 0.98, 1.0) },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) },
     uSunCol: { value: new THREE.Color(1, 0.9, 0.7) },
     uBright: { value: 1 },
     uRain: { value: 0 },
-    /** far off, the water settles to its own colour (0) or to a pale sky-grey (1, look v2: no turquoise line at eye level) */
-    uFarPale: { value: 0 },
+    /** far off, the water settles to its own colour (0) or to a pale sky-grey (1: no turquoise line at eye level) */
+    uFarPale: { value: 1 },
   };
 
   constructor(private sky: Sky) {
     byGroup.set(this.group, this);
-    if (LOOK_V2) {
-      // look v2 (src/nalati/look/): the glacial Kunes as the mockups paint it from above — milky turquoise over the bars,
-      // deep teal-blue in the channels — and pale sky-grey far off / at grazing angles (never a cyan strip at eye level)
-      this.uniforms.uShallow.value.setRGB(0.3, 0.6, 0.62);
-      this.uniforms.uDeep.value.setRGB(0.06, 0.28, 0.4);
-      this.uniforms.uFarPale.value = 1;
-    }
   }
 
   /** the glint colour the water was painted with (the day's sun) */

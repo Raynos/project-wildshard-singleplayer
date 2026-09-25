@@ -18,11 +18,10 @@
  *   surf = (signed metres across the nearest road (±9 = none), gravel 0..1, snow 0..1, rock 0..1)
  *   rdir = the nearest road's direction (unit xz)
  *
- *   applyTerrainSurface(mat, textures)   // before sky.setupMaterial; the material's program key is 'painterly-terrain'
+ *   applyTerrainSurface(mat, textures)   // before sky.setupMaterial; the material's program key is 'painterly-terrain-v2'
  */
 import * as THREE from 'three';
 import { TEX_METRES, TEX_MEAN, isPhoneTier, type NalatiTexName } from '../world/nalatiTextures';
-import { LOOK_V2 } from './look/flag';
 import { V2_OLIVE_GLSL } from './look/light';
 import { LOOK_BAKE_GLSL, bakeUniforms, PHONE_STATIC_OFF_CSM } from './look/bake';
 import { SNOW_LINE, GLACIER } from '../chunks/nalatiLayout';
@@ -32,7 +31,8 @@ export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'sn
 const VERT_PARS = /* glsl */`
 attribute vec4 surf;
 attribute vec2 rdir;
-${LOOK_V2 ? 'attribute vec3 zone;\nvarying vec3 vZone;' : ''}
+attribute vec3 zone;
+varying vec3 vZone;
 varying vec4 vSurf;
 varying vec2 vRdir;
 varying vec3 vTWorld;
@@ -42,13 +42,13 @@ const VERT_MAIN = /* glsl */`
 #include <worldpos_vertex>
 vSurf = surf;
 vRdir = rdir;
-${LOOK_V2 ? 'vZone = zone;' : ''}
+vZone = zone;
 vTWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;
 vTNormal = normalize( mat3( modelMatrix ) * objectNormal );
 `;
 
 /**
- * look v2, the snow ring's granite: the painted rock triplanar at two scales (the big tap, stretched down the fall
+ * The snow ring's granite: the painted rock triplanar at two scales (the big tap, stretched down the fall
  * line on the side projections, breaks a 60 m face into blocks and streaks; desktop only), vertical fractures and
  * tilted strata bands across the faces (along-face coordinate: x on the faces that look ±z, z on those that look ±x),
  * dark and cool so the snow reads against it.
@@ -70,7 +70,7 @@ vec3 cragRock( vec3 p, vec3 N ) {
 `;
 
 const FRAG_PARS = /* glsl */`
-${LOOK_V2 ? 'varying vec3 vZone;' : ''}
+varying vec3 vZone;
 varying vec4 vSurf;
 varying vec2 vRdir;
 varying vec3 vTWorld;
@@ -91,16 +91,16 @@ vec3 tTiled( sampler2D t, vec2 p ) {
   vec3 b = texture2D( t, q ).rgb;
   return mix( a, b, smoothstep( 0.3, 0.7, tNoise( p * 0.21 ) ) );
 }
-${LOOK_V2 ? V2_OLIVE_GLSL + LOOK_BAKE_GLSL : ''}
+${V2_OLIVE_GLSL}${LOOK_BAKE_GLSL}
 vec3 tTriplanar( sampler2D t, vec3 p, vec3 n, float s ) {
   vec3 w = pow( abs( n ), vec3( 4.0 ) ); w /= ( w.x + w.y + w.z );
   return texture2D( t, p.zy * s ).rgb * w.x + texture2D( t, p.xz * s ).rgb * w.y + texture2D( t, p.xy * s ).rgb * w.z;
 }
-${LOOK_V2 ? CRAG_ROCK_GLSL : ''}
+${CRAG_ROCK_GLSL}
 `;
 
 /**
- * look v2: the three zones of layout v2 (src/nalati/look/zones.ts → the per-vertex `zone` weights) — the valley a lush
+ * The three zones of layout v2 (src/nalati/look/zones.ts → the per-vertex `zone` weights) — the valley a lush
  * fresh green, the bowl gold, the snow ring cold: blue-grey scree on the gentle ground, granite on the steep, snowfields
  * lying in the hollows and on the flats (a slow noise), all on the painted textures. The slab's walls carry no zone.
  */
@@ -155,13 +155,13 @@ const FRAG_MAIN = /* glsl */`
 #include <color_fragment>
 {
   vec2 wp = vTWorld.xz;
-  float ringK = ${LOOK_V2 ? 'vZone.z' : '0.0'}; // look v2 paints the snow ring itself (ZONES_V2): the generic rock / gravel / snow keep out
+  float ringK = vZone.z; // the snow ring is painted by ZONES_V2: the generic rock / gravel / snow keep out
   float dist = length( vTWorld - cameraPosition );
   vec3 ground = diffuseColor.rgb;
-  ${LOOK_V2 ? `ground = v2Olive( ground ); // look v2: the olive / golden values (src/nalati/look/light.ts)
-  // look v2: the painter's big soft patches — sunlit gold-green meadows and cooler hollows, read from far and high
+  ground = v2Olive( ground ); // the olive / golden values (src/nalati/look/light.ts)
+  // the painter's big soft patches — sunlit gold-green meadows and cooler hollows, read from far and high
   ground *= mix( vec3( 0.8, 0.86, 0.92 ), vec3( 1.14, 1.08, 0.86 ), smoothstep( 0.3, 0.72, tNoise( wp * 0.021 + 3.0 ) * 0.62 + tNoise( wp * 0.057 - 1.7 ) * 0.38 ) );
-  diffuseColor.rgb = ground;` : ''}
+  diffuseColor.rgb = ground;
 
   // ── meadow: the painted grass detail over the macro colour (its hue stays the vertex colour's) ──
   vec3 meadow = tTiled( tMeadow, wp * uTexScale.x ) / uMeanMeadow;
@@ -169,7 +169,7 @@ const FRAG_MAIN = /* glsl */`
   diffuseColor.rgb = ground * mix( vec3( 1.0 ), meadow, detailAmt );
   ground = diffuseColor.rgb;
 
-  ${LOOK_V2 ? ZONES_V2 : ''}
+  ${ZONES_V2}
 
   // ── rock: painted granite, triplanar, tinted by the macro colour ──
   if ( vSurf.w * ( 1.0 - ringK ) > 0.02 ) {
@@ -200,7 +200,7 @@ const FRAG_MAIN = /* glsl */`
     diffuseColor.rgb = mix( diffuseColor.rgb, dirt, road );
   }
 
-  ${LOOK_V2 ? 'diffuseColor.rgb *= bakedContact( vTWorld ); // look v2: the contact shade round the yurts / rocks / trunks (look/bake.ts)' : ''}
+  diffuseColor.rgb *= bakedContact( vTWorld ); // the contact shade round the yurts / rocks / trunks (look/bake.ts)
 
   // ── snow ──
   if ( vSurf.z * ( 1.0 - ringK ) > 0.02 ) {
@@ -224,20 +224,20 @@ export function applyTerrainSurface(mat: THREE.Material, tex: TerrainTextures): 
   mat.onBeforeCompile = (shader, renderer) => {
     base(shader, renderer);
     Object.assign(shader.uniforms, uniforms);
-    if (LOOK_V2) Object.assign(shader.uniforms, bakeUniforms);
+    Object.assign(shader.uniforms, bakeUniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${VERT_PARS}`)
       .replace('#include <worldpos_vertex>', VERT_MAIN);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${FRAG_PARS}`)
       .replace('#include <color_fragment>', FRAG_MAIN);
-    // look v2, phone: the static casters are out of the realtime shadow map (look/bake.ts) — the key light on the
-    // ground is shadowed by the bake instead (CSM still adds what moves)
-    if (LOOK_V2 && PHONE_STATIC_OFF_CSM) {
+    // phone: the static casters are out of the realtime shadow map (look/bake.ts) — the key light on the ground is
+    // shadowed by the bake instead (CSM still adds what moves)
+    if (PHONE_STATIC_OFF_CSM) {
       shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', THREE.ShaderChunk.lights_fragment_begin
         .replaceAll('getDirectionalLightInfo( directionalLight, directLight );', 'getDirectionalLightInfo( directionalLight, directLight );\n\t\t\tdirectLight.color *= bakedShadow( vTWorld );')
         .replaceAll('getDirectionalLightInfo( directionalLights[0], directLight );', 'getDirectionalLightInfo( directionalLights[0], directLight );\n\t\tdirectLight.color *= bakedShadow( vTWorld );'));
     }
   };
-  mat.customProgramCacheKey = () => (LOOK_V2 ? 'painterly-terrain-v2' : 'painterly-terrain');
+  mat.customProgramCacheKey = () => 'painterly-terrain-v2';
 }

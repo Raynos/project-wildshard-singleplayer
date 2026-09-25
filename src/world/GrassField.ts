@@ -6,23 +6,23 @@ import { RIVER } from '../chunks/nalati-grasslands';
 
 /**
  * The painterly grass *field*: how tall the grass stands, how golden it is and which flowers grow, as pure
- * functions of (x, z). The carpet's cell seeder (GrassPainterly.ts) and the senses (stealth, wolf AI through
- * `grassHeightAt` in GrassTrample.ts) read the same numbers, so the CPU knows the height the GPU draws
- * without any readback.
+ * functions of (x, z). The GPU blade rings (src/nalati/look/grass.ts bakes this field into its textures) and the senses
+ * (stealth, wolf AI through `grassHeightAt` in GrassTrample.ts) read the same numbers, so the CPU knows the height the
+ * GPU draws without any readback.
  *
  *   grassBaseHeightAt(x, z)  metres (0 = bare: water, trail bed, rock, snow, yurt floor) — before trampling
  *   grassToneAt(x, z)        0 = fresh valley green … 1 = plateau gold
- *   flowerKindAt(x, z, r)    0 none · 1 purple sage · 2 white edelweiss / daisy · 3 yellow buttercup
+ *   grassBloomAt / flowerSpeciesAt   where the flower drifts are and which species each leans to
  *
  * The field is sampled on a 4 m lattice (cached per chunk) and bilinearly interpolated, so it is smooth, cheap
- * to query many times a frame, and identical for the seeder and the senses.
+ * to query many times a frame, and identical for the grass and the senses.
  *
  * Nalati (`docs/design/nalati/stealth-and-storms.md`, `geography-and-map.md` §3): short trodden grass only in the
  * camp yard, the corral, the bridge heads, the summer hearth and inside the balbal circle; bare yurt floors and road
  * beds with a lush verge right up to the dirt; a knee-high 0.66–0.72 m meadow everywhere else (look pass: the
  * mockups carry lush grass and flower drifts everywhere); **1.0–1.25 m feather-grass stealth fields** — hand-placed
  * (river banks, the wolf spur by the east gully, five plateau fields) plus elongated E–W bands in the plateau's
- * folds. Other shards (only via the `?grass=painterly` dev switch) get a plain meadow with noise bands.
+ * folds. Other shards get a plain meadow with noise bands.
  */
 
 const LATTICE = 4;
@@ -188,33 +188,14 @@ export function grassToneAt(x: number, z: number): number { return sample(x, z, 
 /** 0..1 flower-drift strength */
 export function flowerPatchAt(x: number, z: number): number { return sample(x, z, 2); }
 
-/** 0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — what `flowerKindAt` draws its odds from */
+/** 0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — the flower odds (FLOWER_VS in src/nalati/look/grass.ts) */
 export function grassBloomAt(x: number, z: number): number { return sample(x, z, 7); }
 
-/** 0..1 which species a drift leans to (see `flowerKindAt`) */
+/** 0..1 which species a drift leans to (FLOWER_VS in src/nalati/look/grass.ts) */
 export function flowerSpeciesAt(x: number, z: number): number { return sample(x, z, 3); }
 
 /** the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled */
 export function groundColorAt(x: number, z: number, out: [number, number, number]): [number, number, number] {
   out[0] = sample(x, z, 4); out[1] = sample(x, z, 5); out[2] = sample(x, z, 6);
   return out;
-}
-
-/**
- * Which flower (if any) a tuft of height `h` at (x, z) carries, from uniform randoms `r`, `r2` in [0, 1):
- * 0 none · 1 purple sage · 2 white edelweiss / daisy · 3 yellow buttercup. Flowers grow in **drifts**: inside
- * one most tufts flower and ~80 % of them are the drift's own species (valley: buttercups / daisies, plateau:
- * sage / edelweiss); outside a rare stray. None in grazed turf.
- */
-export function flowerKindAt(x: number, z: number, h: number, r: number, r2: number): number {
-  if (h < 0.18) return 0;
-  const p = 0.02 + 0.8 * sample(x, z, 7);
-  if (r >= p) return 0;
-  const plateau = grassToneAt(x, z) > 0.5;
-  const sp = sample(x, z, 3);
-  // the drift's species: plateau → sage (most) / edelweiss / buttercup; valley → buttercup / daisy / sage
-  // plateau: edelweiss / sage / buttercup; valley: buttercup / daisy / sage — each drift leans to one, a third mixed
-  const own = plateau ? (sp < 0.3 ? 1 : sp < 0.75 ? 2 : 3) : (sp < 0.5 ? 3 : sp < 0.85 ? 2 : 1);
-  if (r2 < 0.65) return own;
-  return 1 + (Math.floor(((r2 - 0.65) / 0.35) * 3) % 3);
 }

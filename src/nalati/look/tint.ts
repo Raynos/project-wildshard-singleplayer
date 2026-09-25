@@ -1,6 +1,6 @@
 /**
  * Look v2 — the painting's live re-grade (port-v2.md step 1, "cheapest first"): the panorama is painted once, at the
- * def's golden afternoon; the hour and the weather re-tint it in the shader, the way `PaintedBackdrop.update()` did.
+ * def's golden afternoon; the hour and the weather re-tint it in the shader, the way the old v1 matte backdrop did.
  *
  * One GLSL function, `v2Regrade(sceneLinear)`, used by BOTH the sky dome and the fog colour (fog.ts), so the fog the 3D
  * world dissolves into is always exactly the sky behind it — at noon, at dusk, under the moon, in a storm:

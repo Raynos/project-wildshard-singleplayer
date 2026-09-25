@@ -102,7 +102,7 @@ export const painterlyUniforms = {
   uPFloor: { value: 3.0 },
   /**
    * wetness 0 (dry) … 1 (soaked) — the weather drives it (rain → up, the after-storm sun dries it). Up-facing paint
-   * darkens and takes a glossy sun glint + a sky sheen; the painterly grass (GrassPainterly.ts) reads the same uniform.
+   * darkens and takes a glossy sun glint + a sky sheen; the grass (src/nalati/look/grass.ts) reads the same uniform.
    */
   uPWet: { value: 0 },
 };

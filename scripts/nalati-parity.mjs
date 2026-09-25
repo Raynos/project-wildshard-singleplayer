@@ -13,7 +13,7 @@
 //   node scripts/nalati-parity.mjs --poses=camp,plateau --tiers=phone
 //   node scripts/nalati-parity.mjs --engine-only                    # engine frames only (no mockup half)
 //   node scripts/nalati-parity.mjs --pose=40,-50,0,-0.9 --tiers=desktop  # one ad-hoc pose x,z,yaw,pitch[,time]
-//   node scripts/nalati-parity.mjs --pose=... --eval='window.__world.game.paintGrade.set({ vibrance: 0.4 })'   # try a value live
+//   node scripts/nalati-parity.mjs --pose=... --eval='window.__gradeV2.uV2Sat.value = 1.15'      # try a value live
 //   node scripts/nalati-parity.mjs --tiers=po-desktop,po-phone --engine-frames   # the paint-over sources (1536×1024 / 1024×1536)
 //   node scripts/nalati-parity.mjs --url=http://127.0.0.1:5188 --query=foo=1 --settle=6
 //

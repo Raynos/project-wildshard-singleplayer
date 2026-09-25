@@ -6,7 +6,7 @@
  * round-6 panorama (`public/assets/nalati/panorama(.phone).webp`, made by scripts/nalati-panorama.py, which also repairs
  * the slice seams and writes the horizon / ridge / fog data in panoramaData.ts):
  *
- *   u = compass azimuth `atan(-d.x, d.z)` (0 = north = +z, 0.25 = east = −x — the PaintedBackdrop convention), sampled
+ *   u = compass azimuth `atan(-d.x, d.z)` (0 = north = +z, 0.25 = east = −x — the Horizon / DayNight convention), sampled
  *       with textureGrad on whichever azimuth branch is continuous, so the u = 0 / 1 wrap has no mip seam. The strip
  *       carries PANO_PAD_PX columns of the other end on either side (the lossy codec encodes an image's edge columns
  *       on their own: the bare wrap showed a 1-px seam due north, NALATI-MERGE L4), so the crisp tap reads the inner

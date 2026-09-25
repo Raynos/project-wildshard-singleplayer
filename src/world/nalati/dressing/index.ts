@@ -68,8 +68,8 @@ function addCover(list: readonly Inst[], k: number): void {
 }
 /**
  * 0 … 1: how much a dressing rock or shrub covers the ground at (x, z) — 1 inside its footprint, easing to 0 over its
- * rim. For the grass seeder (GrassPainterly): `height *= 1 - dressingCover(x, z)` keeps blades out of the boulders.
- * All zero until the dressing has been built (the carpet's cells built before it keep their grass until reseeded).
+ * rim. For the grass (look/grass.ts tMask): `× (1 − dressingCover(x, z))` keeps blades out of the boulders.
+ * All zero until the dressing has been built (the grass mask baked before it keeps its grass until `reseedGrassV2()`).
  */
 export function dressingCover(x: number, z: number): number {
   const ix = Math.floor(x / COVER_CELL), iz = Math.floor(z / COVER_CELL);

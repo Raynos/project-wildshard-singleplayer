@@ -6,8 +6,6 @@ import { PaintedHorizon, horizonStrips } from './HorizonMatte';
 import type { Sky } from './Sky';
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkHorizon } from '../chunks/ChunkDef';
-import { LOOK_V2 } from '../nalati/look/flag';
-import { NALATI_HORIZON_V2 } from '../nalati/look/horizon';
 
 /**
  * The far light, shared by every ring and the cloud sea: the fixed skies keep these values; Pine Hollow's day / night clock
@@ -39,8 +37,8 @@ export class Horizon {
 
   build(): this {
     const def = getActiveChunk();
-    const own = LOOK_V2 ? NALATI_HORIZON_V2 : def.horizon; // Nalati look v2: the rings re-aimed to layout v2 (src/nalati/look/horizon.ts)
-    if (own) { // a shard's own painted horizon (Nalati)
+    const own = def.horizon;
+    if (own) { // a shard's own painted horizon (Nalati: src/nalati/look/horizon.ts)
       this.buildBands(own);
       if (own.cloudSea) this.buildCloudSea();
       return this;

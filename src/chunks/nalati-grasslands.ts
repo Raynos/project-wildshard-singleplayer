@@ -30,6 +30,7 @@ import {
   NALATI_MAP, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL,
 } from './nalatiLayout';
 import { edgeRise, edgeSpruceMask } from './nalatiEdge';
+import { NALATI_HORIZON_V2 } from '../nalati/look/horizon';
 import type { ChunkDef, ChunkTerrain, RGB, Vec2 } from './ChunkDef';
 import thumbnail from './thumbs/nalati-grasslands.jpg';
 import heroPortrait from './thumbs/nalati-grasslands-portrait.jpg';
@@ -595,36 +596,9 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   explore: true,
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
   weapon: 'nalati', // its own kit (src/player/nalatiKit.ts: bow · sabre · spear) — no Driftwood sword built (NALATI-MERGE F2)
-  // (the camera's far plane is 2.6 km: every ring stays inside 2.5 km)
-  horizon: {
-    cloudSea: true,
-    rings: [
-      // near: the plateau rolling on past the veil at slab height (S / SE / SW), dropping away to the valley (N) and a gorge (E)
-      {
-        r: 800, base: -60, floor: -60, color: [0.16, 0.3, 0.06], top: [0.36, 0.46, 0.11], snowLine: 2, haze: 0.06,
-        bands: [
-          { azimuth: 180, spread: 80, height: 36, rough: 0.05 },    // south: the plateau rolls on, low — the painted range shows over it
-          { azimuth: 135, spread: 35, height: 70, rough: 0.12 },    // SE / SW shoulders
-          { azimuth: 225, spread: 35, height: 64, rough: 0.08 },
-          { azimuth: 0, spread: 50, height: 40, rough: 0.1 },       // north: the far valley side, low
-          { azimuth: 90, spread: 18, height: 125, rough: 0.35 },    // east: the gorge walls either side of the Kunes
-          { azimuth: 62, spread: 14, height: 95, rough: 0.3 },
-          { azimuth: 270, spread: 45, height: 8, rough: 0 },        // west: the valley opens flat toward the Ili
-        ],
-      },
-      // mid: the brown-green Avral range (N), green foothills (S), the gorge's mountains (E)
-      {
-        r: 1400, base: -150, floor: -150, color: [0.08, 0.14, 0.06], top: [0.24, 0.29, 0.12], snowLine: 0.92, haze: 0.12,
-        bands: [
-          { azimuth: 0, spread: 60, height: 290, rough: 0.55 },
-          { azimuth: 180, spread: 70, height: 230, rough: 0.35 },
-          { azimuth: 90, spread: 30, height: 310, rough: 0.6 },
-          { azimuth: 270, spread: 40, height: 40, rough: 0.1 },
-        ],
-      },
-      // the Nalati snow range itself is the painted 360° backdrop (src/world/PaintedBackdrop.ts): no far rings here
-    ],
-  },
+  // the rings re-aimed to layout v2 in front of the painted panorama (the far snow range is the painting); the camera's far
+  // plane is 2.6 km: every ring stays inside 2.5 km
+  horizon: NALATI_HORIZON_V2,
   groundColor,
   surfaceAt,
 
@@ -674,7 +648,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     volumetric: { height: -30, falloff: 0.06, density: 0.0009, strength: 0.35 },
   },
   grade: {
-    // (the painterly chain tone-maps with Khronos Neutral, which keeps the saturation AgX bleached — Game.buildPainterlyChain)
+    // (the post chain is look/grade.ts's own grade; `saturation` feeds the lighting cheat, look/light.ts)
     saturation: 0.1, brightness: 0.0, contrast: 0.15,
     bloomIntensity: 0.35, bloomThreshold: 0.86,
     shadowTint: [0.9, 0.96, 1.1], highTint: [1.05, 1.01, 0.94],

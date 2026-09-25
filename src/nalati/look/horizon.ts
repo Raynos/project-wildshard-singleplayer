@@ -1,8 +1,8 @@
 /**
  * Look v2 — the geometric horizon rings for world layout v2 ("the bowl and the snow ring",
  * docs/design/nalati/layout-v2.md): the big mountains stand SOUTH and EAST, behind the slab's own snow ring, and the land
- * opens NORTH (the Kunes valley running on) and WEST (toward the Ili). Horizon.ts builds these instead of the def's rings
- * in v2. The painted panorama (sky.ts) already carries the snow range from NNE round through E to SSW and the open
+ * opens NORTH (the Kunes valley running on) and WEST (toward the Ili). The chunk def's `horizon` (Horizon.ts builds them).
+ * The painted panorama (sky.ts) already carries the snow range from NNE round through E to SSW and the open
  * golden valley in the W / NW, so these rings are its 3D foreground: low green country N and W, foothills rising into
  * the painting S and E, their feet in the cloud deck under the slab (look/cloudSea.ts, y −68) so from above they rise
  * out of the clouds instead of ringing the world like a fence. Compass azimuths: 0 = north (+z), 90 = east (−x), 180 = south, 270 = west.

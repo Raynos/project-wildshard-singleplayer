@@ -12,8 +12,8 @@
 //   valley   10 frames up Snow Lotus Valley's S road to the valley head, its E / W walls, back south, the glacier
 // Writes progress/nalati-look/walk/<tag>-strip.jpg (a labelled grid, ≤ 500 KB) and <tag>-walk.json (calls / tris each).
 //
-//   node scripts/nalati-walk.mjs --tag=v2-step1 --look=v2 --url=http://127.0.0.1:5191
-//   node scripts/nalati-walk.mjs --tag=v1 --only=orbit,up
+//   node scripts/nalati-walk.mjs --tag=v2-step1 --url=http://127.0.0.1:5191
+//   node scripts/nalati-walk.mjs --tag=x --only=orbit,up
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 
@@ -24,7 +24,6 @@ const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const URL_BASE = flag('url', 'http://127.0.0.1:5188');
 const TAG = flag('tag', 'latest');
-const LOOK = flag('look', '');
 const EXTRA = flag('query', '');
 const SETTLE = Number(flag('settle', '2.5')) * 1000;
 const only = flag('only', '').split(',').filter(Boolean);
@@ -61,7 +60,7 @@ frames.push(['valley', 'valley E wall', -16, -170, Math.PI / 2, 0.15], ['valley'
   ['valley', 'valley back S', -8, -120, 0, 0.05], ['valley', 'glacier', -28, -100, face(-28, -100, -80, -78), 0.12]);
 const list = frames.filter((f) => only.length === 0 || only.includes(f[0]));
 
-const query = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=phone', 'x=68', 'z=204.3', 'yaw=-0.95', LOOK ? `look=${LOOK}` : '', EXTRA].filter(Boolean).join('&');
+const query = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=phone', 'x=68', 'z=204.3', 'yaw=-0.95', EXTRA].filter(Boolean).join('&');
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const rows = [];
 try {
@@ -94,7 +93,7 @@ try {
   const html = `<body style="margin:0;background:#111;font:11px ui-monospace,monospace;color:#9fe">
     <div style="display:grid;grid-template-columns:repeat(7,196px)">${rows.map((r) => `<figure style="margin:0;position:relative">
     <img src="${r.img}" style="width:196px;display:block"><figcaption style="position:absolute;left:3px;top:3px;background:#000a;padding:1px 4px">${r.label} · ${r.calls}c</figcaption></figure>`).join('')}</div>
-    <div style="padding:4px">${TAG}${LOOK ? ` · look=${LOOK}` : ''} · walk-around (orbit / path / up / down / Eagle Rock / plateau / valley)</div></body>`;
+    <div style="padding:4px">${TAG} · walk-around (orbit / path / up / down / Eagle Rock / plateau / valley)</div></body>`;
   await sheet.setContent(html);
   await sheet.waitForTimeout(300);
   const buf = await sheet.screenshot({ type: 'jpeg', quality: 72, fullPage: true });
