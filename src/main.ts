@@ -56,6 +56,7 @@ import { resumeProgress, resumeScreen } from './ui/Resume';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
 import { FullMap } from './ui/Map';
+import { BagButton } from './ui/BagButton';
 import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
@@ -405,9 +406,12 @@ async function main() {
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : w.id === 'bow' ? 'Arrows' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : w.id === 'crossbow' || w.id === 'bow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
     skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id) => { nalatiNow()?.skins.toggle(id); }, // Nalati's wearable skins (B15)
+    split: params.get('bagbtn') !== '0', // E124: PAUSE → Settings + Feedback, the BAG button → Map · Inventory · Achievements
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
+  // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts); ?bagbtn=0 = none + the one menu
+  if (params.get('bagbtn') !== '0') new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
   document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
 

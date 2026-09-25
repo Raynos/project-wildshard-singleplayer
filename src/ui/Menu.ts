@@ -12,6 +12,11 @@
  *   menu.onExit = () => hud.exitToMenu();     // the Settings tab's EXIT TO MAIN MENU
  *   menu.refresh()                            // re-render the data tabs (kills, harvests, unlocks)
  *   menu.onFeedbackTab = (panel) => …          // the FEEDBACK tab was selected: mount the composer into `panel`
+ *
+ * `split` (E124, the user: "two menu buttons, inventory and pause. Pause takes you to settings and feedback. Inventory to
+ * map / inventory / trophies"): the one overlay shows one GROUP of tabs at a time — PAUSE: Settings (+ Feedback), titled
+ * PAUSED; BAG (the minimap's corner button, src/ui/BagButton.ts; the minimap tap and M too): Map · Inventory ·
+ * Achievements, titled BAG. Off (?bagbtn=0) = the old one menu with every tab.
  */
 import { getActiveChunk } from '../chunks/registry';
 import { CHUNK_SIZE } from '../core/config';
@@ -30,6 +35,10 @@ const TABS: { id: MenuTab; label: string }[] = [
   { id: 'map', label: 'Map' }, { id: 'inventory', label: 'Inventory' }, { id: 'achievements', label: 'Achievements' }, { id: 'settings', label: 'Settings' },
   { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
+/** the two menus when `split`: which one a tab lives in */
+type MenuGroup = 'pause' | 'bag';
+const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
+const TITLE: Record<MenuGroup, string> = { pause: 'Paused', bag: 'Bag' };
 const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it · a skin to wear it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
 
 /** the weapons as the Inventory tab shows them — read live from Weapons (src/player/Weapons.ts) */
@@ -46,6 +55,8 @@ export interface GameMenuOptions {
   /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — listed under the weapons, tap to wear / take off */
   skins?: () => SkinRow[];
   onWearSkin?: (id: string) => void;
+  /** two menus in one overlay (E124): PAUSE = Settings + Feedback, BAG = Map · Inventory · Achievements */
+  split?: boolean;
 }
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean }
 
@@ -56,6 +67,7 @@ export class GameMenu {
   readonly root: HTMLElement;
   private sheet: HTMLElement;
   private tabBar: HTMLElement;
+  private title: HTMLElement;
   private panels: Record<MenuTab, HTMLElement>;
   private hint: HTMLElement;
   private mapMeta: HTMLElement;
@@ -115,6 +127,8 @@ export class GameMenu {
 
     // close: the CLOSE button, the backdrop (desktop habit), Esc
     const closeBtn = this.sheet.querySelector('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
+    const title = this.sheet.querySelector<HTMLElement>('.ws-gmenu-title'); if (!title) throw new Error('GameMenu: no .ws-gmenu-title');
+    this.title = title;
     closeBtn.addEventListener('click', () => { this.close(); });
     this.root.addEventListener('pointerdown', (e) => { if (e.target === this.root) this.close(); });
     document.addEventListener('keydown', (e) => {
@@ -131,10 +145,22 @@ export class GameMenu {
 
   /** the FEEDBACK tab exists only while the review inbox is unlocked */
   private syncReview(): void {
-    const on = reviewUnlocked();
-    for (const b of this.tabBar.children) if ((b as HTMLElement).dataset['tab'] === 'feedback') (b as HTMLElement).hidden = !on;
-    this.tabBar.classList.toggle('review', on);
-    if (!on && this._tab === 'feedback') this.select('settings');
+    if (!reviewUnlocked() && this._tab === 'feedback') this.select('settings');
+    else this.syncTabs();
+  }
+  /** which tabs show: FEEDBACK only while the review inbox is unlocked; split, only the open group's (one tab = no bar) */
+  private syncTabs(): void {
+    const review = reviewUnlocked(), split = this.opts.split === true, group = GROUP[this._tab];
+    let shown = 0;
+    for (const b of this.tabBar.children) {
+      const id = (b as HTMLElement).dataset['tab'] as MenuTab;
+      const on = (id !== 'feedback' || review) && (!split || GROUP[id] === group);
+      (b as HTMLElement).hidden = !on;
+      if (on) shown++;
+    }
+    this.tabBar.classList.toggle('review', shown >= 5);
+    this.tabBar.hidden = shown <= 1;
+    this.title.textContent = split ? TITLE[group] : 'Menu';
   }
 
   get isOpen(): boolean { return this._open; }
@@ -167,6 +193,7 @@ export class GameMenu {
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
     this.hint.textContent = HINTS[tab];
+    this.syncTabs();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
     if (tab === 'inventory') this.renderInventory();
     if (tab === 'achievements') this.renderAchievements();
