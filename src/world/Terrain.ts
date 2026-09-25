@@ -40,6 +40,26 @@ export class Terrain {
     this.mesh.geometry.setAttribute('canopy', new THREE.BufferAttribute(canopy, 1));
   }
 
+  /**
+   * Drop the drawn triangles `hole` says reach into a walk-in space (PH-B2: the bear cave's passage, where the slope runs
+   * through it; the cave's own hood covers the gap). The heights stay: `heightAt` and the physics are the caller's.
+   * Returns the triangles dropped.
+   */
+  punch(hole: (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean): number {
+    const geo = this.mesh.geometry, idx = geo.getIndex();
+    if (!idx) return 0;
+    const pos = geo.getAttribute('position');
+    const keep: number[] = [];
+    let dropped = 0;
+    for (let t = 0; t < idx.count; t += 3) {
+      const a = idx.getX(t), b = idx.getX(t + 1), c = idx.getX(t + 2);
+      if (hole(pos.getX(a), pos.getY(a), pos.getZ(a), pos.getX(b), pos.getY(b), pos.getZ(b), pos.getX(c), pos.getY(c), pos.getZ(c))) { dropped++; continue; }
+      keep.push(a, b, c);
+    }
+    if (dropped > 0) geo.setIndex(keep);
+    return dropped;
+  }
+
   async build(): Promise<this> {
     if (getActiveChunk().style === 'lowpoly') return this.buildLowPoly();
     const [layers] = await Promise.all([loadPBRArray([...getActiveChunk().assets.groundLayers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)

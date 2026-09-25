@@ -312,7 +312,10 @@ async function main() {
         active: () => !d.swinging() && d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4 });
     }
     // PH-B3: the fire lookout + zipline, the footbridge, the standing stones, waystones, dam, canoe, board and cave mouth
-    const landmarks = chunk.slug === 'pine-hollow' ? await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn); } }) : null;
+    const landmarks = chunk.slug === 'pine-hollow' ? await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn); }, trees: forest.trees }) : null;
+    // PH-B2: the bear cave — the slope runs through its first metres: the drawn ground is punched there (its hood covers the
+    // gap) and the physics ground pushed under its floor (its shell and the ground over it are colliders of their own)
+    if (landmarks?.crags) { cutTerrain(world.physics, landmarks.crags.terrainCuts()); world.terrain.punch(landmarks.crags.holeTest()); }
     return { cabins, interactables, landmarks };
   });
   const { cabins, interactables, landmarks } = homestead;
@@ -577,8 +580,10 @@ async function main() {
   if (ambience instanceof ForestAmbience) pineLoadout?.useSfx(ambience.sfx); // the lever gun's shot / echo / cycle, the bow's draw
   // the A-rows' audio wiring: the clock → night beds + calm-night music, an engaged elite → combat, the layout's zones, deer snorts, doors
   if (ambience instanceof ForestAmbience) installPineAudio({ game, sky, music, ambience, animals, cabins, eliteEngaged: () => pineFights?.eliteEngaged() ?? false, params });
+  // PH-B2: the cave's bed and reverb deeper in than the mouth's spot (the passage, the squeeze, the room)
+  if (ambience instanceof ForestAmbience) for (const s of landmarks?.crags?.caveSpots() ?? []) ambience.addSpot({ zone: 'cave', ...s, fade: 3 });
   // PH-L10 / C7: the dawn fog + the showers (the sky, the fog, the wet PBR, the rain, the puddles, the rings, the herds' shelter)
-  const pineWeather = chunk.slug === 'pine-hollow' ? installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined, stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null }) : null;
+  const pineWeather = chunk.slug === 'pine-hollow' ? installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null }) : null;
   if (pineWeather) pineLoadout?.useRain(() => pineWeather.weather.rain); // wet bolts drop, pitch-tipped ones fly true
   player.onStep = (sprinting) => {
     const p = player.position;

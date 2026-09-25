@@ -35,6 +35,7 @@ import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import { macrotask } from '../boot/plan';
 import { PINE_HERO_IDS, pineHeroUrl, type PineHeroId } from './pineHero';
+import { PineCrags, placeCrags, cragsMode } from './PineCrags';
 
 type V3 = THREE.Vector3;
 const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
@@ -641,6 +642,25 @@ export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw:
   };
 }
 
+/** drop the arch mesh's triangles that close the passage (its baked 'dark mouth'): a new index on its geometry */
+function hollowArch(im: THREE.InstancedMesh, m: THREE.Matrix4, floorY: number): void {
+  const g = im.geometry, pos = g.getAttribute('position'), idx = g.getIndex();
+  const tri = idx ? idx.count / 3 : pos.count / 3, at = (k: number): number => (idx ? idx.getX(k) : k);
+  const c = Math.cos(BEAR_CAVE.rot), s = Math.sin(BEAR_CAVE.rot), v = new THREE.Vector3(), keep: number[] = [];
+  for (let t = 0; t < tri; t++) {
+    let lxs = 0, lzs = 0, ys = 0;
+    for (let k = 0; k < 3; k++) {
+      v.fromBufferAttribute(pos, at(t * 3 + k)).applyMatrix4(m);
+      const dx = v.x - BEAR_CAVE.x, dz = v.z - BEAR_CAVE.z;
+      lxs += dx * c - dz * s; lzs += dx * s + dz * c; ys += v.y;
+    }
+    const lx = lxs / 3, lz = lzs / 3, y = ys / 3 - floorY;
+    if (Math.abs(lx) < 2.6 && y > -0.3 && y < 4.8 && lz > -0.6) continue;
+    keep.push(at(t * 3), at(t * 3 + 1), at(t * 3 + 2));
+  }
+  g.setIndex(keep);
+}
+
 // ───────────────────────────── the whole set ─────────────────────────────
 
 export interface PineLandmarksHandle {
@@ -668,10 +688,14 @@ export class PineLandmarks implements PineLandmarksHandle {
   private glowMat: THREE.PointsMaterial | null = null;
   private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
   private tmp = new THREE.Vector3();
+  /** PH-B2: the Ridge's granite and the bear cave (null: the kit is not in this build) */
+  crags: PineCrags | null = null;
 
   constructor(private sky: Sky) { this.group.name = 'pine-landmarks'; }
 
-  async build(cabins: Cabins | null): Promise<this> {
+  /** `trees`: the forest's trunks (the crags step round them; the navmesh bake passes the same list) */
+  async build(cabins: Cabins | null, trees: readonly { x: number; z: number }[] = []): Promise<this> {
+    const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
     const mats = await cabinMats(this.sky);
     // the timber landmarks, one task each
     const lookout = new Timber('fire-lookout', LOOKOUT.x, ground(LOOKOUT.x, LOOKOUT.z), LOOKOUT.z, ZIP_YAW, 901, this.timberColliders, this.floors);
@@ -690,7 +714,16 @@ export class PineLandmarks implements PineLandmarksHandle {
     buildBridge(bridge, bf.half);
     this.addTimber(bridge, mats, bf.half);
     await macrotask();
+    this.crags = await crags;
     await this.buildProps(cabins);
+    await macrotask();
+    if (this.crags) {
+      // PH-B2: the kit over the Ridge (`?crags=v1`: the Ridge as it was), and the cave behind the arch either way
+      const v2 = cragsMode() !== 'v1';
+      if (v2) await this.crags.prepareSkin(macrotask);
+      this.crags.build(v2 ? placeCrags({ sizes: this.crags.sizes(), trees }) : []);
+      this.group.add(this.crags.group);
+    }
     return this;
   }
 
@@ -760,17 +793,25 @@ export class PineLandmarks implements PineLandmarksHandle {
     const cyaw = BEAR_CAVE.rot, cfx = -Math.sin(cyaw), cfz = -Math.cos(cyaw);
     const ax = BEAR_CAVE.x - cfx * 1.2, az = BEAR_CAVE.z - cfz * 1.2;
     const arch = add('cave-arch', [{ x: ax, y: ground(BEAR_CAVE.x, BEAR_CAVE.z) - 0.45, z: az, yaw: cyaw + Math.PI, scale: 1.4 }], 70, true, 'rock', false);
+    const hollow = (this.crags?.caveMetaData ?? null) !== null; // PH-B2: the cave is built — the arch is its way in
     const [archL0, archL1] = lod('cave-arch');
     const archLod = archL1 ?? archL0;
     if (arch && archLod) {
       const b = archLod.box, w = b.max.x - b.min.x, h = b.max.y - b.min.y, d = b.max.z - b.min.z;
       const p = arch.places[0];
       if (p) {
-        // the rock round the opening: two jambs and a lintel (the interior is a later row: the mouth is closed for now)
+        // the rock round the opening: two jambs and a lintel; before the cave (PH-B2) a back wall and a dark plane closed it
         const place = (lx: number, ly: number, lz: number): V3 => V(lx, ly, lz).applyMatrix4(placeMatrix(p));
         const qy = p.yaw, k = p.scale;
         for (const s of [-1, 1]) { const c = place(s * w * 0.36, h * 0.5, 0); this.propColliders.push({ kind: 'box', x: c.x, y: c.y, z: c.z, hx: w * 0.14 * k, hy: h * 0.5 * k, hz: d * 0.45 * k, yaw: qy, surface: 'rock' }); }
         const lt = place(0, h * 0.86, 0); this.propColliders.push({ kind: 'box', x: lt.x, y: lt.y, z: lt.z, hx: w * 0.5 * k, hy: h * 0.14 * k, hz: d * 0.45 * k, yaw: qy, surface: 'rock' });
+        if (hollow) {
+          // the TRELLIS arch was generated with its mouth closed: hollow it — every triangle inside the passage's section
+          // (cave frame: |lx| < 2.6, from the floor to 4.8 m up, from 0.6 m inside its lip back) goes, the jambs and lintel stay
+          const floorY = ground(BEAR_CAVE.x, BEAR_CAVE.z);
+          for (const im of [arch.lod0, arch.lod1]) if (im) hollowArch(im, placeMatrix(p), floorY);
+          return;
+        }
         const back = place(0, h * 0.4, -d * 0.1); this.propColliders.push({ kind: 'box', x: back.x, y: back.y, z: back.z, hx: w * 0.24 * k, hy: h * 0.4 * k, hz: 0.3 * k, yaw: qy, surface: 'rock' });
         const darkMat = new THREE.MeshStandardMaterial({ color: 0x040404, roughness: 1, metalness: 0 }); // the chinking's program
         this.sky.setupMaterial(darkMat);
@@ -859,6 +900,7 @@ export class PineLandmarks implements PineLandmarksHandle {
       if (farOff !== e.farOn) { e.farOn = farOff; for (const o of e.t.far) o.visible = !farOff; }
     }
     for (const s of this.sets) s.update(this.tmp);
+    this.crags?.update(t);
     // the lanterns on the clock (PH-L3): a banked ember by day, full flame at night, a slow flicker
     const lamps = this.sky.lamps;
     if (this.glowMat && this.glow && this.anchors) {
@@ -875,12 +917,22 @@ export class PineLandmarks implements PineLandmarksHandle {
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
  * buildings are not here: `new Cabins(sky, pineHamletBuildings())` builds them with the cabins.
  */
-export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void) => void }): Promise<PineLandmarks> {
-  const lm = await new PineLandmarks(h.sky).build(h.cabins);
+export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void) => void; trees?: readonly { x: number; z: number }[] }): Promise<PineLandmarks> {
+  const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees);
   h.registry.add({ id: 'pine-landmarks', name: 'Fire lookout, zipline, footbridge', category: 'buildings', file: 'src/world/PineLandmarks.ts', object: lm.group,
     colliders: lm.timberColliders, surface: 'wood', floor: (x, z) => lm.floorHeightAt(x, z), solidFloor: true });
   await macrotask();
   h.registry.add({ id: 'pine-landmark-props', name: 'Standing stones, waystones, dam, canoe, cave', category: 'props', file: 'src/world/PineLandmarks.ts', colliders: lm.propColliders, surface: 'stone' });
+  // PH-B2: the crags' hulls a task per ~90 (the phone's per-task collider budget), then the cave's shell + the ground over it
+  const crags = lm.crags;
+  if (crags) {
+    for (let i = 0; i < crags.colliders.length; i += 90) {
+      await macrotask();
+      h.registry.add({ id: `pine-crags-${i / 90}`, name: 'Ridge crags', category: 'nature', file: 'src/world/PineCrags.ts', colliders: crags.colliders.slice(i, i + 90), surface: 'rock' });
+    }
+    await macrotask();
+    h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/world/PineCrags.ts', colliders: crags.caveColliders, surface: 'rock' });
+  }
   h.onUpdate((_dt, t) => { lm.update(t); });
   return lm;
 }

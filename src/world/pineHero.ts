@@ -9,5 +9,10 @@ export const PINE_HERO_DIR = '/assets/models/pine-hollow-hero';
 export const PINE_HERO_IDS = ['stone-a', 'stone-b', 'stone-c', 'waystone', 'contract-board', 'cave-arch', 'beaver-dam', 'canoe'] as const;
 export type PineHeroId = (typeof PINE_HERO_IDS)[number];
 export const pineHeroUrl = (id: string): string => `${PINE_HERO_DIR}/${id}/${id}.glb`;
+/** PH-B2's files (src/world/PineCrags.ts, built by scripts/blender/crags/): the Ridge's granite kit, the bear cave and its data,
+ *  and the granite's Poly Haven set (CC0 `mossy_rock`; its grit is the terrain's own `rock_ground`) */
+export const PINE_CRAG_DIR = '/assets/models/pine-hollow-crags';
+export const PINE_CRAG_URLS: readonly string[] = [`${PINE_CRAG_DIR}/crags.glb`, `${PINE_CRAG_DIR}/cave.glb`, `${PINE_CRAG_DIR}/cave.json`,
+  ...['diffuse', 'nor_gl', 'arm'].map((k) => `/assets/tex/mossy_rock/${k}.jpg`)];
 /** every file the landmarks fetch (desktop names: the boot maps them to the phone's copies) */
-export function pineHeroUrls(): string[] { return PINE_HERO_IDS.flatMap((id) => [pineHeroUrl(id), pineHeroUrl(`${id}-lod1`)]); }
+export function pineHeroUrls(): string[] { return [...PINE_HERO_IDS.flatMap((id) => [pineHeroUrl(id), pineHeroUrl(`${id}-lod1`)]), ...PINE_CRAG_URLS]; }

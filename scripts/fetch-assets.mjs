@@ -22,6 +22,8 @@ const TEXTURES = {
   wood_planks_dirt:   { res: '1k', maps: ['Diffuse', 'nor_gl', 'arm'] },
   rough_pine_door:    { res: '1k', maps: ['Diffuse', 'nor_gl', 'arm'] },
   stone_wall:         { res: '1k', maps: ['Diffuse', 'nor_gl', 'arm'] },
+  // the Ridge's granite (PH-B2, src/world/PineCrags.ts): re-encoded q85 + phone WebP by hand (scripts/tex-tiers.mjs' settings)
+  mossy_rock:         { res: '1k', maps: ['Diffuse', 'nor_gl', 'arm'] },
   wood_planks_grey:   { res: '1k', maps: ['Diffuse', 'nor_gl', 'arm'] },
 };
 

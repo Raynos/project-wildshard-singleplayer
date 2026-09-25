@@ -624,6 +624,64 @@
     "y": -0.18
    },
    "notes": "PH-B3: up the hunting lodge's step onto its porch, to the door"
+  },
+  {
+   "name": "den-cave",
+   "start": {
+    "x": 189.0,
+    "z": 183.0,
+    "yaw": -2.676
+   },
+   "waypoints": [
+    {
+     "x": 195.05,
+     "z": 195.05
+    },
+    {
+     "x": 200.71,
+     "z": 200.71
+    },
+    {
+     "x": 203.32,
+     "z": 203.75
+    },
+    {
+     "x": 204.95,
+     "z": 206.36
+    },
+    {
+     "x": 206.65,
+     "z": 208.91
+    },
+    {
+     "x": 208.56,
+     "z": 210.54
+    },
+    {
+     "x": 210.39,
+     "z": 211.53
+    },
+    {
+     "x": 212.3,
+     "z": 212.45
+    },
+    {
+     "x": 214.14,
+     "z": 213.44
+    },
+    {
+     "x": 215.98,
+     "z": 215.13
+    },
+    {
+     "x": 219.45,
+     "z": 218.03
+    }
+   ],
+   "expect": {
+    "y": 8.01
+   },
+   "notes": "PH-B2: from the Den's floor in through the hollowed arch, the antechamber, the squeeze (1.6 m) and down into the bear's room by its bed (floor +8.01)"
   }
  ]
 }

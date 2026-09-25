@@ -139,9 +139,10 @@ async function shardColliders(def) {
     add(cabins.colliderDescs());
     if (pine) {
       // the landmarks' step (PH-B3): the fire lookout + its stair, the zipline landing, the footbridge, the hero props' hulls
-      const lm = await new PineLandmarks(sky).build(null);
+      const lm = await new PineLandmarks(sky).build(null, forest.trees); // + PH-B2's crags (they step round the trunks) and the cave
       add(lm.timberColliders);
       add(lm.propColliders);
+      if (lm.crags) { add(lm.crags.colliders); add(lm.crags.caveColliders); cuts.push(...lm.crags.terrainCuts()); }
     }
     const grid = forest.grid;
     const props = new Props(sky, { trees: forest.trees, nearby: (x, z, r) => grid ? grid.nearby(x, z, r) : [], onViewChange: noop });

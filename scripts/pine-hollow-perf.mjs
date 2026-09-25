@@ -43,6 +43,9 @@ const POSES = [
   { id: 'clearing', x: 150, z: -14, yaw: 0 },
   // PH-B4: inside the old-growth (W), facing into the firs and the giants
   { id: 'oldgrowth', x: 118, z: -118, yaw: 3.6 },
+  // PH-B2: the Den's floor facing the cave mouth in its crag walls, and inside the cave (the room's door, facing the bed)
+  { id: 'den', x: 184, z: 180, yaw: 3.93 },
+  { id: 'cave', x: 214.78, z: 214.21, yaw: -2.241, y: 8.5 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 // --yaw=0.95: every pose looks down Pine Hollow's sunset shadows (the worst case for the shadow-aware tree cull)
 if (flag('yaw', '') !== '') for (const p of POSES) p.yaw = Number(flag('yaw', '0'));
