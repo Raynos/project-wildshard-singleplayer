@@ -119,7 +119,7 @@ export const OPTION_VALUES = {
   // E158: download the other shards' files in the background once this one is playable (src/boot/shardPrefetch.ts) — the
   // debug menu only (no URL switch); the bench scripts turn it off through the saved settings
   prefetch: ['on', 'off'],
-  // E157: the textures — GPU-compressed KTX2 (ASTC / BC7, src/boot/gpuFiles.ts) or the JPEG / WebP images; 'auto' = TEX_DEFAULT.
+  // E157: the textures — GPU-compressed KTX2 (ASTC / BC7, src/boot/gpuFiles.ts) or the JPEG / WebP images; 'auto' = images until the shard's KTX2 set is cached, then KTX2 (E157 B).
   // A load-time pick (pause ▸ Settings ▸ Debug saves and reloads); no URL switch (Jake: never) — the A/B scripts set it in
   // the saved settings
   tex: ['auto', 'ktx2', 'img'],

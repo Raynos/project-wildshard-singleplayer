@@ -16,7 +16,7 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { ASSET_VERSIONS } from './versions.generated';
 import { DefaultLoadingManager } from 'three';
 import { TIER_CONFIG } from '../core/tier';
-import { gpuFile } from './gpuFiles';
+import { standIn, texMode, type TexMode } from './gpuFiles';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
@@ -44,31 +44,32 @@ export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: numbe
  * through it and the boot manifest declares through it, so the bytes declared are the bytes downloaded. Any other
  * tier / file: as is.
  */
-export function tierUrl(url: string): string {
-  const u = phoneCopy(url);
-  // E157: a model whose textures ride as KTX2 (KHR_texture_basisu) when KTX2 is on — three's loaders, the boot pack and
-  // the manifest all come through here, so they agree on the file (src/boot/gpuFiles.ts; images: src/core/ktx2.ts)
-  return /\.(glb|gltf)$/.test(u) ? gpuFile(u) ?? u : u;
+export function tierUrl(url: string, tex: TexMode = texMode()): string {
+  const u = phoneUrl(url);
+  // E157: a model whose textures ride as KTX2 (KHR_texture_basisu) when the page loads KTX2 — three's loaders, the boot
+  // pack and the manifest all come through here, so they agree on the file (src/boot/gpuFiles.ts; images: src/core/ktx2.ts)
+  return /\.(glb|gltf)$/.test(u) ? standIn(u, tex) ?? u : u;
 }
-function phoneCopy(url: string): string {
+/** the tier's copy of a file (`.phone.webp` / `.phone.glb`), whatever the textures ride as */
+export function phoneUrl(url: string): string {
   if (TIER_CONFIG.maxTexture > 1024) return url;
   const m = /^(.*)\.(png|jpg|glb)$/.exec(url);
   if (!m) return url;
   const u = `${m[1]}.phone.${m[2] === 'glb' ? 'glb' : 'webp'}`;
   return u in TABLE ? u : url;
 }
-/** the file this device downloads for `url`: tierUrl's, or its KTX2 stand-in for an image (E157) — what the boot declares */
-export function gpuUrl(url: string): string {
-  const u = tierUrl(url);
-  return gpuFile(u) ?? u;
+/** the file this device downloads for `url` in mode `tex`: tierUrl's, or its KTX2 stand-in for an image (E157) — what the boot declares */
+export function gpuUrl(url: string, tex: TexMode = texMode()): string {
+  const u = tierUrl(url, tex);
+  return standIn(u, tex) ?? u;
 }
 /**
  * A texture-array layer's file (src/core/assets.ts loadPBRArray keeps the file's orientation, so its KTX2 twin is baked
- * unflipped, `<url>#layer`): what loadPBRArray downloads for `url` — the twin when KTX2 is on, else as gpuUrl.
+ * unflipped, `<url>#layer`): what loadPBRArray downloads for `url` — the twin in KTX2 mode, else as gpuUrl.
  */
-export function gpuLayerUrl(url: string): string {
-  const u = tierUrl(url);
-  return gpuFile(`${u}#layer`) ?? u;
+export function gpuLayerUrl(url: string, tex: TexMode = texMode()): string {
+  const u = tierUrl(url, tex);
+  return standIn(`${u}#layer`, tex) ?? u;
 }
 // three's GLTFLoader (props, cabin clutter, their textures) and every other loader on the default manager — the tier's copy,
 // as the network names it (`?v=`: an <img>-loaded glTF texture on Safari never passes through the counted fetch)

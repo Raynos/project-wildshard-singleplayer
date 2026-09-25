@@ -23,6 +23,7 @@
  *                           one-shots + barks are decoded here too (PineHollowSfx `decodePineShots`) — nothing of the
  *                           shard's sound is fetched after the bar (E44).
  */
+import { texMode, type TexMode } from './gpuFiles';
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
@@ -65,13 +66,13 @@ function artFor(def: ChunkDef): { urls: string[]; bytes: Record<string, number> 
 }
 
 /** this shard's declared files: the boot manifest's sources plus the bundled title / explore art */
-export function bootFiles(def: ChunkDef): ChunkFiles {
+export function bootFiles(def: ChunkDef, tex: TexMode = texMode()): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
   const audio = audioFiles(def.slug);
   // Nalati's own score (NALATI-MERGE A2): downloaded on the steppe only — no other shard plays it
   if (def.style === 'painterly') audio.music.push(...steppeFiles());
-  return { ...chunkFiles(def), art: art.urls, ...audio };
+  return { ...chunkFiles(def, tex), art: art.urls, ...audio };
 }
 
 /** the art and the audio for the prefetch queue: the selected style + set (decoded in the bar) ahead of the others (downloaded only) */

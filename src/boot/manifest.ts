@@ -5,7 +5,8 @@
  * shards that build none (see the end of chunkFiles).
  */
 import type { ChunkDef } from '../chunks/ChunkDef';
-import { gpuLayerUrl, gpuUrl, tierUrl, type ChunkFiles } from './bytes';
+import { gpuLayerUrl, gpuUrl, phoneUrl, type ChunkFiles } from './bytes';
+import { texMode, type TexMode } from './gpuFiles';
 import { pbrUrls } from '../core/assets';
 import { bakedTerrainUrl } from '../world/BakedTerrain';
 import { bakedCardUrls } from '../world/BakedCards';
@@ -44,22 +45,26 @@ const painterlyBoot = (): string[] => [
   // the six rigged creature hulls (src/entities/glbCreatures.ts, ~4 MB desktop / ~1.4 MB phone): read in the animals step,
   // declared here so DOWNLOAD counts them and the offline cache holds them (NALATI-MERGE F4)
   ...CREATURE_RIGS.map(creatureRigUrl),
-].filter((f) => tierUrl(f) in PUBLIC_BYTES || f in PUBLIC_BYTES);
+].filter((f) => phoneUrl(f) in PUBLIC_BYTES || f in PUBLIC_BYTES);
 
-export function chunkFiles(def: ChunkDef): ChunkFiles {
+/** `tex`: the textures' mode the files are for — this page's (texMode()), or the other one (the background download's lists) */
+export function chunkFiles(def: ChunkDef, tex: TexMode = texMode()): ChunkFiles {
   const baked = bakedTerrainUrl(def.slug); // scripts/bake-chunk.mjs output, when the build has one
   // the splat layers are a texture array (loadPBRArray: KTX2 twins baked unflipped, gpuLayerUrl); the slab's rock a plain set
-  const terrain = uniq([...(baked ? [baked] : []), ...groundSet(def).layers.flatMap(pbr).map(gpuLayerUrl), ...pbr(def.assets.slabRock)]);
+  const terrain = uniq([...(baked ? [baked] : []), ...groundSet(def).layers.flatMap(pbr).map((u) => gpuLayerUrl(u, tex)), ...pbr(def.assets.slabRock)]);
   const cards = bakedCardUrls(def.slug); // scripts/bake-cards.mjs output, when the build has it
   const set = treeSetOf(def.trees, (u) => u in PUBLIC_BYTES); // PH-B4: the Blender species set (?trees=v1: the runtime pines)
   const trees = set
-    ? uniq([...treeSetFiles(set), ...BARK_LAYERS.flatMap(pbr).map(gpuLayerUrl)])
+    ? uniq([...treeSetFiles(set), ...BARK_LAYERS.flatMap(pbr).map((u) => gpuLayerUrl(u, tex))])
     : uniq([...(cards ? Object.values(cards) : []), ...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);
+  // the cabins' sets — pine_bark too (Cabin.ts loadPBR): with images it is the bark layers' own files (counted in trees),
+  // with KTX2 it is not (a plain set is Y-flipped, an array layer is not: two files) — compared as the files downloaded
+  const layered = new Set([...terrain, ...trees].map((u) => gpuUrl(u, tex)));
   const cabins = uniq([
-    ...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall'].flatMap(pbr),
+    ...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall', 'pine_bark'].flatMap(pbr),
     ...['stone_fire_pit', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'].flatMap(gltf),
     ...lod('Lantern_01'),
-  ]).filter((f) => !terrain.includes(f) && !trees.includes(f)); // pine_bark, rock_ground: counted where first loaded
+  ].map((u) => gpuUrl(u, tex))).filter((f) => !layered.has(f)); // pine_bark, rock_ground: counted where first loaded
   const props = uniq([...lod('rock_moss_set_01'), ...lod('tree_stump_01'), ...lod('dead_tree_trunk')]);
   const skyJson = `/assets/baked/${def.slug}/sky.json`;
   const pair = bakedSkyUrls(def.sky.hdri); // the gain-mapped JPEG + PNG in place of the .hdr (src/world/BakedSky.ts)
@@ -74,7 +79,7 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   const lowpoly = def.style === 'lowpoly' || def.style === 'painterly', treeless = def.trees.factory !== 'pine', ocean = def.ocean !== undefined || def.style === 'painterly';
   // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map), and the
   // KTX2 stand-ins when textures ride as KTX2 (E157, src/boot/gpuFiles.ts) — only the default path's files are declared
-  const t = (xs: string[]) => xs.map(gpuUrl);
+  const t = (xs: string[]) => xs.map((u) => gpuUrl(u, tex));
   const nav = navmeshUrl(def.slug); // scripts/bake-navmesh.mjs output, when the build has one
   return {
     sky: t(sky),

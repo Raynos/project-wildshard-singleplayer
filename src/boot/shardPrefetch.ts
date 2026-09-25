@@ -21,14 +21,22 @@
  * whatever its own boot fetched before the worker controlled the page
  * (a first visit on a slow link, the ≤ 2.5 s cap in src/boot/sw.ts) is stored now instead of on the next launch.
  *
+ * E157 B (the user: "images on the first visit, KTX2 from the next launch"): after every shard's boot files, the same
+ * lanes fetch each shard's KTX2 set (`ktx2Set`: the KTX2 stand-ins its KTX2 boot reads + the Basis transcoder), this
+ * shard's first. When the worker has answered every file of a set with 'hit' or 'stored', its marker (`ktx2MarkerKey`,
+ * the set's hash) is written; src/boot/gpuFiles.ts reads it at the next page load and Auto boots that shard with KTX2.
+ * A failed file removes the marker (images again). Skipped when Settings ▸ Debug ▸ GPU textures is Images.
+ *
  * `window.__ws_prefetch` (the bench / tests): `{ state, done }` — `done` resolves with the final report.
  */
 import { setting } from '../ui/Settings';
 import type { ChunkDef } from '../chunks/ChunkDef';
-import { CHUNKS } from '../chunks/registry';
+import { CHUNKS, findChunk } from '../chunks/registry';
 import { bootFiles } from './extras';
-import { packFor } from './pack';
-import { tierUrl, versionedUrl } from './bytes';
+import { bootParts, packFor } from './pack';
+import { gpuUrl, tierUrl, versionedUrl } from './bytes';
+import { setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
+import { BASIS_PATH } from '../core/ktx2';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
@@ -50,9 +58,9 @@ const START_DELAY_MS = 4000;
 const REPLY_TIMEOUT_MS = 180_000;
 
 /** Every URL `def`'s boot requests on this tier, in the order the boot asks for them, as the network sees them. */
-export function shardBootRequests(def: ChunkDef): string[] {
-  const files = bootFiles(def);
-  const pack = packFor(def);
+export function shardBootRequests(def: ChunkDef, tex: TexMode = texMode()): string[] {
+  const files = bootFiles(def, tex);
+  const whole = packFor(def), pack = whole ? bootParts(whole, files) : null;
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
   const declared = Object.values(files).flat().filter((p) => !packed.has(p));
   return [...new Set([...(pack ? pack.parts.map((part) => part.url) : []), ...declared])].map(versionedUrl);
@@ -64,18 +72,18 @@ export function shardBootRequests(def: ChunkDef): string[] {
  * NPCs / trophy-wall chalk, Nalati's camp people). Not in `bootFiles` (plan.done() would wait on them), so the bench found them: the first switch still
  * downloaded ~1–4 MB of them. Each name comes from the module that loads it; a file the build does not ship is left out.
  */
-export function lateReads(def: ChunkDef): string[] {
+export function lateReads(def: ChunkDef, tex: TexMode = texMode()): string[] {
   const out: string[] = [];
   const lut = lutUrl(def.slug);
   if (lut !== null) out.push(lut);
   const strips = horizonStrips(def.slug);
-  if (strips) { const s = TIER === 'phone' && strips.phone ? strips.phone : strips; out.push(s.day, s.night); }
+  if (strips) { const s = TIER === 'phone' && strips.phone ? strips.phone : strips; out.push(gpuUrl(s.day, tex), gpuUrl(s.night, tex)); }
   if (def.ocean !== undefined) { // the Blender-built island (main.ts: every open-water shard installs it) and the finale's captain
     const base = blenderModelsBase('driftwood-isle'), lm = TIER === 'phone' ? '.phone.webp' : '.webp';
-    out.push(tierUrl(`${base}island.glb`), `${base}island.json`, `${base}placements.bin`, `${base}lm-ao${lm}`, `${base}lm-bounce${lm}`, tierUrl(CAPTAIN_GLB_URL));
+    out.push(tierUrl(`${base}island.glb`, tex), `${base}island.json`, `${base}placements.bin`, gpuUrl(`${base}lm-ao${lm}`, tex), gpuUrl(`${base}lm-bounce${lm}`, tex), tierUrl(CAPTAIN_GLB_URL, tex));
   }
   if (def.slug === 'pine-hollow') {
-    out.push(tierUrl(LEVER_MODEL_URL), tierUrl(KNIFE_MODEL_URL), tierUrl(BIRDS_URL), BIRDS_JSON_URL, ...NPC_KINDS.map((k) => npcModelUrl(k)));
+    out.push(tierUrl(LEVER_MODEL_URL, tex), tierUrl(KNIFE_MODEL_URL, tex), tierUrl(BIRDS_URL, tex), BIRDS_JSON_URL, ...NPC_KINDS.map((k) => tierUrl(npcModelUrl(k), tex)));
     if (JOURNAL_SKIN.chalk) out.push(JOURNAL_SKIN.chalk.atlas);
   }
   if (def.style === 'painterly') out.push(...Object.keys(PERSON_FILE).filter((k): k is PersonKey => k in PERSON_FILE).map(peopleModelUrl));
@@ -83,9 +91,39 @@ export function lateReads(def: ChunkDef): string[] {
 }
 
 /** What the background download fetches for `def`: its boot's requests, then what the world reads as it comes up. */
-export function shardPrefetchList(def: ChunkDef): string[] {
-  return [...new Set([...shardBootRequests(def), ...lateReads(def)])];
+export function shardPrefetchList(def: ChunkDef, tex: TexMode = texMode()): string[] {
+  return [...new Set([...shardBootRequests(def, tex), ...lateReads(def, tex)])];
 }
+
+/**
+ * E157 B: a shard's KTX2 set for this tier — every KTX2 stand-in its KTX2 boot and world read (the files an images boot
+ * does not), plus the Basis transcoder they need. Empty when the tier has no stand-ins (the desktop: not baked).
+ */
+export function ktx2Set(def: ChunkDef): string[] {
+  const own = shardPrefetchList(def, 'ktx2').filter((u) => u.startsWith('/assets/gpu/'));
+  return own.length === 0 ? [] : [...new Set([...own, `${BASIS_PATH}basis_transcoder.js`, `${BASIS_PATH}basis_transcoder.wasm`])];
+}
+/** the set's identity: FNV-1a over its sorted names — they are content-addressed, so the same hash means the same bytes */
+export function setHash(files: readonly string[]): string {
+  let h = 0x811c9dc5;
+  for (const ch of [...files].sort((a, b) => a.localeCompare(b)).join('\n')) h = Math.imul(h ^ (ch.codePointAt(0) ?? 0), 0x01000193) >>> 0;
+  return `${files.length}-${h.toString(16).padStart(8, '0')}`;
+}
+/** the marker the background download writes once the worker holds every file of the set (localStorage: read synchronously at boot) */
+export const ktx2MarkerKey = (slug: string): string => `ws.ktx2set.${slug}.${TIER}`;
+/** Auto (src/boot/gpuFiles.ts): this shard's KTX2 set for this tier is cached — the marker names the current set */
+export function ktx2Ready(def: ChunkDef): boolean {
+  const set = ktx2Set(def);
+  if (set.length === 0) return false;
+  try { return localStorage.getItem(ktx2MarkerKey(def.slug)) === setHash(set); } catch { return false; }
+}
+function markKtx2(def: ChunkDef, complete: boolean, hash: string): void {
+  try {
+    if (complete) localStorage.setItem(ktx2MarkerKey(def.slug), hash);
+    else localStorage.removeItem(ktx2MarkerKey(def.slug));
+  } catch { /* private mode: Auto stays on images */ }
+}
+setAutoKtx2Check((slug) => { const def = findChunk(slug); return def !== undefined && ktx2Ready(def); });
 
 export interface PrefetchEnv {
   /** pause ▸ Settings ▸ Debug ▸ Download in background is Off */
@@ -122,6 +160,10 @@ export interface PrefetchState {
   startedAt: number;
   endedAt: number;
   shards: Record<string, ShardTally>;
+  /** E157 B: each shard's KTX2 set (after every shard's boot files); `complete` once the worker holds all of it */
+  ktx2: Record<string, ShardTally & { complete: boolean }>;
+  /** the textures this page loads with, and why (src/boot/gpuFiles.ts) */
+  tex: { mode: TexMode; why: string };
 }
 export interface PrefetchHandle { state: PrefetchState; done: Promise<PrefetchState> }
 
@@ -164,7 +206,7 @@ const visible = (): Promise<void> => new Promise((resolve) => {
  * the shard is playable. Returns the handle it also puts on `window.__ws_prefetch`.
  */
 export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
-  const state: PrefetchState = { status: 'waiting', startedAt: 0, endedAt: 0, shards: {} };
+  const state: PrefetchState = { status: 'waiting', startedAt: 0, endedAt: 0, shards: {}, ktx2: {}, tex: texModeWhy() };
   const veto = prefetchVeto({ off: setting('prefetch') === 'off', controlled: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null, ...connection() });
   const finish = (status: PrefetchState['status'], reason?: string): PrefetchState => {
     state.status = status;
@@ -176,11 +218,25 @@ export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
     if (veto !== null) return finish('skipped', veto);
     await sleep(START_DELAY_MS);
     const order = [active, ...CHUNKS.filter((c) => c.slug !== active.slug)];
-    const jobs: { slug: string; url: string }[] = [];
+    const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
+    // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the pick, or Auto's — images until the
+    //    shard's KTX2 set is cached. The page's own shard first: what its boot fetched before the worker controlled it.
+    const picked = setting('tex');
+    const modeFor = (def: ChunkDef): TexMode => (picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');
     for (const def of order) {
-      const urls = shardPrefetchList(def);
+      const urls = shardPrefetchList(def, def.slug === active.slug ? texMode() : modeFor(def));
       state.shards[def.slug] = { files: urls.length, hit: 0, stored: 0, failed: 0, bytes: 0 };
-      for (const url of urls) jobs.push({ slug: def.slug, url });
+      for (const url of urls) jobs.push({ slug: def.slug, url, set: 'boot' });
+    }
+    // 2. (E157 B) then each shard's KTX2 set — this shard's first: Auto boots it with KTX2 from the next launch on. Files
+    //    already cached are hits (nothing fetched), so every session re-confirms the set and re-writes its marker.
+    const hashes = new Map<string, string>();
+    if (picked !== 'img') for (const def of order) {
+      const urls = ktx2Set(def);
+      if (urls.length === 0) continue;
+      hashes.set(def.slug, setHash(urls));
+      state.ktx2[def.slug] = { files: urls.length, hit: 0, stored: 0, failed: 0, bytes: 0, complete: false };
+      for (const url of urls) jobs.push({ slug: def.slug, url, set: 'ktx2' });
     }
     state.status = 'running';
     state.startedAt = Math.round(performance.now());
@@ -190,9 +246,15 @@ export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
         await visible();
         await idle();
         const r = await viaWorker(job.url);
-        const t = state.shards[job.slug];
+        const t = job.set === 'boot' ? state.shards[job.slug] : state.ktx2[job.slug];
         if (r === null) { worker.gone = true; return; }
         if (t) { t[r.status]++; t.bytes += r.bytes; }
+        const k = job.set === 'ktx2' ? state.ktx2[job.slug] : undefined;
+        if (k?.hit !== undefined && k.hit + k.stored + k.failed === k.files) { // the set's last reply: mark it (or unmark a set that lost a file)
+          k.complete = k.failed === 0;
+          const def = findChunk(job.slug), hash = hashes.get(job.slug);
+          if (def && hash !== undefined) markKtx2(def, k.complete, hash);
+        }
       }
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, lane));

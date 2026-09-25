@@ -37,6 +37,17 @@ export function packFor(def: ChunkDef): PackDef | null {
   return PACKS[def.slug]?.[TIER] ?? null;
 }
 
+/**
+ * The parts of `pack` a boot declaring `files` reads: every part that carries one of them. The pack is baked for the
+ * default path (images); a KTX2 boot (E157) declares the KTX2 stand-ins instead, and a part that holds only the images
+ * they replace is not streamed (nor background-downloaded, src/boot/shardPrefetch.ts).
+ */
+export function bootParts(pack: PackDef, files: ChunkFiles): PackDef {
+  const declared = new Set(Object.values(files).flat());
+  const parts = pack.parts.filter((part) => part.files.some(([p]) => declared.has(p)));
+  return parts.length === pack.parts.length ? pack : { parts, bytes: parts.reduce((n, part) => n + part.bytes, 0), files: parts.flatMap((part) => part.files) };
+}
+
 /** the next part starts downloading once this share of the current one has streamed: no idle round trip between parts */
 const OVERLAP = 0.75;
 
@@ -66,7 +77,8 @@ function handToWorker(url: string, blob: Blob): void {
  * failed and handed its files to per-file requests): src/boot/extras.ts queues the art and audio after it, so they do not
  * split the pipe with the files the world's steps are waiting for.
  */
-export function streamPack(pack: PackDef, plan: Plan<BootStep>, files: ChunkFiles): Promise<void> {
+export function streamPack(whole: PackDef, plan: Plan<BootStep>, files: ChunkFiles): Promise<void> {
+  const pack = bootParts(whole, files);
   const sourceOf = new Map<string, ByteKey>();
   for (const key of Object.keys(files) as ByteKey[]) for (const f of files[key]) sourceOf.set(f, key);
   const slots = new Map<string, Slot>();

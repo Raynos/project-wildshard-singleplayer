@@ -28,7 +28,7 @@ import { icon, type IconId } from './icons';
 import { completeEntry } from './ShardComplete';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, settingsReloadUrl, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
-import { TEX_DEFAULT } from '../boot/gpuFiles';
+import { texMode } from '../boot/gpuFiles';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
@@ -482,8 +482,9 @@ export class GameMenu {
         el('ws-gmenu-note', 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Foliage range 500 m: every plant in view to 500 m (full plants near, their stand-ins far). Foliage range and Far stand-ins reload the page.'));
     }
     // E157: the textures — KTX2 stays compressed on the GPU (ASTC on the iPhone: about a quarter of the memory) or the images;
-    // a load-time pick, so it saves and reloads
-    const texs: { v: OptionValue<'tex'>; text: string }[] = [{ v: 'auto', text: `Auto · ${TEX_DEFAULT === 'ktx2' ? 'KTX2' : 'Images'}` }, { v: 'ktx2', text: 'KTX2' }, { v: 'img', text: 'Images' }];
+    // Auto = images until the shard's KTX2 set is cached in the background, KTX2 from the next launch (src/boot/gpuFiles.ts).
+    // A load-time pick, so it saves and reloads
+    const texs: { v: OptionValue<'tex'>; text: string }[] = [{ v: 'auto', text: `Auto · now ${texMode() === 'ktx2' ? 'KTX2' : 'Images'}` }, { v: 'ktx2', text: 'KTX2' }, { v: 'img', text: 'Images' }];
     dbg.append(el('ws-gmenu-label', 'Textures'), picker('GPU textures', texs, () => setting('tex'), (v) => { saveSetting('tex', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('tex', fn); }));
     // E158: the other shards' files download in the background once this one is playable (the next session obeys a change)
     const bg: { v: OptionValue<'prefetch'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];

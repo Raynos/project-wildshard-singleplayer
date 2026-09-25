@@ -19,7 +19,7 @@
 import * as THREE from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { TEX_MODE, gpuFile } from '../boot/gpuFiles';
+import { texMode, gpuFile } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
@@ -31,7 +31,8 @@ let gameRenderer: THREE.WebGLRenderer | null = null;
 /** detect the GPU's formats and start the transcoder download (idempotent) */
 export function initKtx2(renderer: THREE.WebGLRenderer): void {
   gameRenderer ??= renderer;
-  if (loader !== null || TEX_MODE !== 'ktx2') return;
+  if (loader !== null || texMode() !== 'ktx2') return;
+  markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)');
   loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
   loader.init().catch((e: unknown) => { console.warn('[ktx2] transcoder failed to load', e); });
 }
@@ -57,16 +58,17 @@ export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
   t.onUpdate = (): void => { t.mipmaps = []; };
   return t;
 }
-if (TEX_MODE === 'ktx2') markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)');
 
 // every GLTFLoader the game makes (a dozen modules each own one): hand it the KTX2 loader when it parses, so the
-// KHR_texture_basisu models tierUrl swaps in load wherever they are asked for; their textures drop their mips once uploaded
-if (TEX_MODE === 'ktx2') {
+// KHR_texture_basisu models tierUrl swaps in load wherever they are asked for; their textures drop their mips once uploaded.
+// Installed on every page; it acts only on a page that loads KTX2 (texMode() is asked at parse time, after the boot resolved it)
+{
   const parse: unknown = Object.getOwnPropertyDescriptor(GLTFLoader.prototype, 'parse')?.value;
   if (typeof parse === 'function') {
     Object.defineProperty(GLTFLoader.prototype, 'parse', {
       configurable: true, writable: true,
       value(this: GLTFLoader, ...args: Parameters<GLTFLoader['parse']>): void {
+        if (texMode() !== 'ktx2') { Reflect.apply(parse, this, args); return; }
         if (this.ktx2Loader === null) this.setKTX2Loader(ktx2Loader());
         const [data, path, onLoad, onError] = args;
         const release = (gltf: Parameters<typeof onLoad>[0]): void => {
