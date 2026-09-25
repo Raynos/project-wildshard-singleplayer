@@ -412,7 +412,7 @@ async function main() {
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
   // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts); ?bagbtn=0 = none + the one menu
   if (params.get('bagbtn') !== '0') new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
-  document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
+  // M / I / Esc are the menu's own keys (src/ui/Menu.ts, gated by the HUD: E130)
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
 
   // ── the review inbox (project/archive/2026-09-22-feedback-inbox.md): unlocked in Settings → REVIEW, then F8 (desktop), the ✎ disc under

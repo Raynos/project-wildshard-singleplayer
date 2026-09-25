@@ -138,6 +138,8 @@ export class HUD {
 
   /** the review composer (src/ui/Feedback.ts) is up: losing the pointer lock does not open the pause menu */
   holdPause = false;
+  /** when the menu last closed (performance.now) — see the pointerlockchange listener */
+  private menuClosedAt = -Infinity;
 
   constructor(opts: HUDOptions = {}) {
     this.opts = { pointerLock: true, maxBolts: 30, ...opts };
@@ -151,7 +153,11 @@ export class HUD {
     document.addEventListener('pointerlockchange', () => {
       if (!this.opts.pointerLock || !this.entered || this.holdPause) return;
       const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
-      this.setPaused(!locked);
+      // the lock came back: close the menu. It went away: pause — unless the menu is already up. M / I / the minimap open it
+      // on their tab and release the lock themselves (Menu.onOpen); that release used to flip it to Settings (E130)
+      // A lock lost within a moment of the menu closing is the Esc that closed it (the browser's own Esc handling
+      // releases the lock the close had just re-taken): stay closed, a click on the canvas takes the lock back
+      if (locked) this.setPaused(false); else if (!this.paused && performance.now() - this.menuClosedAt > 400) this.setPaused(true);
     });
     document.addEventListener('keydown', (e) => {
       if (!this.intro || this.entered || e.metaKey || e.ctrlKey || e.code === 'Escape') return;
@@ -238,9 +244,9 @@ export class HUD {
     this.flash = el('div', 'ws-game-flash'); r.append(this.flash);
 
     // pause = the in-game menu on its Settings tab (src/ui/Menu.ts, attached by main.ts as `hud.menu`):
-    // the touch PAUSE button (TouchControls), Escape on devices without pointer lock, and a released pointer lock
+    // the touch PAUSE button (TouchControls) and a released pointer lock; Escape (and M / I) is the menu's own key listener,
+    // gated by `keyGate` below (E130 — the HUD's Esc here opened the menu the menu's listener then closed, E32)
     document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
-    document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered && !this.paused) this.setPaused(true); });
     // native shells (src/native/lifecycle.ts): the app went to the background → pause, never unpause;
     // Android Back → close the menu or pause; preventDefault() tells the shell it was used (else it minimizes the app)
     document.addEventListener('ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
@@ -447,7 +453,7 @@ export class HUD {
   damageFlash(): void { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
   setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible); }
 
-  set menu(m: GameMenu) { this._menu = m; m.onClose = () => { this.onResume?.(); }; m.onExit = () => { this.exitToMenu(); }; }
+  set menu(m: GameMenu) { this._menu = m; m.keyGate = () => this.entered && !this.holdPause; m.onClose = () => { this.menuClosedAt = performance.now(); this.onResume?.(); }; m.onExit = () => { this.exitToMenu(); }; }
   get menu(): GameMenu { const m = this._menu; if (!m) throw new Error('HUD: no menu attached (hud.menu = …)'); return m; }
   setPaused(paused: boolean): void { if (!this._menu || !this.entered) return; if (paused) this._menu.open('settings'); else this._menu.close(); }
   get paused(): boolean { return this._menu?.isOpen ?? false; }
