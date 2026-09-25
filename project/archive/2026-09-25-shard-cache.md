@@ -1,6 +1,6 @@
 # Plan: keep shards in memory — switch shards from the main menu without the loading screen (E155)
 
-**State:** `in progress` 2026-09-25 — M1–M5 built by the E155 subagent (its worktree branch, rebased on main a5cf0da6 with E157 A + B; not merged, not deployed): switch shards from the title deck in the page, 2 resident (E159; pause ▸ Settings ▸ Debug ▸ Shards in memory 2 / 1, with an on-device memory readout), an evicted one rebuilt in the page, a resident return in < 0.12 s with no loader; KTX2 (E157) per shard build. Desktop + phone (Images and KTX2) headless runs PASS (scripts/e155-shard-switch.mjs, e155-tex-auto.mjs; progress/271–273). Open: M0 on a real iPhone (read the Debug card there), the merge + deploy (the E155 session).
+**State:** `archived` 2026-09-25 (finished 2026-09-25) — M0–M5 built and live (`85cc9e57`, build `85cc9e5`): in-page switching, 2 resident (Debug ▸ Shards in memory 2 / 1), evicted shards rebuilt in the page, a resident return in 70–96 ms on prod; with E157 (KTX2) and E158 (prefetch). Leftover: the iPhone memory reading → E167 (open).
 
 ## The ask (E155)
 
