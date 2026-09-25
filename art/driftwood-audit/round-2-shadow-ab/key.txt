@@ -1,0 +1,12 @@
+edges row 1 (camp): L=r06 R=now
+edges row 2 (hut): L=r06 R=now
+edges row 3 (stair): L=r06 R=now
+edges row 4 (wreck): L=now R=r06
+orange row 1 (camp): L=e0 R=now
+orange row 2 (hut): L=now R=e0
+orange row 3 (stair): L=e0 R=now
+orange row 4 (wreck): L=e0 R=now
+half row 1 (camp): L=e05 R=now
+half row 2 (hut): L=e05 R=now
+half row 3 (stair): L=now R=e05
+half row 4 (wreck): L=now R=e05
