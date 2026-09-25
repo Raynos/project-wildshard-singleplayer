@@ -16,6 +16,7 @@ import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
 import { FILTER_RADII, PHONE_SHADOW_FILTER, installShadowFilter, shadowFilterFromUrl } from './shadowFilter';
+import { patchPointLightSkip } from './pointLightSkip';
 import { StylizedSky } from './StylizedSky';
 import { DayNight, type DayClock } from './DayNight';
 import { setting } from '../ui/Settings';
@@ -127,6 +128,7 @@ export class Sky {
     const filter = this.stylized && (rig.phone || qs.has('pshadowfilter')) ? shadowFilterFromUrl(PHONE_SHADOW_FILTER) : null;
     if (filter) this.renderer.shadowMap.type = installShadowFilter(filter);
     patchCSMShaderChunk();
+    if (getActiveChunk().slug === 'pine-hollow') patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
