@@ -2,7 +2,7 @@
  * Boat — a little low-poly sailboat moored beside the pier (Driftwood Isle). Flat-shaded,
  * vertex-coloured, no textures. Two meshes: the hull (a solid, planked dinghy with its thwarts, mast, boom and gear,
  * single-sided so it can't shadow itself) and the sail + rigging (two-sided, casts, never receives), plus mooring lines
- * to the pier's bollards. Bobs on the swell in `update(dt)`. `?boat=v1` brings back the first boat (E113's A/B).
+ * to the pier's bollards. Bobs on the swell in `update(dt)`.
  *
  *   const boat = new Boat(sky, { x: -4.2, z: -244, heading: 0, waterY: 0.8, moorTo: pier.mooringsFor(-4.2, -244) }).build();
  *   scene.add(boat.group); if (boat.ropes) scene.add(boat.ropes);
@@ -15,7 +15,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Collider } from '../player/Player';
-import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import type { Sky } from './Sky';
 import { heightAt } from './Heightfield';
@@ -33,23 +32,9 @@ export interface BoatSpec {
   moorTo?: { x: number; z: number }[];
 }
 
-const C = {
-  hull: new THREE.Color('#8e6b47'),
-  hullDark: new THREE.Color('#6b4f34'),
-  trim: new THREE.Color('#5a4029'),
-  floor: new THREE.Color('#a8845c'),
-  mast: new THREE.Color('#7a5c3c'),
-  sail: new THREE.Color('#efe9dc'),
-  patch: new THREE.Color('#c9bfa9'),
-  rope: new THREE.Color('#d2bd85'),
-};
+const ROPE = new THREE.Color('#d2bd85');
 
 const LENGTH = 6.4, BEAM = 2.2;
-
-/** `?boat=v1` shows the first boat (E113's A/B); anything else, the rebuilt one */
-export function boatVariant(): 'v1' | 'v2' {
-  return typeof location !== 'undefined' && new URLSearchParams(location.search).get('boat') === 'v1' ? 'v1' : 'v2';
-}
 
 export class Boat {
   group = new THREE.Group();
@@ -63,7 +48,7 @@ export class Boat {
   constructor(private sky: Sky, private spec: BoatSpec) { this.floorY = spec.waterY + 0.32; }
 
   build(): this {
-    if (boatVariant() === 'v1') this.buildV1(); else this.buildV2();
+    this.buildHull();
     this.group.add(this.mesh, this.sail);
     this.group.position.set(this.spec.x, this.spec.waterY, this.spec.z);
     this.group.rotation.y = this.spec.heading ?? 0;
@@ -84,7 +69,7 @@ export class Boat {
         const g = new THREE.TubeGeometry(curve, 8, 0.03, 4, false);
         g.deleteAttribute('uv'); g.deleteAttribute('normal');
         const ni = g.toNonIndexed(); const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
-        for (let k = 0; k < n; k++) { c[k * 3] = C.rope.r; c[k * 3 + 1] = C.rope.g; c[k * 3 + 2] = C.rope.b; }
+        for (let k = 0; k < n; k++) { c[k * 3] = ROPE.r; c[k * 3 + 1] = ROPE.g; c[k * 3 + 2] = ROPE.b; }
         ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
         ropeParts.push(ni);
       });
@@ -118,135 +103,13 @@ export class Boat {
     return this;
   }
 
-  /** the material the mooring lines use (the variant's two-sided one) */
+  /** the material the mooring lines use */
   private ropeMat!: THREE.Material;
   /** local y of the bow / stern cleats the mooring lines start from */
   private cleatY = [0.7, 0.7];
 
   /**
-   * v1 (`?boat=v1`, the first boat, kept for the E113 A/B): zero-thickness lofted strakes on one two-sided material that
-   * casts and receives, so the hull shadowed itself into triangle acne; a flat-sheet gaff sail.
-   */
-  private buildV1(): void {
-    const rng = new Rng(SEED ^ 0x0b0a7);
-    const parts: THREE.BufferGeometry[] = [];
-    const tri = (pos: number[], col: THREE.Color, jitter = 0.07) => {
-      // pos: 9 numbers; one shade per face
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      const k = 1 - jitter + rng.next() * jitter * 2;
-      g.setAttribute('color', new THREE.Float32BufferAttribute([col.r * k, col.g * k, col.b * k, col.r * k, col.g * k, col.b * k, col.r * k, col.g * k, col.b * k], 3));
-      parts.push(g);
-    };
-    const quad = (a: number[], b: number[], c: number[], d: number[], col: THREE.Color, jitter?: number) => { tri([...a, ...b, ...c], col, jitter); tri([...a, ...c, ...d], col, jitter); };
-    const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.07) => {
-      g.deleteAttribute('uv'); g.deleteAttribute('normal');
-      const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
-      for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; } }
-      ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
-      parts.push(ni);
-    };
-
-    // ── hull loft: stations bow (t=0, −z) → stern (t=1, +z); y = 0 is the waterline ──
-    const N = 9;
-    const st: { z: number; w: number; top: number; keel: number; chine: number }[] = [];
-    for (let i = 0; i <= N; i++) {
-      const t = i / N;
-      const bell = Math.sin(Math.PI * t ** 0.75);
-      const w = Math.max(0.04, (BEAM / 2) * bell ** 0.75 * (t > 0.97 ? 0.7 : 1));
-      st.push({ z: -LENGTH / 2 + t * LENGTH, w, top: 0.72 - 0.22 * Math.sin(Math.PI * t) + (t < 0.15 ? 0.12 : 0), keel: -(0.35 + 0.55 * Math.sin(Math.PI * t) ** 0.6), chine: 0.25 });
-    }
-    const at = (i: number): typeof st[number] => { const v = st[i]; if (v === undefined) throw new Error(`Boat: no station ${i}`); return v; };
-    const P = (s: typeof st[number], side: number, k: 'gun' | 'chine' | 'keel'): number[] =>
-      k === 'gun' ? [side * s.w, s.top, s.z] : k === 'chine' ? [side * s.w * 0.85, s.chine, s.z] : [0, s.keel, s.z];
-    for (let i = 0; i < N; i++) {
-      const a = at(i), b = at(i + 1);
-      for (const side of [-1, 1]) {
-        const dark = i % 2 ? C.hullDark : C.hull;
-        // upper strake gunwale→chine, lower strake chine→keel (winding flipped per side so both face out)
-        if (side < 0) { quad(P(a, side, 'gun'), P(b, side, 'gun'), P(b, side, 'chine'), P(a, side, 'chine'), dark); quad(P(a, side, 'chine'), P(b, side, 'chine'), P(b, side, 'keel'), P(a, side, 'keel'), C.hull); }
-        else { quad(P(b, side, 'gun'), P(a, side, 'gun'), P(a, side, 'chine'), P(b, side, 'chine'), dark); quad(P(b, side, 'chine'), P(a, side, 'chine'), P(a, side, 'keel'), P(b, side, 'keel'), C.hull); }
-      }
-      // floor boards inside (visible from above), a little above the chine
-      const fy = 0.32, fw = (s: typeof st[number]) => s.w * 0.72;
-      quad([-fw(a), fy, a.z], [-fw(b), fy, b.z], [fw(b), fy, b.z], [fw(a), fy, a.z], i % 2 ? C.floor : C.hullDark, 0.05);
-      // inner hull face (gunwale down to the floor) so you don't see through from above
-      for (const side of [-1, 1]) {
-        const ia = [side * a.w, a.top, a.z], ib = [side * b.w, b.top, b.z], fa = [side * fw(a), fy, a.z], fb = [side * fw(b), fy, b.z];
-        if (side < 0) quad(ib, ia, fa, fb, C.hullDark, 0.05); else quad(ia, ib, fb, fa, C.hullDark, 0.05);
-      }
-    }
-    // transom
-    const s = at(N);
-    quad([s.w, s.top, s.z], [-s.w, s.top, s.z], [0, s.keel, s.z], [0, s.keel, s.z], C.trim);
-    quad([-s.w * 0.72, 0.32, s.z], [s.w * 0.72, 0.32, s.z], [s.w, s.top, s.z], [-s.w, s.top, s.z], C.trim);
-    // gunwale caps
-    for (let i = 0; i < N; i++) {
-      const a = at(i), b = at(i + 1);
-      for (const side of [-1, 1]) {
-        const o = 0.09;
-        quad([side * (a.w + o), a.top + 0.05, a.z], [side * (b.w + o), b.top + 0.05, b.z], [side * (b.w - o), b.top + 0.05, b.z], [side * (a.w - o), a.top + 0.05, a.z], C.trim, 0.05);
-      }
-    }
-    // thwarts (benches)
-    for (const t of [0.3, 0.72]) {
-      const station = at(Math.round(t * N)), w = station.w * 0.95;
-      add(new THREE.BoxGeometry(w * 2, 0.08, 0.34).translate(0, 0.5, station.z), C.floor, 0.05);
-    }
-    // mast, boom, sail
-    const mz = at(3).z, mastH = 5.2;
-    add(new THREE.CylinderGeometry(0.06, 0.085, mastH, 7).translate(0, 0.32 + mastH / 2, mz), C.mast, 0.05);
-    add(new THREE.CylinderGeometry(0.045, 0.045, 3.3, 6).rotateX(Math.PI / 2).translate(0, 1.45, mz + 1.65), C.mast, 0.05);
-    add(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 6).rotateX(Math.PI / 2).translate(0, 0.32 + mastH - 0.05, mz + 1.1), C.mast, 0.05); // gaff-ish yard
-    const sail0 = parts.length;
-    {
-      const cols = 6, rows = 8, top = 0.32 + mastH - 0.1, bot = 1.55, foot = 3.1, head = 2.0;
-      const pt = (u: number, v: number): number[] => {
-        const y = bot + (top - bot) * v, len = foot + (head - foot) * v;
-        const z = mz + 0.05 + len * u;
-        const belly = Math.sin(u * Math.PI) * Math.sin(v * Math.PI) * 0.35;
-        return [belly, y, z];
-      };
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-        const u0 = c / cols, u1 = (c + 1) / cols, v0 = r / rows, v1 = (r + 1) / rows;
-        const patch = (c >= 1 && c <= 2 && r >= 2 && r <= 3) || (c === 4 && r >= 5 && r <= 6);
-        quad(pt(u0, v0), pt(u1, v0), pt(u1, v1), pt(u0, v1), patch ? C.patch : C.sail, 0.04);
-      }
-    }
-    // the sail flutters in the shared wind (M5): still at the mast, most at the leech halfway up
-    for (let i = sail0; i < parts.length; i++) {
-      const g = parts[i];
-      if (g === undefined) continue;
-      const p = g.getAttribute('position'), a = new Float32Array(p.count * 2), top = 0.32 + mastH - 0.1, bot = 1.55;
-      for (let k = 0; k < p.count; k++) {
-        const u = Math.min(1, Math.max(0, (p.getZ(k) - mz) / 3.1)), v = Math.min(1, Math.max(0, (p.getY(k) - bot) / (top - bot)));
-        a[k * 2] = u * (0.25 + 0.75 * Math.sin(v * Math.PI)) * 0.8; a[k * 2 + 1] = 2.1;
-      }
-      g.setAttribute('aSway', new THREE.BufferAttribute(a, 2));
-    }
-    const sailParts = parts.splice(sail0);
-    // rudder + tiller
-    add(new THREE.BoxGeometry(0.06, 1.0, 0.5).translate(0, 0.1, LENGTH / 2 + 0.2), C.trim, 0.05);
-    add(new THREE.BoxGeometry(0.05, 0.05, 1.3).translate(0, 0.78, LENGTH / 2 - 0.5), C.mast, 0.05);
-
-    for (const g of parts) if (!g.hasAttribute('aSway')) g.setAttribute('aSway', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 2), 2));
-    const geo = mergeGeometries(parts, false);
-    geo.computeBoundingSphere();
-    // the kit's shared two-sided material: fog + wind sway + E112's shadow-normal flip (a sheet wound away from the sun
-    // no longer reads its own shadow — v1's hull is all such sheets)
-    const mat = lowPolyMaterial(this.sky);
-    this.mesh = new THREE.Mesh(geo, mat);
-    this.mesh.castShadow = true; this.mesh.receiveShadow = true;
-    this.mesh.customDepthMaterial = swayDepthMaterial();
-    this.sail = new THREE.Mesh(mergeGeometries(sailParts, false), mat);
-    this.sail.castShadow = true; this.sail.receiveShadow = false;
-    this.sail.customDepthMaterial = this.mesh.customDepthMaterial;
-    this.ropeMat = mat;
-  }
-
-  /**
-   * v2 (E113, the default): the dinghy of the round-8 reference (art/driftwood-isle/round-8-assets/ref-sailboat.jpg),
+   * The boat (E113's B, the rebuild Jake picked): the dinghy of the round-8 reference (art/driftwood-isle/round-8-assets/ref-sailboat.jpg),
    * built as SOLIDS. The hull is one closed loft: every station is a ring round the planking's cross-section — outer
    * skin keel → sheer, the gunwale cap, the inner skin down to the floor boards, across, and back up — so it has real
    * thickness and no open, zero-thickness sheet anywhere. The hull mesh is single-sided (FrontSide), which makes three
@@ -257,7 +120,7 @@ export class Boat {
    * casts but never receives (the E110 fix). The thin gear (oars, lashings, boom, tiller, rigging, coil, lantern) is a third
    * mesh that receives but never casts. ~2.3k triangles, 3 draw calls (+ the mooring lines).
    */
-  private buildV2(): void {
+  private buildHull(): void {
     // kit: the hull + timbers (casts, receives); rig: the sail (casts only); gear: the thin bits — oars, lashings, boom,
     // tiller, rigging, coil, lantern — which receive but don't cast: at the phone's ~10–15 cm shadow texels a 3–6 cm spar
     // casts a dotted chain of blobs across the floor boards

@@ -5,7 +5,6 @@ import { installCascadeCull } from './cascadeCull';
 import { loadHDR } from '../core/assets';
 import { fogUniforms, isUnderwater, paintedAir, patchCloudShadows, isPaintedAir } from './Atmosphere';
 import { buildPainterlyClouds, skyLayerUniforms, type SkyLayerUniforms } from './PainterlySky';
-import { buildPainterlyRange } from './PainterlyRange';
 import { wind } from './steppeWind';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
@@ -324,8 +323,6 @@ export class Sky {
   private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uDrift: { value: new THREE.Vector2() }, uCloudLit: { value: new THREE.Color(1, 1, 1) }, uCloudAlpha: { value: 1 } };
   /** a painted sky's layer uniforms for SKY_LAYER_GLSL (PainterlySky.ts): a backdrop / far-range shader shares the air + the hour */
   skyLayer: SkyLayerUniforms | null = null;
-  /** the painted snow range (PainterlyRange.ts), painterly skies only */
-  paintedRange: THREE.Mesh | null = null;
   /** the painterly air's uniforms (aerial perspective, cloud shadows — Atmosphere.ts `paintedAir`), for live tuning (`__world.sky.air`) */
   readonly air = paintedAir;
   /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
@@ -410,12 +407,6 @@ export class Sky {
       const haze = (this.scene.fog as THREE.Fog).color; // live: the day/night rig recolours it
       this.clouds = buildPainterlyClouds(this.cloudUniforms, haze, tex);
       this.skyLayer = skyLayerUniforms(this.cloudUniforms, haze);
-      // the procedural painted snow range (PainterlyRange.ts): opt-in `?paintedrange=1` — the shard's range is the horizon
-      // ring (Horizon.ts) + the painted matte backdrop (the painted-asset agent); this stays as a fallback / comparison
-      if (new URLSearchParams(location.search).get('paintedrange') === '1') {
-        this.paintedRange = buildPainterlyRange(this.renderer, this.cloudUniforms, haze);
-        this.clouds.add(this.paintedRange);
-      }
       this.scene.add(this.clouds);
       return;
     }
