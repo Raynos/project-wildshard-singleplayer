@@ -27,6 +27,17 @@ fi
 [ -n "$open" ] && printf '%s' "$open"
 [ -n "$legacy" ] && printf 'legacy ASKS.md rows still open (move each to docs/tasks/asks/<ID>.md):\n%s' "$legacy"
 [ -z "$open$legacy" ] && echo "(none open)"
+# client error reports (E133, api/errors.ts): how many reached the server since the last `pnpm inbox:pull` (.review/errors-seen),
+# plus any pulled but not yet handled. One small request, capped at 3 s; silent without a REVIEW_PASSWORD or a network.
+pw="${REVIEW_PASSWORD:-$(grep -m1 -E '^REVIEW_PASSWORD=' .env.local 2>/dev/null | sed -E 's/^REVIEW_PASSWORD="?([^"]*)"?$/\1/')}"
+if [ -n "$pw" ] && command -v curl >/dev/null 2>&1; then
+  since="$(tr -d '[:space:]' < .review/errors-seen 2>/dev/null || true)"
+  r="$(curl -s --max-time 3 -H "x-review-password: $pw" "https://wildshard-singleplayer.vercel.app/api/errors?count=1&since=$since" 2>/dev/null || true)"
+  n="$(printf '%s' "$r" | sed -nE 's/.*"count":([0-9]+).*/\1/p')"
+  [ -n "$n" ] && [ "$n" != 0 ] && echo "!! $n new client error report(s) on the server since ${since:-the first one} — pnpm inbox:pull (category error in .review/inbox/)"
+fi
+pulled="$(grep -l '"category": "error"' .review/inbox/*.json 2>/dev/null | wc -l | tr -d ' ')"
+[ "${pulled:-0}" != 0 ] && echo "!! $pulled client error report(s) pulled into .review/inbox/, not yet handled"
 echo ""
 echo "-- live plans (docs/plans/*.md State line; finished ones belong in project/archive/) --"
 found=0
