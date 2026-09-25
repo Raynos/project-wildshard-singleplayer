@@ -392,7 +392,8 @@ async function main() {
   music.setState({ shard: chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine', mode: 'menu', intensity: 0, underwater: false });
   // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
-  const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music.sting('death'); };
+  const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
+  const respawn = () => { toSpawn(); music.sting('death'); };
   let kills = 0, health = 100, lastHurt = 0, swimHold = false;
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/ui/Menu.ts) ──
@@ -636,7 +637,9 @@ async function main() {
   const resuming = params.has(RELOAD_PARAM);
   const menuFirst = !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;
+  let fromTitle = false; // pause → "Exit to main menu" → ENTER WORLD starts over at the spawn (E121), a plain resume does not
   const enter = () => {
+    if (fromTitle) { fromTitle = false; toSpawn(); }
     audio.resume();
     audio.worldMuted = false;
     if (!music.isPlaying) music.play('theme'); // normally already playing: the title screen's first gesture started it
@@ -650,7 +653,7 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
+  hud.onExitToMenu = () => { fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
   // lazy chunk). God-mode camera, Model Explorer, one ✎ to the review inbox; ✕ comes back here to the title.
