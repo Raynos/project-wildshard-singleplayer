@@ -33,7 +33,12 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const quest = new QuestState(DRIFTWOOD_QUEST, flags);
   const markers = (): LiveMarker[] => quest.markers().map((m: QuestMarker) => { const p = place(m.at); return { id: m.id, label: m.label, short: m.short ?? m.label, x: p.x, z: p.z }; });
   // the chip (the shared quest core, core.ts) — built before the dialogue box, as it always was (their DOM order)
-  const chip = new QuestChip({ chip: () => quest.chip(), markers });
+  // after the quest (E132): "Still to find" + the nearest sea glass / place / treasure left (Complete.ts); hidden once all are found
+  const leftovers = (): LiveMarker[] | null => (quest.isComplete && adv.complete ? adv.complete.leftMarkers() : null);
+  const chip = new QuestChip({
+    chip: () => { const l = leftovers(); return l === null ? quest.chip() : { label: l.length > 0 ? 'Still to find' : '', count: '' }; },
+    markers: () => leftovers() ?? markers(),
+  });
   const objective = chip.line;
   const dialogue = new DialogueBox();
 

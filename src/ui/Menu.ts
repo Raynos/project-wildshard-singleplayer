@@ -25,6 +25,7 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
+import { completeEntry } from './ShardComplete';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
@@ -287,6 +288,14 @@ export class GameMenu {
     const pr = this.opts.progress, p = this.panels.achievements; p.replaceChildren();
     const rows = pr.rows, n = rows.length, e = pr.earnedCount;
     const def = getActiveChunk();
+    // the shard's "complete" card (E132, src/ui/ShardComplete.ts), once its quest is done: a row on top that reopens it
+    const done = completeEntry();
+    if (done) {
+      const row = el('ws-gmenu-done', `<i class="ws-gmenu-done-icon">${icon('laurel')}</i><div class="ws-gmenu-abody"><div class="ws-gmenu-aname">${esc(done.label)}</div><div class="ws-gmenu-agoal">${esc(done.sub)}</div></div><span class="ws-gmenu-chip">Open</span>`, 'button');
+      (row as HTMLButtonElement).type = 'button';
+      row.addEventListener('click', () => { this.close(true); done.open(); });   // silent: the card resumes play itself
+      p.append(row);
+    }
     p.append(el('ws-gmenu-label', `${esc(def.displayName)} · ${e} / ${n} earned`));
     p.append(el('ws-bar ws-gmenu-total', `<i style="width:${n ? (e / n) * 100 : 0}%"></i>`));
     p.append(el('ws-gmenu-label', 'Your title'));

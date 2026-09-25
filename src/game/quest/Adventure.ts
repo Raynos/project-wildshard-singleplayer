@@ -28,6 +28,7 @@ import { installSpine, type Spine } from './Spine';
 import { installFeats, type ProgressSink } from './Feats';
 import { installPlaces, type Places } from './Places';
 import { installFinale, type Finale } from './Finale';
+import { installComplete, type Complete, type CompleteProgress } from './Complete';
 import { installEcology, type RespawnQueue } from './Ecology';
 import { Zipline } from '../../world/Zipline';
 import { ironSwordGuard, SWORD_GUARDED } from './guards';
@@ -43,7 +44,7 @@ function anchorsOf(m: object | null | undefined): Record<string, Anchor> | undef
 }
 
 /** what the adventure reads of an animal (Animal.ts satisfies it) */
-export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number }
+export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number; aggressive?: boolean }
 
 export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void) => void };
@@ -52,7 +53,8 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   chunk: { slug: string; id: string };
   /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
   prompts: Interactable[];
-  hud: { toast: (text: string) => void };
+  /** the HUD: toasts; the complete card (E132) resumes play through `onResume` (the pause menu's close) and leaves by `exitToMenu` */
+  hud: { toast: (text: string) => void; onResume?: (() => void) | undefined; exitToMenu?: () => void };
   /** the game's Audio: the kit's sounds are IslandSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
   audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
@@ -62,7 +64,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   animals: { animals?: A[]; onKill?: ((a: A) => void) | undefined; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
-  progress?: ProgressSink;
+  progress?: ProgressSink & CompleteProgress;
   /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5), and the quest card (E51) */
   fullMap?: { setPois: (source: () => MapPoi[]) => void; setQuest?: (source: () => MapQuest | null) => void };
   /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
@@ -88,6 +90,8 @@ export interface Adventure {
   finale: Finale | null;
   /** enemies coming back after a kill (A6) */
   ecology: RespawnQueue | null;
+  /** the "Driftwood complete" card after the reward view (E132) */
+  complete: Complete | null;
   /** the lookout → cove zipline (A7) */
   zipline: Zipline | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
@@ -176,7 +180,7 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
     }
   }
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, zipline: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
   adventure.spine = installSpine(adventure, w);
   if (w.progress) installFeats(adventure, w, w.progress);
   if (w.ironDrop) {
@@ -208,6 +212,7 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
   const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois);
+  adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
   adventure.finale = installFinale(adventure, w);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
 

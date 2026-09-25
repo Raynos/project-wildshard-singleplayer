@@ -49,6 +49,7 @@ const FILES = [
   { file: join(STYLES, 'explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/explore/Explore.ts), imported by the lazy chunk
   { file: join(STYLES, 'rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/ui/RotateGate.ts)
   { file: join(STYLES, 'quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
+  { file: join(STYLES, 'complete.css'), prefix: 'ws-complete-', strict: true }, // the "<shard> complete" card (src/ui/ShardComplete.ts, E132)
   { file: join(STYLES, 'resume.css'), prefix: 'ws-resume-', strict: true }, // the app-switch resume screen (src/ui/Resume.ts, index.html; E54 / E61)
   { file: join(STYLES, 'nalati-hud.css'), prefix: 'ws-nh-', strict: true }, // Nalati's phone HUD, layout D (src/ui/NalatiHUD.ts, NALATI-MERGE H2): the ARROWS / SKY rows, the minimap's day glyph
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename

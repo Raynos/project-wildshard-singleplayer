@@ -97,8 +97,12 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
       const dn = w.sky.dayNight;
       if (dn) { const ahead = ((GOLDEN - fromPhase) % 1 + 1) % 1; dn.phase = (fromPhase + ahead * THREE.MathUtils.smoothstep(reward, 0, 3.5)) % 1; }
       if (reward > HOLD_S) {
-        reward = -2; w.player.carried = false; caption.show(false); flags.set('seen:reward');
-        w.setViewmodel?.(true); adv.spine?.objective.root.classList.remove('ws-quest-hide');
+        reward = -2; caption.show(false); flags.set('seen:reward');   // the quest completes: its toasts play under the card
+        // E132: the first time, the "Driftwood complete" card takes over while we still own the camera (Complete.ts)
+        if (adv.complete?.showAfterReward() !== true) {
+          w.player.carried = false;
+          w.setViewmodel?.(true); adv.spine?.objective.root.classList.remove('ws-quest-hide');
+        }
       }
     }
   });
