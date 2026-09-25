@@ -6,9 +6,9 @@ export const ART_BYTES: Readonly<Record<string, number>> = {
   "src/chunks/thumbs/nalati-grasslands-landscape.jpg": 388674,
   "src/chunks/thumbs/nalati-grasslands-portrait.jpg": 384246,
   "src/chunks/thumbs/nalati-grasslands.jpg": 72250,
-  "src/chunks/thumbs/pine-hollow-landscape.jpg": 321432,
-  "src/chunks/thumbs/pine-hollow-portrait.jpg": 381349,
-  "src/chunks/thumbs/pine-hollow.jpg": 70244,
+  "src/chunks/thumbs/pine-hollow-landscape.jpg": 244511,
+  "src/chunks/thumbs/pine-hollow-portrait.jpg": 322717,
+  "src/chunks/thumbs/pine-hollow.jpg": 46844,
   "src/explore/img/models.webp": 21828,
   "src/explore/img/world.webp": 20798,
 };

@@ -1,0 +1,10 @@
+[
+ {"id": "1c-hollow-dawn-cabin", "query": "tod=dawn&weather=fog", "cam": [0, 1.8, -52], "at": [-14, 3.5, -34], "fov": 50, "fovP": 68, "hideAnimals": 60},
+ {"id": "2c-oldgrowth-golden-stones", "query": "tod=golden&weather=clear", "cam": [126, 1.7, -22], "at": [178, 7, -34], "fov": 55, "fovP": 75, "hideAnimals": 80},
+ {"id": "3i-king-p2-left", "query": "boss=antler-king&bossGod=1&bossPhase=2&from=18", "cam": [158, 1.8, -9], "at": [150, 4, -30], "atKing": 3.5, "kOff": [6, -2.5], "spawn": false, "fov": 60, "sizes": "land", "settle": 12000, "burst": 5, "burstGap": 2000},
+ {"id": "3j-king-p2-port", "query": "boss=antler-king&bossGod=1&bossPhase=2&from=18", "cam": [156, 1.5, -10], "at": [150, 4, -30], "atKing": 3, "atKingP": 1.0, "spawn": false, "fov": 60, "fovP": 74, "settle": 4000, "burst": 5, "burstGap": 2000},
+ {"id": "3f-king-p1", "query": "boss=antler-king&bossGod=1&from=18", "cam": [147, 1.5, -10], "at": [150, 4, -30], "atKing": 4, "atKingP": 2, "spawn": false, "fov": 55, "fovP": 72, "settle": 8000, "burst": 4},
+ {"id": "4c-pond-sunset", "query": "tod=sunset&weather=clear", "cam": [-60, 1.8, 96], "at": [-88, 12, 152], "fov": 55, "fovP": 72, "hideAnimals": 90},
+ {"id": "5d-lookout-west-ridge", "query": "tod=golden&weather=clear", "cam": [-45, 3, 205], "at": [36, 10, 214], "fov": 50, "fovP": 68, "hideAnimals": 60},
+ {"id": "6d-hamlet-dusk-lodge", "query": "tod=dusk&weather=clear", "cam": [-138, 2, -180], "at": [-160, 5, -125], "fov": 55, "fovP": 72, "hideAnimals": 60}
+]

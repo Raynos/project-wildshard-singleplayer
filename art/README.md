@@ -12,6 +12,7 @@ when the images were generated.
 | `hero-images/` | `round-1-coming-soon` (09-17) | `hero-{driftwood-isle,nalati-grasslands}-{portrait,landscape}` — deck-menu heroes for the "coming soon" shards |
 | | `round-2-pine-hollow` (09-17) | `hero-pine-hollow-{portrait,landscape}` (copied into `src/chunks/thumbs/`) |
 | | `round-3-nalati-in-engine` (09-23) | `hero-nalati-grasslands-{portrait,landscape}` — in-engine captures of the finished shard (the valley camp; the kokpar field under the crags), lightly graded, no paint-over (copied into `src/chunks/thumbs/`, + the 640×360 thumbnail) |
+| | `round-4-pine-hollow-in-engine` (09-25) | PH-S1: in-engine captures of the finished shard replace round 2's paintings. 7 candidate scenes (`candidate-*`, `contact-sheet.jpg`) and `board.jpg` (A / B / C). Wired: A + A, `hero-pine-hollow-{portrait,landscape}.jpg`, the Antler King in his clearing at night (copied into `src/chunks/thumbs/`, + the 640×360 thumbnail). `hero-pine-hollow-landscape@2x.jpg` feeds `scripts/native-icons.py` (the app icon + splash) |
 | `menu/` | `round-1-main-menu` (09-17) | `menu-{A-cinematic,B-list,C-cards}` — main menu directions; C picked |
 | | `round-2-tabs` (09-18) | `menu-tab-{map,inventory,achievements,settings}` — the in-game MENU overlay |
 | `hud/` | `round-1-directions` (09-17) | `hud-A…E` — five HUD directions (below) |
