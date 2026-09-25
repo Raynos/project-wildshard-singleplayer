@@ -88,6 +88,8 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 | PH-U24 | **Priority: a parallel track**, equal with Driftwood V2 / HUD / physics polish / Nalati Phase D. |
 | PH-U25 | **Lever-action = A, the Blender model** (2026-09-25, board `art/pine-hollow/round-15-rifle/board.jpg`): case-hardened receiver, oiled walnut, worn bluing; `?rifle=proc` keeps the code-built one for captures. |
 | PH-U26 | **Load: ~34 MB is fine** (2026-09-25, Jake: "34 MB is fine"), superseding PH-U18's ~30 MB: the Pine Hollow phone rows in `bench.budget.json` are 35 MB transfer / 40 s cold 4G. |
+| PH-U27 | **Trees = A, the Blender species set** (2026-09-25, `art/pine-hollow/round-12-trees/board.jpg`); the Hollow's tree density goes up (it read thinner and park-like against B). `?trees=v1` keeps today's pines for captures. |
+| PH-U28 | **Water = A, the new pond** (2026-09-25, `art/pine-hollow/round-7-water/board.jpg`): the sky + skyline probe, no second scene render; `?pond=planar` keeps the before. |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
