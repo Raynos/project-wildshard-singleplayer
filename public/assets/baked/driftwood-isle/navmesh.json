@@ -1,9 +1,9 @@
 {
  "version": 1,
- "hash": "b4aa1210ca95d261ed534f2c55087dced23c96ba",
- "bytes": 164992,
- "gzip": 93992,
- "brotli": 77780,
+ "hash": "65e8c176969824c4f2a30067bf7ca7df0633ee03",
+ "bytes": 165982,
+ "gzip": 94213,
+ "brotli": 78115,
  "layers": [
   {
    "name": "small",
@@ -11,12 +11,12 @@
    "height": 1.8,
    "climb": 0.3,
    "slope": 40,
-   "tiles": 170,
-   "polys": 3850,
-   "verts": 6782,
-   "detailVerts": 156,
-   "detailTris": 430,
-   "ms": 1124
+   "tiles": 174,
+   "polys": 3868,
+   "verts": 6874,
+   "detailVerts": 144,
+   "detailTris": 417,
+   "ms": 1263
   },
   {
    "name": "large",
@@ -24,12 +24,12 @@
    "height": 1.8,
    "climb": 0.3,
    "slope": 40,
-   "tiles": 161,
-   "polys": 3644,
-   "verts": 6516,
+   "tiles": 165,
+   "polys": 3660,
+   "verts": 6526,
    "detailVerts": 97,
-   "detailTris": 291,
-   "ms": 1035
+   "detailTris": 295,
+   "ms": 1156
   }
  ]
 }

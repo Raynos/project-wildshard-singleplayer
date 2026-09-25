@@ -26,6 +26,7 @@ import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
 import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
+import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -46,11 +47,18 @@ export class Game {
   private gpuReady: Promise<GpuPath> | null = null;
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
   clock = new THREE.Clock();
-  private updaters: ((dt: number, t: number) => void)[] = [];
-  // Frame phases (PHYSICS P2 / ENGINE-FIT E2): input → fixed steps (pre → step → post, × 0‥3) → update (`onUpdate`) → late → render
-  private inputs: ((dt: number) => void)[] = [];
-  private fixed: Record<FixedPhase, ((dt: number) => void)[]> = { pre: [], step: [], post: [] };
-  private lates: ((dt: number) => void)[] = [];
+  // Frame phases (PHYSICS P2 / ENGINE-FIT E2): input → fixed steps (pre → step → post, × 0‥3) → update (`onUpdate`) → late → render.
+  // Every entry is a GameSystem (src/core/faults.ts, E133): called inside its own try/catch, switched off if it keeps throwing.
+  private updaters: GameSystem<(dt: number, t: number) => void>[] = [];
+  private inputs: GameSystem<(dt: number) => void>[] = [];
+  private fixed: Record<FixedPhase, GameSystem<(dt: number) => void>[]> = { pre: [], step: [], post: [] };
+  private lates: GameSystem<(dt: number) => void>[] = [];
+  /** the sky + the draw: core (a throw there that repeats is fatal, faults.ts) */
+  private readonly renderSystem = makeSystem(null, 'render', true, 'render');
+  /** frames drawn since start() (the fault streak counts in these) */
+  private frameNo = 0;
+  /** true once a core system died (faults.ts 'fatal'): the loop stops; the fatal modal is up */
+  dead = false;
   private fixedAcc = 0;
   /** 0‥1: how far this frame's render sits past the last fixed step (interpolate anything the fixed step moves) */
   alpha = 0;
@@ -298,22 +306,41 @@ export class Game {
     this._composer = composer;
   }
 
-  onUpdate(fn: (dt: number, t: number) => void): void { this.updaters.push(fn); }
+  /**
+   * Every frame, after the fixed steps. `label` names the system in error reports (default: the function's name); `core`
+   * marks one the game cannot run without — if it keeps throwing the loop stops and the fatal modal goes up, where any
+   * other system is just switched off (src/core/faults.ts).
+   */
+  onUpdate(fn: (dt: number, t: number) => void, label?: string, core = false): void { this.updaters.push(makeSystem(fn, label, core, `update#${this.updaters.length}`)); }
   /** First in the frame: read controls into intents the fixed steps consume (the player's move, a queued jump). */
-  onInput(fn: (dt: number) => void): void { this.inputs.push(fn); }
+  onInput(fn: (dt: number) => void, label?: string, core = false): void { this.inputs.push(makeSystem(fn, label, core, `input#${this.inputs.length}`)); }
   /** Once per fixed step (dt = FIXED_STEP), in phase order. */
-  onFixed(phase: FixedPhase, fn: (dt: number) => void): void { this.fixed[phase].push(fn); }
+  onFixed(phase: FixedPhase, fn: (dt: number) => void, label?: string, core = false): void { this.fixed[phase].push(makeSystem(fn, label, core, `fixed.${phase}#${this.fixed[phase].length}`)); }
   /** After every updater: things that pose from this frame's final state (the camera from the interpolated player). */
-  onLate(fn: (dt: number) => void): void { this.lates.push(fn); }
+  onLate(fn: (dt: number) => void, label?: string, core = false): void { this.lates.push(makeSystem(fn, label, core, `late#${this.lates.length}`)); }
+
+  /** a system threw (one try/catch per call, below): count it, report it; a core system that keeps failing stops the loop */
+  private fault(s: GameSystem<unknown>, e: unknown): void {
+    if (systemFault(s, e, this.frameNo, performance.now()) === 'fatal' && !this.dead) { this.dead = true; setLoopState('dead'); }
+  }
+  /** (a method, not the field: the loop's early-out narrows `this.dead` to false for the rest of the frame) */
+  private isDead(): boolean { return this.dead; }
+  /** one fixed phase, each system guarded */
+  private runPhase(list: readonly GameSystem<(dt: number) => void>[]): void {
+    for (const s of list) {
+      if (!s.on) continue;
+      try { s.fn(FIXED_STEP); } catch (e) { this.fault(s, e); }
+    }
+  }
 
   /** Run the fixed steps this frame's (scaled) dt owes: hit-stop slows them with everything else. */
   private runFixed(dt: number): void {
     this.fixedAcc += dt;
     let n = 0;
     while (this.fixedAcc >= FIXED_STEP && n < MAX_FIXED_STEPS) {
-      for (const f of this.fixed.pre) f(FIXED_STEP);
-      for (const f of this.fixed.step) f(FIXED_STEP);
-      for (const f of this.fixed.post) f(FIXED_STEP);
+      this.runPhase(this.fixed.pre);
+      this.runPhase(this.fixed.step);
+      this.runPhase(this.fixed.post);
       this.fixedAcc -= FIXED_STEP; n++;
     }
     if (n === MAX_FIXED_STEPS && this.fixedAcc >= FIXED_STEP) this.fixedAcc %= FIXED_STEP;
@@ -418,6 +445,7 @@ export class Game {
     let lastDrawn = -Infinity;
     const loop = (now?: number) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
+      if (this.dead) return; // a core system died (faults.ts): the fatal modal is up, nothing more to draw
       schedule(loop);
       lastRun = performance.now();
       const cap = frameCapFps(slug);
@@ -437,14 +465,28 @@ export class Game {
       if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = HIT_STOP_SCALE; }
       worldTime.scale = scale; worldTime.realDt = realDt;
       const dt = realDt * scale;
-      for (const u of this.inputs) u(dt);
+      this.frameNo++;
+      // each system in its own try/catch (faults.ts): one that throws is counted, reported and, if it keeps at it, switched off
+      for (const s of this.inputs) {
+        if (!s.on) continue;
+        try { s.fn(dt); } catch (e) { this.fault(s, e); }
+      }
       this.runFixed(dt);
-      for (const u of this.updaters) u(dt, t);
-      for (const u of this.lates) u(dt);
-      sky.update(realDt);
-      // planet + sun disc travel with the camera so they stay "infinitely" far
-      sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
-      if (gpu) gpu.render(); else composer.render(realDt);
+      for (const s of this.updaters) {
+        if (!s.on) continue;
+        try { s.fn(dt, t); } catch (e) { this.fault(s, e); }
+      }
+      for (const s of this.lates) {
+        if (!s.on) continue;
+        try { s.fn(dt); } catch (e) { this.fault(s, e); }
+      }
+      if (this.isDead()) return; // a core system died in this frame's steps
+      try {
+        sky.update(realDt);
+        // planet + sun disc travel with the camera so they stay "infinitely" far
+        sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
+        if (gpu) gpu.render(); else composer.render(realDt);
+      } catch (e) { this.fault(this.renderSystem, e); return; }
       if (this.captures.length > 0) this.flushCaptures();
       if (gpu) { this.lastFrame.calls = gpu.info.calls; this.lastFrame.triangles = gpu.info.triangles; }
       else { this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles; }
@@ -452,7 +494,8 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
-    this.kickLoop = () => { if (performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
+    this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
+    setLoopState('running');
     loop();
   }
 }

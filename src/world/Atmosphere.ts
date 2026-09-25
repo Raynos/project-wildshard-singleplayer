@@ -263,6 +263,7 @@ const _c = new THREE.Color();
 
 /** the eye went under (true) / came back up (false) */
 export function setUnderwater(on: boolean): void { underTarget = on ? 1 : 0; }
+/** is the eye under? (Pine Hollow's clock reads it: PineDayNight keeps the underwater fog while diving) */
 export function isUnderwater(): boolean { return underTarget === 1; }
 
 /** every frame (Player.update does it): lerps the fog uniforms + `fog.color` toward the underwater / dry set */

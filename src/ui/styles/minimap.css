@@ -2,7 +2,8 @@
 
 /* the circle: smoked glass, a cyan hairline rim, 8 ticks every 45° poking outward (a conic gradient masked to a thin ring) */
 .ws-minimap {
-  position: absolute; right: 22px; top: 70px; width: 144px; height: 144px; border-radius: 50%; /* 80 % of the old 180 (E51) */
+  --ws-mm: 144px; /* the diameter: the corner BAG button (below) is sized from it */
+  position: absolute; right: 22px; top: 70px; width: var(--ws-mm); height: var(--ws-mm); border-radius: 50%; /* 80 % of the old 180 (E51) */
   background: var(--ws-glass-deep);
   border: 1px solid rgba(143, 227, 255, 0.55);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 10px 40px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(143, 227, 255, 0.12), 0 0 18px rgba(143, 227, 255, 0.12);
@@ -30,7 +31,46 @@
 
 /* phone: 27.2 % of the width (80 % of the old 34vw, E51), top-right at --ws-top */
 @media (max-width: 700px) {
-  .ws-minimap { width: 27.2vw; height: 27.2vw; right: 14px; top: var(--ws-top); } /* 80 % of 34vw (E51) */
+  .ws-minimap { --ws-mm: 27.2vw; right: 14px; top: var(--ws-top); } /* 80 % of 34vw (E51) */
   .ws-minimap::before { inset: -6px; -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 1px), transparent 100%); mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 1px), transparent 100%); }
   .ws-minimap .ws-minimap-n { font-size: 10px; top: 1px; padding: 1px 3px 1px; }
+}
+
+/* ── the BAG button (src/ui/BagButton.ts, E124): the piece that squares out the circle's top-right corner — straight top and
+   right edges just past the tick tips, a concave edge on the rim itself (round 12), the backpack in its widest part. The SVG box
+   starts at the circle's centre (left / bottom 50 %) and is 139 / 200 of the diameter: the 113-unit piece + a 26-unit hit
+   margin up and right (units: the radius is 100). Only the hit path takes pointers, so the map under the box stays the map. */
+.ws-minimap .ws-minimap-bag {
+  position: absolute; left: 50%; bottom: 50%; width: calc(var(--ws-mm) * 0.695); height: calc(var(--ws-mm) * 0.695);
+  margin: 0; padding: 0; border: 0; background: none; appearance: none; -webkit-appearance: none; pointer-events: none;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;
+}
+.ws-minimap .ws-minimap-bag svg { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35)); }
+.ws-minimap .ws-minimap-bag-hit { fill: transparent; pointer-events: fill; }
+.ws-minimap .ws-minimap-bag-piece { fill: rgba(13, 27, 38, 0.84); pointer-events: none; transition: fill 0.12s; }
+.ws-minimap .ws-minimap-bag-edge {
+  fill: none; stroke: rgba(143, 227, 255, 0.55); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: miter;
+  pointer-events: none; transition: stroke 0.12s;
+}
+.ws-minimap .ws-minimap-bag-corner { fill: none; stroke: var(--ws-cyan); stroke-width: 2px; vector-effect: non-scaling-stroke; pointer-events: none; }
+.ws-minimap .ws-minimap-bag-icon { pointer-events: none; filter: drop-shadow(0 0 3px rgba(143, 227, 255, 0.55)); }
+.ws-minimap .ws-minimap-bag-body { fill: var(--ws-cyan); }
+.ws-minimap .ws-minimap-bag-loop { fill: none; stroke: var(--ws-cyan); stroke-width: 4; stroke-linecap: round; }
+.ws-minimap .ws-minimap-bag-seam { fill: none; stroke: rgba(13, 27, 38, 0.9); stroke-width: 3.5; }
+/* pressed (a class: the minimap's pointerdown preventDefault keeps :active off on iOS) + keyboard focus */
+.ws-minimap .ws-minimap-bag.down .ws-minimap-bag-piece { fill: rgba(40, 92, 116, 0.92); }
+.ws-minimap .ws-minimap-bag.down .ws-minimap-bag-edge { stroke: var(--ws-cyan); }
+.ws-minimap .ws-minimap-bag.down .ws-minimap-bag-body { fill: #fff; }
+.ws-minimap .ws-minimap-bag.down .ws-minimap-bag-loop { fill: none; stroke: #fff; }
+.ws-minimap .ws-minimap-bag:focus-visible .ws-minimap-bag-edge { stroke: #fff; }
+/* with the button the NE tick (1–2 o'clock) goes — the piece sits on the rim there (round 12); the other seven stay */
+.ws-minimap.bag::before {
+  background: conic-gradient(from -1.25deg, var(--ws-cyan) 0 2.5deg, transparent 2.5deg 90deg, var(--ws-cyan) 90deg 92.5deg, transparent 92.5deg 135deg,
+    var(--ws-cyan) 135deg 137.5deg, transparent 137.5deg 180deg, var(--ws-cyan) 180deg 182.5deg, transparent 182.5deg 225deg, var(--ws-cyan) 225deg 227.5deg,
+    transparent 227.5deg 270deg, var(--ws-cyan) 270deg 272.5deg, transparent 272.5deg 315deg, var(--ws-cyan) 315deg 317.5deg, transparent 317.5deg 360deg);
+}
+/* phone: the square (the piece's straight edges, 13 / 200 of the diameter past the circle) lines up with PAUSE — its top on
+   --ws-top, its right edge 12 px in like PAUSE's left — so the circle steps ~7 px down and ~7 px left (`.bag`: only with the button) */
+@media (max-width: 700px) {
+  .ws-minimap.bag { right: calc(12px + var(--ws-mm) * 0.065); top: calc(var(--ws-top) + var(--ws-mm) * 0.065); }
 }

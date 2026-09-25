@@ -45,7 +45,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   w.player.colliders.push(castaway.collider);
   castaway.group.updateMatrixWorld(true);
   const talkAt = castaway.headWorld(new THREE.Vector3());
-  let waved = false;
+  let waved = false, stowed = false;
   const talk = new NpcTalk({ dialogue, flags, npc: CASTAWAY, at: talkAt, radius: TALK_R, label: 'Talk to Wendell', speaker: castaway, onOpen: () => { w.audio.weaponSwap(); } });
   w.prompts.push(talk.prompt);
 
@@ -84,6 +84,8 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     dialogue.update(dt);
     talk.update(pp);
     castaway.update(dt, t, pp);
+    // the sword goes down while you talk to Wendell and comes back up when the talk ends (E129)
+    if (talk.talking !== stowed) { stowed = talk.talking; w.stowWeapon?.(stowed); }
     if (!waved && !flags.has('talked:castaway') && pp.distanceToSquared(castaway.position) < 16 * 16) { waved = true; castaway.wave(); }
     chip.update(t, w.player);
   });

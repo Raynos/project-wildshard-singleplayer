@@ -19,6 +19,16 @@
  * and an up-facing normal — so by the time it shrinks away it is already the colour and shade of the grass around it:
  * the thinning band has no edge to see. `?coverblend=0` turns that off (the plants keep their colours to their edge).
  *
+ * E117 follow-up (the user: "more distant cover") — the far tier. Tufts, ferns, hibiscus, bushes and daisies each get a
+ * far model of 3–8 triangles (for tufts only 60 % of them, a little bigger) (the same silhouette at 25 m+, its flowers as flat colour chips). Past its near edge a
+ * plant cross-fades into its far model (one shrinks as the other grows, same spot), which keeps the plant's colours out
+ * to a second per-plant edge in [farNear, farFar] (phone: tufts 26–60 m, bushes 30–76 m), thins out plant by plant there
+ * and only then takes on the ground's colour and shrinks. So the island stays dressed from Explore's height and far
+ * out, with the same no-ring, no-pop rules. The far set is rebuilt every FAR_REFILL_M of travel by a job that runs a
+ * slice of cells per frame (FAR_BUDGET_MS) into staging buffers and swaps them in when done, with FAR_SLACK m of room,
+ * so neither the refill nor new cells hitch a frame. `?coverfar=off` is the near tier alone (the first E117 fix),
+ * `?coverfar=far` reaches 1.5× further again.
+ *
  *   const cover = new GroundCover(sky, { sea: sea.level }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
@@ -51,6 +61,13 @@ const CELL = 16, REFILL_M = 4;
 const REACH_K = TIER === 'desktop' ? 1.25 : 1, CAP_K = TIER === 'desktop' ? 3 : 1.8;
 /** E117: far plants blend into the ground's colour and shade (1); `?coverblend=0` keeps their own to the edge (0) */
 const BLEND = new URLSearchParams(location.search).get('coverblend') === '0' ? 0 : 1;
+/** E117 follow-up: the far tier (`?coverfar=off|on|far`, default on) and how far it reaches over the phone numbers below */
+const COVER_FAR = ((): 'off' | 'on' | 'far' => { const v = new URLSearchParams(location.search).get('coverfar'); return v === 'off' || v === 'far' ? v : 'on'; })();
+const FAR_K = COVER_FAR === 'far' ? 1.5 : 1;
+/** the far set is rebuilt every FAR_REFILL_M m, within FAR_BUDGET_MS a frame, with FAR_SLACK m of room either side */
+const FAR_REFILL_M = 8, FAR_SLACK = 16, FAR_BUDGET_MS = TIER === 'desktop' ? 2 : 1.5;
+/** shader modes: a near plant that just shrinks away / hands over to its far model; a far model */
+const MODE_NEAR = 0, MODE_HANDOVER = 1, MODE_FAR = 2;
 /** floats per cached candidate: x y z yaw scale · tint rgb · ground rgb */
 const STRIDE = 11;
 /** the viewer is the player's feet in play; the camera is ~1.7 m over them */
@@ -64,10 +81,23 @@ const openEnded = (parts: Part[]): Part[] => parts.map(([g, c]) => {
 /** the shared wind the blades sway in (0 calm … 1 gusting); M5's palms.gust drives it */
 export const coverWind = windUniforms.uGust;
 
+interface FarTier {
+  mesh: THREE.InstancedMesh;
+  cap: number;
+  /** (farNear, farFar, grow) m: the far model keeps to its own edge in [farNear + grow, farFar] */
+  reach: THREE.Vector3;
+  /** the share of the kind's plants that get a far model (drawn by a hash of the yaw), each scaled up by 1/√keep so the
+   *  far cover keeps its coverage with fewer instances */
+  keep: number;
+  /** the next set, filled by the far job and copied in when it is done */
+  stage: { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; n: number };
+}
+
 interface Kind {
   name: string;
   mesh: THREE.InstancedMesh;
   cap: number;
+  far: FarTier | null;
   /** E117: (near, far, grow) m — full density inside near, thinning to none at far, each plant growing in over `grow` */
   reach: THREE.Vector3;
   /** instances per m² at (h over the sea, slope, trail distance, shrine distance) */
@@ -78,6 +108,29 @@ interface Kind {
 }
 
 const ss = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+// ── the far models' pieces (E117 follow-up): one or two triangles each ──
+/** a grass blade leaning out along yaw `a`: base width 2w, height h, lean (0 up … 1 flat) */
+function bladeTri(a: number, w: number, h: number, lean: number): THREE.BufferGeometry {
+  const ox = Math.cos(a) * 0.05, oz = Math.sin(a) * 0.05, px = -Math.sin(a) * w, pz = Math.cos(a) * w;
+  return tris([ox - px, 0, oz - pz, ox + px, 0, oz + pz, ox + Math.cos(a) * h * lean, h, oz + Math.sin(a) * h * lean]);
+}
+/** a frond as one triangle: `w`× its length wide at a third of the way out, pitched up by `pitch`, turned to `yaw` */
+function frondTri(yaw: number, len: number, w: number, pitch: number): THREE.BufferGeometry {
+  const hw = (len * w) / 2;
+  return tris([-hw, 0, len * 0.3, hw, 0, len * 0.3, 0, -0.3 * len, len]).rotateX(-pitch).rotateY(yaw);
+}
+/** a flat flower chip of radius r, tipped by `tilt` rad: one triangle */
+function chip(r: number, tilt: number): THREE.BufferGeometry {
+  const v: number[] = [];
+  for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2; v.push(Math.cos(a) * r, 0, Math.sin(a) * r); }
+  return tris(v).rotateX(-tilt);
+}
+/** a broad leaf as a diamond (two triangles) on a short rise: length `len`, width `w`, pitched up by `pitch` */
+function leafDiamond(yaw: number, len: number, w: number, pitch: number, up: number): THREE.BufferGeometry {
+  const m = len * 0.45;
+  return tris([0, 0, 0, w / 2, 0, m, 0, 0, len, 0, 0, 0, 0, 0, len, -w / 2, 0, m]).rotateX(-pitch).rotateY(yaw).translate(0, up, 0);
+}
 
 export class GroundCover {
   group = new THREE.Group();
@@ -91,6 +144,15 @@ export class GroundCover {
   private avoid: { x: number; z: number; r: number }[] = [];
   private tint = new THREE.Color();
   private ground = new THREE.Color();
+  /** the far tier's rebuild: a job stepped within FAR_BUDGET_MS a frame; where the shown / the next set were built from */
+  private farJob: Generator<undefined, undefined, undefined> | null = null;
+  private farLast = new THREE.Vector3(1e9, 0, 1e9);
+  private farJobAt = new THREE.Vector3();
+  private rFar = 0;
+  /** 0 → 1 over ~0.8 s when a far set lands somewhere new (boot, a teleport), so it grows in instead of appearing */
+  private farIn = { value: 1 };
+  /** measurements for scripts/popin-fly.mjs (group.userData.stats) */
+  readonly stats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0 };
 
   constructor(private sky: Sky, private opts: GroundCoverOpts) {
     const cave = Cove.forIsland().cave;
@@ -120,9 +182,9 @@ export class GroundCover {
 
   build(): this {
     // one material per kind (its own reach uniform), one program for all of them
-    const material = (reach: THREE.Vector3): THREE.MeshStandardMaterial => {
+    const material = (reach: THREE.Vector3, far: THREE.Vector3, mode: number): THREE.MeshStandardMaterial => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
-      this.patch(mat, reach);
+      this.patch(mat, reach, far, mode);
       this.sky.setupMaterial(mat);
       return mat;
     };
@@ -156,10 +218,10 @@ export class GroundCover {
       for (let i = 0; i < 3; i++) {
         const r = rng.range(0.1, 0.22), a = rng.range(0, 6.28), d = i === 0 ? 0 : rng.range(0.2, 0.35);
         const m = new THREE.Matrix4().makeTranslation(Math.cos(a) * d, r * 0.2, Math.sin(a) * d);
-        // E114: ?rocks=a|b|c — the pebbles in the candidate look too (flat-shaded here: the ground cover is one faceted material)
+        // E114: the pebbles in rockKit's look too (B by default, ?rocks=now the old; flat-shaded here: the ground cover is one faceted material)
         const legacy = rock(r, 0, rng, 0.6, 0.25);
         if (look === 'current') k.addTopped(legacy, '#7d8187', '#6d9a44', { matrix: m, minY: 0.7, jitter: 0.08 });
-        else { legacy.dispose(); k.addPainted(rockGeometry(look, r, lookRng, { squash: 0.6, moss: 0.5 }), m); }
+        else { legacy.dispose(); k.addPainted(rockGeometry(look, r, lookRng, { squash: 0.6, moss: 0.5, ground: -0.2 * r }), m); }
       }
     }, 0x6c05);
 
@@ -167,29 +229,59 @@ export class GroundCover {
     const grass = (h: number, slope: number) => ss(2.6, 4.2, h) * (1 - ss(0.18, 0.26, slope));
     const off = (td: number) => ss(2.6, 4.0, td);
     const jungle = (sd: number) => 1 - ss(18, 45, sd);
-    const kind = (name: string, g: THREE.BufferGeometry, cap0: number, [near, far]: [number, number], scale: [number, number], density: Kind['density'], tint?: Kind['tint']): void => {
-      const cap = Math.round(cap0 * CAP_K);
-      const reach = new THREE.Vector3(near * REACH_K, far * REACH_K, (far - near) * REACH_K * 0.25);
-      this.rMax = Math.max(this.rMax, reach.y + REFILL_M + EYE_SLACK);
-      const mesh = new THREE.InstancedMesh(g, material(reach), cap);
-      mesh.name = `ground-cover-${name}`;
+    const instanced = (name: string, g: THREE.BufferGeometry, mat: THREE.Material, cap: number, tinted: boolean): THREE.InstancedMesh => {
+      const mesh = new THREE.InstancedMesh(g, mat, cap);
+      mesh.name = name;
       mesh.count = 0;
       mesh.frustumCulled = false;                           // the window moves with the player; one sphere per refill would do too
       mesh.castShadow = false; mesh.receiveShadow = true;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      if (tint) { mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); mesh.instanceColor.setUsage(THREE.DynamicDrawUsage); }
+      if (tinted) { mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); mesh.instanceColor.setUsage(THREE.DynamicDrawUsage); }
       const ground = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
       ground.setUsage(THREE.DynamicDrawUsage);
       g.setAttribute('aGround', ground);
       this.group.add(mesh);
-      this.kinds.push({ name, mesh, cap, reach, density, scale, ...(tint ? { tint } : {}) });
+      return mesh;
     };
+    /** `farOf`: [far model, [farNear, farFar] m, cap, keep] — the far tier (none when `?coverfar=off`) */
+    const kind = (name: string, g: THREE.BufferGeometry, cap0: number, [near, far]: [number, number], scale: [number, number], density: Kind['density'], tint?: Kind['tint'], farOf?: [THREE.BufferGeometry, [number, number], number, number]): void => {
+      const cap = Math.round(cap0 * CAP_K);
+      const reach = new THREE.Vector3(near * REACH_K, far * REACH_K, (far - near) * REACH_K * 0.25);
+      this.rMax = Math.max(this.rMax, reach.y + REFILL_M + EYE_SLACK);
+      let farTier: FarTier | null = null;
+      const farReach = new THREE.Vector3(0, 0, 1);
+      if (farOf && COVER_FAR !== 'off') {
+        const [fg, [fn, ff], fcap0, keep] = farOf, k = REACH_K * FAR_K, fcap = Math.round(fcap0 * keep * CAP_K * FAR_K * FAR_K);
+        farReach.set(fn * k, ff * k, (ff - fn) * k * 0.25);
+        this.rFar = Math.max(this.rFar, farReach.y + FAR_SLACK + EYE_SLACK);
+        farTier = {
+          mesh: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep,
+          stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), n: 0 },
+        };
+      }
+      const mesh = instanced(`ground-cover-${name}`, g, material(reach, farReach, farTier ? MODE_HANDOVER : MODE_NEAR), cap, tint !== undefined);
+      this.kinds.push({ name, mesh, cap, far: farTier, reach, density, scale, ...(tint ? { tint } : {}) });
+    };
+    // the far models: a few triangles each, the near model's silhouette from 25 m on (its flowers as flat chips)
+    const farRng = new Rng(SEED ^ 0x6cf0);
+    const farTuftGeo = geo((k) => { for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + farRng.range(-0.4, 0.4); k.add(bladeTri(a, 0.08, farRng.range(0.32, 0.46), farRng.range(0.2, 0.45)), [PLANT.grassTip, PLANT.grass, PLANT.grassB][i] ?? PLANT.grass); } }, 0x6cf1);
+    const farFernGeo = geo((k) => { for (let i = 0; i < 6; i++) k.add(frondTri((i / 6) * Math.PI * 2 + farRng.range(-0.25, 0.25), 0.75 * farRng.range(0.75, 1.1), 0.2, farRng.range(0.45, 0.85)), i % 3 === 0 ? PLANT.leafLight : i % 2 ? PLANT.leaf : PLANT.leafB); }, 0x6cf2);
+    const farHibGeo = geo((k) => {
+      for (let i = 0; i < 4; i++) k.add(frondTri((i / 4) * Math.PI * 2 + farRng.range(-0.25, 0.25), 0.42 * farRng.range(0.75, 1.1), 0.2, farRng.range(0.45, 0.85)), i % 2 ? PLANT.leaf : PLANT.leafB);
+      for (const [x, y, z] of [[0, 0.32, 0], [0.18, 0.26, 0.1], [-0.14, 0.24, 0.12]] as const) k.add(chip(0.1, 0.5).translate(x, y, z), PLANT.hibiscus);
+    }, 0x6cf3);
+    const farDaisyGeo = geo((k) => {
+      for (let i = 0; i < 2; i++) k.add(bladeTri(i * Math.PI, 0.03, 0.18, 0.3), PLANT.grass);
+      for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2, d = farRng.range(0.08, 0.2); k.add(chip(0.065, 0).translate(Math.cos(a) * d, farRng.range(0.14, 0.26), Math.sin(a) * d), i % 2 ? '#f6f2e6' : '#fbe9a0'); }
+    }, 0x6cf4);
+    const farBushGeo = geo((k) => { for (let i = 0; i < 4; i++) { const len = farRng.range(0.65, 0.95); k.add(leafDiamond((i / 4) * Math.PI * 2 + farRng.range(-0.3, 0.3), len, len * 0.62, farRng.range(0.35, 0.8), farRng.range(0.15, 0.45)), i % 2 ? PLANT.leafDark : PLANT.leaf); } }, 0x6cf5);
     kind('tuft', tuftGeo, 5200, [14, 34], [0.9, 1.5],
       (h, sl, td) => (grass(h, sl) * 1.6 + beach(h) * 0.18 + this.dune(h) * 0.7) * off(td),
-      (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); });
-    kind('fern', fernGeo, 1400, [14, 34], [0.7, 1.4], (h, sl, td, sd, palm) => (grass(h, sl) * (0.03 + jungle(sd) * 0.35) + this.edge(h, sl) * 0.45 + palm * 0.45) * off(td));
-    kind('hibiscus', hibGeo, 900, [14, 34], [0.8, 1.3], (h, sl, td, sd, palm) => (grass(h, sl) * (0.025 + jungle(sd) * 0.08) + this.edge(h, sl) * 0.3 + palm * 0.28) * off(td));
-    kind('daisy', daisyGeo, 800, [9, 22], [0.8, 1.4], (h, sl, td) => (grass(h, sl) * 0.07 + this.edge(h, sl) * 0.3) * off(td));
+      (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); },
+      [farTuftGeo, [26, 60], 16000, 0.6]);
+    kind('fern', fernGeo, 1400, [14, 34], [0.7, 1.4], (h, sl, td, sd, palm) => (grass(h, sl) * (0.03 + jungle(sd) * 0.35) + this.edge(h, sl) * 0.45 + palm * 0.45) * off(td), undefined, [farFernGeo, [26, 60], 4400, 1]);
+    kind('hibiscus', hibGeo, 900, [14, 34], [0.8, 1.3], (h, sl, td, sd, palm) => (grass(h, sl) * (0.025 + jungle(sd) * 0.08) + this.edge(h, sl) * 0.3 + palm * 0.28) * off(td), undefined, [farHibGeo, [26, 64], 3200, 1]);
+    kind('daisy', daisyGeo, 800, [9, 22], [0.8, 1.4], (h, sl, td) => (grass(h, sl) * 0.07 + this.edge(h, sl) * 0.3) * off(td), undefined, [farDaisyGeo, [16, 40], 1600, 1]);
     kind('pebble', pebbleGeo, 400, [9, 22], [0.7, 1.5], (h, sl, td) => (grass(h, sl) * 0.03 + beach(h) * 0.05) * (0.4 + 0.6 * off(td)));
     // (E43) the beach: a shell / starfish / pebble scatter every 1-2 m on the sand, beach grass on the dune crest, and a
     // dense fringe of ferns, hibiscus, flowers and bushes along the sand -> grass edge and round every palm's foot
@@ -213,9 +305,10 @@ export class GroundCover {
     kind('starfish', starGeo, 300, [8, 20], [1.1, 1.8], (h) => beach(h) * 0.09,
       (_h, r, out) => { const v = r.next(); if (v < 0.25) out.setRGB(0.55, 0.45, 1.3); else if (v < 0.5) out.setRGB(1.05, 0.95, 0.6); else out.setRGB(1, 1, 1); });
     const bushGeo = geo(openEnded(broadClump(rng, 1.0)), 0x6c07);
-    kind('bush', bushGeo, 900, [16, 38], [0.8, 1.6], (h, sl, td, sd, palm) => (this.edge(h, sl) * 0.3 + palm * 0.3 + grass(h, sl) * 0.015) * off(td) + jungle(sd) * grass(h, sl) * 0.06);
-    const span = Math.ceil((2 * this.rMax) / CELL) + 1;
-    this.cacheMax = Math.max(96, span * span * 2);
+    kind('bush', bushGeo, 900, [16, 38], [0.8, 1.6], (h, sl, td, sd, palm) => (this.edge(h, sl) * 0.3 + palm * 0.3 + grass(h, sl) * 0.015) * off(td) + jungle(sd) * grass(h, sl) * 0.06, undefined, [farBushGeo, [30, 76], 4000, 1]);
+    const span = Math.ceil((2 * Math.max(this.rMax, this.rFar)) / CELL) + 1;
+    this.cacheMax = Math.max(96, Math.round(span * span * 1.4));
+    this.group.userData['stats'] = this.stats;
     this.buildDriftwood();
     this.group.name = 'ground-cover';
     return this;
@@ -290,6 +383,7 @@ export class GroundCover {
 
   /** copy every cached plant that can show before the next refill (its edge + REFILL_M) into its kind's buffers */
   private refill(px: number, py: number, pz: number): void {
+    const t0 = performance.now();
     const R = this.rMax, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
     const counts = this.kinds.map(() => 0);
     const TAU = Math.PI * 2;
@@ -326,6 +420,76 @@ export class GroundCover {
       if (k.mesh.instanceColor) k.mesh.instanceColor.needsUpdate = true;
       k.mesh.geometry.getAttribute('aGround').needsUpdate = true;
     });
+    this.stats.nearRefillMs = performance.now() - t0;
+  }
+
+  /**
+   * The far tier's rebuild, a slice of cells per step (nearest first): every plant whose far model can show before the
+   * next rebuild lands — past its near edge less FAR_SLACK, inside its far edge plus FAR_SLACK — into the staging
+   * buffers, which are copied in at the end. A cap cuts the furthest (thinnest) first.
+   */
+  private *farRefill(px: number, py: number, pz: number): Generator<undefined, undefined, undefined> {
+    const R = this.rFar, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
+    const cellsAt: [number, number, number][] = [];
+    for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
+      const dx = Math.max(0, cx * CELL - px, px - (cx + 1) * CELL), dz = Math.max(0, cz * CELL - pz, pz - (cz + 1) * CELL);
+      if (dx * dx + dz * dz <= R * R) cellsAt.push([cx, cz, dx * dx + dz * dz]);
+    }
+    cellsAt.sort((a, b) => a[2] - b[2]);
+    for (const k of this.kinds) if (k.far) k.far.stage.n = 0;
+    const TAU = Math.PI * 2, slack = FAR_SLACK + EYE_SLACK;
+    for (const [cx, cz] of cellsAt) {
+      if (!this.cells.has(`${cx},${cz}`)) { this.cell(cx, cz); this.stats.cellsBuilt++; yield undefined; } // a new cell is its own slice
+      const data = this.cell(cx, cz);
+      this.kinds.forEach((k, ki) => {
+        const f = k.far, v = data[ki];
+        if (f === null || v === undefined) return;
+        const near = k.reach.x, grow = k.reach.z, far = k.reach.y, fNear = f.reach.x, fFar = f.reach.y, fGrow = f.reach.z;
+        const st = f.stage, keep = f.keep, growK = 1 / Math.sqrt(keep);
+        let n = st.n;
+        for (let i = 0; i < v.length && n < f.cap; i += STRIDE) {
+          const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
+          const h = yaw / TAU, wrap = h < 0.005 || h > 0.995;
+          if (keep < 1 && ((h * 97.13) % 1) >= keep) continue;           // not one of the kind's far plants
+          const edge = wrap ? near + grow : near + grow + (far - near - grow) * h, fEdge = wrap ? fFar : fNear + fGrow + (fFar - fNear - fGrow) * h;
+          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, lo = Math.max(0, edge - grow - slack), hi = fEdge + slack;
+          if (d2 > hi * hi || d2 < lo * lo) continue;
+          const s = (v[i + 4] ?? 1) * growK, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16, m = st.mat;
+          m[o] = c; m[o + 1] = 0; m[o + 2] = -sn; m[o + 3] = 0;
+          m[o + 4] = 0; m[o + 5] = s; m[o + 6] = 0; m[o + 7] = 0;
+          m[o + 8] = sn; m[o + 9] = 0; m[o + 10] = c; m[o + 11] = 0;
+          m[o + 12] = x; m[o + 13] = y; m[o + 14] = z; m[o + 15] = 1;
+          if (st.col) { st.col[n * 3] = v[i + 5] ?? 1; st.col[n * 3 + 1] = v[i + 6] ?? 1; st.col[n * 3 + 2] = v[i + 7] ?? 1; }
+          st.gnd[n * 3] = v[i + 8] ?? 0; st.gnd[n * 3 + 1] = v[i + 9] ?? 0; st.gnd[n * 3 + 2] = v[i + 10] ?? 0;
+          n++;
+        }
+        st.n = n;
+      });
+      yield undefined;
+    }
+    // swap in: copy what was staged (only that much is uploaded)
+    let total = 0;
+    for (const k of this.kinds) {
+      const f = k.far;
+      if (f === null) continue;
+      const st = f.stage, n = st.n, mesh = f.mesh;
+      const copy = (attr: THREE.BufferAttribute | THREE.InstancedBufferAttribute, src: Float32Array, w: number): void => {
+        (attr.array as Float32Array).set(src.subarray(0, n * w));
+        attr.clearUpdateRanges(); attr.addUpdateRange(0, Math.max(1, n * w)); attr.needsUpdate = true;
+      };
+      copy(mesh.instanceMatrix, st.mat, 16);
+      if (mesh.instanceColor && st.col) copy(mesh.instanceColor, st.col, 3);
+      const gnd = mesh.geometry.getAttribute('aGround');
+      if (gnd instanceof THREE.BufferAttribute) copy(gnd, st.gnd, 3);
+      mesh.count = n;
+      total += n;
+    }
+    this.stats.farCells = cellsAt.length; this.stats.farCount = total;
+    // a set that lands somewhere new — the first one, a jump further than the window (Explore's teleports) — grows in over
+    // ~0.8 s instead of appearing; flying, however fast, the sets overlap and simply follow
+    if (this.farLast.distanceToSquared(this.farJobAt) > this.rFar * this.rFar) this.farIn.value = 0;
+    this.farLast.copy(this.farJobAt);
+    return undefined;
   }
 
   update(dt: number, viewer: THREE.Vector3): void {
@@ -336,16 +500,37 @@ export class GroundCover {
       this.last.copy(viewer);
       this.refill(viewer.x, viewer.y, viewer.z);
     }
+    if (this.rFar === 0) return;
+    this.farIn.value = Math.min(1, this.farIn.value + dt / 0.8);
+    // the far tier: start a rebuild every FAR_REFILL_M m and step it within the budget (a job always finishes: flying
+    // fast, the next one starts from where the camera is by then)
+    if (this.farJob === null && this.farLast.distanceToSquared(viewer) > FAR_REFILL_M * FAR_REFILL_M) {
+      this.farJobAt.copy(viewer);
+      this.farJob = this.farRefill(viewer.x, viewer.y, viewer.z);
+      this.stats.farJobMs = 0; this.stats.farJobFrames = 0;
+    }
+    if (this.farJob !== null) {
+      const t0 = performance.now();
+      this.stats.farJobFrames++;
+      while (performance.now() - t0 < FAR_BUDGET_MS) if (this.farJob.next().done === true) { this.farJob = null; break; }
+      this.stats.farJobMs += performance.now() - t0;
+    }
   }
 
-  /** grow in by distance (each plant at its own edge, E117), bend away from the player's legs, sway in the wind */
-  private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3): void {
-    const u = this.uniforms, uReach = { value: reach }, uBlend = { value: BLEND };
+  /**
+   * Grow in by distance (each plant at its own edge, E117), bend away from the player's legs, sway in the wind. `mode`:
+   * MODE_NEAR shrinks away at the edge into the ground's colour; MODE_HANDOVER shrinks away keeping its colours (its far
+   * model grows in on the same spot); MODE_FAR is that far model: in from the near edge, out at its own far edge, where
+   * it takes on the ground's colour first.
+   */
+  private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3, far: THREE.Vector3, mode: number): void {
+    const u = this.uniforms, uReach = { value: reach }, uBlend = { value: BLEND }, uFarReach = { value: far }, uMode = { value: mode }, uFarIn = this.farIn;
     mat.onBeforeCompile = (sh) => {
       attachFogUniforms(sh);
       sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uReach'] = uReach; sh.uniforms['uBlend'] = uBlend;
+      sh.uniforms['uFarReach'] = uFarReach; sh.uniforms['uMode'] = uMode; sh.uniforms['uFarIn'] = uFarIn;
       sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', '#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec3 uReach; uniform float uBlend;\nattribute vec3 aGround; varying vec3 vGround; varying float vFar;')
+        .replace('#include <common>', '#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec3 uReach; uniform float uBlend; uniform vec3 uFarReach; uniform float uMode; uniform float uFarIn;\nattribute vec3 aGround; varying vec3 vGround; varying float vFar;')
         .replace('#include <begin_vertex>', `#include <begin_vertex>
         #ifdef USE_INSTANCING
         {
@@ -356,9 +541,19 @@ export class GroundCover {
           float h = fract(atan(-instanceMatrix[0].z, instanceMatrix[0].x) / 6.2831853 + 1.0);
           float edge = mix(uReach.x + uReach.z, uReach.y, h);
           float dc = distance(io, cameraPosition);
-          transformed *= 1.0 - smoothstep(edge - uReach.z, edge, dc);
-          // past near it turns into the ground it stands on, all the way by the time it starts to shrink
-          vFar = smoothstep(uReach.x, max(edge - uReach.z, uReach.x + 1.0), dc) * uBlend;
+          float nearK = 1.0 - smoothstep(edge - uReach.z, edge, dc);
+          if (uMode > 1.5) {
+            // the far model: grows in as the near one shrinks, keeps its colours, then at its own far edge (same h)
+            // takes on the ground's colour and shrinks away
+            float fEdge = mix(uFarReach.x + uFarReach.z, uFarReach.y, h);
+            transformed *= (1.0 - nearK) * (1.0 - smoothstep(fEdge - uFarReach.z, fEdge, dc)) * uFarIn;
+            vFar = smoothstep(fEdge - 2.5 * uFarReach.z, fEdge - uFarReach.z, dc) * uBlend;
+          } else {
+            transformed *= nearK;
+            // past near it turns into the ground it stands on, all the way by the time it starts to shrink (unless its far
+            // model takes over there)
+            vFar = uMode > 0.5 ? 0.0 : smoothstep(uReach.x, max(edge - uReach.z, uReach.x + 1.0), dc) * uBlend;
+          }
           vGround = aGround;
           float hgt = max(position.y, 0.0);
           vec2 push = (away / dl) * (1.0 - smoothstep(0.35, 1.5, dl)) * 1.1;

@@ -41,6 +41,7 @@
 import type { Game } from './Game';
 import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { resumeScreen, SHOT_KEY } from '../ui/Resume';
+import { layout, trace, traceReturn, traceWorldReady } from './lifeTrace';
 
 export interface RecoveryHost {
   game: Game;
@@ -132,6 +133,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     game.hold = true;
     document.dispatchEvent(new Event('ws:background'));
     console.warn(`[gl] reloading: ${why}`);
+    trace('reload', `${why}${away ? ' (away)' : ''}`);
     const now = Date.now();
     let recent: number[] = [];
     try { recent = (JSON.parse(sessionStorage.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => now - t < RELOAD_WINDOW_MS); } catch { /* no session storage: allow the reload */ }
@@ -177,6 +179,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     screen.show(shot);
     document.dispatchEvent(new Event('ws:background'));
     console.warn(`[gl] ${why}: holding the frame loop`);
+    trace('lost', `${why} · canvases ${canvasesWiped() ? 'wiped' : 'intact'}`);
     // the GPU process died (every canvas wiped): nothing to restore in place — do not wait for the restore event
     if (canvasesWiped()) { reload('the GPU process restarted: every canvas was wiped'); return; }
     watch(LOST_MAX_S, 'the context stayed lost');
@@ -189,6 +192,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (bakes.length > 0) { reload(`runtime bakes cannot be restored (${bakes.join(', ')})`); return; }
     const mine = ++epoch;
     phase = 'restoring';
+    trace('restore', 'in place');
     watch(RESTORE_MAX_S, 'the restore took too long');
     screen.show(shot);
     screen.progress(0);
@@ -212,6 +216,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     screen.progress(1);
     revealWhenDrawn();
     console.warn(`[gl] restored in place in ${Math.round(performance.now() - t0)} ms`);
+    trace('restored', `${Math.round(performance.now() - t0)} ms`);
     // the scene must actually draw again: no frame on a live, open gate within a few visible seconds → reload
     game.lastFrame.calls = -1;
     let waited = 0;
@@ -233,6 +238,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     hiddenAt = Date.now();
     epoch++;
     takeStill();
+    trace('hide', `${phase} · ${layout()}`);
     screen.show(shot); // up while hidden: the switch back paints this first
     document.dispatchEvent(new Event('ws:background')); // the HUD pauses into the menu (a no-op on the title / already paused)
   };
@@ -240,9 +246,11 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (!hidden) return;
     hidden = false;
     const away = Date.now() - hiddenAt;
-    if (hiddenAt > 0 && away > AWAY_MAX_MS && (phase === 'ok' || phase === 'lost')) { reload(`back after ${Math.round(away / 60_000)} min away`, true); return; }
-    if (phase !== 'ok') return; // lost / restoring / reloading: the screen stays until that path ends
-    if (gl.isContextLost()) { lose('context lost while hidden (no event)'); return; }
+    repaint();
+    if (hiddenAt > 0 && away > AWAY_MAX_MS && (phase === 'ok' || phase === 'lost')) { traceReturn(away, 'away-reload'); reload(`back after ${Math.round(away / 60_000)} min away`, true); return; }
+    if (phase !== 'ok') { traceReturn(away, `phase ${phase}`); return; } // lost / restoring / reloading: the screen stays until that path ends
+    if (gl.isContextLost()) { traceReturn(away, 'lost while hidden'); lose('context lost while hidden (no event)'); return; }
+    traceReturn(away, 'in place');
     game.kickLoop(); // the frame loop, if the browser dropped its animation frame across the switch
     revealWhenDrawn(MIN_SHOW_MS);
     const mine = epoch;
@@ -256,6 +264,19 @@ export function installGpuRecovery(host: RecoveryHost): void {
   // a recovery reload: index.html put the screen up before any of this ran; the world is built and drawing now
   // (still in the background: show() drops it on the way back)
   if (host.resumed) { screen.progress(1); if (!hidden) revealWhenDrawn(); }
+  traceWorldReady();
+}
+
+/**
+ * Make WebKit paint every DOM layer again (E135). Jake's home-screen app came back from 10+ min away with the canvas
+ * drawing and nothing the DOM paints showing (white where the page's dark background should be, no HUD): iOS may drop
+ * a suspended page's tile backing stores and not repaint them. A two-frame opacity change on <html> makes it a
+ * compositing layer and back, which repaints its contents; the player sees nothing (0.999).
+ */
+function repaint(): void {
+  const s = document.documentElement.style;
+  s.opacity = '0.999';
+  requestAnimationFrame(() => { requestAnimationFrame(() => { s.opacity = ''; }); });
 }
 
 /** a still with nothing drawn in it: every sampled pixel near black (a transparent buffer encodes as black) */

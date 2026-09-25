@@ -11,7 +11,6 @@
   opacity: 0; transform: translateX(8px); transition: opacity 0.35s, transform 0.35s; pointer-events: none;
 }
 .ws-quest-obj.show { opacity: 1; transform: none; }
-.ws-quest-obj.show.dim { opacity: 0.12; } /* a HUD toast is up (on a non-touch phone the toasts run under the minimap too) */
 .ws-quest-obj.ws-quest-hide { opacity: 0; transition: opacity 1.2s; } /* the reward caption has the screen */
 .ws-quest-obj-dia { flex: none; width: 7px; height: 7px; transform: rotate(45deg); background: var(--ws-cyan); box-shadow: 0 0 7px rgba(143, 227, 255, 0.8); }
 .ws-quest-obj-goal, .ws-quest-obj-nav { display: flex; align-items: center; gap: 0.6em; min-width: 0; }

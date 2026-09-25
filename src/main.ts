@@ -61,6 +61,7 @@ import { resumeProgress, resumeScreen } from './ui/Resume';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
 import { FullMap } from './ui/Map';
+import { BagButton } from './ui/BagButton';
 import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
@@ -436,10 +437,13 @@ async function main() {
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
     skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id) => { nalatiNow()?.skins.toggle(id); }, // Nalati's wearable skins (B15)
+    split: params.get('bagbtn') !== '0', // E124: PAUSE → Settings + Feedback, the BAG button → Map · Inventory · Achievements
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
-  document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
+  // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts); ?bagbtn=0 = none + the one menu
+  if (params.get('bagbtn') !== '0') new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
+  // M / I / Esc are the menu's own keys (src/ui/Menu.ts, gated by the HUD: E130)
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
 
   // ── the review inbox (project/archive/2026-09-22-feedback-inbox.md): unlocked in Settings → REVIEW, then F8 (desktop), the ✎ disc under
@@ -538,7 +542,7 @@ async function main() {
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
-  installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
+  installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, stowWeapon: (on) => { weapons.stowed = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/nalati/adventure.ts on the shared quest core) — null on any other shard ──
   installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });

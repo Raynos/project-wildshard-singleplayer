@@ -394,6 +394,8 @@ export interface ChunkDef {
   surfaceAt?: (x: number, z: number, h: number, slope: number) => [number, number, number];
   /** open water over the whole shard; omitted = dry land with an optional pond */
   ocean?: OceanDef;
+  /** what the minimap and the full map draw of the built world (E130); omitted = ground, trails and the def's own features only */
+  map?: ChunkMapDef;
   /** named places — Explore World's mini map pins them and flies to them (src/explore/MiniMap.ts); omitted = none */
   pois?: ChunkPoi[];
   /** the title's EXPLORE WORLD is offered on this shard (project/archive/2026-09-23-explore-world.md; the models it shows are what the
@@ -404,6 +406,19 @@ export interface ChunkDef {
    *  VARIANTS); omitted or '' = the plain bake */
   bakeVariant?: string;
 }
+
+/**
+ * The built world on the maps (E130, src/ui/Minimap.ts): flat silhouettes in the map's own style, read from the real layout —
+ * the registered pieces' collider footprints (src/world/registry.ts), never hand-placed shapes.
+ */
+export interface ChunkMapDef {
+  /** sand paths drawn as lines (the island's are not the pine trails' dirt beds) */
+  paths?: Vec2[][];
+  /** registry piece ids (a trailing `*` matches a prefix: `jetty-*`), each drawn in a look: a flat footprint in that material's
+   *  colour, or `dot` (a tree crown: one small dot per collider) */
+  pieces?: { ids: string[]; look: MapLook }[];
+}
+export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 
 /** a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) */
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }

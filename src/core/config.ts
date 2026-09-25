@@ -6,7 +6,6 @@ export const ROAD_WIDTH = 15;         // entry road at each edge midpoint
 export const ROAD_LENGTH = 60;        // must be >= 50m into the chunk
 
 export const TERRAIN_RES = 256;       // vertices per side
-export const GRASS_RADIUS = 60;
 
 // ── per-shard values ──
 // Live bindings mirrored from the active ChunkDef (src/chunks/registry.ts). They are set when the

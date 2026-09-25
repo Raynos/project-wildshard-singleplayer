@@ -201,8 +201,6 @@ export function clearSkin(root: THREE.Object3D): void {
   STATE.delete(root);
 }
 
-export function skinOf(root: THREE.Object3D): SkinId | null { return STATE.get(root)?.id ?? null; }
-
 // ───────────────────────────── the crossbow as a world item ─────────────────────────────
 
 /** A world-space copy of the crossbow for a floor drop: the viewmodel's meshes with plain render flags, no depth

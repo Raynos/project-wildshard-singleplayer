@@ -21,7 +21,7 @@ const INSTALL = `(() => {
   window.__go = 0;
   g.frameGate = () => { if (window.__go > 0) { window.__go--; return true; } return false; };
   g.clock.getDelta = () => { g.clock.elapsedTime += 1 / ${FPS}; return 1 / ${FPS}; };
-  for (const sel of ['.ws-perf', '.ws-debug', '.ws-update', '#ws-error']) document.querySelectorAll(sel).forEach((e) => e.remove());
+  for (const sel of ['.ws-perf', '.ws-debug', '.ws-update', '#wserr', '#wserr-chip']) document.querySelectorAll(sel).forEach((e) => e.remove());
   for (const el of document.body.querySelectorAll('*')) if (el.children.length === 0 && el.textContent?.trim() === 'DBG') el.remove();
   window.__step = () => new Promise((res) => { window.__go = 1; requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(res))); });
   window.__tp = (x, z, yaw, pitch, y) => { const p = w.player; p.position.set(x, y ?? (window.__hf.heightAt(x, z)), z); p.yaw = yaw; p.pitch = pitch ?? 0; if (p.velocity) p.velocity.set(0, 0, 0); };

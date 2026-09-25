@@ -20,7 +20,7 @@
  *   noiseLoop(sr, seed, pink)           a seamless 4 s white / pink noise loop (the ambience beds' raw material)
  *   interact(kind, sr, seed)            the adventure kit: chest / locked / lever / plate / door / grate / chime / glyph / ignite
  */
-import { Biquad, Formants, Glottis, Modes, Pink, Rand, ad, fade, len, mix, normalize, saturate, type FilterType } from './dsp';
+import { Biquad, Formants, Glottis, Modes, Pink, Rand, ad, fade, len, normalize, saturate, type FilterType } from './dsp';
 
 export type StepKind = 'sand' | 'wetSand' | 'grass' | 'rock' | 'planks' | 'stone' | 'water';
 export type Material = 'flesh' | 'shell' | 'wood' | 'stone';
@@ -602,6 +602,3 @@ export function noiseLoop(sr: number, seed: number, pink: boolean, sec = 4): Flo
   for (let i = 0; i < x; i++) { const u = i / x; out[i] = (out[i] ?? 0) * Math.sqrt(u) + (out[n + i] ?? 0) * Math.sqrt(1 - u); }
   return out.subarray(0, n).slice();
 }
-
-/** test / dev helper: silence padding so a sound's tail can be measured */
-export function pad(buf: Float32Array, sr: number, sec: number): Float32Array { const o = new Float32Array(buf.length + len(sec, sr)); mix(o, buf, 0); return o; }

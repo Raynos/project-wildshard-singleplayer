@@ -39,7 +39,6 @@ import { loadTexture } from '../core/assets';
 import { TIER_CONFIG } from '../core/tier';
 
 export type NalatiTexName = 'meadow' | 'path' | 'gravel' | 'rock' | 'snow' | 'bark' | 'felt';
-export const NALATI_TEX_NAMES: readonly NalatiTexName[] = ['meadow', 'path', 'gravel', 'rock', 'snow', 'bark', 'felt'];
 
 /** metres of world one tile covers, as painted (a pebble / blade / plate reads at its real size) */
 export const TEX_METRES: Readonly<Record<NalatiTexName, number>> = {

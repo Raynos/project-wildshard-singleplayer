@@ -119,7 +119,7 @@ export class HUD {
   private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
-  private feed!: HTMLElement; private toasts!: ToastStack;
+  private feed!: HTMLElement; private toasts!: ToastStack; private toastBox!: HTMLElement;
   private fps!: HTMLElement; private fpsNum!: HTMLElement; private coords!: HTMLElement;
   private healthVal!: HTMLElement; private healthBar!: HTMLElement;
   private ammoCount!: HTMLElement; private ammoNum!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
@@ -139,6 +139,8 @@ export class HUD {
 
   /** the review composer (src/ui/Feedback.ts) is up: losing the pointer lock does not open the pause menu */
   holdPause = false;
+  /** when the menu last closed (performance.now) — see the pointerlockchange listener */
+  private menuClosedAt = -Infinity;
 
   constructor(opts: HUDOptions = {}) {
     this.opts = { pointerLock: true, maxBolts: 30, ...opts };
@@ -152,7 +154,11 @@ export class HUD {
     document.addEventListener('pointerlockchange', () => {
       if (!this.opts.pointerLock || !this.entered || this.holdPause) return;
       const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
-      this.setPaused(!locked);
+      // the lock came back: close the menu. It went away: pause — unless the menu is already up. M / I / the minimap open it
+      // on their tab and release the lock themselves (Menu.onOpen); that release used to flip it to Settings (E130)
+      // A lock lost within a moment of the menu closing is the Esc that closed it (the browser's own Esc handling
+      // releases the lock the close had just re-taken): stay closed, a click on the canvas takes the lock back
+      if (locked) this.setPaused(false); else if (!this.paused && performance.now() - this.menuClosedAt > 400) this.setPaused(true);
     });
     document.addEventListener('keydown', (e) => {
       if (!this.intro || this.entered || e.metaKey || e.ctrlKey || e.code === 'Escape') return;
@@ -235,13 +241,13 @@ export class HUD {
 
     this.prompt = el('div', 'ws-glass ws-game-prompt'); r.append(this.prompt);
     this.boundary = el('div', 'ws-game-boundary', '<div class="ws-game-bt">Chunk boundary</div><div class="ws-game-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.append(this.boundary);
-    const toasts = el('div', 'ws-game-toasts'); r.append(toasts); this.toasts = new ToastStack(toasts);
+    const toasts = el('div', 'ws-game-toasts'); r.append(toasts); this.toasts = new ToastStack(toasts); this.toastBox = toasts;
     this.flash = el('div', 'ws-game-flash'); r.append(this.flash);
 
     // pause = the in-game menu on its Settings tab (src/ui/Menu.ts, attached by main.ts as `hud.menu`):
-    // the touch PAUSE button (TouchControls), Escape on devices without pointer lock, and a released pointer lock
+    // the touch PAUSE button (TouchControls) and a released pointer lock; Escape (and M / I) is the menu's own key listener,
+    // gated by `keyGate` below (E130 — the HUD's Esc here opened the menu the menu's listener then closed, E32)
     document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
-    document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered && !this.paused) this.setPaused(true); });
     // native shells (src/native/lifecycle.ts): the app went to the background → pause, never unpause;
     // Android Back → close the menu or pause; preventDefault() tells the shell it was used (else it minimizes the app)
     document.addEventListener('ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
@@ -439,13 +445,26 @@ export class HUD {
     setTimeout(() => { item.classList.add('out'); setTimeout(() => { item.remove(); }, 500); }, 4200);
   }
 
-  /** one queue (src/ui/ToastStack.ts): ≤ 3 up, the older ones dimmed, always under the top bars (elite / boss / quest) */
-  toast(text: string): void { this.toasts.push(text); }
+  /** one queue (src/ui/ToastStack.ts: ≤ 3 up, the older ones dimmed, stepping down under the elite / boss bars), placed per
+   *  A1 (E130): right-aligned under the quest chip */
+  toast(text: string): void { this.placeToasts(); this.toasts.push(text); }
+
+  /** A1 (E130): the toasts hang right-aligned under the quest chip (placed by QuestUI under the minimap; hidden, its slot
+   *  still is) — on a shard without one, under the minimap. Read at each toast: every layout puts them differently */
+  private placeToasts(): void {
+    const chip = this.root.querySelector('.ws-quest-obj'), anchor = chip ?? this.root.querySelector('.ws-minimap');
+    if (anchor === null) return;
+    const r = anchor.getBoundingClientRect(), host = this.root.getBoundingClientRect();
+    if (r.height === 0) return;
+    this.toastBox.style.setProperty('--ws-toast-top', `${Math.round(r.bottom - host.top + (chip ? 8 : 12))}px`); // the rim's ticks poke 6–8 px out
+    this.toastBox.style.setProperty('--ws-toast-right', `${Math.round(host.right - r.right)}px`);
+  }
+
 
   damageFlash(): void { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
   setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible); }
 
-  set menu(m: GameMenu) { this._menu = m; m.onClose = () => { this.onResume?.(); }; m.onExit = () => { this.exitToMenu(); }; }
+  set menu(m: GameMenu) { this._menu = m; m.keyGate = () => this.entered && !this.holdPause; m.onClose = () => { this.menuClosedAt = performance.now(); this.onResume?.(); }; m.onExit = () => { this.exitToMenu(); }; }
   get menu(): GameMenu { const m = this._menu; if (!m) throw new Error('HUD: no menu attached (hud.menu = …)'); return m; }
   setPaused(paused: boolean): void { if (!this._menu || !this.entered) return; if (paused) this._menu.open('settings'); else this._menu.close(); }
   get paused(): boolean { return this._menu?.isOpen ?? false; }
@@ -582,6 +601,14 @@ export class HUD {
       if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
     };
     addEventListener('resize', onResize);
+    // iOS (E131): a rotation can fire `resize` before the new layout settles (or while the rotate gate hides the menu, all
+    // widths 0), and it may leave the strip natively scrolled — so re-centre whenever the strip's own box really changes
+    const strip = new ResizeObserver(() => {
+      if (!this.intro) { strip.disconnect(); return; }
+      list.scrollLeft = 0;
+      if (!drag) place(index, 0, false);
+    });
+    strip.observe(list);
     // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
     // orientation on screen, loads with the menu (apply() above). A neighbour's loads when a swipe or a card tap starts
     // toward it, so the crossfade on release is usually instant; the other orientation only on a real flip (onResize →

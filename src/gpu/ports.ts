@@ -56,7 +56,3 @@ export function hVec3(h: Harvest, k: string): Node<'vec3'> {
   const r = need(h, k) as THREE.IUniform<THREE.Vector3>;
   return uniform(r.value.clone()).onRenderUpdate((_f, self) => { self.value.copy(r.value); });
 }
-export function hVec2(h: Harvest, k: string): Node<'vec2'> {
-  const r = need(h, k) as THREE.IUniform<THREE.Vector2>;
-  return uniform(r.value.clone()).onRenderUpdate((_f, self) => { self.value.copy(r.value); });
-}

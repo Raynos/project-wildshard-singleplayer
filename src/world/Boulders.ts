@@ -67,11 +67,11 @@ export class Boulders {
     const rng = new Rng(0x5ea1 ^ 0xb0);
     const parts: THREE.BufferGeometry[] = [];
     const c = new THREE.Color();
-    // E114: ?rocks=a|b|c builds each boulder in a candidate look (rockKit.ts); the current look stays the default
+    // E114: the rocks are built in rockKit's look — B (smooth painted) by default, ?rocks=now the old icosahedra below
     const look = rockLook(), lookRng = new Rng(0x5ea1 ^ 0x70c5);
     for (const b of specs) {
       if (look !== 'current') {
-        const g = rockGeometry(look, b.r, lookRng, { squash: b.squash ?? 0.7, palette: SHORE_ROCK, moss: lookRng.range(0.1, 0.75) });
+        const g = rockGeometry(look, b.r, lookRng, { squash: b.squash ?? 0.7, palette: SHORE_ROCK, moss: lookRng.range(0.25, 0.85), ground: -0.35 * b.r * (b.squash ?? 0.7) });
         this.place(g, b, parts);
         continue;
       }

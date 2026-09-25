@@ -6,7 +6,7 @@
  *   const f = new Biquad('bandpass', 1200, 2, sr); y = f.run(x); f.set('bandpass', 900, 2);   // RBJ cookbook, TDF-II
  *   const m = new Modes(sr, [[180, 0.08, 1], [420, 0.05, 0.6]]); m.strike(1); y = m.run();      // modal resonator bank
  *   const g = new Glottis(sr, rand); g.run(f0, tenseness);   // a band-limited glottal pulse train with jitter (vocals)
- *   normalize(buf, 0.9); fade(buf, sr, 0.002, 0.03); mix(dst, src, at, gain)
+ *   normalize(buf, 0.9); fade(buf, sr, 0.002, 0.03)
  *
  * Analysis helpers (the tests and the in-browser checks use them): `bandEnergy`, `centroid`, `rt60`.
  */
@@ -60,14 +60,6 @@ export class Biquad {
   }
   /** filter a whole buffer in place */
   apply(buf: Float32Array): Float32Array { for (let i = 0; i < buf.length; i++) buf[i] = this.run(buf[i] ?? 0); return buf; }
-}
-
-/** one-pole low-pass (smoothing, envelopes, pink-ish tilts) */
-export class OnePole {
-  private y = 0; private a: number;
-  constructor(freq: number, sr: number) { this.a = 1 - Math.exp((-2 * Math.PI * freq) / sr); }
-  setFreq(freq: number, sr: number): void { this.a = 1 - Math.exp((-2 * Math.PI * freq) / sr); }
-  run(x: number): number { this.y += this.a * (x - this.y); return this.y; }
 }
 
 /** Paul Kellet's economy pink filter over white noise */
@@ -156,9 +148,6 @@ export function fade(buf: Float32Array, sr: number, inS: number, outS: number): 
   for (let i = 0; i < a; i++) buf[i] = (buf[i] ?? 0) * (i / a);
   for (let i = 0; i < b; i++) { const j = buf.length - 1 - i; buf[j] = (buf[j] ?? 0) * (0.5 - 0.5 * Math.cos((Math.PI * i) / b)); }
   return buf;
-}
-export function mix(dst: Float32Array, src: Float32Array, at: number, gain = 1): void {
-  for (let i = 0; i < src.length && at + i < dst.length; i++) if (at + i >= 0) dst[at + i] = (dst[at + i] ?? 0) + (src[i] ?? 0) * gain;
 }
 /** gentle tanh saturation (glues layers, rounds transients) */
 export function saturate(buf: Float32Array, drive = 1.5): Float32Array {

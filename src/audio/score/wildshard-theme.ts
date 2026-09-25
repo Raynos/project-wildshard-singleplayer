@@ -50,8 +50,6 @@ export interface Arrangement {
 const D4 = 62, E4 = 64, Gs4 = 68, A4 = 69, B4 = 71;
 /** D Lydian: D E F# G# A B C# — the raised 4th is the wonder note */
 export const LYDIAN = [0, 2, 4, 6, 7, 9, 11];
-/** D Dorian: D E F G A B C — combat and the wreck */
-export const DORIAN = [0, 2, 3, 5, 7, 9, 10];
 export const ROOT = 62; // D4
 
 /** the motif: `D A G# A | E D · · | D A B A | G# E D ·` — 16 beats, two of question, two of answer */

@@ -25,6 +25,7 @@ import { ColliderBridge } from '../physics/bridge';
 import { addPiece } from '../physics/pieces';
 import { activeRegistry, type WorldRegistry } from '../world/registry';
 import { installPhysicsDebug } from '../physics/debug';
+import { installCrashFlag } from './crashFlag';
 
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {
@@ -131,15 +132,17 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   canvas.addEventListener('click', () => { if (!params.has('nolock') && !world.freeCamera) player.lock(); }); // Explore's free camera keeps the cursor
   // frame phases (Game.ts): input → fixed steps (pre: move the boxes, step: advance the world, post: the player's move) → update → late
   const playing = () => !tour.active && !world.freeCamera;
-  game.onInput((dt) => { if (playing()) player.input(dt); });
-  game.onFixed('pre', () => { bridge.sync(); for (const m of moving) m(); });
-  game.onFixed('step', () => { physics.step(); });
-  game.onFixed('post', (dt) => { const on = playing(); player.setBodyEnabled(on); if (on) player.step(dt); });
+  // labels name them in error reports; `true` = core: the world step and the player's move can't be switched off (src/core/faults.ts)
+  game.onInput((dt) => { if (playing()) player.input(dt); }, 'player.input');
+  game.onFixed('pre', () => { bridge.sync(); for (const m of moving) m(); }, 'physics.movers');
+  game.onFixed('step', () => { physics.step(); }, 'physics.step', true);
+  game.onFixed('post', (dt) => { const on = playing(); player.setBodyEnabled(on); if (on) player.step(dt); }, 'player.step', true);
   game.onUpdate((dt) => {
     if (tour.active) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }
     else if (!world.freeCamera) player.update(dt, game.alpha);
     forest.update(dt, world.freeCamera ? game.camera.position : player.position); // Explore's free camera: LOD around the eye, not the parked player
-  });
+  }, 'player.update');
+  installCrashFlag(game, params); // ?crash=system|fatal|window|boot — dev builds / unlocked reviewers only (E133)
   (window as unknown as { __hf: unknown }).__hf = Heightfield;
   return world;
 }

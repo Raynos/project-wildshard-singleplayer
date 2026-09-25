@@ -12,8 +12,14 @@
  *   menu.onExit = () => hud.exitToMenu();     // the Settings tab's EXIT TO MAIN MENU
  *   menu.refresh()                            // re-render the data tabs (kills, harvests, unlocks)
  *   menu.onFeedbackTab = (panel) => …          // the FEEDBACK tab was selected: mount the composer into `panel`
+ *
+ * `split` (E124, the user: "two menu buttons, inventory and pause. Pause takes you to settings and feedback. Inventory to
+ * map / inventory / trophies"): the one overlay shows one GROUP of tabs at a time — PAUSE: Settings (+ Feedback), titled
+ * PAUSED; BAG (the minimap's corner button, src/ui/BagButton.ts; the minimap tap and M too): Map · Inventory ·
+ * Achievements, titled BAG. Off (?bagbtn=0) = the old one menu with every tab.
  */
 import { getActiveChunk } from '../chunks/registry';
+import type { ChunkDef } from '../chunks/ChunkDef';
 import { CHUNK_SIZE } from '../core/config';
 import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
@@ -30,6 +36,15 @@ const TABS: { id: MenuTab; label: string }[] = [
   { id: 'map', label: 'Map' }, { id: 'inventory', label: 'Inventory' }, { id: 'achievements', label: 'Achievements' }, { id: 'settings', label: 'Settings' },
   { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
+/** the two menus when `split`: which one a tab lives in */
+type MenuGroup = 'pause' | 'bag';
+const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
+const TITLE: Record<MenuGroup, string> = { pause: 'Paused', bag: 'Bag' };
+/** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
+const KEY_TAB: Partial<Record<string, MenuTab>> = { KeyM: 'map', KeyI: 'inventory' };
+/** what a Settings row's "applies when" reads: the weapons you hold now and the shard */
+interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; chunk: ChunkDef }
+type When = (c: SettingsCtx) => boolean;
 const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it · a skin to wear it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
 
 /** the weapons as the Inventory tab shows them — read live from Weapons (src/player/Weapons.ts) */
@@ -46,6 +61,8 @@ export interface GameMenuOptions {
   /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — listed under the weapons, tap to wear / take off */
   skins?: () => SkinRow[];
   onWearSkin?: (id: string) => void;
+  /** two menus in one overlay (E124): PAUSE = Settings + Feedback, BAG = Map · Inventory · Achievements */
+  split?: boolean;
 }
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean }
 
@@ -56,6 +73,7 @@ export class GameMenu {
   readonly root: HTMLElement;
   private sheet: HTMLElement;
   private tabBar: HTMLElement;
+  private title: HTMLElement;
   private panels: Record<MenuTab, HTMLElement>;
   private hint: HTMLElement;
   private mapMeta: HTMLElement;
@@ -67,6 +85,10 @@ export class GameMenu {
   onClose?: () => void;
   onExit?: () => void;
   onFeedbackTab?: (panel: HTMLElement) => void;
+  /** may a key open the menu now — the HUD says: in the world, no composer up (`hud.menu = …` sets it); closed until then */
+  keyGate: () => boolean = () => false;
+  /** the Settings rows that apply only sometimes (E130: hidden, not greyed, when they do not apply) — see `applies()` */
+  private gated: { el: HTMLElement; when: When }[] = [];
 
   constructor(private opts: GameMenuOptions) {
     const def = getActiveChunk();
@@ -115,12 +137,22 @@ export class GameMenu {
 
     // close: the CLOSE button, the backdrop (desktop habit), Esc
     const closeBtn = this.sheet.querySelector('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
+    const title = this.sheet.querySelector<HTMLElement>('.ws-gmenu-title'); if (!title) throw new Error('GameMenu: no .ws-gmenu-title');
+    this.title = title;
     closeBtn.addEventListener('click', () => { this.close(); });
     this.root.addEventListener('pointerdown', (e) => { if (e.target === this.root) this.close(); });
+    // the keyboard's menu keys, all here (E130): M = the Map, I = the Inventory, Esc = pause (Settings); the same key again
+    // closes, another one switches tab. One listener, so a key is handled once — main.ts's own M listener re-opened the
+    // map the M had just closed, and the HUD's Esc (nolock) opened the menu that this listener then closed (E32)
     document.addEventListener('keydown', (e) => {
-      if (!this._open) return;
-      if (e.code === 'Escape') { e.preventDefault(); this.close(); }
-      else if (e.code === 'KeyM') this.close();
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target, typing = t instanceof HTMLElement && (t.isContentEditable || t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
+      const tab = e.code === 'Escape' ? 'settings' : typing ? undefined : KEY_TAB[e.code];
+      if (tab === undefined) return;
+      if (this._open) { if (tab === this._tab || e.code === 'Escape') this.close(); else this.open(tab); }
+      else if (this.keyGate()) this.open(tab);
+      else return;
+      e.preventDefault(); e.stopImmediatePropagation();
     });
     window.addEventListener('resize', () => { if (this._open && this._tab === 'map') opts.fullMap.fit(); });
     opts.progress.onChange = () => { if (this._open) this.renderAchievements(); };
@@ -131,10 +163,22 @@ export class GameMenu {
 
   /** the FEEDBACK tab exists only while the review inbox is unlocked */
   private syncReview(): void {
-    const on = reviewUnlocked();
-    for (const b of this.tabBar.children) if ((b as HTMLElement).dataset['tab'] === 'feedback') (b as HTMLElement).hidden = !on;
-    this.tabBar.classList.toggle('review', on);
-    if (!on && this._tab === 'feedback') this.select('settings');
+    if (!reviewUnlocked() && this._tab === 'feedback') this.select('settings');
+    else this.syncTabs();
+  }
+  /** which tabs show: FEEDBACK only while the review inbox is unlocked; split, only the open group's (one tab = no bar) */
+  private syncTabs(): void {
+    const review = reviewUnlocked(), split = this.opts.split === true, group = GROUP[this._tab];
+    let shown = 0;
+    for (const b of this.tabBar.children) {
+      const id = (b as HTMLElement).dataset['tab'] as MenuTab;
+      const on = (id !== 'feedback' || review) && (!split || GROUP[id] === group);
+      (b as HTMLElement).hidden = !on;
+      if (on) shown++;
+    }
+    this.tabBar.classList.toggle('review', shown >= 5);
+    this.tabBar.hidden = shown <= 1;
+    this.title.textContent = split ? TITLE[group] : 'Menu';
   }
 
   get isOpen(): boolean { return this._open; }
@@ -147,6 +191,7 @@ export class GameMenu {
     this.root.classList.add('show');
     this.root.inert = false;
     this.refresh();
+    this.applies();
     if (tab === 'map') { this.opts.fullMap.show(); this.renderQuest(); }
     if (tab === 'feedback') this.onFeedbackTab?.(this.panels.feedback);
     this.onOpen?.(tab);
@@ -175,9 +220,11 @@ export class GameMenu {
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
     this.hint.textContent = HINTS[tab];
+    this.syncTabs();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
     if (tab === 'inventory') this.renderInventory();
     if (tab === 'achievements') this.renderAchievements();
+    if (tab === 'settings') this.applies();
     if (tab === 'feedback' && this._open) this.onFeedbackTab?.(this.panels.feedback);
   }
 
@@ -300,10 +347,20 @@ export class GameMenu {
       b.addEventListener('click', () => setSetting(key, !getSetting(key)));
       return b;
     };
-    p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'));
-    if (getActiveChunk().style !== 'painterly') p.append(sw('tracers', 'Tracer bolts')); // the crossbow's / rifle's: Nalati's bow draws none (NALATI-MERGE F7)
-    if (getActiveChunk().slug === 'nalati-grasslands') p.append(sw('huntersEye', "Hunter's eye")); // the bow's drop arc (Bow.ts): on by default on touch
-    if (CAN_VIBRATE) p.append(sw('haptics', 'Vibration')); // Android only — iOS Safari has no vibrate (src/ui/haptics.ts)
+    // "applies when" (E130): a row that does not apply to the weapons you hold or to this shard is hidden (re-read on every
+    // open — a weapon unlocked mid-run brings its rows); a section label goes with its last row
+    const section = (card: HTMLElement, label: string, ...rows: (HTMLElement | [When, HTMLElement])[]): void => {
+      const whens: When[] = [];
+      const els = rows.map((r) => { if (Array.isArray(r)) { whens.push(r[0]); this.gated.push({ el: r[1], when: r[0] }); return r[1]; } whens.push(() => true); return r; });
+      const head = el('ws-gmenu-label', label);
+      this.gated.push({ el: head, when: (c) => whens.some((w) => w(c)) });
+      card.append(head, ...els);
+    };
+    const ranged: When = (c) => c.weapons.has('crossbow') || c.weapons.has('rifle'); // the bolts / rounds draw tracers: Nalati's bow draws none (NALATI-MERGE F7)
+    section(p, 'Gameplay', sw('aimAssist', 'Aim assist'),
+      [ranged, sw('tracers', 'Tracer bolts')],
+      [(c) => c.weapons.has('bow'), sw('huntersEye', "Hunter's eye")], // the bow's drop arc (Bow.ts): on by default on touch
+      [() => CAN_VIBRATE, sw('haptics', 'Vibration')]); // Android only — iOS Safari has no vibrate (src/ui/haptics.ts)
 
     // controls: the 0.5–2× look multipliers (Settings 'look' / 'swingLook') — read live by TouchControls + Player's mouse look
     const mult = (key: NumberKey, label: string) => {
@@ -317,7 +374,7 @@ export class GameMenu {
       s.addEventListener('pointerdown', (e) => e.stopPropagation());
       paint(); row.append(s); return row;
     };
-    p.append(el('ws-gmenu-label', 'Controls'), mult('look', 'Look speed'), mult('swingLook', 'Swing turn speed'));
+    section(p, 'Controls', mult('look', 'Look speed'), [(c) => c.melee, mult('swingLook', 'Swing turn speed')]); // a swing's turn: the blades
 
     // audio: master volume (Settings 'volume', 0..1) — main.ts drives the AudioContext gain from it
     const vol = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Master volume</span>');
@@ -367,12 +424,13 @@ export class GameMenu {
     // look (E55, live — src/ui/Settings.ts OPTIONS): the shard's day clock (src/world/WorldClock.ts: Driftwood's DayNight, Nalati's
     // DayClock — NALATI-MERGE F8; main.ts subscribes). The painted horizon (E78) and the colour grade (E85) are locked on. The
     // boot-time graphics picks are on the title's Settings.
-    if (getActiveChunk().style === 'lowpoly' || getActiveChunk().style === 'painterly') {
+    {
       const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
-      dbg.append(el('ws-gmenu-label', 'Look'), time);
+      section(dbg, 'Look', [(c) => c.chunk.style === 'lowpoly' || c.chunk.style === 'painterly', time]); // the shards with a day clock
       // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
-    } else if (getActiveChunk().slug === 'pine-hollow') {
+    }
+    if (getActiveChunk().slug === 'pine-hollow') {
       // Pine Hollow's look lab (PH-L2): the day / night clock or the pre-remaster fixed sunset (a reload: the sky rig is built
       // once), and the clock's time of day
       const skies: { v: OptionValue<'pinesky'>; text: string }[] = [{ v: 'clock', text: 'Day / night' }, { v: 'sunset', text: 'Fixed sunset' }];
@@ -391,14 +449,20 @@ export class GameMenu {
     dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
     // the Nalati Look Lab (NALATI-MERGE L2; wave 6's picks are locked in, N20): N23's Edge — the berm + spruce lines hiding
     // the slab's edge (src/chunks/nalatiEdge.ts), a second terrain bake, so it applies on the next load
-    if (getActiveChunk().slug === 'nalati-grasslands') {
+    {
       const edge = picker('Edge (next load)', [{ v: 'off' as const, text: 'Off' }, { v: 'on' as const, text: 'On' }],
         () => setting('edge'), (v) => { saveSetting('edge', v); }, (fn) => { onSettingChange('edge', fn); });
-      dbg.append(el('ws-gmenu-label', 'Look lab'), edge,
-        el('ws-gmenu-note', 'Edge: a grassy rise with spruce and granite along the slab\'s edges, so the land never ends in a line in front of the painted hills. On by default; Off = the old look. Reload to see it.'));
+      const nalatiEdge: When = (c) => c.chunk.slug === 'nalati-grasslands';
+      section(dbg, 'Look lab', [nalatiEdge, edge],
+        [nalatiEdge, el('ws-gmenu-note', 'Edge: a grassy rise with spruce and granite along the slab\'s edges, so the land never ends in a line in front of the painted hills. On by default; Off = the old look. Reload to see it.')]);
     }
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
+  }
+  /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
+  private applies(): void {
+    const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.icon === 'sword'), chunk: getActiveChunk() };
+    for (const g of this.gated) g.el.hidden = !g.when(c);
   }
   /** Settings → REVIEW: a password unlocks the review inbox (src/ui/review.ts); unlocked, the Quick note switch + LOCK */
   private buildReview(): HTMLElement {

@@ -24,7 +24,6 @@ import { viewmodelMaterial } from './Crossbow';
 export type ColorAt = (v: number, a: number, out: THREE.Color) => THREE.Color;
 /** sRGB hex → linear (vertex colours are linear) */
 export const lin = (hex: number): THREE.Color => new THREE.Color(hex).convertSRGBToLinear();
-export const solid = (c: THREE.Color): ColorAt => (_v, _a, out) => out.copy(c);
 
 /** ring of `n` points on an ellipse (rx across X, rz across Z) at height y; `rot` spins the start point */
 export function section(n: number, rx: number, rz: number, y: number, rot = 0, cx = 0, cz = 0): THREE.Vector3[] {
