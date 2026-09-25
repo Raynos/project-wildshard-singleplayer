@@ -1,0 +1,188 @@
+{
+  "tag": "ph-b4-v1",
+  "url": "http://localhost:4196",
+  "query": "tod=day&clock=1000000&trees=v1",
+  "when": "2026-09-25T00:43:26.925Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 105,
+      "tris": 1373530,
+      "msP50": 16.300000190734863,
+      "msP95": 21,
+      "programs": 98,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 151,
+      "tris": 1589046,
+      "msP50": 19.199999809265137,
+      "msP95": 21.90000009536743,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 97,
+      "tris": 1138816,
+      "msP50": 17.59999990463257,
+      "msP95": 21.300000190734863,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "shore",
+      "calls": 102,
+      "tris": 1161778,
+      "msP50": 17.700000286102295,
+      "msP95": 21.699999809265137,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "hamlet",
+      "calls": 121,
+      "tris": 1561130,
+      "msP50": 17.800000190734863,
+      "msP95": 20.200000286102295,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout",
+      "calls": 131,
+      "tris": 1382381,
+      "msP50": 17.5,
+      "msP95": 21.40000009536743,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout-n",
+      "calls": 78,
+      "tris": 658710,
+      "msP50": 18.59999990463257,
+      "msP95": 19.59999990463257,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "clearing",
+      "calls": 96,
+      "tris": 1493811,
+      "msP50": 18.800000190734863,
+      "msP95": 20.800000190734863,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "oldgrowth",
+      "calls": 106,
+      "tris": 1812680,
+      "msP50": 18.699999809265137,
+      "msP95": 25.5,
+      "programs": 99,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "gate",
+      "calls": 211,
+      "tris": 10428372,
+      "msP50": 69.59999990463257,
+      "msP95": 145.09999990463257,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "cabin",
+      "calls": 267,
+      "tris": 9890171,
+      "msP50": 67.09999990463257,
+      "msP95": 142.2999997138977,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "pond",
+      "calls": 178,
+      "tris": 5772613,
+      "msP50": 59.700000286102295,
+      "msP95": 83,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "shore",
+      "calls": 174,
+      "tris": 6202837,
+      "msP50": 16.699999809265137,
+      "msP95": 18.699999809265137,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "hamlet",
+      "calls": 203,
+      "tris": 7268707,
+      "msP50": 16.899999618530273,
+      "msP95": 17.90000009536743,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout",
+      "calls": 224,
+      "tris": 8226790,
+      "msP50": 15.700000286102295,
+      "msP95": 78.09999990463257,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout-n",
+      "calls": 129,
+      "tris": 3146056,
+      "msP50": 16.5,
+      "msP95": 18.09999990463257,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "clearing",
+      "calls": 171,
+      "tris": 9182470,
+      "msP50": 81.89999961853027,
+      "msP95": 348.69999980926514,
+      "programs": 106,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "oldgrowth",
+      "calls": 211,
+      "tris": 11184617,
+      "msP50": 83.39999961853027,
+      "msP95": 379.30000019073486,
+      "programs": 106,
+      "forest": "batched"
+    }
+  ]
+}
