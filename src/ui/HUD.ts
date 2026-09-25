@@ -497,7 +497,8 @@ export class HUD {
     const intro = el('div', 'ws-menu');
     intro.innerHTML = `
       <div class="ws-menu-hero"></div>
-      <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
+      <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div>
+        <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><span class="ws-menu-explore-text"><b>Explore world</b><small>Fly · inspect</small></span></button></div>
       <div class="ws-menu-deck">
         <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
           <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
@@ -508,7 +509,6 @@ export class HUD {
         <div class="ws-menu-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
         <div class="ws-menu-modes">
           <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
-          <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><b>Explore world</b><small>Fly · inspect</small></button>
         </div>
         <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div></div>
       </div>`;

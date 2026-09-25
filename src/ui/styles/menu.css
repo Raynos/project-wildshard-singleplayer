@@ -105,3 +105,23 @@
   .ws-menu-mode small { display: none; }
   .ws-menu .ws-menu-row { margin-top: 6px; }
 }
+
+/* ─── E137 (the user's pick B, 2026-09-25): ONE big ENTER WORLD banner under the deck; EXPLORE WORLD is a side mode in the
+   top-right corner under the build pill (src/ui/styles/update.css), out of the thumb's reach ─── */
+.ws-menu .ws-menu-modes { justify-content: center; }
+.ws-menu .ws-menu-play { flex: 1 1 auto; flex-direction: row; gap: 14px; padding: 16px 14px 15px; position: relative; }
+.ws-menu .ws-menu-play b { font-size: 24px; letter-spacing: 0.22em; }
+.ws-menu .ws-menu-play small { position: absolute; left: 0; right: 0; bottom: 5px; }
+.ws-menu .ws-menu-play { padding-bottom: 22px; }
+.ws-menu .ws-menu-play .ws-menu-mode-glyph svg { width: 24px; height: 24px; }
+.ws-menu .ws-menu-head { position: relative; }
+.ws-menu .ws-menu-head .ws-menu-explore { position: fixed; z-index: 61; right: 44px; top: calc(40px + env(safe-area-inset-top, 0px)); flex: none; flex-direction: row; gap: 10px; padding: 8px 14px 8px 11px; }
+.ws-menu .ws-menu-head .ws-menu-explore .ws-menu-mode-glyph svg { width: 22px; height: 22px; }
+.ws-menu .ws-menu-explore-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.ws-menu .ws-menu-head .ws-menu-explore b { font-size: 14px; letter-spacing: 0.2em; }
+.ws-menu .ws-menu-head .ws-menu-explore small { font-size: 8px; }
+@media (max-width: 700px) {
+  .ws-menu .ws-menu-play b { font-size: 20px; letter-spacing: 0.18em; }
+  .ws-menu .ws-menu-head .ws-menu-explore { right: 16px; top: calc(38px + env(safe-area-inset-top, 0px)); padding: 7px 11px 7px 9px; }
+  .ws-menu .ws-menu-head .ws-menu-explore b { font-size: 12px; letter-spacing: 0.16em; }
+}
