@@ -1,10 +1,10 @@
 # Plan: Driftwood top 10 (E126)
 
 **State:** `in progress` 2026-09-25.
-- **Done:** 7 (E130, `5de4ef9-mugvhywt`), 8 (E129), 9a, the complete screen (E132, `81a8c05-mugw0flt`), and 10 (E125 + E128).
-- **In flight:** 6 (E140: a Developer switch, dev-only perf meter, loading details and Debug card, a player build pill; the dead-items board comes before any deletion).
+- **Done:** 6 (E140, live in `e27b1c5-mugy2jj4`), 7 (E130, `5de4ef9-mugvhywt`), 8 (E129), 9a, the complete screen (E132, `81a8c05-mugw0flt`), and 10 (E125 + E128).
+- **In flight:** nothing.
 - **Not started:** 9b, the reasons to wander.
-- **Not started:** 1–5. **The user, 2026-09-25: "1-5 we do later"**, after the GAME-NORMALIZATION freeze. Item 6 is in flight as E140.
+- **Not started:** 1–5. **The user, 2026-09-25: "1-5 we do later"**, after the GAME-NORMALIZATION freeze.
 - **Timing:** the GAME-NORMALIZATION full feature freeze starts once Pine Hollow is merged. Rows still open then pause until the freeze ends.
 
 ## Read this first
