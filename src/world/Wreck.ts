@@ -33,7 +33,7 @@ import { heightAt } from './Heightfield';
 import { SEED } from '../core/config';
 import { LowPolyKit, log, beam, plank, rock, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
 import { swayDepthMaterial } from './wind';
-import { rockLook, rockGeometry, rockIsSmooth, rockMaterial, REEF_ROCK } from './rockKit';
+import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
@@ -634,25 +634,24 @@ export class Wreck {
       [-4.4, -1.5, 0.9], [-3.8, -6.5, 1.2], [4.3, -5.8, 0.8], [6.8, 4, 0.7], [-6.3, 7.5, 0.8], [6.2, 10.5, 1.4], [-2.0, 12.4, 1.1],
       [7.5, -3.8, 0.6], [6.2, 3.2, 0.5], [8.5, 7.0, 0.9],
     ];
-    // E114: the reef rocks in rockKit's look — B (smooth painted) by default, ?rocks=now the old icosahedra
-    const look = rockLook(), lookRng = new Rng(SEED ^ 0x70c5), smoothRocks: THREE.BufferGeometry[] = [];
+    // E114: the reef rocks are rockKit rocks (smooth painted). The draws the old flat-shaded rocks took (the rock, its
+    // side colour, one per face) are still burnt, so everything after the rocks is placed as it always was
+    const rockRng = new Rng(SEED ^ 0x70c5), reef: THREE.BufferGeometry[] = [];
     for (const [lx, lz, r] of rocks) {
       const [x, z] = hw(lx, lz), y = heightAt(x, z);
-      const g = rock(r, 1, rng, 0.62, 0.3), side = rng.next() < 0.5 ? C.rock : C.rockB, top = rng.next() < 0.6 ? C.moss : C.weed, m = wm(x, y + r * 0.2, z, rng.range(0, 6));
-      if (look === 'current') kit.addTopped(g, side, top, { matrix: m, minY: 0.62, jitter: 0.08 });
-      else {
-        // burn the draws addTopped would have taken (one per face), so everything after the rocks is placed as today
-        for (let i = g.getAttribute('position').count / 3; i > 0; i--) rng.next();
-        g.dispose();
-        const alt = rockGeometry(look, r, lookRng, { squash: 0.62, palette: REEF_ROCK, moss: top === C.moss ? 0.9 : 0.5, ground: -0.2 * r });
-        if (rockIsSmooth(look)) { alt.applyMatrix4(m); smoothRocks.push(alt); } else kit.addPainted(alt, m);
-      }
+      const old = rock(r, 1, rng, 0.62, 0.3);
+      rng.next();
+      const mossy = rng.next() < 0.6, m = wm(x, y + r * 0.2, z, rng.range(0, 6));
+      for (let i = old.getAttribute('position').count / 3; i > 0; i--) rng.next();
+      old.dispose();
+      const g = rockGeometry(r, rockRng, { squash: 0.62, palette: REEF_ROCK, moss: mossy ? 0.9 : 0.5, ground: -0.2 * r });
+      g.applyMatrix4(m); reef.push(g);
       if (r > 0.9) this.colliders.push({ x, z, hw: r * 0.8, hd: r * 0.8, rot: 0, yTop: y + r * 0.7, yBottom: y - 2 });
     }
-    if (look !== 'current' && smoothRocks.length > 0) {
-      // the smooth look keeps its own normals, so it can't join the flat-shaded kit: all its rocks are one more draw
-      const rm = new THREE.Mesh(mergeGeometries(smoothRocks, false), rockMaterial(this.sky, look));
-      for (const s of smoothRocks) s.dispose();
+    if (reef.length > 0) {
+      // their own smooth normals can't join the flat-shaded kit: all the rocks are one more draw
+      const rm = new THREE.Mesh(mergeGeometries(reef, false), rockMaterial(this.sky));
+      for (const s of reef) s.dispose();
       rm.name = 'wreck-rocks'; rm.castShadow = true; rm.receiveShadow = true;
       this.group.add(rm);
     }

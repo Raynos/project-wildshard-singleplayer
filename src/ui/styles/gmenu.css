@@ -7,6 +7,13 @@
 .ws-gmenu * { box-sizing: border-box; } /* on <body>, outside #hud's reset: a 100 %-wide padded .ws-gmenu-row ran 26 px past the sheet */
 .ws-gmenu .ws-gmenu-sheet { width: 100%; max-width: 560px; display: flex; flex-direction: column; min-height: 0; background: rgba(8, 12, 20, 0.86); padding: 0; }
 .ws-gmenu .ws-gmenu-sheet::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 18px; height: 18px; border-right: 1px solid var(--ws-cyan); border-bottom: 1px solid var(--ws-cyan); opacity: 0.8; pointer-events: none; }
+/* E139 (the user, 2026-09-25): rounded corners, so the phone's own rounded screen corners don't read as the sheet's
+   bottom corners cut off. The bottom radius follows the iPhone's screen curve on touch screens; the corner brackets bend
+   with the corners; the content is clipped to them. */
+.ws-gmenu .ws-gmenu-sheet { --ws-gmenu-rt: 16px; --ws-gmenu-rb: 16px; border-radius: var(--ws-gmenu-rt) var(--ws-gmenu-rt) var(--ws-gmenu-rb) var(--ws-gmenu-rb); overflow: hidden; }
+@media (pointer: coarse) { .ws-gmenu .ws-gmenu-sheet { --ws-gmenu-rb: 44px; } }
+.ws-gmenu .ws-gmenu-sheet::before { left: 0; top: 0; width: calc(var(--ws-gmenu-rt) + 14px); height: calc(var(--ws-gmenu-rt) + 14px); border-top-left-radius: var(--ws-gmenu-rt); }
+.ws-gmenu .ws-gmenu-sheet::after { right: 0; bottom: 0; width: calc(var(--ws-gmenu-rb) + 14px); height: calc(var(--ws-gmenu-rb) + 14px); border-bottom-right-radius: var(--ws-gmenu-rb); }
 
 /* header */
 .ws-gmenu .ws-gmenu-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 20px 12px; }

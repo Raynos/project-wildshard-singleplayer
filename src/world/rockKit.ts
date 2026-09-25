@@ -1,81 +1,33 @@
 /**
- * rockKit — candidate rock looks for Driftwood Isle (E114). The user, on the wreck and on Explore's Boulder: "Most low
- * poly rocks look like shit … way too basic. We need to try something else." The current rock (a randomly jittered
- * icosahedron: 20–80 small random facets, a green cap) reads as crumpled paper under the toon ramp, because every facet
- * lands on a random side of the two-band terminator. Three directions were built for the user to pick from; they
- * picked B (2026-09-25), so B is the default. `?rocks=now` (or `v1`) is the old look, `?rocks=a|c` the other candidates:
+ * rockKit — Driftwood Isle's loose rocks (E114). The user, on the wreck and on Explore's Boulder: "Most low poly rocks
+ * look like shit … way too basic. We need to try something else." Three directions were built; the user picked B,
+ * SMOOTH PAINTED (2026-09-25), and it is the only look now (E136 removed the others and the old jittered icosahedra):
+ * rounded Sea of Thieves / BotW boulders with SMOOTH normals — soft polytopes (broad faces, rounded edges) with fused
+ * ledges, a dark wet foot → a lighter crown, crease / crack / contact AO, a moss cap with a tongued edge. Its own
+ * material program (flatShading off). Built to art/rocks/round-2-b-final/.
  *
- *   ?rocks=a   CHISELLED — a carved block: a convex polytope cut by ~24 big planes, its corners chipped, 1–2 fused
- *              shoulder blocks for silhouette. Few large facets, so each takes one clear toon band; moss on the
- *              up-facing planes only, a dark wet foot, per-plane warm/cool grey.
- *   (default)  SMOOTH PAINTED — rounded Sea of Thieves / BotW boulders with SMOOTH normals: soft polytopes (broad faces,
- *              rounded edges) with fused ledges, a dark wet foot → a lighter crown, crease / crack / contact AO, a moss
- *              cap with a tongued edge. Its own material program (flatShading off). Built to art/rocks/round-2-b-final/.
- *   ?rocks=c   LAYERED SLABS — sedimentary: 2–5 stacked chamfered slabs, each a little smaller and offset, a common
- *              dip; alternating strata greys, lit chamfers, moss on the exposed tops.
- *
- *   const look = rockLook();                                       // 'b' by default; 'current' | 'a' | 'c' by URL
- *   if (look !== 'current') {
- *     const g = rockGeometry(look, r, rng, { squash: 0.62, palette: REEF_ROCK });   // non-indexed: position, normal, color
- *     g.applyMatrix4(m);                                                               // centred on the origin, ±r·squash tall
- *     new THREE.Mesh(g, rockMaterial(sky, look));                                      // merge many first: one draw
- *   }
+ *   const g = rockGeometry(r, rng, { squash: 0.62, palette: REEF_ROCK });   // non-indexed: position, normal, color
+ *   g.applyMatrix4(m);                                                        // centred on the origin, ±r·squash tall
+ *   new THREE.Mesh(g, rockMaterial(sky));                                     // merge many first: one draw
  *
  * Same convention as lowpolyKit's `rock()`: centred on the origin, about r wide and r·squash half-tall, so a caller keeps
  * its placement and colliders.
  */
 import * as THREE from 'three';
-import { ConvexHull } from 'three/examples/jsm/math/ConvexHull.js';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '../core/rng';
 import type { Sky } from './Sky';
 import { lowPolyMaterial } from './lowpolyKit';
 
-export type RockLook = 'current' | 'a' | 'b' | 'c';
-export type NewRockLook = Exclude<RockLook, 'current'>;
-
-/** one-line names, for the board and the catalog */
-export const ROCK_LOOK_NAMES: Record<RockLook, string> = { current: 'current (jittered icosahedron)', a: 'chiselled', b: 'smooth painted', c: 'layered slabs' };
-
-let chosen: RockLook | null = null;
-/**
- * the look this page was loaded with. B (smooth painted) is the default since the user picked it (E114, 2026-09-25);
- * `?rocks=now` (or `v1` / `current`) brings back the old jittered icosahedra, `?rocks=a|c` the other candidates
- */
-export function rockLook(): RockLook {
-  if (chosen !== null) return chosen;
-  const v = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('rocks');
-  chosen = v === 'now' || v === 'v1' || v === 'current' ? 'current' : v === 'a' || v === 'c' ? v : 'b';
-  return chosen;
-}
-
-/** the faceted looks' (A, C) paint */
-export interface RockPalette {
-  /** the shade band's grey at the foot and at the crown */
-  dark: string; light: string;
-  /** a warm and a cool grey that single planes / strata drift toward */
-  warm: string; cool: string;
-  moss: string; mossLight: string;
-  /** the wet line at the foot */
-  wet: string;
-}
-/** a rock kind's paint in every look */
-export interface RockPaints { faceted: RockPalette; smooth: SmoothPalette }
 /** the shore's boulders (Boulders.ts, Explore's Boulder): beach granite, a shade lighter than the reef */
-export const SHORE_ROCK: RockPaints = {
-  faceted: { dark: '#5d6168', light: '#a6a9ad', warm: '#9b9184', cool: '#7c8591', moss: '#6f9a3e', mossLight: '#8fb850', wet: '#3f4a46' },
-  smooth: {
-    foot: '#2f3134', dark: '#45474c', mid: '#5f6165', light: '#7f7e7c', edge: '#918f8b', warm: '#776e63', cool: '#535b64', crease: '#2a2d33',
-    moss: '#62853a', mossLight: '#8ea24f', mossDark: '#40602b', wet: '#2e3a36',
-  },
+export const SHORE_ROCK: RockPalette = {
+  foot: '#2f3134', dark: '#45474c', mid: '#5f6165', light: '#7f7e7c', edge: '#918f8b', warm: '#776e63', cool: '#535b64', crease: '#2a2d33',
+  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#40602b', wet: '#2e3a36',
 };
 /** the wreck's reef rocks (Wreck.ts), the cove's loose rocks, the pebbles: darker, weedier basalt */
-export const REEF_ROCK: RockPaints = {
-  faceted: { dark: '#3b4047', light: '#7d838b', warm: '#77706a', cool: '#5a6572', moss: '#5f8a35', mossLight: '#80aa45', wet: '#2f3d38' },
-  smooth: {
-    foot: '#2a2c30', dark: '#3e4045', mid: '#5a5c60', light: '#7c7b7a', edge: '#8e8c8a', warm: '#766c61', cool: '#4d555e', crease: '#25282e',
-    moss: '#62853a', mossLight: '#8ea24f', mossDark: '#3d5d2a', wet: '#25312d',
-  },
+export const REEF_ROCK: RockPalette = {
+  foot: '#2a2c30', dark: '#3e4045', mid: '#5a5c60', light: '#7c7b7a', edge: '#8e8c8a', warm: '#766c61', cool: '#4d555e', crease: '#25282e',
+  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#3d5d2a', wet: '#25312d',
 };
 
 export interface RockOpts {
@@ -83,180 +35,32 @@ export interface RockOpts {
   squash?: number;
   /** 0 = bare stone, 1 = a full moss cap (default 0.8) */
   moss?: number;
-  palette?: RockPaints;
-  /** B: where the ground (or the water line) meets the rock, in its local y — the paint's foot → crown ramp and the
+  /** default SHORE_ROCK */
+  palette?: RockPalette;
+  /** where the ground (or the water line) meets the rock, in its local y — the paint's foot → crown ramp and the
    * contact AO start there (default −0.3 · r · squash) */
   ground?: number;
-  /** B: added to the icosphere detail of every piece (−1: a lighter rock for a dense scatter) */
+  /** added to the icosphere detail of every piece (−1: a lighter rock for a dense scatter) */
   detail?: number;
 }
 
-/** the material a look draws with: the shared low-poly program for the faceted looks, a smooth-shaded copy for B */
-export function rockMaterial(sky: Sky, look: NewRockLook): THREE.MeshStandardMaterial {
-  return look === 'b' ? lowPolyMaterial(sky, 'rock-smooth', (m) => { m.flatShading = false; m.roughness = 0.82; }) : lowPolyMaterial(sky);
+/** the rocks' material: a smooth-shaded copy of the shared low-poly program (the rocks carry their own smooth normals,
+ * so they don't merge into a flat-shaded LowPolyKit) */
+export function rockMaterial(sky: Sky): THREE.MeshStandardMaterial {
+  return lowPolyMaterial(sky, 'rock-smooth', (m) => { m.flatShading = false; m.roughness = 0.82; });
 }
 
-/** true when a look carries its own smooth normals (keep them: don't merge it into a flat-shaded LowPolyKit) */
-export const rockIsSmooth = (look: RockLook): boolean => look === 'b';
-
-/** one rock of a look — non-indexed, with `position`, `normal` and `color` */
-export function rockGeometry(look: NewRockLook, r: number, rng: Rng, o: RockOpts = {}): THREE.BufferGeometry {
-  const sq = o.squash ?? 0.7, moss = o.moss ?? 0.8, paints = o.palette ?? SHORE_ROCK, pal = paints.faceted;
-  if (look === 'a') return fit(chiselled(r, sq, moss, pal, rng), r, r * sq * 1.05, true);
-  if (look === 'b') return smoothPainted(r, sq, moss, paints.smooth, rng, o.ground ?? -0.3 * r * sq, o.detail ?? 0);
-  return fit(slabs(r, sq, moss, pal, rng), r, r * sq * 0.6, true);
+/** one rock — non-indexed, with `position`, `normal` and `color` */
+export function rockGeometry(r: number, rng: Rng, o: RockOpts = {}): THREE.BufferGeometry {
+  const sq = o.squash ?? 0.7;
+  return smoothPainted(r, sq, o.moss ?? 0.8, o.palette ?? SHORE_ROCK, rng, o.ground ?? -0.3 * r * sq, o.detail ?? 0);
 }
 
-/**
- * scale a rock to the current rock's footprint — its widest extent 2.2·r, its top `top` over the origin — so a look
- * swaps in with the same presence (the carved / slab shapes come out smaller than the jittered icosahedron they
- * replace, and sank under the reef's water line). `flat`: recompute the per-face normals afterwards.
- */
-function fit(g: THREE.BufferGeometry, r: number, top: number, flat: boolean): THREE.BufferGeometry {
-  g.computeBoundingBox();
-  const bb = g.boundingBox;
-  if (bb === null || bb.max.y <= 0) return g;
-  const w = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z), sxz = w > 0 ? (2.2 * r) / w : 1;
-  g.scale(sxz, top / bb.max.y, sxz);
-  if (flat) { g.deleteAttribute('normal'); g.computeVertexNormals(); }
-  return g;
-}
-
-// ── shared: colours ───────────────────────────────────────────────────────────────────────────────
-
-const col = (s: string): THREE.Color => new THREE.Color(s);
 const sstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
-/**
- * the stone colour at height fraction h (0 foot … 1 crown) for a surface facing up by ny, drifted toward warm (t > 0)
- * or cool (t < 0); then the moss (amount m, 0..1) and the wet foot laid over it
- */
-function stone(out: THREE.Color, pal: RockPalette, h: number, ny: number, t: number, m: number): THREE.Color {
-  out.copy(col(pal.dark)).lerp(col(pal.light), Math.min(1, 0.18 + h * 0.72 + Math.max(0, ny) * 0.18));
-  out.lerp(col(t > 0 ? pal.warm : pal.cool), Math.min(1, Math.abs(t)) * 0.45);
-  if (h < 0.22) out.lerp(col(pal.wet), (1 - h / 0.22) * 0.55);
-  if (m > 0) out.lerp(col(pal.moss).lerp(col(pal.mossLight), sstep(0.6, 0.95, ny)), Math.min(1, m));
-  return out;
-}
-
-/** collects flat-coloured triangles (one colour per face) and hands back a non-indexed geometry with flat normals */
-class Tris {
-  pos: number[] = [];
-  cols: number[] = [];
-  add(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, k: THREE.Color): void {
-    this.pos.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
-    for (let i = 0; i < 3; i++) this.cols.push(k.r, k.g, k.b);
-  }
-  geometry(): THREE.BufferGeometry {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
-    g.setAttribute('color', new THREE.Float32BufferAttribute(this.cols, 3));
-    g.computeVertexNormals();
-    return g;
-  }
-}
-
-const faceNormal = (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3): THREE.Vector3 =>
-  new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
-
-// ── A: chiselled ──────────────────────────────────────────────────────────────────────────────────
-
-interface Plane { n: THREE.Vector3; d: number; /** warm/cool drift of this plane */ t: number }
-
-/**
- * The polytope { x : n_i·x ≤ d_i } (all d_i > 0, so the origin is inside), as one convex polygon per plane that
- * survives, ordered counter-clockwise seen from outside. Built through the dual: the hull of the points n_i / d_i —
- * each hull triangle is a corner of the polytope (N / c for its plane N·q = c), each hull vertex a face.
- */
-function polytope(planes: Plane[]): { plane: Plane; poly: THREE.Vector3[] }[] {
-  const pts = planes.map((p) => p.n.clone().divideScalar(p.d));
-  const index = new Map<THREE.Vector3, number>();
-  pts.forEach((p, i) => { index.set(p, i); });
-  const hull = new ConvexHull().setFromPoints(pts);
-  const polys: THREE.Vector3[][] = planes.map(() => []);
-  for (const f of hull.faces) {
-    if (f.constant <= 1e-9) continue;
-    const corner = f.normal.clone().divideScalar(f.constant);
-    let e = f.edge;
-    for (let k = 0; k < 8; k++) {
-      const i = index.get(e.head().point);
-      if (i !== undefined) polys[i]?.push(corner);
-      e = e.next;
-      if (e === f.edge) break;
-    }
-  }
-  const out: { plane: Plane; poly: THREE.Vector3[] }[] = [];
-  planes.forEach((plane, i) => {
-    const raw = polys[i] ?? [], poly: THREE.Vector3[] = [];
-    for (const v of raw) if (!poly.some((q) => q.distanceToSquared(v) < 1e-8)) poly.push(v);
-    if (poly.length < 3) return;
-    const c = poly.reduce((s, v) => s.add(v), new THREE.Vector3()).divideScalar(poly.length);
-    const u = new THREE.Vector3().subVectors(poly[0] ?? c, c).normalize(), w = new THREE.Vector3().crossVectors(plane.n, u);
-    poly.sort((p, q) => Math.atan2(w.dot(new THREE.Vector3().subVectors(p, c)), u.dot(new THREE.Vector3().subVectors(p, c))) - Math.atan2(w.dot(new THREE.Vector3().subVectors(q, c)), u.dot(new THREE.Vector3().subVectors(q, c))));
-    out.push({ plane, poly });
-  });
-  return out;
-}
-
-/** a chipped, many-planed block inside the ellipsoid (rx, ry, rz) */
-function block(rx: number, ry: number, rz: number, planesN: number, chips: number, rng: Rng): { plane: Plane; poly: THREE.Vector3[] }[] {
-  const reach = (n: THREE.Vector3): number => Math.hypot(rx * n.x, ry * n.y, rz * n.z);   // the ellipsoid's support
-  const planes: Plane[] = [];
-  const add = (n: THREE.Vector3, k: number): void => { n.normalize(); planes.push({ n, d: reach(n) * k, t: rng.range(-1, 1) }); };
-  const off = rng.range(0, Math.PI * 2);
-  for (let i = 0; i < planesN; i++) {
-    // a Fibonacci sphere, jittered: planes all round, none bunched
-    const y = 1 - ((i + 0.5) / planesN) * 2, s = Math.sqrt(1 - y * y), a = i * 2.39996 + off;
-    add(new THREE.Vector3(Math.cos(a) * s + rng.range(-0.18, 0.18), y + rng.range(-0.12, 0.12), Math.sin(a) * s + rng.range(-0.18, 0.18)), rng.range(0.8, 0.95));
-  }
-  add(new THREE.Vector3(rng.range(-0.18, 0.18), 1, rng.range(-0.18, 0.18)), rng.range(0.78, 0.88));   // a broad, nearly flat top (the moss bed)
-  add(new THREE.Vector3(0, -1, 0), 0.92);                                                           // a flat foot (buried)
-  // chip the most protruding corners: each gets a small plane across it
-  for (let c = 0; c < chips; c++) {
-    let best: THREE.Vector3 | null = null, bs = 0;
-    for (const { poly } of polytope(planes)) for (const v of poly) {
-      const s = Math.hypot(v.x / rx, v.y / ry, v.z / rz);
-      if (v.y > -ry * 0.6 && s > bs) { bs = s; best = v; }
-    }
-    if (best === null) break;
-    const n = new THREE.Vector3(best.x / (rx * rx), best.y / (ry * ry), best.z / (rz * rz)).normalize();
-    n.x += rng.range(-0.25, 0.25); n.z += rng.range(-0.25, 0.25); n.normalize();
-    planes.push({ n, d: n.dot(best) - Math.min(rx, ry, rz) * rng.range(0.1, 0.2), t: rng.range(-1, 1) });
-  }
-  return polytope(planes);
-}
-
-function chiselled(r: number, sq: number, moss: number, pal: RockPalette, rng: Rng): THREE.BufferGeometry {
-  const ry = r * sq, out = new Tris(), k = new THREE.Color();
-  const blocks: { at: THREE.Vector3; faces: { plane: Plane; poly: THREE.Vector3[] }[] }[] = [];
-  blocks.push({ at: new THREE.Vector3(), faces: block(r * rng.range(0.95, 1.1), ry, r * rng.range(0.78, 0.92), r > 0.7 ? 26 : 16, r > 0.7 ? 12 : 5, rng) });
-  // shoulder blocks: a lower, smaller lump fused to one side (and a second on big rocks) — the silhouette steps
-  const shoulders = r > 1.6 ? 3 : r > 0.7 ? 2 : 1;
-  for (let s = 0; s < shoulders; s++) {
-    const a = rng.range(0, Math.PI * 2), f = rng.range(0.38, 0.62);
-    blocks.push({ at: new THREE.Vector3(Math.cos(a) * r * 0.66, -ry * (1 - f) * 0.9, Math.sin(a) * r * 0.58), faces: block(r * f * 1.05, ry * f, r * f * 0.9, 16, 5, rng) });
-  }
-  const mossBias = rng.range(-0.08, 0.08);
-  for (const b of blocks) for (const { plane, poly } of b.faces) {
-    const p0 = poly[0];
-    if (p0 === undefined) continue;
-    const cy = poly.reduce((s, v) => s + v.y, 0) / poly.length + b.at.y;
-    const h = (cy + ry) / (2 * ry), ny = plane.n.y;
-    const m = moss * sstep(0.62 + mossBias, 0.8 + mossBias, ny) * sstep(0.35, 0.6, h);
-    stone(k, pal, h, ny, plane.t * 0.8, m > 0.15 ? 0.55 + m * 0.45 : 0);
-    const a = p0.clone().add(b.at);
-    for (let i = 1; i + 1 < poly.length; i++) {
-      const v1 = poly[i], v2 = poly[i + 1];
-      if (v1 === undefined || v2 === undefined) continue;
-      out.add(a, v1.clone().add(b.at), v2.clone().add(b.at), k);
-    }
-  }
-  return out.geometry();
-}
-
-// ── B: smooth painted ─────────────────────────────────────────────────────────────────────────────
+// ── the rock ──────────────────────────────────────────────────────────────────────────────────────
 //
-// The pick (the user, 2026-09-25: "B · smooth painted"), built to its mockup (art/rocks/round-1-directions/mockup-B.jpg):
+// B, the pick (the user, 2026-09-25: "B · smooth painted"), built to its mockup (art/rocks/round-1-directions/mockup-B.jpg):
 // rounded Sea-of-Thieves / BotW boulders with clear form. Each rock is 1–3 PIECES — a main body and, on bigger rocks,
 // lower shoulder blocks fused to its side (the stepped silhouette, the soft ledges). A piece is a SOFT POLYTOPE: ~16
 // planes around an ellipsoid (a flat-ish top, bevels, steep sides), blended with a soft-min, so it has broad faces with
@@ -266,8 +70,8 @@ function chiselled(r: number, sq: number, moss: number, pal: RockPalette, rng: R
 // dark in the creases and cracks, AO from the rock's own pieces and the ground, and a moss cap on the up-facing
 // surfaces with a noisy tongued edge, darker at its rim.
 
-/** the smooth look's paint (sRGB hex; lerped in linear) */
-export interface SmoothPalette {
+/** a rock kind's paint (sRGB hex; lerped in linear) */
+export interface RockPalette {
   /** the stone ramp: the wet foot → the shade → the body → the sunlit crown */
   foot: string; dark: string; mid: string; light: string;
   /** the worn convex edges */
@@ -379,7 +183,7 @@ function makePiece(kind: Archetype, c: THREE.Vector3, rx: number, ry: number, rz
   return { c, rx, ry, rz, cos: Math.cos(yaw), sin: Math.sin(yaw), planes, k, noise: valueNoise(Math.floor(rng.next() * 1e9)), amp: kind === 'dome' ? 0.14 : 0.1, cracks: cr };
 }
 
-/** how far B's smooth normals lean toward each triangle's own normal: 0 = fully smooth, 1 = faceted. A touch keeps the
+/** how far the smooth normals lean toward each triangle's own normal: 0 = fully smooth, 1 = faceted. A touch keeps the
  * painted planes of the mockup readable without going back to the crumpled-paper facets */
 const FACET_HINT = 0.3;
 function facetHint(g: THREE.BufferGeometry, f: number): void {
@@ -413,8 +217,8 @@ function unitIco(detail: number): { g: THREE.BufferGeometry; nb: number[][] } {
 
 const lerpC = (out: THREE.Color, c: THREE.Color, t: number): THREE.Color => out.lerp(c, Math.min(1, Math.max(0, t)));
 /** a palette's colours parsed once (Color.set(hex) per vertex was a fifth of the build) */
-const parsed = new WeakMap<SmoothPalette, Record<keyof SmoothPalette, THREE.Color>>();
-function parsePalette(pal: SmoothPalette): Record<keyof SmoothPalette, THREE.Color> {
+const parsed = new WeakMap<RockPalette, Record<keyof RockPalette, THREE.Color>>();
+function parsePalette(pal: RockPalette): Record<keyof RockPalette, THREE.Color> {
   let p = parsed.get(pal);
   if (!p) {
     const c = (s: string): THREE.Color => new THREE.Color(s);
@@ -424,7 +228,7 @@ function parsePalette(pal: SmoothPalette): Record<keyof SmoothPalette, THREE.Col
   return p;
 }
 
-function smoothPainted(r: number, sq: number, moss: number, palette: SmoothPalette, rng: Rng, ground: number, lod: number): THREE.BufferGeometry {
+function smoothPainted(r: number, sq: number, moss: number, palette: RockPalette, rng: Rng, ground: number, lod: number): THREE.BufferGeometry {
   const pal = parsePalette(palette);
   const pebble = r < 0.3;
   const kinds: Archetype[] = ['dome', 'table', 'wedge', 'block', 'table', 'block'];
@@ -544,60 +348,4 @@ function smoothPainted(r: number, sq: number, moss: number, palette: SmoothPalet
   const merged = mergeGeometries(out, false);
   for (const g of out) g.dispose();
   return merged;
-}
-
-// ── C: layered slabs ──────────────────────────────────────────────────────────────────────────────
-
-function slabs(r: number, sq: number, moss: number, pal: RockPalette, rng: Rng): THREE.BufferGeometry {
-  const ry = r * sq, out = new Tris(), k = new THREE.Color();
-  const n = r > 1.5 ? rng.int(4, 6) : r > 0.7 ? rng.int(3, 4) : rng.int(2, 3);
-  const sides = r > 1.5 ? 11 : r > 0.7 ? 9 : 7;
-  // the layers' thicknesses, stretched over −ry … +0.5·ry: a slab rock is wider and flatter than a boulder
-  const th = Array.from({ length: n }, () => rng.range(0.5, 1.5)), sum = th.reduce((s, x) => s + x, 0);
-  const dipX = rng.range(-0.16, 0.16), dipZ = rng.range(-0.16, 0.16);   // the bedding's common tilt
-  const shape: [number, number][] = Array.from({ length: sides }, (_, i) => {
-    const a = (i / sides) * Math.PI * 2 + rng.range(-0.22, 0.22);
-    return [Math.cos(a), Math.sin(a)];
-  });
-  const warm = rng.next() < 0.5 ? 1 : -1;
-  let y0 = -ry;
-  for (let s = 0; s < n; s++) {
-    const t = ((th[s] ?? 1) / sum) * 1.5 * ry, y1 = y0 + t;
-    const shrink = (1 - 0.5 * (s / Math.max(1, n - 1)) ** 1.2) * rng.range(0.84, 1.06);
-    const cx = rng.range(-0.14, 0.14) * r, cz = rng.range(-0.14, 0.14) * r, yaw = rng.range(-0.4, 0.4);
-    const cs = Math.cos(yaw), sn = Math.sin(yaw), ch = Math.min(t * 0.38, r * 0.16);
-    const ring = (y: number, inset: number, jitter: number[]): THREE.Vector3[] => shape.map(([ux, uz], i) => {
-      const rr = r * shrink * (jitter[i] ?? 1) - inset, x = ux * rr * 1.2, z = uz * rr * 0.95;
-      const wx = cx + x * cs - z * sn, wz = cz + x * sn + z * cs;
-      return new THREE.Vector3(wx, y + wx * dipX + wz * dipZ, wz);
-    });
-    const raw = shape.map(() => rng.range(0.72, 1.1));   // smoothed with its neighbours: broken outlines, no spikes or notches
-    const jit = raw.map((j, i) => (j * 2 + (raw[(i + 1) % sides] ?? j) + (raw[(i + sides - 1) % sides] ?? j)) / 4);
-    const bot = ring(y0, ch * 0.25, jit), mid = ring(y1 - ch, 0, jit), top = ring(y1, ch, jit.map((j) => j * rng.range(0.94, 1.02)));
-    const h = (y1 - ch * 0.5 + ry) / (1.5 * ry), stripe = (s % 2 === 0 ? 1 : -1) * warm * rng.range(0.5, 1);
-    const isTop = s === n - 1;
-    for (let i = 0; i < sides; i++) {
-      const j = (i + 1) % sides;
-      const b0 = bot[i], b1 = bot[j], m0 = mid[i], m1 = mid[j], t0 = top[i], t1 = top[j];
-      if (!b0 || !b1 || !m0 || !m1 || !t0 || !t1) continue;
-      // the wall: this layer's strata grey, a darker band low on the bottom layer (wet)
-      const wn = faceNormal(b0, m1, b1);
-      stone(k, pal, (y0 + t * 0.4 + ry) / (1.5 * ry), wn.y, stripe, 0).multiplyScalar(0.92 + rng.next() * 0.1);
-      out.add(b0, m1, b1, k); out.add(b0, m0, m1, k);
-      // the chamfer: catches the light, moss creeping over it on the exposed rims
-      const cn = faceNormal(m0, t1, m1);
-      stone(k, pal, h + 0.08, Math.max(cn.y, 0.35), stripe * 0.5, moss * (isTop ? 0.45 : 0.25) * sstep(0.35, 0.7, h) * (rng.next() < 0.6 ? 1 : 0));
-      out.add(m0, t1, m1, k); out.add(m0, t0, t1, k);
-    }
-    // the top: moss on the crown, a lighter weathered shelf (with patchy moss) where a layer shows past the next
-    const c = top.reduce((a, v) => a.add(v), new THREE.Vector3()).divideScalar(sides);
-    stone(k, pal, h + 0.15, 1, stripe * 0.3, isTop ? moss * 0.95 : moss * (rng.next() < 0.5 ? 0.7 : 0.15));
-    for (let i = 0; i < sides; i++) { const a = top[i], b = top[(i + 1) % sides]; if (a && b) out.add(c, b, a, k); }
-    // the underside (only seen at the foot of an overhang)
-    const cb = bot.reduce((a, v) => a.add(v), new THREE.Vector3()).divideScalar(sides);
-    stone(k, pal, 0, -1, 0, 0);
-    for (let i = 0; i < sides; i++) { const a = bot[i], b = bot[(i + 1) % sides]; if (a && b) out.add(cb, a, b, k); }
-    y0 = y1 - t * 0.06;   // the next layer sits a hair into this one (no light leak between them)
-  }
-  return out.geometry();
 }

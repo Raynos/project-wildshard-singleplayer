@@ -296,7 +296,7 @@ async function main() {
   const blenderIsland = isOcean
     ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
       scene: game.scene, sky, colliders: player.colliders, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
-      replace: [bushes?.mesh ?? null], rocks: dressing.rocks?.mesh ?? null, cover: dressing.cover?.group ?? null,
+      replace: [bushes?.mesh ?? null], cover: dressing.cover?.group ?? null,
     })).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; })
     : null;
   if (blenderIsland) game.onUpdate(() => { blenderIsland.update(sky); });
