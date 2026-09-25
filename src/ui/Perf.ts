@@ -19,6 +19,7 @@
 import type { Game } from '../core/Game';
 import { TIER } from '../core/tier';
 import { isDev, onDev } from '../core/devMode';
+import { runPerfProbe, probeLines } from './perfProbe';
 import './perf.css';
 
 const PAINT_MS = 500;
@@ -46,7 +47,7 @@ export class Perf {
     root.innerHTML = '<b>—</b><span class="ws-perf-ms"></span><span class="ws-perf-long"></span>';
     const panel = this.panel = document.createElement('div');
     panel.className = 'ws-perf-panel';
-    panel.innerHTML = '<div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div>';
+    panel.innerHTML = '<div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><div class="ws-perf-row"><i>Probe</i><button type="button" class="ws-perf-probe">RUN PROBE</button></div><pre class="ws-perf-probe-out"></pre>';
     const row = (r: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(`[data-r="${r}"]`); if (e === null) throw new Error(`Perf: missing row ${r}`); return e; };
     this.rows = { p50: row('p50'), p95: row('p95'), calls: row('calls'), tris: row('tris'), tier: row('tier'), gl: row('gl') };
     document.body.append(root, panel);
@@ -58,7 +59,23 @@ export class Perf {
     for (const t of ['pointerdown', 'dragstart', 'contextmenu'] as const) root.addEventListener(t, cancel);
     root.addEventListener('pointerup', (e) => { cancel(e); this.open(!panel.classList.contains('open')); });
     for (const n of [root, ...root.querySelectorAll('*'), panel, ...panel.querySelectorAll('*')]) n.setAttribute('draggable', 'false');
-    document.addEventListener('pointerdown', (e) => { if (e.target instanceof Node && !root.contains(e.target)) this.open(false); }, true);
+    // E142: the on-device probe (src/ui/perfProbe.ts) — RUN PROBE in the panel, or `?probe=1` 15 s after the world is entered
+    const probe = panel.querySelector<HTMLButtonElement>('.ws-perf-probe'), probeOut = panel.querySelector<HTMLElement>('.ws-perf-probe-out');
+    if (probe === null || probeOut === null) throw new Error('Perf: missing probe row');
+    this.probeOut = probeOut;
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) probe.addEventListener(t, cancel, { passive: false });
+    probe.addEventListener('pointerdown', cancel);
+    probe.addEventListener('pointerup', (e) => { cancel(e); void this.runProbe(); });
+    document.addEventListener('pointerdown', (e) => { if (e.target instanceof Node && !root.contains(e.target) && !probe.contains(e.target)) this.open(false); }, true);
+    if (new URLSearchParams(location.search).get('probe') === '1') {
+      // 15 s of the world running (frames drawn, the menu down), then the probe
+      let since = -1;
+      const wait = setInterval(() => {
+        const live = this.active && game.frameCount > 30 && performance.now() - this.lastPaint < 1500;
+        since = live ? (since < 0 ? performance.now() : since) : -1;
+        if (since >= 0 && performance.now() - since > 15_000) { clearInterval(wait); void this.runProbe(); }
+      }, 1000);
+    }
     const param = new URLSearchParams(location.search).get('perf');
     const hide = (): boolean => (param === '0' ? true : param === '1' ? false : !isDev());
     this.userHidden = hide(); this.root.hidden = this.userHidden;
@@ -71,6 +88,20 @@ export class Perf {
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
   setActive(on: boolean): void { this.active = on; this.root.hidden = on ? this.userHidden : true; if (!on || this.userHidden) this.open(false); }
+  private readonly probeOut: HTMLElement;
+  /** run the on-device probe; its table stays in the panel (and the console, `window.__perfProbe`) */
+  private async runProbe(): Promise<void> {
+    const out = this.probeOut, g = this.game;
+    this.panel.classList.add('probed');
+    const rows = await runPerfProbe(g, (line) => { out.textContent = line; });
+    if (rows.length === 0) return;
+    const head = `${g.renderer.domElement.width}×${g.renderer.domElement.height} · ${TIER} · ${Math.round(devicePixelRatio)}× screen`;
+    const lines = probeLines(rows, head);
+    out.textContent = lines.join('\n');
+    console.info(`[probe]\n${lines.join('\n')}`);
+    Object.assign(window, { __perfProbe: rows });
+    this.open(true);
+  }
   private active = true; // until the menu first hides it (main.ts)
   /** the details panel over the minimap (phones) */
   private open(on: boolean): void { const show = on && this.root.hidden === false; this.panel.classList.toggle('open', show); this.root.classList.toggle('open', show); }

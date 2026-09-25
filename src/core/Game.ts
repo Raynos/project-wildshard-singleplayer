@@ -66,6 +66,10 @@ export class Game {
   stats = { fps: 0, frames: 0, acc: 0 };
   /** last 120 frame times in ms (ring; `frameI` is the next slot) — the perf meter reads p50/p95 from it */
   frameMs = new Float32Array(120); frameI = 0;
+  /** the same frames' main-thread time in ms (input → the frame submitted), slot for slot with `frameMs` (src/ui/perfProbe.ts) */
+  workMs = new Float32Array(120);
+  /** frames drawn since start() */
+  frameCount = 0;
   /** draw calls / triangles of the last whole frame (all composer passes) */
   lastFrame = { calls: 0, triangles: 0 };
   /** WebGL context loss bookkeeping (iOS drops the context in the background); the perf meter shows it */
@@ -448,12 +452,14 @@ export class Game {
         if (gpu) gpu.render(); else composer.render(realDt);
       } catch (e) { this.fault(this.renderSystem, e); return; }
       if (this.captures.length > 0) this.flushCaptures();
+      const work = performance.now() - lastRun;
       if (dyn) {
         const at = now ?? lastRun;
         dyn.setEnabled(dynWanted());
-        if (prevDrawnAt >= 0) dyn.frame(at - prevDrawnAt, performance.now() - lastRun, 1000 / (cap > 0 ? cap : 60), at);
+        if (prevDrawnAt >= 0) dyn.frame(at - prevDrawnAt, work, 1000 / (cap > 0 ? cap : 60), at);
         prevDrawnAt = at;
       }
+      this.workMs[this.frameI] = work; this.frameCount++;
       if (gpu) { this.lastFrame.calls = gpu.info.calls; this.lastFrame.triangles = gpu.info.triangles; }
       else { this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles; }
       this.frameMs[this.frameI] = realDt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;

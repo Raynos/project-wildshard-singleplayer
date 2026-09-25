@@ -138,6 +138,18 @@ export function setting<K extends OptionKey>(k: K): OptionValue<K> { return opti
 export function savedSetting<K extends OptionKey>(k: K): OptionValue<K> { return options[k].stored; }
 /** save a pick: a live option applies at once (subscribers fire), a boot option only on the next load */
 export function saveSetting<K extends OptionKey>(k: K, v: OptionValue<K>): void { options[k].set(v); }
+/**
+ * A live option's value for this page only, never saved (src/ui/perfProbe.ts switches the cap and dynamic resolution
+ * for its rows); `null` returns it to the saved pick. Subscribers fire on a change.
+ */
+export function overrideSetting<K extends OptionKey>(k: K, v: OptionValue<K> | null): void {
+  const o = options[k];
+  if (o.boot) return;
+  const next = v ?? o.stored;
+  if (o.value === next) return;
+  o.value = next;
+  o.listeners.forEach((fn) => fn(next));
+}
 /** fires on a live option's change, and with the new saved pick for a boot option; not called immediately */
 export function onSettingChange<K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): () => void { return options[k].on(fn); }
 /** the URL overrides this option for this load (the menus say so) */

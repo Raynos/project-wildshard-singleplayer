@@ -24,4 +24,9 @@
   .ws-perf-panel .ws-perf-row:last-child { border-bottom: 0; }
   .ws-perf-panel .ws-perf-row i { font-style: normal; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan-dim); }
   .ws-perf-panel .ws-perf-row span { white-space: nowrap; text-align: right; }
+  /* E142: the on-device probe (src/ui/perfProbe.ts): its button, and its table under the rows (the panel widens for it) */
+  .ws-perf-panel .ws-perf-probe { appearance: none; -webkit-appearance: none; margin: 0; padding: 3px 8px; border: 1px solid var(--ws-cyan-line); background: rgba(13, 27, 38, 0.9); color: var(--ws-cyan); font: inherit; font-size: 8px; letter-spacing: 0.16em; touch-action: none; }
+  .ws-perf-panel .ws-perf-probe-out { margin: 4px 0 0; font: inherit; font-size: 8px; line-height: 1.35; white-space: pre; }
+  .ws-perf-panel .ws-perf-probe-out:empty { display: none; }
+  .ws-perf-panel.open.probed { width: min(94vw, 300px); }
 }
