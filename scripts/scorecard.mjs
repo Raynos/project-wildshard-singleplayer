@@ -121,7 +121,7 @@ if (COMPARE && AGAINST) { // no browser: verdict of two result files
 const children = [];
 const cleanup = () => { for (const c of children) if (!c.killed) c.kill('SIGTERM'); };
 process.on('exit', cleanup);
-process.on('SIGINT', () => { cleanup(); process.exit(130); });
+for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { cleanup(); process.exit(130); }); // the preview + Chromium go with us
 
 let SERVE = flag('serve', '');
 if (has('export')) SERVE = exportTree(flag('export', 'HEAD'));
@@ -477,6 +477,15 @@ async function measurePose(page, shard, vp, pose, run, shots) {
   await page.evaluate((p) => {
     const w = window.__world, pl = w.player, s = w.chunk.spawn;
     pl.spawn(p.x ?? s.x, p.z ?? s.z, p.yaw ?? s.yaw);
+    // spawn() puts the feet on the terrain: under a deck (Driftwood's pier) that is inside it — land on the top of the
+    // static floor within 2.5 m above instead (scripts/physics-baseline.mjs `land`)
+    const ph = w.physics;
+    if (ph?.R) {
+      const x = pl.position.x, z = pl.position.z, top = pl.position.y + 2.5;
+      const hit = ph.world.castRay(new ph.R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 2.6, true, ph.R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, undefined, (c) => c.parent()?.isFixed() ?? true);
+      if (hit) pl.position.y = Math.max(pl.position.y, top - hit.timeOfImpact);
+      pl.prevFeet?.copy(pl.position);
+    }
     pl.pitch = 0;
     pl.velocity?.set(0, 0, 0);
     pl.keys?.clear();
@@ -484,21 +493,26 @@ async function measurePose(page, shard, vp, pose, run, shots) {
   await sleep(SETTLE_MS);
   const f = await page.evaluate(async (ms) => {
     const W = window, g = W.__world.game;
+    // a DRAWN frame is one where game.frameNo moved (the tier's frame cap skips vsyncs: Pine Hollow's phone draws every
+    // 2nd); intervals and main-thread ms are per drawn frame (the skipped vsyncs' few µs fold into the next drawn one)
+    const drawnNo = () => (typeof g.frameNo === 'number' ? g.frameNo : null);
     const iv = [], cpu = [], calls = [], tris = [];
     W.__sc_cpuAcc = 0; W.__sc_cpuOn = true;
-    let last = performance.now();
+    let last = performance.now(), lastNo = drawnNo(), first = true;
     const end = last + ms;
     await new Promise((resolve) => {
       const tick = () => {
-        const now = performance.now();
-        iv.push(now - last); cpu.push(W.__sc_cpuAcc); W.__sc_cpuAcc = 0; last = now;
-        if (g.lastFrame) { calls.push(g.lastFrame.calls); tris.push(g.lastFrame.triangles); }
+        const now = performance.now(), no = drawnNo();
+        if (no === null || no !== lastNo) {
+          if (!first) { iv.push(now - last); cpu.push(W.__sc_cpuAcc); }
+          first = false; W.__sc_cpuAcc = 0; last = now; lastNo = no;
+          if (g.lastFrame) { calls.push(g.lastFrame.calls); tris.push(g.lastFrame.triangles); }
+        }
         if (now >= end) resolve(undefined); else W.__sc_rawRAF(tick);
       };
       W.__sc_rawRAF(tick);
     });
     W.__sc_cpuOn = false;
-    iv.shift(); cpu.shift();
     const p = W.__world.player.position;
     return { iv, cpu, calls, tris, pos: [p.x, p.y, p.z] };
   }, SAMPLE_MS);

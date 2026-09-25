@@ -94,9 +94,9 @@ bridge, plains; Pine Hollow gate, cabin, pond. The player is teleported there on
 
 | row | what it is |
 |---|---|
-| `pose.<name>.fps` | Frames over 10 s of `requestAnimationFrame`. The phone tier of Pine Hollow is capped at 30 on purpose. |
-| `pose.<name>.frameP95Ms` | The 95th percentile frame interval. |
-| `pose.<name>.cpuP50Ms / cpuP95Ms` | Main-thread ms a frame inside `requestAnimationFrame` callbacks (the game loop, draw submission included). Unlike fps it is not capped by vsync, so it moves when the work does. |
+| `pose.<name>.fps` | Drawn frames a second over 10 s: a frame counts when `game.frameNo` moves, so the tier's frame cap is honoured (Pine Hollow's phone tier draws every second vsync: 30 on purpose). |
+| `pose.<name>.frameP95Ms` | The 95th percentile interval between drawn frames. |
+| `pose.<name>.cpuP50Ms / cpuP95Ms` | Main-thread ms a drawn frame inside `requestAnimationFrame` callbacks (the game loop, draw submission included). Unlike fps it is not capped by vsync, so it moves when the work does. |
 | `pose.<name>.calls / trisK` | Draw calls and triangles of the last frame (`game.lastFrame`), the median over the sample. |
 | `pose.<name>.ssim` | SSIM of the pose's screenshot (JPEG, quality 80, CSS pixels) against its golden in `progress/scorecard/baseline/`, on luma with a 7 × 7 window (skimage's default), computed in the page. The row passes at ≥ 0.98. A pose whose run-to-run SSIM is below that is re-budgeted in `scorecard.budget.json` with the measured noise as the why. |
 
