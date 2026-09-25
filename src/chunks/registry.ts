@@ -8,8 +8,9 @@
  *   chunkSlugFromUrl()           `?chunk=<slug>` or the default
  *
  * The initial active chunk is resolved from the URL at module init, so anything that reads
- * `SEED` / `heightAt` at import time already sees the right shard. One chunk is loaded at a
- * time; picking another on the title screen reloads the page with `?chunk=`.
+ * `SEED` / `heightAt` at import time already sees the right shard. One chunk RUNS at a time; since E155 several can
+ * be built in the page (src/shard/ShardHost.ts): picking another on the title screen switches to it in place, and the
+ * host calls setActiveChunk on every switch (the URL's `?chunk=` follows it).
  */
 import type { ChunkDef } from './ChunkDef';
 import { PINE_HOLLOW } from './pine-hollow';

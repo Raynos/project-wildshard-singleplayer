@@ -78,7 +78,7 @@ import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from '.
 import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { useShardSteps } from './boot/steps';
-import { declareTotals, installByteCounter } from './boot/bytes';
+import { declareTotals, installByteCounter, releaseByteCounter } from './boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
 import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
@@ -119,6 +119,9 @@ import { installPineQuest } from './pinehollow/quest';
 import { installPineWeather } from './pinehollow/weather';
 import { installPineLoadout } from './pinehollow/loadout';
 import { installPineLife } from './pinehollow/life';
+import { ShardHost, type ShardWorld } from './shard/ShardHost';
+import { setShardSwitcher } from './shard/switch';
+import { asShell } from './core/shardScope';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -130,13 +133,43 @@ function animalPositions(list: { position: { x: number; z: number }; alive?: boo
 }
 
 installErrorModal(); // before anything can throw
+
+/**
+ * The page's shell (SHARD-CACHE, E155): what every resident shard shares — the score (one Music on the page's one
+ * AudioContext; each shard's own Audio is its world's sound). The loader, the service worker, the error modal and the
+ * decoded audio / art caches (src/boot/extras.ts) are page-wide by themselves.
+ */
+const shell: { music: Music | null } = { music: null };
+/** the page's shard host (main() makes it): each shard's GPU recovery asks it whether that shard is parked */
+let hostRef: ShardHost | null = null;
+
+/** how many built shards stay in memory (the user, E159: two); `?shardcap=N` for a test */
+const SHARD_CAP = ((): number => { const n = Number.parseInt(new URLSearchParams(location.search).get('shardcap') ?? '', 10); return Number.isFinite(n) && n >= 1 ? n : 2; })();
+
 async function main() {
+  const host = new ShardHost({ build: buildShard, cap: SHARD_CAP });
+  setShardSwitcher({
+    go: (slug, req) => { host.switchTo(slug, req).catch((e: unknown) => { showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''); }); },
+    resident: (slug) => host.has(slug),
+  });
+  (window as unknown as { __shardHost: ShardHost }).__shardHost = host; // the E155 test + debugging: resident shards, switch timings, memory
+  hostRef = host;
+  await host.start(getActiveChunk().slug);
+}
+
+/**
+ * One shard's world, built in the page (the first at page load, the others when the deck asks — src/shard/ShardHost.ts).
+ * This was the whole of main() when a page held one shard; it still is that boot, step for step.
+ */
+async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const loading = new Loading();
+  if (getActiveChunk().slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
   // the RESUMING screen's brand (E99): the shard's name + title art, while its URL is still the served file (the menu
   // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
-  resumeScreen().brand(getActiveChunk().slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), getActiveChunk().heroPortrait);
+  const brand = (): void => { resumeScreen().brand(getActiveChunk().slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), getActiveChunk().heroPortrait); };
+  brand();
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/boot/steps.ts)
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); }, { totals: declareTotals(files) });
@@ -145,8 +178,9 @@ async function main() {
   window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
   window.addEventListener('error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename.split('/').pop()}:${e.lineno}`.slice(0, 300)));
   const step: StepRunner = (key, work) => plan.step(key, work).then((p) => p.value);
-  // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached
-  await window.__ws_sw?.ready;
+  // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached (a shard built
+  // later in the page finds it long settled)
+  if (first) await window.__ws_sw?.ready;
   // this shard's files in flight now, in step order; each step builds as its files land — as one pack when the build has
   // one (src/boot/pack.ts), else file by file (src/boot/prefetch.ts); anything the pack lacks still goes file by file
   const pack = packFor(getActiveChunk());
@@ -428,8 +462,12 @@ async function main() {
   const audio = new Audio();
   if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
   // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
-  const music = new Music(audio);
-  music.setState({ shard: chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine', mode: 'menu', intensity: 0, underwater: false });
+  // the page's one score (the shell's): built with the first shard, routed through the running shard's master (Music.attach)
+  const music = shell.music ?? asShell(() => new Music(audio));
+  shell.music = music;
+  music.attach(audio);
+  const mood = chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine';
+  music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: false });
   // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
@@ -697,8 +735,9 @@ async function main() {
   if (ride) ride.taming.onBonded = () => { progress.recordEvent('tame'); }; // B15: the Horse Sense achievement
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
-  player.onSubmerge = () => { audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
-  player.onSurface = () => { audio.surface(); islandSfx?.plunge(true); audio.setUnderwater(false); ambience?.setUnderwater(false); music.setState({ underwater: false }); };
+  let submerged = false; // the score's underwater state, given back when this shard plays again (E155)
+  player.onSubmerge = () => { submerged = true; audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
+  player.onSurface = () => { submerged = false; audio.surface(); islandSfx?.plunge(true); audio.setUnderwater(false); ambience?.setUnderwater(false); music.setState({ underwater: false }); };
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
@@ -917,14 +956,47 @@ async function main() {
   if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
   audio.useSamples(banks.sfx);
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
+  releaseByteCounter();
   game.start();
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
   if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
-  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming });
+  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
+    parked: () => hostRef?.isParked(slug) === true, onLostParked: () => { hostRef?.evict(slug); } }); // a parked shard that loses its context is evicted (E155)
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  startShardPrefetch(getActiveChunk()); // E158: the other shards' boot files into the worker's cache, in the background
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife };
+  // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
+  if (first) asShell(() => { startShardPrefetch(getActiveChunk()); });
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife };
+  const debug = window as unknown as { __world: unknown };
+  debug.__world = handle; // the running shard's (the host re-points it on every switch)
+
+  // ── the shard host's handles on this world (src/shard/ShardHost.ts, E155) ──
+  return {
+    slug, handle, renderer: game.renderer, scene: game.scene,
+    park: () => {
+      if (hud.entered) hud.exitToMenu(); // in the world (the complete card's Next shard): to its title first, as the pause menu's exit does
+      weapons.setEnabled(false); perf.setActive(false);
+      audio.worldMuted = true;
+      game.stop();
+      audio.park(true);
+    },
+    activate: (req) => {
+      audio.park(false);
+      music.attach(audio);
+      music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: submerged });
+      game.resume();
+      brand();
+      debug.__world = handle;
+      if (req.explore === true && chunk.explore === true) hud.startExplore();
+      else if (req.enter === true) { fromTitle = false; hud.enterNow(); } // where the player left off: no respawn at the gate (E121 is for the same shard's title)
+    },
+    dispose: () => {
+      game.dispose();
+      world.physics.dispose();
+      audio.evict();
+      if (debug.__world === handle) debug.__world = null;
+    },
+  };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

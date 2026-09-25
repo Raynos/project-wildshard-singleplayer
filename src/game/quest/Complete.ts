@@ -15,7 +15,8 @@
  */
 import { SEA_GLASS_COUNT, SHARD_FLAGS, DRIFTWOOD_INTERACT } from '../../world/interact/driftwood';
 import { ShardComplete, setCompleteEntry, type ShardCompleteData } from '../../ui/ShardComplete';
-import { chunkUrl, findChunk } from '../../chunks/registry';
+import { findChunk } from '../../chunks/registry';
+import { requestShard } from '../../shard/switch';
 import { DRIFTWOOD_PLACES } from './Places';
 import { QUEST_DONE } from './driftwood';
 import type { LiveMarker } from './core';
@@ -125,7 +126,7 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
     w.audio.worldMuted = true;
     card.open(data(), {
       keep: () => { close(); w.audio.worldMuted = wasMuted; w.hud.onResume?.(); },   // the pause menu's close: control, the sword, the pointer lock
-      next: () => { if (next) location.href = chunkUrl(next.slug); },
+      next: () => { if (next) { close(); requestShard(next.slug, { enter: true }); } },   // E155: switched to in the page (this island parks under its title)
       title: () => { close(); w.hud.exitToMenu?.(); },                                 // its hush + the title theme are main.ts's
     });
   };

@@ -1,5 +1,6 @@
 import { CHUNK_SIZE } from '../core/config';
-import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
+import { CHUNKS, getActiveChunk } from '../chunks/registry';
+import { requestShard, shardResident } from '../shard/switch';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
@@ -462,7 +463,7 @@ export class HUD {
   /**
    * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the live world (the
    * neighbours peek in from the edges, dots below — a swipe steps the shard); the centred card is the selection. Under it
-   * two compact buttons: ENTER WORLD (play; the active shard enters, another reloads with `?chunk=`) and EXPLORE WORLD
+   * two compact buttons: ENTER WORLD (play; the active shard enters, another is switched to in the page — src/shard/ShardHost.ts, E155) and EXPLORE WORLD
    * (the viewer, project/archive/2026-09-23-explore-world.md; the shards whose ChunkDef.explore is on — D4, E66). Teasers from `PLACEHOLDERS` crossfade their hero art in
    * behind the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility. (The user,
    * 2026-09-23, on the p12 split panels: "way too big … it does not make it obvious you can swipe" — back to the deck.)
@@ -534,7 +535,8 @@ export class HUD {
       enterBtn.classList.toggle('soon', !c.playable);
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
+      // another shard: in memory it is instant, else it loads here, in the page (E155 — it used to reload with ?chunk=)
+      enterHint.textContent = !c.playable ? 'Not yet playable' : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : shardResident(c.slug) ? `Switch to ${c.displayName}` : `Loads ${c.displayName}`;
       exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
     };
     const select = (raw: number, smooth = true): void => {
@@ -545,7 +547,7 @@ export class HUD {
     const activate = (): void => {
       const c = cards[index];
       if (!c || !c.playable) return;
-      if (c.active) this.enter(); else location.href = chunkUrl(c.slug);
+      if (c.active) this.enter(); else requestShard(c.slug, { enter: true }); // another shard: switched to in the page (src/shard/ShardHost.ts)
     };
     // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
     let drag: { id: number; x0: number; t0: number; dx: number } | null = null;
@@ -576,7 +578,7 @@ export class HUD {
       ev.stopPropagation();
       const c = cards[index];
       if (c?.explore !== true) return;
-      if (!c.active) { const u = new URL(chunkUrl(c.slug)); u.searchParams.set('explore', 'hub'); location.href = u.toString(); return; }
+      if (!c.active) { requestShard(c.slug, { explore: true }); return; }
       this.leaveForExplore();
     });
     q(intro, '.ws-menu-settings').addEventListener('click', (e) => { e.stopPropagation(); openBootSettings(); }); // E55: the reload-to-apply picks
@@ -644,6 +646,15 @@ export class HUD {
   /** skip the intro (`?skipintro`, `?tour`, a GPU-recovery reload): straight into the world. `onEnter` is what the title's
    *  ENTER WORLD runs once pause → "Exit to main menu" brings the title back — without it that exit froze the game (E86) */
   markEntered(onEnter?: () => void): void { if (onEnter) this.onEnter = onEnter; this.entered = true; this.root.classList.remove('intro'); }
+
+  /** E155: the deck picked this shard while it was resident: into the world at once, as its own ENTER WORLD would */
+  enterNow(): void {
+    if (this.intro) { this.enter(); return; }
+    if (this.entered) return;
+    this.markEntered();
+    this.onSoundToggle?.(!this.soundOff);
+    this.onEnter?.();
+  }
 
   /** Pause → "Exit to main menu": back to the chunk selection without a reload. The world stays loaded;
    *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
