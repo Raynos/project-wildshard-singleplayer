@@ -8,7 +8,7 @@
  * sees depends on how bad it is:
  *
  *   - **non-fatal** — a frame-loop system switched off (src/core/faults.ts), or an uncaught error / rejection once the
- *     world is running: no modal, no interruption. A small quiet chip at the top ("A glitch was reported ✓"), once a
+ *     world is running: no modal, no interruption. A small quiet chip in the sky under the top HUD ("A glitch was reported ✓"), once a
  *     session, that fades by itself or goes on a tap. The game keeps running.
  *   - **fatal** — the boot failed, or a core system (the render, the physics step, the player's step) keeps throwing and
  *     the loop stopped: the modal, in the game's glass. RELOAD HERE (back where the player stood: `?at=` + `?glreload`,
@@ -23,6 +23,7 @@
 import { DescribedError, describeError, emitFault, loopState, onFault, type Fault } from '../core/faults';
 import { ErrorReporter, safeUrl, type ErrorPayload, type ReportOutcome, type SendResult } from '../core/errorReport';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
+import { installLifeTrace } from '../core/lifeTrace';
 import { currentPose, reloadWithPicks } from './ReloadPrompt';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER } from '../core/tier';
@@ -80,7 +81,7 @@ const STYLE = `
   #wserr .meta { margin-bottom: 8px; color: rgba(230, 242, 248, 0.45); font-size: 10px; white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; user-select: text; }
   #wserr .n { color: #ffb86b; font-size: 10px; letter-spacing: 0.12em; }
   #wserr button.copy { width: auto; padding: 9px 12px; font-size: 10px; }
-  #wserr-chip { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 2147482400; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: rgba(13, 27, 38, 0.8); border: 1px solid rgba(143, 227, 255, 0.35); color: rgba(230, 242, 248, 0.85); font: 10px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: opacity 0.4s ease; -webkit-user-select: none; user-select: none; }
+  #wserr-chip { position: fixed; left: 50%; top: calc(22vh + env(safe-area-inset-top, 0px)); z-index: 2147482400; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 11px; background: rgba(13, 27, 38, 0.72); border: 1px solid rgba(143, 227, 255, 0.35); color: rgba(230, 242, 248, 0.85); font: 10px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: opacity 0.4s ease; -webkit-user-select: none; user-select: none; }
   #wserr-chip::before { content: ''; width: 5px; height: 5px; background: #ffb86b; box-shadow: 0 0 6px #ffb86b; }
   #wserr-chip.out { opacity: 0; pointer-events: none; }
   #wserr-chip b { color: #7ef0b0; font-weight: 400; }
@@ -273,6 +274,8 @@ export function installErrorModal(): void {
   w.__wsErrorModal = true;
   reporter = new ErrorReporter({ send, context, session: session(), local: local(), now: () => performance.now() });
   onFault(handle);
+  // the app-switch trace (E135): a long return / a boot after one reports as system `lifecycle` — no chip, no modal
+  installLifeTrace((message, trace) => { void report('lifecycle', new DescribedError(message, trace), {}); });
   window.addEventListener('error', (e) => {
     const err: unknown = e.error;
     // An opaque cross-origin error ("Script error.", no file, no error object) is never ours: every game script is
