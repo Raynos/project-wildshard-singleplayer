@@ -60,3 +60,20 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-P2 | The shared machine was too loaded for a clean desktop 60 fps reading after the render fix — one quiet desktop run | render-fix lane |
 | F-P3 | E142 levers measured, not applied (fix lane; `docs/tasks/asks/E142.md` "Fix lane"). A static phone render scale of 1.5 on Pine Hollow is −34 % GPU at the stones and in the grove, but Jake called 1.5 "really bad and blurry" in E70, so it waits on the heavy lane's dynamic resolution. Others: re-draw the shadow map every 2nd frame or cache the static casters (the shadow draw is −13–19 %); SMAA off (−4 %, but the foliage aliases); bloom / god rays / volumetric march off (−3 % each). A `?forest=dense` switch back to the look-loop forest was not built: `terrain.bin`'s placement log is baked for one forest | E142 fix lane |
 | F-P4 | E143 thinned the forest by hand (`FOREST_KEEP` 0.7, old-growth × 1.6, shrubs × 2.5, ferns × 1). If a zone now reads bare on Jake's walk, tune it per zone (the grove's keep, the old-growth multiplier) rather than bringing the round-2 grid back | E143 |
+
+## GPU levers not taken (E142 heavy lane, 2026-09-25 — measured with scripts/pine-hollow-gpu.mjs, M5 at 1206×2622)
+
+The frame after the density cut + the shipped levers: 2.0–2.65 ms. Each row: what it saves, why it was not shipped.
+
+| # | Row | Measured | Why not yet |
+|---|---|---|---|
+| F-G1 | Terrain splat on the phone: no normal / ARM fetch (flat normal, constant roughness) | −0.10…−0.22 ms (the terrain is 0.37–0.85 ms, the dearest single thing) | a look change (lighting detail on the ground): a variant for Jake's pick |
+| F-G2 | Terrain: splat layers under 8 % weight skipped | −0.01…−0.16 | harder layer edges (trails) — a variant |
+| F-G3 | Terrain: one near sampling (no rotated second tile) + a hard 40 m near / far switch | −0.02…−0.16 | tiling shows / a seam line — a variant |
+| F-G4 | Terrain: no open-floor grass / moss extra fetches | −0.06…−0.14 | loses the moss drifts — a variant |
+| F-G5 | Foliage depth pre-pass (alpha-tested depth only, then colour at EQUAL) | cards cost 0.12–0.92 ms (old-growth 9 alpha layers kept, 20 rasterised per px) | needs a wind + fade-patched cheap depth material per batch; front-to-back sort shipped instead (−0.08…−0.12) |
+| F-G6 | World-depth copy at half res for the depth readers (march, god rays) | the copy is 0.06–0.17 ms | composer-internal target sizes; small |
+| F-G7 | Cheaper IBL specular for rough materials (radiance ≈ irradiance / π over roughness 0.85) | −0.01…−0.09 | not worth a look risk; all IBL is only 0.14–0.21 |
+| F-G8 | Volumetric march quarter-res + bilateral up | the march is 0.04–0.06 ms (2 %) | already cheap — keep it on the phone |
+| F-G9 | HUD glass blur off on the phone (the build keeps only `-webkit-backdrop-filter`, so only Safari draws it) | Simulator: opacity-0 overlays cost nothing; ~7 small visible layers | wait for the probe's `no HUD blur` row on Jake's phone |
+| F-G10 | The CSS minifier drops unprefixed `backdrop-filter` (esbuild target): Chrome / Android draw no HUD glass at all | — | a look bug on Android, not perf — its own ask |
