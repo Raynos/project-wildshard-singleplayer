@@ -140,8 +140,8 @@ function rimShops(plan: WellPlan, rng: Rng): void {
  */
 function rimBalustrade(kx: KitX, k: Kit): void {
   const z = RIM.z0, y = Y0;
-  const STONE = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete } as const;
-  const PANEL = { wash: 0x5c5e64, kind: K.panel, line: 1, wet: 0.45 } as const;
+  const STONE = { wash: 0x5e6066, kind: K.stone, line: 1, wet: 0.3, surf: SURF.concrete } as const;
+  const PANEL = { wash: 0x585a60, kind: K.panel, line: 1, wet: 0.25 } as const;
   const X = new Vector3(1, 0, 0), UPV = new Vector3(0, 1, 0), SZ = new Vector3(0, 0, 1);
   // posts every ~2.4 m, set out from the two shared cameras: D (x −14) has its lion post at its lower left (−15.2);
   // B (x −19.5) looks over a panel, its lion post at its lower right (−18.2), the next post at −21.2
@@ -160,7 +160,8 @@ function rimBalustrade(kx: KitX, k: Kit): void {
     relief(kx, new Vector3(cx, y + 0.49, z + 0.085), X.clone(), UPV.clone(), SZ.clone(), w - 0.16, 0.44, 5100 + Math.round(cx * 7), { wash: 0x68686c, line: 0, wet: 0.35 });
     k.box(cx, y + 0.78, z, w + 0.02, 0.08, 0.2, STONE);
     for (const t of [0.25, 0.75]) k.lathe(a + 0.18 + w * t, y + 0.86, z, [[0.07, 0], [0.1, 0.05], [0.06, 0.1], [0.05, 0.14], [0.08, 0.2]], 8, STONE, false, 0);
-    k.box(cx, y + 1.06, z, w + 0.04, 0.12, 0.24, STONE);
+    // the rail: a round bar (尋杖), shaded round, not a flat slab seen from the rim
+    k.limb(new Vector3(a + 0.18, y + 1.06, z), new Vector3(b - 0.18, y + 1.06, z), 0.085, 0.085, 10, STONE, 0, true);
   }
   for (const px of posts) {
     // the post (望柱): a carved shaft, a cap, a lotus bud (a lion goes on the camera posts once dome B's is callable)
