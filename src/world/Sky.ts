@@ -137,6 +137,7 @@ export class Sky {
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
     this.texelBias = this.stylized !== null && rig.phone;
+    this.farEveryOther = this.texelBias && this.csm.lights.length > 1;
     // E174: the phone rig's shadow maps, pause ▸ Settings ▸ Debug ▸ Shadows (Driftwood phone), live; 'a' = today (three's own)
     if (this.stylized && rig.phone) {
       const maps = new ShadowMaps(this.renderer, this.csm, this.camera, this.shadowFade?.ghosts ?? [], rig.size);
@@ -360,6 +361,16 @@ export class Sky {
    * two-sided sheets). A cascade's square follows the camera's aspect (a resize, a rotation), so it is read each frame.
    */
   private texelBias = false;
+  /**
+   * E189 (Jake, iPhone 17 Pro: the warm phone must hold a locked 30 in the grass, "keep the look"; his pick of what may
+   * give: "far shadows softer" — redrawn less often): on the phone's low-poly rig the far cascade (22–80 m) is redrawn on
+   * every other drawn frame, 15 times a second at the locked 30. A skipped frame keeps the last map AND the matrix it was
+   * drawn with (WebGLShadowMap skips a light with autoUpdate off before it updates `shadow.matrix`), so the far shadows sit
+   * exactly where they were, one frame old; only a moving caster out there (a palm swaying) steps at 15 Hz. The near and
+   * middle cascades (the deck, the pier, the flag, everything within 22 m) are redrawn every frame, as before.
+   */
+  private farEveryOther = false;
+  private farTick = 0;
   private fitNormalBias(): void {
     for (const l of this.csm.lights) {
       const texel = (l.shadow.camera.right - l.shadow.camera.left) / l.shadow.mapSize.x;
@@ -372,6 +383,8 @@ export class Sky {
    * bias and the fade's ghosts (Game.warmTurn: the boot draws the world once facing each way).
    */
   warmShadows(): void {
+    const far = this.csm.lights[this.csm.lights.length - 1];
+    if (this.farEveryOther && far) far.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
     this.csm.update();
     this.shadowMaps?.snap();
     if (this.texelBias) this.fitNormalBias();
@@ -387,6 +400,11 @@ export class Sky {
     this.shadowMaps?.snap(); // E174: a cascade smaller than the CSM's size on its own texel grid
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.update(dt); // after the CSM and its bias: each ghost copies its cascade's square
+    if (this.farEveryOther) {
+      const far = this.csm.lights[this.csm.lights.length - 1];
+      this.farTick = (this.farTick + 1) % 2;
+      if (far) far.shadow.autoUpdate = this.farTick === 0;
+    }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (this.stylized) { this.stylizedClock?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
     if (this.painterly) {
