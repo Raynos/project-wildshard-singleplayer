@@ -16,7 +16,7 @@ C `comp-C-stair-street`, D `comp-D-well-down`), there are two domes:
 | `A1-spawn-stand` | A | (0.95, +125, 7.5) | the spawn by the balustrade, looking north at the paifang + banyan (shots.ts `spawn`) |
 | `A2-gate-look` | A | (6.05, +125, −20) | 4.5 m in front of the paifang's centre bay |
 | `B1-well-edge-stand` | B | (−10.5, +125.4, 11.75) | at the Well's south-rim balustrade looking north along the shaft (shots.ts `well-edge`) |
-| `B2-well-edge-look` | B | (−14, +118, −22) | mid-shaft on a (future) timber bridge 7 m below the rim, 34 m north |
+| `B2-well-edge-look` | B | (−14, +119, −21) | mid-shaft on the timber bridge 6 m below the rim, 34 m north |
 | `C1-stair-stand` | C | (18, +125, 6) | Lantern Square at the stair-street's foot, looking east up it (shots.ts `stair-street`) |
 | `C2-stair-look` | C | (37.3, +132, 6) | landing 1, the paifang 17 m further up flight 2 |
 | `D1-well-down-stand` | D | (−10.5, +125.75, 10.55) | leaning over the rim balustrade looking down the shaft (shots.ts `well-down`) |
@@ -67,7 +67,7 @@ Runner: `scripts/horizon-matte/run_codex.py`. Timing:
 - It uses a free camera posed from a late hook, hides the HUD and the viewmodel, and renders 2:3 frames at 512×768 @2
   (= 1024×1536).
 - The captures go in `<dome>/capture-N.jpg` + `sheet-capture-3x3.jpg`, and they are measured against the targets.
-- Caveat: B2 stands on a bridge that doesn't exist yet (the engine's nearest crossings are at −12 and −18).
+- B2's first-person camera was moved to the built timber bridge's center at (−14, +119, −21) on 2026-09-26. The earlier (−14, +118, −22) eye clipped into its cinnabar railing.
 
 ## v1 (kept)
 

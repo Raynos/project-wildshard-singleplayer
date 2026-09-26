@@ -3,11 +3,11 @@
  "type": "look",
  "mockup": "art/nine-dragon-stack/round-6-baseline-hud/comp-B-well-edge.jpg",
  "pair": "B1-well-edge-stand",
- "where": "where mockup B looks: mid-shaft, 34 m north of its camera, standing on a timber bridge that crosses the canyon 7 m below the rim",
+ "where": "where mockup B looks: mid-shaft, 34 m north of its camera, standing on a timber bridge that crosses the canyon 6 m below the rim",
  "anchor_ground": [
   -14.0,
-  118.0,
-  -22.0
+  119.0,
+  -21.0
  ],
  "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
  "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
@@ -18,16 +18,16 @@
    "kind": "fp",
    "eye": [
     -14.0,
-    119.62,
-    -22.0
+    120.62,
+    -21.0
    ],
    "yaw": -3,
    "pitch": 64,
    "hfov": 62,
    "look": [
     -14.46,
-    137.6,
-    -30.76
+    138.6,
+    -29.76
    ],
    "desc": "from the bridge looking steeply UP: the canyon walls of galleries converging overhead, higher bridges and catwalks and a net seen from below, neon blade signs from underneath, the ceiling net-grid with the sky screen"
   },
@@ -75,16 +75,16 @@
    "kind": "fp",
    "eye": [
     -14.0,
-    119.62,
-    -22.0
+    120.62,
+    -21.0
    ],
    "yaw": -93,
    "pitch": -2,
    "hfov": 62,
    "look": [
     -33.96,
-    118.92,
-    -20.95
+    119.92,
+    -19.95
    ],
    "desc": "from the bridge turned LEFT (west): the west wall's timber galleries close up, 4–8 m away — verandas with lattice railings and red posts, people at the rails, laundry, potted plants, lanterns, air-con units, the magenta 麵 and cyan 牙科 neon blade signs hung out into the canyon"
   },
@@ -94,16 +94,16 @@
    "kind": "fp",
    "eye": [
     -14.0,
-    119.62,
-    -22.0
+    120.62,
+    -21.0
    ],
    "yaw": -3,
    "pitch": -4,
    "hfov": 62,
    "look": [
     -15.04,
-    118.22,
-    -41.92
+    119.22,
+    -40.92
    ],
    "desc": "from the bridge facing FURTHER ON (north), the way the mockup looks: the canyon continuing north between its two gallery walls, a crowded stone bridge with a cinnabar paifang (green-glazed roofs, red lanterns) standing across the canyon ahead, more bridges and nets at several levels beyond, the canyon narrowing into pale mist"
   },
@@ -113,16 +113,16 @@
    "kind": "fp",
    "eye": [
     -14.0,
-    119.62,
-    -22.0
+    120.62,
+    -21.0
    ],
    "yaw": 87,
    "pitch": -2,
    "hfov": 62,
    "look": [
     5.96,
-    118.92,
-    -23.05
+    119.92,
+    -22.05
    ],
    "desc": "from the bridge turned RIGHT (east): the east wall's galleries close up — carved stone railings, red lacquer columns, people in conical hats, the amber 茶 and jade 旅館 neon signs, a red 九龍 banner, the bronze dragon-head hook on a gallery post"
   },
@@ -132,18 +132,18 @@
    "kind": "fp",
    "eye": [
     -14.0,
-    119.62,
-    -22.0
+    120.62,
+    -21.0
    ],
    "yaw": 177,
    "pitch": 9,
    "hfov": 62,
    "look": [
     -12.97,
-    122.75,
-    -2.27
+    123.75,
+    -1.27
    ],
-   "desc": "from the bridge facing BACK toward where the mockup's camera stands (south, 34 m away and 7 m higher): the Well's south rim with its long carved stone balustrade and people leaning on it, the shops and towers above the rim, the galleries of the south wall below it, the gondola on its cable crossing below between us and the rim"
+   "desc": "from the bridge facing BACK toward where the mockup's camera stands (south, 34 m away and 6 m higher): the Well's south rim with its long carved stone balustrade and people leaning on it, the shops and towers above the rim, the galleries of the south wall below it, the gondola on its cable crossing below between us and the rim"
   },
   {
    "n": 8,
@@ -151,16 +151,16 @@
    "kind": "fp",
    "eye": [
     -14.0,
-    119.62,
-    -22.0
+    120.62,
+    -21.0
    ],
    "yaw": -3,
    "pitch": -76,
    "hfov": 62,
    "look": [
     -14.25,
-    100.21,
-    -26.83
+    101.21,
+    -25.83
    ],
    "desc": "from the bridge looking straight DOWN past its timber deck edge and cinnabar railing: the canyon dropping away, a sagging net and lower bridges beneath, the red gondola below, the galleries of both walls converging into pale mist"
   },
