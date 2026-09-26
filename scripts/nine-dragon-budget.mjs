@@ -112,7 +112,7 @@ try {
       const cache = window.__budCache;
       const split = (mesh, lane) => {
         const key = mesh.uuid;
-        if (!mesh.isInstancedMesh && cache.has(key)) return cache.get(key);
+        if (!mesh.isInstancedMesh && !mesh.isBatchedMesh && cache.has(key)) return cache.get(key);
         const res = {};
         const gi = mesh.geometry, pos = gi.attributes.position;
         if (!pos) { cache.set(key, res); return res; }
@@ -121,7 +121,24 @@ try {
         mesh.updateWorldMatrix(true, false);
         const mw = mesh.matrixWorld.elements;
         const w = (lx, ly, lz) => [mw[0] * lx + mw[4] * ly + mw[8] * lz + mw[12], mw[1] * lx + mw[5] * ly + mw[9] * lz + mw[13], mw[2] * lx + mw[6] * ly + mw[10] * lz + mw[14]];
-        if (lane !== null) add(lane, mesh.isInstancedMesh ? nTri * mesh.count : nTri);
+        if (mesh.isBatchedMesh) {
+          // BatchedMesh's merged geometry stores each piece once. Read the IDs selected by its most recent render,
+          // after its own per-object frustum culling, or regional counts would assign all pieces to the origin.
+          // These arrays are Three internals; keep this ruler pinned to the installed Three version.
+          const ids = mesh._indirectTexture.image.data;
+          const matrix = mesh.matrixWorld.clone();
+          const ranges = new Map();
+          for (let j = 0; j < mesh._multiDrawCount; j++) {
+            const instanceId = ids[j], geometryId = mesh.getGeometryIdAt(instanceId);
+            let range = ranges.get(geometryId);
+            if (range === undefined) { range = mesh.getGeometryRangeAt(geometryId); ranges.set(geometryId, range); }
+            if (range === null) continue;
+            mesh.getMatrixAt(instanceId, matrix);
+            const e = matrix.elements;
+            const [x, y, z] = w(e[12], e[13], e[14]);
+            add(lane ?? region(x, y, z), range.count / 3);
+          }
+        } else if (lane !== null) add(lane, mesh.isInstancedMesh ? nTri * mesh.count : nTri);
         else if (mesh.isInstancedMesh) {
           const e = mesh.instanceMatrix.array;
           for (let i = 0; i < mesh.count; i++) { const [x, y, z] = w(e[i * 16 + 12], e[i * 16 + 13], e[i * 16 + 14]); add(region(x, y, z), nTri); }
@@ -137,12 +154,17 @@ try {
             add(region(x, y, z), 1);
           }
         }
-        if (!mesh.isInstancedMesh) cache.set(key, res);
+        if (!mesh.isInstancedMesh && !mesh.isBatchedMesh) cache.set(key, res);
         return res;
       };
       const root = g.scene.getObjectByName('nine-dragon-stack');
       const vm = cam.children;
-      const measure = () => { rd.info.reset(); g.composer.render(0.016); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; };
+      const measure = () => {
+        // If a whole BatchedMesh is rejected before onBeforeRender, its previous pose's visible IDs must not leak in.
+        root.traverse((o) => { if (o.isBatchedMesh) o._multiDrawCount = 0; });
+        rd.info.reset(); g.composer.render(0.016);
+        return { calls: rd.info.render.calls, tris: rd.info.render.triangles };
+      };
       const vis = new Map(); for (const o of [...root.children, ...vm]) vis.set(o, o.visible);
       const all = measure();
       for (const o of [...root.children, ...vm]) o.visible = false;
