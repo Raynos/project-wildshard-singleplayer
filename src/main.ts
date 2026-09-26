@@ -471,6 +471,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
+  await chunk.traversal?.({
+    game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
+    toast: (message) => { hud.toast(message); },
+    enabled: () => hud.entered && !world.freeCamera && !world.tour.active,
+  });
   const weaponStrip = chunk.hud?.weaponStrip === true ? new WeaponStrip(weapons) : null; // the base HUD's weapon strip (E154; Pine Hollow, Nalati): tabs down the left edge on touch, a hotbar on desktop
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
   const speedLines = new SpeedLines(); // dodge / lunge edge streaks

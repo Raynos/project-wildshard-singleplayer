@@ -132,6 +132,8 @@ interface Cand { t: AimTarget; yaw: number; pitch: number; angle: number; dist: 
 export class LockOnSystem {
   /** hooks (main.ts): the lock chime, the switch ping, the unlock / break tone, the "nothing there" tick */
   onLock?: () => void; onSwitch?: () => void; onUnlock?: () => void; onNone?: () => void;
+  /** A shard's traversal target gets first claim on LOCK; true means it handled the press. */
+  onTryToggle?: () => boolean;
   /** TouchControls: flash the LOCK disc's "NO TARGET"; flash an edge chevron that had nothing */
   onNoTarget?: () => void; onFlickMiss?: (dir: FlickDir) => void;
 
@@ -166,6 +168,7 @@ export class LockOnSystem {
   }
 
   toggle(): void {
+    if (this.onTryToggle?.() === true) return;
     if (lockOn.state === 'locked') { this.unlock(); return; }
     if (!this.usable) return;
     this.scan();

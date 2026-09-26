@@ -59,6 +59,8 @@ export async function jianArms(): Promise<ShardSword> {
       base.applyMatrix4(rig.root.matrix);
       tip.applyMatrix4(rig.root.matrix);
     },
+    playLeft: (name) => { rig.playLeft(name); },
+    setClawVisible: (visible) => { rig.setClawVisible(visible); },
   };
   return { arms };
 }

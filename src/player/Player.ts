@@ -163,6 +163,10 @@ export class Player {
   private landImpulse = 0;
   private roll = 0; private pitchLean = 0;
   onJump?: () => void;
+  /** Shard traversal may consume a fresh jump press before the ordinary jump is queued. */
+  onJumpRequest?: () => boolean;
+  /** A traversal verb may drive the capsule for one fixed step through the CharacterMotor. */
+  traversalStep?: (dt: number) => boolean;
   onLand?: (hard: boolean) => void;
   onStep?: (sprinting: boolean) => void;
   /** runs first thing in update(), before input is read and the camera is posed — the touch aim assist nudges yaw/pitch here */
@@ -358,7 +362,7 @@ export class Player {
     this.inStr = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
     // jump is an EDGE (press), not a held state — so holding Space can't chain a double jump
     const jumpDown = k.has('Space') || this.touchJump; this.touchJump = false;
-    if (jumpDown && !this.jumpWasDown) this.jumpQueued = true;
+    if (jumpDown && !this.jumpWasDown && this.onJumpRequest?.() !== true) this.jumpQueued = true;
     this.jumpWasDown = jumpDown;
     if (this.touchDodge) { this.touchDodge = false; this.dodge(); }
   }
@@ -372,6 +376,7 @@ export class Player {
     this.prevFeet.copy(this.position);
     // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
     if (this.ride !== null) { this.ride.step(dt); return; }
+    if (this.traversalStep?.(dt) === true) { this.jumpQueued = false; return; }
     if (this.carried) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const k = this.keys;
     const fwd = this.inFwd, str = this.inStr;

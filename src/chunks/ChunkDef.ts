@@ -30,10 +30,25 @@ import type { HuntTuning } from '../entities/AnimalManager';
 import type { SpeciesWeights } from '../world/treeSpecies';
 import type { WorldRegistry } from '../world/registry';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '../player/Sword';
+import type { Player } from '../player/Player';
+import type { LockOnSystem } from '../player/LockOnTarget';
+import type { Game } from '../core/Game';
+import type { Physics } from '../physics/Physics';
 
 /** a shard's own sword (ChunkDef.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig
  *  (`arms`) swung by the engine's own moves */
 export interface ShardSword { rig?: SwordRig; arms?: SwordArms; moves?: SwordMoveSet; framing?: Partial<SwordFraming>; portraitPullX?: number }
+
+/** Shared controls and motor, handed to a shard's optional traversal verb after its world and HUD exist. */
+export interface ShardTraversalContext {
+  game: Game;
+  player: Player;
+  physics: Physics;
+  arms: SwordArms | null;
+  lock: LockOnSystem;
+  toast: (message: string) => void;
+  enabled: () => boolean;
+}
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
 export type Vec2 = [number, number];
@@ -546,6 +561,8 @@ export interface ChunkDef {
   /** `weapon: 'sword'`: the shard's own sword for the engine's Sword — its viewmodel (`rig`), and optionally its moves (the
    *  rest pose) and portrait framing; a lazy loader, so the def stays node-safe. Omitted = the wooden sword */
   sword?: () => Promise<ShardSword>;
+  /** An optional shard traversal verb installed on the shared LOCK and JUMP controls. */
+  traversal?: (ctx: ShardTraversalContext) => Promise<void> | void;
   /** the first person's field of view: `portrait` = the sword's hip FOV base on a portrait screen before Hor+ (degrees;
    *  the engine's 72° gives ~94° vertical / ~52° across at 9:19.5); omitted = the engine's */
   fov?: { portrait: number };

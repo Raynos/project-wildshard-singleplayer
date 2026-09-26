@@ -109,6 +109,7 @@ export const NINE_DRAGON_STACK: ChunkDef = {
       return (await import('./world/jian')).jianSword();
     }
   },
+  traversal: async (ctx) => { (await import('./grapple/Traversal')).installFeiZhua(ctx); },
   horizon: { rings: [], cloudSea: false },
   // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World
   // Explorer's free camera over the fragment — no model catalog is registered

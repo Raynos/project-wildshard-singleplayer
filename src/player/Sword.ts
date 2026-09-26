@@ -113,6 +113,9 @@ export interface SwordArms {
   update: (dt: number, s: { speed: number; walkPhase: number; lookVel: THREE.Vector2; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer }) => void;
   /** the blade this frame, camera space: its base (grip end) and its tip */
   blade: (base: THREE.Vector3, tip: THREE.Vector3) => void;
+  /** Optional independent left-arm channel for a shard traversal tool. */
+  playLeft?: (name: 'grapple_aim' | 'grapple_fire' | 'grapple_hold' | 'idle') => void;
+  setClawVisible?: (visible: boolean) => void;
 }
 /** the portrait framing (Sword.framing): shrink, extra drop / slide (m, camera space), the blade tipped forward and turned (rad) */
 export interface SwordFraming { shrink: number; dx: number; dy: number; tilt: number; yaw: number }

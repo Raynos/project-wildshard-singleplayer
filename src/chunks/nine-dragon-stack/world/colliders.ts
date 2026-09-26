@@ -68,7 +68,8 @@ export function fragmentColliders(): FragmentColliders {
   out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, WELL.z0, PLAZA.x0 + 0.1, Y0 + PARAPET, RIM.z0));
   out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, RIM.z1, PLAZA.x0 + 0.1, Y0 + PARAPET, PLAZA.z1 + 0.6));
   // the rim's own (dome C's stone and 3.2 m parapet, well.ts wellColliders), carried up to the same height
-  out.push(span(WELL.x0, Y0 + 1.12, RIM.z0 - 0.1, WELL.x1, Y0 + PARAPET, RIM.z0 + 0.1));
+  // The south rim's tall cap is registered separately as a kinematic grapple guard (index.ts): it opens only during
+  // an actual Fei Zhua pull. The stone parapet in wellColliders() remains solid under it.
   // ── props you would walk into ──
   out = props;
   // (the gate's lion pair and their pedestals are gone: dome B took them out, style-A and the A2 targets have none)
@@ -87,6 +88,11 @@ export function fragmentColliders(): FragmentColliders {
   out.push(span(STALL.x0, Y0, STALL.z0, STALL.x1, Y0 + 3.2, STALL.z1 + 0.6, 'wood'));                    // the noodle stall
   out.push(span(HAWKER.x0, Y0, HAWKER.z0, HAWKER.x1, Y0 + 2.4, HAWKER.z1, 'wood'));                      // the hawker stall
   return { floors, fronts, edges, props };
+}
+
+/** Invisible upper cap of the south Well rail; a kinematic piece can disable it for a committed grapple only. */
+export function fragmentGrappleGuard(): ColliderDesc[] {
+  return [span(WELL.x0, Y0 + 3.2, RIM.z0 - 0.1, WELL.x1, Y0 + PARAPET, RIM.z0 + 0.1)];
 }
 
 /** the floor under (x, z) where the player can stand (placement, footsteps), or undefined off the fragment */
