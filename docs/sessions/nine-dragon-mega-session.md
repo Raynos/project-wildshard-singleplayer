@@ -10,7 +10,7 @@ Updated: 2026-09-26. This is the short list to use when Jake returns and asks to
 | F2 | Now | Review the three-page **A4 portrait** skill user manual for Matthew. Is it understandable without reading the underlying skill? | [PDF](../process/shard-checkpoints-user-guide.pdf), E207 |
 | F4 | Now | Review the **portrait Nine Dragon trailer recut** with the current playable grapple and three-talon flying claw. Does the crossing read clearly, and is the 15-second cut ready? | [video](../../art/nine-dragon-stack/round-22-portrait-grapple-final/nine-dragon-portrait-grapple-final.mp4), [contact sheet](../../art/nine-dragon-stack/round-22-portrait-grapple-final/contact.jpg), E204 |
 | F5 | After model catalog deploy | Review the three placed GLB assets in Model Explorer and say which need more polish before further shard expansion. | E205 |
-| F6 | If the physical-phone double load happens again | Read or screenshot pause → Settings → Debug → Loading & memory → **Last reload** after the second Nine Dragon load. It records whether the previous page ended intentionally or unexpectedly and which shards were resident. | E200 |
+| F6 | After E216 deploy | Try the Driftwood → Nine Dragon switch once on the physical iPhone. Confirm that Nine Dragon shows one loader and remains playable; if Safari still reports a problem, capture that screen and the Debug → Loading & memory → **Last reload** line if reachable. | E200, E216 |
 
 ## Resolved decisions
 
