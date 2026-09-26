@@ -101,6 +101,26 @@ w.game.onLate(() => { const p = window.__v9.pose, cam = w.game.camera; if (!p) r
 For god shots, spawn the player under the look point with `freeCamera = true`, so streaming, the forest LOD and the
 grass LOD centre on the view.
 
+### Two domes: where you stand and where you look (Jake, 2026-09-25, E169)
+
+Nine angles around one anchor polish a **half-dome around the player**. A hero view looks *out of* that dome at a focal
+area 30–50 m away (Nine Dragon Stack's spawn looks at the paifang and the banyan). The loop only ever sees that area from
+one side, so it never reaches the mockup's intensity there. To make a hero view match its mockup, polish **two domes into
+the same scene**:
+
+- **Dome A**: anchored where the player stands (the classic loop above).
+- **Dome B**: anchored at the focal point, e.g. just in front of the gate / tree. Its 9 views face the gate, the tree,
+  left, right, up, the aerials, and **back toward dome A** (you now look at the player's surroundings from the other
+  side). Its targets are image-model edits of its own captures **with the hero mockup as a second input**: "the second
+  image is this same place seen from ~35 m back — repaint the first (a closer camera) at the same style and intensity of
+  detail, keeping the first image's camera and geometry".
+- Two agents, one per dome, with **disjoint file ownership** (Nine Dragon Stack: dome B owns the square's hero props,
+  dome A owns the systems — materials, post, towers, the Well, the viewmodel). Each round, dome B also re-captures the
+  hero view as proof that its work lands there.
+
+When dome B's area reads right from all nine of its sides, the hero view (dome A's edge, looking at dome B's centre) is
+right too, because everything in it was polished close up and from every direction.
+
 ## Step 2: capture
 
 `scripts/pine-hollow-views.mjs` is the reference implementation (`nalati-camp9.mjs` and `nalati-chunk-views.mjs` are
