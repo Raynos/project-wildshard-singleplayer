@@ -32,7 +32,10 @@ from P1 on waits for Jake's go.
 4. **A module, not branches.** Shard 4 is built in GAME-NORMALIZATION's shard-module shape (`src/chunks/nine-dragon-stack/`
    `def.ts` + `index.ts`), with zero `slug ===` outside its folder. If GAME-NORMALIZATION has not landed when the build
    starts, the build still uses the module shape and adds the extension points it needs as core fields.
-5. **Phone first.** The iPhone home-screen PWA is the target: ≥ 30 fps at 2× render scale, never a render-scale cut
+5. **The baseline HUD, nothing custom.** Jake (2026-09-25): Driftwood carries the baseline HUD; Pine Hollow and Nalati
+   add shard-specific pieces. Shard 4 uses the baseline HUD with **no shard-specific HUD elements** — "the absolute
+   cleanest way". Every new verb maps onto an existing control and every new fact onto an existing slot (§3.4).
+6. **Phone first.** The iPhone home-screen PWA is the target: ≥ 30 fps at 2× render scale, never a render-scale cut
    (memory: no dynamic resolution). A dense city is a draw-call problem first (§6.3).
 
 ## 1. The pitch
@@ -122,10 +125,23 @@ rim or an overlook. Checked by a capture script over a grid of points per stratu
 
 ### 3.3 Vertical wayfinding
 
-- **The stratum ladder** (HUD, under the quest chip): "STRATUM 6/9 · LANTERN SQ · +125 M" and a slim 9-tick ladder.
+- **No HUD ladder** (rule 5): the stratum is told by the world — every stratum's name is painted large at its lift
+  towers and Well rims, the minimap shows only the current stratum's floor plan, and the quest chip's target names
+  where to go ("SHRINE 64 M").
 - **The colour script** (§2.1's colour key): each stratum has one dominant neon hue, so a glance says where you are.
 - **The Well is the compass.** Every stratum's minimap puts the Yamen Well at its centre.
 - **Lift chimes**: each lift tower plays the stratum's note of the shard's motif on arrival.
+
+### 3.4 On the baseline HUD (rule 5)
+
+| Shard-4 need | Baseline element it uses |
+|---|---|
+| Fire the Fei Zhua | **LOCK** also targets dragon hooks in view (gold outline on the hook); **JUMP** with a hook locked fires and zips |
+| Yank an enemy | **LOCK** on the enemy, **HOLD ATTACK** (the heavy) becomes the yank when the Fei Zhua is ready |
+| Umbrella glide | **hold JUMP** in the air opens the umbrella; release folds it. **HOVER** stays the baseline hoverboard |
+| Which stratum am I on | the minimap draws the current stratum only; the world paints each stratum's name at lifts and Well rims |
+| Where next | the quest chip: "RED ENVELOPE 0/9 │ SHRINE 64 M" |
+| Lifts, cable cars, the monorail | the baseline "use" prompt near a door / stop; the ride itself needs no HUD |
 
 ## 4. Gameplay
 
@@ -145,12 +161,12 @@ rim or an overlook. Checked by a capture script over a grid of points per stratu
 |---|---|---|---|
 | Walk / sprint | streets, alleys | every stratum | the player on colliders (step 0.35 m, 40°) |
 | **Stair-streets** | Chongqing's endless stairs between terraces | 4 → 5 → 6 | `treads` colliders (rise ≤ 0.35, tread ≥ 0.36) |
-| **Public lifts** | four lift towers in the Light Wells, one stop per stratum | all 9 | kinematic bodies (`follows`), a ride HUD |
+| **Public lifts** | four lift towers in the Light Wells, one stop per stratum | all 9 | kinematic bodies (`follows`), the baseline use prompt |
 | **Fei Zhua hook** | aim at a dragon hook → pull-zip or swing | every stratum, dense at Well rims | a rope constraint on the capsule; a hook-target registry |
 | **Laundry-line zip** | hook a line, slide down it | 7 → 8, 5 → 4 | a spline follower |
-| **Umbrella glide** (油紙傘) | oil-paper umbrella: slow fall down a Well, steer, no lift | the Wells | a drag + max-fall-speed mode (GLIDE replaces HOVER) |
+| **Umbrella glide** (油紙傘) | oil-paper umbrella: slow fall down a Well, steer, no lift | the Wells | a drag + max-fall-speed mode, opened by holding JUMP in the air (§3.4) |
 | **Cable cars** | ride between towers and to the cliff masts | Cable Deck | kinematic cabins on splines |
-| **Monorail** | a train through the rock and through a tower | Rail Cut, a high loop to 6 | a ride (the horse's RideHUD pattern) |
+| **Monorail** | a train through the rock and through a tower | Rail Cut, a high loop to 6 | a ride on a kinematic body; no ride HUD (§3.4) |
 | **Nets** | fall catchers under every Well stratum line | the Wells | a bouncy trampoline collider |
 | Rubbish chutes | a one-way drop to the Sump (a joke and a shortcut) | 4 → 1 | a teleport volume + a slide |
 
@@ -237,7 +253,7 @@ close); 漆器 Lacquerpunk for hero props; the Chungking Express smear as a spri
 | Structures | builders register colliders + models (`registry.add`) | **E3** the Stack builder: a modular kit + a grammar that stacks it |
 | Culling | frustum + distance | **E4** stratum cells: draw the current stratum ± 1 and the Wells; the rest as shells |
 | Navmesh | navcat recast, one layer per agent class | **E5** multi-layer bake (recast spans already stack) + off-mesh links for lifts / stairs / hops |
-| Minimap | one top-down image | **E6** one image per stratum, switched by height; the stratum ladder |
+| Minimap | one top-down image | **E6** one image per stratum, switched by height (the baseline minimap, new data) |
 | Lights | a sun + a few points | **E7** emissive + bloom + baked light: hundreds of neon signs, zero real-time point lights |
 | Traversal | walk, swim, hover, ride | **E8** hook, zip, glide, lift, cable car, monorail, nets |
 | Signage | none | **E9** a sign generator: real Chinese words → a baked glyph atlas (subset CJK font, OFL) |
@@ -287,7 +303,7 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>, <build>)`
 | Row | What | Output | State |
 |---|---|---|---|
 | P0-1 | Concept art (9 images) | `art/nine-dragon-stack/round-1-concept/` | done (ede7e60f) |
-| P0-2 | Spawn mockups on the phone HUD, A–D | `art/nine-dragon-stack/round-2-mockups/` | done (ede7e60f) |
+| P0-2 | Spawn mockups on the phone HUD, A–D (round 2 used a stale HUD reference; round 6 redoes rounds 2–4 on a fresh live capture of the baseline HUD) | `art/nine-dragon-stack/round-2-mockups/`, `round-6-baseline-hud/` | in flight (E169) |
 | P0-3 | Art-style research + the six-style board + the Jiehua Neon mockups | `docs/design/nine-dragon-stack/ART-STYLE-RESEARCH.md`, `art/nine-dragon-stack/round-3-art-styles/`, `round-4-jiehua-neon/` | in flight (E169) |
 | P0-4 | This plan | `docs/plans/NINE-DRAGON-STACK.md` | in flight (E169) |
 | P0-5 | The from-scratch clean-room spawn (three.js only, no engine code), the Neon Jian + Fei Zhua in first person | `dev/nine-dragon.html`, `src/dev/nine-dragon/` | todo |
@@ -310,7 +326,7 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>, <build>)`
 | P2-E2 | A structure-first shard: flat datum plate, no splat / trees / grass | todo |
 | P2-E4 | Stratum cells + culling | todo |
 | P2-E5 | Multi-layer navmesh + off-mesh links | todo |
-| P2-E6 | Minimap per stratum + the stratum ladder | todo |
+| P2-E6 | Minimap per stratum (baseline minimap, per-stratum images) | todo |
 | P2-E10 | The style chain (§5) | todo |
 
 ### P3 — greybox
@@ -365,7 +381,7 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>, <build>)`
 | Draw calls | a dense city is thousands of objects | merge per block, atlases, cell culling; budget checked from the greybox on |
 | Content scale | 9 strata × ~100 000 m² | a grammar + kit, hand-built hero spaces only |
 | Vertigo | 375 m drops on a phone | fog hides most of it; nets; no forced looks down |
-| Wayfinding | nine similar floors | the colour script, the ladder, the Well as compass, lift chimes |
+| Wayfinding | nine similar floors | the colour script, painted stratum names, the per-stratum minimap, the Well as compass, lift chimes |
 | Cultural pastiche | fake characters, mixed-up symbols | only real words in signs (a reviewed list), trad / simplified by stratum, no nonsense glyphs |
 | CJK font weight | a full CJK font is ~16 MB | subset to the sign list, bake into one atlas |
 | iOS memory | a big shard beside a resident one (E167) | shared kit textures, the stratum cells stream |
