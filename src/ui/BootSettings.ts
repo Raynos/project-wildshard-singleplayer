@@ -106,21 +106,21 @@ function build(): HTMLElement {
 
   const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: '2', text: '2×' }, { v: 'native', text: 'Native' }, { v: 'auto', text: 'Auto' }];
   const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
-  // E177 (Jake: "the debug cards in main menu & pause menu should be collapsed by default and opt into expansion"): the
-  // experimental renderer and the Developer switch are the pause menu's Debug card's opposite number here — same folding
-  // card, folded until it is asked for, so what is left above it is the picks a player came for.
+  // E172 (the user: "main menu doesnt even have dev/debug just pause menu"): the pause menu's Debug registry
+  // (src/ui/debugOptions.ts → DebugMenu.ts: the same rows, Clear downloads among them), in the same folding card as the
+  // pause menu's (E177) and, like it, only in developer mode. The Developer switch itself sits in the open above it
+  // (Jake, 2026-09-26: "back in the open") — it is how the card appears at all.
   const dbg = foldCard('bootdebug', 'Debug', 'for playtests — goes away when the game ships');
-  // E172 (the user: "main menu doesnt even have dev/debug just pause menu"): under the Developer switch, the pause menu's
-  // Debug registry (src/ui/debugOptions.ts → DebugMenu.ts: the same rows, Clear downloads among them), developer mode only
   const registry = el('ws-gmenu-debugslot');
-  registry.hidden = !isDev(); onDev((on) => { registry.hidden = !on; if (on) debug?.paint(); });
   debug = buildDebugMenu(registry);
-  dbg.append(...devSwitchRows(), registry); // developer mode (E140): live, no reload
+  dbg.append(registry);
+  dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; if (on) debug?.paint(); });
   p.append(running,
     el('ws-gmenu-label', 'Graphics'), row('tier', LABELS.tier),
     seg('Render scale', false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, 'Render scale'); } }),
     seg('Anti-aliasing', false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
     el('ws-gmenu-label', 'Controls'), row('touch', LABELS.touch),
+    ...devSwitchRows(), // developer mode (E140): live, no reload
     dbg);
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));
