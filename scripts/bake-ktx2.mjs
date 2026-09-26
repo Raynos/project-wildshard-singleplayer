@@ -10,10 +10,13 @@
 //   - every GLB with embedded images (KHR_texture_basisu; geometry bytes untouched).
 //
 // Per tier, per file the tier SERVES (the phone's `.phone.webp` / `.phone.glb` copy when there is one, src/boot/bytes.ts
-// tierUrl): the phone's KTX2 has the phone copy's size. Encoded from the best source there is (the original map, not a
-// lossy copy of it). Only the phone is baked by default (the iPhone's memory is what E157 is for): the desktop's copies
-// (`--tiers=phone,desktop`, each at the file's own size up to --desktop-max) came to 157 MB more in the repo, and the
-// desktop's GPU has the memory — it keeps its images.
+// tierUrl): the phone's KTX2 has the phone copy's size, the desktop's the full-res file's own size (E173; the desktop
+// loaders cap at 4096 and read every file here whole). Encoded from the best source there is (the original map, not a
+// lossy copy of it). Both tiers are baked (E173: desktop Pine Hollow held ~950 MB of RGBA8 textures, ~1.7 GB with two
+// shards resident); an encode that is the same for both tiers (same source, size, class, flip) is one file.
+// Texture-array layers are baked at the tier's array size (src/core/tier.ts layerSize: the desktop's 1024 is the phone's
+// file size, so the desktop reuses the phone's layer twins of the 2048² ground sets instead of a 2048² twin it would
+// only sample from mip 1).
 //
 // Encoder (basisu v2.50, Homebrew `basis_universal`), per texture class:
 //   color   UASTC LDR 4×4, level 2, sRGB, no RDO (λ 4 cost 6 dB), zstd 20        diffuse / albedo / emissive, atlases, horizons
@@ -36,7 +39,7 @@
 // list simply keeps loading as an image (the texmem report lists what is still RGBA8). The texture-array layers (the
 // terrain splat, the bark) are baked a second time unflipped (`<url>#layer`): loadPBRArray keeps the file's orientation.
 //
-//   node --import ./scripts/bake-loader.mjs scripts/bake-ktx2.mjs [--dry] [--force] [--only=<substr>] [--jobs=4] [--tiers=phone] [--desktop-max=1024]
+//   node --import ./scripts/bake-loader.mjs scripts/bake-ktx2.mjs [--dry] [--force] [--only=<substr>] [--jobs=4] [--tiers=phone,desktop] [--desktop-max=16384]
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
@@ -64,10 +67,12 @@ const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); re
 const DRY = argv.includes('--dry'), FORCE = argv.includes('--force');
 const ONLY = flag('only', '');
 const JOBS = Number(flag('jobs', '4'));
-const DESKTOP_MAX = Number(flag('desktop-max', '1024'));
-/** the tiers baked: the phone by default — the desktop's copies would add ~157 MB to the repo (every push crawls over a
- * slow uplink) for a GPU that has the memory; `--tiers=phone,desktop` bakes both */
-const TIERS = new Set(flag('tiers', 'phone').split(','));
+/** the desktop's largest KTX2 edge: the file's own size (the horizons are 6144 wide and load whole) */
+const DESKTOP_MAX = Number(flag('desktop-max', String(1 << 14)));
+/** the texture-array size per tier (src/core/tier.ts TIER_CONFIG.layerSize): a desktop layer twin is baked at it */
+const DESKTOP_LAYER = 1024;
+/** the tiers baked (E173: both; `--tiers=phone` bakes the phone's alone, and then drops the desktop's files) */
+const TIERS = new Set(flag('tiers', 'phone,desktop').split(','));
 
 /** the URLs each tier was seen to load (see the header) */
 const LIST = JSON.parse(readFileSync(LIST_FILE, 'utf8'));
@@ -81,7 +86,18 @@ const { CHUNKS } = await imp('src/chunks/registry.ts');
 const { BARK_LAYERS } = await imp('src/world/treeSet.ts');
 const LAYER_SETS = new Set(BARK_LAYERS);
 for (const c of CHUNKS) for (const id of [...(c.assets?.groundLayers ?? []), ...(c.assets?.boreal?.v1?.groundLayers ?? [])]) LAYER_SETS.add(id);
-const isLayerFile = (file) => { const m = /\/assets\/tex\/([^/]+)\/(diffuse|nor_gl|arm)(_1k)?\.jpg$/.exec(file); return m !== null && LAYER_SETS.has(m[1]); };
+const layerSetOf = (file) => /\/assets\/tex\/([^/]+)\/(diffuse|nor_gl|arm)(_1k)?\.jpg$/.exec(file)?.[1] ?? null;
+const isLayerFile = (file) => { const id = layerSetOf(file); return id !== null && LAYER_SETS.has(id); };
+/**
+ * Layer sets no plain loader reads (loadPBR / loadTexture): only their unflipped `#layer` twin is ever loaded, so their
+ * Y-flipped KTX2 would be a file no KTX2 set names (E173: 31.8 MB on the desktop, 10.4 MB of the phone's). The sets a
+ * plain loader also reads keep both: pine_bark (the cabins), rock_ground (the terrain slab, the crags).
+ * test/ktx2-auto.test.ts holds this list to the truth both ways: every file under /assets/gpu is in some tier's KTX2 set
+ * (a set missing here leaves an unread file), and no KTX2 boot declares an image of a set named here (one wrongly here
+ * would load as an image).
+ */
+const ARRAY_ONLY = new Set(['bark_willow_02', 'birch_bark', 'fir_bark', 'metasequoia_bark', 'forrest_ground_03', 'leafy_grass', 'stony_dirt_path']);
+const arrayOnly = (file) => { const id = layerSetOf(file); return id !== null && ARRAY_ONLY.has(id) && LAYER_SETS.has(id); };
 
 const ENCODER = /v[\d.]+/.exec(execFileSync('basisu', ['-version']).toString())?.[0] ?? '?';
 const COMMON = ['-ktx2', '-mipmap', '-mip_filter', 'box', '-max_threads', '4'];
@@ -175,7 +191,7 @@ function addImage(file, flip, clsOverride) {
   if (orig === file && listed.desktop.has(pub(file))) {
     const d = dims(file);
     if (Math.max(d.w, d.h) > DESKTOP_MAX) skipped.push(`${pub(file)} (desktop, ${d.w}×${d.h} > ${DESKTOP_MAX})`);
-    else { const t = fit(d.w, d.h, DESKTOP_MAX); push('desktop', pub(file), orig, t.w, t.h, cls, flip, isLayerFile(file)); }
+    else { const t = fit(d.w, d.h, DESKTOP_MAX); push('desktop', pub(file), orig, t.w, t.h, cls, flip, isLayerFile(file) ? fit(d.w, d.h, DESKTOP_LAYER) : null, arrayOnly(file)); }
   }
   // phone: the phone copy when there is one (≤ 1024 px, scripts/tex-tiers.mjs), else the file, at its own size — the
   // loaders that cap the phone at 1024 (core/assets loadTexture) drop the KTX2's top mips instead; `X.jpg` with an
@@ -184,13 +200,17 @@ function addImage(file, flip, clsOverride) {
   const served = phone ?? file;
   const d = dims(served);
   const t = fit(d.w, d.h, 1 << 14);
-  push('phone', pub(served), orig, t.w, t.h, cls, flip, isLayerFile(file));
+  push('phone', pub(served), orig, t.w, t.h, cls, flip, isLayerFile(file) ? t : null, arrayOnly(file));
 }
-/** a job for a file the tier was seen to load; a texture-array layer also gets its unflipped twin under `<url>#layer` */
-function push(tier, served, orig, w, h, cls, flip, layer) {
+/**
+ * A job for a file the tier was seen to load; a texture-array layer also gets its unflipped twin under `<url>#layer`, at
+ * `layer`'s size (the phone: the file's own — ktx2Layers starts at the mip that fits; the desktop: its array size), and
+ * only that twin when its set is ARRAY_ONLY.
+ */
+function push(tier, served, orig, w, h, cls, flip, layer, onlyLayer = false) {
   if (!listed[tier].has(served)) return;
-  imageJobs.push([tier, served, orig, w, h, cls, flip]);
-  if (layer) imageJobs.push([tier, `${served}#layer`, orig, w, h, cls, false]);
+  if (!(layer && onlyLayer)) imageJobs.push([tier, served, orig, w, h, cls, flip]);
+  if (layer) imageJobs.push([tier, `${served}#layer`, orig, layer.w, layer.h, cls, false]);
 }
 const images = (dir, re = /\.(png|jpe?g|webp)$/i) => walk(join(ASSETS, dir)).filter((f) => re.test(f) && !isPhoneCopy(f));
 

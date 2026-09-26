@@ -98,7 +98,7 @@ export function shardPrefetchList(def: ChunkDef, tex: TexMode = texMode()): stri
 
 /**
  * E157 B: a shard's KTX2 set for this tier — every KTX2 stand-in its KTX2 boot and world read (the files an images boot
- * does not), plus the Basis transcoder they need. Empty when the tier has no stand-ins (the desktop: not baked).
+ * does not), plus the Basis transcoder they need. Empty when the tier has no stand-ins (both tiers are baked since E173).
  */
 export function ktx2Set(def: ChunkDef): string[] {
   const own = shardPrefetchList(def, 'ktx2').filter((u) => u.startsWith('/assets/gpu/'));

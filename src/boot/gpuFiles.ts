@@ -3,8 +3,10 @@
  *
  * A JPEG / WebP decodes to RGBA8 on the GPU — 4 bytes a texel, ~5.3 with mips — however small the file was. KTX2 / Basis
  * Universal files (scripts/bake-ktx2.mjs) are transcoded to a format the GPU samples compressed: ASTC 4×4 on the iPhone
- * (1 byte a texel), BC7 / ASTC on desktop, ETC2 for the ETC1S planes (½ byte). Same pictures, a quarter of the memory,
+ * (1 byte a texel), ASTC 4×4 on an Apple Silicon Mac's Chrome too (ANGLE Metal exposes no BPTC), BC7 on a desktop GPU that
+ * has it, ETC2 for the ETC1S planes (½ byte; BC1 / BC3 where there is no ETC2). Same pictures, a quarter of the memory,
  * no decode on the main thread and no mipmap generation — which is what lets several shards stay resident on a phone.
+ * Both tiers have their own set (E173: the desktop's at the full-res files' size; Pine Hollow 950 → 360 MB of textures).
  *
  * `gpuFile(served)` maps a URL the tier already fetches (after `tierUrl`: the phone's `.phone.webp` / `.phone.glb`) to its
  * KTX2 stand-in (`/assets/gpu/…-<hash8>.ktx2|glb|gltf`, content-addressed), or undefined — no stand-in, or this page
