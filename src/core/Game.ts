@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, VignetteEffect, ToneMappingEffect,
+  EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
   ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
   type Effect, type Pass,
 } from 'postprocessing';
@@ -26,6 +26,7 @@ import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
+import { setting } from '../ui/Settings';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -324,6 +325,11 @@ export class Game {
     if (A.volumetric) vol.setMedium(A.volumetric);
     this.volumetrics = vol;
     // the colour chain, built by a factory: an Effect belongs to one EffectPass, so each chain gets its own instances
+    // E189 debug cuts (Debug ▸ Performance, Driftwood only, off = today): one FXAA pass instead of SMAA's three; the faint
+    // god rays left out
+    const lowpoly = getActiveChunk().style === 'lowpoly';
+    const fxaa = lowpoly && TIER_CONFIG.smaa !== 'off' && setting('dwAa') === 'fxaa' ? new FXAAEffect() : null;
+    const raysOn = !lowpoly || setting('dwRays') === 'on';
     const chain = (clean: boolean): EffectPass => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
@@ -359,7 +365,7 @@ export class Game {
       // the learned LUT (X1, src/world/lut.ts) is the last grade step: the palette fitted to the mockups. Always on — the
       // user locked it in (E85); only Debug ▸ Look ▸ Learned LUT Off (the fit's own captures) builds without it
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
-      const order: Effect[] = lut ? [godRays, bloom, vignette, tone, grade, contrast, split, lut] : [godRays, bloom, vignette, tone, grade, contrast, split];
+      const order: Effect[] = [...(raysOn ? [godRays] : []), bloom, vignette, tone, grade, contrast, split, ...(lut ? [lut] : [])];
       return this.colourPass(composer, order, { ao: aoPass, vol, godRays, bloom, chroma: null, vignette, tone, saturation: grade, contrast, grade: split, lut, grain: null });
     };
     // the low-poly shard runs the clean L5 chain (E88, the user's Look Lab pick); every other shard keeps the original
@@ -367,7 +373,9 @@ export class Game {
     const colour = chain(getActiveChunk().style === 'lowpoly');
     composer.addPass(colour);
     this.placeShardPasses(composer, colour); // a shard's own passes around the engine's (none without a render strategy)
-    if (TIER_CONFIG.smaa !== 'off') {
+    // FXAA reads its pass's input image, so it gets a pass of its own on the graded frame (EffectPass orders effects by kind)
+    if (fxaa !== null) composer.addPass(new EffectPass(this.camera, fxaa));
+    if (TIER_CONFIG.smaa !== 'off' && fxaa === null) {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));
     }

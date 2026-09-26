@@ -32,9 +32,25 @@ import { BlendFunction, type Effect, type Pass } from 'postprocessing';
 import type { Game } from '../core/Game';
 import { frameProbe } from '../core/tier';
 
-export interface ProbeRow { phase: string; fps: number; frameMs: number; jsMs: number; waitMs: number; frames: number }
+export interface ProbeRow {
+  phase: string; fps: number; frameMs: number; jsMs: number; waitMs: number; frames: number;
+  /** E189: the frame's p95 / fastest / slowest (ms), and the uncapped as-played frame measured right before the row (the
+   *  warm iPhone drifts between a fast and a slow state on its own: a row's saving is its frame against this, not row 1) */
+  p95: number; min: number; max: number; base: number | null;
+  /** seconds from the probe's start to the row's measuring window */
+  at: number;
+}
 
-const SETTLE_MS = 1800, MEASURE_MS = 4500;
+/** every drawn frame the probe saw: seconds from its start, frame ms, main-thread ms, the row (index into the rows, -1 = a
+ *  baseline, -2 = a settle) */
+export type ProbeSample = [number, number, number, number];
+
+const SETTLE_MS = 1500, MEASURE_MS = 3500;
+/** the baseline before each row: uncapped, as played */
+const BASE_SETTLE_MS = 1000, BASE_MEASURE_MS = 2500;
+
+/** the last probe's samples (the COPY report's timeline) */
+export const probeSamples: ProbeSample[] = [];
 
 interface Phase { name: string; set: (on: boolean) => void; /** false = nothing on this shard to switch: the row is left out */ applies?: () => boolean }
 
@@ -114,13 +130,6 @@ function meshesByProgram(scene: THREE.Object3D, key: (k: string) => boolean): TH
   return out;
 }
 
-/** p50 of the last `count` slots of a ring that ends (exclusive) at `end` */
-function lastP50(ring: Float32Array, end: number, count: number): number {
-  const n = Math.min(count, ring.length), v: number[] = [];
-  for (let i = 1; i <= n; i++) v.push(ring[(end - i + ring.length * 2) % ring.length] ?? 0);
-  v.sort((a, b) => a - b);
-  return v[Math.floor(v.length / 2)] ?? 0;
-}
 
 let running = false;
 
@@ -176,21 +185,51 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
     { name: 'no scene', set: (on) => { game.scene.visible = !on; } },
   ];
   const rows: ProbeRow[] = [];
+  // every drawn frame, tagged with what was switched at the time (E189: the COPY report's timeline)
+  probeSamples.length = 0;
+  const start = performance.now();
+  let tag = -2, seen = game.frameCount, sampling = true;
+  const sample = (): void => {
+    if (!sampling) return;
+    if (game.frameCount !== seen) {
+      seen = game.frameCount;
+      const k = (game.frameI - 1 + game.frameMs.length) % game.frameMs.length;
+      probeSamples.push([(performance.now() - start) / 1000, game.frameMs[k] ?? 0, game.workMs[k] ?? 0, tag]);
+    }
+    requestAnimationFrame(sample);
+  };
+  requestAnimationFrame(sample);
+  const pct = (v: number[], q: number): number => { const a = [...v].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(a.length * q))] ?? 0; };
+  /** measure `ms` under tag `t`: the frames' stats */
+  const measure = async (t: number, ms: number): Promise<{ fps: number; frameMs: number; jsMs: number; p95: number; min: number; max: number; frames: number; at: number }> => {
+    const from = probeSamples.length, t0 = performance.now();
+    tag = t;
+    await sleep(ms);
+    tag = -2;
+    const got = probeSamples.slice(from), f = got.map((x) => x[1]), j = got.map((x) => x[2]);
+    const secs = (performance.now() - t0) / 1000;
+    return { fps: got.length / secs, frameMs: pct(f, 0.5), jsMs: pct(j, 0.5), p95: pct(f, 0.95), min: f.length > 0 ? Math.min(...f) : 0, max: f.length > 0 ? Math.max(...f) : 0, frames: got.length, at: (t0 - start) / 1000 };
+  };
+  const live = phases.filter((x) => x.applies?.() ?? true);
   try {
-    for (const [i, ph] of phases.filter((x) => x.applies?.() ?? true).entries()) {
-      // row 0 as played; every other row uncapped
+    for (const [i, ph] of live.entries()) {
+      // row 0 as played; every other row uncapped, after a baseline of its own (rows 0 and 1 are the baselines themselves)
       frameProbe.uncapped = i !== 0;
+      let base: number | null = null;
+      if (i >= 2) {
+        progress(`${i + 1}/${live.length} baseline…`);
+        await sleep(BASE_SETTLE_MS);
+        base = (await measure(-1, BASE_MEASURE_MS)).frameMs;
+      }
       ph.set(true);
-      progress(`${i + 1}/${phases.length} ${ph.name}…`);
+      progress(`${i + 1}/${live.length} ${ph.name}…`);
       await sleep(SETTLE_MS);
-      const n0 = game.frameCount, t0 = performance.now();
-      await sleep(MEASURE_MS);
-      const frames = game.frameCount - n0, secs = (performance.now() - t0) / 1000;
-      const frameMs = lastP50(game.frameMs, game.frameI, frames), jsMs = lastP50(game.workMs, game.frameI, frames);
-      rows.push({ phase: ph.name, fps: frames / secs, frameMs, jsMs, waitMs: Math.max(0, frameMs - jsMs), frames });
+      const m = await measure(i, MEASURE_MS);
+      rows.push({ phase: ph.name, ...m, waitMs: Math.max(0, m.frameMs - m.jsMs), base });
       ph.set(false);
     }
   } finally {
+    sampling = false;
     for (const ph of phases) ph.set(false);
     frameProbe.uncapped = false;
     style.remove();
@@ -200,8 +239,32 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
   return rows;
 }
 
-/** the rows as fixed-width lines for the panel / console */
+/** the rows as fixed-width lines for the panel / console; `base` = the as-played frame measured just before the row */
 export function probeLines(rows: readonly ProbeRow[], header: string): string[] {
   const pad = (s: string, n: number) => s.padEnd(n).slice(0, n);
-  return [header, `${pad('', 14)}  fps  frame   js  wait`, ...rows.map((x) => `${pad(x.phase, 14)} ${x.fps.toFixed(0).padStart(4)} ${x.frameMs.toFixed(1).padStart(6)} ${x.jsMs.toFixed(1).padStart(4)} ${x.waitMs.toFixed(1).padStart(5)}`)];
+  const n = (v: number | null, w: number) => (v === null ? '—' : v.toFixed(1)).padStart(w);
+  return [header, `${pad('', 14)}  fps  frame   js  wait  base`, ...rows.map((x) => `${pad(x.phase, 14)} ${x.fps.toFixed(0).padStart(4)} ${n(x.frameMs, 6)} ${n(x.jsMs, 4)} ${n(x.waitMs, 5)} ${n(x.base, 5)}`)];
+}
+
+/**
+ * E189 (Jake: "you need a copy button after running this probe … I like lots and lots of data"): the whole probe as text —
+ * `header` (build, device, settings, where), every row with its full stats and its saving against its own baseline, then
+ * the run second by second (mean / max frame ms and what was switched), so a drift of the phone's own state shows.
+ */
+export function probeReport(rows: readonly ProbeRow[], samples: readonly ProbeSample[], header: readonly string[]): string {
+  const f = (v: number | null) => (v === null ? '—' : v.toFixed(1));
+  const out = [...header, '', 'ROWS  (ms; save = base − frame: what the row takes off the as-played frame measured just before it)',
+    'row             at s   fps  frame   p95   min    max    js  wait   base  save  frames'];
+  for (const r of rows) {
+    out.push(`${r.phase.padEnd(14)} ${r.at.toFixed(0).padStart(5)} ${r.fps.toFixed(1).padStart(5)} ${f(r.frameMs).padStart(6)} ${f(r.p95).padStart(5)} ${f(r.min).padStart(5)} ${f(r.max).padStart(6)} ${f(r.jsMs).padStart(5)} ${f(r.waitMs).padStart(5)} ${f(r.base).padStart(6)} ${(r.base === null ? '—' : (r.base - r.frameMs).toFixed(1)).padStart(5)} ${String(r.frames).padStart(6)}`);
+  }
+  out.push('', 'TIMELINE  (per second: frames, mean / max frame ms, mean js ms, what was measured: a row, "base", or "-" settling)');
+  const bySec = new Map<number, ProbeSample[]>();
+  for (const x of samples) { const k = Math.floor(x[0]); const l = bySec.get(k) ?? []; l.push(x); bySec.set(k, l); }
+  for (const [sec, l] of [...bySec.entries()].sort((a, b) => a[0] - b[0])) {
+    const fr = l.map((x) => x[1]), js = l.map((x) => x[2]), mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / Math.max(1, v.length);
+    const t = l[l.length - 1]?.[3] ?? -2, what = t >= 0 ? (rows[t]?.phase ?? String(t)) : t === -1 ? 'base' : '-';
+    out.push(`${String(sec).padStart(4)}s ${String(l.length).padStart(3)} fr  ${mean(fr).toFixed(1).padStart(5)} / ${Math.max(...fr).toFixed(1).padStart(5)}  js ${mean(js).toFixed(1).padStart(4)}  ${what}`);
+  }
+  return out.join('\n');
 }
