@@ -18,3 +18,5 @@
 .ws-gmenu .ws-dbg-empty[hidden] { display: none; }
 .ws-gmenu .ws-dbg-action { flex: none; margin-left: auto; border-left-width: 1px; padding: 6px 12px; color: #fff; } /* a button row (debugOptions.ts action()) */
 .ws-gmenu .ws-dbg-action:disabled { opacity: 0.5; }
+.ws-gmenu .ws-dbg-action.armed { border-color: rgb(255, 150, 90); background: rgba(255, 120, 60, 0.32); } /* a two-tap action's first tap (E172, Clear downloads: "Tap again to clear ~N MB") */
+.ws-gmenu .ws-dbg-status[hidden] { display: none; } /* a button row's status line under it (E172) */

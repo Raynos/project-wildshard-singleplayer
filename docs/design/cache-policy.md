@@ -24,6 +24,7 @@ files that must never be cached.
 | `/asset-index.json` | `no-store` | The byte table the loading screen sums; regenerated every build. Network-first in the SW with the last copy as the offline fallback. |
 | `/asset-manifest.json` | `no-store` | E160 / E161: every file under `public/assets` (packs included) → its content hash (sha256, first 8 hex). What the build names: the worker reads it on `activate` to keep exactly those entries and drop the rest. Fetched by the worker only, never by the page. |
 | `/manifest.webmanifest` | `no-store` | Small, and the icons/start_url it names must follow the build. Network-first in the SW. |
+| `/clear-cache.json` | `no-store` + `Clear-Site-Data: "cache"` | E172: Debug ▸ Clear downloads fetches it (`?sw=0`, so no worker answers) after unregistering the worker and deleting every cache, so the origin's HTTP cache goes too and the reload is a true first visit. `"cache"` only: `"storage"` would take the saves with it. |
 
 ## The service worker's three caches (`src/pwa/sw.js`)
 
@@ -72,6 +73,17 @@ The same module fills the current shard first: a part the boot fetched before th
 visit on a slow link) is also handed to the worker by `pack.ts` (`STORE`, the bytes it already holds). Before, the
 bench's Pine Hollow 4g/warm run re-downloaded the whole pack (17.5 MB) — it had gone past the worker and Chromium's HTTP
 cache did not keep it.
+
+## Clear downloads (E172, 2026-09-25)
+
+Debug ▸ Loading & memory ▸ Clear downloads (the E162 registry, in title ▸ Settings and pause ▸ Settings, developer mode; `src/boot/clearDownloads.ts`): stops the
+background download, unregisters the worker, deletes every Cache Storage cache (re-checked until none is left), removes
+the `ws.ktx2set.*` markers, fetches `/clear-cache.json` for the HTTP cache, then reloads to the title with `?chunk=` kept.
+localStorage otherwise stays (saves, settings, developer mode, the review login). `scripts/e172-clear-downloads.mjs`
+proves it (`vite preview` behind a byte-counting proxy, phone tier, 390×844): first visit 21.10 MB sent by the server,
+warm reload 0.01 MB, the load after Clear downloads 21.10 MB (`progress/bench/e172-clear-downloads.json`). In headless
+Chromium the HTTP cache answered nothing even without Clear-Site-Data (the `--no-http-clear` control also re-sent
+21.08 MB); the header is there for WebKit, where it is not measured.
 
 ## What the loading screen's DOWNLOAD track can and cannot tell you
 

@@ -126,6 +126,13 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
       ]
+    },
+    {
+      "source": "/clear-cache.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "Clear-Site-Data", "value": "\"cache\"" }
+      ]
     }
   ]
 }

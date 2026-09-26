@@ -7,6 +7,7 @@
  *
  *   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 …' })
  *   action('clearDownloads', 'loading', 'Downloads', 'Clear', () => …, { note: 'E172 …' })   // a button row, not a pick
+ *   DEBUG_READOUTS        → a live readout under a row, by row id (E172: Shards in memory's; both menus show it)
  *   DEBUG_ROWS            → every row, in menu order within its group
  *   DEBUG_GROUPS          → the groups, in menu order (never add one without need: a row belongs in an existing group)
  *
@@ -15,7 +16,10 @@
  */
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { texMode } from '../boot/gpuFiles';
-import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
+import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
+import { RELOAD_PARAM } from '../core/GpuRecovery';
+import { shardMemory } from '../shard/switch';
+import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: ChunkDef; weapons: ReadonlySet<string> }
@@ -59,7 +63,7 @@ export interface DebugRow {
   /** one line: what it switches and the ask it came from */
   note: string;
   /** a button row (a one-shot: clear a cache, spawn something) instead of a pick; `choices` is empty */
-  action?: { text: string; run: () => void | Promise<void> };
+  action?: DebugActionSpec;
 }
 
 // ── the shards ──
@@ -79,14 +83,48 @@ export function opt<K extends OptionKey>(key: K, group: DebugGroupId, label: str
     on: (fn) => { onSettingChange(key, () => { fn(); }); },
   };
 }
-/** a button row: `text` on the button, `run` on a tap (the button disables until a returned promise settles) */
-export function action(id: string, group: DebugGroupId, label: string, text: string, run: () => void | Promise<void>, o: RowOpts): DebugRow {
+/**
+ * A button row's action. `run` may report through `say(button, status)` (the button's text, the line under the row).
+ * E172: `confirm` makes it two taps — the first shows what `confirm()` returns ("Tap again to clear ~158 MB", it may
+ * measure first), a second within a few seconds runs it, else it disarms; `status()` is the line under the row at rest.
+ */
+export interface DebugActionSpec {
+  text: string;
+  run: (say: (button: string, status: string) => void) => void | Promise<void>;
+  confirm?: () => Promise<string>;
+  status?: () => string;
+}
+/** a button row: `text` on the button, `run` on a tap (the button disables until a returned promise settles); `more`:
+ *  the two-tap confirm and the status line (E172) */
+export function action(id: string, group: DebugGroupId, label: string, text: string, run: DebugActionSpec['run'], o: RowOpts, more: Pick<DebugActionSpec, 'confirm' | 'status'> = {}): DebugRow {
   return {
     id, group, label, choices: () => [], reload: o.reload ?? false, when: o.when ?? always, note: o.note,
-    get: () => '', set: () => undefined, on: () => undefined, action: { text, run },
+    get: () => '', set: () => undefined, on: () => undefined, action: { text, run, ...more },
   };
 }
 const ON_OFF = [['on', 'On'], ['off', 'Off']] as const;
+
+/** params that skip the title (dev / deep links): a reload meant to land on the title drops them (the title's Apply &
+ *  reload, src/ui/BootSettings.ts; Clear downloads) */
+export const TITLE_SKIPPERS = ['skipintro', 'tour', 'explore', 'cam', 'model', 'at', RELOAD_PARAM, 'v'];
+
+/** E172 (the user: "I need a button to nuke the cache so i can test it"): every downloaded file gone, the saves kept
+ *  (src/boot/clearDownloads.ts), then a reload to the title like a fresh launch — the running shard's ?chunk= stays */
+const CLEAR_IDLE = 'Deletes the downloaded game files (every cache and the service worker) so the next load is a first visit. Keeps saves, settings and the review login.';
+const clearDownloadsRow = action('clearDownloads', 'loading', 'Clear downloads', 'Clear downloads', async (say) => {
+  say('Clearing…', CLEAR_IDLE);
+  const r = await clearDownloads();
+  const freed = freedBytes(r);
+  say(freed === null ? 'Cleared · reloading' : `Freed ${mbText(freed)} · reloading`,
+    `${mbText(freed)} of downloads · ${r.caches} caches and ${r.workers} worker${r.workers === 1 ? '' : 's'} removed${r.httpCache ? ', HTTP cache cleared' : ''}. Reloading as a first visit.`);
+  window.setTimeout(() => { location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); }, 1500);
+}, { note: 'E172 · the next load is a true cold load (bytes as a first visit)' }, {
+  confirm: async () => { const used = await storageUsed(); return used === null ? 'Tap again to clear' : `Tap again to clear ~${mbText(used)}`; },
+  status: () => {
+    const last = lastClear(); // this page is the reload the last clear made: say what it freed
+    return last === null ? CLEAR_IDLE : `Last clear freed ${mbText(freedBytes(last))} (${last.caches} caches, ${last.workers} worker${last.workers === 1 ? '' : 's'}). ${CLEAR_IDLE}`;
+  },
+});
 const TIMES = [['live', 'Live'], ['midday', 'Midday'], ['golden', 'Golden'], ['sunset', 'Sunset'], ['night', 'Night']] as const;
 
 const MUSIC_TEXT: Record<MusicStyle, string> = { piano: 'Piano', orchestral: 'Orchestral', folk: 'Folk', synth: 'Synth' };
@@ -147,7 +185,22 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('prefetch', 'loading', 'Download in background', ON_OFF, { note: 'E158 · the other shards\' files, once this one is playable' }),
   opt('shardCap', 'loading', 'Shards in memory', [['2', '2'], ['1', '1']], { note: 'E155 / E159 · lowering it evicts at once' }),
   opt('bootPack', 'loading', 'Boot pack', ON_OFF, { reload: true, note: 'boot files as one pack; off = one by one (the KTX2 record run)' }),
+  clearDownloadsRow,
 
   // ── Developer tools ──
   opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
 ];
+
+/** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap and the device's
+ *  memory — read on the device (the iPhone has no dev tools) */
+function memoryReadout(): string {
+  const m = shardMemory();
+  // Chrome's performance.memory / navigator.deviceMemory: absent on iOS (and not in the DOM typings)
+  const pm: unknown = Reflect.get(performance, 'memory'), used: unknown = typeof pm === 'object' && pm !== null ? Reflect.get(pm, 'usedJSHeapSize') : undefined;
+  const dm: unknown = Reflect.get(navigator, 'deviceMemory');
+  const heap = typeof used === 'number' ? `${Math.round(used / 1e6)} MB` : 'n/a';
+  const shards = m === null ? ['no shard host'] : m.shards.map((x, i) => `${i + 1}. ${x.slug}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
+  return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`].join('\n');
+}
+/** E172: a few live lines under a row (by row id), re-read while the row can be seen — in both menus */
+export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { shardCap: memoryReadout };

@@ -181,3 +181,5 @@
 @keyframes ws-gmenu-spin { to { transform: rotate(360deg); } }
 /* main menu ▸ Settings (src/ui/BootSettings.ts, E55): the amber EXPERIMENTAL chip beside a row's label (the title deck's amber) */
 .ws-gmenu .ws-gmenu-chip.exp { display: inline-block; margin-left: 8px; font-style: normal; font-size: 7.5px; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.6); vertical-align: 1px; }
+.ws-gmenu .ws-gmenu-debugslot { flex: none; display: flex; flex-direction: column; margin-top: 4px; } /* the title's Settings ▸ Debug: the registry under the Developer switch (BootSettings.ts, E172) */
+.ws-gmenu .ws-gmenu-debugslot[hidden] { display: none; }

@@ -12,10 +12,13 @@
  */
 import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
 import { asShell } from '../core/shardScope';
-import { RELOAD_PARAM } from '../core/GpuRecovery';
+import { isDev, onDev } from '../core/devMode';
+import { getActiveChunk } from '../chunks/registry';
 import { askReload } from './ReloadPrompt';
 import { devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
+import { buildDebugMenu, type DebugMenu } from './DebugMenu';
+import { TITLE_SKIPPERS } from './debugOptions';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 
@@ -30,20 +33,26 @@ const LABELS: { [K in BootKey]: Row<K> } = {
 const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'touch' ? LABELS[k].label : k);
 /** the render scale / AA picks this page was built with (tier.ts applied them at import) */
 const BOOT_GFX = { ...gfxPrefs };
-/** params that skip the title (dev / deep links): APPLY & RELOAD lands on the title screen */
-const TITLE_SKIPPERS = ['skipintro', 'tour', 'explore', 'cam', 'model', 'at', RELOAD_PARAM, 'v'];
 
 let root: HTMLElement | undefined;
+/** the Debug registry (E162), the same one the pause menu renders (E172) */
+let debug: DebugMenu | null = null;
+let memTimer = 0;
 
 export function openBootSettings(): void {
   const r = root ?? asShell(build); // the page's one panel (src/core/shardScope.ts): its Esc listener is not a shard's
   root = r;
+  // the title may belong to any resident shard (src/shard/ShardHost.ts): re-read which Debug rows apply, and their choices
+  // (GPU textures' "Auto · now …"), for the one behind it now. No weapons in hand on the title
+  debug?.applies({ chunk: getActiveChunk(), weapons: new Set() });
+  asShell(() => { window.clearInterval(memTimer); memTimer = window.setInterval(() => { debug?.paint(); }, 2000); }); // the readouts, while open only
   r.classList.add('show');
   r.inert = false;
 }
 
 function close(): void {
   if (!root) return;
+  window.clearInterval(memTimer); memTimer = 0;
   root.classList.remove('show');
   root.inert = true;
 }
@@ -62,7 +71,7 @@ function build(): HTMLElement {
   const p = el('ws-gmenu-panel scroll active');
   p.dataset['scroll'] = ''; // index.html swallows touchmove outside [data-scroll]
   body.append(p);
-  sheet.append(body, el('ws-gmenu-hint', 'Sound, look speed, time of day: pause menu ▸ Settings'));
+  sheet.append(body, el('ws-gmenu-hint', 'Sound and look speed: pause menu ▸ Settings'));
   r.append(sheet);
   document.body.append(r);
 
@@ -101,7 +110,12 @@ function build(): HTMLElement {
   // experimental renderer and the Developer switch are the pause menu's Debug card's opposite number here — same folding
   // card, folded until it is asked for, so what is left above it is the picks a player came for.
   const dbg = foldCard('bootdebug', 'Debug', 'for playtests — goes away when the game ships');
-  dbg.append(...devSwitchRows()); // developer mode (E140): live, no reload
+  // E172 (the user: "main menu doesnt even have dev/debug just pause menu"): under the Developer switch, the pause menu's
+  // Debug registry (src/ui/debugOptions.ts → DebugMenu.ts: the same rows, Clear downloads among them), developer mode only
+  const registry = el('ws-gmenu-debugslot');
+  registry.hidden = !isDev(); onDev((on) => { registry.hidden = !on; if (on) debug?.paint(); });
+  debug = buildDebugMenu(registry);
+  dbg.append(...devSwitchRows(), registry); // developer mode (E140): live, no reload
   p.append(running,
     el('ws-gmenu-label', 'Graphics'), row('tier', LABELS.tier),
     seg('Render scale', false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, 'Render scale'); } }),

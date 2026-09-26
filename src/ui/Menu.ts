@@ -28,7 +28,6 @@ import { icon, type IconId } from './icons';
 import { completeEntry } from './ShardComplete';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getSfxSet, onSfxSet, type SettingKey, type NumberKey } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
-import { shardMemory } from '../shard/switch';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
@@ -194,24 +193,13 @@ export class GameMenu {
 
   get isOpen(): boolean { return this._open; }
 
-  // ── the Debug card's memory readout (E155) ──
-  private memEl: HTMLElement | null = null;
-  private dbgCard: HTMLElement | null = null;
-  /** pause ▸ Settings ▸ Debug, the grouped registry (E162) */
+  /** pause ▸ Settings ▸ Debug, the grouped registry (E162; the title's Settings mounts the same one, E172) */
   private debug: DebugMenu | null = null;
   private memTimer = 0;
-  /** the resident shards, their texture estimate, the JS heap and the device's memory — only when it can be seen */
+  /** the Debug rows' readouts (Shards in memory, E155; debugOptions.ts DEBUG_READOUTS) — only while this menu is open on
+   *  Settings; DebugMenu reads only the ones that can be seen (not while the card is folded, E177) */
   private paintMemory(): void {
-    const out = this.memEl;
-    if (out === null || !this._open || this._tab !== 'settings' || this.dbgCard?.hidden !== false || this.dbgCard.classList.contains('folded')) return; // E177: nothing to read while the card is folded
-    const m = shardMemory();
-    // Chrome's performance.memory / navigator.deviceMemory: absent on iOS (and not in the DOM typings)
-    const pm: unknown = Reflect.get(performance, 'memory'), used: unknown = typeof pm === 'object' && pm !== null ? Reflect.get(pm, 'usedJSHeapSize') : undefined;
-    const dm: unknown = Reflect.get(navigator, 'deviceMemory');
-    const heap = typeof used === 'number' ? `${Math.round(used / 1e6)} MB` : 'n/a';
-    const shards = m === null ? ['no shard host'] : m.shards.map((x, i) => `${i + 1}. ${x.slug}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
-    const text = [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`].join('\n');
-    if (out.textContent !== text) out.textContent = text;
+    if (this._open && this._tab === 'settings') this.debug?.paint();
   }
   get tab(): MenuTab { return this._tab; }
 
@@ -469,10 +457,7 @@ export class GameMenu {
     // DEBUG (E162): every variant, taste toggle and developer aid, grouped — declared once in src/ui/debugOptions.ts and
     // rendered by src/ui/DebugMenu.ts (collapsible groups, only the rows that apply to this shard, a filter). Shards in
     // memory carries the on-device readout (E155 / E159): refreshed only while this menu is open on Settings
-    this.debug = buildDebugMenu(dbg, { onPick: (id) => { if (id === 'shardCap') this.paintMemory(); } });
-    const mem = el('ws-gmenu-note ws-gmenu-mem');
-    this.debug.row('shardCap')?.after(mem);
-    this.memEl = mem; this.dbgCard = dbg;
+    this.debug = buildDebugMenu(dbg);
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());
   }

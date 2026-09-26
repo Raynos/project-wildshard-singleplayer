@@ -166,7 +166,12 @@ export interface PrefetchState {
   /** the textures this page loads with, and why (src/boot/gpuFiles.ts) */
   tex: { mode: TexMode; why: string };
 }
-export interface PrefetchHandle { state: PrefetchState; done: Promise<PrefetchState> }
+export interface PrefetchHandle {
+  state: PrefetchState;
+  done: Promise<PrefetchState>;
+  /** E172 (Debug ▸ Clear downloads): ask for no new file; resolves once the files in flight have answered (the run ends 'skipped') */
+  stop: () => Promise<void>;
+}
 
 declare global { interface Window { __ws_prefetch?: PrefetchHandle } }
 
@@ -216,6 +221,8 @@ export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
     state.endedAt = Math.round(performance.now());
     return state;
   };
+  const stopped = { on: false }; // E172: handle.stop() — Debug ▸ Clear downloads
+  const halted = (): boolean => stopped.on;
   const run = async (): Promise<PrefetchState> => {
     if (veto !== null) return finish('skipped', veto);
     await sleep(START_DELAY_MS);
@@ -243,8 +250,9 @@ export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
     state.status = 'running';
     state.startedAt = Math.round(performance.now());
     const worker = { gone: false }; // an older worker (no PREFETCH) or none: stop asking
+    if (halted()) return finish('skipped', 'stopped (Clear downloads)');
     const lane = async (): Promise<void> => {
-      for (let job = jobs.shift(); job !== undefined && !worker.gone; job = jobs.shift()) {
+      for (let job = jobs.shift(); job !== undefined && !worker.gone && !halted(); job = jobs.shift()) {
         await visible();
         await idle();
         const r = await viaWorker(job.url);
@@ -260,10 +268,11 @@ export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
       }
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, lane));
+    if (halted()) return finish('skipped', 'stopped (Clear downloads)');
     return worker.gone ? finish('failed', 'the service worker did not answer') : finish('done');
   };
   const done = run().catch((e: unknown) => finish('failed', e instanceof Error ? e.message : String(e)));
-  const handle: PrefetchHandle = { state, done };
+  const handle: PrefetchHandle = { state, done, stop: async () => { stopped.on = true; await done; } };
   window.__ws_prefetch = handle;
   return handle;
 }
