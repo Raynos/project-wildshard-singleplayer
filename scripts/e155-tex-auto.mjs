@@ -4,7 +4,7 @@
 //
 //   node scripts/e155-tex-auto.mjs [--url=http://127.0.0.1:5321] [--out=progress/e155]
 //
-// Phone tier (390×844, touch — the desktop tier has no KTX2 stand-ins). One browser context (one origin: one service
+// Phone tier (390×844, touch — written when only the phone had KTX2 stand-ins; the desktop has its own since E173). One browser context (one origin: one service
 // worker cache, one localStorage):
 //   1. warm-up: a page boots Driftwood and lets the background download (E158) finish — every shard's KTX2 set lands in the
 //      worker's cache and its marker (ws.ktx2set.<slug>.phone) is written. The markers are read back.

@@ -73,12 +73,12 @@ and **desktop** (1600 × 900 at 1×, `?tier=desktop`).
 |---|---|
 | `cold.netBytes` | The boot's bytes, from a fresh browser context (service worker allowed): every request that STARTED before playable — the page's requests the SW did not serve, plus every fetch the SW made itself. (Before 2026-09-25 it was every request that finished within 1.5 s after playable.) |
 | `cold.requests` | The boot's page-level requests, same window (the SW's own fetches count in bytes, not here). |
-| `cold.bgNetBytes` (info) | The background download: every byte of a request that started after playable, until the network has been quiet for 6 s (up to 4 min). Since E158 that is the other shards' boot files plus every shard's KTX2 set (~95–105 MB); it is not a boot row and never fails a compare. |
+| `cold.bgNetBytes` (info) | The background download: every byte of a request that started after playable, until the network has been quiet for 6 s (up to 4 min). Since E158 that is the other shards' boot files plus every shard's KTX2 set (~95–105 MB on the phone; ~175–255 MB on the desktop since E173 baked its own sets, 147 MB of them KTX2); it is not a boot row and never fails a compare. |
 | `cold.idleNetBytes` (info) | Boot + background, until quiet. |
 | `cold.playMs` | Time to play, bench-load's definition: from navigation start until `.ws-load` is gone and `window.__world` is set. |
 | `cold4g.playMs` | The same on Fast 4G, in a fresh context of its own. |
 | `cold.longTaskMaxMs` | The longest main-thread task before playable (`PerformanceObserver('longtask')`). |
-| `warm.*` | The second load in the same context, after the background download: the service worker's cache. On the phone this load is the KTX2 one (E157 B: Auto boots KTX2 once the shard's set is cached), so its requests include the KTX2 stand-ins, which are not packed. |
+| `warm.*` | The second load in the same context, after the background download: the service worker's cache. This load is the KTX2 one (E157 B: Auto boots KTX2 once the shard's set is cached; the phone since E157, the desktop since E173), so its requests include the KTX2 stand-ins, which are not packed, and its GPU rows are the compressed ones. |
 
 The JSON keeps each load's requests by file type (`reqByType`) and bytes by type (`byType`), so a request-count
 change can be traced to its files.
