@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Nine Dragon Stack — clean-room spawn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@600;700&family=LXGW+WenKai+TC:wght@700&family=Noto+Serif+TC:wght@900&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1b26; overscroll-behavior: none; }
+  #nd-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; touch-action: none; }
+  #nd-overlay { position: fixed; inset: 0; pointer-events: none; color: #8fe3ff; font: 12px 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<canvas id="nd-canvas"></canvas>
+<div id="nd-overlay"></div>
+<script type="module" src="/src/dev/nine-dragon/main.ts"></script>
+</body>
+</html>
