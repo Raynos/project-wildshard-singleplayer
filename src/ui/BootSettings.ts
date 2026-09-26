@@ -13,7 +13,6 @@
 import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
 import { asShell } from '../core/shardScope';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
-import { getActiveChunk } from '../chunks/registry';
 import { askReload } from './ReloadPrompt';
 import { devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
@@ -22,15 +21,13 @@ import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, sett
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 
-type BootKey = 'tier' | 'gpu' | 'touch';
+type BootKey = 'tier' | 'touch';
 interface Row<K extends BootKey> { label: string; experimental?: boolean; options: { v: OptionValue<K>; text: string }[] }
 const LABELS: { [K in BootKey]: Row<K> } = {
   tier: { label: 'Quality', options: [{ v: 'auto', text: `Auto · ${AUTO_TIER}` }, { v: 'phone', text: 'Phone' }, { v: 'desktop', text: 'Desktop' }] },
-  gpu: { label: 'Renderer', experimental: true, options: [{ v: 'webgl', text: 'WebGL' }, { v: 'webgpu', text: 'WebGPU' }, { v: 'webgpu-gl', text: 'WebGPU · GL' }] },
   touch: { label: 'Touch controls', options: [{ v: 'auto', text: 'Auto' }, { v: 'on', text: 'Always' }] },
 };
-const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'gpu' || k === 'touch' ? LABELS[k].label : k);
-const NAMES: Record<string, string> = { webgl: 'WebGL', webgpu: 'WebGPU', 'webgpu-gl': 'WebGPU · GL' };
+const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'touch' ? LABELS[k].label : k);
 /** the render scale / AA picks this page was built with (tier.ts applied them at import) */
 const BOOT_GFX = { ...gfxPrefs };
 /** params that skip the title (dev / deep links): APPLY & RELOAD lands on the title screen */
@@ -70,8 +67,7 @@ function build(): HTMLElement {
   document.body.append(r);
 
   const running = el('ws-gmenu-note');
-  const gpuNow = getActiveChunk().style === 'painterly' ? 'webgl' : setting('gpu'); // Nalati always runs WebGL (Game.ts, NALATI-MERGE F1)
-  running.textContent = `Running now: ${NAMES[gpuNow] ?? gpuNow} · ${TIER} quality`;
+  running.textContent = `Running now: ${TIER} quality`;
   const status = el('ws-gmenu-note');
   const apply = el('ws-gmenu-btn resume', 'Apply &amp; reload', 'button') as HTMLButtonElement; apply.type = 'button';
   const paints: (() => void)[] = [];
@@ -105,8 +101,7 @@ function build(): HTMLElement {
   // experimental renderer and the Developer switch are the pause menu's Debug card's opposite number here — same folding
   // card, folded until it is asked for, so what is left above it is the picks a player came for.
   const dbg = foldCard('bootdebug', 'Debug', 'for playtests — goes away when the game ships');
-  dbg.append(el('ws-gmenu-label', 'Experimental'), row('gpu', LABELS.gpu),
-    ...devSwitchRows()); // developer mode (E140): live, no reload
+  dbg.append(...devSwitchRows()); // developer mode (E140): live, no reload
   p.append(running,
     el('ws-gmenu-label', 'Graphics'), row('tier', LABELS.tier),
     seg('Render scale', false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, 'Render scale'); } }),

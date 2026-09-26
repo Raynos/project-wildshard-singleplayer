@@ -36,7 +36,6 @@
  *                                          lands where the player stood (or on the title, if that is where they were),
  *                                          on the newest build if its worker is waiting.
  *
- * Only for the WebGL canvas the player sees (`?gpu=webgpu` draws through WebGPU and is not covered here).
  */
 import type { Game } from './Game';
 import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
@@ -87,7 +86,7 @@ type Phase = 'ok' | 'lost' | 'restoring' | 'reloading' | 'stuck';
 export function installGpuRecovery(host: RecoveryHost): void {
   const { game } = host;
   const canvas = game.renderer.domElement;
-  if (canvas !== game.canvas) return; // the WebGPU path draws the visible canvas
+  if (canvas !== game.canvas) return; // an offscreen canvas of our own, not the one the player sees
   const gl = game.renderer.getContext();
   const screen = resumeScreen();
 

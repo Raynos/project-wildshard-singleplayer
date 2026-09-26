@@ -129,43 +129,42 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
   };
   const reset = () => { vi.stubGlobal('location', new URL('http://localhost:5173/')); };
 
-  it('defaults: WebGL, auto tier, auto touch, live clock', async () => {
+  it('defaults: auto tier, auto touch, live clock', async () => {
     const s = await fresh();
-    expect([s.setting('gpu'), s.setting('tier'), s.setting('touch'), s.setting('time')])
-      .toEqual(['webgl', 'auto', 'auto', 'live']);
+    expect([s.setting('tier'), s.setting('touch'), s.setting('time')])
+      .toEqual(['auto', 'auto', 'live']);
     expect(s.pendingReload()).toEqual([]);
   });
 
   it('precedence: the URL param wins for this load, else the saved pick, else the default', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ gpu: 'webgpu', tier: 'phone', time: 'night' }));
+    localStorage.setItem(STORE, JSON.stringify({ tier: 'phone', time: 'night' }));
     try {
       const saved = await at('');
-      expect([saved.setting('gpu'), saved.setting('tier'), saved.setting('time')]).toEqual(['webgpu', 'phone', 'night']);
+      expect([saved.setting('tier'), saved.setting('time')]).toEqual(['phone', 'night']);
       expect(saved.settingFromUrl('tier')).toBe(false);
-      const url = await at('?gpu=webgpu-gl&tier=desktop&tod=0.5&touch');
-      expect([url.setting('gpu'), url.setting('tier'), url.setting('time'), url.setting('touch')])
-        .toEqual(['webgpu-gl', 'desktop', 'live', 'on']);
+      const url = await at('?tier=desktop&tod=0.5&touch');
+      expect([url.setting('tier'), url.setting('time'), url.setting('touch')])
+        .toEqual(['desktop', 'live', 'on']);
       expect(url.settingFromUrl('tier')).toBe(true);
       expect(url.savedSetting('tier')).toBe('phone'); // the URL is never persisted
       url.setNumber('volume', 0.3);
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ gpu: 'webgpu', tier: 'phone', time: 'night' });
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ tier: 'phone', time: 'night' });
     } finally { reset(); }
   });
 
-  it('URL forms: an unknown ?gpu= is WebGL, an invalid ?tier= falls through to the saved pick', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ tier: 'phone', gpu: 'webgpu' }));
+  it('URL forms: an invalid ?tier= falls through to the saved pick', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ tier: 'phone' }));
     try {
-      const s = await at('?gpu=nope&tier=lego');
-      expect(s.setting('gpu')).toBe('webgl');
+      const s = await at('?tier=lego');
       expect(s.setting('tier')).toBe('phone');
       expect(s.settingFromUrl('tier')).toBe(false);
     } finally { reset(); }
   });
 
   it('a saved value outside the option set falls back to the default', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ gpu: 'vulkan', time: 42 }));
+    localStorage.setItem(STORE, JSON.stringify({ tier: 'vulkan', time: 42 }));
     const s = await fresh();
-    expect(s.setting('gpu')).toBe('webgl');
+    expect(s.setting('tier')).toBe('auto');
     expect(s.setting('time')).toBe('live');
   });
 
@@ -214,7 +213,7 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
 
   it('settingsReloadUrl drops every option override and the extras, keeps the chunk and the dev params', async () => {
     const s = await fresh();
-    const out = new URL(s.settingsReloadUrl('http://localhost:5173/?chunk=driftwood-isle&gpu=webgpu&tier=phone&touch&tod=0.5&clock=60&skipintro&nolock&x=3', ['skipintro']));
+    const out = new URL(s.settingsReloadUrl('http://localhost:5173/?chunk=driftwood-isle&tier=phone&touch&tod=0.5&clock=60&skipintro&nolock&x=3', ['skipintro']));
     expect([...out.searchParams.keys()]).toEqual(['chunk', 'nolock', 'x']);
     expect(s.settingParams('time')).toEqual(['tod', 'clock']);
   });

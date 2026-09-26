@@ -22,7 +22,6 @@ import { StylizedSky } from './StylizedSky';
 import { DayNight, type DayClock } from './DayNight';
 import { PineDayNight, pineSunAt, type PinePost } from './PineDayNight';
 import { horizonLight } from './Horizon';
-import { GPU_MODE } from '../gpu/flag';
 import { loadLUT } from './lut';
 import { activeGrade } from './lookFlags';
 import type { LookupTexture } from 'postprocessing';
@@ -98,8 +97,8 @@ export class Sky {
     // since E136; the other shards light from their HDRI
     const toon = style === 'lowpoly', stylizedSky = toon;
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
-    // Pine Hollow's day / night clock (PH-L2, the user's pick); the WebGPU path has no port of its dome and keeps the fixed sky
-    const pineClock = !stylizedSky && getActiveChunk().slug === 'pine-hollow' && GPU_MODE === null;
+    // Pine Hollow's day / night clock (PH-L2, the user's pick)
+    const pineClock = !stylizedSky && getActiveChunk().slug === 'pine-hollow';
     const horizon = stylizedSky ? await this.setupStylized() : pineClock ? await this.setupPine() : await this.setupHDRI();
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);

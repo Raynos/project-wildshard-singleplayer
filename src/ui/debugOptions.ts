@@ -151,6 +151,4 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Developer tools ──
   opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
-  opt('gpuShadows', 'tools', 'WebGPU shadows', ON_OFF, { reload: true, when: () => setting('gpu') !== 'webgl', note: 'E52 · off to chase a WebGL ↔ WebGPU difference' }),
-  opt('gpuToon', 'tools', 'WebGPU toon', ON_OFF, { reload: true, when: (c) => setting('gpu') !== 'webgl' && driftwood(c), note: 'E52 · Driftwood\'s toon library off' }),
 ];

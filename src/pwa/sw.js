@@ -87,8 +87,6 @@ const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs|nalati|gpu)\/|^\/asse
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;
-// the opt-in WebGPU renderer (?gpu=webgpu, src/gpu/): ~240 kB gz of three/webgpu that no default boot loads — cached when used
-const OPT_IN = '/assets/GpuPath-';
 
 /** the device says it has no network: answer from the cache instead of a fetch that can only fail */
 const offline = () => !self.navigator.onLine;
@@ -177,7 +175,7 @@ self.addEventListener('install', (event) => {
       // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
       // STRICT (E144): a code file that cannot be fetched (the host moved on to a newer deploy mid-install) fails the
       // install. A worker missing its own main chunk must never become the one that serves the document.
-      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p) && !p.includes(OPT_IN)), true);
+      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p)), true);
       await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
     })(),
   );

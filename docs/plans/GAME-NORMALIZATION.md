@@ -89,7 +89,7 @@ export interface ShardModule {
 }
 export interface ShardProfile {
   look: LookProfile;     // terrain painter, sky backdrop, post chain factory, fog model, grass driver, panorama,
-                         // day-cycle rig, water body, hands style, creature style, aoColor, webgpu
+                         // day-cycle rig, water body, hands style, creature style, aoColor
   audio: AudioProfile;   // ambience profile, score source, boot audio slots, sound kit
   hud: HudProfile;       // widget layout, minimap painter, menu extras, respawn line
   combat: { melee: boolean };
@@ -228,7 +228,7 @@ Line counts are estimates from reading the code. "Risk" means risk to look or fe
 - New features, balance or feel changes (FINISH-LINE D-rows, E126 items).
 - Visual or feel changes, except the two Jake chose: N8 (deleting the flag-only looks) and the Captain onto `Boss` (W2).
 - An engine switch or an ECS rewrite.
-- WebGPU work beyond keeping `src/gpu/` compiling on the profile.
+- ~~WebGPU work beyond keeping `src/gpu/` compiling on the profile.~~ **E184 (2026-09-25): `src/gpu/` is deleted — there is no WebGPU path to keep compiling.**
 
 ## 9. Decisions (made 2026-09-25)
 

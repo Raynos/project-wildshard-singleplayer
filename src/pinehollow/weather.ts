@@ -71,7 +71,7 @@ interface Shelter { home: { x: number; z: number }; spot: { x: number; z: number
 
 export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
   const pine = h.sky.pine;
-  if (pine === null) return null; // the fixed sky (the WebGPU path): no clock, no weather
+  if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
   const weather = new PineWeather({ seed: SEED, mode: 'live' });
   weather.setMode(setting('weather'), atT);

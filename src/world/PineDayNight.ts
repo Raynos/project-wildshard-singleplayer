@@ -1,7 +1,7 @@
 /**
  * Pine Hollow's day / night clock (PINE-HOLLOW-REMASTER PH-L2; Jake's PH-U7: "the full cycle, 20 + 4 min, dawn / day /
  * golden hour / night, like Driftwood, in photoreal"; picked over the pre-remaster fixed sunset: "A + a brighter night").
- * Sky.ts builds it for Pine Hollow on the WebGL path (the WebGPU path still takes Sky.setupHDRI's fixed sky).
+ * Sky.ts builds it for Pine Hollow.
  *
  *   phase 0..1 over the cycle (24 min, `?clock=` seconds): [0, 20/24) is the day, sunrise at 0, sunset at 20/24
  *   ?tod=0.4167 | dawn | sunrise | morning | day | golden | sunset | dusk | night   the start phase (`?clock=1e6` freezes it)

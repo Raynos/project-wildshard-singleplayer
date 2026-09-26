@@ -17,7 +17,6 @@ import { SHADOW_LAYER } from '../core/shadowLayer';
  * and customDepthMaterial, the same transform (children at identity), culled per piece instead of whole.
  *
  * Only static, single-material, whole-range meshes (no morphs, skins, instances, batches or dynamic positions), once
- * each (`userData.shadowChunked`). WebGL only: the WebGPU path does not draw SHADOW_LAYER into its shadows.
  */
 
 const MIN_RADIUS = 40; // m: smaller meshes are culled well enough whole

@@ -18,7 +18,7 @@
 //   setting('tier')                    → the value THIS page runs with: the URL's param when present (the agents' screenshot
 //                                        harnesses depend on it), else the saved pick, else the default
 //   savedSetting('tier') / saveSetting('tier', 'phone') / onSettingChange('time', fn)
-//   BOOT_OPTIONS (renderer, quality tier, touch) are read once while the page loads: saving one changes only the
+//   BOOT_OPTIONS (quality tier, touch) are read once while the page loads: saving one changes only the
 //   saved pick — main menu ▸ Settings (src/ui/BootSettings.ts) shows them with APPLY & RELOAD (settingsReloadUrl drops
 //   the overriding params so the reload builds the saved pick). The rest are LIVE (pause menu ▸ Settings, src/ui/Menu.ts):
 //   saving one changes setting() at once and notifies (main.ts hands it to DayNight.setTime).
@@ -105,7 +105,6 @@ const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null);
 
 // ── the OPTIONS (E55): the player-facing toggles that were query params — see the header ──
 export const OPTION_VALUES = {
-  gpu: ['webgl', 'webgpu', 'webgpu-gl'],               // renderer (src/gpu/flag.ts) — experimental
   tier: ['auto', 'phone', 'desktop'],                  // quality tier (src/core/tier.ts); auto = phone on a mobile UA
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
@@ -133,8 +132,6 @@ export const OPTION_VALUES = {
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/boot/perflog.ts) — a reload
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
-  gpuShadows: ['on', 'off'],                           // WebGPU only (src/gpu/GpuPath.ts): shadows off, for a WebGL ↔ WebGPU diff — a reload
-  gpuToon: ['on', 'off'],                              // WebGPU only: Driftwood's toon library off — a reload
   learnedLut: ['on', 'off'],
   cragView: ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'], // Pine Hollow's crags drawn as one channel (src/world/PineCrags.ts) — live
   creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
@@ -152,12 +149,11 @@ export const OPTION_VALUES = {
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
 /** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
-export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'tier', 'touch'];
+export const BOOT_OPTIONS: readonly OptionKey[] = ['tier', 'touch'];
 /** a debug-menu-only option (E162): no URL override; its default is its first value */
 const DEBUG_ONLY = { def: null, params: [], url: (): null => null } as const;
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
 const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
-  gpu: { def: 'webgl', params: ['gpu'], url: (q) => { const v = q.get('gpu'); return v === null ? null : v === 'webgpu' || v === 'webgpu-gl' ? v : 'webgl'; } },
   tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
@@ -169,7 +165,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
-  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, gpuShadows: DEBUG_ONLY, gpuToon: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, birds: DEBUG_ONLY, npcs: DEBUG_ONLY, knife: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   longbowArc: DEBUG_ONLY, aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
 };
@@ -180,13 +176,13 @@ const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
   return new Choice<OptionValue<K>>(k, values, def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 };
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
-  gpu: option('gpu'), tier: option('tier'), touch: option('touch'), time: option('time'),
+  tier: option('tier'), touch: option('touch'), time: option('time'),
   weather: option('weather'), fps: option('fps'),
   coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'), coverRange: option('coverRange'),
   prefetch: option('prefetch'),
   tex: option('tex'),
   shardCap: option('shardCap'),
-  loadProfile: option('loadProfile'), bootPack: option('bootPack'), gpuShadows: option('gpuShadows'), gpuToon: option('gpuToon'), learnedLut: option('learnedLut'), cragView: option('cragView'),
+  loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), birds: option('birds'), npcs: option('npcs'), knife: option('knife'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   longbowArc: option('longbowArc'), aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
 };
