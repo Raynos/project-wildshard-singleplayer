@@ -1,0 +1,31 @@
+{
+ "name": "nd-grapple",
+ "shard": "nine-dragon",
+ "frames": 168,
+ "sub": 2,
+ "fps": 60,
+ "scale": 2,
+ "view": {
+  "width": 1080,
+  "height": 1920
+ },
+ "url": "http://127.0.0.1:5190/?skipintro=1&nolock=1&mute=1&perf=0&sw=0&tier=desktop&chunk=nine-dragon-stack",
+ "errors": [],
+ "poses": [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null
+ ],
+ "probe": {
+  "position": [
+   -19.5,
+   125,
+   12.25
+  ],
+  "entered": true
+ },
+ "done": true
+}
