@@ -519,7 +519,8 @@ function terraces(ctx: Ctx, rng: Rng): void {
       }
       // what stands on the terrace: a balustrade (red timber or iron), potted plants in rows, a tea veranda with
       // drinkers or people at the rail, a lantern post
-      const tea = onStair && (i % 3 === (side > 0 ? 0 : 1) || rng.chance(0.25));
+      // the north side of flight 2 is a run of tea verandas (view 5's left, the mockup's tea house on up the stair)
+      const tea = onStair && ((side > 0 && s.xa < 53) || i % 3 === (side > 0 ? 0 : 1) || rng.chance(0.25));
       const rz = edge - side * 0.2;
       const timberRail = tea || rng.chance(0.5);
       const railLook: Look = timberRail ? { wash: 0x6a2418, line: 0.5, accent: true } : { wash: 0x2a2c31, line: 0.5 };
