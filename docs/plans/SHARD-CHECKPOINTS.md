@@ -1,6 +1,6 @@
 # Plan: Shard checkpoints — the repeatable review loop (E206)
 
-**State:** `draft` 2026-09-26 — skill and two review PDFs are prepared; Jake's review of the example and manual is the next process checkpoint. Nine Dragon is the first concrete use.
+**State:** `draft` 2026-09-26 — skill and two A4 portrait review PDFs are prepared; the five-page example runs from the Nine Dragon fragment to the finished nine-stratum shard. Jake's review of the example and manual is the next process checkpoint.
 
 ## Purpose
 
