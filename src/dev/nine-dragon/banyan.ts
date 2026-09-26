@@ -30,8 +30,8 @@ export interface CanopyLump { c: Vector3; r: Vector3; up: number; seed: number; 
 /** what the tree hands on: the canopy's lumps (crown fill first, then the shelves) */
 export interface BanyanPlan { lumps: CanopyLump[] }
 
-const BARK: Look = { wash: 0x5a4432, kind: K.bars, col: 0.09, row: 0, line: 0 };
-const BARK_DARK: Look = { wash: 0x46352a, kind: K.bars, col: 0.07, row: 0, line: 0 };
+const BARK: Look = { wash: 0x4a3727, kind: K.bars, col: 0.09, row: 0, line: 0 };
+const BARK_DARK: Look = { wash: 0x392b21, kind: K.bars, col: 0.07, row: 0, line: 0 };
 const ROOT: Look = { wash: 0x4c4034, line: 0 };
 const STONE: Look = { wash: 0x4f4a4a, kind: K.panel, line: 1, wet: 0.35 };
 const STONE_RIM: Look = { wash: 0x575151, line: 1, wet: 0.45, surf: SURF.concrete };

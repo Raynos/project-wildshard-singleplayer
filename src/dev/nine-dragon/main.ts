@@ -19,6 +19,8 @@ import { WELL, Y0 } from './layout';
 import { Player } from './player';
 import { loadPaint } from './paint';
 import { Pipeline } from './post';
+import { SCROLL, loadScroll, scrollMaterial } from './scroll';
+import { type LightSettings, installLight } from './light/install';
 import { acKit } from './props';
 import { SHOTS, type Shot } from './shots';
 import { tintUmbrella } from './crowd';
@@ -28,7 +30,7 @@ import { loadSquareProps } from './props3d';
 import { SignAtlas, SignBuilder } from './signs';
 import { buildSquare } from './square';
 import {
-  type LookName, Shared, jiehuaMaterial, lineMaterial, neonMaterial, screenMaterial, sheetMaterial, skyMaterial, steamMaterial,
+  type LookName, Shared, jiehuaMaterial, lineMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial,
 } from './style';
 import { WORDS, buildTowers, droneKit, trainKit } from './towers';
 import { Rng, chars, clamp, smooth } from './util';
@@ -57,6 +59,8 @@ interface NdApi {
   weapon: (on: boolean) => void;
   /** the paint strengths (paint.ts uPaintK: master, flagstones, walls, wood / lacquer / tiles); [0, …] = the flat washes */
   paint: (k: [number, number, number, number]) => void;
+  /** the light lab's levers (pools, glow, the LUT, …) for A/B captures; returns the current settings */
+  light: (s: Partial<LightSettings>) => LightSettings;
   /** render one frame and hand it back as a JPEG data URL at w × h (the canvas downscaled: supersampled) */
   snapshot: (w: number, h: number, quality: number) => string;
   /** framing work: an ad-hoc camera (a Shot not in SHOTS), and the viewmodel's layout (portrait / landscape, merged) */
@@ -267,11 +271,13 @@ async function main(): Promise<void> {
   sky.renderOrder = -10;
   sky.frustumCulled = false;
   scene.add(sky);
-  const screen = new Mesh(new PlaneGeometry(58, 80), screenMaterial(shared, 58, 80, 3.1));
+  // the LED sky screens show lab P7's 千里江山图 handscroll (scroll.ts): 0.06 m dots, 1.2 m modules, a slow pan
+  const scrollTex = await loadScroll('/assets/nine-dragon/lab/organic/scroll.webp');
+  const screen = new Mesh(new PlaneGeometry(58, 80), scrollMaterial(shared, scrollTex, 58, 80, SCROLL).mat);
   screen.rotation.x = Math.PI / 2;
   screen.position.set(1, Y0 + 29.85, -64);
   scene.add(screen);
-  const screen2 = new Mesh(new PlaneGeometry(70, 64), screenMaterial(shared, 70, 64, 11.7));
+  const screen2 = new Mesh(new PlaneGeometry(70, 64), scrollMaterial(shared, scrollTex, 70, 64, { ...SCROLL, offset: 97 }).mat);
   screen2.rotation.x = Math.PI / 2;
   screen2.position.set(78, Y0 + 48.45, 6);
   scene.add(screen2);
@@ -326,6 +332,11 @@ async function main(): Promise<void> {
   } catch (e: unknown) { console.warn('nine-dragon: the TRELLIS crowd failed to load', e); }
   atlas.finish();
   const pipe = new Pipeline(renderer, shared);
+  // light (lab P6): the light-pool volumes baked from every emitter + lit window, the window glow, the fitted LUT
+  const light = installLight({
+    u: shared.u, pipe, lanterns: paper.emitters, ctxEmitters: ctx.emitters, signs: [...neonSigns.emitters, ...signs.lights], windows: ctx.fd.windows,
+  });
+  await light.ready;
   const hud = new Hud(overlay, ctx.map);
   const player = new Player(canvas);
   player.place(1.45, Y0, 6, 8, 5);
@@ -584,6 +595,7 @@ async function main(): Promise<void> {
     atlas: () => atlas.dump(),
     weapon: (on) => { vm.scene.visible = on; },
     paint: (k) => { shared.u.uPaintK.value.set(...k); },
+    light: (s) => { light.set(s); return light.get(); },
     view: async (s) => { applyShot(s); await nextFrames(3); },
     vmLayout: (lp, ll) => { vm.layoutPortrait = tuneLayout(vm.layoutPortrait, lp); vm.layoutLandscape = tuneLayout(vm.layoutLandscape, ll); vm.relayout(); },
     debug: () => ({ hookTarget: hookTarget?.toArray() ?? null, hookFrozen, hookPhase, line: line.visible, claw: claw.position.toArray(), a: lineMat.u.uA.value.toArray(), b: lineMat.u.uB.value.toArray() }),

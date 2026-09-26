@@ -9,6 +9,8 @@
 //  colours by the grammar (no transparent decals: overdraw is the phone's enemy).
 import { Color, ShaderMaterial, type IUniform, Vector2 } from 'three';
 import { PAINT_GLSL } from '../paint';
+// the baked light volume on the tower shells (lab P6)
+import { LIGHTVOL_GLSL } from '../light/lightvol';
 import { FOG_GLSL, NOISE_GLSL, PAPER_GLSL, type Shared } from '../style';
 
 const c = (hex: number): Color => new Color(hex);
@@ -96,6 +98,7 @@ varying vec4 vFace;
 flat varying vec4 vPat;
 flat varying vec2 vMisc;
 ${COMMON_GLSL}
+${LIGHTVOL_GLSL}
 void main() {
   vec3 n = normalize(vNormal);
   if (!gl_FrontFacing) n = -n;
@@ -250,8 +253,12 @@ void main() {
   // two hard bands of top light (the sky screens), never black; undersides drop to a deeper ink wash
   float ndl = dot(n, uLightDir);
   float lit = smoothstep(-0.03, 0.03, ndl - 0.08);
+  vec3 albedo = col;
   col = mix(col * uShade, col, lit);
   col *= mix(1.0, 0.5, smoothstep(0.35, 0.8, -n.y));
+  // (lab P6) the ambient, then warm pools from the lanterns / shops / lit windows
+  col *= uLpAmb;
+  col += albedo * poolLight(vWorld, n) * uLpGain.x;
   vec3 an2 = abs(n);
   vec2 sp = an2.y > 0.6 ? vWorld.xz : (an2.x > an2.z ? vWorld.zy : vWorld.xy);
   col *= 1.0 + (texture(uSilk, sp * 0.9).r - 0.5) * 0.08;
@@ -319,6 +326,7 @@ uniform vec3 uInk;
 uniform vec3 uInkFar;
 uniform vec3 uSky;
 uniform vec3 uShade;
+uniform float uLpAmb;
 varying vec3 vP;
 varying vec3 vWorld;
 flat varying vec3 vCamL;
@@ -448,6 +456,8 @@ void main() {
   vec3 avgDark = mix(vWallC * vec3(0.26, 0.29, 0.36), uSky * 0.4, 0.2);
   vec3 avg = mix(avgDark, avgLit, lit * (1.0 - curtain * 0.3));
   col = mix(avg, col, det);
+  // (lab P6) the blue-hour ambient dims the dark rooms, the reveal and the glass, never a lit room
+  col *= mix(uLpAmb, 1.0, clamp(lit, 0.0, 1.0));
   emitC = mix(avgLit * lit * 0.75, emitC, det);
   float dist = length(uCam - vWorld);
   vec3 inkC = mix(uInk, uInkFar, smoothstep(8.0, 70.0, dist));

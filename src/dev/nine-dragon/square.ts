@@ -1,6 +1,6 @@
 // Lantern Square: wet granite, the Well's stone balustrade and sign masts, the cinnabar paifang (九龍疊城), the banyan
 // in its round planter with the earth-god shrine, mahjong tables, the noodle stall, lantern strings and the crowd.
-import { Matrix4, Quaternion, Vector3 } from 'three';
+import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { buildBanyan } from './banyan';
 import { mahjong as heroMahjong, mahjongSeats } from './hero/figures';
 import type { Ctx } from './ctx';
@@ -8,7 +8,7 @@ import { buildGate, relief } from './gate';
 import { SURF } from './paint';
 import { lionOnPost } from './props3d';
 import type { KitX } from './hero/kitx';
-import { noodleStall } from './stalls';
+import { hawkerStall, noodleStall } from './stalls';
 import { E, K, type Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from './layout';
 import { dragonHook, lamp, scooter } from './props';
@@ -54,7 +54,7 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
       if (carve !== undefined) {
         const [pcx, pcz] = px(pm);
         const nrm = alongX ? new Vector3(0, 0, carve.side) : new Vector3(carve.side, 0, 0);
-        relief(carve.x, new Vector3(pcx + nrm.x * 0.08, y + 0.46, pcz + nrm.z * 0.08), new Vector3(-nrm.z, 0, nrm.x), UPV.clone(), nrm, step - 0.6, 0.42, 3000 + i, { wash: 0x68686c, line: 0, wet: 0.35 });
+        relief(carve.x, new Vector3(pcx + nrm.x * 0.085, y + 0.46, pcz + nrm.z * 0.085), new Vector3(-nrm.z, 0, nrm.x), UPV.clone(), nrm, step - 0.5, 0.52, 3000 + i, { wash: 0x76787e, line: 0, wet: 0.3 });
       }
       bx(pm, y + 0.76, 0.26, 0.12, step - 0.3, STONE);
     }
@@ -166,10 +166,12 @@ export function buildSquare(ctx: Ctx): void {
   paifang(ctx);
   buildBanyan(ctx, rng);
   noodleStall(ctx, rng);
+  hawkerStall(ctx, rng);
   signMasts(ctx);
   // mahjong under the banyan's edge
   // mahjong: the hero lab's tables; the players are the TRELLIS sitters (with their own stools), instanced by main.ts
-  const tables: [number, number, number, number][] = [[10.2, -16.8, 0.2, 4], [12.4, -10.6, -0.3, 3], [8.3, -6.6, 0.1, 4], [14.6, -4.2, 0.5, 2]];
+  // dome B round 9: one table brought to the spawn's mid-right, ~8 m ahead (style-A's mahjong players), beside the hawker
+  const tables: [number, number, number, number][] = [[10.2, -16.8, 0.2, 4], [12.4, -10.6, -0.3, 3], [4.7, 0.4, 0.15, 4], [14.6, -4.2, 0.5, 2]];
   const tx = ctx.kitx('props');
   for (const [tx0, tz0, tr, n] of tables) {
     heroMahjong(props, tx, rng, tx0, Y0, tz0, tr, 0, 0x6f8fa8, false);
@@ -196,14 +198,14 @@ export function buildSquare(ctx: Ctx): void {
     for (const [px, pz] of placed) if ((x - px) ** 2 + (z - pz) ** 2 < 0.9 * 0.9) return false;
     // the spawn frame's foreground stays open for 14 m (style-A: the crowd is mid-distance, under the gate)
     const dx = x - 0.95, dz = z - 7.5, along = dx * 0.208 - dz * 0.978, across = Math.abs(dx * 0.978 + dz * 0.208);
-    if (along > 0 && along < 14 && across < along * 0.84 + 1.2) return false;
+    if (along > 0 && along < 16 && across < along * 0.84 + 1.2) return false;
     return true;
   };
   const zones: { n: number; x: [number, number]; z: [number, number]; yaw: () => number }[] = [
     // through the gate, north or south
-    { n: 12, x: [1.6, 11.2], z: [-27, -19.5], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.35, 0.35) },
+    { n: 9, x: [1.6, 11.2], z: [-27, -19.5], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.35, 0.35) },
     // across the square in every direction
-    { n: 18, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    { n: 12, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the east strip by the shops and the stall
     { n: 9, x: [14.5, 21.3], z: [-11.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the south half, toward the stair street
@@ -235,6 +237,10 @@ export function buildSquare(ctx: Ctx): void {
   lamp(props, 1.1, Y0, -9, 4.2);
   lamp(props, 1.1, Y0, -19, 4.2);
   lamp(props, 21, Y0, -6, 4.2);
+  // the light lab's hunk (round-9-lab-light): the lamps are lights too (a warm pool under each, a streak in the wet stone)
+  for (const [x, z] of [[1.1, 12], [1.1, -9], [1.1, -19], [21, -6]] as const) {
+    ctx.emitters.push({ at: new Vector3(x, Y0 + 4.1, z), color: new Color(0xffc987), w: 0.34, h: 0.3, power: 0.5, spill: 0.25 });
+  }
   const str = ctx.kit('strings', true);
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 12.2, GATE.z + 0.5), new Vector3(22.6, Y0 + 12.5, -22), 1.9, str);
   lanternString(ctx, new Vector3(-1.2, Y0 + 10.4, -26), new Vector3(GATE.x - 1, Y0 + 11, GATE.z + 0.5), 1.8, str);

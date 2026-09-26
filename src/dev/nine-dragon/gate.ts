@@ -44,10 +44,10 @@ const AZURITE: Look = { wash: 0x2a558f, line: 1, accent: true };
 const MALACHITE: Look = { wash: 0x2a7a5e, line: 1, accent: true };
 const LIGHT_MAL: Look = { wash: 0x5f9c7e, line: 1, accent: true };
 // glazed tiles: a dark blue-teal (round 2's jade rolls read #488b72 from above, round 3's #406561; the targets' #33484c)
-const TILE = 0x0e1b1e;
-const ROLL = 0x213434;
+const TILE = 0x0d181d;
+const ROLL = 0x1b2c33;
 const RIDGE: Look = { wash: 0x1a3434, line: 1, accent: true };
-const RIDGE_HI = 0x243f40;
+const RIDGE_HI = 0x1e3238;
 const LION: XLook = { wash: 0x6a6460, line: 0, wet: 0.2, surf: SURF.concrete };
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 
@@ -517,6 +517,8 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
     signs.place({ at: new Vector3(p2, y + 3.2 * s, z + nz * 0.4 * s), normal: new Vector3(0, 0, nz), size: 0.44 * s, spec: { text: P.couplets[nz > 0 ? 1 : 0], color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
   }
   for (let i = 0; i < 3; i++) lantern(p1 + bw * (0.25 + i * 0.25), y + 4.75 * s, z, 1.1 * s);
+  // a second, lower row a step into the passage (style-A: five lanterns fill the centre bay)
+  for (const t of [0.375, 0.625]) lantern(p1 + bw * t, y + 4.25 * s, z - 0.7 * s, s);
   // the stone lions before the centre posts, facing the square
   // the pedestals of the guardian lions before the centre bay: the TRELLIS lions (props3d.ts) sit on them
   if (P.lions) {

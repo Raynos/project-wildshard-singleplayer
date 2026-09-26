@@ -486,7 +486,7 @@ export function foliageMaterial(shared: Shared, mode: FoliageMode, fu: FoliageUn
 }
 
 /** dome B's ramp (display sRGB), darker than the lab's LEAF_PALETTE */
-export const DOME_B_LEAVES = [0x0e1612, 0x17251e, 0x24362c, 0x3d5040, 0x6f7c5a] as const;
+export const DOME_B_LEAVES = [0x0e1612, 0x17251e, 0x24362c, 0x3a4c3d, 0x5a6a4c] as const;
 
 /** the painted leaf atlas (the codex gongbi 2×2 sheet), mipmapped, anisotropic */
 function loadAtlas(url: string): Promise<Texture> {
@@ -513,7 +513,7 @@ export async function buildCanopy(shared: Shared, lumps: readonly Lump[], emitte
     // dome B's night crown (ΔE vs its targets: the lab's palette read #4c5742 against #343b32, the lit tops khaki from
     // above): the ramp a step darker and less yellow, the lit band narrower
     fu.uLeaf.value = DOME_B_LEAVES.map((h) => new Color(h));
-    fu.uWash.value.x = 0.24;
+    fu.uWash.value.x = 0.22;
     const rng = new Rng(97);
     const gCards = cardGeometry(lumps, rng, CARDS);
     const gCore = shellGeometry(lumps, rng, CORE);

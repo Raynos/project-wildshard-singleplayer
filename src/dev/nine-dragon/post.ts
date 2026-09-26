@@ -11,6 +11,9 @@ import {
   UnsignedIntType, Vector2, Vector3, Vector4, type WebGLRenderer, WebGLRenderTarget,
 } from 'three';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
+// (lab P6) the window glow rides in the bloom pyramid's alpha; the learned LUT is the composite's last colour step
+import { GLOW_COMP_GLSL, GLOW_PRE_GLSL, glowUniforms } from './light/glow';
+import { GRADE_GLSL, gradeUniforms } from './light/grade';
 
 const VS_FULL = /* glsl */ `
 varying vec2 vUv;
@@ -21,7 +24,9 @@ const FS_PREFILTER = /* glsl */ `
 uniform sampler2D tSrc;
 uniform vec2 uTexel;
 uniform vec2 uPre; // x: threshold, y: knee
+uniform float uNearP;
 varying vec2 vUv;
+${GLOW_PRE_GLSL}
 vec3 pick(vec3 c) {
   float br = max(c.r, max(c.g, c.b));
   float soft = clamp(br - uPre.x + uPre.y, 0.0, 2.0 * uPre.y);
@@ -29,16 +34,21 @@ vec3 pick(vec3 c) {
   return c * max(soft, br - uPre.x) / max(br, 1e-4);
 }
 void main() {
-  vec3 a = pick(texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb);
-  vec3 b = pick(texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb);
-  vec3 c = pick(texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb);
-  vec3 d = pick(texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb);
+  vec4 ta = texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0));
+  vec4 tb = texture(tSrc, vUv + uTexel * vec2(1.0, -1.0));
+  vec4 tc = texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0));
+  vec4 td = texture(tSrc, vUv + uTexel * vec2(1.0, 1.0));
+  float glow = 0.25 * (glowSrc(ta, uNearP) + glowSrc(tb, uNearP) + glowSrc(tc, uNearP) + glowSrc(td, uNearP));
+  vec3 a = pick(ta.rgb);
+  vec3 b = pick(tb.rgb);
+  vec3 c = pick(tc.rgb);
+  vec3 d = pick(td.rgb);
   float wa = 1.0 / (1.0 + max(a.r, max(a.g, a.b)));
   float wb = 1.0 / (1.0 + max(b.r, max(b.g, b.b)));
   float wc = 1.0 / (1.0 + max(c.r, max(c.g, c.b)));
   float wd = 1.0 / (1.0 + max(d.r, max(d.g, d.b)));
   vec3 o = (a * wa + b * wb + c * wc + d * wd) / (wa + wb + wc + wd);
-  gl_FragColor = vec4(min(o, vec3(64.0)), 1.0);
+  gl_FragColor = vec4(min(o, vec3(64.0)), glow);
 }
 `;
 const FS_DOWN = /* glsl */ `
@@ -46,12 +56,12 @@ uniform sampler2D tSrc;
 uniform vec2 uTexel;
 varying vec2 vUv;
 void main() {
-  vec3 s = texture(tSrc, vUv).rgb * 4.0;
-  s += texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb;
-  gl_FragColor = vec4(s / 8.0, 1.0);
+  vec4 s = texture(tSrc, vUv) * 4.0;
+  s += texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0));
+  s += texture(tSrc, vUv + uTexel * vec2(1.0, -1.0));
+  s += texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0));
+  s += texture(tSrc, vUv + uTexel * vec2(1.0, 1.0));
+  gl_FragColor = s / 8.0;
 }
 `;
 const FS_UP = /* glsl */ `
@@ -60,16 +70,16 @@ uniform sampler2D tAdd;
 uniform vec2 uTexel;
 varying vec2 vUv;
 void main() {
-  vec3 s = vec3(0.0);
-  s += texture(tSrc, vUv + uTexel * vec2(-2.0, 0.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(2.0, 0.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(0.0, -2.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(0.0, 2.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb * 2.0;
-  s += texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb * 2.0;
-  s += texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb * 2.0;
-  s += texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb * 2.0;
-  gl_FragColor = vec4(s / 12.0 + texture(tAdd, vUv).rgb, 1.0);
+  vec4 s = vec4(0.0);
+  s += texture(tSrc, vUv + uTexel * vec2(-2.0, 0.0));
+  s += texture(tSrc, vUv + uTexel * vec2(2.0, 0.0));
+  s += texture(tSrc, vUv + uTexel * vec2(0.0, -2.0));
+  s += texture(tSrc, vUv + uTexel * vec2(0.0, 2.0));
+  s += texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)) * 2.0;
+  s += texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)) * 2.0;
+  s += texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)) * 2.0;
+  s += texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)) * 2.0;
+  gl_FragColor = s / 12.0 + texture(tAdd, vUv);
 }
 `;
 
@@ -107,6 +117,8 @@ uniform mat4 uCamWorld;
 varying vec2 vUv;
 ${NOISE_GLSL}
 ${FOG_GLSL}
+${GLOW_COMP_GLSL}
+${GRADE_GLSL}
 // inverse depth (1/m) from the colour target's alpha (near / viewZ, MSAA-resolved, so antialiased): linear across a
 // plane in screen space, so its Laplacian is 0 on flat faces and only folds toward the eye survive (the ink lab's)
 float wAt(vec2 uv) { return texture(tColor, uv).a / uNear; }
@@ -169,8 +181,10 @@ void main() {
   }
   // 晕染: light from the tight mip, pigment from the wide one, both soaked by the weave; the fibre warp frays the edge
   vec2 warp = (vec2(vnoise(vUv * vec2(9.0, 18.0)), vnoise(vUv * vec2(9.0, 18.0) + 5.3)) - 0.5) * uBleed2.y;
-  vec3 tight = texture(tTight, vUv + warp * 0.5).rgb;
-  vec3 wide = texture(tWide, vUv + warp).rgb;
+  vec4 tight4 = texture(tTight, vUv + warp * 0.5);
+  vec4 wide4 = texture(tWide, vUv + warp);
+  vec3 tight = tight4.rgb;
+  vec3 wide = wide4.rgb;
   float weave = texture(uSilk, gl_FragCoord.xy / (300.0 * uRain.w / 3.0)).r;
   float soak = 1.0 + (weave - 0.5) * uBleed2.x;
   float wl = max(wide.r, max(wide.g, wide.b));
@@ -181,6 +195,8 @@ void main() {
   float paper = smoothstep(0.04, 0.35, lum(c));
   c *= mix(vec3(1.0), mix(vec3(1.0), hue, clamp(amt, 0.0, 1.0)), paper);
   c += (tight * uBleed.x + wide * uBleed.y) * soak;
+  // (lab P6) warm window glow in the fog (the pyramid's alpha), kept off anything nearer than the glow
+  c += glowAdd(tight4.a, wide4.a * 0.25, wc > 1e-5 ? 1.0 / wc : 1e4) * soak;
   if (uRain.x > 0.0) {
     float rn = rainLayer(gl_FragCoord.xy, 1.0, uRain.z, 0.28, 0.0) + 0.6 * rainLayer(gl_FragCoord.xy + 37.0, 0.55, uRain.z * 0.7, 0.3, 11.0);
     vec3 rc = mix(vec3(0.86, 0.9, 0.97), vec3(0.85, 0.7, 0.4), uSutra) * 0.55 + (tight + wide) * 1.6;
@@ -194,7 +210,7 @@ void main() {
   vec2 q = vUv - 0.5;
   c *= 1.0 - dot(q, q) * uGrade.x;
   if (uLines > 1.5) c = mix(vec3(1.0), vec3(0.0), edge);
-  vec3 o = toSRGB(c);
+  vec3 o = gradeLut(toSRGB(c));
   o += (h12(gl_FragCoord.xy + fract(uTime * 7.13) * 91.0) - 0.5) * uGrade.y / 255.0;
   gl_FragColor = vec4(o, 1.0);
 }
@@ -223,7 +239,9 @@ export class Pipeline {
   private readonly mDown: ShaderMaterial;
   private readonly mUp: ShaderMaterial;
   readonly mComp: ShaderMaterial;
-  private readonly uPre = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uPre: { value: new Vector2(BLEED.threshold, BLEED.knee) } };
+  readonly glow = glowUniforms();
+  readonly grade = gradeUniforms();
+  private readonly uPre = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uPre: { value: new Vector2(BLEED.threshold, BLEED.knee) }, uNearP: { value: 0.1 }, uGlow: this.glow.uGlow, uGlow2: this.glow.uGlow2 };
   private readonly uDown = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() } };
   private readonly uUp = { tSrc: { value: null as Texture | null }, tAdd: { value: null as Texture | null }, uTexel: { value: new Vector2() } };
   readonly uComp;
@@ -255,6 +273,7 @@ export class Pipeline {
       uBleed2: { value: new Vector4(B.weave, B.warp, B.edge, B.exposure) },
       uRain: { value: new Vector4(B.rain, B.rainAngle, B.rainSpeed, 2) },
       uGrade: { value: new Vector3(B.vignette, B.grain, B.shadowBlue) },
+      ...this.glow, ...this.grade,
     };
     this.mComp = new ShaderMaterial({ ...base, fragmentShader: FS_COMPOSITE, uniforms: this.uComp });
   }
@@ -320,6 +339,7 @@ export class Pipeline {
     if (m0 === undefined || m1 === undefined || m2 === undefined || m3 === undefined || m4 === undefined || u1 === undefined || u2 === undefined || u3 === undefined) return;
     this.uPre.tSrc.value = this.rtScene.texture;
     this.uPre.uTexel.value.set(1 / this.w, 1 / this.h);
+    this.uPre.uNearP.value = camera.near;
     this.pass(this.mPre, m0);
     const chain = [m0, m1, m2, m3, m4];
     for (let i = 1; i < chain.length; i++) {

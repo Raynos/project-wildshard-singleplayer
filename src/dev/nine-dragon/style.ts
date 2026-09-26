@@ -17,6 +17,8 @@ import {
 } from 'three';
 import { Y0 } from './layout';
 import { FLAG, PAINT_GLSL, paintUniforms } from './paint';
+// the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
+import { LIGHTVOL_GLSL, lightVolUniforms } from './light/lightvol';
 import { METAL, Rng, SUTRA } from './util';
 
 const c = (hex: number): Color => new Color(hex);
@@ -138,6 +140,7 @@ export class Shared {
     // the Well's shaft mist: its box (x0, z0, x1, z1) and density / rim height (set by main.ts from layout.ts WELL)
     uShaft: { value: new Vector4(0, 0, 0, 0) },
     uShaftK: { value: new Vector2(0.085, 0) },
+    ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
 
@@ -384,6 +387,7 @@ uniform float uPaintFlag;
 uniform vec3 uPaintStone;
 ${PAINT_GLSL}
 ${STONES_GLSL}
+${LIGHTVOL_GLSL}
 float bit(float f, float b) { return mod(floor(f / b), 2.0); }
 float bayer4(vec2 fc) {
   vec2 p = mod(floor(fc), 4.0);
@@ -429,6 +433,7 @@ void main() {
   vec3 col = base;
   vec3 emit = base * vMisc.x;
   float wet = vMisc.z;
+  float wetPool = 0.0;
   float vert = 1.0 - abs(n.y);
   float forceInk = 0.0;
 
@@ -570,10 +575,14 @@ void main() {
     float kf = pk * uPaintK.y * uPaintFlag * (1.0 - smoothstep(0.15, 0.5, wLoc));
     col = base * (0.82 + 0.3 * st.y) * (0.74 + 0.52 * speck) * pInk(mix(vec3(1.0), pf.rgb, kf), uPaintInk);
     float wAmt = wet * mix(0.55, 1.0, wLoc);
+    wetPool = wAmt * (1.0 - st.x);
     col *= 1.0 - 0.45 * wAmt;
     float ndv = clamp(V.y, 0.0, 1.0);
     float fres = 0.04 + 0.96 * pow(clamp(1.0 - ndv, 0.0, 1.0), 5.0);
     emit += fogCol(vWorld) * fres * wAmt * 0.3 * (1.0 - st.x);
+    // (lab P6) + the water film's reflection of the blue-hour sky: fogCol() is ~black inside the first 16 m of clear
+    // air, so the near ground never got a sheen; a broader lobe than Schlick; uLpSky 0 = off
+    emit += uFogBaseCol * (0.35 + 0.65 * pow(clamp(1.0 - ndv, 0.0, 1.0), 3.0)) * wAmt * uLpSky * (1.0 - st.x);
     vec2 rc = floor(p / 1.1);
     float rp2 = fract(uTime * 0.7 + h12(rc + 5.0));
     vec2 ctr = (rc + 0.2 + 0.6 * vec2(h12(rc + 1.0), h12(rc + 2.0))) * 1.1;
@@ -712,7 +721,13 @@ void main() {
   shaded *= 1.0 + ((weave - 0.5) * uWeave * 2.0 + (gran - 0.5) * uWeave * 1.6) * gk;
   // neon spill, baked per vertex at build time (emitters.ts)
   // (capped: the sign masts on the balustrade must not bleach the stone; wet stone shows it as a darker sheen)
+  // (lab P6) the blue-hour ambient scales the wash only (spill, pools, emitters and ink keep their value)
+  shaded *= uLpAmb;
   shaded += col * min(vSpill, vec3(0.7)) * 1.3 * (kind == 3.0 ? 1.0 : 1.0 - 0.5 * wet);
+  // (lab P6) the warm pools: diffuse on the wash; on wet stone a broad glossy sheen of the same light
+  vec3 lp = poolLight(vWorld, n);
+  shaded += col * lp * uLpGain.x;
+  emit += lp * wetPool * uLpGain.y * (0.35 + 0.65 * pow(clamp(1.0 - abs(V.y), 0.0, 1.0), 2.0));
   // the colour script: the deep strata sink into indigo paper (their windows gold) — the sutra's hinge
   float lumC = lum(shaded);
   float deep = (1.0 - smoothstep(-150.0, 70.0, vWorld.y)) * 0.9;

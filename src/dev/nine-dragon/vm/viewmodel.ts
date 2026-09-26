@@ -96,10 +96,11 @@ export interface VmLayout {
   fov: number;
 }
 
+// the clean room's spawn framing (round-6 style-A-jiehua-neon.jpg): the long jian diagonal from the guard low right to
+// the frame's centre; the Fei Zhua low in the left corner, reaching in almost level with its talons toward the middle
 export const LAYOUT_PORTRAIT: VmLayout = {
-  guard: new Vector2(0.47, -0.47), tip: new Vector2(0.08, -0.03), guardDepth: 0.95, roll: 0.12,
-  // the Fei Zhua from the lower-left corner at ~35°, foreshortened so the wraps, the cord and the drum all show (l06 a)
-  wrist: new Vector2(-0.3, -0.42), wristDepth: 1.15, elbow: new Vector2(-1.7, -1.1), armRoll: -0.3, elbowDepth: 0.75,
+  guard: new Vector2(0.55, -0.45), tip: new Vector2(0.06, -0.04), guardDepth: 1.1, roll: 0.12,
+  wrist: new Vector2(-0.5, -0.76), wristDepth: 1.3, elbow: new Vector2(-2.2, -1.05), armRoll: -0.3, elbowDepth: 0.8,
   fov: 70,
 };
 export const LAYOUT_LANDSCAPE: VmLayout = {

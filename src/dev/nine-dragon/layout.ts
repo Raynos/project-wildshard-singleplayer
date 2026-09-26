@@ -25,6 +25,9 @@ export const BANYAN = { x: 18.4, z: -22.6, r: 3.2 } as const;
 /** the noodle stall (dome B: moved 0.5 m east and 0.6 m south so the earth-god shrine stands clear at the planter's south-west) */
 export const STALL = { x0: 16.3, x1: 22.1, z0: -18.4, z1: -15.2 } as const;
 
+/** dome B, round 9: the small hawker stall at the spawn's right, its counter facing west onto the balustrade path */
+export const HAWKER = { x0: 7.6, x1: 9.8, z0: -4.2, z1: -0.6 } as const;
+
 /** the nine strata's street levels (altitude of each ring walkway in the Well) */
 export const STRATA = [-245, -150, -70, 0, 70, 125, 167, 210, 240] as const;
 
@@ -44,5 +47,6 @@ export function walkable(x: number, z: number): boolean {
   if (x > BANYAN.x - 4.2 && x < BANYAN.x - 2.2 && z > BANYAN.z + 1.6 && z < BANYAN.z + 2.9) return false;
   if (x > BANYAN.x - 4.3 && x < BANYAN.x - 3.1 && z > BANYAN.z - 1.6 && z < BANYAN.z - 0.6) return false;
   if (x > STALL.x0 + 0.6 && x < STALL.x0 + 4.8 && z > STALL.z1 + 1.8 && z < STALL.z1 + 3.1) return false;
+  if (x > HAWKER.x0 - 0.8 && x < HAWKER.x1 + 0.3 && z > HAWKER.z0 - 0.3 && z < HAWKER.z1 + 0.5) return false;
   return true;
 }

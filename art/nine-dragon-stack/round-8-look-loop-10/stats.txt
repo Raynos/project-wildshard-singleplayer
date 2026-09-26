@@ -1,0 +1,9 @@
+loop-1: 107 calls, 2277k tris
+loop-2: 89 calls, 1935k tris
+loop-3: 110 calls, 2278k tris
+loop-4: 93 calls, 1932k tris
+loop-5: 111 calls, 2261k tris
+loop-6: 94 calls, 1945k tris
+loop-7: 92 calls, 1930k tris
+loop-8: 96 calls, 1925k tris
+loop-9: 89 calls, 1921k tris
