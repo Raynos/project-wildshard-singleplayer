@@ -2,34 +2,43 @@
 // Neon Jian and the Fei Zhua in first person, the baseline phone HUD. dev/nine-dragon.html; captures drive it through
 // window.__nd (no URL switches): ready, shot(name), hud(on), style('jiehua' | 'sutra'), time(t), pixelRatio(r), bench(n).
 import {
-  BufferGeometry, Float32BufferAttribute, InstancedMesh, Mesh, type Object3D, PerspectiveCamera, PlaneGeometry, Scene, SphereGeometry,
+  BufferGeometry, Color, Float32BufferAttribute, InstancedMesh, type Matrix4, Mesh, PerspectiveCamera, PlaneGeometry, Quaternion, Scene, SphereGeometry, Vector4,
   Uint32BufferAttribute, Vector2, Vector3, WebGLRenderer,
 } from 'three';
 import { Ctx, type Piece } from './ctx';
+import { type Emitter, bakeSpill } from './emitters';
+import { GlyphAtlas } from './glyphs';
+import { Lanterns } from './lanterns';
+import { NeonSigns } from './neonsigns';
+import { buildStreaks } from './streaks';
+import { buildFacade, type FacadeStats } from './facade/batch';
+import { facadeUniforms } from './facade/material';
 import { PIECES } from './dressing';
 import { Hud, type HudButton } from './hud';
-import { Kit } from './kit';
 import { WELL, Y0 } from './layout';
 import { Player } from './player';
 import { Pipeline } from './post';
-import { acKit, lanternKit } from './props';
+import { acKit } from './props';
 import { SHOTS, type Shot } from './shots';
 import { SignAtlas, SignBuilder } from './signs';
 import { buildSquare } from './square';
 import {
-  Shared, jiehuaMaterial, lineMaterial, neonMaterial, rainMaterial, screenMaterial, sheetMaterial, skyMaterial, steamMaterial,
+  type LookName, Shared, jiehuaMaterial, lineMaterial, neonMaterial, screenMaterial, sheetMaterial, skyMaterial, steamMaterial,
 } from './style';
 import { WORDS, buildTowers, droneKit, trainKit } from './towers';
-import { chars, clamp, smooth } from './util';
+import { Rng, chars, clamp, smooth } from './util';
 import { CABLE, buildWell, gondolaKit, wellSheets } from './well';
-import { Viewmodel, buildClaw } from './weapon';
+import { type VmLayout, Viewmodel } from './hero/viewmodel';
+import { buildClaw } from './hero/weapon-parts';
+import { KitX, merge } from './hero/kitx';
+import { glbBox, guardMatrix, loadGlb } from './hero/glb';
 
 interface NdStats { calls: number; triangles: number; width: number; height: number; pixelRatio: number; hooks: number }
 interface NdApi {
   ready: Promise<void>;
   shot: (name: string) => Promise<void>;
   hud: (on: boolean) => void;
-  style: (s: 'jiehua' | 'sutra') => void;
+  style: (s: LookName) => void;
   time: (t: number | null) => void;
   pixelRatio: (r: number | null) => void;
   stats: () => NdStats;
@@ -43,7 +52,17 @@ interface NdApi {
   weapon: (on: boolean) => void;
   /** render one frame and hand it back as a JPEG data URL at w × h (the canvas downscaled: supersampled) */
   snapshot: (w: number, h: number, quality: number) => string;
+  /** framing work: an ad-hoc camera (a Shot not in SHOTS), and the viewmodel's layout (portrait / landscape, merged) */
+  view: (s: Shot) => Promise<void>;
+  vmLayout: (portrait: Partial<VmLayoutJson>, landscape: Partial<VmLayoutJson>) => void;
 }
+interface VmLayoutJson { guard: [number, number]; tip: [number, number]; guardDepth: number; roll: number; wrist: [number, number]; wristDepth: number; elbow: [number, number]; armRoll: number; elbowDepth: number; fov: number }
+const tuneLayout = (L: VmLayout, j: Partial<VmLayoutJson>): VmLayout => ({
+  guard: j.guard === undefined ? L.guard : new Vector2(...j.guard), tip: j.tip === undefined ? L.tip : new Vector2(...j.tip),
+  guardDepth: j.guardDepth ?? L.guardDepth, roll: j.roll ?? L.roll, wrist: j.wrist === undefined ? L.wrist : new Vector2(...j.wrist),
+  wristDepth: j.wristDepth ?? L.wristDepth, elbow: j.elbow === undefined ? L.elbow : new Vector2(...j.elbow), armRoll: j.armRoll ?? L.armRoll,
+  elbowDepth: j.elbowDepth ?? L.elbowDepth, fov: j.fov ?? L.fov,
+});
 declare global { interface Window { __nd?: NdApi } }
 
 const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
@@ -73,24 +92,6 @@ function sheetsGeometry(): BufferGeometry {
   g.setAttribute('aAlpha', new Float32BufferAttribute(alpha, 1));
   g.setIndex(new Uint32BufferAttribute(idx, 1));
   g.computeBoundingSphere();
-  return g;
-}
-
-function rainGeometry(count: number): BufferGeometry {
-  const seed: number[] = [], corner: number[] = [], pos: number[] = [], idx: number[] = [];
-  let s = 1234567;
-  const rnd = (): number => { s = (s * 16807) % 2147483647; return s / 2147483647; };
-  for (let i = 0; i < count; i++) {
-    const a = rnd(), b = rnd(), c = rnd();
-    for (const [cx, cy] of [[-1, 0], [1, 0], [1, 1], [-1, 1]] as const) { seed.push(a, b, c); corner.push(cx, cy); pos.push(0, 0, 0); }
-    const k = i * 4;
-    idx.push(k, k + 1, k + 2, k, k + 2, k + 3);
-  }
-  const g = new BufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
-  g.setAttribute('aSeed', new Float32BufferAttribute(seed, 3));
-  g.setAttribute('aCorner', new Float32BufferAttribute(corner, 2));
-  g.setIndex(new Uint32BufferAttribute(idx, 1));
   return g;
 }
 
@@ -137,24 +138,69 @@ async function main(): Promise<void> {
   // ── the world ──
   const atlas = new SignAtlas();
   const signs = new SignBuilder(atlas);
+  const glyphs = new GlyphAtlas(chars(FONT_CHARS));
+  const neonSigns = new NeonSigns(shared, glyphs);
+  signs.calligraphy = neonSigns;
+  shared.u.uGroundY.value = Y0;
   const ctx = new Ctx(signs);
   buildSquare(ctx);
   buildTowers(ctx);
   buildWell(ctx);
+  // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
+  const slotRng = new Rng(4242);
+  const bladesKit = ctx.kit('facade-signs');
+  for (const s of ctx.fd.signs) {
+    const word = slotRng.pick(WORDS);
+    const color = `#${s.color.toString(16).padStart(6, '0')}`;
+    const size = Math.min(s.size, s.blade ? 1.2 : 0.8);
+    ctx.signs.place({ at: s.at, normal: s.normal, size, spec: { text: word, color, vertical: s.blade, style: s.blade || slotRng.chance(0.5) ? 'tube' : 'box' }, blade: s.blade }, s.blade ? null : bladesKit);
+  }
   const scene = new Scene();
   const mat = jiehuaMaterial(shared);
   const matA = jiehuaMaterial(shared, { alphaCut: true });
-  const reflect = (o: Object3D): Object3D => { o.layers.enable(1); return o; };
+  // paper lanterns (one instanced draw) and every emitter: neon signs, lightboxes, lanterns, lit shopfronts
+  const paper = new Lanterns(shared);
+  const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
+  for (const m of ctx.lanterns) { m.decompose(tmpP, tmpQ, tmpS); paper.hang(tmpP.clone(), tmpS.x); }
+  const emitters: Emitter[] = [...neonSigns.emitters, ...signs.lights, ...paper.emitters, ...ctx.emitters];
+  const kitGeos: BufferGeometry[] = [];
   for (const [name, kit] of ctx.kits) {
-    if (kit.vertexCount === 0) continue;
-    const m = new Mesh(kit.build(), mat);
-    scene.add(ctx.reflective.has(name) ? reflect(m) : m);
+    const kx = ctx.kitxs.get(name);
+    if (kx !== undefined && kx.vertexCount > 0) kitGeos.push(kit.vertexCount > 0 ? merge([kit.build(), kx.build()]) : kx.build());
+    else if (kit.vertexCount > 0) kitGeos.push(kit.build());
   }
-  for (const [, kit] of ctx.alphaKits) if (kit.vertexCount > 0) scene.add(new Mesh(kit.build(), matA));
-  const lanterns = new InstancedMesh(lanternKit().build(), mat, ctx.lanterns.length);
-  ctx.lanterns.forEach((m, i) => { lanterns.setMatrixAt(i, m); });
-  lanterns.computeBoundingSphere();
-  scene.add(reflect(lanterns));
+  for (const [name, kx] of ctx.kitxs) if (!ctx.kits.has(name) && kx.vertexCount > 0) kitGeos.push(kx.build());
+  const alphaGeos: BufferGeometry[] = [];
+  for (const [, kit] of ctx.alphaKits) if (kit.vertexCount > 0) alphaGeos.push(kit.build());
+  bakeSpill(kitGeos, emitters);
+  for (const g of kitGeos) scene.add(new Mesh(g, mat));
+  for (const g of alphaGeos) scene.add(new Mesh(g, matA));
+  scene.add(paper.build());
+  const facade = buildFacade(ctx.fd, facadeUniforms(shared), { clutterFar: [55, 85] });
+  scene.add(facade.group);
+  const facadeStats: FacadeStats = facade.stats;
+  const neonMeshes = neonSigns.build();
+  scene.add(neonMeshes.boards, neonMeshes.tubes);
+  // the wet-ground streaks: cards for the emitters over the square, its street and the ledges at its level
+  const onSquare = emitters.filter((e) => e.at.y > Y0 + 0.3 && e.at.y < Y0 + 45 && e.at.x > WELL.x0 - 2 && e.at.x < 40 && e.at.z > -170 && e.at.z < 30);
+  // …and the lit windows of the walls round the square and up the street: the targets' ground is combed with fine warm
+  // streaks between the neon ones (one card each, no spill: the window already glows)
+  const wu = new Vector3(), wn = new Vector3(), wc = new Vector3(), wp = new Vector3();
+  let windowCards = 0;
+  const WHITE = new Color(1, 1, 1);
+  for (const w of ctx.fd.windows) {
+    if (w.win.y <= 0) continue;
+    w.m.extractBasis(wu, wc, wn);
+    const ww = wu.length(), wh = wc.length();
+    wp.setFromMatrixPosition(w.m).addScaledVector(wc, 0.5);
+    if (wp.y < Y0 + 0.5 || wp.y > Y0 + 28 || wp.x < WELL.x1 - 1 || wp.x > 40 || wp.z < -170 || wp.z > 30) continue;
+    // it must face the square / the street's axis (x ≈ 6.5)
+    const axis = new Vector3(6.5, wp.y, Math.min(Math.max(wp.z, -170), 10));
+    if (wn.normalize().dot(axis.sub(wp)) <= 0) continue;
+    onSquare.push({ at: wp.clone(), color: w.light.clone().lerp(WHITE, 0.3).multiplyScalar(w.win.y), w: ww, h: wh, power: 0.07, spill: 0 });
+    windowCards++;
+  }
+  scene.add(buildStreaks(shared, onSquare, new Vector4(WELL.x0 + 5, WELL.z0 + 5, WELL.x1, WELL.z1 - 5)));
   // the instanced dressing: one InstancedMesh per piece and region (and per material when a piece has ruled bars)
   let instances = 0;
   const triBudget: string[] = [];
@@ -186,7 +232,7 @@ async function main(): Promise<void> {
   // movers: the train, the gondola, the drones (their lights in small neon meshes)
   const neon = neonMaterial(shared, atlas.textures);
   const train = new Mesh(trainKit().build(), mat);
-  scene.add(reflect(train));
+  scene.add(train);
   const gondola = new Mesh(gondolaKit().build(), mat);
   scene.add(gondola);
   const drones: { body: Mesh; lights: Mesh; phase: number; r: number; y: number }[] = [];
@@ -201,8 +247,7 @@ async function main(): Promise<void> {
     scene.add(body);
     drones.push({ body, lights, phase: i * 2.4, r: 22 + i * 14, y: Y0 + 58 + i * 16 });
   }
-  const signMesh = new Mesh(signs.build(), neon);
-  scene.add(reflect(signMesh));
+  scene.add(new Mesh(signs.build(), neon));
   const sky = new Mesh(new SphereGeometry(900, 32, 16), skyMaterial(shared));
   sky.renderOrder = -10;
   sky.frustumCulled = false;
@@ -218,10 +263,6 @@ async function main(): Promise<void> {
   const sheets = new Mesh(sheetsGeometry(), sheetMaterial(shared));
   sheets.renderOrder = 2;
   scene.add(sheets);
-  const rain = new Mesh(rainGeometry(2400), rainMaterial(shared));
-  rain.frustumCulled = false;
-  rain.renderOrder = 4;
-  scene.add(rain);
   const steam = new Mesh(steamGeometry(ctx.steam), steamMaterial(shared));
   steam.frustumCulled = false;
   steam.renderOrder = 3;
@@ -232,7 +273,7 @@ async function main(): Promise<void> {
   line.renderOrder = 5;
   line.visible = false;
   scene.add(line);
-  const clawKit = new Kit();
+  const clawKit = new KitX();
   buildClaw(clawKit, 1);
   const claw = new Mesh(clawKit.build(), mat);
   claw.scale.setScalar(2.2);
@@ -242,9 +283,34 @@ async function main(): Promise<void> {
 
   // ── camera, viewmodel, frame ──
   const camera = new PerspectiveCamera(60, 1, 0.1, 1200);
-  const vm = new Viewmodel(shared, atlas);
+  // the hero lab's viewmodel: procedural jian, tassel, talisman, gauntlet; the TRELLIS dragon-head guard in profile
+  const vm = new Viewmodel(shared.u.uSilk.value);
+  try {
+    const url = '/assets/nine-dragon/lab/guard.glb';
+    const box = await glbBox(url);
+    vm.setGuard(await loadGlb(url, { kind: 20, wash: 0xba9444, lumLo: 0.2, lumHi: 1.35, ao: 0.9, clipBack: 0.2, matrix: guardMatrix(box, 0.115, -0.004, 0.006, 0) }));
+  } catch (e: unknown) { console.warn('nine-dragon: the TRELLIS guard failed to load, the procedural head stays', e); }
+  // the TRELLIS crowd, colour-ramped to the ink (two tones per model, one instanced draw each)
+  const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
+  const DARK = [0x1f2126, 0x2a2c31, 0x3b3f4a, 0x55585f, 0x6b6f78, 0x8a8f96];
+  const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
+  const person3 = (name: string, ramp: readonly number[]): Promise<BufferGeometry> => loadGlb(`/assets/nine-dragon/lab/${name}.glb`, { kind: 0, line: 0, ao: 0.6, ramp, hues: HUES });
+  try {
+    const [walkD, walkL, sitD, sitL] = await Promise.all([person3('walker', DARK), person3('walker', LIGHT), person3('sitter', DARK), person3('sitter', LIGHT)]);
+    const inst = (g: BufferGeometry, ms: readonly Matrix4[]): void => {
+      if (ms.length === 0) return;
+      const im = new InstancedMesh(g, mat, ms.length);
+      ms.forEach((m, i) => { im.setMatrixAt(i, m); });
+      im.computeBoundingSphere();
+      scene.add(im);
+    };
+    inst(walkD, ctx.walkers.filter((_, i) => i % 10 < 7));
+    inst(walkL, ctx.walkers.filter((_, i) => i % 10 >= 7));
+    inst(sitD, ctx.sitters.filter((_, i) => i % 3 !== 1));
+    inst(sitL, ctx.sitters.filter((_, i) => i % 3 === 1));
+  } catch (e: unknown) { console.warn('nine-dragon: the TRELLIS crowd failed to load', e); }
   atlas.finish();
-  const pipe = new Pipeline(renderer, shared, Y0);
+  const pipe = new Pipeline(renderer, shared);
   const hud = new Hud(overlay, ctx.map);
   const player = new Player(canvas);
   player.place(1.45, Y0, 6, 8, 5);
@@ -262,9 +328,12 @@ async function main(): Promise<void> {
     camera.fov = aspect < 1 ? (2 * Math.atan(Math.tan((fovP * Math.PI) / 360) / aspect) * 180) / Math.PI : fovL;
     camera.updateProjectionMatrix();
     vm.layout(aspect);
+    vm.u.uLinePx.value = Math.max(1.0, 1.6 * (pr / 2));
+    vm.u.uHullPx.value = Math.max(1.0, 2.4 * (pr / 2));
+    vm.u.uRes.value.set(Math.round(w * pr), Math.round(h * pr));
     const bw = Math.round(w * pr), bh = Math.round(h * pr);
-    shared.u.uLinePx.value = Math.max(1.0, 1.75 * (pr / 2));
-    pipe.setSize(bw, bh, Math.max(0.9, 1.6 * (pr / 2)));
+    shared.u.uDpr.value = pr / 3;
+    pipe.setSize(bw, bh, 1, pr);
   };
   window.addEventListener('resize', resize);
   resize();
@@ -317,8 +386,9 @@ async function main(): Promise<void> {
     else if (e.code === 'KeyL') onButton('lock');
     else if (e.code === 'Space') onButton('jump');
     else if (e.code === 'KeyQ') onButton('dodge');
-    else if (e.code === 'Digit1') shared.setSutra(0);
-    else if (e.code === 'Digit2') shared.setSutra(1);
+    else if (e.code === 'Digit1') { shared.setLook('jiehua'); vm.u.uSutra.value = 0; }
+    else if (e.code === 'Digit2') { shared.setLook('sutra'); vm.u.uSutra.value = 1; }
+    else if (e.code === 'Digit3') { shared.setLook('silk'); vm.u.uSutra.value = 0; }
     else if (e.code === 'KeyP') hud.setPerf(true);
   });
   canvas.addEventListener('click', () => { if (slash < 0) { slash = 0; heavy = false; } });
@@ -337,6 +407,7 @@ async function main(): Promise<void> {
     camera.lookAt(eye.clone().add(player.forward()));
     camera.updateMatrixWorld();
     shared.u.uTime.value = tt;
+    shared.u.uNear.value = camera.near;
     shared.u.uCam.value.copy(eye);
     // movers
     const tx = -100 + ((tt * 16) % 300);
@@ -385,11 +456,6 @@ async function main(): Promise<void> {
       }
     }
     vm.update(dt, { t: tt, walk: player.walk, speed: player.speed, lookVel: player.lookVel.clone().multiplyScalar(0.05), slash, heavy, hook: hp, aimNdc });
-    const L = shared.u.uLightDir.value.clone().transformDirection(camera.matrixWorldInverse);
-    for (const m of vm.materials) {
-      const ld = m.uniforms['uLightDir'];
-      if (ld !== undefined && ld !== shared.u.uLightDir) (ld.value as Vector3).copy(L);
-    }
     for (const d of drones) d.lights.visible = true;
   };
 
@@ -436,6 +502,7 @@ async function main(): Promise<void> {
     fovL = s.vfovLandscape;
     resize();
     player.place(s.at[0], s.at[1], s.at[2], s.yaw, s.pitch);
+    vm.scene.visible = s.weapon !== false;
     slash = -1;
     locked = null;
     if (s.hook === undefined) { hookFrozen = null; hookPhase = 0; hookTarget = null; }
@@ -456,7 +523,7 @@ async function main(): Promise<void> {
       await nextFrames(3);
     },
     hud: (on) => { hudOn = on; hud.setVisible(on); },
-    style: (s) => { shared.setSutra(s === 'sutra' ? 1 : 0); },
+    style: (s) => { shared.setLook(s); vm.u.uSutra.value = s === 'sutra' ? 1 : 0; },
     time: (tt) => { frozen = tt; },
     pixelRatio: (r) => { prOverride = r; resize(); },
     stats: () => ({
@@ -489,10 +556,12 @@ async function main(): Promise<void> {
       c2.drawImage(renderer.domElement, 0, 0, w, h);
       return out.toDataURL('image/jpeg', quality);
     },
-    budget: () => triBudget,
+    budget: () => [...triBudget, `facade ${JSON.stringify(facadeStats)}`, `streak cards ${onSquare.length} (${windowCards} lit windows)`],
     lines: (mode) => { pipe.uComp.uLines.value = mode; },
     atlas: () => atlas.dump(),
     weapon: (on) => { vm.scene.visible = on; },
+    view: async (s) => { applyShot(s); await nextFrames(3); },
+    vmLayout: (lp, ll) => { vm.layoutPortrait = tuneLayout(vm.layoutPortrait, lp); vm.layoutLandscape = tuneLayout(vm.layoutLandscape, ll); vm.relayout(); },
     debug: () => ({ hookTarget: hookTarget?.toArray() ?? null, hookFrozen, hookPhase, line: line.visible, claw: claw.position.toArray(), a: lineMat.u.uA.value.toArray(), b: lineMat.u.uB.value.toArray() }),
   };
   requestAnimationFrame(loop);

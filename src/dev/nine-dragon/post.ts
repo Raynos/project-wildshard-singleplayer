@@ -1,12 +1,16 @@
-// The frame: (1) the wet-ground mirror (neon, lanterns, the gate) at quarter res, (2) the world into an MSAA HDR target
-// with its depth, the viewmodel over it with depth cleared, (3) a half-res dual-filter bloom, (4) one composite: the
-// depth silhouette line (ink, or gold in the sutra look), the bloom soaked into the silk weave, a soft shoulder, grain.
+// The frame: (1) the world into an MSAA ×4 HDR target, the viewmodel in a near depth slice (no clear, no copy: the
+// depth texture holds both), (2) the neon lab's 晕染 bloom: a Karis prefilter (threshold 1.0, tight knee) at ½ res,
+// 4 dual-filter downs to 1/32 and 3 ups back to ¼ (tight = the ¼ mip, wide = the summed pyramid), (3) one composite:
+// the depth silhouette (ink, gold in the sutra look), the bleed — tight + wide added as LIGHT, the wide mip soaked into
+// pale paper as PIGMENT (a multiply glaze toward the neon's hue, a darker wet front, the silk weave, a fibre warp) —
+// screen-space drizzle (two layers of ruled hairlines, zero draws), a hue-preserving shoulder, a cool shadow lift and
+// grain. The wet-ground streaks are geometry now (streaks.ts), so there is no mirror pass.
 import {
-  AdditiveBlending, BufferGeometry, type Camera, DepthTexture, Float32BufferAttribute, HalfFloatType, LinearFilter, Matrix4, Mesh,
-  NearestFilter, NoBlending, OrthographicCamera, PerspectiveCamera, type Scene, ShaderMaterial, type Texture, type TextureDataType,
-  UnsignedByteType, UnsignedIntType, Vector2, Vector3, Vector4, type WebGLRenderer, WebGLRenderTarget,
+  BufferGeometry, type Camera, DepthTexture, Float32BufferAttribute, HalfFloatType, LinearFilter, Matrix4, Mesh, NearestFilter, NoBlending,
+  OrthographicCamera, type PerspectiveCamera, type Scene, ShaderMaterial, type Texture, type TextureDataType, UnsignedByteType,
+  UnsignedIntType, Vector2, Vector3, Vector4, type WebGLRenderer, WebGLRenderTarget,
 } from 'three';
-import { NOISE_GLSL, type Shared } from './style';
+import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const VS_FULL = /* glsl */ `
 varying vec2 vUv;
@@ -16,25 +20,25 @@ void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
 const FS_PREFILTER = /* glsl */ `
 uniform sampler2D tSrc;
 uniform vec2 uTexel;
-uniform float uThr;
-uniform float uKnee;
+uniform vec2 uPre; // x: threshold, y: knee
 varying vec2 vUv;
+vec3 pick(vec3 c) {
+  float br = max(c.r, max(c.g, c.b));
+  float soft = clamp(br - uPre.x + uPre.y, 0.0, 2.0 * uPre.y);
+  soft = soft * soft / (4.0 * uPre.y + 1e-4);
+  return c * max(soft, br - uPre.x) / max(br, 1e-4);
+}
 void main() {
-  vec3 a = texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb;
-  vec3 b = texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb;
-  vec3 c = texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb;
-  vec3 d = texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb;
-  // Karis-weighted average: no single hot pixel flickers the bloom
+  vec3 a = pick(texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb);
+  vec3 b = pick(texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb);
+  vec3 c = pick(texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb);
+  vec3 d = pick(texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb);
   float wa = 1.0 / (1.0 + max(a.r, max(a.g, a.b)));
   float wb = 1.0 / (1.0 + max(b.r, max(b.g, b.b)));
   float wc = 1.0 / (1.0 + max(c.r, max(c.g, c.b)));
   float wd = 1.0 / (1.0 + max(d.r, max(d.g, d.b)));
-  vec3 col = (a * wa + b * wb + c * wc + d * wd) / (wa + wb + wc + wd);
-  float br = max(col.r, max(col.g, col.b));
-  float soft = clamp(br - uThr + uKnee, 0.0, 2.0 * uKnee);
-  soft = soft * soft / (4.0 * uKnee + 1e-4);
-  float k = max(soft, br - uThr) / max(br, 1e-4);
-  gl_FragColor = vec4(col * k, 1.0);
+  vec3 o = (a * wa + b * wb + c * wc + d * wd) / (wa + wb + wc + wd);
+  gl_FragColor = vec4(min(o, vec3(64.0)), 1.0);
 }
 `;
 const FS_DOWN = /* glsl */ `
@@ -52,109 +56,146 @@ void main() {
 `;
 const FS_UP = /* glsl */ `
 uniform sampler2D tSrc;
+uniform sampler2D tAdd;
 uniform vec2 uTexel;
-uniform float uWeight;
 varying vec2 vUv;
 void main() {
   vec3 s = vec3(0.0);
-  s += texture(tSrc, vUv + uTexel * vec2(-1.0, 0.0)).rgb * 2.0;
-  s += texture(tSrc, vUv + uTexel * vec2(1.0, 0.0)).rgb * 2.0;
-  s += texture(tSrc, vUv + uTexel * vec2(0.0, -1.0)).rgb * 2.0;
-  s += texture(tSrc, vUv + uTexel * vec2(0.0, 1.0)).rgb * 2.0;
-  s += texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb;
-  s += texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb;
-  gl_FragColor = vec4(s / 12.0 * uWeight, 1.0);
+  s += texture(tSrc, vUv + uTexel * vec2(-2.0, 0.0)).rgb;
+  s += texture(tSrc, vUv + uTexel * vec2(2.0, 0.0)).rgb;
+  s += texture(tSrc, vUv + uTexel * vec2(0.0, -2.0)).rgb;
+  s += texture(tSrc, vUv + uTexel * vec2(0.0, 2.0)).rgb;
+  s += texture(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb * 2.0;
+  s += texture(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb * 2.0;
+  s += texture(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb * 2.0;
+  s += texture(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb * 2.0;
+  gl_FragColor = vec4(s / 12.0 + texture(tAdd, vUv).rgb, 1.0);
 }
 `;
-// the wet-ground streak: a long one-way vertical smear of the mirror's bright parts (every sign and lantern drips)
-const FS_STREAK = /* glsl */ `
-uniform sampler2D tSrc;
-uniform vec2 uStep;
-uniform float uCut;
-varying vec2 vUv;
-void main() {
-  vec3 s = vec3(0.0);
-  float w = 0.0;
-  for (int i = 0; i < 14; i++) {
-    float fi = float(i);
-    float wi = 1.0 - fi / 14.0;
-    vec3 c = texture(tSrc, vUv + uStep * fi).rgb;
-    s += max(c - uCut, vec3(0.0)) * wi;
-    w += wi;
-  }
-  gl_FragColor = vec4(s / w, 1.0);
-}
-`;
-/** window depth [0, SLICE) holds the viewmodel, [SLICE, 1] the world (no depth clear, no copy) */
-const SLICE = 0.05;
+
+/** window depth [0, SLICE) holds the viewmodel, [SLICE, 1] the world */
+export const SLICE = 0.05;
 
 const FS_COMPOSITE = /* glsl */ `
 uniform sampler2D tColor;
 uniform sampler2D tDepth;
-uniform sampler2D tBloom;
+uniform sampler2D tTight;
+uniform sampler2D tWide;
 uniform sampler2D uSilk;
 uniform vec2 uTexel;
 uniform float uNear;
 uniform float uFar;
-uniform float uBloom;
 uniform float uSutra;
 uniform float uTime;
 uniform float uLineScale;
 uniform float uLines;
 uniform vec3 uInk;
 uniform vec3 uGold;
+uniform vec4 uBleed;   // x: tight light, y: wide light, z: stain (pigment glaze), w: stain response
+uniform vec4 uBleed2;  // x: weave soak, y: fibre warp (uv), z: edge darkening, w: exposure
+uniform vec4 uRain;    // x: strength, y: angle (rad), z: speed (px/s), w: px scale (DPR)
+uniform vec3 uGrade;   // x: vignette, y: grain, z: shadow lift toward ink-blue
+uniform float uDpr;
+uniform vec2 uSilPx;   // silhouette width near, at 60 m (px at 3×)
+uniform vec2 uSilFade; // silhouettes gone between these distances (m)
+uniform float uSilGain;
+uniform float uInkMid;
+uniform vec3 uInk1;
+uniform float uLineFog;
+uniform mat4 uInvProj;
+uniform mat4 uCamWorld;
 varying vec2 vUv;
 ${NOISE_GLSL}
-// depth slices: the viewmodel lives in window depth [0, SLICE), the world in [SLICE, 1]; both decode to metres
-const float SLICE = ${SLICE.toFixed(3)};
-float ld0(float z) { return 2.0 * uNear * uFar / (uFar + uNear - (2.0 * z - 1.0) * (uFar - uNear)); }
-float ld(float z) { return z < SLICE ? ld0(z / SLICE) : ld0((z - SLICE) / (1.0 - SLICE)); }
-float invD(vec2 uv) { return 1.0 / ld(texture(tDepth, uv).r); }
-vec3 shoulder(vec3 x) {
-  vec3 k = 0.74 + 0.26 * (1.0 - exp(-(x - 0.74) / 0.26));
-  return mix(x, k, step(0.74, x));
+${FOG_GLSL}
+// inverse depth (1/m) from the colour target's alpha (near / viewZ, MSAA-resolved, so antialiased): linear across a
+// plane in screen space, so its Laplacian is 0 on flat faces and only folds toward the eye survive (the ink lab's)
+float wAt(vec2 uv) { return texture(tColor, uv).a / uNear; }
+float fold(vec2 uv, float wc, float r) {
+  vec2 o1 = vec2(r, 0.0) * uTexel, o2 = vec2(0.0, r) * uTexel, o3 = vec2(r, r) * uTexel * 0.7071, o4 = vec2(r, -r) * uTexel * 0.7071;
+  float l1 = (wAt(uv + o1) + wAt(uv - o1) - 2.0 * wc) / wc;
+  float l2 = (wAt(uv + o2) + wAt(uv - o2) - 2.0 * wc) / wc;
+  float l3 = (wAt(uv + o3) + wAt(uv - o3) - 2.0 * wc) / wc;
+  float l4 = (wAt(uv + o4) + wAt(uv - o4) - 2.0 * wc) / wc;
+  return -min(min(l1, l2), min(l3, l4));
+}
+vec3 shoulderHP(vec3 c) {
+  float m = max(c.r, max(c.g, c.b));
+  float t = m < 0.72 ? m : 0.72 + 0.28 * (1.0 - exp(-(m - 0.72) / 0.28));
+  return c * (t / max(m, 1e-5));
 }
 vec3 toSRGB(vec3 c) {
   c = clamp(c, 0.0, 1.0);
   return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
 }
-float contour(vec2 uv, float wc, float r) {
-  float e = 0.0;
-  vec2 o1 = vec2(r, 0.0) * uTexel, o2 = vec2(0.0, r) * uTexel, o3 = vec2(r, r) * uTexel * 0.7071, o4 = vec2(r, -r) * uTexel * 0.7071;
-  float l1 = (invD(uv + o1) + invD(uv - o1) - 2.0 * wc) / wc;
-  float l2 = (invD(uv + o2) + invD(uv - o2) - 2.0 * wc) / wc;
-  float l3 = (invD(uv + o3) + invD(uv - o3) - 2.0 * wc) / wc;
-  float l4 = (invD(uv + o4) + invD(uv - o4) - 2.0 * wc) / wc;
-  float m = min(min(l1, l2), min(l3, l4));
-  return smoothstep(0.012, 0.06, -m);
+float rainLayer(vec2 fc, float scale, float speed, float dens, float seed) {
+  float a = uRain.y;
+  vec2 p = mat2(cos(a), -sin(a), sin(a), cos(a)) * fc / uRain.w;
+  p.y += uTime * speed;
+  vec2 cell = vec2(7.0, 70.0) * scale;
+  vec2 id = floor(p / cell);
+  vec2 f = p - id * cell;
+  if (h12(id + seed) > dens) return 0.0;
+  float x0 = (0.15 + 0.7 * h12(id + seed + 3.1)) * cell.x;
+  float len = cell.y * (0.25 + 0.45 * h12(id + seed + 7.7));
+  float y0 = h12(id + seed + 1.3) * (cell.y - len);
+  float t = (f.y - y0) / len;
+  float along = step(0.0, t) * step(t, 1.0) * sin(clamp(t, 0.0, 1.0) * 3.14159);
+  float dx = abs(f.x - x0) * uRain.w;
+  return along * (1.0 - smoothstep(0.35, 1.1, dx));
 }
 void main() {
   vec3 c = texture(tColor, vUv).rgb;
-  float zc = texture(tDepth, vUv).r;
-  float dc = ld(zc);
-  float wc = 1.0 / dc;
-  // the silhouette: ruled where the depth folds toward the eye (a contour or a convex edge), heavier on the living/held
-  float r = uLineScale * mix(1.6, 0.8, smoothstep(3.0, 60.0, dc));
-  if (dc < 1.6) r = uLineScale * 2.1;
-  float edge = zc >= 0.999999 ? 0.0 : max(contour(vUv, wc, r), contour(vUv, wc, r * 0.5) * 0.8);
-  edge *= (1.0 - smoothstep(55.0, 210.0, dc)) * uLines;
-  vec3 ink = mix(uInk, uGold * 1.25, uSutra);
-  vec3 lineC = mix(ink, c, smoothstep(12.0, 170.0, dc) * 0.85);
-  c = mix(c, lineC, edge);
-  if (uLines > 1.5) c = mix(vec3(1.0), vec3(0.0), edge);
-  float weave = texture(uSilk, gl_FragCoord.xy / 320.0).r;
-  vec3 b = texture(tBloom, vUv).rgb;
-  c += b * uBloom * (0.78 + 0.44 * weave);
-  c = shoulder(c);
-  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  c = mix(c, c * vec3(0.93, 0.97, 1.08), (1.0 - smoothstep(0.02, 0.3, l)) * 0.45 * (1.0 - uSutra));
-  c *= 1.0 + (weave - 0.5) * 0.04;
+  float edge = 0.0;
+  float wc = wAt(vUv);
+  if (wc > 1e-5 && uLines > 0.5) {
+    float z = 1.0 / wc;
+    float r = mix(uSilPx.x, uSilPx.y, smoothstep(4.0, 60.0, z)) * uDpr * (z < 1.6 ? 1.6 : 1.0) * uLineScale;
+    // two radii half a pixel apart, averaged: the outer border gets a one-pixel ramp instead of a stair
+    float e = 0.5 * (clamp(fold(vUv, wc, r - 0.5) / uSilGain, 0.0, 1.0) + clamp(fold(vUv, wc, r + 0.5) / uSilGain, 0.0, 1.0));
+    e = max(e, clamp(fold(vUv, wc, max(r * 0.5, 1.0)) / uSilGain, 0.0, 1.0));
+    e *= 1.0 - smoothstep(uSilFade.x, uSilFade.y, z);
+    if (e > 0.002) {
+      // the line sits on the near surface: fog it like that surface (lines dissolve before the wash)
+      vec4 vr = uInvProj * vec4(vUv * 2.0 - 1.0, 1.0, 1.0);
+      vec3 pv = vr.xyz / vr.w;
+      pv *= z / max(-pv.z, 1e-4);
+      vec3 wp = (uCamWorld * vec4(pv, 1.0)).xyz;
+      vec4 fg = silkFog(wp, z < 1.6 ? 0.0 : 1.0);
+      vec3 ink = mix(mix(uInk, uInk1, smoothstep(4.0, uInkMid, z)), uGold * 1.25, uSutra);
+      vec3 lineC = ink * fg.a + fg.rgb;
+      edge = e * pow(max(fg.a, 1e-4), uLineFog - 1.0);
+      c = mix(c, lineC, edge);
+    }
+  }
+  // 晕染: light from the tight mip, pigment from the wide one, both soaked by the weave; the fibre warp frays the edge
+  vec2 warp = (vec2(vnoise(vUv * vec2(9.0, 18.0)), vnoise(vUv * vec2(9.0, 18.0) + 5.3)) - 0.5) * uBleed2.y;
+  vec3 tight = texture(tTight, vUv + warp * 0.5).rgb;
+  vec3 wide = texture(tWide, vUv + warp).rgb;
+  float weave = texture(uSilk, gl_FragCoord.xy / (300.0 * uRain.w / 3.0)).r;
+  float soak = 1.0 + (weave - 0.5) * uBleed2.x;
+  float wl = max(wide.r, max(wide.g, wide.b));
+  vec3 hue = wide / max(wl, 1e-4);
+  float amt = (1.0 - exp(-wl * uBleed.w)) * uBleed.z * soak;
+  float front = smoothstep(0.05, 0.25, amt) * (1.0 - smoothstep(0.25, 0.6, amt));
+  amt += front * uBleed2.z;
+  float paper = smoothstep(0.04, 0.35, lum(c));
+  c *= mix(vec3(1.0), mix(vec3(1.0), hue, clamp(amt, 0.0, 1.0)), paper);
+  c += (tight * uBleed.x + wide * uBleed.y) * soak;
+  if (uRain.x > 0.0) {
+    float rn = rainLayer(gl_FragCoord.xy, 1.0, uRain.z, 0.28, 0.0) + 0.6 * rainLayer(gl_FragCoord.xy + 37.0, 0.55, uRain.z * 0.7, 0.3, 11.0);
+    vec3 rc = mix(vec3(0.86, 0.9, 0.97), vec3(0.85, 0.7, 0.4), uSutra) * 0.55 + (tight + wide) * 1.6;
+    c = mix(c, rc, clamp(rn * uRain.x, 0.0, 1.0) * 0.55);
+  }
+  c *= uBleed2.w;
+  c = shoulderHP(c);
+  float l = lum(c);
+  c = mix(c, c * vec3(0.9, 0.96, 1.1), (1.0 - smoothstep(0.02, 0.25, l)) * uGrade.z * (1.0 - uSutra));
+  c *= 1.0 + (weave - 0.5) * 0.035;
   vec2 q = vUv - 0.5;
-  c *= 1.0 - dot(q, q) * 0.32;
+  c *= 1.0 - dot(q, q) * uGrade.x;
+  if (uLines > 1.5) c = mix(vec3(1.0), vec3(0.0), edge);
   vec3 o = toSRGB(c);
-  o += (h12(gl_FragCoord.xy + fract(uTime * 7.13) * 91.0) - 0.5) / 255.0;
+  o += (h12(gl_FragCoord.xy + fract(uTime * 7.13) * 91.0) - 0.5) * uGrade.y / 255.0;
   gl_FragColor = vec4(o, 1.0);
 }
 `;
@@ -166,55 +207,56 @@ function fullTri(): BufferGeometry {
   return g;
 }
 
+/** the neon lab's final bleed look (round-7-lab-neon README §3) */
+export const BLEED = {
+  threshold: 1.0, knee: 0.08, tight: 0.16, wide: 0.4, stain: 0.5, stainResponse: 2.2, weave: 0.5, warp: 0.004, edge: 0.12,
+  exposure: 1, rain: 0.55, rainAngle: 0.14, rainSpeed: 520, vignette: 0.3, grain: 2.5, shadowBlue: 0.35,
+};
+
 export class Pipeline {
   private readonly quad: Mesh;
   private readonly ortho = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
   private rtScene: WebGLRenderTarget;
-  private rtRefl: WebGLRenderTarget;
-  private rtStreakA: WebGLRenderTarget;
-  private rtStreakB: WebGLRenderTarget;
-  private readonly mStreak: ShaderMaterial;
-  private readonly uStreak = { tSrc: { value: null as Texture | null }, uStep: { value: new Vector2() }, uCut: { value: 0 } };
   private mips: WebGLRenderTarget[] = [];
+  private ups: WebGLRenderTarget[] = [];
   private readonly mPre: ShaderMaterial;
   private readonly mDown: ShaderMaterial;
   private readonly mUp: ShaderMaterial;
   readonly mComp: ShaderMaterial;
-  private readonly uPre = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uThr: { value: 1.0 }, uKnee: { value: 0.18 } };
+  private readonly uPre = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uPre: { value: new Vector2(BLEED.threshold, BLEED.knee) } };
   private readonly uDown = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() } };
-  private readonly uUp = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uWeight: { value: 1.0 } };
+  private readonly uUp = { tSrc: { value: null as Texture | null }, tAdd: { value: null as Texture | null }, uTexel: { value: new Vector2() } };
   readonly uComp;
   private readonly type: TextureDataType;
-  private readonly reflCam = new PerspectiveCamera();
-  private readonly texMat = new Matrix4();
   private w = 1;
   private h = 1;
-  reflections = true;
-  readonly groundY: number;
 
-  constructor(private readonly renderer: WebGLRenderer, private readonly shared: Shared, groundY: number) {
-    this.groundY = groundY;
+  constructor(private readonly renderer: WebGLRenderer, private readonly shared: Shared) {
     const ext = renderer.extensions;
     this.type = ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float') ? HalfFloatType : UnsignedByteType;
     this.quad = new Mesh(fullTri());
     this.quad.frustumCulled = false;
     this.rtScene = this.makeScene(1, 1);
-    this.rtRefl = new WebGLRenderTarget(1, 1, { type: this.type, depthBuffer: true });
-    this.rtStreakA = new WebGLRenderTarget(1, 1, { type: this.type, depthBuffer: false });
-    this.rtStreakB = new WebGLRenderTarget(1, 1, { type: this.type, depthBuffer: false });
     const base = { vertexShader: VS_FULL, depthTest: false, depthWrite: false, blending: NoBlending };
     this.mPre = new ShaderMaterial({ ...base, fragmentShader: FS_PREFILTER, uniforms: this.uPre });
     this.mDown = new ShaderMaterial({ ...base, fragmentShader: FS_DOWN, uniforms: this.uDown });
-    this.mUp = new ShaderMaterial({ ...base, fragmentShader: FS_UP, blending: AdditiveBlending, uniforms: this.uUp });
-    this.mStreak = new ShaderMaterial({ ...base, fragmentShader: FS_STREAK, uniforms: this.uStreak });
+    this.mUp = new ShaderMaterial({ ...base, fragmentShader: FS_UP, uniforms: this.uUp });
+    const B = BLEED;
     this.uComp = {
-      tColor: { value: null as Texture | null }, tDepth: { value: null as Texture | null }, tBloom: { value: null as Texture | null },
-      uSilk: shared.u.uSilk, uTexel: { value: new Vector2() }, uNear: { value: 0.1 }, uFar: { value: 1200 }, uBloom: { value: 0.9 },
+      tColor: { value: null as Texture | null }, tDepth: { value: null as Texture | null },
+      tTight: { value: null as Texture | null }, tWide: { value: null as Texture | null },
+      uSilk: shared.u.uSilk, uTexel: { value: new Vector2() }, uNear: { value: 0.1 }, uFar: { value: 1200 },
       uSutra: shared.u.uSutra, uTime: shared.u.uTime, uLineScale: { value: 1.5 }, uLines: { value: 1 },
-      uInk: { value: shared.u.uInk0.value }, uGold: { value: shared.u.uGold.value },
+      uInk: { value: shared.u.uInk0.value }, uGold: { value: shared.u.uGold.value }, uInk1: shared.u.uInk1, uInkMid: shared.u.uInkMid, uLineFog: shared.u.uLineFog,
+      uDpr: shared.u.uDpr, uSilPx: { value: new Vector2(2.1, 1.2) }, uSilFade: { value: new Vector2(60, 170) }, uSilGain: { value: 0.35 },
+      uInvProj: { value: new Matrix4() }, uCamWorld: { value: new Matrix4() },
+      uCam: shared.u.uCam, uFogBase: shared.u.uFogBase, uFogStart: shared.u.uFogStart, uFogBaseCol: shared.u.uFogBaseCol, uBands: shared.u.uBands, uBandCols: shared.u.uBandCols,
+      uBleed: { value: new Vector4(B.tight, B.wide / 4, B.stain, B.stainResponse) },
+      uBleed2: { value: new Vector4(B.weave, B.warp, B.edge, B.exposure) },
+      uRain: { value: new Vector4(B.rain, B.rainAngle, B.rainSpeed, 2) },
+      uGrade: { value: new Vector3(B.vignette, B.grain, B.shadowBlue) },
     };
     this.mComp = new ShaderMaterial({ ...base, fragmentShader: FS_COMPOSITE, uniforms: this.uComp });
-    this.reflCam.layers.set(1);
   }
 
   private makeScene(w: number, h: number): WebGLRenderTarget {
@@ -224,68 +266,33 @@ export class Pipeline {
     return new WebGLRenderTarget(w, h, { type: this.type, samples: 4, depthBuffer: true, depthTexture: depth });
   }
 
-  setSize(w: number, h: number, lineScale: number): void {
+  setSize(w: number, h: number, lineScale: number, dpr: number): void {
+    this.uComp.uLineScale.value = lineScale;
+    this.uComp.uRain.value.w = dpr;
     if (w === this.w && h === this.h) return;
     this.w = w;
     this.h = h;
     this.rtScene.dispose();
     this.rtScene = this.makeScene(w, h);
-    const rw = Math.max(1, Math.round(w / 4)), rh = Math.max(1, Math.round(h / 4));
-    this.rtRefl.setSize(rw, rh);
-    this.rtStreakA.setSize(rw, rh);
-    this.rtStreakB.setSize(rw, rh);
-    for (const m of this.mips) m.dispose();
+    for (const m of [...this.mips, ...this.ups]) m.dispose();
     this.mips = [];
+    this.ups = [];
     let mw = Math.max(1, Math.round(w / 2)), mh = Math.max(1, Math.round(h / 2));
-    for (let i = 0; i < 7 && mw > 4 && mh > 4; i++) {
+    for (let i = 0; i < 5; i++) {
       const rt = new WebGLRenderTarget(mw, mh, { type: this.type, depthBuffer: false });
       rt.texture.minFilter = LinearFilter;
       rt.texture.magFilter = LinearFilter;
       this.mips.push(rt);
+      if (i >= 1 && i <= 3) {
+        const up = new WebGLRenderTarget(mw, mh, { type: this.type, depthBuffer: false });
+        up.texture.minFilter = LinearFilter;
+        up.texture.magFilter = LinearFilter;
+        this.ups.push(up);
+      }
       mw = Math.max(1, Math.round(mw / 2));
       mh = Math.max(1, Math.round(mh / 2));
     }
-    this.uComp.uLineScale.value = lineScale;
     this.shared.u.uRes.value.set(w, h);
-  }
-
-  /** the mirrored camera for the wet ground (three's Reflector maths, plane y = groundY) */
-  private updateReflection(camera: PerspectiveCamera): void {
-    const n = new Vector3(0, 1, 0);
-    const planePos = new Vector3(0, this.groundY, 0);
-    const camPos = new Vector3().setFromMatrixPosition(camera.matrixWorld);
-    const rot = new Matrix4().extractRotation(camera.matrixWorld);
-    const view = new Vector3().subVectors(planePos, camPos);
-    view.y = planePos.y - camPos.y;
-    const mirrorPos = camPos.clone();
-    mirrorPos.y = 2 * this.groundY - camPos.y;
-    const look = new Vector3(0, 0, -1).applyMatrix4(rot).add(camPos);
-    const target = look.clone();
-    target.y = 2 * this.groundY - look.y;
-    this.reflCam.position.copy(mirrorPos);
-    this.reflCam.up.set(0, 1, 0).applyMatrix4(rot).reflect(n);
-    this.reflCam.lookAt(target);
-    this.reflCam.near = camera.near;
-    this.reflCam.far = camera.far;
-    this.reflCam.updateMatrixWorld();
-    this.reflCam.projectionMatrix.copy(camera.projectionMatrix);
-    this.reflCam.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
-    this.texMat.set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
-    this.texMat.multiply(this.reflCam.projectionMatrix);
-    this.texMat.multiply(this.reflCam.matrixWorldInverse);
-    this.shared.u.uReflMat.value.copy(this.texMat);
-    // an oblique near plane at the ground so nothing under it leaks into the mirror
-    const plane = new Vector4(0, 1, 0, -this.groundY);
-    const clip = plane.applyMatrix4(new Matrix4().copy(this.reflCam.matrixWorldInverse).invert().transpose());
-    const p = this.reflCam.projectionMatrix;
-    const e = p.elements;
-    const qv = new Vector4((Math.sign(clip.x) + e[8]) / e[0], (Math.sign(clip.y) + e[9]) / e[5], -1, (1 + e[10]) / e[14]);
-    clip.multiplyScalar(2 / clip.dot(qv));
-    e[2] = clip.x;
-    e[6] = clip.y;
-    e[10] = clip.z + 1;
-    e[14] = clip.w;
-    void view;
   }
 
   private pass(mat: ShaderMaterial, target: WebGLRenderTarget | null): void {
@@ -297,33 +304,9 @@ export class Pipeline {
   render(scene: Scene, camera: PerspectiveCamera, vmScene: Scene, vmCamera: Camera): void {
     const r = this.renderer;
     r.autoClear = false;
-    // 1. the mirror
-    const aboveGround = camera.position.y > this.groundY + 0.05 && this.reflections;
-    this.shared.u.uReflOn.value = 0;
-    if (aboveGround) {
-      this.updateReflection(camera);
-      this.shared.u.uRefl.value = this.shared.blankTex;
-      this.shared.u.uStreak.value = this.shared.blankTex;
-      r.setRenderTarget(this.rtRefl);
-      r.setClearColor(0x000000, 0);
-      r.clear(true, true, false);
-      r.render(scene, this.reflCam);
-      // two one-way passes: a short smear, then a long one
-      this.uStreak.tSrc.value = this.rtRefl.texture;
-      this.uStreak.uStep.value.set(0, 1.6 / this.rtRefl.height);
-      this.uStreak.uCut.value = 0.22;
-      this.pass(this.mStreak, this.rtStreakA);
-      this.uStreak.tSrc.value = this.rtStreakA.texture;
-      this.uStreak.uStep.value.set(0, 11 / this.rtRefl.height);
-      this.uStreak.uCut.value = 0;
-      this.pass(this.mStreak, this.rtStreakB);
-      this.shared.u.uRefl.value = this.rtRefl.texture;
-      this.shared.u.uStreak.value = this.rtStreakB.texture;
-      this.shared.u.uReflOn.value = 1;
-    }
-    // 2. the world, then the viewmodel over it
+    // 1. the world, then the viewmodel in its near depth slice
     r.setRenderTarget(this.rtScene);
-    r.setClearColor(0x000000, 1);
+    r.setClearColor(0x000000, 0); // alpha 0 = inverse depth 0 = infinitely far
     r.clear(true, true, false);
     const gl = r.getContext();
     gl.depthRange(SLICE, 1);
@@ -331,35 +314,39 @@ export class Pipeline {
     gl.depthRange(0, SLICE);
     r.render(vmScene, vmCamera);
     gl.depthRange(0, 1);
-    // 3. bloom
-    const first = this.mips[0];
-    if (first !== undefined) {
-      this.uPre.tSrc.value = this.rtScene.texture;
-      this.uPre.uTexel.value.set(1 / this.w, 1 / this.h);
-      this.pass(this.mPre, first);
-      for (let i = 1; i < this.mips.length; i++) {
-        const src = this.mips[i - 1], dst = this.mips[i];
-        if (src === undefined || dst === undefined) continue;
-        this.uDown.tSrc.value = src.texture;
-        this.uDown.uTexel.value.set(1 / src.width, 1 / src.height);
-        this.pass(this.mDown, dst);
-      }
-      for (let i = this.mips.length - 1; i > 0; i--) {
-        const src = this.mips[i], dst = this.mips[i - 1];
-        if (src === undefined || dst === undefined) continue;
-        this.uUp.tSrc.value = src.texture;
-        this.uUp.uTexel.value.set(1 / src.width, 1 / src.height);
-        this.pass(this.mUp, dst);
-      }
+    // 2. bloom: prefilter → ½, down to ¼ … 1/32, up to 1/16, 1/8, ¼
+    const [m0, m1, m2, m3, m4] = this.mips;
+    const [u1, u2, u3] = this.ups;
+    if (m0 === undefined || m1 === undefined || m2 === undefined || m3 === undefined || m4 === undefined || u1 === undefined || u2 === undefined || u3 === undefined) return;
+    this.uPre.tSrc.value = this.rtScene.texture;
+    this.uPre.uTexel.value.set(1 / this.w, 1 / this.h);
+    this.pass(this.mPre, m0);
+    const chain = [m0, m1, m2, m3, m4];
+    for (let i = 1; i < chain.length; i++) {
+      const src = chain[i - 1], dst = chain[i];
+      if (src === undefined || dst === undefined) continue;
+      this.uDown.tSrc.value = src.texture;
+      this.uDown.uTexel.value.set(1 / src.width, 1 / src.height);
+      this.pass(this.mDown, dst);
     }
-    // 4. composite to the canvas
+    const upChain: [WebGLRenderTarget, WebGLRenderTarget, WebGLRenderTarget][] = [[m4, m3, u3], [u3, m2, u2], [u2, m1, u1]];
+    for (const [src, add, dst] of upChain) {
+      this.uUp.tSrc.value = src.texture;
+      this.uUp.tAdd.value = add.texture;
+      this.uUp.uTexel.value.set(1 / src.width, 1 / src.height);
+      this.pass(this.mUp, dst);
+    }
+    // 3. composite to the canvas
     const u = this.uComp;
     u.tColor.value = this.rtScene.texture;
     u.tDepth.value = this.rtScene.depthTexture;
-    u.tBloom.value = first?.texture ?? null;
+    u.tTight.value = m1.texture;
+    u.tWide.value = u1.texture;
     u.uTexel.value.set(1 / this.w, 1 / this.h);
     u.uNear.value = camera.near;
     u.uFar.value = camera.far;
+    u.uInvProj.value.copy(camera.projectionMatrixInverse);
+    u.uCamWorld.value.copy(camera.matrixWorld);
     this.pass(this.mComp, null);
   }
 }

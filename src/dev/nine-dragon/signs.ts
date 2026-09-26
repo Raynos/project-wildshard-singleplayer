@@ -9,7 +9,9 @@ import {
   BufferGeometry, CanvasTexture, Color, DataTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, RedFormat, SRGBColorSpace,
   type Texture, Uint32BufferAttribute, UnsignedByteType, Vector3,
 } from 'three';
+import type { Emitter } from './emitters';
 import type { Kit, Look } from './kit';
+import type { NeonSigns } from './neonsigns';
 import { chars } from './util';
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
@@ -291,8 +293,10 @@ export class SignBuilder {
   private readonly neon: number[] = [];
   private readonly idx: number[] = [];
   private n = 0;
-  /** world positions + colours of every lit sign */
-  readonly lights: { at: Vector3; color: Color }[] = [];
+  /** every lit lightbox (the streak cards and the spill read these; tube signs report through NeonSigns) */
+  readonly lights: Emitter[] = [];
+  /** when set, 'tube' signs are drawn as SDF neon calligraphy (neonsigns.ts) instead of atlas quads */
+  calligraphy: NeonSigns | null = null;
 
   constructor(readonly atlas: SignAtlas) {}
 
@@ -334,6 +338,10 @@ export class SignBuilder {
 
   /** place a sign; its board (and nothing else) goes into `kit` */
   place(p: SignPlace, kit: Kit | null): { w: number; h: number } {
+    if (p.spec.style === 'tube' && this.calligraphy !== null) {
+      return this.calligraphy.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size, at: p.at, facing: p.normal,
+        twoSided: p.blade === true, gain: ((p.gain ?? 4.4) / 4.4) * 4.2, flicker: p.flicker ?? 0 });
+    }
     const cell = this.atlas.get(p.spec);
     const n = chars(p.spec.text).length;
     const isV = p.spec.vertical;
@@ -355,7 +363,7 @@ export class SignBuilder {
       const rb = new Vector3().crossVectors(upv, back).normalize();
       this.quad(p.at.clone().addScaledVector(back, eps), rb, upv, w, h, cell, board, tint, nv);
     }
-    if (mono && gain > 1.5) this.lights.push({ at: p.at.clone(), color: tint });
+    if (mono && gain > 1.5) this.lights.push({ at: p.at.clone(), color: new Color(p.spec.color), w, h, power: 0.7, spill: 0.25 });
     if (kit !== null) {
       const look: Look = { wash: 0x24262c, line: 1 };
       const depth = p.blade === true ? 0.12 : 0.1;

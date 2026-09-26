@@ -4,7 +4,7 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 
 /** pattern kinds the material draws (vPat.x) */
-export const K = { plain: 0, facade: 1, tiles: 2, flag: 3, bars: 4, panel: 5, net: 6, leaf: 7, cloth: 8 } as const;
+export const K = { plain: 0, facade: 1, tiles: 2, flag: 3, bars: 4, panel: 5, net: 6, leaf: 7, cloth: 8, stone: 9 } as const;
 
 /** edge mask bits: which face borders get a ruled ink line */
 export const E = { u0: 1, u1: 2, v0: 4, v1: 8, all: 15, rims: 12, sides: 3, none: 0 } as const;
@@ -56,7 +56,10 @@ export class Kit {
   }
 
   private static flags(look: Look, edgesDefault: number): number {
-    return (look.edges ?? edgesDefault) + (look.accent === true ? 16 : 0) + (look.gloss === true ? 32 : 0) + (look.gold === true ? 64 : 0);
+    const edges = look.edges ?? edgesDefault;
+    // a weight ≥ 1.8 marks a walkable lip: its borders are drawn as the heavier ground line (bits 256…2048)
+    const ground = (look.line ?? 1) >= 1.8 ? edges * 256 : 0;
+    return edges + (look.accent === true ? 16 : 0) + (look.gloss === true ? 32 : 0) + (look.gold === true ? 64 : 0) + ground;
   }
 
   /** a quad from four corners: a=(0,0) b=(w,0) c=(w,h) d=(0,h); the normal is (b-a)×(d-a) */
@@ -238,6 +241,8 @@ export class Kit {
     g.setAttribute('aPat', new Float32BufferAttribute(this.pat, 4));
     g.setAttribute('aMisc', new Float32BufferAttribute(this.misc, 4));
     g.setAttribute('aOff', new Float32BufferAttribute(this.off, 2));
+    // baked neon spill (emitters.ts bakeSpill overwrites it for the static kits)
+    g.setAttribute('aSpill', new Float32BufferAttribute(new Float32Array(this.n * 3), 3));
     g.setIndex(new Uint32BufferAttribute(this.idx, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();

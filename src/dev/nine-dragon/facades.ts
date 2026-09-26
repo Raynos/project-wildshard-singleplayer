@@ -176,6 +176,7 @@ export function shopfronts(ctx: Ctx, kitName: string, p0: Vector3, nIn: Vector3,
     k.boxAxes(c.clone().addScaledVector(u, -w / 2).addScaledVector(n, 0.3).setY(y + 2.3), u, up, n, 0.22, 2.3, 0.3, { wash: 0x8f949b, line: 1 });
     // warm interior
     const lit = rng.chance(0.8);
+    if (lit) ctx.emitters.push({ at: c.clone().addScaledVector(n, -0.1).setY(y + 1.6), color: new Color(0xffc48a), w: w - 0.5, h: 2.6, power: 0.24, spill: 0.3 });
     k.boxAxes(c.clone().addScaledVector(n, -0.2).setY(y + 1.6), u, up, n, w / 2 - 0.25, 1.6, 0.2,
       { wash: lit ? rng.pick([0xd9a868, 0xe0b47a, 0x9fc4c0, 0xd49a5c]) : 0x2c2f35, emit: lit ? 0.42 : 0, kind: K.facade, row: 0.55, col: 0.7, seed: rng.next() * 50, line: 1, accent: true, edges: E.all });
     // shelves / counter silhouettes

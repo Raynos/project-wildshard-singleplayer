@@ -3,10 +3,11 @@
 // painted 青绿 landscape, the Crown's antenna forest against the one strip of real sky, cargo drones.
 import { Vector3 } from 'three';
 import type { Ctx } from './ctx';
-import { buildWall, shopfronts } from './facades';
+import { shopfronts } from './facades';
+import { dressWall, spanStreet } from './facade/grammar';
 import { K, Kit, type Look } from './kit';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
-import { dragonHook, laundry, person } from './props';
+import { dragonHook, person } from './props';
 import { hipRoof } from './square';
 import { WORDS } from './words';
 import { NEON, Rng, chars } from './util';
@@ -16,15 +17,27 @@ export const NEONS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
 /** a run of wall split into segments with their own skyline */
-function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0: number, top: [number, number], kit: string, opts: { dress?: number; roofs?: boolean; reflective?: boolean; maxOut?: number } = {}): void {
+/** the spawn's eye (for the facade's level of detail) */
+const EYE = new Vector3(1.45, Y0 + 1.6, 6);
+
+/**
+ * A run of wall split into segments with their own skyline, each dressed by the facade lab's grammar (dressWall into
+ * ctx.fd). The segments far from the spawn drop their small clutter (lod 1) or become painted shells (lod 2).
+ */
+function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0: number, top: [number, number], _kit: string, opts: { timber?: number; shops?: boolean; roof?: boolean; openStart?: boolean; openEnd?: boolean } = {}): void {
   const u = new Vector3().crossVectors(new Vector3(0, 1, 0), n).normalize();
   let x = 0;
   while (x < length - 0.5) {
     const seg = Math.min(length - x, rng.range(10, 20));
-    buildWall(ctx, {
-      p0: p0.clone().addScaledVector(u, x), n, length: seg, y0, y1: rng.range(top[0], top[1]), kit, alpha: `${kit}-a`,
-      seed: rng.next() * 99, dress: opts.dress ?? 0.7, roofs: opts.roofs ?? true, reflective: opts.reflective ?? false, maxOut: opts.maxOut ?? 1.4,
-    }, rng);
+    const at = p0.clone().addScaledVector(u, x);
+    // a run that ends at a street opening dresses that end's side face too (else a painted shell shows)
+    const faces = 1 + (opts.openEnd === true && x + seg >= length - 0.5 ? 4 : 0) + (opts.openStart === true && x === 0 ? 8 : 0);
+    const mid = at.clone().addScaledVector(u, seg / 2).setY(y0 + 10);
+    const d = mid.distanceTo(EYE);
+    const lod = d > 170 ? 2 : d > 95 ? 1 : 0;
+    dressWall(ctx.fd, at, n, seg, y0, rng.range(top[0], top[1]), Math.floor(rng.next() * 1e6), {
+      shops: opts.shops ?? false, street: Y0, detailY: [Y0 - 5, Y0 + 60], timber: opts.timber ?? 0.15, lit: 0.72, lod, roof: opts.roof ?? true,
+    }, 12, faces);
     x += seg;
   }
 }
@@ -162,13 +175,13 @@ export function buildTowers(ctx: Ctx): void {
   const words = WORDS;
   // the east side of the square (x = 30, facing west) — a gap for the stair-street
   const east = new Vector3(-1, 0, 0);
-  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, PLAZA.z0), east, STAIR.z0 - PLAZA.z0, Y0 + 5, [Y0 + 55, Y0 + 100], 'east', { reflective: true });
-  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, STAIR.z1), east, PLAZA.z1 - STAIR.z1 + 30, Y0 + 5, [Y0 + 50, Y0 + 95], 'east', { reflective: true });
+  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, PLAZA.z0), east, STAIR.z0 - PLAZA.z0, Y0 + 5, [Y0 + 55, Y0 + 100], 'east', { openEnd: true });
+  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, STAIR.z1), east, PLAZA.z1 - STAIR.z1 + 30, Y0 + 5, [Y0 + 50, Y0 + 95], 'east', { openStart: true });
   shopfronts(ctx, 'east-shops', new Vector3(PLAZA.x1 + 0.6, 0, PLAZA.z0), east, STAIR.z0 - PLAZA.z0, Y0, rng, words, NEONS);
   shopfronts(ctx, 'east-shops', new Vector3(PLAZA.x1 + 0.6, 0, STAIR.z1), east, PLAZA.z1 - STAIR.z1, Y0, rng, words, NEONS);
   // the north side right of the gate (z = -30, facing south)
   const south = new Vector3(0, 0, 1);
-  wallRun(ctx, rng, new Vector3(STREET.x1, 0, PLAZA.z0 - 0.6), south, PLAZA.x1 + 0.6 - STREET.x1, Y0 + 5, [Y0 + 28.4, Y0 + 28.4], 'north', { reflective: true });
+  wallRun(ctx, rng, new Vector3(STREET.x1, 0, PLAZA.z0 - 0.6), south, PLAZA.x1 + 0.6 - STREET.x1, Y0 + 5, [Y0 + 28.4, Y0 + 28.4], 'north');
   shopfronts(ctx, 'north-shops', new Vector3(STREET.x1, 0, PLAZA.z0 - 0.6), south, PLAZA.x1 + 0.6 - STREET.x1, Y0, rng, words, NEONS);
   // the south side behind the spawn (z = 20, facing north)
   const north = new Vector3(0, 0, -1);
@@ -177,11 +190,11 @@ export function buildTowers(ctx: Ctx): void {
   // the street north: walls both sides, receding into the silk
   const len = STREET.z1 - STREET.z0;
   const DECK_Y = Y0 + 28.4, DECK_Z = -104;
-  wallRun(ctx, rng, new Vector3(STREET.x0, 0, WELL.z0), new Vector3(1, 0, 0), WELL.z0 - DECK_Z, Y0 + 5, [DECK_Y, DECK_Y], 'street-w', { reflective: false });
-  wallRun(ctx, rng, new Vector3(STREET.x0, 0, DECK_Z), new Vector3(1, 0, 0), DECK_Z - STREET.z0, Y0 + 5, [Y0 + 50, Y0 + 115], 'street-w2', { reflective: false });
+  wallRun(ctx, rng, new Vector3(STREET.x0, 0, WELL.z0), new Vector3(1, 0, 0), WELL.z0 - DECK_Z, Y0 + 5, [DECK_Y, DECK_Y], 'street-w');
+  wallRun(ctx, rng, new Vector3(STREET.x0, 0, DECK_Z), new Vector3(1, 0, 0), DECK_Z - STREET.z0, Y0 + 5, [Y0 + 50, Y0 + 115], 'street-w2');
   shopfronts(ctx, 'street-shops', new Vector3(STREET.x0, 0, WELL.z0), new Vector3(1, 0, 0), WELL.z0 - STREET.z0, Y0, rng, words, NEONS);
-  wallRun(ctx, rng, new Vector3(STREET.x1, 0, STREET.z0), new Vector3(-1, 0, 0), DECK_Z - STREET.z0, Y0 + 5, [Y0 + 50, Y0 + 115], 'street-e2', { reflective: false });
-  wallRun(ctx, rng, new Vector3(STREET.x1, 0, DECK_Z), new Vector3(-1, 0, 0), len - (DECK_Z - STREET.z0), Y0 + 5, [DECK_Y, DECK_Y], 'street-e', { reflective: false });
+  wallRun(ctx, rng, new Vector3(STREET.x1, 0, STREET.z0), new Vector3(-1, 0, 0), DECK_Z - STREET.z0, Y0 + 5, [Y0 + 50, Y0 + 115], 'street-e2');
+  wallRun(ctx, rng, new Vector3(STREET.x1, 0, DECK_Z), new Vector3(-1, 0, 0), len - (DECK_Z - STREET.z0), Y0 + 5, [DECK_Y, DECK_Y], 'street-e');
   // stratum 7's towers standing on the Cable Deck, set back from its edge
   wallRun(ctx, rng, new Vector3(WELL.x0, 0, -46), new Vector3(0, 0, 1), PLAZA.x1 - WELL.x0, DECK_Y + 4.8, [Y0 + 60, Y0 + 105], 'deck-towers');
   shopfronts(ctx, 'street-shops', new Vector3(STREET.x1, 0, STREET.z0), new Vector3(-1, 0, 0), len, Y0, rng, words, NEONS);
@@ -210,15 +223,10 @@ export function buildTowers(ctx: Ctx): void {
   dragonHook(bs, ctx, new Vector3(STREET.x0, Y0 + 9.5, -60), new Vector3(1, 0, 0), 1.0);
   // laundry and cables strung across the street
   const cab = ctx.kit('cables');
-  for (let z = -46; z > -150; z -= rng.range(5, 9)) {
-    const ya = Y0 + rng.range(9, 30), yb = ya + rng.range(-2, 2);
-    if (rng.chance(0.35)) laundry(cab, rng, new Vector3(STREET.x0 + 1.5, ya, z), new Vector3(STREET.x1 - 1.5, yb, z + rng.range(-2, 2)));
-    else for (let j = 0; j < rng.int(2, 5); j++) {
-      const a = new Vector3(STREET.x0 + 1.4, ya + j * 0.3, z), b = new Vector3(STREET.x1 - 1.4, yb + j * 0.25, z + rng.range(-3, 3));
-      const mid = a.clone().lerp(b, 0.5).add(new Vector3(0, -1.2, 0));
-      cab.beam(a, mid, 0.04, 0.04, { wash: 0x1d1e22, line: 0.5 });
-      cab.beam(mid, b, 0.04, 0.04, { wash: 0x1d1e22, line: 0.5 });
-    }
+  // what is strung across the street: cables, laundry, lantern strings (the facade lab's spanStreet)
+  for (let z = -46; z > -150; z -= rng.range(4, 8)) {
+    const ya = Y0 + rng.range(8, 30);
+    spanStreet(ctx.fd, new Vector3(STREET.x0 + 1.4, ya, z), new Vector3(STREET.x1 - 1.4, ya + rng.range(-2, 2), z + rng.range(-2, 2)), Math.floor(rng.next() * 1e6));
   }
   // cable bundles over the square, from the masts to the east towers
   for (let j = 0; j < 5; j++) {
@@ -240,10 +248,11 @@ export function buildTowers(ctx: Ctx): void {
   for (let i = 0; i < steps; i++) {
     const x = STAIR.x0 + i * run;
     const landing = i % 15 === 14;
-    st.box(x + run / 2, Y0 + i * rise - 0.3, (STAIR.z0 + STAIR.z1) / 2, run + (landing ? 0.01 : 0), rise + 0.3, STAIR.z1 - STAIR.z0, { wash: 0xa5a49e, line: 1.8, wet: 1 }, { top: { wash: 0xa5a49e, kind: K.flag, wet: 1, line: 0 } });
+    st.box(x + run / 2, Y0 + i * rise - 0.3, (STAIR.z0 + STAIR.z1) / 2, run + (landing ? 0.01 : 0), rise + 0.3, STAIR.z1 - STAIR.z0, { wash: 0xa5a49e, line: 1.8, wet: 1 }, { top: { wash: 0x4a4c52, kind: K.flag, wet: 1, line: 0 } });
   }
-  wallRun(ctx, rng, new Vector3(STAIR.x0, 0, STAIR.z0), new Vector3(0, 0, 1), STAIR.x1 - STAIR.x0 + 10, Y0 + 3, [Y0 + 40, Y0 + 80], 'stair-n', { maxOut: 0.8 });
-  wallRun(ctx, rng, new Vector3(STAIR.x1 + 10, 0, STAIR.z1), new Vector3(0, 0, -1), STAIR.x1 - STAIR.x0 + 10, Y0 + 3, [Y0 + 40, Y0 + 80], 'stair-s', { maxOut: 0.8 });
+  // the stair street's walls start behind the east towers (whose dressed side faces flank its first 12 m)
+  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 12.6, 0, STAIR.z0), new Vector3(0, 0, 1), STAIR.x1 + 10 - (PLAZA.x1 + 12.6), Y0 + 3, [Y0 + 40, Y0 + 80], 'stair-n', { timber: 0.35 });
+  wallRun(ctx, rng, new Vector3(STAIR.x1 + 10, 0, STAIR.z1), new Vector3(0, 0, -1), STAIR.x1 + 10 - (PLAZA.x1 + 12.6), Y0 + 3, [Y0 + 40, Y0 + 80], 'stair-s', { timber: 0.35 });
   for (let i = 0; i < 12; i++) {
     const x = STAIR.x0 + 3 + i * 3.8;
     const y = Y0 + ((x - STAIR.x0) / (STAIR.x1 - STAIR.x0)) * STAIR.rise;

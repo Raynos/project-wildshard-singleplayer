@@ -22,7 +22,8 @@ export const STAIR = { z0: 2, z1: 10, x0: 22, x1: 70, rise: 21 } as const;
 
 export const BANYAN = { x: 18.4, z: -22.6, r: 3.2 } as const;
 
-export const STALL = { x0: 15.8, x1: 21.9, z0: -18.8, z1: -15.8 } as const;
+/** the noodle stall (dome B: moved 0.5 m east and 0.6 m south so the earth-god shrine stands clear at the planter's south-west) */
+export const STALL = { x0: 16.3, x1: 22.1, z0: -18.4, z1: -15.2 } as const;
 
 /** the nine strata's street levels (altitude of each ring walkway in the Well) */
 export const STRATA = [-245, -150, -70, 0, 70, 125, 167, 210, 240] as const;

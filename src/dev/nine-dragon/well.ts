@@ -3,7 +3,8 @@
 // sheets in the gaps, the red gondola on its cable, the old yamen on its island at Old Street and the Sump's jade water.
 import { Vector3 } from 'three';
 import type { Ctx } from './ctx';
-import { buildWall, frame, up } from './facades';
+import { frame, up } from './facades';
+import { dressWall } from './facade/grammar';
 import { K, Kit, type Look } from './kit';
 import { STRATA, WELL, Y0 } from './layout';
 import { dragonHook, person } from './props';
@@ -26,7 +27,6 @@ function walls(): WellWall[] {
   ];
 }
 
-function tone(y: number): number { return 0.62 + 0.4 * Math.min(1, Math.max(0, (y + 245) / 370)); }
 
 /** a sagging wire safety net across the whole shaft */
 function net(k: Kit, y: number, sag: number): void {
@@ -77,7 +77,7 @@ function ringStreet(ctx: Ctx, k: Kit, ka: Kit, rng: Rng, y: number, skipEast: bo
     const { u, n } = frame(w.n);
     const out = 1.8 + deep;
     const c = w.p0.clone().addScaledVector(u, w.len / 2).addScaledVector(n, out / 2).setY(y - 0.35);
-    k.boxAxes(c, u, up, n, w.len / 2, 0.35, out / 2, { wash: 0x8e939b, line: 2 }, { top: { wash: 0x9a9ea4, kind: K.flag, wet: 0.6, line: 0 } });
+    k.boxAxes(c, u, up, n, w.len / 2, 0.35, out / 2, { wash: 0x8e939b, line: 2 }, { top: { wash: 0x5a5d64, kind: K.flag, wet: 0.8, line: 0 } });
     // the square's own level gets stone on the south side (the look along the shaft); the rest ruled railings
     if (y === Y0 && w.n.z < -0.5) balustrade(k, w.p0.z - out + 0.2, WELL.x1, WELL.x0, y, true);
     else ka.quad(w.p0.clone().addScaledVector(n, out).setY(y), u, up, w.len, 1.1, { wash: 0x2a2c31, kind: K.bars, row: 1, col: 0.16, line: 1 });
@@ -154,13 +154,21 @@ export const wellSheets: { y: number; band: number; a: number }[] = [];
 export function buildWell(ctx: Ctx): void {
   const rng = new Rng(57);
   // the four walls, in altitude bands
+  // the four walls, dressed by the facade lab's grammar (galleries and timber verandas stacked down the shaft);
+  // full detail round the square's level, no small clutter below it, painted shells in the deep strata
+  const lods: [number, number, 0 | 1 | 2][] = [[Y0 - 95, 1e9, 0], [Y0 - 165, Y0 - 95, 1], [-250, Y0 - 165, 2]];
+  // the shaft's walls sit in the Well's shade: darker, bluer concrete than the street towers (the round-1 targets)
+  const SHAFT = [0x737782, 0x797b83, 0x70747f, 0x7c7c80] as const;
+  const washRng = new Rng(91); // its own stream: the shaft's layout (rng) stays as it was
   for (const w of walls()) {
-    for (let b = 0; b < BANDS.length; b++) {
-      const band = BANDS[b];
-      if (band === undefined) continue;
-      const y0 = band[0], y1 = Math.min(band[1], w.top);
+    const wash = washRng.pick(SHAFT);
+    for (const [y0, y1max, lod] of lods) {
+      const y1 = Math.min(y1max, w.top);
       if (y1 <= y0 + 1) continue;
-      buildWall(ctx, { p0: w.p0, n: w.n, length: w.len, y0, y1, kit: `well-b${b}`, alpha: `well-b${b}-a`, seed: rng.next() * 99, dress: 1, roofs: b >= 3, rooftop: y1 >= w.top - 0.5 && w.top > Y0, maxOut: 1.8, tone: tone((y0 + y1) / 2) }, rng);
+      dressWall(ctx.fd, w.p0, w.n, w.len, y0, y1, Math.floor(rng.next() * 1e6), {
+        gallery: 0.6, timber: 0.75, lit: 0.72, setbacks: false, street: Y0, lod, roof: y1 >= w.top - 0.5 && w.top > Y0,
+        detailY: [Y0 - 90, Y0 + 40], wash: lod === 2 ? 0x5d6272 : wash,
+      });
     }
   }
   // strata: ring streets, nets under them, silk fog sheets in the gaps

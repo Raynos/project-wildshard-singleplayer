@@ -2,6 +2,9 @@
 // the grapple's dragon hooks and the minimap's floor plan.
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
+import type { Emitter } from './emitters';
+import { Dressing } from './facade/grammar';
+import { KitX } from './hero/kitx';
 import type { SignBuilder } from './signs';
 import { Rng } from './util';
 import { WELL, Y0 } from './layout';
@@ -19,6 +22,11 @@ export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind:
 export class Ctx {
   readonly kits = new Map<string, Kit>();
   readonly alphaKits = new Map<string, Kit>();
+  /** the hero lab's curved pieces, merged with the kit of the same name */
+  readonly kitxs = new Map<string, KitX>();
+  /** the TRELLIS crowd: walkers (umbrellas) and mahjong sitters, instanced by main.ts */
+  readonly walkers: Matrix4[] = [];
+  readonly sitters: Matrix4[] = [];
   /** kits drawn into the wet-ground reflection */
   readonly reflective = new Set<string>();
   readonly lanterns: Matrix4[] = [];
@@ -26,6 +34,10 @@ export class Ctx {
   readonly hooks: Vector3[] = [];
   readonly map: MapRect[] = [];
   readonly steam: Vector3[] = [];
+  /** lit shopfronts and other glowing fronts (streak cards + spill) */
+  readonly emitters: Emitter[] = [];
+  /** the facade lab's Kowloon dressing for every tower wall and the Well (one batch: draws count piece types) */
+  readonly fd = new Dressing();
   /** instanced dressing, keyed piece@region so the deep Well's pieces cull as one */
   readonly inst = new Map<string, Instance[]>();
   readonly rng = new Rng(9);
@@ -36,6 +48,12 @@ export class Ctx {
     let k = this.kits.get(name);
     if (k === undefined) { k = new Kit(); this.kits.set(name, k); }
     if (reflective) this.reflective.add(name);
+    return k;
+  }
+
+  kitx(name: string): KitX {
+    let k = this.kitxs.get(name);
+    if (k === undefined) { k = new KitX(); this.kitxs.set(name, k); }
     return k;
   }
 
