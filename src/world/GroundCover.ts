@@ -109,7 +109,7 @@ interface FarTier {
    *  far cover keeps its coverage with fewer instances */
   keep: number;
   /** the next set, filled by the far job and copied in when it is done */
-  stage: { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; cov: Float32Array; nrm: Float32Array; n: number };
+  stage: { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; cov: Float32Array; nrm: Float32Array; fresh: Uint8Array; n: number };
 }
 
 interface Kind {
@@ -210,6 +210,8 @@ export class GroundCover {
   private cells = new Map<string, Float32Array[]>();
   private last = new THREE.Vector3(1e9, 0, 1e9);
   private uniforms = { uPlayer: { value: new THREE.Vector3() }, uTime: { value: 0 }, uWind: coverWind, uReachUp: { value: coverReach ? 1 : 0 } };
+  /** E156: the far cells the shown far set was built from — a cell new to the next set gets its plants' colour faded in */
+  private farCellsShown = new Set<string>();
   /** E156: the Blender island's area once it has loaded — its own cover dresses it, so no plant of ours is placed there */
   private skip: BlenderArea | null = null;
   /** the furthest any plant shows + a refill's travel: the cell window's radius */
@@ -263,9 +265,9 @@ export class GroundCover {
 
   build(): this {
     // one material per kind (its own reach uniform), one program for all of them
-    const material = (reach: THREE.Vector3, far: THREE.Vector3, mode: number): THREE.MeshStandardMaterial => {
+    const material = (reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.MeshStandardMaterial => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
-      this.patch(mat, reach, far, mode);
+      this.patch(mat, reach, far, mode, keep);
       this.sky.setupMaterial(mat);
       return mat;
     };
@@ -325,7 +327,7 @@ export class GroundCover {
       const ground = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
       ground.setUsage(THREE.DynamicDrawUsage);
       g.setAttribute('aGround', ground);
-      for (const [attr, w] of [['aCover', 4], ['aNrm', 4]] as const) { const a = new THREE.InstancedBufferAttribute(new Float32Array(cap * w), w); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(attr, a); }
+      for (const [attr, w] of [['aCover', 4], ['aNrm', 4], ['aBorn', 1]] as const) { const a = new THREE.InstancedBufferAttribute(new Float32Array(cap * w), w); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(attr, a); }
       this.group.add(mesh);
       return mesh;
     };
@@ -343,10 +345,10 @@ export class GroundCover {
         this.rFar = Math.max(this.rFar, RANGE_500 ? RANGE_M + FAR_SLACK + EYE_SLACK : farReach.y * REACH_UP + FAR_SLACK + EYE_SLACK);
         farTier = {
           mesh: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep,
-          stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), cov: new Float32Array(fcap * 4), nrm: new Float32Array(fcap * 4), n: 0 },
+          stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), cov: new Float32Array(fcap * 4), nrm: new Float32Array(fcap * 4), fresh: new Uint8Array(fcap), n: 0 },
         };
       }
-      const mesh = instanced(`ground-cover-${name}`, g, material(reach, farReach, farTier ? MODE_HANDOVER : MODE_NEAR), cap, tint !== undefined);
+      const mesh = instanced(`ground-cover-${name}`, g, material(reach, farReach, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, tint !== undefined);
       this.kinds.push({ name, mesh, cap, far: farTier, reach, density, scale, look: lookOf(g), ...(tint ? { tint } : {}) });
     };
     // the far models: a few triangles each, the near model's silhouette from 25 m on (its flowers as flat chips)
@@ -595,7 +597,7 @@ export class GroundCover {
         const f = k.far, v = data[ki];
         if (f === null || v === undefined) return;
         const near = k.reach.x, grow = k.reach.z, far = k.reach.y, fNear = f.reach.x, fFar = f.reach.y, fGrow = f.reach.z;
-        const st = f.stage, keep = f.keep, growK = 1 / Math.sqrt(keep);
+        const st = f.stage, keep = f.keep, fresh = this.farCellsShown.size > 0 && !this.farCellsShown.has(`${cx},${cz}`) ? 1 : 0;
         let n = st.n;
         for (let i = 0; i < v.length && n < f.cap; i += STRIDE) {
           const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
@@ -606,7 +608,9 @@ export class GroundCover {
           // the lower bound takes the plant's reach at 1× (the camera may climb and the strength fall before the next rebuild)
           const lo = Math.max(0, (edge / rk) - grow - slack), hi = fEdge + slack;
           if (d2 > hi * hi || d2 < lo * lo) continue;
-          const s = (v[i + 4] ?? 1) * growK, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16, m = st.mat;
+          // E156: the far model is its near one's size (it was scaled up by 1/√keep: a tuft grew as it swapped — bounce)
+          const s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16, m = st.mat;
+          st.fresh[n] = fresh;
           m[o] = c; m[o + 1] = 0; m[o + 2] = -sn; m[o + 3] = 0;
           m[o + 4] = 0; m[o + 5] = s; m[o + 6] = 0; m[o + 7] = 0;
           m[o + 8] = sn; m[o + 9] = 0; m[o + 10] = c; m[o + 11] = 0;
@@ -636,10 +640,18 @@ export class GroundCover {
       if (gnd instanceof THREE.BufferAttribute) copy(gnd, st.gnd, 3);
       if (cov instanceof THREE.BufferAttribute) copy(cov, st.cov, 4);
       if (nrm instanceof THREE.BufferAttribute) copy(nrm, st.nrm, 4);
+      // the plants of cells new to this set (500 m range: turned into view) fade their colour in from the ground's
+      const born = mesh.geometry.getAttribute('aBorn'), now = this.uniforms.uTime.value;
+      if (born instanceof THREE.BufferAttribute) {
+        const arr = born.array as Float32Array;
+        for (let i = 0; i < n; i++) arr[i] = st.fresh[i] === 1 ? now : -1e3;
+        born.clearUpdateRanges(); born.addUpdateRange(0, Math.max(1, n)); born.needsUpdate = true;
+      }
       mesh.count = n;
       total += n;
     }
     this.stats.farCells = cellsAt.length; this.stats.farCount = total;
+    this.farCellsShown = new Set(cellsAt.map(([cx, cz]) => `${cx},${cz}`));
     // a set that lands somewhere new — the first one, a jump further than the window (Explore's teleports) — grows in over
     // ~0.8 s instead of appearing; flying, however fast, the sets overlap and simply follow
     if (this.farLast.distanceToSquared(this.farJobAt) > this.rFar * this.rFar) this.farIn.value = 0;
@@ -687,20 +699,20 @@ export class GroundCover {
   }
 
   /**
-   * Grow in by distance (each plant at its own edge, E117), bend away from the player's legs, sway in the wind. `mode`:
-   * MODE_NEAR shrinks away at the edge into the ground's colour; MODE_HANDOVER shrinks away keeping its colours (its far
-   * model grows in on the same spot); MODE_FAR is that far model: in from the near edge, out at its own far edge, where
-   * it takes on the ground's colour first.
+   * Each plant at its own edge by distance (E117), bend away from the player's legs, sway in the wind. `mode`: MODE_NEAR
+   * takes on the ground's colour and is gone at its edge; MODE_HANDOVER swaps to its far model there, same size (a tuft
+   * past `keep` has none and goes like MODE_NEAR); MODE_FAR is that far model: from the near edge to its own far edge,
+   * where it takes on the ground's colour first. Nothing scales (E156: scaling read as the plants bouncing).
    */
-  private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3, far: THREE.Vector3, mode: number): void {
-    const u = this.uniforms, uReach = { value: reach }, uBlend = blendUniform, uFarReach = { value: far }, uMode = { value: mode }, uFarIn = this.farIn;
+  private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep: number): void {
+    const u = this.uniforms, uReach = { value: reach }, uBlend = blendUniform, uFarReach = { value: far }, uMode = { value: mode }, uFarIn = this.farIn, uKeep = { value: keep };
     mat.onBeforeCompile = (sh) => {
       attachFogUniforms(sh);
       sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uReach'] = uReach; sh.uniforms['uBlend'] = uBlend;
       sh.uniforms['uFarReach'] = uFarReach; sh.uniforms['uMode'] = uMode; sh.uniforms['uFarIn'] = uFarIn;
-      sh.uniforms['uReachUp'] = u.uReachUp; sh.uniforms['uCoverTint'] = coverTintUniform;
+      sh.uniforms['uReachUp'] = u.uReachUp; sh.uniforms['uCoverTint'] = coverTintUniform; sh.uniforms['uKeep'] = uKeep; sh.uniforms['uNow'] = u.uTime;
       sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', `#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec3 uReach; uniform float uBlend; uniform vec3 uFarReach; uniform float uMode; uniform float uFarIn; uniform float uReachUp; uniform float uCoverTint;\nattribute vec3 aGround; attribute vec4 aCover; attribute vec4 aNrm; varying vec3 vGround; varying float vFar;${COVER_SEEN_GLSL}`)
+        .replace('#include <common>', `#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec3 uReach; uniform float uBlend; uniform vec3 uFarReach; uniform float uMode; uniform float uFarIn; uniform float uReachUp; uniform float uCoverTint; uniform float uKeep; uniform float uNow;\nattribute vec3 aGround; attribute vec4 aCover; attribute vec4 aNrm; attribute float aBorn; varying vec3 vGround; varying float vFar;${COVER_SEEN_GLSL}`)
         .replace('#include <begin_vertex>', `#include <begin_vertex>
         #ifdef USE_INSTANCING
         {
@@ -716,18 +728,20 @@ export class GroundCover {
           float rk = 1.0 + uReachUp * ${(REACH_UP - 1).toFixed(3)} * smoothstep(${SLOPE_LO.toFixed(3)}, ${SLOPE_HI.toFixed(3)}, 1.0 - aNrm.y);
           vec3 reach = uReach * rk, farReach = uFarReach * rk;
           float edge = mix(reach.x + reach.z, reach.y, h);
-          float nearK = 1.0 - smoothstep(edge - reach.z, edge, dc);
+          // E156 — no plant grows, shrinks or sinks any more (Jake: "bouncing like they're being reanimated"). A near plant
+          // with a far model swaps to it at its edge at full size (the far model is its own leaves, E156 kites); one
+          // without takes on the ground's colour and shade and is gone at its edge, once it is the ground's; a far model
+          // does the same at its far edge. vis 0 collapses the instance (wind included).
+          float vis = 1.0;
           if (uMode > 1.5) {
-            // the far model: grows in as the near one shrinks, keeps its colours, then at its own far edge (same h)
-            // takes on the ground's colour and shrinks away
             float fEdge = mix(farReach.x + farReach.z, farReach.y, h);
-            transformed *= (1.0 - nearK) * (1.0 - smoothstep(fEdge - farReach.z, fEdge, dc)) * uFarIn;
-            vFar = smoothstep(fEdge - 2.5 * farReach.z, fEdge - farReach.z, dc) * uBlend;
+            vis = step(edge, dc) * step(dc, fEdge);
+            vFar = max(smoothstep(fEdge - max(2.5 * farReach.z, 6.0), fEdge, dc) * uBlend, 1.0 - uFarIn);
+            vFar = max(vFar, 1.0 - clamp((uNow - aBorn) / 0.6, 0.0, 1.0)); // turned into view (500 m range): colour in
           } else {
-            transformed *= nearK;
-            // past near it turns into the ground it stands on, all the way by the time it starts to shrink (unless its far
-            // model takes over there)
-            vFar = uMode > 0.5 ? 0.0 : smoothstep(reach.x, max(edge - reach.z, reach.x + 1.0), dc) * uBlend;
+            vis = step(dc, edge);
+            bool swaps = uMode > 0.5 && (uKeep >= 1.0 || fract(h * 97.13) < uKeep); // the refill's keep test: has a far model
+            vFar = swaps ? 0.0 : smoothstep(reach.x, edge, dc) * uBlend;
           }
           // E156 A: the ground it fades into wears the cover, as the terrain draws it from here (coverTint.ts)
           vGround = mix(aGround, aCover.rgb, coverSeen(aCover.a, aNrm.w, facing) * uCoverTint);
@@ -741,6 +755,7 @@ export class GroundCover {
           transformed.x += dot(vec3(off.x, 0.0, off.y), ax) / s2;
           transformed.z += dot(vec3(off.x, 0.0, off.y), az) / s2;
           transformed.y -= length(off) * 0.4 * hgt;
+          transformed *= vis;
         }
         #else
           vFar = 0.0; vGround = vec3(0.0);

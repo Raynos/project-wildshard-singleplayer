@@ -39,7 +39,7 @@ import type { PalmSpec } from './Palms';
 import { rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
 import { Rng } from '../core/rng';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { CoverGrid, tintTerrain, triAreas, type CoverTri } from './coverTint';
+import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
 import { setting } from '../ui/Settings';
 
 const BASE = blenderModelsBase('driftwood-isle'); // Driftwood's build: its palms / toon / sea are this file's own
@@ -58,13 +58,12 @@ const AO_DIRECT = 0.45;
  * +25–30 draws over the 24 m swap.
  */
 /**
- * Ground cover rises out of the ground as the camera nears it instead of its tile blinking on at COVER_D (E117, the same
- * grow-in as GroundCover's): every plant inside COVER_NEAR stands; past it each plant has its own edge in
- * [COVER_NEAR + COVER_GROW, COVER_FAR] (a per-vertex `aEdge`, one value per placement) and sinks COVER_SINK m over the
- * COVER_GROW m before it (camera to each vertex, in 3D — a plant is ~1 m across, so it moves as one). So the cover
- * thins out over ~25 m instead of ending in a ring, and it is all under the terrain before its tile switches off.
+ * Ground cover thins out plant by plant instead of its tile blinking off (E117): every plant inside COVER_NEAR stands; past
+ * it each plant has its own edge in [COVER_NEAR + COVER_GROW, COVER_FAR] (a per-vertex `aEdge`, one value per placement),
+ * takes on the ground's colour and shade over the COVER_GROW m before it and is gone past it (E156: it used to sink 3 m into
+ * the ground there, which read as the plants bouncing), measured from its base (`aBase`), so the whole plant goes at once.
  */
-const COVER_NEAR = TIER === 'phone' ? 16 : 100, COVER_FAR = TIER === 'phone' ? 40 : 148, COVER_GROW = TIER === 'phone' ? 6 : 12, COVER_SINK = 3;
+const COVER_NEAR = TIER === 'phone' ? 16 : 100, COVER_FAR = TIER === 'phone' ? 40 : 148, COVER_GROW = TIER === 'phone' ? 6 : 12;
 const LOD_D = 110;
 /**
  * E156: the big cover — the bushes, the flowering bushes, the hibiscus and the ferns — keeps its reach far longer on the phone.
@@ -256,10 +255,20 @@ export class BlenderIsland {
         s.fragmentShader = s.fragmentShader.replace('#include <aomap_fragment>', `#include <aomap_fragment>
 	reflectedLight.indirectDiffuse *= vColor.a;
 	reflectedLight.directDiffuse *= mix( 1.0, vColor.a, 0.35 );`);
-        // the cover rises out of the ground as you near it (the tiles are merged in world space: position is world)
-        if (cover !== null) s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aEdge;').replace('#include <begin_vertex>', `#include <begin_vertex>
-	{ float edge = mix( ${(cover.near + cover.grow).toFixed(1)}, ${cover.far.toFixed(1)}, aEdge );
-	  transformed.y -= smoothstep( edge - ${cover.grow.toFixed(1)}, edge, distance( transformed, cameraPosition ) ) * ${COVER_SINK.toFixed(1)}; }`);
+        // E156: past its edge a plant is gone, and over the COVER_GROW m before it it takes on the colour and shade of the
+        // ground it stands on (the cover grid's, as the tinted terrain draws it far out) — it no longer sinks into the
+        // ground (Jake: the plants "bouncing like they're being reanimated"). Measured from the plant's own base (aBase), so
+        // the whole plant goes at once; the tiles are merged in world space.
+        if (cover !== null) {
+          s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aEdge;\nattribute vec3 aBase;\nattribute vec4 aGround;\nvarying vec4 vGround;\nvarying float vFar;\nvarying float vGone;')
+            .replace('#include <begin_vertex>', `#include <begin_vertex>
+	{ float edge = mix( ${(cover.near + cover.grow).toFixed(1)}, ${cover.far.toFixed(1)}, aEdge ), d = distance( aBase, cameraPosition );
+	  vFar = smoothstep( edge - ${cover.grow.toFixed(1)}, edge, d ) * aGround.a; vGround = aGround; vGone = step( edge, d ); }`)
+            .replace('#include <project_vertex>', '#include <project_vertex>\n\tif ( vGone > 0.5 ) gl_Position = vec4( 2.0, 2.0, 2.0, 1.0 );');
+          s.fragmentShader = s.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec4 vGround;\nvarying float vFar;')
+            .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb = mix( diffuseColor.rgb, vGround.rgb, vFar );')
+            .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\n\tnormal = normalize( mix( normal, normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz ), vFar ) );');
+        }
       };
       mat.customProgramCacheKey = () => (cover !== null ? cover.key : 'island-props');
       ctx.sky.setupMaterial(mat);
@@ -343,6 +352,7 @@ export class BlenderIsland {
       for (const i of items) { const pr = pick(i); if (pr) { verts += pr.pos.length / 3; indices += pr.index.length; } }
       if (indices === 0) return null;
       const pos = new Float32Array(verts * 3), col = new Uint8Array(verts * 4), index = new Uint32Array(indices), edge = edges ? new Float32Array(verts) : null;
+      const base = edges ? new Float32Array(verts * 3) : null; // E156: each vertex's plant base (its distance fade is the plant's)
       let vo = 0, io = 0;
       for (const i of items) {
         const o = i * 10, pr = pick(i);
@@ -352,6 +362,7 @@ export class BlenderIsland {
         m.compose(t, q, s.set(sc, sc, sc));
         const n = pr.pos.length / 3;
         if (edge) edge.fill(edgeOf(t.x, t.z), vo, vo + n);
+        if (base) for (let k = 0; k < n; k++) { base[(vo + k) * 3] = t.x; base[(vo + k) * 3 + 1] = t.y; base[(vo + k) * 3 + 2] = t.z; }
         for (let k = 0; k < n; k++) {
           const px = pr.pos[k * 3] ?? 0, py = pr.pos[k * 3 + 1] ?? 0, pz = pr.pos[k * 3 + 2] ?? 0, d = (vo + k) * 3;
           pos[d] = e[0] * px + e[4] * py + e[8] * pz + e[12];
@@ -368,6 +379,7 @@ export class BlenderIsland {
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       geo.setAttribute('color', new THREE.BufferAttribute(col, 4, true));
       if (edge) geo.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
+      if (base) { geo.setAttribute('aBase', new THREE.BufferAttribute(base, 3)); geo.setAttribute('aGround', new THREE.BufferAttribute(new Uint8Array(verts * 4), 4, true)); }
       geo.setIndex(new THREE.BufferAttribute(index, 1));
       geo.computeVertexNormals(); // the CSM normal bias (flat lighting ignores them): without them the facets streak with acne
       geo.computeBoundingSphere();
@@ -402,6 +414,20 @@ export class BlenderIsland {
     const coverGrid = CoverGrid.get();
     if (coverGrid) {
       coverGrid.splat(coverTriangles(this.tiles.filter((tile) => tile.cover > 0).map((tile) => tile.near.geometry)), area.x0, area.x1, area.z0, area.z1, 0.6);
+      // each cover plant's fade-out colour: the grid's at its base (a = 0 where the grid has none: it keeps its own)
+      const smp = coverSample();
+      for (const tile of this.tiles) {
+        if (tile.cover <= 0) continue;
+        const g = tile.near.geometry, b = g.getAttribute('aBase'), gr = g.getAttribute('aGround');
+        if (!(gr instanceof THREE.BufferAttribute)) continue;
+        const arr = gr.array as Uint8Array;
+        for (let i = 0; i < b.count; i++) {
+          coverGrid.sample(b.getX(i), b.getZ(i), smp);
+          const ok = smp.top + smp.side > 0.01, j = coverJitter(b.getX(i), b.getZ(i)), byte = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
+          arr[i * 4] = byte(smp.r * j); arr[i * 4 + 1] = byte(smp.g * j); arr[i * 4 + 2] = byte(smp.b * j); arr[i * 4 + 3] = ok ? 255 : 0;
+        }
+        gr.needsUpdate = true;
+      }
       for (const tile of terrainTiles) tintTerrain(tile);
     }
     if (smallRocks.length > 0) {
