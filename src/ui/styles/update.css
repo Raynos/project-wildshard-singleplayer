@@ -1,5 +1,7 @@
-/* ─── build / update pill (src/ui/Update.ts; title screen only — PWAs have no address bar to refresh from) ─── prefix ws-update- ─── */
-.ws-update { position: fixed; right: 44px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 60; display: none; align-items: center; gap: 6px; padding: 3px 7px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+/* ─── build / update pill (src/ui/Update.ts; the title screen and the pause menu — PWAs have no address bar to refresh
+   from, so E176 put it in the pause menu too, at the same screen corner. z 80 clears the menu overlay (z 70), which
+   reserves the pill's band through `--ws-pill` (gmenu.css). ─── prefix ws-update- ─── */
+.ws-update { position: fixed; right: 44px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 80; display: none; align-items: center; gap: 6px; padding: 3px 7px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
 .ws-update.visible { display: flex; }
 .ws-update .ws-update-dot { width: 4px; height: 4px; background: rgba(196, 220, 232, 0.35); }
 .ws-update.newer { color: var(--ws-cyan); border-color: var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.3); }

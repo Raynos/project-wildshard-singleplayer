@@ -26,15 +26,16 @@ import type { Progress } from '../game/Progress';
 import type { Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { completeEntry } from './ShardComplete';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, settingsReloadUrl, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getSfxSet, onSfxSet, type SettingKey, type NumberKey } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
-import { texMode } from '../boot/gpuFiles';
 import { shardMemory } from '../shard/switch';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 import { isDev, onDev } from '../core/devMode';
 import { bindDevToggle, devSwitchRows } from './devSwitch';
+import { foldCard } from './cards';
+import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 
 export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings' | 'feedback';
 const TABS: { id: MenuTab; label: string }[] = [
@@ -188,6 +189,9 @@ export class GameMenu {
     this.tabBar.classList.toggle('four', shown === 4); // BAG with Pine Hollow's JOURNAL: ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
     this.title.textContent = split ? TITLE[group] : 'Menu';
+    // E176: the build pill shows over the PAUSE menu (not the BAG), so the root says which one is up
+    this.root.classList.toggle('pause', !split || group === 'pause');
+    window.dispatchEvent(new Event('ws-menu'));
   }
 
   get isOpen(): boolean { return this._open; }
@@ -195,11 +199,13 @@ export class GameMenu {
   // ── the Debug card's memory readout (E155) ──
   private memEl: HTMLElement | null = null;
   private dbgCard: HTMLElement | null = null;
+  /** pause ▸ Settings ▸ Debug, the grouped registry (E162) */
+  private debug: DebugMenu | null = null;
   private memTimer = 0;
   /** the resident shards, their texture estimate, the JS heap and the device's memory — only when it can be seen */
   private paintMemory(): void {
     const out = this.memEl;
-    if (out === null || !this._open || this._tab !== 'settings' || this.dbgCard?.hidden !== false) return;
+    if (out === null || !this._open || this._tab !== 'settings' || this.dbgCard?.hidden !== false || this.dbgCard.classList.contains('folded')) return; // E177: nothing to read while the card is folded
     const m = shardMemory();
     // Chrome's performance.memory / navigator.deviceMemory: absent on iOS (and not in the DOM typings)
     const pm: unknown = Reflect.get(performance, 'memory'), used: unknown = typeof pm === 'object' && pm !== null ? Reflect.get(pm, 'usedJSHeapSize') : undefined;
@@ -219,6 +225,7 @@ export class GameMenu {
     this.memTimer = window.setInterval(() => { this.paintMemory(); }, 2000); // while open only (close() stops it)
     this.root.classList.add('show');
     this.root.inert = false;
+    window.dispatchEvent(new Event('ws-menu')); // E176: the build pill follows the pause menu
     this.refresh();
     this.applies();
     if (tab === 'map') { this.opts.fullMap.show(); this.renderQuest(); }
@@ -231,6 +238,7 @@ export class GameMenu {
     this._open = false;
     window.clearInterval(this.memTimer); this.memTimer = 0;
     this.root.classList.remove('show');
+    window.dispatchEvent(new Event('ws-menu')); // E176
     this.root.inert = true; // faded to opacity 0 but still in the DOM: out of the tab order and the accessibility tree (VoiceOver / XCUITest)
     this.opts.fullMap.hide();
     if (!silent) this.onClose?.();
@@ -379,7 +387,7 @@ export class GameMenu {
     const exit = el('ws-gmenu-btn exit', 'Exit to main menu', 'button') as HTMLButtonElement; exit.type = 'button';
     exit.addEventListener('click', () => { this.close(true); this.onExit?.(); });
     const p = el('ws-gmenu-card', '<div class="ws-gmenu-cardtitle">Settings</div>');
-    const dbg = el('ws-gmenu-card debug', '<div class="ws-gmenu-cardtitle">Debug<small>for playtests — goes away when the game ships</small></div>');
+    const dbg = foldCard('debug', 'Debug', 'for playtests — goes away when the game ships'); // E177: folded until it is asked for
     // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
     dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; });
     panel.append(resume, exit, p, dbg);
@@ -447,77 +455,26 @@ export class GameMenu {
       }
       paint(); on(paint); row.append(box); return row;
     };
-    const styles: { v: MusicStyle; text: string }[] = [{ v: 'piano', text: 'Piano' }, { v: 'orchestral', text: 'Orchestral' }, { v: 'folk', text: 'Folk' }, { v: 'synth', text: 'Synth' }];
-    const sets: { v: SfxSet; text: string }[] = [{ v: 'best', text: 'Generated' }, { v: 'synth', text: 'Synth' }];
-    const style = picker('Music style', styles, getMusicStyle, setMusicStyle, (fn) => { onMusicStyle(fn); });
-    const sfx = picker('Sound effects', sets, getSfxSet, setSfxSet, (fn) => { onSfxSet(fn); });
     // a pick decodes from the offline cache (project/archive/2026-09-23-preload-offline.md): a spinner by the label only past 300 ms
-    onAudioBusy((kind, on) => { (kind === 'music' ? style : sfx).classList.toggle('busy', on); });
+    onAudioBusy((kind, on) => { this.debug?.row(kind === 'music' ? 'musicStyle' : 'sfxSet')?.classList.toggle('busy', on); });
     // the licences ask for the models' names in the UI: MiniMax-Music3, and the sfx set's credit ("Powered by Stability AI")
     const sfxNote = el('ws-gmenu-note');
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
     paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
     p.append(el('ws-gmenu-label', 'Audio'), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
-    dbg.append(el('ws-gmenu-label', 'Audio variants'), style, sfx);
     // lock-on (E50, src/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the
     // lock — the reticle, orbit strafing, the lunge, switching — but never turns the view: the motion-sickness escape)
     const lockCams: { v: '1' | '0.5' | '0'; text: string }[] = [{ v: '1', text: 'Follow' }, { v: '0.5', text: 'Gentle' }, { v: '0', text: 'Off' }];
     const lockCam = picker('Lock-on camera', lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
     p.append(el('ws-gmenu-label', 'Lock-on'), lockCam, sw('autoLock', 'Auto re-lock'), el('ws-gmenu-note', 'LOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.'));
 
-    // look (E55, live — src/ui/Settings.ts OPTIONS): the shard's day clock (src/world/WorldClock.ts: Driftwood's DayNight, Nalati's
-    // DayClock — NALATI-MERGE F8; main.ts subscribes). The painted horizon (E78) and the colour grade (E85) are locked on. The
-    // boot-time graphics picks are on the title's Settings.
-    {
-      const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
-      const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
-      section(dbg, 'Look', [(c) => c.chunk.style === 'lowpoly' || c.chunk.style === 'painterly', time]); // the shards with a day clock
-      // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in and their switches gone (E136)
-    }
-    if (getActiveChunk().slug === 'pine-hollow') {
-      // Pine Hollow's look lab (PH-L2): the day / night clock or the pre-remaster fixed sunset (a reload: the sky rig is built
-      // once), and the clock's time of day
-      const skies: { v: OptionValue<'pinesky'>; text: string }[] = [{ v: 'clock', text: 'Day / night' }, { v: 'sunset', text: 'Fixed sunset' }];
-      const sky = picker('Sky', skies, () => setting('pinesky'), (v) => { saveSetting('pinesky', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('pinesky', fn); });
-      dbg.append(el('ws-gmenu-label', 'Look'), sky);
-      if (setting('pinesky') === 'clock') {
-        const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
-        dbg.append(picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); }));
-        // PH-L10: the weather (live: the dawn fog + the showers) or Clear, the look before it; Fog / Rain hold one (live)
-        const weathers: { v: OptionValue<'weather'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'clear', text: 'Clear' }, { v: 'fog', text: 'Fog' }, { v: 'rain', text: 'Rain' }];
-        dbg.append(picker('Weather', weathers, () => setting('weather'), (v) => { saveSetting('weather', v); }, (fn) => { onSettingChange('weather', fn); }));
-      }
-    }
-    // the frame cap (PINE-HOLLOW PH-P1, tier.ts frameCapFps; live): Auto = Pine Hollow's phone tier at a locked 30, else uncapped
-    const caps: { v: OptionValue<'fps'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: '30', text: '30' }, { v: '60', text: 'Uncapped' }];
-    dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
-    // Driftwood's ground cover (E156; src/world/GroundCover.ts, coverTint.ts): the variants Jake A/Bs on the phone — every one
-    // here, never in the URL. Tint, slope reach and the far colour blend apply live; the far stand-ins rebuild the page
-    if (getActiveChunk().style === 'lowpoly') {
-      const onOff: { v: 'on' | 'off'; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];
-      const live = (k: 'coverTint' | 'coverReach' | 'coverBlend', label: string) => picker(label, onOff, () => setting(k), (v) => { saveSetting(k, v); }, (fn) => { onSettingChange(k, fn); });
-      const fars: { v: OptionValue<'coverFar'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'far', text: 'Far' }];
-      const far = picker('Far stand-ins', fars, () => setting('coverFar'), (v) => { saveSetting('coverFar', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('coverFar', fn); });
-      const ranges: { v: OptionValue<'coverRange'>; text: string }[] = [{ v: 'normal', text: 'Normal' }, { v: '500', text: '500 m' }];
-      const range = picker('Foliage range', ranges, () => setting('coverRange'), (v) => { saveSetting('coverRange', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('coverRange', fn); });
-      dbg.append(el('ws-gmenu-label', 'Ground cover'), range, live('coverTint', 'Ground tint'), live('coverReach', 'Slope reach'), live('coverBlend', 'Far colour blend'), far,
-        el('ws-gmenu-note', 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Foliage range 500 m: every plant in view to 500 m (full plants near, their stand-ins far). Foliage range and Far stand-ins reload the page.'));
-    }
-    // E157: the textures — KTX2 stays compressed on the GPU (ASTC on the iPhone: about a quarter of the memory) or the images;
-    // Auto = images until the shard's KTX2 set is cached in the background, KTX2 from the next launch (src/boot/gpuFiles.ts).
-    // A load-time pick, so it saves and reloads
-    const texs: { v: OptionValue<'tex'>; text: string }[] = [{ v: 'auto', text: `Auto · now ${texMode() === 'ktx2' ? 'KTX2' : 'Images'}` }, { v: 'ktx2', text: 'KTX2' }, { v: 'img', text: 'Images' }];
-    dbg.append(el('ws-gmenu-label', 'Textures'), picker('GPU textures', texs, () => setting('tex'), (v) => { saveSetting('tex', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('tex', fn); }));
-    // E158: the other shards' files download in the background once this one is playable (the next session obeys a change)
-    const bg: { v: OptionValue<'prefetch'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];
-    dbg.append(el('ws-gmenu-label', 'Other shards'), picker('Download in background', bg, () => setting('prefetch'), (v) => { saveSetting('prefetch', v); }, (fn) => { onSettingChange('prefetch', fn); }));
-    // E155 / E159: how many built shards stay in memory (src/shard/ShardHost.ts) — live, lowering it evicts at once — and what
-    // they hold, read on the device (the iPhone has no dev tools): refreshed only while this menu is open on Settings
-    const caps2: { v: OptionValue<'shardCap'>; text: string }[] = [{ v: '2', text: '2' }, { v: '1', text: '1' }];
+    // DEBUG (E162): every variant, taste toggle and developer aid, grouped — declared once in src/ui/debugOptions.ts and
+    // rendered by src/ui/DebugMenu.ts (collapsible groups, only the rows that apply to this shard, a filter). Shards in
+    // memory carries the on-device readout (E155 / E159): refreshed only while this menu is open on Settings
+    this.debug = buildDebugMenu(dbg, { onPick: (id) => { if (id === 'shardCap') this.paintMemory(); } });
     const mem = el('ws-gmenu-note ws-gmenu-mem');
-    dbg.append(el('ws-gmenu-label', 'Memory'), picker('Shards in memory', caps2, () => setting('shardCap'), (v) => { saveSetting('shardCap', v); this.paintMemory(); }, (fn) => { onSettingChange('shardCap', fn); }), mem);
+    this.debug.row('shardCap')?.after(mem);
     this.memEl = mem; this.dbgCard = dbg;
-    dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());
   }
@@ -525,6 +482,7 @@ export class GameMenu {
   private applies(): void {
     const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.icon === 'sword'), chunk: getActiveChunk() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
+    this.debug?.applies(c);
   }
   /** Settings → REVIEW: a password unlocks the review inbox (src/ui/review.ts); unlocked, the Quick note switch + LOCK */
   private buildReview(): HTMLElement {

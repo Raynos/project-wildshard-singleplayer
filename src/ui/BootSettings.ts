@@ -16,6 +16,7 @@ import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { getActiveChunk } from '../chunks/registry';
 import { askReload } from './ReloadPrompt';
 import { devSwitchRows } from './devSwitch';
+import { foldCard } from './cards';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 
@@ -100,13 +101,18 @@ function build(): HTMLElement {
 
   const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: '2', text: '2×' }, { v: 'native', text: 'Native' }, { v: 'auto', text: 'Auto' }];
   const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
+  // E177 (Jake: "the debug cards in main menu & pause menu should be collapsed by default and opt into expansion"): the
+  // experimental renderer and the Developer switch are the pause menu's Debug card's opposite number here — same folding
+  // card, folded until it is asked for, so what is left above it is the picks a player came for.
+  const dbg = foldCard('bootdebug', 'Debug', 'for playtests — goes away when the game ships');
+  dbg.append(el('ws-gmenu-label', 'Experimental'), row('gpu', LABELS.gpu),
+    ...devSwitchRows()); // developer mode (E140): live, no reload
   p.append(running,
     el('ws-gmenu-label', 'Graphics'), row('tier', LABELS.tier),
     seg('Render scale', false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, 'Render scale'); } }),
     seg('Anti-aliasing', false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
-    el('ws-gmenu-label', 'Experimental'), row('gpu', LABELS.gpu),
     el('ws-gmenu-label', 'Controls'), row('touch', LABELS.touch),
-    ...devSwitchRows()); // developer mode (E140): live, no reload
+    dbg);
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));
   if (overridden.length > 0) p.append(el('ws-gmenu-note', `This load’s address sets ${overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')}; Apply &amp; reload drops it.`));

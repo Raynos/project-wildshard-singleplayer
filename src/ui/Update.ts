@@ -6,6 +6,11 @@
  *
  * E140 (the user's 6a): players see the pill only when a new build is waiting ("New version · tap to update"). Developer
  * mode (src/core/devMode.ts) shows it always, with the build id ("f86b4c3 · reload", "new f86b4c3 · tap to update").
+ *
+ * E176 (Jake): the in-game PAUSE menu carries it too, at the same screen corner as the title's — on the phone the pause
+ * menu is the only chrome you can reach once you are in the world, so that is where a waiting deploy has to be tappable.
+ * It sits over the menu overlay (z 80 vs 70) and publishes `--ws-pill` on <html>, which is the band gmenu.css keeps free
+ * above the sheet so the pill never lands on CLOSE.
  */
 import { isDev, onDev } from '../core/devMode';
 
@@ -81,8 +86,14 @@ function sync(): void {
   const now = document.getElementById('hud');
   if (now !== hud) { hudClass.disconnect(); hud = now; if (hud) hudClass.observe(hud, { attributes: true, attributeFilter: ['class'] }); }
   const onTitle = document.querySelector('.ws-load') !== null || (hud?.classList.contains('intro') ?? false);
-  el.classList.toggle('visible', onTitle && (newer || isDev())); // menu-only: never over the game view, even when a newer build exists
+  const onPause = document.querySelector('.ws-gmenu.show.pause') !== null; // E176: the in-game pause menu (src/ui/Menu.ts)
+  const show = (onTitle || onPause) && (newer || isDev());
+  el.classList.toggle('visible', show); // menu-only: never over the game view, even when a newer build exists
+  // the band the menu overlay keeps free above its sheet (gmenu.css) — only while the pill is actually up
+  document.documentElement.style.setProperty('--ws-pill', show ? '24px' : '0px');
 }
 sync();
 onDev(() => { paint(); sync(); });
+// the pause menu opened or closed: it says so, because its class lives on an element this module never sees created
+window.addEventListener('ws-menu', () => { sync(); });
 new MutationObserver(sync).observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });

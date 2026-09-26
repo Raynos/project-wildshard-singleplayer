@@ -2,7 +2,7 @@
    One full-height glass sheet over the blurred, still-running world (art/menu/round-2-tabs/menu-tab-*.png). Header (MENU / shard,
    CLOSE), a four-tab bar with the cyan underline, the active tab's panel, a footer hint. Lives on <body>
    above the HUD, the minimap (z 6) and the phone's touch layer (z 5). */
-.ws-gmenu { position: fixed; inset: 0; z-index: 70; display: flex; align-items: stretch; justify-content: center; padding: calc(var(--ws-top) + 4px) 10px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(6, 10, 18, 0.55); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
+.ws-gmenu { position: fixed; inset: 0; z-index: 70; display: flex; align-items: stretch; justify-content: center; padding: calc(var(--ws-top) + 4px + var(--ws-pill, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(6, 10, 18, 0.55); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
 .ws-gmenu.show { opacity: 1; pointer-events: auto; }
 .ws-gmenu * { box-sizing: border-box; } /* on <body>, outside #hud's reset: a 100 %-wide padded .ws-gmenu-row ran 26 px past the sheet */
 .ws-gmenu .ws-gmenu-sheet { width: 100%; max-width: 560px; display: flex; flex-direction: column; min-height: 0; background: rgba(8, 12, 20, 0.86); padding: 0; }
@@ -159,6 +159,15 @@
 .ws-gmenu .ws-gmenu-cardtitle { flex: none; margin-bottom: 10px; font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.26em; text-transform: uppercase; color: #fff; }
 .ws-gmenu .ws-gmenu-card.debug .ws-gmenu-cardtitle { color: rgb(255, 206, 140); }
 .ws-gmenu .ws-gmenu-cardtitle small { display: block; margin-top: 4px; font-family: var(--ws-mono); font-weight: 400; font-size: 9px; letter-spacing: 0.16em; color: var(--ws-text-dim); }
+/* a folding card (E177, src/ui/cards.ts): the title bar IS the toggle — Debug starts folded, so the variant pickers
+   don't push the settings a player wants off the screen. The caret turns down when it is open. */
+.ws-gmenu .ws-gmenu-card.fold > .ws-gmenu-cardtitle { display: flex; align-items: baseline; flex-wrap: wrap; width: 100%; padding: 4px 0; appearance: none; -webkit-appearance: none; background: none; border: 0; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ws-gmenu .ws-gmenu-card.fold > .ws-gmenu-cardtitle small { flex: 1 0 100%; margin-left: 16px; }
+.ws-gmenu .ws-gmenu-foldmark { flex: none; width: 0; height: 0; margin-right: 10px; border-left: 6px solid currentcolor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transform: translateY(-1px); transition: transform 0.15s; }
+.ws-gmenu .ws-gmenu-card.fold:not(.folded) > .ws-gmenu-cardtitle .ws-gmenu-foldmark { transform: rotate(90deg) translate(-1px, -3px); }
+.ws-gmenu .ws-gmenu-card.folded { padding-bottom: 10px; }
+.ws-gmenu .ws-gmenu-card.folded > .ws-gmenu-cardtitle { margin-bottom: 0; }
+.ws-gmenu .ws-gmenu-card.folded > :not(.ws-gmenu-cardtitle) { display: none; }
 /* Settings → REVIEW (Menu.ts buildReview; src/ui/review.ts): password + UNLOCK, then the Quick note switch + LOCK */
 .ws-gmenu .ws-gmenu-review { flex: none; display: flex; flex-direction: column; }
 .ws-gmenu .ws-gmenu-input { flex: 1 1 140px; min-width: 0; padding: 7px 9px; background: rgba(6, 10, 18, 0.6); border: 1px solid var(--ws-cyan-line); border-radius: 0; color: var(--ws-text); font: 12px var(--ws-mono); outline: none; }
