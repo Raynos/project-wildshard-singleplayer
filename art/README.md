@@ -48,6 +48,7 @@ when the images were generated.
 | | `round-7-lab-{ink,neon,facade,hero}` (09-25) | E169 look labs (throwaway prototypes, `dev/nd-lab-*.html`): loop sheets, `final.jpg`, README = LEARNINGS + integration |
 | | `round-18-portrait-teaser` (09-26) | Preliminary 15 s portrait fall cut and contact sheet, retained as capture history |
 | | `round-19-portrait-grapple` (09-26) | [15 s portrait recut](nine-dragon-stack/round-19-portrait-grapple/README.md) with the playable Fei Zhua crossing, awaiting Jake's review |
+| | `round-20-facade-budget` (09-26) | [Eight center-view engine captures and facade A/B](nine-dragon-stack/round-20-facade-budget/README.md), with the 76-pose draw-call result and unresolved F7 look gaps |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
