@@ -1,0 +1,394 @@
+## compare · e173 (b-muhy7ny0) against e173-base (b-muhyz9be)
+
+Band = max(rel, noise × baseline run-to-run spread) × baseline + abs (scorecard.budget.json `kinds`). REGRESS blocks the merge; `info` rows never fail.
+
+| row | baseline | now | Δ | band | verdict |
+|---|---|---|---|---|---|
+| driftwood-isle/desktop/cold.bgNetBytes | 102211818 | 256291504 | +150.7 % |  | info |
+| driftwood-isle/desktop/cold.idleNetBytes | 125403725 | 279484645 | +122.9 % |  | info |
+| driftwood-isle/desktop/cold.longTaskMaxMs | 522 | 586 | +12.3 % | ±128.3 | pass |
+| driftwood-isle/desktop/cold.netBytes | 22.12 | 22.12 | +0.0 % | ±0.28 | pass |
+| driftwood-isle/desktop/cold.playMs | 7.66 | 7.81 | +2.0 % | ±0.92 | pass |
+| driftwood-isle/desktop/cold.requests | 233 | 233 | +0.0 % | ±6.7 | pass |
+| driftwood-isle/desktop/cold4g.playMs | 23.63 | 27.66 | +17.0 % | ±2.51 | **REGRESS** |
+| driftwood-isle/desktop/mem.geometries | 920 | 920 | +0.0 % | ±48 | pass |
+| driftwood-isle/desktop/mem.glBufBytes | 252.42 | 252.42 | +0.0 % | ±14.62 | pass |
+| driftwood-isle/desktop/mem.glRbBytes | 7.19 | 7.19 | +0.0 % | ±2.36 | pass |
+| driftwood-isle/desktop/mem.glTexBytes | 370.09 | 333.59 | -9.9 % | ±20.50 | better |
+| driftwood-isle/desktop/mem.heapBytes | 36.55 | 36.20 | -1.0 % | ±3.83 | pass |
+| driftwood-isle/desktop/mem.programs | 105 | 105 | +0.0 % | ±7.3 | pass |
+| driftwood-isle/desktop/mem.sceneTexBytes | 59.03 | 46.53 | -21.2 % | ±4.95 | better |
+| driftwood-isle/desktop/mem.textures | 127 | 127 | +0.0 % | ±8.4 | pass |
+| driftwood-isle/desktop/pose.beach.calls | 567 | 567 | +0.0 % | ±61.7 | pass |
+| driftwood-isle/desktop/pose.beach.cpuP50Ms | 3.5 | 3.2 | -8.6 % | ±1.4 | pass |
+| driftwood-isle/desktop/pose.beach.cpuP95Ms | 4.1 | 3.7 | -9.8 % | ±1.4 | pass |
+| driftwood-isle/desktop/pose.beach.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| driftwood-isle/desktop/pose.beach.frameP95Ms | 17.7 | 17.3 | -2.3 % | ±2.8 | pass |
+| driftwood-isle/desktop/pose.beach.maskedFrac | 0.1 | 0.1 | +0.0 % |  | info |
+| driftwood-isle/desktop/pose.beach.ssim | 0.9976 | 0.9897 | -0.8 % | ≥ 0.98 | pass |
+| driftwood-isle/desktop/pose.beach.trisK | 2309.1 | 2309.1 | +0.0 % | ±235.9 | pass |
+| driftwood-isle/desktop/pose.pier.calls | 868 | 868 | +0.0 % | ±91.8 | pass |
+| driftwood-isle/desktop/pose.pier.cpuP50Ms | 3.6 | 3.5 | -2.8 % | ±1.4 | pass |
+| driftwood-isle/desktop/pose.pier.cpuP95Ms | 4.3 | 4.0 | -7.0 % | ±1.4 | pass |
+| driftwood-isle/desktop/pose.pier.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| driftwood-isle/desktop/pose.pier.frameP95Ms | 17.7 | 17.5 | -1.1 % | ±2.8 | pass |
+| driftwood-isle/desktop/pose.pier.maskedFrac | 0 | 0 | +0.0 % |  | info |
+| driftwood-isle/desktop/pose.pier.ssim | 0.9941 | 0.9860 | -0.8 % | ≥ 0.98 | pass |
+| driftwood-isle/desktop/pose.pier.trisK | 2980.7 | 2980.7 | +0.0 % | ±303.1 | pass |
+| driftwood-isle/desktop/pose.wreck.calls | 239 | 239 | +0.0 % | ±28.9 | pass |
+| driftwood-isle/desktop/pose.wreck.cpuP50Ms | 3.2 | 2.8 | -12.5 % | ±1.3 | pass |
+| driftwood-isle/desktop/pose.wreck.cpuP95Ms | 3.7 | 3.3 | -10.8 % | ±1.4 | pass |
+| driftwood-isle/desktop/pose.wreck.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| driftwood-isle/desktop/pose.wreck.frameP95Ms | 17.4 | 17.1 | -1.7 % | ±2.7 | pass |
+| driftwood-isle/desktop/pose.wreck.maskedFrac | 0.1 | 0.1 | +0.0 % |  | info |
+| driftwood-isle/desktop/pose.wreck.ssim | 0.9934 | 0.9806 | -1.3 % | ≥ 0.98 | pass |
+| driftwood-isle/desktop/pose.wreck.trisK | 1452.3 | 1452.3 | +0.0 % | ±150.2 | pass |
+| driftwood-isle/desktop/warm.longTaskMaxMs | 543 | 511 | -5.9 % | ±131.5 | pass |
+| driftwood-isle/desktop/warm.netBytes | 0.00 | 0.00 | +0.1 % | ±0.06 | pass |
+| driftwood-isle/desktop/warm.playMs | 2.26 | 2.18 | -3.4 % | ±0.38 | pass |
+| driftwood-isle/desktop/warm.requests | 233 | 235 | +0.9 % | ±6.7 | pass |
+| driftwood-isle/phone/cold.bgNetBytes | 126886451 | 126886451 | +0.0 % |  | info |
+| driftwood-isle/phone/cold.idleNetBytes | 148689715 | 148690949 | +0.0 % |  | info |
+| driftwood-isle/phone/cold.longTaskMaxMs | 405 | 414 | +2.2 % | ±110.8 | pass |
+| driftwood-isle/phone/cold.netBytes | 20.79 | 20.79 | +0.0 % | ±0.27 | pass |
+| driftwood-isle/phone/cold.playMs | 7.03 | 7.08 | +0.7 % | ±0.85 | pass |
+| driftwood-isle/phone/cold.requests | 227 | 227 | +0.0 % | ±6.5 | pass |
+| driftwood-isle/phone/cold4g.playMs | 24.30 | 26.70 | +9.9 % | ±2.58 | pass |
+| driftwood-isle/phone/mem.geometries | 454 | 454 | +0.0 % | ±24.7 | pass |
+| driftwood-isle/phone/mem.glBufBytes | 136.21 | 136.21 | +0.0 % | ±8.81 | pass |
+| driftwood-isle/phone/mem.glRbBytes | 0.33 | 0.33 | +0.0 % | ±2.02 | pass |
+| driftwood-isle/phone/mem.glTexBytes | 117.24 | 117.24 | +0.0 % | ±7.86 | pass |
+| driftwood-isle/phone/mem.heapBytes | 34.37 | 34.66 | +0.8 % | ±3.72 | pass |
+| driftwood-isle/phone/mem.programs | 94 | 94 | +0.0 % | ±6.7 | pass |
+| driftwood-isle/phone/mem.sceneTexBytes | 31.53 | 31.53 | +0.0 % | ±3.58 | pass |
+| driftwood-isle/phone/mem.textures | 102 | 102 | +0.0 % | ±7.1 | pass |
+| driftwood-isle/phone/pose.beach.calls | 219 | 219 | +0.0 % | ±26.9 | pass |
+| driftwood-isle/phone/pose.beach.cpuP50Ms | 2.1 | 2.0 | -4.8 % | ±1.2 | pass |
+| driftwood-isle/phone/pose.beach.cpuP95Ms | 2.9 | 2.3 | -20.7 % | ±1.3 | pass |
+| driftwood-isle/phone/pose.beach.fps | 30.0 | 60.0 | +100.0 % | ±4.0 | better |
+| driftwood-isle/phone/pose.beach.frameP95Ms | 33.8 | 17.5 | -48.2 % | ±4.4 | better |
+| driftwood-isle/phone/pose.beach.maskedFrac | 0.1 | 0.1 | +0.0 % |  | info |
+| driftwood-isle/phone/pose.beach.ssim | 0.9964 | 0.9965 | +0.0 % | ≥ 0.98 | pass |
+| driftwood-isle/phone/pose.beach.trisK | 1054.7 | 1054.7 | +0.0 % | ±110.5 | pass |
+| driftwood-isle/phone/pose.pier.calls | 224 | 224 | +0.0 % | ±27.4 | pass |
+| driftwood-isle/phone/pose.pier.cpuP50Ms | 2.1 | 1.8 | -14.3 % | ±1.2 | pass |
+| driftwood-isle/phone/pose.pier.cpuP95Ms | 3.8 | 2.1 | -44.7 % | ±1.4 | better |
+| driftwood-isle/phone/pose.pier.fps | 30.0 | 60.0 | +100.0 % | ±4.0 | better |
+| driftwood-isle/phone/pose.pier.frameP95Ms | 34.2 | 17.4 | -49.1 % | ±4.4 | better |
+| driftwood-isle/phone/pose.pier.maskedFrac | 0 | 0 | +0.0 % |  | info |
+| driftwood-isle/phone/pose.pier.ssim | 0.9848 | 0.9889 | +0.4 % | ≥ 0.9748 | pass |
+| driftwood-isle/phone/pose.pier.trisK | 1101.2 | 1101.2 | +0.0 % | ±115.1 | pass |
+| driftwood-isle/phone/pose.wreck.calls | 171 | 171 | +0.0 % | ±22.1 | pass |
+| driftwood-isle/phone/pose.wreck.cpuP50Ms | 2.1 | 1.9 | -9.5 % | ±1.2 | pass |
+| driftwood-isle/phone/pose.wreck.cpuP95Ms | 2.4 | 2.2 | -8.3 % | ±1.2 | pass |
+| driftwood-isle/phone/pose.wreck.fps | 30.0 | 60.0 | +100.0 % | ±4.0 | better |
+| driftwood-isle/phone/pose.wreck.frameP95Ms | 34.0 | 17.5 | -48.5 % | ±4.4 | better |
+| driftwood-isle/phone/pose.wreck.maskedFrac | 0.1 | 0.2 | +17.5 % |  | info |
+| driftwood-isle/phone/pose.wreck.ssim | 0.9933 | 0.9966 | +0.3 % | ≥ 0.98 | pass |
+| driftwood-isle/phone/pose.wreck.trisK | 927 | 927 | +0.0 % | ±97.7 | pass |
+| driftwood-isle/phone/warm.longTaskMaxMs | 393 | 422 | +7.4 % | ±109 | pass |
+| driftwood-isle/phone/warm.netBytes | 0.00 | 0.00 | +0.1 % | ±0.06 | pass |
+| driftwood-isle/phone/warm.playMs | 1.88 | 1.98 | +5.3 % | ±0.34 | pass |
+| driftwood-isle/phone/warm.requests | 231 | 231 | +0.0 % | ±6.6 | pass |
+| nalati-grasslands/desktop/cold.bgNetBytes | 87560911 | 241640597 | +176.0 % |  | info |
+| nalati-grasslands/desktop/cold.idleNetBytes | 125403215 | 279484437 | +122.9 % |  | info |
+| nalati-grasslands/desktop/cold.longTaskMaxMs | 1634 | 1242 | -24.0 % | ±295.1 | better |
+| nalati-grasslands/desktop/cold.netBytes | 36.09 | 36.09 | +0.0 % | ±0.42 | pass |
+| nalati-grasslands/desktop/cold.playMs | 12.08 | 11.48 | -5.0 % | ±1.36 | pass |
+| nalati-grasslands/desktop/cold.requests | 271 | 271 | +0.0 % | ±7.4 | pass |
+| nalati-grasslands/desktop/cold4g.playMs | 37.76 | 37.61 | -0.4 % | ±3.93 | pass |
+| nalati-grasslands/desktop/mem.geometries | 366 | 366 | +0.0 % | ±20.3 | pass |
+| nalati-grasslands/desktop/mem.glBufBytes | 70.15 | 70.15 | +0.0 % | ±5.51 | pass |
+| nalati-grasslands/desktop/mem.glRbBytes | 75.41 | 75.41 | +0.0 % | ±5.77 | pass |
+| nalati-grasslands/desktop/mem.glTexBytes | 450.23 | 340.51 | -24.4 % | ±24.51 | better |
+| nalati-grasslands/desktop/mem.heapBytes | 48.24 | 48.09 | -0.3 % | ±4.41 | pass |
+| nalati-grasslands/desktop/mem.programs | 112 | 112 | +0.0 % | ±7.6 | pass |
+| nalati-grasslands/desktop/mem.sceneTexBytes | 334.46 | 303.22 | -9.3 % | ±18.72 | better |
+| nalati-grasslands/desktop/mem.textures | 161 | 161 | +0.0 % | ±10.1 | pass |
+| nalati-grasslands/desktop/pose.bridge.calls | 430 | 430 | +0.0 % | ±48 | pass |
+| nalati-grasslands/desktop/pose.bridge.cpuP50Ms | 3.6 | 2.6 | -27.8 % | ±1.4 | pass |
+| nalati-grasslands/desktop/pose.bridge.cpuP95Ms | 4.4 | 3.0 | -31.8 % | ±1.4 | pass |
+| nalati-grasslands/desktop/pose.bridge.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| nalati-grasslands/desktop/pose.bridge.frameP95Ms | 17.6 | 17.6 | +0.0 % | ±2.8 | pass |
+| nalati-grasslands/desktop/pose.bridge.maskedFrac | 0 | 0 | +28.6 % |  | info |
+| nalati-grasslands/desktop/pose.bridge.ssim | 0.9944 | 0.9786 | -1.6 % | ≥ 0.98 | **REGRESS** |
+| nalati-grasslands/desktop/pose.bridge.trisK | 5979.9 | 5979.9 | +0.0 % | ±603 | pass |
+| nalati-grasslands/desktop/pose.camp.calls | 195 | 195 | +0.0 % | ±24.5 | pass |
+| nalati-grasslands/desktop/pose.camp.cpuP50Ms | 2.4 | 2.2 | -8.3 % | ±1.2 | pass |
+| nalati-grasslands/desktop/pose.camp.cpuP95Ms | 3.0 | 2.6 | -13.3 % | ±1.3 | pass |
+| nalati-grasslands/desktop/pose.camp.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| nalati-grasslands/desktop/pose.camp.frameP95Ms | 17.5 | 17.6 | +0.6 % | ±2.8 | pass |
+| nalati-grasslands/desktop/pose.camp.maskedFrac | 0.2 | 0.2 | +0.0 % |  | info |
+| nalati-grasslands/desktop/pose.camp.ssim | 0.9949 | 0.9801 | -1.5 % | ≥ 0.98 | pass |
+| nalati-grasslands/desktop/pose.camp.trisK | 4297.8 | 4297.8 | +0.0 % | ±434.8 | pass |
+| nalati-grasslands/desktop/pose.plains.calls | 268 | 258 | -3.7 % | ±31.8 | pass |
+| nalati-grasslands/desktop/pose.plains.cpuP50Ms | 2.8 | 2.4 | -14.3 % | ±1.3 | pass |
+| nalati-grasslands/desktop/pose.plains.cpuP95Ms | 3.5 | 2.7 | -22.9 % | ±1.4 | pass |
+| nalati-grasslands/desktop/pose.plains.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| nalati-grasslands/desktop/pose.plains.frameP95Ms | 17.7 | 17.3 | -2.3 % | ±2.8 | pass |
+| nalati-grasslands/desktop/pose.plains.maskedFrac | 0.1 | 0.1 | +3.5 % |  | info |
+| nalati-grasslands/desktop/pose.plains.ssim | 0.9553 | 0.9577 | +0.3 % | ≥ 0.9453 | pass |
+| nalati-grasslands/desktop/pose.plains.trisK | 5986.3 | 5907.1 | -1.3 % | ±603.6 | pass |
+| nalati-grasslands/desktop/warm.longTaskMaxMs | 1426 | 1182 | -17.1 % | ±263.9 | pass |
+| nalati-grasslands/desktop/warm.netBytes | 0.00 | 0.00 | +0.1 % | ±0.06 | pass |
+| nalati-grasslands/desktop/warm.playMs | 5.98 | 4.46 | -25.5 % | ±0.75 | better |
+| nalati-grasslands/desktop/warm.requests | 271 | 273 | +0.7 % | ±7.4 | pass |
+| nalati-grasslands/phone/cold.bgNetBytes | 117275794 | 117275794 | +0.0 % |  | info |
+| nalati-grasslands/phone/cold.idleNetBytes | 148689507 | 148690741 | +0.0 % |  | info |
+| nalati-grasslands/phone/cold.longTaskMaxMs | 347 | 358 | +3.2 % | ±102.1 | pass |
+| nalati-grasslands/phone/cold.netBytes | 29.96 | 29.96 | +0.0 % | ±0.36 | pass |
+| nalati-grasslands/phone/cold.playMs | 9.13 | 9.13 | -0.0 % | ±1.06 | pass |
+| nalati-grasslands/phone/cold.requests | 235 | 235 | +0.0 % | ±6.7 | pass |
+| nalati-grasslands/phone/cold4g.playMs | 31.65 | 31.66 | +0.0 % | ±3.32 | pass |
+| nalati-grasslands/phone/mem.geometries | 114 | 114 | +0.0 % | ±7.7 | pass |
+| nalati-grasslands/phone/mem.glBufBytes | 64.70 | 64.70 | +0.0 % | ±5.24 | pass |
+| nalati-grasslands/phone/mem.glRbBytes | 39.16 | 39.16 | +0.0 % | ±3.96 | pass |
+| nalati-grasslands/phone/mem.glTexBytes | 96.97 | 96.97 | +0.0 % | ±6.85 | pass |
+| nalati-grasslands/phone/mem.heapBytes | 46.64 | 45.87 | -1.7 % | ±4.33 | pass |
+| nalati-grasslands/phone/mem.programs | 96 | 96 | +0.0 % | ±6.8 | pass |
+| nalati-grasslands/phone/mem.sceneTexBytes | 112.46 | 112.46 | +0.0 % | ±7.62 | pass |
+| nalati-grasslands/phone/mem.textures | 127 | 127 | +0.0 % | ±8.4 | pass |
+| nalati-grasslands/phone/pose.bridge.calls | 87 | 87 | +0.0 % | ±13.7 | pass |
+| nalati-grasslands/phone/pose.bridge.cpuP50Ms | 1.9 | 1.8 | -5.3 % | ±1.2 | pass |
+| nalati-grasslands/phone/pose.bridge.cpuP95Ms | 2.4 | 2.1 | -12.5 % | ±1.2 | pass |
+| nalati-grasslands/phone/pose.bridge.fps | 30.0 | 60.0 | +100.0 % | ±4.0 | better |
+| nalati-grasslands/phone/pose.bridge.frameP95Ms | 34.4 | 17.5 | -49.1 % | ±4.4 | better |
+| nalati-grasslands/phone/pose.bridge.maskedFrac | 0 | 0 | +6.3 % |  | info |
+| nalati-grasslands/phone/pose.bridge.ssim | 0.9884 | 0.9919 | +0.4 % | ≥ 0.9784 | pass |
+| nalati-grasslands/phone/pose.bridge.trisK | 1228.9 | 1228.9 | +0.0 % | ±127.9 | pass |
+| nalati-grasslands/phone/pose.camp.calls | 77 | 77 | +0.0 % | ±12.7 | pass |
+| nalati-grasslands/phone/pose.camp.cpuP50Ms | 1.9 | 1.7 | -10.5 % | ±1.2 | pass |
+| nalati-grasslands/phone/pose.camp.cpuP95Ms | 2.3 | 2.0 | -13.0 % | ±1.2 | pass |
+| nalati-grasslands/phone/pose.camp.fps | 30.0 | 60.0 | +100.0 % | ±4.0 | better |
+| nalati-grasslands/phone/pose.camp.frameP95Ms | 33.8 | 17.6 | -47.9 % | ±4.4 | better |
+| nalati-grasslands/phone/pose.camp.maskedFrac | 0.3 | 0.3 | +0.0 % |  | info |
+| nalati-grasslands/phone/pose.camp.ssim | 0.9969 | 0.9983 | +0.1 % | ≥ 0.98 | pass |
+| nalati-grasslands/phone/pose.camp.trisK | 983.2 | 983.2 | +0.0 % | ±103.3 | pass |
+| nalati-grasslands/phone/pose.plains.calls | 100 | 100 | +0.0 % | ±15 | pass |
+| nalati-grasslands/phone/pose.plains.cpuP50Ms | 2.3 | 2.2 | -4.3 % | ±1.2 | pass |
+| nalati-grasslands/phone/pose.plains.cpuP95Ms | 3.4 | 2.7 | -20.6 % | ±1.3 | pass |
+| nalati-grasslands/phone/pose.plains.fps | 30.0 | 60.0 | +100.0 % | ±4.0 | better |
+| nalati-grasslands/phone/pose.plains.frameP95Ms | 34.7 | 17.3 | -50.1 % | ±4.5 | better |
+| nalati-grasslands/phone/pose.plains.maskedFrac | 0.1 | 0.1 | -23.1 % |  | info |
+| nalati-grasslands/phone/pose.plains.ssim | 0.9362 | 0.9726 | +3.9 % | ≥ 0.9262 | pass |
+| nalati-grasslands/phone/pose.plains.trisK | 1216.8 | 1216 | -0.1 % | ±126.7 | pass |
+| nalati-grasslands/phone/warm.longTaskMaxMs | 394 | 371 | -5.8 % | ±109.1 | pass |
+| nalati-grasslands/phone/warm.netBytes | 0.00 | 0.00 | +0.1 % | ±0.06 | pass |
+| nalati-grasslands/phone/warm.playMs | 3.61 | 3.38 | -6.2 % | ±0.51 | pass |
+| nalati-grasslands/phone/warm.requests | 259 | 259 | +0.0 % | ±7.2 | pass |
+| pine-hollow/desktop/cold.bgNetBytes | 29426597 | 183506283 | +523.6 % |  | info |
+| pine-hollow/desktop/cold.idleNetBytes | 125403621 | 279484541 | +122.9 % |  | info |
+| pine-hollow/desktop/cold.longTaskMaxMs | 1070 | 788 | -26.4 % | ±210.5 | better |
+| pine-hollow/desktop/cold.netBytes | 91.53 | 91.53 | +0.0 % | ±0.98 | pass |
+| pine-hollow/desktop/cold.playMs | 28.45 | 27.96 | -1.7 % | ±3.00 | pass |
+| pine-hollow/desktop/cold.requests | 277 | 277 | +0.0 % | ±7.5 | pass |
+| pine-hollow/desktop/cold4g.playMs | 84.14 | 84.06 | -0.1 % | ±8.56 | pass |
+| pine-hollow/desktop/mem.geometries | 278 | 278 | +0.0 % | ±15.9 | pass |
+| pine-hollow/desktop/mem.glBufBytes | 164.80 | 164.80 | +0.0 % | ±10.24 | pass |
+| pine-hollow/desktop/mem.glRbBytes | 6.87 | 6.87 | +0.0 % | ±2.34 | pass |
+| pine-hollow/desktop/mem.glTexBytes | 1205.21 | 619.30 | -48.6 % | ±62.26 | better |
+| pine-hollow/desktop/mem.heapBytes | 47.76 | 48.95 | +2.5 % | ±4.39 | pass |
+| pine-hollow/desktop/mem.programs | 113 | 113 | +0.0 % | ±7.7 | pass |
+| pine-hollow/desktop/mem.sceneTexBytes | 767.55 | 607.80 | -20.8 % | ±40.38 | better |
+| pine-hollow/desktop/mem.textures | 451 | 448 | -0.7 % | ±24.6 | pass |
+| pine-hollow/desktop/pose.cabin.calls | 269 | 269 | +0.0 % | ±31.9 | pass |
+| pine-hollow/desktop/pose.cabin.cpuP50Ms | 7.5 | 9.2 | +22.7 % | ±1.8 | pass |
+| pine-hollow/desktop/pose.cabin.cpuP95Ms | 8.4 | 11.4 | +35.7 % | ±1.8 | **REGRESS** |
+| pine-hollow/desktop/pose.cabin.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| pine-hollow/desktop/pose.cabin.frameP95Ms | 17.3 | 18.2 | +5.2 % | ±2.7 | pass |
+| pine-hollow/desktop/pose.cabin.maskedFrac | 0.1 | 0.1 | +0.0 % |  | info |
+| pine-hollow/desktop/pose.cabin.ssim | 0.9627 | 0.8840 | -8.2 % | ≥ 0.9527 | **REGRESS** |
+| pine-hollow/desktop/pose.cabin.trisK | 7954.3 | 7984.3 | +0.4 % | ±800.4 | pass |
+| pine-hollow/desktop/pose.gate.calls | 235 | 235 | +0.0 % | ±28.5 | pass |
+| pine-hollow/desktop/pose.gate.cpuP50Ms | 8.5 | 10.5 | +23.5 % | ±1.9 | **REGRESS** |
+| pine-hollow/desktop/pose.gate.cpuP95Ms | 9.2 | 12.1 | +31.5 % | ±1.9 | **REGRESS** |
+| pine-hollow/desktop/pose.gate.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| pine-hollow/desktop/pose.gate.frameP95Ms | 17.5 | 17.8 | +1.7 % | ±2.8 | pass |
+| pine-hollow/desktop/pose.gate.maskedFrac | 0.1 | 0.1 | +0.0 % |  | info |
+| pine-hollow/desktop/pose.gate.ssim | 0.9685 | 0.9269 | -4.3 % | ≥ 0.9585 | **REGRESS** |
+| pine-hollow/desktop/pose.gate.trisK | 8355.8 | 8355.8 | +0.0 % | ±840.6 | pass |
+| pine-hollow/desktop/pose.pond.calls | 176 | 178 | +1.1 % | ±22.6 | pass |
+| pine-hollow/desktop/pose.pond.cpuP50Ms | 4.9 | 6.1 | +24.5 % | ±1.5 | pass |
+| pine-hollow/desktop/pose.pond.cpuP95Ms | 5.6 | 7.3 | +30.4 % | ±1.6 | **REGRESS** |
+| pine-hollow/desktop/pose.pond.fps | 60.0 | 60.0 | +0.0 % | ±7.0 | pass |
+| pine-hollow/desktop/pose.pond.frameP95Ms | 17.5 | 17.6 | +0.6 % | ±2.8 | pass |
+| pine-hollow/desktop/pose.pond.maskedFrac | 0.1 | 0.1 | +10.4 % |  | info |
+| pine-hollow/desktop/pose.pond.ssim | 0.9713 | 0.9116 | -6.1 % | ≥ 0.9613 | **REGRESS** |
+| pine-hollow/desktop/pose.pond.trisK | 4939.8 | 5010.2 | +1.4 % | ±499 | pass |
+| pine-hollow/desktop/warm.longTaskMaxMs | 735 | 793 | +7.9 % | ±160.3 | pass |
+| pine-hollow/desktop/warm.netBytes | 0.00 | 0.00 | +0.1 % | ±0.06 | pass |
+| pine-hollow/desktop/warm.playMs | 3.43 | 3.48 | +1.4 % | ±0.49 | pass |
+| pine-hollow/desktop/warm.requests | 277 | 282 | +1.8 % | ±7.5 | pass |
+| pine-hollow/phone/cold.bgNetBytes | 110620721 | 110620721 | +0.0 % |  | info |
+| pine-hollow/phone/cold.idleNetBytes | 148689611 | 148690543 | +0.0 % |  | info |
+| pine-hollow/phone/cold.longTaskMaxMs | 453 | 318 | -29.8 % | ±118 | better |
+| pine-hollow/phone/cold.netBytes | 36.31 | 36.31 | +0.0 % | ±0.43 | pass |
+| pine-hollow/phone/cold.playMs | 10.68 | 10.60 | -0.7 % | ±1.22 | pass |
+| pine-hollow/phone/cold.requests | 149 | 149 | +0.0 % | ±5 | pass |
+| pine-hollow/phone/cold4g.playMs | 35.18 | 35.20 | +0.1 % | ±3.67 | pass |
+| pine-hollow/phone/mem.geometries | 219 | 219 | +0.0 % | ±13 | pass |
+| pine-hollow/phone/mem.glBufBytes | 38.28 | 38.28 | +0.0 % | ±3.91 | pass |
+| pine-hollow/phone/mem.glRbBytes | 0.00 | 0.00 | +0.00 | ±2.00 | pass |
+| pine-hollow/phone/mem.glTexBytes | 279.05 | 279.05 | +0.0 % | ±15.95 | pass |
+| pine-hollow/phone/mem.heapBytes | 45.32 | 45.27 | -0.1 % | ±4.27 | pass |
+| pine-hollow/phone/mem.programs | 106 | 106 | +0.0 % | ±7.3 | pass |
+| pine-hollow/phone/mem.sceneTexBytes | 283.22 | 283.22 | +0.0 % | ±16.16 | pass |
+| pine-hollow/phone/mem.textures | 403 | 403 | +0.0 % | ±22.2 | pass |
+| pine-hollow/phone/pose.cabin.calls | 141 | 141 | +0.0 % | ±19.1 | pass |
+| pine-hollow/phone/pose.cabin.cpuP50Ms | 2.7 | 2.9 | +7.4 % | ±1.3 | pass |
+| pine-hollow/phone/pose.cabin.cpuP95Ms | 3.2 | 3.3 | +3.1 % | ±1.3 | pass |
+| pine-hollow/phone/pose.cabin.fps | 30.0 | 30.0 | +0.0 % | ±4.0 | pass |
+| pine-hollow/phone/pose.cabin.frameP95Ms | 34.1 | 34.2 | +0.3 % | ±4.4 | pass |
+| pine-hollow/phone/pose.cabin.maskedFrac | 0.1 | 0.1 | +11.3 % |  | info |
+| pine-hollow/phone/pose.cabin.ssim | 0.9777 | 0.9741 | -0.4 % | ≥ 0.9677 | pass |
+| pine-hollow/phone/pose.cabin.trisK | 1305.1 | 1305.1 | +0.0 % | ±135.5 | pass |
+| pine-hollow/phone/pose.gate.calls | 99 | 99 | +0.0 % | ±14.9 | pass |
+| pine-hollow/phone/pose.gate.cpuP50Ms | 2.5 | 2.5 | +0.0 % | ±1.3 | pass |
+| pine-hollow/phone/pose.gate.cpuP95Ms | 4.9 | 3.3 | -32.7 % | ±1.5 | better |
+| pine-hollow/phone/pose.gate.fps | 30.0 | 30.0 | +0.0 % | ±4.0 | pass |
+| pine-hollow/phone/pose.gate.frameP95Ms | 34.2 | 34.3 | +0.3 % | ±4.4 | pass |
+| pine-hollow/phone/pose.gate.maskedFrac | 0.1 | 0.1 | +5.1 % |  | info |
+| pine-hollow/phone/pose.gate.ssim | 0.9881 | 0.9844 | -0.4 % | ≥ 0.9781 | pass |
+| pine-hollow/phone/pose.gate.trisK | 1101.3 | 1101.3 | +0.0 % | ±115.1 | pass |
+| pine-hollow/phone/pose.pond.calls | 88 | 89 | +1.1 % | ±13.8 | pass |
+| pine-hollow/phone/pose.pond.cpuP50Ms | 2.4 | 2.5 | +4.2 % | ±1.2 | pass |
+| pine-hollow/phone/pose.pond.cpuP95Ms | 2.9 | 3.0 | +3.4 % | ±1.3 | pass |
+| pine-hollow/phone/pose.pond.fps | 30.0 | 30.0 | +0.0 % | ±4.0 | pass |
+| pine-hollow/phone/pose.pond.frameP95Ms | 34.4 | 34.1 | -0.9 % | ±4.4 | pass |
+| pine-hollow/phone/pose.pond.maskedFrac | 0 | 0.1 | +26.8 % |  | info |
+| pine-hollow/phone/pose.pond.ssim | 0.9757 | 0.9757 | +0.0 % | ≥ 0.9657 | pass |
+| pine-hollow/phone/pose.pond.trisK | 888.5 | 888.5 | +0.0 % | ±93.9 | pass |
+| pine-hollow/phone/warm.longTaskMaxMs | 295 | 313 | +6.1 % | ±94.3 | pass |
+| pine-hollow/phone/warm.netBytes | 0.00 | 0.00 | +0.1 % | ±0.06 | pass |
+| pine-hollow/phone/warm.playMs | 2.13 | 2.23 | +4.7 % | ±0.36 | pass |
+| pine-hollow/phone/warm.requests | 248 | 248 | +0.0 % | ±7 | pass |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.firstFrameMs | 4.66 | 4.61 | -1.1 % | ±0.62 | pass |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.glAllTexBytes | 525.64 | 415.92 | -20.9 % | ±28.28 | better |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.glTexBytes | 450.23 | 340.51 | -24.4 % | ±24.51 | better |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.heapBytes | 70.55 | 70.56 | +0.0 % | ±5.53 | pass |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.longTaskMaxMs | 1150 | 1148 | -0.2 % | ±222.5 | pass |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.ms | 4.59 | 4.54 | -1.2 % | ±0.61 | pass |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.navigated | 0 | 0 | +0 |  | info |
+| switch/desktop/1.driftwood-isle>nalati-grasslands.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.firstFrameMs | 2.07 | 2.03 | -1.7 % | ±0.36 | pass |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.glAllTexBytes | 377.35 | 340.85 | -9.7 % | ±20.87 | better |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.glTexBytes | 370.15 | 333.65 | -9.9 % | ±20.51 | better |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.heapBytes | 87.43 | 87.58 | +0.2 % | ±6.37 | pass |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.longTaskMaxMs | 466 | 465 | -0.2 % | ±119.9 | pass |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.ms | 1.98 | 1.94 | -1.8 % | ±0.35 | pass |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.navigated | 0 | 0 | +0 |  | info |
+| switch/desktop/2.nalati-grasslands>driftwood-isle.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/desktop/3.driftwood-isle>pine-hollow.firstFrameMs | 3.55 | 3.18 | -10.5 % | ±0.50 | pass |
+| switch/desktop/3.driftwood-isle>pine-hollow.glAllTexBytes | 1212.14 | 626.23 | -48.3 % | ±62.61 | better |
+| switch/desktop/3.driftwood-isle>pine-hollow.glTexBytes | 1205.27 | 619.36 | -48.6 % | ±62.26 | better |
+| switch/desktop/3.driftwood-isle>pine-hollow.heapBytes | 116.71 | 116.37 | -0.3 % | ±7.84 | pass |
+| switch/desktop/3.driftwood-isle>pine-hollow.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/desktop/3.driftwood-isle>pine-hollow.longTaskMaxMs | 707 | 717 | +1.4 % | ±156.1 | pass |
+| switch/desktop/3.driftwood-isle>pine-hollow.ms | 3.31 | 3.12 | -5.9 % | ±0.48 | pass |
+| switch/desktop/3.driftwood-isle>pine-hollow.navigated | 0 | 0 | +0 |  | info |
+| switch/desktop/3.driftwood-isle>pine-hollow.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/desktop/4.pine-hollow>nalati-grasslands.firstFrameMs | 2.94 | 2.79 | -5.1 % | ±0.44 | pass |
+| switch/desktop/4.pine-hollow>nalati-grasslands.glAllTexBytes | 525.64 | 415.92 | -20.9 % | ±28.28 | better |
+| switch/desktop/4.pine-hollow>nalati-grasslands.glTexBytes | 450.23 | 340.51 | -24.4 % | ±24.51 | better |
+| switch/desktop/4.pine-hollow>nalati-grasslands.heapBytes | 143.24 | 143.46 | +0.2 % | ±9.16 | pass |
+| switch/desktop/4.pine-hollow>nalati-grasslands.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/desktop/4.pine-hollow>nalati-grasslands.longTaskMaxMs | 309 | 307 | -0.6 % | ±96.4 | pass |
+| switch/desktop/4.pine-hollow>nalati-grasslands.ms | 2.86 | 2.71 | -5.1 % | ±0.44 | pass |
+| switch/desktop/4.pine-hollow>nalati-grasslands.navigated | 0 | 0 | +0 |  | info |
+| switch/desktop/4.pine-hollow>nalati-grasslands.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/desktop/cacheStorageBytes | 124.52 | 271.53 | +118.1 % | ±1.31 | **REGRESS** |
+| switch/desktop/prefetchBytes | 102211818 | 256291504 | +150.7 % |  | info |
+| switch/phone/1.driftwood-isle>nalati-grasslands.firstFrameMs | 3.44 | 3.42 | -0.5 % | ±0.49 | pass |
+| switch/phone/1.driftwood-isle>nalati-grasslands.glAllTexBytes | 136.13 | 136.13 | +0.0 % | ±8.81 | pass |
+| switch/phone/1.driftwood-isle>nalati-grasslands.glTexBytes | 96.97 | 96.97 | +0.0 % | ±6.85 | pass |
+| switch/phone/1.driftwood-isle>nalati-grasslands.heapBytes | 65.98 | 66.29 | +0.5 % | ±5.30 | pass |
+| switch/phone/1.driftwood-isle>nalati-grasslands.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/phone/1.driftwood-isle>nalati-grasslands.longTaskMaxMs | 351 | 348 | -0.9 % | ±102.7 | pass |
+| switch/phone/1.driftwood-isle>nalati-grasslands.ms | 3.35 | 3.37 | +0.7 % | ±0.49 | pass |
+| switch/phone/1.driftwood-isle>nalati-grasslands.navigated | 0 | 0 | +0 |  | info |
+| switch/phone/1.driftwood-isle>nalati-grasslands.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/phone/2.nalati-grasslands>driftwood-isle.firstFrameMs | 1.79 | 1.74 | -3.0 % | ±0.33 | pass |
+| switch/phone/2.nalati-grasslands>driftwood-isle.glAllTexBytes | 117.56 | 117.56 | +0.0 % | ±7.88 | pass |
+| switch/phone/2.nalati-grasslands>driftwood-isle.glTexBytes | 117.24 | 117.24 | +0.0 % | ±7.86 | pass |
+| switch/phone/2.nalati-grasslands>driftwood-isle.heapBytes | 81.77 | 81.99 | +0.3 % | ±6.09 | pass |
+| switch/phone/2.nalati-grasslands>driftwood-isle.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/phone/2.nalati-grasslands>driftwood-isle.longTaskMaxMs | 381 | 380 | -0.3 % | ±107.2 | pass |
+| switch/phone/2.nalati-grasslands>driftwood-isle.ms | 1.69 | 1.70 | +0.3 % | ±0.32 | pass |
+| switch/phone/2.nalati-grasslands>driftwood-isle.navigated | 0 | 0 | +0 |  | info |
+| switch/phone/2.nalati-grasslands>driftwood-isle.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/phone/3.driftwood-isle>pine-hollow.firstFrameMs | 2.11 | 2.16 | +2.4 % | ±0.36 | pass |
+| switch/phone/3.driftwood-isle>pine-hollow.glAllTexBytes | 279.05 | 279.05 | +0.0 % | ±15.95 | pass |
+| switch/phone/3.driftwood-isle>pine-hollow.glTexBytes | 279.05 | 279.05 | +0.0 % | ±15.95 | pass |
+| switch/phone/3.driftwood-isle>pine-hollow.heapBytes | 110.47 | 110.31 | -0.1 % | ±7.52 | pass |
+| switch/phone/3.driftwood-isle>pine-hollow.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/phone/3.driftwood-isle>pine-hollow.longTaskMaxMs | 284 | 306 | +7.7 % | ±92.6 | pass |
+| switch/phone/3.driftwood-isle>pine-hollow.ms | 1.89 | 1.96 | +3.8 % | ±0.34 | pass |
+| switch/phone/3.driftwood-isle>pine-hollow.navigated | 0 | 0 | +0 |  | info |
+| switch/phone/3.driftwood-isle>pine-hollow.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/phone/4.pine-hollow>nalati-grasslands.firstFrameMs | 2.58 | 2.55 | -1.1 % | ±0.41 | pass |
+| switch/phone/4.pine-hollow>nalati-grasslands.glAllTexBytes | 136.13 | 136.13 | +0.0 % | ±8.81 | pass |
+| switch/phone/4.pine-hollow>nalati-grasslands.glTexBytes | 96.97 | 96.97 | +0.0 % | ±6.85 | pass |
+| switch/phone/4.pine-hollow>nalati-grasslands.heapBytes | 134.42 | 133.54 | -0.7 % | ±8.72 | pass |
+| switch/phone/4.pine-hollow>nalati-grasslands.loadingShown | 1 | 1 | +0.0 % |  | info |
+| switch/phone/4.pine-hollow>nalati-grasslands.longTaskMaxMs | 310 | 307 | -1.0 % | ±96.5 | pass |
+| switch/phone/4.pine-hollow>nalati-grasslands.ms | 2.49 | 2.48 | -0.4 % | ±0.40 | pass |
+| switch/phone/4.pine-hollow>nalati-grasslands.navigated | 0 | 0 | +0 |  | info |
+| switch/phone/4.pine-hollow>nalati-grasslands.netBytes | 0.00 | 0.00 | +0.00 | ±0.06 | pass |
+| switch/phone/cacheStorageBytes | 146.75 | 146.77 | +0.0 % | ±1.53 | pass |
+| switch/phone/prefetchBytes | 126886451 | 126886451 | +0.0 % |  | info |
+
+**10 row regressions**, 32 better, 244 within the band; **1 budget rule missed**.
+
+### budget rules (scorecard.budget.json `rules`: enforced ones fail the compare, proposed ones only print)
+
+| rule | row | baseline | now | limit | verdict |
+|---|---|---|---|---|---|
+| first-play cold transfer ≤ 1.5× today: Driftwood phone ≤ 30.1 MiB | driftwood-isle/phone/cold.netBytes | 20.79 | 20.79 | ≤ 30.14 | pass |
+| first-play cold transfer ≤ 1.5× today: Driftwood desktop ≤ 31.6 MiB | driftwood-isle/desktop/cold.netBytes | 22.12 | 22.12 | ≤ 31.64 | pass |
+| first-play cold transfer ≤ 1.5× today: Nalati phone ≤ 43.4 MiB | nalati-grasslands/phone/cold.netBytes | 29.96 | 29.96 | ≤ 43.44 | pass |
+| first-play cold transfer ≤ 1.5× today: Nalati desktop ≤ 52.1 MiB | nalati-grasslands/desktop/cold.netBytes | 36.09 | 36.09 | ≤ 52.15 | pass |
+| first-play cold transfer ≤ 1.5× today: Pine Hollow phone ≤ 53.8 MiB | pine-hollow/phone/cold.netBytes | 36.31 | 36.31 | ≤ 53.77 | pass |
+| first-play cold transfer ≤ 1.5× today: Pine Hollow desktop ≤ 137.0 MiB | pine-hollow/desktop/cold.netBytes | 91.53 | 91.53 | ≤ 137.04 | pass |
+| first-play cold transfer ≤ 1.5× the baseline (any row the explicit ones above miss) | driftwood-isle/phone/cold.netBytes | 20.79 | 20.79 | ≤ 1.5× = 31.19 | pass |
+| first-play cold transfer ≤ 1.5× the baseline (any row the explicit ones above miss) | driftwood-isle/desktop/cold.netBytes | 22.12 | 22.12 | ≤ 1.5× = 33.18 | pass |
+| first-play cold transfer ≤ 1.5× the baseline (any row the explicit ones above miss) | nalati-grasslands/phone/cold.netBytes | 29.96 | 29.96 | ≤ 1.5× = 44.94 | pass |
+| first-play cold transfer ≤ 1.5× the baseline (any row the explicit ones above miss) | nalati-grasslands/desktop/cold.netBytes | 36.09 | 36.09 | ≤ 1.5× = 54.13 | pass |
+| first-play cold transfer ≤ 1.5× the baseline (any row the explicit ones above miss) | pine-hollow/phone/cold.netBytes | 36.31 | 36.31 | ≤ 1.5× = 54.46 | pass |
+| first-play cold transfer ≤ 1.5× the baseline (any row the explicit ones above miss) | pine-hollow/desktop/cold.netBytes | 91.53 | 91.53 | ≤ 1.5× = 137.30 | pass |
+| total SW cache, all three shards ≤ 300 MB | switch/phone/cacheStorageBytes | 146.75 | 146.77 | ≤ 300.00 | pass |
+| total SW cache, all three shards ≤ 300 MB | switch/desktop/cacheStorageBytes | 124.52 | 271.53 | ≤ 300.00 | pass |
+| cold time-to-play no worse than today | driftwood-isle/phone/cold.playMs | 7.03 | 7.08 | ≤ 7.88 | pass |
+| cold time-to-play no worse than today | driftwood-isle/desktop/cold.playMs | 7.66 | 7.81 | ≤ 8.57 | pass |
+| cold time-to-play no worse than today | nalati-grasslands/phone/cold.playMs | 9.13 | 9.13 | ≤ 10.19 | pass |
+| cold time-to-play no worse than today | nalati-grasslands/desktop/cold.playMs | 12.08 | 11.48 | ≤ 13.44 | pass |
+| cold time-to-play no worse than today | pine-hollow/phone/cold.playMs | 10.68 | 10.60 | ≤ 11.89 | pass |
+| cold time-to-play no worse than today | pine-hollow/desktop/cold.playMs | 28.45 | 27.96 | ≤ 31.45 | pass |
+| cold time-to-play no worse than today, Fast 4G | driftwood-isle/phone/cold4g.playMs | 24.30 | 26.70 | ≤ 26.89 | pass |
+| cold time-to-play no worse than today, Fast 4G | driftwood-isle/desktop/cold4g.playMs | 23.63 | 27.66 | ≤ 26.14 | **FAIL** |
+| cold time-to-play no worse than today, Fast 4G | nalati-grasslands/phone/cold4g.playMs | 31.65 | 31.66 | ≤ 34.97 | pass |
+| cold time-to-play no worse than today, Fast 4G | nalati-grasslands/desktop/cold4g.playMs | 37.76 | 37.61 | ≤ 41.68 | pass |
+| cold time-to-play no worse than today, Fast 4G | pine-hollow/phone/cold4g.playMs | 35.18 | 35.20 | ≤ 38.85 | pass |
+| cold time-to-play no worse than today, Fast 4G | pine-hollow/desktop/cold4g.playMs | 84.14 | 84.06 | ≤ 92.71 | pass |
+| Driftwood cold time-to-play on 4G ≤ 30 s | driftwood-isle/phone/cold4g.playMs | 24.30 | 26.70 | ≤ 30.00 | pass |
+| Driftwood cold time-to-play on 4G ≤ 30 s | driftwood-isle/desktop/cold4g.playMs | 23.63 | 27.66 | ≤ 30.00 | pass |
+| Pine Hollow cold time-to-play on 4G ≤ 40 s (phone) | pine-hollow/phone/cold4g.playMs | 35.18 | 35.20 | ≤ 40.00 | pass |
+| Nalati cold time-to-play on 4G ≤ 35.5 s (phone) | nalati-grasslands/phone/cold4g.playMs | 31.65 | 31.66 | ≤ 35.50 | pass |
+| Nalati cold time-to-play on 4G ≤ 40.8 s (desktop) | nalati-grasslands/desktop/cold4g.playMs | 37.76 | 37.61 | ≤ 40.80 | pass |
+| warm time-to-play: no worse (goal: improve) | driftwood-isle/phone/warm.playMs | 1.88 | 1.98 | ≤ 2.22 | pass · goal (improve): not yet |
+| warm time-to-play: no worse (goal: improve) | driftwood-isle/desktop/warm.playMs | 2.26 | 2.18 | ≤ 2.63 | pass · goal (improve): not yet |
+| warm time-to-play: no worse (goal: improve) | nalati-grasslands/phone/warm.playMs | 3.61 | 3.38 | ≤ 4.12 | pass · goal (improve): not yet |
+| warm time-to-play: no worse (goal: improve) | nalati-grasslands/desktop/warm.playMs | 5.98 | 4.46 | ≤ 6.73 | pass · goal (improve): reached |
+| warm time-to-play: no worse (goal: improve) | pine-hollow/phone/warm.playMs | 2.13 | 2.23 | ≤ 2.49 | pass · goal (improve): not yet |
+| warm time-to-play: no worse (goal: improve) | pine-hollow/desktop/warm.playMs | 3.43 | 3.48 | ≤ 3.93 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/phone/1.driftwood-isle>nalati-grasslands.ms | 3.35 | 3.37 | ≤ 3.84 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/phone/2.nalati-grasslands>driftwood-isle.ms | 1.69 | 1.70 | ≤ 2.01 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/phone/3.driftwood-isle>pine-hollow.ms | 1.89 | 1.96 | ≤ 2.23 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/phone/4.pine-hollow>nalati-grasslands.ms | 2.49 | 2.48 | ≤ 2.88 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/desktop/1.driftwood-isle>nalati-grasslands.ms | 4.59 | 4.54 | ≤ 5.20 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/desktop/2.nalati-grasslands>driftwood-isle.ms | 1.98 | 1.94 | ≤ 2.33 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/desktop/3.driftwood-isle>pine-hollow.ms | 3.31 | 3.12 | ≤ 3.80 | pass · goal (improve): not yet |
+| shard switch time: no worse (goal: improve) | switch/desktop/4.pine-hollow>nalati-grasslands.ms | 2.86 | 2.71 | ≤ 3.29 | pass · goal (improve): not yet |
+| bytes re-downloaded after a one-texture change ≤ 4 MB | retouch/*/netBytes | | not measured | | n/a (enforced) |
+
