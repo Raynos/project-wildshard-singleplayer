@@ -494,6 +494,25 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw, chunk.spawn.y); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
   const respawn = () => { toSpawn(); music.sting('death'); };
+  // a built fragment's limits (ChunkDef.bounds): out of them → back on the last registry floor stood on inside them (or
+  // the spawn), no death. The walls keep the player in; this catches whatever gets past them (a fall into the Well)
+  if (chunk.bounds !== undefined) {
+    const b = chunk.bounds, safe = { x: 0, y: 0, z: 0, set: false };
+    let since = 0;
+    game.onUpdate((dt) => {
+      if (world.freeCamera || world.tour.active) return;
+      const p = player.position;
+      if (p.y < b.floor || p.x < b.x0 || p.x > b.x1 || p.z < b.z0 || p.z > b.z1) {
+        if (safe.set) player.spawn(safe.x, safe.z, player.yaw, safe.y); else toSpawn();
+        since = 0;
+        return;
+      }
+      since += dt;
+      if (since < 0.2 || !player.onGround || player.hover) return;
+      const f = registry.floorAt(p.x, p.z);
+      if (f !== undefined && Math.abs(f - p.y) < 0.3) { safe.x = p.x; safe.y = f; safe.z = p.z; safe.set = true; since = 0; }
+    }, 'bounds');
+  }
   let kills = 0, health = 100, lastHurt = 0, swimHold = false;
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/ui/Menu.ts) ──

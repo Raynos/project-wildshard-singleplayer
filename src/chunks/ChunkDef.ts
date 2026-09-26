@@ -537,6 +537,12 @@ export interface ChunkDef {
   render?: () => Promise<ShardRender>;
   /** a structure-first shard: its world is built, not a landscape (`ChunkStructures`); omitted = a landscape shard */
   structures?: ChunkStructures;
+  /**
+   * A built fragment's limits (the landscape shards have the terrain's edge walls instead): below `floor` or outside the
+   * box, on foot or on the board, the player is put back on the last floor they stood on inside them (a registry floor;
+   * else the spawn) — a soft respawn, no death. Omitted = no limits.
+   */
+  bounds?: { x0: number; x1: number; z0: number; z1: number; floor: number };
   /** `weapon: 'sword'`: the shard's own sword for the engine's Sword — its viewmodel (`rig`), and optionally its moves (the
    *  rest pose) and portrait framing; a lazy loader, so the def stays node-safe. Omitted = the wooden sword */
   sword?: () => Promise<ShardSword>;

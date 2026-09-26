@@ -1,14 +1,15 @@
 // The fragment's collision (P0-5c, PHYSICS.md): everything walkable on Lantern Square, its street through the paifang and
 // the stair-street stub, as engine-neutral ColliderDescs from the layout's plan. The floors are real boxes (their tops
 // at the square's datum), the stair is dome D's `treads` (rise 0.35: the motor's autostep climbs them), and the edges
-// of the fragment are walls: the building fronts, the balustrade over the Well (with an invisible parapet above it so
-// nobody vaults into the shaft), the street's and the stair's far ends. The props you would walk into — the gate's
+// of the fragment are walls: the building fronts (40 m), the balustrades over the Well (with an invisible parapet 12 m
+// up so nobody vaults into the shaft), the street's and the stair's far ends. What still gets out (a grapple gone wrong)
+// the def's `bounds` catches: a soft respawn on the last floor stood on. The props you would walk into — the gate's
 // posts, the banyan's planter, the stalls — are boxes of their footprints.
 import type { ColliderDesc } from '../../../world/registry';
 import { BANYAN, GATE, HAWKER, PLAZA, STAIR, STALL, STREET, WELL, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairstreet';
 import { stairUpperColliders } from './stairstreet-upper';
-import { wellColliders, wellFloor } from './well';
+import { RIM, wellColliders, wellFloor } from './well';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
 export const STREET_END = -120;
@@ -22,6 +23,8 @@ function span(x0: number, y0: number, z0: number, x1: number, y1: number, z1: nu
 
 /** a wall along x (at z) or along z (at x), 1 m thick, from the square's datum up `h` metres, on the far side of the line */
 const WALL_H = 40, SLAB = 1.2;
+/** the invisible parapets over the Well reach this high above the floor (out of reach of every jump, on foot or board) */
+const PARAPET = 12;
 
 /** the fragment's collision in four pieces (their looks on the maps: floors stone, fronts rock, edges rock, props timber) */
 export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[]; edges: ColliderDesc[]; props: ColliderDesc[] }
@@ -56,10 +59,16 @@ export function fragmentColliders(): FragmentColliders {
   out.push(span(PLAZA.x1 + 0.6, Y0 - 1, STAIR.z0 - DEEP, STAIR_TOP.x1, STAIR_TOP.y + WALL_H, STAIR.z0));
   out.push(span(PLAZA.x1 + 0.6, Y0 - 1, STAIR.z1, STAIR_TOP.x1, STAIR_TOP.y + WALL_H, STAIR.z1 + DEEP));
   out.push(span(STAIR_TOP.x1, Y0 - 1, STAIR.z0 - DEEP, STAIR_TOP.x1 + DEEP, STAIR_TOP.y + WALL_H, STAIR.z1 + DEEP));
-  // ── the balustrade over the Well: the stone itself (1.1 m) and an invisible parapet to 3 m above it ──
+  // ── the balustrades over the Well: the stone (1.12 m) and an invisible parapet PARAPET m over the floor, above any jump
+  // (a jump + double jump lifts the feet ~2.9 m; from the balustrade's top, a prop's or the board's, ~5 m) ──
   out = edges;
   out.push(span(PLAZA.x0 - 0.1, Y0, WELL.z0, PLAZA.x0 + 0.5, Y0 + 1.12, PLAZA.z1 + 0.6));
-  out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, WELL.z0, PLAZA.x0 + 0.1, Y0 + 3.2, PLAZA.z1 + 0.6));
+  // the square's and the street's, except where the Well's south rim ledge meets the square (a hop over the stone
+  // onto the rim, where mockup B stands; the rim is walled on its other three sides)
+  out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, WELL.z0, PLAZA.x0 + 0.1, Y0 + PARAPET, RIM.z0));
+  out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, RIM.z1, PLAZA.x0 + 0.1, Y0 + PARAPET, PLAZA.z1 + 0.6));
+  // the rim's own (dome C's stone and 3.2 m parapet, well.ts wellColliders), carried up to the same height
+  out.push(span(WELL.x0, Y0 + 1.12, RIM.z0 - 0.1, WELL.x1, Y0 + PARAPET, RIM.z0 + 0.1));
   // ── props you would walk into ──
   out = props;
   // (the gate's lion pair and their pedestals are gone: dome B took them out, style-A and the A2 targets have none)

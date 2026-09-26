@@ -15,7 +15,7 @@
 import { CHUNK_HALF, ROAD_LENGTH } from '../../core/config';
 import { buildTerrain } from '../terrain';
 import type { ChunkDef } from '../ChunkDef';
-import { Y0 } from './layout';
+import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
 import thumbnail from '../thumbs/nine-dragon-stack.jpg';
 import heroPortrait from '../thumbs/nine-dragon-stack-portrait.jpg';
 import heroLandscape from '../thumbs/nine-dragon-stack-landscape.jpg';
@@ -133,6 +133,11 @@ export const NINE_DRAGON_STACK: ChunkDef = {
     const look = createRender();
     return { ...look, frame: (dt: number, t: number): void => { cullNineDragonWorld(); look.frame?.(dt, t); } };
   },
+  // the fragment's limits: its footprint (the Well and its run north west of the square, the street north to its end
+  // wall, the stair-street east to its top landing) and a floor under the Well's lowest crossing (Y0 − 93, well-plan.ts).
+  // The walls and parapets keep the player in; past these (a grapple gone wrong, a fall into the shaft) they are put
+  // back on the last floor they stood on
+  bounds: { x0: WELL.x0 - 8, x1: STAIR.x1 + 20, z0: STREET.z0 + 100, z1: PLAZA.z1 + 8, floor: Y0 - 100 },
   structures: {
     files: FILES,
     build: async () => (await import('./index')).NINE_DRAGON_WORLD,

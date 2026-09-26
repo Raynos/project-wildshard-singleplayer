@@ -1799,6 +1799,544 @@
     "y": 125.0
    },
    "notes": "along the Well's south rim (dome C's wellColliders), past the mockup B / D cameras' spot at the balustrade"
+  },
+  {
+   "name": "escape-square-balustrade",
+   "start": {
+    "x": 4,
+    "z": -8,
+    "yaw": 1.5708,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": 4,
+     "z": -4
+    },
+    {
+     "x": -4,
+     "z": -8,
+     "jump": 2,
+     "jumpAt": 5.0
+    },
+    {
+     "x": 4,
+     "z": -4
+    },
+    {
+     "x": -4,
+     "z": -8,
+     "jump": 2,
+     "jumpAt": 5.0
+    },
+    {
+     "x": 4,
+     "z": -4
+    },
+    {
+     "x": -4,
+     "z": -8,
+     "jump": 2,
+     "jumpAt": 5.0
+    }
+   ],
+   "inside": {
+    "x0": -0.3,
+    "x1": 23,
+    "z0": -27,
+    "z1": 21,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 40,
+   "notes": "run at the square's balustrade over the Well and jump + double-jump (onto the stone, then off it): the 12 m parapet holds"
+  },
+  {
+   "name": "escape-street-balustrade",
+   "start": {
+    "x": 4,
+    "z": -36,
+    "yaw": 1.5708,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": 4,
+     "z": -32
+    },
+    {
+     "x": -4,
+     "z": -36,
+     "jump": 2,
+     "jumpAt": 5.0
+    },
+    {
+     "x": 4,
+     "z": -32
+    },
+    {
+     "x": -4,
+     "z": -36,
+     "jump": 2,
+     "jumpAt": 5.0
+    },
+    {
+     "x": 4,
+     "z": -32
+    },
+    {
+     "x": -4,
+     "z": -36,
+     "jump": 2,
+     "jumpAt": 5.0
+    }
+   ],
+   "inside": {
+    "x0": -0.3,
+    "x1": 13,
+    "z0": -121,
+    "z1": -26,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 40,
+   "notes": "the street's west bay over the Well's north end, the same attempts"
+  },
+  {
+   "name": "escape-hawker-roof",
+   "start": {
+    "x": 8,
+    "z": -2.5,
+    "yaw": 1.5708,
+    "y": 127.4
+   },
+   "waypoints": [
+    {
+     "x": -4,
+     "z": -2.5,
+     "jump": 2,
+     "jumpAt": 9
+    }
+   ],
+   "inside": {
+    "x0": -0.3,
+    "x1": 23,
+    "z0": -27,
+    "z1": 21,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 20,
+   "notes": "off the hawker stall's roof (2.4 m) toward the Well with a double jump"
+  },
+  {
+   "name": "escape-south-front",
+   "start": {
+    "x": 6,
+    "z": 16,
+    "yaw": 3.1416,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": 6,
+     "z": 15
+    },
+    {
+     "x": 6,
+     "z": 22,
+     "jump": 2,
+     "jumpAt": 3.5
+    },
+    {
+     "x": 6,
+     "z": 15
+    },
+    {
+     "x": 6,
+     "z": 22,
+     "jump": 2,
+     "jumpAt": 3.5
+    },
+    {
+     "x": 6,
+     "z": 15
+    },
+    {
+     "x": 6,
+     "z": 22,
+     "jump": 2,
+     "jumpAt": 3.5
+    }
+   ],
+   "inside": {
+    "x0": -0.3,
+    "x1": 23,
+    "z0": -27,
+    "z1": 21,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 40,
+   "notes": "the square's south front, behind the spawn"
+  },
+  {
+   "name": "escape-street-end",
+   "start": {
+    "x": 6.5,
+    "z": -112,
+    "yaw": 0.0,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": 6.5,
+     "z": -114
+    },
+    {
+     "x": 6.5,
+     "z": -122.5,
+     "jump": 2,
+     "jumpAt": 3.5
+    },
+    {
+     "x": 6.5,
+     "z": -114
+    },
+    {
+     "x": 6.5,
+     "z": -122.5,
+     "jump": 2,
+     "jumpAt": 3.5
+    },
+    {
+     "x": 6.5,
+     "z": -114
+    },
+    {
+     "x": 6.5,
+     "z": -122.5,
+     "jump": 2,
+     "jumpAt": 3.5
+    }
+   ],
+   "inside": {
+    "x0": 0,
+    "x1": 13,
+    "z0": -121,
+    "z1": -26,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 40,
+   "notes": "the street's end wall"
+  },
+  {
+   "name": "escape-stair-sides",
+   "start": {
+    "x": 37,
+    "z": 6,
+    "yaw": 0.0,
+    "y": 132.0
+   },
+   "waypoints": [
+    {
+     "x": 37,
+     "z": -3,
+     "jump": 2,
+     "jumpAt": 6
+    },
+    {
+     "x": 37,
+     "z": 6
+    },
+    {
+     "x": 37,
+     "z": 15,
+     "jump": 2,
+     "jumpAt": 6
+    }
+   ],
+   "inside": {
+    "x0": 21,
+    "x1": 80,
+    "z0": 1.5,
+    "z1": 10.5,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 132.0
+   },
+   "timeout": 30,
+   "notes": "landing 1: double jumps at the stair-street's north and south walls"
+  },
+  {
+   "name": "escape-stair-top",
+   "start": {
+    "x": 74,
+    "z": 6,
+    "yaw": -1.5708,
+    "y": 146.0
+   },
+   "waypoints": [
+    {
+     "x": 73,
+     "z": 6
+    },
+    {
+     "x": 79.5,
+     "z": 6,
+     "jump": 2,
+     "jumpAt": 3.5
+    },
+    {
+     "x": 73,
+     "z": 6
+    },
+    {
+     "x": 79.5,
+     "z": 6,
+     "jump": 2,
+     "jumpAt": 3.5
+    }
+   ],
+   "inside": {
+    "x0": 21,
+    "x1": 78.5,
+    "z0": 1.5,
+    "z1": 10.5,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 146.0
+   },
+   "timeout": 30,
+   "notes": "the top landing's end wall"
+  },
+  {
+   "name": "escape-rim-into-well",
+   "start": {
+    "x": -19.5,
+    "z": 14.5,
+    "yaw": 0.0,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": -19.5,
+     "z": 15.2
+    },
+    {
+     "x": -19.5,
+     "z": 10,
+     "jump": 2,
+     "jumpAt": 3.5
+    },
+    {
+     "x": -19.5,
+     "z": 15.2
+    },
+    {
+     "x": -19.5,
+     "z": 10,
+     "jump": 2,
+     "jumpAt": 3.5
+    },
+    {
+     "x": -19.5,
+     "z": 15.2
+    },
+    {
+     "x": -19.5,
+     "z": 10,
+     "jump": 2,
+     "jumpAt": 3.5
+    }
+   ],
+   "inside": {
+    "x0": -28.5,
+    "x1": 23,
+    "z0": 10.9,
+    "z1": 21,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 40,
+   "notes": "the Well's south rim (mockup B's spot): double jumps over its balustrade into the shaft"
+  },
+  {
+   "name": "escape-rim-hop",
+   "start": {
+    "x": 3,
+    "z": 13.6,
+    "yaw": 1.5708,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": -4,
+     "z": 13.6,
+     "jump": 2,
+     "jumpAt": 5.5
+    },
+    {
+     "x": -19.5,
+     "z": 13.6
+    }
+   ],
+   "inside": {
+    "x0": -28.5,
+    "x1": 23,
+    "z0": 10.9,
+    "z1": 21,
+    "floor": 124.5
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 20,
+   "notes": "the one way over a balustrade: from the square onto the rim ledge (in bounds), then along it"
+  },
+  {
+   "name": "escape-hover-balustrade",
+   "start": {
+    "x": 4,
+    "z": -8,
+    "yaw": 1.5708,
+    "y": 125.0,
+    "hover": true
+   },
+   "waypoints": [
+    {
+     "x": 5,
+     "z": -4
+    },
+    {
+     "x": -1.5,
+     "z": -8,
+     "jump": 1,
+     "jumpAt": 3.5
+    },
+    {
+     "x": 5,
+     "z": -4
+    },
+    {
+     "x": -1.5,
+     "z": -8,
+     "jump": 1,
+     "jumpAt": 3.5
+    },
+    {
+     "x": 5,
+     "z": -4
+    },
+    {
+     "x": -1.5,
+     "z": -8,
+     "jump": 1,
+     "jumpAt": 3.5
+    }
+   ],
+   "inside": {
+    "x0": -0.3,
+    "x1": 23,
+    "z0": -27,
+    "z1": 21,
+    "floor": 124.5
+   },
+   "timeout": 30,
+   "notes": "on the board: jumps at the square's balustrade"
+  },
+  {
+   "name": "escape-hover-rim",
+   "start": {
+    "x": -19.5,
+    "z": 14.5,
+    "yaw": 0.0,
+    "y": 125.0,
+    "hover": true
+   },
+   "waypoints": [
+    {
+     "x": -19.5,
+     "z": 15.2
+    },
+    {
+     "x": -19.5,
+     "z": 10,
+     "jump": 1,
+     "jumpAt": 3.5
+    },
+    {
+     "x": -19.5,
+     "z": 15.2
+    },
+    {
+     "x": -19.5,
+     "z": 10,
+     "jump": 1,
+     "jumpAt": 3.5
+    },
+    {
+     "x": -19.5,
+     "z": 15.2
+    },
+    {
+     "x": -19.5,
+     "z": 10,
+     "jump": 1,
+     "jumpAt": 3.5
+    }
+   ],
+   "inside": {
+    "x0": -28.5,
+    "x1": 23,
+    "z0": 10.9,
+    "z1": 21,
+    "floor": 124.5
+   },
+   "timeout": 30,
+   "notes": "on the board: jumps off the rim into the Well"
+  },
+  {
+   "name": "net-well-fall",
+   "start": {
+    "x": -14,
+    "z": -10.4,
+    "yaw": 3.1416,
+    "y": 107.0
+   },
+   "waypoints": [
+    {
+     "x": -19.5,
+     "z": 13.6
+    }
+   ],
+   "inside": {
+    "x0": -40,
+    "x1": 95,
+    "z0": -131,
+    "z1": 29,
+    "floor": 20
+   },
+   "expect": {
+    "y": 125.0
+   },
+   "timeout": 15,
+   "notes": "dropped into the shaft between the crossings (the grapple gone wrong): the def's bounds catch the fall under Y0 − 100 and put the player back on the last floor stood on (the rim, two legs before)"
   }
  ]
 }

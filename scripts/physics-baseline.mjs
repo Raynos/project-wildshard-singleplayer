@@ -11,6 +11,10 @@
 //           in-page autopilot faces the next waypoint and holds W (Space at `jump` waypoints) until it is within
 //           0.8 m, recording every frame's feet position, vertical speed and ground / platform / swim / slide flags.
 //           A leg that makes < 0.3 m of progress in 2 s is logged as stuck at that waypoint and skipped on.
+//           ESCAPE legs (`inside: { x0, x1, z0, z1, floor }`) try to get out of a built fragment: their waypoints lie past a
+//           wall or a balustrade, a `jump: 2` waypoint jumps and double-jumps at it from `jumpAt` m off (default 1.6), and
+//           `start.hover` rides the board. They are never teleported: a waypoint the walls stop is dropped after 1.2 s
+//           with no progress (not a stuck). `out` = the frames spent outside `inside` (0 = the edge held).
 //           `--video` records a webm of each shard's walk.
 //
 // Writes progress/physics/<label>-<build>.json (everything) and prints a markdown table. `--compare a.json b.json`
@@ -239,33 +243,41 @@ if (MODE.includes('walk')) {
           if (typeof legIn.start.y === 'number') p.position.y = legIn.start.y; // a deck start names its floor
           else land();
           p.pitch = -0.12;
+          if (legIn.start.hover === true) p.setHover(true);
           if (w.animals.__frozen !== true) { w.animals.update = () => undefined; w.animals.__frozen = true; } // no creature in the way of the route (they are the poses' job)
           await new Promise((resolve) => { setTimeout(resolve, 600); }); // land, settle the camera
           const trace = [], stuck = [];
-          let wi = 0, t = 0, jumpT = 0, lastProg = { t: 0, d: Infinity };
+          let wi = 0, t = 0, jumpT = 0, jump2 = false, lastProg = { t: 0, d: Infinity }, out = 0;
+          const box = legIn.inside ?? null;
           const t0 = performance.now();
           await new Promise((resolve) => {
             w.game.onUpdate((dt) => {
-              if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) { p.keys.clear(); wi = -1; resolve(undefined); } return; }
+              if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) { p.keys.clear(); if (legIn.start.hover === true) p.setHover(false); wi = -1; resolve(undefined); } return; }
               if (wi < 0) return;
               t += dt;
               const wp = legIn.waypoints[wi];
               const dx = wp.x - p.position.x, dz = wp.z - p.position.z, d = Math.hypot(dx, dz);
               trace.push([Math.round(t * 1000) / 1000, Number(p.position.x.toFixed(3)), Number(p.position.y.toFixed(3)), Number(p.position.z.toFixed(3)), Number(p.velocity.y.toFixed(2)), p.onGround ? 1 : 0, p.onPlatform ? 1 : 0, p.swimming ? 1 : 0, p.sliding ? 1 : 0, wi]);
-              if (d < 0.8) { wi++; lastProg = { t, d: Infinity }; p.keys.delete('Space'); return; }
+              const q = p.position;
+              if (box !== null && (q.x < box.x0 || q.x > box.x1 || q.z < box.z0 || q.z > box.z1 || q.y < box.floor)) out++;
+              if (d < 0.8) { wi++; lastProg = { t, d: Infinity }; p.keys.delete('Space'); jumpT = 0; jump2 = false; return; }
               if (d < lastProg.d - 0.3) lastProg = { t, d };
+              else if (box !== null && t - lastProg.t > 1.2) { wi++; lastProg = { t, d: Infinity }; p.keys.delete('Space'); jumpT = 0; jump2 = false; return; } // an escape leg: the edge held
               else if (t - lastProg.t > 2) { // no progress for 2 s: log it and skip on to the next waypoint
                 stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)) });
                 p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
               }
               p.yaw = Math.atan2(-dx, -dz);
               p.keys.add('KeyW');
-              if (wp.jump === true && d < 1.6 && jumpT === 0) { p.keys.add('Space'); jumpT = 1; }
+              const jumps = wp.jump === true ? 1 : typeof wp.jump === 'number' ? wp.jump : 0;
+              if (jumps > 0 && d < (wp.jumpAt ?? 1.6) && jumpT === 0) { p.keys.add('Space'); jumpT = 1; }
               else if (jumpT > 0 && jumpT++ > 3) { p.keys.delete('Space'); }
-              if (wp.jump !== true) jumpT = 0;
+              // the double jump: a second press near the first one's apex
+              if (jumps > 1 && jumpT > 5 && !jump2 && p.velocity.y < 1.5) { p.keys.add('Space'); jump2 = true; jumpT = 1; }
+              if (jumps === 0) jumpT = 0;
             });
           });
-          return { trace, stuck, wall: Math.round(performance.now() - t0) };
+          return { trace, stuck, out, wall: Math.round(performance.now() - t0) };
         }, leg);
         const ys = r.trace.map((s) => s[2]);
         const last = r.trace.at(-1) ?? [0, Number.NaN, Number.NaN, Number.NaN];
@@ -277,10 +289,10 @@ if (MODE.includes('walk')) {
           end: { x: last[1], y: last[2], z: last[3] }, expectY: leg.expect?.y ?? null, maxY: Math.round(Math.max(...ys) * 100) / 100,
           groundSpeedP50: Math.round((speeds[Math.floor(speeds.length / 2)] ?? 0) * 100) / 100,
           airFrames: r.trace.filter((s) => s[5] === 0).length, swimFrames: r.trace.filter((s) => s[7] === 1).length, slideFrames: r.trace.filter((s) => s[8] === 1).length,
-          stuck: r.stuck, trace: r.trace,
+          stuck: r.stuck, trace: r.trace, ...(leg.inside ? { out: r.out, minY: Math.round(Math.min(...ys) * 100) / 100 } : {}),
         };
         result.walk.push(summary);
-        console.error(`  ${leg.name}: ${summary.seconds}s end y ${summary.end.y} (expect ${summary.expectY ?? '?'}) stuck ${summary.stuck.length}`);
+        console.error(`  ${leg.name}: ${summary.seconds}s end y ${summary.end.y} (expect ${summary.expectY ?? '?'}) stuck ${summary.stuck.length}${leg.inside ? ` · out ${r.out} frames, min y ${summary.minY}` : ''}`);
       }
       result.walkErrors = [...(result.walkErrors ?? []), ...errors.map((e) => `${shard}: ${e}`)];
     } finally {
@@ -318,7 +330,7 @@ if (result.poses.length > 0) {
 }
 if (result.walk.length > 0) {
   console.log('\n| leg | s | end (x, y, z) | expect y | max y | ground speed p50 m/s | air / swim / slide frames | stuck |\n|---|---|---|---|---|---|---|---|');
-  for (const l of result.walk) console.log(`| ${l.shard} ${l.name} | ${l.seconds} | ${l.end.x}, ${l.end.y}, ${l.end.z} | ${l.expectY ?? '—'} | ${l.maxY} | ${l.groundSpeedP50} | ${l.airFrames} / ${l.swimFrames} / ${l.slideFrames} | ${l.stuck.length > 0 ? l.stuck.map((s) => `wp${s.wp}@${s.x},${s.y},${s.z}`).join(' ') : '—'} |`);
+  for (const l of result.walk) console.log(`| ${l.shard} ${l.name} | ${l.seconds} | ${l.end.x}, ${l.end.y}, ${l.end.z} | ${l.expectY ?? '—'} | ${l.maxY} | ${l.groundSpeedP50} | ${l.airFrames} / ${l.swimFrames} / ${l.slideFrames} | ${l.stuck.length > 0 ? l.stuck.map((s) => `wp${s.wp}@${s.x},${s.y},${s.z}`).join(' ') : '—'}${l.out === undefined ? '' : ` · out ${l.out} (min y ${l.minY})`} |`);
 }
 console.log(`\n→ ${file}`);
 cleanup();
