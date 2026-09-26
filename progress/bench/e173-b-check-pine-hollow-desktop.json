@@ -1,0 +1,239 @@
+{
+ "chunk": "pine-hollow",
+ "tier": "desktop",
+ "a": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-ac10dd3f03afa09c9/dist",
+ "b": null,
+ "when": "2026-09-26T04:00:57.515Z",
+ "steps": {
+  "1-cold-visit": {
+   "playS": 14.84,
+   "netMB": 91.5,
+   "requests": 301,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /assets/tex/leafy_grass/nor_gl.jpg?v=df0cf0ce 5.77",
+    "sw /assets/tex/forrest_ground_03/nor_gl.jpg?v=415ba35b 5.54",
+    "sw /assets/tex/leafy_grass/diffuse.jpg?v=8e1c6d21 4.55",
+    "sw /assets/tex/leafy_grass/arm.jpg?v=70d61c66 3.93",
+    "sw /assets/tex/wood_trunk_wall/nor_gl.jpg?v=3246486f 3.39",
+    "sw /assets/tex/forrest_ground_03/diffuse.jpg?v=6e4ee27f 2.65",
+    "sw /assets/tex/wood_trunk_wall/diffuse.jpg?v=eb1e6e60 1.99",
+    "sw /assets/tex/wood_trunk_wall/arm.jpg?v=d4381ba2 1.82"
+   ],
+   "tex": {
+    "mode": "img",
+    "why": "auto: pine-hollow's KTX2 set is not cached (yet)"
+   },
+   "textureMB": 949.8,
+   "compressedMB": 0,
+   "byFormat": {
+    "SRGB8_A8": 430.37,
+    "RGBA8": 485.93,
+    "RGBA16F": 32,
+    "RGBA32F": 0.55,
+    "RGBA": 0,
+    "0x8236": 0,
+    "0x822f": 0
+   },
+   "errors": []
+  },
+  "2-background": {
+   "seconds": 31.2,
+   "netMB": 175.01,
+   "requests": 312,
+   "ktx2MB": 146.94,
+   "ktx2Requests": 136,
+   "top": [
+    "sw /assets/gpu/nalati/panorama-68be07b4.ktx2 6.34",
+    "sw /assets/gpu/tex/wood_trunk_wall/nor_gl-e1b1ecf7.ktx2 4.86",
+    "sw /assets/gpu/tex/wood_trunk_wall/diffuse-3e7ff479.ktx2 4.57",
+    "sw /assets/gpu/horizon/pine-hollow-day-8746bb4b.ktx2 4.01",
+    "sw /assets/gpu/pine-hollow/weapons/lever-rifle-6fe11d44.glb 3.32",
+    "sw /assets/gpu/models/tree_stump_01/tree_stump_01_lod-bc3fe344.glb 2.86",
+    "sw /assets/gpu/models/dead_tree_trunk/dead_tree_trunk_lod-e185e9f6.glb 2.73",
+    "sw /assets/gpu/models/driftwood-blender/lm-ao-880aa796.ktx2 2.71"
+   ],
+   "status": "done",
+   "ktx2": {
+    "pine-hollow": {
+     "files": 108,
+     "hit": 0,
+     "stored": 108,
+     "failed": 0,
+     "bytes": 115275123,
+     "complete": true
+    },
+    "driftwood-isle": {
+     "files": 9,
+     "hit": 3,
+     "stored": 6,
+     "failed": 0,
+     "bytes": 6215665,
+     "complete": true
+    },
+    "nalati-grasslands": {
+     "files": 24,
+     "hit": 2,
+     "stored": 22,
+     "failed": 0,
+     "bytes": 32590388,
+     "complete": true
+    }
+   },
+   "shards": {
+    "pine-hollow": {
+     "files": 261,
+     "hit": 261,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0
+    },
+    "driftwood-isle": {
+     "files": 217,
+     "hit": 101,
+     "stored": 116,
+     "failed": 0,
+     "bytes": 10016688
+    },
+    "nalati-grasslands": {
+     "files": 257,
+     "hit": 202,
+     "stored": 55,
+     "failed": 0,
+     "bytes": 18201749
+    }
+   },
+   "swCacheMB": 269.41,
+   "swCaches": {
+    "ws-shell-52bc05ac-muhud4vl-ea327fc3ac": {
+     "entries": 3,
+     "bytes": 80278
+    },
+    "ws-static-15b75eddaa": {
+     "entries": 573,
+     "bytes": 274627980
+    },
+    "ws-immutable": {
+     "entries": 25,
+     "bytes": 7784391
+    }
+   }
+  },
+  "3-reload": {
+   "playS": 3.6,
+   "netMB": 0,
+   "requests": 2,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&tier=desktop 0",
+    "/version.json?t=1790395312010 0"
+   ],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: pine-hollow's KTX2 set is cached"
+   },
+   "textureMB": 359.9,
+   "compressedMB": 161.1,
+   "byFormat": {
+    "RGBA16F": 32,
+    "SRGB_ASTC4x4": 78.88,
+    "ASTC4x4": 59.31,
+    "SRGB8_A8": 109.16,
+    "RGBA8": 56.44,
+    "ETC2": 22.73,
+    "RGBA32F": 0.55,
+    "RGBA": 0,
+    "0x8236": 0,
+    "0x822f": 0
+   },
+   "errors": []
+  },
+  "4-offline-reload": {
+   "playS": 3.33,
+   "netMB": 0,
+   "requests": 0,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: pine-hollow's KTX2 set is cached"
+   },
+   "textureMB": 359.9,
+   "compressedMB": 161.1,
+   "byFormat": {
+    "RGBA16F": 32,
+    "SRGB_ASTC4x4": 78.88,
+    "ASTC4x4": 59.31,
+    "SRGB8_A8": 109.16,
+    "RGBA8": 56.44,
+    "ETC2": 22.73,
+    "RGBA32F": 0.55,
+    "RGBA": 0,
+    "0x8236": 0,
+    "0x822f": 0
+   },
+   "errors": []
+  },
+  "4b-warm-images-for-comparison": {
+   "playS": 3.47,
+   "netMB": 0,
+   "requests": 2,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "/version.json?t=1790395331008 0",
+    "sw /?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&tier=desktop 0"
+   ],
+   "tex": {
+    "mode": "img",
+    "why": "picked (Settings ▸ Debug ▸ GPU textures: img)"
+   },
+   "textureMB": 949.8,
+   "compressedMB": 0,
+   "byFormat": {
+    "SRGB8_A8": 430.37,
+    "RGBA8": 485.93,
+    "RGBA16F": 32,
+    "RGBA32F": 0.55,
+    "RGBA": 0,
+    "0x8236": 0,
+    "0x822f": 0
+   },
+   "errors": []
+  },
+  "4c-warm-auto-again": {
+   "playS": 3.3,
+   "netMB": 0,
+   "requests": 2,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&tier=desktop 0",
+    "/version.json?t=1790395340511 0"
+   ],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: pine-hollow's KTX2 set is cached"
+   },
+   "textureMB": 359.9,
+   "compressedMB": 161.1,
+   "byFormat": {
+    "RGBA16F": 32,
+    "SRGB_ASTC4x4": 78.88,
+    "ASTC4x4": 59.31,
+    "SRGB8_A8": 109.16,
+    "RGBA8": 56.44,
+    "ETC2": 22.73,
+    "RGBA32F": 0.55,
+    "RGBA": 0,
+    "0x8236": 0,
+    "0x822f": 0
+   },
+   "errors": []
+  }
+ },
+ "buildA": "52bc05ac-muhud4vl"
+}
