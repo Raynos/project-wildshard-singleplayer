@@ -1,12 +1,12 @@
 {
  "tag": "e173-base",
- "build": "b-muhyz9be",
+ "build": "b-mui2hmc7",
  "url": "http://localhost:4281",
  "packCheck": {
   "parts": 11,
   "missing": []
  },
- "at": "2026-09-26T06:07:51.290Z",
+ "at": "2026-09-26T07:46:03.229Z",
  "host": "darwin arm64 node v24.18.1",
  "net": "wifi",
  "cpu": 1,
@@ -16,45 +16,45 @@
   "driftwood-isle/phone/cold.netBytes": {
    "kind": "bytes",
    "label": "cold transfer to play",
-   "value": 21803264,
+   "value": 21926434,
    "values": [
-    21803264
+    21926434
    ],
    "spread": 0
   },
   "driftwood-isle/phone/cold.requests": {
    "kind": "count",
    "label": "cold requests",
-   "value": 227,
+   "value": 228,
    "values": [
-    227
+    228
    ],
    "spread": 0
   },
   "driftwood-isle/phone/cold.playMs": {
    "kind": "time",
    "label": "cold time to play",
-   "value": 7028,
+   "value": 7054,
    "values": [
-    7028
+    7054
    ],
    "spread": 0
   },
   "driftwood-isle/phone/cold.longTaskMaxMs": {
    "kind": "longtask",
    "label": "cold longest task",
-   "value": 405,
+   "value": 398,
    "values": [
-    405
+    398
    ],
    "spread": 0
   },
   "driftwood-isle/phone/cold.idleNetBytes": {
    "kind": "info",
    "label": "cold transfer until idle (boot + background)",
-   "value": 148689715,
+   "value": 148812885,
    "values": [
-    148689715
+    148812885
    ],
    "spread": 0
   },
@@ -70,72 +70,72 @@
   "driftwood-isle/phone/warm.netBytes": {
    "kind": "bytes",
    "label": "warm transfer to play",
-   "value": 3963,
+   "value": 3967,
    "values": [
-    3963
+    3967
    ],
    "spread": 0
   },
   "driftwood-isle/phone/warm.requests": {
    "kind": "count",
    "label": "warm requests",
-   "value": 231,
+   "value": 232,
    "values": [
-    231
+    232
    ],
    "spread": 0
   },
   "driftwood-isle/phone/warm.playMs": {
    "kind": "time",
    "label": "warm time to play",
-   "value": 1882,
+   "value": 1983,
    "values": [
-    1882
+    1983
    ],
    "spread": 0
   },
   "driftwood-isle/phone/warm.longTaskMaxMs": {
    "kind": "longtask",
    "label": "warm longest task",
-   "value": 393,
+   "value": 417,
    "values": [
-    393
+    417
    ],
    "spread": 0
   },
   "driftwood-isle/phone/cold4g.playMs": {
    "kind": "time",
    "label": "cold time to play, Fast 4G",
-   "value": 24305,
+   "value": 24508,
    "values": [
-    24305
+    24508
    ],
    "spread": 0
   },
   "driftwood-isle/phone/mem.heapBytes": {
    "kind": "memory",
    "label": "JS heap",
-   "value": 36043224,
+   "value": 35307904,
    "values": [
-    36043224
+    35307904
    ],
    "spread": 0
   },
   "driftwood-isle/phone/mem.glTexBytes": {
    "kind": "memory",
    "label": "GPU textures (GL)",
-   "value": 122931516,
+   "value": 100844460,
    "values": [
-    122931516
+    100844460
    ],
    "spread": 0
   },
   "driftwood-isle/phone/mem.glRbBytes": {
    "kind": "memory",
    "label": "GPU renderbuffers (GL)",
-   "value": 344064,
+   "value": 10877184,
    "values": [
-    344064
+    10877184
    ],
    "spread": 0
   },
@@ -160,9 +160,9 @@
   "driftwood-isle/phone/mem.textures": {
    "kind": "objects",
    "label": "renderer textures",
-   "value": 102,
+   "value": 95,
    "values": [
-    102
+    95
    ],
    "spread": 0
   },
@@ -178,9 +178,9 @@
   "driftwood-isle/phone/mem.programs": {
    "kind": "objects",
    "label": "shader programs",
-   "value": 94,
+   "value": 92,
    "values": [
-    94
+    92
    ],
    "spread": 0
   },
@@ -196,45 +196,45 @@
   "driftwood-isle/phone/pose.pier.frameP95Ms": {
    "kind": "frame",
    "label": "pier p95 frame",
-   "value": 34.2,
+   "value": 34,
    "values": [
-    34.2
+    34
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.pier.cpuP50Ms": {
    "kind": "frame",
    "label": "pier main-thread p50",
-   "value": 2.1,
+   "value": 2,
    "values": [
-    2.1
+    2
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.pier.cpuP95Ms": {
    "kind": "frame",
    "label": "pier main-thread p95",
-   "value": 3.8,
+   "value": 2.5,
    "values": [
-    3.8
+    2.5
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.pier.calls": {
    "kind": "drawcalls",
    "label": "pier draw calls",
-   "value": 224,
+   "value": 175.5,
    "values": [
-    224
+    175.5
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.pier.trisK": {
    "kind": "drawcalls",
    "label": "pier triangles (k)",
-   "value": 1101.2,
+   "value": 945.6,
    "values": [
-    1101.2
+    945.6
    ],
    "spread": 0
   },
@@ -259,36 +259,36 @@
   "driftwood-isle/phone/pose.beach.cpuP50Ms": {
    "kind": "frame",
    "label": "beach main-thread p50",
-   "value": 2.1,
+   "value": 2,
    "values": [
-    2.1
+    2
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.beach.cpuP95Ms": {
    "kind": "frame",
    "label": "beach main-thread p95",
-   "value": 2.9,
+   "value": 2.6,
    "values": [
-    2.9
+    2.6
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.beach.calls": {
    "kind": "drawcalls",
    "label": "beach draw calls",
-   "value": 219,
+   "value": 155,
    "values": [
-    219
+    155
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.beach.trisK": {
    "kind": "drawcalls",
    "label": "beach triangles (k)",
-   "value": 1054.7,
+   "value": 850.7,
    "values": [
-    1054.7
+    850.7
    ],
    "spread": 0
   },
@@ -304,18 +304,18 @@
   "driftwood-isle/phone/pose.wreck.frameP95Ms": {
    "kind": "frame",
    "label": "wreck p95 frame",
-   "value": 34,
+   "value": 35,
    "values": [
-    34
+    35
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.wreck.cpuP50Ms": {
    "kind": "frame",
    "label": "wreck main-thread p50",
-   "value": 2.1,
+   "value": 2,
    "values": [
-    2.1
+    2
    ],
    "spread": 0
   },
@@ -331,63 +331,63 @@
   "driftwood-isle/phone/pose.wreck.calls": {
    "kind": "drawcalls",
    "label": "wreck draw calls",
-   "value": 171,
+   "value": 122,
    "values": [
-    171
+    122
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.wreck.trisK": {
    "kind": "drawcalls",
    "label": "wreck triangles (k)",
-   "value": 927,
+   "value": 819.3,
    "values": [
-    927
+    819.3
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/cold.netBytes": {
    "kind": "bytes",
    "label": "cold transfer to play",
-   "value": 23191907,
+   "value": 23314775,
    "values": [
-    23191907
+    23314775
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/cold.requests": {
    "kind": "count",
    "label": "cold requests",
-   "value": 233,
+   "value": 234,
    "values": [
-    233
+    234
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/cold.playMs": {
    "kind": "time",
    "label": "cold time to play",
-   "value": 7657,
+   "value": 7684,
    "values": [
-    7657
+    7684
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/cold.longTaskMaxMs": {
    "kind": "longtask",
    "label": "cold longest task",
-   "value": 522,
+   "value": 486,
    "values": [
-    522
+    486
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/cold.idleNetBytes": {
    "kind": "info",
    "label": "cold transfer until idle (boot + background)",
-   "value": 125403725,
+   "value": 125526593,
    "values": [
-    125403725
+    125526593
    ],
    "spread": 0
   },
@@ -403,54 +403,54 @@
   "driftwood-isle/desktop/warm.netBytes": {
    "kind": "bytes",
    "label": "warm transfer to play",
-   "value": 3963,
+   "value": 3967,
    "values": [
-    3963
+    3967
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/warm.requests": {
    "kind": "count",
    "label": "warm requests",
-   "value": 233,
+   "value": 234,
    "values": [
-    233
+    234
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/warm.playMs": {
    "kind": "time",
    "label": "warm time to play",
-   "value": 2258,
+   "value": 2084,
    "values": [
-    2258
+    2084
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/warm.longTaskMaxMs": {
    "kind": "longtask",
    "label": "warm longest task",
-   "value": 543,
+   "value": 481,
    "values": [
-    543
+    481
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/cold4g.playMs": {
    "kind": "time",
    "label": "cold time to play, Fast 4G",
-   "value": 23631,
+   "value": 24012,
    "values": [
-    23631
+    24012
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/mem.heapBytes": {
    "kind": "memory",
    "label": "JS heap",
-   "value": 38326888,
+   "value": 37867140,
    "values": [
-    38326888
+    37867140
    ],
    "spread": 0
   },
@@ -529,27 +529,27 @@
   "driftwood-isle/desktop/pose.pier.frameP95Ms": {
    "kind": "frame",
    "label": "pier p95 frame",
-   "value": 17.7,
+   "value": 17.5,
    "values": [
-    17.7
+    17.5
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.pier.cpuP50Ms": {
    "kind": "frame",
    "label": "pier main-thread p50",
-   "value": 3.6,
+   "value": 3.2,
    "values": [
-    3.6
+    3.2
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.pier.cpuP95Ms": {
    "kind": "frame",
    "label": "pier main-thread p95",
-   "value": 4.3,
+   "value": 4.1,
    "values": [
-    4.3
+    4.1
    ],
    "spread": 0
   },
@@ -583,27 +583,27 @@
   "driftwood-isle/desktop/pose.beach.frameP95Ms": {
    "kind": "frame",
    "label": "beach p95 frame",
-   "value": 17.7,
+   "value": 18.1,
    "values": [
-    17.7
+    18.1
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.beach.cpuP50Ms": {
    "kind": "frame",
    "label": "beach main-thread p50",
-   "value": 3.5,
+   "value": 3.2,
    "values": [
-    3.5
+    3.2
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.beach.cpuP95Ms": {
    "kind": "frame",
    "label": "beach main-thread p95",
-   "value": 4.1,
+   "value": 3.6,
    "values": [
-    4.1
+    3.6
    ],
    "spread": 0
   },
@@ -637,27 +637,27 @@
   "driftwood-isle/desktop/pose.wreck.frameP95Ms": {
    "kind": "frame",
    "label": "wreck p95 frame",
-   "value": 17.4,
+   "value": 18.3,
    "values": [
-    17.4
+    18.3
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.wreck.cpuP50Ms": {
    "kind": "frame",
    "label": "wreck main-thread p50",
-   "value": 3.2,
+   "value": 2.8,
    "values": [
-    3.2
+    2.8
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.wreck.cpuP95Ms": {
    "kind": "frame",
    "label": "wreck main-thread p95",
-   "value": 3.7,
+   "value": 3.1,
    "values": [
-    3.7
+    3.1
    ],
    "spread": 0
   },
@@ -682,45 +682,45 @@
   "nalati-grasslands/phone/cold.netBytes": {
    "kind": "bytes",
    "label": "cold transfer to play",
-   "value": 31413713,
+   "value": 31536883,
    "values": [
-    31413713
+    31536883
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/cold.requests": {
    "kind": "count",
    "label": "cold requests",
-   "value": 235,
+   "value": 236,
    "values": [
-    235
+    236
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/cold.playMs": {
    "kind": "time",
    "label": "cold time to play",
-   "value": 9129,
+   "value": 9204,
    "values": [
-    9129
+    9204
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/cold.longTaskMaxMs": {
    "kind": "longtask",
    "label": "cold longest task",
-   "value": 347,
+   "value": 363,
    "values": [
-    347
+    363
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/cold.idleNetBytes": {
    "kind": "info",
    "label": "cold transfer until idle (boot + background)",
-   "value": 148689507,
+   "value": 148812677,
    "values": [
-    148689507
+    148812677
    ],
    "spread": 0
   },
@@ -736,54 +736,54 @@
   "nalati-grasslands/phone/warm.netBytes": {
    "kind": "bytes",
    "label": "warm transfer to play",
-   "value": 3963,
+   "value": 3967,
    "values": [
-    3963
+    3967
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/warm.requests": {
    "kind": "count",
    "label": "warm requests",
-   "value": 259,
+   "value": 260,
    "values": [
-    259
+    260
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/warm.playMs": {
    "kind": "time",
    "label": "warm time to play",
-   "value": 3607,
+   "value": 3207,
    "values": [
-    3607
+    3207
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/warm.longTaskMaxMs": {
    "kind": "longtask",
    "label": "warm longest task",
-   "value": 394,
+   "value": 345,
    "values": [
-    394
+    345
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/cold4g.playMs": {
    "kind": "time",
    "label": "cold time to play, Fast 4G",
-   "value": 31653,
+   "value": 31840,
    "values": [
-    31653
+    31840
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/mem.heapBytes": {
    "kind": "memory",
    "label": "JS heap",
-   "value": 48910456,
+   "value": 48707792,
    "values": [
-    48910456
+    48707792
    ],
    "spread": 0
   },
@@ -862,27 +862,27 @@
   "nalati-grasslands/phone/pose.camp.frameP95Ms": {
    "kind": "frame",
    "label": "camp p95 frame",
-   "value": 33.8,
+   "value": 35.2,
    "values": [
-    33.8
+    35.2
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.camp.cpuP50Ms": {
    "kind": "frame",
    "label": "camp main-thread p50",
-   "value": 1.9,
+   "value": 2.3,
    "values": [
-    1.9
+    2.3
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.camp.cpuP95Ms": {
    "kind": "frame",
    "label": "camp main-thread p95",
-   "value": 2.3,
+   "value": 4,
    "values": [
-    2.3
+    4
    ],
    "spread": 0
   },
@@ -916,27 +916,27 @@
   "nalati-grasslands/phone/pose.bridge.frameP95Ms": {
    "kind": "frame",
    "label": "bridge p95 frame",
-   "value": 34.4,
+   "value": 35.2,
    "values": [
-    34.4
+    35.2
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.bridge.cpuP50Ms": {
    "kind": "frame",
    "label": "bridge main-thread p50",
-   "value": 1.9,
+   "value": 2.7,
    "values": [
-    1.9
+    2.7
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.bridge.cpuP95Ms": {
    "kind": "frame",
    "label": "bridge main-thread p95",
-   "value": 2.4,
+   "value": 5.5,
    "values": [
-    2.4
+    5.5
    ],
    "spread": 0
   },
@@ -970,90 +970,90 @@
   "nalati-grasslands/phone/pose.plains.frameP95Ms": {
    "kind": "frame",
    "label": "plains p95 frame",
-   "value": 34.7,
+   "value": 34,
    "values": [
-    34.7
+    34
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.plains.cpuP50Ms": {
    "kind": "frame",
    "label": "plains main-thread p50",
-   "value": 2.3,
+   "value": 2.2,
    "values": [
-    2.3
+    2.2
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.plains.cpuP95Ms": {
    "kind": "frame",
    "label": "plains main-thread p95",
-   "value": 3.4,
+   "value": 2.9,
    "values": [
-    3.4
+    2.9
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.plains.calls": {
    "kind": "drawcalls",
    "label": "plains draw calls",
-   "value": 100,
+   "value": 101,
    "values": [
-    100
+    101
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.plains.trisK": {
    "kind": "drawcalls",
    "label": "plains triangles (k)",
-   "value": 1216.8,
+   "value": 1221.3,
    "values": [
-    1216.8
+    1221.3
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/cold.netBytes": {
    "kind": "bytes",
    "label": "cold transfer to play",
-   "value": 37842304,
+   "value": 37965776,
    "values": [
-    37842304
+    37965776
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/cold.requests": {
    "kind": "count",
    "label": "cold requests",
-   "value": 271,
+   "value": 272,
    "values": [
-    271
+    272
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/cold.playMs": {
    "kind": "time",
    "label": "cold time to play",
-   "value": 12080,
+   "value": 11427,
    "values": [
-    12080
+    11427
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/cold.longTaskMaxMs": {
    "kind": "longtask",
    "label": "cold longest task",
-   "value": 1634,
+   "value": 1191,
    "values": [
-    1634
+    1191
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/cold.idleNetBytes": {
    "kind": "info",
    "label": "cold transfer until idle (boot + background)",
-   "value": 125403215,
+   "value": 125526687,
    "values": [
-    125403215
+    125526687
    ],
    "spread": 0
   },
@@ -1069,54 +1069,54 @@
   "nalati-grasslands/desktop/warm.netBytes": {
    "kind": "bytes",
    "label": "warm transfer to play",
-   "value": 3963,
+   "value": 3967,
    "values": [
-    3963
+    3967
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/warm.requests": {
    "kind": "count",
    "label": "warm requests",
-   "value": 271,
+   "value": 272,
    "values": [
-    271
+    272
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/warm.playMs": {
    "kind": "time",
    "label": "warm time to play",
-   "value": 5983,
+   "value": 4457,
    "values": [
-    5983
+    4457
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/warm.longTaskMaxMs": {
    "kind": "longtask",
    "label": "warm longest task",
-   "value": 1426,
+   "value": 1139,
    "values": [
-    1426
+    1139
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/cold4g.playMs": {
    "kind": "time",
    "label": "cold time to play, Fast 4G",
-   "value": 37755,
+   "value": 37861,
    "values": [
-    37755
+    37861
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/mem.heapBytes": {
    "kind": "memory",
    "label": "JS heap",
-   "value": 50586344,
+   "value": 51002416,
    "values": [
-    50586344
+    51002416
    ],
    "spread": 0
   },
@@ -1195,27 +1195,27 @@
   "nalati-grasslands/desktop/pose.camp.frameP95Ms": {
    "kind": "frame",
    "label": "camp p95 frame",
-   "value": 17.5,
+   "value": 17.1,
    "values": [
-    17.5
+    17.1
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.camp.cpuP50Ms": {
    "kind": "frame",
    "label": "camp main-thread p50",
-   "value": 2.4,
+   "value": 2.5,
    "values": [
-    2.4
+    2.5
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.camp.cpuP95Ms": {
    "kind": "frame",
    "label": "camp main-thread p95",
-   "value": 3,
+   "value": 2.9,
    "values": [
-    3
+    2.9
    ],
    "spread": 0
   },
@@ -1249,27 +1249,27 @@
   "nalati-grasslands/desktop/pose.bridge.frameP95Ms": {
    "kind": "frame",
    "label": "bridge p95 frame",
-   "value": 17.6,
+   "value": 17.2,
    "values": [
-    17.6
+    17.2
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.bridge.cpuP50Ms": {
    "kind": "frame",
    "label": "bridge main-thread p50",
-   "value": 3.6,
+   "value": 2.7,
    "values": [
-    3.6
+    2.7
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.bridge.cpuP95Ms": {
    "kind": "frame",
    "label": "bridge main-thread p95",
-   "value": 4.4,
+   "value": 3.1,
    "values": [
-    4.4
+    3.1
    ],
    "spread": 0
   },
@@ -1303,27 +1303,27 @@
   "nalati-grasslands/desktop/pose.plains.frameP95Ms": {
    "kind": "frame",
    "label": "plains p95 frame",
-   "value": 17.7,
+   "value": 18.2,
    "values": [
-    17.7
+    18.2
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.plains.cpuP50Ms": {
    "kind": "frame",
    "label": "plains main-thread p50",
-   "value": 2.8,
+   "value": 2.7,
    "values": [
-    2.8
+    2.7
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.plains.cpuP95Ms": {
    "kind": "frame",
    "label": "plains main-thread p95",
-   "value": 3.5,
+   "value": 3.1,
    "values": [
-    3.5
+    3.1
    ],
    "spread": 0
   },
@@ -1339,54 +1339,54 @@
   "nalati-grasslands/desktop/pose.plains.trisK": {
    "kind": "drawcalls",
    "label": "plains triangles (k)",
-   "value": 5986.3,
+   "value": 5995.1,
    "values": [
-    5986.3
+    5995.1
    ],
    "spread": 0
   },
   "pine-hollow/phone/cold.netBytes": {
    "kind": "bytes",
    "label": "cold transfer to play",
-   "value": 38068890,
+   "value": 38191758,
    "values": [
-    38068890
+    38191758
    ],
    "spread": 0
   },
   "pine-hollow/phone/cold.requests": {
    "kind": "count",
    "label": "cold requests",
-   "value": 149,
+   "value": 150,
    "values": [
-    149
+    150
    ],
    "spread": 0
   },
   "pine-hollow/phone/cold.playMs": {
    "kind": "time",
    "label": "cold time to play",
-   "value": 10677,
+   "value": 10633,
    "values": [
-    10677
+    10633
    ],
    "spread": 0
   },
   "pine-hollow/phone/cold.longTaskMaxMs": {
    "kind": "longtask",
    "label": "cold longest task",
-   "value": 453,
+   "value": 302,
    "values": [
-    453
+    302
    ],
    "spread": 0
   },
   "pine-hollow/phone/cold.idleNetBytes": {
    "kind": "info",
    "label": "cold transfer until idle (boot + background)",
-   "value": 148689611,
+   "value": 148812479,
    "values": [
-    148689611
+    148812479
    ],
    "spread": 0
   },
@@ -1402,27 +1402,27 @@
   "pine-hollow/phone/warm.netBytes": {
    "kind": "bytes",
    "label": "warm transfer to play",
-   "value": 3963,
+   "value": 3967,
    "values": [
-    3963
+    3967
    ],
    "spread": 0
   },
   "pine-hollow/phone/warm.requests": {
    "kind": "count",
    "label": "warm requests",
-   "value": 248,
+   "value": 249,
    "values": [
-    248
+    249
    ],
    "spread": 0
   },
   "pine-hollow/phone/warm.playMs": {
    "kind": "time",
    "label": "warm time to play",
-   "value": 2131,
+   "value": 2132,
    "values": [
-    2131
+    2132
    ],
    "spread": 0
   },
@@ -1438,18 +1438,18 @@
   "pine-hollow/phone/cold4g.playMs": {
    "kind": "time",
    "label": "cold time to play, Fast 4G",
-   "value": 35181,
+   "value": 35289,
    "values": [
-    35181
+    35289
    ],
    "spread": 0
   },
   "pine-hollow/phone/mem.heapBytes": {
    "kind": "memory",
    "label": "JS heap",
-   "value": 47523952,
+   "value": 48247792,
    "values": [
-    47523952
+    48247792
    ],
    "spread": 0
   },
@@ -1528,45 +1528,45 @@
   "pine-hollow/phone/pose.gate.frameP95Ms": {
    "kind": "frame",
    "label": "gate p95 frame",
-   "value": 34.2,
+   "value": 35.1,
    "values": [
-    34.2
+    35.1
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.gate.cpuP50Ms": {
    "kind": "frame",
    "label": "gate main-thread p50",
-   "value": 2.5,
+   "value": 2.4,
    "values": [
-    2.5
+    2.4
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.gate.cpuP95Ms": {
    "kind": "frame",
    "label": "gate main-thread p95",
-   "value": 4.9,
+   "value": 3.1,
    "values": [
-    4.9
+    3.1
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.gate.calls": {
    "kind": "drawcalls",
    "label": "gate draw calls",
-   "value": 99,
+   "value": 100,
    "values": [
-    99
+    100
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.gate.trisK": {
    "kind": "drawcalls",
    "label": "gate triangles (k)",
-   "value": 1101.3,
+   "value": 1104.3,
    "values": [
-    1101.3
+    1104.3
    ],
    "spread": 0
   },
@@ -1582,9 +1582,9 @@
   "pine-hollow/phone/pose.cabin.frameP95Ms": {
    "kind": "frame",
    "label": "cabin p95 frame",
-   "value": 34.1,
+   "value": 34.6,
    "values": [
-    34.1
+    34.6
    ],
    "spread": 0
   },
@@ -1600,27 +1600,27 @@
   "pine-hollow/phone/pose.cabin.cpuP95Ms": {
    "kind": "frame",
    "label": "cabin main-thread p95",
-   "value": 3.2,
+   "value": 3.8,
    "values": [
-    3.2
+    3.8
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.cabin.calls": {
    "kind": "drawcalls",
    "label": "cabin draw calls",
-   "value": 141,
+   "value": 142,
    "values": [
-    141
+    142
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.cabin.trisK": {
    "kind": "drawcalls",
    "label": "cabin triangles (k)",
-   "value": 1305.1,
+   "value": 1315.1,
    "values": [
-    1305.1
+    1315.1
    ],
    "spread": 0
   },
@@ -1636,9 +1636,9 @@
   "pine-hollow/phone/pose.pond.frameP95Ms": {
    "kind": "frame",
    "label": "pond p95 frame",
-   "value": 34.4,
+   "value": 34.7,
    "values": [
-    34.4
+    34.7
    ],
    "spread": 0
   },
@@ -1654,72 +1654,72 @@
   "pine-hollow/phone/pose.pond.cpuP95Ms": {
    "kind": "frame",
    "label": "pond main-thread p95",
-   "value": 2.9,
+   "value": 3.1,
    "values": [
-    2.9
+    3.1
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.pond.calls": {
    "kind": "drawcalls",
    "label": "pond draw calls",
-   "value": 88,
+   "value": 89,
    "values": [
-    88
+    89
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.pond.trisK": {
    "kind": "drawcalls",
    "label": "pond triangles (k)",
-   "value": 888.5,
+   "value": 891.5,
    "values": [
-    888.5
+    891.5
    ],
    "spread": 0
   },
   "pine-hollow/desktop/cold.netBytes": {
    "kind": "bytes",
    "label": "cold transfer to play",
-   "value": 95977024,
+   "value": 96100194,
    "values": [
-    95977024
+    96100194
    ],
    "spread": 0
   },
   "pine-hollow/desktop/cold.requests": {
    "kind": "count",
    "label": "cold requests",
-   "value": 277,
+   "value": 278,
    "values": [
-    277
+    278
    ],
    "spread": 0
   },
   "pine-hollow/desktop/cold.playMs": {
    "kind": "time",
    "label": "cold time to play",
-   "value": 28455,
+   "value": 27802,
    "values": [
-    28455
+    27802
    ],
    "spread": 0
   },
   "pine-hollow/desktop/cold.longTaskMaxMs": {
    "kind": "longtask",
    "label": "cold longest task",
-   "value": 1070,
+   "value": 721,
    "values": [
-    1070
+    721
    ],
    "spread": 0
   },
   "pine-hollow/desktop/cold.idleNetBytes": {
    "kind": "info",
    "label": "cold transfer until idle (boot + background)",
-   "value": 125403621,
+   "value": 125526791,
    "values": [
-    125403621
+    125526791
    ],
    "spread": 0
   },
@@ -1735,54 +1735,54 @@
   "pine-hollow/desktop/warm.netBytes": {
    "kind": "bytes",
    "label": "warm transfer to play",
-   "value": 3963,
+   "value": 3967,
    "values": [
-    3963
+    3967
    ],
    "spread": 0
   },
   "pine-hollow/desktop/warm.requests": {
    "kind": "count",
    "label": "warm requests",
-   "value": 277,
+   "value": 278,
    "values": [
-    277
+    278
    ],
    "spread": 0
   },
   "pine-hollow/desktop/warm.playMs": {
    "kind": "time",
    "label": "warm time to play",
-   "value": 3434,
+   "value": 3283,
    "values": [
-    3434
+    3283
    ],
    "spread": 0
   },
   "pine-hollow/desktop/warm.longTaskMaxMs": {
    "kind": "longtask",
    "label": "warm longest task",
-   "value": 735,
+   "value": 724,
    "values": [
-    735
+    724
    ],
    "spread": 0
   },
   "pine-hollow/desktop/cold4g.playMs": {
    "kind": "time",
    "label": "cold time to play, Fast 4G",
-   "value": 84143,
+   "value": 86660,
    "values": [
-    84143
+    86660
    ],
    "spread": 0
   },
   "pine-hollow/desktop/mem.heapBytes": {
    "kind": "memory",
    "label": "JS heap",
-   "value": 50083728,
+   "value": 50186372,
    "values": [
-    50083728
+    50186372
    ],
    "spread": 0
   },
@@ -1861,27 +1861,27 @@
   "pine-hollow/desktop/pose.gate.frameP95Ms": {
    "kind": "frame",
    "label": "gate p95 frame",
-   "value": 17.5,
+   "value": 18.6,
    "values": [
-    17.5
+    18.6
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.gate.cpuP50Ms": {
    "kind": "frame",
    "label": "gate main-thread p50",
-   "value": 8.5,
+   "value": 8.6,
    "values": [
-    8.5
+    8.6
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.gate.cpuP95Ms": {
    "kind": "frame",
    "label": "gate main-thread p95",
-   "value": 9.2,
+   "value": 10.5,
    "values": [
-    9.2
+    10.5
    ],
    "spread": 0
   },
@@ -1897,9 +1897,9 @@
   "pine-hollow/desktop/pose.gate.trisK": {
    "kind": "drawcalls",
    "label": "gate triangles (k)",
-   "value": 8355.8,
+   "value": 8333.9,
    "values": [
-    8355.8
+    8333.9
    ],
    "spread": 0
   },
@@ -1915,45 +1915,45 @@
   "pine-hollow/desktop/pose.cabin.frameP95Ms": {
    "kind": "frame",
    "label": "cabin p95 frame",
-   "value": 17.3,
+   "value": 18.4,
    "values": [
-    17.3
+    18.4
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.cabin.cpuP50Ms": {
    "kind": "frame",
    "label": "cabin main-thread p50",
-   "value": 7.5,
+   "value": 7.9,
    "values": [
-    7.5
+    7.9
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.cabin.cpuP95Ms": {
    "kind": "frame",
    "label": "cabin main-thread p95",
-   "value": 8.4,
+   "value": 9.1,
    "values": [
-    8.4
+    9.1
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.cabin.calls": {
    "kind": "drawcalls",
    "label": "cabin draw calls",
-   "value": 269,
+   "value": 267,
    "values": [
-    269
+    267
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.cabin.trisK": {
    "kind": "drawcalls",
    "label": "cabin triangles (k)",
-   "value": 7954.3,
+   "value": 7935.6,
    "values": [
-    7954.3
+    7935.6
    ],
    "spread": 0
   },
@@ -1969,54 +1969,54 @@
   "pine-hollow/desktop/pose.pond.frameP95Ms": {
    "kind": "frame",
    "label": "pond p95 frame",
-   "value": 17.5,
+   "value": 18.2,
    "values": [
-    17.5
+    18.2
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.pond.cpuP50Ms": {
    "kind": "frame",
    "label": "pond main-thread p50",
-   "value": 4.9,
+   "value": 4.8,
    "values": [
-    4.9
+    4.8
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.pond.cpuP95Ms": {
    "kind": "frame",
    "label": "pond main-thread p95",
-   "value": 5.6,
+   "value": 6.7,
    "values": [
-    5.6
+    6.7
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.pond.calls": {
    "kind": "drawcalls",
    "label": "pond draw calls",
-   "value": 176,
+   "value": 175,
    "values": [
-    176
+    175
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.pond.trisK": {
    "kind": "drawcalls",
    "label": "pond triangles (k)",
-   "value": 4939.8,
+   "value": 4954.2,
    "values": [
-    4939.8
+    4954.2
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.pier.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9848,
+   "value": 0.9834,
    "values": [
-    0.9848
+    0.9834
    ],
    "spread": 0
   },
@@ -2032,9 +2032,9 @@
   "driftwood-isle/phone/pose.beach.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9964,
+   "value": 0.9918,
    "values": [
-    0.9964
+    0.9918
    ],
    "spread": 0
   },
@@ -2050,27 +2050,27 @@
   "driftwood-isle/phone/pose.wreck.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9933,
+   "value": 0.9932,
    "values": [
-    0.9933
+    0.9932
    ],
    "spread": 0
   },
   "driftwood-isle/phone/pose.wreck.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.137,
+   "value": 0.161,
    "values": [
-    0.137
+    0.161
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.pier.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9941,
+   "value": 0.9909,
    "values": [
-    0.9941
+    0.9909
    ],
    "spread": 0
   },
@@ -2086,9 +2086,9 @@
   "driftwood-isle/desktop/pose.beach.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9976,
+   "value": 0.9945,
    "values": [
-    0.9976
+    0.9945
    ],
    "spread": 0
   },
@@ -2104,27 +2104,27 @@
   "driftwood-isle/desktop/pose.wreck.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9934,
+   "value": 0.9906,
    "values": [
-    0.9934
+    0.9906
    ],
    "spread": 0
   },
   "driftwood-isle/desktop/pose.wreck.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.078,
+   "value": 0.08,
    "values": [
-    0.078
+    0.08
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.camp.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9969,
+   "value": 0.9963,
    "values": [
-    0.9969
+    0.9963
    ],
    "spread": 0
   },
@@ -2140,45 +2140,45 @@
   "nalati-grasslands/phone/pose.bridge.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9884,
+   "value": 0.9925,
    "values": [
-    0.9884
+    0.9925
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.bridge.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.016,
+   "value": 0.017,
    "values": [
-    0.016
+    0.017
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.plains.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9362,
+   "value": 0.972,
    "values": [
-    0.9362
+    0.972
    ],
    "spread": 0
   },
   "nalati-grasslands/phone/pose.plains.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.065,
+   "value": 0.064,
    "values": [
-    0.065
+    0.064
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.camp.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9949,
+   "value": 0.9918,
    "values": [
-    0.9949
+    0.9918
    ],
    "spread": 0
   },
@@ -2194,9 +2194,9 @@
   "nalati-grasslands/desktop/pose.bridge.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9944,
+   "value": 0.9903,
    "values": [
-    0.9944
+    0.9903
    ],
    "spread": 0
   },
@@ -2212,103 +2212,85 @@
   "nalati-grasslands/desktop/pose.plains.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9553,
+   "value": 0.9679,
    "values": [
-    0.9553
+    0.9679
    ],
    "spread": 0
   },
   "nalati-grasslands/desktop/pose.plains.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.057,
+   "value": 0.06,
    "values": [
-    0.057
+    0.06
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.gate.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9881,
+   "value": 0.9834,
    "values": [
-    0.9881
+    0.9834
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.gate.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.079,
+   "value": 0.087,
    "values": [
-    0.079
+    0.087
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.cabin.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9777,
+   "value": 0.9678,
    "values": [
-    0.9777
+    0.9678
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.cabin.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.071,
+   "value": 0.076,
    "values": [
-    0.071
+    0.076
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.pond.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9757,
+   "value": 0.9715,
    "values": [
-    0.9757
+    0.9715
    ],
    "spread": 0
   },
   "pine-hollow/phone/pose.pond.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.041,
+   "value": 0.066,
    "values": [
-    0.041
+    0.066
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.gate.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9685,
+   "value": 0.9566,
    "values": [
-    0.9685
+    0.9566
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.gate.maskedFrac": {
-   "kind": "info",
-   "label": "share of the frame masked (creatures)",
-   "value": 0.095,
-   "values": [
-    0.095
-   ],
-   "spread": 0
-  },
-  "pine-hollow/desktop/pose.cabin.ssim": {
-   "kind": "ssim",
-   "label": "SSIM vs golden, creatures masked",
-   "value": 0.9627,
-   "values": [
-    0.9627
-   ],
-   "spread": 0
-  },
-  "pine-hollow/desktop/pose.cabin.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
    "value": 0.09,
@@ -2317,21 +2299,39 @@
    ],
    "spread": 0
   },
+  "pine-hollow/desktop/pose.cabin.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9661,
+   "values": [
+    0.9661
+   ],
+   "spread": 0
+  },
+  "pine-hollow/desktop/pose.cabin.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.094,
+   "values": [
+    0.094
+   ],
+   "spread": 0
+  },
   "pine-hollow/desktop/pose.pond.ssim": {
    "kind": "ssim",
    "label": "SSIM vs golden, creatures masked",
-   "value": 0.9713,
+   "value": 0.9666,
    "values": [
-    0.9713
+    0.9666
    ],
    "spread": 0
   },
   "pine-hollow/desktop/pose.pond.maskedFrac": {
    "kind": "info",
    "label": "share of the frame masked (creatures)",
-   "value": 0.067,
+   "value": 0.062,
    "values": [
-    0.067
+    0.062
    ],
    "spread": 0
   },
@@ -2347,18 +2347,18 @@
   "switch/phone/1.driftwood-isle>nalati-grasslands.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 3351,
+   "value": 3199,
    "values": [
-    3351
+    3199
    ],
    "spread": 0
   },
   "switch/phone/1.driftwood-isle>nalati-grasslands.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 3437,
+   "value": 3417,
    "values": [
-    3437
+    3417
    ],
    "spread": 0
   },
@@ -2374,18 +2374,18 @@
   "switch/phone/1.driftwood-isle>nalati-grasslands.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 351,
+   "value": 329,
    "values": [
-    351
+    329
    ],
    "spread": 0
   },
   "switch/phone/1.driftwood-isle>nalati-grasslands.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 69182140,
+   "value": 70924312,
    "values": [
-    69182140
+    70924312
    ],
    "spread": 0
   },
@@ -2401,9 +2401,9 @@
   "switch/phone/1.driftwood-isle>nalati-grasslands.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 142743820,
+   "value": 203467188,
    "values": [
-    142743820
+    203467188
    ],
    "spread": 0
   },
@@ -2428,18 +2428,18 @@
   "switch/phone/2.nalati-grasslands>driftwood-isle.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 1692,
+   "value": 53,
    "values": [
-    1692
+    53
    ],
    "spread": 0
   },
   "switch/phone/2.nalati-grasslands>driftwood-isle.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 1792,
+   "value": 161,
    "values": [
-    1792
+    161
    ],
    "spread": 0
   },
@@ -2455,36 +2455,36 @@
   "switch/phone/2.nalati-grasslands>driftwood-isle.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 381,
+   "value": 0,
    "values": [
-    381
+    0
    ],
    "spread": 0
   },
   "switch/phone/2.nalati-grasslands>driftwood-isle.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 85746024,
+   "value": 70956068,
    "values": [
-    85746024
+    70956068
    ],
    "spread": 0
   },
   "switch/phone/2.nalati-grasslands>driftwood-isle.glTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (the running shard)",
-   "value": 122931516,
+   "value": 249217704,
    "values": [
-    122931516
+    249217704
    ],
    "spread": 0
   },
   "switch/phone/2.nalati-grasslands>driftwood-isle.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 123275580,
+   "value": 353342516,
    "values": [
-    123275580
+    353342516
    ],
    "spread": 0
   },
@@ -2500,27 +2500,27 @@
   "switch/phone/2.nalati-grasslands>driftwood-isle.loadingShown": {
    "kind": "info",
    "label": "loading screen shown",
-   "value": 1,
+   "value": 0,
    "values": [
-    1
+    0
    ],
    "spread": 0
   },
   "switch/phone/3.driftwood-isle>pine-hollow.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 1891,
+   "value": 2029,
    "values": [
-    1891
+    2029
    ],
    "spread": 0
   },
   "switch/phone/3.driftwood-isle>pine-hollow.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 2107,
+   "value": 2118,
    "values": [
-    2107
+    2118
    ],
    "spread": 0
   },
@@ -2536,18 +2536,18 @@
   "switch/phone/3.driftwood-isle>pine-hollow.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 284,
+   "value": 290,
    "values": [
-    284
+    290
    ],
    "spread": 0
   },
   "switch/phone/3.driftwood-isle>pine-hollow.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 115831416,
+   "value": 101933072,
    "values": [
-    115831416
+    101933072
    ],
    "spread": 0
   },
@@ -2563,9 +2563,9 @@
   "switch/phone/3.driftwood-isle>pine-hollow.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 292604396,
+   "value": 353327764,
    "values": [
-    292604396
+    353327764
    ],
    "spread": 0
   },
@@ -2590,18 +2590,18 @@
   "switch/phone/4.pine-hollow>nalati-grasslands.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 2486,
+   "value": 2332,
    "values": [
-    2486
+    2332
    ],
    "spread": 0
   },
   "switch/phone/4.pine-hollow>nalati-grasslands.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 2579,
+   "value": 2539,
    "values": [
-    2579
+    2539
    ],
    "spread": 0
   },
@@ -2617,18 +2617,18 @@
   "switch/phone/4.pine-hollow>nalati-grasslands.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 310,
+   "value": 300,
    "values": [
-    310
+    300
    ],
    "spread": 0
   },
   "switch/phone/4.pine-hollow>nalati-grasslands.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 140952216,
+   "value": 127941592,
    "values": [
-    140952216
+    127941592
    ],
    "spread": 0
   },
@@ -2644,9 +2644,9 @@
   "switch/phone/4.pine-hollow>nalati-grasslands.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 142743820,
+   "value": 366394168,
    "values": [
-    142743820
+    366394168
    ],
    "spread": 0
   },
@@ -2671,9 +2671,9 @@
   "switch/phone/cacheStorageBytes": {
    "kind": "bytes",
    "label": "Cache Storage after all 3 shards",
-   "value": 153882290,
+   "value": 154228036,
    "values": [
-    153882290
+    154228036
    ],
    "spread": 0
   },
@@ -2689,18 +2689,18 @@
   "switch/desktop/1.driftwood-isle>nalati-grasslands.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 4593,
+   "value": 4618,
    "values": [
-    4593
+    4618
    ],
    "spread": 0
   },
   "switch/desktop/1.driftwood-isle>nalati-grasslands.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 4661,
+   "value": 4694,
    "values": [
-    4661
+    4694
    ],
    "spread": 0
   },
@@ -2716,18 +2716,18 @@
   "switch/desktop/1.driftwood-isle>nalati-grasslands.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 1150,
+   "value": 1144,
    "values": [
-    1150
+    1144
    ],
    "spread": 0
   },
   "switch/desktop/1.driftwood-isle>nalati-grasslands.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 73977812,
+   "value": 75549292,
    "values": [
-    73977812
+    75549292
    ],
    "spread": 0
   },
@@ -2743,9 +2743,9 @@
   "switch/desktop/1.driftwood-isle>nalati-grasslands.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 551172276,
+   "value": 640770364,
    "values": [
-    551172276
+    640770364
    ],
    "spread": 0
   },
@@ -2770,18 +2770,18 @@
   "switch/desktop/2.nalati-grasslands>driftwood-isle.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 1979,
+   "value": 46,
    "values": [
-    1979
+    46
    ],
    "spread": 0
   },
   "switch/desktop/2.nalati-grasslands>driftwood-isle.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 2067,
+   "value": 128,
    "values": [
-    2067
+    128
    ],
    "spread": 0
   },
@@ -2797,36 +2797,36 @@
   "switch/desktop/2.nalati-grasslands>driftwood-isle.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 466,
+   "value": 0,
    "values": [
-    466
+    0
    ],
    "spread": 0
   },
   "switch/desktop/2.nalati-grasslands>driftwood-isle.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 91680068,
+   "value": 76045032,
    "values": [
-    91680068
+    76045032
    ],
    "spread": 0
   },
   "switch/desktop/2.nalati-grasslands>driftwood-isle.glTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (the running shard)",
-   "value": 388131720,
+   "value": 388066184,
    "values": [
-    388131720
+    388066184
    ],
    "spread": 0
   },
   "switch/desktop/2.nalati-grasslands>driftwood-isle.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 395675784,
+   "value": 759719228,
    "values": [
-    395675784
+    759719228
    ],
    "spread": 0
   },
@@ -2842,27 +2842,27 @@
   "switch/desktop/2.nalati-grasslands>driftwood-isle.loadingShown": {
    "kind": "info",
    "label": "loading screen shown",
-   "value": 1,
+   "value": 0,
    "values": [
-    1
+    0
    ],
    "spread": 0
   },
   "switch/desktop/3.driftwood-isle>pine-hollow.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 3315,
+   "value": 3710,
    "values": [
-    3315
+    3710
    ],
    "spread": 0
   },
   "switch/desktop/3.driftwood-isle>pine-hollow.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 3549,
+   "value": 3950,
    "values": [
-    3549
+    3950
    ],
    "spread": 0
   },
@@ -2878,18 +2878,18 @@
   "switch/desktop/3.driftwood-isle>pine-hollow.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 707,
+   "value": 789,
    "values": [
-    707
+    789
    ],
    "spread": 0
   },
   "switch/desktop/3.driftwood-isle>pine-hollow.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 122380460,
+   "value": 108603528,
    "values": [
-    122380460
+    108603528
    ],
    "spread": 0
   },
@@ -2905,9 +2905,9 @@
   "switch/desktop/3.driftwood-isle>pine-hollow.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 1271018636,
+   "value": 1360616724,
    "values": [
-    1271018636
+    1360616724
    ],
    "spread": 0
   },
@@ -2932,18 +2932,18 @@
   "switch/desktop/4.pine-hollow>nalati-grasslands.ms": {
    "kind": "time",
    "label": "switch to playable",
-   "value": 2858,
+   "value": 2820,
    "values": [
-    2858
+    2820
    ],
    "spread": 0
   },
   "switch/desktop/4.pine-hollow>nalati-grasslands.firstFrameMs": {
    "kind": "time",
    "label": "switch to the first drawn frames",
-   "value": 2936,
+   "value": 2901,
    "values": [
-    2936
+    2901
    ],
    "spread": 0
   },
@@ -2959,18 +2959,18 @@
   "switch/desktop/4.pine-hollow>nalati-grasslands.longTaskMaxMs": {
    "kind": "longtask",
    "label": "switch longest task",
-   "value": 309,
+   "value": 305,
    "values": [
-    309
+    305
    ],
    "spread": 0
   },
   "switch/desktop/4.pine-hollow>nalati-grasslands.heapBytes": {
    "kind": "memory",
    "label": "JS heap after",
-   "value": 150196860,
+   "value": 135369556,
    "values": [
-    150196860
+    135369556
    ],
    "spread": 0
   },
@@ -2986,9 +2986,9 @@
   "switch/desktop/4.pine-hollow>nalati-grasslands.glAllTexBytes": {
    "kind": "memory",
    "label": "GPU textures after (every resident shard)",
-   "value": 551172276,
+   "value": 1583222080,
    "values": [
-    551172276
+    1583222080
    ],
    "spread": 0
   },
@@ -3013,9 +3013,9 @@
   "switch/desktop/cacheStorageBytes": {
    "kind": "bytes",
    "label": "Cache Storage after all 3 shards",
-   "value": 130566865,
+   "value": 130912611,
    "values": [
-    130566865
+    130912611
    ],
    "spread": 0
   }
@@ -3029,26 +3029,26 @@
      "vp": "phone",
      "cold4g": {
       "status": "ok",
-      "playMs": 24305,
-      "netBytes": 21803264,
-      "longTaskMaxMs": 400,
+      "playMs": 24508,
+      "netBytes": 21926434,
+      "longTaskMaxMs": 394,
       "errors": []
      },
      "cold": {
       "status": "ok",
       "errors": [],
-      "playMs": 7028,
-      "netBytes": 21803264,
-      "requests": 227,
-      "swFetches": 245,
-      "longTaskMaxMs": 405,
+      "playMs": 7054,
+      "netBytes": 21926434,
+      "requests": 228,
+      "swFetches": 251,
+      "longTaskMaxMs": 398,
       "longTasks": 4,
       "byType": {
-       "html": 7325,
+       "html": 7333,
        "woff2": 186778,
-       "js": 1465296,
+       "js": 1588459,
        "css": 34120,
-       "json": 44684,
+       "json": 44683,
        "png": 410379,
        "webmanifest": 708,
        "wasm": 1064948,
@@ -3061,7 +3061,7 @@
       "reqByType": {
        "html": 1,
        "woff2": 3,
-       "js": 7,
+       "js": 8,
        "css": 1,
        "json": 2,
        "png": 1,
@@ -3073,8 +3073,8 @@
        "glb": 2
       },
       "swController": true,
-      "idleNetBytes": 148689715,
-      "idleWaitMs": 47516,
+      "idleNetBytes": 148812885,
+      "idleWaitMs": 48028,
       "bgNetBytes": 126886451,
       "bgSwFetches": 204,
       "bgRequests": 2,
@@ -3094,21 +3094,21 @@
      "warm": {
       "status": "ok",
       "errors": [],
-      "playMs": 1882,
-      "netBytes": 3963,
-      "requests": 231,
+      "playMs": 1983,
+      "netBytes": 3967,
+      "requests": 232,
       "swFetches": 1,
-      "longTaskMaxMs": 393,
+      "longTaskMaxMs": 417,
       "longTasks": 4,
       "byType": {
-       "html": 3639,
+       "html": 3643,
        "json": 324
       },
       "reqByType": {
        "html": 1,
        "css": 1,
        "woff2": 3,
-       "js": 8,
+       "js": 9,
        "png": 1,
        "json": 2,
        "jpg": 10,
@@ -3122,12 +3122,12 @@
       "swController": true
      },
      "memory": {
-      "heapBytes": 36043224,
-      "heapTotalBytes": 41631744,
-      "domNodes": 1584,
-      "glTexBytes": 122931516,
-      "glTextures": 101,
-      "glRbBytes": 344064,
+      "heapBytes": 35307904,
+      "heapTotalBytes": 41893888,
+      "domNodes": 1564,
+      "glTexBytes": 100844460,
+      "glTextures": 94,
+      "glRbBytes": 10877184,
       "glBufBytes": 142830421,
       "glCompressedUploads": 5,
       "canvas": [
@@ -3184,40 +3184,40 @@
         1
        ],
        [
-        5266560,
-        "780x1688",
-        "0x8cac",
+        2796304,
+        "4096x512",
+        "0x93d0",
+        13
+       ],
+       [
+        2796304,
+        "4096x512",
+        "0x93d0",
+        13
+       ],
+       [
+        2633280,
+        "390x844",
+        "0x881a",
         1
        ],
        [
-        5266560,
-        "780x1688",
-        "0x8cac",
-        1
-       ],
-       [
-        5266560,
-        "780x1688",
-        "0x8058",
-        1
-       ],
-       [
-        5266560,
-        "780x1688",
-        "0x8058",
+        2633280,
+        "390x844",
+        "0x881a",
         1
        ]
       ],
       "otherContexts": 0,
       "otherTexBytes": 0,
       "glContexts": 1,
-      "glAllTexBytes": 123275580,
+      "glAllTexBytes": 111721644,
       "sceneTexBytes": 33057496,
       "sceneTextures": 26,
       "sceneCompressed": 1,
-      "textures": 102,
+      "textures": 95,
       "geometries": 454,
-      "programs": 94,
+      "programs": 92,
       "slug": "driftwood-isle"
      },
      "poses": [
@@ -3226,11 +3226,11 @@
        "frames": 299,
        "fps": 30,
        "frameP50Ms": 33.3,
-       "frameP95Ms": 34.2,
-       "cpuP50Ms": 2.1,
-       "cpuP95Ms": 3.8,
-       "calls": 224,
-       "trisK": 1101.2,
+       "frameP95Ms": 34,
+       "cpuP50Ms": 2,
+       "cpuP95Ms": 2.5,
+       "calls": 175.5,
+       "trisK": 945.6,
        "pos": [
         0,
         2.02,
@@ -3246,17 +3246,17 @@
        "fps": 30,
        "frameP50Ms": 33.3,
        "frameP95Ms": 33.8,
-       "cpuP50Ms": 2.1,
-       "cpuP95Ms": 2.9,
-       "calls": 219,
-       "trisK": 1054.7,
+       "cpuP50Ms": 2,
+       "cpuP95Ms": 2.6,
+       "calls": 155,
+       "trisK": 850.7,
        "pos": [
         -10,
         1.51,
         -150
        ],
        "shot": "progress/scorecard/e173-base/driftwood-isle-phone-beach.jpg",
-       "shotKB": 51,
+       "shotKB": 50,
        "creatureBoxes": 17
       },
       {
@@ -3264,18 +3264,18 @@
        "frames": 300,
        "fps": 30,
        "frameP50Ms": 33.3,
-       "frameP95Ms": 34,
-       "cpuP50Ms": 2.1,
+       "frameP95Ms": 35,
+       "cpuP50Ms": 2,
        "cpuP95Ms": 2.4,
-       "calls": 171,
-       "trisK": 927,
+       "calls": 122,
+       "trisK": 819.3,
        "pos": [
         105,
         3.63,
         -0.03
        ],
        "shot": "progress/scorecard/e173-base/driftwood-isle-phone-wreck.jpg",
-       "shotKB": 47,
+       "shotKB": 46,
        "creatureBoxes": 9
       }
      ],
@@ -3286,26 +3286,26 @@
      "vp": "desktop",
      "cold4g": {
       "status": "ok",
-      "playMs": 23631,
-      "netBytes": 23191907,
-      "longTaskMaxMs": 503,
+      "playMs": 24012,
+      "netBytes": 23315077,
+      "longTaskMaxMs": 493,
       "errors": []
      },
      "cold": {
       "status": "ok",
       "errors": [],
-      "playMs": 7657,
-      "netBytes": 23191907,
-      "requests": 233,
-      "swFetches": 250,
-      "longTaskMaxMs": 522,
-      "longTasks": 4,
+      "playMs": 7684,
+      "netBytes": 23314775,
+      "requests": 234,
+      "swFetches": 256,
+      "longTaskMaxMs": 486,
+      "longTasks": 5,
       "byType": {
-       "html": 7325,
+       "html": 7333,
        "woff2": 186778,
-       "js": 1465296,
+       "js": 1588157,
        "css": 34120,
-       "json": 44684,
+       "json": 44683,
        "png": 410379,
        "webmanifest": 708,
        "wasm": 1064948,
@@ -3318,7 +3318,7 @@
       "reqByType": {
        "html": 1,
        "woff2": 4,
-       "js": 7,
+       "js": 8,
        "css": 1,
        "json": 2,
        "png": 1,
@@ -3330,8 +3330,8 @@
        "glb": 2
       },
       "swController": true,
-      "idleNetBytes": 125403725,
-      "idleWaitMs": 41529,
+      "idleNetBytes": 125526593,
+      "idleWaitMs": 41528,
       "bgNetBytes": 102211818,
       "bgSwFetches": 217,
       "bgRequests": 2,
@@ -3349,21 +3349,21 @@
      "warm": {
       "status": "ok",
       "errors": [],
-      "playMs": 2258,
-      "netBytes": 3963,
-      "requests": 233,
+      "playMs": 2084,
+      "netBytes": 3967,
+      "requests": 234,
       "swFetches": 1,
-      "longTaskMaxMs": 543,
+      "longTaskMaxMs": 481,
       "longTasks": 4,
       "byType": {
-       "html": 3639,
+       "html": 3643,
        "json": 324
       },
       "reqByType": {
        "css": 1,
        "woff2": 4,
        "html": 1,
-       "js": 7,
+       "js": 8,
        "png": 1,
        "json": 2,
        "jpg": 15,
@@ -3376,9 +3376,9 @@
       "swController": true
      },
      "memory": {
-      "heapBytes": 38326888,
-      "heapTotalBytes": 44515328,
-      "domNodes": 1482,
+      "heapBytes": 37867140,
+      "heapTotalBytes": 45039616,
+      "domNodes": 1463,
       "glTexBytes": 388066184,
       "glTextures": 131,
       "glRbBytes": 7544064,
@@ -3480,9 +3480,9 @@
        "frames": 600,
        "fps": 60,
        "frameP50Ms": 16.7,
-       "frameP95Ms": 17.7,
-       "cpuP50Ms": 3.6,
-       "cpuP95Ms": 4.3,
+       "frameP95Ms": 17.5,
+       "cpuP50Ms": 3.2,
+       "cpuP95Ms": 4.1,
        "calls": 868,
        "trisK": 2980.7,
        "pos": [
@@ -3499,9 +3499,9 @@
        "frames": 600,
        "fps": 60,
        "frameP50Ms": 16.7,
-       "frameP95Ms": 17.7,
-       "cpuP50Ms": 3.5,
-       "cpuP95Ms": 4.1,
+       "frameP95Ms": 18.1,
+       "cpuP50Ms": 3.2,
+       "cpuP95Ms": 3.6,
        "calls": 567,
        "trisK": 2309.1,
        "pos": [
@@ -3517,10 +3517,10 @@
        "name": "wreck",
        "frames": 600,
        "fps": 60,
-       "frameP50Ms": 16.7,
-       "frameP95Ms": 17.4,
-       "cpuP50Ms": 3.2,
-       "cpuP95Ms": 3.7,
+       "frameP50Ms": 16.6,
+       "frameP95Ms": 18.3,
+       "cpuP50Ms": 2.8,
+       "cpuP95Ms": 3.1,
        "calls": 239,
        "trisK": 1452.3,
        "pos": [
@@ -3529,7 +3529,7 @@
         -0.03
        ],
        "shot": "progress/scorecard/e173-base/driftwood-isle-desktop-wreck.jpg",
-       "shotKB": 151,
+       "shotKB": 150,
        "creatureBoxes": 10
       }
      ],
@@ -3540,26 +3540,26 @@
      "vp": "phone",
      "cold4g": {
       "status": "ok",
-      "playMs": 31653,
-      "netBytes": 31413713,
-      "longTaskMaxMs": 392,
+      "playMs": 31840,
+      "netBytes": 31536883,
+      "longTaskMaxMs": 333,
       "errors": []
      },
      "cold": {
       "status": "ok",
       "errors": [],
-      "playMs": 9129,
-      "netBytes": 31413713,
-      "requests": 235,
-      "swFetches": 257,
-      "longTaskMaxMs": 347,
-      "longTasks": 9,
+      "playMs": 9204,
+      "netBytes": 31536883,
+      "requests": 236,
+      "swFetches": 263,
+      "longTaskMaxMs": 363,
+      "longTasks": 7,
       "byType": {
-       "html": 7325,
+       "html": 7333,
        "woff2": 186778,
-       "js": 1465296,
+       "js": 1588459,
        "css": 34120,
-       "json": 30453,
+       "json": 30452,
        "png": 410379,
        "webmanifest": 708,
        "wasm": 1064948,
@@ -3571,7 +3571,7 @@
       "reqByType": {
        "html": 1,
        "woff2": 3,
-       "js": 5,
+       "js": 6,
        "css": 1,
        "json": 1,
        "png": 1,
@@ -3582,8 +3582,8 @@
        "glb": 5
       },
       "swController": true,
-      "idleNetBytes": 148689507,
-      "idleWaitMs": 45021,
+      "idleNetBytes": 148812677,
+      "idleWaitMs": 45547,
       "bgNetBytes": 117275794,
       "bgSwFetches": 192,
       "bgRequests": 0,
@@ -3603,21 +3603,21 @@
      "warm": {
       "status": "ok",
       "errors": [],
-      "playMs": 3607,
-      "netBytes": 3963,
-      "requests": 259,
+      "playMs": 3207,
+      "netBytes": 3967,
+      "requests": 260,
       "swFetches": 1,
-      "longTaskMaxMs": 394,
-      "longTasks": 10,
+      "longTaskMaxMs": 345,
+      "longTasks": 8,
       "byType": {
-       "html": 3639,
+       "html": 3643,
        "json": 324
       },
       "reqByType": {
-       "html": 1,
        "css": 1,
        "woff2": 3,
-       "js": 6,
+       "html": 1,
+       "js": 7,
        "png": 1,
        "json": 1,
        "jpg": 10,
@@ -3630,9 +3630,9 @@
       "swController": true
      },
      "memory": {
-      "heapBytes": 48910456,
-      "heapTotalBytes": 55083008,
-      "domNodes": 1909,
+      "heapBytes": 48707792,
+      "heapTotalBytes": 56131584,
+      "domNodes": 1890,
       "glTexBytes": 101683596,
       "glTextures": 131,
       "glRbBytes": 41060224,
@@ -3734,9 +3734,9 @@
        "frames": 300,
        "fps": 30,
        "frameP50Ms": 33.3,
-       "frameP95Ms": 33.8,
-       "cpuP50Ms": 1.9,
-       "cpuP95Ms": 2.3,
+       "frameP95Ms": 35.2,
+       "cpuP50Ms": 2.3,
+       "cpuP95Ms": 4,
        "calls": 77,
        "trisK": 983.2,
        "pos": [
@@ -3750,12 +3750,12 @@
       },
       {
        "name": "bridge",
-       "frames": 299,
+       "frames": 300,
        "fps": 30,
-       "frameP50Ms": 33.4,
-       "frameP95Ms": 34.4,
-       "cpuP50Ms": 1.9,
-       "cpuP95Ms": 2.4,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 35.2,
+       "cpuP50Ms": 2.7,
+       "cpuP95Ms": 5.5,
        "calls": 87,
        "trisK": 1228.9,
        "pos": [
@@ -3765,18 +3765,18 @@
        ],
        "shot": "progress/scorecard/e173-base/nalati-grasslands-phone-bridge.jpg",
        "shotKB": 70,
-       "creatureBoxes": 16
+       "creatureBoxes": 15
       },
       {
        "name": "plains",
-       "frames": 299,
+       "frames": 300,
        "fps": 30,
        "frameP50Ms": 33.3,
-       "frameP95Ms": 34.7,
-       "cpuP50Ms": 2.3,
-       "cpuP95Ms": 3.4,
-       "calls": 100,
-       "trisK": 1216.8,
+       "frameP95Ms": 34,
+       "cpuP50Ms": 2.2,
+       "cpuP95Ms": 2.9,
+       "calls": 101,
+       "trisK": 1221.3,
        "pos": [
         65,
         25.95,
@@ -3784,7 +3784,7 @@
        ],
        "shot": "progress/scorecard/e173-base/nalati-grasslands-phone-plains.jpg",
        "shotKB": 81,
-       "creatureBoxes": 5
+       "creatureBoxes": 4
       }
      ],
      "pageErrors": []
@@ -3794,26 +3794,26 @@
      "vp": "desktop",
      "cold4g": {
       "status": "ok",
-      "playMs": 37755,
-      "netBytes": 37842606,
-      "longTaskMaxMs": 1311,
+      "playMs": 37861,
+      "netBytes": 37966006,
+      "longTaskMaxMs": 1202,
       "errors": []
      },
      "cold": {
       "status": "ok",
       "errors": [],
-      "playMs": 12080,
-      "netBytes": 37842304,
-      "requests": 271,
-      "swFetches": 292,
-      "longTaskMaxMs": 1634,
-      "longTasks": 14,
+      "playMs": 11427,
+      "netBytes": 37965776,
+      "requests": 272,
+      "swFetches": 298,
+      "longTaskMaxMs": 1191,
+      "longTasks": 10,
       "byType": {
-       "html": 7325,
+       "html": 7333,
        "woff2": 186778,
-       "js": 1464994,
+       "js": 1588459,
        "css": 34120,
-       "json": 30453,
+       "json": 30452,
        "png": 410379,
        "webmanifest": 708,
        "wasm": 1064948,
@@ -3826,7 +3826,7 @@
       "reqByType": {
        "html": 1,
        "woff2": 4,
-       "js": 5,
+       "js": 6,
        "css": 1,
        "json": 1,
        "png": 1,
@@ -3838,8 +3838,8 @@
        "glb": 30
       },
       "swController": true,
-      "idleNetBytes": 125403215,
-      "idleWaitMs": 37526,
+      "idleNetBytes": 125526687,
+      "idleWaitMs": 37549,
       "bgNetBytes": 87560911,
       "bgSwFetches": 175,
       "bgRequests": 0,
@@ -3857,21 +3857,21 @@
      "warm": {
       "status": "ok",
       "errors": [],
-      "playMs": 5983,
-      "netBytes": 3963,
-      "requests": 271,
+      "playMs": 4457,
+      "netBytes": 3967,
+      "requests": 272,
       "swFetches": 1,
-      "longTaskMaxMs": 1426,
-      "longTasks": 19,
+      "longTaskMaxMs": 1139,
+      "longTasks": 9,
       "byType": {
-       "html": 3639,
+       "html": 3643,
        "json": 324
       },
       "reqByType": {
        "css": 1,
        "woff2": 4,
        "html": 1,
-       "js": 5,
+       "js": 6,
        "png": 1,
        "json": 1,
        "jpg": 13,
@@ -3884,9 +3884,9 @@
       "swController": true
      },
      "memory": {
-      "heapBytes": 50586344,
+      "heapBytes": 51002416,
       "heapTotalBytes": 58753024,
-      "domNodes": 1812,
+      "domNodes": 1793,
       "glTexBytes": 472097972,
       "glTextures": 165,
       "glRbBytes": 79074304,
@@ -3987,10 +3987,10 @@
        "name": "camp",
        "frames": 600,
        "fps": 60,
-       "frameP50Ms": 16.6,
-       "frameP95Ms": 17.5,
-       "cpuP50Ms": 2.4,
-       "cpuP95Ms": 3,
+       "frameP50Ms": 16.7,
+       "frameP95Ms": 17.1,
+       "cpuP50Ms": 2.5,
+       "cpuP95Ms": 2.9,
        "calls": 195,
        "trisK": 4297.8,
        "pos": [
@@ -4006,10 +4006,10 @@
        "name": "bridge",
        "frames": 600,
        "fps": 60,
-       "frameP50Ms": 16.6,
-       "frameP95Ms": 17.6,
-       "cpuP50Ms": 3.6,
-       "cpuP95Ms": 4.4,
+       "frameP50Ms": 16.7,
+       "frameP95Ms": 17.2,
+       "cpuP50Ms": 2.7,
+       "cpuP95Ms": 3.1,
        "calls": 430,
        "trisK": 5979.9,
        "pos": [
@@ -4025,12 +4025,12 @@
        "name": "plains",
        "frames": 600,
        "fps": 60,
-       "frameP50Ms": 16.7,
-       "frameP95Ms": 17.7,
-       "cpuP50Ms": 2.8,
-       "cpuP95Ms": 3.5,
+       "frameP50Ms": 16.6,
+       "frameP95Ms": 18.2,
+       "cpuP50Ms": 2.7,
+       "cpuP95Ms": 3.1,
        "calls": 268,
-       "trisK": 5986.3,
+       "trisK": 5995.1,
        "pos": [
         65,
         25.95,
@@ -4048,26 +4048,26 @@
      "vp": "phone",
      "cold4g": {
       "status": "ok",
-      "playMs": 35181,
-      "netBytes": 38068890,
+      "playMs": 35289,
+      "netBytes": 38192060,
       "longTaskMaxMs": 306,
       "errors": []
      },
      "cold": {
       "status": "ok",
       "errors": [],
-      "playMs": 10677,
-      "netBytes": 38068890,
-      "requests": 149,
-      "swFetches": 169,
-      "longTaskMaxMs": 453,
-      "longTasks": 5,
+      "playMs": 10633,
+      "netBytes": 38191758,
+      "requests": 150,
+      "swFetches": 175,
+      "longTaskMaxMs": 302,
+      "longTasks": 3,
       "byType": {
-       "html": 7325,
+       "html": 7333,
        "woff2": 186778,
-       "js": 1465296,
+       "js": 1588157,
        "css": 34120,
-       "json": 30453,
+       "json": 30452,
        "png": 410379,
        "webmanifest": 708,
        "wasm": 1064948,
@@ -4080,7 +4080,7 @@
       "reqByType": {
        "html": 1,
        "woff2": 4,
-       "js": 5,
+       "js": 6,
        "css": 1,
        "json": 1,
        "png": 1,
@@ -4092,8 +4092,8 @@
        "webp": 1
       },
       "swController": true,
-      "idleNetBytes": 148689611,
-      "idleWaitMs": 44531,
+      "idleNetBytes": 148812479,
+      "idleWaitMs": 44540,
       "bgNetBytes": 110620721,
       "bgSwFetches": 280,
       "bgRequests": 5,
@@ -4113,21 +4113,21 @@
      "warm": {
       "status": "ok",
       "errors": [],
-      "playMs": 2131,
-      "netBytes": 3963,
-      "requests": 248,
+      "playMs": 2132,
+      "netBytes": 3967,
+      "requests": 249,
       "swFetches": 1,
       "longTaskMaxMs": 295,
       "longTasks": 3,
       "byType": {
-       "html": 3639,
+       "html": 3643,
        "json": 324
       },
       "reqByType": {
        "html": 1,
        "css": 1,
        "woff2": 4,
-       "js": 6,
+       "js": 7,
        "png": 1,
        "json": 1,
        "jpg": 10,
@@ -4142,9 +4142,9 @@
       "swController": true
      },
      "memory": {
-      "heapBytes": 47523952,
-      "heapTotalBytes": 53772288,
-      "domNodes": 1797,
+      "heapBytes": 48247792,
+      "heapTotalBytes": 53510144,
+      "domNodes": 1778,
       "glTexBytes": 292604396,
       "glTextures": 407,
       "glRbBytes": 0,
@@ -4243,14 +4243,14 @@
      "poses": [
       {
        "name": "gate",
-       "frames": 299,
+       "frames": 300,
        "fps": 30,
        "frameP50Ms": 33.3,
-       "frameP95Ms": 34.2,
-       "cpuP50Ms": 2.5,
-       "cpuP95Ms": 4.9,
-       "calls": 99,
-       "trisK": 1101.3,
+       "frameP95Ms": 35.1,
+       "cpuP50Ms": 2.4,
+       "cpuP95Ms": 3.1,
+       "calls": 100,
+       "trisK": 1104.3,
        "pos": [
         0,
         0.16,
@@ -4258,18 +4258,18 @@
        ],
        "shot": "progress/scorecard/e173-base/pine-hollow-phone-gate.jpg",
        "shotKB": 79,
-       "creatureBoxes": 60
+       "creatureBoxes": 63
       },
       {
        "name": "cabin",
-       "frames": 299,
+       "frames": 300,
        "fps": 30,
        "frameP50Ms": 33.4,
-       "frameP95Ms": 34.1,
+       "frameP95Ms": 34.6,
        "cpuP50Ms": 2.7,
-       "cpuP95Ms": 3.2,
-       "calls": 141,
-       "trisK": 1305.1,
+       "cpuP95Ms": 3.8,
+       "calls": 142,
+       "trisK": 1315.1,
        "pos": [
         -14,
         2.11,
@@ -4277,18 +4277,18 @@
        ],
        "shot": "progress/scorecard/e173-base/pine-hollow-phone-cabin.jpg",
        "shotKB": 77,
-       "creatureBoxes": 25
+       "creatureBoxes": 26
       },
       {
        "name": "pond",
-       "frames": 300,
+       "frames": 299,
        "fps": 30,
        "frameP50Ms": 33.3,
-       "frameP95Ms": 34.4,
+       "frameP95Ms": 34.7,
        "cpuP50Ms": 2.4,
-       "cpuP95Ms": 2.9,
-       "calls": 88,
-       "trisK": 888.5,
+       "cpuP95Ms": 3.1,
+       "calls": 89,
+       "trisK": 891.5,
        "pos": [
         -55.99,
         -0.66,
@@ -4296,7 +4296,7 @@
        ],
        "shot": "progress/scorecard/e173-base/pine-hollow-phone-pond.jpg",
        "shotKB": 81,
-       "creatureBoxes": 3
+       "creatureBoxes": 4
       }
      ],
      "pageErrors": []
@@ -4306,26 +4306,26 @@
      "vp": "desktop",
      "cold4g": {
       "status": "ok",
-      "playMs": 84143,
-      "netBytes": 95977024,
-      "longTaskMaxMs": 803,
+      "playMs": 86660,
+      "netBytes": 96100194,
+      "longTaskMaxMs": 784,
       "errors": []
      },
      "cold": {
       "status": "ok",
       "errors": [],
-      "playMs": 28455,
-      "netBytes": 95977024,
-      "requests": 277,
-      "swFetches": 291,
-      "longTaskMaxMs": 1070,
-      "longTasks": 7,
+      "playMs": 27802,
+      "netBytes": 96100194,
+      "requests": 278,
+      "swFetches": 297,
+      "longTaskMaxMs": 721,
+      "longTasks": 5,
       "byType": {
-       "html": 7325,
+       "html": 7333,
        "woff2": 186778,
-       "js": 1465296,
+       "js": 1588459,
        "css": 34120,
-       "json": 33671,
+       "json": 33670,
        "png": 1932404,
        "webmanifest": 708,
        "wasm": 1064948,
@@ -4339,7 +4339,7 @@
       "reqByType": {
        "html": 1,
        "woff2": 5,
-       "js": 5,
+       "js": 6,
        "css": 1,
        "json": 3,
        "png": 11,
@@ -4352,8 +4352,8 @@
        "webp": 1
       },
       "swController": true,
-      "idleNetBytes": 125403621,
-      "idleWaitMs": 25535,
+      "idleNetBytes": 125526791,
+      "idleWaitMs": 23552,
       "bgNetBytes": 29426597,
       "bgSwFetches": 176,
       "bgRequests": 5,
@@ -4369,21 +4369,21 @@
      "warm": {
       "status": "ok",
       "errors": [],
-      "playMs": 3434,
-      "netBytes": 3963,
-      "requests": 277,
+      "playMs": 3283,
+      "netBytes": 3967,
+      "requests": 278,
       "swFetches": 1,
-      "longTaskMaxMs": 735,
+      "longTaskMaxMs": 724,
       "longTasks": 4,
       "byType": {
-       "html": 3639,
+       "html": 3643,
        "json": 324
       },
       "reqByType": {
        "css": 1,
        "woff2": 5,
        "html": 1,
-       "js": 5,
+       "js": 6,
        "png": 11,
        "json": 3,
        "jpg": 92,
@@ -4397,9 +4397,9 @@
       "swController": true
      },
      "memory": {
-      "heapBytes": 50083728,
-      "heapTotalBytes": 58490880,
-      "domNodes": 1680,
+      "heapBytes": 50186372,
+      "heapTotalBytes": 58228736,
+      "domNodes": 1661,
       "glTexBytes": 1263753100,
       "glTextures": 455,
       "glRbBytes": 7200000,
@@ -4500,12 +4500,12 @@
        "name": "gate",
        "frames": 600,
        "fps": 60,
-       "frameP50Ms": 16.7,
-       "frameP95Ms": 17.5,
-       "cpuP50Ms": 8.5,
-       "cpuP95Ms": 9.2,
+       "frameP50Ms": 16.6,
+       "frameP95Ms": 18.6,
+       "cpuP50Ms": 8.6,
+       "cpuP95Ms": 10.5,
        "calls": 235,
-       "trisK": 8355.8,
+       "trisK": 8333.9,
        "pos": [
         0,
         0.16,
@@ -4513,18 +4513,18 @@
        ],
        "shot": "progress/scorecard/e173-base/pine-hollow-desktop-gate.jpg",
        "shotKB": 335,
-       "creatureBoxes": 116
+       "creatureBoxes": 115
       },
       {
        "name": "cabin",
-       "frames": 600,
+       "frames": 599,
        "fps": 60,
        "frameP50Ms": 16.7,
-       "frameP95Ms": 17.3,
-       "cpuP50Ms": 7.5,
-       "cpuP95Ms": 8.4,
-       "calls": 269,
-       "trisK": 7954.3,
+       "frameP95Ms": 18.4,
+       "cpuP50Ms": 7.9,
+       "cpuP95Ms": 9.1,
+       "calls": 267,
+       "trisK": 7935.6,
        "pos": [
         -14,
         2.11,
@@ -4532,18 +4532,18 @@
        ],
        "shot": "progress/scorecard/e173-base/pine-hollow-desktop-cabin.jpg",
        "shotKB": 314,
-       "creatureBoxes": 56
+       "creatureBoxes": 58
       },
       {
        "name": "pond",
        "frames": 600,
        "fps": 60,
        "frameP50Ms": 16.6,
-       "frameP95Ms": 17.5,
-       "cpuP50Ms": 4.9,
-       "cpuP95Ms": 5.6,
-       "calls": 176,
-       "trisK": 4939.8,
+       "frameP95Ms": 18.2,
+       "cpuP50Ms": 4.8,
+       "cpuP95Ms": 6.7,
+       "calls": 175,
+       "trisK": 4954.2,
        "pos": [
         -55.99,
         -0.66,
@@ -4551,7 +4551,7 @@
        ],
        "shot": "progress/scorecard/e173-base/pine-hollow-desktop-pond.jpg",
        "shotKB": 337,
-       "creatureBoxes": 5
+       "creatureBoxes": 4
       }
      ],
      "pageErrors": []
@@ -4571,122 +4571,121 @@
       {
        "from": "driftwood-isle",
        "to": "nalati-grasslands",
-       "titleMs": 3144,
-       "ms": 3351,
+       "titleMs": 3157,
+       "ms": 3199,
        "status": "ok",
-       "firstFrameMs": 3437,
+       "firstFrameMs": 3417,
        "navigated": false,
        "kind": "build",
-       "hostMs": 3097,
-       "evicted": [
-        "driftwood-isle"
-       ],
+       "hostMs": 3081,
+       "evicted": [],
        "resident": [
+        "driftwood-isle",
         "nalati-grasslands"
        ],
        "loadingShown": true,
-       "longTaskMaxMs": 351,
+       "longTaskMaxMs": 329,
        "netBytes": 0,
-       "heapBytes": 69182140,
+       "heapBytes": 70924312,
        "glTexBytes": 101683596,
        "glBufBytes": 66758904,
        "glRbBytes": 41060224,
        "slug": "nalati-grasslands",
-       "glAllTexBytes": 142743820,
-       "glContexts": 1
+       "glAllTexBytes": 203467188,
+       "glContexts": 2
       },
       {
        "from": "nalati-grasslands",
        "to": "driftwood-isle",
-       "titleMs": 1649,
-       "ms": 1692,
+       "ms": 53,
        "status": "ok",
-       "firstFrameMs": 1792,
+       "firstFrameMs": 161,
        "navigated": false,
-       "kind": "rebuild",
-       "hostMs": 1602,
-       "evicted": [
-        "nalati-grasslands"
-       ],
+       "kind": "resident",
+       "hostMs": 10,
+       "evicted": [],
        "resident": [
+        "nalati-grasslands",
         "driftwood-isle"
        ],
-       "loadingShown": true,
-       "longTaskMaxMs": 381,
+       "loadingShown": false,
+       "longTaskMaxMs": 0,
        "netBytes": 0,
-       "heapBytes": 85746024,
-       "glTexBytes": 122931516,
+       "heapBytes": 70956068,
+       "glTexBytes": 249217704,
        "glBufBytes": 142830421,
-       "glRbBytes": 344064,
+       "glRbBytes": 10877184,
        "slug": "driftwood-isle",
-       "glAllTexBytes": 123275580,
-       "glContexts": 1
+       "glAllTexBytes": 353342516,
+       "glContexts": 2
       },
       {
        "from": "driftwood-isle",
        "to": "pine-hollow",
-       "titleMs": 1847,
-       "ms": 1891,
+       "titleMs": 1823,
+       "ms": 2029,
        "status": "ok",
-       "firstFrameMs": 2107,
+       "firstFrameMs": 2118,
        "navigated": false,
        "kind": "build",
-       "hostMs": 1802,
+       "hostMs": 1785,
        "evicted": [
-        "driftwood-isle"
+        "nalati-grasslands"
        ],
        "resident": [
+        "driftwood-isle",
         "pine-hollow"
        ],
        "loadingShown": true,
-       "longTaskMaxMs": 284,
+       "longTaskMaxMs": 290,
        "netBytes": 0,
-       "heapBytes": 115831416,
+       "heapBytes": 101933072,
        "glTexBytes": 292604396,
        "glBufBytes": 40629100,
        "glRbBytes": 0,
        "slug": "pine-hollow",
-       "glAllTexBytes": 292604396,
-       "glContexts": 1
+       "glAllTexBytes": 353327764,
+       "glContexts": 2
       },
       {
        "from": "pine-hollow",
        "to": "nalati-grasslands",
-       "titleMs": 2303,
-       "ms": 2486,
+       "titleMs": 2278,
+       "ms": 2332,
        "status": "ok",
-       "firstFrameMs": 2579,
+       "firstFrameMs": 2539,
        "navigated": false,
        "kind": "rebuild",
-       "hostMs": 2266,
+       "hostMs": 2232,
        "evicted": [
-        "pine-hollow"
+        "driftwood-isle"
        ],
        "resident": [
+        "pine-hollow",
         "nalati-grasslands"
        ],
        "loadingShown": true,
-       "longTaskMaxMs": 310,
+       "longTaskMaxMs": 300,
        "netBytes": 0,
-       "heapBytes": 140952216,
+       "heapBytes": 127941592,
        "glTexBytes": 101683596,
        "glBufBytes": 66758904,
        "glRbBytes": 41060224,
        "slug": "nalati-grasslands",
-       "glAllTexBytes": 142743820,
-       "glContexts": 1
+       "glAllTexBytes": 366394168,
+       "glContexts": 2
       }
      ],
      "first": {
-      "playMs": 7003,
-      "netBytes": 21803264,
+      "playMs": 7154,
+      "netBytes": 21926434,
       "status": "ok"
      },
-     "quietMs": 48015,
+     "quietMs": 48030,
      "prefetchBytes": 126886451,
      "storage": {
-      "usage": 153912543,
-      "caches": 153882290
+      "usage": 154258497,
+      "caches": 154228036
      }
     },
     "desktop": {
@@ -4702,122 +4701,121 @@
       {
        "from": "driftwood-isle",
        "to": "nalati-grasslands",
-       "titleMs": 4345,
-       "ms": 4593,
+       "titleMs": 4354,
+       "ms": 4618,
        "status": "ok",
-       "firstFrameMs": 4661,
+       "firstFrameMs": 4694,
        "navigated": false,
        "kind": "build",
-       "hostMs": 4297,
-       "evicted": [
-        "driftwood-isle"
-       ],
+       "hostMs": 4278,
+       "evicted": [],
        "resident": [
+        "driftwood-isle",
         "nalati-grasslands"
        ],
        "loadingShown": true,
-       "longTaskMaxMs": 1150,
+       "longTaskMaxMs": 1144,
        "netBytes": 0,
-       "heapBytes": 73977812,
+       "heapBytes": 75549292,
        "glTexBytes": 472097972,
        "glBufBytes": 72471894,
        "glRbBytes": 79074304,
        "slug": "nalati-grasslands",
-       "glAllTexBytes": 551172276,
-       "glContexts": 1
+       "glAllTexBytes": 640770364,
+       "glContexts": 2
       },
       {
        "from": "nalati-grasslands",
        "to": "driftwood-isle",
-       "titleMs": 1895,
-       "ms": 1979,
+       "ms": 46,
        "status": "ok",
-       "firstFrameMs": 2067,
+       "firstFrameMs": 128,
        "navigated": false,
-       "kind": "rebuild",
-       "hostMs": 1846,
-       "evicted": [
-        "nalati-grasslands"
-       ],
+       "kind": "resident",
+       "hostMs": 15,
+       "evicted": [],
        "resident": [
+        "nalati-grasslands",
         "driftwood-isle"
        ],
-       "loadingShown": true,
-       "longTaskMaxMs": 466,
+       "loadingShown": false,
+       "longTaskMaxMs": 0,
        "netBytes": 0,
-       "heapBytes": 91680068,
-       "glTexBytes": 388131720,
+       "heapBytes": 76045032,
+       "glTexBytes": 388066184,
        "glBufBytes": 264680442,
        "glRbBytes": 7544064,
        "slug": "driftwood-isle",
-       "glAllTexBytes": 395675784,
-       "glContexts": 1
+       "glAllTexBytes": 759719228,
+       "glContexts": 2
       },
       {
        "from": "driftwood-isle",
        "to": "pine-hollow",
-       "titleMs": 2998,
-       "ms": 3315,
+       "titleMs": 3348,
+       "ms": 3710,
        "status": "ok",
-       "firstFrameMs": 3549,
+       "firstFrameMs": 3950,
        "navigated": false,
        "kind": "build",
-       "hostMs": 2920,
+       "hostMs": 3305,
        "evicted": [
-        "driftwood-isle"
+        "nalati-grasslands"
        ],
        "resident": [
+        "driftwood-isle",
         "pine-hollow"
        ],
        "loadingShown": true,
-       "longTaskMaxMs": 707,
+       "longTaskMaxMs": 789,
        "netBytes": 0,
-       "heapBytes": 122380460,
+       "heapBytes": 108603528,
        "glTexBytes": 1263818636,
        "glBufBytes": 172806404,
        "glRbBytes": 7200000,
        "slug": "pine-hollow",
-       "glAllTexBytes": 1271018636,
-       "glContexts": 1
+       "glAllTexBytes": 1360616724,
+       "glContexts": 2
       },
       {
        "from": "pine-hollow",
        "to": "nalati-grasslands",
-       "titleMs": 2655,
-       "ms": 2858,
+       "titleMs": 2623,
+       "ms": 2820,
        "status": "ok",
-       "firstFrameMs": 2936,
+       "firstFrameMs": 2901,
        "navigated": false,
        "kind": "rebuild",
-       "hostMs": 2599,
+       "hostMs": 2572,
        "evicted": [
-        "pine-hollow"
+        "driftwood-isle"
        ],
        "resident": [
+        "pine-hollow",
         "nalati-grasslands"
        ],
        "loadingShown": true,
-       "longTaskMaxMs": 309,
+       "longTaskMaxMs": 305,
        "netBytes": 0,
-       "heapBytes": 150196860,
+       "heapBytes": 135369556,
        "glTexBytes": 472097972,
        "glBufBytes": 72471894,
        "glRbBytes": 79074304,
        "slug": "nalati-grasslands",
-       "glAllTexBytes": 551172276,
-       "glContexts": 1
+       "glAllTexBytes": 1583222080,
+       "glContexts": 2
       }
      ],
      "first": {
-      "playMs": 7688,
-      "netBytes": 23191907,
+      "playMs": 7728,
+      "netBytes": 23315077,
       "status": "ok"
      },
-     "quietMs": 41509,
+     "quietMs": 42019,
      "prefetchBytes": 102211818,
      "storage": {
-      "usage": 130597118,
-      "caches": 130566865
+      "usage": 130943072,
+      "caches": 130912611
      }
     }
    },
@@ -4883,10 +4881,10 @@
        423
       ],
       [
-       335,
+       334,
        380,
-       350,
-       430
+       349,
+       429
       ],
       [
        185,
@@ -4973,8 +4971,8 @@
        420
       ]
      ],
-     "ssim": 0.9848,
-     "ssimUnmasked": 0.9849,
+     "ssim": 0.9834,
+     "ssimUnmasked": 0.9824,
      "masked": 0.046,
      "note": null
     },
@@ -4985,7 +4983,7 @@
      "run": 1,
      "boxes": [
       [
-       109,
+       108,
        359,
        163,
        448
@@ -5045,9 +5043,9 @@
        434
       ],
       [
-       345,
-       384,
-       360,
+       347,
+       383,
+       363,
        433
       ],
       [
@@ -5087,8 +5085,8 @@
        439
       ]
      ],
-     "ssim": 0.9964,
-     "ssimUnmasked": 0.9937,
+     "ssim": 0.9918,
+     "ssimUnmasked": 0.9879,
      "masked": 0.083,
      "note": null
     },
@@ -5099,52 +5097,52 @@
      "run": 1,
      "boxes": [
       [
-       216,
-       378,
-       334,
-       530
+       261,
+       372,
+       386,
+       531
       ],
       [
-       218,
+       231,
        406,
-       284,
+       297,
        506
       ],
       [
-       233,
+       219,
        410,
-       290,
-       501
+       274,
+       499
       ],
       [
        0,
-       382,
-       99,
-       537
+       383,
+       111,
+       534
       ],
       [
-       5,
-       414,
-       69,
-       513
+       15,
+       413,
+       79,
+       512
       ],
       [
-       80,
+       59,
+       412,
+       116,
+       503
+      ],
+      [
+       29,
+       413,
+       92,
+       511
+      ],
+      [
+       41,
        410,
-       133,
-       498
-      ],
-      [
-       60,
-       411,
-       124,
-       509
-      ],
-      [
-       28,
-       411,
-       90,
-       508
+       102,
+       505
       ],
       [
        173,
@@ -5153,9 +5151,9 @@
        488
       ]
      ],
-     "ssim": 0.9933,
-     "ssimUnmasked": 0.9865,
-     "masked": 0.137,
+     "ssim": 0.9932,
+     "ssimUnmasked": 0.9832,
+     "masked": 0.161,
      "note": null
     },
     {
@@ -5197,7 +5195,7 @@
       [
        1153,
        404,
-       1178,
+       1177,
        463
       ],
       [
@@ -5381,8 +5379,8 @@
        473
       ]
      ],
-     "ssim": 0.9941,
-     "ssimUnmasked": 0.9931,
+     "ssim": 0.9909,
+     "ssimUnmasked": 0.9898,
      "masked": 0.03,
      "note": null
     },
@@ -5400,7 +5398,7 @@
       ],
       [
        494,
-       383,
+       382,
        587,
        509
       ],
@@ -5441,9 +5439,9 @@
        466
       ],
       [
-       1031,
+       1029,
        402,
-       1067,
+       1065,
        472
       ],
       [
@@ -5459,9 +5457,9 @@
        468
       ],
       [
-       1039,
+       1038,
        409,
-       1062,
+       1061,
        466
       ],
       [
@@ -5543,8 +5541,8 @@
        473
       ]
      ],
-     "ssim": 0.9976,
-     "ssimUnmasked": 0.9975,
+     "ssim": 0.9945,
+     "ssimUnmasked": 0.9945,
      "masked": 0.052,
      "note": null
     },
@@ -5555,58 +5553,58 @@
      "run": 1,
      "boxes": [
       [
-       1567,
-       259,
+       1576,
+       251,
        1600,
-       433
+       431
       ],
       [
-       833,
-       399,
-       1025,
-       625
+       828,
+       403,
+       1007,
+       616
       ],
       [
-       859,
+       915,
        448,
-       953,
+       1010,
        576
       ],
       [
-       857,
+       821,
        454,
-       936,
-       567
+       904,
+       572
       ],
       [
        497,
-       406,
-       683,
-       627
+       407,
+       682,
+       626
       ],
       [
-       448,
+       437,
        465,
-       546,
-       597
+       539,
+       601
       ],
       [
-       616,
-       455,
-       699,
-       571
-      ],
-      [
-       607,
+       579,
        457,
-       693,
+       665,
        576
       ],
       [
-       474,
-       461,
-       569,
+       556,
+       457,
+       655,
        590
+      ],
+      [
+       544,
+       456,
+       635,
+       581
       ],
       [
        769,
@@ -5615,9 +5613,9 @@
        550
       ]
      ],
-     "ssim": 0.9934,
-     "ssimUnmasked": 0.992,
-     "masked": 0.078,
+     "ssim": 0.9906,
+     "ssimUnmasked": 0.9878,
+     "masked": 0.08,
      "note": null
     },
     {
@@ -5639,8 +5637,8 @@
        536
       ]
      ],
-     "ssim": 0.9969,
-     "ssimUnmasked": 0.9914,
+     "ssim": 0.9963,
+     "ssimUnmasked": 0.9953,
      "masked": 0.275,
      "note": null
     },
@@ -5651,105 +5649,99 @@
      "run": 1,
      "boxes": [
       [
-       345,
+       355,
        312,
-       362,
+       372,
        363
       ],
       [
-       345,
-       317,
-       362,
-       367
+       320,
+       318,
+       337,
+       368
       ],
       [
-       325,
-       317,
-       341,
-       368
+       343,
+       314,
+       360,
+       365
       ],
       [
        314,
        317,
        331,
-       368
+       367
       ],
       [
-       347,
+       351,
        314,
-       364,
+       368,
        365
       ],
       [
-       355,
-       317,
-       372,
-       367
-      ],
-      [
-       351,
-       316,
-       368,
-       367
-      ],
-      [
-       351,
-       312,
-       368,
-       363
-      ],
-      [
-       327,
-       318,
        344,
-       368
-      ],
-      [
-       338,
-       318,
-       355,
-       369
-      ],
-      [
-       356,
-       312,
-       373,
-       363
-      ],
-      [
-       353,
-       313,
-       368,
-       362
-      ],
-      [
-       341,
-       318,
-       356,
-       367
-      ],
-      [
-       330,
-       318,
-       345,
+       316,
+       361,
        367
       ],
       [
        349,
-       307,
-       367,
-       359
+       316,
+       366,
+       367
       ],
       [
-       2,
-       281,
-       17,
-       330
+       350,
+       314,
+       367,
+       365
+      ],
+      [
+       332,
+       318,
+       349,
+       369
+      ],
+      [
+       340,
+       317,
+       357,
+       368
+      ],
+      [
+       358,
+       313,
+       376,
+       364
+      ],
+      [
+       352,
+       314,
+       367,
+       363
+      ],
+      [
+       325,
+       318,
+       340,
+       367
+      ],
+      [
+       349,
+       315,
+       364,
+       364
+      ],
+      [
+       349,
+       307,
+       368,
+       359
       ]
      ],
-     "ssim": 0.9884,
-     "ssimUnmasked": 0.9885,
-     "masked": 0.016,
+     "ssim": 0.9925,
+     "ssimUnmasked": 0.9926,
+     "masked": 0.017,
      "note": null
     },
     {
@@ -5759,22 +5751,16 @@
      "run": 1,
      "boxes": [
       [
-       362,
-       342,
-       390,
+       236,
+       351,
+       299,
        449
       ],
       [
-       245,
-       365,
-       290,
-       443
-      ],
-      [
-       295,
        318,
+       312,
        390,
-       468
+       474
       ],
       [
        180,
@@ -5789,9 +5775,9 @@
        486
       ]
      ],
-     "ssim": 0.9362,
-     "ssimUnmasked": 0.9285,
-     "masked": 0.065,
+     "ssim": 0.972,
+     "ssimUnmasked": 0.9662,
+     "masked": 0.064,
      "note": null
     },
     {
@@ -5813,8 +5799,8 @@
        626
       ]
      ],
-     "ssim": 0.9949,
-     "ssimUnmasked": 0.9941,
+     "ssim": 0.9918,
+     "ssimUnmasked": 0.9905,
      "masked": 0.155,
      "note": null
     },
@@ -5825,88 +5811,88 @@
      "run": 1,
      "boxes": [
       [
-       24,
-       247,
-       55,
+       25,
+       248,
+       56,
        312
       ],
       [
-       1051,
-       290,
-       1082,
-       355
-      ],
-      [
-       988,
-       301,
-       1018,
-       365
-      ],
-      [
-       989,
-       300,
-       1018,
-       363
-      ],
-      [
-       1022,
-       297,
-       1053,
-       362
-      ],
-      [
-       1044,
-       299,
-       1074,
-       363
-      ],
-      [
-       1065,
-       294,
-       1096,
-       359
-      ],
-      [
-       1060,
-       299,
-       1090,
-       363
-      ],
-      [
-       1028,
-       294,
-       1059,
-       359
-      ],
-      [
-       1016,
-       300,
-       1045,
-       364
-      ],
-      [
-       1029,
-       299,
-       1059,
-       363
-      ],
-      [
-       1074,
+       1057,
        291,
-       1106,
+       1088,
        356
       ],
       [
-       1051,
+       997,
+       303,
+       1027,
+       367
+      ],
+      [
+       987,
+       300,
+       1016,
+       363
+      ],
+      [
+       1037,
+       297,
+       1067,
+       362
+      ],
+      [
+       1067,
+       293,
+       1098,
+       358
+      ],
+      [
+       1073,
+       295,
+       1104,
+       360
+      ],
+      [
+       1062,
        296,
-       1075,
+       1093,
+       360
+      ],
+      [
+       1022,
+       299,
+       1052,
+       363
+      ],
+      [
+       1002,
+       304,
+       1031,
+       368
+      ],
+      [
+       1032,
+       300,
+       1062,
+       365
+      ],
+      [
+       1076,
+       291,
+       1108,
+       357
+      ],
+      [
+       1070,
+       296,
+       1093,
        354
       ],
       [
-       1003,
-       307,
-       1026,
-       364
+       1016,
+       308,
+       1039,
+       365
       ],
       [
        1005,
@@ -5915,9 +5901,9 @@
        362
       ],
       [
-       1040,
+       1044,
        282,
-       1075,
+       1078,
        351
       ],
       [
@@ -5927,57 +5913,57 @@
        340
       ],
       [
-       408,
+       403,
        285,
-       431,
+       426,
        342
       ],
       [
-       382,
-       285,
-       405,
+       394,
+       287,
+       417,
+       344
+      ],
+      [
+       410,
+       289,
+       433,
+       346
+      ],
+      [
+       408,
+       289,
+       430,
+       345
+      ],
+      [
+       413,
+       286,
+       436,
        343
+      ],
+      [
+       383,
+       285,
+       406,
+       342
+      ],
+      [
+       380,
+       285,
+       403,
+       342
       ],
       [
        406,
        288,
-       429,
-       345
+       428,
+       344
       ],
       [
-       410,
-       290,
-       432,
-       346
-      ],
-      [
-       409,
-       288,
-       432,
-       345
-      ],
-      [
-       385,
-       285,
-       408,
-       342
-      ],
-      [
-       381,
-       285,
-       404,
-       342
-      ],
-      [
-       414,
-       287,
-       437,
-       343
-      ],
-      [
-       414,
+       413,
        289,
-       433,
+       432,
        342
       ],
       [
@@ -5987,8 +5973,8 @@
        340
       ]
      ],
-     "ssim": 0.9944,
-     "ssimUnmasked": 0.9944,
+     "ssim": 0.9903,
+     "ssimUnmasked": 0.9904,
      "masked": 0.014,
      "note": null
     },
@@ -5999,100 +5985,100 @@
      "run": 1,
      "boxes": [
       [
-       804,
+       709,
        373,
-       873,
-       476
-      ],
-      [
-       987,
-       353,
-       1084,
-       484
-      ],
-      [
-       939,
-       364,
-       1022,
-       481
-      ],
-      [
-       852,
-       368,
-       934,
-       484
-      ],
-      [
-       721,
-       360,
-       819,
-       492
-      ],
-      [
-       690,
-       363,
-       770,
-       477
-      ],
-      [
-       633,
-       359,
-       718,
-       477
-      ],
-      [
-       771,
-       366,
-       849,
+       780,
        478
       ],
       [
-       790,
-       363,
-       877,
-       484
+       946,
+       348,
+       1050,
+       487
       ],
       [
-       751,
-       360,
-       840,
-       483
+       916,
+       357,
+       1011,
+       486
       ],
       [
-       747,
-       371,
-       820,
+       702,
+       357,
+       797,
+       486
+      ],
+      [
+       712,
+       368,
+       787,
        477
       ],
       [
-       766,
-       387,
-       814,
-       470
+       553,
+       368,
+       640,
+       489
       ],
       [
-       987,
-       370,
-       1058,
-       476
+       603,
+       358,
+       694,
+       482
       ],
       [
-       957,
-       382,
-       1017,
-       475
+       808,
+       363,
+       902,
+       491
       ],
       [
-       779,
-       323,
-       928,
+       914,
+       348,
+       1024,
+       492
+      ],
+      [
+       731,
+       359,
+       827,
+       489
+      ],
+      [
+       690,
+       369,
+       765,
+       478
+      ],
+      [
+       744,
+       390,
+       791,
+       471
+      ],
+      [
+       909,
+       374,
+       983,
+       482
+      ],
+      [
+       909,
+       385,
+       967,
+       478
+      ],
+      [
+       746,
+       315,
+       903,
        506
       ],
       [
-       1407,
-       504,
-       1426,
-       557
+       1355,
+       492,
+       1374,
+       545
       ],
       [
        774,
@@ -6107,9 +6093,9 @@
        548
       ]
      ],
-     "ssim": 0.9553,
-     "ssimUnmasked": 0.9488,
-     "masked": 0.057,
+     "ssim": 0.9679,
+     "ssimUnmasked": 0.9618,
+     "masked": 0.06,
      "note": null
     },
     {
@@ -6143,38 +6129,50 @@
        433
       ],
       [
-       172,
-       367,
-       204,
-       433
+       155,
+       369,
+       186,
+       434
       ],
       [
-       200,
-       373,
-       227,
-       435
+       249,
+       374,
+       277,
+       436
       ],
       [
-       371,
-       383,
        389,
-       435
-      ],
-      [
-       19,
        386,
-       37,
-       439
+       390,
+       438
       ],
       [
-       14,
-       387,
-       32,
-       439
+       42,
+       385,
+       60,
+       437
+      ],
+      [
+       7,
+       386,
+       25,
+       438
+      ],
+      [
+       40,
+       385,
+       58,
+       437
       ],
       [
        379,
        379,
+       390,
+       429
+      ],
+      [
+       377,
+       378,
        390,
        429
       ],
@@ -6185,16 +6183,16 @@
        430
       ],
       [
-       301,
+       318,
        380,
-       317,
+       334,
        430
       ],
       [
-       296,
-       378,
-       311,
-       427
+       300,
+       379,
+       315,
+       428
       ],
       [
        185,
@@ -6203,15 +6201,15 @@
        432
       ],
       [
-       176,
-       386,
-       192,
-       436
+       154,
+       387,
+       171,
+       437
       ],
       [
-       167,
+       157,
        386,
-       183,
+       173,
        436
       ],
       [
@@ -6221,21 +6219,21 @@
        436
       ],
       [
-       74,
+       78,
        386,
-       92,
-       438
+       95,
+       437
       ],
       [
-       58,
-       385,
-       74,
-       435
+       72,
+       386,
+       88,
+       436
       ],
       [
-       65,
+       67,
        386,
-       81,
+       83,
        436
       ],
       [
@@ -6251,16 +6249,22 @@
        432
       ],
       [
-       0,
-       384,
-       16,
-       435
+       3,
+       383,
+       19,
+       433
       ],
       [
        0,
        385,
-       9,
+       1,
        435
+      ],
+      [
+       4,
+       383,
+       20,
+       434
       ],
       [
        336,
@@ -6275,28 +6279,28 @@
        428
       ],
       [
-       369,
-       380,
-       384,
+       377,
+       382,
+       390,
+       432
+      ],
+      [
+       289,
+       381,
+       304,
        430
       ],
       [
-       291,
+       299,
+       381,
+       314,
+       430
+      ],
+      [
+       277,
        379,
-       306,
+       292,
        428
-      ],
-      [
-       306,
-       380,
-       321,
-       429
-      ],
-      [
-       301,
-       380,
-       316,
-       429
       ],
       [
        160,
@@ -6305,22 +6309,28 @@
        432
       ],
       [
-       177,
-       384,
-       192,
-       433
+       157,
+       383,
+       172,
+       432
       ],
       [
        157,
        383,
-       172,
+       173,
+       432
+      ],
+      [
+       159,
+       384,
+       174,
        433
       ],
       [
-       163,
-       384,
-       178,
-       433
+       3,
+       382,
+       18,
+       431
       ],
       [
        0,
@@ -6329,16 +6339,10 @@
        430
       ],
       [
-       0,
+       237,
        382,
-       1,
+       251,
        431
-      ],
-      [
-       233,
-       381,
-       247,
-       429
       ],
       [
        227,
@@ -6359,27 +6363,27 @@
        428
       ],
       [
-       204,
+       195,
        378,
-       219,
-       426
-      ],
-      [
-       200,
-       376,
-       215,
-       425
-      ],
-      [
-       105,
-       378,
-       120,
+       210,
        427
       ],
       [
-       100,
+       201,
+       375,
+       216,
+       425
+      ],
+      [
+       109,
        378,
-       114,
+       124,
+       427
+      ],
+      [
+       102,
+       378,
+       116,
        426
       ],
       [
@@ -6395,27 +6399,27 @@
        433
       ],
       [
-       384,
+       387,
        383,
        390,
        431
       ],
       [
-       232,
+       233,
+       380,
+       247,
+       428
+      ],
+      [
+       234,
+       380,
+       248,
+       428
+      ],
+      [
+       233,
        381,
        247,
-       430
-      ],
-      [
-       246,
-       381,
-       260,
-       429
-      ],
-      [
-       240,
-       381,
-       254,
        429
       ],
       [
@@ -6425,10 +6429,10 @@
        425
       ],
       [
-       133,
-       378,
-       147,
-       426
+       129,
+       376,
+       143,
+       425
       ],
       [
        112,
@@ -6437,10 +6441,10 @@
        425
       ],
       [
-       133,
+       132,
        376,
        147,
-       425
+       424
       ],
       [
        0,
@@ -6449,9 +6453,9 @@
        422
       ],
       [
-       1,
+       0,
        372,
-       17,
+       11,
        423
       ],
       [
@@ -6461,9 +6465,9 @@
        422
       ],
       [
-       315,
-       370,
-       342,
+       328,
+       367,
+       359,
        432
       ],
       [
@@ -6479,9 +6483,9 @@
        431
       ]
      ],
-     "ssim": 0.9881,
-     "ssimUnmasked": 0.9871,
-     "masked": 0.079,
+     "ssim": 0.9834,
+     "ssimUnmasked": 0.9822,
+     "masked": 0.087,
      "note": null
     },
     {
@@ -6491,64 +6495,70 @@
      "run": 1,
      "boxes": [
       [
-       372,
+       68,
+       382,
+       109,
+       458
+      ],
+      [
+       0,
+       392,
+       16,
+       461
+      ],
+      [
+       20,
+       387,
+       73,
+       474
+      ],
+      [
+       331,
+       381,
+       350,
+       433
+      ],
+      [
        374,
+       384,
        390,
-       442
+       437
       ],
       [
-       105,
-       377,
-       143,
-       450
+       328,
+       373,
+       356,
+       436
       ],
       [
-       49,
-       379,
-       103,
-       467
-      ],
-      [
-       10,
-       393,
-       46,
-       463
-      ],
-      [
-       327,
-       377,
-       351,
-       434
-      ],
-      [
-       59,
-       386,
-       80,
+       55,
+       385,
+       76,
        440
       ],
       [
-       123,
-       387,
-       141,
-       439
+       65,
+       386,
+       86,
+       441
       ],
       [
-       66,
+       86,
+       380,
+       118,
+       446
+      ],
+      [
+       74,
        382,
-       99,
-       449
+       105,
+       447
       ],
       [
-       81,
-       383,
-       113,
-       449
-      ],
-      [
-       236,
-       385,
-       252,
-       435
+       243,
+       387,
+       259,
+       437
       ],
       [
        225,
@@ -6557,57 +6567,57 @@
        433
       ],
       [
-       218,
-       382,
-       235,
-       432
-      ],
-      [
-       214,
-       382,
-       231,
-       433
-      ],
-      [
-       184,
-       378,
-       200,
-       429
-      ],
-      [
-       170,
+       223,
        383,
-       188,
-       435
+       240,
+       434
       ],
       [
-       12,
+       240,
+       385,
+       257,
+       436
+      ],
+      [
+       167,
        379,
-       29,
-       431
-      ],
-      [
-       8,
-       379,
-       24,
-       429
-      ],
-      [
-       237,
-       380,
-       252,
+       184,
        430
       ],
       [
-       257,
-       383,
-       273,
+       170,
+       376,
+       188,
+       427
+      ],
+      [
+       37,
+       379,
+       54,
+       430
+      ],
+      [
+       6,
+       380,
+       22,
+       430
+      ],
+      [
+       237,
+       381,
+       253,
+       431
+      ],
+      [
+       245,
+       384,
+       260,
        433
       ],
       [
-       232,
+       233,
        384,
-       248,
+       249,
        434
       ],
       [
@@ -6617,33 +6627,33 @@
        427
       ],
       [
-       74,
-       380,
-       90,
-       430
+       69,
+       376,
+       85,
+       426
       ],
       [
-       58,
-       373,
-       73,
-       423
+       59,
+       378,
+       75,
+       428
       ],
       [
-       76,
-       379,
-       93,
-       429
+       75,
+       375,
+       91,
+       425
       ],
       [
-       266,
-       379,
-       290,
-       436
+       260,
+       378,
+       285,
+       437
       ]
      ],
-     "ssim": 0.9777,
-     "ssimUnmasked": 0.9775,
-     "masked": 0.071,
+     "ssim": 0.9678,
+     "ssimUnmasked": 0.9687,
+     "masked": 0.076,
      "note": null
     },
     {
@@ -6653,27 +6663,33 @@
      "run": 1,
      "boxes": [
       [
-       94,
-       349,
-       132,
-       421
-      ],
-      [
-       209,
-       355,
-       247,
-       428
-      ],
-      [
        0,
-       354,
-       25,
-       437
+       346,
+       64,
+       453
+      ],
+      [
+       143,
+       356,
+       189,
+       435
+      ],
+      [
+       95,
+       359,
+       135,
+       433
+      ],
+      [
+       60,
+       361,
+       99,
+       434
       ]
      ],
-     "ssim": 0.9757,
-     "ssimUnmasked": 0.9756,
-     "masked": 0.041,
+     "ssim": 0.9715,
+     "ssimUnmasked": 0.9701,
+     "masked": 0.066,
      "note": null
     },
     {
@@ -6689,22 +6705,22 @@
        455
       ],
       [
-       418,
-       296,
-       507,
-       419
+       350,
+       297,
+       441,
+       422
       ],
       [
-       295,
-       376,
-       361,
-       476
+       200,
+       348,
+       282,
+       464
       ],
       [
-       243,
-       386,
-       312,
-       489
+       205,
+       391,
+       272,
+       492
       ],
       [
        420,
@@ -6713,16 +6729,10 @@
        476
       ],
       [
-       283,
-       392,
-       344,
-       486
-      ],
-      [
-       1559,
-       391,
-       1600,
-       481
+       322,
+       389,
+       378,
+       479
       ],
       [
        965,
@@ -6743,10 +6753,10 @@
        466
       ],
       [
-       753,
-       392,
-       791,
-       464
+       889,
+       398,
+       925,
+       468
       ],
       [
        341,
@@ -6767,22 +6777,22 @@
        477
       ],
       [
-       1368,
-       399,
-       1414,
+       1377,
+       400,
+       1423,
        480
       ],
       [
-       1320,
-       400,
-       1362,
-       477
+       1315,
+       401,
+       1359,
+       479
       ],
       [
-       1345,
-       397,
-       1384,
-       470
+       1324,
+       398,
+       1364,
+       471
       ],
       [
        1305,
@@ -6791,46 +6801,46 @@
        474
       ],
       [
-       1175,
-       398,
-       1217,
-       474
-      ],
-      [
-       1159,
-       398,
-       1192,
-       465
-      ],
-      [
-       1098,
+       1140,
        401,
-       1137,
+       1179,
        474
       ],
       [
-       1108,
-       405,
-       1141,
+       1119,
+       404,
+       1153,
        472
       ],
       [
-       519,
-       401,
-       559,
-       476
+       1084,
+       399,
+       1121,
+       471
       ],
       [
-       492,
-       402,
-       531,
+       1111,
+       406,
+       1145,
        474
       ],
       [
-       505,
-       405,
-       540,
-       475
+       546,
+       400,
+       585,
+       473
+      ],
+      [
+       521,
+       401,
+       560,
+       474
+      ],
+      [
+       493,
+       403,
+       528,
+       472
       ],
       [
        307,
@@ -6839,16 +6849,16 @@
        440
       ],
       [
-       427,
-       385,
-       462,
-       455
+       373,
+       381,
+       408,
+       449
       ],
       [
-       411,
-       387,
-       444,
-       454
+       318,
+       373,
+       351,
+       441
       ],
       [
        1403,
@@ -6863,22 +6873,22 @@
        466
       ],
       [
-       1448,
+       1464,
        405,
-       1477,
+       1492,
        467
       ],
       [
-       1340,
+       1333,
        413,
-       1368,
-       475
+       1361,
+       474
       ],
       [
-       1355,
-       410,
-       1387,
-       477
+       1331,
+       417,
+       1363,
+       483
       ],
       [
        1317,
@@ -6887,34 +6897,34 @@
        483
       ],
       [
-       1345,
-       403,
-       1376,
-       468
+       1316,
+       415,
+       1347,
+       480
       ],
       [
-       1105,
+       1087,
        395,
-       1135,
+       1118,
        459
       ],
       [
-       1069,
-       391,
-       1101,
-       457
-      ],
-      [
-       1063,
+       1119,
        397,
-       1093,
-       461
+       1151,
+       463
       ],
       [
-       971,
-       399,
-       995,
+       1071,
+       393,
+       1102,
        458
+      ],
+      [
+       1003,
+       401,
+       1028,
+       460
       ],
       [
        960,
@@ -6929,16 +6939,16 @@
        464
       ],
       [
-       747,
+       740,
        408,
-       777,
-       472
+       770,
+       471
       ],
       [
-       756,
-       409,
-       782,
-       469
+       712,
+       410,
+       738,
+       470
       ],
       [
        763,
@@ -6947,21 +6957,21 @@
        470
       ],
       [
-       619,
+       599,
+       403,
+       634,
+       472
+      ],
+      [
+       589,
        404,
-       654,
-       473
+       620,
+       469
       ],
       [
-       570,
-       398,
-       601,
-       462
-      ],
-      [
-       595,
+       605,
        409,
-       623,
+       633,
        471
       ],
       [
@@ -6971,40 +6981,40 @@
        468
       ],
       [
-       511,
-       392,
-       544,
-       458
+       554,
+       398,
+       585,
+       463
       ],
       [
-       469,
-       404,
-       501,
-       470
+       515,
+       401,
+       546,
+       465
       ],
       [
-       481,
-       404,
-       512,
+       444,
+       403,
+       476,
        469
       ],
       [
-       486,
-       398,
-       519,
-       466
+       518,
+       395,
+       551,
+       462
       ],
       [
-       65,
+       72,
        401,
-       97,
+       104,
        467
       ],
       [
-       82,
-       399,
-       115,
-       465
+       105,
+       402,
+       137,
+       467
       ],
       [
        92,
@@ -7013,10 +7023,10 @@
        467
       ],
       [
-       0,
-       382,
-       14,
-       446
+       43,
+       401,
+       72,
+       464
       ],
       [
        1317,
@@ -7025,22 +7035,22 @@
        460
       ],
       [
-       1295,
-       397,
-       1317,
-       453
-      ],
-      [
-       1299,
-       397,
-       1320,
+       1296,
+       396,
+       1318,
        452
       ],
       [
-       1037,
+       1298,
        403,
-       1060,
-       460
+       1319,
+       458
+      ],
+      [
+       1004,
+       404,
+       1026,
+       461
       ],
       [
        1045,
@@ -7049,40 +7059,40 @@
        457
       ],
       [
-       1074,
-       404,
-       1096,
-       460
+       1097,
+       401,
+       1119,
+       458
       ],
       [
-       980,
-       401,
-       1004,
-       460
+       957,
+       400,
+       981,
+       458
       ],
       [
-       974,
+       973,
        401,
-       998,
+       997,
        459
       ],
       [
-       937,
+       918,
        399,
-       961,
+       942,
        457
       ],
       [
-       732,
+       744,
        406,
-       755,
+       768,
        463
       ],
       [
-       772,
+       748,
        405,
-       795,
-       462
+       771,
+       463
       ],
       [
        739,
@@ -7091,45 +7101,45 @@
        464
       ],
       [
-       744,
-       405,
-       770,
-       465
+       737,
+       406,
+       763,
+       466
       ],
       [
-       465,
+       454,
        402,
-       489,
-       459
-      ],
-      [
-       490,
-       403,
-       514,
+       477,
        460
-      ],
-      [
-       486,
-       402,
-       512,
-       462
       ],
       [
        483,
        402,
-       509,
+       507,
+       460
+      ],
+      [
+       468,
+       402,
+       494,
        462
       ],
       [
-       394,
-       391,
-       420,
-       452
+       481,
+       400,
+       507,
+       459
       ],
       [
-       356,
+       392,
        394,
-       383,
+       419,
+       455
+      ],
+      [
+       350,
+       394,
+       377,
        455
       ],
       [
@@ -7145,27 +7155,27 @@
        461
       ],
       [
-       274,
+       273,
        404,
-       296,
+       295,
        460
       ],
       [
-       295,
+       287,
        407,
-       315,
-       462
+       309,
+       463
       ],
       [
-       1139,
-       396,
-       1163,
-       455
+       1154,
+       397,
+       1179,
+       456
       ],
       [
-       1110,
-       398,
-       1133,
+       1118,
+       399,
+       1140,
        455
       ],
       [
@@ -7175,9 +7185,9 @@
        457
       ],
       [
-       1126,
-       396,
-       1152,
+       1121,
+       395,
+       1146,
        455
       ],
       [
@@ -7189,7 +7199,7 @@
       [
        849,
        402,
-       871,
+       870,
        458
       ],
       [
@@ -7205,34 +7215,34 @@
        457
       ],
       [
-       802,
+       789,
        400,
-       822,
-       455
-      ],
-      [
-       799,
-       396,
-       821,
-       452
-      ],
-      [
-       660,
-       400,
-       682,
-       456
-      ],
-      [
-       670,
-       402,
-       688,
+       809,
        454
       ],
       [
-       487,
+       807,
+       396,
+       829,
+       452
+      ],
+      [
+       650,
+       400,
+       672,
+       456
+      ],
+      [
+       653,
+       401,
+       672,
+       454
+      ],
+      [
+       470,
        405,
-       512,
-       463
+       494,
+       464
       ],
       [
        459,
@@ -7247,27 +7257,27 @@
        463
       ],
       [
-       497,
+       485,
        407,
-       520,
+       508,
        464
       ],
       [
-       352,
+       346,
        411,
-       368,
+       362,
        461
       ],
       [
-       315,
-       409,
-       333,
-       461
+       355,
+       412,
+       371,
+       462
       ],
       [
-       1176,
+       1180,
        401,
-       1192,
+       1196,
        451
       ],
       [
@@ -7277,52 +7287,52 @@
        453
       ],
       [
-       1162,
-       403,
-       1178,
+       1171,
+       402,
+       1187,
        453
       ],
       [
-       1105,
-       409,
-       1121,
+       1111,
+       410,
+       1127,
        459
       ],
       [
-       1135,
-       408,
-       1150,
-       457
+       1117,
+       410,
+       1132,
+       459
       ],
       [
-       849,
+       850,
        406,
-       868,
+       869,
        459
       ],
       [
-       855,
+       862,
        407,
-       873,
-       458
+       879,
+       459
       ],
       [
-       876,
+       880,
        404,
-       893,
+       897,
        455
       ],
       [
-       697,
-       401,
-       714,
-       452
+       693,
+       400,
+       710,
+       451
       ],
       [
-       698,
+       709,
        400,
-       714,
-       450
+       726,
+       451
       ],
       [
        672,
@@ -7331,9 +7341,9 @@
        450
       ],
       [
-       708,
-       399,
-       724,
+       685,
+       398,
+       702,
        449
       ],
       [
@@ -7361,9 +7371,9 @@
        461
       ],
       [
-       384,
+       386,
        380,
-       443,
+       445,
        473
       ],
       [
@@ -7375,13 +7385,13 @@
       [
        868,
        394,
-       901,
+       902,
        461
       ]
      ],
-     "ssim": 0.9685,
-     "ssimUnmasked": 0.9676,
-     "masked": 0.095,
+     "ssim": 0.9566,
+     "ssimUnmasked": 0.955,
+     "masked": 0.09,
      "note": null
     },
     {
@@ -7391,16 +7401,22 @@
      "run": 1,
      "boxes": [
       [
-       1550,
-       395,
-       1600,
-       496
+       1522,
+       397,
+       1586,
+       495
       ],
       [
-       1110,
-       398,
-       1159,
-       481
+       1362,
+       388,
+       1434,
+       494
+      ],
+      [
+       1264,
+       401,
+       1307,
+       479
       ],
       [
        1127,
@@ -7409,309 +7425,315 @@
        471
       ],
       [
-       662,
-       403,
-       716,
-       491
+       635,
+       405,
+       694,
+       498
       ],
       [
-       552,
+       553,
        418,
-       625,
-       525
+       614,
+       513
       ],
       [
-       521,
-       429,
-       580,
-       521
+       403,
+       426,
+       455,
+       512
       ],
       [
-       503,
-       413,
-       586,
-       531
-      ],
-      [
-       38,
-       425,
-       100,
-       520
+       618,
+       410,
+       686,
+       512
       ],
       [
        0,
-       406,
+       400,
        3,
-       506
+       524
       ],
       [
-       1327,
-       406,
-       1367,
-       480
+       13,
+       428,
+       84,
+       533
       ],
       [
-       1310,
+       0,
+       412,
+       44,
+       511
+      ],
+      [
+       1202,
+       407,
+       1239,
+       477
+      ],
+      [
+       1312,
        401,
-       1346,
+       1349,
        471
       ],
       [
        1372,
-       402,
+       399,
        1409,
-       473
+       469
       ],
       [
-       1172,
+       1115,
        400,
-       1214,
-       476
-      ],
-      [
-       1121,
-       401,
-       1160,
-       474
-      ],
-      [
-       988,
-       398,
-       1026,
-       470
-      ],
-      [
-       582,
-       406,
-       616,
+       1155,
        475
       ],
       [
-       684,
-       409,
-       719,
-       478
+       1063,
+       398,
+       1104,
+       472
       ],
       [
-       605,
+       998,
+       397,
+       1038,
+       471
+      ],
+      [
+       626,
+       410,
+       661,
+       480
+      ],
+      [
+       631,
+       409,
+       667,
+       479
+      ],
+      [
+       610,
        406,
-       646,
+       652,
+       483
+      ],
+      [
+       559,
+       405,
+       602,
        481
       ],
       [
-       564,
-       404,
-       606,
-       480
-      ],
-      [
-       52,
-       402,
-       88,
-       472
-      ],
-      [
-       158,
-       409,
-       194,
-       479
-      ],
-      [
-       45,
-       404,
-       87,
-       480
-      ],
-      [
-       72,
+       31,
        403,
-       114,
-       479
+       67,
+       473
       ],
       [
-       1464,
-       391,
-       1502,
-       463
-      ],
-      [
-       1386,
-       393,
-       1421,
-       462
-      ],
-      [
-       1406,
-       395,
-       1443,
-       466
-      ],
-      [
-       1369,
-       391,
-       1406,
-       462
-      ],
-      [
-       873,
-       409,
-       902,
-       472
-      ],
-      [
-       858,
-       404,
-       887,
-       467
-      ],
-      [
-       859,
-       404,
-       891,
-       469
-      ],
-      [
-       830,
-       404,
-       857,
-       465
-      ],
-      [
-       751,
+       168,
        406,
-       779,
-       469
-      ],
-      [
-       750,
-       393,
-       780,
-       456
-      ],
-      [
-       512,
-       399,
-       541,
-       462
-      ],
-      [
-       552,
-       402,
-       575,
-       459
-      ],
-      [
-       223,
-       409,
-       256,
-       476
-      ],
-      [
-       163,
-       402,
-       207,
-       480
-      ],
-      [
-       277,
-       408,
-       308,
+       202,
        474
       ],
       [
-       230,
-       407,
-       266,
-       477
+       51,
+       404,
+       93,
+       480
       ],
       [
-       1350,
-       397,
-       1376,
-       457
+       110,
+       399,
+       149,
+       473
       ],
       [
-       1300,
-       402,
-       1329,
-       465
-      ],
-      [
-       1326,
-       392,
-       1356,
-       456
-      ],
-      [
-       1273,
-       407,
-       1297,
+       1446,
+       394,
+       1484,
        466
       ],
       [
-       1326,
-       406,
-       1348,
+       1357,
+       393,
+       1392,
        462
       ],
       [
-       844,
-       408,
-       869,
-       466
+       1410,
+       396,
+       1448,
+       467
       ],
       [
-       849,
-       409,
-       872,
+       1387,
+       393,
+       1425,
        465
       ],
       [
-       887,
+       888,
+       409,
+       918,
+       473
+      ],
+      [
+       849,
        403,
-       910,
+       879,
+       467
+      ],
+      [
+       841,
+       401,
+       871,
+       465
+      ],
+      [
+       805,
+       400,
+       832,
        461
       ],
       [
-       584,
-       397,
-       611,
-       457
+       708,
+       403,
+       735,
+       464
       ],
       [
-       620,
-       393,
-       648,
+       762,
+       395,
+       793,
+       460
+      ],
+      [
+       430,
+       402,
+       460,
+       466
+      ],
+      [
+       514,
+       402,
+       538,
+       460
+      ],
+      [
+       135,
+       405,
+       171,
+       475
+      ],
+      [
+       121,
+       403,
+       166,
+       482
+      ],
+      [
+       256,
+       409,
+       288,
+       475
+      ],
+      [
+       160,
+       407,
+       199,
+       479
+      ],
+      [
+       1379,
+       394,
+       1406,
        455
       ],
       [
-       553,
-       394,
-       579,
-       454
+       1351,
+       393,
+       1380,
+       456
       ],
       [
-       582,
-       389,
-       612,
+       1368,
+       392,
+       1400,
+       457
+      ],
+      [
+       1266,
+       410,
+       1290,
+       468
+      ],
+      [
+       1319,
+       405,
+       1341,
+       461
+      ],
+      [
+       864,
+       408,
+       889,
+       467
+      ],
+      [
+       860,
+       409,
+       884,
+       466
+      ],
+      [
+       903,
+       403,
+       927,
+       460
+      ],
+      [
+       571,
+       393,
+       597,
        453
       ],
       [
-       260,
-       388,
-       285,
-       447
+       616,
+       393,
+       644,
+       455
       ],
       [
-       284,
-       383,
-       318,
+       569,
+       392,
+       594,
        451
       ],
       [
-       309,
+       549,
+       392,
+       580,
+       457
+      ],
+      [
+       282,
        389,
-       334,
+       306,
+       448
+      ],
+      [
+       275,
+       382,
+       310,
+       451
+      ],
+      [
+       280,
+       389,
+       305,
        448
       ],
       [
@@ -7723,13 +7745,13 @@
       [
        887,
        386,
-       944,
-       476
+       943,
+       475
       ]
      ],
-     "ssim": 0.9627,
-     "ssimUnmasked": 0.9628,
-     "masked": 0.09,
+     "ssim": 0.9661,
+     "ssimUnmasked": 0.966,
+     "masked": 0.094,
      "note": null
     },
     {
@@ -7739,39 +7761,33 @@
      "run": 1,
      "boxes": [
       [
-       174,
-       304,
-       392,
-       556
+       0,
+       241,
+       80,
+       452
       ],
       [
-       233,
-       314,
-       384,
-       499
+       542,
+       369,
+       609,
+       471
       ],
       [
-       427,
-       352,
-       481,
-       441
+       554,
+       373,
+       612,
+       465
       ],
       [
-       451,
-       358,
-       500,
-       442
-      ],
-      [
-       611,
-       372,
-       671,
-       466
+       759,
+       356,
+       813,
+       444
       ]
      ],
-     "ssim": 0.9713,
-     "ssimUnmasked": 0.9676,
-     "masked": 0.067,
+     "ssim": 0.9666,
+     "ssimUnmasked": 0.9638,
+     "masked": 0.062,
      "note": null
     }
    ]

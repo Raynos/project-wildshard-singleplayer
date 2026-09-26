@@ -44,3 +44,20 @@ images, and the warm page now draws the UASTC → ASTC 4×4 / ETC1S → ETC2 tex
 difference is: progress/279–281 (the A/B, close-ups at the run-to-run floor on the ground, bark and sand, below it on
 foliage and grass edges), and the texture-level loss (37–51 dB PSNR per map, the ARM planes 37 dB). The phone's own
 KTX2 look was accepted the same way (E157). New desktop goldens are a baseline re-run (docs/design/scorecard.md rule 5).
+
+## The final run (2026-09-26, rebased on origin/main 05060a93, the switch route at 2 shards in memory — E194)
+
+`node scripts/scorecard.mjs --export=HEAD --tag=e173 --compare=baseline`: **0 budget rules missed** (33 row
+regressions against the 2026-09-25 baseline, most of them main's own since: the phone's locked 30 fps, E189; the
+geometry / buffer rows). Main measured alone right after, same machine (`e173-base`), and the two compared
+(`e173-vs-e173-base.txt`): 17 row regressions, 16 better, 0 rules missed. E173's own rows:
+- **better**: desktop GPU textures Pine Hollow 1205 → 619 MB, Nalati 450 → 341, Driftwood 370 → 334; the resident pair
+  Driftwood + Pine Hollow 1298 → 712 MB, Pine Hollow + Nalati 1510 → 814 MB; the Driftwood → Pine Hollow build 3.71 → 2.93 s;
+- **Fast 4G cold starts equal**: Driftwood desktop 24.01 → 24.09 s, phone 24.51 → 24.63 s, every shard within ±0.5 %;
+- **the look** (KTX2's, above): desktop pose SSIM Pine Hollow gate / cabin / pond 0.957 / 0.966 / 0.967 → 0.943 / 0.905 /
+  0.936, Nalati bridge / camp / plains −0.012 to −0.015, Driftwood wreck 0.991 → 0.980, Nalati phone plains 0.972 → 0.957
+  (the phone set is unchanged; that pose also moved in main's own runs, 0.982 in the baseline);
+- **the cache**: desktop Cache Storage for all three shards 124.9 → 271.9 MiB (the 300 MB rule passes);
+- the phone draw-call / tris / cpu rows flagged against main's run are main's run being low (Driftwood phone pier 175 calls
+  where the baseline and the branch read 233 / 222); the phone's KTX2 files are unchanged, and those rows pass against
+  the baseline.
