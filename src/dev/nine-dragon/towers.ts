@@ -248,7 +248,7 @@ export function buildTowers(ctx: Ctx): void {
   for (let i = 0; i < steps; i++) {
     const x = STAIR.x0 + i * run;
     const landing = i % 15 === 14;
-    st.box(x + run / 2, Y0 + i * rise - 0.3, (STAIR.z0 + STAIR.z1) / 2, run + (landing ? 0.01 : 0), rise + 0.3, STAIR.z1 - STAIR.z0, { wash: 0xa5a49e, line: 1.8, wet: 1 }, { top: { wash: 0x4a4c52, kind: K.flag, wet: 1, line: 0 } });
+    st.box(x + run / 2, Y0 + i * rise - 0.3, (STAIR.z0 + STAIR.z1) / 2, run + (landing ? 0.01 : 0), rise + 0.3, STAIR.z1 - STAIR.z0, { wash: 0x75747a, kind: K.stone, line: 1.8, wet: 0.7 }, { top: { wash: 0x4a4c52, kind: K.flag, wet: 1, line: 0 } });
   }
   // the stair street's walls start behind the east towers (whose dressed side faces flank its first 12 m)
   wallRun(ctx, rng, new Vector3(PLAZA.x1 + 12.6, 0, STAIR.z0), new Vector3(0, 0, 1), STAIR.x1 + 10 - (PLAZA.x1 + 12.6), Y0 + 3, [Y0 + 40, Y0 + 80], 'stair-n', { timber: 0.35 });

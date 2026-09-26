@@ -8,6 +8,7 @@
 //  The ink-wash shadow under each projection, the drip stains and the neon spill are baked into the shell's vertex
 //  colours by the grammar (no transparent decals: overdraw is the phone's enemy).
 import { Color, ShaderMaterial, type IUniform, Vector2 } from 'three';
+import { PAINT_GLSL } from '../paint';
 import { FOG_GLSL, NOISE_GLSL, PAPER_GLSL, type Shared } from '../style';
 
 const c = (hex: number): Color => new Color(hex);
@@ -24,6 +25,9 @@ export const COMMON_GLSL = /* glsl */ `
 ${NOISE_GLSL}
 ${FOG_GLSL}
 ${PAPER_GLSL}
+uniform vec3 uPaintStone;
+${PAINT_GLSL}
+uniform vec2 uTilePitch;
 uniform float uNear;
 uniform vec3 uWashTint;
 uniform vec3 uFacadeWash;
@@ -151,9 +155,12 @@ void main() {
     lines = max(lines, max(lineAt(q.x, fq.x, Wp * 0.6), lineAt(vFace.z - q.x, fq.x, Wp * 0.6)) * 0.3);
   } else if (kind == 2.0) {
     // glazed roof tiles: courses down the slope, joints across, a tint per tile
-    float cr = ruleEvery(q.y, 0.3, fq.y, Wp * 0.9);
-    float cj = ruleEvery(q.x + floor(q.y / 0.3) * 0.12, 0.24, fq.x, Wp * 0.6) * 0.7;
-    col *= 0.92 + 0.14 * h12(floor(vec2(q.x / 0.24, q.y / 0.3)));
+    // the glazed-tile texture's pitch (uTilePitch) for the rulings, no running-bond jog (the barrels align)
+    vec2 tp = uTilePitch;
+    float cr = ruleEvery(q.y, tp.y, fq.y, Wp * 0.9);
+    float cj = ruleEvery(q.x, tp.x, fq.x, Wp * 0.6) * 0.7;
+    col *= 0.92 + 0.14 * h12(floor(q / tp));
+    col *= paintTiles(q, tp, uPaintK.x * uPaintK.w);
     lines = max(lines, max(cr, cj));
   } else if (kind == 3.0) {
     // railings / grilles: vertical bars every p1, rails every p2 (0 = only the frame)
@@ -230,6 +237,14 @@ void main() {
     col = mix(mix(col, dark, 0.3), cellC, det);
     emitC = vec3(1.0, 0.7, 0.38) * mix(0.45 * 0.3, win * isLit, det) * 1.15;
     lines = max(lines, ruleEvery(q.y, p1, fq.y, Wp) * 0.8);
+  }
+
+  // every concrete-ish surface of the dressing (the shell cells, far painted faces, parapet panels, plain modules and
+  // slabs, AC boxes, slats, pipes) takes the painted concrete, world-anchored (walls: along x + z and up; slabs: xz),
+  // so neither the cells' nor the pieces' seams show; glass, cloth, leaves, bars and signs keep their own
+  if (kind != 2.0 && kind != 3.0 && kind != 4.0 && kind != 5.0 && kind != 9.0) {
+    vec2 wq = abs(n.y) > 0.6 ? vWorld.xz : vec2(vWorld.x + vWorld.z, vWorld.y);
+    col *= pInk(paintWall(4, 2, wq, 6.0, 0.0, uPaintK.x * uPaintK.z * uPaintStone.z), uPaintInk);
   }
 
   // two hard bands of top light (the sky screens), never black; undersides drop to a deeper ink wash

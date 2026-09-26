@@ -25,6 +25,8 @@ export interface Look {
   gloss?: boolean;
   /** gold ruled line: reserved for the grapple's dragon hooks */
   gold?: boolean;
+  /** an explicit painted surface (paint.ts SURF; 0 / unset = by kind), flag bits × 4096 */
+  surf?: number;
 }
 
 const tc = new Color();
@@ -59,7 +61,7 @@ export class Kit {
     const edges = look.edges ?? edgesDefault;
     // a weight ≥ 1.8 marks a walkable lip: its borders are drawn as the heavier ground line (bits 256…2048)
     const ground = (look.line ?? 1) >= 1.8 ? edges * 256 : 0;
-    return edges + (look.accent === true ? 16 : 0) + (look.gloss === true ? 32 : 0) + (look.gold === true ? 64 : 0) + ground;
+    return edges + (look.accent === true ? 16 : 0) + (look.gloss === true ? 32 : 0) + (look.gold === true ? 64 : 0) + ground + (look.surf ?? 0) * 4096;
   }
 
   /** a quad from four corners: a=(0,0) b=(w,0) c=(w,h) d=(0,h); the normal is (b-a)×(d-a) */

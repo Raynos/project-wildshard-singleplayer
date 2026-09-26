@@ -15,6 +15,7 @@ import { E, K, type Kit, type Look } from './kit';
 import type { SignBuilder } from './signs';
 import { type KitX, type XLook, curve } from './hero/kitx';
 import { Rng } from './util';
+import { SURF } from './paint';
 
 export interface GateSpec {
   x: number;
@@ -25,16 +26,18 @@ export interface GateSpec {
   plaque: string;
   couplets: readonly [string, string];
   neonEaves: number | null;
-  /** the procedural stone lions (off: they read as lumps; the organic lab's TRELLIS lion replaces them) */
+  /** the lion pedestals before the centre bay (the organic lab's TRELLIS lions stand on them, props3d.ts) */
   lions: boolean;
 }
 
 // the washes, fitted to the dome-B targets by ΔE00 (round 2: lacquer #a3463a vs #823c31, stone #636365 vs #544e4e)
-const LACQUER: Look = { wash: 0x662117, line: 1, accent: true, gloss: true };
-const LACQUER_DK: Look = { wash: 0x561812, line: 1, accent: true };
-const STONE: Look = { wash: 0x534d4e, line: 1, wet: 0.3 };
+// the painted surfaces (paint.ts, lab P5): weathered lacquer on the posts and beams; the stone takes the broad, soft
+// concrete wash (SURF.concrete, 6 m), not the 1.7 m granite dabs (SURF.stone read as grain: the coordinator, round 7)
+const LACQUER: Look = { wash: 0x662117, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
+const LACQUER_DK: Look = { wash: 0x561812, line: 1, accent: true, surf: SURF.lacquer };
+const STONE: Look = { wash: 0x534d4e, line: 1, wet: 0.3, surf: SURF.concrete };
 const STONE_PANEL: Look = { wash: 0x58524f, kind: K.panel, line: 1, wet: 0.2 };
-const RELIEF: XLook = { wash: 0x6a6360, line: 0, wet: 0.15 };
+const RELIEF: XLook = { wash: 0x6a6360, line: 0, wet: 0.15, surf: SURF.concrete };
 const GOLD: Look = { wash: 0xb08a3c, line: 1, accent: true, gloss: true };
 const GOLD_DK: Look = { wash: 0xa87a2c, line: 1, accent: true };
 const AZURITE: Look = { wash: 0x2a558f, line: 1, accent: true };
@@ -45,7 +48,7 @@ const TILE = 0x0e1b1e;
 const ROLL = 0x213434;
 const RIDGE: Look = { wash: 0x1a3434, line: 1, accent: true };
 const RIDGE_HI = 0x243f40;
-const LION: XLook = { wash: 0x6a6460, line: 0, wet: 0.2 };
+const LION: XLook = { wash: 0x6a6460, line: 0, wet: 0.2, surf: SURF.concrete };
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 
 /** a closed ring (a torus) round `c` in the plane of (a, b), radius `r`, tube radius `t` */
@@ -341,36 +344,39 @@ function drumStone(k: Kit, x: KitX, px: number, y: number, pz: number, s: number
   for (const sx of [-1, 1]) relief(x, new Vector3(px + sx * 0.23 * s, y + 0.25 * s, pz), Z.clone().multiplyScalar(sx), Y.clone(), X.clone().multiplyScalar(sx), 0.66 * s, 0.34 * s, Math.round(pz * 50 + px * 30) + sx);
   k.box(px, y + 0.5 * s, pz, 0.52 * s, 0.08 * s, 0.86 * s, STONE);
   // the wave seat the drum rests on
-  x.ellipsoid(new Vector3(px, y + 0.64 * s, pz), X, Y, Z, 0.24 * s, 0.08 * s, 0.36 * s, { wash: 0x5e5856, line: 0, wet: 0.2 }, (d) => 1 + 0.12 * Math.sin(d.z * 14), 4, 12);
+  x.ellipsoid(new Vector3(px, y + 0.64 * s, pz), X, Y, Z, 0.24 * s, 0.08 * s, 0.36 * s, { wash: 0x5e5856, line: 0, wet: 0.2, surf: SURF.concrete }, (d) => 1 + 0.12 * Math.sin(d.z * 14), 4, 12);
   const R = 0.3 * s;
   const c = new Vector3(px, y + 0.66 * s + R, pz);
-  x.sweep([c.clone().add(new Vector3(-0.17 * s, 0, 0)), c.clone().add(new Vector3(0.17 * s, 0, 0))], (t) => R * (1 - 0.1 * (2 * t - 1) ** 2), 18, { wash: 0x615a58, line: 0, wet: 0.15 }, { capStart: true, capEnd: true, up: Y.clone() });
+  x.sweep([c.clone().add(new Vector3(-0.17 * s, 0, 0)), c.clone().add(new Vector3(0.17 * s, 0, 0))], (t) => R * (1 - 0.1 * (2 * t - 1) ** 2), 18, { wash: 0x615a58, line: 0, wet: 0.15, surf: SURF.concrete }, { capStart: true, capEnd: true, up: Y.clone() });
   for (const sx of [-1, 1]) {
     const f = c.clone().add(new Vector3(sx * 0.17 * s, 0, 0));
-    ring(x, f, Z, Y, R * 0.86, 0.025 * s, { wash: 0x5a5452, line: 0 });
-    ring(x, f, Z, Y, R * 0.52, 0.02 * s, { wash: 0x5a5452, line: 0 });
-    x.ellipsoid(f.clone().add(new Vector3(sx * 0.02 * s, 0, 0)), X, Y, Z, 0.05 * s, R * 0.3, R * 0.3, { wash: 0x6a6360, line: 0 }, (d) => 1 + 0.15 * Math.sin(Math.atan2(d.y, d.z) * 6), 4, 12);
+    ring(x, f, Z, Y, R * 0.86, 0.025 * s, { wash: 0x5a5452, line: 0, surf: SURF.concrete });
+    ring(x, f, Z, Y, R * 0.52, 0.02 * s, { wash: 0x5a5452, line: 0, surf: SURF.concrete });
+    x.ellipsoid(f.clone().add(new Vector3(sx * 0.02 * s, 0, 0)), X, Y, Z, 0.05 * s, R * 0.3, R * 0.3, { wash: 0x6a6360, line: 0, surf: SURF.concrete }, (d) => 1 + 0.15 * Math.sin(Math.atan2(d.y, d.z) * 6), 4, 12);
   }
   // studs round the drum's rim
   for (let i = 0; i < 14; i++) {
     const a = (i / 14) * Math.PI * 2;
     for (const sx of [-1, 1]) x.ellipsoid(c.clone().add(new Vector3(sx * 0.16 * s, Math.sin(a) * R * 0.97, Math.cos(a) * R * 0.97)), X, Y, Z, 0.025 * s, 0.025 * s, 0.025 * s, { wash: 0x4e4947, line: 0 }, () => 1, 3, 5);
   }
-  // a small crouching beast on top
-  const b = c.clone().add(new Vector3(0, R + 0.06 * s, 0));
-  x.ellipsoid(b, X, Y, Z, 0.14 * s, 0.11 * s, 0.24 * s, LION, (d) => 1 + 0.1 * Math.sin(d.x * 9) * Math.sin(d.z * 7), 5, 10);
-  x.ellipsoid(b.clone().add(new Vector3(0, 0.1 * s, 0.14 * s * Math.sign(pz - (pz - 0.01)))), X, Y, Z, 0.1 * s, 0.1 * s, 0.1 * s, LION, (d) => 1 + 0.18 * Math.abs(Math.sin(d.x * 8 + d.y * 6)), 5, 8);
+  // a lotus-bud knob on top (a procedural crouching beast read as a lump from 3 m in the walk-around)
+  k.lathe(c.x, c.y + R - 0.03 * s, c.z, [[0.1 * s, 0], [0.12 * s, 0.03 * s], [0.08 * s, 0.06 * s], [0.09 * s, 0.1 * s], [0.05 * s, 0.16 * s], [0, 0.2 * s]], 10, { wash: 0x5e5856, line: 1, wet: 0.2, surf: SURF.concrete }, true, 0);
 }
 
 /**
  * A seated stone lion (石獅) on its pedestal, facing `face` (+1 = +z). The male rests a paw on the embroidered ball, the
  * female on a cub. Brushed (no ruled edges): its outline is the post silhouette.
  */
-export function stoneLion(k: Kit, x: KitX, cx: number, y: number, cz: number, face: number, male: boolean, s: number): void {
-  // the pedestal: a Sumeru block with carved panels
+/** a lion's pedestal: a Sumeru block with carved panels, its top at y + 0.96 s (props3d.ts GATE_LIONS.top) */
+export function lionPedestal(k: Kit, x: KitX, cx: number, y: number, cz: number, s: number): void {
   k.box(cx, y, cz, 1.25 * s, 0.14 * s, 1.55 * s, { ...STONE, line: 2 });
   k.box(cx, y + 0.14 * s, cz, 1.05 * s, 0.7 * s, 1.35 * s, STONE_PANEL);
   k.box(cx, y + 0.84 * s, cz, 1.2 * s, 0.12 * s, 1.5 * s, STONE);
+  for (const nx of [-1, 1]) relief(x, new Vector3(cx + nx * 0.525 * s, y + 0.49 * s, cz), new Vector3(0, 0, -nx), Y.clone(), new Vector3(nx, 0, 0), 1.1 * s, 0.5 * s, 700 + nx);
+}
+
+export function stoneLion(k: Kit, x: KitX, cx: number, y: number, cz: number, face: number, male: boolean, s: number): void {
+  lionPedestal(k, x, cx, y, cz, s);
   const b = y + 0.96 * s;
   const F = (lx: number, ly: number, lz: number): Vector3 => new Vector3(cx + lx * s * face, b + ly * s, cz + lz * s * face);
   const RX = X.clone().multiplyScalar(face), FZ = Z.clone().multiplyScalar(face);
@@ -426,7 +432,8 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
   const cx = (p1 + p2) / 2;
   // the posts stop under the dougong (they used to poke up through the eaves as orange knobs)
   const tall = 7.05 * s, short = 5.43 * s;
-  const posts: [number, number, number][] = [[p0, 0.3 * s, short], [p1, 0.38 * s, tall], [p2, 0.38 * s, tall], [p3, 0.3 * s, short]];
+  // slimmer than the hero lab's (style-A's posts are tall and slender; 1.4 m columns made the gate squat)
+  const posts: [number, number, number][] = [[p0, 0.26 * s, short], [p1, 0.32 * s, tall], [p2, 0.32 * s, tall], [p3, 0.26 * s, short]];
   for (const [px, r, h] of posts) {
     const y1 = sumeru(k, x, px, y, z, s, r);
     k.cyl(px, y1, z, r * 1.14, r * 1.14, 0.16 * s, 16, GOLD);
@@ -478,7 +485,8 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
     x.sweep(pts, () => 0.045 * s, 5, { wash: 0xc99a3e, line: 0, accent: true }, { flat: 0.8, up: Z.clone(), capStart: true, capEnd: true });
   }
   dougong(k, p1 - 0.5 * s, p2 + 0.5 * s, y + 7.05 * s, z, s);
-  curvedRoof(k, x, signs, { cx, y0: y + 7.72 * s, cz: z, w: bw + 3.2 * s, d: 3.0 * s, h: 1.8 * s, lift: 0.8 * s, flare: 0.38 * s, tile: TILE, neon: P.neonEaves, ornaments: true });
+  // the roofs sit light on the gate (style-A: roofs a quarter of the height, the tall bays open below them)
+  curvedRoof(k, x, signs, { cx, y0: y + 7.72 * s, cz: z, w: bw + 2.4 * s, d: 2.6 * s, h: 1.55 * s, lift: 0.68 * s, flare: 0.32 * s, tile: TILE, neon: P.neonEaves, ornaments: true });
   sparrowBrace(x, p1 + 0.38 * s, y + 4.75 * s, z, 1, 1.3 * s, s);
   sparrowBrace(x, p2 - 0.38 * s, y + 4.75 * s, z, -1, 1.3 * s, s);
   // side bays
@@ -492,11 +500,12 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
       ring(x, new Vector3(m, y + 4.65 * s, z + nz * 0.15 * s), X, Y, 0.17 * s, 0.018 * s, { wash: 0xa87a2c, line: 0, accent: true });
     }
     paintedBeam(k, x, m, y + 4.95 * s, z, w + 0.8 * s, 0.48 * s, 0.52 * s, MALACHITE, AZURITE);
-    dougong(k, a - 0.3 * s, b + 0.3 * s, y + 5.43 * s, z, s * 0.9);
+    const out = a < cx ? -1 : 1;
+    // the bracket row stops short of the centre post, under the side roof's inner hip
+    dougong(k, out < 0 ? a - 0.3 * s : a + 0.15 * s, out < 0 ? b - 0.15 * s : b + 0.3 * s, y + 5.43 * s, z, s * 0.9);
     // the side roof: its outer hip flies out past the outer post, its inner hip tucks in against the centre post (a
     // symmetric roof over the side bay reached over the centre bay and hid the plaque)
-    const out = a < cx ? -1 : 1;
-    curvedRoof(k, x, signs, { cx: m + out * 0.45 * s, y0: y + 5.95 * s, cz: z, w: w + 0.9 * s, d: 2.5 * s, h: 1.35 * s, lift: 0.6 * s, flare: 0.3 * s, tile: TILE, neon: P.neonEaves, ornaments: false });
+    curvedRoof(k, x, signs, { cx: m + out * 0.35 * s, y0: y + 5.95 * s, cz: z, w: w + 0.6 * s, d: 2.2 * s, h: 1.15 * s, lift: 0.52 * s, flare: 0.26 * s, tile: TILE, neon: P.neonEaves, ornaments: false });
     sparrowBrace(x, a + 0.32 * s, y + 3.75 * s, z, 1, 0.9 * s, s);
     sparrowBrace(x, b - 0.32 * s, y + 3.75 * s, z, -1, 0.9 * s, s);
     lantern(m - w * 0.22, y + 3.72 * s, z, 0.95 * s);
@@ -509,8 +518,9 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
   }
   for (let i = 0; i < 3; i++) lantern(p1 + bw * (0.25 + i * 0.25), y + 4.75 * s, z, 1.1 * s);
   // the stone lions before the centre posts, facing the square
+  // the pedestals of the guardian lions before the centre bay: the TRELLIS lions (props3d.ts) sit on them
   if (P.lions) {
-    stoneLion(k, x, p1 - 0.2 * s, y, z + 2.3 * s, 1, true, 0.95);
-    stoneLion(k, x, p2 + 0.2 * s, y, z + 2.3 * s, 1, false, 0.95);
+    lionPedestal(k, x, p1 - 0.2 * s, y, z + 2.3 * s, 0.95);
+    lionPedestal(k, x, p2 + 0.2 * s, y, z + 2.3 * s, 0.95);
   }
 }

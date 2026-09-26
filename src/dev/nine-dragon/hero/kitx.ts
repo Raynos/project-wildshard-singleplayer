@@ -19,6 +19,8 @@ export interface XLook {
   edges?: number;
   accent?: boolean;
   gloss?: boolean;
+  /** an explicit painted surface (paint.ts SURF; 0 / unset = by kind), flag bits × 4096 */
+  surf?: number;
 }
 
 const tc = new Color();
@@ -43,7 +45,7 @@ export class KitX {
     this.col.push(tc.r * shade, tc.g * shade, tc.b * shade);
     this.face.push(u, v, w, h);
     this.pat.push(look.kind ?? 0, look.row ?? 0, look.col ?? 0, look.seed ?? 0);
-    const flags = (look.edges ?? 0) + (look.accent === true ? 16 : 0) + (look.gloss === true ? 32 : 0);
+    const flags = (look.edges ?? 0) + (look.accent === true ? 16 : 0) + (look.gloss === true ? 32 : 0) + (look.surf ?? 0) * 4096;
     this.misc.push(look.emit ?? 0, look.line ?? 1, look.wet ?? 0, flags);
     this.off.push(0, 0);
     return this.n++;

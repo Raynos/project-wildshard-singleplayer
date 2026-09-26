@@ -16,23 +16,35 @@ import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from './kit';
 import { BANYAN, Y0 } from './layout';
 import { Rng } from './util';
+import { SURF } from './paint';
 import { type KitX, curve } from './hero/kitx';
 
-export interface BanyanSpec { x: number; y: number; z: number; r: number; seed: number; height: number; spread: number }
+export interface BanyanSpec {
+  x: number; y: number; z: number; r: number; seed: number; height: number; spread: number;
+  /** false: plan the canopy's lumps but draw no K.leaf ellipsoids (a card canopy — the organic lab's — dresses them) */
+  leaves?: boolean;
+}
+
+/** one lump of foliage (the organic lab's `Lump` shape): centre, radii, how high it sits on its shelf, a seed, a wash */
+export interface CanopyLump { c: Vector3; r: Vector3; up: number; seed: number; wash: number }
+/** what the tree hands on: the canopy's lumps (crown fill first, then the shelves) */
+export interface BanyanPlan { lumps: CanopyLump[] }
 
 const BARK: Look = { wash: 0x5a4432, kind: K.bars, col: 0.09, row: 0, line: 0 };
 const BARK_DARK: Look = { wash: 0x46352a, kind: K.bars, col: 0.07, row: 0, line: 0 };
 const ROOT: Look = { wash: 0x4c4034, line: 0 };
 const STONE: Look = { wash: 0x4f4a4a, kind: K.panel, line: 1, wet: 0.35 };
-const STONE_RIM: Look = { wash: 0x575151, line: 1, wet: 0.45 };
+const STONE_RIM: Look = { wash: 0x575151, line: 1, wet: 0.45, surf: SURF.concrete };
 // night foliage (ΔE vs target-2 / target-7): bellies near-black olive (#242b24 from below), lit tops a light olive
 // (#6b8265 from above); the round-1 greens read too saturated underneath and too blue on top
 const GREENS = [0x26352a, 0x2c3c2e, 0x223027, 0x33452f, 0x1f2c24, 0x2f3f30] as const;
-const LIGHT = [0x5e7a54, 0x6a845c, 0x55704c] as const;
+const LIGHT = [0x506a4a, 0x5a7450, 0x4a6244] as const;
 const DARK = [0x182219, 0x1c261d, 0x151e17] as const;
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 
-export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): void {
+export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
+  const lumps: CanopyLump[] = [];
+  const drawLeaves = B.leaves ?? true;
   const rng = new Rng(B.seed);
   const { r } = B;
   const cx = B.x, cz = B.z, y = B.y;
@@ -84,6 +96,8 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): void {
       const tip = new Vector3(cx + Math.cos(la) * reach - 1.4, soil + H * rng.range(0.72, 0.95), cz + Math.sin(la) * reach * 0.8 + 1.6);
       if (tip.x > cx + 2.6) tip.x = cx + 2.6 + (tip.x - cx - 2.6) * 0.3;
       if (tip.z < cz - 2.4) tip.z = cz - 2.4 + (tip.z - cz + 2.4) * 0.3;
+      // nor over the gate's east bay (round 4: roots curtained the gate in 1, the crown covered its roof in 9)
+      if (tip.x < cx - 4.6) tip.x = cx - 4.6 - (cx - 4.6 - tip.x) * 0.3;
       const mid = last.clone().lerp(tip, 0.4).add(new Vector3(0, H * 0.14, 0));
       pts.push(mid, tip);
       x.sweep(curve(pts, 4), (t) => rad0 * (t < 0.1 ? 1.45 - t * 4.5 : 1) * (1 - t * 0.78), 8, i % 4 === 0 ? BARK_DARK : BARK, { capEnd: true });
@@ -153,14 +167,18 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): void {
   }
   // the crown's fill: big dark lumps in a dome shell under the shelves, so the gaps between the shelves read as deep
   // foliage (from above round 2 read as separate lily pads over the flagstones)
-  const crownC = new Vector3(cx - 1.0, soil + H * 0.8, cz + 1.2);
+  const crownC = new Vector3(cx - 0.4, soil + H * 0.8, cz + 1.2);
   for (let i = 0; i < 26; i++) {
     const a = rng.range(0, Math.PI * 2), el = rng.range(0.1, 1.2);
     const rr = SP * 0.62 * Math.cos(el * 0.8);
     const c = crownC.clone().add(new Vector3(Math.cos(a) * rr, Math.sin(el) * H * 0.18 - 0.4, Math.sin(a) * rr * 0.85));
     const s0 = rng.range(1.2, 1.8);
-    x.ellipsoid(c, X, Y, Z, s0 * 1.2, s0 * 0.6, s0 * 1.1, { wash: rng.pick(GREENS), kind: K.leaf, line: 0 },
-      (d) => 1 + 0.14 * Math.sin(d.x * 7 + i) * Math.sin(d.z * 6 + i * 2) - (d.y < -0.3 ? 0.3 : 0), 6, 10);
+    const wash = rng.pick(GREENS);
+    lumps.push({ c, r: new Vector3(s0 * 1.2, s0 * 0.6, s0 * 1.1), up: -0.3, seed: i, wash });
+    if (drawLeaves) {
+      x.ellipsoid(c, X, Y, Z, s0 * 1.2, s0 * 0.6, s0 * 1.1, { wash, kind: K.leaf, line: 0 },
+        (d) => 1 + 0.14 * Math.sin(d.x * 7 + i) * Math.sin(d.z * 6 + i * 2) - (d.y < -0.3 ? 0.3 : 0), 6, 10);
+    }
   }
   // the canopy: cloud shelves of small leaf lumps on every tip (upper lumps light, bellies dark)
   for (const tip of limbTips) {
@@ -174,9 +192,12 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): void {
       const s0 = rng.range(0.38, 0.66);
       const sd = rng.range(0, 10);
       const wash = up > 0.15 ? rng.pick(LIGHT) : up < -0.05 ? rng.pick(DARK) : rng.pick(GREENS);
-      x.ellipsoid(c, X, Y, Z, s0 * 1.25, s0 * 0.68, s0 * 1.15, { wash, kind: K.leaf, line: 0 },
-        (d) => 1 + 0.16 * Math.sin(d.x * 9.3 + sd) * Math.sin(d.y * 5.1 + sd * 2) * Math.sin(d.z * 8.7 + sd * 3) + 0.1 * Math.abs(Math.sin(d.x * 19 + d.z * 15 + sd)) - (d.y < -0.2 ? 0.28 : 0),
-        5, 9);
+      lumps.push({ c, r: new Vector3(s0 * 1.25, s0 * 0.68, s0 * 1.15), up, seed: sd, wash });
+      if (drawLeaves) {
+        x.ellipsoid(c, X, Y, Z, s0 * 1.25, s0 * 0.68, s0 * 1.15, { wash, kind: K.leaf, line: 0 },
+          (d) => 1 + 0.16 * Math.sin(d.x * 9.3 + sd) * Math.sin(d.y * 5.1 + sd * 2) * Math.sin(d.z * 8.7 + sd * 3) + 0.1 * Math.abs(Math.sin(d.x * 19 + d.z * 15 + sd)) - (d.y < -0.2 ? 0.28 : 0),
+          5, 9);
+      }
     }
   }
   // red and gold wish ribbons on the lower limbs
@@ -188,11 +209,12 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): void {
     const d = new Vector3(rng.range(-1, 1), 0, rng.range(-1, 1)).normalize();
     x.sweep([p, p.clone().add(new Vector3(0, -len * 0.5, 0)).addScaledVector(d, 0.05), p.clone().add(new Vector3(0, -len, 0)).addScaledVector(d, 0.1)], () => 0.035, 3, { wash: i % 4 === 0 ? 0xd9a441 : 0xb8261a, line: 0, accent: true }, { flat: 0.2, up: d });
   }
+  return { lumps };
 }
 
 /** the earth-god shrine (土地公) at the planter's front: a red lacquer cabinet under a tiled roof, candles, a censer */
 function shrine(ctx: Ctx, k: Kit, x: KitX, sx: number, y: number, sz: number): void {
-  const RED: Look = { wash: 0x8a2419, line: 1, accent: true, gloss: true };
+  const RED: Look = { wash: 0x8a2419, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
   // the stone base and the altar table
   k.box(sx, y, sz, 1.5, 0.5, 0.95, { wash: 0x5a5b60, kind: K.panel, line: 1, wet: 0.3 });
   k.box(sx, y + 0.5, sz, 1.6, 0.08, 1.02, { wash: 0x606166, line: 1 });
@@ -241,12 +263,16 @@ function shrine(ctx: Ctx, k: Kit, x: KitX, sx: number, y: number, sz: number): v
 
 
 /** the banyan, its planter, the earth-god shrine and the 九龍城 stele */
+/** the tree's plan, for main.ts: the canopy's lumps, dressed by canopy.ts `buildCanopy` (the organic lab's cards) */
+export const banyanOut: { plan: BanyanPlan | null } = { plan: null };
+
 export function buildBanyan(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('banyan', true);
   const kx = ctx.kitx('banyan');
   const { x, z, r } = BANYAN;
   const y = Y0;
-  buildBanyanTree(k, kx, { x, y, z, r, seed: 7, height: 14, spread: 8.6 });
+  // no K.leaf lumps: the organic lab's painted leaf cards dress the plan (canopy.ts, wired in main.ts)
+  banyanOut.plan = buildBanyanTree(k, kx, { x, y, z, r, seed: 7, height: 14, spread: 8.6, leaves: false });
   for (let i = 0; i < 7; i++) ctx.lantern(x + rng.range(-4.5, 4.5), y + rng.range(6.2, 8.4), z + rng.range(-3, 3.5), 0.8);
   // the shrine stands at the planter's south-west, clear of the stall's back, facing the square
   shrine(ctx, k, kx, x - 3.2, y, z + 2.2);

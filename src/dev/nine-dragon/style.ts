@@ -16,6 +16,7 @@ import {
   UnsignedByteType, Vector2, Vector3, Vector4, ZeroFactor,
 } from 'three';
 import { Y0 } from './layout';
+import { FLAG, PAINT_GLSL, paintUniforms } from './paint';
 import { METAL, Rng, SUTRA } from './util';
 
 const c = (hex: number): Color => new Color(hex);
@@ -28,9 +29,9 @@ interface Band { y: number; w: number; d: number; jiehua: number; silk: number; 
 const BANDS: readonly Band[] = [
   { y: 212, w: 6, d: 0.022, jiehua: 0xd6dbe2, silk: 0xd8cfbd, sutra: 0x2a3a62 },
   { y: 152, w: 3, d: 0.008, jiehua: 0xc9ced6, silk: 0xcbc0ad, sutra: 0x24345a },
-  { y: 101, w: 5, d: 0.1, jiehua: 0xb4bfce, silk: 0xc6baa7, sutra: 0x223257 },
-  { y: 36, w: 5, d: 0.1, jiehua: 0x9aa7bb, silk: 0xaba396, sutra: 0x1e2c4e },
-  { y: -30, w: 5, d: 0.09, jiehua: 0x8391a8, silk: 0x8f8a82, sutra: 0x192644 },
+  { y: 101, w: 5, d: 0.1, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257 },
+  { y: 36, w: 5, d: 0.11, jiehua: 0xb1bccb, silk: 0xaba396, sutra: 0x1e2c4e },
+  { y: -30, w: 5, d: 0.1, jiehua: 0x9eabbe, silk: 0x8f8a82, sutra: 0x192644 },
   { y: -110, w: 5, d: 0.09, jiehua: 0x5d6a86, silk: 0x5f6478, sutra: 0x142039 },
   { y: -190, w: 5, d: 0.1, jiehua: 0x2c3a5e, silk: 0x2c3a5e, sutra: 0x101b31 },
   { y: -236, w: 5, d: 0.12, jiehua: 0x16223c, silk: 0x16223c, sutra: 0x0c1729 },
@@ -127,6 +128,16 @@ export class Shared {
     uSkyHorizon: { value: c(0xc6cbd3) },
     uSilk: { value: silkWeave() as Texture },
     uGroundY: { value: 0 },
+    // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths; the glazed tiles' pitch
+    ...paintUniforms(),
+    uTilePitch: { value: new Vector2(0.24, 0.22) },
+    // the clean room's paint strengths per surface (round 9 repair): flagstones (dry areas only), and
+    // x: bare stone (balustrade rails, posts, the Well lip), y: the carved frieze, z: concrete walls
+    uPaintFlag: { value: 0.18 },
+    uPaintStone: { value: new Vector3(0.2, 0.0, 0.65) },
+    // the Well's shaft mist: its box (x0, z0, x1, z1) and density / rim height (set by main.ts from layout.ts WELL)
+    uShaft: { value: new Vector4(0, 0, 0, 0) },
+    uShaftK: { value: new Vector2(0.085, 0) },
   };
   look: LookName = 'jiehua';
 
@@ -175,6 +186,8 @@ uniform vec3 uCam;
 uniform float uFogBase;
 uniform float uFogStart;
 uniform vec3 uFogBaseCol;
+uniform vec4 uShaft;
+uniform vec2 uShaftK;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
 // the colour script: the silk's tint at an altitude, interpolated between the bands
@@ -228,11 +241,28 @@ vec4 silkFog(vec3 wp, float scale) {
   // aerials see lamp-lit depth, the shaft fills with silk. Looking up (from inside the Well) the ray is read nearer
   // its top: the shaft opens toward the lit sky instead of greying out
   float hy = dy > 0.0 ? mix(midY, max(uCam.y, wp.y), 0.8) : midY;
-  float hk = clamp(exp(-(hy - ${Y0}.0) / 45.0), 0.35, 2.2);
+  float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / 30.0), 3.6) : max(exp(-(hy - ${Y0}.0) / 45.0), 0.35);
   float a0 = 1.0 - exp(-uFogBase * hk * max(L - uFogStart, 0.0) * scale);
   vec3 baseC = mix(uFogBaseCol, scriptCol(wp.y), clamp((uCam.y - wp.y) / 150.0, 0.0, 1.0));
   acc += T * a0 * baseC;
   T *= 1.0 - a0;
+  // the Well's own silk: the stretch of the ray inside the shaft (a slab test on its box) fills with pale mist, from
+  // nothing at the rim to full 25 m down (the round-6 mockups' Well views: paler, mistier, lighter depth)
+  if (uShaftK.x > 0.0 && L > 1e-3) {
+    vec3 dn = d / L;
+    vec3 inv = vec3(abs(dn.x) > 1e-5 ? 1.0 / dn.x : 1e5, abs(dn.y) > 1e-5 ? 1.0 / dn.y : 1e5, abs(dn.z) > 1e-5 ? 1.0 / dn.z : 1e5);
+    vec3 t0 = (vec3(uShaft.x, -260.0, uShaft.y) - uCam) * inv, t1 = (vec3(uShaft.z, uShaftK.y, uShaft.w) - uCam) * inv;
+    vec3 tn = min(t0, t1), tf = max(t0, t1);
+    float ta = max(max(tn.x, tn.y), max(tn.z, 0.0)), tb = min(min(tf.x, tf.y), min(tf.z, L));
+    if (tb > ta) {
+      float my = uCam.y + dn.y * 0.5 * (ta + tb);
+      // (measured below the rim or the eye, whichever is lower: the mist lies below you — seen from inside the shaft
+      // looking up, the stretch above stays clear toward the lit sky)
+      float as = 1.0 - exp(-uShaftK.x * (tb - ta) * smoothstep(0.0, 25.0, min(uShaftK.y, uCam.y) - my) * scale);
+      acc += T * as * mix(uFogBaseCol * 1.16, scriptCol(my), 0.35);
+      T *= 1.0 - as;
+    }
+  }
   return vec4(acc, T);
 }
 // the neon lab's fog interface (their programs mix toward fogCol by fogAmt)
@@ -252,13 +282,12 @@ float silkPaper(vec2 fc) {
 `;
 
 export const STONES_GLSL = /* glsl */ `
+// (needs PAINT_GLSL before it: the layout is paint.ts FLAG, shared with the paint's per-stone windows)
 vec4 stone(vec2 p, float px) {
-  float rh = 0.82;
-  float r = floor(p.y / rh);
-  float off = h11(r * 3.7) * 1.4;
-  float L = 1.05 + 0.55 * h11(r * 9.1 + 2.0);
-  float cx = floor((p.x + off) / L);
-  float fx = fract((p.x + off) / L), fy = fract(p.y / rh);
+  vec4 fc = flagCell(p);
+  float cx = fc.x, r = fc.y;
+  float L = flagLen(r), rh = ${FLAG.rh.toFixed(3)};
+  float fx = fc.z / L, fy = fc.w / rh;
   vec2 fw = max(fwidth(p), vec2(1e-5));
   vec2 lw = min(fw * px, vec2(0.012));
   float jx = 1.0 - smoothstep(lw.x, lw.x + fw.x, min(fx, 1.0 - fx) * L);
@@ -350,6 +379,10 @@ varying vec3 vSpill;
 ${NOISE_GLSL}
 ${FOG_GLSL}
 ${PAPER_GLSL}
+uniform vec2 uTilePitch;
+uniform float uPaintFlag;
+uniform vec3 uPaintStone;
+${PAINT_GLSL}
 ${STONES_GLSL}
 float bit(float f, float b) { return mod(floor(f / b), 2.0); }
 float bayer4(vec2 fc) {
@@ -365,6 +398,9 @@ void main() {
   float fl = floor(vMisc.w + 0.5);
   float accent = bit(fl, 16.0), gloss = bit(fl, 32.0), goldL = bit(fl, 64.0);
   vec3 base = vColor * mix(uWashTint, vec3(1.0), accent);
+  // the painted surface (paint.ts; flag bits × 4096: 0 by kind, 1 none, 2 stone, 3 concrete, 4 lacquer, 5 wood, 6 poster)
+  float surf = floor(fl / 4096.0);
+  float pk = surf == 1.0 ? 0.0 : uPaintK.x;
   vec3 toCam = uCam - vWorld;
   float dist = length(toCam);
   vec3 V = toCam / max(dist, 1e-4);
@@ -399,6 +435,8 @@ void main() {
   if (kind == 1.0) {
     // ── facade: a storey per row, a window module per column ──
     float rowP = vPat.y, colP = vPat.z, seed = vPat.w;
+    // the wall is painted concrete (2 scales, grime as ink); glass and lit rooms keep their colours
+    if (pk > 0.0) base *= pInk(paintWall(4, 2, q, 6.0, seed, pk * uPaintK.z * uPaintStone.z), uPaintInk);
     vec2 g2 = q / vec2(colP, rowP);
     vec2 cell = floor(g2);
     vec2 f = fract(g2);
@@ -511,7 +549,8 @@ void main() {
     lines = max(lines, pipe * smoothstep(4.0, 9.0, 0.14 / gu));
   } else if (kind == 2.0) {
     // glazed roof tiles: courses down the slope, joints across
-    float rp = 0.3, cp = 0.24;
+    // the rulings take the glazed-tile texture's pitch so its joints and the ink coincide
+    float rp = uTilePitch.y, cp = uTilePitch.x;
     float rows = ruled(ruleDist(q.y, rp, gv), Wr * 0.8, rp / gv);
     float cols = ruled(ruleDist(q.x, cp, gu), Wr * 0.55, cp / gu) * 0.8;
     col *= 0.93 + 0.14 * h12(floor(q / vec2(cp, rp)));
@@ -522,8 +561,15 @@ void main() {
     vec2 p = vWorld.xz;
     vec4 st = stone(p, 1.1);
     float speck = vnoise(p * 23.0) * 0.4 + vnoise(p * 61.0) * 0.35 + vnoise(p * 157.0) * 0.25;
-    col = base * (0.82 + 0.3 * st.y) * (0.74 + 0.52 * speck);
-    float wAmt = wet * mix(0.55, 1.0, st.z);
+    // painted granite per stone (two layers, a window and a quarter turn each); its cavity deepens puddles
+    // (round 9 repair: at full strength the painted granite read as grainy grey noise that broke the streaks. The
+    // wet ground stays a smooth dark gloss (the r7 granite); the paint is a quarter strength and only where it is dry;
+    // the cavity still pools the puddles)
+    vec4 pf = paintFlag(p, 1.0);
+    float wLoc = st.z;
+    float kf = pk * uPaintK.y * uPaintFlag * (1.0 - smoothstep(0.15, 0.5, wLoc));
+    col = base * (0.82 + 0.3 * st.y) * (0.74 + 0.52 * speck) * pInk(mix(vec3(1.0), pf.rgb, kf), uPaintInk);
+    float wAmt = wet * mix(0.55, 1.0, wLoc);
     col *= 1.0 - 0.45 * wAmt;
     float ndv = clamp(V.y, 0.0, 1.0);
     float fres = 0.04 + 0.96 * pow(clamp(1.0 - ndv, 0.0, 1.0), 5.0);
@@ -535,7 +581,7 @@ void main() {
     float fwr = max(fwidth(rd), 1e-5);
     float ring = (1.0 - smoothstep(0.004, 0.004 + fwr * 1.2, rd)) * (1.0 - rp2) * wAmt * (1.0 - smoothstep(0.01, 0.03, fwr));
     emit += fogCol(vWorld) * ring * 0.35;
-    lines = max(lines, st.x * 0.85);
+    lines = max(lines, st.x * 0.6);
   } else if (kind == 4.0) {
     // bars / railings: ruled balusters that fade to their average; see-through (ordered dither under the cut)
     float cp = vPat.z;
@@ -553,8 +599,13 @@ void main() {
     float l1 = inkCov(abs(ins - 0.06) / gq, Wr * 0.8);
     float l2 = inkCov(abs(ins - 0.12) / gq, Wr * 0.55);
     float dens = smoothstep(3.0, 7.0, 0.06 / gq);
-    lines = max(lines, max(l1, l2) * dens);
-    col *= mix(1.0, 0.9, step(0.12, ins) * dens);
+    // which paint a panel takes: a painted board (accent) or timber (surf wood); a balustrade-sized stone panel
+    // (0.3–1.2 m tall, 1.8–8 × as wide) the carved frieze over its whole face; any other stone box plain stone
+    float isBoard = max(accent, step(4.5, surf) * step(surf, 5.5));
+    float friezeFace = step(0.3, sz.y) * step(sz.y, 1.2) * step(1.8, sz.x / sz.y) * step(sz.x / sz.y, 8.0);
+    float frieze = pk * friezeFace * (1.0 - isBoard) * uPaintStone.y;
+    lines = max(lines, max(l1, l2) * dens * (1.0 - frieze));
+    col *= mix(1.0, 0.9, step(0.12, ins) * dens * (1.0 - frieze));
     float fh = max(min(sz.x, sz.y) - 0.24, 0.05);
     float cw = fh * 1.5;
     vec2 fp2 = vec2((uv.x - 0.12) / cw, (uv.y - 0.12) / fh);
@@ -568,8 +619,15 @@ void main() {
     float s2 = min(abs(length(d2) - r2) + step(0.02 * fh, d2.y) * 9.0, abs(length(d2) - r2 * 0.5));
     float join = abs((mc.y - 0.5) * fh - (mc.x - 0.5) * cw * 0.25) + step(0.2, abs(mc.x - 0.5)) * 9.0;
     float carve = min(min(s1, s2), join) / gq;
-    lines = max(lines, inkCov(carve, Wr * 0.55) * inField * dm * 0.9);
-    col *= 1.0 - 0.07 * (1.0 - smoothstep(0.0, fh * 0.1, min(min(s1, s2), join))) * inField * dm;
+    lines = max(lines, inkCov(carve, Wr * 0.55) * inField * dm * 0.9 * (1.0 - frieze));
+    col *= 1.0 - 0.07 * (1.0 - smoothstep(0.0, fh * 0.1, min(min(s1, s2), join))) * inField * dm * (1.0 - frieze);
+    // the frieze's own carved frame, lit lips and inked relief replace the ruled inset frame and the procedural ruyi
+    // (they fade out under it); boards take weathered lacquer or planks. (Wet is the shared block below.)
+    if (pk > 0.0 && isBoard > 0.5) {
+      col *= surf == 5.0 ? paintFace(7, q, 1.5, vPat.w, pk * uPaintK.w) : paintFace(6, q, 1.3, vPat.w, pk * uPaintK.w * 0.6);
+    } else if (pk > 0.0) {
+      col *= pInk(friezeFace > 0.5 ? paintPanel(uv / max(sz, vec2(0.05)), pk * uPaintK.z * uPaintStone.y) : paintWall(2, 2, q, 1.7, vPat.w, pk * uPaintK.z * uPaintStone.x), uPaintInk);
+    }
   } else if (kind == 6.0) {
     // net / wrap: a diagonal ruled mesh that fades to its average; see-through
     float cp = vPat.z;
@@ -608,6 +666,16 @@ void main() {
     col = mix(base, vec3(0.86, 0.84, 0.78), s * vPat.y);
   }
 
+  // explicit surfaces (Look.surf) and bare stone (kind 9), multiplied under the wash and the ink
+  if (pk > 0.0 && kind != 1.0 && kind != 2.0 && kind != 3.0 && kind != 5.0) {
+    float s = surf < 0.5 && kind == 9.0 ? 2.0 : surf;
+    if (s == 2.0) col *= pInk(paintWall(2, 2, q, 1.7, vPat.w, pk * uPaintK.z * uPaintStone.x), uPaintInk);
+    else if (s == 3.0 || s == 6.0) col *= pInk(paintWall(4, 2, q, 6.0, vPat.w, pk * uPaintK.z * uPaintStone.z), uPaintInk);
+    else if (s == 4.0) col *= paintFace(6, q, 1.3, vPat.w, pk * uPaintK.w);
+    else if (s == 5.0) col *= paintFace(7, q, 1.5, vPat.w, pk * uPaintK.w);
+    if (s == 6.0) { vec4 pp = paintPoster(q, uv, vPat.w, 0.35, 2.5); col = mix(col, pp.rgb * 0.5 * uWashTint * mix(vec3(1.0), col / max(base, vec3(1e-3)), 0.7), pp.a * pk); }
+  }
+
   // ── the wash: two hard bands of top light (the sky screens), never black ──
   float ndl = dot(n, uLightDir);
   float lit = smoothstep(-0.04, 0.04, ndl - 0.08);
@@ -628,6 +696,8 @@ void main() {
     float top = step(0.6, n.y);
     shaded *= (1.0 - wet * mix(0.6, 0.9, top)) * mix(vec3(1.0), vec3(0.88, 0.95, 1.1), wet);
     shaded += uFogBaseCol * 0.2 * wet * top * (0.6 + 0.4 * vnoise(vWorld.xz * 1.7));
+    // rain rivulets: thin threads of sheen down wet vertical faces (paint.ts pRivulet, from lab P5)
+    shaded += uFogBaseCol * 0.4 * wet * pk * pRivulet(q, vert);
   }
   // the silk weave, world-anchored, octave picked from the pixel footprint (never swims, reads at any distance)
   vec3 an = abs(n);
@@ -688,6 +758,7 @@ export function jiehuaMaterial(shared: Shared, opt: { alphaCut?: boolean; viewmo
     u['uFogScale'] = { value: 0 };
     u['uLightDir'] = { value: new Vector3(0.3, 0.8, 0.5).normalize() };
     u['uLineFade'] = { value: new Vector2(100, 200) };
+    u['uPaintK'] = { value: new Vector4(0, 1, 1, 1) }; // the weapon is not painted stone
   }
   const m = new ShaderMaterial({
     uniforms: u,

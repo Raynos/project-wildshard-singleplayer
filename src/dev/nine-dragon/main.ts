@@ -17,9 +17,14 @@ import { PIECES } from './dressing';
 import { Hud, type HudButton } from './hud';
 import { WELL, Y0 } from './layout';
 import { Player } from './player';
+import { loadPaint } from './paint';
 import { Pipeline } from './post';
 import { acKit } from './props';
 import { SHOTS, type Shot } from './shots';
+import { tintUmbrella } from './crowd';
+import { banyanOut } from './banyan';
+import { buildCanopy } from './canopy';
+import { loadSquareProps } from './props3d';
 import { SignAtlas, SignBuilder } from './signs';
 import { buildSquare } from './square';
 import {
@@ -28,10 +33,10 @@ import {
 import { WORDS, buildTowers, droneKit, trainKit } from './towers';
 import { Rng, chars, clamp, smooth } from './util';
 import { CABLE, buildWell, gondolaKit, wellSheets } from './well';
-import { type VmLayout, Viewmodel } from './hero/viewmodel';
+import { type VmLayout, Viewmodel } from './vm/viewmodel';
 import { buildClaw } from './hero/weapon-parts';
 import { KitX, merge } from './hero/kitx';
-import { glbBox, guardMatrix, loadGlb } from './hero/glb';
+import { loadGlb } from './hero/glb';
 
 interface NdStats { calls: number; triangles: number; width: number; height: number; pixelRatio: number; hooks: number }
 interface NdApi {
@@ -50,6 +55,8 @@ interface NdApi {
   lines: (mode: number) => void;
   atlas: () => string;
   weapon: (on: boolean) => void;
+  /** the paint strengths (paint.ts uPaintK: master, flagstones, walls, wood / lacquer / tiles); [0, …] = the flat washes */
+  paint: (k: [number, number, number, number]) => void;
   /** render one frame and hand it back as a JPEG data URL at w × h (the canvas downscaled: supersampled) */
   snapshot: (w: number, h: number, quality: number) => string;
   /** framing work: an ad-hoc camera (a Shot not in SHOTS), and the viewmodel's layout (portrait / landscape, merged) */
@@ -133,7 +140,9 @@ async function main(): Promise<void> {
   const renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, stencil: false, powerPreference: 'high-performance' });
   renderer.info.autoReset = false;
   const shared = new Shared();
-  await loadFonts();
+  // the painted surfaces (paint.ts, lab P5): one texture array, loaded with the fonts (the placeholder until then)
+  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/lab/tex', Math.min(8, renderer.capabilities.getMaxAnisotropy())), loadFonts()]);
+  shared.u.uPaint.value = paint.tex;
 
   // ── the world ──
   const atlas = new SignAtlas();
@@ -142,6 +151,8 @@ async function main(): Promise<void> {
   const neonSigns = new NeonSigns(shared, glyphs);
   signs.calligraphy = neonSigns;
   shared.u.uGroundY.value = Y0;
+  shared.u.uShaft.value.set(WELL.x0, WELL.z0, WELL.x1, WELL.z1);
+  shared.u.uShaftK.value.y = Y0;
   const ctx = new Ctx(signs);
   buildSquare(ctx);
   buildTowers(ctx);
@@ -173,6 +184,10 @@ async function main(): Promise<void> {
   const alphaGeos: BufferGeometry[] = [];
   for (const [, kit] of ctx.alphaKits) if (kit.vertexCount > 0) alphaGeos.push(kit.build());
   bakeSpill(kitGeos, emitters);
+  // dome B: the banyan's painted leaf-card canopy (canopy.ts, from the organic lab) on the tree's planned lumps
+  for (const m of await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters)) scene.add(m);
+  // dome B: the square's TRELLIS props (props3d.ts, from the organic lab): guardian lions, glazed pots, lantern trios
+  for (const m of await loadSquareProps(mat)) scene.add(m);
   for (const g of kitGeos) scene.add(new Mesh(g, mat));
   for (const g of alphaGeos) scene.add(new Mesh(g, matA));
   scene.add(paper.build());
@@ -283,13 +298,10 @@ async function main(): Promise<void> {
 
   // ── camera, viewmodel, frame ──
   const camera = new PerspectiveCamera(60, 1, 0.1, 1200);
-  // the hero lab's viewmodel: procedural jian, tassel, talisman, gauntlet; the TRELLIS dragon-head guard in profile
+  // the first person (lab P8, vm/): the procedural jian + its heat halo, the Blender-remastered dragon guard, the gloved
+  // hand and sleeve, verlet tassel + talisman, the Fei Zhua gauntlet with its talons as a separate part, the 飞白 trail
   const vm = new Viewmodel(shared.u.uSilk.value);
-  try {
-    const url = '/assets/nine-dragon/lab/guard.glb';
-    const box = await glbBox(url);
-    vm.setGuard(await loadGlb(url, { kind: 20, wash: 0xba9444, lumLo: 0.2, lumHi: 1.35, ao: 0.9, clipBack: 0.2, matrix: guardMatrix(box, 0.115, -0.004, 0.006, 0) }));
-  } catch (e: unknown) { console.warn('nine-dragon: the TRELLIS guard failed to load, the procedural head stays', e); }
+  await vm.load();
   // the TRELLIS crowd, colour-ramped to the ink (two tones per model, one instanced draw each)
   const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
   const DARK = [0x1f2126, 0x2a2c31, 0x3b3f4a, 0x55585f, 0x6b6f78, 0x8a8f96];
@@ -304,8 +316,11 @@ async function main(): Promise<void> {
       im.computeBoundingSphere();
       scene.add(im);
     };
-    inst(walkD, ctx.walkers.filter((_, i) => i % 10 < 7));
-    inst(walkL, ctx.walkers.filter((_, i) => i % 10 >= 7));
+    // dome B (crowd.ts): one walker in ten under a red oil-paper umbrella, one in ten under an ochre one
+    inst(walkD, ctx.walkers.filter((_, i) => i % 10 < 7 && i % 10 !== 2));
+    inst(walkL, ctx.walkers.filter((_, i) => i % 10 >= 7 && i % 10 !== 8));
+    inst(tintUmbrella(walkD, 0x9a2e1c), ctx.walkers.filter((_, i) => i % 10 === 2));
+    inst(tintUmbrella(walkL, 0xb07a34), ctx.walkers.filter((_, i) => i % 10 === 8));
     inst(sitD, ctx.sitters.filter((_, i) => i % 3 !== 1));
     inst(sitL, ctx.sitters.filter((_, i) => i % 3 === 1));
   } catch (e: unknown) { console.warn('nine-dragon: the TRELLIS crowd failed to load', e); }
@@ -330,8 +345,15 @@ async function main(): Promise<void> {
     vm.layout(aspect);
     vm.u.uLinePx.value = Math.max(1.0, 1.6 * (pr / 2));
     vm.u.uHullPx.value = Math.max(1.0, 2.4 * (pr / 2));
-    vm.u.uRes.value.set(Math.round(w * pr), Math.round(h * pr));
     const bw = Math.round(w * pr), bh = Math.round(h * pr);
+    vm.u.uRes.value.set(bw, bh);
+    // the halo and the trail carry their own screen-size uniforms
+    for (const m of vm.materials) {
+      const res = m.uniforms['uRes'];
+      if (res !== undefined && res.value instanceof Vector2) res.value.set(bw, bh);
+      const px = m.uniforms['uPx'];
+      if (px !== undefined) px.value = 7 * pr;
+    }
     shared.u.uDpr.value = pr / 3;
     pipe.setSize(bw, bh, 1, pr);
   };
@@ -342,7 +364,8 @@ async function main(): Promise<void> {
   let t = 0;
   let frozen: number | null = null;
   let paused = false;
-  let slash = -1, heavy = false, attackHeld = -1;
+  // attack: a tap is the light cut, holding past 0.3 s the heavy chop (vm.play runs the move; P8's MOVES)
+  let attackHeld = -1, heavyFired = false;
   let hookPhase = 0;
   let hookFrozen: number | null = null;
   let hookTarget: Vector3 | null = null;
@@ -372,8 +395,8 @@ async function main(): Promise<void> {
     zipOnBite = zip;
   };
   const onButton = (b: HudButton): void => {
-    if (b === 'attack') { if (slash < 0) { slash = 0; heavy = false; } attackHeld = 0; }
-    else if (b === 'attack-up') attackHeld = -1;
+    if (b === 'attack') { attackHeld = 0; heavyFired = false; }
+    else if (b === 'attack-up') { if (attackHeld >= 0 && !heavyFired) vm.play('light'); attackHeld = -1; }
     else if (b === 'lock') locked = locked === null ? bestHook() : null;
     else if (b === 'jump') { if (locked !== null) fire(locked, true); else player.hop(); }
     else if (b === 'dodge') player.dodge();
@@ -390,8 +413,10 @@ async function main(): Promise<void> {
     else if (e.code === 'Digit2') { shared.setLook('sutra'); vm.u.uSutra.value = 1; }
     else if (e.code === 'Digit3') { shared.setLook('silk'); vm.u.uSutra.value = 0; }
     else if (e.code === 'KeyP') hud.setPerf(true);
+    else if (e.code === 'KeyE') vm.play('parry');
+    else if (e.code === 'KeyR') vm.play('draw');
   });
-  canvas.addEventListener('click', () => { if (slash < 0) { slash = 0; heavy = false; } });
+  canvas.addEventListener('click', () => { vm.play('light'); });
 
   const muzzleWorld = (): Vector3 => {
     const n = vm.muzzleNdc();
@@ -446,16 +471,14 @@ async function main(): Promise<void> {
       line.visible = false;
       claw.visible = false;
     }
-    // slash
-    if (slash >= 0 && frozen === null) {
-      slash += dt / (heavy ? 0.5 : 0.34);
-      if (attackHeld >= 0) attackHeld += dt;
-      if (slash >= 1) {
-        slash = -1;
-        if (attackHeld > 0.25) { slash = 0; heavy = true; }
-      }
+    // the held attack becomes the heavy chop
+    if (attackHeld >= 0 && frozen === null) {
+      attackHeld += dt;
+      if (attackHeld > 0.3 && !heavyFired) { heavyFired = true; vm.play('heavy'); }
     }
-    vm.update(dt, { t: tt, walk: player.walk, speed: player.speed, lookVel: player.lookVel.clone().multiplyScalar(0.05), slash, heavy, hook: hp, aimNdc });
+    // gravity in view space, so the tassel and the talisman hang true at any pitch
+    vm.gravity.set(0, -Math.cos(player.pitch), -Math.sin(player.pitch)).multiplyScalar(9.8);
+    vm.update(dt, { t: tt, walk: player.walk, speed: player.speed, lookVel: player.lookVel.clone().multiplyScalar(0.05), hook: hp, aimNdc });
     for (const d of drones) d.lights.visible = true;
   };
 
@@ -503,7 +526,7 @@ async function main(): Promise<void> {
     resize();
     player.place(s.at[0], s.at[1], s.at[2], s.yaw, s.pitch);
     vm.scene.visible = s.weapon !== false;
-    slash = -1;
+    attackHeld = -1;
     locked = null;
     if (s.hook === undefined) { hookFrozen = null; hookPhase = 0; hookTarget = null; }
     else {
@@ -560,6 +583,7 @@ async function main(): Promise<void> {
     lines: (mode) => { pipe.uComp.uLines.value = mode; },
     atlas: () => atlas.dump(),
     weapon: (on) => { vm.scene.visible = on; },
+    paint: (k) => { shared.u.uPaintK.value.set(...k); },
     view: async (s) => { applyShot(s); await nextFrames(3); },
     vmLayout: (lp, ll) => { vm.layoutPortrait = tuneLayout(vm.layoutPortrait, lp); vm.layoutLandscape = tuneLayout(vm.layoutLandscape, ll); vm.relayout(); },
     debug: () => ({ hookTarget: hookTarget?.toArray() ?? null, hookFrozen, hookPhase, line: line.visible, claw: claw.position.toArray(), a: lineMat.u.uA.value.toArray(), b: lineMat.u.uB.value.toArray() }),

@@ -4,7 +4,10 @@ import { Matrix4, Quaternion, Vector3 } from 'three';
 import { buildBanyan } from './banyan';
 import { mahjong as heroMahjong, mahjongSeats } from './hero/figures';
 import type { Ctx } from './ctx';
-import { buildGate } from './gate';
+import { buildGate, relief } from './gate';
+import { SURF } from './paint';
+import { lionOnPost } from './props3d';
+import type { KitX } from './hero/kitx';
 import { noodleStall } from './stalls';
 import { E, K, type Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from './layout';
@@ -12,7 +15,7 @@ import { dragonHook, lamp, scooter } from './props';
 import { MIN, METAL, NEON, Rng, chars } from './util';
 
 // the balustrade's stone: a mid wet grey (dome A's ΔE: 0x76767b rendered #757784, 0x4a4c53 #44454e; the spawn target #656469)
-const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55 };
+const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };
 const UPV = new Vector3(0, 1, 0);
 /** a figure's placement on the square's floor */
 const standAt = (x: number, z: number, yaw: number, s: number): Matrix4 => new Matrix4().compose(new Vector3(x, Y0, z), new Quaternion().setFromAxisAngle(UPV, yaw), new Vector3(s, s, s));
@@ -26,7 +29,7 @@ function flagstones(k: Kit, x0: number, z0: number, x1: number, z1: number, y: n
  * The Well's balustrade: plinth, carved panels, posts with lotus caps, a top rail; the ground line is heavier.
  * It runs along z at x = `at` (or along x at z = `at` when `alongX`), from `a0` down to `a1`.
  */
-export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false): void {
+export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false, carve?: { x: KitX; side: number }, lionRun?: 'plaza' | 'street'): void {
   const len = a0 - a1;
   const n = Math.max(1, Math.round(len / 2.3));
   const step = len / n;
@@ -41,10 +44,18 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
     const [cx, cz] = px(p);
     bx(p, y + 0.16, 0.36, 0.86, 0.36, STONE);
     k.cyl(cx, y + 1.02, cz, 0.16, 0.2, 0.1, 8, STONE);
-    k.lathe(cx, y + 1.12, cz, [[0.2, 0], [0.22, 0.08], [0.19, 0.18], [0.1, 0.28], [0.02, 0.34]], 8, STONE, true, 0);
+    // a lotus-bud finial (style-A's balustrade): a petal collar, the bud swelling and closing to a point; a post that
+    // carries a TRELLIS lion (props3d.ts) keeps only its cap block
+    if (lionRun === undefined || !lionOnPost(lionRun, i, n)) k.lathe(cx, y + 1.12, cz, [[0.2, 0], [0.23, 0.05], [0.17, 0.09], [0.19, 0.15], [0.18, 0.22], [0.13, 0.3], [0.06, 0.37], [0.0, 0.41]], 12, STONE, true, 0);
     if (i < n) {
       const pm = p - step / 2;
       bx(pm, y + 0.16, 0.16, 0.6, step - 0.36, { wash: 0x5c5e64, kind: K.panel, line: 1, wet: 0.5 });
+      // dome B: the panel's face toward the square carved in relief (a dragon among clouds, as the targets' balustrades)
+      if (carve !== undefined) {
+        const [pcx, pcz] = px(pm);
+        const nrm = alongX ? new Vector3(0, 0, carve.side) : new Vector3(carve.side, 0, 0);
+        relief(carve.x, new Vector3(pcx + nrm.x * 0.08, y + 0.46, pcz + nrm.z * 0.08), new Vector3(-nrm.z, 0, nrm.x), UPV.clone(), nrm, step - 0.6, 0.42, 3000 + i, { wash: 0x68686c, line: 0, wet: 0.35 });
+      }
       bx(pm, y + 0.76, 0.26, 0.12, step - 0.3, STONE);
     }
   }
@@ -95,7 +106,7 @@ function paifang(ctx: Ctx): void {
   const k = ctx.kit('paifang', true);
   const x = ctx.kitx('paifang');
   buildGate(k, x, ctx.signs, (px, py, pz, s) => { ctx.lantern(px, py, pz, s); }, {
-    x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false,
+    x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: true,
   });
   ctx.map.push({ x0: GATE.posts[0] - 0.6, z0: GATE.z - 1.2, x1: GATE.posts[3] + 0.6, z1: GATE.z + 1.2, kind: 'gate' });
 }
@@ -145,10 +156,11 @@ export function buildSquare(ctx: Ctx): void {
   flagstones(floor, PLAZA.x0, PLAZA.z0, PLAZA.x1, PLAZA.z1, Y0);
   flagstones(floor, STREET.x0, STREET.z0, STREET.x1, STREET.z1, Y0);
   // the plaza's lip over the Well
-  floor.box(PLAZA.x0 - 0.3, Y0 - 1.4, (PLAZA.z0 + PLAZA.z1) / 2, 0.6, 1.4, PLAZA.z1 - PLAZA.z0, { wash: 0x8d8f93, line: 1.5 });
+  floor.box(PLAZA.x0 - 0.3, Y0 - 1.4, (PLAZA.z0 + PLAZA.z1) / 2, 0.6, 1.4, PLAZA.z1 - PLAZA.z0, { wash: 0x8d8f93, line: 1.5, surf: SURF.concrete });
   const props = ctx.kit('props', true);
-  balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0);
-  balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0);
+  const carve = { x: ctx.kitx('props'), side: 1 };
+  balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0, false, carve, 'plaza');
+  balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0, false, carve, 'street');
   ctx.map.push({ x0: PLAZA.x0, z0: PLAZA.z0, x1: PLAZA.x1, z1: PLAZA.z1, kind: 'plaza' });
   ctx.map.push({ x0: STREET.x0, z0: -140, x1: STREET.x1, z1: STREET.z1, kind: 'street' });
   paifang(ctx);
@@ -182,13 +194,16 @@ export function buildSquare(ctx: Ctx): void {
     if (x > 13.9 && x < 15.5 && z > -24.4 && z < -23.0) return false; // the stele
     if (x > STALL.x0 - 0.4 && x < STALL.x1 + 0.4 && z > STALL.z1 && z < STALL.z1 + 3.4) return false; // the stall's tables
     for (const [px, pz] of placed) if ((x - px) ** 2 + (z - pz) ** 2 < 0.9 * 0.9) return false;
+    // the spawn frame's foreground stays open for 14 m (style-A: the crowd is mid-distance, under the gate)
+    const dx = x - 0.95, dz = z - 7.5, along = dx * 0.208 - dz * 0.978, across = Math.abs(dx * 0.978 + dz * 0.208);
+    if (along > 0 && along < 14 && across < along * 0.84 + 1.2) return false;
     return true;
   };
   const zones: { n: number; x: [number, number]; z: [number, number]; yaw: () => number }[] = [
     // through the gate, north or south
     { n: 12, x: [1.6, 11.2], z: [-27, -19.5], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.35, 0.35) },
     // across the square in every direction
-    { n: 26, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    { n: 18, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the east strip by the shops and the stall
     { n: 9, x: [14.5, 21.3], z: [-11.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the south half, toward the stair street
@@ -225,5 +240,8 @@ export function buildSquare(ctx: Ctx): void {
   lanternString(ctx, new Vector3(-1.2, Y0 + 10.4, -26), new Vector3(GATE.x - 1, Y0 + 11, GATE.z + 0.5), 1.8, str);
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 9.8, GATE.z + 0.6), new Vector3(22.6, Y0 + 9.6, -28), 1.8, str);
   lanternString(ctx, new Vector3(-1.2, Y0 + 9.2, -12), new Vector3(22.6, Y0 + 9.6, -9), 2.2, str);
+  // dome B: one more string over the square's north half (the targets hang lanterns across the square; a second one
+  // nearer the spawn crowded the hero frame's sky)
+  lanternString(ctx, new Vector3(-1.2, Y0 + 8.6, -19.5), new Vector3(22.6, Y0 + 9.2, -13.5), 2.0, str);
   for (let z = -26; z > -150; z -= 6) lanternString(ctx, new Vector3(STREET.x0 - 0.2, Y0 + 6.5 + (z % 3), z), new Vector3(STREET.x1 + 0.2, Y0 + 7.2, z - 1.5), 1.8, str);
 }

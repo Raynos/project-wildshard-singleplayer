@@ -9,12 +9,13 @@ import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
 import { STALL, Y0 } from './layout';
 import type { Rng } from './util';
-import { person, stool } from './hero/figures';
+import { SURF } from './paint';
+import { person } from './hero/figures';
 import { curve } from './hero/kitx';
 
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 const STEEL: Look = { wash: 0x2c463a, line: 1, accent: true };
-const TIMBER: Look = { wash: 0x5e3a22, kind: K.panel, line: 1, accent: true };
+const TIMBER: Look = { wash: 0x5e3a22, kind: K.panel, line: 1, accent: true, surf: SURF.wood };
 const TOP: Look = { wash: 0xa4a9ae, line: 1, gloss: true };
 const UPV = new Vector3(0, 1, 0);
 const seat = (x: number, z: number, yaw: number): Matrix4 => new Matrix4().compose(new Vector3(x, Y0, z), new Quaternion().setFromAxisAngle(UPV, yaw), new Vector3(1, 1, 1));
@@ -22,6 +23,15 @@ const seat = (x: number, z: number, yaw: number): Matrix4 => new Matrix4().compo
 /** a stack of `n` bowls at (x, y, z) */
 function bowls(k: Kit, x: number, y: number, z: number, n: number, wash: number): void {
   for (let i = 0; i < n; i++) k.lathe(x, y + i * 0.045, z, [[0.045, 0], [0.075, 0.02], [0.09, 0.055]], 10, { wash, line: 0.5 }, false, 1);
+}
+
+/** a timber bar stool (painted wood): a seat on four splayed legs with a foot cross */
+function woodStool(k: Kit, x: number, y: number, z: number): void {
+  const w: Look = { wash: 0x6e4428, line: 0.8, accent: true, surf: SURF.wood };
+  k.box(x, y + 0.66, z, 0.36, 0.05, 0.36, w);
+  for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) k.beam(new Vector3(x + lx * 0.19, y, z + lz * 0.19), new Vector3(x + lx * 0.14, y + 0.66, z + lz * 0.14), 0.04, 0.04, w);
+  k.box(x, y + 0.24, z, 0.34, 0.025, 0.025, w);
+  k.box(x, y + 0.24, z, 0.025, 0.025, 0.34, w);
 }
 
 /** a quad drawn on both faces */
@@ -72,14 +82,14 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
   for (const px of [x0 + 0.1, x1 - 0.1]) k.beam(new Vector3(px, y + 2.1, z1 - 0.08), new Vector3(px, aY1, aZ1), 0.04, 0.04, STEEL);
   // ── the back wall: white tile below, warm-lit plaster above, menu strips, shelves of jars ──
   k.box(xc, y, z0 + 0.08, W - 0.2, 1.1, 0.1, { wash: 0xc9c3b6, kind: K.facade, row: 0.15, col: 0.15, line: 0.8 });
-  k.box(xc, y + 1.1, z0 + 0.08, W - 0.2, 2.1, 0.1, { wash: 0xa87c4a, emit: 0.18, kind: K.panel, line: 1, accent: true });
+  k.box(xc, y + 1.1, z0 + 0.08, W - 0.2, 2.1, 0.1, { wash: 0xa87c4a, emit: 0.18, line: 1, accent: true, surf: SURF.none });
   // the back wall's clutter: a drinks fridge with a lit glass door, a clock, a red calendar, a wall fan, the kitchen god
   // shelf with its red lamp
   k.box(x1 - 0.55, y, z0 + 0.4, 0.8, 1.9, 0.6, { wash: 0xd8d6cf, line: 1 });
   k.box(x1 - 0.55, y + 0.15, z0 + 0.71, 0.66, 1.6, 0.02, { wash: 0xbfe0e8, emit: 0.55, kind: K.facade, row: 0.32, col: 0.66, line: 0.8 });
-  x.ellipsoid(new Vector3(xc - 0.2, y + 2.75, z0 + 0.16), X, Y, Z, 0.16, 0.16, 0.03, { wash: 0xf2eee4, line: 0 }, () => 1, 3, 12);
+  x.ellipsoid(new Vector3(xc - 0.2, y + 2.75, z0 + 0.16), X, Y, Z, 0.16, 0.16, 0.03, { wash: 0xf2eee4, line: 0 }, () => 1, 6, 16);
   ctx.signs.place({ at: new Vector3(xc + 0.5, y + 2.7, z0 + 0.15), normal: new Vector3(0, 0, 1), size: 0.12, spec: { text: '福', color: '#f0c86a', vertical: true, style: 'paper', ink: '#b8261a' }, gain: 1.1 }, null);
-  x.ellipsoid(new Vector3(x0 + 0.5, y + 2.6, z0 + 0.3), X, Y, Z, 0.2, 0.2, 0.05, { wash: 0x2e5fa3, line: 0 }, () => 1, 3, 12);
+  x.ellipsoid(new Vector3(x0 + 0.5, y + 2.6, z0 + 0.3), X, Y, Z, 0.2, 0.2, 0.05, { wash: 0x2e5fa3, line: 0 }, () => 1, 6, 16);
   k.box(x0 + 0.5, y + 2.1, z0 + 0.22, 0.5, 0.04, 0.26, { wash: 0x7e1e1a, line: 0.8, accent: true });
   k.box(x0 + 0.5, y + 2.14, z0 + 0.2, 0.14, 0.2, 0.06, { wash: 0xb08a3c, line: 0.8, accent: true });
   x.ellipsoid(new Vector3(x0 + 0.72, y + 2.2, z0 + 0.26), X, Y, Z, 0.03, 0.04, 0.03, { wash: 0xff3b30, emit: 3, line: 0, accent: true }, () => 1, 3, 6);
@@ -162,13 +172,21 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
   ctx.signs.place({ at: new Vector3(x0 + 0.5, y + 1.72, aZ1 + 0.02), normal: new Vector3(0, 0, 1), size: 0.72, spec: { text: '麵', color: '#b8261a', vertical: true, style: 'banner', ink: '#efe8d8' }, gain: 1.35, blade: true }, null);
   x.sweep([new Vector3(x0 + 0.05, aY1 - 0.05, aZ1 + 0.02), new Vector3(x0 + 0.95, aY1 - 0.05, aZ1 + 0.02)], () => 0.018, 5, { wash: 0x3a2a1e, line: 0 });
   ctx.signs.place({ at: new Vector3(xc + 0.6, yf - 0.28, z1 + 0.02), normal: new Vector3(0, 0, 1), size: 0.34, spec: { text: '九記牛腩麵', color: '#fff1dc', vertical: false, style: 'box' }, gain: 2.0, board: 0xa8261a }, k);
+  // wooden menu plaques hung along the front beam either side of the name board (the targets' stall front); they
+  // reuse the back wall's menu strips (the same sign specs: no new cell in the shared colour atlas, which is full)
+  menu.slice(0, 5).forEach((m, i) => {
+    const red = i % 3 === 0;
+    const px = i < 3 ? x0 + 0.45 + i * 0.42 : x1 - 0.95 + (i - 3) * 0.42;
+    k.box(px, yf - 0.62, z1 + 0.01, 0.24, 0.5, 0.04, { wash: 0x5a3a22, line: 0.8, accent: true, surf: SURF.wood });
+    ctx.signs.place({ at: new Vector3(px, yf - 0.37, z1 + 0.035), normal: new Vector3(0, 0, 1), size: 0.13, spec: { text: m, color: red ? '#f3e7cf' : '#b8261a', vertical: true, style: 'paper', ink: red ? '#b8261a' : '#efe6d2' }, gain: 1.1 }, null);
+  });
   ctx.signs.place({ at: new Vector3(xc - 0.4, yb + 0.75, z0 + 0.5), normal: new Vector3(0, 0, 1), size: 0.5, spec: { text: '重慶小麵', color: '#ff3b30', vertical: false, style: 'tube' }, gain: 5 }, k);
   // ── the people: two cooks, customers at the counter and at two folding tables ──
   person(x, rng, xc - 1.2, y, z1 - 1.45, 0, { pose: 'cook', hat: 'none', coat: 0x3b3f4a });
   person(x, rng, xc + 1.3, y, z1 - 1.5, 0.25, { pose: 'cook', hat: 'cap', coat: 0x55504a });
   for (let i = 0; i < 4; i++) {
     const sx = x0 + 0.8 + i * 1.4;
-    stool(k, x, sx, y, z1 + 0.55, 0, 0x7e4a2a);
+    woodStool(k, sx, y, z1 + 0.55);
     if (i !== 2) ctx.sitters.push(seat(sx, z1 + 0.62, Math.PI));
   }
   for (const [tx, tz] of [[x0 + 1.3, z1 + 2.4], [x0 + 4.0, z1 + 2.6]] as const) {

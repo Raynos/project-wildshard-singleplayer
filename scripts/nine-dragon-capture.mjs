@@ -19,6 +19,10 @@
 //                    round's dir>, when the round chases those), and with --before / --after (dirs, default this
 //                    round) board.jpg: BEFORE | AFTER | TARGET for FP 1, FP 6 and aerial 7
 //   --only=warmcool  warm-vs-cool.jpg: spawn and well-edge, A blue hour | B warm silk, portrait
+//   --only=mock      the four round-6 mockup views WITH the HUD (iPhone portrait 402x874 @3): mock-A (spawn),
+//                    mock-B (well-edge), mock-C (stair-street), mock-D (well-down) + sheet-mockups.jpg (capture | mockup)
+//   --only=eye       eye-check.jpg (with --prev=<dir of the previous round>): previous | this round | target for
+//                    capture-1, 2, 6 and mock-A..D (the mockups are the targets of those four). Look at it before a report.
 // No-HUD art is rendered at 1.5× the output size and downscaled in the page (supersampled lines), then JPEG'd under a
 // byte cap (quality steps down until it fits).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -126,6 +130,14 @@ async function layout(page, rows, out, maxKB, what) {
   console.log('wrote', out.slice(ROOT.length + 1), Math.round(buf.length / 1024), 'KB');
 }
 
+/** the four round-6 mockups the loop also answers to (Jake judges the shard against them), with their shots */
+const MOCK_VIEWS = [
+  { id: 'A', shot: 'spawn', mock: 'style-A-jiehua-neon.jpg', label: 'spawn' },
+  { id: 'B', shot: 'well-edge', mock: 'comp-B-well-edge.jpg', label: 'well edge' },
+  { id: 'C', shot: 'stair-street', mock: 'comp-C-stair-street.jpg', label: 'stair street' },
+  { id: 'D', shot: 'well-down', mock: 'comp-D-well-down.jpg', label: 'well down' },
+];
+
 const LOOP_NAMES = ['FP front, paifang', 'FP left, across the Well', 'FP right, stall + towers', 'FP back, stair-street', 'FP up, canyon + screen',
   'FP down, the Well', 'aerial, the square', 'aerial, up the shaft', 'aerial, across the Well'];
 /** the 3x3 sheet: FP 1-3, FP 4-6 (portrait cells), aerials 7-9 (landscape cells) */
@@ -185,6 +197,57 @@ try {
       await layout(page, [{ h: 874, cells }], join(LOOP, 'warm-vs-cool.jpg'), 600, 'A blue hour | B warm silk, spawn and well-edge');
     }
     await fp.close();
+  }
+  // ── the four mockup views, WITH the HUD, and capture | mockup ──
+  if (LOOP !== '' && ONLY.has('mock')) {
+    const context = await browser.newContext({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const page = await open(context);
+    await page.evaluate(() => { window.__nd.pixelRatio(3); window.__nd.hud(true); window.__nd.style('jiehua'); });
+    const cells = [];
+    for (const v of MOCK_VIEWS) {
+      await page.evaluate((n) => window.__nd.shot(n), v.shot);
+      await page.waitForTimeout(400);
+      // the frame at 1400 px tall (the round folders stay small), the canvas + DOM HUD composited by the screenshot
+      const raw = await page.screenshot({ type: 'jpeg', quality: 90 });
+      const small = await page.evaluate(async (src) => {
+        const img = new Image();
+        img.src = src;
+        await img.decode();
+        const H = 1400, W = Math.round(img.width * H / img.height);
+        const cv = document.createElement('canvas');
+        cv.width = W;
+        cv.height = H;
+        const c = cv.getContext('2d');
+        c.imageSmoothingQuality = 'high';
+        c.drawImage(img, 0, 0, W, H);
+        return cv.toDataURL('image/jpeg', 0.82);
+      }, `data:image/jpeg;base64,${raw.toString('base64')}`);
+      const out = join(LOOP, `mock-${v.id}.jpg`);
+      writeFileSync(out, Buffer.from(small.slice(small.indexOf(',') + 1), 'base64'));
+      console.log('wrote', out.slice(ROOT.length + 1));
+      cells.push({ src: small, label: `${v.id} ${v.label}: in game`, w: 414 }, { src: b64(join(MOCKS, v.mock)), label: `${v.id} mockup`, w: 414 });
+    }
+    await layout(page, [{ h: 900, cells: cells.slice(0, 4) }, { h: 900, cells: cells.slice(4) }], join(LOOP, 'sheet-mockups.jpg'), 700, 'in game | mockup, the four round-6 views');
+    await context.close();
+  }
+  // ── the eye check: previous round | this round | target (capture-1, 2, 6; the four mockup views) ──
+  if (LOOP !== '' && ONLY.has('eye')) {
+    const PREV = resolve(ROOT, flag('prev', ''));
+    const TG = resolve(ROOT, flag('targets', 'art/nine-dragon-stack/round-8-look-loop-1'));
+    const ctx0 = await browser.newContext({ viewport: { width: 400, height: 400 } });
+    const page = await ctx0.newPage();
+    await page.goto('about:blank');
+    const tri = (a, b, c, lab) => [
+      { src: b64(a), label: `${lab} prev`, w: 300 }, { src: b64(b), label: `${lab} now`, w: 300 }, { src: b64(c), label: `${lab} target`, w: 300 },
+    ];
+    const t = [
+      ...[1, 2, 6].map((k) => tri(join(PREV, `capture-${k}.jpg`), join(LOOP, `capture-${k}.jpg`), join(TG, `target-${k}.jpg`), `${k}`)),
+      ...MOCK_VIEWS.map((v) => tri(join(PREV, `mock-${v.id}.jpg`), join(LOOP, `mock-${v.id}.jpg`), join(MOCKS, v.mock), v.id)),
+    ];
+    const rows = [];
+    for (let i = 0; i < t.length; i += 2) rows.push({ h: 652, cells: [...t[i], ...(t[i + 1] ?? [])] });
+    await layout(page, rows, join(LOOP, 'eye-check.jpg'), 950, 'previous | now | target: capture-1, 2, 6 and mock-A..D');
+    await ctx0.close();
   }
   if (LOOP !== '' && ONLY.has('sheets')) {
     const ctx0 = await browser.newContext({ viewport: { width: 400, height: 400 } });

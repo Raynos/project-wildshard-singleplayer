@@ -37,6 +37,12 @@ export function walkable(x: number, z: number): boolean {
   const bx = x - BANYAN.x, bz = z - BANYAN.z;
   if (bx * bx + bz * bz < (BANYAN.r + 0.6) ** 2) return false;
   if (x > STALL.x0 - 0.5 && x < STALL.x1 + 0.5 && z > STALL.z0 - 0.5 && z < STALL.z1 + 1.4) return false;
-  for (const px of GATE.posts) if (Math.abs(x - px) < 0.8 && Math.abs(z - GATE.z) < 0.9) return false;
+  for (const px of GATE.posts) if (Math.abs(x - px) < 0.9 && Math.abs(z - GATE.z) < 2.0) return false; // posts + drum stones
+  // dome B: the lion pedestals before the gate's centre bay, the earth-god shrine and the 九龍城 stele at the planter's
+  // south-west, the stall's folding tables
+  for (const px of [GATE.posts[1] - 0.2 * GATE.s, GATE.posts[2] + 0.2 * GATE.s]) if (Math.abs(x - px) < 0.8 && Math.abs(z - GATE.z - 2.3 * GATE.s) < 0.95) return false;
+  if (x > BANYAN.x - 4.2 && x < BANYAN.x - 2.2 && z > BANYAN.z + 1.6 && z < BANYAN.z + 2.9) return false;
+  if (x > BANYAN.x - 4.3 && x < BANYAN.x - 3.1 && z > BANYAN.z - 1.6 && z < BANYAN.z - 0.6) return false;
+  if (x > STALL.x0 + 0.6 && x < STALL.x0 + 4.8 && z > STALL.z1 + 1.8 && z < STALL.z1 + 3.1) return false;
   return true;
 }

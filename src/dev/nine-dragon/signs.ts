@@ -31,7 +31,8 @@ export interface SignSpec {
 
 export interface Cell { u0: number; v0: number; u1: number; v1: number; mono: boolean }
 
-const MW = 2048, MH = 4096, CS = 1024;
+// the colour atlas is twice as tall as wide: dome B's stalls and gate carry many small paper / banner signs
+const MW = 2048, MH = 4096, CS = 1024, CH = 2048;
 const U = 96; // px per character
 const PAD = 8;
 
@@ -58,7 +59,8 @@ export class SignAtlas {
     this.mono.width = MW;
     this.mono.height = MH;
     this.colour = document.createElement('canvas');
-    this.colour.width = this.colour.height = CS;
+    this.colour.width = CS;
+    this.colour.height = CH;
     const m = this.mono.getContext('2d', { willReadFrequently: true });
     const c = this.colour.getContext('2d');
     if (m === null || c === null) throw new Error('2d canvas unavailable');
@@ -113,7 +115,7 @@ export class SignAtlas {
 
   private allocColour(w: number, h: number): { x: number; y: number } {
     if (this.cx + w > CS) { this.cx = 0; this.cy += this.crow + PAD; this.crow = 0; }
-    if (this.cy + h > CS) throw new Error('colour atlas full');
+    if (this.cy + h > CH) throw new Error('colour atlas full');
     const at = { x: this.cx, y: this.cy };
     this.cx += w + PAD;
     this.crow = Math.max(this.crow, h);
@@ -261,7 +263,7 @@ export class SignAtlas {
       }
     }
     ctx.restore();
-    return { u0: x / CS, v0: 1 - (y + h) / CS, u1: (x + w) / CS, v1: 1 - y / CS, mono: false };
+    return { u0: x / CS, v0: 1 - (y + h) / CH, u1: (x + w) / CS, v1: 1 - y / CH, mono: false };
   }
 }
 

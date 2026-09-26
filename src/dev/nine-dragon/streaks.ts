@@ -8,6 +8,7 @@ import {
   Uint16BufferAttribute, Vector4,
 } from 'three';
 import type { Emitter } from './emitters';
+import { PAINT_GLSL } from './paint'; // (the flag layout: flagCell)
 import { ADD_KEEP_ALPHA, FOG_GLSL, NOISE_GLSL, STONES_GLSL, type Shared } from './style';
 
 const VS_CARD = /* glsl */ `
@@ -55,6 +56,7 @@ void main() {
 const FS_CARD = /* glsl */ `
 ${NOISE_GLSL}
 ${FOG_GLSL}
+${PAINT_GLSL}
 ${STONES_GLSL}
 uniform float uTime;
 uniform vec4 uCardK; // x: gain, y: dash contrast, z: jog, w: saturation keep
@@ -73,19 +75,22 @@ void main() {
   float vBody = vS < vSeg.y ? (vS - vSeg.y) / max(vSeg.y - vSeg.x, 1e-3)
     : (vS < vSeg.z ? (vS - vSeg.y) / max(vSeg.z - vSeg.y, 1e-3) : 1.0 + (vS - vSeg.z) / max(vSeg.w - vSeg.z, 1e-3));
   vec4 st = stone(p, 1.1);
+  // the jog, striation and dashes follow stones of the old size (1–1.6 m): on the small slabs they broke every
+  // streak into a staircase (round 9); the joints and the puddles are the real ones
+  vec4 sb = stone(p * 0.7 + 37.0, 1.1);
   float prof = vBody < 0.0 ? pow(clamp(1.0 + vBody, 0.0, 1.0), 1.4) : (vBody > 1.0 ? pow(clamp(2.0 - vBody, 0.0, 1.0), 2.0) : 1.0);
   float along = dot(p - uCam.xz, vDir);
   float fa = max(fwidth(along), 1e-5);
   float fine = (vnoise(vec2(along * 38.0, vC.x * 0.7 + uTime * 0.9)) - 0.5) * 2.0 * (1.0 - smoothstep(0.009, 0.022, fa))
              + (vnoise(vec2(along * 95.0, vC.x * 1.3 - uTime * 1.3)) - 0.5) * 1.4 * (1.0 - smoothstep(0.0035, 0.009, fa))
              + (vnoise(vec2(along * 14.0, vC.x * 0.5 + uTime * 0.6)) - 0.5) * 1.2 * smoothstep(0.012, 0.03, fa);
-  float x = vC.x + st.w * uCardK.z * 0.5 + (vnoise(vec2(along * 2.5, uTime * 0.5)) - 0.5) * 0.3 + fine * uFine;
+  float x = vC.x + sb.w * uCardK.z * 0.5 + (vnoise(vec2(along * 2.5, uTime * 0.5)) - 0.5) * 0.3 + fine * uFine;
   float across = 1.0 - smoothstep(0.5, 1.0, abs(x));
-  float stria = 0.7 + 0.3 * vnoise(vec2(vC.x * 11.0 + st.y * 5.0, along * 1.5));
-  float dash = mix(1.0, smoothstep(0.15, 0.75, vnoise(vec2(along * 17.0, x * 2.5 + st.y * 9.0))), uCardK.y) * stria;
+  float stria = 0.7 + 0.3 * vnoise(vec2(vC.x * 11.0 + sb.y * 5.0, along * 1.5));
+  float dash = mix(1.0, smoothstep(0.15, 0.75, vnoise(vec2(along * 17.0, x * 2.5 + sb.y * 9.0))), uCardK.y) * stria;
   float grain = 0.72 + 0.28 * (vnoise(p * 61.0) * 0.5 + vnoise(p * 157.0) * 0.5);
   dash *= grain;
-  float gloss = mix(0.45, 1.0, st.z) * (0.65 + 0.7 * st.y);
+  float gloss = mix(0.45, 1.0, st.z) * (0.65 + 0.7 * sb.y);
   vec3 V = normalize(uCam - vWorld);
   float fres = 0.3 + 0.7 * pow(clamp(1.0 - V.y, 0.0, 1.0), 3.0);
   vec3 col = vCol * prof * across * dash * gloss * fres * (1.0 - st.x * 0.8) * uCardK.x;
