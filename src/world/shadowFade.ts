@@ -76,6 +76,8 @@ export class ShadowFade {
   private readonly last = new THREE.Vector3();
   private readonly lsFrustum = new CSMFrustum();
   private t = 1;
+  /** E174 (shadowVariants.ts): a ghost smaller than its cascade takes its cascade's normal bias × this (its texel is larger) */
+  biasScale = 1;
 
   constructor(private readonly csm: CSM, private readonly camera: THREE.Camera, parent: THREE.Object3D) {
     const n = Math.max(1, csm.lights.length - 1);
@@ -142,7 +144,7 @@ export class ShadowFade {
       cam.updateProjectionMatrix();
     }
     const s = ghost.shadow;
-    s.normalBias = light.shadow.normalBias; s.radius = GHOST_RADIUS; s.intensity = light.shadow.intensity;
+    s.normalBias = this.biasScale === 1 ? light.shadow.normalBias : Math.min(0.14, light.shadow.normalBias * this.biasScale); s.radius = GHOST_RADIUS; s.intensity = light.shadow.intensity;
     const size = s.mapSize.x, texelW = (cam.right - cam.left) / size, texelH = (cam.top - cam.bottom) / size;
     _lo.lookAt(_origin, this.from, _up);
     _loInv.copy(_lo).invert();

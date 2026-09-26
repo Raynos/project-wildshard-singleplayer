@@ -20,6 +20,8 @@ import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../b
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { shardMemory } from '../shard/switch';
 import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
+import { TIER } from '../core/tier';
+import { PHONE_RIG_MAPS, SHADOW_VARIANTS, VARIANT_SPECS, shadowBytes } from '../world/shadowVariants';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: ChunkDef; weapons: ReadonlySet<string> }
@@ -139,6 +141,15 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('coverReach', 'cover', 'Slope reach', ON_OFF, { when: driftwood, note: 'E156 · slope plants drawn 1.7× further' }),
   opt('coverBlend', 'cover', 'Far colour blend', ON_OFF, { when: driftwood, note: 'E117 / E156 · far plants fade into the ground' }),
   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 · the far stand-in meshes' }),
+
+  // ── Look: Driftwood's phone shadow maps (E174; src/world/shadowVariants.ts), live. Each choice says its MB ──
+  {
+    ...opt('dwShadows', 'look', 'Shadows (Driftwood phone)', SHADOW_VARIANTS.map((v) => [v, VARIANT_SPECS[v].name] as const), {
+      when: (c) => driftwood(c) && TIER === 'phone',
+      note: 'E174 · A today · B no colour buffer (same pixels) · C + 16-bit depth · D + far cascade and fade ghosts at 1024²',
+    }),
+    choices: () => SHADOW_VARIANTS.map((v) => ({ v, text: `${v.toUpperCase()} · ${VARIANT_SPECS[v].name} · ${String(Math.round(shadowBytes(v, PHONE_RIG_MAPS.size, PHONE_RIG_MAPS.cascades, PHONE_RIG_MAPS.ghosts) / (1 << 20)))} MB` })),
+  },
 
   // ── Sky & weather ──
   // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's PineDayNight

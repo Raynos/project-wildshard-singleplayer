@@ -143,6 +143,9 @@ export const OPTION_VALUES = {
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
   ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
   clockSpeed: ['1', '10', '60'],                       // Nalati's day clock speed — live                                  // the learned LUT (src/world/lut.ts); off = the captures scripts/fit-lut.py fits from — a reload
+  // E174: Driftwood's phone shadow maps (src/world/shadowVariants.ts; debugOptions.ts 'look') — a Today · b Depth only ·
+  // c 16-bit depth · d Lean; live. 'a' (today) until the user picks
+  dwShadows: ['a', 'b', 'c', 'd'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -164,7 +167,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, birds: DEBUG_ONLY, npcs: DEBUG_ONLY, knife: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
-  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
+  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, dwShadows: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
   const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
@@ -182,6 +185,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), birds: option('birds'), npcs: option('npcs'), knife: option('knife'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
+  dwShadows: option('dwShadows'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
