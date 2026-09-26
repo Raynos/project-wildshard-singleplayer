@@ -53,7 +53,8 @@ export interface LastEnd {
   nav: string;
 }
 
-const build = (): string => { try { return __BUILD_ID__.split('-')[0] ?? ''; } catch { return ''; } };
+/** `<sha>-<stamp>` → the sha, else the stamp (a Vercel CLI build has no commit): the build pill's short id (src/ui/Update.ts) */
+const build = (): string => { try { const [sha = '', time = ''] = __BUILD_ID__.split('-'); return sha.length >= 7 ? sha : time; } catch { return ''; } };
 const store = (kind: 'local' | 'session'): Storage | null => { try { return kind === 'local' ? localStorage : sessionStorage; } catch { return null; } };
 const readJson = (s: Storage | null, key: string): unknown => { try { const v = s?.getItem(key); return v === null || v === undefined ? null : JSON.parse(v) as unknown; } catch { return null; } };
 const writeJson = (s: Storage | null, key: string, v: unknown): void => { try { s?.setItem(key, JSON.stringify(v)); } catch { /* storage full or blocked: this record is lost */ } };
