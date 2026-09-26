@@ -1,0 +1,187 @@
+{
+ "dome": "B1-well-edge-stand",
+ "type": "stand",
+ "mockup": "art/nine-dragon-stack/round-6-baseline-hud/comp-B-well-edge.jpg",
+ "pair": "B2-well-edge-look",
+ "where": "mockup B's own camera: standing at the carved stone balustrade on the Yamen Well's south rim, +125.4 m",
+ "anchor_ground": [
+  -10.5,
+  125.4,
+  11.75
+ ],
+ "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.02,
+    11.75
+   ],
+   "yaw": -3,
+   "pitch": 62,
+   "hfov": 62,
+   "look": [
+    -10.99,
+    144.68,
+    2.37
+   ],
+   "desc": "from the mockup camera's spot, looking steeply UP: the two canyon walls of stacked galleries and towers rising and converging overhead, neon blade signs and lanterns seen from below, cables and laundry lines crossing, the net-grid ceiling with the painted blue-green sky screen at the top"
+  },
+  {
+   "n": 2,
+   "name": "aerial over the rim",
+   "kind": "aerial",
+   "eye": [
+    -14.0,
+    146.0,
+    15.0
+   ],
+   "yaw": 1.6,
+   "pitch": -44.2,
+   "hfov": 60,
+   "look": [
+    -13.0,
+    112.0,
+    -20.0
+   ],
+   "desc": "a crane shot ~20 m above the rim, just behind and above the mockup camera, looking north-down the whole length of the canyon: the rim balustrade at the bottom of the frame, both gallery walls, the bridges, nets and gondola below receding into mist, the paifang bridge far along"
+  },
+  {
+   "n": 3,
+   "name": "aerial from the square",
+   "kind": "aerial",
+   "eye": [
+    8.0,
+    144.0,
+    -2.0
+   ],
+   "yaw": -126.6,
+   "pitch": -40.9,
+   "hfov": 60,
+   "look": [
+    -10.5,
+    124.0,
+    11.75
+   ],
+   "desc": "a high diagonal from over Lantern Square (north-east of the spot, 19 m up), looking south-west down at the rim: the square's balustrade and wet flagstones in the foreground, the Well's mouth opening beyond it, the rim ledge with its carved balustrade and the people standing there, the shops and towers behind the rim"
+  },
+  {
+   "n": 4,
+   "name": "turn left (west)",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.02,
+    11.75
+   ],
+   "yaw": -93,
+   "pitch": -6,
+   "hfov": 62,
+   "look": [
+    -30.36,
+    124.93,
+    12.79
+   ],
+   "desc": "from the same spot turned 90° LEFT (west): the carved stone balustrade running away along the rim ledge, people leaning on it, lanterns, the rim's shopfronts on the left, and the Well's west wall of galleries rising and falling at the corner ahead"
+  },
+  {
+   "n": 5,
+   "name": "THE MOCKUP",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.02,
+    11.75
+   ],
+   "yaw": -3,
+   "pitch": -23,
+   "hfov": 62,
+   "look": [
+    -11.46,
+    119.21,
+    -6.63
+   ],
+   "desc": "EXACTLY the mockup's camera and composition (image 1), without its HUD, hands, sword, claw or grapple line"
+  },
+  {
+   "n": 6,
+   "name": "turn right (east)",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.02,
+    11.75
+   ],
+   "yaw": 87,
+   "pitch": -6,
+   "hfov": 62,
+   "look": [
+    9.36,
+    124.93,
+    10.71
+   ],
+   "desc": "from the same spot turned 90° RIGHT (east): the balustrade running on along the rim toward Lantern Square, the east wall's galleries with the 茶 and 旅館 signs on the left of the frame, the square's wet flagstones, lantern strings and crowd opening ahead"
+  },
+  {
+   "n": 7,
+   "name": "turn around (south)",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.02,
+    11.75
+   ],
+   "yaw": 177,
+   "pitch": 4,
+   "hfov": 62,
+   "look": [
+    -9.46,
+    128.42,
+    31.67
+   ],
+   "desc": "from the same spot turned AROUND (south, away from the Well): the rim ledge's shopfronts under the towers — lit noodle and tea shops, awnings, hanging signs, red lanterns, people with umbrellas walking past, a tall tower wall of balconies, cages and neon above"
+  },
+  {
+   "n": 8,
+   "name": "look down",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.02,
+    11.75
+   ],
+   "yaw": -3,
+   "pitch": -80,
+   "hfov": 62,
+   "look": [
+    -10.68,
+    107.32,
+    8.28
+   ],
+   "desc": "from the same spot looking straight DOWN over the balustrade: the wet stone rail and a carved newel post at the bottom of the frame, the south wall's galleries dropping away beneath, nets and bridges far below, the shaft vanishing into pale mist"
+  },
+  {
+   "n": 9,
+   "name": "aerial from mid-shaft, back",
+   "kind": "aerial",
+   "eye": [
+    -17.0,
+    138.0,
+    -26.0
+   ],
+   "yaw": 170.2,
+   "pitch": -18.7,
+   "hfov": 60,
+   "look": [
+    -10.5,
+    125.0,
+    11.75
+   ],
+   "desc": "hovering high in the middle of the shaft ~38 m north of the spot and looking BACK south at it: the rim with its carved balustrade and the people at it, the towers and shops above the rim, the galleries of both walls framing it, the gondola cable and a bridge below"
+  }
+ ]
+}

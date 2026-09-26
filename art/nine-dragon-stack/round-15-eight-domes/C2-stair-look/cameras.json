@@ -1,0 +1,187 @@
+{
+ "dome": "C2-stair-look",
+ "type": "look",
+ "mockup": "art/nine-dragon-stack/round-6-baseline-hud/comp-C-stair-street.jpg",
+ "pair": "C1-stair-stand",
+ "where": "where mockup C looks: 19 m up the stair-street on the first landing (+7 m), below the flight that climbs to the paifang",
+ "anchor_ground": [
+  37.3,
+  132.0,
+  6.0
+ ],
+ "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "kind": "fp",
+   "eye": [
+    37.3,
+    133.62,
+    6.0
+   ],
+   "yaw": 90,
+   "pitch": 64,
+   "hfov": 62,
+   "look": [
+    46.07,
+    151.6,
+    6.0
+   ],
+   "desc": "from the landing looking steeply UP: the skybridge with people and red banners directly overhead, the monorail viaduct above it, the towers' balconies, cages and big neon signs converging, lantern strings, the sky screen"
+  },
+  {
+   "n": 2,
+   "name": "aerial from above the foot",
+   "kind": "aerial",
+   "eye": [
+    20.0,
+    158.0,
+    6.0
+   ],
+   "yaw": 90.0,
+   "pitch": -36.3,
+   "hfov": 60,
+   "look": [
+    50.0,
+    136.0,
+    6.0
+   ],
+   "desc": "a high crane shot from above the foot of the stairs looking east up the street: the flights and landings climbing, the paifang on the second landing, the terraces and shopfronts on both sides, the skybridge and monorail"
+  },
+  {
+   "n": 3,
+   "name": "aerial from the top, back",
+   "kind": "aerial",
+   "eye": [
+    64.0,
+    160.0,
+    6.0
+   ],
+   "yaw": -90.0,
+   "pitch": -46.0,
+   "hfov": 60,
+   "look": [
+    36.0,
+    131.0,
+    6.0
+   ],
+   "desc": "a high crane shot from above the top of the stairs looking back west-down: the paifang's green-glazed roofs from above in the foreground, the flight dropping to the first landing with its people, Lantern Square far below at the foot"
+  },
+  {
+   "n": 4,
+   "name": "left (north side)",
+   "kind": "fp",
+   "eye": [
+    37.3,
+    133.62,
+    6.0
+   ],
+   "yaw": 0,
+   "pitch": 4,
+   "hfov": 62,
+   "look": [
+    37.3,
+    135.02,
+    -13.95
+   ],
+   "desc": "from the landing turned LEFT (north): the north side terraces close up — stone plinth walls with a coping, red timber railings, dense potted plants, tea tables, a lit tea-house front with lattice windows and a 茶 banner, people at the rail, neon blade signs above"
+  },
+  {
+   "n": 5,
+   "name": "facing further on (east)",
+   "kind": "fp",
+   "eye": [
+    37.3,
+    133.62,
+    6.0
+   ],
+   "yaw": 90,
+   "pitch": 12,
+   "hfov": 62,
+   "look": [
+    56.86,
+    137.78,
+    6.0
+   ],
+   "desc": "from the landing facing FURTHER ON (east), the way the mockup looks: the next flight climbing to the cinnabar paifang on the second landing 17 m ahead (九龍 plaque, green-glazed roofs, dougong, red lanterns), people with umbrellas on the steps, the big 火鍋 and 旅館 neon signs on the right, the skybridge crossing overhead, the last flight rising on through the gate"
+  },
+  {
+   "n": 6,
+   "name": "right (south side)",
+   "kind": "fp",
+   "eye": [
+    37.3,
+    133.62,
+    6.0
+   ],
+   "yaw": 180,
+   "pitch": 4,
+   "hfov": 62,
+   "look": [
+    37.3,
+    135.02,
+    25.95
+   ],
+   "desc": "from the landing turned RIGHT (south): the south side terraces — the red 火鍋 and jade 旅館 neon blade signs, a lit shop with an awning, a red railing, plants, a person under an umbrella"
+  },
+  {
+   "n": 7,
+   "name": "back to the mockup camera",
+   "kind": "fp",
+   "eye": [
+    37.3,
+    133.62,
+    6.0
+   ],
+   "yaw": 270,
+   "pitch": -12,
+   "hfov": 62,
+   "look": [
+    17.74,
+    129.46,
+    6.0
+   ],
+   "desc": "from the landing facing BACK (west) down the first flight toward where the mockup's camera stands at the foot: the steps dropping to Lantern Square, the tea house and 麵 sign at the foot, lantern strings, people climbing toward us, the square and the Well's far wall of towers beyond"
+  },
+  {
+   "n": 8,
+   "name": "look down",
+   "kind": "fp",
+   "eye": [
+    37.3,
+    133.62,
+    6.0
+   ],
+   "yaw": 90,
+   "pitch": -58,
+   "hfov": 62,
+   "look": [
+    47.9,
+    116.66,
+    6.0
+   ],
+   "desc": "from the landing looking DOWN: the landing's wet granite slabs and the first steps of the next flight, puddles with neon streaks, a potted plant, feet of passers-by"
+  },
+  {
+   "n": 9,
+   "name": "top-down over the landing",
+   "kind": "aerial",
+   "eye": [
+    38.0,
+    182.0,
+    6.0
+   ],
+   "yaw": 90.0,
+   "pitch": -83.3,
+   "hfov": 60,
+   "look": [
+    44.0,
+    131.0,
+    6.0
+   ],
+   "desc": "high above the first landing looking almost straight DOWN into the canyon of the stair-street: the steps, the landing, the terraces and their plants, the skybridge and lantern strings seen from above, the paifang's roofs at the right"
+  }
+ ]
+}

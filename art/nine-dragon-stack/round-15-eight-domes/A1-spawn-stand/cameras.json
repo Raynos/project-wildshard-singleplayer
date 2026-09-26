@@ -1,0 +1,187 @@
+{
+ "dome": "A1-spawn-stand",
+ "type": "stand",
+ "mockup": "art/nine-dragon-stack/round-6-baseline-hud/style-A-jiehua-neon.jpg",
+ "pair": "A2-gate-look",
+ "where": "mockup A's own camera: the spawn on Lantern Square by the carved balustrade at the Well's edge, looking north at the paifang and the banyan",
+ "anchor_ground": [
+  0.95,
+  125.0,
+  7.5
+ ],
+ "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "kind": "fp",
+   "eye": [
+    0.95,
+    126.62,
+    7.5
+   ],
+   "yaw": 12,
+   "pitch": 62,
+   "hfov": 58,
+   "look": [
+    2.9,
+    144.28,
+    -1.68
+   ],
+   "desc": "from the mockup camera's spot looking steeply UP: the sign-covered towers converging, the skybridge and the monorail viaduct with its red train crossing overhead, cables and laundry, the LED sky screen with blue-green shanshui mountains at the top"
+  },
+  {
+   "n": 2,
+   "name": "aerial over the square",
+   "kind": "aerial",
+   "eye": [
+    8.0,
+    148.0,
+    16.0
+   ],
+   "yaw": -3.4,
+   "pitch": -34.0,
+   "hfov": 60,
+   "look": [
+    6.0,
+    125.0,
+    -18.0
+   ],
+   "desc": "a crane shot high behind the spawn looking north over the whole of Lantern Square: the wet flagstones, the balustrade along the Well on the left, the mahjong tables, the crowd, the paifang and the banyan at the far end, the street beyond the gate under the skybridge and the monorail"
+  },
+  {
+   "n": 3,
+   "name": "aerial over the Well",
+   "kind": "aerial",
+   "eye": [
+    -14.0,
+    145.0,
+    0.0
+   ],
+   "yaw": 56.3,
+   "pitch": -42.8,
+   "hfov": 60,
+   "look": [
+    4.0,
+    125.0,
+    -12.0
+   ],
+   "desc": "a high diagonal from over the Well's mouth (west of the square) looking east-down at the square: the carved balustrade along the Well's edge in the foreground, the square with its tables and people, the paifang side-on at the left, the banyan and the noodle stall, the east towers with neon"
+  },
+  {
+   "n": 4,
+   "name": "turn left (the Well)",
+   "kind": "fp",
+   "eye": [
+    0.95,
+    126.62,
+    7.5
+   ],
+   "yaw": -78,
+   "pitch": -8,
+   "hfov": 58,
+   "look": [
+    -18.42,
+    123.84,
+    3.38
+   ],
+   "desc": "from the same spot turned LEFT (west): over the carved balustrade into the Yamen Well: its far wall of stacked galleries and towers 28 m away with lit rooms, lanterns, neon blade signs (九龍, 牙科, 火鍋, 茶), bridges crossing below, mist filling the depth"
+  },
+  {
+   "n": 5,
+   "name": "THE MOCKUP",
+   "kind": "fp",
+   "eye": [
+    0.95,
+    126.62,
+    7.5
+   ],
+   "yaw": 12,
+   "pitch": -4,
+   "hfov": 58,
+   "look": [
+    5.1,
+    125.22,
+    -12.02
+   ],
+   "desc": "EXACTLY the mockup's camera and composition (image 1), without its HUD, hands, sword or claw"
+  },
+  {
+   "n": 6,
+   "name": "turn right (the stair-street)",
+   "kind": "fp",
+   "eye": [
+    0.95,
+    126.62,
+    7.5
+   ],
+   "yaw": 102,
+   "pitch": 0,
+   "hfov": 58,
+   "look": [
+    20.51,
+    126.62,
+    11.66
+   ],
+   "desc": "from the same spot turned RIGHT (east): across the square to the foot of the stair-street 20 m away: a small hawker stall and mahjong tables in the square, the tea house and hotpot shop at the foot of the stairs, the steps climbing away east between towers under big neon signs and lantern strings"
+  },
+  {
+   "n": 7,
+   "name": "turn around (south)",
+   "kind": "fp",
+   "eye": [
+    0.95,
+    126.62,
+    7.5
+   ],
+   "yaw": 192,
+   "pitch": 2,
+   "hfov": 58,
+   "look": [
+    -3.21,
+    127.32,
+    27.05
+   ],
+   "desc": "from the same spot turned AROUND (south): the south end of Lantern Square: lit shopfronts at the foot of the south towers, the balustrade turning along the Well's rim ledge on the right with people at it, lanterns, walkers with umbrellas, towers with balconies and neon above"
+  },
+  {
+   "n": 8,
+   "name": "look down",
+   "kind": "fp",
+   "eye": [
+    0.95,
+    126.62,
+    7.5
+   ],
+   "yaw": 12,
+   "pitch": -75,
+   "hfov": 58,
+   "look": [
+    2.03,
+    107.3,
+    2.44
+   ],
+   "desc": "from the same spot looking DOWN: the wet granite flagstones with ruled joints and puddles mirroring neon as long colour streaks, the base of the carved balustrade at the left edge"
+  },
+  {
+   "n": 9,
+   "name": "aerial from the gate, back",
+   "kind": "aerial",
+   "eye": [
+    8.0,
+    140.0,
+    -30.0
+   ],
+   "yaw": -169.4,
+   "pitch": -21.5,
+   "hfov": 60,
+   "look": [
+    1.0,
+    125.0,
+    7.5
+   ],
+   "desc": "high above and just behind the paifang, looking back south over its green-glazed roofs at the square and the spawn: the crowd and mahjong tables, the balustrade and the Well on the right, the south towers closing the square"
+  }
+ ]
+}

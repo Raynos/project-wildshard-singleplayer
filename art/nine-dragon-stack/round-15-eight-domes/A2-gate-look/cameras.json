@@ -1,0 +1,187 @@
+{
+ "dome": "A2-gate-look",
+ "type": "look",
+ "mockup": "art/nine-dragon-stack/round-6-baseline-hud/style-A-jiehua-neon.jpg",
+ "pair": "A1-spawn-stand",
+ "where": "where mockup A looks: 4.5 m in front of the paifang's centre bay on Lantern Square, the banyan 12 m to the right",
+ "anchor_ground": [
+  6.05,
+  125.0,
+  -20.0
+ ],
+ "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "kind": "fp",
+   "eye": [
+    6.05,
+    126.62,
+    -20.0
+   ],
+   "yaw": 0,
+   "pitch": 64,
+   "hfov": 62,
+   "look": [
+    6.05,
+    144.6,
+    -28.77
+   ],
+   "desc": "from in front of the gate looking steeply UP: the paifang's two roof tiers from below (painted azurite soffits, rows of dougong brackets, the 九龍 plaque, red lanterns), the banyan's limbs and leaves at the right, the skybridge and the monorail above, the sky screen"
+  },
+  {
+   "n": 2,
+   "name": "aerial from the south-west",
+   "kind": "aerial",
+   "eye": [
+    -6.0,
+    146.0,
+    -4.0
+   ],
+   "yaw": 37.9,
+   "pitch": -38.3,
+   "hfov": 60,
+   "look": [
+    8.0,
+    128.0,
+    -22.0
+   ],
+   "desc": "a high diagonal from over the Well's edge south-west of the gate, looking north-east down at the paifang, the banyan and the noodle stall, the square's crowd and tables, the street beyond"
+  },
+  {
+   "n": 3,
+   "name": "aerial from the south-east",
+   "kind": "aerial",
+   "eye": [
+    20.0,
+    148.0,
+    -2.0
+   ],
+   "yaw": -28.6,
+   "pitch": -38.6,
+   "hfov": 60,
+   "look": [
+    8.0,
+    128.0,
+    -24.0
+   ],
+   "desc": "a high diagonal from over the east of the square, looking north-west down at the paifang, the banyan's canopy close at the right, the noodle stall's awning, the balustrade and the Well beyond at the left"
+  },
+  {
+   "n": 4,
+   "name": "left (the Well)",
+   "kind": "fp",
+   "eye": [
+    6.05,
+    126.62,
+    -20.0
+   ],
+   "yaw": -90,
+   "pitch": 2,
+   "hfov": 62,
+   "look": [
+    -13.94,
+    127.32,
+    -20.0
+   ],
+   "desc": "from in front of the gate turned LEFT (west): the paifang's west post and drum stones close at the right, the carved balustrade at the square's edge, the Well beyond and its far wall of towers with the 九龍, 牙科, 火鍋 and 茶 neon signs"
+  },
+  {
+   "n": 5,
+   "name": "facing further on (north)",
+   "kind": "fp",
+   "eye": [
+    6.05,
+    126.62,
+    -20.0
+   ],
+   "yaw": 0,
+   "pitch": 8,
+   "hfov": 62,
+   "look": [
+    6.05,
+    129.4,
+    -39.81
+   ],
+   "desc": "from in front of the gate facing FURTHER ON (north), the way the mockup looks: through the paifang's centre bay close overhead (the 九龍 plaque, red lanterns, cinnabar posts on carved plinths), the street continuing north beyond it between lit shopfronts, people, the skybridge crossing, the monorail with its red train, the LED sky screen"
+  },
+  {
+   "n": 6,
+   "name": "right (the banyan)",
+   "kind": "fp",
+   "eye": [
+    6.05,
+    126.62,
+    -20.0
+   ],
+   "yaw": 90,
+   "pitch": 2,
+   "hfov": 62,
+   "look": [
+    26.04,
+    127.32,
+    -20.0
+   ],
+   "desc": "from in front of the gate turned RIGHT (east): the huge banyan 12 m away (gnarled trunk of fused roots, curtains of aerial roots, dense dark canopy, red ribbons, a carved stone planter, a small red earth-god shrine), the noodle stall with its 麵 banner and steaming pots, mahjong players, the 旅館 and 藥房 signs on the east towers"
+  },
+  {
+   "n": 7,
+   "name": "back to the mockup camera",
+   "kind": "fp",
+   "eye": [
+    6.05,
+    126.62,
+    -20.0
+   ],
+   "yaw": 190,
+   "pitch": 0,
+   "hfov": 62,
+   "look": [
+    2.58,
+    126.62,
+    -0.3
+   ],
+   "desc": "from in front of the gate facing BACK (south) toward where the mockup's camera stands 28 m away: the long wet square with neon streaks, the carved balustrade along the Well on the right, mahjong tables, a hawker stall, walkers with umbrellas, the south towers with lit shops closing the square"
+  },
+  {
+   "n": 8,
+   "name": "look down",
+   "kind": "fp",
+   "eye": [
+    6.05,
+    126.62,
+    -20.0
+   ],
+   "yaw": 0,
+   "pitch": -60,
+   "hfov": 62,
+   "look": [
+    6.05,
+    109.3,
+    -30.0
+   ],
+   "desc": "from in front of the gate looking DOWN: the wet flagstones before the gate, the carved stone plinths and drum stones at the post feet, neon and lantern reflections"
+  },
+  {
+   "n": 9,
+   "name": "aerial from the north, back",
+   "kind": "aerial",
+   "eye": [
+    6.0,
+    145.0,
+    -48.0
+   ],
+   "yaw": 180.0,
+   "pitch": -32.0,
+   "hfov": 60,
+   "look": [
+    6.0,
+    125.0,
+    -16.0
+   ],
+   "desc": "hovering over the street north of the gate, looking back south over the paifang's roofs at Lantern Square: the banyan at the left, the balustrade and the Well at the right, the square with its crowd and tables, the spawn at the far end"
+  }
+ ]
+}

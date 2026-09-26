@@ -1,0 +1,187 @@
+{
+ "dome": "C1-stair-stand",
+ "type": "stand",
+ "mockup": "art/nine-dragon-stack/round-6-baseline-hud/comp-C-stair-street.jpg",
+ "pair": "C2-stair-look",
+ "where": "mockup C's own camera: standing on Lantern Square at the foot of the stair-street, looking east up the stairs",
+ "anchor_ground": [
+  18.0,
+  125.0,
+  6.0
+ ],
+ "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "kind": "fp",
+   "eye": [
+    18.0,
+    126.62,
+    6.0
+   ],
+   "yaw": 90,
+   "pitch": 64,
+   "hfov": 62,
+   "look": [
+    26.77,
+    144.6,
+    6.0
+   ],
+   "desc": "from the mockup camera's spot looking steeply UP: the towers on both sides of the stair-street converging, the big neon signs on their iron brackets seen from below, lantern strings, the skybridge and the monorail viaduct crossing overhead, the sky screen at the top"
+  },
+  {
+   "n": 2,
+   "name": "aerial over the square",
+   "kind": "aerial",
+   "eye": [
+    6.0,
+    150.0,
+    6.0
+   ],
+   "yaw": 90.0,
+   "pitch": -40.2,
+   "hfov": 60,
+   "look": [
+    32.0,
+    128.0,
+    6.0
+   ],
+   "desc": "a high crane shot above Lantern Square behind the spot, looking east down into the foot of the stair-street: the square's wet flagstones in the foreground, the tea house and hotpot shop at the foot, the flights climbing away between the towers, the paifang on its landing, the skybridge and monorail over the street"
+  },
+  {
+   "n": 3,
+   "name": "aerial over the stairs, back",
+   "kind": "aerial",
+   "eye": [
+    48.0,
+    152.0,
+    6.0
+   ],
+   "yaw": -90.0,
+   "pitch": -42.0,
+   "hfov": 60,
+   "look": [
+    18.0,
+    125.0,
+    6.0
+   ],
+   "desc": "a high crane shot over the middle of the stair-street looking back west-down at its foot and at Lantern Square below: the flights dropping to the square, people on the steps, the neon signs and lantern strings from above, the square's crowd and beyond it the Well's far wall"
+  },
+  {
+   "n": 4,
+   "name": "turn left (north)",
+   "kind": "fp",
+   "eye": [
+    18.0,
+    126.62,
+    6.0
+   ],
+   "yaw": 0,
+   "pitch": -2,
+   "hfov": 62,
+   "look": [
+    18.0,
+    125.92,
+    -13.99
+   ],
+   "desc": "from the same spot turned 90° LEFT (north): along the east side of Lantern Square — the noodle stall with its red-and-white awning and 麵 banner, the banyan tree beyond it, the cinnabar paifang far up the square, shopfronts of the east towers, mahjong tables, people with umbrellas"
+  },
+  {
+   "n": 5,
+   "name": "THE MOCKUP",
+   "kind": "fp",
+   "eye": [
+    18.0,
+    126.62,
+    6.0
+   ],
+   "yaw": 90,
+   "pitch": 10,
+   "hfov": 62,
+   "look": [
+    37.7,
+    130.09,
+    6.0
+   ],
+   "desc": "EXACTLY the mockup's camera and composition (image 1), without its HUD, hands, sword or claw"
+  },
+  {
+   "n": 6,
+   "name": "turn right (south)",
+   "kind": "fp",
+   "eye": [
+    18.0,
+    126.62,
+    6.0
+   ],
+   "yaw": 180,
+   "pitch": -2,
+   "hfov": 62,
+   "look": [
+    18.0,
+    125.92,
+    25.99
+   ],
+   "desc": "from the same spot turned 90° RIGHT (south): the south end of Lantern Square — lit shopfronts at the foot of the south towers, a tea house with lattice and lanterns, stone terraces with potted plants, neon signs, people under umbrellas, wet flagstones"
+  },
+  {
+   "n": 7,
+   "name": "turn around (west)",
+   "kind": "fp",
+   "eye": [
+    18.0,
+    126.62,
+    6.0
+   ],
+   "yaw": 270,
+   "pitch": 0,
+   "hfov": 62,
+   "look": [
+    -2.0,
+    126.62,
+    6.0
+   ],
+   "desc": "from the same spot turned AROUND (west, away from the stairs): across Lantern Square — the wet flagstones with neon reflections, mahjong players, a small hawker stall, walkers with umbrellas, and the carved stone balustrade on the Yamen Well's edge with the Well's far wall of stacked galleries and towers beyond"
+  },
+  {
+   "n": 8,
+   "name": "look down",
+   "kind": "fp",
+   "eye": [
+    18.0,
+    126.62,
+    6.0
+   ],
+   "yaw": 90,
+   "pitch": -58,
+   "hfov": 62,
+   "look": [
+    28.6,
+    109.66,
+    6.0
+   ],
+   "desc": "from the same spot looking DOWN at the foot of the stairs: the first worn wet granite steps, puddles mirroring magenta and cyan neon as long streaks, the square's flagstones, the feet of people starting to climb"
+  },
+  {
+   "n": 9,
+   "name": "top-down over the foot",
+   "kind": "aerial",
+   "eye": [
+    20.0,
+    178.0,
+    6.0
+   ],
+   "yaw": 90.0,
+   "pitch": -83.5,
+   "hfov": 60,
+   "look": [
+    26.0,
+    125.0,
+    6.0
+   ],
+   "desc": "high above the foot of the stair-street looking almost straight DOWN: the square's corner and the first flight between the rooftops and terraces, lantern strings and sign brackets, the skybridge and monorail seen from above, people as small figures with umbrellas"
+  }
+ ]
+}

@@ -1,0 +1,54 @@
+{
+ "dome": "A1-spawn-stand",
+ "where": "mockup A's spawn: Lantern Square at the balustrade between two posts (1.45, +125, 5.05), looking north at the paifang + banyan",
+ "relaid_from": "art/nine-dragon-stack/round-8-look-loop-1",
+ "note": "the clean room's cameras: src/dev/nine-dragon/shots.ts (loop-1…9); aerials are 16:9 landscape, letterboxed in the sheet",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-5.jpg (shots.ts 'loop-5')"
+  },
+  {
+   "n": 2,
+   "name": "aerial over the square",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-7.jpg (shots.ts 'loop-7')"
+  },
+  {
+   "n": 3,
+   "name": "aerial over the shaft",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-8.jpg (shots.ts 'loop-8')"
+  },
+  {
+   "n": 4,
+   "name": "turn left (the Well)",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-2.jpg (shots.ts 'loop-2')"
+  },
+  {
+   "n": 5,
+   "name": "front (≈ the mockup)",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-1.jpg (shots.ts 'loop-1')"
+  },
+  {
+   "n": 6,
+   "name": "turn right (NE)",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-3.jpg (shots.ts 'loop-3')"
+  },
+  {
+   "n": 7,
+   "name": "turn around (E / stair-street)",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-4.jpg (shots.ts 'loop-4')"
+  },
+  {
+   "n": 8,
+   "name": "look down",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-6.jpg (shots.ts 'loop-6')"
+  },
+  {
+   "n": 9,
+   "name": "aerial across the Well",
+   "source": "art/nine-dragon-stack/round-8-look-loop-1/target-9.jpg (shots.ts 'loop-9')"
+  }
+ ]
+}

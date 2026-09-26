@@ -1,0 +1,187 @@
+{
+ "dome": "D1-well-down-stand",
+ "type": "stand",
+ "mockup": "art/nine-dragon-stack/round-6-baseline-hud/comp-D-well-down.jpg",
+ "pair": "D2-well-down-look",
+ "where": "mockup D's own camera: leaning over the carved balustrade on the Well's south rim, looking steeply down the shaft",
+ "anchor_ground": [
+  -10.5,
+  125.75,
+  10.55
+ ],
+ "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.37,
+    10.55
+   ],
+   "yaw": -3,
+   "pitch": 66,
+   "hfov": 64,
+   "look": [
+    -10.93,
+    145.64,
+    2.43
+   ],
+   "desc": "from the mockup camera's spot looking steeply UP: the gallery walls and towers rising above the rim, bridges crossing high up, the paifang bridge from below, signs, lanterns, the sky screen with blue-green mountains"
+  },
+  {
+   "n": 2,
+   "name": "aerial above the rim",
+   "kind": "aerial",
+   "eye": [
+    -14.0,
+    150.0,
+    13.0
+   ],
+   "yaw": 5.0,
+   "pitch": -65.2,
+   "hfov": 60,
+   "look": [
+    -12.0,
+    100.0,
+    -10.0
+   ],
+   "desc": "a crane shot high above the rim looking steeply down the shaft: the rim balustrade at the bottom edge, the galleries of both walls dropping, the paifang bridge, lower bridges, the gondola, nets, mist and the temple far below"
+  },
+  {
+   "n": 3,
+   "name": "aerial in the shaft, back up",
+   "kind": "aerial",
+   "eye": [
+    -20.0,
+    108.0,
+    -22.0
+   ],
+   "yaw": 163.9,
+   "pitch": 27.7,
+   "hfov": 60,
+   "look": [
+    -10.5,
+    126.0,
+    11.0
+   ],
+   "desc": "hovering inside the shaft 18 m below the rim and 33 m north, looking back UP at the rim where the camera leans over the balustrade: the south wall's galleries below the rim, the balustrade with people, the towers above"
+  },
+  {
+   "n": 4,
+   "name": "turn left (down the west wall)",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.37,
+    10.55
+   ],
+   "yaw": -93,
+   "pitch": -45,
+   "hfov": 64,
+   "look": [
+    -24.62,
+    113.23,
+    11.29
+   ],
+   "desc": "from the same spot turned LEFT (west) and looking down: the west wall's galleries dropping away below the rim — verandas with people, lanterns, plants, birdcages, laundry, the magenta 麵 and cyan 牙科 signs"
+  },
+  {
+   "n": 5,
+   "name": "THE MOCKUP",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.37,
+    10.55
+   ],
+   "yaw": -3,
+   "pitch": -64,
+   "hfov": 64,
+   "look": [
+    -10.96,
+    109.39,
+    1.79
+   ],
+   "desc": "EXACTLY the mockup's camera and composition (image 1), without its HUD, hands, sword, claw or grapple line"
+  },
+  {
+   "n": 6,
+   "name": "turn right (down the east wall)",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.37,
+    10.55
+   ],
+   "yaw": 87,
+   "pitch": -45,
+   "hfov": 64,
+   "look": [
+    3.62,
+    113.23,
+    9.81
+   ],
+   "desc": "from the same spot turned RIGHT (east) and looking down: the east wall's galleries dropping away — the red 火鍋, amber 茶 and magenta 旅館 signs, pipes, lanterns, people, the gondola station"
+  },
+  {
+   "n": 7,
+   "name": "turn around (south)",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.37,
+    10.55
+   ],
+   "yaw": 177,
+   "pitch": 4,
+   "hfov": 64,
+   "look": [
+    -9.46,
+    128.77,
+    30.47
+   ],
+   "desc": "from the same spot turned AROUND (south, away from the Well): the rim ledge's shopfronts under the towers, lit shops, lanterns, people with umbrellas, balconies and neon above"
+  },
+  {
+   "n": 8,
+   "name": "look straight down",
+   "kind": "fp",
+   "eye": [
+    -10.5,
+    127.37,
+    10.55
+   ],
+   "yaw": -3,
+   "pitch": -88,
+   "hfov": 64,
+   "look": [
+    -10.54,
+    107.38,
+    9.85
+   ],
+   "desc": "from the same spot looking STRAIGHT DOWN: the carved balustrade's wet top and a stone lion finial at the bottom edge, the south wall's galleries directly beneath, dropping floor after floor into the mist"
+  },
+  {
+   "n": 9,
+   "name": "aerial over the far end",
+   "kind": "aerial",
+   "eye": [
+    -4.0,
+    136.0,
+    -38.0
+   ],
+   "yaw": -167.5,
+   "pitch": -47.3,
+   "hfov": 60,
+   "look": [
+    -12.0,
+    96.0,
+    -2.0
+   ],
+   "desc": "a high diagonal from the north end of the shaft looking down-south at the middle of the Well: the paifang bridge and its crowd, the lower bridges, the gondola, the galleries of both walls, the rim and its balustrade at the top"
+  }
+ ]
+}

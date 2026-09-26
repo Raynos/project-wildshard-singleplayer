@@ -1,0 +1,54 @@
+{
+ "dome": "A2-gate-look",
+ "where": "where mockup A looks: (13, +125, −13), 11 m in front of the paifang and the banyan",
+ "relaid_from": "art/nine-dragon-stack/round-10-dome-b-1",
+ "note": "the clean room's cameras: src/dev/nine-dragon/shots.ts (domeb-1…9); aerials are 16:9 landscape, letterboxed in the sheet",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-6.jpg (shots.ts 'domeb-6')"
+  },
+  {
+   "n": 2,
+   "name": "aerial SW",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-7.jpg (shots.ts 'domeb-7')"
+  },
+  {
+   "n": 3,
+   "name": "aerial W, over the Well",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-8.jpg (shots.ts 'domeb-8')"
+  },
+  {
+   "n": 4,
+   "name": "left (the gate line)",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-3.jpg (shots.ts 'domeb-3')"
+  },
+  {
+   "n": 5,
+   "name": "facing on: the paifang",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-1.jpg (shots.ts 'domeb-1')"
+  },
+  {
+   "n": 6,
+   "name": "right (the banyan)",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-2.jpg (shots.ts 'domeb-2')"
+  },
+  {
+   "n": 7,
+   "name": "back to the spawn",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-5.jpg (shots.ts 'domeb-5')"
+  },
+  {
+   "n": 8,
+   "name": "right-east (the stall; no down view)",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-4.jpg (shots.ts 'domeb-4')"
+  },
+  {
+   "n": 9,
+   "name": "aerial SE",
+   "source": "art/nine-dragon-stack/round-10-dome-b-1/target-9.jpg (shots.ts 'domeb-9')"
+  }
+ ]
+}

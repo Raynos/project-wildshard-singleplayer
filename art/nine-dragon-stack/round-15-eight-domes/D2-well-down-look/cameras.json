@@ -1,0 +1,187 @@
+{
+ "dome": "D2-well-down-look",
+ "type": "look",
+ "mockup": "art/nine-dragon-stack/round-6-baseline-hud/comp-D-well-down.jpg",
+ "pair": "D1-well-down-stand",
+ "where": "where mockup D looks: ~30 m down the shaft, on a lower timber bridge with red railings crossing the canyon",
+ "anchor_ground": [
+  -14.0,
+  96.0,
+  -6.0
+ ],
+ "convention": "layout.ts coordinates: x east, z SOUTH, y altitude (Lantern Square Y0 = +125); yaw 0 = north (-z), +90 = east (+x); pitch + up; eye = camera position (ground + 1.62 for standing views); hfov = horizontal FOV of a 2:3 PORTRAIT frame (the grid tile and the upscaled target, 1024x1536); look = a point on the view axis (the aim point for aerials)",
+ "grid": "row 1: 1 · 2 · 3 / row 2: 4 · 5 · 6 / row 3: 7 · 8 · 9",
+ "views": [
+  {
+   "n": 1,
+   "name": "look up",
+   "kind": "fp",
+   "eye": [
+    -14.0,
+    97.62,
+    -6.0
+   ],
+   "yaw": -3,
+   "pitch": 70,
+   "hfov": 62,
+   "look": [
+    -14.36,
+    116.41,
+    -12.83
+   ],
+   "desc": "from the lower bridge looking steeply UP: the canyon walls rising, the crowded paifang bridge and other bridges and nets overhead seen from below, the rim far above, the sky screen"
+  },
+  {
+   "n": 2,
+   "name": "aerial from the south-west",
+   "kind": "aerial",
+   "eye": [
+    -23.0,
+    114.0,
+    8.0
+   ],
+   "yaw": 32.7,
+   "pitch": -47.2,
+   "hfov": 60,
+   "look": [
+    -14.0,
+    96.0,
+    -6.0
+   ],
+   "desc": "a diagonal from the south-west corner of the shaft 18 m higher, looking down at the lower bridge and its people, the galleries of the east wall behind it, the gondola, nets, mist"
+  },
+  {
+   "n": 3,
+   "name": "aerial from the north-east",
+   "kind": "aerial",
+   "eye": [
+    -4.0,
+    112.0,
+    -30.0
+   ],
+   "yaw": -157.4,
+   "pitch": -31.6,
+   "hfov": 60,
+   "look": [
+    -14.0,
+    96.0,
+    -6.0
+   ],
+   "desc": "a diagonal from further north and higher, looking back south-down at the lower bridge: the bridge in the middle, the galleries of both walls, the south wall rising to the rim at the top"
+  },
+  {
+   "n": 4,
+   "name": "left (west wall)",
+   "kind": "fp",
+   "eye": [
+    -14.0,
+    97.62,
+    -6.0
+   ],
+   "yaw": -93,
+   "pitch": 0,
+   "hfov": 62,
+   "look": [
+    -33.97,
+    97.62,
+    -4.95
+   ],
+   "desc": "from the lower bridge turned LEFT (west): the west wall's galleries at this level close up — timber verandas, people, lanterns, plants, birdcages, laundry, neon signs"
+  },
+  {
+   "n": 5,
+   "name": "facing further on (north)",
+   "kind": "fp",
+   "eye": [
+    -14.0,
+    97.62,
+    -6.0
+   ],
+   "yaw": -3,
+   "pitch": -18,
+   "hfov": 62,
+   "look": [
+    -15.0,
+    91.44,
+    -25.0
+   ],
+   "desc": "from the lower bridge facing FURTHER ON (north), the way the mockup looks: the canyon at this level continuing north, the red gondola on its cable crossing ahead, more bridges and nets receding, the stone bridge with the cinnabar paifang above ahead, mist banks below"
+  },
+  {
+   "n": 6,
+   "name": "right (east wall)",
+   "kind": "fp",
+   "eye": [
+    -14.0,
+    97.62,
+    -6.0
+   ],
+   "yaw": 87,
+   "pitch": 0,
+   "hfov": 62,
+   "look": [
+    5.97,
+    97.62,
+    -7.05
+   ],
+   "desc": "from the lower bridge turned RIGHT (east): the east wall's galleries close — the red 火鍋 and amber 茶 signs, pipes, lanterns, people at rails, the gondola station"
+  },
+  {
+   "n": 7,
+   "name": "back, up to the mockup camera",
+   "kind": "fp",
+   "eye": [
+    -14.0,
+    97.62,
+    -6.0
+   ],
+   "yaw": 177,
+   "pitch": 42,
+   "hfov": 62,
+   "look": [
+    -13.22,
+    111.0,
+    8.84
+   ],
+   "desc": "from the lower bridge facing BACK (south) and looking UP toward where the mockup's camera leans over the balustrade 30 m above: the south wall's galleries rising to the rim, the carved balustrade with a stone lion at the top, people looking down, towers above"
+  },
+  {
+   "n": 8,
+   "name": "look down",
+   "kind": "fp",
+   "eye": [
+    -14.0,
+    97.62,
+    -6.0
+   ],
+   "yaw": -3,
+   "pitch": -78,
+   "hfov": 62,
+   "look": [
+    -14.22,
+    78.06,
+    -10.15
+   ],
+   "desc": "from the lower bridge looking straight DOWN: its timber deck and red railing at the edge, the shaft dropping on, nets and lower bridges, deep mist banks, and far below the small temple with green-glazed roofs among dark trees"
+  },
+  {
+   "n": 9,
+   "name": "aerial from below",
+   "kind": "aerial",
+   "eye": [
+    -14.0,
+    80.0,
+    -24.0
+   ],
+   "yaw": 180.0,
+   "pitch": 41.6,
+   "hfov": 60,
+   "look": [
+    -14.0,
+    96.0,
+    -6.0
+   ],
+   "desc": "hovering in the mist 16 m below and 18 m north of the bridge looking back up at it: the bridge's underside and its people against the canyon walls, the galleries and bridges stacked above up to the rim"
+  }
+ ]
+}
