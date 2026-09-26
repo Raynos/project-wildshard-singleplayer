@@ -1,6 +1,6 @@
 /* ─── in-game MENU (src/ui/Menu.ts): MAP · INVENTORY · ACHIEVEMENTS · SETTINGS ─── prefix ws-gmenu- ───
-   One full-height glass sheet over the blurred, still-running world (art/menu/round-2-tabs/menu-tab-*.png). Header (MENU / shard,
-   CLOSE), a four-tab bar with the cyan underline, the active tab's panel, a footer hint. Lives on <body>
+   One full-height glass sheet over the blurred, still-running world (art/menu/round-2-tabs/menu-tab-*.png). Header (the bar, E178:
+   [RESUME] PAUSED / shard [EXIT TO MAIN], [CLOSE] BAG), a four-tab bar with the cyan underline, the active tab's panel, a footer hint. Lives on <body>
    above the HUD, the minimap (z 6) and the phone's touch layer (z 5). */
 .ws-gmenu { position: fixed; inset: 0; z-index: 70; display: flex; align-items: stretch; justify-content: center; padding: calc(var(--ws-top) + 4px + var(--ws-pill, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(6, 10, 18, 0.55); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
 .ws-gmenu.show { opacity: 1; pointer-events: auto; }
@@ -25,6 +25,31 @@
 .ws-gmenu .ws-gmenu-dev::after { content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 8px; vertical-align: 1px; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
 .ws-gmenu .ws-gmenu-dev.off::after { background: transparent; border: 1px solid var(--ws-cyan-dim); box-shadow: none; }
 .ws-gmenu .ws-gmenu-close:active { background: rgba(143, 227, 255, 0.22); }
+/* the header BAR (E178, the in-game menu's own; main menu ▸ Settings keeps the plain head above): [RESUME] PAUSED ·DEV
+   [EXIT TO MAIN] in the PAUSE menu, [CLOSE] BAG ·DEV in the BAG — the actions pinned at the top, never scrolled away (the
+   panel scrolls under it). Three columns: the two sides share what the title leaves, so the title sits on the sheet's
+   centre in both menus; the left button goes back to play in both, EXIT (pause only) is alone on the right. Phone first:
+   a 20 px title and 13 px buttons fit 390 px, EXIT wraps to EXIT / TO MAIN; every button is ≥ 44 px tall. */
+.ws-gmenu .ws-gmenu-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; padding: 10px; border-bottom: 1px solid rgba(143, 227, 255, 0.18); }
+.ws-gmenu .ws-gmenu-bar .ws-gmenu-close, .ws-gmenu .ws-gmenu-exit { min-height: 44px; padding: 6px 12px; font-size: 13px; line-height: 1.1; letter-spacing: 0.16em; -webkit-tap-highlight-color: transparent; }
+.ws-gmenu .ws-gmenu-bar .ws-gmenu-close { justify-self: start; background: rgba(143, 227, 255, 0.16); color: #fff; box-shadow: 0 0 16px rgba(143, 227, 255, 0.16); }
+.ws-gmenu .ws-gmenu-exit { justify-self: end; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.04); border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); font-family: var(--ws-display); font-weight: 700; text-align: center; text-transform: uppercase; cursor: pointer; }
+.ws-gmenu .ws-gmenu-exit[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-bar + .ws-gmenu-tabs { border-top: 0; } /* the bar's hairline is the tab bar's top */
+.ws-gmenu .ws-gmenu-exit:active { background: rgba(143, 227, 255, 0.22); }
+.ws-gmenu .ws-gmenu-nowrap { white-space: nowrap; } /* EXIT / TO MAIN, never EXIT TO / MAIN */
+.ws-gmenu .ws-gmenu-mid { min-width: 0; text-align: center; }
+.ws-gmenu .ws-gmenu-titlerow { display: flex; align-items: center; justify-content: center; }
+.ws-gmenu .ws-gmenu-bar .ws-gmenu-title { font-size: 20px; letter-spacing: 0.18em; }
+.ws-gmenu .ws-gmenu-bar .ws-gmenu-sub { margin-top: 3px; font-size: 8px; letter-spacing: 0.2em; white-space: nowrap; }
+.ws-gmenu .ws-gmenu-bar .ws-gmenu-dev { margin: -17px -6px -17px 2px; padding: 17px 6px; font-size: 9px; letter-spacing: 0.18em; } /* a 44 px tap on a one-line row */
+.ws-gmenu .ws-gmenu-bar .ws-gmenu-dev::after { margin-left: 6px; }
+@media (min-width: 600px) {
+  .ws-gmenu .ws-gmenu-bar { gap: 14px; padding: 12px 16px; }
+  .ws-gmenu .ws-gmenu-bar .ws-gmenu-close, .ws-gmenu .ws-gmenu-exit { padding: 8px 18px; font-size: 14px; letter-spacing: 0.2em; }
+  .ws-gmenu .ws-gmenu-bar .ws-gmenu-title { font-size: 26px; letter-spacing: 0.24em; }
+  .ws-gmenu .ws-gmenu-bar .ws-gmenu-sub { margin-top: 5px; font-size: 9px; letter-spacing: 0.26em; }
+}
 
 /* tabs */
 .ws-gmenu .ws-gmenu-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-top: 1px solid rgba(143, 227, 255, 0.18); border-bottom: 1px solid rgba(143, 227, 255, 0.18); }
@@ -122,7 +147,7 @@
 .ws-gmenu .ws-gmenu-done .ws-gmenu-aname { color: #fff4dc; }
 .ws-gmenu .ws-gmenu-done .ws-gmenu-chip { flex: none; }
 
-/* SETTINGS: the two big buttons, then switch rows, segmented pickers, the volume slider */
+/* SETTINGS: the big button (main menu ▸ Settings' APPLY & RELOAD; the pause menu's two moved to the header bar, E178), then switch rows, segmented pickers, the volume slider */
 .ws-gmenu .ws-gmenu-btn { flex: none; display: block; width: 100%; margin-bottom: 10px; padding: 14px 22px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); color: #fff; cursor: pointer; font-family: var(--ws-display); font-weight: 700; font-size: 16px; letter-spacing: 0.26em; text-transform: uppercase; }
 .ws-gmenu .ws-gmenu-btn.resume { border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.16); box-shadow: 0 0 18px rgba(143, 227, 255, 0.15); }
 .ws-gmenu .ws-gmenu-btn.exit { color: var(--ws-cyan); }

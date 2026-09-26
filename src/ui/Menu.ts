@@ -2,14 +2,14 @@
  * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu/round-2-tabs/menu-tab-*.png), plus FEEDBACK once
  * a reviewer has unlocked the review inbox in Settings → REVIEW (src/ui/review.ts; the tab's composer is the lazy Feedback.ts).
  * Replaces the old pause box and the stand-alone full-map screen: tapping the minimap (or M) opens it on
- * the Map tab, the pause button / Esc opens it on Settings (Resume, Exit to main menu and the switches live
- * there). Styled by src/ui/styles/gmenu.css (prefix ws-gmenu-). The world keeps running underneath, as the
+ * the Map tab, the pause button / Esc opens it on Settings (the switches live there; RESUME and EXIT TO MAIN are the
+ * header bar's two buttons since E178). Styled by src/ui/styles/gmenu.css (prefix ws-gmenu-). The world keeps running underneath, as the
  * full map always did; the overlay swallows touch so the pads don't move you.
  *
  *   const menu = new GameMenu({ fullMap, progress, inventory, kit, volume });
  *   hud.menu = menu;                          // HUD.setPaused → menu.open('settings'); menu.onClose → hud.onResume
  *   menu.open('map') / menu.close() / menu.isOpen / menu.tab
- *   menu.onExit = () => hud.exitToMenu();     // the Settings tab's EXIT TO MAIN MENU
+ *   menu.onExit = () => hud.exitToMenu();     // the PAUSE header's EXIT TO MAIN (E178)
  *   menu.refresh()                            // re-render the data tabs (kills, harvests, unlocks)
  *   menu.onFeedbackTab = (panel) => …          // the FEEDBACK tab was selected: mount the composer into `panel`
  *
@@ -77,6 +77,9 @@ export class GameMenu {
   private sheet: HTMLElement;
   private tabBar: HTMLElement;
   private title: HTMLElement;
+  /** the header bar's two actions (E178): RESUME (PAUSE) / CLOSE (BAG) on the left, EXIT TO MAIN on the right (PAUSE only) */
+  private closeBtn: HTMLElement;
+  private exitBtn: HTMLElement;
   private panels: Record<MenuTab, HTMLElement>;
   private hint: HTMLElement;
   private mapMeta: HTMLElement;
@@ -98,11 +101,18 @@ export class GameMenu {
     this.root = el('ws-gmenu');
     this.root.inert = true; // closed until open()
     this.sheet = el('ws-gmenu-sheet ws-glass');
+    // E178 (the user: "[resume] PAUSED {dev} [exit to main] … keeps the two main actions at the top static so you dont
+    // have to scroll back to top"): the header bar is the menu's one row of actions, pinned above the tabs and the panel.
+    // The left button goes back to play in both menus (RESUME / CLOSE); EXIT TO MAIN, the pause menu's only, sits on the
+    // right, so a thumb that dismisses the BAG at the top-left never lands on the exit in the PAUSE menu
     this.sheet.innerHTML = `
-      <div class="ws-gmenu-head">
-        <div><div class="ws-gmenu-title">Menu</div><div class="ws-gmenu-sub">${esc(def.displayName)}</div></div>
-        <button class="ws-gmenu-dev" type="button">Dev</button>
-        <button class="ws-gmenu-close" type="button">Close</button>
+      <div class="ws-gmenu-head ws-gmenu-bar">
+        <button class="ws-gmenu-close" type="button">Resume</button>
+        <div class="ws-gmenu-mid">
+          <div class="ws-gmenu-titlerow"><div class="ws-gmenu-title">Menu</div><button class="ws-gmenu-dev" type="button">Dev</button></div>
+          <div class="ws-gmenu-sub">${esc(def.displayName)}</div>
+        </div>
+        <button class="ws-gmenu-exit" type="button" aria-label="Exit to main menu">Exit <span class="ws-gmenu-nowrap">to main</span></button>
       </div>`;
     bindDevToggle(this.sheet.querySelector<HTMLElement>('.ws-gmenu-dev') ?? el('ws-gmenu-dev')); // E140: developer mode from the header
     this.tabBar = el('ws-gmenu-tabs');
@@ -141,10 +151,12 @@ export class GameMenu {
     this.buildSettings();
 
     // close: the CLOSE button, the backdrop (desktop habit), Esc
-    const closeBtn = this.sheet.querySelector('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
+    const closeBtn = this.sheet.querySelector<HTMLElement>('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
+    const exitBtn = this.sheet.querySelector<HTMLElement>('.ws-gmenu-exit'); if (!exitBtn) throw new Error('GameMenu: no .ws-gmenu-exit');
     const title = this.sheet.querySelector<HTMLElement>('.ws-gmenu-title'); if (!title) throw new Error('GameMenu: no .ws-gmenu-title');
-    this.title = title;
+    this.title = title; this.closeBtn = closeBtn; this.exitBtn = exitBtn;
     closeBtn.addEventListener('click', () => { this.close(); });
+    exitBtn.addEventListener('click', () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
     this.root.addEventListener('pointerdown', (e) => { if (e.target === this.root) this.close(); });
     // the keyboard's menu keys, all here (E130): M = the Map, I = the Inventory, Esc = pause (Settings); the same key again
     // closes, another one switches tab. One listener, so a key is handled once — main.ts's own M listener re-opened the
@@ -186,8 +198,12 @@ export class GameMenu {
     this.tabBar.classList.toggle('four', shown === 4); // BAG with Pine Hollow's JOURNAL: ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
     this.title.textContent = TITLE[group];
+    // E178: the PAUSE menu leaves to the title from its header; the BAG only closes
+    const pause = group === 'pause';
+    this.closeBtn.textContent = pause ? 'Resume' : 'Close';
+    this.exitBtn.hidden = !pause;
     // E176: the build pill shows over the PAUSE menu (not the BAG), so the root says which one is up
-    this.root.classList.toggle('pause', group === 'pause');
+    this.root.classList.toggle('pause', pause);
     window.dispatchEvent(new Event('ws-menu'));
   }
 
@@ -368,15 +384,12 @@ export class GameMenu {
    *  painted horizon, E83 the photo sky, E85 the colour grade, E87 the lighting, E88 the post) */
   private buildSettings(): void {
     const panel = this.panels.settings;
-    const resume = el('ws-gmenu-btn resume', 'Resume', 'button') as HTMLButtonElement; resume.type = 'button';
-    resume.addEventListener('click', () => this.close());
-    const exit = el('ws-gmenu-btn exit', 'Exit to main menu', 'button') as HTMLButtonElement; exit.type = 'button';
-    exit.addEventListener('click', () => { this.close(true); this.onExit?.(); });
+    // E178: no full-width RESUME / EXIT TO MAIN MENU on top of the panel any more — they are the header bar's two buttons
     const p = el('ws-gmenu-card', '<div class="ws-gmenu-cardtitle">Settings</div>');
     const dbg = foldCard('debug', 'Debug', 'for playtests — goes away when the game ships'); // E177: folded until it is asked for
     // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
     dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; });
-    panel.append(resume, exit, p, dbg);
+    panel.append(p, dbg);
 
     const sw = (key: SettingKey, label: string) => {
       const b = el('ws-gmenu-switch', `<span class="ws-gmenu-swlabel">${label}</span><i class="ws-gmenu-pill"></i>`, 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
