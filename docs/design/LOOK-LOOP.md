@@ -121,6 +121,24 @@ the same scene**:
 When dome B's area reads right from all nine of its sides, the hero view (dome A's edge, looking at dome B's centre) is
 right too, because everything in it was polished close up and from every direction.
 
+**Two domes per hero mockup** (Jake, 2026-09-26): every mockup gets its own stand dome and look dome. Nine Dragon Stack's
+four mockups make eight domes.
+
+### Targets for a world you haven't built yet: imagine them from the mockup (Jake, 2026-09-26)
+
+Editing an engine capture into a target only works when the engine already has the world. Where it doesn't (a bare
+shaft, an empty stair-street), the model "enhances what we have" and the target inherits our gaps. For those domes the
+targets must come **from the mockup**:
+
+1. Write the 9 camera specs first (`cameras.json`: world position, yaw, pitch, lens; stand dome = the mockup's camera
+   and turning from it; look dome = from the focal point, including looking back).
+2. Draw a plain floor plan with the 9 cameras as numbered dots and view wedges. It gives spatial grounding, but not our look.
+3. **One generation per dome makes a single 3×3 grid of all 9 views**, from [the mockup, the floor plan]. Painting them
+   together keeps the views consistent with each other and with the mockup: the same buildings, signs and bridges. Make
+   2 candidates and keep the more consistent one.
+4. Upscale each tile on its own with the mockup as the detail reference.
+5. Build the world to the targets. Engine captures from the same camera specs then measure the gap each round.
+
 ## Step 2: capture
 
 `scripts/pine-hollow-views.mjs` is the reference implementation (`nalati-camp9.mjs` and `nalati-chunk-views.mjs` are
