@@ -27,9 +27,10 @@ try {
   const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
   await ctx.addInitScript((hide) => {
     for (const C of [window.WebGL2RenderingContext, window.WebGLRenderingContext]) {
-      const ge = C.prototype.getExtension, gs = C.prototype.getSupportedExtensions;
-      C.prototype.getExtension = function getExtension(name) { return hide.includes(name) ? null : ge.call(this, name); };
-      C.prototype.getSupportedExtensions = function getSupportedExtensions() { return (gs.call(this) ?? []).filter((n) => !hide.includes(n)); };
+      const ge = Object.getOwnPropertyDescriptor(C.prototype, 'getExtension')?.value;
+      const gs = Object.getOwnPropertyDescriptor(C.prototype, 'getSupportedExtensions')?.value;
+      C.prototype.getExtension = function getExtension(name) { return hide.includes(name) ? null : Reflect.apply(ge, this, [name]); };
+      C.prototype.getSupportedExtensions = function getSupportedExtensions() { return (Reflect.apply(gs, this, []) ?? []).filter((n) => !hide.includes(n)); };
     }
   }, HIDE);
   await ctx.addInitScript(ledger);
