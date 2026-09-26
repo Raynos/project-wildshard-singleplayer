@@ -438,13 +438,47 @@ async function documentResponse(event, req, url) {
   return res;
 }
 
+/** the files a boot cannot survive losing: the hashed JS and CSS (fetchWhole) */
+const CODE_RE = /^\/assets\/[^/]+-[\w-]{8}\.(?:js|css)$/;
+const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+
 async function cacheFirst(req, name) {
   const cache = await caches.open(name);
   const hit = await cache.match(req, MATCH_OPTS);
   if (hit) return hit;
+  if (CODE_RE.test(new URL(req.url).pathname)) return fetchWhole(req, cache);
   const res = await fetch(req);
   if (res.ok) cache.put(req, res.clone()).catch(() => undefined);
   return res;
+}
+
+/**
+ * E188: a code file is read WHOLE here before the page gets a byte of it, and a download that breaks is tried twice
+ * more, 0.7 s and 2 s later. On LTE a hand-over drops the ~1.1 MB main chunk mid-file: the headers had already said
+ * 200, so streaming it through let the page's module import fail outright ("Importing a module script failed" — the
+ * stuck card, whose RELOAD met the same radio). Reading the body first turns that into a throw we can retry. The
+ * retries go around the HTTP cache (`cache: 'reload'`): /assets/* is `immutable` on every response the host sends,
+ * its 404s included, so a failure the browser kept must never be replayed as the answer. A real 404 (a deploy moved
+ * on) surfaces 2.7 s later than before, and stuck.ts handles it as it always did. Only a whole body is stored.
+ */
+async function fetchWhole(req, cache) {
+  let attempt = req;
+  for (const wait of [700, 2000, 0]) {
+    const last = wait === 0;
+    try {
+      const res = await fetch(attempt);
+      if (!res.ok && !last) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) return res;
+      const whole = new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
+      cache.put(req, whole.clone()).catch(() => undefined);
+      return whole;
+    } catch (e) {
+      if (last) throw e;
+      await sleep(wait);
+      attempt = new Request(req, { cache: 'reload' });
+    }
+  }
+  throw new Error('unreachable');
 }
 
 /**
