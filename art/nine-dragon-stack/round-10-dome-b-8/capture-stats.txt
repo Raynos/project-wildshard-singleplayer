@@ -1,0 +1,13 @@
+1: 82 calls, 1905k tris
+2: 86 calls, 1920k tris
+3: 83 calls, 1892k tris
+4: 81 calls, 1799k tris
+5: 72 calls, 1613k tris
+6: 87 calls, 1920k tris
+spawn: 100 calls, 1948k tris
+bench 1 @1206x2622: 12.71 ms/frame, 82 calls, 1905k tris
+bench 2 @1206x2622: 12.34 ms/frame, 86 calls, 1920k tris
+bench 3 @1206x2622: 6.30 ms/frame, 83 calls, 1892k tris
+7: 89 calls, 1924k tris
+8: 88 calls, 1921k tris
+9: 88 calls, 1924k tris

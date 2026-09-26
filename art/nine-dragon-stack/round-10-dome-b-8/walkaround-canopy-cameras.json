@@ -1,0 +1,90 @@
+[
+ {
+  "name": "c1",
+  "at": [
+   17.0,
+   125,
+   -9.5
+  ],
+  "yaw": 0.0,
+  "pitch": 24,
+  "hfovPortrait": 66
+ },
+ {
+  "name": "c2",
+  "at": [
+   21.3,
+   125,
+   -12.72
+  ],
+  "yaw": -28.9,
+  "pitch": 24,
+  "hfovPortrait": 66
+ },
+ {
+  "name": "c3",
+  "at": [
+   21.3,
+   125,
+   -20.5
+  ],
+  "yaw": -90.0,
+  "pitch": 24,
+  "hfovPortrait": 66
+ },
+ {
+  "name": "c4",
+  "at": [
+   21.3,
+   125,
+   -27
+  ],
+  "yaw": -146.5,
+  "pitch": 24,
+  "hfovPortrait": 66
+ },
+ {
+  "name": "c5",
+  "at": [
+   17.0,
+   125,
+   -27
+  ],
+  "yaw": 180.0,
+  "pitch": 24,
+  "hfovPortrait": 66
+ },
+ {
+  "name": "c6",
+  "at": [
+   9.22,
+   125,
+   -27
+  ],
+  "yaw": 129.9,
+  "pitch": 24,
+  "hfovPortrait": 66
+ },
+ {
+  "name": "c7",
+  "at": [
+   6.0,
+   125,
+   -20.5
+  ],
+  "yaw": 90.0,
+  "pitch": 24,
+  "hfovPortrait": 66
+ },
+ {
+  "name": "c8",
+  "at": [
+   9.22,
+   125,
+   -12.72
+  ],
+  "yaw": 45.0,
+  "pitch": 24,
+  "hfovPortrait": 66
+ }
+]
