@@ -191,7 +191,11 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
     choices: () => [{ v: 'auto', text: `Auto · now ${texMode() === 'ktx2' ? 'KTX2' : 'Images'}` }, { v: 'ktx2', text: 'KTX2' }, { v: 'img', text: 'Images' }],
   },
   opt('prefetch', 'loading', 'Download in background', ON_OFF, { note: 'E158 · the other shards\' files, once this one is playable' }),
-  opt('shardCap', 'loading', 'Shards in memory', [['2', '2'], ['1', '1']], { note: 'E155 / E159 · lowering it evicts at once' }),
+  {
+    id: 'shardResidency', group: 'loading', label: 'Shard residency', choices: () => [{ v: 'one', text: 'One per page' }],
+    get: () => 'one', set: () => undefined, on: () => undefined, reload: false, when: always,
+    note: 'E216 · changing shards reloads the page so the previous world is released',
+  },
   opt('bootPack', 'loading', 'Boot pack', ON_OFF, { reload: true, note: 'boot files as one pack; off = one by one (the KTX2 record run)' }),
   clearDownloadsRow,
 
@@ -213,4 +217,4 @@ function memoryReadout(): string {
   return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
 }
 /** E172: a few live lines under a row (by row id), re-read while the row can be seen — in both menus */
-export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { shardCap: memoryReadout };
+export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { shardResidency: memoryReadout };

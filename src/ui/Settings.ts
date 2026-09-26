@@ -124,9 +124,6 @@ export const OPTION_VALUES = {
   // A load-time pick (pause ▸ Settings ▸ Debug saves and reloads); no URL switch (Jake: never) — the A/B scripts set it in
   // the saved settings
   tex: ['auto', 'ktx2', 'img'],
-  // E155 / E159: how many built shards stay in memory (src/shard/ShardHost.ts; the user: two) — 1 on a phone that runs short;
-  // live: lowering it evicts down at once. The debug menu only (no URL switch)
-  shardCap: ['2', '1'],
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/boot/perflog.ts) — a reload
@@ -164,7 +161,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
-  shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY,
@@ -182,7 +178,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'),
   prefetch: option('prefetch'),
   tex: option('tex'),
-  shardCap: option('shardCap'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),

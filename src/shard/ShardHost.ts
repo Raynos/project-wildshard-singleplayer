@@ -1,5 +1,5 @@
 /**
- * The resident shards (SHARD-CACHE M4, E155 / E159): the user, 2026-09-25 — "I want the shards to stay in memory … I
+ * Legacy resident-shard host (SHARD-CACHE M4, E155 / E159): the user, 2026-09-25 — "I want the shards to stay in memory … I
  * definitely want to be able to go to the main menu and switch between the three shards", then "keep only TWO shards in
  * memory, not four, and make an evicted shard rebuild fast".
  *
@@ -17,8 +17,8 @@
  *   await host.start('driftwood-isle');             // the first shard: exactly the boot a single-shard page had
  *   host.switchTo('pine-hollow', { enter: true });  // the deck's ENTER WORLD on another card (src/shard/switch.ts)
  *
- * The URL follows the running shard (`history.replaceState`, `?chunk=`), so every reload that stays a reload — Settings'
- * APPLY, a new build, GPU recovery, the error modal — lands on it.
+ * E216: normal title and practice-room navigation now reloads the document before building another shard; main.ts pins
+ * this host to one world. The in-page switch machinery remains for legacy tooling but is not exposed in normal play.
  */
 import * as THREE from 'three';
 import { findChunk, rememberChunk, setActiveChunk } from '../chunks/registry';

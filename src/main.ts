@@ -122,7 +122,7 @@ import { installPineWeather } from './pinehollow/weather';
 import { installPineLoadout } from './pinehollow/loadout';
 import { installPineLife } from './pinehollow/life';
 import { ShardHost, type ShardWorld } from './shard/ShardHost';
-import { setShardSwitcher } from './shard/switch';
+import { consumeArenaArrival, setShardSwitcher } from './shard/switch';
 import { setAliveSource } from './boot/lastEnd';
 import { asShell } from './core/shardScope';
 
@@ -149,19 +149,14 @@ let hostRef: ShardHost | null = null;
 /** E183: how long the title idles before its one primed frame (a first glance at the deck, a swipe, stay smooth) */
 const TITLE_IDLE_MS = 1200;
 
-/** how many built shards stay in memory (the user, E159: two; a test sets another with `__shardHost.setCap`) */
-const SHARD_CAP = 2;
+/** E216: every shard switch navigates, so this page owns only its one booted world. */
+const SHARD_CAP = 1;
 
 async function main() {
   const host = new ShardHost({ build: buildShard, cap: SHARD_CAP });
   setShardSwitcher({
-    go: (slug, req) => { host.switchTo(slug, req).catch((e: unknown) => { showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''); }); },
-    resident: (slug) => host.has(slug),
     memory: () => host.memory(),
   });
-  // pause ▸ Settings ▸ Debug ▸ Shards in memory (the iPhone's knob, no URL): live — lowering it evicts down at once
-  host.setCap(Number(setting('shardCap')));
-  onSettingChange('shardCap', (v) => { host.setCap(Number(v)); });
   (window as unknown as { __shardHost: ShardHost }).__shardHost = host; // the E155 test + debugging: resident shards, switch timings, memory
   hostRef = host;
   // E179: the page's alive beat and every intentional reload record the running shard and what was resident
@@ -1017,6 +1012,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     parked: () => hostRef?.isParked(slug) === true, onLostParked: () => { hostRef?.evict(slug); } }); // a parked shard that loses its context is evicted (E155)
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
+  if (consumeArenaArrival(slug)) hud.enterArenaNow();
   // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's

@@ -1,6 +1,6 @@
 import { CHUNK_SIZE } from '../core/config';
 import { CHUNKS, PROTOTYPES, getActiveChunk } from '../chunks/registry';
-import { requestShard, shardResident } from '../shard/switch';
+import { requestShard } from '../shard/switch';
 import { PLACEHOLDERS, type TeaserShot } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
@@ -470,7 +470,7 @@ export class HUD {
   /**
    * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the live world (the
    * neighbours peek in from the edges, dots below — a swipe steps the shard); the centred card is the selection. Under it
-   * two compact buttons: ENTER WORLD (play; the active shard enters, another is switched to in the page — src/shard/ShardHost.ts, E155) and EXPLORE WORLD
+   * two compact buttons: ENTER WORLD (play; another shard opens in a fresh page) and EXPLORE WORLD
    * (the viewer, project/archive/2026-09-23-explore-world.md; the shards whose ChunkDef.explore is on — D4, E66). Teasers from `PLACEHOLDERS` crossfade their hero art in
    * behind the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility. (The user,
    * 2026-09-23, on the p12 split panels: "way too big … it does not make it obvious you can swipe" — back to the deck.)
@@ -599,8 +599,7 @@ export class HUD {
       enterBtn.disabled = !c.playable;
       arenaBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      // another shard: in memory it is instant, else it loads here, in the page (E155 — it used to reload with ?chunk=)
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : shardResident(c.slug) ? `Switch to ${c.displayName}` : `Loads ${c.displayName}`;
+      enterHint.textContent = !c.playable ? 'Not yet playable' : !c.active ? `Reloads with ${c.displayName}` : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : 'Play';
       exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
       startShots(c);
     };
@@ -612,7 +611,7 @@ export class HUD {
     const activate = (): void => {
       const c = cards[index];
       if (!c || !c.playable) return;
-      if (c.active) this.enter(); else requestShard(c.slug, { enter: true }); // another shard: switched to in the page (src/shard/ShardHost.ts)
+      if (c.active) this.enter(); else requestShard(c.slug, { enter: true });
     };
     // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
     let drag: { id: number; x0: number; t0: number; dx: number } | null = null;
