@@ -6,6 +6,14 @@
 .ws-menu.hide { opacity: 0; pointer-events: none; }
 .ws-menu .ws-menu-hero { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
 .ws-menu .ws-menu-hero.show { opacity: 1; }
+/* a teaser's slideshow (HUD.ts startShots): the next screen fades in over the backdrop, then becomes it */
+.ws-menu .ws-menu-hero.ws-menu-hero-next { transition: opacity 0.9s ease; }
+/* its caption: a glass chip top-right (EXPLORE WORLD, which lives there, is off on a teaser); a tap skips ahead */
+.ws-menu .ws-menu-shot { position: absolute; z-index: 3; top: 34px; right: 44px; display: none; align-items: center; gap: 10px; max-width: calc(100% - 32px); padding: 6px 10px; appearance: none; -webkit-appearance: none; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ws-menu .ws-menu-shot.show { display: flex; }
+.ws-menu .ws-menu-shot span { overflow: hidden; text-overflow: ellipsis; }
+.ws-menu .ws-menu-shot span::before { content: 'Prototype'; margin-right: 10px; padding-right: 10px; border-right: 1px solid var(--ws-cyan-line); color: var(--ws-amber); }
+.ws-menu .ws-menu-shot i { font-style: normal; color: var(--ws-cyan-dim); }
 .ws-menu::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.45) 0%, rgba(6, 10, 18, 0.05) 28%, rgba(6, 10, 18, 0.05) 50%, rgba(6, 10, 18, 0.7) 100%); }
 .ws-menu .ws-menu-head, .ws-menu .ws-menu-deck { position: relative; z-index: 2; }
 .ws-menu .ws-menu-head { padding: 34px 44px 0; }
@@ -87,6 +95,8 @@
   .ws-menu .ws-menu-sound, .ws-menu .ws-menu-settings { font-size: 9px; }
   .ws-menu .ws-menu-row { gap: 12px; align-items: center; padding: 0 14px; } /* SETTINGS + SOUND on one row (the credits moved to Settings ▸ Credits, E64) */
   .ws-menu .ws-menu-sound { flex: none; white-space: nowrap; }
+  .ws-menu .ws-menu-shot { top: calc(env(safe-area-inset-top, 0px) + 72px); left: 16px; right: auto; gap: 8px; padding: 5px 8px; font-size: 9px; letter-spacing: 0.12em; } /* under the wordmark: the two-line wordmark fills the top-left */
+  .ws-menu .ws-menu-shot span::before { margin-right: 8px; padding-right: 8px; }
 }
 
 /* ─── title screen on a landscape phone (iPhone ~402, Android ~360–411 CSS px tall): the desktop deck is ~530 px tall,

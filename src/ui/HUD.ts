@@ -1,7 +1,7 @@
 import { CHUNK_SIZE } from '../core/config';
 import { CHUNKS, getActiveChunk } from '../chunks/registry';
 import { requestShard, shardResident } from '../shard/switch';
-import { PLACEHOLDERS } from '../chunks/placeholders';
+import { PLACEHOLDERS, type TeaserShot } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
@@ -70,8 +70,12 @@ interface DeckCard {
   playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean; earlyAccess: boolean;
   /** ChunkDef.explore: the shard offers EXPLORE WORLD */
   explore: boolean;
+  /** a teaser's slideshow (hero first, then its screens), crossfaded behind the deck while the card is selected; [] = a still hero */
+  shots: TeaserShot[];
 }
 const HERO_FADE_MS = 350;
+const SHOT_MS = 5200; // a teaser screen's time on the backdrop
+const SHOT_FADE_MS = 900; // menu.css .ws-menu-hero-next transition
 const GLYPH_SWORD = '<svg viewBox="0 0 24 24"><path d="M19.5 3.5L9 14l1 1L20.5 4.5z M6.5 12.5l5 5 M8 14l-4.5 4.5 1 1L9 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
 const GLYPH_EYE = '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 
@@ -477,17 +481,19 @@ export class HUD {
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
         tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, earlyAccess: c.earlyAccess === true, explore: c.explore === true,
-        heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
+        heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape, shots: [],
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
         label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, earlyAccess: false, explore: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
+        shots: t.screens && t.screens.length > 0 ? [{ portrait: t.heroPortrait, landscape: t.heroLandscape, caption: t.heroCaption ?? t.displayName }, ...t.screens] : [],
       })),
     ];
     const intro = el('div', 'ws-menu');
     intro.innerHTML = `
-      <div class="ws-menu-hero"></div>
+      <div class="ws-menu-hero"></div><div class="ws-menu-hero ws-menu-hero-next"></div>
+      <button class="ws-menu-shot" type="button"><span></span><i></i></button>
       <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div>
         <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><span class="ws-menu-explore-text"><b>Explore world</b><small>Fly · inspect</small></span></button></div>
       <div class="ws-menu-deck">
@@ -511,10 +517,41 @@ export class HUD {
     if (!enterBtn) throw new Error('HUD: no .ws-menu-play');
     const enterTitle = q(enterBtn, 'b'), enterHint = q(enterBtn, 'small');
     const exploreBtn = q(intro, '.ws-menu-explore');
+    const heroNext = q(intro, '.ws-menu-hero-next'), shotEl = q(intro, '.ws-menu-shot'), shotText = q(shotEl, 'span'), shotCount = q(shotEl, 'i');
 
     const portrait = (): boolean => innerWidth < innerHeight;
     const heroUrl = (c: DeckCard): string => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
     let index = Math.max(0, cards.findIndex((c) => c.active));
+    // a teaser's slideshow: the next screen decodes first, then crossfades in over the backdrop and becomes it
+    let shotAt = 0, shotTimer: number | undefined;
+    const shotUrl = (s: TeaserShot): string => (portrait() ? s.portrait : s.landscape);
+    const caption = (c: DeckCard, i: number): void => { shotText.textContent = c.shots[i]?.caption ?? ''; shotCount.textContent = `${i + 1} / ${c.shots.length}`; };
+    const stopShots = (): void => { if (shotTimer !== undefined) { clearInterval(shotTimer); shotTimer = undefined; } heroNext.classList.remove('show'); };
+    const nextShot = (): void => {
+      const c = cards[index];
+      if (this.intro !== intro || !c || c.shots.length < 2) { stopShots(); return; }
+      const i = (shotAt + 1) % c.shots.length, s = c.shots[i];
+      if (!s) return;
+      const url = shotUrl(s), img = new Image();
+      img.src = url;
+      const show = async (): Promise<void> => {
+        try { await img.decode(); } catch { /* shown anyway: the backdrop paints it when it lands */ }
+        if (this.intro !== intro || cards[index] !== c) return; // the player moved on while it decoded
+        shotAt = i;
+        heroNext.style.backgroundImage = `url('${url}')`;
+        heroNext.classList.add('show');
+        caption(c, i);
+        setTimeout(() => { if (cards[index] === c) { hero.style.backgroundImage = `url('${url}')`; heroNext.classList.remove('show'); } }, SHOT_FADE_MS + 60);
+      };
+      void show();
+    };
+    const startShots = (c: DeckCard): void => {
+      stopShots(); shotAt = 0;
+      shotEl.classList.toggle('show', c.shots.length > 1);
+      if (c.shots.length < 2) return;
+      caption(c, 0);
+      shotTimer = window.setInterval(nextShot, SHOT_MS);
+    };
     // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
     const track = q(list, '.ws-menu-deck-track');
     const offsetOf = (i: number): number => { const ce = cardEls[i]; return ce ? list.clientWidth / 2 - (ce.offsetLeft + ce.offsetWidth / 2) : 0; };
@@ -538,6 +575,7 @@ export class HUD {
       // another shard: in memory it is instant, else it loads here, in the page (E155 — it used to reload with ?chunk=)
       enterHint.textContent = !c.playable ? 'Not yet playable' : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : shardResident(c.slug) ? `Switch to ${c.displayName}` : `Loads ${c.displayName}`;
       exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
+      startShots(c);
     };
     const select = (raw: number, smooth = true): void => {
       const i = Math.max(0, Math.min(cards.length - 1, raw));
@@ -574,6 +612,14 @@ export class HUD {
     cardEls.forEach((e, i) => { e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
     dots.forEach((d, i) => { d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }); });
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
+    shotEl.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const c = cards[index];
+      if (!c || c.shots.length < 2) return;
+      if (shotTimer !== undefined) clearInterval(shotTimer);
+      shotTimer = window.setInterval(nextShot, SHOT_MS);
+      nextShot();
+    });
     exploreBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       const c = cards[index];
