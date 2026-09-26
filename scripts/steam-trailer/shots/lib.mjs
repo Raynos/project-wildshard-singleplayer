@@ -26,3 +26,23 @@ export const aimAt = (v, k = 0.12, dyAim = 0.8) => `(() => { const e = ${v}, p =
 export const PREY = `(() => { const e = window.__prey, p = window.__world.player.position; return e ? { kind: e.kind, d: +e.position.distanceTo(p).toFixed(1) } : { kinds: [...new Set(window.__world.animals.animals.filter((a) => a.alive && a.position.distanceTo(p) < 120).map((a) => a.kind))] }; })()`;
 /** join in-page JS snippets (ticks assemble their events this way) */
 export const js = (...parts) => parts.join('');
+/**
+ * Node side: a rig's pose at shot time t, the same sampling as capture.mjs's in-page tr.pose (Catmull-Rom through the
+ * keys, the whole move eased in-out when `rig.ease`), without the hand-held breath. For titles that track the camera
+ * (the Nine Dragon teaser's altimeter). Absolute rigs only (no `rel`).
+ */
+export const rigAt = (rig, t) => {
+  const keys = rig.keys, n = keys.length, t0 = keys[0].t, t1 = keys[n - 1].t;
+  const easeIO = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
+  const T = rig.ease ? t0 + easeIO(clamp((t - t0) / (t1 - t0))) * (t1 - t0) : t;
+  const cr = (p0, p1, p2, p3, u) => { const u2 = u * u, u3 = u2 * u; return 0.5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3); };
+  const at = (field) => {
+    if (T <= t0) return keys[0][field];
+    if (T >= t1) return keys[n - 1][field];
+    let i = 0; while (i < n - 2 && T > keys[i + 1].t) i++;
+    const a = keys[Math.max(0, i - 1)], b = keys[i], c = keys[i + 1], d = keys[Math.min(n - 1, i + 2)];
+    const u = (T - b.t) / (c.t - b.t);
+    return [0, 1, 2].map((j) => cr(a[field][j], b[field][j], c[field][j], d[field][j], u));
+  };
+  return { p: at('p'), l: at('l') };
+};

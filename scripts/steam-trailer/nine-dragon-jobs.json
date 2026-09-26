@@ -1,0 +1,16 @@
+{
+  "_doc": "E169 F3: the Nine Dragon Stack 15 s COMING SOON teaser's score. gen_minimax.py --jobs ../../steam-trailer/nine-dragon-jobs.json --keys trailer/nine-dragon --seeds 301,302,303,304,305,306 ; takes land in <out>/trailer-nine-dragon/minimax3-<seed>.wav. A 30 s cue (room for MiniMax to state an intro and a drop); cuts/nine-dragon.mjs splices the take onto the teaser's 15 s on its own beats and hits (music_scan.py).",
+  "lyrics": {
+    "teaser": "[Intro]\n[Instrumental]\n[Drop]\n[Instrumental]\n[Outro]"
+  },
+  "jobs": {
+    "trailer/nine-dragon": {
+      "style": "trip-hop",
+      "slot": "trailer",
+      "duration": 30,
+      "lyrics": "teaser",
+      "bpm": 80,
+      "prompt": "Genre: cinematic trip-hop trailer music with traditional Chinese instruments, neon noir. BPM: 80. Key: D minor pentatonic. Instrumental only, no vocals, no singing, no words. A short teaser for a colossal vertical neon city at night in the rain, Kowloon Walled City meets Chongqing. Structure: opens quiet with soft rain, a lone guzheng phrase and a low analog synth drone; after a few seconds a deep drum hit and the beat drops: slow dusty trip-hop breakbeat drums, a deep warm analog synth bass line, an erhu melody soaring over pipa tremolo and shimmering guzheng arpeggios; the energy rises to a big peak; ends on one massive hit with a gong and a long ringing tail. Production: modern cinematic trailer mix, wide stereo, deep sub bass, crisp punchy drums, big reverb, rain texture."
+    }
+  }
+}

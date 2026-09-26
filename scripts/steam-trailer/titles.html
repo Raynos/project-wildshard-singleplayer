@@ -36,12 +36,54 @@ html, body { margin: 0; width: 1920px; height: 1080px; background: transparent; 
 #end .cta { display: inline-block; padding: 16px 44px; border: 2px solid var(--cyan); background: rgba(13, 27, 38, 0.72); font-size: 40px; letter-spacing: 0.34em; color: #fff; }
 #end .cta b { color: var(--cyan); font-weight: 700; }
 #end .credits { position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 15px; letter-spacing: 0.28em; color: rgba(255, 255, 255, 0.5); }
+
+/* E169 F3, the Nine Dragon Stack teaser. body.portrait = the phone cut's 1080×1920 frame */
+html.portrait, body.portrait { width: 1080px; height: 1920px; }
+.cjk { font-family: 'Songti TC', 'Songti SC', serif; font-weight: 700; color: #fff; }
+/* the altimeter: a hairline scale on the right edge whose ticks run down as the camera climbs, the altitude read out
+   beside it, the place named when it lands */
+#alt .rail { position: absolute; right: 118px; top: 250px; height: 580px; width: 1px; background: linear-gradient(180deg, rgba(143, 227, 255, 0), rgba(143, 227, 255, 0.75) 22%, rgba(143, 227, 255, 0.75) 78%, rgba(143, 227, 255, 0)); }
+#alt .ticks { position: absolute; right: 118px; top: 250px; height: 580px; width: 40px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent); }
+#alt .tick { position: absolute; right: 0; height: 1px; background: rgba(143, 227, 255, 0.8); }
+#alt .mark { position: absolute; right: 108px; top: 539px; width: 22px; height: 2px; background: var(--cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.8); transform-origin: right center; }
+#alt .read { position: absolute; right: 150px; top: 512px; text-align: right; }
+#alt .num { font-size: 44px; letter-spacing: 0.08em; color: #fff; }
+#alt .num small { font-size: 22px; letter-spacing: 0.3em; color: var(--cyan); margin-left: 10px; }
+#alt .lbl { margin-top: 6px; font-size: 16px; letter-spacing: 0.42em; color: rgba(255, 255, 255, 0.82); white-space: nowrap; }
+#alt .kick { position: absolute; right: 150px; top: 478px; font-size: 14px; letter-spacing: 0.5em; color: var(--cyan); white-space: nowrap; }
+body.portrait #alt .rail, body.portrait #alt .ticks { right: 64px; top: 620px; height: 680px; }
+body.portrait #alt .mark { right: 54px; top: 959px; }
+body.portrait #alt .read { right: 96px; top: 932px; }
+body.portrait #alt .kick { right: 96px; top: 898px; }
+/* the teaser's end card: the mark, the name, COMING SOON, the credits */
+#teaser .veil { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(3, 8, 16, 0.62), rgba(3, 8, 16, 0.38) 60%, rgba(2, 6, 12, 0.72)); }
+#teaser .center { position: absolute; left: 0; right: 0; top: 262px; text-align: center; }
+#teaser .kicker { font-size: 20px; letter-spacing: 0.7em; margin-left: 0.7em; color: var(--cyan); }
+#teaser .mark { display: inline-block; font-size: 168px; line-height: 1.12; letter-spacing: 0.22em; margin: 18px 0 0 0.22em;
+  text-shadow: 0 0 34px rgba(255, 80, 60, 0.28), 0 4px 30px rgba(0, 6, 14, 0.7); }
+#teaser .rule { width: 820px; height: 2px; margin: 26px auto 26px; background: linear-gradient(90deg, rgba(143, 227, 255, 0), var(--cyan), rgba(143, 227, 255, 0)); box-shadow: 0 0 14px rgba(143, 227, 255, 0.7); }
+#teaser .name { font-size: 74px; letter-spacing: 0.34em; margin-left: 0.34em; line-height: 1; }
+#teaser .cta { display: inline-block; margin-top: 40px; padding: 14px 40px 14px 52px; border: 2px solid var(--cyan); background: rgba(13, 27, 38, 0.72); font-size: 30px; letter-spacing: 0.5em; color: #fff; position: relative; }
+#teaser .cta::before, #teaser .cta::after { content: ''; position: absolute; width: 12px; height: 12px; border-color: var(--cyan); border-style: solid; }
+#teaser .cta::before { left: -8px; top: -8px; border-width: 2px 0 0 2px; }
+#teaser .cta::after { right: -8px; bottom: -8px; border-width: 0 2px 2px 0; }
+#teaser .credits { position: absolute; left: 0; right: 0; bottom: 48px; text-align: center; font-size: 14px; letter-spacing: 0.24em; line-height: 1.9; color: rgba(255, 255, 255, 0.55); }
+body.portrait #teaser .center { top: 560px; }
+body.portrait #teaser .mark { font-size: 132px; letter-spacing: 0.16em; margin-left: 0.16em; }
+body.portrait #teaser .rule { width: 760px; }
+body.portrait #teaser .name { font-size: 52px; letter-spacing: 0.26em; margin-left: 0.26em; }
+body.portrait #teaser .cta { font-size: 26px; }
+body.portrait #teaser .credits { bottom: 120px; font-size: 13px; letter-spacing: 0.16em; padding: 0 60px; }
 </style></head>
 <body>
 <div class="card" id="shard"><div class="wrap"><div class="brk"></div><div class="kicker mono shadow"></div><div class="line"></div><div class="name disp shadow"></div><div class="sub mono shadow"></div></div></div>
 <div class="card" id="line"><div class="txt mono shadow"></div></div>
 <div class="card" id="end"><div class="veil"></div><div class="center"><div class="project mono">Project</div><div class="word disp"><span class="w">Wildshard</span><div class="glint"></div></div><div class="rule"></div><div class="cta disp">Wishlist <b>now</b> on Steam</div></div>
   <div class="credits mono">Music: MiniMax-Music3 &nbsp;·&nbsp; Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 — Powered by Stability AI &nbsp;·&nbsp; Captured in engine</div></div>
+<div class="card" id="alt"><div class="rail"></div><div class="ticks"></div><div class="mark"></div><div class="kick mono shadow"></div><div class="read"><div class="num mono shadow"></div><div class="lbl mono shadow"></div></div></div>
+<div class="card" id="teaser"><div class="veil"></div><div class="center"><div class="kicker mono shadow"></div><div class="mark cjk"></div><div class="rule"></div><div class="name disp shadow"></div><div class="cta disp"></div></div>
+  <div class="credits mono"></div></div>
 <script>
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);          // out-cubic
@@ -49,6 +91,16 @@ const inOut = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.p
 const ramp = (t, a, b) => clamp((t - a) / (b - a));
 const $ = (s) => document.querySelector(s);
 // window.pose(card, t, opts): opts = { kicker, name, sub, dur } for 'shard'; { text, dur } for 'line'; { dur } for 'end'
+// the altimeter's ticks: one every 2 m, a longer one every 10 m, scrolled by the altitude (16 px a metre)
+const PX_M = 16;
+const ticks = document.querySelector('#alt .ticks');
+const tickEls = Array.from({ length: 48 }, () => { const d = document.createElement('div'); d.className = 'tick'; ticks.appendChild(d); return d; });
+const trackAt = (tr, t) => {                                   // [[t, value], ...] linear
+  if (t <= tr[0][0]) return tr[0][1];
+  for (let i = 1; i < tr.length; i++) if (t < tr[i][0]) { const [a, va] = tr[i - 1], [b, vb] = tr[i]; return va + (vb - va) * (t - a) / (b - a); }
+  return tr[tr.length - 1][1];
+};
+window.setPortrait = (on) => { document.body.classList.toggle('portrait', on); document.documentElement.classList.toggle('portrait', on); };
 window.pose = (card, t, o) => {
   document.querySelectorAll('.card').forEach((c) => c.classList.toggle('on', c.id === card));
   const out = 1 - ramp(t, o.dur - 0.45, o.dur);                // every card leaves over its last 0.45 s
@@ -70,6 +122,42 @@ window.pose = (card, t, o) => {
     $('#line .txt').style.opacity = n * out;
     $('#line .txt').style.letterSpacing = `${0.9 - 0.3 * n - 0.05 * ramp(t, 0.8, o.dur)}em`;
     $('#line .txt').style.filter = `blur(${(1 - n) * 6}px)`;
+  } else if (card === 'alt') {
+    // o: { track: [[t, metres]...], land: t (the readout settles on `final`), final, kicker, label, finalLabel, dur }
+    const h = trackAt(o.track, t), landed = t >= o.land;
+    const shown = landed ? o.final : h;
+    const pxh = document.body.classList.contains('portrait') ? 680 : 580;
+    tickEls.forEach((d, i) => {
+      const m = Math.floor(shown / 2) * 2 + (i - 24) * 2;          // the tick's altitude
+      d.style.top = (pxh / 2 - (m - shown) * PX_M) + 'px';
+      d.style.width = (m % 10 === 0 ? 26 : 12) + 'px';
+      d.style.opacity = m % 10 === 0 ? 1 : 0.55;
+    });
+    $('#alt').style.opacity = ease(ramp(t, 0.0, 0.5)) * out;
+    $('#alt .num').innerHTML = '+' + String(Math.round(shown)).padStart(3, '0') + '<small>M</small>';
+    $('#alt .kick').textContent = o.kicker ?? '';
+    $('#alt .lbl').textContent = landed ? o.finalLabel : o.label;
+    $('#alt .lbl').style.opacity = landed ? ease(ramp(t, o.land, o.land + 0.35)) : 1;
+    $('#alt .lbl').style.color = landed ? '#fff' : 'rgba(255, 255, 255, 0.82)';
+    $('#alt .mark').style.transform = 'scaleX(' + (landed ? 1 + 0.8 * (1 - ease(ramp(t, o.land, o.land + 0.4))) : 1) + ')';
+  } else if (card === 'teaser') {
+    // o: { kicker, mark, name, cta, credits, dur }
+    const portrait = document.body.classList.contains('portrait');
+    $('#teaser .kicker').textContent = o.kicker; $('#teaser .mark').textContent = o.mark;
+    $('#teaser .name').textContent = o.name; $('#teaser .cta').textContent = o.cta; $('#teaser .credits').innerHTML = o.credits;
+    $('#teaser .veil').style.opacity = ease(ramp(t, 0, 0.8));
+    const m = ease(ramp(t, 0.1, 1.0));
+    $('#teaser .mark').style.opacity = m;
+    $('#teaser .mark').style.filter = 'blur(' + (1 - m) * 14 + 'px)';
+    $('#teaser .mark').style.transform = 'scale(' + (1.06 - 0.06 * m + 0.012 * ramp(t, 1, o.dur)) + ')';
+    $('#teaser .kicker').style.opacity = ease(ramp(t, 0.45, 1.0));
+    $('#teaser .rule').style.transform = 'scaleX(' + inOut(ramp(t, 0.6, 1.3)) + ')';
+    const n = ease(ramp(t, 0.75, 1.4));
+    $('#teaser .name').style.opacity = n;
+    $('#teaser .name').style.letterSpacing = ((portrait ? 0.26 : 0.34) + 0.12 * (1 - n)) + 'em';
+    $('#teaser .cta').style.opacity = ease(ramp(t, 1.15, 1.6));
+    $('#teaser .cta').style.transform = 'translateY(' + (1 - ease(ramp(t, 1.15, 1.7))) * 12 + 'px)';
+    $('#teaser .credits').style.opacity = ease(ramp(t, 1.5, 2.1));
   } else if (card === 'end') {
     const v = ease(ramp(t, 0, 0.9));
     $('#end .veil').style.opacity = v;

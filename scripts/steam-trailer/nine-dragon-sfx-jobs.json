@@ -1,0 +1,77 @@
+{
+  "_doc": "E169 F3: the Nine Dragon Stack teaser's sound design (the game's own sounds come from public/assets/sfx/best/). Every family is generated with MOSS-SoundEffect v2 and Stable Audio 3 Medium (3 seeds each) and sfx_pick.py keeps the better take by CLAP rank (AGENTS.md 'Audio engines'). `desc` is the CLAP ranking text.",
+  "families": {
+    "nd-rain": {
+      "kind": "bed",
+      "duration": 12,
+      "desc": "heavy rain falling on stone pavement and tin awnings",
+      "prompt": "Heavy steady rain falling on wet stone paving and drumming on tin awnings and eaves in a narrow city street at night, water dripping and splashing, close and detailed. Continuous field recording, no thunder, no music."
+    },
+    "nd-neon": {
+      "kind": "bed",
+      "duration": 8,
+      "desc": "the electric hum and buzz of a neon sign",
+      "prompt": "The electric hum and buzz of an old neon sign close up: a steady transformer drone with a crackling flicker now and then. Continuous, no rhythm, no music."
+    },
+    "nd-walla": {
+      "kind": "bed",
+      "duration": 12,
+      "desc": "a distant crowd murmuring at a night market",
+      "prompt": "A distant busy night market crowd far away between tall buildings: the indistinct murmur of many people, no clear words, soft footsteps, rain, a big reverberant space. Continuous field recording, no music."
+    },
+    "nd-jian-draw": {
+      "kind": "oneshot",
+      "duration": 2,
+      "desc": "a sword drawn from its scabbard with a metallic ring",
+      "prompt": "A straight steel sword drawn fast from its scabbard: a bright metallic scrape rising into a clear, shimmering ring of the blade. Close, clean, cinematic, no music."
+    },
+    "nd-jian-swish": {
+      "kind": "oneshot",
+      "duration": 2,
+      "desc": "a fast sword slash whooshing through the air",
+      "prompt": "A thin steel sword slashed very fast through the air: a sharp high whoosh with a crisp electric sizzle at the end. Close, clean, cinematic, no music."
+    },
+    "nd-grapple-fire": {
+      "kind": "oneshot",
+      "duration": 2,
+      "desc": "a grappling hook launcher firing a cable",
+      "prompt": "A wrist grappling hook launcher firing: a sharp pneumatic thump and a metallic clack, then a thin cable whizzing out fast. Close, cinematic, no music."
+    },
+    "nd-line-whip": {
+      "kind": "oneshot",
+      "duration": 2,
+      "desc": "a steel cable whipping and twanging",
+      "prompt": "A thin taut steel cable whipping through the air and snapping tight: a high whistling whip crack and a vibrating metallic twang. Close, no music."
+    },
+    "nd-claw-bite": {
+      "kind": "oneshot",
+      "duration": 2,
+      "desc": "a metal claw clanking shut on an iron ring",
+      "prompt": "A heavy brass grappling claw slamming shut onto an iron ring: a hard metallic clank and bite with a short ringing resonance. Close, cinematic, no music."
+    },
+    "nd-zip": {
+      "kind": "oneshot",
+      "duration": 3,
+      "desc": "zipping fast along a cable with a whirring reel and rushing wind",
+      "prompt": "Zipping fast along a steel cable: the rising mechanical whir of a spinning reel and a rushing wind whoosh that builds and passes by. Cinematic, no music."
+    },
+    "nd-gong-hit": {
+      "kind": "oneshot",
+      "duration": 6,
+      "desc": "a huge taiko and gong impact hit",
+      "prompt": "A huge cinematic trailer impact: a deep taiko drum boom layered with a large Chinese gong crash and a sub-bass drop, decaying into a long dark reverberant tail. Trailer sound design."
+    },
+    "nd-reverse-gong": {
+      "kind": "oneshot",
+      "duration": 3,
+      "desc": "a reversed gong swell rising into a hit",
+      "prompt": "A reversed gong swell: a large Chinese gong played backwards, rising louder over two seconds and cutting off sharply. Cinematic trailer transition, nothing else."
+    },
+    "nd-rise": {
+      "kind": "oneshot",
+      "duration": 4,
+      "desc": "a rising rush of wind climbing upward",
+      "prompt": "A rising cinematic whoosh of air rushing upward, climbing steadily in pitch for three seconds like flying straight up a tall shaft, cutting off at its peak. Trailer sound design, no melody."
+    }
+  }
+}

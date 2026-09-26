@@ -1,7 +1,7 @@
 // E168 Steam trailer — deterministic in-engine capture.
 //
 //   node scripts/steam-trailer/capture.mjs <outDir> [--shots driftwood,nalati,pine] [--only a,b] [--sub 2] [--scale 2]
-//        [--base http://localhost:5173/] [--frames N] [--dry]
+//        [--base http://localhost:5173/] [--frames N] [--dry] [--portrait]
 //
 // What makes it a trailer capture rather than a screen recording:
 //   * the game's clock is replaced by a fixed step and the frame loop is gated, so exactly one frame is simulated and drawn
@@ -12,7 +12,10 @@
 //     blur, not a post blur;
 //   * cinematic shots drive the camera on a spline rig (dolly / crane / orbit / push-in, eased, with fov and roll keys)
 //     from a late system that runs after the player's own camera update; gameplay shots drive the player's inputs;
-//   * the HUD, debug chips and error chips are hidden, the viewmodel is hidden on rig shots.
+//   * the HUD, debug chips and error chips are hidden, the viewmodel is hidden on rig shots (unless the rig says
+//     `viewmodel: true`);
+//   * --portrait (E169 F3, the phone cut): a 1080×1920 frame, each shot's own `portrait: { … }` merged over it (its rig,
+//     setup, ticks: a portrait frame is re-posed, not cropped).
 // Frames land in <outDir>/<shot>/<nnnnnn>.jpg at 60·sub fps; <outDir>/<shot>/meta.json records the pose track and events.
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
@@ -29,12 +32,14 @@ const SETS = opt('shots', 'driftwood,nalati,pine').split(',');
 const ONLY = opt('only', '') ? opt('only', '').split(',') : [];
 const MAXF = Number(opt('frames', '0'));
 const DRY = flag('dry'); // one still per shot (first, middle, last frame): the shot-list review pass
+const PORTRAIT = flag('portrait');
+const VIEW = PORTRAIT ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
 // --edl <edl.json>: write only the frames the cut uses (+ 0.25 s handles); the sim still runs every frame from 0
 const EDL = opt('edl', '') ? JSON.parse((await import('node:fs')).readFileSync(opt('edl', ''), 'utf8')) : null;
 const keep = (name, i) => !EDL || EDL.clips.some((c) => c.shot === name && i >= Math.floor((c.in - 0.25) * FPS) && i < Math.ceil((c.in + c.dur + 0.25) * FPS));
 
 const shots = [];
-for (const s of SETS) shots.push(...(await import(`./shots/${s}.mjs`)).shots);
+for (const s of SETS) shots.push(...(await import(`./shots/${s}.mjs`)).shots.map((x) => (PORTRAIT && x.portrait ? { ...x, ...x.portrait } : x)));
 
 // ── in-page runtime ─────────────────────────────────────────────────────────────────────────────────────────────
 // Installed once per page. window.__tr.rig = { keys: [{ t, p:[x,y,z], l:[x,y,z], fov, roll }], ease } drives the camera.
@@ -79,11 +84,11 @@ const RUNTIME = String.raw`(() => {
     // (on the ground, not at its old height: a player left inside the terrain or under the sea reads as submerged — the
     // underwater grade and fog came on over dry land in the first scout)
     if (r.carryPlayer !== false) { const pl = w.player; pl.position.set(p[0], tr.ground(p[0], p[2]) + 0.05, p[2]); if (pl.velocity) pl.velocity.set(0, 0, 0); }
-    for (const c of cam.children) c.visible = false; // the viewmodel and the swim hands (Hands.update re-shows them while "swimming" under the rig)
+    if (!r.viewmodel) for (const c of cam.children) c.visible = false; // the viewmodel and the swim hands (Hands.update re-shows them while "swimming" under the rig)
     tr.lastPose = { p, l, fov, roll };
   };
   // rel: key heights are metres above the ground (or the water, whichever is higher) at that key; relLook likewise
-  tr.ground = (x, z) => { const h = window.__hf.heightAt(x, z), sea = w.chunk?.ocean?.level ?? w.ocean?.level; return typeof sea === 'number' ? Math.max(h, sea) : h; };
+  tr.ground = (x, z) => { const h = window.__hf?.heightAt(x, z) ?? 0, sea = w.chunk?.ocean?.level ?? w.ocean?.level; return typeof sea === 'number' ? Math.max(h, sea) : h; };
   tr.setRig = (rig) => {
     if (!rig) { tr.rig = null; return; }
     const keys = rig.keys.map((k) => ({ ...k,
@@ -132,7 +137,7 @@ for (const grp of groups) {
   const todo = grp.shots.filter((s) => { if (have(s)) { console.log(`[${s.name}] have it`); return false; } return true; });
   if (todo.length === 0) continue;
   const first = todo[0];
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: SCALE });
+  const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: SCALE });
   await ctx.addInitScript(() => {
     try { localStorage.setItem('ws.gfx.v1', JSON.stringify({ dpr: 'native', aa: 'on' })); } catch { /* storage off */ }
   });
@@ -188,7 +193,7 @@ for (const grp of groups) {
     }
     const secs = (Date.now() - tc) / 1000;
     console.log(`[${s.name}] ${n} frames × ${SUB} in ${secs.toFixed(0)} s (${(secs / n).toFixed(2)} s/frame)${errors.length > 0 ? ` — ${errors.length} errors` : ''}`);
-    writeFileSync(`${dir}/meta.json`, JSON.stringify({ name: s.name, shard: s.shard, frames: n, sub: SUB, fps: FPS, scale: SCALE, url, errors, poses, probe, done: !DRY }, null, 1));
+    writeFileSync(`${dir}/meta.json`, JSON.stringify({ name: s.name, shard: s.shard, frames: n, sub: SUB, fps: FPS, scale: SCALE, view: VIEW, url, errors, poses, probe, done: !DRY }, null, 1));
     report.push({ name: s.name, frames: n, secs, errors: errors.length });
   }
   await ctx.close();

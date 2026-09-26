@@ -8,12 +8,14 @@
 // Then: concat (hard cuts on the beat), white flash-frames where a clip asks for one (the shard changes), the title PNG
 // sequences (titles.mjs) overlaid at their times, a vignette + fine film grain over everything, and the final H.264
 // High 1080p60 encode (Steam: ≥ 1920×1080, H.264, ≥ 5000 kbps; we give ~30 Mb/s) with 320 kb/s AAC.
+// `edl.size` [w, h] (default 1920×1080): the Nine Dragon teaser's phone cut is 1080×1920 from 2160×3840 portrait captures.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const [FR, EDL, TITLES, MIX, OUT] = process.argv.slice(2);
 const edl = JSON.parse(readFileSync(EDL, 'utf8'));
 const FPS = 60;
+const [W, H] = edl.size ?? [1920, 1080];
 const TMP = `${OUT}.parts`;
 mkdirSync(TMP, { recursive: true });
 const ff = (args) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...args], { stdio: 'inherit' });
@@ -25,6 +27,8 @@ const GRADES = {
   nalati: 'eq=contrast=1.05:saturation=1.03:gamma=0.98,colorbalance=rs=-0.02:bs=0.03:rh=0.03:gh=0.01:bh=-0.02',
   pine: 'eq=contrast=1.07:saturation=1.02:gamma=0.97,colorbalance=rs=-0.03:gs=-0.01:bs=0.04:rh=0.04:gh=0.01:bh=-0.03',
   night: 'eq=contrast=1.08:saturation=0.98:gamma=0.97,colorbalance=rs=-0.02:bs=0.05:rh=0.02:bh=-0.01',
+  // Nine Dragon Stack carries its own Jiehua grade (the learned LUT, the shoulder): only a touch of contrast to seat it
+  'nine-dragon': 'eq=contrast=1.04:saturation=1.03:gamma=0.99',
   none: 'null',
 };
 
@@ -34,7 +38,7 @@ edl.clips.forEach((c, k) => {
     const out = `${TMP}/${String(k).padStart(2, '0')}-black.mkv`;
     parts.push(out);
     const frames = Math.round((c.at + c.dur) * FPS) - Math.round(c.at * FPS);
-    ff(['-f', 'lavfi', '-i', `color=c=black:s=1920x1080:r=${FPS}`, '-frames:v', String(frames), '-vf', 'format=yuv444p', '-c:v', 'libx264', '-qp', '4', '-pix_fmt', 'yuv444p', out]);
+    ff(['-f', 'lavfi', '-i', `color=c=black:s=${W}x${H}:r=${FPS}`, '-frames:v', String(frames), '-vf', 'format=yuv444p', '-c:v', 'libx264', '-qp', '4', '-pix_fmt', 'yuv444p', out]);
     return;
   }
   const dir = `${FR}/${c.shot}`;
@@ -51,7 +55,7 @@ edl.clips.forEach((c, k) => {
     sub > 1 ? `select='not(mod(n\\,${sub}))'` : null,
     `setpts=N/(${FPS}*TB)`,
     // JPEG is full-range BT.601 4:2:0 at 4K; out is limited-range BT.709 — at 1080 the 4K chroma is full 4:4:4
-    'scale=1920:1080:flags=lanczos+accurate_rnd+full_chroma_int:in_range=full:out_range=tv:in_color_matrix=bt601:out_color_matrix=bt709',
+    `scale=${W}:${H}:flags=lanczos+accurate_rnd+full_chroma_int:in_range=full:out_range=tv:in_color_matrix=bt601:out_color_matrix=bt709`,
     GRADES[c.grade ?? meta.shard] ?? 'null',
     c.flashIn ? `fade=t=in:st=0:d=${c.flashIn}:color=white` : null,
     c.fadeOut ? `fade=t=out:st=${(c.dur - c.fadeOut).toFixed(3)}:d=${c.fadeOut}:color=black` : null,
