@@ -6,6 +6,7 @@
  * the shard you are in, a filter box on top. There are no URL switches (AGENTS.md "No URL switches, ever").
  *
  *   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 …' })
+ *   action('clearDownloads', 'loading', 'Downloads', 'Clear', () => …, { note: 'E172 …' })   // a button row, not a pick
  *   DEBUG_ROWS            → every row, in menu order within its group
  *   DEBUG_GROUPS          → the groups, in menu order (never add one without need: a row belongs in an existing group)
  *
@@ -57,6 +58,8 @@ export interface DebugRow {
   when: When;
   /** one line: what it switches and the ask it came from */
   note: string;
+  /** a button row (a one-shot: clear a cache, spawn something) instead of a pick; `choices` is empty */
+  action?: { text: string; run: () => void | Promise<void> };
 }
 
 // ── the shards ──
@@ -74,6 +77,13 @@ export function opt<K extends OptionKey>(key: K, group: DebugGroupId, label: str
     get: () => setting(key),
     set: (s) => { const hit = choices.find(([v]) => v === s); if (hit) saveSetting(key, hit[0]); },
     on: (fn) => { onSettingChange(key, () => { fn(); }); },
+  };
+}
+/** a button row: `text` on the button, `run` on a tap (the button disables until a returned promise settles) */
+export function action(id: string, group: DebugGroupId, label: string, text: string, run: () => void | Promise<void>, o: RowOpts): DebugRow {
+  return {
+    id, group, label, choices: () => [], reload: o.reload ?? false, when: o.when ?? always, note: o.note,
+    get: () => '', set: () => undefined, on: () => undefined, action: { text, run },
   };
 }
 const ON_OFF = [['on', 'On'], ['off', 'Off']] as const;

@@ -16,3 +16,5 @@
 .ws-gmenu .ws-dbg-note { display: block; margin-top: 3px; font-size: 8.5px; letter-spacing: 0.06em; text-transform: none; line-height: 1.4; color: var(--ws-text-dim); }
 .ws-gmenu .ws-dbg-reload { display: inline-block; margin-left: 8px; padding: 1px 4px; font-style: normal; font-size: 7.5px; letter-spacing: 0.14em; color: var(--ws-amber); border: 1px solid rgba(255, 181, 71, 0.6); vertical-align: 1px; }
 .ws-gmenu .ws-dbg-empty[hidden] { display: none; }
+.ws-gmenu .ws-dbg-action { flex: none; margin-left: auto; border-left-width: 1px; padding: 6px 12px; color: #fff; } /* a button row (debugOptions.ts action()) */
+.ws-gmenu .ws-dbg-action:disabled { opacity: 0.5; }
