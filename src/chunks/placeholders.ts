@@ -7,8 +7,9 @@
  * selected: `heroPortrait` on tall viewports (aspect < 1), `heroLandscape` otherwise.
  */
 // Nalati Grasslands graduated to a real shard (src/chunks/nalati-grasslands.ts); its thumb / hero images moved with it.
-// Nine Dragon Stack (shard 4, docs/plans/NINE-DRAGON-STACK.md): every picture is a capture of the from-scratch clean-room
-// spawn (dev/nine-dragon.html, scripts/nine-dragon-capture.mjs), not the shard — hence the PROTOTYPE caption.
+// Nine Dragon Stack (shard 4, docs/plans/NINE-DRAGON-STACK.md): every picture is an in-engine capture of the partial shard
+// (src/chunks/nine-dragon-stack/, free camera, no HUD) — a prototype fragment, not the finished shard, hence the PROTOTYPE
+// caption. The poses are the four mockup cameras (mockupCameras.ts) + a bridge in the Well.
 import nineThumb from './thumbs/nine-dragon-stack.jpg';
 import ninePortrait from './thumbs/nine-dragon-stack-portrait.jpg';
 import nineLandscape from './thumbs/nine-dragon-stack-landscape.jpg';
@@ -18,12 +19,12 @@ import nineWellEdgeT from './teasers/nine-dragon-stack/01-well-edge-thumb.jpg';
 import nineWellDownP from './teasers/nine-dragon-stack/02-well-down-portrait.jpg';
 import nineWellDownL from './teasers/nine-dragon-stack/02-well-down-landscape.jpg';
 import nineWellDownT from './teasers/nine-dragon-stack/02-well-down-thumb.jpg';
-import nineCanyonP from './teasers/nine-dragon-stack/03-canyon-up-portrait.jpg';
-import nineCanyonL from './teasers/nine-dragon-stack/03-canyon-up-landscape.jpg';
-import nineCanyonT from './teasers/nine-dragon-stack/03-canyon-up-thumb.jpg';
-import nineSutraP from './teasers/nine-dragon-stack/04-sutra-portrait.jpg';
-import nineSutraL from './teasers/nine-dragon-stack/04-sutra-landscape.jpg';
-import nineSutraT from './teasers/nine-dragon-stack/04-sutra-thumb.jpg';
+import nineStairP from './teasers/nine-dragon-stack/03-stair-street-portrait.jpg';
+import nineStairL from './teasers/nine-dragon-stack/03-stair-street-landscape.jpg';
+import nineStairT from './teasers/nine-dragon-stack/03-stair-street-thumb.jpg';
+import nineBridgeP from './teasers/nine-dragon-stack/04-bridge-portrait.jpg';
+import nineBridgeL from './teasers/nine-dragon-stack/04-bridge-landscape.jpg';
+import nineBridgeT from './teasers/nine-dragon-stack/04-bridge-thumb.jpg';
 
 /** one more backdrop for a teaser's hero slideshow: the same scene in both orientations + what it shows */
 export interface TeaserShot {
@@ -65,9 +66,9 @@ export const PLACEHOLDERS: ShardTeaser[] = [
     heroCaption: 'Lantern Square · +125 m',
     screens: [
       { portrait: nineWellEdgeP, landscape: nineWellEdgeL, thumb: nineWellEdgeT, caption: 'The Yamen Well · 375 m down' },
-      { portrait: nineWellDownP, landscape: nineWellDownL, thumb: nineWellDownT, caption: 'Nine strata · silk fog' },
-      { portrait: nineCanyonP, landscape: nineCanyonL, thumb: nineCanyonT, caption: 'Toward the Crown · +250 m' },
-      { portrait: nineSutraP, landscape: nineSutraL, thumb: nineSutraT, caption: 'The deep strata · gold on indigo' },
+      { portrait: nineWellDownP, landscape: nineWellDownL, thumb: nineWellDownT, caption: 'Down the Well · the galleries' },
+      { portrait: nineStairP, landscape: nineStairL, thumb: nineStairT, caption: 'The stair-street · Terrace Row' },
+      { portrait: nineBridgeP, landscape: nineBridgeL, thumb: nineBridgeT, caption: 'Crossing the Well · +121 m' },
     ],
   },
 ];
