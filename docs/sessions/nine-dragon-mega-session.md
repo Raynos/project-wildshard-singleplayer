@@ -11,6 +11,7 @@ Updated: 2026-09-26. This is the short list to use when Jake returns and asks to
 | F3 | Now | Review the shared HUD/Weapon Explorer mockups: portrait grid arena, three spaced humanoid dummies, first-person combat, a nine-angle sheet for each dummy, and nine views of the whole arena. Pick corrections before implementation. | [mockups](../../art/hud-explorer/round-1-arena/README.md), E208/E210 |
 | F4 | Now | Review the **portrait Nine Dragon trailer recut** with the playable grapple. Does the crossing read clearly, and is the 15-second cut ready? | [video](../../art/nine-dragon-stack/round-19-portrait-grapple/nine-dragon-portrait-grapple.mp4), [contact sheet](../../art/nine-dragon-stack/round-19-portrait-grapple/contact.jpg), E204 |
 | F5 | After model catalog deploy | Review the three placed GLB assets in Model Explorer and say which need more polish before further shard expansion. | E205 |
+| F6 | If the physical-phone double load happens again | Read or screenshot pause → Settings → Debug → Loading & memory → **Last reload** after the second Nine Dragon load. It records whether the previous page ended intentionally or unexpectedly and which shards were resident. | E200 |
 
 ## Resolved decisions
 
