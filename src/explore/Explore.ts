@@ -4,7 +4,8 @@
  *
  *   const x = new Explore(host);
  *   x.open('hub' | 'world' | 'model', { cam?: [x, y, z, yaw, pitch], model?: id })
- *   x.close()                 // ✕ → host.onExit() (back to the title)
+ *   x.back()                  // ✕ / Esc: one step back — turntable → catalog → hub → the title (E182)
+ *   x.close()                 // out of Explore altogether → host.onExit() (back to the title)
  *   x.context()               // the feedback note's context while exploring (camera pose, mode, model …)
  *   x.toast('Note sent') / x.hold(true)   // the review composer is up: input off, frame frozen by main.ts
  *
@@ -59,6 +60,9 @@ export interface ExplorePane {
   hide: () => void;
   update: (dt: number) => void;
   context: () => Record<string, ContextValue>;
+  /** E182: the ✕ / Esc steps back one level. The pane takes the step if it has one of its own (the Model Explorer's
+   *  turntable → its catalog) and says so; false hands the step on, which leaves the pane for the hub. */
+  back?: () => boolean;
 }
 
 /** the World Explorer's first view: up and behind the shard's spawn, looking the way the spawn faces — over the
@@ -88,6 +92,7 @@ export class Explore {
   private readonly toastEl: HTMLElement;
   private readonly tabs: HTMLElement;
   private readonly speedBtn: HTMLElement;
+  private readonly closeBtn: HTMLElement;
   private readonly panes = new Map<ExploreMode, ExplorePane>();
   private speed = 1;
   private hubT = 0;
@@ -107,6 +112,7 @@ export class Explore {
       <div class="ws-x-brand"><span>Project <b>Wildshard</b></span><i>Explore</i></div>
       <div class="ws-x-tabs"><button type="button" data-m="model">Models</button><button type="button" data-m="world">World</button></div>
       <button class="ws-x-close" type="button" aria-label="Back to the title">✕</button>`);
+    this.closeBtn = top.querySelector<HTMLElement>('.ws-x-close') ?? top;
     this.tabs = top.querySelector<HTMLElement>('.ws-x-tabs') ?? top;
     this.readout = html('div', 'ws-x-readout');
     const shard = host.world.chunk, own = shard.slug === 'driftwood-isle'; // the hub art is Driftwood's; another shard shows its picker art
@@ -127,7 +133,7 @@ export class Explore {
     this.root.append(top, this.readout, this.hubEl, this.flyEl, note, this.toastEl);
     document.body.append(this.root);
 
-    top.querySelector('.ws-x-close')?.addEventListener('click', () => { this.close(); });
+    this.closeBtn.addEventListener('click', () => { this.back(); }); // E182 (Jake: "the X button kicks you back out to level select")
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.addEventListener('click', () => { this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
     this.hubEl.querySelectorAll<HTMLElement>('.ws-x-card').forEach((b) => { b.addEventListener('click', () => { this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
     this.speedBtn.addEventListener('click', () => { this.setSpeed((this.speed + 1) % SPEEDS.length); });
@@ -215,6 +221,25 @@ export class Explore {
     }
   }
 
+  /**
+   * One step back (E182, Jake: the ✕ "kicks you back out to level select"): an open overlay closes, else the pane takes
+   * its own step (the turntable goes to its catalog), else a mode goes to the hub, and only from the hub does ✕ leave.
+   */
+  back(): void {
+    if (this.compare?.isOpen === true) { this.compare.close(); this.syncBack(); return; }
+    if (this.map?.isOpen === true) { this.map.close(); this.syncBack(); return; }
+    if (this.panes.get(this.mode)?.back?.() === true) { this.syncBack(); return; }
+    if (this.mode === 'hub') { this.close(); return; }
+    this.setMode('hub');
+  }
+
+  /** the ✕ says where the step goes: ‹ while there is somewhere inside Explore to go back to, ✕ when it leaves */
+  syncBack(): void {
+    const inner = this.mode !== 'hub' || this.map?.isOpen === true || this.compare?.isOpen === true;
+    this.closeBtn.textContent = inner ? '‹' : '✕';
+    this.closeBtn.setAttribute('aria-label', inner ? 'Back' : 'Back to the title');
+  }
+
   /** leave to the title; the player is put back where they were */
   close(): void {
     if (!this.active) return;
@@ -246,6 +271,7 @@ export class Explore {
     // VIEW IN WORLD / the map fly from there, a `cam` link (open) overrides it
     if (mode === 'world' && prev !== 'world') { const h = homeView(this.host.world); this.cam.placeAt(h.pos, h.look); }
     for (const [m, p] of this.panes) { if (m === mode) p.show(opts); else p.hide(); }
+    this.syncBack();
   }
 
   /** the build chip (src/ui/Update.ts) sits where the Explore bar is; the frame meter's numbers move into the readout */
@@ -310,7 +336,7 @@ export class Explore {
     const t = e.target;
     if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
     if (e.code === 'F8') { e.preventDefault(); void this.note(); }
-    else if (e.code === 'Escape' && !this.held) { if (this.compare?.isOpen === true) this.compare.close(); else if (this.map?.isOpen === true) this.map.close(); else if (this.mode === 'hub') this.close(); else this.setMode('hub'); }
+    else if (e.code === 'Escape' && !this.held) this.back(); // E182: Esc and ✕ are the same one step back
     else if (e.code === 'KeyM' && this.mode === 'world') this.map?.toggle();
     else if (e.code === 'Digit1') this.setMode('model');
     else if (e.code === 'Digit2') this.setMode('world');

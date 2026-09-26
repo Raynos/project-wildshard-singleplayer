@@ -89,11 +89,17 @@
 .ws-x-views { top: calc(68px + env(safe-area-inset-top, 0px)); }
 .ws-x-lights { top: calc(104px + env(safe-area-inset-top, 0px)); }
 .ws-x-turntable.noclock .ws-x-lights { display: none; }
-.ws-x-sheet { position: absolute; left: 12px; right: 84px; bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; max-width: 620px; padding: 10px 14px 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-sheet { position: absolute; left: 12px; right: 84px; bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + var(--ws-home, 0px)); display: flex; flex-direction: column; gap: 8px; max-width: 620px; padding: 10px 14px 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .ws-x-sheet-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
 .ws-x-sheet-head .ws-x-back { padding: 4px 8px; background: none; border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-cyan); }
 .ws-x-sheet-head b { font-family: var(--ws-display); font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
 .ws-x-sheet-head span { font-size: 11px; color: var(--ws-text-dim); }
+/* E181: PREV / NEXT walk the catalog's own order without going back to the grid; hidden when there is nowhere to step */
+.ws-x-sheet-head .ws-x-step { display: flex; flex: none; gap: 6px; margin-left: auto; }
+.ws-x-sheet-head .ws-x-step[hidden] { display: none; }
+.ws-x-sheet-head .ws-x-step button { width: 38px; height: 34px; padding: 0; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); font-size: 16px; line-height: 1; }
+.ws-x-sheet-head .ws-x-step button:active { background: rgba(143, 227, 255, 0.24); }
+.ws-x-sheet-head .ws-x-file { flex: 1 0 100%; }
 .ws-x-stats { font-size: 11px; letter-spacing: 0.14em; color: var(--ws-cyan); }
 .ws-x-actions { display: flex; gap: 8px; }
 .ws-x-actions button { padding: 8px 14px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
@@ -137,6 +143,13 @@
 .ws-x-sheet::before, .ws-x-sheet::after { content: ''; position: absolute; width: 14px; height: 14px; border-color: var(--ws-cyan); border-style: solid; }
 .ws-x-sheet::before { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
 .ws-x-sheet::after { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+/* E180 (Jake: "the corners cut"): the phone's own rounded screen corners sliced the square card. Round it — the bottom
+   more than the top, following the screen's curve on a touch device — lift it clear of the home-swipe strip, and bend
+   the corner brackets with it (the pause sheet's trick, gmenu.css E139). */
+.ws-x-sheet { --ws-x-rt: 12px; --ws-x-rb: 12px; border-radius: var(--ws-x-rt) var(--ws-x-rt) var(--ws-x-rb) var(--ws-x-rb); }
+@media (pointer: coarse) { .ws-x-sheet { --ws-x-rb: 26px; } }
+.ws-x-sheet::before { width: calc(var(--ws-x-rt) + 10px); height: calc(var(--ws-x-rt) + 10px); border-top-left-radius: var(--ws-x-rt); }
+.ws-x-sheet::after { width: calc(var(--ws-x-rb) + 10px); height: calc(var(--ws-x-rb) + 10px); border-bottom-right-radius: var(--ws-x-rb); }
 .ws-x-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 0; letter-spacing: 0; }
 .ws-x-stats span { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: rgba(143, 227, 255, 0.06); border: 1px solid rgba(143, 227, 255, 0.14); }
 .ws-x-stats i { font-style: normal; font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); }

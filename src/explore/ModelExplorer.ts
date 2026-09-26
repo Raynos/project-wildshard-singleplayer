@@ -100,7 +100,7 @@ export class ModelExplorer implements ExplorePane {
         <div class="ws-x-creature-row"><span class="ws-x-variants"></span><button type="button" class="ws-x-skel">Skeleton</button><button type="button" class="ws-x-slow">0.5×</button></div>
       </div>
       <div class="ws-x-sheet">
-        <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-file"></span></div>
+        <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-step"><button class="ws-x-prev" type="button" aria-label="Previous model">‹</button><button class="ws-x-next" type="button" aria-label="Next model">›</button></span><span class="ws-x-file"></span></div>
         <div class="ws-x-stats"><span><i>Tris</i><b data-s="tris"></b></span><span><i>Draw calls</i><b data-s="calls"></b></span><span><i>Build</i><b data-s="build"></b></span></div>
         <div class="ws-x-budget"><span></span><div class="ws-x-budget-bar"><i></i></div></div>
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
@@ -112,6 +112,9 @@ export class ModelExplorer implements ExplorePane {
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
     this.sheet.querySelector('.ws-x-back')?.addEventListener('click', () => { this.openCatalog(); });
+    // E181 (Jake: "there's no buttons to go left or right in the catalog"): step through the list the catalog is showing
+    this.sheet.querySelector('.ws-x-prev')?.addEventListener('click', () => { this.step(-1); });
+    this.sheet.querySelector('.ws-x-next')?.addEventListener('click', () => { this.step(1); });
     this.grid.querySelector('.ws-x-lineup')?.addEventListener('click', () => { this.openLineup(); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-clips button').forEach((b) => { b.addEventListener('click', () => { this.playClip((b.dataset['c'] ?? 'idle') as Clip); }); });
     this.sheet.querySelector('.ws-x-skel')?.addEventListener('click', () => { this.setSkeleton(!this.skeleton); });
@@ -180,6 +183,29 @@ export class ModelExplorer implements ExplorePane {
     this.thumbQueue = this.entries.filter((e) => !this.thumbs.has(e.id));
   }
 
+  /** the entries the catalog is showing, in its order — what PREV / NEXT walk (E181) */
+  private shown(): CatalogEntry[] {
+    return this.entries.filter((e) => this.filter === 'all' || e.category === this.filter);
+  }
+
+  /** PREV / NEXT: the neighbour in the catalog's own order, wrapping round. A lineup has no neighbour. */
+  private step(by: -1 | 1): void {
+    const cur = this.current;
+    if (!cur || this.lineup !== null) return;
+    const list = this.shown();
+    const i = list.findIndex((e) => e.id === cur.id);
+    if (i < 0 || list.length < 2) return;
+    const next = list[(i + by + list.length) % list.length];
+    if (next) this.openModel(next);
+  }
+
+  /** E182: ✕ / Esc steps back to the catalog while a model is up, and hands the step on from the catalog itself */
+  back(): boolean {
+    if (this.el.dataset['view'] !== 'model') return false;
+    this.openCatalog();
+    return true;
+  }
+
   private renderGrid(): void {
     this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { b.classList.toggle('on', b.dataset['f'] === this.filter); });
     const box = this.grid.querySelector('.ws-x-grid');
@@ -218,6 +244,8 @@ export class ModelExplorer implements ExplorePane {
     const name = q('.ws-x-name'), file = q('.ws-x-file');
     if (name) name.textContent = e.name;
     if (file) file.textContent = e.file;
+    const step = q('.ws-x-step'); // E181: nothing to step to in a one-model filter, or in a lineup
+    if (step) step.hidden = this.lineup !== null || this.shown().length < 2;
     const set = (k: string, v: string): void => { const el = q(`.ws-x-stats b[data-s="${k}"]`); if (el) el.textContent = v; };
     set('tris', m.tris.toLocaleString()); set('calls', String(m.calls)); set('build', e.live ? 'at boot' : `${e.buildMs.toFixed(1)} ms`);
     this.budget(m.tris, m.calls);
