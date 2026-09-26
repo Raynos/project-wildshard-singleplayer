@@ -19,10 +19,10 @@ import { shots } from '../shots/nine-dragon.mjs';
 export const SCORE = { seed: 302, OFF: 13.03, DROP: 16.03, OUT: 24.04, HIT_SRC: 26.71, BREACH: 3.0, GAP: 11.0, END_HIT: 11.67 };
 
 /** the grapple shot once F2's grapple is in the engine (ND_GRAPPLE=1); else the fall off the rim */
-export const GRAPPLE = process.env['ND_GRAPPLE'] === '1';
+export const GRAPPLE = process.env.ND_GRAPPLE === '1';
 
 /** @param {{ TAKE: string, SFX: string, portrait?: boolean }} io */
-export default function cut({ TAKE, SFX, portrait = false }) {
+export function cut({ TAKE, SFX, portrait = false }) {
   const LEN = 15.0;
   const { OFF, OUT, HIT_SRC, BREACH, GAP, END_HIT } = SCORE;
   const BEAT = 60 / 90;
@@ -36,7 +36,8 @@ export default function cut({ TAKE, SFX, portrait = false }) {
     [BREACH + 7 * BEAT, 'nd-stairs', 0.3, 'nine-dragon'],
     [BREACH + 9 * BEAT, mid, 0.0, 'nine-dragon'],
     [END_HIT, 'nd-wide', 0.2, 'nine-dragon', 0.08],
-  ].map(([at, ...r]) => [Number(at.toFixed(3)), ...r]);
+  ];
+  for (const row of rows) row[0] = Number(row[0].toFixed(3));
   const clips = rows.map(([at, shot, inp, grade, flash], k) => {
     const end = k + 1 < rows.length ? rows[k + 1][0] : LEN;
     const c = { at, shot, in: inp, dur: Number((end - at).toFixed(4)) };

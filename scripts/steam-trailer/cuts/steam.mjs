@@ -10,7 +10,7 @@
 //   src 50.92 peak ends    → 41.26   splice to src 54.24 (the break's last two beats) → src 55.31 final hit at 42.33 (end card)
 // A bar is 2.18 s (110 bpm): the mid-shard cuts sit on bar lines.
 /** @param {{ TAKE: string, SFX: string }} io */
-export default function cut({ TAKE, SFX }) {
+export function cut({ TAKE, SFX }) {
   const OFF = 9.66, LEN = 45.0, SPLICE = 41.26, SRC_B = 54.24, HIT = SPLICE + (55.31 - SRC_B);
 
   // [trailer start, shot, in-point in the shot (s), grade?, flash?] — each clip runs to the next row's start

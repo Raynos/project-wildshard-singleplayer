@@ -36,7 +36,7 @@ export const rigAt = (rig, t) => {
   const easeIO = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
   const T = rig.ease ? t0 + easeIO(clamp((t - t0) / (t1 - t0))) * (t1 - t0) : t;
   const cr = (p0, p1, p2, p3, u) => { const u2 = u * u, u3 = u2 * u; return 0.5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3); };
-  const at = (field) => {
+  const sample = (field) => {
     if (T <= t0) return keys[0][field];
     if (T >= t1) return keys[n - 1][field];
     let i = 0; while (i < n - 2 && T > keys[i + 1].t) i++;
@@ -44,5 +44,5 @@ export const rigAt = (rig, t) => {
     const u = (T - b.t) / (c.t - b.t);
     return [0, 1, 2].map((j) => cr(a[field][j], b[field][j], c[field][j], d[field][j], u));
   };
-  return { p: at('p'), l: at('l') };
+  return { p: sample('p'), l: sample('l') };
 };

@@ -39,7 +39,9 @@ const EDL = opt('edl', '') ? JSON.parse((await import('node:fs')).readFileSync(o
 const keep = (name, i) => !EDL || EDL.clips.some((c) => c.shot === name && i >= Math.floor((c.in - 0.25) * FPS) && i < Math.ceil((c.in + c.dur + 0.25) * FPS));
 
 const shots = [];
-for (const s of SETS) shots.push(...(await import(`./shots/${s}.mjs`)).shots.map((x) => (PORTRAIT && x.portrait ? { ...x, ...x.portrait } : x)));
+for (const s of SETS) {
+  for (const x of (await import(`./shots/${s}.mjs`)).shots) shots.push(PORTRAIT && x.portrait ? { ...x, ...x.portrait } : x);
+}
 
 // ── in-page runtime ─────────────────────────────────────────────────────────────────────────────────────────────
 // Installed once per page. window.__tr.rig = { keys: [{ t, p:[x,y,z], l:[x,y,z], fov, roll }], ease } drives the camera.

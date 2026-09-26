@@ -13,7 +13,7 @@ const opt = (k, d) => { const i = argv.indexOf(`--${k}`); return i === -1 ? d : 
 const NAME = opt('cut', 'steam');
 mkdirSync(OUT, { recursive: true });
 
-const { default: cut } = await import(`./cuts/${NAME}.mjs`);
+const { cut } = await import(`./cuts/${NAME}.mjs`);
 const { edl, titles, mix, report } = cut({ TAKE, SFX, portrait: argv.includes('--portrait') });
 
 writeFileSync(`${OUT}/edl.json`, JSON.stringify(edl, null, 1));
