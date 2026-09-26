@@ -1,0 +1,296 @@
+{
+ "at": "2026-09-26T03:43:08.626Z",
+ "clearSiteDataHeader": null,
+ "errors": [],
+ "cold": {
+  "playMs": 8057,
+  "servedBytes": 22099927,
+  "servedRequests": 256,
+  "servedTop": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215332
+   ],
+   [
+    "/assets/main-Cd4Mo8pi.js",
+    1175975
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891250
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808308
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762019
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753131
+   ]
+  ],
+  "netBytes": 22089770,
+  "netRequests": 257,
+  "fromSW": 218,
+  "requests": 486,
+  "net": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215626
+   ],
+   [
+    "/assets/main-Cd4Mo8pi.js",
+    1177286
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891546
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808604
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762315
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753427
+   ],
+   [
+    "/assets/music/piano/island-calm-05125ed8.m4a",
+    710973
+   ],
+   [
+    "/assets/music/orchestral/island-calm-27861d1b.m4a",
+    674426
+   ]
+  ]
+ },
+ "prefetch1": {
+  "status": "done",
+  "stored": 66,
+  "ktx2": {
+   "driftwood-isle": true,
+   "pine-hollow": true,
+   "nalati-grasslands": true
+  }
+ },
+ "storageAfterPrefetch": 153864301,
+ "warm": {
+  "playMs": 2619,
+  "servedBytes": 14308,
+  "servedRequests": 3,
+  "servedTop": [
+   [
+    "/sw.js",
+    9970
+   ],
+   [
+    "/?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle",
+    3382
+   ],
+   [
+    "/version.json?t=1790394206750",
+    56
+   ]
+  ],
+  "netBytes": 3986,
+  "netRequests": 2,
+  "fromSW": 231,
+  "requests": 246,
+  "net": [
+   [
+    "/?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle",
+    3662
+   ],
+   [
+    "/version.json?t=1790394206750",
+    324
+   ]
+  ]
+ },
+ "markersBefore": [
+  "ws.ktx2set.driftwood-isle.phone",
+  "ws.ktx2set.nalati-grasslands.phone",
+  "ws.ktx2set.pine-hollow.phone"
+ ],
+ "cachesBefore": [
+  "ws-shell-b-muhufynq-615d6d1914",
+  "ws-immutable",
+  "ws-static-45c16682cb"
+ ],
+ "storageBefore": 158472730,
+ "titleRows": [
+  "AUDIO VARIANTS",
+  "MUSIC STYLE",
+  "SOUND EFFECTS",
+  "LOOK",
+  "TIME OF DAY",
+  "FRAME RATE",
+  "FRAME CAP",
+  "GROUND COVER",
+  "FOLIAGE RANGE",
+  "GROUND TINT",
+  "SLOPE REACH",
+  "FAR COLOUR BLEND",
+  "FAR STAND-INS",
+  "TEXTURES",
+  "GPU TEXTURES",
+  "OTHER SHARDS",
+  "DOWNLOAD IN BACKGROUND",
+  "MEMORY",
+  "SHARDS IN MEMORY",
+  "DOWNLOADS",
+  "CLEAR DOWNLOADS"
+ ],
+ "armedText": "TAP AGAIN TO CLEAR ~158 MB",
+ "clearedText": "FREED 152 MB · RELOADING",
+ "afterClear": {
+  "playMs": 7381,
+  "servedBytes": 22099045,
+  "servedRequests": 253,
+  "servedTop": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215332
+   ],
+   [
+    "/assets/main-Cd4Mo8pi.js",
+    1175975
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891250
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808308
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762019
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753131
+   ]
+  ],
+  "netBytes": 22088385,
+  "netRequests": 251,
+  "fromSW": 218,
+  "requests": 487,
+  "net": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215626
+   ],
+   [
+    "/assets/main-Cd4Mo8pi.js",
+    1177234
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891546
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808604
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762315
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753427
+   ],
+   [
+    "/assets/music/piano/island-calm-05125ed8.m4a",
+    710973
+   ],
+   [
+    "/assets/music/orchestral/island-calm-27861d1b.m4a",
+    674426
+   ]
+  ]
+ },
+ "reloadUrl": "http://localhost:4194/?nolock=1&mute=1&chunk=driftwood-isle",
+ "report": {
+  "before": 158472730,
+  "after": 158444199,
+  "cached": 151723119,
+  "caches": 3,
+  "workers": 1,
+  "markers": 3,
+  "httpCache": true,
+  "at": 1790394213510
+ },
+ "localStorage": {
+  "changed": [
+   [
+    "ws-load-times:v1:phone:18",
+    "{\"renderer\":15.949999809265137,\"sky\":2192.800000190735,\"terrain\":52.700000047683716,\"cards\":1.0999996662139893,\"forest\":2.6000001430511475,\"physics\":3.3500001430511475,\"edge\":633.75,\"grass\":2.249999761581421,\"cabins\":0.04999995231628418,\"props\":0,\"animals\":29.799999713897705,\"weapon\":0.10000014305114746,\"menu\":3.3499999046325684,\"shaders\":459.099999666214,\"firstFrame\":447.2999999523163,\"audio\":0.14999985694885254}",
+    "{\"renderer\":15.724999904632568,\"sky\":1209.5499999523163,\"terrain\":62.550000071525574,\"cards\":1.5499998331069946,\"forest\":2.0000001192092896,\"physics\":3.1750000715255737,\"edge\":750.0250000953674,\"grass\":2.8249999284744263,\"cabins\":0.02499997615814209,\"props\":0,\"animals\":32.39999985694885,\"weapon\":0.10000002384185791,\"menu\":3.174999952316284,\"shaders\":674.8999999761581,\"firstFrame\":310.8000000715256,\"audio\":0.17499983310699463}"
+   ],
+   [
+    "wsLifeTrace",
+    "[\"22:43:08 ninb +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:16 ninb +7s world ready · first-paint 28ms, first-contentful-paint 68ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:26 ninb +18s hide · ok · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:26 d8zq +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:28 d8zq +2s world ready · first-paint 172ms, first-contentful-paint 192ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\"]",
+    "[\"22:43:08 ninb +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:16 ninb +7s world ready · first-paint 28ms, first-contentful-paint 68ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:26 ninb +18s hide · ok · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:26 d8zq +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:28 d8zq +2s world ready · first-paint 172ms, first-contentful-paint 192ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:35 d8zq +8s hide · ok · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:35 gjj1 +0s boot · nav navigate · ?nolock=1&mute=1&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"22:43:39 gjj1 +4s world ready · first-paint 192ms, first-contentful-paint 192ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\"]"
+   ],
+   [
+    "wsLifeTraceAt",
+    "1790394206832",
+    "1790394215222"
+   ]
+  ],
+  "markersAfterReload": [],
+  "save": "a save the clear must keep",
+  "review": "{\"password\":\"e172-test\",\"quick\":true}",
+  "settings": "{\"tier\":\"phone\",\"touch\":\"on\"}",
+  "dev": "1"
+ },
+ "sw": {
+  "controlled": true,
+  "regs": 1,
+  "build": "b-muhufynq-615d6d1914",
+  "caches": [
+   "ws-shell-b-muhufynq-615d6d1914",
+   "ws-immutable",
+   "ws-static-45c16682cb"
+  ]
+ },
+ "prefetch2": {
+  "status": "running",
+  "stored": 10,
+  "hit": 220
+ },
+ "pauseRows": [
+  "AUDIO VARIANTS",
+  "MUSIC STYLE",
+  "SOUND EFFECTS",
+  "LOOK",
+  "TIME OF DAY",
+  "FRAME RATE",
+  "FRAME CAP",
+  "GROUND COVER",
+  "FOLIAGE RANGE",
+  "GROUND TINT",
+  "SLOPE REACH",
+  "FAR COLOUR BLEND",
+  "FAR STAND-INS",
+  "TEXTURES",
+  "GPU TEXTURES",
+  "OTHER SHARDS",
+  "DOWNLOAD IN BACKGROUND",
+  "MEMORY",
+  "SHARDS IN MEMORY",
+  "DOWNLOADS",
+  "CLEAR DOWNLOADS"
+ ],
+ "sameRows": true
+}

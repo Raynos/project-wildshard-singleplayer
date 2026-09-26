@@ -1,0 +1,289 @@
+{
+ "at": "2026-09-26T04:18:38.533Z",
+ "clearSiteDataHeader": "\"cache\"",
+ "errors": [],
+ "cold": {
+  "playMs": 6065,
+  "servedBytes": 22121077,
+  "servedRequests": 256,
+  "servedTop": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215332
+   ],
+   [
+    "/assets/main-CDR-2FJr.js",
+    1113732
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891250
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808308
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762019
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753131
+   ]
+  ],
+  "netBytes": 22110992,
+  "netRequests": 257,
+  "fromSW": 218,
+  "requests": 486,
+  "net": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215626
+   ],
+   [
+    "/assets/main-CDR-2FJr.js",
+    1114992
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891546
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808604
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762315
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753427
+   ],
+   [
+    "/assets/music/piano/island-calm-05125ed8.m4a",
+    710973
+   ],
+   [
+    "/assets/music/orchestral/island-calm-27861d1b.m4a",
+    674426
+   ]
+  ]
+ },
+ "prefetch1": {
+  "status": "done",
+  "stored": 66,
+  "ktx2": {
+   "driftwood-isle": true,
+   "pine-hollow": true,
+   "nalati-grasslands": true
+  }
+ },
+ "storageAfterPrefetch": 153886945,
+ "warm": {
+  "playMs": 2055,
+  "servedBytes": 14221,
+  "servedRequests": 3,
+  "servedTop": [
+   [
+    "/sw.js",
+    9908
+   ],
+   [
+    "/?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle",
+    3357
+   ],
+   [
+    "/version.json?t=1790396334739",
+    56
+   ]
+  ],
+  "netBytes": 3961,
+  "netRequests": 2,
+  "fromSW": 231,
+  "requests": 246,
+  "net": [
+   [
+    "/?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle",
+    3637
+   ],
+   [
+    "/version.json?t=1790396334739",
+    324
+   ]
+  ]
+ },
+ "markersBefore": [
+  "ws.ktx2set.driftwood-isle.phone",
+  "ws.ktx2set.nalati-grasslands.phone",
+  "ws.ktx2set.pine-hollow.phone"
+ ],
+ "cachesBefore": [
+  "ws-shell-b-muhvql1b-b27c9c61b3",
+  "ws-immutable",
+  "ws-static-3e3d343dab"
+ ],
+ "storageBefore": 158529582,
+ "titleRows": [
+  "Look / Learned LUT",
+  "Ground cover & foliage / Foliage range",
+  "Ground cover & foliage / Ground tint",
+  "Ground cover & foliage / Slope reach",
+  "Ground cover & foliage / Far colour blend",
+  "Ground cover & foliage / Far stand-ins",
+  "Sky & weather / Time of day",
+  "Audio / Music style",
+  "Audio / Sound effects",
+  "Combat & weapons / Aim assist ring",
+  "Performance / Frame cap",
+  "Performance / Load profiling",
+  "Loading & memory / GPU textures",
+  "Loading & memory / Download in background",
+  "Loading & memory / Shards in memory",
+  "Loading & memory / Boot pack",
+  "Loading & memory / Clear downloads"
+ ],
+ "armedText": "Tap again to clear ~159 MB",
+ "clearedText": "Freed 152 MB · reloading",
+ "afterClear": {
+  "playMs": 5486,
+  "servedBytes": 22120195,
+  "servedRequests": 253,
+  "servedTop": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215332
+   ],
+   [
+    "/assets/main-CDR-2FJr.js",
+    1113732
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891250
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808308
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762019
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753131
+   ]
+  ],
+  "netBytes": 22109643,
+  "netRequests": 251,
+  "fromSW": 218,
+  "requests": 487,
+  "net": [
+   [
+    "/assets/models/driftwood-blender/island.glb?v=2b0e5453",
+    1215626
+   ],
+   [
+    "/assets/main-CDR-2FJr.js",
+    1114976
+   ],
+   [
+    "/assets/music/folk/pine-calm-10905c79.m4a",
+    891546
+   ],
+   [
+    "/assets/music/folk/title-50001128.m4a",
+    808604
+   ],
+   [
+    "/assets/music/piano/title-3d1f713a.m4a",
+    762315
+   ],
+   [
+    "/assets/music/piano/pine-calm-923e0056.m4a",
+    753427
+   ],
+   [
+    "/assets/music/piano/island-calm-05125ed8.m4a",
+    710973
+   ],
+   [
+    "/assets/music/orchestral/island-calm-27861d1b.m4a",
+    674426
+   ]
+  ]
+ },
+ "reloadUrl": "http://localhost:4194/?nolock=1&mute=1&chunk=driftwood-isle",
+ "report": {
+  "before": 158529582,
+  "after": 158423111,
+  "cached": 151743698,
+  "caches": 3,
+  "workers": 1,
+  "markers": 3,
+  "httpCache": true,
+  "at": 1790396340950
+ },
+ "localStorage": {
+  "changed": [
+   [
+    "ws-load-times:v1:phone:18",
+    "{\"renderer\":11.649999856948853,\"sky\":1601.6499998569489,\"terrain\":41.299999952316284,\"cards\":1.0499999523162842,\"forest\":1.6499998569488525,\"physics\":2.5999999046325684,\"edge\":445.75,\"grass\":0.8500001430511475,\"cabins\":0.05000019073486328,\"props\":0.04999995231628418,\"animals\":17.25,\"weapon\":0,\"menu\":1.3999998569488525,\"shaders\":537.0499999523163,\"firstFrame\":272.9999997615814,\"audio\":0.09999990463256836}",
+    "{\"renderer\":10.074999928474426,\"sky\":817.9250000715256,\"terrain\":37.60000002384186,\"cards\":1.0749999284744263,\"forest\":1.225000023841858,\"physics\":1.9499998092651367,\"edge\":432.3250000476837,\"grass\":1.0750001668930054,\"cabins\":0.02500009536743164,\"props\":0.02499997615814209,\"animals\":16.22499990463257,\"weapon\":0,\"menu\":1.5499998331069946,\"shaders\":435.0749999284744,\"firstFrame\":189.10000002384186,\"audio\":0.09999990463256836}"
+   ],
+   [
+    "wsLifeTrace",
+    "[\"23:18:38 9z16 +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:44 9z16 +6s world ready · first-paint 24ms, first-contentful-paint 56ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:54 9z16 +16s hide · ok · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:54 ttjw +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:56 ttjw +2s world ready · first-paint 104ms, first-contentful-paint 124ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\"]",
+    "[\"23:18:38 9z16 +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:44 9z16 +6s world ready · first-paint 24ms, first-contentful-paint 56ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:54 9z16 +16s hide · ok · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:54 ttjw +0s boot · nav navigate · ?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:18:56 ttjw +2s world ready · first-paint 104ms, first-contentful-paint 124ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:19:02 ttjw +8s hide · ok · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:19:02 7f7e +0s boot · nav navigate · ?nolock=1&mute=1&chunk=driftwood-isle · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\",\"23:19:04 7f7e +2s world ready · first-paint 56ms, first-contentful-paint 56ms · win 390x844 vv 390x844@1.00+0,0 canvas 0,0 390x844 dpr 2 visible\"]"
+   ],
+   [
+    "wsLifeTraceAt",
+    "1790396334809",
+    "1790396342515"
+   ]
+  ],
+  "markersAfterReload": [],
+  "save": "a save the clear must keep",
+  "review": "{\"password\":\"e172-test\",\"quick\":true}",
+  "settings": "{\"tier\":\"phone\",\"touch\":\"on\"}",
+  "dev": "1"
+ },
+ "sw": {
+  "controlled": true,
+  "regs": 1,
+  "build": "b-muhvql1b-b27c9c61b3",
+  "caches": [
+   "ws-shell-b-muhvql1b-b27c9c61b3",
+   "ws-immutable",
+   "ws-static-3e3d343dab"
+  ]
+ },
+ "prefetch2": {
+  "status": "running",
+  "stored": 15,
+  "hit": 239
+ },
+ "pauseRows": [
+  "Look / Learned LUT",
+  "Ground cover & foliage / Foliage range",
+  "Ground cover & foliage / Ground tint",
+  "Ground cover & foliage / Slope reach",
+  "Ground cover & foliage / Far colour blend",
+  "Ground cover & foliage / Far stand-ins",
+  "Sky & weather / Time of day",
+  "Audio / Music style",
+  "Audio / Sound effects",
+  "Combat & weapons / Aim assist ring",
+  "Performance / Frame cap",
+  "Performance / Load profiling",
+  "Loading & memory / GPU textures",
+  "Loading & memory / Download in background",
+  "Loading & memory / Shards in memory",
+  "Loading & memory / Boot pack",
+  "Loading & memory / Clear downloads"
+ ],
+ "pauseClearNote": "Last clear freed 152 MB (3 caches, 1 worker). Deletes the downloaded game files (every cache and the service worker) so the next load is a first visit. Keeps saves, settings and the review login.",
+ "sameRows": true
+}
