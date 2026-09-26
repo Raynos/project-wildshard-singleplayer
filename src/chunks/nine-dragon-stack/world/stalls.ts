@@ -44,8 +44,8 @@ function quad2(k: Kit, a: Vector3, b: Vector3, c: Vector3, d: Vector3, w: number
 }
 
 export function noodleStall(ctx: Ctx, rng: Rng): void {
-  const k = ctx.kit('stall', true);
-  const x = ctx.kitx('stall');
+  const k = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
+  const x = ctx.kitx('paifang');
   const { x0, x1, z0, z1 } = STALL;
   const y = Y0;
   const xc = (x0 + x1) / 2, W = x1 - x0;
@@ -222,8 +222,8 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
  * roof. Every sign reuses a spec of the big stall's (the colour atlas is small).
  */
 export function hawkerStall(ctx: Ctx, rng: Rng): void {
-  const k = ctx.kit('stall', true);
-  const x = ctx.kitx('stall');
+  const k = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
+  const x = ctx.kitx('paifang');
   const { x0, x1, z0, z1 } = HAWKER;
   const y = Y0;
   const xc = mid(x0, x1), L = x1 - x0;

@@ -32,7 +32,8 @@ export interface PoolLight {
 export interface VolumeBox { min: Vector3; max: Vector3; cell: number }
 
 /** the square level and the Well shaft (Lantern Square's layout.ts: WELL x −28…0, z −44…16; Y0 = 125) */
-export const SQUARE_BOX: VolumeBox = { min: new Vector3(-30, 123, -175), max: new Vector3(75, 171, 28), cell: 1 };
+// (round 14) east to x 110: the stair-street's upper flights and its gate (x 22 … 102) were outside the pools
+export const SQUARE_BOX: VolumeBox = { min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 };
 export const WELL_BOX: VolumeBox = { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 };
 
 /** E is stored as √(E / MAX): MAX is the brightest irradiance the volume holds */

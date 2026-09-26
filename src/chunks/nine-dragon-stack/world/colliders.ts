@@ -7,6 +7,8 @@
 import type { ColliderDesc } from '../../../world/registry';
 import { BANYAN, GATE, HAWKER, PLAZA, STAIR, STALL, STREET, WELL, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairstreet';
+import { stairUpperColliders } from './stairstreet-upper';
+import { wellColliders, wellFloor } from './well';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
 export const STREET_END = -120;
@@ -20,14 +22,6 @@ function span(x0: number, y0: number, z0: number, x1: number, y1: number, z1: nu
 
 /** a wall along x (at z) or along z (at x), 1 m thick, from the square's datum up `h` metres, on the far side of the line */
 const WALL_H = 40, SLAB = 1.2;
-/** the ring street's depth off each wall (well.ts: 1.8 m of walk + a 3.2 m ledge) and its three runs at the square's level
- *  [x0, z0, x1, z1] (the east wall is the square's own balustrade) */
-const RING_DEEP = 5;
-const RING: readonly (readonly [number, number, number, number])[] = [
-  [WELL.x0, WELL.z0, WELL.x0 + RING_DEEP, WELL.z1],          // west
-  [WELL.x0, WELL.z0, WELL.x1, WELL.z0 + RING_DEEP],          // north
-  [WELL.x0, WELL.z1 - RING_DEEP, WELL.x1, WELL.z1],          // south
-];
 
 /** the fragment's collision in four pieces (their looks on the maps: floors stone, fronts rock, edges rock, props timber) */
 export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[]; edges: ColliderDesc[]; props: ColliderDesc[] }
@@ -45,8 +39,8 @@ export function fragmentColliders(): FragmentColliders {
   // dome D's stair-street (stairstreet.ts): 3 flights × 20 treads, two landings, the paifang's post bases on landing 2
   out.push(...stairColliders());
   out.push(span(STAIR.x1, STAIR_TOP.y - SLAB, STAIR.z0, STAIR_TOP.x1, STAIR_TOP.y, STAIR.z1));         // its top landing
-  // the Well's ring street at the square's level (well.ts ringStreet): a 5 m ledge along its west, north and south walls
-  for (const r of RING) out.push(span(r[0], Y0 - SLAB, r[1], r[2], Y0, r[3]));
+  // the Well's south rim at the square's level (dome C's well.ts: its ledge, balustrade + parapet, the wall ends)
+  out.push(...wellColliders());
   // ── the building fronts round the square (the shopfronts sit on these lines) ──
   out = fronts;
   const top = Y0 + WALL_H;
@@ -66,15 +60,12 @@ export function fragmentColliders(): FragmentColliders {
   out = edges;
   out.push(span(PLAZA.x0 - 0.1, Y0, WELL.z0, PLAZA.x0 + 0.5, Y0 + 1.12, PLAZA.z1 + 0.6));
   out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, WELL.z0, PLAZA.x0 + 0.1, Y0 + 3.2, PLAZA.z1 + 0.6));
-  // the ring street's railings over the shaft (the south one stone, the others ruled bars) with the same parapet
-  const L = RING_DEEP;
-  out.push(span(WELL.x0 + L - 0.3, Y0, WELL.z0 + L - 0.3, WELL.x0 + L, Y0 + 3.2, WELL.z1 - L));        // west ledge's edge
-  out.push(span(WELL.x0 + L - 0.3, Y0, WELL.z0 + L - 0.3, WELL.x1, Y0 + 3.2, WELL.z0 + L));             // north ledge's edge
-  out.push(span(WELL.x0 + L - 0.3, Y0, WELL.z1 - L, WELL.x1, Y0 + 3.2, WELL.z1 - L + 0.5));             // south ledge's balustrade
   // ── props you would walk into ──
   out = props;
   // (the gate's lion pair and their pedestals are gone: dome B took them out, style-A and the A2 targets have none)
   for (const px of GATE.posts) out.push(span(px - 0.45, Y0, GATE.z - 0.45, px + 0.45, Y0 + 7, GATE.z + 0.45, 'wood'));
+  // the stair-street landings' planters (dome C2's)
+  out.push(...stairUpperColliders());
   // the banyan's round planter as an octagonal prism
   const pts: number[] = [];
   for (let i = 0; i < 8; i++) {
@@ -94,7 +85,8 @@ export function fragmentFloor(x: number, z: number): number | undefined {
   const inPlaza = x >= PLAZA.x0 && x <= PLAZA.x1 + 0.6 && z >= PLAZA.z0 && z <= PLAZA.z1 + 0.6;
   const inStreet = x >= STREET.x0 && x <= STREET.x1 && z >= STREET_END && z <= PLAZA.z0;
   if (inPlaza || inStreet) return Y0;
-  for (const r of RING) if (x >= r[0] && x <= r[2] && z >= r[1] && z <= r[3]) return Y0;
+  const rim = wellFloor(x, z);
+  if (rim !== undefined) return rim;
   if (z >= STAIR.z0 && z <= STAIR.z1) {
     if (x >= STAIR.x0 && x < STAIR.x1) return stairFloor(x);
     if (x >= STAIR.x1 && x <= STAIR_TOP.x1) return STAIR_TOP.y;

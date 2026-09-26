@@ -133,9 +133,8 @@ function cableDeck(ctx: Ctx, rng: Rng): void {
   ctx.signs.place({ at: new Vector3(1, y + 1.6, f + 0.3), normal: new Vector3(0, 0, 1), size: 1.25, spec: { text: '九龍', color: hex(NEON.red), vertical: false, style: 'tube' } }, k);
   dragonHook(k, ctx, new Vector3(-4, y + 0.2, f + 0.1), new Vector3(0, 0, 1), 0.6);
   dragonHook(k, ctx, new Vector3(22, y + 0.2, f + 0.1), new Vector3(0, 0, 1), 0.6);
-  // a second deck over the stair-street
-  const k2 = ctx.kit('deck2');
-  k2.box(78, Y0 + 50, 6, 70, 3, 64, { wash: 0x8a9099, kind: K.facade, row: 1.5, col: 4, seed: 12, line: 1.5 }, { bottom: null });
+  // a second deck over the stair-street (in the deck's own mesh: one draw for both, the budget's towers lane)
+  k.box(78, Y0 + 50, 6, 70, 3, 64, { wash: 0x8a9099, kind: K.facade, row: 1.5, col: 4, seed: 12, line: 1.5 }, { bottom: null });
 }
 
 function crown(ctx: Ctx, rng: Rng): void {
@@ -228,7 +227,7 @@ export function buildTowers(ctx: Ctx): void {
   dragonHook(bs, ctx, new Vector3(STREET.x1, Y0 + 11, -46), new Vector3(-1, 0, 0), 1.0);
   dragonHook(bs, ctx, new Vector3(STREET.x0, Y0 + 9.5, -60), new Vector3(1, 0, 0), 1.0);
   // laundry and cables strung across the street
-  const cab = ctx.kit('cables');
+  const cab = bs; // the cables ride in the blade signs' mesh (one draw fewer)
   // what is strung across the street: cables, laundry, lantern strings (the facade lab's spanStreet)
   for (let z = -46; z > -150; z -= rng.range(4, 8)) {
     const ya = Y0 + rng.range(8, 30);

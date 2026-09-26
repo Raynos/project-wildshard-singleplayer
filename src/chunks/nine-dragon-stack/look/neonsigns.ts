@@ -11,7 +11,7 @@ import {
 } from 'three';
 import type { Emitter } from './emitters';
 import { GlyphAtlas } from './glyphs';
-import { ADD_KEEP_ALPHA, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
+import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 import { chars } from '../util';
 
 export interface NeonDef {
@@ -169,7 +169,7 @@ void main() {
   D = mix(D, D * 0.4 + uPaperDeep * 0.6, uSutra);
   D = mix(D, mix(uBoard * 0.25, uGold * 1.2, uSutra), inkEdge);
   vec4 fg = silkFog(vWorld, 1.0);
-  vec3 col = D * fg.a + fg.rgb + E * sqrt(max(fg.a, 1e-4));
+  vec3 col = D * fg.a + fg.rgb + E * pow(max(fg.a, 1e-4), ${EMIT_FOG});
   gl_FragColor = vec4(col, uNear / max(vViewZ, uNear));
 }
 `;

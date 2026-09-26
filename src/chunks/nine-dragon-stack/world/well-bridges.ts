@@ -335,7 +335,10 @@ function timberBridge(ctx: Ctx, k: Kit, B: BridgeSpec, rng: Rng): ColliderDesc[]
   const top0 = B.top0 ?? B.x0, top1 = B.top1 ?? B.x1;
   // the pavilion stands off mid-span (a third of the way over, the side picked by the seed), never over `clear`
   let xp = B.x0 + span * (rng.chance(0.5) ? 0.34 : 0.66);
-  if (B.clear !== undefined && Math.abs(xp - B.clear) < 3.2) xp = B.x0 + B.x1 - xp;
+  if (B.clear !== undefined && Math.abs(xp - B.clear) < 3.8) {
+    // (its posts and eave lanterns stand ±2.2 m round it: put it 3.8 m off the clear spot, on the roomier side)
+    xp = B.clear + (B.clear - B.x0 > B.x1 - B.clear ? -3.8 : 3.8);
+  }
   if (span > 9 && xp - 2.4 > top0 && xp + 2.4 < top1) {
     // the pavilion: four red posts, a painted lintel each side, a glazed hip roof, a gilt plaque facing the rim
     const y = yt(xp), px = 1.7;
@@ -346,7 +349,7 @@ function timberBridge(ctx: Ctx, k: Kit, B: BridgeSpec, rng: Rng): ColliderDesc[]
     }
     hipRoof(ctx, k, xp, y + 2.62, B.z, 2 * px + 1.5, B.w + 1.3, 1.05, 0.32, rng.pick(TILES), null);
     ctx.signs.place({ at: new Vector3(xp, y + 2.35, zf + 0.1), normal: Z, size: 0.3, spec: { text: rng.pick(['九龍', '萬家', '茶樓', '天下', '旅館']), color: '#f0c86a', vertical: false, style: 'plaque' }, gain: 1.4 }, null);
-    for (const dx of [-px - 0.5, px + 0.5]) for (const zz of [zf + 0.45, zb - 0.45]) ctx.lantern(xp + dx, y + 2.2, zz, 0.72);
+    for (const dx of [-px - 0.5, px + 0.5]) for (const zz of [zf + 0.45, zb - 0.45]) if (B.clear === undefined || Math.abs(xp + dx - B.clear) > 2.5) ctx.lantern(xp + dx, y + 2.2, zz, 0.72);
     // lantern strings from the pavilion's eaves out to the bridge's ends (tied under the gallery above), both sides
     if (lod < 2) {
       for (const zz of [zf, zb]) {

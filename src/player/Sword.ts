@@ -98,6 +98,22 @@ export interface SwordRig {
    *  not swung with the sword */
   left?: { geometry: THREE.BufferGeometry; material: THREE.Material; pos: THREE.Vector3; q: THREE.Quaternion };
 }
+/**
+ * An animated first-person rig in place of the rigid viewmodel (Nine Dragon Stack's skinned arms, lab P8): its clips are
+ * timed to the engine's moves, so the Sword keeps its clock, input, lunge, hit-stop and damage and only tells the rig
+ * which clip to play; the hit sweep follows the rig's blade. Everything under `root` is drawn in the viewmodel's queue.
+ */
+export interface SwordArms {
+  /** camera space (the Sword parents it to its viewmodel group) */
+  readonly root: THREE.Object3D;
+  /** a swing starting (the engine's move name), or the heavy's charge */
+  play: (move: Move['name'] | 'charge') => void;
+  /** per frame, before the hit sweep: dt (world-scaled), the walk (0..1 and its phase), the look's velocity (rad/s),
+   *  the camera it is drawn from and the drawing buffer */
+  update: (dt: number, s: { speed: number; walkPhase: number; lookVel: THREE.Vector2; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer }) => void;
+  /** the blade this frame, camera space: its base (grip end) and its tip */
+  blade: (base: THREE.Vector3, tip: THREE.Vector3) => void;
+}
 /** the portrait framing (Sword.framing): shrink, extra drop / slide (m, camera space), the blade tipped forward and turned (rad) */
 export interface SwordFraming { shrink: number; dx: number; dy: number; tilt: number; yaw: number }
 /** the poses + moves a rig swings (default: SwordMoves.ts's REST / CHARGE / SPRINT / COMBO / HEAVY) */
@@ -112,6 +128,8 @@ export interface SwordOptions {
   portraitFov?: number;
   /** the portrait framing, over the wooden sword's (a rig posed for portrait by its own rest key sets it neutral) */
   framing?: Partial<SwordFraming>;
+  /** an animated rig drawn and swung in place of the rigid one (the rigid rig is then hidden; the moves stay the engine's) */
+  arms?: SwordArms;
 }
 
 const DAMAGE_WOOD = 12, DAMAGE_IRON = 28;
@@ -421,6 +439,8 @@ export class Sword implements Weapon {
   protected game: Game; protected sky: Sky; protected player: Player;
   private targets: Targets | undefined;
   private rig = new THREE.Group(); private armRig = new THREE.Group();
+  /** SwordOptions.arms (null: the rigid rig) and the group it hangs in (the holster drop) */
+  private arms: SwordArms | null = null; private armsHolder = new THREE.Group(); private armsLook = new THREE.Vector2();
   private tipY = 0; private baseY = 0; private tipX = 0;
   private mv: SwordMoveSet = { rest: REST, charge: CHARGE, sprint: SPRINT, combo: COMBO, heavy: HEAVY };
 
@@ -478,6 +498,7 @@ export class Sword implements Weapon {
     this.iron = opts.blade === 'iron';
     this.fx = CameraFX.for(this.game); // camera kick / FOV punch (C3); after bootstrap, so it layers on Player.update's camera
     this.buildViewmodel(opts.blade ?? 'wood', opts.rig);
+    if (opts.arms) this.useArms(opts.arms);
     this.buildTrail();
     const cam = this.game.camera;
     cam.add(this.model);
@@ -540,6 +561,7 @@ export class Sword implements Weapon {
       const p = this.player.position, go = Math.hypot(lock.position.x - p.x, lock.position.z - p.z) - targetRadius(lock) - LUNGE_STOP;
       this.player.dashTo(lock.position.x, lock.position.z, targetRadius(lock) + LUNGE_STOP, THREE.MathUtils.clamp(go / LUNGE_SPEED, LUNGE_MIN_T, LUNGE_MAX_T));
     }
+    this.arms?.play(move.name);
     this.onFire?.();
     const heavy = move === this.mv.heavy;
     if (heavy) this.onHeavy?.();
@@ -568,7 +590,7 @@ export class Sword implements Weapon {
     }
     return best;
   }
-  private beginCharge(): void { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; }
+  private beginCharge(): void { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; this.arms?.play('charge'); }
   private releaseHeavy(): void { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(this.mv.heavy); }
 
   /** no ammo to add / nothing to reload */
@@ -639,6 +661,20 @@ export class Sword implements Weapon {
    * not a polyline; additive, one draw call. Alpha by age per vertex; across the ribbon (`aEdge` 0 inner → 1 tip) the
    * fragment feathers the inner edge to the move's `inner` alpha and lays a bright core line along the tip.
    */
+  /** SwordOptions.arms: the rig's root in the viewmodel group, drawn after the depth clear (renderOrder ≥ 1000, the
+   *  transparent queue, as the rigid rig); the rigid rig hidden */
+  private useArms(arms: SwordArms): void {
+    this.arms = arms;
+    this.rig.visible = false; this.armRig.visible = false;
+    arms.root.traverse((o) => {
+      if (!(o instanceof THREE.Mesh)) return;
+      o.renderOrder = 1002 + o.renderOrder; o.frustumCulled = false;
+      for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m instanceof THREE.Material) { m.transparent = true; m.depthWrite = true; }
+    });
+    this.armsHolder.add(arms.root);
+    this.model.add(this.armsHolder);
+  }
+
   private buildTrail(): void {
     const g = new THREE.BufferGeometry();
     const quads = (TRAIL_SAMPLES - 1) * TRAIL_SUB;
@@ -725,6 +761,7 @@ export class Sword implements Weapon {
   // ── melee hit test: the blade swept from last frame's pose to this one (see the header) ──
   /** this frame's blade from the swing pose (basePos / baseQ, scale 1): unit dirs from the eye through the grip and tip, camera space */
   private bladeDirs(grip: THREE.Vector3, tip: THREE.Vector3): void {
+    if (this.arms) { this.arms.blade(grip, tip); grip.add(this.armsHolder.position).normalize(); tip.add(this.armsHolder.position).normalize(); return; }
     grip.copy(this.basePos).normalize();
     tip.set(this.tipX, this.tipY, 0).applyQuaternion(this.baseQ).add(this.basePos).normalize();
   }
@@ -903,6 +940,14 @@ export class Sword implements Weapon {
       this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
     }
 
+    // an animated rig: its clips run on the same (world-scaled) clock, before the hit sweep reads its blade
+    if (this.arms) {
+      this.armsLook.set(dt > 0 ? dYaw / dt : 0, dt > 0 ? dPitch / dt : 0);
+      const h = sstep(0, 1, this.holster);
+      this.armsHolder.position.set(0, -h * 0.45, h * 0.1);
+      this.arms.update(dt, { speed: p.speedFactor, walkPhase: p.bobTime, lookVel: this.armsLook, camera: cam, renderer: this.game.renderer });
+    }
+
     // base pose: rest, or the swing, blended toward the charge / sprint poses
     const pos = _v1, q = _q;
     if (move) this.evalSwing(move, this.swingT, pos, q);
@@ -953,15 +998,15 @@ export class Sword implements Weapon {
     this.armRig.position.copy(this.posePos);
     this.armRig.quaternion.copy(this.mv.rest.q).slerp(this.poseQ, ARM_FOLLOW);
 
-    // trail: sample through the slash, then fade
-    if (active) this.trailSample();
+    // trail: sample through the slash, then fade (an animated rig draws its own)
+    if (active && !this.arms) this.trailSample();
     if (this.trailN > 0) {
       this.trailRebuild();
       const newest = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
       if (t - (this.trailT[newest] ?? t) > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
     }
     // the heavy's tip glint: on through the chop's active window, then winks out
-    const glintOn = move === this.mv.heavy && active;
+    const glintOn = move === this.mv.heavy && active && !this.arms;
     if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(this.tipX, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
     this.glint.update(worldTime.realDt, t, glintOn);
 

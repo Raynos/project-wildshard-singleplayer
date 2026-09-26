@@ -24,6 +24,8 @@ uniform sampler2D tTight;
 uniform sampler2D tWide;
 uniform sampler2D tHaze;
 uniform float uRainHaze;
+uniform sampler2D tRefl;
+uniform float uReflK;
 uniform sampler2D uSilk;
 uniform vec2 uTexel;
 uniform float uSutra;
@@ -99,6 +101,8 @@ float rainLayer(vec2 fc, float scale, float speed, float dens, float seed) {
 }
 void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
   vec3 c = inputColor.rgb;
+  // (render) the wet floor's streaked screen-space reflection (render/reflect.ts; 0 off the floor)
+  if (uReflK > 0.0) c += texture(tRefl, uv).rgb * uReflK;
   // (render) a light unsharp mask: the phone draws at 2× and the screen is 3×; the upscale softened the ruled ink and
   // the calligraphy the clean room drew at 3×
   if (uSharp > 0.0) {
@@ -173,7 +177,7 @@ export class JiehuaEffect extends Effect {
   constructor(private readonly view: PerspectiveCamera, shared: Shared, glow: Glow, grade: Grade) {
     const s = shared.u, B = BLEED;
     const u = {
-      tTight: new Uniform<Texture | null>(null), tWide: new Uniform<Texture | null>(null), tHaze: new Uniform<Texture | null>(null), uRainHaze: new Uniform(6), uSilk: new Uniform(s.uSilk.value),
+      tTight: new Uniform<Texture | null>(null), tWide: new Uniform<Texture | null>(null), tHaze: new Uniform<Texture | null>(null), uRainHaze: new Uniform(6), tRefl: new Uniform<Texture | null>(null), uReflK: new Uniform(0), uSilk: new Uniform(s.uSilk.value),
       uTexel: new Uniform(new Vector2()), uSutra: new Uniform(0), uTime: new Uniform(0), uLineScale: new Uniform(1), uLines: new Uniform(1),
       uInk: new Uniform(s.uInk0.value), uGold: new Uniform(s.uGold.value), uInk1: new Uniform(s.uInk1.value), uInkMid: new Uniform(110), uLineFog: new Uniform(1.7),
       uDpr: new Uniform(1), uSilPx: new Uniform(new Vector2(2.1, 1.2)), uSilFade: new Uniform(new Vector2(60, 170)), uSilGain: new Uniform(0.35),
@@ -204,6 +208,8 @@ export class JiehuaEffect extends Effect {
   haze: { texture: Texture | null; enabled: boolean } | null = null;
   /** how much of the haze a raindrop catches */
   rainHaze = 6;
+  /** the wet floor's reflection (render/reflect.ts); null = none */
+  refl: { texture: Texture | null; debugGain: number } | null = null;
   /** the unsharp mask's strength below 3× */
   sharpen = 0.35;
 
@@ -213,6 +219,8 @@ export class JiehuaEffect extends Effect {
     u.tWide.value = this.source?.wide ?? null;
     u.tHaze.value = this.haze?.enabled === true ? this.haze.texture : null;
     u.uRainHaze.value = u.tHaze.value === null ? 0 : this.rainHaze;
+    u.tRefl.value = this.refl?.texture ?? null;
+    u.uReflK.value = u.tRefl.value === null ? 0 : (this.refl?.debugGain ?? 1);
     u.uTexel.value.set(1 / inputBuffer.width, 1 / inputBuffer.height);
     u.uNF.value.set(cam.near, cam.far);
     u.uInvProj.value.copy(cam.projectionMatrixInverse);

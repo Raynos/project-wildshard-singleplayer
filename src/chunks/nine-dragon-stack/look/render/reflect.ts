@@ -1,5 +1,5 @@
 // The wet square's reflection (a `beforeChain` pass): a planar screen-space reflection of the frame on every wet floor,
-// then streaked and rippled, added onto the scene's HDR colour before the bleed pyramid (so reflected neon blooms).
+// then streaked and rippled; the Jiehua composite (render/jiehua.ts) adds it to the frame (`texture`).
 //
 // Why screen space and not a mirror camera: the fragment is ~2 M triangles in a few huge merged batches (the facade
 // shell alone is 231 k in one draw, r = 276 m), which a mirror camera cannot cull — a mirror render doubles the frame's
@@ -13,12 +13,13 @@
 //     screen space (a perspective-correct DDA, steps bunched near the floor point, a binary refine) against the depth buffer; the hit's colour × Schlick × the wet film
 //     (the ground's own flagstone puddles and joints, STONES_GLSL) × a confidence that fades at the screen edges and
 //     with distance. alpha = the floor mask.
-//  2. streak, ½ res: two vertical blurs (the drizzle-roughened film smears a reflection along the view), mask-aware so a
-//     reflection never leaks off the floor.
-//  3. add: one full-screen additive draw into the scene target (no copy), only where the floor mask is.
+//  2. streak, ½ res: one 13-tap vertical blur (the drizzle-roughened film smears a reflection along the view), mask-aware
+//     so a reflection never leaks off the floor.
+//  (Round 14, the phone's draw budget: 4 → 2 draws — the two blurs are one, and the composite reads the result instead of
+//  a full-screen additive draw into the scene. Reflected neon no longer feeds the bleed pyramid.)
 import {
-  AddEquation, CustomBlending, HalfFloatType, LinearFilter, Matrix4, NearestFilter, NoBlending, OneFactor, type PerspectiveCamera, ShaderMaterial,
-  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, type WebGLRenderer, WebGLRenderTarget, ZeroFactor,
+  HalfFloatType, LinearFilter, Matrix4, NearestFilter, NoBlending, type PerspectiveCamera, ShaderMaterial,
+  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, type WebGLRenderer, WebGLRenderTarget,
 } from 'three';
 import { Pass } from 'postprocessing';
 import { NOISE_GLSL, STONES_GLSL } from '../style';
@@ -39,12 +40,11 @@ export interface ReflectSettings {
   /** the wobble's and the rings' normal tilt */
   wobble: number;
   rings: number;
-  /** the streak blur's two radii (½-res px) */
-  streak1: number;
-  streak2: number;
+  /** the streak blur's reach (½-res px, each way) */
+  streak: number;
 }
 
-export const REFLECT_DEFAULTS: ReflectSettings = { gain: 2, maxDist: 90, steps: 28, wobble: 0.045, rings: 0.12, streak1: 5, streak2: 20 };
+export const REFLECT_DEFAULTS: ReflectSettings = { gain: 2, maxDist: 90, steps: 28, wobble: 0.045, rings: 0.12, streak: 20 };
 
 const FS_TRACE = (steps: number): string => /* glsl */ `
 uniform sampler2D tColor;
@@ -177,29 +177,15 @@ void main() {
 }
 `;
 
-const FS_ADD = /* glsl */ `
-uniform sampler2D tSrc;
-uniform float uDebug;
-varying vec2 vUv;
-void main() {
-  vec4 c = texture(tSrc, vUv);
-  if (c.a <= 0.0) discard;
-  // uDebug: the reflection × 6 and the floor mask as a blue tint (captures only)
-  gl_FragColor = vec4(uDebug > 0.5 ? c.rgb * 6.0 + vec3(0.0, 0.0, 0.25) : c.rgb, 0.0);
-}
-`;
 
 export class ReflectPass extends Pass {
   private rtTrace: WebGLRenderTarget | null = null;
-  private rtA: WebGLRenderTarget | null = null;
   private rtB: WebGLRenderTarget | null = null;
   private type: TextureDataType = HalfFloatType;
   private readonly uTrace;
   private readonly uBlur = { tSrc: { value: null as Texture | null }, uStep: { value: new Vector2() } };
-  private readonly uAdd = { tSrc: { value: null as Texture | null }, uDebug: { value: 0 } };
   private mTrace: ShaderMaterial;
   private readonly mBlur: ShaderMaterial;
-  private readonly mAdd: ShaderMaterial;
   private steps = REFLECT_DEFAULTS.steps;
   settings: ReflectSettings = { ...REFLECT_DEFAULTS };
 
@@ -216,12 +202,6 @@ export class ReflectPass extends Pass {
     this.mTrace = this.traceMaterial();
     const base = { vertexShader: VS, depthTest: false, depthWrite: false };
     this.mBlur = new ShaderMaterial({ ...base, name: 'NdReflectStreak', fragmentShader: FS_BLUR, uniforms: this.uBlur, blending: NoBlending });
-    // colour added, the target's alpha kept
-    this.mAdd = new ShaderMaterial({
-      ...base, name: 'NdReflectAdd', fragmentShader: FS_ADD, uniforms: this.uAdd, transparent: true,
-      blending: CustomBlending, blendEquation: AddEquation, blendSrc: OneFactor, blendDst: OneFactor,
-      blendEquationAlpha: AddEquation, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor,
-    });
     this.fullscreenMaterial = this.mTrace;
   }
 
@@ -229,9 +209,13 @@ export class ReflectPass extends Pass {
     return new ShaderMaterial({ vertexShader: VS, fragmentShader: FS_TRACE(this.steps), uniforms: this.uTrace, name: 'NdReflectTrace', depthTest: false, depthWrite: false, blending: NoBlending });
   }
 
-  /** captures only: the reflection × 6 with the floor mask tinted blue (2: the raw trace, before the streak blur) */
-  debug(mode: 0 | 1 | 2): void { this.uAdd.uDebug.value = mode === 0 ? 0 : 1; this.raw = mode === 2; }
+  /** captures only: 1 = the reflection × 6 (the composite reads `debugGain`), 2 = the raw trace before the streak */
+  debug(mode: 0 | 1 | 2): void { this.debugGain = mode === 0 ? 1 : 6; this.raw = mode === 2; }
   private raw = false;
+  /** the composite's gain on `texture` (6 in the debug view) */
+  debugGain = 1;
+  /** the streaked reflection (rgb, premultiplied; alpha = the floor mask) for the composite; null when off */
+  texture: Texture | null = null;
 
   /** live tuning (the step count rebuilds the trace program) */
   set(s: Partial<ReflectSettings>): void {
@@ -254,7 +238,6 @@ export class ReflectPass extends Pass {
     const w = Math.max(1, Math.round(width / 2)), h = Math.max(1, Math.round(height / 2));
     if (this.rtTrace?.width === w && this.rtTrace.height === h) return;
     this.rtTrace?.dispose();
-    this.rtA?.dispose();
     this.rtB?.dispose();
     const mk = (name: string, filter: typeof LinearFilter | typeof NearestFilter): WebGLRenderTarget => {
       const rt = new WebGLRenderTarget(w, h, { type: this.type, depthBuffer: false });
@@ -264,7 +247,6 @@ export class ReflectPass extends Pass {
       return rt;
     };
     this.rtTrace = mk('NdReflect.trace', NearestFilter);
-    this.rtA = mk('NdReflect.a', NearestFilter);
     this.rtB = mk('NdReflect.b', LinearFilter);
   }
 
@@ -275,8 +257,9 @@ export class ReflectPass extends Pass {
   }
 
   override render(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget | null): void {
-    const s = this.settings, tr = this.rtTrace, a = this.rtA, b = this.rtB;
-    if (inputBuffer === null || tr === null || a === null || b === null || s.gain <= 0) return;
+    const s = this.settings, tr = this.rtTrace, b = this.rtB;
+    this.texture = null;
+    if (inputBuffer === null || tr === null || b === null || s.gain <= 0) return;
     const u = this.uTrace, cam = this.view;
     u.tColor.value = inputBuffer.texture;
     u.uProj.value.copy(cam.projectionMatrix);
@@ -288,24 +271,18 @@ export class ReflectPass extends Pass {
     u.uMarch.value.set(s.maxDist, 0.25);
     u.uTime.value = this.time();
     this.draw(renderer, this.mTrace, tr);
-    // the streak: along the screen's vertical (the view's own direction on a floor seen at eye height)
+    // the streak: along the screen's vertical (the view's own direction on a floor seen at eye height), one pass
     this.uBlur.tSrc.value = tr.texture;
-    this.uBlur.uStep.value.set(0, s.streak1 / tr.height);
-    this.draw(renderer, this.mBlur, a);
-    this.uBlur.tSrc.value = a.texture;
-    this.uBlur.uStep.value.set(0, s.streak2 / tr.height);
+    this.uBlur.uStep.value.set(0, s.streak / 6 / tr.height);
     this.draw(renderer, this.mBlur, b);
-    this.uAdd.tSrc.value = this.raw ? tr.texture : b.texture;
-    this.draw(renderer, this.mAdd, inputBuffer);
+    this.texture = this.raw ? tr.texture : b.texture;
   }
 
   override dispose(): void {
     this.rtTrace?.dispose();
-    this.rtA?.dispose();
     this.rtB?.dispose();
     this.mTrace.dispose();
     this.mBlur.dispose();
-    this.mAdd.dispose();
     super.dispose();
   }
 }

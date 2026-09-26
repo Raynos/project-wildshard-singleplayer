@@ -1722,7 +1722,7 @@
   {
    "name": "crossing-gate-bridge",
    "start": {
-    "x": -20.4,
+    "x": -19.8,
     "z": -25.4,
     "yaw": -1.5708,
     "y": 107.0
@@ -1737,7 +1737,7 @@
      "z": -25.4
     },
     {
-     "x": -4.4,
+     "x": -5.9,
      "z": -25.4
     }
    ],
@@ -1749,14 +1749,14 @@
   {
    "name": "crossing-timber-hump",
    "start": {
-    "x": -21.6,
+    "x": -19.4,
     "z": -21,
     "yaw": -1.5708,
     "y": 119.1
    },
    "waypoints": [
     {
-     "x": -16,
+     "x": -15,
      "z": -21
     },
     {
@@ -1764,7 +1764,7 @@
      "z": -21
     },
     {
-     "x": -6.3,
+     "x": -8.0,
      "z": -21
     }
    ],
@@ -1772,6 +1772,33 @@
     "y": 119.1
    },
    "notes": "dome B2's anchor, the humped timber bridge 6 m under the rim at z −21: over its hump between the gallery fronts"
+  },
+  {
+   "name": "well-rim",
+   "start": {
+    "x": -26,
+    "z": 13.6,
+    "yaw": -1.5708,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": -19.5,
+     "z": 13.6
+    },
+    {
+     "x": -10.5,
+     "z": 12.4
+    },
+    {
+     "x": -2,
+     "z": 13.6
+    }
+   ],
+   "expect": {
+    "y": 125.0
+   },
+   "notes": "along the Well's south rim (dome C's wellColliders), past the mockup B / D cameras' spot at the balustrade"
   }
  ]
 }

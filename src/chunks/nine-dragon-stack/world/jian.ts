@@ -28,10 +28,12 @@ const GRIP_MID = 0.2;
  */
 // (the wrist raised from the clean room's −0.76: the engine's MOVE / ATTACK panel covers the frame's bottom sixth.)
 // Round-6 scale (Jake's boards, 2026-09-26: "a thin distant sword + a small striped cylinder"): the guard 0.62 m from the
-// eye, not 1.1 (the blade ~1.8× as wide on screen, the dragon guard and tassel large at the lower right); the Fei Zhua's
-// claw hub 0.58 m out, not 1.3, the forearm running from it off the frame's bottom-left corner (its elbow behind the
-// frame's edge), so the brass gauntlet fills that corner as in every mockup
-const LAYOUT = { guard: [0.5, -0.42, 0.62], tip: [0.08, 0.0], wrist: [-0.5, -0.36, 0.58], elbow: [-1.7, -1.6], elbowDepth: 0.5, armRoll: -0.3 } as const;
+// eye, not 1.1 (the blade, drawn broader, reads a hand wide; the dragon guard and tassel large at the lower right); the
+// Fei Zhua's claw hub 0.85 m out, not 1.3, the forearm running up-right from the frame's bottom-left corner at the
+// mockups' ~55° (its elbow off the frame's edge), so the brass gauntlet fills that corner as in every mockup
+const LAYOUT = { guard: [0.5, -0.42, 0.62], tip: [0.08, 0.0], wrist: [-0.5, -0.36, 0.85], elbow: [-3.6, -2.0], elbowDepth: 0.34, armRoll: -0.3 } as const;
+/** the blade drawn broader than the lab's jian (across × thickness): the mockups' blade reads a hand wide */
+const BLADE_WIDEN = [1.7, 1.25] as const;
 const ASPECT = 402 / 874;
 const PORTRAIT_FOV = 78;
 
@@ -80,16 +82,18 @@ export async function jianSword(): Promise<ShardSword> {
   const material = vmMaterial(vmUniforms(weaveTexture(), decalAtlas()));
   const lift = (g: BufferGeometry): BufferGeometry => g.translate(0, GRIP_MID, 0);
   // the blade, the clip, the grip (Kit + KitX parts merged: the same attributes), the tassel and the talisman at their pivots
+  const blade = new Kit();
+  buildBlade(blade);
+  const clip = new KitX();
+  buildBladeClip(clip);
   const k = new Kit();
   const x = new KitX();
-  buildBlade(k);
-  buildBladeClip(x);
   buildGrip(k, x);
   const tassel = new KitX();
   buildTassel(tassel);
   const talisman = new KitX();
   buildTalisman(talisman);
-  const sword = lift(merge([k.build(), x.build(), tassel.build().translate(-0.036, -0.03, 0.03), talisman.build().translate(0.03, -0.066, 0.036)]));
+  const sword = lift(merge([blade.build().scale(BLADE_WIDEN[0], 1, BLADE_WIDEN[1]), clip.build().scale(BLADE_WIDEN[0], 1, BLADE_WIDEN[1]), k.build(), x.build(), tassel.build().translate(-0.036, -0.03, 0.03), talisman.build().translate(0.03, -0.066, 0.036)]));
   const hand = new KitX();
   buildGripHand(hand);
   const arms = lift(hand.build());

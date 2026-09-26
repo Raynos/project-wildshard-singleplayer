@@ -119,13 +119,17 @@ export function deepTemple(ctx: Ctx, k: Kit, x: number, z: number, yBase: number
   for (const s of [-1, 1]) {
     for (let i = -1; i <= 1; i++) {
       const p = new Vector3(x + i * 1.7, base + 0.05, z + s * (hd - 0.14));
-      k.quad(p.clone().add(new Vector3(-0.6 * s, 0, 0)), new Vector3(s, 0, 0), UP, 1.2, 2.2, { wash: 0xffc98a, emit: 1.25, kind: K.bars, row: 0.35, col: 0.22, line: 1, accent: true });
+      k.quad(p.clone().add(new Vector3(-0.6 * s, 0, 0)), new Vector3(s, 0, 0), UP, 1.2, 2.2, { wash: 0xffc98a, emit: 1.7, kind: K.bars, row: 0.35, col: 0.22, line: 1, accent: true });
     }
-    k.quad(new Vector3(x + s * (hw - 0.14), base + 0.9, z + 0.7 * s), new Vector3(0, 0, -s), UP, 1.4, 1.1, { wash: 0xffbf78, emit: 1.1, kind: K.bars, row: 0.3, col: 0.3, line: 1, accent: true });
+    k.quad(new Vector3(x + s * (hw - 0.14), base + 0.9, z + 0.7 * s), new Vector3(0, 0, -s), UP, 1.4, 1.1, { wash: 0xffbf78, emit: 1.5, kind: K.bars, row: 0.3, col: 0.3, line: 1, accent: true });
   }
   hipRoof(k, new Vector3(x, base + 2.75, z), 2 * hw, 2 * hd, 1.1, 0.9, 0x2f8a6a);
   k.box(x, base + 3.3, z, 2 * hw - 1.4, 0.9, 2 * hd - 1.2, { wash: 0x7e1e1a, kind: K.panel, line: 1, accent: true }, { top: null, bottom: null });
   hipRoof(k, new Vector3(x, base + 4.1, z), 2 * hw - 1.6, 2 * hd - 1.2, 1.3, 0.7, 0x2f8a6a);
+  // lanterns under the lower eave, all round (the glow the view down finds through the silk)
+  for (const [ex, ez] of [[-1, -1], [0, -1], [1, -1], [-1, 1], [0, 1], [1, 1], [-1, 0], [1, 0]] as const) {
+    litLantern(ctx, k, new Vector3(x + ex * (hw + 0.5), base + 2.6, z + ez * (hd + 0.5)), 1.0, ez !== 0 && ex === 0);
+  }
   // the incense burner, the path, the lanterns (paper ones on posts, their pools light the terrace)
   k.cyl(x, top, z + hd + 2.2, 0.45, 0.55, 0.9, 8, { wash: 0x3a3d44, line: 1 });
   k.box(x, top + 0.9, z + hd + 2.2, 1.1, 0.35, 1.1, { wash: 0x2a2c31, line: 1 });
@@ -142,9 +146,9 @@ export function deepTemple(ctx: Ctx, k: Kit, x: number, z: number, yBase: number
   for (let i = 0; i < 9; i++) {
     const a = (i / 9) * Math.PI * 2 + rng.range(-0.2, 0.2);
     if (Math.abs(Math.sin(a)) > 0.85 && Math.sin(a) > 0) continue; // keep the south approach open
-    const rr = r * rng.range(0.62, 0.8);
+    const rr = r * rng.range(0.55, 0.7);
     const px = x + Math.cos(a) * rr, pz = z + Math.sin(a) * rr;
-    const s = rng.range(1.5, 2.3);
+    const s = rng.range(1.3, 2.0);
     k.limb(new Vector3(px, top, pz), new Vector3(px, top + 1.4, pz), 0.18, 0.12, 5, { wash: 0x3a2e26, line: 0 });
     k.blob(pos, null, px, top + 1.2 + s, pz, s, s * 0.85, s, { ...leaf, wash: rng.pick([0x2e5a3f, 0x3d6b48, 0x27503a]) }, true);
   }

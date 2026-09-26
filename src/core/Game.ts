@@ -328,7 +328,7 @@ export class Game {
     // frame runs one FXAA pass on the graded frame instead of SMAA's three, and leaves out its faint (12 %) god rays. The
     // warm iPhone's grass frame was 48 ms with the post chain and 17 without; desktop keeps SMAA and the rays
     const dwPhone = getActiveChunk().style === 'lowpoly' && TIER === 'phone';
-    const fxaa = dwPhone && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null;
+    const fxaa = (dwPhone || R?.aa === 'fxaa') && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null; // (or a shard's render strategy asks for it)
     const raysOn = !dwPhone;
     const chain = (clean: boolean): EffectPass => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {

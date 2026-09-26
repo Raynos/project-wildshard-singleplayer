@@ -29,10 +29,11 @@ import type { VolumetricsEffect } from '../core/Volumetrics';
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { SpeciesWeights } from '../world/treeSpecies';
 import type { WorldRegistry } from '../world/registry';
-import type { SwordFraming, SwordMoveSet, SwordRig } from '../player/Sword';
+import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '../player/Sword';
 
-/** a shard's own sword (ChunkDef.sword): the engine Sword's rig, moves and portrait framing */
-export interface ShardSword { rig: SwordRig; moves?: SwordMoveSet; framing?: Partial<SwordFraming>; portraitPullX?: number }
+/** a shard's own sword (ChunkDef.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig
+ *  (`arms`) swung by the engine's own moves */
+export interface ShardSword { rig?: SwordRig; arms?: SwordArms; moves?: SwordMoveSet; framing?: Partial<SwordFraming>; portraitPullX?: number }
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
 export type Vec2 = [number, number];
@@ -446,6 +447,8 @@ export interface ShardRender {
   slices?: boolean;
   /** n8ao on or off whatever the tier's `ao`; omitted = the tier's */
   ao?: boolean;
+  /** 'fxaa': one FXAA pass on the graded frame instead of SMAA's three (the phone's draw budget); omitted = the tier's */
+  aa?: 'fxaa';
   /** once, in Game.buildComposer, with every engine effect built (and n8ao, when on): tune them, make the shard's own */
   compose: (c: ShardComposeContext) => ShardComposition;
   /** every frame, right before the composer draws (after the updaters, the late hooks and the sky: the camera is final) —

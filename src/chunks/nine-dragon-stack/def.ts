@@ -30,6 +30,9 @@ const FILES = [
   ...['lion', 'pots', 'lanterns'].map((m) => `/assets/nine-dragon/lab/organic/${m}.glb`),
   '/assets/nine-dragon/lab/organic/leaf-atlas.webp', '/assets/nine-dragon/lab/organic/scroll.webp',
   '/assets/nine-dragon/grade-lut-cleanroom.bin',
+  // the first-person arms (lab P8's rig: vm/arms.ts ARMS_FILES)
+  '/assets/nine-dragon/viewmodel/fp-rig.glb',
+  ...['hand-r', 'arm-r', 'fist-l', 'gauntlet'].flatMap((n) => [`/assets/nine-dragon/viewmodel/${n}-maps.webp`, `/assets/nine-dragon/viewmodel/${n}-nrm.webp`]),
 ];
 
 export const NINE_DRAGON_STACK: ChunkDef = {
@@ -96,8 +99,16 @@ export const NINE_DRAGON_STACK: ChunkDef = {
   // the mockups' framing (dome B, round 9): ~58° across a 9:19.5 portrait (~100° vertical), so the paifang fills about a
   // third of the width as in style-A; the engine's 72° base gives ~52° across
   fov: { portrait: 78 },
-  // the Neon Jian's static model on the engine's sword until lab P8's rigged jian lands (world/jian.ts)
-  sword: async () => (await import('./world/jian')).jianSword(),
+  // the Neon Jian and the Fei Zhua on lab P8's skinned arms, swung by the engine's own moves (vm/arms.ts); the static
+  // model (world/jian.ts) if the rig does not load
+  sword: async () => {
+    try {
+      return await (await import('./vm/arms')).jianArms();
+    } catch (error) {
+      console.warn('nine-dragon-stack: the arms rig did not load, the static jian stands in', error);
+      return (await import('./world/jian')).jianSword();
+    }
+  },
   horizon: { rings: [], cloudSea: false },
   // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World
   // Explorer's free camera over the fragment — no model catalog is registered

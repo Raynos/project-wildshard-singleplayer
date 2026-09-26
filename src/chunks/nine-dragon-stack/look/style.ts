@@ -163,6 +163,11 @@ export class Shared {
   setSutra(s: number): void { this.setLook(s > 0.5 ? 'sutra' : 'jiehua'); }
 }
 
+/** (round 14, dome B2: the run north's lit crossings 60–110 m off read grey) how far a light punches through the silk:
+ *  an emitter's colour is × T^EMIT_FOG where a wash is × T (0.5 = √T, the lab's; 0.35 lets lit rails, neon strips and
+ *  windows read as lines of light down the Well's runs) */
+export const EMIT_FOG = '0.35';
+
 export const NOISE_GLSL = /* glsl */ `
 float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float h11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
@@ -241,7 +246,9 @@ vec4 silkFog(vec3 wp, float scale) {
     vec2 xp = uCam.xz + d.xz * clamp(tc, 0.0, 1.0);
     float bil = smoothstep(0.28, 0.72, vnoise(xp * 0.11 + b.x) * 0.6 + vnoise(xp * 0.33 - b.x) * 0.4);
     bil = mix(bil, 0.5, smoothstep(50.0, 160.0, length(d.xz) * clamp(tc, 0.0, 1.0)));
-    tau *= (0.35 + 1.3 * bil) * scale;
+    // (round 14, dome D2) clear air round the eye wherever it is: inside a band (gliding down the Well) the galleries
+    // 10 m away stay crisp
+    tau *= (0.35 + 1.3 * bil) * scale * smoothstep(4.0, 22.0, L);
     float a = 1.0 - exp(-tau);
     acc += T * a * uBandCols[k] * (1.1 - 0.34 * smoothstep(0.4, 1.0, bil));
     T *= 1.0 - a;
@@ -271,7 +278,7 @@ vec4 silkFog(vec3 wp, float scale) {
       float ha = max(ref - (uCam.y + dn.y * ta), 0.0), hb = max(ref - (uCam.y + dn.y * tb), 0.0);
       float len = tb - ta;
       float k = uShaftK.x / 0.085; // the Shared default (0.085) is the tuned profile
-      float tauS = k * len * (1.87e-4 * 0.5 * (ha + hb) + 8.0e-7 * (ha * ha + ha * hb + hb * hb) / 3.0) * scale;
+      float tauS = k * len * (1.87e-4 * 0.5 * (ha + hb) + 8.0e-7 * (ha * ha + ha * hb + hb * hb) / 3.0) * scale * smoothstep(4.0, 22.0, L);
       float as = 1.0 - exp(-tauS);
       float my = uCam.y + dn.y * 0.5 * (ta + tb);
       acc += T * as * mix(uFogBaseCol * 1.12, scriptCol(my), 0.45);
@@ -742,23 +749,29 @@ void main() {
   // (capped: the sign masts on the balustrade must not bleach the stone; wet stone shows it as a darker sheen)
   // (lab P6) the blue-hour ambient scales the wash only (spill, pools, emitters and ink keep their value)
   shaded *= uLpAmb;
-  shaded += col * min(vSpill, vec3(0.7)) * 1.3 * (kind == 3.0 ? 1.0 : 1.0 - 0.5 * wet);
+  // (round 14, dome B: the paifang's lacquer read #d95d46 against style-A's #904536 — its lanterns' spill and pools
+  // lit the cinnabar pale) the accent surfaces take 40 % of the spill and the pools' diffuse; their gloss glint stays
+  float lacq = mix(1.0, 0.4, accent);
+  shaded += col * min(vSpill, vec3(0.7)) * 1.3 * (kind == 3.0 ? 1.0 : 1.0 - 0.5 * wet) * lacq;
   // (lab P6) the warm pools: diffuse on the wash; on wet stone a broad glossy sheen of the same light
   vec3 lp = poolLight(vWorld, n);
   // (a wet film reflects rather than scatters: on the wet flagstones the pool's diffuse share drops, its gloss —
   // the lobe below — carries the light, so the ground stays dark and glossy)
-  shaded += poolAlbedo(col) * lp * uLpGain.x * (1.0 - 0.65 * wetPool);
-  emit += lp * wetPool * uLpGain.y * (0.35 + 0.65 * pow(clamp(1.0 - abs(V.y), 0.0, 1.0), 2.0));
+  shaded += poolAlbedo(col) * lp * uLpGain.x * (1.0 - 0.85 * wetPool) * lacq;
+  // (round 14: a wet tread seen from above read beige-lit) the flat sheen is a grazing-angle thing: looking down, wet
+  // stone stays dark and only the gloss lobe below shows the lights
+  emit += lp * wetPool * uLpGain.y * (0.08 + 0.92 * pow(clamp(1.0 - abs(V.y), 0.0, 1.0), 2.0));
   // (render) the lamplight's glossy lobe (lightvol.ts poolSpec): lacquer and gilt glint, wet stone and decks shine
   // toward the lanterns; Schlick on the film, a lacquer's own sheen a little broader
   {
     vec3 Rr = reflect(-V, n);
     float cv = clamp(dot(n, V), 0.0, 1.0);
     float fr = 0.04 + 0.96 * pow(1.0 - cv, 5.0);
-    float gk = max(gloss * (0.06 + 0.5 * fr), max(wetPool, wet * 0.5 * step(0.6, n.y)) * fr);
+    // (the lacquer's lobe is Fresnel-only: its flat 6 % base lit the whole paifang from its own lanterns — dome B)
+    float gk = max(gloss * 0.45 * fr, max(wetPool, wet * 0.5 * step(0.6, n.y)) * fr);
     if (gk > 0.002) emit += poolSpec(vWorld, Rr) * gk;
     // the rim: edges turned from the eye catch what is lit behind them (wetter edges, a brighter rim)
-    emit += poolRim(vWorld, n, V) * (0.6 + 0.4 * max(gloss, wet));
+    emit += poolRim(vWorld, n, V) * (0.6 + 0.4 * max(gloss, wet)) * lacq;
   }
   // the colour script: the deep strata sink into indigo paper (their windows gold) — the sutra's hinge
   float lumC = lum(shaded);
@@ -793,7 +806,7 @@ void main() {
   vec3 fogC = fgc.rgb * silkPaper(gl_FragCoord.xy);
   // (round 14) a light punches through the silk further than the wash it sits on (√T, as the facade windows do):
   // the lanterns and lit shops of the lower strata glow through the bands
-  vec3 outc = col * fgc.a + fogC + emit * sqrt(max(fgc.a, 1e-4));
+  vec3 outc = col * fgc.a + fogC + emit * pow(max(fgc.a, 1e-4), ${EMIT_FOG});
   // alpha = normalised inverse view depth: the MSAA resolve averages it, the post silhouette reads it
   gl_FragColor = vec4(outc, uNear / max(vViewZ, uNear));
 }

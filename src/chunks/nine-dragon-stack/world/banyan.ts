@@ -302,8 +302,9 @@ function shrine(ctx: Ctx, k: Kit, x: KitX, sx: number, y: number, sz: number): v
 export const banyanOut: { plan: BanyanPlan | null } = { plan: null };
 
 export function buildBanyan(ctx: Ctx, rng: Rng): void {
-  const k = ctx.kit('banyan', true);
-  const kx = ctx.kitx('banyan');
+  // (the banyan draws in the square cluster's kit, 'paifang': one draw for the gate, the tree, the stalls; budget.md)
+  const k = ctx.kit('paifang', true);
+  const kx = ctx.kitx('paifang');
   const { x, z, r } = BANYAN;
   const y = Y0;
   // no K.leaf lumps: the organic lab's painted leaf cards dress the plan (canopy.ts, wired in main.ts)

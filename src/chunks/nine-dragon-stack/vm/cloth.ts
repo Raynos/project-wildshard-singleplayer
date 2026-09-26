@@ -1,4 +1,3 @@
-// Copied from the viewmodel lab (src/dev/nd-lab/viewmodel/cloth.ts, round-9-lab-viewmodel) into the clean room.
 // Real cloth sway for the jian's red silk tassel and yellow paper talisman (lab P8 "viewmodel", E169): Verlet points in
 // the viewmodel scene's space (= view space: the vm camera sits at the origin), pinned to pivots that ride the sword,
 // relaxed against distance constraints a few sub-steps a frame. Both rebuild one dynamic tube / sheet geometry per
@@ -13,8 +12,48 @@ import { CLS, Geo, type Look, v3 } from './geo';
 
 interface Pt { p: Vector3; q: Vector3; pin: boolean }
 
+
 const tmp = new Vector3();
 const tmp2 = new Vector3();
+
+/** a capsule the cloth may not enter (the fist round the grip, the forearm, the guard): segment a → b, radius r */
+export interface Capsule { a: Vector3; b: Vector3; r: number }
+
+const seg = new Vector3();
+/** push the (free) points out of every capsule; the previous position moves too, so the push is not a velocity kick */
+function collide(pts: readonly Pt[], caps: readonly Capsule[], pad: number): void {
+  for (const pt of pts) {
+    if (pt.pin) continue;
+    for (const c of caps) {
+      seg.subVectors(c.b, c.a);
+      const L2 = seg.lengthSq();
+      const h = L2 > 1e-12 ? Math.max(0, Math.min(1, tmp.subVectors(pt.p, c.a).dot(seg) / L2)) : 0;
+      const q = tmp2.copy(c.a).addScaledVector(seg, h);
+      const d = tmp.subVectors(pt.p, q);
+      const dist = d.length(), R = c.r + pad;
+      if (dist >= R || dist < 1e-9) continue;
+      d.multiplyScalar((R - dist) / dist);
+      pt.p.add(d);
+      pt.q.add(d);
+    }
+  }
+}
+
+/** how deep any point sits inside any capsule (m; 0 = clear) */
+export function penetration(pts: readonly Vector3[], caps: readonly Capsule[]): number {
+  let worst = 0;
+  const d = new Vector3(), q = new Vector3();
+  for (const p of pts) {
+    for (const c of caps) {
+      d.subVectors(c.b, c.a);
+      const L2 = d.lengthSq();
+      const h = L2 > 1e-12 ? Math.max(0, Math.min(1, q.subVectors(p, c.a).dot(d) / L2)) : 0;
+      q.copy(c.a).addScaledVector(d, h);
+      worst = Math.max(worst, c.r - p.distanceTo(q));
+    }
+  }
+  return worst;
+}
 
 function hash(n: number): number { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); }
 function vnoise(x: number): number { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return hash(i) * (1 - u) + hash(i + 1) * u; }
@@ -56,7 +95,9 @@ function writeTube(pos: Float32Array, nor: Float32Array, v0: number, path: reado
       s = Math.abs(t.x) < 0.9 ? new Vector3(1, 0, 0) : new Vector3(0, 0, 1);
     }
     s.addScaledVector(t, -s.dot(t)).normalize();
-    const bb = new Vector3().crossVectors(t, s);
+    // s × t: the ring runs so that (along × around) faces OUT, matching tubeTopology's winding (t × s turned the
+    // tubes inside out: the ink hull then covered the silk)
+    const bb = new Vector3().crossVectors(s, t);
     const r = radius(i / (n - 1));
     const c = path[i] ?? v3(0, 0, 0);
     for (let k = 0; k <= segs; k++) {
@@ -91,10 +132,13 @@ function tubeTopology(g: Geo, rings: number, segs: number, look: Look, uvLen: nu
   }
 }
 
-export const TASSEL = { strands: 18, pts: 8, len: 0.1, cordPts: 4, cordLen: 0.03, capR: 0.0095, strandR: 0.0021 } as const;
+/** the red silk tassel: bushy and long, prominent in front of the grip (round-6 style A, target-1) */
+export const TASSEL = { strands: 24, pts: 9, len: 0.17, cordPts: 4, cordLen: 0.034, capR: 0.0135, strandR: 0.0036, cap: 0.024 } as const;
 
 export class Tassel {
   readonly geo: BufferGeometry;
+  /** every simulated point (the gate's cloth check) */
+  points(): Vector3[] { return [...this.cord, ...this.strands.flat()].filter((c) => !c.pin).map((c) => c.p); }
   /** the rigid knot + cap sit on the chain: position and the chain's direction at the cap */
   readonly cap = new Vector3();
   readonly capDir = new Vector3(0, -1, 0);
@@ -152,7 +196,7 @@ export class Tassel {
    * One frame. `pivot` = where the cord leaves the sword (vm scene space), `swordQ` = the sword's orientation (for the
    * cap's spread frame), `gravity` = down in vm scene space (× 9.8), `breeze` 0..1.
    */
-  step(dt: number, pivot: Vector3, swordQ: Quaternion, gravity: Vector3, breeze: number): void {
+  step(dt: number, pivot: Vector3, swordQ: Quaternion, gravity: Vector3, breeze: number, caps: readonly Capsule[] = []): void {
     const down = gravity.clone().normalize();
     if (!this.started) { this.reset(pivot, down); this.started = true; }
     this.t += dt;
@@ -179,11 +223,11 @@ export class Tassel {
         const root = pts[0];
         if (root === undefined) return;
         const off = new Vector3().addScaledVector(sx, sp.x * TASSEL.capR).addScaledVector(sz, sp.z * TASSEL.capR);
-        root.p.copy(cl.p).addScaledVector(this.capDir, 0.016).add(off);
+        root.p.copy(cl.p).addScaledVector(this.capDir, TASSEL.cap).add(off);
         root.q.copy(root.p);
         integrate(pts, gravity, h, 0.975, (i, f) => {
           // the bundle: pull toward the strand's rest line (spread widening down the skirt), weaker toward the tips
-          const rest = tmp2.copy(cl.p).addScaledVector(this.capDir, 0.016 + segS * i).addScaledVector(off, 1 + i * 0.16);
+          const rest = tmp2.copy(cl.p).addScaledVector(this.capDir, TASSEL.cap + segS * i).addScaledVector(off, 1 + i * 0.16);
           const pt = pts[i];
           if (pt !== undefined) f.addScaledVector(rest.sub(pt.p), 220 / (1 + i * 0.9));
           // breeze: a slow noise push across the view
@@ -194,12 +238,14 @@ export class Tassel {
         for (let k = 0; k < 2; k++) {
           for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1]; if (a !== undefined && b !== undefined) relax(a, b, segS); }
           for (let i = 0; i < pts.length - 2; i++) { const a = pts[i], b = pts[i + 2]; if (a !== undefined && b !== undefined) relax(a, b, segS * 2, 0.12); }
+          collide(pts, caps, TASSEL.strandR);
         }
       });
+      collide(this.cord, caps, 0.003);
     }
     // write the tubes
     const P = this.pos.array as Float32Array, N = this.nor.array as Float32Array;
-    let vi = writeTube(P, N, 0, this.cord.map((c) => c.p), () => 0.0026, 6);
+    let vi = writeTube(P, N, 0, this.cord.map((c) => c.p), () => 0.0032, 6);
     this.strands.forEach((pts, s) => {
       vi = writeTube(P, N, vi, pts.map((p) => p.p), (u) => TASSEL.strandR * (1.15 - 0.5 * u) * (0.85 + 0.3 * hash(s)), 5);
     });
@@ -210,10 +256,11 @@ export class Tassel {
   }
 }
 
-export const TALISMAN = { cols: 4, rows: 10, w: 0.042, h: 0.118, cordPts: 3, cordLen: 0.024 } as const;
+export const TALISMAN = { cols: 4, rows: 10, w: 0.058, h: 0.165, cordPts: 3, cordLen: 0.03 } as const;
 
 export class Talisman {
   readonly geo: BufferGeometry;
+  points(): Vector3[] { return this.sheet.filter((c) => !c.pin).map((c) => c.p); }
   readonly cordGeo: BufferGeometry;
   private readonly cord: Pt[] = [];
   private readonly sheet: Pt[] = [];
@@ -279,7 +326,7 @@ export class Talisman {
     }
   }
 
-  step(dt: number, pivot: Vector3, swordQ: Quaternion, gravity: Vector3, breeze: number): void {
+  step(dt: number, pivot: Vector3, swordQ: Quaternion, gravity: Vector3, breeze: number, caps: readonly Capsule[] = []): void {
     const { cols, rows, w, h, cordPts, cordLen } = TALISMAN;
     const down = gravity.clone().normalize();
     // the sheet faces the eye: its width runs along the sword's flat (x), kept perpendicular to gravity
@@ -332,6 +379,7 @@ export class Talisman {
             if (right2 !== undefined) relax(a, right2, dx * 2, 0.7);
           }
         }
+        collide(this.sheet, caps, 0.004);
         if (topL !== undefined && topR !== undefined) {
           topL.p.copy(end.p).addScaledVector(side, -dx * 0.5);
           topR.p.copy(end.p).addScaledVector(side, dx * 0.5);

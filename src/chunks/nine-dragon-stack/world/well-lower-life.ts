@@ -2,7 +2,7 @@
 // gallery bands (well-galleries.ts via the plan) every floor below SPLIT gets its own projections and its life, so the
 // canyon's walls never read as a stack of flat decks, and the open gap NARROWS with depth (mockup D):
 //   blocks     whole rooms built out in front of the galleries over one to three floors, deeper the lower they sit
-//              (1.5 m near the top, 5–6 m at the bottom): lit window rows on their faces (the kit's facade program,
+//              (1–2 m near the top, 3.5–4 m at the bottom: with the 5–8 m galleries the gap closes to ~8 m): lit window rows on their faces (the kit's facade program,
 //              plus a few interior-mapped rooms), a roof with a tank or an air-con, struts under the overhang,
 //   pods       single rooms cantilevered past the gallery front on steel struts, lit windows, a tin or glazed roof,
 //   verandas   red-railed timber platforms thrust further into the shaft, some half a floor up a short stair (the
@@ -11,7 +11,8 @@
 //   shops      the street floors (every 15 m) lined with lit shopfronts, awnings, box signs and a crowd,
 //   life       lanterns under every deck lip, people at the rails, laundry, plants, cages and air-con on the bare
 //              wall, neon blade signs facing the rim, thick drain pipes and horizontal service runs.
-// TRIANGLE FREEZE: everything is merged into the band's own kits (one draw per band, culled with it); the people are
+// THE BUDGET (lane cap 0.15 M tris / 10 draws): everything is merged into the band's own kits (no instanced batches of
+// its own; the awnings too); the people are
 // ~25–45-tri kit figures, the lanterns 20-tri kit ones (their light is a baked emitter, not the 348-tri paper mesh
 // every view draws), plants / air-con / cages / tanks are kit boxes, not the always-drawn instanced pieces.
 import { Color, IcosahedronGeometry, Matrix4, Vector3, Vector4 } from 'three';
@@ -87,6 +88,18 @@ export function litLantern(ctx: Ctx, k: Kit, p: Vector3, s: number, glow: boolea
 export function kitPlant(k: Kit, p: Vector3, s = 1): void {
   k.cyl(p.x, p.y, p.z, 0.17 * s, 0.21 * s, 0.3 * s, 5, { wash: 0xa4532e, line: 1, accent: true }, { caps: false });
   k.blob(ICO, null, p.x, p.y + 0.52 * s, p.z, 0.36 * s, 0.34 * s, 0.36 * s, LEAF, true);
+}
+
+const AWN = [0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441, 0x7e1e1a] as const;
+/** a striped cloth awning on the wall at depth d (centred at uc, its top at y), sloping out `out` m (6 tris, in the kit) */
+function kitAwning(k: Kit, rng: Rng, P: GalleryProfile, uc: number, y: number, d: number, w: number, out: number): void {
+  const cloth: Look = { wash: rng.pick(AWN), kind: K.cloth, row: 1, col: 0.22, line: 1, accent: true };
+  const a0 = P.world(uc - w / 2, y, d), a1 = P.world(uc + w / 2, y, d);
+  const b0 = P.world(uc - w / 2, y - 0.45, d + out), b1 = P.world(uc + w / 2, y - 0.45, d + out);
+  const slant = Math.hypot(out, 0.45);
+  k.quad4(b0, b1, a1, a0, w, slant, cloth);
+  k.quad4(a0, a1, b1, b0, w, slant, cloth, 0, 0, E.none);
+  k.quad4(b0.clone().setY(b0.y - 0.2), b1.clone().setY(b1.y - 0.2), b1, b0, w, 0.2, cloth);
 }
 
 /** a plant hanging down from a deck lip (a stretched leafy clump, 20 tris; a second one under it now and then) */
@@ -260,7 +273,7 @@ function block(ctx: Ctx, k: Kit, rng: Rng, P: GalleryProfile, ua: number, ub: nu
     const yy = y0 + f * FLOOR_H;
     const nw = rng.int(1, Math.max(1, Math.floor(W / 2.4)));
     for (let i = 0; i < nw; i++) lowWin(ctx, rng, P.world(ua + (i + 0.5) * (W / nw), yy + 0.8, d1 + 0.005), u, n, Math.min(1.4, W / nw - 0.4), 1.3, wash, false, litP);
-    if (rng.chance(0.2)) ctx.put('awning', P.world(ua + rng.range(1, Math.max(1.01, W - 1)), yy + 2.2, d1 + 0.02), n.clone(), new Vector3(1.8, 1, 0.8), new Color(rng.pick([0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441])));
+    if (rng.chance(0.2)) kitAwning(k, rng, P, ua + rng.range(1, Math.max(1.01, W - 1)), yy + 2.2, d1 + 0.02, 1.8, 0.8);
   }
   if (D > 1.2) for (const uu of [ua + 0.2, ub - 0.2]) k.beam(P.world(uu, yb - 0.05, d1 - 0.2), P.world(uu, yb - 2.0, Math.max(0.2, d0 - 0.2)), 0.1, 0.12, STEEL);
 }
@@ -287,7 +300,7 @@ function pod(ctx: Ctx, k: Kit, rng: Rng, P: GalleryProfile, ua: number, ub: numb
   if (D > 1.1) lowWin(ctx, rng, P.world(side > 0 ? ub + 0.005 : ua - 0.005, y + 0.9, (d0 + d1) / 2), sideU, sideN, Math.min(0.9, D - 0.4), 1.1, wall, false, 0.7);
   for (const uu of [ua + 0.15, ub - 0.15]) k.beam(P.world(uu, y - 0.32, d1 - 0.15), P.world(uu, y - 1.9, Math.max(0.2, d0 - 0.4)), 0.08, 0.1, STEEL);
   roofThing(k, rng, P, ua, ub, y + H + 0.14, d0, d1);
-  if (rng.chance(0.25)) ctx.put('awning', P.world((ua + ub) / 2, y + 2.25, d1 + 0.02), n.clone(), new Vector3(Math.min(W - 0.3, 2.6), 1, 0.8), new Color(rng.pick([0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441])));
+  if (rng.chance(0.25)) kitAwning(k, rng, P, (ua + ub) / 2, y + 2.25, d1 + 0.02, Math.min(W - 0.3, 2.6), 0.8);
   else if (rng.chance(0.5)) litLantern(ctx, k, P.world(rng.chance(0.5) ? ua + 0.25 : ub - 0.25, y + 2.3, d1 + 0.3), 0.8, glow);
 }
 
@@ -396,7 +409,7 @@ export function dressLower(ctx: Ctx, P: GalleryProfile, K2: GalleryKits, O: Lowe
         while (floors > 1 && (fi + floors - 1 >= P.floors.length || !inBand(P.floors[fi + floors - 1] ?? -1e9) || claimed.has(`${fi + floors - 1}:${si}`))) floors--;
         // it stands on the lowest of its floors and fills the ones above it
         const yBase = P.floors[fi + floors - 1] ?? y;
-        const out = rng.range(1.2, 2.2) + 4.2 * t;
+        const out = rng.range(1.0, 1.8) + 2.4 * t;
         const d1 = Math.min(d + out, cap(ua, ua + w, yBase));
         if (d1 > d + 0.8) {
           block(ctx, k, rng, P, ua, ua + w, yBase, floors, d - 0.1, d1, 0.7 + 0.15 * (1 - t));
@@ -405,14 +418,14 @@ export function dressLower(ctx: Ctx, P: GalleryProfile, K2: GalleryKits, O: Lowe
       } else if (r < pBlock + pPod) {
         const w = Math.min(room, rng.range(2.4, 4.4));
         const ua = rng.range(st.u0 + 0.5, st.u1 - 0.5 - w);
-        const d1 = Math.min(d + rng.range(1.0, 2.1) + 2.5 * t, cap(ua, ua + w, y));
+        const d1 = Math.min(d + rng.range(0.9, 1.8) + 1.2 * t, cap(ua, ua + w, y));
         if (d1 > d + 0.8) pod(ctx, k, rng, P, ua, ua + w, y, d - 0.08, d1, glow);
       } else if (r < pBlock + pPod + pVer) {
         const w = Math.min(room, rng.range(3.0, 5.2));
         const ua = rng.range(st.u0 + 0.5, st.u1 - 0.5 - w);
         const high = !street && above < d - 0.4 && rng.chance(0.35);
         const yv = high ? y + FLOOR_H / 2 : y;
-        const d1 = Math.min(d + rng.range(1.4, 3.0) + 2.5 * t, cap(ua, ua + w, y));
+        const d1 = Math.min(d + rng.range(1.2, 2.4) + t, cap(ua, ua + w, y));
         if (d1 > d + 1) {
           veranda(ctx, k, rng, P, ua, ua + w, yv, d - 0.08, d1, glow, rng.chance(0.75 * dens) ? rng.int(1, 3) : 0, dens > 0.5);
           if (high) flight(k, P, ua - 0.1, y, FLOOR_H / 2, 1.9, -1, d + 0.55, 0.9, glow ? 6 : 0);
@@ -426,7 +439,7 @@ export function dressLower(ctx: Ctx, P: GalleryProfile, K2: GalleryKits, O: Lowe
           const uc = st.u0 + (b + 0.5) * (L / bays);
           const bw = L / bays;
           lowWin(ctx, rng, P.world(uc, y + 0.04, 0.01), u, n, bw - 0.6, 2.3, P.wall.wash, true, 0.9);
-          if (rng.chance(0.45)) ctx.put('awning', P.world(uc, y + 2.5, 0.02), n.clone(), new Vector3(bw - 0.5, 1, Math.min(1.1, d * 0.45)), new Color(rng.pick([0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441, 0x7e1e1a])));
+          if (rng.chance(0.45)) kitAwning(k, rng, P, uc, y + 2.5, 0.02, bw - 0.5, Math.min(1.1, d * 0.45));
           else if (rng.chance(0.7)) ctx.signs.place({ at: P.world(uc, y + 2.7, 0.05), normal: n.clone(), size: 0.32, spec: { text: rng.pick(WORDS), color: hex(rng.pick(NEONS)), vertical: false, style: 'box' } }, k);
           if (rng.chance(0.5)) litLantern(ctx, k, P.world(uc + rng.range(-0.8, 0.8), y + 2.45, d - 0.35), 0.8, glow || b % 2 === 0);
         }

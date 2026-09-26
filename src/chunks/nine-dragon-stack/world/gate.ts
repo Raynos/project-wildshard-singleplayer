@@ -33,8 +33,9 @@ export interface GateSpec {
 // the washes, fitted to the dome-B targets by ΔE00 (round 2: lacquer #a3463a vs #823c31, stone #636365 vs #544e4e)
 // the painted surfaces (paint.ts, lab P5): weathered lacquer on the posts and beams; the stone takes the broad, soft
 // concrete wash (SURF.concrete, 6 m), not the 1.7 m granite dabs (SURF.stone read as grain: the coordinator, round 7)
-const LACQUER: Look = { wash: 0x662117, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
-const LACQUER_DK: Look = { wash: 0x561812, line: 1, accent: true, surf: SURF.lacquer };
+// (in the engine the lacquer rendered #d95d46 against style-A's #904536 and the A2 targets' #6c2c21: a third darker)
+const LACQUER: Look = { wash: 0x46160f, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
+const LACQUER_DK: Look = { wash: 0x3b120c, line: 1, accent: true, surf: SURF.lacquer };
 const STONE: Look = { wash: 0x534d4e, line: 1, wet: 0.3, surf: SURF.concrete };
 const STONE_PANEL: Look = { wash: 0x58524f, kind: K.panel, line: 1, wet: 0.2 };
 const RELIEF: XLook = { wash: 0x6a6360, line: 0, wet: 0.15, surf: SURF.concrete };
@@ -299,15 +300,15 @@ export function relief(x: KitX, c: Vector3, right: Vector3, up: Vector3, n: Vect
   const P = (u: number, v: number): Vector3 => c.clone().addScaledVector(right, (u * w) / 2).addScaledVector(up, (v * h) / 2);
   const ph = rng.range(0, Math.PI * 2), dir = rng.chance(0.5) ? 1 : -1;
   const body: Vector3[] = [];
-  for (let i = 0; i <= 18; i++) {
-    const t = i / 18;
+  for (let i = 0; i <= 12; i++) {
+    const t = i / 12;
     body.push(P(dir * (-0.82 + 1.64 * t), 0.5 * Math.sin(ph + t * Math.PI * 3) * (0.6 + 0.4 * t)));
   }
-  x.sweep(body, (t) => m * 0.085 * (1 - 0.75 * t), 6, look, { flat: 0.45, up: n.clone(), capStart: true, capEnd: true });
+  x.sweep(body, (t) => m * 0.085 * (1 - 0.75 * t), 4, look, { flat: 0.45, up: n.clone(), capStart: true, capEnd: true });
   const head = body[0] ?? c;
-  x.ellipsoid(head, right, up, n, m * 0.13, m * 0.1, m * 0.06, look, (d) => 1 + 0.2 * Math.abs(Math.sin(d.x * 7 + d.y * 5)), 4, 8);
+  x.ellipsoid(head, right, up, n, m * 0.13, m * 0.1, m * 0.06, look, (d) => 1 + 0.2 * Math.abs(Math.sin(d.x * 7 + d.y * 5)), 3, 6);
   // a spine of knobs along the back and two legs
-  for (let i = 3; i < 16; i += 3) {
+  for (let i = 2; i < 11; i += 3) {
     const p = body[i];
     if (p !== undefined) x.ellipsoid(p.clone().addScaledVector(up, m * 0.07), right, up, n, m * 0.03, m * 0.045, m * 0.035, look, () => 1, 3, 5);
   }
@@ -315,12 +316,12 @@ export function relief(x: KitX, c: Vector3, right: Vector3, up: Vector3, n: Vect
   for (let sIdx = 0; sIdx < 4; sIdx++) {
     const cu = rng.range(-0.75, 0.75), cv = (sIdx % 2 === 0 ? 1 : -1) * rng.range(0.45, 0.8);
     const pts: Vector3[] = [];
-    for (let i = 0; i <= 12; i++) {
-      const a = (i / 12) * Math.PI * 1.7;
-      const rr = m * 0.11 * (1 - i / 17);
+    for (let i = 0; i <= 8; i++) {
+      const a = (i / 8) * Math.PI * 1.7;
+      const rr = m * 0.11 * (1 - i / 11);
       pts.push(P(cu, cv).addScaledVector(right, Math.cos(a) * rr).addScaledVector(up, Math.sin(a) * rr));
     }
-    x.sweep(pts, () => m * 0.022, 4, look, { flat: 0.5, up: n.clone() });
+    x.sweep(pts, () => m * 0.022, 3, look, { flat: 0.5, up: n.clone() });
   }
 }
 
@@ -356,11 +357,7 @@ function drumStone(k: Kit, x: KitX, px: number, y: number, pz: number, s: number
     ring(x, f, Z, Y, R * 0.52, 0.02 * s, { wash: 0x5a5452, line: 0, surf: SURF.concrete });
     x.ellipsoid(f.clone().add(new Vector3(sx * 0.02 * s, 0, 0)), X, Y, Z, 0.05 * s, R * 0.3, R * 0.3, { wash: 0x6a6360, line: 0, surf: SURF.concrete }, (d) => 1 + 0.15 * Math.sin(Math.atan2(d.y, d.z) * 6), 4, 12);
   }
-  // studs round the drum's rim
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * Math.PI * 2;
-    for (const sx of [-1, 1]) x.ellipsoid(c.clone().add(new Vector3(sx * 0.16 * s, Math.sin(a) * R * 0.97, Math.cos(a) * R * 0.97)), X, Y, Z, 0.025 * s, 0.025 * s, 0.025 * s, { wash: 0x4e4947, line: 0 }, () => 1, 3, 5);
-  }
+  // (the studs round the drum's rim are out since the budget round: 28 tiny spheres a drum, invisible at phone size)
   // a lotus-bud knob on top (a procedural crouching beast read as a lump from 3 m in the walk-around)
   k.lathe(c.x, c.y + R - 0.03 * s, c.z, [[0.1 * s, 0], [0.12 * s, 0.03 * s], [0.08 * s, 0.06 * s], [0.09 * s, 0.1 * s], [0.05 * s, 0.16 * s], [0, 0.2 * s]], 10, { wash: 0x5e5856, line: 1, wet: 0.2, surf: SURF.concrete }, true, 0);
 }

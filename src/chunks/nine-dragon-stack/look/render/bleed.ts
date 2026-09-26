@@ -1,6 +1,7 @@
 // The Jiehua bleed pyramid in the engine's composer (a `beforeChain` pass, ChunkDef.ShardComposition): the clean room's
-// 晕染 bloom (look/post.ts), unchanged in its taps — a Karis prefilter (threshold 1.0, tight knee) at ½ res, 4 dual-filter
-// downs to 1/32, 3 ups back to ¼ (tight = the ¼ mip, wide = the summed pyramid). The window glow rides in its alpha
+// 晕染 bloom (look/post.ts) — a Karis prefilter (threshold 1.0, tight knee), dual-filter downs, ups summing back (tight =
+// the ¼ mip, wide = the summed pyramid). Round 14 (the phone's draw budget, 8 → 5 draws): the prefilter writes the ¼
+// level directly (four bilinear taps cover its 4×4 full-res texels) and the pyramid stops at 1/16. The window glow rides in its alpha
 // (light/glow.ts). The one change: the prefilter reads inverse depth from the scene's depth texture (the engine's scene
 // target is not MSAA and its alpha is not the clean room's near / viewZ), so the pass asks for the depth.
 // It writes only its own targets (needsSwap false): JiehuaEffect samples `tight` and `wide`.
@@ -149,14 +150,15 @@ export class BleedPass extends Pass {
     for (const m of [...this.mips, ...this.ups]) m.dispose();
     this.mips = [];
     this.ups = [];
-    let mw = Math.max(1, Math.round(width / 2)), mh = Math.max(1, Math.round(height / 2));
-    for (let i = 0; i < 5; i++) {
+    // ¼ (the prefilter: tight), ⅛, 1/16; ups at ⅛ and ¼ (wide)
+    let mw = Math.max(1, Math.round(width / 4)), mh = Math.max(1, Math.round(height / 4));
+    for (let i = 0; i < 3; i++) {
       const rt = new WebGLRenderTarget(mw, mh, { type: this.type, depthBuffer: false });
       rt.texture.minFilter = LinearFilter;
       rt.texture.magFilter = LinearFilter;
       rt.texture.name = `NdBleed.mip${String(i)}`;
       this.mips.push(rt);
-      if (i >= 1 && i <= 3) {
+      if (i <= 1) {
         const up = new WebGLRenderTarget(mw, mh, { type: this.type, depthBuffer: false });
         up.texture.minFilter = LinearFilter;
         up.texture.magFilter = LinearFilter;
@@ -166,7 +168,7 @@ export class BleedPass extends Pass {
       mw = Math.max(1, Math.round(mw / 2));
       mh = Math.max(1, Math.round(mh / 2));
     }
-    this.tight = this.mips[1]?.texture ?? null;
+    this.tight = this.mips[0]?.texture ?? null;
     this.wide = this.ups[0]?.texture ?? null;
   }
 
@@ -177,24 +179,20 @@ export class BleedPass extends Pass {
   }
 
   override render(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget | null): void {
-    const [m0, m1, m2, m3, m4] = this.mips;
-    const [u1, u2, u3] = this.ups;
-    if (inputBuffer === null || m0 === undefined || m1 === undefined || m2 === undefined || m3 === undefined || m4 === undefined || u1 === undefined || u2 === undefined || u3 === undefined) return;
+    const [m0, m1, m2] = this.mips;
+    const [u0, u1] = this.ups;
+    if (inputBuffer === null || m0 === undefined || m1 === undefined || m2 === undefined || u0 === undefined || u1 === undefined) return;
     this.uPre.tSrc.value = inputBuffer.texture;
     this.uPre.uTexel.value.set(1 / inputBuffer.width, 1 / inputBuffer.height);
     this.uPre.uNearP.value = this.view.near;
     this.uPre.uFarP.value = this.view.far;
     this.draw(renderer, this.mPre, m0);
-    const chain = [m0, m1, m2, m3, m4];
-    for (let i = 1; i < chain.length; i++) {
-      const src = chain[i - 1], dst = chain[i];
-      if (src === undefined || dst === undefined) continue;
+    for (const [src, dst] of [[m0, m1], [m1, m2]] as const) {
       this.uDown.tSrc.value = src.texture;
       this.uDown.uTexel.value.set(1 / src.width, 1 / src.height);
       this.draw(renderer, this.mDown, dst);
     }
-    const upChain: [WebGLRenderTarget, WebGLRenderTarget, WebGLRenderTarget][] = [[m4, m3, u3], [u3, m2, u2], [u2, m1, u1]];
-    for (const [src, add, dst] of upChain) {
+    for (const [src, add, dst] of [[m2, m1, u1], [u1, m0, u0]] as const) {
       this.uUp.tSrc.value = src.texture;
       this.uUp.tAdd.value = add.texture;
       this.uUp.uTexel.value.set(1 / src.width, 1 / src.height);

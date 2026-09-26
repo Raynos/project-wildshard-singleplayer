@@ -11,7 +11,7 @@ import {
   Quaternion, ShaderMaterial, Sphere, Uint32BufferAttribute, Vector2, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
-import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
+import { EMIT_FOG, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const R = 0.27, H = 0.24;
 
@@ -126,7 +126,7 @@ void main() {
     E *= 1.0 - 0.7 * ribs;
     E = mix(E, uRim * uGain * 0.25, band * 0.8);
     E = mix(E, E * (1.0 - ribs * 0.5) + uGold * ribs * uGain * 0.4, uSutra);
-    col = E * sqrt(max(fg.a, 1e-4));
+    col = E * pow(max(fg.a, 1e-4), ${EMIT_FOG});
   } else if (vPart < 1.5) {
     vec3 c = mix(uCapCol, uGold * 0.8, uSutra) * (0.35 + 0.65 * pow(clamp(1.0 - ndv, 0.0, 1.0), 2.0));
     col = c * fg.a + fg.rgb;

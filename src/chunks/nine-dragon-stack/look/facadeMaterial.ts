@@ -11,7 +11,7 @@ import { Color, ShaderMaterial, type IUniform, Vector2 } from 'three';
 import { PAINT_GLSL } from './paint';
 // the baked light volume on the tower shells (lab P6)
 import { LIGHTVOL_GLSL } from './light/lightvol';
-import { FOG_GLSL, NOISE_GLSL, PAPER_GLSL, type Shared } from './style';
+import { EMIT_FOG, FOG_GLSL, NOISE_GLSL, PAPER_GLSL, type Shared } from './style';
 
 const c = (hex: number): Color => new Color(hex);
 
@@ -269,7 +269,7 @@ void main() {
   col = mix(col, inkC, clamp(lines, 0.0, 1.0) * fade);
   vec4 fg = silkFog(vWorld, 1.0);
   // alpha = near / viewZ: the clean room's composite reads the silhouette from it
-  gl_FragColor = vec4(col * fg.a + fg.rgb * silkPaper(gl_FragCoord.xy) + emitC * sqrt(fg.a), uNear / max(vViewZ, uNear));
+  gl_FragColor = vec4(col * fg.a + fg.rgb * silkPaper(gl_FragCoord.xy) + emitC * pow(max(fg.a, 1e-4), ${EMIT_FOG}), uNear / max(vViewZ, uNear));
 }
 `;
 
@@ -464,7 +464,7 @@ void main() {
   float fade = 1.0 - smoothstep(uLineFade.x, uLineFade.y, dist);
   col = mix(col, inkC, clamp(lines * mix(0.5, 1.0, det), 0.0, 1.0) * fade);
   vec4 fg = silkFog(vWorld, 1.0);
-  gl_FragColor = vec4(col * fg.a + fg.rgb * silkPaper(gl_FragCoord.xy) + emitC * sqrt(fg.a), uNear / max(vViewZ, uNear));
+  gl_FragColor = vec4(col * fg.a + fg.rgb * silkPaper(gl_FragCoord.xy) + emitC * pow(max(fg.a, 1e-4), ${EMIT_FOG}), uNear / max(vViewZ, uNear));
 }
 `;
 

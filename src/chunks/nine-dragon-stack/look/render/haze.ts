@@ -32,9 +32,15 @@ export interface HazeSettings {
   drift: number;
   /** the forward-scatter lobe's share (0 = isotropic) */
   forward: number;
+  /** the brightest irradiance a step takes (the paifang's cluster of lanterns drowned the gate in orange uncapped) */
+  cap: number;
+  /** the irradiance a step must pass to scatter: halos round the bright clusters, not a veil from every lit window */
+  thr: number;
 }
 
-export const HAZE_DEFAULTS: HazeSettings = { density: 0, maxDist: 70, steps: 14, height: 18, drift: 0.5, forward: 0.35 };
+/** off by default (round 14): even thresholded (σ 0.035 over 0.9) it washed the stair-street warm and only faintly haloed
+ *  the paifang at phone size — `window.__ndRender.haze.set({ density: 0.025 })` to look again */
+export const HAZE_DEFAULTS: HazeSettings = { density: 0, maxDist: 70, steps: 14, height: 18, drift: 0.5, forward: 0.35, cap: 1.4, thr: 1.0 };
 
 const FS_MARCH = (steps: number): string => /* glsl */ `
 uniform highp sampler2D tDepth;
@@ -42,7 +48,7 @@ uniform mat4 uInvProj;
 uniform mat4 uCamWorld;
 uniform vec2 uNF;
 uniform vec4 uHz;     // x: σ, y: max distance, z: height falloff (m), w: drift
-uniform vec2 uHz2;    // x: forward lobe, y: time
+uniform vec4 uHz2;    // x: forward lobe, y: time, z: the per-step irradiance cap, w: its threshold
 uniform float uGroundY;
 varying vec2 vUv;
 ${LIGHTVOL_GLSL}
@@ -77,7 +83,7 @@ void main() {
     float hk = exp(-max(p.y - uGroundY, 0.0) / uHz.z);
     float nz = n3(p * vec3(0.22, 0.12, 0.22) + vec3(0.0, uHz2.y * 0.35, uHz2.y * 0.08));
     float sigma = uHz.x * hk * mix(1.0, 0.4 + 1.2 * nz, uHz.w);
-    acc += lpRaw(p) * sigma;
+    acc += max(min(lpRaw(p), vec3(uHz2.z)) - uHz2.w, 0.0) * sigma;
   }
   acc *= ds;
   // a mild forward lobe: looking toward the square's lights (level) the air glows more than looking down at the stone
@@ -111,7 +117,7 @@ export class HazePass extends Pass {
     const s = shared.u;
     this.uMarch = {
       tDepth: { value: null as Texture | null }, uInvProj: { value: new Matrix4() }, uCamWorld: { value: new Matrix4() },
-      uNF: { value: new Vector2(0.1, 1000) }, uHz: { value: new Vector4() }, uHz2: { value: new Vector2() }, uGroundY: { value: groundY },
+      uNF: { value: new Vector2(0.1, 1000) }, uHz: { value: new Vector4() }, uHz2: { value: new Vector4() }, uGroundY: { value: groundY },
       uLpVolA: s.uLpVolA, uLpMinA: s.uLpMinA, uLpInvA: s.uLpInvA, uLpVolB: s.uLpVolB, uLpMinB: s.uLpMinB, uLpInvB: s.uLpInvB,
       uLpGain: s.uLpGain, uLpSky: s.uLpSky, uLpAmb: s.uLpAmb, uLpSpec: s.uLpSpec,
     };
@@ -169,7 +175,7 @@ export class HazePass extends Pass {
     u.uCamWorld.value.copy(cam.matrixWorld);
     u.uNF.value.set(cam.near, cam.far);
     u.uHz.value.set(s.density, s.maxDist, s.height, s.drift);
-    u.uHz2.value.set(s.forward, this.shared.u.uTime.value);
+    u.uHz2.value.set(s.forward, this.shared.u.uTime.value, s.cap, s.thr);
     this.draw(renderer, this.mMarch, rt);
     this.uAdd.tSrc.value = rt.texture;
     this.draw(renderer, this.mAdd, inputBuffer);

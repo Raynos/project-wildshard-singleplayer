@@ -113,7 +113,7 @@ function paifang(ctx: Ctx): void {
 
 /** steel lattice sign masts on the Well's lip, blade signs hung out over the drop, a dragon hook on top */
 function signMasts(ctx: Ctx): void {
-  const k = ctx.kit('masts', true);
+  const k = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
   const steel: Look = { wash: 0x3a3d44, line: 0.8 };
   const masts: { z: number; x: number; signs: { text: string; color: number; y: number; size: number; flicker?: number }[] }[] = [
     { z: -6, x: -1.0, signs: [{ text: '九龍', color: NEON.red, y: 16.4, size: 1.5 }] },
@@ -152,7 +152,7 @@ function lanternString(ctx: Ctx, a: Vector3, b: Vector3, spacing: number, k: Kit
 
 export function buildSquare(ctx: Ctx): void {
   const rng = ctx.rng;
-  const floor = ctx.kit('plaza');
+  const floor = ctx.kit('props'); // the balustrade's kit (one draw, budget.md)
   flagstones(floor, PLAZA.x0, PLAZA.z0, PLAZA.x1, PLAZA.z1, Y0);
   flagstones(floor, STREET.x0, STREET.z0, STREET.x1, STREET.z1, Y0);
   // the plaza's lip over the Well
@@ -246,7 +246,7 @@ export function buildSquare(ctx: Ctx): void {
   for (const [x, z] of [[1.1, 12], [1.1, -9], [1.1, -19], [21, -6]] as const) {
     ctx.emitters.push({ at: new Vector3(x, Y0 + 4.1, z), color: new Color(0xffc987), w: 0.34, h: 0.3, power: 0.5, spill: 0.25 });
   }
-  const str = ctx.kit('strings', true);
+  const str = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 12.2, GATE.z + 0.5), new Vector3(22.6, Y0 + 12.5, -22), 1.9, str);
   lanternString(ctx, new Vector3(-1.2, Y0 + 10.4, -26), new Vector3(GATE.x - 1, Y0 + 11, GATE.z + 0.5), 1.8, str);
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 9.8, GATE.z + 0.6), new Vector3(22.6, Y0 + 9.6, -28), 1.8, str);

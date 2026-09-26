@@ -88,7 +88,9 @@ void main() {
   // the LED module tiles (a fine dark grid, the targets' visible "pixels") and the steel panel frame every 8 m; both
   // fade with distance like every ruling
   vec2 fm = max(fwidth(m), vec2(1e-5));
-  float far = 1.0 - smoothstep(70.0, 200.0, length(vWorld - uCam));
+  // (round 14, dome C2: seen from the stair-street the far screen read as a flat green grid) the module grid and the
+  // panel frame dissolve by 90 m, not 200
+  float far = 1.0 - smoothstep(30.0, 90.0, length(vWorld - uCam));
   vec2 tile = abs(fract(m / uModule.x + 0.5) - 0.5) * uModule.x;
   float tiles = max(lineAt(tile.x, fm.x, uLinePx * 0.55), lineAt(tile.y, fm.y, uLinePx * 0.55)) * uModule.y * far;
   c *= 1.0 - tiles;
@@ -121,7 +123,8 @@ export interface ScrollOpt {
 export const SCROLL: ScrollOpt = {
   pitch: 0.06, span: 32, speed: 0.35, offset: 0, near: 0.74,
   led: new Vector4(0.8, 0.5, 0.08, 0.9),
-  grade: new Vector4(1.15, 1.1, 0.62, 0.22),
+  // (round 14) fog scale 0.22 → 0.45: the screens sit 30–90 m up in the rain; the far rows take the silk like the towers
+  grade: new Vector4(1.15, 1.1, 0.62, 0.45),
   module: [1.2, 0.35],
 };
 

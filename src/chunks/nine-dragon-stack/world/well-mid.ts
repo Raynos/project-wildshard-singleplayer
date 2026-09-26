@@ -17,7 +17,7 @@ import { NEON, Rng } from '../util';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';
 import type { Ctx } from './ctx';
-import { CABLE, CROSSINGS, type Crossing, DECK_TOP, EXT, LOW, type WellPlan, bandKits, snapFloor } from './well-plan';
+import { type BandKits, CABLE, CROSSINGS, type Crossing, DECK_TOP, EXT, LOW, type WellPlan, snapFloor } from './well-plan';
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -54,6 +54,17 @@ const PIPES: readonly [number, number, number, number][] = [
   [-92, Y0 - 7.3, 0.22, 0x8a6650], [-36, Y0 - 24.4, 0.24, 0x6d7178], [-2, Y0 - 38.5, 0.2, 0x8a6650],
 ];
 
+/** the run north's lowest gallery floor (its lowest crossing lands at Y0 − 39) */
+const X_LOW = Y0 - 42;
+/** where the run north's walls stop, as painted shells, deep in the silk (dome D2: the views north and down) */
+const SHELL_BOTTOM = -40;
+
+/** the crossings' kits: the main shaft's and the run north's (each one mesh, culled as a whole), one alpha-cut kit */
+function regionKits(ctx: Ctx): { main: Kit; ext: Kit; at: (z: number) => Kit; alpha: Kit } {
+  const main = ctx.kit('well-c-main'), ext = ctx.kit('well-c-ext');
+  return { main, ext, at: (z) => (z > WELL.z0 ? main : ext), alpha: ctx.alpha('well-c-a') };
+}
+
 const COLLIDERS: ColliderDesc[] = [];
 /** the crossings' collision (deck slabs following each deck, rail walls, the gate's posts); filled by `buildWell` */
 export function crossingColliders(): readonly ColliderDesc[] { return COLLIDERS; }
@@ -73,26 +84,29 @@ export function buildMid(plan: WellPlan): void {
   const rng = new Rng(157);
   COLLIDERS.length = 0;
   // ── the run north's walls and the stub, top to bottom, stair flights down their fronts ──
-  const KX = bandKits(ctx, 'x');
-  plan.band('stub', DECK_TOP, LOW, 853, KX, LOW - 40, 2);
-  plan.band('west-x', DECK_TOP, LOW, 857, KX, LOW - 40, 7);
-  plan.band('east-x', DECK_TOP, LOW, 863, KX, LOW - 40, 7);
-  plan.band('north', DECK_TOP, LOW, 877, KX, LOW - 40, 2);
+  // (the lane's budget, art/nine-dragon-stack/budget.md: ≤ 16 draws, ≤ 0.35 M tris — so few, big kits: the run north's
+  // walls in two, the crossings by region, one alpha kit, one for both gates. The run north's galleries stop at
+  // X_LOW, under its lowest crossing: below that its walls run on as painted shells into the mist.)
+  const KX: BandKits = { kit: (y) => ctx.kit(y >= Y0 - 25 ? 'well-x-hi' : 'well-x-lo'), alpha: () => ctx.alpha('well-c-a') };
+  plan.band('stub', DECK_TOP, LOW, 853, KX, SHELL_BOTTOM, 2);
+  plan.band('west-x', DECK_TOP, X_LOW, 857, KX, SHELL_BOTTOM, 5);
+  plan.band('east-x', DECK_TOP, X_LOW, 863, KX, SHELL_BOTTOM, 5);
+  plan.band('north', DECK_TOP, X_LOW, 877, KX, SHELL_BOTTOM, 2);
 
   // ── the crossings (their ends at the gallery fronts: the rim's, this region's and the lower levels' bands) ──
-  const KC = bandKits(ctx, 'c');
-  CROSSINGS.forEach((c, i) => {
+  const KC = regionKits(ctx);
+  CROSSINGS.forEach((c) => {
     const [fw, fe] = plan.fronts(c.z, c.y);
     const [tw, te] = plan.fronts(c.z, c.y + FLOOR_H);
     const [aw, ae] = plan.frontsMax(c.z - c.w / 2, c.z + c.w / 2, c.y - archDrop(c.kind, fe - fw) * 0.6);
-    const kx = ctx.kitx(`well-c-${c.kind === 'gate' ? `gate${i}` : 'x'}`);
-    const k = c.kind === 'gate' ? ctx.kit(`well-c-gate${i}`) : KC.kit(c.y);
+    const kx = ctx.kitx('well-c-gates');
+    const k = c.kind === 'gate' ? ctx.kit('well-c-gates') : KC.at(c.z);
     const lod = lodAt((fw + fe) / 2, c.y, c.z);
     const anchor = c.z === ANCHOR.z && c.y === ANCHOR.y;
     // (far walkers are a ~220-triangle LOD: the far crossings carry twice the plan's people, so each rung has its crowd)
     const crowd = anchor || lod >= 1 ? c.crowd * 2 : c.crowd;
-    COLLIDERS.push(...bridge(ctx, k, KC.alpha(c.y), kx, {
-      kind: c.kind, z: c.z, y: c.y, x0: fw, x1: fe, w: c.w, seed: 9000 + i * 17, crowd, lod,
+    COLLIDERS.push(...bridge(ctx, k, KC.alpha, kx, {
+      kind: c.kind, z: c.z, y: c.y, x0: fw, x1: fe, w: c.w, seed: 9000 + Math.round((c.z + 200) * 7 + c.y * 13), crowd, lod,
       ax0: Math.max(fw, aw), ax1: Math.min(fe, ae), top0: Math.max(fw, tw), top1: Math.min(fe, te),
       ...(anchor ? { clear: ANCHOR.x } : {}),
     }));
@@ -101,19 +115,19 @@ export function buildMid(plan: WellPlan): void {
   NETS.forEach(([z0, z1, y], i) => {
     const [fw, fe] = plan.frontsMax(z0, z1, y);
     const sag = Math.min(2.4, (fe - fw) * 0.14);
-    net(KC.kit(y), KC.alpha(y), fw + 0.15, fe - 0.15, Math.min(z0, z1), Math.max(z0, z1), y, sag, 300 + i * 7);
+    net(KC.at(z0), KC.alpha, fw + 0.15, fe - 0.15, Math.min(z0, z1), Math.max(z0, z1), y, sag, 300 + i * 7);
     // a net-mender in the belly of a few (the targets' nets carry people)
     if (i % 4 === 0 && lodAt((fw + fe) / 2, y, z0) < 2) stand(ctx, new Vector3((fw + fe) / 2 + rng.range(-1.5, 1.5), y - sag * 0.93, (z0 + z1) / 2), rng.chance(0.5) ? new Vector3(1, 0, 0) : new Vector3(0, 0, 1), 1);
   });
   // ── the gondola: its cable pair and the two stations off the walls ──
-  const ck = KC.kit(CABLE.y);
+  const ck = KC.at(CABLE.z);
   for (const dz of [-0.9, 0.9]) ck.beam(new Vector3(CABLE.x0 + 1, CABLE.y, CABLE.z + dz), new Vector3(CABLE.x1 - 1, CABLE.y + 0.8, CABLE.z + dz), 0.06, 0.06, { wash: 0x1d1e22, line: 0.6 });
   ck.beam(new Vector3(CABLE.x0 + 1, CABLE.y + 0.02, CABLE.z), new Vector3(CABLE.x1 - 1, CABLE.y + 0.82, CABLE.z), 0.07, 0.07, { wash: 0x1d1e22, line: 0.6 });
   station(ctx, ck, CABLE.x0, CABLE.x0 + 5.2, CABLE.z, CABLE.y + 1.4, 1, CABLE.y);
   station(ctx, ck, CABLE.x1 - 5.2, CABLE.x1, CABLE.z, CABLE.y + 2.2, -1, CABLE.y + 0.8);
 
   // ── the far signs and hooks ──
-  const hk = ctx.kit('well-c-signs', true);
+  const hk = (z: number): Kit => KC.at(z);
   const south = new Vector3(0, 0, 1);
   for (const [text, col, side, z, y, size] of HERO) {
     const [fw, fe] = plan.fronts(z, snapFloor(y));
@@ -121,7 +135,7 @@ export function buildMid(plan: WellPlan): void {
     const x = side === 'W' ? fw + 0.35 + w / 2 : fe - 0.35 - w / 2;
     ctx.signs.place({ at: new Vector3(x, y, z), normal: south, size, spec: { text, color: hex(col), vertical: true, style: 'tube' }, blade: true }, null);
     const top = y + (size * (Array.from(text).length + 0.62)) / 2 + 0.2;
-    hk.beam(new Vector3(side === 'W' ? fw - 0.3 : fe + 0.3, top, z), new Vector3(side === 'W' ? x + w / 2 + 0.1 : x - w / 2 - 0.1, top, z), 0.1, 0.1, { wash: 0x2e3036, line: 0.8 });
+    hk(z).beam(new Vector3(side === 'W' ? fw - 0.3 : fe + 0.3, top, z), new Vector3(side === 'W' ? x + w / 2 + 0.1 : x - w / 2 - 0.1, top, z), 0.1, 0.1, { wash: 0x2e3036, line: 0.8 });
   }
   // blade signs of every size down both walls
   for (let i = 0; i < 26; i++) {
@@ -133,27 +147,27 @@ export function buildMid(plan: WellPlan): void {
     const size = rng.range(0.7, 1.2);
     const w = size * 1.36;
     const onW = rng.chance(0.5);
-    ctx.signs.place({ at: new Vector3(onW ? fw + 0.3 + w / 2 : fe - 0.3 - w / 2, y, z), normal: south, size, spec: { text: rng.pick(WORDS), color: hex(rng.pick(NEONS)), vertical: true, style: rng.chance(0.85) ? 'tube' : 'box' }, blade: true, flicker: rng.chance(0.06) ? rng.next() : 0 }, hk);
+    ctx.signs.place({ at: new Vector3(onW ? fw + 0.3 + w / 2 : fe - 0.3 - w / 2, y, z), normal: south, size, spec: { text: rng.pick(WORDS), color: hex(rng.pick(NEONS)), vertical: true, style: rng.chance(0.85) ? 'tube' : 'box' }, blade: true, flicker: rng.chance(0.06) ? rng.next() : 0 }, hk(z));
   }
   for (const [side, z, y] of [['E', -60, Y0 + 7.8], ['W', -72, Y0 + 1.8], ['E', -84, Y0 - 7.2], ['W', -54, Y0 - 13.2], ['E', -40, Y0 - 25.2]] as const) {
     const [fw, fe] = plan.fronts(z, snapFloor(y));
-    dragonHook(hk, ctx, new Vector3(side === 'W' ? fw - 0.1 : fe + 0.1, y, z), new Vector3(side === 'W' ? 1 : -1, 0, 0), 0.9);
+    dragonHook(hk(z), ctx, new Vector3(side === 'W' ? fw - 0.1 : fe + 0.1, y, z), new Vector3(side === 'W' ? 1 : -1, 0, 0), 0.9);
   }
   // ── what is strung across the gap: pipes, lantern strings, laundry lines and cable bundles ──
   for (const [z, y, r, col] of PIPES) {
     const [fw, fe] = plan.frontsMax(z - r, z + r, snapFloor(y));
-    const k = KC.kit(y);
+    const k = KC.at(z);
     k.beam(new Vector3(fw - 0.2, y, z), new Vector3(fe + 0.2, y, z), r * 2, r * 2, { wash: col, line: 0.8 });
     for (const x of [fw + 0.5, fe - 0.5]) k.box(x, y - r - 0.05, z, 0.14, 2 * r + 0.1, 0.5, { wash: 0x3a3d44, line: 0.8 });
   }
-  const KL = ctx.kit('well-c-strings');
+
   for (let i = 0; i < 8; i++) {
     const ext = i % 3 !== 0;
     const z = ext ? rng.range(EXT.z0 + 3, EXT.z1 - 1) : rng.range(WELL.z0 + 2, WELL.z1 - 14);
     const floor = Y0 - FLOOR_H * rng.int(ext ? -6 : 1, 9);
     const [fw, fe] = plan.fronts(z, floor);
     const ya = floor + rng.range(2.2, 2.6);
-    lanternLine(ctx, KL, new Vector3(fw + 0.1, ya, z), new Vector3(fe - 0.1, ya + rng.range(-0.8, 0.8), z + rng.range(-2, 2)), 3.2);
+    lanternLine(ctx, KC.at(z), new Vector3(fw + 0.1, ya, z), new Vector3(fe - 0.1, ya + rng.range(-0.8, 0.8), z + rng.range(-2, 2)), 3.2);
   }
   for (let i = 0; i < 14; i++) {
     const ext = i % 2 === 1;
@@ -163,7 +177,7 @@ export function buildMid(plan: WellPlan): void {
     const ya = floor + rng.range(1.9, 2.5);
     spanStreet(ctx.fd, new Vector3(fw + 0.1, ya, z), new Vector3(fe - 0.1, ya + rng.range(-1.2, 1.2), z + rng.range(-3, 3)), Math.floor(rng.next() * 1e6));
   }
-  skyCables(ctx, KL, rng);
+  skyCables(ctx, KC.main, rng);
   outriggers(plan, KX.kit, KX.alpha, CROSSINGS, rng);
 }
 

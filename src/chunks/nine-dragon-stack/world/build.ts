@@ -33,7 +33,7 @@ import { buildSquare } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
 import { WORDS, buildTowers, droneKit, trainKit } from './towers';
 import { Rng, chars } from '../util';
-import { CABLE, buildWell, gondolaKit, wellSheets } from './well';
+import { CABLE, SHAFT, WELL_RECTS, buildWell, gondolaKit, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { loadGlb } from './hero/glb';
 import { InstanceCuller } from './cull';
@@ -50,17 +50,20 @@ async function loadFonts(): Promise<void> {
   await Promise.race([all.then(() => undefined), new Promise<void>((resolve) => { setTimeout(resolve, 9000); })]);
 }
 
-/** the silk fog sheets across the Well at each stratum gap (their heights come from well.ts) */
+/** the silk fog sheets across the Well at each stratum gap (their heights come from well.ts), over both of its rects —
+ *  the main shaft and the canyon's run north (dome C's WELL_RECTS) */
 function sheetsGeometry(): BufferGeometry {
   const pos: number[] = [], uv: number[] = [], band: number[] = [], alpha: number[] = [], idx: number[] = [];
   let n = 0;
   for (const s of wellSheets) {
-    for (const dy of [0, -5]) {
-      const y = s.y + dy;
-      const pts: [number, number, number, number][] = [[WELL.x0, WELL.z1, 0, 0], [WELL.x1, WELL.z1, 1, 0], [WELL.x1, WELL.z0, 1, 1], [WELL.x0, WELL.z0, 0, 1]];
-      for (const [x, z, u, v] of pts) { pos.push(x, y, z); uv.push(u, v); band.push(s.band); alpha.push(s.a * (dy === 0 ? 1 : 0.7)); }
-      idx.push(n, n + 1, n + 2, n, n + 2, n + 3);
-      n += 4;
+    for (const r of WELL_RECTS) {
+      for (const dy of [0, -5]) {
+        const y = s.y + dy;
+        const pts: [number, number, number, number][] = [[r.x0, r.z1, 0, 0], [r.x1, r.z1, 1, 0], [r.x1, r.z0, 1, 1], [r.x0, r.z0, 0, 1]];
+        for (const [x, z, u, v] of pts) { pos.push(x, y, z); uv.push(u, v); band.push(s.band); alpha.push(s.a * (dy === 0 ? 1 : 0.7)); }
+        idx.push(n, n + 1, n + 2, n, n + 2, n + 3);
+        n += 4;
+      }
     }
   }
   const g = new BufferGeometry();
@@ -128,7 +131,8 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const neonSigns = new NeonSigns(shared, glyphs);
   signs.calligraphy = neonSigns;
   shared.u.uGroundY.value = Y0;
-  shared.u.uShaft.value.set(WELL.x0, WELL.z0, WELL.x1, WELL.z1);
+  // the shaft's silk mist fills dome C's SHAFT box (the main shaft and its run north)
+  shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
   const ctx = new Ctx(signs);
   buildSquare(ctx);

@@ -39,12 +39,14 @@ uniform vec3 uPlaneU;
 uniform vec3 uPlaneN;
 uniform vec4 uSpread; // x: tail toward the eye, y: tail away, z: width scale, w: min distance
 uniform float uCardOn;
+uniform float uLift;
 varying vec2 vC;
 varying vec3 vWorld;
 varying vec3 vCol;
 varying float vS;
 varying vec4 vSeg;
 varying vec2 vDir;
+varying float vDown;
 vec3 toPlane(vec3 p) { vec3 q = p - uPlaneO; return vec3(dot(q, uPlaneU), dot(q, uPlaneN), dot(q, cross(uPlaneU, uPlaneN))); }
 vec3 fromPlane(vec3 l) { return uPlaneO + uPlaneU * l.x + uPlaneN * l.y + cross(uPlaneU, uPlaneN) * l.z; }
 void main() {
@@ -57,10 +59,18 @@ void main() {
   vec2 dir = d / D;
   vec2 side = vec2(-dir.y, dir.x);
   float sN = D * c / (c + hT), sF = D * c / (c + hB);
+  // (render, dome C2) looking DOWN, the streaks fanned out radially from under the camera: the card turns about its
+  // mirror point toward the view's own heading on the plane as the view steepens, so the runs lie parallel down the
+  // screen like the targets' (at eye height nothing changes: the axis stays the radial)
+  vec3 fwW = -vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]);
+  vec3 fwL = vec3(dot(fwW, uPlaneU), dot(fwW, uPlaneN), dot(fwW, cross(uPlaneU, uPlaneN)));
+  float down = smoothstep(0.45, 0.85, -fwL.y);
   // seen steeply from above (the aerials) a rough wet floor gives a glossy pool round the mirror point, not a long
   // streak: the tails shrink and the card widens as the view leaves grazing (eye-height views keep their streaks)
   float steep = smoothstep(0.25, 0.9, c / D);
-  float tail = 1.0 - 0.4 * steep;
+  // (dome C1) looking down, the tails draw in toward each mirror point: a few short runs where the lights really
+  // reflect, not a starburst of every card reaching the camera's feet
+  float tail = (1.0 - 0.4 * steep) * (1.0 - 0.75 * down);
   float s0 = mix(sN, uSpread.w, clamp(uSpread.x * tail, 0.0, 1.0));
   float s1 = mix(sF, D, clamp(uSpread.y * tail, 0.0, 1.0));
   float s = mix(s0, s1, aCorner.y);
@@ -68,8 +78,15 @@ void main() {
   // 2 cm: every tail was a wide band across the bottom of the screen, shaded under hundreds of overlapping cards (a
   // pure constant-angle width, 0.54 ms, thinned the near streaks too far — the mockups' run broad to the feet)
   float halfW = (0.5 * aSize.x * (s / D) * uSpread.z + 0.01) * (1.0 + 0.5 * steep);
-  vec2 xz = camL.xz + dir * s + side * aCorner.x * halfW;
-  vWorld = fromPlane(vec3(xz.x, 0.004, xz.y));
+  vec2 fwXZ = length(fwL.xz) > 1e-3 ? normalize(fwL.xz) : dir;
+  vec2 axis = normalize(mix(dir, fwXZ * sign(dot(fwXZ, dir) + 1e-3), down));
+  vec2 sideA = vec2(-axis.y, axis.x);
+  float sM = D * c / (c + 0.5 * (hB + hT));
+  vec2 xz = camL.xz + dir * sM + axis * (s - sM) + sideA * aCorner.x * halfW;
+  dir = axis;
+  // (a stair flight's cards rise toward the nosing line as the view steepens: seen from above, a tread's whole top
+  // carries the run, not only its back half)
+  vWorld = fromPlane(vec3(xz.x, 0.004 + uLift * down, xz.y));
   vC = aCorner;
   // below the ground's height (a lantern in the Well, the camera under the square): no streak
   vCol = aCol * aSize.z * step(-0.5, camL.y) * step(0.2, eL.y);
@@ -82,6 +99,7 @@ void main() {
   vS = s;
   vSeg = vec4(s0, sN, sF, s1);
   vDir = dir;
+  vDown = down;
   // (render) the silk fog's transmittance per corner (it varies slowly along a card; per pixel it was the cards' dearest
   // term under their overdraw)
   vFogT = silkFog(vWorld, 1.0).a;
@@ -106,6 +124,7 @@ varying vec3 vCol;
 varying float vS;
 varying vec4 vSeg;
 varying vec2 vDir;
+varying float vDown;
 void main() {
   if (max(vCol.r, max(vCol.g, vCol.b)) <= 0.0) discard;
   vec2 p = vWorld.xz;
@@ -128,10 +147,11 @@ void main() {
   float fine = (vnoise(vec2(along * 38.0, vC.x * 0.7 + uTime * 0.9)) - 0.5) * 2.0 * (1.0 - smoothstep(0.009, 0.022, fa))
              + (vnoise(vec2(along * 95.0, vC.x * 1.3 - uTime * 1.3)) - 0.5) * 1.4 * (1.0 - smoothstep(0.0035, 0.009, fa))
              + (vnoise(vec2(along * 14.0, vC.x * 0.5 + uTime * 0.6)) - 0.5) * 1.2 * smoothstep(0.012, 0.03, fa);
-  float x = vC.x + sb.w * uCardK.z * 0.5 + (vnoise(vec2(along * 2.5, uTime * 0.5)) - 0.5) * 0.3 + fine * uFine;
-  float across = 1.0 - smoothstep(0.5, 1.0, abs(x));
+  // (looking down: the comb softens — less jitter, a softer edge, fewer dashes)
+  float x = vC.x + sb.w * uCardK.z * 0.5 + (vnoise(vec2(along * 2.5, uTime * 0.5)) - 0.5) * 0.3 + fine * uFine * (1.0 - 0.8 * vDown);
+  float across = 1.0 - smoothstep(mix(0.5, 0.15, vDown), 1.0, abs(x));
   float stria = 0.7 + 0.3 * vnoise(vec2(vC.x * 11.0 + sb.y * 5.0, along * 1.5));
-  float dash = mix(1.0, smoothstep(0.15, 0.75, vnoise(vec2(along * 17.0, x * 2.5 + sb.y * 9.0))), uCardK.y) * stria;
+  float dash = mix(1.0, smoothstep(0.15, 0.75, vnoise(vec2(along * 17.0, x * 2.5 + sb.y * 9.0))), uCardK.y * (1.0 - 0.7 * vDown)) * stria;
   float grain = 0.72 + 0.28 * vnoise(p * 97.0);
   dash *= grain;
   float gloss = mix(0.45, 1.0, st.z) * (0.65 + 0.7 * sb.y);
@@ -152,7 +172,7 @@ export interface StreakPlane { o: Vector3; u: Vector3; n: Vector3; clip: Vector4
 
 const NO_CLIP = new Vector4(-1e5, -1e5, 1e5, 1e5);
 
-export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4, plane?: StreakPlane): Mesh {
+export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4, plane?: StreakPlane, gain = 1, lift = 0): Mesh {
   const L = STREAK_LOOK;
   const P = plane ?? { o: new Vector3(0, shared.u.uGroundY.value, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: NO_CLIP };
   const mat = new ShaderMaterial({
@@ -160,9 +180,10 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
       ...shared.u,
       uPlaneO: { value: P.o.clone() }, uPlaneU: { value: P.u.clone().normalize() }, uPlaneN: { value: P.n.clone().normalize() }, uClip: { value: P.clip.clone() },
       uSpread: { value: new Vector4(L.tailNear, L.tailFar, L.cardWidth, 0.6) },
-      uCardK: { value: new Vector4(L.cardGain, L.cardDash, L.cardJog, 1) },
+      uCardK: { value: new Vector4(L.cardGain * gain, L.cardDash, L.cardJog, 1) },
       uFine: { value: L.fine },
       uCardOn: { value: 1 },
+      uLift: { value: lift },
       uHole: { value: hole },
     },
     vertexShader: VS_CARD, fragmentShader: FS_CARD,
@@ -189,6 +210,10 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
   return m;
 }
 
+/** (dome C1: the tread runs read faint against the targets' continuous lines) the stair's cards are brighter: each
+ *  shows on half a tread only */
+const STAIR_GAIN = 2;
+
 /** the stair-street's flights and landings, as world/stairstreet.ts exports them */
 export interface StairPlan {
   flights: readonly { x0: number; x1: number; y0: number }[];
@@ -212,12 +237,12 @@ export function stairStreaks(shared: Shared, emitters: readonly Emitter[], plan:
     out.push(buildStreaks(shared, emitters, none, {
       o: new Vector3(f.x0, f.y0 + plan.rise * 0.5, 0), u: new Vector3(1, slope, 0), n: new Vector3(-slope, 1, 0),
       clip: new Vector4(f.x0, plan.z0, f.x1, plan.z1),
-    }));
+    }, STAIR_GAIN, plan.rise * 0.42));
   }
   for (const l of plan.landings) {
     out.push(buildStreaks(shared, emitters, none, {
       o: new Vector3(l.x0, l.y, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: new Vector4(l.x0, plan.z0, l.x1, plan.z1),
-    }));
+    }, STAIR_GAIN));
   }
   return out;
 }

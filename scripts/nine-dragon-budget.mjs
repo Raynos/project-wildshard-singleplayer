@@ -85,7 +85,7 @@ try {
     const r = await page.evaluate(() => {
       const W = window.__world, g = W.game, rd = g.renderer, cam = g.camera;
       const Y0 = 125, SPLIT = 95;
-      const LANES = ['A2 square', 'B1/D1 Well rim + galleries', 'B2 crossings + run north', 'D2 lower Well', 'C1 stair foot', 'C2 upper stair', 'towers + street', 'look (shared)', 'viewmodel', 'post chain (empty frame)'];
+      const LANES = ['A2 square', 'B1/D1 Well rim + galleries', 'B2 crossings + run north', 'D2 lower Well', 'C1 stair foot', 'C2 upper stair', 'towers + street', 'facade batches (draws only)', 'look (shared)', 'viewmodel', 'post chain (empty frame)'];
       const region = (x, y, z) => {
         if (x < 0.3 && x > -38 && z > -110 && z < 24) {
           if (z < -44.1) return y < Y0 + 30 ? 'B2 crossings + run north' : 'towers + street';
@@ -174,7 +174,10 @@ try {
           L.tris += tr;
           L.kinds[kind] = (L.kinds[kind] ?? 0) + tr;
         }
-        for (const [l, c] of Object.entries(drawLane)) lanes[l].calls += (dc * c) / meshes;
+        // the facade dressing's draws are one per visible piece type wherever it stands: a shared cost (its triangles go
+        // to the regions they stand in)
+        if (name === 'facade') lanes['facade batches (draws only)'].calls += dc;
+        else for (const [l, c] of Object.entries(drawLane)) lanes[l].calls += (dc * c) / meshes;
       }
       for (const o of vm) o.visible = vis.get(o);
       const mv = measure();

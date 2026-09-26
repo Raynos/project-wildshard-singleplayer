@@ -7,6 +7,7 @@
 import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4, type WebGLRenderer } from 'three';
 import type { ShardComposeContext, ShardComposition, ShardRender } from '../../ChunkDef';
 import { nineDragonWorld } from '../index';
+import { TIER } from '../../../core/tier';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
 import { LUT_URL } from './light/install';
@@ -51,6 +52,8 @@ export function createRender(): ShardRender {
     // chain). Without slices the depth readers read the composer's stable depth copy (worldDepth.ts)
     slices: false,
     ao: true,
+    // the phone's draw budget: one FXAA pass on the graded frame instead of SMAA's three
+    ...(TIER === 'phone' ? { aa: 'fxaa' as const } : {}),
     compose(c: ShardComposeContext): ShardComposition {
       const world = nineDragonWorld();
       if (world === null) return {}; // the fragment did not build: the engine's chain as it is
@@ -85,6 +88,7 @@ export function createRender(): ShardRender {
       const jiehua = new JiehuaEffect(c.camera, world.shared, glow, grade);
       jiehua.source = bleed;
       jiehua.haze = haze;
+      jiehua.refl = reflect;
       // the streak cards (look/streaks.ts): found by their own uniform
       const cardOns: IUniform<number>[] = [];
       const streaks: Object3D[] = [];

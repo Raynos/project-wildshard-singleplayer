@@ -45,7 +45,7 @@ export const LANDINGS: readonly { x0: number; x1: number; y: number }[] = [0, 1]
 export const TOP_Y = Y0 + STAIR.rise;
 /** the paifang on the second landing, spanning the stair (its front faces down the stair, west) */
 const L2 = LANDINGS[1] ?? { x0: 0, x1: 0, y: 0 };
-export const STAIR_GATE = { x: (L2.x0 + L2.x1) / 2, y: L2.y, z: (STAIR.z0 + STAIR.z1) / 2, s: 1.3, posts: [-3.83, -1.51, 1.51, 3.83] } as const;
+export const STAIR_GATE = { x: (L2.x0 + L2.x1) / 2, y: L2.y, z: (STAIR.z0 + STAIR.z1) / 2, s: 1.5, posts: [-4.6, -1.75, 1.75, 4.6] } as const;
 /** the street between the tower faces past the square's towers (the stair is the middle 8 m; terraces either side) */
 export const FACE_N = STAIR.z0 - 3, FACE_S = STAIR.z1 + 3;
 /** the square's east towers flank the stair's first 12 m (their end faces on the stair's edges, base at Y0 + 5): C1 / C2's
@@ -83,8 +83,6 @@ export function stairColliders(): ColliderDesc[] {
 }
 
 // ── looks (C2 has its own copies) ──
-const STEP_TOP: Look = { wash: 0x3a3c42, kind: K.flag, wet: 1, line: 1.8 };
-const STEP_RISER: Look = { wash: 0x46464c, kind: K.stone, line: 1.8, wet: 0.7 };
 const PLINTH: Look = { wash: 0x6a6866, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };
 const COPING: Look = { wash: 0x77756f, kind: K.stone, line: 1.8, wet: 0.5 };
 const TERRACE: Look = { wash: 0x55565a, kind: K.flag, wet: 0.8, line: 0 };
@@ -92,6 +90,7 @@ const TIMBER_DK: Look = { wash: 0x3d2a1e, line: 1, accent: true, surf: SURF.wood
 const LACQUER: Look = { wash: 0x7e2419, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
 const IRON: Look = { wash: 0x2a2c31, line: 0.8 };
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
+const tint = (c: number, t: number): number => new Color(c).multiplyScalar(t).getHex();
 const UP = new Vector3(0, 1, 0);
 const XP = new Vector3(1, 0, 0), XN = new Vector3(-1, 0, 0), ZP = new Vector3(0, 0, 1), ZN = new Vector3(0, 0, -1);
 
@@ -142,10 +141,9 @@ function clearBand(ctx: Ctx, x0: number, x1: number, z0: number, z1: number, y0:
   };
   drop(ctx.fd.pieces);
   drop(ctx.fd.windows);
-  for (let i = ctx.fd.signs.length - 1; i >= 0; i--) {
-    const sl = ctx.fd.signs[i];
-    if (sl !== undefined && inside(sl.at)) ctx.fd.signs.splice(i, 1);
-  }
+  // sign slots are shrunk to nothing, not removed: build.ts fills the slots in order from one rng, so a removed slot
+  // would change the words and styles of every sign after it, all over the city
+  for (const sl of ctx.fd.signs) if (inside(sl.at)) sl.size = 0.001;
 }
 
 function mat4(x: number, y: number, z: number, yaw: number, s = 1): Matrix4 {
@@ -154,22 +152,47 @@ function mat4(x: number, y: number, z: number, yaw: number, s = 1): Matrix4 {
 
 // ── the first flight ──
 
+/** the drawn floor on flight 1 (its half-step tops) — where people stand; stairFloor(x) is the collider's */
+function drawnFloor(x: number): number {
+  const f = FLIGHTS[0];
+  if (f === undefined || x < f.x0 || x >= f.x1) return stairFloor(x);
+  return f.y0 + (Math.min(2 * f.steps - 1, Math.floor((x - f.x0) / (RUN / 2))) + 1) * (RISE / 2);
+}
+
+// C2's step looks (stairstreet-upper.ts), so the whole stair reads as one
+const HALF_TOP: Look = { wash: 0x4a4c52, kind: K.flag, wet: 1, line: 1.8 };
+const HALF_RISER: Look = { wash: 0x4f4e53, kind: K.stone, line: 1.8, wet: 0.7 };
+const NOSING: Look = { wash: 0xa4a7ad, kind: K.stone, line: 0, wet: 0.8 };
+const MOSS: Look = { wash: 0x3a4a34, kind: K.leaf, line: 0, wet: 0.6 };
+
+/**
+ * Flight 1, drawn as C2 draws flights 2–3: HALF-STEPS (0.175 m rise, 0.33 m tread: the mockup's fine worn steps) over
+ * the physics' 0.35 / 0.667 treads — each collider tread shows two stone steps, the upper one flush with it — laid in
+ * 2–4 long granite slabs, worn lower in the middle, bright worn nosings, moss where they meet the walls.
+ */
 function flightOne(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('stair-steps', true);
   const f = FLIGHTS[0];
   if (f === undefined) return;
-  for (let i = 0; i < f.steps; i++) {
-    const x = f.x0 + i * RUN, top = f.y0 + (i + 1) * RISE;
-    // each step is 3–4 long granite slabs laid across the stair, a shade apart, a few worn a little lower
+  const zc = (STAIR.z0 + STAIR.z1) / 2;
+  const hr = RISE / 2, hd = RUN / 2;
+  for (let j = 0; j < 2 * f.steps; j++) {
+    const x = f.x0 + j * hd, top = f.y0 + (j + 1) * hr;
     let z = STAIR.z0;
     while (z < STAIR.z1 - 0.05) {
-      const len = Math.min(STAIR.z1 - z, rng.range(1.7, 3.1));
-      const sag = rng.chance(0.2) ? rng.range(0.01, 0.03) : 0;
-      const tone = rng.range(0.9, 1.08);
-      const tint = (c: number): number => new Color(c).multiplyScalar(tone).getHex();
-      k.box(x + RUN / 2, top - RISE - 0.3, z + len / 2, RUN + 0.02, RISE + 0.3 - sag, len - 0.02,
-        { ...STEP_RISER, wash: tint(STEP_RISER.wash) }, { top: { ...STEP_TOP, wash: tint(STEP_TOP.wash) } });
+      const len = Math.min(STAIR.z1 - z, rng.range(1.5, 3.2));
+      const mid = Math.abs(z + len / 2 - zc) < 2.2;
+      const sag = mid && rng.chance(0.35) ? rng.range(0.008, 0.025) : 0;
+      const tone = rng.range(0.86, 1.1);
+      k.box(x + hd / 2, top - hr - 0.22, z + len / 2, hd + 0.03, hr + 0.22 - sag, len - 0.025,
+        { ...HALF_RISER, wash: tint(HALF_RISER.wash, tone) }, { top: { ...HALF_TOP, wash: tint(HALF_TOP.wash, tone) } });
+      const nx = x - 0.005, ny = top - sag;
+      k.quad4(new Vector3(nx, ny - 0.06, z + len - 0.02), new Vector3(nx, ny - 0.06, z + 0.01), new Vector3(nx + 0.06, ny + 0.002, z + 0.01), new Vector3(nx + 0.06, ny + 0.002, z + len - 0.02),
+        len - 0.03, 0.085, { ...NOSING, wash: tint(NOSING.wash, tone) });
       z += len;
+    }
+    for (const [ze, dz] of [[STAIR.z0, 1], [STAIR.z1, -1]] as const) {
+      if (rng.chance(0.45)) k.quad(new Vector3(x + 0.02, top + 0.004, ze), XP, new Vector3(0, 0, dz), hd - 0.04, rng.range(0.08, 0.22), MOSS);
     }
   }
 }
@@ -275,47 +298,88 @@ const MIAN_X = 26.2;
 /** the brass dragon's wall bracket (its bay of the tea house has no lantern) */
 const DRAGON_X = 28.2;
 
-function teaHouseUpper(ctx: Ctx, rng: Rng): void {
+interface FrontSpec {
+  /** the face's left end (seen from outside) on its plane; `u` runs along it, `n` out of it (both axis-aligned) */
+  a: Vector3;
+  u: Vector3;
+  n: Vector3;
+  len: number;
+  /** the skin's base (the tower's base) */
+  yA: number;
+  /** which bays (by their centre's distance along u) get the gallery and the lower eave's lanterns */
+  lower: (s: number) => boolean;
+  lantern: (s: number) => boolean;
+  /** where the lower eave ends (along u) */
+  eaveEnd: number;
+}
+
+/**
+ * A two-storey timber front skinned over a tower's lower floors (the grammar's dressing there is cleared first): a
+ * plank wall and a lacquer frame, lit lattice doors below and lattice windows above, a shallow upper gallery with a
+ * lattice rail, a glazed pent eave over the doors with lanterns under it, the roof eave at the top.
+ */
+function timberFront(ctx: Ctx, rng: Rng, S: FrontSpec): void {
   const k = ctx.kit('stair-foot', true);
   const ka = ctx.alpha('stair-a');
-  const zf = STAIR.z0, x0 = PLAZA.x1 + 0.6, x1 = SQ_CORNER;
-  const yA = SQ_BASE, yB = SQ_BASE + 3.4, yTop = SQ_BASE + 6.8;
-  clearBand(ctx, x0 - 0.3, x1 + 0.3, zf - 0.6, zf + 2.8, yA - 0.3, yTop + 0.2);
-  // the plank skin and the timber frame: sill, floor and head beams, red lacquer posts at every bay
-  k.quad(new Vector3(x0, yA, zf + 0.03), XP, UP, x1 - x0, yTop - yA, { wash: 0x4a3526, line: 1, surf: SURF.wood });
-  for (const y of [yA, yB, yTop]) k.box((x0 + x1) / 2, y - 0.12, zf + 0.12, x1 - x0, 0.24, 0.22, TIMBER_DK);
-  const nb = Math.round((x1 - x0) / 2.4), bw = (x1 - x0) / nb;
-  for (let b = 0; b <= nb; b++) k.box(x0 + b * bw, yA, zf + 0.12, 0.2, yTop - yA, 0.2, LACQUER);
+  const { a, u, n, len, yA } = S;
+  const yB = yA + 3.4, yTop = yA + 6.8;
+  const P = (s: number, y: number, out: number): Vector3 => a.clone().addScaledVector(u, s).addScaledVector(n, out).setY(y);
+  const e = P(len, yA, 0), i0 = P(0, yA, -0.6), o1 = P(len, yA, 2.8);
+  clearBand(ctx, Math.min(a.x, e.x) - 0.3, Math.max(a.x, e.x) + 0.3, Math.min(i0.z, o1.z), Math.max(i0.z, o1.z), yA - 0.3, yTop + 0.2);
+  k.quad(P(0, yA, 0.03), u, UP, len, yTop - yA, { wash: 0x4a3526, line: 1, surf: SURF.wood });
+  for (const y of [yA, yB, yTop]) k.box(P(len / 2, 0, 0.12).x, y - 0.12, P(len / 2, 0, 0.12).z, len, 0.24, 0.22, TIMBER_DK);
+  const nb = Math.round(len / 2.4), bw = len / nb;
+  for (let b = 0; b <= nb; b++) { const p = P(b * bw, yA, 0.12); k.box(p.x, yA, p.z, 0.2, yTop - yA, 0.2, LACQUER); }
   for (let b = 0; b < nb; b++) {
-    const bx0 = x0 + b * bw, bc = bx0 + bw / 2;
-    // lattice doors onto the tea room, warm behind the lattice; lattice windows above
-    shopGlass(ctx, rng, new Vector3(bc, yA + 0.12, zf + 0.04), XP, ZP, bw - 0.36, yB - yA - 0.5, rng.pick([0xffc47e, 0xffb870, 0xffd09a]), rng.range(0.95, 1.15));
-    ka.quad(new Vector3(bx0 + 0.18, yA + 0.12, zf + 0.1), XP, UP, bw - 0.36, yB - yA - 0.5, { wash: 0x3d1d12, kind: K.bars, row: 1, col: 0.2, line: 1, accent: true });
-    shopGlass(ctx, rng, new Vector3(bc, yB + 0.55, zf + 0.04), XP, ZP, bw - 0.5, 2.0, 0xffc47e, rng.chance(0.8) ? 1 : 0, false);
-    ka.quad(new Vector3(bx0 + 0.25, yB + 0.55, zf + 0.1), XP, UP, bw - 0.5, 2.0, { wash: 0x3d1d12, kind: K.net, col: 0.2, line: 1, accent: true });
-    // the upper gallery: a shallow balcony with a lattice rail, where it clears the stair (x ≤ EAVE_X1)
-    if (bx0 + bw <= EAVE_X1 + 0.1 && Math.abs(bc - MIAN_X) > 1) {
-      k.box(bc, yB - 0.02, zf + 0.35, bw, 0.14, 0.7, TIMBER_DK);
-      ka.quad(new Vector3(bx0 + 0.05, yB + 0.12, zf + 0.68), XP, UP, bw - 0.1, 0.85, { wash: 0x5a2a1c, kind: K.bars, row: 1, col: 0.11, line: 1, accent: true });
-      k.box(bc, yB + 0.95, zf + 0.68, bw, 0.07, 0.09, LACQUER);
-      if (rng.chance(0.45)) ctx.walkers.push(mat4(bc + rng.range(-0.5, 0.5), yB + 0.12, zf + 0.35, rng.range(-0.4, 0.4), rng.range(0.95, 1.02)));
+    const s0 = b * bw, sc = s0 + bw / 2;
+    shopGlass(ctx, rng, P(sc, yA + 0.12, 0.04), u, n, bw - 0.36, yB - yA - 0.5, rng.pick([0xffc47e, 0xffb870, 0xffd09a]), rng.range(0.95, 1.15));
+    ka.quad(P(s0 + 0.18, yA + 0.12, 0.1), u, UP, bw - 0.36, yB - yA - 0.5, { wash: 0x3d1d12, kind: K.bars, row: 1, col: 0.2, line: 1, accent: true });
+    shopGlass(ctx, rng, P(sc, yB + 0.55, 0.04), u, n, bw - 0.5, 2.0, 0xffc47e, rng.chance(0.8) ? 1 : 0, false);
+    ka.quad(P(s0 + 0.25, yB + 0.55, 0.1), u, UP, bw - 0.5, 2.0, { wash: 0x3d1d12, kind: K.net, col: 0.2, line: 1, accent: true });
+    if (S.lower(sc)) {
+      const g = P(sc, 0, 0.35), r = P(sc, 0, 0.68);
+      k.box(g.x, yB - 0.02, g.z, bw, 0.14, 0.7, TIMBER_DK);
+      ka.quad(P(s0 + 0.05, yB + 0.12, 0.68), u, UP, bw - 0.1, 0.85, { wash: 0x5a2a1c, kind: K.bars, row: 1, col: 0.11, line: 1, accent: true });
+      k.box(r.x, yB + 0.95, r.z, bw, 0.07, 0.09, LACQUER);
+      if (rng.chance(0.45)) {
+        const w = P(sc + rng.range(-0.5, 0.5), yB + 0.12, 0.35);
+        ctx.walkers.push(mat4(w.x, w.y, w.z, (n.z > 0 ? 0 : Math.PI) + rng.range(-0.4, 0.4), rng.range(0.95, 1.02)));
+      }
     }
+    ctx.emitters.push({ at: P(sc, yA + 1.4, 0.2), color: new Color(0xffc48a), w: bw - 0.4, h: 2.6, power: 0.22, spill: 0.15 });
   }
-  // the pent eave over the tea room's doors (to EAVE_X1), lanterns under it; the roof eave at the top, full length
-  const eave = (xa: number, xb: number, yWall: number, drop: number, out: number, tile: number): void => {
-    k.quad4(new Vector3(xa, yWall - drop, zf + out), new Vector3(xb, yWall - drop, zf + out), new Vector3(xb, yWall, zf + 0.05), new Vector3(xa, yWall, zf + 0.05),
-      xb - xa, Math.hypot(out, drop), { wash: tile, kind: K.tiles, line: 1, accent: true });
-    k.box((xa + xb) / 2, yWall - drop - 0.16, zf + out, xb - xa, 0.16, 0.08, { wash: MIN.lacquer, line: 1, accent: true });
+  const eave = (sa: number, sb: number, yWall: number, drop: number, out: number, tile: number): void => {
+    k.quad4(P(sa, yWall - drop, out), P(sb, yWall - drop, out), P(sb, yWall, 0.05), P(sa, yWall, 0.05), Math.abs(sb - sa), Math.hypot(out, drop), { wash: tile, kind: K.tiles, line: 1, accent: true });
+    const f = P((sa + sb) / 2, 0, out);
+    k.box(f.x, yWall - drop - 0.16, f.z, Math.abs(sb - sa), 0.16, 0.08, { wash: MIN.lacquer, line: 1, accent: true });
   };
-  eave(x0 - 0.2, EAVE_X1, yB - 0.12, 0.42, 0.95, MIN.malachite);
-  eave(x0 - 0.3, x1 + 0.3, yTop + 0.55, 0.6, 1.5, MIN.malachite);
+  eave(-0.2, S.eaveEnd, yB - 0.12, 0.42, 0.95, MIN.malachite);
+  eave(-0.3, len + 0.3, yTop + 0.55, 0.6, 1.5, MIN.malachite);
   for (let b = 0; b < nb; b++) {
-    const bc = x0 + (b + 0.5) * bw;
-    if (bc < EAVE_X1 - 0.6 && Math.abs(bc - MIAN_X) > 1 && Math.abs(bc - DRAGON_X) > 1) ctx.lantern(bc, yB - 0.66, zf + 0.42, 0.62);
-    ctx.lantern(bc, yTop - 0.2, zf + 0.9, 0.7);
+    const sc = (b + 0.5) * bw;
+    if (sc < S.eaveEnd - 0.6 && S.lantern(sc)) { const l = P(sc, yB - 0.66, 0.42); ctx.lantern(l.x, l.y, l.z, 0.62); }
+    const t = P(sc, yTop - 0.2, 0.9);
+    ctx.lantern(t.x, t.y, t.z, 0.7);
   }
-  // warm light from each bay's doors (one emitter per bay: a single 11 m one made an 5.5 m pool that washed the flight)
-  for (let b = 0; b < nb; b++) ctx.emitters.push({ at: new Vector3(x0 + (b + 0.5) * bw, yA + 1.4, zf + 0.2), color: new Color(0xffc48a), w: bw - 0.4, h: 2.6, power: 0.22, spill: 0.15 });
+}
+
+function teaHouseUpper(ctx: Ctx, rng: Rng): void {
+  const x0 = PLAZA.x1 + 0.6, len = SQ_CORNER - x0;
+  timberFront(ctx, rng, {
+    a: new Vector3(x0, 0, STAIR.z0), u: XP, n: ZP, len, yA: SQ_BASE, eaveEnd: Math.min(EAVE_X1, SQ_CORNER) - x0,
+    lower: (s) => x0 + s <= EAVE_X1 && Math.abs(x0 + s - MIAN_X) > 1,
+    lantern: (s) => Math.abs(x0 + s - MIAN_X) > 1 && Math.abs(x0 + s - DRAGON_X) > 1,
+  });
+}
+
+/** the square's south wall, where mockup C's camera turns right (C1 view 6): its lower floors a timber tea house */
+function southTeaHouse(ctx: Ctx, rng: Rng): void {
+  const k = ctx.kit('stair-foot', true);
+  const x0 = PLAZA.x1 + 0.6, len = 12.4, z = PLAZA.z1 + 0.6;
+  timberFront(ctx, rng, { a: new Vector3(x0, 0, z), u: XN, n: ZN, len, yA: Y0 + 5, eaveEnd: len + 0.2, lower: () => true, lantern: () => true });
+  // its signs: the 茶樓 board over the doors' eave, a 茶 cloth hung from the gallery
+  ctx.signs.place({ at: new Vector3(x0 - 4.8, Y0 + 7.95, z - 1.05), normal: ZN, size: 0.6, spec: { text: '茶樓', color: hex(NEON.cyan), vertical: false, style: 'tube' } }, k);
+  ctx.signs.place({ at: new Vector3(x0 - 9.6, Y0 + 7.2, z - 0.75), normal: ZN, size: 0.7, spec: { text: '茶', color: '#1a1614', vertical: true, style: 'banner', ink: '#e8e0cc' } }, k);
 }
 
 function shopRowUpper(ctx: Ctx, rng: Rng): void {
@@ -332,15 +396,17 @@ function shopRowUpper(ctx: Ctx, rng: Rng): void {
   for (let b = 0; b < nb; b++) {
     const bx0 = x0 + b * bw, bc = bx0 + bw / 2;
     const shut = b === 2;
+    // the last bay keeps its face bare: C2's 旅館 / 火鍋 / 牙科 blades hang over the south stair edge at x ≈ 28–30
+    const bare = bx0 + bw > 27.5;
     if (shut) piece(ctx, 'shutter', new Vector3(bc, yA + 0.05, zf - 0.02), XN, ZN, bw - 0.5, 2.6, 1, 0xd8d4cc);
     else shopGlass(ctx, rng, new Vector3(bc, yA + 0.1, zf - 0.04), XN, ZN, bw - 0.45, 2.6, rng.pick([0xffc47e, 0xd9efe8, 0xffb870]), rng.range(1.0, 1.15));
     // its sign board over the door (neon on a dark board, facing across the stair) and a striped awning where it clears
-    ctx.signs.place({ at: new Vector3(bc, yB - 0.35, zf - 0.12), normal: ZN, size: 0.42, spec: { text: words[b] ?? '茶', color: hex(cols[b] ?? NEON.jade), vertical: false, style: 'tube' } }, k);
-    if (bx0 + bw <= EAVE_X1 + 0.1 && !shut) piece(ctx, 'awning', new Vector3(bc, yB - 0.7, zf), XN, ZN, bw - 0.4, 1, 1.1, rng.pick([MIN.cinnabar, MIN.azurite, MIN.malachite]));
+    if (!bare) ctx.signs.place({ at: new Vector3(bc, yB - 0.35, zf - 0.12), normal: ZN, size: 0.42, spec: { text: words[b] ?? '茶', color: hex(cols[b] ?? NEON.jade), vertical: false, style: 'tube' } }, k);
+    if (bx0 + bw <= EAVE_X1 + 0.1 && !shut && !bare) piece(ctx, 'awning', new Vector3(bc, yB - 0.7, zf), XN, ZN, bw - 0.4, 1, 1.1, rng.pick([MIN.cinnabar, MIN.azurite, MIN.malachite]));
     if (!shut) ctx.emitters.push({ at: new Vector3(bc, yA + 1.4, zf - 0.2), color: new Color(0xffc48a), w: bw - 0.6, h: 2.4, power: 0.22, spill: 0.15 });
     // upstairs: a window, an air-con box under it, a potted plant on the sill
     shopGlass(ctx, rng, new Vector3(bc, yB + 0.8, zf - 0.04), XN, ZN, bw - 1.1, 1.6, 0xffc98a, rng.chance(0.75) ? 1 : 0, false);
-    piece(ctx, 'acUnit', new Vector3(bc + bw * 0.3, yB + 0.3, zf), XN, ZN, 1, 1, 1, 0xe6e4df);
+    if (!bare) piece(ctx, 'acUnit', new Vector3(bc + bw * 0.3, yB + 0.3, zf), XN, ZN, 1, 1, 1, 0xe6e4df);
     piece(ctx, 'plant', new Vector3(bc - bw * 0.25, yB + 0.75, zf - 0.02), XN, ZN, 0.7, 0.8, 0.7);
   }
 }
@@ -353,7 +419,6 @@ const ASHLAR: Look = { wash: 0x7a7872, kind: K.stone, line: 1, wet: 0.5, surf: S
 const LEAF_COLS = [0x3f6a3e, 0x4f7a44, 0x355a3a, 0x5a8a4a, 0x2f5236] as const;
 const POT_COLS = [0x9a5a3a, 0x8a4a30, 0x2f5f7a, 0x3c6a58, 0x6d6a66, 0xa8683e] as const;
 const ICO0 = Array.from(new IcosahedronGeometry(1, 0).getAttribute('position').array);
-const tint = (c: number, t: number): number => new Color(c).multiplyScalar(t).getHex();
 
 function leafQuad(k: Kit, base: Vector3, dir: Vector3, side: Vector3, L: number, W: number, look: Look): void {
   const mid = base.clone().addScaledVector(dir, L * 0.42);
@@ -561,8 +626,8 @@ function lanternString(ctx: Ctx, k: Kit, a: Vector3, b: Vector3, spacing: number
 
 function footStrings(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('stair-over', true);
-  for (const x of [28.5, 34]) {
-    const y = stairFloor(x) + rng.range(6.2, 8.2);
+  for (const x of [28.5]) {
+    const y = stairFloor(x) + 9;
     lanternString(ctx, k, new Vector3(x + rng.range(-1, 1), y, STAIR.z0), new Vector3(x + rng.range(-1, 1), y + rng.range(-0.6, 0.6), STAIR.z1), 1.25, 0.9);
   }
 }
@@ -622,7 +687,7 @@ function footCrowd(ctx: Ctx, rng: Rng): void {
     if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 1.1)) continue;
     placed.push([x, z]);
     const up = rng.chance(0.6);
-    ctx.walkers.push(mat4(x, stairFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + rng.range(-0.25, 0.25), rng.range(0.95, 1.04)));
+    ctx.walkers.push(mat4(x, drawnFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + rng.range(-0.25, 0.25), rng.range(0.95, 1.04)));
     n++;
   }
 }
@@ -636,6 +701,7 @@ export function buildStairStreet(ctx: Ctx): void {
   footWalls(ctx, rng);
   teaHouseUpper(ctx, rng);
   shopRowUpper(ctx, rng);
+  southTeaHouse(ctx, rng);
   footTerraces(ctx, rng);
   footStrings(ctx, rng);
   footSigns(ctx);

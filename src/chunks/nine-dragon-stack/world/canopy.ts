@@ -516,8 +516,9 @@ export async function buildCanopy(shared: Shared, lumps: readonly Lump[], emitte
     fu.uWash.value.x = 0.18;
     fu.uLeafInk.value.w = 0.15; // the sky rim: from above every card edge caught it and the crown went pale
     const rng = new Rng(97);
-    const gCards = cardGeometry(lumps, rng, CARDS);
-    const gCore = shellGeometry(lumps, rng, CORE);
+    // the budget round: 2.6 cards per m² (the lab's 3.6) and a lat 4 × lon 7 core (the lab's phone levers)
+    const gCards = cardGeometry(lumps, rng, { ...CARDS, perM2: 2.6 });
+    const gCore = shellGeometry(lumps, rng, { ...CORE, lat: 4, lon: 7 });
     bakeSpill([gCards, gCore], emitters);
     const cards = new Mesh(gCards, foliageMaterial(shared, 'cards', fu, atlas));
     const cardsDepth = new Mesh(gCards, foliageMaterial(shared, 'cards-depth', fu, atlas));

@@ -51,6 +51,11 @@ export const CROSSINGS: readonly Crossing[] = [
   { kind: 'timber', z: -4, y: Y0 - 48, w: 2.2, crowd: 1, ext: false },
   { kind: 'covered', z: -33, y: Y0 - 54, w: 2.6, crowd: 1, ext: false },
   { kind: 'stone', z: -14, y: Y0 - 63, w: 3, crowd: 0, ext: false },
+  // (dome D2's four for view D's middle, clear of the temple spur at z −11…+5 below +50)
+  { kind: 'timber', z: -28, y: Y0 - 36, w: 2.2, crowd: 2, ext: false },
+  { kind: 'steel', z: -24, y: Y0 - 69, w: 1.4, crowd: 1, ext: false },
+  { kind: 'stone', z: -38, y: Y0 - 84, w: 3, crowd: 1, ext: false },
+  { kind: 'timber', z: -20, y: Y0 - 93, w: 2.2, crowd: 1, ext: false },
   { kind: 'stone', z: -51, y: Y0 + 3, w: 3, crowd: 4, ext: true },
   { kind: 'steel', z: -58, y: Y0 - 27, w: 1.4, crowd: 1, ext: true },
   { kind: 'covered', z: -63, y: Y0 + 12, w: 2.6, crowd: 3, ext: true },
@@ -105,6 +110,10 @@ export const wallPlan = (name: WallPlan['name']): WallPlan => {
   return w;
 };
 
+/** a band's own overrides: its depth range (else the wall's), grey-tin eaves (default: the bands below SPLIT), the depth
+ *  of its every-15-m street floors (default: its dMax + 0.6) */
+export interface BandOptions { depths?: { dMin: number; dMax: number }; tin?: boolean; street?: number }
+
 /** the kits a region writes a band into */
 export interface BandKits { kit: (y: number) => Kit; alpha: (y: number) => Kit }
 
@@ -117,12 +126,14 @@ export class WellPlan {
    * just under the lowest floor) to the wall's top when the band holds its top floor. Crossings land, the gondola's
    * stations and the rim's corners stay clear.
    */
-  band(name: WallPlan['name'], yTop: number, yBottom: number, seed: number, kits: BandKits, wallBottom = yBottom - 0.3, stairs = 0): GalleryProfile {
+  band(name: WallPlan['name'], yTop: number, yBottom: number, seed: number, kits: BandKits, wallBottom = yBottom - 0.3, stairs = 0,
+    opt: BandOptions = {}): GalleryProfile {
     const P = wallPlan(name);
+    const dMin = opt.depths?.dMin ?? P.dMin, dMax = opt.depths?.dMax ?? P.dMax;
     const along = P.n.z === 0;
     const landings = along ? CROSSINGS.filter((c) => c.ext === P.ext).map((c) => {
       const a = P.uOf(c.z - c.w / 2), b = P.uOf(c.z + c.w / 2);
-      return { y: c.y, u0: Math.min(a, b), u1: Math.max(a, b), d: P.dMin };
+      return { y: c.y, u0: Math.min(a, b), u1: Math.max(a, b), d: dMin };
     }) : [];
     const voids: { y0: number; y1: number; u0: number; u1: number }[] = [];
     if (name === 'west' || name === 'east') {
@@ -139,7 +150,8 @@ export class WellPlan {
     const prof = galleryWall(this.ctx, {
       name: `${name}@${yTop}`, p0: P.p0, n: P.n, len: P.len, yTop: Math.min(yTop, P.top), yBottom,
       wallTop: holdsTop ? P.wallTop : Math.min(yTop, P.top) + FLOOR_H - 0.3, wallBottom,
-      dMin: P.dMin, dMax: P.dMax, timber: P.timber, seed, wash: P.wash, landings, voids, stairs,
+      dMin, dMax, timber: P.timber, seed, wash: P.wash, landings, voids, stairs, tin: opt.tin ?? yTop <= SPLIT + 0.1,
+      ...(opt.street === undefined ? {} : { street: opt.street }),
       ...(P.g0 === undefined ? {} : { g0: P.g0 }), ...(P.g1 === undefined ? {} : { g1: P.g1 }), ...(P.cascade === undefined ? {} : { cascade: P.cascade }),
     }, kits);
     const list = this.bands.get(name) ?? [];

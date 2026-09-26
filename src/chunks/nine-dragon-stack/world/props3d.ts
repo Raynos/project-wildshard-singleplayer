@@ -10,6 +10,7 @@
 // TRELLIS sets also bring stools that would double under the seated players).
 import { type BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Quaternion, type ShaderMaterial, Vector3 } from 'three';
 import { type GlbOpt, loadGlb } from './hero/glb';
+import { clusterLod } from './crowd';
 import { K } from './kit';
 import { BANYAN, GATE, PLAZA, STREET, WELL, Y0 } from '../layout';
 
@@ -34,7 +35,7 @@ export const GATE_LIONS = {
   scale: 2.4,
 } as const;
 
-interface PropSpec { name: string; opt: GlbOpt; glowRed?: number; at: Matrix4[] }
+interface PropSpec { name: string; opt: GlbOpt; glowRed?: number; at: Matrix4[]; off?: boolean; maxTris?: number }
 
 const place = (x: number, y: number, z: number, yaw: number, s = 1): Matrix4 =>
   new Matrix4().compose(new Vector3(x, y, z), new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), yaw), new Vector3(s, s, s));
@@ -47,25 +48,45 @@ function lionPosts(run: 'plaza' | 'street', at: number, a0: number, a1: number):
   return out;
 }
 
+/** the lions other domes queued (placeLion) */
+const queued: Matrix4[] = [];
+
+/**
+ * Other domes' lions (dome C's Well-rim balustrade): `placeLion` queues one TRELLIS guardian lion; `loadSquareProps` draws
+ * the queue in the same instanced draw as dome B's (no extra call) and empties it, so a rebuilt fragment re-queues.
+ * Call it while the world is being built (before `loadSquareProps` runs in build.ts: any world/ builder does).
+ * - (x, y, z): the lion's base, i.e. the top of the post it sits on (dome B's balustrade posts: y = Y0 + 1.12);
+ * - rotY (radians, about +y): the way it faces — 0 = +z (south), π/2 = +x (east), π = −z (north), −π/2 = −x (west);
+ * - scale: 1 = the post-top lion (0.62 m tall, 0.44 m across; ~8 k triangles each).
+ */
+export function placeLion(x: number, y: number, z: number, rotY: number, scale = 1): void {
+  queued.push(place(x, y, z, rotY, scale));
+}
+
 function specs(): PropSpec[] {
   // the model faces glTF +z; on the Well's balustrade (x ≈ 0.2) a quarter turn faces the plaza, a little more the spawn
   const lions = [...lionPosts('plaza', PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0), ...lionPosts('street', STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0)]
     .map((p) => place(p.x, p.y, p.z, Math.PI / 2 + 0.35, 1));
+  lions.push(...queued.splice(0));
   // the gate's pair, facing the square, turned a little in toward the passage
   // (the gate's pair is off since A2 round 1: style-A and the A2 targets have none, and the pedestals blocked A2's left /
   // right views; to bring them back push `place(x, Y0 + GATE_LIONS.top, GATE_LIONS.z, ±0.2, GATE_LIONS.scale)` per spot
   // and set square.ts `lions: true`)
   return [
+    // (tried at half its triangles, `maxTris: 4000` via crowd.ts `clusterLod`: the lion by the spawn went blobby — reverted;
+    // the lever stays: −36 k if the lane ever needs it)
     { name: 'lion', opt: { kind: K.stone, line: 0, ao: 0.85, ramp: STONE_RAMP, hues: {} }, at: lions },
+    // (the TRELLIS pots and lantern trios are out since the budget round: two draws and 23 k triangles for four small
+    // props; the procedural lanterns carry the banyan and the stall)
     {
-      name: 'pots', opt: { kind: 0, line: 0, ao: 0.7, ramp: STEEL_RAMP, hues: { green: HUES.green, blue: HUES.blue, red: 0xc0392b, skin: 0x8a6a4a } },
+      name: 'pots', opt: { kind: 0, line: 0, ao: 0.7, ramp: STEEL_RAMP, hues: { green: HUES.green, blue: HUES.blue, red: 0xc0392b, skin: 0x8a6a4a } }, off: true,
       at: [
         place(BANYAN.x - 4.5, Y0, BANYAN.z + 2.3, 0.3), // west of the earth-god shrine
         place(GATE.posts[3] + 1.4, Y0, GATE.z + 1.7, -0.5), // east of the gate (the stall-corner pot read as a cobalt blob in domeb-2's foreground: reverted)
       ],
     },
     {
-      name: 'lanterns', opt: { kind: 0, line: 0, ao: 0.5, ramp: WOOD_RAMP, hues: { red: 0xc8401f, skin: 0xc9a24a } }, glowRed: 2.6,
+      name: 'lanterns', opt: { kind: 0, line: 0, ao: 0.5, ramp: WOOD_RAMP, hues: { red: 0xc8401f, skin: 0xc9a24a } }, glowRed: 2.6, off: true,
       at: [place(BANYAN.x - 2.4, Y0 + 5.2, BANYAN.z + 2.0, 0.8, 1.1), place(BANYAN.x + 2.2, Y0 + 5.6, BANYAN.z + 1.4, -0.7, 1.1)],
     },
   ];
@@ -90,9 +111,10 @@ function glowRed(g: BufferGeometry, emit: number): void {
 export async function loadSquareProps(mat: ShaderMaterial): Promise<InstancedMesh[]> {
   const out: InstancedMesh[] = [];
   await Promise.all(specs().map(async (s) => {
-    if (s.at.length === 0) return;
+    if (s.at.length === 0 || s.off === true) return;
     try {
-      const g = await loadGlb(`${ASSETS}/${s.name}.glb`, s.opt);
+      const raw = await loadGlb(`${ASSETS}/${s.name}.glb`, s.opt);
+      const g = s.maxTris === undefined ? raw : clusterLod(raw, s.maxTris);
       if (s.glowRed !== undefined) glowRed(g, s.glowRed);
       const im = new InstancedMesh(g, mat, s.at.length);
       s.at.forEach((m, i) => { im.setMatrixAt(i, m); });

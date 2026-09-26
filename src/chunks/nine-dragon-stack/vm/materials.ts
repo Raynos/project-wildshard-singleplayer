@@ -19,7 +19,7 @@
 //   swell and thin along the stroke (a dry brush), built classes stay ruled. The glow gets none.
 import {
   BackSide, BufferAttribute, type BufferGeometry, CanvasTexture, Color, DataTexture, LinearMipmapLinearFilter, RedFormat, RepeatWrapping,
-  SRGBColorSpace, ShaderMaterial, type Texture, UnsignedByteType, Vector2, Vector3, Vector4,
+  Matrix3, SRGBColorSpace, ShaderMaterial, type Texture, UnsignedByteType, Vector2, Vector3, Vector4,
 } from 'three';
 import { CLS } from './geo';
 
@@ -204,6 +204,7 @@ const VS = /* glsl */ `
 attribute vec4 aMat;
 attribute vec4 aFace;
 attribute vec3 aNs;
+uniform mat3 uAssetRot;
 varying vec3 vN;
 varying vec3 vNs;
 varying vec3 vView;
@@ -215,15 +216,30 @@ varying vec3 vOX;
 varying vec3 vOY;
 varying vec3 vOZ;
 varying vec3 vObj;
+#include <skinning_pars_vertex>
 void main() {
   vObj = position;
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vec3 objectNormal = normal;
+  vec3 ns = aNs;
+  // the object-space normal map's axes: the asset's own frame -> this mesh's (bind) space -> skinned -> view
+  vec3 ax = uAssetRot * vec3(1.0, 0.0, 0.0), ay = uAssetRot * vec3(0.0, 1.0, 0.0), az = uAssetRot * vec3(0.0, 0.0, 1.0);
+  #include <skinbase_vertex>
+  #include <skinnormal_vertex>
+  vec3 transformed = position;
+  #include <skinning_vertex>
+  #ifdef USE_SKINNING
+    ns = (skinMatrix * vec4(ns, 0.0)).xyz;
+    ax = (skinMatrix * vec4(ax, 0.0)).xyz;
+    ay = (skinMatrix * vec4(ay, 0.0)).xyz;
+    az = (skinMatrix * vec4(az, 0.0)).xyz;
+  #endif
+  vec4 mv = modelViewMatrix * vec4(transformed, 1.0);
   vView = mv.xyz;
-  vN = normalize(normalMatrix * normal);
-  vNs = normalize(normalMatrix * aNs);
-  vOX = normalMatrix * vec3(1.0, 0.0, 0.0);
-  vOY = normalMatrix * vec3(0.0, 1.0, 0.0);
-  vOZ = normalMatrix * vec3(0.0, 0.0, 1.0);
+  vN = normalize(normalMatrix * objectNormal);
+  vNs = normalize(normalMatrix * ns);
+  vOX = normalMatrix * ax;
+  vOY = normalMatrix * ay;
+  vOZ = normalMatrix * az;
   vMaps = color;
   vUv = uv;
   vFace = aFace;
@@ -475,13 +491,14 @@ const BLACK = new DataTexture(new Uint8Array([255, 128, 128, 255]), 1, 1);
 BLACK.needsUpdate = true;
 
 /** the program; `maps` / `nrm` given = a textured asset (its own material instance sharing every other uniform) */
-export function vmMaterial(u: VmUniforms, maps: Texture | null = null, nrm: Texture | null = null): ShaderMaterial {
+export function vmMaterial(u: VmUniforms, maps: Texture | null = null, nrm: Texture | null = null, assetRot: Matrix3 | null = null): ShaderMaterial {
   return new ShaderMaterial({
     uniforms: {
       uPal: u.uPal, uSilk: u.uSilk, uDecal: u.uDecal, uEtch: u.uEtch, uFu: u.uFu, uKey: u.uKey, uInk: u.uInk, uLinePx: u.uLinePx,
       uSutra: u.uSutra, uGold: u.uGold, uEnvHi: u.uEnvHi, uEnvLo: u.uEnvLo, uBladeA: u.uBladeA, uBladeB: u.uBladeB, uSpill: u.uSpill,
       uTune: u.uTune, uExposure: u.uExposure, uDetail: u.uDetail,
       uMapsTex: { value: maps ?? BLACK }, uNrmTex: { value: nrm ?? BLACK }, uTexOn: { value: maps === null ? 0 : 1 },
+      uAssetRot: { value: assetRot ?? new Matrix3() },
     },
     vertexShader: VS,
     fragmentShader: FS,
@@ -497,10 +514,16 @@ uniform float uHullPx;
 uniform float uHullK;
 float h11(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }
 float vn1(float x) { float i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(h11(i), h11(i + 1.0), f); }
+#include <skinning_pars_vertex>
 void main() {
   int ci = int(floor(aMat.x + 0.5));
-  vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  vec3 nv = normalize(normalMatrix * aHullN);
+  vec3 objectNormal = aHullN;
+  #include <skinbase_vertex>
+  #include <skinnormal_vertex>
+  vec3 transformed = position;
+  #include <skinning_vertex>
+  vec4 clip = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+  vec3 nv = normalize(normalMatrix * objectNormal);
   vec2 dir = normalize(nv.xy + 1e-5);
   bool built = ci == ${CLS.brass} || ci == ${CLS.brassDark} || ci == ${CLS.steel} || ci == ${CLS.lacquer} || ci == ${CLS.bevel} || ci == ${CLS.gold} || ci == ${CLS.carbon};
   float s = dot(position, vec3(311.0, 473.0, 231.0));

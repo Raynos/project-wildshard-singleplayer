@@ -46,6 +46,10 @@ export interface GalleryWall {
   wash: number;
   /** the wall's fronts step out going down: + `rate` m per floor below `from`, up to `cap` (a cascade seen from above) */
   cascade?: { rate: number; from: number; cap: number };
+  /** eaves in grey tin (≤ 1 m, the lower bands) instead of glazed tiles */
+  tin?: boolean;
+  /** the depth of the every-15-m street floors (default dMax + 0.6) */
+  street?: number;
   /** stair flights zig-zagging down the fronts between floors (how many) */
   stairs?: number;
   /** galleries only over [g0, len - g1] (a corner another wall's galleries take) */
@@ -76,6 +80,8 @@ export interface GalleryKits {
 }
 
 const TILE = [0x2b6b55, 0x2b6b55, 0x2c4f82, 0x464d55] as const;
+/** corrugated tin (the lower bands' eaves) */
+const TIN = [0x6a7078, 0x5f656c, 0x747a80, 0x656058] as const;
 const TIMBER_DECK: Look = { wash: 0x564a40, line: 1.8, surf: SURF.wood };
 const TIMBER_TOP: Look = { wash: 0x4a4038, line: 0, wet: 0.25, surf: SURF.wood };
 const CONC_DECK: Look = { wash: 0x8a8f97, line: 1.8, surf: SURF.concrete };
@@ -188,7 +194,7 @@ export function galleryWall(ctx: Ctx, W: GalleryWall, K2: GalleryKits): GalleryP
       let d = c.base + ((c.inv ? c.len - 1 - k : k) - (c.len - 1) / 2) * c.step;
       if (W.cascade !== undefined) d = Math.min(W.cascade.cap, d + W.cascade.rate * Math.max(0, (W.cascade.from - y) / FLOOR_H));
       if (rng.chance(0.06)) d = 0;
-      if (isStreet(y)) d = W.cascade === undefined ? W.dMax + 0.6 : W.cascade.cap;
+      if (isStreet(y)) d = W.cascade === undefined ? W.street ?? W.dMax + 0.6 : W.cascade.cap;
       for (const l of W.landings ?? []) if (Math.abs(l.y - y) < 0.1 && l.u1 > st.u0 && l.u0 < st.u1) d = Math.max(d, l.d);
       for (const v of W.voids ?? []) if (y >= v.y0 - 0.01 && y <= v.y1 + 0.01 && v.u1 > st.u0 && v.u0 < st.u1) d = 0;
       const row = depth[fi];
@@ -267,7 +273,11 @@ export function galleryWall(ctx: Ctx, W: GalleryWall, K2: GalleryKits): GalleryP
           win(ctx, rng, world(uc, y + 0.95, d), u, n, Math.min(1.3, L / nw - 0.3), 1.35, wash, false, 0.85);
           if (rng.chance(0.35)) { const p = world(uc, y + 0.2, d + 0.3); ctx.ac(p.x, p.y, p.z, Math.atan2(n.x, n.z)); }
         }
-        if (upD < d - 1 && rng.chance(0.4)) ctx.put('tank', world((st.u0 + st.u1) / 2, y + h, Math.max(0.8, upD + (d - upD) / 2)), n.clone(), new Vector3(0.6, 0.6, 0.6));
+        if (upD < d - 1 && rng.chance(0.4)) {
+          const t = world((st.u0 + st.u1) / 2, y + h, Math.max(0.8, upD + (d - upD) / 2));
+          k.cyl(t.x, t.y, t.z, 0.5, 0.5, 1.0, 10, { wash: rng.pick([0x8e969e, 0x6f8fb5]), line: 1 }, { edges: E.rims });
+          k.cyl(t.x, t.y + 1.0, t.z, 0.5, 0.12, 0.18, 10, { wash: 0x7c848c, line: 1 });
+        }
         return;
       }
       // the railing along the front, open where a bridge lands; side rails where the neighbour is shallower
@@ -302,7 +312,7 @@ export function galleryWall(ctx: Ctx, W: GalleryWall, K2: GalleryKits): GalleryP
         // deck behind it stays open, with its people and its clutter
         const from = Math.max(above, d - 1.0) + 0.02;
         const reach = d - from + 0.55;
-        pentRoof(k, world(st.u0, y + 2.95, from), world(st.u1, y + 2.95, from), n, reach, 0.62 * reach / Math.max(reach - 0.55, 0.5), timber ? rng.pick(TILE) : 0x51555c);
+        pentRoof(k, world(st.u0, y + 2.95, from), world(st.u1, y + 2.95, from), n, reach, 0.62 * reach / Math.max(reach - 0.55, 0.5), W.tin === true ? rng.pick(TIN) : timber ? rng.pick(TILE) : 0x51555c);
       }
       // a catch net slung under the lip where the floor below steps back (Hong Kong's 安全網 over a drop)
       const below = fi < floors.length - 1 ? dAt(fi + 1, si) : d;
@@ -341,7 +351,15 @@ export function galleryWall(ctx: Ctx, W: GalleryWall, K2: GalleryKits): GalleryP
           const p = world(rng.range(st.u0 + 0.6, st.u1 - 0.6), y - 1.1, Math.max(0.4, d - 0.9));
           ctx.ac(p.x, p.y, p.z, Math.atan2(n.x, n.z));
         }
-        if (street && rng.chance(0.5)) ctx.put('awning', world(rng.range(st.u0 + 1, st.u1 - 1), y + 2.4, 0.02), n.clone(), new Vector3(rng.range(1.6, 2.6), 1, 1.2), new Color(rng.pick([0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441])));
+        if (street && rng.chance(0.5)) {
+          // a striped cloth awning over a shop door (in the kit: no instanced piece of its own)
+          const uu = rng.range(st.u0 + 1.2, st.u1 - 1.2), aw = rng.range(1.6, 2.6);
+          const a0 = world(uu - aw / 2, y + 2.45, 0.05), a1 = world(uu + aw / 2, y + 2.45, 0.05);
+          const b1 = world(uu + aw / 2, y + 1.95, 1.0), b0 = world(uu - aw / 2, y + 1.95, 1.0);
+          const cloth: Look = { wash: rng.pick([0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441]), kind: K.cloth, row: 1, col: 0.22, line: 1, accent: true };
+          k.quad4(b0, b1, a1, a0, aw, 1.07, cloth);
+          k.quad4(a0, a1, b1, b0, aw, 1.07, cloth);
+        }
         // a neon blade sign hung out from the front, facing along the canyon (toward the rim at the south)
         if (rng.chance(street ? 0.25 : 0.1)) {
           const word = rng.pick(WORDS);

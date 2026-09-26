@@ -5,15 +5,17 @@
 // the south, their hero signs and the brass hooks the Fei Zhua bites.
 import { Vector3 } from 'three';
 import { dressWall } from './facade/grammar';
-import { K } from './kit';
+import { K, type Kit } from './kit';
 import { WELL, Y0 } from '../layout';
 import { dragonHook, stool } from './props';
-import { balustrade } from './square';
+import { relief } from './gate';
+import { placeLion } from './props3d';
+import type { KitX } from './hero/kitx';
 import { NEON, Rng } from '../util';
 import { NEONS, WORDS } from './towers';
 import { SURF } from '../look/paint';
 import { FLOOR_H, pentRoof, stand, win } from './well-galleries';
-import { RIM, SPLIT, type WellPlan, bandKits, snapFloor } from './well-plan';
+import { type BandKits, RIM, SPLIT, type WellPlan, snapFloor } from './well-plan';
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -34,13 +36,12 @@ export function buildRim(plan: WellPlan): void {
   // ── the south ledge at the datum, its balustrade, lanterns and people (the viewpoint x −16…−5 kept clear) ──
   const rim = ctx.kit('well-rim', true);
   rim.box((WELL.x0 + WELL.x1) / 2, Y0 - 0.7, (RIM.z0 + RIM.z1) / 2, WELL.x1 - WELL.x0, 0.7, RIM.z1 - RIM.z0, { wash: 0x8e939b, line: 2 }, { top: { wash: 0x5a5d64, kind: K.flag, wet: 0.8, line: 0 } });
-  // (its panels carved in relief on the ledge's side, the side the mockup cameras look over)
-  balustrade(rim, RIM.z0, WELL.x1, WELL.x0, Y0, true, { x: ctx.kitx('well-rim'), side: 1 });
+  rimBalustrade(ctx.kitx('well-rim'), rim);
   // people along it: some leaning on the balustrade looking into the shaft, some walking past the shops
+  // (the leaners keep clear of the two shared mockup cameras: B at x −19.5, D at x −14, both on z 11.2…12.5)
   for (let x = WELL.x0 + 1.5; x < WELL.x1 - 1; x += rng.range(1.6, 3.4)) {
-    const viewpoint = x > -14 && x < -7;
-    if (viewpoint) continue;
-    if (rng.chance(0.45)) stand(ctx, new Vector3(x, Y0, RIM.z0 + rng.range(0.5, 0.8)), new Vector3(rng.range(-0.3, 0.3), 0, -1), rng.range(0.94, 1.04));
+    const viewpoint = x > -21 && x < -7;
+    if (rng.chance(0.45)) { if (!viewpoint) stand(ctx, new Vector3(x, Y0, RIM.z0 + rng.range(0.5, 0.8)), new Vector3(rng.range(-0.3, 0.3), 0, -1), rng.range(0.94, 1.04)); }
     else if (rng.chance(0.35)) stand(ctx, new Vector3(x, Y0, rng.range(RIM.z0 + 2.2, RIM.z1 - 1.2)), new Vector3(rng.chance(0.5) ? 1 : -1, 0, 0), rng.range(0.94, 1.04));
   }
   // a lantern string sagging along the ledge from the building face's brackets, and a lamp at each end
@@ -65,13 +66,18 @@ export function buildRim(plan: WellPlan): void {
   rimShops(plan, rng);
 
   // ── the near galleries: the main shaft's three walls from their top floor down to SPLIT + one floor ──
-  const K2 = bandKits(ctx, 'r');
+  // (one kit for the whole near band and one for its barred railings / catch nets: the lane's cap is 12 draws)
+  const K2: BandKits = { kit: () => ctx.kit('well-r'), alpha: () => ctx.alpha('well-r-a') };
+  // Deep: the fronts pulled out into the shaft (west 6.2–8.2 m, east 5.2–7 m before each stack's in-and-out cycle), so
+  // from the rim the open gap reads 10–15 m, the verandas converging down the shaft. The west rim floor itself stays
+  // shallow (the mockup B camera stands at x −19.5 beside it).
   plan.band('south', Y0, SPLIT + FLOOR_H, 811, K2, undefined, 1);
-  plan.band('west', Y0, SPLIT + FLOOR_H, 823, K2, undefined, 3);
-  plan.band('east', Y0, SPLIT + FLOOR_H, 839, K2, undefined, 3);
+  plan.band('west', Y0, Y0, 821, K2, undefined, 0, { street: 5.4 });
+  plan.band('west', Y0 - FLOOR_H, SPLIT + FLOOR_H, 823, K2, undefined, 3, { depths: { dMin: 6.2, dMax: 8.2 } });
+  plan.band('east', Y0, SPLIT + FLOOR_H, 839, K2, undefined, 3, { depths: { dMin: 5.2, dMax: 7 } });
 
   // ── the hero signs, hung out from the fronts on brackets, facing the rim ──
-  const hk = ctx.kit('well-r-signs', true);
+  const hk = ctx.kit('well-rim', true);
   const south = new Vector3(0, 0, 1);
   for (const [text, col, side, z, y, size] of HERO) {
     const [fw, fe] = plan.fronts(z, snapFloor(y));
@@ -103,7 +109,7 @@ function rimShops(plan: WellPlan, rng: Rng): void {
     const wash = rng.pick([0x6f6a64, 0x7a7266, 0x68645e]);
     const open = rng.chance(0.8);
     if (open) win(ctx, rng, new Vector3(cx, Y0 + 0.05, z), u, n, w - 0.7, 2.45, wash, true, 0.95);
-    else ctx.put('shutter', new Vector3(cx, Y0 + 0.02, z), n.clone(), new Vector3(w - 0.6, 2.5, 1));
+    else k.quad(new Vector3(x1 - 0.3, Y0 + 0.02, z - 0.03), u, new Vector3(0, 1, 0), w - 0.6, 2.5, { wash: 0x8d9298, kind: K.tiles, line: 1 });
     // the canopy on two posts, lanterns under its eave
     const tile = rng.pick([0x2b6b55, 0x2c4f82, 0x3d4a52, 0x2b6b55]);
     pentRoof(k, new Vector3(x1, Y0 + 3.35, z - 0.02), new Vector3(x0, Y0 + 3.35, z - 0.02), n, 1.95, 0.62, tile);
@@ -122,5 +128,47 @@ function rimShops(plan: WellPlan, rng: Rng): void {
     }
     if (rng.chance(0.5)) ctx.put('plant', new Vector3(rng.chance(0.5) ? x0 + 0.4 : x1 - 0.4, Y0, z - 0.4), n.clone(), new Vector3(1.3, rng.range(1.2, 1.7), 1.3));
     x = x0;
+  }
+}
+
+/**
+ * The rim's carved stone balustrade (石欄杆), waist high (1.1 m) so the mockup D camera leans over it: a plinth, square
+ * posts every ~2.4 m with carved faces, caps and lotus-bud finials (stone lions on the two camera posts), a relief-carved
+ * panel between each pair on the ledge's side, vase balusters under a heavy rail. The posts stand where the two shared
+ * mockup cameras need them: D's lion post at its lower left (x −15.2), B looking over a panel with its lion post at its
+ * lower right (x −18.2).
+ */
+function rimBalustrade(kx: KitX, k: Kit): void {
+  const z = RIM.z0, y = Y0;
+  const STONE = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete } as const;
+  const PANEL = { wash: 0x5c5e64, kind: K.panel, line: 1, wet: 0.45 } as const;
+  const X = new Vector3(1, 0, 0), UPV = new Vector3(0, 1, 0), SZ = new Vector3(0, 0, 1);
+  // posts every ~2.4 m, set out from the two shared cameras: D (x −14) has its lion post at its lower left (−15.2);
+  // B (x −19.5) looks over a panel, its lion post at its lower right (−18.2), the next post at −21.2
+  // (and the eight-dome targets' old camera spot, x −10.5, also looks over a panel: posts at −12.4 / −8.8)
+  const posts: number[] = [-26.0, -23.6, -21.2, -18.2, -15.2, -12.4, -8.8, -6.4, -4.0, -1.6];
+  const LIONS = new Map<number, number>([[-15.2, 0.45], [-18.2, Math.PI]]);
+  // the plinth (地栿) the whole length, a heavy ground line on its lip
+  k.box((WELL.x0 + WELL.x1) / 2, y, z, WELL.x1 - WELL.x0, 0.2, 0.62, { ...STONE, line: 2 });
+  const bays: [number, number][] = [[WELL.x0 + 0.3, posts[0] ?? WELL.x0 + 2]];
+  posts.forEach((px, i) => { bays.push([px, posts[i + 1] ?? WELL.x1 - 0.3]); });
+  for (const [a, b] of bays) {
+    const w = b - a - 0.36, cx = (a + b) / 2;
+    if (w < 0.3) continue;
+    // the panel (欄板) with its relief on the ledge side, a vase-baluster row over it, the rail (尋杖)
+    k.box(cx, y + 0.2, z, w, 0.58, 0.16, PANEL);
+    relief(kx, new Vector3(cx, y + 0.49, z + 0.085), X.clone(), UPV.clone(), SZ.clone(), w - 0.16, 0.44, 5100 + Math.round(cx * 7), { wash: 0x68686c, line: 0, wet: 0.35 });
+    k.box(cx, y + 0.78, z, w + 0.02, 0.08, 0.2, STONE);
+    for (const t of [0.25, 0.75]) k.lathe(a + 0.18 + w * t, y + 0.86, z, [[0.07, 0], [0.1, 0.05], [0.06, 0.1], [0.05, 0.14], [0.08, 0.2]], 8, STONE, false, 0);
+    k.box(cx, y + 1.06, z, w + 0.04, 0.12, 0.24, STONE);
+  }
+  for (const px of posts) {
+    // the post (望柱): a carved shaft, a cap, a lotus bud (a lion goes on the camera posts once dome B's is callable)
+    k.box(px, y + 0.2, z, 0.36, 0.94, 0.36, { ...PANEL, line: 1 });
+    k.box(px, y + 1.14, z, 0.44, 0.1, 0.44, STONE);
+    const lion = LIONS.get(px);
+    // a TRELLIS stone lion on the camera posts (dome B's lion draw), a lotus bud on the rest
+    if (lion !== undefined) placeLion(px, y + 1.24, z, lion, 1);
+    else k.lathe(px, y + 1.24, z, [[0.2, 0], [0.23, 0.05], [0.17, 0.09], [0.19, 0.15], [0.18, 0.22], [0.13, 0.3], [0.06, 0.37], [0.0, 0.41]], 12, STONE, true, 0);
   }
 }
