@@ -73,6 +73,15 @@ const LOD_D = 110;
  * flowers) keeps the short reach: at 20 m+ it is a few pixels over the tinted ground.
  */
 const BIG_COVER = /^(bush|flowerbush|hibiscus|fern)\d+$/;
+/**
+ * E186 — no first-sight uploads. three creates a mesh's GPU buffers the first time it draws it, so a tile's 0.3–1.6 MB of
+ * vertices went up in the frame it first came within its distance and into view (running into the cove: up to 2.8 MB in one
+ * frame, several times a second; turning round, the same for the tiles behind you). Now, each frame, the one tile that has
+ * never been drawn and is nearest to showing (within WARM_M m of its distance, or already shown but out of view) is drawn
+ * once ahead of need: out of view it is simply not culled that frame, and a hidden one draws at a draw range of 0 — its
+ * buffers made, nothing on screen. The whole island is never uploaded (124 MB of tiles; ~27 MB in view from the pier).
+ */
+const WARM_M = 30;
 const BIG_NEAR = TIER === 'phone' ? 50 : COVER_NEAR, BIG_FAR = TIER === 'phone' ? 80 : COVER_FAR, BIG_GROW = TIER === 'phone' ? 10 : COVER_GROW;
 /**
  * E117: a caster tile's far copy is its near one simplified (meshoptimizer: to FAR_RATIO of the triangles, never past
@@ -210,6 +219,10 @@ export class BlenderIsland {
   private meta!: IslandMeta;
   private sunLum = 0;
   private tiles: Tile[] = [];
+  /** E186: the tile meshes three has not drawn yet (their GPU buffers not made), and the one being warmed this frame */
+  private cold: { mesh: THREE.Mesh; tile: Tile; far: boolean }[] = [];
+  private readonly drawnOnce = new WeakSet<THREE.Object3D>();
+  private warm: { mesh: THREE.Mesh; start: number; count: number; culled: boolean } | null = null;
 
   static async install(ctx: BlenderIslandCtx): Promise<BlenderIsland> {
     const island = new BlenderIsland();
@@ -466,6 +479,11 @@ export class BlenderIsland {
     // ── gameplay ──
     ctx.colliders.push(...meta.colliders);
     ctx.palmSpecs.push(...meta.extraPalms);
+    for (const tile of this.tiles) for (const [tm, far] of [[tile.near, false], [tile.far, true]] as const) {
+      if (tm === null) continue;
+      tm.onBeforeRender = () => { this.drawnOnce.add(tm); };
+      this.cold.push({ mesh: tm, tile, far });
+    }
     this.update(ctx.sky);
     console.info(`[island] blender: terrain ${this.stats.terrainTris} tris, props ${this.stats.propTris} tris in ${this.stats.draws} meshes, ${used}/${count} placements (${TIER})`);
   }
@@ -518,10 +536,32 @@ export class BlenderIsland {
     this.sunLum = lum * elev;
     this.terrainMat.lightMapIntensity = this.sunLum / this.meta.bake.bounceGain;
     const cam = sky.viewCamera.position;
+    const w = this.warm;
+    if (w) { w.mesh.geometry.setDrawRange(w.start, w.count); w.mesh.frustumCulled = w.culled; this.warm = null; }
     for (const t of this.tiles) {
       const dx = Math.max(t.x0 - cam.x, 0, cam.x - t.x1), dz = Math.max(t.z0 - cam.z, 0, cam.z - t.z1), d = Math.hypot(dx, dz);
       if (t.cover > 0) t.near.visible = d < t.cover;
       else { t.near.visible = d < LOD_D; if (t.far) t.far.visible = !t.near.visible; }
     }
+    this.warmOne(cam);
+  }
+
+  /** E186: draw the never-drawn tile nearest to showing once, this frame, so its buffers are made before it is seen */
+  private warmOne(cam: THREE.Vector3): void {
+    let best: { mesh: THREE.Mesh; tile: Tile; far: boolean } | null = null, bestGap = WARM_M;
+    for (let i = this.cold.length - 1; i >= 0; i--) {
+      const c = this.cold[i];
+      if (c === undefined) continue;
+      if (this.drawnOnce.has(c.mesh)) { this.cold[i] = this.cold[this.cold.length - 1] ?? c; this.cold.pop(); continue; }
+      const t = c.tile, dx = Math.max(t.x0 - cam.x, 0, cam.x - t.x1), dz = Math.max(t.z0 - cam.z, 0, cam.z - t.z1), d = Math.hypot(dx, dz);
+      // how far the camera is from this mesh showing (0: it shows by distance and has only been out of view)
+      const gap = c.mesh.visible ? 0 : c.far ? LOD_D - d : d - (t.cover > 0 ? t.cover : LOD_D);
+      if (gap < bestGap) { best = c; bestGap = gap; }
+    }
+    if (best === null) return;
+    const m = best.mesh, g = m.geometry;
+    this.warm = { mesh: m, start: g.drawRange.start, count: g.drawRange.count, culled: m.frustumCulled };
+    m.frustumCulled = false;
+    if (!m.visible) { m.visible = true; g.setDrawRange(0, 0); }
   }
 }

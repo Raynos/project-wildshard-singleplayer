@@ -35,6 +35,14 @@
  * (Debug ▸ Ground cover ▸ Ground tint). Plants on sloping ground keep up to 1.7× their reach (a slope facing you fills the
  * screen; Debug ▸ Ground cover ▸ Slope reach). No URL switches (Jake, 2026-09-25): every one of these is in the debug menu.
  *
+ * E186 — no upload stalls (Jake: "very periodic big stutters" on the iPhone). Each tier of each kind is two InstancedMeshes
+ * (`Tier`): the front one is drawn, the next set is written into the back one, which uploads only what was written, a
+ * slice a frame (UPLOAD_BYTES for the whole cover), and the two swap in one frame when it is all on the GPU. Before, a
+ * refill rewrote the shown mesh and uploaded its whole cap at once — 2.4 MB in one frame every 4 m (even in the cove, where
+ * none of it is live), and the far swap 2–4 MB every 8 m. The near set now starts NEAR_LAG m early (every 3 m) and must
+ * swap within NEAR_LAG m of travel (else the rest uploads that frame), so its rule holds exactly as before: the shown set
+ * was built at most REFILL_M m away. Nothing drawn changes: the same plants, the same data, only when they reach the GPU.
+ *
  *   const cover = new GroundCover(sky, { sea: sea.level }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
@@ -83,6 +91,56 @@ const MODE_NEAR = 0, MODE_HANDOVER = 1, MODE_FAR = 2;
 const STRIDE = 19;
 /** the viewer is the player's feet in play; the camera is ~1.7 m over them */
 const EYE_SLACK = 2;
+/** E186: the bytes the whole cover may upload in one frame (the near set first: it has a deadline), and how early the near
+ *  set starts (m before REFILL_M) = how far the viewer may travel before it must be swapped in */
+const UPLOAD_BYTES = 256 * 1024, NEAR_LAG = 1;
+
+/**
+ * E186 — one tier (near or far) of one kind: two InstancedMeshes on twin geometries (the model's attributes shared, the
+ * per-instance ones each their own). The front one is drawn; `begin` starts the next set in the back one, which is kept
+ * visible at count 0 while it fills — so three uploads what `upload` marked (only the written instances) and draws none of
+ * it — and `swap` shows it in one frame.
+ */
+class Tier {
+  private front = 0;
+  /** instances written into the back mesh / of those, marked for upload */
+  n = 0;
+  private up = 0;
+  /** each mesh has been drawn once, i.e. three has created its GPU buffers (a whole-cap bufferData): until then a mesh
+   *  that leaves the front stays visible at count 0, so that happens in the boot's first frames, not mid-run */
+  private readonly drawn = [false, false];
+  constructor(readonly meshes: readonly [THREE.InstancedMesh, THREE.InstancedMesh], readonly bytesPer: number) {
+    meshes.forEach((m, i) => { m.onBeforeRender = () => { this.drawn[i] = true; }; });
+  }
+  get shown(): THREE.InstancedMesh { return this.meshes[this.front] ?? this.meshes[0]; }
+  get back(): THREE.InstancedMesh { return this.meshes[1 - this.front] ?? this.meshes[1]; }
+  /** the back mesh's per-instance arrays, to write the next set into */
+  arrays(): { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; cov: Float32Array; nrm: Float32Array } {
+    const b = this.back, g = b.geometry;
+    const f = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): Float32Array => (a.array instanceof Float32Array ? a.array : new Float32Array(0));
+    return { mat: b.instanceMatrix.array as Float32Array, col: b.instanceColor ? (b.instanceColor.array as Float32Array) : null, gnd: f(g.getAttribute('aGround')), cov: f(g.getAttribute('aCover')), nrm: f(g.getAttribute('aNrm')) };
+  }
+  begin(): void { this.n = 0; this.up = 0; const b = this.back; b.count = 0; b.visible = true; }
+  get uploaded(): boolean { return this.up >= this.n; }
+  /** mark up to `bytes` more of what was written for upload (Infinity: all of it); returns the bytes marked */
+  upload(bytes: number): number {
+    const k = Math.min(this.n - this.up, Math.floor(bytes / this.bytesPer));
+    if (k <= 0) return 0;
+    const b = this.back, g = b.geometry;
+    for (const a of [b.instanceMatrix, b.instanceColor, g.getAttribute('aGround'), g.getAttribute('aCover'), g.getAttribute('aNrm')]) {
+      if (!(a instanceof THREE.BufferAttribute)) continue;
+      a.addUpdateRange(this.up * a.itemSize, k * a.itemSize); a.needsUpdate = true;
+    }
+    this.up += k;
+    return k * this.bytesPer;
+  }
+  /** show the back set (it must be uploaded) and retire the front one */
+  swap(): void {
+    const b = this.back, f = this.shown;
+    b.count = this.n; f.count = 0; f.visible = !(this.drawn[this.front] ?? false);
+    this.front = 1 - this.front;
+  }
+}
 /** a thin stem's end caps are never seen (in the ground, under the leaves or petals): keep the tube, drop the caps (E117) */
 const openEnded = (parts: Part[]): Part[] => parts.map(([g, c]) => {
   const idx = g.getIndex(), side = g.groups[0];
@@ -93,20 +151,18 @@ const openEnded = (parts: Part[]): Part[] => parts.map(([g, c]) => {
 export const coverWind = windUniforms.uGust;
 
 interface FarTier {
-  mesh: THREE.InstancedMesh;
+  set: Tier;
   cap: number;
   /** (farNear, farFar, grow) m: the far model keeps to its own edge in [farNear + grow, farFar] */
   reach: THREE.Vector3;
   /** the share of the kind's plants that get a far model (drawn by a hash of the yaw), each scaled up by 1/√keep so the
    *  far cover keeps its coverage with fewer instances */
   keep: number;
-  /** the next set, filled by the far job and copied in when it is done */
-  stage: { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; cov: Float32Array; nrm: Float32Array; n: number };
 }
 
 interface Kind {
   name: string;
-  mesh: THREE.InstancedMesh;
+  set: Tier;
   cap: number;
   far: FarTier | null;
   /** E117: (near, far, grow) m — full density inside near, thinning to none at far, each plant growing in over `grow` */
@@ -218,8 +274,15 @@ export class GroundCover {
   private rFar = 0;
   /** 0 → 1 over ~0.8 s when a far set lands somewhere new (boot, a teleport), so it grows in instead of appearing */
   private farIn = { value: 1 };
-  /** measurements for scripts/popin-fly.mjs (group.userData.stats) */
-  readonly stats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0 };
+  /** E186: a near set is in the back meshes, uploading; the far job has written its whole set (it uploads until swapped) */
+  private nearPending = false;
+  private farWritten = false;
+  /** E186: per kind, a candidate cell's plants as they are generated (one cell holds at most 520 of a kind) */
+  private scratch: Float32Array[] = [];
+  private cellLens: number[] = [];
+  /** measurements for scripts/popin-fly.mjs / stutter-run.mjs (group.userData.stats); nearRefills / farSwaps count the swaps,
+   *  uploadBytes the per-instance bytes marked for upload (E186) */
+  readonly stats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0, nearRefills: 0, farSwaps: 0, uploadBytes: 0 };
 
   constructor(private sky: Sky, private opts: GroundCoverOpts) {
     // Debug ▸ Slope reach, live: the next frame refills both tiers with the new reach
@@ -302,20 +365,28 @@ export class GroundCover {
     const grass = (h: number, slope: number) => ss(2.6, 4.2, h) * (1 - ss(0.18, 0.26, slope));
     const off = (td: number) => ss(2.6, 4.0, td);
     const jungle = (sd: number) => 1 - ss(18, 45, sd);
-    const instanced = (name: string, g: THREE.BufferGeometry, mat: THREE.Material, cap: number, tinted: boolean): THREE.InstancedMesh => {
-      const mesh = new THREE.InstancedMesh(g, mat, cap);
-      mesh.name = name;
-      mesh.count = 0;
-      mesh.frustumCulled = false;                           // the window moves with the player; one sphere per refill would do too
-      mesh.castShadow = false; mesh.receiveShadow = true;
-      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      if (tinted) { mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); mesh.instanceColor.setUsage(THREE.DynamicDrawUsage); }
-      const ground = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
-      ground.setUsage(THREE.DynamicDrawUsage);
-      g.setAttribute('aGround', ground);
-      for (const [attr, w] of [['aCover', 4], ['aNrm', 4]] as const) { const a = new THREE.InstancedBufferAttribute(new Float32Array(cap * w), w); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(attr, a); }
-      this.group.add(mesh);
-      return mesh;
+    const instanced = (name: string, g: THREE.BufferGeometry, mat: THREE.Material, cap: number, tinted: boolean): Tier => {
+      // E186: two meshes, the second on a twin of the model (its attributes shared: one GPU copy) — see Tier
+      const twin = new THREE.BufferGeometry();
+      for (const [k, a] of Object.entries(g.attributes)) twin.setAttribute(k, a);
+      twin.setIndex(g.getIndex());
+      for (const gr of g.groups) twin.addGroup(gr.start, gr.count, gr.materialIndex);
+      twin.setDrawRange(g.drawRange.start, g.drawRange.count);
+      const make = (mg: THREE.BufferGeometry): THREE.InstancedMesh => {
+        const mesh = new THREE.InstancedMesh(mg, mat, cap);
+        mesh.name = name;
+        mesh.count = 0;
+        mesh.frustumCulled = false;                           // the window moves with the player; one sphere per refill would do too
+        mesh.castShadow = false; mesh.receiveShadow = true;
+        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        if (tinted) { mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); mesh.instanceColor.setUsage(THREE.DynamicDrawUsage); }
+        for (const [attr, w] of [['aGround', 3], ['aCover', 4], ['aNrm', 4]] as const) { const a = new THREE.InstancedBufferAttribute(new Float32Array(cap * w), w); a.setUsage(THREE.DynamicDrawUsage); mg.setAttribute(attr, a); }
+        // both start visible (at count 0, drawing nothing) so the boot's first frames create both meshes' GPU buffers; the
+        // back one is hidden again at the first swap
+        this.group.add(mesh);
+        return mesh;
+      };
+      return new Tier([make(g), make(twin)], 4 * (16 + (tinted ? 3 : 0) + 3 + 4 + 4));
     };
     /** `farOf`: [far model, [farNear, farFar] m, cap, keep] — the far tier (none when Debug ▸ Far stand-ins is Off) */
     const kind = (name: string, g: THREE.BufferGeometry, cap0: number, [near, far]: [number, number], scale: [number, number], density: Kind['density'], tint?: Kind['tint'], farOf?: [THREE.BufferGeometry, [number, number], number, number]): void => {
@@ -328,13 +399,11 @@ export class GroundCover {
         const [fg, [fn, ff], fcap0, keep] = farOf, k = REACH_K * FAR_K, fcap = Math.round(fcap0 * keep * CAP_K * FAR_K * FAR_K);
         farReach.set(fn * k, ff * k, (ff - fn) * k * 0.25);
         this.rFar = Math.max(this.rFar, farReach.y * REACH_UP + FAR_SLACK + EYE_SLACK);
-        farTier = {
-          mesh: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep,
-          stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), cov: new Float32Array(fcap * 4), nrm: new Float32Array(fcap * 4), n: 0 },
-        };
+        farTier = { set: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep };
       }
-      const mesh = instanced(`ground-cover-${name}`, g, material(reach, farReach, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, tint !== undefined);
-      this.kinds.push({ name, mesh, cap, far: farTier, reach, density, scale, look: lookOf(g), ...(tint ? { tint } : {}) });
+      const look = lookOf(g);
+      const set = instanced(`ground-cover-${name}`, g, material(reach, farReach, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, tint !== undefined);
+      this.kinds.push({ name, set, cap, far: farTier, reach, density, scale, look, ...(tint ? { tint } : {}) });
     };
     // the far models: a few triangles each, the near model's silhouette from 25 m on (its flowers as flat chips)
     const farRng = new Rng(SEED ^ 0x6cf0);
@@ -466,10 +535,14 @@ export class GroundCover {
     if (hit) return hit;
     const rng = new Rng(SEED ^ Math.imul(cx + 1013, 73856093) ^ Math.imul(cz + 2027, 19349663));
     const sea = this.opts.sea;
-    const vals: number[][] = this.kinds.map(() => []);
     const grid = CoverGrid.get();
     // one candidate set per cell (≈ 2 per m²), the terrain read once per point, then a density lottery per kind
     const n = 520;
+    // E186: written into per-kind scratch (a kind takes at most one plant per candidate), then one exact copy per kind — the
+    // growing number[] per kind was ~1 MB of garbage a second while running
+    const kinds = this.kinds, nk = kinds.length, len = this.cellLens;
+    while (this.scratch.length < nk) this.scratch.push(new Float32Array(n * STRIDE));
+    len.length = nk; len.fill(0);
     for (let i = 0; i < n; i++) {
       const x = (cx + rng.next()) * CELL, z = (cz + rng.next()) * CELL;
       if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) continue;
@@ -480,28 +553,39 @@ export class GroundCover {
       const [nx, ny, nz] = normalAt(x, z, 0.6), slope = 1 - ny;
       if (slope > 0.3) continue;
       const td = trailDistance(x, z), sd = Math.hypot(x - SHRINE.x, z - SHRINE.z), palm = this.nearPalm(x, z);
-      this.kinds.forEach((k, ki) => {
+      for (let ki = 0; ki < nk; ki++) {
+        const k = kinds[ki], out = this.scratch[ki];
+        if (k === undefined || out === undefined) continue;
         const d = k.density(h, slope, td, sd, palm);
-        if (rng.next() * 2 > d) return;
+        if (rng.next() * 2 > d) continue;
         const jx = x + rng.range(-0.3, 0.3), jz = z + rng.range(-0.3, 0.3), sc = rng.range(k.scale[0], k.scale[1]);
         if (k.tint) k.tint(h, rng, this.tint); else this.tint.setRGB(1, 1, 1);
         const jy = heightAt(jx, jz), yaw = rng.range(0, Math.PI * 2);
         lowPolyGroundColor(this.ground, jy - sea, slope, jx, jz);
         const cv = this.cover;
         if (grid) grid.sample(jx, jz, cv); else { cv.r = 0; cv.g = 0; cv.b = 0; cv.top = 0; cv.side = 0; }
-        const j = coverJitter(jx, jz);
-        vals[ki]?.push(jx, jy - 0.02, jz, yaw, sc, this.tint.r, this.tint.g, this.tint.b, this.ground.r, this.ground.g, this.ground.b, nx, ny, nz, cv.side, cv.r * j, cv.g * j, cv.b * j, cv.top);
-      });
+        const j = coverJitter(jx, jz), o = len[ki] ?? 0;
+        out[o] = jx; out[o + 1] = jy - 0.02; out[o + 2] = jz; out[o + 3] = yaw; out[o + 4] = sc;
+        out[o + 5] = this.tint.r; out[o + 6] = this.tint.g; out[o + 7] = this.tint.b;
+        out[o + 8] = this.ground.r; out[o + 9] = this.ground.g; out[o + 10] = this.ground.b;
+        out[o + 11] = nx; out[o + 12] = ny; out[o + 13] = nz;
+        out[o + 14] = cv.side; out[o + 15] = cv.r * j; out[o + 16] = cv.g * j; out[o + 17] = cv.b * j; out[o + 18] = cv.top;
+        len[ki] = o + STRIDE;
+      }
     }
-    const out = vals.map((v) => new Float32Array(v));
+    const out: Float32Array[] = [];
+    for (let ki = 0; ki < nk; ki++) out.push((this.scratch[ki] ?? new Float32Array(0)).slice(0, len[ki] ?? 0));
     if (this.cells.size > this.cacheMax) { const first = this.cells.keys().next().value; if (first !== undefined) this.cells.delete(first); }
     this.cells.set(key, out);
     return out;
   }
 
-  /** copy every cached plant that can show before the next refill (its edge + REFILL_M) into its kind's buffers */
+  /** copy every cached plant that can show before the next refill (its edge + REFILL_M) into its kind's back buffers (E186:
+   *  `update` uploads and swaps them) */
   private refill(px: number, py: number, pz: number): void {
     const t0 = performance.now();
+    for (const k of this.kinds) k.set.begin();
+    const arrs = this.kinds.map((k) => k.set.arrays());
     const R = this.rMax, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
     const counts = this.kinds.map(() => 0);
     const TAU = Math.PI * 2, up = this.uniforms.uReachUp.value;
@@ -518,9 +602,9 @@ export class GroundCover {
         const v = data[ki];
         if (v === undefined) return;
         const near = k.reach.x, far = k.reach.y, grow = k.reach.z, slack = REFILL_M + EYE_SLACK;
-        const mat = k.mesh.instanceMatrix.array as Float32Array, col = k.mesh.instanceColor ? (k.mesh.instanceColor.array as Float32Array) : null;
-        const gnd = k.mesh.geometry.getAttribute('aGround').array as Float32Array;
-        const cov = k.mesh.geometry.getAttribute('aCover').array as Float32Array, nrm = k.mesh.geometry.getAttribute('aNrm').array as Float32Array;
+        const A = arrs[ki];
+        if (A === undefined) return;
+        const { mat, col, gnd, cov, nrm } = A;
         let n = counts[ki] ?? 0;
         for (let i = 0; i < v.length && n < k.cap; i += STRIDE) {
           const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
@@ -542,19 +626,15 @@ export class GroundCover {
         counts[ki] = n;
       });
     }
-    this.kinds.forEach((k, ki) => {
-      k.mesh.count = counts[ki] ?? 0;
-      k.mesh.instanceMatrix.needsUpdate = true;
-      if (k.mesh.instanceColor) k.mesh.instanceColor.needsUpdate = true;
-      for (const a of ['aGround', 'aCover', 'aNrm']) k.mesh.geometry.getAttribute(a).needsUpdate = true;
-    });
+    this.kinds.forEach((k, ki) => { k.set.n = counts[ki] ?? 0; });
     this.stats.nearRefillMs = performance.now() - t0;
   }
 
   /**
    * The far tier's rebuild, a slice of cells per step (nearest first): every plant whose far model can show before the
-   * next rebuild lands — past its near edge less FAR_SLACK, inside its far edge plus FAR_SLACK — into the staging
-   * buffers, which are copied in at the end. A cap cuts the furthest (thinnest) first.
+   * next rebuild lands — past its near edge less FAR_SLACK, inside its far edge plus FAR_SLACK — into the back meshes
+   * (E186: `update` uploads what it wrote a slice a frame and swaps them in once the job is done and it is all uploaded).
+   * A cap cuts the furthest (thinnest) first.
    */
   private *farRefill(px: number, py: number, pz: number): Generator<undefined, undefined, undefined> {
     const R = this.rFar, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
@@ -564,7 +644,8 @@ export class GroundCover {
       if (dx * dx + dz * dz <= R * R) cellsAt.push([cx, cz, dx * dx + dz * dz]);
     }
     cellsAt.sort((a, b) => a[2] - b[2]);
-    for (const k of this.kinds) if (k.far) k.far.stage.n = 0;
+    for (const k of this.kinds) k.far?.set.begin();
+    const arrs = this.kinds.map((k) => k.far?.set.arrays() ?? null);
     const TAU = Math.PI * 2, slack = FAR_SLACK + EYE_SLACK, up = this.uniforms.uReachUp.value;
     for (const [cx, cz] of cellsAt) {
       if (!this.cells.has(`${cx},${cz}`)) { this.cell(cx, cz); this.stats.cellsBuilt++; yield undefined; } // a new cell is its own slice
@@ -573,8 +654,9 @@ export class GroundCover {
         const f = k.far, v = data[ki];
         if (f === null || v === undefined) return;
         const near = k.reach.x, grow = k.reach.z, far = k.reach.y, fNear = f.reach.x, fFar = f.reach.y, fGrow = f.reach.z;
-        const st = f.stage, keep = f.keep;
-        let n = st.n;
+        const st = arrs[ki], keep = f.keep;
+        if (!st) return;
+        let n = f.set.n;
         for (let i = 0; i < v.length && n < f.cap; i += STRIDE) {
           const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
           const h = yaw / TAU, wrap = h < 0.005 || h > 0.995;
@@ -595,35 +677,24 @@ export class GroundCover {
           st.nrm.set(v.subarray(i + 11, i + 15), n * 4); st.cov.set(v.subarray(i + 15, i + 19), n * 4);
           n++;
         }
-        st.n = n;
+        f.set.n = n;
       });
       yield undefined;
     }
-    // swap in: copy what was staged (only that much is uploaded)
+    this.stats.farCells = cellsAt.length;
+    return undefined;
+  }
+
+  /** E186: the far set is written and on the GPU — show it */
+  private farSwap(): void {
     let total = 0;
-    for (const k of this.kinds) {
-      const f = k.far;
-      if (f === null) continue;
-      const st = f.stage, n = st.n, mesh = f.mesh;
-      const copy = (attr: THREE.BufferAttribute | THREE.InstancedBufferAttribute, src: Float32Array, w: number): void => {
-        (attr.array as Float32Array).set(src.subarray(0, n * w));
-        attr.clearUpdateRanges(); attr.addUpdateRange(0, Math.max(1, n * w)); attr.needsUpdate = true;
-      };
-      copy(mesh.instanceMatrix, st.mat, 16);
-      if (mesh.instanceColor && st.col) copy(mesh.instanceColor, st.col, 3);
-      const gnd = mesh.geometry.getAttribute('aGround'), cov = mesh.geometry.getAttribute('aCover'), nrm = mesh.geometry.getAttribute('aNrm');
-      if (gnd instanceof THREE.BufferAttribute) copy(gnd, st.gnd, 3);
-      if (cov instanceof THREE.BufferAttribute) copy(cov, st.cov, 4);
-      if (nrm instanceof THREE.BufferAttribute) copy(nrm, st.nrm, 4);
-      mesh.count = n;
-      total += n;
-    }
-    this.stats.farCells = cellsAt.length; this.stats.farCount = total;
+    for (const k of this.kinds) if (k.far) { k.far.set.swap(); total += k.far.set.n; }
+    this.stats.farCount = total; this.stats.farSwaps++;
     // a set that lands somewhere new — the first one, a jump further than the window (Explore's teleports) — grows in over
     // ~0.8 s instead of appearing; flying, however fast, the sets overlap and simply follow
     if (this.farLast.distanceToSquared(this.farJobAt) > this.rFar * this.rFar) this.farIn.value = 0;
     this.farLast.copy(this.farJobAt);
-    return undefined;
+    this.farWritten = false;
   }
 
   update(dt: number, viewer: THREE.Vector3): void {
@@ -631,16 +702,34 @@ export class GroundCover {
     this.uniforms.uPlayer.value.copy(viewer);
     // E156 C: full strength on foot (the viewer is the player's feet), none from Explore's height
     this.uniforms.uReachUp.value = coverReach ? 1 - ss(REACH_HI[0], REACH_HI[1], viewer.y - heightAt(viewer.x, viewer.z)) : 0;
-    // in 3D: Explore's camera climbs and dives, and the reach is measured from the camera
-    if (this.last.distanceToSquared(viewer) > REFILL_M * REFILL_M) {
+    // in 3D: Explore's camera climbs and dives, and the reach is measured from the camera. E186: the next near set is built
+    // NEAR_LAG m early and uploads a slice a frame; it must be shown before the viewer is REFILL_M from where the shown one
+    // was built, so it swaps by NEAR_LAG m of travel whatever is left (`last` = where the newest set was built).
+    let budget = UPLOAD_BYTES, used = 0;
+    const moved = this.last.distanceToSquared(viewer);
+    if (moved > REFILL_M * REFILL_M) {
+      // the first frame, a teleport, a reset (the Blender island landed, Slope reach switched): all of it, this frame
       this.last.copy(viewer);
       this.refill(viewer.x, viewer.y, viewer.z);
+      this.nearPending = true;
+      budget = Infinity;
+    } else if (!this.nearPending && moved > (REFILL_M - NEAR_LAG) ** 2) {
+      this.last.copy(viewer);
+      this.refill(viewer.x, viewer.y, viewer.z);
+      this.nearPending = true;
     }
-    if (this.rFar === 0) return;
+    if (this.nearPending) {
+      if (this.last.distanceToSquared(viewer) > NEAR_LAG * NEAR_LAG) budget = Infinity; // its deadline
+      let done = true;
+      for (const k of this.kinds) { const b = k.set.upload(budget - used); used += b; if (!k.set.uploaded) done = false; }
+      if (done) { for (const k of this.kinds) k.set.swap(); this.nearPending = false; this.stats.nearRefills++; }
+    }
+    if (this.rFar === 0) { this.stats.uploadBytes += used; return; }
     this.farIn.value = Math.min(1, this.farIn.value + dt / 0.8);
     // the far tier: start a rebuild every FAR_REFILL_M m and step it within the budget (a job always finishes: flying
-    // fast, the next one starts from where the camera is by then)
-    if (this.farJob === null && this.farLast.distanceToSquared(viewer) > FAR_REFILL_M * FAR_REFILL_M) {
+    // fast, the next one starts from where the camera is by then); what it wrote uploads within what the near set left of
+    // UPLOAD_BYTES (all of it once the viewer is FAR_SLACK / 2 from where it started), and it swaps in once all is up
+    if (this.farJob === null && !this.farWritten && this.farLast.distanceToSquared(viewer) > FAR_REFILL_M * FAR_REFILL_M) {
       this.farJobAt.copy(viewer);
       this.farJob = this.farRefill(viewer.x, viewer.y, viewer.z);
       this.stats.farJobMs = 0; this.stats.farJobFrames = 0;
@@ -648,9 +737,18 @@ export class GroundCover {
     if (this.farJob !== null) {
       const t0 = performance.now();
       this.stats.farJobFrames++;
-      while (performance.now() - t0 < FAR_BUDGET_MS) if (this.farJob.next().done === true) { this.farJob = null; break; }
+      while (performance.now() - t0 < FAR_BUDGET_MS) if (this.farJob.next().done === true) { this.farJob = null; this.farWritten = true; break; }
       this.stats.farJobMs += performance.now() - t0;
     }
+    if (this.farJob !== null || this.farWritten) {
+      // what the near set left of this frame's bytes (a near deadline took them all), or all of it past the far deadline
+      let left = Number.isFinite(budget) ? Math.max(0, budget - used) : Math.max(0, UPLOAD_BYTES - used);
+      if (this.farJobAt.distanceToSquared(viewer) > (FAR_SLACK / 2) ** 2) left = Infinity;
+      let done = this.farWritten;
+      for (const k of this.kinds) if (k.far) { const b = k.far.set.upload(left); left -= b; used += b; if (!k.far.set.uploaded) done = false; }
+      if (done) this.farSwap();
+    }
+    this.stats.uploadBytes += used;
   }
 
   /**

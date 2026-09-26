@@ -105,7 +105,10 @@ export class CoverGrid {
     const i = Math.max(0, Math.min(N - 2, Math.floor(fx))), k = Math.max(0, Math.min(N - 2, Math.floor(fz)));
     const u = Math.min(1, Math.max(0, fx - i)), w = Math.min(1, Math.max(0, fz - k));
     let r = 0, g = 0, b = 0, cw = 0, top = 0, side = 0;
-    for (const [di, dk, wt] of [[0, 0, (1 - u) * (1 - w)], [1, 0, u * (1 - w)], [0, 1, (1 - u) * w], [1, 1, u * w]] as const) {
+    // the four corners in a loop over an index, not over a literal of arrays: five arrays a call was garbage the ground
+    // cover's cells made by the thousand while running (E186)
+    for (let c = 0; c < 4; c++) {
+      const di = c & 1, dk = c >> 1, wt = (di === 1 ? u : 1 - u) * (dk === 1 ? w : 1 - w);
       const o = ((k + dk) * N + i + di) * W, t = this.data[o + 3] ?? 0, sd = this.data[o + 4] ?? 0, ca = (t + sd) * wt;
       r += (this.data[o] ?? 0) * ca; g += (this.data[o + 1] ?? 0) * ca; b += (this.data[o + 2] ?? 0) * ca; cw += ca;
       top += t * wt; side += sd * wt;
