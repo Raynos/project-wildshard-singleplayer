@@ -48,6 +48,7 @@ attribute vec4 aPat;
 attribute vec2 aMisc;
 uniform vec3 uCam;
 uniform vec2 uShrink;
+#include <batching_pars_vertex>
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec3 vColor;
@@ -63,6 +64,10 @@ void main() {
   // small clutter shrinks into the wall past uShrink.x .. uShrink.y (it is fog and wash there anyway)
   if (uShrink.y > 0.0) pos *= 1.0 - smoothstep(uShrink.x, uShrink.y, distance(m[3].xyz, uCam));
 #endif
+#ifdef USE_BATCHING
+  float batchId = getIndirectIndex(gl_DrawID);
+  m = m * getBatchingMatrix(batchId);
+#endif
   mat3 m3 = mat3(m);
   // keep aFace in metres under a non-uniform instance scale: rescale by the stretch along u and along v = n × u
   float su = length(m3 * aTan);
@@ -74,6 +79,9 @@ void main() {
   vColor = color;
 #ifdef USE_INSTANCING_COLOR
   vColor *= instanceColor;
+#endif
+#ifdef USE_BATCHING_COLOR
+  vColor *= getBatchingColor(batchId).rgb;
 #endif
   vPat = aPat;
   vMisc = aMisc;

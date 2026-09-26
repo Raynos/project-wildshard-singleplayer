@@ -187,7 +187,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   for (const [name, g] of kitGeos) kitMesh(name, g, mat);
   for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
   root.add(named(paper.build(), 'lanterns'));
-  const facade = buildFacade(ctx.fd, facadeUniforms(shared), { clutterFar: [55, 85] });
+  const facade = buildFacade(ctx.fd, facadeUniforms(shared), {
+    clutterFar: [55, 85], multiDraw: renderer.extensions.has('WEBGL_multi_draw'),
+  });
   root.add(named(facade.group, 'facade'));
   const neonMeshes = neonSigns.build();
   root.add(named(neonMeshes.boards, 'neon'), named(neonMeshes.tubes, 'neon'));

@@ -1,9 +1,9 @@
 // Copied from the facade lab (src/dev/nd-lab/facade/batch.ts, round-7-lab-facade) into the clean room.
 // A Dressing (one tower or a whole street) → draw calls: one merged mesh for the shells / galleries / cables, ONE
-// InstancedMesh per kit piece (with the instance tint), ONE InstancedMesh of interior-mapped window quads. A street
-// canyon of 8–12 towers is ~25 draws however many towers it has.
+// InstancedMesh per small piece (for the distance shrink), one BatchedMesh for the rest when WEBGL_multi_draw is
+// available, and one InstancedMesh of interior-mapped window quads. The fallback retains the original instancing.
 import {
-  type BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, Mesh, PlaneGeometry, type ShaderMaterial,
+  BatchedMesh, type BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, Mesh, PlaneGeometry, type ShaderMaterial,
 } from 'three';
 import type { Builder } from './geo';
 import type { Dressing } from './grammar';
@@ -29,6 +29,8 @@ export interface FacadeStats { draws: number; tris: number; instances: number; w
 export interface FacadeOptions {
   /** [start, end] metres: small clutter shrinks into the wall between them (0 = never) */
   clutterFar?: readonly [number, number];
+  /** Pass the live renderer's WEBGL_multi_draw support. Without it, BatchedMesh costs one call per instance. */
+  multiDraw?: boolean;
 }
 
 export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = {}): { group: Group; stats: FacadeStats; small: InstancedMesh[] } {
@@ -47,15 +49,45 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     stats.draws++;
     stats.tris += d.shell.triangleCount;
   }
-  // the kit: one InstancedMesh per piece
+  // the kit: one multi-draw batch for large pieces, while distance-shrunk clutter stays instanced
   const byPiece = new Map<PieceId, Dressing['pieces']>();
   for (const p of d.pieces) {
     let l = byPiece.get(p.piece);
     if (l === undefined) { l = []; byPiece.set(p.piece, l); }
     l.push(p);
   }
+  const batchedPieces = opt.multiDraw
+    ? [...byPiece].filter(([id]) => !SMALL.has(id))
+    : [];
+  const batchInstances = batchedPieces.reduce((sum, [, list]) => sum + list.length, 0);
+  const batchVertices = batchedPieces.reduce((sum, [id]) => sum + pieceGeo(id).g.getAttribute('position').count, 0);
+  const batchIndices = batchedPieces.reduce((sum, [id]) => sum + (pieceGeo(id).g.getIndex()?.count ?? 0), 0);
+  if (batchInstances > 0) {
+    const batch = new BatchedMesh(batchInstances, batchVertices, batchIndices, mat);
+    batch.name = 'facade-large-batch';
+    // Opaque geometry already has a fixed order. Keep per-instance frustum culling without sorting every frame.
+    batch.sortObjects = false;
+    for (const [id, list] of batchedPieces) {
+      const { g } = pieceGeo(id);
+      const geometryId = batch.addGeometry(g);
+      for (const p of list) {
+        const instanceId = batch.addInstance(geometryId);
+        batch.setMatrixAt(instanceId, p.m);
+        batch.setColorAt(instanceId, p.c);
+      }
+    }
+    batch.computeBoundingSphere();
+    group.add(batch);
+    stats.draws++;
+  }
   for (const [id, list] of byPiece) {
     const { g, tris } = pieceGeo(id);
+    if (opt.multiDraw && !SMALL.has(id)) {
+      stats.instances += list.length;
+      stats.tris += tris * list.length;
+      stats.perPiece[id] = [list.length, tris * list.length];
+      continue;
+    }
     const im = new InstancedMesh(g, SMALL.has(id) ? matSmall : mat, list.length);
     im.name = `facade-${id}`;
     if (SMALL.has(id)) small.push(im);
