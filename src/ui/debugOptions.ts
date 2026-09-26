@@ -125,7 +125,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Combat & weapons ──
   opt('aimRing', 'combat', 'Aim assist ring', [['off', 'Off'], ['on', 'On']], { note: 'the aim-assist bubble on screen, with its angle and snap (was ?aimdebug)' }),
-  opt('longbowArc', 'combat', 'Longbow drop arc', [['aim', 'With aim'], ['always', 'Always'], ['never', 'Never']], { when: (c) => pineHollow(c) && c.weapons.has('bow'), note: 'PH-C11 · undecided: when the drop arc shows while drawn (was ?arc)' }),
 
   // ── Creatures & NPCs ──
   opt('creatures', 'creatures', 'Creatures', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: (c) => pineHollow(c) || nalati(c), note: 'PH-U11 / E136 · models picked; procedural = what the rig bakes need' }),

@@ -10,7 +10,6 @@ import { Projectiles, type ProjectileKind, type WindField } from './Projectiles'
 import { BowDraw, RENOCK_TIME } from './bowDraw';
 import { ARM_PAL, gloveFist, riderArm, placeArm } from './nalatiArms';
 import type { Weapon } from './Weapon';
-import { setting } from '../ui/Settings';
 
 /**
  * Longbow — THE WARDEN'S LONGBOW, the Antler King's reward on Pine Hollow (PINE-HOLLOW-REMASTER PH-U15 / PH-C2 / PH-C11):
@@ -674,9 +673,8 @@ export class Longbow implements Weapon {
 
     this.poseViewmodel(dt, t);
 
-    // the drop arc: while drawn, with AIM on (or always / never: Debug ▸ Combat & weapons ▸ Longbow drop arc, E162)
-    const arc = setting('longbowArc'), arcWanted = arc === 'always' || (arc === 'aim' && this.aimOn);
-    if (arcWanted && this.p > ARC_FROM && this.model.visible && this.holster < 0.01) {
+    // the drop arc: while drawn with AIM on (Jake's pick, 2026-09-26: "while aiming"; the always / never variants are gone)
+    if (this.aimOn && this.p > ARC_FROM && this.model.visible && this.holster < 0.01) {
       this.aimRay(_v1, _fwd);
       this.launchFrom(_fwd, _v2, _v3);
       this.nocked.getWorldPosition(_dir);

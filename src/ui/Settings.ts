@@ -140,7 +140,6 @@ export const OPTION_VALUES = {
   knife: ['model', 'proc'],                            // Pine Hollow's skinning knife: the Blender model or the stand-in (undecided) — a reload
   pineLife: ['on', 'off'],                             // Pine Hollow's birds, hares, ravens and the skinning beat (src/pinehollow/life/) — a reload
   pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/audio/Music.ts) — a reload
-  longbowArc: ['aim', 'always', 'never'],              // Pine Hollow's longbow drop arc: with AIM (the default, undecided) / whenever drawn / never — live
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/player/AimAssist.ts) — live
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
   ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
@@ -167,7 +166,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, birds: DEBUG_ONLY, npcs: DEBUG_ONLY, knife: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
-  longbowArc: DEBUG_ONLY, aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
+  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
   const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
@@ -184,7 +183,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   shardCap: option('shardCap'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), birds: option('birds'), npcs: option('npcs'), knife: option('knife'), pineLife: option('pineLife'), pineScore: option('pineScore'),
-  longbowArc: option('longbowArc'), aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
+  aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
