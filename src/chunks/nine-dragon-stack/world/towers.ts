@@ -6,11 +6,11 @@ import type { Ctx } from './ctx';
 import { shopfronts } from './facades';
 import { dressWall, spanStreet } from './facade/grammar';
 import { K, Kit, type Look } from './kit';
-import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
+import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { dragonHook, person } from './props';
 import { hipRoof } from './square';
 import { WORDS } from './words';
-import { NEON, Rng, chars } from './util';
+import { NEON, Rng, chars } from '../util';
 
 export { WORDS } from './words';
 export const NEONS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, NEON.magenta, NEON.cyan, 0xff7a2a, 0xa8ff5a] as const;

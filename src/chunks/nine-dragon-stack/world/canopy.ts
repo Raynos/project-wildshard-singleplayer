@@ -22,9 +22,9 @@ import {
   LinearFilter, LinearMipmapLinearFilter, Mesh, OneFactor, ShaderMaterial, type Texture, TextureLoader, Uint32BufferAttribute, Vector3,
   Vector4, ZeroFactor,
 } from 'three';
-import { type Emitter, bakeSpill } from './emitters';
-import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
-import { Rng } from './util';
+import { type Emitter, bakeSpill } from '../look/emitters';
+import { FOG_GLSL, NOISE_GLSL, type Shared } from '../look/style';
+import { Rng } from '../util';
 
 /** one lump of foliage: centre, radii (x, y, z; axis-aligned), how high it sits on its shelf, a seed */
 export interface Lump { c: Vector3; r: Vector3; up: number; seed: number; wash: number }

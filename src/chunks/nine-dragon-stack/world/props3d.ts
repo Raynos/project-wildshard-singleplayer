@@ -11,7 +11,7 @@
 import { type BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Quaternion, type ShaderMaterial, Vector3 } from 'three';
 import { type GlbOpt, loadGlb } from './hero/glb';
 import { K } from './kit';
-import { BANYAN, GATE, PLAZA, STREET, WELL, Y0 } from './layout';
+import { BANYAN, GATE, PLAZA, STREET, WELL, Y0 } from '../layout';
 
 const ASSETS = '/assets/nine-dragon/lab/organic';
 

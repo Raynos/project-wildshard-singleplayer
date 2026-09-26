@@ -5,14 +5,14 @@ import { buildBanyan } from './banyan';
 import { mahjong as heroMahjong, mahjongSeats } from './hero/figures';
 import type { Ctx } from './ctx';
 import { buildGate, relief } from './gate';
-import { SURF } from './paint';
+import { SURF } from '../look/paint';
 import { lionOnPost } from './props3d';
 import type { KitX } from './hero/kitx';
 import { hawkerStall, noodleStall } from './stalls';
 import { E, K, type Kit, type Look } from './kit';
-import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from './layout';
+import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
 import { dragonHook, lamp, scooter } from './props';
-import { MIN, METAL, NEON, Rng, chars } from './util';
+import { MIN, METAL, NEON, Rng, chars } from '../util';
 
 // the balustrade's stone: a mid wet grey (dome A's ΔE: 0x76767b rendered #757784, 0x4a4c53 #44454e; the spawn target #656469)
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };

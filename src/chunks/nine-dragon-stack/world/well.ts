@@ -6,11 +6,11 @@ import type { Ctx } from './ctx';
 import { frame, up } from './facades';
 import { dressWall } from './facade/grammar';
 import { K, Kit, type Look } from './kit';
-import { STRATA, WELL, Y0 } from './layout';
+import { STRATA, WELL, Y0 } from '../layout';
 import { dragonHook, person } from './props';
 import { balustrade, hipRoof } from './square';
 import { NEONS, WORDS } from './towers';
-import { NEON, Rng } from './util';
+import { NEON, Rng } from '../util';
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 /** altitude bands: one merged kit per band so the frustum culls the deep ones when you look across */

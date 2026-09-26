@@ -9,7 +9,7 @@
 // - red wish ribbons, a carved stone planter (ruled panels, a rim, dark soil).
 import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from '../kit';
-import { Rng } from '../util';
+import { Rng } from '../../util';
 import { type KitX, curve } from './kitx';
 
 export interface BanyanSpec {

@@ -3,7 +3,7 @@
 // LOCK / DODGE / JUMP, and the pad (MOVE stick, ATTACK, LOOK). The Fei Zhua rides these: LOCK targets a dragon hook
 // (a cyan bracket reticle on it), JUMP with a hook locked fires the claw and zips.
 import { Vector2 } from 'three';
-import type { MapRect } from './ctx';
+import type { MapRect } from '../../chunks/nine-dragon-stack/world/ctx';
 import './hud.css';
 
 const SVG = {

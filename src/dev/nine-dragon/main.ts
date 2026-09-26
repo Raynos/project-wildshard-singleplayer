@@ -5,40 +5,40 @@ import {
   BufferGeometry, Color, Float32BufferAttribute, InstancedMesh, type Matrix4, Mesh, PerspectiveCamera, PlaneGeometry, Quaternion, Scene, SphereGeometry, Vector4,
   Uint32BufferAttribute, Vector2, Vector3, WebGLRenderer,
 } from 'three';
-import { Ctx, type Piece } from './ctx';
-import { type Emitter, bakeSpill } from './emitters';
-import { GlyphAtlas } from './glyphs';
-import { Lanterns } from './lanterns';
-import { NeonSigns } from './neonsigns';
-import { buildStreaks } from './streaks';
-import { buildFacade, type FacadeStats } from './facade/batch';
-import { facadeUniforms } from './facade/material';
-import { PIECES } from './dressing';
+import { Ctx, type Piece } from '../../chunks/nine-dragon-stack/world/ctx';
+import { type Emitter, bakeSpill } from '../../chunks/nine-dragon-stack/look/emitters';
+import { GlyphAtlas } from '../../chunks/nine-dragon-stack/look/glyphs';
+import { Lanterns } from '../../chunks/nine-dragon-stack/look/lanterns';
+import { NeonSigns } from '../../chunks/nine-dragon-stack/look/neonsigns';
+import { buildStreaks } from '../../chunks/nine-dragon-stack/look/streaks';
+import { buildFacade, type FacadeStats } from '../../chunks/nine-dragon-stack/world/facade/batch';
+import { facadeUniforms } from '../../chunks/nine-dragon-stack/look/facadeMaterial';
+import { PIECES } from '../../chunks/nine-dragon-stack/world/dressing';
 import { Hud, type HudButton } from './hud';
-import { WELL, Y0 } from './layout';
+import { WELL, Y0 } from '../../chunks/nine-dragon-stack/layout';
 import { Player } from './player';
-import { loadPaint } from './paint';
-import { Pipeline } from './post';
-import { SCROLL, loadScroll, scrollMaterial } from './scroll';
-import { type LightSettings, installLight } from './light/install';
-import { acKit } from './props';
+import { loadPaint } from '../../chunks/nine-dragon-stack/look/paint';
+import { Pipeline } from '../../chunks/nine-dragon-stack/look/post';
+import { SCROLL, loadScroll, scrollMaterial } from '../../chunks/nine-dragon-stack/look/scroll';
+import { type LightSettings, installLight } from '../../chunks/nine-dragon-stack/look/light/install';
+import { acKit } from '../../chunks/nine-dragon-stack/world/props';
 import { SHOTS, type Shot } from './shots';
-import { tintUmbrella } from './crowd';
-import { banyanOut } from './banyan';
-import { buildCanopy } from './canopy';
-import { loadSquareProps } from './props3d';
-import { SignAtlas, SignBuilder } from './signs';
-import { buildSquare } from './square';
+import { tintUmbrella } from '../../chunks/nine-dragon-stack/world/crowd';
+import { banyanOut } from '../../chunks/nine-dragon-stack/world/banyan';
+import { buildCanopy } from '../../chunks/nine-dragon-stack/world/canopy';
+import { loadSquareProps } from '../../chunks/nine-dragon-stack/world/props3d';
+import { SignAtlas, SignBuilder } from '../../chunks/nine-dragon-stack/look/signs';
+import { buildSquare } from '../../chunks/nine-dragon-stack/world/square';
 import {
   type LookName, Shared, jiehuaMaterial, lineMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial,
-} from './style';
-import { WORDS, buildTowers, droneKit, trainKit } from './towers';
-import { Rng, chars, clamp, smooth } from './util';
-import { CABLE, buildWell, gondolaKit, wellSheets } from './well';
+} from '../../chunks/nine-dragon-stack/look/style';
+import { WORDS, buildTowers, droneKit, trainKit } from '../../chunks/nine-dragon-stack/world/towers';
+import { Rng, chars, clamp, smooth } from '../../chunks/nine-dragon-stack/util';
+import { CABLE, buildWell, gondolaKit, wellSheets } from '../../chunks/nine-dragon-stack/world/well';
 import { type VmLayout, Viewmodel } from './vm/viewmodel';
-import { buildClaw } from './hero/weapon-parts';
-import { KitX, merge } from './hero/kitx';
-import { loadGlb } from './hero/glb';
+import { buildClaw } from '../../chunks/nine-dragon-stack/world/hero/weapon-parts';
+import { KitX, merge } from '../../chunks/nine-dragon-stack/world/hero/kitx';
+import { loadGlb } from '../../chunks/nine-dragon-stack/world/hero/glb';
 
 interface NdStats { calls: number; triangles: number; width: number; height: number; pixelRatio: number; hooks: number }
 interface NdApi {

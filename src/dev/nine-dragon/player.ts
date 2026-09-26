@@ -1,8 +1,8 @@
 // The first-person body: mouse / touch drag to look, WASD or the MOVE stick to walk, kept on the square by simple
 // bounds (no physics). A hop for JUMP, a sidestep for DODGE, and a zip along the Fei Zhua's line toward a hook.
 import { Vector2, Vector3 } from 'three';
-import { Y0, walkable } from './layout';
-import { clamp, smooth } from './util';
+import { Y0, walkable } from '../../chunks/nine-dragon-stack/layout';
+import { clamp, smooth } from '../../chunks/nine-dragon-stack/util';
 
 export const EYE = 1.62;
 

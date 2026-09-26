@@ -8,10 +8,10 @@
 //  The ink-wash shadow under each projection, the drip stains and the neon spill are baked into the shell's vertex
 //  colours by the grammar (no transparent decals: overdraw is the phone's enemy).
 import { Color, ShaderMaterial, type IUniform, Vector2 } from 'three';
-import { PAINT_GLSL } from '../paint';
+import { PAINT_GLSL } from './paint';
 // the baked light volume on the tower shells (lab P6)
-import { LIGHTVOL_GLSL } from '../light/lightvol';
-import { FOG_GLSL, NOISE_GLSL, PAPER_GLSL, type Shared } from '../style';
+import { LIGHTVOL_GLSL } from './light/lightvol';
+import { FOG_GLSL, NOISE_GLSL, PAPER_GLSL, type Shared } from './style';
 
 const c = (hex: number): Color => new Color(hex);
 

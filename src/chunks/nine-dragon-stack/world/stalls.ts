@@ -7,9 +7,9 @@
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
-import { HAWKER, STALL, Y0 } from './layout';
-import type { Rng } from './util';
-import { SURF } from './paint';
+import { HAWKER, STALL, Y0 } from '../layout';
+import type { Rng } from '../util';
+import { SURF } from '../look/paint';
 import { person } from './hero/figures';
 import { curve } from './hero/kitx';
 

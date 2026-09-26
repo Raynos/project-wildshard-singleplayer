@@ -10,9 +10,9 @@ import {
   type Texture, Uint32BufferAttribute, UnsignedByteType, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
-import type { Kit, Look } from './kit';
+import type { Kit, Look } from '../world/kit';
 import type { NeonSigns } from './neonsigns';
-import { chars } from './util';
+import { chars } from '../util';
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
 export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';

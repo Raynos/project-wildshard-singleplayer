@@ -5,7 +5,7 @@
 // (a red umbrella, a jade jacket) — the mockups' crowd is dark coats against pale silk.
 import { Vector3 } from 'three';
 import { K, type Kit, type Look } from '../kit';
-import type { Rng } from '../util';
+import type { Rng } from '../../util';
 import { type KitX, type XLook, curve } from './kitx';
 
 const COATS = [0x2a2c31, 0x33363e, 0x3b3f4a, 0x283044, 0x4a4336, 0x55504a, 0x3e4a44, 0x6b6f78, 0x2d2a2a, 0x8a8f96, 0x5b6470] as const;

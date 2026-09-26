@@ -7,7 +7,7 @@ import {
 } from 'three';
 import type { Builder } from './geo';
 import type { Dressing } from './grammar';
-import { jiehuaMaterial, type Uniforms, windowMaterial } from './material';
+import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
 import { PIECES, type PieceId } from './pieces';
 
 /** pieces small enough to shrink into the wall past the clutter distance */

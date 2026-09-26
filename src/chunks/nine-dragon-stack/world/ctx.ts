@@ -2,12 +2,12 @@
 // the grapple's dragon hooks and the minimap's floor plan.
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
-import type { Emitter } from './emitters';
+import type { Emitter } from '../look/emitters';
 import { Dressing } from './facade/grammar';
 import { KitX } from './hero/kitx';
-import type { SignBuilder } from './signs';
-import { Rng } from './util';
-import { WELL, Y0 } from './layout';
+import type { SignBuilder } from '../look/signs';
+import { Rng } from '../util';
+import { WELL, Y0 } from '../layout';
 
 /** instanced kit pieces (dressing.ts builds their geometry) */
 export type Piece = 'balcony' | 'cage' | 'plant' | 'awning' | 'laundry' | 'shack' | 'tank' | 'lightbox' | 'pipe' | 'shutter';

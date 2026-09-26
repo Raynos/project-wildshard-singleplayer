@@ -12,7 +12,7 @@ import {
 import type { Emitter } from './emitters';
 import { GlyphAtlas } from './glyphs';
 import { ADD_KEEP_ALPHA, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
-import { chars } from './util';
+import { chars } from '../util';
 
 export interface NeonDef {
   text: string;

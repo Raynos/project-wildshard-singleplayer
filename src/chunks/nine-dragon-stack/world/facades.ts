@@ -5,9 +5,9 @@ import { Color, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, type Look } from './kit';
 import { hipRoof } from './square';
-import { Y0 } from './layout';
+import { Y0 } from '../layout';
 import { SIGN_WORDS } from './words';
-import { NEON, WALL, chars, type Rng } from './util';
+import { NEON, WALL, chars, type Rng } from '../util';
 
 const AWNINGS = [0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441, 0xe8dfc9, 0x8a3a6a, 0xc23b22] as const;
 const SIGNCOLS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, 0xff7a2a] as const;

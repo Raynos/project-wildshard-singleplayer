@@ -14,9 +14,9 @@ import { Color, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from './kit';
-import { BANYAN, Y0 } from './layout';
-import { Rng } from './util';
-import { SURF } from './paint';
+import { BANYAN, Y0 } from '../layout';
+import { Rng } from '../util';
+import { SURF } from '../look/paint';
 import { type KitX, curve } from './hero/kitx';
 
 export interface BanyanSpec {

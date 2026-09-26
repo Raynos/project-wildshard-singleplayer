@@ -15,11 +15,11 @@ import {
   OneFactor, OneMinusSrcAlphaFactor, RedFormat, RepeatWrapping, ShaderMaterial, SrcAlphaFactor, type Texture, type IUniform,
   UnsignedByteType, Vector2, Vector3, Vector4, ZeroFactor,
 } from 'three';
-import { Y0 } from './layout';
+import { Y0 } from '../layout';
 import { FLAG, PAINT_GLSL, paintUniforms } from './paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { LIGHTVOL_GLSL, lightVolUniforms } from './light/lightvol';
-import { METAL, Rng, SUTRA } from './util';
+import { METAL, Rng, SUTRA } from '../util';
 
 const c = (hex: number): Color => new Color(hex);
 

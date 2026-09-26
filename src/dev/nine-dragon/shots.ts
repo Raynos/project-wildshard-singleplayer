@@ -1,6 +1,6 @@
 // Named camera presets for the captures (window.__nd.shot(name)). Positions are ground points (the eye is added);
 // yaw 0 = north (-z), positive turns east; the portrait frame keeps a horizontal FOV, the landscape one a vertical FOV.
-import { Y0 } from './layout';
+import { Y0 } from '../../chunks/nine-dragon-stack/layout';
 
 export interface Shot {
   at: readonly [number, number, number];

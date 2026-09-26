@@ -12,10 +12,10 @@
 //   couplets, lanterns; a pair of stone lions (石獅) on plinths before the centre bay.
 import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from './kit';
-import type { SignBuilder } from './signs';
+import type { SignBuilder } from '../look/signs';
 import { type KitX, type XLook, curve } from './hero/kitx';
-import { Rng } from './util';
-import { SURF } from './paint';
+import { Rng } from '../util';
+import { SURF } from '../look/paint';
 
 export interface GateSpec {
   x: number;

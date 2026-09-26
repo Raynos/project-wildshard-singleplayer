@@ -3,7 +3,7 @@
 import { Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
-import { MIN, METAL, type Rng } from './util';
+import { MIN, METAL, type Rng } from '../util';
 
 const rot = (ox: number, oz: number, r: number): [number, number] => [ox * Math.cos(r) + oz * Math.sin(r), -ox * Math.sin(r) + oz * Math.cos(r)];
 

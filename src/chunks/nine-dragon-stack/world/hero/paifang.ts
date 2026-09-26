@@ -10,7 +10,7 @@
 // Signs go through the clean room's SignBuilder (plaque + couplets); lanterns through a callback (ctx.lantern).
 import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from '../kit';
-import type { SignBuilder } from '../signs';
+import type { SignBuilder } from '../../look/signs';
 import { type KitX, curve } from './kitx';
 
 export interface PaifangSpec {
