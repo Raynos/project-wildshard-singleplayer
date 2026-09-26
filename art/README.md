@@ -361,3 +361,10 @@ Live phone-tier captures of the pier pennant's shadow on the deck, not codex ima
 `poses-wide-close.jpg` are the two video poses. `c-near-cascade-board.jpg` compares the near-shadow sharpness options
 (A now · B 5×5 blur · C 3 cascades 7/22 m · D 5/18 m); Jake picked A + B + C, and C shipped. `before-after-zoom.jpg` is
 a frame of the before / after video. The videos themselves are not committed (the uplink).
+
+### Far ground wears the cover (`art/foliage/round-1-ground-wears-cover/`, 2026-09-25, E156)
+
+`board-p3.jpg` (in the ferns, the shrine knoll) and `board-p2.jpg` (the hut plateau) put four versions side by side:
+SHIPPED · A1 tint only · A2 mottled + flecks · A3 A2 + slope clumps. They are procedural recolours of live phone captures;
+Qwen-Image couldn't tint the ground in 3 seeds × 6 jobs (`qwen-attempts-A1.jpg`). The build is A1 plus C (the tint and
+the slope reach, E156). Jake: "Mockups don't tell me anything" — the pick was made in game.
