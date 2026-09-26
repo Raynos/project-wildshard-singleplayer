@@ -1,0 +1,89 @@
+<!doctype html>
+<!-- E168 Steam trailer typography. Every card is a pure function of time: titles.mjs calls window.pose(card, t)
+     for each 60 fps frame and screenshots it with a transparent background, so the overlay is frame-exact. -->
+<html><head><meta charset="utf-8">
+<style>
+@font-face { font-family: 'Rajdhani'; font-weight: 500; src: url('../../node_modules/@fontsource/rajdhani/files/rajdhani-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 600; src: url('../../node_modules/@fontsource/rajdhani/files/rajdhani-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 700; src: url('../../node_modules/@fontsource/rajdhani/files/rajdhani-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: url('../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2') format('woff2'); }
+:root { --cyan: #8fe3ff; }
+html, body { margin: 0; width: 1920px; height: 1080px; background: transparent; overflow: hidden; }
+.card { position: absolute; inset: 0; display: none; }
+.card.on { display: block; }
+.mono { font-family: 'JetBrains Mono', monospace; font-weight: 500; text-transform: uppercase; }
+.disp { font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase; color: #fff; }
+.shadow { text-shadow: 0 2px 18px rgba(0, 8, 16, 0.55), 0 0 2px rgba(0, 8, 16, 0.5); }
+
+/* shard title: lower left, kicker + drawn hairline + name */
+#shard .wrap { position: absolute; left: 128px; bottom: 150px; }
+#shard .kicker { font-size: 22px; letter-spacing: 0.5em; color: var(--cyan); }
+#shard .line { height: 2px; margin: 18px 0 14px; background: linear-gradient(90deg, var(--cyan), rgba(143, 227, 255, 0)); box-shadow: 0 0 12px rgba(143, 227, 255, 0.6); transform-origin: left center; width: 520px; }
+#shard .name { font-size: 104px; line-height: 0.95; white-space: nowrap; }
+#shard .sub { margin-top: 16px; font-size: 20px; letter-spacing: 0.42em; color: rgba(255, 255, 255, 0.86); }
+#shard .brk { position: absolute; left: -34px; top: -26px; width: 22px; height: 22px; border-left: 2px solid var(--cyan); border-top: 2px solid var(--cyan); }
+
+/* centre line (the cold open) */
+#line .txt { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-size: 30px; letter-spacing: 0.6em; color: #fff; }
+
+/* end card */
+#end .veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 46%, rgba(4, 10, 18, 0.55), rgba(2, 6, 12, 0.92) 75%); }
+#end .center { position: absolute; left: 0; right: 0; top: 330px; text-align: center; }
+#end .project { font-size: 30px; letter-spacing: 0.9em; color: var(--cyan); margin-left: 0.9em; }
+#end .word { position: relative; display: inline-block; font-size: 190px; line-height: 1; letter-spacing: 0.1em; margin-top: 10px; overflow: hidden; padding: 0 0.1em; }
+#end .word .glint { position: absolute; top: 0; bottom: 0; width: 220px; background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(200, 245, 255, 0.85), rgba(255, 255, 255, 0)); mix-blend-mode: overlay; }
+#end .rule { width: 760px; height: 2px; margin: 26px auto 34px; background: linear-gradient(90deg, rgba(143, 227, 255, 0), var(--cyan), rgba(143, 227, 255, 0)); box-shadow: 0 0 14px rgba(143, 227, 255, 0.7); }
+#end .cta { display: inline-block; padding: 16px 44px; border: 2px solid var(--cyan); background: rgba(13, 27, 38, 0.72); font-size: 40px; letter-spacing: 0.34em; color: #fff; }
+#end .cta b { color: var(--cyan); font-weight: 700; }
+#end .credits { position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 15px; letter-spacing: 0.28em; color: rgba(255, 255, 255, 0.5); }
+</style></head>
+<body>
+<div class="card" id="shard"><div class="wrap"><div class="brk"></div><div class="kicker mono shadow"></div><div class="line"></div><div class="name disp shadow"></div><div class="sub mono shadow"></div></div></div>
+<div class="card" id="line"><div class="txt mono shadow"></div></div>
+<div class="card" id="end"><div class="veil"></div><div class="center"><div class="project mono">Project</div><div class="word disp"><span class="w">Wildshard</span><div class="glint"></div></div><div class="rule"></div><div class="cta disp">Wishlist <b>now</b> on Steam</div></div>
+  <div class="credits mono">Music: MiniMax-Music3 &nbsp;·&nbsp; Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 — Powered by Stability AI &nbsp;·&nbsp; Captured in engine</div></div>
+<script>
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);          // out-cubic
+const inOut = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const ramp = (t, a, b) => clamp((t - a) / (b - a));
+const $ = (s) => document.querySelector(s);
+// window.pose(card, t, opts): opts = { kicker, name, sub, dur } for 'shard'; { text, dur } for 'line'; { dur } for 'end'
+window.pose = (card, t, o) => {
+  document.querySelectorAll('.card').forEach((c) => c.classList.toggle('on', c.id === card));
+  const out = 1 - ramp(t, o.dur - 0.45, o.dur);                // every card leaves over its last 0.45 s
+  if (card === 'shard') {
+    $('#shard .kicker').textContent = o.kicker; $('#shard .name').textContent = o.name; $('#shard .sub').textContent = o.sub ?? '';
+    $('#shard .brk').style.opacity = ease(ramp(t, 0.0, 0.3)) * out;
+    $('#shard .kicker').style.opacity = ease(ramp(t, 0.05, 0.4)) * out;
+    $('#shard .kicker').style.transform = `translateX(${(1 - ease(ramp(t, 0.05, 0.6))) * -24}px)`;
+    $('#shard .line').style.transform = `scaleX(${inOut(ramp(t, 0.1, 0.75))})`;
+    $('#shard .line').style.opacity = out;
+    const n = ease(ramp(t, 0.2, 1.1));
+    $('#shard .name').style.opacity = n * out;
+    $('#shard .name').style.letterSpacing = `${0.34 - 0.24 * n + 0.02 * ramp(t, 1.1, o.dur)}em`; // tracks in, then keeps a slow drift open
+    $('#shard .name').style.filter = `blur(${(1 - n) * 8}px)`;
+    $('#shard .sub').style.opacity = ease(ramp(t, 0.7, 1.3)) * out;
+  } else if (card === 'line') {
+    const n = ease(ramp(t, 0, 0.8));
+    $('#line .txt').textContent = o.text;
+    $('#line .txt').style.opacity = n * out;
+    $('#line .txt').style.letterSpacing = `${0.9 - 0.3 * n - 0.05 * ramp(t, 0.8, o.dur)}em`;
+    $('#line .txt').style.filter = `blur(${(1 - n) * 6}px)`;
+  } else if (card === 'end') {
+    const v = ease(ramp(t, 0, 0.9));
+    $('#end .veil').style.opacity = v;
+    const w = ease(ramp(t, 0.15, 1.0));
+    $('#end .word').style.opacity = w;
+    $('#end .word').style.transform = `scale(${1.08 - 0.08 * w + 0.015 * ramp(t, 1, o.dur)})`;
+    $('#end .word').style.filter = `blur(${(1 - w) * 12}px)`;
+    $('#end .project').style.opacity = ease(ramp(t, 0.5, 1.1));
+    $('#end .glint').style.left = `${-260 + inOut(ramp(t, 0.9, 1.9)) * 1600}px`;
+    $('#end .rule').style.transform = `scaleX(${inOut(ramp(t, 0.8, 1.5))})`;
+    $('#end .cta').style.opacity = ease(ramp(t, 1.2, 1.7));
+    $('#end .cta').style.transform = `translateY(${(1 - ease(ramp(t, 1.2, 1.8))) * 14}px)`;
+    $('#end .credits').style.opacity = ease(ramp(t, 1.6, 2.2));
+  }
+};
+</script>
+</body></html>

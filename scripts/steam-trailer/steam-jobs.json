@@ -1,0 +1,16 @@
+{
+  "_doc": "E168: the 45 s Steam wishlist trailer's score. gen_minimax.py --jobs ../../steam-trailer/steam-jobs.json --keys trailer/steam --seeds ... ; takes land in <out>/trailer-steam/minimax3-<seed>.wav. One cue in three 15 s movements (one per shard) that builds to a final hit; score_steam.py picks the take and cuts it to 45 s.",
+  "lyrics": {
+    "trailer": "[Intro]\n[Instrumental]\n[Build]\n[Instrumental]\n[Climax]\n[Outro]"
+  },
+  "jobs": {
+    "trailer/steam": {
+      "style": "orchestral",
+      "slot": "trailer",
+      "duration": 60,
+      "lyrics": "trailer",
+      "bpm": 100,
+      "prompt": "Genre: epic cinematic video game trailer music, orchestral adventure. BPM: 100. Key: D minor to D major. Instrumental only, no vocals, no choir singing words. A one-minute trailer cue for an open-world fantasy adventure game with three worlds: a sunlit tropical island, endless windswept grasslands with horse riders, a misty pine forest. Structure: opens with a lone, hopeful solo horn and shimmering strings over a low drone; after a few bars, driving low string ostinato and taiko drums enter and the energy builds steadily; a big heroic brass theme with full orchestra, pounding percussion and cymbal swells climbs to a huge climax; ends on one final massive orchestral hit and a ringing tail. Production: modern Hollywood trailer mix, wide, powerful low end, big hall reverb, punchy drums."
+    }
+  }
+}
