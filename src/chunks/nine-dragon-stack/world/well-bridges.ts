@@ -107,6 +107,19 @@ function vine(k: Kit, top: Vector3, n: Vector3, len: number, w: number, rng: Rng
   k.boxAxes(top.clone().addScaledVector(n, 0.1).addScaledVector(side, rng.range(-0.15, 0.15)).add(new Vector3(0, -len * 0.75, 0)), side, UP, n, w * 0.3, len * 0.25, 0.06, look);
 }
 
+/**
+ * A row of paper lanterns hung just outside a crossing's south rail (the side the rim looks at), one every `spacing` m,
+ * none within 1.5 m of `clear`: at 60–110 m a crossing reads first as a line of warm lights across the canyon.
+ */
+function railLanterns(ctx: Ctx, x0: number, x1: number, z: number, yAt: (x: number) => number, h: number, spacing: number, clear?: number): void {
+  const n = Math.max(1, Math.round((x1 - x0) / spacing));
+  for (let i = 0; i < n; i++) {
+    const x = x0 + ((x1 - x0) * (i + 0.5)) / n;
+    if (clear !== undefined && Math.abs(x - clear) < 1.5) continue;
+    ctx.lantern(x, yAt(x) + h, z, 0.6);
+  }
+}
+
 /** a lamp post: a stone post with a lotus cap and a paper lantern hung from a crook */
 function lampPost(ctx: Ctx, k: Kit, x: number, y: number, z: number, out: number): void {
   k.box(x, y, z, 0.3, 2.1, 0.3, STONE);
@@ -218,20 +231,27 @@ function stoneBridge(ctx: Ctx, k: Kit, B: BridgeSpec, rng: Rng): ColliderDesc[] 
   const zf = B.z + B.w / 2, zb = B.z - B.w / 2;
   for (const zz of [zf - 0.14, zb + 0.14]) balustrade(k, B.x0 + 0.15, B.x1 - 0.15, zz, yt, lod);
   const xm = (B.x0 + B.x1) / 2;
+  // what still reads at 100 m (lanterns glow, vines break the arch's line): lanterns under the crown on cords, the
+  // end lanterns (on stone lamp posts near, bare far), vines down the spandrels
+  for (const dz of [-B.w * 0.3, B.w * 0.3]) {
+    const x = xm + rng.range(-1.2, 1.2);
+    k.beam(new Vector3(x, crown, B.z + dz), new Vector3(x, crown - 0.9, B.z + dz), 0.02, 0.02, ROPE);
+    ctx.lantern(x, crown - 1.2, B.z + dz, 0.85);
+  }
+  for (const x of [B.x0 + 0.5, B.x1 - 0.5]) {
+    for (const [zz, o] of [[zf - 0.14, 1], [zb + 0.14, -1]] as const) {
+      if (lod < 2) lampPost(ctx, k, x, yt(x), zz, o);
+      else ctx.lantern(x, yt(x) + 1.6, zz + o * 0.3, 0.8);
+    }
+  }
+  for (let i = 0; i < (lod < 2 ? 5 : 3); i++) {
+    const x = rng.range(B.x0 + 1, B.x1 - 1);
+    const south = rng.chance(0.6);
+    vine(k, new Vector3(x, yt(x) - 0.25, south ? zf + 0.05 : zb - 0.05), south ? Z : NZ, rng.range(1.2, Math.min(3.8, drop * 0.7)), rng.range(0.5, 0.95), rng);
+  }
+  railLanterns(ctx, B.x0 + 1.2, B.x1 - 1.2, zf + 0.2, yt, 1.45, lod === 0 ? 3.4 : 2.6);
   if (lod < 2) {
-    // lamp posts at the ends (and mid-span on a long bridge), lanterns hung under the crown on cords
-    for (const x of [B.x0 + 0.5, B.x1 - 0.5]) for (const [zz, o] of [[zf - 0.14, 1], [zb + 0.14, -1]] as const) lampPost(ctx, k, x, yt(x), zz, o);
-    for (const dz of [-B.w * 0.3, B.w * 0.3]) {
-      const x = xm + rng.range(-1.2, 1.2);
-      k.beam(new Vector3(x, crown, B.z + dz), new Vector3(x, crown - 0.9, B.z + dz), 0.02, 0.02, ROPE);
-      ctx.lantern(x, crown - 1.2, B.z + dz, 0.85);
-    }
-    // vines down the spandrels (both faces) and a carved name plaque on the south face at the crown
-    for (let i = 0; i < 5; i++) {
-      const x = rng.range(B.x0 + 1, B.x1 - 1);
-      const south = rng.chance(0.6);
-      vine(k, new Vector3(x, yt(x) - 0.25, south ? zf + 0.05 : zb - 0.05), south ? Z : NZ, rng.range(1.2, Math.min(3.8, drop * 0.7)), rng.range(0.5, 0.95), rng);
-    }
+    // a carved name plaque on the south face at the crown
     ctx.signs.place({ at: new Vector3(xm, yt(xm) - 0.55, zf + 0.16), normal: Z, size: 0.36, spec: { text: rng.pick(['九龍', '萬家', '天下']), color: '#e7c46a', vertical: false, style: 'plaque' }, gain: 1.3 }, k);
     // the brass dragon hook the grapple bites, out from the crown's balustrade over the south face
     dragonHook(k, ctx, new Vector3(xm + 1.6, yt(xm + 1.6) + 0.55, zf + 0.05), Z, 0.7);
@@ -316,7 +336,7 @@ function timberBridge(ctx: Ctx, k: Kit, B: BridgeSpec, rng: Rng): ColliderDesc[]
   // the pavilion stands off mid-span (a third of the way over, the side picked by the seed), never over `clear`
   let xp = B.x0 + span * (rng.chance(0.5) ? 0.34 : 0.66);
   if (B.clear !== undefined && Math.abs(xp - B.clear) < 3.2) xp = B.x0 + B.x1 - xp;
-  if (lod < 2 && span > 9 && xp - 2.4 > top0 && xp + 2.4 < top1) {
+  if (span > 9 && xp - 2.4 > top0 && xp + 2.4 < top1) {
     // the pavilion: four red posts, a painted lintel each side, a glazed hip roof, a gilt plaque facing the rim
     const y = yt(xp), px = 1.7;
     for (const dx of [-px, px]) for (const zz of [zf, zb]) k.box(xp + dx, yt(xp + dx), zz, 0.2, 2.6, 0.2, LACQUER_POST);
@@ -327,12 +347,25 @@ function timberBridge(ctx: Ctx, k: Kit, B: BridgeSpec, rng: Rng): ColliderDesc[]
     hipRoof(ctx, k, xp, y + 2.62, B.z, 2 * px + 1.5, B.w + 1.3, 1.05, 0.32, rng.pick(TILES), null);
     ctx.signs.place({ at: new Vector3(xp, y + 2.35, zf + 0.1), normal: Z, size: 0.3, spec: { text: rng.pick(['九龍', '萬家', '茶樓', '天下', '旅館']), color: '#f0c86a', vertical: false, style: 'plaque' }, gain: 1.4 }, null);
     for (const dx of [-px - 0.5, px + 0.5]) for (const zz of [zf + 0.45, zb - 0.45]) ctx.lantern(xp + dx, y + 2.2, zz, 0.72);
+    // lantern strings from the pavilion's eaves out to the bridge's ends (tied under the gallery above), both sides
+    if (lod < 2) {
+      for (const zz of [zf, zb]) {
+        for (const [a, b] of [[xp - px - 0.2, B.x0 + 0.3], [xp + px + 0.2, B.x1 - 0.3]] as const) {
+          const pa = new Vector3(a, y + 2.45, zz), pb = new Vector3(b, B.y + 2.35, zz);
+          const n = Math.max(2, Math.round(pa.distanceTo(pb) / 1.9));
+          const at = (t: number): Vector3 => pa.clone().lerp(pb, t).add(new Vector3(0, -0.35 * 4 * t * (1 - t), 0));
+          for (let i = 0; i < n; i++) k.beam(at(i / n), at((i + 1) / n), 0.02, 0.02, ROPE);
+          for (let i = 1; i < n; i++) { const p = at(i / n); if (B.clear === undefined || Math.abs(p.x - B.clear) > 1.6) ctx.lantern(p.x, p.y - 0.2, p.z, 0.55); }
+        }
+      }
+    }
+    // a brass dragon hook out from the pavilion's roof corner over the south side (a grapple point mid-canyon)
+    if (lod === 0) dragonHook(k, ctx, new Vector3(xp + px + 0.3, y + 2.5, zf + 0.35), Z, 0.6);
   }
-  if (lod < 2) {
-    // lightbox signs hung under the deck, and a string of small lanterns along its underside
-    const nS = span > 12 ? 2 : 1;
-    for (let i = 0; i < nS; i++) hangingSign(ctx, k, B.x0 + span * (nS === 1 ? 0.35 : 0.25 + i * 0.5) + rng.range(-1, 1), yt(xm) - 0.62, B.z + B.w / 2 - 0.3, rng);
-  }
+  if (lod >= 1) railLanterns(ctx, B.x0 + 0.8, B.x1 - 0.8, zf + 0.2, yt, 1.5, 2.6, B.clear);
+  // lightbox signs hung under the deck, facing the rim
+  const nS = span > 12 ? 2 : 1;
+  for (let i = 0; i < nS; i++) hangingSign(ctx, k, B.x0 + span * (nS === 1 ? 0.35 : 0.25 + i * 0.5) + rng.range(-1, 1), yt(xm) - 0.62, B.z + B.w / 2 - 0.3, rng);
   for (let i = 0; i < B.crowd; i++) {
     const x = rng.range(B.x0 + 1, B.x1 - 1);
     if ((Math.abs(x - xp) < 2.1 && Math.abs(x - xp) > 1.4) || (B.clear !== undefined && Math.abs(x - B.clear) < 1.6)) continue;
@@ -386,11 +419,10 @@ function steelCatwalk(ctx: Ctx, k: Kit, ka: Kit, B: BridgeSpec, rng: Rng): Colli
       k.beam(new Vector3(x0, yd(x0) - 0.35 - j * 0.12, zz), new Vector3(x1, yd(x1) - 0.35 - j * 0.12, zz), 0.2, 0.2, look);
     }
   }
-  // a neon strip under the south edge (every other catwalk), so it draws a line of light across the canyon
-  if (rng.chance(0.6)) {
-    const col = rng.pick([NEON.cyan, NEON.amber, NEON.magenta]);
-    for (let i = 0; i < N; i++) ctx.signs.tube(new Vector3(xAt(i), yd(xAt(i)) - 0.14, zf + 0.06), new Vector3(xAt(i + 1), yd(xAt(i + 1)) - 0.14, zf + 0.06), Z, 0.05, col, 3.2);
-  }
+  // a neon strip under the south edge, so it draws a line of light across the canyon (and lanterns off the rail, far)
+  const strip = rng.pick([NEON.cyan, NEON.amber, NEON.magenta]);
+  for (let i = 0; i < N; i++) ctx.signs.tube(new Vector3(xAt(i), yd(xAt(i)) - 0.14, zf + 0.06), new Vector3(xAt(i + 1), yd(xAt(i + 1)) - 0.14, zf + 0.06), Z, 0.05, strip, 3.2);
+  if (lod >= 1) railLanterns(ctx, B.x0 + 1, B.x1 - 1, zf + 0.15, yd, 1.3, 2.8);
   for (let i = 0; i < B.crowd; i++) {
     const x = rng.range(B.x0 + 1, B.x1 - 1);
     stand(ctx, new Vector3(x, yd(x), B.z + rng.range(-0.25, 0.25)), rng.chance(0.5) ? X : X.clone().negate(), rng.range(0.94, 1.04));
@@ -424,7 +456,7 @@ function coveredBridge(ctx: Ctx, k: Kit, B: BridgeSpec, rng: Rng): ColliderDesc[
   if (top1 - top0 > 3) {
     const cx = (top0 + top1) / 2;
     hipRoof(ctx, k, cx, B.y + H + 0.18, B.z, top1 - top0 + 0.8, B.w + 1.5, 1.2, 0.3, rng.chance(0.5) ? 0x2f8a6a : 0x2e5fa3, null);
-    if (lod < 2) for (let x = top0 + 0.8; x < top1 - 0.5; x += 2.4) ctx.lantern(x, B.y + H - 0.2, zf + 0.5, 0.7);
+    for (let x = top0 + 0.8; x < top1 - 0.5; x += lod < 2 ? 2.4 : 4.8) ctx.lantern(x, B.y + H - 0.2, zf + 0.5, 0.7);
   }
   if (lod < 2) {
     const word = rng.pick(WORDS);

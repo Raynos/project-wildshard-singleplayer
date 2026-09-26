@@ -103,7 +103,12 @@ export interface NineDragonWorld {
   readonly ctx: Ctx;
   /** per frame: time (s) and the camera the frame is drawn from */
   update: (t: number, camera: PerspectiveCamera) => void;
-  /** the world-wide instanced batches' per-instance culling (world/cull.ts; its `stats` for the budget ruler) */
+  /**
+   * per frame, with the camera as it is drawn (the render hook's `frame`, after the updaters and the late hooks): the
+   * world-wide instanced batches culled per instance (world/cull.ts) and the crowd's figures picked (crowd.ts)
+   */
+  cull: (camera: PerspectiveCamera) => void;
+  /** the per-instance culling (its `stats` for the budget ruler) */
   readonly culler: InstanceCuller;
 }
 
@@ -292,7 +297,8 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const small = new Set<Object3D>(facade.small);
   const isBatch = (o: Object3D): o is InstancedMesh => o instanceof InstancedMesh;
   root.traverse((o) => {
-    if (!isBatch(o)) return;
+    // (a batch that culls itself — the crowd, the lanterns' near / far buckets — is never culled as a whole)
+    if (!isBatch(o) || !o.frustumCulled) return;
     if (o.boundingSphere === null) o.computeBoundingSphere();
     if ((o.boundingSphere?.radius ?? 0) < CULL_R) return;
     culler.add(o, small.has(o) ? 85 : Number.POSITIVE_INFINITY);
@@ -303,8 +309,6 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     shared.u.uTime.value = t;
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
-    culler.update(camera);
-    crowd.update(camera);
     train.position.set(-100 + ((t * 16) % 300), Y0 + 25.5, -27);
     const gx = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(t * 0.12 - 0.62));
     gondola.position.set(gx, CABLE.y + ((gx - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, CABLE.z);
@@ -314,5 +318,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
       d.body.rotation.y = -a;
     }
   };
-  return { root, shared, ctx, update, culler };
+  const cull = (camera: PerspectiveCamera): void => {
+    culler.update(camera);
+    crowd.update(camera);
+  };
+  return { root, shared, ctx, update, cull, culler };
 }

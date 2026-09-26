@@ -12,7 +12,7 @@
 //   life       lanterns under every deck lip, people at the rails, laundry, plants, cages and air-con on the bare
 //              wall, neon blade signs facing the rim, thick drain pipes and horizontal service runs.
 // TRIANGLE FREEZE: everything is merged into the band's own kits (one draw per band, culled with it); the people are
-// ~60-tri kit figures, the lanterns ~40-tri kit ones (their light is a baked emitter, not the 348-tri paper mesh
+// ~25–45-tri kit figures, the lanterns 20-tri kit ones (their light is a baked emitter, not the 348-tri paper mesh
 // every view draws), plants / air-con / cages / tanks are kit boxes, not the always-drawn instanced pieces.
 import { Color, IcosahedronGeometry, Matrix4, Vector3, Vector4 } from 'three';
 import type { Ctx } from './ctx';
@@ -32,7 +32,7 @@ const BROLLY = [0x1d1f25, 0x1d1f25, 0x2a2c31, 0x9a2e1c, 0xb07a34, 0x1d1f25, 0x2e
 const WARM = [0xffc98a, 0xffbf78, 0xffd6a2, 0xf6b070, 0xffcd96] as const;
 const POD_WALL = [0x8a8378, 0x7c7f86, 0x9a9690, 0x6f5a46, 0x7e8a86, 0x8e8272, 0x6d7a8c] as const;
 const BLOCK_WALL = [0x8d96a3, 0x838c9b, 0x979b9e, 0x7f8794, 0x978d80, 0x8a9390, 0x9e9a92, 0x8f8478] as const;
-const ROOF = [0x5c6168, 0x6f747c, 0x7c6a58, 0x5a5f66, 0x6a6e76, 0x2f8a6a, 0x7c6a58, 0x4f5a66] as const;
+const ROOF = [0x5c6168, 0x6f747c, 0x7c6a58, 0x5a5f66, 0x6a6e76, 0x2f8a6a, 0x7c6a58, 0x6b5a4c, 0x55504a] as const;
 const CLOTHES = [0xeceae2, 0x6f9ccf, 0xc23b22, 0xd9a441, 0xe8dfc9, 0x2e5fa3, 0x7fbf9a] as const;
 const STEEL: Look = { wash: 0x2a2c31, line: 0.9 };
 const RED_RAIL: Look = { wash: 0x8e2c1f, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer };
@@ -57,26 +57,24 @@ export function lowWin(ctx: Ctx, rng: Rng, at: Vector3, u: Vector3, n: Vector3, 
   ctx.fd.windows.push({ m, win: new Vector4(rng.range(0, 97), lit, rng.chance(0.35) ? rng.range(0.2, 0.6) : 0, style), wall: new Color(wall), light: new Color(rng.pick(WARM)) });
 }
 
-/** a low-poly figure (~60 tris) for the levels below the rim: coat, legs, head, often an umbrella; faces `face` */
+/** a low-poly figure (~25 tris, ~45 with an umbrella) for the levels below the rim: a long coat to the ground, a head,
+ *  often an umbrella or a straw hat; faces `face` */
 export function figure(k: Kit, rng: Rng, p: Vector3, face: Vector3, s = 1): void {
   const coat: Look = { wash: rng.pick(COATS), line: 0 };
   const f = face.clone().setY(0).normalize();
-  const rot = Math.atan2(f.x, f.z);
-  k.box(p.x, p.y, p.z, 0.3 * s, 0.62 * s, 0.2 * s, { wash: 0x1b1c20, line: 0 }, { rotY: rot, top: null, bottom: null });
-  k.cyl(p.x, p.y + 0.55 * s, p.z, 0.21 * s, 0.16 * s, 0.9 * s, 6, coat, { caps: false, edges: E.none });
-  k.cyl(p.x, p.y + 1.45 * s, p.z, 0.1 * s, 0.085 * s, 0.22 * s, 5, { wash: rng.chance(0.25) ? 0xb89a62 : 0xc9a58a, line: 0 }, { edges: E.none });
+  k.cyl(p.x, p.y, p.z, 0.2 * s, 0.15 * s, 1.42 * s, 5, coat, { caps: false, edges: E.none });
+  k.cyl(p.x, p.y + 1.42 * s, p.z, 0.1 * s, 0.07 * s, 0.24 * s, 4, { wash: rng.chance(0.25) ? 0xb89a62 : 0xc9a58a, line: 0 }, { edges: E.none });
   if (rng.chance(0.55)) {
     const hx = p.x + f.z * 0.18 * s, hz = p.z - f.x * 0.18 * s;
-    k.cyl(hx, p.y + 1.78 * s, hz, 0.56 * s, 0.03, 0.26 * s, 7, { wash: rng.pick(BROLLY), kind: K.cloth, row: 0, col: 0.2, line: 0.8, accent: true }, { edges: E.v0 });
+    k.cyl(hx, p.y + 1.78 * s, hz, 0.56 * s, 0.03, 0.26 * s, 6, { wash: rng.pick(BROLLY), kind: K.cloth, row: 0, col: 0.2, line: 0.8, accent: true }, { edges: E.v0 });
   } else if (rng.chance(0.3)) {
-    k.cyl(p.x, p.y + 1.64 * s, p.z, 0.3 * s, 0.02, 0.13 * s, 7, { wash: 0xb89a62, line: 0.6, accent: true }, { edges: E.v0 });
+    k.cyl(p.x, p.y + 1.62 * s, p.z, 0.3 * s, 0.02, 0.13 * s, 6, { wash: 0xb89a62, line: 0.6, accent: true }, { edges: E.v0 });
   }
 }
 
-/** a paper lantern in the kit (~40 tris, emissive) hanging from y */
+/** a paper lantern in the kit (20 tris, emissive) hanging from y */
 export function kitLantern(k: Kit, x: number, y: number, z: number, s = 1): void {
-  k.cyl(x, y - 0.5 * s, z, 0.2 * s, 0.2 * s, 0.4 * s, 6, LANTERN, { edges: E.none });
-  k.cyl(x, y - 0.1 * s, z, 0.08 * s, 0.08 * s, 0.1 * s, 4, { wash: 0xc9a24a, line: 0.5, accent: true }, { caps: false, edges: E.none });
+  k.cyl(x, y - 0.5 * s, z, 0.2 * s, 0.2 * s, 0.42 * s, 5, LANTERN, { edges: E.none });
 }
 
 /** a kit lantern that also lights its pool (a baked emitter: the light volume and the vertex spill, no mesh cost) */
@@ -89,6 +87,17 @@ export function litLantern(ctx: Ctx, k: Kit, p: Vector3, s: number, glow: boolea
 export function kitPlant(k: Kit, p: Vector3, s = 1): void {
   k.cyl(p.x, p.y, p.z, 0.17 * s, 0.21 * s, 0.3 * s, 5, { wash: 0xa4532e, line: 1, accent: true }, { caps: false });
   k.blob(ICO, null, p.x, p.y + 0.52 * s, p.z, 0.36 * s, 0.34 * s, 0.36 * s, LEAF, true);
+}
+
+/** a plant hanging down from a deck lip (a stretched leafy clump, 20 tris; a second one under it now and then) */
+function vine(k: Kit, rng: Rng, P: GalleryProfile, uu: number, y: number, d: number): void {
+  const len = rng.range(0.9, 2.0);
+  const p = P.world(uu, y - 0.3 - len * 0.5, d + 0.05);
+  k.blob(ICO, null, p.x, p.y, p.z, rng.range(0.35, 0.6), len * 0.55, 0.3, { ...LEAF, wash: rng.pick([0x3d7d4c, 0x2e6443, 0x4f9158]) }, true);
+  if (rng.chance(0.4)) {
+    const q = P.world(uu + rng.range(-0.3, 0.3), y - 0.3 - len * 1.15, d + 0.1);
+    k.blob(ICO, null, q.x, q.y, q.z, 0.28, len * 0.35, 0.24, { ...LEAF, wash: 0x2e6443 }, true);
+  }
 }
 
 /** an air-con unit in the kit (a box on the wall, its grille painted: 10 tris) */
@@ -233,6 +242,19 @@ function block(ctx: Ctx, k: Kit, rng: Rng, P: GalleryProfile, ua: number, ub: nu
     { wash: 0x3a3d44, line: 1 }, { top: { wash: rng.pick(ROOF), kind: K.tiles, line: 1 }, bottom: null });
   roofThing(k, rng, P, ua, ub, top + 0.16, d0, d1);
   if (W > 3.4 && rng.chance(0.5)) roofThing(k, rng, P, ua, ub, top + 0.16, d0, d1);
+  // a roof terrace now and then (what the rim looks down on): a red rail round its front, people, a line of washing
+  if (D > 1.8 && W > 2.6 && rng.chance(0.4)) {
+    const yT = top + 0.16;
+    redRail(k, P.world(ua + 0.1, yT, d1 - 0.05), P.world(ub - 0.1, yT, d1 - 0.05));
+    for (let i = rng.int(0, 2); i > 0; i--) figure(k, rng, P.world(rng.range(ua + 0.5, ub - 0.5), yT, rng.range(d0 + 0.5, d1 - 0.5)), rng.chance(0.6) ? n : u);
+    if (rng.chance(0.5)) kitLine(k, rng, P.world(ua + 0.3, yT + 1.8, (d0 + d1) / 2), P.world(ub - 0.3, yT + 1.75, (d0 + d1) / 2 + rng.range(-0.4, 0.4)));
+  }
+  // green hanging down its face from the parapet
+  if (rng.chance(0.35)) {
+    const len = rng.range(1.2, 2.6);
+    const p = P.world(ua + rng.range(0.4, W - 0.4), top - len * 0.45, d1 + 0.08);
+    k.blob(ICO, null, p.x, p.y, p.z, rng.range(0.35, 0.6), len * 0.55, 0.3, { ...LEAF, wash: rng.pick([0x3d7d4c, 0x2e6443, 0x4f9158]) }, true);
+  }
   // lit rooms on the front (one per floor or two), a lantern or an awning, a strut pair under
   for (let f = 0; f < floors; f++) {
     const yy = y0 + f * FLOOR_H;
@@ -377,7 +399,7 @@ export function dressLower(ctx: Ctx, P: GalleryProfile, K2: GalleryKits, O: Lowe
         const out = rng.range(1.2, 2.2) + 4.2 * t;
         const d1 = Math.min(d + out, cap(ua, ua + w, yBase));
         if (d1 > d + 0.8) {
-          block(ctx, k, rng, P, ua, ua + w, yBase, floors, d - 0.1, d1, 0.55 + 0.25 * (1 - t));
+          block(ctx, k, rng, P, ua, ua + w, yBase, floors, d - 0.1, d1, 0.7 + 0.15 * (1 - t));
           for (let j = 0; j < floors; j++) claimed.add(`${fi + j}:${si}`);
         }
       } else if (r < pBlock + pPod) {
@@ -424,6 +446,7 @@ export function dressLower(ctx: Ctx, P: GalleryProfile, K2: GalleryKits, O: Lowe
         }
         if (rng.chance(0.35 * dens)) kitPlant(k, P.world(rng.range(st.u0 + 0.4, st.u1 - 0.4), y, d - 0.35), rng.range(1.0, 1.5));
         if (rng.chance(0.2 * dens)) kitAC(k, P, rng.range(st.u0 + 0.6, st.u1 - 0.6), y - 1.2, Math.max(0.3, d - 0.9));
+        if (rng.chance(0.22 * (0.4 + 0.6 * dens))) vine(k, rng, P, rng.range(st.u0 + 0.5, st.u1 - 0.5), y, d);
         if (rng.chance((street ? 0.3 : 0.13) * dens)) blade(ctx, k, rng, P, rng.range(st.u0 + 0.6, st.u1 - 0.6), y + 1.35, d, rng.range(0.5, 0.85));
       }
     });

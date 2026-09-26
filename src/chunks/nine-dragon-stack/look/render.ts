@@ -63,8 +63,9 @@ export function createRender(): ShardRender {
         k.aoRadius = 2.2;
         k.distanceFalloff = 1;
         k.intensity = 5;
-        k.aoSamples = c.tier === 'phone' ? 8 : 16;
+        k.aoSamples = c.tier === 'phone' ? 6 : 16;
         k.denoiseSamples = c.tier === 'phone' ? 4 : 8;
+        k.denoiseIterations = c.tier === 'phone' ? 1 : 2;
         k.denoiseRadius = 8;
         k.color = new Color(0.07, 0.08, 0.13);
         k.halfRes = true;

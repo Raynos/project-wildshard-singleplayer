@@ -116,7 +116,12 @@ export const NINE_DRAGON_STACK: ChunkDef = {
   },
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,
   // the window glow, the drizzle, the clean room's LUT in place of the engine's colour chain
-  render: async () => (await import('./look/render')).createRender(),
+  // (wrapped: the world culls its instanced batches right before the composer draws, the camera final — index.ts)
+  render: async () => {
+    const [{ createRender }, { cullNineDragonWorld }] = await Promise.all([import('./look/render'), import('./index')]);
+    const look = createRender();
+    return { ...look, frame: (dt: number, t: number): void => { cullNineDragonWorld(); look.frame?.(dt, t); } };
+  },
   structures: {
     files: FILES,
     build: async () => (await import('./index')).NINE_DRAGON_WORLD,

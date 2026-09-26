@@ -220,10 +220,14 @@ vec4 silkFog(vec3 wp, float scale) {
   float midY = uCam.y + 0.5 * dy;
   vec3 acc = vec3(0.0);
   float T = 1.0;
+  float yLo = min(uCam.y, wp.y), yHi = max(uCam.y, wp.y);
   for (int i = 0; i < ${BAND_COUNT}; i++) {
     int k = dy < 0.0 ? i : ${BAND_COUNT - 1} - i;
     vec4 b = uBands[k];
     if (b.z <= 0.0) continue;
+    // (render, the phone's cost) a band the ray never comes within 3 widths of holds < 0.5 % of its depth: skip its
+    // tanh / cosh and billow noise — from the square only one or two of the nine are ever in reach
+    if (yLo > b.x + 3.0 * b.y || yHi < b.x - 3.0 * b.y) continue;
     float tau;
     if (ady > b.y * 0.5) {
       float t0 = tanh(clamp((uCam.y - b.x) / b.y, -10.0, 10.0));
@@ -294,12 +298,14 @@ float silkPaper(vec2 fc) {
 
 export const STONES_GLSL = /* glsl */ `
 // (needs PAINT_GLSL before it: the layout is paint.ts FLAG, shared with the paint's per-stone windows)
-vec4 stone(vec2 p, float px) {
+// (render) stoneFw: the same with the pixel footprint passed in (a caller that discards first takes its derivatives
+// while the whole quad is still alive)
+vec4 stoneFw(vec2 p, float px, vec2 fwIn) {
   vec4 fc = flagCell(p);
   float cx = fc.x, r = fc.y;
   float L = flagLen(r), rh = ${FLAG.rh.toFixed(3)};
   float fx = fc.z / L, fy = fc.w / rh;
-  vec2 fw = max(fwidth(p), vec2(1e-5));
+  vec2 fw = max(fwIn, vec2(1e-5));
   vec2 lw = min(fw * px, vec2(0.012));
   float jx = 1.0 - smoothstep(lw.x, lw.x + fw.x, min(fx, 1.0 - fx) * L);
   float jy = 1.0 - smoothstep(lw.y, lw.y + fw.y, min(fy, 1.0 - fy) * rh);
@@ -308,6 +314,7 @@ vec4 stone(vec2 p, float px) {
   float puddle = smoothstep(0.42, 0.72, vnoise(p * 0.21 + 3.0) * 0.6 + vnoise(p * 0.83) * 0.4);
   return vec4(joint, id, puddle, h12(vec2(cx, r) + 17.0) * 2.0 - 1.0);
 }
+vec4 stone(vec2 p, float px) { return stoneFw(p, px, fwidth(p)); }
 `;
 
 
@@ -1062,8 +1069,10 @@ void main() {
   vec2 p = vWorld.xz * 0.045 + vec2(uTime * 0.012, vWorld.y * 0.01);
   float nz = vnoise(p) * 0.55 + vnoise(p * 2.3 + 4.0) * 0.3 + vnoise(p * 5.1 + 9.0) * 0.15;
   float edge = smoothstep(0.0, 0.14, min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y)));
-  // (round 14, the layered Well) thin silk: the sheets at 60 % of their authored alpha, so a stratum reads through its band
-  float a = smoothstep(0.28, 0.72, nz) * edge * vAlpha * 0.6;
+  // (round 14, the layered Well) the shaft mist does the depth fade now: a sheet is only a wisp of silk — broken by
+  // bigger holes, at half its authored alpha, and gone above ~55 m under the square (where it read as a pale floor)
+  float a = smoothstep(0.42, 0.86, nz) * edge * vAlpha * 0.5;
+  a *= 1.0 - smoothstep(${Y0}.0 - 90.0, ${Y0}.0 - 55.0, vWorld.y);
   a *= smoothstep(1.5, 10.0, abs(uCam.y - vWorld.y));
   int bi = int(vBand + 0.5);
   vec3 c = uBandCols[bi] * 1.06;

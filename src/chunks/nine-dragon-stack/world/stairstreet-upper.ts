@@ -429,10 +429,16 @@ function clearBand(ctx: Ctx, x0: number, x1: number, z0: number, z1: number, y0:
 const WORDS_HERE = ['麵', '茶', '牙科', '火鍋', '旅館', '藥房', '涼茶', '小面', '抄手', '豆花', '麻辣烫', '串串香', '酸辣粉', '賓館', '按摩', '中醫', '跌打', '五金'] as const;
 const NEONS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, 0xff7a2a] as const;
 
+/** the terraces' kit for the 32 m cell of the plan at x (the per-cell split lets three's frustum test drop the far
+ *  cells, and nothing of it draws from > 110 m, e.g. deep in the Well) */
+function terraceKit(ctx: Ctx, x: number): { k: Kit; kx: KitX } {
+  const name = ctx.cell('stair-terraces', x, 0, 32);
+  ctx.far(name, 110);
+  return { k: ctx.kit(name, true), kx: ctx.kitx(name) };
+}
+
 function terraces(ctx: Ctx, rng: Rng): void {
-  const k = ctx.kit('stair-terraces', true);
   const ka = ctx.alpha('stair-a');
-  const kx = ctx.kitx('stair-terraces');
   for (const side of [1, -1] as const) {
     // north (side 1): the face at FACE_N facing +z, the terrace from it to the stair's edge; south mirrored
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
@@ -441,6 +447,7 @@ function terraces(ctx: Ctx, rng: Rng): void {
     const fronts: number[] = [];
     segs.forEach((s, i) => {
       const cx = (s.xa + s.xb) / 2, len = s.xb - s.xa;
+      const { k, kx } = terraceKit(ctx, cx);
       const onStair = s.xa < STAIR.x1;
       const below = Math.min(visFloor(s.xa + 0.01), s.floor) - 1.5;
       // the plinth (its core; the ashlar skin is its face on the stair), its top the terrace
@@ -518,6 +525,7 @@ function terraces(ctx: Ctx, rng: Rng): void {
   }
   // stone planters against the landings' walls, in flower (their boxes are stairUpperColliders())
   for (const p of landingPlanters()) {
+    const { k } = terraceKit(ctx, p.x);
     k.box(p.x, p.y, p.z, p.w, 0.5, p.d, { ...ASHLAR, wash: 0x6f6d68 }, { top: { wash: 0x2e2a24, line: 0 } });
     k.box(p.x, p.y + 0.5, p.z, p.w + 0.08, 0.07, p.d + 0.08, COPING);
     for (let j = 0; j < 3; j++) leafBush(k, rng, p.x + (j - 1) * p.w * 0.3, p.y + 0.62, p.z, rng.range(0.26, 0.36), 26);
@@ -548,6 +556,8 @@ function stairGate(ctx: Ctx): void {
   const G = STAIR_GATE;
   const xf = new Matrix4().makeTranslation(G.x, G.y, G.z).multiply(new Matrix4().makeRotationY(-Math.PI / 2));
   const name = 'stair-gate';
+  // not drawn from deep in the Well or the far galleries (≈ 97 k tris)
+  ctx.far(name, 120);
   const k = new XfKit(xf), x = new XfKitX(xf);
   ctx.kits.set(name, k);
   ctx.kitxs.set(name, x);

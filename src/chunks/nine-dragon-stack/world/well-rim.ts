@@ -34,7 +34,8 @@ export function buildRim(plan: WellPlan): void {
   // ── the south ledge at the datum, its balustrade, lanterns and people (the viewpoint x −16…−5 kept clear) ──
   const rim = ctx.kit('well-rim', true);
   rim.box((WELL.x0 + WELL.x1) / 2, Y0 - 0.7, (RIM.z0 + RIM.z1) / 2, WELL.x1 - WELL.x0, 0.7, RIM.z1 - RIM.z0, { wash: 0x8e939b, line: 2 }, { top: { wash: 0x5a5d64, kind: K.flag, wet: 0.8, line: 0 } });
-  balustrade(rim, RIM.z0, WELL.x1, WELL.x0, Y0, true);
+  // (its panels carved in relief on the ledge's side, the side the mockup cameras look over)
+  balustrade(rim, RIM.z0, WELL.x1, WELL.x0, Y0, true, { x: ctx.kitx('well-rim'), side: 1 });
   // people along it: some leaning on the balustrade looking into the shaft, some walking past the shops
   for (let x = WELL.x0 + 1.5; x < WELL.x1 - 1; x += rng.range(1.6, 3.4)) {
     const viewpoint = x > -14 && x < -7;

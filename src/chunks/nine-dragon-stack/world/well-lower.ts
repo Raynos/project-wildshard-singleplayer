@@ -18,8 +18,8 @@ import { dressLower } from './well-lower-life';
 import { deepTemple, ghostLevels } from './well-lower-deep';
 import { CROSSINGS, LOW, SPLIT, WELL_RECTS, type WallPlan, type WellPlan, bandKits, wallPlan } from './well-plan';
 
-/** the fog sheets' heights (build.ts draws them across the shaft; each one twice, the second 5 m lower). The render
- *  lane's layered shaft mist does the banks now: one faint sheet far down, where the silk is thick anyway */
+/** the fog sheets' heights (build.ts draws them across the shaft; each one twice, the second 5 m lower). None: the
+ *  sheets read as an opaque pale floor down the shaft; the render lane's layered shaft mist does the depth fade */
 export const wellSheets: { y: number; band: number; a: number }[] = [];
 
 /** band B's floors and the ghosts under it */
@@ -75,5 +75,4 @@ export function buildLower(plan: WellPlan): void {
   for (const r of WELL_RECTS) {
     ctx.kit(`well-l-${r.z1 > WELL.z0 + 1 ? 'deep' : 'deepx'}`).quad(new Vector3(r.x0, BOTTOM, r.z1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), r.x1 - r.x0, r.z1 - r.z0, { wash: 0xa7b0bd, line: 0 });
   }
-  wellSheets.push({ y: GHOST_TOP - 6, band: 4, a: 0.3 });
 }

@@ -24,12 +24,12 @@ const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 /**
  * Where dome B2's anchor stands, on the timber bridge 6 m under the rim (CROSSINGS' z −21): nobody stands there, no
  * rail post or lantern blocks the view off it, its pavilion stands aside, and its crowd is doubled (the targets show a
- * packed bridge from every side; paid for by halving the far crossings' crowds).
+ * packed bridge from every side).
  */
 const ANCHOR = { x: -14, z: -21, y: Y0 - 6 } as const;
 
-/** mockup B / D's camera on the south rim and dome B2's anchor: a crossing's detail steps down with its distance */
-const VIEWS = [new Vector3(-10.5, Y0 + 2, 11.75), new Vector3(-14, Y0 - 4.4, -21)] as const;
+/** mockup B / D's cameras (mockupCameras.ts) and dome B2's anchor: a crossing's detail steps down with its distance */
+const VIEWS = [new Vector3(-19.5, Y0 + 1.68, 12.25), new Vector3(-14, Y0 + 1.9, 11.3), new Vector3(-14, Y0 - 4, -21)] as const;
 const lodAt = (x: number, y: number, z: number): number => {
   const d = Math.min(...VIEWS.map((v) => v.distanceTo(new Vector3(x, y, z))));
   return d < 45 ? 0 : d < 70 ? 1 : 2;
@@ -89,7 +89,8 @@ export function buildMid(plan: WellPlan): void {
     const k = c.kind === 'gate' ? ctx.kit(`well-c-gate${i}`) : KC.kit(c.y);
     const lod = lodAt((fw + fe) / 2, c.y, c.z);
     const anchor = c.z === ANCHOR.z && c.y === ANCHOR.y;
-    const crowd = anchor ? c.crowd * 2 : lod >= 2 ? Math.ceil(c.crowd / 2) : c.crowd;
+    // (far walkers are a ~220-triangle LOD: the far crossings carry twice the plan's people, so each rung has its crowd)
+    const crowd = anchor || lod >= 1 ? c.crowd * 2 : c.crowd;
     COLLIDERS.push(...bridge(ctx, k, KC.alpha(c.y), kx, {
       kind: c.kind, z: c.z, y: c.y, x0: fw, x1: fe, w: c.w, seed: 9000 + i * 17, crowd, lod,
       ax0: Math.max(fw, aw), ax1: Math.min(fe, ae), top0: Math.max(fw, tw), top1: Math.min(fe, te),

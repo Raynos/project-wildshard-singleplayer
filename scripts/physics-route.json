@@ -1718,6 +1718,60 @@
     "y": 125.0
    },
    "notes": "back down the stair onto the square"
+  },
+  {
+   "name": "crossing-gate-bridge",
+   "start": {
+    "x": -20.4,
+    "z": -25.4,
+    "yaw": -1.5708,
+    "y": 107.0
+   },
+   "waypoints": [
+    {
+     "x": -15,
+     "z": -25.4
+    },
+    {
+     "x": -10,
+     "z": -25.4
+    },
+    {
+     "x": -4.4,
+     "z": -25.4
+    }
+   ],
+   "expect": {
+    "y": 107.0
+   },
+   "notes": "the Well's gate bridge at z −27 (Y0 − 18, dome B2's crossings, world/well-mid.ts): along its deck between the gallery fronts, 1.6 m south of the paifang's posts"
+  },
+  {
+   "name": "crossing-timber-hump",
+   "start": {
+    "x": -21.6,
+    "z": -21,
+    "yaw": -1.5708,
+    "y": 119.1
+   },
+   "waypoints": [
+    {
+     "x": -16,
+     "z": -21
+    },
+    {
+     "x": -11,
+     "z": -21
+    },
+    {
+     "x": -6.3,
+     "z": -21
+    }
+   ],
+   "expect": {
+    "y": 119.1
+   },
+   "notes": "dome B2's anchor, the humped timber bridge 6 m under the rim at z −21: over its hump between the gallery fronts"
   }
  ]
 }

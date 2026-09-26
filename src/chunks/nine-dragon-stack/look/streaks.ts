@@ -64,10 +64,10 @@ void main() {
   float s0 = mix(sN, uSpread.w, clamp(uSpread.x * tail, 0.0, 1.0));
   float s1 = mix(sF, D, clamp(uSpread.y * tail, 0.0, 1.0));
   float s = mix(s0, s1, aCorner.y);
-  // (render, round 14: the spawn frame's dearest pass — 2.25 of 6.8 ms on the M5) the card's width keeps a constant
-  // angle all the way down its tail: the old + 2 cm floor made every tail a 30–50 px band across the bottom of the
-  // screen, shaded under hundreds of overlapping cards
-  float halfW = (0.5 * aSize.x * uSpread.z + 0.02) * (s / D) * (1.0 + 0.5 * steep);
+  // (render, round 14: the spawn frame's dearest pass — 2.25 of 6.8 ms on the M5) the tail's width floor is 1 cm, not
+  // 2 cm: every tail was a wide band across the bottom of the screen, shaded under hundreds of overlapping cards (a
+  // pure constant-angle width, 0.54 ms, thinned the near streaks too far — the mockups' run broad to the feet)
+  float halfW = (0.5 * aSize.x * (s / D) * uSpread.z + 0.01) * (1.0 + 0.5 * steep);
   vec2 xz = camL.xz + dir * s + side * aCorner.x * halfW;
   vWorld = fromPlane(vec3(xz.x, 0.004, xz.y));
   vC = aCorner;
@@ -113,7 +113,6 @@ void main() {
   if (p.x < uClip.x || p.x > uClip.z || p.y < uClip.y || p.y > uClip.w) discard;
   float vBody = vS < vSeg.y ? (vS - vSeg.y) / max(vSeg.y - vSeg.x, 1e-3)
     : (vS < vSeg.z ? (vS - vSeg.y) / max(vSeg.z - vSeg.y, 1e-3) : 1.0 + (vS - vSeg.z) / max(vSeg.w - vSeg.z, 1e-3));
-  vec4 st = stone(p, 1.1);
   // the jog, striation and dashes follow stones of the old size (1–1.6 m): on the small slabs they broke every
   // streak into a staircase (round 9); the joints and the puddles are the real ones
   // the old-size stone's jog / seed: a coarse cell hash (it was a second full stone(): flagCell + two noises)
@@ -122,6 +121,10 @@ void main() {
   float prof = vBody < 0.0 ? pow(clamp(1.0 + vBody, 0.0, 1.0), 1.4) : (vBody > 1.0 ? pow(clamp(2.0 - vBody, 0.0, 1.0), 2.0) : 1.0);
   float along = dot(p - uCam.xz, vDir);
   float fa = max(fwidth(along), 1e-5);
+  vec2 fwp = fwidth(p);
+  // (render) the faded tail ends are most of a card's area: skip their noise work (derivatives taken above)
+  if (prof * max(vCol.r, max(vCol.g, vCol.b)) * uCardK.x * vFogT < 0.004) discard;
+  vec4 st = stoneFw(p, 1.1, fwp);
   float fine = (vnoise(vec2(along * 38.0, vC.x * 0.7 + uTime * 0.9)) - 0.5) * 2.0 * (1.0 - smoothstep(0.009, 0.022, fa))
              + (vnoise(vec2(along * 95.0, vC.x * 1.3 - uTime * 1.3)) - 0.5) * 1.4 * (1.0 - smoothstep(0.0035, 0.009, fa))
              + (vnoise(vec2(along * 14.0, vC.x * 0.5 + uTime * 0.6)) - 0.5) * 1.2 * smoothstep(0.012, 0.03, fa);

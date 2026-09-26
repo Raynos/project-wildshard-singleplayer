@@ -3,14 +3,21 @@
 // drawn, colliding, lending their floor, footprinted on the maps (def.ts `map`) — and drives the look's per-frame
 // uniforms and the movers. `nineDragonWorld()` is the built world for the render strategy (look/): the shared uniforms,
 // the layout records.
+import type { PerspectiveCamera } from 'three';
 import type { StructureContext } from '../ChunkDef';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { fragmentColliders, fragmentFloor } from './world/colliders';
 import { crossingColliders } from './world/well-mid';
 
 let current: NineDragonWorld | null = null;
+let camera: PerspectiveCamera | null = null;
 /** the running fragment's world (null until it is built) */
 export function nineDragonWorld(): NineDragonWorld | null { return current; }
+/**
+ * the world's per-frame culling, with the camera final: def.ts calls it from the render hook's `frame` (the updaters run
+ * before the late hooks pose the camera — a capture's or the free camera's — so culling there would cull a stale view)
+ */
+export function cullNineDragonWorld(): void { if (current !== null && camera !== null) current.cull(camera); }
 
 const FILE = 'src/chunks/nine-dragon-stack/world/colliders.ts';
 
@@ -18,6 +25,7 @@ export const NINE_DRAGON_WORLD = {
   async build(ctx: StructureContext): Promise<void> {
     const world = await buildNineDragonWorld(ctx.renderer, ctx.progress);
     current = world;
+    camera = ctx.camera;
     const c = fragmentColliders();
     ctx.registry.add({
       id: 'nds-floors', name: 'Lantern Square', category: 'buildings', file: 'src/chunks/nine-dragon-stack/world/build.ts',

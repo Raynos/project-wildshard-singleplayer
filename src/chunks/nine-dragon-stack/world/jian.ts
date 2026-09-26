@@ -26,8 +26,12 @@ const GRIP_MID = 0.2;
  * the guard and the tip in NDC with the guard's depth (m), the Fei Zhua's wrist and elbow likewise. Solved for the phone
  * the mockups are drawn on (9:19.5) at the shard's portrait FOV (def.ts `fov.portrait`).
  */
-// (the wrist raised from the clean room's −0.76: the engine's MOVE / ATTACK panel covers the frame's bottom sixth)
-const LAYOUT = { guard: [0.55, -0.45, 1.1], tip: [0.06, -0.04], wrist: [-0.62, -0.4, 1.3], elbow: [-2.0, -0.85], elbowDepth: 0.8, armRoll: -0.3 } as const;
+// (the wrist raised from the clean room's −0.76: the engine's MOVE / ATTACK panel covers the frame's bottom sixth.)
+// Round-6 scale (Jake's boards, 2026-09-26: "a thin distant sword + a small striped cylinder"): the guard 0.62 m from the
+// eye, not 1.1 (the blade ~1.8× as wide on screen, the dragon guard and tassel large at the lower right); the Fei Zhua's
+// claw hub 0.58 m out, not 1.3, the forearm running from it off the frame's bottom-left corner (its elbow behind the
+// frame's edge), so the brass gauntlet fills that corner as in every mockup
+const LAYOUT = { guard: [0.5, -0.42, 0.62], tip: [0.08, 0.0], wrist: [-0.5, -0.36, 0.58], elbow: [-1.7, -1.6], elbowDepth: 0.5, armRoll: -0.3 } as const;
 const ASPECT = 402 / 874;
 const PORTRAIT_FOV = 78;
 
