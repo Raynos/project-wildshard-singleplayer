@@ -6,6 +6,7 @@
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -39,9 +40,10 @@ try {
     const s = SETUP[sc];
     if (!s) continue;
     const page = await (await browser.newContext({ viewport: { width: W, height: H } })).newPage();
+    await debugSettings(page, { creatures: LOOK === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
     const errs = [];
     page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
-    const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', 'weather=clear', `tier=${TIER}`, `creatures=${LOOK}`, `x=${X}`, `z=${Z}`, 'yaw=3.14', 'pitch=-0.08', s.q].join('&');
+    const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', 'weather=clear', `tier=${TIER}`, `x=${X}`, `z=${Z}`, 'yaw=3.14', 'pitch=-0.08', s.q].join('&');
     await page.goto(`${URL_BASE}/${s.page}?${q}`);
     await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });

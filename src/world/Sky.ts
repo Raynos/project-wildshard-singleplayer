@@ -15,12 +15,11 @@ import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
-import { FILTER_RADII, PHONE_SHADOW_FILTER, installShadowFilter, shadowFilterFromUrl } from './shadowFilter';
-import { SUN_FADE_S, ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade';
+import { SOFT_RADII, installShadowFilter } from './shadowFilter';
+import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade';
 import { patchPointLightSkip } from './pointLightSkip';
 import { StylizedSky } from './StylizedSky';
 import { DayNight, type DayClock } from './DayNight';
-import { setting } from '../ui/Settings';
 import { PineDayNight, pineSunAt, type PinePost } from './PineDayNight';
 import { horizonLight } from './Horizon';
 import { GPU_MODE } from '../gpu/flag';
@@ -37,9 +36,8 @@ export interface ShadowRig { cascades: number; size: number; far: number; margin
 
 /** the phone's rig on the low-poly shard. E123 (the user's pick `2c2k`, "both 2048 and 2c"): cascades at 2048². E147 (the
  *  user's pick C, crisper near shadows): three of them, to 7 / 22 / 80 m — 0.8 cm a texel near you, half E123's 1.6 cm, for
- *  ~+0.08 ms a frame on the M5; `?psplit=14` is E123's two */
-// Its filter and radii are shadowFilter.ts's since E138 (E128's three-PCF near radius of 1.2 is `?pshadowfilter=cheap`;
-// `?pradius=` overrides the near cascade's radius)
+ *  ~+0.08 ms a frame on the M5 */
+// Its filter and radii are shadowFilter.ts's since E138
 const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 3, size: 2048, far: 80, splits: [7, 22] };
 
 /**
@@ -51,9 +49,7 @@ export function shadowRig(stylized: boolean): ShadowRig {
   const T = TIER_CONFIG;
   const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, splits: [], phone: false };
   if (T.cascades !== 1 || !stylized) return base; // desktop / the other shards: the tier table
-  // `?psplit=7,22`: the cascades' ends (m), one cascade more than the list (E147's A/B of a tighter near cascade)
-  const want = (new URLSearchParams(location.search).get('psplit') ?? '').split(',').map(Number).filter((v) => Number.isFinite(v) && v > 0);
-  const splits = want.length > 0 ? want : PHONE_SHADOW.splits;
+  const splits = PHONE_SHADOW.splits;
   return { ...PHONE_SHADOW, cascades: splits.length + 1, splits, margin: base.margin, phone: true };
 }
 
@@ -66,7 +62,7 @@ export const PLANET_DIST = 1700;
 /** public/assets/baked/<slug>/sky.json — the HDR's sun direction and horizon colour, scanned at build time (scripts/bake-sky.mjs). */
 async function loadBakedSky(hdri: string): Promise<{ sunDir: [number, number, number]; horizon: [number, number, number] } | null> {
   const url = `/assets/baked/${getActiveChunk().slug}/sky.json`;
-  if (!(url in PUBLIC_BYTES) || new URLSearchParams(location.search).has('nobake') || new URLSearchParams(location.search).has('hdri')) return null;
+  if (!(url in PUBLIC_BYTES) || new URLSearchParams(location.search).has('nobake')) return null;
   try {
     const j = await (await fetch(url)).json() as { hdri: string; sunDir: [number, number, number]; horizon: [number, number, number] };
     return j.hdri === hdri ? j : null; // a different HDRI than the bake saw → scan at launch
@@ -100,15 +96,11 @@ export class Sky {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
     // Look Lab (E65): the low-poly shard's toon lighting (E87) and stylized sky (E83) are the user's picks, the only looks
     // since E136; the other shards light from their HDRI
-    const qs = new URLSearchParams(location.search);
     const toon = style === 'lowpoly', stylizedSky = toon;
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
-    if (toon && qs.has('pedge')) toonUniforms.uToonEdge.value = Number.parseFloat(qs.get('pedge') ?? '1') || 0; // E123 A/B: the warm band round cast shadows
-    const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
-    // Pine Hollow's day / night clock (PH-L2) unless the Look Lab asks for the pre-remaster fixed sunset (?pinesky=sunset,
-    // ?tod=sunset-fixed); the WebGPU path has no port of its dome and keeps the fixed sky
-    const pineClock = !stylizedSky && getActiveChunk().slug === 'pine-hollow' && setting('pinesky') === 'clock' && GPU_MODE === null && !qs.has('hdri');
-    const horizon = stylizedSky ? await this.setupStylized() : pineClock ? await this.setupPine() : await this.setupHDRI(qs, qn);
+    // Pine Hollow's day / night clock (PH-L2, the user's pick); the WebGPU path has no port of its dome and keeps the fixed sky
+    const pineClock = !stylizedSky && getActiveChunk().slug === 'pine-hollow' && GPU_MODE === null;
+    const horizon = stylizedSky ? await this.setupStylized() : pineClock ? await this.setupPine() : await this.setupHDRI();
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);
     fogUniforms.fogSunColor.value.set(...S.fogSunColor);
@@ -123,24 +115,20 @@ export class Sky {
       // the near cascade ends at `splits[0]` m: a tight square round the player (the deck, the pier under foot), the last one takes the rest
       customSplitsCallback: (_n: number, _near: number, far: number, out: number[]) => { for (const m of rig.splits) out.push(Math.min(0.9, m / far)); out.push(1); },
       maxFar: rig.far, shadowMapSize: rig.size, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: rig.margin, lightNear: 1, lightFar: 600,
+      lightIntensity: S.sunIntensity, shadowBias: -0.00012, lightMargin: rig.margin, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
     installCascadeCull(this.csm, this.camera); // each cascade draws only the casters its own slice can see the shadow of (PH-P2)
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
-    // E138: the phone's low-poly rig filters its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps (shadowFilter.ts);
-    // `?pshadowfilter=` picks another — here, at boot, before a material compiles (a switch recompiles every one)
-    const filter = this.stylized && (rig.phone || qs.has('pshadowfilter')) ? shadowFilterFromUrl(PHONE_SHADOW_FILTER) : null;
-    if (filter) this.renderer.shadowMap.type = installShadowFilter(filter);
+    // E138: the phone's low-poly rig filters its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps (shadowFilter.ts)
+    // — here, at boot, before a material compiles
+    const filter = this.stylized !== null && rig.phone;
+    if (filter) this.renderer.shadowMap.type = installShadowFilter();
     patchCSMShaderChunk();
-    // E147: the low-poly shard's clock steps the sun's shadow; each step crossfades over `?sunfade=` s (0 = pops, as before)
-    const fadeS = qn('sunfade', SUN_FADE_S);
-    if (this.stylized && fadeS > 0 && installShadowFadeChunk()) {
-      // E153 (the user's pick A+B, "they all look the same, use the cheapest"): the fading-out ghost is sampled with the 3×3
-      // tent (4 taps) by default; `?sunfadefilter=5x5` 9 taps, `?sunfadefilter=full` the cascade's own
-      const ghostFilter = qs.get('sunfadefilter') ?? 'cheap';
-      const ghostRadius = ghostFilter === 'cheap' ? 0.6 : ghostFilter === '5x5' ? 1 : null;
-      this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene, fadeS, ghostRadius);
+    // E147: the low-poly shard's clock steps the sun's shadow; each step crossfades (shadowFade.ts). E153 (the user's pick
+    // A+B, "they all look the same, use the cheapest"): the fading-out ghost is sampled with the 3×3 tent (4 taps)
+    if (this.stylized && installShadowFadeChunk()) {
+      this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
     if (getActiveChunk().slug === 'pine-hollow') patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
@@ -149,8 +137,8 @@ export class Sky {
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
     this.texelBias = this.stylized !== null && rig.phone;
     if (filter) {
-      const [nearR, farR] = FILTER_RADII[filter];
-      this.csm.lights.forEach((l, i) => { l.shadow.radius = i === 0 && this.csm.lights.length > 1 ? qn('pradius', nearR) : farR; if (filter === 'vsm') l.shadow.blurSamples = 8; });
+      const [nearR, farR] = SOFT_RADII;
+      this.csm.lights.forEach((l, i) => { l.shadow.radius = i === 0 && this.csm.lights.length > 1 ? nearR : farR; });
     }
 
     this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
@@ -169,7 +157,7 @@ export class Sky {
         disc: this.sunDisc, planetSun: this.giantUniforms.uSunDir.value, planetHaze: this.giantUniforms.uHaze.value,
         refreshEnvironment: () => { this.refreshEnvironment(); },
         shadowBusy: () => this.shadowFade?.busy ?? false,
-      }, qn('sunI', S.sunIntensity) / 2.7);
+      }, S.sunIntensity / 2.7);
     } else {
       this.buildClouds();
       const pine = this.pine, fog = this.scene.fog, halo = this.sunDisc.children[0];
@@ -194,7 +182,7 @@ export class Sky {
     const [pine, , lut] = await Promise.all([PineDayNight.create(this.renderer, this.scene), preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
     this.lut = lut;
     this.pine = pine;
-    const { look } = activeGrade(getActiveChunk()); // the look loop's haze / saturation layer (PH-L1 / L4; ?grade=v1: none)
+    const { look } = activeGrade(getActiveChunk()); // the look loop's haze / saturation layer (PH-L1 / L4)
     if (look) Object.assign(pine.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient, sky: look.sky });
     pineSunAt(pine.phase, this.sunDir);
     this.scene.background = null;
@@ -210,16 +198,16 @@ export class Sky {
   get lamps(): number { return this.pine ? this.pine.lamps : 1; }
 
   /** Pine Hollow's rig (and any `style: 'pbr'` shard): the HDRI is the background and the IBL; returns the fog colour. */
-  private async setupHDRI(qs: URLSearchParams, qn: (k: string, d: number) => number): Promise<THREE.Color> {
+  private async setupHDRI(): Promise<THREE.Color> {
     const { sky: S } = getActiveChunk();
-    const hdriName = qs.get('hdri') ?? S.hdri;
+    const hdriName = S.hdri;
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
     // the HDR itself: the gain-mapped JPEG + PNG pair (~0.3 MB, BakedSky.ts) when the build has it, else the 4–5 MB .hdr
     const pair = bakedSkyUrls(hdriName);
     const hdrUrl = `/assets/hdri/${hdriName}_2k.hdr`;
     // `ChunkSky.sun` places the sun by hand; `ChunkSky.painted` paints the whole sky around it (nothing downloaded)
     if (S.sun) this.sunDir.copy(compassDir(S.sun.azimuth, S.sun.elevation));
-    const painted = S.painted && !qs.has('hdri') ? S.painted : null;
+    const painted = S.painted ?? null;
     const loadSky = painted ? Promise.resolve(paintSky(painted, this.sunDir))
       : pair ? loadSkyPair(pair).catch((e: unknown) => { console.warn(`[sky] gain-mapped pair not used (${String(e)}); loading the .hdr`); return loadHDR(hdrUrl); }) : loadHDR(hdrUrl);
     const [hdr, , baked, lut] = await Promise.all([loadSky, preloadBakedTextures(), painted ? Promise.resolve(null) : loadBakedSky(hdriName), loadLUT(getActiveChunk().slug)]);
@@ -236,9 +224,9 @@ export class Sky {
     const env = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();
     this.scene.environment = env;
-    this.scene.environmentIntensity = qn('envI', S.envIntensity);
+    this.scene.environmentIntensity = S.envIntensity;
     this.scene.background = hdr;
-    this.scene.backgroundIntensity = qn('bgI', S.bgIntensity);
+    this.scene.backgroundIntensity = S.bgIntensity;
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
@@ -348,7 +336,7 @@ export class Sky {
   /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
   private painterly = false;
 
-  /** E147: the sun's shadow steps crossfade (shadowFade.ts); null = they pop (other shards, `?sunfade=0`) */
+  /** E147: the sun's shadow steps crossfade (shadowFade.ts); null = they pop (the other shards) */
   private shadowFade: ShadowFade | null = null;
   /** where the key light's shadow wants to point (setKeyLight); null on a shard nothing moves the sun on */
   private keyShadowWant: THREE.Vector3 | null = null;

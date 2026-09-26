@@ -10,6 +10,7 @@
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -49,9 +50,10 @@ try {
     const s = CFG.scenes[sc];
     if (!s) continue;
     const page = await (await browser.newContext({ viewport: { width: W, height: H } })).newPage();
+    await debugSettings(page, { creatures: LOOK === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
     const errs = [];
     page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
-    const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'perf=0', `tier=${TIER}`, `creatures=${LOOK}`, `x=${(s.at ?? CFG.at).x}`, `z=${(s.at ?? CFG.at).z}`, 'yaw=0', s.q].join('&');
+    const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'perf=0', `tier=${TIER}`, `x=${(s.at ?? CFG.at).x}`, `z=${(s.at ?? CFG.at).z}`, 'yaw=0', s.q].join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch,[class*="banner"],[class*="toast"],[class*="prompt"]{display:none!important}' });

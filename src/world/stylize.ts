@@ -13,7 +13,7 @@
  * - **sun** (the CSM directional light — recognised by its direction; its unshadowed colour is the
  *   `directionalLights[0]` uniform, so the cast shadow is recovered as a ratio): a two-band smoothstep ramp on
  *   N·L × shadow. The lit band keeps a soft Lambert grade so flat facets still read as facets; the shade band is
- *   the ambient alone. A thin warm, saturated terminator band rides the edge (cast-shadow edges, turning facets).
+ *   the ambient alone. A thin warm, saturated terminator band rides a turning facet's edge (not a cast shadow's, E145).
  * - **rim**: a sun-coloured fresnel rim on the lit side of vertical-ish faces (props, creatures, trunks) — never on
  *   the ground, where every distant facet is grazing.
  * - **ambient** (shade): the scene's HemisphereLight (sky = blue-violet fill, ground = warm sand bounce) plus a
@@ -37,8 +37,6 @@ export const toonUniforms = {
   uToonRim: { value: new THREE.Color(1.3, 0.95, 0.6) },
   /** terminator band colour × strength (×albedo²-ish saturated) */
   uToonTerm: { value: new THREE.Color(0.4, 0.16, 0.06) },
-  /** how much of that warm band also rims a cast shadow's edge (1 = as much as a facet's turn, 0 = none; E123) */
-  uToonEdge: { value: 0 }, // E145 (the user, 2026-09-25): no warm band round cast shadows — "not great", permanently gone; ?pedge=1 = the old rim
   /** 0..1 how much the shade band keeps of the sun's facet grade (0 = flat toon shade) */
   uToonShadeGrade: { value: 0.0 },
   /** cloud shadows (L4): strength 0..1, scroll time (s), wind (m/s xz), feature size (m) */
@@ -64,7 +62,6 @@ const TOON_GLSL = /* glsl */`
 uniform vec3 uToonLift;
 uniform vec3 uToonRim;
 uniform vec3 uToonTerm;
-uniform float uToonEdge;
 uniform float uToonShadeGrade;
 uniform float uCloudShadow;
 uniform float uToonNight;
@@ -121,9 +118,9 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 			+ sunCol * vec3( 0.7, 1.0, 1.05 ) * band * cloud * toonCaustics( geometryPosition );   // caustics: a cool cyan-white, not the sun's yellow
 		// the terminator: a thin warm, saturated band where the ramp turns (kept faint: on a flat-shaded model a whole
 		// facet sits in it, and PCF acne makes a shadow-ratio edge unreliable)
-		// E123: the facet's turn and the cast shadow's edge are weighed apart — the edge's share is uToonEdge (the band is as
-		// wide as the shadow map's penumbra, 20–30 cm on the phone's old 1024² map: an orange halo round every shadow)
-		float term = ( faceLit * ( 1.0 - faceLit ) * inSun + uToonEdge * inSun * ( 1.0 - inSun ) * faceLit ) * 4.0;
+		// only on the facet's turn, never round a cast shadow's edge (E145, the user: "not great" — the band was as wide as
+		// the shadow map's penumbra: an orange halo round every shadow)
+		float term = faceLit * ( 1.0 - faceLit ) * inSun * 4.0;
 		vec3 satAlb = alb * alb / max( max( alb.r, max( alb.g, alb.b ) ), 1e-3 );
 		reflectedLight.directDiffuse += RECIPROCAL_PI * ( alb * irr + satAlb * uToonTerm * term * sunCol );
 		// rim on the lit side of vertical-ish faces (never the ground)

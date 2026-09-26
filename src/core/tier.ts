@@ -52,8 +52,6 @@ export const TIER_TABLE = {
     cabinDetailDist: 70, cabinDetailShadows: false, sharedCabinLights: true, beaconLights: false,
     // item pickups (WeaponPickup): the floating item within this, the orb (sphere / rings / motes / sigil) within this
     pickupItemDist: 22, pickupOrbDist: 120,
-    // pond planar reflection: render-target width (height = half), and whether the carpet layers reflect
-    reflectionWidth: 512, reflectDetail: false,
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
     // 3 full-res SMAA passes are the dearest part of the chain and DPR 1.0 is upscaled ×3 on the screen anyway;
     // volumetrics march at half res into their own target; god rays at a quarter
@@ -84,7 +82,6 @@ export const TIER_TABLE = {
     // same-instant A/B hiding the whole pickup at 26 / 74 / 165 / 253 m, day and night, moved no pixel past the noise
     // (the walls hide it); in the open a 1 m item is ~8 px at 90 m, and the orb stays a beacon to 200 m
     pickupItemDist: 90, pickupOrbDist: 200,
-    reflectionWidth: 1024, reflectDetail: true,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
     oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,
   },
@@ -109,21 +106,22 @@ let tierShard = PAGE_QUERY.get('chunk');
 const ROW_BASE: Record<keyof typeof PINE_HOLLOW_PHONE, number> = { treeHiDist: TIER_CONFIG.treeHiDist, shadowFar: TIER_CONFIG.shadowFar, animalShadowDist: TIER_CONFIG.animalShadowDist, grassSlots: TIER_CONFIG.grassSlots };
 /**
  * The knobs for `slug` (E155: several shards live in one page): Pine Hollow's phone knobs on, or the phone row's own
- * values back. Build-time readers see the building shard's; the frame cap and phoneCut read them every frame.
+ * values back. Build-time readers see the building shard's; the frame cap and pinePhoneCuts read them every frame.
  */
 export function applyShardTier(slug: string): void {
   tierShard = slug;
-  Object.assign(TIER_CONFIG, TIER === 'phone' && slug === 'pine-hollow' && PAGE_QUERY.get('phknobs') !== '0' ? PINE_HOLLOW_PHONE : ROW_BASE);
+  Object.assign(TIER_CONFIG, TIER === 'phone' && slug === 'pine-hollow' ? PINE_HOLLOW_PHONE : ROW_BASE);
 }
-if (TIER === 'phone' && tierShard === 'pine-hollow' && PAGE_QUERY.get('phknobs') !== '0') Object.assign(TIER_CONFIG, PINE_HOLLOW_PHONE);
+if (TIER === 'phone' && tierShard === 'pine-hollow') Object.assign(TIER_CONFIG, PINE_HOLLOW_PHONE);
 
 /**
  * E142, the 30-fps-at-2× lane (Jake: "we should just be doing performance optimizations necessary for hitting 30 FPS
- * at 2"): Pine Hollow's phone-tier cost cuts that keep the picture — the render scale stays 2×. Each is on unless the
- * URL names it `=0` (`?depthslice=0`), and `?at2x=0` switches them all off (the frame as before, for A/B).
+ * at 2"): Pine Hollow's phone-tier cost cuts that keep the picture — the render scale stays 2×: the viewmodel's depth
+ * slices, the IBL refreshed in steps, the god rays skipped off screen. E142 wrapped them as the picture (the old
+ * `?at2x=0` / `?depthslice=0` A/B switches went in E162).
  */
-export function phoneCut(lever: string): boolean {
-  return TIER === 'phone' && tierShard === 'pine-hollow' && PAGE_QUERY.get('at2x') !== '0' && PAGE_QUERY.get(lever) !== '0';
+export function pinePhoneCuts(): boolean {
+  return TIER === 'phone' && tierShard === 'pine-hollow';
 }
 
 /**

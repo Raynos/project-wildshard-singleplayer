@@ -4,16 +4,17 @@
 // skeleton by src/entities/creatureRigBake.ts, written as <hull>[.phone].rigged.glb — one mesh, the hull's own atlas
 // (the source's image bytes, untouched), a glTF skin whose joints are the species' bones by name and in the species'
 // order (JOINTS_0 = the AnimalFactory skeleton's indices), bound at the rest pose (inverse binds = −bone position).
-// The game loads them in src/entities/glbCreatures.ts (?creatures=glb).
+// The game loads them in src/entities/glbCreatures.ts (Debug ▸ Creatures = Models, the default).
 //
 //   node scripts/nalati-rig-bake.mjs                  # every hull, desktop + phone
 //   node scripts/nalati-rig-bake.mjs --only=wolf      # one hull
-//   --url=http://127.0.0.1:5192  (a vite on a clean export; the page runs with ?creatures=proc)
+//   --url=http://127.0.0.1:5192  (a vite on a clean export; the page runs with Debug ▸ Creatures = Procedural)
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { realpathSync, statSync, readFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { debugSettings } from './debug-settings.mjs';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -150,8 +151,9 @@ try {
   for (const tier of ['desktop', 'phone']) {
     const ctx = await browser.newContext({ viewport: { width: 480, height: 320 } });
     const page = await ctx.newPage();
+    await debugSettings(page, { creatures: 'proc' }); // E162: a saved Debug option, not a URL switch
     page.on('pageerror', (e) => console.log('  pageerror', e.message.slice(0, 200)));
-    const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', `tier=${tier}`, 'creatures=proc'].join('&');
+    const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', `tier=${tier}`].join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
     for (const job of RIG_BAKES.filter((j) => only.length === 0 || only.includes(j.hull))) {

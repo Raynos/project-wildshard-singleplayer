@@ -15,7 +15,7 @@ export const fogUniforms = {
   fogDistDensity: { value: 0.00045 },
   /**
    * The slab's edge dissolving into the painted horizon's haze (Pine Hollow PH-L5, Nalati N19's method): x = strength (0 =
-   * off, the other shards and `?horizon=rings`), y / z = where it starts / is full (m from the slab centre, the larger of
+   * off, the other shards), y / z = where it starts / is full (m from the slab centre, the larger of
    * |x| |z|), w = how far below the eye the ground must lie for it (looking down over the edge from the lookout, not along
    * the ground). Compiled into the fog chunk on Pine Hollow only, so no other shard's program source changes.
    */
@@ -41,10 +41,7 @@ let pineWeather = false;
  * fog. Pine Hollow's dawn fog (PH-L10) lifts the geometry fog's floor into the bowl, which the march — tuned for a thin
  * haze — would turn into a white-out; the weather keeps the march on the clear-sky floor.
  */
-export const volumetricFog: { height: number | null; falloff: number | null; scale: number } = { height: null, falloff: null, scale: 1 };
-// `scale` × the march's density (1 = as tuned). Only `?aofix=0` still needs it: without the render fix (1305f2d,
-// core/worldDepth.ts) the post chain read the viewmodel's depth, so in PH-B2's bear cave the march ran 120 m of height fog
-// through the rock — PineCrags scales it to 0 there on that path only. With the fix the march stops at the cave's own walls.
+export const volumetricFog: { height: number | null; falloff: number | null } = { height: null, falloff: null };
 
 /**
  * The painterly shard's extra air (`style: 'painterly'`, Nalati — look pass levers 1 + 3; look-director).

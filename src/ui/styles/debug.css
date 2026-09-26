@@ -12,6 +12,7 @@
 .ws-gmenu .ws-dbg-body { display: none; flex-direction: column; padding: 2px 0 4px; }
 .ws-gmenu .ws-dbg-group.open .ws-dbg-body { display: flex; }
 .ws-gmenu .ws-dbg-row { row-gap: 6px; }
+.ws-gmenu .ws-dbg-seg { flex-wrap: wrap; max-width: 100%; } /* a six-way pick (Crag channel, Pine Hollow score) wraps on a phone instead of running off */
 .ws-gmenu .ws-dbg-note { display: block; margin-top: 3px; font-size: 8.5px; letter-spacing: 0.06em; text-transform: none; line-height: 1.4; color: var(--ws-text-dim); }
 .ws-gmenu .ws-dbg-reload { display: inline-block; margin-left: 8px; padding: 1px 4px; font-style: normal; font-size: 7.5px; letter-spacing: 0.14em; color: var(--ws-amber); border: 1px solid rgba(255, 181, 71, 0.6); vertical-align: 1px; }
 .ws-gmenu .ws-dbg-empty[hidden] { display: none; }

@@ -94,7 +94,7 @@ describe('Settings', () => {
     expect((await fresh()).getMusicStyle()).toBe('piano');
   });
 
-  it('sfxSet: best by default, a retired saved set reads as best, persisted beside musicStyle, ?sfx=synth overrides without persisting', async () => {
+  it('sfxSet: best by default, a retired saved set reads as best, persisted beside musicStyle, no URL override (E162)', async () => {
     localStorage.setItem(STORE, JSON.stringify({ sfxSet: 'moss' })); // a set from SFX round 2, retired by the merged one
     expect((await fresh()).getSfxSet()).toBe('best');
     localStorage.clear();
@@ -105,21 +105,16 @@ describe('Settings', () => {
     s.setSfxSet('best');
     vi.stubGlobal('location', new URL('http://localhost:5173/?sfx=synth'));
     try {
-      const t = await fresh();
-      expect(t.getSfxSet()).toBe('synth');
-      t.setNumber('volume', 0.5);
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'best' });
+      expect((await fresh()).getSfxSet()).toBe('best'); // the old ?sfx= switch is ignored
     } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
   });
 
-  it('?music=<style> overrides the saved style without persisting it', async () => {
+  it('the old ?music=<style> switch is ignored: the saved style plays (E162)', async () => {
     localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'orchestral' }));
     vi.stubGlobal('location', new URL('http://localhost:5173/?music=synth'));
     try {
       const s = await fresh();
-      expect(s.getMusicStyle()).toBe('synth');
-      s.setNumber('volume', 0.4); // an unrelated write keeps the saved pick
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'orchestral' });
+      expect(s.getMusicStyle()).toBe('orchestral');
       s.setMusicStyle('folk');
       expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk' });
     } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
@@ -217,9 +212,9 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
     } finally { reset(); }
   });
 
-  it('settingsReloadUrl drops every option / audio override and the extras, keeps the chunk and the dev params', async () => {
+  it('settingsReloadUrl drops every option override and the extras, keeps the chunk and the dev params', async () => {
     const s = await fresh();
-    const out = new URL(s.settingsReloadUrl('http://localhost:5173/?chunk=driftwood-isle&gpu=webgpu&tier=phone&touch&tod=0.5&clock=60&music=synth&sfx=moss&skipintro&nolock&x=3', ['skipintro']));
+    const out = new URL(s.settingsReloadUrl('http://localhost:5173/?chunk=driftwood-isle&gpu=webgpu&tier=phone&touch&tod=0.5&clock=60&skipintro&nolock&x=3', ['skipintro']));
     expect([...out.searchParams.keys()]).toEqual(['chunk', 'nolock', 'x']);
     expect(s.settingParams('time')).toEqual(['tod', 'clock']);
   });

@@ -6,6 +6,7 @@ import type { DayClock } from '../world/DayClock';
 import { heightAt } from '../world/Heightfield';
 import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '../entities/species/balbal';
 import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
+import { setting } from '../ui/Settings';
 
 /**
  * Balbal warriors — the dusk half of row B11 (project/archive/2026-09-23-nalati.md): at dusk some of the shard's balbal statues (the POI
@@ -16,7 +17,7 @@ import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx'
  *   bw.attach(animals)       // once main's AnimalManager exists (nalati.attachAnimals) — wakes them at once if it is dusk / night
  *   bw.bindKit(kit)          // the melee weapon in hand feeds the damage model (sabre breaks, spear + crack)
  *   bw.update(dt, t, camera, renderer, player)
- *   bw.wake() / bw.dawn()    // dev: `?balbals=wake` / `?balbals=dawn`, and window.__balbals
+ *   bw.wake() / bw.dawn()    // dev: Debug ▸ Balbal warriors = Wake now, and window.__balbals
  *   bw.awake                 // the live warriors
  *
  * Who wakes: each dusk four stones of the ring (a different four each night) and one crown balbal. The species
@@ -133,7 +134,7 @@ export class BalbalWarriors {
     this.animals = animals;
     animals.factory.model(BALBAL, 'warrior'); animals.factory.model(BALBAL, 'capped'); // build now, not at dusk
     const ph = this.ctx.clock.phase;
-    const q = new URLSearchParams(location.search).get('balbals');
+    const q = setting('balbals'); // Debug ▸ Creatures & NPCs ▸ Balbal warriors (E162): wake now / never / at dusk
     if (q === 'wake' || ((ph === 'dusk' || ph === 'night') && q !== 'off')) this.wake();
   }
 
@@ -142,8 +143,7 @@ export class BalbalWarriors {
   /** statues that wake tonight: four of the ring (rotating each night) and one crown */
   private tonight(): number[] {
     const n = this.ctx.balbals?.statues.length ?? 0;
-    const q = new URLSearchParams(location.search).get('balbalCount');
-    const count = q !== null ? Math.max(1, Math.min(RING, Number(q) || 4)) : 4;
+    const count = 4;
     const out: number[] = [];
     for (let k = 0; k < count; k++) out.push((this.night * 2 + k * 2 + (k >= 3 ? 1 : 0)) % Math.min(RING, n));
     if (n > RING) out.push(RING + (this.night % (n - RING)));

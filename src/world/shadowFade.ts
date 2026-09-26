@@ -7,15 +7,15 @@
  *
  * - every cascade but the last has a **ghost** DirectionalLight (intensity 0, never lights anything) that keeps its
  *   shadow at the direction the step left, on the same square as the cascade would draw it, snapped the way CSM snaps;
- * - that cascade's shadow term is mix(ghost, cascade, uSunFade) while uSunFade runs 0 → 1 over `seconds`, so the edge
+ * - that cascade's shadow term is mix(ghost, cascade, uSunFade) while uSunFade runs 0 → 1 over SUN_FADE_S, so the edge
  *   slides from the old place to the new one. Both maps are held still, so nothing crawls;
  * - a ghost's map renders only while a fade runs (`shadow.autoUpdate`); settled, the shader skips it (a uniform branch).
  *   Its casters move with the frame (the pennant's flutter): it is a live second light, not a frozen snapshot.
  * - The last cascade steps without a fade: its texel is ~9 cm, larger than one step's move.
  *
  * DayNight holds its next step until the fade ends (`busy`). A turn larger than MAX_FADE (the sun ↔ moon swap, a Time of
- * day pick) moves at once. `?sunfade=<s>` sets the fade (0 = off: no ghosts, the look before E147). `?sunfadefilter=cheap | 5x5`
- * samples the fading-out ghost with a smaller tent (E153's B; the default is the cascade's own).
+ * day pick) moves at once. The fading-out ghost is sampled with the 3×3 tent, 4 taps (E153's B, the user's pick A+B:
+ * "they all look the same, use the cheapest").
  */
 import * as THREE from 'three';
 import type { CSM } from 'three/examples/jsm/csm/CSM.js';
@@ -24,8 +24,11 @@ import { stateSlot } from '../core/shardState';
 
 /** the fade's progress, 0 = the old direction … 1 = the new (settled); every CSM material shares it */
 export const sunFadeUniform = { value: 1 };
-/** the fade's length (s) unless `?sunfade=` says otherwise (E153, the user's pick A+B: 1 s — the fade runs on ~34 % of frames, not ~74 %) */
-export const SUN_FADE_S = 1;
+/** the fade's length (s) (E153, the user's pick A+B: 1 s — the fade runs on ~34 % of frames, not ~74 %) */
+const SUN_FADE_S = 1;
+/** the ghosts' `shadow.radius`, i.e. their tent (shadowFilter.ts: < 1 is the 3×3 tent, 4 hardware taps) — the fading-out
+ *  map sampled cheaper than its cascade's 7×7, while a fade runs only (E153's B) */
+const GHOST_RADIUS = 0.6;
 /** a larger turn is a jump, not a step: it moves at once */
 const MAX_FADE = 5 * Math.PI / 180;
 
@@ -74,12 +77,7 @@ export class ShadowFade {
   private readonly lsFrustum = new CSMFrustum();
   private t = 1;
 
-  /**
-   * `ghostRadius`: the ghosts' `shadow.radius`, i.e. their tent (shadowFilter.ts: < 1 is the 3×3 tent, 4 hardware taps;
-   * < 1.5 the 5×5, 9 taps). null = each ghost copies its cascade's (the 7×7, 16 taps on the phone). E153's B:
-   * `?sunfadefilter=cheap` (3×3) or `5x5` — the fading-out map sampled cheaper, while a fade runs only.
-   */
-  constructor(private readonly csm: CSM, private readonly camera: THREE.Camera, parent: THREE.Object3D, readonly seconds: number, private readonly ghostRadius: number | null = null) {
+  constructor(private readonly csm: CSM, private readonly camera: THREE.Camera, parent: THREE.Object3D) {
     const n = Math.max(1, csm.lights.length - 1);
     for (let i = 0; i < n; i++) {
       const src = csm.lights[i];
@@ -127,7 +125,7 @@ export class ShadowFade {
       if (turn < MAX_FADE && this.t >= 1) { this.from.copy(this.last); this.t = 0; } else this.t = 1;
       this.last.copy(dir);
     }
-    if (this.t < 1) this.t = Math.min(1, this.t + dt / this.seconds);
+    if (this.t < 1) this.t = Math.min(1, this.t + dt / SUN_FADE_S);
     const k = this.t;
     sunFadeUniform.value = k * k * (3 - 2 * k);
     const on = this.t < 1;
@@ -144,7 +142,7 @@ export class ShadowFade {
       cam.updateProjectionMatrix();
     }
     const s = ghost.shadow;
-    s.normalBias = light.shadow.normalBias; s.radius = this.ghostRadius ?? light.shadow.radius; s.intensity = light.shadow.intensity;
+    s.normalBias = light.shadow.normalBias; s.radius = GHOST_RADIUS; s.intensity = light.shadow.intensity;
     const size = s.mapSize.x, texelW = (cam.right - cam.left) / size, texelH = (cam.top - cam.bottom) / size;
     _lo.lookAt(_origin, this.from, _up);
     _loInv.copy(_lo).invert();

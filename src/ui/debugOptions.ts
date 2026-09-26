@@ -20,18 +20,17 @@ import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, save
 export interface DebugCtx { chunk: ChunkDef; weapons: ReadonlySet<string> }
 type When = (c: DebugCtx) => boolean;
 
-export type DebugGroupId = 'look' | 'cover' | 'light' | 'sky' | 'water' | 'audio' | 'combat' | 'creatures' | 'perf' | 'loading' | 'tools';
+export type DebugGroupId = 'look' | 'cover' | 'sky' | 'audio' | 'combat' | 'creatures' | 'perf' | 'loading' | 'tools';
 export interface DebugGroup { id: DebugGroupId; label: string; note?: string }
-/** the groups, in menu order. Never add a group without need: put a new row in the group whose domain it is. */
+/** the groups, in menu order. Never add a group without need: put a new row in the group whose domain it is (lighting,
+ *  shadows and post go in Look; water in Look too). A group with no row fails test/debug-options.test.ts. */
 export const DEBUG_GROUPS: readonly DebugGroup[] = [
-  { id: 'look', label: 'Look', note: 'The colour grade, the ground set and the post chain.' },
+  { id: 'look', label: 'Look' },
   {
     id: 'cover', label: 'Ground cover & foliage',
     note: 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Foliage range 500 m: every plant in view to 500 m (full plants near, their stand-ins far). Foliage range and Far stand-ins reload the page.',
   },
-  { id: 'light', label: 'Lighting & shadows' },
   { id: 'sky', label: 'Sky & weather' },
-  { id: 'water', label: 'Water' },
   { id: 'audio', label: 'Audio' },
   { id: 'combat', label: 'Combat & weapons' },
   { id: 'creatures', label: 'Creatures & NPCs' },
@@ -63,6 +62,7 @@ export interface DebugRow {
 // ── the shards ──
 const driftwood: When = (c) => c.chunk.style === 'lowpoly';
 const pineHollow: When = (c) => c.chunk.slug === 'pine-hollow';
+const nalati: When = (c) => c.chunk.slug === 'nalati-grasslands';
 const always: When = () => true;
 
 interface RowOpts { reload?: boolean; when?: When; note: string }
@@ -83,6 +83,9 @@ const MUSIC_TEXT: Record<MusicStyle, string> = { piano: 'Piano', orchestral: 'Or
 const SFX_TEXT: Record<SfxSet, string> = { best: 'Generated', synth: 'Synth' };
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
+  // ── Look ──
+  opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
+
   // ── Ground cover & foliage: Driftwood (E156; src/world/GroundCover.ts, coverTint.ts) ──
   opt('coverRange', 'cover', 'Foliage range', [['normal', 'Normal'], ['500', '500 m']], { reload: true, when: driftwood, note: 'E156 · every plant in view to 500 m' }),
   opt('coverTint', 'cover', 'Ground tint', ON_OFF, { when: driftwood, note: 'E156 · far ground wears the cover\'s colour' }),
@@ -91,10 +94,10 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 · the far stand-in meshes' }),
 
   // ── Sky & weather ──
-  opt('pinesky', 'sky', 'Sky', [['clock', 'Day / night'], ['sunset', 'Fixed sunset']], { reload: true, when: pineHollow, note: 'PH-L2 · the day / night clock or the pre-remaster fixed HDRI sunset' }),
-  // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's when its sky runs the clock
-  opt('time', 'sky', 'Time of day', TIMES, { when: (c) => c.chunk.style === 'lowpoly' || c.chunk.style === 'painterly' || (pineHollow(c) && setting('pinesky') === 'clock'), note: 'E55 · hold the day clock at one time' }),
-  opt('weather', 'sky', 'Weather', [['live', 'Live'], ['clear', 'Clear'], ['fog', 'Fog'], ['rain', 'Rain']], { when: (c) => pineHollow(c) && setting('pinesky') === 'clock', note: 'PH-L10 · live = dawn fog + showers; clear = the look before' }),
+  // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's PineDayNight
+  opt('time', 'sky', 'Time of day', TIMES, { when: (c) => c.chunk.style === 'lowpoly' || c.chunk.style === 'painterly' || pineHollow(c), note: 'E55 · hold the day clock at one time' }),
+  opt('weather', 'sky', 'Weather', [['live', 'Live'], ['clear', 'Clear'], ['fog', 'Fog'], ['rain', 'Rain']], { when: pineHollow, note: 'PH-L10 · live = dawn fog + showers; clear = the look before' }),
+  opt('clockSpeed', 'sky', 'Clock speed', [['1', '1×'], ['10', '10×'], ['60', '60×']], { when: nalati, note: 'Nalati\'s day clock (was ?timescale)' }),
 
   // ── Audio: the score's source and the sound effects (Settings musicStyle / sfxSet) ──
   {
@@ -107,6 +110,21 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
     choices: () => SFX_SETS.map((v) => ({ v, text: SFX_TEXT[v] })), get: getSfxSet,
     set: (s) => { const v = SFX_SETS.find((x) => x === s); if (v) setSfxSet(v); }, on: (fn) => { onSfxSet(() => { fn(); }); },
   },
+
+  opt('pineScore', 'audio', 'Pine Hollow score', [['auto', 'Auto'], ['night', 'Night'], ['boss', 'Boss I'], ['boss-2', 'Boss II'], ['boss-3', 'Boss III'], ['dawn', 'Dawn']], { reload: true, when: pineHollow, note: 'PH-A1 · hold a scene / boss phase, or the dawn sting (was ?music=pine-*)' }),
+
+  // ── Combat & weapons ──
+  opt('aimRing', 'combat', 'Aim assist ring', [['off', 'Off'], ['on', 'On']], { note: 'the aim-assist bubble on screen, with its angle and snap (was ?aimdebug)' }),
+  opt('longbowArc', 'combat', 'Longbow drop arc', [['aim', 'With aim'], ['always', 'Always'], ['never', 'Never']], { when: (c) => pineHollow(c) && c.weapons.has('bow'), note: 'PH-C11 · undecided: when the drop arc shows while drawn (was ?arc)' }),
+
+  // ── Creatures & NPCs ──
+  opt('creatures', 'creatures', 'Creatures', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: (c) => pineHollow(c) || nalati(c), note: 'PH-U11 / E136 · models picked; procedural = what the rig bakes need' }),
+  opt('birds', 'creatures', 'Pine Hollow birds', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: pineHollow, note: 'polish lane · undecided (was ?birds)' }),
+  opt('npcs', 'creatures', 'Pine Hollow people', [['models', 'Models'], ['proc', 'Stand-ins']], { reload: true, when: pineHollow, note: 'PH-M4 · undecided (was ?npcs)' }),
+  opt('knife', 'creatures', 'Skinning knife', [['model', 'Model'], ['proc', 'Stand-in']], { reload: true, when: pineHollow, note: 'polish lane · undecided (was ?knife)' }),
+  opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
+  opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
+  opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
 
   // ── Performance ──
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { note: 'PH-P1 · auto = Pine Hollow\'s phone tier at 30, else the display\'s rate' }),
@@ -122,6 +140,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('bootPack', 'loading', 'Boot pack', ON_OFF, { reload: true, note: 'boot files as one pack; off = one by one (the KTX2 record run)' }),
 
   // ── Developer tools ──
+  opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
   opt('gpuShadows', 'tools', 'WebGPU shadows', ON_OFF, { reload: true, when: () => setting('gpu') !== 'webgl', note: 'E52 · off to chase a WebGL ↔ WebGPU difference' }),
   opt('gpuToon', 'tools', 'WebGPU toon', ON_OFF, { reload: true, when: (c) => setting('gpu') !== 'webgl' && driftwood(c), note: 'E52 · Driftwood\'s toon library off' }),
 ];

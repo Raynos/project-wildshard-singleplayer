@@ -15,7 +15,7 @@
  *                at once and we poll `program.isReady()`, reporting the ready count every frame.
  *                Without it, one program per frame is forced through LINK_STATUS so the stall is
  *                sliced and the bar still moves.
- *   3. (the caller's firstFrame step draws; it should find nothing left to compile — `?perfload=1`
+ *   3. (the caller's firstFrame step draws; it should find nothing left to compile — Debug ▸ Performance ▸ Load profiling
  *      lists what it did.)
  *
  * Program identity is the WebGLPrograms cache key: material type + shader IDs + parameters from

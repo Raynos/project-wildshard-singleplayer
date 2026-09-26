@@ -113,13 +113,12 @@ export interface ChunkAssets {
   slabRock: string;
   /**
    * The boreal ground (PINE-HOLLOW PH-L8): the terrain shader's canopy-driven needle litter, moss patches and tiling
-   * breakup, with per-layer normal strengths. `v1` is the ground before the look loop — its layers / tints, the plain
-   * shader — built by `?ground=v1` (src/world/lookFlags.ts). Absent: the plain shader.
+   * breakup, with per-layer normal strengths (src/world/lookFlags.ts). Absent: the plain splat shader.
    */
   /** `trailDust`: the trail layer pulled toward its own luminance × this tint by `amount` ([r, g, b, amount]) — dry, dusty
    *  compacted soil instead of the set's grey-violet pebbles (PH-L1 round 3); `grassTint` × the grass tufts' colour (the dry
    *  golden-olive boreal grass, not a lime lawn) */
-  boreal?: { normalK: [number, number, number, number]; trailDust: [number, number, number, number]; grassTint: RGB; v1: { groundLayers: [string, string, string, string]; groundTints: [RGB, RGB, RGB, RGB] } };
+  boreal?: { normalK: [number, number, number, number]; trailDust: [number, number, number, number]; grassTint: RGB };
 }
 
 /** Which tree builder to use and what it should be textured with. */
@@ -139,7 +138,7 @@ export interface ChunkTrees {
   /**
    * A Blender-built species set (PH-B4): the folder under `public/assets/models/` with its trees.glb + card / impostor
    * atlases (scripts/blender/trees/run.sh). Its variants are `TREE_SPECS_V2` (src/world/placement.ts), planted by
-   * `ChunkForest.species`. `?trees=v1` keeps the runtime pines above. Omitted: the runtime pines.
+   * `ChunkForest.species`. Omitted (or a build without its files): the runtime pines.
    */
   set?: string;
 }
@@ -203,7 +202,7 @@ export interface HerdPlan {
   trailBand: [number, number];
 }
 
-/** Lighting rig (`src/world/Sky.ts`). URL params `?hdri= &sunI= &envI= &bgI=` still override for tuning. */
+/** Lighting rig (`src/world/Sky.ts`). */
 export interface ChunkSky {
   /** file stem under `public/assets/hdri/` (without `_2k.hdr`); the sun is found from its brightest pixel */
   hdri: string;
@@ -268,7 +267,7 @@ export interface ChunkGrade {
 }
 
 /**
- * A shard's look-loop grade (PINE-HOLLOW PH-L1 / L4), laid over `grade` and the day clock unless `?grade=v1`
+ * A shard's look-loop grade (PINE-HOLLOW PH-L1 / L4), laid over `grade` and the day clock
  * (src/world/lookFlags.ts): grade overrides, a display-space S-curve and vibrance in GradeEffect, and multipliers on the
  * clock's volumetric in-scatter / distance fog plus a saturation offset (PineDayNight.look; the presets untouched).
  */
@@ -380,7 +379,7 @@ export interface ChunkDef {
   sky: ChunkSky;
   atmosphere: ChunkAtmosphere;
   grade: ChunkGrade;
-  /** the look loop's grade over `grade` (PH-L1 / L4; `?grade=v1` = without it) */
+  /** the look loop's grade over `grade` (PH-L1 / L4) */
   look?: ChunkLook;
   /** where the player stands on entering (feet, metres; yaw radians — π faces +Z, the compass' north) */
   spawn: SpawnPose;

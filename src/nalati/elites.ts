@@ -60,7 +60,7 @@ import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../chunks/nalatiLayout
  *   const elites = wireElites({ game, sky, player, ledges, cave, clock, storm });     // boot (src/nalati/index.ts)
  *   elites.bind(play)                                                                   // main.ts, once animals / HUD exist
  *   elites.update(dt, t)                                                                // every frame
- *   Dev: `?elite=aqbars|kokbori|qyran|qara-batyr|argymaq` spawns it (whatever its rule) and puts you 30–45 m from it (`&from=<m>` to stand farther, `&here=x,z` to move its lair);
+ *   Dev: `?elite=aqbars|kokbori|qyran|qara-batyr|argymaq` spawns it (whatever its rule) and puts you 30–45 m from it (`&from=<m>` to stand farther);
  *   `window.__elites`.
  */
 
@@ -879,10 +879,6 @@ export class NalatiElites {
     // dev: `?elite=<id>` — spawn it whatever its rule and put the player DEV_FROM's distance from it (`&from=<m>`), facing it
     const dev = play.params.get('elite');
     if (dev !== null) {
-      // `&here=x,z` moves its lair there for this session (open ground for screenshots; the leash follows the lair)
-      const here = (play.params.get('here') ?? '').split(',').map(Number);
-      const def = ELITE_DEFS[dev];
-      if (def && here.length === 2 && here.every((v) => Number.isFinite(v))) { def.lair.x = here[0] ?? def.lair.x; def.lair.z = here[1] ?? def.lair.z; }
       const a = elites.devSpawn(dev);
       const from = DEV_FROM[dev];
       if (a && from) {

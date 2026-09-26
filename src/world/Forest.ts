@@ -5,7 +5,6 @@ import { placeForest, TreeGrid, type TreeInstance } from './placement';
 import { type TreeFactory, forestFade } from './TreeFactory';
 import { updateWind } from './wind';
 import type { Sky } from './Sky';
-import { noReflect } from './Water';
 import { TIER_CONFIG } from '../core/tier';
 
 export type { TreeInstance } from './placement';
@@ -111,7 +110,6 @@ export class Forest {
       this.far.push(mk(v.far, this.factory.farMaterial, false));
       const twigs = mk(v.twigs, this.factory.twigMaterial, true, this.factory.twigDepth);
       this.twigs.push(twigs);
-      noReflect(twigs);
     });
     return this;
   }
@@ -144,7 +142,6 @@ export class Forest {
     const trunkLo = V.some((v) => v.trunkLo !== undefined && v.trunkLo !== v.trunk);
     const bark = mk([...V.map((v) => v.trunk), ...(trunkLo ? V.map((v) => v.trunkLo ?? v.trunk) : [])], this.factory.barkMaterial, true);
     const twigs = mk(V.map((v) => v.twigs), this.factory.twigMaterial, true, this.factory.twigDepth);
-    noReflect(twigs.bm);
     const m = new THREE.Matrix4();
     this.trees.forEach((t, i) => {
       m.fromArray(this.mats, i * 16);

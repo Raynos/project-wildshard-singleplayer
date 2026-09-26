@@ -6,7 +6,6 @@ import { smoothstep } from '../core/noise';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS } from './Heightfield';
 import { loadLod, prepModel } from './Cabin';
 import type { Sky } from './Sky';
-import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import type { Collider } from '../player/Player';
 import type { ColliderDesc } from './registry';
@@ -88,7 +87,6 @@ export class Props {
     this.logs(this.parts.log = prepModel(trunk.scene, this.sky));
     // bushes: implemented but off by default — low-poly clumps read as blobs next to the photoscans
     if (this.withBushes) this.bushes();
-    if (!TIER_CONFIG.reflectDetail) noReflect(this.group);
     return this.group;
   }
 

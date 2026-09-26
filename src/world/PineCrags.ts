@@ -19,8 +19,6 @@
  * the vertex colour carries (AO → the indirect light, sun reach → the directional light only (the cave's lantern and
  * the lamps stay), wet, rock / tint).
  *
- * `?crags=v1` keeps the Ridge as it was (no crags, no talus); the cave stays (it is a place, not a look).
- *
  *   const crags = await PineCrags.load(sky);                        // null: the kit is missing (a dev server without it)
  *   crags.build(placeCrags({ trees }));  scene.add(crags.group);  registry.add({ colliders: crags.colliders, … })
  *   cutTerrain(physics, crags.terrainCuts()); terrain.punch(crags.holeTest());  game.onUpdate(() => crags.update(t))
@@ -34,22 +32,16 @@ import {
 } from '../chunks/pineHollowLayout';
 import type { ColliderDesc } from './registry';
 import type { TerrainCut } from '../physics/terrain';
-import { attachFogUniforms, volumetricFog } from './Atmosphere';
+import { attachFogUniforms } from './Atmosphere';
+import { setting, onSettingChange } from '../ui/Settings';
 import { loadPBR, type PBRSet } from '../core/assets';
 import { TIER } from '../core/tier';
-import { WORLD_DEPTH_FIX } from '../core/worldDepth';
 import { Rng } from '../core/rng';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '../core/config';
 import type { Sky } from './Sky';
 import { PINE_CRAG_DIR } from './pineHero';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
-
-/** `?crags=v1`: the Ridge before PH-B2 (the taste rule: today's look stays selectable) */
-export function cragsMode(): 'v2' | 'v1' {
-  const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('crags');
-  return q === 'v1' ? 'v1' : 'v2';
-}
 
 /** the kit's modules (crags.glb nodes `<id>` and `<id>-lod1`) */
 export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
@@ -348,6 +340,11 @@ const ROCK_TILE = 4.6, GRIT_TILE = 3.4;
 /** the cave's fill (see the material): PineCrags.update drives it from the clock */
 const CAVE_FILL = { value: 1.0 };
 
+/** pause ▸ Settings ▸ Debug `cragView`: the crags drawn as one channel instead of the shade (0 = shaded), live */
+const CRAG_VIEWS = ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'] as const;
+const CRAG_VIEW = { value: Math.max(0, CRAG_VIEWS.indexOf(setting('cragView'))) };
+onSettingChange('cragView', (v) => { CRAG_VIEW.value = Math.max(0, CRAG_VIEWS.indexOf(v)); });
+
 /**
  * Triplanar granite in world space for the BatchedMesh (and the cave inside it): albedo / normal / ARM from `mossy_rock`
  * on the X and Z projections and on the Y one blended with `rock_ground` grit on the ledges, moss on the up-facing,
@@ -361,8 +358,8 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
     tGritD: { value: grit.map }, tGritN: { value: grit.normalMap },
     /** the cave's fill: the light the mouth and the crack let in, scattered off every wall (no direction) — day-driven */
     uCaveFill: CAVE_FILL,
-    /** `?cragdebug=ao|sun|wet|normal|albedo`: that channel instead of the shade (dev) */
-    uCragDebug: { value: ['', 'ao', 'sun', 'wet', 'normal', 'albedo'].indexOf(typeof location === 'undefined' ? '' : new URLSearchParams(location.search).get('cragdebug') ?? '') },
+    /** Debug ▸ `cragView`: that channel instead of the shade (1 ao, 2 sun, 3 wet, 4 normal, 5 albedo; 0 = shaded) */
+    uCragDebug: CRAG_VIEW,
   };
   for (const t of [rock.map, rock.normalMap, rock.armMap, grit.map, grit.normalMap]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true; }
   mat.customProgramCacheKey = () => 'pine-crag';
@@ -866,9 +863,7 @@ export class PineCrags {
     // the sun's corona sprite draws without a depth test (Sky.buildSunDisc): under the roof the disc goes, corona and all
     const [, lz] = caveLocal(p.x, p.z);
     const under = this.inCave(p.x, p.z) && p.y < (this.caveFloorAt(Math.min(36, Math.max(-4, lz))) ?? p.y) + 7;
-    // …and, before the render fix (core/worldDepth.ts; `?aofix=0`), the volumetric march went too: through the viewmodel's
-    // depth clear it integrated 120 m of height fog through the rock. With the world's depth kept it stops at the rock.
-    volumetricFog.scale = under && !WORLD_DEPTH_FIX ? 1 - ss(-1, 4, lz) : 1;
+    // (the volumetric march needs no fade here: it reads the world's depth, core/worldDepth.ts, and stops at the rock)
     if (under !== this.under) {
       this.under = under;
       sky.sunDisc.visible = !under; // the corona has no depth test (and the disc is the god rays' source)

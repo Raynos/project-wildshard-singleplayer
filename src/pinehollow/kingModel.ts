@@ -16,7 +16,7 @@ import type { Sky } from '../world/Sky';
  *     ribs spread, the core flares) for the shot window
  *   · a bone-white SKULL plate over the face
  *
- * PH-M3 (the swap, done): with the generated creatures on (pineCreatures.ts, `?creatures=proc` = this stand-in) the King
+ * PH-M3 (the swap, done): with the generated creatures on (pineCreatures.ts, Debug ▸ Creatures = Procedural is this stand-in) the King
  * is the Bark Warden hull — `public/assets/pine-hollow/creatures/antler-king[.phone].rigged.glb`, codex ref → Hunyuan3D-2 →
  * rig-baked onto the elk's bones (art/pine-hollow/round-9-creature-refs/) — and `dressAntlerKing` hangs the lanterns off
  * its own rack and drops the skull plate (the hull has its skull face); the ribcage stays this kit's emissive part.

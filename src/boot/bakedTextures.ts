@@ -32,7 +32,7 @@ const dir = (slug: string) => `/assets/baked/${slug}/tex/`;
 /**
  * Baked textures a chunk's build has but its boot never reads (PH-P3). Pine Hollow's creatures are its generated hulls
  * (src/entities/pineCreatures.ts), which carry their own coats: the procedural fur's maps are only read by the
- * `?creatures=proc` fallback, which then draws them at runtime like any unbaked texture (0.7 MB of the phone's cold boot).
+ * Debug ▸ Creatures = Procedural fallback, which then draws them at runtime like any unbaked texture (0.7 MB of the phone's cold boot).
  */
 const UNREAD: Readonly<Record<string, RegExp>> = { 'pine-hollow': /\/fur-[^/]*$/ };
 

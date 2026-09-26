@@ -1,7 +1,7 @@
 /**
  * Pine Hollow's day / night clock (PINE-HOLLOW-REMASTER PH-L2; Jake's PH-U7: "the full cycle, 20 + 4 min, dawn / day /
- * golden hour / night, like Driftwood, in photoreal"). Sky.ts builds it for Pine Hollow unless Settings ▸ Debug ▸ Sky (or
- * `?pinesky=sunset`, `?tod=sunset-fixed`) asks for the pre-remaster fixed HDRI sunset, which Sky.setupHDRI still builds.
+ * golden hour / night, like Driftwood, in photoreal"; picked over the pre-remaster fixed sunset: "A + a brighter night").
+ * Sky.ts builds it for Pine Hollow on the WebGL path (the WebGPU path still takes Sky.setupHDRI's fixed sky).
  *
  *   phase 0..1 over the cycle (24 min, `?clock=` seconds): [0, 20/24) is the day, sunrise at 0, sunset at 20/24
  *   ?tod=0.4167 | dawn | sunrise | morning | day | golden | sunset | dusk | night   the start phase (`?clock=1e6` freezes it)
@@ -28,7 +28,7 @@ import * as THREE from 'three';
 import { PINE_SKY_KEYS, type SkyKeyName } from './pineSkyKeys';
 import { loadBakedSky } from './BakedSky';
 import { setting, type OptionValue } from '../ui/Settings';
-import { phoneCut } from '../core/tier';
+import { pinePhoneCuts } from '../core/tier';
 
 /** the PMREMGenerator (r186) internals the stepped refresh drives, one call a frame (PineDayNight.stepEnvironment) */
 interface PmremSteps {
@@ -212,7 +212,7 @@ export class PineDayNight {
   lamps = 0;
   /** the weather's multipliers (see PineSkyMod); identity = no weather */
   readonly mod: PineSkyMod = { overcast: 0, fogDist: 1, fogHeight: 1, mist: 0 };
-  /** the look loop's layer over every preset (PH-L1 / L4, ChunkLook; Sky sets it, `?grade=v1` leaves the identity): × the
+  /** the look loop's layer over every preset (PH-L1 / L4, ChunkLook; Sky sets it, a shard without one leaves the identity): × the
    *  volumetric in-scatter, × the distance fog, + the grade saturation, × the sky's fill (IBL + hemisphere), × the dome by day — the presets'
    *  numbers untouched */
   readonly look = { vol: 1, fogDist: 1, sat: 0, ambient: 1, sky: 1 };
@@ -249,11 +249,11 @@ export class PineDayNight {
    * 15. On Pine Hollow's phone tier it runs one step a frame instead: the sky → equirect → the cube's top level, then one
    * GGX level a frame (11 frames, ~0.37 s at 30 fps), filled in place so scene.environment keeps its identity. For those
    * frames the finer levels are the new sky and the rougher ones the sky of 2 s before (it moves 0.14 % of its day in
-   * 2 s). A jump (boot, a Time of day pick, a GPU restore) still refreshes whole. `?envsteps=0` = whole every 2 s.
+   * 2 s). A jump (boot, a Time of day pick, a GPU restore) still refreshes whole.
    * -1 = idle, 0 = the top level, i = GGX level i.
    */
   private envStep = -1;
-  private readonly envSteps = phoneCut('envsteps');
+  private readonly envSteps = pinePhoneCuts();
 
   private constructor(private renderer: THREE.WebGLRenderer, private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean) {
     this.phase = phase; this.cycle = cycle; this.frozen = frozen;

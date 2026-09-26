@@ -5,7 +5,7 @@
  * phone: `birds.phone.glb` through tierUrl), plus a sidecar `birds.json` of the pivots measured on each mesh (the wing
  * roots, the body's half-width, the neck, the head's axis, the feet).
  *
- *   const set = await loadBirdModels();     // null: `?birds=proc`, or the load failed — the procedural birds stay
+ *   const set = await loadBirdModels();     // null: Debug ▸ Pine Hollow birds = Procedural, or the load failed — the procedural birds stay
  *   wild.useBirds(set, renderer);           // WildlifeMesh swaps its geometry + binds the atlas: same draw, same program
  *
  * Each mesh is put into the frame the life code poses (lifeMath / index.ts are unchanged): model space forward +z, up +y,
@@ -18,6 +18,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { KIND, type WildKind } from './wildlifeMesh';
+import { setting } from '../../ui/Settings';
 
 export const BIRDS_URL = '/assets/pine-hollow/life/birds.glb';
 export const BIRDS_JSON_URL = '/assets/pine-hollow/life/birds.json';
@@ -48,9 +49,10 @@ const BIRDS = [
   { name: 'wood', kind: KIND.woodpecker, perchPitch: 1.3, headPitch: 0, feet: 0.115, level: true, rough: 0.6, eyes: false },
 ] as const;
 
-/** `?birds=proc` keeps the procedural birds (the fallback, and the before of the polish board) */
-export function birdModelsWanted(search: string = typeof location === 'undefined' ? '' : location.search): boolean {
-  return new URLSearchParams(search).get('birds') !== 'proc';
+/** Debug ▸ Creatures & NPCs ▸ Pine Hollow birds = Procedural keeps the procedural birds (the fallback, and the before of
+ *  the polish board; E162: undecided, so a Debug row, not a URL switch) */
+export function birdModelsWanted(): boolean {
+  return setting('birds') !== 'proc';
 }
 
 export async function loadBirdModels(): Promise<BirdSet | null> {

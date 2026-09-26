@@ -3,7 +3,7 @@
  * as simple standing figures until PH-M4's generated, rigged humans land. ONE factory — `makeNpcFigure(kind, sky)` —
  * is all PH-M4 swaps: the quest only reads the returned handle (`group`, `talkPoint`, `collider`, `update`).
  * PH-M4 (built): the figure below is the stand-in until the person's generated model has loaded (npcModels.ts: photoreal,
- * rigged at load, idle / talk / point clips); `update` swaps it in on the first frame it is ready (`?npcs=proc` = never).
+ * rigged at load, idle / talk / point clips); `update` swaps it in on the first frame it is ready (Debug ▸ Pine Hollow people = Stand-ins: never).
  *
  * Each figure is one merged mesh on a vertex-coloured PBR material shared by all three (+ the ranger's lantern glass on
  * the glow material): 1–2 draws, no lights. The ranger is board B3's "old warden": a long coat, a campaign hat, a grey

@@ -141,14 +141,8 @@ export interface LeverModel { geo: Record<ModelPart, THREE.BufferGeometry>; stee
 let modelLoad: Promise<LeverModel | null> | null = null;
 let modelReady: LeverModel | null = null;
 
-/** `?rifle=proc` keeps the procedural lever-action (the fallback, and the before of the remaster board) */
-export function leverModelWanted(search: string = typeof location === 'undefined' ? '' : location.search): boolean {
-  return new URLSearchParams(search).get('rifle') !== 'proc';
-}
-
 /** Fetch + decode the Blender model once (main.ts starts it early; the weapon step awaits it). null = the procedural build. */
 export function preloadLeverModel(): Promise<LeverModel | null> {
-  if (!leverModelWanted()) return Promise.resolve(null);
   modelLoad ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(LEVER_MODEL_URL)
     .then((gltf) => { modelReady = parseLeverModel(gltf.scene); return modelReady; })
     .catch((e: unknown) => { console.warn('[lever-action] the Blender model did not load — the procedural build stands in:', e); return null; });

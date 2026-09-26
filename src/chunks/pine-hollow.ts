@@ -232,7 +232,7 @@ export const PINE_HOLLOW: ChunkDef = {
 
   assets: {
     // PH-L8 (the look loop, art/pine-hollow/round-14-look-loop/): the floor is Poly Haven's pine-needle litter
-    // (forrest_ground_03) on the boreal shader — canopy-warmed litter, moss patches, tiling breakup; `?ground=v1` = before
+    // (forrest_ground_03) on the boreal shader — canopy-warmed litter, moss patches, tiling breakup
     groundLayers: ['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
     groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [1.0, 0.98, 0.94], [0.95, 0.8, 0.6]],
     slabRock: 'rock_ground',
@@ -240,10 +240,6 @@ export const PINE_HOLLOW: ChunkDef = {
       normalK: [1.2, 1.0, 1.4, 1.1],
       trailDust: [1.25, 1.02, 0.7, 0.6],
       grassTint: [0.8, 0.74, 0.55],
-      v1: {
-        groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
-        groundTints: [[0.78, 0.74, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.62, 0.56, 0.5]],
-      },
     },
   },
   trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees' },
@@ -320,7 +316,7 @@ export const PINE_HOLLOW: ChunkDef = {
   },
   // PH-L1 / L4 (the look loop, art/pine-hollow/round-14-look-loop/): the photoreal targets' contrast, colour and clear
   // air — an S-curve + vibrance after the split-tone, warmer shade, the clock's in-scatter veil and distance fog thinned
-  // (its presets untouched); the learned LUT fits the rest. `?grade=v1` = the grade before the loop.
+  // (its presets untouched); the learned LUT fits the rest.
   look: {
     grade: { shadowTint: [0.95, 0.97, 1.03] },
     curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25, ambient: 1.3, sky: 1.18,

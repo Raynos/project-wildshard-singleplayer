@@ -15,8 +15,8 @@
  *     the AI: AnimalManager's own wander logic walks stragglers back to it) and back out after; in the dawn fog a fog bank
  *     closes round the Ghost Stag (the quest's pale lead, or the elite when it is near) — `weatherUniforms.fogBlob`
  *
- * Flags: `?weather=live|clear|fog|rain` (Settings ▸ Debug ▸ Weather; clear = the look before the weather) and
- * `&weatherT=0..1` how far into the held phase (default 0.5). Dev: `window.__pineWeather`.
+ * Flags: `?weather=live|clear|fog|rain` (Settings ▸ Debug ▸ Weather; clear = the look before the weather); a held phase
+ * starts halfway in. Dev: `window.__pineWeather`.
  */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
@@ -71,10 +71,8 @@ interface Shelter { home: { x: number; z: number }; spot: { x: number; z: number
 
 export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
   const pine = h.sky.pine;
-  if (pine === null) return null; // the fixed sunset (?pinesky=sunset): no clock, no weather
-  const qs = new URLSearchParams(location.search);
-  const at = Number.parseFloat(qs.get('weatherT') ?? '');
-  const atT = Number.isFinite(at) ? Math.min(1, Math.max(0, at)) : 0.5;
+  if (pine === null) return null; // the fixed sky (the WebGPU path): no clock, no weather
+  const atT = 0.5; // a held Fog / Rain starts halfway into its phase
   const weather = new PineWeather({ seed: SEED, mode: 'live' });
   weather.setMode(setting('weather'), atT);
   const fx = new PineWeatherFX({ sky: h.sky, trees: h.trees, roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED }).build();

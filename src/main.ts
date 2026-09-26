@@ -52,7 +52,7 @@ import { WeaponStrip } from './ui/WeaponStrip';
 import { hudSlots } from './ui/hudSlots';
 import { Weapons, type WeaponId } from './player/Weapons';
 import { WeaponPickup } from './player/WeaponPickup';
-import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef, type SkinId } from './player/Skins';
+import { SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef } from './player/Skins';
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { LockOn } from './ui/LockOn';
@@ -451,7 +451,6 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
   new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
-  weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
   const weaponStrip = chunk.hud?.weaponStrip === true ? new WeaponStrip(weapons) : null; // the base HUD's weapon strip (E154; Pine Hollow, Nalati): tabs down the left edge on touch, a hotbar on desktop
@@ -488,13 +487,12 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
     skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id) => { nalatiNow()?.skins.toggle(id); }, // Nalati's wearable skins (B15)
-    split: params.get('bagbtn') !== '0', // E124: PAUSE → Settings + Feedback, the BAG button → Map · Inventory · Achievements
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
-  // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts); ?bagbtn=0 = none + the one menu
-  if (params.get('bagbtn') !== '0') new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
+  // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts)
+  new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
   // M / I / Esc are the menu's own keys (src/ui/Menu.ts, gated by the HUD: E130)
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
 
@@ -636,9 +634,6 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Pine Hollow's adventure (src/pinehollow/quest/): PH-C1 the lantern quest, PH-C6 the hamlet, PH-C7 the night, PH-C8 collectibles; chains onKill
   const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); } } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
-  const skinParam = params.get('skin'), dropParam = params.get('drop');
-  if (skinParam && skinParam in SKINS) { const s = SKINS[skinParam as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
-  if (dropParam && dropParam in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[dropParam as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
   // used to be the landing thud), and the killer is remembered for the death toast (B2)
@@ -862,7 +857,6 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       }
     }
     boundary.update(dt, t);
-    water?.update(dt);
     ocean?.update(dt);
     boat?.update(dt);
     palms?.update(dt);

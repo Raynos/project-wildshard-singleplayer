@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // pine-hollow-trees-board.mjs — PH-B4's taste board: "Pine Hollow trees — which?" A = the Blender species set (default),
-// B = today's runtime pines (`?trees=v1`).
+// B = the runtime pines. The board was decided (PH-U27: A) and B can no longer be rendered: its `?trees=v1` switch was
+// deleted in E162. The script captures A only; the compose step still lays B beside it from B's frames on disk, if any.
 //
 //   node scripts/pine-hollow-trees-board.mjs --url=http://localhost:4187 [--out=art/pine-hollow/round-12-trees] [--only=fp|lineup|compose]
 //
@@ -9,7 +10,7 @@
 // Hollow, the old-growth, the King's clearing and the Ridge, at day and at golden hour. Frames go to --frames (scratch);
 // the board (PIL: labels + layout, JPEG ≤ 600 KB) to <out>/board.jpg, the lineups to <out>/lineup-{A,B}.jpg.
 // One headless Chromium on Metal, muted (--mute-audio + mute=1), closed at the end.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve as resolvePath } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -34,7 +35,7 @@ const POSES = [
   { id: 'ridge', label: 'THE RIDGE', x: 110, z: 178, yaw: 0.6, pitch: 0.02 },
 ];
 const TODS = ['day', 'golden'];
-const LETTERS = [{ id: 'A', q: '' }, { id: 'B', q: 'trees=v1' }];
+const LETTERS = [{ id: 'A', q: '' }]; // B (`trees=v1`) is gone (E162): see the header
 
 async function ready(page) {
   await page.waitForFunction(() => Boolean(window.__world && window.__hf && window.__world.animals && window.__world.forest), undefined, { timeout: 300000, polling: 1000 });
@@ -167,7 +168,9 @@ const args = {
   out: `${OUT}/board.jpg`, frames: FRAMES, tods: TODS, poses: POSES.map((p) => ({ id: p.id, label: p.label })),
   letters: [
     { id: 'A', sub: 'the Blender species set', lineup: `${OUT}/lineup-A.jpg` },
-    { id: 'B', sub: "today's pines (?trees=v1)", lineup: `${OUT}/lineup-B.jpg` },
+    // B only from an earlier run's frames (it can no longer be captured)
+    ...(existsSync(`${OUT}/lineup-B.jpg`) && POSES.every((p) => TODS.every((t) => existsSync(`${FRAMES}/B-${p.id}-${t}.jpg`)))
+      ? [{ id: 'B', sub: "today's pines (?trees=v1)", lineup: `${OUT}/lineup-B.jpg` }] : []),
   ],
 };
 console.log(execFileSync('python3', ['-c', PY, JSON.stringify(args)]).toString().trim());

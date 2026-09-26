@@ -3,7 +3,7 @@
  * the trader, Brandt the miller — photoreal codex references (A-pose, art/pine-hollow/round-11-npcs/) → Hunyuan3D-2 full +
  * paint → the PBR finish (scripts/img2mesh/driftwood_post.py --keep-texture: the generated texture + a normal map, 1.8 m,
  * feet at y = 0, facing +z) → `public/assets/pine-hollow/npcs/<kind>[.phone].glb`. npcFigure.ts's `makeNpcFigure` shows
- * its stand-in until the model has loaded, then swaps this in (`?npcs=proc` keeps the stand-ins).
+ * its stand-in until the model has loaded, then swaps this in (Debug ▸ Pine Hollow people = Stand-ins keeps them).
  *
  *   void preloadNpcModels();                  // the quest's install: fetch all three early
  *   const r = npcRig(kind);                   // null until loaded → { mesh (SkinnedMesh), pose(dt, t, s), lanternAt }
@@ -26,6 +26,7 @@ import type { Sky } from '../../world/Sky';
 import type { NpcKind } from './npcFigure';
 import { mapSlot } from '../../core/shardState';
 import { MAY_KTX2 } from '../../boot/gpuFiles';
+import { setting } from '../../ui/Settings';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
@@ -34,9 +35,9 @@ export function npcModelUrl(kind: NpcKind, tier: 'phone' | 'desktop' = TIER): st
   return `/assets/pine-hollow/npcs/${kind}${tier === 'phone' ? '.phone' : ''}.glb`;
 }
 
-/** the generated people are on unless `?npcs=proc` */
+/** the generated people are on unless Debug ▸ Creatures & NPCs ▸ Pine Hollow people = Stand-ins (E162) */
 export function npcModelsOn(): boolean {
-  return typeof location === 'undefined' || new URLSearchParams(location.search).get('npcs') !== 'proc';
+  return setting('npcs') !== 'proc';
 }
 
 interface Source { geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null }

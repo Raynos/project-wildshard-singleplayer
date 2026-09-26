@@ -31,7 +31,7 @@ const ss = THREE.MathUtils.smoothstep;
 const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
 
 /**
- * The boreal ground (PINE-HOLLOW PH-L8, `ChunkAssets.boreal`; `?ground=v1` builds the plain shader above). Over the same
+ * The boreal ground (PINE-HOLLOW PH-L8, `ChunkAssets.boreal`; a shard without it builds the plain shader above). Over the same
  * four splat layers ([needle litter, grass, rock, trail]):
  *  - tiling breakup: each layer's near albedo is two samplings (the 3.6 m one and a rotated 4.8 m one) mixed by a 9 m
  *    value noise, the far sample rotated off the near grid (fetched only where blended: the phone's fragment budget), the old 20 m hash blocks replaced by smooth value noise;

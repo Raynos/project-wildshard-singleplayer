@@ -2,7 +2,7 @@
  * BagButton — the INVENTORY button that squares out the minimap's top-right corner (E124, the user: "a button that squares out
  * the minimap … top and right straight edge, and on the minimap the button has like a reverse moon edge").
  *
- *   new BagButton(minimap.root, () => menu.open('inventory'));   // main.ts; ?bagbtn=0 builds none (and keeps the one menu)
+ *   new BagButton(minimap.root, () => menu.open('inventory'));   // main.ts
  *
  * One SVG inside `.ws-minimap`, so it follows the minimap's size, place, intro fade and hide. Its box starts at the circle's
  * centre and runs up and right; the drawing is in units where the minimap's radius is 100:

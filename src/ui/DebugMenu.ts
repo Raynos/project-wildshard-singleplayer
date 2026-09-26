@@ -33,7 +33,7 @@ function renderRow(r: DebugRow, onPick: (id: string) => void): HTMLElement {
   const label = make('ws-gmenu-swlabel', r.label, 'span');
   if (r.reload) label.append(make('ws-dbg-reload', 'reload', 'i'));
   label.append(make('ws-dbg-note', r.note, 'small'));
-  const box = make('ws-gmenu-seg');
+  const box = make('ws-gmenu-seg ws-dbg-seg');
   const paint = (): void => { for (const c of box.children) if (c instanceof HTMLElement) c.classList.toggle('active', c.dataset['v'] === r.get()); };
   const build = (): void => {
     box.replaceChildren(...r.choices().map((c) => {

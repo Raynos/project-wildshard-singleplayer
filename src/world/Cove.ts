@@ -332,7 +332,7 @@ export class Cove {
     {
       const [tx, tz] = spec.fall.top, [fx, fz] = spec.fall.foot, dx = fx - tx, dz = fz - tz, len = Math.hypot(dx, dz);
       const px = fx + (dx / len) * 1.2, pz = fz + (dz / len) * 1.2;
-      // E150: the toon cascade in three terraces (`?waterfall=v1`: the W5 curtain); its foam rings stay inside the 2.4 m pool
+      // E150: the toon cascade in three terraces; its foam rings stay inside the 2.4 m pool
       this.fall = waterfallFor({ lip: new THREE.Vector3(tx, heightAt(tx, tz) + 0.3, tz), foot: new THREE.Vector3(px, heightAt(fx, fz) + 0.06, pz), width: 2.2, ground: heightAt, poolRadius: 2.3, steps: 3 }).build();
       this.group.add(this.fall.group);
     }

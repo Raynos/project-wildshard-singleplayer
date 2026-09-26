@@ -21,8 +21,8 @@
  *                bolt in zig-zags when you come closer; the ones left far behind are quietly re-seated around you.
  *
  * Every animal here is ONE instance of `WildlifeMesh` (one draw, one program, no shadow cast); the birds are generated
- * models (birdModels.ts: perched + flying each, one atlas; `?birds=proc` = the procedural ones). Not shootable: the herd
- * (AnimalManager) is the hunt; these are the forest's life. `?life=0` turns it off; `window.__pineLife` has the pieces
+ * models (birdModels.ts: perched + flying each, one atlas; Debug ▸ Pine Hollow birds = Procedural). Not shootable: the herd
+ * (AnimalManager) is the hunt; these are the forest's life. Debug ▸ Pine Hollow life turns it off; `window.__pineLife` has the pieces
  * (captures: `crumbs()`, `owlNow()`, `ravensTo(x, z)`, `beat()`).
  *
  * The voices are PineHollowSfx one-shots (`h.sfx`, ForestAmbience's set: raven_caw / raven_pair / raven_flap, owl_hoot,
@@ -53,6 +53,7 @@ import { SkinKnife } from './skinKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from './wildlifeMesh';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
+import { setting } from '../../ui/Settings';
 
 export interface PineLifeHost {
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: Weapons; audio: Audio;
@@ -119,12 +120,12 @@ const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (x: number): number => { const c = Math.min(1, Math.max(0, x)); return c * c * (3 - 2 * c); };
 
 export function installPineLife(h: PineLifeHost): PineLife | null {
-  if (h.params.get('life') === '0') return null;
+  if (setting('pineLife') === 'off') return null; // Debug ▸ Creatures & NPCs ▸ Pine Hollow life (E162)
   const { game, sky, player, animals } = h;
   const rng = new Rng(0x71fe);
   const wild = new WildlifeMesh(sky, CAPACITY);
   game.scene.add(wild.mesh);
-  // the modelled birds (birdModels.ts; `?birds=proc` keeps these procedural ones): fetched once booted (off the load's
+  // the modelled birds (birdModels.ts; Debug ▸ Pine Hollow birds = Procedural keeps these): fetched once booted (off the load's
   // requests and bytes, like the painted horizon), swapped in when they land — same draw, same program
   const swapBirds = async (): Promise<void> => { const set = await loadBirdModels(); if (set) wild.useBirds(set, game.renderer); };
   document.addEventListener('ws:ready', () => { setTimeout(() => { void swapBirds(); }, 400); }, { once: true });

@@ -3,7 +3,7 @@
  * drop-point skinning knife at the lower right of the view, in the lever-action's style — a Blender model
  * (scripts/blender/weapons/skinning_knife.py → `public/assets/pine-hollow/weapons/skinning-knife[.phone].glb`, ONE mesh,
  * one baked atlas: albedo / normal / ARM) on the viewmodels' shared lit program (Crossbow.viewmodelMaterial: no program of
- * its own, lit with the scene: the sun, the CSM shadows, the fog). `?knife=proc` — or a failed load — draws a procedural
+ * its own, lit with the scene: the sun, the CSM shadows, the fog). Debug ▸ Skinning knife = Stand-in — or a failed load — draws a procedural
  * stand-in (a steel blade, a walnut handle, a leather fist) on the same program.
  *
  *   const knife = new SkinKnife(game, sky);   // parented to the camera, hidden; starts the GLB fetch
@@ -21,6 +21,7 @@ import type { Game } from '../../core/Game';
 import type { Sky } from '../../world/Sky';
 import { isMesh, viewmodelMaterial, whiteColors } from '../../player/Crossbow';
 import { BEAT } from './lifeMath';
+import { setting } from '../../ui/Settings';
 
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';
 
@@ -40,7 +41,7 @@ export class SkinKnife {
   private mesh: THREE.Mesh | null = null;
   private readonly mat: THREE.MeshPhysicalMaterial;
 
-  constructor(private readonly game: Game, sky: Sky, wantModel = new URLSearchParams(location.search).get('knife') !== 'proc') {
+  constructor(private readonly game: Game, sky: Sky, wantModel = setting('knife') !== 'proc') {
     this.mat = viewmodelMaterial(sky, 'skin-knife', { roughness: 0.55, metalness: 0.25 });
     this.group.name = 'skin-knife';
     this.group.add(this.pivot);

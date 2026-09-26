@@ -29,7 +29,7 @@ export class GradeEffect extends Effect {
   private readonly u: { shadowTint: Uniform<Vector3>; highTint: Uniform<Vector3>; lift: Uniform<Vector3>; gain: Uniform<Vector3>; gamma: Uniform<number> };
 
   /**
-   * `look` (a shard's look-loop layer, PINE-HOLLOW PH-L1 / L4; `?grade=v1` passes none): after the split-tone, an
+   * `look` (a shard's look-loop layer, PINE-HOLLOW PH-L1 / L4; a shard without one passes none): after the split-tone, an
    * S-curve around mid grey and a vibrance lift, both live uniforms (`uCurve`, `uVibrance`). Without it the program is
    * the one it always was (Driftwood's source, byte for byte).
    */

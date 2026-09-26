@@ -10,6 +10,7 @@ import { Projectiles, type ProjectileKind, type WindField } from './Projectiles'
 import { BowDraw, RENOCK_TIME } from './bowDraw';
 import { ARM_PAL, gloveFist, riderArm, placeArm } from './nalatiArms';
 import type { Weapon } from './Weapon';
+import { setting } from '../ui/Settings';
 
 /**
  * Longbow — THE WARDEN'S LONGBOW, the Antler King's reward on Pine Hollow (PINE-HOLLOW-REMASTER PH-U15 / PH-C2 / PH-C11):
@@ -42,8 +43,6 @@ const SPEED_BASE = 32, SPEED_DRAW = 30;
 const DAMAGE_SCALE = 1.35;       // the King's bow: every loose is a full draw — 43–54 body
 export const AIM_ZOOM = 1.6, AIM_VM_ZOOM = 0.85, AIM_SWAY = 0.5, AIM_SPREAD = 0.5, AIM_IN = 10;
 const ARC_MAX = 56, ARC_SPACING = 0.8, ARC_SKIP = 0.5, ARC_BLEND = 11, ARC_AMBER = 0xffc070;
-/** the drop arc: on while AIM is on (the default), `?arc=1` always while drawing, `?arc=0` never */
-const ARC_PARAM = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('arc');
 
 export interface LongbowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface LongbowOptions { allowUnlocked?: boolean }
@@ -675,8 +674,8 @@ export class Longbow implements Weapon {
 
     this.poseViewmodel(dt, t);
 
-    // the drop arc: while drawn, with AIM on (or always / never by `?arc=`)
-    const arcWanted = ARC_PARAM === '1' || (ARC_PARAM !== '0' && this.aimOn);
+    // the drop arc: while drawn, with AIM on (or always / never: Debug ▸ Combat & weapons ▸ Longbow drop arc, E162)
+    const arc = setting('longbowArc'), arcWanted = arc === 'always' || (arc === 'aim' && this.aimOn);
     if (arcWanted && this.p > ARC_FROM && this.model.visible && this.holster < 0.01) {
       this.aimRay(_v1, _fwd);
       this.launchFrom(_fwd, _v2, _v3);

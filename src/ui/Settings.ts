@@ -8,11 +8,10 @@
 //   factor while a sword swing is running — TouchControls / Player.ts read them per event, nothing to subscribe)
 //   getMusicStyle() / setMusicStyle('orchestral') / onMusicStyle(fn)   → the score's source (project/archive/2026-09-23-music.md v3):
 //   'piano' | 'orchestral' | 'folk' (MiniMax-Music3 stems) | 'synth' (the v1 WebAudio score); default 'piano'.
-//   `?music=<style>` in the URL overrides it for the page's life without persisting it.
 //   getSfxSet() / setSfxSet('synth') / onSfxSet(fn)   → the sound effects: 'best' (the generated set, public/assets/sfx/best/
 //   sfx.json — per sound the better take of MOSS-SoundEffect v2 and Stable Audio 3 Medium, AGENTS.md "Audio engines") | 'synth'
-//   (every sound synthesised); default 'best'. A saved set that no longer exists (moss, sa3-medium, ezaudio) reads as 'best';
-//   `?sfx=synth` overrides like ?music=.
+//   (every sound synthesised); default 'best'. A saved set that no longer exists (moss, sa3-medium, ezaudio) reads as 'best'.
+//   Neither has a URL override (E162): pause ▸ Settings ▸ Debug ▸ Audio picks them.
 //
 //
 // The OPTIONS (E55) — every player-facing toggle that used to be a query param, one lookup for all of them:
@@ -100,8 +99,9 @@ class Choice<T extends string> {
   }
   on(fn: (v: T) => void): () => void { this.listeners.add(fn); const off = (): void => { this.listeners.delete(fn); }; onScopeDispose(off); return off; }
 }
-const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', (q) => q.get('music'));
-const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', (q) => q.get('sfx'));
+// no URL override (E162): the Debug ▸ Audio rows pick them; a script saves musicStyle / sfxSet in ws.settings.v1
+const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null);
+const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null);
 
 // ── the OPTIONS (E55): the player-facing toggles that were query params — see the header ──
 export const OPTION_VALUES = {
@@ -109,7 +109,6 @@ export const OPTION_VALUES = {
   tier: ['auto', 'phone', 'desktop'],                  // quality tier (src/core/tier.ts); auto = phone on a mobile UA
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
-  pinesky: ['clock', 'sunset'],                        // Pine Hollow: the day / night clock (PH-L2, src/world/PineDayNight.ts) or the pre-remaster fixed HDRI sunset — Jake picks (a reload)
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/pinehollow/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
   // Driftwood's ground cover (E156, pause ▸ Settings ▸ Debug ▸ Ground cover; no URL switch — Jake: never): the far ground wearing
@@ -136,6 +135,19 @@ export const OPTION_VALUES = {
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
   gpuShadows: ['on', 'off'],                           // WebGPU only (src/gpu/GpuPath.ts): shadows off, for a WebGL ↔ WebGPU diff — a reload
   gpuToon: ['on', 'off'],                              // WebGPU only: Driftwood's toon library off — a reload
+  learnedLut: ['on', 'off'],
+  cragView: ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'], // Pine Hollow's crags drawn as one channel (src/world/PineCrags.ts) — live
+  creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
+  birds: ['models', 'proc'],                           // Pine Hollow's birds: the generated models or the procedural ones (undecided) — a reload
+  npcs: ['models', 'proc'],                            // Pine Hollow's people: the generated models or the stand-ins (undecided) — a reload
+  knife: ['model', 'proc'],                            // Pine Hollow's skinning knife: the Blender model or the stand-in (undecided) — a reload
+  pineLife: ['on', 'off'],                             // Pine Hollow's birds, hares, ravens and the skinning beat (src/pinehollow/life/) — a reload
+  pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/audio/Music.ts) — a reload
+  longbowArc: ['aim', 'always', 'never'],              // Pine Hollow's longbow drop arc: with AIM (the default, undecided) / whenever drawn / never — live
+  aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/player/AimAssist.ts) — live
+  balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
+  ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
+  clockSpeed: ['1', '10', '60'],                       // Nalati's day clock speed — live                                  // the learned LUT (src/world/lut.ts); off = the captures scripts/fit-lut.py fits from — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -149,8 +161,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
-  pinesky: { def: 'clock', params: ['pinesky'], url: (q) => (q.get('tod') === 'sunset-fixed' ? 'sunset' : q.get('pinesky')) }, // ?tod=sunset-fixed: the before shots
-  weather: { def: 'live', params: ['weather', 'weatherT'], url: (q) => q.get('weather') },            // ?weather=rain&weatherT=0.5: a held shower (captures)
+  weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   coverTint: { def: 'on', params: [], url: () => null }, coverReach: { def: 'on', params: [], url: () => null }, // the debug menu only
   coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
@@ -158,7 +169,9 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   shardCap: { def: '2', params: [], url: () => null },
-  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, gpuShadows: DEBUG_ONLY, gpuToon: DEBUG_ONLY,
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, gpuShadows: DEBUG_ONLY, gpuToon: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
+  creatures: DEBUG_ONLY, birds: DEBUG_ONLY, npcs: DEBUG_ONLY, knife: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
+  longbowArc: DEBUG_ONLY, aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
   const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
@@ -168,12 +181,14 @@ const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
 };
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), tier: option('tier'), touch: option('touch'), time: option('time'),
-  pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
+  weather: option('weather'), fps: option('fps'),
   coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'), coverRange: option('coverRange'),
   prefetch: option('prefetch'),
   tex: option('tex'),
   shardCap: option('shardCap'),
-  loadProfile: option('loadProfile'), bootPack: option('bootPack'), gpuShadows: option('gpuShadows'), gpuToon: option('gpuToon'),
+  loadProfile: option('loadProfile'), bootPack: option('bootPack'), gpuShadows: option('gpuShadows'), gpuToon: option('gpuToon'), learnedLut: option('learnedLut'), cragView: option('cragView'),
+  creatures: option('creatures'), birds: option('birds'), npcs: option('npcs'), knife: option('knife'), pineLife: option('pineLife'), pineScore: option('pineScore'),
+  longbowArc: option('longbowArc'), aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
@@ -207,7 +222,7 @@ export function pendingReload(): OptionKey[] { return BOOT_OPTIONS.filter((k) =>
  *  loads this, so the saved picks win (the chunk and every other dev param stay) */
 export function settingsReloadUrl(href: string, extra: readonly string[] = []): string {
   const u = new URL(href);
-  for (const p of [...OPTION_KEYS.flatMap((k) => OPTION_SPECS[k].params), 'music', 'sfx', ...extra]) u.searchParams.delete(p);
+  for (const p of [...OPTION_KEYS.flatMap((k) => OPTION_SPECS[k].params), ...extra]) u.searchParams.delete(p);
   return u.toString();
 }
 const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();

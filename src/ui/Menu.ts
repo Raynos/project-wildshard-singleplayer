@@ -13,10 +13,10 @@
  *   menu.refresh()                            // re-render the data tabs (kills, harvests, unlocks)
  *   menu.onFeedbackTab = (panel) => …          // the FEEDBACK tab was selected: mount the composer into `panel`
  *
- * `split` (E124, the user: "two menu buttons, inventory and pause. Pause takes you to settings and feedback. Inventory to
- * map / inventory / trophies"): the one overlay shows one GROUP of tabs at a time — PAUSE: Settings (+ Feedback), titled
- * PAUSED; BAG (the minimap's corner button, src/ui/BagButton.ts; the minimap tap and M too): Map · Inventory ·
- * Achievements, titled BAG. Off (?bagbtn=0) = the old one menu with every tab.
+ * Two menus in one overlay (E124, the user: "two menu buttons, inventory and pause. Pause takes you to settings and
+ * feedback. Inventory to map / inventory / trophies"; shipped: "I think we can ship that"): it shows one GROUP of tabs at
+ * a time — PAUSE: Settings (+ Feedback), titled PAUSED; BAG (the minimap's corner button, src/ui/BagButton.ts; the minimap
+ * tap and M too): Map · Inventory · Achievements, titled BAG. (The old one-menu-with-every-tab, `?bagbtn=0`, went in E162.)
  */
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
@@ -42,7 +42,7 @@ const TABS: { id: MenuTab; label: string }[] = [
   { id: 'map', label: 'Map' }, { id: 'inventory', label: 'Inventory' }, { id: 'achievements', label: 'Achievements' }, { id: 'settings', label: 'Settings' },
   { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
-/** the two menus when `split`: which one a tab lives in */
+/** the two menus (E124): which one a tab lives in */
 export type MenuGroup = 'pause' | 'bag';
 const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
 const TITLE: Record<MenuGroup, string> = { pause: 'Paused', bag: 'Bag' };
@@ -67,8 +67,6 @@ export interface GameMenuOptions {
   /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — listed under the weapons, tap to wear / take off */
   skins?: () => SkinRow[];
   onWearSkin?: (id: string) => void;
-  /** two menus in one overlay (E124): PAUSE = Settings + Feedback, BAG = Map · Inventory · Achievements */
-  split?: boolean;
 }
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean }
 
@@ -174,23 +172,23 @@ export class GameMenu {
     if (!reviewUnlocked() && this._tab === 'feedback') this.select('settings');
     else this.syncTabs();
   }
-  /** which tabs show: FEEDBACK only while the review inbox is unlocked; split, only the open group's (one tab = no bar) */
+  /** which tabs show: FEEDBACK only while the review inbox is unlocked; only the open group's (one tab = no bar) */
   private syncTabs(): void {
-    const review = reviewUnlocked(), split = this.opts.split === true, group = GROUP[this._tab];
+    const review = reviewUnlocked(), group = GROUP[this._tab];
     let shown = 0;
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
       const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
-      const on = (id !== 'feedback' || review) && (!split || g === group);
+      const on = (id !== 'feedback' || review) && g === group;
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
     this.tabBar.classList.toggle('review', shown >= 5);
     this.tabBar.classList.toggle('four', shown === 4); // BAG with Pine Hollow's JOURNAL: ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
-    this.title.textContent = split ? TITLE[group] : 'Menu';
+    this.title.textContent = TITLE[group];
     // E176: the build pill shows over the PAUSE menu (not the BAG), so the root says which one is up
-    this.root.classList.toggle('pause', !split || group === 'pause');
+    this.root.classList.toggle('pause', group === 'pause');
     window.dispatchEvent(new Event('ws-menu'));
   }
 

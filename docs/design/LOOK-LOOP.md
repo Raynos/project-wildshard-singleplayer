@@ -240,8 +240,9 @@ per zone too.**
 **Order matters: fix structure first, colour last.** Ground, density, lighting, fog and models come before the LUT. A LUT
 can hit ΔE < 6 on a frame that still looks empty (Driftwood v0.2: palette on target, parity ~70 %). Then:
 
-1. Capture the loop **without the LUT**, same cameras. The game uses the legacy `nolut` param. A new page or a lab uses a
-   Settings ▸ Debug row or its own API. Never a new URL switch.
+1. Capture the loop **without the LUT**, same cameras: set pause ▸ Settings ▸ Debug ▸ Look ▸ Learned LUT to Off (in a
+   capture script: localStorage `ws.settings.v1` = `{"learnedLut":"off"}` before the load). A new page or a lab uses a
+   Settings ▸ Debug row or its own API. Never a URL switch.
 2. Fit the LUT:
 
    ```bash

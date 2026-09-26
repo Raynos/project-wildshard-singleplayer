@@ -35,7 +35,7 @@ import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import { macrotask } from '../boot/plan';
 import { PINE_HERO_IDS, pineHeroUrl, type PineHeroId } from './pineHero';
-import { PineCrags, placeCrags, cragsMode } from './PineCrags';
+import { PineCrags, placeCrags } from './PineCrags';
 
 type V3 = THREE.Vector3;
 const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
@@ -718,10 +718,9 @@ export class PineLandmarks implements PineLandmarksHandle {
     await this.buildProps(cabins);
     await macrotask();
     if (this.crags) {
-      // PH-B2: the kit over the Ridge (`?crags=v1`: the Ridge as it was), and the cave behind the arch either way
-      const v2 = cragsMode() !== 'v1';
-      if (v2) await this.crags.prepareSkin(macrotask);
-      this.crags.build(v2 ? placeCrags({ sizes: this.crags.sizes(), trees }) : []);
+      // PH-B2: the kit over the Ridge, and the cave behind the arch
+      await this.crags.prepareSkin(macrotask);
+      this.crags.build(placeCrags({ sizes: this.crags.sizes(), trees }));
       this.group.add(this.crags.group);
     }
     return this;

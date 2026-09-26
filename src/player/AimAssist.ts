@@ -28,7 +28,7 @@
 import * as THREE from 'three';
 import type { Player } from './Player';
 import { getAimTargets, type AimTarget } from './AimTargets';
-import { getSetting } from '../ui/Settings';
+import { getSetting, setting } from '../ui/Settings';
 import { viewportHeight } from '../core/viewport';
 
 const DEG = Math.PI / 180;
@@ -62,11 +62,11 @@ export class AimAssist {
   private debug?: HTMLElement;
   /** the animal currently inside its bubble (read by the debug ring / tests) */
   active: AimTarget | null = null;
-  /** what happened last frame — for `?aimdebug=1` and the verification script */
+  /** what happened last frame — for Debug ▸ Combat & weapons ▸ Aim assist ring and the console */
   readonly last = { angleDeg: 0, coneDeg: 0, snapping: false, tracking: false, trackYaw: 0, trackPitch: 0 };
 
   constructor(layer?: HTMLElement) {
-    if (layer && new URLSearchParams(location.search).has('aimdebug')) {
+    if (layer) { // the ring: drawn only while Debug ▸ Combat & weapons ▸ Aim assist ring is On (E162; live)
       const d = document.createElement('div');
       d.className = 'ws-touch-aimdebug';
       d.style.cssText = 'position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:1.5px solid rgba(143,227,255,0.9);box-shadow:0 0 12px rgba(143,227,255,0.5),inset 0 0 12px rgba(143,227,255,0.25);pointer-events:none;display:none;z-index:3;font:9px/1 ui-monospace,monospace;color:#8fe3ff;letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;';
@@ -179,7 +179,7 @@ export class AimAssist {
   private showDebug(best: Candidate | null, player: Player) {
     const d = this.debug;
     if (!d) return;
-    if (!best) { d.style.display = 'none'; return; }
+    if (!best || setting('aimRing') !== 'on') { d.style.display = 'none'; return; }
     const cam = player.camera;
     aimPoint(best.target, _aim);
     _ndc.copy(_aim).project(cam);

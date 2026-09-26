@@ -47,9 +47,8 @@ export class Horizon {
     const ocean = Boolean(def.ocean);
     // Pine Hollow (PH-L5): the photoreal painting at infinity replaces the 17 Sep ridge rings and the cloud sea (from the
     // lookout its flat white sheet read as paper); the slab's edge thickens into the painting's haze (Atmosphere fogEdge).
-    // `?horizon=rings` builds the rings + cloud sea instead: the before.
     const strips = ocean ? null : horizonStrips(def.slug);
-    if (strips && new URLSearchParams(location.search).get('horizon') !== 'rings') {
+    if (strips) {
       const painted = new PaintedHorizon(strips).build();
       if (painted.mesh) this.group.add(painted.mesh);
       this.painted = painted;

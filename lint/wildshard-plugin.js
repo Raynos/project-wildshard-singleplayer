@@ -4,14 +4,14 @@
 // He plays the game as an iOS home-screen PWA: there is no address bar, so a `?foo=` switch is a switch he can never
 // flip. A variant, look, tuning or feature toggle goes in pause ▸ Settings ▸ Debug. The only query params the game may
 // read are the fixed allowlist in lint/url-params.json (`harness`: what the test / capture / bench scripts pass;
-// `legacy`: old switches grandfathered until they move to the debug menu — never add to it).
+// `legacy`: the old switches, all moved or deleted by E162 — never add to it).
 //
 // What it flags, in src/ (see .oxlintrc.json for the file scope):
 //   · `.get(k)` / `.has(k)` / `.getAll(k)` on a URLSearchParams — `new URLSearchParams(…)`, `x.searchParams`, a name
 //     bound to either in the file, a name typed `URLSearchParams`, and `params` — when `k` is not on the allowlist;
 //   · a key the rule cannot read as a string: resolved through in-file string consts, `export const X = '…'` in a
 //     relatively imported module, a parameter typed as a string-literal union, or every call of the helper whose
-//     parameter it is (`qn('sunI', 1)`) — anything else is an error;
+//     parameter it is (`num('scale', 1)`) — anything else is an error;
 //   · raw parsing of `location.search` (`.includes`, `.match`, regex `.test`, …) that dodges the above.
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -19,11 +19,11 @@ import { dirname, resolve } from 'node:path';
 const ALLOWLIST_FILE = new URL('url-params.json', import.meta.url);
 const allowlist = JSON.parse(readFileSync(ALLOWLIST_FILE, 'utf8'));
 const ALLOWED = new Set([...allowlist.harness, ...allowlist.legacy]);
-/** reader helpers whose argument is a param name (`phoneCut('depthslice')`): name → argument index. Their calls are checked in every file. */
+/** reader helpers whose argument is a param name (e.g. `readParam('name')`): name → argument index. Their calls are checked in every file. */
 const READERS = new Map(Object.entries(allowlist.readers ?? {}));
 
 const FIX =
-  'A variant, look, tuning or feature toggle goes in pause ▸ Settings ▸ Debug (src/ui/Settings.ts: OPTION_VALUES + the Debug card), ' +
+  'A variant, look, tuning or feature toggle goes in pause ▸ Settings ▸ Debug (src/ui/Settings.ts OPTION_VALUES + one row in the registry src/ui/debugOptions.ts, under its group), ' +
   'never in the query string: Jake plays the iOS home-screen PWA and has no address bar. Harness params are a fixed allowlist in ' +
   'lint/url-params.json; adding one needs Jake\'s explicit OK. See AGENTS.md "No URL switches".';
 const MSG_NAME = (name) => `No URL switches, ever (Jake, 2026-09-25): \`?${name}\` is not an allowed query param. ${FIX}`;

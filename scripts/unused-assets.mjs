@@ -12,7 +12,7 @@
 //      folder's name (`/assets/lut/${slug}.bin`, `${DIR}${kind}.gen.glb` build paths from pieces).
 //      A folder the code builds names inside counts whole: its path is named (`'/assets/pine-hollow/journal'` + `${id}.webp`),
 //      or it is a texture set / model folder whose id is named (`pbrUrls('stone_wall')` → /assets/tex/stone_wall/*).
-// A file only src/dev/, dev/, scripts/ or test/ name — or an .hdr, which `?hdri=<name>` loads — is DEV-ONLY: listed, kept.
+// A file only src/dev/, dev/, scripts/ or test/ name is DEV-ONLY: listed, kept.
 // A file (or its folder) a doc under docs/ names is DOCUMENTED — staged for a pass, not wired in yet: listed, kept.
 // Everything else is UNUSED.
 //
@@ -132,9 +132,7 @@ for (let grew = true; grew;) {
   }
 }
 
-// `?hdri=<name>` (src/world/Sky.ts) loads any /assets/hdri/<name>_2k.hdr: a look-dev switch, so every .hdr is dev-reachable
-const HDRI_RE = /^\/assets\/hdri\/[^/]+_2k\.hdr$/;
-const devReach = (p) => { if (HDRI_RE.test(p)) return true; if (named(dev, p)) return true; return folderNamed(dev, p); };
+const devReach = (p) => { if (named(dev, p)) return true; return folderNamed(dev, p); };
 const devOnly = files.filter((p) => !used.has(p) && devReach(p));
 // named by a design doc or a plan (a model set staged for a pass not yet wired in): kept, listed
 const docs = read(walk(join(ROOT, 'docs')));

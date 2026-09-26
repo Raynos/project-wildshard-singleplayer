@@ -27,7 +27,7 @@ import { GhostRiders } from './ghostRiders';
  *
  * Damage to the player goes through `animals.onCharge(animal, damage)` — main.ts's health, flash and sound — for the
  * balbals' slam (the species' `hurt`) and the riders' arrows alike. Dev: `?time=dusk` / `?time=night` (the weather row),
- * `?balbals=wake|off`, `?balbalCount=n`, `?ghosts=line|off`; `window.__balbals`, `window.__ghosts`.
+ * Debug ▸ Creatures & NPCs ▸ Balbal warriors / Ghost riders (wake now · never); `window.__balbals`, `window.__ghosts`.
  */
 
 export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayClock }

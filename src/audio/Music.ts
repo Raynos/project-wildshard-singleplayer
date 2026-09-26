@@ -40,7 +40,7 @@
 // is first wanted (the theme plays on meanwhile) and the other Pine Hollow slot's buffers are dropped (~30 MB of PCM each).
 // The game drives them from src/pinehollow/audioWiring.ts (the clock → night / day, an engaged elite → combat) and the
 // King's fight (antlerKing.ts → boss + phases); every scene / phase / sting / deck lands in `window.__audioLog`.
-// Quick links: `?music=pine-night`, `?music=pine-boss` (`-2` / `-3` for a phase), `?music=pine-dawn` (the sting after 2 s).
+// To hear one: pause ▸ Settings ▸ Debug ▸ Audio ▸ Pine Hollow score (Night · Boss I–III · Dawn sting after 2 s; a reload, E162).
 // Nalati (NALATI-MERGE A2): the steppe plays its own score, not a style slot — src/audio/SteppeScore.ts (public/assets/music/
 // nalati/, downloaded on the steppe only; every style but synth plays it). `music.setSteppe({ zone, night, storm, boss })` picks
 // the slot (the King's barrow → steppe-king, a storm → steppe-storm, night → steppe-night, else the zone's theme); a slot
@@ -48,7 +48,7 @@
 import type { Audio } from './Audio';
 import { getActiveChunk } from '../chunks/registry';
 import { asShell, shell } from '../core/shardScope';
-import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
+import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle, setting } from '../ui/Settings';
 import { Deck, decodeStyle, isSteppeSlot, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { SteppeScore, type SteppeScene } from './SteppeScore';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
@@ -524,7 +524,7 @@ export class Music {
   /** style/slot pairs that failed to decode this session: the theme plays for them */
   private phFailed = new Set<string>();
   private prefetched = new Set<MusicStyle>();
-  /** `?music=pine-dawn`: play the dawn sting once the Pine Hollow stems play */
+  /** Debug ▸ Audio ▸ Pine Hollow score = Dawn: play the dawn sting once the Pine Hollow stems play */
   private urlDawn = false;
 
   /** Nalati's own score (NALATI-MERGE A2): its zone / night / storm / boss slots, decoded on demand — src/audio/SteppeScore.ts */
@@ -532,8 +532,8 @@ export class Music {
 
   constructor(private audio: Audio) {
     this.steppe = new SteppeScore(cachedBytes, decodeBytes, () => { this.sync(); });
-    const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('music');
-    const m = q === null ? null : /^pine-(night|boss|dawn)(?:-([123]))?$/.exec(q);
+    const pin = setting('pineScore'); // Debug ▸ Audio ▸ Pine Hollow score (E162): hold a scene / phase, or the dawn sting
+    const m = pin === 'auto' ? null : /^(night|boss|dawn)(?:-([123]))?$/.exec(pin);
     if (m) {
       if (m[1] === 'night' || m[1] === 'boss') this._scene = m[1];
       if (m[1] === 'dawn') this.urlDawn = true;

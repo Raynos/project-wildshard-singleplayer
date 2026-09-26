@@ -1,6 +1,6 @@
 /**
  * Waterfall v3 (E150) — Driftwood's toon cascade, a stepped faceted curtain in the Wind Waker / Sea of Thieves manner.
- * The soft, blurred v2 curtain (DRIFTWOOD-REMASTER W5) stays behind `?waterfall=v1` (WaterfallV1.ts).
+ * It replaced the soft, blurred v2 curtain (DRIFTWOOD-REMASTER W5), which went in E162.
  *
  *   const fall = waterfallFor({ lip, foot, width: 2.2, ground: heightAt, poolRadius: 2.3 }).build();
  *   scene.add(fall.group);
@@ -19,7 +19,6 @@
  */
 import * as THREE from 'three';
 import { attachFogUniforms } from './Atmosphere';
-import { WaterfallV1 } from './WaterfallV1';
 
 export interface WaterfallSpec {
   lip: THREE.Vector3;
@@ -34,7 +33,7 @@ export interface WaterfallSpec {
   steps?: number;
 }
 
-/** what Cove keeps of either look */
+/** what Cove keeps of the cascade */
 export interface WaterfallLike {
   readonly group: THREE.Group;
   build: () => WaterfallLike;
@@ -329,8 +328,7 @@ export class Waterfall implements WaterfallLike {
   }
 }
 
-/** the toon cascade, or the W5 curtain with `?waterfall=v1` (the taste rule: the old look stays switchable) */
+/** the toon cascade (E150) */
 export function waterfallFor(spec: WaterfallSpec): WaterfallLike {
-  const v1 = typeof location !== 'undefined' && new URLSearchParams(location.search).get('waterfall') === 'v1';
-  return v1 ? new WaterfallV1(spec) : new Waterfall(spec);
+  return new Waterfall(spec);
 }

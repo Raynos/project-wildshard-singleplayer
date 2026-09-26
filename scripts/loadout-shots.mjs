@@ -10,6 +10,7 @@
 // One headless Chromium on Metal (--mute-audio, &mute=1), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -19,11 +20,12 @@ const URL_BASE = flag('url', 'http://localhost:4311');
 const OUT = resolvePath(ROOT, 'progress');
 mkdirSync(OUT, { recursive: true });
 const iphone = devices['iPhone 16 Pro'];
-const Q = ['chunk=pine-hollow', 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'tier=phone', 'touch', 'tod=day', 'clock=1e6', 'tracer=0'].join('&');
+const Q = ['chunk=pine-hollow', 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'tier=phone', 'touch', 'tod=day', 'clock=1e6'].join('&');
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const page = await (await browser.newContext({ userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } })).newPage();
+  await debugSettings(page, { tracers: false }); // E162: a saved Debug option, not a URL switch
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
   await page.goto(`${URL_BASE}/?${Q}`, { waitUntil: 'domcontentloaded' });

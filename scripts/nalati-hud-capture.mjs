@@ -8,7 +8,7 @@
 //                                        [--compose=lock,saddlelock,storm,boss,titan,spear]   (a contact sheet of shots already taken)
 //
 // Scenes (phone portrait 390×844 at 2×, touch, muted, Metal):
-//   foot    on foot, the bow held, crouched in long grass, a storm coming (?stormin) — vs D-foot.jpg
+//   foot    on foot, the bow held, crouched in long grass, a storm coming — vs D-foot.jpg
 //   saddle  galloping on the camp horse with the sabre, AQBARS THE PALE's banner (?elite=aqbars) — vs D-saddle.jpg
 //   lock    on foot with the sabre, LOCK on Kokbori's pack (H3)
 //   saddlelock   the same in the saddle

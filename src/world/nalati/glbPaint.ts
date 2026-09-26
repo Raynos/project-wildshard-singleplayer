@@ -13,7 +13,7 @@
  * every other painterly mesh, plus `sky.setupMaterial` for the CSM shadows. The phone tier loads `<name>.phone.glb`
  * (the 512² atlas). `rot` in a placement is the yaw about +y (0 = the model's front faces +Z).
  *
- * `modelsOn(part)` is the adoption flag the rocks, balbals and creatures read (`?models=0|1`; see below). The camp props
+ * `modelsOn(part)` is the adoption flag the rocks, balbals and creatures read (see below). The camp props
  * are always the models (modelProps.ts; E136, the user's pick).
  *
  * Model shading — "Driftwood's shading for generated models" (NALATI-MERGE L3; on since N20, the user's pick; look v2
@@ -32,6 +32,7 @@ import { painterlyMaterial, painterlyKnobs } from '../painterly';
 import type { Sky } from '../Sky';
 import { mapSlot, setSlot } from '../../core/shardState';
 import { MAY_KTX2 } from '../../boot/gpuFiles';
+import { setting } from '../../ui/Settings';
 
 export type NalatiModelName =
   | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
@@ -74,22 +75,16 @@ export interface ModelLook {
 /**
  * The adoption flags. By default the balbals and the rocks are the generated models; the yurts are procedural (the camp
  * orbit, 2026-09-23: the generated yurt's felt read stained up close; N20, the user's pick over NALATI-MERGE D1's Blender
- * yurt, whose model left the tree). The camp props have no switch: they are the models (E136, the user's pick; their
- * procedural twins are gone). `?models=0` → the rocks, balbals and creatures procedural, `?models=1` → every one a model,
- * `?creatures=glb` / `?creatures=proc` → the rigged creature GLBs
- * (src/entities/glbCreatures.ts, on by default since 2026-09-23; `proc` = the procedural creatures) alone.
+ * yurt, whose model left the tree). The camp props, rocks and balbals have no switch: they are the models (E136, the
+ * user's "keep the 3D models, procedural can go"; the procedural geometry stays only as the stand-in while a model loads).
+ * The creatures follow Debug ▸ Creatures (Models = the rigged GLBs, src/entities/glbCreatures.ts; Procedural = what the rig
+ * bakes need, scripts/nalati-rig-bake.mjs).
  */
 export type ModelPart = 'rocks' | 'balbal' | 'creatures';
 const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { rocks: true, balbal: true, creatures: true };
 
 export function modelsOn(part: ModelPart): boolean {
-  if (typeof location === 'undefined') return PART_DEFAULT[part];
-  const q = new URLSearchParams(location.search);
-  const all = q.get('models');
-  if (all === '0') return false;
-  if (part === 'creatures') { const c = q.get('creatures'); if (c === 'glb' || c === 'proc') return c === 'glb'; }
-  if (all === '1') return true;
-  return PART_DEFAULT[part];
+  return part === 'creatures' ? setting('creatures') !== 'proc' : PART_DEFAULT[part];
 }
 
 const DIR = '/assets/nalati/models/';

@@ -7,7 +7,6 @@ import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import { patchWindField } from './wind';
 import type { Sky } from './Sky';
-import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '../chunks/registry';
@@ -93,7 +92,7 @@ export class Grass {
   private tmpS = new THREE.Vector3();
   private tmpN = new THREE.Vector3();
   private tmpC = new THREE.Color();
-  /** × every tuft's colour: the chunk's boreal grass tint (PH-L1 round 3; `?ground=v1` = 1) */
+  /** × every tuft's colour: the chunk's boreal grass tint (PH-L1 round 3; 1 without a boreal set) */
   private tint = new THREE.Color(...(groundSet(getActiveChunk()).boreal?.grassTint ?? [1, 1, 1]));
   private zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
   private meshColor!: THREE.InstancedBufferAttribute;
@@ -130,7 +129,6 @@ export class Grass {
     // the sky's own objects (not copies): the day / night clock moves the sun by mutating them in place
     grassUniforms.uSunDir.value = this.sky.sunDir;
     grassUniforms.uSunColor.value = this.sky.sunColor;
-    noReflect(this.group);
     return this;
   }
 

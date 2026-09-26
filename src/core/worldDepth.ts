@@ -14,13 +14,10 @@
  * depth-only draw, LESS) — the effects see world + weapon exactly as if the weapon had been drawn without the clear. The
  * pixels, the draw order and the grade are untouched; the frame gains one draw (the merge, only while a viewmodel
  * cleared) and the composer's own post-pass blit becomes this pass's. No viewmodel shown (a menu, the golden-hour reward
- * view) = no clear = the plain blit, as before. `?aofix=0` builds the old pass (today's look, for A/B).
+ * view) = no clear = the plain blit, as before.
  */
 import * as THREE from 'three';
 import { RenderPass, type EffectComposer } from 'postprocessing';
-
-/** `?aofix=0`: the depth clear leaks into the post chain again (the pre-fix look, for A/B shots) */
-export const WORLD_DEPTH_FIX: boolean = typeof location === 'undefined' || new URLSearchParams(location.search).get('aofix') !== '0';
 
 /**
  * E142 (the 30-fps-at-2× lane): the depth slices. The blit above runs mid-pass — at the viewmodel's clear — and on a
@@ -94,7 +91,6 @@ export class WorldRenderPass extends RenderPass {
    */
   constructor(scene: THREE.Scene, camera: THREE.Camera, private readonly composer: EffectComposer, readonly slices = false) {
     super(scene, camera);
-    if (!WORLD_DEPTH_FIX) return;
     Reflect.set(this, 'needsDepthBlit', false); // this pass fills the stable depth itself (render below)
     const tri = new THREE.BufferGeometry();
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
@@ -136,7 +132,7 @@ export class WorldRenderPass extends RenderPass {
   }
 
   override render(renderer: THREE.WebGLRenderer, inputBuffer: THREE.WebGLRenderTarget | null, outputBuffer: THREE.WebGLRenderTarget | null, deltaTime?: number, stencilTest?: boolean): void {
-    const stable = WORLD_DEPTH_FIX ? this.stableTarget() : null;
+    const stable = this.stableTarget();
     if (stable === null || inputBuffer === null || this.renderToScreen) { super.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); return; }
     if (this.slices) {
       this.slice = 0;

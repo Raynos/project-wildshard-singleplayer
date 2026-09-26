@@ -9,7 +9,8 @@ from its mockup loop's frames.
 a shard with no file gets no LUT pass); the regions to scripts/palette-regions/<shard>.json; the predicted frames go to
 /tmp unless a pred dir is given.
 
-The captures must be taken WITHOUT the LUT (`&nolut`), with the shard's loop cameras (Driftwood:
+The captures must be taken WITHOUT the LUT (pause ▸ Settings ▸ Debug ▸ Look ▸ Learned LUT set to Off, or in a script
+localStorage `ws.settings.v1` = `{"learnedLut":"off"}` before the load), with the shard's loop cameras (Driftwood:
 art/driftwood-isle/round-4-remaster/README.md). Mockups and captures are not pixel-aligned (the mockups are
 recompositions), so the fit is per material, not per pixel:
 1. for every region of the shard's palette-regions JSON (same rectangles, same material filters) each capture pixel gets a

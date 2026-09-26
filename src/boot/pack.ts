@@ -19,7 +19,7 @@
  * so the next launch — and an offline one — reads it from the cache instead of downloading it again (E158: the bench's
  * Pine Hollow 4g/warm run re-downloaded the whole 18 MB pack).
  *
- * `?nopack=1` boots file by file (the per-file prefetch) — the A/B for this module.
+ * Debug ▸ Loading & memory ▸ Boot pack Off boots file by file (the per-file prefetch) — the A/B for this module.
  */
 import { DefaultLoadingManager } from 'three';
 import type { ChunkDef } from '../chunks/ChunkDef';

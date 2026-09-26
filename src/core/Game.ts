@@ -11,7 +11,7 @@ import { GradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG, frameCapFps, phoneCut } from './tier';
+import { TIER_CONFIG, frameCapFps, pinePhoneCuts } from './tier';
 import { installLookV2Fog } from '../nalati/look/fog';
 import { buildLookV2Chain } from '../nalati/look/grade';
 import { chunkShadowCasters } from '../world/shadowChunks';
@@ -44,7 +44,6 @@ export type FixedPhase = 'pre' | 'step' | 'post';
  * are black, which the SCREEN blend leaves as the image. So: while the sun's bounds are outside the camera's frustum (or
  * it is hidden, or the rays are at 0), the passes are skipped and the rays' target is cleared once. The same picture;
  * −0.06…−0.15 ms on the M5 at 1206×2622 at the six E142 poses (the sun was out of view at all of them).
- * `?rayskip=0` = the passes every frame.
  */
 function skipRaysOffscreen(rays: GodRaysEffect, camera: THREE.Camera, disc: THREE.Mesh): void {
   const update = rays.update.bind(rays);
@@ -203,13 +202,13 @@ export class Game {
   buildComposer(): void {
     if (getActiveChunk().style === 'painterly') { this._composer = buildLookV2Chain(this.renderer, this.scene, this.camera); return; } // Nalati: MSAA → the one grade (src/nalati/look/grade.ts)
     const { atmosphere: A } = getActiveChunk();
-    const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4) unless ?grade=v1
+    const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4)
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     // the scene pass keeps the world's depth for the depth readers below (AO, the volumetric march, the god rays' sun mask):
-    // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts; `?aofix=0` = the old pass)
+    // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts)
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
-    // depth needs no mid-pass copy (worldDepth.ts; `?depthslice=0` = the copy)
-    const slices = phoneCut('depthslice');
+    // depth needs no mid-pass copy (worldDepth.ts)
+    const slices = pinePhoneCuts();
     this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
@@ -272,7 +271,7 @@ export class Game {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
         exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
       });
-      if (!clean && phoneCut('rayskip')) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc);
+      if (!clean && pinePhoneCuts()) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc);
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
       const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
@@ -299,7 +298,7 @@ export class Game {
       bloom.luminanceMaterial.smoothing = 0.08; // bloom only what is really over 1.0 (the def's threshold): the sun, glints, glyphs, fireflies
       vignette.darkness = 0.35;
       // the learned LUT (X1, src/world/lut.ts) is the last grade step: the palette fitted to the mockups. Always on — the
-      // user locked it in (E85); only `?nolut` (the fit's own captures) builds without it
+      // user locked it in (E85); only Debug ▸ Look ▸ Learned LUT Off (the fit's own captures) builds without it
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
       return lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split);
     };
@@ -386,11 +385,9 @@ export class Game {
     // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
     // oxlint-disable-next-line typescript/no-deprecated -- the guard exists to migrate away from the deprecated value
     if (this.renderer.shadowMap.type === THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFShadowMap;
-    // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts; ?shadowpieces=0 = whole)
-    if (new URLSearchParams(location.search).get('shadowpieces') !== '0') {
-      const cut = chunkShadowCasters(this.scene);
-      if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
-    }
+    // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts)
+    const cut = chunkShadowCasters(this.scene);
+    if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
     const rt = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const { jobs, materials } = sceneJobs(this.scene, rt);
     jobs.push(...shadowJobs(this.scene, rt));

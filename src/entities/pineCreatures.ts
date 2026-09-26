@@ -1,7 +1,7 @@
 /**
  * pineCreatures — Pine Hollow's generated creature hulls (PINE-HOLLOW-REMASTER PH-M1 / PH-M2, Jake's PH-U11), pre-skinned
  * to the procedural species' own skeletons, so the species' bones, gaits and AI drive them. On by default in Pine Hollow;
- * `?creatures=proc` keeps the procedural fur animals (the fallback).
+ * Debug ▸ Creatures = Procedural keeps the procedural fur animals (the fallback; the rig bakes use it).
  *
  *   await preloadPineCreatures();                                   // the animals boot step: every rig, before a herd spawns
  *   const h = skinPineHull(kind, variant, bones, eyes);             // null → keep the procedural mesh
@@ -29,14 +29,15 @@ import { ELK_PALETTE } from './species/elk';
 import { BEAR_PALETTE } from './species/bear';
 import { mapSlot } from '../core/shardState';
 import { MAY_KTX2 } from '../boot/gpuFiles';
+import { setting } from '../ui/Settings';
 
 export type { PineRigName } from './pineCreatureRigs';
 
-/** Pine Hollow's creatures are the rigged hulls, unless `?creatures=proc` (or the shard isn't Pine Hollow) */
+/** Pine Hollow's creatures are the rigged hulls (PH-U11, Jake's pick), unless Debug ▸ Creatures = Procedural (the rig
+ *  bakes, scripts/creature-rig-bake.mjs, set it: they need the procedural skeletons) or the shard isn't Pine Hollow */
 export function pineCreaturesOn(): boolean {
   if (getActiveChunk().slug !== 'pine-hollow') return false;
-  if (typeof location === 'undefined') return true;
-  return new URLSearchParams(location.search).get('creatures') !== 'proc';
+  return setting('creatures') !== 'proc';
 }
 
 /** (kind:variant) → its hull; a variant missing here stays procedural */

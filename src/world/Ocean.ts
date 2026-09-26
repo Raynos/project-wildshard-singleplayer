@@ -10,8 +10,8 @@
  * One mesh: a grid 2.75 m fine (phone: 4 m) over the chunk (plus a margin) that coarsens geometrically out to ~4 km.
  * - **waves** (W3): four Gerstner waves from `waves.ts` — the same function the boat / swimmer / debris call in TS —
  *   damped over the sand. E151: the lighting and the grade read the waves' analytic normal per pixel (banded into a few
- *   hard-edged tones), not the grid facet's — the phone's 4 m cells drew as big light / dark triangles (`seaLook()`,
- *   `?sea=v1` = the faceted look).
+ *   hard-edged tones), not the grid facet's — the phone's 4 m cells drew as big light / dark triangles (the banded
+ *   look is the user's pick; the faceted and unbanded looks went in E162).
  * - **depth** (W1): a 512² sea-floor texture baked from the heightfield at build (R = floor height, G = obstacle
  *   proximity) — per-pixel depth with no depth pre-pass. Beer–Lambert: the water's opacity grows with the view path
  *   through it (depth / |V.y|), so the shallows are clear and the sand, coral and fish show from the pier, then turquoise,
@@ -35,20 +35,6 @@ import { toonUniforms } from './stylize';
 import { HORIZON_RADIUS } from './HorizonMatte';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
-
-/**
- * The sea's look (E151; the taste rule: the old look stays one flag away):
- *   (default)   smooth waves: the lighting, the facet grade, the fresnel and the glint read the waves' analytic normal per
- *               pixel, and the grade is quantised into a few hard-edged bands, so the swell draws as stylised contour
- *               bands instead of the grid's 4 m (phone) light / dark triangles
- *   ?sea=soft   the same smooth normal, the grade unbanded (a plain smooth gradient)
- *   ?sea=v1     the faceted sea before E151: every grid triangle flat-shaded and graded on its own
- */
-export type SeaLook = 'banded' | 'soft' | 'v1';
-export function seaLook(): SeaLook {
-  const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('sea');
-  return q === 'v1' || q === 'soft' ? q : 'banded';
-}
 
 /** an oriented collider box as the player uses them (`player.colliders`) */
 interface ColliderBox { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
@@ -120,9 +106,10 @@ export class Ocean {
       color: 0xffffff, flatShading: true, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide,
       transparent: true, premultipliedAlpha: true, depthWrite: true,
     });
-    const look = seaLook();
-    // no caustics on the surface itself (stylize.ts); SEA_FACETED = the pre-E151 per-facet look, SEA_BANDED = the banded grade
-    mat.defines = { OCEAN_SURFACE: '', ...(look === 'v1' ? { SEA_FACETED: '' } : look === 'banded' ? { SEA_BANDED: '' } : {}) };
+    // no caustics on the surface itself (stylize.ts). E151: the lighting, the grade, the fresnel and the glint read the
+    // waves' analytic normal per pixel, the grade quantised into a few hard-edged bands — the swell draws as stylised
+    // contour bands instead of the grid's 4 m (phone) light / dark triangles
+    mat.defines = { OCEAN_SURFACE: '' };
     mat.forceSinglePass = true; // a transparent DoubleSide material is otherwise drawn twice (back faces, then front)
     const shallow = new THREE.Vector3(...def.shallowColor), deep = new THREE.Vector3(...def.deepColor);
     mat.onBeforeCompile = (shader) => {
@@ -179,31 +166,21 @@ export class Ocean {
             float slope = length(vec2(hx - sea.r, hz - sea.r)) / tx;
             float shoreD = still / max(slope, 0.012);
             vec3 V = normalize(cameraPosition - vOceanW);
-            #ifdef SEA_FACETED
-            vec3 fn = normalize(cross(dFdx(vOceanW), dFdy(vOceanW))); fn *= sign(fn.y);
-            #else
             // E151: the waves' own normal at this pixel's rest point, not the grid facet's — no 4 m light / dark triangles
             vec3 fn = gerstnerNormal(vRest, uTime, vDamp);
-            #endif
             seaN = fn;
             // Beer–Lambert: opacity from the path through the water (steeper view = clearer)
             float path = col / max(abs(V.y), 0.22);
             float opac = 1.0 - exp(-path * 0.85);
             float t = smoothstep(0.0, 1.0, pow(clamp(still / uDeepDepth, 0.0, 1.0), 0.9));   // turquoise lagoon → cobalt, one smooth ramp
             vec3 water = mix(uShallow, uDeep, t);
-            #ifdef SEA_FACETED
-            water *= clamp(1.0 + fn.x * 4.2 + fn.z * 2.6, 0.58, 1.48);  // facet grade: every triangle reads
-            #else
             // the swell's grade from the smooth normal; banded, it steps in a few hard-edged tones (the toon look in colour,
             // not in the grid's triangles), 10 % a step. The smooth normal tilts far less than a 4 m facet did, so the grade is
             // 2.6× the old one (picked from 1.0 / 1.4 / 1.8 / 2.6 on the phone). fwidth keeps each step's edge one pixel wide
             float gr = (fn.x * 4.2 + fn.z * 2.6) * 2.6 / 0.1;
-            #ifdef SEA_BANDED
             float gw = clamp(fwidth(gr), 0.02, 0.5);
             gr = floor(gr) + smoothstep(0.5 - gw, 0.5 + gw, fract(gr));
-            #endif
             water *= clamp(1.0 + gr * 0.1, 0.58, 1.48);
-            #endif
             water = mix(water, water * vec3(0.12, 0.3, 0.75), uToonNight);   // a moonlit sea is deep teal-blue, not lagoon cyan
             // ── foam (W2): 2–3 thin broken lace lines along the shore, rings round what stands in the water, caps out deep ──
             float n = vnoise(vOceanW.xz * 0.55 + uTime * 0.15);
@@ -251,10 +228,8 @@ export class Ocean {
             }
           }`)
         .replace('#include <normal_fragment_begin>', /* glsl */`#include <normal_fragment_begin>
-          #ifndef SEA_FACETED
           normal = normalize((viewMatrix * vec4(seaN * faceDirection, 0.0)).xyz);   // E151: the toon lighting reads the smooth wave too
-          nonPerturbedNormal = normal;
-          #endif`)
+          nonPerturbedNormal = normal;`)
         .replace('#include <opaque_fragment>', /* glsl */`
           {
             // fade out over the last 300 m before the painted horizon, so the islands' feet stand on the sea's own far edge

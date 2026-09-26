@@ -10,12 +10,13 @@
 //   node scripts/creature-rig-bake.mjs --chunk=pine-hollow                 # every hull, desktop + phone
 //   node scripts/creature-rig-bake.mjs --chunk=pine-hollow --only=boar     # one hull
 //   --url=http://127.0.0.1:5176  (a vite dev server: the page imports /src/entities/creatureRigBake.ts; it runs with
-//   ?creatures=proc so the factory hands out the procedural models)   --tiers=desktop
+//   Debug ▸ Creatures = Procedural, set in ws.settings.v1, so the factory hands out the procedural models)   --tiers=desktop
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { realpathSync, statSync, readFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { debugSettings } from './debug-settings.mjs';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -146,8 +147,9 @@ try {
   for (const tier of TIERS) {
     const ctx = await browser.newContext({ viewport: { width: 480, height: 320 } });
     const page = await ctx.newPage();
+    await debugSettings(page, { creatures: 'proc' }); // E162: a saved Debug option, not a URL switch
     page.on('pageerror', (e) => console.log('  pageerror', e.message.slice(0, 200)));
-    const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', `tier=${tier}`, 'creatures=proc'].join('&');
+    const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', `tier=${tier}`].join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
     for (const job0 of CFG.jobs.filter((j) => only.length === 0 || only.includes(j.hull))) {

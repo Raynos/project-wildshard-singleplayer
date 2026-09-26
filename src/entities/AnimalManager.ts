@@ -15,7 +15,6 @@ import { FarHerd, type FarMember } from './farHerd';
 import { getActiveChunk } from '../chunks/registry';
 import { meleeShard } from '../chunks/ChunkDef';
 import { TIER_CONFIG } from '../core/tier';
-import { noReflect } from '../world/Water';
 import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
 import { AnimalGroup } from './animalMatrices';
@@ -390,7 +389,6 @@ export class AnimalManager {
 
   private finish(): this {
     this.group.add(this.farHerd.group, this.shadowHerd.group);
-    if (!TIER_CONFIG.reflectDetail) noReflect(this.group);
     this.scene.add(this.group);
     return this;
   }

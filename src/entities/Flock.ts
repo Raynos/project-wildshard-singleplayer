@@ -121,7 +121,7 @@ export class Flock {
     mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(this.homeX, this.py[0] ?? 0, this.homeZ), 30);
     this.mesh = mesh;
     this.writeInstances();
-    // ?creatures=glb: the generated sheep, baked onto the flock's parts (scripts/nalati-rig-bake.mjs), swapped in when
+    // Debug ▸ Creatures = Models (the default): the generated sheep, baked onto the flock's parts (scripts/nalati-rig-bake.mjs), swapped in when
     // it loads — the procedural flock stands in until then
     if (modelsOn('creatures')) loadCreatureRig('sheep').then((rig) => { this.useRig(rig, mat); return null; }).catch((e: unknown) => { console.warn('[nalati] sheep rig failed', e); });
     return this;

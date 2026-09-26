@@ -67,4 +67,4 @@ Blender once it has the lock.
 
 Sources are Poly Haven CC0 (fir_tree_01's sprays + bark, tree_small_02's leaves, pine_tree_01's twig, metasequoia_bark,
 bark_willow_02), cached in `~/.cache/wildshard-blender/trees-src/`. The game side is `src/world/treeSet.ts` (the GLB →
-plain float geometry, the bark array lookups) and `TreeFactory.buildSet`; `?trees=v1` keeps the runtime pines.
+plain float geometry, the bark array lookups) and `TreeFactory.buildSet`; a build without the set's files plants the runtime pines.

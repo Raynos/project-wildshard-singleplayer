@@ -5,7 +5,6 @@ import { smoothstep } from '../core/noise';
 import { heightAt, POND, waterLevel } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
-import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import { getActiveChunk } from '../chunks/registry';
 import { activeGrade } from './lookFlags';
@@ -72,7 +71,7 @@ export class Particles {
   private uPond = { value: new THREE.Vector3(POND.x, POND.z, POND.r) };
   private uMote = { value: 1.0 };
   private uMist = { value: 1.0 };
-  /** the look loop's daytime mist (ChunkLook.dayMist, PH-L1; `?grade=v1` = 1): × the mist while the sun stands high */
+  /** the look loop's daytime mist (ChunkLook.dayMist, PH-L1; 1 without a look layer): × the mist while the sun stands high */
   private dayMist = activeGrade(getActiveChunk()).look?.dayMist ?? 1;
   private needleOrigin!: THREE.InstancedBufferAttribute;
   private needleInfo!: THREE.InstancedBufferAttribute;
@@ -89,7 +88,6 @@ export class Particles {
     this.uSunDir.value = this.sky.sunDir;
     this.uSunColor.value = this.sky.sunColor;
     this.baseKeyI = Math.max(1e-3, this.sky.csm.lights[0]?.intensity ?? 1);
-    noReflect(this.group);
     this.motes = this.buildMotes();
     this.mist = this.buildMist();
     this.needles = this.buildNeedles();

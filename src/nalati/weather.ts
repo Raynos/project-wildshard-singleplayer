@@ -9,9 +9,9 @@
  *   w.clock    — DayClock: .phase ('dawn' | 'day' | 'golden' | 'dusk' | 'night'), .hour, .onDusk / onNight / onDawn(fn)
  *   w.weather  — Weather: .state, .stormActive, .onStrike(fn), .onPhase(fn), .hold (a boss fight), .force(phase)
  *
- * Dev params: `?time=dawn|day|noon|golden|dusk|night|midnight|<hour>` · `?timescale=<n>` (the clock runs n× fast) ·
+ * Dev params: `?time=dawn|day|noon|golden|dusk|night|midnight|<hour>` · Debug ▸ Sky & weather ▸ Clock speed (the clock runs n× fast) ·
  * `?clock=0` (freeze the clock) · `?weather=clear|building|gust|storm|clearing|after[:0..1]` (jump into a phase,
- * optionally part-way) · `?stormin=<s>` (the first storm's gust front in s seconds). `window.__weather` = the lot.
+ * optionally part-way). `window.__weather` = the lot.
  *
  * Hooks for other rows: B11 balbals `w.clock.onDusk(…)`, ghost riders `w.clock.onNight(…)`; B12 Qyran and B14 the
  * Storm Titan read `w.weather.stormActive` / `onPhase`; B13 sets `w.weather.hold = true` during a boss fight; the
@@ -33,6 +33,7 @@ import { waterOf } from './water';
 import { wildEnv } from '../entities/wildEnv';
 import { TIER } from '../core/tier';
 import { WEATHER_EVENT, type WeatherHUD } from '../ui/HUD';
+import { setting, onSettingChange } from '../ui/Settings';
 
 export interface WeatherCtx {
   game: Game; sky: Sky; player: Player; forest: Forest; colliders?: Collider[];
@@ -176,7 +177,9 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   const clock = def.sky.sun ? DayClock.forSun(def.sky.sun) : new DayClock();
   const tq = qs.get('time');
   if (tq) { const h = Number.parseFloat(tq); if (Number.isFinite(h)) clock.set(h); else if (isTimeName(tq)) clock.set(tq); }
-  clock.scale = Number.parseFloat(qs.get('timescale') ?? '1') || 1;
+  // Debug ▸ Sky & weather ▸ Clock speed (E162, live)
+  clock.scale = Number(setting('clockSpeed'));
+  onSettingChange('clockSpeed', (v) => { clock.scale = Number(v); });
   clock.paused = qs.get('clock') === '0';
 
   const rig = new SkyRig(game, sky);
@@ -211,8 +214,6 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
     const phase = STORM_PHASES.find((p) => p === ph);
     if (phase) weather.force(phase, Number.parseFloat(at) || 0);
   }
-  const sq = qs.get('stormin');
-  if (sq !== null && weather.state === 'clear') { weather.force('clear'); weather.phaseLen = Math.max(0, Number.parseFloat(sq) - 90); }
 
   const fx = new WeatherFX({ phone: TIER === 'phone', seed: def.seed }).build();
   game.scene.add(fx.group);

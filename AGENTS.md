@@ -16,13 +16,22 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
 
 - **Never add a query-string param** for a variant, a look, a tuning value or a feature toggle. Not "just for the
   A/B", not "temporary".
-- **Every variant goes in pause ▸ Settings ▸ Debug.** Add an `OPTION_VALUES` / `OPTION_SPECS` row in
-  `src/ui/Settings.ts` with no URL override (`params: [], url: () => null`) and a row in its Debug card; `setting()` /
-  `.on()` read it. `src/ui/Menu.ts` hosts the pause menu. E156's ground-cover rows are the pattern to copy.
+- **Every variant goes in pause ▸ Settings ▸ Debug, declared once in the registry** (E162, Jake: "we are going to have an
+  ungodly amount of toggles and we need to organize them"):
+  1. `src/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
+  2. `src/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note })` row in `DEBUG_ROWS`, under the
+     group whose domain it is. `when` shows it only on its shard / with its weapon; `reload: true` if the thing is built
+     once; `note` is one line with the ask id. `src/ui/DebugMenu.ts` renders it (collapsible groups, a filter) — no Menu.ts
+     edit. `test/debug-options.test.ts` fails an option with no row.
+  3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
+  4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).
+  - **Never add a new group without need.** The groups are Look · Ground cover & foliage · Sky & weather · Audio ·
+    Combat & weapons · Creatures & NPCs · Performance · Loading & memory · Developer tools; lighting, shadows, post and
+    water are Look. A new group is for a new domain with several rows, not for one toggle.
+  - When Jake picks a winner, delete the row, the option and the losing code in one commit (E136 / E162 style).
 - **The params the game may read are a fixed allowlist**, `lint/url-params.json`. `harness` is what the test, capture
   and bench scripts pass to drive the game headless (tier, touch, chunk, spawn, skipintro, mute, …). Adding to it needs
-  Jake's explicit OK. `legacy` is the old switches, grandfathered until they move to the debug menu (ask E162): only
-  ever remove from it.
+  Jake's explicit OK. `legacy` (the old switches, E162) is empty: never add to it.
 - **The lint enforces it.** `wildshard/no-url-switch` (`lint/wildshard-plugin.js`, on for `src/` except the `src/dev/`
   harness pages) refuses `.get` / `.has` / `.getAll` of any param not on the list, a param name it cannot read as a
   string, and raw `location.search` parsing. Don't disable it; move the variant to the menu.

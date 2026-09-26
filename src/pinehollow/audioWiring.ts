@@ -9,6 +9,7 @@ import { audioLog } from '../audio/audioLog';
 import {
   BEAR_CAVE, CREEK, HAMLET_SITES, LOOKOUT, OLD_GROWTH, RIDGE, RIDGE_STREAM, WATERFALL, ridgeFootZ, type XZ,
 } from '../chunks/pineHollowLayout';
+import { setting } from '../ui/Settings';
 
 /**
  * Pine Hollow's sound, hooked to its gameplay (PINE-HOLLOW-REMASTER A-rows, the audio-wiring lane). The sound lane made
@@ -17,7 +18,7 @@ import {
  *
  *   the clock        PineDayNight's `night` → the ambience's night beds (owls, crickets, the thralls' fog) and the music's
  *                    scene: calm-night past dusk, theme 1 by day (hysteresis 0.55 / 0.35; the King's fight owns the scene
- *                    while it runs; `?music=pine-*` pins it)
+ *                    while it runs; Debug ▸ Audio ▸ Pine Hollow score pins it)
  *   the elites       an engaged named elite keeps the score in combat (theme / night's tension stem up) while it lasts
  *   the zones        the layout's creek (along its bed + the ridge stream), the waterfall, the mill wheel (only while it turns),
  *                    ridge wind (the crest + the lookout, open sky), the old-growth hush, the bear cave's mouth
@@ -95,7 +96,7 @@ export function installPineAudio(h: PineAudioHost): void {
     };
   }
 
-  const pinned = (h.params.get('music') ?? '').startsWith('pine-');
+  const pinned = setting('pineScore') !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
   const prev = new WeakMap<Animal, Animal['state']>();
   let night = false, slowT = 0, snortAt = -99, elite = false, eliteT = 0;
   game.onUpdate((dt, t) => {

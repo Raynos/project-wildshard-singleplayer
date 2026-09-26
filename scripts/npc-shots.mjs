@@ -8,6 +8,7 @@
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -29,9 +30,10 @@ const shots = [];
 try {
   for (const [quest, kind] of SHOTS) {
     const page = await (await browser.newContext({ userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } })).newPage();
+    await debugSettings(page, { npcs: LOOK === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
     const errs = [];
     page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
-    const q = ['chunk=pine-hollow', 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'tier=phone', 'touch', `npcs=${LOOK}`, `quest=${quest}`, 'tod=day', 'clock=1e6'].join('&');
+    const q = ['chunk=pine-hollow', 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'tier=phone', 'touch', `quest=${quest}`, 'tod=day', 'clock=1e6'].join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction((k) => Boolean(window.__world?.game?.scene.getObjectByName(`npc-${k}`)), kind, { timeout: 300000, polling: 1000 });
     await page.waitForTimeout(4000);

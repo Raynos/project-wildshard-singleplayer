@@ -7,6 +7,7 @@
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -30,9 +31,10 @@ const shots = [];
 try {
   for (const phase of [1, 2, 3]) {
     const page = await (await browser.newContext(CTX)).newPage();
+    await debugSettings(page, { creatures: LOOK === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
     const errs = [];
     page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
-    const q = ['chunk=pine-hollow', 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', `tier=${TIER}`, TIER === 'phone' ? 'touch' : '', `creatures=${LOOK}`,
+    const q = ['chunk=pine-hollow', 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', `tier=${TIER}`, TIER === 'phone' ? 'touch' : '',
       'boss=antler-king', `bossPhase=${phase}`, 'bossGod=1', `from=${flag('from', '15')}`].filter(Boolean).join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.__world?.animals && window.__antlerKing), undefined, { timeout: 300000, polling: 1000 });

@@ -37,14 +37,15 @@ export interface PlantSpec { trunkRadius: number; height: number; species?: Tree
 
 /**
  * The Blender species set a shard plants (`ChunkTrees.set`), or null for the runtime pines — a shard without a set, or
- * `?trees=v1` (today's trees, kept selectable for the taste board), or (`has`: the byte table's lookup) a build that does
- * not have the set's files. Pure: the build's bakes call it with no `location`.
+ * (`has`: the byte table's lookup) a build that does not have the set's files, or scripts/bake-cards.mjs's page
+ * (`?bakecards`: it bakes the runtime pines' branch card, which a shard planting its set never builds). Pure: the build's
+ * bakes call it with no `location`.
  */
 export function treeSetOf(trees: { set?: string | undefined }, has?: (url: string) => boolean): string | null {
   if (trees.set === undefined) return null;
   if (has && !has(`/assets/models/${trees.set}/trees.glb`)) return null; // a build without the set's files: the runtime pines
   const q = typeof location === 'undefined' ? '' : location.search;
-  return new URLSearchParams(q).get('trees') === 'v1' ? null : trees.set;
+  return new URLSearchParams(q).has('bakecards') ? null : trees.set;
 }
 
 /** The variants placement plants for a shard's trees (the bakes; TreeFactory builds the same list with geometry). */

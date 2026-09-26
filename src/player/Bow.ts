@@ -6,7 +6,7 @@ import type { Player } from './Player';
 import type { Forest } from '../world/Forest';
 import { painterlyMaterial } from '../world/painterly';
 import { wind as worldWind } from '../world/steppeWind';
-import { getSetting, setSetting } from '../ui/Settings';
+import { getSetting } from '../ui/Settings';
 import { fovForAspect, FOV_HIP, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';
 import { BowDraw, DRAW_TIME, RENOCK_TIME } from './bowDraw';
@@ -86,8 +86,6 @@ const DAMAGE_SCALE = 1.2;        // × the bolt model's 32–40 → 38–48 at f
  *  magnifies; the look slows by 1 / AIM_ZOOM so the aim feels as heavy as it looks; sway × AIM_SWAY, spread × AIM_SPREAD */
 export const AIM_ZOOM = 2, AIM_VM_ZOOM = 0.85, AIM_SWAY = 0.5, AIM_SPREAD = 0.5, AIM_IN = 10;
 const ARC_MAX = 56, ARC_SPACING = 0.8, ARC_SKIP = 0.5, ARC_BLEND = 11, ARC_CYAN = 0x8fe3ff;
-const Q_ARC_PARAM = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('arc');
-if (Q_ARC_PARAM !== null) setSetting('huntersEye', Q_ARC_PARAM !== '0');
 
 export interface BowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface BowOptions { allowUnlocked?: boolean }

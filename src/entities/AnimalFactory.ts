@@ -325,7 +325,7 @@ export class AnimalFactory {
       const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
       geometry.clearGroups(); geometry.addGroup(0, count, 0);
       const mat = painterlyAnimalMaterial(this.sky, species.eyeGlow, species.eyeGlowIntensity);
-      // a generated hull skinned to this skeleton (?creatures=glb, glbCreatures.ts). While it is still loading the
+      // a generated hull skinned to this skeleton (Debug ▸ Creatures = Models, glbCreatures.ts). While it is still loading the
       // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
       const hullName = creatureHull(kind, v.id);
       const hull = hullName !== null ? skinCreatureGlb(kind, v.id, sp.bones) : null;
@@ -357,7 +357,7 @@ export class AnimalFactory {
     }
 
     const style: FurStyle = { ...species.fur, ...v.fur };
-    // a generated hull skinned to this skeleton (Pine Hollow PH-M1, pineCreatures.ts; `?creatures=proc` = the procedural
+    // a generated hull skinned to this skeleton (Pine Hollow PH-M1, pineCreatures.ts; Debug ▸ Creatures = Procedural = the procedural
     // animal): one group drawn with the same fur material over the hull's photoreal atlas (the variant's coat) + normal
     // map, so the program is the procedural fur's own; no fur shells
     const hull = skinPineHull(kind, v.id, sp.bones, eyes);

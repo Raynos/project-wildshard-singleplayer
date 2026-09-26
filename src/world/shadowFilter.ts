@@ -4,41 +4,22 @@
  * turns that 5-tap penumbra back into a hard line. The line follows the map's texel staircase, so the pier pennant's
  * shadow read as a saw ("super jagged", while the flag itself looks "10 times smoother"), and the dither frayed the edge.
  *
- * `soft`, the default, is Castaño's optimised PCF (The Witness; MJP's shadow sample; the tent that Unity's high-quality
- * soft shadows use). Hardware 2×2 compares are placed and weighted so that 16 taps are an exact 7×7-texel tent (9 taps a
+ * The filter is Castaño's optimised PCF (The Witness; MJP's shadow sample; the tent that Unity's high-quality soft
+ * shadows use). Hardware 2×2 compares are placed and weighted so that 16 taps are an exact 7×7-texel tent (9 taps a
  * 5×5, 4 taps a 3×3): a smooth, noise-free ramp whose 0.5 contour is a curve, not a staircase. A light picks its tent by
- * its `shadow.radius`: ≥ 1.5 is 7×7, ≥ 1 is 5×5, below that 3×3 (Sky.ts sets the radii per filter). Per tap it adds a
+ * its `shadow.radius`: ≥ 1.5 is 7×7, ≥ 1 is 5×5, below that 3×3 (Sky.ts sets the radii, SOFT_RADII). Per tap it adds a
  * receiver-plane depth bias (Isidoro 2006): the depth slope along the receiver, taken from screen derivatives of the
  * shadow coordinate and clamped. A wide kernel on a sloped deck then does not reach under its own surface and speckle.
+ * (E138 / E153: the user's pick — the tent-one-size-down, Poisson, VSM and three's own 5-tap alternatives went in E162.)
  *
- * `?pshadowfilter=` picks another at boot:
- *   `tent`    the same tents one size down (5×5 near, 3×3 far);
- *   `poisson` 16 Poisson taps rotated per pixel by interleaved gradient noise;
- *   `vsm`     three's variance shadow map;
- *   `cheap`   three's own 5-tap filter (the look before E138).
  * The filter is patched into three's shader chunk before anything compiles. It never switches mid-play: a switch would
  * recompile every material.
  */
 import * as THREE from 'three';
 
-export type ShadowFilter = 'soft' | 'tent' | 'poisson' | 'vsm' | 'cheap';
-const FILTERS: readonly ShadowFilter[] = ['soft', 'tent', 'poisson', 'vsm', 'cheap'];
-/** the phone's default (E138, the user: "do the shadows properly and not use like a cheap phone filter") */
-export const PHONE_SHADOW_FILTER: ShadowFilter = 'soft';
-
-/** the filter the URL asks for, else `fallback` */
-export function shadowFilterFromUrl(fallback: ShadowFilter): ShadowFilter {
-  const want = new URLSearchParams(location.search).get('pshadowfilter');
-  if (want === null) return fallback;
-  const hit = FILTERS.find((f) => f === want);
-  if (hit === undefined) console.warn(`[sky] ?pshadowfilter=${want}: not a filter (${FILTERS.join(' · ')})`);
-  return hit ?? fallback;
-}
-
-/** [near cascade, far cascade] `shadow.radius` per filter: the tent sizes above, or the disc radius in texels */
-export const FILTER_RADII: Record<ShadowFilter, readonly [number, number]> = {
-  soft: [1.5, 1], tent: [1, 0.6], poisson: [2.5, 1.2], vsm: [3, 2], cheap: [1.2, 0.6],
-};
+/** [near cascade, far cascade] `shadow.radius`: the 7×7 tent near, the 5×5 beyond (E138, the user: "do the shadows
+ *  properly and not use like a cheap phone filter") */
+export const SOFT_RADII: readonly [number, number] = [1.5, 1];
 
 /** three's 5-tap body of the 2D PCF getShadow (r186): from the texel size to the average */
 const PCF_BODY = /vec2 texelSize = vec2\( 1\.0 \) \/ shadowMapSize;[\s\S]*?\) \* 0\.2;/;
@@ -80,29 +61,13 @@ const TENT = /* glsl */`
 				}
 				#undef TENT_TAP`;
 
-const POISSON = /* glsl */`
-				// E138: 16 Poisson taps (hardware-compared, so each is a bilinear 2x2), rotated per pixel by interleaved gradient noise
-				const vec2 PD[ 16 ] = vec2[]( vec2( -0.94201624, -0.39906216 ), vec2( 0.94558609, -0.76890725 ), vec2( -0.09418410, -0.92938870 ),
-					vec2( 0.34495938, 0.29387760 ), vec2( -0.91588581, 0.45771432 ), vec2( -0.81544232, -0.87912464 ), vec2( -0.38277543, 0.27676845 ),
-					vec2( 0.97484398, 0.75648379 ), vec2( 0.44323325, -0.97511554 ), vec2( 0.53742981, -0.47373420 ), vec2( -0.26496911, -0.41893023 ),
-					vec2( 0.79197514, 0.19090188 ), vec2( -0.24188840, 0.99706507 ), vec2( -0.81409955, 0.91437590 ), vec2( 0.19984126, 0.78641367 ),
-					vec2( 0.14383161, -0.14100790 ) );
-				vec2 texelSize = vec2( 1.0 ) / shadowMapSize;
-				float phi = interleavedGradientNoise( gl_FragCoord.xy ) * PI2;
-				mat2 rot = mat2( cos( phi ), sin( phi ), -sin( phi ), cos( phi ) );
-				shadow = 0.0;
-				for ( int k = 0; k < 16; k ++ ) shadow += texture( shadowMap, vec3( shadowCoord.xy + rot * PD[ k ] * shadowRadius * texelSize, shadowCoord.z ) );
-				shadow *= 0.0625;`;
-
 /**
  * Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map
  * type the renderer must use.
  */
-export function installShadowFilter(filter: ShadowFilter): THREE.ShadowMapType {
-  if (filter === 'vsm') return THREE.VSMShadowMap;
-  if (filter === 'cheap') return THREE.PCFShadowMap;
+export function installShadowFilter(): THREE.ShadowMapType {
   const chunk = THREE.ShaderChunk.shadowmap_pars_fragment;
   if (!PCF_BODY.test(chunk)) { console.warn('[sky] shadowmap_pars_fragment changed: the E138 shadow filter is off'); return THREE.PCFShadowMap; }
-  THREE.ShaderChunk.shadowmap_pars_fragment = chunk.replace(PCF_BODY, filter === 'poisson' ? POISSON : TENT);
+  THREE.ShaderChunk.shadowmap_pars_fragment = chunk.replace(PCF_BODY, TENT);
   return THREE.PCFShadowMap;
 }

@@ -38,8 +38,9 @@ const { chromium } = await import('playwright');
 const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 try {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 720 } })).newPage();
-  // trees=v1: the runtime pine cards are the v1 trees' (a shard with a Blender species set, PH-B4, builds no runtime card)
-  await page.goto(`${URL_BASE}/?chunk=${SLUG}&tier=desktop&skipintro=1&nolock=1&nobake=1&bakecards=1&trees=v1`);
+  // bakecards also plants the runtime pines on a shard with a Blender species set (PH-B4; placement.ts treeSetOf), whose
+  // play build makes no runtime card
+  await page.goto(`${URL_BASE}/?chunk=${SLUG}&tier=desktop&skipintro=1&nolock=1&nobake=1&bakecards=1`);
   await page.waitForFunction(() => Boolean(window.__cardBake), null, { timeout: 120000 });
   const out = await page.evaluate(() => window.__cardBake);
   mkdirSync(dir, { recursive: true });

@@ -11,7 +11,7 @@ import { activePhysics } from '../physics/active';
 import { castSegment, sweepBall, sticksIn, type Hit } from '../physics/query';
 import type { Material } from '../physics/surface';
 import { CHUNK_HALF } from '../core/config';
-import { getSetting, setSetting } from '../ui/Settings';
+import { getSetting } from '../ui/Settings';
 import { makePixels, clamp01, sstep, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from './viewmodelTextures';
 // oxlint-disable-next-line import/default -- a Vite `?worker&inline` import: its default export is the worker constructor (typed by vite/client), which oxlint's resolver cannot see
 import TexturesWorker from './viewmodelTextures.worker?worker&inline';
@@ -112,12 +112,8 @@ const GLANCE_KEEP = 0.2, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9, GLANCE_LIFT = 0.0
  * trail of its whole flight path (drawn through trees: no depth test) and drops a red impact marker where it stopped;
  * trail + marker live TRACER_LIFE s then fade. A traced bolt that sticks keeps a permanent red dot on its nock.
  * Runtime toggle: the 'tracers' setting (pause menu, persisted) is read at fire time, so a flip applies to the next
- * shot; `?tracer=0` / `?tracer=1` writes it once at load.
+ * shot (a capture script saves it in ws.settings.v1 before the load, scripts/debug-settings.mjs).
  */
-{
-  const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('tracer');
-  if (q !== null) setSetting('tracers', q !== '0');
-}
 const MAX_TRACERS = 8, TRACER_POINTS = 2048, TRACER_LIFE = 6, TRACER_FADE = 1.5, TRACER_WIDTH = 8;
 /** markers + the flying glow are scaled with distance (never below 1×) so they stay ~25 px on screen at any range */
 const TRACER_PX = 0.32;

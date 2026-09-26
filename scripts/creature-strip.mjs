@@ -15,6 +15,7 @@
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -87,10 +88,11 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 try {
   const ctx = await browser.newContext({ viewport: { width: CW, height: CH }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
+  await debugSettings(page, { creatures: CREATURES === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   page.on('console', (m) => { if (m.type() === 'error' || m.text().includes('creature rig')) console.log('  page:', m.text().slice(0, 200)); });
-  const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'perf=0', `tier=${TIER}`, `creatures=${CREATURES}`, `x=${SPOT.x}`, `z=${SPOT.z + 30}`, CFG.q, EXTRA].filter(Boolean).join('&');
+  const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'perf=0', `tier=${TIER}`, `x=${SPOT.x}`, `z=${SPOT.z + 30}`, CFG.q, EXTRA].filter(Boolean).join('&');
   const t0 = Date.now();
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });

@@ -53,7 +53,7 @@ export function chunkFiles(def: ChunkDef, tex: TexMode = texMode()): ChunkFiles 
   // the splat layers are a texture array (loadPBRArray: KTX2 twins baked unflipped, gpuLayerUrl); the slab's rock a plain set
   const terrain = uniq([...(baked ? [baked] : []), ...groundSet(def).layers.flatMap(pbr).map((u) => gpuLayerUrl(u, tex)), ...pbr(def.assets.slabRock)]);
   const cards = bakedCardUrls(def.slug); // scripts/bake-cards.mjs output, when the build has it
-  const set = treeSetOf(def.trees, (u) => u in PUBLIC_BYTES); // PH-B4: the Blender species set (?trees=v1: the runtime pines)
+  const set = treeSetOf(def.trees, (u) => u in PUBLIC_BYTES); // PH-B4: the Blender species set
   const trees = set
     ? uniq([...treeSetFiles(set), ...BARK_LAYERS.flatMap(pbr).map((u) => gpuLayerUrl(u, tex))])
     : uniq([...(cards ? Object.values(cards) : []), ...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);

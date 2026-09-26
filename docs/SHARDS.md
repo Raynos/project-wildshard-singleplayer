@@ -156,7 +156,7 @@ the template so the dirt texture and prop placement follow the road.
 | `forest.*` | candidate spacing, clearing noise, slope limit, foliage HSL tint, big-variant share | see `Forest.place()` |
 | `fauna[]` | `AnimalManager` herd plans: kind, count, optional anchor ring, canopy vs clearing, trail band, `variants` | `kind` is any registered species (`src/entities/species/`: deer, boar, elk, bear, crab, monkey, sailor, captain); `FaunaKind` is `'deer' \| 'boar'` widened to any string, checked against the registry by `test/chunks.test.ts` |
 | `sky.hdri` | HDRI for IBL + background; the sun direction is its brightest pixel | stems in `public/assets/hdri/` |
-| `sky.sunColor/sunIntensity/envIntensity/bgIntensity` | CSM sun, environment and background strength | `?sunI= ?envI= ?bgI= ?hdri=` still override for tuning |
+| `sky.sunColor/sunIntensity/envIntensity/bgIntensity` | CSM sun, environment and background strength | |
 | `sky.fogSunColor`, `sky.cloudSunColor`, `sky.hemi*` | fog in-scatter tint, cloud layer tint, hemisphere fill | |
 | `atmosphere.fog*` | exponential height fog + distance fog (`Atmosphere.ts`, also read by `Volumetrics`, `Water`, `Particles`) | |
 | `atmosphere.volumetricSunColor` | god-ray colour | |
