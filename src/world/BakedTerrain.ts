@@ -66,7 +66,9 @@ export function bakedSamplers(g: BakedGrid): Pick<ChunkTerrain, 'heightAt' | 'no
     return [i, u - i];
   };
   const heightAt = (x: number, z: number): number => {
-    const [ix, fx] = cell(x), [iz, fz] = cell(z);
+    // cell() inlined: its [index, fraction] tuples were two arrays per call, and every system asks this (E186)
+    const ux = Math.min(res - 1, Math.max(0, (x + half) * inv)), uz = Math.min(res - 1, Math.max(0, (z + half) * inv));
+    const ix = Math.min(last, Math.floor(ux)), iz = Math.min(last, Math.floor(uz)), fx = ux - ix, fz = uz - iz;
     const i = iz * res + ix;
     const h00 = heights[i] ?? 0, h10 = heights[i + 1] ?? 0, h01 = heights[i + res] ?? 0, h11 = heights[i + res + 1] ?? 0;
     const a = h00 + (h10 - h00) * fx;

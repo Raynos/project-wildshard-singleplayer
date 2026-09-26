@@ -14,21 +14,23 @@ import type { Physics } from './Physics';
 import { groups } from './groups';
 import { tagCollider, untagCollider } from './surface';
 
-interface Mirror { body: RapierCollider; x: number; z: number; rot: number; hw: number; hd: number; yTop: number; yBottom: number }
+interface Mirror { body: RapierCollider; x: number; z: number; rot: number; hw: number; hd: number; yTop: number; yBottom: number; seen: number }
 
 export class ColliderBridge {
   private readonly mirrors = new Map<Collider, Mirror>();
-  private readonly seen = new Set<Collider>();
+  /** this sync's number: a mirror still in the list is stamped with it (E186: a Set cleared and refilled every fixed step
+   *  re-grew its table each time — garbage 60 times a second) */
+  private stamp = 0;
 
   constructor(private readonly physics: Physics, private readonly boxes: readonly Collider[]) {}
 
   sync(): void {
     const { R, world } = this.physics;
-    this.seen.clear();
+    const stamp = ++this.stamp;
     for (const b of this.boxes) {
-      this.seen.add(b);
       const m = this.mirrors.get(b);
       if (m && m.hw === b.hw && m.hd === b.hd && m.yTop === b.yTop && m.yBottom === b.yBottom) {
+        m.seen = stamp;
         if (m.x !== b.x || m.z !== b.z || m.rot !== b.rot) { place(m.body, b); m.x = b.x; m.z = b.z; m.rot = b.rot; }
         continue;
       }
@@ -37,13 +39,16 @@ export class ColliderBridge {
       const body = world.createCollider(R.ColliderDesc.cuboid(Math.max(0.005, b.hw), hy, Math.max(0.005, b.hd)).setCollisionGroups(groups('WORLD')));
       place(body, b);
       tagCollider(body, 'wood', b);
-      this.mirrors.set(b, { body, x: b.x, z: b.z, rot: b.rot, hw: b.hw, hd: b.hd, yTop: b.yTop, yBottom: b.yBottom });
+      this.mirrors.set(b, { body, x: b.x, z: b.z, rot: b.rot, hw: b.hw, hd: b.hd, yTop: b.yTop, yBottom: b.yBottom, seen: stamp });
     }
-    for (const [b, m] of this.mirrors) {
-      if (this.seen.has(b)) continue;
-      untagCollider(m.body); world.removeCollider(m.body, false); this.mirrors.delete(b);
-    }
+    this.mirrors.forEach(this.sweep); // not for…of: that made an [key, value] array per mirror per step
   }
+
+  /** drop a mirror whose box left the list (not stamped by this sync) */
+  private readonly sweep = (m: Mirror, b: Collider): void => {
+    if (m.seen === this.stamp) return;
+    untagCollider(m.body); this.physics.world.removeCollider(m.body, false); this.mirrors.delete(b);
+  };
 
   get count(): number { return this.mirrors.size; }
 }

@@ -34,7 +34,11 @@ const TAU = Math.PI * 2;
 /** displacement (dx, dy, dz) of the surface point whose rest position is (x, z) */
 export function waveDisplace(x: number, z: number, t: number, damp: number, out: { x: number; y: number; z: number }): { x: number; y: number; z: number } {
   let dx = 0, dy = 0, dz = 0;
-  for (const [wx, wz, a, len, speed, q] of WAVES) {
+  // an index loop: the destructuring for-of was garbage in every call (the boat, the floats, the foam — E186)
+  for (let w = 0; w < WAVES.length; w++) {
+    const wave = WAVES[w];
+    if (wave === undefined) continue;
+    const wx = wave[0], wz = wave[1], a = wave[2], len = wave[3], speed = wave[4], q = wave[5];
     const k = TAU / len;
     const ph = k * (wx * x + wz * z - speed * t);
     const c = Math.cos(ph), s = Math.sin(ph);

@@ -125,7 +125,7 @@ try {
       const frames = [], pending = [];
       const composer = g.composer, orig = composer.render.bind(composer);
       let lastEnd = performance.now(), prev = { ...C }, prevNear = cover?.nearRefillMs ?? 0, prevFarCount = cover?.farCount ?? 0, prevFarCells = cover?.farCells ?? 0, prevFarFrames = cover?.farJobFrames ?? 0;
-      let nearN = 0, farN = 0;
+      let nearN = cover?.nearRefills ?? 0, farN = cover?.farSwaps ?? 0, covUp = cover?.uploadBytes ?? 0;
       composer.render = (dt) => {
         if (ext) for (let q = pending[0]; q !== undefined; q = pending[0]) {
           if (!gl.getQueryParameter(q[0], gl.QUERY_RESULT_AVAILABLE)) break;
@@ -155,10 +155,10 @@ try {
           buf: C.buf - prev.buf, bufN: C.bufN - prev.bufN, bufMax: C.bufMax, tex: C.tex - prev.tex, links: C.links - prev.links, fb: C.fb - prev.fb, sync: C.sync - prev.sync,
           calls: g.renderer.info.render.calls, tris: g.renderer.info.render.triangles,
           heap: performance.memory ? performance.memory.usedJSHeapSize : 0,
-          near, farSwap, farJob: cover ? cover.farJobFrames : 0, fade: fade ? (fade.busy ? 1 : 0) : -1, top,
+          near, farSwap, farJob: cover ? cover.farJobFrames : 0, cov: (cover?.uploadBytes ?? 0) - covUp, fade: fade ? (fade.busy ? 1 : 0) : -1, top,
           x: Math.round(p.x * 10) / 10, z: Math.round(p.z * 10) / 10,
         });
-        C.bufMax = 0; prev = { ...C }; W.__e186cpu = 0; fixedMs = 0; lastEnd = t1;
+        covUp = cover?.uploadBytes ?? 0; C.bufMax = 0; prev = { ...C }; W.__e186cpu = 0; fixedMs = 0; lastEnd = t1;
       };
       // run the path: W + Shift, the yaw turned toward the next waypoint every frame
       let wi = 1;
