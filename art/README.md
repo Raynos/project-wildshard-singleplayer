@@ -38,6 +38,13 @@ when the images were generated.
 | `rocks/` | `round-2-b-final` (09-25) | E114 B (smooth painted) built and made the default: `board.jpg` (before `?rocks=now` / after, iPhone 3× captures: wreck reef, shore, spawn beach, tidepools, Explore Boulder), `{before,after}-*.jpg`, `mockup-vs-after-reef.jpg` — see its README |
 | `rocks/` | `round-3-blender-island` (09-25) | E114 the Blender spawn island's boulders + small rocks in B (crags stay): `board.jpg` (before / after / `?rocks=now`, 3 iPhone cameras), `{before,after,rocks-now}-{spawn,cluster,slope}.jpg` — see its README |
 | `driftwood-isle/` | `round-13-waterfall` (09-25) | E150 toon waterfall (audit T5): `board.jpg` (before `?waterfall=v1` / after, the audit camera + a close one, iPhone 3×), `{before,after}-{audit,close}.jpg`, `waterfall-before-after.mp4` (3 s, fixed camera) — see its README |
+| `nine-dragon-stack/` | `round-1-concept` (09-25) | E169 shard 4 concept art (codex): the 500 m cube key art, the nine-strata section, the spawn, the Yamen Well, the Crown, the Shelter Market, Old Street, the Neon Jian + Fei Zhua sheet, the cast; `contact-sheet.jpg` — see its README |
+| | `round-2-mockups` (09-25) | E169 spawn compositions A–D on the phone HUD (realism baseline; the HUD reference turned out stale — redone in round 6) |
+| | `round-3-art-styles` (09-25) | E169 the spawn in six styles (ink, gongbi, Chungking Express, shadow theatre, woodblock, neon-noir) — `board.jpg` |
+| | `round-4-jiehua-neon` (09-25) | E169 界画霓虹 Jiehua Neon (the research pick): spawn, gold-on-indigo, down the Well, dusk — `board.jpg`; `A-jiehua-spawn.jpg` is the look target |
+| | `round-5-cleanroom` (09-25) | E169 the from-scratch clean room (`dev/nine-dragon.html`) with the baseline HUD: `mockup-vs-cleanroom.jpg`, `v1-vs-v2.jpg`, `hud-*.jpg` |
+| | `round-6-baseline-hud` (09-25) | E169 rounds 2–4 redone on a fresh live capture of the baseline HUD: `board-styles.jpg` (A–F, Jake picked A), `board-compositions.jpg` (Jake picked A); `ref-live-*.jpg` |
+| | `round-7-lab-{ink,neon,facade,hero}` (09-25) | E169 look labs (throwaway prototypes, `dev/nd-lab-*.html`): loop sheets, `final.jpg`, README = LEARNINGS + integration |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
