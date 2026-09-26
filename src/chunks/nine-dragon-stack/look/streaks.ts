@@ -38,6 +38,7 @@ uniform vec3 uPlaneO;
 uniform vec3 uPlaneU;
 uniform vec3 uPlaneN;
 uniform vec4 uSpread; // x: tail toward the eye, y: tail away, z: width scale, w: min distance
+uniform vec4 uCardK; // x: card gain, also used by the vertex-stage visibility gate
 uniform float uCardOn;
 uniform float uLift;
 varying vec2 vC;
@@ -83,6 +84,7 @@ void main() {
   vec2 sideA = vec2(-axis.y, axis.x);
   float sM = D * c / (c + 0.5 * (hB + hT));
   vec2 xz = camL.xz + dir * sM + axis * (s - sM) + sideA * aCorner.x * halfW;
+  vec2 radial = dir;
   dir = axis;
   // (a stair flight's cards rise toward the nosing line as the view steepens: seen from above, a tread's whole top
   // carries the run, not only its back half)
@@ -104,6 +106,10 @@ void main() {
   // term under their overdraw)
   vFogT = silkFog(vWorld, 1.0).a;
   gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.0);
+  // (render, the spawn's dearest pass) a card too dim to see — a far lit window through the silk — is not drawn at all:
+  // judged once per card at its mirror point (every corner agrees), it collapses outside the clip volume
+  float fogM = silkFog(fromPlane(vec3(camL.x + radial.x * sM, 0.0, camL.z + radial.y * sM)), 1.0).a;
+  if (max(vCol.r, max(vCol.g, vCol.b)) * uCardK.x * fogM < 0.03) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 }
 `;
 const FS_CARD = /* glsl */ `
