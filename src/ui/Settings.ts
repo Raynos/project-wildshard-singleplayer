@@ -129,10 +129,6 @@ export const OPTION_VALUES = {
   shardCap: ['2', '1'],
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
-  // E189: Driftwood's post-chain debug cuts (Game.buildComposer; debugOptions.ts 'perf'): the warm iPhone's grass frame is
-  // 48 ms with the post chain, 17 without. The first value is today's; a reload (the chain is built once)
-  dwAa: ['smaa', 'fxaa'],
-  dwRays: ['on', 'off'],
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/boot/perflog.ts) — a reload
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
   learnedLut: ['on', 'off'],
@@ -166,7 +162,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
-  dwAa: DEBUG_ONLY, dwRays: DEBUG_ONLY, loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
@@ -184,7 +180,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   prefetch: option('prefetch'),
   tex: option('tex'),
   shardCap: option('shardCap'),
-  dwAa: option('dwAa'), dwRays: option('dwRays'), loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
+  loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   dwShadows: option('dwShadows'),

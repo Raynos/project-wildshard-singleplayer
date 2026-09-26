@@ -26,7 +26,6 @@ import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
-import { setting } from '../ui/Settings';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -325,11 +324,12 @@ export class Game {
     if (A.volumetric) vol.setMedium(A.volumetric);
     this.volumetrics = vol;
     // the colour chain, built by a factory: an Effect belongs to one EffectPass, so each chain gets its own instances
-    // E189 debug cuts (Debug ▸ Performance, Driftwood only, off = today): one FXAA pass instead of SMAA's three; the faint
-    // god rays left out
-    const lowpoly = getActiveChunk().style === 'lowpoly';
-    const fxaa = lowpoly && TIER_CONFIG.smaa !== 'off' && setting('dwAa') === 'fxaa' ? new FXAAEffect() : null;
-    const raysOn = !lowpoly || setting('dwRays') === 'on';
+    // E189 (Jake's picks from the before / after boards, progress/282–283, 2026-09-26: "no regression"): Driftwood's phone
+    // frame runs one FXAA pass on the graded frame instead of SMAA's three, and leaves out its faint (12 %) god rays. The
+    // warm iPhone's grass frame was 48 ms with the post chain and 17 without; desktop keeps SMAA and the rays
+    const dwPhone = getActiveChunk().style === 'lowpoly' && TIER === 'phone';
+    const fxaa = dwPhone && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null;
+    const raysOn = !dwPhone;
     const chain = (clean: boolean): EffectPass => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,

@@ -183,8 +183,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),
-  opt('dwAa', 'perf', 'Anti-aliasing', [['smaa', 'SMAA'], ['fxaa', 'FXAA']], { reload: true, when: driftwood, note: 'E189 debug cut · one FXAA pass instead of SMAA\'s three full-screen passes' }),
-  opt('dwRays', 'perf', 'God rays', ON_OFF, { reload: true, when: driftwood, note: 'E189 debug cut · the faint (12 %) god rays and their passes off' }),
   opt('loadProfile', 'perf', 'Load profiling', [['off', 'Off'], ['on', 'On']], { reload: true, note: 'load-perf · logs every shader program the load builds (window.__perfload)' }),
 
   // ── Loading & memory ──
