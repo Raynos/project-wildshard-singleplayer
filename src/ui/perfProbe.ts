@@ -13,6 +13,9 @@
  *   no HUD           the whole DOM HUD hidden (iOS compositing of the overlay)
  *   flat terrain     the ground's splat shader swapped for a flat-coloured lit material (the splat fetches + noise)
  *   no cards         the forest's needle cards hidden (the alpha-tested crown layers)
+ *   no cover …       (E189, Driftwood) the ground cover hidden: all of it, its near set, its far set; `no terrain` the island's
+ *                    terrain; `no viewmodel` the first-person hands and weapon. A row with nothing to hide on the shard is left out
+ *                    (as are `flat terrain` / `no cards` off Pine Hollow).
  *   no shadows       the shadow map not redrawn
  *   no post          the scene straight to the canvas (no colour chain, bloom, god rays, SMAA)
  *   no scene         nothing drawn but the post chain (the floor: JS + post + compositing)
@@ -32,7 +35,22 @@ export interface ProbeRow { phase: string; fps: number; frameMs: number; jsMs: n
 
 const SETTLE_MS = 1800, MEASURE_MS = 4500;
 
-interface Phase { name: string; set: (on: boolean) => void }
+interface Phase { name: string; set: (on: boolean) => void; /** false = nothing on this shard to switch: the row is left out */ applies?: () => boolean }
+
+/** the scene's top-level objects named `name` (Driftwood's 'ground-cover', 'blender-island') */
+function topNamed(scene: THREE.Object3D, name: string): THREE.Object3D[] { return scene.children.filter((o) => o.name === name); }
+
+/** a row that hides `targets()` while it runs (E189: the Driftwood rows) */
+function hideRow(name: string, targets: () => THREE.Object3D[]): Phase {
+  const hidden: THREE.Object3D[] = [];
+  return {
+    name, applies: () => targets().length > 0,
+    set: (on) => {
+      if (on) { for (const o of targets()) { if (o.visible) { o.visible = false; hidden.push(o); } } }
+      else { for (const o of hidden) o.visible = true; hidden.length = 0; }
+    },
+  };
+}
 
 /** the scene's visible meshes whose material's program key passes `key` (the terrain's 'terrain-splat*', the forest's 'needles*') */
 function meshesByProgram(scene: THREE.Object3D, key: (k: string) => boolean): THREE.Mesh[] {
@@ -75,18 +93,24 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
     { name: 'no HUD blur', set: (on) => { style.textContent = on ? '* { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }' : ''; } },
     { name: 'no HUD', set: (on) => { if (hud) hud.style.visibility = on ? 'hidden' : ''; } },
     {
-      name: 'flat terrain', set: (on) => {
+      name: 'flat terrain', applies: () => meshesByProgram(game.scene, (k) => k.startsWith('terrain-splat')).length > 0, set: (on) => {
         if (on) {
           for (const m of meshesByProgram(game.scene, (k) => k.startsWith('terrain-splat'))) { swapped.set(m, m.material); m.material = plain; }
         } else { for (const [m, mat] of swapped) m.material = mat; swapped.clear(); }
       },
     },
     {
-      name: 'no cards', set: (on) => {
+      name: 'no cards', applies: () => meshesByProgram(game.scene, (k) => k.startsWith('needles')).length > 0, set: (on) => {
         if (on) { for (const m of meshesByProgram(game.scene, (k) => k.startsWith('needles'))) { if (m.visible) { m.visible = false; hiddenCards.push(m); } } }
         else { for (const m of hiddenCards) m.visible = true; hiddenCards.length = 0; }
       },
     },
+    // E189 (Driftwood, the warm phone's grass frame): the ground cover, its near and far sets, the island's terrain, the viewmodel
+    hideRow('no cover', () => topNamed(game.scene, 'ground-cover')),
+    hideRow('no near cover', () => topNamed(game.scene, 'ground-cover').flatMap((g) => g.children.filter((o) => o.name.startsWith('ground-cover-') && !o.name.endsWith('-far') && !o.name.includes('driftwood')))),
+    hideRow('no far cover', () => topNamed(game.scene, 'ground-cover').flatMap((g) => g.children.filter((o) => o.name.endsWith('-far')))),
+    hideRow('no terrain', () => topNamed(game.scene, 'blender-island')),
+    hideRow('no viewmodel', () => [...game.camera.children]),
     { name: 'no shadows', set: (on) => { r.shadowMap.autoUpdate = !on; } },
     {
       name: 'no post', set: (on) => {
@@ -98,7 +122,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
   ];
   const rows: ProbeRow[] = [];
   try {
-    for (const [i, ph] of phases.entries()) {
+    for (const [i, ph] of phases.filter((x) => x.applies?.() ?? true).entries()) {
       // row 0 as played; every other row uncapped
       frameProbe.uncapped = i !== 0;
       ph.set(true);
@@ -124,5 +148,5 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
 /** the rows as fixed-width lines for the panel / console */
 export function probeLines(rows: readonly ProbeRow[], header: string): string[] {
   const pad = (s: string, n: number) => s.padEnd(n).slice(0, n);
-  return [header, `${pad('', 12)}  fps  frame   js  wait`, ...rows.map((x) => `${pad(x.phase, 12)} ${x.fps.toFixed(0).padStart(4)} ${x.frameMs.toFixed(1).padStart(6)} ${x.jsMs.toFixed(1).padStart(4)} ${x.waitMs.toFixed(1).padStart(5)}`)];
+  return [header, `${pad('', 14)}  fps  frame   js  wait`, ...rows.map((x) => `${pad(x.phase, 14)} ${x.fps.toFixed(0).padStart(4)} ${x.frameMs.toFixed(1).padStart(6)} ${x.jsMs.toFixed(1).padStart(4)} ${x.waitMs.toFixed(1).padStart(5)}`)];
 }
