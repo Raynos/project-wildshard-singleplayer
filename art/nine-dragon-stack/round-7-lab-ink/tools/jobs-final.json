@@ -1,0 +1,254 @@
+[
+ {
+  "name": "street",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "cam": 0
+ },
+ {
+  "name": "drop",
+  "shot": "drop",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "cam": 0
+ },
+ {
+  "name": "stair",
+  "shot": "stair",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "cam": 0
+ },
+ {
+  "name": "street-blue",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "blue"
+  },
+  "cam": 0
+ },
+ {
+  "name": "drop-blue",
+  "shot": "drop",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "blue"
+  },
+  "cam": 0
+ },
+ {
+  "name": "A-face-alpha",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "A-face-depth",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "depth",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "A-face-nosil",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "none",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "A-hard-nosil",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "none",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 1
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "B-bary-nosil",
+  "shot": "street",
+  "set": {
+   "lines": "bary",
+   "sil": "none",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "D-fat-nosil",
+  "shot": "street",
+  "set": {
+   "lines": "fat",
+   "sil": "none",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "E-post-sobel",
+  "shot": "street",
+  "set": {
+   "lines": "post",
+   "sil": "sobel",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "Z-none",
+  "shot": "street",
+  "set": {
+   "lines": "none",
+   "sil": "none",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "motion": true,
+  "speed": 0.07,
+  "bench": true
+ },
+ {
+  "name": "A-face-alpha-flat",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "flat",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "bench": true
+ },
+ {
+  "name": "Z-none-flat",
+  "shot": "street",
+  "set": {
+   "lines": "none",
+   "sil": "none",
+   "wash": "flat",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "bench": true
+ },
+ {
+  "name": "A-face-alpha-dpr2",
+  "shot": "street",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "bench": true,
+  "dpr": 2
+ },
+ {
+  "name": "drop-bench",
+  "shot": "drop",
+  "set": {
+   "lines": "face",
+   "sil": "alpha",
+   "wash": "painted",
+   "preset": "silk"
+  },
+  "u": {
+   "uHardLines": 0
+  },
+  "cam": 0,
+  "bench": true
+ }
+]
