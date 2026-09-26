@@ -487,7 +487,7 @@ export class HUD {
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
         label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, earlyAccess: false, explore: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
-        shots: t.screens && t.screens.length > 0 ? [{ portrait: t.heroPortrait, landscape: t.heroLandscape, caption: t.heroCaption ?? t.displayName }, ...t.screens] : [],
+        shots: t.screens && t.screens.length > 0 ? [{ portrait: t.heroPortrait, landscape: t.heroLandscape, thumb: t.thumbnail, caption: t.heroCaption ?? t.displayName }, ...t.screens] : [],
       })),
     ];
     const intro = el('div', 'ws-menu');
@@ -499,7 +499,7 @@ export class HUD {
       <div class="ws-menu-deck">
         <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
           <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
-            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.earlyAccess ? '<i class="ws-menu-card-exp ws-menu-card-ea">Early access</i>' : c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
+            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')">${c.shots.length > 1 ? '<span class="ws-menu-card-next"></span>' : ''}<i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.earlyAccess ? '<i class="ws-menu-card-exp ws-menu-card-ea">Early access</i>' : c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
         </div></div>
@@ -526,22 +526,39 @@ export class HUD {
     let shotAt = 0, shotTimer: number | undefined;
     const shotUrl = (s: TeaserShot): string => (portrait() ? s.portrait : s.landscape);
     const caption = (c: DeckCard, i: number): void => { shotText.textContent = c.shots[i]?.caption ?? ''; shotCount.textContent = `${i + 1} / ${c.shots.length}`; };
-    const stopShots = (): void => { if (shotTimer !== undefined) { clearInterval(shotTimer); shotTimer = undefined; } heroNext.classList.remove('show'); };
+    const cardImg = (i: number): { img: HTMLElement; next: HTMLElement } | null => {
+      const img = cardEls[i]?.querySelector<HTMLElement>('.ws-menu-card-img'), next = img?.querySelector<HTMLElement>('.ws-menu-card-next');
+      return img && next ? { img, next } : null;
+    };
+    let shotCard = -1; // the card whose picture the slideshow moved (put back to its own thumbnail when it stops)
+    const stopShots = (): void => {
+      if (shotTimer !== undefined) { clearInterval(shotTimer); shotTimer = undefined; }
+      heroNext.classList.remove('show');
+      const k = cardImg(shotCard), c = cards[shotCard];
+      if (k && c) { k.next.classList.remove('show'); k.img.style.backgroundImage = `url('${c.thumbnail}')`; }
+      shotCard = -1;
+    };
     const nextShot = (): void => {
       const c = cards[index];
       if (this.intro !== intro || !c || c.shots.length < 2) { stopShots(); return; }
       const i = (shotAt + 1) % c.shots.length, s = c.shots[i];
       if (!s) return;
-      const url = shotUrl(s), img = new Image();
-      img.src = url;
+      const url = shotUrl(s), img = new Image(), thumb = new Image();
+      img.src = url; thumb.src = s.thumb;
+      const at = index, k = cardImg(at);
       const show = async (): Promise<void> => {
-        try { await img.decode(); } catch { /* shown anyway: the backdrop paints it when it lands */ }
+        try { await Promise.all([img.decode(), thumb.decode()]); } catch { /* shown anyway: the backdrop paints it when it lands */ }
         if (this.intro !== intro || cards[index] !== c) return; // the player moved on while it decoded
-        shotAt = i;
+        shotAt = i; shotCard = at;
         heroNext.style.backgroundImage = `url('${url}')`;
         heroNext.classList.add('show');
+        if (k) { k.next.style.backgroundImage = `url('${s.thumb}')`; k.next.classList.add('show'); }
         caption(c, i);
-        setTimeout(() => { if (cards[index] === c) { hero.style.backgroundImage = `url('${url}')`; heroNext.classList.remove('show'); } }, SHOT_FADE_MS + 60);
+        setTimeout(() => {
+          if (cards[index] !== c) return;
+          hero.style.backgroundImage = `url('${url}')`; heroNext.classList.remove('show');
+          if (k) { k.img.style.backgroundImage = `url('${s.thumb}')`; k.next.classList.remove('show'); }
+        }, SHOT_FADE_MS + 60);
       };
       void show();
     };

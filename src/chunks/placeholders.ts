@@ -14,17 +14,23 @@ import ninePortrait from './thumbs/nine-dragon-stack-portrait.jpg';
 import nineLandscape from './thumbs/nine-dragon-stack-landscape.jpg';
 import nineWellEdgeP from './teasers/nine-dragon-stack/01-well-edge-portrait.jpg';
 import nineWellEdgeL from './teasers/nine-dragon-stack/01-well-edge-landscape.jpg';
+import nineWellEdgeT from './teasers/nine-dragon-stack/01-well-edge-thumb.jpg';
 import nineWellDownP from './teasers/nine-dragon-stack/02-well-down-portrait.jpg';
 import nineWellDownL from './teasers/nine-dragon-stack/02-well-down-landscape.jpg';
+import nineWellDownT from './teasers/nine-dragon-stack/02-well-down-thumb.jpg';
 import nineCanyonP from './teasers/nine-dragon-stack/03-canyon-up-portrait.jpg';
 import nineCanyonL from './teasers/nine-dragon-stack/03-canyon-up-landscape.jpg';
+import nineCanyonT from './teasers/nine-dragon-stack/03-canyon-up-thumb.jpg';
 import nineSutraP from './teasers/nine-dragon-stack/04-sutra-portrait.jpg';
 import nineSutraL from './teasers/nine-dragon-stack/04-sutra-landscape.jpg';
+import nineSutraT from './teasers/nine-dragon-stack/04-sutra-thumb.jpg';
 
 /** one more backdrop for a teaser's hero slideshow: the same scene in both orientations + what it shows */
 export interface TeaserShot {
   portrait: string;
   landscape: string;
+  /** the same scene at the card's 16:9 (640×360): the deck card crossfades with the backdrop */
+  thumb: string;
   /** the caption chip while it shows ("LANTERN SQUARE · +125 M") */
   caption: string;
 }
@@ -58,10 +64,10 @@ export const PLACEHOLDERS: ShardTeaser[] = [
     heroLandscape: nineLandscape,
     heroCaption: 'Lantern Square · +125 m',
     screens: [
-      { portrait: nineWellEdgeP, landscape: nineWellEdgeL, caption: 'The Yamen Well · 375 m down' },
-      { portrait: nineWellDownP, landscape: nineWellDownL, caption: 'Nine strata · silk fog' },
-      { portrait: nineCanyonP, landscape: nineCanyonL, caption: 'Toward the Crown · +250 m' },
-      { portrait: nineSutraP, landscape: nineSutraL, caption: 'The deep strata · gold on indigo' },
+      { portrait: nineWellEdgeP, landscape: nineWellEdgeL, thumb: nineWellEdgeT, caption: 'The Yamen Well · 375 m down' },
+      { portrait: nineWellDownP, landscape: nineWellDownL, thumb: nineWellDownT, caption: 'Nine strata · silk fog' },
+      { portrait: nineCanyonP, landscape: nineCanyonL, thumb: nineCanyonT, caption: 'Toward the Crown · +250 m' },
+      { portrait: nineSutraP, landscape: nineSutraL, thumb: nineSutraT, caption: 'The deep strata · gold on indigo' },
     ],
   },
 ];
