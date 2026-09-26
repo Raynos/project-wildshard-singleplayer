@@ -28,6 +28,7 @@
  * waited for). A row that drops `wait` a lot names the bottleneck. Nothing is saved: every switch is restored at the end.
  */
 import * as THREE from 'three';
+import { BlendFunction, type Effect, type Pass } from 'postprocessing';
 import type { Game } from '../core/Game';
 import { frameProbe } from '../core/tier';
 
@@ -39,6 +40,55 @@ interface Phase { name: string; set: (on: boolean) => void; /** false = nothing 
 
 /** the scene's top-level objects named `name` (Driftwood's 'ground-cover', 'blender-island') */
 function topNamed(scene: THREE.Object3D, name: string): THREE.Object3D[] { return scene.children.filter((o) => o.name === name); }
+
+/** a pass's effects (postprocessing keeps EffectPass.effects private); [] for a pass without */
+function effectsOf(pass: Pass): Effect[] {
+  const e: unknown = Reflect.get(pass, 'effects');
+  return Array.isArray(e) ? e.filter((x): x is Effect => typeof x === 'object' && x !== null && 'blendMode' in x) : [];
+}
+
+/**
+ * A row that leaves the post chain's effects matching `pick` out (E189: the warm iPhone's grass frame is 48 ms with the post
+ * chain, 17 without, and only 40–44 with any one scene system off — which effect is it?). The effect leaves the fused shader
+ * (BlendFunction.SKIP: the pass recompiles once, in the row's settle) and its own passes stop (its `update`: bloom's mip
+ * chain, the god rays' light pass and blur).
+ */
+function effectRow(name: string, passes: readonly Pass[], pick: (e: Effect) => boolean): Phase {
+  // an effect's own `update` (the god rays' off-screen skip sets one), else the prototype's: put back exactly what was there
+  const saved: { e: Effect; bf: BlendFunction; own: boolean; update: unknown }[] = [];
+  const targets = (): Effect[] => passes.flatMap(effectsOf).filter(pick);
+  return {
+    name, applies: () => targets().length > 0,
+    set: (on) => {
+      if (on) {
+        for (const e of targets()) {
+          saved.push({ e, bf: e.blendMode.blendFunction, own: Object.hasOwn(e, 'update'), update: Reflect.get(e, 'update') });
+          Reflect.set(e, 'update', () => undefined);
+          e.blendMode.blendFunction = BlendFunction.SKIP;
+        }
+      } else {
+        for (const x of saved) {
+          if (x.own) Reflect.set(x.e, 'update', x.update); else Reflect.deleteProperty(x.e, 'update');
+          x.e.blendMode.blendFunction = x.bf;
+        }
+        saved.length = 0;
+      }
+    },
+  };
+}
+
+/** a row that switches the last pass off (SMAA) and hands the screen to the pass before it */
+function lastPassRow(name: string, passes: readonly Pass[], pick: (p: Pass) => boolean): Phase {
+  const last = (): Pass | undefined => passes[passes.length - 1];
+  return {
+    name, applies: () => { const l = last(); return l !== undefined && passes.length > 1 && pick(l); },
+    set: (on) => {
+      const l = last(), prev = passes[passes.length - 2];
+      if (l === undefined || prev === undefined) return;
+      l.enabled = !on; prev.renderToScreen = on; l.renderToScreen = !on;
+    },
+  };
+}
 
 /** a row that hides `targets()` while it runs (E189: the Driftwood rows) */
 function hideRow(name: string, targets: () => THREE.Object3D[]): Phase {
@@ -112,6 +162,11 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
     hideRow('no terrain', () => topNamed(game.scene, 'blender-island')),
     hideRow('no viewmodel', () => [...game.camera.children]),
     { name: 'no shadows', set: (on) => { r.shadowMap.autoUpdate = !on; } },
+    // E189: the post chain one part at a time (the effects by their class names, as the bundle keeps them)
+    lastPassRow('no SMAA', passes, (p) => effectsOf(p).some((e) => e.name === 'SMAAEffect')),
+    effectRow('no bloom', passes, (e) => e.name === 'BloomEffect'),
+    effectRow('no god rays', passes, (e) => e.name === 'GodRaysEffect'),
+    effectRow('no grade', passes, (e) => ['ToneMappingEffect', 'HueSaturationEffect', 'BrightnessContrastEffect', 'VignetteEffect', 'LUT3DEffect', 'GradeEffect'].includes(e.name)),
     {
       name: 'no post', set: (on) => {
         for (const p of passes) if (p !== first) p.enabled = !on;
