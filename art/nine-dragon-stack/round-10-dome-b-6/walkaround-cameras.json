@@ -1,0 +1,134 @@
+[
+ {
+  "name": "o01",
+  "at": [
+   4,
+   125,
+   -8
+  ],
+  "yaw": 29.1,
+  "pitch": 14.4,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o02",
+  "at": [
+   8,
+   125,
+   -10
+  ],
+  "yaw": 16.9,
+  "pitch": 18.1,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o03",
+  "at": [
+   14,
+   125,
+   -8
+  ],
+  "yaw": -10.5,
+  "pitch": 16.0,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o04",
+  "at": [
+   19,
+   125,
+   -9
+  ],
+  "yaw": -31.0,
+  "pitch": 15.1,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o05",
+  "at": [
+   21,
+   125,
+   -13
+  ],
+  "yaw": -48.2,
+  "pitch": 17.1,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o06",
+  "at": [
+   13.2,
+   125,
+   -22.5
+  ],
+  "yaw": -120.5,
+  "pitch": 54.8,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o07",
+  "at": [
+   9.9,
+   125,
+   -28
+  ],
+  "yaw": 166.2,
+  "pitch": 29.4,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o08",
+  "at": [
+   6,
+   125,
+   -32
+  ],
+  "yaw": 152.4,
+  "pitch": 18.3,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o09",
+  "at": [
+   2.5,
+   125,
+   -28
+  ],
+  "yaw": 125.8,
+  "pitch": 19.4,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o10",
+  "at": [
+   2.2,
+   125,
+   -22
+  ],
+  "yaw": 93.1,
+  "pitch": 22.6,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o11",
+  "at": [
+   1.8,
+   125,
+   -15
+  ],
+  "yaw": 56.2,
+  "pitch": 18.5,
+  "hfovPortrait": 64
+ },
+ {
+  "name": "o12",
+  "at": [
+   12.5,
+   125,
+   -14.5
+  ],
+  "yaw": -8.1,
+  "pitch": 28.2,
+  "hfovPortrait": 64
+ }
+]

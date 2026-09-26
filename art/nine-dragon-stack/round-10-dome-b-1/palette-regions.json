@@ -1,0 +1,20 @@
+{
+ "shard": "nine-dragon-stack",
+ "about": "E169 dome B: the colour regions of the 9 dome-B cameras (round-10-dome-b-<n>/capture-<k>.jpg vs round-10-dome-b-1/target-<k>.jpg; 1-6 FP portrait, 7-9 aerial). material -> [[frame, [x0, y0, x1, y1]]] normalised; the filters pick the material out of each rectangle.",
+ "regions": {
+  "cinnabar": [[1, [0.15, 0.3, 0.75, 0.65]], [3, [0.7, 0.1, 1.0, 0.6]], [6, [0.0, 0.55, 0.8, 1.0]], [7, [0.25, 0.25, 0.6, 0.7]], [9, [0.3, 0.2, 0.65, 0.7]]],
+  "canopy": [[2, [0.0, 0.0, 1.0, 0.45]], [6, [0.5, 0.4, 1.0, 0.8]], [7, [0.45, 0.2, 0.7, 0.5]], [9, [0.6, 0.2, 1.0, 0.6]]],
+  "roof tiles": [[7, [0.2, 0.0, 0.55, 0.35]], [8, [0.2, 0.1, 0.6, 0.55]], [9, [0.3, 0.0, 0.7, 0.3]], [1, [0.0, 0.1, 1.0, 0.3]]],
+  "stone": [[1, [0.0, 0.55, 1.0, 0.72]], [2, [0.1, 0.55, 0.9, 0.75]], [3, [0.7, 0.45, 1.0, 0.65]]],
+  "stall light": [[4, [0.0, 0.55, 0.5, 0.8]], [2, [0.6, 0.45, 1.0, 0.65]]]
+ },
+ "filters": {
+  "cinnabar": [0, 14, 0.4, 0.2, 0.95],
+  "canopy": [70, 170, 0.08, 0.05, 0.8],
+  "roof tiles": [140, 200, 0.2, 0.12, 0.9],
+  "stone": [0, 360, 0.0, 0.15, 0.8, 0.18],
+  "stall light": [18, 50, 0.3, 0.45, 1.0]
+ },
+ "fitWeights": {},
+ "greyAnchor": 3.0
+}
