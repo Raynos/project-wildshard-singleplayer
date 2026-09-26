@@ -36,7 +36,7 @@ export const SQUARE_BOX: VolumeBox = { min: new Vector3(-30, 123, -175), max: ne
 export const WELL_BOX: VolumeBox = { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 };
 
 /** E is stored as √(E / MAX): MAX is the brightest irradiance the volume holds */
-export const LP_MAX = 6;
+export const LP_MAX = 12;
 
 function blank(): Data3DTexture {
   const t = new Data3DTexture(new Uint8Array([0, 0, 0, 128]), 1, 1, 1);
@@ -51,6 +51,8 @@ export function lightVolUniforms(): {
   uLpGain: { value: Vector4 };
   uLpSky: { value: number };
   uLpAmb: { value: number };
+  uLpSpec: { value: Vector4 };
+  uLpRim: { value: Vector4 };
 } {
   return {
     uLpVolA: { value: blank() }, uLpMinA: { value: new Vector3() }, uLpInvA: { value: new Vector3() },
@@ -63,6 +65,13 @@ export function lightVolUniforms(): {
     /** the blue-hour AMBIENT: the sky light on every non-emissive wash (1 = the clean room). Emitters, pools and ink
      *  are not scaled, so a lower ambient makes the lights read as light */
     uLpAmb: { value: 1 },
+    /** (render) the lamplight's glossy lobe: the light field read along the reflection (x gain, y / z the two read
+     *  distances, m) on lacquer, wet stone and wet decks; w: how far the diffuse pool keeps its warmth off a grey wash
+     *  (0 = albedo × light as the clean room, 1 = the light's own colour at the wash's brightness) */
+    uLpSpec: { value: new Vector4(1, 0.9, 2.6, 0.45) },
+    /** (render) the rim: an edge turned away from the eye catches the light BEHIND it (x gain, y how far behind, m,
+     *  z the rim's power) — the crowd against the lit stall, the posts against the lanterns, wet lips against neon */
+    uLpRim: { value: new Vector4(0.8, 1.2, 3, 0) },
   };
 }
 
@@ -151,6 +160,8 @@ uniform vec3 uLpInvB;
 uniform vec4 uLpGain;
 uniform float uLpSky;
 uniform float uLpAmb;
+uniform vec4 uLpSpec;
+uniform vec4 uLpRim;
 vec4 lpSample(highp sampler3D v, vec3 wp, vec3 mn, vec3 iv) {
   vec3 t = (wp - mn) * iv;
   if (any(lessThan(t, vec3(0.0))) || any(greaterThan(t, vec3(1.0)))) return vec4(0.0, 0.0, 0.0, 0.5);
@@ -167,5 +178,31 @@ vec3 poolLight(vec3 wp, vec3 n) {
              + fDown * clamp(0.6 - n.y * 0.6, 0.15, 1.0)
              + fLevel * (abs(n.y) < 0.5 ? 1.0 : 0.85);
   return E * face;
+}
+// (render) the raw irradiance at a point (no facing): what a glossy surface sees of the pools along its reflection
+vec3 lpRaw(vec3 wp) {
+  vec4 s = wp.y > uLpMinA.y ? lpSample(uLpVolA, wp, uLpMinA, uLpInvA) : lpSample(uLpVolB, wp, uLpMinB, uLpInvB);
+  return s.rgb * s.rgb * ${LP_MAX.toFixed(1)};
+}
+// (render) the lamplight's glossy lobe: the light field read at two points along the reflection vector R. A lantern
+// above a wet flagstone lights the stone's sheen where the reflection points at it (the view-dependent specular the
+// diffuse pool lacks); on the paifang's lacquer the lanterns in front of it glint along its posts and beams
+vec3 poolSpec(vec3 wp, vec3 R) {
+  if (uLpGain.w < 0.5 || uLpSpec.x <= 0.0) return vec3(0.0);
+  return (lpRaw(wp + R * uLpSpec.y) * 0.6 + lpRaw(wp + R * uLpSpec.z) * 0.4) * uLpSpec.x;
+}
+// (render) the rim light: at a grazing edge the light field just behind the surface (away from the eye) wraps it
+vec3 poolRim(vec3 wp, vec3 n, vec3 V) {
+  if (uLpGain.w < 0.5 || uLpRim.x <= 0.0) return vec3(0.0);
+  float e = pow(1.0 - clamp(dot(n, V), 0.0, 1.0), uLpRim.z);
+  if (e < 0.01) return vec3(0.0);
+  return lpRaw(wp - V * uLpRim.y + n * 0.2) * e * uLpRim.x;
+}
+// (render) the diffuse pool's albedo: the wash's colour pulled toward its own brightness so a warm light on grey stone
+// reads warm (albedo × amber on a blue-grey wash was a dull brown)
+vec3 poolAlbedo(vec3 col) {
+  float mx = max(col.r, max(col.g, col.b)), sat = (mx - min(col.r, min(col.g, col.b))) / max(mx, 1e-4);
+  // only the grey washes: a lacquer's red stays its own deep red under the lanterns
+  return mix(col, vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))) * 1.15, uLpSpec.w * (1.0 - smoothstep(0.2, 0.5, sat)));
 }
 `;

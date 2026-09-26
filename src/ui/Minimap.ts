@@ -463,6 +463,7 @@ export class Minimap {
     const ocean = chunk.ocean ?? null; // open-water shard: sea by depth, sand where the floor breaks the surface, no forest
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
     const painted = chunk.style === 'painterly';   // Nalati: its own palette (nalatiGround), its names, no pines / cabins
+    const bareGround = chunk.map?.ground ?? null;  // a structure-first shard: a flat void under its built world (ChunkMapDef.ground)
     const spruce = painted ? chunk.forest.mask : undefined;
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
@@ -477,7 +478,9 @@ export class Minimap {
       const hij = h[c] ?? 0;
       const alt = (hij - hMin) / Math.max(1, hMax - hMin);
       let sh = shade;
-      if (painted) {
+      if (bareGround) {
+        col[0] = bareGround[0]; col[1] = bareGround[1]; col[2] = bareGround[2]; sh = 1;
+      } else if (painted) {
         nalatiGround(wx, wz, hij, slope, spruce?.(wx, wz) ?? 0, col);
       } else if (ocean) {
         const depth = ocean.level - hij;
@@ -531,7 +534,7 @@ export class Minimap {
       }
       return;
     }
-    if (ocean) { this.paintBuilt(ctx, toU, toV, ppm, px, k); return; } // the piers, the paths, the island's buildings: all from ChunkDef.map
+    if (ocean || bareGround) { this.paintBuilt(ctx, toU, toV, ppm, px, k); return; } // the piers, the paths, the island's buildings: all from ChunkDef.map
     // trails: a dark bed with a lighter dirt centre
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const stroke = (w: number, style: string): void => {

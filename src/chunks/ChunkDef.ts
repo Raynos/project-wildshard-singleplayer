@@ -29,6 +29,10 @@ import type { VolumetricsEffect } from '../core/Volumetrics';
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { SpeciesWeights } from '../world/treeSpecies';
 import type { WorldRegistry } from '../world/registry';
+import type { SwordFraming, SwordMoveSet, SwordRig } from '../player/Sword';
+
+/** a shard's own sword (ChunkDef.sword): the engine Sword's rig, moves and portrait framing */
+export interface ShardSword { rig: SwordRig; moves?: SwordMoveSet; framing?: Partial<SwordFraming>; portraitPullX?: number }
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
 export type Vec2 = [number, number];
@@ -530,6 +534,12 @@ export interface ChunkDef {
   render?: () => Promise<ShardRender>;
   /** a structure-first shard: its world is built, not a landscape (`ChunkStructures`); omitted = a landscape shard */
   structures?: ChunkStructures;
+  /** `weapon: 'sword'`: the shard's own sword for the engine's Sword — its viewmodel (`rig`), and optionally its moves (the
+   *  rest pose) and portrait framing; a lazy loader, so the def stays node-safe. Omitted = the wooden sword */
+  sword?: () => Promise<ShardSword>;
+  /** the first person's field of view: `portrait` = the sword's hip FOV base on a portrait screen before Hor+ (degrees;
+   *  the engine's 72° gives ~94° vertical / ~52° across at 9:19.5); omitted = the engine's */
+  fov?: { portrait: number };
 }
 
 /**
@@ -542,6 +552,9 @@ export interface ChunkMapDef {
   /** registry piece ids (a trailing `*` matches a prefix: `jetty-*`), each drawn in a look: a flat footprint in that material's
    *  colour, or `dot` (a tree crown: one small dot per collider) */
   pieces?: { ids: string[]; look: MapLook }[];
+  /** the ground's colour (0..255 sRGB) where nothing is built — a structure-first shard's void (the shaft, the air between
+   *  the towers): the maps paint it flat and draw only the built world over it; omitted = the landscape, hill-shaded */
+  ground?: [number, number, number];
 }
 export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 

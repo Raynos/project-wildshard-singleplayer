@@ -94,7 +94,12 @@ export interface SwordRig {
   sword: THREE.BufferGeometry; arms: THREE.BufferGeometry; tipY: number; baseY: number; tipX?: number; material: THREE.Material;
   /** more meshes riding the sword rig with their own material (the sabre's steel + gold: meleeGeo.steelMaterial) */
   extras?: { geometry: THREE.BufferGeometry; material: THREE.Material }[];
+  /** the off hand, held still in camera space (Nine Dragon Stack's Fei Zhua gauntlet on the left): drawn with the viewmodel,
+   *  not swung with the sword */
+  left?: { geometry: THREE.BufferGeometry; material: THREE.Material; pos: THREE.Vector3; q: THREE.Quaternion };
 }
+/** the portrait framing (Sword.framing): shrink, extra drop / slide (m, camera space), the blade tipped forward and turned (rad) */
+export interface SwordFraming { shrink: number; dx: number; dy: number; tilt: number; yaw: number }
 /** the poses + moves a rig swings (default: SwordMoves.ts's REST / CHARGE / SPRINT / COMBO / HEAVY) */
 export interface SwordMoveSet { rest: Key; charge: Key; sprint: Key; combo: Move[]; heavy: Move }
 export interface SwordOptions {
@@ -103,6 +108,10 @@ export interface SwordOptions {
   rig?: SwordRig; moves?: SwordMoveSet; damage?: number; reach?: number;
   /** portrait phone: how far the hands are pulled in from the right (× portrait; default 0.32) — the sabre pulls further, clear of the Nalati discs */
   portraitPullX?: number;
+  /** portrait screens: the hip FOV's base before Hor+ (ChunkDef.fov.portrait; default FOV_HIP, 72° → ~94° vertical at 9:19.5) */
+  portraitFov?: number;
+  /** the portrait framing, over the wooden sword's (a rig posed for portrait by its own rest key sets it neutral) */
+  framing?: Partial<SwordFraming>;
 }
 
 const DAMAGE_WOOD = 12, DAMAGE_IRON = 28;
@@ -377,6 +386,7 @@ export class Sword implements Weapon {
   readonly hasAmmo = false;
   readonly reach: number;
   private portraitPullX: number;
+  private portraitFov: number;
   readonly state: WeaponState = { loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
@@ -387,7 +397,7 @@ export class Sword implements Weapon {
   /** dev: showcase pose (model centred, slowly turning) */
   inspect = 0;
   /** portrait framing (0.6): shrink, extra drop / slide (m, camera space), the blade tipped forward (rad) and turned (rad) — dev-tunable */
-  framing = { shrink: 0.33, dx: -0.03, dy: -0.055, tilt: 0.36, yaw: -0.02 };
+  framing: SwordFraming = { shrink: 0.33, dx: -0.03, dy: -0.055, tilt: 0.36, yaw: -0.02 };
   /** dev: swing duration multiplier (1 = normal; 8 = slow motion for screenshots) */
   swingScale = 1;
   /** 0..1 weapon-swap blend (a Weapons manager drives it): 1 = dropped out of the frame; 0 = held */
@@ -460,6 +470,8 @@ export class Sword implements Weapon {
     this.damage = opts.damage ?? (opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD);
     this.reach = opts.reach ?? REACH;
     this.portraitPullX = opts.portraitPullX ?? 0.32;
+    this.portraitFov = opts.portraitFov ?? FOV_HIP;
+    if (opts.framing) this.framing = { ...this.framing, ...opts.framing };
     if (opts.moves) { this.mv = opts.moves; this.basePos.copy(opts.moves.rest.pos); this.baseQ.copy(opts.moves.rest.q); }
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.impacts = Impacts.for(this.game); // contact debris (C4), in the scene from boot so its program is precompiled
@@ -606,6 +618,14 @@ export class Sword implements Weapon {
       this.rig.add(mesh);
     }
     this.model.add(this.rig, this.armRig);
+    if (custom?.left) {
+      const l = custom.left;
+      l.material.transparent = true; l.material.depthWrite = true;
+      const mesh = new THREE.Mesh(l.geometry, l.material);
+      mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = 1000;
+      mesh.position.copy(l.pos); mesh.quaternion.copy(l.q);
+      this.model.add(mesh);
+    }
     // depth clear so the viewmodel never clips into world geometry (same trick as Crossbow.ts: 999 in the transparent queue)
     const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
     clearer.renderOrder = 999; clearer.frustumCulled = false;
@@ -822,7 +842,7 @@ export class Sword implements Weapon {
 
     // FOV (Hor+ on portrait; the sword never zooms) + the dodge / lunge kick while in hand (Player.fovKick — transient, so
     // the shadow cascades are only refit for a base change, not every kicked frame)
-    const baseFov = fovForAspect(FOV_HIP, cam.aspect);
+    const baseFov = fovForAspect(cam.aspect < 1 ? this.portraitFov : FOV_HIP, cam.aspect);
     const targetFov = baseFov + (this.model.visible ? p.fovKick + this.fx.fovOffset : 0);
     if (Math.abs(targetFov - this.fov) > 0.01) {
       const refit = Math.abs(baseFov - this.baseFov) > 0.01; this.baseFov = baseFov;

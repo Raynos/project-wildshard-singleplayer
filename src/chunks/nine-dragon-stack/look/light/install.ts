@@ -26,8 +26,9 @@ export interface LightSettings {
   ambient: number;
 }
 
-/** the lab's tuning on the clean room at 3c39b36f (round-9-lab-light/README.md §What won) */
-export const LIGHT_DEFAULTS: LightSettings = { pools: 1, poolGain: 1, sheen: 1.0, glow: 1, halo: 0.6, veil: 0.15, glowThr: 0.22, glowNear: 6, glowFar: 40, grade: 1, wetSky: 0.1, ambient: 1 };
+/** the lab's tuning on the clean room at 3c39b36f (round-9-lab-light/README.md §What won); round 14: the pools are
+ *  stronger (pools.ts), so the flat wet sheen 1.0 → 0.55 (the view-dependent lobe, lightvol.ts poolSpec, carries the gloss) */
+export const LIGHT_DEFAULTS: LightSettings = { pools: 1, poolGain: 1, sheen: 0.55, glow: 1, halo: 0.6, veil: 0.15, glowThr: 0.22, glowNear: 6, glowFar: 40, grade: 1, wetSky: 0.1, ambient: 0.78 };
 
 // refitted on the clean room's own frames after the merge (round 11; LOOK-LOOP.md step 6), not the lab's 3c39b36f fit
 export const LUT_URL = '/assets/nine-dragon/grade-lut-cleanroom.bin';

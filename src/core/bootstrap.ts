@@ -89,7 +89,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const physics = await step('physics', async (p) => {
     const ph = new Physics(await rapier);
     await navmesh;
-    addTerrain(ph);
+    if (def.structures === undefined) addTerrain(ph); // a structure-first shard walks on its built floors only
     addEdgeWalls(ph);
     p.detail(`${ph.world.colliders.len()} colliders`);
     return ph;
@@ -115,7 +115,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   if (forest.trees.length > 0) registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/world/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() });
   // the shard's paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — laid by main.ts
   // once the builders have registered their decks, so no board pokes up through one (`addPathWalkways`)
-  player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw));
+  player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw), def.spawn.y);
   player.pitch = num('pitch', 0);
 
   const tour = new Tour(game.camera);

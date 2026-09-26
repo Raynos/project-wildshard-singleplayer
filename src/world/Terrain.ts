@@ -183,6 +183,7 @@ export class Terrain {
   }
 
   async build(): Promise<this> {
+    if (getActiveChunk().structures !== undefined) return this.buildNone();
     if (getActiveChunk().style === 'lowpoly') return this.buildLowPoly();
     if (getActiveChunk().style === 'painterly') return this.buildPainterly();
     const [layers] = await Promise.all([loadPBRArray([...groundSet(getActiveChunk()).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
@@ -192,6 +193,20 @@ export class Terrain {
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
     this.group.add(await this.buildSlab());
+    return this;
+  }
+
+  /**
+   * A structure-first shard (ChunkDef.structures, Nine Dragon Stack): its floors are built, so no ground is drawn — an
+   * empty mesh keeps the canopy / punch calls working, nothing is downloaded or drawn.
+   */
+  private buildNone(): this {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute([], 3));
+    this.material = new THREE.MeshLambertMaterial();
+    this.mesh = new THREE.Mesh(geo, this.material);
+    this.mesh.visible = false;
+    this.group.add(this.mesh);
     return this;
   }
 

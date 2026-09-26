@@ -258,7 +258,7 @@ void main() {
   col *= mix(1.0, 0.5, smoothstep(0.35, 0.8, -n.y));
   // (lab P6) the ambient, then warm pools from the lanterns / shops / lit windows
   col *= uLpAmb;
-  col += albedo * poolLight(vWorld, n) * uLpGain.x;
+  col += poolAlbedo(albedo) * poolLight(vWorld, n) * uLpGain.x;
   vec3 an2 = abs(n);
   vec2 sp = an2.y > 0.6 ? vWorld.xz : (an2.x > an2.z ? vWorld.zy : vWorld.xy);
   col *= 1.0 + (texture(uSilk, sp * 0.9).r - 0.5) * 0.08;

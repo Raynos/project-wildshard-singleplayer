@@ -408,6 +408,10 @@ void main() {
   vec3 toCam = uCam - vWorld;
   float dist = length(toCam);
   vec3 V = toCam / max(dist, 1e-4);
+  // (render) the silk fog once per pixel: the wet ground's two sheen terms read its colour from it (fogCol() re-ran the
+  // 9-band march twice more on every ground pixel)
+  vec4 fgc = silkFog(vWorld, uFogScale);
+  vec3 fogHere = fgc.rgb / max(1.0 - fgc.a, 1e-3);
 
   // ── face-local metres and their pixel rates ──
   vec2 uv = vFace.xy;
@@ -579,7 +583,7 @@ void main() {
     col *= 1.0 - 0.45 * wAmt;
     float ndv = clamp(V.y, 0.0, 1.0);
     float fres = 0.04 + 0.96 * pow(clamp(1.0 - ndv, 0.0, 1.0), 5.0);
-    emit += fogCol(vWorld) * fres * wAmt * 0.3 * (1.0 - st.x);
+    emit += fogHere * fres * wAmt * 0.3 * (1.0 - st.x);
     // (lab P6) + the water film's reflection of the blue-hour sky: fogCol() is ~black inside the first 16 m of clear
     // air, so the near ground never got a sheen; a broader lobe than Schlick; uLpSky 0 = off
     emit += uFogBaseCol * (0.35 + 0.65 * pow(clamp(1.0 - ndv, 0.0, 1.0), 3.0)) * wAmt * uLpSky * (1.0 - st.x);
@@ -589,7 +593,7 @@ void main() {
     float rd = abs(length(p - ctr) - rp2 * 0.3);
     float fwr = max(fwidth(rd), 1e-5);
     float ring = (1.0 - smoothstep(0.004, 0.004 + fwr * 1.2, rd)) * (1.0 - rp2) * wAmt * (1.0 - smoothstep(0.01, 0.03, fwr));
-    emit += fogCol(vWorld) * ring * 0.35;
+    emit += fogHere * ring * 0.35;
     lines = max(lines, st.x * 0.6);
   } else if (kind == 4.0) {
     // bars / railings: ruled balusters that fade to their average; see-through (ordered dither under the cut)
@@ -726,8 +730,21 @@ void main() {
   shaded += col * min(vSpill, vec3(0.7)) * 1.3 * (kind == 3.0 ? 1.0 : 1.0 - 0.5 * wet);
   // (lab P6) the warm pools: diffuse on the wash; on wet stone a broad glossy sheen of the same light
   vec3 lp = poolLight(vWorld, n);
-  shaded += col * lp * uLpGain.x;
+  // (a wet film reflects rather than scatters: on the wet flagstones the pool's diffuse share drops, its gloss —
+  // the lobe below — carries the light, so the ground stays dark and glossy)
+  shaded += poolAlbedo(col) * lp * uLpGain.x * (1.0 - 0.65 * wetPool);
   emit += lp * wetPool * uLpGain.y * (0.35 + 0.65 * pow(clamp(1.0 - abs(V.y), 0.0, 1.0), 2.0));
+  // (render) the lamplight's glossy lobe (lightvol.ts poolSpec): lacquer and gilt glint, wet stone and decks shine
+  // toward the lanterns; Schlick on the film, a lacquer's own sheen a little broader
+  {
+    vec3 Rr = reflect(-V, n);
+    float cv = clamp(dot(n, V), 0.0, 1.0);
+    float fr = 0.04 + 0.96 * pow(1.0 - cv, 5.0);
+    float gk = max(gloss * (0.06 + 0.5 * fr), max(wetPool, wet * 0.5 * step(0.6, n.y)) * fr);
+    if (gk > 0.002) emit += poolSpec(vWorld, Rr) * gk;
+    // the rim: edges turned from the eye catch what is lit behind them (wetter edges, a brighter rim)
+    emit += poolRim(vWorld, n, V) * (0.6 + 0.4 * max(gloss, wet));
+  }
   // the colour script: the deep strata sink into indigo paper (their windows gold) — the sutra's hinge
   float lumC = lum(shaded);
   float deep = (1.0 - smoothstep(-150.0, 70.0, vWorld.y)) * 0.9;
@@ -752,7 +769,6 @@ void main() {
   inkC = mix(inkC, uGold, 1.0 - smoothstep(-160.0, -120.0, yy));
   vec3 goldC = mix(uGold * 1.35, uGoldDim, smoothstep(8.0, 150.0, dist));
   vec3 lineC = mix(inkC, goldC, max(uSutra, goldL));
-  vec4 fgc = silkFog(vWorld, uFogScale);
   float fade = 1.0 - smoothstep(uLineFade.x, uLineFade.y, dist);
   float li = clamp(lines, 0.0, 1.0) * fade * pow(max(fgc.a, 1e-4), uLineFog - 1.0);
   col = mix(col, lineC, mix(li, fade, forceInk));

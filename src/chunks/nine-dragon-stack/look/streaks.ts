@@ -8,17 +8,30 @@ import {
   Uint16BufferAttribute, Vector4,
 } from 'three';
 import type { Emitter } from './emitters';
-import { PAINT_GLSL } from './paint'; // (the flag layout: flagCell)
+import { FLAG_GLSL } from './paint'; // (the flag layout: flagCell)
 import { ADD_KEEP_ALPHA, FOG_GLSL, NOISE_GLSL, STONES_GLSL, type Shared } from './style';
+
+/** (render) the derivative-free part of NOISE_GLSL — what silkFog needs — for the vertex stage */
+const NOISE_VS = /* glsl */ `
+float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(h12(i), h12(i + vec2(1.0, 0.0)), f.x), mix(h12(i + vec2(0.0, 1.0)), h12(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+`;
 
 const VS_CARD = /* glsl */ `
 attribute vec2 aCorner;
 attribute vec3 aE;
 attribute vec3 aCol;
 attribute vec3 aSize;
-uniform vec3 uCam;
+${NOISE_VS}
+${FOG_GLSL}
+varying float vFogT;
 uniform float uGroundY;
 uniform vec4 uSpread; // x: tail toward the eye, y: tail away, z: width scale, w: min distance
+uniform float uCardOn;
 varying vec2 vC;
 varying vec3 vWorld;
 varying vec3 vCol;
@@ -47,16 +60,26 @@ void main() {
   vC = aCorner;
   // below the ground's height (a lantern in the Well, the camera under the square): no streak
   vCol = aCol * aSize.z * step(uGroundY - 0.5, uCam.y) * step(uGroundY + 0.2, aE.y);
+  // (render) an emitter on screen is mirrored by the screen-space reflection (render/reflect.ts): its card fades to
+  // uCardOn; the cards stay for what is above or beside the frame (the signs over the street)
+  vec4 ce = projectionMatrix * viewMatrix * vec4(aE, 1.0);
+  vec2 en = ce.xy / max(ce.w, 1e-4);
+  float onScreen = step(0.0, ce.w) * (1.0 - smoothstep(0.8, 1.0, max(abs(en.x), abs(en.y))));
+  vCol *= mix(1.0, uCardOn, onScreen);
   vS = s;
   vSeg = vec4(s0, sN, sF, s1);
   vDir = dir;
+  // (render) the silk fog's transmittance per corner (it varies slowly along a card; per pixel it was the cards' dearest
+  // term under their overdraw)
+  vFogT = silkFog(vWorld, 1.0).a;
   gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.0);
 }
 `;
 const FS_CARD = /* glsl */ `
 ${NOISE_GLSL}
-${FOG_GLSL}
-${PAINT_GLSL}
+uniform vec3 uCam;
+varying float vFogT;
+${FLAG_GLSL}
 ${STONES_GLSL}
 uniform float uTime;
 uniform vec4 uCardK; // x: gain, y: dash contrast, z: jog, w: saturation keep
@@ -96,7 +119,7 @@ void main() {
   vec3 col = vCol * prof * across * dash * gloss * fres * (1.0 - st.x * 0.8) * uCardK.x;
   float m = max(col.r, max(col.g, col.b));
   col = mix(col, col / max(m, 1e-4) * min(m, 1.0), uCardK.w * step(1.0, m));
-  col *= silkFog(vWorld, 1.0).a;
+  col *= vFogT;
   gl_FragColor = vec4(col, 0.0);
 }
 `;
@@ -111,6 +134,7 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
       uSpread: { value: new Vector4(L.tailNear, L.tailFar, L.cardWidth, 0.6) },
       uCardK: { value: new Vector4(L.cardGain, L.cardDash, L.cardJog, 1) },
       uFine: { value: L.fine },
+      uCardOn: { value: 1 },
       uHole: { value: hole },
     },
     vertexShader: VS_CARD, fragmentShader: FS_CARD,

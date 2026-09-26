@@ -143,6 +143,9 @@ export const OPTION_VALUES = {
   // E174: Driftwood's phone shadow maps (src/world/shadowVariants.ts; debugOptions.ts 'look') — a Today · b Depth only ·
   // c 16-bit depth · d Lean; live. Default c (the user's pick, 2026-09-25)
   dwShadows: ['a', 'b', 'c', 'd'],
+  // NINE-DRAGON-STACK P0-5c: the prototype shards (registry.ts PROTOTYPES) in the title deck as EXPERIMENTAL cards, in
+  // place of their COMING SOON teasers — Debug ▸ Developer tools only, a reload (the deck is built once); off by default
+  prototypes: ['off', 'on'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -164,7 +167,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
-  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
+  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
@@ -184,6 +187,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   dwShadows: option('dwShadows'),
+  prototypes: option('prototypes'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

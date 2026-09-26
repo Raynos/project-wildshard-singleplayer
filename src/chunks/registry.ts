@@ -16,6 +16,7 @@ import type { ChunkDef } from './ChunkDef';
 import { PINE_HOLLOW } from './pine-hollow';
 import { DRIFTWOOD_ISLE } from './driftwood-isle';
 import { NALATI_GRASSLANDS } from './nalati-grasslands';
+import { NINE_DRAGON_STACK } from './nine-dragon-stack/def';
 import { _applyChunkConstants } from '../core/config';
 import { onScopeDispose } from '../core/shardScope';
 
@@ -31,8 +32,16 @@ export function chunkSlugFromUrl(search = location.search): string {
   return new URLSearchParams(search).get('chunk') ?? DEFAULT_CHUNK;
 }
 
+/**
+ * Prototype shards (NINE-DRAGON-STACK P0-5c): built on the engine, not in the deck by default. The deck shows them as
+ * EXPERIMENTAL cards (in place of their COMING SOON teasers) when pause ▸ Settings ▸ Debug ▸ Developer tools ▸
+ * "Prototype shards" is on; `?chunk=<slug>` (the harness) boots one regardless. Not in CHUNKS: the shard prefetch, the
+ * packs and the every-shard tests do not reach them.
+ */
+export const PROTOTYPES: ChunkDef[] = [NINE_DRAGON_STACK];
+
 export function findChunk(slug: string): ChunkDef | undefined {
-  return CHUNKS.find((c) => c.slug === slug);
+  return CHUNKS.find((c) => c.slug === slug) ?? PROTOTYPES.find((c) => c.slug === slug);
 }
 
 const listeners: ((def: ChunkDef) => void)[] = [];

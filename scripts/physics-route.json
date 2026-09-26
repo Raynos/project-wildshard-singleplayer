@@ -1577,5 +1577,147 @@
     "y": 52
    }
   }
+ ],
+ "nine-dragon-stack": [
+  {
+   "name": "square-to-street",
+   "start": {
+    "x": 0.95,
+    "z": 7.5,
+    "yaw": -0.21,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": 5.5,
+     "z": 2
+    },
+    {
+     "x": 6.05,
+     "z": -14
+    },
+    {
+     "x": 6.05,
+     "z": -22
+    },
+    {
+     "x": 6.05,
+     "z": -30
+    },
+    {
+     "x": 6.5,
+     "z": -60
+    },
+    {
+     "x": 6.5,
+     "z": -110
+    }
+   ],
+   "expect": {
+    "y": 125.0
+   },
+   "notes": "the square past the hawker stall, through the paifang's centre bay (between the lions), up the street to the fragment's end"
+  },
+  {
+   "name": "balustrade-west-bay",
+   "start": {
+    "x": 1.4,
+    "z": 18,
+    "yaw": 0.0,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": 1.4,
+     "z": 0
+    },
+    {
+     "x": 1.6,
+     "z": -18
+    },
+    {
+     "x": 2.25,
+     "z": -22
+    },
+    {
+     "x": 2.25,
+     "z": -30
+    },
+    {
+     "x": 2.5,
+     "z": -40
+    }
+   ],
+   "expect": {
+    "y": 125.0
+   },
+   "notes": "along the Well's balustrade (the lamps are scenery) and through the gate's west bay"
+  },
+  {
+   "name": "stair-street",
+   "start": {
+    "x": 14,
+    "z": 6,
+    "yaw": -1.5708,
+    "y": 125.0
+   },
+   "waypoints": [
+    {
+     "x": 21,
+     "z": 6
+    },
+    {
+     "x": 40,
+     "z": 6
+    },
+    {
+     "x": 60,
+     "z": 6
+    },
+    {
+     "x": 70.5,
+     "z": 6
+    },
+    {
+     "x": 76,
+     "z": 6
+    }
+   ],
+   "expect": {
+    "y": 146.0
+   },
+   "notes": "the 60 treads (rise 0.35, run 0.8) up to the top landing"
+  },
+  {
+   "name": "stair-down",
+   "start": {
+    "x": 76,
+    "z": 6,
+    "yaw": 1.5708,
+    "y": 146.0
+   },
+   "waypoints": [
+    {
+     "x": 60,
+     "z": 6
+    },
+    {
+     "x": 30,
+     "z": 6
+    },
+    {
+     "x": 20,
+     "z": 6
+    },
+    {
+     "x": 12,
+     "z": 6
+    }
+   ],
+   "expect": {
+    "y": 125.0
+   },
+   "notes": "back down the stair onto the square"
+  }
  ]
 }

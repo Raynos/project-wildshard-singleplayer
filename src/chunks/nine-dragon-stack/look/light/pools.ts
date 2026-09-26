@@ -13,11 +13,12 @@ export interface WindowLike { m: Matrix4; win: Vector4; light: Color }
 /** per source kind: strength k, radius r (m, scaled by the source's size where noted), reach in r, colour pull */
 export const POOL = {
   /** paper lanterns: the candle light is amber, the paper's red only tints it */
-  lantern: { k: 0.35, r: 2.0, cut: 3.0, tint: new Color(0xffa060), redShare: 0.2 },
+  // (render, round 14: Jake's "warm and deep around the gate" — the lanterns' pools ×1.4 and wider, a deeper amber)
+  lantern: { k: 0.5, r: 2.6, cut: 3.0, tint: new Color(0xff9448), redShare: 0.25 },
   /** a lit shop interior (the emitter sits 0.1 m inside the shop's glazing, 1.6 m up) */
-  shop: { k: 1.8, rPerW: 0.45, rMin: 1.8, cut: 3.0, out: 0.9, tint: new Color(0xffb866) },
+  shop: { k: 2.3, rPerW: 0.5, rMin: 2.0, cut: 3.0, out: 0.9, tint: new Color(0xffa850) },
   /** the square's street lamps (a warm sodium head 4.2 m up) */
-  lamp: { k: 3.2, r: 2.6, cut: 3.4, tint: new Color(0xffc987) },
+  lamp: { k: 3.8, r: 3.0, cut: 3.4, tint: new Color(0xffb468) },
   /** neon signs and lightboxes: coloured, weaker, short */
   sign: { k: 0.45, rPerSize: 0.55, rMin: 0.8, cut: 2.4 },
   /** a lit window: warm light on its sill, the balcony floor under it and the wall around it */

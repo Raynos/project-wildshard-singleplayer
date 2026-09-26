@@ -10,6 +10,7 @@ import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { dragonHook, person } from './props';
 import { hipRoof } from './square';
 import { WORDS } from './words';
+import { buildStairStreet } from './stairstreet';
 import { NEON, Rng, chars } from '../util';
 
 export { WORDS } from './words';
@@ -241,33 +242,8 @@ export function buildTowers(ctx: Ctx): void {
   monorail(ctx);
   cableDeck(ctx, rng);
   crown(ctx, rng);
-  // the stair-street climbing east: treads with a heavy nosing line, walls, signs, a small paifang at the top
-  const st = ctx.kit('stairs', true);
-  const steps = 60;
-  const run = (STAIR.x1 - STAIR.x0) / steps, rise = STAIR.rise / steps;
-  for (let i = 0; i < steps; i++) {
-    const x = STAIR.x0 + i * run;
-    const landing = i % 15 === 14;
-    st.box(x + run / 2, Y0 + i * rise - 0.3, (STAIR.z0 + STAIR.z1) / 2, run + (landing ? 0.01 : 0), rise + 0.3, STAIR.z1 - STAIR.z0, { wash: 0x75747a, kind: K.stone, line: 1.8, wet: 0.7 }, { top: { wash: 0x4a4c52, kind: K.flag, wet: 1, line: 0 } });
-  }
-  // the stair street's walls start behind the east towers (whose dressed side faces flank its first 12 m)
-  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 12.6, 0, STAIR.z0), new Vector3(0, 0, 1), STAIR.x1 + 10 - (PLAZA.x1 + 12.6), Y0 + 3, [Y0 + 40, Y0 + 80], 'stair-n', { timber: 0.35 });
-  wallRun(ctx, rng, new Vector3(STAIR.x1 + 10, 0, STAIR.z1), new Vector3(0, 0, -1), STAIR.x1 + 10 - (PLAZA.x1 + 12.6), Y0 + 3, [Y0 + 40, Y0 + 80], 'stair-s', { timber: 0.35 });
-  for (let i = 0; i < 12; i++) {
-    const x = STAIR.x0 + 3 + i * 3.8;
-    const y = Y0 + ((x - STAIR.x0) / (STAIR.x1 - STAIR.x0)) * STAIR.rise;
-    const side = i % 2 === 0 ? STAIR.z0 : STAIR.z1;
-    const word = rng.pick(WORDS);
-    ctx.signs.place({ at: new Vector3(x, y + 5 + rng.range(0, 4), side + (side === STAIR.z0 ? 1.4 : -1.4)), normal: new Vector3(-1, 0, 0), size: rng.range(0.7, 1.1), spec: { text: word, color: hex(rng.pick(NEONS)), vertical: true, style: 'tube' }, blade: true }, st);
-    ctx.lantern(x, y + 4.2, side + (side === STAIR.z0 ? 0.8 : -0.8), 0.8);
-  }
-  dragonHook(st, ctx, new Vector3(STAIR.x0 + 16, Y0 + 11, STAIR.z0), new Vector3(0, 0, 1), 1.1);
-  const ga = ctx.kit('stairgate', true);
-  const gx = STAIR.x1 - 4, gy = Y0 + STAIR.rise;
-  for (const gz of [STAIR.z0 + 0.8, STAIR.z1 - 0.8]) ga.cyl(gx, gy, gz, 0.26, 0.24, 5.2, 12, { wash: 0xb8321f, line: 1, accent: true });
-  ga.box(gx, gy + 4.4, (STAIR.z0 + STAIR.z1) / 2, 0.5, 0.5, STAIR.z1 - STAIR.z0 - 0.6, { wash: 0xb8321f, line: 1, accent: true });
-  hipRoof(ctx, ga, gx, gy + 5.2, (STAIR.z0 + STAIR.z1) / 2, 2.2, STAIR.z1 - STAIR.z0 + 1.2, 1.2, 0.35, 0x2f7d5e, NEON.red);
-  ctx.map.push({ x0: STAIR.x0, z0: STAIR.z0, x1: STAIR.x1, z1: STAIR.z1, kind: 'street' });
+  // the stair-street climbing east (dome D, stairstreet.ts): its steps, terraces, shops, towers, paifang, signs, crowd
+  buildStairStreet(ctx);
   // the floor plan for the minimap: blocks around the square and the street
   ctx.map.push({ x0: PLAZA.x1, z0: -120, x1: 70, z1: STAIR.z0, kind: 'block' });
   ctx.map.push({ x0: PLAZA.x1, z0: STAIR.z1, x1: 70, z1: 60, kind: 'block' });

@@ -76,7 +76,9 @@ export function chunkFiles(def: ChunkDef, tex: TexMode = texMode()): ChunkFiles 
   // Pine Hollow's ~20 MB of layers, cards, cabins and props): a low-poly shard reads only its baked terrain, a treeless
   // one (trees.factory 'none' or the painted 'spruce') no tree textures, an open-water one (ocean) builds no cabins or props
   // a painterly one (Nalati) paints its ground and builds no cabins or props either
-  const lowpoly = def.style === 'lowpoly' || def.style === 'painterly', treeless = def.trees.factory !== 'pine', ocean = def.ocean !== undefined || def.style === 'painterly';
+  // a structure-first one (ChunkDef.structures, Nine Dragon Stack) draws no ground and builds no cabins or props: its world's own files instead
+  const built = def.structures !== undefined;
+  const lowpoly = def.style === 'lowpoly' || def.style === 'painterly', treeless = def.trees.factory !== 'pine', ocean = def.ocean !== undefined || def.style === 'painterly' || built;
   // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map), and the
   // KTX2 stand-ins when textures ride as KTX2 (E157, src/boot/gpuFiles.ts) — only the default path's files are declared
   const t = (xs: string[]) => xs.map((u) => gpuUrl(u, tex));
@@ -84,14 +86,14 @@ export function chunkFiles(def: ChunkDef, tex: TexMode = texMode()): ChunkFiles 
   return {
     sky: t(sky),
     baked: t(bakedTextureUrls(def.slug)),
-    terrain: t(lowpoly ? terrain.filter((f) => f.startsWith('/assets/baked/')) : terrain),
+    terrain: t(built ? [] : lowpoly ? terrain.filter((f) => f.startsWith('/assets/baked/')) : terrain),
     trees: t(treeless ? [] : trees),
     physics: [RAPIER_WASM_URL, ...(nav ? [nav] : [])], // Rapier's WASM, every shard (src/physics/rapier.ts); the shard's baked navmesh (src/physics/navmesh.ts)
     cabins: t(ocean ? [] : cabins),
     // + Pine Hollow's hero props (PH-B3) — those the byte table has (a dev server started before they were built lists none)
     // + its rigged creature hulls (PH-M1, src/entities/pineCreatures.ts: read in the animals step; declared here so DOWNLOAD
     // counts them and the offline cache holds them — the tier's own file, `<hull>[.phone].rigged.glb`)
-    props: t(def.style === 'painterly' ? painterlyBoot() : ocean ? [] : def.slug === 'pine-hollow' ? [...props, ...pineHeroUrls().filter((f) => f in PUBLIC_BYTES), ...PINE_CREATURE_RIGS.map((n) => pineCreatureRigUrl(n)).filter((f) => f in PUBLIC_BYTES)] : props),
+    props: t(def.structures ? def.structures.files.filter((f) => f in PUBLIC_BYTES) : def.style === 'painterly' ? painterlyBoot() : ocean ? [] : def.slug === 'pine-hollow' ? [...props, ...pineHeroUrls().filter((f) => f in PUBLIC_BYTES), ...PINE_CREATURE_RIGS.map((n) => pineCreatureRigUrl(n)).filter((f) => f in PUBLIC_BYTES)] : props),
     // filled by src/boot/extras.ts `bootFiles` (project/archive/2026-09-23-preload-offline.md): the title / explore art (bundled, hashed URLs)
     // and every audio file of every style and set (the lists follow the menu's Settings, a module Node's type stripping cannot
     // load — this file also runs in scripts/bake-packs.mjs, and neither goes in a shard's boot pack)

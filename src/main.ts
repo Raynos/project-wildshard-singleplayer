@@ -223,6 +223,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
   const painterly = chunk.style === 'painterly'; // Nalati: no undergrowth / cabins / props — its world is wired by src/nalati (the props step)
+  // a structure-first shard (ChunkDef.structures, Nine Dragon Stack): no ground cover / cabins / props / walkways — its world is built in the props step
+  const built = chunk.structures;
   let nalati: Nalati | null = null;
 
   // ── world dressing ──
@@ -344,7 +346,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // register in its props step (NALATI-MERGE P1), so its paths are laid after that
   const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
-  if (!painterly) addPaths();
+  if (!painterly && built === undefined) addPaths();
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove,
   // which stays as the fallback when it fails to load
   const blenderIsland = isOcean
@@ -357,10 +359,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
 
   const carpet = await step('grass', async () => {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
-    const grass = isOcean ? null : new Grass(sky, forest).build();
+    const bare = isOcean || built !== undefined; // no forest carpet over open water or a built world
+    const grass = bare ? null : new Grass(sky, forest).build();
     await macrotask();
-    const under = isOcean || painterly ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
-    const particles = isOcean ? null : new Particles(sky, forest).build(); // pine-forest mist + needle fall: nothing to fall from on the island (E7 B8)
+    const under = bare || painterly ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
+    const particles = bare ? null : new Particles(sky, forest).build(); // pine-forest mist + needle fall: nothing to fall from on the island (E7 B8)
     if (grass) game.scene.add(grass.group);
     if (under) game.scene.add(under.group);
     if (particles) game.scene.add(particles.group);
@@ -369,7 +372,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const { grass, under, particles } = carpet;
 
   const homestead = await step('cabins', async () => {
-    if (isOcean || painterly) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'], landmarks: null };
+    if (isOcean || painterly || built !== undefined) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'], landmarks: null };
     const cabins = new Cabins(sky, chunk.slug === 'pine-hollow' ? pineHamletBuildings() : []); // PH-B3: + the mill hamlet, one merged cluster
     const { group: cabinGroup, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
@@ -389,21 +392,27 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     return { cabins, interactables, landmarks };
   });
   const { cabins, interactables, landmarks } = homestead;
-  const props = await step('props', async () => {
+  const props = await step('props', async (p) => {
     if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/nalati/index.ts)
     if (isOcean) return null;
-    const built = new Props(sky, forest);
-    const object = await built.build();
+    if (built !== undefined) { // the structure-first shard's world: drawn, collides and lends its floor through the registry
+      const structures = await built.build();
+      await structures.build({ renderer: game.renderer, scene: game.scene, camera: game.camera, registry,
+        onUpdate: (fn) => { game.onUpdate(fn, 'structures'); }, progress: (f) => { p.set(Math.round(f * 100), 100); } });
+      return null;
+    }
+    const propsBuilt = new Props(sky, forest);
+    const object = await propsBuilt.build();
     // P3: rocks and stumps as hulls, logs as capsules — three pieces a task apart (the phone's 30 ms per-task collider budget)
-    const descs = built.colliderDescs();
+    const descs = propsBuilt.colliderDescs();
     const rock = descs.filter((d) => d.surface === 'rock'), wood = descs.filter((d) => d.surface !== 'rock');
-    statics.push(...built.colliders);
+    statics.push(...propsBuilt.colliders);
     registry.add({ id: 'props', name: 'Props', category: 'props', file: 'src/world/Props.ts', object, surface: 'rock', colliders: rock.slice(0, Math.ceil(rock.length / 2)) });
     await macrotask();
     registry.add({ id: 'props-rocks-2', name: 'Props', category: 'props', file: 'src/world/Props.ts', surface: 'rock', colliders: rock.slice(Math.ceil(rock.length / 2)) });
     await macrotask();
     registry.add({ id: 'props-wood', name: 'Stumps and logs', category: 'props', file: 'src/world/Props.ts', surface: 'wood', colliders: wood });
-    return built;
+    return propsBuilt;
   });
 
   const animals = await step('animals', async (p) => {
@@ -431,7 +440,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
-  await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.slug === 'pine-hollow' ? preloadLeverModel() : null])); // the viewmodels' textures from the worker + the lever-action's model (usually long done); the build below is synchronous
+  const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.slug === 'pine-hollow' ? preloadLeverModel() : null, chunk.sword?.() ?? null])))[2]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ChunkDef.sword); the build below is synchronous
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
       const h = pastRidden(() => animals.raycast(origin, dir, maxDist)); // never the horse you ride (src/player/riding.ts)
@@ -443,7 +452,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Nalati its own three (src/player/nalatiKit.ts: bow · sabre · spear + javelins, the weapon strip)
   const nalatiKit = chunk.slug === 'nalati-grasslands' ? buildNalatiKit({ game, sky, player, forest }, targets, nolock) : null;
   const crossbow: Weapon = nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
-    ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
+    ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, ...shardSword, ...(chunk.fov ? { portraitFov: chunk.fov.portrait } : {}) })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
   // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 elsewhere
@@ -483,7 +492,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: false });
   // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
-  const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
+  const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw, chunk.spawn.y); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
   const respawn = () => { toSpawn(); music.sting('death'); };
   let kills = 0, health = 100, lastHurt = 0, swimHold = false;
   const harvested = new Set<object>();

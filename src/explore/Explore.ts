@@ -69,7 +69,8 @@ export interface ExplorePane {
  *  canopy on a forest shard (its pines reach 26 m), so the first frame is the land, not a trunk */
 function homeView(world: World): { pos: THREE.Vector3; look: THREE.Vector3 } {
   const s = world.chunk.spawn, fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
-  const ground = Math.max(heightAt(s.x, s.z), world.chunk.ocean?.level ?? -Infinity);
+  // a built floor (ChunkDef.spawn.y, a structure-first shard) stands in for the ground
+  const ground = Math.max(s.y ?? heightAt(s.x, s.z), world.chunk.ocean?.level ?? -Infinity);
   const up = world.forest.trees.length > 0 ? 42 : 26;
   return { pos: new THREE.Vector3(s.x - fx * 12 - fz * 12, ground + up, s.z - fz * 12 + fx * 12), look: new THREE.Vector3(s.x + fx * 150, ground + 4, s.z + fz * 150) };
 }
@@ -349,8 +350,9 @@ export class Explore {
       // a slow cinematic orbit of the island behind the hub cards
       this.hubT += dt * 0.035;
       const a = this.hubT - 1.1;
-      camera.position.set(Math.sin(a) * CHUNK_HALF, CHUNK_HALF * 0.47, Math.cos(a) * -CHUNK_HALF); // the whole shard from above its edge
-      camera.lookAt(0, 4, 0);
+      const base = this.host.world.chunk.spawn.y ?? 0; // a structure-first shard orbits its built datum, not the ground far under it
+      camera.position.set(Math.sin(a) * CHUNK_HALF, base + CHUNK_HALF * 0.47, Math.cos(a) * -CHUNK_HALF); // the whole shard from above its edge
+      camera.lookAt(0, base + 4, 0);
     } else if (this.mode === 'world') {
       const f = this.flight;
       if (f) {

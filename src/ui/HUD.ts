@@ -1,10 +1,11 @@
 import { CHUNK_SIZE } from '../core/config';
-import { CHUNKS, getActiveChunk } from '../chunks/registry';
+import { CHUNKS, PROTOTYPES, getActiveChunk } from '../chunks/registry';
 import { requestShard, shardResident } from '../shard/switch';
 import { PLACEHOLDERS, type TeaserShot } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
+import { setting } from './Settings';
 import { isDev } from '../core/devMode';
 import { bindDevToggle } from './devSwitch';
 import { ToastStack } from './ToastStack';
@@ -476,14 +477,17 @@ export class HUD {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
     const def = getActiveChunk();
+    // the prototype shards (registry.ts PROTOTYPES) join the deck as EXPERIMENTAL cards when Debug ▸ Developer tools ▸ the
+    // prototype row is on — or when one is the shard running (`?chunk=` booted it) — each in place of its COMING SOON teaser
+    const protos = PROTOTYPES.filter((c) => setting('prototypes') === 'on' || c === def);
     const cards: DeckCard[] = [
-      ...CHUNKS.map((c): DeckCard => ({
+      ...[...CHUNKS, ...protos].map((c): DeckCard => ({
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
         tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, earlyAccess: c.earlyAccess === true, explore: c.explore === true,
         heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape, shots: [],
       })),
-      ...PLACEHOLDERS.map((t): DeckCard => ({
+      ...PLACEHOLDERS.filter((t) => !protos.some((c) => c.slug === t.slug)).map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
         label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, earlyAccess: false, explore: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,

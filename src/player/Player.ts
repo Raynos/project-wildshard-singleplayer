@@ -256,8 +256,9 @@ export class Player {
     this.onSwimChange?.(on);
   }
 
-  spawn(x: number, z: number, yaw: number): void {
-    this.position.set(x, heightAt(x, z), z);
+  /** `y`: the feet's height (a shard whose floor is built: ChunkDef.spawn.y); omitted = the ground's */
+  spawn(x: number, z: number, yaw: number, y?: number): void {
+    this.position.set(x, y ?? heightAt(x, z), z);
     this.motor.release();
     this.prevFeet.copy(this.position);
     this.yaw = yaw; this.pitch = 0;

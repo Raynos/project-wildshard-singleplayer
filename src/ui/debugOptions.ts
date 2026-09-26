@@ -197,6 +197,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Developer tools ──
   opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
+  opt('prototypes', 'tools', 'Nine Dragon Stack prototype', ON_OFF, { reload: true, note: 'NINE-DRAGON-STACK P0-5c · the deck shows the playable partial shard (EXPERIMENTAL) in place of its COMING SOON card' }),
 ];
 
 /** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap, the device's
