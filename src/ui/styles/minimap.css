@@ -27,7 +27,9 @@
 /* (the heading readout that sat under the circle is gone, E51 — the quest chip takes its place, src/game/quest/QuestUI.ts) */
 
 .ws-minimap.hidden { display: none; }
-#hud.intro .ws-minimap { opacity: 0; transition: opacity 0.4s; }
+/* E183: hidden on the title, not just clear — Map.ts makes the minimap a z-6 button (pointer-events: auto inline), so at
+   opacity 0 it still took every tap on the right three quarters of EXPLORE WORLD, which sits over it; only the eye was left */
+#hud.intro .ws-minimap { opacity: 0; visibility: hidden; transition: opacity 0.4s; }
 
 /* phone: 27.2 % of the width (80 % of the old 34vw, E51), top-right at --ws-top */
 @media (max-width: 700px) {
