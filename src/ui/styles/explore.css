@@ -123,14 +123,19 @@
 .ws-x-tierlabel small { font-size: 9px; letter-spacing: 0.1em; color: var(--ws-text-dim); }
 
 /* creature viewer (X8; mockup p05): clips to watch, variants, skeleton, half speed — between the model and the sheet */
-.ws-x-creature { position: absolute; left: 12px; right: 12px; bottom: max(206px, calc(env(safe-area-inset-bottom, 0px) + 200px)); display: none; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+.ws-x-creature { position: absolute; left: 12px; right: 12px; bottom: var(--ws-x-variant-bottom, max(206px, calc(env(safe-area-inset-bottom, 0px) + 200px))); display: none; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
 .ws-x-turntable.creature .ws-x-creature { display: flex; }
+.ws-x-turntable.variant .ws-x-creature { display: flex; }
+.ws-x-turntable.variant .ws-x-clips, .ws-x-turntable.variant .ws-x-skel, .ws-x-turntable.variant .ws-x-slow { display: none; }
 .ws-x-clips, .ws-x-creature-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; pointer-events: auto; }
 .ws-x-clips button, .ws-x-creature-row button, .ws-x-filter .ws-x-lineup { padding: 6px 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); }
 .ws-x-clips button.on, .ws-x-creature-row button.on { color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.14); }
-.ws-x-variants { display: flex; gap: 4px; max-width: 100%; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; overscroll-behavior: contain; }
+.ws-x-variants { display: flex; flex: 1 1 auto; min-width: 0; gap: 4px; max-width: 100%; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; overscroll-behavior: contain; }
 .ws-x-variants button { flex: 0 0 auto; white-space: nowrap; }
-.ws-x-creature-row { flex-wrap: nowrap; max-width: 100%; }
+.ws-x-creature-row { flex-wrap: nowrap; justify-content: flex-start; width: 100%; max-width: 100%; }
+.ws-x-creature-row > button { flex: 0 0 auto; }
+.ws-x-clips { flex-wrap: nowrap; justify-content: flex-start; width: 100%; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; overscroll-behavior: contain; }
+.ws-x-clips button { flex: 0 0 auto; }
 .ws-x-variants button { padding: 6px 9px; background: var(--ws-glass-deep); border: 1px solid rgba(255, 181, 71, 0.4); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ws-text-dim); }
 .ws-x-variants button.on { color: var(--ws-amber); border-color: var(--ws-amber); }
 .ws-x-filter .ws-x-lineup { margin-left: auto; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
@@ -274,7 +279,7 @@
   .ws-x-views button, .ws-x-lights button { padding: 6px 8px; font-size: 9px; letter-spacing: 0.1em; }
   .ws-x-sheet { left: 8px; right: 76px; }
   .ws-x-sheet-head b { font-size: 18px; }
-  .ws-x-creature { left: 8px; right: 8px; bottom: max(214px, calc(env(safe-area-inset-bottom, 0px) + 208px)); }
+  .ws-x-creature { left: 8px; right: 8px; }
   .ws-x-clips button, .ws-x-creature-row button, .ws-x-variants button { padding: 6px 7px; font-size: 9px; letter-spacing: 0.08em; }
   .ws-x-map { left: 6px; right: 6px; bottom: max(6px, env(safe-area-inset-bottom, 0px)); width: auto; padding: 8px 12px 12px; }
   .ws-x-map-head b { font-size: 20px; }

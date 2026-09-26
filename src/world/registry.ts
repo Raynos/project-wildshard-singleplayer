@@ -38,7 +38,7 @@ export type ColliderDesc =
 export type PieceCategory = 'buildings' | 'nature' | 'props' | 'creatures' | 'ground';
 
 /** Explore's catalog tabs */
-export type ModelCategory = 'buildings' | 'nature' | 'creatures';
+export type ModelCategory = 'buildings' | 'nature' | 'creatures' | 'props';
 
 /** A piece as a model in Explore's catalog (every field defaults from the piece). */
 export interface ModelEntry {
@@ -50,6 +50,12 @@ export interface ModelEntry {
   object?: () => THREE.Object3D;
   /** a batch member's builder at a given detail tier (DETAIL TIERS); absent → one build for every tier */
   buildAt?: (tier: Tier) => THREE.Object3D;
+  /** Material or skin variants shown on the same turntable card. */
+  variants?: readonly { id: string; label: string }[];
+  /** Rebuild the displayed specimen in place when a variant is selected. */
+  rebuild?: (variant?: string) => void;
+  /** false for a model-only specimen that has no sensible World Explorer landing point. */
+  worldView?: boolean;
 }
 
 /** a model in Explore's catalog, as it reads it (`WorldRegistry.models()`) */
@@ -63,6 +69,9 @@ export interface RegisteredModel {
   live: boolean;
   object: () => THREE.Object3D;
   buildAt?: (tier: Tier) => THREE.Object3D;
+  variants?: readonly { id: string; label: string }[];
+  rebuild?: (variant?: string) => void;
+  worldView?: boolean;
 }
 
 /** a tap target that is not a registered model's own object: a batch mesh (one palm out of all of them) */
@@ -134,7 +143,7 @@ export class WorldRegistry {
       const m = p.model, object = m?.object ?? (p.object ? ((o: THREE.Object3D) => () => o)(p.object) : undefined);
       if (!m || !object) continue;
       const id = m.id ?? p.id, category = m.category ?? (p.category === 'nature' || p.category === 'creatures' ? p.category : 'buildings');
-      const e: RegisteredModel = { id, name: p.name, category, file: p.file, live: m.live ?? true, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}) };
+      const e: RegisteredModel = { id, name: p.name, category, file: p.file, live: m.live ?? true, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}) };
       const i = at.get(id);
       if (i === undefined) { at.set(id, out.length); out.push(e); } else out[i] = e;
     }

@@ -18,7 +18,7 @@ export type { ModelCategory, RegisteredModel, RegisteredPick } from '../world/re
 export function registerModel(m: RegisteredModel): void {
   activeRegistry().add({
     id: `model:${m.id}`, name: m.name, category: m.category, file: m.file,
-    model: { id: m.id, category: m.category, live: m.live, object: m.object, ...(m.buildAt ? { buildAt: m.buildAt } : {}) },
+    model: { id: m.id, category: m.category, live: m.live, object: m.object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}) },
   });
 }
 export function registerPick(p: RegisteredPick): void { activeRegistry().addPick(p); }

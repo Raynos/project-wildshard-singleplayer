@@ -50,6 +50,7 @@ export class ModelExplorer implements ExplorePane {
   readonly el: HTMLElement;
   private readonly grid: HTMLElement;
   private readonly sheet: HTMLElement;
+  private readonly sheetObserver: ResizeObserver;
   private readonly studio = new THREE.Group();
   private readonly floor: THREE.Group;
   private readonly contact: THREE.Mesh;
@@ -106,8 +107,11 @@ export class ModelExplorer implements ExplorePane {
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
     this.el.append(this.grid, this.sheet);
+    // The bottom sheet changes height with iPhone viewport, safe area, text wrapping and localization. Keep the
+    // variant and clip controls above its *measured* top, rather than a fixed 208 px from the screen bottom.
+    this.sheetObserver = new ResizeObserver(() => { this.placeVariantControls(); });
     // index.html swallows touchmove outside [data-scroll]: without the mark the catalog can't scroll on a phone (E109)
-    for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants')) s.dataset['scroll'] = '';
+    for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants, .ws-x-clips')) s.dataset['scroll'] = '';
     this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { b.addEventListener('click', () => { this.filter = (b.dataset['f'] ?? 'all') as Category | 'all'; this.renderGrid(); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
@@ -158,6 +162,9 @@ export class ModelExplorer implements ExplorePane {
 
   show(opts: Record<string, string>): void {
     this.el.classList.add('show');
+    const bottomSheet = this.sheet.querySelector('.ws-x-sheet');
+    if (bottomSheet) this.sheetObserver.observe(bottomSheet);
+    this.sheetObserver.observe(this.el);
     const id = opts['model'];
     const e = id !== undefined ? this.entries.find((x) => x.id === id) : undefined;
     if (e) this.openModel(e); else this.openCatalog();
@@ -165,7 +172,14 @@ export class ModelExplorer implements ExplorePane {
 
   hide(): void {
     this.el.classList.remove('show');
+    this.sheetObserver.disconnect();
     this.closeModel();
+  }
+
+  private placeVariantControls(): void {
+    if (this.el.dataset['view'] !== 'model') return;
+    const sheetTop = this.sheet.querySelector('.ws-x-sheet')?.getBoundingClientRect().top ?? 0;
+    if (sheetTop > 0) this.el.style.setProperty('--ws-x-variant-bottom', `${Math.ceil(innerHeight - sheetTop + 10)}px`);
   }
 
   context(): Record<string, ContextValue> {
@@ -236,19 +250,24 @@ export class ModelExplorer implements ExplorePane {
     this.setLight(this.light);
     const a = e.animal;
     this.sheet.classList.toggle('creature', a !== undefined && this.lineup === null);
+    this.sheet.classList.toggle('variant', a === undefined && (e.variants?.length ?? 0) > 0 && this.lineup === null);
     this.sheet.classList.toggle('lineup', this.lineup !== null);
-    if (a) { this.pin.set(a, { x: a.position.x, z: a.position.z }); this.clip = 'idle'; this.markClip(); this.renderVariants(e); if (this.skeleton) this.setSkeleton(true); }
+    if (a) { this.pin.set(a, { x: a.position.x, z: a.position.z }); this.clip = 'idle'; this.markClip(); if (this.skeleton) this.setSkeleton(true); }
+    if ((e.variants?.length ?? 0) > 0) this.renderVariants(e);
     this.sheet.classList.toggle('noclock', this.clock() === null);
     const m = measure(o);
     const q = (s: string): HTMLElement | null => this.sheet.querySelector<HTMLElement>(s);
     const name = q('.ws-x-name'), file = q('.ws-x-file');
     if (name) name.textContent = e.name;
     if (file) file.textContent = e.file;
+    const worldAction = this.sheet.querySelector<HTMLButtonElement>('.ws-x-inworld');
+    if (worldAction) worldAction.hidden = e.worldView === false;
     const step = q('.ws-x-step'); // E181: nothing to step to in a one-model filter, or in a lineup
     if (step) step.hidden = this.lineup !== null || this.shown().length < 2;
     const set = (k: string, v: string): void => { const el = q(`.ws-x-stats b[data-s="${k}"]`); if (el) el.textContent = v; };
     set('tris', m.tris.toLocaleString()); set('calls', String(m.calls)); set('build', e.live ? 'at boot' : `${e.buildMs.toFixed(1)} ms`);
     this.budget(m.tris, m.calls);
+    this.placeVariantControls();
   }
 
   private closeModel(): void {
@@ -404,6 +423,12 @@ export class ModelExplorer implements ExplorePane {
       b.addEventListener('click', () => {
         const p = e.animal ? this.pin.get(e.animal) : undefined;
         e.rebuild?.(v.id); this.adopt(e, p);
+        if (!e.animal) {
+          const m = measure(e.object());
+          const set = (key: string, value: string): void => { const el = this.sheet.querySelector<HTMLElement>(`.ws-x-stats b[data-s="${key}"]`); if (el) el.textContent = value; };
+          set('tris', m.tris.toLocaleString()); set('calls', String(m.calls)); set('build', `${e.buildMs.toFixed(1)} ms`);
+          this.budget(m.tris, m.calls);
+        }
         box.querySelectorAll('button').forEach((x) => { x.classList.toggle('on', x === b); });
       });
       box.append(b);

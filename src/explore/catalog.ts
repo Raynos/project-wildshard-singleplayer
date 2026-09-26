@@ -28,6 +28,7 @@ import { registerModel, registerPick, registeredModels, type ModelCategory, type
 export type Category = ModelCategory;
 export const CATEGORIES: readonly { id: Category | 'all'; label: string }[] = [
   { id: 'all', label: 'All' }, { id: 'buildings', label: 'Buildings' }, { id: 'nature', label: 'Nature' }, { id: 'creatures', label: 'Creatures' },
+  { id: 'props', label: 'Props' },
 ];
 
 export interface CatalogEntry extends RegisteredModel {
@@ -180,6 +181,9 @@ export function catalogEntries(sky: Sky, animals: readonly { kind: string }[], s
   const out: CatalogEntry[] = registeredModels().map((m) => {
     const e: CatalogEntry = { id: m.id, name: m.name, category: m.category, file: m.file, live: m.live, object: m.object, buildMs: 0 };
     if (m.buildAt) e.buildAt = m.buildAt;
+    if (m.variants) e.variants = m.variants;
+    if (m.rebuild) e.rebuild = m.rebuild;
+    if (m.worldView === false) e.worldView = false;
     if (!m.live) {
       let built = false;
       e.object = () => { if (!built) { built = true; const t0 = performance.now(); const o = m.object(); e.buildMs = performance.now() - t0; return o; } return m.object(); };
