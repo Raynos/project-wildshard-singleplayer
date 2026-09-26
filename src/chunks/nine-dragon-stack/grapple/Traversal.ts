@@ -1,6 +1,6 @@
 /** Fei Zhua in the partial shard: LOCK a visible brass dragon ring, JUMP to fire, then zip through Rapier's player capsule. */
 import {
-  AdditiveBlending, Color, DoubleSide, Mesh, MeshBasicMaterial, RingGeometry, SphereGeometry, Vector2, Vector3,
+  AdditiveBlending, Color, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3,
 } from 'three';
 import type { ShardTraversalContext } from '../../ChunkDef';
 import { castSegment, floorBelow, lineOfSight } from '../../../physics/query';
@@ -74,15 +74,29 @@ function makeTracer(ctx: ShardTraversalContext) {
   const rope = new Rope(24);
   const line = new Filament(rope.n);
   line.mesh.name = 'fei-zhua:filament';
-  const claw = new Mesh(new SphereGeometry(0.14, 8, 6), new MeshBasicMaterial({ color: 0xd7a546 }));
+  const claw = new Group();
+  const brass = new MeshBasicMaterial({ color: 0xd7a546 });
+  claw.add(new Mesh(new SphereGeometry(0.10, 8, 6), brass));
+  for (let i = 0; i < 3; i++) {
+    const phi = i * Math.PI * 2 / 3;
+    const talon = new Mesh(new ConeGeometry(0.055, 0.30, 5), brass);
+    talon.position.set(Math.cos(phi) * 0.075, Math.sin(phi) * 0.075, 0.15);
+    talon.rotation.x = Math.PI / 2;
+    claw.add(talon);
+  }
+  const eyelet = new Mesh(new TorusGeometry(0.06, 0.018, 4, 10), brass);
+  eyelet.position.z = -0.12;
+  claw.add(eyelet);
   claw.name = 'fei-zhua:flying-claw';
   line.mesh.visible = claw.visible = false;
   ctx.game.scene.add(line.mesh, claw);
-  const res = new Vector2();
+  const res = new Vector2(), dir = new Vector3(0, 0, 1), forward = new Vector3(0, 0, 1), turn = new Quaternion();
   return {
     reset(start: Vector3): void { rope.reset(start, start); },
     step(dt: number, start: Vector3, end: Vector3, slack: number): void {
       rope.slack = slack;
+      dir.subVectors(end, start);
+      if (dir.lengthSq() > 1e-6) turn.setFromUnitVectors(forward, dir.normalize());
       // Two fixed substeps keep the line responsive without the lab's 240 Hz capture cost.
       for (let i = 0; i < 2; i++) rope.step(dt / 2, start, end);
     },
@@ -94,7 +108,8 @@ function makeTracer(ctx: ShardTraversalContext) {
       line.u.uI.value = 1.1;
       line.update(rope);
       line.mesh.visible = true;
-      claw.visible = flying; claw.position.copy(end);
+      claw.visible = flying; claw.position.copy(end); claw.quaternion.copy(turn);
+      claw.rotateZ(time * 3);
     },
     hide(): void { rope.off(); line.mesh.visible = claw.visible = false; },
   };
