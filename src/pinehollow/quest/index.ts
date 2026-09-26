@@ -57,6 +57,7 @@ import { StagLead } from './stagLead';
 import { NightThralls, isThrall } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { buildTokenShelf } from './tokenShelf';
+import { markUnload } from '../../boot/lastEnd';
 
 export interface PineQuestHost {
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
@@ -552,7 +553,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   };
   const debug = {
     flags, quest, board, kit, stag, thralls, people,
-    jump: (bt: string): void => { const u = new URL(location.href); u.searchParams.set('quest', bt); location.href = u.toString(); }, goto,
+    jump: (bt: string): void => { const u = new URL(location.href); u.searchParams.set('quest', bt); markUnload(`debug quest jump to ${bt}`); location.href = u.toString(); }, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
     zip, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
     openBoard: (): void => { boardUi.open(); }, openTrade: (): void => { trade.open(); },

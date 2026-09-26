@@ -37,6 +37,8 @@
  * worker is only registered with `?sw=1` (a stale worker would serve yesterday's bundle over HMR).
  */
 
+import { markUnload } from './lastEnd'; // E179: the page's "why did it reload" record — imported first, so its beat is the page's
+
 declare const __BUILD_ID__: string;
 
 /** The longest boot waits for the worker to take control, or for a hand-over to a new build. */
@@ -55,7 +57,8 @@ export interface SwVersion {
 export interface WsSw {
   ready: Promise<void>;
   waiting: ServiceWorker | null;
-  adopt: (to?: string) => Promise<void>;
+  /** `why`: what asked for it, recorded for the next boot (src/boot/lastEnd.ts) */
+  adopt: (to?: string, why?: string) => Promise<void>;
   version: () => Promise<SwVersion | null>;
 }
 
@@ -125,7 +128,7 @@ function watch(reg: ServiceWorkerRegistration): void {
 }
 
 /** `to`: where the page goes once the new worker controls it (default: reload this URL) */
-async function adopt(to?: string): Promise<void> {
+async function adopt(to?: string, why = 'new build adopted'): Promise<void> {
   const w = api.waiting;
   if (!sw || !w) return;
   await new Promise<void>((resolve) => {
@@ -134,6 +137,7 @@ async function adopt(to?: string): Promise<void> {
       'controllerchange',
       () => {
         clearTimeout(timer);
+        markUnload(`${why}: the new service worker took over`);
         if (to === undefined) location.reload();
         else location.replace(to);
       },

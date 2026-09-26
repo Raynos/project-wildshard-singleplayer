@@ -13,6 +13,7 @@
  * above the sheet so the pill never lands on CLOSE.
  */
 import { isDev, onDev } from '../core/devMode';
+import { markUnload } from '../boot/lastEnd';
 
 declare const __BUILD_ID__: string;
 
@@ -33,12 +34,13 @@ const reload = async (): Promise<void> => {
   if (text) text.textContent = 'updating…'; // the tap is acknowledged at once, whatever the hand-over does
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/boot/sw.ts).
   const sw = window.__ws_sw;
-  if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt();
+  if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(undefined, 'build pill tap');
   // Still here: nothing was waiting, or the hand-over never landed within adopt()'s cap — e.g. the announced worker went
   // redundant because a later deploy superseded it, which left the pill dead to taps (E53). Cache-bust the document
   // itself; keep ?chunk= and friends.
   const url = new URL(location.href);
   url.searchParams.set('v', Date.now().toString(36));
+  markUnload('build pill tap (?v= reload)');
   location.replace(url.toString());
 };
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the

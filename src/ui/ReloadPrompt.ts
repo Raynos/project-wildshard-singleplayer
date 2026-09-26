@@ -13,6 +13,7 @@ import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { settingsReloadUrl } from './Settings';
 import './styles/reload.css';
 import { shardSlot } from '../core/shardState';
+import { markUnload } from '../boot/lastEnd';
 
 interface Pose { x: number; y: number; z: number; yaw: number; pitch: number }
 let poseOf: () => Pose | null = () => null;
@@ -25,9 +26,10 @@ export function currentPose(): Pose | null { try { return poseOf(); } catch { re
 const TITLE_SKIPPERS = ['skipintro', 'tour', 'showcase', 'nolock', 'x', 'z', 'yaw', 'pitch', 'at', RELOAD_PARAM];
 
 /** reload the page with the saved picks, on the title */
-export function reloadWithPicks(): void {
+export function reloadWithPicks(why = 'reload prompt: reload now'): void {
   const url = new URL(settingsReloadUrl(location.href, TITLE_SKIPPERS));
   url.searchParams.delete('v');
+  markUnload(why);
   location.replace(url.toString());
 }
 

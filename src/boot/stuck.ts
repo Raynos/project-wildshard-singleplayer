@@ -17,6 +17,7 @@
  */
 import { ErrorReporter, safeUrl, sendReport } from '../core/errorReport';
 import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
+import { markUnload } from './lastEnd';
 
 declare const __BUILD_ID__: string; // vite.config.ts define
 
@@ -112,6 +113,7 @@ export async function recover(): Promise<void> {
   const url = new URL(location.href);
   url.searchParams.delete('crash');
   url.searchParams.set('v', Date.now().toString(36)); // network-first in the worker: the host's live document
+  markUnload(`stuck boot recovery (${detail.slice(0, 80)})`);
   location.replace(url.toString());
 }
 

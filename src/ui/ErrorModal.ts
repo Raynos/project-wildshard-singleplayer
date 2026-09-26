@@ -27,6 +27,7 @@ import { installLifeTrace } from '../core/lifeTrace';
 import { currentPose, reloadWithPicks } from './ReloadPrompt';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER } from '../core/tier';
+import { markUnload } from '../boot/lastEnd';
 // reloads from this modal (and the boot's stuck-loader recovery, src/boot/stuck.ts) inside RELOAD_WINDOW_MS before
 // RELOAD HERE stops returning to the spot: one shared budget
 import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
@@ -116,12 +117,13 @@ function reloadHere(atSpot: boolean): void {
     url.searchParams.set('at', [pose.x, pose.y, pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
     url.searchParams.set(RELOAD_PARAM, '1'); // index.html's RESUMING screen from the first paint; main.ts skips the title and pauses
   }
+  markUnload(`error modal: ${atSpot ? 'reload here' : 'reload at spawn'} (${firstText.slice(0, 80)})`);
   location.replace(url.toString());
 }
 function toTitle(): void {
   countReload();
   try { history.replaceState(history.state, '', cleanHref()); } catch { /* the crash flag may follow: it only works for reviewers */ }
-  reloadWithPicks();
+  reloadWithPicks(`error modal: title screen (${firstText.slice(0, 80)})`);
 }
 
 function build(): HTMLElement {

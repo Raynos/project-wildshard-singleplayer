@@ -16,6 +16,7 @@
 import './styles/debug.css';
 import { DEBUG_GROUPS, DEBUG_READOUTS, DEBUG_ROWS, type DebugActionSpec, type DebugCtx, type DebugGroupId, type DebugRow } from './debugOptions';
 import { settingsReloadUrl } from './Settings';
+import { markUnload } from '../boot/lastEnd';
 
 const OPEN_KEY = 'ws.debug.open';
 const loadOpen = (): Set<string> => {
@@ -52,7 +53,7 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
     b.disabled = true;
     void Promise.resolve().then(() => a.run(say)).catch((e: unknown) => { console.warn(`[debug] ${r.id} failed`, e); }).finally(() => {
       b.disabled = false; onPick(r.id);
-      if (r.reload) location.href = settingsReloadUrl(location.href);
+      if (r.reload) { markUnload(`debug action ${r.id} (reloads)`); location.href = settingsReloadUrl(location.href); }
     });
   };
   b.addEventListener('click', () => {
@@ -84,7 +85,7 @@ function renderRow(r: DebugRow, onPick: (id: string) => void): Rendered {
       b.addEventListener('click', () => {
         if (r.get() === c.v) return;
         r.set(c.v); paint(); onPick(r.id);
-        if (r.reload) location.href = settingsReloadUrl(location.href);
+        if (r.reload) { markUnload(`debug row ${r.id} → ${c.v} (reloads)`); location.href = settingsReloadUrl(location.href); }
       });
       return b;
     }));

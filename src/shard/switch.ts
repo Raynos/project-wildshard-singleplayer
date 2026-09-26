@@ -9,6 +9,7 @@
  *   shardResident('nalati-grasslands')                // in memory now (the deck's hint)
  */
 import { chunkUrl } from '../chunks/registry';
+import { markUnload } from '../boot/lastEnd';
 
 export interface ShardRequest {
   /** into the world (ENTER WORLD) */
@@ -29,6 +30,7 @@ export function requestShard(slug: string, req: ShardRequest = {}): void {
   if (switcher) { switcher.go(slug, req); return; }
   const u = new URL(chunkUrl(slug));
   if (req.explore === true) u.searchParams.set('explore', 'hub');
+  markUnload(`shard switch to ${slug} without a shard host (a dev page navigates)`);
   location.href = u.toString();
 }
 

@@ -21,6 +21,7 @@ import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 import { TITLE_SKIPPERS } from './debugOptions';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
+import { markUnload } from '../boot/lastEnd';
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 
@@ -132,6 +133,7 @@ function build(): HTMLElement {
 
   apply.addEventListener('click', () => {
     const next = settingsReloadUrl(location.href, TITLE_SKIPPERS);
+    markUnload('main menu settings: apply & reload');
     if (next === location.href) location.reload(); else location.replace(next);
   });
   const closeBtn = sheet.querySelector('.ws-gmenu-close');

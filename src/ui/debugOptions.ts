@@ -19,6 +19,7 @@ import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { shardMemory } from '../shard/switch';
+import { lastEndLine, markUnload } from '../boot/lastEnd';
 import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
 import { MOBILE_DEVICE, TIER } from '../core/tier';
 import { PHONE_RIG_MAPS, SHADOW_VARIANTS, VARIANT_SPECS, shadowBytes } from '../world/shadowVariants';
@@ -119,7 +120,7 @@ const clearDownloadsRow = action('clearDownloads', 'loading', 'Clear downloads',
   const freed = freedBytes(r);
   say(freed === null ? 'Cleared · reloading' : `Freed ${mbText(freed)} · reloading`,
     `${mbText(freed)} of downloads · ${r.caches} caches and ${r.workers} worker${r.workers === 1 ? '' : 's'} removed${r.httpCache ? ', HTTP cache cleared' : ''}. Reloading as a first visit.`);
-  window.setTimeout(() => { location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); }, 1500);
+  window.setTimeout(() => { markUnload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); }, 1500);
 }, { note: 'E172 · the next load is a true cold load (bytes as a first visit)' }, {
   confirm: async () => { const used = await storageUsed(); return used === null ? 'Tap again to clear' : `Tap again to clear ~${mbText(used)}`; },
   status: () => {
@@ -201,8 +202,8 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
 ];
 
-/** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap and the device's
- *  memory — read on the device (the iPhone has no dev tools) */
+/** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap, the device's
+ *  memory and the last reload's cause (E179) — read on the device (the iPhone has no dev tools) */
 function memoryReadout(): string {
   const m = shardMemory();
   // Chrome's performance.memory / navigator.deviceMemory: absent on iOS (and not in the DOM typings)
@@ -210,7 +211,8 @@ function memoryReadout(): string {
   const dm: unknown = Reflect.get(navigator, 'deviceMemory');
   const heap = typeof used === 'number' ? `${Math.round(used / 1e6)} MB` : 'n/a';
   const shards = m === null ? ['no shard host'] : m.shards.map((x, i) => `${i + 1}. ${x.slug}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
-  return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`].join('\n');
+  // E179: why the page last reloaded (src/boot/lastEnd.ts: the reason the game gave, or "ended unexpectedly")
+  return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
 }
 /** E172: a few live lines under a row (by row id), re-read while the row can be seen — in both menus */
 export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { shardCap: memoryReadout };

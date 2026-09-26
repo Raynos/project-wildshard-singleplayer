@@ -41,6 +41,7 @@ import type { Game } from './Game';
 import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { resumeScreen, SHOT_KEY } from '../ui/Resume';
 import { layout, trace, traceReturn, traceWorldReady } from './lifeTrace';
+import { markUnload } from '../boot/lastEnd';
 
 export interface RecoveryHost {
   game: Game;
@@ -152,7 +153,8 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const sw = away ? window.__ws_sw : undefined;
     const go = (): void => {
       void (async () => {
-        if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(to); // navigates on the hand-over; returns only if it never landed
+        if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(to, `graphics recovery (${why})`); // navigates on the hand-over; returns only if it never landed
+        markUnload(`graphics recovery: ${why}`);
         location.replace(to);
       })();
     };
