@@ -80,7 +80,7 @@
   .ws-menu .ws-wordmark { font-size: 13px; letter-spacing: 0.3em; line-height: 1.05; color: rgba(230, 242, 248, 0.85); font-weight: 600; }
   .ws-menu .ws-wordmark b { display: block; font-size: 26px; letter-spacing: 0.12em; margin-top: 3px; }
   .ws-menu .ws-wordmark::after { width: 26px; margin-top: 6px; }
-  .ws-menu .ws-menu-deck { --card-w: 70vw; --card-gap: 12px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); }
+  .ws-menu .ws-menu-deck { --card-w: 70vw; --card-gap: 12px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); } /* E175: +20px on top of E146 — SETTINGS sat too close to the iOS app-switcher edge */
   .ws-menu-cards { padding-top: 10px; padding-bottom: 10px; }
   .ws-menu-card .ws-menu-card-img { margin: 5px; }
   .ws-menu-card .ws-menu-card-tag { font-size: 8px; padding: 2px 6px; right: 6px; top: 6px; }
@@ -101,13 +101,13 @@
 
 /* ─── title screen on a landscape phone (iPhone ~402, Android ~360–411 CSS px tall): the desktop deck is ~530 px tall,
    so ENTER WORLD fell below the screen. Size the card from the height instead: everything that isn't the card image
-   (wordmark, card labels, dots, ENTER, sound row) is ~235 px, the 16:9 image gets the rest. ─── */
+   (wordmark, card labels, dots, ENTER, sound row) is ~255 px, the 16:9 image gets the rest. ─── */
 @media (orientation: landscape) and (max-height: 500px) {
   .ws-menu .ws-menu-head { padding: calc(10px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) 0; }
   .ws-menu .ws-wordmark { font-size: 12px; letter-spacing: 0.3em; }
   .ws-menu .ws-wordmark b { font-size: 24px; }
   .ws-menu .ws-wordmark::after { margin-top: 5px; }
-  .ws-menu .ws-menu-deck { --card-w: calc((100vh - 235px) * 16 / 9 + 12px); --card-gap: 14px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); }
+  .ws-menu .ws-menu-deck { --card-w: calc((100vh - 255px) * 16 / 9 + 12px); --card-gap: 14px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 34px); } /* E175: +20px, as portrait */
   .ws-menu-cards { padding-top: 6px; padding-bottom: 6px; }
   .ws-menu-card b { font-size: 17px; padding-top: 5px; }
   .ws-menu-card small { font-size: 9px; padding: 2px 10px 7px; }
