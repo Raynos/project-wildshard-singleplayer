@@ -125,7 +125,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
-  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/lab/tex', Math.min(8, renderer.capabilities.getMaxAnisotropy())), loadFonts()]);
+  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy())), loadFonts()]);
   shared.u.uPaint.value = paint.tex;
   progress(0.15);
 

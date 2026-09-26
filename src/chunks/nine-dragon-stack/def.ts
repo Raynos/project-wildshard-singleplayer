@@ -25,7 +25,7 @@ const SEED = 0x9d2a;
 /** the world's files, declared so the loading bar counts them and the offline cache holds them */
 const TEX = ['concrete', 'flag', 'flag-a', 'flag2', 'flag2-a', 'lacquer', 'panel', 'poster', 'poster-a', 'stone', 'tiles', 'wood'];
 const FILES = [
-  ...TEX.map((t) => `/assets/nine-dragon/lab/tex/${t}.jpg`),
+  ...TEX.map((t) => `/assets/nine-dragon/paint/${t}.jpg`),
   '/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
   '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
   ...['lion', 'pots', 'lanterns'].map((m) => `/assets/nine-dragon/lab/organic/${m}.glb`),
