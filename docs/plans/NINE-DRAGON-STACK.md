@@ -166,8 +166,9 @@ rim or an overlook. Checked by a capture script over a grid of points per stratu
 - **Fei Zhua (飛爪, "flying claw")** — a wrist grapple on the left forearm: brass-and-carbon launcher, folded three-talon
   claw, glowing mono-filament line. It **hooks** onto brass *dragon hooks* (on signs, cable masts, balconies) to swing and
   zip, and in combat it **yanks** an enemy toward you or off a ledge. One tool, two verbs: that is shard 4's signature.
-  **Built:** the gauntlet on the rigged left arm (with grapple_aim / fire / hold clips); the full fire → fly → bite → zip
-  sequence exists as a lab (`src/dev/nd-lab/grapple/`) and is being ported as the real verb (F2).
+  **Built:** the gauntlet on the rigged left arm (with grapple_aim / fire / hold clips) and a playable, motor-driven zip
+  across the Well. The lab's fuller fire → fly → bite → zip and miss/reel choreography remains unported in parts; see the
+  [parity audit](../audits/nine-dragon-grapple-parity.md) before any lab archive (F2).
 
 ### 4.2 Traversal verbs
 
@@ -354,9 +355,9 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `need
 
 | Row | What | Owner | State |
 |---|---|---|---|
-| F1 | **Out of bounds** (Jake's playtest): invisible walls on every edge of the walkable fragment and every reachable roof, a soft respawn for anything below / outside the built volume, the hoverboard clamped; edge legs added to the walk test | continuation | uncommitted WIP; verify and land |
-| F2 | **The grapple as the real verb**: port the lab's fire → fly → bite → zip into the shard, LOCK targets dragon hooks (a hook registry from `ctx.hooks` / the Well), JUMP fires and zips (a pull on the Rapier capsule), the arms' grapple clips; delete the lab | continuation | lab built; game port open |
-| F3 | **A 15 s portrait teaser trailer** from the engine (the `scripts/steam-trailer/` pipeline): rise up the Well, breach onto the square, the jian, the stair-street, the grapple, the end card; a MiniMax cue + MOSS / SA3 SFX; portrait 1080p60 master for the portrait iOS PWA | continuation | partial portrait capture/audio; grapple shot and master open |
+| F1 | **Out of bounds** (Jake's playtest): invisible walls on every edge of the walkable fragment and every reachable roof, a soft respawn for anything below / outside the built volume, the hoverboard clamped; edge legs added to the walk test | continuation | done `fcd49d9d`; 19 legs, 0 stuck/escape |
+| F2 | **The grapple as the real verb**: port the lab's fire → fly → bite → zip into the shard, LOCK targets dragon hooks (a hook registry from `ctx.hooks` / the Well), JUMP fires and zips (a pull on the Rapier capsule), the arms' grapple clips; delete the lab only after [parity](../audits/nine-dragon-grapple-parity.md) | continuation | playable zip `03b04b67`; lab FX, rope, miss/reel and enemy yank remain |
+| F3 | **A 15 s portrait teaser trailer** from the engine (the `scripts/steam-trailer/` pipeline): rise up the Well, breach onto the square, the jian, the stair-street, the grapple, the end card; a MiniMax cue + MOSS / SA3 SFX; portrait 1080p60 master for the portrait iOS PWA | continuation | grapple recut `03aa1760`; awaiting Jake's review |
 | F4 | **Mockup B**: move the rim post out of the lower-left (look over a carved panel, a post lower-right), `placeLion` on the posts | dome C | todo |
 | F5 | **The deep Well**: levels 50–90 m down and the temple readable through the mist (a lighter curve / lit surfaces punching through), mockup D's frame | render + D2 | todo |
 | F6 | **Mockup C**: open depth over the stair (thin the lantern strings, push back the near sky screen, the paifang big and centred, the skybridges at the mockup's depths) | C2 + render | todo |
