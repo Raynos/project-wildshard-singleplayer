@@ -57,8 +57,19 @@ const OVERDRAW = flag('overdraw', '1') !== '0';
 const HEAT = flag('heat', '');
 const [VW, VH] = flag('size', TIER === 'phone' ? '402x874' : '1600x900').split('x').map(Number);
 const DPR = Number(flag('dpr', TIER === 'phone' ? '3' : '1'));
+/** the shard (E189: `--chunk=driftwood-isle` times Driftwood's phone frame with its own poses) */
+const CHUNK = flag('chunk', 'pine-hollow');
 /** yaw faces (-sin yaw, -cos yaw); +z is north, +x is west on the map */
-const POSES = [
+const DRIFTWOOD_POSES = [
+  // the spawn on the pier, facing the island (E189: Jake's standing-still reading, 111 calls · 395 k tris)
+  { id: 'pier', x: 0, z: -205, yaw: 3.1416 },
+  // the cove's sand under the crag and the rope ladder, facing N into the cover (Jake's 23:32 reading)
+  { id: 'cove', x: 0, z: -150, yaw: 3.1416 },
+  // the interior grass and ground cover (stutter-run.mjs's waypoints), facing E and N
+  { id: 'interior', x: -20, z: 20, yaw: -1.5708 },
+  { id: 'flank', x: -70, z: -40, yaw: 3.1416 },
+];
+const PINE_POSES = [
   { id: 'gate', x: 0, z: -200, yaw: 3.1416 },
   // the Hollow's pine grove N of the crossroads, facing N up the bowl
   { id: 'hollow', x: 6, z: 4, yaw: 2.8 },
@@ -68,7 +79,8 @@ const POSES = [
   { id: 'pond', x: -56, z: 95, yaw: 3.1416 },
   // the fire lookout's south catwalk facing down the zipline over the Hollow
   { id: 'lookout', x: 35.53, z: 211.14, yaw: 0.1635, y: 57.46 },
-].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
+];
+const POSES = (CHUNK === 'driftwood-isle' ? DRIFTWOOD_POSES : PINE_POSES).filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
@@ -314,7 +326,7 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const p0 = POSES[0];
-  const q = ['chunk=pine-hollow', 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', `tier=${TIER}`, TIER === 'phone' ? 'touch' : '', `x=${p0.x}`, `z=${p0.z}`, `yaw=${p0.yaw}`, EXTRA].filter(Boolean).join('&');
+  const q = [`chunk=${CHUNK}`, 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', `tier=${TIER}`, TIER === 'phone' ? 'touch' : '', `x=${p0.x}`, `z=${p0.z}`, `yaw=${p0.yaw}`, EXTRA].filter(Boolean).join('&');
   const t0 = Date.now();
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: 300000, polling: 500 });
@@ -381,6 +393,6 @@ const lines = [
 for (const r of out.rows) lines.push(`| ${r.pose} | ${r.gpu.toFixed(2)} | ${r.cpu.toFixed(2)} | ${cols.map((c) => f2(r.subtract[c]?.delta)).join(' | ')} | ${r.overdraw?.raster.alpha.mean ?? '—'} | ${r.overdraw?.raster.total.mean ?? '—'} |`);
 console.log(`\n${lines.join('\n')}`);
 out.table = lines.join('\n');
-const file = resolvePath(ROOT, `progress/pine-hollow-gpu-${TAG}.json`);
+const file = resolvePath(ROOT, `progress/${CHUNK === 'pine-hollow' ? 'pine-hollow' : 'driftwood'}-gpu-${TAG}.json`);
 writeFileSync(file, `${JSON.stringify(out, null, 1)}\n`);
-console.log(`→ progress/pine-hollow-gpu-${TAG}.json`);
+console.log(`→ ${file}`);

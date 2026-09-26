@@ -11,7 +11,7 @@ import { GradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG, frameCapFps, pinePhoneCuts } from './tier';
+import { TIER_CONFIG, frameCapFps, phonePictureCuts } from './tier';
 import { installLookV2Fog } from '../nalati/look/fog';
 import { buildLookV2Chain } from '../nalati/look/grade';
 import { chunkShadowCasters } from '../world/shadowChunks';
@@ -198,7 +198,7 @@ export class Game {
     // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts)
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
     // depth needs no mid-pass copy (worldDepth.ts)
-    const slices = pinePhoneCuts();
+    const slices = phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
     this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
@@ -261,7 +261,7 @@ export class Game {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
         exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
       });
-      if (!clean && pinePhoneCuts()) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc);
+      if (phonePictureCuts()) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc); // the disc off screen = no rays to draw (E142, E189)
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
       const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });

@@ -125,6 +125,15 @@ export function pinePhoneCuts(): boolean {
 }
 
 /**
+ * E189 (Jake, iPhone 17 Pro: "the FPS tanks from 60 to 20 after about a minute" — the phone's GPU throttling under
+ * sustained load): the two E142 cuts that change no pixel — the viewmodel's depth slices and the god rays skipped while
+ * the sun is off screen — on Driftwood's phone tier too, not only Pine Hollow's.
+ */
+export function phonePictureCuts(): boolean {
+  return TIER === 'phone' && (tierShard === 'pine-hollow' || tierShard === 'driftwood-isle');
+}
+
+/**
  * The player's graphics prefs — the menu's Settings ▸ Graphics rows (src/ui/Menu.ts), read once at boot, so a
  * change needs a restart. 'auto' = the tier default above. The old DBG pill kept a tier / dpr / aa / meter
  * override under 'ws.debug'; the pill is gone and that key is dropped once so a stale override stops applying.
