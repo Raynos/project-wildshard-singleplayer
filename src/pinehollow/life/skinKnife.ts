@@ -21,7 +21,6 @@ import type { Game } from '../../core/Game';
 import type { Sky } from '../../world/Sky';
 import { isMesh, viewmodelMaterial, whiteColors } from '../../player/Crossbow';
 import { BEAT } from './lifeMath';
-import { setting } from '../../ui/Settings';
 
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';
 
@@ -41,7 +40,7 @@ export class SkinKnife {
   private mesh: THREE.Mesh | null = null;
   private readonly mat: THREE.MeshPhysicalMaterial;
 
-  constructor(private readonly game: Game, sky: Sky, wantModel = setting('knife') !== 'proc') {
+  constructor(private readonly game: Game, sky: Sky) {
     this.mat = viewmodelMaterial(sky, 'skin-knife', { roughness: 0.55, metalness: 0.25 });
     this.group.name = 'skin-knife';
     this.group.add(this.pivot);
@@ -51,7 +50,7 @@ export class SkinKnife {
     game.camera.add(this.group);
     this.use(proceduralKnife(), null);
     // fetched once booted (off the load's requests and bytes); the stand-in holds until it lands
-    if (wantModel) document.addEventListener('ws:ready', () => { setTimeout(() => { void this.load(); }, 600); }, { once: true });
+    document.addEventListener('ws:ready', () => { setTimeout(() => { void this.load(); }, 600); }, { once: true });
   }
 
   private async load(): Promise<void> {

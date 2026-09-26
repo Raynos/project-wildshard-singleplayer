@@ -18,7 +18,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { KIND, type WildKind } from './wildlifeMesh';
-import { setting } from '../../ui/Settings';
 
 export const BIRDS_URL = '/assets/pine-hollow/life/birds.glb';
 export const BIRDS_JSON_URL = '/assets/pine-hollow/life/birds.json';
@@ -49,14 +48,7 @@ const BIRDS = [
   { name: 'wood', kind: KIND.woodpecker, perchPitch: 1.3, headPitch: 0, feet: 0.115, level: true, rough: 0.6, eyes: false },
 ] as const;
 
-/** Debug ▸ Creatures & NPCs ▸ Pine Hollow birds = Procedural keeps the procedural birds (the fallback, and the before of
- *  the polish board; E162: undecided, so a Debug row, not a URL switch) */
-export function birdModelsWanted(): boolean {
-  return setting('birds') !== 'proc';
-}
-
 export async function loadBirdModels(): Promise<BirdSet | null> {
-  if (!birdModelsWanted()) return null;
   try {
     const [gltf, side] = await Promise.all([
       new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(BIRDS_URL),

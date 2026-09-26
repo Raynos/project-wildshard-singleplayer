@@ -26,18 +26,12 @@ import type { Sky } from '../../world/Sky';
 import type { NpcKind } from './npcFigure';
 import { mapSlot } from '../../core/shardState';
 import { MAY_KTX2 } from '../../boot/gpuFiles';
-import { setting } from '../../ui/Settings';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
 /** the file each tier loads (Node-safe: the boot manifest may declare them) */
 export function npcModelUrl(kind: NpcKind, tier: 'phone' | 'desktop' = TIER): string {
   return `/assets/pine-hollow/npcs/${kind}${tier === 'phone' ? '.phone' : ''}.glb`;
-}
-
-/** the generated people are on unless Debug ▸ Creatures & NPCs ▸ Pine Hollow people = Stand-ins (E162) */
-export function npcModelsOn(): boolean {
-  return setting('npcs') !== 'proc';
 }
 
 interface Source { geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null }
@@ -85,7 +79,6 @@ export function loadNpcModel(kind: NpcKind): Promise<Source | null> {
 }
 
 export function preloadNpcModels(): void {
-  if (!npcModelsOn()) return;
   for (const k of NPC_KINDS) void loadNpcModel(k);
 }
 
@@ -202,7 +195,7 @@ const sharedMats = new Map<NpcKind, THREE.MeshStandardMaterial>();
 /** a skinned instance of `kind`'s model, or null until it has loaded */
 export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null {
   const src = sources.get(kind);
-  if (!src || !npcModelsOn()) return null;
+  if (!src) return null;
   const b = rigOf(kind, src);
   let mat = sharedMats.get(kind);
   if (!mat) {

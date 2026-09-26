@@ -177,9 +177,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Creatures & NPCs ──
   opt('creatures', 'creatures', 'Creatures', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: (c) => pineHollow(c) || nalati(c), note: 'PH-U11 / E136 · models picked; procedural = what the rig bakes need' }),
-  opt('birds', 'creatures', 'Pine Hollow birds', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: pineHollow, note: 'polish lane · undecided (was ?birds)' }),
-  opt('npcs', 'creatures', 'Pine Hollow people', [['models', 'Models'], ['proc', 'Stand-ins']], { reload: true, when: pineHollow, note: 'PH-M4 · undecided (was ?npcs)' }),
-  opt('knife', 'creatures', 'Skinning knife', [['model', 'Model'], ['proc', 'Stand-in']], { reload: true, when: pineHollow, note: 'polish lane · undecided (was ?knife)' }),
   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
   opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),

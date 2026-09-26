@@ -134,9 +134,6 @@ export const OPTION_VALUES = {
   learnedLut: ['on', 'off'],
   cragView: ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'], // Pine Hollow's crags drawn as one channel (src/world/PineCrags.ts) — live
   creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
-  birds: ['models', 'proc'],                           // Pine Hollow's birds: the generated models or the procedural ones (undecided) — a reload
-  npcs: ['models', 'proc'],                            // Pine Hollow's people: the generated models or the stand-ins (undecided) — a reload
-  knife: ['model', 'proc'],                            // Pine Hollow's skinning knife: the Blender model or the stand-in (undecided) — a reload
   pineLife: ['on', 'off'],                             // Pine Hollow's birds, hares, ravens and the skinning beat (src/pinehollow/life/) — a reload
   pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/audio/Music.ts) — a reload
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/player/AimAssist.ts) — live
@@ -166,7 +163,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tex: { def: 'auto', params: [], url: () => null },
   shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
-  creatures: DEBUG_ONLY, birds: DEBUG_ONLY, npcs: DEBUG_ONLY, knife: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
+  creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
 };
@@ -184,7 +181,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   tex: option('tex'),
   shardCap: option('shardCap'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
-  creatures: option('creatures'), birds: option('birds'), npcs: option('npcs'), knife: option('knife'), pineLife: option('pineLife'), pineScore: option('pineScore'),
+  creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   dwShadows: option('dwShadows'),
 };
