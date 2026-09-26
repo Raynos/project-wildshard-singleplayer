@@ -16,13 +16,13 @@ function mat(color: number, metalness = 0, roughness = 0.82): THREE.MeshStandard
 
 function box(parent: THREE.Object3D, material: THREE.Material, x: number, y: number, z: number, w: number, h: number, d: number): THREE.Mesh {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
-  mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh);
+  mesh.position.set(x, y, z); parent.add(mesh);
   return mesh;
 }
 
 function cylinder(parent: THREE.Object3D, material: THREE.Material, x: number, y: number, z: number, top: number, bottom: number, height: number, sides = 8): THREE.Mesh {
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(top, bottom, height, sides), material);
-  mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh);
+  mesh.position.set(x, y, z); parent.add(mesh);
   return mesh;
 }
 
@@ -76,7 +76,7 @@ export function buildTrainingDummy(variant: DummyVariant): TrainingDummyModel {
   const head = new THREE.Group(); head.position.y = 0.72; torso.add(head);
   if (cloth) {
     const sack = new THREE.Mesh(new THREE.SphereGeometry(0.31, 9, 7), armor);
-    sack.scale.set(0.93, 1.13, 0.84); sack.castShadow = true; head.add(sack);
+    sack.scale.set(0.93, 1.13, 0.84); head.add(sack);
     band(head, trim, 0, -0.24, 0, 0.56, 0.1, 0.45);
   } else {
     cylinder(head, steel ? armor : core, 0, 0.03, 0, 0.27, 0.32, 0.52, 8);
@@ -101,6 +101,7 @@ export function buildTrainingDummy(variant: DummyVariant): TrainingDummyModel {
     return arm;
   };
   const leftArm = makeArm(-1), rightArm = makeArm(1);
-  root.traverse((object) => { if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; } });
+  // The room's floor uses an unlit grid. Casting each armor detail into the shard's distant shadow map costs a
+  // second draw per piece without changing the visible practice-room floor.
   return { root, torso, head, leftArm, rightArm };
 }
