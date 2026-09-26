@@ -239,6 +239,10 @@ read the whole shard from pale to indigo.
 - *Buildable procedurally*: a ruled line is a geometry edge, so a grammar-built city gets the look for free — the
   opposite of realism, which needs hand-made unique assets to not look cheap.
 
+**Jake's picks (2026-09-25):** style A Jiehua Neon (the round-6 board); the look loop chases the round-1 look-loop
+targets (`art/nine-dragon-stack/round-8-look-loop-1/sheet-target-3x3.jpg`: deep blue hour, rain, grime, warm-lit windows,
+rich ink detail) — not paler silk, not darker; **blue hour** is the default time of day (warm silk stays a switch).
+
 **Runner-ups kept in the bible:** 水墨 brush ink for the far fog bands only (brush lines crawl in first person up
 close); 漆器 Lacquerpunk for hero props; the Chungking Express smear as a sprint / grapple / glide effect.
 
