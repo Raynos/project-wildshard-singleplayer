@@ -1,0 +1,128 @@
+{
+ "verdict": "PASS",
+ "fails": [],
+ "skin": {
+  "meshes": 10,
+  "verts": 102766,
+  "maxWeightSumError": 0,
+  "badIndices": 0,
+  "bindRestoreError": 7.136273716335401e-16,
+  "skinnedMeshType": "SkinnedMesh"
+ },
+ "skinOk": true,
+ "table": [
+  "R elbow      range 26.4 \u2026 89.4 (limit 0 \u2026 150) \u00b7 max |\u03c9| 442 \u00b0/s (\u2264 1500) \u00b7 max |\u0394\u00b2| 4.60 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "R pronation  range -37.6 \u2026 58.6 (limit -75 \u2026 75) \u00b7 max |\u03c9| 667 \u00b0/s (\u2264 1500) \u00b7 max |\u0394\u00b2| 10.78 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "R flexion    range -1.7 \u2026 20.5 (limit -60 \u2026 60) \u00b7 max |\u03c9| 236 \u00b0/s (\u2264 1200) \u00b7 max |\u0394\u00b2| 2.77 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "R deviation  range -30.5 \u2026 -2.0 (limit -32 \u2026 22) \u00b7 max |\u03c9| 478 \u00b0/s (\u2264 900) \u00b7 max |\u0394\u00b2| 5.42 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "L elbow      range 58.3 \u2026 113.0 (limit 0 \u2026 150) \u00b7 max |\u03c9| 540 \u00b0/s (\u2264 1500) \u00b7 max |\u0394\u00b2| 8.99 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "L pronation  range 44.8 \u2026 69.7 (limit -75 \u2026 75) \u00b7 max |\u03c9| 293 \u00b0/s (\u2264 1500) \u00b7 max |\u0394\u00b2| 3.99 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "L flexion    range -0.0 \u2026 0.0 (limit -60 \u2026 60) \u00b7 max |\u03c9| 0 \u00b0/s (\u2264 1200) \u00b7 max |\u0394\u00b2| 0.00 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "L deviation  range -0.0 \u2026 0.0 (limit -32 \u2026 22) \u00b7 max |\u03c9| 0 \u00b0/s (\u2264 900) \u00b7 max |\u0394\u00b2| 0.00 \u00b0/f\u00b2 (\u2264 12)  PASS",
+  "cloth: deepest tassel / talisman point inside the fist / forearm / guard 0.0 mm (\u2264 5)  PASS"
+ ],
+ "spikes": [
+  {
+   "t": 1.25,
+   "side": "R",
+   "joint": "pronation",
+   "acc": 10.8
+  }
+ ],
+ "events": [
+  {
+   "t": 1.0000000000000013,
+   "what": "light"
+  },
+  {
+   "t": 1.2333333333333338,
+   "what": "light2"
+  },
+  {
+   "t": 1.4499999999999997,
+   "what": "light3"
+  },
+  {
+   "t": 2.3499999999999965,
+   "what": "charge"
+  },
+  {
+   "t": 2.8499999999999948,
+   "what": "heavy"
+  },
+  {
+   "t": 4.049999999999991,
+   "what": "parry"
+  },
+  {
+   "t": 4.7499999999999885,
+   "what": "light"
+  },
+  {
+   "t": 4.866666666666655,
+   "what": "parry"
+  },
+  {
+   "t": 5.566666666666652,
+   "what": "sheathe"
+  },
+  {
+   "t": 6.366666666666649,
+   "what": "draw"
+  },
+  {
+   "t": 7.366666666666646,
+   "what": "walk 1"
+  },
+  {
+   "t": 8.966666666666692,
+   "what": "light"
+  },
+  {
+   "t": 9.766666666666731,
+   "what": "walk 0"
+  },
+  {
+   "t": 10.366666666666761,
+   "what": "L:grapple_aim"
+  },
+  {
+   "t": 10.766666666666781,
+   "what": "L:grapple_fire"
+  },
+  {
+   "t": 11.166666666666801,
+   "what": "L:grapple_hold"
+  },
+  {
+   "t": 12.16666666666685,
+   "what": "L:idle"
+  }
+ ],
+ "frames": 778,
+ "limits": {
+  "pronation": [
+   -75,
+   75
+  ],
+  "flexion": [
+   -60,
+   60
+  ],
+  "deviation": [
+   -32,
+   22
+  ],
+  "elbow": [
+   0,
+   150
+  ],
+  "vel": {
+   "elbow": 1500,
+   "pronation": 1500,
+   "flexion": 1200,
+   "deviation": 900
+  },
+  "acc": 12
+ }
+}
