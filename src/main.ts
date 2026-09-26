@@ -121,6 +121,7 @@ import { installPineLoadout } from './pinehollow/loadout';
 import { installPineLife } from './pinehollow/life';
 import { ShardHost, type ShardWorld } from './shard/ShardHost';
 import { setShardSwitcher } from './shard/switch';
+import { setAliveSource } from './boot/lastEnd';
 import { asShell } from './core/shardScope';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -143,6 +144,9 @@ const shell: { music: Music | null } = { music: null };
 /** the page's shard host (main() makes it): each shard's GPU recovery asks it whether that shard is parked */
 let hostRef: ShardHost | null = null;
 
+/** E183: how long the title idles before its one primed frame (a first glance at the deck, a swipe, stay smooth) */
+const TITLE_IDLE_MS = 1200;
+
 /** how many built shards stay in memory (the user, E159: two; a test sets another with `__shardHost.setCap`) */
 const SHARD_CAP = 2;
 
@@ -158,6 +162,11 @@ async function main() {
   onSettingChange('shardCap', (v) => { host.setCap(Number(v)); });
   (window as unknown as { __shardHost: ShardHost }).__shardHost = host; // the E155 test + debugging: resident shards, switch timings, memory
   hostRef = host;
+  // E179: the page's alive beat and every intentional reload record the running shard and what was resident
+  setAliveSource(() => ({
+    slug: host.active ?? '',
+    resident: host.memory(60_000).shards.map((s) => `${s.slug}${s.running ? ' (playing)' : ''} ~${Math.round(s.textureMB)} MB`).join(' · '),
+  }));
   await host.start(getActiveChunk().slug);
 }
 
@@ -789,10 +798,14 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     void keepAlive.start();
     weapons.setEnabled(false); weapons.visible = false;
     perf.setActive(false); // the Explore readout carries fps / calls / tris
+    const t0 = performance.now();
     const { Explore: X } = await import('./explore/Explore');
+    const t1 = performance.now();
     explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
       overhead: [grass?.group, under?.group, particles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
+    const t2 = performance.now();
     explore.open(mode, opts);
+    console.info(`[explore] open: import ${Math.round(t1 - t0)} ms · build ${Math.round(t2 - t1)} ms · open ${Math.round(performance.now() - t2)} ms`);
   };
   const exploreParam = params.get('explore');
   const exploreMode: ExploreMode = exploreParam === 'world' || exploreParam === 'model' ? exploreParam : 'hub';
@@ -963,6 +976,15 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     parked: () => hostRef?.isParked(slug) === true, onLostParked: () => { hostRef?.evict(slug); } }); // a parked shard that loses its context is evicted (E155)
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
+  // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
+  // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
+  // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
+  // first frame the same). A return from the background already draws such a frame on the title (Game.start).
+  if (menuFirst) window.setTimeout(() => {
+    if (hostRef?.isParked(slug) === true || hud.entered || exploring()) return;
+    if (chunk.explore === true) void import('./explore/Explore');
+    game.primeFrame();
+  }, TITLE_IDLE_MS);
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   if (first) asShell(() => { startShardPrefetch(getActiveChunk()); });
@@ -978,6 +1000,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       weapons.setEnabled(false); perf.setActive(false);
       audio.worldMuted = true;
       game.stop();
+      const freed = game.releaseTargets(); // E179: the canvas, the post chain's targets and the shadow maps, back at resume
+      if (freed > 0) console.info(`[shard] ${slug} parked: ~${Math.round(freed / 1e6)} MB of render targets released`);
       audio.park(true);
     },
     activate: (req) => {

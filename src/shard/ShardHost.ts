@@ -98,12 +98,16 @@ export class ShardHost {
 
   /** the texture estimate per shard: a parked one's cannot change, the running one's at most every 5 s (the Debug card) */
   private readonly texMB = new Map<ShardWorld, { mb: number; at: number }>();
-  /** the Debug card's memory readout: resident shards (least → most recently used) and their estimated texture MB */
-  memory(): { cap: number; shards: { slug: string; running: boolean; textureMB: number }[] } {
+  /**
+   * The Debug card's memory readout: resident shards (least → most recently used) and their estimated texture MB. The
+   * running shard's estimate (a walk of its scene) is redone when older than `maxAgeMs` (the page's alive beat, E179, asks
+   * with a long one: it must not walk the scene every few seconds of play).
+   */
+  memory(maxAgeMs = 5000): { cap: number; shards: { slug: string; running: boolean; textureMB: number }[] } {
     const now = performance.now();
     const shards = [...this.resident.values()].map((r) => {
       const running = r === this.running, hit = this.texMB.get(r.world);
-      const fresh = hit !== undefined && (!running || now - hit.at < 5000);
+      const fresh = hit !== undefined && (!running || now - hit.at < maxAgeMs);
       const mb = fresh ? hit.mb : Math.round(textureBytes(r.world.scene) / 1e5) / 10;
       if (!fresh) this.texMB.set(r.world, { mb, at: now });
       return { slug: r.world.slug, running, textureMB: mb };
@@ -142,6 +146,11 @@ export class ShardHost {
     const t0 = performance.now();
     if (from) this.park(from);
     this.followUrl(slug, req);
+    // E179: a parked shard whose context the browser took without a word (no `webglcontextlost` reached its host while it
+    // was out of the page) would wake on a dead context, and its GPU recovery would RELOAD THE PAGE on the first draw.
+    // Rebuilt instead, behind the loader: a switch never navigates.
+    const stale = this.resident.get(slug);
+    if (stale?.world.renderer.getContext().isContextLost() === true) { console.warn(`[shard] ${slug} lost its WebGL context while parked: rebuilt, not resumed`); this.evict(slug); }
     const hit = this.resident.get(slug);
     if (hit) {
       this.resume(hit, req);
