@@ -473,13 +473,12 @@ export class Game {
     // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
     // restarting a loop that was merely paused) finds its frame taken and ends there.
     let lastNow = -1, lastRun = performance.now();
-    // The frame cap (tier.ts frameCapFps; PINE-HOLLOW PH-P1: Pine Hollow's phone tier at a locked 30). The animation frame
+    // The frame cap (tier.ts frameCapFps; E193: every shard at a locked 30 on mobile). The animation frame
     // still comes every vsync; a frame is drawn only once 1/cap has passed since the last one drawn, less a slack under
     // one vsync of the fastest display (4 ms < 8.3 ms at 120 Hz) to absorb timestamp jitter. So it draws every 2nd vsync
     // at 60 Hz, every 4th at 120 Hz, every one at 30 (iOS Low Power), and never two vsyncs running: no 30 ↔ 60 judder.
     // A skipped vsync does nothing at all — not even the clock — so the drawn frame's dt is the whole 33 ms, the fixed
     // steps catch up (2 × 1/60), and input read in that frame has everything since the last one.
-    const slug = getActiveChunk().slug;
     let lastDrawn = -Infinity;
     const loop = (now?: number) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
@@ -487,7 +486,7 @@ export class Game {
       if (this.stopped) return; // parked (stop()): the chain ends here; resume() starts a new one
       schedule(loop);
       lastRun = performance.now();
-      const cap = frameCapFps(slug);
+      const cap = frameCapFps();
       if (cap > 0 && !forceFrame) {
         const t = now ?? lastRun;
         if (t - lastDrawn < 1000 / cap - FRAME_CAP_SLACK_MS) return;

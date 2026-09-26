@@ -26,7 +26,7 @@
  */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
-import { overrideSetting } from './Settings';
+import { frameProbe } from '../core/tier';
 
 export interface ProbeRow { phase: string; fps: number; frameMs: number; jsMs: number; waitMs: number; frames: number }
 
@@ -100,7 +100,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
   try {
     for (const [i, ph] of phases.entries()) {
       // row 0 as played; every other row uncapped
-      overrideSetting('fps', i === 0 ? null : '60');
+      frameProbe.uncapped = i !== 0;
       ph.set(true);
       progress(`${i + 1}/${phases.length} ${ph.name}…`);
       await sleep(SETTLE_MS);
@@ -113,7 +113,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
     }
   } finally {
     for (const ph of phases) ph.set(false);
-    overrideSetting('fps', null);
+    frameProbe.uncapped = false;
     style.remove();
     plain.dispose();
     running = false;

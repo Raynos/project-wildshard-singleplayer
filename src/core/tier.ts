@@ -4,7 +4,7 @@
  * overrides for testing, else main menu ▸ Settings ▸ Quality (E55, `setting('tier')`). Every knob below is measured in
  * project/archive/2026-09-22-play-perf.md.
  */
-import { setting } from '../ui/Settings';
+import { setting, settingFromUrl } from '../ui/Settings';
 
 export type Tier = 'phone' | 'desktop';
 
@@ -159,15 +159,25 @@ if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : N
 if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
 if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';
 
+/** a phone or tablet (its user agent), or the phone tier on any device (a headless phone run renders what the phone does) */
+export const MOBILE_DEVICE = mobileUA || TIER === 'phone';
+
+/** the on-device perf probe's uncapped rows (src/ui/perfProbe.ts): the frame's real cost, for the probe's own seconds only */
+export const frameProbe = { uncapped: false };
+
 /**
- * The frame cap in fps, 0 = none (the display's own rate). PINE-HOLLOW-REMASTER PH-U18 / PH-P1: Pine Hollow's phone
- * tier renders at a locked 30 — a steady 30 reads better than a 40–60 that judders, and the photoreal shard has no
- * headroom for 60 on a phone. Every other shard and tier stays uncapped. Settings ▸ Debug ▸ Frame rate / `?fps=60`
- * lifts it (a test), `?fps=30` caps any shard. Read every frame (a live option).
+ * The frame cap in fps, 0 = none (the display's own rate). Read every frame (a live option).
+ *
+ * E193 (Jake, 2026-09-26: "Lock all shards to 30 fps on mobile"; "a mobile phone game should never attempt 60 fps but
+ * stick to a steady 30"): every shard on a mobile device renders at a locked 30. E189 found why: the iPhone 17 Pro's GPU
+ * throttles ~2× within a minute or two of sustained load, so a 60 that holds at first sinks to an uneven 20–30 (Apple,
+ * WWDC18 612: lock 30 if 60 cannot hold for ten minutes). No menu pick lifts it on mobile; only the probe's uncapped rows
+ * and the test harness's `?fps=60` (scripts measuring the uncapped cost) do. On desktop Settings ▸ Debug ▸ Frame cap 30
+ * caps any shard; auto is the display's rate.
  */
-export function frameCapFps(slug: string): number {
+export function frameCapFps(): number {
+  if (frameProbe.uncapped) return 0;
   const f = setting('fps');
-  if (f === '30') return 30;
-  if (f === '60') return 0;
-  return TIER === 'phone' && slug === 'pine-hollow' ? 30 : 0;
+  if (MOBILE_DEVICE) return f === '60' && settingFromUrl('fps') ? 0 : 30;
+  return f === '30' ? 30 : 0;
 }

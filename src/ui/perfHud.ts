@@ -19,7 +19,6 @@
  */
 import type { Game } from '../core/Game';
 import { TIER, frameCapFps } from '../core/tier';
-import { getActiveChunk } from '../chunks/registry';
 import { frameCost, BUCKETS, SUBS, type FrameRecord } from '../core/frameCost';
 
 declare const __BUILD_ID__: string; // vite.config.ts define
@@ -263,7 +262,7 @@ export class PerfHud {
 
 
 function device(game: Game): string {
-  const cv = game.renderer.domElement, cap = frameCapFps(getActiveChunk().slug);
+  const cv = game.renderer.domElement, cap = frameCapFps();
   const ua = navigator.userAgent, webkit = ua.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(ua);
   return `dpr ${devicePixelRatio} · ${cv.width}×${cv.height} · ${TIER}\ncap ${cap > 0 ? `${cap} fps` : 'off'} · ${document.visibilityState} · ${webkit || /iPhone|iPad/.test(ua) ? 'WebKit' : 'Blink'} · ${navigator.hardwareConcurrency} cores`;
 }

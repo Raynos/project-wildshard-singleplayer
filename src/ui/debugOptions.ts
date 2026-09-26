@@ -20,7 +20,7 @@ import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../b
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { shardMemory } from '../shard/switch';
 import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
-import { TIER } from '../core/tier';
+import { MOBILE_DEVICE, TIER } from '../core/tier';
 import { PHONE_RIG_MAPS, SHADOW_VARIANTS, VARIANT_SPECS, shadowBytes } from '../world/shadowVariants';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
@@ -184,7 +184,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
 
   // ── Performance ──
-  opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { note: 'PH-P1 · auto = Pine Hollow\'s phone tier at 30, else the display\'s rate' }),
+  opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),
   opt('loadProfile', 'perf', 'Load profiling', [['off', 'Off'], ['on', 'On']], { reload: true, note: 'load-perf · logs every shader program the load builds (window.__perfload)' }),
 
   // ── Loading & memory ──
