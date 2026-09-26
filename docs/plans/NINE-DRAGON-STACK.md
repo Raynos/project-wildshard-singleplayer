@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-09-26 — P0 and F1 fragment containment are on main (`fcd49d9d`; 19 walk legs, 0 stuck). F2 is still a grapple lab with no game port; F3 has a preliminary portrait cut but awaits playable grapple and recut. F4–F10 need dome, budget, cleanup and iPhone work. Three placed GLBs now appear in Model Explorer (`2a1393be`). E200's repeated PWA load did not reproduce in the iOS Simulator and remains open. The full shard (P1 onward) waits on Jake's go.
+**State:** `in progress` 2026-09-26 — P0 and F1 fragment containment are on main (`fcd49d9d`; 19 walk legs, 0 stuck). F2 has a playable Fei Zhua zip across the Well (`03b04b67`; 19 walk legs, 0 stuck), with lab parity and polish still open. F3's 15-second grapple portrait recut is ready for Jake's review (round 19). F4–F10 need dome, budget, cleanup and iPhone work. Three placed GLBs appear in Model Explorer (`2a1393be`). E200's repeated PWA load did not reproduce in the iOS Simulator and remains open. The full shard (P1 onward) waits on Jake's go.
 
 ## 0. Read this first
 

@@ -13,22 +13,19 @@ import { shots } from '../shots/nine-dragon.mjs';
  * drone) runs to 16.03, where drums and bass enter together on one kick — the DROP; after it the kick marks every bar
  * (16.03, 18.70, 21.37, 24.04, 26.71). htdemucs: no vocals (0.1 %).
  *   trailer 0 → src 13.03 (the last 3 s of the intro, building) · 3.00 = src 16.03 the drop = the rim breach
- *   11.00 = src 24.04: the music drops out for one beat (the fall into the silk) · 11.67 = src 26.71: the last bar's
+ *   11.00 = src 24.04: the music drops out for one beat (the grapple lands) · 11.67 = src 26.71: the last bar's
  *   kick = the end card; the take plays out to its end (30.02) under the card, faded.
  */
 export const SCORE = { seed: 302, OFF: 13.03, DROP: 16.03, OUT: 24.04, HIT_SRC: 26.71, BREACH: 3.0, GAP: 11.0, END_HIT: 11.67 };
-
-/** the grapple shot once F2's grapple is in the engine (ND_GRAPPLE=1); else the fall off the rim */
-export const GRAPPLE = process.env.ND_GRAPPLE === '1';
 
 /** @param {{ TAKE: string, SFX: string, portrait?: boolean }} io */
 export function cut({ TAKE, SFX, portrait = false }) {
   const LEN = 15.0;
   const { OFF, OUT, HIT_SRC, BREACH, GAP, END_HIT } = SCORE;
   const BEAT = 60 / 90;
-  const mid = GRAPPLE ? 'nd-grapple' : 'nd-fall';
+  const mid = 'nd-grapple';
   // [trailer start, shot, in-point (s), grade?, flash?] — each clip runs to the next row's start. Cuts on the beats after
-  // the drop (3.00 + k · 0.667): the breach holds a bar, the jian 3 beats, the stairs 2, the fall 4 (into the gap).
+  // the drop (3.00 + k · 0.667): the breach holds a bar, the jian 3 beats, the stairs 2, the grapple 4 (into the gap).
   const rows = [
     [0.00, 'nd-rise', 0.3, 'nine-dragon'],
     [BREACH, 'nd-breach', 0.1, 'nine-dragon'],
@@ -86,16 +83,10 @@ export function cut({ TAKE, SFX, portrait = false }) {
   add('game:swordSwing', on('nd-jian', 1.31), -7, { pan: -0.2, take: 1 });
   // the stair-street: a soft whoosh up the steps
   add('tr:whoosh', on('nd-stairs', 0.9), -17, { ...WHOOSH, pan: -0.2 });
-  if (GRAPPLE) {
-    // the grapple (F2's sequence; its times from the shot): the bite on a beat, the zip, the landing into the gap
-    add('tr:impact', on(mid, 1.18), -9);
-    add('tr:whoosh', on(mid, 1.8), -9, WHOOSH);
-  } else {
-    // the fall: stepping off (a whoosh), the drop opening under the lens (the sub drop), wind rushing up the shaft
-    add('tr:whoosh', on(mid, 0.55), -9, WHOOSH);
-    add('tr:subdrop-decay', on(mid, 0.4), -9);
-    add('tr:riser', GAP + 0.6, -16, RISE);
-  }
+  // The hook fires at 0.24 s, bites, then the zip crosses the Well and lands before the end-card gap.
+  add('tr:impact', on(mid, 0.5), -9);
+  add('tr:whoosh', on(mid, 1.15), -9, WHOOSH);
+  add('tr:riser', GAP + 0.6, -16, RISE);
   // the end card: the reversed cymbal through the gap into the last hit (braam + impact + sub drop)
   add('tr:reverse', END_HIT, -5, REV);
   add('tr:braam', END_HIT, -4);
@@ -117,5 +108,5 @@ export function cut({ TAKE, SFX, portrait = false }) {
     events: ev.sort((a, b) => a.at - b.at),
   };
   const edl = { length: LEN, clips, titles, ...(portrait ? { size: [1080, 1920] } : {}) };
-  return { edl, titles, mix, report: `${ev.length} sound events; breach ${BREACH}, gap ${GAP}, end card ${END_HIT}; ${GRAPPLE ? 'grapple' : 'the fall (no grapple)'}` };
+  return { edl, titles, mix, report: `${ev.length} sound events; breach ${BREACH}, gap ${GAP}, end card ${END_HIT}; grapple` };
 }

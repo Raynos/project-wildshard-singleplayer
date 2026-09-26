@@ -99,7 +99,7 @@ export const shots = [
         { t: 2.8, p: [29.5, 132.3, 6.1], l: [56, 142.5, 6.0], fov: 80 },
       ] },
     } },
-  // 5 · FALL (Jake 2026-09-26: no grapple wait — a camera stepping off the rim and falling down the Well): off the south
+  // Preliminary fall cut, retained as capture history; the final portrait teaser uses the playable grapple below. Off the south
   // rim on the shaft's axis, the look tipping over into the drop, accelerating down past the galleries, the timber
   // crossing at z 4 whipping by 2.5 m off the lens, into the silk mist (the rise's clear column, x −14, z ≈ 7.6)
   { name: 'nd-fall', shard: 'nine-dragon', url: URL, secs: 2.8, warm: 240,
@@ -124,6 +124,18 @@ export const shots = [
         { t: 2.72, p: [-14.4, 72.0, 7.6], l: [-14, 45, 1.5], fov: 92, roll: 0.065 },
       ] },
     } },
+  // 5 · GRAPPLE: actual Fei Zhua gameplay from the Well rim. LOCK claims the visible gallery ring; a fresh JUMP fires
+  // the claw and Rapier carries the player across the rail to the lower gallery. The camera and left-arm animation are
+  // the game's own, with no rigged camera translation.
+  { name: 'nd-grapple', shard: 'nine-dragon', url: URL, secs: 2.8, warm: 180,
+    setup: stand(-19.5, 125, 12.25, -0.6, -0.35),
+    afterWarm: js(stand(-19.5, 125, 12.25, -0.6, -0.35), 'window.__world.lockSys.toggle();'),
+    tick: (t, i, sb, step) => js(
+      at(t, 0.24, step) ? 'window.__world.player.touchJump = true;' : '',
+      lookLerp(t, 1.25, 2.8, [-34.38, -20.05], [-10, -9]),
+    ),
+    probe: `(() => { const w = window.__world; return { position: w.player.position.toArray(), entered: w.hud.entered }; })()`,
+  },
   // 6 · WIDE (the end card over it): the Well's edge, just out over the south rim (the balustrade out of frame), looking
   // north down the canyon's ladder of crossings to the far gate; a slow crane up
   { name: 'nd-wide', shard: 'nine-dragon', url: URL, secs: 3.6, warm: 240,
