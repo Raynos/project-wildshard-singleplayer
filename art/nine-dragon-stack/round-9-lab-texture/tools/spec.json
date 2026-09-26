@@ -1,0 +1,11 @@
+[
+  {"name": "flag", "src": "RAW/flagdab-b4.png", "mode": "detail", "sigma": 0.035, "flatten": 0.9, "chroma": 0.8, "contrast": 0.6, "scale": 2.5, "alpha": "cavity", "quality": 80},
+  {"name": "flag2", "src": "RAW/flagdab-b5.png", "mode": "detail", "sigma": 0.035, "flatten": 0.9, "chroma": 0.8, "contrast": 0.6, "scale": 2.5, "alpha": "cavity", "quality": 80},
+  {"name": "stone", "src": "RAW/stonedab-b5.png", "mode": "detail", "sigma": 0.1, "flatten": 0.6, "chroma": 0.7, "contrast": 1.0, "quality": 80},
+  {"name": "panel", "src": "RAW/paneldab-b4.png", "mode": "panel", "heal": false, "crop": [0.0, 0.3154, 1.0, 0.6553], "flatten": 0.4, "chroma": 0.6, "contrast": 1.0, "quality": 80},
+  {"name": "concrete", "src": "RAW/concretedab-b4.png", "mode": "detail", "sigma": 0.08, "flatten": 0.8, "chroma": 0.6, "contrast": 1.1, "quality": 80},
+  {"name": "tiles", "src": "RAW/tiles-b1.png", "mode": "detail", "heal": false, "period": {"x0": 0, "y0": 0, "px": 167, "py": 153, "nx": 7, "ny": 7, "m": 80}, "flatten": 0.4, "chroma": 0.45, "contrast": 1.0, "scale": 3.0, "quality": 80},
+  {"name": "lacquer", "src": "RAW/lacquer-b1.png", "mode": "detail", "flatten": 0.6, "chroma": 0.9, "contrast": 1.0, "quality": 80},
+  {"name": "wood", "src": "RAW/wood-b1.png", "mode": "detail", "flatten": 0.6, "chroma": 0.8, "contrast": 1.0, "scale": 2.5, "quality": 80},
+  {"name": "poster", "src": "RAW/poster-b1.png", "mode": "colour", "crop": [0.06, 0.06, 0.94, 0.94], "alpha": "coverage", "heal": true}
+]
