@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-09-25 — P0 pre-production is being built by the E169 session (concept art, art-style research + board, spawn mockups, the from-scratch clean-room spawn, the COMING SOON card). Nothing from P1 on is approved: the shard itself is not built until Jake says go.
+**State:** `in progress` 2026-09-26 — P0 pre-production is live (concept art, mockups, style research, the COMING SOON card + slideshow). The clean room reached its limit; Jake's call: **move into the engine now** (P0-5c) — a throwaway partial shard (Lantern Square, the Well rim, the stair-street stub) as `src/chunks/nine-dragon-stack/`, behind a Debug switch, where the look loop continues on the real renderer. The full shard (P1+) is still not approved.
 
 ## 0. Read this first
 
@@ -312,7 +312,7 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>, <build>)`
 | P0-4 | This plan | `docs/plans/NINE-DRAGON-STACK.md` | in flight (E169) |
 | P0-5 | The from-scratch clean-room spawn (three.js only, no engine code), the Neon Jian + Fei Zhua in first person — v1 `54d87764`; v2 detail pass, then the 9-angle mockup loop (`docs/design/LOOK-LOOP.md`) with the look labs merged in | `dev/nine-dragon.html`, `src/dev/nine-dragon/` | in flight (E169) |
 | P0-5b | Look labs (throwaway prototypes, one style subset each: ruled ink on silk, neon + silk bloom + wet streaks, facade density kit, weapon + hero props) + research (in-repo techniques, AAA mobile rendering) | `src/dev/nd-lab/*`, `art/nine-dragon-stack/round-7-lab-*/`, `docs/design/nine-dragon-stack/{TECHNIQUES,AAA-MOBILE-RESEARCH}.md` | in flight (E169) |
-| P0-5c | (approved by Jake 2026-09-25, used only if the clean room hits a wall or once the look converges) a throwaway in-engine fragment of the spawn, reachable only through the harness `?chunk=` and hidden from the deck, for true in-engine hero captures | — | not started |
+| P0-5c | **The in-engine partial shard (Jake 2026-09-26: "at what point do we just implement a partial shard … we're doing so much throwaway shit")**: the clean room's world moves into `src/chunks/nine-dragon-stack/` as a real shard module on the engine's renderer (N8AO, volumetrics, bloom, AgX, grade, LUT, SMAA), physics (colliders via the registry), HUD and weapons. Scope: Lantern Square + the Well's rim and upper galleries + the stair-street stub, spawn at +125 m. A Debug ▸ Developer row turns the COMING SOON card into a playable EXPERIMENTAL one (no URL switch); the harness `?chunk=nine-dragon-stack` works for captures. The look loop continues in-engine; the clean room (`src/dev/nine-dragon/`) and the last labs are deleted once ported. The merged labs were deleted in `d8f39239` | `src/chunks/nine-dragon-stack/` | in flight (E169) |
 | P0-6 | COMING SOON assets from the clean room: card thumbnail, portrait + landscape heroes, screenshots | `src/chunks/thumbs/nine-dragon-stack*`, `public/assets/teasers/nine-dragon-stack/` | todo |
 | P0-7 | The COMING SOON card in the title deck (a `PLACEHOLDERS` teaser + its screenshots), pushed and live | `src/chunks/placeholders.ts`, `src/ui/HUD.ts` | todo |
 
