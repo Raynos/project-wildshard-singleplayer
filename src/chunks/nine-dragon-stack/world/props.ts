@@ -164,6 +164,7 @@ export function dragonHook(k: Kit, ctx: Ctx, base: Vector3, out: Vector3, reach 
     k.beam(p0, p1, 0.035, 0.035, brass);
   }
   ctx.hooks.push(ringC.clone());
+  ctx.hookMounts.push({ ring: ringC.clone(), out: o.clone() });
   return ringC;
 }
 

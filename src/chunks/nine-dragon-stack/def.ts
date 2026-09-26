@@ -27,6 +27,7 @@ const TEX = ['concrete', 'flag', 'flag-a', 'flag2', 'flag2-a', 'lacquer', 'panel
 const FILES = [
   ...TEX.map((t) => `/assets/nine-dragon/lab/tex/${t}.jpg`),
   '/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
+  '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
   ...['lion', 'pots', 'lanterns'].map((m) => `/assets/nine-dragon/lab/organic/${m}.glb`),
   '/assets/nine-dragon/lab/organic/leaf-atlas.webp', '/assets/nine-dragon/lab/organic/scroll.webp',
   '/assets/nine-dragon/grade-lut-cleanroom.bin',

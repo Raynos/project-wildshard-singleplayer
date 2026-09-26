@@ -32,6 +32,8 @@ export class Ctx {
   readonly lanterns: Matrix4[] = [];
   readonly acs: Matrix4[] = [];
   readonly hooks: Vector3[] = [];
+  /** placement records for the TRELLIS casting over selected procedural brass hook brackets */
+  readonly hookMounts: { ring: Vector3; out: Vector3 }[] = [];
   readonly map: MapRect[] = [];
   readonly steam: Vector3[] = [];
   /** lit shopfronts and other glowing fronts (streak cards + spill) */

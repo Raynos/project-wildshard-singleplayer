@@ -4,9 +4,11 @@
 // Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 import {
-  BufferGeometry, Color, Float32BufferAttribute, Group, InstancedMesh, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
+  BufferGeometry, Color, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
   SphereGeometry, Uint32BufferAttribute, Vector3, Vector4, type WebGLRenderer,
 } from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { Ctx, type Piece } from './ctx';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
@@ -288,6 +290,41 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   ];
   const lion = squareProps.find((m) => m.name === 'glb:lion');
   if (lion !== undefined) models.push(specimen('nds-lion', 'Guardian lion', 'buildings', 'src/chunks/nine-dragon-stack/world/props3d.ts', lion.geometry));
+  // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks. One instanced
+  // draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring anchors stay.
+  const cast = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('/assets/nine-dragon/lab/grapple/dragon-hook.glb');
+  cast.scene.updateMatrixWorld(true);
+  const castMeshes: Mesh[] = [];
+  cast.scene.traverse((object) => { if (object instanceof Mesh) castMeshes.push(object as Mesh); });
+  const source = castMeshes[0];
+  if (source !== undefined) {
+    const geo = source.geometry.clone();
+    geo.applyMatrix4(source.matrixWorld);
+    const hookMat = source.material instanceof MeshStandardMaterial ? source.material.clone() : new MeshStandardMaterial({ color: 0xc9a24a });
+    hookMat.color.multiply(new Color(0xffd891));
+    hookMat.metalness = 0.58;
+    hookMat.roughness = 0.38;
+    const mounts = ctx.hookMounts.filter((m) => m.ring.y > Y0 - 23 && m.ring.y < Y0 + 14)
+      .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)))
+      .slice(0, 3);
+    if (mounts.length > 0) {
+      const placed = new InstancedMesh(geo, hookMat, mounts.length);
+      const ringInSculpt = new Vector3(-0.02, 0.26, 0.73);
+      mounts.forEach(({ ring, out }, i) => {
+        const transform = new Matrix4().makeTranslation(ring.x, ring.y, ring.z)
+          .multiply(new Matrix4().makeRotationY(Math.atan2(out.x, out.z)))
+          .multiply(new Matrix4().makeScale(0.62, 0.62, 0.62))
+          .multiply(new Matrix4().makeTranslation(-ringInSculpt.x, -ringInSculpt.y, -ringInSculpt.z));
+        placed.setMatrixAt(i, transform);
+      });
+      placed.computeBoundingSphere();
+      root.add(named(placed, 'glb:dragon-hook'));
+    }
+    models.push({
+      id: 'nds-dragon-hook', name: 'Fei Zhua dragon hook', category: 'buildings', file: 'src/chunks/nine-dragon-stack/world/build.ts', live: false,
+      object: () => new Mesh(geo, hookMat),
+    });
+  }
   // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (a ~320-tri far copy past 35 m, none past
   // 130 m); its meshes start empty, so the InstanceCuller below leaves them alone
   const crowd = new Crowd(mat);
