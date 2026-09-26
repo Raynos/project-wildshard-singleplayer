@@ -22,6 +22,7 @@ when the images were generated.
 | | `round-4-k-variants` | `hud-K1-stagingglass`, `K2-holosurvey`, `K3-cartographer` — K1 approved |
 | | `round-5-n-bars` | `hud-N1-gripbar`, `N2-consolebar`, `N3-holobar` |
 | | `round-6-p-bar-layouts` | `hud-P1-baredges`, `P2-barcorners` — P2 approved (with K1) |
+| `hud-explorer/` | `round-1-arena` (09-26) | Portrait shared HUD/Weapon Explorer proposal: three humanoid dummy turntables, nine views of the full grid arena, and in-game HUD mockup. [Review notes](hud-explorer/round-1-arena/README.md) |
 | `ads-aim/` | `round-1` (09-17) | `ads-{A-centred-low,B-eye-level,C-peep-sight}` — iron-sights pose; A picked, C's peep ring added |
 | `minimap/` | `round-1` (09-17) | `minimap-k1-{A-radar,B-terrain,C-holo}` on the K1 HUD; B built |
 | `touch-buttons/` | `round-1` (09-17) | `buttons-{A-edges,B-inbar,C-lowered}` — A picked |
@@ -45,6 +46,8 @@ when the images were generated.
 | | `round-5-cleanroom` (09-25) | E169 the from-scratch clean room (`dev/nine-dragon.html`) with the baseline HUD: `mockup-vs-cleanroom.jpg`, `v1-vs-v2.jpg`, `hud-*.jpg` |
 | | `round-6-baseline-hud` (09-25) | E169 rounds 2–4 redone on a fresh live capture of the baseline HUD: `board-styles.jpg` (A–F, Jake picked A), `board-compositions.jpg` (Jake picked A); `ref-live-*.jpg` |
 | | `round-7-lab-{ink,neon,facade,hero}` (09-25) | E169 look labs (throwaway prototypes, `dev/nd-lab-*.html`): loop sheets, `final.jpg`, README = LEARNINGS + integration |
+| | `round-18-portrait-teaser` (09-26) | Preliminary 15 s portrait fall cut and contact sheet, retained as capture history |
+| | `round-19-portrait-grapple` (09-26) | [15 s portrait recut](nine-dragon-stack/round-19-portrait-grapple/README.md) with the playable Fei Zhua crossing, awaiting Jake's review |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
@@ -207,6 +210,12 @@ bottom banner. **Board 3 (`board-3-storyboards.jpg`, N's language, captured at 3
 the lock jumps to the next crab; **S1→S2** hold MOVE left, circle the crab. Re-rolled: J and K (the first J put LOCK
 inside the bar and shoved DODGE along; the first K garbled the quest title into "WRETCHED ISLE"), L (dropped the quest title), O (LOCK
 inside the bar), R1 / R2 / S1 / S2 (LOCK and DODGE drifted into the bar; the storyboards now carry no LOCK disc).
+
+### Hut model turntable midway mockup (`art/build-world/round-6-midway/`, 2026-09-23, E55)
+
+`07-model-turntable.png` is one edit of the live iPhone Explore World model viewer capture. It preserves the hut, camera,
+controls, active states and UI labels while adding a dark studio backdrop, polished turntable and refined glass panels.
+`art/build-world/round-3-viewer-portrait/p03-model-turntable.jpg` was a finish reference only. One generation; no re-roll.
 
 ### Painted 360° horizon (`art/driftwood-isle/round-9-horizon/`, 2026-09-23, E52 X4)
 
