@@ -1,0 +1,3037 @@
+{
+ "tag": "nd-port",
+ "build": "b-muhz6f00",
+ "url": "http://localhost:4281",
+ "packCheck": {
+  "parts": 11,
+  "missing": []
+ },
+ "at": "2026-09-26T06:23:14.992Z",
+ "host": "darwin arm64 node v24.18.1",
+ "net": "wifi",
+ "cpu": 1,
+ "runs": 1,
+ "sampleMs": 10000,
+ "rows": {
+  "driftwood-isle/phone/cold.netBytes": {
+   "kind": "bytes",
+   "label": "cold transfer to play",
+   "value": 21913232,
+   "values": [
+    21913232
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/cold.requests": {
+   "kind": "count",
+   "label": "cold requests",
+   "value": 228,
+   "values": [
+    228
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/cold.playMs": {
+   "kind": "time",
+   "label": "cold time to play",
+   "value": 7056,
+   "values": [
+    7056
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/cold.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "cold longest task",
+   "value": 396,
+   "values": [
+    396
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/cold.idleNetBytes": {
+   "kind": "info",
+   "label": "cold transfer until idle (boot + background)",
+   "value": 148799683,
+   "values": [
+    148799683
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/cold.bgNetBytes": {
+   "kind": "info",
+   "label": "background transfer after playable",
+   "value": 126886451,
+   "values": [
+    126886451
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/warm.netBytes": {
+   "kind": "bytes",
+   "label": "warm transfer to play",
+   "value": 3962,
+   "values": [
+    3962
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/warm.requests": {
+   "kind": "count",
+   "label": "warm requests",
+   "value": 232,
+   "values": [
+    232
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/warm.playMs": {
+   "kind": "time",
+   "label": "warm time to play",
+   "value": 2007,
+   "values": [
+    2007
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/warm.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "warm longest task",
+   "value": 399,
+   "values": [
+    399
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/cold4g.playMs": {
+   "kind": "time",
+   "label": "cold time to play, Fast 4G",
+   "value": 24707,
+   "values": [
+    24707
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.heapBytes": {
+   "kind": "memory",
+   "label": "JS heap",
+   "value": 35400476,
+   "values": [
+    35400476
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.glTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures (GL)",
+   "value": 122931516,
+   "values": [
+    122931516
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.glRbBytes": {
+   "kind": "memory",
+   "label": "GPU renderbuffers (GL)",
+   "value": 344064,
+   "values": [
+    344064
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.glBufBytes": {
+   "kind": "memory",
+   "label": "GPU buffers (GL)",
+   "value": 142830421,
+   "values": [
+    142830421
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.sceneTexBytes": {
+   "kind": "memory",
+   "label": "scene textures (est)",
+   "value": 33057496,
+   "values": [
+    33057496
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.textures": {
+   "kind": "objects",
+   "label": "renderer textures",
+   "value": 102,
+   "values": [
+    102
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.geometries": {
+   "kind": "objects",
+   "label": "renderer geometries",
+   "value": 454,
+   "values": [
+    454
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/mem.programs": {
+   "kind": "objects",
+   "label": "shader programs",
+   "value": 94,
+   "values": [
+    94
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.fps": {
+   "kind": "fps",
+   "label": "pier fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.frameP95Ms": {
+   "kind": "frame",
+   "label": "pier p95 frame",
+   "value": 34.3,
+   "values": [
+    34.3
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.cpuP50Ms": {
+   "kind": "frame",
+   "label": "pier main-thread p50",
+   "value": 1.8,
+   "values": [
+    1.8
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.cpuP95Ms": {
+   "kind": "frame",
+   "label": "pier main-thread p95",
+   "value": 2.2,
+   "values": [
+    2.2
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.calls": {
+   "kind": "drawcalls",
+   "label": "pier draw calls",
+   "value": 177.5,
+   "values": [
+    177.5
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.trisK": {
+   "kind": "drawcalls",
+   "label": "pier triangles (k)",
+   "value": 945.6,
+   "values": [
+    945.6
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.fps": {
+   "kind": "fps",
+   "label": "beach fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.frameP95Ms": {
+   "kind": "frame",
+   "label": "beach p95 frame",
+   "value": 33.9,
+   "values": [
+    33.9
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.cpuP50Ms": {
+   "kind": "frame",
+   "label": "beach main-thread p50",
+   "value": 2.1,
+   "values": [
+    2.1
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.cpuP95Ms": {
+   "kind": "frame",
+   "label": "beach main-thread p95",
+   "value": 2.4,
+   "values": [
+    2.4
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.calls": {
+   "kind": "drawcalls",
+   "label": "beach draw calls",
+   "value": 219,
+   "values": [
+    219
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.trisK": {
+   "kind": "drawcalls",
+   "label": "beach triangles (k)",
+   "value": 1054.7,
+   "values": [
+    1054.7
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.fps": {
+   "kind": "fps",
+   "label": "wreck fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.frameP95Ms": {
+   "kind": "frame",
+   "label": "wreck p95 frame",
+   "value": 33.8,
+   "values": [
+    33.8
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.cpuP50Ms": {
+   "kind": "frame",
+   "label": "wreck main-thread p50",
+   "value": 2.1,
+   "values": [
+    2.1
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.cpuP95Ms": {
+   "kind": "frame",
+   "label": "wreck main-thread p95",
+   "value": 2.3,
+   "values": [
+    2.3
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.calls": {
+   "kind": "drawcalls",
+   "label": "wreck draw calls",
+   "value": 171,
+   "values": [
+    171
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.trisK": {
+   "kind": "drawcalls",
+   "label": "wreck triangles (k)",
+   "value": 927,
+   "values": [
+    927
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/cold.netBytes": {
+   "kind": "bytes",
+   "label": "cold transfer to play",
+   "value": 38178556,
+   "values": [
+    38178556
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/cold.requests": {
+   "kind": "count",
+   "label": "cold requests",
+   "value": 150,
+   "values": [
+    150
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/cold.playMs": {
+   "kind": "time",
+   "label": "cold time to play",
+   "value": 10630,
+   "values": [
+    10630
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/cold.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "cold longest task",
+   "value": 320,
+   "values": [
+    320
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/cold.idleNetBytes": {
+   "kind": "info",
+   "label": "cold transfer until idle (boot + background)",
+   "value": 148799277,
+   "values": [
+    148799277
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/cold.bgNetBytes": {
+   "kind": "info",
+   "label": "background transfer after playable",
+   "value": 110620721,
+   "values": [
+    110620721
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/warm.netBytes": {
+   "kind": "bytes",
+   "label": "warm transfer to play",
+   "value": 3962,
+   "values": [
+    3962
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/warm.requests": {
+   "kind": "count",
+   "label": "warm requests",
+   "value": 249,
+   "values": [
+    249
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/warm.playMs": {
+   "kind": "time",
+   "label": "warm time to play",
+   "value": 2257,
+   "values": [
+    2257
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/warm.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "warm longest task",
+   "value": 311,
+   "values": [
+    311
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/cold4g.playMs": {
+   "kind": "time",
+   "label": "cold time to play, Fast 4G",
+   "value": 35182,
+   "values": [
+    35182
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.heapBytes": {
+   "kind": "memory",
+   "label": "JS heap",
+   "value": 47543592,
+   "values": [
+    47543592
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.glTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures (GL)",
+   "value": 292604396,
+   "values": [
+    292604396
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.glRbBytes": {
+   "kind": "memory",
+   "label": "GPU renderbuffers (GL)",
+   "value": 0,
+   "values": [
+    0
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.glBufBytes": {
+   "kind": "memory",
+   "label": "GPU buffers (GL)",
+   "value": 40142700,
+   "values": [
+    40142700
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.sceneTexBytes": {
+   "kind": "memory",
+   "label": "scene textures (est)",
+   "value": 296976667,
+   "values": [
+    296976667
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.textures": {
+   "kind": "objects",
+   "label": "renderer textures",
+   "value": 403,
+   "values": [
+    403
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.geometries": {
+   "kind": "objects",
+   "label": "renderer geometries",
+   "value": 219,
+   "values": [
+    219
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/mem.programs": {
+   "kind": "objects",
+   "label": "shader programs",
+   "value": 106,
+   "values": [
+    106
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.fps": {
+   "kind": "fps",
+   "label": "gate fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.frameP95Ms": {
+   "kind": "frame",
+   "label": "gate p95 frame",
+   "value": 34.2,
+   "values": [
+    34.2
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.cpuP50Ms": {
+   "kind": "frame",
+   "label": "gate main-thread p50",
+   "value": 2.5,
+   "values": [
+    2.5
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.cpuP95Ms": {
+   "kind": "frame",
+   "label": "gate main-thread p95",
+   "value": 2.8,
+   "values": [
+    2.8
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.calls": {
+   "kind": "drawcalls",
+   "label": "gate draw calls",
+   "value": 100,
+   "values": [
+    100
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.trisK": {
+   "kind": "drawcalls",
+   "label": "gate triangles (k)",
+   "value": 1104.3,
+   "values": [
+    1104.3
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.fps": {
+   "kind": "fps",
+   "label": "cabin fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.frameP95Ms": {
+   "kind": "frame",
+   "label": "cabin p95 frame",
+   "value": 34.3,
+   "values": [
+    34.3
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.cpuP50Ms": {
+   "kind": "frame",
+   "label": "cabin main-thread p50",
+   "value": 2.8,
+   "values": [
+    2.8
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.cpuP95Ms": {
+   "kind": "frame",
+   "label": "cabin main-thread p95",
+   "value": 3.2,
+   "values": [
+    3.2
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.calls": {
+   "kind": "drawcalls",
+   "label": "cabin draw calls",
+   "value": 142,
+   "values": [
+    142
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.trisK": {
+   "kind": "drawcalls",
+   "label": "cabin triangles (k)",
+   "value": 1306.9,
+   "values": [
+    1306.9
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.fps": {
+   "kind": "fps",
+   "label": "pond fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.frameP95Ms": {
+   "kind": "frame",
+   "label": "pond p95 frame",
+   "value": 34.1,
+   "values": [
+    34.1
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.cpuP50Ms": {
+   "kind": "frame",
+   "label": "pond main-thread p50",
+   "value": 2.2,
+   "values": [
+    2.2
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.cpuP95Ms": {
+   "kind": "frame",
+   "label": "pond main-thread p95",
+   "value": 2.8,
+   "values": [
+    2.8
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.calls": {
+   "kind": "drawcalls",
+   "label": "pond draw calls",
+   "value": 88,
+   "values": [
+    88
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.trisK": {
+   "kind": "drawcalls",
+   "label": "pond triangles (k)",
+   "value": 885.6,
+   "values": [
+    885.6
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/cold.netBytes": {
+   "kind": "bytes",
+   "label": "cold transfer to play",
+   "value": 31523681,
+   "values": [
+    31523681
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/cold.requests": {
+   "kind": "count",
+   "label": "cold requests",
+   "value": 236,
+   "values": [
+    236
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/cold.playMs": {
+   "kind": "time",
+   "label": "cold time to play",
+   "value": 9151,
+   "values": [
+    9151
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/cold.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "cold longest task",
+   "value": 362,
+   "values": [
+    362
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/cold.idleNetBytes": {
+   "kind": "info",
+   "label": "cold transfer until idle (boot + background)",
+   "value": 148799475,
+   "values": [
+    148799475
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/cold.bgNetBytes": {
+   "kind": "info",
+   "label": "background transfer after playable",
+   "value": 117275794,
+   "values": [
+    117275794
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/warm.netBytes": {
+   "kind": "bytes",
+   "label": "warm transfer to play",
+   "value": 3962,
+   "values": [
+    3962
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/warm.requests": {
+   "kind": "count",
+   "label": "warm requests",
+   "value": 260,
+   "values": [
+    260
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/warm.playMs": {
+   "kind": "time",
+   "label": "warm time to play",
+   "value": 3433,
+   "values": [
+    3433
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/warm.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "warm longest task",
+   "value": 343,
+   "values": [
+    343
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/cold4g.playMs": {
+   "kind": "time",
+   "label": "cold time to play, Fast 4G",
+   "value": 31657,
+   "values": [
+    31657
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.heapBytes": {
+   "kind": "memory",
+   "label": "JS heap",
+   "value": 48939396,
+   "values": [
+    48939396
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.glTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures (GL)",
+   "value": 101683596,
+   "values": [
+    101683596
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.glRbBytes": {
+   "kind": "memory",
+   "label": "GPU renderbuffers (GL)",
+   "value": 41060224,
+   "values": [
+    41060224
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.glBufBytes": {
+   "kind": "memory",
+   "label": "GPU buffers (GL)",
+   "value": 67847952,
+   "values": [
+    67847952
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.sceneTexBytes": {
+   "kind": "memory",
+   "label": "scene textures (est)",
+   "value": 117920824,
+   "values": [
+    117920824
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.textures": {
+   "kind": "objects",
+   "label": "renderer textures",
+   "value": 127,
+   "values": [
+    127
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.geometries": {
+   "kind": "objects",
+   "label": "renderer geometries",
+   "value": 114,
+   "values": [
+    114
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/mem.programs": {
+   "kind": "objects",
+   "label": "shader programs",
+   "value": 96,
+   "values": [
+    96
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.fps": {
+   "kind": "fps",
+   "label": "camp fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.frameP95Ms": {
+   "kind": "frame",
+   "label": "camp p95 frame",
+   "value": 35.1,
+   "values": [
+    35.1
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.cpuP50Ms": {
+   "kind": "frame",
+   "label": "camp main-thread p50",
+   "value": 1.8,
+   "values": [
+    1.8
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.cpuP95Ms": {
+   "kind": "frame",
+   "label": "camp main-thread p95",
+   "value": 2.1,
+   "values": [
+    2.1
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.calls": {
+   "kind": "drawcalls",
+   "label": "camp draw calls",
+   "value": 77,
+   "values": [
+    77
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.trisK": {
+   "kind": "drawcalls",
+   "label": "camp triangles (k)",
+   "value": 983.2,
+   "values": [
+    983.2
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.fps": {
+   "kind": "fps",
+   "label": "bridge fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.frameP95Ms": {
+   "kind": "frame",
+   "label": "bridge p95 frame",
+   "value": 34.9,
+   "values": [
+    34.9
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.cpuP50Ms": {
+   "kind": "frame",
+   "label": "bridge main-thread p50",
+   "value": 1.8,
+   "values": [
+    1.8
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.cpuP95Ms": {
+   "kind": "frame",
+   "label": "bridge main-thread p95",
+   "value": 2,
+   "values": [
+    2
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.calls": {
+   "kind": "drawcalls",
+   "label": "bridge draw calls",
+   "value": 87,
+   "values": [
+    87
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.trisK": {
+   "kind": "drawcalls",
+   "label": "bridge triangles (k)",
+   "value": 1228.9,
+   "values": [
+    1228.9
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.fps": {
+   "kind": "fps",
+   "label": "plains fps",
+   "value": 30,
+   "values": [
+    30
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.frameP95Ms": {
+   "kind": "frame",
+   "label": "plains p95 frame",
+   "value": 34.5,
+   "values": [
+    34.5
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.cpuP50Ms": {
+   "kind": "frame",
+   "label": "plains main-thread p50",
+   "value": 2.1,
+   "values": [
+    2.1
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.cpuP95Ms": {
+   "kind": "frame",
+   "label": "plains main-thread p95",
+   "value": 2.8,
+   "values": [
+    2.8
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.calls": {
+   "kind": "drawcalls",
+   "label": "plains draw calls",
+   "value": 99,
+   "values": [
+    99
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.trisK": {
+   "kind": "drawcalls",
+   "label": "plains triangles (k)",
+   "value": 1212.3,
+   "values": [
+    1212.3
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9873,
+   "values": [
+    0.9873
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.pier.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.046,
+   "values": [
+    0.046
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9974,
+   "values": [
+    0.9974
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.beach.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.083,
+   "values": [
+    0.083
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9949,
+   "values": [
+    0.9949
+   ],
+   "spread": 0
+  },
+  "driftwood-isle/phone/pose.wreck.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.136,
+   "values": [
+    0.136
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9855,
+   "values": [
+    0.9855
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.gate.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.087,
+   "values": [
+    0.087
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9751,
+   "values": [
+    0.9751
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.cabin.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.075,
+   "values": [
+    0.075
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9761,
+   "values": [
+    0.9761
+   ],
+   "spread": 0
+  },
+  "pine-hollow/phone/pose.pond.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.04,
+   "values": [
+    0.04
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9964,
+   "values": [
+    0.9964
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.camp.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.275,
+   "values": [
+    0.275
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9888,
+   "values": [
+    0.9888
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.bridge.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.016,
+   "values": [
+    0.016
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.ssim": {
+   "kind": "ssim",
+   "label": "SSIM vs golden, creatures masked",
+   "value": 0.9344,
+   "values": [
+    0.9344
+   ],
+   "spread": 0
+  },
+  "nalati-grasslands/phone/pose.plains.maskedFrac": {
+   "kind": "info",
+   "label": "share of the frame masked (creatures)",
+   "value": 0.041,
+   "values": [
+    0.041
+   ],
+   "spread": 0
+  }
+ },
+ "raw": [
+  {
+   "run": 1,
+   "shards": {
+    "driftwood-isle/phone": {
+     "shard": "driftwood-isle",
+     "vp": "phone",
+     "cold4g": {
+      "status": "ok",
+      "playMs": 24707,
+      "netBytes": 21913232,
+      "longTaskMaxMs": 420,
+      "errors": []
+     },
+     "cold": {
+      "status": "ok",
+      "errors": [],
+      "playMs": 7056,
+      "netBytes": 21913232,
+      "requests": 228,
+      "swFetches": 251,
+      "longTaskMaxMs": 396,
+      "longTasks": 4,
+      "byType": {
+       "html": 7323,
+       "woff2": 186778,
+       "js": 1575271,
+       "css": 34120,
+       "json": 44679,
+       "png": 410379,
+       "webmanifest": 708,
+       "wasm": 1064948,
+       "jpg": 1688273,
+       "bin": 1526749,
+       "webp": 191960,
+       "m4a": 13757158,
+       "glb": 1424886
+      },
+      "reqByType": {
+       "html": 1,
+       "woff2": 3,
+       "js": 8,
+       "css": 1,
+       "json": 2,
+       "png": 1,
+       "jpg": 10,
+       "bin": 4,
+       "wasm": 1,
+       "webp": 6,
+       "m4a": 189,
+       "glb": 2
+      },
+      "swController": true,
+      "idleNetBytes": 148799683,
+      "idleWaitMs": 47515,
+      "bgNetBytes": 126886451,
+      "bgSwFetches": 204,
+      "bgRequests": 2,
+      "bgByType": {
+       "webp": 589805,
+       "bin": 24490529,
+       "jpg": 633779,
+       "m4a": 12194577,
+       "glb": 26325632,
+       "json": 1787,
+       "ktx2": 62091770,
+       "js": 15504,
+       "wasm": 527624,
+       "gltf": 15444
+      }
+     },
+     "warm": {
+      "status": "ok",
+      "errors": [],
+      "playMs": 2007,
+      "netBytes": 3962,
+      "requests": 232,
+      "swFetches": 1,
+      "longTaskMaxMs": 399,
+      "longTasks": 4,
+      "byType": {
+       "html": 3638,
+       "json": 324
+      },
+      "reqByType": {
+       "html": 1,
+       "css": 1,
+       "woff2": 3,
+       "js": 9,
+       "png": 1,
+       "json": 2,
+       "jpg": 10,
+       "bin": 4,
+       "ktx2": 4,
+       "wasm": 2,
+       "webp": 4,
+       "m4a": 189,
+       "glb": 2
+      },
+      "swController": true
+     },
+     "memory": {
+      "heapBytes": 35400476,
+      "heapTotalBytes": 40845312,
+      "domNodes": 1561,
+      "glTexBytes": 122931516,
+      "glTextures": 101,
+      "glRbBytes": 344064,
+      "glBufBytes": 142830421,
+      "glCompressedUploads": 5,
+      "canvas": [
+       780,
+       1688
+      ],
+      "glTop": [
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        8388608,
+        "2048x2048",
+        "0x81a5",
+        1
+       ],
+       [
+        8388608,
+        "2048x2048",
+        "0x81a5",
+        1
+       ],
+       [
+        8388608,
+        "2048x2048",
+        "0x81a5",
+        1
+       ],
+       [
+        8388608,
+        "2048x2048",
+        "0x81a5",
+        1
+       ],
+       [
+        8388608,
+        "2048x2048",
+        "0x81a5",
+        1
+       ],
+       [
+        5266560,
+        "780x1688",
+        "0x8cac",
+        1
+       ],
+       [
+        5266560,
+        "780x1688",
+        "0x8cac",
+        1
+       ],
+       [
+        5266560,
+        "780x1688",
+        "0x8058",
+        1
+       ],
+       [
+        5266560,
+        "780x1688",
+        "0x8058",
+        1
+       ]
+      ],
+      "otherContexts": 0,
+      "otherTexBytes": 0,
+      "glContexts": 1,
+      "glAllTexBytes": 123275580,
+      "sceneTexBytes": 33057496,
+      "sceneTextures": 26,
+      "sceneCompressed": 1,
+      "textures": 102,
+      "geometries": 454,
+      "programs": 94,
+      "slug": "driftwood-isle"
+     },
+     "poses": [
+      {
+       "name": "pier",
+       "frames": 299,
+       "fps": 30,
+       "frameP50Ms": 33.4,
+       "frameP95Ms": 34.3,
+       "cpuP50Ms": 1.8,
+       "cpuP95Ms": 2.2,
+       "calls": 177.5,
+       "trisK": 945.6,
+       "pos": [
+        0,
+        2.02,
+        -235
+       ],
+       "shot": "progress/scorecard/nd-port/driftwood-isle-phone-pier.jpg",
+       "shotKB": 46,
+       "creatureBoxes": 24
+      },
+      {
+       "name": "beach",
+       "frames": 300,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 33.9,
+       "cpuP50Ms": 2.1,
+       "cpuP95Ms": 2.4,
+       "calls": 219,
+       "trisK": 1054.7,
+       "pos": [
+        -10,
+        1.51,
+        -150
+       ],
+       "shot": "progress/scorecard/nd-port/driftwood-isle-phone-beach.jpg",
+       "shotKB": 51,
+       "creatureBoxes": 17
+      },
+      {
+       "name": "wreck",
+       "frames": 300,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 33.8,
+       "cpuP50Ms": 2.1,
+       "cpuP95Ms": 2.3,
+       "calls": 171,
+       "trisK": 927,
+       "pos": [
+        105,
+        3.63,
+        -0.03
+       ],
+       "shot": "progress/scorecard/nd-port/driftwood-isle-phone-wreck.jpg",
+       "shotKB": 47,
+       "creatureBoxes": 9
+      }
+     ],
+     "pageErrors": []
+    },
+    "pine-hollow/phone": {
+     "shard": "pine-hollow",
+     "vp": "phone",
+     "cold4g": {
+      "status": "ok",
+      "playMs": 35182,
+      "netBytes": 38178858,
+      "longTaskMaxMs": 305,
+      "errors": []
+     },
+     "cold": {
+      "status": "ok",
+      "errors": [],
+      "playMs": 10630,
+      "netBytes": 38178556,
+      "requests": 150,
+      "swFetches": 175,
+      "longTaskMaxMs": 320,
+      "longTasks": 3,
+      "byType": {
+       "html": 7323,
+       "woff2": 186778,
+       "js": 1574969,
+       "css": 34120,
+       "json": 30448,
+       "png": 410379,
+       "webmanifest": 708,
+       "wasm": 1064948,
+       "jpg": 1725982,
+       "bin": 18691252,
+       "glb": 815040,
+       "m4a": 13556082,
+       "webp": 80527
+      },
+      "reqByType": {
+       "html": 1,
+       "woff2": 4,
+       "js": 6,
+       "css": 1,
+       "json": 1,
+       "png": 1,
+       "jpg": 10,
+       "bin": 10,
+       "glb": 4,
+       "wasm": 1,
+       "m4a": 110,
+       "webp": 1
+      },
+      "swController": true,
+      "idleNetBytes": 148799277,
+      "idleWaitMs": 44014,
+      "bgNetBytes": 110620721,
+      "bgSwFetches": 280,
+      "bgRequests": 5,
+      "bgByType": {
+       "webp": 701134,
+       "json": 16018,
+       "glb": 26935478,
+       "bin": 7326026,
+       "jpg": 596070,
+       "m4a": 12395653,
+       "ktx2": 62091770,
+       "gltf": 15444,
+       "js": 15504,
+       "wasm": 527624
+      }
+     },
+     "warm": {
+      "status": "ok",
+      "errors": [],
+      "playMs": 2257,
+      "netBytes": 3962,
+      "requests": 249,
+      "swFetches": 1,
+      "longTaskMaxMs": 311,
+      "longTasks": 3,
+      "byType": {
+       "html": 3638,
+       "json": 324
+      },
+      "reqByType": {
+       "html": 1,
+       "css": 1,
+       "woff2": 4,
+       "js": 7,
+       "png": 1,
+       "json": 1,
+       "jpg": 10,
+       "ktx2": 76,
+       "glb": 24,
+       "bin": 7,
+       "wasm": 2,
+       "m4a": 109,
+       "gltf": 5,
+       "webp": 1
+      },
+      "swController": true
+     },
+     "memory": {
+      "heapBytes": 47543592,
+      "heapTotalBytes": 53510144,
+      "domNodes": 1774,
+      "glTexBytes": 292604396,
+      "glTextures": 407,
+      "glRbBytes": 0,
+      "glBufBytes": 40142700,
+      "glCompressedUploads": 106,
+      "canvas": [
+       780,
+       1688
+      ],
+      "glTop": [
+       [
+        16777216,
+        "2048x1024",
+        "0x881a",
+        1
+       ],
+       [
+        16777216,
+        "2048x1024",
+        "0x881a",
+        1
+       ],
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        6291456,
+        "768x1024",
+        "0x881a",
+        1
+       ],
+       [
+        6291456,
+        "768x1024",
+        "0x881a",
+        1
+       ],
+       [
+        5592512,
+        "1024x1024x4",
+        "0x93d0",
+        11
+       ],
+       [
+        5592512,
+        "1024x1024x4",
+        "0x93b0",
+        11
+       ],
+       [
+        5266560,
+        "780x1688",
+        "0x8cac",
+        1
+       ],
+       [
+        5266560,
+        "780x1688",
+        "0x81a6",
+        1
+       ]
+      ],
+      "otherContexts": 0,
+      "otherTexBytes": 0,
+      "glContexts": 1,
+      "glAllTexBytes": 292604396,
+      "sceneTexBytes": 296976667,
+      "sceneTextures": 181,
+      "sceneCompressed": 9,
+      "textures": 403,
+      "geometries": 219,
+      "programs": 106,
+      "slug": "pine-hollow"
+     },
+     "poses": [
+      {
+       "name": "gate",
+       "frames": 299,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 34.2,
+       "cpuP50Ms": 2.5,
+       "cpuP95Ms": 2.8,
+       "calls": 100,
+       "trisK": 1104.3,
+       "pos": [
+        0,
+        0.16,
+        -200
+       ],
+       "shot": "progress/scorecard/nd-port/pine-hollow-phone-gate.jpg",
+       "shotKB": 79,
+       "creatureBoxes": 63
+      },
+      {
+       "name": "cabin",
+       "frames": 300,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 34.3,
+       "cpuP50Ms": 2.8,
+       "cpuP95Ms": 3.2,
+       "calls": 142,
+       "trisK": 1306.9,
+       "pos": [
+        -14,
+        2.11,
+        -62
+       ],
+       "shot": "progress/scorecard/nd-port/pine-hollow-phone-cabin.jpg",
+       "shotKB": 77,
+       "creatureBoxes": 26
+      },
+      {
+       "name": "pond",
+       "frames": 300,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 34.1,
+       "cpuP50Ms": 2.2,
+       "cpuP95Ms": 2.8,
+       "calls": 88,
+       "trisK": 885.6,
+       "pos": [
+        -55.99,
+        -0.66,
+        95.01
+       ],
+       "shot": "progress/scorecard/nd-port/pine-hollow-phone-pond.jpg",
+       "shotKB": 81,
+       "creatureBoxes": 3
+      }
+     ],
+     "pageErrors": []
+    },
+    "nalati-grasslands/phone": {
+     "shard": "nalati-grasslands",
+     "vp": "phone",
+     "cold4g": {
+      "status": "ok",
+      "playMs": 31657,
+      "netBytes": 31523681,
+      "longTaskMaxMs": 373,
+      "errors": []
+     },
+     "cold": {
+      "status": "ok",
+      "errors": [],
+      "playMs": 9151,
+      "netBytes": 31523681,
+      "requests": 236,
+      "swFetches": 263,
+      "longTaskMaxMs": 362,
+      "longTasks": 9,
+      "byType": {
+       "html": 7323,
+       "woff2": 186778,
+       "js": 1575271,
+       "css": 34120,
+       "json": 30448,
+       "png": 410379,
+       "webmanifest": 708,
+       "wasm": 1064948,
+       "jpg": 1870145,
+       "bin": 5799277,
+       "m4a": 20019304,
+       "glb": 524980
+      },
+      "reqByType": {
+       "html": 1,
+       "woff2": 3,
+       "js": 6,
+       "css": 1,
+       "json": 1,
+       "png": 1,
+       "jpg": 10,
+       "bin": 3,
+       "wasm": 1,
+       "m4a": 204,
+       "glb": 5
+      },
+      "swController": true,
+      "idleNetBytes": 148799475,
+      "idleWaitMs": 45532,
+      "bgNetBytes": 117275794,
+      "bgSwFetches": 192,
+      "bgRequests": 0,
+      "bgByType": {
+       "bin": 20218001,
+       "jpg": 451907,
+       "webp": 781557,
+       "json": 16018,
+       "glb": 27225538,
+       "m4a": 5932431,
+       "ktx2": 62091770,
+       "js": 15504,
+       "wasm": 527624,
+       "gltf": 15444
+      }
+     },
+     "warm": {
+      "status": "ok",
+      "errors": [],
+      "playMs": 3433,
+      "netBytes": 3962,
+      "requests": 260,
+      "swFetches": 1,
+      "longTaskMaxMs": 343,
+      "longTasks": 11,
+      "byType": {
+       "html": 3638,
+       "json": 324
+      },
+      "reqByType": {
+       "html": 1,
+       "css": 1,
+       "woff2": 3,
+       "js": 7,
+       "png": 1,
+       "json": 1,
+       "jpg": 10,
+       "ktx2": 8,
+       "bin": 3,
+       "wasm": 2,
+       "m4a": 204,
+       "glb": 19
+      },
+      "swController": true
+     },
+     "memory": {
+      "heapBytes": 48939396,
+      "heapTotalBytes": 55869440,
+      "domNodes": 1886,
+      "glTexBytes": 101683596,
+      "glTextures": 131,
+      "glRbBytes": 41060224,
+      "glBufBytes": 67847952,
+      "glCompressedUploads": 21,
+      "canvas": [
+       780,
+       1688
+      ],
+      "glTop": [
+       [
+        11184808,
+        "1024x1024",
+        "0x881a",
+        11
+       ],
+       [
+        10533120,
+        "780x1688",
+        "0x881a",
+        1
+       ],
+       [
+        7425660,
+        "4096x340",
+        "0x8058",
+        13
+       ],
+       [
+        5592404,
+        "1024x1024",
+        "0x8058",
+        11
+       ],
+       [
+        4194304,
+        "1024x1024",
+        "0x8058",
+        1
+       ],
+       [
+        4194304,
+        "1024x1024",
+        "0x81a6",
+        1
+       ],
+       [
+        4186096,
+        "4128x760",
+        "0x93d0",
+        13
+       ],
+       [
+        2796204,
+        "512x1024",
+        "0x8c43",
+        11
+       ],
+       [
+        2097152,
+        "768x512",
+        "0x8c43",
+        11
+       ],
+       [
+        1572864,
+        "384x512",
+        "0x881a",
+        1
+       ],
+       [
+        1398100,
+        "512x512",
+        "0x8058",
+        10
+       ],
+       [
+        1398100,
+        "512x512",
+        "0x8c43",
+        10
+       ]
+      ],
+      "otherContexts": 0,
+      "otherTexBytes": 0,
+      "glContexts": 1,
+      "glAllTexBytes": 142743820,
+      "sceneTexBytes": 117920824,
+      "sceneTextures": 82,
+      "sceneCompressed": 0,
+      "textures": 127,
+      "geometries": 114,
+      "programs": 96,
+      "slug": "nalati-grasslands"
+     },
+     "poses": [
+      {
+       "name": "camp",
+       "frames": 300,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 35.1,
+       "cpuP50Ms": 1.8,
+       "cpuP95Ms": 2.1,
+       "calls": 77,
+       "trisK": 983.2,
+       "pos": [
+        60,
+        -3.7,
+        213.99
+       ],
+       "shot": "progress/scorecard/nd-port/nalati-grasslands-phone-camp.jpg",
+       "shotKB": 72,
+       "creatureBoxes": 2
+      },
+      {
+       "name": "bridge",
+       "frames": 300,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 34.9,
+       "cpuP50Ms": 1.8,
+       "cpuP95Ms": 2,
+       "calls": 87,
+       "trisK": 1228.9,
+       "pos": [
+        0,
+        -0.18,
+        199.99
+       ],
+       "shot": "progress/scorecard/nd-port/nalati-grasslands-phone-bridge.jpg",
+       "shotKB": 70,
+       "creatureBoxes": 15
+      },
+      {
+       "name": "plains",
+       "frames": 300,
+       "fps": 30,
+       "frameP50Ms": 33.3,
+       "frameP95Ms": 34.5,
+       "cpuP50Ms": 2.1,
+       "cpuP95Ms": 2.8,
+       "calls": 99,
+       "trisK": 1212.3,
+       "pos": [
+        65,
+        25.95,
+        0
+       ],
+       "shot": "progress/scorecard/nd-port/nalati-grasslands-phone-plains.jpg",
+       "shotKB": 80,
+       "creatureBoxes": 3
+      }
+     ],
+     "pageErrors": []
+    }
+   },
+   "switches": {},
+   "shots": [
+    {
+     "key": "driftwood-isle/phone/pier",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/driftwood-isle-phone-pier.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/driftwood-isle-phone-pier.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       50,
+       375,
+       81,
+       440
+      ],
+      [
+       8,
+       374,
+       38,
+       439
+      ],
+      [
+       60,
+       376,
+       93,
+       443
+      ],
+      [
+       31,
+       372,
+       67,
+       442
+      ],
+      [
+       151,
+       382,
+       165,
+       430
+      ],
+      [
+       150,
+       381,
+       164,
+       429
+      ],
+      [
+       153,
+       381,
+       167,
+       429
+      ],
+      [
+       151,
+       382,
+       165,
+       430
+      ],
+      [
+       0,
+       372,
+       12,
+       423
+      ],
+      [
+       335,
+       380,
+       350,
+       430
+      ],
+      [
+       185,
+       342,
+       202,
+       393
+      ],
+      [
+       195,
+       343,
+       212,
+       394
+      ],
+      [
+       184,
+       341,
+       201,
+       392
+      ],
+      [
+       65,
+       340,
+       80,
+       389
+      ],
+      [
+       77,
+       338,
+       92,
+       387
+      ],
+      [
+       67,
+       339,
+       82,
+       388
+      ],
+      [
+       62,
+       341,
+       77,
+       390
+      ],
+      [
+       0,
+       352,
+       7,
+       408
+      ],
+      [
+       0,
+       357,
+       19,
+       411
+      ],
+      [
+       6,
+       352,
+       29,
+       410
+      ],
+      [
+       0,
+       353,
+       17,
+       408
+      ],
+      [
+       282,
+       372,
+       297,
+       421
+      ],
+      [
+       289,
+       371,
+       304,
+       419
+      ],
+      [
+       291,
+       371,
+       306,
+       420
+      ]
+     ],
+     "ssim": 0.9873,
+     "ssimUnmasked": 0.9874,
+     "masked": 0.046,
+     "note": null
+    },
+    {
+     "key": "driftwood-isle/phone/beach",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/driftwood-isle-phone-beach.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/driftwood-isle-phone-beach.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       108,
+       359,
+       163,
+       448
+      ],
+      [
+       0,
+       370,
+       40,
+       448
+      ],
+      [
+       9,
+       362,
+       74,
+       461
+      ],
+      [
+       77,
+       354,
+       146,
+       457
+      ],
+      [
+       364,
+       381,
+       384,
+       435
+      ],
+      [
+       362,
+       383,
+       378,
+       433
+      ],
+      [
+       358,
+       384,
+       373,
+       433
+      ],
+      [
+       340,
+       382,
+       360,
+       436
+      ],
+      [
+       342,
+       384,
+       358,
+       434
+      ],
+      [
+       340,
+       384,
+       355,
+       434
+      ],
+      [
+       345,
+       384,
+       360,
+       433
+      ],
+      [
+       336,
+       384,
+       352,
+       434
+      ],
+      [
+       196,
+       331,
+       227,
+       396
+      ],
+      [
+       228,
+       337,
+       257,
+       400
+      ],
+      [
+       210,
+       329,
+       242,
+       395
+      ],
+      [
+       231,
+       331,
+       260,
+       394
+      ],
+      [
+       322,
+       389,
+       338,
+       439
+      ]
+     ],
+     "ssim": 0.9974,
+     "ssimUnmasked": 0.9948,
+     "masked": 0.083,
+     "note": null
+    },
+    {
+     "key": "driftwood-isle/phone/wreck",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/driftwood-isle-phone-wreck.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/driftwood-isle-phone-wreck.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       215,
+       378,
+       334,
+       530
+      ],
+      [
+       217,
+       406,
+       283,
+       506
+      ],
+      [
+       233,
+       410,
+       290,
+       501
+      ],
+      [
+       0,
+       383,
+       99,
+       537
+      ],
+      [
+       4,
+       414,
+       69,
+       513
+      ],
+      [
+       80,
+       410,
+       134,
+       497
+      ],
+      [
+       60,
+       411,
+       124,
+       509
+      ],
+      [
+       27,
+       411,
+       90,
+       508
+      ],
+      [
+       173,
+       409,
+       218,
+       488
+      ]
+     ],
+     "ssim": 0.9949,
+     "ssimUnmasked": 0.9886,
+     "masked": 0.136,
+     "note": null
+    },
+    {
+     "key": "pine-hollow/phone/gate",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/pine-hollow-phone-gate.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/pine-hollow-phone-gate.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       53,
+       346,
+       100,
+       428
+      ],
+      [
+       0,
+       309,
+       10,
+       404
+      ],
+      [
+       298,
+       362,
+       334,
+       431
+      ],
+      [
+       352,
+       365,
+       386,
+       433
+      ],
+      [
+       155,
+       369,
+       186,
+       434
+      ],
+      [
+       249,
+       374,
+       277,
+       436
+      ],
+      [
+       389,
+       386,
+       390,
+       438
+      ],
+      [
+       42,
+       385,
+       60,
+       437
+      ],
+      [
+       7,
+       386,
+       25,
+       438
+      ],
+      [
+       40,
+       385,
+       58,
+       437
+      ],
+      [
+       379,
+       379,
+       390,
+       429
+      ],
+      [
+       377,
+       378,
+       390,
+       429
+      ],
+      [
+       364,
+       380,
+       380,
+       430
+      ],
+      [
+       318,
+       380,
+       334,
+       430
+      ],
+      [
+       300,
+       379,
+       315,
+       428
+      ],
+      [
+       185,
+       382,
+       201,
+       432
+      ],
+      [
+       154,
+       386,
+       171,
+       437
+      ],
+      [
+       157,
+       386,
+       173,
+       436
+      ],
+      [
+       173,
+       385,
+       189,
+       436
+      ],
+      [
+       78,
+       386,
+       95,
+       437
+      ],
+      [
+       72,
+       386,
+       88,
+       436
+      ],
+      [
+       67,
+       386,
+       83,
+       436
+      ],
+      [
+       47,
+       385,
+       63,
+       435
+      ],
+      [
+       16,
+       382,
+       32,
+       432
+      ],
+      [
+       3,
+       383,
+       19,
+       433
+      ],
+      [
+       0,
+       385,
+       1,
+       435
+      ],
+      [
+       4,
+       383,
+       20,
+       434
+      ],
+      [
+       336,
+       381,
+       352,
+       430
+      ],
+      [
+       351,
+       379,
+       366,
+       428
+      ],
+      [
+       377,
+       382,
+       390,
+       432
+      ],
+      [
+       289,
+       381,
+       304,
+       430
+      ],
+      [
+       299,
+       381,
+       314,
+       430
+      ],
+      [
+       277,
+       379,
+       292,
+       428
+      ],
+      [
+       160,
+       383,
+       175,
+       432
+      ],
+      [
+       157,
+       383,
+       171,
+       432
+      ],
+      [
+       157,
+       383,
+       172,
+       432
+      ],
+      [
+       159,
+       384,
+       174,
+       433
+      ],
+      [
+       3,
+       382,
+       18,
+       431
+      ],
+      [
+       0,
+       381,
+       9,
+       430
+      ],
+      [
+       237,
+       382,
+       251,
+       431
+      ],
+      [
+       227,
+       380,
+       241,
+       428
+      ],
+      [
+       225,
+       380,
+       240,
+       428
+      ],
+      [
+       221,
+       379,
+       236,
+       428
+      ],
+      [
+       195,
+       378,
+       210,
+       427
+      ],
+      [
+       201,
+       375,
+       216,
+       425
+      ],
+      [
+       109,
+       378,
+       124,
+       427
+      ],
+      [
+       102,
+       378,
+       116,
+       426
+      ],
+      [
+       15,
+       383,
+       29,
+       432
+      ],
+      [
+       0,
+       384,
+       9,
+       433
+      ],
+      [
+       387,
+       383,
+       390,
+       431
+      ],
+      [
+       233,
+       380,
+       247,
+       428
+      ],
+      [
+       234,
+       380,
+       248,
+       428
+      ],
+      [
+       233,
+       381,
+       247,
+       429
+      ],
+      [
+       127,
+       377,
+       142,
+       425
+      ],
+      [
+       129,
+       376,
+       143,
+       425
+      ],
+      [
+       112,
+       376,
+       126,
+       425
+      ],
+      [
+       132,
+       376,
+       147,
+       424
+      ],
+      [
+       0,
+       373,
+       9,
+       422
+      ],
+      [
+       0,
+       372,
+       11,
+       423
+      ],
+      [
+       2,
+       373,
+       16,
+       422
+      ],
+      [
+       315,
+       370,
+       342,
+       432
+      ],
+      [
+       0,
+       371,
+       8,
+       423
+      ],
+      [
+       243,
+       381,
+       259,
+       431
+      ]
+     ],
+     "ssim": 0.9855,
+     "ssimUnmasked": 0.9847,
+     "masked": 0.087,
+     "note": null
+    },
+    {
+     "key": "pine-hollow/phone/cabin",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/pine-hollow-phone-cabin.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/pine-hollow-phone-cabin.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       68,
+       382,
+       109,
+       458
+      ],
+      [
+       0,
+       392,
+       16,
+       461
+      ],
+      [
+       0,
+       388,
+       31,
+       477
+      ],
+      [
+       331,
+       381,
+       350,
+       433
+      ],
+      [
+       374,
+       384,
+       390,
+       437
+      ],
+      [
+       327,
+       374,
+       356,
+       436
+      ],
+      [
+       52,
+       385,
+       72,
+       439
+      ],
+      [
+       65,
+       386,
+       86,
+       441
+      ],
+      [
+       66,
+       380,
+       98,
+       446
+      ],
+      [
+       74,
+       382,
+       105,
+       447
+      ],
+      [
+       243,
+       387,
+       259,
+       437
+      ],
+      [
+       227,
+       383,
+       243,
+       433
+      ],
+      [
+       223,
+       383,
+       240,
+       434
+      ],
+      [
+       240,
+       385,
+       257,
+       436
+      ],
+      [
+       173,
+       379,
+       190,
+       430
+      ],
+      [
+       179,
+       375,
+       197,
+       426
+      ],
+      [
+       37,
+       379,
+       54,
+       431
+      ],
+      [
+       6,
+       380,
+       22,
+       430
+      ],
+      [
+       237,
+       381,
+       253,
+       431
+      ],
+      [
+       245,
+       384,
+       260,
+       433
+      ],
+      [
+       232,
+       384,
+       247,
+       434
+      ],
+      [
+       66,
+       378,
+       81,
+       427
+      ],
+      [
+       69,
+       376,
+       85,
+       426
+      ],
+      [
+       59,
+       378,
+       75,
+       428
+      ],
+      [
+       75,
+       375,
+       91,
+       425
+      ],
+      [
+       259,
+       381,
+       280,
+       436
+      ]
+     ],
+     "ssim": 0.9751,
+     "ssimUnmasked": 0.9758,
+     "masked": 0.075,
+     "note": null
+    },
+    {
+     "key": "pine-hollow/phone/pond",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/pine-hollow-phone-pond.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/pine-hollow-phone-pond.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       90,
+       353,
+       130,
+       427
+      ],
+      [
+       103,
+       359,
+       142,
+       432
+      ],
+      [
+       89,
+       353,
+       126,
+       425
+      ]
+     ],
+     "ssim": 0.9761,
+     "ssimUnmasked": 0.9748,
+     "masked": 0.04,
+     "note": null
+    },
+    {
+     "key": "nalati-grasslands/phone/camp",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/nalati-grasslands-phone-camp.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/nalati-grasslands-phone-camp.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       56,
+       303,
+       273,
+       555
+      ],
+      [
+       201,
+       280,
+       390,
+       536
+      ]
+     ],
+     "ssim": 0.9964,
+     "ssimUnmasked": 0.9904,
+     "masked": 0.275,
+     "note": null
+    },
+    {
+     "key": "nalati-grasslands/phone/bridge",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/nalati-grasslands-phone-bridge.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/nalati-grasslands-phone-bridge.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       346,
+       313,
+       363,
+       364
+      ],
+      [
+       345,
+       317,
+       362,
+       368
+      ],
+      [
+       329,
+       318,
+       346,
+       368
+      ],
+      [
+       315,
+       317,
+       332,
+       368
+      ],
+      [
+       345,
+       315,
+       362,
+       366
+      ],
+      [
+       347,
+       316,
+       364,
+       367
+      ],
+      [
+       352,
+       316,
+       369,
+       366
+      ],
+      [
+       356,
+       314,
+       373,
+       365
+      ],
+      [
+       321,
+       318,
+       338,
+       369
+      ],
+      [
+       342,
+       319,
+       359,
+       370
+      ],
+      [
+       356,
+       313,
+       373,
+       364
+      ],
+      [
+       354,
+       313,
+       370,
+       362
+      ],
+      [
+       350,
+       317,
+       365,
+       367
+      ],
+      [
+       326,
+       318,
+       341,
+       367
+      ],
+      [
+       350,
+       307,
+       368,
+       359
+      ]
+     ],
+     "ssim": 0.9888,
+     "ssimUnmasked": 0.9889,
+     "masked": 0.016,
+     "note": null
+    },
+    {
+     "key": "nalati-grasslands/phone/plains",
+     "file": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/nd-port/nalati-grasslands-phone-plains.jpg",
+     "golden": "/Users/raynos/projects/games/wildshard-singleplayer/progress/scorecard/baseline/nalati-grasslands-phone-plains.jpg",
+     "run": 1,
+     "boxes": [
+      [
+       320,
+       311,
+       390,
+       476
+      ],
+      [
+       180,
+       438,
+       195,
+       487
+      ],
+      [
+       180,
+       436,
+       195,
+       486
+      ]
+     ],
+     "ssim": 0.9344,
+     "ssimUnmasked": 0.9295,
+     "masked": 0.041,
+     "note": null
+    }
+   ]
+  }
+ ]
+}
