@@ -24,6 +24,7 @@ The 9-angle look loop (`docs/design/LOOK-LOOP.md`) on the clean room `dev/nine-d
 | `capture-1…9.jpg` | FP 1–6 portrait 402×874 @2 (804×1748), aerials 7–9 1600×900 |
 | `target-1…9.jpg` | the codex edits (the look target of every later round) |
 | `sheet-ingame-3x3.jpg`, `sheet-target-3x3.jpg` | 3×3 sheets, same cell order: FP front / left / right · back / up / down · aerial square / shaft / across |
+| `board.jpg` | **BEFORE** (this round) \| **AFTER** (round 2's captures) \| **TARGET**, FP 1, FP 6, aerial 7 |
 | `warm-vs-cool.jpg` | the spawn and the well-edge, **A blue hour** \| **B warm silk** (Jake picked A as the default; B stays a switch: `__nd.style('silk')`, key `3`) |
 | `palette-regions.json` | the ΔE00 regions + filters for these cameras (`palette-delta.py --regions`) |
 | `stats.txt` | draw calls and triangles per frame |
