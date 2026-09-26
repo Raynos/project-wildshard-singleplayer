@@ -1,0 +1,9 @@
+capture-1: 128 calls, 2832k tris
+capture-2: 149 calls, 3085k tris
+capture-3: 153 calls, 3194k tris
+capture-4: 131 calls, 2845k tris
+capture-5: 129 calls, 3059k tris
+capture-6: 135 calls, 2968k tris
+capture-7: 128 calls, 2687k tris
+capture-8: 136 calls, 2881k tris
+capture-9: 155 calls, 3118k tris
