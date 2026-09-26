@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // ktx2-b-check.mjs — E157 B's proof ("images on the first visit, KTX2 from the next launch"), end to end in one headless
-// Chromium context (service worker on, iPhone 16 Pro UA, 390×844 @3, the phone tier), Settings ▸ Debug ▸ GPU textures on
-// Auto (the default):
+// Chromium context (service worker on; the phone tier: iPhone 16 Pro UA, 390×844 @3 — or `--tier=desktop`: 1600×900 @1,
+// E173), Settings ▸ Debug ▸ GPU textures on Auto (the default):
 //
 //   1. cold visit of build A           the boot loads IMAGES; bytes over the network until playable; GPU texture MB
 //   2. the background download         window.__ws_prefetch.done: every shard's boot files, then every KTX2 set; this
@@ -15,10 +15,11 @@
 //      texture, like                   background pass (every KTX2 reply a 'hit')
 //      scripts/bench-asset-deploy.mjs)
 //
-//   node scripts/ktx2-b-check.mjs --a=<dist A> --b=<dist B> [--chunk=pine-hollow] [--port=4770]
+//   node scripts/ktx2-b-check.mjs --a=<dist A> --b=<dist B> [--chunk=pine-hollow] [--tier=phone|desktop] [--port=4770]
 //
 // Serves each dist with `vite preview --outDir` on the same port (one origin: the worker and its caches carry over). One
-// browser, muted (`--mute-audio`, `mute=1`), closed at the end. Writes progress/bench/e157-b-check-<chunk>.json.
+// browser, muted (`--mute-audio`, `mute=1`), closed at the end. Writes progress/bench/e157-b-check-<chunk>.json (the phone)
+// or e173-b-check-<chunk>-desktop.json.
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -32,9 +33,10 @@ const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); re
 const DIST_A = resolvePath(flag('a', 'dist'));
 const DIST_B = flag('b', '') === '' ? null : resolvePath(flag('b', ''));
 const CHUNK = flag('chunk', 'pine-hollow');
+const TIER = flag('tier', 'phone');
 const PORT = Number(flag('port', '4770'));
 const BASE = `http://localhost:${PORT}`;
-const PAGE = `${BASE}/?chunk=${CHUNK}&mute=1&nolock=1&skipintro=1&tier=phone&touch=1`;
+const PAGE = `${BASE}/?chunk=${CHUNK}&mute=1&nolock=1&skipintro=1&tier=${TIER}${TIER === 'phone' ? '&touch=1' : ''}`;
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const mb = (b) => Number((b / 1048576).toFixed(2));
 
@@ -47,12 +49,14 @@ async function serve(dist) {
 }
 process.on('exit', () => { preview?.kill('SIGTERM'); });
 
-const out = { chunk: CHUNK, a: DIST_A, b: DIST_B, when: new Date().toISOString(), steps: {} };
+const out = { chunk: CHUNK, tier: TIER, a: DIST_A, b: DIST_B, when: new Date().toISOString(), steps: {} };
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   out.buildA = await serve(DIST_A);
   const iphone = devices['iPhone 16 Pro'];
-  const ctx = await browser.newContext({ userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 }, serviceWorkers: 'allow' });
+  const ctx = await browser.newContext(TIER === 'phone'
+    ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 }, serviceWorkers: 'allow' }
+    : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1, serviceWorkers: 'allow' });
   await ctx.addInitScript(ledger);
   // every request that crossed the network: the page's own (not answered by the worker) and the worker's fetches
   const reqs = [];
@@ -69,7 +73,7 @@ try {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const since = () => { const n = reqs.length; return () => { const rs = reqs.slice(n); const gpu = rs.filter((r) => /^\/(assets\/gpu|basis)\//.test(r.url)); return { netMB: mb(rs.reduce((s, r) => s + r.bytes, 0)), requests: rs.length, ktx2MB: mb(gpu.reduce((s, r) => s + r.bytes, 0)), ktx2Requests: gpu.length, top: [...rs].sort((x, y) => y.bytes - x.bytes).slice(0, 8).map((r) => `${r.bySW ? 'sw ' : ''}${r.url} ${mb(r.bytes)}`) }; }; };
   const playable = async () => { const t = Date.now(); await page.waitForFunction(() => Boolean(window.__world?.game) && !document.querySelector('.ws-loading'), null, { timeout: 300_000, polling: 250 }); return Number(((Date.now() - t) / 1000).toFixed(2)); };
-  const texmem = async () => { await sleep(6000); const r = await page.evaluate(report, 0); return { textureMB: r.textureMB, compressedMB: r.compressedMB }; };
+  const texmem = async () => { await sleep(6000); const r = await page.evaluate(report, 0); return { textureMB: r.textureMB, compressedMB: r.compressedMB, byFormat: r.byFormat }; };
   const tex = () => page.evaluate(() => window.__ws_prefetch?.state.tex ?? null);
   let after = since();
   const launch = async (label, url = PAGE) => {
@@ -133,7 +137,7 @@ try {
   await browser.close();
   preview?.kill('SIGTERM');
 }
-const file = resolvePath(ROOT, `progress/bench/e157-b-check-${CHUNK}.json`);
+const file = resolvePath(ROOT, TIER === 'phone' ? `progress/bench/e157-b-check-${CHUNK}.json` : `progress/bench/e173-b-check-${CHUNK}-${TIER}.json`);
 mkdirSync(resolvePath(file, '..'), { recursive: true });
 writeFileSync(file, `${JSON.stringify(out, null, 1)}\n`);
 console.log(`→ ${file}`);

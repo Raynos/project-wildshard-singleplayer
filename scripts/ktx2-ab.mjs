@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // ktx2-ab.mjs — the E157 A/B: the same poses in each shard with the images and the KTX2 textures (the saved `tex` setting),
-// on the iPhone portrait the user judges on (iPhone 16 Pro UA, 390×844 @3, touch, the phone tier). Every DOM layer but the
+// on the iPhone portrait the user judges on (iPhone 16 Pro UA, 390×844 @3, touch, the phone tier) — or, `--tier=desktop`
+// (E173), the desktop's 1600×900 @1 landscape, the desktop tier. Every DOM layer but the
 // game canvas is hidden, the clock is held (`tod` + a day of ~3 years), the weather clear; per pose the player is spawned,
 // the loop runs 4 s, then stops drawing (game.frameGate) and the frozen frame is captured.
 //
 // Wind, animals and the weapon's idle sway still differ between two page loads, so each shard is captured TWICE with the
 // images (`img`, `img2`): their difference is the run-to-run floor the KTX2 difference is read against (ktx2-ab-board.py).
 //
-//   node scripts/ktx2-ab.mjs --url=http://localhost:4760 --out=<dir> [--shards=pine-hollow,nalati-grasslands,driftwood-isle] [--modes=img,img2,ktx2]
+//   node scripts/ktx2-ab.mjs --url=http://localhost:4760 --out=<dir> [--shards=pine-hollow,nalati-grasslands,driftwood-isle] [--modes=img,img2,ktx2] [--tier=phone|desktop]
 //
 // One headless Chromium on Metal, muted (`--mute-audio`, `mute=1`), closed at the end. Writes <out>/<shard>-<pose>-<mode>.png.
 import { mkdirSync } from 'node:fs';
@@ -20,6 +21,7 @@ const URL_BASE = flag('url', 'http://localhost:4760');
 const OUT = resolvePath(flag('out', 'ktx2-ab'));
 const SHARDS = flag('shards', 'pine-hollow,nalati-grasslands,driftwood-isle').split(',');
 const MODES = flag('modes', 'img,img2,ktx2').split(',');
+const TIER = flag('tier', 'phone');
 mkdirSync(OUT, { recursive: true });
 
 /** per shard: the held time of day and the poses. `x, z, yaw` spawn the player (yaw faces (-sin, -cos)); `pitch` looks down */
@@ -59,14 +61,16 @@ try {
     const spec = SHARD[shard];
     for (const mode of MODES) {
       const tex = mode.startsWith('img') ? 'img' : 'ktx2';
-      const ctx = await browser.newContext({ userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } });
+      const ctx = await browser.newContext(TIER === 'phone'
+        ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
+        : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
       // the textures are a saved setting (pause ▸ Settings ▸ Debug ▸ GPU textures), never a URL switch; no background prefetch
       await ctx.addInitScript((t) => { try { localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: t, prefetch: 'off' })); } catch { /* */ } }, tex);
       const page = await ctx.newPage();
       const errors = [];
       page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
       page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
-      const url = `${URL_BASE}/?chunk=${shard}&mute=1&skipintro=1&nolock=1&sw=0&tier=phone&touch=1&clock=100000000&${spec.q}`;
+      const url = `${URL_BASE}/?chunk=${shard}&mute=1&skipintro=1&nolock=1&sw=0&tier=${TIER}${TIER === 'phone' ? '&touch=1' : ''}&clock=100000000&${spec.q}`;
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => Boolean(window.__world?.game && window.__world.player), undefined, { timeout: 300000, polling: 500 });
       await sleep(8000);
