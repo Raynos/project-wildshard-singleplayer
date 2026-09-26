@@ -53,6 +53,7 @@ when the images were generated.
 | | `round-20-facade-budget` (09-26) | [Eight center-view engine captures and facade A/B](nine-dragon-stack/round-20-facade-budget/README.md), with the 76-pose draw-call result and unresolved F7 look gaps |
 | | `round-21-b2-bridge-camera` (09-26) | [B2 camera correction](nine-dragon-stack/round-21-b2-bridge-camera/README.md): the old eye clipped a cinnabar railing; the bridge-center eye reveals the canyon |
 | | `round-21-grapple-parity` (09-26) | [Portrait hook sculpt and live grapple motion check](nine-dragon-stack/round-21-grapple-parity/README.md): LOCK/fire/zip and safe miss/reel/dock; awaiting physical iPhone review |
+| | `round-22-portrait-grapple-final` (09-26) | [Current 15 s portrait trailer review cut](nine-dragon-stack/round-22-portrait-grapple-final/README.md) with recaptured Fei Zhua crossing and three-talon flying claw |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 

@@ -1,5 +1,6 @@
 /** The three shared practice specimens: one humanoid construction, three core/armor materials. */
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export type DummyVariant = 'wood' | 'straw-cloth' | 'wood-steel';
 export const DUMMY_VARIANTS: readonly { id: DummyVariant; label: string; full: string }[] = [
@@ -29,6 +30,32 @@ function cylinder(parent: THREE.Object3D, material: THREE.Material, x: number, y
 function band(parent: THREE.Object3D, material: THREE.Material, x: number, y: number, z: number, w: number, h: number, d: number): void {
   const m = box(parent, material, x, y, z, w, h, d);
   m.rotation.z = x < 0 ? -0.12 : 0.12;
+}
+
+/** Preserve the five hit-reactive body groups while baking same-material details into a few draws per group. */
+function mergeRigid(group: THREE.Group): void {
+  const byMaterial = new Map<THREE.Material, THREE.Mesh[]>();
+  for (const child of group.children) {
+    if (!(child instanceof THREE.Mesh)) continue;
+    const part = child as THREE.Mesh;
+    if (Array.isArray(part.material)) continue;
+    const list = byMaterial.get(part.material) ?? [];
+    list.push(part); byMaterial.set(part.material, list);
+  }
+  for (const [material, parts] of byMaterial) {
+    if (parts.length < 2) continue;
+    const baked = parts.map((part) => {
+      part.updateMatrix();
+      const geometry = part.geometry.index ? part.geometry.toNonIndexed() : part.geometry.clone();
+      geometry.applyMatrix4(part.matrix);
+      return geometry;
+    });
+    const joined = mergeGeometries(baked, false) as THREE.BufferGeometry | null;
+    baked.forEach((geometry) => { geometry.dispose(); });
+    if (!joined) continue;
+    for (const part of parts) { group.remove(part); part.geometry.dispose(); }
+    group.add(new THREE.Mesh(joined, material));
+  }
 }
 
 /** Local origin is the foot of the stake. The visible humanoid is roughly 2.6 m tall. */
@@ -103,5 +130,6 @@ export function buildTrainingDummy(variant: DummyVariant): TrainingDummyModel {
   const leftArm = makeArm(-1), rightArm = makeArm(1);
   // The room's floor uses an unlit grid. Casting each armor detail into the shard's distant shadow map costs a
   // second draw per piece without changing the visible practice-room floor.
+  for (const rigid of [root, torso, head, leftArm, rightArm]) mergeRigid(rigid);
   return { root, torso, head, leftArm, rightArm };
 }
