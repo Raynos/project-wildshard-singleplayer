@@ -135,7 +135,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
 
   // ── Ground cover & foliage: Driftwood (E156; src/world/GroundCover.ts, coverTint.ts) ──
-  opt('coverRange', 'cover', 'Foliage range', [['normal', 'Normal'], ['500', '500 m']], { reload: true, when: driftwood, note: 'E156 · every plant in view to 500 m' }),
   opt('coverTint', 'cover', 'Ground tint', ON_OFF, { when: driftwood, note: 'E156 · far ground wears the cover\'s colour' }),
   opt('coverReach', 'cover', 'Slope reach', ON_OFF, { when: driftwood, note: 'E156 · slope plants drawn 1.7× further' }),
   opt('coverBlend', 'cover', 'Far colour blend', ON_OFF, { when: driftwood, note: 'E117 / E156 · far plants fade into the ground' }),

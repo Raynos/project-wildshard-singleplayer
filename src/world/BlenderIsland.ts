@@ -40,7 +40,6 @@ import { rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
 import { Rng } from '../core/rng';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
-import { setting } from '../ui/Settings';
 
 const BASE = blenderModelsBase('driftwood-isle'); // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */
@@ -74,8 +73,7 @@ const LOD_D = 110;
  * flowers) keeps the short reach: at 20 m+ it is a few pixels over the tinted ground.
  */
 const BIG_COVER = /^(bush|flowerbush|hibiscus|fern)\d+$/;
-const RANGE_500 = setting('coverRange') === '500'; // Debug ▸ Foliage range ▸ 500 m: the big cover stands everywhere (its tiles are frustum-culled)
-const BIG_NEAR = RANGE_500 ? 490 : TIER === 'phone' ? 50 : COVER_NEAR, BIG_FAR = RANGE_500 ? 500 : TIER === 'phone' ? 80 : COVER_FAR, BIG_GROW = RANGE_500 ? 5 : TIER === 'phone' ? 10 : COVER_GROW;
+const BIG_NEAR = TIER === 'phone' ? 50 : COVER_NEAR, BIG_FAR = TIER === 'phone' ? 80 : COVER_FAR, BIG_GROW = TIER === 'phone' ? 10 : COVER_GROW;
 /**
  * E117: a caster tile's far copy is its near one simplified (meshoptimizer: to FAR_RATIO of the triangles, never past
  * FAR_ERROR of the model's size — ~8 cm on a palm, under a pixel at LOD_D), not the file's hand-made `_lo` palms: those

@@ -117,7 +117,6 @@ export const OPTION_VALUES = {
   coverReach: ['on', 'off'],
   coverBlend: ['on', 'off'],
   coverFar: ['on', 'off', 'far'],
-  coverRange: ['normal', '500'],                       // Jake: "render distance 500 m" — the far stand-ins and the cove's big cover to 500 m, culled only outside the view (a reload)
   // E158: download the other shards' files in the background once this one is playable (src/boot/shardPrefetch.ts) — the
   // debug menu only (no URL switch); the bench scripts turn it off through the saved settings
   prefetch: ['on', 'off'],
@@ -160,7 +159,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   coverTint: { def: 'on', params: [], url: () => null }, coverReach: { def: 'on', params: [], url: () => null }, // the debug menu only
   coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
-  coverRange: { def: 'normal', params: [], url: () => null },
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   shardCap: { def: '1', params: [], url: () => null }, // the user 2026-09-25: 1 by default — iOS evicts a 2-resident page (E179); 2 stays a Debug pick
@@ -177,7 +175,7 @@ const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   tier: option('tier'), touch: option('touch'), time: option('time'),
   weather: option('weather'), fps: option('fps'),
-  coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'), coverRange: option('coverRange'),
+  coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'),
   prefetch: option('prefetch'),
   tex: option('tex'),
   shardCap: option('shardCap'),
