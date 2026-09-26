@@ -1,0 +1,11 @@
+spawn-hud: 120 calls, 1941k tris
+spawn: 120 calls, 1941k tris
+1: 105 calls, 1928k tris
+2: 107 calls, 1935k tris
+3: 106 calls, 1915k tris
+4: 104 calls, 1815k tris
+5: 94 calls, 1623k tris
+6: 107 calls, 1935k tris
+7: 112 calls, 1939k tris
+8: 111 calls, 1936k tris
+9: 110 calls, 1939k tris
