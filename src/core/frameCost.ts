@@ -57,7 +57,7 @@ export interface FrameCostSnapshot {
 }
 
 class FrameCost {
-  /** collect? (the panel open, a recording, `?perfstats=1`) */
+  /** collect? (the panel open, a recording) */
   on = false;
   // ── this frame ──
   private readonly cur = new Float64Array(NB);

@@ -1,5 +1,5 @@
 {
- "$doc": "URLs each tier was seen to load (scripts/gpu-texmem.mjs --record, one boot per shard, nopack=1): what scripts/bake-ktx2.mjs bakes to KTX2 (E157)",
+ "$doc": "URLs each tier was seen to load (scripts/gpu-texmem.mjs --record, one boot per shard, the boot pack off): what scripts/bake-ktx2.mjs bakes to KTX2 (E157)",
  "phone": [
   "/assets/baked/driftwood-isle/tex/clouds.phone.webp",
   "/assets/baked/driftwood-isle/tex/giant.phone.webp",

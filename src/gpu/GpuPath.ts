@@ -25,6 +25,7 @@ import { bool } from 'three/tsl';
 import { CSMShadowNode } from 'three/examples/jsm/csm/CSMShadowNode.js';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
+import { setting } from '../ui/Settings';
 import type { Sky } from '../world/Sky';
 import type { GpuMode } from './flag';
 import { installToonLibrary, setToonSun } from './toon';
@@ -37,8 +38,8 @@ import { registerOcean } from './ocean';
 import { fixScene } from './compat';
 import { isTwinnedPointsMaterial, shaderPortFor, syncTwins, twinPoints } from './effects';
 
-/** ?gpudbg=noshadow,notoon — A/B switches for chasing a WebGL ↔ WebGPU difference */
-const DBG = new Set((new URLSearchParams(location.search).get('gpudbg') ?? '').split(','));
+/** pause ▸ Settings ▸ Debug ▸ Developer tools (E162): shadows / toon off, for chasing a WebGL ↔ WebGPU difference (a reload) */
+const DBG = new Set([...(setting('gpuShadows') === 'off' ? ['noshadow'] : []), ...(setting('gpuToon') === 'off' ? ['notoon'] : [])]);
 
 /** the library: WebGL material → node material, with the src/gpu ports first */
 class GpuLibrary extends StandardNodeLibrary {

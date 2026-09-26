@@ -396,7 +396,7 @@ export class Game {
     jobs.push(...shadowJobs(this.scene, rt));
     const bg = backgroundJob(this.scene, rt);
     if (bg) jobs.push(bg);
-    if (!(PERFLOAD && new URLSearchParams(location.search).has('nopost'))) jobs.push(...postJobs(this.composer, rt)); // ?nopost=1: let the first frame show which post programs are real
+    jobs.push(...postJobs(this.composer, rt));
     if (PERFLOAD) perfLog('precompile:start', 0, this.renderer, `${materials} materials · ${jobs.length} jobs · parallel=${parallelCompile(this.renderer)}`);
     const report = await runPrecompile(this.renderer, this.camera, jobs, materials, onProgress);
     return report.materials;

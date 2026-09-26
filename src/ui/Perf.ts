@@ -106,15 +106,6 @@ export class Perf {
     });
     // a toggle (E142, Jake: "detail mode on, move around a lot and keep looking at it — it shouldn't just fade away"): only a
     // tap on the pill closes the panel; moving, looking and shooting leave it up
-    if (new URLSearchParams(location.search).get('probe') === '1') {
-      // 15 s of the world running (frames drawn, the menu down), then the probe
-      let since = -1;
-      const wait = setInterval(() => {
-        const live = this.active && game.frameCount > 30 && performance.now() - this.lastPaint < 1500;
-        since = live ? (since < 0 ? performance.now() : since) : -1;
-        if (since >= 0 && performance.now() - since > 15_000) { clearInterval(wait); void this.runProbe(); }
-      }, 1000);
-    }
     const param = new URLSearchParams(location.search).get('perf');
     const hide = (): boolean => (param === '0' ? true : param === '1' ? false : !isDev());
     this.userHidden = hide(); this.root.hidden = this.userHidden;

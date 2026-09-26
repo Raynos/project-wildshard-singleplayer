@@ -130,13 +130,21 @@ export const OPTION_VALUES = {
   // E155 / E159: how many built shards stay in memory (src/shard/ShardHost.ts; the user: two) — 1 on a phone that runs short;
   // live: lowering it evicts down at once. The debug menu only (no URL switch)
   shardCap: ['2', '1'],
+  // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/ui/debugOptions.ts).
+  // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
+  loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/boot/perflog.ts) — a reload
+  bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
+  gpuShadows: ['on', 'off'],                           // WebGPU only (src/gpu/GpuPath.ts): shadows off, for a WebGL ↔ WebGPU diff — a reload
+  gpuToon: ['on', 'off'],                              // WebGPU only: Driftwood's toon library off — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
 /** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
 export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'tier', 'touch'];
+/** a debug-menu-only option (E162): no URL override; its default is its first value */
+const DEBUG_ONLY = { def: null, params: [], url: (): null => null } as const;
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
-const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
+const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
   gpu: { def: 'webgl', params: ['gpu'], url: (q) => { const v = q.get('gpu'); return v === null ? null : v === 'webgpu' || v === 'webgpu-gl' ? v : 'webgl'; } },
   tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
@@ -150,8 +158,14 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   shardCap: { def: '2', params: [], url: () => null },
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, gpuShadows: DEBUG_ONLY, gpuToon: DEBUG_ONLY,
 };
-const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
+const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
+  const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
+  const def = OPTION_SPECS[k].def ?? values[0];
+  if (def === undefined) throw new Error(`Settings: option ${k} has no values`);
+  return new Choice<OptionValue<K>>(k, values, def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
+};
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), tier: option('tier'), touch: option('touch'), time: option('time'),
   pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
@@ -159,6 +173,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   prefetch: option('prefetch'),
   tex: option('tex'),
   shardCap: option('shardCap'),
+  loadProfile: option('loadProfile'), bootPack: option('bootPack'), gpuShadows: option('gpuShadows'), gpuToon: option('gpuToon'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

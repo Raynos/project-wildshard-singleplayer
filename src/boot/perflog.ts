@@ -1,12 +1,13 @@
 /**
- * `?perfload=1` — load-path instrumentation (project/archive/2026-09-22-load-perf.md, Status table). Logs every
+ * pause ▸ Settings ▸ Debug ▸ Performance ▸ Load profiling (E162; a reload) — load-path instrumentation (project/archive/2026-09-22-load-perf.md, Status table). Logs every
  * program the renderer builds during the `shaders` / `firstFrame` steps with the material it came
  * from, per-batch wall ms, and what the first real frames still had to compile. Everything lands in
  * `window.__perfload` (rows) and `console.info` so a headless run can read it back.
  */
 import type * as THREE from 'three';
+import { setting } from '../ui/Settings';
 
-export const PERFLOAD = typeof location !== 'undefined' && new URLSearchParams(location.search).has('perfload');
+export const PERFLOAD = typeof location !== 'undefined' && setting('loadProfile') === 'on';
 
 /** three's WebGLProgram, the parts the boot reads (r.info.programs is typed as `unknown` entries) */
 export interface ProgramLike { type: string; name: string; cacheKey: string; usedTimes: number; id: number; isReady: () => boolean; program: WebGLProgram; getUniforms: () => unknown }

@@ -31,7 +31,7 @@
 // so a rerun encodes only what changed (a no-change rerun: ~2 s).
 //
 // Only files the game was SEEN to load are baked: scripts/bake-ktx2.list.json, per tier, the URLs a boot of each shard
-// fetched (recorded by `node scripts/gpu-texmem.mjs --record --query=nopack=1 --chunk=<slug> --tier=<tier>`). The repo
+// fetched (recorded by `node scripts/gpu-texmem.mjs --record --chunk=<slug> --tier=<tier>`). The repo
 // holds ~250 GLBs and ~180 images, most of them sources, alternates and other shards' art; a file that is not on the
 // list simply keeps loading as an image (the texmem report lists what is still RGBA8). The texture-array layers (the
 // terrain splat, the bark) are baked a second time unflipped (`<url>#layer`): loadPBRArray keeps the file's orientation.

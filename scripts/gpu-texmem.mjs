@@ -10,7 +10,8 @@
 // its WebGLTexture (renderer.properties) and labelled with the mesh that draws it, so the table says whose bytes they are.
 //
 //   node scripts/gpu-texmem.mjs --url=http://localhost:4391 --chunk=pine-hollow --tier=phone [--tex=ktx2|img] [--tag=x]
-//   … --query=nopack=1 --record     also merge the files this boot loaded into scripts/bake-ktx2.list.json (bake-ktx2's list)
+//   … --record                      boot without the pack (Debug ▸ Boot pack Off, saved setting `bootPack`) and merge the
+//                                    files this boot loaded into scripts/bake-ktx2.list.json (bake-ktx2's list)
 //
 // Phone: 390×844 @3, iPhone UA, `touch=1&tier=phone`. Desktop: 1600×900 @1, `tier=desktop`. One headless Chromium on
 // Metal, muted (`--mute-audio`, `mute=1`), closed at the end. Writes progress/texmem/<tag>-<chunk>-<tier>.json.
@@ -44,7 +45,7 @@ try {
     ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
     : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
   await ctx.addInitScript(ledger);
-  await ctx.addInitScript((tex) => { try { localStorage.setItem('ws.settings.v1', JSON.stringify({ prefetch: 'off', ...(tex === '' ? {} : { tex }) })); } catch { /* */ } }, TEX);
+  await ctx.addInitScript(([tex, record]) => { try { localStorage.setItem('ws.settings.v1', JSON.stringify({ prefetch: 'off', ...(tex === '' ? {} : { tex }), ...(record ? { bootPack: 'off' } : {}) })); } catch { /* */ } }, [TEX, RECORD]);
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));

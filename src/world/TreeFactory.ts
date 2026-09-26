@@ -161,7 +161,7 @@ export class TreeFactory {
   readonly multiDraw: boolean;
   constructor(private renderer: THREE.WebGLRenderer, opts: TreeFactoryOptions = {}) {
     this.opts = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', set: null, ...opts };
-    this.multiDraw = renderer.extensions.has('WEBGL_multi_draw') && !new URLSearchParams(location.search).has('nobatch');
+    this.multiDraw = renderer.extensions.has('WEBGL_multi_draw');
   }
 
   /**

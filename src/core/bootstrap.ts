@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { Game } from './Game';
 import { TERRAIN_RES } from './config';
 import { Terrain } from '../world/Terrain';
@@ -117,14 +117,6 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   // once the builders have registered their decks, so no board pokes up through one (`addPathWalkways`)
   player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw));
   player.pitch = num('pitch', 0);
-
-  if (params.get('debug') === 'card') {
-    // show the baked branch card in front of the camera
-    const m = factory.needleMaterial;
-    const tex = params.get('map') === 'normal' ? m.normalMap : params.get('map') === 'arm' ? ('roughnessMap' in m ? m.roughnessMap : null) : m.map;
-    const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
-    game.camera.add(q); q.position.set(0, 0, -1.2); game.scene.add(game.camera);
-  }
 
   const tour = new Tour(game.camera);
   tour.active = params.has('tour');

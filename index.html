@@ -60,9 +60,9 @@
       document.addEventListener('gesturestart', (e) => e.preventDefault());
       // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)
       if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
-      // developer mode (E140, src/core/devMode.ts reads the same key and param): the loading screen's details, the frame meter,
-      // the build id show only under <html data-dev> — set here, before the first paint of the loading panel
-      try { const d = new URLSearchParams(location.search).get('dev'); if (d === null ? localStorage.getItem('ws.dev') === '1' : d !== '0') document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }
+      // developer mode (E140, src/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the
+      // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)
+      try { if (localStorage.getItem('ws.dev') === '1') document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }
     </script>
     <canvas id="game"></canvas>
     <div id="hud"></div>

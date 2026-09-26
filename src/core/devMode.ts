@@ -7,20 +7,16 @@
  *   onDev((on) => …)   // live show / hide; returns the unsubscribe
  *
  * The saved pick lives in localStorage `ws.dev` (a `ws.*` key, so the native save mirror keeps it, src/native/saves.ts).
- * `?dev` (or `?dev=1`) turns it on for one load, `?dev=0` off; the switch wins once it is touched. `<html data-dev>` mirrors
- * the state for CSS — index.html sets it before any module runs (the loading screen is painted from the first bytes), from
- * this same key and param; keep the two readers in step.
+ * No URL switch (E162: the test scripts set `ws.dev` before load). `<html data-dev>` mirrors the state for CSS — index.html
+ * sets it before any module runs (the loading screen is painted from the first bytes), from this same key; keep the two
+ * readers in step.
  */
 const KEY = 'ws.dev';
 const EVENT = 'ws-dev';
 
-const fromUrl = (): boolean | null => {
-  const p = new URLSearchParams(location.search).get('dev');
-  return p === null ? null : p !== '0';
-};
 const saved = (): boolean => { try { return localStorage.getItem(KEY) === '1'; } catch { return false; } };
 
-let on = fromUrl() ?? saved();
+let on = saved();
 
 const mirror = (): void => { document.documentElement.toggleAttribute('data-dev', on); };
 mirror();

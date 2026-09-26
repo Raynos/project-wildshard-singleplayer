@@ -25,9 +25,6 @@ import { frameCost, BUCKETS, SUBS, type FrameRecord } from '../core/frameCost';
 declare const __BUILD_ID__: string; // vite.config.ts define
 function buildId(): string { try { return __BUILD_ID__; } catch { return ''; } }
 
-/** `?perfstats=1`: collect without the panel (the headless profiler reads `window.__frameCost`) */
-const FORCE = new URLSearchParams(location.search).get('perfstats') === '1';
-if (FORCE) { frameCost.on = true; Object.assign(window, { __frameCost: frameCost }); }
 
 export type Counts = Record<string, number>;
 const REC_MS = 30_000;
@@ -150,7 +147,7 @@ export class PerfHud {
   /** the panel is open (or not): collect, observe the DOM, count audio */
   setOpen(open: boolean): void {
     this.open = open;
-    frameCost.on = open || this.rec !== null || FORCE;
+    frameCost.on = open || this.rec !== null;
     this.dom.set(open || this.rec !== null);
     if (open) hookAudio();
   }
@@ -255,7 +252,7 @@ export class PerfHud {
     if (r === null) return;
     this.rec = null;
     frameCost.onFrame = null;
-    frameCost.on = this.open || FORCE;
+    frameCost.on = this.open;
     this.dom.set(this.open);
     const text = recSummary(r.frames, r.maxCounts, this.game, this.abLabel);
     this.lastRecText = text;

@@ -162,7 +162,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     return t;
   };
   const build = async (kind: (typeof kinds)[number], srgb: boolean): Promise<THREE.DataArrayTexture | THREE.CompressedArrayTexture> =>
-    (await buildKtx2(kind, srgb)) ?? (gpu && !new URLSearchParams(location.search).has('cpuarray') ? buildGPU(kind, srgb, gpu) : buildCPU(kind, srgb));
+    (await buildKtx2(kind, srgb)) ?? (gpu ? buildGPU(kind, srgb, gpu) : buildCPU(kind, srgb));
   const [map, normalMap, armMap] = await Promise.all([build('diffuse', true), build('nor_gl', false), build('arm', false)]);
   return { map, normalMap, armMap };
 }

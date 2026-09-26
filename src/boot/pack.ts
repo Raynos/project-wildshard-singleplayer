@@ -28,12 +28,14 @@ import type { BootStep, ByteKey } from './steps';
 import { tierUrl, versionedUrl, type ChunkFiles } from './bytes';
 import { PACKS, type PackDef, type PackPart } from './packs.generated';
 import { TIER } from '../core/tier';
+import { setting } from '../ui/Settings';
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
-/** This shard's pack for this tier, when the build has one and the URL doesn't opt out. */
+/** This shard's pack for this tier, when the build has one and pause ▸ Settings ▸ Debug ▸ Boot pack isn't Off (E162; the
+ *  KTX2 record run, scripts/gpu-texmem.mjs --record, turns it off through the saved settings to see each file's URL). */
 export function packFor(def: ChunkDef): PackDef | null {
-  if (new URLSearchParams(location.search).has('nopack')) return null;
+  if (setting('bootPack') === 'off') return null;
   return PACKS[def.slug]?.[TIER] ?? null;
 }
 

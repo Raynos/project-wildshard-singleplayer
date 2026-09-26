@@ -294,9 +294,8 @@ export async function runPrecompile(
   // program otherwise ran inside the first frame (~45 ms of onFirstUse at 4x CPU).
   const tB = performance.now();
   let tSlice = tB;
-  const skipResolve = PERFLOAD && new URLSearchParams(location.search).has('noresolve'); // A/B for the instrumentation
   for (const [i, p] of created.entries()) {
-    if (!skipResolve) p.getUniforms();
+    p.getUniforms();
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
