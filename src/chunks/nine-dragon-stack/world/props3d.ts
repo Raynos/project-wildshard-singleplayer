@@ -117,6 +117,7 @@ export async function loadSquareProps(mat: ShaderMaterial): Promise<InstancedMes
       const g = s.maxTris === undefined ? raw : clusterLod(raw, s.maxTris);
       if (s.glowRed !== undefined) glowRed(g, s.glowRed);
       const im = new InstancedMesh(g, mat, s.at.length);
+      im.name = `glb:${s.name}`;
       s.at.forEach((m, i) => { im.setMatrixAt(i, m); });
       im.computeBoundingSphere();
       out.push(im);

@@ -40,6 +40,12 @@ export const NINE_DRAGON_WORLD = {
       id: 'nds-crossings', name: 'The Well\'s crossings', category: 'buildings', file: 'src/chunks/nine-dragon-stack/world/well-mid.ts',
       surface: 'stone', colliders: [...crossingColliders()],
     });
+    // Batch members have no separate world object or collider. Register one specimen of each loaded GLB for Explore;
+    // the geometry and Jiehua material are the same objects the fragment already loaded, so this adds no asset fetch.
+    for (const model of world.models) ctx.registry.add({
+      id: `model:${model.id}`, name: model.name, category: model.category, file: model.file,
+      model: { id: model.id, category: model.category, live: false, object: model.object },
+    });
     ctx.onUpdate((_dt, t) => { world.update(t, ctx.camera); });
   },
 };

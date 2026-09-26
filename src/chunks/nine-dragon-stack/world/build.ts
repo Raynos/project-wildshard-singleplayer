@@ -37,6 +37,7 @@ import { CABLE, SHAFT, WELL_RECTS, buildWell, gondolaKit, wellSheets } from './w
 import { merge } from './hero/kitx';
 import { loadGlb } from './hero/glb';
 import { InstanceCuller } from './cull';
+import type { RegisteredModel } from '../../../world/registry';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
 const CULL_R = 40;
@@ -104,6 +105,8 @@ export interface NineDragonWorld {
   readonly shared: Shared;
   /** the build's context: its layout records (hooks, the map's floor plan, the crowd) */
   readonly ctx: Ctx;
+  /** specimens from the GLBs actually used by this fragment, reusing the loaded geometries and material */
+  readonly models: readonly RegisteredModel[];
   /** per frame: time (s) and the camera the frame is drawn from */
   update: (t: number, camera: PerspectiveCamera) => void;
   /**
@@ -169,7 +172,8 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   for (const [name, kit] of ctx.alphaKits) if (kit.vertexCount > 0) alphaGeos.push([name, kit.build()]);
   bakeSpill(kitGeos.map(([, g]) => g), emitters);
   for (const m of await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters)) root.add(named(m, 'canopy'));
-  for (const m of await loadSquareProps(mat)) root.add(named(m, 'props3d'));
+  const squareProps = await loadSquareProps(mat);
+  for (const m of squareProps) root.add(m);
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below)
   const farKits: [Mesh, number][] = [];
   const kitMesh = (name: string, g: BufferGeometry, m: typeof mat): void => {
@@ -273,6 +277,17 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
   const person3 = (name: string, ramp: readonly number[]): Promise<BufferGeometry> => loadGlb(`/assets/nine-dragon/lab/${name}.glb`, { kind: 0, line: 0, ao: 0.6, ramp, hues: HUES });
   const [walkD, walkL, sitD, sitL] = await Promise.all([person3('walker', DARK), person3('walker', LIGHT), person3('sitter', DARK), person3('sitter', LIGHT)]);
+  const specimen = (id: string, name: string, category: RegisteredModel['category'], file: string, geometry: BufferGeometry): RegisteredModel => {
+    const object = new Mesh(geometry, mat);
+    object.name = `model:${id}`;
+    return { id, name, category, file, live: false, object: () => object };
+  };
+  const models: RegisteredModel[] = [
+    specimen('nds-walker', 'Umbrella walker', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', walkD),
+    specimen('nds-sitter', 'Mahjong sitter', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', sitD),
+  ];
+  const lion = squareProps.find((m) => m.name === 'glb:lion');
+  if (lion !== undefined) models.push(specimen('nds-lion', 'Guardian lion', 'buildings', 'src/chunks/nine-dragon-stack/world/props3d.ts', lion.geometry));
   // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (a ~320-tri far copy past 35 m, none past
   // 130 m); its meshes start empty, so the InstanceCuller below leaves them alone
   const crowd = new Crowd(mat);
@@ -326,5 +341,5 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     culler.update(camera);
     crowd.update(camera);
   };
-  return { root, shared, ctx, update, cull, culler };
+  return { root, shared, ctx, models, update, cull, culler };
 }
