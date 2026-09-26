@@ -194,7 +194,7 @@ export class ModelExplorer implements ExplorePane {
     if (!cur || this.lineup !== null) return;
     const list = this.shown();
     const i = list.findIndex((e) => e.id === cur.id);
-    if (i < 0 || list.length < 2) return;
+    if (i === -1 || list.length < 2) return;
     const next = list[(i + by + list.length) % list.length];
     if (next) this.openModel(next);
   }
