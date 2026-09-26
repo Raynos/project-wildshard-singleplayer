@@ -21,8 +21,8 @@ Each row names where it came from (the remaster lane that left it) so the next a
 |---|---|
 | F-J1 | **An iPhone reading** (Low Power Mode off): Pine Hollow's locked 30 fps at the gate / cabin / pond / hamlet / lookout / King's clearing (headless says 100 % of frames at 33.3 ms; the phone is the truth) |
 | F-J2 | **A listen**: the new music (calm-night, the Antler King's 3 phases, the dawn sting) and the SFX / barks on `art/music/round-3-pine-hollow/index.html` — every pick there was made by the automatic rankers; veto any slot |
-| F-J3 | ~~Mott the trader's voice~~ — **done** 2026-09-25, Jake: re-roll as a man. His 8 barks regenerated as a gruff, middle-aged backwoods trader (MOSS v2 + SA3 Medium, the better CLAP take ships, woman-sounding takes dropped first), re-packed into the one sprite: `309fe6d`, live `309fe6d-muh9iq9t` |
-| F-J4 | ~~The app icon + splash from the new art~~ — **closed** 2026-09-25, Jake: keep the painted cabin (7dbbf32 stays reverted by 02ae476) |
+| F-J3 | ~~Mott the trader's voice~~ **done**: re-rolled as a man (Jake, 2026-09-25) in `309fe6d` |
+| F-J4 | ~~The app icon + splash from the new art~~ **done**: keep the painted cabin (Jake, 2026-09-25); the Antler King icon stays reverted (`02ae476`) |
 
 ## Look (from the look loop, crags, trees and water lanes)
 
