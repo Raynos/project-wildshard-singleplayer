@@ -106,7 +106,7 @@ function paifang(ctx: Ctx): void {
   const k = ctx.kit('paifang', true);
   const x = ctx.kitx('paifang');
   buildGate(k, x, ctx.signs, (px, py, pz, s) => { ctx.lantern(px, py, pz, s); }, {
-    x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: true,
+    x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false,
   });
   ctx.map.push({ x0: GATE.posts[0] - 0.6, z0: GATE.z - 1.2, x1: GATE.posts[3] + 0.6, z1: GATE.z + 1.2, kind: 'gate' });
 }
@@ -171,7 +171,7 @@ export function buildSquare(ctx: Ctx): void {
   // mahjong under the banyan's edge
   // mahjong: the hero lab's tables; the players are the TRELLIS sitters (with their own stools), instanced by main.ts
   // dome B round 9: one table brought to the spawn's mid-right, ~8 m ahead (style-A's mahjong players), beside the hawker
-  const tables: [number, number, number, number][] = [[10.2, -16.8, 0.2, 4], [12.4, -10.6, -0.3, 3], [4.7, 0.4, 0.15, 4], [14.6, -4.2, 0.5, 2]];
+  const tables: [number, number, number, number][] = [[11.6, -19.4, 0.2, 4], [12.4, -10.6, -0.3, 3], [4.7, 0.4, 0.15, 4], [14.6, -4.2, 0.5, 2]];
   const tx = ctx.kitx('props');
   for (const [tx0, tz0, tr, n] of tables) {
     heroMahjong(props, tx, rng, tx0, Y0, tz0, tr, 0, 0x6f8fa8, false);
@@ -187,7 +187,8 @@ export function buildSquare(ctx: Ctx): void {
   }
   const crowdRng = new Rng(1234);
   const placed: [number, number][] = [];
-  const keepClear: [number, number, number][] = [[13, -13, 3.2], [0.95, 7.5, 2.5], [1.45, 5.05, 2.5], [7, -52, 4]];
+  // dome C1: mockup C's camera at (18, +125, 6) looking east up the stair-street keeps its foreground clear
+  const keepClear: [number, number, number][] = [[13, -13, 3.2], [0.95, 7.5, 2.5], [1.45, 5.05, 2.5], [7, -52, 4], [18.5, 6, 2.6], [6.05, -20, 2.8]];
   const free = (x: number, z: number): boolean => {
     if (!walkable(x, z)) return false;
     for (const [tx0, tz0] of tables) if ((x - tx0) ** 2 + (z - tz0) ** 2 < 1.5 ** 2) return false;
@@ -195,21 +196,25 @@ export function buildSquare(ctx: Ctx): void {
     if (x > 13.9 && x < 16.6 && z > -21.2 && z < -19.6) return false; // the shrine
     if (x > 13.9 && x < 15.5 && z > -24.4 && z < -23.0) return false; // the stele
     if (x > STALL.x0 - 0.4 && x < STALL.x1 + 0.4 && z > STALL.z1 && z < STALL.z1 + 3.4) return false; // the stall's tables
+    if (x > 18 && x < 22 && z > 3.5 && z < 8.5) return false; // dome C1: the cone east of its camera, to the stair's foot
+    // dome A2 (the anchor 4.5 m before the gate): its east and south foregrounds stay open (targets 6 and 7)
+    if (x > 8 && x < 10.5 && z > -22.5 && z < -17.5) return false;
+    if (x > 3.5 && x < 8.5 && z > -17.5 && z < -13) return false;
     for (const [px, pz] of placed) if ((x - px) ** 2 + (z - pz) ** 2 < 0.9 * 0.9) return false;
     // the spawn frame's foreground stays open for 14 m (style-A: the crowd is mid-distance, under the gate)
     const dx = x - 0.95, dz = z - 7.5, along = dx * 0.208 - dz * 0.978, across = Math.abs(dx * 0.978 + dz * 0.208);
-    if (along > 0 && along < 16 && across < along * 0.84 + 1.2) return false;
+    if (along > 0 && along < 20 && across < along * 0.84 + 1.2) return false;
     return true;
   };
   const zones: { n: number; x: [number, number]; z: [number, number]; yaw: () => number }[] = [
     // through the gate, north or south
-    { n: 9, x: [1.6, 11.2], z: [-27, -19.5], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.35, 0.35) },
+    { n: 14, x: [1.6, 11.2], z: [-27, -19.5], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.35, 0.35) },
     // across the square in every direction
-    { n: 12, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    { n: 8, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the east strip by the shops and the stall
-    { n: 9, x: [14.5, 21.3], z: [-11.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    { n: 14, x: [14.5, 21.3], z: [-11.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the south half, toward the stair street
-    { n: 10, x: [2.5, 20.5], z: [1, 17], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    { n: 14, x: [2.5, 20.5], z: [1, 17], yaw: () => crowdRng.range(0, Math.PI * 2) },
   ];
   for (const zn of zones) {
     let n = 0;

@@ -51,6 +51,23 @@ export class Ctx {
     return k;
   }
 
+  /** kits drawn only within a distance (m) of the camera: `far(name, m)` (world/cull.ts `addFar`) */
+  readonly farOf = new Map<string, number>();
+
+  /**
+   * THE PER-REGION LOD SWITCH (the phone budget): draw the kit `name` (opaque, alpha or kitx of that name) only while the
+   * camera is within `metres` of its bounding box. Pair it with `cell` so a region's detail is its own kits: what lies
+   * deep in the Well or far up the stair then costs nothing from the square.
+   */
+  far(name: string, metres: number): void { this.farOf.set(name, metres); }
+
+  /**
+   * A kit name per `size`-metre cell of the ground plan (`<name>#<i>,<k>`): a region's kit split so each cell is its own
+   * mesh, which three's per-object frustum test can drop (one merged kit spanning the whole Well never is). Each cell is
+   * a draw when in view, so cells of 24–40 m for dense detail, not finer.
+   */
+  cell(name: string, x: number, z: number, size = 32): string { return `${name}#${Math.floor(x / size)},${Math.floor(z / size)}`; }
+
   kitx(name: string): KitX {
     let k = this.kitxs.get(name);
     if (k === undefined) { k = new KitX(); this.kitxs.set(name, k); }

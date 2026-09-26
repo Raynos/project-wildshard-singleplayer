@@ -4,7 +4,7 @@
 // Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 import {
-  BufferGeometry, Color, Float32BufferAttribute, Group, InstancedMesh, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
+  BufferGeometry, Color, Float32BufferAttribute, Group, InstancedMesh, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
   SphereGeometry, Uint32BufferAttribute, Vector3, Vector4, type WebGLRenderer,
 } from 'three';
 import { Ctx, type Piece } from './ctx';
@@ -12,18 +12,19 @@ import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
 import { Lanterns } from '../look/lanterns';
 import { NeonSigns } from '../look/neonsigns';
-import { buildStreaks } from '../look/streaks';
+import { buildStreaks, stairStreaks } from '../look/streaks';
 import { buildFacade } from './facade/batch';
 import { facadeUniforms } from '../look/facadeMaterial';
 import { PIECES } from './dressing';
-import { WELL, Y0 } from '../layout';
+import { STAIR, WELL, Y0 } from '../layout';
+import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y } from './stairstreet';
 import { loadPaint } from '../look/paint';
 import { SCROLL, loadScroll, scrollMaterial } from '../look/scroll';
 import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
 import { acKit } from './props';
-import { tintUmbrella } from './crowd';
+import { Crowd, tintUmbrella } from './crowd';
 import { banyanOut } from './banyan';
 import { buildCanopy } from './canopy';
 import { loadSquareProps } from './props3d';
@@ -35,6 +36,10 @@ import { Rng, chars } from '../util';
 import { CABLE, buildWell, gondolaKit, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { loadGlb } from './hero/glb';
+import { InstanceCuller } from './cull';
+
+/** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
+const CULL_R = 40;
 
 const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
 
@@ -98,6 +103,8 @@ export interface NineDragonWorld {
   readonly ctx: Ctx;
   /** per frame: time (s) and the camera the frame is drawn from */
   update: (t: number, camera: PerspectiveCamera) => void;
+  /** the world-wide instanced batches' per-instance culling (world/cull.ts; its `stats` for the budget ruler) */
+  readonly culler: InstanceCuller;
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
@@ -154,10 +161,19 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   bakeSpill(kitGeos.map(([, g]) => g), emitters);
   for (const m of await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters)) root.add(named(m, 'canopy'));
   for (const m of await loadSquareProps(mat)) root.add(named(m, 'props3d'));
-  for (const [name, g] of kitGeos) root.add(named(new Mesh(g, mat), `kit:${name}`));
-  for (const [name, g] of alphaGeos) root.add(named(new Mesh(g, matA), `kit:${name}`));
+  // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below)
+  const farKits: [Mesh, number][] = [];
+  const kitMesh = (name: string, g: BufferGeometry, m: typeof mat): void => {
+    const mesh = named(new Mesh(g, m), `kit:${name}`);
+    root.add(mesh);
+    const far = ctx.farOf.get(name);
+    if (far !== undefined) farKits.push([mesh, far]);
+  };
+  for (const [name, g] of kitGeos) kitMesh(name, g, mat);
+  for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
   root.add(named(paper.build(), 'lanterns'));
-  root.add(named(buildFacade(ctx.fd, facadeUniforms(shared), { clutterFar: [55, 85] }).group, 'facade'));
+  const facade = buildFacade(ctx.fd, facadeUniforms(shared), { clutterFar: [55, 85] });
+  root.add(named(facade.group, 'facade'));
   const neonMeshes = neonSigns.build();
   root.add(named(neonMeshes.boards, 'neon'), named(neonMeshes.tubes, 'neon'));
   progress(0.6);
@@ -176,6 +192,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     onSquare.push({ at: wp.clone(), color: w.light.clone().lerp(WHITE, 0.3).multiplyScalar(w.win.y), w: wu.length(), h: wc.length(), power: 0.07, spill: 0 });
   }
   root.add(named(buildStreaks(shared, onSquare, new Vector4(WELL.x0 + 5, WELL.z0 + 5, WELL.x1, WELL.z1 - 5)), 'streaks'));
+  // the stair-street's: its treads and landings under the emitters over it (the render agent's)
+  const onStair = emitters.filter((e) => e.at.x > STAIR.x0 - 4 && e.at.x < FAR_X && e.at.z > FACE_N - 6 && e.at.z < FACE_S + 6 && e.at.y > Y0 + 0.3 && e.at.y < TOP_Y + 40);
+  for (const m of stairStreaks(shared, onStair, { flights: FLIGHTS, landings: LANDINGS, rise: RISE, run: RUN, z0: STAIR.z0, z1: STAIR.z1 })) root.add(named(m, 'streaks-stair'));
 
   // the instanced dressing: one InstancedMesh per piece and region
   const pieceGeo = new Map<Piece, { opaque: BufferGeometry | null; alpha: BufferGeometry | null }>();
@@ -245,19 +264,16 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
   const person3 = (name: string, ramp: readonly number[]): Promise<BufferGeometry> => loadGlb(`/assets/nine-dragon/lab/${name}.glb`, { kind: 0, line: 0, ao: 0.6, ramp, hues: HUES });
   const [walkD, walkL, sitD, sitL] = await Promise.all([person3('walker', DARK), person3('walker', LIGHT), person3('sitter', DARK), person3('sitter', LIGHT)]);
-  const inst = (g: BufferGeometry, ms: readonly Matrix4[]): void => {
-    if (ms.length === 0) return;
-    const im = new InstancedMesh(g, mat, ms.length);
-    ms.forEach((m, i) => { im.setMatrixAt(i, m); });
-    im.computeBoundingSphere();
-    root.add(named(im, 'crowd'));
-  };
-  inst(walkD, ctx.walkers.filter((_, i) => i % 10 < 7 && i % 10 !== 2));
-  inst(walkL, ctx.walkers.filter((_, i) => i % 10 >= 7 && i % 10 !== 8));
-  inst(tintUmbrella(walkD, 0x9a2e1c), ctx.walkers.filter((_, i) => i % 10 === 2));
-  inst(tintUmbrella(walkL, 0xb07a34), ctx.walkers.filter((_, i) => i % 10 === 8));
-  inst(sitD, ctx.sitters.filter((_, i) => i % 3 !== 1));
-  inst(sitL, ctx.sitters.filter((_, i) => i % 3 === 1));
+  // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (a ~320-tri far copy past 35 m, none past
+  // 130 m); its meshes start empty, so the InstanceCuller below leaves them alone
+  const crowd = new Crowd(mat);
+  crowd.add(walkD, ctx.walkers.filter((_, i) => i % 10 < 7 && i % 10 !== 2));
+  crowd.add(walkL, ctx.walkers.filter((_, i) => i % 10 >= 7 && i % 10 !== 8));
+  crowd.add(tintUmbrella(walkD, 0x9a2e1c), ctx.walkers.filter((_, i) => i % 10 === 2));
+  crowd.add(tintUmbrella(walkL, 0xb07a34), ctx.walkers.filter((_, i) => i % 10 === 8));
+  crowd.add(sitD, ctx.sitters.filter((_, i) => i % 3 !== 1));
+  crowd.add(sitL, ctx.sitters.filter((_, i) => i % 3 === 1));
+  for (const im of crowd.meshes) root.add(named(im, 'crowd'));
   atlas.finish();
 
   // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the
@@ -269,10 +285,26 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   await light.ready;
   progress(1);
 
+  // the world-wide instanced batches (the facade dressing, the lanterns, the crowd, the instanced dressing: bounding
+  // spheres past CULL_R, which three's per-object test never drops) are culled per instance against the view; the
+  // facade's small clutter also past 85 m, where its shader has shrunk it into the wall (clutterFar above)
+  const culler = new InstanceCuller();
+  const small = new Set<Object3D>(facade.small);
+  const isBatch = (o: Object3D): o is InstancedMesh => o instanceof InstancedMesh;
+  root.traverse((o) => {
+    if (!isBatch(o)) return;
+    if (o.boundingSphere === null) o.computeBoundingSphere();
+    if ((o.boundingSphere?.radius ?? 0) < CULL_R) return;
+    culler.add(o, small.has(o) ? 85 : Number.POSITIVE_INFINITY);
+  });
+  for (const [mesh, far] of farKits) culler.addFar(mesh, far);
+
   const update = (t: number, camera: PerspectiveCamera): void => {
     shared.u.uTime.value = t;
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
+    culler.update(camera);
+    crowd.update(camera);
     train.position.set(-100 + ((t * 16) % 300), Y0 + 25.5, -27);
     const gx = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(t * 0.12 - 0.62));
     gondola.position.set(gx, CABLE.y + ((gx - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, CABLE.z);
@@ -282,5 +314,5 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
       d.body.rotation.y = -a;
     }
   };
-  return { root, shared, ctx, update };
+  return { root, shared, ctx, update, culler };
 }

@@ -31,10 +31,12 @@ interface Band { y: number; w: number; d: number; jiehua: number; silk: number; 
 const BANDS: readonly Band[] = [
   { y: 212, w: 6, d: 0.022, jiehua: 0xd6dbe2, silk: 0xd8cfbd, sutra: 0x2a3a62 },
   { y: 152, w: 3, d: 0.008, jiehua: 0xc9ced6, silk: 0xcbc0ad, sutra: 0x24345a },
-  { y: 101, w: 5, d: 0.1, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257 },
-  { y: 36, w: 5, d: 0.11, jiehua: 0xb1bccb, silk: 0xaba396, sutra: 0x1e2c4e },
-  { y: -30, w: 5, d: 0.1, jiehua: 0x9eabbe, silk: 0x8f8a82, sutra: 0x192644 },
-  { y: -110, w: 5, d: 0.09, jiehua: 0x5d6a86, silk: 0x5f6478, sutra: 0x142039 },
+  // (round 14, the layered Well: Jake's "looking down the Well is flat, there's nothing") the strata bands under the
+  // square are THIN silk — a crossing leaves 60–90 % of the light, so each level reads a step paler, not a white slab
+  { y: 101, w: 5, d: 0.03, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257 },
+  { y: 36, w: 5, d: 0.035, jiehua: 0xb1bccb, silk: 0xaba396, sutra: 0x1e2c4e },
+  { y: -30, w: 5, d: 0.045, jiehua: 0x9eabbe, silk: 0x8f8a82, sutra: 0x192644 },
+  { y: -110, w: 5, d: 0.06, jiehua: 0x5d6a86, silk: 0x5f6478, sutra: 0x142039 },
   { y: -190, w: 5, d: 0.1, jiehua: 0x2c3a5e, silk: 0x2c3a5e, sutra: 0x101b31 },
   { y: -236, w: 5, d: 0.12, jiehua: 0x16223c, silk: 0x16223c, sutra: 0x0c1729 },
   { y: -400, w: 1, d: 0, jiehua: 0x000000, silk: 0x000000, sutra: 0x000000 },
@@ -244,13 +246,16 @@ vec4 silkFog(vec3 wp, float scale) {
   // aerials see lamp-lit depth, the shaft fills with silk. Looking up (from inside the Well) the ray is read nearer
   // its top: the shaft opens toward the lit sky instead of greying out
   float hy = dy > 0.0 ? mix(midY, max(uCam.y, wp.y), 0.8) : midY;
-  float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / 30.0), 3.6) : max(exp(-(hy - ${Y0}.0) / 45.0), 0.35);
+  float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / 70.0), 2.5) : max(exp(-(hy - ${Y0}.0) / 45.0), 0.35);
   float a0 = 1.0 - exp(-uFogBase * hk * max(L - uFogStart, 0.0) * scale);
   vec3 baseC = mix(uFogBaseCol, scriptCol(wp.y), clamp((uCam.y - wp.y) / 150.0, 0.0, 1.0));
   acc += T * a0 * baseC;
   T *= 1.0 - a0;
-  // the Well's own silk: the stretch of the ray inside the shaft (a slab test on its box) fills with pale mist, from
-  // nothing at the rim to full 25 m down (the round-6 mockups' Well views: paler, mistier, lighter depth)
+  // the Well's own silk: the stretch of the ray inside the shaft (a slab test on its box). Round 14 (the layered Well):
+  // its density grows with the depth h under the rim (or under the eye, whichever is lower: the mist lies below you) as
+  // σ(h) = a·h + b·h², integrated exactly along the straight stretch (h is linear in it): clear for the first ~30 m,
+  // looking straight down 50 m keeps ~75 % of the light, 100 m ~30 %, and below ~150 m everything dissolves into silk.
+  // (It was a flat 0.085 /m from 25 m down: a white slab under the first crossing.)
   if (uShaftK.x > 0.0 && L > 1e-3) {
     vec3 dn = d / L;
     vec3 inv = vec3(abs(dn.x) > 1e-5 ? 1.0 / dn.x : 1e5, abs(dn.y) > 1e-5 ? 1.0 / dn.y : 1e5, abs(dn.z) > 1e-5 ? 1.0 / dn.z : 1e5);
@@ -258,11 +263,14 @@ vec4 silkFog(vec3 wp, float scale) {
     vec3 tn = min(t0, t1), tf = max(t0, t1);
     float ta = max(max(tn.x, tn.y), max(tn.z, 0.0)), tb = min(min(tf.x, tf.y), min(tf.z, L));
     if (tb > ta) {
+      float ref = min(uShaftK.y, uCam.y);
+      float ha = max(ref - (uCam.y + dn.y * ta), 0.0), hb = max(ref - (uCam.y + dn.y * tb), 0.0);
+      float len = tb - ta;
+      float k = uShaftK.x / 0.085; // the Shared default (0.085) is the tuned profile
+      float tauS = k * len * (1.87e-4 * 0.5 * (ha + hb) + 8.0e-7 * (ha * ha + ha * hb + hb * hb) / 3.0) * scale;
+      float as = 1.0 - exp(-tauS);
       float my = uCam.y + dn.y * 0.5 * (ta + tb);
-      // (measured below the rim or the eye, whichever is lower: the mist lies below you — seen from inside the shaft
-      // looking up, the stretch above stays clear toward the lit sky)
-      float as = 1.0 - exp(-uShaftK.x * (tb - ta) * smoothstep(0.0, 25.0, min(uShaftK.y, uCam.y) - my) * scale);
-      acc += T * as * mix(uFogBaseCol * 1.16, scriptCol(my), 0.35);
+      acc += T * as * mix(uFogBaseCol * 1.12, scriptCol(my), 0.45);
       T *= 1.0 - as;
     }
   }
@@ -776,7 +784,9 @@ void main() {
   emit += li * uGold * 0.9 * (1.0 - smoothstep(-120.0, -20.0, yy)) * (1.0 - uSutra);
 
   vec3 fogC = fgc.rgb * silkPaper(gl_FragCoord.xy);
-  vec3 outc = col * fgc.a + fogC + emit * pow(max(fgc.a, 1e-4), 0.85);
+  // (round 14) a light punches through the silk further than the wash it sits on (√T, as the facade windows do):
+  // the lanterns and lit shops of the lower strata glow through the bands
+  vec3 outc = col * fgc.a + fogC + emit * sqrt(max(fgc.a, 1e-4));
   // alpha = normalised inverse view depth: the MSAA resolve averages it, the post silhouette reads it
   gl_FragColor = vec4(outc, uNear / max(vViewZ, uNear));
 }
@@ -1052,7 +1062,8 @@ void main() {
   vec2 p = vWorld.xz * 0.045 + vec2(uTime * 0.012, vWorld.y * 0.01);
   float nz = vnoise(p) * 0.55 + vnoise(p * 2.3 + 4.0) * 0.3 + vnoise(p * 5.1 + 9.0) * 0.15;
   float edge = smoothstep(0.0, 0.14, min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y)));
-  float a = smoothstep(0.28, 0.72, nz) * edge * vAlpha;
+  // (round 14, the layered Well) thin silk: the sheets at 60 % of their authored alpha, so a stratum reads through its band
+  float a = smoothstep(0.28, 0.72, nz) * edge * vAlpha * 0.6;
   a *= smoothstep(1.5, 10.0, abs(uCam.y - vWorld.y));
   int bi = int(vBand + 0.5);
   vec3 c = uBandCols[bi] * 1.06;

@@ -10,7 +10,8 @@ import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { dragonHook, person } from './props';
 import { hipRoof } from './square';
 import { WORDS } from './words';
-import { buildStairStreet } from './stairstreet';
+import { SQ_DEPTH, buildStairStreet } from './stairstreet';
+import { buildStairUpper } from './stairstreet-upper';
 import { NEON, Rng, chars } from '../util';
 
 export { WORDS } from './words';
@@ -25,7 +26,7 @@ const EYE = new Vector3(1.45, Y0 + 1.6, 6);
  * A run of wall split into segments with their own skyline, each dressed by the facade lab's grammar (dressWall into
  * ctx.fd). The segments far from the spawn drop their small clutter (lod 1) or become painted shells (lod 2).
  */
-function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0: number, top: [number, number], _kit: string, opts: { timber?: number; shops?: boolean; roof?: boolean; openStart?: boolean; openEnd?: boolean } = {}): void {
+function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0: number, top: [number, number], _kit: string, opts: { timber?: number; shops?: boolean; roof?: boolean; openStart?: boolean; openEnd?: boolean; openDepth?: { span: number; depth: number } } = {}): void {
   const u = new Vector3().crossVectors(new Vector3(0, 1, 0), n).normalize();
   let x = 0;
   while (x < length - 0.5) {
@@ -36,9 +37,13 @@ function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0
     const mid = at.clone().addScaledVector(u, seg / 2).setY(y0 + 10);
     const d = mid.distanceTo(EYE);
     const lod = d > 170 ? 2 : d > 95 ? 1 : 0;
+    // dome C1: the towers at a street opening can stand shallower (their front and the rng are unchanged: only the
+    // depth behind the face, so the stair-street's pavilions and set-back towers have room behind the square's corner)
+    const od = opts.openDepth;
+    const shallow = od !== undefined && ((opts.openEnd === true && x + seg >= length - od.span) || (opts.openStart === true && x <= od.span));
     dressWall(ctx.fd, at, n, seg, y0, rng.range(top[0], top[1]), Math.floor(rng.next() * 1e6), {
       shops: opts.shops ?? false, street: Y0, detailY: [Y0 - 5, Y0 + 60], timber: opts.timber ?? 0.15, lit: 0.72, lod, roof: opts.roof ?? true,
-    }, 12, faces);
+    }, shallow ? od.depth : 12, faces);
     x += seg;
   }
 }
@@ -176,8 +181,8 @@ export function buildTowers(ctx: Ctx): void {
   const words = WORDS;
   // the east side of the square (x = 30, facing west) — a gap for the stair-street
   const east = new Vector3(-1, 0, 0);
-  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, PLAZA.z0), east, STAIR.z0 - PLAZA.z0, Y0 + 5, [Y0 + 55, Y0 + 100], 'east', { openEnd: true });
-  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, STAIR.z1), east, PLAZA.z1 - STAIR.z1 + 30, Y0 + 5, [Y0 + 50, Y0 + 95], 'east', { openStart: true });
+  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, PLAZA.z0), east, STAIR.z0 - PLAZA.z0, Y0 + 5, [Y0 + 55, Y0 + 100], 'east', { openEnd: true, openDepth: { span: 3, depth: SQ_DEPTH } });
+  wallRun(ctx, rng, new Vector3(PLAZA.x1 + 0.6, 0, STAIR.z1), east, PLAZA.z1 - STAIR.z1 + 30, Y0 + 5, [Y0 + 50, Y0 + 95], 'east', { openStart: true, openDepth: { span: 3, depth: SQ_DEPTH } });
   shopfronts(ctx, 'east-shops', new Vector3(PLAZA.x1 + 0.6, 0, PLAZA.z0), east, STAIR.z0 - PLAZA.z0, Y0, rng, words, NEONS);
   shopfronts(ctx, 'east-shops', new Vector3(PLAZA.x1 + 0.6, 0, STAIR.z1), east, PLAZA.z1 - STAIR.z1, Y0, rng, words, NEONS);
   // the north side right of the gate (z = -30, facing south)
@@ -242,8 +247,11 @@ export function buildTowers(ctx: Ctx): void {
   monorail(ctx);
   cableDeck(ctx, rng);
   crown(ctx, rng);
-  // the stair-street climbing east (dome D, stairstreet.ts): its steps, terraces, shops, towers, paifang, signs, crowd
+  // the stair-street climbing east: its foot and first flight (dome C1, stairstreet.ts: the plan, the physics, the tea
+  // house, the hotpot shop, the 麵 sign and the dragon hook)
   buildStairStreet(ctx);
+  // landing 1 upward (dome C2, stairstreet-upper.ts): the terraces, towers, the paifang, bridges, signs, crowd, far end
+  buildStairUpper(ctx);
   // the floor plan for the minimap: blocks around the square and the street
   ctx.map.push({ x0: PLAZA.x1, z0: -120, x1: 70, z1: STAIR.z0, kind: 'block' });
   ctx.map.push({ x0: PLAZA.x1, z0: STAIR.z1, x1: 70, z1: 60, kind: 'block' });

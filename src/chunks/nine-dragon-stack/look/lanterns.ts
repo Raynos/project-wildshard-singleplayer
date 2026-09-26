@@ -1,26 +1,34 @@
-// Red paper lanterns, merged from the neon lab (src/dev/nd-lab/neon/lanterns.ts): one instanced draw for every lantern
-// (body, lacquer caps and tassel in one geometry, told apart by `aPart`). The paper glows hot orange where you look
-// through it at the candle and deep cinnabar at the rim, with 16 antialiased bamboo ribs, dark trim bands and a slow
-// sway. The pivot is the hook (the lantern's top), like ctx.lantern().
+// Red paper lanterns, merged from the neon lab (src/dev/nd-lab/neon/lanterns.ts): body, lacquer caps and tassel in one
+// geometry, told apart by `aPart`. The paper glows hot orange where you look through it at the candle and deep cinnabar
+// at the rim, with 16 antialiased bamboo ribs (procedural: the lathe's segment count only shapes the silhouette), dark
+// trim bands and a slow sway. The pivot is the hook (the lantern's top), like ctx.lantern().
+// Round 14 (the budget freeze, dome C2's find: ~1100 lanterns × 348 tris ≈ 390 k, all drawn always): two instanced draws
+// — near (≤ LOD_NEAR m) an 8 × 6 lathe with caps and tassel (192 tris), far a 6 × 4 body alone (48 tris) — and each
+// frame the visible lanterns (a sphere per lantern against the view frustum) are bucketed into them (`updateLanterns`,
+// called by the render strategy before the draw). Before the first update every lantern is in the near draw (the dev page).
 import {
-  BufferGeometry, Color, Float32BufferAttribute, InstancedBufferAttribute, InstancedMesh, LatheGeometry, Matrix4, Quaternion, ShaderMaterial,
-  Uint32BufferAttribute, Vector2, Vector3,
+  BufferGeometry, type Camera, Color, Float32BufferAttribute, Frustum, Group, InstancedBufferAttribute, InstancedMesh, LatheGeometry, Matrix4,
+  Quaternion, ShaderMaterial, Sphere, Uint32BufferAttribute, Vector2, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
-function lanternGeometry(): BufferGeometry {
+const R = 0.27, H = 0.24;
+
+/** the lantern's lathe: `rings` bands down the body, `segs` around; caps + tassel only on the near one */
+function lanternGeometry(rings: number, segs: number, dressing: boolean): BufferGeometry {
   const pts: Vector2[] = [];
-  const R = 0.27, H = 0.24;
-  for (let i = 0; i <= 9; i++) {
-    const t = -1 + (2 * i) / 9;
+  for (let i = 0; i <= rings; i++) {
+    const t = -1 + (2 * i) / rings;
     pts.push(new Vector2(Math.max(0.1, R * Math.sqrt(Math.max(0, 1 - t * t * 0.86))), t * H));
   }
-  const parts: { g: BufferGeometry; part: number }[] = [{ g: new LatheGeometry(pts, 12), part: 0 }];
-  const cap = (y0: number, y1: number, r: number): BufferGeometry => new LatheGeometry([new Vector2(0, y0), new Vector2(r, y0), new Vector2(r, y1), new Vector2(0, y1)], 8);
-  parts.push({ g: cap(H - 0.01, H + 0.05, 0.105), part: 1 });
-  parts.push({ g: cap(-H - 0.05, -H + 0.01, 0.105), part: 1 });
-  parts.push({ g: new LatheGeometry([new Vector2(0.012, -H - 0.05), new Vector2(0.03, -H - 0.2), new Vector2(0.04, -H - 0.36), new Vector2(0, -H - 0.36)], 6), part: 2 });
+  const parts: { g: BufferGeometry; part: number }[] = [{ g: new LatheGeometry(pts, segs), part: 0 }];
+  if (dressing) {
+    const cap = (y0: number, y1: number, r: number): BufferGeometry => new LatheGeometry([new Vector2(0, y0), new Vector2(r, y0), new Vector2(r, y1), new Vector2(0, y1)], 6);
+    parts.push({ g: cap(H - 0.01, H + 0.05, 0.105), part: 1 });
+    parts.push({ g: cap(-H - 0.05, -H + 0.01, 0.105), part: 1 });
+    parts.push({ g: new LatheGeometry([new Vector2(0.012, -H - 0.05), new Vector2(0.03, -H - 0.2), new Vector2(0.04, -H - 0.36), new Vector2(0, -H - 0.36)], 4), part: 2 });
+  }
   const pos: number[] = [], nrm: number[] = [], part: number[] = [], idx: number[] = [];
   let base = 0;
   for (const { g, part: p } of parts) {
@@ -45,6 +53,18 @@ function lanternGeometry(): BufferGeometry {
   out.computeBoundingSphere();
   return out;
 }
+
+/** the near / far switch (m) */
+export const LOD_NEAR = 35;
+/** a lantern's bounding radius at scale 1 (body + tassel, around its centre) */
+const BOUND = 0.5;
+
+/** every built lantern set (a rebuilt shard's replace the old: `clearLanterns`) */
+const live: Lanterns[] = [];
+/** bucket every lantern set for this camera (the render strategy's frame hook, before the draw) */
+export function updateLanterns(camera: Camera): void { for (const l of live) l.update(camera); }
+/** forget the built sets (the render strategy's dispose) */
+export function clearLanterns(): void { live.length = 0; }
 
 const VS_LANTERN = /* glsl */ `
 attribute float aPart;
@@ -143,13 +163,67 @@ export class Lanterns {
     this.emitters.push({ at: c, color: new Color(0xff4a4a), w: 0.5 * scale, h: 0.5 * scale, power: 0.18, spill: 0.3 * scale });
   }
 
-  build(): InstancedMesh {
-    const g = lanternGeometry();
-    g.setAttribute('aSeed', new InstancedBufferAttribute(new Float32Array(this.seeds), 1));
-    const m = new InstancedMesh(g, this.material, this.mats.length);
-    this.mats.forEach((mm, i) => { m.setMatrixAt(i, mm); });
-    m.instanceMatrix.needsUpdate = true;
-    m.computeBoundingSphere();
-    return m;
+  private near: InstancedMesh | null = null;
+  private far: InstancedMesh | null = null;
+  private readonly frustum = new Frustum();
+  private readonly pv = new Matrix4();
+  private readonly last = new Matrix4();
+  private readonly sphere = new Sphere();
+
+  build(): Group {
+    const n = this.mats.length;
+    const mk = (g: BufferGeometry, name: string): InstancedMesh => {
+      g.setAttribute('aSeed', new InstancedBufferAttribute(new Float32Array(this.seeds), 1));
+      const m = new InstancedMesh(g, this.material, n);
+      this.mats.forEach((mm, i) => { m.setMatrixAt(i, mm); });
+      m.instanceMatrix.needsUpdate = true;
+      m.computeBoundingSphere();
+      m.name = name;
+      return m;
+    };
+    this.near = mk(lanternGeometry(6, 8, true), 'lanterns-near');
+    this.far = mk(lanternGeometry(4, 6, false), 'lanterns-far');
+    this.far.count = 0;
+    // the buckets are the visible sets: the draws are never culled as a whole
+    this.near.frustumCulled = false;
+    this.far.frustumCulled = false;
+    const g = new Group();
+    g.add(this.near, this.far);
+    live.push(this);
+    return g;
+  }
+
+  /** bucket the lanterns in view into the near and far draws (skipped while the camera has not moved) */
+  update(camera: Camera): void {
+    const near = this.near, far = this.far;
+    if (near === null || far === null) return;
+    camera.updateMatrixWorld();
+    if (this.last.equals(camera.matrixWorld)) return;
+    this.last.copy(camera.matrixWorld);
+    this.pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.pv);
+    const cw = camera.matrixWorld.elements, cx = cw[12], cy = cw[13], cz = cw[14];
+    const nm = near.instanceMatrix.array, fm = far.instanceMatrix.array;
+    const ns = near.geometry.getAttribute('aSeed'), fs = far.geometry.getAttribute('aSeed');
+    const nsa = ns.array, fsa = fs.array;
+    let a = 0, b = 0;
+    const r2 = LOD_NEAR * LOD_NEAR;
+    for (let i = 0; i < this.mats.length; i++) {
+      const m = this.mats[i];
+      if (m === undefined) continue;
+      const e = m.elements;
+      const x = e[12], y = e[13], z = e[14], s = Math.hypot(e[0], e[1], e[2]);
+      this.sphere.center.set(x, y - 0.1 * s, z);
+      this.sphere.radius = BOUND * s;
+      if (!this.frustum.intersectsSphere(this.sphere)) continue;
+      const d2 = (x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2;
+      if (d2 < r2) { m.toArray(nm, a * 16); nsa[a] = this.seeds[i] ?? 0; a++; } else { m.toArray(fm, b * 16); fsa[b] = this.seeds[i] ?? 0; b++; }
+    }
+    near.count = a;
+    far.count = b;
+    near.instanceMatrix.needsUpdate = true;
+    far.instanceMatrix.needsUpdate = true;
+    ns.needsUpdate = true;
+    fs.needsUpdate = true;
   }
 }

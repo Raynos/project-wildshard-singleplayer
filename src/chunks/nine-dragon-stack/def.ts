@@ -103,7 +103,7 @@ export const NINE_DRAGON_STACK: ChunkDef = {
   // Explorer's free camera over the fragment — no model catalog is registered
   explore: true,
   // the maps: the built fragment over a dark void (the Well, the air between the towers) — the floors, the tower fronts,
-  // the balustrade and the props' footprints from the registry (index.ts registers them under these ids)
+  // the balustrade, the props' footprints and the Well's crossings from the registry (index.ts registers them under these ids)
   map: {
     ground: [11, 16, 22],
     pieces: [
@@ -111,6 +111,7 @@ export const NINE_DRAGON_STACK: ChunkDef = {
       { ids: ['nds-floors'], look: 'stone' },
       { ids: ['nds-edges'], look: 'rock' },
       { ids: ['nds-props'], look: 'timber' },
+      { ids: ['nds-crossings'], look: 'planks' },
     ],
   },
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,

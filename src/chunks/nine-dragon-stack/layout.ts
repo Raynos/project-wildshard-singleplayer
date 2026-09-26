@@ -25,8 +25,8 @@ export const BANYAN = { x: 18.4, z: -22.6, r: 3.2 } as const;
 /** the noodle stall (dome B: moved 0.5 m east and 0.6 m south so the earth-god shrine stands clear at the planter's south-west) */
 export const STALL = { x0: 16.3, x1: 22.1, z0: -18.4, z1: -15.2 } as const;
 
-/** dome B, round 9: the small hawker stall at the spawn's right, its counter facing west onto the balustrade path */
-export const HAWKER = { x0: 7.6, x1: 9.8, z0: -4.2, z1: -0.6 } as const;
+/** dome B: the small hawker stall at the spawn's right, ~11 m ahead, its counter facing south (toward the spawn) */
+export const HAWKER = { x0: 6.3, x1: 9.7, z0: -3.6, z1: -1.4 } as const;
 
 /** the nine strata's street levels (altitude of each ring walkway in the Well) */
 export const STRATA = [-245, -150, -70, 0, 70, 125, 167, 210, 240] as const;
@@ -41,12 +41,10 @@ export function walkable(x: number, z: number): boolean {
   if (bx * bx + bz * bz < (BANYAN.r + 0.6) ** 2) return false;
   if (x > STALL.x0 - 0.5 && x < STALL.x1 + 0.5 && z > STALL.z0 - 0.5 && z < STALL.z1 + 1.4) return false;
   for (const px of GATE.posts) if (Math.abs(x - px) < 0.9 && Math.abs(z - GATE.z) < 2.0) return false; // posts + drum stones
-  // dome B: the lion pedestals before the gate's centre bay, the earth-god shrine and the 九龍城 stele at the planter's
-  // south-west, the stall's folding tables
-  for (const px of [GATE.posts[1] - 0.2 * GATE.s, GATE.posts[2] + 0.2 * GATE.s]) if (Math.abs(x - px) < 0.8 && Math.abs(z - GATE.z - 2.3 * GATE.s) < 0.95) return false;
+  // dome B: the earth-god shrine and the 九龍城 stele at the planter's south-west, the stall's folding tables
   if (x > BANYAN.x - 4.2 && x < BANYAN.x - 2.2 && z > BANYAN.z + 1.6 && z < BANYAN.z + 2.9) return false;
   if (x > BANYAN.x - 4.3 && x < BANYAN.x - 3.1 && z > BANYAN.z - 1.6 && z < BANYAN.z - 0.6) return false;
   if (x > STALL.x0 + 0.6 && x < STALL.x0 + 4.8 && z > STALL.z1 + 1.8 && z < STALL.z1 + 3.1) return false;
-  if (x > HAWKER.x0 - 0.8 && x < HAWKER.x1 + 0.3 && z > HAWKER.z0 - 0.3 && z < HAWKER.z1 + 0.5) return false;
+  if (x > HAWKER.x0 - 0.3 && x < HAWKER.x1 + 0.5 && z > HAWKER.z0 - 0.3 && z < HAWKER.z1 + 0.8) return false;
   return true;
 }

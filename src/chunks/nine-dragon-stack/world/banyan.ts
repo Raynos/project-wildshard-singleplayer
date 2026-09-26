@@ -33,6 +33,7 @@ export interface BanyanPlan { lumps: CanopyLump[] }
 const BARK: Look = { wash: 0x4a3727, kind: K.bars, col: 0.09, row: 0, line: 0 };
 const BARK_DARK: Look = { wash: 0x392b21, kind: K.bars, col: 0.07, row: 0, line: 0 };
 const ROOT: Look = { wash: 0x4c4034, line: 0 };
+const ROOT_DK: Look = { wash: 0x33291f, line: 0 };
 const STONE: Look = { wash: 0x4f4a4a, kind: K.panel, line: 1, wet: 0.35 };
 const STONE_RIM: Look = { wash: 0x575151, line: 1, wet: 0.45, surf: SURF.concrete };
 // night foliage (ΔE vs target-2 / target-7): bellies near-black olive (#242b24 from below), lit tops a light olive
@@ -122,6 +123,23 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
   }
   // the core, so the bundle reads solid and massive from every side
   x.sweep(curve([axis(0), axis(0.4), axis(0.8), axis(1.0)], 3), (t) => 1.35 - t * 0.55, 12, BARK_DARK, { capEnd: true });
+  // strangler strands fused down the core (style-A's trunk is a gnarled braid, never a smooth column): their own random
+  // stream, so the tree's limbs and canopy stay where they were
+  const srng = new Rng(B.seed + 101);
+  for (let i = 0; i < 30; i++) {
+    const a0 = (i / 30) * Math.PI * 2 + srng.range(-0.1, 0.1);
+    const twist = srng.range(0.6, 1.4) * (i % 2 === 0 ? 1 : -1);
+    const pts: Vector3[] = [];
+    for (let j = 0; j <= 8; j++) {
+      const t = j / 8;
+      const ax = axis(t * 0.98);
+      const a = a0 + twist * t;
+      const rr = 1.35 - t * 0.55 + 0.04 + 0.05 * Math.sin(t * 9 + i);
+      pts.push(new Vector3(ax.x + Math.cos(a) * rr, ax.y, ax.z + Math.sin(a) * rr));
+    }
+    const rad = srng.range(0.05, 0.11);
+    x.sweep(curve(pts, 3), (t) => rad * (1 - t * 0.4), 5, i % 3 === 0 ? BARK : BARK_DARK);
+  }
   // knots and burls on the trunk
   for (let i = 0; i < 10; i++) {
     const t = rng.range(0.1, 0.8);
@@ -164,6 +182,23 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
     const pts = [from, from.clone().add(new Vector3(0, -len * 0.5, 0)).add(sway.clone().multiplyScalar(0.5)), from.clone().add(new Vector3(0, -len, 0)).add(sway)];
     const rr = len > 4 ? rng.range(0.025, 0.045) : rng.range(0.01, 0.022);
     x.sweep(curve(pts, 3), (t) => rr * (1 - t * 0.5), 4, ROOT);
+  }
+  // the root curtain on the side the spawn sees (south-west): long dark roots, many reaching the soil (style-A)
+  const crng = new Rng(B.seed + 202);
+  const west = limbs.filter((l) => l.tip.x < cx + 0.5 || l.tip.z > cz + 0.5);
+  for (let i = 0; i < 70 && west.length > 0; i++) {
+    const L = crng.pick(west);
+    const from = L.from.clone().lerp(L.tip, crng.range(0.35, 0.95)).add(new Vector3(crng.range(-0.3, 0.3), -0.1, crng.range(-0.3, 0.3)));
+    const dxp = from.x - cx, dzp = from.z - cz;
+    const ground = dxp * dxp + dzp * dzp < (r - 0.2) ** 2 ? soil : y;
+    const maxLen = from.y - ground;
+    if (maxLen < 1.5) continue;
+    const len = crng.chance(0.55) ? maxLen - 0.05 : crng.range(0.5, 0.85) * maxLen;
+    const sway = new Vector3(crng.range(-0.12, 0.12), 0, crng.range(-0.12, 0.12));
+    const w1 = new Vector3(crng.range(-0.1, 0.1), 0, crng.range(-0.1, 0.1));
+    const pts = [from, from.clone().add(new Vector3(0, -len * 0.3, 0)).add(w1), from.clone().add(new Vector3(0, -len * 0.62, 0)).add(sway.clone().multiplyScalar(0.6)).sub(w1), from.clone().add(new Vector3(0, -len, 0)).add(sway)];
+    const rr = crng.range(0.012, 0.03);
+    x.sweep(curve(pts, 3), (t) => rr * (0.7 + t * 0.3), 4, ROOT_DK);
   }
   // the crown's fill: big dark lumps in a dome shell under the shelves, so the gaps between the shelves read as deep
   // foliage (from above round 2 read as separate lily pads over the flagstones)

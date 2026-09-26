@@ -214,83 +214,105 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
 }
 
 /**
- * The hawker stall at the spawn's right (dome B, round 9: the style-A mockup's right third is a steaming noodle stall
- * with its 麵 banner and a cook, close, with mahjong players at mid-right). A compact 大牌檔 facing WEST, onto the
- * balustrade path the spawn looks along: a steel frame, a striped awning over the counter, the white 麵 banner at its
- * south end (facing the spawn), a steaming stockpot and a wok on a glowing burner, bowls, a warm-lit back wall with
- * menu strips, a cook, two customers on stools, lanterns and a bare bulb. Every sign reuses a spec of the big stall's.
+ * The hawker stall at the spawn's right (dome B: the style-A mockup's right third is a steaming noodle stall seen from
+ * the front, its 麵 banner at the near corner, a cook behind the counter, mahjong players in front of it). A compact
+ * 大牌檔 facing SOUTH, toward the spawn, ~11 m ahead at its right: a steel frame, a striped canvas roof and awning with
+ * a scalloped valance, the white 麵 banner at the west corner, a steaming stockpot and a wok on a glowing burner, bowls,
+ * a warm-lit back wall with menu strips, a cook, two customers on stools, lanterns, a bulb; the steam rises past the
+ * roof. Every sign reuses a spec of the big stall's (the colour atlas is small).
  */
 export function hawkerStall(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('stall', true);
   const x = ctx.kitx('stall');
   const { x0, x1, z0, z1 } = HAWKER;
   const y = Y0;
-  const zc = (z0 + z1) / 2, L = z1 - z0, D = x1 - x0;
+  const xc = mid(x0, x1), L = x1 - x0;
   const yf = y + 2.7, yb = y + 3.0;
-  // the frame and a canvas roof sloping down to the front (west)
-  for (const [px, pz, h] of [[x0 + 0.08, z0 + 0.08, yf], [x0 + 0.08, z1 - 0.08, yf], [x1 - 0.08, z0 + 0.08, yb], [x1 - 0.08, z1 - 0.08, yb]] as const) k.box(px, y, pz, 0.1, h - y, 0.1, STEEL);
-  k.beam(new Vector3(x0 + 0.08, yf, z0), new Vector3(x0 + 0.08, yf, z1), 0.12, 0.1, STEEL);
-  k.beam(new Vector3(x1 - 0.08, yb, z0), new Vector3(x1 - 0.08, yb, z1), 0.12, 0.1, STEEL);
+  // the frame and a canvas roof sloping down to the front (south)
+  for (const [px, pz, h] of [[x0 + 0.08, z1 - 0.08, yf], [x1 - 0.08, z1 - 0.08, yf], [x0 + 0.08, z0 + 0.08, yb], [x1 - 0.08, z0 + 0.08, yb]] as const) k.box(px, y, pz, 0.1, h - y, 0.1, STEEL);
+  k.beam(new Vector3(x0, yf, z1 - 0.08), new Vector3(x1, yf, z1 - 0.08), 0.1, 0.12, STEEL);
+  k.beam(new Vector3(x0, yb, z0 + 0.08), new Vector3(x1, yb, z0 + 0.08), 0.1, 0.12, STEEL);
   const roof: Look = { wash: 0xa82318, kind: K.cloth, row: 1, col: 0.46, line: 1, accent: true };
-  const rA = new Vector3(x0 - 0.12, yf + 0.08, z1 + 0.12), rB = new Vector3(x0 - 0.12, yf + 0.08, z0 - 0.12);
-  const rC = new Vector3(x1 + 0.12, yb + 0.08, z0 - 0.12), rD = new Vector3(x1 + 0.12, yb + 0.08, z1 + 0.12);
+  const rA = new Vector3(x0 - 0.12, yf + 0.08, z1 + 0.12), rB = new Vector3(x1 + 0.12, yf + 0.08, z1 + 0.12);
+  const rC = new Vector3(x1 + 0.12, yb + 0.08, z0 - 0.12), rD = new Vector3(x0 - 0.12, yb + 0.08, z0 - 0.12);
   quad2(k, rA, rB, rC, rD, L + 0.24, rA.distanceTo(rD), roof);
   // the awning out over the customers, with a scalloped valance
-  const aY1 = y + 2.2, aX1 = x0 - 1.35;
+  const aY1 = y + 2.2, aZ1 = z1 + 1.35;
   const awn: Look = { wash: 0xb8261a, kind: K.cloth, row: 1, col: 0.46, line: 1, accent: true };
-  quad2(k, new Vector3(aX1, aY1, z1 + 0.1), new Vector3(aX1, aY1, z0 - 0.1), new Vector3(x0, yf, z0 - 0.1), new Vector3(x0, yf, z1 + 0.1), L + 0.2, Math.hypot(x0 - aX1, yf - aY1), awn);
+  quad2(k, new Vector3(x0 - 0.1, aY1, aZ1), new Vector3(x1 + 0.1, aY1, aZ1), new Vector3(x1 + 0.1, yf, z1), new Vector3(x0 - 0.1, yf, z1), L + 0.2, Math.hypot(aZ1 - z1, yf - aY1), awn);
   const nFlap = Math.round((L + 0.2) / 0.46);
   for (let i = 0; i < nFlap; i++) {
-    const fw = (L + 0.2) / nFlap, fz = z1 + 0.1 - i * fw;
+    const fw = (L + 0.2) / nFlap, fx = x0 - 0.1 + i * fw;
     const fl: Look = { wash: i % 2 === 0 ? 0xb8261a : 0xe6dfcf, line: 0.8, accent: true };
-    quad2(k, new Vector3(aX1, aY1 - 0.22, fz), new Vector3(aX1, aY1 - 0.22, fz - fw), new Vector3(aX1, aY1, fz - fw), new Vector3(aX1, aY1, fz), fw, 0.22, fl, E.u0 | E.u1 | E.v1);
-    k.tri(new Vector3(aX1, aY1 - 0.22, fz), new Vector3(aX1, aY1 - 0.34, fz - fw / 2), new Vector3(aX1, aY1 - 0.22, fz - fw), fl);
-    k.tri(new Vector3(aX1, aY1 - 0.22, fz - fw), new Vector3(aX1, aY1 - 0.34, fz - fw / 2), new Vector3(aX1, aY1 - 0.22, fz), fl);
+    quad2(k, new Vector3(fx, aY1 - 0.22, aZ1), new Vector3(fx + fw, aY1 - 0.22, aZ1), new Vector3(fx + fw, aY1, aZ1), new Vector3(fx, aY1, aZ1), fw, 0.22, fl, E.u0 | E.u1 | E.v1);
+    k.tri(new Vector3(fx, aY1 - 0.22, aZ1), new Vector3(fx + fw / 2, aY1 - 0.34, aZ1), new Vector3(fx + fw, aY1 - 0.22, aZ1), fl);
+    k.tri(new Vector3(fx + fw, aY1 - 0.22, aZ1), new Vector3(fx + fw / 2, aY1 - 0.34, aZ1), new Vector3(fx, aY1 - 0.22, aZ1), fl);
   }
-  for (const pz of [z0 + 0.1, z1 - 0.1]) k.beam(new Vector3(x0 + 0.08, y + 1.9, pz), new Vector3(aX1, aY1, pz), 0.035, 0.035, STEEL);
-  // the back wall, warm-lit, with menu strips; a side board at the north end
-  k.box(x1 - 0.1, y, zc, 0.1, 1.0, L - 0.2, { wash: 0xc9c3b6, kind: K.facade, row: 0.15, col: 0.15, line: 0.8 });
-  k.box(x1 - 0.1, y + 1.0, zc, 0.1, 1.9, L - 0.2, { wash: 0xa87c4a, emit: 0.2, line: 1, accent: true, surf: SURF.none });
+  for (const px of [x0 + 0.1, x1 - 0.1]) k.beam(new Vector3(px, y + 1.9, z1 - 0.08), new Vector3(px, aY1, aZ1), 0.035, 0.035, STEEL);
+  // the back wall, warm-lit, with menu strips and a shelf of jars; a side board at the east end
+  k.box(xc, y, z0 + 0.1, L - 0.2, 1.0, 0.1, { wash: 0xc9c3b6, kind: K.facade, row: 0.15, col: 0.15, line: 0.8 });
+  k.box(xc, y + 1.0, z0 + 0.1, L - 0.2, 1.9, 0.1, { wash: 0x6e4c30, emit: 0.16, line: 1, accent: true, surf: SURF.none });
+  // the kitchen's clutter against the lit wall (style-A: the interior is busy and warm, never a flat lit panel): a rail of
+  // ladles and strainers, hanging bowls of noodles drying, a row of jars on a second shelf, a wall clock
+  k.beam(new Vector3(x0 + 0.3, y + 2.0, z0 + 0.22), new Vector3(x1 - 0.3, y + 2.0, z0 + 0.22), 0.02, 0.02, TOP);
+  for (let i = 0; i < 9; i++) {
+    const lx = x0 + 0.45 + i * ((L - 0.9) / 8);
+    x.sweep([new Vector3(lx, y + 2.0, z0 + 0.24), new Vector3(lx, y + 1.62, z0 + 0.26)], () => 0.01, 4, { wash: 0x9da3aa, line: 0 });
+    x.ellipsoid(new Vector3(lx, y + 1.58, z0 + 0.27), X, Y, Z, i % 3 === 0 ? 0.09 : 0.06, 0.035, i % 3 === 0 ? 0.09 : 0.06, { wash: i % 3 === 0 ? 0xc8b890 : 0x9da3aa, line: 0, gloss: true }, () => 1, 3, 8);
+  }
+  k.box(xc + 0.7, y + 1.2, z0 + 0.3, 1.4, 0.04, 0.3, { wash: 0x4a3322, line: 0.8 });
+  for (let i = 0; i < 5; i++) k.cyl(xc + 0.15 + i * 0.27, y + 1.24, z0 + 0.3, 0.08, 0.07, 0.22, 8, { wash: [0x7a3a24, 0xc0703a, 0xd8c070][i % 3] ?? 0x7a3a24, line: 0.6, gloss: true });
+  x.ellipsoid(new Vector3(x1 - 0.5, y + 2.55, z0 + 0.17), X, Y, Z, 0.14, 0.14, 0.025, { wash: 0xf2eee4, line: 0 }, () => 1, 6, 14);
   MENU.slice(0, 6).forEach((m, i) => {
-    const mz = z0 + 0.45 + i * ((L - 0.9) / 5);
+    const mx = x0 + 0.45 + i * ((L - 0.9) / 5);
     const red = i % 3 === 0;
-    ctx.signs.place({ at: new Vector3(x1 - 0.17, y + 2.25, mz), normal: new Vector3(-1, 0, 0), size: 0.13, spec: { text: m, color: red ? '#f3e7cf' : '#b8261a', vertical: true, style: 'paper', ink: red ? '#b8261a' : '#efe6d2' }, gain: 1.15 }, null);
+    ctx.signs.place({ at: new Vector3(mx, y + 2.25, z0 + 0.17), normal: new Vector3(0, 0, 1), size: 0.13, spec: { text: m, color: red ? '#f3e7cf' : '#b8261a', vertical: true, style: 'paper', ink: red ? '#b8261a' : '#efe6d2' }, gain: 1.15 }, null);
   });
-  k.box(x1 - 0.3, y + 1.55, zc + 0.6, 0.34, 0.04, 1.6, { wash: 0x4a3322, line: 0.8 });
-  for (let i = 0; i < 6; i++) k.cyl(x1 - 0.3, y + 1.59, zc - 0.1 + i * 0.26, 0.07, 0.06, 0.2, 8, { wash: [0xc0703a, 0x8a3a24, 0xd8c070][i % 3] ?? 0xc0703a, line: 0.6, gloss: true });
-  k.box(mid(x0, x1), y, z0 + 0.06, D - 0.1, 1.1, 0.06, TIMBER);
+  k.box(xc - 0.6, y + 1.55, z0 + 0.3, 1.6, 0.04, 0.34, { wash: 0x4a3322, line: 0.8 });
+  for (let i = 0; i < 6; i++) k.cyl(xc - 1.25 + i * 0.26, y + 1.59, z0 + 0.3, 0.07, 0.06, 0.2, 8, { wash: [0xc0703a, 0x8a3a24, 0xd8c070][i % 3] ?? 0xc0703a, line: 0.6, gloss: true });
+  k.box(x1 - 0.06, y, mid(z0, z1), 0.06, 1.1, z1 - z0 - 0.1, TIMBER);
+  // the west end closed in dark timber to the roof (from the spawn, 35° off the stall's front, the open end showed the
+  // whole lit back wall as a flat cream panel; style-A's stall side is dark wood, its light seen over the counter)
+  k.box(x0 + 0.06, y, mid(z0, z1), 0.08, 2.65, z1 - z0 - 0.1, { ...TIMBER, wash: 0x4a2e1c });
   // the counter along the front: carved timber, a steel top, bowls; the stove behind it: a stockpot and a wok
-  k.box(x0 + 0.45, y, zc, 0.7, 0.95, L - 0.3, TIMBER);
-  k.box(x0 + 0.42, y + 0.95, zc, 0.86, 0.05, L - 0.2, TOP);
-  for (let i = 0; i < 4; i++) bowls(k, x0 + 0.3, y + 1.0, z0 + 0.5 + i * 0.32, 2 + (i % 3), i % 2 === 0 ? 0xece8dd : 0xd7e0e4);
-  for (let i = 0; i < 2; i++) bowls(k, x0 + 0.25, y + 1.0, z1 - 0.6 - i * 0.45, 1, 0xece8dd);
-  k.box(x0 + 1.35, y, zc - 0.4, 0.7, 0.85, 1.6, { wash: 0x8c9196, line: 1, gloss: true });
-  k.cyl(x0 + 1.35, y + 0.85, zc - 0.8, 0.3, 0.3, 0.52, 14, { wash: 0xa9aeb3, line: 1, gloss: true }, { edges: E.rims });
-  k.cyl(x0 + 1.35, y + 1.37, zc - 0.8, 0.31, 0.27, 0.05, 14, { wash: 0x7d8288, line: 0.8, gloss: true }, { edges: E.rims });
-  ctx.steam.push(new Vector3(x0 + 1.35, y + 1.55, zc - 0.8));
-  ctx.steam.push(new Vector3(x0 + 1.3, y + 1.9, zc - 0.7));
-  k.cyl(x0 + 1.35, y + 0.85, zc + 0.1, 0.28, 0.28, 0.03, 12, { wash: 0xff7a2a, emit: 2.2, line: 0, accent: true });
-  k.lathe(x0 + 1.35, y + 0.9, zc + 0.1, [[0.02, 0], [0.17, 0.03], [0.28, 0.11], [0.32, 0.18]], 14, { wash: 0x2a2c31, line: 0.8, gloss: true }, false, 0);
-  ctx.steam.push(new Vector3(x0 + 1.35, y + 1.25, zc + 0.1));
-  // light: a bare bulb under the roof, lanterns at the awning's corners, the warm glow onto the path
-  const bulb = new Vector3(x0 + 0.5, yf - 0.55, zc);
+  k.box(xc, y, z1 - 0.45, L - 0.3, 0.95, 0.7, TIMBER);
+  k.box(xc, y + 0.95, z1 - 0.42, L - 0.2, 0.05, 0.86, TOP);
+  for (let i = 0; i < 4; i++) bowls(k, x0 + 0.5 + i * 0.32, y + 1.0, z1 - 0.3, 2 + (i % 3), i % 2 === 0 ? 0xece8dd : 0xd7e0e4);
+  for (let i = 0; i < 2; i++) bowls(k, x1 - 0.6 - i * 0.45, y + 1.0, z1 - 0.25, 1, 0xece8dd);
+  k.box(xc + 0.4, y, z0 + 0.7, 1.6, 0.85, 0.7, { wash: 0x8c9196, line: 1, gloss: true });
+  k.cyl(xc + 0.8, y + 0.85, z0 + 0.7, 0.3, 0.3, 0.52, 14, { wash: 0xa9aeb3, line: 1, gloss: true }, { edges: E.rims });
+  k.cyl(xc + 0.8, y + 1.37, z0 + 0.7, 0.31, 0.27, 0.05, 14, { wash: 0x7d8288, line: 0.8, gloss: true }, { edges: E.rims });
+  k.cyl(xc, y + 0.85, z0 + 0.7, 0.28, 0.28, 0.03, 12, { wash: 0xff7a2a, emit: 2.2, line: 0, accent: true });
+  k.lathe(xc, y + 0.9, z0 + 0.7, [[0.02, 0], [0.17, 0.03], [0.28, 0.11], [0.32, 0.18]], 14, { wash: 0x2a2c31, line: 0.8, gloss: true }, false, 0);
+  // the steam: off the pot and the wok, and a column rising past the roof's front edge (style-A's plume)
+  for (const sp of [[xc + 0.8, 1.55, z0 + 0.7], [xc, 1.25, z0 + 0.7], [xc + 0.6, 2.2, z1 - 0.2], [xc + 0.5, 3.0, z1 + 0.2], [xc + 0.7, 3.8, z1 + 0.35]] as const) ctx.steam.push(new Vector3(sp[0], y + sp[1], sp[2]));
+  // light: a bare bulb under the roof, lanterns at the awning's corners and one over the mahjong table, the warm glow
+  const bulb = new Vector3(xc - 0.4, yf - 0.55, z1 - 0.5);
   x.sweep([bulb.clone().add(new Vector3(0, 0.5, 0)), bulb.clone().add(new Vector3(0, 0.06, 0))], () => 0.006, 3, { wash: 0x1c1c1f, line: 0 });
   x.ellipsoid(bulb, X, Y, Z, 0.055, 0.07, 0.055, { wash: 0xffd9a0, emit: 4.0, line: 0, accent: true }, () => 1, 4, 8);
-  ctx.lantern(aX1 + 0.05, aY1 - 0.1, z1 + 0.05, 0.75);
-  ctx.lantern(aX1 + 0.05, aY1 - 0.1, z0 - 0.05, 0.75);
-  ctx.emitters.push({ at: new Vector3(x0 + 0.3, y + 1.6, zc), color: new Color(0xffb870), w: L - 0.6, h: 1.8, power: 0.45, spill: 0.6 });
-  // the white 麵 banner at the south end, facing the spawn (the big stall's spec: one atlas cell)
-  ctx.signs.place({ at: new Vector3(aX1 + 0.55, y + 1.55, z1 + 0.14), normal: new Vector3(0, 0, 1), size: 0.72, spec: { text: '麵', color: '#b8261a', vertical: true, style: 'banner', ink: '#efe8d8' }, gain: 1.35, blade: true }, null);
-  x.sweep([new Vector3(aX1 + 0.05, y + 2.1, z1 + 0.14), new Vector3(aX1 + 1.05, y + 2.1, z1 + 0.14)], () => 0.018, 5, { wash: 0x3a2a1e, line: 0 });
-  // the cook behind the counter, facing the path; two customers on stools in front
-  person(x, rng, x0 + 1.0, y, zc + 0.6, -Math.PI / 2, { pose: 'cook', hat: 'none', coat: 0x3b3f4a });
-  for (const [i, sz] of [z0 + 0.7, zc + 0.2, z1 - 0.6].entries()) {
-    woodStool(k, x0 - 0.45, y, sz);
-    if (i !== 1) ctx.sitters.push(seat(x0 - 0.52, sz, Math.PI / 2));
+  ctx.lantern(x0 - 0.05, aY1 - 0.1, aZ1 + 0.05, 0.75);
+  ctx.lantern(x1 + 0.05, aY1 - 0.1, aZ1 + 0.05, 0.75);
+  ctx.emitters.push({ at: new Vector3(xc, y + 1.6, z1 + 0.1), color: new Color(0xffb870), w: L - 0.6, h: 1.8, power: 0.45, spill: 0.6 });
+  // the white 麵 banner at the west front corner, facing the spawn (the big stall's spec: one atlas cell)
+  ctx.signs.place({ at: new Vector3(x0 + 0.4, y + 1.5, aZ1 + 0.03), normal: new Vector3(0, 0, 1), size: 0.72, spec: { text: '麵', color: '#b8261a', vertical: true, style: 'banner', ink: '#efe8d8' }, gain: 1.6, blade: true }, null);
+  x.sweep([new Vector3(x0 - 0.1, y + 2.05, aZ1 + 0.03), new Vector3(x0 + 0.9, y + 2.05, aZ1 + 0.03)], () => 0.018, 5, { wash: 0x3a2a1e, line: 0 });
+  // the cook behind the counter, facing the square; two customers on stools in front
+  person(x, rng, xc - 0.5, y, z1 - 1.05, 0, { pose: 'cook', hat: 'none', coat: 0xd8d2c4 });
+  for (const [i, sx] of [x0 + 1.0, xc + 0.3, x1 - 0.7].entries()) {
+    woodStool(k, sx, y, z1 + 0.45);
+    if (i !== 1) ctx.sitters.push(seat(sx, z1 + 0.52, Math.PI));
   }
-  // at the south end: a red gas bottle, a crate of greens
-  k.cyl(x0 + 0.5, y, z1 + 0.35, 0.16, 0.16, 0.6, 10, { wash: 0xb8261a, line: 1, accent: true }, { edges: E.rims });
-  k.box(x1 - 0.4, y, z1 + 0.3, 0.5, 0.28, 0.38, { wash: 0x6a5a44, kind: K.bars, col: 0.05, row: 0, line: 0.8 });
+  // its back (the north side, seen from the gate and from Q): a blue tarp tied over the back wall, stacked crates and
+  // stools, a water barrel, a posted notice
+  const tarp: Look = { wash: 0x2e5a8a, kind: K.cloth, row: 0.4, col: 0.9, line: 1, accent: true };
+  k.quad4(new Vector3(x0 - 0.05, yb + 0.05, z0 - 0.03), new Vector3(x1 + 0.05, yb + 0.05, z0 - 0.03), new Vector3(x1 - 0.1, y + 1.0, z0 - 0.09), new Vector3(x0 + 0.1, y + 1.0, z0 - 0.09), L + 0.1, 2.05, tarp);
+  for (let i = 0; i < 3; i++) k.box(x0 + 0.6, y + i * 0.3, z0 - 0.35, 0.5, 0.3, 0.4, { wash: i === 1 ? 0x2e5fa3 : 0xb8321f, kind: K.bars, col: 0.06, row: 1, line: 0.8, accent: true });
+  for (let i = 0; i < 4; i++) k.cyl(x0 + 1.5, y + i * 0.09, z0 - 0.35, 0.19, 0.16, 0.44, 8, { wash: 0x3a6f9a, line: 0.7, accent: true }, { edges: E.rims });
+  k.cyl(x1 - 0.8, y, z0 - 0.4, 0.3, 0.28, 0.8, 12, { wash: 0x4a6a5a, line: 1 }, { edges: E.rims });
+  ctx.signs.place({ at: new Vector3(xc + 0.3, y + 1.6, z0 - 0.11), normal: new Vector3(0, 0, -1), size: 0.13, spec: { text: MENU[0], color: '#f3e7cf', vertical: true, style: 'paper', ink: '#b8261a' }, gain: 1.0 }, null);
+  // at the east end: a red gas bottle, a crate of greens
+  k.cyl(x1 + 0.3, y, z1 - 0.4, 0.16, 0.16, 0.6, 10, { wash: 0xb8261a, line: 1, accent: true }, { edges: E.rims });
+  k.box(x1 + 0.3, y, z0 + 0.4, 0.38, 0.28, 0.5, { wash: 0x6a5a44, kind: K.bars, col: 0.05, row: 0, line: 0.8 });
   ctx.map.push({ x0, z0, x1, z1, kind: 'block' });
 }
 

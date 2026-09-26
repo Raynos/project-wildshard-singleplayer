@@ -44,7 +44,7 @@ export interface ReflectSettings {
   streak2: number;
 }
 
-export const REFLECT_DEFAULTS: ReflectSettings = { gain: 0, maxDist: 90, steps: 28, wobble: 0.045, rings: 0.12, streak1: 3, streak2: 9 };
+export const REFLECT_DEFAULTS: ReflectSettings = { gain: 2, maxDist: 90, steps: 28, wobble: 0.045, rings: 0.12, streak1: 5, streak2: 20 };
 
 const FS_TRACE = (steps: number): string => /* glsl */ `
 uniform sampler2D tColor;
@@ -55,6 +55,7 @@ uniform mat4 uView;
 uniform mat4 uCamWorld;
 uniform vec2 uNF;
 uniform vec4 uRect;   // the wet floor's x0, z0, x1, z1 (m)
+uniform vec4 uRect2;  // a second wet rect (the stair-street), any floor height in it
 uniform vec4 uK;      // x: floor y, y: gain, z: wobble, w: rings
 uniform vec2 uMarch;  // x: max distance (m), y: first step (m)
 uniform float uTime;
@@ -73,7 +74,21 @@ void main() {
   if (d >= 1.0 || d < ${VM_SLICE.toFixed(2)} || uK.y <= 0.0) return;
   vec3 P = viewAt(vUv, d);
   vec3 W = (uCamWorld * vec4(P, 1.0)).xyz;
-  if (abs(W.y - uK.x) > 0.05 || W.x < uRect.x || W.x > uRect.z || W.z < uRect.y || W.z > uRect.w) return;
+  bool inSquare = abs(W.y - uK.x) <= 0.05 && W.x >= uRect.x && W.x <= uRect.z && W.z >= uRect.y && W.z <= uRect.w;
+  bool inStair = W.x >= uRect2.x && W.x <= uRect2.z && W.z >= uRect2.y && W.z <= uRect2.w;
+  if (!inSquare && !inStair) return;
+  if (!inSquare) {
+    // (dome C2) any up-facing wet surface in the stair rect: the treads and landings, found by the depth's own normal —
+    // the smaller of the two one-texel differences each way, so an edge's far side never tilts it
+    vec2 tx = 1.0 / vec2(textureSize(tDepth, 0));
+    vec3 Pr = viewAt(vUv + vec2(tx.x, 0.0), texture(tDepth, vUv + vec2(tx.x, 0.0)).r) - P;
+    vec3 Pl = P - viewAt(vUv - vec2(tx.x, 0.0), texture(tDepth, vUv - vec2(tx.x, 0.0)).r);
+    vec3 Pu = viewAt(vUv + vec2(0.0, tx.y), texture(tDepth, vUv + vec2(0.0, tx.y)).r) - P;
+    vec3 Pd = P - viewAt(vUv - vec2(0.0, tx.y), texture(tDepth, vUv - vec2(0.0, tx.y)).r);
+    vec3 dx = dot(Pr, Pr) < dot(Pl, Pl) ? Pr : Pl, dy = dot(Pu, Pu) < dot(Pd, Pd) ? Pu : Pd;
+    vec3 nw = normalize(mat3(uCamWorld) * normalize(cross(dx, dy)));
+    if (abs(nw.y) < 0.95) return;
+  }
   // the ground's own wet film (style.ts kind 3): puddles wetter, the joints dry
   vec4 st = stone(W.xz, 1.1);
   float wet = mix(0.55, 1.0, st.z) * (1.0 - st.x);
@@ -188,14 +203,14 @@ export class ReflectPass extends Pass {
   private steps = REFLECT_DEFAULTS.steps;
   settings: ReflectSettings = { ...REFLECT_DEFAULTS };
 
-  constructor(private readonly view: PerspectiveCamera, groundY: number, rect: Vector4, private readonly time: () => number) {
+  constructor(private readonly view: PerspectiveCamera, groundY: number, rect: Vector4, private readonly time: () => number, rect2 = new Vector4(0, 0, -1, -1)) {
     super('NdReflectPass');
     this.needsSwap = false;
     this.needsDepthTexture = true;
     this.uTrace = {
       tColor: { value: null as Texture | null }, tDepth: { value: null as Texture | null },
       uProj: { value: new Matrix4() }, uInvProj: { value: new Matrix4() }, uView: { value: new Matrix4() }, uCamWorld: { value: new Matrix4() },
-      uNF: { value: new Vector2(0.1, 1000) }, uRect: { value: rect }, uK: { value: new Vector4(groundY, 1, 0.045, 0.12) },
+      uNF: { value: new Vector2(0.1, 1000) }, uRect: { value: rect }, uRect2: { value: rect2 }, uK: { value: new Vector4(groundY, 1, 0.045, 0.12) },
       uMarch: { value: new Vector2(90, 0.25) }, uTime: { value: 0 },
     };
     this.mTrace = this.traceMaterial();
@@ -214,8 +229,9 @@ export class ReflectPass extends Pass {
     return new ShaderMaterial({ vertexShader: VS, fragmentShader: FS_TRACE(this.steps), uniforms: this.uTrace, name: 'NdReflectTrace', depthTest: false, depthWrite: false, blending: NoBlending });
   }
 
-  /** captures only: the reflection × 6 with the floor mask tinted blue */
-  debug(on: boolean): void { this.uAdd.uDebug.value = on ? 1 : 0; }
+  /** captures only: the reflection × 6 with the floor mask tinted blue (2: the raw trace, before the streak blur) */
+  debug(mode: 0 | 1 | 2): void { this.uAdd.uDebug.value = mode === 0 ? 0 : 1; this.raw = mode === 2; }
+  private raw = false;
 
   /** live tuning (the step count rebuilds the trace program) */
   set(s: Partial<ReflectSettings>): void {
@@ -279,7 +295,7 @@ export class ReflectPass extends Pass {
     this.uBlur.tSrc.value = a.texture;
     this.uBlur.uStep.value.set(0, s.streak2 / tr.height);
     this.draw(renderer, this.mBlur, b);
-    this.uAdd.tSrc.value = b.texture;
+    this.uAdd.tSrc.value = this.raw ? tr.texture : b.texture;
     this.draw(renderer, this.mAdd, inputBuffer);
   }
 

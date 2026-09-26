@@ -44,8 +44,8 @@ const AZURITE: Look = { wash: 0x2a558f, line: 1, accent: true };
 const MALACHITE: Look = { wash: 0x2a7a5e, line: 1, accent: true };
 const LIGHT_MAL: Look = { wash: 0x5f9c7e, line: 1, accent: true };
 // glazed tiles: a dark blue-teal (round 2's jade rolls read #488b72 from above, round 3's #406561; the targets' #33484c)
-const TILE = 0x0d181d;
-const ROLL = 0x1b2c33;
+const TILE = 0x163234;
+const ROLL = 0x2c5250;
 const RIDGE: Look = { wash: 0x1a3434, line: 1, accent: true };
 const RIDGE_HI = 0x1e3238;
 const LION: XLook = { wash: 0x6a6460, line: 0, wet: 0.2, surf: SURF.concrete };
@@ -260,6 +260,8 @@ function paintedBeam(k: Kit, x: KitX, cx: number, y: number, z: number, len: num
     // the painted field, the centre cartouche (枋心), the gold-ruled end bands (箍头)
     k.box(cx, y + h * 0.1, fz, len - 0.12, h * 0.8, 0.03, { ...field, kind: K.panel });
     k.box(cx, y + h * 0.18, fz + sz * 0.02, len * 0.38, h * 0.64, 0.03, { ...cart, kind: K.panel });
+    // the cartouche carries a carved gold dragon among clouds (target-1: the lintels read as gilded relief)
+    if (len > 3) relief(x, new Vector3(cx, y + h * 0.5, fz + sz * 0.05), new Vector3(sz, 0, 0), Y.clone(), new Vector3(0, 0, sz), len * 0.34, h * 0.56, Math.round(cx * 10 + y), { wash: 0xb08a3c, line: 0, accent: true, gloss: true });
     for (const ex of [-1, 1]) {
       const bx = cx + ex * (len / 2 - 0.2);
       k.box(bx, y + h * 0.06, fz + sz * 0.02, 0.22, h * 0.88, 0.03, { ...GOLD, gloss: false });
@@ -510,6 +512,7 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
     sparrowBrace(x, b - 0.32 * s, y + 3.75 * s, z, -1, 0.9 * s, s);
     lantern(m - w * 0.22, y + 3.72 * s, z, 0.95 * s);
     lantern(m + w * 0.22, y + 3.72 * s, z, 0.95 * s);
+    lantern(m, y + 3.0 * s, z + 0.45 * s, 0.85 * s);
   }
   // couplets on the inner posts, both faces: white boards, black kai
   for (const nz of [1, -1]) {
@@ -519,6 +522,8 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
   for (let i = 0; i < 3; i++) lantern(p1 + bw * (0.25 + i * 0.25), y + 4.75 * s, z, 1.1 * s);
   // a second, lower row a step into the passage (style-A: five lanterns fill the centre bay)
   for (const t of [0.375, 0.625]) lantern(p1 + bw * t, y + 4.25 * s, z - 0.7 * s, s);
+  // a third row on long cords in the passage, both faces (A2 target 5: lanterns at 1.5× head height as you walk through)
+  for (const [t, dz] of [[0.2, 0.6], [0.5, -0.5], [0.8, 0.6]] as const) lantern(p1 + bw * t, y + 3.55 * s, z + dz * s, 0.95 * s);
   // the stone lions before the centre posts, facing the square
   // the pedestals of the guardian lions before the centre bay: the TRELLIS lions (props3d.ts) sit on them
   if (P.lions) {

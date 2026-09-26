@@ -31,8 +31,10 @@ export interface FacadeOptions {
   clutterFar?: readonly [number, number];
 }
 
-export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = {}): { group: Group; stats: FacadeStats } {
+export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = {}): { group: Group; stats: FacadeStats; small: InstancedMesh[] } {
   const group = new Group();
+  // the SMALL pieces' batches (the engine's culler drops their instances past the clutter distance)
+  const small: InstancedMesh[] = [];
   group.name = 'facade';
   const mat = jiehuaMaterial(shared);
   const matSmall = jiehuaMaterial(shared, { shrink: opt.clutterFar ?? [55, 85] });
@@ -56,6 +58,7 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     const { g, tris } = pieceGeo(id);
     const im = new InstancedMesh(g, SMALL.has(id) ? matSmall : mat, list.length);
     im.name = `facade-${id}`;
+    if (SMALL.has(id)) small.push(im);
     list.forEach((p, i) => { im.setMatrixAt(i, p.m); im.setColorAt(i, p.c); });
     im.instanceMatrix.needsUpdate = true;
     if (im.instanceColor !== null) im.instanceColor.needsUpdate = true;
@@ -91,5 +94,5 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     stats.draws++;
     stats.tris += 2 * n;
   }
-  return { group, stats };
+  return { group, stats, small };
 }

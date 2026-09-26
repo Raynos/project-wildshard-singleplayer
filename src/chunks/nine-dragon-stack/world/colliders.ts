@@ -3,7 +3,7 @@
 // at the square's datum), the stair is dome D's `treads` (rise 0.35: the motor's autostep climbs them), and the edges
 // of the fragment are walls: the building fronts, the balustrade over the Well (with an invisible parapet above it so
 // nobody vaults into the shaft), the street's and the stair's far ends. The props you would walk into — the gate's
-// posts, the banyan's planter, the stalls, the lions — are boxes of their footprints.
+// posts, the banyan's planter, the stalls — are boxes of their footprints.
 import type { ColliderDesc } from '../../../world/registry';
 import { BANYAN, GATE, HAWKER, PLAZA, STAIR, STALL, STREET, WELL, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairstreet';
@@ -73,11 +73,8 @@ export function fragmentColliders(): FragmentColliders {
   out.push(span(WELL.x0 + L - 0.3, Y0, WELL.z1 - L, WELL.x1, Y0 + 3.2, WELL.z1 - L + 0.5));             // south ledge's balustrade
   // ── props you would walk into ──
   out = props;
+  // (the gate's lion pair and their pedestals are gone: dome B took them out, style-A and the A2 targets have none)
   for (const px of GATE.posts) out.push(span(px - 0.45, Y0, GATE.z - 0.45, px + 0.45, Y0 + 7, GATE.z + 0.45, 'wood'));
-  for (const px of [GATE.posts[1] - 0.2 * GATE.s, GATE.posts[2] + 0.2 * GATE.s]) {
-    const cz = GATE.z + 2.3 * GATE.s;
-    out.push(span(px - 0.6, Y0, cz - 0.75, px + 0.6, Y0 + 1.6, cz + 0.75));                            // the lions' pedestals
-  }
   // the banyan's round planter as an octagonal prism
   const pts: number[] = [];
   for (let i = 0; i < 8; i++) {

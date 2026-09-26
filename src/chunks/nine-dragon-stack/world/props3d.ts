@@ -52,7 +52,9 @@ function specs(): PropSpec[] {
   const lions = [...lionPosts('plaza', PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0), ...lionPosts('street', STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0)]
     .map((p) => place(p.x, p.y, p.z, Math.PI / 2 + 0.35, 1));
   // the gate's pair, facing the square, turned a little in toward the passage
-  GATE_LIONS.spots.forEach((x, i) => { lions.push(place(x, Y0 + GATE_LIONS.top, GATE_LIONS.z, i === 0 ? 0.2 : -0.2, GATE_LIONS.scale)); });
+  // (the gate's pair is off since A2 round 1: style-A and the A2 targets have none, and the pedestals blocked A2's left /
+  // right views; to bring them back push `place(x, Y0 + GATE_LIONS.top, GATE_LIONS.z, ±0.2, GATE_LIONS.scale)` per spot
+  // and set square.ts `lions: true`)
   return [
     { name: 'lion', opt: { kind: K.stone, line: 0, ao: 0.85, ramp: STONE_RAMP, hues: {} }, at: lions },
     {
