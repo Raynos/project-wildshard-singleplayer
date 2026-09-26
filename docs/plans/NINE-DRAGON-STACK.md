@@ -106,7 +106,9 @@ The spawn frame is the one the mockups (`art/nine-dragon-stack/round-2-mockups/`
    a balcony.
 2. **Sky screens.** The underside of the stratum above is tiled with LED panels that play a daytime sky (a class joke in
    the fiction: the rich of the Crown own the real sky; everyone below gets a rendered one). They also give every
-   stratum a "sky" for lighting and for the player's eye.
+   stratum a "sky" for lighting and for the player's eye. What they play is a slow pan across a **blue-green shanshui
+   scroll** — Wang Ximeng's *A Thousand Li of Rivers and Mountains* (千里江山图, 1113) — at a visible LED dot pitch: the
+   Stack's fake sky is a Song-dynasty painting (found in the Jiehua Neon mockups, round 4).
 3. **Fog banks** — Chongqing is the "fog city" (雾都): a fog layer sits on every stratum line and swallows the drop at
    every edge.
 4. **Occluded edges.** A stratum's street never ends at a railing onto the void, except at the Wells and the cliff-face
@@ -188,9 +190,41 @@ swing on their brackets, the sky screens glitch and show the real storm, the Wel
 
 ## 5. The art style
 
-**Status:** being decided (E169). Research: `docs/design/nine-dragon-stack/ART-STYLE-RESEARCH.md`. Board: the same spawn
-frame in six styles, `art/nine-dragon-stack/round-3-art-styles/board.jpg`. The section below is filled in once the research
-and the board are in.
+**Recommended: 界画霓虹 Jiehua Neon — the city ruled in ink, lit by neon, floating on silk.** Jake picks (P1-1). The full
+research, the scoring of 12 directions, the three.js recipe and the style bible are in
+`docs/design/nine-dragon-stack/ART-STYLE-RESEARCH.md`. The six-style board on the spawn frame is
+`art/nine-dragon-stack/round-3-art-styles/board.jpg`; Jiehua Neon's own mockups are `round-4-jiehua-neon/`.
+
+**What it is.** *Jiehua* (界画, "ruled-line painting") is the Song-dynasty genre made for exactly this subject: dense,
+many-storeyed architecture drawn with a ruler. The shard renders the Stack as a jiehua come alive, with three layers and
+no others:
+
+1. **Ruler-straight ink lines** of constant width on every built edge — crisp black near, dissolving into the wash at
+   distance. Built things are ruled; living things (people, enemies, the Jian, the hands) are brushed.
+2. **Flat mineral washes** from the blue-green palette (青绿: azurite, malachite, cinnabar, gold leaf) on ~15 % of the
+   frame — roofs, the paifang, lanterns, planters; the rest is grey ink wash on silk.
+3. **Blank silk (留白) as the fog** between strata: the drop is literally the unpainted part of the scroll.
+
+**Neon is the only saturated light**, and it bleeds into the silk like colour on wet paper (晕染).
+
+**The colour script: the Stack is one hanging scroll.** Pale raw silk at the Crown, blue-hour silk at the spawn, darker
+and bluer going down, until strata 1–3 flip to **gold ink on indigo sutra paper** (泥金磁青). Looking down any Well you
+read the whole shard from pale to indigo.
+
+**Why it wins.**
+- *Unique*: no shipped game found does it (Chinese AAA is photoreal or anime cel; ink games are 2D).
+- *Chinese × cyberpunk × vertical*: the genre was invented for stacked buildings; the fog city becomes the silk; neon
+  stays neon.
+- *Readable*: gold is reserved for grapple hooks, cinnabar seal for danger, cyan for the player, a heavier ground line
+  for "you can stand here".
+- *Cheap on the phone*: lines drawn in one shared material (antialiased, no shimmer) + one depth-silhouette pass; no PBR
+  textures, volumetrics or SSR. Estimated +1.5–2.5 ms at 1206×2622 and cheaper overall than the PBR baseline (to be
+  measured, P2-E10).
+- *Buildable procedurally*: a ruled line is a geometry edge, so a grammar-built city gets the look for free — the
+  opposite of realism, which needs hand-made unique assets to not look cheap.
+
+**Runner-ups kept in the bible:** 水墨 brush ink for the far fog bands only (brush lines crawl in first person up
+close); 漆器 Lacquerpunk for hero props; the Chungking Express smear as a sprint / grapple / glide effect.
 
 ## 6. The engine work
 
@@ -252,9 +286,9 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>, <build>)`
 
 | Row | What | Output | State |
 |---|---|---|---|
-| P0-1 | Concept art (9 images) | `art/nine-dragon-stack/round-1-concept/` | in flight (E169) |
-| P0-2 | Spawn mockups on the phone HUD, A–D | `art/nine-dragon-stack/round-2-mockups/` | in flight (E169) |
-| P0-3 | Art-style research + the six-style board | `docs/design/nine-dragon-stack/ART-STYLE-RESEARCH.md`, `art/nine-dragon-stack/round-3-art-styles/` | in flight (E169) |
+| P0-1 | Concept art (9 images) | `art/nine-dragon-stack/round-1-concept/` | done (ede7e60f) |
+| P0-2 | Spawn mockups on the phone HUD, A–D | `art/nine-dragon-stack/round-2-mockups/` | done (ede7e60f) |
+| P0-3 | Art-style research + the six-style board + the Jiehua Neon mockups | `docs/design/nine-dragon-stack/ART-STYLE-RESEARCH.md`, `art/nine-dragon-stack/round-3-art-styles/`, `round-4-jiehua-neon/` | in flight (E169) |
 | P0-4 | This plan | `docs/plans/NINE-DRAGON-STACK.md` | in flight (E169) |
 | P0-5 | The from-scratch clean-room spawn (three.js only, no engine code), the Neon Jian + Fei Zhua in first person | `dev/nine-dragon.html`, `src/dev/nine-dragon/` | todo |
 | P0-6 | COMING SOON assets from the clean room: card thumbnail, portrait + landscape heroes, screenshots | `src/chunks/thumbs/nine-dragon-stack*`, `public/assets/teasers/nine-dragon-stack/` | todo |
