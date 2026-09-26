@@ -5,7 +5,7 @@
  *   getActiveChunk()             the def the engine is building / running
  *   setActiveChunk(slug)         switch (before bootstrap(); rebinds config + Heightfield)
  *   onActiveChunkChange(fn)      called with the new def on every switch
- *   chunkSlugFromUrl()           `?chunk=<slug>` or the default
+ *   chunkSlugFromUrl()           `?chunk=<slug>`, last played shard, or the default
  *
  * The initial active chunk is resolved from the URL at module init, so anything that reads
  * `SEED` / `heightAt` at import time already sees the right shard. One chunk RUNS at a time; since E155 several can
@@ -19,6 +19,7 @@ import { NALATI_GRASSLANDS } from './nalati-grasslands';
 import { NINE_DRAGON_STACK } from './nine-dragon-stack/def';
 import { _applyChunkConstants } from '../core/config';
 import { onScopeDispose } from '../core/shardScope';
+import { lastPlayedChunk, saveLastPlayedChunk } from './lastPlayed';
 
 export const DEFAULT_CHUNK = 'driftwood-isle';
 
@@ -28,8 +29,20 @@ export const CHUNKS: [ChunkDef, ...ChunkDef[]] = [
   NALATI_GRASSLANDS, // EARLY ACCESS (project/archive/2026-09-24-nalati-merge.md E1): playable, still being built
 ];
 
-export function chunkSlugFromUrl(search = location.search): string {
-  return new URLSearchParams(search).get('chunk') ?? DEFAULT_CHUNK;
+export function chunkSlugFromUrl(search?: string): string {
+  const named = new URLSearchParams(search ?? location.search).get('chunk');
+  if (named !== null) return named;
+  // An explicit search is used by tests and URL helpers. Only a real page launch uses the PWA's last played shard.
+  if (search !== undefined) return DEFAULT_CHUNK;
+  const saved = lastPlayedChunk();
+  if (saved && findChunk(saved)) return saved;
+  return DEFAULT_CHUNK;
+}
+
+/** A home-screen PWA always opens the manifest's `/`; remember the user's selected world for its next launch. */
+export function rememberChunk(slug: string): void {
+  if (!findChunk(slug)) return;
+  saveLastPlayedChunk(slug);
 }
 
 /**

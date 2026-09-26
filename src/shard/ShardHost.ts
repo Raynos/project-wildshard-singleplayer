@@ -21,7 +21,7 @@
  * APPLY, a new build, GPU recovery, the error modal — lands on it.
  */
 import * as THREE from 'three';
-import { findChunk, setActiveChunk } from '../chunks/registry';
+import { findChunk, rememberChunk, setActiveChunk } from '../chunks/registry';
 import { applyShardTier } from '../core/tier';
 import { captureShardState, registerShaderChunks, resetShardState, restoreShardState, type ShardSnapshot } from '../core/shardState';
 import { ShardScope, activateScope, claim, disposeScope, enterScope, installScopes, parkScope } from '../core/shardScope';
@@ -141,7 +141,7 @@ export class ShardHost {
   switchTo(slug: string, req: ShardRequest = {}): Promise<void> {
     if (findChunk(slug) === undefined) return Promise.resolve();
     const from = this.running;
-    if (from?.world.slug === slug) { from.world.activate(req); return Promise.resolve(); }
+    if (from?.world.slug === slug) { from.world.activate(req); rememberChunk(slug); return Promise.resolve(); }
     if (this.busy) return Promise.resolve();
     const t0 = performance.now();
     if (from) this.park(from);
@@ -154,6 +154,7 @@ export class ShardHost {
     const hit = this.resident.get(slug);
     if (hit) {
       this.resume(hit, req);
+      rememberChunk(slug);
       this.timings.push({ from: from?.world.slug ?? null, to: slug, kind: 'resident', ms: performance.now() - t0, evicted: [], at: t0 });
       return Promise.resolve();
     }
@@ -162,7 +163,7 @@ export class ShardHost {
     for (const s of evicted) this.evict(s);
     const kind = this.built.has(slug) ? 'rebuild' : 'build';
     return this.buildNew(slug, false)
-      .then(() => { this.timings.push({ from: from?.world.slug ?? null, to: slug, kind, ms: performance.now() - t0, evicted, at: t0, steps: this.resident.get(slug)?.world.bootSteps }); return undefined; })
+      .then(() => { rememberChunk(slug); this.timings.push({ from: from?.world.slug ?? null, to: slug, kind, ms: performance.now() - t0, evicted, at: t0, steps: this.resident.get(slug)?.world.bootSteps }); return undefined; })
       .finally(() => { this.busy = false; });
   }
 

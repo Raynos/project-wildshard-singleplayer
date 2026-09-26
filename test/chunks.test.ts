@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import type { ChunkDef } from '../src/chunks/ChunkDef';
-import { CHUNKS, DEFAULT_CHUNK, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk } from '../src/chunks/registry';
+import { CHUNKS, DEFAULT_CHUNK, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, rememberChunk, setActiveChunk } from '../src/chunks/registry';
 import { landscapeHash } from '../src/chunks/terrain';
 import { hasSpecies, speciesDef } from '../src/entities/species/registry';
 import * as config from '../src/core/config';
@@ -122,10 +122,19 @@ describe('chunk terrain', () => {
 });
 
 describe('chunk registry switching', () => {
-  it('reads ?chunk= from a query string, defaulting to Pine Hollow', () => {
+  it('reads ?chunk= from a query string, defaulting to Driftwood Isle', () => {
     expect(chunkSlugFromUrl('?chunk=driftwood-isle&x=3')).toBe('driftwood-isle');
     expect(chunkSlugFromUrl('?x=3')).toBe(DEFAULT_CHUNK);
     expect(chunkSlugFromUrl('')).toBe(DEFAULT_CHUNK);
+  });
+
+  it('boots the last selected shard from the PWA root, while explicit chunk URLs take precedence', () => {
+    rememberChunk('nine-dragon-stack');
+    expect(chunkSlugFromUrl()).toBe('nine-dragon-stack');
+    expect(chunkSlugFromUrl('?chunk=pine-hollow')).toBe('pine-hollow');
+    expect(chunkSlugFromUrl('')).toBe(DEFAULT_CHUNK);
+    rememberChunk('missing');
+    expect(chunkSlugFromUrl()).toBe('nine-dragon-stack');
   });
 
   it('chunkUrl sets the chunk and keeps the other params', () => {
