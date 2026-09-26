@@ -306,7 +306,9 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>, <build>)`
 | P0-2 | Spawn mockups on the phone HUD, A–D (round 2 used a stale HUD reference; round 6 redoes rounds 2–4 on a fresh live capture of the baseline HUD) | `art/nine-dragon-stack/round-2-mockups/`, `round-6-baseline-hud/` | in flight (E169) |
 | P0-3 | Art-style research + the six-style board + the Jiehua Neon mockups | `docs/design/nine-dragon-stack/ART-STYLE-RESEARCH.md`, `art/nine-dragon-stack/round-3-art-styles/`, `round-4-jiehua-neon/` | in flight (E169) |
 | P0-4 | This plan | `docs/plans/NINE-DRAGON-STACK.md` | in flight (E169) |
-| P0-5 | The from-scratch clean-room spawn (three.js only, no engine code), the Neon Jian + Fei Zhua in first person | `dev/nine-dragon.html`, `src/dev/nine-dragon/` | todo |
+| P0-5 | The from-scratch clean-room spawn (three.js only, no engine code), the Neon Jian + Fei Zhua in first person — v1 `54d87764`; v2 detail pass, then the 9-angle mockup loop (`docs/design/LOOK-LOOP.md`) with the look labs merged in | `dev/nine-dragon.html`, `src/dev/nine-dragon/` | in flight (E169) |
+| P0-5b | Look labs (throwaway prototypes, one style subset each: ruled ink on silk, neon + silk bloom + wet streaks, facade density kit, weapon + hero props) + research (in-repo techniques, AAA mobile rendering) | `src/dev/nd-lab/*`, `art/nine-dragon-stack/round-7-lab-*/`, `docs/design/nine-dragon-stack/{TECHNIQUES,AAA-MOBILE-RESEARCH}.md` | in flight (E169) |
+| P0-5c | (approved by Jake 2026-09-25, used only if the clean room hits a wall or once the look converges) a throwaway in-engine fragment of the spawn, reachable only through the harness `?chunk=` and hidden from the deck, for true in-engine hero captures | — | not started |
 | P0-6 | COMING SOON assets from the clean room: card thumbnail, portrait + landscape heroes, screenshots | `src/chunks/thumbs/nine-dragon-stack*`, `public/assets/teasers/nine-dragon-stack/` | todo |
 | P0-7 | The COMING SOON card in the title deck (a `PLACEHOLDERS` teaser + its screenshots), pushed and live | `src/chunks/placeholders.ts`, `src/ui/HUD.ts` | todo |
 
