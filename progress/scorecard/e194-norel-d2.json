@@ -1,0 +1,673 @@
+{
+ "tag": "e194-norel-d2",
+ "build": "b-mui0266s",
+ "url": "http://localhost:4281",
+ "packCheck": {
+  "parts": 11,
+  "missing": []
+ },
+ "at": "2026-09-26T06:32:21.637Z",
+ "host": "darwin arm64 node v24.18.1",
+ "net": "wifi",
+ "cpu": 1,
+ "runs": 2,
+ "sampleMs": 10000,
+ "rows": {
+  "switch/desktop/prefetchBytes": {
+   "kind": "info",
+   "label": "bytes after the first play, until idle",
+   "value": 102211818,
+   "values": [
+    102211818,
+    102211818
+   ],
+   "spread": 0
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.ms": {
+   "kind": "time",
+   "label": "switch to playable",
+   "value": 4814.5,
+   "values": [
+    4990,
+    4639
+   ],
+   "spread": 0.0729
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.firstFrameMs": {
+   "kind": "time",
+   "label": "switch to the first drawn frames",
+   "value": 4884,
+   "values": [
+    5060,
+    4708
+   ],
+   "spread": 0.0721
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.netBytes": {
+   "kind": "bytes",
+   "label": "switch transfer",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "switch longest task",
+   "value": 1201.5,
+   "values": [
+    1262,
+    1141
+   ],
+   "spread": 0.1007
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.heapBytes": {
+   "kind": "memory",
+   "label": "JS heap after",
+   "value": 75983690,
+   "values": [
+    76559396,
+    75407984
+   ],
+   "spread": 0.0152
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.glTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (the running shard)",
+   "value": 472097972,
+   "values": [
+    472097972,
+    472097972
+   ],
+   "spread": 0
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.glAllTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (every resident shard)",
+   "value": 946782524,
+   "values": [
+    946782524,
+    946782524
+   ],
+   "spread": 0
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.navigated": {
+   "kind": "info",
+   "label": "page navigated",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/1.driftwood-isle>nalati-grasslands.loadingShown": {
+   "kind": "info",
+   "label": "loading screen shown",
+   "value": 1,
+   "values": [
+    1,
+    1
+   ],
+   "spread": 0
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.ms": {
+   "kind": "time",
+   "label": "switch to playable",
+   "value": 53,
+   "values": [
+    50,
+    56
+   ],
+   "spread": 0.1132
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.firstFrameMs": {
+   "kind": "time",
+   "label": "switch to the first drawn frames",
+   "value": 120,
+   "values": [
+    118,
+    122
+   ],
+   "spread": 0.0333
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.netBytes": {
+   "kind": "bytes",
+   "label": "switch transfer",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "switch longest task",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.heapBytes": {
+   "kind": "memory",
+   "label": "JS heap after",
+   "value": 76652598,
+   "values": [
+    76685632,
+    76619564
+   ],
+   "spread": 0.0009
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.glTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (the running shard)",
+   "value": 388066184,
+   "values": [
+    388066184,
+    388066184
+   ],
+   "spread": 0
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.glAllTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (every resident shard)",
+   "value": 946782524,
+   "values": [
+    946782524,
+    946782524
+   ],
+   "spread": 0
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.navigated": {
+   "kind": "info",
+   "label": "page navigated",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/2.nalati-grasslands>driftwood-isle.loadingShown": {
+   "kind": "info",
+   "label": "loading screen shown",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.ms": {
+   "kind": "time",
+   "label": "switch to playable",
+   "value": 3507,
+   "values": [
+    3537,
+    3477
+   ],
+   "spread": 0.0171
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.firstFrameMs": {
+   "kind": "time",
+   "label": "switch to the first drawn frames",
+   "value": 3763.5,
+   "values": [
+    3809,
+    3718
+   ],
+   "spread": 0.0242
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.netBytes": {
+   "kind": "bytes",
+   "label": "switch transfer",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "switch longest task",
+   "value": 751,
+   "values": [
+    749,
+    753
+   ],
+   "spread": 0.0053
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.heapBytes": {
+   "kind": "memory",
+   "label": "JS heap after",
+   "value": 107231470,
+   "values": [
+    107308420,
+    107154520
+   ],
+   "spread": 0.0014
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.glTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (the running shard)",
+   "value": 1263818636,
+   "values": [
+    1263818636,
+    1263818636
+   ],
+   "spread": 0
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.glAllTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (every resident shard)",
+   "value": 1666628884,
+   "values": [
+    1666628884,
+    1666628884
+   ],
+   "spread": 0
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.navigated": {
+   "kind": "info",
+   "label": "page navigated",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/3.driftwood-isle>pine-hollow.loadingShown": {
+   "kind": "info",
+   "label": "loading screen shown",
+   "value": 1,
+   "values": [
+    1,
+    1
+   ],
+   "spread": 0
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.ms": {
+   "kind": "time",
+   "label": "switch to playable",
+   "value": 2990,
+   "values": [
+    3049,
+    2931
+   ],
+   "spread": 0.0395
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.firstFrameMs": {
+   "kind": "time",
+   "label": "switch to the first drawn frames",
+   "value": 3066,
+   "values": [
+    3125,
+    3007
+   ],
+   "spread": 0.0385
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.netBytes": {
+   "kind": "bytes",
+   "label": "switch transfer",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.longTaskMaxMs": {
+   "kind": "longtask",
+   "label": "switch longest task",
+   "value": 322,
+   "values": [
+    327,
+    317
+   ],
+   "spread": 0.0311
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.heapBytes": {
+   "kind": "memory",
+   "label": "JS heap after",
+   "value": 135709508,
+   "values": [
+    136314600,
+    135104416
+   ],
+   "spread": 0.0089
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.glTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (the running shard)",
+   "value": 472097972,
+   "values": [
+    472097972,
+    472097972
+   ],
+   "spread": 0
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.glAllTexBytes": {
+   "kind": "memory",
+   "label": "GPU textures after (every resident shard)",
+   "value": 1822125376,
+   "values": [
+    1822125376,
+    1822125376
+   ],
+   "spread": 0
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.navigated": {
+   "kind": "info",
+   "label": "page navigated",
+   "value": 0,
+   "values": [
+    0,
+    0
+   ],
+   "spread": 0
+  },
+  "switch/desktop/4.pine-hollow>nalati-grasslands.loadingShown": {
+   "kind": "info",
+   "label": "loading screen shown",
+   "value": 1,
+   "values": [
+    1,
+    1
+   ],
+   "spread": 0
+  },
+  "switch/desktop/cacheStorageBytes": {
+   "kind": "bytes",
+   "label": "Cache Storage after all 3 shards",
+   "value": 130567440,
+   "values": [
+    130567440,
+    130567440
+   ],
+   "spread": 0
+  }
+ },
+ "raw": [
+  {
+   "run": 1,
+   "shards": {},
+   "switches": {
+    "desktop": {
+     "vp": "desktop",
+     "route": [
+      "driftwood-isle",
+      "nalati-grasslands",
+      "driftwood-isle",
+      "pine-hollow",
+      "nalati-grasslands"
+     ],
+     "steps": [
+      {
+       "from": "driftwood-isle",
+       "to": "nalati-grasslands",
+       "titleMs": 4723,
+       "ms": 4990,
+       "status": "ok",
+       "firstFrameMs": 5060,
+       "navigated": false,
+       "kind": "build",
+       "hostMs": 4667,
+       "evicted": [],
+       "resident": [
+        "driftwood-isle",
+        "nalati-grasslands"
+       ],
+       "loadingShown": true,
+       "longTaskMaxMs": 1262,
+       "netBytes": 0,
+       "heapBytes": 76559396,
+       "glTexBytes": 472097972,
+       "glBufBytes": 72471894,
+       "glRbBytes": 79074304,
+       "slug": "nalati-grasslands",
+       "glAllTexBytes": 946782524,
+       "glContexts": 2
+      },
+      {
+       "from": "nalati-grasslands",
+       "to": "driftwood-isle",
+       "ms": 50,
+       "status": "ok",
+       "firstFrameMs": 118,
+       "navigated": false,
+       "kind": "resident",
+       "hostMs": 3,
+       "evicted": [],
+       "resident": [
+        "nalati-grasslands",
+        "driftwood-isle"
+       ],
+       "loadingShown": false,
+       "longTaskMaxMs": 0,
+       "netBytes": 0,
+       "heapBytes": 76685632,
+       "glTexBytes": 388066184,
+       "glBufBytes": 264680442,
+       "glRbBytes": 7544064,
+       "slug": "driftwood-isle",
+       "glAllTexBytes": 946782524,
+       "glContexts": 2
+      },
+      {
+       "from": "driftwood-isle",
+       "to": "pine-hollow",
+       "titleMs": 3173,
+       "ms": 3537,
+       "status": "ok",
+       "firstFrameMs": 3809,
+       "navigated": false,
+       "kind": "build",
+       "hostMs": 3141,
+       "evicted": [
+        "nalati-grasslands"
+       ],
+       "resident": [
+        "driftwood-isle",
+        "pine-hollow"
+       ],
+       "loadingShown": true,
+       "longTaskMaxMs": 749,
+       "netBytes": 0,
+       "heapBytes": 107308420,
+       "glTexBytes": 1263818636,
+       "glBufBytes": 172806404,
+       "glRbBytes": 7200000,
+       "slug": "pine-hollow",
+       "glAllTexBytes": 1666628884,
+       "glContexts": 2
+      },
+      {
+       "from": "pine-hollow",
+       "to": "nalati-grasslands",
+       "titleMs": 2836,
+       "ms": 3049,
+       "status": "ok",
+       "firstFrameMs": 3125,
+       "navigated": false,
+       "kind": "rebuild",
+       "hostMs": 2769,
+       "evicted": [
+        "driftwood-isle"
+       ],
+       "resident": [
+        "pine-hollow",
+        "nalati-grasslands"
+       ],
+       "loadingShown": true,
+       "longTaskMaxMs": 327,
+       "netBytes": 0,
+       "heapBytes": 136314600,
+       "glTexBytes": 472097972,
+       "glBufBytes": 72471894,
+       "glRbBytes": 79074304,
+       "slug": "nalati-grasslands",
+       "glAllTexBytes": 1822125376,
+       "glContexts": 2
+      }
+     ],
+     "first": {
+      "playMs": 10382,
+      "netBytes": 23192179,
+      "status": "ok"
+     },
+     "quietMs": 41529,
+     "prefetchBytes": 102211818,
+     "storage": {
+      "usage": 130597693,
+      "caches": 130567440
+     }
+    }
+   },
+   "shots": []
+  },
+  {
+   "run": 2,
+   "shards": {},
+   "switches": {
+    "desktop": {
+     "vp": "desktop",
+     "route": [
+      "driftwood-isle",
+      "nalati-grasslands",
+      "driftwood-isle",
+      "pine-hollow",
+      "nalati-grasslands"
+     ],
+     "steps": [
+      {
+       "from": "driftwood-isle",
+       "to": "nalati-grasslands",
+       "titleMs": 4395,
+       "ms": 4639,
+       "status": "ok",
+       "firstFrameMs": 4708,
+       "navigated": false,
+       "kind": "build",
+       "hostMs": 4314,
+       "evicted": [],
+       "resident": [
+        "driftwood-isle",
+        "nalati-grasslands"
+       ],
+       "loadingShown": true,
+       "longTaskMaxMs": 1141,
+       "netBytes": 0,
+       "heapBytes": 75407984,
+       "glTexBytes": 472097972,
+       "glBufBytes": 72471894,
+       "glRbBytes": 79074304,
+       "slug": "nalati-grasslands",
+       "glAllTexBytes": 946782524,
+       "glContexts": 2
+      },
+      {
+       "from": "nalati-grasslands",
+       "to": "driftwood-isle",
+       "ms": 56,
+       "status": "ok",
+       "firstFrameMs": 122,
+       "navigated": false,
+       "kind": "resident",
+       "hostMs": 3,
+       "evicted": [],
+       "resident": [
+        "nalati-grasslands",
+        "driftwood-isle"
+       ],
+       "loadingShown": false,
+       "longTaskMaxMs": 0,
+       "netBytes": 0,
+       "heapBytes": 76619564,
+       "glTexBytes": 388066184,
+       "glBufBytes": 264680442,
+       "glRbBytes": 7544064,
+       "slug": "driftwood-isle",
+       "glAllTexBytes": 946782524,
+       "glContexts": 2
+      },
+      {
+       "from": "driftwood-isle",
+       "to": "pine-hollow",
+       "titleMs": 3139,
+       "ms": 3477,
+       "status": "ok",
+       "firstFrameMs": 3718,
+       "navigated": false,
+       "kind": "build",
+       "hostMs": 3102,
+       "evicted": [
+        "nalati-grasslands"
+       ],
+       "resident": [
+        "driftwood-isle",
+        "pine-hollow"
+       ],
+       "loadingShown": true,
+       "longTaskMaxMs": 753,
+       "netBytes": 0,
+       "heapBytes": 107154520,
+       "glTexBytes": 1263818636,
+       "glBufBytes": 172806404,
+       "glRbBytes": 7200000,
+       "slug": "pine-hollow",
+       "glAllTexBytes": 1666628884,
+       "glContexts": 2
+      },
+      {
+       "from": "pine-hollow",
+       "to": "nalati-grasslands",
+       "titleMs": 2734,
+       "ms": 2931,
+       "status": "ok",
+       "firstFrameMs": 3007,
+       "navigated": false,
+       "kind": "rebuild",
+       "hostMs": 2683,
+       "evicted": [
+        "driftwood-isle"
+       ],
+       "resident": [
+        "pine-hollow",
+        "nalati-grasslands"
+       ],
+       "loadingShown": true,
+       "longTaskMaxMs": 317,
+       "netBytes": 0,
+       "heapBytes": 135104416,
+       "glTexBytes": 472097972,
+       "glBufBytes": 72471894,
+       "glRbBytes": 79074304,
+       "slug": "nalati-grasslands",
+       "glAllTexBytes": 1822125376,
+       "glContexts": 2
+      }
+     ],
+     "first": {
+      "playMs": 7814,
+      "netBytes": 23192179,
+      "status": "ok"
+     },
+     "quietMs": 41530,
+     "prefetchBytes": 102211818,
+     "storage": {
+      "usage": 130597693,
+      "caches": 130567440
+     }
+    }
+   },
+   "shots": []
+  }
+ ]
+}
