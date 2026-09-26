@@ -16,3 +16,8 @@ public/assets/physics/
 public/basis/
 # Python bytecode from the pipeline scripts (scripts/horizon-matte/config.py, fit-lut.py loading palette-delta.py)
 __pycache__/
+
+# Raw local benchmark runs and rendered scorecard frames stay on disk; commit selected summaries explicitly.
+/progress/bench/*.json
+/progress/bench/shot-*.png
+/progress/scorecard/*/
