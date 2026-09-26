@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, VignetteEffect, ToneMappingEffect,
   ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
+  type Effect, type Pass,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
+import type { EngineEffects, ShardComposition, ShardRender } from '../chunks/ChunkDef';
 import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
@@ -11,7 +13,7 @@ import { GradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG, frameCapFps, phonePictureCuts } from './tier';
+import { TIER, TIER_CONFIG, frameCapFps, phonePictureCuts } from './tier';
 import { installLookV2Fog } from '../nalati/look/fog';
 import { buildLookV2Chain } from '../nalati/look/grade';
 import { chunkShadowCasters } from '../world/shadowChunks';
@@ -144,6 +146,7 @@ export class Game {
    */
   snapshot(maxW: number): HTMLCanvasElement | null {
     if (this._composer === null || this.hold || this.renderer.getContext().isContextLost()) return null;
+    this.shardRender?.frame?.(0, this.clock.elapsedTime);
     this._composer.render(0);
     const src = this.canvas, k = Math.min(1, maxW / Math.max(1, src.width));
     const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(src.width * k)); c.height = Math.max(1, Math.round(src.height * k));
@@ -184,9 +187,38 @@ export class Game {
     window.addEventListener('resize', () => this.resize());
   }
 
+  /** the shard's render strategy (ChunkDef.render), loaded by buildSky; null = the engine's chain as it is */
+  private shardRender: ShardRender | null = null;
+  /** where the strategy put its passes (asked once, in buildComposer) */
+  private composition: ShardComposition | null = null;
+
   async buildSky(): Promise<Sky> {
+    const render = getActiveChunk().render?.() ?? null; // the shard's render code downloads while the sky builds; buildComposer reads both
     this._sky = await new Sky(this.scene, this.camera, this.renderer).build();
+    this.shardRender = await render;
     return this._sky;
+  }
+
+  /**
+   * The colour chain's pass: the engine's `order` — or, with a shard render strategy, the order it composes from the
+   * engine's effects (and its own), asked here, once, when every effect is built (ChunkDef.ShardRender.compose).
+   */
+  private colourPass(composer: EffectComposer, order: Effect[], fx: Omit<EngineEffects, 'order'>): EffectPass {
+    const R = this.shardRender;
+    if (R === null) return new EffectPass(this.camera, ...order);
+    this.composition = R.compose({ renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER, fx: { ...fx, order } });
+    return new EffectPass(this.camera, ...(this.composition.chain ?? order));
+  }
+
+  /** the strategy's passes into their slots around the engine's (ChunkDef.ShardComposition): scene → AO → colour → SMAA */
+  private placeShardPasses(composer: EffectComposer, colour: EffectPass): void {
+    const C = this.composition;
+    if (C === null) return;
+    const insert = (passes: Pass[] | undefined, at: number): void => { for (const [i, p] of (passes ?? []).entries()) composer.addPass(p, at + i); };
+    insert(C.beforeChain, composer.passes.indexOf(colour));
+    insert(C.afterChain, composer.passes.indexOf(colour) + 1);
+    insert(C.afterScene, composer.passes.indexOf(this.renderPass) + 1);
+    insert(C.beforeScene, 0);
   }
 
   buildComposer(): void {
@@ -198,12 +230,15 @@ export class Game {
     // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts)
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
     // depth needs no mid-pass copy (worldDepth.ts)
-    const slices = phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
+    const R = this.shardRender; // a shard's render strategy (ChunkDef.render) may pick the slices and the AO; null = the tier's
+    const slices = R?.slices ?? phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
     this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
-    if (TIER_CONFIG.ao) {
+    let aoPass: N8AOPostPass | null = null;
+    if (R?.ao ?? TIER_CONFIG.ao) {
       const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, viewportHeight());
+      aoPass = ao;
       ao.configuration.aoRadius = 2.5;
       ao.configuration.distanceFalloff = 1.0;
       ao.configuration.intensity = 2.5;
@@ -279,8 +314,9 @@ export class Game {
         // LUT, the chain as before. The low-poly shard's `?post=cinematic` A/B stays the pre-LUT chain.
         const lut = this.sky.lut && getActiveChunk().style !== 'lowpoly' ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
         // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
-        return lut ? new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, lut, grain)
-          : new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain);
+        const order: Effect[] = lut ? [vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, lut, grain]
+          : [vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain];
+        return this.colourPass(composer, order, { ao: aoPass, vol, godRays, bloom, chroma, vignette, tone, saturation: grade, contrast, grade: split, lut, grain });
       }
       // the stylized look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
       // contrast — the colour-ramp fog does the aerial perspective; the god rays stay faint, the vignette light
@@ -290,11 +326,14 @@ export class Game {
       // the learned LUT (X1, src/world/lut.ts) is the last grade step: the palette fitted to the mockups. Always on — the
       // user locked it in (E85); only Debug ▸ Look ▸ Learned LUT Off (the fit's own captures) builds without it
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
-      return lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split);
+      const order: Effect[] = lut ? [godRays, bloom, vignette, tone, grade, contrast, split, lut] : [godRays, bloom, vignette, tone, grade, contrast, split];
+      return this.colourPass(composer, order, { ao: aoPass, vol, godRays, bloom, chroma: null, vignette, tone, saturation: grade, contrast, grade: split, lut, grain: null });
     };
     // the low-poly shard runs the clean L5 chain (E88, the user's Look Lab pick); every other shard keeps the original
     // haze + grain + fringe chain
-    composer.addPass(chain(getActiveChunk().style === 'lowpoly'));
+    const colour = chain(getActiveChunk().style === 'lowpoly');
+    composer.addPass(colour);
+    this.placeShardPasses(composer, colour); // a shard's own passes around the engine's (none without a render strategy)
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));
@@ -414,6 +453,7 @@ export class Game {
     }
     onProgress?.(WARM_TURNS + 1, WARM_TURNS + 2, 'post chain');
     t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
+    this.shardRender?.frame?.(0.016, 0);
     this.composer.render(0.016);
     if (before) perfLog('firstFrame:post', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
@@ -533,6 +573,7 @@ export class Game {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
         sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
+        this.shardRender?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ChunkDef.ShardRender)
         composer.render(realDt);
       } catch (e) { this.fault(this.renderSystem, e); return; }
       if (this.captures.length > 0) this.flushCaptures();
@@ -581,6 +622,7 @@ export class Game {
     this.dead = true;
     this.scene.traverse((o) => { (o as Partial<THREE.Mesh>).geometry?.dispose(); });
     try { this._composer?.dispose(); } catch (e) { console.warn('[shard] the composer did not dispose', e); }
+    try { this.shardRender?.dispose?.(); } catch (e) { console.warn('[shard] the render strategy did not dispose', e); }
     this.renderer.renderLists.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();

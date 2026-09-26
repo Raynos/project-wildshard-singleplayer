@@ -6,7 +6,8 @@
  * *data* that drives it: the terrain field, which textures and tree species to use, where
  * the animals live, what the sky and fog look like, and how the shard appears on the title
  * screen. Defs are plain data + pure functions — no three.js objects, no DOM, no side effects —
- * so they can be evaluated at module init and swapped by `src/chunks/registry.ts`.
+ * so they can be evaluated at module init and swapped by `src/chunks/registry.ts`. (`render` is
+ * a lazy loader: the three.js code it imports is only fetched and run when the shard boots.)
  *
  * Fixed by the Wildshard fundamentals (NOT per chunk, see `src/core/config.ts`): chunk size
  * (500 m), slab depth, the four 15 m entry roads at the edge midpoints reaching ≥ 50 m in and
@@ -15,9 +16,19 @@
  * To add a shard: copy `src/chunks/_template.ts`, fill it in, register it in
  * `src/chunks/registry.ts`. See `docs/SHARDS.md`.
  */
+import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type {
+  BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect,
+  LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect,
+} from 'postprocessing';
+import type { N8AOPostPass } from 'n8ao';
 import type { Noise2D } from '../core/noise';
+import type { GradeEffect } from '../core/Grade';
+import type { Tier } from '../core/tier';
+import type { VolumetricsEffect } from '../core/Volumetrics';
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { SpeciesWeights } from '../world/treeSpecies';
+import type { WorldRegistry } from '../world/registry';
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
 export type Vec2 = [number, number];
@@ -289,7 +300,34 @@ export interface ChunkLook {
   dayMist: number;
 }
 
-export interface SpawnPose { x: number; z: number; yaw: number }
+/** `y`: the feet's height, for a shard whose floor is built (`structures`) rather than the terrain; omitted = `heightAt(x, z)` */
+export interface SpawnPose { x: number; z: number; yaw: number; y?: number }
+
+/** what a structure-first shard's world builder is handed (main.ts, the props step) */
+export interface StructureContext {
+  renderer: WebGLRenderer;
+  scene: Scene;
+  camera: PerspectiveCamera;
+  /** the world registry (src/world/registry.ts): what the shard registers is drawn, collides, and lends its floor */
+  registry: WorldRegistry;
+  /** a per-frame callback after the player's move (the camera is placed): time since the build (s), frame dt */
+  onUpdate: (fn: (dt: number, t: number) => void) => void;
+  /** the step's progress bar, 0..1 */
+  progress: (f: number) => void;
+}
+
+/**
+ * A structure-first shard (Nine Dragon Stack's fragment, NINE-DRAGON-STACK P0-5c): its world is built floors on colliders,
+ * not a landscape. The terrain functions still answer (the def's flat datum, far under the build) but nothing is drawn or
+ * collides there — no terrain mesh, splat or slab and no heightfield collider — and no ground cover is built (grass,
+ * undergrowth, forest particles, cabins, props, trail walkways). `build` makes the world: a lazy loader, so the def stays
+ * node-safe and the code downloads with the shard.
+ */
+export interface ChunkStructures {
+  /** extra files the world reads at boot (declared, so DOWNLOAD counts them and the offline cache holds them) */
+  files: readonly string[];
+  build: () => Promise<{ build: (ctx: StructureContext) => Promise<void> }>;
+}
 
 /**
  * Open water covering the whole shard (Driftwood Isle). The terrain's `waterLevel()` returns
@@ -339,6 +377,79 @@ export interface ChunkHud {
 }
 /** a shard whose weapons are melee-first (Driftwood's swords, Nalati's sabre / spear): AnimalManager's telegraphed charges, the hurt arc */
 export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'nalati';
+
+/**
+ * The engine's post chain as a shard's render strategy sees it (`ShardRender.compose`, called once by
+ * Game.buildComposer): every effect the engine made from the def's data (`grade`, `look`, `atmosphere`, the tier), live
+ * and not yet assembled into its pass. Tune any of them in place (a write to `ao.configuration` re-tunes n8ao, the
+ * effects' uniforms are live). `ao` is null when AO is off; `chroma` and `grain` are null on the low-poly shard's clean
+ * chain, which has neither (and does not draw `vol`).
+ */
+export interface EngineEffects {
+  ao: N8AOPostPass | null;
+  vol: VolumetricsEffect;
+  godRays: GodRaysEffect;
+  bloom: BloomEffect;
+  chroma: ChromaticAberrationEffect | null;
+  vignette: VignetteEffect;
+  tone: ToneMappingEffect;
+  saturation: HueSaturationEffect;
+  contrast: BrightnessContrastEffect;
+  /** the split-tone / look grade (src/core/Grade.ts) */
+  grade: GradeEffect;
+  /** the shard's learned LUT (src/world/lut.ts), null when it has none */
+  lut: LUT3DEffect | null;
+  grain: NoiseEffect | null;
+  /** the engine's effect order for this chain: what `ShardComposition.chain` defaults to */
+  order: Effect[];
+}
+
+export interface ShardComposeContext {
+  renderer: WebGLRenderer;
+  scene: Scene;
+  camera: PerspectiveCamera;
+  composer: EffectComposer;
+  tier: Tier;
+  fx: EngineEffects;
+}
+
+/**
+ * Where a shard's own passes go in the engine's one composer. The engine's passes are, in order: the scene pass
+ * (worldDepth.ts) → n8ao → the colour chain (one EffectPass) → SMAA. Every slot is optional; each list keeps its order.
+ * A pass that reads depth sets `needsDepthTexture` and gets the scene's (the viewmodels' depth slices included).
+ */
+export interface ShardComposition {
+  /** before the scene pass: renders into targets of its own (a planar reflection the ground then samples) */
+  beforeScene?: Pass[];
+  /** after the scene pass, before the AO (HDR; the AO darkens what they draw) */
+  afterScene?: Pass[];
+  /** after the AO, before the colour chain (HDR; bloom, tone and grade still to come: a light-haze march) */
+  beforeChain?: Pass[];
+  /** the colour chain's effects in order: the engine's from `fx` (re-ordered, some left out) and the shard's own Effects.
+   *  Omitted = `fx.order` */
+  chain?: Effect[];
+  /** after the colour chain, before SMAA (display space) */
+  afterChain?: Pass[];
+}
+
+/**
+ * A shard's render strategy (GAME-NORMALIZATION §1: a shard varies core by data or by a strategy it hands to core, never
+ * by a `slug ===` in core). Game.buildComposer asks it once where the shard's passes go and lets it tune the engine's
+ * effects; Game's loop calls `frame` before every draw. Not consulted by the painterly shard's own chain.
+ */
+export interface ShardRender {
+  /** the viewmodels in near depth slices instead of a depth clear (worldDepth.ts); omitted = the tier's picture cuts */
+  slices?: boolean;
+  /** n8ao on or off whatever the tier's `ao`; omitted = the tier's */
+  ao?: boolean;
+  /** once, in Game.buildComposer, with every engine effect built (and n8ao, when on): tune them, make the shard's own */
+  compose: (c: ShardComposeContext) => ShardComposition;
+  /** every frame, right before the composer draws (after the updaters, the late hooks and the sky: the camera is final) —
+   *  per-frame uniforms of the shard's materials */
+  frame?: (dt: number, t: number) => void;
+  /** with the Game (an evicted shard): what `compose` made outside the composer (the composer disposes its passes) */
+  dispose?: () => void;
+}
 
 export interface ChunkDef {
   /** canonical id, e.g. `chunk://local/pine-hollow` */
@@ -410,6 +521,15 @@ export interface ChunkDef {
   /** the title's EXPLORE WORLD is offered on this shard (project/archive/2026-09-23-explore-world.md; the models it shows are what the
    *  shard's setup registers — src/explore/registry.ts); omitted = play only */
   explore?: boolean;
+  /**
+   * The shard's render strategy (`ShardRender`): its own passes in the engine's composer, its per-frame uniforms, its
+   * tuning of the engine's effects. A lazy loader, so the def stays node-safe and the code downloads with the shard:
+   * `render: async () => (await import('./look/render')).createRender()` — a fresh strategy per call (a rebuilt shard gets
+   * a new one). Game.buildSky awaits it. Omitted = the engine's chain as it is.
+   */
+  render?: () => Promise<ShardRender>;
+  /** a structure-first shard: its world is built, not a landscape (`ChunkStructures`); omitted = a landscape shard */
+  structures?: ChunkStructures;
 }
 
 /**
