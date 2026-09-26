@@ -1,9 +1,18 @@
 // The build context every world module writes into: named kits (one merged mesh each), instance lists, sign quads,
 // the grapple's dragon hooks and the minimap's floor plan.
-import { Matrix4, Vector3 } from 'three';
+import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
 import type { SignBuilder } from './signs';
 import { Rng } from './util';
+import { WELL, Y0 } from './layout';
+
+/** instanced kit pieces (dressing.ts builds their geometry) */
+export type Piece = 'balcony' | 'cage' | 'plant' | 'awning' | 'laundry' | 'shack' | 'tank' | 'lightbox' | 'pipe' | 'shutter';
+
+export interface Instance { m: Matrix4; c: Color }
+
+const WHITE = new Color(1, 1, 1);
+const ZAX = new Vector3(0, 0, 1);
 
 export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind: 'block' | 'street' | 'well' | 'plaza' | 'green' | 'gate' }
 
@@ -17,6 +26,8 @@ export class Ctx {
   readonly hooks: Vector3[] = [];
   readonly map: MapRect[] = [];
   readonly steam: Vector3[] = [];
+  /** instanced dressing, keyed piece@region so the deep Well's pieces cull as one */
+  readonly inst = new Map<string, Instance[]>();
   readonly rng = new Rng(9);
 
   constructor(readonly signs: SignBuilder) {}
@@ -39,6 +50,18 @@ export class Ctx {
     m.scale(new Vector3(s, s, s));
     m.setPosition(x, y, z);
     this.lanterns.push(m);
+  }
+
+  /** place a kit piece: its local +z faces `n` (a wall's outward normal), origin at `at`, scaled by `s` */
+  put(piece: Piece, at: Vector3, n: Vector3, s: Vector3, color: Color = WHITE): void {
+    const q = new Quaternion().setFromUnitVectors(ZAX, new Vector3(n.x, 0, n.z).normalize());
+    const m = new Matrix4().compose(at, q, s);
+    const inWell = at.x > WELL.x0 - 1 && at.x < WELL.x1 + 1 && at.z > WELL.z0 - 1 && at.z < WELL.z1 + 1;
+    const region = inWell ? (at.y < Y0 - 70 ? 'deep' : 'well') : 'town';
+    const key = `${piece}@${region}`;
+    let list = this.inst.get(key);
+    if (list === undefined) { list = []; this.inst.set(key, list); }
+    list.push({ m, c: color.clone() });
   }
 
   ac(x: number, y: number, z: number, rotY: number): void {

@@ -15,10 +15,10 @@ const BANDS: readonly Band[] = [
   { y: 212, w: 10, d: 0.012, jiehua: 0xd6dbe2, sutra: 0x2a3a62 },
   { y: 152, w: 4, d: 0.004, jiehua: 0xc9d0da, sutra: 0x24345a },
   { y: 101, w: 8, d: 0.024, jiehua: 0x8e9bb5, sutra: 0x223257 },
-  { y: 36, w: 8, d: 0.03, jiehua: 0x7f8d86, sutra: 0x1e2c4e },
-  { y: -30, w: 9, d: 0.034, jiehua: 0x4f524f, sutra: 0x192644 },
-  { y: -110, w: 11, d: 0.034, jiehua: 0x2b3345, sutra: 0x142039 },
-  { y: -190, w: 11, d: 0.04, jiehua: 0x261f31, sutra: 0x101b31 },
+  { y: 36, w: 8, d: 0.026, jiehua: 0x677c92, sutra: 0x1e2c4e },
+  { y: -30, w: 9, d: 0.03, jiehua: 0x3a4a6a, sutra: 0x192644 },
+  { y: -110, w: 11, d: 0.03, jiehua: 0x243052, sutra: 0x142039 },
+  { y: -190, w: 11, d: 0.034, jiehua: 0x1a2146, sutra: 0x101b31 },
   { y: -236, w: 7, d: 0.05, jiehua: 0x10213a, sutra: 0x0c1729 },
   { y: -400, w: 1, d: 0, jiehua: 0x000000, sutra: 0x000000 },
 ];
@@ -67,18 +67,19 @@ export class Shared {
     uGold: { value: c(METAL.gold) },
     uGoldDim: { value: c(0x7a5f2a) },
     uLightDir: { value: new Vector3(0.42, 0.85, 0.32).normalize() },
-    uShade: { value: c(0xb5bccb) },
-    uWinWarm: { value: c(0xffc877) },
+    uShade: { value: c(0x9ca5b8) },
+    uWinWarm: { value: c(0xffbf66) },
     uWinCool: { value: c(0xcfe8e4) },
     uPaper: { value: c(SUTRA.indigo) },
     uPaperDeep: { value: c(SUTRA.deep) },
     uSutraWin: { value: c(0xe8b85a) },
-    uFogBase: { value: 0.0062 },
-    uFogBaseCol: { value: c(0xc2cad6) },
+    uFogBase: { value: 0.0034 },
+    uFogBaseCol: { value: c(0xc6c6cc) },
     uBands: { value: BANDS.map((b) => new Vector4(b.y, b.w, b.d, 0)) },
     uBandCols: { value: BANDS.map((b) => c(b.jiehua)) },
     uSilk: { value: silkWeave() as Texture },
     uRefl: { value: blank() },
+    uStreak: { value: blank() },
     uReflOn: { value: 0 },
     uReflMat: { value: new Matrix4() },
     uRes: { value: new Vector2(1, 1) },
@@ -93,7 +94,7 @@ export class Shared {
       const col = this.u.uBandCols.value[i];
       if (col !== undefined) col.copy(c(b.jiehua)).lerp(c(b.sutra), s);
     });
-    this.u.uFogBaseCol.value.copy(c(0xc2cad6)).lerp(c(0x22325a), s);
+    this.u.uFogBaseCol.value.copy(c(0xc6c6cc)).lerp(c(0x22325a), s);
   }
 }
 
@@ -105,6 +106,17 @@ uniform vec4 uBands[9];
 uniform vec3 uBandCols[9];
 // banded silk fog: each band is a sech² bump in height whose optical depth along the ray is analytic (tanh);
 // bands are composited front to back, so looking down the Well you count them: blue, tea, soot, slate, indigo.
+// the colour script: the silk's tint at an altitude, interpolated between the bands
+vec3 scriptCol(float y) {
+  vec3 c = uBandCols[0];
+  for (int i = 0; i < 7; i++) {
+    vec4 a = uBands[i];
+    vec4 b = uBands[i + 1];
+    if (y <= a.x && y >= b.x) c = mix(uBandCols[i + 1], uBandCols[i], (y - b.x) / max(a.x - b.x, 1.0));
+  }
+  if (y < uBands[7].x) c = uBandCols[7];
+  return c;
+}
 vec4 silkFog(vec3 wp, float scale) {
   if (scale <= 0.0) return vec4(0.0, 0.0, 0.0, 1.0);
   vec3 d = wp - uCam;
@@ -132,7 +144,9 @@ vec4 silkFog(vec3 wp, float scale) {
     T *= 1.0 - a;
   }
   float a0 = 1.0 - exp(-uFogBase * L * scale);
-  acc += T * a0 * uFogBaseCol;
+  // looking down the Well the air takes the tint of the strata you look into: deeper = bluer
+  vec3 baseC = mix(uFogBaseCol, scriptCol(wp.y), clamp((uCam.y - wp.y) / 150.0, 0.0, 1.0));
+  acc += T * a0 * baseC;
   T *= 1.0 - a0;
   return vec4(acc, T);
 }
@@ -207,6 +221,7 @@ uniform vec3 uSutraWin;
 uniform float uFogScale;
 uniform sampler2D uSilk;
 uniform sampler2D uRefl;
+uniform sampler2D uStreak;
 uniform float uReflOn;
 varying vec3 vWorld;
 varying vec3 vNormal;
@@ -236,8 +251,9 @@ void main() {
   vec3 V = toCam / max(dist, 1e-4);
   vec2 q = vFace.xy + vOff;
   vec2 fq = max(fwidth(q), vec2(1e-6));
-  float Wp = uLinePx;
-  float lw = uLinePx * vMisc.y;
+  float nearK = mix(1.5, 1.0, smoothstep(3.0, 28.0, dist));
+  float Wp = uLinePx * nearK;
+  float lw = uLinePx * vMisc.y * nearK;
   vec2 ff = max(fwidth(vFace.xy), vec2(1e-6));
   float lines = 0.0;
   if (vMisc.y > 0.0) {
@@ -256,7 +272,8 @@ void main() {
   float forceInk = 0.0;
 
   if (kind == 1.0) {
-    // facade: slab lips every row, a window per module, lit or dark; sub-pixel modules dissolve into their average
+    // facade: slab lips every row, a window per module — standard, wide, twin, recessed balcony or a small high one —
+    // lit amber (some curtained, some cool TV light) or dark; sub-pixel modules dissolve into their average
     float rowP = vPat.y, colP = vPat.z, seed = vPat.w;
     vec2 g = q / vec2(colP, rowP);
     vec2 fg2 = max(fwidth(g), vec2(1e-6));
@@ -266,35 +283,56 @@ void main() {
     float h1 = h12(cell + seed * 13.1);
     float h2 = h12(cell.yx * 1.7 + seed * 5.3 + 11.0);
     float h3 = h12(cell * 0.73 + seed + 3.0);
+    float t4 = h12(cell * 1.31 + seed * 3.7 + 19.0);
     float floorH = h12(vec2(cell.y * 0.37, seed * 2.1));
-    float litP = 0.07 + 0.3 * floorH * floorH + 0.08 * h12(vec2(seed, 1.0));
+    float litP = 0.2 + 0.32 * floorH + 0.1 * h12(vec2(seed, 1.0));
     float isLit = step(h1, litP);
     float sv = h12(vec2(seed, 7.0));
     vec2 wa = vec2(0.12 + 0.12 * sv, 0.24 + 0.08 * fract(sv * 7.0)), wb = vec2(0.88 - 0.12 * sv, 0.86);
-    float inX = cover1(f.x, wa.x, wb.x, fg2.x), inY = cover1(f.y, wa.y, wb.y, fg2.y);
+    float twin = 0.0, recess = 0.0;
+    if (t4 > 0.55 && t4 <= 0.67) { wa = vec2(0.06, 0.3); wb = vec2(0.94, 0.84); }
+    else if (t4 > 0.67 && t4 <= 0.79) { wa = vec2(0.12, 0.2); wb = vec2(0.42, 0.9); twin = 1.0; }
+    else if (t4 > 0.79 && t4 <= 0.88) { wa = vec2(0.05, 0.06); wb = vec2(0.95, 0.97); recess = 1.0; }
+    else if (t4 > 0.88) { wa = vec2(0.3, 0.52); wb = vec2(0.7, 0.86); }
+    float fx = mix(f.x, min(f.x, 1.0 - f.x), twin);
+    float inX = cover1(fx, wa.x, wb.x, fg2.x), inY = cover1(f.y, wa.y, wb.y, fg2.y);
     float win = inX * inY;
-    vec3 warmC = mix(uWinWarm, uWinCool, step(0.8, h2)) * (0.62 + 0.5 * h3);
-    vec3 darkC = base * vec3(0.5, 0.55, 0.66);
-    float area = (wb.x - wa.x) * (wb.y - wa.y);
-    // an air-con box under some windows
-    float ac = step(0.62, h2) * step(h2, 0.8) * cover1(f.x, 0.52, 0.8, fg2.x) * cover1(f.y, 0.03, 0.21, fg2.y);
-    vec3 cellC = mix(base, darkC, win * (1.0 - isLit));
+    // lit interiors: warm amber mostly, some cool fluorescent, a rare TV
+    vec3 warmC = mix(uWinWarm, vec3(1.0, 0.62, 0.3), step(0.6, h3) * 0.6);
+    warmC = mix(warmC, uWinCool, step(0.86, h2));
+    warmC = mix(warmC, vec3(0.9, 0.35, 0.6), step(0.975, h2));
+    warmC *= 0.6 + 0.55 * h3;
+    // curtains: half the lit windows pull one across, dyed
+    float curt = step(0.55, h2) * isLit * cover1((fx - wa.x) / max(wb.x - wa.x, 0.01), 0.0, 0.35 + 0.4 * h3, fg2.x / max(wb.x - wa.x, 0.01));
+    vec3 curtC = mix(vec3(0.62, 0.16, 0.1), vec3(0.85, 0.72, 0.5), step(0.5, fract(h3 * 7.0)));
+    vec3 darkC = base * vec3(0.46, 0.51, 0.62);
+    float area = (wb.x - wa.x) * (wb.y - wa.y) * (1.0 + twin);
+    // a recess: the balcony's shadowed depth, a lit door at its back
+    float door = recess * cover1(f.x, 0.36, 0.64, fg2.x) * cover1(f.y, 0.08, 0.8, fg2.y);
+    vec3 cellC = mix(base, darkC * mix(1.0, 0.75, recess), win * (1.0 - isLit * (1.0 - recess)));
+    // an air-con box painted under some windows
+    float ac = step(0.62, h2) * step(h2, 0.78) * (1.0 - recess) * cover1(f.x, 0.52, 0.8, fg2.x) * cover1(f.y, 0.03, 0.21, fg2.y);
     cellC = mix(cellC, base * 1.12, ac);
+    cellC = mix(cellC, curtC * 0.7, curt * win);
     vec3 avgC = mix(base, darkC, area * (1.0 - litP));
     col = mix(avgC, cellC, det);
-    litWin = mix(litP * area, isLit * win, det);
-    winE = mix(uWinWarm * litP * area * 0.9, warmC * isLit * win, det);
-    float slab = lineAt(min(f.y, 1.0 - f.y) * rowP, fq.y, Wp * 1.25) * smoothstep(2.5, 5.0, 1.0 / fg2.y);
-    float inXh = step(wa.x, f.x) * step(f.x, wb.x), inYh = step(wa.y, f.y) * step(f.y, wb.y);
-    float fx = min(abs(f.x - wa.x), abs(f.x - wb.x)) * colP;
-    float fy = min(abs(f.y - wa.y), abs(f.y - wb.y)) * rowP;
-    float frame = max(lineAt(fx, fq.x, Wp * 0.85) * inYh, lineAt(fy, fq.y, Wp * 0.85) * inXh);
-    float mull = lineAt(abs(f.x - 0.5) * colP, fq.x, Wp * 0.7) * inYh * step(0.35, h2);
-    float cage = step(h3, 0.18) * lineAt(abs(fract((f.x - wa.x) / (wb.x - wa.x) * 7.0) - 0.5) * colP * (wb.x - wa.x) / 7.0, fq.x, Wp * 0.6) * inXh * inYh;
-    float acl = step(0.62, h2) * step(h2, 0.8) * max(lineAt(min(abs(f.x - 0.52), abs(f.x - 0.8)) * colP, fq.x, Wp * 0.7) * step(0.03, f.y) * step(f.y, 0.21),
+    float litMask = isLit * mix(win, door, recess);
+    litWin = mix(litP * area, litMask, det);
+    vec3 we = warmC * litMask * (1.0 - curt * 0.65) + curtC * curt * win * isLit * 0.45;
+    winE = mix(uWinWarm * litP * area * 0.95, we, det);
+    float slab = lineAt(min(f.y, 1.0 - f.y) * rowP, fq.y, Wp * 1.3) * smoothstep(2.5, 5.0, 1.0 / fg2.y);
+    float inXh = step(wa.x, fx) * step(fx, wb.x), inYh = step(wa.y, f.y) * step(f.y, wb.y);
+    float dfx = min(abs(fx - wa.x), abs(fx - wb.x)) * colP;
+    float dfy = min(abs(f.y - wa.y), abs(f.y - wb.y)) * rowP;
+    float frame = max(lineAt(dfx, fq.x, Wp * 0.9) * inYh, lineAt(dfy, fq.y, Wp * 0.9) * inXh);
+    float mull = lineAt(abs(f.x - 0.5) * colP, fq.x, Wp * 0.7) * inYh * step(0.35, h2) * step(t4, 0.67) * (1.0 - twin);
+    float transom = lineAt(abs(f.y - mix(wa.y, wb.y, 0.72)) * rowP, fq.y, Wp * 0.6) * inXh * step(0.5, h3) * (1.0 - recess);
+    float cage = step(h3, 0.14) * (1.0 - recess) * lineAt(abs(fract((fx - wa.x) / max(wb.x - wa.x, 0.01) * 7.0) - 0.5) * colP * (wb.x - wa.x) / 7.0, fq.x, Wp * 0.6) * inXh * inYh;
+    float acl = step(0.62, h2) * step(h2, 0.78) * (1.0 - recess) * max(lineAt(min(abs(f.x - 0.52), abs(f.x - 0.8)) * colP, fq.x, Wp * 0.7) * step(0.03, f.y) * step(f.y, 0.21),
       lineAt(min(abs(f.y - 0.03), abs(f.y - 0.21)) * rowP, fq.y, Wp * 0.7) * step(0.52, f.x) * step(f.x, 0.8));
+    float doorL = recess * max(lineAt(min(abs(f.x - 0.36), abs(f.x - 0.64)) * colP, fq.x, Wp * 0.8) * step(0.08, f.y) * step(f.y, 0.8), lineAt(abs(f.y - 0.8) * rowP, fq.y, Wp * 0.8) * step(0.36, f.x) * step(f.x, 0.64));
     lines = max(lines, slab);
-    lines = max(lines, max(max(frame, mull), max(cage, acl)) * det);
+    lines = max(lines, max(max(max(frame, mull), max(cage, acl)), max(transom, doorL)) * det);
   } else if (kind == 2.0) {
     // glazed roof tiles: courses down the slope, tile joints across
     float rp = 0.32, cp = 0.26;
@@ -318,7 +356,7 @@ void main() {
     col = base * (0.9 + 0.17 * hs);
     float puddle = smoothstep(0.45, 0.66, vnoise(p * 0.23) * 0.65 + vnoise(p * 0.9 + 3.0) * 0.35);
     float wAmt = mix(0.5, 1.0, puddle) * wet;
-    col *= 1.0 - 0.34 * wAmt;
+    col *= 1.0 - 0.5 * wAmt;
     if (uReflOn > 0.5) {
       vec2 ruv = vRefl.xy / vRefl.w;
       vec2 rip = (vec2(vnoise(p * 2.6 + uTime * 0.7), vnoise(p * 2.6 - uTime * 0.6 + 7.0)) - 0.5) * 0.014 * (1.0 - puddle * 0.7);
@@ -333,10 +371,11 @@ void main() {
         wsum += wg;
       }
       acc /= wsum;
+      vec3 stk = texture(uStreak, ruv).rgb;
       float fres = 0.3 + 0.7 * pow(1.0 - clamp(V.y, 0.0, 1.0), 3.0);
       float k = wAmt * fres;
-      col = mix(col, acc.rgb, clamp(acc.a * k * 0.6, 0.0, 1.0));
-      reflAdd = acc.rgb * k * (0.35 + 0.65 * puddle) * 0.55;
+      col = mix(col, acc.rgb * 0.55, clamp(acc.a * k * 0.45, 0.0, 1.0));
+      reflAdd = (acc.rgb * 0.45 + stk * 2.4) * k * (0.45 + 0.55 * puddle);
     }
     vec2 rc = floor(p / 1.3);
     float rp2 = fract(uTime * 0.6 + h12(rc + 5.0));
@@ -419,8 +458,11 @@ void main() {
   vec3 paper = mix(uPaperDeep, uPaper, clamp(lum * 1.7, 0.0, 1.0));
   vec3 sut = mix(paper, col * 0.5, accent);
   sut = mix(sut * 0.7, sut, lit);
+  float deep = (1.0 - smoothstep(-150.0, 70.0, vWorld.y)) * 0.9;
+  vec3 deepC = mix(uPaperDeep, uPaper, clamp(lum * 1.6, 0.0, 1.0)) * mix(0.8, 1.2, lit);
+  shaded = mix(shaded, mix(deepC, col * 0.5, accent * 0.6), deep * 0.85);
   col = mix(shaded, sut, uSutra);
-  winE = mix(winE, uSutraWin * litWin * 0.9, uSutra);
+  winE = mix(winE, uSutraWin * litWin * 0.9, max(uSutra, deep * 0.7));
 
   if (gloss > 0.5) {
     vec3 R = reflect(-V, n);
@@ -442,6 +484,7 @@ void main() {
   float li = clamp(lines, 0.0, 1.0) * fade;
   col = mix(col, lineC, mix(li, fade, forceInk));
   emit += goldL * li * uGold * 0.8;
+  emit += li * uGold * 0.9 * (1.0 - smoothstep(-120.0, -20.0, yy)) * (1.0 - uSutra);
 
   vec4 fgc = silkFog(vWorld, uFogScale);
   vec3 outc = col * fgc.a + fgc.rgb + (emit + winE + reflAdd) * sqrt(fgc.a);
@@ -516,8 +559,11 @@ void main() {
   vec3 D;
   if (mode < 0.5) {
     float L = texture(uMono, vUv).r;
-    E = vTint * L * vNeon.x * fl * uNeonGain;
-    D = vColor * (1.0 - L);
+    // the tube core carries the full HDR gain; the halo only a little (bloom paints the glow), so strokes stay legible
+    float core = smoothstep(0.62, 0.95, L);
+    float halo = L * (1.0 - core);
+    E = vTint * (core + halo * 0.16) * vNeon.x * fl * uNeonGain;
+    D = vColor * (1.0 - L) + vTint * halo * 0.25;
   } else if (mode < 1.5) {
     E = vTint * vNeon.x * fl * uNeonGain;
     D = vec3(0.0);
@@ -615,7 +661,7 @@ void main() {
   P = vec2(P.x * 1.25 + uSeed * 0.1, fract(P.y * 1.7 + 0.15));
   // 千里江山: a few big blue-green peaks with ochre feet, flat cloud bands, pale sky, water at the bottom
   float px = fract(P.x);
-  vec3 sky = mix(vec3(0.52, 0.70, 0.74), vec3(0.16, 0.36, 0.66), smoothstep(0.3, 1.0, P.y));
+  vec3 sky = mix(vec3(0.62, 0.74, 0.72), vec3(0.2, 0.42, 0.7), smoothstep(0.35, 1.0, P.y));
   vec3 c = sky;
   for (int i = 0; i < 3; i++) {
     float fi = float(i);
@@ -631,10 +677,10 @@ void main() {
     }
     if (P.y < h) {
       float t = clamp((h - P.y) / max(h - base + 0.1, 0.05), 0.0, 1.0);
-      vec3 top = mix(vec3(0.05, 0.36, 0.30), vec3(0.06, 0.24, 0.55), smoothstep(0.05, 0.4, t));
+      vec3 top = mix(vec3(0.03, 0.42, 0.34), vec3(0.04, 0.22, 0.58), smoothstep(0.05, 0.45, t));
       vec3 bot = vec3(0.66, 0.50, 0.30);
       vec3 cc = mix(top, bot, smoothstep(0.55, 1.0, t));
-      cc = mix(cc, sky, fi * 0.28);
+      cc = mix(cc, sky, fi * 0.2);
       c = cc;
     }
   }
@@ -648,7 +694,7 @@ void main() {
   vec2 fw = max(fwidth(g), vec2(1e-5));
   float dotm = cover1(f.x, 0.1, 0.9, fw.x) * cover1(f.y, 0.1, 0.9, fw.y);
   float far = smoothstep(0.3, 0.7, max(fw.x, fw.y));
-  float led = mix(mix(0.5, 1.0, dotm), 0.92, far);
+  float led = mix(mix(0.74, 1.0, dotm), 0.95, far);
   float scan = 1.0 + 0.18 * (1.0 - smoothstep(0.0, 0.03, abs(fract(vUv.y * 0.6 - uTime * 0.07) - 0.5)));
   float dead = step(0.998, h12(cell + uSeed));
   vec2 panel = abs(fract(m / 8.0 + 0.5) - 0.5) * 8.0;
@@ -656,9 +702,9 @@ void main() {
   float seam = max(lineAt(panel.x, fm.x, uLinePx), lineAt(panel.y, fm.y, uLinePx)) * (1.0 - smoothstep(60.0, 180.0, length(vWorld - uCam)));
   c *= led * scan * (1.0 - dead * 0.55);
   c = mix(c, c * vec3(0.55, 0.62, 0.95) * 0.75, uSutra);
-  c = mix(c, vec3(0.06, 0.07, 0.09), seam * 0.85);
+  c = mix(c, vec3(0.06, 0.07, 0.09), seam * 0.55);
   vec4 fg = silkFog(vWorld, uFogScale);
-  gl_FragColor = vec4(c * 1.35 * sqrt(max(fg.a, 1e-4)) + fg.rgb, 1.0);
+  gl_FragColor = vec4(c * 1.25 * sqrt(max(fg.a, 1e-4)) + fg.rgb, 1.0);
 }
 `;
 export function screenMaterial(shared: Shared, w: number, h: number, seed: number): ShaderMaterial {

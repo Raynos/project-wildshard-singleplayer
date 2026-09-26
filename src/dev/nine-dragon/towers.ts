@@ -8,13 +8,10 @@ import { K, Kit, type Look } from './kit';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
 import { dragonHook, laundry, person } from './props';
 import { hipRoof } from './square';
+import { WORDS } from './words';
 import { NEON, Rng, chars } from './util';
 
-export const WORDS = [
-  '麵', '牙科', '火鍋', '茶', '藥房', '旅館', '麻雀', '九龍', '茶樓', '當舖', '押', '酒家', '金行', '眼科', '冰室', '雲吞', '燒臘', '涼茶',
-  '士多', '理髮', '電器', '中醫', '跌打', '茶餐廳', '糖水', '粥麵', '串串香', '小面', '火锅', '药房', '旅馆', '网吧', '宾馆', '麻辣烫',
-  '酸辣粉', '按摩', '大押', '燒鵝', '海味', '鐘錶', '刻印', '夜總會', '賓館', '抄手', '豆花', '洗衣', '五金', '跌打酒',
-] as const;
+export { WORDS } from './words';
 export const NEONS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, NEON.magenta, NEON.cyan, 0xff7a2a, 0xa8ff5a] as const;
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -72,7 +69,7 @@ function skybridge(ctx: Ctx, rng: Rng, x0: number, x1: number, z: number, y: num
 /** the hanging monorail: a box-girder track slung from the Cable Deck on steel rods */
 function monorail(ctx: Ctx): void {
   const k = ctx.kit('monorail', true);
-  const y = Y0 + 20, z = -27;
+  const y = Y0 + 25.5, z = -27;
   k.box(15, y - 1.2, z, 190, 1.2, 1.4, { wash: 0x7e8591, kind: K.panel, line: 1.5 });
   k.box(15, y - 1.45, z, 190, 0.25, 2.2, { wash: 0x5c626c, line: 1.2 });
   for (let x = -75; x <= 105; x += 15) {
@@ -190,25 +187,25 @@ export function buildTowers(ctx: Ctx): void {
   shopfronts(ctx, 'street-shops', new Vector3(STREET.x1, 0, STREET.z0), new Vector3(-1, 0, 0), len, Y0, rng, words, NEONS);
   // blade signs: the east side of the square reads toward the spawn; the street's both sides read down the street
   const bs = ctx.kit('blades', true);
-  bladeSigns(ctx, rng, bs, PLAZA.x1 + 0.6, -22, 14, -1, 16, Y0 + 6, Y0 + 38);
+  bladeSigns(ctx, rng, bs, PLAZA.x1 + 0.6, -31, 14, -1, 18, Y0 + 6, Y0 + 38);
   bladeSigns(ctx, rng, bs, STREET.x0, -48, -150, 1, 16, Y0 + 5, Y0 + 20);
   bladeSigns(ctx, rng, bs, STREET.x1, -34, -150, -1, 16, Y0 + 5, Y0 + 20);
   // hero signs on the east facade (the spawn's right side)
-  const hero: [string, number, number, number, number][] = [['旅館', NEON.amber, 26.2, Y0 + 13, -17], ['藥房', NEON.red, 27.4, Y0 + 8.5, -12], ['麻雀', NEON.jade, 27.6, Y0 + 17, 6], ['茶樓', NEON.cyan, 26.8, Y0 + 24, -6]];
+  const hero: [string, number, number, number, number][] = [['旅館', NEON.amber, 20.2, Y0 + 14.5, -23], ['藥房', NEON.red, 20.4, Y0 + 8.6, -18.5], ['麻雀', NEON.jade, 20.6, Y0 + 17, -6], ['茶樓', NEON.cyan, 20.3, Y0 + 21, -13]];
   for (const [text, col, x, y, z] of hero) {
-    ctx.signs.place({ at: new Vector3(x, y, z), normal: new Vector3(0, 0, 1), size: 1.3, spec: { text, color: hex(col), vertical: true, style: 'tube' }, blade: true }, bs);
+    ctx.signs.place({ at: new Vector3(x, y, z), normal: new Vector3(0, 0, 1), size: 1.65, spec: { text, color: hex(col), vertical: true, style: 'tube' }, blade: true }, bs);
     bs.beam(new Vector3(PLAZA.x1 + 0.6, y + 2.2, z), new Vector3(x - 1, y + 2.2, z), 0.1, 0.1, { wash: 0x2e3036, line: 0.8 });
   }
   // hero signs on the square's north side, right of the gate (the spawn sees this wall head-on)
   const north2: [string, number, number, number, number, 'tube' | 'box'][] = [
-    ['旅館', NEON.amber, 26.5, Y0 + 15, 1.35, 'tube'], ['藥房', NEON.red, 22.3, Y0 + 10.5, 1.2, 'box'], ['茶樓', NEON.cyan, 17, Y0 + 19, 1.05, 'tube'],
-    ['麻雀', NEON.jade, 29, Y0 + 7.5, 0.95, 'tube'], ['當舖', NEON.magenta, 14.2, Y0 + 9, 0.9, 'tube'], ['押', NEON.red, 19.6, Y0 + 24, 1.3, 'box'],
+    ['酒家', NEON.amber, 20.6, Y0 + 16, 1.4, 'tube'], ['藥', NEON.red, 18.2, Y0 + 10.5, 1.5, 'box'], ['茶', NEON.cyan, 15.8, Y0 + 19, 1.3, 'tube'],
+    ['金行', NEON.jade, 21.4, Y0 + 7.6, 1.0, 'tube'], ['當舖', NEON.magenta, 14.6, Y0 + 10.5, 1.0, 'tube'], ['押', NEON.red, 19.4, Y0 + 24.5, 1.5, 'box'],
   ];
   for (const [text, col, x, y, size, style] of north2) {
     ctx.signs.place({ at: new Vector3(x, y, PLAZA.z0 + 1.2), normal: new Vector3(0, 0, 1), size, spec: { text, color: hex(col), vertical: true, style } }, bs);
     bs.beam(new Vector3(x, y, PLAZA.z0 - 0.6), new Vector3(x, y, PLAZA.z0 + 1.1), 0.1, 0.1, { wash: 0x2e3036, line: 0.8 });
   }
-  dragonHook(bs, ctx, new Vector3(PLAZA.x1 + 0.6, Y0 + 12.5, -15), new Vector3(-1, 0, 0), 1.0);
+  dragonHook(bs, ctx, new Vector3(PLAZA.x1 + 0.6, Y0 + 12.5, -19), new Vector3(-1, 0, 0), 1.0);
   dragonHook(bs, ctx, new Vector3(STREET.x1, Y0 + 11, -46), new Vector3(-1, 0, 0), 1.0);
   dragonHook(bs, ctx, new Vector3(STREET.x0, Y0 + 9.5, -60), new Vector3(1, 0, 0), 1.0);
   // laundry and cables strung across the street

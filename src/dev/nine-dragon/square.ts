@@ -12,7 +12,7 @@ const CINNABAR: Look = { wash: 0xb8321f, line: 1, accent: true };
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
 function flagstones(k: Kit, x0: number, z0: number, x1: number, z1: number, y: number): void {
-  k.quad(new Vector3(x0, y, z1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), x1 - x0, z1 - z0, { wash: 0xa8a8a2, kind: K.flag, wet: 1, line: 0 });
+  k.quad(new Vector3(x0, y, z1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), x1 - x0, z1 - z0, { wash: 0x8a8886, kind: K.flag, wet: 1, line: 0 });
 }
 
 /**
@@ -94,46 +94,52 @@ function paifang(ctx: Ctx): void {
   const k = ctx.kit('paifang', true);
   const y = Y0;
   const z = GATE.z;
+  const S = GATE.s;
   const [p0, p1, p2, p3] = GATE.posts;
-  const posts: [number, number, number][] = [[p0, 0.28, 6.1], [p1, 0.36, 8.0], [p2, 0.36, 8.0], [p3, 0.28, 6.1]];
+  const posts: [number, number, number][] = [[p0, 0.3, 6.2], [p1, 0.38, 8.1], [p2, 0.38, 8.1], [p3, 0.3, 6.2]];
   for (const [px, r, h] of posts) {
-    k.box(px, y, z, 1.15, 0.5, 1.2, { ...STONE, line: 2 });
-    k.box(px, y + 0.5, z, 0.9, 0.9, 1.0, { wash: 0xc9c5bb, kind: K.panel, line: 1 });
-    k.cyl(px, y + 1.4, z, r, r * 0.92, h - 1.4, 14, CINNABAR);
-    // drum stones braced front and back
-    k.box(px, y + 0.5, z - 0.95, 0.5, 1.3, 0.6, { wash: 0xc9c5bb, kind: K.panel, line: 1 });
-    k.box(px, y + 0.5, z + 0.95, 0.5, 1.3, 0.6, { wash: 0xc9c5bb, kind: K.panel, line: 1 });
+    k.box(px, y, z, 1.4, 0.6, 1.5, { ...STONE, line: 2 });
+    k.box(px, y + 0.6, z, 1.1, 1.1, 1.2, { wash: 0xc9c5bb, kind: K.panel, line: 1 });
+    k.cyl(px, y + 1.7, z, r * S, r * S * 0.92, h * S - 1.7, 16, CINNABAR);
+    for (const dz of [-1.2, 1.2]) {
+      k.box(px, y + 0.6, z + dz, 0.6, 1.6, 0.75, { wash: 0xc9c5bb, kind: K.panel, line: 1 });
+      k.lathe(px, y + 2.2, z + dz, [[0.3, 0], [0.34, 0.12], [0.26, 0.3], [0.12, 0.44], [0.02, 0.5]], 8, STONE, true, 0);
+    }
   }
   const cx = GATE.x;
-  // centre bay: two lintels with the plaque between, a painted frieze
-  k.box(cx, y + 6.7, z, p2 - p1 + 1.3, 0.55, 0.6, CINNABAR);
-  k.box(cx, y + 6.72, z + 0.31, p2 - p1 + 1.0, 0.4, 0.02, { wash: MIN.azurite, line: 1, accent: true });
-  k.box(cx, y + 5.0, z, p2 - p1, 0.45, 0.5, CINNABAR);
-  k.box(cx, y + 5.03, z + 0.26, p2 - p1 - 0.3, 0.3, 0.02, { wash: MIN.malachite, line: 1, accent: true });
-  k.box(cx, y + 5.45, z, 2.9, 1.25, 0.3, { wash: 0x15110e, line: 1.2, accent: true });
-  ctx.signs.place({ at: new Vector3(cx, y + 6.07, z + 0.16), normal: new Vector3(0, 0, 1), size: 0.52, spec: { text: '九龍疊城', color: '#f0c86a', vertical: false, style: 'plaque' }, gain: 1.6 }, null);
-  ctx.signs.place({ at: new Vector3(cx, y + 6.07, z - 0.16), normal: new Vector3(0, 0, -1), size: 0.52, spec: { text: '九龍疊城', color: '#f0c86a', vertical: false, style: 'plaque' }, gain: 1.6 }, null);
-  dougong(k, p1 - 0.4, p2 + 0.4, y + 6.98, z);
-  hipRoof(ctx, k, cx, y + 7.55, z, p2 - p1 + 2.5, 2.5, 1.55, 0.45, 0x2f7d5e, NEON.red);
+  // centre bay: two lintels with the big gold 九龍 plaque between, painted friezes
+  const L1 = y + 6.7 * S, L2 = y + 5.0 * S;
+  k.box(cx, L1, z, p2 - p1 + 1.5, 0.6 * S, 0.7, CINNABAR);
+  k.box(cx, L1 + 0.04, z + 0.36, p2 - p1 + 1.2, 0.46 * S, 0.02, { wash: MIN.azurite, kind: K.panel, line: 1, accent: true });
+  k.box(cx, L2, z, p2 - p1, 0.5 * S, 0.6, CINNABAR);
+  k.box(cx, L2 + 0.04, z + 0.31, p2 - p1 - 0.3, 0.36 * S, 0.02, { wash: MIN.malachite, kind: K.panel, line: 1, accent: true });
+  const plaqueY = (L1 + L2 + 0.5 * S) / 2;
+  k.box(cx, plaqueY - 0.95, z, 3.3, 1.9, 0.34, { wash: 0x15110e, line: 1.3, accent: true });
+  k.box(cx, plaqueY - 1.05, z, 3.6, 2.1, 0.2, { wash: METAL.gold, line: 1.2, gloss: true, accent: true });
+  for (const sz of [1, -1]) {
+    ctx.signs.place({ at: new Vector3(cx, plaqueY, z + sz * 0.18), normal: new Vector3(0, 0, sz), size: 1.02, spec: { text: '九龍', color: '#f3cd6c', vertical: false, style: 'plaque' }, gain: 1.9 }, null);
+  }
+  dougong(k, p1 - 0.5, p2 + 0.5, L1 + 0.3 * S, z);
+  hipRoof(ctx, k, cx, L1 + S, z, p2 - p1 + 3.2, 3.1, 1.9, 0.6, 0x2f7d5e, NEON.red);
+  hipRoof(ctx, k, cx, L1 + 3.05 * S, z, (p2 - p1) * 0.55, 2.2, 1.3, 0.45, 0x2f7d5e, null);
+  k.box(cx, L1 + 2.2 * S, z, (p2 - p1) * 0.5, 0.7, 1.2, { wash: 0xb8321f, kind: K.panel, line: 1, accent: true });
   // side bays
   for (const [a, b] of [[p0, p1], [p2, p3]] as const) {
     const m = (a + b) / 2;
-    k.box(m, y + 4.75, z, b - a + 0.9, 0.46, 0.52, CINNABAR);
-    k.box(m, y + 4.77, z + 0.27, b - a + 0.6, 0.3, 0.02, { wash: MIN.azurite, line: 1, accent: true });
-    k.box(m, y + 3.85, z, b - a, 0.36, 0.44, CINNABAR);
-    k.box(m, y + 4.21, z, b - a - 0.4, 0.54, 0.2, { wash: MIN.lightMalachite, kind: K.panel, line: 1, accent: true });
-    dougong(k, a - 0.2, b + 0.2, y + 5.21, z);
-    hipRoof(ctx, k, m, y + 5.72, z, b - a + 2.0, 2.1, 1.2, 0.38, 0x2f7d5e, NEON.red);
+    const l1 = y + 4.75 * S, l2 = y + 3.85 * S;
+    k.box(m, l1, z, b - a + 1.1, 0.55 * S, 0.62, CINNABAR);
+    k.box(m, l1 + 0.03, z + 0.32, b - a + 0.8, 0.36 * S, 0.02, { wash: MIN.azurite, kind: K.panel, line: 1, accent: true });
+    k.box(m, l2, z, b - a, 0.42 * S, 0.5, CINNABAR);
+    k.box(m, l2 + 0.45 * S, z, b - a - 0.4, 0.6 * S, 0.24, { wash: MIN.lightMalachite, kind: K.panel, line: 1, accent: true });
+    dougong(k, a - 0.3, b + 0.3, l1 + 0.55 * S, z);
+    hipRoof(ctx, k, m, l1 + 1.2 * S, z, b - a + 2.5, 2.6, 1.45, 0.5, 0x2f7d5e, NEON.red);
   }
   // couplets on the two inner posts (white boards, black kai)
-  ctx.signs.place({ at: new Vector3(p1, y + 3.1, z + 0.36), normal: new Vector3(0, 0, 1), size: 0.42, spec: { text: '萬家燈火', color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
-  ctx.signs.place({ at: new Vector3(p2, y + 3.1, z + 0.36), normal: new Vector3(0, 0, 1), size: 0.42, spec: { text: '天下一家', color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
-  // lanterns under the lintels
-  for (let i = 0; i < 3; i++) ctx.lantern(p1 + 0.9 + i * 1.3, y + 4.75, z, 1.05);
-  ctx.lantern(p0 + 0.9, y + 3.65, z, 0.9);
-  ctx.lantern(p0 + 2.5, y + 3.65, z, 0.9);
-  ctx.lantern(p2 + 0.9, y + 3.65, z, 0.9);
-  ctx.lantern(p2 + 2.5, y + 3.65, z, 0.9);
+  ctx.signs.place({ at: new Vector3(p1, y + 3.6, z + 0.5), normal: new Vector3(0, 0, 1), size: 0.52, spec: { text: '萬家燈火', color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
+  ctx.signs.place({ at: new Vector3(p2, y + 3.6, z + 0.5), normal: new Vector3(0, 0, 1), size: 0.52, spec: { text: '天下一家', color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
+  // lanterns under every lintel
+  for (let i = 0; i < 4; i++) ctx.lantern(p1 + 0.9 + i * ((p2 - p1 - 1.8) / 3), L2 - 0.3, z, 1.25);
+  for (const [a, b] of [[p0, p1], [p2, p3]] as const) for (let i = 0; i < 2; i++) ctx.lantern(a + (b - a) * (0.3 + i * 0.4), y + 3.85 * S - 0.25, z, 1.05);
   ctx.map.push({ x0: p0 - 0.6, z0: z - 1.2, x1: p3 + 0.6, z1: z + 1.2, kind: 'gate' });
 }
 
@@ -141,63 +147,85 @@ function banyan(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('banyan', true);
   const { x, z, r } = BANYAN;
   const y = Y0;
-  // round stone planter, carved panels, a rim
+  // round stone planter, carved panels, a rim, dark soil
   k.cyl(x, y, z, r, r, 1.0, 22, { wash: 0xb3b0a7, kind: K.panel, line: 1 }, { caps: false, edges: E.all });
   k.cyl(x, y + 1.0, z, r + 0.18, r + 0.18, 0.16, 22, STONE, { edges: E.rims });
   k.cyl(x, y + 0.98, z, r - 0.05, r - 0.05, 0.12, 22, { wash: 0x3a3228, line: 0 }, { edges: E.none });
   const bark: Look = { wash: 0x5b4a3a, line: 0 };
+  const bark2: Look = { wash: 0x4a3c30, line: 0 };
   const ground = y + 1.1;
-  // buttress roots and the trunk
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2 + 0.3;
-    const foot = new Vector3(x + Math.cos(a) * 2.2, ground, z + Math.sin(a) * 2.2);
-    k.limb(foot, new Vector3(x + Math.cos(a) * 0.5, ground + 3.2, z + Math.sin(a) * 0.5), 0.35, 0.28, 6, bark);
+  const L = (a: Vector3, b: Vector3, r0: number, r1: number, lk: Look): void => { k.limb(a, b, r0, r1, 8, lk, E.none, true); };
+  // a gnarled trunk: five strands twisting up and fusing into the crown
+  const crown = new Vector3(x + 0.2, ground + 5.6, z - 0.2);
+  for (let i = 0; i < 5; i++) {
+    const a0 = (i / 5) * Math.PI * 2;
+    let prev = new Vector3(x + Math.cos(a0) * 0.75, ground, z + Math.sin(a0) * 0.75);
+    for (let j = 1; j <= 4; j++) {
+      const t = j / 4;
+      const a1 = a0 + t * 1.6;
+      const rad = 0.75 * (1 - t) + 0.25 * t;
+      const next = new Vector3(x + Math.cos(a1) * rad, ground + t * 5.6, z + Math.sin(a1) * rad).lerp(crown, t * t * 0.6);
+      L(prev, next, 0.42 - t * 0.12, 0.36 - t * 0.1, i % 2 === 0 ? bark : bark2);
+      prev = next;
+    }
   }
-  k.limb(new Vector3(x, ground, z), new Vector3(x + 0.3, ground + 6.5, z - 0.2), 1.05, 0.62, 10, bark);
-  const crown = new Vector3(x + 0.3, ground + 6.2, z - 0.2);
+  // buttress roots gripping the planter and draping over its rim
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 + rng.range(-0.15, 0.15);
+    const mid = new Vector3(x + Math.cos(a) * 1.9, ground + 0.25, z + Math.sin(a) * 1.9);
+    L(new Vector3(x + Math.cos(a) * 0.6, ground + 1.4, z + Math.sin(a) * 0.6), mid, 0.3, 0.2, bark);
+    L(mid, new Vector3(x + Math.cos(a) * (r + 0.25), ground + 0.05, z + Math.sin(a) * (r + 0.25)), 0.2, 0.1, bark2);
+    if (i % 2 === 0) L(new Vector3(x + Math.cos(a) * (r + 0.25), ground + 0.05, z + Math.sin(a) * (r + 0.25)), new Vector3(x + Math.cos(a) * (r + 0.4), y + 0.2, z + Math.sin(a) * (r + 0.4)), 0.1, 0.07, bark2);
+  }
+  // limbs spreading wide, each forking
   const tips: Vector3[] = [];
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 9) * Math.PI * 2 + rng.range(-0.2, 0.2);
-    const reach = rng.range(4.5, 8);
-    const tip = new Vector3(x + Math.cos(a) * reach, ground + rng.range(7.5, 10.5), z + Math.sin(a) * reach * 0.85);
-    const mid = crown.clone().lerp(tip, 0.5).add(new Vector3(0, 1.0, 0));
-    k.limb(crown, mid, 0.42, 0.28, 6, bark);
-    k.limb(mid, tip, 0.28, 0.12, 5, bark);
-    tips.push(tip);
+  const nodes: Vector3[] = [];
+  for (let i = 0; i < 11; i++) {
+    const a = (i / 11) * Math.PI * 2 + rng.range(-0.2, 0.2);
+    const reach = rng.range(4.2, 6.6);
+    const mid = crown.clone().add(new Vector3(Math.cos(a) * reach * 0.5, rng.range(1.2, 2.4), Math.sin(a) * reach * 0.45));
+    const tip = crown.clone().add(new Vector3(Math.cos(a) * reach, rng.range(2.2, 4.4), Math.sin(a) * reach * 0.85));
+    L(crown, mid, 0.34, 0.22, bark);
+    L(mid, tip, 0.22, 0.09, bark);
+    const fork = tip.clone().add(new Vector3(rng.range(-1.5, 1.5), rng.range(0.5, 1.6), rng.range(-1.5, 1.5)));
+    L(mid.clone().lerp(tip, 0.5), fork, 0.12, 0.05, bark2);
+    tips.push(tip, fork);
+    nodes.push(mid, mid.clone().lerp(tip, 0.5), tip);
   }
-  // aerial roots: ruled dark strands falling from the limbs
-  for (let i = 0; i < 34; i++) {
-    const t = rng.pick(tips);
-    const p = crown.clone().lerp(t, rng.range(0.35, 0.95));
-    const len = rng.range(3.0, p.y - ground - 0.2);
-    k.beam(p, p.clone().add(new Vector3(0, -len, 0)), 0.05, 0.05, { wash: 0x3e3226, line: 0.6 });
+  // aerial roots: dozens of strands falling from the limbs, some to the soil
+  for (let i = 0; i < 70; i++) {
+    const p = rng.pick(nodes).clone().add(new Vector3(rng.range(-0.6, 0.6), -0.1, rng.range(-0.6, 0.6)));
+    const reachGround = rng.chance(0.35);
+    const len = reachGround ? p.y - ground : rng.range(1.5, Math.max(1.6, (p.y - ground) * 0.8));
+    const bend = new Vector3(rng.range(-0.25, 0.25), 0, rng.range(-0.25, 0.25));
+    const m1 = p.clone().add(new Vector3(0, -len * 0.5, 0)).add(bend);
+    const r0 = rng.range(0.025, 0.06);
+    k.limb(p, m1, r0, r0 * 0.9, 4, { wash: 0x3e3226, line: 0 }, E.none, true);
+    k.limb(m1, p.clone().add(new Vector3(0, -len, 0)).add(bend.clone().multiplyScalar(0.4)), r0 * 0.9, r0 * 0.6, 4, { wash: 0x3e3226, line: 0 }, E.none, true);
   }
-  // canopy: gongbi leaf masses
-  const ico = new IcosahedronGeometry(1, 1);
+  // the canopy: three layers of leaf pads, smooth-shaded, each drawn as gongbi leaves
+  const ico = new IcosahedronGeometry(1, 2);
   const pos = ico.getAttribute('position').array;
-  const greens = [0x2f6a48, 0x3a7a52, 0x285c40, 0x4a8a5c, 0x23553b, 0x356f4c] as const;
-  for (let i = 0; i < 150; i++) {
+  const greens = [0x2f6a48, 0x3a7a52, 0x285c40, 0x4a8a5c, 0x23553b, 0x356f4c, 0x437f52] as const;
+  const pads: [Vector3, number][] = [];
+  for (const t of tips) pads.push([t.clone().add(new Vector3(0, 0.6, 0)), rng.range(1.9, 2.8)]);
+  for (let i = 0; i < 90; i++) {
     const a = rng.range(0, Math.PI * 2);
-    const rr = Math.sqrt(rng.next()) * 9.4;
-    const cx2 = x + Math.cos(a) * rr, cz2 = z + Math.sin(a) * rr * 0.9;
-    const cy = ground + 8.8 + rng.range(-1.2, 2.2) - rr * rr * 0.03;
-    const s = rng.range(0.9, 1.8);
-    const sd = rng.range(0, 10);
-    const lumpy = Array.from(pos, (_, j) => {
-      const b = j - (j % 3);
-      const px = pos[b] ?? 0, py = pos[b + 1] ?? 0, pz = pos[b + 2] ?? 0;
-      const d = 1 + 0.28 * Math.sin(px * 5.3 + sd) * Math.sin(py * 4.1 + sd * 2) * Math.sin(pz * 4.7 + sd * 3) + 0.12 * Math.sin(px * 11 + py * 9 + sd);
-      return (pos[j] ?? 0) * d;
-    });
-    k.blob(lumpy, null, cx2, cy, cz2, s * 1.3, s * 0.6, s * 1.1, { wash: rng.pick(greens), kind: K.leaf, line: 0, accent: true });
+    const rr = Math.sqrt(rng.next()) * 6.2;
+    pads.push([new Vector3(x + Math.cos(a) * rr, ground + 8.4 + rng.range(-1.4, 2.6) - rr * rr * 0.03, z + Math.sin(a) * rr * 0.9), rng.range(0.9, 1.7)]);
+  }
+  for (const [c, s] of pads) {
+    k.blob(pos, null, c.x, c.y, c.z, s * 1.15, s * 0.78, s * 1.05, { wash: rng.pick(greens), kind: K.leaf, line: 0, accent: true }, true);
   }
   // red wish ribbons
-  for (let i = 0; i < 40; i++) {
-    const t = rng.pick(tips);
-    const p = crown.clone().lerp(t, rng.range(0.4, 1.0)).add(new Vector3(0, -rng.range(0.2, 0.8), 0));
+  for (let i = 0; i < 60; i++) {
+    const p = rng.pick(nodes).clone().add(new Vector3(rng.range(-0.8, 0.8), -rng.range(0.1, 0.6), rng.range(-0.8, 0.8)));
     const d = new Vector3(rng.range(-1, 1), 0, rng.range(-1, 1)).normalize();
-    k.quad(p.clone().add(new Vector3(0, -0.8, 0)), d, new Vector3(0, 1, 0), 0.08, 0.8, { wash: 0xd23a26, line: 0.4, accent: true });
+    const h = rng.range(0.5, 1.0);
+    k.quad(p.clone().add(new Vector3(0, -h, 0)), d, new Vector3(0, 1, 0), 0.09, h, { wash: 0xd23a26, line: 0.4, accent: true });
+    k.quad(p.clone().add(new Vector3(0, -h, 0)).addScaledVector(d, 0.09), d.clone().negate(), new Vector3(0, 1, 0), 0.09, h, { wash: 0xd23a26, line: 0.4, accent: true });
   }
+  for (let i = 0; i < 6; i++) { const t = rng.pick(nodes); ctx.lantern(t.x, t.y - 0.3, t.z, 0.8); }
   // the earth-god shrine at the planter's front
   const sx = x - 1.4, sz = z + r + 0.55;
   k.box(sx, y, sz, 1.3, 0.9, 0.8, { wash: 0xb3b0a7, kind: K.panel, line: 1 });
@@ -207,7 +235,6 @@ function banyan(ctx: Ctx, rng: Rng): void {
   hipRoof(ctx, k, sx, y + 2.05, sz, 1.5, 1.1, 0.5, 0.14, 0x2f7d5e, null);
   for (const dx of [-0.35, 0.35]) k.box(sx + dx, y + 0.9, sz + 0.45, 0.06, 0.26, 0.06, { wash: 0xff4a2a, emit: 2.5, line: 0.4, accent: true });
   ctx.signs.place({ at: new Vector3(sx - 0.62, y + 1.5, sz + 0.34), normal: new Vector3(0, 0, 1), size: 0.18, spec: { text: '福德正神', color: '#f0c86a', vertical: true, style: 'paper', ink: '#8e1f14' }, gain: 1.1 }, null);
-  // stone pillar banner beside the planter
   k.box(x + 2.6, y, z + r + 0.2, 0.8, 3.2, 0.5, { wash: 0xb9b5ab, kind: K.panel, line: 1 });
   ctx.signs.place({ at: new Vector3(x + 2.6, y + 1.9, z + r + 0.47), normal: new Vector3(0, 0, 1), size: 0.52, spec: { text: '九龍城', color: '#2a2320', vertical: true, style: 'paper', ink: '#c8c3b6' }, gain: 1.0 }, null);
   ctx.map.push({ x0: x - r, z0: z - r, x1: x + r, z1: z + r, kind: 'green' });
@@ -250,29 +277,27 @@ function noodleStall(ctx: Ctx, rng: Rng): void {
 function signMasts(ctx: Ctx): void {
   const k = ctx.kit('masts', true);
   const steel: Look = { wash: 0x3a3d44, line: 0.8 };
-  const masts: { z: number; signs: { text: string; color: number; y: number; size: number; flicker?: number }[] }[] = [
-    { z: 2.5, signs: [{ text: '九龍', color: NEON.red, y: 11.5, size: 1.45 }, { text: '旅館', color: NEON.amber, y: 6.4, size: 1.05, flicker: 0.37 }] },
-    { z: -9.5, signs: [{ text: '牙科', color: NEON.cyan, y: 10.2, size: 1.1 }, { text: '火鍋', color: NEON.red, y: 5.6, size: 1.05 }] },
-    { z: -20.5, signs: [{ text: '茶', color: NEON.jade, y: 9.6, size: 1.2 }, { text: '藥房', color: NEON.magenta, y: 5.2, size: 0.95 }] },
+  const masts: { z: number; x: number; signs: { text: string; color: number; y: number; size: number; flicker?: number }[] }[] = [
+    { z: -6, x: -1.0, signs: [{ text: '九龍', color: NEON.red, y: 16.4, size: 1.5 }] },
+    { z: -13, x: -3.2, signs: [{ text: '牙科', color: NEON.cyan, y: 14.6, size: 1.3 }, { text: '火鍋', color: NEON.red, y: 9.4, size: 1.25 }] },
+    { z: -20, x: -1.4, signs: [{ text: '茶', color: NEON.jade, y: 11.6, size: 1.45 }, { text: '藥房', color: NEON.magenta, y: 7.2, size: 1.05 }] },
+    { z: -28, x: -3.6, signs: [{ text: '麻雀', color: NEON.red, y: 13.4, size: 1.15 }, { text: '當舖', color: NEON.jade, y: 8.2, size: 0.95 }] },
   ];
   for (const m of masts) {
-    const mx = -2.4, mz = m.z;
-    const top = Y0 + 16;
-    for (const [dx, dz] of [[-0.3, -0.3], [0.3, -0.3], [0.3, 0.3], [-0.3, 0.3]] as const) {
-      k.beam(new Vector3(mx + dx, Y0 - 3, mz + dz), new Vector3(mx + dx * 0.6, top, mz + dz * 0.6), 0.09, 0.09, steel);
-    }
-    for (let yy = Y0 - 2; yy < top - 1; yy += 1.6) {
-      k.beam(new Vector3(mx - 0.29, yy, mz + 0.29), new Vector3(mx + 0.29, yy + 1.6, mz + 0.29), 0.04, 0.04, steel);
-      k.beam(new Vector3(mx - 0.29, yy, mz - 0.29), new Vector3(mx - 0.29, yy + 1.6, mz + 0.29), 0.04, 0.04, steel);
-    }
+    const mx = m.x, mz = m.z;
+    const top = Y0 + 20.5;
+    // a slim twin-pole mast with ladder ties (a lattice would stand in front of the signs behind it)
+    for (const dx of [-0.16, 0.16]) k.beam(new Vector3(mx + dx, Y0 - 3, mz), new Vector3(mx + dx, top, mz), 0.1, 0.1, steel);
+    for (let yy = Y0 - 2; yy < top - 1; yy += 1.4) k.beam(new Vector3(mx - 0.16, yy, mz), new Vector3(mx + 0.16, yy, mz), 0.05, 0.05, steel);
     for (const s of m.signs) {
       const n = chars(s.text).length;
       const h = s.size * (n + 0.62);
       const cy = Y0 + s.y - h / 2;
-      const sx = mx - 0.55 - s.size * 0.68;
-      k.beam(new Vector3(mx, Y0 + s.y + 0.3, mz), new Vector3(sx - s.size * 0.68, Y0 + s.y + 0.3, mz), 0.12, 0.12, steel);
-      k.beam(new Vector3(mx, Y0 + s.y - 1.4, mz), new Vector3(sx, Y0 + s.y + 0.3, mz), 0.06, 0.06, steel);
-      ctx.signs.place({ at: new Vector3(sx, cy, mz), normal: new Vector3(0, 0, 1), size: s.size, spec: { text: s.text, color: hex(s.color), vertical: true, style: 'tube' }, blade: true, flicker: s.flicker ?? 0 }, k);
+      // hung just south of the mast (in front of it from the square), out over the Well on a bracket
+      const sx = mx - 0.35 - s.size * 0.68, sz = mz + 0.75;
+      k.beam(new Vector3(mx, Y0 + s.y + 0.3, mz), new Vector3(mx, Y0 + s.y + 0.3, sz), 0.1, 0.1, steel);
+      k.beam(new Vector3(mx, Y0 + s.y + 0.3, sz), new Vector3(sx - s.size * 0.68, Y0 + s.y + 0.3, sz), 0.12, 0.12, steel);
+      ctx.signs.place({ at: new Vector3(sx, cy, sz), normal: new Vector3(0, 0, 1), size: s.size, spec: { text: s.text, color: hex(s.color), vertical: true, style: 'tube' }, blade: true, flicker: s.flicker ?? 0 }, k);
     }
     dragonHook(k, ctx, new Vector3(mx - 0.3, top - 0.6, mz), new Vector3(-1, 0, 0.25), 0.8);
   }
@@ -304,30 +329,42 @@ export function buildSquare(ctx: Ctx): void {
   noodleStall(ctx, rng);
   signMasts(ctx);
   // mahjong under the banyan's edge
-  mahjong(props, rng, 9.4, Y0, -11.4, 0.2, 4);
-  mahjong(props, rng, 12.8, Y0, -8.2, -0.3, 3);
-  mahjong(props, rng, 9.9, Y0, -5.4, 0.1, 4);
-  mahjong(props, rng, 13.6, Y0, -3.0, 0.5, 2);
+  mahjong(props, rng, 10.2, Y0, -16.8, 0.2, 4);
+  mahjong(props, rng, 13.4, Y0, -12.6, -0.3, 3);
+  mahjong(props, rng, 10.0, Y0, -9.6, 0.1, 4);
+  mahjong(props, rng, 14.4, Y0, -6.8, 0.5, 2);
   // the crowd: under and through the gate, along the street, by the balustrade
   const crowd = ctx.kit('crowd');
-  for (let i = 0; i < 26; i++) {
-    const z = rng.range(-78, -18);
+  for (let i = 0; i < 34; i++) {
+    const z = rng.range(-95, -33);
     const x = rng.range(STREET.x0 + 1.5, STREET.x1 - 1.2);
+    if ((x - 7) ** 2 + (z + 52) ** 2 < 16) continue; // keep the canyon-up camera clear
     person(crowd, rng, x, Y0, z, rng.chance(0.5) ? 0 : Math.PI + rng.range(-0.3, 0.3), 'stand', rng.chance(0.35));
   }
   for (let i = 0; i < 6; i++) person(crowd, rng, rng.range(2.5, 7), Y0, rng.range(-19, -6), rng.range(0, 6.28), 'stand', rng.chance(0.4));
+  // the evening crowd on the square: walkers under oil-paper umbrellas, loiterers, a queue at the stall
+  for (let i = 0; i < 22; i++) {
+    const x = rng.range(2.6, 9), z = rng.range(-23, -4);
+    const bx = x - BANYAN.x, bz = z - BANYAN.z;
+    if (bx * bx + bz * bz < (BANYAN.r + 1) ** 2) continue;
+    if (x > 8.4 && z > -19 && z < -5) continue;
+    person(crowd, rng, x, Y0, z, rng.range(0, 6.28), 'stand', rng.chance(0.45));
+  }
+  for (let i = 0; i < 6; i++) person(crowd, rng, STALL.x0 + 0.8 + i * 1.1, Y0, STALL.z1 + 2.2 + rng.range(-0.3, 0.3), Math.PI + rng.range(-0.4, 0.4), 'stand', rng.chance(0.3));
   person(crowd, rng, 1.0, Y0, -11.5, Math.PI / 2 + 0.2, 'stand', false);
   person(crowd, rng, 1.1, Y0, -13.0, Math.PI / 2 - 0.3, 'stand', true);
-  scooter(props, 27.4, Y0, 13.5, 0.3, 0x2e5fa3);
-  scooter(props, 27.9, Y0, 15.4, 0.2, 0xb8321f);
-  scooter(props, 22.0, Y0, -20.5, 1.2, 0x7fbf9a);
+  scooter(props, 20.4, Y0, 13.5, 0.3, 0x2e5fa3);
+  scooter(props, 20.9, Y0, 15.4, 0.2, 0xb8321f);
+  scooter(props, 20.6, Y0, -4.5, 1.2, 0x7fbf9a);
   // lamps and lantern strings
   lamp(props, 1.1, Y0, 12, 4.2);
-  lamp(props, 1.1, Y0, -3, 4.2);
-  lamp(props, 28.8, Y0, -16, 4.2);
+  lamp(props, 1.1, Y0, -9, 4.2);
+  lamp(props, 1.1, Y0, -19, 4.2);
+  lamp(props, 21, Y0, -6, 4.2);
   const str = ctx.kit('strings', true);
-  lanternString(ctx, new Vector3(-1.1, Y0 + 9.2, 2.5), new Vector3(30, Y0 + 9.5, -1), 2.6, str);
-  lanternString(ctx, new Vector3(GATE.x + 3, Y0 + 8.5, GATE.z), new Vector3(30, Y0 + 8.8, -15), 2.4, str);
-  lanternString(ctx, new Vector3(-1.1, Y0 + 12.2, -9.5), new Vector3(GATE.x - 3, Y0 + 9.2, GATE.z), 2.4, str);
-  for (let z = -32; z > -140; z -= 10) lanternString(ctx, new Vector3(STREET.x0 - 0.2, Y0 + 7 + (z % 3), z), new Vector3(STREET.x1 + 0.2, Y0 + 7.5, z - 2), 2.0, str);
+  lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 12.2, GATE.z + 0.5), new Vector3(22.6, Y0 + 12.5, -22), 1.9, str);
+  lanternString(ctx, new Vector3(-1.2, Y0 + 10.4, -26), new Vector3(GATE.x - 1, Y0 + 11, GATE.z + 0.5), 1.8, str);
+  lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 9.8, GATE.z + 0.6), new Vector3(22.6, Y0 + 9.6, -28), 1.8, str);
+  lanternString(ctx, new Vector3(-1.2, Y0 + 9.2, -12), new Vector3(22.6, Y0 + 9.6, -9), 2.2, str);
+  for (let z = -26; z > -150; z -= 6) lanternString(ctx, new Vector3(STREET.x0 - 0.2, Y0 + 6.5 + (z % 3), z), new Vector3(STREET.x1 + 0.2, Y0 + 7.2, z - 1.5), 1.8, str);
 }

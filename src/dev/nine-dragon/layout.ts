@@ -9,20 +9,20 @@ export const Y0 = 125;
 export const WELL = { x0: -28, x1: 0, z0: -44, z1: 16, water: -245 } as const;
 
 /** the open plaza (the Well's balustrade is its west edge) */
-export const PLAZA = { x0: 0, x1: 30, z0: -24, z1: 20 } as const;
+export const PLAZA = { x0: 0, x1: 22, z0: -26, z1: 20 } as const;
 
 /** the paifang: centre x, z, bay posts */
-export const GATE = { x: 6.5, z: -22, posts: [0.9, 4.3, 8.7, 12.1] as const } as const;
+export const GATE = { x: 6.05, z: -24.5, posts: [0.6, 3.9, 8.2, 11.5] as const, s: 1.85 } as const;
 
 /** the street north through the gate */
-export const STREET = { x0: 0.5, x1: 12.5, z1: -24, z0: -230 } as const;
+export const STREET = { x0: 0.5, x1: 12.5, z1: -26, z0: -230 } as const;
 
 /** the stair-street climbing east out of the square */
-export const STAIR = { z0: 2, z1: 10, x0: 30, x1: 78, rise: 21 } as const;
+export const STAIR = { z0: 2, z1: 10, x0: 22, x1: 70, rise: 21 } as const;
 
-export const BANYAN = { x: 17.2, z: -14.2, r: 4.1 } as const;
+export const BANYAN = { x: 18.4, z: -22.6, r: 3.2 } as const;
 
-export const STALL = { x0: 20, x1: 28.5, z0: -23.8, z1: -20.2 } as const;
+export const STALL = { x0: 15.8, x1: 21.9, z0: -18.8, z1: -15.8 } as const;
 
 /** the nine strata's street levels (altitude of each ring walkway in the Well) */
 export const STRATA = [-245, -150, -70, 0, 70, 125, 167, 210, 240] as const;
@@ -35,7 +35,7 @@ export function walkable(x: number, z: number): boolean {
   if (!(inPlaza || inGate || inStair)) return false;
   const bx = x - BANYAN.x, bz = z - BANYAN.z;
   if (bx * bx + bz * bz < (BANYAN.r + 0.6) ** 2) return false;
-  if (x > STALL.x0 - 0.5 && x < STALL.x1 + 0.5 && z < STALL.z1 + 1.4) return false;
+  if (x > STALL.x0 - 0.5 && x < STALL.x1 + 0.5 && z > STALL.z0 - 0.5 && z < STALL.z1 + 1.4) return false;
   for (const px of GATE.posts) if (Math.abs(x - px) < 0.8 && Math.abs(z - GATE.z) < 0.9) return false;
   return true;
 }

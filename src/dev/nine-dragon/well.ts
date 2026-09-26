@@ -116,6 +116,7 @@ function yamen(ctx: Ctx, rng: Rng): void {
   k.box(cx, y, cz - 3, 11, 4.2, 6.5, { wash: 0xd8d2c4, kind: K.panel, line: 1 });
   for (let i = 0; i < 6; i++) k.cyl(cx - 5 + i * 2, y, cz + 0.6, 0.22, 0.22, 4.3, 8, { wash: 0xb8321f, line: 1, accent: true });
   hipRoof(ctx, k, cx, y + 4.4, cz - 2, 14, 9, 1.8, 0.5, 0x2e5fa3, NEON.amber);
+  for (let i = 0; i < 10; i++) ctx.lantern(cx - 7 + i * 1.55, y + 4.2, cz + 2.6, 1.1);
   hipRoof(ctx, k, cx, y + 6.4, cz - 2, 10, 6, 2.4, 0.45, 0x2e5fa3, null);
   // the courtyard gate and two side halls
   k.box(cx, y, cz + 8, 5, 3.2, 1.2, { wash: 0xb8321f, line: 1, accent: true });
@@ -159,7 +160,7 @@ export function buildWell(ctx: Ctx): void {
       if (band === undefined) continue;
       const y0 = band[0], y1 = Math.min(band[1], w.top);
       if (y1 <= y0 + 1) continue;
-      buildWall(ctx, { p0: w.p0, n: w.n, length: w.len, y0, y1, kit: `well-b${b}`, alpha: `well-b${b}-a`, seed: rng.next() * 99, dress: 1, roofs: b >= 3, maxOut: 1.8, tone: tone((y0 + y1) / 2) }, rng);
+      buildWall(ctx, { p0: w.p0, n: w.n, length: w.len, y0, y1, kit: `well-b${b}`, alpha: `well-b${b}-a`, seed: rng.next() * 99, dress: 1, roofs: b >= 3, rooftop: y1 >= w.top - 0.5 && w.top > Y0, maxOut: 1.8, tone: tone((y0 + y1) / 2) }, rng);
     }
   }
   // strata: ring streets, nets under them, silk fog sheets in the gaps
@@ -172,9 +173,7 @@ export function buildWell(ctx: Ctx): void {
     if (sy !== 0) ringStreet(ctx, k, ka, rng, sy, sy >= Y0);
     if (sy < Y0 && sy !== 0) net(ka, sy - 5, 2.6);
   }
-  net(ctx.alpha('well-b4-a'), Y0 - 27, 3.4);
-  net(ctx.alpha('well-b4-a'), Y0 - 44, 3.0);
-  const bandYs = [[101, 2, 0.42], [36, 3, 0.55], [-30, 4, 0.65], [-110, 5, 0.75], [-190, 6, 0.85], [-236, 7, 0.9]] as const;
+  const bandYs = [[101, 2, 0.3], [36, 3, 0.42], [-30, 4, 0.55], [-110, 5, 0.65], [-190, 6, 0.75], [-236, 7, 0.85]] as const;
   for (const [y, band, a] of bandYs) sheets.push({ y, band, a });
   // catwalks at intermediate levels
   for (let y = Y0 - 5; y > -230; y -= y > Y0 - 70 ? rng.range(4.5, 7.5) : rng.range(9, 17)) {

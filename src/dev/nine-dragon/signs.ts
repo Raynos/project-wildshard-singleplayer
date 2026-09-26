@@ -91,6 +91,9 @@ export class SignAtlas {
 
   get textures(): { mono: Texture; colour: Texture } { return { mono: this.monoTex, colour: this.colourTex }; }
 
+  /** debug: the mono atlas as an image */
+  dump(): string { return this.mono.toDataURL('image/jpeg', 0.8); }
+
   private allocMono(w: number, h: number, vertical: boolean): { x: number; y: number } {
     if (vertical) {
       if (this.vy + h > MH) { this.vy = MH / 2; this.vx += w + PAD; }
@@ -159,11 +162,14 @@ export class SignAtlas {
     if (spec.style === 'tube') {
       // the halo soaks out of the tube, the tube itself is near white; the tint comes from the vertex
       ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = U * 0.17;
-      glyphs(`700 ${U * 0.84}px ${KAI}`, '#d8d8d8');
+      ctx.shadowBlur = U * 0.07;
+      glyphs(`900 ${U * 0.84}px ${KAI}`, '#9a9a9a');
       frame(U * 0.1, U * 0.035, U * 0.08, '#d0d0d0');
       ctx.shadowBlur = 0;
-      glyphs(`700 ${U * 0.84}px ${KAI}`, '#ffffff');
+      glyphs(`900 ${U * 0.84}px ${KAI}`, '#ffffff');
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = U * 0.035;
+      glyphList.forEach((ch, i) => { const [px, py] = pos(i); ctx.strokeText(ch, px, py + U * 0.04); });
       frame(U * 0.1, U * 0.014, U * 0.08, '#ffffff');
     } else {
       // a lightbox: the tinted panel glows, the characters are the dark board showing through
@@ -338,7 +344,7 @@ export class SignBuilder {
     const right = new Vector3().crossVectors(upv, p.normal).normalize();
     const mono = cell.mono;
     const board = new Color(p.board ?? (p.spec.style === 'tube' ? 0x17191e : 0x1d1f25));
-    const gain = p.gain ?? (p.spec.style === 'tube' ? 5.5 : p.spec.style === 'box' ? 2.4 : p.spec.style === 'plaque' ? 1.5 : 1.0);
+    const gain = p.gain ?? (p.spec.style === 'tube' ? 4.4 : p.spec.style === 'box' ? 2.2 : p.spec.style === 'plaque' ? 1.5 : 1.0);
     const fogK = p.fogK ?? (gain > 1.5 ? 0.5 : 1.0);
     const tint = new Color(mono ? p.spec.color : 0xffffff);
     const nv: [number, number, number, number] = [gain, p.flicker ?? 0, fogK, mono ? MODE.mono : MODE.colour];

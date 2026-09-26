@@ -37,7 +37,7 @@ export const MIN = {
 /** emissive only */
 export const NEON = { magenta: 0xff3fa4, cyan: 0x3fe6ff, jade: 0x33f0b0, red: 0xff3b30, amber: 0xffb347, violet: 0x9d6bff, jian: 0xd9fbff } as const;
 /** the pale blue-grey flat washes of the towers (round-4 A: cool grey concrete under a silk sky) */
-export const WALL = [0x8d96a3, 0x838c9b, 0x979ba2, 0x7f8794, 0x938f86, 0x8a9390, 0x9ea0a2, 0x7a8391] as const;
+export const WALL = [0x8d96a3, 0x838c9b, 0x979b9e, 0x7f8794, 0x978d80, 0x8a9390, 0x9e9a92, 0x7a8391, 0x8f8478, 0xa0968a] as const;
 
 /** the characters of a sign's text (all BMP hanzi) */
 export const chars = (s: string): string[] => Array.from(s);

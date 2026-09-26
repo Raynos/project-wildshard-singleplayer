@@ -5,7 +5,8 @@ import {
   BufferGeometry, Float32BufferAttribute, InstancedMesh, Mesh, type Object3D, PerspectiveCamera, PlaneGeometry, Scene, SphereGeometry,
   Uint32BufferAttribute, Vector2, Vector3, WebGLRenderer,
 } from 'three';
-import { Ctx } from './ctx';
+import { Ctx, type Piece } from './ctx';
+import { PIECES } from './dressing';
 import { Hud, type HudButton } from './hud';
 import { Kit } from './kit';
 import { WELL, Y0 } from './layout';
@@ -35,6 +36,11 @@ interface NdApi {
   bench: (frames: number) => Promise<number>;
   shots: () => string[];
   debug: () => unknown;
+  budget: () => string[];
+  /** debug: 0 no silhouettes, 1 normal, 2 silhouettes only (black on white); weapon on / off */
+  lines: (mode: number) => void;
+  atlas: () => string;
+  weapon: (on: boolean) => void;
   /** render one frame and hand it back as a JPEG data URL at w × h (the canvas downscaled: supersampled) */
   snapshot: (w: number, h: number, quality: number) => string;
 }
@@ -149,6 +155,30 @@ async function main(): Promise<void> {
   ctx.lanterns.forEach((m, i) => { lanterns.setMatrixAt(i, m); });
   lanterns.computeBoundingSphere();
   scene.add(reflect(lanterns));
+  // the instanced dressing: one InstancedMesh per piece and region (and per material when a piece has ruled bars)
+  let instances = 0;
+  const triBudget: string[] = [];
+  const pieceGeo = new Map<Piece, { opaque: BufferGeometry | null; alpha: BufferGeometry | null }>();
+  for (const [key, list] of ctx.inst) {
+    const piece = key.slice(0, key.indexOf('@')) as Piece;
+    let geo = pieceGeo.get(piece);
+    if (geo === undefined) {
+      const kits = PIECES[piece]();
+      geo = { opaque: kits.opaque?.build() ?? null, alpha: kits.alpha?.build() ?? null };
+      pieceGeo.set(piece, geo);
+    }
+    for (const [g, m] of [[geo.opaque, mat], [geo.alpha, matA]] as const) {
+      if (g === null) continue;
+      const im = new InstancedMesh(g, m, list.length);
+      list.forEach((it, i) => { im.setMatrixAt(i, it.m); im.setColorAt(i, it.c); });
+      im.computeBoundingSphere();
+      scene.add(im);
+    }
+    instances += list.length;
+    const tri = ((geo.opaque?.index?.count ?? 0) + (geo.alpha?.index?.count ?? 0)) / 3;
+    triBudget.push(`${key} ${list.length} x ${tri} = ${Math.round(list.length * tri / 1000)}k`);
+  }
+  for (const [name, kit] of ctx.kits) triBudget.push(`kit ${name} ${Math.round(kit.vertexCount / 4000)}k`);
   const acs = new InstancedMesh(acKit().build(), mat, ctx.acs.length);
   ctx.acs.forEach((m, i) => { acs.setMatrixAt(i, m); });
   acs.computeBoundingSphere();
@@ -217,7 +247,7 @@ async function main(): Promise<void> {
   const pipe = new Pipeline(renderer, shared, Y0);
   const hud = new Hud(overlay, ctx.map);
   const player = new Player(canvas);
-  player.place(2.6, Y0, 9, 7, 7);
+  player.place(1.45, Y0, 6, 8, 5);
   let fovP = 62, fovL = 56;
   let prOverride: number | null = null;
   const coarse = window.matchMedia('(pointer: coarse)').matches;
@@ -310,7 +340,7 @@ async function main(): Promise<void> {
     shared.u.uCam.value.copy(eye);
     // movers
     const tx = -100 + ((tt * 16) % 300);
-    train.position.set(tx, Y0 + 20, -27);
+    train.position.set(tx, Y0 + 25.5, -27);
     const gx = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(tt * 0.12 - 0.62));
     gondola.position.set(gx, CABLE.y + ((gx - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, CABLE.z);
     for (const d of drones) {
@@ -459,6 +489,10 @@ async function main(): Promise<void> {
       c2.drawImage(renderer.domElement, 0, 0, w, h);
       return out.toDataURL('image/jpeg', quality);
     },
+    budget: () => triBudget,
+    lines: (mode) => { pipe.uComp.uLines.value = mode; },
+    atlas: () => atlas.dump(),
+    weapon: (on) => { vm.scene.visible = on; },
     debug: () => ({ hookTarget: hookTarget?.toArray() ?? null, hookFrozen, hookPhase, line: line.visible, claw: claw.position.toArray(), a: lineMat.u.uA.value.toArray(), b: lineMat.u.uB.value.toArray() }),
   };
   requestAnimationFrame(loop);

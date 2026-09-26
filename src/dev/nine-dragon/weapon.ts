@@ -12,11 +12,12 @@ import { NEON, clamp, smooth } from './util';
 const BRASS: Look = { wash: 0x8c6c2c, line: 1.2, gloss: true, accent: true };
 const DARK_BRASS: Look = { wash: 0x54401f, line: 1.2, gloss: true, accent: true };
 const LACQUER: Look = { wash: 0x17181c, kind: K.net, col: 0.012, line: 1.2, gloss: true };
-const STEEL: Look = { wash: 0x4a525c, line: 1.4, gloss: true };
+const STEEL: Look = { wash: 0x2c323a, line: 1.4, gloss: true };
 const GLOVE: Look = { wash: 0x24262c, line: 1.6 };
 const SLEEVE: Look = { wash: 0x2d3244, kind: K.cloth, row: 0, col: 0.05, line: 1.6 };
 const CUFF: Look = { wash: 0x9c2a1c, line: 1.4, accent: true };
-const CARBON: Look = { wash: 0x1b1c20, kind: K.net, col: 0.008, line: 1.2 };
+const WRAP: Look = { wash: 0x9c9587, kind: K.net, col: 0.016, line: 0.9 };
+const LEATHER: Look = { wash: 0x4a2f22, line: 1.2 };
 
 export const BLADE_LEN = 0.78;
 
@@ -40,25 +41,37 @@ function buildJian(k: Kit, glow: SignBuilder, etch: SignBuilder): void {
   // the neon edges: cyan-white, both sides, the only neon that moves with you
   for (const sx of [-1, 1]) {
     const a = new Vector3(sx * hw * 1.02, y0 + 0.01, 0), b = new Vector3(sx * hw * 0.94, yT, 0);
-    glow.tube(a, b, new Vector3(0, 0, 1), 0.0034, NEON.jian, 7);
-    glow.tube(b, tip.clone().add(new Vector3(0, 0.002, 0)), new Vector3(0, 0, 1), 0.003, NEON.jian, 7);
+    glow.tube(a, b, new Vector3(0, 0, 1), 0.0022, NEON.jian, 3.4);
+    glow.tube(b, tip.clone().add(new Vector3(0, 0.002, 0)), new Vector3(0, 0, 1), 0.002, NEON.jian, 3.4);
   }
   // etched cloud scrolls down both faces
   const center = new Vector3(0, y0 + L * 0.42, 0);
   for (const sz of [1, -1]) {
     etch.place({ at: center.clone().add(new Vector3(0, 0, sz * (th * 0.55))), normal: new Vector3(0, 0, sz), size: 0.02, spec: { text: '祥', color: '#b8c4d0', vertical: false, style: 'etch' }, gain: 0.9, fogK: 1 }, null);
   }
-  // guard: a snarling brass dragon head facing the tip, the blade leaving its mouth; horns and mane swept back
+  // guard: a snarling brass dragon head facing the tip, the blade leaving its open jaws; horns, mane and whiskers swept back
   const v = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
-  k.limb(v(0, -0.04, 0), v(0, 0.008, 0.002), 0.021, 0.024, 9, BRASS, E.none, true);
-  k.limb(v(0, 0.008, 0.002), v(0, 0.05, 0.006), 0.02, 0.011, 9, BRASS, E.none, true);
-  k.limb(v(0, 0.004, -0.011), v(0, 0.042, -0.012), 0.011, 0.005, 7, DARK_BRASS, E.none, true);
-  k.limb(v(0, 0.0, 0.016), v(0, 0.03, 0.019), 0.012, 0.006, 7, BRASS, E.none, true);
+  const Lm = (p: Vector3, q: Vector3, r0: number, r1: number, lk: Look, seg = 8): void => { k.limb(p, q, r0, r1, seg, lk, E.none, true); };
+  Lm(v(0, -0.045, 0), v(0, 0.0, 0.003), 0.026, 0.03, BRASS, 10);
+  Lm(v(0, 0.0, 0.003), v(0, 0.034, 0.008), 0.028, 0.018, BRASS, 10);
+  Lm(v(0, 0.03, 0.009), v(0, 0.068, 0.012), 0.017, 0.009, BRASS, 9);
+  Lm(v(0, 0.012, -0.012), v(0, 0.058, -0.016), 0.013, 0.006, DARK_BRASS, 8);
+  Lm(v(0, 0.004, 0.021), v(0, 0.036, 0.025), 0.013, 0.006, BRASS);
   for (const sx of [-1, 1]) {
-    k.limb(v(sx * 0.01, 0.004, 0.02), v(sx * 0.03, -0.075, 0.042), 0.006, 0.0012, 6, BRASS, E.none, true);
-    k.limb(v(sx * 0.017, 0.008, 0.0), v(sx * 0.046, -0.022, 0.004), 0.009, 0.002, 6, BRASS, E.none, true);
-    k.limb(v(sx * 0.016, -0.018, -0.004), v(sx * 0.036, -0.05, -0.008), 0.008, 0.0015, 6, DARK_BRASS, E.none, true);
-    k.box(sx * 0.011, 0.024, 0.016, 0.007, 0.007, 0.006, { wash: 0xff5a3a, emit: 1.6, line: 0.5, accent: true });
+    // horns
+    Lm(v(sx * 0.012, 0.004, 0.024), v(sx * 0.024, -0.04, 0.045), 0.007, 0.004, BRASS, 6);
+    Lm(v(sx * 0.024, -0.04, 0.045), v(sx * 0.03, -0.092, 0.05), 0.004, 0.0012, BRASS, 6);
+    // mane plates, fanned out to both sides
+    for (let m = 0; m < 4; m++) {
+      const my = 0.014 - m * 0.016;
+      Lm(v(sx * 0.02, my, 0.004 - m * 0.002), v(sx * (0.05 + m * 0.006), my - 0.03, 0.006 - m * 0.004), 0.009 - m * 0.001, 0.0015, m % 2 === 0 ? BRASS : DARK_BRASS, 6);
+    }
+    // whiskers flowing back from the snout
+    Lm(v(sx * 0.008, 0.055, 0.004), v(sx * 0.034, 0.03, -0.004), 0.0025, 0.002, BRASS, 5);
+    Lm(v(sx * 0.034, 0.03, -0.004), v(sx * 0.05, -0.012, -0.012), 0.002, 0.0008, BRASS, 5);
+    // fangs and a glowing eye
+    Lm(v(sx * 0.008, 0.056, 0.0), v(sx * 0.007, 0.05, -0.008), 0.0022, 0.0004, { wash: 0xf2eee4, line: 0.5 }, 5);
+    k.box(sx * 0.012, 0.028, 0.021, 0.008, 0.007, 0.006, { wash: 0xff5a3a, emit: 2.2, line: 0.5, accent: true });
   }
   // grip, ferrules, pommel
   k.limb(v(0, -0.05, 0), v(0, -0.038, 0), 0.02, 0.02, 10, DARK_BRASS, E.rims, true);
@@ -68,14 +81,18 @@ function buildJian(k: Kit, glow: SignBuilder, etch: SignBuilder): void {
 }
 
 function buildTassel(k: Kit, paper: SignBuilder): void {
-  k.box(0, -0.018, 0, 0.018, 0.02, 0.018, { wash: 0xb3261a, line: 1, accent: true });
-  for (let i = 0; i < 11; i++) {
-    const a = (i / 11) * Math.PI * 2;
-    const r = 0.006 + (i % 3) * 0.002;
-    k.beam(new Vector3(Math.cos(a) * 0.004, -0.028, Math.sin(a) * 0.004), new Vector3(Math.cos(a) * r, -0.16 - (i % 4) * 0.012, Math.sin(a) * r), 0.0035, 0.0035, { wash: i % 2 === 0 ? 0xc2301f : 0x9c2418, line: 0.7, accent: true });
+  // a red cord knot, a fat silk tassel, and a yellow paper talisman (fu) hanging beside it
+  k.limb(new Vector3(0, 0, 0), new Vector3(0, -0.03, 0), 0.006, 0.006, 6, { wash: 0xb3261a, line: 0.8, accent: true }, E.none, true);
+  k.lathe(0, -0.05, 0, [[0.004, 0], [0.013, 0.006], [0.015, 0.014], [0.01, 0.022], [0.004, 0.026]], 8, { wash: 0xc2301f, line: 0.8, accent: true }, false, 0);
+  k.cyl(0, -0.06, 0, 0.012, 0.012, 0.012, 8, { wash: 0xe9c65a, line: 0.8, accent: true });
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    const r = 0.005 + (i % 3) * 0.0025;
+    const len = 0.17 + (i % 5) * 0.014;
+    k.beam(new Vector3(Math.cos(a) * 0.006, -0.062, Math.sin(a) * 0.006), new Vector3(Math.cos(a) * r * 2.2, -0.062 - len, Math.sin(a) * r * 2.2), 0.004, 0.004, { wash: i % 2 === 0 ? 0xc92f1c : 0x9c2418, line: 0.6, accent: true });
   }
-  k.beam(new Vector3(0, -0.02, 0), new Vector3(0.018, -0.05, 0.006), 0.002, 0.002, { wash: 0x2a2c31, line: 0.5 });
-  paper.place({ at: new Vector3(0.028, -0.1, 0.008), normal: new Vector3(0, 0, 1), size: 0.022, spec: { text: '鎮邪', color: '#b3261a', vertical: true, style: 'talisman' }, gain: 1.15, fogK: 1, blade: true }, null);
+  k.beam(new Vector3(0, -0.01, 0), new Vector3(0.03, -0.045, 0.004), 0.0022, 0.0022, { wash: 0x7a1a12, line: 0.5, accent: true });
+  paper.place({ at: new Vector3(-0.034, -0.1, 0.012), normal: new Vector3(0, 0, 1), size: 0.03, spec: { text: '鎮邪', color: '#b3261a', vertical: true, style: 'talisman' }, gain: 1.15, fogK: 1, blade: true }, null);
 }
 
 function buildHand(k: Kit): void {
@@ -103,41 +120,57 @@ function buildForearm(k: Kit): void {
 /** the Fei Zhua on the left forearm; local +y runs from the elbow to the claw */
 function buildGauntlet(k: Kit): void {
   const v = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
-  k.limb(v(0, -0.6, 0), v(0, -0.16, 0), 0.054, 0.045, 10, SLEEVE, E.none, true);
-  k.limb(v(0, -0.215, 0), v(0, -0.2, 0), 0.05, 0.05, 10, CUFF, E.rims, true);
-  k.limb(v(0, -0.24, 0), v(0, -0.228, 0), 0.052, 0.052, 10, CUFF, E.rims, true);
-  // the launcher: carbon sleeve, brass bands, a nozzle, a barrel along the top
-  k.limb(v(0, -0.165, 0), v(0, -0.04, 0), 0.047, 0.046, 12, CARBON, E.rims, true);
-  k.limb(v(0, -0.17, 0), v(0, -0.148, 0), 0.052, 0.052, 12, BRASS, E.rims, true);
-  k.limb(v(0, -0.09, 0), v(0, -0.074, 0), 0.051, 0.051, 12, BRASS, E.rims, true);
-  k.limb(v(0, -0.045, 0), v(0, 0.012, 0), 0.047, 0.03, 12, DARK_BRASS, E.rims, true);
-  k.limb(v(0, -0.14, 0.047), v(0, 0.01, 0.043), 0.008, 0.007, 8, DARK_BRASS, E.rims, true);
-  k.boxAxes(v(0, -0.115, 0.05), new Vector3(1, 0, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 1), 0.024, 0.032, 0.004, { ...BRASS, kind: K.panel });
-  k.limb(v(0.046, -0.13, 0), v(0.046, -0.05, 0), 0.008, 0.008, 6, DARK_BRASS, E.rims, true);
-  for (const yy of [-0.185, -0.176, -0.167]) k.limb(v(0, yy, 0), v(0, yy + 0.005, 0), 0.056, 0.056, 12, { wash: 0xb3261a, line: 0.8, accent: true }, E.rims, true);
-  // a small brass dragon crest riding the plate
-  k.limb(v(0, -0.09, 0.056), v(0, -0.055, 0.064), 0.009, 0.005, 6, BRASS, E.none, true);
-  for (const sx of [-1, 1]) k.limb(v(sx * 0.006, -0.085, 0.062), v(sx * 0.018, -0.115, 0.072), 0.004, 0.001, 5, BRASS, E.none, true);
-  // the glove's fist just past the launcher
-  k.limb(v(0, -0.01, -0.046), v(0, 0.045, -0.044), 0.027, 0.023, 9, GLOVE, E.none, true);
-  k.limb(v(-0.02, 0.04, -0.054), v(0.02, 0.04, -0.054), 0.012, 0.012, 7, GLOVE, E.none, true);
+  const Lm = (p: Vector3, q: Vector3, r0: number, r1: number, lk: Look, edges: number = E.none, seg = 12): void => { k.limb(p, q, r0, r1, seg, lk, edges, true); };
+  // the forearm, wrapped in cloth bandage, bound with red cord
+  Lm(v(0, -0.62, 0), v(0, -0.2, 0), 0.058, 0.047, WRAP, E.none, 12);
+  for (const yy of [-0.3, -0.27, -0.44]) Lm(v(0, yy, 0), v(0, yy + 0.008, 0), 0.058, 0.058, { wash: 0xb3261a, line: 0.8, accent: true }, E.rims);
+  // leather straps with brass buckles over the housing's back
+  for (const yy of [-0.215, -0.13]) {
+    Lm(v(0, yy, 0), v(0, yy + 0.022, 0), 0.062, 0.062, LEATHER, E.rims);
+    k.box(0.0, yy + 0.002, 0.062, 0.024, 0.018, 0.008, BRASS);
+  }
+  // the housing: black lacquer and carbon under brass bands, engraved brass panels, bolts, a front collar
+  Lm(v(0, -0.2, 0), v(0, -0.02, 0), 0.056, 0.058, LACQUER, E.rims);
+  for (const yy of [-0.19, -0.105, -0.035]) Lm(v(0, yy, 0), v(0, yy + 0.014, 0), 0.061, 0.061, BRASS, E.rims);
+  Lm(v(0, -0.02, 0), v(0, 0.012, 0), 0.062, 0.05, DARK_BRASS, E.rims);
+  for (const [ang, yy] of [[0.0, -0.1], [2.1, -0.1], [-2.1, -0.1], [1.05, -0.06], [-1.05, -0.06]] as const) {
+    const n = new Vector3(Math.sin(ang), 0, Math.cos(ang));
+    const t = new Vector3(Math.cos(ang), 0, -Math.sin(ang));
+    k.boxAxes(new Vector3(0, yy, 0).addScaledVector(n, 0.059), t, new Vector3(0, 1, 0), n, 0.018, 0.028, 0.003, { ...BRASS, kind: K.panel });
+    k.boxAxes(new Vector3(0, yy + 0.035, 0).addScaledVector(n, 0.059), t, new Vector3(0, 1, 0), n, 0.004, 0.004, 0.004, DARK_BRASS);
+  }
+  // a dragon crest riding the top, the line spool at its side
+  Lm(v(0, -0.16, 0.062), v(0, -0.05, 0.07), 0.012, 0.008, BRASS, E.none, 8);
+  for (const sx of [-1, 1]) Lm(v(sx * 0.006, -0.07, 0.07), v(sx * 0.022, -0.12, 0.082), 0.004, 0.001, BRASS, E.none, 6);
+  Lm(v(0.058, -0.14, 0.01), v(0.058, -0.07, 0.01), 0.018, 0.018, DARK_BRASS, E.rims, 10);
+  // the gloved hand, a loose fist under the claw head
+  Lm(v(0, -0.02, -0.048), v(0, 0.05, -0.05), 0.03, 0.026, GLOVE, E.none, 10);
+  for (let i = 0; i < 4; i++) Lm(v(-0.024 + i * 0.016, 0.052, -0.05), v(-0.024 + i * 0.016, 0.062, -0.072), 0.009, 0.008, GLOVE, E.none, 7);
+  Lm(v(0.028, 0.0, -0.035), v(0.03, 0.04, -0.06), 0.009, 0.008, GLOVE, E.none, 7);
 }
 
 /** the three-talon claw (folded when `spread` = 0); local +y is its flight axis, hub at the origin */
 export function buildClaw(k: Kit, spread: number): void {
-  k.cyl(0, -0.02, 0, 0.022, 0.03, 0.04, 10, BRASS);
-  k.lathe(0, 0.02, 0, [[0.03, 0], [0.026, 0.012], [0.012, 0.022], [0.002, 0.026]], 10, BRASS, true, 0);
+  k.cyl(0, -0.02, 0, 0.026, 0.034, 0.045, 12, BRASS);
+  k.lathe(0, 0.025, 0, [[0.034, 0], [0.03, 0.014], [0.016, 0.026], [0.003, 0.031]], 12, BRASS, true, 0);
   for (let i = 0; i < 3; i++) {
     const a = (i / 3) * Math.PI * 2 + Math.PI / 2;
     const dir = new Vector3(Math.cos(a), 0, Math.sin(a));
-    const p0 = dir.clone().multiplyScalar(0.022).setY(0.0);
-    const p1 = dir.clone().multiplyScalar(0.032 + spread * 0.05).setY(0.055);
-    const p2 = dir.clone().multiplyScalar(0.03 + spread * 0.075).setY(0.115);
-    const p3 = dir.clone().multiplyScalar(0.006 + spread * 0.05).setY(0.15);
-    k.limb(p0, p1, 0.009, 0.008, 5, BRASS, E.none, true);
-    k.limb(p1, p2, 0.008, 0.006, 5, BRASS, E.none, true);
-    k.limb(p2, p3, 0.006, 0.0008, 5, BRASS, E.none, true);
-    k.box(p1.x, p1.y - 0.004, p1.z, 0.014, 0.014, 0.014, DARK_BRASS);
+    const pts = [
+      dir.clone().multiplyScalar(0.026).setY(0.01),
+      dir.clone().multiplyScalar(0.034 + spread * 0.05).setY(0.07),
+      dir.clone().multiplyScalar(0.036 + spread * 0.085).setY(0.14),
+      dir.clone().multiplyScalar(0.02 + spread * 0.075).setY(0.195),
+      dir.clone().multiplyScalar(-0.006 + spread * 0.035).setY(0.215),
+    ];
+    const radii = [0.011, 0.0095, 0.0075, 0.0045, 0.0008];
+    for (let j = 0; j + 1 < pts.length; j++) {
+      const p = pts[j], q = pts[j + 1], r0 = radii[j], r1 = radii[j + 1];
+      if (p === undefined || q === undefined || r0 === undefined || r1 === undefined) continue;
+      k.limb(p, q, r0, r1, 7, j % 2 === 0 ? BRASS : DARK_BRASS, E.none, true);
+    }
+    const knuckle = pts[1];
+    if (knuckle !== undefined) k.lathe(knuckle.x, knuckle.y - 0.008, knuckle.z, [[0.004, 0], [0.013, 0.006], [0.013, 0.012], [0.004, 0.018]], 7, DARK_BRASS, false, 0);
   }
 }
 
@@ -224,9 +257,9 @@ export class Viewmodel {
     this.camera.fov = portrait ? 70 : 50;
     this.camera.updateProjectionMatrix();
     // the jian: guard at one NDC point, tip at another; solve the tip depth so the blade keeps its length
-    const guardN = portrait ? new Vector2(0.54, -0.46) : new Vector2(0.5, -0.52);
-    const tipN = portrait ? new Vector2(0.05, -0.04) : new Vector2(0.16, -0.05);
-    const gd = portrait ? 0.86 : 0.86;
+    const guardN = portrait ? new Vector2(0.44, -0.38) : new Vector2(0.44, -0.42);
+    const tipN = portrait ? new Vector2(0.02, -0.02) : new Vector2(0.14, -0.04);
+    const gd = portrait ? 0.84 : 0.86;
     const G = this.ndc(guardN.x, guardN.y, gd);
     let td = gd + 0.5;
     for (let i = 0; i < 40; i++) {
@@ -242,15 +275,15 @@ export class Viewmodel {
     this.baseSword.quat.copy(roll.multiply(q));
     this.baseSword.pos.copy(G);
     // the gauntlet: wrist at one NDC point, the elbow out of frame at the bottom-left
-    const wristN = portrait ? new Vector2(-0.56, -0.42) : new Vector2(-0.56, -0.5);
-    const W = this.ndc(wristN.x, wristN.y, portrait ? 0.78 : 0.8);
-    const Eb = this.ndc(portrait ? -1.9 : -1.5, portrait ? -0.72 : -0.8, 0.6);
+    const wristN = portrait ? new Vector2(-0.56, -0.47) : new Vector2(-0.56, -0.52);
+    const W = this.ndc(wristN.x, wristN.y, portrait ? 0.8 : 0.84);
+    const Eb = this.ndc(portrait ? -1.8 : -1.45, portrait ? -0.95 : -0.95, 0.52);
     const Da = W.clone().sub(Eb).normalize();
     const qa = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), Da);
     const rolla = new Quaternion().setFromAxisAngle(Da, 0.5);
     this.baseArm.quat.copy(rolla.multiply(qa));
     this.baseArm.pos.copy(W);
-    this.elbow.copy(this.ndc(portrait ? 1.5 : 1.25, portrait ? -1.05 : -1.1, portrait ? 0.62 : 0.66));
+    this.elbow.copy(this.ndc(portrait ? 1.6 : 1.3, portrait ? -0.75 : -0.85, portrait ? 0.6 : 0.64));
   }
 
   update(dt: number, s: VmState): void {
@@ -303,6 +336,7 @@ export class Viewmodel {
     }
     this.arm.position.copy(ap);
     this.arm.quaternion.copy(aq);
+    this.arm.scale.setScalar(0.74);
     // the folded claw leaves the launcher while it flies
     this.clawFolded.visible = !(s.hook > 0.02 && s.hook < 0.97);
   }

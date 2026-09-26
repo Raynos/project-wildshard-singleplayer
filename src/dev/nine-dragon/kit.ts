@@ -210,13 +210,23 @@ export class Kit {
   }
 
   /** append a three.js geometry (e.g. an icosahedron blob), transformed, with no ruled edges */
-  blob(positions: ArrayLike<number>, index: ArrayLike<number> | null, cx: number, cy: number, cz: number, sx: number, sy: number, sz: number, look: Look): void {
+  blob(positions: ArrayLike<number>, index: ArrayLike<number> | null, cx: number, cy: number, cz: number, sx: number, sy: number, sz: number, look: Look, smoothN = false): void {
     const count = index === null ? positions.length / 3 : index.length;
     const at = (k: number): Vector3 => {
       const i = index === null ? k : (index[k] ?? 0);
       return new Vector3(cx + (positions[i * 3] ?? 0) * sx, cy + (positions[i * 3 + 1] ?? 0) * sy, cz + (positions[i * 3 + 2] ?? 0) * sz);
     };
-    for (let k = 0; k + 2 < count; k += 3) this.tri(at(k), at(k + 1), at(k + 2), look);
+    const nAt = (k: number): Vector3 => {
+      const i = index === null ? k : (index[k] ?? 0);
+      return new Vector3((positions[i * 3] ?? 0) / sx, (positions[i * 3 + 1] ?? 0) / sy, (positions[i * 3 + 2] ?? 0) / sz).normalize();
+    };
+    for (let k = 0; k + 2 < count; k += 3) {
+      this.tri(at(k), at(k + 1), at(k + 2), look);
+      if (smoothN) {
+        const base = this.nor.length - 9;
+        [nAt(k), nAt(k + 1), nAt(k + 2)].forEach((nv, j) => { this.nor[base + j * 3] = nv.x; this.nor[base + j * 3 + 1] = nv.y; this.nor[base + j * 3 + 2] = nv.z; });
+      }
+    }
   }
 
   build(): BufferGeometry {

@@ -4,13 +4,14 @@
 // through the page's own API (window.__nd: ready, shot, hud, style, time, pixelRatio, snapshot, bench, stats) — no
 // URL switches. The dev server must be up (default http://localhost:5173).
 //
-//   node scripts/nine-dragon-capture.mjs [--url=http://localhost:5173] [--only=cards,teasers,hud,board,bench] [--time=6.5]
+//   node scripts/nine-dragon-capture.mjs [--url=http://localhost:5173] [--only=cards,teasers,hud,board,bench] [--time=6.5] [--v1=<dir of v1 hud-*.jpg>]
 //
 // Writes:
 //   src/chunks/thumbs/nine-dragon-stack{,-portrait,-landscape}.jpg          card art, no HUD (640×360, 1024×1536, 1600×900)
 //   src/chunks/teasers/nine-dragon-stack/0N-<name>-{portrait,landscape}.jpg  slideshow screens, no HUD
 //   art/nine-dragon-stack/round-5-cleanroom/hud-<shot>.jpg                  in-game frames WITH the HUD, iPhone portrait 1206×2622
 //   art/nine-dragon-stack/round-5-cleanroom/mockup-vs-cleanroom.jpg         mockup | clean-room, spawn and Well edge
+//   art/nine-dragon-stack/round-5-cleanroom/v1-vs-v2.jpg                    (with --v1) v1 | v2 | mockup, spawn and Well edge
 // No-HUD art is rendered at 1.5× the output size and downscaled in the page (supersampled lines), then JPEG'd under a
 // byte cap (quality steps down until it fits).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -110,20 +111,15 @@ try {
       runs.sort((a, b) => a - b);
       console.log(`bench spawn ${st.width}×${st.height}: ${runs.map((x) => x.toFixed(2)).join(' / ')} ms/frame (median ${runs[1].toFixed(2)}), ${st.calls} draw calls, ${st.triangles} tris`);
     }
-    // ── the board: mockup | clean-room, for the spawn and the Well's edge ──
-    if (ONLY.has('board')) {
-      const b64 = (p) => `data:image/jpeg;base64,${readFileSync(p).toString('base64')}`;
-      const panels = [
-        [b64(join(MOCKS, 'style-A-jiehua-neon.jpg')), 'MOCKUP · spawn (round-6 style A)'],
-        [b64(join(ART, 'hud-spawn.jpg')), 'CLEAN-ROOM · spawn'],
-        [b64(join(MOCKS, 'comp-B-well-edge.jpg')), 'MOCKUP · Well edge (round-6 comp B)'],
-        [b64(join(ART, 'hud-well-edge.jpg')), 'CLEAN-ROOM · well-edge'],
-      ];
-      const url = await page.evaluate(async (list) => {
+    // ── the boards: mockup | clean-room (spawn, Well edge); and, given --v1=<dir>, v1 | v2 | mockup ──
+    const b64 = (p) => `data:image/jpeg;base64,${readFileSync(p).toString('base64')}`;
+    const board = async (panels, rows, out, what) => {
+      const url = await page.evaluate(async ([list, nrows]) => {
         const H = 1400, W = Math.round(H * 402 / 874), G = 16, TOP = 64;
+        const per = Math.ceil(list.length / nrows);
         const cv = document.createElement('canvas');
-        cv.width = list.length * W + (list.length + 1) * G;
-        cv.height = H + TOP + G;
+        cv.width = per * W + (per + 1) * G;
+        cv.height = nrows * (H + TOP) + G;
         const c = cv.getContext('2d');
         c.fillStyle = '#0d1b26';
         c.fillRect(0, 0, cv.width, cv.height);
@@ -133,20 +129,38 @@ try {
           const img = new Image();
           img.src = list[i][0];
           await img.decode();
-          const x = G + i * (W + G);
-          c.drawImage(img, x, TOP, W, H);
+          const x = G + (i % per) * (W + G), y = Math.floor(i / per) * (H + TOP);
+          c.drawImage(img, x, y + TOP, W, H);
           c.strokeStyle = 'rgba(143, 227, 255, 0.6)';
           c.lineWidth = 2;
-          c.strokeRect(x, TOP, W, H);
-          c.fillStyle = i % 2 === 0 ? '#9fb2bd' : '#8fe3ff';
-          c.fillText(list[i][1], x + 4, TOP / 2);
+          c.strokeRect(x, y + TOP, W, H);
+          c.fillStyle = list[i][1].startsWith('MOCKUP') ? '#9fb2bd' : '#8fe3ff';
+          c.fillText(list[i][1], x + 4, y + TOP / 2);
         }
         return cv.toDataURL('image/jpeg', 0.86);
-      }, panels);
-      const out = join(ART, 'mockup-vs-cleanroom.jpg');
+      }, [panels, rows]);
       writeFileSync(out, Buffer.from(url.slice(url.indexOf(',') + 1), 'base64'));
-      written.push(`${out.slice(ROOT.length + 1)}  mockup | clean-room, spawn and Well edge (HUD on)`);
+      written.push(`${out.slice(ROOT.length + 1)}  ${what}`);
       console.log('wrote', out.slice(ROOT.length + 1));
+    };
+    if (ONLY.has('board')) {
+      await board([
+        [b64(join(MOCKS, 'style-A-jiehua-neon.jpg')), 'MOCKUP · spawn (round-6 style A)'],
+        [b64(join(ART, 'hud-spawn.jpg')), 'CLEAN-ROOM · spawn'],
+        [b64(join(MOCKS, 'comp-B-well-edge.jpg')), 'MOCKUP · Well edge (round-6 comp B)'],
+        [b64(join(ART, 'hud-well-edge.jpg')), 'CLEAN-ROOM · well-edge'],
+      ], 1, join(ART, 'mockup-vs-cleanroom.jpg'), 'mockup | clean-room, spawn and Well edge (HUD on)');
+      const V1 = flag('v1', '');
+      if (V1 !== '') {
+        await board([
+          [b64(join(V1, 'hud-spawn.jpg')), 'V1 · spawn'],
+          [b64(join(ART, 'hud-spawn.jpg')), 'V2 · spawn'],
+          [b64(join(MOCKS, 'style-A-jiehua-neon.jpg')), 'MOCKUP · spawn'],
+          [b64(join(V1, 'hud-well-edge.jpg')), 'V1 · well-edge'],
+          [b64(join(ART, 'hud-well-edge.jpg')), 'V2 · well-edge'],
+          [b64(join(MOCKS, 'comp-B-well-edge.jpg')), 'MOCKUP · Well edge'],
+        ], 2, join(ART, 'v1-vs-v2.jpg'), 'v1 | v2 | mockup, spawn and Well edge (HUD on)');
+      }
     }
     await context.close();
   }

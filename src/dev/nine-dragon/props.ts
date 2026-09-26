@@ -62,7 +62,7 @@ export function person(k: Kit, rng: Rng, x: number, y: number, z: number, r: num
   if (umbrella) {
     const [dx, dz] = rot(0.26, 0.08, r);
     k.beam(new Vector3(x + dx, y + 1.0, z + dz), new Vector3(x + dx, y + 2.1, z + dz), 0.025, 0.025, { wash: 0x1c1c1f, line: 0.4 });
-    k.cyl(x + dx, y + 1.98, z + dz, 0.64, 0.03, 0.3, 12, { wash: rng.chance(0.5) ? 0x1d1f25 : 0xa23a28, line: 1, accent: true }, { edges: E.sides | E.v0 });
+    k.cyl(x + dx, y + 1.98, z + dz, 0.64, 0.03, 0.3, 12, { wash: rng.pick([0xb8321f, 0x1d1f25, 0xc9502a, 0x2e5fa3, 0xb8321f, 0xd9a441]), kind: K.cloth, row: 0, col: 0.2, line: 1, accent: true }, { edges: E.sides | E.v0 });
   }
 }
 

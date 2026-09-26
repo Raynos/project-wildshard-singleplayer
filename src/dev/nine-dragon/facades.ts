@@ -1,12 +1,17 @@
 // The Kowloon wall generator: a wall plane filled with bays of stacked blocks at random setbacks, each ruled with its
 // windows, then dressed with balconies, window cages, air-con boxes, pipes and laundry. Used for the towers around the
 // square and for the four walls of the Yamen Well, top to bottom.
-import { Vector3 } from 'three';
+import { Color, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, type Look } from './kit';
 import { hipRoof } from './square';
-import { laundry } from './props';
-import { WALL, chars, type Rng } from './util';
+import { Y0 } from './layout';
+import { SIGN_WORDS } from './words';
+import { NEON, WALL, chars, type Rng } from './util';
+
+const AWNINGS = [0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441, 0xe8dfc9, 0x8a3a6a, 0xc23b22] as const;
+const SIGNCOLS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, 0xff7a2a] as const;
+const hexOf = (c: number): string => `#${c.toString(16).padStart(6, '0')}`;
 
 export interface WallSpec {
   /** a point on the wall plane at the start of its run (any height) */
@@ -25,6 +30,8 @@ export interface WallSpec {
   dress?: number;
   /** perch glazed roofs on some block tops */
   roofs?: boolean;
+  /** shacks, tanks and antennas on the bays' top blocks (off for a band that is not the tower's top) */
+  rooftop?: boolean;
   /** a ruled ledge with a railing every `ledgeEvery` metres of height (the Well's balconies) */
   ledges?: number[];
   reflective?: boolean;
@@ -47,7 +54,6 @@ function tint(hex: number, t: number): number {
 
 export function buildWall(ctx: Ctx, s: WallSpec, rng: Rng): void {
   const k = ctx.kit(s.kit, s.reflective === true);
-  const ka = ctx.alpha(s.alpha);
   const { u, n } = frame(s.n);
   const dress = s.dress ?? 0.6;
   const maxOut = s.maxOut ?? 1.6;
@@ -75,57 +81,80 @@ export function buildWall(ctx: Ctx, s: WallSpec, rng: Rng): void {
       }
       lastOut = out;
       // perched glazed roof
-      if (s.roofs === true && rng.chance(0.13) && bh > 6) {
+      if (s.roofs === true && rng.chance(0.26) && bh > 6) {
         const rc = s.p0.clone().addScaledVector(u, x + bw / 2).addScaledVector(n, out - 2.2);
         const tile = rng.pick([0x2f7d5e, 0x2e5fa3, 0x3d6f8f, 0x2f7d5e]);
         const alongX = Math.abs(u.x) > 0.5;
         hipRoof(ctx, k, rc.x, y + bh + 0.1, rc.z, alongX ? bw + 0.8 : 4.8, alongX ? 4.8 : bw + 0.8, 1.6, 0.35, tile, null);
       }
-      // dressing per floor and window column
+      // dressing per floor and window column: every bay gets something (the Kowloon density), as instanced pieces
       const face = out + 0.001;
+      const top = y + bh >= s.y1 - 0.5;
       for (let f = 0; f < floors; f++) {
         const fy = y + f * 3.0;
         if (fy > s.y1 - 1) break;
+        const dz = dress * (fy < Y0 - 70 ? 0.45 : 1);
         const cols = Math.max(1, Math.floor(bw / colP));
+        const cw = bw / cols;
         for (let ci = 0; ci < cols; ci++) {
-          const cu = x + (ci + 0.5) * (bw / cols);
+          const cu = x + (ci + 0.5) * cw;
           const r = rng.next();
           const at = s.p0.clone().addScaledVector(u, cu).addScaledVector(n, face).setY(fy);
-          if (r < 0.13 * dress) {
-            // balcony: slab + ruled railing (+ laundry)
-            const bwid = Math.min(bw / cols * rng.range(1.0, 1.9), bw);
-            const bd = rng.range(0.9, 1.4);
-            k.boxAxes(at.clone().addScaledVector(n, bd / 2).setY(fy + 0.07), u, up, n, bwid / 2, 0.08, bd / 2, { wash: tint(wash, 0.9), line: 1.4 });
-            const rail: Look = { wash: 0x2a2c31, kind: K.bars, row: 1, col: 0.14, line: 1 };
-            ka.quad(at.clone().addScaledVector(n, bd).addScaledVector(u, -bwid / 2).setY(fy + 0.15), u, up, bwid, 1.0, rail);
-            ka.quad(at.clone().addScaledVector(u, -bwid / 2).setY(fy + 0.15), n, up, bd, 1.0, rail);
-            ka.quad(at.clone().addScaledVector(n, bd).addScaledVector(u, bwid / 2).setY(fy + 0.15), n.clone().negate(), up, bd, 1.0, rail);
-            if (rng.chance(0.45)) {
-              const la = at.clone().addScaledVector(n, bd - 0.1).addScaledVector(u, -bwid / 2 + 0.1).setY(fy + 2.4);
-              laundry(k, rng, la, la.clone().addScaledVector(u, bwid - 0.2));
-            }
-          } else if (r < 0.25 * dress) {
-            // window cage: a ruled box of bars
-            const cw = bw / cols * 0.72, cd = rng.range(0.45, 0.75), ch = rng.range(1.6, 2.2);
-            const cage: Look = { wash: 0x33363c, kind: K.bars, row: 0, col: 0.11, line: 1 };
-            const base = at.clone().setY(fy + 0.55);
-            ka.quad(base.clone().addScaledVector(n, cd).addScaledVector(u, -cw / 2), u, up, cw, ch, cage);
-            ka.quad(base.clone().addScaledVector(u, -cw / 2), n, up, cd, ch, cage);
-            ka.quad(base.clone().addScaledVector(n, cd).addScaledVector(u, cw / 2), n.clone().negate(), up, cd, ch, cage);
-            k.boxAxes(base.clone().addScaledVector(n, cd / 2).setY(fy + 0.5), u, up, n, cw / 2 + 0.03, 0.05, cd / 2 + 0.03, { wash: 0x4a4d53, line: 1 });
-            k.boxAxes(base.clone().addScaledVector(n, cd / 2).setY(fy + 0.55 + ch), u, up, n, cw / 2 + 0.05, 0.04, cd / 2 + 0.05, { wash: 0x4a4d53, line: 1 });
-          } else if (r < 0.45 * dress) {
-            const acAt = at.clone().addScaledVector(u, rng.range(-0.4, 0.4)).setY(fy + rng.range(0.1, 2.2));
+          if (r < 0.17 * dz) {
+            const bwid = Math.min(cw * rng.range(1.0, 1.9), bw), bd = rng.range(0.9, 1.4);
+            ctx.put('balcony', at.clone().setY(fy + 0.02), n, new Vector3(bwid, 1, bd), new Color(tint(wash, 1.05)));
+            if (rng.chance(0.55)) ctx.put('plant', at.clone().addScaledVector(n, bd - 0.28).addScaledVector(u, rng.range(-bwid / 3, bwid / 3)).setY(fy + 0.14), n, new Vector3(1, rng.range(0.8, 1.3), 1));
+            if (rng.chance(0.5)) ctx.put('laundry', at.clone().addScaledVector(u, rng.range(-bwid / 3, bwid / 3)).setY(fy + 2.45), n, new Vector3(1, 1, bd / 1.4));
+            if (rng.chance(0.12) && fy > Y0 - 40) ctx.lantern(at.x + n.x * (bd - 0.2), fy + 2.6, at.z + n.z * (bd - 0.2), 0.6);
+          } else if (r < 0.32 * dz) {
+            ctx.put('cage', at.clone().setY(fy + 0.45), n, new Vector3(cw * rng.range(0.7, 0.9), rng.range(0.85, 1.1), rng.range(0.8, 1.3)));
+            if (rng.chance(0.3)) ctx.put('plant', at.clone().addScaledVector(n, 0.28).setY(fy + 0.52), n, new Vector3(0.8, 0.8, 0.8));
+          } else if (r < 0.43 * dz) {
+            ctx.put('awning', at.clone().setY(fy + 2.55), n, new Vector3(cw * 0.85, 1, rng.range(0.8, 1.2)), new Color(rng.pick(AWNINGS)));
+          } else if (r < 0.52 * dz) {
+            ctx.put('laundry', at.clone().addScaledVector(u, rng.range(-0.3, 0.3)).setY(fy + 2.35), n, new Vector3(1, 1, rng.range(0.7, 1.1)));
+          } else if (r < 0.6 * dz) {
+            ctx.put('plant', at.clone().addScaledVector(n, 0.2).addScaledVector(u, rng.range(-0.4, 0.4)).setY(fy + 0.75), n, new Vector3(0.75, 0.75, 0.75));
+          } else if (r < 0.66 * dz && fy < s.y0 + 40) {
+            ctx.put('lightbox', at.clone().addScaledVector(u, rng.range(-0.3, 0.3)).setY(fy + rng.range(0.4, 1.4)), n, new Vector3(rng.range(0.8, 1.3), rng.range(0.8, 1.5), 1), new Color(rng.pick(SIGNCOLS)));
+          }
+          if (rng.chance(0.3 * dz)) {
+            const acAt = at.clone().addScaledVector(u, rng.range(-0.45, 0.45)).setY(fy + rng.range(0.1, 2.2));
             ctx.ac(acAt.x, acAt.y, acAt.z, Math.atan2(n.x, n.z));
           }
+          // a big blade sign now and then near the street
+          if (fy < s.y0 + 30 && fy > Y0 - 60 && rng.chance(0.035 * dz)) {
+            const word = rng.pick(SIGN_WORDS);
+            const size = rng.range(0.75, 1.25);
+            const sw = size * 1.36;
+            ctx.signs.place({ at: at.clone().addScaledVector(n, 0.9 + sw / 2).setY(fy + 1.2), normal: u.clone(), size,
+              spec: rng.chance(0.75) ? { text: word, color: hexOf(rng.pick(SIGNCOLS)), vertical: true, style: 'tube' } : { text: word, color: hexOf(rng.pick(SIGNCOLS)), vertical: true, style: 'box' },
+              blade: true, flicker: rng.chance(0.07) ? rng.next() : 0 }, k);
+          }
         }
+        // a cable bundle sagging along the facade
+        if (rng.chance(0.18 * dz)) {
+          const cy = fy + rng.range(2.6, 2.95);
+          const a0 = s.p0.clone().addScaledVector(u, x).addScaledVector(n, face + 0.15).setY(cy);
+          const a1 = a0.clone().addScaledVector(u, bw);
+          const mid = a0.clone().lerp(a1, 0.5).add(new Vector3(0, -rng.range(0.3, 0.8), 0)).addScaledVector(n, 0.2);
+          k.beam(a0, mid, 0.06, 0.06, { wash: 0x1d1e22, line: 0.4 });
+          k.beam(mid, a1, 0.06, 0.06, { wash: 0x1d1e22, line: 0.4 });
+        }
+      }
+      // rooftop clutter on the bay's top block: shacks, a water tank, an antenna
+      if (top && s.rooftop !== false && y + bh > Y0 - 20) {
+        const rp = s.p0.clone().addScaledVector(u, x + rng.range(1.5, Math.max(1.6, bw - 1.5))).addScaledVector(n, out - rng.range(2.2, 4)).setY(y + bh);
+        if (rng.chance(0.55)) ctx.put('shack', rp, n, new Vector3(rng.range(0.8, 1.2), rng.range(0.9, 1.15), rng.range(0.8, 1.1)), new Color(tint(0xffffff, rng.range(0.85, 1.05))));
+        if (rng.chance(0.45)) ctx.put('tank', rp.clone().addScaledVector(u, rng.range(-2.5, 2.5)), n, new Vector3(1, 1, 1));
+        if (rng.chance(0.4)) k.beam(rp.clone().addScaledVector(u, 1.2), rp.clone().addScaledVector(u, 1.2).add(new Vector3(0, rng.range(4, 9), 0)), 0.08, 0.08, { wash: 0x2a2c31, line: 0.8 });
       }
       y += bh;
     }
-    // a drain pipe at the bay seam
-    if (rng.chance(0.5 * dress)) {
-      const px = s.p0.clone().addScaledVector(u, x + 0.2).addScaledVector(n, maxOut + 0.25);
-      k.beam(px.clone().setY(s.y0), px.clone().setY(s.y1), 0.14, 0.14, { wash: 0x6b6f76, line: 0.8 }, new Vector3(n.x, 0, n.z));
+    // drain pipes at the bay seams
+    if (rng.chance(0.7 * dress)) {
+      const px = s.p0.clone().addScaledVector(u, x + 0.25).addScaledVector(n, maxOut + 0.1).setY(s.y0);
+      ctx.put('pipe', px, n, new Vector3(1, s.y1 - s.y0, 1));
     }
     x += bw;
   }
@@ -158,13 +187,20 @@ export function shopfronts(ctx: Ctx, kitName: string, p0: Vector3, nIn: Vector3,
       k.quad4(a0.clone().addScaledVector(n, 1.5).setY(y + 2.9), a0.clone().addScaledVector(n, 1.5).addScaledVector(u, w - 0.4).setY(y + 2.9),
         a0.clone().addScaledVector(u, w - 0.4), a0.clone(), w - 0.4, 1.6, { wash: aw, kind: K.cloth, row: 1, col: 0.5, line: 1, accent: true });
     }
+    // a glazed pent roof over the shop, a lantern under it now and then
+    const tile = rng.pick([0x2f7d5e, 0x2e5fa3, 0x2f7d5e, 0xb8321f]);
+    const e0 = c.clone().addScaledVector(u, -w / 2).setY(y + 5.05), e1 = c.clone().addScaledVector(u, w / 2).setY(y + 5.05);
+    k.quad4(e0.clone().addScaledVector(n, 1.45).setY(y + 4.45), e1.clone().addScaledVector(n, 1.45).setY(y + 4.45), e1.clone().addScaledVector(n, 0.1), e0.clone().addScaledVector(n, 0.1),
+      w, 1.5, { wash: tile, kind: K.tiles, line: 1, accent: true });
+    k.boxAxes(c.clone().addScaledVector(n, 1.45).setY(y + 4.38), u, up, n, w / 2, 0.09, 0.06, { wash: 0x7e1e1a, line: 1, accent: true });
+    if (rng.chance(0.45)) ctx.lantern(c.x + n.x * 1.2 + u.x * rng.range(-w / 3, w / 3), y + 4.25, c.z + n.z * 1.2 + u.z * rng.range(-w / 3, w / 3), 0.75);
     // sign board over the shop
     const word = rng.pick(words);
     const col = rng.pick(colors);
     const hexs = `#${col.toString(16).padStart(6, '0')}`;
     const style = rng.chance(0.55) ? 'tube' : 'box';
     ctx.signs.place({
-      at: c.clone().addScaledVector(n, 0.45).setY(y + 3.95), normal: n.clone(), size: Math.min(0.62, (w - 0.6) / (chars(word).length + 0.62)),
+      at: c.clone().addScaledVector(n, 0.45).setY(y + 3.75), normal: n.clone(), size: Math.min(0.72, (w - 0.5) / (chars(word).length + 0.62)),
       spec: style === 'tube' ? { text: word, color: hexs, vertical: false, style: 'tube' } : { text: word, color: hexs, vertical: false, style: 'box' },
       flicker: rng.chance(0.1) ? rng.range(0.1, 1) : 0,
     }, k);

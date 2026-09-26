@@ -68,6 +68,28 @@ void main() {
   gl_FragColor = vec4(s / 12.0 * uWeight, 1.0);
 }
 `;
+// the wet-ground streak: a long one-way vertical smear of the mirror's bright parts (every sign and lantern drips)
+const FS_STREAK = /* glsl */ `
+uniform sampler2D tSrc;
+uniform vec2 uStep;
+uniform float uCut;
+varying vec2 vUv;
+void main() {
+  vec3 s = vec3(0.0);
+  float w = 0.0;
+  for (int i = 0; i < 14; i++) {
+    float fi = float(i);
+    float wi = 1.0 - fi / 14.0;
+    vec3 c = texture(tSrc, vUv + uStep * fi).rgb;
+    s += max(c - uCut, vec3(0.0)) * wi;
+    w += wi;
+  }
+  gl_FragColor = vec4(s / w, 1.0);
+}
+`;
+/** window depth [0, SLICE) holds the viewmodel, [SLICE, 1] the world (no depth clear, no copy) */
+const SLICE = 0.05;
+
 const FS_COMPOSITE = /* glsl */ `
 uniform sampler2D tColor;
 uniform sampler2D tDepth;
@@ -85,7 +107,10 @@ uniform vec3 uInk;
 uniform vec3 uGold;
 varying vec2 vUv;
 ${NOISE_GLSL}
-float ld(float z) { return 2.0 * uNear * uFar / (uFar + uNear - (2.0 * z - 1.0) * (uFar - uNear)); }
+// depth slices: the viewmodel lives in window depth [0, SLICE), the world in [SLICE, 1]; both decode to metres
+const float SLICE = ${SLICE.toFixed(3)};
+float ld0(float z) { return 2.0 * uNear * uFar / (uFar + uNear - (2.0 * z - 1.0) * (uFar - uNear)); }
+float ld(float z) { return z < SLICE ? ld0(z / SLICE) : ld0((z - SLICE) / (1.0 - SLICE)); }
 float invD(vec2 uv) { return 1.0 / ld(texture(tDepth, uv).r); }
 vec3 shoulder(vec3 x) {
   vec3 k = 0.74 + 0.26 * (1.0 - exp(-(x - 0.74) / 0.26));
@@ -111,13 +136,14 @@ void main() {
   float dc = ld(zc);
   float wc = 1.0 / dc;
   // the silhouette: ruled where the depth folds toward the eye (a contour or a convex edge), heavier on the living/held
-  float r = uLineScale * mix(1.35, 0.8, smoothstep(3.0, 60.0, dc));
+  float r = uLineScale * mix(1.6, 0.8, smoothstep(3.0, 60.0, dc));
   if (dc < 1.6) r = uLineScale * 2.1;
   float edge = zc >= 0.999999 ? 0.0 : max(contour(vUv, wc, r), contour(vUv, wc, r * 0.5) * 0.8);
   edge *= (1.0 - smoothstep(55.0, 210.0, dc)) * uLines;
   vec3 ink = mix(uInk, uGold * 1.25, uSutra);
   vec3 lineC = mix(ink, c, smoothstep(12.0, 170.0, dc) * 0.85);
   c = mix(c, lineC, edge);
+  if (uLines > 1.5) c = mix(vec3(1.0), vec3(0.0), edge);
   float weave = texture(uSilk, gl_FragCoord.xy / 320.0).r;
   vec3 b = texture(tBloom, vUv).rgb;
   c += b * uBloom * (0.78 + 0.44 * weave);
@@ -145,14 +171,18 @@ export class Pipeline {
   private readonly ortho = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
   private rtScene: WebGLRenderTarget;
   private rtRefl: WebGLRenderTarget;
+  private rtStreakA: WebGLRenderTarget;
+  private rtStreakB: WebGLRenderTarget;
+  private readonly mStreak: ShaderMaterial;
+  private readonly uStreak = { tSrc: { value: null as Texture | null }, uStep: { value: new Vector2() }, uCut: { value: 0 } };
   private mips: WebGLRenderTarget[] = [];
   private readonly mPre: ShaderMaterial;
   private readonly mDown: ShaderMaterial;
   private readonly mUp: ShaderMaterial;
   readonly mComp: ShaderMaterial;
-  private readonly uPre = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uThr: { value: 1.0 }, uKnee: { value: 0.35 } };
+  private readonly uPre = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uThr: { value: 1.0 }, uKnee: { value: 0.18 } };
   private readonly uDown = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() } };
-  private readonly uUp = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uWeight: { value: 0.9 } };
+  private readonly uUp = { tSrc: { value: null as Texture | null }, uTexel: { value: new Vector2() }, uWeight: { value: 1.0 } };
   readonly uComp;
   private readonly type: TextureDataType;
   private readonly reflCam = new PerspectiveCamera();
@@ -170,10 +200,13 @@ export class Pipeline {
     this.quad.frustumCulled = false;
     this.rtScene = this.makeScene(1, 1);
     this.rtRefl = new WebGLRenderTarget(1, 1, { type: this.type, depthBuffer: true });
+    this.rtStreakA = new WebGLRenderTarget(1, 1, { type: this.type, depthBuffer: false });
+    this.rtStreakB = new WebGLRenderTarget(1, 1, { type: this.type, depthBuffer: false });
     const base = { vertexShader: VS_FULL, depthTest: false, depthWrite: false, blending: NoBlending };
     this.mPre = new ShaderMaterial({ ...base, fragmentShader: FS_PREFILTER, uniforms: this.uPre });
     this.mDown = new ShaderMaterial({ ...base, fragmentShader: FS_DOWN, uniforms: this.uDown });
     this.mUp = new ShaderMaterial({ ...base, fragmentShader: FS_UP, blending: AdditiveBlending, uniforms: this.uUp });
+    this.mStreak = new ShaderMaterial({ ...base, fragmentShader: FS_STREAK, uniforms: this.uStreak });
     this.uComp = {
       tColor: { value: null as Texture | null }, tDepth: { value: null as Texture | null }, tBloom: { value: null as Texture | null },
       uSilk: shared.u.uSilk, uTexel: { value: new Vector2() }, uNear: { value: 0.1 }, uFar: { value: 1200 }, uBloom: { value: 0.9 },
@@ -197,11 +230,14 @@ export class Pipeline {
     this.h = h;
     this.rtScene.dispose();
     this.rtScene = this.makeScene(w, h);
-    this.rtRefl.setSize(Math.max(1, Math.round(w / 4)), Math.max(1, Math.round(h / 4)));
+    const rw = Math.max(1, Math.round(w / 4)), rh = Math.max(1, Math.round(h / 4));
+    this.rtRefl.setSize(rw, rh);
+    this.rtStreakA.setSize(rw, rh);
+    this.rtStreakB.setSize(rw, rh);
     for (const m of this.mips) m.dispose();
     this.mips = [];
     let mw = Math.max(1, Math.round(w / 2)), mh = Math.max(1, Math.round(h / 2));
-    for (let i = 0; i < 6 && mw > 4 && mh > 4; i++) {
+    for (let i = 0; i < 7 && mw > 4 && mh > 4; i++) {
       const rt = new WebGLRenderTarget(mw, mh, { type: this.type, depthBuffer: false });
       rt.texture.minFilter = LinearFilter;
       rt.texture.magFilter = LinearFilter;
@@ -267,20 +303,34 @@ export class Pipeline {
     if (aboveGround) {
       this.updateReflection(camera);
       this.shared.u.uRefl.value = this.shared.blankTex;
+      this.shared.u.uStreak.value = this.shared.blankTex;
       r.setRenderTarget(this.rtRefl);
       r.setClearColor(0x000000, 0);
       r.clear(true, true, false);
       r.render(scene, this.reflCam);
+      // two one-way passes: a short smear, then a long one
+      this.uStreak.tSrc.value = this.rtRefl.texture;
+      this.uStreak.uStep.value.set(0, 1.6 / this.rtRefl.height);
+      this.uStreak.uCut.value = 0.22;
+      this.pass(this.mStreak, this.rtStreakA);
+      this.uStreak.tSrc.value = this.rtStreakA.texture;
+      this.uStreak.uStep.value.set(0, 11 / this.rtRefl.height);
+      this.uStreak.uCut.value = 0;
+      this.pass(this.mStreak, this.rtStreakB);
       this.shared.u.uRefl.value = this.rtRefl.texture;
+      this.shared.u.uStreak.value = this.rtStreakB.texture;
       this.shared.u.uReflOn.value = 1;
     }
     // 2. the world, then the viewmodel over it
     r.setRenderTarget(this.rtScene);
     r.setClearColor(0x000000, 1);
     r.clear(true, true, false);
+    const gl = r.getContext();
+    gl.depthRange(SLICE, 1);
     r.render(scene, camera);
-    r.clearDepth();
+    gl.depthRange(0, SLICE);
     r.render(vmScene, vmCamera);
+    gl.depthRange(0, 1);
     // 3. bloom
     const first = this.mips[0];
     if (first !== undefined) {
