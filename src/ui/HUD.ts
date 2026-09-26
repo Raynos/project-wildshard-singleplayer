@@ -120,6 +120,8 @@ export class HUD {
   private onEnter?: () => void;
   /** EXPLORE WORLD on the title (main.ts opens src/explore/Explore.ts) */
   onExplore?: () => void;
+  /** Shared HUD + Weapon Explorer practice room, reached as a title spawn mode. */
+  onArena?: () => void;
 
   private compassStrip!: HTMLElement; private band!: HTMLElement;
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
@@ -511,6 +513,7 @@ export class HUD {
         <div class="ws-menu-modes">
           <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
         </div>
+        <button class="ws-menu-arena" type="button"><b>Practice arena</b><small>HUD + weapon explorer · starter weapon</small><span>›</span></button>
         <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div><button class="ws-menu-sound ws-menu-dev" type="button">Dev</button></div>
       </div>`;
     const hero = q(intro, '.ws-menu-hero');
@@ -519,6 +522,8 @@ export class HUD {
     const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
     const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-play');
     if (!enterBtn) throw new Error('HUD: no .ws-menu-play');
+    const arenaBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-arena');
+    if (!arenaBtn) throw new Error('HUD: no .ws-menu-arena');
     const enterTitle = q(enterBtn, 'b'), enterHint = q(enterBtn, 'small');
     const exploreBtn = q(intro, '.ws-menu-explore');
     const heroNext = q(intro, '.ws-menu-hero-next'), shotEl = q(intro, '.ws-menu-shot'), shotText = q(shotEl, 'span'), shotCount = q(shotEl, 'i');
@@ -592,6 +597,7 @@ export class HUD {
       else hero.classList.remove('show');
       enterBtn.classList.toggle('soon', !c.playable);
       enterBtn.disabled = !c.playable;
+      arenaBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
       // another shard: in memory it is instant, else it loads here, in the page (E155 — it used to reload with ?chunk=)
       enterHint.textContent = !c.playable ? 'Not yet playable' : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : shardResident(c.slug) ? `Switch to ${c.displayName}` : `Loads ${c.displayName}`;
@@ -633,6 +639,12 @@ export class HUD {
     cardEls.forEach((e, i) => { e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
     dots.forEach((d, i) => { d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }); });
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
+    arenaBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const c = cards[index];
+      if (!c?.playable) return;
+      if (c.active) this.enterArenaNow(); else requestShard(c.slug, { arena: true });
+    });
     shotEl.addEventListener('click', (ev) => {
       ev.stopPropagation();
       const c = cards[index];
@@ -729,6 +741,12 @@ export class HUD {
     this.onEnter?.();
   }
 
+  /** Enter the selected shard with its starter weapon in the shared practice room. */
+  enterArenaNow(): void {
+    this.enterNow();
+    if (this.entered) this.onArena?.();
+  }
+
   /** Pause → "Exit to main menu": back to the chunk selection without a reload. The world stays loaded;
    *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
   exitToMenu(): void {
@@ -740,4 +758,3 @@ export class HUD {
     if (this.onEnter) this.showIntro(this.onEnter);
   }
 }
-

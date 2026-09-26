@@ -130,6 +130,12 @@
 .ws-menu .ws-menu-play small { position: absolute; left: 0; right: 0; bottom: 5px; }
 .ws-menu .ws-menu-play { padding-bottom: 22px; }
 .ws-menu .ws-menu-play .ws-menu-mode-glyph svg { width: 24px; height: 24px; }
+.ws-menu .ws-menu-arena { position: relative; display: flex; align-items: center; gap: 9px; width: var(--card-w); min-height: 39px; margin-top: 7px; padding: 5px 13px; text-align: left; color: #d7f5ff; background: rgba(6, 16, 29, 0.84); border: 1px solid rgba(143, 227, 255, 0.42); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); cursor: pointer; font-family: var(--ws-mono); }
+.ws-menu .ws-menu-arena b { flex: 0 0 auto; color: #fff; font-family: var(--ws-display); font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.ws-menu .ws-menu-arena small { flex: 1; color: var(--ws-cyan-dim); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; }
+.ws-menu .ws-menu-arena span { color: var(--ws-cyan); font-size: 22px; line-height: 1; }
+.ws-menu .ws-menu-arena:hover, .ws-menu .ws-menu-arena:focus-visible { border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.15); outline: none; }
+.ws-menu .ws-menu-arena:disabled { opacity: 0.45; cursor: default; }
 .ws-menu .ws-menu-head { position: relative; }
 .ws-menu .ws-menu-head .ws-menu-explore { position: fixed; z-index: 61; right: 44px; top: calc(40px + env(safe-area-inset-top, 0px)); flex: none; flex-direction: row; gap: 10px; padding: 8px 14px 8px 11px; }
 .ws-menu .ws-menu-head .ws-menu-explore .ws-menu-mode-glyph svg { width: 22px; height: 22px; }
@@ -138,6 +144,9 @@
 .ws-menu .ws-menu-head .ws-menu-explore small { font-size: 8px; }
 @media (max-width: 700px) {
   .ws-menu .ws-menu-play b { font-size: 20px; letter-spacing: 0.18em; }
+  .ws-menu .ws-menu-arena { min-height: 38px; padding: 5px 9px; }
+  .ws-menu .ws-menu-arena b { font-size: 11px; }
+  .ws-menu .ws-menu-arena small { font-size: 8px; }
   .ws-menu .ws-menu-head .ws-menu-explore { right: 16px; top: calc(38px + env(safe-area-inset-top, 0px)); padding: 7px 11px 7px 9px; }
   .ws-menu .ws-menu-head .ws-menu-explore b { font-size: 12px; letter-spacing: 0.16em; }
 }

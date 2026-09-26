@@ -16,6 +16,8 @@ export interface ShardRequest {
   enter?: boolean;
   /** into the Explore viewer's hub (EXPLORE WORLD) */
   explore?: boolean;
+  /** into the shared HUD + Weapon Explorer practice room */
+  arena?: boolean;
 }
 /** what the Debug card shows (Menu.ts): the resident shards, least → most recently used, and their estimated texture memory */
 export interface ShardMemory { cap: number; shards: { slug: string; running: boolean; textureMB: number }[] }

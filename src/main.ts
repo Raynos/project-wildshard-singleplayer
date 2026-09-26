@@ -99,6 +99,8 @@ import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
 import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
+import { registerTrainingDummyModel } from './practice/catalog';
+import { TrainingArena } from './practice/TrainingArena';
 import { TIER } from './core/tier';
 import { frameCost, type Bucket } from './core/frameCost';
 import { Impacts } from './fx/Impacts';
@@ -429,6 +431,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
   if (isOcean) registerDriftwoodModels({ sky, palms, bushes, palmSpecs });
   else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
+  registerTrainingDummyModel(); // the same three shared prop variants in every shard's Model Explorer
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   // the day clock behind one interface (src/world/WorldClock.ts, NALATI-MERGE F8): Driftwood's DayNight or Nalati's DayClock —
@@ -441,8 +444,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.slug === 'pine-hollow' ? preloadLeverModel() : null, chunk.sword?.() ?? null])))[2]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ChunkDef.sword); the build below is synchronous
+  let arena: TrainingArena | null = null;
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
+      if (arena?.entered) return arena.raycast(origin, dir, maxDist);
       const h = pastRidden(() => animals.raycast(origin, dir, maxDist)); // never the horse you ride (src/player/riding.ts)
       const hit = h ? { animal: h.animal as unknown as TargetHit['animal'], point: h.point, distance: h.distance, headshot: h.headshot } : null; // Animal.kind is any species id; the weapons only read deer / boar
       return wildlife ? nalatiNow()?.sheepTarget(origin, dir, maxDist, hit) ?? hit : hit; // Nalati: the sheep flock is a target too
@@ -471,6 +476,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
+  arena = new TrainingArena(game, registry, world.physics, { x: chunk.spawn.x, z: chunk.spawn.z });
   await chunk.traversal?.({
     game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
     toast: (message) => { hud.toast(message); },
@@ -594,6 +600,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
   weapons.onSwap = () => audio.weaponSwap();
   weapons.onImpact = (surface, point) => {
+    if (surface !== 'flesh') arena.miss(point);
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
@@ -816,8 +823,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
+  hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
+  hud.onExitToMenu = () => { arena.exit(); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
   // lazy chunk). God-mode camera, Model Explorer, one ✎ to the review inbox; ✕ comes back here to the title.
@@ -1021,7 +1029,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   if (first) asShell(() => { startShardPrefetch(getActiveChunk()); });
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife };
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife, arena };
   const debug = window as unknown as { __world: unknown };
   debug.__world = handle; // the running shard's (the host re-points it on every switch)
 
@@ -1044,7 +1052,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       game.resume();
       brand();
       debug.__world = handle;
-      if (req.explore === true && chunk.explore === true) hud.startExplore();
+      if (req.arena === true) hud.enterArenaNow();
+      else if (req.explore === true && chunk.explore === true) hud.startExplore();
       else if (req.enter === true) { fromTitle = false; hud.enterNow(); } // where the player left off: no respawn at the gate (E121 is for the same shard's title)
     },
     dispose: () => {

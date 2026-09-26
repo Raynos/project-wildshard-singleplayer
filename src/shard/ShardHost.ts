@@ -163,7 +163,7 @@ export class ShardHost {
     for (const s of evicted) this.evict(s);
     const kind = this.built.has(slug) ? 'rebuild' : 'build';
     return this.buildNew(slug, false)
-      .then(() => { rememberChunk(slug); this.timings.push({ from: from?.world.slug ?? null, to: slug, kind, ms: performance.now() - t0, evicted, at: t0, steps: this.resident.get(slug)?.world.bootSteps }); return undefined; })
+      .then(() => { if (req.arena === true) this.resident.get(slug)?.world.activate(req); rememberChunk(slug); this.timings.push({ from: from?.world.slug ?? null, to: slug, kind, ms: performance.now() - t0, evicted, at: t0, steps: this.resident.get(slug)?.world.bootSteps }); return undefined; })
       .finally(() => { this.busy = false; });
   }
 
