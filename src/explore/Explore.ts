@@ -81,6 +81,30 @@ const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = 
 /** the same switch the play HUD uses (TouchControls puts `touch` on #hud on coarse-pointer devices, `?touch=1` forces it) */
 const touchDevice = (): boolean => document.getElementById('hud')?.classList.contains('touch') === true;
 
+/** A shard can have world geometry without any close-up specimens registered yet. Keep the Models tab useful and honest. */
+class EmptyModels implements ExplorePane {
+  readonly el: HTMLElement;
+
+  constructor(explore: Explore, shardName: string) {
+    this.el = html('div', 'ws-x-empty-models', `
+      <div class="ws-x-empty-panel">
+        <div class="ws-x-empty-label">Model explorer / ${shardName}</div>
+        <div class="ws-x-empty-count"><span>Catalog</span><span>00 models</span></div>
+        <div class="ws-x-empty-symbol" aria-hidden="true">◇</div>
+        <h2>No models<br>catalogued yet</h2>
+        <p>3D assets are in this world, but none are registered for close inspection yet.</p>
+        <button type="button">Explore the world <span aria-hidden="true">›</span></button>
+        <small>The model catalog will appear here as assets are added.</small>
+      </div>`);
+    this.el.querySelector('button')?.addEventListener('click', () => { explore.setMode('world'); });
+  }
+
+  show(): void { this.el.classList.add('show'); }
+  hide(): void { this.el.classList.remove('show'); }
+  update(): void { /* no turntable or thumbnails to animate */ }
+  context(): Record<string, ContextValue> { return { view: 'empty catalog', models: 0 }; }
+}
+
 export class Explore {
   active = false;
   mode: ExploreMode = 'hub';
@@ -157,7 +181,7 @@ export class Explore {
       this.addPane('model', new ModelExplorer(this, host.world, entries));
       this.select = new Select(this, host.world, selectTargets(entries, host.creatures ?? []), entries);
       this.onTap = (x, y) => { this.select?.pick(x, y); };
-    }
+    } else this.addPane('model', new EmptyModels(this, chunk.displayName));
   }
 
   private select: Select | null = null;

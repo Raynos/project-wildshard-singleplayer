@@ -69,6 +69,17 @@
 .ws-x-pane { position: absolute; inset: 0; display: none; pointer-events: none; }
 .ws-x-pane.show { display: block; }
 
+/* A world can be built before anyone has registered a close-up specimen for its catalog. */
+.ws-x-empty-models .ws-x-empty-panel { position: absolute; left: 8px; right: 8px; top: calc(66px + env(safe-area-inset-top, 0px)); bottom: max(86px, calc(env(safe-area-inset-bottom, 0px) + 80px)); display: flex; flex-direction: column; align-items: center; padding: 18px; pointer-events: auto; text-align: center; background: rgba(6, 10, 18, 0.82); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.ws-x-empty-label { align-self: stretch; color: var(--ws-cyan); font-size: 10px; letter-spacing: 0.2em; text-align: left; text-transform: uppercase; }
+.ws-x-empty-count { align-self: stretch; display: flex; justify-content: space-between; margin-top: 14px; padding-bottom: 10px; color: var(--ws-text-dim); border-bottom: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+.ws-x-empty-symbol { display: grid; place-items: center; flex: 0 0 auto; width: min(44vw, 172px); aspect-ratio: 1; margin: auto 0 20px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); border-radius: 50%; box-shadow: 0 0 0 20px rgba(143, 227, 255, 0.035), inset 0 0 26px rgba(143, 227, 255, 0.08); font-size: 56px; }
+.ws-x-empty-panel h2 { margin: 0 0 12px; color: #fff; font-family: var(--ws-display); font-size: 23px; letter-spacing: 0.14em; line-height: 1.2; text-transform: uppercase; }
+.ws-x-empty-panel p { max-width: 290px; margin: 0 0 28px; color: var(--ws-text-dim); font-size: 12px; line-height: 1.6; }
+.ws-x-empty-panel button { display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; width: 100%; min-height: 46px; padding: 0 13px; color: var(--ws-text); background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+.ws-x-empty-panel button span { color: var(--ws-cyan); font-size: 23px; }
+.ws-x-empty-panel small { margin: 16px 0 auto; color: var(--ws-text-dim); font-size: 10px; line-height: 1.5; }
+
 /* ─── Model Explorer (src/explore/ModelExplorer.ts; mockups p04 catalog, p03 turntable) ─── */
 .ws-x-models .ws-x-catalog, .ws-x-models .ws-x-turntable { display: none; }
 .ws-x-models[data-view="catalog"] .ws-x-catalog { display: flex; }
