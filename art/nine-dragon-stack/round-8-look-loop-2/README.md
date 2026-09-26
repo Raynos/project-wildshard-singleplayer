@@ -73,4 +73,4 @@ The ΔE per region (`palette-delta.py --regions ../round-8-look-loop-1/palette-r
   ≤ 2.5 M triangles.
 - Frame time, the spawn at 804×1748 (iPhone DPR 2), M5 Max: 22.9–25.7 ms; the Well views 14.7–18.2 ms. These were
   measured while a TRELLIS batch and other agents' headless browsers were on the GPU, and repeats swung by 2×, so they
-  are an upper bound. The full frame is fill-bound (DPR 1: 4.8 ms).
+  are an upper bound. With the GPU quiet (round 3's README) the spawn takes 4.5–4.9 ms.

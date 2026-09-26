@@ -9,6 +9,7 @@ balustrade are in them too.
 |---|---|
 | `capture-1…9.jpg`, `sheet-ingame-3x3.jpg` | the frames |
 | `warm-vs-cool.jpg`, `stats.txt` | A blue hour \| B warm silk; draws and triangles per camera |
+| `board.jpg` | **BEFORE** (this round) \| **AFTER** (round 8: the P5 paint merged, smaller flagstones) \| **TARGET**, FP 1, FP 6, aerial 7 |
 
 ΔE00 per region against the targets:
 
