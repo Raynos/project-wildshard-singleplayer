@@ -61,6 +61,7 @@ const POSES = {
 // the switch route (E155 / E159, 2 resident): a first build, a resident return, a build that evicts the least recently
 // used shard, and the evicted one's rebuild. Step 1 (Driftwood → Nalati) keeps the key of the old navigation route.
 const ROUTE = ['driftwood-isle', 'nalati-grasslands', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands'];
+const ROUTE_KINDS = [null, 'build', 'resident', 'build', 'rebuild']; // what ShardHost must report per step at cap 2
 const NETS = {
   wifi: { latency: 20, down: 30e6 / 8, up: 15e6 / 8 },
   '4g': { latency: 170, down: 9e6 / 8, up: 1.5e6 / 8 },
@@ -613,6 +614,11 @@ async function measurePose(page, shard, vp, pose, run, shots) {
 async function switchRoute(vp) {
   console.error(`> switch route / ${vp}: ${ROUTE.join(' → ')}`);
   const { ctx, net } = await newContext(vp);
+  // 2 shards in memory, whatever the default (da2566d4 made it 1): step 2 is the resident return this route measures.
+  // Under cap 1 it silently became a rebuild (E194: "0.05 s → 1.7 s" was that, not a slower return)
+  await ctx.addInitScript(() => {
+    try { const k = 'ws.settings.v1'; const cur = JSON.parse(localStorage.getItem(k) ?? '{}'); cur.shardCap = '2'; localStorage.setItem(k, JSON.stringify(cur)); } catch { /* the default */ }
+  });
   const out = { vp, route: ROUTE, steps: [] };
   try {
     const first = await load(ctx, net, pageUrl(ROUTE[0], vp), `switch ${vp} cold ${ROUTE[0]}`);
@@ -677,6 +683,7 @@ async function switchRoute(vp) {
         }, { tok: token, t: t0, k: f0 });
         step.navigated = !st.same;
         step.kind = step.navigated ? 'navigation' : st.kind ?? 'unknown';
+        if (!step.navigated && step.kind !== ROUTE_KINDS[i]) console.error(`  > WARNING: ${step.from} → ${step.to} was a ${step.kind}, the route expects a ${ROUTE_KINDS[i]}: its time is not comparable`);
         step.hostMs = st.hostMs; step.evicted = st.evicted; step.resident = st.resident;
         step.loadingShown = st.loadSeen > 0;
         step.longTaskMaxMs = st.long;

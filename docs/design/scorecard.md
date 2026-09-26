@@ -123,7 +123,10 @@ bridge, plains; Pine Hollow gate, cabin, pond. The player is teleported there on
 Per viewport, in a fresh context: a cold Driftwood Isle, left to go quiet (the background download of the other shards
 lands there), then pause → *Exit to main menu* → the other shard's card → *Enter world*, along
 **Driftwood → Nalati → Driftwood → Pine Hollow → Nalati**. With two shards resident (E155 / E159) that is a first build,
-a resident return, a build that evicts the least recently used shard (Nalati), and that shard's rebuild. Only the live
+a resident return, a build that evicts the least recently used shard (Nalati), and that shard's rebuild. The route's
+context saves *Shards in memory* = 2 before the page loads, whatever the game's default (1 since da2566d4): under cap 1
+step 2 is a rebuild, not a resident return, and its time is not comparable (E194: the "0.05 → 1.7 s resident return"
+was exactly that). A step whose `ShardHost` kind is not the route's (build, resident, build, rebuild) prints a WARNING. Only the live
 deck is clicked (`#hud .ws-menu:not(.hide)`: the deck being left fades out with its buttons still in the DOM). A shard
 built in the page lands on its own title, as a reload did, and the scorecard presses *Enter world* again when it is up.
 Step 1's key (`1.driftwood-isle>nalati-grasslands`) is the old navigation route's; the others are new. Each switch
