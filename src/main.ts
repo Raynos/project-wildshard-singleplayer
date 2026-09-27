@@ -214,7 +214,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Home-screen iOS can restore the last document URL after WebContent is killed. Once the selected shard
   // has been captured by bootstrap, leave the standalone app at its manifest root: a crash or next icon
   // launch then starts on stable Driftwood rather than retrying Nine Dragon forever.
-  if (first && (matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true)) {
+  if (first && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true)) {
     const home = new URL(location.href);
     if (home.searchParams.has('chunk') || home.searchParams.has('v')) {
       home.searchParams.delete('chunk');
