@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-09-26 — P0 and F1 fragment containment are on main (`fcd49d9d`; 19 walk legs, 0 stuck). F2 has a playable Fei Zhua zip across the Well (`03b04b67`; 19 walk legs, 0 stuck), with lab parity and polish still open. F3's 15-second grapple portrait recut is ready for Jake's review (round 19). F4–F10 need dome, budget, cleanup and iPhone work. Three placed GLBs appear in Model Explorer (`2a1393be`). E200's repeated PWA load did not reproduce in the iOS Simulator and remains open. The full shard (P1 onward) waits on Jake's go.
+**State:** `in progress` 2026-09-27 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple with phone-reduced rope/FX, and the shared practice arena are live. F3's latest 15-second portrait recut is in round 22 for Jake's review. F4–F10 still need visual, budget, lab-parity and physical iPhone work; title-first boot and phone memory reductions passed an iOS Simulator PWA run, but Jake's device remains unverified. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
 
 ## 0. Read this first
 
@@ -356,16 +356,16 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `need
 | Row | What | Owner | State |
 |---|---|---|---|
 | F1 | **Out of bounds** (Jake's playtest): invisible walls on every edge of the walkable fragment and every reachable roof, a soft respawn for anything below / outside the built volume, the hoverboard clamped; edge legs added to the walk test | continuation | done `fcd49d9d`; 19 legs, 0 stuck/escape |
-| F2 | **The grapple as the real verb**: port the lab's fire → fly → bite → zip into the shard, LOCK targets dragon hooks (a hook registry from `ctx.hooks` / the Well), JUMP fires and zips (a pull on the Rapier capsule), the arms' grapple clips; delete the lab only after [parity](../audits/nine-dragon-grapple-parity.md) | continuation | playable zip `03b04b67`; lab FX, rope, miss/reel and enemy yank remain |
-| F3 | **A 15 s portrait teaser trailer** from the engine (the `scripts/steam-trailer/` pipeline): rise up the Well, breach onto the square, the jian, the stair-street, the grapple, the end card; a MiniMax cue + MOSS / SA3 SFX; portrait 1080p60 master for the portrait iOS PWA | continuation | grapple recut `03aa1760`; awaiting Jake's review |
+| F2 | **The grapple as the real verb**: port the lab's fire → fly → bite → zip into the shard, LOCK targets dragon hooks (a hook registry from `ctx.hooks` / the Well), JUMP fires and zips (a pull on the Rapier capsule), the arms' grapple clips; delete the lab only after [parity](../audits/nine-dragon-grapple-parity.md) | continuation | playable zip `03b04b67`; rope, FX and miss/reel ported with phone reductions; motion polish, casting parity and enemy yank remain |
+| F3 | **A 15 s portrait teaser trailer** from the engine (the `scripts/steam-trailer/` pipeline): rise up the Well, breach onto the square, the jian, the stair-street, the grapple, the end card; a MiniMax cue + MOSS / SA3 SFX; portrait 1080p60 master for the portrait iOS PWA | continuation | latest grapple recut `d76d79c0`, [round 22](../../art/nine-dragon-stack/round-22-portrait-grapple-final/README.md); awaiting Jake's review |
 | F4 | **Mockup B**: move the rim post out of the lower-left (look over a carved panel, a post lower-right), `placeLion` on the posts | dome C | todo |
 | F5 | **The deep Well**: levels 50–90 m down and the temple readable through the mist (a lighter curve / lit surfaces punching through), mockup D's frame | render + D2 | todo |
 | F6 | **Mockup C**: open depth over the stair (thin the lantern strings, push back the near sky screen, the paifang big and centred, the skybridges at the mockup's depths) | C2 + render | todo |
 | F7 | Each dome loops against its 3×3 targets until "a stranger has to look twice" at phone size: A1, A2, B1, B2, C1, C2, D1, D2 | the domes | in progress |
 | F8 | Lanes back under their caps (§6.4) + the facade dressing on BatchedMesh (E13) | port lead + domes | todo |
-| F9 | **Jake's iPhone reading** of the fragment: fps at the four mockup cameras, memory with another shard resident, boot time | Jake | needs you |
+| F9 | **Jake's iPhone reading** of the fragment: first confirm title → Nine Dragon reaches play once on the physical home-screen PWA; then FPS at the four mockup cameras and boot time | Jake | needs you; Simulator pass is not a physical-device result |
 | F10 | Cleanup: `public/assets/nine-dragon/lab/*` → final asset paths; the art index rows (rounds 7–17); LOOK-LOOP.md gotchas (§12); D2's cameras 2–3 re-seated; the crossings' keep-clear for the moved temple (z −35…−25 below +54) | coordinator | todo |
-| F11 | **Decision**: keep the fragment behind the Debug row, or show it to everyone as an EXPERIMENTAL prototype card | Jake | needs pick |
+| F11 | **Decision**: keep the fragment behind the Debug row, or show it to everyone as an EXPERIMENTAL prototype card | Jake | resolved by E222: the title-first selector shows Nine Dragon as Experimental |
 
 E201's portrait Model Explorer empty-state mockups are `art/nine-dragon-stack/round-17-model-empty/`: `live-empty.jpg` is the real 390×844 blank catalog capture; `a-catalog-state.jpg` gives the catalog a full empty-state panel and World Explorer route (implemented); `b-world-first.jpg` is a smaller alternative that leaves more of the city visible. Their HTML/CSS sources sit alongside the images so the text and spacing remain editable.
 
