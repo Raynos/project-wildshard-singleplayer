@@ -106,7 +106,7 @@ export interface NineDragonWorld {
   /** the look's shared uniforms (time, the eye, the silk fog, the paint, the light pools) */
   readonly shared: Shared;
   /** the build's context: its layout records (hooks, the map's floor plan, the crowd) */
-  readonly ctx: Ctx;
+  readonly ctx: { readonly hooks: readonly Vector3[] };
   /** specimens from the GLBs actually used by this fragment, reusing the loaded geometries and material */
   readonly models: readonly RegisteredModel[];
   /** per frame: time (s) and the camera the frame is drawn from */
@@ -125,7 +125,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
-  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy())), loadFonts()]);
+  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), (f) => { progress(f * 0.15); }), loadFonts()]);
   shared.u.uPaint.value = paint.tex;
   progress(0.15);
 
@@ -141,8 +141,14 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   shared.u.uShaftK.value.y = Y0;
   const ctx = new Ctx(signs);
   buildSquare(ctx);
+  progress(0.2);
+  await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
   buildTowers(ctx);
+  progress(0.25);
+  await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
   buildWell(ctx);
+  progress(0.3);
+  await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
   const slotRng = new Rng(4242);
   const bladesKit = ctx.kit('facade-signs');
@@ -172,6 +178,12 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   for (const [name, kx] of ctx.kitxs) if (!ctx.kits.has(name) && kx.vertexCount > 0) kitGeos.push([name, kx.build()]);
   const alphaGeos: [string, BufferGeometry][] = [];
   for (const [name, kit] of ctx.alphaKits) if (kit.vertexCount > 0) alphaGeos.push([name, kit.build()]);
+  // Each Kit/KitX still owns its large JS number[] buffers after build() copies them into typed geometry.
+  // No later phase reads the builders; release them before the facade and texture uploads add to the peak.
+  ctx.kits.clear();
+  ctx.kitxs.clear();
+  ctx.alphaKits.clear();
+  await new Promise<void>((resolve) => { setTimeout(resolve, 0); }); // let the loading panel paint and GC run
   bakeSpill(kitGeos.map(([, g]) => g), emitters);
   for (const m of await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters)) root.add(named(m, 'canopy'));
   const squareProps = await loadSquareProps(mat);
@@ -380,5 +392,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     culler.update(camera);
     crowd.update(camera);
   };
-  return { root, shared, ctx, models, update, cull, culler };
+  // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
+  // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
+  return { root, shared, ctx: { hooks: ctx.hooks }, models, update, cull, culler };
 }

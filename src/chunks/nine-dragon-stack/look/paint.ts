@@ -14,6 +14,8 @@
 // poster wall (concrete ×2 + the poster). GPU memory 1024² × 9 × 4 B × 4/3 = 50 MB as RGBA8 (the lab); ~12.6 MB as ASTC
 // 4×4 / ETC2 in a KTX2 array for shipping. Download: the JPEGs, 3.65 MB. Findings: round-9-lab-texture/README.md.
 import { Color, DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, RGBAFormat, UnsignedByteType, Vector4 } from 'three';
+import { TIER } from '../../../core/tier';
+import { phoneUrl } from '../../../boot/bytes';
 
 /** the array layers, in order; `scale` = the ratio's storage scale (texprep.py spec.json `scale`) */
 export const LAYERS = [
@@ -31,7 +33,9 @@ export const LAYERS = [
 /** Look.surf: an explicit surface (flag bits × 4096); 0 = by kind */
 export const SURF = { auto: 0, none: 1, stone: 2, concrete: 3, lacquer: 4, wood: 5, poster: 6 } as const;
 
-export const PAINT_SIZE = 1024;
+// The 1024px array alone holds 48 MiB on the GPU. On a phone, 512px preserves the authored ratios at the
+// displayed scale and reduces the array and its upload buffer to one quarter of that size.
+export const PAINT_SIZE = TIER === 'phone' ? 512 : 1024;
 
 /**
  * The flagstone layout, shared by the ground's joints (style.ts STONES_GLSL `stone()`), the streak cards and the paint's
@@ -84,26 +88,34 @@ export function paintPlaceholder(): DataArrayTexture {
 }
 
 /** load every layer (`base` = the folder URL) into one mipmapped RGBA8 array */
-export async function loadPaint(base: string, anisotropy: number): Promise<{ tex: DataArrayTexture; bytes: number }> {
+export async function loadPaint(base: string, anisotropy: number, onLayer: (fraction: number) => void = () => undefined): Promise<{ tex: DataArrayTexture; bytes: number }> {
   const S = PAINT_SIZE;
   const n = LAYERS.length;
   const data = new Uint8Array(S * S * 4 * n);
   let bytes = 0;
-  await Promise.all(LAYERS.map(async (l, i) => {
-    const urls = [`${base}/${l.name}.jpg`, ...(l.alpha ? [`${base}/${l.name}-a.jpg`] : [])];
-    const [rgb, a] = await Promise.all(urls.map(loadImage));
-    if (rgb === undefined) throw new Error(`paint: ${l.name} missing`);
-    bytes += rgb.bytes + (a?.bytes ?? 0);
-    const p = pixels(rgb.bmp, S);
-    const off = i * S * S * 4;
-    data.set(p, off);
-    if (a !== undefined) {
-      const pa = pixels(a.bmp, S);
-      for (let k = 0; k < S * S; k++) data[off + k * 4 + 3] = pa[k * 4] ?? 128;
-    } else {
-      for (let k = 0; k < S * S; k++) data[off + k * 4 + 3] = 128;
+  // Decode one layer at a time. The former Promise.all held twelve decoded ImageBitmaps, their canvas
+  // readbacks and the destination array at once during the phone's already expensive world build.
+  for (const [i, l] of LAYERS.entries()) {
+    const rgb = await loadImage(phoneUrl(`${base}/${l.name}.jpg`));
+    let a: Awaited<ReturnType<typeof loadImage>> | undefined;
+    try {
+      if (l.alpha) a = await loadImage(phoneUrl(`${base}/${l.name}-a.jpg`));
+      bytes += rgb.bytes + (a?.bytes ?? 0);
+      const p = pixels(rgb.bmp, S);
+      const off = i * S * S * 4;
+      data.set(p, off);
+      if (a !== undefined) {
+        const pa = pixels(a.bmp, S);
+        for (let k = 0; k < S * S; k++) data[off + k * 4 + 3] = pa[k * 4] ?? 128;
+      } else {
+        for (let k = 0; k < S * S; k++) data[off + k * 4 + 3] = 128;
+      }
+    } finally {
+      rgb.bmp.close();
+      a?.bmp.close();
     }
-  }));
+    onLayer((i + 1) / n);
+  }
   const t = new DataArrayTexture(data, S, S, n);
   t.format = RGBAFormat;
   t.type = UnsignedByteType;

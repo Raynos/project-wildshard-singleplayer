@@ -53,7 +53,7 @@ export function tierUrl(url: string, tex: TexMode = texMode()): string {
 /** the tier's copy of a file (`.phone.webp` / `.phone.glb`), whatever the textures ride as */
 export function phoneUrl(url: string): string {
   if (TIER_CONFIG.maxTexture > 1024) return url;
-  const m = /^(.*)\.(png|jpg|glb)$/.exec(url);
+  const m = /^(.*)\.(png|jpg|webp|glb)$/.exec(url);
   if (!m) return url;
   const u = `${m[1]}.phone.${m[2] === 'glb' ? 'glb' : 'webp'}`;
   return u in TABLE ? u : url;
