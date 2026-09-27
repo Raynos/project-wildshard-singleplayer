@@ -11,11 +11,11 @@ const onlyShard = process.argv[5];
 const textureMode = process.argv[6];
 const results = [];
 for (const [engine, browserType] of [['chromium', chromium], ['webkit', webkit]]) {
-  if (onlyEngine !== undefined && engine !== onlyEngine) continue;
+  if (onlyEngine && engine !== onlyEngine) continue;
   const browser = await browserType.launch(engine === 'chromium' ? { args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] } : {});
   try {
     for (const shard of ['driftwood-isle', 'nine-dragon-stack']) {
-      if (onlyShard !== undefined && shard !== onlyShard) continue;
+      if (onlyShard && shard !== onlyShard) continue;
       const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, serviceWorkers: 'block' });
       if (textureMode === 'ktx2' || textureMode === 'img') await context.addInitScript((tex) => { localStorage.setItem('ws.settings.v1', JSON.stringify({ tex })); }, textureMode);
       await context.addInitScript(() => {
@@ -27,8 +27,7 @@ for (const [engine, browserType] of [['chromium', chromium], ['webkit', webkit]]
           if (now - last > 100) window.__e226.gaps.push({ at: Math.round(now), ms: Math.round(now - last), stage: lastStage });
           last = now;
           const loader = document.querySelector('.ws-load');
-          if (loader) lastStage = `${loader.dataset.step ?? ''} ${loader.querySelector('[data-el="suFact"]')?.textContent ?? ''}`.trim();
-          else lastStage = 'play';
+          lastStage = loader ? `${loader.dataset.step ?? ''} ${loader.querySelector('[data-el="suFact"]')?.textContent ?? ''}`.trim() : 'play';
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -60,7 +59,7 @@ for (const [engine, browserType] of [['chromium', chromium], ['webkit', webkit]]
         await page.waitForTimeout(3000);
       } catch (error) { failure = String(error).slice(0, 500); }
       let metrics = {};
-      if (!crash) try {
+      try {
         metrics = await page.evaluate(() => {
           const w = window.__world, g = w?.game, m = window.__e226;
           const info = g?.renderer.info;
@@ -69,7 +68,7 @@ for (const [engine, browserType] of [['chromium', chromium], ['webkit', webkit]]
             steps: window.__shardHost?.timings?.[0]?.steps ?? null,
             sceneTextureMB: window.__shardHost?.memory(0).shards[0]?.textureMB ?? null,
             jsHeapMB: performance.memory?.usedJSHeapSize ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null,
-            peakSampledJsHeapMB: m.heaps.length ? Math.max(...m.heaps.map((h) => h.mb)) : null,
+            peakSampledJsHeapMB: m.heaps.length > 0 ? Math.max(...m.heaps.map((h) => h.mb)) : null,
             peakHeapSample: m.heaps.slice().sort((a, b) => b.mb - a.mb)[0] ?? null,
             renderer: info ? { textures: info.memory.textures, geometries: info.memory.geometries, programs: info.programs?.length ?? 0 } : null,
             frame: g?.lastFrame ?? null,
