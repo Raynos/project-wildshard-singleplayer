@@ -20,6 +20,7 @@
     <link rel="preload" href="/fonts/rajdhani-700-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
     <style>
+      html.title-first #game, html.title-first .ws-load { display: none; }
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
       @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-greek.woff2) format('woff2');unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF}
@@ -60,6 +61,9 @@
       document.addEventListener('gesturestart', (e) => e.preventDefault());
       // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)
       if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
+      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.
+      const homeParams = new URLSearchParams(location.search);
+      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');
       // developer mode (E140, src/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the
       // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)
       try { if (localStorage.getItem('ws.dev') === '1') document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }

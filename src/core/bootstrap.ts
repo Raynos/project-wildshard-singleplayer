@@ -12,7 +12,7 @@ import type { Sky } from '../world/Sky';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
 import { runDirect, type StepRunner } from '../boot/plan';
-import { getActiveChunk, setActiveChunk, chunkSlugFromUrl } from '../chunks/registry';
+import { getActiveChunk } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
@@ -63,7 +63,8 @@ export interface World {
 export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number): number => { const v = params.get(k); return v === null ? d : Number.parseFloat(v); };
-  const def = setActiveChunk(chunkSlugFromUrl());
+  // The selected shard was resolved before main.ts removes ?chunk from a standalone PWA URL.
+  const def = getActiveChunk();
   const rapier = loadRapier(); // streamed compile from the first moment of boot; the `physics` step below awaits it
   const navmesh = loadNavmesh(def.slug); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
   const canvas = document.getElementById('game') as HTMLCanvasElement;

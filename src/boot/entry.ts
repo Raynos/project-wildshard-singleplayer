@@ -26,8 +26,12 @@ async function retried<T>(load: () => Promise<T>): Promise<T> {
   return load();
 }
 
-/** resolves once src/main.ts has been evaluated (its `main()` is then running) */
-export const entered: Promise<unknown> = (async () => {
+/** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
+const search = new URLSearchParams(location.search);
+const titleOnly = search.size === 0 || (search.size === 1 && search.has('v'));
+
+/** resolves once the title or the selected shard's entry has been evaluated */
+export const entered: Promise<unknown> = titleOnly ? retried(() => import('../ui/StartTitle')) : (async () => {
   await retried(() => import('three'));
   await task();
   return retried(() => import('../main'));

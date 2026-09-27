@@ -1,6 +1,7 @@
 /** A shard change navigates to a fresh page. iOS Safari must release the old renderer and JS heap before the next boot. */
 import { chunkUrl, findChunk } from '../chunks/registry';
 import { markUnload } from '../boot/lastEnd';
+import { setTitleArrival } from '../boot/titleArrival';
 
 export interface ShardRequest {
   /** into the world (ENTER WORLD) */
@@ -30,6 +31,7 @@ export function setShardSwitcher(s: Switcher): void { switcher = s; }
 
 export function requestShard(slug: string, req: ShardRequest = {}): void {
   if (!findChunk(slug)) return;
+  setTitleArrival({ slug, mode: req.arena === true ? 'arena' : req.explore === true ? 'explore' : 'enter' });
   try {
     if (req.arena === true) sessionStorage.setItem(ARENA_ARRIVAL, slug);
     else sessionStorage.removeItem(ARENA_ARRIVAL);

@@ -123,6 +123,7 @@ import { installPineLoadout } from './pinehollow/loadout';
 import { installPineLife } from './pinehollow/life';
 import { ShardHost, type ShardWorld } from './shard/ShardHost';
 import { consumeArenaArrival, setShardSwitcher } from './shard/switch';
+import { consumeTitleArrival, type TitleArrival } from './boot/titleArrival';
 import { setAliveSource } from './boot/lastEnd';
 import { asShell } from './core/shardScope';
 
@@ -145,6 +146,7 @@ installErrorModal(); // before anything can throw
 const shell: { music: Music | null } = { music: null };
 /** the page's shard host (main() makes it): each shard's GPU recovery asks it whether that shard is parked */
 let hostRef: ShardHost | null = null;
+let bootArrival: TitleArrival | null = null;
 
 /** E183: how long the title idles before its one primed frame (a first glance at the deck, a swipe, stay smooth) */
 const TITLE_IDLE_MS = 1200;
@@ -153,6 +155,19 @@ const TITLE_IDLE_MS = 1200;
 const SHARD_CAP = 1;
 
 async function main() {
+  const selected = getActiveChunk().slug;
+  // Consume the title's one-shot intent before building. A WebContent crash cannot replay it.
+  bootArrival = consumeTitleArrival(selected);
+  // The registry and tier have already read ?chunk during module evaluation. Strip it before
+  // the expensive build: an iOS PWA crash in Props must restart at the root selector.
+  if (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true) {
+    const home = new URL(location.href);
+    if (home.searchParams.has('chunk') || home.searchParams.has('v')) {
+      home.searchParams.delete('chunk');
+      home.searchParams.delete('v');
+      history.replaceState(history.state, '', home);
+    }
+  }
   const host = new ShardHost({ build: buildShard, cap: SHARD_CAP });
   setShardSwitcher({
     memory: () => host.memory(),
@@ -164,7 +179,7 @@ async function main() {
     slug: host.active ?? '',
     resident: host.memory(60_000).shards.map((s) => `${s.slug}${s.running ? ' (playing)' : ''} ~${Math.round(s.textureMB)} MB`).join(' · '),
   }));
-  await host.start(getActiveChunk().slug);
+  await host.start(selected);
 }
 
 /**
@@ -211,17 +226,6 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
-  // Home-screen iOS can restore the last document URL after WebContent is killed. Once the selected shard
-  // has been captured by bootstrap, leave the standalone app at its manifest root: a crash or next icon
-  // launch then starts on stable Driftwood rather than retrying Nine Dragon forever.
-  if (first && (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true)) {
-    const home = new URL(location.href);
-    if (home.searchParams.has('chunk') || home.searchParams.has('v')) {
-      home.searchParams.delete('chunk');
-      home.searchParams.delete('v');
-      history.replaceState(history.state, '', home);
-    }
-  }
   // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
   // lends the player its floor function. `statics` keeps the boxes for the ocean's foam rings.
   const statics: Collider[] = [];
@@ -817,7 +821,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const tour = world.tour;
   // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
   const resuming = params.has(RELOAD_PARAM);
-  const menuFirst = !params.has('skipintro') && !params.has('tour') && !resuming;
+  const arrival = first ? bootArrival : null;
+  const menuFirst = arrival === null && !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;
   let fromTitle = false; // pause → "Exit to main menu" → ENTER WORLD starts over at the spawn (E121), a plain resume does not
   const enter = () => {
@@ -836,11 +841,17 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   };
   hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { arena.exit(); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
+  hud.onExitToMenu = () => {
+    if (arrival !== null) { location.assign('/'); return; }
+    arena.exit(); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
+  };
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
   // lazy chunk). God-mode camera, Model Explorer, one ✎ to the review inbox; ✕ comes back here to the title.
-  const exitExplore = () => { perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); hud.showIntro(enter); };
+  const exitExplore = () => {
+    if (arrival !== null) { location.assign('/'); return; }
+    perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); hud.showIntro(enter);
+  };
   const noteSheet = async (): Promise<void> => { const f = await loadFeedback(); await f.openSheet(); };
   const openExplore = async (mode: ExploreMode, opts: { cam?: number[]; model?: string } = {}): Promise<void> => {
     audio.resume();
@@ -865,6 +876,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated() && !shardCompleteUp(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
+  else if (arrival?.mode === 'explore') { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); hud.startExplore(); }
   else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
   // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ChunkDef.explore — D4, E66; a note's "go there")
   if (exploreParam !== null && chunk.explore === true) {
@@ -1028,7 +1040,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     parked: () => hostRef?.isParked(slug) === true, onLostParked: () => { hostRef?.evict(slug); } }); // a parked shard that loses its context is evicted (E155)
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
-  if (consumeArenaArrival(slug)) hud.enterArenaNow();
+  if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
+  const arenaArrival = consumeArenaArrival(slug);
+  if (arrival?.mode === 'arena' || arenaArrival) hud.enterArenaNow();
   // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
