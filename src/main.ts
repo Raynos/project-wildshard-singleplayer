@@ -206,6 +206,17 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
+  // Home-screen iOS can restore the last document URL after WebContent is killed. Once the selected shard
+  // has been captured by bootstrap, leave the standalone app at its manifest root: a crash or next icon
+  // launch then starts on stable Driftwood rather than retrying Nine Dragon forever.
+  if (first && (matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true)) {
+    const home = new URL(location.href);
+    if (home.searchParams.has('chunk') || home.searchParams.has('v')) {
+      home.searchParams.delete('chunk');
+      home.searchParams.delete('v');
+      history.replaceState(history.state, '', home);
+    }
+  }
   // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
   // lends the player its floor function. `statics` keeps the boxes for the ocean's foam rings.
   const statics: Collider[] = [];
