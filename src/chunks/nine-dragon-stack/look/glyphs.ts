@@ -6,6 +6,7 @@
 //       constant-width hand-bent tube with round ends (real Hong Kong neon is bent glass along the stroke's centreline).
 // One cell per character, shared by every sign and colour (the colour is a vertex attribute).
 import { ClampToEdgeWrapping, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType } from 'three';
+import { TIER } from '../../../core/tier';
 
 export const KAI_STACK = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", "PingFang TC", serif';
 
@@ -83,10 +84,10 @@ function thin(img: Uint8Array, w: number, x0: number, y0: number, x1: number, y1
 
 export class GlyphAtlas {
   /** atlas px per cell, px of the font's em, and the distance-field reach in px (fill / skeleton) */
-  static readonly CELL = 128;
-  static readonly FONT_PX = 92;
-  static readonly SPREAD = 18;
-  static readonly SKEL_SPREAD = 26;
+  static readonly CELL = TIER === 'phone' ? 64 : 128;
+  static readonly FONT_PX = TIER === 'phone' ? 46 : 92;
+  static readonly SPREAD = TIER === 'phone' ? 9 : 18;
+  static readonly SKEL_SPREAD = TIER === 'phone' ? 13 : 26;
   readonly texture: DataTexture;
   readonly size: number;
   private readonly rects = new Map<string, GlyphRect>();

@@ -15,12 +15,12 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${opts.tier ?? 'phone'}&chunk=${chunk}`));
   localStorage.clear();
   if (opts.tex !== undefined) localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: opts.tex }));
-  const [{ CHUNKS }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
+  const [{ CHUNKS, PROTOTYPES }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
     import('../src/chunks/registry'), import('../src/boot/shardPrefetch'), import('../src/boot/gpuFiles'), import('../src/boot/manifest'), import('../src/boot/pack'),
   ]);
   const m = opts.marker?.(sp, CHUNKS);
   if (m) localStorage.setItem(m[0], m[1]);
-  return { CHUNKS, sp, gf, chunkFiles, packFor, bootParts, def: CHUNKS.find((c) => c.slug === chunk) };
+  return { CHUNKS, PROTOTYPES, sp, gf, chunkFiles, packFor, bootParts, def: CHUNKS.find((c) => c.slug === chunk) };
 }
 const current = (sp: SP, CHUNKS: readonly ChunkDef[], slug = 'pine-hollow'): [string, string] | null => {
   const def = CHUNKS.find((c) => c.slug === slug);
@@ -28,6 +28,12 @@ const current = (sp: SP, CHUNKS: readonly ChunkDef[], slug = 'pine-hollow'): [st
 };
 
 describe('Auto: images until the shard\'s KTX2 set is cached', () => {
+  it('Nine Dragon uses compressed textures on the first phone visit to stay within its GPU budget', async () => {
+    const phone = await load({ chunk: 'nine-dragon-stack', tier: 'phone' });
+    expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2' });
+    const desktop = await load({ chunk: 'nine-dragon-stack', tier: 'desktop' });
+    expect(desktop.gf.texMode()).toBe('img');
+  });
   it('a first visit (no marker) loads images', async () => {
     const { gf } = await load();
     expect(gf.texModeWhy().mode).toBe('img');
@@ -123,8 +129,8 @@ describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-kt
   it('every file under /assets/gpu is in some tier\'s KTX2 set (a .gltf stand-in\'s textures with it)', async () => {
     const used = new Set<string>();
     for (const tier of ['phone', 'desktop'] as const) {
-      const { CHUNKS, sp } = await load({ tier });
-      for (const def of CHUNKS) for (const u of sp.ktx2Set(def)) used.add(u.split('?')[0] ?? u);
+      const { CHUNKS, PROTOTYPES, sp } = await load({ tier });
+      for (const def of [...CHUNKS, ...PROTOTYPES]) for (const u of sp.ktx2Set(def)) used.add(u.split('?')[0] ?? u);
     }
     for (const u of used) { // the textures a .gltf adds are .ktx2: visited, never expanded
       const raw = GLTF[`../public${u}`];

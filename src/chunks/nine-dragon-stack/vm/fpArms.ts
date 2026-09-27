@@ -32,6 +32,8 @@ import { buildHalo } from './jian';
 import { type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, weaveTexture } from './materials';
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from './rig';
 import { Trail, type TrailLook } from './trail';
+import { phoneUrl } from '../../../boot/bytes';
+import { ktx2Texture } from '../../../core/ktx2';
 
 export const ASSET_BASE = '/assets/nine-dragon/viewmodel/';
 export const RIG_URL = `${ASSET_BASE}fp-rig.glb`;
@@ -79,7 +81,7 @@ function prepGeometry(g: BufferGeometry): void {
 function mapPair(name: string): Promise<[Texture | null, Texture | null]> {
   const one = async (url: string): Promise<Texture | null> => {
     try {
-      const t = await texLoader.loadAsync(url);
+      const t = await ktx2Texture(phoneUrl(url)) ?? await texLoader.loadAsync(url);
       t.colorSpace = NoColorSpace;
       t.flipY = false;
       t.minFilter = LinearMipmapLinearFilter;

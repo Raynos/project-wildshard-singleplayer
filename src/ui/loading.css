@@ -42,6 +42,7 @@
 .ws-load .ws-load-log .ws-load-row-label { flex: none; }
 .ws-load .ws-load-log .ws-load-row-detail { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(196, 220, 232, 0.6); }
 .ws-load .ws-load-log div.on .ws-load-row-detail { color: #fff; }
+.ws-load .ws-load-diagnostics { margin-top: 12px; padding-top: 9px; border-top: 1px solid rgba(143, 227, 255, 0.18); color: var(--ws-cyan-dim); font-size: 10px; line-height: 1.5; white-space: pre-line; font-variant-numeric: tabular-nums; }
 .ws-load .ws-load-log .ws-load-row-ms { flex: none; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
 @media (max-width: 600px) {
   .ws-load .ws-load-track-name { width: 64px; }

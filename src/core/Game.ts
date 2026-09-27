@@ -269,7 +269,9 @@ export class Game {
     composer.addPass(this.renderPass);
 
     let aoPass: N8AOPostPass | null = null;
-    if (R?.ao ?? TIER_CONFIG.ao) {
+    // Nine Dragon's physical iPhone PWA is being killed as its first frame becomes playable (E224).
+    // Keep its phone compositor below the transient boot peak; the shard strategy can restore AO after a phone pass.
+    if (getActiveChunk().slug !== 'nine-dragon-stack' || TIER !== 'phone' ? (R?.ao ?? TIER_CONFIG.ao) : false) {
       const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, viewportHeight());
       aoPass = ao;
       ao.configuration.aoRadius = 2.5;

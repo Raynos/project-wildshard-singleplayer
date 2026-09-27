@@ -26,6 +26,7 @@ export const LOAD_SHELL_HTML = `<div class="ws-load-head">
 <div class="ws-load-bar"><div class="ws-load-fill" data-el="suBar"></div></div>
 </div>
 <div class="ws-load-log" data-el="rows"></div>
+<div class="ws-load-diagnostics" data-el="diagnostics">Memory: checking · CPU: checking</div>
 </div>
 </div>
 <div class="ws-load-foot"><span data-el="foot"></span></div>`;

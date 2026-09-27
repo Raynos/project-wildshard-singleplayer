@@ -45,6 +45,12 @@ export class Kit {
 
   get vertexCount(): number { return this.n; }
 
+  /** Drop the transient JS number arrays after build() copied them into BufferGeometry. */
+  release(): void {
+    this.pos.length = this.nor.length = this.col.length = this.face.length = 0;
+    this.pat.length = this.misc.length = this.off.length = this.idx.length = 0;
+  }
+
   private vert(p: Vector3, nrm: Vector3, u: number, v: number, w: number, h: number, look: Look, uo: number, vo: number, flags: number): void {
     this.pos.push(p.x, p.y, p.z);
     this.nor.push(nrm.x, nrm.y, nrm.z);

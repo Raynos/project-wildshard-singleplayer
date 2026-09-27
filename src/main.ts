@@ -121,7 +121,7 @@ import { installPineQuest } from './pinehollow/quest';
 import { installPineWeather } from './pinehollow/weather';
 import { installPineLoadout } from './pinehollow/loadout';
 import { installPineLife } from './pinehollow/life';
-import { ShardHost, type ShardWorld } from './shard/ShardHost';
+import { ShardHost, textureBytes, type ShardWorld } from './shard/ShardHost';
 import { consumeArenaArrival, setShardSwitcher } from './shard/switch';
 import { consumeTitleArrival, type TitleArrival } from './boot/titleArrival';
 import { setAliveSource } from './boot/lastEnd';
@@ -415,7 +415,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (built !== undefined) { // the structure-first shard's world: drawn, collides and lends its floor through the registry
       const structures = await built.build();
       await structures.build({ renderer: game.renderer, scene: game.scene, camera: game.camera, registry,
-        onUpdate: (fn) => { game.onUpdate(fn, 'structures'); }, progress: (f) => { p.set(Math.round(f * 100), 100); } });
+        onUpdate: (fn) => { game.onUpdate(fn, 'structures'); }, progress: (f, detail) => { p.set(Math.round(f * 100), 100, detail); } });
       return null;
     }
     const propsBuilt = new Props(sky, forest);
@@ -1026,6 +1026,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
   await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+  loading.setTextureBytes(textureBytes(game.scene));
   // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
   const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk)).wait(p));
   if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
@@ -1033,13 +1034,15 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   audio.useSamples(banks.sfx);
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   releaseByteCounter();
-  game.start();
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
   if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
+  const recoveryInstalledAt = performance.now();
   installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
+    fragileBoot: () => TIER === 'phone' && performance.now() - recoveryInstalledAt < 20_000,
     parked: () => hostRef?.isParked(slug) === true, onLostParked: () => { hostRef?.evict(slug); } }); // a parked shard that loses its context is evicted (E155)
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
+  game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
   const arenaArrival = consumeArenaArrival(slug);
   if (arrival?.mode === 'arena' || arenaArrival) hud.enterArenaNow();

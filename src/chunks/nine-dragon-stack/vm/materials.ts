@@ -22,6 +22,7 @@ import {
   Matrix3, SRGBColorSpace, ShaderMaterial, type Texture, UnsignedByteType, Vector2, Vector3, Vector4,
 } from 'three';
 import { CLS } from './geo';
+import { TIER } from '../../../core/tier';
 
 /** the class palette (sRGB hex), index = CLS value; tuned against round-6 style A / target-1 */
 export const PALETTE: Readonly<Record<number, number>> = {
@@ -105,11 +106,13 @@ export interface Decals { tex: Texture; etch: Vector4; fu: Vector4 }
 
 export function decalAtlas(): Decals {
   const W = 2048, H = 1024;
+  const scale = TIER === 'phone' ? 0.5 : 1;
   const cv = document.createElement('canvas');
-  cv.width = W;
-  cv.height = H;
+  cv.width = W * scale;
+  cv.height = H * scale;
   const g = cv.getContext('2d');
   if (g === null) throw new Error('2d canvas unavailable');
+  g.scale(scale, scale); // preserve all authored UVs and drawing coordinates at phone resolution
   g.fillStyle = '#000';
   g.fillRect(0, 0, W, H);
   // ── the etch strip (x 0..2048 = blade root → tip, y 0..256 = across one flat, the ridge at y 128) ──

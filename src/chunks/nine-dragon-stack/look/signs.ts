@@ -13,6 +13,7 @@ import type { Emitter } from './emitters';
 import type { Kit, Look } from '../world/kit';
 import type { NeonSigns } from './neonsigns';
 import { chars } from '../util';
+import { TIER } from '../../../core/tier';
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
 export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';
@@ -32,9 +33,10 @@ export interface SignSpec {
 export interface Cell { u0: number; v0: number; u1: number; v1: number; mono: boolean }
 
 // the colour atlas is twice as tall as wide: dome B's stalls and gate carry many small paper / banner signs
-const MW = 2048, MH = 4096, CS = 1024, CH = 2048;
-const U = 96; // px per character
-const PAD = 8;
+const PHONE = TIER === 'phone';
+const MW = PHONE ? 1024 : 2048, MH = PHONE ? 2048 : 4096, CS = PHONE ? 512 : 1024, CH = PHONE ? 1024 : 2048;
+const U = PHONE ? 48 : 96; // px per character; same atlas capacity with a quarter of the phone pixels
+const PAD = PHONE ? 4 : 8;
 
 const isMono = (s: SignStyle): boolean => s === 'tube' || s === 'box';
 
@@ -189,9 +191,9 @@ export class SignAtlas {
   private drawColour(spec: SignSpec): Cell {
     const ctx = this.cctx;
     const isEtch = spec.style === 'etch';
-    const u = 72;
+    const u = PHONE ? 36 : 72;
     const lay = this.layout(spec, u);
-    const w = isEtch ? 1000 : lay.w, h = isEtch ? 80 : lay.h;
+    const w = isEtch ? (PHONE ? 500 : 1000) : lay.w, h = isEtch ? (PHONE ? 40 : 80) : lay.h;
     const { x, y } = this.allocColour(w, h);
     ctx.save();
     ctx.beginPath();
@@ -239,17 +241,19 @@ export class SignAtlas {
       frame(u * 0.06, u * 0.03);
     } else {
       // etch: cloud scrolls (祥云) and a circuit line along a blade, silver on nothing
+      if (PHONE) ctx.scale(0.5, 0.5);
+      const ew = PHONE ? w * 2 : w, eh = PHONE ? h * 2 : h;
       ctx.strokeStyle = spec.color;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(20, h * 0.5);
-      ctx.lineTo(w - 20, h * 0.5);
-      ctx.moveTo(40, h * 0.28);
-      ctx.lineTo(w * 0.45, h * 0.28);
-      ctx.lineTo(w * 0.5, h * 0.4);
+      ctx.moveTo(20, eh * 0.5);
+      ctx.lineTo(ew - 20, eh * 0.5);
+      ctx.moveTo(40, eh * 0.28);
+      ctx.lineTo(ew * 0.45, eh * 0.28);
+      ctx.lineTo(ew * 0.5, eh * 0.4);
       ctx.stroke();
       for (let i = 0; i < 7; i++) {
-        const ccx = 90 + i * 128, ccy = h * (i % 2 === 0 ? 0.64 : 0.38);
+        const ccx = 90 + i * 128, ccy = eh * (i % 2 === 0 ? 0.64 : 0.38);
         ctx.lineWidth = 2.5;
         for (let k = 0; k < 3; k++) {
           ctx.beginPath();

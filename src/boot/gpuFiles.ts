@@ -22,6 +22,8 @@
  *                                                      background after the first visit and, when the worker has confirmed
  *                                                      every file, writes a marker (the set's hash) that the next page load
  *                                                      reads here. A half-downloaded set has no marker: images.
+ * Nine Dragon's phone tier is the exception: Auto loads KTX2 on the first visit to stay below Driftwood's measured
+ * GPU allocation. Its files still enter the service worker cache after the selected shard starts.
  * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
  * running world. E155 builds several shards in one page (src/shard/ShardHost.ts): the answer is shard state
  * (src/core/shardState.ts) — reset before each build, so every build asks for its own shard (the `?chunk=` the host keeps on
@@ -57,7 +59,13 @@ export function texModeWhy(): { mode: TexMode; why: string } {
   try {
     const picked = setting('tex');
     if (picked !== 'auto') resolved = { mode: picked, why: `picked (Settings ▸ Debug ▸ GPU textures: ${picked})` };
-    else { const slug = buildSlug(); resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` }; }
+    else {
+      const slug = buildSlug();
+      // Nine Dragon's cold image path exceeded the iPhone's practical WebContent budget. Its authored
+      // compressed set is available on the first visit, so prioritize GPU memory over the first download.
+      if (TIER === 'phone' && slug === 'nine-dragon-stack') resolved = { mode: 'ktx2', why: 'auto: Nine Dragon phone memory guard (cold KTX2)' };
+      else resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
+    }
   } finally { resolving = false; }
   return resolved;
 }

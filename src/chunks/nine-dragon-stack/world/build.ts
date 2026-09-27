@@ -121,13 +121,14 @@ export interface NineDragonWorld {
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
-export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f: number) => void = () => undefined): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f: number, detail?: string) => void = () => undefined): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
-  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), (f) => { progress(f * 0.15); }), loadFonts()]);
+  progress(0, 'paint + fonts');
+  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), (f) => { progress(f * 0.15, 'paint + fonts'); }), loadFonts()]);
   shared.u.uPaint.value = paint.tex;
-  progress(0.15);
+  progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
   const atlas = new SignAtlas();
@@ -141,13 +142,13 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   shared.u.uShaftK.value.y = Y0;
   const ctx = new Ctx(signs);
   buildSquare(ctx);
-  progress(0.2);
+  progress(0.2, 'layout: towers');
   await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
   buildTowers(ctx);
-  progress(0.25);
+  progress(0.25, 'layout: well');
   await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
   buildWell(ctx);
-  progress(0.3);
+  progress(0.3, 'signs');
   await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
   const slotRng = new Rng(4242);
@@ -158,7 +159,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     const size = Math.min(s.size, s.blade ? 1.2 : 0.8);
     ctx.signs.place({ at: s.at, normal: s.normal, size, spec: { text: word, color, vertical: s.blade, style: s.blade || slotRng.chance(0.5) ? 'tube' : 'box' }, blade: s.blade }, s.blade ? null : bladesKit);
   }
-  progress(0.4);
+  progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
   const mat = jiehuaMaterial(shared);
@@ -170,23 +171,70 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   // every mesh is named by what built it (`kit:<name>`, `facade`, `crowd`, …): the budget ruler sorts them into lanes
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
   const kitGeos: [string, BufferGeometry][] = [];
+  const kitProfile: { name: string; ms: number; vertices: number }[] = [];
+  const phaseProfile: { name: string; ms: number }[] = [];
+  const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
+  const processed = new Set<string>();
+  const kitTotal = ctx.kits.size + ctx.kitxs.size + ctx.alphaKits.size;
+  let kitsDone = 0;
+  let lastYield = performance.now();
+  const converted = async (): Promise<void> => {
+    kitsDone++;
+    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone}/${kitTotal}`);
+    if (performance.now() - lastYield < 30) return;
+    await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+    lastYield = performance.now();
+  };
   for (const [name, kit] of ctx.kits) {
+    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone + 1}/${kitTotal}: ${name}`);
+    const tKit = performance.now();
     const kx = ctx.kitxs.get(name);
     if (kx !== undefined && kx.vertexCount > 0) kitGeos.push([name, kit.vertexCount > 0 ? merge([kit.build(), kx.build()]) : kx.build()]);
     else if (kit.vertexCount > 0) kitGeos.push([name, kit.build()]);
+    processed.add(name);
+    kitProfile.push({ name, ms: Math.round(performance.now() - tKit), vertices: kit.vertexCount + (kx?.vertexCount ?? 0) });
+    kit.release();
+    kx?.release();
+    ctx.kits.delete(name);
+    ctx.kitxs.delete(name);
+    await converted();
   }
-  for (const [name, kx] of ctx.kitxs) if (!ctx.kits.has(name) && kx.vertexCount > 0) kitGeos.push([name, kx.build()]);
+  for (const [name, kx] of ctx.kitxs) {
+    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone + 1}/${kitTotal}: ${name}`);
+    const tKit = performance.now();
+    if (!processed.has(name) && kx.vertexCount > 0) kitGeos.push([name, kx.build()]);
+    kitProfile.push({ name, ms: Math.round(performance.now() - tKit), vertices: kx.vertexCount });
+    kx.release();
+    ctx.kitxs.delete(name);
+    await converted();
+  }
   const alphaGeos: [string, BufferGeometry][] = [];
-  for (const [name, kit] of ctx.alphaKits) if (kit.vertexCount > 0) alphaGeos.push([name, kit.build()]);
+  for (const [name, kit] of ctx.alphaKits) {
+    progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone + 1}/${kitTotal}: ${name}`);
+    const tKit = performance.now();
+    if (kit.vertexCount > 0) alphaGeos.push([name, kit.build()]);
+    kitProfile.push({ name, ms: Math.round(performance.now() - tKit), vertices: kit.vertexCount });
+    kit.release();
+    ctx.alphaKits.delete(name);
+    await converted();
+  }
   // Each Kit/KitX still owns its large JS number[] buffers after build() copies them into typed geometry.
   // No later phase reads the builders; release them before the facade and texture uploads add to the peak.
   ctx.kits.clear();
   ctx.kitxs.clear();
   ctx.alphaKits.clear();
+  Reflect.set(window, '__ndKitProfile', kitProfile);
   await new Promise<void>((resolve) => { setTimeout(resolve, 0); }); // let the loading panel paint and GC run
-  bakeSpill(kitGeos.map(([, g]) => g), emitters);
+  progress(0.52, 'neon spill + canopy');
+  let phaseStart = performance.now();
+  await bakeSpill(kitGeos.map(([, g]) => g), emitters);
+  phaseDone('neon spill', phaseStart);
+  phaseStart = performance.now();
   for (const m of await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters)) root.add(named(m, 'canopy'));
+  phaseDone('canopy', phaseStart);
+  phaseStart = performance.now();
   const squareProps = await loadSquareProps(mat);
+  phaseDone('square props', phaseStart);
   for (const m of squareProps) root.add(m);
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below)
   const farKits: [Mesh, number][] = [];
@@ -199,13 +247,17 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   for (const [name, g] of kitGeos) kitMesh(name, g, mat);
   for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
   root.add(named(paper.build(), 'lanterns'));
+  progress(0.56, 'facade batches');
+  phaseStart = performance.now();
   const facade = buildFacade(ctx.fd, facadeUniforms(shared), {
     clutterFar: [55, 85], multiDraw: renderer.extensions.has('WEBGL_multi_draw'),
   });
+  phaseDone('facade', phaseStart);
   root.add(named(facade.group, 'facade'));
   const neonMeshes = neonSigns.build();
   root.add(named(neonMeshes.boards, 'neon'), named(neonMeshes.tubes, 'neon'));
-  progress(0.6);
+  progress(0.6, 'streaks + dressing');
+  phaseStart = performance.now();
 
   // the wet-ground streaks: the emitters over the square and its street, and the lit windows facing them
   const onSquare = emitters.filter((e) => e.at.y > Y0 + 0.3 && e.at.y < Y0 + 45 && e.at.x > WELL.x0 - 2 && e.at.x < 40 && e.at.z > -170 && e.at.z < 30);
@@ -285,7 +337,8 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   steam.frustumCulled = false;
   steam.renderOrder = 3;
   root.add(named(sheets, 'sheets'), named(steam, 'steam'));
-  progress(0.75);
+  progress(0.75, 'crowd models');
+  phaseDone('streaks + dressing', phaseStart);
 
   // the TRELLIS crowd, colour-ramped to the ink (two tones per model, one instanced draw each); scenery only
   const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
@@ -293,6 +346,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
   const person3 = (name: string, ramp: readonly number[]): Promise<BufferGeometry> => loadGlb(`/assets/nine-dragon/lab/${name}.glb`, { kind: 0, line: 0, ao: 0.6, ramp, hues: HUES });
   const [walkD, walkL, sitD, sitL] = await Promise.all([person3('walker', DARK), person3('walker', LIGHT), person3('sitter', DARK), person3('sitter', LIGHT)]);
+  phaseStart = performance.now();
   const specimen = (id: string, name: string, category: RegisteredModel['category'], file: string, geometry: BufferGeometry): RegisteredModel => {
     const object = new Mesh(geometry, mat);
     object.name = `model:${id}`;
@@ -350,15 +404,17 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   crowd.add(sitL, ctx.sitters.filter((_, i) => i % 3 === 1));
   for (const im of crowd.meshes) root.add(named(im, 'crowd'));
   atlas.finish();
+  phaseDone('crowd + atlas', phaseStart);
 
   // the light pools (lab P6): baked from every emitter + lit window into the shared uniforms. The window glow and the
   // LUT belong to the clean room's post, so they get stand-in uniforms here (the engine's composer draws the frame)
+  progress(0.9, 'light volume');
   const light = installLight({
     u: shared.u, pipe: { glow: glowUniforms(), grade: gradeUniforms() }, lanterns: paper.emitters, ctxEmitters: ctx.emitters,
     signs: [...neonSigns.emitters, ...signs.lights], windows: ctx.fd.windows,
   });
   await light.ready;
-  progress(1);
+  progress(0.95, 'culling');
 
   // the world-wide instanced batches (the facade dressing, the lanterns, the crowd, the instanced dressing: bounding
   // spheres past CULL_R, which three's per-object test never drops) are culled per instance against the view; the
@@ -374,6 +430,8 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     culler.add(o, small.has(o) ? 85 : Number.POSITIVE_INFINITY);
   });
   for (const [mesh, far] of farKits) culler.addFar(mesh, far);
+  progress(1, 'world ready');
+  Reflect.set(window, '__ndPhaseProfile', phaseProfile);
 
   const update = (t: number, camera: PerspectiveCamera): void => {
     shared.u.uTime.value = t;

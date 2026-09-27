@@ -226,7 +226,9 @@ export function startShardPrefetch(active: ChunkDef): PrefetchHandle {
   const run = async (): Promise<PrefetchState> => {
     if (veto !== null) return finish('skipped', veto);
     await sleep(START_DELAY_MS);
-    const order = [active, ...CHUNKS.filter((c) => c.slug !== active.slug)];
+    // A phone keeps only one shard in play. Cache this shard (including its KTX2 set for the next launch),
+    // but do not download the other worlds while the iOS WebContent process is under memory pressure.
+    const order = TIER === 'phone' ? [active] : [active, ...CHUNKS.filter((c) => c.slug !== active.slug)];
     const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
     // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the pick, or Auto's — images until the
     //    shard's KTX2 set is cached. The page's own shard first: what its boot fetched before the worker controlled it.

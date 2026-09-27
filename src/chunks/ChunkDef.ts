@@ -333,7 +333,7 @@ export interface StructureContext {
   /** a per-frame callback after the player's move (the camera is placed): time since the build (s), frame dt */
   onUpdate: (fn: (dt: number, t: number) => void) => void;
   /** the step's progress bar, 0..1 */
-  progress: (f: number) => void;
+  progress: (f: number, detail?: string) => void;
 }
 
 /**

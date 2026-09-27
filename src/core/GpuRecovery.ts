@@ -51,6 +51,8 @@ export interface RecoveryHost {
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number } | null;
   /** this page IS a recovery reload: the resume screen is up from index.html — drop it once the world draws */
   resumed: boolean;
+  /** a context loss immediately after boot must return to the static selector, not eagerly build the same world again */
+  fragileBoot?: () => boolean;
   /**
    * E155: the shard is parked (another resident shard is playing) — a context it loses now is not the player's problem:
    * no resume screen, no reload; `onLostParked` tells the shard host, which evicts it (it rebuilds on the way back).
@@ -144,11 +146,12 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const now = Date.now();
     let recent: number[] = [];
     try { recent = (JSON.parse(sessionStorage.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => now - t < RELOAD_WINDOW_MS); } catch { /* no session storage: allow the reload */ }
-    const url = new URL(location.href);
+    const fragileBoot = host.fragileBoot?.() === true;
+    const url = fragileBoot ? new URL('/', location.origin) : new URL(location.href);
     url.searchParams.delete('v');
-    const pose = host.pose();
+    const pose = fragileBoot ? null : host.pose();
     if (pose) url.searchParams.set('at', [pose.x, pose.y, pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
-    if (!away || pose) url.searchParams.set(RELOAD_PARAM, '1'); // ?glreload skips the title: only for a player who was in the world
+    if (!fragileBoot && (!away || pose)) url.searchParams.set(RELOAD_PARAM, '1'); // ?glreload skips the title only after a stable world
     const to = url.toString();
     const sw = away ? window.__ws_sw : undefined;
     const go = (): void => {

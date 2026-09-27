@@ -226,6 +226,10 @@ for (const f of images('nalati/tex')) addImage(f, true);
 for (const n of ['cards', 'panorama']) addImage(join(ASSETS, `nalati/${n}.webp`), true);
 // painted horizons (HorizonMatte, TextureLoader flipY = true): the phone copy of pine-hollow is `-phone.webp`
 for (const f of images('horizon')) addImage(f, true);
+// Nine Dragon's painted leaf and LED scroll, plus the viewmodel's data and object-normal maps.
+// The paint layers are assembled into a DataArrayTexture on the CPU, so they stay images.
+for (const f of images('nine-dragon/lab/organic')) addImage(f, true);
+for (const f of images('nine-dragon/viewmodel')) addImage(f, false, f.includes('-maps.') ? 'data' : undefined);
 // glTF props' external textures: glTF orientation (no flip); their .gltf is rewritten below
 for (const f of walk(join(ASSETS, 'models')).filter((x) => /\/textures\/[^/]+\.(png|jpe?g)$/i.test(x))) addImage(f, false);
 
@@ -448,4 +452,3 @@ for (const f of new Set(Object.values(map.phone).concat(Object.values(map.deskto
 rmSync(TMP, { recursive: true, force: true });
 console.log(`bake-ktx2: ${encoded} encoded, ${reused} reused, ${stale} stale removed · phone ${Object.keys(map.phone).length} + desktop ${Object.keys(map.desktop).length} mapped · ${(bytesOut / 1048576).toFixed(1)} MB of KTX2 (the files they stand in for: ${(bytesIn / 1048576).toFixed(1)} MB, counted per tier)`);
 if (skipped.length > 0) console.log(`  not baked (${skipped.length}):\n    ${skipped.slice(0, 40).join('\n    ')}${skipped.length > 40 ? '\n    …' : ''}`);
-

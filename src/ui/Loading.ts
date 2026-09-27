@@ -17,7 +17,7 @@ import './loading.css';
  * the tracks, the step log, the tier line and "Loading chunk · <slug>" are developer mode's (`<html data-dev>`, set by
  * index.html before the first paint — src/core/devMode.ts; loading.css does the hiding).
  */
-type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line';
+type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line' | 'diagnostics';
 
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
@@ -30,6 +30,13 @@ export class Loading {
   private raf = 0;
   private view: ProgressView | null = null;
   private dirty = false;
+  private lastFrameAt = performance.now();
+  private lastDiagnosticAt = 0;
+  private longestPauseMs = 0;
+  private longestPauseAt = '';
+  private lastFrameStep = '';
+  private textureBytes = 0;
+  private readonly attempt: number;
 
   constructor() {
     const chunk = getActiveChunk();
@@ -44,9 +51,21 @@ export class Loading {
       document.body.append(this.root);
     }
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
-    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line') };
+    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
     this.els.slug.textContent = isDev() ? chunk.slug : chunk.displayName;
     this.els.tier.textContent = `${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${nav.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}`;
+    const key = 'ws.loadAttempt';
+    let attempt = 1;
+    try {
+      const previous: unknown = JSON.parse(sessionStorage.getItem(key) ?? 'null');
+      if (typeof previous === 'object' && previous !== null && Reflect.get(previous, 'slug') === chunk.slug) {
+        const when: unknown = Reflect.get(previous, 'at');
+        const count: unknown = Reflect.get(previous, 'count');
+        if (typeof when === 'number' && Date.now() - when < 120_000 && typeof count === 'number') attempt = count + 1;
+      }
+      sessionStorage.setItem(key, JSON.stringify({ slug: chunk.slug, at: Date.now(), count: attempt }));
+    } catch { /* a storage-denied PWA still gets the loader */ }
+    this.attempt = attempt;
     this.rowsEl = this.els.rows;
     const tick = (): void => { this.tickClock(); this.raf = requestAnimationFrame(tick); };
     tick();
@@ -108,11 +127,33 @@ export class Loading {
   }
 
   private tickClock(): void {
-    const s = (performance.now() - this.t0) / 1000;
+    const now = performance.now();
+    // A gap here includes synchronous JS, style/layout, GC and a suspended tab. It is not CPU percentage.
+    const pauseMs = now - this.lastFrameAt - 17;
+    if (document.visibilityState === 'visible' && pauseMs > this.longestPauseMs) {
+      this.longestPauseMs = pauseMs;
+      this.longestPauseAt = this.lastFrameStep;
+    }
+    this.lastFrameAt = now;
+    if (this.view) this.lastFrameStep = `${this.view.label}${this.view.detail ? `: ${this.view.detail}` : ''}`;
+    if (now - this.lastDiagnosticAt > 250) { this.paintDiagnostics(); this.lastDiagnosticAt = now; }
+    const s = (now - this.t0) / 1000;
     set(this.els.clock, `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(1).padStart(4, '0')}`);
     // the running step's ms is live: repaint rows so its clock moves without a plan event
     if (this.dirty) this.paintNow();
     else if (this.view && !this.view.done) this.paintRows();
+  }
+
+  /** Estimated scene texture allocation; render targets and the browser's own surfaces are outside this estimate. */
+  setTextureBytes(bytes: number): void { this.textureBytes = bytes; this.paintDiagnostics(); }
+
+  private paintDiagnostics(): void {
+    const mem: unknown = Reflect.get(performance, 'memory');
+    const heap: unknown = typeof mem === 'object' && mem !== null ? Reflect.get(mem, 'usedJSHeapSize') : undefined;
+    const js = typeof heap === 'number' && Number.isFinite(heap) ? `${Math.round(heap / 1048576)} MiB` : 'unavailable on Safari';
+    const tex = this.textureBytes > 0 ? ` · scene textures ~${Math.round(this.textureBytes / 1048576)} MiB` : '';
+    const pause = this.longestPauseMs >= 100 ? `${(this.longestPauseMs / 1000).toFixed(1)}s` : '<0.1s';
+    set(this.els.diagnostics, `Load ${this.attempt} · JS heap ${js}${tex}\nLongest page pause ${pause}${this.longestPauseAt ? ` at ${this.longestPauseAt}` : ''}\nTotal RAM / CPU unavailable in page`);
   }
 
   /**

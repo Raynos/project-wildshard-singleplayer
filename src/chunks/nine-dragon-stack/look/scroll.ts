@@ -9,6 +9,8 @@
 // few px, so no moiré), a 1.2 m module seam grid, the 8 m steel frame; a faint row scan, a rolling refresh band, a few
 // dead diodes, and the bright clouds pushed over the bloom threshold (the post's Karis prefilter at 1.0 picks them up).
 import { LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, SRGBColorSpace, ShaderMaterial, type Texture, TextureLoader, Vector2, Vector4 } from 'three';
+import { phoneUrl } from '../../../boot/bytes';
+import { ktx2Texture } from '../../../core/ktx2';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const VS = /* glsl */ `
@@ -128,17 +130,16 @@ export const SCROLL: ScrollOpt = {
   module: [1.2, 0.35],
 };
 
-export function loadScroll(url: string): Promise<Texture> {
-  return new TextureLoader().loadAsync(url).then((t) => {
-    t.colorSpace = SRGBColorSpace;
-    t.wrapS = RepeatWrapping;
-    t.minFilter = LinearMipmapLinearFilter;
-    t.magFilter = LinearFilter;
-    t.anisotropy = 4;
-    t.generateMipmaps = true;
-    t.needsUpdate = true;
-    return t;
-  });
+export async function loadScroll(url: string): Promise<Texture> {
+  const compressed = await ktx2Texture(phoneUrl(url));
+  const t = compressed ?? await new TextureLoader().loadAsync(url);
+  t.colorSpace = SRGBColorSpace;
+  t.wrapS = RepeatWrapping;
+  t.minFilter = LinearMipmapLinearFilter;
+  t.magFilter = LinearFilter;
+  t.anisotropy = 4;
+  if (compressed === null) { t.generateMipmaps = true; t.needsUpdate = true; }
+  return t;
 }
 
 /** the knobs of one screen's program (typed handles, so a tuning write never goes through `any`) */

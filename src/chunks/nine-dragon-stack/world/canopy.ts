@@ -25,6 +25,8 @@ import {
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from '../look/style';
 import { Rng } from '../util';
+import { phoneUrl } from '../../../boot/bytes';
+import { ktx2Texture } from '../../../core/ktx2';
 
 /** one lump of foliage: centre, radii (x, y, z; axis-aligned), how high it sits on its shelf, a seed */
 export interface Lump { c: Vector3; r: Vector3; up: number; seed: number; wash: number }
@@ -489,15 +491,14 @@ export function foliageMaterial(shared: Shared, mode: FoliageMode, fu: FoliageUn
 export const DOME_B_LEAVES = [0x0c1310, 0x142019, 0x1e2e25, 0x2d3d31, 0x3f4e38] as const;
 
 /** the painted leaf atlas (the codex gongbi 2×2 sheet), mipmapped, anisotropic */
-function loadAtlas(url: string): Promise<Texture> {
-  return new TextureLoader().loadAsync(url).then((t) => {
-    t.minFilter = LinearMipmapLinearFilter;
-    t.magFilter = LinearFilter;
-    t.anisotropy = 4;
-    t.generateMipmaps = true;
-    t.needsUpdate = true;
-    return t;
-  });
+async function loadAtlas(url: string): Promise<Texture> {
+  const compressed = await ktx2Texture(phoneUrl(url));
+  const t = compressed ?? await new TextureLoader().loadAsync(url);
+  t.minFilter = LinearMipmapLinearFilter;
+  t.magFilter = LinearFilter;
+  t.anisotropy = 4;
+  if (compressed === null) { t.generateMipmaps = true; t.needsUpdate = true; }
+  return t;
 }
 
 /**
@@ -519,7 +520,7 @@ export async function buildCanopy(shared: Shared, lumps: readonly Lump[], emitte
     // the budget round: 2.6 cards per m² (the lab's 3.6) and a lat 4 × lon 7 core (the lab's phone levers)
     const gCards = cardGeometry(lumps, rng, { ...CARDS, perM2: 2.6 });
     const gCore = shellGeometry(lumps, rng, { ...CORE, lat: 4, lon: 7 });
-    bakeSpill([gCards, gCore], emitters);
+    await bakeSpill([gCards, gCore], emitters);
     const cards = new Mesh(gCards, foliageMaterial(shared, 'cards', fu, atlas));
     const cardsDepth = new Mesh(gCards, foliageMaterial(shared, 'cards-depth', fu, atlas));
     cards.renderOrder = 1;
