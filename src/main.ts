@@ -201,7 +201,12 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // then the title art and ALL audio (project/archive/2026-09-23-preload-offline.md), after the pack so they do not split the pipe with the
   // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar
   prefetchAfter(extraFetches(files), packStreamed);
-  const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());
+  // Nine Dragon's world builder has a high transient CPU/GPU peak. Its art and selected audio are still
+  // prefetched into the offline cache above, but decode them at their own later steps instead of at the
+  // same time as the painted city and its viewmodel.
+  const deferExtras = getActiveChunk().slug === 'nine-dragon-stack' && TIER === 'phone';
+  const menuLoad = deferExtras ? null : startMenuPreload(files, getActiveChunk());
+  const audioLoad = deferExtras ? null : startAudioPreload(files, getActiveChunk());
   startViewmodelTextures((getActiveChunk().weapon ?? 'crossbow') === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const world = await bootstrap(step);
@@ -497,7 +502,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   await macrotask();
-  await step('menu', (p) => menuLoad.wait(p)); // the cards' art in memory before the title builds its deck (showIntro below)
+  await step('menu', (p) => (menuLoad ?? startMenuPreload(files, chunk)).wait(p)); // the cards' art in memory before the title builds its deck (showIntro below)
   const audio = new Audio();
   if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
   // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
@@ -1010,7 +1015,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
-  const banks = await step('audio', (p) => audioLoad.wait(p));
+  const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk)).wait(p));
   if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
   if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
   audio.useSamples(banks.sfx);
