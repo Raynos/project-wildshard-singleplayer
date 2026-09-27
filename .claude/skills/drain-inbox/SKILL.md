@@ -19,7 +19,7 @@ The notes are the user's own words: authoritative about *what looks or feels wro
 pnpm inbox:pull          # new notes → .review/inbox/<id>.json + <id>.jpg (gitignored); prints a table
 ```
 
-Read every `.json` and **look at its `.jpg` with the Read tool**: a note is only actionable next to its picture, and a
+Read every `.json` and **inspect its `.jpg` with an image viewing tool**: a note is only actionable next to its picture, and a
 cyan scribble on it is the tester pointing at the thing. Each note has `category` (bug / art / feel / perf / idea),
 `note`, and `context`: `shard`, `pos` [x, y, z], `yaw`, `pitch`, `weapon`, `health`, `swimming`, `hover`, `tier`,
 `fps`, `calls`, `tris`, `build` (git sha + time), `dpr`, `viewport`, `canvas`, `ua`, `url` and **`repro`**.
