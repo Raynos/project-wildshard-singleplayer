@@ -1,5 +1,5 @@
 /** A shard change navigates to a fresh page. iOS Safari must release the old renderer and JS heap before the next boot. */
-import { chunkUrl, findChunk, rememberChunk } from '../chunks/registry';
+import { chunkUrl, findChunk } from '../chunks/registry';
 import { markUnload } from '../boot/lastEnd';
 
 export interface ShardRequest {
@@ -37,7 +37,6 @@ export function requestShard(slug: string, req: ShardRequest = {}): void {
   const u = new URL(chunkUrl(slug));
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) u.searchParams.delete(name);
   if (req.explore === true) u.searchParams.set('explore', 'hub');
-  rememberChunk(slug);
   markUnload(`shard switch to ${slug} (fresh page)`);
   location.href = u.toString();
 }
