@@ -10,7 +10,7 @@ Updated: 2026-09-26. This is the short list to use when Jake returns and asks to
 | F2 | Now | Review the three-page **A4 portrait** skill user manual for Matthew. Is it understandable without reading the underlying skill? | [PDF](../process/shard-checkpoints-user-guide.pdf), E207 |
 | F4 | Now | Review the **portrait Nine Dragon trailer recut** with the current playable grapple and three-talon flying claw. Does the crossing read clearly, and is the 15-second cut ready? | [video](../../art/nine-dragon-stack/round-22-portrait-grapple-final/nine-dragon-portrait-grapple-final.mp4), [contact sheet](../../art/nine-dragon-stack/round-22-portrait-grapple-final/contact.jpg), E204 |
 | F5 | After model catalog deploy | Review the three placed GLB assets in Model Explorer and say which need more polish before further shard expansion. | E205 |
-| F6 | After E216 deploy | Try the Driftwood → Nine Dragon switch once on the physical iPhone. Confirm that Nine Dragon shows one loader and remains playable; if Safari still reports a problem, capture that screen and the Debug → Loading & memory → **Last reload** line if reachable. | E200, E216 |
+| F7 | After E222 deploy | On the physical iPhone home-screen PWA, launch from its icon (it should open the standalone title selector), choose Nine Dragon, press Enter World, and check whether one load reaches play without Safari restarting. | E217, E218, E219, E220, E222 |
 
 ## Resolved decisions
 
@@ -26,6 +26,7 @@ Updated: 2026-09-26. This is the short list to use when Jake returns and asks to
 | Play-by-play PDF example | Nine Dragon, not Driftwood 2. Driftwood 2 is future work. |
 | Dirty art and audio | Keep all art/audio; trim benchmarks. |
 | PWA reload investigation | Reproduce in iOS Simulator; do not wait for Jake to inspect a debug panel. |
+| F6 physical iPhone check | The fresh-page switch still crashed while building Nine Dragon in Props. E217 is the memory reduction response; the phone retry is F7. |
 
 ## How to use this file
 
