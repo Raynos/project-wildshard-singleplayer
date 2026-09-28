@@ -9,8 +9,9 @@ Updated: 2026-09-27. This is the short list to use when Jake returns and asks to
 | F1 | Now | Review the five-page **A4 portrait** imaginary Nine Dragon story, from today's partial prototype to the complete nine-stratum shard. Does its one-small-slice-at-a-time rhythm give enough room for taste and steering across the whole build? | [PDF](../process/nine-dragon-imaginary-play-by-play.pdf), E207 |
 | F2 | Now | Review the three-page **A4 portrait** skill user manual for Matthew. Is it understandable without reading the underlying skill? | [PDF](../process/shard-checkpoints-user-guide.pdf), E207 |
 | F4 | Now | Review the **portrait Nine Dragon trailer recut** with the current playable grapple and three-talon flying claw. Does the crossing read clearly, and is the 15-second cut ready? | [video](../../art/nine-dragon-stack/round-22-portrait-grapple-final/nine-dragon-portrait-grapple-final.mp4), [contact sheet](../../art/nine-dragon-stack/round-22-portrait-grapple-final/contact.jpg), E204 |
-| F5 | After model catalog deploy | Review the three placed GLB assets in Model Explorer and say which need more polish before further shard expansion. | E205 |
-| F8 | After the E224/E225 crash mitigation deploy | On the physical iPhone home-screen PWA, choose Nine Dragon from the static selector. Does it reach play after one load and stay there? If it restarts, send a screenshot of the new diagnostics and load-attempt number. | E224, E225 |
+| F5 | Now | Review the three placed GLB assets in Model Explorer and say which need more polish before further shard expansion. | E205, E215 |
+| F8 | After build `3cef2b11` is live | Retry Nine Dragon on the physical iPhone home-screen PWA after the faster Props paint and lower title-art memory use. Does it enter after one load or still reach Safari's black crash page? A screenshot at the last visible loading step helps. | E230, E231, E243, E244 |
+| F9 | Now | Pick A, B, C, D, or E for the developer-only Practice Arena entry inside Explore World. | [One portrait storyboard](../../art/hud-explorer/round-5-explore-entry/explore-entry-A-E.jpg), E233 |
 
 ## Resolved decisions
 
@@ -28,6 +29,7 @@ Updated: 2026-09-27. This is the short list to use when Jake returns and asks to
 | PWA reload investigation | Reproduce in iOS Simulator; do not wait for Jake to inspect a debug panel. |
 | F6 physical iPhone check | The fresh-page switch still crashed while building Nine Dragon in Props. E217 is the memory reduction response; the phone retry is F7. |
 | F7 physical iPhone check | Failed: Props froze for roughly 10 seconds, the bar reached 100%, Nine Dragon loaded again, then Safari showed its black repeated-problem screen. E224/E225 are the next mitigation and diagnosis. |
+| Nine Dragon simulator check | Safari on the iPhone 17 Pro simulator entered Nine Dragon World Explorer after one load on build `b8e2e6d`. The physical iPhone failed on the same build after First frame 95%, then loaded again and showed Safari's repeated-problem screen. The simulator does not reproduce that failure. |
 
 ## How to use this file
 
