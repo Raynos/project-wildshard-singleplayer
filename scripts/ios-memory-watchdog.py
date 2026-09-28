@@ -11,15 +11,24 @@ import sys
 import time
 
 GIB = 1024 ** 3
+GB = 1000 ** 3
 
 
 class RUsageInfo(ctypes.Structure):
-    # macOS SDK sys/resource.h, rusage_info_v0. Do not substitute JS heap size.
+    # macOS SDK sys/resource.h, rusage_info_v4. Do not substitute JS heap size.
     _fields_ = [('uuid', ctypes.c_ubyte * 16)] + [
         (name, ctypes.c_uint64) for name in (
             'user_time', 'system_time', 'pkg_idle_wkups', 'interrupt_wkups',
             'pageins', 'wired_size', 'resident_size', 'phys_footprint',
-            'proc_start_abstime', 'proc_exit_abstime')]
+            'proc_start_abstime', 'proc_exit_abstime', 'child_user_time',
+            'child_system_time', 'child_pkg_idle_wkups', 'child_interrupt_wkups',
+            'child_pageins', 'child_elapsed_abstime', 'diskio_bytesread',
+            'diskio_byteswritten', 'cpu_time_qos_default', 'cpu_time_qos_maintenance',
+            'cpu_time_qos_background', 'cpu_time_qos_utility', 'cpu_time_qos_legacy',
+            'cpu_time_qos_user_initiated', 'cpu_time_qos_user_interactive',
+            'billed_system_time', 'serviced_system_time', 'logical_writes',
+            'lifetime_max_phys_footprint', 'instructions', 'cycles', 'billed_energy',
+            'serviced_energy', 'interval_max_phys_footprint', 'runnable_time')]
 
 
 class NativeMemory:
@@ -29,10 +38,19 @@ class NativeMemory:
         self.lib = ctypes.CDLL('/usr/lib/libproc.dylib', use_errno=True)
         self.lib.proc_pid_rusage.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_void_p]
         self.lib.proc_pid_rusage.restype = ctypes.c_int
+        self.system = ctypes.CDLL('/usr/lib/libSystem.B.dylib', use_errno=True)
+        self.system.proc_rlimit_control.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_void_p]
+        self.system.proc_rlimit_control.restype = ctypes.c_int
+
+    def reset_interval(self, pid):
+        # Apple XNU bsd/sys/resource.h + kern_resource.c: flavor 4 resets only
+        # the accounting interval (flag 1). It does not set/relax a memory limit.
+        if self.system.proc_rlimit_control(pid, 4, ctypes.c_void_p(1)) != 0:
+            raise RuntimeError(f'Cannot reset native footprint interval for PID {pid}: errno {ctypes.get_errno()}')
 
     def sample(self, pid):
         usage = RUsageInfo()
-        if self.lib.proc_pid_rusage(pid, 0, ctypes.byref(usage)) != 0:
+        if self.lib.proc_pid_rusage(pid, 4, ctypes.byref(usage)) != 0:
             raise RuntimeError(f'Cannot read PID {pid}: errno {ctypes.get_errno()} (exit or access failure)')
         if not usage.proc_start_abstime or usage.proc_exit_abstime:
             raise RuntimeError(f'PID {pid} has exited or has no valid start identity')
@@ -40,6 +58,8 @@ class NativeMemory:
             'pid': pid, 'startAbstime': usage.proc_start_abstime,
             'physicalFootprintBytes': usage.phys_footprint,
             'residentBytes': usage.resident_size,
+            'lifetimeMaxPhysicalFootprintBytes': usage.lifetime_max_phys_footprint,
+            'intervalMaxPhysicalFootprintBytes': usage.interval_max_phys_footprint,
         }
 
 
@@ -48,7 +68,7 @@ def command(args):
     return result.stdout.strip()
 
 
-def simulator_processes(manager_pid):
+def simulator_processes(manager_pid, executable_name='com.apple.WebKit.WebContent'):
     # All WebContent processes under this Simulator's launchd, including prewarmed
     # processes. Avoid desktop Safari and every other booted Simulator.
     rows = {}
@@ -58,7 +78,7 @@ def simulator_processes(manager_pid):
             rows[int(parts[0])] = (int(parts[1]), parts[2])
     selected = {}
     for pid, (_, path) in rows.items():
-        if pathlib.PurePath(path).name != 'com.apple.WebKit.WebContent':
+        if pathlib.PurePath(path).name != executable_name:
             continue
         ancestor = pid
         visited = set()
@@ -77,6 +97,7 @@ class BudgetRun:
         self.identities = {}
         self.peak_footprint = 0
         self.peak_resident = 0
+        self.peak_interval_sum = 0
         self.samples = 0
 
     def observe(self, readings):
@@ -87,13 +108,33 @@ class BudgetRun:
         self.identities.update(current)
         footprint = sum(row['physicalFootprintBytes'] for row in readings)
         resident = sum(row['residentBytes'] for row in readings)
+        # Sum of per-process highs is a conservative upper bound, not necessarily
+        # a simultaneously resident total. Single --pid mode is an exact native high.
+        interval_sum = sum(max(row['physicalFootprintBytes'], row.get('intervalMaxPhysicalFootprintBytes', 0)) for row in readings)
         self.peak_footprint = max(self.peak_footprint, footprint)
         self.peak_resident = max(self.peak_resident, resident)
+        self.peak_interval_sum = max(self.peak_interval_sum, interval_sum)
         if readings:
             self.samples += 1
         if footprint > self.budget_bytes:
-            return f'Physical footprint {footprint / GIB:.3f} GiB exceeds {self.budget_bytes / GIB:.3f} GiB budget'
+            return f'Physical footprint {footprint:,} bytes ({footprint / GB:.3f} GB) exceeds {self.budget_bytes:,} byte budget'
+        if interval_sum > self.budget_bytes:
+            return f'Native interval high-water sum {interval_sum:,} bytes ({interval_sum / GB:.3f} GB) exceeds {self.budget_bytes:,} byte budget'
         return None
+
+
+class PhaseBudget:
+    """External test driver marks the transition; absence can never pass phase mode."""
+    def __init__(self, world_phase_file):
+        self.world_phase_file = world_phase_file
+        self.phase = 'loading'
+        if world_phase_file.exists():
+            raise RuntimeError('World phase file already exists; use a fresh marker for this run')
+
+    def update(self):
+        if self.world_phase_file.exists():
+            self.phase = 'world'
+        return 1_000_000_000 if self.phase == 'world' else 1_800_000_000
 
 
 def positive_number(value):
@@ -106,15 +147,23 @@ def positive_number(value):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--device', required=True, help='Booted Simulator UDID (never a physical iPhone)')
-    parser.add_argument('--budget-gib', type=positive_number, default=4, help='Aggregate WebContent physical footprint, default 4 GiB')
+    budget = parser.add_mutually_exclusive_group()
+    budget.add_argument('--budget-gib', type=positive_number, help='Single budget in binary GiB; defaults to 4 GiB outside phase mode')
+    budget.add_argument('--budget-gb', type=positive_number, help='Single budget in decimal GB (1 GB = 1,000,000,000 bytes)')
+    budget.add_argument('--world-phase-file', type=pathlib.Path, help='Two-phase mode: 1.8 decimal GB loading, 1.0 GB once test driver creates this new marker')
     parser.add_argument('--duration', type=positive_number, default=120, help='Seconds to watch AFTER first WebContent sample')
-    parser.add_argument('--interval', type=positive_number, default=0.25, help='Sampling interval in seconds; default 0.25')
+    parser.add_argument('--interval', type=positive_number, default=0.1, help='Sampling interval in seconds; default 0.1; brief bursts can still be missed')
     parser.add_argument('--start-timeout', type=positive_number, default=30, help='Fail if no WebContent appears within this many seconds')
     parser.add_argument('--pid', type=int, help='Optional single WebContent PID, validated as belonging to this Simulator')
     parser.add_argument('--url', help='Optionally open this URL in Simulator Safari after the watchdog starts')
     parser.add_argument('--out', type=pathlib.Path, required=True, help='New JSONL output path (refuses to overwrite)')
     args = parser.parse_args()
-    run = BudgetRun(int(args.budget_gib * GIB))
+    initial_budget = 1_800_000_000 if args.world_phase_file else int(
+        args.budget_gb * GB if args.budget_gb is not None else (args.budget_gib or 4) * GIB)
+    run = BudgetRun(initial_budget)
+    phase_budget = None
+    phase_peaks = {}
+    gpu_peak_footprint = 0
     started = time.monotonic()
     attached = None
     result = 'error'
@@ -127,15 +176,25 @@ def main():
             output.write(json.dumps(row) + '\n')
             output.flush()
         try:
+            if args.world_phase_file:
+                phase_budget = PhaseBudget(args.world_phase_file)
             native = NativeMemory()
             manager = int(command(['xcrun', 'simctl', 'spawn', args.device, 'launchctl', 'managerpid']))
             manager_identity = native.sample(manager)['startAbstime']
             emit('start', device=args.device, simulatorLaunchdPid=manager,
                  simulatorLaunchdStartAbstime=manager_identity, budgetBytes=run.budget_bytes,
                  durationSeconds=args.duration, intervalSeconds=args.interval,
+                 phaseBudgetsBytes={'loading': 1_800_000_000, 'world': 1_000_000_000} if phase_budget else None,
+                 worldPhaseFile=str(args.world_phase_file) if args.world_phase_file else None,
                  scope='single Simulator WebContent PID' if args.pid else 'sum of all Simulator WebContent processes',
-                 metric='macOS proc_pid_rusage RUSAGE_INFO_V0 ri_phys_footprint', url=args.url)
-            print(f'Watching Simulator {args.device}; {args.budget_gib:g} GiB native footprint budget', flush=True)
+                 metric='macOS proc_pid_rusage RUSAGE_INFO_V4 physical footprint + kernel interval high-water', url=args.url)
+            print(f'Watching Simulator {args.device}; initial native footprint budget {initial_budget:,} bytes', flush=True)
+            initial_processes = simulator_processes(manager)
+            for pid in initial_processes:
+                if args.pid is None or args.pid == pid:
+                    before = native.sample(pid)
+                    native.reset_interval(pid)
+                    emit('interval-reset', phase='loading' if phase_budget else 'single', before=before)
             if args.url:
                 command(['xcrun', 'simctl', 'openurl', args.device, args.url])
             while True:
@@ -143,12 +202,37 @@ def main():
                 if native.sample(manager)['startAbstime'] != manager_identity:
                     raise RuntimeError('Simulator launchd restarted; monitoring continuity lost')
                 processes = simulator_processes(manager)
+                gpu_processes = simulator_processes(manager, 'com.apple.WebKit.GPU')
+                gpu_readings = [{**native.sample(pid), 'executable': path} for pid, path in sorted(gpu_processes.items())]
+                gpu_peak_footprint = max(gpu_peak_footprint, sum(row['physicalFootprintBytes'] for row in gpu_readings))
                 if args.pid:
                     processes = {pid: path for pid, path in processes.items() if pid == args.pid}
                 readings = [{**native.sample(pid), 'executable': path} for pid, path in sorted(processes.items())]
+                if phase_budget:
+                    previous_phase = phase_budget.phase
+                    next_budget = phase_budget.update()
+                    if previous_phase != phase_budget.phase:
+                        old_failure = run.observe(readings)
+                        ending_high = sum(max(row['physicalFootprintBytes'], row['intervalMaxPhysicalFootprintBytes']) for row in readings)
+                        phase_peaks[previous_phase] = max(phase_peaks.get(previous_phase, 0), ending_high)
+                        emit('phase-end', phase=previous_phase, budgetBytes=run.budget_bytes, processes=readings)
+                        if old_failure:
+                            result, reason, code = 'fail', old_failure, 1
+                            break
+                        for row in readings:
+                            native.reset_interval(row['pid'])
+                            emit('interval-reset', phase=phase_budget.phase, before=row)
+                        readings = [{**native.sample(pid), 'executable': path} for pid, path in sorted(processes.items())]
+                    run.budget_bytes = next_budget
+                phase = phase_budget.phase if phase_budget else 'single'
+                footprint = sum(row['physicalFootprintBytes'] for row in readings)
+                interval_sum = sum(max(row['physicalFootprintBytes'], row['intervalMaxPhysicalFootprintBytes']) for row in readings)
+                phase_peaks[phase] = max(phase_peaks.get(phase, 0), interval_sum)
                 failure = run.observe(readings)
                 emit('sample', elapsedSeconds=round(time.monotonic() - started, 3), processes=readings,
-                     physicalFootprintBytes=sum(row['physicalFootprintBytes'] for row in readings),
+                     phase=phase, budgetBytes=run.budget_bytes, physicalFootprintBytes=footprint,
+                     intervalHighWaterSumBytes=interval_sum,
+                     gpuProcesses=gpu_readings,
                      residentBytes=sum(row['residentBytes'] for row in readings))
                 if failure:
                     result, reason, code = 'fail', failure, 1
@@ -160,6 +244,8 @@ def main():
                 if attached is None and now - started >= args.start_timeout:
                     raise RuntimeError('No matching Simulator WebContent process; refusing an empty pass')
                 if attached is not None and now - attached >= args.duration:
+                    if phase_budget and phase_budget.phase != 'world':
+                        raise RuntimeError('World phase was never marked; refusing to pass a loading-only run')
                     result, reason, code = 'pass', 'Observed native memory stayed within budget for the requested window', 0
                     break
                 time.sleep(max(0, args.interval - (time.monotonic() - tick)))
@@ -170,8 +256,11 @@ def main():
         emit('result', result=result, reason=reason, exitCode=code, samples=run.samples,
              elapsedSeconds=round(time.monotonic() - started, 3),
              peakPhysicalFootprintBytes=run.peak_footprint, peakResidentBytes=run.peak_resident,
+             peakIntervalHighWaterSumBytes=run.peak_interval_sum, phasePeakIntervalHighWaterSumBytes=phase_peaks,
+             gpuPeakSampledPhysicalFootprintBytes=gpu_peak_footprint,
              processIdentities=run.identities)
-        print(f'{result.upper()}: {reason}; peak footprint {run.peak_footprint / GIB:.3f} GiB; report {args.out}', flush=True)
+        print(f'{result.upper()}: {reason}; sampled footprint peak {run.peak_footprint / GB:.3f} GB; '
+              f'native interval high-water sum {run.peak_interval_sum / GB:.3f} GB; report {args.out}', flush=True)
     return code
 
 

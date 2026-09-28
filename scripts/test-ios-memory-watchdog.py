@@ -4,6 +4,7 @@ import importlib.util
 import pathlib
 import subprocess
 import sys
+import tempfile
 import unittest
 
 spec = importlib.util.spec_from_file_location('watchdog', pathlib.Path(__file__).with_name('ios-memory-watchdog.py'))
@@ -12,6 +13,21 @@ spec.loader.exec_module(watchdog)
 
 
 class WatchdogTests(unittest.TestCase):
+    def test_decimal_phase_budget_drops_and_stale_marker_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            marker = pathlib.Path(directory) / 'world'
+            phase = watchdog.PhaseBudget(marker)
+            run = watchdog.BudgetRun(phase.update())
+            row = {'pid': 12, 'startAbstime': 1, 'physicalFootprintBytes': 1_100_000_000, 'residentBytes': 2_000_000_000}
+            self.assertEqual(run.budget_bytes, 1_800_000_000)
+            self.assertIsNone(run.observe([row]))
+            marker.touch()
+            run.budget_bytes = phase.update()
+            self.assertEqual(run.budget_bytes, 1_000_000_000)
+            self.assertIn('exceeds', run.observe([row]))
+            with self.assertRaises(RuntimeError):
+                watchdog.PhaseBudget(marker)
+
     def test_restarts_and_disappearance_cannot_pass(self):
         for replacement in ([], [{'pid': 12, 'startAbstime': 2, 'physicalFootprintBytes': 1, 'residentBytes': 1}]):
             run = watchdog.BudgetRun(100)
@@ -29,14 +45,17 @@ class WatchdogTests(unittest.TestCase):
     def test_native_allocation_pass_breach_and_exit(self):
         # 64 MiB, touched page-by-page: test enforcement without allocating gigabytes.
         child = subprocess.Popen([sys.executable, '-u', '-c',
-            'import sys,time; print("ready",flush=True); sys.stdin.readline(); '
-            'memory=bytearray(64*1024*1024); '
-            'print("allocated",flush=True); time.sleep(60)'],
+            'import mmap,sys,time; print("ready",flush=True); sys.stdin.readline(); '
+            'memory=mmap.mmap(-1,64*1024*1024)\n'
+            'for offset in range(0,64*1024*1024,4096): memory[offset]=1\n'
+            'print("allocated",flush=True); sys.stdin.readline(); '
+            'memory.close(); print("freed",flush=True); time.sleep(60)'],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
         try:
             self.assertEqual(child.stdout.readline().strip(), 'ready')
             native = watchdog.NativeMemory()
             before = native.sample(child.pid)
+            native.reset_interval(child.pid)
             run = watchdog.BudgetRun(before['physicalFootprintBytes'] + 32 * 1024 ** 2)
             self.assertIsNone(run.observe([before]))
             child.stdin.write('allocate\n')
@@ -46,6 +65,17 @@ class WatchdogTests(unittest.TestCase):
             self.assertGreater(after['physicalFootprintBytes'] - before['physicalFootprintBytes'], 48 * 1024 ** 2)
             self.assertGreater(after['residentBytes'], before['residentBytes'])
             self.assertIn('exceeds', run.observe([after]))
+            child.stdin.write('free\n')
+            child.stdin.flush()
+            self.assertEqual(child.stdout.readline().strip(), 'freed')
+            freed = native.sample(child.pid)
+            self.assertLess(freed['physicalFootprintBytes'], run.budget_bytes)
+            self.assertGreater(freed['intervalMaxPhysicalFootprintBytes'], run.budget_bytes)
+            self.assertIn('Native interval high-water', run.observe([freed]))
+            native.reset_interval(child.pid)
+            reset = native.sample(child.pid)
+            self.assertIsNone(run.observe([reset]))
+            self.assertGreater(reset['lifetimeMaxPhysicalFootprintBytes'], run.budget_bytes)
             child.terminate()
             child.wait(timeout=5)
             with self.assertRaises(RuntimeError):
