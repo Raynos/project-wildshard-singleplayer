@@ -1,6 +1,6 @@
 # Nine Dragon physical-iPhone regression — E256
 
-2026-09-28. Investigation remains open; instrumentation is not a crash fix.
+2026-09-28. Startup recovery, batch shader preparation, and a native compressed-upload fix are reproduced; physical-device acceptance remains open.
 
 Jake confirms Nine Dragon worked on his physical iPhone during the Opus work and regressed after the handoff. Simulator success does not validate the physical phone GPU or memory budget.
 
@@ -47,6 +47,8 @@ Validation: clean exported tree passed CSS, both TypeScript projects, oxlint, al
 Live verification: `e161ffd-mul8150f`, GitHub run `36421585115` green. A synthetic restart probe got HTTP 200 from both remote transports. Sentry event `b0eaf417ddaf42339c59fb5d39920852` contains the nested checkpoint facts intact and is labeled `E256-validation`. Do not count that event as another physical crash. Normal local phone-tier boot also reached ready without browser errors. Every browser opened for this work was closed.
 
 ## Relevant commit inventory
+
+E257 compressed upload isolation: `scripts/test-ios-compressed-upload.mjs` reproduces the Simulator's ANGLE `UploadTextureContents` native crash with only 126 ASTC/ETC2 mip uploads totaling 9,009,552 bytes. No game, decoded artwork, draw calls or audio are needed. Baseline can pass once and fail on reload; `flush` and `finish` are insufficient. A GPU-process round trip (`getError`) after each complete texture passes the reduced test (12–13 ms total) and lets the full KTX2 Nine Dragon build enter World Explorer in Simulator Safari. Precompile now performs that validation on phone compressed textures, persists the upload identity before submission, and propagates upload exceptions. Physical-device causal equivalence remains unknown; the startup and native-upload fixes address independently reproduced failures.
 
 - `903d66e0` Title deck: the Nine Dragon Stack COMING SOON art re-shot from the in-engine partial shard (Jake: "update the hero images in the carousel for coming soon too") — the hero + card from the spawn (mockup A's camera), and the carousel: the Yamen Well's edge and down the Well (free camera just out over the rim), the stair-street (mockup C's camera), and crossing the Well from the bridge mid-shaft; the clean-room slides "canyon up" and "gold on indigo" retired. Captured from the exact checkpoint-3 build (free camera, no HUD, no viewmodel); checked on a production build at iPhone size: hero, card and slideshow in step, no errors
 - `8062b4ef` Remember last shard for PWA launch

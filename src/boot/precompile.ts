@@ -26,6 +26,8 @@
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
 import { PERFLOAD, perfLog, describeProgram, newProgramsSince, snapshotPrograms, type ProgramLike } from './perflog';
+import { TIER } from '../core/tier';
+import { recordNineBootCheckpoint } from './nineBootTrace';
 
 export interface CompileJob {
   label: string;
@@ -307,7 +309,18 @@ export async function runPrecompile(
   tSlice = tC;
   const base = jobs.length + units;
   for (const [i, tex] of textures.entries()) {
-    try { renderer.initTexture(tex); } catch { /* a texture the driver rejects is the draw's problem, not the loader's */ }
+    const compressed = TIER === 'phone' && tex instanceof THREE.CompressedTexture;
+    if (compressed) recordNineBootCheckpoint('texture:upload', { index: i, total: textures.length, name: tex.name, format: tex.format,
+      mips: tex.mipmaps.length, width: tex.mipmaps[0]?.width ?? 0, height: tex.mipmaps[0]?.height ?? 0 });
+    renderer.initTexture(tex);
+    if (compressed) {
+      // E257: iOS WebKit crashes in ANGLE UploadTextureContents when compressed uploads
+      // accumulate without a GPU-process round trip. flush/finish alone do not prevent it.
+      // Validate once per texture during boot, before queuing the next chain of mip levels.
+      const gl = renderer.getContext();
+      const error = gl.getError();
+      if (error !== gl.NO_ERROR) throw new Error(`Graphics error ${error} after compressed texture ${i + 1}/${textures.length} (${tex.name || tex.format})`);
+    }
     onProgress?.(base + i + 1, base + textures.length, `${i + 1} / ${textures.length} textures uploaded`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
