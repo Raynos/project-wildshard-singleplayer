@@ -95,13 +95,13 @@ for (const [name, engine] of engines) {
       await page.locator('.ws-x-card[data-m="world"]').click();
       await page.waitForTimeout(5000);
       const state = await page.evaluate(() => ({
-        world: Boolean(window.__world), freeCamera: window.__world?.freeCamera,
+        world: Boolean(window.__world), exploring: Boolean(document.querySelector('.ws-x.show[data-mode="world"]')),
         lost: window.__world?.game.renderer.getContext().isContextLost(),
         calls: window.__world?.game.renderer.info.render.calls ?? 0,
         error: Boolean(document.querySelector('#wserr')),
         trace: localStorage.getItem('ws.nineBoot') ?? '',
       }));
-      const okay = injections === 1 && navigations.length === 1 && state.world && state.freeCamera &&
+      const okay = injections === 1 && navigations.length === 1 && state.world && state.exploring &&
         state.lost === false && state.calls > 0 && !state.error && reports.length === 0 &&
         state.trace.includes('renderer:waiting') && state.trace.includes('"status":"ready"');
       console.log(`${okay ? 'PASS' : 'FAIL'} ${name}/context: ${JSON.stringify({ injections, navigations: navigations.length, ...state, trace: undefined })}`);
