@@ -143,6 +143,7 @@ export const OPTION_VALUES = {
   // NINE-DRAGON-STACK P0-5c: the prototype shards (registry.ts PROTOTYPES) in the title deck as EXPERIMENTAL cards, in
   // place of their COMING SOON teasers — Debug ▸ Developer tools only, a reload (the deck is built once); off by default
   prototypes: ['off', 'on'],
+  nineFacade: ['auto', 'instanced'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -161,7 +162,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
-  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, nineFacade: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
@@ -183,6 +184,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   dwShadows: option('dwShadows'),
   prototypes: option('prototypes'),
+  nineFacade: option('nineFacade'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

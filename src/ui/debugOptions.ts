@@ -182,6 +182,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
 
   // ── Performance ──
+  opt('nineFacade', 'perf', 'Facade rendering', [['auto', 'Auto'], ['instanced', 'Instanced']], { reload: true, when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E264 · compare multi-draw with instancing to isolate native memory spikes' }),
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),
   opt('loadProfile', 'perf', 'Load profiling', [['off', 'Off'], ['on', 'On']], { reload: true, note: 'load-perf · logs every shader program the load builds (window.__perfload)' }),
 

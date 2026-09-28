@@ -40,6 +40,7 @@ import { merge } from './hero/kitx';
 import { loadGlb } from './hero/glb';
 import { InstanceCuller } from './cull';
 import type { RegisteredModel } from '../../../world/registry';
+import { setting } from '../../../ui/Settings';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
 const CULL_R = 40;
@@ -255,7 +256,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
   const facade = buildFacade(ctx.fd, facadeUniforms(shared), {
-    clutterFar: [55, 85], multiDraw: renderer.extensions.has('WEBGL_multi_draw'),
+    clutterFar: [55, 85], multiDraw: setting('nineFacade') === 'auto' && renderer.extensions.has('WEBGL_multi_draw'),
   });
   phaseDone('facade', phaseStart);
   root.add(named(facade.group, 'facade'));

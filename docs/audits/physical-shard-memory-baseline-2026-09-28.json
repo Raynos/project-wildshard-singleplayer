@@ -1,0 +1,8043 @@
+{
+  "date": "2026-09-28",
+  "device": "iPhone 17 Pro",
+  "os": "iOS 26.6.2",
+  "build": "6348618-mulnoyu5",
+  "metric": "Web Inspector Memory.trackingUpdate category sum, bytes",
+  "notes": [
+    "Visible Safari tab, warm cache, one game tab",
+    "Short load/Explorer baseline, not soak or whole-shard traversal",
+    "Inspector sampling may miss native spikes; not GPU-process accounting"
+  ],
+  "samples": [
+    {
+      "at": "2026-09-28T19:56:21.118Z",
+      "phase": "driftwood-title",
+      "bytes": 642122987,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425553131
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162682880
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:21.622Z",
+      "phase": "driftwood-title",
+      "bytes": 642106603,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425554155
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162665472
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:22.128Z",
+      "phase": "driftwood-title",
+      "bytes": 642122987,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425555179
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162664448
+        },
+        {
+          "type": "other",
+          "size": 39190528
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:22.633Z",
+      "phase": "driftwood-title",
+      "bytes": 642106603,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425556203
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162663424
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:23.138Z",
+      "phase": "driftwood-title",
+      "bytes": 642106603,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425556203
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162663424
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:23.641Z",
+      "phase": "driftwood-title",
+      "bytes": 642106603,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425557227
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162662400
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:24.148Z",
+      "phase": "driftwood-title",
+      "bytes": 642106603,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425558251
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162661376
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:24.654Z",
+      "phase": "driftwood-title",
+      "bytes": 641959147,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425559275
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162512896
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:25.156Z",
+      "phase": "driftwood-title",
+      "bytes": 641975531,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425559275
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162529280
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:25.665Z",
+      "phase": "driftwood-title",
+      "bytes": 642041067,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425560299
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162593792
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:26.166Z",
+      "phase": "driftwood-title",
+      "bytes": 642024683,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425561323
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162576384
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:26.673Z",
+      "phase": "driftwood-title",
+      "bytes": 642024683,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425562347
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162575360
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:27.180Z",
+      "phase": "driftwood-title",
+      "bytes": 642024683,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425562347
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162575360
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:27.684Z",
+      "phase": "driftwood-title",
+      "bytes": 642024683,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425563371
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162574336
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:28.189Z",
+      "phase": "driftwood-load",
+      "bytes": 642024683,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425564395
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162573312
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:28.692Z",
+      "phase": "driftwood-load",
+      "bytes": 642008299,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425564395
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162556928
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:29.168Z",
+      "phase": "driftwood-load",
+      "bytes": 641991915,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 425564395
+        },
+        {
+          "type": "jit",
+          "size": 14712832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 162540544
+        },
+        {
+          "type": "other",
+          "size": 39174144
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:29.670Z",
+      "phase": "driftwood-load",
+      "bytes": 428900352,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 109960295
+        },
+        {
+          "type": "jit",
+          "size": 14909440
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 250422169
+        },
+        {
+          "type": "other",
+          "size": 53608448
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:30.233Z",
+      "phase": "driftwood-load",
+      "bytes": 766516296,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 400269384
+        },
+        {
+          "type": "jit",
+          "size": 15843328
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 296270848
+        },
+        {
+          "type": "other",
+          "size": 54132736
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:30.742Z",
+      "phase": "driftwood-load",
+      "bytes": 550260736,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 342959049
+        },
+        {
+          "type": "jit",
+          "size": 16072704
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 134327351
+        },
+        {
+          "type": "other",
+          "size": 56901632
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:31.731Z",
+      "phase": "driftwood-load",
+      "bytes": 537710592,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 347636902
+        },
+        {
+          "type": "jit",
+          "size": 16416768
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 118410074
+        },
+        {
+          "type": "other",
+          "size": 55246848
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:31.731Z",
+      "phase": "driftwood-load",
+      "bytes": 946268736,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 521914944
+        },
+        {
+          "type": "jit",
+          "size": 16728064
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 352378880
+        },
+        {
+          "type": "other",
+          "size": 55246848
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:32.176Z",
+      "phase": "driftwood-load",
+      "bytes": 778493440,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 449931558
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 251491546
+        },
+        {
+          "type": "other",
+          "size": 59686912
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:32.692Z",
+      "phase": "driftwood-load",
+      "bytes": 871033592,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 427425528
+        },
+        {
+          "type": "jit",
+          "size": 17547264
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 368602112
+        },
+        {
+          "type": "other",
+          "size": 57458688
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:33.192Z",
+      "phase": "driftwood-load",
+      "bytes": 886133152,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 436612512
+        },
+        {
+          "type": "jit",
+          "size": 17563648
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 374498304
+        },
+        {
+          "type": "other",
+          "size": 57458688
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:33.722Z",
+      "phase": "driftwood-load",
+      "bytes": 881512864,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 436613536
+        },
+        {
+          "type": "jit",
+          "size": 17350656
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 370089984
+        },
+        {
+          "type": "other",
+          "size": 57458688
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:34.227Z",
+      "phase": "driftwood-load",
+      "bytes": 894570456,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 452823000
+        },
+        {
+          "type": "jit",
+          "size": 17367040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 366921728
+        },
+        {
+          "type": "other",
+          "size": 57458688
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:34.734Z",
+      "phase": "driftwood-load",
+      "bytes": 894111704,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 452945880
+        },
+        {
+          "type": "jit",
+          "size": 17367040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 366487552
+        },
+        {
+          "type": "other",
+          "size": 57311232
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:35.238Z",
+      "phase": "driftwood-load",
+      "bytes": 893833176,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 452945880
+        },
+        {
+          "type": "jit",
+          "size": 17367040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 366274560
+        },
+        {
+          "type": "other",
+          "size": 57245696
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:35.745Z",
+      "phase": "driftwood-load",
+      "bytes": 893882328,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 452979672
+        },
+        {
+          "type": "jit",
+          "size": 17367040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 366289920
+        },
+        {
+          "type": "other",
+          "size": 57245696
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:36.247Z",
+      "phase": "driftwood-load",
+      "bytes": 893849560,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 452980696
+        },
+        {
+          "type": "jit",
+          "size": 17367040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 366256128
+        },
+        {
+          "type": "other",
+          "size": 57245696
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:36.754Z",
+      "phase": "driftwood-load",
+      "bytes": 859364414,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421183550
+        },
+        {
+          "type": "jit",
+          "size": 17367040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 363568128
+        },
+        {
+          "type": "other",
+          "size": 57245696
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:37.255Z",
+      "phase": "driftwood-load",
+      "bytes": 855104574,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421239870
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 359235584
+        },
+        {
+          "type": "other",
+          "size": 57245696
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:37.763Z",
+      "phase": "driftwood-load",
+      "bytes": 854187070,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421242942
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 358380544
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:38.266Z",
+      "phase": "driftwood-load",
+      "bytes": 854121534,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421249086
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 358308864
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:38.773Z",
+      "phase": "driftwood-load",
+      "bytes": 854137918,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421254206
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 358320128
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:39.275Z",
+      "phase": "driftwood-load",
+      "bytes": 854170686,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421260350
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 358346752
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:39.785Z",
+      "phase": "driftwood-load",
+      "bytes": 847928382,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421265470
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 352099328
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:40.283Z",
+      "phase": "driftwood-load",
+      "bytes": 848010302,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 421269566
+        },
+        {
+          "type": "jit",
+          "size": 17383424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 352177152
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:40.750Z",
+      "phase": "driftwood-explore",
+      "bytes": 551722496,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 447166206
+        },
+        {
+          "type": "jit",
+          "size": 18841600
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 28485378
+        },
+        {
+          "type": "other",
+          "size": 57229312
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:41.257Z",
+      "phase": "driftwood-explore",
+      "bytes": 551611904,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 466701312
+        },
+        {
+          "type": "jit",
+          "size": 19939328
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 7791104
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:41.764Z",
+      "phase": "driftwood-explore",
+      "bytes": 947000072,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 469897992
+        },
+        {
+          "type": "jit",
+          "size": 20873216
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 399015936
+        },
+        {
+          "type": "other",
+          "size": 57212928
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:42.264Z",
+      "phase": "driftwood-explore",
+      "bytes": 548777472,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 459251313
+        },
+        {
+          "type": "jit",
+          "size": 20922368
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 11423631
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:42.770Z",
+      "phase": "driftwood-explore",
+      "bytes": 935326321,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 459918961
+        },
+        {
+          "type": "jit",
+          "size": 21004288
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 397222912
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:43.268Z",
+      "phase": "driftwood-explore",
+      "bytes": 939422321,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 461125233
+        },
+        {
+          "type": "jit",
+          "size": 21233664
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 399883264
+        },
+        {
+          "type": "other",
+          "size": 57180160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:43.777Z",
+      "phase": "driftwood-explore",
+      "bytes": 562310656,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 463420017
+        },
+        {
+          "type": "jit",
+          "size": 21479424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 20214671
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:44.298Z",
+      "phase": "driftwood-explore",
+      "bytes": 547319296,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 461048641
+        },
+        {
+          "type": "jit",
+          "size": 21692416
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 7381695
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:44.800Z",
+      "phase": "driftwood-explore",
+      "bytes": 940862433,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 461853665
+        },
+        {
+          "type": "jit",
+          "size": 21790720
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 400021504
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:45.309Z",
+      "phase": "driftwood-explore",
+      "bytes": 942566369,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 463034337
+        },
+        {
+          "type": "jit",
+          "size": 21823488
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 400512000
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:45.813Z",
+      "phase": "driftwood-explore",
+      "bytes": 943451105,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 464509921
+        },
+        {
+          "type": "jit",
+          "size": 21839872
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 399904768
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:46.328Z",
+      "phase": "driftwood-explore",
+      "bytes": 946580449,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 466411489
+        },
+        {
+          "type": "jit",
+          "size": 21905408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 401067008
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:46.827Z",
+      "phase": "driftwood-explore",
+      "bytes": 949848105,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 469862441
+        },
+        {
+          "type": "jit",
+          "size": 21954560
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 400834560
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:47.311Z",
+      "phase": "driftwood-explore",
+      "bytes": 955291985,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 473357649
+        },
+        {
+          "type": "jit",
+          "size": 22003712
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402734080
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:47.810Z",
+      "phase": "driftwood-world",
+      "bytes": 562179584,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 466858875
+        },
+        {
+          "type": "jit",
+          "size": 22265856
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 15858309
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:48.331Z",
+      "phase": "driftwood-world",
+      "bytes": 957356515,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 472445411
+        },
+        {
+          "type": "jit",
+          "size": 22396928
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 405317632
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:48.833Z",
+      "phase": "driftwood-world",
+      "bytes": 957929955,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 473725411
+        },
+        {
+          "type": "jit",
+          "size": 22462464
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404529152
+        },
+        {
+          "type": "other",
+          "size": 57212928
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:49.343Z",
+      "phase": "driftwood-world",
+      "bytes": 960027107,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 475807203
+        },
+        {
+          "type": "jit",
+          "size": 22528000
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404495360
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:49.846Z",
+      "phase": "driftwood-world",
+      "bytes": 963168934,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 478389926
+        },
+        {
+          "type": "jit",
+          "size": 22544384
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 405038080
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:50.361Z",
+      "phase": "driftwood-world",
+      "bytes": 955861670,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 471918246
+        },
+        {
+          "type": "jit",
+          "size": 22577152
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404169728
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:50.865Z",
+      "phase": "driftwood-world",
+      "bytes": 955648678,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 472937126
+        },
+        {
+          "type": "jit",
+          "size": 22593536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402921472
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:51.366Z",
+      "phase": "driftwood-world",
+      "bytes": 955073407,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 471690111
+        },
+        {
+          "type": "jit",
+          "size": 22659072
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 403527680
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:51.866Z",
+      "phase": "driftwood-world",
+      "bytes": 955302783,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 472266623
+        },
+        {
+          "type": "jit",
+          "size": 22675456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 403164160
+        },
+        {
+          "type": "other",
+          "size": 57196544
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:52.372Z",
+      "phase": "driftwood-world",
+      "bytes": 957252479,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 474134399
+        },
+        {
+          "type": "jit",
+          "size": 22675456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 403229696
+        },
+        {
+          "type": "other",
+          "size": 57212928
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:52.876Z",
+      "phase": "driftwood-world",
+      "bytes": 958923647,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 476398463
+        },
+        {
+          "type": "jit",
+          "size": 22675456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402997248
+        },
+        {
+          "type": "other",
+          "size": 56852480
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:53.385Z",
+      "phase": "driftwood-world",
+      "bytes": 960037759,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 478055295
+        },
+        {
+          "type": "jit",
+          "size": 22691840
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402438144
+        },
+        {
+          "type": "other",
+          "size": 56852480
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:53.896Z",
+      "phase": "driftwood-world",
+      "bytes": 961545087,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 479827839
+        },
+        {
+          "type": "jit",
+          "size": 22708224
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402304000
+        },
+        {
+          "type": "other",
+          "size": 56705024
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:54.396Z",
+      "phase": "driftwood-world",
+      "bytes": 964281215,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 481417087
+        },
+        {
+          "type": "jit",
+          "size": 22708224
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 403450880
+        },
+        {
+          "type": "other",
+          "size": 56705024
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:54.900Z",
+      "phase": "driftwood-world",
+      "bytes": 966378367,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 483550079
+        },
+        {
+          "type": "jit",
+          "size": 22724608
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 403398656
+        },
+        {
+          "type": "other",
+          "size": 56705024
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:55.400Z",
+      "phase": "driftwood-world",
+      "bytes": 969409407,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 486341503
+        },
+        {
+          "type": "jit",
+          "size": 22740992
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 403605504
+        },
+        {
+          "type": "other",
+          "size": 56721408
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:55.910Z",
+      "phase": "driftwood-world",
+      "bytes": 972440447,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 488818559
+        },
+        {
+          "type": "jit",
+          "size": 22757376
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404159488
+        },
+        {
+          "type": "other",
+          "size": 56705024
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:56.413Z",
+      "phase": "driftwood-world",
+      "bytes": 974488447,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 490538879
+        },
+        {
+          "type": "jit",
+          "size": 22839296
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404388864
+        },
+        {
+          "type": "other",
+          "size": 56721408
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:56.919Z",
+      "phase": "driftwood-world",
+      "bytes": 976520063,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 492359551
+        },
+        {
+          "type": "jit",
+          "size": 22855680
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404599808
+        },
+        {
+          "type": "other",
+          "size": 56705024
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:57.427Z",
+      "phase": "driftwood-world",
+      "bytes": 978551679,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 493932415
+        },
+        {
+          "type": "jit",
+          "size": 22872064
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 405124096
+        },
+        {
+          "type": "other",
+          "size": 56623104
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:57.934Z",
+      "phase": "driftwood-world",
+      "bytes": 982172543,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 496129919
+        },
+        {
+          "type": "jit",
+          "size": 22888448
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 406498304
+        },
+        {
+          "type": "other",
+          "size": 56655872
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:58.483Z",
+      "phase": "driftwood-world",
+      "bytes": 983171967,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 498739071
+        },
+        {
+          "type": "jit",
+          "size": 22953984
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404823040
+        },
+        {
+          "type": "other",
+          "size": 56655872
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:58.946Z",
+      "phase": "driftwood-world",
+      "bytes": 958584410,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 473959002
+        },
+        {
+          "type": "jit",
+          "size": 22970368
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 404999168
+        },
+        {
+          "type": "other",
+          "size": 56655872
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:59.438Z",
+      "phase": "driftwood-world",
+      "bytes": 956388954,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 474532442
+        },
+        {
+          "type": "jit",
+          "size": 22970368
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402213888
+        },
+        {
+          "type": "other",
+          "size": 56672256
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:56:59.951Z",
+      "phase": "driftwood-world",
+      "bytes": 957339226,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 475450970
+        },
+        {
+          "type": "jit",
+          "size": 22970368
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402245632
+        },
+        {
+          "type": "other",
+          "size": 56672256
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:00.459Z",
+      "phase": "driftwood-world",
+      "bytes": 958994010,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 476697178
+        },
+        {
+          "type": "jit",
+          "size": 22970368
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402654208
+        },
+        {
+          "type": "other",
+          "size": 56672256
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:00.962Z",
+      "phase": "driftwood-world",
+      "bytes": 955389530,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 478959194
+        },
+        {
+          "type": "jit",
+          "size": 22986752
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 396787712
+        },
+        {
+          "type": "other",
+          "size": 56655872
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:01.468Z",
+      "phase": "driftwood-world",
+      "bytes": 953651424,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 474595552
+        },
+        {
+          "type": "jit",
+          "size": 22986752
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 399396864
+        },
+        {
+          "type": "other",
+          "size": 56672256
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:01.972Z",
+      "phase": "driftwood-world",
+      "bytes": 951488736,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 475056352
+        },
+        {
+          "type": "jit",
+          "size": 23003136
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 396773376
+        },
+        {
+          "type": "other",
+          "size": 56655872
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:02.478Z",
+      "phase": "driftwood-world",
+      "bytes": 952439008,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 475876576
+        },
+        {
+          "type": "jit",
+          "size": 23003136
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 396903424
+        },
+        {
+          "type": "other",
+          "size": 56655872
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:02.981Z",
+      "phase": "driftwood-world",
+      "bytes": 971034848,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 476927200
+        },
+        {
+          "type": "jit",
+          "size": 23003136
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 414432256
+        },
+        {
+          "type": "other",
+          "size": 56672256
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:03.484Z",
+      "phase": "driftwood-world",
+      "bytes": 961089760,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 478517472
+        },
+        {
+          "type": "jit",
+          "size": 23003136
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 402896896
+        },
+        {
+          "type": "other",
+          "size": 56672256
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:03.964Z",
+      "phase": "driftwood-world",
+      "bytes": 592211456,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 480877792
+        },
+        {
+          "type": "jit",
+          "size": 23134208
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 31527200
+        },
+        {
+          "type": "other",
+          "size": 56672256
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:04.490Z",
+      "phase": "driftwood-world",
+      "bytes": 971444448,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 483025120
+        },
+        {
+          "type": "jit",
+          "size": 23166976
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 408481792
+        },
+        {
+          "type": "other",
+          "size": 56770560
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:04.993Z",
+      "phase": "pine-load",
+      "bytes": 582795264,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 72613989
+        },
+        {
+          "type": "jit",
+          "size": 23117824
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 421035931
+        },
+        {
+          "type": "other",
+          "size": 66027520
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:05.499Z",
+      "phase": "pine-load",
+      "bytes": 716341248,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 191835725
+        },
+        {
+          "type": "jit",
+          "size": 22855680
+        },
+        {
+          "type": "images",
+          "size": 19431424
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 411767219
+        },
+        {
+          "type": "other",
+          "size": 70451200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:05.987Z",
+      "phase": "pine-load",
+      "bytes": 589611008,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 316121300
+        },
+        {
+          "type": "jit",
+          "size": 23150592
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 170991404
+        },
+        {
+          "type": "other",
+          "size": 79347712
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:06.489Z",
+      "phase": "pine-load",
+      "bytes": 751144960,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 512688800
+        },
+        {
+          "type": "jit",
+          "size": 23871488
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 137137504
+        },
+        {
+          "type": "other",
+          "size": 77447168
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:07.095Z",
+      "phase": "pine-load",
+      "bytes": 909299712,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 686693407
+        },
+        {
+          "type": "jit",
+          "size": 24477696
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 126530529
+        },
+        {
+          "type": "other",
+          "size": 71598080
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:07.495Z",
+      "phase": "pine-load",
+      "bytes": 1065050112,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 745636397
+        },
+        {
+          "type": "jit",
+          "size": 24625152
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 219930067
+        },
+        {
+          "type": "other",
+          "size": 74858496
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:08.627Z",
+      "phase": "pine-load",
+      "bytes": 969662464,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 657429161
+        },
+        {
+          "type": "jit",
+          "size": 25559040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 208506199
+        },
+        {
+          "type": "other",
+          "size": 78168064
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:08.627Z",
+      "phase": "pine-load",
+      "bytes": 1035865600,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 893824736
+        },
+        {
+          "type": "jit",
+          "size": 25690112
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 37134112
+        },
+        {
+          "type": "other",
+          "size": 79216640
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:08.991Z",
+      "phase": "pine-load",
+      "bytes": 1146703360,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 530948093
+        },
+        {
+          "type": "jit",
+          "size": 26427392
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 496561667
+        },
+        {
+          "type": "other",
+          "size": 92766208
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:09.503Z",
+      "phase": "pine-load",
+      "bytes": 766103040,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 589093740
+        },
+        {
+          "type": "jit",
+          "size": 26820608
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 27636372
+        },
+        {
+          "type": "other",
+          "size": 122552320
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:10.010Z",
+      "phase": "pine-load",
+      "bytes": 763776512,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 596415320
+        },
+        {
+          "type": "jit",
+          "size": 26836992
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 17971880
+        },
+        {
+          "type": "other",
+          "size": 122552320
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:10.543Z",
+      "phase": "pine-load",
+      "bytes": 772132352,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 606355756
+        },
+        {
+          "type": "jit",
+          "size": 27033600
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 16207060
+        },
+        {
+          "type": "other",
+          "size": 122535936
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:11.044Z",
+      "phase": "pine-load",
+      "bytes": 914312704,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 528740319
+        },
+        {
+          "type": "jit",
+          "size": 28459008
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 231431713
+        },
+        {
+          "type": "other",
+          "size": 125681664
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:11.549Z",
+      "phase": "pine-load",
+      "bytes": 821759488,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 549922745
+        },
+        {
+          "type": "jit",
+          "size": 28753920
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 120038983
+        },
+        {
+          "type": "other",
+          "size": 123043840
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:12.056Z",
+      "phase": "pine-load",
+      "bytes": 817794560,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 549922745
+        },
+        {
+          "type": "jit",
+          "size": 28753920
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 116074055
+        },
+        {
+          "type": "other",
+          "size": 123043840
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:12.561Z",
+      "phase": "pine-load",
+      "bytes": 816844288,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 549922745
+        },
+        {
+          "type": "jit",
+          "size": 28753920
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 115123783
+        },
+        {
+          "type": "other",
+          "size": 123043840
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:13.066Z",
+      "phase": "pine-load",
+      "bytes": 816713216,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451174082
+        },
+        {
+          "type": "jit",
+          "size": 28753920
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 213741374
+        },
+        {
+          "type": "other",
+          "size": 123043840
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:13.571Z",
+      "phase": "pine-load",
+      "bytes": 698404352,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451174082
+        },
+        {
+          "type": "jit",
+          "size": 28737536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95448894
+        },
+        {
+          "type": "other",
+          "size": 123043840
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:14.070Z",
+      "phase": "pine-load",
+      "bytes": 696356352,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451529410
+        },
+        {
+          "type": "jit",
+          "size": 28737536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95667006
+        },
+        {
+          "type": "other",
+          "size": 120422400
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:14.576Z",
+      "phase": "pine-load",
+      "bytes": 696372736,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451535554
+        },
+        {
+          "type": "jit",
+          "size": 28737536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95677246
+        },
+        {
+          "type": "other",
+          "size": 120422400
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:15.083Z",
+      "phase": "pine-load",
+      "bytes": 696339968,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451542722
+        },
+        {
+          "type": "jit",
+          "size": 28737536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95653694
+        },
+        {
+          "type": "other",
+          "size": 120406016
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:15.589Z",
+      "phase": "pine-load",
+      "bytes": 695832064,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451546818
+        },
+        {
+          "type": "jit",
+          "size": 28737536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95141694
+        },
+        {
+          "type": "other",
+          "size": 120406016
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:16.092Z",
+      "phase": "pine-load",
+      "bytes": 695782912,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451549890
+        },
+        {
+          "type": "jit",
+          "size": 28737536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95155006
+        },
+        {
+          "type": "other",
+          "size": 120340480
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:16.600Z",
+      "phase": "pine-load",
+      "bytes": 695733760,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451555010
+        },
+        {
+          "type": "jit",
+          "size": 28737536
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95100734
+        },
+        {
+          "type": "other",
+          "size": 120340480
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:17.071Z",
+      "phase": "pine-explore",
+      "bytes": 737922560,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 454642484
+        },
+        {
+          "type": "jit",
+          "size": 29179904
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 133776076
+        },
+        {
+          "type": "other",
+          "size": 120324096
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:17.571Z",
+      "phase": "pine-explore",
+      "bytes": 734432768,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 455262004
+        },
+        {
+          "type": "jit",
+          "size": 30015488
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 128798412
+        },
+        {
+          "type": "other",
+          "size": 120356864
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:18.074Z",
+      "phase": "pine-explore",
+      "bytes": 734940672,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 456061748
+        },
+        {
+          "type": "jit",
+          "size": 31064064
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 127457996
+        },
+        {
+          "type": "other",
+          "size": 120356864
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:18.582Z",
+      "phase": "pine-explore",
+      "bytes": 733351424,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 457172788
+        },
+        {
+          "type": "jit",
+          "size": 31162368
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 124462796
+        },
+        {
+          "type": "other",
+          "size": 120553472
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:19.077Z",
+      "phase": "pine-explore",
+      "bytes": 740347392,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 458490483
+        },
+        {
+          "type": "jit",
+          "size": 31391744
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 130108301
+        },
+        {
+          "type": "other",
+          "size": 120356864
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:19.579Z",
+      "phase": "pine-explore",
+      "bytes": 743771648,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 463551091
+        },
+        {
+          "type": "jit",
+          "size": 31555584
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 128308109
+        },
+        {
+          "type": "other",
+          "size": 120356864
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:20.084Z",
+      "phase": "pine-explore",
+      "bytes": 745360896,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 464794227
+        },
+        {
+          "type": "jit",
+          "size": 31637504
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 128605069
+        },
+        {
+          "type": "other",
+          "size": 120324096
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:20.601Z",
+      "phase": "pine-explore",
+      "bytes": 747834880,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 466428531
+        },
+        {
+          "type": "jit",
+          "size": 31703040
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 129362829
+        },
+        {
+          "type": "other",
+          "size": 120340480
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:21.086Z",
+      "phase": "pine-explore",
+      "bytes": 750472704,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 467784307
+        },
+        {
+          "type": "jit",
+          "size": 31801344
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 130775949
+        },
+        {
+          "type": "other",
+          "size": 120111104
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:21.601Z",
+      "phase": "pine-explore",
+      "bytes": 754863616,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 469173875
+        },
+        {
+          "type": "jit",
+          "size": 31932416
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 133695373
+        },
+        {
+          "type": "other",
+          "size": 120061952
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:22.101Z",
+      "phase": "pine-explore",
+      "bytes": 737861120,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 426352403
+        },
+        {
+          "type": "jit",
+          "size": 31784960
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 159661805
+        },
+        {
+          "type": "other",
+          "size": 120061952
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:22.601Z",
+      "phase": "pine-world",
+      "bytes": 732110336,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 427130643
+        },
+        {
+          "type": "jit",
+          "size": 31801344
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153149165
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:23.102Z",
+      "phase": "pine-world",
+      "bytes": 732012032,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 427660051
+        },
+        {
+          "type": "jit",
+          "size": 31801344
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 152521453
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:23.603Z",
+      "phase": "pine-world",
+      "bytes": 732945920,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 428339987
+        },
+        {
+          "type": "jit",
+          "size": 31817728
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 152759021
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:24.138Z",
+      "phase": "pine-world",
+      "bytes": 733732352,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 429096723
+        },
+        {
+          "type": "jit",
+          "size": 31834112
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 152772333
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:24.638Z",
+      "phase": "pine-world",
+      "bytes": 734207488,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 429866771
+        },
+        {
+          "type": "jit",
+          "size": 31834112
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 152477421
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:25.142Z",
+      "phase": "pine-world",
+      "bytes": 735075840,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 430671635
+        },
+        {
+          "type": "jit",
+          "size": 31834112
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 152540909
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:25.652Z",
+      "phase": "pine-world",
+      "bytes": 738631168,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 431509267
+        },
+        {
+          "type": "jit",
+          "size": 31850496
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155242221
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:26.137Z",
+      "phase": "pine-world",
+      "bytes": 739171840,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 432379667
+        },
+        {
+          "type": "jit",
+          "size": 31866880
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154896109
+        },
+        {
+          "type": "other",
+          "size": 120029184
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:26.644Z",
+      "phase": "pine-world",
+      "bytes": 739614208,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 433232659
+        },
+        {
+          "type": "jit",
+          "size": 31916032
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154469101
+        },
+        {
+          "type": "other",
+          "size": 119996416
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:27.174Z",
+      "phase": "pine-world",
+      "bytes": 738663936,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 434251539
+        },
+        {
+          "type": "jit",
+          "size": 31916032
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 152614637
+        },
+        {
+          "type": "other",
+          "size": 119881728
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:27.659Z",
+      "phase": "pine-world",
+      "bytes": 740515328,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 435154707
+        },
+        {
+          "type": "jit",
+          "size": 31948800
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153530093
+        },
+        {
+          "type": "other",
+          "size": 119881728
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:28.174Z",
+      "phase": "pine-world",
+      "bytes": 741301760,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 436320019
+        },
+        {
+          "type": "jit",
+          "size": 31948800
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153036525
+        },
+        {
+          "type": "other",
+          "size": 119996416
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:28.675Z",
+      "phase": "pine-world",
+      "bytes": 742579712,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 437404691
+        },
+        {
+          "type": "jit",
+          "size": 31948800
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153278957
+        },
+        {
+          "type": "other",
+          "size": 119947264
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:29.174Z",
+      "phase": "pine-world",
+      "bytes": 743579136,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 438652947
+        },
+        {
+          "type": "jit",
+          "size": 31948800
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153030125
+        },
+        {
+          "type": "other",
+          "size": 119947264
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:29.677Z",
+      "phase": "pine-world",
+      "bytes": 729210368,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 439785491
+        },
+        {
+          "type": "jit",
+          "size": 31948800
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153404909
+        },
+        {
+          "type": "other",
+          "size": 104071168
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:30.174Z",
+      "phase": "pine-world",
+      "bytes": 730930688,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 440999955
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153861613
+        },
+        {
+          "type": "other",
+          "size": 104103936
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:30.677Z",
+      "phase": "pine-world",
+      "bytes": 731258368,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 442278931
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 152910317
+        },
+        {
+          "type": "other",
+          "size": 104103936
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:31.176Z",
+      "phase": "pine-world",
+      "bytes": 732995072,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 443726867
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153182701
+        },
+        {
+          "type": "other",
+          "size": 104120320
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:31.679Z",
+      "phase": "pine-world",
+      "bytes": 735976960,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 444923923
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154967533
+        },
+        {
+          "type": "other",
+          "size": 104120320
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:32.184Z",
+      "phase": "pine-world",
+      "bytes": 735403520,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 446137363
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153197037
+        },
+        {
+          "type": "other",
+          "size": 104103936
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:32.691Z",
+      "phase": "pine-world",
+      "bytes": 736681472,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 447333395
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 153278957
+        },
+        {
+          "type": "other",
+          "size": 104103936
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:33.192Z",
+      "phase": "pine-world",
+      "bytes": 737762816,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 448628755
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154637805
+        },
+        {
+          "type": "other",
+          "size": 102531072
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:33.694Z",
+      "phase": "pine-world",
+      "bytes": 739237376,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 449842195
+        },
+        {
+          "type": "jit",
+          "size": 32030720
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154833389
+        },
+        {
+          "type": "other",
+          "size": 102531072
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:34.208Z",
+      "phase": "pine-world",
+      "bytes": 740711936,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 451059731
+        },
+        {
+          "type": "jit",
+          "size": 32030720
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155090413
+        },
+        {
+          "type": "other",
+          "size": 102531072
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:34.709Z",
+      "phase": "pine-world",
+      "bytes": 741957120,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 452255763
+        },
+        {
+          "type": "jit",
+          "size": 32030720
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155139565
+        },
+        {
+          "type": "other",
+          "size": 102531072
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:35.197Z",
+      "phase": "pine-world",
+      "bytes": 742579712,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 453387283
+        },
+        {
+          "type": "jit",
+          "size": 32030720
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154630637
+        },
+        {
+          "type": "other",
+          "size": 102531072
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:35.702Z",
+      "phase": "pine-world",
+      "bytes": 750427648,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 454568979
+        },
+        {
+          "type": "jit",
+          "size": 32145408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 161165805
+        },
+        {
+          "type": "other",
+          "size": 102547456
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:36.226Z",
+      "phase": "pine-world",
+      "bytes": 746315264,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 455782419
+        },
+        {
+          "type": "jit",
+          "size": 32145408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155839981
+        },
+        {
+          "type": "other",
+          "size": 102547456
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:36.724Z",
+      "phase": "pine-world",
+      "bytes": 747560448,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 457011219
+        },
+        {
+          "type": "jit",
+          "size": 32145408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155856365
+        },
+        {
+          "type": "other",
+          "size": 102547456
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:37.225Z",
+      "phase": "pine-world",
+      "bytes": 748920320,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 458273811
+        },
+        {
+          "type": "jit",
+          "size": 32145408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155953645
+        },
+        {
+          "type": "other",
+          "size": 102547456
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:37.724Z",
+      "phase": "pine-world",
+      "bytes": 750738944,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 459487251
+        },
+        {
+          "type": "jit",
+          "size": 32145408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 156558829
+        },
+        {
+          "type": "other",
+          "size": 102547456
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:38.229Z",
+      "phase": "pine-world",
+      "bytes": 751246848,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 460733459
+        },
+        {
+          "type": "jit",
+          "size": 32145408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 156049901
+        },
+        {
+          "type": "other",
+          "size": 102318080
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:38.732Z",
+      "phase": "pine-world",
+      "bytes": 751672832,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 462060563
+        },
+        {
+          "type": "jit",
+          "size": 32145408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155132397
+        },
+        {
+          "type": "other",
+          "size": 102334464
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:39.237Z",
+      "phase": "pine-world",
+      "bytes": 754621952,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 463257619
+        },
+        {
+          "type": "jit",
+          "size": 32194560
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 156949997
+        },
+        {
+          "type": "other",
+          "size": 102219776
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:39.738Z",
+      "phase": "pine-world",
+      "bytes": 753901056,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 464487443
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155113965
+        },
+        {
+          "type": "other",
+          "size": 102088704
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:40.243Z",
+      "phase": "pine-world",
+      "bytes": 754769408,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 465668115
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154801645
+        },
+        {
+          "type": "other",
+          "size": 102088704
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:40.759Z",
+      "phase": "pine-world",
+      "bytes": 756014592,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 466946067
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154768877
+        },
+        {
+          "type": "other",
+          "size": 102088704
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:41.261Z",
+      "phase": "pine-world",
+      "bytes": 757341696,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 468225043
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154817005
+        },
+        {
+          "type": "other",
+          "size": 102088704
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:41.761Z",
+      "phase": "pine-world",
+      "bytes": 757882368,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 469454867
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155061741
+        },
+        {
+          "type": "other",
+          "size": 101154816
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:42.259Z",
+      "phase": "pine-world",
+      "bytes": 759078400,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 470619155
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155077101
+        },
+        {
+          "type": "other",
+          "size": 101171200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:42.768Z",
+      "phase": "pine-world",
+      "bytes": 760389120,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 471913491
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155109869
+        },
+        {
+          "type": "other",
+          "size": 101154816
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:43.270Z",
+      "phase": "pine-world",
+      "bytes": 761945600,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 473176083
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155403757
+        },
+        {
+          "type": "other",
+          "size": 101154816
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:43.792Z",
+      "phase": "pine-world",
+      "bytes": 762682880,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 474373139
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 155075053
+        },
+        {
+          "type": "other",
+          "size": 101023744
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:44.293Z",
+      "phase": "pine-world",
+      "bytes": 763780608,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 475750419
+        },
+        {
+          "type": "jit",
+          "size": 32210944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 154795501
+        },
+        {
+          "type": "other",
+          "size": 101023744
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:44.795Z",
+      "phase": "pine-world",
+      "bytes": 767516160,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 477126675
+        },
+        {
+          "type": "jit",
+          "size": 32227328
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 157138413
+        },
+        {
+          "type": "other",
+          "size": 101023744
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:45.296Z",
+      "phase": "pine-world",
+      "bytes": 761437696,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 478422035
+        },
+        {
+          "type": "jit",
+          "size": 32227328
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 149764589
+        },
+        {
+          "type": "other",
+          "size": 101023744
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:45.798Z",
+      "phase": "pine-world",
+      "bytes": 762600960,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 479651859
+        },
+        {
+          "type": "jit",
+          "size": 32227328
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 149698029
+        },
+        {
+          "type": "other",
+          "size": 101023744
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:46.303Z",
+      "phase": "pine-world",
+      "bytes": 763796992,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 480848915
+        },
+        {
+          "type": "jit",
+          "size": 32227328
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 149680621
+        },
+        {
+          "type": "other",
+          "size": 101040128
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:46.810Z",
+      "phase": "pine-world",
+      "bytes": 765238784,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 481995795
+        },
+        {
+          "type": "jit",
+          "size": 32227328
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 149975533
+        },
+        {
+          "type": "other",
+          "size": 101040128
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:47.880Z",
+      "phase": "nalati-load",
+      "bytes": 756301824,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 170991958
+        },
+        {
+          "type": "jit",
+          "size": 31916032
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 485891754
+        },
+        {
+          "type": "other",
+          "size": 67502080
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:47.885Z",
+      "phase": "nalati-load",
+      "bytes": 607256576,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 188397083
+        },
+        {
+          "type": "jit",
+          "size": 29818880
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 321014245
+        },
+        {
+          "type": "other",
+          "size": 68026368
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:48.315Z",
+      "phase": "nalati-load",
+      "bytes": 769556480,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 267551437
+        },
+        {
+          "type": "jit",
+          "size": 29868032
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 396983603
+        },
+        {
+          "type": "other",
+          "size": 75153408
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:49.231Z",
+      "phase": "nalati-load",
+      "bytes": 675823616,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 350532534
+        },
+        {
+          "type": "jit",
+          "size": 28311552
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 216484938
+        },
+        {
+          "type": "other",
+          "size": 80494592
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:49.340Z",
+      "phase": "nalati-load",
+      "bytes": 1307962842,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 643959258
+        },
+        {
+          "type": "jit",
+          "size": 28590080
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 560292864
+        },
+        {
+          "type": "other",
+          "size": 75120640
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:50.359Z",
+      "phase": "nalati-load",
+      "bytes": 1379441860,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 828970180
+        },
+        {
+          "type": "jit",
+          "size": 29196288
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 446154752
+        },
+        {
+          "type": "other",
+          "size": 75120640
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:50.359Z",
+      "phase": "nalati-load",
+      "bytes": 764743680,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 503223929
+        },
+        {
+          "type": "jit",
+          "size": 29540352
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 156858759
+        },
+        {
+          "type": "other",
+          "size": 75120640
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:51.012Z",
+      "phase": "nalati-load",
+      "bytes": 756649984,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 473041122
+        },
+        {
+          "type": "jit",
+          "size": 29851648
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 177309470
+        },
+        {
+          "type": "other",
+          "size": 76447744
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:51.310Z",
+      "phase": "nalati-load",
+      "bytes": 1832599755,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 1229119691
+        },
+        {
+          "type": "jit",
+          "size": 30064640
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 496967680
+        },
+        {
+          "type": "other",
+          "size": 76447744
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:52.346Z",
+      "phase": "nalati-load",
+      "bytes": 1496284245,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 863521877
+        },
+        {
+          "type": "jit",
+          "size": 30392320
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 527233024
+        },
+        {
+          "type": "other",
+          "size": 75137024
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:52.346Z",
+      "phase": "nalati-load",
+      "bytes": 1490828373,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 887176277
+        },
+        {
+          "type": "jit",
+          "size": 30457856
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 498057216
+        },
+        {
+          "type": "other",
+          "size": 75137024
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:53.217Z",
+      "phase": "nalati-load",
+      "bytes": 779264000,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 572189525
+        },
+        {
+          "type": "jit",
+          "size": 31260672
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 98235563
+        },
+        {
+          "type": "other",
+          "size": 77578240
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:53.673Z",
+      "phase": "nalati-load",
+      "bytes": 977428480,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 772724664
+        },
+        {
+          "type": "jit",
+          "size": 31358976
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 88426568
+        },
+        {
+          "type": "other",
+          "size": 84918272
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:53.933Z",
+      "phase": "nalati-load",
+      "bytes": 959913984,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 621859803
+        },
+        {
+          "type": "jit",
+          "size": 31490048
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 218926117
+        },
+        {
+          "type": "other",
+          "size": 87638016
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:54.358Z",
+      "phase": "nalati-load",
+      "bytes": 1254820467,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 596343411
+        },
+        {
+          "type": "jit",
+          "size": 31784960
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 514347008
+        },
+        {
+          "type": "other",
+          "size": 112345088
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:54.869Z",
+      "phase": "nalati-load",
+      "bytes": 1274381803,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 630311403
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 496614400
+        },
+        {
+          "type": "other",
+          "size": 115490816
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:55.375Z",
+      "phase": "nalati-load",
+      "bytes": 1272169963,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 630312427
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 494401536
+        },
+        {
+          "type": "other",
+          "size": 115490816
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:55.878Z",
+      "phase": "nalati-load",
+      "bytes": 1271875051,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 630312427
+        },
+        {
+          "type": "jit",
+          "size": 31965184
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 494073856
+        },
+        {
+          "type": "other",
+          "size": 115523584
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:56.384Z",
+      "phase": "nalati-load",
+      "bytes": 1351660839,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 694919463
+        },
+        {
+          "type": "jit",
+          "size": 33193984
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 506975232
+        },
+        {
+          "type": "other",
+          "size": 116572160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:56.891Z",
+      "phase": "nalati-load",
+      "bytes": 1350006055,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 694953255
+        },
+        {
+          "type": "jit",
+          "size": 33193984
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 505286656
+        },
+        {
+          "type": "other",
+          "size": 116572160
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:57.395Z",
+      "phase": "nalati-load",
+      "bytes": 1348482343,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 694954279
+        },
+        {
+          "type": "jit",
+          "size": 33193984
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 503778304
+        },
+        {
+          "type": "other",
+          "size": 116555776
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:57.892Z",
+      "phase": "nalati-load",
+      "bytes": 778341888,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 567898638
+        },
+        {
+          "type": "jit",
+          "size": 33193984
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 60693490
+        },
+        {
+          "type": "other",
+          "size": 116555776
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:58.407Z",
+      "phase": "nalati-load",
+      "bytes": 734416384,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 533785102
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51717106
+        },
+        {
+          "type": "other",
+          "size": 115998720
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:58.909Z",
+      "phase": "nalati-load",
+      "bytes": 734629376,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534009358
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51705842
+        },
+        {
+          "type": "other",
+          "size": 115998720
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:59.411Z",
+      "phase": "nalati-load",
+      "bytes": 734694912,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534050318
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51730418
+        },
+        {
+          "type": "other",
+          "size": 115998720
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:57:59.922Z",
+      "phase": "nalati-load",
+      "bytes": 734694912,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534053390
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51727346
+        },
+        {
+          "type": "other",
+          "size": 115998720
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:00.426Z",
+      "phase": "nalati-load",
+      "bytes": 734694912,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534059534
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51721202
+        },
+        {
+          "type": "other",
+          "size": 115998720
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:00.927Z",
+      "phase": "nalati-load",
+      "bytes": 734645760,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534063630
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51766258
+        },
+        {
+          "type": "other",
+          "size": 115900416
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:01.436Z",
+      "phase": "nalati-load",
+      "bytes": 734596608,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534070798
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51709938
+        },
+        {
+          "type": "other",
+          "size": 115900416
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:01.936Z",
+      "phase": "nalati-load",
+      "bytes": 734678528,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534074894
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51787762
+        },
+        {
+          "type": "other",
+          "size": 115900416
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:02.440Z",
+      "phase": "nalati-load",
+      "bytes": 734809600,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 534077966
+        },
+        {
+          "type": "jit",
+          "size": 32915456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 51915762
+        },
+        {
+          "type": "other",
+          "size": 115900416
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:02.911Z",
+      "phase": "nalati-explore",
+      "bytes": 781585920,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 536236366
+        },
+        {
+          "type": "jit",
+          "size": 33423360
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95009970
+        },
+        {
+          "type": "other",
+          "size": 116916224
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:03.413Z",
+      "phase": "nalati-explore",
+      "bytes": 743034368,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 536674638
+        },
+        {
+          "type": "jit",
+          "size": 34078720
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 55397554
+        },
+        {
+          "type": "other",
+          "size": 116883456
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:03.911Z",
+      "phase": "nalati-explore",
+      "bytes": 769510912,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 537097550
+        },
+        {
+          "type": "jit",
+          "size": 35340288
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 80140466
+        },
+        {
+          "type": "other",
+          "size": 116932608
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:04.417Z",
+      "phase": "nalati-explore",
+      "bytes": 748867072,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 537518414
+        },
+        {
+          "type": "jit",
+          "size": 35471360
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 58944690
+        },
+        {
+          "type": "other",
+          "size": 116932608
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:04.918Z",
+      "phase": "nalati-explore",
+      "bytes": 738070016,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 538220878
+        },
+        {
+          "type": "jit",
+          "size": 35536896
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 60994738
+        },
+        {
+          "type": "other",
+          "size": 103317504
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:05.420Z",
+      "phase": "nalati-explore",
+      "bytes": 737545728,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 538736974
+        },
+        {
+          "type": "jit",
+          "size": 35749888
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 59741362
+        },
+        {
+          "type": "other",
+          "size": 103317504
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:05.930Z",
+      "phase": "nalati-explore",
+      "bytes": 740036096,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 540310035
+        },
+        {
+          "type": "jit",
+          "size": 35815424
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 60593133
+        },
+        {
+          "type": "other",
+          "size": 103317504
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:06.440Z",
+      "phase": "nalati-explore",
+      "bytes": 768675328,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 541114899
+        },
+        {
+          "type": "jit",
+          "size": 35913728
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 88329197
+        },
+        {
+          "type": "other",
+          "size": 103317504
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:06.939Z",
+      "phase": "nalati-explore",
+      "bytes": 769363456,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 541695507
+        },
+        {
+          "type": "jit",
+          "size": 35995648
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 88305645
+        },
+        {
+          "type": "other",
+          "size": 103366656
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:07.441Z",
+      "phase": "nalati-explore",
+      "bytes": 772050432,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 542304787
+        },
+        {
+          "type": "jit",
+          "size": 36159488
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90252269
+        },
+        {
+          "type": "other",
+          "size": 103333888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:07.957Z",
+      "phase": "nalati-explore",
+      "bytes": 771149312,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 543158803
+        },
+        {
+          "type": "jit",
+          "size": 36175872
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 88579053
+        },
+        {
+          "type": "other",
+          "size": 103235584
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:08.470Z",
+      "phase": "nalati-explore",
+      "bytes": 772378112,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 543980051
+        },
+        {
+          "type": "jit",
+          "size": 36241408
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 88937453
+        },
+        {
+          "type": "other",
+          "size": 103219200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:08.976Z",
+      "phase": "nalati-explore",
+      "bytes": 773443072,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 544915987
+        },
+        {
+          "type": "jit",
+          "size": 36290560
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 89017325
+        },
+        {
+          "type": "other",
+          "size": 103219200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:09.479Z",
+      "phase": "nalati-explore",
+      "bytes": 774147584,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 546114067
+        },
+        {
+          "type": "jit",
+          "size": 36306944
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 88507373
+        },
+        {
+          "type": "other",
+          "size": 103219200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:09.982Z",
+      "phase": "nalati-explore",
+      "bytes": 773410304,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 546887187
+        },
+        {
+          "type": "jit",
+          "size": 36339712
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 88537069
+        },
+        {
+          "type": "other",
+          "size": 101646336
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:10.484Z",
+      "phase": "nalati-world",
+      "bytes": 776080896,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 547692051
+        },
+        {
+          "type": "jit",
+          "size": 36388864
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90353645
+        },
+        {
+          "type": "other",
+          "size": 101646336
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:10.991Z",
+      "phase": "nalati-world",
+      "bytes": 776031744,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 548775443
+        },
+        {
+          "type": "jit",
+          "size": 36421632
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 89188333
+        },
+        {
+          "type": "other",
+          "size": 101646336
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:11.494Z",
+      "phase": "nalati-world",
+      "bytes": 778751488,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 549531155
+        },
+        {
+          "type": "jit",
+          "size": 36438016
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 91119597
+        },
+        {
+          "type": "other",
+          "size": 101662720
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:12.008Z",
+      "phase": "nalati-world",
+      "bytes": 779341312,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 550204947
+        },
+        {
+          "type": "jit",
+          "size": 36552704
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90937325
+        },
+        {
+          "type": "other",
+          "size": 101646336
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:12.509Z",
+      "phase": "nalati-world",
+      "bytes": 779308544,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 550976019
+        },
+        {
+          "type": "jit",
+          "size": 36569088
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90117101
+        },
+        {
+          "type": "other",
+          "size": 101646336
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:13.012Z",
+      "phase": "nalati-world",
+      "bytes": 779308544,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 551747091
+        },
+        {
+          "type": "jit",
+          "size": 36618240
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 89526253
+        },
+        {
+          "type": "other",
+          "size": 101416960
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:13.519Z",
+      "phase": "nalati-world",
+      "bytes": 775769600,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 552783379
+        },
+        {
+          "type": "jit",
+          "size": 36683776
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 84885485
+        },
+        {
+          "type": "other",
+          "size": 101416960
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:14.021Z",
+      "phase": "nalati-world",
+      "bytes": 775900672,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 553538067
+        },
+        {
+          "type": "jit",
+          "size": 36683776
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 84261869
+        },
+        {
+          "type": "other",
+          "size": 101416960
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:14.522Z",
+      "phase": "nalati-world",
+      "bytes": 777391616,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 554275347
+        },
+        {
+          "type": "jit",
+          "size": 36716544
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 84966381
+        },
+        {
+          "type": "other",
+          "size": 101433344
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:15.027Z",
+      "phase": "nalati-world",
+      "bytes": 778374656,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 555030035
+        },
+        {
+          "type": "jit",
+          "size": 36732928
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 85178349
+        },
+        {
+          "type": "other",
+          "size": 101433344
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:15.542Z",
+      "phase": "nalati-world",
+      "bytes": 785354240,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 555804435
+        },
+        {
+          "type": "jit",
+          "size": 36782080
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 91350765
+        },
+        {
+          "type": "other",
+          "size": 101416960
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:16.043Z",
+      "phase": "nalati-world",
+      "bytes": 786468352,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 556641043
+        },
+        {
+          "type": "jit",
+          "size": 36831232
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 91579117
+        },
+        {
+          "type": "other",
+          "size": 101416960
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:16.544Z",
+      "phase": "nalati-world",
+      "bytes": 787680768,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 557788947
+        },
+        {
+          "type": "jit",
+          "size": 36864000
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 91594477
+        },
+        {
+          "type": "other",
+          "size": 101433344
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:17.050Z",
+      "phase": "nalati-world",
+      "bytes": 793185792,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 559756051
+        },
+        {
+          "type": "jit",
+          "size": 36945920
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95279853
+        },
+        {
+          "type": "other",
+          "size": 101203968
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:17.557Z",
+      "phase": "nalati-world",
+      "bytes": 787172864,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 560658195
+        },
+        {
+          "type": "jit",
+          "size": 36962304
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90216173
+        },
+        {
+          "type": "other",
+          "size": 99336192
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:18.056Z",
+      "phase": "nalati-world",
+      "bytes": 789433856,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 561756947
+        },
+        {
+          "type": "jit",
+          "size": 36978688
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 91345645
+        },
+        {
+          "type": "other",
+          "size": 99352576
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:18.565Z",
+      "phase": "nalati-world",
+      "bytes": 789417472,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 562690835
+        },
+        {
+          "type": "jit",
+          "size": 36995072
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90378989
+        },
+        {
+          "type": "other",
+          "size": 99352576
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:19.078Z",
+      "phase": "nalati-world",
+      "bytes": 790253056,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 563461907
+        },
+        {
+          "type": "jit",
+          "size": 36995072
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90443501
+        },
+        {
+          "type": "other",
+          "size": 99352576
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:19.583Z",
+      "phase": "nalati-world",
+      "bytes": 791154176,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 564151059
+        },
+        {
+          "type": "jit",
+          "size": 37011456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90639085
+        },
+        {
+          "type": "other",
+          "size": 99352576
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:20.086Z",
+      "phase": "nalati-world",
+      "bytes": 791383552,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 564905747
+        },
+        {
+          "type": "jit",
+          "size": 37011456
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90261229
+        },
+        {
+          "type": "other",
+          "size": 99205120
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:20.591Z",
+      "phase": "nalati-world",
+      "bytes": 792202752,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 565675795
+        },
+        {
+          "type": "jit",
+          "size": 37044224
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 90359533
+        },
+        {
+          "type": "other",
+          "size": 99123200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:21.096Z",
+      "phase": "nalati-world",
+      "bytes": 810290688,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 566446867
+        },
+        {
+          "type": "jit",
+          "size": 37175296
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 107545325
+        },
+        {
+          "type": "other",
+          "size": 99123200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:21.600Z",
+      "phase": "nalati-world",
+      "bytes": 799936000,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 567610131
+        },
+        {
+          "type": "jit",
+          "size": 37191680
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 96010989
+        },
+        {
+          "type": "other",
+          "size": 99123200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:22.105Z",
+      "phase": "nalati-world",
+      "bytes": 801787392,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 568512275
+        },
+        {
+          "type": "jit",
+          "size": 37240832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 96927469
+        },
+        {
+          "type": "other",
+          "size": 99106816
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:22.611Z",
+      "phase": "nalati-world",
+      "bytes": 799739392,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 569872147
+        },
+        {
+          "type": "jit",
+          "size": 37240832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 93503213
+        },
+        {
+          "type": "other",
+          "size": 99123200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:23.113Z",
+      "phase": "nalati-world",
+      "bytes": 800296448,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 570692371
+        },
+        {
+          "type": "jit",
+          "size": 37240832
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 93240045
+        },
+        {
+          "type": "other",
+          "size": 99123200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:23.615Z",
+      "phase": "nalati-world",
+      "bytes": 802131456,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 571855635
+        },
+        {
+          "type": "jit",
+          "size": 37257216
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 93895405
+        },
+        {
+          "type": "other",
+          "size": 99123200
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:24.125Z",
+      "phase": "nalati-world",
+      "bytes": 803638784,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 572757779
+        },
+        {
+          "type": "jit",
+          "size": 37273600
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94369517
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:24.626Z",
+      "phase": "nalati-world",
+      "bytes": 804294144,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 573560595
+        },
+        {
+          "type": "jit",
+          "size": 37273600
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94222061
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:25.135Z",
+      "phase": "nalati-world",
+      "bytes": 804752896,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 574445331
+        },
+        {
+          "type": "jit",
+          "size": 37306368
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 93763309
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:25.638Z",
+      "phase": "nalati-world",
+      "bytes": 806276608,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 575576851
+        },
+        {
+          "type": "jit",
+          "size": 37322752
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94139117
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:26.148Z",
+      "phase": "nalati-world",
+      "bytes": 807128576,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 576445203
+        },
+        {
+          "type": "jit",
+          "size": 37322752
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94139117
+        },
+        {
+          "type": "other",
+          "size": 99221504
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:26.647Z",
+      "phase": "nalati-world",
+      "bytes": 808111616,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 577281811
+        },
+        {
+          "type": "jit",
+          "size": 37322752
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94269165
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:27.151Z",
+      "phase": "nalati-world",
+      "bytes": 809422336,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 578330387
+        },
+        {
+          "type": "jit",
+          "size": 37322752
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94531309
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:27.652Z",
+      "phase": "nalati-world",
+      "bytes": 810454528,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 579428115
+        },
+        {
+          "type": "jit",
+          "size": 37322752
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94465773
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:28.162Z",
+      "phase": "nalati-world",
+      "bytes": 812928512,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 580313875
+        },
+        {
+          "type": "jit",
+          "size": 37339136
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 96037613
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:28.669Z",
+      "phase": "nalati-world",
+      "bytes": 813436416,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 581182227
+        },
+        {
+          "type": "jit",
+          "size": 37388288
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95644397
+        },
+        {
+          "type": "other",
+          "size": 99221504
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:29.170Z",
+      "phase": "nalati-world",
+      "bytes": 814665216,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 582199059
+        },
+        {
+          "type": "jit",
+          "size": 37388288
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 95839981
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:29.677Z",
+      "phase": "nalati-world",
+      "bytes": 814829056,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 583362323
+        },
+        {
+          "type": "jit",
+          "size": 37404672
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 94824173
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:30.180Z",
+      "phase": "nalati-world",
+      "bytes": 816926208,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 584133395
+        },
+        {
+          "type": "jit",
+          "size": 37421056
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 96133869
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:30.690Z",
+      "phase": "nalati-world",
+      "bytes": 811060736,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 585083667
+        },
+        {
+          "type": "jit",
+          "size": 37421056
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 89334509
+        },
+        {
+          "type": "other",
+          "size": 99221504
+        }
+      ]
+    },
+    {
+      "at": "2026-09-28T19:58:31.188Z",
+      "phase": "nalati-world",
+      "bytes": 812011008,
+      "categories": [
+        {
+          "type": "javascript",
+          "size": 585854739
+        },
+        {
+          "type": "jit",
+          "size": 37421056
+        },
+        {
+          "type": "images",
+          "size": 0
+        },
+        {
+          "type": "layers",
+          "size": 0
+        },
+        {
+          "type": "page",
+          "size": 89497325
+        },
+        {
+          "type": "other",
+          "size": 99237888
+        }
+      ]
+    }
+  ]
+}
