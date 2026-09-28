@@ -27,12 +27,13 @@ GB in World Explorer**, not GiB. To enforce both in one run:
 python3 scripts/ios-memory-watchdog.py \
   --device YOUR_SIMULATOR_UDID --world-phase-file /tmp/nine-world-run-2 \
   --duration 120 --out /tmp/nine-memory-run-2.jsonl
-# In the test driver, when World Explorer is entered:
+# In the test driver, immediately before invoking World Explorer entry:
 touch /tmp/nine-world-run-2
 ```
 
-Use a fresh marker path. The driver must mark the transition promptly, not after
-waiting for memory to settle. A stale marker is rejected; a run that never enters
+Use a fresh marker path. Mark immediately before the entry action, so its
+allocations are subject to the world budget; do not wait for memory to settle.
+A stale marker is rejected; a run that never enters
 the world phase cannot pass. The report includes each sample's phase and exact byte
 budget plus separate phase peaks. This external signal does not infer readiness
 from elapsed time. Single-phase checks can use `--budget-gb 1.8` (loading) or
