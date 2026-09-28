@@ -28,9 +28,11 @@ const current = (sp: SP, CHUNKS: readonly ChunkDef[], slug = 'pine-hollow'): [st
 };
 
 describe('Auto: images until the shard\'s KTX2 set is cached', () => {
-  it('Nine Dragon uses compressed textures on the first phone visit to stay within its GPU budget', async () => {
+  it('Nine Dragon Auto uses images on phones while the compressed upload crash is isolated', async () => {
     const phone = await load({ chunk: 'nine-dragon-stack', tier: 'phone' });
-    expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2' });
+    expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'img' });
+    const cachedPhone = await load({ chunk: 'nine-dragon-stack', tier: 'phone', marker: (sp, C) => current(sp, C, 'nine-dragon-stack') });
+    expect(cachedPhone.gf.texModeWhy()).toMatchObject({ mode: 'img' });
     const desktop = await load({ chunk: 'nine-dragon-stack', tier: 'desktop' });
     expect(desktop.gf.texMode()).toBe('img');
   });
