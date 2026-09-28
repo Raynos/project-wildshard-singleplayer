@@ -6,7 +6,7 @@ Jake confirms Nine Dragon worked on his physical iPhone during the Opus work and
 
 ## Evidence
 
-- Pre-handoff checkpoint: `7a339ed2838e99bcae43636dbd1346b15cc5191a`, deployed as `7a339ed-mui4yqk8`. GitHub run `36230215574` identifies the original immutable deployment. A 24-hour deployment-scoped share link was supplied in chat for an exact phone control. Access token kept out of the repository. Exact good endpoint awaits Jake's test.
+- Pre-handoff checkpoint: `7a339ed2838e99bcae43636dbd1346b15cc5191a`, deployed as `7a339ed-mui4yqk8`. GitHub run `36230215574` identifies the original immutable deployment. Jake tested the supplied deployment-scoped share link and it also failed on his phone (13:00 UTC report below); it is not a currently verified good endpoint. Access token kept out of the repository.
 - E199 / `988c28ea` documents Opus stopping at its usage limit with WIP left in the shared tree. Model attribution comes from this handoff record, not Git authors (all Jake).
 - E200 already recorded double loading before facade batching (`51cf6c83`) and practice (`ce1305ac`) shipped. Those additions cannot alone explain that earlier report.
 - Sentry WILDSHARD-GAME-5: three abrupt first-frame reports on `324e4c8`; last durable point firstFrame 95%, no caught JS exception or native termination reason.

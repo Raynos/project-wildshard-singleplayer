@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Reproduce the phone's null precision result or the Simulator's shaderSource failure during boot.
 // Run after `pnpm build` with `pnpm exec vite preview --port 4184` up:
-// node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader|context]
+// node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader|context|texture]
 // A pass requires one failure, an error panel, no second load, and diagnostics in both reporting transports.
 import { chromium, webkit } from 'playwright';
 
@@ -9,7 +9,7 @@ const option = (name, fallback) => process.argv.find((part) => part.startsWith(`
 const base = option('url', 'http://127.0.0.1:4184').replace(/\/$/, '');
 const only = option('only', 'webkit');
 const fault = option('fault', 'shader');
-if (fault !== 'shader' && fault !== 'precision' && fault !== 'context') throw new Error(`Unknown fault: ${fault}`);
+if (!['shader', 'precision', 'context', 'texture'].includes(fault)) throw new Error(`Unknown fault: ${fault}`);
 const engines = only === 'all' ? [['webkit', webkit], ['chromium', chromium]] : [[only, only === 'chromium' ? chromium : webkit]];
 if (only !== 'all' && only !== 'webkit' && only !== 'chromium') throw new Error(`Unknown engine: ${only}`);
 
@@ -31,6 +31,22 @@ for (const [name, engine] of engines) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
     await context.addInitScript((selectedFault) => {
+      if (selectedFault === 'texture') {
+        localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: 'ktx2' }));
+        // Ask the actual driver to reject one upload; do not fabricate getError's result.
+        // oxlint-disable-next-line typescript/unbound-method -- native receiver supplied with Reflect.apply
+        const original = WebGL2RenderingContext.prototype.compressedTexSubImage2D;
+        let injected = false;
+        WebGL2RenderingContext.prototype.compressedTexSubImage2D = function compressedTexSubImage2D(...args) {
+          if (!injected && document.querySelector('.ws-load')?.dataset.step === 'shaders') {
+            injected = true;
+            args[6] = 0; // not a compressed texture format: INVALID_ENUM
+            console.info('[gpu-boot-test] injected compressed upload failure');
+          }
+          Reflect.apply(original, this, args);
+        };
+        return;
+      }
       if (selectedFault === 'context') {
         // Lose the REAL context while getContext returns it; all WebGL queries now obey native
         // context-loss semantics. The old renderer constructor reproduces the phone's exact TypeError.
@@ -121,8 +137,8 @@ for (const [name, engine] of engines) {
       loadAttempt: JSON.parse(sessionStorage.getItem('ws.loadAttempt') ?? 'null')?.count ?? null,
     }));
     const otherNavigation = navigations.some((url) => new URL(url).searchParams.get('chunk') !== 'nine-dragon-stack');
-    const expectedError = fault === 'precision' ? 'Graphics context did not recover' : 'Nine Dragon GPU boot failed';
-    const expectedOperation = fault === 'precision' ? 'renderer:waiting' : 'compile:before';
+    const expectedError = fault === 'precision' ? 'Graphics context did not recover' : fault === 'texture' ? 'Graphics error 1280 after compressed texture' : 'Nine Dragon GPU boot failed';
+    const expectedOperation = fault === 'precision' ? 'renderer:waiting' : fault === 'texture' ? 'texture:upload' : 'compile:before';
     const evidence = reports.some((report) => report.context?.bootDiagnostic?.includes(expectedOperation));
     const sentryEvidence = envelopes.some((envelope) => envelope.includes('boot_diagnostic') && envelope.includes(expectedOperation));
     const okay = injections === 1 && !otherNavigation && state.error.includes(expectedError) && state.detail === '' && state.retry && state.title && state.loadAttempt === 1 && evidence && sentryEvidence;
