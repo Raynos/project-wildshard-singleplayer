@@ -1,31 +1,27 @@
 /** Pack a rigged training dummy without changing its skin's metre-scale positions.
  *
- * node scripts/practice/pack_dummy.cjs /tmp/wood-rigged.glb public/assets/practice/dummies/wood-wood.glb
+ * node scripts/practice/pack_dummy.mjs /tmp/wood-rigged.glb public/assets/practice/dummies/wood-wood.glb
  *
  * The glTF-Transform meshopt CLI quantizes skinned POSITION into [-1, 1] here
  * without restoring the node scale. That puts half the dummy under the floor
  * and detaches its visible body from the arena hitboxes. Encode the float
  * accessors directly with EXT_meshopt_compression instead.
  */
-const { execFileSync } = require('node:child_process');
-const { mkdtempSync, rmSync } = require('node:fs');
-const { tmpdir } = require('node:os');
-const path = require('node:path');
-const { createRequire } = require('node:module');
-
-const fromProject = createRequire(path.resolve(__dirname, '../../package.json'));
-const { NodeIO } = fromProject('@gltf-transform/core');
-const fromFunctions = createRequire(fromProject.resolve('@gltf-transform/functions'));
-const { EXTMeshoptCompression, EXTTextureWebP } = fromFunctions('@gltf-transform/extensions');
-const { MeshoptEncoder, MeshoptDecoder } = fromFunctions('meshoptimizer');
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { NodeIO } from '@gltf-transform/core';
+import { EXTMeshoptCompression, EXTTextureWebP } from '@gltf-transform/extensions';
+import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 
 async function main() {
   const [source, target] = process.argv.slice(2);
-  if (!source || !target) throw new Error('Usage: node scripts/practice/pack_dummy.cjs <rigged.glb> <shipped.glb>');
+  if (source === undefined || target === undefined) throw new Error('Usage: node scripts/practice/pack_dummy.mjs <rigged.glb> <shipped.glb>');
   const scratch = mkdtempSync(path.join(tmpdir(), 'wildshard-dummy-'));
   try {
     const resized = path.join(scratch, 'resized.glb');
-    execFileSync(path.resolve(__dirname, '../../node_modules/.bin/gltf-transform'), [
+    execFileSync(path.resolve(import.meta.dirname, '../../node_modules/.bin/gltf-transform'), [
       'optimize', source, resized,
       '--compress', 'false', '--flatten', 'false', '--join', 'false',
       '--instance', 'false', '--simplify', 'false',
@@ -45,4 +41,9 @@ async function main() {
   }
 }
 
-main().catch((error) => { console.error(error); process.exitCode = 1; });
+try {
+  await main();
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+}
