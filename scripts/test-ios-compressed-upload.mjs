@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 
 const port = Number(process.argv.find((v) => v.startsWith('--port='))?.slice(7) ?? 4191);
 const results = [];
-const server = createServer(async (request, response) => {
+async function serve(request, response) {
   response.setHeader('Cache-Control', 'no-store');
   if (request.url === '/result' && request.method === 'POST') {
     let body = '';
@@ -71,5 +71,12 @@ if (!gl || !gl.getExtension('WEBGL_compressed_texture_astc') || !gl.getExtension
   },1500);
 }
 </script>`);
+}
+const server = createServer((request, response) => {
+  serve(request, response).catch((error) => {
+    console.error(error);
+    response.writeHead(500);
+    response.end('Drill server failed');
+  });
 });
 server.listen(port, '127.0.0.1', () => console.log(`iOS compressed upload drill: http://127.0.0.1:${port}/before and /after`));
