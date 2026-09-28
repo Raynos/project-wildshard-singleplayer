@@ -26,6 +26,7 @@ when the images were generated.
 | | `round-2-live-arena` (09-26) | First playable portrait arena capture, with its visual gap against the approved target recorded. [Review notes](hud-explorer/round-2-live-arena/README.md) |
 | | `round-3-dummy-meshes` (09-26) | Three humanoid armor references: [straw + cloth](hud-explorer/round-3-dummy-meshes/ref-straw-cloth.jpg), [wood + wood](hud-explorer/round-3-dummy-meshes/ref-wood-wood.jpg), [wood + steel](hud-explorer/round-3-dummy-meshes/ref-wood-steel.jpg) |
 | | `round-5-explore-entry` (09-27) | [One portrait A–E storyboard](hud-explorer/round-5-explore-entry/explore-entry-A-E.jpg) for developer-only Practice Arena placement inside Explore World, with [review notes](hud-explorer/round-5-explore-entry/README.md) |
+| | `round-6-option-a-live` (09-28) | [Live portrait Option A](hud-explorer/round-6-option-a-live/explore-three-cards.jpg), [arena minimap](hud-explorer/round-6-option-a-live/practice-minimap.jpg), and [pause](hud-explorer/round-6-option-a-live/practice-pause.jpg) |
 | `model-explorer/` | `round-1-training-dummy-variants` (09-26) | Three variant-layout concepts, the live Pine Hollow picker video, and the first shared dummy family turntable. [Review notes](model-explorer/round-1-training-dummy-variants/README.md) |
 | `ads-aim/` | `round-1` (09-17) | `ads-{A-centred-low,B-eye-level,C-peep-sight}` — iron-sights pose; A picked, C's peep ring added |
 | `minimap/` | `round-1` (09-17) | `minimap-k1-{A-radar,B-terrain,C-holo}` on the K1 HUD; B built |

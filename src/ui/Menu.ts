@@ -77,6 +77,8 @@ export class GameMenu {
   private sheet: HTMLElement;
   private tabBar: HTMLElement;
   private title: HTMLElement;
+  private subtitle: HTMLElement;
+  private practice = false;
   /** the header bar's two actions (E178): RESUME (PAUSE) / CLOSE (BAG) on the left, EXIT TO MAIN on the right (PAUSE only) */
   private closeBtn: HTMLElement;
   private exitBtn: HTMLElement;
@@ -154,7 +156,8 @@ export class GameMenu {
     const closeBtn = this.sheet.querySelector<HTMLElement>('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
     const exitBtn = this.sheet.querySelector<HTMLElement>('.ws-gmenu-exit'); if (!exitBtn) throw new Error('GameMenu: no .ws-gmenu-exit');
     const title = this.sheet.querySelector<HTMLElement>('.ws-gmenu-title'); if (!title) throw new Error('GameMenu: no .ws-gmenu-title');
-    this.title = title; this.closeBtn = closeBtn; this.exitBtn = exitBtn;
+    const subtitle = this.sheet.querySelector<HTMLElement>('.ws-gmenu-sub'); if (!subtitle) throw new Error('GameMenu: no .ws-gmenu-sub');
+    this.title = title; this.subtitle = subtitle; this.closeBtn = closeBtn; this.exitBtn = exitBtn;
     closeBtn.addEventListener('click', () => { this.close(); });
     exitBtn.addEventListener('click', () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
     this.root.addEventListener('pointerdown', (e) => { if (e.target === this.root) this.close(); });
@@ -190,14 +193,14 @@ export class GameMenu {
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
       const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
-      const on = (id !== 'feedback' || review) && g === group;
+      const on = (id !== 'feedback' || review) && g === group && !(this.practice && id === 'map');
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
     this.tabBar.classList.toggle('review', shown >= 5);
     this.tabBar.classList.toggle('four', shown === 4); // BAG with Pine Hollow's JOURNAL: ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
-    this.title.textContent = TITLE[group];
+    this.title.textContent = this.practice && group === 'pause' ? 'Practice' : TITLE[group];
     // E178: the PAUSE menu leaves to the title from its header; the BAG only closes
     const pause = group === 'pause';
     this.closeBtn.textContent = pause ? 'Resume' : 'Close';
@@ -208,6 +211,17 @@ export class GameMenu {
   }
 
   get isOpen(): boolean { return this._open; }
+  get inPractice(): boolean { return this.practice; }
+
+  /** The arena keeps Settings and Feedback but never presents the shard's terrain map. */
+  setPractice(active: boolean): void {
+    this.practice = active;
+    this.root.classList.toggle('practice', active);
+    this.subtitle.textContent = active ? 'Training arena' : getActiveChunk().displayName;
+    this.exitBtn.innerHTML = active ? 'Exit <span class="ws-gmenu-nowrap">to Explore</span>' : 'Exit <span class="ws-gmenu-nowrap">to main</span>';
+    this.exitBtn.setAttribute('aria-label', active ? 'Exit to Explore' : 'Exit to main menu');
+    if (active && this._tab === 'map') this.select('settings'); else this.syncTabs();
+  }
 
   /** pause ▸ Settings ▸ Debug, the grouped registry (E162; the title's Settings mounts the same one, E172) */
   private debug: DebugMenu | null = null;
@@ -220,7 +234,8 @@ export class GameMenu {
   get tab(): MenuTab { return this._tab; }
 
   open(tab: MenuTab = this._tab): void {
-    this.select(tab);
+    const selected = this.practice && tab === 'map' ? 'settings' : tab;
+    this.select(selected);
     if (this._open) return;
     this._open = true;
     this.paintMemory();
@@ -230,9 +245,9 @@ export class GameMenu {
     window.dispatchEvent(new Event('ws-menu')); // E176: the build pill follows the pause menu
     this.refresh();
     this.applies();
-    if (tab === 'map') { this.opts.fullMap.show(); this.renderQuest(); }
-    if (tab === 'feedback') this.onFeedbackTab?.(this.panels.feedback);
-    this.onOpen?.(tab);
+    if (selected === 'map') { this.opts.fullMap.show(); this.renderQuest(); }
+    if (selected === 'feedback') this.onFeedbackTab?.(this.panels.feedback);
+    this.onOpen?.(selected);
   }
   /** `silent` = no onClose (exit to the main menu: the HUD handles the world itself) */
   close(silent = false): void {

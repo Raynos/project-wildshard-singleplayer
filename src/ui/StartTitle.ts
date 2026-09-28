@@ -57,7 +57,6 @@ export function showStartTitle(): void {
         </button>`).join('')}</div></div>
       <div class="ws-menu-dots">${CARDS.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
       <div class="ws-menu-modes"><button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${SWORD}</span><b>Enter world</b><small>Loads this shard</small></button></div>
-      <button class="ws-menu-arena" type="button"><b>Practice arena</b><small>HUD + weapon explorer · starter weapon</small><span>›</span></button>
       <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><button class="ws-menu-sound ws-menu-dev" type="button">Dev</button></div>
     </div>`;
   hud.append(title);
@@ -132,7 +131,6 @@ export function showStartTitle(): void {
   dots.forEach((dot, i) => { dot.addEventListener('click', () => { select(i); }); });
   required(title, '.ws-menu-play').addEventListener('click', () => { launch('enter'); });
   required(title, '.ws-menu-explore').addEventListener('click', () => { launch('explore'); });
-  required(title, '.ws-menu-arena').addEventListener('click', () => { launch('arena'); });
   required(title, '.ws-menu-settings').addEventListener('click', () => { void import('./BootSettings').then(({ openBootSettings }) => openBootSettings()); });
   bindDevToggle(required(title, '.ws-menu-dev'));
   addEventListener('resize', () => { const selected = CARDS[index]; if (selected) hero.style.backgroundImage = `url('${heroUrl(selected)}')`; place(0, false); });

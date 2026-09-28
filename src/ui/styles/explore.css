@@ -21,13 +21,16 @@
 .ws-x-readout { position: absolute; white-space: pre; line-height: 1.6; left: 14px; top: calc(66px + env(safe-area-inset-top, 0px)); padding: 4px 9px; font-size: 10px; letter-spacing: 0.14em; color: #bfeeff; background: rgba(13, 27, 38, 0.62); border: 1px solid var(--ws-cyan-faint); border-top: 0; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .ws-x:not([data-mode="world"]) .ws-x-readout { display: none; }
 
-/* hub: two cards over the orbiting island */
+/* hub: Option A, three equal cards over the orbiting island */
 .ws-x-hub { position: absolute; left: 50%; bottom: max(28px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: none; flex-direction: column; gap: 14px; width: min(560px, calc(100% - 28px)); pointer-events: auto; }
 .ws-x[data-mode="hub"] .ws-x-hub { display: flex; }
-.ws-x-card { position: relative; display: flex; align-items: center; gap: 16px; padding: 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.ws-x-hub-heading { align-self: flex-start; padding: 5px 8px; color: var(--ws-cyan); background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-faint); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
+.ws-x-card { position: relative; display: flex; flex: 0 0 auto; align-items: center; box-sizing: border-box; height: clamp(98px, 12dvh, 118px); gap: 16px; padding: 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.ws-x-card[hidden] { display: none; }
 .ws-x-card:hover, .ws-x-card:focus-visible { border-color: var(--ws-cyan); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 28px rgba(143, 227, 255, 0.3); outline: none; transform: translateY(-2px); }
-.ws-x-card .ws-x-card-art { flex: 0 0 44%; aspect-ratio: 386 / 200; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.25); }
-.ws-x-card .ws-x-card-text { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.ws-x-card .ws-x-card-art { align-self: stretch; flex: 0 0 40%; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.25); }
+.ws-x-card .ws-x-card-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.ws-x-card .ws-x-practice-art { background-position: center 53%; }
 .ws-x-card b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
 .ws-x-card b::after { content: ''; display: block; width: 30px; height: 2px; margin-top: 6px; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
 .ws-x-card small { font-size: 11px; letter-spacing: 0.06em; line-height: 1.5; color: var(--ws-text-dim); }
@@ -266,6 +269,7 @@
   .ws-x-tabs button { padding: 7px 10px; font-size: 10px; letter-spacing: 0.14em; }
   .ws-x-readout { top: calc(58px + env(safe-area-inset-top, 0px)); left: 10px; font-size: 9px; }
   .ws-x-card { gap: 10px; }
+  .ws-x-card .ws-x-card-art { flex-basis: 35%; }
   .ws-x-card b { font-size: 17px; letter-spacing: 0.12em; }
   .ws-x-card small { font-size: 10px; }
   .ws-x-card .ws-x-card-go { width: 32px; height: 32px; font-size: 20px; margin-right: 2px; }

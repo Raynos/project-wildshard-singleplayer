@@ -10,7 +10,7 @@
  *   x.toast('Note sent') / x.hold(true)   // the review composer is up: input off, frame frozen by main.ts
  *
  * Modes:
- *   hub    — the p02 hub: a slow orbit of the island behind two cards, MODEL EXPLORER and WORLD EXPLORER
+ *   hub    — three equal cards: MODEL EXPLORER, WORLD EXPLORER, and developer-only PRACTICE ARENA
  *   world  — god mode in the real scene: FreeCam (desktop: RMB look, WASD, Q/E, Shift, wheel, F) or TouchFly (phone:
  *            FLY stick, drag to spin, pinch, ▲▼); the player is parked far away (bootstrap `freeCamera`), so the
  *            animals run their ambient AI and nothing notices the camera (D6)
@@ -34,6 +34,8 @@ import { MiniMap } from './MiniMap';
 import { Compare, hasCompareTargets } from './Compare';
 import modelsArt from './img/models.webp';
 import worldArt from './img/world.webp';
+import practiceArt from './img/practice.jpg';
+import { isDev, onDev } from '../core/devMode';
 
 export type ExploreMode = 'hub' | 'world' | 'model';
 
@@ -41,6 +43,8 @@ export interface ExploreHost {
   world: World;
   /** ✕ / ◀ TITLE: main.ts shows the title again */
   onExit: () => void;
+  /** the hub's Practice Arena card returns to play with the current shard's starter weapon */
+  onPractice: () => void;
   /** ✎: main.ts opens the review composer (src/ui/Feedback.ts) */
   openFeedback: () => void;
   /** hidden while exploring: the chunk-edge force field (it draws lines across the sea from the air) */
@@ -142,8 +146,12 @@ export class Explore {
     this.readout = html('div', 'ws-x-readout');
     const shard = host.world.chunk, own = shard.slug === 'driftwood-isle'; // the hub art is Driftwood's; another shard shows its picker art
     this.hubEl = html('div', 'ws-x-hub', `
+      <div class="ws-x-hub-heading">Choose an explorer</div>
       <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${own ? modelsArt : shard.thumbnail}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${own ? worldArt : shard.heroLandscape}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.displayName} in god mode · ${shard.slug}</small></span><span class="ws-x-card-go">›</span></button>`);
+      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${own ? worldArt : shard.heroLandscape}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.displayName} in god mode</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="practice"><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>`);
+    const practiceCard = this.hubEl.querySelector<HTMLElement>('[data-m="practice"]');
+    if (practiceCard) { practiceCard.hidden = !isDev(); onDev((on) => { practiceCard.hidden = !on; }); }
     this.flyEl = html('div', 'ws-x-fly', `
       <div class="ws-x-rail">
         <button class="ws-x-btn ws-x-up" type="button" aria-label="Up">▲</button>
@@ -160,7 +168,7 @@ export class Explore {
 
     this.closeBtn.addEventListener('click', () => { this.back(); }); // E182 (Jake: "the X button kicks you back out to level select")
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.addEventListener('click', () => { this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
-    this.hubEl.querySelectorAll<HTMLElement>('.ws-x-card').forEach((b) => { b.addEventListener('click', () => { this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
+    this.hubEl.querySelectorAll<HTMLElement>('.ws-x-card').forEach((b) => { b.addEventListener('click', () => { if (b.dataset['m'] === 'practice') this.startPractice(); else this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
     this.speedBtn.addEventListener('click', () => { this.setSpeed((this.speed + 1) % SPEEDS.length); });
     note.addEventListener('click', () => { void this.note(); });
     const hold = (sel: string, v: number): void => {
@@ -265,9 +273,9 @@ export class Explore {
     this.closeBtn.setAttribute('aria-label', inner ? 'Back' : 'Back to the title');
   }
 
-  /** leave to the title; the player is put back where they were */
-  close(): void {
-    if (!this.active) return;
+  /** Put the parked player back before either leaving to the title or entering practice. */
+  private leave(): boolean {
+    if (!this.active) return false;
     const { world } = this.host;
     this.compare?.close();
     this.hidePanes();
@@ -279,8 +287,14 @@ export class Explore {
     for (const o of this.host.hide ?? []) o.visible = true;
     this.setChrome(true);
     if (document.pointerLockElement) document.exitPointerLock();
-    this.host.onExit();
+    return true;
   }
+
+  /** leave to the title */
+  close(): void { if (this.leave()) this.host.onExit(); }
+
+  /** Option A: the third equal hub card opens the current shard's shared practice room. */
+  private startPractice(): void { if (this.leave()) this.host.onPractice(); }
 
   /** set by the select layer (X4): a click / tap on the world at client (x, y) */
   onTap?: (x: number, y: number) => void;

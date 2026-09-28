@@ -10,6 +10,6 @@
 | D | Selected mode preview with a persistent three-item bottom dock. |
 | E | Swipe carousel with one full mode preview at a time. |
 
-**Review:** Pick A, B, C, D, or E, or request a combination. This board is layout exploration; none of these navigation changes is implemented.
+**Review:** Jake approved **A**, three equal cards. The [live portrait implementation](../round-6-option-a-live/README.md) now opens the developer-only Practice Arena from the Explore hub.
 
 Round 4's title/level-selector placement concepts were superseded by the clarification that Practice belongs only inside developer-only Explore World. Their uncommitted images were removed so they cannot be mistaken for approved direction.

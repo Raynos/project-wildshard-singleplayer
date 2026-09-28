@@ -202,6 +202,7 @@ export class Minimap {
   private size = 0;      // device px, square
   private dpr = 1;
   private visible = true;
+  private practiceCenter: { x: number; z: number } | null = null;
   private ro: ResizeObserver | null = null;
 
   constructor(parent: HTMLElement | null = document.getElementById('hud')) {
@@ -248,6 +249,12 @@ export class Minimap {
     this.root.classList.toggle('hidden', !v);
   }
 
+  /** Replace the shard terrain with the enclosed 100 m practice room while training. */
+  setPracticeArena(center: { x: number; z: number } | null): void {
+    this.practiceCenter = center;
+    this.root.classList.toggle('practice', center !== null);
+  }
+
   /** has the player been near (x, z)? — the fog-of-war coverage (a place on the full map is named once explored, else "?") */
   explored(x: number, z: number): boolean {
     const px = Math.floor((CHUNK_HALF - x) * COVER_PPM), pz = Math.floor((CHUNK_HALF - z) * COVER_PPM);
@@ -285,10 +292,11 @@ export class Minimap {
   // ── per frame ──
   update(pos: { x: number; z: number }, yaw: number, animals: readonly MinimapAnimal[]): void {
     if (!this.visible) return;
-    this.paintDay();
-    if (this.layerDirty) this.paintLayer();
     if (this.size === 0) this.fit();
     if (this.size === 0) return;
+    if (this.practiceCenter !== null) { this.paintPracticeArena(pos, yaw, this.practiceCenter); return; }
+    this.paintDay();
+    if (this.layerDirty) this.paintLayer();
 
     // heading, for the player arrow — the compass band's convention (HUD.ts): +Z is north, turning left decreases it
     let deg = 180 - (yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
@@ -356,6 +364,35 @@ export class Minimap {
 
     // rim vignette
     if (this.vignette) { ctx.fillStyle = this.vignette; ctx.fillRect(0, 0, D, D); }
+    ctx.restore();
+  }
+
+  private paintPracticeArena(pos: { x: number; z: number }, yaw: number, center: { x: number; z: number }): void {
+    const D = this.size, c = D / 2, margin = D * 0.16, side = D - margin * 2;
+    const xy = (x: number, z: number): [number, number] => [c - (x - center.x) * side / 100, c - (z - center.z) * side / 100];
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, D, D);
+    ctx.save(); ctx.beginPath(); ctx.arc(c, c, c, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = '#07101d'; ctx.fillRect(0, 0, D, D);
+    ctx.strokeStyle = 'rgba(117, 217, 255, 0.25)'; ctx.lineWidth = Math.max(1, this.dpr * 0.6);
+    for (let m = -40; m <= 40; m += 10) {
+      const p = margin + (m + 50) * side / 100;
+      ctx.beginPath(); ctx.moveTo(p, margin); ctx.lineTo(p, D - margin); ctx.moveTo(margin, p); ctx.lineTo(D - margin, p); ctx.stroke();
+    }
+    ctx.strokeStyle = '#75d9ff'; ctx.lineWidth = Math.max(1.5, this.dpr);
+    ctx.strokeRect(margin, margin, side, side);
+    const dummies: readonly [number, number][] = [[-6, -13], [0, -7], [6, -13]];
+    for (const [x, z] of dummies) {
+      const [sx, sy] = xy(center.x + x, center.z + z);
+      ctx.beginPath(); ctx.arc(sx, sy, Math.max(2.5, this.dpr * 1.8), 0, Math.PI * 2);
+      ctx.fillStyle = '#ffb547'; ctx.fill();
+    }
+    const [px, py] = xy(pos.x, pos.z);
+    const heading = Math.PI - yaw;
+    ctx.translate(px, py); ctx.rotate(heading);
+    const s = this.dpr;
+    ctx.beginPath(); ctx.moveTo(0, -7 * s); ctx.lineTo(5 * s, 6 * s); ctx.lineTo(0, 3 * s); ctx.lineTo(-5 * s, 6 * s); ctx.closePath();
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#07101d'; ctx.lineWidth = 1.5 * s; ctx.stroke(); ctx.fill();
     ctx.restore();
   }
 

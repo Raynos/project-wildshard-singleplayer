@@ -44,6 +44,9 @@
 .ws-gmenu .ws-gmenu-bar .ws-gmenu-sub { margin-top: 3px; font-size: 8px; letter-spacing: 0.2em; white-space: nowrap; }
 .ws-gmenu .ws-gmenu-bar .ws-gmenu-dev { margin: -17px -6px -17px 2px; padding: 17px 6px; font-size: 9px; letter-spacing: 0.18em; } /* a 44 px tap on a one-line row */
 .ws-gmenu .ws-gmenu-bar .ws-gmenu-dev::after { margin-left: 6px; }
+.ws-gmenu.practice .ws-gmenu-bar .ws-gmenu-dev { display: none; }
+.ws-gmenu.practice .ws-gmenu-bar .ws-gmenu-title { font-size: 14px; letter-spacing: 0.1em; }
+.ws-gmenu.practice .ws-gmenu-bar .ws-gmenu-close, .ws-gmenu.practice .ws-gmenu-exit { padding-inline: 8px; font-size: 11px; letter-spacing: 0.08em; }
 @media (min-width: 600px) {
   .ws-gmenu .ws-gmenu-bar { gap: 14px; padding: 12px 16px; }
   .ws-gmenu .ws-gmenu-bar .ws-gmenu-close, .ws-gmenu .ws-gmenu-exit { padding: 8px 18px; font-size: 14px; letter-spacing: 0.2em; }

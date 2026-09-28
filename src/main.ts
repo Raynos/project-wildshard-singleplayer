@@ -580,7 +580,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
-  fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
+  fullMap.bindMinimap(() => { if (hud.entered) menu.open(arena.entered ? 'settings' : 'map'); });
   // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts)
   new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
   // M / I / Esc are the menu's own keys (src/ui/Menu.ts, gated by the HUD: E130)
@@ -866,10 +866,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
-  hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); };
+  hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true); };
   hud.onResume = enter;
   hud.onExitToMenu = () => {
-    arena.exit(); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
+    arena.exit(); minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
   };
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
@@ -889,7 +889,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const t0 = performance.now();
     const { Explore: X } = await import('./explore/Explore');
     const t1 = performance.now();
-    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
+    explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
       overhead: [grass?.group, under?.group, particles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
     const t2 = performance.now();
     explore.open(mode, opts);
@@ -1025,7 +1025,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
-    if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); fullMap.update(player.position, player.yaw); } // compass paw + minimap (hidden under the menu)
+    if (hud.entered) { hud.setAnimals(arena.entered ? [] : animalPositions(animals.animals)); minimap.update(player.position, player.yaw, arena.entered ? [] : animals.animals); if (!arena.entered) fullMap.update(player.position, player.yaw); } // the arena has its own grid map, not the shard's terrain
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
