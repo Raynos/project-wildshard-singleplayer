@@ -56,11 +56,10 @@ vec4 flagCell(vec2 p) {
 float flagLen(float r) { return ${f(FLAG.l0)} + ${f(FLAG.lr)} * h11(r * 9.1 + 2.0); }
 `;
 
-async function loadImage(url: string): Promise<{ bmp: ImageBitmap; bytes: number }> {
+async function loadBlob(url: string): Promise<Blob> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`paint: ${url} failed to load (${res.status})`);
-  const blob = await res.blob();
-  return { bmp: await createImageBitmap(blob), bytes: blob.size };
+  return res.blob();
 }
 
 /** the texels of an image, rows flipped so the image's top is v = 1 (grime runs fall toward −v, the kit's down) */
@@ -93,26 +92,34 @@ export async function loadPaint(base: string, anisotropy: number, onLayer: (frac
   const n = LAYERS.length;
   const data = new Uint8Array(S * S * 4 * n);
   let bytes = 0;
-  // Decode one layer at a time. The former Promise.all held twelve decoded ImageBitmaps, their canvas
-  // readbacks and the destination array at once during the phone's already expensive world build.
-  for (const [i, l] of LAYERS.entries()) {
-    const rgb = await loadImage(phoneUrl(`${base}/${l.name}.jpg`));
-    let a: Awaited<ReturnType<typeof loadImage>> | undefined;
+  // Start the small compressed downloads together, then decode/read back just one layer at a time.
+  // Serial fetches made the phone wait for 11 network round trips; parallel ImageBitmaps instead
+  // would raise the build's peak decoded-image memory, so only the compressed Blobs overlap.
+  const compressed = await Promise.all(LAYERS.map(async (l) => {
+    const [rgb, alpha] = await Promise.all([
+      loadBlob(phoneUrl(`${base}/${l.name}.jpg`)),
+      l.alpha ? loadBlob(phoneUrl(`${base}/${l.name}-a.jpg`)) : Promise.resolve(undefined),
+    ]);
+    return { rgb, alpha };
+  }));
+  for (const [i, layer] of compressed.entries()) {
+    const rgb = await createImageBitmap(layer.rgb);
+    let alpha: ImageBitmap | undefined;
     try {
-      if (l.alpha) a = await loadImage(phoneUrl(`${base}/${l.name}-a.jpg`));
-      bytes += rgb.bytes + (a?.bytes ?? 0);
-      const p = pixels(rgb.bmp, S);
+      if (layer.alpha !== undefined) alpha = await createImageBitmap(layer.alpha);
+      bytes += layer.rgb.size + (layer.alpha?.size ?? 0);
+      const p = pixels(rgb, S);
       const off = i * S * S * 4;
       data.set(p, off);
-      if (a !== undefined) {
-        const pa = pixels(a.bmp, S);
+      if (alpha !== undefined) {
+        const pa = pixels(alpha, S);
         for (let k = 0; k < S * S; k++) data[off + k * 4 + 3] = pa[k * 4] ?? 128;
       } else {
         for (let k = 0; k < S * S; k++) data[off + k * 4 + 3] = 128;
       }
     } finally {
-      rgb.bmp.close();
-      a?.bmp.close();
+      rgb.close();
+      alpha?.close();
     }
     onLayer((i + 1) / n);
   }

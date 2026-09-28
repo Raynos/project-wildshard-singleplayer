@@ -125,8 +125,15 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
+  const phaseProfile: { name: string; ms: number }[] = [];
+  const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
   progress(0, 'paint + fonts');
-  const [paint] = await Promise.all([loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), (f) => { progress(f * 0.15, 'paint + fonts'); }), loadFonts()]);
+  const paintStart = performance.now();
+  const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), (f) => { progress(f * 0.15, 'paint + fonts'); })
+    .then((paint) => { phaseDone('paint', paintStart); return paint; });
+  const fontsStart = performance.now();
+  const fontsReady = loadFonts().then(() => { phaseDone('fonts', fontsStart); return undefined; });
+  const [paint] = await Promise.all([paintReady, fontsReady]);
   shared.u.uPaint.value = paint.tex;
   progress(0.15, 'layout: square');
 
@@ -172,8 +179,6 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const named = <T extends Object3D>(o: T, name: string): T => { o.name = name; return o; };
   const kitGeos: [string, BufferGeometry][] = [];
   const kitProfile: { name: string; ms: number; vertices: number }[] = [];
-  const phaseProfile: { name: string; ms: number }[] = [];
-  const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
   const processed = new Set<string>();
   const kitTotal = ctx.kits.size + ctx.kitxs.size + ctx.alphaKits.size;
   let kitsDone = 0;
