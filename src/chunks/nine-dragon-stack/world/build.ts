@@ -41,7 +41,6 @@ import { loadGlb } from './hero/glb';
 import { InstanceCuller } from './cull';
 import type { RegisteredModel } from '../../../world/registry';
 import { setting } from '../../../ui/Settings';
-import { MOBILE_DEVICE } from '../../../core/tier';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
 const CULL_R = 40;
@@ -256,11 +255,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   if (setting('nineLanterns') === 'on') root.add(named(paper.build(), 'lanterns'));
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
-  // E257/E264: physical iOS multi-draw triggers multi-GB WebContent spikes and a 2 GB Jetsam kill.
-  // Extension support alone is not a safety check: retain instancing on mobile, including forced desktop quality.
-  const facade = buildFacade(ctx.fd, facadeUniforms(shared), {
-    clutterFar: [55, 85], multiDraw: !MOBILE_DEVICE && setting('nineFacade') === 'auto' && renderer.extensions.has('WEBGL_multi_draw'),
-  });
+  // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
+  // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
+  const facade = buildFacade(ctx.fd, facadeUniforms(shared), { clutterFar: [55, 85] });
   phaseDone('facade', phaseStart);
   root.add(named(facade.group, 'facade'));
   const neonMeshes = neonSigns.build();

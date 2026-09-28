@@ -1,6 +1,8 @@
 # Nine Dragon physical-iPhone regression — E256
 
-2026-09-28. Startup recovery, batch shader preparation, and a native compressed-upload fix are reproduced; physical-device acceptance remains open.
+2026-09-28. Physical facade multi-draw isolation now has a successful instanced Safari trial and native Safari/Chrome
+memory-kill evidence. **Read the [permanent mobile multi-draw incident and guard](nine-dragon-mobile-multidraw.md) first.**
+Default-build physical acceptance and hard memory budgets remain open. The investigation notes below are historical.
 
 Jake confirms Nine Dragon worked on his physical iPhone during the Opus work and regressed after the handoff. Simulator success does not validate the physical phone GPU or memory budget.
 

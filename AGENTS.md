@@ -232,6 +232,21 @@ on his laptop.
 
 ## Games
 
+### Rendering regression: no facade multi-draw anywhere (E271 / E272)
+
+- **Facade multi-draw is prohibited across the baseline, every shard, every quality tier, and every platform.**
+  Jake explicitly made this global on 2026-09-28. Do not narrow it to iOS, mobile, Nine Dragon, or a default setting.
+- Read [the permanent incident and evidence](docs/audits/nine-dragon-mobile-multidraw.md) before changing facade
+  rendering, batching, `BatchedMesh`, `WEBGL_multi_draw`, shader preparation, or memory policy. The facade batching
+  implementation, shader branch and toggle were removed. Do not reintroduce them, create another toggle, rename the
+  same path, or move it into a shared helper. Use instancing and preserve the scene's visual content.
+- Extension support, a Simulator pass, a desktop benchmark, lower draw-call counts and JS heap readings did not
+  establish safety: an actual iPhone killed WebContent after multi-GB allocations while the Simulator stayed below
+  1 GB. New rendering optimizations require physical-device memory/stability evidence as well as local tests.
+- `pnpm test:gpu-boot` includes `scripts/test-facade-instancing.mjs`: it requires the actual facade to stay instanced
+  with multi-draw available on desktop, phone tier, and an iPhone using desktop quality. Keep this regression check;
+  do not weaken it to make an optimization pass. Memory targets remain 1.8 GB loading / 1.0 GB Explorer (decimal).
+
 - A finished game will run at 60 FPS only.
 - A finished game will have AAA graphics that are photo realistic worthy of PS5
 

@@ -21,6 +21,8 @@ done
 
 if [[ "$ready" -ne 1 ]]; then cat "$log"; exit 1; fi
 
+node scripts/test-facade-instancing.mjs --url="http://127.0.0.1:$port"
+
 for fault in context precision shader texture; do
   node scripts/test-nine-gpu-boot.mjs --url="http://127.0.0.1:$port" --only=all --fault="$fault"
 done
