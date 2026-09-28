@@ -1223,4 +1223,8 @@ export const PUBLIC_BYTES = {
   "/assets/tex/wood_trunk_wall/nor_gl.jpg": 3551981,
   "/assets/tex/wood_trunk_wall/nor_gl_1k.jpg": 138432,
   "/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp": 59412,
+  "/assets/title/driftwood-isle-portrait.jpg": 83536,
+  "/assets/title/nalati-grasslands-portrait.jpg": 137225,
+  "/assets/title/nine-dragon-stack-portrait.jpg": 150565,
+  "/assets/title/pine-hollow-portrait.jpg": 120288,
 } as const;

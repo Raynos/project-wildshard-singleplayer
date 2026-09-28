@@ -746,4 +746,8 @@ export const ASSET_VERSIONS: Readonly<Record<string, string>> = {
   "/assets/tex/wood_trunk_wall/nor_gl.jpg": '3246486f',
   "/assets/tex/wood_trunk_wall/nor_gl_1k.jpg": 'fc6aab0a',
   "/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp": 'a70475f6',
+  "/assets/title/driftwood-isle-portrait.jpg": '28071174',
+  "/assets/title/nalati-grasslands-portrait.jpg": '3f3bdbab',
+  "/assets/title/nine-dragon-stack-portrait.jpg": 'cd94839f',
+  "/assets/title/pine-hollow-portrait.jpg": '9dcbea13',
 };
