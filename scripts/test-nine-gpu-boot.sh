@@ -18,6 +18,10 @@ for _ in {1..50}; do
   if ! kill -0 "$server_pid" 2>/dev/null; then cat "$log"; exit 1; fi
   sleep 0.2
 done
+
+if [[ "$(uname -s)" == Darwin ]]; then
+  node scripts/test-nine-native-startup.mjs --url="http://127.0.0.1:$port"
+fi
 if [[ "$ready" -ne 1 ]]; then cat "$log"; exit 1; fi
 
 for fault in context precision shader; do
