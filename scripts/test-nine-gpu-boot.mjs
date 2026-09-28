@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Reproduce the iOS Simulator's shaderSource failure during Nine Dragon's first load.
+// Reproduce the phone's null precision result or the Simulator's shaderSource failure during boot.
 // Run after `pnpm build` with `pnpm exec vite preview --port 4184` up:
-// node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all]
-// A pass means one injected failure, a fatal error panel, and no automatic second load or navigation.
+// node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader]
+// A pass requires one failure, an error panel, no second load, and diagnostics in both reporting transports.
 import { chromium, webkit } from 'playwright';
 
 const option = (name, fallback) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -61,10 +61,12 @@ for (const [name, engine] of engines) {
     const navigations = [];
     let injections = 0;
     page.on('framenavigated', (frame) => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
-    page.on('console', (message) => { if (message.text().includes('[gpu-boot-test] injected')) { injections++; console.log(`${name}: injected shaderSource failure`); } });
+    page.on('console', (message) => { if (message.text().includes('[gpu-boot-test] injected')) { injections++; console.log(`${name}: injected ${fault} failure`); } });
     page.on('pageerror', (error) => { console.log(`${name}: page error ${error.message.slice(0, 180)}`); });
     await page.goto(`${base}/?chunk=nine-dragon-stack&skipintro=1&nolock=1&mute=1&touch=1&tier=phone&sw=0`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForSelector('#wserr[role="alertdialog"]', { timeout: 30_000 });
+    // Sentry loads lazily after a fault; allow its module fetch and transport to finish.
+    for (let i = 0; i < 50 && envelopes.length === 0; i++) await page.waitForTimeout(100);
     await page.waitForTimeout(1500); // an automatic recovery navigation would have happened by now
     const state = await page.evaluate(() => ({
       error: document.querySelector('#wserr .msg')?.textContent ?? '',
@@ -80,7 +82,7 @@ for (const [name, engine] of engines) {
     const evidence = reports.some((report) => report.context?.bootDiagnostic?.includes(expectedOperation));
     const sentryEvidence = envelopes.some((envelope) => envelope.includes('boot_diagnostic') && envelope.includes(expectedOperation));
     const okay = injections === 1 && !otherNavigation && state.error.includes(expectedError) && state.detail === '' && state.retry && state.title && state.loadAttempt === 1 && evidence && sentryEvidence;
-    console.log(`${okay ? 'PASS' : 'FAIL'} ${name}/${fault}: ${JSON.stringify({ injections, navigations, evidence, sentryEvidence, ...state })}`);
+    console.log(`${okay ? 'PASS' : 'FAIL'} ${name}/${fault}: ${JSON.stringify({ injections, navigations, evidence, sentryEvidence, envelopes: envelopes.length, ...state })}`);
     if (!okay) failed = true;
   } catch (error) {
     failed = true;
