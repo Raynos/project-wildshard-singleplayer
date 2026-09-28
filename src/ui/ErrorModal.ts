@@ -24,10 +24,11 @@ import { DescribedError, describeError, emitFault, loopState, onFault, type Faul
 import { ErrorReporter, safeUrl, sendReport as send, type ReportOutcome } from '../core/errorReport';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { installLifeTrace } from '../core/lifeTrace';
-import { currentPose, reloadWithPicks } from './ReloadPrompt';
+import { currentPose } from './ReloadPrompt';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER } from '../core/tier';
 import { markUnload } from '../boot/lastEnd';
+import { captureBrowserError } from '../telemetry/browserErrors';
 // reloads from this modal (and the boot's stuck-loader recovery, src/boot/stuck.ts) inside RELOAD_WINDOW_MS before
 // RELOAD HERE stops returning to the spot: one shared budget
 import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
@@ -121,9 +122,8 @@ function reloadHere(atSpot: boolean): void {
   location.replace(url.toString());
 }
 function toTitle(): void {
-  countReload();
-  try { history.replaceState(history.state, '', cleanHref()); } catch { /* the crash flag may follow: it only works for reviewers */ }
-  reloadWithPicks(`error modal: title screen (${firstText.slice(0, 80)})`);
+  markUnload(`error modal: title screen (${firstText.slice(0, 80)})`);
+  location.replace(new URL('/', location.origin).toString());
 }
 
 function build(): HTMLElement {
@@ -226,6 +226,17 @@ function showChip(sent: Promise<ReportOutcome>): void {
 }
 
 function report(system: string, error: unknown, flags: { fatal?: boolean; disabled?: boolean }): Promise<ReportOutcome> {
+  if (system !== 'lifecycle') {
+    let shard = '';
+    try { shard = getActiveChunk().slug; } catch { /* the registry may not be ready during early boot */ }
+    captureBrowserError(error, {
+      system,
+      build: buildId(),
+      shard,
+      bootStage: document.querySelector<HTMLElement>('.ws-load')?.dataset['step'] ?? loopState(),
+      fatal: flags.fatal === true,
+    });
+  }
   try { return reporter?.report(system, error, flags) ?? Promise.resolve('dropped'); } catch { return Promise.resolve('dropped'); }
 }
 
