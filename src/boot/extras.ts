@@ -22,13 +22,15 @@
  *                           music (the selected style) and SFX set ride along (src/boot/audioFiles.ts), and the set's
  *                           one-shots + barks are decoded here too (PineHollowSfx `decodePineShots`) — nothing of the
  *                           shard's sound is fetched after the bar (E44).
+ *  - `startDeferredAudioPreload()`  Nine Dragon on phones: the same counted downloads and offline cache, with selected
+ *                           decoding serialized after the loader fades and the world starts (E246 memory A/B).
  */
 import { texMode, type TexMode } from './gpuFiles';
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
 import { ART_BYTES } from './art.generated';
-import type { StepProgress } from './plan';
+import { macrotask, type StepProgress } from './plan';
 import { audioFiles, musicDir, sfxDir, shardMusicSets, shardSfxSets } from './audioFiles';
 import { decodePineShots, pineShotFiles } from '../audio/PineHollowSfx';
 import { whenPrefetched } from './prefetch';
@@ -157,6 +159,65 @@ const decoded_ = new Map<string, Promise<unknown>>();
 const downloaded = new Set<string>();
 
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; steppe: SteppeBank | undefined }
+
+/** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */
+export function startDeferredAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
+  const style = getMusicStyle(), set = getSfxSet();
+  const slots: SlotName[] = def.ocean ? ['title', 'island'] : ['title', 'pine'];
+  const bed: AmbientBed = def.ocean ? 'island' : 'forest';
+  const selected = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed)]);
+  const urls = [...new Set([...files.music, ...files.sfx])];
+  const c = counter(urls.length);
+  // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
+  // Cache Storage is unavailable; all other styles/sets remain in the service worker's offline cache.
+  const selectedBytes = new Map<string, ArrayBuffer>();
+  const downloads = urls.map(async (url) => {
+    try {
+      await whenPrefetched(url);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${response.status} ${url}`);
+      const bytes = await response.arrayBuffer();
+      if (selected.has(url)) selectedBytes.set(url, bytes);
+      downloaded.add(url);
+    } catch { downloaded.delete(url); /* a missing sound keeps its synth fallback */ }
+    c.tick();
+  });
+  let decoding: Promise<AudioBanks> | undefined;
+  return {
+    style,
+    async wait(p) { c.attach(p, 'audio files'); await Promise.all(downloads); },
+    decode() {
+      if (decoding) return decoding;
+      decoding = (async () => {
+        await Promise.all(downloads);
+        let tail: Promise<void> = Promise.resolve();
+        // decodeStyle and decodeSfxSet both start every file at once. Gate their decoder, not their reads,
+        // so WebKit never holds dozens of simultaneous native PCM outputs during this memory A/B.
+        const oneAtATime = (bytes: ArrayBuffer): Promise<AudioBuffer> => {
+          const next = tail.then(async () => { await macrotask(); return decodeBytes(bytes); });
+          tail = next.then(() => undefined, () => undefined);
+          return next;
+        };
+        const read = (url: string): Promise<ArrayBuffer> => {
+          const bytes = selectedBytes.get(url);
+          if (!bytes) return Promise.reject(new Error(`${url} was not downloaded during the loading bar`));
+          return Promise.resolve(bytes.slice(0)); // decodeAudioData detaches its argument
+        };
+        try {
+          const [music, sfx] = await Promise.all([
+            decodeStyle(style, slots, read, oneAtATime).catch((error: unknown) => {
+              if (style !== 'synth') console.info(`[music] ${style}: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
+              return undefined;
+            }),
+            decodeSfxSet(set, bed, read, undefined, oneAtATime),
+          ]);
+          return { music, sfx, steppe: undefined };
+        } finally { selectedBytes.clear(); }
+      })();
+      return decoding;
+    },
+  };
+}
 
 export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<AudioBanks> {
   const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';

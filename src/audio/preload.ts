@@ -113,11 +113,11 @@ function sfxJobs(set: string, bed: AmbientBed): Job[] {
  * Decode `set` — every file its sfx.json lists that this shard can play — from `read` (the boot's counted fetch at the bar;
  * `cachedBytes` for a switch in the menu). A file that fails keeps its synth version; the set as a whole never rejects.
  */
-export async function decodeSfxSet(set: string, bed: AmbientBed, read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void): Promise<SfxBank> {
+export async function decodeSfxSet(set: string, bed: AmbientBed, read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer> = decodeBytes): Promise<SfxBank> {
   const j = SFX_MANIFESTS[set];
   const bank: SfxBank = { set, credit: isObj(j) && typeof j['credit'] === 'string' ? j['credit'] : undefined, loops: new Map(), shots: new Map() };
   await Promise.all(sfxJobs(set, bed).map(async (job) => {
-    try { job.apply(await decodeBytes(await read(job.url)), bank); }
+    try { job.apply(await decode(await read(job.url)), bank); }
     catch (e) { console.info(`[sfx] ${job.url}: ${e instanceof Error ? e.message : String(e)} — synth kept`); }
     onFile?.();
   }));
