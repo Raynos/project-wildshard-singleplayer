@@ -1,6 +1,8 @@
 /** Optional, error-only Sentry channel. The existing /api/errors report remains the primary local inbox. */
 import type { captureException, init, withScope } from '@sentry/browser';
 
+declare const __BUILD_ID__: string;
+
 export interface BrowserErrorTags {
   readonly system: string;
   readonly build: string;
@@ -19,6 +21,7 @@ function loadSdk(): Promise<BrowserSdk | null> {
   sdk ??= import('@sentry/browser').then((sentry) => {
     sentry.init({
       dsn,
+      release: __BUILD_ID__,
       // ErrorModal already owns window errors and rejections. Keep the SDK out of the boot's
       // hot path and do not install click/fetch breadcrumbs, tracing, profiling or replay.
       defaultIntegrations: false,
@@ -49,9 +52,19 @@ async function send(error: unknown, tags: BrowserErrorTags): Promise<void> {
         boot_stage: tags.bootStage,
       });
       scope.setLevel(tags.fatal ? 'fatal' : 'error');
-      sentry.captureException(error instanceof Error ? error : new Error(String(error)));
+      sentry.captureException(asError(error));
     });
   } catch { /* telemetry must never disrupt the game or its existing error modal */ }
+}
+
+function asError(error: unknown): Error {
+  if (error instanceof Error) return error;
+  if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
+    const described = new Error(error.message);
+    if ('stack' in error && typeof error.stack === 'string') described.stack = error.stack;
+    return described;
+  }
+  return new Error(String(error));
 }
 
 /** Fire and forget: an absent DSN adds no request or SDK initialization to a player's boot. */
