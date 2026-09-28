@@ -44,11 +44,13 @@ export interface PrecompileReport { materials: number; jobs: number; programs: n
 type MeshLike = THREE.Object3D & { isMesh?: boolean; geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[]; isInstancedMesh?: boolean; instanceColor?: THREE.InstancedBufferAttribute | null; isSkinnedMesh?: boolean; isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
 
 /** The parts of an object that change its material's program (WebGLPrograms.getParameters). */
-function objectKey(o: MeshLike): string {
+function objectKey(o: BatchedLike): string {
   const g = o.geometry;
   const a: THREE.NormalBufferAttributes = g?.attributes ?? {};
   const morph = g?.morphAttributes ? Object.keys(g.morphAttributes).map((k) => `${k}${g.morphAttributes[k as 'position']?.length ?? 0}`).join('') : '';
-  return `${o.isInstancedMesh ? 'I' : ''}${o.instanceColor ? 'C' : ''}${o.isSkinnedMesh ? 'S' : ''}${o.isPoints ? 'P' : ''}${o.isLine ? 'L' : ''}${o.isSprite ? 'Q' : ''}` +
+  // Nine Dragon's facade shares one material between its shell and a colored BatchedMesh.
+  // Both batching bits are shader defines; omitting them skips the batch until its first draw.
+  return `${o.isBatchedMesh ? 'B' : ''}${o.isBatchedMesh && o._colorsTexture ? 'K' : ''}${o.isInstancedMesh ? 'I' : ''}${o.instanceColor ? 'C' : ''}${o.isSkinnedMesh ? 'S' : ''}${o.isPoints ? 'P' : ''}${o.isLine ? 'L' : ''}${o.isSprite ? 'Q' : ''}` +
     `|${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? 1 : 0}${a['normal'] ? 1 : 0}|${morph}`;
 }
 

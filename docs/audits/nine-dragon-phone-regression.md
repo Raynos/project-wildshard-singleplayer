@@ -20,7 +20,7 @@ Jake confirms Nine Dragon worked on his physical iPhone during the Opus work and
 | `8062b4ef`, `2bb24342`, `91084292`, `63e2058e` | PWA selection, document shard switches, title-first loading and GPU error handling changed. Original failure report predates these mitigations. |
 | `2429aacf` | Shipped handed-over streak-card vertex culling and its missing uniform declaration. Earliest changed shader after checkpoint; no native-device causal proof. |
 | `03b04b67`, `14412b97`, `13af1124`, `f962b730` | Added grapple, three instanced cast hooks, rope/FX and claw geometry. More resources; no evidence singles them out. |
-| `51cf6c83` | Facade large pieces changed from InstancedMesh to BatchedMesh with WEBGL_multi_draw and new shader texture reads. Hardware-dependent path; now recorded in diagnostics. |
+| `51cf6c83` | Facade large pieces changed from InstancedMesh to BatchedMesh with WEBGL_multi_draw and new shader texture reads. E257 reproduced a precompile-key defect: batching/color flags were missing, so the shared shell material suppressed the batch's preparation. Fix makes the actual first-world program count stay 72 → 72 instead of 71 → 72. Native GPU-reset causality remains unproven. |
 | `ce1305ac`, `b70ae6b9` | Arena and dummy assets/catalog added. Hidden arena participates in boot preparation. |
 | `75e2c2c6`, `291d7ddf`, `95489b45`, `80b49381` | Paint relocation, smaller phone textures, serial image decode, released arrays and sliced geometry conversion. Reduced nominal allocation does not prove native stability. |
 | `2d79732a`, `65faa7b1`, `9c716097`, `427cd5e7` | Image default, fewer post passes, deferred audio and next-launch rescue improved Simulator; physical crash persisted. |
