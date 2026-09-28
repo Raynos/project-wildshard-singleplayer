@@ -151,7 +151,7 @@ export class TrainingArena {
     const { root, colliders } = makeRoom(center.x, center.z);
     this.root = root;
     registry.add({ id: 'practice-arena', name: 'HUD + Weapon Explorer arena', category: 'ground', file: 'src/practice/TrainingArena.ts', object: root, colliders, surface: 'metal', solidFloor: true });
-    const overlay = document.createElement('div'); overlay.className = 'ws-practice'; overlay.innerHTML = '<div class="ws-practice-title">HUD + WEAPON EXPLORER <small>TRAINING ARENA</small></div>';
+    const overlay = document.createElement('div'); overlay.className = 'ws-practice';
     document.getElementById('hud')?.append(overlay); this.overlay = overlay;
     const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = 'PREPARING TRAINING TARGETS';
     overlay.append(preparation); this.preparation = preparation;
