@@ -269,6 +269,7 @@ export class Explore {
   close(): void {
     if (!this.active) return;
     const { world } = this.host;
+    this.compare?.close();
     this.hidePanes();
     this.active = false;
     this.cam.enabled = false; this.cam.move.set(0, 0, 0);
@@ -289,8 +290,8 @@ export class Explore {
     this.mode = mode;
     this.root.dataset['mode'] = mode;
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.classList.toggle('on', b.dataset['m'] === mode); });
-    this.cam.enabled = mode === 'world' && !this.held;
-    if (this.fly) this.fly.enabled = mode === 'world';
+    this.cam.enabled = mode === 'world' && !this.held && this.compare?.isOpen !== true;
+    if (this.fly) this.fly.enabled = mode === 'world' && this.compare?.isOpen !== true;
     if (mode !== 'world') { this.cam.move.set(0, 0, 0); this.map?.close(); this.compare?.close(); }
     // entering the world from the hub or the Model Explorer (whose camera was orbiting something else) starts at home;
     // VIEW IN WORLD / the map fly from there, a `cam` link (open) overrides it
@@ -315,7 +316,17 @@ export class Explore {
   }
 
   /** the review composer is up (main.ts Feedback host.hold) */
-  hold(on: boolean): void { this.held = on; this.cam.enabled = !on && this.mode === 'world'; if (on) this.cam.move.set(0, 0, 0); }
+  hold(on: boolean): void { this.held = on; this.cam.enabled = !on && this.mode === 'world' && this.compare?.isOpen !== true; if (on) this.cam.move.set(0, 0, 0); }
+
+  /** Pause free flight while the static image comparison covers the World Explorer. */
+  setCompareOpen(on: boolean): void {
+    this.root.classList.toggle('compare-open', on);
+    this.cam.enabled = !on && !this.held && this.mode === 'world';
+    this.cam.move.set(0, 0, 0);
+    if (this.fly) this.fly.enabled = !on && this.mode === 'world';
+    if (on) { this.flight = null; this.map?.close(); }
+    this.syncBack();
+  }
 
   toast(text: string): void {
     this.toastEl.textContent = text;
