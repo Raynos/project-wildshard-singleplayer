@@ -27,6 +27,11 @@ beforeEach(() => {
 });
 
 describe('POST', () => {
+  it('retains bounded boot diagnostics in the first-party inbox', () => {
+    const diagnostic = JSON.stringify({ checkpoints: [{ operation: 'renderer:failed', facts: { contextLost: true } }] });
+    expect(cleanContext({ bootDiagnostic: diagnostic })['bootDiagnostic']).toBe(diagnostic);
+    expect(String(cleanContext({ bootDiagnostic: 'x'.repeat(9000) })['bootDiagnostic'])).toHaveLength(8000);
+  });
   it('stores the report under errors/ as category error — no password needed, no IP kept', async () => {
     const res = await POST(post(report));
     expect(res.status).toBe(200);

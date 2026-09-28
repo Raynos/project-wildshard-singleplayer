@@ -91,6 +91,7 @@ export function cleanContext(c: unknown): Record<string, string | number | boole
     pitch: num(c['pitch']),
     viewport: str(c['viewport'], 24),
     loop: str(c['loop'], 12),
+    bootDiagnostic: str(c['bootDiagnostic'], 8000),
   };
 }
 

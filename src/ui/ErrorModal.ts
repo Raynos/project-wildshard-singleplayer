@@ -29,6 +29,7 @@ import { getActiveChunk } from '../chunks/registry';
 import { TIER } from '../core/tier';
 import { markUnload } from '../boot/lastEnd';
 import { captureBrowserError } from '../telemetry/browserErrors';
+import { nineBootDiagnostic, nineBootDiagnosticJson } from '../boot/nineBootTrace';
 // reloads from this modal (and the boot's stuck-loader recovery, src/boot/stuck.ts) inside RELOAD_WINDOW_MS before
 // RELOAD HERE stops returning to the spot: one shared budget
 import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
@@ -235,6 +236,7 @@ function report(system: string, error: unknown, flags: { fatal?: boolean; disabl
       shard,
       bootStage: document.querySelector<HTMLElement>('.ws-load')?.dataset['step'] ?? loopState(),
       fatal: flags.fatal === true,
+      diagnostic: nineBootDiagnostic(),
     });
   }
   try { return reporter?.report(system, error, flags) ?? Promise.resolve('dropped'); } catch { return Promise.resolve('dropped'); }
@@ -263,6 +265,7 @@ function context(): Record<string, string | number | boolean | number[] | null> 
     build: buildId(), shard, tier: TIER, touch, url: safeUrl(location.href),
     pos: pose ? [pose.x, pose.y, pose.z] : null, yaw: pose?.yaw ?? null, pitch: pose?.pitch ?? null,
     viewport: `${innerWidth}x${innerHeight}`, loop: loopState(),
+    bootDiagnostic: nineBootDiagnosticJson(),
   };
 }
 

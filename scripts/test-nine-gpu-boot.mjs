@@ -8,6 +8,8 @@ import { chromium, webkit } from 'playwright';
 const option = (name, fallback) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = option('url', 'http://127.0.0.1:4184').replace(/\/$/, '');
 const only = option('only', 'webkit');
+const fault = option('fault', 'shader');
+if (fault !== 'shader' && fault !== 'precision') throw new Error(`Unknown fault: ${fault}`);
 const engines = only === 'all' ? [['webkit', webkit], ['chromium', chromium]] : [[only, only === 'chromium' ? chromium : webkit]];
 if (only !== 'all' && only !== 'webkit' && only !== 'chromium') throw new Error(`Unknown engine: ${only}`);
 
@@ -17,7 +19,32 @@ for (const [name, engine] of engines) {
   let page;
   try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
-    await context.addInitScript(() => {
+    const reports = [];
+    await context.route('**/api/errors', async (route) => {
+      reports.push(route.request().postDataJSON());
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"id":"synthetic-test"}' });
+    });
+    // Synthetic errors test the envelope locally, without polluting production Sentry issues.
+    const envelopes = [];
+    await context.route(/https:\/\/[^/]+\.ingest\.[^/]+\/api\//, async (route) => {
+      envelopes.push(route.request().postData() ?? '');
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+    await context.addInitScript((selectedFault) => {
+      if (selectedFault === 'precision') {
+        // oxlint-disable-next-line typescript/unbound-method -- invoked with the original WebGL receiver via call()
+        const precision = WebGL2RenderingContext.prototype.getShaderPrecisionFormat;
+        let injected = false;
+        WebGL2RenderingContext.prototype.getShaderPrecisionFormat = function getShaderPrecisionFormat(...args) {
+          if (!injected) {
+            injected = true;
+            console.info('[gpu-boot-test] injected precision failure');
+            return null;
+          }
+          return precision.call(this, ...args);
+        };
+        return;
+      }
       // oxlint-disable-next-line typescript/unbound-method -- the native method is always invoked with its WebGL context via call()
       const original = WebGL2RenderingContext.prototype.shaderSource;
       let injected = false;
@@ -29,7 +56,7 @@ for (const [name, engine] of engines) {
         }
         original.call(this, shader, source);
       };
-    });
+    }, fault);
     page = await context.newPage();
     const navigations = [];
     let injections = 0;
@@ -48,8 +75,12 @@ for (const [name, engine] of engines) {
       loadAttempt: JSON.parse(sessionStorage.getItem('ws.loadAttempt') ?? 'null')?.count ?? null,
     }));
     const otherNavigation = navigations.some((url) => new URL(url).searchParams.get('chunk') !== 'nine-dragon-stack');
-    const okay = injections === 1 && !otherNavigation && state.error.includes('Nine Dragon GPU boot failed') && state.detail === '' && state.retry && state.title && state.loadAttempt === 1;
-    console.log(`${okay ? 'PASS' : 'FAIL'} ${name}: ${JSON.stringify({ injections, navigations, ...state })}`);
+    const expectedError = fault === 'precision' ? 'precision' : 'Nine Dragon GPU boot failed';
+    const expectedOperation = fault === 'precision' ? 'renderer:failed' : 'compile:before';
+    const evidence = reports.some((report) => report.context?.bootDiagnostic?.includes(expectedOperation));
+    const sentryEvidence = envelopes.some((envelope) => envelope.includes('boot_diagnostic') && envelope.includes(expectedOperation));
+    const okay = injections === 1 && !otherNavigation && state.error.includes(expectedError) && state.detail === '' && state.retry && state.title && state.loadAttempt === 1 && evidence && sentryEvidence;
+    console.log(`${okay ? 'PASS' : 'FAIL'} ${name}/${fault}: ${JSON.stringify({ injections, navigations, evidence, sentryEvidence, ...state })}`);
     if (!okay) failed = true;
   } catch (error) {
     failed = true;

@@ -9,6 +9,8 @@ export interface BrowserErrorTags {
   readonly shard: string;
   readonly bootStage: string;
   readonly fatal: boolean;
+  /** Small, explicit diagnostics supplied by the caller; never browser storage or request headers. */
+  readonly diagnostic?: Record<string, unknown>;
 }
 
 // A DSN is a public browser endpoint, not an auth token. Local/dev builds stay quiet unless opted in.
@@ -30,6 +32,7 @@ function loadSdk(): Promise<BrowserSdk | null> {
       replaysSessionSampleRate: 0,
       replaysOnErrorSampleRate: 0,
       maxBreadcrumbs: 0,
+      normalizeDepth: 6, // context -> checkpoint array -> checkpoint -> facts
       beforeSend(event) {
         if (event.request) event.request.url = `${location.origin}${location.pathname}`;
         return event;
@@ -52,6 +55,7 @@ async function send(error: unknown, tags: BrowserErrorTags): Promise<void> {
         boot_stage: tags.bootStage,
       });
       scope.setLevel(tags.fatal ? 'fatal' : 'error');
+      if (tags.diagnostic) scope.setContext('boot_diagnostic', tags.diagnostic);
       sentry.captureException(asError(error));
     });
   } catch { /* telemetry must never disrupt the game or its existing error modal */ }

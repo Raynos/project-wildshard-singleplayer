@@ -26,6 +26,8 @@ import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
+import { recordNineGpuCheckpoint, traceNineBootPasses } from '../boot/nineGpuTrace';
+import { recordNineBootCheckpoint } from '../boot/nineBootTrace';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -199,7 +201,15 @@ export class Game {
     installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
     if (getActiveChunk().style === 'painterly') installLookV2Fog(); // Nalati: the fog coloured from the panorama (src/nalati/look/fog.ts)
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
+    const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
+    if (phoneNine) recordNineBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
+    try {
+      this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
+    } catch (error) {
+      if (phoneNine) recordNineBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
+      throw error;
+    }
+    if (phoneNine) recordNineGpuCheckpoint(this.renderer, 'renderer:created');
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, viewportHeight());
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
@@ -450,6 +460,8 @@ export class Game {
    * (src/boot/precompile.ts). Returns the distinct material count.
    */
   async precompile(onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
+    const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
+    if (phoneNine) recordNineGpuCheckpoint(this.renderer, 'compile:before');
     // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and
     // shadowMapType is in every program's cache key — so everything compiled here would be
     // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
@@ -466,6 +478,7 @@ export class Game {
     jobs.push(...postJobs(this.composer, rt));
     if (PERFLOAD) perfLog('precompile:start', 0, this.renderer, `${materials} materials · ${jobs.length} jobs · parallel=${parallelCompile(this.renderer)}`);
     const report = await runPrecompile(this.renderer, this.camera, jobs, materials, onProgress);
+    if (phoneNine) recordNineGpuCheckpoint(this.renderer, 'compile:after');
     return report.materials;
   }
 
@@ -479,19 +492,25 @@ export class Game {
     // Its old four-turn warmup rendered all ~35k instances into four extra views on iPhone boot;
     // the phone renders the spawn view here and lets later views build pipelines when actually seen.
     const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
+    const checkpoint = (operation: string): void => { if (phoneNine) recordNineGpuCheckpoint(this.renderer, operation); };
     const warmTurns = phoneNine ? 0 : WARM_TURNS;
     onProgress?.(0, warmTurns + 2, 'world + shadows');
     await frame();
+    checkpoint('cull:before');
     if (phoneNine) this.shardRender?.frame?.(0.016, 0);
+    checkpoint('cull:after');
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const prev = this.renderer.getRenderTarget();
     let t0 = performance.now(); let before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.renderer.setRenderTarget(target);
+    checkpoint('world:before');
     this.renderer.render(this.scene, this.camera);
+    checkpoint('world:submitted');
     this.renderer.setRenderTarget(prev);
     if (before) perfLog('firstFrame:world', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
+    checkpoint('world:next-frame');
     // E153: the world once facing each way, so a turn finds every pipeline built (warmTurn)
     for (let k = 1; k <= warmTurns; k++) {
       onProgress?.(k, warmTurns + 2, `world, turned ${String(k * 360 / WARM_TURNS)}°`);
@@ -503,9 +522,13 @@ export class Game {
     onProgress?.(warmTurns + 1, warmTurns + 2, 'post chain');
     t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.shardRender?.frame?.(0.016, 0);
-    this.composer.render(0.016);
+    checkpoint('post:before');
+    if (phoneNine) traceNineBootPasses(this.composer.passes, checkpoint, () => { this.composer.render(0.016); });
+    else this.composer.render(0.016);
+    checkpoint('post:submitted');
     if (before) perfLog('firstFrame:post', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
+    checkpoint('post:next-frame');
     if (PERFLOAD) { t0 = performance.now(); before = snapshotPrograms(this.renderer); this.composer.render(0.016); perfLog('secondFrame', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | ')); console.info(`[perfload] programs:\n${dumpPrograms(this.renderer).join('\n')}`); }
   }
 
