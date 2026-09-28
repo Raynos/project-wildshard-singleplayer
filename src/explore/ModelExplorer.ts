@@ -110,6 +110,23 @@ export class ModelExplorer implements ExplorePane {
     // The bottom sheet changes height with iPhone viewport, safe area, text wrapping and localization. Keep the
     // variant and clip controls above its *measured* top, rather than a fixed 208 px from the screen bottom.
     this.sheetObserver = new ResizeObserver(() => { this.placeVariantControls(); });
+    document.addEventListener('ws:model-ready', (event) => {
+      const id = (event as CustomEvent<{ id: string }>).detail.id;
+      const entry = this.entries.find((candidate) => candidate.id === id);
+      if (!entry) return;
+      this.thumbs.delete(id);
+      this.thumbQueue = this.thumbQueue.filter((candidate) => candidate.id !== id);
+      this.grid.querySelector(`.ws-x-model[data-id="${id}"] .ws-x-model-thumb`)?.replaceChildren();
+      if (this.el.dataset['view'] === 'catalog') this.thumbQueue.push(entry);
+      if (this.current?.id !== id) return;
+      const model = entry.object();
+      this.frameModel(model);
+      this.setView(this.view, false);
+      const measured = measure(model);
+      const set = (key: string, value: string): void => { const node = this.sheet.querySelector<HTMLElement>(`.ws-x-stats b[data-s="${key}"]`); if (node) node.textContent = value; };
+      set('tris', measured.tris.toLocaleString()); set('calls', String(measured.calls));
+      this.budget(measured.tris, measured.calls);
+    });
     // index.html swallows touchmove outside [data-scroll]: without the mark the catalog can't scroll on a phone (E109)
     for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants, .ws-x-clips')) s.dataset['scroll'] = '';
     this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { b.addEventListener('click', () => { this.filter = (b.dataset['f'] ?? 'all') as Category | 'all'; this.renderGrid(); }); });

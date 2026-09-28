@@ -40,6 +40,13 @@ const CARD_ON = 0.6;
 
 export function createRender(): ShardRender {
   let handle: NdRenderHandle | null = null;
+  const onPractice = (event: Event): void => {
+    if (handle === null) return;
+    const active = (event as CustomEvent<boolean>).detail;
+    handle.jiehua.u.uRain.value.x = active ? 0 : BLEED.rain;
+    handle.jiehua.blendMode.opacity.value = active ? 0 : 1;
+  };
+  document.addEventListener('ws:practice-active', onPractice); // the enclosed arena has no outdoor drizzle / city grade
   const glow = glowUniforms();
   const grade = gradeUniforms();
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
@@ -122,6 +129,7 @@ export function createRender(): ShardRender {
       updateLanterns(handle.camera);
     },
     dispose(): void {
+      document.removeEventListener('ws:practice-active', onPractice);
       if (handle !== null && Reflect.get(window, '__ndRender') === handle) Reflect.deleteProperty(window, '__ndRender');
       handle = null;
       clearLanterns();

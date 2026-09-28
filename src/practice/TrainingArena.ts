@@ -1,4 +1,4 @@
-/** Shared HUD + Weapon Explorer: a small enclosed grid room and three hit-reactive humanoid training dummies. */
+/** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import type { Physics } from '../physics/Physics';
@@ -8,9 +8,10 @@ import type { TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { Weapons } from '../player/Weapons';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { buildTrainingDummy, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
+import { loadTrainingDummy } from './TrainingDummyAssets';
 import './arena.css';
 
-const HALF_WIDTH = 13, HALF_DEPTH = 14, WALL_HEIGHT = 9;
+const HALF_WIDTH = 50, HALF_DEPTH = 50, WALL_HEIGHT = 9;
 const Y = 900; // an isolated room high over each shard; existing world geometry and AI never enter it
 const CYAN = 0x75d9ff;
 
@@ -20,7 +21,8 @@ class TrainingTarget implements TargetAnimal {
   readonly kind = 'training-dummy';
   readonly alive = true; // practice targets never die or stop accepting combos
   readonly position: THREE.Vector3;
-  readonly model: TrainingDummyModel;
+  model: TrainingDummyModel;
+  ready = false;
   readonly variant: DummyVariant;
   readonly label: HTMLElement;
   private flinch = 0;
@@ -30,11 +32,23 @@ class TrainingTarget implements TargetAnimal {
   constructor(variant: DummyVariant, x: number, y: number, z: number, localX: number, localZ: number, layer: HTMLElement) {
     this.variant = variant;
     this.position = new THREE.Vector3(x, y, z);
-    this.model = buildTrainingDummy(variant);
+    const root = new THREE.Group(), torso = new THREE.Group(), head = new THREE.Group();
+    const leftArm = new THREE.Group(), rightArm = new THREE.Group();
+    root.add(torso); torso.add(head, leftArm, rightArm);
+    this.model = { root, torso, head, leftArm, rightArm };
     this.model.root.position.set(localX, 0, localZ);
     const label = document.createElement('div'); label.className = 'ws-practice-label';
     label.textContent = DUMMY_VARIANTS.find((v) => v.id === variant)?.label ?? variant;
     layer.append(label); this.label = label;
+  }
+
+  install(model: TrainingDummyModel): void {
+    const previous = this.model.root;
+    model.root.position.copy(previous.position);
+    const parent = previous.parent;
+    if (parent) { parent.remove(previous); parent.add(model.root); }
+    this.model = model;
+    this.ready = true;
   }
 
   damageFor(headshot: boolean, distance: number): number {
@@ -124,6 +138,9 @@ export class TrainingArena {
   private readonly overlay: HTMLElement;
   private readonly floats: FloatingText[] = [];
   private active = false;
+  private modelsReady = false;
+  private loadPromise: Promise<void> | null = null;
+  private readonly preparation: HTMLElement;
   private readonly center: { x: number; z: number };
 
   constructor(private readonly game: Game, registry: WorldRegistry, private readonly physics: Physics, center: { x: number; z: number }) {
@@ -133,8 +150,11 @@ export class TrainingArena {
     registry.add({ id: 'practice-arena', name: 'HUD + Weapon Explorer arena', category: 'ground', file: 'src/practice/TrainingArena.ts', object: root, colliders, surface: 'metal', solidFloor: true });
     const overlay = document.createElement('div'); overlay.className = 'ws-practice'; overlay.innerHTML = '<div class="ws-practice-title">HUD + WEAPON EXPLORER <small>TRAINING ARENA</small></div>';
     document.getElementById('hud')?.append(overlay); this.overlay = overlay;
+    const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = 'PREPARING TRAINING TARGETS';
+    overlay.append(preparation); this.preparation = preparation;
     this.targets = DUMMY_VARIANTS.map((v, i) => {
-      const localX = (i - 1) * 3.2, localZ = -4;
+      // The outer targets stand back: 8.5 m between neighbors while all three fit a portrait first view.
+      const localX = (i - 1) * 6, localZ = i === 1 ? -7 : -13;
       const x = center.x + localX, z = center.z + localZ;
       const target = new TrainingTarget(v.id, x, Y, z, localX, localZ, overlay);
       addTrainingTarget(physics, target, x, Y, z);
@@ -150,22 +170,38 @@ export class TrainingArena {
 
   get entered(): boolean { return this.active; }
 
+  private async prepareModels(): Promise<void> {
+    await Promise.all(this.targets.map(async (target) => {
+      try { target.install(await loadTrainingDummy(target.variant)); }
+      catch (error) {
+        console.warn(`[practice] ${target.variant} mesh unavailable; using procedural fallback`, error);
+        target.install(buildTrainingDummy(target.variant));
+      }
+    }));
+    this.modelsReady = true;
+    this.preparation.hidden = true;
+  }
+
   enter(player: Player, weapons: Weapons): void {
     this.active = true; this.root.visible = true; this.overlay.classList.add('show');
+    document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
     this.overlay.parentElement?.classList.add('practice-active');
+    this.preparation.hidden = this.modelsReady;
+    this.loadPromise ??= this.prepareModels();
     weapons.select(weapons.list[0]?.id ?? weapons.current.id, true);
     player.spawn(this.center.x, this.center.z + 5, 0, Y);
   }
 
   exit(): void {
     this.active = false; this.root.visible = false; this.overlay.classList.remove('show');
+    document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
     this.overlay.parentElement?.classList.remove('practice-active');
     for (const f of this.floats) f.el.remove();
     this.floats.length = 0;
   }
 
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
-    if (!this.active) return null;
+    if (!this.active || !this.modelsReady) return null;
     const hit = trainingTargetRaycast(this.physics, origin, dir, maxDist);
     const target = this.targets.find((t) => t === hit?.target);
     return hit && target ? { animal: target, point: new THREE.Vector3(hit.point.x, hit.point.y, hit.point.z), distance: hit.distance, headshot: hit.headshot } : null;
@@ -182,7 +218,7 @@ export class TrainingArena {
     for (const target of this.targets) {
       target.update(dt);
       const p = target.position.clone().add(new THREE.Vector3(0, 2.98, 0)).project(this.game.camera);
-      target.label.style.display = p.z < 1 ? '' : 'none';
+      target.label.style.display = target.ready && p.z < 1 ? '' : 'none';
       target.label.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-p.y * 0.5 + 0.5) * innerHeight)}px) translate(-50%, -50%)`;
     }
     for (let i = this.floats.length - 1; i >= 0; i--) {

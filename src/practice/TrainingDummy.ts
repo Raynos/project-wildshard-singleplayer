@@ -9,7 +9,7 @@ export const DUMMY_VARIANTS: readonly { id: DummyVariant; label: string; full: s
   { id: 'wood-steel', label: 'Wood + steel', full: 'Wood frame · steel armor' },
 ];
 
-export interface TrainingDummyModel { root: THREE.Group; torso: THREE.Group; head: THREE.Group; leftArm: THREE.Group; rightArm: THREE.Group }
+export interface TrainingDummyModel { root: THREE.Group; torso: THREE.Object3D; head: THREE.Object3D; leftArm: THREE.Object3D; rightArm: THREE.Object3D }
 
 function mat(color: number, metalness = 0, roughness = 0.82): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, metalness, roughness, flatShading: true });
