@@ -102,7 +102,7 @@ function classify(): LastEnd {
   if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
   if (a !== null) {
     const where = str(a, 'vis') === 'hidden' ? 'in the background' : 'on screen';
-    return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (likely iOS killed it for memory)`, at: num(a, 't'), resident: str(a, 'resident'), build: str(a, 'build'), ...base };
+    return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (browser or system cause unknown)`, at: num(a, 't'), resident: str(a, 'resident'), build: str(a, 'build'), ...base };
   }
   if (u !== null) return { kind: 'intentional', reason: `${str(u, 'reason')} (${Math.round((now - ut) / 1000)} s before this load)`, at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
   return { kind: 'fresh', reason: 'fresh launch', at: 0, resident: '', build: '', ...base };

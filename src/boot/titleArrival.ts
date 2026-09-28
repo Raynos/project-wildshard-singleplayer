@@ -3,20 +3,34 @@ export type TitleArrivalMode = 'enter' | 'explore' | 'arena';
 export interface TitleArrival { slug: string; mode: TitleArrivalMode }
 
 const KEY = 'ws.titleArrival';
+const BACKUP_KEY = 'ws.titleArrival.once';
+const MAX_AGE_MS = 60_000;
+
+interface StoredArrival extends TitleArrival { at: number }
+
+function valid(raw: string | null, slug: string): TitleArrival | null {
+  if (raw === null) return null;
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (typeof value !== 'object' || value === null) return null;
+    const candidate = value as Partial<StoredArrival>;
+    if (candidate.slug !== slug || (candidate.mode !== 'enter' && candidate.mode !== 'explore' && candidate.mode !== 'arena')) return null;
+    if (typeof candidate.at !== 'number' || !Number.isFinite(candidate.at) || Date.now() - candidate.at < 0 || Date.now() - candidate.at > MAX_AGE_MS) return null;
+    return { slug, mode: candidate.mode };
+  } catch { return null; }
+}
 
 export function setTitleArrival(arrival: TitleArrival): void {
-  try { sessionStorage.setItem(KEY, JSON.stringify(arrival)); } catch { /* the destination still opens its own title */ }
+  const raw = JSON.stringify({ ...arrival, at: Date.now() } satisfies StoredArrival);
+  try { sessionStorage.setItem(KEY, raw); } catch { /* the local one-shot below can carry the intent */ }
+  // iOS home-screen navigation can replace WebContent between the static title and the game document.
+  // The backup is consumed once, and expires quickly; it never becomes a remembered last shard.
+  try { localStorage.setItem(BACKUP_KEY, raw); } catch { /* the session copy may still survive */ }
 }
 
 export function consumeTitleArrival(slug: string): TitleArrival | null {
-  try {
-    const raw = sessionStorage.getItem(KEY);
-    sessionStorage.removeItem(KEY);
-    if (raw === null) return null;
-    const value: unknown = JSON.parse(raw);
-    if (typeof value !== 'object' || value === null) return null;
-    const candidate = value as Partial<TitleArrival>;
-    if (candidate.slug !== slug || (candidate.mode !== 'enter' && candidate.mode !== 'explore' && candidate.mode !== 'arena')) return null;
-    return { slug, mode: candidate.mode };
-  } catch { return null; }
+  let session: string | null = null, backup: string | null = null;
+  try { session = sessionStorage.getItem(KEY); sessionStorage.removeItem(KEY); } catch { /* use the backup */ }
+  try { backup = localStorage.getItem(BACKUP_KEY); localStorage.removeItem(BACKUP_KEY); } catch { /* use the session copy */ }
+  return valid(session, slug) ?? valid(backup, slug);
 }

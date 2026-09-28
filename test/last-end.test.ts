@@ -56,7 +56,7 @@ describe('lastEnd', () => {
     vi.advanceTimersByTime(1000);
     const e = (await boot()).lastEnd();
     expect(e.kind).toBe('unexpected');
-    expect(e.reason).toBe('page ended unexpectedly on screen (likely iOS killed it for memory)');
+    expect(e.reason).toBe('page ended unexpectedly on screen (browser or system cause unknown)');
     expect(e.resident).toBe('pine-hollow ~178 MB · nalati-grasslands (playing) ~87 MB');
   });
 

@@ -80,7 +80,7 @@ import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan'
 import { useShardSteps } from './boot/steps';
 import { declareTotals, installByteCounter, releaseByteCounter } from './boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
-import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
+import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
 import { startShardPrefetch } from './boot/shardPrefetch';
 import { getActiveChunk } from './chunks/registry';
@@ -147,6 +147,7 @@ const shell: { music: Music | null } = { music: null };
 /** the page's shard host (main() makes it): each shard's GPU recovery asks it whether that shard is parked */
 let hostRef: ShardHost | null = null;
 let bootArrival: TitleArrival | null = null;
+let bootFatalShown = false;
 
 /** E183: how long the title idles before its one primed frame (a first glance at the deck, a swipe, stay smooth) */
 const TITLE_IDLE_MS = 1200;
@@ -212,10 +213,14 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const pack = packFor(getActiveChunk());
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
   const packStreamed = pack ? streamPack(pack, plan, files) : Promise.resolve();
-  prefetch(bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p)));
+  const worldFetches = bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p));
+  prefetch(worldFetches);
   // then the title art and ALL audio (project/archive/2026-09-23-preload-offline.md), after the pack so they do not split the pipe with the
-  // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar
-  prefetchAfter(extraFetches(files), packStreamed);
+  // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar.
+  // Nine Dragon has no pack: wait for its per-file queue as well, or 16 audio fetches crowd its GLBs/paint on iOS.
+  const extrasBarrier = pack === null && getActiveChunk().slug === 'nine-dragon-stack'
+    ? Promise.all(worldFetches.map(whenPrefetched)) : packStreamed;
+  prefetchAfter(extraFetches(files), extrasBarrier);
   // Nine Dragon's world builder has a high transient CPU/GPU peak. Its art and selected audio are still
   // prefetched into the offline cache above, but decode them at their own later steps instead of at the
   // same time as the painted city and its viewmodel.
@@ -226,6 +231,24 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
+  // A phone can lose WebGL during Nine Dragon's large build, before the normal in-game GPU recovery
+  // is installed. Show the fatal error once and let the player choose the next action.
+  const fragileBoot = TIER === 'phone' && slug === 'nine-dragon-stack';
+  let bootGpuGuardActive = fragileBoot;
+  let bootGpuExit = false;
+  const failGpuBoot = (reason: string, stack = ''): void => {
+    if (!bootGpuGuardActive || bootGpuExit) return;
+    bootGpuExit = true;
+    bootFatalShown = true;
+    game.hold = true;
+    plan.fail(`GPU BOOT FAILED · ${reason}`.slice(0, 300));
+    showError(`Nine Dragon GPU boot failed: ${reason}`, stack);
+  };
+  const onBootContextLost = (event: Event): void => {
+    event.preventDefault();
+    failGpuBoot('WebGL context lost during loading');
+  };
+  if (fragileBoot) game.canvas.addEventListener('webglcontextlost', onBootContextLost);
   // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
   // lends the player its floor function. `statics` keeps the boxes for the ocean's foam rings.
   const statics: Collider[] = [];
@@ -526,7 +549,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const b = chunk.bounds, safe = { x: 0, y: 0, z: 0, set: false };
     let since = 0;
     game.onUpdate((dt) => {
-      if (world.freeCamera || world.tour.active) return;
+      if (world.freeCamera || world.tour.active || arena.entered) return;
       const p = player.position;
       if (p.y < b.floor || p.x < b.x0 || p.x > b.x1 || p.z < b.z0 || p.z > b.z1) {
         if (safe.set) player.spawn(safe.x, safe.z, player.yaw, safe.y); else toSpawn();
@@ -842,14 +865,12 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); };
   hud.onResume = enter;
   hud.onExitToMenu = () => {
-    if (arrival !== null) { location.assign('/'); return; }
     arena.exit(); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
   };
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
   // lazy chunk). God-mode camera, Model Explorer, one ✎ to the review inbox; ✕ comes back here to the title.
   const exitExplore = () => {
-    if (arrival !== null) { location.assign('/'); return; }
     perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); hud.showIntro(enter);
   };
   const noteSheet = async (): Promise<void> => { const f = await loadFeedback(); await f.openSheet(); };
@@ -876,7 +897,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated() && !shardCompleteUp(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
-  else if (arrival?.mode === 'explore') { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); hud.startExplore(); }
+  else if (arrival?.mode === 'explore') { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); }
   else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
   // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ChunkDef.explore — D4, E66; a note's "go there")
   if (exploreParam !== null && chunk.explore === true) {
@@ -996,7 +1017,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
-    hud.setBoundaryWarning(edge < 14 && hud.entered);
+    hud.setBoundaryWarning(!arena.entered && edge < 14 && hud.entered);
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
@@ -1024,8 +1045,16 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
-  await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
-  await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+  try {
+    await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+    if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
+    await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+    if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during first frame');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (fragileBoot && /WebGLShader|WebGL context lost|shaderSource/i.test(message)) failGpuBoot(message.slice(0, 120), error instanceof Error ? error.stack ?? '' : '');
+    throw error;
+  }
   loading.setTextureBytes(textureBytes(game.scene));
   // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
   const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk)).wait(p));
@@ -1040,10 +1069,13 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
     fragileBoot: () => TIER === 'phone' && performance.now() - recoveryInstalledAt < 20_000,
     parked: () => hostRef?.isParked(slug) === true, onLostParked: () => { hostRef?.evict(slug); } }); // a parked shard that loses its context is evicted (E155)
+  bootGpuGuardActive = false;
+  if (fragileBoot) game.canvas.removeEventListener('webglcontextlost', onBootContextLost);
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
+  else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   const arenaArrival = consumeArenaArrival(slug);
   if (arrival?.mode === 'arena' || arenaArrival) hud.enterArenaNow();
   // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
@@ -1093,4 +1125,4 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     },
   };
 }
-main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));
+main().catch((e: unknown) => { if (!bootFatalShown) showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''); });

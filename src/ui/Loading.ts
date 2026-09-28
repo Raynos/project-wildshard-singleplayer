@@ -3,6 +3,7 @@ import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';
 import { LOAD_SHELL_HTML } from '../boot/shell';
+import { lastEndLine } from '../boot/lastEnd';
 import { isDev } from '../core/devMode';
 import './loading.css';
 
@@ -153,7 +154,7 @@ export class Loading {
     const js = typeof heap === 'number' && Number.isFinite(heap) ? `${Math.round(heap / 1048576)} MiB` : 'unavailable on Safari';
     const tex = this.textureBytes > 0 ? ` · scene textures ~${Math.round(this.textureBytes / 1048576)} MiB` : '';
     const pause = this.longestPauseMs >= 100 ? `${(this.longestPauseMs / 1000).toFixed(1)}s` : '<0.1s';
-    set(this.els.diagnostics, `Load ${this.attempt} · JS heap ${js}${tex}\nLongest page pause ${pause}${this.longestPauseAt ? ` at ${this.longestPauseAt}` : ''}\nTotal RAM / CPU unavailable in page`);
+    set(this.els.diagnostics, `Load ${this.attempt} · JS heap ${js}${tex}\nLongest page pause ${pause}${this.longestPauseAt ? ` at ${this.longestPauseAt}` : ''}\n${lastEndLine()}\nTotal RAM / CPU unavailable in page`);
   }
 
   /**
