@@ -22,6 +22,7 @@ export const BLEED = {
 const FS = /* glsl */ `
 uniform sampler2D tTight;
 uniform sampler2D tWide;
+uniform float uHasBleed;
 uniform sampler2D tHaze;
 uniform float uRainHaze;
 uniform sampler2D tRefl;
@@ -131,8 +132,12 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
     }
   }
   vec2 warp = (vec2(vnoise(uv * vec2(9.0, 18.0)), vnoise(uv * vec2(9.0, 18.0) + 5.3)) - 0.5) * uBleed2.y;
-  vec4 tight4 = texture(tTight, uv + warp * 0.5);
-  vec4 wide4 = texture(tWide, uv + warp);
+  vec4 tight4 = vec4(0.0);
+  vec4 wide4 = vec4(0.0);
+  if (uHasBleed > 0.5) {
+    tight4 = texture(tTight, uv + warp * 0.5);
+    wide4 = texture(tWide, uv + warp);
+  }
   vec3 tight = tight4.rgb;
   vec3 wide = wide4.rgb;
   float weave = texture(uSilk, gl_FragCoord.xy / (300.0 * uRain.w / 3.0)).r;
@@ -150,7 +155,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
     float rn = rainLayer(gl_FragCoord.xy, 1.0, uRain.z, 0.28, 0.0) + 0.6 * rainLayer(gl_FragCoord.xy + 37.0, 0.55, uRain.z * 0.7, 0.3, 11.0);
     vec3 rc = mix(vec3(0.86, 0.9, 0.97), vec3(0.85, 0.7, 0.4), uSutra) * 0.55 + (tight + wide) * 1.6;
     // (render) a drop crossing a light's halo catches it: the haze march's in-scatter lights the drizzle
-    rc += texture(tHaze, uv).rgb * uRainHaze;
+    if (uRainHaze > 0.0) rc += texture(tHaze, uv).rgb * uRainHaze;
     c = mix(c, rc, clamp(rn * uRain.x, 0.0, 1.0) * 0.55);
   }
   c *= uBleed2.w;
@@ -177,7 +182,7 @@ export class JiehuaEffect extends Effect {
   constructor(private readonly view: PerspectiveCamera, shared: Shared, glow: Glow, grade: Grade) {
     const s = shared.u, B = BLEED;
     const u = {
-      tTight: new Uniform<Texture | null>(null), tWide: new Uniform<Texture | null>(null), tHaze: new Uniform<Texture | null>(null), uRainHaze: new Uniform(6), tRefl: new Uniform<Texture | null>(null), uReflK: new Uniform(0), uSilk: new Uniform(s.uSilk.value),
+      tTight: new Uniform<Texture | null>(null), tWide: new Uniform<Texture | null>(null), uHasBleed: new Uniform(0), tHaze: new Uniform<Texture | null>(null), uRainHaze: new Uniform(6), tRefl: new Uniform<Texture | null>(null), uReflK: new Uniform(0), uSilk: new Uniform(s.uSilk.value),
       uTexel: new Uniform(new Vector2()), uSutra: new Uniform(0), uTime: new Uniform(0), uLineScale: new Uniform(1), uLines: new Uniform(1),
       uInk: new Uniform(s.uInk0.value), uGold: new Uniform(s.uGold.value), uInk1: new Uniform(s.uInk1.value), uInkMid: new Uniform(110), uLineFog: new Uniform(1.7),
       uDpr: new Uniform(1), uSilPx: new Uniform(new Vector2(2.1, 1.2)), uSilFade: new Uniform(new Vector2(60, 170)), uSilGain: new Uniform(0.35),
@@ -217,6 +222,7 @@ export class JiehuaEffect extends Effect {
     const u = this.u, s = this.shared.u, cam = this.view;
     u.tTight.value = this.source?.tight ?? null;
     u.tWide.value = this.source?.wide ?? null;
+    u.uHasBleed.value = u.tTight.value === null || u.tWide.value === null ? 0 : 1;
     u.tHaze.value = this.haze?.enabled === true ? this.haze.texture : null;
     u.uRainHaze.value = u.tHaze.value === null ? 0 : this.rainHaze;
     u.tRefl.value = this.refl?.texture ?? null;

@@ -20,9 +20,9 @@ import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
 
 export interface NdRenderHandle {
-  reflect: ReflectPass;
-  haze: HazePass;
-  bleed: BleedPass;
+  reflect: ReflectPass | null;
+  haze: HazePass | null;
+  bleed: BleedPass | null;
   jiehua: JiehuaEffect;
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
@@ -85,13 +85,23 @@ export function createRender(): ShardRender {
         // deep strata were speckled with it
         if (c.scene.fog instanceof Fog) { c.scene.fog.near = 25; c.scene.fog.far = 80; }
       }
-      // the wet floor at the square's datum: the plaza, the street north through the gate, the stair-street's foot
-      const rect = new Vector4(WELL.x0 - 2, STREET.z0, Math.max(PLAZA.x1, STAIR.x0) + 4, PLAZA.z1 + 10);
-      // (dome C2) and the stair-street's treads and landings, any height: x 22 … 102, z 2 … 10
-      const stairRect = new Vector4(STAIR.x0, STAIR.z0, 102, STAIR.z1);
-      const reflect = new ReflectPass(c.camera, Y0, rect, () => world.shared.u.uTime.value, stairRect);
-      const haze = new HazePass(c.camera, world.shared, Y0, c.tier === 'phone' ? 0.25 : 0.5);
-      const bleed = new BleedPass(c.camera, glow, BLEED.threshold, BLEED.knee);
+      let reflect: ReflectPass | null = null;
+      let haze: HazePass | null = null;
+      let bleed: BleedPass | null = null;
+      const beforeChain: NonNullable<ShardComposition['beforeChain']> = [];
+      // Emergency phone profile: avoid the three custom passes while isolating the iPhone load failure.
+      // At 402×812, DPR 2, their half-float RGBA targets total an estimated 7,550,992 bytes (7.20 MiB);
+      // actual driver allocation and whether this causes the crash remain unconfirmed.
+      if (c.tier !== 'phone') {
+        // the wet floor at the square's datum: the plaza, the street north through the gate, the stair-street's foot
+        const rect = new Vector4(WELL.x0 - 2, STREET.z0, Math.max(PLAZA.x1, STAIR.x0) + 4, PLAZA.z1 + 10);
+        // (dome C2) and the stair-street's treads and landings, any height: x 22 … 102, z 2 … 10
+        const stairRect = new Vector4(STAIR.x0, STAIR.z0, 102, STAIR.z1);
+        reflect = new ReflectPass(c.camera, Y0, rect, () => world.shared.u.uTime.value, stairRect);
+        haze = new HazePass(c.camera, world.shared, Y0, 0.5);
+        bleed = new BleedPass(c.camera, glow, BLEED.threshold, BLEED.knee);
+        beforeChain.push(reflect, haze, bleed);
+      }
       const jiehua = new JiehuaEffect(c.camera, world.shared, glow, grade);
       jiehua.source = bleed;
       jiehua.haze = haze;
@@ -108,7 +118,7 @@ export function createRender(): ShardRender {
       setCardOn(CARD_ON);
       handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks };
       Reflect.set(window, '__ndRender', handle);
-      return { beforeChain: [reflect, haze, bleed], chain: [jiehua] };
+      return { beforeChain, chain: [jiehua] };
     },
     frame(): void {
       const world = nineDragonWorld();
