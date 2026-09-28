@@ -16,8 +16,9 @@ import { EXTMeshoptCompression, EXTTextureWebP } from '@gltf-transform/extension
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 
 async function main() {
-  const [source, target] = process.argv.slice(2);
-  if (source === undefined || target === undefined) throw new Error('Usage: node scripts/practice/pack_dummy.mjs <rigged.glb> <shipped.glb>');
+  if (process.argv.length < 4) throw new Error('Usage: node scripts/practice/pack_dummy.mjs <rigged.glb> <shipped.glb>');
+  const source = process.argv[2];
+  const target = process.argv[3];
   const scratch = mkdtempSync(path.join(tmpdir(), 'wildshard-dummy-'));
   try {
     const resized = path.join(scratch, 'resized.glb');
