@@ -136,7 +136,7 @@ function update(status: Status): void {
 
 /** Called by lastEnd on every new document, before its own boot can replace the old record. */
 export function inspectPreviousNineBoot(): void {
-  if (!retryListener) {
+  if (!retryListener && typeof window !== 'undefined') {
     retryListener = true;
     window.addEventListener('online', () => { void flushNineBootReports(); });
   }
