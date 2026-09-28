@@ -12,6 +12,7 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "test": "vitest run",
+    "test:gpu-boot": "bash scripts/test-nine-gpu-boot.sh",
     "preview": "vite preview",
     "assets": "node scripts/fetch-assets.mjs && node scripts/tex-tiers.mjs",
     "tex-tiers": "node scripts/tex-tiers.mjs",
