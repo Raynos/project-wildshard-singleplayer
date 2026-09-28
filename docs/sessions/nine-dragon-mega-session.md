@@ -1,6 +1,6 @@
 # Nine Dragon session — feedback ledger
 
-Updated: 2026-09-27. This is the short list to use when Jake returns and asks to go through pending reviews. Keep each item here until Jake answers; move answered items to **Resolved**. Do not turn this into an implementation task list.
+Updated: 2026-09-28. This is the short list to use when Jake returns and asks to go through pending reviews. Keep each item here until Jake answers; move answered items to **Resolved**. Do not turn this into an implementation task list.
 
 ## Needs Jake
 
@@ -11,7 +11,6 @@ Updated: 2026-09-27. This is the short list to use when Jake returns and asks to
 | F4 | Now | Review the **portrait Nine Dragon trailer recut** with the current playable grapple and three-talon flying claw. Does the crossing read clearly, and is the 15-second cut ready? | [video](../../art/nine-dragon-stack/round-22-portrait-grapple-final/nine-dragon-portrait-grapple-final.mp4), [contact sheet](../../art/nine-dragon-stack/round-22-portrait-grapple-final/contact.jpg), E204 |
 | F5 | Now | Review the three placed GLB assets in Model Explorer and say which need more polish before further shard expansion. | E205, E215 |
 | F10 | After build `11b69c8` is live (game code `427cd5e7`) | Retry Nine Dragon on the physical iPhone home-screen PWA. Does it enter Explore World and World Explorer after one load, or still reach Safari's black crash page? Simulator Safari passed the clean-root title → Nine load → World Explorer path on this code; the physical phone is the remaining gate. | E246, E248 |
-| F9 | Now | Pick A, B, C, D, or E for the developer-only Practice Arena entry inside Explore World. | [One portrait storyboard](../../art/hud-explorer/round-5-explore-entry/explore-entry-A-E.jpg), E233 |
 
 ## Resolved decisions
 
@@ -24,6 +23,7 @@ Updated: 2026-09-27. This is the short list to use when Jake returns and asks to
 | HUD/Weapon Explorer build | Approved arena proposal and nine views; build it as a spawn mode in all four shards, with each shard's starter weapon. |
 | Training dummy catalog | All three dummies belong in Model Explorer across all shards. |
 | Training dummy variant layout | Jake delegated the choice to us after seeing Pine Hollow's live picker. Use one family card with three variants; polish the portrait variant strip and panel spacing. |
+| Practice Arena entry | Jake approved Option A: three equal Explore cards. Implemented in `04d5fa2b`; [live portrait capture](../../art/hud-explorer/round-6-option-a-live/explore-three-cards.jpg). |
 | Play-by-play PDF example | Nine Dragon, not Driftwood 2. Driftwood 2 is future work. |
 | Dirty art and audio | Keep all art/audio; trim benchmarks. |
 | PWA reload investigation | Reproduce in iOS Simulator; do not wait for Jake to inspect a debug panel. |
