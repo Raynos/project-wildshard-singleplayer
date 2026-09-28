@@ -75,6 +75,7 @@ export function inspectPreviousNineBoot(): void {
   // The renderer-free title must not import the gameplay fault/scoping modules unless there is a report.
   void import('../telemetry/bootInbox').then(({ reportBootInterruption }) => {
     reportBootInterruption(error, prior.build, JSON.stringify({ ...diagnostic, checkpoints: checkpoints.slice(-8) }));
+    return undefined;
   }).catch(() => { /* Sentry remains the independent channel if this module cannot load */ });
   captureBrowserError(error, {
     system: 'boot-abrupt', build: prior.build, shard: 'nine-dragon-stack', bootStage: prior.stage, fatal: false,
