@@ -1,4 +1,4 @@
-/** Query-only hit volumes for the shared practice targets. The player passes through the dummies; shots and melee rays see them. */
+/** Solid practice bodies for player movement, plus separate head/body hit volumes for shots and melee. */
 import type { Ray } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
 import { groups, queryGroups } from './groups';
@@ -10,9 +10,14 @@ interface TargetPart { target: object; headshot: boolean }
 /** The body and the separate head are static HITBOX colliders; only the shared physics layer imports Rapier. */
 export function addTrainingTarget(physics: Physics, target: object, x: number, y: number, z: number): void {
   const { R, world } = physics;
+  // A CREATURE-group static body blocks the player's character controller without becoming WORLD geometry
+  // (which would make each dummy obscure its own line-of-sight check). The hitboxes remain projectile-query only.
+  const solid = world.createCollider(R.ColliderDesc.cuboid(0.38, 0.86, 0.29)
+    .setTranslation(x, y + 0.9, z).setCollisionGroups(groups('CREATURE')));
+  tagCollider(solid, 'wood', target);
   const parts = [
-    { x, y: y + 1.33, z, hx: 0.66, hy: 0.69, hz: 0.31, headshot: false },
-    { x, y: y + 2.31, z, hx: 0.28, hy: 0.29, hz: 0.27, headshot: true },
+    { x, y: y + 0.83, z, hx: 0.44, hy: 0.58, hz: 0.3, headshot: false },
+    { x, y: y + 1.57, z, hx: 0.23, hy: 0.21, hz: 0.22, headshot: true },
   ];
   for (const p of parts) {
     const desc = R.ColliderDesc.cuboid(p.hx, p.hy, p.hz).setTranslation(p.x, p.y, p.z).setCollisionGroups(groups('HITBOX'));

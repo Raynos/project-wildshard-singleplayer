@@ -1,14 +1,14 @@
 /** One shared Model Explorer family card for the three training-dummy armor variants. */
 import * as THREE from 'three';
 import { registerModel } from '../explore/registry';
-import { buildTrainingDummy, DUMMY_VARIANTS, type DummyVariant } from './TrainingDummy';
+import { buildTrainingDummy, DUMMY_VARIANTS, TRAINING_DUMMY_HEIGHT, type DummyVariant } from './TrainingDummy';
 import { loadTrainingDummy } from './TrainingDummyAssets';
 
 export function registerTrainingDummyModel(): void {
   const group = new THREE.Group();
   const cache = new Map<DummyVariant, THREE.Group>();
-  const loading = new THREE.Mesh(new THREE.BoxGeometry(0.85, 2.55, 0.5), new THREE.MeshBasicMaterial({ color: 0x8fe3ff, transparent: true, opacity: 0.22, wireframe: true, depthWrite: false }));
-  loading.position.y = 1.32;
+  const loading = new THREE.Mesh(new THREE.BoxGeometry(0.58, TRAINING_DUMMY_HEIGHT, 0.34), new THREE.MeshBasicMaterial({ color: 0x8fe3ff, transparent: true, opacity: 0.22, wireframe: true, depthWrite: false }));
+  loading.position.y = TRAINING_DUMMY_HEIGHT / 2;
   let current: DummyVariant = 'wood';
   const fetchVariant = async (id: DummyVariant): Promise<void> => {
     let specimen: THREE.Group;

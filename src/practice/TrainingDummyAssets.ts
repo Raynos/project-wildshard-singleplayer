@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import type { DummyVariant, TrainingDummyModel } from './TrainingDummy';
+import { TRAINING_DUMMY_SCALE, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
 
 const URLS: Record<DummyVariant, string> = {
   wood: '/assets/practice/dummies/wood-wood.glb',
@@ -32,6 +32,7 @@ function namedBone(root: THREE.Object3D, name: string): THREE.Object3D {
 export async function loadTrainingDummy(variant: DummyVariant): Promise<TrainingDummyModel> {
   const root = cloneSkeleton(await template(variant)) as THREE.Group;
   root.name = `Training dummy · ${variant}`;
+  root.scale.setScalar(TRAINING_DUMMY_SCALE);
   root.traverse((part) => {
     if (!(part instanceof THREE.Mesh)) return;
     part.castShadow = false; part.receiveShadow = false; part.frustumCulled = true;

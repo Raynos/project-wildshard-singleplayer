@@ -3,6 +3,10 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export type DummyVariant = 'wood' | 'straw-cloth' | 'wood-steel';
+/** The player's capsule is 1.8 m from feet to crown; keep the shared specimens human-sized. */
+export const TRAINING_DUMMY_HEIGHT = 1.8;
+export const TRAINING_DUMMY_SOURCE_HEIGHT = 2.65;
+export const TRAINING_DUMMY_SCALE = TRAINING_DUMMY_HEIGHT / TRAINING_DUMMY_SOURCE_HEIGHT;
 export const DUMMY_VARIANTS: readonly { id: DummyVariant; label: string; full: string }[] = [
   { id: 'wood', label: 'Wood', full: 'Wood frame · wood armor' },
   { id: 'straw-cloth', label: 'Straw + cloth', full: 'Straw body · cloth armor' },
@@ -58,7 +62,7 @@ function mergeRigid(group: THREE.Group): void {
   }
 }
 
-/** Local origin is the foot of the stake. The visible humanoid is roughly 2.6 m tall. */
+/** Local origin is the foot of the stake. The source geometry is 2.65 m, scaled to player height. */
 export function buildTrainingDummy(variant: DummyVariant): TrainingDummyModel {
   const cloth = variant === 'straw-cloth', steel = variant === 'wood-steel';
   const core = mat(cloth ? 0xb99759 : 0x604026);
@@ -67,6 +71,7 @@ export function buildTrainingDummy(variant: DummyVariant): TrainingDummyModel {
   const trim = mat(cloth ? 0x8d6340 : steel ? 0xa1a9ab : 0xc08d56, steel ? 0.68 : 0.04, 0.42);
   const target = mat(cloth ? 0x9c4e3e : steel ? 0xabcad0 : 0x4e2e20, steel ? 0.32 : 0, 0.7);
   const root = new THREE.Group(); root.name = `Training dummy · ${variant}`;
+  root.scale.setScalar(TRAINING_DUMMY_SCALE);
 
   // The common wooden post and cross foot remain legible behind every armor set, including steel.
   box(root, core, 0, 1.2, -0.16, 0.13, 2.34, 0.13);

@@ -21,6 +21,7 @@ class TrainingTarget implements TargetAnimal {
   readonly kind = 'training-dummy';
   readonly alive = true; // practice targets never die or stop accepting combos
   readonly position: THREE.Vector3;
+  readonly dims = { bodyY: 0.94, bodyRadius: 0.4, bodyHalfLen: 0.4 };
   model: TrainingDummyModel;
   ready = false;
   readonly variant: DummyVariant;
@@ -55,6 +56,8 @@ class TrainingTarget implements TargetAnimal {
     const base = this.variant === 'straw-cloth' ? 39 : this.variant === 'wood' ? 30 : 22;
     return Math.round(base * (headshot ? 2.2 : 1) * Math.max(0.7, 1 - distance / 160));
   }
+
+  headWorld(out: THREE.Vector3): THREE.Vector3 { out.copy(this.position); out.y += 1.58; return out; }
 
   applyDamage(amount: number, point: THREE.Vector3): boolean {
     const armor = this.variant === 'wood-steel' ? 0.62 : this.variant === 'wood' ? 0.82 : 1;
@@ -163,7 +166,7 @@ export class TrainingArena {
       target.onDamage = (amount, point) => { this.float(String(amount), point, 'hit'); };
       return target;
     });
-    // Dummies are children of the room for visibility; hitboxes are separate query-only physics colliders.
+    // Dummies are children of the room for visibility; their static solid bodies and separate hitboxes live in Rapier.
     for (const target of this.targets) root.add(target.model.root);
     game.onUpdate((dt) => { if (this.active) this.update(dt); }, 'training-arena');
   }
@@ -217,7 +220,7 @@ export class TrainingArena {
   private update(dt: number): void {
     for (const target of this.targets) {
       target.update(dt);
-      const p = target.position.clone().add(new THREE.Vector3(0, 2.98, 0)).project(this.game.camera);
+      const p = target.position.clone().add(new THREE.Vector3(0, 2.05, 0)).project(this.game.camera);
       target.label.style.display = target.ready && p.z < 1 ? '' : 'none';
       target.label.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-p.y * 0.5 + 0.5) * innerHeight)}px) translate(-50%, -50%)`;
     }

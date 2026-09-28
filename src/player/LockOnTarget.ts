@@ -52,7 +52,7 @@ export const LOCK = {
  *  (Qara Batyr's rig and Jel Ata's storm riders too), the balbal warriors (the kurgan's adds are the same species), the
  *  Golden King and Jel Ata's heart (`storm-titan`, src/nalati/stormTitan.ts `lockTarget`). Horses, sheep and the dog never. */
 const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'monkey', 'sailor', 'bear', 'captain',
-  'wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan']);
+  'wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan', 'training-dummy']);
 /** the weapons that lock: the Driftwood swords and Nalati's sabre + spear (H3). The bow waits for its own lock (H4 / N18) */
 export const LOCK_WEAPONS: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', 'sabre', 'spear']);
 
