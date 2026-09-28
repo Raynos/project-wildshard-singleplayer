@@ -20,6 +20,7 @@
 .ws-menu .ws-wordmark { text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); }
 .ws-menu .ws-wordmark b { font-weight: 700; }
 .ws-menu .ws-wordmark::after { content: ''; display: block; width: 34px; height: 2px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
+.ws-menu .ws-menu-recovery { box-sizing: border-box; max-width: min(440px, calc(100vw - 32px)); margin-top: 24px; padding: 10px 12px; border: 1px solid rgba(255, 181, 71, 0.55); background: rgba(13, 27, 38, 0.9); color: #f3e5cd; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); font: 11px/1.5 var(--ws-mono); white-space: pre-line; }
 /* deck: carousel + dots + enter + sound, centred in the lower half */
 .ws-menu .ws-menu-deck { --card-w: 420px; --card-gap: 18px; display: flex; flex-direction: column; align-items: center; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); } /* E146: clear of the iOS home-swipe edge, never on it */
 .ws-menu-cards { position: relative; width: 100%; padding: 12px 0; overflow: hidden; touch-action: none; cursor: grab; }
@@ -83,6 +84,7 @@
   .ws-menu .ws-wordmark { font-size: 13px; letter-spacing: 0.3em; line-height: 1.05; color: rgba(230, 242, 248, 0.85); font-weight: 600; }
   .ws-menu .ws-wordmark b { display: block; font-size: 26px; letter-spacing: 0.12em; margin-top: 3px; }
   .ws-menu .ws-wordmark::after { width: 26px; margin-top: 6px; }
+  .ws-menu .ws-menu-recovery { margin-top: 36px; font-size: 10px; line-height: 1.45; }
   .ws-menu .ws-menu-deck { --card-w: 70vw; --card-gap: 12px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); } /* E175: +20px on top of E146 — SETTINGS sat too close to the iOS app-switcher edge */
   .ws-menu-cards { padding-top: 10px; padding-bottom: 10px; }
   .ws-menu-card .ws-menu-card-img { margin: 5px; }

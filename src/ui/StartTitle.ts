@@ -13,6 +13,7 @@ import ninePortrait from '../chunks/thumbs/nine-dragon-stack-portrait.jpg';
 import nineLandscape from '../chunks/thumbs/nine-dragon-stack-landscape.jpg';
 import { setTitleArrival, type TitleArrivalMode } from '../boot/titleArrival';
 import { markUnload } from '../boot/lastEnd';
+import { previousNineBootLine } from '../boot/nineBootTrace';
 import { bindDevToggle } from './devSwitch';
 
 interface Card {
@@ -60,6 +61,15 @@ export function showStartTitle(): void {
       <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><button class="ws-menu-sound ws-menu-dev" type="button">Dev</button></div>
     </div>`;
   hud.append(title);
+
+  const interrupted = previousNineBootLine();
+  if (interrupted) {
+    const notice = document.createElement('div');
+    notice.className = 'ws-menu-recovery';
+    notice.setAttribute('role', 'status');
+    notice.textContent = `${interrupted}\nReturned to shard select. Choose a world when ready.`;
+    required(title, '.ws-menu-head').append(notice);
+  }
 
   const list = required(title, '.ws-menu-cards');
   const track = required(title, '.ws-menu-deck-track');

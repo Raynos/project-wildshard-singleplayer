@@ -14,6 +14,7 @@
  * stuck card. A module that fetched fine but threw is not run twice: the engine keeps it errored and rethrows at once.
  */
 import { guardBoot } from './stuck';
+import { inspectPreviousNineBoot, previousNineBootLine } from './nineBootTrace';
 
 const task = (): Promise<void> => new Promise((resolve) => { setTimeout(resolve, 0); });
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => { setTimeout(resolve, ms); });
@@ -28,7 +29,18 @@ async function retried<T>(load: () => Promise<T>): Promise<T> {
 
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 const search = new URLSearchParams(location.search);
-const titleOnly = search.size === 0 || (search.size === 1 && search.has('v'));
+// Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.
+inspectPreviousNineBoot();
+// Safari may reload the same document after WebContent dies. Keep that automatic retry on the
+// renderer-free title until the player chooses a shard again.
+const rescueNine = previousNineBootLine() !== '' && search.get('chunk') === 'nine-dragon-stack';
+if (rescueNine) {
+  history.replaceState(history.state, '', new URL('/', location.origin));
+  // index.html picked the loading shell from the original URL before this module ran.
+  document.documentElement.classList.add('title-first');
+  document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
+}
+const titleOnly = rescueNine || search.size === 0 || (search.size === 1 && search.has('v'));
 
 /** resolves once the title or the selected shard's entry has been evaluated */
 export const entered: Promise<unknown> = titleOnly ? retried(() => import('../ui/StartTitle')) : (async () => {

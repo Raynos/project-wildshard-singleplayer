@@ -79,7 +79,7 @@ import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { useShardSteps } from './boot/steps';
 import { declareTotals, installByteCounter, releaseByteCounter } from './boot/bytes';
-import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
+import { bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload } from './boot/extras';
 import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
 import { startShardPrefetch } from './boot/shardPrefetch';
@@ -125,6 +125,7 @@ import { ShardHost, textureBytes, type ShardWorld } from './shard/ShardHost';
 import { consumeArenaArrival, setShardSwitcher } from './shard/switch';
 import { consumeTitleArrival, type TitleArrival } from './boot/titleArrival';
 import { setAliveSource } from './boot/lastEnd';
+import { markNineBootContextLost, markNineBootHandledError } from './boot/nineBootTrace';
 import { asShell } from './core/shardScope';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -227,6 +228,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const deferExtras = getActiveChunk().slug === 'nine-dragon-stack' && TIER === 'phone';
   const menuLoad = deferExtras ? null : startMenuPreload(files, getActiveChunk());
   const audioLoad = deferExtras ? null : startAudioPreload(files, getActiveChunk());
+  const deferredAudio = deferExtras ? startDeferredAudioPreload(files, getActiveChunk()) : null;
   startViewmodelTextures((getActiveChunk().weapon ?? 'crossbow') === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const world = await bootstrap(step);
@@ -241,6 +243,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     bootGpuExit = true;
     bootFatalShown = true;
     game.hold = true;
+    if (/context lost/i.test(reason)) markNineBootContextLost();
+    else markNineBootHandledError();
     plan.fail(`GPU BOOT FAILED · ${reason}`.slice(0, 300));
     showError(`Nine Dragon GPU boot failed: ${reason}`, stack);
   };
@@ -1056,11 +1060,18 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     throw error;
   }
   loading.setTextureBytes(textureBytes(game.scene));
-  // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
-  const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk)).wait(p));
-  if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
-  if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
-  audio.useSamples(banks.sfx);
+  // Nine Dragon phone counts and caches the same files, then decodes selected audio after the loader's peak.
+  if (deferredAudio) {
+    await step('audio', (p) => deferredAudio.wait(p));
+    // The synth bridges the short delay. This empty bank prevents Music.prepare() from decoding the
+    // same selected style again if the player taps before the deferred decode finishes.
+    music.useBank({ style: deferredAudio.style, set: 'base', slots: new Map(), stings: new Map(), log: [] });
+  } else {
+    const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk)).wait(p));
+    if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
+    if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
+    audio.useSamples(banks.sfx);
+  }
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   releaseByteCounter();
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
@@ -1078,6 +1089,18 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   const arenaArrival = consumeArenaArrival(slug);
   if (arrival?.mode === 'arena' || arenaArrival) hud.enterArenaNow();
+  if (deferredAudio) {
+    const decodeAfterBoot = async (): Promise<void> => {
+      try {
+        const banks = await deferredAudio.decode();
+        if (banks.music) music.useBank(banks.music);
+        audio.useSamples(banks.sfx);
+      } catch (error) {
+        console.info(`[audio] deferred Nine Dragon decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
+      }
+    };
+    requestAnimationFrame(() => { window.setTimeout(() => { void decodeAfterBoot(); }, 0); });
+  }
   // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
@@ -1125,4 +1148,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     },
   };
 }
-main().catch((e: unknown) => { if (!bootFatalShown) showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''); });
+main().catch((e: unknown) => {
+  markNineBootHandledError();
+  if (!bootFatalShown) showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : '');
+});

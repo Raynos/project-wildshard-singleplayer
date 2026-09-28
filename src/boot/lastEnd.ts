@@ -1,7 +1,7 @@
 /**
  * Why the last page ended (E179). Jake's iPhone lost Pine Hollow on an ENTER WORLD: the Debug readout went from two
  * resident shards to "nalati-grasslands (playing)" alone, so the page had reloaded, and nothing said whether the game
- * navigated or iOS killed the page. This module makes the next such report conclusive:
+ * navigated or the page ended abruptly. This module records the observable exit path:
  *
  *   markUnload('build pill tap')   before EVERY navigation / reload the game makes on purpose: localStorage
  *                                  `ws.lastUnload` = { reason, t, build, slug, resident }
@@ -9,8 +9,7 @@
  *                                  cleared on pagehide (a page that ends normally says so)
  *   lastEnd()                      read once at import (the boot's first module): how the previous page in this tab ended
  *     intentional   a `ws.lastUnload` younger than INTENT_MS: the game navigated, and says why
- *     unexpected    no recent reason but a stale `ws.alive`: the page ended without a pagehide — iOS killed the WebContent
- *                   process (memory) and the web view reloaded it, or the whole app was killed
+ *     unexpected    no recent reason but a stale `ws.alive`: the page ended without a pagehide; browser/system cause unknown
  *     fresh         neither: a cold launch
  *   `document.wasDiscarded` rides along (Chrome's tab discarding; iOS never sets it).
  *
@@ -20,6 +19,7 @@
  *
  *   setAliveSource(() => ({ slug, resident: 'pine-hollow (playing) 178 MB · nalati-grasslands 87 MB' }))   // main.ts
  */
+import { inspectPreviousNineBoot, markNineBootPlanned, previousNineBootLine } from './nineBootTrace';
 
 declare const __BUILD_ID__: string;
 
@@ -76,6 +76,7 @@ function stamp(): Stamp {
 
 /** the game is about to navigate / reload on purpose: say why, first (the next boot reads it) */
 export function markUnload(reason: string): void {
+  markNineBootPlanned();
   const u: Unload = { reason, ...stamp() };
   writeJson(store('local'), UNLOAD_KEY, u);
   console.info(`[lastEnd] unloading: ${reason}`);
@@ -109,6 +110,7 @@ function classify(): LastEnd {
 }
 
 const thisEnd: LastEnd = classify();
+inspectPreviousNineBoot();
 if (thisEnd.kind !== 'fresh' || thisEnd.discarded) writeJson(store('local'), END_KEY, thisEnd);
 if (thisEnd.kind !== 'fresh') console.info(`[lastEnd] the previous page: ${thisEnd.reason}${thisEnd.resident === '' ? '' : ` · resident ${thisEnd.resident}`}`);
 
@@ -130,11 +132,12 @@ export function lastRecordedEnd(): LastEnd | null {
 /** the Debug readout's line: "Last reload: <reason> · 2 min ago · resident <list>" */
 export function lastEndLine(now = Date.now()): string {
   const e = lastRecordedEnd();
-  if (e === null) return 'Last reload: none recorded';
+  if (e === null) return previousNineBootLine() || 'Last reload: none recorded';
   const ago = (ms: number): string => (ms < 90_000 ? `${Math.max(0, Math.round(ms / 1000))} s ago` : ms < 90 * 60_000 ? `${Math.round(ms / 60_000)} min ago` : `${Math.round(ms / 3_600_000)} h ago`);
   const when = e.at > 0 ? ago(now - e.at) : ago(now - e.bootedAt);
   const was = e === thisEnd ? '' : ' (before an earlier launch)';
-  return `Last reload: ${e.reason}${was} · ${when}${e.resident === '' ? '' : ` · resident ${e.resident}`}${e.build === '' ? '' : ` · build ${e.build}`}${e.discarded ? ' · wasDiscarded' : ''}${e.nav === '' ? '' : ` · nav ${e.nav}`}`;
+  const abrupt = previousNineBootLine();
+  return `Last reload: ${e.reason}${was} · ${when}${e.resident === '' ? '' : ` · resident ${e.resident}`}${e.build === '' ? '' : ` · build ${e.build}`}${e.discarded ? ' · wasDiscarded' : ''}${e.nav === '' ? '' : ` · nav ${e.nav}`}${abrupt ? `\n${abrupt}` : ''}`;
 }
 
 // the beat: the page's own timer (this module loads before any shard scope exists)
