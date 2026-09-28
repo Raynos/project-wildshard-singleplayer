@@ -1,5 +1,7 @@
 import type * as THREE from 'three';
 import { Game } from './Game';
+import { readyWebGLContext } from './webglStartup';
+import { recordNineBootCheckpoint } from '../boot/nineBootTrace';
 import { TERRAIN_RES } from './config';
 import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
@@ -68,7 +70,13 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const rapier = loadRapier(); // streamed compile from the first moment of boot; the `physics` step below awaits it
   const navmesh = loadNavmesh(def.slug); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
   const canvas = document.getElementById('game') as HTMLCanvasElement;
-  const game = await step('renderer', () => new Game(canvas));
+  const game = await step('renderer', async (progress) => {
+    const context = await readyWebGLContext(canvas, (state) => {
+      progress.detail('Waiting for graphics to recover');
+      if (def.slug === 'nine-dragon-stack') recordNineBootCheckpoint('renderer:waiting', { ...state });
+    });
+    return new Game(canvas, context);
+  });
   const sky = await step('sky', () => game.buildSky());
   const terrain = await step('terrain', async (p) => {
     const t = await new Terrain().build();

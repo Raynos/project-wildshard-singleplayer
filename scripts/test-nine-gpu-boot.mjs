@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Reproduce the phone's null precision result or the Simulator's shaderSource failure during boot.
 // Run after `pnpm build` with `pnpm exec vite preview --port 4184` up:
-// node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader]
+// node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader|context]
 // A pass requires one failure, an error panel, no second load, and diagnostics in both reporting transports.
 import { chromium, webkit } from 'playwright';
 
@@ -9,7 +9,7 @@ const option = (name, fallback) => process.argv.find((part) => part.startsWith(`
 const base = option('url', 'http://127.0.0.1:4184').replace(/\/$/, '');
 const only = option('only', 'webkit');
 const fault = option('fault', 'shader');
-if (fault !== 'shader' && fault !== 'precision') throw new Error(`Unknown fault: ${fault}`);
+if (fault !== 'shader' && fault !== 'precision' && fault !== 'context') throw new Error(`Unknown fault: ${fault}`);
 const engines = only === 'all' ? [['webkit', webkit], ['chromium', chromium]] : [[only, only === 'chromium' ? chromium : webkit]];
 if (only !== 'all' && only !== 'webkit' && only !== 'chromium') throw new Error(`Unknown engine: ${only}`);
 
@@ -18,7 +18,7 @@ for (const [name, engine] of engines) {
   const browser = await engine.launch(name === 'chromium' ? { args: ['--use-angle=metal'] } : {});
   let page;
   try {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+    const context = await browser.newContext({ viewport: { width: 402, height: 654 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
     const reports = [];
     await context.route('**/api/errors', async (route) => {
       reports.push(route.request().postDataJSON());
@@ -31,6 +31,29 @@ for (const [name, engine] of engines) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
     await context.addInitScript((selectedFault) => {
+      if (selectedFault === 'context') {
+        // Lose the REAL context while getContext returns it; all WebGL queries now obey native
+        // context-loss semantics. The old renderer constructor reproduces the phone's exact TypeError.
+        // oxlint-disable-next-line typescript/unbound-method -- native receiver supplied with Reflect.apply
+        const original = HTMLCanvasElement.prototype.getContext;
+        let injected = false;
+        HTMLCanvasElement.prototype.getContext = function getContext(...args) {
+          const gl = Reflect.apply(original, this, args);
+          if (!injected && this.id === 'game' && gl instanceof WebGL2RenderingContext) {
+            const lose = gl.getExtension('WEBGL_lose_context');
+            if (lose === null) throw new Error('Recovery test needs WEBGL_lose_context');
+            injected = true;
+            this.addEventListener('webglcontextlost', () => {
+              // The APPLICATION must preventDefault to allow this restoration.
+              setTimeout(() => { lose.restoreContext(); }, 750);
+            }, { once: true });
+            lose.loseContext();
+            console.info('[gpu-boot-test] injected real context loss');
+          }
+          return gl;
+        };
+        return;
+      }
       if (selectedFault === 'precision') {
         // oxlint-disable-next-line typescript/unbound-method -- invoked with the original WebGL receiver via call()
         const precision = WebGL2RenderingContext.prototype.getShaderPrecisionFormat;
@@ -39,9 +62,10 @@ for (const [name, engine] of engines) {
           if (!injected) {
             injected = true;
             console.info('[gpu-boot-test] injected precision failure');
-            return null;
           }
-          return precision.call(this, ...args);
+          // Keep capabilities unavailable through the bounded startup recovery window.
+          precision.call(this, ...args);
+          return null;
         };
         return;
       }
@@ -63,7 +87,27 @@ for (const [name, engine] of engines) {
     page.on('framenavigated', (frame) => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
     page.on('console', (message) => { if (message.text().includes('[gpu-boot-test] injected')) { injections++; console.log(`${name}: injected ${fault} failure`); } });
     page.on('pageerror', (error) => { console.log(`${name}: page error ${error.message.slice(0, 180)}`); });
-    await page.goto(`${base}/?chunk=nine-dragon-stack&skipintro=1&nolock=1&mute=1&touch=1&tier=phone&sw=0`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    const entry = fault === 'context' ? '' : '&skipintro=1';
+    await page.goto(`${base}/?chunk=nine-dragon-stack${entry}&nolock=1&mute=1&touch=1&tier=phone&sw=0`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    if (fault === 'context') {
+      await page.waitForFunction(() => Boolean(window.__world) || Boolean(document.querySelector('#wserr')), null, { timeout: 90_000 });
+      await page.locator('.ws-menu-explore').click();
+      await page.locator('.ws-x-card[data-m="world"]').click();
+      await page.waitForTimeout(5000);
+      const state = await page.evaluate(() => ({
+        world: Boolean(window.__world), freeCamera: window.__world?.freeCamera,
+        lost: window.__world?.game.renderer.getContext().isContextLost(),
+        calls: window.__world?.game.renderer.info.render.calls ?? 0,
+        error: Boolean(document.querySelector('#wserr')),
+        trace: localStorage.getItem('ws.nineBoot') ?? '',
+      }));
+      const okay = injections === 1 && navigations.length === 1 && state.world && state.freeCamera &&
+        state.lost === false && state.calls > 0 && !state.error && reports.length === 0 &&
+        state.trace.includes('renderer:waiting') && state.trace.includes('"status":"ready"');
+      console.log(`${okay ? 'PASS' : 'FAIL'} ${name}/context: ${JSON.stringify({ injections, navigations: navigations.length, ...state, trace: undefined })}`);
+      if (!okay) failed = true;
+      continue;
+    }
     await page.waitForSelector('#wserr[role="alertdialog"]', { timeout: 30_000 });
     // Sentry loads lazily after a fault; allow its module fetch and transport to finish.
     for (let i = 0; i < 50 && envelopes.length === 0; i++) await page.waitForTimeout(100);
@@ -77,8 +121,8 @@ for (const [name, engine] of engines) {
       loadAttempt: JSON.parse(sessionStorage.getItem('ws.loadAttempt') ?? 'null')?.count ?? null,
     }));
     const otherNavigation = navigations.some((url) => new URL(url).searchParams.get('chunk') !== 'nine-dragon-stack');
-    const expectedError = fault === 'precision' ? 'precision' : 'Nine Dragon GPU boot failed';
-    const expectedOperation = fault === 'precision' ? 'renderer:failed' : 'compile:before';
+    const expectedError = fault === 'precision' ? 'Graphics context did not recover' : 'Nine Dragon GPU boot failed';
+    const expectedOperation = fault === 'precision' ? 'renderer:waiting' : 'compile:before';
     const evidence = reports.some((report) => report.context?.bootDiagnostic?.includes(expectedOperation));
     const sentryEvidence = envelopes.some((envelope) => envelope.includes('boot_diagnostic') && envelope.includes(expectedOperation));
     const okay = injections === 1 && !otherNavigation && state.error.includes(expectedError) && state.detail === '' && state.retry && state.title && state.loadAttempt === 1 && evidence && sentryEvidence;

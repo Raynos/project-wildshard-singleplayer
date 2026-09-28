@@ -20,6 +20,6 @@ for _ in {1..50}; do
 done
 if [[ "$ready" -ne 1 ]]; then cat "$log"; exit 1; fi
 
-for fault in precision shader; do
+for fault in context precision shader; do
   node scripts/test-nine-gpu-boot.mjs --url="http://127.0.0.1:$port" --only=all --fault="$fault"
 done

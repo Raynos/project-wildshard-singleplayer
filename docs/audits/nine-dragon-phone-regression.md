@@ -36,7 +36,9 @@ Next launch sends the prior trace to Sentry structured context and the first-par
 
 Regression tests inject shader failure and a null precision result, intercept both report destinations, and require evidence, one loader, a fatal modal and no automatic navigation. Unit coverage includes restart, intra-percent details, bounded history, pass failure/restoration, planned exits and ready state.
 
-Next: test preserved pre-handoff deployment on the phone, then narrow deployed revisions using that result. Keep E256 open until current Nine Dragon loads and enters on that phone.
+Update (13:00 UTC, E257): Jake tested the preserved deployment: it fails too. Inbox `2026-09-28T13-00-11.356Z-8374413f` has the same null shader-precision exception in renderer construction at 6.847 seconds. This endpoint is not a verified good baseline. Current focus: graphics startup recovery, then any remaining first-frame failure. Keep E256 open until current Nine Dragon loads and enters on that phone.
+
+Reproduced the exact null precision exception in WebKit using a real lost context returned by getContext, then restoring it after 750 ms. The old constructor crashes before recovery; the E257 change waits for usable capabilities before constructing Three and the same run reaches World Explorer without reload or modal. This validates the startup fix for transient context loss; it does not establish the original GPU reset trigger or physical-phone acceptance.
 
 Validation: clean exported tree passed CSS, both TypeScript projects, oxlint, all 603 unit tests and Vite build. On an exported production build, WebKit and Metal Chromium each passed both precision-null and shader-failure cases. Both intercepted report payloads contained the expected renderer/compile checkpoint. The first Sentry assertion was too early (1.5 s); waiting for its lazy SDK transport fixed the test, not the phone regression.
 
