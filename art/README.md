@@ -24,6 +24,7 @@ when the images were generated.
 | | `round-6-p-bar-layouts` | `hud-P1-baredges`, `P2-barcorners` — P2 approved (with K1) |
 | `hud-explorer/` | `round-1-arena` (09-26) | Portrait shared HUD/Weapon Explorer proposal: three humanoid dummy turntables, nine views of the full grid arena, and in-game HUD mockup. [Review notes](hud-explorer/round-1-arena/README.md) |
 | | `round-2-live-arena` (09-26) | First playable portrait arena capture, with its visual gap against the approved target recorded. [Review notes](hud-explorer/round-2-live-arena/README.md) |
+| | `round-3-dummy-meshes` (09-26) | Three humanoid armor references: [straw + cloth](hud-explorer/round-3-dummy-meshes/ref-straw-cloth.jpg), [wood + wood](hud-explorer/round-3-dummy-meshes/ref-wood-wood.jpg), [wood + steel](hud-explorer/round-3-dummy-meshes/ref-wood-steel.jpg) |
 | `model-explorer/` | `round-1-training-dummy-variants` (09-26) | Three variant-layout concepts, the live Pine Hollow picker video, and the first shared dummy family turntable. [Review notes](model-explorer/round-1-training-dummy-variants/README.md) |
 | `ads-aim/` | `round-1` (09-17) | `ads-{A-centred-low,B-eye-level,C-peep-sight}` — iron-sights pose; A picked, C's peep ring added |
 | `minimap/` | `round-1` (09-17) | `minimap-k1-{A-radar,B-terrain,C-holo}` on the K1 HUD; B built |
