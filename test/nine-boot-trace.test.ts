@@ -69,7 +69,7 @@ describe('Nine Dragon boot trace', () => {
     expect(next.previousNineBootLine()).toContain('Abrupt previous page: Nine Dragon first frame 95%');
     expect(next.previousNineBootLine()).toContain('cause unknown');
     expect(capture).toHaveBeenCalledOnce();
-    expect(inbox).toHaveBeenCalledOnce();
+    await vi.waitFor(() => { expect(inbox).toHaveBeenCalledOnce(); });
     const third = await boot();
     third.inspectPreviousNineBoot();
     expect(capture).toHaveBeenCalledOnce();

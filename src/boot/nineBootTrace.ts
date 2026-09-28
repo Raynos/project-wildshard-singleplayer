@@ -1,6 +1,5 @@
 /** A small durable breadcrumb for Nine Dragon's phone boot. A terminated WebContent process cannot run a final handler. */
 import { captureBrowserError } from '../telemetry/browserErrors';
-import { reportBootInterruption } from '../telemetry/bootInbox';
 import type { ProgressView } from './plan';
 
 declare const __BUILD_ID__: string;
@@ -73,7 +72,10 @@ export function inspectPreviousNineBoot(): void {
   try { storage()?.removeItem(KEY); } catch { /* duplicate reporting is possible if storage is denied */ }
   const error = new Error(`${line}; previous build ${prior.build}; visibility ${prior.visibility}`);
   const diagnostic = { previousBuild: prior.build, attempt: prior.id, detail: prior.detail ?? '', elapsedMs: prior.updatedAt - prior.startedAt, visibility: prior.visibility, checkpoints };
-  reportBootInterruption(error, prior.build, JSON.stringify({ ...diagnostic, checkpoints: checkpoints.slice(-8) }));
+  // The renderer-free title must not import the gameplay fault/scoping modules unless there is a report.
+  void import('../telemetry/bootInbox').then(({ reportBootInterruption }) => {
+    reportBootInterruption(error, prior.build, JSON.stringify({ ...diagnostic, checkpoints: checkpoints.slice(-8) }));
+  }).catch(() => { /* Sentry remains the independent channel if this module cannot load */ });
   captureBrowserError(error, {
     system: 'boot-abrupt', build: prior.build, shard: 'nine-dragon-stack', bootStage: prior.stage, fatal: false,
     diagnostic,
