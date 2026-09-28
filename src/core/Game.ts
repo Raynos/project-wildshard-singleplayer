@@ -475,8 +475,14 @@ export class Game {
    */
   async firstFrame(onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
     const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // rAF alone resumes before the paint
-    onProgress?.(0, WARM_TURNS + 2, 'world + shadows');
+    // Nine Dragon's world-wide InstancedMesh batches need the shard's per-camera cull before ANY draw.
+    // Its old four-turn warmup rendered all ~35k instances into four extra views on iPhone boot;
+    // the phone renders the spawn view here and lets later views build pipelines when actually seen.
+    const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
+    const warmTurns = phoneNine ? 0 : WARM_TURNS;
+    onProgress?.(0, warmTurns + 2, 'world + shadows');
     await frame();
+    if (phoneNine) this.shardRender?.frame?.(0.016, 0);
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const prev = this.renderer.getRenderTarget();
@@ -487,14 +493,14 @@ export class Game {
     if (before) perfLog('firstFrame:world', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
     // E153: the world once facing each way, so a turn finds every pipeline built (warmTurn)
-    for (let k = 1; k <= WARM_TURNS; k++) {
-      onProgress?.(k, WARM_TURNS + 2, `world, turned ${String(k * 360 / WARM_TURNS)}°`);
+    for (let k = 1; k <= warmTurns; k++) {
+      onProgress?.(k, warmTurns + 2, `world, turned ${String(k * 360 / WARM_TURNS)}°`);
       t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
       this.warmTurn(k, target);
       if (before) perfLog(`firstFrame:turn${String(k)}`, performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
       await frame();
     }
-    onProgress?.(WARM_TURNS + 1, WARM_TURNS + 2, 'post chain');
+    onProgress?.(warmTurns + 1, warmTurns + 2, 'post chain');
     t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.shardRender?.frame?.(0.016, 0);
     this.composer.render(0.016);
