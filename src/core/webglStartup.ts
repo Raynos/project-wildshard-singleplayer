@@ -1,6 +1,9 @@
 /** Wait for WebKit's graphics context to be usable before Three reads its capabilities. */
 export const GAME_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
-  alpha: true, antialias: false, powerPreference: 'high-performance', stencil: false,
+  // E257: on the physical iPhone, even an empty 16px canvas immediately loses a
+  // high-performance context after the crash; default and low-power remain usable.
+  // Let the browser select its graphics device instead of forcing the failing path.
+  alpha: true, antialias: false, powerPreference: 'default', stencil: false,
   depth: true, premultipliedAlpha: true, preserveDrawingBuffer: false,
 };
 

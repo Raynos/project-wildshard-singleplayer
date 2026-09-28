@@ -21,6 +21,16 @@ describe('graphics startup', () => {
     expect(waiting).not.toHaveBeenCalled();
   });
 
+  it('avoids the high-performance context path that fails on the physical iPhone', async () => {
+    const f = fixture();
+    f.getContext.mockImplementation((_kind?: string, attributes?: WebGLContextAttributes) => {
+      f.lost.mockReturnValue(attributes?.powerPreference === 'high-performance');
+      return f.gl;
+    });
+    expect(await readyWebGLContext(f.canvas)).toBe(f.gl);
+    expect(f.getContext).toHaveBeenCalledOnce();
+  });
+
   it('allows restoration when loss occurs inside getContext, then resumes on that context', async () => {
     vi.useFakeTimers();
     const f = fixture(), waiting = vi.fn<() => void>();

@@ -204,7 +204,7 @@ export class Game {
     const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
     if (phoneNine) recordNineBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
     try {
-      this.renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
+      this.renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true });
     } catch (error) {
       if (phoneNine) recordNineBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
       throw error;
