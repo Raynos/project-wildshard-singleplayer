@@ -1,5 +1,5 @@
 /** A small durable breadcrumb for Nine Dragon's phone boot. A terminated WebContent process cannot run a final handler. */
-import { captureBrowserError } from '../telemetry/browserErrors';
+import { deliverBrowserError } from '../telemetry/browserErrors';
 import type { ProgressView } from './plan';
 
 declare const __BUILD_ID__: string;
@@ -7,6 +7,9 @@ declare const __BUILD_ID__: string;
 const KEY = 'ws.nineBoot';
 const RECENT_MS = 5 * 60_000;
 const HISTORY_LIMIT = 32;
+const REPORT_KEY = 'wsNineReports'; // diagnostic evidence is not part of the native save mirror
+const REPORT_LIMIT = 4;
+const REPORT_MAX_AGE = 7 * 24 * 60 * 60_000;
 type Status = 'in_progress' | 'ready' | 'planned' | 'handled_error' | 'context_lost' | 'pagehide';
 type Facts = Record<string, string | number | boolean | null>;
 interface Checkpoint { atMs: number; operation: string; facts: Facts }
@@ -27,20 +30,94 @@ interface BootRecord {
 
 let current: BootRecord | null = null;
 let previousLine = '';
+let transition: { frames: number; firstDrawAt: number | null } | null = null;
+let hiddenStatus: Status | null = null;
+interface PendingReport { record: BootRecord; reason: string; inbox: boolean; sentry: boolean }
+let flushing = false;
+let retryListener = false;
+
+function reports(): PendingReport[] {
+  try {
+    const raw: unknown = JSON.parse(storage()?.getItem(REPORT_KEY) ?? '[]');
+    if (!Array.isArray(raw)) return [];
+    return raw.filter((item: unknown): item is PendingReport => {
+      if (typeof item !== 'object' || item === null) return false;
+      const p = item as Partial<PendingReport>;
+      return typeof p.reason === 'string' && typeof p.inbox === 'boolean' && typeof p.sentry === 'boolean' &&
+        validRecord(p.record) && Date.now() - p.record.updatedAt < REPORT_MAX_AGE;
+    }).slice(-REPORT_LIMIT);
+  } catch { return []; }
+}
+function saveReports(queue: PendingReport[]): boolean {
+  try {
+    const local = storage();
+    if (!local) return false;
+    local.setItem(REPORT_KEY, JSON.stringify(queue.slice(-REPORT_LIMIT)));
+    return true;
+  } catch { return false; }
+}
+function enqueue(record: BootRecord, reason: string): boolean {
+  const queue = reports();
+  if (!queue.some((p) => p.record.id === record.id)) queue.push({ record, reason, inbox: false, sentry: false });
+  return saveReports(queue);
+}
+function reportLine(prior: BootRecord, reason: string): string {
+  if (reason) return `Nine Dragon graphics recovery: ${reason}`;
+  const stage = prior.stage.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+  const last = prior.checkpoints?.at(-1)?.operation ?? prior.detail ?? '';
+  return `Abrupt previous page: Nine Dragon ${stage} ${prior.setup}% setup / ${prior.download}% download${last ? ` at ${last}` : ''} (cause unknown)`;
+}
+
+/** Retry independent channels from the renderer-free title; retain evidence until each one acknowledges it. */
+export async function flushNineBootReports(): Promise<void> {
+  if (flushing) return;
+  flushing = true;
+  try {
+    for (const pending of reports()) {
+      const prior = pending.record;
+      const system = pending.reason ? 'gpu-recovery' : 'boot-abrupt';
+      const diagnostic = { previousBuild: prior.build, attempt: prior.id, stage: prior.stage, detail: prior.detail ?? '',
+        elapsedMs: prior.updatedAt - prior.startedAt, visibility: prior.visibility, checkpoints: prior.checkpoints ?? [] };
+      const message = `${reportLine(prior, pending.reason)}; previous build ${prior.build}; visibility ${prior.visibility}`;
+      const acknowledge = (channel: 'inbox' | 'sentry'): void => {
+        const queue = reports();
+        const entry = queue.find((p) => p.record.id === prior.id);
+        if (entry) entry[channel] = true;
+        saveReports(queue.filter((p) => !p.inbox || !p.sentry));
+      };
+      await Promise.all([
+        pending.inbox ? Promise.resolve() : import('../telemetry/bootInbox').then(async ({ reportBootInterruption }) => {
+          const result = await reportBootInterruption(new Error(message), prior.build,
+            JSON.stringify({ ...diagnostic, checkpoints: diagnostic.checkpoints.slice(-8) }), system);
+          if (result === 'ok' || result === 'reject') acknowledge('inbox');
+          return undefined;
+        }).catch(() => { /* leave durable evidence for the next online event or document */ }),
+        pending.sentry ? Promise.resolve() : deliverBrowserError(new Error(message), {
+          system, build: prior.build, shard: 'nine-dragon-stack', bootStage: prior.stage, fatal: false, diagnostic,
+        }).then((ok) => { if (ok) acknowledge('sentry'); return undefined; }).catch(() => { /* independently retry Sentry */ }),
+      ]);
+    }
+  } finally { flushing = false; }
+}
 
 function storage(): Storage | null { try { return localStorage; } catch { return null; } }
 function read(key: string): BootRecord | null {
   try {
     const value: unknown = JSON.parse(storage()?.getItem(key) ?? 'null');
-    if (typeof value !== 'object' || value === null) return null;
-    const o = value as Partial<BootRecord>;
-    if (typeof o.id !== 'string' || typeof o.build !== 'string' || typeof o.startedAt !== 'number' ||
-      typeof o.updatedAt !== 'number' || typeof o.stage !== 'string' || typeof o.setup !== 'number' ||
-      typeof o.download !== 'number' || typeof o.visibility !== 'string' || typeof o.status !== 'string') return null;
+    if (!validRecord(value)) return null;
+    const o = value;
     // Older builds have neither detail nor checkpoints. Ignore malformed optional evidence.
-    return { ...o as BootRecord, detail: typeof o.detail === 'string' ? o.detail.slice(0, 200) : '',
+    return { ...o, detail: typeof o.detail === 'string' ? o.detail.slice(0, 200) : '',
       checkpoints: Array.isArray(o.checkpoints) ? o.checkpoints.filter(validCheckpoint).slice(-HISTORY_LIMIT) : [] };
   } catch { return null; }
+}
+function validRecord(value: unknown): value is BootRecord {
+  if (typeof value !== 'object' || value === null) return false;
+  const o = value as Partial<BootRecord>;
+  return typeof o.id === 'string' && typeof o.build === 'string' && typeof o.startedAt === 'number' &&
+    typeof o.updatedAt === 'number' && typeof o.stage === 'string' && typeof o.setup === 'number' &&
+    typeof o.download === 'number' && typeof o.visibility === 'string' && typeof o.status === 'string' &&
+    (o.checkpoints === undefined || (Array.isArray(o.checkpoints) && o.checkpoints.every(validCheckpoint)));
 }
 function validCheckpoint(value: unknown): value is Checkpoint {
   if (typeof value !== 'object' || value === null) return false;
@@ -59,28 +136,26 @@ function update(status: Status): void {
 
 /** Called by lastEnd on every new document, before its own boot can replace the old record. */
 export function inspectPreviousNineBoot(): void {
+  if (!retryListener) {
+    retryListener = true;
+    window.addEventListener('online', () => { void flushNineBootReports(); });
+  }
   const prior = read(KEY);
-  if (prior?.status !== 'in_progress') return;
-  const age = Date.now() - prior.updatedAt;
-  if (age < 0 || age > RECENT_MS) return;
-  const stage = prior.stage.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
-  const checkpoints = prior.checkpoints ?? [];
-  const last = checkpoints.at(-1)?.operation ?? prior.detail ?? '';
-  const line = `Abrupt previous page: Nine Dragon ${stage} ${prior.setup}% setup / ${prior.download}% download${last ? ` at ${last}` : ''} (cause unknown)`;
-  previousLine = line;
-  // Consume before the asynchronous SDK import. A second restart cannot report this run twice.
-  try { storage()?.removeItem(KEY); } catch { /* duplicate reporting is possible if storage is denied */ }
-  const error = new Error(`${line}; previous build ${prior.build}; visibility ${prior.visibility}`);
-  const diagnostic = { previousBuild: prior.build, attempt: prior.id, detail: prior.detail ?? '', elapsedMs: prior.updatedAt - prior.startedAt, visibility: prior.visibility, checkpoints };
-  // The renderer-free title must not import the gameplay fault/scoping modules unless there is a report.
-  void import('../telemetry/bootInbox').then(({ reportBootInterruption }) => {
-    reportBootInterruption(error, prior.build, JSON.stringify({ ...diagnostic, checkpoints: checkpoints.slice(-8) }));
-    return undefined;
-  }).catch(() => { /* Sentry remains the independent channel if this module cannot load */ });
-  captureBrowserError(error, {
-    system: 'boot-abrupt', build: prior.build, shard: 'nine-dragon-stack', bootStage: prior.stage, fatal: false,
-    diagnostic,
-  });
+  if (prior?.status === 'in_progress' && prior.visibility === 'visible') {
+    const age = Date.now() - prior.updatedAt;
+    if (age >= 0 && age <= RECENT_MS) {
+      previousLine = reportLine(prior, '');
+      // Copy before replacing the active attempt; a failed import/fetch can retry after another launch.
+      if (enqueue(prior, '')) {
+        try { storage()?.removeItem(KEY); } catch { /* enqueue deduplicates the same attempt */ }
+      }
+    }
+  }
+  if (!previousLine) {
+    const latest = reports().at(-1);
+    if (latest) previousLine = reportLine(latest.record, latest.reason);
+  }
+  void flushNineBootReports();
 }
 
 /** Shown in the loader and the Loading & memory Debug row after a restart. */
@@ -105,6 +180,8 @@ export function nineBootDiagnosticJson(): string {
 export function recordNineBootProgress(view: ProgressView): void {
   if (current === null) return;
   if (current.status !== 'in_progress') return;
+  // Arrival can open Explore before the loader emits its final progress notification.
+  if (transition) { if (view.error) update('handled_error'); return; }
   const stage = view.done ? 'boot plan complete' : view.step;
   const setup = Math.floor(view.setup * 100);
   const download = Math.floor(view.download * 100);
@@ -127,22 +204,34 @@ export function recordNineBootCheckpoint(operation: string, facts: Facts = {}): 
 
 /** Begin once the Nine Dragon loader exists; the root title has no boot in progress. */
 export function startNineBoot(): void {
+  transition = null;
+  hiddenStatus = null;
   const now = Date.now();
   current = {
     id: `${now.toString(36)}-${Math.random().toString(36).slice(2, 8)}`, build: __BUILD_ID__, startedAt: now,
     updatedAt: now, stage: 'loader', setup: 0, download: 0, visibility: document.visibilityState, status: 'in_progress',
   };
   write(KEY, current);
-  document.addEventListener('ws:ready', () => { update('ready'); }, { once: true });
+  document.addEventListener('ws:ready', () => { if (!transition) update('ready'); }, { once: true });
   document.addEventListener('visibilitychange', () => {
-    if (current?.status !== 'in_progress' && !(current?.status === 'pagehide' && document.visibilityState === 'visible')) return;
-    current = { ...current, status: 'in_progress', updatedAt: Date.now(), visibility: document.visibilityState };
+    if (!current) return;
+    if (document.visibilityState === 'visible' && current.status === 'pagehide' && hiddenStatus) {
+      current = { ...current, status: hiddenStatus }; hiddenStatus = null;
+    }
+    if (current.status !== 'in_progress') return;
+    if (transition) { transition.frames = 0; transition.firstDrawAt = null; }
+    current = { ...current, updatedAt: Date.now(), visibility: document.visibilityState };
     write(KEY, current);
   });
-  window.addEventListener('pagehide', () => { update('pagehide'); });
+  window.addEventListener('pagehide', () => {
+    if (current?.status === 'in_progress') hiddenStatus = current.status;
+    if (transition) { transition.frames = 0; transition.firstDrawAt = null; }
+    update('pagehide');
+  });
   window.addEventListener('pageshow', (e) => {
-    if (!e.persisted || current?.status !== 'pagehide') return;
-    current = { ...current, status: 'in_progress', updatedAt: Date.now(), visibility: document.visibilityState };
+    if (!e.persisted || current?.status !== 'pagehide' || !hiddenStatus) return;
+    current = { ...current, status: hiddenStatus, updatedAt: Date.now(), visibility: document.visibilityState };
+    hiddenStatus = null;
     write(KEY, current);
   });
 }
@@ -150,3 +239,44 @@ export function startNineBoot(): void {
 export function markNineBootPlanned(): void { update('planned'); }
 export function markNineBootHandledError(): void { update('handled_error'); }
 export function markNineBootContextLost(): void { update('context_lost'); }
+
+/** Explore imports, construction and a newly exposed vista can fail after ws:ready. */
+export function beginNineExploreEntry(mode: string): void {
+  if (!current || (current.status !== 'ready' && current.status !== 'in_progress')) return;
+  current = { ...current, status: 'in_progress', stage: `explore:${mode.slice(0, 20)}`, updatedAt: Date.now(), visibility: document.visibilityState };
+  transition = { frames: 0, firstDrawAt: null };
+  recordNineBootCheckpoint('explore:entry', { mode: mode.slice(0, 20) });
+}
+
+/** A successful in-page exit ends the entry watch; a handled/lost attempt must keep its terminal status. */
+export function endNineExploreEntry(): void {
+  if (!transition || current?.status !== 'in_progress') return;
+  recordNineBootCheckpoint('explore:left');
+  transition = null;
+  update('ready');
+}
+
+export function nineExploreEntryPending(): boolean { return transition !== null && current?.status === 'in_progress'; }
+
+/** Called after a real successful draw, not a timer; only coarse milestones touch storage. */
+export function recordNineExploreFrame(): void {
+  if (!transition || current?.status !== 'in_progress' || document.visibilityState !== 'visible') return;
+  transition.firstDrawAt ??= Date.now();
+  transition.frames++;
+  if (transition.frames === 1 || transition.frames === 30) recordNineBootCheckpoint('explore:drawn', { frames: transition.frames });
+  if (transition.frames >= 120 && Date.now() - transition.firstDrawAt >= 10_000) {
+    recordNineBootCheckpoint('explore:stable', { frames: transition.frames });
+    transition = null;
+    update('ready');
+  }
+}
+
+/** A known failure survives markUnload/pagehide, including a failure after the world became stable. */
+export function recordNineGpuRecovery(reason: string): void {
+  if (!current) return;
+  current = { ...current, updatedAt: Date.now(), visibility: document.visibilityState };
+  const checkpoint: Checkpoint = { atMs: current.updatedAt - current.startedAt, operation: 'gpu:recovery', facts: { reason: reason.slice(0, 200) } };
+  current = { ...current, checkpoints: [...(current.checkpoints ?? []), checkpoint].slice(-HISTORY_LIMIT) };
+  // Copy synchronously before navigation. The static title sends it on the next document.
+  enqueue(current, reason.slice(0, 200));
+}

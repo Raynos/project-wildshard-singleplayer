@@ -19,6 +19,7 @@
  * which ✎ asks for once if this device has none.
  */
 import * as THREE from 'three';
+import { beginNineExploreEntry, endNineExploreEntry } from '../boot/nineBootTrace';
 import '../ui/styles/explore.css';
 import { FreeCam } from './FreeCam';
 import { TouchFly } from './TouchFly';
@@ -287,6 +288,7 @@ export class Explore {
     for (const o of this.host.hide ?? []) o.visible = true;
     this.setChrome(true);
     if (document.pointerLockElement) document.exitPointerLock();
+    endNineExploreEntry();
     return true;
   }
 
@@ -300,6 +302,7 @@ export class Explore {
   onTap?: (x: number, y: number) => void;
 
   setMode(mode: ExploreMode, opts: Record<string, string> = {}): void {
+    beginNineExploreEntry(mode);
     const prev = this.mode;
     this.mode = mode;
     this.root.dataset['mode'] = mode;

@@ -27,7 +27,7 @@ import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
 import { recordNineGpuCheckpoint, traceNineBootPasses } from '../boot/nineGpuTrace';
-import { recordNineBootCheckpoint } from '../boot/nineBootTrace';
+import { nineExploreEntryPending, recordNineExploreFrame, recordNineBootCheckpoint } from '../boot/nineBootTrace';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -647,6 +647,7 @@ export class Game {
         sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
         this.shardRender?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ChunkDef.ShardRender)
         composer.render(realDt);
+        if (nineExploreEntryPending() && !this.renderer.getContext().isContextLost()) recordNineExploreFrame();
       } catch (e) { this.fault(this.renderSystem, e); return; }
       if (this.captures.length > 0) this.flushCaptures();
       const done = performance.now(), work = done - lastRun;

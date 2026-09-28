@@ -41,6 +41,7 @@ import type { Game } from './Game';
 import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { resumeScreen, SHOT_KEY } from '../ui/Resume';
 import { layout, trace, traceReturn, traceWorldReady } from './lifeTrace';
+import { recordNineGpuRecovery } from '../boot/nineBootTrace';
 import { markUnload } from '../boot/lastEnd';
 
 export interface RecoveryHost {
@@ -137,6 +138,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
   /** `away`: the long-absence reload — a player on the title gets the title back, and a waiting newer build is taken */
   const reload = (why: string, away = false): void => {
     if (phase === 'reloading' || phase === 'stuck') return;
+    if (!away) recordNineGpuRecovery(why);
     epoch++;
     stopTimer();
     game.hold = true;

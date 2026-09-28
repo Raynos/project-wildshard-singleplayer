@@ -109,7 +109,10 @@ for (const [name, engine] of engines) {
       await page.waitForFunction(() => Boolean(window.__world) || Boolean(document.querySelector('#wserr')), null, { timeout: 90_000 });
       await page.locator('.ws-menu-explore').click();
       await page.locator('.ws-x-card[data-m="world"]').click();
-      await page.waitForTimeout(5000);
+      await page.waitForFunction(() => {
+        const trace = JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null');
+        return trace?.status === 'ready' && trace.checkpoints?.some((point) => point.operation === 'explore:stable');
+      }, null, { timeout: 25_000 });
       const state = await page.evaluate(() => ({
         world: Boolean(window.__world), exploring: Boolean(document.querySelector('.ws-x.show[data-mode="world"]')),
         lost: window.__world?.game.renderer.getContext().isContextLost(),

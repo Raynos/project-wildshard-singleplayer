@@ -125,7 +125,7 @@ import { ShardHost, textureBytes, type ShardWorld } from './shard/ShardHost';
 import { consumeArenaArrival, setShardSwitcher } from './shard/switch';
 import { consumeTitleArrival, type TitleArrival } from './boot/titleArrival';
 import { setAliveSource } from './boot/lastEnd';
-import { markNineBootContextLost, markNineBootHandledError } from './boot/nineBootTrace';
+import { beginNineExploreEntry, recordNineBootCheckpoint, markNineBootContextLost, markNineBootHandledError } from './boot/nineBootTrace';
 import { asShell } from './core/shardScope';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -879,6 +879,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   };
   const noteSheet = async (): Promise<void> => { const f = await loadFeedback(); await f.openSheet(); };
   const openExplore = async (mode: ExploreMode, opts: { cam?: number[]; model?: string } = {}): Promise<void> => {
+    beginNineExploreEntry(mode);
     audio.resume();
     audio.worldMuted = false;
     if (!music.isPlaying) music.play('theme');
@@ -889,9 +890,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const t0 = performance.now();
     const { Explore: X } = await import('./explore/Explore');
     const t1 = performance.now();
+    recordNineBootCheckpoint('explore:imported');
     explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
       overhead: [grass?.group, under?.group, particles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
     const t2 = performance.now();
+    recordNineBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
     console.info(`[explore] open: import ${Math.round(t1 - t0)} ms · build ${Math.round(t2 - t1)} ms · open ${Math.round(performance.now() - t2)} ms`);
   };

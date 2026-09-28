@@ -1,5 +1,5 @@
 /** Optional, error-only Sentry channel. The existing /api/errors report remains the primary local inbox. */
-import type { captureException, init, withScope } from '@sentry/browser';
+import type { captureException, getClient, init, withScope } from '@sentry/browser';
 
 declare const __BUILD_ID__: string;
 
@@ -16,7 +16,7 @@ export interface BrowserErrorTags {
 // A DSN is a public browser endpoint, not an auth token. Local/dev builds stay quiet unless opted in.
 const productionDsn = 'https://ccaf25bcd6baa389433fb9efe0117c9b@o4512161165410304.ingest.us.sentry.io/4512161184088064';
 const dsn = String(import.meta.env['VITE_SENTRY_DSN'] ?? (import.meta.env.PROD ? productionDsn : '')).trim();
-interface BrowserSdk { init: typeof init; withScope: typeof withScope; captureException: typeof captureException }
+interface BrowserSdk { init: typeof init; withScope: typeof withScope; captureException: typeof captureException; getClient: typeof getClient }
 let sdk: Promise<BrowserSdk | null> | null = null;
 
 function loadSdk(): Promise<BrowserSdk | null> {
@@ -75,4 +75,29 @@ function asError(error: unknown): Error {
 export function captureBrowserError(error: unknown, tags: BrowserErrorTags): void {
   if (!dsn) return;
   void send(error, tags);
+}
+
+/** Durable diagnostics require a transport acknowledgement, not just captureException's event ID. */
+export async function deliverBrowserError(error: Error, tags: BrowserErrorTags): Promise<boolean> {
+  if (!dsn) return true;
+  const sentry = await loadSdk();
+  const client = sentry?.getClient();
+  if (!sentry || !client) { sdk = null; return false; }
+  return new Promise((resolve) => {
+    let eventId = '';
+    let unsubscribe = (): void => undefined;
+    const timer = setTimeout(() => { unsubscribe(); resolve(false); }, 5000);
+    const finish = (ok: boolean): void => { clearTimeout(timer); unsubscribe(); resolve(ok); };
+    unsubscribe = client.on('afterSendEvent', (event, response) => {
+      if (event.event_id === eventId) finish(response.statusCode !== undefined && response.statusCode >= 200 && response.statusCode < 300);
+    });
+    try {
+      sentry.withScope((scope) => {
+        scope.setTags({ system: tags.system, build: tags.build, shard: tags.shard, boot_stage: tags.bootStage });
+        scope.setLevel('error');
+        if (tags.diagnostic) scope.setContext('boot_diagnostic', tags.diagnostic);
+        eventId = sentry.captureException(error);
+      });
+    } catch { finish(false); }
+  });
 }
