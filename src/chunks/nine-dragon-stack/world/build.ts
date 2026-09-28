@@ -252,7 +252,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   };
   for (const [name, g] of kitGeos) kitMesh(name, g, mat);
   for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
-  root.add(named(paper.build(), 'lanterns'));
+  if (setting('nineLanterns') === 'on') root.add(named(paper.build(), 'lanterns'));
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
   const facade = buildFacade(ctx.fd, facadeUniforms(shared), {
