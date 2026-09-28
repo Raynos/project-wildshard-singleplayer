@@ -10,9 +10,9 @@
  *                           src/boot/art.generated.ts (Vite copies them byte for byte).
  *  - `extraFetches(files)`  the art and the audio for the prefetch queue (after the shard's own files), in the order they
  *                           are needed: the art, then the selected style + set, then every other style and set.
- *  - `startMenuPreload()`   each picture, once the queue has it, kept in memory: the shard cards' art as blob: URLs swapped
- *                           into the cards (the title's swipe used to fetch the neighbours' hero stills — even from the
- *                           worker's cache that is a request after the bar), the Explore panels decoded into <img>s the
+ *  - `startMenuPreload()`   title art fetched during the bar. On phones only the selected card is decoded and kept in
+ *                           memory; the other cards' compressed files remain in the offline cache until selected.
+ *                           Explore panels are decoded into <img>s that the
  *                           viewer's own <img>s reuse; awaited by the 'menu' step, which also imports the lazy UI chunks
  *                           (Explore, Feedback) so opening them later makes no request.
  *  - `startAudioPreload()`  every audio file downloaded (the service worker caches each on its way in — a menu switch and an
@@ -115,10 +115,18 @@ export function startMenuPreload(files: ChunkFiles, def: ChunkDef): Preload<void
   const art = files.art;
   const c = counter(art.length + (def.ocean === undefined ? 1 : 2));
   const blobs = new Map<string, string>();
+  // The phone page runs one shard at a time. Keep the other cards' bytes in the
+  // offline cache, but do not hold their decoded full-size heroes in WebKit's
+  // image memory while the selected shard allocates its textures (E244).
+  const activeCardArt = new Set([def.thumbnail, def.heroPortrait, def.heroLandscape].map(pathOf));
   const images = art.map(async (u) => {
     if (artLoaded.has(u)) { c.tick(); return; }
     artLoaded.add(u);
     await whenPrefetched(u);
+    if (TIER === 'phone' && cardArt.has(u) && !activeCardArt.has(u)) {
+      c.tick();
+      return;
+    }
     try {
       const blob = await (await fetch(u)).blob(); // the counted download, handed over by the queue (the service worker keeps a copy)
       const card = cardArt.has(u);
