@@ -19,11 +19,12 @@ for _ in {1..50}; do
   sleep 0.2
 done
 
-if [[ "$(uname -s)" == Darwin ]]; then
-  node scripts/test-nine-native-startup.mjs --url="http://127.0.0.1:$port"
-fi
 if [[ "$ready" -ne 1 ]]; then cat "$log"; exit 1; fi
 
 for fault in context precision shader; do
   node scripts/test-nine-gpu-boot.mjs --url="http://127.0.0.1:$port" --only=all --fault="$fault"
 done
+
+if [[ "$(uname -s)" == Darwin ]]; then
+  node scripts/test-nine-native-startup.mjs --url="http://127.0.0.1:$port"
+fi
