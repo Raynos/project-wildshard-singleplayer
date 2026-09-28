@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-09-27 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple with phone-reduced rope/FX, and the shared practice arena are live. F3's latest 15-second portrait recut is in round 22 for Jake's review. F4–F10 still need visual, budget, lab-parity and physical iPhone work; title-first boot and phone memory reductions passed an iOS Simulator PWA run, but Jake's device remains unverified. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
+**State:** `in progress` 2026-09-27 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple with phone-reduced rope/FX, and the shared practice arena are live. F3's latest 15-second portrait recut is in round 22 for Jake's review. F4–F10 still need visual, budget, lab-parity and physical iPhone work. On `0825d9a7`, Simulator Nine Dragon failed with Auto/KTX2 and entered World Explorer with Images; `427cd5e7` now defaults Nine Dragon phone Auto to Images, cuts boot peaks, and enters World Explorer in Simulator. F10 physical iPhone retest is pending. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
 
 ## 0. Read this first
 

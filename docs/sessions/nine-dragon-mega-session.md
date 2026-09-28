@@ -10,7 +10,7 @@ Updated: 2026-09-27. This is the short list to use when Jake returns and asks to
 | F2 | Now | Review the three-page **A4 portrait** skill user manual for Matthew. Is it understandable without reading the underlying skill? | [PDF](../process/shard-checkpoints-user-guide.pdf), E207 |
 | F4 | Now | Review the **portrait Nine Dragon trailer recut** with the current playable grapple and three-talon flying claw. Does the crossing read clearly, and is the 15-second cut ready? | [video](../../art/nine-dragon-stack/round-22-portrait-grapple-final/nine-dragon-portrait-grapple-final.mp4), [contact sheet](../../art/nine-dragon-stack/round-22-portrait-grapple-final/contact.jpg), E204 |
 | F5 | Now | Review the three placed GLB assets in Model Explorer and say which need more polish before further shard expansion. | E205, E215 |
-| F8 | After build `3cef2b11` is live | Retry Nine Dragon on the physical iPhone home-screen PWA after the faster Props paint and lower title-art memory use. Does it enter after one load or still reach Safari's black crash page? A screenshot at the last visible loading step helps. | E230, E231, E243, E244 |
+| F10 | After build `427cd5e7` is live | Retry Nine Dragon on the physical iPhone home-screen PWA. Does it enter Explore World and World Explorer after one load, or still reach Safari's black crash page? This build uses Images for Nine Dragon phone Auto, defers audio decode, removes three phone render passes, and records the last stage after an abrupt restart. | E246, E248 |
 | F9 | Now | Pick A, B, C, D, or E for the developer-only Practice Arena entry inside Explore World. | [One portrait storyboard](../../art/hud-explorer/round-5-explore-entry/explore-entry-A-E.jpg), E233 |
 
 ## Resolved decisions
@@ -29,7 +29,10 @@ Updated: 2026-09-27. This is the short list to use when Jake returns and asks to
 | PWA reload investigation | Reproduce in iOS Simulator; do not wait for Jake to inspect a debug panel. |
 | F6 physical iPhone check | The fresh-page switch still crashed while building Nine Dragon in Props. E217 is the memory reduction response; the phone retry is F7. |
 | F7 physical iPhone check | Failed: Props froze for roughly 10 seconds, the bar reached 100%, Nine Dragon loaded again, then Safari showed its black repeated-problem screen. E224/E225 are the next mitigation and diagnosis. |
-| Nine Dragon simulator check | Safari on the iPhone 17 Pro simulator entered Nine Dragon World Explorer after one load on build `b8e2e6d`. The physical iPhone failed on the same build after First frame 95%, then loaded again and showed Safari's repeated-problem screen. The simulator does not reproduce that failure. |
+| F8 physical iPhone check | Failed on the faster Props/title-art build: Jake still could not load Nine Dragon. |
+| Nine Dragon earlier simulator check | Safari on the iPhone 17 Pro simulator entered Nine Dragon World Explorer after one load on build `b8e2e6d`. The physical iPhone failed on the same build after First frame 95%, then loaded again and showed Safari's repeated-problem screen. The later `0825d9a7` simulator run reproduced a GPU failure, recorded below; whether it is the same physical failure remains unknown. |
+| Nine Dragon simulator GPU isolation | On build `0825d9a7`, Simulator Nine Dragon Explore World showed a `shaderSource` WebGLShader error with default phone Auto/KTX2. With only GPU textures changed to Images, the same Simulator entered World Explorer and rendered the city. The separate native WebKit GPU report shows a SIGBUS during compressed texture upload. Physical iPhone outcome remains unknown. |
+| Nine Dragon deployed phone boot | Build `427cd5e7` deployed and confirmed in `version.json`. On iOS Simulator, the default Auto setting loaded Nine Dragon and entered World Explorer; physical iPhone F10 remains pending. |
 
 ## How to use this file
 
