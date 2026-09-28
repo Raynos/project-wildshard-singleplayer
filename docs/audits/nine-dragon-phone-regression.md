@@ -40,6 +40,8 @@ Next: test preserved pre-handoff deployment on the phone, then narrow deployed r
 
 Validation: clean exported tree passed CSS, both TypeScript projects, oxlint, all 603 unit tests and Vite build. On an exported production build, WebKit and Metal Chromium each passed both precision-null and shader-failure cases. Both intercepted report payloads contained the expected renderer/compile checkpoint. The first Sentry assertion was too early (1.5 s); waiting for its lazy SDK transport fixed the test, not the phone regression.
 
+Live verification: `e161ffd-mul8150f`, GitHub run `36421585115` green. A synthetic restart probe got HTTP 200 from both remote transports. Sentry event `b0eaf417ddaf42339c59fb5d39920852` contains the nested checkpoint facts intact and is labeled `E256-validation`. Do not count that event as another physical crash. Normal local phone-tier boot also reached ready without browser errors. Every browser opened for this work was closed.
+
 ## Relevant commit inventory
 
 - `903d66e0` Title deck: the Nine Dragon Stack COMING SOON art re-shot from the in-engine partial shard (Jake: "update the hero images in the carousel for coming soon too") — the hero + card from the spawn (mockup A's camera), and the carousel: the Yamen Well's edge and down the Well (free camera just out over the rim), the stair-street (mockup C's camera), and crossing the Well from the bridge mid-shaft; the clean-room slides "canyon up" and "gold on indigo" retired. Captured from the exact checkpoint-3 build (free camera, no HUD, no viewmodel); checked on a production build at iPhone size: hero, card and slideshow in step, no errors
