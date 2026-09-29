@@ -82,3 +82,17 @@ boost without the gain cuts (orange curtain on the stair).
 
 Memory: geometry 157.0 MB, textures 79.6 MB (the fabric lane's diet in the same build). Worst pose: mockup A, 125 draws,
 1.50 M triangles.
+
+## Pass 4: the stair's streaks (the stair lane's eye-check) and the aerials' haze
+
+`pass-4/`, captured at `be97ea90` (the stair's sky screen removed) + the lane's files. The stair lane: the neon streaks
+ran as full-saturation bands the whole flight wide and drowned the treads; mockup C and the C domes show three or four
+thin broken stripes on mid-grey wet stone with every tread edge readable.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| The stair's card sets narrow (width 0.4 → 0.12) and broken (dash 0.45 → 0.8) | `look/streaks.ts` | less fill (a third of the cards' width on the stair) |
+| The square's runs a little narrower (0.4 → 0.3) and more broken (dash 0.6): separate stripes with the stone between them | `look/streaks.ts` | less fill |
+| The silk over the datum thins faster (e-fold 45 → 18 m, floor 0.35 → 0.2): pass 3's denser silk turned the aerials over the square into a pale haze; the eye-level views keep theirs | `look/style.ts` | none |
+
+Memory: geometry 156.2 MB, textures 79.6 MB. Worst pose: mockup A, 125 draws, 1.49 M triangles.

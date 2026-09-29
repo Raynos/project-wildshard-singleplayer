@@ -158,8 +158,10 @@ export class Shared {
     uShaftK: { value: new Vector4(0.02, 0, 0.006, 30) },
     // (render, E281) how far the shaft's silk takes the strata's pale colour script over the blue base air (0 = round 14)
     uShaftLit: { value: 0.8 },
-    // (render, E281) the base air under the square's datum: x its thickening's cap, y its e-fold depth (m)
-    uFogDeep: { value: new Vector2(1, 70) },
+    // (render, E281) the base air's height profile: under the square's datum x its thickening's cap, y its e-fold depth
+    // (m); over it z its thinning's e-fold height (m), w its floor (45 m / 0.35 until pass 4: with pass 3's denser silk
+    // the aerials over the square went a pale haze; the eye-level views keep theirs)
+    uFogDeep: { value: new Vector4(1, 70, 18, 0.2) },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
@@ -217,7 +219,7 @@ uniform vec3 uFogBaseCol;
 uniform vec4 uShaft;
 uniform vec4 uShaftK;
 uniform float uShaftLit;
-uniform vec2 uFogDeep;
+uniform vec4 uFogDeep;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
 // the colour script: the silk's tint at an altitude, interpolated between the bands
@@ -278,7 +280,7 @@ vec4 silkFog(vec3 wp, float scale) {
   // aerials see lamp-lit depth, the shaft fills with silk. Looking up (from inside the Well) the ray is read nearer
   // its top: the shaft opens toward the lit sky instead of greying out
   float hy = dy > 0.0 ? mix(midY, max(uCam.y, wp.y), 0.8) : midY;
-  float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / uFogDeep.y), uFogDeep.x) : max(exp(-(hy - ${Y0}.0) / 45.0), 0.35);
+  float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / uFogDeep.y), uFogDeep.x) : max(exp(-(hy - ${Y0}.0) / uFogDeep.z), uFogDeep.w);
   float a0 = 1.0 - exp(-uFogBase * hk * max(L - uFogStart, 0.0) * scale);
   vec3 baseC = mix(uFogBaseCol, scriptCol(wp.y), clamp((uCam.y - wp.y) / 150.0, 0.0, 1.0));
   acc += T * a0 * baseC;

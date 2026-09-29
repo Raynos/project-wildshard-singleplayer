@@ -175,22 +175,24 @@ void main() {
 }
 `;
 
-export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.45, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.4, fine: 0.4, warm: 1.5 } as const;
+// (render, E281) width 0.4 → 0.3 and dash 0.45 → 0.6: the square's runs smeared into one sheet of colour; the targets'
+// are separate broken stripes with the stone between them
+export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.6, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.3, fine: 0.4, warm: 1.5 } as const;
 
 /** a reflecting plane: a point on it, its axis along x (tilted with a slope), its normal, and its extent (x0, z0, x1, z1) */
 export interface StreakPlane { o: Vector3; u: Vector3; n: Vector3; clip: Vector4 }
 
 const NO_CLIP = new Vector4(-1e5, -1e5, 1e5, 1e5);
 
-export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4, plane?: StreakPlane, gain = 1, lift = 0): Mesh {
+export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole: Vector4, plane?: StreakPlane, gain = 1, lift = 0, width: number = STREAK_LOOK.cardWidth, dash: number = STREAK_LOOK.cardDash): Mesh {
   const L = STREAK_LOOK;
   const P = plane ?? { o: new Vector3(0, shared.u.uGroundY.value, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: NO_CLIP };
   const mat = new ShaderMaterial({
     uniforms: {
       ...shared.u,
       uPlaneO: { value: P.o.clone() }, uPlaneU: { value: P.u.clone().normalize() }, uPlaneN: { value: P.n.clone().normalize() }, uClip: { value: P.clip.clone() },
-      uSpread: { value: new Vector4(L.tailNear, L.tailFar, L.cardWidth, 0.6) },
-      uCardK: { value: new Vector4(L.cardGain * gain, L.cardDash, L.cardJog, 1) },
+      uSpread: { value: new Vector4(L.tailNear, L.tailFar, width, 0.6) },
+      uCardK: { value: new Vector4(L.cardGain * gain, dash, L.cardJog, 1) },
       uFine: { value: L.fine },
       uCardOn: { value: 1 },
       uLift: { value: lift },
@@ -225,6 +227,9 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
  *  shows on half a tread only */
 // (render, E281) 2 → 1.3: mockup C's treads carry thin runs, not a curtain (the phone's cards also run at full strength now)
 const STAIR_GAIN = 1.3;
+/** (render, E281: the stair lane's eye-check — full-saturation bands the whole flight wide drowned the treads) the stair's
+ *  runs are thin and broken: mockup C's three or four narrow stripes up the flight, every tread edge readable */
+const STAIR_WIDTH = 0.12, STAIR_DASH = 0.8;
 
 /** the stair-street's flights and landings, as world/stairstreet.ts exports them */
 export interface StairPlan {
@@ -249,12 +254,12 @@ export function stairStreaks(shared: Shared, emitters: readonly Emitter[], plan:
     out.push(buildStreaks(shared, emitters, none, {
       o: new Vector3(f.x0, f.y0 + plan.rise * 0.5, 0), u: new Vector3(1, slope, 0), n: new Vector3(-slope, 1, 0),
       clip: new Vector4(f.x0, plan.z0, f.x1, plan.z1),
-    }, STAIR_GAIN, plan.rise * 0.42));
+    }, STAIR_GAIN, plan.rise * 0.42, STAIR_WIDTH, STAIR_DASH));
   }
   for (const l of plan.landings) {
     out.push(buildStreaks(shared, emitters, none, {
       o: new Vector3(l.x0, l.y, 0), u: new Vector3(1, 0, 0), n: new Vector3(0, 1, 0), clip: new Vector4(l.x0, plan.z0, l.x1, plan.z1),
-    }, STAIR_GAIN));
+    }, STAIR_GAIN, 0, STAIR_WIDTH, STAIR_DASH));
   }
   return out;
 }
