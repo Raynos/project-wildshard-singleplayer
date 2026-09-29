@@ -149,6 +149,8 @@ export class Shared {
     // z: how much of the baked neon spill (vSpill) the glints take (round 2: the targets' treads glint in the neon's
     // colours), w: the sparkle cell's length (m)
     uGlint: { value: new Vector4(3, 0.28, 2, 0.1) },
+    // (E283, Debug ▸ Performance) the Jiehua program's far LOD: x / y the fade (m), z on (1) / off (0)
+    uJLod: { value: new Vector4(25, 45, 0, 0) },
     // (render, E281) how much of the silk the mineral accents take (T^x; 1 = as any wash)
     uAccentFog: { value: 0.35 },
     // (render, E281) the flagstones: x the per-stone value swing, y the speckle's contrast, w the granite paint's
@@ -486,6 +488,7 @@ uniform vec3 uSutraWin;
 uniform float uFogScale;
 uniform sampler2D uSilk;
 uniform vec4 uGlint;
+uniform vec4 uJLod;
 uniform float uAccentFog;
 uniform vec4 uFlag;
 varying vec3 vWorld;
@@ -526,6 +529,11 @@ void main() {
   vec3 toCam = uCam - vWorld;
   float dist = length(toCam);
   vec3 V = toCam / max(dist, 1e-4);
+  // (E283, Debug ▸ Performance, off by default) the far LOD: the painted grain, the stains and mottle, the silk weave, the
+  // paper's grain on the fog and the lamplight's gloss / rim fade out from uJLod.x to uJLod.y m and are not computed past
+  // it — detail the silk has mostly swallowed by then. 1 = far
+  float jl = uJLod.z > 0.5 ? smoothstep(uJLod.x, uJLod.y, dist) : 0.0;
+  pk *= 1.0 - jl;
   // (render) the silk fog once per pixel: the wet ground's two sheen terms read its colour from it (fogCol() re-ran the
   // 9-band march twice more on every ground pixel)
   vec4 fgc = silkFog(vWorld, uFogScale);
@@ -819,11 +827,14 @@ void main() {
   float poolW = 9.0 * uDpr;
   float pool = (1.0 - smoothstep(0.0, poolW, dEdge)) * smoothstep(poolW * 1.5, poolW * 4.0, faceMin);
   shaded *= 1.0 - uPool * pool;
-  float stainN = vnoise(vec2(q.x * 1.1 + vPat.w * 7.0, q.y * 0.045)) * 0.7 + vnoise(vec2(q.x * 3.1, q.y * 0.11 + 5.0)) * 0.3;
-  shaded *= 1.0 - uStain * vert * smoothstep(0.35, 0.8, stainN);
-  float mot = vnoise(q * 0.45 + vPat.w) * 0.6 + vnoise(q * 1.7) * 0.4;
-  shaded *= 1.0 + uMottle * (mot - 0.5) * (kind == 9.0 ? 2.2 : 1.0);
-  if (kind == 9.0) shaded *= 1.0 + 0.07 * (vnoise(q * 7.0 + vPat.w) - 0.5) + 0.05 * (vnoise(q * 23.0) - 0.5) * (1.0 - smoothstep(0.005, 0.02, gq));
+  if (jl < 1.0) {
+    float nk = 1.0 - jl;
+    float stainN = vnoise(vec2(q.x * 1.1 + vPat.w * 7.0, q.y * 0.045)) * 0.7 + vnoise(vec2(q.x * 3.1, q.y * 0.11 + 5.0)) * 0.3;
+    shaded *= 1.0 - uStain * vert * smoothstep(0.35, 0.8, stainN) * nk;
+    float mot = vnoise(q * 0.45 + vPat.w) * 0.6 + vnoise(q * 1.7) * 0.4;
+    shaded *= 1.0 + uMottle * (mot - 0.5) * (kind == 9.0 ? 2.2 : 1.0) * nk;
+    if (kind == 9.0) shaded *= 1.0 + (0.07 * (vnoise(q * 7.0 + vPat.w) - 0.5) + 0.05 * (vnoise(q * 23.0) - 0.5) * (1.0 - smoothstep(0.005, 0.02, gq))) * nk;
+  }
   // rain-wet stone and decks (vMisc.z): darker, the tops most (the flagstones do their own wet in kind 3)
   if (kind != 3.0 && wet > 0.0) {
     float top = step(0.6, n.y);
@@ -839,10 +850,12 @@ void main() {
   float lv = log2(max(fp * 1.9 * 256.0, 1e-4) / 0.35);
   float ko = floor(lv), fo = lv - ko;
   float s0 = 0.35 * exp2(ko);
-  float weave = mix(texture(uSilk, wq / s0).r, texture(uSilk, wq / (s0 * 2.0) + 0.37).r, fo);
-  float gran = mix(vnoise(wq / (s0 * 0.16)), vnoise(wq / (s0 * 0.32) + 3.1), fo);
   float gk = kind == 3.0 ? 2.0 : 1.0;
-  shaded *= 1.0 + ((weave - 0.5) * uWeave * 2.0 + (gran - 0.5) * uWeave * 1.6) * gk;
+  if (jl < 1.0) {
+    float weave = mix(texture(uSilk, wq / s0).r, texture(uSilk, wq / (s0 * 2.0) + 0.37).r, fo);
+    float gran = mix(vnoise(wq / (s0 * 0.16)), vnoise(wq / (s0 * 0.32) + 3.1), fo);
+    shaded *= 1.0 + ((weave - 0.5) * uWeave * 2.0 + (gran - 0.5) * uWeave * 1.6) * gk * (1.0 - jl);
+  }
   // neon spill, baked per vertex at build time (emitters.ts)
   // (capped: the sign masts on the balustrade must not bleach the stone; wet stone shows it as a darker sheen)
   // (lab P6) the blue-hour ambient scales the wash only (spill, pools, emitters and ink keep their value)
@@ -900,9 +913,11 @@ void main() {
     float fr = 0.04 + 0.96 * pow(1.0 - cv, 5.0);
     // (the lacquer's lobe is Fresnel-only: its flat 6 % base lit the whole paifang from its own lanterns — dome B)
     float gk = max(gloss * 0.45 * fr, max(wetPool, wet * 0.5 * step(0.6, n.y)) * fr);
-    if (gk > 0.002) emit += poolSpec(vWorld, Rr) * gk;
-    // the rim: edges turned from the eye catch what is lit behind them (wetter edges, a brighter rim)
-    emit += poolRim(vWorld, n, V) * (0.6 + 0.4 * max(gloss, wet)) * lacq;
+    if (jl < 1.0) {
+      if (gk > 0.002) emit += poolSpec(vWorld, Rr) * gk * (1.0 - jl);
+      // the rim: edges turned from the eye catch what is lit behind them (wetter edges, a brighter rim)
+      emit += poolRim(vWorld, n, V) * (0.6 + 0.4 * max(gloss, wet)) * lacq * (1.0 - jl);
+    }
   }
   // the colour script: the deep strata sink into indigo paper (their windows gold) — the sutra's hinge
   float lumC = lum(shaded);
@@ -934,7 +949,7 @@ void main() {
   emit += goldL * li * uGold * 0.8;
   emit += li * uGold * 0.9 * (1.0 - smoothstep(-120.0, -20.0, yy)) * (1.0 - uSutra);
 
-  vec3 fogC = fgc.rgb * silkPaper(gl_FragCoord.xy);
+  vec3 fogC = fgc.rgb * (jl < 1.0 ? mix(silkPaper(gl_FragCoord.xy), 1.0, jl) : 1.0);
   // (round 14) a light punches through the silk further than the wash it sits on (√T, as the facade windows do):
   // the lanterns and lit shops of the lower strata glow through the bands
   // (render, E281) the mineral accents (the paifang's cinnabar, the malachite roofs) hold their colour through the silk

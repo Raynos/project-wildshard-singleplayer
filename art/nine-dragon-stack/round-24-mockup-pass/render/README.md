@@ -223,3 +223,27 @@ The reject was checked on frozen frames at the four mockup cameras: at most 3 pi
 Trimming each drawn quad to its visible stretch was tried and dropped: not identical (the card's across-coordinate and
 fog are interpolated over its two triangles, and a shorter quad moves the diagonal: up to 180 / 255 on the stair's thin
 dashed runs), and it saved nothing over the reject.
+
+### E283, task 2: the Jiehua architecture program's per-pixel cost
+
+Swapping the program's opaque materials for a flat shader saves **0.71 ms at mockup A, 0.88 at C1·4, 0.36 at A1·7**
+(M5, alternating A / B); the facade program (the fabric lane's `facadeMaterial.ts`) saves 0.17 / 0.14 / 0.24. Per term,
+switched off one at a time in a probe build (alternating A / B, ±0.1 ms):
+
+| Term | mockup A | C1·4 | A1·7 |
+|---|---|---|---|
+| the silk fog (`silkFog`, per pixel) | 0.12 | 0.26 | 0.03 |
+| the light-volume diffuse pool | 0.10 | ~0 | 0.04 |
+| gloss lobe + rim + glints (3–4 volume reads) | 0.02 | 0.27 | 0.04 |
+| the painted texture array | ~0 | 0.13 | 0.03 |
+| stains, mottle, speckle (value noise) | 0.06 | 0.13 | 0.06 |
+| silk weave + granulation + paper grain | ~0 | 0.13 | 0.06 |
+| the facade cells' clutter | 0.05 | 0.09 | 0.03 |
+| all of the above at once | **0.46** | **0.46** | 0.18 |
+
+So the optional terms are ~0.2–0.5 ms of the program's 0.7–0.9; the rest is its base (the ruled ink, the facade cells,
+the wash). The distance LOD asked for (the painted detail, stains, weave, paper grain, gloss and rim faded out past a few
+tens of metres) saves little: at 25–45 m ±0.05, at 15–30 m 0.08 / ~0 / 0.01, and with no detail at all 0.18 / 0.21 /
+0.10. It is a default-off row, **Stone & wall detail** (`ndShaderDetail`: full / near only / none); stills
+`e283-streaks/detail-near-only.jpg`, `detail-none.jpg`. The detail's cost sits in the near pixels (the square's floor, the
+balustrade): an LOD by distance cannot halve it without removing it where it reads.

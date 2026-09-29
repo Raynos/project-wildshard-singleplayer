@@ -155,10 +155,12 @@ export function createRender(): ShardRender {
         STREAK_PERF.x = setting('ndStreakTails') === 'on' ? STREAK_CUT.tails : 0;
         STREAK_PERF.y = setting('ndStreakFloor') === 'on' ? STREAK_CUT.floor : 0;
         STREAK_PERF.z = setting('ndStreakSplit') === 'on' ? 1 : 0;
+        const d = setting('ndShaderDetail');
+        world.shared.u.uJLod.value.set(d === 'none' ? 0 : 15, d === 'none' ? 0.01 : 30, d === 'full' ? 0 : 1, 0);
       };
       perf();
       unsub.forEach((f) => { f(); });
-      unsub = [onSettingChange('ndStreakTails', perf), onSettingChange('ndStreakFloor', perf), onSettingChange('ndStreakSplit', perf)];
+      unsub = [onSettingChange('ndStreakTails', perf), onSettingChange('ndStreakFloor', perf), onSettingChange('ndStreakSplit', perf), onSettingChange('ndShaderDetail', perf)];
       const src = lightSources();
       const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
       if (halos !== null) world.root.add(halos.mesh);

@@ -150,6 +150,9 @@ export const OPTION_VALUES = {
   ndStreakTails: ['off', 'on'],
   ndStreakFloor: ['off', 'on'],
   ndStreakSplit: ['on', 'off'],
+  // E283: the Jiehua architecture program's painted detail (grain, stains, mottle, silk weave, paper grain, gloss and rim):
+  // full, faded out past 15–30 m, or none; live
+  ndShaderDetail: ['full', 'near', 'none'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -169,7 +172,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, nineLanterns: DEBUG_ONLY,
-  ndStreakTails: DEBUG_ONLY, ndStreakFloor: DEBUG_ONLY, ndStreakSplit: DEBUG_ONLY,
+  ndStreakTails: DEBUG_ONLY, ndStreakFloor: DEBUG_ONLY, ndStreakSplit: DEBUG_ONLY, ndShaderDetail: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
@@ -193,6 +196,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   prototypes: option('prototypes'),
   nineLanterns: option('nineLanterns'),
   ndStreakTails: option('ndStreakTails'), ndStreakFloor: option('ndStreakFloor'), ndStreakSplit: option('ndStreakSplit'),
+  ndShaderDetail: option('ndShaderDetail'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
