@@ -267,6 +267,9 @@
 .ws-touch { --hov-h: 62px; --hov-gap: 18px; }
 #hud .ws-touch .ws-touch-hover { height: var(--hov-h); }
 #hud .ws-touch-strip:not(.desk) { top: auto; bottom: calc(54% + var(--hov-h) / 2 + var(--hov-gap)); }
+/* the SWAP pill (the swap control on a shard without the strip: Driftwood, Nine Dragon) sat centred on the divider and ran
+   6–15 px into the LOCK disc of the E119 row; it now ends 6 px left of the divider, over MOVE's top-right corner */
+#hud .ws-touch-pill { transform: translateX(calc(-100% - 6px)); }
 @media (max-height: 740px) {
   .ws-touch { --hov-h: 52px; --hov-gap: 14px; }
   #hud .ws-touch-strip:not(.desk) { --slot: 34px; gap: 4px; }
