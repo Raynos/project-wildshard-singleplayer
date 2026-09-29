@@ -1,6 +1,7 @@
 /** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
+import { practiceFps } from '../core/tier';
 import type { Physics } from '../physics/Physics';
 import { addTrainingTarget, trainingTargetRaycast } from '../physics/trainingTargets';
 import type { Player } from '../player/Player';
@@ -294,6 +295,7 @@ export class TrainingArena {
 
   enter(player: Player, weapons: Weapons): void {
     this.active = true; this.root.visible = true; this.overlay.classList.add('show');
+    practiceFps.on = true; // mobile targets 60 in here (E290, tier.ts frameCapFps)
     this.player = player;
     for (const t of this.targets) t.attacker = player.position;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
@@ -309,6 +311,7 @@ export class TrainingArena {
 
   exit(): void {
     this.active = false; this.root.visible = false; this.overlay.classList.remove('show');
+    practiceFps.on = false;
     this.player = null;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
     this.overlay.parentElement?.classList.remove('practice-active');

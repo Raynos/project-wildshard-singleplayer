@@ -174,10 +174,17 @@ export const frameProbe = { uncapped: false };
  * WWDC18 612: lock 30 if 60 cannot hold for ten minutes). No menu pick lifts it on mobile; only the probe's uncapped rows
  * and the test harness's `?fps=60` (scripts measuring the uncapped cost) do. On desktop Settings ▸ Debug ▸ Frame cap 30
  * caps any shard; auto is the display's rate.
+ *
+ * E290 (Jake, 2026-09-29): the practice arena is the exception, the simplest zone to feel 60 on the device. While it is
+ * open (`practiceFps.on`, TrainingArena.enter / exit) mobile is capped at 60, not 30 (a 120 Hz display does not run at
+ * 120). iOS Low Power Mode still holds rAF at 30 there.
  */
+/** the practice arena is open: the one place mobile targets 60 (E290, below) */
+export const practiceFps = { on: false };
+
 export function frameCapFps(): number {
   if (frameProbe.uncapped) return 0;
   const f = setting('fps');
-  if (MOBILE_DEVICE) return f === '60' && settingFromUrl('fps') ? 0 : 30;
+  if (MOBILE_DEVICE) return f === '60' && settingFromUrl('fps') ? 0 : practiceFps.on ? 60 : 30;
   return f === '30' ? 30 : 0;
 }
