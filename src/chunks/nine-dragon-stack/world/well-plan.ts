@@ -51,10 +51,11 @@ export const CROSSINGS: readonly Crossing[] = [
   { kind: 'timber', z: -4, y: Y0 - 48, w: 2.2, crowd: 1, ext: false },
   { kind: 'covered', z: -33, y: Y0 - 54, w: 2.6, crowd: 1, ext: false },
   { kind: 'stone', z: -14, y: Y0 - 63, w: 3, crowd: 0, ext: false },
-  // (dome D2's four for view D's middle, clear of the temple spur at z −11…+5 below +50)
+  // (dome D2's for view D's middle, clear of the temple spur at z −35…−25. F5: from mockup D's camera the rungs from 45 %
+  // to 58 % down the frame stacked into a floor over the temple — a steel one at z −24 (+56) crossed its sightline 8 m
+  // over the terrace, a stone one at z −38 (+41) lay just under it — so both went: five rungs now step down between
+  // the gate bridge (25 %) and the temple (53 %), and the cloud sea the terrace floats on is at +44, look/style.ts BANDS)
   { kind: 'timber', z: -28, y: Y0 - 36, w: 2.2, crowd: 2, ext: false },
-  { kind: 'steel', z: -24, y: Y0 - 69, w: 1.4, crowd: 1, ext: false },
-  { kind: 'stone', z: -38, y: Y0 - 84, w: 3, crowd: 1, ext: false },
   { kind: 'timber', z: -20, y: Y0 - 93, w: 2.2, crowd: 1, ext: false },
   { kind: 'stone', z: -51, y: Y0 + 3, w: 3, crowd: 4, ext: true },
   { kind: 'steel', z: -58, y: Y0 - 27, w: 1.4, crowd: 1, ext: true },

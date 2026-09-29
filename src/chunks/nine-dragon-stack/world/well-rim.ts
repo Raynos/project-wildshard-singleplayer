@@ -134,20 +134,23 @@ function rimShops(plan: WellPlan, rng: Rng): void {
 /**
  * The rim's carved stone balustrade (石欄杆), waist high (1.1 m) so the mockup D camera leans over it: a plinth, square
  * posts every ~2.4 m with carved faces, caps and lotus-bud finials (stone lions on the two camera posts), a relief-carved
- * panel between each pair on the ledge's side, vase balusters under a heavy rail. The posts stand where the two shared
- * mockup cameras need them: D's lion post at its lower left (x −15.2), B looking over a panel with its lion post at its
- * lower right (x −18.2).
+ * panel between each pair on the ledge's side, vase balusters under a heavy rail. (F4, mockups B and D) The stone is
+ * rain-dark granite (wet 0.7) and takes the neon like an accent (40 % of the spill and the lamp pools: the magenta
+ * off the shop row had turned the whole balustrade pink). B's camera (x −19.5) stands a metre back, where the 57°-wide
+ * portrait frame holds one bay: its lower-right post stands just out of frame (x −18.6; a post inside the frame was a
+ * bulb filling a third of it) and comes into the frame's right edge from 2 m back. D's camera leans out over the rail at
+ * x −14: every post is ≥ 0.9 m off it (a post nearer is a flat block down the lower left).
  */
 function rimBalustrade(kx: KitX, k: Kit): void {
   const z = RIM.z0, y = Y0;
-  const STONE = { wash: 0x5e6066, kind: K.stone, line: 1, wet: 0.3, surf: SURF.concrete } as const;
-  const PANEL = { wash: 0x585a60, kind: K.panel, line: 1, wet: 0.25 } as const;
+  const STONE = { wash: 0x5e6066, kind: K.stone, line: 1, wet: 0.7, surf: SURF.concrete, accent: true } as const;
+  const PANEL = { wash: 0x585a60, kind: K.panel, line: 1, wet: 0.6, accent: true } as const;
   const X = new Vector3(1, 0, 0), UPV = new Vector3(0, 1, 0), SZ = new Vector3(0, 0, 1);
-  // posts every ~2.4 m, set out from the two shared cameras: D (x −14) has its lion post at its lower left (−15.2);
-  // B (x −19.5) looks over a panel, its lion post at its lower right (−18.2), the next post at −21.2
-  // (and the eight-dome targets' old camera spot, x −10.5, also looks over a panel: posts at −12.4 / −8.8)
-  const posts: number[] = [-26.0, -23.6, -21.2, -18.2, -15.2, -12.4, -8.8, -6.4, -4.0, -1.6];
-  const LIONS = new Map<number, number>([[-15.2, 0.45], [-18.2, Math.PI]]);
+  // posts every ~2.3 m, set out from the two shared cameras: B (x −19.5) looks over a panel, a post at its lower right
+  // (−18.6); D (x −14) leans out between −14.95 and −12.4 (and the eight-dome targets' old camera spot, x −10.5, looks
+  // over a panel: posts at −12.4 / −8.8). The lions sit on B's neighbours, facing the ledge
+  const posts: number[] = [-26.0, -23.55, -21.1, -18.6, -16.75, -14.95, -12.4, -8.8, -6.4, -4.0, -1.6];
+  const LIONS = new Map<number, number>([[-21.1, 0.35], [-16.75, -0.35]]);
   // the plinth (地栿) the whole length, a heavy ground line on its lip
   k.box((WELL.x0 + WELL.x1) / 2, y, z, WELL.x1 - WELL.x0, 0.2, 0.62, { ...STONE, line: 2 });
   const bays: [number, number][] = [[WELL.x0 + 0.3, posts[0] ?? WELL.x0 + 2]];
@@ -157,7 +160,7 @@ function rimBalustrade(kx: KitX, k: Kit): void {
     if (w < 0.3) continue;
     // the panel (欄板) with its relief on the ledge side, a vase-baluster row over it, the rail (尋杖)
     k.box(cx, y + 0.2, z, w, 0.58, 0.16, PANEL);
-    relief(kx, new Vector3(cx, y + 0.49, z + 0.085), X.clone(), UPV.clone(), SZ.clone(), w - 0.16, 0.44, 5100 + Math.round(cx * 7), { wash: 0x68686c, line: 0, wet: 0.35 });
+    relief(kx, new Vector3(cx, y + 0.49, z + 0.085), X.clone(), UPV.clone(), SZ.clone(), w - 0.16, 0.44, 5100 + Math.round(cx * 7), { wash: 0x68686c, line: 0, wet: 0.6 });
     k.box(cx, y + 0.78, z, w + 0.02, 0.08, 0.2, STONE);
     for (const t of [0.25, 0.75]) k.lathe(a + 0.18 + w * t, y + 0.86, z, [[0.07, 0], [0.1, 0.05], [0.06, 0.1], [0.05, 0.14], [0.08, 0.2]], 8, STONE, false, 0);
     // the rail: a round bar (尋杖), shaded round, not a flat slab seen from the rim

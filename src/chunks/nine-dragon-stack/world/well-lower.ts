@@ -31,11 +31,11 @@ const BOTTOM = GHOST_TOP - GHOST_FLOORS * FLOOR_H - 24;
 const UP_KIT = 'well-l-up', DEEP_KIT = 'well-l-deep', DEEP_FAR = 95;
 const lowerKits = (ctx: WellPlan['ctx']): BandKits => ({ kit: (y) => ctx.kit(y >= LOW + 9 ? UP_KIT : DEEP_KIT), alpha: () => ctx.alpha('well-l-a') });
 
-/** the temple spur: its centre, the terrace height and its radius. Seen from mockup D's camera it sits ~62° down, 55 %
- *  down the frame, above the balustrade's rail (steeper than ~73° the rail hides it) and 79 m under the eye (the silk
- *  leaves it ~40 % and its lanterns more); the steel crossing at z −24 (+56) passes 8 m over its terrace, the stone one
- *  at z −38 (+41) and the timber one at z −20 (+32) clear of the spur (z −35…−25). Centred on the gap between the deep
- *  west galleries and the shallower east ones */
+/** the temple spur: its centre, the terrace height and its radius. Seen from mockup D's camera it sits ~62° down, 53 %
+ *  down the frame, above the balustrade's rail (steeper than ~76° the rail hides it) and 79 m under the eye, on the
+ *  cloud sea at +44 (look/style.ts BANDS), no crossing over or under it (well-plan.ts CROSSINGS); the timber one at
+ *  z −20 (+32) clear of the spur (z −35…−25). Centred on the gap between the deep west galleries and the
+ *  shallower east ones */
 export const TEMPLE = { x: -13.5, z: -30, top: LOW - 11, r: 4.6 } as const;
 
 /** the lower galleries' depths: the near band's (well-rim.ts) carried on down, so the canyon's walls run on unbroken
