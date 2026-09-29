@@ -1,6 +1,6 @@
 # Plan: model architecture (E306): what a model is, where it lives, how the Model Explorer shows it
 
-**State:** `in progress` 2026-09-29 — Jake approved option B1 and the WHOLE migration (M0–M6), plus rows M7–M11 from his E315 notes: a Sets explorer, static enforcement, model review clips, the Blender practice and the image-to-threejs review. In flight: M0 (the models agent), M9 (the clip tool) and M10 + M11 (research). M1–M4 run shard by shard, in parallel, once M0's contract lands.
+**State:** `in progress` 2026-09-29 — Jake approved option B1 and the WHOLE migration (M0–M6), plus rows M7–M11 from his E315 notes: a Sets explorer, static enforcement, model review clips, the Blender practice and the image-to-threejs review. M9 is done (`scripts/model-spin.mjs`, the review clips). In flight: M0 (the models agent) and M10 + M11 (research). M1–M4 run shard by shard, in parallel, once M0's contract lands.
 
 ## Read this first
 
@@ -198,6 +198,6 @@ board.
 | M6 | Delete the old paths; archive | S | approved; last |
 | M7 | Sets explorer: explore sets / places / zones / scenes as their own mode between models and the world | M | approved; after M3 |
 | M8 | Static enforcement: oxlint rules in `lint/wildshard-plugin.js` + a check script: geometry only through `defineModel` / `place()` or declared world, models only under `src/models/` or `src/chunks/<slug>/models/`, no shard imports another's models, the contract test | S–M | approved; starts with M0b, grows each wave |
-| M9 | Model review clips: `scripts/model-spin.mjs`, a ~10 s portrait turntable of 1–5 models from the Model Explorer at phone size for the Claude app | S | in flight (E315) |
+| M9 | Model review clips: `scripts/model-spin.mjs`, a ~10 s portrait turntable of 1–5 models from the Model Explorer at phone size for the Claude app | S | done 2026-09-29 (E315): `scripts/browser-lane.sh node scripts/model-spin.mjs --url=<build> --shard=<slug> --models=<id,…> or first:5 --out=<mp4>`; `--list` prints the catalog's ids. First clips: `art/models-audit/round-3-spin-clips/` |
 | M10 | Blender best practice: **Blender scripts are the source, the exported GLB is committed, a `.blend` never is** (`docs/design/blender-practice.md`, `bdf3b4f7`). Refactor: rescue the Nine Dragon arms' deleted scripts, one runner + manifest (pinned Blender, the model lock, `--python-exit-code 1`), builders per shard, delete the orphan yurt script, bring the Nalati img2mesh recipe home, a check script + no-`.blend` guard, an AGENTS.md paragraph | S (decided) + ~1 day | refactor in flight (E315) |
 | M11 | image-to-threejs skill: reviewed (`docs/design/image-to-threejs-review.md`): recent (Jul–Sep 2026) but single-agent and one-object, with no LODs, no phone budgets and no real colliders. **Our own skill instead**: `.claude/skills/mockup-to-model/SKILL.md` (`bdf3b4f7`) documents this repo's mockup → model workflow and keeps six of its ideas. The user-wide `~/.claude/skills/img2threejs` links are Jake's to remove | S–M | done (E315) |

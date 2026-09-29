@@ -410,6 +410,14 @@ shards' Model Explorer catalogs today (54 cards). Middle: four real models (Hut,
 lion). Bottom: four whole places on a turntable, the "blur" (Kurgan field, Snow lotus, Spring camp, Wreck cove). The
 audit is `docs/audits/models-and-model-explorer.md`; the draft plan `docs/plans/MODEL-ARCHITECTURE.md`.
 
+### Model spin clips (`art/models-audit/round-3-spin-clips/`, 2026-09-29, E315 / MODEL-ARCHITECTURE M9)
+
+The first two clips from `scripts/model-spin.mjs`: 10 s portrait turntables shot in the game's real Model Explorer at
+phone tier (402×874 @3×, canvas 804×1748, build `412d443`), the explorer's own overlay laid on, H.264 ~4.5 Mb/s.
+`driftwood-hut.mp4` (5.1 MB): the Hut, one full turn. `nine-dragon-first5.mp4` (5.7 MB): Nine Dragon's first five
+catalog cards, 2 s and one turn each: Umbrella walker, Mahjong sitter, Guardian lion, Fei Zhua dragon hook, Training
+dummy.
+
 ### Loot loop, the in-world moments (`art/loot/round-1-loop/`, 2026-09-29, E314)
 
 Four boards for DRIFTWOOD-LOOT L1–L4, codex edits of live iPhone 16 Pro portrait captures. `board-1-coins.jpg`: how coins
