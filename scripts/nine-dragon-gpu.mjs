@@ -3,7 +3,10 @@
 // scripts/pine-hollow-gpu.mjs, read its header for why it is built this way).
 //
 //   node scripts/nine-dragon-gpu.mjs --url=http://localhost:4173 [--poses=A,B,C,D|none] [--domes=all|A1,B2] [--rounds=10]
-//     [--subtract=all|none|a,b] [--gate=1.5]
+//     [--subtract=all|none|a,b] [--gate=1.5] [--debug=ndShaderDetail:none,…]
+//
+// --debug: pause ▸ Settings ▸ Debug options set before the load (scripts/debug-settings.mjs), `key:value` pairs: a Debug ▸
+// Performance row measured on, against a run with it off.
 //
 // THE GATE (E283, Jake: the pre-pass baseline was no stable 30 fps either): every pose at or under 1.5 ms on this ruler.
 // Jake's 5cb1ecd reading (gpu~ 18.7 ms p50 where this ruler read 3.15 at the spawn) puts the phone at ~6× the M5 when
@@ -28,6 +31,7 @@
 import { closeSync, existsSync, openSync, readFileSync, unlinkSync, writeSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { debugSettings } from './debug-settings.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
 const argv = process.argv.slice(2);
@@ -130,6 +134,8 @@ async function runAB([name, n]) {
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'] });
 try {
   const ctx = await browser.newContext({ viewport: { width: 402, height: 812 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  const picks = Object.fromEntries(flag('debug', '').split(',').filter(Boolean).map((kv) => { const i = kv.indexOf(':'); return [kv.slice(0, i), kv.slice(i + 1)]; }));
+  if (Object.keys(picks).length > 0) await debugSettings(ctx, picks);
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.info(`pageerror: ${e.message.slice(0, 300)}`));
   await page.goto(`${base}/?chunk=nine-dragon-stack&skipintro=1&tier=phone&touch=1&mute=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
@@ -149,7 +155,7 @@ try {
     w.freeCamera = true;
   });
   const size = await page.evaluate(() => { const c = window.__world.game.renderer.domElement; return `${c.width}×${c.height}`; });
-  console.info(`buffer ${size} · ${base}`);
+  console.info(`buffer ${size} · ${base}${Object.keys(picks).length > 0 ? ` · debug ${JSON.stringify(picks)}` : ''}`);
   const poses = poseKeys.map((k) => {
     const c = MOCKUP_CAMERAS[k];
     const yaw = (c.yaw * Math.PI) / 180, pitch = (c.pitch * Math.PI) / 180;
