@@ -22,9 +22,9 @@
 // uploaded (the kept instances it shares with the last cull, from the front, are already in place; an unchanged batch
 // costs nothing). The packing is exactly the per-instance one's: pixel-identical.
 //
-// (E283, Debug ▸ Performance, the distance LODs) a batch can carry coarser copies of its piece, each from a distance
-// (`add(mesh, far, lods, group)`): while its group is on, an instance in view is packed into the copy for its distance
-// from the eye instead of the batch (one draw more per copy in use). The copies share the batch's material and masters.
+// (E283, Jake's pick: the distance LODs) a batch can carry coarser copies of its piece, each from a distance
+// (`add(mesh, far, lods)`): an instance in view is packed into the copy for its distance from the eye instead of the
+// batch (one draw more per copy in use). The copies share the batch's material and masters.
 import { Box3, type BufferAttribute, type BufferGeometry, Frustum, InstancedBufferAttribute, InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 /** extra field of view per side (degrees) */
@@ -52,8 +52,6 @@ interface Entry {
   n: number;
   /** the batch (level 0) and its coarser copies, nearest first */
   outs: Out[];
-  /** the LOD group its copies follow (InstanceCuller.setLod) */
-  group: string;
   /** world-space bounding spheres of the instances: x, y, z, r */
   spheres: Float32Array;
   /** one sphere round each GROUP consecutive instances' spheres: x, y, z, r */
@@ -88,17 +86,9 @@ export class InstanceCuller {
   private readonly pc = new Float64Array(24);
   /** this cull's kept indices per level for the batch being packed (grown to the largest batch) */
   private scratch: Int32Array[] = [new Int32Array(0)];
-  /** the LOD groups switched on (setLod) */
-  private readonly lodOn = new Set<string>();
+
   /** the last cull: instances in the batches, instances kept, triangles kept */
   readonly stats = { instances: 0, kept: 0, tris: 0, culls: 0 };
-
-  /** switch a LOD group's copies on / off (the next cull re-packs) */
-  setLod(group: string, on: boolean): void {
-    if (on === this.lodOn.has(group)) return;
-    if (on) this.lodOn.add(group); else this.lodOn.delete(group);
-    this.lastPos.set(Number.POSITIVE_INFINITY, 0, 0);
-  }
 
   /** each coarser copy and its batch (add the copy to the batch's parent: the instances are in its space) */
   get lodPairs(): [InstancedMesh, InstancedMesh][] { return this.list.flatMap((e) => e.outs.slice(1).map((o): [InstancedMesh, InstancedMesh] => [e.mesh, o.mesh])); }
@@ -108,9 +98,9 @@ export class InstanceCuller {
 
   /**
    * take over a batch: `far` (m) drops instances whose sphere lies wholly beyond it from the camera; `lods` are coarser
-   * copies of its piece by distance (their meshes: `lodMeshes`), switched with `setLod(group)`
+   * copies of its piece by distance (their meshes: `lodPairs`)
    */
-  add(mesh: InstancedMesh, far = Number.POSITIVE_INFINITY, lods: readonly InstanceLevel[] = [], group = ''): void {
+  add(mesh: InstancedMesh, far = Number.POSITIVE_INFINITY, lods: readonly InstanceLevel[] = []): void {
     const n = mesh.count;
     if (n === 0) return;
     const g = mesh.geometry;
@@ -163,7 +153,7 @@ export class InstanceCuller {
       lm.visible = false;
       outs.push({ mesh: lm, from: l.from, attrs: la, idx: new Int32Array(n), k: -1 });
     }
-    this.list.push({ mesh, n, outs, group, spheres, groups, matrices, colors, attrs, far });
+    this.list.push({ mesh, n, outs, spheres, groups, matrices, colors, attrs, far });
     while (this.scratch.length < outs.length) this.scratch.push(new Int32Array(0));
     for (let i = 0; i < outs.length; i++) if ((this.scratch[i]?.length ?? 0) < n) this.scratch[i] = new Int32Array(n);
   }
@@ -243,11 +233,7 @@ export class InstanceCuller {
       }
       instances += e.n;
       kept += k;
-      if (e.outs.length === 1 || !this.lodOn.has(e.group)) {
-        tris += packOut(e, 0, keep, k);
-        for (let l = 1; l < e.outs.length; l++) tris += packOut(e, l, keep, 0);
-        continue;
-      }
+      if (e.outs.length === 1) { tris += packOut(e, 0, keep, k); continue; }
       // (the distance LODs) deal the kept instances out by their distance from the eye, keeping their order
       const counts: number[] = e.outs.map(() => 0);
       for (let j = 0; j < k; j++) {

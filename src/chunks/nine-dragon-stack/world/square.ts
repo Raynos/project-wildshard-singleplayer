@@ -70,7 +70,7 @@ function carvedPanel(far = false): BufferGeometry {
 }
 
 /**
- * (E283, Debug ▸ Performance "Distance LODs: thin detail", off by default) the balustrade's carved panel past PANEL_LOD m:
+ * (E283, Jake's pick: the distance LODs) the balustrade's carved panel past PANEL_LOD m:
  * its frame and medallion without the ruyi scrolls, strokes 2–5 cm wide, about half a pixel there on the phone frame
  */
 export const PANEL_LOD = 50;

@@ -9,7 +9,7 @@
 //    the figures inside the view frustum, the near ones (< LOD_NEAR m) at full detail, the far ones as a ~300-tri
 //    vertex-clustered copy, none past LOD_FAR (the silk fog has swallowed them). The same draw calls as before (a level
 //    with no figure in view is hidden, so it costs no call), the triangles of what is actually seen.
-// 3. (E283, Debug ▸ Performance "Distance LODs: coarser meshes", off by default) two middle levels inside LOD_NEAR:
+// 3. (E283, Jake's pick: the distance LODs) two middle levels inside LOD_NEAR:
 //    meshoptimizer copies of each figure whose surface stays within MID_PX of a pixel of the full one where they start
 //    (world/lod.ts). A figure 20 m off is ~100 px tall and its ~1.4 k triangles are ~1 px² each: every one costs a 2 × 2
 //    quad of the architecture program.
@@ -145,18 +145,10 @@ export class Crowd {
   private readonly sphere = new Sphere(new Vector3(), 1.3);
   private readonly eye = new Vector3();
   private dirty = true;
-  /** (E283) the middle levels drawn */
-  private mid = false;
 
   /** `simplify`: meshoptimizer is ready (world/lod.ts lodReady): the middle levels are built */
   constructor(private readonly mat: Material, private readonly simplify = false) {}
 
-  /** (E283) switch the middle levels (the next update re-picks) */
-  setLod(on: boolean): void {
-    if (on === this.mid) return;
-    this.mid = on;
-    this.dirty = true;
-  }
 
   /** the crowd's meshes (reading them builds the crowd: add every variant first) */
   get meshes(): readonly InstancedMesh[] {
@@ -227,7 +219,7 @@ export class Crowd {
     for (const v of this.variants) {
       let nh = 0, nl = 0;
       const nm = v.mids.map(() => 0);
-      const mid = this.mid && v.mids.length === MID_FROM.length;
+      const mid = v.mids.length === MID_FROM.length;
       for (let i = 0; i < v.at.length; i++) {
         const p = v.at[i], m = v.mats[i];
         if (p === undefined || m === undefined) continue;

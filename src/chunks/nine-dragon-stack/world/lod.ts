@@ -1,4 +1,4 @@
-// (E283, Debug ▸ Performance) the distance LODs' shared pieces: how big a pixel is on the phone frame, and a simplified
+// (E283, Jake's pick) the distance LODs' shared pieces: how big a pixel is on the phone frame, and a simplified
 // copy of a sculpted mesh (meshoptimizer) whose error stays under a given size.
 //
 // Why: the phone's GPU shades a 2 × 2 quad of pixels for every triangle it rasterises, however small. At the worst

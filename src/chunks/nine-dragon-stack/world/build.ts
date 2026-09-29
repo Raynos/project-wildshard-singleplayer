@@ -12,7 +12,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { Ctx, type Piece } from './ctx';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
-import { Lanterns, setLanternLod } from '../look/lanterns';
+import { Lanterns } from '../look/lanterns';
 import { NeonSigns } from '../look/neonsigns';
 import { buildStreaks, stairStreaks } from '../look/streaks';
 import { buildFacade } from './facade/batch';
@@ -120,9 +120,6 @@ export interface NineDragonWorld {
   cull: (camera: PerspectiveCamera) => void;
   /** the per-instance culling (its `stats` for the budget ruler) */
   readonly culler: InstanceCuller;
-  /** (E283, Debug ▸ Performance) switch a group of distance LODs: 'meshes' (coarser copies of the sculpts, the crowd and
-   *  the far lanterns) or 'detail' (the thin parts of the facade dressing and the balustrade's carving dropped) */
-  setLod: (group: 'meshes' | 'detail', on: boolean) => void;
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
@@ -244,21 +241,21 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   phaseDone('canopy', phaseStart);
   phaseStart = performance.now();
   const squareProps = await loadSquareProps(mat);
-  // (E283, Debug ▸ Performance, off by default) the distance LODs, handed to the culler below: a coarser copy of a batch's
-  // piece for its instances from a distance. 'meshes': meshoptimizer copies of the sculpts, their error under PX_LOD px
-  // where each starts (world/lod.ts); 'detail': thin parts dropped where they are ~half a pixel wide
+  // (E283, Jake's pick) the distance LODs, handed to the culler below: a coarser copy of a batch's piece for its instances
+  // from a distance — meshoptimizer copies of the sculpts, their error under PX_LOD px where each starts (world/lod.ts),
+  // and the facade dressing's and the balustrade's thin parts dropped where they are ~half a pixel wide
   const canLod = await lodReady();
   const PX_LOD = 0.7;
-  const lodOf = new Map<InstancedMesh, { levels: InstanceLevel[]; group: string }>();
+  const lodOf = new Map<InstancedMesh, InstanceLevel[]>();
   const sculptLods = (im: InstancedMesh, scale: number, from: readonly number[]): void => {
     if (!canLod) return;
-    lodOf.set(im, { levels: from.map((d) => ({ geometry: simplifiedCopy(im.geometry, (d * PX_PER_M * PX_LOD) / scale), from: d })), group: 'meshes' });
+    lodOf.set(im, from.map((d) => ({ geometry: simplifiedCopy(im.geometry, (d * PX_PER_M * PX_LOD) / scale), from: d })));
   };
   for (const m of squareProps) {
     // the stone lions (~8 k tris each, ~1.4 m): from 10 m and 30 m
     if (m.name === 'glb:lion') sculptLods(m, 1, [10, 30]);
     // the balustrade's carved panels
-    if (m.name === 'set:balustrade-panel') lodOf.set(m, { levels: [{ geometry: carvedPanelFar(), from: PANEL_LOD }], group: 'detail' });
+    if (m.name === 'set:balustrade-panel') lodOf.set(m, [{ geometry: carvedPanelFar(), from: PANEL_LOD }]);
   }
   phaseDone('square props', phaseStart);
   for (const m of squareProps) root.add(m);
@@ -278,7 +275,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
   const facade = buildFacade(ctx.fd, facadeUniforms(shared), { clutterFar: [55, 85] });
-  for (const [im, levels] of facade.lods) lodOf.set(im, { levels, group: 'detail' });
+  for (const [im, levels] of facade.lods) lodOf.set(im, levels);
   phaseDone('facade', phaseStart);
   root.add(named(facade.group, 'facade'));
   const neonMeshes = neonSigns.build();
@@ -459,12 +456,11 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     // half of what a re-cull hands WebGL) cost more than drawing all ~10 k — an off-screen quad is clipped and leaves no
     // pixel. They are drawn whole (they have no far distance, so nothing else changes)
     if (o.name === 'facade-windows') return;
-    const lod = lodOf.get(o);
-    culler.add(o, small.has(o) ? 85 : Number.POSITIVE_INFINITY, lod?.levels, lod?.group);
+    culler.add(o, small.has(o) ? 85 : Number.POSITIVE_INFINITY, lodOf.get(o));
   });
   // (E283) a batch with a distance LOD the culler did not take (its instances within CULL_R of each other) is taken now:
   // the culler deals its instances out to the copies
-  for (const [o, lod] of lodOf) if (!culler.has(o)) culler.add(o, Number.POSITIVE_INFINITY, lod.levels, lod.group);
+  for (const [o, levels] of lodOf) if (!culler.has(o)) culler.add(o, Number.POSITIVE_INFINITY, levels);
   for (const [base, copy] of culler.lodPairs) base.parent?.add(copy);
   for (const [mesh, far] of farKits) culler.addFar(mesh, far);
   progress(1, 'world ready');
@@ -490,9 +486,5 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   };
   // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
   // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  const setLod = (group: 'meshes' | 'detail', on: boolean): void => {
-    culler.setLod(group, on);
-    if (group === 'meshes') { crowd.setLod(on); setLanternLod(on); }
-  };
-  return { root, shared, ctx: { hooks: ctx.hooks }, models, update, cull, culler, setLod };
+  return { root, shared, ctx: { hooks: ctx.hooks }, models, update, cull, culler };
 }

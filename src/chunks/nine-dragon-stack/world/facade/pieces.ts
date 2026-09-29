@@ -428,7 +428,7 @@ export const PIECES = {
 export type PieceId = keyof typeof PIECES;
 
 /**
- * (E283, Debug ▸ Performance "Distance LODs: thin detail", off by default) the pieces with parts thinner than a pixel from
+ * (E283, Jake's pick: the distance LODs) the pieces with parts thinner than a pixel from
  * a distance: past `from` m the batch draws the piece without them (the cage's and railings' flat bars, the ACs'
  * brackets, the lanterns' cords) — `from` is where the dropped part is ~half a pixel wide on the phone frame (1 px ≈ 1 mm
  * a metre off), so it was a broken dotted line there already

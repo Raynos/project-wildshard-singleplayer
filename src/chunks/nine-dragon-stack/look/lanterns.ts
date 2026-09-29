@@ -73,11 +73,10 @@ export function lanternString(a: Vector3, b: Vector3, spacing: number, sag: numb
 /** the near / far switch (m) */
 export const LOD_NEAR = 35;
 /**
- * (E283, Debug ▸ Performance "Distance LODs: coarser meshes", off by default) past LOD_DOT m a third draw: the body as a
+ * (E283, Jake's pick: the distance LODs) past LOD_DOT m a third draw: the body as a
  * 2 × 6 lathe (24 tris, half the far one's). Its outline is within ~5 cm of the far one's, ~⅔ px there on the phone frame
  */
 export const LOD_DOT = 80;
-let dotOn = false;
 /** a lantern's bounding radius at scale 1 (body + tassel, around its centre) */
 const BOUND = 0.5;
 
@@ -87,11 +86,6 @@ const live: Lanterns[] = [];
 export function updateLanterns(camera: Camera): void { for (const l of live) l.update(camera); }
 /** forget the built sets (the render strategy's dispose) */
 export function clearLanterns(): void { live.length = 0; }
-/** (E283) switch the lanterns' third level (LOD_DOT; the next update re-buckets) */
-export function setLanternLod(on: boolean): void {
-  dotOn = on;
-  for (const l of live) l.dirty();
-}
 
 const VS_LANTERN = /* glsl */ `
 attribute float aPart;
@@ -225,9 +219,6 @@ export class Lanterns {
     return g;
   }
 
-  /** re-bucket at the next update */
-  dirty(): void { this.last.elements[0] = Number.NaN; }
-
   /** bucket the lanterns in view into the near, far (and dot) draws (skipped while the camera has not moved) */
   update(camera: Camera): void {
     const near = this.near, far = this.far, dot = this.dot;
@@ -242,7 +233,7 @@ export class Lanterns {
     const ns = near.geometry.getAttribute('aSeed'), fs = far.geometry.getAttribute('aSeed'), ds = dot.geometry.getAttribute('aSeed');
     const nsa = ns.array, fsa = fs.array, dsa = ds.array;
     let a = 0, b = 0, c = 0;
-    const r2 = LOD_NEAR * LOD_NEAR, d2Dot = dotOn ? LOD_DOT * LOD_DOT : Number.POSITIVE_INFINITY;
+    const r2 = LOD_NEAR * LOD_NEAR, d2Dot = LOD_DOT * LOD_DOT;
     for (let i = 0; i < this.mats.length; i++) {
       const m = this.mats[i];
       if (m === undefined) continue;
