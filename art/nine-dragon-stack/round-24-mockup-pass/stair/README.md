@@ -55,3 +55,22 @@ the two crossings they replace), textures unchanged. No collider changes (the ga
 For the other lanes (the view up the stair is still capped): the far tower at x 91.5 closes the canyon past the
 gatehouse (towers.ts `crown()`), and the stair's sky screen (build.ts `screen2`, +173.45, under the second deck in
 towers.ts) is the flat teal ceiling over everything above the paifang from the square.
+
+## Pass 3 (on HEAD 1cca856d)
+
+| Change | Where | Kept? |
+|---|---|---|
+| Flight 1's climbers keep to the sides (the axis within 1.7 m of the centre stays clear): a knot of figures in the middle of the flight hid the paifang's base from the square; mockup C's few climbers walk the edges | C1 | kept |
+| The monorail's hangers only at the towers: the pair in the middle of the canyon read as two sticks across mockup C's sky | C2 | kept |
+| Three red lanterns on a chain under the 麵 sign (mockup C's lanterns down the tea house's face) | C1 | kept |
+| Landing 1's own neon, flat on the south fronts facing the stair: 冰室 on the shop front, 宾馆 on the tower above (C2·6 looked at a bare wall; its target has two big signs there) | C2 | kept |
+| A 粥麵 board over the north veranda (for C2·4) | C2 | reverted: from the landing the veranda's eave and the pent roof hide the whole front above it |
+
+Memory against the same HEAD: 157.36 → 157.36 MB geometry, textures unchanged. No collider changes.
+
+`experiment-no-stair-screen.jpg` (not committed code, for the coordinator and the render agent): pass 3 | the same build
+with the stair's sky screen left out (build.ts `screen2`) and the one crown tower that stands in the canyon moved aside
+(towers.ts `crown()`) | the target, at C1·5, C2·5 and mockup C. Without the screen the band above the paifang is blue-hour
+sky instead of the flat teal grid, which is how the targets and mockup C paint it; the second deck over the stair has
+no underside, so nothing else shows. The targets also put far towers and pagodas in that sky, which the experiment does
+not have.

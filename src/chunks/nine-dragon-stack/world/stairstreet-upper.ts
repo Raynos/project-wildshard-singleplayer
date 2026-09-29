@@ -732,7 +732,8 @@ function overhead(ctx: Ctx, rng: Rng): void {
   k.box(mx, my - 1.0, zc + 1, 1.0, 1.0, 40, { wash: 0x3b3e45, kind: K.panel, line: 1.5 }, { bottom: { wash: 0x2a2c31, line: 1 } });
   k.box(mx, my - 1.2, zc + 1, 1.8, 0.2, 40, { wash: 0x4a4f58, line: 1.2 }, { bottom: { wash: 0x26282d, line: 1 } });
   for (const sx of [-1, 1]) ctx.signs.light(new Vector3(mx + sx * 0.52, my - 0.55, zc + 1), sx > 0 ? ZP : ZN, UP, 38, 0.08, 0xffd9a0, 1.3);
-  for (let z = -6; z <= 18; z += 12) {
+  // (hung only at the towers: a pair of hangers in the middle of the canyon read as sticks across mockup C's sky)
+  for (const z of [-5, 17]) {
     k.beam(new Vector3(mx, my - 0.1, z), new Vector3(mx - 2, Y0 + 48.4, z - 2), 0.14, 0.14, IRON);
     k.beam(new Vector3(mx, my - 0.1, z), new Vector3(mx + 2, Y0 + 48.4, z + 2), 0.14, 0.14, IRON);
   }
@@ -838,6 +839,18 @@ function stairSigns(ctx: Ctx, rng: Rng): void {
     ['豆花', NEON.jade, 58.5, 7.4, 1, 1.0],
     ['按摩', NEON.magenta, 63.5, 8.2, -1, 1.1],
   ];
+  // landing 1's own neon, flat on the south fronts facing the stair (C2·6 looks straight at them; from the square they
+  // are edge-on): a column on the shop front and one on the tower above it (E281; on the north the veranda's eave and
+  // the pent roof hide the fronts from the landing)
+  const L1 = LANDINGS[0] ?? { x0: 35.3, x1: 39.3, y: 132 };
+  const flat: [string, number, number, number, number, number, boolean][] = [
+    ['冰室', NEON.cyan, L1.x0 + 2.2, L1.y + 5.6, FACE_S - 0.14, 0.8, true],
+    ['宾馆', NEON.jade, L1.x0 + 1.4, L1.y + 10.6, FACE_S + SETBACK - 0.14, 1.05, true],
+  ];
+  for (const [text, col, x, y, z, size, vertical] of flat) {
+    const nz = z < (FACE_N + FACE_S) / 2 ? ZP : ZN;
+    ctx.signs.place({ at: new Vector3(x, y, z), normal: nz, size, spec: { text, color: hex(col), vertical, style: 'tube' } }, k);
+  }
   for (const [text, col, x, dy, side, size] of hero) {
     const wall = side > 0 ? FACE_N : FACE_S;
     const w = size * 1.36;

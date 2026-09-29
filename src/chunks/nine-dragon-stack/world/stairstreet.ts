@@ -661,6 +661,12 @@ function footSigns(ctx: Ctx): void {
   k.beam(new Vector3(x, by, wall), new Vector3(x, by, zOut), 0.1, 0.12, IRON);
   k.beam(new Vector3(x, by - 1.3, wall), new Vector3(x, by - 0.05, wall + (zOut - wall) * 0.6), 0.06, 0.06, IRON);
   for (const dz of [-w / 2 + 0.2, w / 2 - 0.2]) k.box(x, y + h / 2 + 0.05, z + dz, 0.05, by - y - h / 2 - 0.05, 0.05, IRON);
+  // two red lanterns on a chain under the sign's wall end, one more a bay nearer the square (mockup C's lanterns down
+  // the tea house's face beneath the 麵 sign)
+  k.beam(new Vector3(x - 0.3, y - h / 2 - 0.05, wall + 0.55), new Vector3(x - 0.3, y - h / 2 - 1.55, wall + 0.55), 0.02, 0.02, IRON);
+  ctx.lantern(x - 0.3, y - h / 2 - 0.9, wall + 0.55, 0.62);
+  ctx.lantern(x - 0.3, y - h / 2 - 1.75, wall + 0.55, 0.56);
+  ctx.lantern(x - 2.1, y - h / 2 - 1.2, wall + 0.5, 0.6);
   // the brass dragon (the grapple's anchor, the mockup's hero prop): the jian's own sculpted guard head
   // (hero/weapon-parts.ts buildGuardProcedural, snout +y, crown +x) at 11×, on an iron bracket out of the wall just past
   // the sign and level with it (mockup C: a quarter of the way down the frame, right of the sign), looking out over the
@@ -698,8 +704,10 @@ function footCrowd(ctx: Ctx, rng: Rng): void {
   let n = 0;
   for (let tries = 0; tries < 140 && n < 12; tries++) {
     const x = rng.range(STAIR.x0 + 3, (LANDINGS[0]?.x0 ?? 35.3) - 0.2), z = zc + rng.range(-3.3, 3.3);
-    // the mockup camera's foreground stays open
+    // the mockup camera's foreground stays open, and the axis up flight 1 (mockup C sees the paifang's base over it: a
+    // crowd in the middle of the flight hid it, E281); the climbers keep to the sides as the mockup's do
     if (x < 26.5 && Math.abs(z - zc) < 2.2) continue;
+    if (Math.abs(z - zc) < 1.7) continue;
     if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 1.1)) continue;
     placed.push([x, z]);
     const up = rng.chance(0.6);
