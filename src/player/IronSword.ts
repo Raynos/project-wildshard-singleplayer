@@ -57,6 +57,8 @@ const LIFT = 0.22;                 // m the orb's floor point sits over the deck
                                    // orb top and bottom, so the pommel clears the planks
 const DISPLAY_SCALE = 1.3, TILT = THREE.MathUtils.degToRad(40);   // fills the orb diagonally like the AR-15 in the mockup
 const TAKE_DY = 1.6;               // m, |feet y − floor y| — no taking it from the sand under the hull
+const GUARDED_R = 1.4;             // m, eye → prompt point while guarded (E296): the reason shows at the rack only, not over the
+                                   // whole hold's fight (on the phone it was the big USE band across the sailor), and any other prompt wins
 
 /** per-FACE coloured triangles: each quad between ring r and r+1, segment i, takes `segCol[i]` (with a tiny per-face jitter) */
 function loftFaces(rings: THREE.Vector3[][], segCol: THREE.Color[], jitter = 0.05, seed = 7): THREE.BufferGeometry {
@@ -232,7 +234,8 @@ export class IronSwordPickup {
   readonly interactable: Interactable;
   /**
    * B4 / D6: while this returns a reason the sword can't be taken (the drowned sailor still guards it) the prompt shows
-   * the reason and E does nothing but `onGuarded(reason)`. Null = free to take (Pine Hollow / dev: no guard).
+   * the reason and E does nothing but `onGuarded(reason)` — only at the rack (GUARDED_R) and as a weak prompt (E296: it
+   * covered the fight). Null = free to take (Pine Hollow / dev: no guard).
    */
   guard: (() => string | null) | null = null;
   onGuarded?: (reason: string) => void;
@@ -253,7 +256,8 @@ export class IronSwordPickup {
     const base = this.pickup.interactable, reason = (): string | null => this.guard?.() ?? null;
     this.interactable = {
       position: base.position,
-      get radius() { return base.radius; },
+      get radius() { return reason() === null ? base.radius : Math.min(base.radius, GUARDED_R); },
+      get weak() { return reason() !== null; },
       get label() { return reason() ?? base.label; },
       onInteract: () => { const r = reason(); if (r !== null) this.onGuarded?.(r); else base.onInteract(); },
     };

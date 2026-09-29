@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { activePhysics } from '../physics/active';
 import { activeNavmesh } from '../physics/navmesh';
-import { castRay, floorBelow } from '../physics/query';
+import { castRay, floorBelow, lineOfSight } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { Rng } from '../core/rng';
@@ -87,6 +87,10 @@ import { AnimalGroup } from './animalMatrices';
  *   • The self-thinking species' strikes (crab snap, monkey bite, cutlass) only hurt inside HURT_ARC of the attacker's
  *     facing, and while an attack runs the animal turns at most ATTACK_TURN rad/s (Animal.attackTurnCap): a wind-up
  *     commits to a direction you can step out of.
+ *   • No hit through solid geometry (E296 — the wreck's hold, where the sailor cut you from behind the mast and beams):
+ *     a strike or a charge only lands when `canReach` — the physics `lineOfSight` from your chest to the attacker's finds
+ *     nothing (a hull wall, a beam, a deck, a rock) short of the attacker's own body. Asked only on the frame a hit would
+ *     land; `ThinkCtx.reach` lets a species skip a swing it could not land (the sailor does).
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
@@ -191,6 +195,8 @@ const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you ins
 /** melee shards (see the header): the charge wind-up per species (s), the contact arc (half-angle, rad), the self-thinking species' strike arc, the turn cap while attacking */
 const CHARGE_WINDUP: Record<string, number> = { boar: 0.55, bear: 0.65 }, CHARGE_WINDUP_DEFAULT = 0.5;
 const CHARGE_ARC = THREE.MathUtils.degToRad(50), HURT_ARC = THREE.MathUtils.degToRad(70), ATTACK_TURN = 1.5;
+const PLAYER_CHEST = 1.2; // m over the player's feet: where an attacker's line of sight must reach (E296)
+const _losFrom = new THREE.Vector3(), _losTo = new THREE.Vector3(), _losHead = new THREE.Vector3();
 const CHARGE_COMMIT = 4.5, CHARGE_COMMIT_TURN = 1.1;   // m from the player inside which a charge stops tracking, and its turn rate there (rad/s)
 const ANIM_LOD = 140;
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
@@ -662,7 +668,7 @@ export class AnimalManager {
       const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
       c.dt = dt; c.t = performance.now() * 0.001; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
       c.calm = this.calm; c.herd = herd !== null ? herd.members : null; c.world = this.enemyWorld;
-      c.hurt = (damage) => { if (!this.melee || this.facing(a, player, HURT_ARC)) this.onCharge?.(a, damage); }; // melee shards: only in front of it
+      c.hurt = (damage) => { if (!this.melee || (this.facing(a, player, HURT_ARC) && this.canReach(a, player))) this.onCharge?.(a, damage); }; // melee shards: only in front of it, never through a wall (E296)
       c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
       a.sampleTerrain();
       self(a, c);
@@ -832,7 +838,24 @@ export class AnimalManager {
     const reach = CHARGE_HIT_DIST * Math.max(1, a.scale);
     if (dx * dx + dz * dz > reach * reach || Math.abs(player.y - a.position.y) > 2.5) return;
     if (!this.facing(a, player, CHARGE_ARC)) return; // it runs past a player who stepped aside
+    if (!this.canReach(a, player)) return;           // nor through a wall, a rock or a deck (E296)
     this.chargeHit(a, br);
+  }
+
+  /**
+   * E296: nothing solid between `a` and the player — the physics `lineOfSight` from the player's chest to the attacker's
+   * (its body centre; on a tall one halfway up to the head, LockOnTarget's aim point), which only counts a world surface
+   * short of the attacker's own body (so one brushing a wall, or a big one half inside a rock, still reaches you). Creatures
+   * never block. Asked on the frame a hit would land (and by `ThinkCtx.reach` before a swing): one ray, not per frame.
+   */
+  private canReach(a: Animal, player: THREE.Vector3): boolean {
+    const physics = activePhysics();
+    if (physics === null) return true;
+    const bodyY = a.dims.bodyY * a.scale;
+    _losTo.copy(a.position); _losTo.y += bodyY;
+    if (bodyY > 0.9) _losTo.y = (_losTo.y + a.headWorld(_losHead).y) / 2;
+    _losFrom.set(player.x, player.y + PLAYER_CHEST, player.z);
+    return lineOfSight(physics, _losFrom, _losTo, a.dims.bodyRadius * a.scale + 0.1);
   }
 
   /** the player is within ±`arc` of the animal's heading */
@@ -848,6 +871,7 @@ export class AnimalManager {
     steer: (a, yaw, speed, turnRate) => { if (this.navSteer) this.steerNav(a, yaw, speed, turnRate); else this.steer(a, yaw, speed, turnRate); },
     pathYaw: (a, tx, tz, every = 1) => { const br = this.brains.get(a); return br === undefined ? Math.atan2(tx - a.position.x, tz - a.position.z) : this.pathYaw(a, br, tx, tz, every); },
     confine: (a) => this.confine(a),
+    reach: (a) => !this.melee || this.canReach(a, this.thinkCtx.player),
   };
 
   private enter(a: Animal, br: Brain, s: Animal['state']): void {

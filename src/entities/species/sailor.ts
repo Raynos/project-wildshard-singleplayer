@@ -254,7 +254,7 @@ function thinkSailor(a: Animal, c: ThinkCtx): void {
       a.state = 'stalk';
       const dh = Math.hypot(a.position.x - cx, a.position.z - cz);
       if (hit) a.cancelAttack();
-      if (!c.calm && d < SWING_R && m.cd <= 0) { m.st = ST_ATTACK; m.hit = 0; a.startAttack(SWING_DUR); a.setMotion(toPlayer, 0, 6); c.sound('sailor_groan'); break; }
+      if (!c.calm && d < SWING_R && m.cd <= 0 && c.reach(a)) { m.st = ST_ATTACK; m.hit = 0; a.startAttack(SWING_DUR); a.setMotion(toPlayer, 0, 6); c.sound('sailor_groan'); break; } // no swing through the mast or a beam (E296)
       if (!c.calm && dPlayerHold < guardR && d < 14) {
         m.away = 0;
         if (d > SWING_R * 0.8) { if (dh < guardR || (dx * (cx - a.position.x) + dz * (cz - a.position.z)) > 0) a.setMotion(toPlayer, SHAMBLE, 2.5); else a.setMotion(toPlayer, 0, 2.5); }

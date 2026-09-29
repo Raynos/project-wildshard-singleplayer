@@ -312,7 +312,10 @@ export class ItemPickup {
     const orbOn = dist < TIER_CONFIG.pickupOrbDist;
     this.holder.visible = dist < TIER_CONFIG.pickupItemDist;
     const onFloor = orbOn && this.drop === null; // the floor sigil and light pool wait until a tossed drop has landed
-    this.sphere.visible = orbOn; this.rings.visible = orbOn; this.points.visible = orbOn; this.sigil.visible = onFloor; this.pool.visible = onFloor;
+    // the eye inside the bubble (E296: the iron sword's orb sits by the hold stair; a fight backs you into it) draws no shell
+    // over the whole view — its centre is HOVER over the floor point, the prompt point 0.5 m higher
+    const inOrb = dist < SPHERE_R + 0.8 && Math.hypot(_to.x, _to.y + 0.5, _to.z) < SPHERE_R + 0.1;
+    this.sphere.visible = orbOn && !inOrb; this.rings.visible = orbOn && !inOrb; this.points.visible = orbOn; this.sigil.visible = onFloor; this.pool.visible = onFloor;
     const nearK = dist < NEAR_DIST ? 1 : 0;
     this.approach += (nearK - this.approach) * Math.min(1, dt * 3);
 

@@ -124,6 +124,12 @@ export class Wreck {
   private rampLen = 0;
   private rampX0 = 0;
   private rampGround = 0;
+  /** E296: the timbers inside the hold the player would otherwise walk, jump or look through — the deck beams across it,
+   *  the snapped ones fallen in, the planks hanging from the waterways — as the boxes `beam()` drew them (hull frame);
+   *  `colliderDescs` makes each a collider, so the capsule keeps the eye out of them and an enemy's hit doesn't land through them */
+  private timbers: { a: THREE.Vector3; b: THREE.Vector3; w: number; h: number; roll: number }[] = [];
+  /** E296: the mainmast's axis through the hold (hull frame) and its radius there — the floor box alone missed the lean */
+  private mast: { a: THREE.Vector3; b: THREE.Vector3; r: number } | null = null;
 
   constructor(private sky: Sky, private spec: WreckSpec) {
     this.roll = spec.roll ?? -0.2;
@@ -324,10 +330,14 @@ export class Wreck {
       if (r < 0.3) continue;
       if (r < 0.42) {                                                                           // snapped: one end fell to the floor
         const side = rng.next() < 0.5 ? -1 : 1;
-        kit.add(beam(new THREE.Vector3(side * w, BEAM_Y, z), new THREE.Vector3(-side * w * 0.2, 0.25, z + rng.range(-0.4, 0.4)), 0.2, 0.22), C.rib, { matrix: mh });
+        const a = new THREE.Vector3(side * w, BEAM_Y, z), b = new THREE.Vector3(-side * w * 0.2, 0.25, z + rng.range(-0.4, 0.4));
+        kit.add(beam(a, b, 0.2, 0.22), C.rib, { matrix: mh });
+        this.timbers.push({ a, b, w: 0.2, h: 0.22, roll: 0 });
         continue;
       }
-      kit.add(beam(new THREE.Vector3(-w, BEAM_Y, z), new THREE.Vector3(w, BEAM_Y, z), 0.2, 0.22), C.rib, { matrix: mh, jitter: 0.05 });
+      const a = new THREE.Vector3(-w, BEAM_Y, z), b = new THREE.Vector3(w, BEAM_Y, z);
+      kit.add(beam(a, b, 0.2, 0.22), C.rib, { matrix: mh, jitter: 0.05 });
+      this.timbers.push({ a, b, w: 0.2, h: 0.22, roll: 0 });
     }
     for (const side of [-1, 1]) {
       const tA = tOf(HOLD_Z0), tB = tOf(HOLD_Z1), steps = Math.round((tB - tA) * N);
@@ -345,7 +355,9 @@ export class Wreck {
     for (let k = 0; k < 3; k++) {                                                               // deck planks hanging into the hold
       const z = HOLD_Z0 + 1.6 + k * 2.6, side = k % 2 ? 1 : -1, w = halfWidthAt(tOf(z), BOW_DECK) - 0.5;
       const top = new THREE.Vector3(side * w, BOW_DECK - 0.02, z), bot = new THREE.Vector3(side * (w - 0.9), 0.4 + rng.range(0, 0.5), z + rng.range(-0.8, 0.8));
-      kit.add(beam(top, bot, 0.26, 0.05, rng.range(-0.2, 0.2)), C.deck, { matrix: mh });
+      const roll = rng.range(-0.2, 0.2);
+      kit.add(beam(top, bot, 0.26, 0.05, roll), C.deck, { matrix: mh });
+      this.timbers.push({ a: top, b: bot, w: 0.26, h: 0.05, roll });
     }
 
     // ── the hold: a level plank floor, the two bulkheads, a stair to the bow deck ──
@@ -392,6 +404,7 @@ export class Wreck {
     const mBase = new THREE.Vector3(0.05, KEEL, 1.3), mDir = new THREE.Vector3(0.1, 1, 0.3).normalize(), mLen = 14.5;
     const mAt = (s: number) => mBase.clone().addScaledVector(mDir, s);
     kit.add(log(mBase, mAt(mLen), 0.26, 0.13, 8), C.mast, { matrix: mh, jitter: 0.05 });
+    { const s0 = -KEEL / mDir.y - 0.3, s1 = (BOW_DECK + 2.4 - KEEL) / mDir.y; this.mast = { a: mAt(s0), b: mAt(s1), r: 0.26 - 0.13 * s0 / mLen }; } // the hold's stretch, floor to over a jump
     for (const s of [3.8, 6.5, 9]) kit.add(new THREE.CylinderGeometry(0.27, 0.27, 0.12, 8).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), mDir)).translate(mAt(s).x, mAt(s).y, mAt(s).z), C.band, { matrix: mh, jitter: 0.04 });
     {
       const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), mDir), c = mAt(11.4);
@@ -531,7 +544,7 @@ export class Wreck {
       kit.add(new THREE.BoxGeometry(0.04, 0.5, 0.16).translate(x + 0.12, 0.3, rackZ + 0.45), C.driftDark, { matrix: mf });
       kit.add(log(new THREE.Vector3(x + 0.14, 0.05, rackZ - 0.45), new THREE.Vector3(x + 0.02, 2.0, rackZ - 0.5), 0.03, 0.03, 5), C.mast, { matrix: mf });
       kit.add(new THREE.TorusGeometry(0.08, 0.02, 3, 6, Math.PI * 1.3).translate(x + 0.02, 2.02, rackZ - 0.5), C.iron, { matrix: mf });
-      const p = lantern(fm(x + 0.75, 1.72, rackZ + 0.1), BEAM_Y - 1.72 - 0.42);
+      const p = lantern(fm(x + 0.75, 1.98, rackZ + 0.1), BEAM_Y - 1.98 - 0.42); // E296: hung over head height (it was at eye height over the stair foot)
       lamps.push({ x: p.x, y: p.y, z: p.z, color: '#ffbb66', range: 5.5, intensity: 1.35 });
       this.anchors['swordRack'] = this.anchor(x + 0.3, rackZ, Math.PI / 2);
     }
@@ -730,6 +743,7 @@ export class Wreck {
    *  row, the decks one strip per 0.25 m of hull length. The hold stair is treads, never a ramp (see below). */
   colliderDescs(): ColliderDesc[] {
     const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
+    out.push(...this.timberDescs());
     const fp = this.floorPlane;
     // the hold floor: one slab per run of equal-width 0.25 m rows (floorHalf rounds z to the nearest row)
     const rows = this.floorW.length;
@@ -768,6 +782,36 @@ export class Wreck {
         const z1 = Math.min(zb, z0 + 0.25), w = Math.max(halfWidthAt(tOf(z0), y), halfWidthAt(tOf(z1), y)) - 0.3;
         if (w > 0) out.push(this.planeBox(pl, -w, w, z0, z1));
       }
+    }
+    return out;
+  }
+
+  /** E296: the hold's timbers (see `timbers`) as boxes exactly where `beam()` drew them, and the mainmast as a capsule
+   *  along its lean — real geometry for the capsule (the eye stays out of them) and for `lineOfSight` (no hit through them) */
+  private timberDescs(): ColliderDesc[] {
+    const out: ColliderDesc[] = [];
+    const qh = new THREE.Quaternion().setFromRotationMatrix(this.mh), up = new THREE.Vector3(0, 1, 0);
+    const place = (a: THREE.Vector3, b: THREE.Vector3, roll: number): { c: THREE.Vector3; len: number; q: THREE.Quaternion } => {
+      const d = b.clone().sub(a), len = d.length();
+      // beam(): the box turned `roll` about its length, stood along a → b, then the hull matrix (lowpolyKit alongSegment)
+      const q = qh.clone().multiply(new THREE.Quaternion().setFromUnitVectors(up, d.normalize())).multiply(new THREE.Quaternion().setFromAxisAngle(up, roll));
+      return { c: a.clone().add(b).multiplyScalar(0.5).applyMatrix4(this.mh), len, q };
+    };
+    // …but not one that leans into the stair's walk (the plank over its foot): the capsule stalled on the treads under it,
+    // and the eye passes it 0.6 m off there
+    const toFloor = this.mf.clone().invert().multiply(this.mh), low = new THREE.Vector3();
+    const onStair = (t: { a: THREE.Vector3; b: THREE.Vector3 }): boolean => {
+      low.copy(t.a.y < t.b.y ? t.a : t.b).applyMatrix4(toFloor);
+      return low.x > STAIR.x0 - 0.45 && low.x < STAIR.x1 + 0.45 && low.z < STAIR.z0 + 0.45 && low.z > STAIR.z1 - 0.45;
+    };
+    for (const t of this.timbers) {
+      if (onStair(t)) continue;
+      const { c, len, q } = place(t.a, t.b, t.roll);
+      out.push({ kind: 'box', x: c.x, y: c.y, z: c.z, hx: t.w / 2, hy: len / 2, hz: t.h / 2, rot: { x: q.x, y: q.y, z: q.z, w: q.w } });
+    }
+    if (this.mast !== null) {
+      const { c, len, q } = place(this.mast.a, this.mast.b, 0);
+      out.push({ kind: 'capsule', x: c.x, y: c.y, z: c.z, halfHeight: len / 2, radius: this.mast.r, rot: { x: q.x, y: q.y, z: q.z, w: q.w } });
     }
     return out;
   }

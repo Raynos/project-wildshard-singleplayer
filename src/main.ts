@@ -725,7 +725,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const pineFights = chunk.slug === 'pine-hollow' ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params,
     longbow: longbow && pineLoadout ? { displayModel: () => longbow.displayModel(), grant: () => { pineLoadout.grantLongbow(); } } : null, ironFirst: () => { pineLoadout?.onPlayerDeath(); } }) : null;
   animals.onKill = (a) => {
-    hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
+    // a sword kill is at arm's length: "Reef crab · 1 m" read as a marker to crabs 30 m off (E296); a shot keeps its distance
+    hud.killFeed(meleeShard(chunk) ? `${a.label} killed` : `${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
     const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id) && pineFights?.isElite(a) !== true) spawnSkinDrop(skin, a.position); // the legendary's drop, once (a named elite's comes from its own orb)
   };
   // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
@@ -1049,6 +1050,17 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       carcass = a; break;
     }
     prompt = nearest ? `[E] ${nearest.label}` : carcass ? `[E] Harvest ${carcass.label || carcass.kind}` : undefined; // "Harvest Royal bull", not "Harvest elk"
+    // E296: no prompt over a fight on a melee shard — in the wreck's hold the guarded sword's and the jammed winch's (on the
+    // phone the big USE band) sat across the drowned sailor. A fight = a hit in the last 3 s, or an enemy on you within 5 m;
+    // E still works
+    if (prompt !== undefined && meleeShard(chunk)) {
+      let fighting = performance.now() - lastHurt < 3000;
+      for (const a of animals.animals) {
+        if (fighting) break;
+        fighting = a.alive && a.aggressive && (a.state === 'attack' || a.state === 'stalk' || a.state === 'charge') && a.position.distanceToSquared(player.position) < 25;
+      }
+      if (fighting) prompt = undefined;
+    }
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);

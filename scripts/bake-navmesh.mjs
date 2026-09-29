@@ -72,7 +72,7 @@ const NodeRequest = globalThis.Request, nodeFetch = globalThis.fetch;
 Object.assign(globalThis, {
   location: new URL(HOST), self: globalThis,
   document: { createElement: el, createElementNS: el, getElementById: () => null, head: el(), body: el(), addEventListener: noop, removeEventListener: noop, querySelector: () => null, querySelectorAll: () => [], pointerLockElement: null },
-  window: { addEventListener: noop, removeEventListener: noop, devicePixelRatio: 1, innerWidth: 1600, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener: noop }), location: new URL(HOST) },
+  window: { setTimeout, clearTimeout, addEventListener: noop, removeEventListener: noop, devicePixelRatio: 1, innerWidth: 1600, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener: noop }), location: new URL(HOST) },
   // three's loaders build Requests from site-relative URLs
   Request: class extends NodeRequest { constructor(input, init) { super(typeof input === 'string' ? new URL(input, HOST).href : input, init); } },
   fetch: (input, init) => {

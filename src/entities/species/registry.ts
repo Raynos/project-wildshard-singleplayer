@@ -154,6 +154,9 @@ export interface ThinkCtx {
   pathYaw: (a: Animal, tx: number, tz: number, every?: number) => number;
   /** keep inside the chunk and off the water (the manager's confine) */
   confine: (a: Animal) => void;
+  /** melee shards: nothing solid (a wall, a beam, a deck, a rock) between it and the player — `hurt` lands only then
+   *  (E296); a species asks before it starts a swing it could not land. Always true on a ranged shard */
+  reach: (a: Animal) => boolean;
 }
 
 export interface BoneDef { name: string; parent: string | null; pos: [number, number, number] }
