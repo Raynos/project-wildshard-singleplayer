@@ -392,3 +392,11 @@ a frame of the before / after video. The videos themselves are not committed (th
 SHIPPED · A1 tint only · A2 mottled + flecks · A3 A2 + slope clumps. They are procedural recolours of live phone captures;
 Qwen-Image couldn't tint the ground in 3 seeds × 6 jobs (`qwen-attempts-A1.jpg`). The build is A1 plus C (the tint and
 the slope reach, E156). Jake: "Mockups don't tell me anything" — the pick was made in game.
+
+### Reasons to wander (`art/quest/round-3-wander/`, 2026-09-29, E309)
+
+Three boards for DRIFTWOOD-TOP10 row 9b, made from codex edits of live iPhone portrait captures. `board-1-gulls.jpg` asks how
+gulls lead you to unfound places: A a flock over the place, B gulls fly past you, C a perched gull takes off, D none.
+`board-2-map.jpg` asks how the map shows found and unfound places: A ring "?" pins + "PLACES 4 / 11", B fog, C "???"
+rings, D today. `board-3-sea-glass.jpg` asks where the sea glass count goes: A the map tag, B the inventory, C today's
+pickup toast, D all three. Recommended: A, A, A. The folder's README lists every frame.
