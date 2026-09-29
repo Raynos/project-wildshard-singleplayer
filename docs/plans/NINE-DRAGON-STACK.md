@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-09-28 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple and the practice arena are live; F3's round-22 trailer awaits Jake's review. Facade multi-draw is removed on every shard (E271 / E272), so the fragment's facades are instanced only; E264's iPhone memory caps (1.8 GB loading, 1.0 GB World Explorer) and F9's physical retest are open. In flight: the Well-rim slice, F4 + F5 (E276). F6–F8 and F10 are todo. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
+**State:** `in progress` 2026-09-28 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple and the practice arena are live; F3's round-22 trailer awaits Jake's review. Facade multi-draw is removed on every shard (E271 / E272), so the fragment's facades are instanced only; E264's iPhone memory caps (1.8 GB loading, 1.0 GB World Explorer) and F9's physical retest are open. In flight: the mockup pass E281, five lanes over all eight domes (F4–F7; the Well-rim slice F4 + F5 from E276 is its Well lane). F8 and F10 are todo. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
 
 ## 0. Read this first
 
@@ -361,8 +361,8 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `need
 | F3 | **A 15 s portrait teaser trailer** from the engine (the `scripts/steam-trailer/` pipeline): rise up the Well, breach onto the square, the jian, the stair-street, the grapple, the end card; a MiniMax cue + MOSS / SA3 SFX; portrait 1080p60 master for the portrait iOS PWA | continuation | latest grapple recut `d76d79c0`, [round 22](../../art/nine-dragon-stack/round-22-portrait-grapple-final/README.md); awaiting Jake's review |
 | F4 | **Mockup B**: move the rim post out of the lower-left (look over a carved panel, a post lower-right), `placeLion` on the posts | dome C | in flight (E276, 2026-09-28) with F5: the Well-rim slice, memory-neutral |
 | F5 | **The deep Well**: levels 50–90 m down and the temple readable through the mist (a lighter curve / lit surfaces punching through), mockup D's frame | render + D2 | in flight (E276, 2026-09-28) with F4 |
-| F6 | **Mockup C**: open depth over the stair (thin the lantern strings, push back the near sky screen, the paifang big and centred, the skybridges at the mockup's depths) | C2 + render | todo |
-| F7 | Each dome loops against its 3×3 targets until "a stranger has to look twice" at phone size: A1, A2, B1, B2, C1, C2, D1, D2 | the domes | in progress |
+| F6 | **Mockup C**: open depth over the stair (thin the lantern strings, push back the near sky screen, the paifang big and centred, the skybridges at the mockup's depths) | C2 + render | in flight (E281 stair lane) |
+| F7 | Each dome loops against its 3×3 targets until "a stranger has to look twice" at phone size: A1, A2, B1, B2, C1, C2, D1, D2 | the domes | in flight (E281: five lanes, `scripts/nine-dragon-domes.mjs`, sheets in `art/nine-dragon-stack/round-24-mockup-pass/`) |
 | F8 | Lanes back under their caps (§6.4) by merged kits, culling and cuts; instancing only, facade multi-draw is prohibited (E271 / E272) | port lead + domes | todo |
 | F9 | **Jake's iPhone reading** of the fragment: first confirm title → Nine Dragon reaches play once on the physical home-screen PWA; then FPS at the four mockup cameras and boot time | Jake | needs you; Simulator pass is not a physical-device result |
 | F10 | Cleanup: `public/assets/nine-dragon/lab/*` → final asset paths; the art index rows (rounds 7–17); LOOK-LOOP.md gotchas (§12); D2's cameras 2–3 re-seated; the crossings' keep-clear for the moved temple (z −35…−25 below +54) | coordinator | todo |
