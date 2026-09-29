@@ -1,6 +1,6 @@
 # Plan: engine fit — a three.js engine, or five parts of our own?
 
-**State:** `draft` 2026-09-28 — the verdict stands (no engine switch; three.js + Rapier). E1–E3 are built: the user folded them into PHYSICS (P2 / P2b), merged `558d2340` (`src/world/registry.ts`, `Game.onFixed` phases, `src/physics/CharacterMotor.ts`; plan archived project/archive/2026-09-23-physics.md). E4 and E5 are not built and are also rows of other drafts: E4 = FINISH-LINE S5, E5 = GAME-NORMALIZATION (the shard modules, N4). The libraries L-a–L-f: none adopted. Nothing here is approved; it waits on the user's pick, or on being dropped in favour of those two plans.
+**State:** `draft` 2026-09-28 — the verdict stands (no engine switch; three.js + Rapier). E1–E3 are built: the user folded them into PHYSICS (P2 / P2b), merged `558d2340` (`src/world/registry.ts`, `Game.onFixed` phases, `src/physics/CharacterMotor.ts`; plan archived project/archive/2026-09-23-physics.md). E4 and E5 are not built and are also rows of other drafts: E4 = FINISH-LINE S5, E5 = GAME-NORMALIZATION (the shard modules, N4). The libraries L-a–L-f: none adopted. Kept live: Jake (2026-09-29) does not want it, GAME-NORMALIZATION, FINISH-LINE or EXPLORE-V2 dropped or parked. It waits on his pick of rows.
 
 ## Read this first
 
