@@ -127,3 +127,19 @@ Each `pass-<n>/` holds:
 - **Memory.** Fragment geometry 151.1 → 150.8 MB, textures 79.6 MB unchanged. Mockup B has 118 draws and 1.43 M
   triangles, mockup D 102 draws and 1.13 M.
 - **Walk test** (catwalk moved): 19 legs, 0 stuck, 0 escapes.
+
+### Pass 10 (on `ae23dfd`): lit verandas up the run north
+
+- **Lantern rows up the run north.** The same lantern rows now run along every open front of the stub and the run
+  north's two walls, from +137 down to +83 (`well-mid.ts`). The stub faces mockup B head-on 57 m off. It now reads as
+  tiers of lit verandas, and B2's views north gain warm lines receding up the canyon. At phone size the gain is small
+  (+24–34 k lantern triangles in B and B2·5, no new draw, fragment geometry unchanged at 150.8 MB).
+- The eye-check has flattened again, so the Well lane stops at pass 10.
+
+**Left for others:**
+
+- **B's centre-right (render / coordinator).** The stub, the main shaft's north wall at x −12…0, z −44, is a wall of
+  galleries facing B head-on. It exists because the main shaft is 12 m wider than the run north. Only a change to the
+  main shaft's footprint removes it, and that touches the street's west block (`towers.ts`, fabric) and the crossings.
+- **The mist's colour 100 m and more down (render).** It sets how pale the bottom of D and D2 reads.
+- **D's lion (coordinator).** The camera proposal is in `pass-5/camera-D-proposal.jpg`.

@@ -147,10 +147,14 @@ export function buildMid(plan: WellPlan): void {
   // walls in two, the crossings by region, one alpha kit, one for both gates. The run north's galleries stop at
   // X_LOW, under its lowest crossing: below that its walls run on as painted shells into the mist.)
   const KX: BandKits = { kit: (y) => ctx.kit(y >= Y0 - 25 ? 'well-x-hi' : 'well-x-lo'), alpha: () => ctx.alpha('well-c-a') };
-  plan.band('stub', DECK_TOP, LOW, 853, KX, SHELL_BOTTOM, 2);
+  // (round 2, pass 10, mockup B: "its walls are warm-lit timber galleries, verandas with lanterns") a lantern row along
+  // every open front of the stub and the run north, from the rim's level down: each gallery a warm line receding up the
+  // canyon (the stub, face-on to B 57 m off, reads as tiers of lit verandas instead of a block)
+  const row = { yMin: X_LOW, yMax: Y0 + 12, spacing: 3.4 };
+  plan.band('stub', DECK_TOP, LOW, 853, KX, SHELL_BOTTOM, 2, { lanternRow: row });
   // (round 2, mockup B) the run north's galleries 1.2–2.2 m deep (the plan's 2–3.4): from the rim its open gap reads
   // ~12.5 m, not ~10, so the view down it stays a canyon to the vanishing point instead of a slot between two walls
-  const shallow = { depths: { dMin: 1.2, dMax: 2.2 } };
+  const shallow = { depths: { dMin: 1.2, dMax: 2.2 }, lanternRow: row };
   plan.band('west-x', DECK_TOP, X_LOW, 857, KX, SHELL_BOTTOM, 5, shallow);
   plan.band('east-x', DECK_TOP, X_LOW, 863, KX, SHELL_BOTTOM, 5, shallow);
   // (round 2: the run north's north wall at z −104 went — the canyon runs on past the deck's edge, farRun)
