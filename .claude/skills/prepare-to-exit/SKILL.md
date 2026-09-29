@@ -34,8 +34,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
   `progress/` image over 500 KB, and mockups under `art/<subject>/round-<n>-<label>/` are committed as JPEG.
 - **What ships is a clean export of HEAD** (CI checks out the commit), never the working tree — so *HEAD* is what
   has to be green, and other agents' dirty files never ship.
-- **Game browsers are a shared lane: at most 3 open machine-wide.** Each open game tab costs ~1.5 cores for as
-  long as it lives; SwiftShader ~3 per page. Close yours before the banner (step 6).
+- **Game browsers are a shared lane: at most 3 open machine-wide, enforced by `scripts/browser-lane.sh` and its hook (E312).**
+  Each open game tab costs ~1.5 cores for as long as it lives; SwiftShader ~3 per page. Close yours before the banner (step 6).
 - **Paths.** The checkout is `~/projects/games/wildshard-singleplayer`; its memory directory is
   `~/.claude/projects/-Users-raynos-projects-games-wildshard-singleplayer/memory/` (index `MEMORY.md`).
 
@@ -103,8 +103,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    went, and the links to it fixed. A `done` ask without a build id means the push didn't happen or CI is red —
    go back to step 3. Edit shared ledgers with Edit or `>>`, never `>`.
 6. **Close every browser and emulator you opened.** `agent-browser session list` shows none of yours
-   (`agent-browser --session <s> close`); `pgrep -fl chrome-headless-shell` has nothing you started; Playwright
-   scripts have `browser.close()`d; an Android emulator you booted is gone (`adb -s <serial> emu kill`). An open
+   (`agent-browser --session <s> close`); `scripts/browser-lane.sh status` lists no browser you started (it shows each
+   browser's parent; `scripts/browser-lane.sh reap` clears orphans); Playwright scripts have `browser.close()`d; an Android emulator you booted is gone (`adb -s <serial> emu kill`). An open
    game tab renders at 60 fps forever and eats a slot of the 3-browser lane for everyone.
 7. **Leftover-work sweep — a QUEUE, not a record.** Anything this session ruled, found, deferred or decided but did
    not build must have a home an agent or the human starts from: an **open ask file in `docs/tasks/asks/`** (the

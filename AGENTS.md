@@ -160,15 +160,24 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
   tree, so nobody's half-finished files ship.
 - Every screenshot session must be closed (`agent-browser --session <s> close`) before you
   report — an open one keeps rendering the game and pins the box.
-- **Game browsers are a shared lane: at most 3 open across all agents on this machine.** Check
-  `agent-browser session list` and `pgrep -fl chrome-headless-shell` before you open one; if 3
-  are already running, wait or reuse your own session. Each open game tab costs ~1.5 cores for as
-  long as it is open (agent-browser now closes idle sessions after 5 min, via `idleTimeout` in
-  `~/.agent-browser/config.json`). Render on the GPU: agent-browser does by default, and Playwright scripts
-  pass `--use-angle=metal` like `scripts/bench-load.mjs`. **SwiftShader (`--use-angle=swiftshader`,
-  Android `-gpu swiftshader_indirect`) only when the user asks for it**: it draws on the CPU,
-  ~3 cores per page. No `--disable-frame-rate-limit`. One Android emulator at a time, killed
-  (`adb -s <serial> emu kill`) when the run ends.
+- **Game browsers are a shared lane: at most 3 open across all agents on this machine, enforced (E312).**
+  Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open, and memory competes with the local-model jobs.
+  - Run every Playwright / Puppeteer script through **`scripts/browser-lane.sh [--max <min>] <cmd…>`**. It waits for a
+    free slot, releases it when the command exits (a crash included) and kills the command after `--max` minutes
+    (default 60).
+  - Before a new agent-browser session: `scripts/browser-lane.sh wait && agent-browser --session <s> open …`. Reusing
+    your open session is always fine; `close` it the moment you are done (idle sessions also close after 5 min, via
+    `idleTimeout` in `~/.agent-browser/config.json`).
+  - `.claude/hooks/guard-browser-lane.sh` blocks a browser-launching `node` / `pnpm` script that isn't wrapped, and a new
+    agent-browser session while the lane is full. Escape (rare): `SKIP_BROWSER_LANE=1`.
+  - Zombies are reaped: `scripts/browser-lane.sh reap` kills headless Chromiums whose parent died or that are older than
+    90 min, and vite servers started from a session scratchpad more than 24 h ago. It runs before every lane wait and
+    from the SessionStart / Stop / SubagentStop hooks. `scripts/browser-lane.sh status` shows who holds what; the
+    log is `~/.browser-lane/reap.log`.
+  - Render on the GPU: agent-browser does by default, and Playwright scripts pass `--use-angle=metal` like
+    `scripts/bench-load.mjs`. **SwiftShader (`--use-angle=swiftshader`, Android `-gpu swiftshader_indirect`) only when
+    the user asks for it**: it draws on the CPU, ~3 cores per page. No `--disable-frame-rate-limit`. One Android emulator
+    at a time, killed (`adb -s <serial> emu kill`) when the run ends.
 
 ## Mockups
 

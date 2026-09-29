@@ -44,7 +44,8 @@ before you spend any effort on it.
 `context.repro` is the note's own URL:
 `/?chunk=<shard>&at=x,y,z,yaw,pitch&weapon=<id>&skipintro`. main.ts reads `at` and starts you exactly where the note was
 filed. Open it with agent-browser at the note's `viewport` (add `&tier=phone&touch` when `tier` is `phone`). Mind the
-shared browser lane in AGENTS.md: at most 3 game browsers across all agents, and close your session when you are done.
+shared browser lane in AGENTS.md: at most 3 game browsers across all agents, so run `scripts/browser-lane.sh wait` before
+a new session and wrap Playwright scripts in `scripts/browser-lane.sh`. Close your session when you are done.
 Screenshot it and compare with the note's jpg. Cannot reproduce it? Say so in the ask and move on.
 
 ## 4. Fix or dispatch by area

@@ -1,16 +1,26 @@
 {
   "hooks": {
     "SessionStart": [
-      { "hooks": [ { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-brief.sh\"" } ] }
+      { "hooks": [
+        { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-brief.sh\"" },
+        { "type": "command", "command": "nohup bash \"$CLAUDE_PROJECT_DIR/scripts/browser-lane.sh\" reap >/dev/null 2>&1 &" }
+      ] }
     ],
     "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-git-add-all.sh\"" },
-          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash-safety.sh\"" }
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash-safety.sh\"" },
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-browser-lane.sh\"" }
         ]
       }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "nohup bash \"$CLAUDE_PROJECT_DIR/scripts/browser-lane.sh\" reap >/dev/null 2>&1 &" } ] }
+    ],
+    "SubagentStop": [
+      { "hooks": [ { "type": "command", "command": "nohup bash \"$CLAUDE_PROJECT_DIR/scripts/browser-lane.sh\" reap >/dev/null 2>&1 &" } ] }
     ]
   }
 }
