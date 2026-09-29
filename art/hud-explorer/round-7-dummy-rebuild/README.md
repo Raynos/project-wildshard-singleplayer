@@ -92,3 +92,27 @@ quickest fix."
 | File | What it shows |
 |---|---|
 | `wood-steel-helm-before-after.jpg` | **Live engine**, iPhone portrait 390 × 844 at 3×, camera 1.7 m from the figure at head height, turned 0 / 35 / 90 / 150 / 180°. A = the E285 sallet (live `8bbf2bdb`), B = the E289 great helm |
+
+## E289: the minor mesh items (2026-09-29)
+
+These passes are in `scripts/practice/dummy_parts.py`, run from `rig_dummy.py`. All three figures now have:
+- the approved cross-foot base (square post, crossed beams, braces, iron caps) built in place of TRELLIS's;
+- every face turned to the side it is seen from.
+
+Per figure:
+- **Steel:** the metal darkened and rusted towards the approved dark iron, in the texture; no lining on the helm rim.
+- **Straw:** the neck and fists smoothed and despeckled, with a straw tube and fist blobs behind the gaps.
+- **Wood:** the face under the target smoothed.
+
+The nine-angle, approved-vs-live, hit and rig-gate sheets above were refreshed with these GLBs.
+
+| File | What it shows |
+|---|---|
+| `e289-bases-before-after.jpg` | **Live engine**, portrait 3×: the three bases, A = live `f20e0db8`, B = E289 |
+| `e289-steel-iron-before-after.jpg` | Live: steel full figure and helm at 0° / 35°, A / B |
+| `e289-straw-wood-before-after.jpg` | Live: straw collar, straw fist and wood target, A / B |
+
+**Still open:**
+- pale leftover flakes by the steel and straw feet (40–120°);
+- one small dark nick at the right end of the helm slit;
+- the straw rear-sleeve smear at a 60° backward swing.

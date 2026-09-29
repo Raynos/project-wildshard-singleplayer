@@ -59,15 +59,16 @@ JOINTS = {
     "straw-cloth": dict(pelvis=1.30, spine=1.55, chest=1.85, neck=2.17, head=2.27, crown=2.64,
                         clavicle=(0.07, 2.09), shoulder=(0.32, 2.02), elbow=(0.44, 1.72), wrist=(0.57, 1.47),
                         fist=(0.63, 1.27), hip=(0.19, 1.20), knee=(0.24, 0.83), ankle=(0.26, 0.27),
-                        post_r=0.06, base_top=0.14, hem=1.00, target=(2.43, 0.105)),
+                        post_r=0.06, base_top=0.14, hem=1.00, target=(2.43, 0.105),
+                        smooth=[(0.0, 2.15, 0.14), (0.63, 1.27, 0.11), (-0.63, 1.27, 0.11)], neck_plug=(1.9, 2.25)),
     "wood": dict(pelvis=1.30, spine=1.55, chest=1.85, neck=2.17, head=2.29, crown=2.64,
                  clavicle=(0.07, 2.09), shoulder=(0.33, 2.02), elbow=(0.47, 1.73), wrist=(0.57, 1.48),
                  fist=(0.63, 1.27), hip=(0.20, 1.20), knee=(0.26, 0.92), ankle=(0.28, 0.32),
                  post_r=0.06, base_top=0.14, hem=1.00, target=(2.425, 0.10)),
     "wood-steel": dict(pelvis=1.30, spine=1.55, chest=1.85, neck=2.17, head=2.22, crown=2.64,
                        clavicle=(0.07, 2.09), shoulder=(0.32, 2.02), elbow=(0.47, 1.76), wrist=(0.57, 1.50),
-                       fist=(0.59, 1.30), hip=(0.19, 1.20), knee=(0.22, 0.86), ankle=(0.25, 0.30),
-                       post_r=0.06, base_top=0.14, hem=1.00, helm=(2.22, 2.64)),  # E289: the great helm
+                       fist=(0.59, 1.30), hip=(0.19, 1.20), knee=(0.24, 0.86), ankle=(0.29, 0.30),
+                       post_r=0.06, base_top=0.14, hem=1.00, helm=(2.22, 2.64), weather=True),  # E289: great helm
 }
 if VARIANT not in JOINTS:
     raise SystemExit(f"--variant must be one of {sorted(JOINTS)}")
@@ -93,6 +94,10 @@ for o in list(bpy.context.scene.objects):
 mesh.select_set(True)
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 me = mesh.data
+# The importer keeps the generator's split normals as custom normals, and they would not follow any vertex this
+# script moves (spike relax, smoothing, the flattened face): drop them, the mesh's own smooth normals take over.
+if me.has_custom_normals:
+    bpy.ops.mesh.customdata_custom_splitnormals_clear()
 
 # TRELLIS picks the figure's facing per generation; turn it to face Blender -Y (glTF / three.js +Z).
 TURN = {"-y": 0.0, "x": -90.0, "-x": 90.0, "y": 180.0}[SOURCE_FRONT]
@@ -199,10 +204,10 @@ report["filled_holes"] = len(filled)
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 
 # Hidden faces: the remesh thickens every crust into a shell, so a closed part keeps an inner wall no camera can
-# see. A face is kept when any of 48 rays (a Fibonacci sphere, from just off either side of it) escapes the figure.
+# see. A face is kept when any of 160 rays (a Fibonacci sphere, from just off either side of it) escapes the figure.
 bm.faces.ensure_lookup_table()
 bvh = BVHTree.FromBMesh(bm)
-K = 48
+K = 160
 golden = math.pi * (3 - math.sqrt(5))
 sphere = []
 for k in range(K):
@@ -234,6 +239,44 @@ report["dropped_hidden_faces"] = len(hidden)
 bmesh.ops.delete(bm, geom=hidden, context="FACES")
 loose = [v for v in bm.verts if not v.link_faces]
 bmesh.ops.delete(bm, geom=loose, context="VERTS")
+# The cull can open a pit the rays could not see into (the straw fists, the collar, E289): close every open loop of up
+# to 80 edges the cull left, UVs borrowed from the neighbouring faces.
+before = set(bm.faces)
+bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges if e.is_boundary], sides=80)
+refilled = [f for f in bm.faces if f not in before]
+for f in refilled:
+    for loop in f.loops:
+        for other in loop.vert.link_loops:
+            if other.face not in refilled and other.face.is_valid:
+                loop[uv].uv = other[uv].uv.copy()
+                break
+bmesh.ops.triangulate(bm, faces=[f for f in refilled if len(f.verts) > 3])
+report["refilled_after_cull"] = len(refilled)
+
+# Winding: TRELLIS's shells come back with mixed winding (the material is double-sided, so it only showed as dark
+# patches where smooth normals of opposite faces cancel: the straw collar and fists, E289). Every face turns to the
+# side it can be seen from: of 16 rays on each side of it, the side more of them escape from is outside.
+bm.faces.ensure_lookup_table()
+bm.normal_update()
+tree = BVHTree.FromBMesh(bm)
+hemi = sphere[::10]
+flipped = 0
+for f in bm.faces:
+    c = f.calc_center_median()
+    n = f.normal
+    if n.length < 1e-8:
+        continue
+    plus = minus = 0
+    for d in hemi[:16]:
+        dd = d if d.dot(n) >= 0 else -d
+        if tree.ray_cast(c + n * 2e-4 + dd * 1e-4, dd)[0] is None:
+            plus += 1
+        if tree.ray_cast(c - n * 2e-4 - dd * 1e-4, -dd)[0] is None:
+            minus += 1
+    if minus > plus:
+        f.normal_flip()
+        flipped += 1
+report["faces_flipped_outward"] = flipped
 report["dropped_crumbs"] = crumbs
 report["dropped_inner_shells"] = inner
 
@@ -291,6 +334,25 @@ def P(x, z):
     return Vector((x, depth(x, z), z))
 
 
+# ---------------------------------------------------------------- E289 finishing passes (scripts/practice/dummy_parts.py)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import dummy_parts as parts  # noqa: E402
+
+parts.squeeze_atlas(me)
+if J.get("smooth"):  # the straw neck and fists: pull the remesh flakes in
+    spheres = [((x, depth(x, z, 0.08), z), r) for x, z, r in J["smooth"]]
+    report["smoothed_verts"] = parts.smooth_regions(me, spheres)
+    parts.despeckle(me, spheres, report)
+if J.get("neck_plug"):
+    fists = [((x, depth(x, z, 0.08), z), r) for x, z, r in J.get("smooth", []) if abs(x) > 0.3]
+    parts.neck_plug(me, *J["neck_plug"], report, fists=fists)
+if J.get("target"):  # the dent under the face target
+    report["face_flattened_verts"] = parts.flatten_face(me, J["target"][0], J["target"][1], depth(0.0, J["target"][0], 0.08))
+if J.get("weather"):
+    parts.weather_steel(me, report)
+BASE_IDX = parts.replace_base(me, J, depth, report)
+verts = [v.co.copy() for v in me.vertices]
+
 # ---------------------------------------------------------------- the face target
 # TRELLIS draws the painted target from one front view and smears it: lopsided rings with a diamond or a spiral in
 # the middle (E285). Repaint it into the base-colour texture as the approved sheets have it: red dot, white, red
@@ -315,7 +377,8 @@ def paint_target(cz, radius):
         """(slice, inside mask, r) for every front-of-head triangle near the target, in texture space."""
         for poly in me.polygons:
             c = poly.center
-            if abs(c.x) > radius * 1.9 or abs(c.z - cz) > radius * 1.9 or c.y > head_y or poly.normal.y > -0.25:
+            if abs(c.x) > radius * 1.9 or abs(c.z - cz) > radius * 1.9 or c.y > head_y or (
+                    poly.normal.y > -0.25 and math.hypot(c.x, c.z - cz) > radius):  # inside the disc: every face
                 continue
             if len(poly.vertices) != 3:
                 continue
@@ -429,7 +492,9 @@ def close_helm(z0, z1):
         out.normalize()
         hit = helm_bvh.ray_cast(c + out * 0.002, out, 0.5)[0]
         up = helm_bvh.ray_cast(c + Vector((0, 0, 0.002)), Vector((0, 0, 1)), 0.5)[0] if c.z > z1 - 0.12 else True
-        if hit is not None and up is not None:
+        # the wall it meets must be the helm's own (a face on the rim looking out at a pauldron is outside, E289)
+        own = hit is not None and abs(hit.x - cx) < rx * 1.08 and abs(hit.y - cy) < ry * 1.08 and z0 + 0.02 < hit.z
+        if own and up is not None and c.z > z0 + 0.03:
             for li in poly.loop_indices:
                 uv[li].uv = dark
             lined += 1
@@ -671,7 +736,7 @@ for i, p in enumerate(verts):
     # The base and the post: rigid on Root.
     on_post = abs(x) < J["post_r"] and z < J["pelvis"] - 0.05 and abs(y - depth(0, z, 0.1)) < J["post_r"] * 1.5
     feet = z < J["ankle"][1] + 0.04 and abs(abs(x) - J["ankle"][0]) < 0.2
-    if z < J["base_top"] or on_post or feet:
+    if z < J["base_top"] or on_post or feet or i in BASE_IDX:
         w = {"Root": 1.0}
     else:
         # Nothing crosses the midline: the other side's limbs never pull this vertex.
@@ -748,6 +813,8 @@ report["verts_per_bone"] = counts
 report["max_influences"] = max(len(w) for w in W)
 
 next(m for m in mesh.modifiers if m.type == "ARMATURE").name = "Skin"
+for d in me.uv_layers.active.data:  # pack_dummy.mjs quantizes UVs to 16 bits: they must sit inside [0, 1]
+    d.uv = (min(1.0, max(0.0, d.uv.x)), min(1.0, max(0.0, d.uv.y)))
 arm.data.display_type = "STICK"
 os.makedirs(os.path.dirname(os.path.abspath(target)), exist_ok=True)
 if target.endswith(".blend"):
