@@ -111,3 +111,38 @@ and was cut back before the commit.
 | textures | — | +0 |
 | mockup A | 160 draws / 1.51 M | 124 draws / 1.50 M |
 | worst A1 / A2 pose | A2·9 113 draws; A1·5 1.31 M | A2·9 104 draws / 1.27 M; A1·2 / A1·5 1.29 M |
+
+## Pass 4 (the coordinator's two notes at mockup A)
+
+Sheets: `pass-4/A1-spawn-stand-sheet.jpg`, `pass-4/A2-gate-look-sheet.jpg`, `pass-4/mockup-A-pass3-pass4.jpg` (style-A
+| pass 3 | pass 4 as played), `pass-4/mockup-A-overlay.jpg` (style-A | engine | the two blended).
+
+What changed:
+
+- **The gate's lanterns are back.** The coordinator's note: the paifang had lost the warm cluster that glows in and
+  under it. The second row (two lanterns a step into the passage), the third row on long cords, and each side bay's
+  front lantern are restored. That is 13 lanterns again, as before pass 2.
+- **The sign masts.** The coordinator's note: the masts hid the fabric lane's new left-hand stack (九龍, 牙科, 火鍋, 茶
+  on the Well's north wall) from mockup A. Each mast is now one slim pole. The ladder ties and the twin poles are gone.
+  The masts carry no words: their 九龍 / 牙科 / 火鍋 / 茶 / 藥房 doubled the wall's stack at the frame's edge, and the
+  far mast's 麻雀 / 當舖 stood in front of the wall's 牙科 / 火鍋. The dragon hooks stay where they were, so the grapple is
+  unchanged.
+- **The parasol tables collide.** Each table with its stools and sitters is a 1.5 m box (`stalls.ts` `marketColliders`).
+- Tried and dropped in this pass: moving the masts' signs to style-A's column positions, placed by rays from the mockup
+  camera. From the spawn they doubled the fabric lane's stack, and 牙科's ray runs along the lip, where no sign can hang
+  outside the plaza.
+
+**The paifang in mockup A's frame** (the blend): its size matches. The post span is 220 px against style-A's 230 px on
+a 460 px frame, and the height from the ground to the ridge ornaments is 255 against 245 px. It sits about 5 % of the
+frame's width left of style-A's gate. Style-A's centre bay is also wider than its side bays: about 2.6× in the frame,
+against 1.3× in metres here (`GATE.posts`). Both come from `layout.ts`, `GATE` or the mockup camera's yaw, which are
+the coordinator's files.
+
+Walk test: 19 legs, 0 stuck, 0 out.
+
+| | before (f1e00629, clean) | pass 4 (80c4259e + this lane) |
+|---|---|---|
+| lane geometry | 30.70 MB | 29.09 MB (−1.61) |
+| textures | — | +0 |
+| mockup A | 160 draws / 1.51 M | 124 draws / 1.50 M |
+| worst A1 / A2 pose | A2·9 113 draws; A1·5 1.31 M | A2·9 104 draws / 1.27 M; A1·2 / A1·5 1.29 M |

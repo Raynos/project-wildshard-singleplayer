@@ -12,7 +12,7 @@ import { BOOTH, BOOTHS, PARASOLS, hawkerStall, marketRow, noodleStall } from './
 import { E, K, type Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
 import { dragonHook, lamp, scooter } from './props';
-import { MIN, METAL, NEON, Rng, chars } from '../util';
+import { MIN, METAL, Rng } from '../util';
 
 // the balustrade's stone: a mid wet grey (dome A's ΔE: 0x76767b rendered #757784, 0x4a4c53 #44454e; the spawn target #656469)
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };
@@ -20,7 +20,6 @@ const BUD: Look = { wash: 0x66676c, kind: K.stone, line: 1, wet: 0.45, surf: SUR
 const UPV = new Vector3(0, 1, 0);
 /** a figure's placement on the square's floor */
 const standAt = (x: number, z: number, yaw: number, s: number): Matrix4 => new Matrix4().compose(new Vector3(x, Y0, z), new Quaternion().setFromAxisAngle(UPV, yaw), new Vector3(s, s, s));
-const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
 function flagstones(k: Kit, x0: number, z0: number, x1: number, z1: number, y: number): void {
   k.quad(new Vector3(x0, y, z1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), x1 - x0, z1 - z0, { wash: 0x3e4148, kind: K.flag, wet: 1, line: 0 });
@@ -156,32 +155,19 @@ function paifang(ctx: Ctx): void {
   ctx.map.push({ x0: GATE.posts[0] - 0.6, z0: GATE.z - 1.2, x1: GATE.posts[3] + 0.6, z1: GATE.z + 1.2, kind: 'gate' });
 }
 
-/** steel lattice sign masts on the Well's lip, blade signs hung out over the drop, a dragon hook on top */
+/**
+ * Slim steel masts on the Well's lip, each with a dragon hook on top (the grapple's anchors). E281: they lost their
+ * blade signs and ladders. The fabric lane's Well wall carries style-A's left-hand column (九龍, 牙科, 火鍋, 茶) where
+ * the mockup has it, across the Well; the masts' own words doubled it at the frame's edge or stood in front of it from
+ * the spawn, and their twin poles and ladder ties were a grille of black lines across A1·3, A2·2 and mockup A's left
+ * edge. The hooks stay where they were.
+ */
 function signMasts(ctx: Ctx): void {
   const k = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
   const steel: Look = { wash: 0x3a3d44, line: 0.8 };
-  const masts: { z: number; x: number; signs: { text: string; color: number; y: number; size: number; flicker?: number }[] }[] = [
-    { z: -6, x: -1.0, signs: [{ text: '九龍', color: NEON.red, y: 16.4, size: 1.5 }] },
-    { z: -13, x: -3.2, signs: [{ text: '牙科', color: NEON.cyan, y: 14.6, size: 1.3 }, { text: '火鍋', color: NEON.red, y: 9.4, size: 1.25 }] },
-    { z: -20, x: -1.4, signs: [{ text: '茶', color: NEON.jade, y: 11.6, size: 1.45 }, { text: '藥房', color: NEON.magenta, y: 7.2, size: 1.05 }] },
-    { z: -28, x: -3.6, signs: [{ text: '麻雀', color: NEON.red, y: 13.4, size: 1.15 }, { text: '當舖', color: NEON.jade, y: 8.2, size: 0.95 }] },
-  ];
-  for (const m of masts) {
-    const mx = m.x, mz = m.z;
+  for (const [mx, mz] of [[-1.0, -6], [-3.2, -13], [-1.4, -20], [-3.6, -28]] as const) {
     const top = Y0 + 20.5;
-    // a slim twin-pole mast with ladder ties (a lattice would stand in front of the signs behind it)
-    for (const dx of [-0.16, 0.16]) k.beam(new Vector3(mx + dx, Y0 - 3, mz), new Vector3(mx + dx, top, mz), 0.1, 0.1, steel);
-    for (let yy = Y0 - 2; yy < top - 1; yy += 1.4) k.beam(new Vector3(mx - 0.16, yy, mz), new Vector3(mx + 0.16, yy, mz), 0.05, 0.05, steel);
-    for (const s of m.signs) {
-      const n = chars(s.text).length;
-      const h = s.size * (n + 0.62);
-      const cy = Y0 + s.y - h / 2;
-      // hung just south of the mast (in front of it from the square), out over the Well on a bracket
-      const sx = mx - 0.35 - s.size * 0.68, sz = mz + 0.75;
-      k.beam(new Vector3(mx, Y0 + s.y + 0.3, mz), new Vector3(mx, Y0 + s.y + 0.3, sz), 0.1, 0.1, steel);
-      k.beam(new Vector3(mx, Y0 + s.y + 0.3, sz), new Vector3(sx - s.size * 0.68, Y0 + s.y + 0.3, sz), 0.12, 0.12, steel);
-      ctx.signs.place({ at: new Vector3(sx, cy, sz), normal: new Vector3(0, 0, 1), size: s.size, spec: { text: s.text, color: hex(s.color), vertical: true, style: 'tube' }, blade: true, flicker: s.flicker ?? 0 }, k);
-    }
+    k.beam(new Vector3(mx, Y0 - 3, mz), new Vector3(mx, top, mz), 0.14, 0.14, steel);
     dragonHook(k, ctx, new Vector3(mx - 0.3, top - 0.6, mz), new Vector3(-1, 0, 0.25), 0.8);
   }
 }

@@ -336,9 +336,11 @@ export const BOOTHS: readonly (readonly [number, number])[] = [[19.8, -9.8], [19
 /** the parasol tables (x, z, quarter turns) */
 export const PARASOLS: readonly (readonly [number, number, number])[] = [[17.5, -8.2, 0], [17.3, -1.9, 1], [13.3, 1.9, 2], [17.3, 14.0, 3], [12.6, 14.8, 1], [10.2, 4.6, 0]];
 
-/** the booths as boxes of their footprints (colliders.ts: the props you would walk into) */
+/** the booths and the parasol tables (with their stools and sitters) as boxes of their footprints (colliders.ts) */
 export function marketColliders(): ColliderDesc[] {
-  return BOOTHS.map(([x, z]) => ({ kind: 'box', x: x + BOOTH.d / 2, y: Y0 + 1.2, z, hx: BOOTH.d / 2, hy: 1.2, hz: BOOTH.w / 2, surface: 'wood' }));
+  const booths: ColliderDesc[] = BOOTHS.map(([x, z]) => ({ kind: 'box', x: x + BOOTH.d / 2, y: Y0 + 1.2, z, hx: BOOTH.d / 2, hy: 1.2, hz: BOOTH.w / 2, surface: 'wood' }));
+  const tables: ColliderDesc[] = PARASOLS.map(([x, z]) => ({ kind: 'box', x, y: Y0 + 0.4, z, hx: 0.75, hy: 0.4, hz: 0.75, surface: 'metal' }));
+  return [...booths, ...tables];
 }
 
 /** a lamp's warm light baked into a set's aSpill (the instanced sets miss bakeSpill): falls off over `r` m from `at` */
