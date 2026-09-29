@@ -1,6 +1,6 @@
 # Physics polish — what is left after the physics merge
 
-**State:** `draft` 2026-09-23 — loose ends after PHYSICS P0–P9b (archived `project/archive/2026-09-23-physics.md`, merged `558d234`, live `558d234-mueov4v4`). Nothing here is approved (Jake approved none); it waits on Jake's pick of rows. The required follow-ups are asks, not rows: E72 (physics for Nalati once it merges) and E73 (the iPhone reading).
+**State:** `draft` 2026-09-28 — loose ends after PHYSICS P0–P9b (archived `project/archive/2026-09-23-physics.md`, merged `558d234`, live `558d234-mueov4v4`). Nothing here is approved (Jake approved none) and no row has been built since (`src/physics/bridge.ts` and `player.colliders` still exist); it waits on Jake's pick of rows. The required follow-ups are asks, not rows: E72 (Nalati physics) is done, built inside NALATI-MERGE (d034f03, 92ab497, 868d599); E73 (the iPhone reading) is still open.
 
 ## Where physics stands
 
@@ -25,6 +25,6 @@ Explore.
 
 ## Owned elsewhere (not this plan)
 
-- Nalati's physics → **E72** (after the `nalati-grasslands` merge). The iPhone frame reading → **E73**.
+- Nalati's physics → **E72**: done inside NALATI-MERGE (d034f03, 92ab497, 868d599). The iPhone frame reading → **E73**.
 - ENGINE-FIT E4 (input) and E5 (shard modules) → ENGINE-FIT, unowned.
 - Driftwood's longest load task (~128 ms, the world builders' `edge` step, not physics) → the load / remaster owners.
