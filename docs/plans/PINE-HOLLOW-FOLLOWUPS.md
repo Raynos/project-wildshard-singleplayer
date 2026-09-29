@@ -1,8 +1,8 @@
 # Pine Hollow — follow-ups after the remaster merge
 
-**State:** `draft` 2026-09-25 — everything left on Pine Hollow after PINE-HOLLOW-REMASTER landed on main (archived at
+**State:** `draft` 2026-09-28 — everything left on Pine Hollow after PINE-HOLLOW-REMASTER landed on main (archived at
 project/archive/2026-09-25-pine-hollow-remaster.md). Jake: "anything another agent needs to do on Pinewood going forward goes
-into a follow-up plan". **Jake has named only F-J3 (Mott re-rolled as a man: done, `309fe6d`) and closed F-J4 (keep the painted cabin); nothing else is built from this plan until he names a row.**
+into a follow-up plan". **Jake has named only F-J3 (Mott re-rolled as a man: done, `309fe6d`) and closed F-J4 (keep the painted cabin); F-P5 is dropped (E184); nothing else is built from this plan until he names a row.** No row moved since 2026-09-25 (the E162 birds / people / knife model picks, `ed953a1`, landed outside this plan and don't close F-M3 / F-M5). Waits on Jake: a row pick, F-J1 (iPhone reading), F-J2 (a listen); F-U2 is ask N25 (open).
 Each row names where it came from (the remaster lane that left it) so the next agent can read the evidence.
 
 ## Moved out of the remaster to finish it sooner (PH-U32)
