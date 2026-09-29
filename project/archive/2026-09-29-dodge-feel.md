@@ -1,6 +1,6 @@
 # Plan: a better dodge (E60)
 
-**State:** `in progress` 2026-09-28 — unowned: no commit on it since 2026-09-23. **T** is built and is the only dodge (E63 `f6cc18c` built T + V; the user picked T, V deleted in E82 `5c5cee3`): D1's envelope, D2 on the sword, D4's CSS smear and D8's slow-mo check are done. Open, nobody on them: D1's Reduce motion setting, D2's 60 % offsets on the crossbow / rifle (and now the bow / spear), D3 the plant beat (foot-plant sound + two-pulse haptic), D7 the desktop shader smear. D5 / D6 (U / V) are dropped.
+**State:** `archived` 2026-09-29 (finished 2026-09-29) — Jake (E284): "Dodge feel is good you can archive it". **T** is built and is the only dodge (E63 `f6cc18c`; V deleted in E82 `5c5cee3`): D1's envelope, D2 on the sword, D4's CSS smear and D8's slow-mo check are done. Dropped with the archive, on his word: D1's Reduce motion setting, D2's offsets on the crossbow / rifle / bow / spear, D3 the plant beat, D7 the desktop shader smear. D5 / D6 were dropped earlier.
 
 Jake (E60): "Make a sequence of mockups for how to have a better, cool animation for dodge. The placeholder animation for
 dodge is a lot better than what it was previously, but I think we can still do a couple of steps better."

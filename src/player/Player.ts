@@ -678,7 +678,7 @@ export class Player {
     this.landImpulse *= Math.exp(-dt * 9);
     // dodge / lunge feel: the lean eases out, the FOV kick holds while the dash runs and eases out after
     if (this.dashT <= 0) this.fovKick *= Math.exp(-dt * 8);
-    // the dodge feel (E63 T, docs/plans/DODGE-FEEL.md): leans 7° into the side, leads 4 cm, dips 7 cm, +5° FOV, all on the
+    // the dodge feel (E63 T, project/archive/2026-09-29-dodge-feel.md): leans 7° into the side, leads 4 cm, dips 7 cm, +5° FOV, all on the
     // shared envelope; a backstep pitches up instead of leaning
     let dodgeDip = 0, dodgeLead = 0, dodgePitch = 0; this.dashRoll = 0;
     if (this.dodgeClock >= 0) {

@@ -343,7 +343,7 @@ export class TouchControls {
       const prevNone = this.lock.onNoTarget;
       this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = 'No target'; setTimeout(() => { if (lockOn.state !== 'locked') lockLabel.textContent = 'Lock'; }, 700); };
     }
-    // DODGE (Player.dodge, docs/plans/DODGE-FEEL.md — E63's T feel, V deleted in E82). A tap during the cooldown only
+    // DODGE (Player.dodge, project/archive/2026-09-29-dodge-feel.md — E63's T feel, V deleted in E82). A tap during the cooldown only
     // shakes the disc (.deny) — no dodge is queued (E59)
     {
       const d = el(root, '.dodge');

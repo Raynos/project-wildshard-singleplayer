@@ -252,7 +252,7 @@ Nothing was re-rolled.
 
 codex edits of one live 390×844 capture on the Driftwood pier (`ref-live.jpg`, `?touch&tier=phone&skipintro&nolock&weapon=sword`, the stick held right);
 `before-live.jpg` is today's dodge mid-dash (a ×0.1 slow-mo capture). Each variant is 4 frames of a dodge to the right: anticipation 0–40 ms,
-burst 60 ms, peak 150 ms, recovery 350 ms. The DODGE disc's cooldown sweep (E59) is shown, not designed. Plan: `docs/plans/DODGE-FEEL.md` (draft).
+burst 60 ms, peak 150 ms, recovery 350 ms. The DODGE disc's cooldown sweep (E59) is shown, not designed. Plan: `project/archive/2026-09-29-dodge-feel.md` (archived).
 - `board-T-lean-smear.jpg` **T1–T4**: the camera rolls into the dodge, a horizontal smear on the outer thirds, the sword flung left and whipping back (recommended).
 - `board-U-afterimage.jpg` **U1–U4**: a cyan rim flash, 3 cyan ghosts of the sword left behind, shard flakes, a fringe, a corner glow.
 - `board-V-roll-dip.jpg` **V1–V4**: a crouch-height dive and rise, a +10° FOV punch, dust + splinters, a vignette, the sword tucked flat.

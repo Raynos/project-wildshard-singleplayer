@@ -3,7 +3,7 @@
  * a dodge shows them lightly, a sword lunge fully. Pure CSS (a repeating conic gradient masked to the edges, styled in
  * game.css `.ws-game-speed`); this only sets `--speed` 0..1 when it changes, so an idle frame writes nothing.
  *
- * The dodge feel (E63's T "lean + smear", docs/plans/DODGE-FEEL.md; V was deleted in E82) adds its own screen layer, read
+ * The dodge feel (E63's T "lean + smear", project/archive/2026-09-29-dodge-feel.md; V was deleted in E82) adds its own screen layer, read
  * off Player's shared `dodgeFx` clock: horizontal streaks slide across the outer thirds against the dodge
  * (`.ws-game-smear`, `--smear` 0..1 and `--side`), never over the centre 40 %. One composited layer: no WebGL cost.
  *

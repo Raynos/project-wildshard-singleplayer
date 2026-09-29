@@ -155,7 +155,7 @@ const SWEEP_K = 5;                   // rays along the blade, grip → tip …
 const SWEEP_EXT = [0.12, 0.24, 0.36, 0.48] as const; // … each continued this far (rad) BELOW the blade, pitched down in camera space
 const SWEEP_STEP = 0.09;             // rad: the largest blade move between two sweep sub-samples (~5°)
 const SWEEP_SUB_MAX = 6;
-// E63 dodge feel on the blade (docs/plans/DODGE-FEEL.md): the dodge flings it against the dodge on a lateral spring (k 160, c 14:
+// E63 dodge feel on the blade (project/archive/2026-09-29-dodge-feel.md): the dodge flings it against the dodge on a lateral spring (k 160, c 14:
 // −9 cm at ~95 ms, a small overshoot ~390 ms)
 const DODGE_LAG_KICK = 2.2, DODGE_LAG_K = 160, DODGE_LAG_C = 14;
 const ARM_FOLLOW = 0.45;             // the forearms take this much of the sword's rotation away from rest (a cheap elbow)
