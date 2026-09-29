@@ -1,6 +1,6 @@
 # Round 8: arena motion and graphics (E285, 2026-09-29)
 
-Live local dev build (commit 167da165 plus the tuning commit after it), headless Chromium on Metal, iPhone portrait
+Live local dev build (commits 167da165 and c5c81a6c), headless Chromium on Metal, iPhone portrait
 390 × 844 at 3×. The dummies still use the first five-bone GLBs: the humanoid skeleton from the art pass drops in
 without a code change (bone contract, `src/practice/TrainingDummy.ts`).
 
