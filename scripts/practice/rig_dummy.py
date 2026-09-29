@@ -53,7 +53,8 @@ SOURCE_FRONT = opt("--front", "-y")  # where the baked figure faces in Blender: 
 
 # Figure-left joints (x >= 0) in metres after normalisation: (x, z). The right side mirrors them.
 # post_r: half-width of the post + a margin; base_top: the top of the cross-foot base (everything under it is Root);
-# hem: the skirt's lower edge; target: (z, radius) of the painted face target (straw and wood).
+# hem: the skirt's lower edge; target: (z, radius) of the painted face target (straw and wood); helm: (bottom, top)
+# of a closed great helm to line dark and plug (steel).
 JOINTS = {
     "straw-cloth": dict(pelvis=1.30, spine=1.55, chest=1.85, neck=2.17, head=2.27, crown=2.64,
                         clavicle=(0.07, 2.09), shoulder=(0.32, 2.02), elbow=(0.44, 1.72), wrist=(0.57, 1.47),
@@ -63,10 +64,10 @@ JOINTS = {
                  clavicle=(0.07, 2.09), shoulder=(0.33, 2.02), elbow=(0.47, 1.73), wrist=(0.57, 1.48),
                  fist=(0.63, 1.27), hip=(0.20, 1.20), knee=(0.26, 0.92), ankle=(0.28, 0.32),
                  post_r=0.06, base_top=0.14, hem=1.00, target=(2.425, 0.10)),
-    "wood-steel": dict(pelvis=1.30, spine=1.55, chest=1.85, neck=2.17, head=2.26, crown=2.64,
-                       clavicle=(0.07, 2.09), shoulder=(0.31, 2.02), elbow=(0.47, 1.73), wrist=(0.55, 1.46),
-                       fist=(0.58, 1.26), hip=(0.19, 1.20), knee=(0.22, 0.84), ankle=(0.25, 0.27),
-                       post_r=0.06, base_top=0.14, hem=1.00),
+    "wood-steel": dict(pelvis=1.30, spine=1.55, chest=1.85, neck=2.17, head=2.22, crown=2.64,
+                       clavicle=(0.07, 2.09), shoulder=(0.32, 2.02), elbow=(0.47, 1.76), wrist=(0.57, 1.50),
+                       fist=(0.59, 1.30), hip=(0.19, 1.20), knee=(0.22, 0.86), ankle=(0.25, 0.30),
+                       post_r=0.06, base_top=0.14, hem=1.00, helm=(2.22, 2.64)),  # E289: the great helm
 }
 if VARIANT not in JOINTS:
     raise SystemExit(f"--variant must be one of {sorted(JOINTS)}")
@@ -375,6 +376,123 @@ def paint_target(cz, radius):
 
 if J.get("target"):
     report["target_faces_painted"] = paint_target(*J["target"])
+
+
+# ---------------------------------------------------------------- a closed helm (E289)
+# The great helm's eye slit and breaths look into the helm. TRELLIS leaves its inside lit steel, and through the slit
+# (which wraps round the front corners) the room shows straight through the head. So: every inward-facing helm face
+# takes a dark texel, and a dark plug (a 16-sided cylinder at 70 % of the helm's inner width) fills the head, so a
+# slit only ever shows shadow. The dark texel is an 8x8 block painted in a free corner of the atlas.
+def close_helm(z0, z1):
+    import numpy as np
+    mat = me.materials[0]
+    tex = next(n for n in mat.node_tree.nodes if n.type == "TEX_IMAGE" and any(
+        l.to_socket.name == "Base Color" for l in n.outputs["Color"].links))
+    img = tex.image
+    W_, H_ = img.size
+    uv = me.uv_layers.active.data
+    # a free 8x8 texel cell: no triangle's UV box touches it or its neighbours
+    cell = 8
+    used = np.zeros((H_ // cell + 2, W_ // cell + 2), bool)
+    for poly in me.polygons:
+        us = [uv[li].uv for li in poly.loop_indices]
+        cx0, cx1 = int(min(u.x for u in us) * W_) // cell, int(max(u.x for u in us) * W_) // cell
+        cy0, cy1 = int(min(u.y for u in us) * H_) // cell, int(max(u.y for u in us) * H_) // cell
+        used[max(0, cy0 - 1):cy1 + 2, max(0, cx0 - 1):cx1 + 2] = True
+    free = np.argwhere(~used[1:-1, 1:-1])
+    if len(free) == 0:
+        raise RuntimeError("no free texel cell for the helm's dark lining")
+    fy, fx = free[len(free) // 2]
+    px = np.empty(W_ * H_ * 4, np.float32)
+    img.pixels.foreach_get(px)
+    px = px.reshape(H_, W_, 4)
+    px[fy * cell:(fy + 1) * cell, fx * cell:(fx + 1) * cell, :3] = 0.035
+    img.pixels.foreach_set(px.ravel())
+    img.pack()
+    dark = Vector(((fx + 0.5) * cell / W_, (fy + 0.5) * cell / H_))
+
+    band = [v.co for v in me.vertices if z0 + 0.04 < v.co.z < z1 - 0.06]
+    xs, ys = [p.x for p in band], [p.y for p in band]
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    rx, ry = (max(xs) - min(xs)) / 2, (max(ys) - min(ys)) / 2
+    # Inner lining: a helm face whose outward (away from the head's axis) ray runs into another wall. The normals
+    # cannot tell (TRELLIS shells come back with mixed winding and render double-sided).
+    helm_bvh = BVHTree.FromPolygons([v.co for v in me.vertices], [p.vertices for p in me.polygons])
+    lined = 0
+    for poly in me.polygons:
+        c = poly.center
+        if not (z0 < c.z < z1 and abs(c.x - cx) < rx * 1.05 and abs(c.y - cy) < ry * 1.05):
+            continue
+        out = Vector((c.x - cx, c.y - cy, 0.0))
+        if out.length < 1e-6:
+            continue
+        out.normalize()
+        hit = helm_bvh.ray_cast(c + out * 0.002, out, 0.5)[0]
+        up = helm_bvh.ray_cast(c + Vector((0, 0, 0.002)), Vector((0, 0, 1)), 0.5)[0] if c.z > z1 - 0.12 else True
+        if hit is not None and up is not None:
+            for li in poly.loop_indices:
+                uv[li].uv = dark
+            lined += 1
+
+    # the plug: a tube that hugs the helm's inside. Per ring height and per angle, a ray from the head's axis finds
+    # the wall; the plug vertex sits 1.8 cm short of the nearest wall at that angle and the rings either side. Rays that leave through the slit or a breath take the
+    # neighbouring angles' distance, so the plug fills the slit's back without poking out of it.
+    N = 32
+    ring_z = [z0 + 0.03 + (z1 - 0.07 - z0 - 0.03) * k / 9 for k in range(10)]
+    dist, opens = [], []
+    for z in ring_z:
+        ts = []
+        for k in range(N):
+            a_ = 2 * math.pi * k / N
+            d = Vector((math.cos(a_), math.sin(a_), 0.0))
+            hit = helm_bvh.ray_cast(Vector((cx, cy, z)) + d * 0.005, d, 0.6)
+            ts.append(hit[3] + 0.005 if hit[0] is not None and hit[3] > 0.02 else None)
+        open_ = [t is None for t in ts]
+        for _ in range(N):  # fill the escapes (and the hits on the old core) from the neighbours
+            for k in range(N):
+                if ts[k] is None:
+                    nb = [t for t in (ts[k - 1], ts[(k + 1) % N]) if t is not None]
+                    if nb:
+                        ts[k] = max(nb)
+        dist.append([t if t is not None else 0.05 for t in ts])
+        opens.append(open_)
+    rings = []
+    for r, z in enumerate(ring_z):  # the nearest wall over this ring and its neighbours: the tube never cuts a recess
+        rings.append([])
+        for k in range(N):
+            if opens[r][k]:  # behind the slit / a breath: reach into it (shadow fills the opening)
+                t = dist[r][k]
+            else:
+                t = min(dist[rr][kk] for rr in (r - 1, r, r + 1) if 0 <= rr < len(dist) for kk in (k - 1, k, (k + 1) % N)
+                        if not opens[rr][kk])
+            a_ = 2 * math.pi * k / N
+            rings[-1].append(Vector((cx + math.cos(a_) * max(0.01, t - 0.018), cy + math.sin(a_) * max(0.01, t - 0.018), z)))
+    bm_ = bmesh.new()
+    bm_.from_mesh(me)
+    uvl = bm_.loops.layers.uv.active
+    vr = [[bm_.verts.new(p_) for p_ in ring] for ring in rings]
+    faces = []
+    for r0, r1 in zip(vr, vr[1:]):
+        for k in range(N):
+            faces.append(bm_.faces.new((r0[k], r0[(k + 1) % N], r1[(k + 1) % N], r1[k])))
+    faces.append(bm_.faces.new(list(reversed(vr[0]))))
+    faces.append(bm_.faces.new(vr[-1]))
+    for f in faces:
+        f.smooth = True
+        for loop in f.loops:
+            loop[uvl].uv = dark
+    faces = set(faces)
+    bmesh.ops.triangulate(bm_, faces=list(faces))
+    bm_.to_mesh(me)
+    bm_.free()
+    me.update()
+    return lined, len(faces)
+
+
+if J.get("helm"):
+    report["helm_lined_faces"], report["helm_plug_faces"] = close_helm(*J["helm"])
+    verts = [v.co.copy() for v in me.vertices]
+    report["tris"] = sum(len(p.vertices) - 2 for p in me.polygons)
 
 arm_data = bpy.data.armatures.new("TrainingDummyRig")
 arm = bpy.data.objects.new("TrainingDummyRig", arm_data)

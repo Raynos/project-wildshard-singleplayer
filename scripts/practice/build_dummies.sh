@@ -5,7 +5,7 @@
 #   GEN=1 bash scripts/practice/build_dummies.sh      # also re-run TRELLIS.2 (under the machine-wide model lock)
 #
 # The references are art/hud-explorer/round-7-dummy-rebuild/ref-*.jpg (codex image_gen edits of the round-3 refs:
-# closed solid fists, bound straw, arms off the body). TRELLIS.2 picks each figure's facing per generation, so
+# closed solid fists, bound straw, arms off the body; E289 re-rolled the steel one with a closed great helm). TRELLIS.2 picks each figure's facing per generation, so
 # FRONT records where each decode faces; check it with a render if you regenerate. Outputs:
 # public/assets/practice/dummies/{wood-wood,straw-cloth,wood-steel}.glb. Rig gate: scripts/practice/dummy_rig_gate.py.
 set -euo pipefail
@@ -20,7 +20,7 @@ mkdir -p "$OUT" "$WORK"
 FIGURES=(
   "straw-cloth ref-straw-cloth -y straw-cloth"
   "wood ref-wood-wood -y wood-wood"
-  "wood-steel ref-wood-steel x wood-steel"
+  "wood-steel ref-wood-steel -y wood-steel"
 )
 
 if [ "${GEN:-0}" = 1 ]; then

@@ -31,7 +31,7 @@ and gives them a real skeleton. The hit motion itself is round 8 (`../round-8-ar
 |---|---|---|---|---|
 | wood-wood | TRELLIS.2 | 45,000 | 1.10 MB | base + metal/rough, 1024² WebP |
 | straw-cloth | TRELLIS.2 | 42,436 | 1.26 MB | base + metal/rough, 1024² WebP |
-| wood-steel | TRELLIS.2 | 45,000 | 1.35 MB | base + metal/rough, 1024² WebP |
+| wood-steel | TRELLIS.2 (E289 re-roll, closed great helm) | 43,635 | 1.17 MB | base + metal/rough, 1024² WebP |
 
 Each figure is one skinned mesh and one draw.
 
@@ -56,18 +56,39 @@ Each figure is one skinned mesh and one draw.
 |---|---|---|---|---|---|
 | wood-wood | 117 edges, 66 tris | 1, 1 | 34, 23 | 12, 8 | 45, 6 |
 | straw-cloth | 178, 41 | 26, 16 | 74, 10 | 25, 11 | 124, 15 |
-| wood-steel | 76, 37 | 25, 17 | 92, 24 | 29, 23 | 57, 4 |
+| wood-steel (E289) | 135, 73 | 312, 16 | 48, 23 | 15, 10 | 51, 10 |
 
 Fewer than 0.5 % of the edges stretch past 2× at any extreme, and nothing visibly tears or collapses in the sheets.
 The first rig (heat-style distance from the bone centre lines) had 450–1,060 such edges on every arm pose. It
 dragged the tassets and the skirt along with the arm.
 
 **What still looks wrong:**
-- The steel helmet came back as a sallet with a jaw guard, not the approved great helm. Its brim and the pauldron tops
-  keep a few jagged remesh teeth.
+- Steel (E289): the helm is now a closed great helm; see below. Its head-turn gate reads 312 stretched edges: the
+  dark plug inside the helm stretches where it meets the collar, which is hidden. The steel reads brighter than
+  the approved sheet's dark iron.
 - The straw figure's back sleeve flap smears at a 60° backward arm swing. The straw neck and fists keep a little
   surface fuzz.
 - The target's centre sits on a small geometric notch on the wood face.
 - The cross-foot bases came back lower and blockier than the approved sheets, and the steel base shows a few dark
   specks.
 - The studio light (round 8) pushes the wood towards yellow-orange; the texture itself is browner.
+
+## E289: the steel dummy re-rolled with a closed great helm (2026-09-29)
+
+Jake on his iPhone: "The face and open helmet look absolutely terrible … I think your closed helmet design is the
+quickest fix."
+
+- **Reference.** A new front reference (`ref-wood-steel.jpg`, replacing the E285 one) came from codex `image_gen`:
+  the E285 ref plus the approved sheet, with a flat-topped great helm, an eye slit and breaths, and no face, visor,
+  jaw guard or brim. Of three takes, C was the cleanest.
+- **Generator.** TRELLIS.2 on all three takes. C came out with the tidiest box helm. Hunyuan3D-2 ran on the same
+  cutouts; its paint model failed to load (a missing VAE `.safetensors` in the weight store), so there was nothing
+  to compare. TRELLIS.2 C ships.
+- **Cleanup.** The usual bake and cleanup, plus a `helm` step in `rig_dummy.py`:
+  - every helm face whose outward ray meets another wall (the lining) takes a near-black texel;
+  - a dark tube hugs the inside, so the eye slit and breaths show shadow instead of the room.
+- **Checked** from 1.7 m in the live engine: no face, no wood and no room through the helm at any angle.
+
+| File | What it shows |
+|---|---|
+| `wood-steel-helm-before-after.jpg` | **Live engine**, iPhone portrait 390 × 844 at 3×, camera 1.7 m from the figure at head height, turned 0 / 35 / 90 / 150 / 180°. A = the E285 sallet (live `8bbf2bdb`), B = the E289 great helm |
