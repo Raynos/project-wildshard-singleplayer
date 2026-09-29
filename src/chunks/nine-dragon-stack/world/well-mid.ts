@@ -9,7 +9,7 @@
 import { Vector3 } from 'three';
 import type { ColliderDesc } from '../../../world/registry';
 import { spanStreet } from './facade/grammar';
-import { K, type Kit, type Look } from './kit';
+import { E, K, type Kit, type Look } from './kit';
 import { WELL, Y0 } from '../layout';
 import { dragonHook } from './props';
 import { NEONS, WORDS } from './towers';
@@ -18,7 +18,8 @@ import { SURF } from '../look/paint';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';
 import type { Ctx } from './ctx';
-import { type BandKits, CABLE, CROSSINGS, type Crossing, DECK_TOP, EXT, LOW, type WellPlan, snapFloor } from './well-plan';
+import { type BandKits, CABLE, CROSSINGS, type Crossing, DECK_TOP, EXT, FAR, LOW, type WellPlan, snapFloor } from './well-plan';
+import { ghostLevels } from './well-lower-deep';
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -89,6 +90,32 @@ const X_LOW = Y0 - 42;
 /** where the run north's walls stop, as painted shells, deep in the silk (dome D2: the views north and down) */
 const SHELL_BOTTOM = -40;
 
+/**
+ * (F4, round 2: mockup B's "crossings like ladder rungs receding into the mist to the far gate") the run north goes on
+ * past the Cable Deck's edge (z −104) to FAR.z0, open to the sky, at the far LOD: a painted back wall to the canyon's
+ * top (+155; the facade program's window rows), ghost levels from DECK_TOP (a deck slab, a lit room or
+ * two, now and then a lantern: well-lower-deep.ts) 17 floors down to +101 (below that, 120–200 m off, the rim's eye sees
+ * only silk) and a far north wall where the view ends; its triangles go in the run north's two kits (no draw of its own).
+ */
+function farRun(ctx: Ctx, kit: (y: number) => Kit): void {
+  const top = Y0 + 30;
+  const walls = [
+    { p0: new Vector3(FAR.x0, 0, FAR.z1), n: new Vector3(1, 0, 0), len: FAR.z1 - FAR.z0, wash: 0x737782, seed: 9101 },
+    { p0: new Vector3(FAR.x1, 0, FAR.z0), n: new Vector3(-1, 0, 0), len: FAR.z1 - FAR.z0, wash: 0x7c7c80, seed: 9203 },
+    { p0: new Vector3(FAR.x0, 0, FAR.z0), n: new Vector3(0, 0, 1), len: FAR.x1 - FAR.x0, wash: 0x70747f, seed: 9307 },
+  ];
+  for (const w of walls) {
+    const u = new Vector3().crossVectors(new Vector3(0, 1, 0), w.n).normalize();
+    for (let y = SHELL_BOTTOM; y < top - 0.01; y += 30) {
+      const h = Math.min(30, top - y);
+      const a = w.p0.clone().setY(y), b = a.clone().addScaledVector(u, w.len);
+      const vo = ((y - (Y0 % FLOOR_H)) % FLOOR_H + FLOOR_H) % FLOOR_H;
+      kit(y).quad4(a, b, b.clone().setY(y + h), a.clone().setY(y + h), w.len, h, { wash: w.wash, kind: K.facade, row: FLOOR_H, col: 2.8, seed: w.seed % 97, line: 1 }, a.dot(u), vo, E.none);
+    }
+    ghostLevels(ctx, kit, { p0: w.p0, n: w.n, len: w.len, dMin: 2, dMax: 3.4, wash: w.wash }, DECK_TOP, 17, 1.2, w.seed);
+  }
+}
+
 /** the crossings' kits: the main shaft's and the run north's (each one mesh, culled as a whole), one alpha-cut kit */
 function regionKits(ctx: Ctx): { main: Kit; ext: Kit; at: (z: number) => Kit; alpha: Kit } {
   const main = ctx.kit('well-c-main'), ext = ctx.kit('well-c-ext');
@@ -121,9 +148,13 @@ export function buildMid(plan: WellPlan): void {
   // X_LOW, under its lowest crossing: below that its walls run on as painted shells into the mist.)
   const KX: BandKits = { kit: (y) => ctx.kit(y >= Y0 - 25 ? 'well-x-hi' : 'well-x-lo'), alpha: () => ctx.alpha('well-c-a') };
   plan.band('stub', DECK_TOP, LOW, 853, KX, SHELL_BOTTOM, 2);
-  plan.band('west-x', DECK_TOP, X_LOW, 857, KX, SHELL_BOTTOM, 5);
-  plan.band('east-x', DECK_TOP, X_LOW, 863, KX, SHELL_BOTTOM, 5);
-  plan.band('north', DECK_TOP, X_LOW, 877, KX, SHELL_BOTTOM, 2);
+  // (round 2, mockup B) the run north's galleries 1.2–2.2 m deep (the plan's 2–3.4): from the rim its open gap reads
+  // ~12.5 m, not ~10, so the view down it stays a canyon to the vanishing point instead of a slot between two walls
+  const shallow = { depths: { dMin: 1.2, dMax: 2.2 } };
+  plan.band('west-x', DECK_TOP, X_LOW, 857, KX, SHELL_BOTTOM, 5, shallow);
+  plan.band('east-x', DECK_TOP, X_LOW, 863, KX, SHELL_BOTTOM, 5, shallow);
+  // (round 2: the run north's north wall at z −104 went — the canyon runs on past the deck's edge, farRun)
+  farRun(ctx, KX.kit);
 
   // ── the crossings (their ends at the gallery fronts: the rim's, this region's and the lower levels' bands) ──
   const KC = regionKits(ctx);

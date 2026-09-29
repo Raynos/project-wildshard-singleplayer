@@ -65,3 +65,26 @@ Each `pass-<n>/` holds:
   extended north under the Cable Deck), and the lion hidden behind the gauntlet (camera / viewmodel).
 - Two dome cameras sit inside geometry in every pass: B1·2 is in the rim towers' eave and B2·3 inside a gallery roof.
   They are left for the coordinator to re-seat.
+
+## Round 2
+
+### Pass 7 (on `2cd6ddb`): the run north goes on past the Cable Deck
+
+- **The canyon recedes about 200 m.** The run north's north wall at z −104 is gone. The canyon runs on to z −190
+  (`well-plan.ts` FAR), open to the sky beyond the deck's edge and built at the far level of detail (`well-mid.ts`
+  farRun):
+  - a painted back wall up to the canyon's top (+155), with the facade program's window rows;
+  - ghost levels from +149 down 17 floors (a deck slab, a lit room or two, now and then a lantern);
+  - a far north wall where the view ends.
+  Its triangles go into the run north's two kits, so it adds no draw. The mist box (SHAFT) and the Well's map rects
+  reach to z −190.
+- **Rungs to a small, pale far gate.** A rung stands about every 12 m below the eye (z −111 to −171). The gate moved
+  from z −95 to the far end at z −182; a stone rung replaces it at −95. There is no crowd on the far rungs.
+- **Shallower run-north galleries (1.2–2.2 m, were 2–3.4).** The open gap reads ~12.5 m wide instead of ~10.
+- **Memory.** Fragment geometry 153.9 → 153.9 MB, textures 79.6 MB unchanged: the north band paid for the far run.
+  Mockup B has 118 draws and 1.38 M triangles, mockup D 102 draws and 1.09 M, both unchanged.
+- **Walk test:** 19 legs, 0 stuck, 0 escapes.
+- **What the eye-check says.** At mockup B's camera the vanishing point is now pale and deep. From inside the run north
+  the canyon reads as a long one (the `in` view in the pass log). But mockup B's centre-right is still the **stub**: the
+  main shaft's north wall at z −44, x −12…0, which is the south face of the street's west block. It faces B head-on 57 m
+  off, because the main shaft is 12 m wider than the run north. Only a change to the main shaft's footprint removes it.

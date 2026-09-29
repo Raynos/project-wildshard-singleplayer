@@ -16,13 +16,17 @@ import type { BridgeKind } from './well-bridges';
 
 /** the canyon's run north under the Cable Deck (its ceiling is the deck's sky screen at +155 m) */
 export const EXT = { x0: WELL.x0, x1: -12, z0: -104, z1: WELL.z0 } as const;
+/** (F4, round 2) the run north goes on past the Cable Deck's edge, open to the sky: its far walls at the far LOD
+ *  (well-mid.ts farRun), so from the rim the canyon recedes ~200 m into the silk to the far gate */
+export const FAR = { x0: EXT.x0, x1: EXT.x1, z0: -190, z1: EXT.z0 } as const;
 /** the south rim: the ledge at the square's datum the mockup B / D cameras stand on, its balustrade at z0 */
 export const RIM = { z0: 11.2, z1: WELL.z1 } as const;
 /** the box the shaft's silk mist fills (look/style.ts uShaft) and the rectangles its fog sheets span */
-export const SHAFT = { x0: WELL.x0, z0: EXT.z0, x1: WELL.x1, z1: WELL.z1 } as const;
+export const SHAFT = { x0: WELL.x0, z0: FAR.z0, x1: WELL.x1, z1: WELL.z1 } as const;
 export const WELL_RECTS = [
   { x0: WELL.x0, z0: WELL.z0, x1: WELL.x1, z1: WELL.z1 },
   { x0: EXT.x0, z0: EXT.z0, x1: EXT.x1, z1: EXT.z1 },
+  { x0: FAR.x0, z0: FAR.z0, x1: FAR.x1, z1: FAR.z1 },
 ] as const;
 /** the near galleries (well-rim.ts) run down to SPLIT + one floor; the lower levels (well-lower.ts) from SPLIT down */
 export const SPLIT = Y0 - 30;
@@ -68,8 +72,17 @@ export const CROSSINGS: readonly Crossing[] = [
   { kind: 'stone', z: -77, y: Y0 - 39, w: 3, crowd: 1, ext: true },
   { kind: 'stone', z: -81, y: Y0 - 6, w: 3, crowd: 2, ext: true },
   { kind: 'steel', z: -87, y: Y0 - 21, w: 1.4, crowd: 1, ext: true },
-  { kind: 'gate', z: -95, y: Y0 + 9, w: 6, crowd: 10, ext: true },
+  { kind: 'stone', z: -95, y: Y0 - 3, w: 3, crowd: 0, ext: true },
   { kind: 'timber', z: -99, y: Y0 - 30, w: 2.2, crowd: 1, ext: true },
+  // (round 2) on up the far run past the deck's edge, a rung every ~12 m below the eye, and the gate at the far end
+  // (moved from z −95): from mockup B's camera it stands small and pale at the canyon's vanishing point. Far LOD, no crowd
+  { kind: 'timber', z: -111, y: Y0 - 9, w: 2.2, crowd: 0, ext: true },
+  { kind: 'steel', z: -122, y: Y0 - 24, w: 1.4, crowd: 0, ext: true },
+  { kind: 'stone', z: -134, y: Y0 - 3, w: 3, crowd: 0, ext: true },
+  { kind: 'covered', z: -147, y: Y0 - 15, w: 2.6, crowd: 0, ext: true },
+  { kind: 'timber', z: -160, y: Y0 - 6, w: 2.2, crowd: 0, ext: true },
+  { kind: 'steel', z: -171, y: Y0 - 18, w: 1.4, crowd: 0, ext: true },
+  { kind: 'gate', z: -182, y: Y0 + 6, w: 6, crowd: 0, ext: true },
 ];
 
 /** a wall of the shaft that carries galleries */
