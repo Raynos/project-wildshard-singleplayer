@@ -418,3 +418,12 @@ come out of a kill (A burst + magnet with a "coin 23" HUD chip, B on the ground,
 `board-3-charm.jpg`: the sea glass charm (A beads on the sword hilt, B a HUD pendant, C a door wind chime, plus A's night
 glow at 15 / 15). `board-4-trophies.jpg`: where trophies go (A plaques, B a tagged shelf, C the hat worn). Recommended:
 A, A, A, A. The folder's README lists every frame.
+
+### The first three minutes (`art/onboarding/round-1-first-minutes/`, 2026-09-29, E308)
+
+Three boards for DRIFTWOOD-TOP10 row 5, live iPhone 16 Pro portrait captures (HTML hint overlays over the live HUD; the
+pier sign is a Qwen-Image edit). `board-1-hint-look.jpg`: how first-time control hints look, MOVE at the spawn and
+ATTACK at the practice crab (A on the control, B a banner, C a ghost thumb, D in the world). `board-2-practice-target.jpg`:
+what you practise on at the pier's foot (A a crab, B the E289 dummy, C Wendell spars, D nothing). `board-3-start-length.jpg`:
+where you spawn, with walk times to Wendell (A today 49 s, B half way down the pier 38 s, C the pier's foot 30 s, D
+Wendell meets you, 19 s). Recommended: A, A, B. The folder's README lists every frame.
