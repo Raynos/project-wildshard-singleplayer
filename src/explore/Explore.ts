@@ -33,16 +33,24 @@ import { registeredPicks } from './registry';
 import { Select, type SelectTarget } from './Select';
 import { MiniMap } from './MiniMap';
 import { Compare, hasCompareTargets } from './Compare';
-import modelsArt from './img/models.webp';
-import worldArt from './img/world.webp';
 import practiceDriftwood from './img/practice-driftwood-isle.webp';
 import practicePine from './img/practice-pine-hollow.webp';
 import practiceNalati from './img/practice-nalati-grasslands.webp';
 import practiceNine from './img/practice-nine-dragon-stack.webp';
+import worldDriftwood from './img/world-driftwood-isle.webp';
+import worldPine from './img/world-pine-hollow.webp';
+import worldNalati from './img/world-nalati-grasslands.webp';
+import worldNine from './img/world-nine-dragon-stack.webp';
+import modelsDriftwood from './img/models-driftwood-isle.webp';
+import modelsPine from './img/models-pine-hollow.webp';
+import modelsNalati from './img/models-nalati-grasslands.webp';
 import { isDev, onDev } from '../core/devMode';
 
 /** the Practice card's art, one per shard: the arena in that shard's grade with its weapon (E292) */
 const PRACTICE_ART: Record<string, string> = { 'driftwood-isle': practiceDriftwood, 'pine-hollow': practicePine, 'nalati-grasslands': practiceNalati, 'nine-dragon-stack': practiceNine };
+/** the World card: the shard from the god-mode camera; the Models card: six of the catalog's own thumbnails (E293) */
+const WORLD_ART: Record<string, string> = { 'driftwood-isle': worldDriftwood, 'pine-hollow': worldPine, 'nalati-grasslands': worldNalati, 'nine-dragon-stack': worldNine };
+const MODELS_ART: Record<string, string> = { 'driftwood-isle': modelsDriftwood, 'pine-hollow': modelsPine, 'nalati-grasslands': modelsNalati };
 
 export type ExploreMode = 'hub' | 'world' | 'model';
 
@@ -151,13 +159,14 @@ export class Explore {
     this.closeBtn = top.querySelector<HTMLElement>('.ws-x-close') ?? top;
     this.tabs = top.querySelector<HTMLElement>('.ws-x-tabs') ?? top;
     this.readout = html('div', 'ws-x-readout');
-    const shard = host.world.chunk, own = shard.slug === 'driftwood-isle'; // the hub art is Driftwood's; another shard shows its picker art
+    const shard = host.world.chunk;
+    const worldArt = WORLD_ART[shard.slug] ?? shard.heroLandscape, modelsArt = MODELS_ART[shard.slug] ?? shard.thumbnail; // a shard with none yet shows its picker art
     // the Practice card is this shard's own arena: the room takes each shard's grade and weapon (E292)
     const practiceArt = PRACTICE_ART[shard.slug] ?? practiceDriftwood;
     this.hubEl = html('div', 'ws-x-hub', `
       <div class="ws-x-hub-heading">Choose an explorer</div>
-      <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${own ? modelsArt : shard.thumbnail}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${own ? worldArt : shard.heroLandscape}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.displayName} in god mode</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${modelsArt}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.displayName} in god mode</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="practice"><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>`);
     const practiceCard = this.hubEl.querySelector<HTMLElement>('[data-m="practice"]');
     if (practiceCard) { practiceCard.hidden = !isDev(); onDev((on) => { practiceCard.hidden = !on; }); }
