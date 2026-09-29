@@ -10,6 +10,13 @@
   start — relay them first. `docs/tasks/ASKS.md` is the legacy table (history up to 2026-09-22): don't
   add rows there; a legacy row that is still open moves to its own file under the same id.
 
+## North and South America only: no licence caveats, ever (Jake, 2026-09-29)
+
+The game ships in North and South America only. **Never raise a territory licence caveat with Jake**: no EU / UK /
+South Korea / other-region warnings, no "licence debt" notes, no preferring one model over another because of where
+its licence applies. Hunyuan3D (every version on disk) is as allowed as TRELLIS.2 for shipped assets. Pick the model
+that gives the best result. Jake: "never fuck me off with the license again".
+
 ## No URL switches, ever (Jake, 2026-09-25)
 
 Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo=` switch is one he can never flip.
@@ -74,7 +81,7 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
   or image batch frees its memory when its python exits, so it needs no evict.
 - **Check the licence before a new model**: read the card *and* its LICENSE file.
   - Non-commercial or research-only means it is not for the game. **Territory limits don't matter**: the game ships in
-    South America only (Jake, 2026-09-29), so never raise an EU / UK / Korea licence caveat.
+    North and South America only (see the rule at the top), so never raise a territory licence caveat.
   - Then fetch it with `fetch-repo.sh`, add a `MODELS.md` row, and write down its speed and memory in a localai doc.
 
 ## Plans (`docs/plans/`) and their state
