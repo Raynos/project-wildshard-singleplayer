@@ -87,14 +87,16 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
       pts.push(new Vector3(ax.x + Math.cos(a) * rr, ax.y, ax.z + Math.sin(a) * rr));
     }
     const last = pts[pts.length - 1] ?? foot;
-    const rad0 = rng.range(0.28, 0.44);
+    // (E281: the main limbs a quarter thicker — style-A's banyan is a braid of massive limbs under its crown)
+    const rad0 = rng.range(0.28, 0.44) * (i % 2 === 0 ? 1.25 : 1);
     // every other root leaves the column as a main limb; the rest fuse into the crown
     if (i % 2 === 0) {
       const la = a0 + twist + rng.range(-0.3, 0.3);
       const reach = rng.range(0.6, 1.0) * SP;
       // the crown leans out over the square (south-west): the tree stands in the corner of the north and east walls,
       // and a tip that reached back into those blocks would bury its leaves in the facades
-      const tip = new Vector3(cx + Math.cos(la) * reach - 1.4, soil + H * rng.range(0.72, 0.95), cz + Math.sin(la) * reach * 0.8 + 1.6);
+      // (E281: tips from 0.55 H, so the crown has lower tiers, not one flat shelf at 11–13 m)
+      const tip = new Vector3(cx + Math.cos(la) * reach - 1.4, soil + H * rng.range(0.55, 0.92), cz + Math.sin(la) * reach * 0.8 + 1.6);
       if (tip.x > cx + 2.6) tip.x = cx + 2.6 + (tip.x - cx - 2.6) * 0.3;
       if (tip.z < cz - 2.4) tip.z = cz - 2.4 + (tip.z - cz + 2.4) * 0.3;
       // nor over the gate's east bay (round 4: roots curtained the gate in 1, the crown covered its roof in 9)
@@ -148,12 +150,14 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
     x.ellipsoid(p, X, Y, Z, rng.range(0.18, 0.32), rng.range(0.22, 0.4), rng.range(0.18, 0.32), BARK_DARK, (d) => 1 + 0.15 * Math.sin(d.y * 9), 4, 8);
   }
   // prop roots: thick aerial roots from the limbs straight down into the planter's soil (or past its rim to the ground)
-  for (let i = 0; i < 7; i++) {
+  // (E281: ten, thicker, and only into the planter: the ones rooted out on the flagstones stood as a grove of poles
+  // in front of the trunk, the planter and the shrine in A2·6 and the mockup's frame)
+  for (let i = 0; i < 10; i++) {
     const L = rng.pick(limbs);
     const from = L.from.clone().lerp(L.tip, rng.range(0.25, 0.6));
     const dx = from.x - cx, dz = from.z - cz;
-    const inPlanter = dx * dx + dz * dz < (r - 0.2) ** 2;
-    const groundY = inPlanter ? soil : y;
+    if (dx * dx + dz * dz > (r - 0.4) ** 2) continue;
+    const groundY = soil;
     if (from.y - groundY < 2) continue;
     // a gnarled pillar: it wanders as it drops and flares where it roots, a few thinner strands braided round it
     const drop = from.y - groundY;
@@ -162,7 +166,7 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
       const t = j / 5;
       pts.push(new Vector3(from.x + Math.sin(t * 5 + i) * 0.14 * t, from.y - drop * t - (j === 5 ? 0.05 : 0), from.z + Math.cos(t * 4 + i) * 0.14 * t));
     }
-    const rr = rng.range(0.05, 0.09);
+    const rr = rng.range(0.07, 0.13);
     x.sweep(curve(pts, 3), (t) => rr * (1 + t * t * 1.2), 6, BARK_DARK);
     for (let s = 0; s < 3; s++) {
       const ph = (s / 3) * Math.PI * 2;
@@ -170,11 +174,14 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
       x.sweep(curve(strand, 3), () => rr * 0.35, 4, ROOT);
     }
   }
-  // curtains of thin hanging roots, bunched under the limbs
-  for (let i = 0; i < 260; i++) {
+  // curtains of thin hanging roots, bunched under the limbs near the trunk (E281: 120 of them, not 260 out to the tips:
+  // from the spawn and the gate the curtain hid the trunk behind a screen of straight lines; style-A's hang in bunches)
+  for (let i = 0; i < 120; i++) {
     const L = rng.pick(limbs);
-    const from = L.from.clone().lerp(L.tip, rng.range(0.2, 0.98)).add(new Vector3(rng.range(-0.4, 0.4), -0.1, rng.range(-0.4, 0.4)));
-    const maxLen = from.y - soil;
+    const from = L.from.clone().lerp(L.tip, rng.range(0.12, 0.6)).add(new Vector3(rng.range(-0.4, 0.4), -0.1, rng.range(-0.4, 0.4)));
+    const hx = from.x - cx, hz = from.z - cz;
+    // (outside the planter a root stops short of the heads under it: style-A's hang in bunches over the planter)
+    const maxLen = (from.y - soil) * (hx * hx + hz * hz < (r - 0.2) ** 2 ? 1 : 0.45);
     if (maxLen < 0.8) continue;
     const len = Math.min(maxLen - 0.3, rng.range(0.8, maxLen) * (rng.chance(0.3) ? 1 : 0.55));
     if (len < 0.5) continue;
@@ -186,12 +193,12 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
   // the root curtain on the side the spawn sees (south-west): long dark roots, many reaching the soil (style-A)
   const crng = new Rng(B.seed + 202);
   const west = limbs.filter((l) => l.tip.x < cx + 0.5 || l.tip.z > cz + 0.5);
-  for (let i = 0; i < 70 && west.length > 0; i++) {
+  for (let i = 0; i < 28 && west.length > 0; i++) {
     const L = crng.pick(west);
-    const from = L.from.clone().lerp(L.tip, crng.range(0.35, 0.95)).add(new Vector3(crng.range(-0.3, 0.3), -0.1, crng.range(-0.3, 0.3)));
+    const from = L.from.clone().lerp(L.tip, crng.range(0.3, 0.7)).add(new Vector3(crng.range(-0.3, 0.3), -0.1, crng.range(-0.3, 0.3)));
     const dxp = from.x - cx, dzp = from.z - cz;
-    const ground = dxp * dxp + dzp * dzp < (r - 0.2) ** 2 ? soil : y;
-    const maxLen = from.y - ground;
+    const over = dxp * dxp + dzp * dzp < (r - 0.2) ** 2;
+    const maxLen = over ? from.y - soil : (from.y - y) * 0.45;
     if (maxLen < 1.5) continue;
     const len = crng.chance(0.55) ? maxLen - 0.05 : crng.range(0.5, 0.85) * maxLen;
     const sway = new Vector3(crng.range(-0.12, 0.12), 0, crng.range(-0.12, 0.12));
@@ -202,12 +209,17 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
   }
   // the crown's fill: big dark lumps in a dome shell under the shelves, so the gaps between the shelves read as deep
   // foliage (from above round 2 read as separate lily pads over the flagstones)
-  const crownC = new Vector3(cx - 0.4, soil + H * 0.8, cz + 1.2);
-  for (let i = 0; i < 26; i++) {
-    const a = rng.range(0, Math.PI * 2), el = rng.range(0.1, 1.2);
-    const rr = SP * 0.62 * Math.cos(el * 0.8);
-    const c = crownC.clone().add(new Vector3(Math.cos(a) * rr, Math.sin(el) * H * 0.18 - 0.4, Math.sin(a) * rr * 0.85));
-    const s0 = rng.range(1.2, 1.8);
+  // (E281: a real dome, 8 m to 16 m — style-A's crown is a tall rounded mass over a visible braid of limbs, and from
+  // the aerials the old one read as one flat slab at 12 m; its lumps kept off the north and east walls and the gate)
+  const crownC = new Vector3(cx - 0.6, soil + H * 0.62, cz + 1.0);
+  for (let i = 0; i < 32; i++) {
+    const a = rng.range(0, Math.PI * 2), el = rng.range(0, 1.3);
+    const rr = SP * 0.68 * Math.cos(el);
+    const c = crownC.clone().add(new Vector3(Math.cos(a) * rr, Math.sin(el) * H * 0.36, Math.sin(a) * rr * 0.85));
+    if (c.x > cx + 2.8) c.x = cx + 2.8 + (c.x - cx - 2.8) * 0.3;
+    if (c.z < cz - 2.2) c.z = cz - 2.2 + (c.z - cz + 2.2) * 0.3;
+    if (c.x < cx - 4.4) c.x = cx - 4.4 - (cx - 4.4 - c.x) * 0.3;
+    const s0 = rng.range(1.2, 1.9);
     const wash = rng.pick(GREENS);
     lumps.push({ c, r: new Vector3(s0 * 1.2, s0 * 0.6, s0 * 1.1), up: -0.3, seed: i, wash });
     if (drawLeaves) {

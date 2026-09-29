@@ -52,3 +52,36 @@ meshes (the facade pieces, `kit:blades`, `kit:bridges`, `kit:crown`, `kit:stair-
 load. This lane's meshes did not vary, so the lane geometry above is the number to go by.
 
 Walk test (`physics-baseline.mjs --mode=walk --shard=nine-dragon-stack`): 19 legs, 0 stuck, 0 out.
+
+## Pass 2
+
+Sheets: `pass-2/A1-spawn-stand-sheet.jpg`, `pass-2/A2-gate-look-sheet.jpg`, `pass-2/banyan-and-mockup-A.jpg` (style-A's
+banyan, the engine's from the square and from A2·6, and mockup A as played).
+
+What changed:
+
+- **The paifang in cinnabar and gold** (`GateSpec.paint: 'cinnabar'`, the square's gate only; the Well's and the stair's
+  gates keep the mineral blue-greens). The lintels, panels, brackets, soffits and eave boards are red and gold under the
+  teal tiles. From the spawn it had read as a teal-green band. The posts lose the gloss lobe that washed them
+  salmon-pink. One row of lanterns across the bays, as in style-A: the passage's second and third rows made a cluster of
+  a dozen lanterns in the centre bay.
+- **The banyan.** Its crown is a dome from 8 m to 16 m. Before it was one flat slab at 12 m, and a pad from the
+  aerials. The main limbs are a quarter thicker and reach lower tiers. The prop roots root only in the planter: the ones
+  that rooted on the flagstones stood as a grove of poles in front of the trunk, the planter and the shrine. There are
+  120 thin hanging roots, down from 260, and 28 in the long curtain, down from 70, bunched near the trunk. Outside the
+  planter they stop above head height. The trunk, the planter and the shrine now read from A2·6 and from the square.
+- **Lanterns and lamps.** The two lantern strings across the square's north half are gone: they crossed style-A's frame
+  in front of the gate's roofs, where the mockup has none. A string along the east shops replaces them, over the
+  market. The lamp posts by the balustrade are gone: they stood in the middle of A1·5 and A2·4, and the targets have
+  none. So is the east lamp, which stood inside a booth.
+- **A sixth parasol table** in A1·6's foreground, out of the mockup's frame.
+
+Nothing was reverted. Mockup A's viewmodel bug from pass 0 (a cyan slab across the frame) was fixed in another lane, so
+mockup A is judged as played from this pass on.
+
+| | before (f1e00629, clean) | pass 2 (1cca856d + this lane) |
+|---|---|---|
+| lane geometry | 30.70 MB | 29.43 MB (−1.27) |
+| textures | — | +0 |
+| mockup A | 160 draws / 1.51 M | 124 draws / 1.49 M |
+| worst A1 / A2 pose | A2·9 113 draws; A1·5 1.31 M | A2·9 105 draws / 1.27 M; A1·5 1.29 M |

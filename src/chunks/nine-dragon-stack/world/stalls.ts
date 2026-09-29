@@ -332,7 +332,7 @@ export const BOOTH = { w: 2.6, d: 1.7 } as const;
 /** the booths' front centres (x, z): their fronts face the square (west), their backs 1.7 m east, toward the shops */
 export const BOOTHS: readonly (readonly [number, number])[] = [[19.8, -9.8], [19.8, -6.6], [19.8, -3.4], [19.8, 12.4], [19.8, 15.6]];
 /** the parasol tables (x, z, quarter turns) */
-export const PARASOLS: readonly (readonly [number, number, number])[] = [[17.5, -8.2, 0], [17.3, -1.9, 1], [13.3, 1.9, 2], [17.3, 14.0, 3], [12.6, 14.8, 1]];
+export const PARASOLS: readonly (readonly [number, number, number])[] = [[17.5, -8.2, 0], [17.3, -1.9, 1], [13.3, 1.9, 2], [17.3, 14.0, 3], [12.6, 14.8, 1], [10.2, 4.6, 0]];
 
 /** the booths as boxes of their footprints (colliders.ts: the props you would walk into) */
 export function marketColliders(): ColliderDesc[] {

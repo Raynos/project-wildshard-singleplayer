@@ -35,6 +35,8 @@ export interface GateSpec {
    * and the A1 / A2 targets: a ~13 m gate whose roofs reach well past the centre bay; at k = 1 it stood 18 m).
    */
   k?: number;
+  /** the paint: the hero lab's mineral blue-greens (the default) or style-A's cinnabar and gold (E281, Lantern Square) */
+  paint?: 'mineral' | 'cinnabar';
 }
 
 // the washes, fitted to the dome-B targets by ΔE00 (round 2: lacquer #a3463a vs #823c31, stone #636365 vs #544e4e)
@@ -51,6 +53,16 @@ const GOLD_DK: Look = { wash: 0xa87a2c, line: 1, accent: true };
 const AZURITE: Look = { wash: 0x2a558f, line: 1, accent: true };
 const MALACHITE: Look = { wash: 0x2a7a5e, line: 1, accent: true };
 const LIGHT_MAL: Look = { wash: 0x5f9c7e, line: 1, accent: true };
+
+/** a gate's painted colours: the beams' fields (a, b), the panels, the beam over the brackets, the soffit, the eave board */
+interface GatePaint { a: Look; b: Look; panel: Look; beam: number; soffit: readonly [number, number]; eave: readonly [number, number] }
+const MINERAL: GatePaint = { a: AZURITE, b: MALACHITE, panel: LIGHT_MAL, beam: 0x1f3a52, soffit: [0x2a4d6e, 0x1f3a52], eave: [0x2a558f, 0x2a7a5e] };
+// E281: style-A's paifang is cinnabar and gold under teal tiles — red lintels, red soffits and eave boards, red and gold
+// brackets; in the mineral paint the square's gate read as a teal-green band from the spawn
+const CINNABAR: GatePaint = {
+  a: { wash: 0x8a2618, line: 1, accent: true }, b: { wash: 0x5a1810, line: 1, accent: true }, panel: { wash: 0x7a2216, line: 1, accent: true },
+  beam: 0x4e1610, soffit: [0x8e3322, 0x6a2418], eave: [0x9a2e1c, 0x7e2418],
+};
 // glazed tiles: a dark blue-teal (round 2's jade rolls read #488b72 from above, round 3's #406561; the targets' #33484c)
 const TILE = 0x163234;
 const ROLL = 0x2c5250;
@@ -74,6 +86,9 @@ export interface RoofSpec {
   /** E281: the slope grid (12 × 7) and the tile-roll pitch (0.3 m): a small roof (a booth, the shrine) needs far fewer */
   grid?: readonly [number, number];
   roll?: number;
+  /** the soffit's two washes (eave row, the rest) and the eave board's alternating washes (default: azurite / malachite) */
+  soffit?: readonly [number, number];
+  eave?: readonly [number, number];
 }
 
 /**
@@ -122,7 +137,7 @@ export function curvedRoof(k: Kit, x: KitX, signs: SignBuilder | null, r: RoofSp
         // the underside: the same grid an eave-thickness lower, facing down, painted rafters (K.bars) on azurite
         const dn = new Vector3(0, -eaveT, 0);
         k.quad4(p10.clone().add(dn), p00.clone().add(dn), p01.clone().add(dn), p11.clone().add(dn), w, Math.max(hgt, 1e-3),
-          { wash: j === 0 ? 0x2a4d6e : 0x1f3a52, kind: K.bars, col: 0.21, row: 0, line: 0.8, accent: true }, uo, vo, j === 0 ? E.v0 : E.none);
+          { wash: j === 0 ? (r.soffit?.[0] ?? 0x2a4d6e) : (r.soffit?.[1] ?? 0x1f3a52), kind: K.bars, col: 0.21, row: 0, line: 0.8, accent: true }, uo, vo, j === 0 ? E.v0 : E.none);
         uo += w;
       }
       vo += hgt;
@@ -163,7 +178,7 @@ export function curvedRoof(k: Kit, x: KitX, signs: SignBuilder | null, r: RoofSp
       const inw = (p: Vector3): Vector3 => new Vector3(r.cx - p.x, 0, r.cz - p.z).normalize().multiplyScalar(0.16 * Math.min(1, r.h / 2.5));
       const a3 = a2.clone().add(inw(a2)), b3 = b2.clone().add(inw(b2));
       const drop = new Vector3(0, -0.3 * (r.h / 1.6), 0);
-      k.quad4(a3.clone().add(drop), b3.clone().add(drop), b3, a3, a.distanceTo(b), -drop.y, { wash: i % 2 === 0 ? 0x2a558f : 0x2a7a5e, kind: K.panel, line: 1, accent: true, edges: E.all });
+      k.quad4(a3.clone().add(drop), b3.clone().add(drop), b3, a3, a.distanceTo(b), -drop.y, { wash: i % 2 === 0 ? (r.eave?.[0] ?? 0x2a558f) : (r.eave?.[1] ?? 0x2a7a5e), kind: K.panel, line: 1, accent: true, edges: E.all });
       // a gold rule along the board's foot
       k.quad4(a3.clone().add(drop).add(new Vector3(0, -0.05, 0)), b3.clone().add(drop).add(new Vector3(0, -0.05, 0)), b3.clone().add(drop), a3.clone().add(drop), a.distanceTo(b), 0.05, { ...GOLD, gloss: false, edges: E.v0 });
     }
@@ -237,12 +252,12 @@ export function curvedRoof(k: Kit, x: KitX, signs: SignBuilder | null, r: RoofSp
 }
 
 /** a row of three-tier dougong sets on a lintel top, x0 → x1 at height y, the gate's plane at z; 栱眼 panels between */
-function dougong(k: Kit, x0: number, x1: number, y: number, z: number, s: number): void {
+function dougong(k: Kit, x0: number, x1: number, y: number, z: number, s: number, paint: GatePaint = MINERAL): void {
   const n = Math.max(3, Math.round((x1 - x0) / (0.5 * s)));
   const q = s;
   for (let i = 0; i <= n; i++) {
     const x = x0 + ((x1 - x0) * i) / n;
-    const A = i % 2 === 0 ? AZURITE : MALACHITE, B = i % 2 === 0 ? MALACHITE : AZURITE;
+    const A = i % 2 === 0 ? paint.a : paint.b, B = i % 2 === 0 ? paint.b : paint.a;
     k.box(x, y, z, 0.26 * q, 0.13 * q, 0.26 * q, GOLD_DK);
     // tier 1: the cross arm along the lintel, the first projecting arm through the gate
     k.box(x, y + 0.13 * q, z, 0.6 * q, 0.1 * q, 0.13 * q, A);
@@ -261,12 +276,12 @@ function dougong(k: Kit, x0: number, x1: number, y: number, z: number, s: number
     k.box(x, y + 0.47 * q, z, 1.08 * q, 0.09 * q, 0.12 * q, A);
   }
   // the beams the sets carry, and the red 栱眼 panels between the sets on both faces
-  k.box((x0 + x1) / 2, y + 0.56 * q, z, x1 - x0 + q, 0.1 * q, 1.3 * q, { wash: 0x1f3a52, line: 1, accent: true });
+  k.box((x0 + x1) / 2, y + 0.56 * q, z, x1 - x0 + q, 0.1 * q, 1.3 * q, { wash: paint.beam, line: 1, accent: true });
   for (const sz of [-1, 1]) k.box((x0 + x1) / 2, y + 0.02 * q, z + sz * 0.06 * q, x1 - x0, 0.26 * q, 0.04 * q, { wash: 0x7e1e1a, kind: K.panel, line: 1, accent: true });
 }
 
 /** a painted beam (旋子彩画) centred at (cx, y .. y+h, z), `len` long, `d` deep: end bands, rosettes, a cartouche */
-function paintedBeam(k: Kit, x: KitX, cx: number, y: number, z: number, len: number, h: number, d: number, field: Look, cart: Look): void {
+function paintedBeam(k: Kit, x: KitX, cx: number, y: number, z: number, len: number, h: number, d: number, field: Look, cart: Look, band: Look = LIGHT_MAL): void {
   k.box(cx, y, z, len, h, d, LACQUER_DK);
   for (const sz of [-1, 1]) {
     const fz = z + sz * (d / 2 + 0.015);
@@ -278,7 +293,7 @@ function paintedBeam(k: Kit, x: KitX, cx: number, y: number, z: number, len: num
     for (const ex of [-1, 1]) {
       const bx = cx + ex * (len / 2 - 0.2);
       k.box(bx, y + h * 0.06, fz + sz * 0.02, 0.22, h * 0.88, 0.03, { ...GOLD, gloss: false });
-      k.box(bx - ex * 0.2, y + h * 0.06, fz + sz * 0.025, 0.07, h * 0.88, 0.03, { ...LIGHT_MAL });
+      k.box(bx - ex * 0.2, y + h * 0.06, fz + sz * 0.025, 0.07, h * 0.88, 0.03, { ...band });
       // the rosettes (旋花) in the 找头 between band and cartouche
       const rx = cx + ex * (len * 0.19 + (len / 2 - 0.45 - len * 0.19) / 2);
       const rr = Math.min(h * 0.34, (len / 2 - 0.45 - len * 0.19) * 0.42);
@@ -442,6 +457,8 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
   const { y, z } = P;
   // s: heights and details; s0: the roofs' spans (GateSpec.k)
   const s0 = P.s, s = P.s * (P.k ?? 1);
+  const pt = P.paint === 'cinnabar' ? CINNABAR : MINERAL;
+  const band = P.paint === 'cinnabar' ? GOLD_DK : LIGHT_MAL;
   const [p0, p1, p2, p3] = P.posts;
   const cx = (p1 + p2) / 2;
   // the posts stop under the dougong (they used to poke up through the eaves as orange knobs)
@@ -451,20 +468,22 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
   for (const [px, r, h] of posts) {
     const y1 = sumeru(k, x, px, y, z, s, r);
     k.cyl(px, y1, z, r * 1.14, r * 1.14, 0.16 * s, 16, GOLD);
-    k.cyl(px, y1 + 0.16 * s, z, r, r * 0.95, y + h - y1 - 0.16 * s, 16, LACQUER, { caps: false });
+    // (the cinnabar gate's posts without the gloss lobe: under the square's sky it washed them salmon-pink, where style-A
+    // and the A2 targets paint them a deep red)
+    k.cyl(px, y1 + 0.16 * s, z, r, r * 0.95, y + h - y1 - 0.16 * s, 16, P.paint === 'cinnabar' ? { ...LACQUER, gloss: false } : LACQUER, { caps: false });
     for (const hy of [h - 0.45 * s, h - 0.7 * s]) k.cyl(px, y + hy, z, r * 0.99, r * 0.99, 0.08 * s, 16, GOLD_DK);
     drumStone(k, x, px, y + 0.24 * s, z - s, s);
     drumStone(k, x, px, y + 0.24 * s, z + s, s);
   }
   // centre bay: two painted beams, the plaque between, flanking painted panels with gold medallions
   const bw = p2 - p1;
-  paintedBeam(k, x, cx, y + 5.0 * s, z, bw + 0.9 * s, 0.5 * s, 0.56 * s, AZURITE, MALACHITE);
-  paintedBeam(k, x, cx, y + 6.75 * s, z, bw + 1.4 * s, 0.6 * s, 0.62 * s, MALACHITE, AZURITE);
+  paintedBeam(k, x, cx, y + 5.0 * s, z, bw + 0.9 * s, 0.5 * s, 0.56 * s, pt.a, pt.b, band);
+  paintedBeam(k, x, cx, y + 6.75 * s, z, bw + 1.4 * s, 0.6 * s, 0.62 * s, pt.b, pt.a, band);
   k.box(cx, y + 5.5 * s, z, bw, 1.25 * s, 0.34 * s, LACQUER_DK);
   for (const sx of [-1, 1]) {
     const mx = cx + sx * (1.65 * s + (bw / 2 - 1.65 * s) / 2);
     const mw = Math.max(0.2, bw / 2 - 1.8 * s);
-    k.box(mx, y + 5.62 * s, z, mw, 0.9 * s, 0.42 * s, { ...LIGHT_MAL, kind: K.panel });
+    k.box(mx, y + 5.62 * s, z, mw, 0.9 * s, 0.42 * s, { ...pt.panel, kind: K.panel });
     for (const nz of [1, -1]) {
       x.ellipsoid(new Vector3(mx, y + 6.07 * s, z + nz * 0.22 * s), X, Y, Z, 0.13 * s, 0.13 * s, 0.04 * s, { wash: 0xb08434, line: 1, accent: true, gloss: true });
       ring(x, new Vector3(mx, y + 6.07 * s, z + nz * 0.24 * s), X, Y, 0.2 * s, 0.02 * s, { wash: 0xa87a2c, line: 0, accent: true });
@@ -498,33 +517,33 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
     }
     x.sweep(pts, () => 0.045 * s, 5, { wash: 0xc99a3e, line: 0, accent: true }, { flat: 0.8, up: Z.clone(), capStart: true, capEnd: true });
   }
-  dougong(k, p1 - 0.5 * s, p2 + 0.5 * s, y + 7.05 * s, z, s);
+  dougong(k, p1 - 0.5 * s, p2 + 0.5 * s, y + 7.05 * s, z, s, pt);
   // the roofs sit light on the gate (style-A: roofs a quarter of the height, the tall bays open below them)
-  curvedRoof(k, x, signs, { cx, y0: y + 7.72 * s, cz: z, w: bw + 2.4 * s0, d: 2.6 * s0, h: 1.55 * s, lift: 0.68 * s, flare: 0.32 * s0, tile: TILE, neon: P.neonEaves, ornaments: true });
+  curvedRoof(k, x, signs, { cx, y0: y + 7.72 * s, cz: z, w: bw + 2.4 * s0, d: 2.6 * s0, h: 1.55 * s, lift: 0.68 * s, flare: 0.32 * s0, tile: TILE, neon: P.neonEaves, ornaments: true, soffit: pt.soffit, eave: pt.eave });
   sparrowBrace(x, p1 + 0.38 * s, y + 4.75 * s, z, 1, 1.3 * s, s);
   sparrowBrace(x, p2 - 0.38 * s, y + 4.75 * s, z, -1, 1.3 * s, s);
   // side bays
   for (const [a, b] of [[p0, p1], [p2, p3]] as const) {
     const m = (a + b) / 2;
     const w = b - a;
-    paintedBeam(k, x, m, y + 3.95 * s, z, w, 0.4 * s, 0.46 * s, AZURITE, MALACHITE);
-    k.box(m, y + 4.35 * s, z, w - 0.3 * s, 0.6 * s, 0.26 * s, { ...LIGHT_MAL, kind: K.panel });
+    paintedBeam(k, x, m, y + 3.95 * s, z, w, 0.4 * s, 0.46 * s, pt.a, pt.b, band);
+    k.box(m, y + 4.35 * s, z, w - 0.3 * s, 0.6 * s, 0.26 * s, { ...pt.panel, kind: K.panel });
     for (const nz of [1, -1]) {
       x.ellipsoid(new Vector3(m, y + 4.65 * s, z + nz * 0.14 * s), X, Y, Z, 0.11 * s, 0.11 * s, 0.035 * s, { wash: 0xb08434, line: 1, accent: true, gloss: true });
       ring(x, new Vector3(m, y + 4.65 * s, z + nz * 0.15 * s), X, Y, 0.17 * s, 0.018 * s, { wash: 0xa87a2c, line: 0, accent: true });
     }
-    paintedBeam(k, x, m, y + 4.95 * s, z, w + 0.8 * s, 0.48 * s, 0.52 * s, MALACHITE, AZURITE);
+    paintedBeam(k, x, m, y + 4.95 * s, z, w + 0.8 * s, 0.48 * s, 0.52 * s, pt.b, pt.a, band);
     const out = a < cx ? -1 : 1;
     // the bracket row stops short of the centre post, under the side roof's inner hip
-    dougong(k, out < 0 ? a - 0.3 * s : a + 0.15 * s, out < 0 ? b - 0.15 * s : b + 0.3 * s, y + 5.43 * s, z, s * 0.9);
+    dougong(k, out < 0 ? a - 0.3 * s : a + 0.15 * s, out < 0 ? b - 0.15 * s : b + 0.3 * s, y + 5.43 * s, z, s * 0.9, pt);
     // the side roof: its outer hip flies out past the outer post, its inner hip tucks in against the centre post (a
     // symmetric roof over the side bay reached over the centre bay and hid the plaque)
-    curvedRoof(k, x, signs, { cx: m + out * 0.5 * s0, y0: y + 5.95 * s, cz: z, w: w + 0.9 * s0, d: 2.2 * s0, h: 1.15 * s, lift: 0.52 * s, flare: 0.26 * s0, tile: TILE, neon: P.neonEaves, ornaments: false, grid: [10, 6] });
+    curvedRoof(k, x, signs, { cx: m + out * 0.5 * s0, y0: y + 5.95 * s, cz: z, w: w + 0.9 * s0, d: 2.2 * s0, h: 1.15 * s, lift: 0.52 * s, flare: 0.26 * s0, tile: TILE, neon: P.neonEaves, ornaments: false, grid: [10, 6], soffit: pt.soffit, eave: pt.eave });
     sparrowBrace(x, a + 0.32 * s, y + 3.75 * s, z, 1, 0.9 * s, s);
     sparrowBrace(x, b - 0.32 * s, y + 3.75 * s, z, -1, 0.9 * s, s);
     lantern(m - w * 0.22, y + 3.72 * s, z, 0.95 * s);
     lantern(m + w * 0.22, y + 3.72 * s, z, 0.95 * s);
-    lantern(m, y + 3.0 * s, z + 0.45 * s, 0.85 * s);
+    if (P.paint !== 'cinnabar') lantern(m, y + 3.0 * s, z + 0.45 * s, 0.85 * s);
   }
   // couplets on the inner posts, both faces: white boards, black kai
   const cp = P.couplets;
@@ -536,9 +555,13 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
   }
   for (let i = 0; i < 3; i++) lantern(p1 + bw * (0.25 + i * 0.25), y + 4.75 * s, z, 1.1 * s);
   // a second, lower row a step into the passage (style-A: five lanterns fill the centre bay)
-  for (const t of [0.375, 0.625]) lantern(p1 + bw * t, y + 4.25 * s, z - 0.7 * s, s);
-  // a third row on long cords in the passage, both faces (A2 target 5: lanterns at 1.5× head height as you walk through)
-  for (const [t, dz] of [[0.2, 0.6], [0.5, -0.5], [0.8, 0.6]] as const) lantern(p1 + bw * t, y + 3.55 * s, z + dz * s, 0.95 * s);
+  // (E281: the square's gate — style-A's — hangs one row across its bays; the second and third rows made a cluster of a
+  // dozen lanterns in the centre bay from the spawn)
+  if (P.paint !== 'cinnabar') {
+    for (const t of [0.375, 0.625]) lantern(p1 + bw * t, y + 4.25 * s, z - 0.7 * s, s);
+    // a third row on long cords in the passage, both faces (A2 target 5: lanterns at 1.5× head height as you walk through)
+    for (const [t, dz] of [[0.2, 0.6], [0.5, -0.5], [0.8, 0.6]] as const) lantern(p1 + bw * t, y + 3.55 * s, z + dz * s, 0.95 * s);
+  }
   // the stone lions before the centre posts, facing the square
   // the pedestals of the guardian lions before the centre bay: the TRELLIS lions (props3d.ts) sit on them
   if (P.lions) {

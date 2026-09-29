@@ -151,7 +151,7 @@ function paifang(ctx: Ctx): void {
     x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: null, neonEaves: null, lions: false,
     // E281: 14 m to the ridge beasts, not 18 (style-A's gate is about as tall as it is broad; A1·9's camera, 15 m up
     // behind the gate, looks down on its roofs); its posts bare lacquer, no paper couplets (style-A, the A2 targets)
-    k: 0.78,
+    k: 0.78, paint: 'cinnabar',
   });
   ctx.map.push({ x0: GATE.posts[0] - 0.6, z0: GATE.z - 1.2, x1: GATE.posts[3] + 0.6, z1: GATE.z + 1.2, kind: 'gate' });
 }
@@ -293,22 +293,20 @@ export function buildSquare(ctx: Ctx): void {
   scooter(props, 20.9, Y0, 15.4, 0.2, 0xb8321f);
   scooter(props, 20.6, Y0, -4.5, 1.2, 0x7fbf9a);
   // lamps and lantern strings
+  // (E281: only the south lamp is left — the two along the balustrade stood in the middle of A1·5 and A2·4, where
+  // style-A and the targets have none, and the east one stood inside a market booth)
   lamp(props, 1.1, Y0, 12, 4.2);
-  lamp(props, 1.1, Y0, -9, 4.2);
-  lamp(props, 1.1, Y0, -19, 4.2);
-  lamp(props, 21, Y0, -6, 4.2);
   // the light lab's hunk (round-9-lab-light): the lamps are lights too (a warm pool under each, a streak in the wet stone)
-  for (const [x, z] of [[1.1, 12], [1.1, -9], [1.1, -19], [21, -6]] as const) {
+  for (const [x, z] of [[1.1, 12]] as const) {
     ctx.emitters.push({ at: new Vector3(x, Y0 + 4.1, z), color: new Color(0xffc987), w: 0.34, h: 0.3, power: 0.5, spill: 0.25 });
   }
   const str = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 12.2, GATE.z + 0.5), new Vector3(22.6, Y0 + 12.5, -22), 1.9, str);
   lanternString(ctx, new Vector3(-1.2, Y0 + 10.4, -26), new Vector3(GATE.x - 1, Y0 + 11, GATE.z + 0.5), 1.8, str);
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 9.8, GATE.z + 0.6), new Vector3(22.6, Y0 + 9.6, -28), 1.8, str);
-  lanternString(ctx, new Vector3(-1.2, Y0 + 9.2, -12), new Vector3(22.6, Y0 + 9.6, -9), 2.2, str);
-  // dome B: one more string over the square's north half (the targets hang lanterns across the square; a second one
-  // nearer the spawn crowded the hero frame's sky)
-  lanternString(ctx, new Vector3(-1.2, Y0 + 8.6, -19.5), new Vector3(22.6, Y0 + 9.2, -13.5), 2.0, str);
+  // (E281: the two strings across the square's north half are gone — they crossed style-A's frame in front of the gate's
+  // roofs, where the mockup has none; the east shops carry one instead, over the market, out of that frame)
+  lanternString(ctx, new Vector3(22.3, Y0 + 6.2, -12.4), new Vector3(22.3, Y0 + 6.5, 18.6), 1.9, str);
   // E281: one over the south half, from the lamp by the balustrade to the east shops (A1·6 / A1·7's lanterns overhead;
   // behind the spawn, out of the mockup's frame)
   lanternString(ctx, new Vector3(1.1, Y0 + 4.4, 12), new Vector3(22.4, Y0 + 7.6, 14.5), 1.9, str);
