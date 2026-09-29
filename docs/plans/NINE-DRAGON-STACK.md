@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-09-28 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple and the practice arena are live; F3's round-22 trailer awaits Jake's review. Facade multi-draw is removed on every shard (E271 / E272), so the fragment's facades are instanced only; E264's iPhone memory caps (1.8 GB loading, 1.0 GB World Explorer) and F9's physical retest are open. In flight: the mockup pass E281, five lanes over all eight domes (F4–F7; the Well-rim slice F4 + F5 from E276 is its Well lane). F8 and F10 are todo. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
+**State:** `in progress` 2026-09-28 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple and the practice arena are live; F3's round-22 trailer awaits Jake's review. Facade multi-draw is removed on every shard (E271 / E272), so the fragment's facades are instanced only; E264's iPhone memory caps (1.8 GB loading, 1.0 GB World Explorer) and F9's physical retest are open. The mockup pass E281 (F4–F7, five lanes over all eight domes) has two rounds live as `5cb1ecd`: geometry 168.7 → 150.8 MB, textures unchanged; it waits on Jake's pick for round 3. F8 and F10 are todo. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
 
 ## 0. Read this first
 
