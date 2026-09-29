@@ -90,7 +90,9 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
   for (const px of [x0 + 0.1, x1 - 0.1]) k.beam(new Vector3(px, y + 2.1, z1 - 0.08), new Vector3(px, aY1, aZ1), 0.04, 0.04, STEEL);
   // ── the back wall: white tile below, warm-lit plaster above, menu strips, shelves of jars ──
   k.box(xc, y, z0 + 0.08, W - 0.2, 1.1, 0.1, { wash: 0xc9c3b6, kind: K.facade, row: 0.15, col: 0.15, line: 0.8 });
-  k.box(xc, y + 1.1, z0 + 0.08, W - 0.2, 2.1, 0.1, { wash: 0xa87c4a, emit: 0.18, line: 1, accent: true, surf: SURF.none });
+  k.box(xc, y + 1.1, z0 + 0.08, W - 0.2, 2.1, 0.1, { wash: 0xa87c4a, emit: 0.28, line: 1, accent: true, surf: SURF.none });
+  // E281 round 2: a warm ceiling under the roof, so the stall glows inside from the square and the aerials
+  k.box(xc, yf - 0.1, (z0 + z1) / 2, W - 0.3, 0.04, z1 - z0 - 0.3, { wash: 0xd89a58, emit: 0.5, line: 0.6, accent: true, surf: SURF.none }, { top: null });
   // the back wall's clutter: a drinks fridge with a lit glass door, a clock, a red calendar, a wall fan, the kitchen god
   // shelf with its red lamp
   k.box(x1 - 0.55, y, z0 + 0.4, 0.8, 1.9, 0.6, { wash: 0xd8d6cf, line: 1 });
@@ -256,7 +258,9 @@ export function hawkerStall(ctx: Ctx, rng: Rng): void {
   for (const px of [x0 + 0.1, x1 - 0.1]) k.beam(new Vector3(px, y + 1.9, z1 - 0.08), new Vector3(px, aY1, aZ1), 0.035, 0.035, STEEL);
   // the back wall, warm-lit, with menu strips and a shelf of jars; a side board at the east end
   k.box(xc, y, z0 + 0.1, L - 0.2, 1.0, 0.1, { wash: 0xc9c3b6, kind: K.facade, row: 0.15, col: 0.15, line: 0.8 });
-  k.box(xc, y + 1.0, z0 + 0.1, L - 0.2, 1.9, 0.1, { wash: 0x6e4c30, emit: 0.16, line: 1, accent: true, surf: SURF.none });
+  k.box(xc, y + 1.0, z0 + 0.1, L - 0.2, 1.9, 0.1, { wash: 0x6e4c30, emit: 0.3, line: 1, accent: true, surf: SURF.none });
+  // E281 round 2: a lit box — a warm ceiling under the canvas roof (the targets' stalls glow inside from every side)
+  k.box(xc, yf - 0.1, mid(z0, z1), L - 0.2, 0.04, z1 - z0 - 0.2, { wash: 0xd89a58, emit: 0.5, line: 0.6, accent: true, surf: SURF.none }, { top: null });
   // the kitchen's clutter against the lit wall (style-A: the interior is busy and warm, never a flat lit panel): a rail of
   // ladles and strainers, hanging bowls of noodles drying, a row of jars on a second shelf, a wall clock
   k.beam(new Vector3(x0 + 0.3, y + 2.0, z0 + 0.22), new Vector3(x1 - 0.3, y + 2.0, z0 + 0.22), 0.02, 0.02, TOP);
@@ -276,9 +280,16 @@ export function hawkerStall(ctx: Ctx, rng: Rng): void {
   k.box(xc - 0.6, y + 1.55, z0 + 0.3, 1.6, 0.04, 0.34, { wash: 0x4a3322, line: 0.8 });
   for (let i = 0; i < 6; i++) k.cyl(xc - 1.25 + i * 0.26, y + 1.59, z0 + 0.3, 0.07, 0.06, 0.2, 8, { wash: [0xc0703a, 0x8a3a24, 0xd8c070][i % 3] ?? 0xc0703a, line: 0.6, gloss: true });
   k.box(x1 - 0.06, y, mid(z0, z1), 0.06, 1.1, z1 - z0 - 0.1, TIMBER);
-  // the west end closed in dark timber to the roof (from the spawn, 35° off the stall's front, the open end showed the
-  // whole lit back wall as a flat cream panel; style-A's stall side is dark wood, its light seen over the counter)
-  k.box(x0 + 0.06, y, mid(z0, z1), 0.08, 2.65, z1 - z0 - 0.1, { ...TIMBER, wash: 0x4a2e1c });
+  // the west end: a dark timber board to counter height and open above, so the spawn sees into the lit stall (E281
+  // round 2; closed to the roof it read as a brown box in mockup A), roast ducks and sausages on a rail in the opening
+  k.box(x0 + 0.06, y, mid(z0, z1), 0.08, 1.1, z1 - z0 - 0.1, { ...TIMBER, wash: 0x4a2e1c });
+  k.beam(new Vector3(x0 + 0.1, y + 2.25, z0 + 0.2), new Vector3(x0 + 0.1, y + 2.25, z1 - 0.3), 0.03, 0.03, STEEL);
+  for (let i = 0; i < 5; i++) {
+    const hz = z0 + 0.35 + i * 0.32;
+    x.sweep([new Vector3(x0 + 0.1, y + 2.25, hz), new Vector3(x0 + 0.1, y + 2.02, hz)], () => 0.006, 3, { wash: 0x9aa0a6, line: 0 });
+    if (i % 2 === 0) x.ellipsoid(new Vector3(x0 + 0.1, y + 1.88, hz), X, Y, Z, 0.06, 0.15, 0.075, { wash: 0x9a4a18, line: 0, accent: true, gloss: true }, (d) => 1 + (d.y > 0.5 ? -0.25 : 0), 4, 8);
+    else for (let j = 0; j < 3; j++) x.ellipsoid(new Vector3(x0 + 0.1, y + 2.1 - j * 0.13, hz + (j % 2) * 0.02), X, Y, Z, 0.022, 0.065, 0.022, { wash: 0x8a2418, line: 0, accent: true, gloss: true }, () => 1, 3, 6);
+  }
   // the counter along the front: carved timber, a steel top, bowls; the stove behind it: a stockpot and a wok
   k.box(xc, y, z1 - 0.45, L - 0.3, 0.95, 0.7, TIMBER);
   k.box(xc, y + 0.95, z1 - 0.42, L - 0.2, 0.05, 0.86, TOP);
@@ -336,11 +347,24 @@ export const BOOTHS: readonly (readonly [number, number])[] = [[19.8, -9.8], [19
 /** the parasol tables (x, z, quarter turns) */
 export const PARASOLS: readonly (readonly [number, number, number])[] = [[17.5, -8.2, 0], [17.3, -1.9, 1], [13.3, 1.9, 2], [17.3, 14.0, 3], [12.6, 14.8, 1], [10.2, 4.6, 0]];
 
-/** the booths and the parasol tables (with their stools and sitters) as boxes of their footprints (colliders.ts) */
+/** E281 round 2: the dining pavilions (x, z, yaw): a table of four under a plum canopy on four posts, in the south half */
+export const PAVILIONS: readonly (readonly [number, number, number])[] = [[7.6, 15.6, 0.2], [14.6, 10.2, -0.3], [4.1, 12.9, 0.5]];
+const PAV = { half: 1.3, h: 2.4 } as const;
+
+/** the booths, the parasol tables and the pavilions (with their stools and sitters) as boxes of their footprints */
 export function marketColliders(): ColliderDesc[] {
   const booths: ColliderDesc[] = BOOTHS.map(([x, z]) => ({ kind: 'box', x: x + BOOTH.d / 2, y: Y0 + 1.2, z, hx: BOOTH.d / 2, hy: 1.2, hz: BOOTH.w / 2, surface: 'wood' }));
   const tables: ColliderDesc[] = PARASOLS.map(([x, z]) => ({ kind: 'box', x, y: Y0 + 0.4, z, hx: 0.75, hy: 0.4, hz: 0.75, surface: 'metal' }));
-  return [...booths, ...tables];
+  // a pavilion: its table and diners, and its four posts (the canopy is out of reach)
+  const pav: ColliderDesc[] = [];
+  for (const [x, z, r] of PAVILIONS) {
+    pav.push({ kind: 'box', x, y: Y0 + 0.45, z, hx: 0.85, hy: 0.45, hz: 0.85, surface: 'wood' });
+    for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+      const c = Math.cos(r), sn = Math.sin(r), ox = lx * PAV.half, oz = lz * PAV.half;
+      pav.push({ kind: 'box', x: x + ox * c + oz * sn, y: Y0 + PAV.h / 2, z: z - ox * sn + oz * c, hx: 0.08, hy: PAV.h / 2, hz: 0.08, surface: 'wood' });
+    }
+  }
+  return [...booths, ...tables, ...pav];
 }
 
 /** a lamp's warm light baked into a set's aSpill (the instanced sets miss bakeSpill): falls off over `r` m from `at` */
@@ -504,6 +528,71 @@ export function marketDiners(ctx: Ctx): void {
     const r = (q * Math.PI) / 2;
     const m = new Matrix4().compose(new Vector3(tx, Y0, tz), new Quaternion().setFromAxisAngle(UP, r), new Vector3(1, 1, 1));
     for (const [lx, lz, yaw] of [[0.64, 0, -Math.PI / 2], [0, -0.64, 0]] as const) {
+      const p = new Vector3(lx, 0, lz).applyMatrix4(m);
+      ctx.sitters.push(new Matrix4().compose(p, new Quaternion().setFromAxisAngle(UP, r + yaw), new Vector3(1, 1, 1)));
+    }
+  }
+}
+
+/**
+ * E281 round 2: a dining pavilion in its own frame (table at the origin): four lacquer posts under a plum tiled canopy
+ * (the gate's curved roof in small, a warm-lit soffit and ceiling), a fringe of cloth round the eave, a table with a
+ * hot pot, bowls and a teapot. The diners are TRELLIS sitters (pavilionDiners), the lanterns and the light per copy.
+ */
+export function pavilionSet(): BufferGeometry {
+  const k = new Kit(), x = new KitX();
+  const hh = PAV.half, H = PAV.h;
+  const POST: Look = { wash: 0x4a1a12, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
+  for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) k.box(lx * hh, 0, lz * hh, 0.1, H, 0.1, POST, { bottom: null });
+  for (const sz of [-1, 1]) {
+    k.box(0, H - 0.1, sz * hh, 2 * hh + 0.1, 0.1, 0.1, POST);
+    k.box(sz * hh, H - 0.1, 0, 0.1, 0.1, 2 * hh + 0.1, POST);
+  }
+  curvedRoof(k, x, null, { cx: 0, y0: H, cz: 0, w: 2 * hh + 0.9, d: 2 * hh + 0.9, h: 0.95, lift: 0.3, flare: 0.14, tile: 0x4a1e2c, neon: null, ornaments: false, grid: [5, 3], roll: 0.45, soffit: [0xc8864a, 0xa86a3a], eave: [0x6a2230, 0x5a1c28] });
+  k.box(0, H - 0.02, 0, 2 * hh - 0.1, 0.04, 2 * hh - 0.1, { wash: 0xd89a58, emit: 0.5, line: 0.6, accent: true, surf: SURF.none }, { top: null });
+  // a cloth fringe round the eave beam, both faces
+  for (let side = 0; side < 4; side++) {
+    const a = (side * Math.PI) / 2, ca = Math.cos(a), sa = Math.sin(a);
+    const p0 = new Vector3(-hh * ca + hh * sa, H - 0.12, hh * sa + hh * ca), p1 = new Vector3(hh * ca + hh * sa, H - 0.12, -hh * sa + hh * ca);
+    const dn = new Vector3(0, -0.22, 0);
+    quad2(k, p0.clone().add(dn), p1.clone().add(dn), p1, p0, 2 * hh, 0.22, { wash: 0x7a2418, kind: K.cloth, row: 0, col: 0.9, line: 0.8, accent: true }, E.v0 | E.v1);
+  }
+  // the table: a timber top on a trestle, a hot pot on a burner, bowls, a teapot
+  k.box(0, 0.7, 0, 1.0, 0.05, 1.0, { ...TIMBER, wash: 0x5a3420 });
+  for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) k.box(lx * 0.42, 0, lz * 0.42, 0.06, 0.7, 0.06, TIMBER, { top: null, bottom: null });
+  k.cyl(0, 0.75, 0, 0.16, 0.16, 0.05, 10, { wash: 0xff7a2a, emit: 1.6, line: 0, accent: true });
+  k.cyl(0, 0.8, 0, 0.2, 0.18, 0.14, 12, { wash: 0x9aa0a6, line: 1, gloss: true }, { edges: E.rims });
+  k.cyl(0, 0.94, 0, 0.18, 0.18, 0.005, 12, { wash: 0xb8321a, emit: 0.4, line: 0, accent: true });
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + 0.4;
+    bowls(k, Math.cos(a) * 0.34, 0.75, Math.sin(a) * 0.34, 1, i % 2 === 0 ? 0xece8dd : 0xd7e0e4);
+  }
+  k.lathe(0.3, 0.75, -0.3, [[0.06, 0], [0.08, 0.04], [0.07, 0.1], [0.03, 0.13]], 8, { wash: 0x3a5a4a, line: 0.6, gloss: true }, false, 0);
+  const g = merge([k.build(), x.build()]);
+  warmSpill(g, new Vector3(0, 1.9, 0), new Color(1.0, 0.58, 0.3), 2.2, 0.5, H - 0.05);
+  return g;
+}
+
+/** the pavilions: the instanced set, a lantern at each corner, the warm light, the hot pot's steam */
+export function pavilions(ctx: Ctx): void {
+  const UP = new Vector3(0, 1, 0);
+  for (const [px, pz, r] of PAVILIONS) {
+    const m = new Matrix4().compose(new Vector3(px, Y0, pz), new Quaternion().setFromAxisAngle(UP, r), new Vector3(1, 1, 1));
+    placeSet('pavilion', pavilionSet, m);
+    const w = (lx: number, ly: number, lz: number): Vector3 => new Vector3(lx, ly, lz).applyMatrix4(m);
+    for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) { const p = w(lx * (PAV.half + 0.3), PAV.h - 0.05, lz * (PAV.half + 0.3)); ctx.lantern(p.x, p.y, p.z, 0.6); }
+    ctx.emitters.push({ at: w(0, 1.4, 0), color: new Color(0xffb070), w: 2.2, h: 1.2, power: 0.35, spill: 0.55 });
+    ctx.steam.push(w(0, 1.05, 0), w(0.1, 1.7, 0.05));
+    ctx.map.push({ x0: px - PAV.half, z0: pz - PAV.half, x1: px + PAV.half, z1: pz + PAV.half, kind: 'block' });
+  }
+}
+
+/** the pavilions' diners, four a table (called last: 12 sitters, a multiple of three, so no other sitter changes coat) */
+export function pavilionDiners(ctx: Ctx): void {
+  const UP = new Vector3(0, 1, 0);
+  for (const [px, pz, r] of PAVILIONS) {
+    const m = new Matrix4().compose(new Vector3(px, Y0, pz), new Quaternion().setFromAxisAngle(UP, r), new Vector3(1, 1, 1));
+    for (const [lx, lz, yaw] of [[-0.78, 0, Math.PI / 2], [0.78, 0, -Math.PI / 2], [0, 0.78, Math.PI], [0, -0.78, 0]] as const) {
       const p = new Vector3(lx, 0, lz).applyMatrix4(m);
       ctx.sitters.push(new Matrix4().compose(p, new Quaternion().setFromAxisAngle(UP, r + yaw), new Vector3(1, 1, 1)));
     }

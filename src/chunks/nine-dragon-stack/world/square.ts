@@ -8,7 +8,7 @@ import { buildGate } from './gate';
 import { SURF } from '../look/paint';
 import { lionOnPost, placeSet } from './props3d';
 import { KitX, merge } from './hero/kitx';
-import { BOOTH, BOOTHS, PARASOLS, hawkerStall, marketDiners, marketRow, noodleStall } from './stalls';
+import { BOOTH, BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions } from './stalls';
 import { E, K, Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
 import { dragonHook, scooter } from './props';
@@ -268,6 +268,7 @@ function lanternString(ctx: Ctx, a: Vector3, b: Vector3, spacing: number, k: Kit
 
 export function buildSquare(ctx: Ctx): void {
   const rng = ctx.rng;
+  const walkers0 = ctx.walkers.length;
   // (E281: the balustrade, the tables and the lamps joined the square cluster's kit, 'paifang': one draw fewer, budget.md)
   const floor = ctx.kit('paifang', true);
   flagstones(floor, PLAZA.x0, PLAZA.z0, PLAZA.x1, PLAZA.z1, Y0);
@@ -367,6 +368,19 @@ export function buildSquare(ctx: Ctx): void {
   // and 3 + 12 of them, a multiple of three: build.ts deals the sitters' coats by index mod 3)
   for (const [tx0, tz0, tr, n] of tables) for (const st of mahjongSeats(tx0, tz0, tr).slice(n)) ctx.sitters.push(standAt(st.x, st.z, st.yaw, 1));
   marketDiners(ctx);
+  // E281 pass 8: the dining pavilions in the south half, their diners last; a walker who stood where one now stands
+  // steps out to its edge (moved, never dropped: the walkers' count, and so every later figure's coat, is unchanged)
+  pavilions(ctx);
+  pavilionDiners(ctx);
+  for (let i = walkers0; i < ctx.walkers.length; i++) {
+    const m = ctx.walkers[i];
+    if (m === undefined) continue;
+    const p = new Vector3().setFromMatrixPosition(m);
+    for (const [px, pz] of PAVILIONS) {
+      const dx = p.x - px, dz = p.z - pz, d = Math.hypot(dx, dz);
+      if (d < 2.0) { const k = 2.1 / Math.max(d, 0.01); m.setPosition(px + dx * k, p.y, pz + dz * k); }
+    }
+  }
   scooter(props, 20.4, Y0, 13.5, 0.3, 0x2e5fa3);
   scooter(props, 20.9, Y0, 15.4, 0.2, 0xb8321f);
   scooter(props, 20.6, Y0, -4.5, 1.2, 0x7fbf9a);

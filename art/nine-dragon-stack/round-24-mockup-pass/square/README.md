@@ -242,3 +242,30 @@ Nothing was reverted.
 | textures | +0 | +0 |
 | mockup A | 126 draws / 1.51 M | 127 draws / 1.55 M |
 | worst A1 / A2 pose | A2·9 106 draws / 1.28 M | A2·9 107 draws / 1.33 M; A1·2 1.37 M |
+
+## Round 2, pass 8
+
+Sheets: `pass-8/A1-spawn-stand-sheet.jpg`, `pass-8/A2-gate-look-sheet.jpg`, `pass-8/hawker-and-pavilions.jpg` (style-A's
+hawker stall, the engine's in pass 7 and pass 8, a pavilion, the pavilions from above, the hawker from the square).
+
+What changed:
+
+- **The hawker stall is a lit box.** Its west end, the side the spawn sees, is a counter-high board, open above. It had
+  been closed to the roof, so it read as a brown box in mockup A. Roast ducks and sausages hang on a rail in the
+  opening. Both the hawker and the noodle stall have a warm ceiling under the roof and a brighter back wall.
+- **Three dining pavilions in the south half** (the targets' seated diners under awnings). Each has four lacquer posts
+  under a small plum tiled canopy with a warm-lit soffit and ceiling, a cloth fringe, and a table with a hot pot on its
+  burner, bowls and a teapot. There are four diners at each, a lantern at each corner, a warm emitter, and steam. They
+  are one instanced set (`set:pavilion`) and one draw. They collide: the table and diners as a box, plus the four posts.
+  The 12 diners come last, a multiple of three. A walker who stood where a pavilion now stands is moved to its edge,
+  never dropped, so no later figure's coat changes.
+
+Nothing was reverted. Walk test: 19 legs, 0 stuck, 0 out. Mockup C is unchanged (107 draws; the pavilions are behind
+its camera).
+
+| | pass 7 | pass 8 (2cd6ddb5 + this lane) |
+|---|---|---|
+| lane geometry | 28.39 MB | 28.91 MB (cap 29.08) |
+| textures | +0 | +0 |
+| mockup A | 127 draws / 1.55 M | 127 draws / 1.55 M |
+| worst A1 / A2 pose | A2·9 107 draws / 1.33 M | A2·9 108 draws / 1.34 M; A1·2 1.40 M |
