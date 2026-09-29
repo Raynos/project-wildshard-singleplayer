@@ -1,6 +1,6 @@
 # Plan: game normalization (E127). One core game, three shard modules on top
 
-**State:** `draft` 2026-09-25. All 11 of Jake's decisions are in ([§9](#9-decisions-made-2026-09-25)). **Pine Hollow has landed on main** (`18b3d6be`, the remaster plan is archived), so the gate is open. The plan waits for Jake to start a new top-level session that builds it from [§0](#0-start-here-for-the-build-session), beginning with the P0 re-count on the merged tree. The plan was written from three read-only research passes on `main` @ `188fc54`, before the merge.
+**State:** `draft` 2026-09-28 — all 11 of Jake's decisions are in (§9) and the Pine Hollow gate is open (`18b3d6be`), but the build session never started: no N0 golden master, no freeze declared, and main kept moving (`main.ts` is 1,157 lines, was 829; Nine Dragon Stack is a fourth shard, already a module in `src/chunks/nine-dragon-stack/`), so §2's numbers are stale and P0's re-count must include Nine Dragon. On 2026-09-25 Jake said (E154): "I don't want to implement the full game normalization plan, but I do want to implement the HUD component". Slices landed on their own: D21's HUD (E154, `50a29525`), most of N8 (E136, `ddd9ac07`; the last URL looks moved to the Debug menu by E162). Waits on Jake: start the build session, or drop the plan.
 
 ## 0. Start here (for the build session)
 
@@ -159,7 +159,7 @@ Line counts are estimates from reading the code. "Risk" means risk to look or fe
 | D18 | Sky | `Sky.ts` (793) = HDRI + toon + painterly in one class | `SkyRig` (CSM, hemi, sun, planet) + `SkyBackdrop` strategy | ~120 | low | M |
 | D19 | Day cycle | `DayNight` ≈ `DayClock` (+ Pine's `PineDayNight`) | `DayCycle` + `LookRig<K>` (keyframes are shard data). **Last**, since `sunAt` must stay exact | ~180 | look | M |
 | D20 | Terrain, placement, post, culling, fog, wind, water | grid sampling ×2; `scatterIsland` ×3; god-rays / bloom / SMAA ×2 in `Game.ts`; `CelledInstances` ≈ `DressLayer`; `fog_fragment` patched 3× in implicit order; 3 wind systems; 3 water bodies | `TerrainPainter`, placement primitives (same random draw order), `PostSpec`, one culling class, `installFog(model)`, `WindField`, `WaterBody` | ~390 | low–look | S–M |
-| D21 | HUD, skins, saves, small helpers | ammo widget ×3, storm chip ×2 (HUD vs NalatiHUD); `SkinLocker` ≈ `NalatiSkinLocker`; `lin()` ×4; `compassDir` ×2; dead `meleeGeo.ts:156-214` | HUD widget slots + per-shard layout; `shardStore`; one helper each | ~200 | low | S |
+| D21 | HUD, skins, saves, small helpers **(the HUD part done on its own: E154, `50a29525`, one base HUD on every shard; skins, saves, helpers not)** | ammo widget ×3, storm chip ×2 (HUD vs NalatiHUD); `SkinLocker` ≈ `NalatiSkinLocker`; `lin()` ×4; `compassDir` ×2; dead `meleeGeo.ts:156-214` | HUD widget slots + per-shard layout; `shardStore`; one helper each | ~200 | low | S |
 
 **Total: ~3,000–3,400 lines deleted with every look kept**, plus ~1,500–2,000 lines moved into shard folders. The moving is the real payoff: each shard becomes a folder you can read on its own.
 
