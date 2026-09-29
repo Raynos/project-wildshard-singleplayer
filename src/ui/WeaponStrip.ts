@@ -12,7 +12,8 @@ import type { WeaponId, Weapons } from '../player/Weapons';
  * One square glass slot per OWNED weapon in `weapons.available` order (slot n = key n), the held one outlined in cyan, the
  * ammo (arrows / javelins) in the corner, red at 0. **Tap a slot = hold it** (the kit's 0.25 + 0.25 s holster swap);
  * tapping the slot already held = back to the previous weapon (`weapons.last()`, the design's "double-tap = last").
- * Touch: docked in the TouchControls layer as edge tabs down the LEFT screen edge under the status column, the slot number
+ * Touch: docked in the TouchControls layer as edge tabs on the LEFT screen edge, hung just ABOVE HOVER and growing up
+ * toward the status column (E303: bottom-anchored, so they never reach HOVER however many are owned), the slot number
  * in each tab's corner (the held weapon's ammo is the column's ammo strip, HUD.ts), and the layer's SWAP pill is hidden
  * (`.strip`). Desktop: a hotbar bottom-centre with
  * the key numbers and names (`.desk`), clickable too.
