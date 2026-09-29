@@ -8,7 +8,8 @@ import {
 import type { Builder } from './geo';
 import type { Dressing } from './grammar';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
-import { CAGE_W, CAGE_W0, PAL, PIECES, type PieceId } from './pieces';
+import { CAGE_W, CAGE_W0, PAL, PIECES, PIECE_LODS, type PieceId } from './pieces';
+import type { InstanceLevel } from '../cull';
 
 /** pieces small enough to shrink into the wall past the clutter distance */
 const SMALL = new Set<PieceId>(['plant', 'planter', 'laundryOut', 'laundryAlong', 'dish']);
@@ -51,10 +52,12 @@ export interface FacadeOptions {
   clutterFar?: readonly [number, number];
 }
 
-export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = {}): { group: Group; stats: FacadeStats; small: InstancedMesh[] } {
+export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = {}): { group: Group; stats: FacadeStats; small: InstancedMesh[]; lods: Map<InstancedMesh, InstanceLevel[]> } {
   const group = new Group();
   // the SMALL pieces' batches (the engine's culler drops their instances past the clutter distance)
   const small: InstancedMesh[] = [];
+  // (E283) the pieces' distance LODs (pieces.ts PIECE_LODS), for the culler
+  const lods = new Map<InstancedMesh, InstanceLevel[]>();
   group.name = 'facade';
   const mat = jiehuaMaterial(shared);
   const matSmall = jiehuaMaterial(shared, { shrink: opt.clutterFar ?? [55, 85] });
@@ -90,6 +93,8 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     const im = new InstancedMesh(g, SMALL.has(id) ? matSmall : mat, list.length);
     im.name = `facade-${id}`;
     if (SMALL.has(id)) small.push(im);
+    const lod = PIECE_LODS[id];
+    if (lod !== undefined) lods.set(im, [{ geometry: lod.far().build(), from: lod.from }]);
     list.forEach((p, i) => { im.setMatrixAt(i, p.m); im.setColorAt(i, p.c); });
     im.instanceMatrix.needsUpdate = true;
     if (im.instanceColor !== null) im.instanceColor.needsUpdate = true;
@@ -125,5 +130,5 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     stats.draws++;
     stats.tris += 2 * n;
   }
-  return { group, stats, small };
+  return { group, stats, small, lods };
 }

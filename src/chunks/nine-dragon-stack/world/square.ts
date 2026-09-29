@@ -38,7 +38,7 @@ const CARVE: Look = { wash: 0x767880, line: 1, wet: 0.35, surf: SURF.concrete };
  * (−PANEL_W/2 … PANEL_W/2), y up from the panel's foot. One geometry for all ~56 faces, where the per-panel dragon
  * reliefs cost ~190 vertices a panel in the square's kit.
  */
-function carvedPanel(): BufferGeometry {
+function carvedPanel(far = false): BufferGeometry {
   const k = new Kit(), x = new KitX();
   const hw = PANEL_W / 2, Z = new Vector3(0, 0, 1);
   // the raised frame: rails and stiles standing 4 cm proud
@@ -46,7 +46,9 @@ function carvedPanel(): BufferGeometry {
   k.box(0, PANEL_H - 0.09, 0.02, PANEL_W - 0.06, 0.06, 0.04, CARVE, { bottom: null });
   for (const sx of [-1, 1]) k.box(sx * (hw - 0.06), 0.09, 0.02, 0.06, PANEL_H - 0.18, 0.04, CARVE, { top: null, bottom: null });
   const mid = PANEL_H / 2;
+  // (E283, the thin-detail LOD) far off, the scrolls (2–5 cm strokes) are gone; the medallion stays
   const spiral = (cx: number, cy: number, r0: number, turns: number, dir: number, t0: number): void => {
+    if (far) return;
     const pts: Vector3[] = [];
     for (let i = 0; i <= 18; i++) {
       const t = i / 18, a = t0 + dir * t * turns * Math.PI * 2, r = r0 * (1 - 0.82 * t);
@@ -57,7 +59,7 @@ function carvedPanel(): BufferGeometry {
   // the two big ruyi scrolls, their tails running in along the panel's middle to the medallion
   for (const sx of [-1, 1]) {
     spiral(sx * (hw - 0.34), mid, 0.17, 1.15, sx, sx > 0 ? Math.PI : 0);
-    x.sweep([new Vector3(sx * (hw - 0.34), mid - 0.17, 0.025), new Vector3(sx * 0.45, mid - 0.1, 0.025), new Vector3(sx * 0.2, mid, 0.025)], () => 0.02, 4, CARVE, { flat: 0.5, up: Z.clone() });
+    if (!far) x.sweep([new Vector3(sx * (hw - 0.34), mid - 0.17, 0.025), new Vector3(sx * 0.45, mid - 0.1, 0.025), new Vector3(sx * 0.2, mid, 0.025)], () => 0.02, 4, CARVE, { flat: 0.5, up: Z.clone() });
     // small scrolls in the corners toward the middle
     spiral(sx * 0.42, mid + 0.14, 0.07, 0.9, -sx, -Math.PI / 2);
   }
@@ -66,6 +68,13 @@ function carvedPanel(): BufferGeometry {
   x.ellipsoid(new Vector3(0, mid, 0.05), new Vector3(1, 0, 0), new Vector3(0, 1, 0), Z, 0.05, 0.05, 0.03, CARVE, () => 1, 3, 8);
   return merge([k.build(), x.build()]);
 }
+
+/**
+ * (E283, Debug ▸ Performance "Distance LODs: thin detail", off by default) the balustrade's carved panel past PANEL_LOD m:
+ * its frame and medallion without the ruyi scrolls, strokes 2–5 cm wide, about half a pixel there on the phone frame
+ */
+export const PANEL_LOD = 50;
+export function carvedPanelFar(): BufferGeometry { return carvedPanel(true); }
 
 /**
  * The Well's balustrade: plinth, carved panels, posts with lotus caps, a top rail; the ground line is heavier.

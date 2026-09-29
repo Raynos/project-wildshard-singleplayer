@@ -37,7 +37,7 @@ function barRow(o: Builder, p0: Vector3, dir: Vector3, len: number, h: number, p
 /** a balcony: 3.6 m wide (the grammar scales it ±15 % to its bay), 1.1 m deep: slab + fascia, a real barred railing
  *  on three sides with a top rail and a mid rail */
 export const BALCONY_W = 3.6;
-function balcony(): Builder {
+function balcony(far = false): Builder {
   const o = new Builder();
   const W = BALCONY_W, hw = W / 2, D = 1.1;
   o.box(0, -0.18, D / 2, W, 0.18, D, { wash: PAL.slab, line: 1.6 }, { bottom: { wash: PAL.slabDark, line: 1 } });
@@ -49,6 +49,7 @@ function balcony(): Builder {
   o.beam(new Vector3(hw - 0.03, 1.0, 0), new Vector3(hw - 0.03, 1.0, D - 0.04), 0.05, 0.05, rl);
   o.flatBar(new Vector3(-hw + 0.03, 0.14, D - 0.04), new Vector3(hw - 0.03, 0.14, D - 0.04), 0.04, Y, rl);
   for (const x of [-hw + 0.03, hw - 0.03]) o.beam(new Vector3(x, 0, D - 0.04), new Vector3(x, 1.02, D - 0.04), 0.05, 0.05, rl);
+  if (far) return o;
   barRow(o, new Vector3(-hw + 0.03, 0.14, D - 0.04), X, W - 0.06, 0.86, 0.16, rl);
   barRow(o, new Vector3(-hw + 0.03, 0.14, 0), Z, D - 0.04, 0.86, 0.16, rl);
   barRow(o, new Vector3(hw - 0.03, 0.14, 0), Z, D - 0.04, 0.86, 0.16, rl);
@@ -56,7 +57,7 @@ function balcony(): Builder {
 }
 
 /** a timber veranda balcony (the Well's galleries in miniature): a lacquered top rail, turned balusters, a skirt */
-function balconyTimber(): Builder {
+function balconyTimber(far = false): Builder {
   const o = new Builder();
   const W = BALCONY_W, hw = W / 2, D = 1.2;
   const tb: Look = { wash: PAL.timber, line: 0.8 };
@@ -67,6 +68,7 @@ function balconyTimber(): Builder {
   o.box(hw - 0.04, 0.98, D / 2, 0.1, 0.08, D, tb);
   o.box(0, 0.08, D - 0.05, W, 0.06, 0.08, tb);
   for (const x of [-hw + 0.04, hw - 0.04]) o.box(x, 0, D - 0.05, 0.1, 1.06, 0.1, tb);
+  if (far) return o;
   barRow(o, new Vector3(-hw, 0.14, D - 0.05), X, W, 0.84, 0.18, tb, 0.05);
   barRow(o, new Vector3(-hw + 0.04, 0.14, 0), Z, D - 0.05, 0.84, 0.18, tb, 0.05);
   barRow(o, new Vector3(hw - 0.04, 0.14, 0), Z, D - 0.05, 0.84, 0.18, tb, 0.05);
@@ -91,21 +93,23 @@ function balconySolid(): Builder {
 export const CAGE_W = [1.5, 2.7] as const;
 /** the one cage piece's width (both grammar sizes scale it: E281, a draw fewer) */
 export const CAGE_W0 = 2.0;
-function cageOf(W: number): () => Builder {
-  return () => {
+function cageOf(W: number): (far?: boolean) => Builder {
+  return (far = false) => {
     const o = new Builder();
     const hw = W / 2, D = 0.5, H = 1.75;
     const m: Look = { wash: PAL.metal, line: 0.7 };
     o.box(0, 0, D / 2, W, 0.06, D + 0.02, { wash: PAL.metal, line: 1 });
     o.box(0, H - 0.05, D / 2 + 0.01, W + 0.04, 0.05, D + 0.06, { wash: PAL.metal, line: 1 });
     for (const x of [-hw, hw]) o.beam(new Vector3(x, 0.06, D), new Vector3(x, H - 0.05, D), 0.035, 0.035, m);
-    barRow(o, new Vector3(-hw, 0.06, D), X, W, H - 0.11, 0.12, m, 0.018);
-    barRow(o, new Vector3(-hw, 0.06, 0), Z, D, H - 0.11, 0.12, m, 0.018);
-    barRow(o, new Vector3(hw, 0.06, 0), Z, D, H - 0.11, 0.12, m, 0.018);
-    for (const y of [0.45, 0.9, 1.35]) {
-      o.flatBar(new Vector3(-hw, y, D), new Vector3(hw, y, D), 0.02, Y, m);
-      o.flatBar(new Vector3(-hw, y, 0), new Vector3(-hw, y, D), 0.02, Y, m);
-      o.flatBar(new Vector3(hw, y, 0), new Vector3(hw, y, D), 0.02, Y, m);
+    if (!far) {
+      barRow(o, new Vector3(-hw, 0.06, D), X, W, H - 0.11, 0.12, m, 0.018);
+      barRow(o, new Vector3(-hw, 0.06, 0), Z, D, H - 0.11, 0.12, m, 0.018);
+      barRow(o, new Vector3(hw, 0.06, 0), Z, D, H - 0.11, 0.12, m, 0.018);
+      for (const y of [0.45, 0.9, 1.35]) {
+        o.flatBar(new Vector3(-hw, y, D), new Vector3(hw, y, D), 0.02, Y, m);
+        o.flatBar(new Vector3(-hw, y, 0), new Vector3(-hw, y, D), 0.02, Y, m);
+        o.flatBar(new Vector3(hw, y, 0), new Vector3(hw, y, D), 0.02, Y, m);
+      }
     }
     o.box(-hw * 0.45, 0.06, 0.26, 0.3, 0.26, 0.3, { wash: 0x8a6a3a, line: 0.8 }, { bottom: null });
     return o;
@@ -113,11 +117,12 @@ function cageOf(W: number): () => Builder {
 }
 
 /** a split AC condenser on two brackets: 0.86 × 0.56 × 0.32 */
-function acUnit(): Builder {
+function acUnit(far = false): Builder {
   const o = new Builder();
   const body: Look = { wash: PAL.ac, line: 1 };
   o.boxAxes(new Vector3(0, 0.28, 0.2), X, Y, Z, 0.43, 0.28, 0.16, body, { sides: 1 | 2 | 8 });
   o.quad(new Vector3(-0.43, 0, 0.36), X, Y, 0.86, 0.56, { wash: PAL.ac, kind: K.ac, line: 1 });
+  if (far) return o;
   for (const x of [-0.3, 0.3]) {
     o.beam(new Vector3(x, -0.02, 0), new Vector3(x, -0.02, 0.4), 0.04, 0.04, { wash: PAL.metal, line: 0.6 });
     o.beam(new Vector3(x, -0.3, 0), new Vector3(x, -0.02, 0.36), 0.03, 0.03, { wash: PAL.metal, line: 0.5 });
@@ -256,13 +261,14 @@ function signFlat(): Builder {
 }
 
 /** a red paper lantern (emissive) with gold caps and a tassel, hung from y = 0 */
-function lantern(): Builder {
+function lantern(far = false): Builder {
   const o = new Builder();
   const red: Look = { wash: 0xff4a32, emit: 1.5, line: 0.6 };
   o.cyl(0, -0.62, 0, 0.2, 0.26, 0.2, 8, red, { caps: false, edges: E.none });
   o.cyl(0, -0.42, 0, 0.26, 0.2, 0.2, 8, red, { caps: false, edges: E.none });
   o.cyl(0, -0.68, 0, 0.12, 0.12, 0.06, 6, { wash: 0xc9a24a, line: 0.6 });
   o.cyl(0, -0.22, 0, 0.12, 0.12, 0.06, 6, { wash: 0xc9a24a, line: 0.6 });
+  if (far) return o;
   o.beam(new Vector3(0, -0.16, 0), new Vector3(0, 0, 0), 0.015, 0.015, { wash: PAL.ink, line: 0.4 });
   o.beam(new Vector3(0, -0.9, 0), new Vector3(0, -0.68, 0), 0.03, 0.03, { wash: PAL.cinnabar, line: 0.4 });
   return o;
@@ -332,11 +338,12 @@ function box(): Builder {
 
 /** a timber lattice railing, 1 m of it (the galleries lay one per metre so the lattice keeps its pitch): top and
  *  bottom rails, a square lattice of real flat bars; white, the instance colour is the timber (or the iron) */
-function rail(): Builder {
+function rail(far = false): Builder {
   const o = new Builder();
   const tb: Look = { wash: 0xffffff, line: 0.8 };
   o.box(0, 0.94, 0, 1.0, 0.08, 0.1, tb, { sides: 1 | 2 | 4 | 8 });
   o.box(0, 0.06, 0, 1.0, 0.07, 0.08, tb, { sides: 1 | 2 | 4 | 8, bottom: null });
+  if (far) return o;
   const n = Z;
   for (const x of [-0.5, -0.25, 0, 0.25]) o.flatBar(new Vector3(x + 0.125, 0.13, 0), new Vector3(x + 0.125, 0.94, 0), 0.028, n, tb);
   for (const y of [0.38, 0.66]) o.flatBar(new Vector3(-0.5, y, 0), new Vector3(0.5, y, 0), 0.028, Y, tb);
@@ -419,3 +426,18 @@ export const PIECES = {
 } as const satisfies Record<string, () => Builder>;
 
 export type PieceId = keyof typeof PIECES;
+
+/**
+ * (E283, Debug ▸ Performance "Distance LODs: thin detail", off by default) the pieces with parts thinner than a pixel from
+ * a distance: past `from` m the batch draws the piece without them (the cage's and railings' flat bars, the ACs'
+ * brackets, the lanterns' cords) — `from` is where the dropped part is ~half a pixel wide on the phone frame (1 px ≈ 1 mm
+ * a metre off), so it was a broken dotted line there already
+ */
+export const PIECE_LODS: Partial<Record<PieceId, { far: () => Builder; from: number }>> = {
+  cage: { far: () => cageOf(CAGE_W0)(true), from: 40 }, // bars 1.8 cm, cross bars 2 cm
+  balcony: { far: () => balcony(true), from: 50 }, // bars 2.4 cm
+  rail: { far: () => rail(true), from: 55 }, // lattice 2.8 cm
+  lantern: { far: () => lantern(true), from: 60 }, // cord 1.5 cm, tassel 3 cm
+  acUnit: { far: () => acUnit(true), from: 70 }, // brackets 3–4 cm
+  balconyTimber: { far: () => balconyTimber(true), from: 100 }, // balusters 5 cm
+};

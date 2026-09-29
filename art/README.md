@@ -58,6 +58,7 @@ when the images were generated.
 | | `round-21-b2-bridge-camera` (09-26) | [B2 camera correction](nine-dragon-stack/round-21-b2-bridge-camera/README.md): the old eye clipped a cinnabar railing; the bridge-center eye reveals the canyon |
 | | `round-21-grapple-parity` (09-26) | [Portrait hook sculpt and live grapple motion check](nine-dragon-stack/round-21-grapple-parity/README.md): LOCK/fire/zip and safe miss/reel/dock; awaiting physical iPhone review |
 | | `round-22-portrait-grapple-final` (09-26) | [Current 15 s portrait trailer review cut](nine-dragon-stack/round-22-portrait-grapple-final/README.md) with recaptured Fei Zhua crossing and three-talon flying claw |
+| | `round-25-phone-perf` (09-29) | E283 the phone's GPU frame, before / after stills of the Debug ▸ Performance rows at the four mockup cameras with 100 % crops: `vm-lite.jpg` (the lighter viewmodel: Jake's pick, now permanent), `lod-meshes.jpg` (distance LODs: coarser meshes — hooks, lions, crowd, far lanterns), `lod-detail.jpg` (distance LODs: thin detail — the facade's bars, brackets and cords, the balustrade's scrolls) |
 | | `round-26-grapple-ux` (09-29) | E286 the Fei Zhua on the baseline touch HUD: `board.jpg` (before: LOCK dim, no hook in reach at the spawn or the rim; after: LOCK lit at rest → GRAPPLE with ◇ markers → LOCKED + ZIP → the landing, at the spawn, the rim across the Well and the rim → square mast hook) |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.

@@ -9,7 +9,12 @@
 //    the figures inside the view frustum, the near ones (< LOD_NEAR m) at full detail, the far ones as a ~300-tri
 //    vertex-clustered copy, none past LOD_FAR (the silk fog has swallowed them). The same draw calls as before (a level
 //    with no figure in view is hidden, so it costs no call), the triangles of what is actually seen.
+// 3. (E283, Debug ▸ Performance "Distance LODs: coarser meshes", off by default) two middle levels inside LOD_NEAR:
+//    meshoptimizer copies of each figure whose surface stays within MID_PX of a pixel of the full one where they start
+//    (world/lod.ts). A figure 20 m off is ~100 px tall and its ~1.4 k triangles are ~1 px² each: every one costs a 2 × 2
+//    quad of the architecture program.
 import { type BufferGeometry, Color, Float32BufferAttribute, Frustum, InstancedMesh, type Material, Matrix4, type PerspectiveCamera, Sphere, Uint32BufferAttribute, Vector3 } from 'three';
+import { PX_PER_M, simplifiedCopy } from './lod';
 
 export function tintUmbrella(src: BufferGeometry, color: number, above = 1.8): BufferGeometry {
   const g = src.clone();
@@ -123,8 +128,11 @@ const spot = (m: Matrix4): number => {
 export const LOD_NEAR = 35, LOD_FAR = 130;
 /** the far copy's triangle cap */
 export const LOD_TRIS = 320;
+/** (E283) the middle levels' starts (m) and their error there (px on the phone frame) */
+export const MID_FROM = [12, 22] as const;
+const MID_PX = 0.8;
 
-interface Variant { hi: InstancedMesh; lo: InstancedMesh; mats: Matrix4[]; at: Vector3[] }
+interface Variant { hi: InstancedMesh; lo: InstancedMesh; mids: InstancedMesh[]; mats: Matrix4[]; at: Vector3[] }
 
 export class Crowd {
   private readonly built: InstancedMesh[] = [];
@@ -137,8 +145,18 @@ export class Crowd {
   private readonly sphere = new Sphere(new Vector3(), 1.3);
   private readonly eye = new Vector3();
   private dirty = true;
+  /** (E283) the middle levels drawn */
+  private mid = false;
 
-  constructor(private readonly mat: Material) {}
+  /** `simplify`: meshoptimizer is ready (world/lod.ts lodReady): the middle levels are built */
+  constructor(private readonly mat: Material, private readonly simplify = false) {}
+
+  /** (E283) switch the middle levels (the next update re-picks) */
+  setLod(on: boolean): void {
+    if (on === this.mid) return;
+    this.mid = on;
+    this.dirty = true;
+  }
 
   /** the crowd's meshes (reading them builds the crowd: add every variant first) */
   get meshes(): readonly InstancedMesh[] {
@@ -189,7 +207,8 @@ export class Crowd {
       this.built.push(im);
       return im;
     };
-    this.variants.push({ hi: mk(geo, 'crowd'), lo: mk(lo, 'crowd'), mats: [...mats], at: mats.map((m) => new Vector3().setFromMatrixPosition(m)) });
+    const mids = this.simplify ? MID_FROM.map((d) => mk(simplifiedCopy(geo, d * PX_PER_M * MID_PX), 'crowd')) : [];
+    this.variants.push({ hi: mk(geo, 'crowd'), lo: mk(lo, 'crowd'), mids, mats: [...mats], at: mats.map((m) => new Vector3().setFromMatrixPosition(m)) });
     this.dirty = true;
   }
 
@@ -204,8 +223,11 @@ export class Crowd {
     this.frustum.setFromProjectionMatrix(this.pv);
     this.eye.setFromMatrixPosition(camera.matrixWorld);
     const near2 = LOD_NEAR * LOD_NEAR, far2 = LOD_FAR * LOD_FAR;
+    const mid2 = MID_FROM.map((d) => d * d);
     for (const v of this.variants) {
       let nh = 0, nl = 0;
+      const nm = v.mids.map(() => 0);
+      const mid = this.mid && v.mids.length === MID_FROM.length;
       for (let i = 0; i < v.at.length; i++) {
         const p = v.at[i], m = v.mats[i];
         if (p === undefined || m === undefined) continue;
@@ -213,10 +235,17 @@ export class Crowd {
         if (d2 > far2) continue;
         this.sphere.center.set(p.x, p.y + 1.0, p.z);
         if (!this.frustum.intersectsSphere(this.sphere)) continue;
-        if (d2 < near2) v.hi.setMatrixAt(nh++, m);
-        else v.lo.setMatrixAt(nl++, m);
+        if (d2 >= near2) { v.lo.setMatrixAt(nl++, m); continue; }
+        let l = mid ? mid2.length - 1 : -1;
+        while (l >= 0 && d2 < (mid2[l] ?? 0)) l--;
+        const im = l < 0 ? v.hi : v.mids[l];
+        if (im === undefined) continue;
+        if (l < 0) { im.setMatrixAt(nh++, m); continue; }
+        const j = nm[l] ?? 0;
+        im.setMatrixAt(j, m);
+        nm[l] = j + 1;
       }
-      for (const [im, n] of [[v.hi, nh], [v.lo, nl]] as const) {
+      for (const [im, n] of [[v.hi, nh], [v.lo, nl], ...v.mids.map((x, j) => [x, nm[j] ?? 0] as const)] as const) {
         im.count = n;
         im.visible = n > 0;
         if (n > 0) im.instanceMatrix.needsUpdate = true;

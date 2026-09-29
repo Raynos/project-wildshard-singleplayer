@@ -21,7 +21,11 @@
 // copied in consecutive runs, one block copy each; and only what changed since the batch's last cull is copied and
 // uploaded (the kept instances it shares with the last cull, from the front, are already in place; an unchanged batch
 // costs nothing). The packing is exactly the per-instance one's: pixel-identical.
-import { Box3, type BufferAttribute, Frustum, type InstancedBufferAttribute, type InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
+//
+// (E283, Debug ▸ Performance, the distance LODs) a batch can carry coarser copies of its piece, each from a distance
+// (`add(mesh, far, lods, group)`): while its group is on, an instance in view is packed into the copy for its distance
+// from the eye instead of the batch (one draw more per copy in use). The copies share the batch's material and masters.
+import { Box3, type BufferAttribute, type BufferGeometry, Frustum, InstancedBufferAttribute, InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 /** extra field of view per side (degrees) */
 const MARGIN = 7;
@@ -36,9 +40,20 @@ const MOVE = 1;
 
 interface Packed { attr: InstancedBufferAttribute; master: Float32Array; size: number }
 
+/** a distance LOD: a coarser copy of the batch's piece, drawn for the instances `from` m or more from the eye */
+export interface InstanceLevel { geometry: BufferGeometry; from: number }
+
+/** one draw the batch packs into: the batch itself (level 0) or a coarser copy; its instanced attributes parallel the
+ *  batch's masters; the instances its last pack held (master indices, in packing order) and how many (-1 = never) */
+interface Out { mesh: InstancedMesh; from: number; attrs: InstancedBufferAttribute[]; idx: Int32Array; k: number }
+
 interface Entry {
   mesh: InstancedMesh;
   n: number;
+  /** the batch (level 0) and its coarser copies, nearest first */
+  outs: Out[];
+  /** the LOD group its copies follow (InstanceCuller.setLod) */
+  group: string;
   /** world-space bounding spheres of the instances: x, y, z, r */
   spheres: Float32Array;
   /** one sphere round each GROUP consecutive instances' spheres: x, y, z, r */
@@ -47,9 +62,6 @@ interface Entry {
   colors: Float32Array | null;
   attrs: Packed[];
   far: number;
-  /** the instances the last cull kept (master indices, in packing order) and how many; -1 = never packed */
-  idx: Int32Array;
-  k: number;
 }
 
 /** a mesh drawn only within `far` m of the camera (from its bounding box) */
@@ -74,13 +86,31 @@ export class InstanceCuller {
   private lastAspect = 0;
   /** the frustum's six planes as (nx, ny, nz, constant) */
   private readonly pc = new Float64Array(24);
-  /** this cull's kept indices for the batch being packed (grown to the largest batch) */
-  private scratch = new Int32Array(0);
+  /** this cull's kept indices per level for the batch being packed (grown to the largest batch) */
+  private scratch: Int32Array[] = [new Int32Array(0)];
+  /** the LOD groups switched on (setLod) */
+  private readonly lodOn = new Set<string>();
   /** the last cull: instances in the batches, instances kept, triangles kept */
   readonly stats = { instances: 0, kept: 0, tris: 0, culls: 0 };
 
-  /** take over a batch: `far` (m) drops instances whose sphere lies wholly beyond it from the camera */
-  add(mesh: InstancedMesh, far = Number.POSITIVE_INFINITY): void {
+  /** switch a LOD group's copies on / off (the next cull re-packs) */
+  setLod(group: string, on: boolean): void {
+    if (on === this.lodOn.has(group)) return;
+    if (on) this.lodOn.add(group); else this.lodOn.delete(group);
+    this.lastPos.set(Number.POSITIVE_INFINITY, 0, 0);
+  }
+
+  /** each coarser copy and its batch (add the copy to the batch's parent: the instances are in its space) */
+  get lodPairs(): [InstancedMesh, InstancedMesh][] { return this.list.flatMap((e) => e.outs.slice(1).map((o): [InstancedMesh, InstancedMesh] => [e.mesh, o.mesh])); }
+
+  /** is this batch taken over? */
+  has(mesh: InstancedMesh): boolean { return this.list.some((e) => e.mesh === mesh); }
+
+  /**
+   * take over a batch: `far` (m) drops instances whose sphere lies wholly beyond it from the camera; `lods` are coarser
+   * copies of its piece by distance (their meshes: `lodMeshes`), switched with `setLod(group)`
+   */
+  add(mesh: InstancedMesh, far = Number.POSITIVE_INFINITY, lods: readonly InstanceLevel[] = [], group = ''): void {
     const n = mesh.count;
     if (n === 0) return;
     const g = mesh.geometry;
@@ -114,8 +144,28 @@ export class InstanceCuller {
       for (let i = g0; i < g1; i++) r = Math.max(r, Math.hypot((spheres[i * 4] ?? 0) - x, (spheres[i * 4 + 1] ?? 0) - y, (spheres[i * 4 + 2] ?? 0) - z) + (spheres[i * 4 + 3] ?? 0));
       groups.set([x, y, z, r], (g0 / GROUP) * 4);
     }
-    this.list.push({ mesh, n, spheres, groups, matrices, colors, attrs, far, idx: new Int32Array(n), k: -1 });
-    if (this.scratch.length < n) this.scratch = new Int32Array(n);
+    const outs: Out[] = [{ mesh, from: 0, attrs: attrs.map((a) => a.attr), idx: new Int32Array(n), k: -1 }];
+    const names = attrs.map((a) => Object.entries(g.attributes).find(([, v]) => v === a.attr)?.[0] ?? '');
+    for (const [li, l] of [...lods].sort((a, b) => a.from - b.from).entries()) {
+      // the copy: the level's geometry with instanced attributes of its own (the batch's layout), the batch's material
+      const la = attrs.map((a, ai) => {
+        const at = new InstancedBufferAttribute(new Float32Array(a.master.length), a.size);
+        l.geometry.setAttribute(names[ai] ?? '', at);
+        return at;
+      });
+      const lm = new InstancedMesh(l.geometry, mesh.material, n);
+      lm.name = `${mesh.name}:lod${li + 1}`;
+      lm.renderOrder = mesh.renderOrder;
+      lm.frustumCulled = mesh.frustumCulled;
+      if (colors !== null) lm.instanceColor = new InstancedBufferAttribute(new Float32Array(colors.length), 3);
+      lm.boundingSphere = mesh.boundingSphere?.clone() ?? null;
+      lm.count = 0;
+      lm.visible = false;
+      outs.push({ mesh: lm, from: l.from, attrs: la, idx: new Int32Array(n), k: -1 });
+    }
+    this.list.push({ mesh, n, outs, group, spheres, groups, matrices, colors, attrs, far });
+    while (this.scratch.length < outs.length) this.scratch.push(new Int32Array(0));
+    for (let i = 0; i < outs.length; i++) if ((this.scratch[i]?.length ?? 0) < n) this.scratch[i] = new Int32Array(n);
   }
 
   /** draw a whole mesh (a dome's kit) only while the camera is within `far` m of its bounding box */
@@ -154,10 +204,10 @@ export class InstanceCuller {
     const P = this.pc;
     this.frustum.planes.forEach((pl, j) => { P[j * 4] = pl.normal.x; P[j * 4 + 1] = pl.normal.y; P[j * 4 + 2] = pl.normal.z; P[j * 4 + 3] = pl.constant; });
     const cx = this.pos.x, cy = this.pos.y, cz = this.pos.z;
-    const keep = this.scratch;
+    const keep = this.scratch[0] ?? new Int32Array(0);
     let instances = 0, kept = 0, tris = 0;
     for (const e of this.list) {
-      const { mesh, spheres, groups, matrices, colors, attrs, far } = e;
+      const { spheres, groups, far } = e;
       const hasFar = far !== Number.POSITIVE_INFINITY;
       let k = 0;
       for (let g0 = 0; g0 < e.n; g0 += GROUP) {
@@ -193,28 +243,25 @@ export class InstanceCuller {
       }
       instances += e.n;
       kept += k;
-      // the same instances as the batch's last cull up to `same`: the buffer's front already holds them there (all of them:
-      // nothing to copy or upload)
-      let same = 0;
-      const lim = Math.min(k, e.k);
-      while (same < lim && keep[same] === e.idx[same]) same++;
-      if (same === k && k === e.k) { tris += triangles(mesh, k); continue; }
-      const dst = mesh.instanceMatrix.array;
-      const cdst = mesh.instanceColor?.array ?? null;
-      // (always from the master: the buffer's front holds the last cull's packing) in runs of consecutive instances — the
-      // kept ones mostly come in long runs (a street's worth of one facade piece), each run one block copy
-      for (let j = same; j < k;) {
-        const i = keep[j] ?? 0;
-        let len = 1;
-        while (j + len < k && keep[j + len] === i + len) len++;
-        dst.set(matrices.subarray(i * 16, (i + len) * 16), j * 16);
-        if (colors !== null && cdst !== null) cdst.set(colors.subarray(i * 3, (i + len) * 3), j * 3);
-        for (const a of attrs) a.attr.array.set(a.master.subarray(i * a.size, (i + len) * a.size), j * a.size);
-        j += len;
+      if (e.outs.length === 1 || !this.lodOn.has(e.group)) {
+        tris += packOut(e, 0, keep, k);
+        for (let l = 1; l < e.outs.length; l++) tris += packOut(e, l, keep, 0);
+        continue;
       }
-      e.idx.set(keep.subarray(same, k), same);
-      e.k = k;
-      tris += pack(mesh, k, same, attrs);
+      // (the distance LODs) deal the kept instances out by their distance from the eye, keeping their order
+      const counts: number[] = e.outs.map(() => 0);
+      for (let j = 0; j < k; j++) {
+        const i = keep[j] ?? 0;
+        const dx = (spheres[i * 4] ?? 0) - cx, dy = (spheres[i * 4 + 1] ?? 0) - cy, dz = (spheres[i * 4 + 2] ?? 0) - cz;
+        const d2 = dx * dx + dy * dy + dz * dz;
+        let l = e.outs.length - 1;
+        while (l > 0 && d2 < (e.outs[l]?.from ?? 0) ** 2) l--;
+        const list = this.scratch[l];
+        if (list === undefined) continue;
+        list[counts[l] ?? 0] = i;
+        counts[l] = (counts[l] ?? 0) + 1;
+      }
+      for (let l = 0; l < e.outs.length; l++) tris += packOut(e, l, this.scratch[l] ?? keep, counts[l] ?? 0);
     }
     for (const f of this.fars) f.mesh.visible = f.box.distanceToPoint(this.pos) <= f.far;
     this.stats.instances = instances;
@@ -230,13 +277,37 @@ function triangles(mesh: InstancedMesh, k: number): number {
   return (k * (g.index !== null ? g.index.count : g.getAttribute('position').count)) / 3;
 }
 
-/** a batch's packed count: set it, upload what changed of the front (instances p … k), hide it when empty; its triangles */
-function pack(mesh: InstancedMesh, k: number, p: number, attrs: readonly Packed[]): number {
+/**
+ * pack the first k of `keep` (master indices) into the batch's draw `l`: the instances it shares with its last pack, from
+ * the front, are already in place; the rest is copied from the masters in runs of consecutive instances (one block copy
+ * each: a street's worth of one facade piece) and only that is uploaded; its count set, hidden when empty. Its triangles
+ */
+function packOut(e: Entry, l: number, keep: Int32Array, k: number): number {
+  const out = e.outs[l];
+  if (out === undefined) return 0;
+  const mesh = out.mesh;
+  let same = 0;
+  const lim = Math.min(k, out.k);
+  while (same < lim && keep[same] === out.idx[same]) same++;
+  if (same === k && k === out.k) return triangles(mesh, k);
+  const dst = mesh.instanceMatrix.array;
+  const cdst = mesh.instanceColor?.array ?? null;
+  for (let j = same; j < k;) {
+    const i = keep[j] ?? 0;
+    let len = 1;
+    while (j + len < k && keep[j + len] === i + len) len++;
+    dst.set(e.matrices.subarray(i * 16, (i + len) * 16), j * 16);
+    if (e.colors !== null && cdst !== null) cdst.set(e.colors.subarray(i * 3, (i + len) * 3), j * 3);
+    e.attrs.forEach((a, ai) => { out.attrs[ai]?.array.set(a.master.subarray(i * a.size, (i + len) * a.size), j * a.size); });
+    j += len;
+  }
+  out.idx.set(keep.subarray(same, k), same);
+  out.k = k;
   mesh.count = k;
   mesh.visible = k > 0;
-  upload(mesh.instanceMatrix, p * 16, (k - p) * 16);
-  if (mesh.instanceColor !== null) upload(mesh.instanceColor, p * 3, (k - p) * 3);
-  for (const a of attrs) upload(a.attr, p * a.size, (k - p) * a.size);
+  upload(mesh.instanceMatrix, same * 16, (k - same) * 16);
+  if (mesh.instanceColor !== null) upload(mesh.instanceColor, same * 3, (k - same) * 3);
+  e.attrs.forEach((a, ai) => { const at = out.attrs[ai]; if (at !== undefined) upload(at, same * a.size, (k - same) * a.size); });
   return triangles(mesh, k);
 }
 

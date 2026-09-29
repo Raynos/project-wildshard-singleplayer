@@ -183,6 +183,8 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   opt('nineLanterns', 'perf', 'Paper lantern geometry', ON_OFF, { reload: true, when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E265 · isolate lantern geometry and shaders; baked light remains' }),
+  opt('ndLodMeshes', 'perf', 'Distance LODs: coarser meshes', [['off', 'Off'], ['on', 'On']], { when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E283 · the dragon hooks, the stone lions, the crowd and the far lanterns drawn from coarser copies where they differ by under a pixel' }),
+  opt('ndLodDetail', 'perf', 'Distance LODs: thin detail', [['off', 'Off'], ['on', 'On']], { when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E283 · the facade cages\' and railings\' bars, AC brackets, lantern cords and the balustrade\'s scrolls dropped where they are ~½ px wide' }),
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),
   opt('loadProfile', 'perf', 'Load profiling', [['off', 'Off'], ['on', 'On']], { reload: true, note: 'load-perf · logs every shader program the load builds (window.__perfload)' }),
 

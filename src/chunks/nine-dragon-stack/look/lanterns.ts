@@ -72,6 +72,12 @@ export function lanternString(a: Vector3, b: Vector3, spacing: number, sag: numb
 
 /** the near / far switch (m) */
 export const LOD_NEAR = 35;
+/**
+ * (E283, Debug ▸ Performance "Distance LODs: coarser meshes", off by default) past LOD_DOT m a third draw: the body as a
+ * 2 × 6 lathe (24 tris, half the far one's). Its outline is within ~5 cm of the far one's, ~⅔ px there on the phone frame
+ */
+export const LOD_DOT = 80;
+let dotOn = false;
 /** a lantern's bounding radius at scale 1 (body + tassel, around its centre) */
 const BOUND = 0.5;
 
@@ -81,6 +87,11 @@ const live: Lanterns[] = [];
 export function updateLanterns(camera: Camera): void { for (const l of live) l.update(camera); }
 /** forget the built sets (the render strategy's dispose) */
 export function clearLanterns(): void { live.length = 0; }
+/** (E283) switch the lanterns' third level (LOD_DOT; the next update re-buckets) */
+export function setLanternLod(on: boolean): void {
+  dotOn = on;
+  for (const l of live) l.dirty();
+}
 
 const VS_LANTERN = /* glsl */ `
 attribute float aPart;
@@ -181,6 +192,7 @@ export class Lanterns {
 
   private near: InstancedMesh | null = null;
   private far: InstancedMesh | null = null;
+  private dot: InstancedMesh | null = null;
   private readonly frustum = new Frustum();
   private readonly pv = new Matrix4();
   private readonly last = new Matrix4();
@@ -200,30 +212,37 @@ export class Lanterns {
     this.near = mk(lanternGeometry(6, 8, true), 'lanterns-near');
     this.far = mk(lanternGeometry(4, 6, false), 'lanterns-far');
     this.far.count = 0;
+    this.dot = mk(lanternGeometry(2, 6, false), 'lanterns-dot');
+    this.dot.count = 0;
+    this.dot.visible = false;
     // the buckets are the visible sets: the draws are never culled as a whole
     this.near.frustumCulled = false;
     this.far.frustumCulled = false;
+    this.dot.frustumCulled = false;
     const g = new Group();
-    g.add(this.near, this.far);
+    g.add(this.near, this.far, this.dot);
     live.push(this);
     return g;
   }
 
-  /** bucket the lanterns in view into the near and far draws (skipped while the camera has not moved) */
+  /** re-bucket at the next update */
+  dirty(): void { this.last.elements[0] = Number.NaN; }
+
+  /** bucket the lanterns in view into the near, far (and dot) draws (skipped while the camera has not moved) */
   update(camera: Camera): void {
-    const near = this.near, far = this.far;
-    if (near === null || far === null) return;
+    const near = this.near, far = this.far, dot = this.dot;
+    if (near === null || far === null || dot === null) return;
     camera.updateMatrixWorld();
     if (this.last.equals(camera.matrixWorld)) return;
     this.last.copy(camera.matrixWorld);
     this.pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.pv);
     const cw = camera.matrixWorld.elements, cx = cw[12], cy = cw[13], cz = cw[14];
-    const nm = near.instanceMatrix.array, fm = far.instanceMatrix.array;
-    const ns = near.geometry.getAttribute('aSeed'), fs = far.geometry.getAttribute('aSeed');
-    const nsa = ns.array, fsa = fs.array;
-    let a = 0, b = 0;
-    const r2 = LOD_NEAR * LOD_NEAR;
+    const nm = near.instanceMatrix.array, fm = far.instanceMatrix.array, dm = dot.instanceMatrix.array;
+    const ns = near.geometry.getAttribute('aSeed'), fs = far.geometry.getAttribute('aSeed'), ds = dot.geometry.getAttribute('aSeed');
+    const nsa = ns.array, fsa = fs.array, dsa = ds.array;
+    let a = 0, b = 0, c = 0;
+    const r2 = LOD_NEAR * LOD_NEAR, d2Dot = dotOn ? LOD_DOT * LOD_DOT : Number.POSITIVE_INFINITY;
     for (let i = 0; i < this.mats.length; i++) {
       const m = this.mats[i];
       if (m === undefined) continue;
@@ -233,13 +252,17 @@ export class Lanterns {
       this.sphere.radius = BOUND * s;
       if (!this.frustum.intersectsSphere(this.sphere)) continue;
       const d2 = (x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2;
-      if (d2 < r2) { m.toArray(nm, a * 16); nsa[a] = this.seeds[i] ?? 0; a++; } else { m.toArray(fm, b * 16); fsa[b] = this.seeds[i] ?? 0; b++; }
+      if (d2 < r2) { m.toArray(nm, a * 16); nsa[a] = this.seeds[i] ?? 0; a++; } else if (d2 < d2Dot) { m.toArray(fm, b * 16); fsa[b] = this.seeds[i] ?? 0; b++; } else { m.toArray(dm, c * 16); dsa[c] = this.seeds[i] ?? 0; c++; }
     }
     near.count = a;
     far.count = b;
+    dot.count = c;
+    dot.visible = c > 0;
     near.instanceMatrix.needsUpdate = true;
     far.instanceMatrix.needsUpdate = true;
+    dot.instanceMatrix.needsUpdate = true;
     ns.needsUpdate = true;
     fs.needsUpdate = true;
+    ds.needsUpdate = true;
   }
 }
