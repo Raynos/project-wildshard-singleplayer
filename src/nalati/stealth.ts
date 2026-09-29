@@ -3,6 +3,7 @@ import type { Wildlife } from '../entities/Wildlife';
 import type { TargetHit } from '../player/Crossbow';
 import type { NalatiKit } from '../player/nalatiKit';
 import { grassHeightAt } from '../world/GrassTrample';
+import { grassBaseHeightAt } from '../world/GrassField';
 import '../ui/styles/stealth.css';
 import { ROW, hudSlots } from '../ui/hudSlots';
 
@@ -16,8 +17,10 @@ import { ROW, hudSlots } from '../ui/hudSlots';
  *   stealth.noteShot();          // every loose / throw / swing (main's weapons.onFire → nalati.onShot)
  *   stealth.update(dt, t);       // every frame (reads the creatures' awareness → the eye pip)
  *
- * CROUCH (decision D): crouching exists only in LONG GRASS — `grassHeightAt(player) ≥ LONG_GRASS` (0.7 m, trampling
- * included), with hysteresis: in after 0.3 s, out after 1.0 s. Touch: a CROUCH disc fades in in the base HUD's slot over
+ * CROUCH (decision D): crouching exists only in LONG GRASS — `grassBaseHeightAt(player) ≥ LONG_GRASS` (0.7 m) — and where
+ * `crouchHere()` says a quest needs it (the taming approach: the stallion grazes the knee-high meadow, E287), with
+ * hysteresis: in after 0.3 s, out after 1.0 s. The grass at your own feet is read as it stands, not trampled: every step
+ * you take flattens it to 15 % for ~20 s, so the trampled height hid the disc from anyone who walked in (E287). Touch: a CROUCH disc fades in in the base HUD's slot over
  * JUMP (hudSlots `up0`; the first time per session with a pulse ring + a TALL GRASS chip) and is a TOGGLE. Desktop: C toggles, Ctrl holds —
  * both gated to long grass like the disc. Jumping (stand + jump in one), sprinting, leaving the grass, the hoverboard,
  * swimming and mounting all stand you up. Driven through `player.keys` ('KeyC' = crouched: Player's own crouch — eye
@@ -42,6 +45,8 @@ export interface StealthOpts {
   wildlife: () => Wildlife | null;
   /** riding (B7): no crouch in the saddle */
   isMounted?: () => boolean;
+  /** the crouch off long grass, where a quest asks for it (the taming approach, E287) */
+  crouchHere?: () => boolean;
 }
 
 export const LONG_GRASS = 0.7;           // m — the crouch disc / C key work in grass at least this tall
@@ -75,11 +80,14 @@ export class Stealth {
   threat = 0;
   /** long grass underfoot (with the hysteresis): the crouch is available */
   inLongGrass = false;
+  /** the disc shows / the toggle works: long grass, or a place that asks for the crouch (`crouchHere`) */
+  canCrouch = false;
   /** the toggle */
   latched = false;
   private player: Player;
   private wildlife: () => Wildlife | null;
   private isMounted: () => boolean;
+  private crouchHere: () => boolean;
   private onT = 0; private offT = 0;
   private toggleReq = false; private ctrlDown = false;
   private t = 0;
@@ -96,7 +104,7 @@ export class Stealth {
   private lastCover = -1; private lastThreat = -1;
 
   constructor(opts: StealthOpts) {
-    this.player = opts.player; this.wildlife = opts.wildlife; this.isMounted = opts.isMounted ?? (() => false);
+    this.player = opts.player; this.wildlife = opts.wildlife; this.isMounted = opts.isMounted ?? (() => false); this.crouchHere = opts.crouchHere ?? (() => false);
     const hud = document.getElementById('hud') ?? document.body;
     this.root = document.createElement('div');
     this.root.className = 'ws-stealth';
@@ -155,14 +163,16 @@ export class Stealth {
   private crouchStep(dt: number): void {
     const p = this.player, k = p.keys;
     const blocked = p.hover || p.swimming || this.isMounted();
-    const long = !blocked && grassHeightAt(p.position.x, p.position.z) >= LONG_GRASS;
+    // your own footprint doesn't count: the grass round you as it stands (E287)
+    const long = !blocked && grassBaseHeightAt(p.position.x, p.position.z) >= LONG_GRASS;
     if (long) { this.onT += dt; this.offT = 0; } else { this.offT += dt; this.onT = 0; }
     this.inLongGrass = blocked ? false : this.inLongGrass ? this.offT < OUT_AFTER : this.onT >= IN_AFTER;
-    if (this.toggleReq) { this.toggleReq = false; if (this.inLongGrass || this.latched) this.latched = !this.latched; }
+    this.canCrouch = !blocked && (this.inLongGrass || this.crouchHere());
+    if (this.toggleReq) { this.toggleReq = false; if (this.canCrouch || this.latched) this.latched = !this.latched; }
     const sprint = p.touchSprint || (k.has('ShiftLeft') && (k.has('KeyW') || p.touchMove.y > 0.1));
     const jump = k.has('Space') || p.touchJump;
-    if (!this.inLongGrass || sprint || jump) this.latched = false; // leaving the grass / sprinting / jumping stands you up
-    const crouch = this.latched || (this.ctrlDown && this.inLongGrass);
+    if (!this.canCrouch || sprint || jump) this.latched = false; // leaving the grass / sprinting / jumping stands you up
+    const crouch = this.latched || (this.ctrlDown && this.canCrouch);
     // Player crouches on its held 'KeyC' / 'ControlLeft': this module owns both keys in Nalati
     k.delete('ControlLeft');
     if (crouch) k.add('KeyC'); else k.delete('KeyC');
@@ -173,7 +183,7 @@ export class Stealth {
     this.t = t;
     const p = this.player.position;
     const crouched = this.player.crouching;
-    const g = grassHeightAt(p.x, p.z), h = crouched ? 1.05 : 1.75;
+    const g = grassBaseHeightAt(p.x, p.z), h = crouched ? 1.05 : 1.75; // as it stands round you, not your own footprint
     this.cover = clamp01((g - 0.15) / (h - 0.15));
     // the most aware creature (as a fraction of its alert level) and whether anything close has noticed you at all
     let level = 0, quiet = true, noticed = false, tx = 0, tz = 0;
@@ -243,7 +253,7 @@ export class Stealth {
       this.chev.style.transform = `translate(${(Math.sin(a) * 64).toFixed(1)}px, ${(-Math.cos(a) * 64).toFixed(1)}px) rotate(${a.toFixed(3)}rad)`;
     }
     // the crouch disc (touch) and the one-time TALL GRASS chip
-    const avail = this.inLongGrass || this.latched;
+    const avail = this.canCrouch || this.latched;
     hudSlots.show(this.disc, avail);
     this.disc.classList.toggle('on', this.latched);
     if (avail && !this.hinted) {

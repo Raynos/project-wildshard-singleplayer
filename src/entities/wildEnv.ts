@@ -7,6 +7,8 @@ import { stateSlot } from '../core/shardState';
  * are hooks the other rows plug in (defaults keep every AI working without them):
  *
  *   wildEnv.grassHeightAt = (x, z) => grass.grassHeightAt(x, z)     B1 grass-agent (default: a 0.55 m steppe everywhere)
+ *   wildEnv.grassStandingAt = (x, z) => grassBaseHeightAt(x, z)     the grass before trampling — read at the player's own feet,
+ *                                                                        which their steps always flatten (E287)
  *   wildEnv.trample       = (x, z, r, s, vx, vz) => trample.push(…)    B1 GrassTrample (default: nothing) — Wildlife.update pushes every
  *                                                                        moving wolf / horse / dog each frame (the live movers + the map)
  *   wildEnv.wind          = { x, z, strength }                        B1 Wind: the direction the air moves TOWARD (unit), 0..1
@@ -24,6 +26,8 @@ const SCREEN_STEPS = [1.5, 3, 5] as const;
 
 export interface WildEnv {
   grassHeightAt: (x: number, z: number) => number;
+  /** the grass before trampling: the cover at the player's own spot (their footprint doesn't expose them, E287) */
+  grassStandingAt: (x: number, z: number) => number;
   trample: (x: number, z: number, radius: number, strength: number, vx: number, vz: number) => void;
   wind: { x: number; z: number; strength: number };
   /** the player's horizontal look direction (unit x, z) — the view cone the wolves stay out of */
@@ -45,6 +49,7 @@ export interface WildEnv {
 
 export const wildEnv: WildEnv = {
   grassHeightAt: () => 0.55,
+  grassStandingAt: () => 0.55,
   trample: () => undefined,
   wind: { x: -0.8, z: 0.6, strength: 0.5 },
   playerFwdX: 0, playerFwdZ: -1,
@@ -57,7 +62,7 @@ export const wildEnv: WildEnv = {
  * along the sight line, × motion (still 0.3 · creep 0.7 · walk 1 · sprint 1.5 · just shot 1.5), × light.
  */
 export function playerVisibility(ox: number, oz: number, player: THREE.Vector3, playerSpeed: number, now: number): number {
-  const g = wildEnv.grassHeightAt(player.x, player.z);
+  const g = wildEnv.grassStandingAt(player.x, player.z);
   const h = wildEnv.playerCrouched ? 1.05 : 1.75;
   const cover = clamp01((g - 0.15) / (h - 0.15));
   // the screen: grass between you and the observer, 1.5 / 3 / 5 m out toward it
@@ -85,7 +90,7 @@ export function downwindOf(ox: number, oz: number, player: THREE.Vector3): boole
 /** hearing radius by the player's ground speed (still / crouch / walk / sprint), × 1.25 moving in tall grass, × 0.5 in a storm */
 export function hearingRadius(r: [number, number, number, number], player: THREE.Vector3, playerSpeed: number): number {
   const base = playerSpeed < 0.4 ? r[0] : playerSpeed <= 2.6 ? r[1] : playerSpeed < 5.2 ? r[2] : r[3];
-  const rustle = playerSpeed > 0.4 && wildEnv.grassHeightAt(player.x, player.z) >= 0.7 ? 1.25 : 1;
+  const rustle = playerSpeed > 0.4 && wildEnv.grassStandingAt(player.x, player.z) >= 0.7 ? 1.25 : 1;
   return base * rustle * (wildEnv.storm ? 0.5 : 1);
 }
 

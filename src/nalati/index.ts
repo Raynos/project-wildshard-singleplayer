@@ -37,6 +37,7 @@ import { Wildlife, type SheepHit } from '../entities/Wildlife';
 import { wildEnv } from '../entities/wildEnv';
 import { isLunging } from '../entities/Pack';
 import { trample, grassHeightAt } from '../world/GrassTrample';
+import { grassBaseHeightAt } from '../world/GrassField';
 import type { ImpactSurface, TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { NalatiKit } from '../player/nalatiKit';
 import { nalatiWetAt } from './wet';
@@ -212,6 +213,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   let now = 0;
   // the grass hides you and is trampled by every mover (GrassTrample, B1); the river corridor + the brook are water to a walker
   wildEnv.grassHeightAt = grassHeightAt;
+  wildEnv.grassStandingAt = (x, z) => grassBaseHeightAt(x, z);
   wildEnv.trample = (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); };
   wildEnv.wetAt = nalatiWetAt;
   // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
@@ -282,7 +284,8 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   };
   const sheepResult: TargetHit = { animal: sheep, point: sheepPoint, distance: 0, headshot: false };
 
-  const stealth = new Stealth({ player, wildlife: () => wildlife, isMounted: () => extra.mounted }); // B9, wired below
+  // B9, wired below; the crouch also works on the meadow while you approach a stallion to tame (E287: the quest asks for it)
+  const stealth = new Stealth({ player, wildlife: () => wildlife, isMounted: () => extra.mounted, crouchHere: () => ride !== null && ride.taming.view.trust !== null });
   const nalati: Nalati = {
     water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan, skins: new NalatiSkinLocker(),
     attachAnimals(animals) {
