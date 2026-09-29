@@ -104,6 +104,9 @@ import type { Explore, ExploreMode } from './explore/Explore';
 import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { registerTrainingDummyModel } from './practice/catalog';
 import { TrainingArena } from './practice/TrainingArena';
+import { loadPlayground } from './playgrounds/load';
+import type { Playground } from './playgrounds/Playground';
+import type { PlaygroundId } from './playgrounds/catalog';
 import { TIER } from './core/tier';
 import { frameCost, type Bucket } from './core/frameCost';
 import { Impacts } from './fx/Impacts';
@@ -523,6 +526,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
   arena = new TrainingArena(game, registry, world.physics, { x: chunk.spawn.x, z: chunk.spawn.z });
+  // E307: the open feature playground (src/playgrounds/: Nine Dragon's grapple course, Nalati's horse track), entered from the
+  // Explore hub like the arena. `away()`: the player is in a practice room, not the shard (no bounds, no map, no last place)
+  let playground: Playground | null = null;
+  const away = (): boolean => arena.entered || playground?.entered === true;
   await chunk.traversal?.({
     game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
     toast: (message) => { hud.toast(message); },
@@ -562,7 +569,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const b = chunk.bounds, safe = { x: 0, y: 0, z: 0, set: false };
     let since = 0;
     game.onUpdate((dt) => {
-      if (world.freeCamera || world.tour.active || arena.entered) return;
+      if (world.freeCamera || world.tour.active || away()) return;
       const p = player.position;
       if (p.y < b.floor || p.x < b.x0 || p.x > b.x1 || p.z < b.z0 || p.z > b.z1) {
         if (safe.set) player.spawn(safe.x, safe.z, player.yaw, safe.y); else toSpawn();
@@ -589,7 +596,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
-  fullMap.bindMinimap(() => { if (hud.entered) menu.open(arena.entered ? 'settings' : 'map'); });
+  fullMap.bindMinimap(() => { if (hud.entered) menu.open(away() ? 'settings' : 'map'); });
   // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts)
   new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
   // M / I / Esc are the menu's own keys (src/ui/Menu.ts, gated by the HUD: E130)
@@ -867,7 +874,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       since += dt;
       if (since < 0.25) return;
       since = 0;
-      if (deathFade.active || !hud.entered || world.freeCamera || world.tour.active || arena.entered) return;
+      if (deathFade.active || !hud.entered || world.freeCamera || world.tour.active || away()) return;
       const p = player.position, ph = activePhysics();
       const floor = ph ? floorBelow(ph, p.x, p.z, p.y + 0.6, 1.2) : undefined; // real walkable footing under the feet
       const grounded = floor !== undefined && Math.abs(floor - p.y) < 0.3 && player.onGround && !player.swimming && !player.wading && !player.hover
@@ -915,7 +922,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true); };
   hud.onResume = enter;
   hud.onExitToMenu = () => {
-    arena.exit(); minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
+    arena.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
   };
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
@@ -924,6 +931,23 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); hud.showIntro(enter);
   };
   const noteSheet = async (): Promise<void> => { const f = await loadFeedback(); await f.openSheet(); };
+  // E307: a playground's card — its scene loads (and builds, the first time) while Explore's last frame stays up, then the
+  // world is entered straight into it, the pause menu's exit leading back to the hub, as from the Practice arena
+  const enterPlayground = async (id: PlaygroundId): Promise<void> => {
+    let pg: Playground;
+    try {
+      pg = await loadPlayground(id, { game, player, registry, physics: world.physics, spawn: chunk.spawn, toast: (t) => { hud.toast(t); }, ride, animals });
+    } catch (error) {
+      console.warn(`[playground] ${id} did not load`, error);
+      hud.startExplore();
+      return;
+    }
+    hud.enterNow();
+    if (!hud.entered) return;
+    playground = pg;
+    pg.enter();
+    setAimTargets([]); minimap.setPracticeArena(pg.center); menu.setPractice(true, pg.title);
+  };
   const openExplore = async (mode: ExploreMode, opts: { cam?: number[]; model?: string } = {}): Promise<void> => {
     beginNineExploreEntry(mode);
     audio.resume();
@@ -937,7 +961,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const { Explore: X } = await import('./explore/Explore');
     const t1 = performance.now();
     recordNineBootCheckpoint('explore:imported');
-    explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
+    explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, onPlayground: (id) => { void enterPlayground(id); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
       overhead: [grass?.group, under?.group, particles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
     const t2 = performance.now();
     recordNineBootCheckpoint('explore:constructed');
@@ -1085,11 +1109,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     windupWarn?.update(dt, game.camera, player.position, player.yaw, animals.isThreat);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
-    hud.setBoundaryWarning(!arena.entered && edge < 14 && hud.entered);
+    hud.setBoundaryWarning(!away() && edge < 14 && hud.entered);
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
-    if (hud.entered) { hud.setAnimals(arena.entered ? [] : animalPositions(animals.animals)); minimap.update(player.position, player.yaw, arena.entered ? [] : animals.animals); if (!arena.entered) fullMap.update(player.position, player.yaw); } // the arena has its own grid map, not the shard's terrain
+    if (hud.entered) { hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(player.position, player.yaw, away() ? [] : animals.animals); if (!away()) fullMap.update(player.position, player.yaw); } // the arena has its own grid map, not the shard's terrain
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
@@ -1177,7 +1201,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   if (first) asShell(() => { startShardPrefetch(getActiveChunk()); });
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife, arena };
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife, arena, playground: (): Playground | null => playground };
   const debug = window as unknown as { __world: unknown };
   debug.__world = handle; // the running shard's (the host re-points it on every switch)
 
