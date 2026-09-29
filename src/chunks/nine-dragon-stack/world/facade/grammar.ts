@@ -58,6 +58,8 @@ export interface DressOptions {
   /** world-height band [min, max] where small clutter (plants, laundry, dishes) is placed; outside it the modules
    *  stay but the small stuff is skipped (it would be 1–2 px). Default: everywhere */
   detailY?: readonly [number, number];
+  /** false: emit no sign slots (a wall cut back round a street's mouth: its whole slots are kept, shrunk, elsewhere) */
+  signs?: boolean;
 }
 
 export interface Placement { piece: PieceId; m: Matrix4; c: Color }
@@ -69,13 +71,25 @@ export interface SignSlot { at: Vector3; normal: Vector3; size: number; color: n
 export class Dressing {
   readonly pieces: Placement[] = [];
   readonly windows: WindowInst[] = [];
-  readonly signs: SignSlot[] = [];
+  private readonly early: SignSlot[] = [];
+  private readonly lateSigns: SignSlot[] = [];
+  /**
+   * While set, new sign slots go after every other. build.ts fills the slots in order from one rng, so a slot added in
+   * the middle re-rolls the word of every sign after it, all over the city (§12): a new street's slots go late.
+   */
+  late = false;
+  /** every sign slot, in the order build.ts fills them */
+  get signs(): readonly SignSlot[] { return this.lateSigns.length === 0 ? this.early : [...this.early, ...this.lateSigns]; }
+  addSign(slot: SignSlot): void { (this.late ? this.lateSigns : this.early).push(slot); }
   /** merged opaque geometry: shells, galleries, parapets, cables, antennas (one draw) */
   readonly shell = new Builder();
   towers = 0;
 }
 
 type Mod = 'win1' | 'win2' | 'win3' | 'cage1' | 'cage2' | 'balcony' | 'balconySolid' | 'enclosed' | 'bay' | 'ac' | 'blank' | 'shop' | 'gallery' | 'addon';
+
+/** the plain window cells a hung room may cover (nothing on them stands out past ~0.9 m) */
+const PLAIN = new Set<Mod>(['win1', 'win2', 'win3', 'blank', 'ac', 'cage1', 'cage2']);
 
 const COLUMN_WEIGHTS: readonly (readonly [Mod, number])[] = [
   ['win2', 0.14], ['win1', 0.06], ['win3', 0.06], ['cage1', 0.13], ['cage2', 0.12], ['balcony', 0.16], ['balconySolid', 0.06],
@@ -117,6 +131,10 @@ class Emit {
   rx: Rng = new Rng(1);
   /** when set, windows draw their states from it instead of the tower's stream (the clutter's hung rooms) */
   winR: Rng | null = null;
+  /** no sign slots from this tower (DressOptions.signs) */
+  noSigns = false;
+
+  sign(slot: SignSlot): void { if (!this.noSigns) this.out.addSign(slot); }
 
   constructor(readonly out: Dressing, readonly rng: Rng, readonly fh: number, readonly lod: number, readonly dens: number,
     readonly timber: number, readonly lit: number) {}
@@ -175,6 +193,7 @@ export function dressTower(t: TowerSpec, seed: number, opt: DressOptions = {}, o
   const street = opt.street ?? t.y0;
   const baseWash = opt.wash ?? rng.pick(WALLS);
   const em = new Emit(out, rng, fh, lod, dens, opt.timber ?? 0.1, opt.lit ?? 0.5);
+  em.noSigns = opt.signs === false;
   out.towers++;
   const R = new Matrix4().makeRotationY(rot);
   const toWorld = (lx: number, ly: number, lz: number): Vector3 => new Vector3(lx, ly, lz).applyMatrix4(R).add(new Vector3(t.x, 0, t.z));
@@ -324,7 +343,10 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) { const c = plan[fi]?.[b]; if (c !== undefined) c.mod = 'addon'; }
     addon(em, f, b0 * bw, bs * bw, f.y0 + f0 * fh, fs, fh, rng.range(0.9, 1.7), rng);
   }
-  // E281 round 2: more rooms hung off a near face's lower floors (the clutter stream: the rolls above are untouched)
+  // E281 round 2: more rooms hung off a near face's lower floors, from the clutter stream, as an overlay: the plan is
+  // untouched (so every later roll of this face and tower, and every sign slot, stays as it was); a room covers plain
+  // window cells only, and those cells skip the clutter pass
+  const covered = new Set<number>();
   if (em.lod === 0 && floors > 3 && !side) {
     const rx = em.rx;
     const n2 = Math.round(bays * Math.min(floors, 9) * 0.05 * dens);
@@ -335,10 +357,10 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       let free = true;
       for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) {
         const m = plan[fi]?.[b]?.mod;
-        if (m === undefined || m === 'addon' || m === 'gallery' || m === 'shop' || m === 'balcony' || m === 'balconySolid' || m === 'enclosed') free = false;
+        if (m === undefined || !PLAIN.has(m) || covered.has(fi * bays + b)) free = false;
       }
       if (!free || galleryFloor.slice(f0, f0 + fs).some(Boolean)) continue;
-      for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) { const c = plan[fi]?.[b]; if (c !== undefined) c.mod = 'addon'; }
+      for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) covered.add(fi * bays + b);
       em.winR = rx;
       addon(em, f, b0 * bw, bs * bw, f.y0 + f0 * fh, fs, fh, rx.range(1.1, 1.9), rx);
       em.winR = null;
@@ -386,7 +408,7 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       em.lattice = timberCol[b] === true || (cell.mod === 'gallery' && rng.chance(0.5 + 0.4 * em.timber));
       const wins = module(em, f, cell, sc, y, bw, fh, wash, smallAt(y), rng, street);
       em.lattice = false;
-      if (smallAt(y) && y - street < 26) clutter(em, f, cell, wins, sc, y, bw, fh, fi, timberCol[b] === true);
+      if (smallAt(y) && y - street < 36 && !covered.has(fi * bays + b)) clutter(em, f, cell, wins, sc, y, bw, fh, fi, timberCol[b] === true);
     }
     // a gallery: one slab along the face, real bars, posts at the seams, a glazed pent eave over it on some floors
     if (galleryFloor[fi] === true) gallery(em, f, y, fh, bays, bw, wash, rng, smallAt(y));
@@ -504,7 +526,7 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
       if (rng.chance(0.7)) {
         const col = rng.pick(NEONS);
         em.put('signFlat', f, sc, y + 3.12, 0.02, bw * 0.7, 0.72, 1, col);
-        em.out.signs.push({ at: f.o.clone().addScaledVector(f.u, sc).addScaledVector(f.n, 0.14).setY(y + 3.48), normal: f.n.clone(), size: 0.62, color: col, blade: false });
+        em.sign({ at: f.o.clone().addScaledVector(f.u, sc).addScaledVector(f.n, 0.14).setY(y + 3.48), normal: f.n.clone(), size: 0.62, color: col, blade: false });
       }
       return [];
     }
@@ -612,7 +634,7 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
     const s = sc + rng.range(-bw / 2 + 0.4, bw / 2 - 0.4);
     const yy = y + rng.range(0.4, 1.2);
     em.put('signBox', f, s, yy, 0, 1, rng.range(0.9, 1.5), 1, col);
-    em.out.signs.push({ at: f.o.clone().addScaledVector(f.u, s).addScaledVector(f.n, 0.62).setY(yy + 0.6), normal: f.u.clone(), size: 0.5, color: col, blade: true });
+    em.sign({ at: f.o.clone().addScaledVector(f.u, s).addScaledVector(f.n, 0.62).setY(yy + 0.6), normal: f.u.clone(), size: 0.5, color: col, blade: true });
     cell.spill = 1;
     cell.spillC = col;
   }
@@ -687,7 +709,7 @@ function tallSigns(em: Emit, f: Face, plan: Cell[][], bays: number, bw: number, 
         const m0 = plan[fi]?.[b]?.mod, m1 = plan[fi + 1]?.[b]?.mod;
         if (m0 === undefined || m1 === undefined || !FLAT_OK.has(m0) || !FLAT_OK.has(m1)) continue;
         const col = rng.pick(NEONS);
-        em.out.signs.push({ at: f.o.clone().addScaledVector(f.u, (b + 0.5) * bw + rng.range(-0.4, 0.4)).addScaledVector(f.n, 0.66).setY(y + fh * rng.range(0.9, 1.2)),
+        em.sign({ at: f.o.clone().addScaledVector(f.u, (b + 0.5) * bw + rng.range(-0.4, 0.4)).addScaledVector(f.n, 0.66).setY(y + fh * rng.range(0.9, 1.2)),
           normal: f.n.clone(), size: rng.range(0.95, 1.2), color: col, blade: true });
       } else if (r < 0.052 * dens && b > 0 && b < bays) {
         // a blade at the seam of bays b-1 | b, out from the wall on two arms
@@ -698,7 +720,7 @@ function tallSigns(em: Emit, f: Face, plan: Cell[][], bays: number, bw: number, 
         const size = rng.range(0.8, 1.2);
         const out = 0.95 + size * 0.68;
         const yc = y + fh * rng.range(0.8, 1.3);
-        em.out.signs.push({ at: f.o.clone().addScaledVector(f.u, b * bw).addScaledVector(f.n, out).setY(yc), normal: f.u.clone(), size, color: col, blade: true });
+        em.sign({ at: f.o.clone().addScaledVector(f.u, b * bw).addScaledVector(f.n, out).setY(yc), normal: f.u.clone(), size, color: col, blade: true });
         for (const dy of [0.7, -0.7]) em.put('box', f, b * bw, yc + dy * size, 0, 0.06, 0.06, out - size * 0.6, 0x3a3d44);
       }
     }

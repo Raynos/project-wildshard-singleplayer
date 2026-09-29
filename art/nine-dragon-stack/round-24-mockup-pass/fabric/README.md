@@ -190,3 +190,22 @@ clear one.
 **Numbers:** geometry 150.9 MB (every lane; pass 6 154.4), textures 79.6 MB. Worst pose mockup A 128 draws /
 1.58 M; worst triangles A2·9 1.59 M. Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all
 three profiles (~24,250 instances).
+
+## Pass 8
+
+Build: `main` at `94e4be80` + this lane's files. Sheets: `pass-8/`.
+
+- **The city's sign words are stable again.** build.ts fills the grammar's sign slots in order from one rng, so a slot
+  added or dropped mid-list re-rolls the word of every sign after it (§12). Pass 7 did that twice: its hung rooms
+  changed a face's plan (and so its later rolls and slots), and the south street's walls and the gap in the south wall
+  added and dropped slots mid-list. Now: the hung rooms are an overlay (a room covers plain window cells only; the plan
+  and every roll after it stay as they were; those cells skip the clutter pass); a wall cut back round a street's mouth
+  keeps its whole segment's slots, shrunk to nothing, and its parts emit none; a new street's slots go after every
+  other (`Dressing.late`, `addSign`). The words are pass 6's again.
+- **Clutter higher up the near faces:** the clutter pass reaches 36 m over a wall's street (was 26).
+
+**Reverted:** nothing. The pass is small on the sheets.
+
+**Numbers:** geometry 151.1 MB (every lane), textures 79.6 MB. Worst pose mockup A 128 draws / 1.59 M; worst
+triangles A2·9 1.61 M. Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all three profiles
+(~24,600 instances).

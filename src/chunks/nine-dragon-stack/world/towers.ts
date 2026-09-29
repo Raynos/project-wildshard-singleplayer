@@ -4,7 +4,7 @@
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { shopfronts } from './facades';
-import { type DressOptions, dressTower, dressWall, spanStreet } from './facade/grammar';
+import { type DressOptions, Dressing, dressTower, dressWall, spanStreet } from './facade/grammar';
 import type { PieceId } from './facade/pieces';
 import { K, Kit, type Look } from './kit';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
@@ -54,8 +54,14 @@ function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0
     const gap = opts.open;
     if (gap === undefined || x + seg <= gap[0] || x >= gap[1]) dressWall(ctx.fd, at, n, seg, y0, topY, seed, dopt, shallow ? od.depth : 12, faces);
     else {
-      if (gap[0] - x > 0.5) dressWall(ctx.fd, at, n, gap[0] - x, y0, topY, seed, dopt, shallow ? od.depth : 12, (faces & ~4) | 4);
-      if (x + seg - gap[1] > 0.5) dressWall(ctx.fd, p0.clone().addScaledVector(u, gap[1]), n, x + seg - gap[1], y0, topY, seed + 1, dopt, shallow ? od.depth : 12, (faces & ~8) | 8);
+      // the whole segment's sign slots, shrunk to nothing, keep the slot list's order and length (§12); the two parts
+      // round the gap emit none
+      const probe = new Dressing();
+      dressWall(probe, at, n, seg, y0, topY, seed, dopt, shallow ? od.depth : 12, faces);
+      for (const sl of probe.signs) ctx.fd.addSign({ ...sl, size: 0.001 });
+      const cut: DressOptions = { ...dopt, signs: false };
+      if (gap[0] - x > 0.5) dressWall(ctx.fd, at, n, gap[0] - x, y0, topY, seed, cut, shallow ? od.depth : 12, (faces & ~4) | 4);
+      if (x + seg - gap[1] > 0.5) dressWall(ctx.fd, p0.clone().addScaledVector(u, gap[1]), n, x + seg - gap[1], y0, topY, seed + 1, cut, shallow ? od.depth : 12, (faces & ~8) | 8);
     }
     x += seg;
   }
@@ -250,6 +256,8 @@ const SOUTH_ST = { x0: 0.6, x1: 8.6, z1: 150 } as const;
  */
 function southStreet(ctx: Ctx): void {
   const sr = new Rng(8117);
+  // (its sign slots go after every other: the words of the city's existing signs stay as they were)
+  ctx.fd.late = true;
   const S = SOUTH_ST, z0 = PLAZA.z1 + 0.6;
   const east = new Vector3(1, 0, 0), west = new Vector3(-1, 0, 0);
   // the west side: from the far end back to the square; its last 10 m a veneer on the rim tower's end
@@ -282,6 +290,7 @@ function southStreet(ctx: Ctx): void {
     const q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), sr.chance(0.5) ? sr.range(-0.3, 0.3) : Math.PI + sr.range(-0.3, 0.3));
     ctx.walkers.push(new Matrix4().compose(new Vector3(sr.range(S.x0 + 1.8, S.x1 - 1.8), Y0, z), q, new Vector3(1, 1, 1).multiplyScalar(sr.range(0.94, 1.04))));
   }
+  ctx.fd.late = false;
 }
 
 export function buildTowers(ctx: Ctx): void {
