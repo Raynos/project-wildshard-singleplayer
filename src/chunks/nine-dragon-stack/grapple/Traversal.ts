@@ -317,9 +317,13 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     return side === NONE ? null : targetFor(ctx, hook, landing, side);
   };
 
+  // E298: the practice room hangs 900 m over the city: no hook is in it, so LOCK there is the plain lock-on (the nearest
+  // hook below would otherwise take the tap, and a zip would leave the room)
+  let inPractice = false;
+  document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) inPractice = e.detail === true; });
   const priorToggle = ctx.lock.onTryToggle;
   ctx.lock.onTryToggle = () => {
-    if (!ctx.enabled()) return priorToggle?.() ?? false;
+    if (!ctx.enabled() || inPractice) return priorToggle?.() ?? false;
     // Once a crossing starts the safety guard must stay open until a safe landing or bailout.
     if (phase !== 'idle' && phase !== 'miss' && phase !== 'reel' && phase !== 'dock') return true;
     if (target !== null || armedMiss) { release(); return true; }
