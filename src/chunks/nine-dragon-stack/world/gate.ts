@@ -24,10 +24,17 @@ export interface GateSpec {
   posts: readonly [number, number, number, number];
   s: number;
   plaque: string;
-  couplets: readonly [string, string];
+  /** the paper couplets on the inner posts (null: none — E281, style-A's and the A2 targets' posts are bare lacquer) */
+  couplets: readonly [string, string] | null;
   neonEaves: number | null;
   /** the lion pedestals before the centre bay (the organic lab's TRELLIS lions stand on them, props3d.ts) */
   lions: boolean;
+  /**
+   * E281 (the mockup pass): the elevation's scale. Every height and detail is built at s × k while the posts stay on
+   * `posts` and the roofs keep their spans at s, so a k < 1 gate is lower and broader-roofed on the same footprint (style-A
+   * and the A1 / A2 targets: a ~13 m gate whose roofs reach well past the centre bay; at k = 1 it stood 18 m).
+   */
+  k?: number;
 }
 
 // the washes, fitted to the dome-B targets by ΔE00 (round 2: lacquer #a3463a vs #823c31, stone #636365 vs #544e4e)
@@ -62,7 +69,12 @@ function ring(x: KitX, c: Vector3, a: Vector3, b: Vector3, r: number, t: number,
   x.sweep(pts, () => t, 5, look);
 }
 
-export interface RoofSpec { cx: number; y0: number; cz: number; w: number; d: number; h: number; lift: number; flare: number; tile: number; neon: number | null; ornaments: boolean }
+export interface RoofSpec {
+  cx: number; y0: number; cz: number; w: number; d: number; h: number; lift: number; flare: number; tile: number; neon: number | null; ornaments: boolean;
+  /** E281: the slope grid (12 × 7) and the tile-roll pitch (0.3 m): a small roof (a booth, the shrine) needs far fewer */
+  grid?: readonly [number, number];
+  roll?: number;
+}
 
 /**
  * A curved hip roof. The four hip lines run from the flying eave corners (lifted by `lift`, pushed out by `flare`) to
@@ -79,7 +91,7 @@ export function curvedRoof(k: Kit, x: KitX, signs: SignBuilder | null, r: RoofSp
   };
   const sagY = (u: number, v: number): number => r.lift * (1 - v) ** 2 * (1 - Math.abs(2 * u - 1) ** 2.4);
   const sagOut = (u: number, v: number): number => r.flare * (1 - v) ** 2 * (1 - Math.abs(2 * u - 1) ** 2.4);
-  const NU = 12, NV = 7;
+  const [NU, NV] = r.grid ?? [12, 7];
   const tl: Look = { wash: r.tile, kind: K.tiles, line: 1, accent: true };
   const eaveT = 0.24 * (r.h / 1.6);
   // one slope: `a` and `b` are the hips it spans (as functions of v), `out` its outward horizontal axis
@@ -117,7 +129,7 @@ export function curvedRoof(k: Kit, x: KitX, signs: SignBuilder | null, r: RoofSp
     }
     // raised tile rolls (筒瓦) down the slope, every ~0.3 m of eave, each ending in a round tile-end disc (瓦当)
     const eaveLen = (P[0] ?? []).reduce((s, p, i, arr) => (i === 0 ? 0 : s + p.distanceTo(arr[i - 1] ?? p)), 0);
-    const nRoll = Math.max(4, Math.round(eaveLen / 0.3));
+    const nRoll = Math.max(4, Math.round(eaveLen / (r.roll ?? 0.3)));
     for (let i = 0; i <= nRoll; i++) {
       const u = (i + 0.5) / (nRoll + 1);
       const pts: Vector3[] = [];
@@ -331,7 +343,8 @@ function sumeru(k: Kit, x: KitX, px: number, y: number, z: number, s: number, r:
   k.box(px, y + 0.14 * s, z, 1.26 * s, 0.1 * s, 1.26 * s, STONE);
   k.box(px, y + 0.24 * s, z, 1.08 * s, 0.6 * s, 1.08 * s, STONE_PANEL);
   const dc = y + 0.54 * s;
-  for (const [nx, nz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+  // (E281: only the ±x faces are carved: the drum stones stand against the ±z faces and hide them, 8 reliefs saved)
+  for (const [nx, nz] of [[1, 0], [-1, 0]] as const) {
     const nrm = new Vector3(nx, 0, nz);
     const rt = new Vector3(-nz, 0, nx);
     relief(x, new Vector3(px + nx * 0.54 * s, dc, z + nz * 0.54 * s), rt, Y.clone(), nrm, 0.8 * s, 0.4 * s, Math.round(px * 100) + nx * 7 + nz * 13);
@@ -426,7 +439,9 @@ export function stoneLion(k: Kit, x: KitX, cx: number, y: number, cz: number, fa
 
 /** the gate itself; lantern(x, y, z, scale) hangs one lantern from its top */
 export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: number, y: number, z: number, s: number) => void, P: GateSpec): void {
-  const { y, z, s } = P;
+  const { y, z } = P;
+  // s: heights and details; s0: the roofs' spans (GateSpec.k)
+  const s0 = P.s, s = P.s * (P.k ?? 1);
   const [p0, p1, p2, p3] = P.posts;
   const cx = (p1 + p2) / 2;
   // the posts stop under the dougong (they used to poke up through the eaves as orange knobs)
@@ -485,7 +500,7 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
   }
   dougong(k, p1 - 0.5 * s, p2 + 0.5 * s, y + 7.05 * s, z, s);
   // the roofs sit light on the gate (style-A: roofs a quarter of the height, the tall bays open below them)
-  curvedRoof(k, x, signs, { cx, y0: y + 7.72 * s, cz: z, w: bw + 2.4 * s, d: 2.6 * s, h: 1.55 * s, lift: 0.68 * s, flare: 0.32 * s, tile: TILE, neon: P.neonEaves, ornaments: true });
+  curvedRoof(k, x, signs, { cx, y0: y + 7.72 * s, cz: z, w: bw + 2.4 * s0, d: 2.6 * s0, h: 1.55 * s, lift: 0.68 * s, flare: 0.32 * s0, tile: TILE, neon: P.neonEaves, ornaments: true });
   sparrowBrace(x, p1 + 0.38 * s, y + 4.75 * s, z, 1, 1.3 * s, s);
   sparrowBrace(x, p2 - 0.38 * s, y + 4.75 * s, z, -1, 1.3 * s, s);
   // side bays
@@ -504,7 +519,7 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
     dougong(k, out < 0 ? a - 0.3 * s : a + 0.15 * s, out < 0 ? b - 0.15 * s : b + 0.3 * s, y + 5.43 * s, z, s * 0.9);
     // the side roof: its outer hip flies out past the outer post, its inner hip tucks in against the centre post (a
     // symmetric roof over the side bay reached over the centre bay and hid the plaque)
-    curvedRoof(k, x, signs, { cx: m + out * 0.35 * s, y0: y + 5.95 * s, cz: z, w: w + 0.6 * s, d: 2.2 * s, h: 1.15 * s, lift: 0.52 * s, flare: 0.26 * s, tile: TILE, neon: P.neonEaves, ornaments: false });
+    curvedRoof(k, x, signs, { cx: m + out * 0.5 * s0, y0: y + 5.95 * s, cz: z, w: w + 0.9 * s0, d: 2.2 * s0, h: 1.15 * s, lift: 0.52 * s, flare: 0.26 * s0, tile: TILE, neon: P.neonEaves, ornaments: false, grid: [10, 6] });
     sparrowBrace(x, a + 0.32 * s, y + 3.75 * s, z, 1, 0.9 * s, s);
     sparrowBrace(x, b - 0.32 * s, y + 3.75 * s, z, -1, 0.9 * s, s);
     lantern(m - w * 0.22, y + 3.72 * s, z, 0.95 * s);
@@ -512,9 +527,12 @@ export function buildGate(k: Kit, x: KitX, signs: SignBuilder, lantern: (x: numb
     lantern(m, y + 3.0 * s, z + 0.45 * s, 0.85 * s);
   }
   // couplets on the inner posts, both faces: white boards, black kai
-  for (const nz of [1, -1]) {
-    signs.place({ at: new Vector3(p1, y + 3.2 * s, z + nz * 0.4 * s), normal: new Vector3(0, 0, nz), size: 0.44 * s, spec: { text: P.couplets[nz > 0 ? 0 : 1], color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
-    signs.place({ at: new Vector3(p2, y + 3.2 * s, z + nz * 0.4 * s), normal: new Vector3(0, 0, nz), size: 0.44 * s, spec: { text: P.couplets[nz > 0 ? 1 : 0], color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
+  const cp = P.couplets;
+  if (cp !== null) {
+    for (const nz of [1, -1]) {
+      signs.place({ at: new Vector3(p1, y + 3.2 * s, z + nz * 0.4 * s), normal: new Vector3(0, 0, nz), size: 0.44 * s, spec: { text: cp[nz > 0 ? 0 : 1], color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
+      signs.place({ at: new Vector3(p2, y + 3.2 * s, z + nz * 0.4 * s), normal: new Vector3(0, 0, nz), size: 0.44 * s, spec: { text: cp[nz > 0 ? 1 : 0], color: '#1a1614', vertical: true, style: 'paper', ink: '#ece7da' }, gain: 1.05 }, k);
+    }
   }
   for (let i = 0; i < 3; i++) lantern(p1 + bw * (0.25 + i * 0.25), y + 4.75 * s, z, 1.1 * s);
   // a second, lower row a step into the passage (style-A: five lanterns fill the centre bay)

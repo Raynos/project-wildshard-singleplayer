@@ -2,13 +2,13 @@
 // in its round planter with the earth-god shrine, mahjong tables, the noodle stall, lantern strings and the crowd.
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { buildBanyan } from './banyan';
-import { mahjong as heroMahjong, mahjongSeats } from './hero/figures';
+import { mahjongSeats } from './hero/figures';
 import type { Ctx } from './ctx';
 import { buildGate, relief } from './gate';
 import { SURF } from '../look/paint';
 import { lionOnPost } from './props3d';
 import type { KitX } from './hero/kitx';
-import { hawkerStall, noodleStall } from './stalls';
+import { BOOTH, BOOTHS, PARASOLS, hawkerStall, marketRow, noodleStall } from './stalls';
 import { E, K, type Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
 import { dragonHook, lamp, scooter } from './props';
@@ -16,6 +16,7 @@ import { MIN, METAL, NEON, Rng, chars } from '../util';
 
 // the balustrade's stone: a mid wet grey (dome A's ΔE: 0x76767b rendered #757784, 0x4a4c53 #44454e; the spawn target #656469)
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };
+const BUD: Look = { wash: 0x66676c, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };
 const UPV = new Vector3(0, 1, 0);
 /** a figure's placement on the square's floor */
 const standAt = (x: number, z: number, yaw: number, s: number): Matrix4 => new Matrix4().compose(new Vector3(x, Y0, z), new Quaternion().setFromAxisAngle(UPV, yaw), new Vector3(s, s, s));
@@ -42,11 +43,12 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
   for (let i = 0; i <= n; i++) {
     const p = a0 - i * step;
     const [cx, cz] = px(p);
-    bx(p, y + 0.16, 0.36, 0.86, 0.36, STONE);
-    k.cyl(cx, y + 1.02, cz, 0.16, 0.2, 0.1, 8, STONE);
+    // E281: chunkier posts under a square cap slab (the A1 / A2 targets' balustrade), the cap's top at +1.12 (a lion's seat)
+    bx(p, y + 0.16, 0.44, 0.86, 0.44, STONE);
+    bx(p, y + 1.02, 0.54, 0.1, 0.54, STONE);
     // a lotus-bud finial (style-A's balustrade): a petal collar, the bud swelling and closing to a point; a post that
     // carries a TRELLIS lion (props3d.ts) keeps only its cap block
-    if (lionRun === undefined || !lionOnPost(lionRun, i, n)) k.lathe(cx, y + 1.12, cz, [[0.2, 0], [0.23, 0.05], [0.17, 0.09], [0.19, 0.15], [0.18, 0.22], [0.13, 0.3], [0.06, 0.37], [0.0, 0.41]], 12, STONE, true, 0);
+    if (lionRun === undefined || !lionOnPost(lionRun, i, n)) lotusBud(k, cx, y + 1.12, cz);
     if (i < n) {
       const pm = p - step / 2;
       bx(pm, y + 0.16, 0.16, 0.6, step - 0.36, { wash: 0x5c5e64, kind: K.panel, line: 1, wet: 0.5 });
@@ -57,6 +59,46 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
         relief(carve.x, new Vector3(pcx + nrm.x * 0.085, y + 0.46, pcz + nrm.z * 0.085), new Vector3(-nrm.z, 0, nrm.x), UPV.clone(), nrm, step - 0.5, 0.52, 3000 + i, { wash: 0x76787e, line: 0, wet: 0.3 });
       }
       bx(pm, y + 0.76, 0.26, 0.12, step - 0.3, STONE);
+    }
+  }
+}
+
+/**
+ * A lotus-bud finial on a post's cap at (cx, yb, cz): a petal collar turned out over the cap, a neck, then the bud
+ * swelling and closing to a point — one ruled lathe of eight faces, its ribs the petals' seams (E281: the targets'
+ * buds are as wide as the post, ~0.55 m, and ~0.7 m tall, carved stone with petal lines; a smooth brushed bud read as
+ * an egg). ~290 vertices where the old 12-sided lathe took 336.
+ */
+function lotusBud(k: Kit, cx: number, yb: number, cz: number): void {
+  k.lathe(cx, yb, cz, [[0.25, 0], [0.29, 0.05], [0.27, 0.1], [0.2, 0.13], [0.25, 0.22], [0.265, 0.32], [0.225, 0.44], [0.15, 0.55], [0.06, 0.64], [0, 0.69]], 8, BUD, true, 3);
+}
+
+/**
+ * A mahjong table for the TRELLIS sitters (they bring their own stools): the hero lab's table (hero/figures.ts) at a
+ * quarter of its vertices — each wall of tiles and each standing hand one ruled block instead of 9 and 7 little boxes,
+ * no hidden undersides (E281: ~490 vertices a table where it took ~1 950; the same random draws, so nothing after it
+ * moves). From the spawn the nearest table is 8 m off: a tile is a pixel there.
+ */
+function mahjongTable(k: Kit, rng: Rng, px: number, py: number, pz: number, r: number): void {
+  const c = Math.cos(r), sn = Math.sin(r);
+  const at = (lx: number, lz: number, a: number): [number, number] => {
+    const ca = Math.cos(a), sa = Math.sin(a);
+    return [px + lx * ca + lz * sa, pz - lx * sa + lz * ca];
+  };
+  k.box(px, py + 0.7, pz, 0.98, 0.07, 0.98, { wash: 0x5a3a26, line: 1, accent: true }, { rotY: r, top: { wash: 0x2f6a4c, line: 1, accent: true }, bottom: null });
+  for (const [lx, lz] of [[-0.42, -0.42], [0.42, -0.42], [0.42, 0.42], [-0.42, 0.42]] as const) {
+    k.box(px + lx * c + lz * sn, py, pz - lx * sn + lz * c, 0.06, 0.7, 0.06, { wash: 0x3d2a1e, line: 0.6 }, { rotY: r, top: null, bottom: null });
+  }
+  const tile: Look = { wash: 0xefe8d6, line: 0.6, accent: true };
+  for (let side = 0; side < 4; side++) {
+    const a = r + (side * Math.PI) / 2;
+    const [wx, wz] = at(0, 0.3, a);
+    k.box(wx, py + 0.77, wz, 0.62, 0.05, 0.042, { ...tile, kind: K.panel }, { rotY: a, bottom: null });
+    const [hx, hz] = at(0, 0.4, a);
+    k.box(hx, py + 0.77, hz, 0.46, 0.075, 0.035, tile, { rotY: a, bottom: null });
+    for (let i = 0; i < 3; i++) {
+      const [dx, dz] = at(rng.range(-0.18, 0.18), rng.range(-0.1, 0.18), a);
+      k.box(dx, py + 0.77, dz, 0.06, 0.02, 0.08, tile, { rotY: a + rng.range(-0.4, 0.4), bottom: null });
     }
   }
 }
@@ -101,12 +143,15 @@ export function hipRoof(ctx: Ctx, k: Kit, cx: number, y0: number, cz: number, w:
 
 function paifang(ctx: Ctx): void {
   // dome B's paifang (gate.ts): lacquer posts on Sumeru bases, drum stones, painted beams, dense dougong, thick tiled
-  // roofs with a rafter soffit, the gold-framed 九龍 plaque, couplets, lanterns (no eave neon: the style-A mockup and the
+  // roofs with a rafter soffit, the gold-framed 九龍 plaque, lanterns (no eave neon: the style-A mockup and the
   // dome-B targets light the gate with its lanterns only)
   const k = ctx.kit('paifang', true);
   const x = ctx.kitx('paifang');
   buildGate(k, x, ctx.signs, (px, py, pz, s) => { ctx.lantern(px, py, pz, s); }, {
-    x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false,
+    x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: null, neonEaves: null, lions: false,
+    // E281: 14 m to the ridge beasts, not 18 (style-A's gate is about as tall as it is broad; A1·9's camera, 15 m up
+    // behind the gate, looks down on its roofs); its posts bare lacquer, no paper couplets (style-A, the A2 targets)
+    k: 0.78,
   });
   ctx.map.push({ x0: GATE.posts[0] - 0.6, z0: GATE.z - 1.2, x1: GATE.posts[3] + 0.6, z1: GATE.z + 1.2, kind: 'gate' });
 }
@@ -152,13 +197,14 @@ function lanternString(ctx: Ctx, a: Vector3, b: Vector3, spacing: number, k: Kit
 
 export function buildSquare(ctx: Ctx): void {
   const rng = ctx.rng;
-  const floor = ctx.kit('props'); // the balustrade's kit (one draw, budget.md)
+  // (E281: the balustrade, the tables and the lamps joined the square cluster's kit, 'paifang': one draw fewer, budget.md)
+  const floor = ctx.kit('paifang', true);
   flagstones(floor, PLAZA.x0, PLAZA.z0, PLAZA.x1, PLAZA.z1, Y0);
   flagstones(floor, STREET.x0, STREET.z0, STREET.x1, STREET.z1, Y0);
   // the plaza's lip over the Well
   floor.box(PLAZA.x0 - 0.3, Y0 - 1.4, (PLAZA.z0 + PLAZA.z1) / 2, 0.6, 1.4, PLAZA.z1 - PLAZA.z0, { wash: 0x8d8f93, line: 1.5, surf: SURF.concrete });
-  const props = ctx.kit('props', true);
-  const carve = { x: ctx.kitx('props'), side: 1 };
+  const props = floor;
+  const carve = { x: ctx.kitx('paifang'), side: 1 };
   balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0, false, carve, 'plaza');
   balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0, false, carve, 'street');
   ctx.map.push({ x0: PLAZA.x0, z0: PLAZA.z0, x1: PLAZA.x1, z1: PLAZA.z1, kind: 'plaza' });
@@ -172,9 +218,10 @@ export function buildSquare(ctx: Ctx): void {
   // mahjong: the hero lab's tables; the players are the TRELLIS sitters (with their own stools), instanced by main.ts
   // dome B round 9: one table brought to the spawn's mid-right, ~8 m ahead (style-A's mahjong players), beside the hawker
   const tables: [number, number, number, number][] = [[11.6, -19.4, 0.2, 4], [12.4, -10.6, -0.3, 3], [4.7, 0.4, 0.15, 4], [14.6, -4.2, 0.5, 2]];
-  const tx = ctx.kitx('props');
+  // E281: the east market (instanced booths and parasol tables, stalls.ts), on its own random stream
+  marketRow(ctx, new Rng(2811));
   for (const [tx0, tz0, tr, n] of tables) {
-    heroMahjong(props, tx, rng, tx0, Y0, tz0, tr, 0, 0x6f8fa8, false);
+    mahjongTable(props, rng, tx0, Y0, tz0, tr);
     for (const st of mahjongSeats(tx0, tz0, tr).slice(0, n)) ctx.sitters.push(standAt(st.x, st.z, st.yaw, 1));
   }
   // the crowd (dome B: the TRELLIS walkers only, the procedural mannequins are gone; the dome-B targets fill the square
@@ -197,6 +244,9 @@ export function buildSquare(ctx: Ctx): void {
     if (x > 13.9 && x < 15.5 && z > -24.4 && z < -23.0) return false; // the stele
     if (x > STALL.x0 - 0.4 && x < STALL.x1 + 0.4 && z > STALL.z1 && z < STALL.z1 + 3.4) return false; // the stall's tables
     if (x > 18 && x < 22 && z > 3.5 && z < 8.5) return false; // dome C1: the cone east of its camera, to the stair's foot
+    // E281: the market booths and their customers' strip, the parasol tables and their sitters
+    for (const [bx0, bz0] of BOOTHS) if (x > bx0 - 1.1 && Math.abs(z - bz0) < BOOTH.w / 2 + 0.3) return false;
+    for (const [px0, pz0] of PARASOLS) if ((x - px0) ** 2 + (z - pz0) ** 2 < 1.5 * 1.5) return false;
     // dome A2 (the anchor 4.5 m before the gate): its east and south foregrounds stay open (targets 6 and 7)
     if (x > 8 && x < 10.5 && z > -22.5 && z < -17.5) return false;
     if (x > 3.5 && x < 8.5 && z > -17.5 && z < -13) return false;
@@ -206,15 +256,20 @@ export function buildSquare(ctx: Ctx): void {
     if (along > 0 && along < 20 && across < along * 0.84 + 1.2) return false;
     return true;
   };
+  // (E281: the A1 / A2 targets fill the square with ~90 people, the gate's passage thickest: the zones grew by ~40)
   const zones: { n: number; x: [number, number]; z: [number, number]; yaw: () => number }[] = [
     // through the gate, north or south
-    { n: 14, x: [1.6, 11.2], z: [-27, -19.5], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.35, 0.35) },
+    { n: 20, x: [1.6, 11.2], z: [-27, -19.5], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.35, 0.35) },
+    // just past the gate, the street's first stretch
+    { n: 12, x: [1.8, 11.4], z: [-36, -27], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.3, 0.3) },
     // across the square in every direction
-    { n: 8, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
-    // the east strip by the shops and the stall
-    { n: 14, x: [14.5, 21.3], z: [-11.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    { n: 12, x: [2.2, 13], z: [-19.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    // the east strip by the market and the noodle stall
+    { n: 16, x: [14.5, 19.4], z: [-11.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the south half, toward the stair street
-    { n: 14, x: [2.5, 20.5], z: [1, 17], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    { n: 18, x: [2.5, 20.5], z: [1, 18], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    // along the balustrade south of the spawn, walking its length (A1·7: turned round, the promenade is busy)
+    { n: 9, x: [1.6, 6.5], z: [10.5, 19.2], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.3, 0.3) },
   ];
   for (const zn of zones) {
     let n = 0;
@@ -254,5 +309,8 @@ export function buildSquare(ctx: Ctx): void {
   // dome B: one more string over the square's north half (the targets hang lanterns across the square; a second one
   // nearer the spawn crowded the hero frame's sky)
   lanternString(ctx, new Vector3(-1.2, Y0 + 8.6, -19.5), new Vector3(22.6, Y0 + 9.2, -13.5), 2.0, str);
+  // E281: one over the south half, from the lamp by the balustrade to the east shops (A1·6 / A1·7's lanterns overhead;
+  // behind the spawn, out of the mockup's frame)
+  lanternString(ctx, new Vector3(1.1, Y0 + 4.4, 12), new Vector3(22.4, Y0 + 7.6, 14.5), 1.9, str);
   for (let z = -26; z > -150; z -= 6) lanternString(ctx, new Vector3(STREET.x0 - 0.2, Y0 + 6.5 + (z % 3), z), new Vector3(STREET.x1 + 0.2, Y0 + 7.2, z - 1.5), 1.8, str);
 }

@@ -266,7 +266,7 @@ function shrine(ctx: Ctx, k: Kit, x: KitX, sx: number, y: number, sz: number): v
     ctx.signs.place({ at: new Vector3(sx + dx, y + 1.15, sz + 0.27), normal: new Vector3(0, 0, 1), size: 0.1, spec: { text: dx < 0 ? '福而有德' : '正則為神', color: '#1a1614', vertical: true, style: 'paper', ink: '#d33a22' }, gain: 1.0 }, null);
   }
   // the little roof
-  curvedRoof(k, x, null, { cx: sx, y0: y + 1.88, cz: sz - 0.04, w: 1.9, d: 1.25, h: 0.55, lift: 0.22, flare: 0.12, tile: 0x1a4a3a, neon: null, ornaments: false });
+  curvedRoof(k, x, null, { cx: sx, y0: y + 1.88, cz: sz - 0.04, w: 1.9, d: 1.25, h: 0.55, lift: 0.22, flare: 0.12, tile: 0x1a4a3a, neon: null, ornaments: false, grid: [6, 4], roll: 0.22 });
   // the altar: a bronze censer with incense sticks, two candles, oranges on a plate, a teacup row
   k.lathe(sx, y + 0.58, sz + 0.2, [[0.1, 0], [0.16, 0.05], [0.17, 0.14], [0.14, 0.2], [0.15, 0.22]], 10, { wash: 0x6b5a3a, line: 0.8, gloss: true }, true, 0);
   for (let i = 0; i < 3; i++) {

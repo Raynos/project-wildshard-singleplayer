@@ -22,9 +22,13 @@ const WOOD_RAMP = [0x2a1d14, 0x3f2b1d, 0x563a26, 0x6e4a30, 0x86603f, 0xa07a55];
 const STEEL_RAMP = [0x3a3d44, 0x585d66, 0x7a808a, 0x9aa1ab, 0xb8bec6, 0xd2d6dc];
 const HUES = { skin: 0xb07a52, red: 0xa8321f, blue: 0x2f4f8e, green: 0x3f6a4a };
 
-/** which balustrade posts carry a lion (balustrade() leaves their lotus finial off): every third on the plaza run, the two ends of the street run */
+/**
+ * which balustrade posts carry a lion (balustrade() leaves their lotus finial off): the two ends of the street run.
+ * (E281: none on the plaza run any more — style-A and the A1 / A2 targets carry a lotus bud on every post there; the
+ * lion by the spawn read as a dark lump in the mockup's left foreground)
+ */
 export function lionOnPost(run: 'plaza' | 'street', i: number, n: number): boolean {
-  return run === 'plaza' ? i % 3 === 1 : i === 0 || i === n;
+  return run === 'plaza' ? false : i === 0 || i === n;
 }
 
 /** the gate's lion pedestals (gate.ts `lionPedestal`): the two spots before the centre posts, pedestal top height */
@@ -61,6 +65,19 @@ const queued: Matrix4[] = [];
  */
 export function placeLion(x: number, y: number, z: number, rotY: number, scale = 1): void {
   queued.push(place(x, y, z, rotY, scale));
+}
+
+/** E281: procedural sets drawn instanced (stalls.ts `marketRow`): one geometry, built at the first copy, and its copies */
+const sets = new Map<string, { geo: BufferGeometry; at: Matrix4[] }>();
+
+/**
+ * Queue one copy of a procedural set (a Kit + KitX geometry in its own frame) at `m`; `build` runs only for the first
+ * copy of `name`. `loadSquareProps` draws every set as ONE InstancedMesh (`set:<name>`, one draw) and empties the queue.
+ */
+export function placeSet(name: string, build: () => BufferGeometry, m: Matrix4): void {
+  let s = sets.get(name);
+  if (s === undefined) { s = { geo: build(), at: [] }; sets.set(name, s); }
+  s.at.push(m.clone());
 }
 
 function specs(): PropSpec[] {
@@ -123,5 +140,13 @@ export async function loadSquareProps(mat: ShaderMaterial): Promise<InstancedMes
       out.push(im);
     } catch (e: unknown) { console.warn(`nine-dragon: prop ${s.name} failed to load`, e); }
   }));
+  for (const [name, s] of sets) {
+    const im = new InstancedMesh(s.geo, mat, s.at.length);
+    im.name = `set:${name}`;
+    s.at.forEach((m, i) => { im.setMatrixAt(i, m); });
+    im.computeBoundingSphere();
+    out.push(im);
+  }
+  sets.clear();
   return out;
 }

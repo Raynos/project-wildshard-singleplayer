@@ -9,6 +9,7 @@ import type { ColliderDesc } from '../../../world/registry';
 import { BANYAN, GATE, HAWKER, PLAZA, STAIR, STALL, STREET, WELL, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairstreet';
 import { stairUpperColliders } from './stairstreet-upper';
+import { marketColliders } from './stalls';
 import { RIM, wellColliders, wellFloor } from './well';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
@@ -87,6 +88,7 @@ export function fragmentColliders(): FragmentColliders {
   out.push(span(BANYAN.x - 4.3, Y0, BANYAN.z - 1.6, BANYAN.x - 3.1, Y0 + 2.2, BANYAN.z - 0.6));         // the 九龍城 stele
   out.push(span(STALL.x0, Y0, STALL.z0, STALL.x1, Y0 + 3.2, STALL.z1 + 0.6, 'wood'));                    // the noodle stall
   out.push(span(HAWKER.x0, Y0, HAWKER.z0, HAWKER.x1, Y0 + 2.4, HAWKER.z1, 'wood'));                      // the hawker stall
+  out.push(...marketColliders());                                                                         // E281: the east market's booths
   return { floors, fronts, edges, props };
 }
 
