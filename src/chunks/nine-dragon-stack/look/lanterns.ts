@@ -54,6 +54,22 @@ function lanternGeometry(rings: number, segs: number, dressing: boolean): Buffer
   return out;
 }
 
+/**
+ * A lantern string strung from `a` to `b` (E281, the fabric pass): the cord as a sagging polyline and the hooks the
+ * lanterns hang from, one every `spacing` metres (a region's density: the square asks for more, the stair for fewer),
+ * the cord dropping `sag` metres at mid-span. Pure geometry: the caller hangs `ctx.lantern` at each hook and draws the
+ * cord (so the lanterns are these paper ones, with their LOD, glow and light pools).
+ */
+export function lanternString(a: Vector3, b: Vector3, spacing: number, sag: number, segs = 10): { cord: Vector3[]; hooks: Vector3[] } {
+  const at = (t: number): Vector3 => a.clone().lerp(b, t).add(new Vector3(0, -sag * 4 * t * (1 - t), 0));
+  const cord: Vector3[] = [];
+  for (let i = 0; i <= segs; i++) cord.push(at(i / segs));
+  const hooks: Vector3[] = [];
+  const n = Math.max(1, Math.floor(a.distanceTo(b) / Math.max(0.5, spacing)));
+  for (let i = 1; i < n; i++) hooks.push(at(i / n));
+  return { cord, hooks };
+}
+
 /** the near / far switch (m) */
 export const LOD_NEAR = 35;
 /** a lantern's bounding radius at scale 1 (body + tassel, around its centre) */

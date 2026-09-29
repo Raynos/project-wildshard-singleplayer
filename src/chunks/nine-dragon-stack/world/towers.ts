@@ -1,13 +1,15 @@
 // The towers around Lantern Square and up the street: Kowloon walls with shopfronts and hundreds of neon blade signs,
 // the skybridges, the hanging monorail (a train passes), the Cable Deck whose underside is an LED sky screen playing a
 // painted 青绿 landscape, the Crown's antenna forest against the one strip of real sky, cargo drones.
-import { Vector3 } from 'three';
+import { Color, Matrix4, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { shopfronts } from './facades';
-import { dressWall, spanStreet } from './facade/grammar';
+import { dressTower, dressWall, spanStreet } from './facade/grammar';
+import type { PieceId } from './facade/pieces';
 import { K, Kit, type Look } from './kit';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { dragonHook, person } from './props';
+import { lanternString } from '../look/lanterns';
 import { hipRoof } from './square';
 import { WORDS } from './words';
 import { SQ_DEPTH, buildStairStreet } from './stairstreet';
@@ -26,7 +28,7 @@ const EYE = new Vector3(1.45, Y0 + 1.6, 6);
  * A run of wall split into segments with their own skyline, each dressed by the facade lab's grammar (dressWall into
  * ctx.fd). The segments far from the spawn drop their small clutter (lod 1) or become painted shells (lod 2).
  */
-function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0: number, top: [number, number], _kit: string, opts: { timber?: number; shops?: boolean; roof?: boolean; openStart?: boolean; openEnd?: boolean; openDepth?: { span: number; depth: number } } = {}): void {
+function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0: number, top: [number, number], _kit: string, opts: { timber?: number; gallery?: number; shops?: boolean; roof?: boolean; openStart?: boolean; openEnd?: boolean; openDepth?: { span: number; depth: number } } = {}): void {
   const u = new Vector3().crossVectors(new Vector3(0, 1, 0), n).normalize();
   let x = 0;
   while (x < length - 0.5) {
@@ -42,7 +44,8 @@ function wallRun(ctx: Ctx, rng: Rng, p0: Vector3, n: Vector3, length: number, y0
     const od = opts.openDepth;
     const shallow = od !== undefined && ((opts.openEnd === true && x + seg >= length - od.span) || (opts.openStart === true && x <= od.span));
     dressWall(ctx.fd, at, n, seg, y0, rng.range(top[0], top[1]), Math.floor(rng.next() * 1e6), {
-      shops: opts.shops ?? false, street: Y0, detailY: [Y0 - 5, Y0 + 60], timber: opts.timber ?? 0.15, lit: 0.72, lod, roof: opts.roof ?? true,
+      // E281: the targets' Chongqing stacks — timber-clad columns, lattice windows, verandas on some floors
+      shops: opts.shops ?? false, street: Y0, detailY: [Y0 - 5, Y0 + 60], timber: opts.timber ?? 0.55, gallery: opts.gallery ?? 0.28, lit: 0.78, lod, roof: opts.roof ?? true,
     }, shallow ? od.depth : 12, faces);
     x += seg;
   }
@@ -70,7 +73,28 @@ function bladeSigns(ctx: Ctx, rng: Rng, kit: Kit, wallX: number, zFrom: number, 
   }
 }
 
-function skybridge(ctx: Ctx, rng: Rng, x0: number, x1: number, z: number, y: number, width: number): void {
+/** lantern strings (E281): paper lanterns every `spacing` m on a sagging cord (in the blade signs' kit: no draw) */
+function strings(ctx: Ctx, kit: Kit, list: readonly (readonly [Vector3, Vector3])[], spacing: number, sagK: number, scale: number): void {
+  for (const [a, b] of list) {
+    const { cord, hooks } = lanternString(a, b, spacing, a.distanceTo(b) * sagK);
+    for (let i = 0; i + 1 < cord.length; i++) {
+      const p = cord[i], q = cord[i + 1];
+      if (p !== undefined && q !== undefined) kit.wire(p, q, 0.022, { wash: 0x1d1e22, line: 0.5 });
+    }
+    for (const h of hooks) ctx.lantern(h.x, h.y, h.z, scale);
+  }
+}
+
+/** a big neon blade on two arms out of a wall (x = wallX), its face toward +z; `out` = its inner edge off the wall */
+function heroBlade(ctx: Ctx, kit: Kit, text: string, col: number, wallX: number, outSign: number, out: number, y: number, z: number, size: number): void {
+  const w = size * 1.36;
+  const x = wallX + outSign * (out + w / 2);
+  ctx.signs.place({ at: new Vector3(x, y, z), normal: new Vector3(0, 0, 1), size, spec: { text, color: hex(col), vertical: true, style: 'tube' }, blade: true }, kit);
+  const h = size * (chars(text).length + 0.62);
+  for (const dy of [h / 2 - 0.4, -h / 2 + 0.4]) kit.beam(new Vector3(wallX, y + dy, z), new Vector3(x - outSign * (w / 2 - 0.2), y + dy, z), 0.09, 0.09, { wash: 0x2e3036, line: 0.8 });
+}
+
+function skybridge(ctx: Ctx, rng: Rng, x0: number, x1: number, z: number, y: number, width: number, people = 1): void {
   const k = ctx.kit('bridges', true);
   const ka = ctx.alpha('bridges-a');
   const len = x1 - x0;
@@ -81,7 +105,7 @@ function skybridge(ctx: Ctx, rng: Rng, x0: number, x1: number, z: number, y: num
   ka.quad(new Vector3(x1, y + 0.1, z - width / 2), new Vector3(-1, 0, 0), new Vector3(0, 1, 0), len, 2.5, glass);
   // a lit band under the roof and people crossing
   ctx.signs.light(new Vector3((x0 + x1) / 2, y + 2.45, z + width / 2 + 0.03), new Vector3(1, 0, 0), new Vector3(0, 1, 0), len - 1, 0.1, 0xffd9a0, 1.4);
-  for (let i = 0; i < Math.round(len / 5); i++) person(k, rng, rng.range(x0 + 1, x1 - 1), y, z + rng.range(-width / 3, width / 3), rng.chance(0.5) ? Math.PI / 2 : -Math.PI / 2);
+  for (let i = 0; i < Math.round((len / 5) * people); i++) person(k, rng, rng.range(x0 + 1, x1 - 1), y, z + rng.range(-width / 3, width / 3), rng.chance(0.5) ? Math.PI / 2 : -Math.PI / 2);
   for (let x = x0 + 3; x < x1 - 2; x += 5) ctx.lantern(x, y + 2.4, z + width / 2 + 0.5, 0.7);
 }
 
@@ -137,28 +161,59 @@ function cableDeck(ctx: Ctx, rng: Rng): void {
   k.box(78, Y0 + 50, 6, 70, 3, 64, { wash: 0x8a9099, kind: K.facade, row: 1.5, col: 4, seed: 12, line: 1.5 }, { bottom: null });
 }
 
+/**
+ * The far towers rising to the Crown: silhouettes in the fog around the strip of sky. E281: no longer plain boxes with a
+ * window grid (they read as modern slabs in every look-up) — each is the facade grammar's far tower (painted faces,
+ * 2–3 setback segments, parapets), banded by slab lips and glazed pent eaves on the faces toward the square (instanced),
+ * crowned with a glazed pavilion, tanks and an antenna forest with red beacons.
+ */
 function crown(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('crown');
-  // far towers rising to the Crown: silhouettes in the fog around the strip of sky
   const spots: [number, number][] = [];
   for (let i = 0; i < 40; i++) {
     const a = rng.range(0, Math.PI * 2);
     const r = rng.range(70, 210);
     spots.push([6 + Math.cos(a) * r, -10 + Math.sin(a) * r]);
   }
+  const up = new Vector3(0, 1, 0);
+  const put = (piece: PieceId, at: Vector3, n: Vector3, sx: number, sy: number, sz: number, c: number): void => {
+    const u = new Vector3().crossVectors(up, n);
+    ctx.fd.pieces.push({ piece, m: new Matrix4().makeBasis(u, up, n).scale(new Vector3(sx, sy, sz)).setPosition(at), c: new Color(c) });
+  };
   for (const [x, z] of spots) {
     const w = rng.range(14, 30), d = rng.range(14, 30);
     const top = rng.range(Y0 + 70, 252);
-    k.box(x, Y0 + 30, z, w, top - Y0 - 30, d, { wash: rng.pick([0x9aa2ae, 0x8e96a2, 0xa4a8ad]), kind: K.facade, row: 3.2, col: 2.6, seed: rng.next() * 50, line: 1 });
+    const y0 = Y0 + 30;
+    dressTower({ x, z, w, d, y0, h: top - y0 }, Math.floor(rng.next() * 1e6), { lod: 2, setbacks: true, wash: rng.pick([0x8c8a86, 0x85878a, 0x938a7e, 0x7f8388]), roof: false }, ctx.fd);
+    // the faces toward the square: slab lips every 2–3 floors, a glazed eave every 4–6 (the lumpy KWC outline)
+    const toC = new Vector3(6 - x, 0, -10 - z);
+    const faces: [Vector3, number, number][] = [];
+    if (Math.abs(toC.x) > 1) faces.push([new Vector3(Math.sign(toC.x), 0, 0), d, w / 2]);
+    if (Math.abs(toC.z) > 1) faces.push([new Vector3(0, 0, Math.sign(toC.z)), w, d / 2]);
+    for (const [n, len, half] of faces) {
+      let y = y0 + 3 * rng.int(2, 3);
+      const segTop = y0 + (top - y0) * 0.4;
+      while (y < segTop) {
+        const eave = rng.chance(0.3);
+        const at = new Vector3(x, y, z).addScaledVector(n, half);
+        if (eave) put('eave', at, n, len, 1.2, 1.2, rng.chance(0.75) ? 0x2f8a6a : 0x2e5fa3);
+        else put('box', at.clone().setY(y - 0.15), n, len + 0.4, 0.15, rng.range(0.6, 1.1), rng.pick([0x9a9c9c, 0x8f9294, 0x6e5238]));
+        y += 3 * rng.int(2, 3);
+      }
+    }
+    // the crown: a glazed pavilion, tanks, an antenna forest with red beacons (the lower segment's size bounds them)
+    const rw = w * 0.35, rd = d * 0.35;
+    if (rng.chance(0.55)) put(rng.chance(0.6) ? 'shackG' : 'shackB', new Vector3(x + rng.range(-rw, rw) * 0.5, top, z + rng.range(-rd, rd) * 0.5), new Vector3(0, 0, 1), rng.range(2.2, 3.2), rng.range(1.6, 2.4), rng.range(2.0, 2.8), 0xffffff);
+    for (let j = rng.int(0, 2); j > 0; j--) put('tank', new Vector3(x + rng.range(-rw, rw), top, z + rng.range(-rd, rd)), new Vector3(0, 0, 1), 1.6, 1.6, 1.6, 0xffffff);
     const nA = rng.int(1, 4);
     for (let j = 0; j < nA; j++) {
-      const ax = x + rng.range(-w / 3, w / 3), az = z + rng.range(-d / 3, d / 3);
+      const ax = x + rng.range(-rw, rw), az = z + rng.range(-rd, rd);
       const h = rng.range(8, 26);
       k.beam(new Vector3(ax, top, az), new Vector3(ax, top + h, az), 0.3, 0.3, { wash: 0x3a3d44, line: 1 });
       k.beam(new Vector3(ax - 1.5, top + h * 0.6, az), new Vector3(ax + 1.5, top + h * 0.6, az), 0.12, 0.12, { wash: 0x3a3d44, line: 0.8 });
       ctx.signs.light(new Vector3(ax, top + h + 0.3, az), new Vector3(1, 0, 0), new Vector3(0, 1, 0), 0.7, 0.7, NEON.red, 9, 2, rng.next());
     }
-    if (rng.chance(0.4)) k.cyl(x + rng.range(-w / 4, w / 4), top, z + rng.range(-d / 4, d / 4), 2.2, 2.2, 3.5, 10, { wash: 0x7c7f86, line: 1 });
+    for (let j = rng.int(2, 6); j > 0; j--) put('antenna', new Vector3(x + rng.range(-rw, rw), top, z + rng.range(-rd, rd)), new Vector3(1, 0, 0), 1.6, rng.range(4, 11), 1.6, 0xffffff);
   }
 }
 
@@ -223,6 +278,34 @@ export function buildTowers(ctx: Ctx): void {
     ctx.signs.place({ at: new Vector3(x, y, PLAZA.z0 + 1.2), normal: new Vector3(0, 0, 1), size, spec: { text, color: hex(col), vertical: true, style } }, bs);
     bs.beam(new Vector3(x, y, PLAZA.z0 - 0.6), new Vector3(x, y, PLAZA.z0 + 1.1), 0.1, 0.1, { wash: 0x2e3036, line: 0.8 });
   }
+  // E281: the targets' big stacked neon, high on the towers the spawn looks at — the east wall's upper floors (facing
+  // the spawn down the square) and across the Well on its west wall (mockup A's 九龍 / 牙科 / 火鍋 / 茶), clear of the
+  // galleries (2.4 m out)
+  const tall: [string, number, number, number, number, number, number][] = [
+    // text, colour, wall x, out sign, y, z, size
+    ['大押', NEON.red, PLAZA.x1 + 0.6, -1, Y0 + 31, -10.5, 1.7], ['酒家', NEON.jade, PLAZA.x1 + 0.6, -1, Y0 + 40, -19, 1.8],
+    ['按摩', NEON.magenta, PLAZA.x1 + 0.6, -1, Y0 + 27, -1.5, 1.4], ['賓館', NEON.cyan, PLAZA.x1 + 0.6, -1, Y0 + 48, -6, 1.9],
+    ['九龍', NEON.magenta, WELL.x0, 1, Y0 + 29, -31, 2.1], ['牙科', NEON.cyan, WELL.x0, 1, Y0 + 19.5, -22, 1.5],
+    ['火鍋', NEON.red, WELL.x0, 1, Y0 + 12.5, -34, 1.35], ['茶', NEON.jade, WELL.x0, 1, Y0 + 8, -14, 1.7],
+    ['藥房', NEON.red, WELL.x0, 1, Y0 + 38, -12, 1.6], ['旅館', NEON.amber, WELL.x0, 1, Y0 + 44, -26, 1.8],
+  ];
+  for (const [text, col, wx, sg, y, z, size] of tall) heroBlade(ctx, bs, text, col, wx, sg, 2.7, y, z, size);
+  // lantern strings at several heights: across the square and the Well (east towers → the Well's west wall), over the
+  // street beyond the gate, and across the square's north-east corner
+  const xE = PLAZA.x1 + 0.3, xW = WELL.x0 + 2.6;
+  strings(ctx, bs, [
+    [new Vector3(xE, Y0 + 17, -5), new Vector3(xW, Y0 + 19, -8)],
+    [new Vector3(xE, Y0 + 23, -15), new Vector3(xW, Y0 + 24, -19)],
+    [new Vector3(xE, Y0 + 14, 9), new Vector3(xW, Y0 + 15.5, 5)],
+    [new Vector3(xE, Y0 + 27.5, 3), new Vector3(xW, Y0 + 28.5, -2)],
+  ], 1.9, 0.06, 0.72);
+  strings(ctx, bs, [
+    [new Vector3(STREET.x0 + 0.4, Y0 + 11, -31), new Vector3(STREET.x1 - 0.4, Y0 + 12, -32)],
+    [new Vector3(STREET.x0 + 0.4, Y0 + 16, -37), new Vector3(STREET.x1 - 0.4, Y0 + 15, -36)],
+    [new Vector3(STREET.x0 + 0.4, Y0 + 20, -42), new Vector3(STREET.x1 - 0.4, Y0 + 21, -43)],
+    [new Vector3(15.5, Y0 + 16, PLAZA.z0 - 0.4), new Vector3(xE, Y0 + 18, -9)],
+    [new Vector3(19.5, Y0 + 21, PLAZA.z0 - 0.4), new Vector3(xE, Y0 + 22, -14)],
+  ], 1.5, 0.07, 0.68);
   dragonHook(bs, ctx, new Vector3(PLAZA.x1 + 0.6, Y0 + 12.5, -19), new Vector3(-1, 0, 0), 1.0);
   dragonHook(bs, ctx, new Vector3(STREET.x1, Y0 + 11, -46), new Vector3(-1, 0, 0), 1.0);
   dragonHook(bs, ctx, new Vector3(STREET.x0, Y0 + 9.5, -60), new Vector3(1, 0, 0), 1.0);
@@ -246,6 +329,11 @@ export function buildTowers(ctx: Ctx): void {
   monorail(ctx);
   cableDeck(ctx, rng);
   crown(ctx, rng);
+  // E281: two high skybridges over the square and the Well (east towers → the Well's west wall): the look-ups'
+  // crossings (targets A1·1, B2·1)
+  // (north of z = -6, so the stair-street's opening and the top-down views over its foot stay clear)
+  skybridge(ctx, rng, WELL.x0, PLAZA.x1 + 0.6, -7.5, Y0 + 37, 3.0, 0.3);
+  skybridge(ctx, rng, WELL.x0, PLAZA.x1 + 0.6, -16.5, Y0 + 46, 3.2, 0.3);
   // the stair-street climbing east: its foot and first flight (dome C1, stairstreet.ts: the plan, the physics, the tea
   // house, the hotpot shop, the 麵 sign and the dragon hook)
   buildStairStreet(ctx);

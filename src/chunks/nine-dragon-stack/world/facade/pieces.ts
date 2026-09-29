@@ -16,6 +16,8 @@ export const PAL = {
 } as const;
 
 const NX = X.clone().negate();
+/** a look the instance colour leaves alone (kind + 32; the program strips the flag) */
+const keep = (l: Look): Look => ({ ...l, kind: (l.kind ?? K.plain) + 32 });
 const ico0 = (() => {
   const g = new IcosahedronGeometry(1, 0);
   return Array.from(g.getAttribute('position').array);
@@ -87,6 +89,8 @@ function balconySolid(): Builder {
 /** a window cage (security grille) around a window `w` wide: 1.75 m tall, 0.5 m deep, real bars in a grid, a tray
  *  and a lid, the junk kept inside */
 export const CAGE_W = [1.5, 2.7] as const;
+/** the one cage piece's width (both grammar sizes scale it: E281, a draw fewer) */
+export const CAGE_W0 = 2.0;
 function cageOf(W: number): () => Builder {
   return () => {
     const o = new Builder();
@@ -283,10 +287,11 @@ function tank(): Builder {
 }
 
 /** a glazed hip roof (tile courses in `tile`, cinnabar ridges), w × d at y, rising `rise` */
-function hipRoof(o: Builder, y: number, w: number, d: number, rise: number, over: number, tile: number): void {
+function hipRoof(o: Builder, y: number, w: number, d: number, rise: number, over: number, tile: number, tinted = false): void {
   const hw = w / 2 + over, hd = d / 2 + over;
   const ridge = Math.max(0.2, hw - hd);
   const tl: Look = { wash: tile, kind: K.tiles, line: 1 };
+  const k = (l: Look): Look => (tinted ? keep(l) : l);
   const e0 = new Vector3(-hw, y, hd), e1 = new Vector3(hw, y, hd), e2 = new Vector3(hw, y, -hd), e3 = new Vector3(-hw, y, -hd);
   const r0 = new Vector3(-ridge, y + rise, 0), r1 = new Vector3(ridge, y + rise, 0);
   const slope = Math.hypot(hd, rise);
@@ -295,28 +300,47 @@ function hipRoof(o: Builder, y: number, w: number, d: number, rise: number, over
   o.tri(e1, e2, r1, tl);
   o.tri(e3, e0, r0, tl);
   // the ridge and hip beams in cinnabar, the eave fascia in ink
-  const tr: Look = { wash: PAL.cinnabar, line: 0.9 };
+  const tr: Look = k({ wash: PAL.cinnabar, line: 0.9 });
   o.beam(r0, r1, 0.12, 0.12, tr);
   for (const [e, r] of [[e0, r0], [e1, r1], [e2, r1], [e3, r0]] as const) o.beam(e, r, 0.08, 0.08, tr);
   o.beam(r0.clone().add(new Vector3(0, 0.05, 0)), r0.clone().add(new Vector3(-0.2, 0.35, 0)), 0.1, 0.1, tr);
   o.beam(r1.clone().add(new Vector3(0, 0.05, 0)), r1.clone().add(new Vector3(0.2, 0.35, 0)), 0.1, 0.1, tr);
-  const fas: Look = { wash: 0x3b3a36, line: 0.9 };
+  const fas: Look = k({ wash: 0x3b3a36, line: 0.9 });
   o.beam(e0, e1, 0.06, 0.1, fas);
   o.beam(e2, e3, 0.06, 0.1, fas);
 }
 
-/** a rooftop shack: tin / board walls, a door, a lit window, a glazed hip roof (malachite; the instance tint may
- *  swap it toward azurite via a second variant) */
-function shackOf(tile: number): () => Builder {
-  return () => {
-    const o = new Builder();
-    o.box(0, 0, 0, 3.2, 2.4, 2.6, { wash: PAL.shack, kind: K.slats, p1: 0.3, line: 1 });
-    o.box(0.7, 1.0, 1.31, 1.0, 0.8, 0.02, { wash: 0xffc27a, kind: K.sign, emit: 0.9, line: 1 });
-    o.box(-0.8, 0, 1.31, 0.8, 1.9, 0.02, { wash: PAL.timber, kind: K.panel, line: 1 });
-    o.box(0, 2.4, 0, 3.4, 0.14, 2.8, { wash: PAL.cinnabar, line: 1 });
-    hipRoof(o, 2.54, 3.2, 2.6, 1.2, 0.45, tile);
-    return o;
-  };
+/** a rooftop shack: tin / board walls, a door, a lit window, a glazed hip roof. One piece for both glazes (E281: a
+ *  draw fewer): the roof tiles are white and take the instance colour (malachite / azurite), the rest is `keep` */
+function shack(): Builder {
+  const o = new Builder();
+  o.box(0, 0, 0, 3.2, 2.4, 2.6, keep({ wash: PAL.shack, kind: K.slats, p1: 0.3, line: 1 }));
+  o.box(0.7, 1.0, 1.31, 1.0, 0.8, 0.02, keep({ wash: 0xffc27a, kind: K.sign, emit: 0.9, line: 1 }));
+  o.box(-0.8, 0, 1.31, 0.8, 1.9, 0.02, keep({ wash: PAL.timber, kind: K.panel, line: 1 }));
+  o.box(0, 2.4, 0, 3.4, 0.14, 2.8, keep({ wash: PAL.cinnabar, line: 1 }));
+  hipRoof(o, 2.54, 3.2, 2.6, 1.2, 0.45, 0xffffff, true);
+  return o;
+}
+
+/** a unit box (x ∈ ±0.5, y 0..1, z 0..1 out of the wall): the ledges, bay boxes and gallery posts in one draw (E281);
+ *  batch.ts scales it to each and the instance colour washes it */
+function box(): Builder {
+  const o = new Builder();
+  o.boxAxes(new Vector3(0, 0.5, 0.5), X, Y, Z, 0.5, 0.5, 0.5, { wash: 0xffffff, line: 1.1 }, { top: { wash: 0xf2f2ee, line: 1.2 }, bottom: { wash: 0xb0b3b6, line: 1 } });
+  return o;
+}
+
+/** a timber lattice railing, 1 m of it (the galleries lay one per metre so the lattice keeps its pitch): top and
+ *  bottom rails, a square lattice of real flat bars; white, the instance colour is the timber (or the iron) */
+function rail(): Builder {
+  const o = new Builder();
+  const tb: Look = { wash: 0xffffff, line: 0.8 };
+  o.box(0, 0.94, 0, 1.0, 0.08, 0.1, tb, { sides: 1 | 2 | 4 | 8 });
+  o.box(0, 0.06, 0, 1.0, 0.07, 0.08, tb, { sides: 1 | 2 | 4 | 8, bottom: null });
+  const n = Z;
+  for (const x of [-0.5, -0.25, 0, 0.25]) o.flatBar(new Vector3(x + 0.125, 0.13, 0), new Vector3(x + 0.125, 0.94, 0), 0.028, n, tb);
+  for (const y of [0.38, 0.66]) o.flatBar(new Vector3(-0.5, y, 0), new Vector3(0.5, y, 0), 0.028, Y, tb);
+  return o;
 }
 
 /** an enclosed bay / bay window box: 1 m wide (scaled), 1 m tall (scaled), 0.6 deep; the grammar puts glass on it */
@@ -381,7 +405,9 @@ function dish(): Builder {
 
 export const PIECES = {
   balcony, balconySolid, balconyTimber, cageS: cageOf(CAGE_W[0]), cageW: cageOf(CAGE_W[1]), acUnit, acBox, pipe, laundryOut, laundryAlong, awning, plant, planter, signBox, signFlat,
-  tank, shackG: shackOf(PAL.malachite), shackB: shackOf(PAL.azurite), bayBox, ledge, eave, post, shutter, antenna, dish, lantern, couplet, washLine,
+  tank, shackG: shack, shackB: shack, bayBox, ledge, eave, post, shutter, antenna, dish, lantern, couplet, washLine,
+  // the shared geometries the batch draws several ids with (batch.ts DRAWN_AS)
+  box, rail, cage: cageOf(CAGE_W0), shack,
 } as const satisfies Record<string, () => Builder>;
 
 export type PieceId = keyof typeof PIECES;

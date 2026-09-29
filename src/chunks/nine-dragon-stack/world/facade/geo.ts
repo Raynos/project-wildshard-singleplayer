@@ -3,7 +3,7 @@
 // w, h) and which way its u runs (aTan), so the Jiehua program rules its edges at a constant pixel width with fwidth —
 // and keeps doing so when an instance is scaled non-uniformly (the vertex shader rescales aFace by the instance's
 // stretch along aTan and along normal × aTan). One layout for merged and instanced geometry alike.
-import { BufferGeometry, Color, Float32BufferAttribute, type Matrix4, Matrix3, Uint32BufferAttribute, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, type Matrix4, Matrix3, Uint16BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 
 /** pattern kinds the material draws (aPat.x) */
 export const K = {
@@ -151,6 +151,27 @@ export class Builder {
     this.quad(p0.clone().addScaledVector(side, w), side.clone().negate(), dir, w, len, look, E.sides);
   }
 
+  /**
+   * A wire (cable, rope, a lantern string's cord): a three-sided prism from a to b, radius r, no end caps (the joints
+   * of a sagging run hide them) — 12 vertices where a beam box takes 24. Its long edges are ruled: an ink line.
+   */
+  wire(a: Vector3, b: Vector3, r: number, look: Look): void {
+    const dir = new Vector3().subVectors(b, a);
+    const len = dir.length();
+    if (len < 1e-4) return;
+    dir.divideScalar(len);
+    const s0 = new Vector3().crossVectors(dir, Math.abs(dir.y) > 0.9 ? X : Y).normalize();
+    const s1 = new Vector3().crossVectors(dir, s0).normalize();
+    const w = r * Math.sqrt(3);
+    for (let i = 0; i < 3; i++) {
+      const t0 = (i / 3) * Math.PI * 2, t1 = ((i + 1) / 3) * Math.PI * 2;
+      const o0 = s0.clone().multiplyScalar(Math.cos(t0) * r).addScaledVector(s1, Math.sin(t0) * r);
+      const o1 = s0.clone().multiplyScalar(Math.cos(t1) * r).addScaledVector(s1, Math.sin(t1) * r);
+      // wound so the face looks outward
+      this.quad4(a.clone().add(o0), a.clone().add(o1), b.clone().add(o1), b.clone().add(o0), w, len, look, E.sides);
+    }
+  }
+
   /** a tapered vertical cylinder; sides ruled only at the rims (a jiehua pipe has no facet lines) */
   cyl(x: number, y: number, z: number, r0: number, r1: number, h: number, segs: number, look: Look,
     opt: { caps?: boolean; edges?: number } = {}): void {
@@ -207,7 +228,8 @@ export class Builder {
       this.pos.push(p.x, p.y, p.z);
       this.nor.push(q.x, q.y, q.z);
       const r = o.col[i * 3] ?? 0, g = o.col[i * 3 + 1] ?? 0, b = o.col[i * 3 + 2] ?? 0;
-      if (tint === null) this.col.push(r, g, b); else this.col.push(r * tint.r, g * tint.g, b * tint.b);
+      // (kind + 32: a face the instance tint leaves alone, see the program)
+      if (tint === null || (o.pat[i * 4] ?? 0) >= 32) this.col.push(r, g, b); else this.col.push(r * tint.r, g * tint.g, b * tint.b);
       this.face.push((o.face[i * 4] ?? 0) * su, (o.face[i * 4 + 1] ?? 0) * sv, (o.face[i * 4 + 2] ?? 0) * su, (o.face[i * 4 + 3] ?? 0) * sv);
       this.tan.push(tw.x, tw.y, tw.z);
       for (let k = 0; k < 4; k++) this.pat.push(o.pat[i * 4 + k] ?? 0);
@@ -217,19 +239,48 @@ export class Builder {
     for (const ix of o.idx) this.idx.push(ix + base);
   }
 
+  /** drop the transient JS arrays once build() copied them (a merged shell is ~130 k vertices of number[]) */
+  release(): void {
+    this.pos = []; this.nor = []; this.col = []; this.face = []; this.tan = []; this.pat = []; this.misc = []; this.idx = [];
+    this.n = 0;
+  }
+
+  /**
+   * The packed layout (E281, the fabric pass: the shell is the lane's biggest geometry): position and aFace stay
+   * float (metres the ruling needs exact), the directions are normalized bytes (the program re-normalizes them), the
+   * wash is a normalized byte, the pattern and misc words are half floats (kinds, flags and metre pitches all exact
+   * enough there). 52 bytes a vertex instead of 88, four-byte aligned for the phone's Metal. The program reads the
+   * same values (a vec3 attribute takes the first three of a padded four).
+   */
   build(): BufferGeometry {
+    const n = this.n;
+    const nor = new Int8Array(n * 4), tan = new Int8Array(n * 4), col = new Uint8Array(n * 4);
+    const pat = new Uint16Array(n * 4), misc = new Uint16Array(n * 2);
+    const sn = (v: number): number => Math.round(Math.max(-1, Math.min(1, v)) * 127);
+    const un = (v: number): number => Math.round(Math.max(0, Math.min(1, v)) * 255);
+    const h = (v: number): number => DataUtils.toHalfFloat(v);
+    for (let i = 0; i < n; i++) {
+      for (let k = 0; k < 3; k++) {
+        nor[i * 4 + k] = sn(this.nor[i * 3 + k] ?? 0);
+        tan[i * 4 + k] = sn(this.tan[i * 3 + k] ?? 0);
+        col[i * 4 + k] = un(this.col[i * 3 + k] ?? 0);
+      }
+      col[i * 4 + 3] = 255;
+      for (let k = 0; k < 4; k++) pat[i * 4 + k] = h(this.pat[i * 4 + k] ?? 0);
+      misc[i * 2] = h(this.misc[i * 2] ?? 0);
+      misc[i * 2 + 1] = h(this.misc[i * 2 + 1] ?? 0);
+    }
     const g = new BufferGeometry();
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
-    g.setAttribute('normal', new Float32BufferAttribute(this.nor, 3));
-    g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
+    g.setAttribute('normal', new BufferAttribute(nor, 4, true));
+    g.setAttribute('color', new BufferAttribute(col, 4, true));
     g.setAttribute('aFace', new Float32BufferAttribute(this.face, 4));
-    g.setAttribute('aTan', new Float32BufferAttribute(this.tan, 3));
-    g.setAttribute('aPat', new Float32BufferAttribute(this.pat, 4));
-    g.setAttribute('aMisc', new Float32BufferAttribute(this.misc, 2));
-    g.setIndex(new Uint32BufferAttribute(this.idx, 1));
+    g.setAttribute('aTan', new BufferAttribute(tan, 4, true));
+    g.setAttribute('aPat', new Float16BufferAttribute(pat, 4));
+    g.setAttribute('aMisc', new Float16BufferAttribute(misc, 2));
+    g.setIndex(n < 65536 ? new Uint16BufferAttribute(this.idx, 1) : new Uint32BufferAttribute(this.idx, 1));
     g.computeBoundingSphere();
     g.computeBoundingBox();
     return g;
   }
 }
-

@@ -151,6 +151,27 @@ export class Kit {
     this.boxAxes(c, side, dir, nup, w / 2, len / 2, h / 2, look);
   }
 
+  /**
+   * A wire (a cable, a lantern string's cord): a three-sided prism from a to b, radius r, no end caps — 12 vertices
+   * where a beam box takes 24 (E281). Its long edges are ruled, so it draws as an ink line.
+   */
+  wire(a: Vector3, b: Vector3, r: number, look: Look): void {
+    const dir = new Vector3().subVectors(b, a);
+    const len = dir.length();
+    if (len < 1e-4) return;
+    dir.divideScalar(len);
+    const s0 = new Vector3().crossVectors(dir, Math.abs(dir.y) > 0.9 ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0)).normalize();
+    const s1 = new Vector3().crossVectors(dir, s0).normalize();
+    const w = r * Math.sqrt(3);
+    const lk: Look = { ...look, edges: look.edges ?? E.rims };
+    for (let i = 0; i < 3; i++) {
+      const t0 = (i / 3) * Math.PI * 2, t1 = ((i + 1) / 3) * Math.PI * 2;
+      const o0 = s0.clone().multiplyScalar(Math.cos(t0) * r).addScaledVector(s1, Math.sin(t0) * r);
+      const o1 = s0.clone().multiplyScalar(Math.cos(t1) * r).addScaledVector(s1, Math.sin(t1) * r);
+      this.quad4(a.clone().add(o1), b.clone().add(o1), b.clone().add(o0), a.clone().add(o0), len, w, lk, 0, 0, E.rims);
+    }
+  }
+
   /** a tapered cylinder / cone; sides are ruled only at the rims (a jiehua column has no facet lines) */
   cyl(x: number, y: number, z: number, r0: number, r1: number, h: number, segs: number, look: Look,
     opt: { caps?: boolean; edges?: number; a0?: number; a1?: number } = {}): void {

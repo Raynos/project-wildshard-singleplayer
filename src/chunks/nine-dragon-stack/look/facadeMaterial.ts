@@ -65,17 +65,21 @@ void main() {
 #endif
   mat3 m3 = mat3(m);
   // keep aFace in metres under a non-uniform instance scale: rescale by the stretch along u and along v = n × u
-  float su = length(m3 * aTan);
-  float sv = length(m3 * cross(normal, aTan));
+  // (the directions come as normalized bytes: re-normalized here)
+  vec3 tn = normalize(aTan), nn = normalize(normal);
+  float su = length(m3 * tn);
+  float sv = length(m3 * cross(nn, tn));
   vFace = aFace * vec4(su, sv, su, sv);
   vec4 wp = m * vec4(pos, 1.0);
   vWorld = wp.xyz;
-  vNormal = normalize(transpose(inverse(m3)) * normal);
-  vColor = color;
+  vNormal = normalize(transpose(inverse(m3)) * nn);
+  vColor = color.rgb;
+  // kind + 32 marks a face the instance colour leaves alone (a shack's walls under its tinted roof)
+  float keep = step(31.5, aPat.x);
 #ifdef USE_INSTANCING_COLOR
-  vColor *= instanceColor;
+  vColor *= mix(instanceColor, vec3(1.0), keep);
 #endif
-  vPat = aPat;
+  vPat = vec4(aPat.x - 32.0 * keep, aPat.yzw);
   vMisc = aMisc;
   vec4 vp = viewMatrix * wp;
   vViewZ = -vp.z;
@@ -152,6 +156,12 @@ void main() {
     } else if (finish == 2.0) {
       lines = max(lines, max(ruleEvery(q.x + 0.3, 1.25, fq.x, Wp * 0.7), lineAt(abs(q.y - 1.5), fq.y, Wp * 0.7)) * 0.55);
       col *= 0.97 + 0.07 * h12(floor(vec2(q.x / 1.25, q.y / 1.5)) + 3.0);
+    } else if (finish == 3.0) {
+      // timber cladding (E281): vertical planks, each its own tone, a rail at sill and lintel height
+      float wx2 = vWorld.x + vWorld.z;
+      lines = max(lines, ruleEvery(wx2, 0.26, fq.x, Wp * 0.55) * 0.6);
+      col *= 0.9 + 0.2 * h12(vec2(floor(wx2 / 0.26), floor(vWorld.y / 3.0)));
+      lines = max(lines, max(lineAt(abs(q.y - 0.8), fq.y, Wp * 0.9), lineAt(abs(q.y - 2.62), fq.y, Wp * 0.9)) * 0.7);
     }
     lines = max(lines, max(lineAt(q.y, fq.y, Wp * 1.3), lineAt(fh - q.y, fq.y, Wp * 1.3)));
     lines = max(lines, lineAt(abs(q.y - 0.24), fq.y, Wp * 0.7) * 0.75);
@@ -228,17 +238,33 @@ void main() {
     lines = max(lines, max(lineAt(abs(ins - 0.06), fwm, Wp * 0.8), lineAt(abs(ins - 0.11), fwm, Wp * 0.55)) * smoothstep(2.0, 5.0, 0.06 / fwm));
     col *= mix(1.0, 0.92, step(0.11, ins));
   } else if (kind == 11.0) {
-    // painted facade (far LOD): the same floors and windows, as pattern only
+    // painted facade (far LOD): the same Kowloon bays as pattern only (E281: no longer a slab's even window grid) —
+    // bays of 2–3 windows, each its own tone, some timber-clad, some with a balcony on every floor (a pale slab lip, a
+    // dark railing band), glazed eave stripes across the face every few floors; the face's seed rides in vPat.w ≥ 16
+    float fseed = floor(fl / 16.0);
     vec2 g = q / vec2(p2, p1);
     vec2 cell = floor(g), f = fract(g);
     vec2 fg = max(fwidth(g), vec2(1e-6));
     float det = smoothstep(2.0, 6.0, 1.0 / max(fg.x, fg.y));
-    float isLit = step(h12(cell + vPat.w), 0.45);
+    float bw = 2.0 + step(0.5, h12(vec2(fseed, 1.7)));
+    float bay = floor(cell.x / bw);
+    float timber = step(0.72, h12(vec2(bay, fseed + 3.3)));
+    float balc = step(0.5, h12(vec2(bay, fseed + 9.1)));
+    col *= 0.84 + 0.26 * h12(vec2(bay, fseed + 5.7));
+    col = mix(col, col * vec3(0.55, 0.42, 0.32), timber * 0.85);
+    float isLit = step(h12(cell + fseed * 7.0), 0.48 + 0.12 * timber);
     float win = cover1(f.x, 0.18, 0.82, fg.x) * cover1(f.y, 0.3, 0.8, fg.y);
     vec3 dark = col * vec3(0.42, 0.47, 0.58);
     vec3 cellC = mix(col, dark, win * (1.0 - isLit));
+    float lip = balc * cover1(f.y, 0.0, 0.07, fg.y);
+    float rail = balc * cover1(f.y, 0.07, 0.34, fg.y);
+    cellC = mix(cellC, col * 1.18, lip);
+    cellC = mix(cellC, col * 0.32, rail * 0.8);
+    float eave = step(0.8, h12(vec2(cell.y, fseed + 2.9))) * cover1(f.y, 0.85, 1.0, fg.y);
+    vec3 tile = mix(vec3(0.1, 0.3, 0.23), vec3(0.11, 0.2, 0.38), step(0.8, h12(vec2(cell.y, fseed))));
+    cellC = mix(cellC, tile, eave);
     col = mix(mix(col, dark, 0.3), cellC, det);
-    emitC = vec3(1.0, 0.7, 0.38) * mix(0.45 * 0.3, win * isLit, det) * 1.15;
+    emitC = vec3(1.0, 0.7, 0.38) * mix(0.45 * 0.3, win * isLit * (1.0 - rail * 0.6) * (1.0 - eave), det) * 1.15;
     lines = max(lines, ruleEvery(q.y, p1, fq.y, Wp) * 0.8);
   }
 
@@ -342,6 +368,7 @@ void main() {
   float mull = mod(style, 4.0);
   float frameK = mod(floor(style / 4.0), 4.0);
   float isDoor = mod(floor(style / 16.0), 2.0);
+  float lattice = mod(floor(style / 32.0), 2.0);
   float Wp = uLinePx * uDpr * 0.62;
   vec3 d = normalize(vP - vCamL);
   d.z = min(d.z, -1e-3);
@@ -384,7 +411,15 @@ void main() {
     else if (mull == 2.0) { mv = 1.0 - cover1(abs(gq.x - W * 0.5), 0.022, 99.0, fwg); mh = 1.0 - cover1(abs(gq.y - H * 0.5), 0.022, 99.0, fwg); }
     else { mv = 1.0 - cover1(abs(gq.x - W * 0.52), 0.03, 99.0, fwg); }
     float mullM = max(frameM, max(mv, mh));
+    if (lattice > 0.5) {
+      // a timber lattice (窗格, E281): square panes of ~0.3 m, the bars as thick as the mullions
+      vec2 np = max(vec2(2.0, 3.0), floor(vec2(W, H) / vec2(0.3, 0.32) + 0.5));
+      vec2 pp = vec2(W, H) / np;
+      vec2 ld = abs(fract(gq / pp + 0.5) - 0.5) * pp;
+      mullM = max(mullM, 1.0 - cover1(min(ld.x, ld.y), 0.017, 99.0, fwg));
+    }
     vec3 frameC = frameK == 0.0 ? vec3(0.1, 0.11, 0.13) : frameK == 1.0 ? vec3(0.72, 0.74, 0.74) : frameK == 2.0 ? vec3(0.2, 0.36, 0.3) : vec3(0.42, 0.18, 0.12);
+    if (lattice > 0.5) frameC = vec3(0.2, 0.12, 0.08);
     // 3) the room behind: a box as wide as the window + a margin, floor at the sill, ceiling 2.8 m above the floor
     float Rw = max(W + 1.4, 2.8);
     float D = 2.6 + 2.8 * hs;

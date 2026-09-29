@@ -82,7 +82,9 @@ const COLUMN_WEIGHTS: readonly (readonly [Mod, number])[] = [
   ['enclosed', 0.12], ['bay', 0.08], ['ac', 0.05], ['blank', 0.03],
 ];
 
-export const WALLS = [0xb3a998, 0xaba494, 0xbaad96, 0xa6a39a, 0xb2a590, 0xbbb09c, 0xa5a698, 0xacaaa2, 0xbcaa8c, 0xa3a494] as const;
+export const WALLS = [0xa89d8a, 0xa19a88, 0xae9f86, 0x9b9a90, 0xa69884, 0xafa28c, 0x9a9b8d, 0xa29f97, 0xb09c7e, 0x989a8b, 0x8f887b, 0x958b7c] as const;
+/** the timber cladding of a Chongqing stilt-house front (E281): dark lacquered boards */
+const TIMBER = [0x5a4230, 0x4e3a2b, 0x634633, 0x553a2c, 0x6a4a34] as const;
 const WARM = [0xffc98a, 0xffbf78, 0xffd6a2, 0xf6b070, 0xffcd96] as const;
 const COOL = [0xd9efe8, 0xc4e2ff] as const;
 const AWN = [PAL.cinnabar, PAL.azurite, PAL.malachite, 0xd9a441, 0xe8e4d8, 0x7e1e1a] as const;
@@ -106,6 +108,9 @@ interface Face { o: Vector3; u: Vector3; n: Vector3; len: number; y0: number; y1
 interface Cell { mod: Mod; aoTop: number; aoAll: number; stainX: number; stain: number; spill: number; spillC: number }
 
 class Emit {
+  /** the module being emitted is a timber column: its windows are lattice (窗格) */
+  lattice = false;
+
   constructor(readonly out: Dressing, readonly rng: Rng, readonly fh: number, readonly lod: number, readonly dens: number,
     readonly timber: number, readonly lit: number) {}
 
@@ -134,7 +139,7 @@ class Emit {
     const curtain = r.chance(0.45) ? r.range(0.25, 0.7) : 0;
     const mull = r.int(0, 3);
     const frame = r.weighted<number>([[0, 0.5], [1, 0.35], [2, 0.1], [3, 0.05]]);
-    const style = mull + frame * 4 + (door ? 16 : 0);
+    const style = mull + (this.lattice ? 3 : frame) * 4 + (door ? 16 : 0) + (this.lattice ? 32 : 0);
     this.out.windows.push({ m, win: new Vector4(r.range(0, 97), lit, curtain, style), wall: new Color(wall), light });
   }
 }
@@ -220,7 +225,8 @@ export function dressWall(d: Dressing, p0: Vector3, n: Vector3, length: number, 
 
 /** a face with no pieces: one quad, floors ruled and a lit-window pattern painted (far towers, hidden backs) */
 function paintedFace(out: Dressing, f: Face, wash: number, fh: number, rng: Rng): void {
-  out.shell.quad(f.o, f.u, up, f.len, f.y1 - f.y0, { wash, kind: K.painted, p1: fh, p2: rng.pick([1.8, 2.0, 2.2]), line: 1, edges: E.sides });
+  // (the face's pattern seed rides above the edge bits: vPat.w = edges + 16 × seed)
+  out.shell.quad(f.o, f.u, up, f.len, f.y1 - f.y0, { wash, kind: K.painted, p1: fh, p2: rng.pick([1.8, 2.0, 2.2]), line: 1, edges: E.sides + 16 * rng.int(0, 63) });
 }
 
 function parapet(out: Dressing, fl: Face[], y: number, wash: number): void {
@@ -244,6 +250,11 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
   // ── 2. column programs, then per-floor mutations ──
   const cols: Mod[] = [];
   for (let b = 0; b < bays; b++) cols.push(rng.weighted(COLUMN_WEIGHTS));
+  // timber-clad columns (E281, the targets' Chongqing fronts): dark boarded cells, lattice windows, timber balconies,
+  // a glazed eave over most floors; no cages or bare AC stacks on them
+  const timberCol: boolean[] = [];
+  for (let b = 0; b < bays; b++) timberCol.push(rng.chance(em.timber * 0.45));
+  const TIMBER_MOD: Partial<Record<Mod, Mod>> = { cage1: 'win1', cage2: 'win2', ac: 'win2', balconySolid: 'balcony', blank: 'win1' };
   const galleryFloor: boolean[] = [];
   for (let fi = 0; fi < floors; fi++) galleryFloor.push(gal > 0 && fi > 0 && rng.chance(gal));
   const plan: Cell[][] = [];
@@ -254,6 +265,8 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     for (let b = 0; b < bays; b++) {
       let mod: Mod = cols[b] ?? 'win2';
       if (rng.chance(0.26)) mod = rng.weighted(COLUMN_WEIGHTS);
+      // a timber column's window cell is a timber balcony half the time (the stilt-house verandas)
+      if (timberCol[b] === true) mod = (mod === 'win1' || mod === 'win2' || mod === 'win3' || mod === 'cage1' || mod === 'cage2') && rng.chance(0.5) ? 'balcony' : TIMBER_MOD[mod] ?? mod;
       if (galleryFloor[fi] === true) mod = 'gallery';
       if (isShop) mod = 'shop';
       row.push({ mod, aoTop: 1, aoAll: 1, stainX: 0, stain: 0, spill: 0, spillC: 0 });
@@ -285,10 +298,19 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
   }
 
   // glazed pent-eave bands (腰檐): every 4–7 floors a whole floor gets a malachite / azurite eave across its bays
-  let nextEave = rng.int(2, 6);
+  let nextEave = rng.int(2, 4);
   for (let fi = 1; fi < floors - 1; fi++) {
-    if (fi < nextEave) continue;
-    nextEave = fi + rng.int(4, 7) - Math.round(em.timber * 2);
+    // a timber column carries its own eave over most floors (the stacked verandas of the targets)
+    if (fi < nextEave) {
+      for (let b = 0; b < bays; b++) {
+        const c = plan[fi]?.[b];
+        if (timberCol[b] !== true || c === undefined || c.mod === 'addon' || c.mod === 'gallery' || !rng.chance(0.55)) continue;
+        em.put('eave', f, (b + 0.5) * bw, f.y0 + (fi + 1) * fh - 0.08, 0, bw, 0.8, rng.range(0.7, 0.85), rng.chance(0.8) ? PAL.malachite : PAL.azurite);
+        c.aoTop = Math.min(c.aoTop, 0.7);
+      }
+      continue;
+    }
+    nextEave = fi + rng.int(3, 6) - Math.round(em.timber * 1.5);
     const tile = rng.chance(0.75) ? PAL.malachite : PAL.azurite;
     for (let b = 0; b < bays; b++) {
       const c = plan[fi]?.[b];
@@ -304,11 +326,16 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       const cell = plan[fi]?.[b];
       if (cell === undefined) continue;
       const sc = (b + 0.5) * bw;
+      em.lattice = timberCol[b] === true || (cell.mod === 'gallery' && rng.chance(0.5 + 0.4 * em.timber));
       module(em, f, cell, sc, y, bw, fh, wash, smallAt(y), rng, street);
+      em.lattice = false;
     }
     // a gallery: one slab along the face, real bars, posts at the seams, a glazed pent eave over it on some floors
     if (galleryFloor[fi] === true) gallery(em, f, y, fh, bays, bw, wash, rng, smallAt(y));
   }
+  // tall neon (E281, the targets' stacked vertical signs), 2–14 floors over the street: flat on a window cell (in front
+  // of its cage / bay box), or a blade hung out at a bay seam, where the balconies either side leave a gap
+  if (em.lod < 2) tallSigns(em, f, plan, bays, bw, floors, fh, street, galleryFloor, rng);
   // pipes at the bay seams: runs of 1–3 from the segment base to its top
   for (let k = 0; k <= bays; k++) {
     if (!rng.chance(0.7 * dens)) continue;
@@ -339,7 +366,8 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     const cell = plan[fi]?.[b];
     if (cell === undefined) continue;
     const y = f.y0 + fi * fh;
-    let w = shade(wash, rng.range(0.955, 1.045) * cell.aoAll);
+    const tcell = timberCol[b] === true && cell.mod !== 'shop';
+    let w = shade(tcell ? rng.pick(TIMBER) : wash, rng.range(0.955, 1.045) * cell.aoAll);
     // a repaired bay: now and then a whole cell in another wash
     if (rng.chance(0.06)) w = shade(rng.pick(WALLS), 0.98);
     let wt = shade(w, cell.aoTop);
@@ -351,7 +379,8 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     const p0 = f.o.clone().addScaledVector(f.u, b * bw).setY(y);
     // the finish runs in vertical strips (a column retiled, a column boarded), with the odd cell patched
     const fin = colFinish[b] ?? 0;
-    const finish = rng.chance(0.12) ? rng.int(0, 2) : fin;
+    // (finish 3: timber planks, the timber columns)
+    const finish = tcell ? 3 : rng.chance(0.12) ? rng.int(0, 2) : fin;
     out.shell.quad(p0, f.u, up, bw, fh, { wash: w, washTop: wt, kind: K.wall, p1: cell.stainX, p2: cell.stain * 0.999 + finish * 2, line: 1, edges });
   }
 }
@@ -365,7 +394,7 @@ function sag(o: Builder, a: Vector3, b: Vector3, depth: number, out: Vector3, r:
     const p = a.clone().lerp(b, t);
     p.y -= depth * 4 * t * (1 - t);
     p.addScaledVector(out, 0.1 * 4 * t * (1 - t));
-    o.beam(prev, p, r, r, { wash: 0x1d1e22, line: 0.5 });
+    o.wire(prev, p, r * 0.55, { wash: 0x1d1e22, line: 0.5 });
     prev = p;
   }
 }
@@ -418,7 +447,7 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
     }
     case 'balcony': case 'balconySolid': {
       const sx = (bw - 0.3) / BALCONY_W;
-      const piece: PieceId = m === 'balcony' && rng.chance(em.timber) ? 'balconyTimber' : m;
+      const piece: PieceId = m === 'balcony' && (em.lattice || rng.chance(Math.min(1, em.timber * 1.3))) ? 'balconyTimber' : m;
       em.put(piece, f, sc, y, 0, sx, 1, rng.range(0.95, 1.2), shade(0xffffff, rng.range(0.94, 1.04)));
       em.win(f, sc - bw * 0.22, y + 0.05, 0.9, 2.15, wash, 0, true);
       em.win(f, sc + bw * 0.18, sill, 1.3, wh, wash);
@@ -431,6 +460,8 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
         }
       }
       if (rng.chance(0.25 * dens)) em.put('awning', f, sc, y + 2.7, 1.1, bw - 0.3, 0.7, 0.55, rng.pick(AWN));
+      // a red lantern at a timber balcony's edge (the targets' warm dots up the walls)
+      if (piece === 'balconyTimber' && rng.chance(0.35)) em.put('lantern', f, sc + rng.range(-bw * 0.35, bw * 0.35), y + 2.75, 1.05, 1, 1, 1);
       if (rng.chance(0.3 * dens)) em.put('acUnit', f, sc + bw * 0.44 - 0.5, y + 2.0, 0, 1, 1, 1, shade(0xffffff, rng.range(0.88, 1.02)));
       return;
     }
@@ -522,6 +553,43 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
   }
 }
 
+/** the cell mods a flat sign may cover (nothing standing out past its 0.65 m) */
+const FLAT_OK = new Set<Mod>(['win1', 'win2', 'win3', 'blank', 'ac', 'cage1', 'cage2', 'bay']);
+/** the cell mods a blade may stand out between (no gallery, add-on room or shop canopy in its way) */
+const BLADE_BAD = new Set<Mod>(['gallery', 'addon', 'shop', 'enclosed']);
+
+function tallSigns(em: Emit, f: Face, plan: Cell[][], bays: number, bw: number, floors: number, fh: number, street: number,
+  galleryFloor: boolean[], rng: Rng): void {
+  const dens = em.dens;
+  for (let fi = 0; fi < floors - 1; fi++) {
+    const y = f.y0 + fi * fh;
+    const over = (y - street) / fh;
+    if (over < 1.5 || over > 14) continue;
+    for (let b = 0; b <= bays; b++) {
+      const r = rng.next();
+      if (r < 0.028 * dens && b < bays) {
+        // flat on the wall over this cell and the one above
+        const m0 = plan[fi]?.[b]?.mod, m1 = plan[fi + 1]?.[b]?.mod;
+        if (m0 === undefined || m1 === undefined || !FLAT_OK.has(m0) || !FLAT_OK.has(m1)) continue;
+        const col = rng.pick(NEONS);
+        em.out.signs.push({ at: f.o.clone().addScaledVector(f.u, (b + 0.5) * bw + rng.range(-0.4, 0.4)).addScaledVector(f.n, 0.66).setY(y + fh * rng.range(0.9, 1.2)),
+          normal: f.n.clone(), size: rng.range(0.95, 1.2), color: col, blade: true });
+      } else if (r < 0.052 * dens && b > 0 && b < bays) {
+        // a blade at the seam of bays b-1 | b, out from the wall on two arms
+        if (galleryFloor[fi] === true || galleryFloor[fi + 1] === true) continue;
+        const ms = [plan[fi]?.[b - 1]?.mod, plan[fi]?.[b]?.mod, plan[fi + 1]?.[b - 1]?.mod, plan[fi + 1]?.[b]?.mod];
+        if (ms.some((m) => m === undefined || BLADE_BAD.has(m))) continue;
+        const col = rng.pick(NEONS);
+        const size = rng.range(0.8, 1.2);
+        const out = 0.95 + size * 0.68;
+        const yc = y + fh * rng.range(0.8, 1.3);
+        em.out.signs.push({ at: f.o.clone().addScaledVector(f.u, b * bw).addScaledVector(f.n, out).setY(yc), normal: f.u.clone(), size, color: col, blade: true });
+        for (const dy of [0.7, -0.7]) em.put('box', f, b * bw, yc + dy * size, 0, 0.06, 0.06, out - size * 0.6, 0x3a3d44);
+      }
+    }
+  }
+}
+
 /** a room hung off the wall: a box `bs` bays wide and `fs` floors tall, its own windows, AC units and a tin lean-to */
 function addon(em: Emit, f: Face, s0: number, w: number, y: number, fs: number, fh: number, depth: number, rng: Rng): void {
   const o = em.out.shell;
@@ -555,20 +623,14 @@ function gallery(em: Emit, f: Face, y: number, fh: number, bays: number, bw: num
   const D = rng.range(1.8, 2.4);
   const c = f.o.clone().addScaledVector(f.u, f.len / 2).addScaledVector(f.n, D / 2).setY(y - 0.1);
   o.boxAxes(c, f.u, up, f.n, f.len / 2, 0.1, D / 2, { wash: shade(wash, 0.98), line: 1.8 }, { bottom: { wash: shade(wash, 0.7), line: 1 } });
-  // real bars along the edge, a top rail and posts at every seam
+  // a lattice railing of real bars along the edge (instanced, a metre a piece so the lattice keeps its pitch), posts
+  // at every seam
   const timber = rng.chance(em.timber);
-  const rail: Look = { wash: timber ? PAL.timber : PAL.rail, line: 0.7 };
-  const a = f.o.clone().addScaledVector(f.n, D - 0.05).setY(y);
-  o.beam(a.clone().setY(y + 1.0), a.clone().addScaledVector(f.u, f.len).setY(y + 1.0), 0.06, 0.06, rail);
-  o.beam(a.clone().setY(y + 0.12), a.clone().addScaledVector(f.u, f.len).setY(y + 0.12), 0.05, 0.05, rail);
-  const nb = Math.round(f.len / (timber ? 0.2 : 0.16));
-  for (let i = 1; i < nb; i++) {
-    const p = a.clone().addScaledVector(f.u, (i / nb) * f.len);
-    o.flatBar(p.clone().setY(y + 0.12), p.clone().setY(y + 1.0), timber ? 0.05 : 0.024, f.n, rail);
-  }
+  const nR = Math.max(1, Math.round(f.len));
+  for (let i = 0; i < nR; i++) em.put('rail', f, ((i + 0.5) * f.len) / nR, y, D - 0.05, f.len / nR, 1, 1, timber ? PAL.timber : PAL.rail);
   const red = timber || rng.chance(0.4);
   for (let k = 0; k <= bays; k++) em.put('post', f, Math.min(f.len - 0.12, Math.max(0.12, k * bw)), y, D - 0.15, 1, fh - 0.1, 1, red ? 0xffffff : 0x9a9a92);
-  if (rng.chance(0.35 + 0.5 * em.timber)) for (let k = 0; k < bays; k++) em.put('eave', f, (k + 0.5) * bw, y + fh - 0.12, 0, bw, 1, 1, rng.chance(0.8) ? PAL.malachite : PAL.azurite);
+  if (rng.chance(0.6 + 0.4 * em.timber)) for (let k = 0; k < bays; k++) em.put('eave', f, (k + 0.5) * bw, y + fh - 0.12, 0, bw, 1, 1, rng.chance(0.8) ? PAL.malachite : PAL.azurite);
   // red lanterns hung along the veranda's edge, a lamp by some doors
   for (let k = 0; k < bays; k++) {
     if (rng.chance(0.4 + 0.5 * em.timber)) em.put('lantern', f, (k + rng.range(0.3, 0.7)) * bw, y + fh - 0.3, D - 0.35, 1, 1, 1);
