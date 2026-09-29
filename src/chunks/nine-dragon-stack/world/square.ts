@@ -8,7 +8,7 @@ import { buildGate } from './gate';
 import { SURF } from '../look/paint';
 import { lionOnPost, placeSet } from './props3d';
 import { KitX, merge } from './hero/kitx';
-import { BOOTH, BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions } from './stalls';
+import { BOOTH, BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
 import { E, K, Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
 import { dragonHook, scooter } from './props';
@@ -372,6 +372,7 @@ export function buildSquare(ctx: Ctx): void {
   // steps out to its edge (moved, never dropped: the walkers' count, and so every later figure's coat, is unchanged)
   pavilions(ctx);
   pavilionDiners(ctx);
+  stallDiners(ctx);
   for (let i = walkers0; i < ctx.walkers.length; i++) {
     const m = ctx.walkers[i];
     if (m === undefined) continue;

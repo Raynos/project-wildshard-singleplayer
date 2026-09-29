@@ -175,6 +175,17 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
   }
   ctx.lantern(x0 + 0.1, aY1 - 0.1, aZ1, 0.75);
   ctx.lantern(x1 - 0.1, aY1 - 0.1, aZ1, 0.75);
+  // E281 pass 9: a row of lanterns along the awning's edge (the A2 targets' stall is hung with them), roast ducks on
+  // a rail behind the counter, a warm pool on the flagstones before it, the steam rising past the awning
+  for (const t of [0.3, 0.5, 0.7]) ctx.lantern(x0 + W * t, aY1 - 0.1, aZ1, 0.6);
+  k.beam(new Vector3(x0 + 0.4, y + 2.3, z1 - 0.95), new Vector3(x0 + 1.9, y + 2.3, z1 - 0.95), 0.03, 0.03, STEEL);
+  for (let i = 0; i < 5; i++) {
+    const hx = x0 + 0.55 + i * 0.3;
+    x.sweep([new Vector3(hx, y + 2.3, z1 - 0.95), new Vector3(hx, y + 2.08, z1 - 0.95)], () => 0.006, 3, { wash: 0x9aa0a6, line: 0 });
+    x.ellipsoid(new Vector3(hx, y + 1.94, z1 - 0.95), X, Y, Z, 0.075, 0.15, 0.06, { wash: 0x9a4a18, line: 0, accent: true, gloss: true }, (d) => 1 + (d.y > 0.5 ? -0.25 : 0), 4, 8);
+  }
+  ctx.emitters.push({ at: new Vector3(xc, y + 0.4, aZ1 + 0.9), color: new Color(0xffa860), w: W - 1, h: 0.6, power: 0.25, spill: 0.45 });
+  ctx.steam.push(new Vector3(xc - 1.1, y + 2.9, z1 + 0.4), new Vector3(xc - 1.0, y + 3.7, z1 + 0.7));
   ctx.emitters.push({ at: new Vector3(xc, y + 1.6, z1 - 0.2), color: new Color(0xffb870), w: W - 1, h: 1.8, power: 0.45, spill: 0.6 });
   ctx.emitters.push({ at: new Vector3(xc, y + 2.3, aZ1 - 0.6), color: new Color(0xffd0a0), w: W - 1.5, h: 0.6, power: 0.25, spill: 0.4 });
   // ── the signs: the white 麵 banner, the lit name board, a neon word on the roof ──
@@ -308,6 +319,7 @@ export function hawkerStall(ctx: Ctx, rng: Rng): void {
   x.ellipsoid(bulb, X, Y, Z, 0.055, 0.07, 0.055, { wash: 0xffd9a0, emit: 4.0, line: 0, accent: true }, () => 1, 4, 8);
   ctx.lantern(x0 - 0.05, aY1 - 0.1, aZ1 + 0.05, 0.75);
   ctx.lantern(x1 + 0.05, aY1 - 0.1, aZ1 + 0.05, 0.75);
+  ctx.lantern(xc, aY1 - 0.1, aZ1 + 0.05, 0.6);
   ctx.emitters.push({ at: new Vector3(xc, y + 1.6, z1 + 0.1), color: new Color(0xffb870), w: L - 0.6, h: 1.8, power: 0.45, spill: 0.6 });
   // the white 麵 banner at the west front corner, facing the spawn (the big stall's spec: one atlas cell)
   ctx.signs.place({ at: new Vector3(x0 + 0.4, y + 1.5, aZ1 + 0.03), normal: new Vector3(0, 0, 1), size: 0.72, spec: { text: '麵', color: '#b8261a', vertical: true, style: 'banner', ink: '#efe8d8' }, gain: 1.6, blade: true }, null);
@@ -516,6 +528,19 @@ export function marketRow(ctx: Ctx, rng: Rng): void {
     ctx.lantern(lp.x, lp.y, lp.z, 0.45);
     ctx.steam.push(new Vector3(-0.16, 0.85, 0.06).applyMatrix4(m));
   }
+}
+
+/**
+ * E281 pass 9: the stalls' empty seats filled — the noodle stall's third counter stool and its two folding tables'
+ * other two sides, the hawker's middle stool: six sitters, called last (a multiple of three, so no sitter changes coat)
+ */
+export function stallDiners(ctx: Ctx): void {
+  const { x0, z1 } = STALL;
+  ctx.sitters.push(seat(x0 + 0.8 + 2 * 1.4, z1 + 0.62, Math.PI));
+  for (const [tx, tz] of [[x0 + 1.3, z1 + 2.4], [x0 + 4.0, z1 + 2.6]] as const) {
+    ctx.sitters.push(seat(tx - 0.62, tz, Math.PI / 2), seat(tx, tz + 0.62, Math.PI));
+  }
+  ctx.sitters.push(seat(mid(HAWKER.x0, HAWKER.x1) + 0.3, HAWKER.z1 + 0.52, Math.PI));
 }
 
 /**

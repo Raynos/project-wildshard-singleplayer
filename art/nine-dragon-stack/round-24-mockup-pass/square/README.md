@@ -269,3 +269,26 @@ its camera).
 | textures | +0 | +0 |
 | mockup A | 127 draws / 1.55 M | 127 draws / 1.55 M |
 | worst A1 / A2 pose | A2·9 107 draws / 1.33 M | A2·9 108 draws / 1.34 M; A1·2 1.40 M |
+
+## Round 2, pass 9
+
+Sheets: `pass-9/A1-spawn-stand-sheet.jpg`, `pass-9/A2-gate-look-sheet.jpg`, `pass-9/noodle-stall-pass8-pass9.jpg` (the
+noodle stall from the square and from above, pass 8 | pass 9).
+
+What changed:
+
+- **Every seat taken.** Six sitters fill the stalls' empty seats: the noodle stall's third counter stool, its two
+  folding tables' other two sides, and the hawker's middle stool. They come last, a multiple of three.
+- **The noodle stall hung and lit.** It gets three more lanterns along the awning's edge, five roast ducks on a rail
+  behind the counter, a warm pool on the flagstones in front, and a steam column rising past the awning. The hawker
+  gets a lantern at the middle of its awning.
+
+Nothing was reverted. No collider changed. The gain is small at the dome cameras: the banyan hides the noodle stall in
+A2·3, where the fabric lane's big neon sign fills the foreground. It reads from above the stall.
+
+| | pass 8 | pass 9 (51bfc032 + this lane) |
+|---|---|---|
+| lane geometry | 28.91 MB | 28.95 MB (cap 29.08) |
+| textures | +0 | +0 |
+| mockup A | 127 draws / 1.55 M | 127 draws / 1.55 M |
+| worst A1 / A2 pose | A2·9 108 draws / 1.34 M | A2·9 108 draws / 1.35 M; A1·2 1.40 M |
