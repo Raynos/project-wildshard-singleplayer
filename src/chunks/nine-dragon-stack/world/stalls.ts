@@ -61,7 +61,9 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
   k.beam(new Vector3(x0, yb, z0 + 0.08), new Vector3(x1, yb, z0 + 0.08), 0.1, 0.12, STEEL);
   for (const px of [x0 + 0.08, xc, x1 - 0.08]) k.beam(new Vector3(px, yb, z0), new Vector3(px, yf, z1), 0.08, 0.1, STEEL);
   // the roof is a striped canvas too (the targets' stall reads from above as one red-and-white canopy), over steel
-  const roofLook: Look = { wash: 0xa82318, kind: K.cloth, row: 1, col: 0.46, line: 1, accent: true };
+  // (E281: plain weathered oxblood canvas, not candy stripes — the A2 targets' noodle stall and style-A's stall carry dark
+  // brown-red roofs and awnings, the stripes only on the valance; from the aerials the stripes were the square's loudest thing)
+  const roofLook: Look = { wash: 0x5e2218, kind: K.cloth, row: 0, col: 0.9, line: 1, accent: true };
   const rA = new Vector3(x0 - 0.15, yf + 0.08, z1 + 0.1), rB = new Vector3(x1 + 0.15, yf + 0.08, z1 + 0.1);
   const rC = new Vector3(x1 + 0.15, yb + 0.08, z0 - 0.1), rD = new Vector3(x0 - 0.15, yb + 0.08, z0 - 0.1);
   const rl = rA.distanceTo(rD);
@@ -72,10 +74,10 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
   k.box(x0 + 1.2, yb - 0.02, z0 + 0.7, 0.8, 0.4, 0.6, { wash: 0x6a5a44, kind: K.panel, line: 1 });
   // ── the striped awning with a scalloped valance, on two struts ──
   const aY0 = yf + 0.02, aY1 = y + 2.45, aZ1 = z1 + 1.7;
-  const awn: Look = { wash: 0xb8261a, kind: K.cloth, row: 1, col: 0.46, line: 1, accent: true };
+  const awn: Look = { wash: 0x6e2a1c, kind: K.cloth, row: 0, col: 0.9, line: 1, accent: true };
   const aA = new Vector3(x0 - 0.1, aY1, aZ1), aB = new Vector3(x1 + 0.1, aY1, aZ1), aC = new Vector3(x1 + 0.1, aY0, z1), aD = new Vector3(x0 - 0.1, aY0, z1);
   k.quad4(aA, aB, aC, aD, W + 0.2, aA.distanceTo(aD), awn);
-  k.quad4(aB, aA, aD, aC, W + 0.2, aA.distanceTo(aD), { ...awn, wash: 0x8e2016 });
+  k.quad4(aB, aA, aD, aC, W + 0.2, aA.distanceTo(aD), { ...awn, wash: 0x4a1a12 });
   const nFlap = Math.round((W + 0.2) / 0.46);
   for (let i = 0; i < nFlap; i++) {
     const fx = x0 - 0.1 + i * ((W + 0.2) / nFlap);
@@ -235,13 +237,13 @@ export function hawkerStall(ctx: Ctx, rng: Rng): void {
   for (const [px, pz, h] of [[x0 + 0.08, z1 - 0.08, yf], [x1 - 0.08, z1 - 0.08, yf], [x0 + 0.08, z0 + 0.08, yb], [x1 - 0.08, z0 + 0.08, yb]] as const) k.box(px, y, pz, 0.1, h - y, 0.1, STEEL);
   k.beam(new Vector3(x0, yf, z1 - 0.08), new Vector3(x1, yf, z1 - 0.08), 0.1, 0.12, STEEL);
   k.beam(new Vector3(x0, yb, z0 + 0.08), new Vector3(x1, yb, z0 + 0.08), 0.1, 0.12, STEEL);
-  const roof: Look = { wash: 0xa82318, kind: K.cloth, row: 1, col: 0.46, line: 1, accent: true };
+  const roof: Look = { wash: 0x5e2218, kind: K.cloth, row: 0, col: 0.9, line: 1, accent: true };
   const rA = new Vector3(x0 - 0.12, yf + 0.08, z1 + 0.12), rB = new Vector3(x1 + 0.12, yf + 0.08, z1 + 0.12);
   const rC = new Vector3(x1 + 0.12, yb + 0.08, z0 - 0.12), rD = new Vector3(x0 - 0.12, yb + 0.08, z0 - 0.12);
   quad2(k, rA, rB, rC, rD, L + 0.24, rA.distanceTo(rD), roof);
   // the awning out over the customers, with a scalloped valance
   const aY1 = y + 2.2, aZ1 = z1 + 1.35;
-  const awn: Look = { wash: 0xb8261a, kind: K.cloth, row: 1, col: 0.46, line: 1, accent: true };
+  const awn: Look = { wash: 0x6e2a1c, kind: K.cloth, row: 0, col: 0.9, line: 1, accent: true };
   quad2(k, new Vector3(x0 - 0.1, aY1, aZ1), new Vector3(x1 + 0.1, aY1, aZ1), new Vector3(x1 + 0.1, yf, z1), new Vector3(x0 - 0.1, yf, z1), L + 0.2, Math.hypot(aZ1 - z1, yf - aY1), awn);
   const nFlap = Math.round((L + 0.2) / 0.46);
   for (let i = 0; i < nFlap; i++) {

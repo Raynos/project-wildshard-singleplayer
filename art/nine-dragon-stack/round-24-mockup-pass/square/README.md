@@ -85,3 +85,29 @@ mockup A is judged as played from this pass on.
 | textures | — | +0 |
 | mockup A | 160 draws / 1.51 M | 124 draws / 1.49 M |
 | worst A1 / A2 pose | A2·9 113 draws; A1·5 1.31 M | A2·9 105 draws / 1.27 M; A1·5 1.29 M |
+
+## Pass 3
+
+Sheets: `pass-3/A1-spawn-stand-sheet.jpg`, `pass-3/A2-gate-look-sheet.jpg`, `pass-3/mockup-A-and-trunk.jpg` (style-A,
+mockup A as played, and the banyan's trunk from A2·6 before and after).
+
+What changed:
+
+- **The stalls' canvas.** The noodle stall's and the hawker's roofs and awnings are plain weathered oxblood. They were
+  red-and-white candy stripes, which from the aerials were the square's loudest thing. Style-A's stall and the A2
+  targets' noodle stall carry dark brown-red canvas. The stripes stay on the valances.
+- **The banyan's trunk.** It has 20 thick strands standing half out of the core, where it had 30 thin ones lying on it.
+  From the gate the trunk read as one smooth brown cone. Now it shows the targets' braid of fused roots, each strand its
+  own ridge.
+- **The promenade.** Seven walkers along the balustrade between the spawn frame's open foreground and the gate (A1·2,
+  A2·2). They stop at z −16.5, so A2·4 keeps its foreground clear to the balustrade.
+
+Nothing was reverted. The same pass tried the promenade zone out to z −19.5. It filled A2·4's foreground with walkers
+and was cut back before the commit.
+
+| | before (f1e00629, clean) | pass 3 (be97ea90 + this lane) |
+|---|---|---|
+| lane geometry | 30.70 MB | 29.31 MB (−1.39) |
+| textures | — | +0 |
+| mockup A | 160 draws / 1.51 M | 124 draws / 1.50 M |
+| worst A1 / A2 pose | A2·9 113 draws; A1·5 1.31 M | A2·9 104 draws / 1.27 M; A1·2 / A1·5 1.29 M |

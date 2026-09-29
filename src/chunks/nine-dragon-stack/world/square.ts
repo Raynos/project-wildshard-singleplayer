@@ -268,6 +268,9 @@ export function buildSquare(ctx: Ctx): void {
     { n: 16, x: [14.5, 19.4], z: [-11.5, 1], yaw: () => crowdRng.range(0, Math.PI * 2) },
     // the south half, toward the stair street
     { n: 18, x: [2.5, 20.5], z: [1, 18], yaw: () => crowdRng.range(0, Math.PI * 2) },
+    // the promenade along the balustrade past the spawn frame's open foreground, toward the gate (A1·2, A2·2: busy)
+    // (not past z −16.5: A2·4, from the gate toward the Well, keeps its foreground to the balustrade)
+    { n: 7, x: [1.5, 5], z: [-16.5, -11], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.3, 0.3) },
     // along the balustrade south of the spawn, walking its length (A1·7: turned round, the promenade is busy)
     { n: 9, x: [1.6, 6.5], z: [10.5, 19.2], yaw: () => (crowdRng.chance(0.5) ? Math.PI : 0) + crowdRng.range(-0.3, 0.3) },
   ];

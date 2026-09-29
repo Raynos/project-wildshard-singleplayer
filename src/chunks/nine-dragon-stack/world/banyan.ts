@@ -127,20 +127,22 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
   x.sweep(curve([axis(0), axis(0.4), axis(0.8), axis(1.0)], 3), (t) => 1.35 - t * 0.55, 12, BARK_DARK, { capEnd: true });
   // strangler strands fused down the core (style-A's trunk is a gnarled braid, never a smooth column): their own random
   // stream, so the tree's limbs and canopy stay where they were
+  // (E281: 20 thick strands standing half out of the core, not 30 thin ones lying on it — from the gate the trunk read as
+  // one smooth brown cone; the targets' trunk is a braid of fused roots, each strand its own ridge and shadow)
   const srng = new Rng(B.seed + 101);
-  for (let i = 0; i < 30; i++) {
-    const a0 = (i / 30) * Math.PI * 2 + srng.range(-0.1, 0.1);
+  for (let i = 0; i < 20; i++) {
+    const a0 = (i / 20) * Math.PI * 2 + srng.range(-0.12, 0.12);
     const twist = srng.range(0.6, 1.4) * (i % 2 === 0 ? 1 : -1);
+    const rad = srng.range(0.13, 0.24);
     const pts: Vector3[] = [];
     for (let j = 0; j <= 8; j++) {
       const t = j / 8;
       const ax = axis(t * 0.98);
       const a = a0 + twist * t;
-      const rr = 1.35 - t * 0.55 + 0.04 + 0.05 * Math.sin(t * 9 + i);
+      const rr = 1.35 - t * 0.55 + rad * 0.45 + 0.06 * Math.sin(t * 9 + i);
       pts.push(new Vector3(ax.x + Math.cos(a) * rr, ax.y, ax.z + Math.sin(a) * rr));
     }
-    const rad = srng.range(0.05, 0.11);
-    x.sweep(curve(pts, 3), (t) => rad * (1 - t * 0.4), 5, i % 3 === 0 ? BARK : BARK_DARK);
+    x.sweep(curve(pts, 3), (t) => rad * (1 - t * 0.45), 6, i % 3 === 0 ? BARK : BARK_DARK);
   }
   // knots and burls on the trunk
   for (let i = 0; i < 10; i++) {
