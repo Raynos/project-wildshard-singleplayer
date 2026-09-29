@@ -15,7 +15,7 @@ import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './r
  * Behaviour (`think`): HIDES under the wreck's broken deck (`EnemyWorld.hold`) until you come within `hold.r` of it,
  * then RISES through the planks over 1.5 s (arms up, water streaming — `world.splash`), and SHAMBLES after you at
  * 1.1 m/s while you stay inside `hold.guardR` of the hold — it guards the iron sword, it does not chase you down the
- * beach. Inside 1.8 m it winds the cutlass up over its head for 0.6 s and SWINGS: 18 damage within 1.9 m. When you
+ * beach. Inside 1.8 m it winds the cutlass up over its head for 0.6 s and SWINGS: 14 damage within 1.9 m. When you
  * leave, it drifts back to its spot and sinks under the deck again. Dies into a splash of droplets (Enemies.ts: the
  * light goes out) and dissolves when harvested, or on its own after a minute (`corpseFade`). With no hold (the dev harness) it stands guard where it was placed.
  */
@@ -219,7 +219,7 @@ function animateSailor(c: RigAnimCtx): void {
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
 const ST_HIDE = 0, ST_RISE = 1, ST_ATTACK = 2, ST_GUARD = 3, ST_SINK = 4;
-const SWING_R = 1.8, HIT_R = 1.9, SWING_DAMAGE = 18, WINDUP = 0.6, SWING_DUR = 0.9, SHAMBLE = 1.1, SINK_AFTER = 6;
+const SWING_R = 1.8, HIT_R = 1.9, SWING_DAMAGE = 14 /* E294: 18 → 14 */, WINDUP = 0.6, SWING_DUR = 0.9, SHAMBLE = 1.1, SINK_AFTER = 6;
 
 function thinkSailor(a: Animal, c: ThinkCtx): void {
   const m = a.mem as SailorMem, H = c.world.hold;

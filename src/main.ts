@@ -86,7 +86,7 @@ import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from './boot/pre
 import { packFor, streamPack } from './boot/pack';
 import { startShardPrefetch } from './boot/shardPrefetch';
 import { getActiveChunk } from './chunks/registry';
-import { meleeShard } from './chunks/ChunkDef';
+import { meleeShard, hitDamage } from './chunks/ChunkDef';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
 import { ShrineHum } from './audio/ShrineHum';
@@ -738,7 +738,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // used to be the landing thud), and the killer is remembered for the death toast (B2)
   const hurtArc = new HurtArc();
   let killer: Killer | null = null;
-  animals.onCharge = (a, dmg) => {
+  animals.onCharge = (a, raw) => {
+    const dmg = hitDamage(chunk, raw); // the shard's per-hit cap (E294: Driftwood 20)
     health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
     killer = { kind: a.kind, label: a.label };
     if (meleeShard(chunk) || pineFights !== null) hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the melee shards (D8; Nalati F2) + Pine Hollow (PH-F1)

@@ -212,17 +212,21 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   // ── island fauna (loot-agent): no forest here, so every plan asks for the open (`canopy: false`); the placer treats a
   // treeless shard as all clearing and keeps animals above the water line. Trails are only the four jetties' sandbars,
   // hence the wide band. Anchors: boar sounders on the south beach by the pier, the west back-beach palms and the north
-  // grove; a brown bear on the Wreck Cove sand, a black bear in the NW jungle under the shrine; a few deer on the plateau.
+  // grove; a brown bear in the south-east jungle grove below the plateau (E294: off the Wreck Cove sand and the wreck path,
+  // ~70 m from every quest path, past its 45 m sight), a black bear in the NW jungle under the shrine; a few deer on the plateau.
   fauna: [
     { kind: 'boar', count: 4, anchor: { x: 45, z: -150, rMin: 5, rMax: 25 }, canopy: false, trailBand: [8, 600] },
     { kind: 'boar', count: 3, anchor: { x: -140, z: -30, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
     { kind: 'boar', count: 4, anchor: { x: 30, z: 150, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'bear', count: 1, variants: ['brown'], anchor: { x: 126, z: 10, rMin: 8, rMax: 26 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'bear', count: 1, variants: ['brown'], anchor: { x: 56, z: -84, rMin: 4, rMax: 16 }, canopy: false, trailBand: [8, 600] },
     { kind: 'bear', count: 1, variants: ['black', 'black-blaze'], anchor: { x: -98, z: 108, rMin: 15, rMax: 35 }, canopy: false, trailBand: [8, 600] },
     { kind: 'deer', count: 3, anchor: { x: -24, z: -62, rMin: 16, rMax: 30 }, canopy: false, trailBand: [8, 600] },
   ],
   // open sand: a boar sees you from far off (Pine Hollow's numbers assume a forest) — ChunkDef.faunaTuning, merged over
   // the species' HuntTuning by AnimalManager.tuningFor
+  // E294 (Jake's yes, 2026-09-29): no single enemy hit takes more than 20 of your 100 health, so you survive ~5 hits of
+  // anything (brown bear 45 → 20, boars 25 / 32 / 40 → 20, the drowned captain's swing 24 → 20; the sailor's cutlass is 14 in sailor.ts)
+  maxHitDamage: 20,
   faunaTuning: {
     boar: { sightRange: 42, sightRangeGraze: 26, sightCone: 1.22, hearWalk: 18, hearSprint: 34, noticeRate: 0.65, impactAlert: 28 },
     deer: { sightRange: 44, sightRangeGraze: 22, noticeRate: 0.4 },

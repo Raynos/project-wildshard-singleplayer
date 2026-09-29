@@ -416,6 +416,13 @@ export interface ChunkHud {
 }
 /** a shard whose weapons are melee-first (Driftwood's swords, Nalati's sabre / spear): AnimalManager's telegraphed charges, the hurt arc */
 export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'nalati';
+/**
+ * What one enemy hit takes off the player's 100 health on this shard: the hit's own damage, capped at `ChunkDef.maxHitDamage`
+ * when the shard sets one (E294: Driftwood caps every hit at 20, so any common enemy needs ~5 hits to kill you). Falls and
+ * hazards are not enemy hits and do not come through here.
+ */
+export const hitDamage = (def: { maxHitDamage?: number | undefined }, damage: number): number =>
+  def.maxHitDamage === undefined ? damage : Math.min(damage, def.maxHitDamage);
 
 /**
  * The engine's post chain as a shard's render strategy sees it (`ShardRender.compose`, called once by
@@ -528,6 +535,8 @@ export interface ChunkDef {
    * the species' own by `AnimalManager.tuningFor` — Driftwood's boars see you from far off on open sand. Keyed by kind.
    */
   faunaTuning?: Partial<Record<FaunaKind, Partial<HuntTuning>>>;
+  /** the most one enemy hit may take off the player's 100 health (`hitDamage`; E294: Driftwood 20); omitted = uncapped */
+  maxHitDamage?: number;
   sky: ChunkSky;
   atmosphere: ChunkAtmosphere;
   grade: ChunkGrade;
