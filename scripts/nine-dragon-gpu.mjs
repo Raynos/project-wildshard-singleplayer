@@ -162,8 +162,10 @@ try {
     const cams = JSON.parse(readFileSync(join(ROOT, 'art/nine-dragon-stack/round-15-eight-domes', d, 'cameras.json'), 'utf8'));
     for (const v of cams.views) poses.push({ id: `${d.slice(0, 2)}·${v.n}`, eye: v.eye, look: v.look });
   }
+  // --ids: only these pose ids (`A1·7`, `mockup A`; the middle dot or a plain dot)
+  const ids = flag('ids', '').split(',').filter(Boolean).map((x) => x.replace('.', '·'));
   const summary = [];
-  for (const c of poses) {
+  for (const c of poses.filter((q) => ids.length === 0 || ids.includes(q.id))) {
     const look = c.look;
     await page.evaluate(() => { const g = window.__world.game; if (window.__ndGate !== undefined) g.frameGate = window.__ndGate; });
     await page.evaluate((v) => {
