@@ -1,6 +1,6 @@
 # Plan: model architecture (E306): what a model is, where it lives, how the Model Explorer shows it
 
-**State:** `in progress` 2026-09-29 — Jake picked option B1 (`defineModel` + `place()`; shared `src/models/`, each shard's own `src/chunks/<slug>/models/`) and gave the go for M0 (E306). M0a + M0b are in flight with the models agent; M1–M6 wait on Jake's review of M0 on the phone.
+**State:** `in progress` 2026-09-29 — Jake approved option B1 and the WHOLE migration (M0–M6), plus rows M7–M11 from his E315 notes: a Sets explorer, static enforcement, model review clips, the Blender practice and the image-to-threejs review. In flight: M0 (the models agent), M9 (the clip tool) and M10 + M11 (research). M1–M4 run shard by shard, in parallel, once M0's contract lands.
 
 ## Read this first
 
@@ -167,15 +167,37 @@ file in, one registration and one hand-written specimen out, and the card reads 
 test is 0 stuck, the other three shards compile to identical programs, and the before / after catalog is on one phone
 board.
 
-## Rows (B1 approved 2026-09-29; M0 approved, the rest after M0's review)
+## Jake's notes (E315, 2026-09-29)
+
+- Every real model is registered and lives in the right directory, shared or per shard. Anything reusable becomes a
+  model, and each model lists how many times the world uses it.
+- Places, zones, sets, groups and decorated scenes are a new explorable thing. You explore single models, then sets,
+  then the full world.
+- `place()` must be generic enough for real performance: 30 fps is the baseline on iOS and 60 fps the ideal. It
+  owns instancing, merging, LODs and per-copy culling for every shard, so a win there is a win everywhere. Every
+  migration wave is perf-neutral or better: the same or fewer draws, triangles and GPU ms on
+  `scripts/nine-dragon-gpu.mjs`-style rulers.
+- Collisions: the model owns its own-space colliders, and `place()` transforms them per placement (§2).
+- Each card says how it's made: CODE · BLENDER · TRELLIS · HUNYUAN · CC0.
+- Enforce the structure with static analysis (custom oxlint rules, scripts, tests), so new shards, features, zones,
+  sets and models can't fall through the gaps.
+- Review on the phone: an agent can make a ~10 s clip spinning one model, or five, in the Model Explorer for the Claude
+  app. Jake will also review the Model Explorer UI itself.
+
+## Rows (B1 and the whole migration approved 2026-09-29, E306 / E315)
 
 | # | Row | Size | Status |
 |---|---|---|---|
 | M0a | Explorer facts: count, drawnAs, pipeline badge, explicit category, `worldView` on a real copy | S | in flight (E306) |
 | M0b | `defineModel` / `place()` contract + Driftwood shore boulder (or the training dummy) | S–M | in flight (E306) |
-| M1 | Driftwood models | M | not approved |
-| M2 | Pine Hollow models | M | not approved |
-| M3 | Nalati models + Sets | M–L | not approved |
-| M4 | Nine Dragon models | M | not approved |
-| M5 | Creatures from the species list; Gear | S | not approved |
-| M6 | Delete the old paths; archive | S | not approved |
+| M1 | Driftwood models | M | approved; after M0 |
+| M2 | Pine Hollow models | M | approved; after M0 |
+| M3 | Nalati models + Sets | M–L | approved; after M0 |
+| M4 | Nine Dragon models | M | approved; after M0 |
+| M5 | Creatures from the species list; Gear | S | approved; after M0 |
+| M6 | Delete the old paths; archive | S | approved; last |
+| M7 | Sets explorer: explore sets / places / zones / scenes as their own mode between models and the world | M | approved; after M3 |
+| M8 | Static enforcement: oxlint rules in `lint/wildshard-plugin.js` + a check script: geometry only through `defineModel` / `place()` or declared world, models only under `src/models/` or `src/chunks/<slug>/models/`, no shard imports another's models, the contract test | S–M | approved; starts with M0b, grows each wave |
+| M9 | Model review clips: `scripts/model-spin.mjs`, a ~10 s portrait turntable of 1–5 models from the Model Explorer at phone size for the Claude app | S | in flight (E315) |
+| M10 | Blender best practice: `.blend` files or Blender scripts (or both), and the refactor to match | S (decide) + ? | in flight (E315, research) |
+| M11 | image-to-threejs skill: review it (Opus 5.5 native or a legacy 4.8-era project), then adopt, take a subset, or write our own skill from this repo's mockup → model workflow | S–M | in flight (E315, research) |
