@@ -187,3 +187,19 @@ the amber pools' sheen spread over the whole wet floor did.
 The landings and the square's slabs now read dark blue-grey wet stone under the runs (C2·4, C2·7, C2·8, A1·7, A1·8).
 
 Memory: geometry 150.9 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.59 M triangles (A2·9 1.63 M, 108 draws).
+
+## Pass 10: tight lantern glows (the coordinator's eye-check)
+
+`pass-10/` (A1, A2, D1, D2 and the mockups), captured at `5e092410` + the lane's file. The Well lane's new lantern rows
+under pass 5's ×3 halos read as dozens of soft orange bokeh blobs at mockup D and in D2: the frame looked out of focus.
+In the targets each lantern is a crisp small red globe with a tight glow, and far lanterns are bright red points.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| A lantern's halo disc 1.1 → 0.5 m (×1.2): about 2× the lantern's own radius, a tighter core and a short skirt | `look/light/halos.ts` | less fill |
+| With distance every halo shrinks and dims: from 12 to 28 m to 12 % of its gain and half its radius (`uHaloFar`), so past ~25 m a lantern is its own bright point with at most a faint rim | `look/light/halos.ts` | one smoothstep per corner |
+
+Mockup D and D2·5 / D2·8 read crisp again, the lanterns small globes and points; mockup A's gate lanterns stay lit.
+Rejected: the lantern gain ×4 with the tight disc (orange balls again).
+
+Memory: geometry 150.8 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.61 M triangles (A2·9 1.63 M, 108 draws).

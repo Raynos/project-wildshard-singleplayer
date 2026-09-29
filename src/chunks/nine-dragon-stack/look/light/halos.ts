@@ -12,7 +12,9 @@ import { type EmitterLike, isLamp } from './pools';
 
 /** per source kind: the disc's radius (m; signs: + a share of the board's size) and its gain */
 export const HALO = {
-  lantern: { r: 1.1, k: 0.16 },
+  // (round 2 fix: the Well's new lantern rows under ×3 halos read as dozens of soft orange bokeh blobs) a lantern's glow is
+  // tight: ~2× its own radius (the body's R 0.27 m at scale 1), not a 1.3 m soft disc
+  lantern: { r: 0.5, k: 0.16 },
   lamp: { r: 1.6, k: 0.3 },
   shop: { r: 0.0, rPerW: 0.45, rMin: 1.2, rMax: 2.6, k: 0.07 },
   sign: { r: 0.5, rPerSize: 0.45, k: 0.1 },
@@ -24,6 +26,8 @@ export interface HaloSources { lanterns: readonly EmitterLike[]; shops: readonly
 export const HALO_DEFAULTS = new Vector4(2, 1.2, 5, 0.12);
 /** (E281) the gain per kind: lanterns, lamps, shops, signs */
 export const HALO_KIND = new Vector4(3, 1, 2, 1);
+/** (round 2 fix) the distance fade: from x to y m the glow goes to z of its gain and w of its radius */
+export const HALO_FAR = new Vector4(12, 28, 0.12, 0.5);
 
 const NOISE_VS = /* glsl */ `
 float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
@@ -41,6 +45,7 @@ attribute vec4 aCol;
 attribute float aR;
 uniform vec4 uHalo;
 uniform vec4 uHaloKind;
+uniform vec4 uHaloFar;
 ${NOISE_VS}
 ${FOG_GLSL}
 varying vec2 vC;
@@ -48,7 +53,10 @@ varying vec3 vCol;
 void main() {
   vec3 toEye = uCam - aAt;
   float d = length(toEye);
-  float R = aR * uHalo.y;
+  // with distance the glow shrinks and dims (uHaloFar: from x to y m, to z of its gain and w of its radius): past ~25 m
+  // a lantern is its own bright point with at most a faint rim
+  float far = smoothstep(uHaloFar.x, uHaloFar.y, length(uCam - aAt));
+  float R = aR * uHalo.y * mix(1.0, uHaloFar.w, far);
   // pulled toward the eye by its radius: the wall behind a lantern does not cut the disc
   vec3 c = aAt + toEye / max(d, 1e-3) * min(R, d * 0.5);
   vec4 mv = viewMatrix * vec4(c, 1.0);
@@ -61,7 +69,7 @@ void main() {
   // a capped disc keeps its energy per pixel, not its total: a close lantern glows as hard, just not as wide
   // (E281) a gain per kind (aCol.w: 0 lantern, 1 lamp, 2 shop, 3 sign): the lanterns read as lit red globes at 20–40 m
   float kg = aCol.w < 0.5 ? uHaloKind.x : aCol.w < 1.5 ? uHaloKind.y : aCol.w < 2.5 ? uHaloKind.z : uHaloKind.w;
-  vCol = aCol.rgb * kg * uHalo.x * pow(max(T, 1e-4), ${EMIT_FOG}) * smoothstep(1.2, uHalo.z, d) * step(0.0, -mv.z);
+  vCol = aCol.rgb * kg * uHalo.x * mix(1.0, uHaloFar.z, far) * pow(max(T, 1e-4), ${EMIT_FOG}) * smoothstep(1.2, uHalo.z, d) * step(0.0, -mv.z);
   gl_Position = projectionMatrix * mv;
   if (max(vCol.r, max(vCol.g, vCol.b)) < 0.004) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 }
@@ -73,8 +81,8 @@ varying vec3 vCol;
 void main() {
   float r2 = dot(vC, vC);
   if (r2 >= 1.0) discard;
-  // a soft core over a wide skirt, zero at the rim
-  float a = (exp(-r2 * 7.0) * 0.55 + exp(-r2 * 2.6) * 0.45) * (1.0 - r2);
+  // a tight core over a short skirt, zero at the rim
+  float a = (exp(-r2 * 9.0) * 0.7 + exp(-r2 * 3.5) * 0.3) * (1.0 - r2);
   gl_FragColor = vec4(vCol * a, 0.0);
 }
 `;
@@ -110,7 +118,7 @@ export function buildHalos(shared: Shared, src: HaloSources): Halos {
   g.instanceCount = n;
   const knobs = HALO_DEFAULTS.clone();
   const mat = new ShaderMaterial({
-    uniforms: { ...shared.u, uHalo: { value: knobs }, uHaloKind: { value: HALO_KIND.clone() } },
+    uniforms: { ...shared.u, uHalo: { value: knobs }, uHaloKind: { value: HALO_KIND.clone() }, uHaloFar: { value: HALO_FAR.clone() } },
     vertexShader: VS, fragmentShader: FS,
     transparent: true, depthWrite: false,
     ...ADD_KEEP_ALPHA,
