@@ -1,13 +1,15 @@
 /**
  * The playgrounds' one HUD chip (E307): the playground's short name, the run's time and ↺ (back to the start), then the
- * status (READY · RUNNING · a pad, a lap) and the best. It sits right, under the minimap — the quest line's slot, which a
- * playground hides — clear of PAUSE, the vitals and the frame meter; the HUD's language (navy glass, a cyan hairline,
- * monospace capitals); styled by src/ui/styles/playgrounds.css.
+ * status (READY · RUNNING · a pad, a lap) and the best. On the phone it is a row of the base HUD's top-left status column
+ * (hudSlots — the one way anything joins the phone HUD, E154), under VITALS and the shard's own rows, clear of the toasts
+ * that hang under the minimap; on a desktop, top centre. The HUD's language (navy glass, a cyan hairline, monospace
+ * capitals); styled by src/ui/styles/playgrounds.css.
  *
  *   const chip = new PlaygroundChip('Grapple', () => restart());
  *   chip.show(true); chip.time(12.34, best); chip.status('RUNNING · P2', 'go')
  */
 import '../ui/styles/playgrounds.css';
+import { ROW, hudSlots } from '../ui/hudSlots';
 
 /** 83.4 s → "01:23.4" */
 export function clock(s: number): string {
@@ -38,7 +40,8 @@ export class PlaygroundChip {
     restart.addEventListener('pointerup', go);
     restart.addEventListener('click', go);
     restart.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
-    (document.getElementById('hud') ?? document.body).append(el);
+    if (hudSlots.touch) { el.dataset['slot'] = 'row'; hudSlots.statusRow(el, ROW.grass + 1, false); } // after the shard's own rows
+    else (document.getElementById('hud') ?? document.body).append(el);
     this.el = el;
   }
 

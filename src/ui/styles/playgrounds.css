@@ -1,8 +1,8 @@
 /* ─── feature playgrounds (src/playgrounds/, E307) ─── prefix ws-pg- ───
-   the run chip, right under the minimap (the quest line's slot: a playground hides the quest line): the playground's short
-   name, the run time, ↺ back to the start; under them the status (READY · RUNNING · a pad · a lap) and the best.
-   Navy glass, a cyan hairline, monospace capitals. */
-.ws-pg { position: absolute; right: 22px; top: 230px; z-index: 14; display: none; flex-direction: column; align-items: stretch; gap: 3px; min-width: 168px; max-width: 58vw; box-sizing: border-box; padding: 5px 6px 6px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-top-color: var(--ws-cyan); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-family: var(--ws-mono); color: var(--ws-text); pointer-events: none; }
+   the run chip: the playground's short name, the run time, ↺ back to the start; under them the status (READY · RUNNING ·
+   a pad · a lap) and the best. On the phone a row of the status column (hudSlots, under VITALS: the toasts keep the right
+   side), on a desktop top centre. Navy glass, a cyan hairline, monospace capitals. */
+.ws-pg { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); z-index: 14; display: none; flex-direction: column; align-items: stretch; gap: 3px; min-width: 168px; max-width: 58vw; box-sizing: border-box; padding: 5px 6px 6px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-top-color: var(--ws-cyan); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-family: var(--ws-mono); color: var(--ws-text); pointer-events: none; }
 .ws-pg.show { display: flex; }
 .ws-pg .ws-pg-row { display: flex; align-items: center; gap: 8px; }
 .ws-pg b { flex: 1; font-size: 8.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan); white-space: nowrap; }
@@ -14,7 +14,5 @@
 .ws-pg[data-tone="go"] .ws-pg-status { color: var(--ws-cyan); }
 .ws-pg[data-tone="done"] .ws-pg-status { color: var(--ws-amber); }
 .ws-pg[data-tone="done"] { border-color: rgba(255, 181, 71, 0.7); }
-/* the phone: the minimap is 27.2 vw across at the top right (minimap.css) — the chip hangs just under it */
-@media (max-width: 720px) {
-  .ws-pg { right: 14px; top: calc(var(--ws-top) + 27.2vw + 16px); }
-}
+/* in the phone's status column: as wide as its rows (touch.css .ws-touch-row: 170 + padding + border), in the flow */
+.ws-pg[data-slot="row"] { position: relative; left: auto; top: auto; transform: none; width: 190px; min-width: 0; max-width: none; }
