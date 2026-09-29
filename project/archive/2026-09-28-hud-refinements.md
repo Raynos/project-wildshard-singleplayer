@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `archived` 2026-09-28 (finished 2026-09-23) — every row Jake picked is built and live: layout E (E42: R12 with R1 + R2, R13's AIM on the right, R14, R15, R17, R18), the 45 / 55 split and iPhone fixes (E46, E58), the E58–E64 queue, the lock-on (E50, project/archive/2026-09-23-lock-on.md), HOVER as a tab over MOVE (E80, `6c28553`); R3 sprint lock was built (E71) and removed for good (E79); E63's dodge pick is T (E82, `5c5cee3`, docs/plans/DODGE-FEEL.md). Leftovers: the unpicked ideas R4–R11, R13's left FIRE copy and R16 → **E280** (needs pick). Archived by the E279 plan audit.
+**State:** `archived` 2026-09-28 (finished 2026-09-23) — every row Jake picked is built and live: layout E (E42: R12 with R1 + R2, R13's AIM on the right, R14, R15, R17, R18), the 45 / 55 split and iPhone fixes (E46, E58), the E58–E64 queue, the lock-on (E50, project/archive/2026-09-23-lock-on.md), HOVER as a tab over MOVE (E80, `6c28553`); R3 sprint lock was built (E71) and removed for good (E79); E63's dodge pick is T (E82, `5c5cee3`, docs/plans/DODGE-FEEL.md). Leftovers: none approved. The unpicked ideas R4–R11, R13's left FIRE copy and R16 stay listed below as ideas (E280, filed and withdrawn: no pick ask); Jake names one to start it. Archived by the E279 plan audit.
 
 ## Read this first
 
@@ -140,7 +140,7 @@ actual attack button literally on the divider line" / "the actual looking right 
 |---|---|
 | R1, R2 | built as R12's semantics (E42) |
 | R3 | built (E71), removed for good (E79) |
-| R4–R11 | idea — not approved → E280 |
+| R4–R11 | idea — not approved (listed here, no ask) |
 | R12, R14, R15, R17, R18 | built — layout E (E42), re-split 45 / 55 with the iPhone fixes (E46) |
-| R13 | AIM on the right built (E42); the left FIRE copy is an idea — not approved → E280 |
-| R16 | idea — not approved (E37 audit) → E280 |
+| R13 | AIM on the right built (E42); the left FIRE copy is an idea — not approved (listed here, no ask) |
+| R16 | idea — not approved (E37 audit) (listed here, no ask) |
