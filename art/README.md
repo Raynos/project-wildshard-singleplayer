@@ -22,6 +22,7 @@ when the images were generated.
 | | `round-4-k-variants` | `hud-K1-stagingglass`, `K2-holosurvey`, `K3-cartographer` — K1 approved |
 | | `round-5-n-bars` | `hud-N1-gripbar`, `N2-consolebar`, `N3-holobar` |
 | | `round-6-p-bar-layouts` | `hud-P1-baredges`, `P2-barcorners` — P2 approved (with K1) |
+| | `round-14-weapon-swap` (09-29) | E303 one weapon-swap mechanism for every shard: `{A,B,C,D}-{nalati-grasslands,pine-hollow,driftwood-isle}.jpg` — A left rail above HOVER · B swap chip + hold wheel · C right rail · D slots in the bar. Live 390×844 captures with the variant drawn in the page from the game's own HUD classes (exact text, no image model). Board: `progress/e303-weapon-swap/board.jpg` |
 | `hud-explorer/` | `round-1-arena` (09-26) | Portrait shared HUD/Weapon Explorer proposal: three humanoid dummy turntables, nine views of the full grid arena, and in-game HUD mockup. [Review notes](hud-explorer/round-1-arena/README.md) |
 | | `round-2-live-arena` (09-26) | First playable portrait arena capture, with its visual gap against the approved target recorded. [Review notes](hud-explorer/round-2-live-arena/README.md) |
 | | `round-3-dummy-meshes` (09-26) | Three humanoid armor references: [straw + cloth](hud-explorer/round-3-dummy-meshes/ref-straw-cloth.jpg), [wood + wood](hud-explorer/round-3-dummy-meshes/ref-wood-wood.jpg), [wood + steel](hud-explorer/round-3-dummy-meshes/ref-wood-steel.jpg) |
