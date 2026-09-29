@@ -50,3 +50,18 @@ Each `pass-<n>/` holds:
   the lion post at x −16.75, pitch −62, yaw 18). No camera puts the lion where the mockup has it. The first-person
   gauntlet fills the frame's lower left, where the mockup's arm points up out of the way. In B the lion peeks out at the
   left edge behind it. A shows the balustrade as a band but no lion. The coordinator decides.
+
+## Pass 6 (on `4bd549f`)
+
+- **Mockup B's gondola reads.** The parked cabin up the run north is 1.5× (`well-mid.ts` farCabin). At its real size
+  and 59 m it was a few pixels; now it is the red cabin with a lit window band about 38 % down B's frame.
+- **Lantern strings up the run north.** Five strings hang below the rim's eye between the crossings (`well-mid.ts`
+  RUN_STRINGS), clear of every crossing, net and pipe. At phone size they are faint warm dots; they help B2's views
+  north more than B.
+- **Memory.** Fragment geometry 154.5 → 154.6 MB, textures 79.6 MB unchanged. Mockup B has 117 draws and 1.34 M
+  triangles, mockup D 101 draws and 1.06 M, both unchanged.
+- The eye-check has flattened (pass 6's gain is the gondola), so the Well lane stops here. What remains is in the
+  report: the mist's depth curve (render), the view north ending on the run north's far wall (it needs the canyon
+  extended north under the Cable Deck), and the lion hidden behind the gauntlet (camera / viewmodel).
+- Two dome cameras sit inside geometry in every pass: B1·2 is in the rim towers' eave and B2·3 inside a gallery roof.
+  They are left for the coordinator to re-seat.

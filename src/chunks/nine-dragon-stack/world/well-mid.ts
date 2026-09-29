@@ -55,6 +55,9 @@ const LEVEL_STRINGS: readonly [number, number][] = [
   [-20, Y0 - 21], [-21, Y0 - 27], [-25, Y0 - 30], [-24, Y0 - 36], [0, Y0 - 36], [-4, Y0 - 45], [-29, Y0 - 51], [-13, Y0 - 51], [-24, Y0 - 57],
 ];
 
+/** the run north's lantern strings (z, the floor they hang over) */
+const RUN_STRINGS: readonly [number, number][] = [[-54.5, Y0 - 6], [-67, Y0 - 9], [-74, Y0 - 12], [-79, Y0 - 15], [-89.5, Y0 - 3]];
+
 /** the pipes run across the gap (z, height, radius, colour) */
 const PIPES: readonly [number, number, number, number][] = [
   [-46, Y0 - 3.2, 0.22, 0x7c8187], [-61, Y0 + 6.4, 0.3, 0x8a6650], [-68, Y0 - 12.5, 0.2, 0x6d7178], [-79, Y0 + 3.6, 0.26, 0x7c8187],
@@ -65,20 +68,20 @@ const PIPES: readonly [number, number, number, number][] = [
 const RUN_CABLE = { z: -46.5, y: Y0 + 16, x: -21 } as const;
 
 /** mockup B's gondola far off: the detailed cabin's (well-bridges.ts gondolaCabin) big masses, hung from a cable point */
-function farCabin(k: Kit, x: number, y: number, z: number): void {
-  const W = 2.9, D = 2.1, y0 = y - 4.35;
+function farCabin(k: Kit, x: number, y: number, z: number, s = 1): void {
+  const W = 2.9 * s, D = 2.1 * s, y0 = y - 4.35 * s;
   const RED: Look = { wash: 0xb32a1b, line: 1.1, accent: true, gloss: true, surf: SURF.lacquer };
   const ROOF: Look = { wash: 0x7e1f14, kind: K.tiles, line: 1, accent: true };
   const GOLD: Look = { wash: 0xd9b25a, line: 1, accent: true, gloss: true };
-  k.box(x, y0, z, W - 0.1, 0.14, D - 0.1, { wash: 0x6e1a10, line: 1, accent: true });
-  k.box(x, y0 + 0.14, z, W, 0.92, D, { wash: 0xa82619, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer });
-  k.box(x, y0 + 1.06, z, W - 0.06, 1.0, D - 0.06, { wash: 0xffdca6, emit: 1.2, kind: K.facade, row: 1.0, col: 0.6, seed: 5, line: 1, accent: true });
-  k.box(x, y0 + 1.02, z, W + 0.06, 0.06, D + 0.06, GOLD);
-  k.box(x, y0 + 2.06, z, W, 0.3, D, RED);
-  k.box(x, y0 + 2.36, z, W + 0.28, 0.2, D + 0.28, ROOF);
-  k.box(x, y0 + 2.56, z, W - 0.7, 0.3, D - 0.9, ROOF);
-  k.box(x, y0 + 2.86, z, 0.14, y - 0.5 - (y0 + 2.86), 0.14, { wash: 0x2a2c31, line: 1 });
-  k.box(x, y - 0.5, z, 1.4, 0.34, 0.34, { wash: 0x3a3d44, line: 1 });
+  k.box(x, y0, z, W - 0.1 * s, 0.14 * s, D - 0.1 * s, { wash: 0x6e1a10, line: 1, accent: true });
+  k.box(x, y0 + 0.14 * s, z, W, 0.92 * s, D, { wash: 0xa82619, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer });
+  k.box(x, y0 + 1.06 * s, z, W - 0.06 * s, s, D - 0.06 * s, { wash: 0xffdca6, emit: 1.2, kind: K.facade, row: s, col: 0.6 * s, seed: 5, line: 1, accent: true });
+  k.box(x, y0 + 1.02 * s, z, W + 0.06 * s, 0.06 * s, D + 0.06 * s, GOLD);
+  k.box(x, y0 + 2.06 * s, z, W, 0.3 * s, D, RED);
+  k.box(x, y0 + 2.36 * s, z, W + 0.28 * s, 0.2 * s, D + 0.28 * s, ROOF);
+  k.box(x, y0 + 2.56 * s, z, W - 0.7 * s, 0.3 * s, D - 0.9 * s, ROOF);
+  k.box(x, y0 + 2.86 * s, z, 0.14 * s, y - 0.5 * s - (y0 + 2.86 * s), 0.14 * s, { wash: 0x2a2c31, line: 1 });
+  k.box(x, y - 0.5 * s, z, 1.4 * s, 0.34 * s, 0.34 * s, { wash: 0x3a3d44, line: 1 });
 }
 
 /** the run north's lowest gallery floor (its lowest crossing lands at Y0 − 39) */
@@ -164,7 +167,8 @@ export function buildMid(plan: WellPlan): void {
     for (const dz of [-0.4, 0.4]) k.beam(new Vector3(fw - 0.2, RUN_CABLE.y, RUN_CABLE.z + dz), new Vector3(fe + 0.2, RUN_CABLE.y + rise, RUN_CABLE.z + dz), 0.05, 0.05, wire);
     for (const [x, t] of [[fw + 0.25, 0], [fe - 0.25, 1]] as const) k.box(x, RUN_CABLE.y - 0.5 + rise * t, RUN_CABLE.z, 0.5, 0.9, 1.3, { wash: 0x3a3d44, line: 1 });
     const cx = RUN_CABLE.x, t = (cx - fw) / Math.max(fe - fw, 1);
-    farCabin(k, cx, RUN_CABLE.y + rise * t, RUN_CABLE.z);
+    // (×1.5: at 59 m the cabin at its real size was a few pixels; mockup B's reads as the frame's one red landmark)
+    farCabin(k, cx, RUN_CABLE.y + rise * t, RUN_CABLE.z, 1.5);
   }
 
   // ── the far signs and hooks ──
@@ -227,6 +231,13 @@ export function buildMid(plan: WellPlan): void {
     const [fw, fe] = plan.fronts(z, floor);
     const ya = floor + 2.4;
     lanternLine(ctx, KC.main, new Vector3(fw + 0.1, ya, z), new Vector3(fe - 0.1, ya + 0.3, z + 0.6), 1.5, 1.0, 3);
+  }
+  // (F4, mockup B) and up the run north, below the rim's eye: rungs of warm light receding between the crossings into
+  // the silk (clear of every crossing, net and pipe there)
+  for (const [z, floor] of RUN_STRINGS) {
+    const [fw, fe] = plan.fronts(z, floor);
+    const ya = floor + 2.4;
+    lanternLine(ctx, KC.at(z), new Vector3(fw + 0.1, ya, z), new Vector3(fe - 0.1, ya + 0.3, z - 0.6), 1.4, 1.2, 3);
   }
   skyCables(ctx, KC.main, rng);
   outriggers(plan, KX.kit, KX.alpha, CROSSINGS, rng);
