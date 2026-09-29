@@ -203,3 +203,23 @@ Mockup D and D2·5 / D2·8 read crisp again, the lanterns small globes and point
 Rejected: the lantern gain ×4 with the tight disc (orange balls again).
 
 Memory: geometry 150.8 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.61 M triangles (A2·9 1.63 M, 108 draws).
+
+## E283: the streak cards' GPU cost (Jake's iPhone at 16 fps)
+
+`e283-streaks/`: per Debug row, the four mockup cameras (off | on) over 100 % crops of the wet ground (A1·5, C1·5,
+C1·4, A1·8). Measured with `scripts/nine-dragon-gpu.mjs` (M5, 804×1624, the subtracted `kit:streaks` /
+`kit:streaks-stair` group, ±0.15 ms run to run while other agents use the GPU).
+
+| Lever | Kind | `streaks` at mockup A | `streaks` at C1·4 | `streaks-stair` at mockup C |
+|---|---|---|---|---|
+| none (HEAD) | | 1.58–1.98 ms | 1.53–1.56 | 0.38–0.42 |
+| whole-card reject (outside its plane's extent, or below the fragment stage's own early discard) | **pixel-identical**, default | no change | no change | **0.22–0.24** (the stair: −0.2) |
+| short dim tails (`ndStreakTails`: toward-eye tail × brightness / 2.5) | Debug row, off | **0.47** | 0.56 | ~0.22 |
+| drop the dimmest (`ndStreakFloor`: < 0.3) | Debug row, off | 0.60 | 0.63 | noisy |
+| one run per shop (`ndStreakSplit` off) | Debug row, on = today | 1.43 | 1.43 | ~0.26 |
+| all three | | **0.11** | **0.20** | **0.12** |
+
+The reject was checked on frozen frames at the four mockup cameras: at most 3 pixels of 1.3 M differ, by 1 / 255.
+Trimming each drawn quad to its visible stretch was tried and dropped: not identical (the card's across-coordinate and
+fog are interpolated over its two triangles, and a shorter quad moves the diagonal: up to 180 / 255 on the stair's thin
+dashed runs), and it saved nothing over the reject.

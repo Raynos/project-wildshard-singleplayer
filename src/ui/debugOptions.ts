@@ -183,6 +183,9 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   opt('nineLanterns', 'perf', 'Paper lantern geometry', ON_OFF, { reload: true, when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E265 · isolate lantern geometry and shaders; baked light remains' }),
+  opt('ndStreakTails', 'perf', 'Wet streaks: short dim tails', [['off', 'Off'], ['on', 'On']], { when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E283 · a dim light\'s run toward you is short; the neon and shop runs keep theirs (−1.1 ms at mockup A on the M5)' }),
+  opt('ndStreakFloor', 'perf', 'Wet streaks: drop the dimmest', [['off', 'Off'], ['on', 'On']], { when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E283 · far windows and lanterns lay no run at all (−0.9 ms at mockup A on the M5)' }),
+  opt('ndStreakSplit', 'perf', 'Wet streaks: split shop runs', ON_OFF, { when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E283 · off: one run per lit shop, not 2–6 narrow ones (−0.3 ms at mockup A on the M5)' }),
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),
   opt('loadProfile', 'perf', 'Load profiling', [['off', 'Off'], ['on', 'On']], { reload: true, note: 'load-perf · logs every shader program the load builds (window.__perfload)' }),
 
