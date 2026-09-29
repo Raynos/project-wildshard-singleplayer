@@ -432,6 +432,10 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     if (!isBatch(o) || !o.frustumCulled) return;
     if (o.boundingSphere === null) o.computeBoundingSphere();
     if ((o.boundingSphere?.radius ?? 0) < CULL_R) return;
+    // (E283, the phone's CPU) the facade's windows are one quad each: packing and re-uploading the ~4 k in view (~0.4 MB,
+    // half of what a re-cull hands WebGL) cost more than drawing all ~10 k — an off-screen quad is clipped and leaves no
+    // pixel. They are drawn whole (they have no far distance, so nothing else changes)
+    if (o.name === 'facade-windows') return;
     culler.add(o, small.has(o) ? 85 : Number.POSITIVE_INFINITY);
   });
   for (const [mesh, far] of farKits) culler.addFar(mesh, far);
