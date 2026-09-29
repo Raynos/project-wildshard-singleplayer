@@ -1,6 +1,6 @@
 # Training dummy model pass
 
-**State:** `in progress` 2026-09-29 — E285 audit: the arena's weapon and dodge bugs are fixed on all four shards (Claude). Jake saw the dummies live: odd hands, other glitches, barely moving. The cleanup and motion row was never met: five crude bones, no hand cleanup, a ±0.7° code sway. Open, awaiting Jake's go on the E285 finish list: mesh cleanup, a real rig, hit-driven motion, arena HUD cleanup, then the phone reading and his approval.
+**State:** `in progress` 2026-09-29 — Jake's go (E285): "Fix the models and the graphics by any means necessary" (TRELLIS, Hunyuan3D and Blender allowed). The arena's weapon and dodge bugs are fixed and live (`fca9e1a-mumq2sgo`). Being built by two Claude subagents: mesh cleanup and a real 18-bone rig (TRELLIS.2 first; Hunyuan3D-2 only if it clearly wins, and then recorded as licence debt, since it excludes the EU, UK and South Korea), and in code the hit-driven motion, arena lighting and arena HUD. Then the phone reading and Jake's approval of the live sheets.
 
 This is a shared asset for the HUD + Weapon Explorer arena and Model Explorer in all four shards. The approved nine-angle sheets in `art/hud-explorer/round-1-arena/` are the visual target. Preserve the distinct constructions: wood frame with wooden armor, straw body with cloth armor, and wood frame with steel armor.
 
