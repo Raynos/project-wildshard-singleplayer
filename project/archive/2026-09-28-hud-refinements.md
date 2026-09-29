@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — built and live: the E58–E64 queue, the lock-on (E50, archived: project/archive/2026-09-23-lock-on.md; leftovers E74 / E75) and R3 sprint lock (E71, `9bb82c7`) — since removed for good at Jake's ask (E79). HOVER moved to a tab over MOVE (E80, pick C, `6c28553`). E63's dodge pick is made (T, docs/plans/DODGE-FEEL.md). Nothing open here: the other R-rows stay ideas until Jake names one.
+**State:** `archived` 2026-09-28 (finished 2026-09-23) — every row Jake picked is built and live: layout E (E42: R12 with R1 + R2, R13's AIM on the right, R14, R15, R17, R18), the 45 / 55 split and iPhone fixes (E46, E58), the E58–E64 queue, the lock-on (E50, project/archive/2026-09-23-lock-on.md), HOVER as a tab over MOVE (E80, `6c28553`); R3 sprint lock was built (E71) and removed for good (E79); E63's dodge pick is T (E82, `5c5cee3`, docs/plans/DODGE-FEEL.md). Leftovers: the unpicked ideas R4–R11, R13's left FIRE copy and R16 → **E280** (needs pick). Archived by the E279 plan audit.
 
 ## Read this first
 
@@ -130,7 +130,7 @@ actual attack button literally on the divider line" / "the actual looking right 
 | E61 | Tiny "RESUMING" screen on an app switch (blurred last frame), no first-boot loader on a recovery reload | done `e74c002` |
 | E47 | Compact FPS pill beside PAUSE ("59 fps 17 ms"); tap → full stats over the minimap; VITALS up a row | done `6073b55` |
 | E59 | DODGE cooldown (0.8 s) with a clock sweep + rim ring on the disc | done `87c7d62` |
-| E63 | Dodge feel T (lean + smear) and V (roll-dip) as two buttons, "T DODGE" / "V DODGE", Jake deletes one after playing | built `f6cc18c` — needs Jake's pick (V dust, sounds, Reduce motion not built) |
+| E63 | Dodge feel T (lean + smear) and V (roll-dip) as two buttons, "T DODGE" / "V DODGE", Jake deletes one after playing | done `f6cc18c`; Jake picked **T**, V deleted in E82 (`5c5cee3`). T's unbuilt rows stay in docs/plans/DODGE-FEEL.md |
 | E64 | Music / SFX attribution off the title → Settings ▸ Credits | done `12fb2f9` |
 | E48 | Raise PAUSE / minimap into the status band in standalone | dropped — E58 put the page below the status bar |
 
@@ -139,7 +139,8 @@ actual attack button literally on the divider line" / "the actual looking right 
 | # | State |
 |---|---|
 | R1, R2 | built as R12's semantics (E42) |
-| R3–R11 | idea — not approved |
+| R3 | built (E71), removed for good (E79) |
+| R4–R11 | idea — not approved → E280 |
 | R12, R14, R15, R17, R18 | built — layout E (E42), re-split 45 / 55 with the iPhone fixes (E46) |
-| R13 | AIM on the right built (E42); the left FIRE copy is an idea — not approved |
-| R16 | idea — not approved (E37 audit) |
+| R13 | AIM on the right built (E42); the left FIRE copy is an idea — not approved → E280 |
+| R16 | idea — not approved (E37 audit) → E280 |
