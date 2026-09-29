@@ -94,6 +94,13 @@ function heroBlade(ctx: Ctx, kit: Kit, text: string, col: number, wallX: number,
   for (const dy of [h / 2 - 0.4, -h / 2 + 0.4]) kit.beam(new Vector3(wallX, y + dy, z), new Vector3(x - outSign * (w / 2 - 0.2), y + dy, z), 0.09, 0.09, { wash: 0x2e3036, line: 0.8 });
 }
 
+/** a big neon board flat toward +z on two arms out of a wall (z = wallZ): the north wall's signs, face-on to the square */
+function heroFlat(ctx: Ctx, kit: Kit, text: string, col: number, x: number, y: number, wallZ: number, out: number, size: number): void {
+  const w = size * 1.36, h = size * (chars(text).length + 0.62);
+  ctx.signs.place({ at: new Vector3(x, y, wallZ + out), normal: new Vector3(0, 0, 1), size, spec: { text, color: hex(col), vertical: true, style: 'tube' }, blade: true }, kit);
+  for (const dx of [-w / 3, w / 3]) kit.beam(new Vector3(x + dx, y + h / 2 - 0.35, wallZ), new Vector3(x + dx, y + h / 2 - 0.35, wallZ + out - 0.1), 0.09, 0.09, { wash: 0x2e3036, line: 0.8 });
+}
+
 function skybridge(ctx: Ctx, rng: Rng, x0: number, x1: number, z: number, y: number, width: number, people = 1): void {
   const k = ctx.kit('bridges', true);
   const ka = ctx.alpha('bridges-a');
@@ -180,8 +187,11 @@ function crown(ctx: Ctx, rng: Rng): void {
     const u = new Vector3().crossVectors(up, n);
     ctx.fd.pieces.push({ piece, m: new Matrix4().makeBasis(u, up, n).scale(new Vector3(sx, sy, sz)).setPosition(at), c: new Color(c) });
   };
-  for (const [x, z] of spots) {
+  for (const [x, zRoll] of spots) {
     const w = rng.range(14, 30), d = rng.range(14, 30);
+    // (the stair lane, E281: a tower that lands in the stair-street's canyon walls off the view past its gatehouse —
+    // it moves out to the canyon's nearer side; the rolls are unchanged, so no other tower moves)
+    const z = x > 55 && zRoll > -25 && zRoll < 35 ? (zRoll < 5 ? -25 - d / 2 : 35 + d / 2) : zRoll;
     const top = rng.range(Y0 + 70, 252);
     const y0 = Y0 + 30;
     dressTower({ x, z, w, d, y0, h: top - y0 }, Math.floor(rng.next() * 1e6), { lod: 2, setbacks: true, wash: rng.pick([0x8c8a86, 0x85878a, 0x938a7e, 0x7f8388]), roof: false }, ctx.fd);
@@ -269,11 +279,18 @@ export function buildTowers(ctx: Ctx): void {
     // text, colour, wall x, out sign, y, z, size
     ['大押', NEON.red, PLAZA.x1 + 0.6, -1, Y0 + 31, -10.5, 1.7], ['酒家', NEON.jade, PLAZA.x1 + 0.6, -1, Y0 + 40, -19, 1.8],
     ['按摩', NEON.magenta, PLAZA.x1 + 0.6, -1, Y0 + 27, -1.5, 1.4], ['賓館', NEON.cyan, PLAZA.x1 + 0.6, -1, Y0 + 48, -6, 1.9],
-    ['九龍', NEON.magenta, WELL.x0, 1, Y0 + 29, -31, 2.1], ['牙科', NEON.cyan, WELL.x0, 1, Y0 + 19.5, -22, 1.5],
+    ['麵', NEON.magenta, WELL.x0, 1, Y0 + 29, -31, 2.4], ['牙科', NEON.cyan, WELL.x0, 1, Y0 + 19.5, -22, 1.5],
     ['火鍋', NEON.red, WELL.x0, 1, Y0 + 12.5, -34, 1.35], ['茶', NEON.jade, WELL.x0, 1, Y0 + 8, -14, 1.7],
     ['藥房', NEON.red, WELL.x0, 1, Y0 + 38, -12, 1.6], ['旅館', NEON.amber, WELL.x0, 1, Y0 + 44, -26, 1.8],
   ];
   for (const [text, col, wx, sg, y, z, size] of tall) heroBlade(ctx, bs, text, col, wx, sg, 2.7, y, z, size);
+  // the Well's north wall (z = -44, x -12..0) is the left quarter of mockup A's frame: its stack of neon, face-on to the
+  // spawn across the Well (九龍 highest, 牙科, 火鍋, 茶 at the foot), out past the wall's galleries
+  const flat: [string, number, number, number, number][] = [
+    ['九龍', NEON.magenta, -8.2, Y0 + 23, 2.1], ['牙科', NEON.cyan, -3.4, Y0 + 16.5, 1.45],
+    ['火鍋', NEON.red, -9.6, Y0 + 12, 1.35], ['茶', NEON.jade, -4.6, Y0 + 7, 1.9],
+  ];
+  for (const [text, col, x, y, size] of flat) heroFlat(ctx, bs, text, col, x, y, WELL.z0, 2.9, size);
   // lantern strings at several heights: across the square and the Well (east towers → the Well's west wall), over the
   // street beyond the gate, and across the square's north-east corner
   const xE = PLAZA.x1 + 0.3, xW = WELL.x0 + 2.6;

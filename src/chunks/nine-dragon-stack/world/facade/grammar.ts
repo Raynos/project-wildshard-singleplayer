@@ -85,7 +85,7 @@ const COLUMN_WEIGHTS: readonly (readonly [Mod, number])[] = [
 export const WALLS = [0xa89d8a, 0xa19a88, 0xae9f86, 0x9b9a90, 0xa69884, 0xafa28c, 0x9a9b8d, 0xa29f97, 0xb09c7e, 0x989a8b, 0x8f887b, 0x958b7c] as const;
 /** the timber cladding of a Chongqing stilt-house front (E281): dark lacquered boards */
 const TIMBER = [0x5a4230, 0x4e3a2b, 0x634633, 0x553a2c, 0x6a4a34] as const;
-const WARM = [0xffc98a, 0xffbf78, 0xffd6a2, 0xf6b070, 0xffcd96] as const;
+const WARM = [0xffb866, 0xffab55, 0xffc47c, 0xf2a052, 0xffbc70, 0xffc98a] as const;
 const COOL = [0xd9efe8, 0xc4e2ff] as const;
 const AWN = [PAL.cinnabar, PAL.azurite, PAL.malachite, 0xd9a441, 0xe8e4d8, 0x7e1e1a] as const;
 export const NEONS = [0xff3fa4, 0x3fe6ff, 0x33f0b0, 0xff3b30, 0xffb347] as const;
@@ -134,7 +134,7 @@ class Emit {
     const p = (base ?? f.o.clone().addScaledVector(u, s)).clone().addScaledVector(n, z + 0.012).setY(y);
     const m = new Matrix4().makeBasis(u, up, n).scale(new Vector3(w, h, 1)).setPosition(p);
     const lit = r.chance(this.lit + litBias) ? r.range(0.8, 1.15) : 0;
-    const cool = r.chance(0.07);
+    const cool = r.chance(0.045);
     const light = new Color(cool ? r.pick(COOL) : r.pick(WARM));
     const curtain = r.chance(0.45) ? r.range(0.25, 0.7) : 0;
     const mull = r.int(0, 3);
@@ -273,7 +273,10 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
   for (let b = 0; b < bays; b++) timberCol.push(rng.chance(em.timber * 0.45));
   const TIMBER_MOD: Partial<Record<Mod, Mod>> = { cage1: 'win1', cage2: 'win2', ac: 'win2', balconySolid: 'balcony', blank: 'win1' };
   const galleryFloor: boolean[] = [];
-  for (let fi = 0; fi < floors; fi++) galleryFloor.push(gal > 0 && fi > 0 && rng.chance(gal));
+  // a run's open end (a side face, bit ≠ 1) faces a side street: no veranda or hung room juts over it (the stair lane,
+  // E281: the square's corner towers hid mockup C's 牙科); the rolls stay, so the street faces are unchanged
+  const side = f.bit !== 1;
+  for (let fi = 0; fi < floors; fi++) galleryFloor.push(gal > 0 && fi > 0 && rng.chance(gal) && !side);
   const plan: Cell[][] = [];
   for (let fi = 0; fi < floors; fi++) {
     const row: Cell[] = [];
@@ -300,7 +303,7 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       const m = plan[fi]?.[b]?.mod;
       if (m === undefined || m === 'addon' || m === 'gallery' || m === 'shop') free = false;
     }
-    if (!free) continue;
+    if (!free || side) continue;
     for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) { const c = plan[fi]?.[b]; if (c !== undefined) c.mod = 'addon'; }
     addon(em, f, b0 * bw, bs * bw, f.y0 + f0 * fh, fs, fh, rng.range(0.9, 1.7), rng);
   }
@@ -352,7 +355,8 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
   }
   // tall neon (E281, the targets' stacked vertical signs), 2–14 floors over the street: flat on a window cell (in front
   // of its cage / bay box), or a blade hung out at a bay seam, where the balconies either side leave a gap
-  if (em.lod < 2) tallSigns(em, f, plan, bays, bw, floors, fh, street, galleryFloor, rng);
+  // (only on a wall's street face: a run's open end faces a side street — the stair lane asked for its ends clear)
+  if (em.lod < 2 && f.bit === 1) tallSigns(em, f, plan, bays, bw, floors, fh, street, galleryFloor, rng);
   // pipes at the bay seams: runs of 1–3 from the segment base to its top
   for (let k = 0; k <= bays; k++) {
     if (!rng.chance(0.7 * dens)) continue;
@@ -653,7 +657,7 @@ function gallery(em: Emit, f: Face, y: number, fh: number, bays: number, bw: num
   // red lanterns hung along the veranda's edge, a lamp by some doors
   for (let k = 0; k < bays; k++) {
     if (rng.chance(0.4 + 0.5 * em.timber)) em.put('lantern', f, (k + rng.range(0.3, 0.7)) * bw, y + fh - 0.3, D - 0.35, 1, 1, 1);
-    if (small && rng.chance(0.25)) em.put('laundryAlong', f, (k + 0.5) * bw, y + 2.3, D - 1.1, bw * 0.7, 1, 1);
+    if (small && rng.chance(0.45)) em.put('laundryAlong', f, (k + 0.5) * bw, y + 2.3, D - 1.1, bw * 0.7, 1, 1);
   }
 }
 

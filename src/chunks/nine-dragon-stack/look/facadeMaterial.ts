@@ -433,7 +433,7 @@ void main() {
     // the room's washes: a pale back wall (cream / mint / pale blue per seed), darker sides, a timber or tile floor
     vec3 wallR = h11(seed * 3.3) < 0.5 ? vec3(0.86, 0.8, 0.66) : (h11(seed * 5.9) < 0.5 ? vec3(0.7, 0.8, 0.72) : vec3(0.7, 0.76, 0.84));
     // a lit room reads warm whatever its paint (the blue-hour targets: every lit window is amber)
-    wallR = mix(wallR, vec3(0.9, 0.8, 0.64), 0.45 * lit);
+    wallR = mix(wallR, vec3(0.95, 0.78, 0.56), 0.6 * lit);
     vec3 rc;
     float eD;
     if (t == tz) { rc = wallR; eD = min(Rw * 0.5 - abs(h.x), min(h.y - y0, y1 - h.y)); }

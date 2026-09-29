@@ -73,3 +73,24 @@ B2·7) are where it shows.
 
 **Numbers:** geometry 162.0 → 158.8 MB (every lane), textures 79.6 MB. Worst pose mockup A 124 draws / 1.52 M
 triangles.
+
+## Pass 3
+
+Build: `main` at `be97ea90` (the stair's sky screen removed) + this lane's files. Sheets: `pass-3/`.
+
+- **Mockup A's left-hand stack.** The Well's north wall (z −44, x −12…0) is the left quarter of mockup A's frame:
+  four big neon boards face the spawn across the Well, out past the wall's galleries on two arms — 九龍 highest, 牙科,
+  火鍋, 茶 at the foot (the mockup's column). The west wall's top blade reads 麵 (mockup B's top left).
+- **Gold rooms.** Lit windows are amber-gold (a warmer, more saturated palette, cool fluorescent rooms 7 % → 4.5 %,
+  the room walls pulled further toward the lamp colour): the targets' blue hour has every lit window gold. The render
+  lane's light pools read these colours, so the pools warm with them.
+- **Laundry on the verandas** (a line under the eave on 0.45 of a gallery's bays, was 0.25).
+- **The stair lane's two asks.** (1) A Crown tower that landed in the stair-street's canyon (x > 55, −25 < z < 35)
+  moves out to the canyon's nearer side; the rolls are unchanged, so no other tower moves. (2) A wall run's open ends
+  (side faces, the square's corner towers over the stair) carry no tall signs, verandas or hung rooms: a veranda on the
+  south-east corner tower hid mockup C's 牙科 at the top of its right-hand column; it shows now.
+
+**Reverted:** nothing.
+
+**Numbers:** geometry 156.2 MB (every lane), textures 79.6 MB. Worst pose mockup A 125 draws / 1.49 M triangles.
+`scripts/test-facade-instancing.mjs`: pass on all three profiles (no batched facade, ~16,860 facade instances).
