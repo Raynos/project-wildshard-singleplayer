@@ -14,10 +14,20 @@
 // camera can turn / walk between two culls without an instance at the frame's edge missing. Nothing else renders the
 // world from another camera (the wet-ground reflection is screen-space, there are no shadow maps), so the main camera
 // is the only one to cull for.
+//
+// (E283, the phone's CPU) a re-cull runs every few frames while the player walks or looks round, over ~35 k instances: the
+// frustum's planes are read into plain numbers once per cull; runs of GROUP consecutive instances are tested as one sphere
+// first (wholly in view or wholly out: no per-instance test, the same answer for each of them); the kept instances are
+// copied in consecutive runs, one block copy each; and a batch whose kept instances are the same as at its last cull keeps
+// its buffers (no copy, no upload). The packing is exactly the per-instance one's: pixel-identical.
 import { Box3, type BufferAttribute, Frustum, type InstancedBufferAttribute, type InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 /** extra field of view per side (degrees) */
 const MARGIN = 7;
+/** consecutive instances tested as one sphere before their own */
+const GROUP = 32;
+/** the group test's margin (m): a group counts as wholly in / out only with this to spare (float rounding) */
+const EPS = 1e-3;
 /** re-cull when the camera turns more than this (degrees) … */
 const TURN = 3.5;
 /** … or moves more than this (m) */
@@ -30,10 +40,15 @@ interface Entry {
   n: number;
   /** world-space bounding spheres of the instances: x, y, z, r */
   spheres: Float32Array;
+  /** one sphere round each GROUP consecutive instances' spheres: x, y, z, r */
+  groups: Float64Array;
   matrices: Float32Array;
   colors: Float32Array | null;
   attrs: Packed[];
   far: number;
+  /** the instances the last cull kept (master indices, in packing order) and how many; -1 = never packed */
+  idx: Int32Array;
+  k: number;
 }
 
 /** a mesh drawn only within `far` m of the camera (from its bounding box) */
@@ -56,6 +71,10 @@ export class InstanceCuller {
   private readonly dir = new Vector3();
   private lastFov = 0;
   private lastAspect = 0;
+  /** the frustum's six planes as (nx, ny, nz, constant) */
+  private readonly pc = new Float64Array(24);
+  /** this cull's kept indices for the batch being packed (grown to the largest batch) */
+  private scratch = new Int32Array(0);
   /** the last cull: instances in the batches, instances kept, triangles kept */
   readonly stats = { instances: 0, kept: 0, tris: 0, culls: 0 };
 
@@ -84,7 +103,18 @@ export class InstanceCuller {
     const matrices = mesh.instanceMatrix.array instanceof Float32Array ? mesh.instanceMatrix.array.slice() : new Float32Array(mesh.instanceMatrix.array);
     // the whole-batch sphere stays (conservative): three's own test then only drops a batch wholly out of view
     mesh.computeBoundingSphere();
-    this.list.push({ mesh, n, spheres, matrices, colors, attrs, far });
+    const groups = new Float64Array(Math.ceil(n / GROUP) * 4);
+    for (let g0 = 0; g0 < n; g0 += GROUP) {
+      const g1 = Math.min(n, g0 + GROUP);
+      let x = 0, y = 0, z = 0;
+      for (let i = g0; i < g1; i++) { x += spheres[i * 4] ?? 0; y += spheres[i * 4 + 1] ?? 0; z += spheres[i * 4 + 2] ?? 0; }
+      x /= g1 - g0; y /= g1 - g0; z /= g1 - g0;
+      let r = 0;
+      for (let i = g0; i < g1; i++) r = Math.max(r, Math.hypot((spheres[i * 4] ?? 0) - x, (spheres[i * 4 + 1] ?? 0) - y, (spheres[i * 4 + 2] ?? 0) - z) + (spheres[i * 4 + 3] ?? 0));
+      groups.set([x, y, z, r], (g0 / GROUP) * 4);
+    }
+    this.list.push({ mesh, n, spheres, groups, matrices, colors, attrs, far, idx: new Int32Array(n), k: -1 });
+    if (this.scratch.length < n) this.scratch = new Int32Array(n);
   }
 
   /** draw a whole mesh (a dome's kit) only while the camera is within `far` m of its bounding box */
@@ -120,32 +150,66 @@ export class InstanceCuller {
     p.updateProjectionMatrix();
     this.pv.multiplyMatrices(p.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.pv);
-    const planes = this.frustum.planes;
+    const P = this.pc;
+    this.frustum.planes.forEach((pl, j) => { P[j * 4] = pl.normal.x; P[j * 4 + 1] = pl.normal.y; P[j * 4 + 2] = pl.normal.z; P[j * 4 + 3] = pl.constant; });
     const cx = this.pos.x, cy = this.pos.y, cz = this.pos.z;
+    const keep = this.scratch;
     let instances = 0, kept = 0, tris = 0;
     for (const e of this.list) {
-      const { mesh, spheres, matrices, colors, attrs, far } = e;
-      const dst = mesh.instanceMatrix.array;
-      const cdst = mesh.instanceColor?.array ?? null;
+      const { mesh, spheres, groups, matrices, colors, attrs, far } = e;
+      const hasFar = far !== Number.POSITIVE_INFINITY;
       let k = 0;
-      for (let i = 0; i < e.n; i++) {
-        const x = spheres[i * 4] ?? 0, y = spheres[i * 4 + 1] ?? 0, z = spheres[i * 4 + 2] ?? 0, r = spheres[i * 4 + 3] ?? 0;
-        const dx = x - cx, dy = y - cy, dz = z - cz, d2 = dx * dx + dy * dy + dz * dz;
-        if (far !== Number.POSITIVE_INFINITY && d2 > (far + r) * (far + r)) continue;
-        let inside = true;
-        for (const pl of planes) {
-          if (pl.normal.x * x + pl.normal.y * y + pl.normal.z * z + pl.constant < -r) { inside = false; break; }
+      for (let g0 = 0; g0 < e.n; g0 += GROUP) {
+        const g1 = Math.min(e.n, g0 + GROUP), q = (g0 / GROUP) * 4;
+        const gx = groups[q] ?? 0, gy = groups[q + 1] ?? 0, gz = groups[q + 2] ?? 0, gr = groups[q + 3] ?? 0;
+        // the group's sphere wholly out of view (or past `far`): none of its instances is; wholly in: all of them are
+        let whole = true;
+        if (hasFar) {
+          const d = Math.hypot(gx - cx, gy - cy, gz - cz);
+          if (d - gr > far + EPS) continue;
+          if (d + gr > far - EPS) whole = false;
         }
-        if (!inside) continue;
-        // (always from the master: the buffer's front holds the last cull's packing)
-        copy(matrices, i * 16, dst, k * 16, 16);
-        if (colors !== null && cdst !== null) copy(colors, i * 3, cdst, k * 3, 3);
-        for (const a of attrs) copy(a.master, i * a.size, a.attr.array, k * a.size, a.size);
-        k++;
+        let out = false;
+        for (let j = 0; j < 24; j += 4) {
+          const s = (P[j] ?? 0) * gx + (P[j + 1] ?? 0) * gy + (P[j + 2] ?? 0) * gz + (P[j + 3] ?? 0);
+          if (s < -gr - EPS) { out = true; break; }
+          if (s < gr + EPS) whole = false;
+        }
+        if (out) continue;
+        if (whole) { for (let i = g0; i < g1; i++) keep[k++] = i; continue; }
+        for (let i = g0; i < g1; i++) {
+          const x = spheres[i * 4] ?? 0, y = spheres[i * 4 + 1] ?? 0, z = spheres[i * 4 + 2] ?? 0, r = spheres[i * 4 + 3] ?? 0;
+          if (hasFar) {
+            const dx = x - cx, dy = y - cy, dz = z - cz;
+            if (dx * dx + dy * dy + dz * dz > (far + r) * (far + r)) continue;
+          }
+          let inside = true;
+          for (let j = 0; j < 24; j += 4) {
+            if ((P[j] ?? 0) * x + (P[j + 1] ?? 0) * y + (P[j + 2] ?? 0) * z + (P[j + 3] ?? 0) < -r) { inside = false; break; }
+          }
+          if (inside) keep[k++] = i;
+        }
       }
-      tris += pack(mesh, k, attrs);
       instances += e.n;
       kept += k;
+      // the same instances as the batch's last cull: its buffers already hold exactly this packing
+      if (k === e.k && same(keep, e.idx, k)) { tris += triangles(mesh, k); continue; }
+      const dst = mesh.instanceMatrix.array;
+      const cdst = mesh.instanceColor?.array ?? null;
+      // (always from the master: the buffer's front holds the last cull's packing) in runs of consecutive instances — the
+      // kept ones mostly come in long runs (a street's worth of one facade piece), each run one block copy
+      for (let j = 0; j < k;) {
+        const i = keep[j] ?? 0;
+        let len = 1;
+        while (j + len < k && keep[j + len] === i + len) len++;
+        dst.set(matrices.subarray(i * 16, (i + len) * 16), j * 16);
+        if (colors !== null && cdst !== null) cdst.set(colors.subarray(i * 3, (i + len) * 3), j * 3);
+        for (const a of attrs) a.attr.array.set(a.master.subarray(i * a.size, (i + len) * a.size), j * a.size);
+        j += len;
+      }
+      e.idx.set(keep.subarray(0, k));
+      e.k = k;
+      tris += pack(mesh, k, attrs);
     }
     for (const f of this.fars) f.mesh.visible = f.box.distanceToPoint(this.pos) <= f.far;
     this.stats.instances = instances;
@@ -155,9 +219,16 @@ export class InstanceCuller {
   }
 }
 
-/** n floats from src[so] to dst[do] */
-function copy(src: Float32Array, so: number, dst: Record<number, number>, to: number, n: number): void {
-  for (let j = 0; j < n; j++) dst[to + j] = src[so + j] ?? 0;
+/** the first k entries of a and b are equal */
+function same(a: Int32Array, b: Int32Array, k: number): boolean {
+  for (let j = 0; j < k; j++) if (a[j] !== b[j]) return false;
+  return true;
+}
+
+/** k instances' triangles */
+function triangles(mesh: InstancedMesh, k: number): number {
+  const g = mesh.geometry;
+  return (k * (g.index !== null ? g.index.count : g.getAttribute('position').count)) / 3;
 }
 
 /** a batch's packed count: set it, upload the front, hide it when empty; its triangles */
@@ -167,8 +238,7 @@ function pack(mesh: InstancedMesh, k: number, attrs: readonly Packed[]): number 
   upload(mesh.instanceMatrix, k * 16);
   if (mesh.instanceColor !== null) upload(mesh.instanceColor, k * 3);
   for (const a of attrs) upload(a.attr, k * a.size);
-  const g = mesh.geometry;
-  return (k * (g.index !== null ? g.index.count : g.getAttribute('position').count)) / 3;
+  return triangles(mesh, k);
 }
 
 /** upload only the packed front of an attribute */
