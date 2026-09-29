@@ -169,3 +169,21 @@ Memory: geometry 151.5 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.
 A small pass: the uniform tuning on these features is close to its plateau.
 
 Memory: geometry 151.0 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.59 M triangles (A2·9 1.60 M, 108 draws).
+
+## Round 2, pass 9: dark wet stone (the stair lane's note) and tight amber cores
+
+`pass-9/`, captured at `5841ed68` + the lane's files.
+
+The stair lane: the landings (and the square's open slabs) read pale pink, the wet ground reflecting the bright sky. The
+targets' wet stone is dark and carries the neon and the warm lights. Probing each light term on C2·4's landing: the
+diffuse pool, the knee, the ceiling and the lit-side warm split barely moved it; the sky's share of the wet film and
+the amber pools' sheen spread over the whole wet floor did.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| The sky's share of the wet reflection cut: the wet film's sky sheen 0.3 → 0.15, the flagstones' fresnel silk sheen 0.3 → 0.15, the wet tops' (decks, treads, landings) silk film 0.2 → 0.08 (`uWetSky`); the lights' and the neon's share (pools, gloss lobe, streak cards, glints) untouched | `look/light/install.ts`, `look/style.ts` | none |
+| The amber sheen only in the bright core of a pool (smoothstep 0.35 → 1.0 of its irradiance), ×1.4: a warm glow close under each shop and stall, not a salmon landing; the split streak cards carry the long runs | `look/style.ts`, `look/light/lightvol.ts` | ~3 ALU |
+
+The landings and the square's slabs now read dark blue-grey wet stone under the runs (C2·4, C2·7, C2·8, A1·7, A1·8).
+
+Memory: geometry 150.9 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.59 M triangles (A2·9 1.63 M, 108 draws).

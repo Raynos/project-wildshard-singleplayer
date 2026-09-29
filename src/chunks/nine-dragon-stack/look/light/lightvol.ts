@@ -86,7 +86,7 @@ export function lightVolUniforms(): {
      *  field washed the gate's floor salmon), but the lit shops', stalls' and lamps' amber light (g / r ≥ z…w: a lantern's
      *  pool sits at ~0.25, a shop's at ~0.47) lies on the stone in front of them: x the floor's keep of amber light, y a
      *  warm sheen of it on wet stone (the light's own colour, not the dark wet albedo × it) */
-    uLpAmber: { value: new Vector4(0.8, 1, 0.28, 0.42) },
+    uLpAmber: { value: new Vector4(0.8, 1.4, 0.28, 0.42) },
   };
 }
 

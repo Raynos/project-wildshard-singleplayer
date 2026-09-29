@@ -192,6 +192,9 @@ export class Shared {
     // (round 2) the Well's washes under the datum: x the ambient's floor, y / z where it starts / is full (m under the
     // square's datum; smoothstep from z up to y), w its strength (0 = off)
     uDeepAmb: { value: new Vector4(0.45, 4, 50, 1) },
+    // (round 2, the stair lane: pale pink landings) the silk sky's share of the wet reflection: x the flagstones' fresnel
+    // sheen, y the wet tops' (decks, treads, landings) film. The lights' and neon's share (pools, cards, glints) is apart
+    uWetSky: { value: new Vector2(0.15, 0.08) },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
@@ -254,6 +257,7 @@ uniform vec4 uDeepAir;
 uniform vec4 uDeepAir2;
 uniform vec2 uPuff;
 uniform vec4 uDeepAmb;
+uniform vec2 uWetSky;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
 // the colour script: the silk's tint at an altitude, interpolated between the bands
@@ -699,7 +703,7 @@ void main() {
     col *= 1.0 - 0.6 * wAmt;
     float ndv = clamp(V.y, 0.0, 1.0);
     float fres = 0.04 + 0.96 * pow(clamp(1.0 - ndv, 0.0, 1.0), 5.0);
-    emit += fogHere * fres * wAmt * 0.3 * (1.0 - st.x);
+    emit += fogHere * fres * wAmt * uWetSky.x * (1.0 - st.x);
     // (lab P6) + the water film's reflection of the blue-hour sky: fogCol() is ~black inside the first 16 m of clear
     // air, so the near ground never got a sheen; a broader lobe than Schlick; uLpSky 0 = off
     emit += uFogBaseCol * (0.35 + 0.65 * pow(clamp(1.0 - ndv, 0.0, 1.0), 3.0)) * wAmt * uLpSky * (1.0 - st.x);
@@ -824,7 +828,7 @@ void main() {
   if (kind != 3.0 && wet > 0.0) {
     float top = step(0.6, n.y);
     shaded *= (1.0 - wet * mix(0.6, 0.9, top)) * mix(vec3(1.0), vec3(0.88, 0.95, 1.1), wet);
-    shaded += uFogBaseCol * 0.2 * wet * top * (0.6 + 0.4 * vnoise(vWorld.xz * 1.7));
+    shaded += uFogBaseCol * uWetSky.y * wet * top * (0.6 + 0.4 * vnoise(vWorld.xz * 1.7));
     // rain rivulets: thin threads of sheen down wet vertical faces (paint.ts pRivulet, from lab P5)
     shaded += uFogBaseCol * 0.4 * wet * pk * pRivulet(q, vert);
   }
@@ -862,7 +866,9 @@ void main() {
   emit += lp * wetPool * uLpGain.y * (0.08 + 0.92 * pow(clamp(1.0 - abs(V.y), 0.0, 1.0), 2.0));
   // (render, E281) the warm pools: in front of a lit shop, a stall or under a lamp the wet stone carries the light's own
   // amber as a soft glow (lpAmberness: the lanterns' red and the neon stay out, so the gate's floor does not go salmon)
-  emit += lp * lpAmb * max(wetPool, wet * 0.5) * step(0.6, n.y) * uLpAmber.y;
+  // (round 2: spread over a landing ringed with shops it painted the whole wet floor salmon, C2·4) only the bright core of
+  // the pool, close to its light: the split streak cards (streaks.ts) carry the long runs
+  emit += lp * lpAmb * smoothstep(0.35, 1.0, max(lp.r, max(lp.g, lp.b))) * max(wetPool, wet * 0.5) * step(0.6, n.y) * uLpAmber.y;
   // (render, E281) the wet treads' glints: a step's tread (a narrow wet top, under 0.6 m deep) catches light along its
   // long edges — the nosing, and the wet inside corner — just inside the ruled ground line: broken cells of light that
   // twinkle, the lamps' and the sky's reflection; far off they average into one bright line
