@@ -293,9 +293,10 @@ on his laptop.
   deploys at :17 each hour or from `gh workflow run deploy`; the job skips if
   `/version.json` already reports `main`'s short SHA. `gh workflow run deploy -f force=true`
   redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it
-  with `vercel deploy --prebuilt`, so Vercel does not repeat the build. The deploy token is
-  project-scoped; `VERCEL_BUILD_TOKEN` must be a team-scoped Actions secret for `vercel pull`
-  and `vercel build`. No credentials belong in Git.
+  with `vercel deploy --prebuilt`, so Vercel does not repeat the build.
+  `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
+  `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
+  CLI account lookup. No credentials belong in Git.
 - After every push, watch that push's CI run. After the next hourly or manual deployment,
   confirm `https://wildshard-singleplayer.vercel.app/version.json` reports the shipped
   short SHA and record the build ID in the ask file. A green push means verified in GitHub,

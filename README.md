@@ -58,5 +58,5 @@ https://wildshard-singleplayer.vercel.app updates hourly at :17, or on demand wi
 has the current commit; use `gh workflow run deploy -f force=true` to redeploy it.
 GitHub Actions runs the checks and `vercel build`, then uploads the output with
 `vercel deploy --prebuilt`. The workflow needs `VERCEL_ORG_ID`,
-`VERCEL_PROJECT_ID`, a project-scoped `VERCEL_TOKEN` for deployment, and a
-team-scoped `VERCEL_BUILD_TOKEN` for local Vercel builds in Actions.
+`VERCEL_PROJECT_ID`, and a team-scoped `VERCEL_BUILD_TOKEN` for Vercel CLI
+pull, build, and prebuilt upload in Actions.

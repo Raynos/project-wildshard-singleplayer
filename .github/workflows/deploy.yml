@@ -1,8 +1,8 @@
 # Pushes and pull requests run the gates. Production deploys hourly or on manual dispatch.
 # The hourly run checks /version.json first and skips when HEAD is already live.
 # GitHub builds the Vercel artifact; Vercel only uploads the prebuilt output.
-# Secrets: VERCEL_TOKEN (project-scoped deploy token), VERCEL_BUILD_TOKEN (team-scoped
-# token for vercel pull/build), VERCEL_ORG_ID and VERCEL_PROJECT_ID.
+# Secrets: VERCEL_BUILD_TOKEN (team-scoped CLI token for pull/build/deploy),
+# VERCEL_ORG_ID and VERCEL_PROJECT_ID.
 name: deploy
 
 on:
@@ -59,11 +59,9 @@ jobs:
       - name: Require deployment credentials
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
-          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN is missing'; exit 1; }
-          test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::VERCEL_BUILD_TOKEN is missing; create a team-scoped token for vercel pull/build'; exit 1; }
+          test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::VERCEL_BUILD_TOKEN is missing; a team-scoped token is required for the Vercel CLI'; exit 1; }
           test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID" || { echo '::error::Vercel project IDs are missing'; exit 1; }
 
       - uses: pnpm/action-setup@v4
@@ -124,9 +122,9 @@ jobs:
       - name: Deploy prebuilt output
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
-          url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_TOKEN")
+          url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
           echo "deployed $url for $GITHUB_SHA"
           echo "### Deployed \`$GITHUB_SHA\` to $url" >> "$GITHUB_STEP_SUMMARY"
 
