@@ -146,7 +146,9 @@ export class Shared {
     // (render, E281) the far Stack painted into the sky (FS_SKY skyline): strength, elevation scale, lit windows, ink
     uSkyline: { value: new Vector4(1, 1, 1, 1.6) },
     // (render, E281) the wet nosings' glints: x gain, y the share of the sparkle cells lit
-    uGlint: { value: new Vector2(3, 0.28) },
+    // z: how much of the baked neon spill (vSpill) the glints take (round 2: the targets' treads glint in the neon's
+    // colours), w: the sparkle cell's length (m)
+    uGlint: { value: new Vector4(3, 0.28, 2, 0.1) },
     // (render, E281) how much of the silk the mineral accents take (T^x; 1 = as any wash)
     uAccentFog: { value: 0.35 },
     // (render, E281) the flagstones: x the per-stone value swing, y the speckle's contrast, w the granite paint's
@@ -167,13 +169,29 @@ export class Shared {
     // the Well's shaft mist: its box (x0, z0, x1, z1) (set by build.ts from well-plan.ts SHAFT); x the depth silk's (E281: 0.05 → 0.02)
     // density (0.085 = round 14's profile), y the rim height (build.ts), z the along-canyon air (1/m), w its ceiling over the rim (m)
     uShaft: { value: new Vector4(0, 0, 0, 0) },
-    uShaftK: { value: new Vector4(0.02, 0, 0.006, 30) },
+    // (round 2: the shaft's silk and the base air under the datum thinner — the Well lane's eye-check: 50–80 m down the
+    // mist still blanked every level; the levels now separate by their own light over a darker shaft, uDeepAmb)
+    uShaftK: { value: new Vector4(0.01, 0, 0.003, 30) },
     // (render, E281) how far the shaft's silk takes the strata's pale colour script over the blue base air (0 = round 14)
     uShaftLit: { value: 0.8 },
     // (render, E281) the base air's height profile: under the square's datum x its thickening's cap, y its e-fold depth
     // (m); over it z its thinning's e-fold height (m), w its floor (45 m / 0.35 until pass 4: with pass 3's denser silk
     // the aerials over the square went a pale haze; the eye-level views keep theirs)
-    uFogDeep: { value: new Vector4(1, 70, 18, 0.2) },
+    uFogDeep: { value: new Vector4(0.3, 70, 18, 0.2) },
+    // (render, E281 round 2: mockup D reads level after level in BLUE air, darker going down, pale cloud strata between
+    // the levels) the air under the square's datum takes this deep blue (rgb, linear) by w, ramping in over the first
+    // 60 m down; the shaft's depth silk too. The strata (the bands) keep their pale silk, so each level separates from
+    // the next through a pale band over dark blue air, not one pale floor
+    uDeepAir: { value: new Vector4(0.08, 0.13, 0.25, 0) },
+    // (round 2) the deep air's own density: x σ (1/m) on the ray's stretch more than y m under the datum, reaching full
+    // σ z m further down. It is what darkens the Well level by level (the fragment's washes are pale under the high key:
+    // the base air alone never took more than a tenth of them); lights punch through it like any silk (EMIT_FOG)
+    uDeepAir2: { value: new Vector4(0, 8, 30, 0) },
+    // (round 2) the cloud strata's puff density and hole sharpness (FOG_GLSL silkFog; 1, 2 = F5's)
+    uPuff: { value: new Vector2(1, 2) },
+    // (round 2) the Well's washes under the datum: x the ambient's floor, y / z where it starts / is full (m under the
+    // square's datum; smoothstep from z up to y), w its strength (0 = off)
+    uDeepAmb: { value: new Vector4(0.3, 4, 50, 1) },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
@@ -232,6 +250,10 @@ uniform vec4 uShaft;
 uniform vec4 uShaftK;
 uniform float uShaftLit;
 uniform vec4 uFogDeep;
+uniform vec4 uDeepAir;
+uniform vec4 uDeepAir2;
+uniform vec2 uPuff;
+uniform vec4 uDeepAmb;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
 // the colour script: the silk's tint at an altitude, interpolated between the bands
@@ -283,7 +305,9 @@ vec4 silkFog(vec3 wp, float scale) {
     // (round 14, dome D2) clear air round the eye wherever it is: inside a band (gliding down the Well) the galleries
     // 10 m away stay crisp. (F5, the Well's strata) a band's w is its puff: 0 the soft billow, 1 clouds — dense puffs
     // with clear holes between them, so a stratum reads as cloud lying across the shaft, not a veil over everything
-    tau *= mix(0.35 + 1.3 * bil, 0.03 + 2.8 * bil * bil, b.w) * scale * smoothstep(4.0, 22.0, L);
+    // (round 2) the cloud strata's puffs: × uPuff.x, their holes sharpened by uPuff.y — dense cloud lying across the shaft
+    // between two levels with clear holes onto the next, so each level separates from the next (mockup D)
+    tau *= mix(0.35 + 1.3 * bil, (0.03 + 2.8 * pow(bil, uPuff.y)) * uPuff.x, b.w) * scale * smoothstep(4.0, 22.0, L);
     float a = 1.0 - exp(-tau);
     acc += T * a * uBandCols[k] * (1.1 - 0.34 * smoothstep(0.4, 1.0, bil));
     T *= 1.0 - a;
@@ -295,8 +319,22 @@ vec4 silkFog(vec3 wp, float scale) {
   float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / uFogDeep.y), uFogDeep.x) : max(exp(-(hy - ${Y0}.0) / uFogDeep.z), uFogDeep.w);
   float a0 = 1.0 - exp(-uFogBase * hk * max(L - uFogStart, 0.0) * scale);
   vec3 baseC = mix(uFogBaseCol, scriptCol(wp.y), clamp((uCam.y - wp.y) / 150.0, 0.0, 1.0));
+  baseC = mix(baseC, uDeepAir.rgb, uDeepAir.w * clamp((${Y0}.0 - min(wp.y, uCam.y)) / 60.0, 0.0, 1.0));
   acc += T * a0 * baseC;
   T *= 1.0 - a0;
+  // (round 2) the deep air: the part of the ray below yd, its density ramping in with its mean depth under yd
+  if (uDeepAir2.x > 0.0) {
+    float yd = ${Y0}.0 - uDeepAir2.y;
+    float y0 = uCam.y, y1 = wp.y;
+    float fb = y0 < yd && y1 < yd ? 1.0 : (y0 >= yd && y1 >= yd ? 0.0 : (yd - min(y0, y1)) / max(abs(y1 - y0), 1e-3));
+    if (fb > 0.0) {
+      float hm = yd - 0.5 * (min(min(y0, y1), yd) + min(max(y0, y1), yd));
+      float tauD = uDeepAir2.x * clamp(hm / uDeepAir2.z, 0.0, 1.0) * fb * L * scale * smoothstep(4.0, 22.0, L);
+      float aD = 1.0 - exp(-tauD);
+      acc += T * aD * uDeepAir.rgb;
+      T *= 1.0 - aD;
+    }
+  }
   // the Well's own silk: the stretch of the ray inside the shaft (a slab test on its box). Round 14 (the layered Well):
   // its density grows with the depth h under the rim (or under the eye, whichever is lower: the mist lies below you) as
   // σ(h) = a·h + b·h², integrated exactly along the straight stretch (h is linear in it): clear for the first ~30 m,
@@ -330,7 +368,8 @@ vec4 silkFog(vec3 wp, float scale) {
       float as = 1.0 - exp(-tauS);
       float my = uCam.y + dn.y * 0.5 * (ta + tb);
       vec3 sc = scriptCol(min(my, uShaftK.y));
-      acc += T * as * mix(mix(uFogBaseCol * 1.12, sc, 0.45), sc * 1.08, uShaftLit);
+      vec3 shC = mix(mix(uFogBaseCol * 1.12, sc, 0.45), sc * 1.08, uShaftLit);
+      acc += T * as * mix(shC, uDeepAir.rgb, uDeepAir.w * clamp((uShaftK.y - min(my, uCam.y)) / 60.0, 0.0, 1.0));
       T *= 1.0 - as;
     }
   }
@@ -442,7 +481,7 @@ uniform vec3 uPaperDeep;
 uniform vec3 uSutraWin;
 uniform float uFogScale;
 uniform sampler2D uSilk;
-uniform vec2 uGlint;
+uniform vec4 uGlint;
 uniform float uAccentFog;
 uniform vec4 uFlag;
 varying vec3 vWorld;
@@ -804,6 +843,11 @@ void main() {
   // (capped: the sign masts on the balustrade must not bleach the stone; wet stone shows it as a darker sheen)
   // (lab P6) the blue-hour ambient scales the wash only (spill, pools, emitters and ink keep their value)
   shaded *= uLpAmb;
+  // (render, E281 round 2: mockup D) the Well's levels sink into shadow going down — the sky light falls off in the shaft
+  // under the square, the washes darken and cool, and only their own lights (windows, lanterns, neon: the emitters,
+  // unscaled) stay bright: level after level of lit galleries over deep blue. Not on the viewmodel (uFogScale 0)
+  float dk = smoothstep(${Y0}.0 - uDeepAmb.y, ${Y0}.0 - uDeepAmb.z, vWorld.y) * step(0.5, uFogScale);
+  shaded *= mix(vec3(1.0), vec3(0.78, 0.88, 1.12) * uDeepAmb.x, (1.0 - dk) * uDeepAmb.w);
   // (round 14, dome B: the paifang's lacquer read #d95d46 against style-A's #904536 — its lanterns' spill and pools
   // lit the cinnabar pale) the accent surfaces take 40 % of the spill and the pools' diffuse; their gloss glint stays
   float lacq = mix(1.0, 0.4, accent);
@@ -833,14 +877,14 @@ void main() {
     float ga = acrossU ? gv : gu;
     float edgeW = Wg * 0.5;
     float band = smoothstep(edgeW - 0.5, edgeW + 0.5, dE) * (1.0 - smoothstep(edgeW + 1.5, edgeW + 3.0, dE));
-    float cellL = 0.06;
+    float cellL = uGlint.w;
     float gc = floor(along / cellL);
     float hc = h12(vec2(gc, vPat.w * 7.0 + floor(vWorld.y * 5.0) + floor((acrossU ? vWorld.x : vWorld.z) * 3.0)));
     float tw = 0.55 + 0.45 * sin(uTime * (1.5 + 3.0 * hc) + hc * 40.0);
     float spark = step(1.0 - uGlint.y, hc) * tw * (1.0 - smoothstep(0.2, 0.45, abs(fract(along / cellL) - 0.5)));
     float gk = mix(uGlint.y * 0.45, spark, smoothstep(0.7, 2.5, cellL / max(ga, 1e-5))) * band;
     vec3 Rg = reflect(-V, n);
-    emit += (lpRaw(vWorld + Rg * 1.5) * 1.5 + uFogBaseCol * 0.45) * gk * uGlint.x * wet;
+    emit += (lpRaw(vWorld + Rg * 1.5) * 1.5 + uFogBaseCol * 0.45 + min(vSpill, vec3(1.0)) * uGlint.z) * gk * uGlint.x * wet;
   }
   // (render) the lamplight's glossy lobe (lightvol.ts poolSpec): lacquer and gilt glint, wet stone and decks shine
   // toward the lanterns; Schlick on the film, a lacquer's own sheen a little broader
@@ -1041,46 +1085,48 @@ float towerW(float y, float W, float h) {
 }
 vec3 skyline(vec3 d, vec3 col) {
   float e = d.y;
-  if (uSkyline.x <= 0.0 || e > 0.985 || e < 0.2) return col;
+  if (uSkyline.x <= 0.0 || e > 0.985 || e < 0.12) return col;
   float el = asin(clamp(e, -1.0, 1.0));
   float a = atan(d.z, d.x) * 0.15915494 + 0.5;
   float ce = sqrt(max(1.0 - e * e, 0.0));
   float fe = max(fwidth(el), 1e-5);
   vec3 mistC = mix(uSkyHorizon, vec3(0.93, 0.94, 0.96), 0.3);
-  for (int L = 0; L < 4; L++) {
+  // (round 2: the targets stack big far pagodas up the WHOLE sky gap — above the stair it is 20–41° up from the street,
+  // the look-ups see 35–75°) six layers from 16° to 56°, each taller than the last pass's
+  for (int L = 0; L < 6; L++) {
     float fl = float(L);
-    float N = 36.0 + fl * 12.0;
-    float base = uSkyline.y * (1.0 - fl * 0.14);
+    float N = 30.0 + fl * 8.0;
+    float base = uSkyline.y * (0.98 - fl * 0.14);
     float x = a * N, cell = floor(x), f = x - cell;
     float fx = min(fwidth(x), fwidth(fract(x + 0.5)));
     float cid = mod(cell, N) + fl * 131.0;
     float h1 = h12(vec2(cid, 3.7)), h2 = h12(vec2(cid, 9.1)), h3 = h12(vec2(cid, 17.3)), h4 = h12(vec2(cid, 23.1));
     float cellR = 6.2831853 / N;
-    float W = cellR * (0.12 + 0.12 * h3);
-    float H = uSkyline.y * (0.1 + 0.16 * h4) * (1.0 + 0.2 * fl);
+    float W = cellR * (0.2 + 0.18 * h3);
+    float H = uSkyline.y * (0.12 + 0.2 * h4) * (1.0 + 0.12 * fl);
     float u = (f - 0.5 - (h1 - 0.5) * 0.3) * cellR * ce;
     float fu = max(fx * cellR * ce, 1e-5);
     float y = (el - base) / H;
     float fy = fe / H;
-    float hw = h1 < 0.2 ? -1.0 : (h2 > 0.5 ? pagodaW(y, W, 5.0 + floor(h3 * 5.0), fy) : towerW(y, W * 1.25, h3));
+    float hw = h1 < 0.12 ? -1.0 : (h2 > 0.5 ? pagodaW(y, W, 5.0 + floor(h3 * 5.0), fy) : towerW(y, W * 1.25, h3));
     float cov = clamp((hw - abs(u)) / fu + 0.5, 0.0, 1.0);
     // the feet dissolve into the silk; the farther layers are paler (aerial perspective), the nearer an ink-blue wash
     float op = smoothstep(-0.3, 0.55, y) * uSkyline.x;
     // (the silk-coloured layers vanished against the pale sky: the ink is a deep blue-grey wash, the far layers take less)
-    vec3 layerC = mix(mistC, vec3(0.1, 0.14, 0.26), clamp(uSkyline.w * (0.22 + 0.14 * fl), 0.0, 1.0));
+    vec3 layerC = mix(mistC, vec3(0.1, 0.14, 0.26), clamp(uSkyline.w * (0.34 + 0.09 * fl), 0.0, 0.95));
     // lit windows on the nearer layers: warm dots in a grid of storeys
     vec2 g = vec2(u / 0.0042, el / 0.0068);
     vec2 gi = floor(g), gf = abs(fract(g) - 0.5);
     float hw2 = h12(gi + cid * 7.0);
-    float lit = step(0.66, hw2) * step(0.5, fl) * step(0.08, y) * step(y, 0.95);
+    float lit = step(0.66, hw2) * step(1.5, fl) * step(0.08, y) * step(y, 0.95);
     float win = lit * (1.0 - smoothstep(0.2, 0.2 + fwidth(g.x), gf.x)) * (1.0 - smoothstep(0.24, 0.24 + fwidth(g.y), gf.y));
     // a third of them the targets' red lanterns hung along the far galleries, the rest warm windows
     vec3 winC = hw2 > 0.9 ? vec3(1.0, 0.36, 0.22) : vec3(1.0, 0.72, 0.42);
-    layerC += winC * win * uSkyline.z * (0.5 + 0.25 * fl);
+    layerC += winC * win * uSkyline.z * (0.4 + 0.14 * fl);
     col = mix(col, layerC, cov * op);
     // the band of silk the layer stands in
     float band = exp(-pow((el - base + 0.015) / (0.045 * uSkyline.y), 2.0));
-    col = mix(col, mistC, band * 0.55 * uSkyline.x);
+    col = mix(col, mistC, band * 0.4 * uSkyline.x);
   }
   return col;
 }

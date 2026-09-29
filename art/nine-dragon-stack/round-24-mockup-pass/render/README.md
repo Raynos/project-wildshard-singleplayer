@@ -131,3 +131,28 @@ Reverted in the tuning: the skyline higher (×1.25, bases up to 72°): the tower
 radial crown in the look-ups. Lower (×0.8): hidden behind the near towers.
 
 Memory: geometry 155.1 MB, textures 79.6 MB. Worst pose: mockup A, 125 draws, 1.50 M triangles.
+
+## Round 2, pass 7: the Well's depth, a taller skyline, split warm runs, neon glints
+
+`pass-7/`, captured at `51bfc032` (the Well lane's pass 7 and the stair's pass 7 in the same build) + the lane's files.
+
+The Well: probing each fog term on its own showed they overlap: switching any one off barely moved D2·8, all off
+darkened it by 17 L*. The pale "floor" was (a) the uniform silk and the shaft's depth silk added up over 50–80 m, and
+(b) the Well's pale washes under the high-key ambient; the jiehua and facade programs barely reach the deep floor at
+all (a wash-tint probe left it untouched), so D2's pale bottom is the Well lane's backstop and temple geometry, not the
+mist.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| The Well's air thinner: the base air under the datum ×0.3 (was ×1), the shaft's depth silk 0.02 → 0.01, the along-canyon air 0.006 → 0.003 | `look/style.ts` | none |
+| **The Well's levels sink into shadow going down**: under the square the washes lose ambient (to ×0.3 by 50 m down) and cool, while their own lights (windows, lanterns, neon) stay at full strength, so each level reads by its own light over a darker shaft (`uDeepAmb`) | `look/style.ts` (FS_JIEHUA) | ~8 ALU |
+| New knobs, left at their old values after the tuning: a deep blue air term (`uDeepAir` / `uDeepAir2`: σ ramping in under the datum), the cloud strata's puff density / hole sharpness (`uPuff`) | `look/style.ts`, `look/render/jiehua.ts` | ~10 ALU when on |
+| The far skyline: six layers from 16° to 56° (four from 33° to 60° in pass 5), wider and taller silhouettes, darker ink, a lighter silk band at each foot | `look/style.ts` (FS_SKY) | 6 layers on sky pixels only |
+| **Tight warm runs**: a warm light wider than 1.4 m (a lit shopfront, a stall's counter) splits into 2–6 narrow streak cards ~0.8 m apart, each ×1.6: a row of tight runs straight under the shop instead of one broad band | `look/streaks.ts` | ~2× the warm cards (instanced, same draw); narrower fill |
+| **Neon glints**: the tread and riser glints take the baked neon spill (×2) as well as the lamps, in longer 0.1 m cells, so they sparkle in the neon's colours | `look/style.ts` | none |
+
+Mockup D: L* p10 / p50 33 / 52 (pass 6) → 24 / 42 (pass 7) against the mockup's 33 / 50; the levels read by their
+lights over a darker, bluer shaft. Rejected: dense cloud puffs (×4–×8): pale blobs over the levels. A deep blue air on
+top of the rest: marginal.
+
+Memory: geometry 151.5 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.55 M triangles.
