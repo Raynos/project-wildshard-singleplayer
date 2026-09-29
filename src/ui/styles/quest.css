@@ -74,3 +74,5 @@
   .ws-quest-boss.show { transform: none; }
   .ws-quest-boss-name { font-size: 12.5px; letter-spacing: 0.12em; }
 }
+/* a feature playground (src/playgrounds/, E307) is a dev level: no quest line over it */
+#hud.playground-active .ws-quest-obj { display: none; }

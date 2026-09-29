@@ -213,11 +213,12 @@ export class GameMenu {
   get isOpen(): boolean { return this._open; }
   get inPractice(): boolean { return this.practice; }
 
-  /** The arena keeps Settings and Feedback but never presents the shard's terrain map. */
-  setPractice(active: boolean): void {
+  /** The arena keeps Settings and Feedback but never presents the shard's terrain map. A feature playground (E307) is a
+   *  practice room too: `room` names it under the title (the arena's is "Training arena"). */
+  setPractice(active: boolean, room = 'Training arena'): void {
     this.practice = active;
     this.root.classList.toggle('practice', active);
-    this.subtitle.textContent = active ? 'Training arena' : getActiveChunk().displayName;
+    this.subtitle.textContent = active ? room : getActiveChunk().displayName;
     this.exitBtn.innerHTML = active ? 'Exit <span class="ws-gmenu-nowrap">to Explore</span>' : 'Exit <span class="ws-gmenu-nowrap">to main</span>';
     this.exitBtn.setAttribute('aria-label', active ? 'Exit to Explore' : 'Exit to main menu');
     if (active && this._tab === 'map') this.select('settings'); else this.syncTabs();

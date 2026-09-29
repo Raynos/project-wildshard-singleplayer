@@ -10,7 +10,9 @@
  *   x.toast('Note sent') / x.hold(true)   // the review composer is up: input off, frame frozen by main.ts
  *
  * Modes:
- *   hub    — three equal cards: MODEL EXPLORER, WORLD EXPLORER, and developer-only PRACTICE ARENA
+ *   hub    — a scrolling list (E307): the shared cards first (MODEL EXPLORER, WORLD EXPLORER, the developer-only PRACTICE
+ *            ARENA), then the shard's own feature playgrounds (src/playgrounds/catalog.ts; developer-only too): Nine
+ *            Dragon's grapple course, Nalati's horse track — none on Driftwood Isle or Pine Hollow
  *   world  — god mode in the real scene: FreeCam (desktop: RMB look, WASD, Q/E, Shift, wheel, F) or TouchFly (phone:
  *            FLY stick, drag to spin, pinch, ▲▼); the player is parked far away (bootstrap `freeCamera`), so the
  *            animals run their ambient AI and nothing notices the camera (D6)
@@ -46,6 +48,7 @@ import modelsPine from './img/models-pine-hollow.webp';
 import modelsNalati from './img/models-nalati-grasslands.webp';
 import modelsNine from './img/models-nine-dragon-stack.webp';
 import { isDev, onDev } from '../core/devMode';
+import { asPlaygroundId, playgroundsFor, type PlaygroundId } from '../playgrounds/catalog';
 
 /** the Practice card's art, one per shard: the arena in that shard's grade with its weapon (E292) */
 const PRACTICE_ART: Record<string, string> = { 'driftwood-isle': practiceDriftwood, 'pine-hollow': practicePine, 'nalati-grasslands': practiceNalati, 'nine-dragon-stack': practiceNine };
@@ -61,6 +64,8 @@ export interface ExploreHost {
   onExit: () => void;
   /** the hub's Practice Arena card returns to play with the current shard's starter weapon */
   onPractice: () => void;
+  /** a feature playground's card (E307): main.ts loads its scene and enters it, as the Practice card enters the arena */
+  onPlayground?: (id: PlaygroundId) => void;
   /** ✎: main.ts opens the review composer (src/ui/Feedback.ts) */
   openFeedback: () => void;
   /** hidden while exploring: the chunk-edge force field (it draws lines across the sea from the air) */
@@ -164,13 +169,21 @@ export class Explore {
     const worldArt = WORLD_ART[shard.slug] ?? shard.heroLandscape, modelsArt = MODELS_ART[shard.slug] ?? shard.thumbnail; // a shard with none yet shows its picker art
     // the Practice card is this shard's own arena: the room takes each shard's grade and weapon (E292)
     const practiceArt = PRACTICE_ART[shard.slug] ?? practiceDriftwood;
-    this.hubEl = html('div', 'ws-x-hub', `
+    // E307: the shard's own feature playgrounds under the shared cards (placeholder art: the verb's glyph on a dev tile)
+    const playgrounds = playgroundsFor(shard.slug);
+    const pgCards = playgrounds.map((c) => `<button class="ws-x-card" type="button" data-m="playground" data-pg="${c.id}" data-dev><span class="ws-x-card-art ws-x-pg-art">${c.icon}</span><span class="ws-x-card-text"><b>${c.title}</b><small>${c.blurb}</small></span><span class="ws-x-card-go">›</span></button>`).join('');
+    // a scrolling list (E307, Jake: "this is going to have to be a scrollable list"), anchored to the bottom while it fits
+    this.hubEl = html('div', 'ws-x-hub', `<div class="ws-x-hub-list">
       <div class="ws-x-hub-heading">Choose an explorer</div>
       <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${modelsArt}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.displayName} in god mode</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="practice"><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>`);
-    const practiceCard = this.hubEl.querySelector<HTMLElement>('[data-m="practice"]');
-    if (practiceCard) { practiceCard.hidden = !isDev(); onDev((on) => { practiceCard.hidden = !on; }); }
+      <button class="ws-x-card" type="button" data-m="practice" data-dev><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>
+      ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-shard" data-dev>${shard.displayName} · playgrounds</div>${pgCards}` : ''}</div>`);
+    this.hubEl.dataset['scroll'] = ''; // index.html swallows touchmove outside [data-scroll]: without it the list can't scroll on a phone
+    // the developer-only entries: the Practice arena and the playgrounds (Settings ▸ Developer, live)
+    const devOnly = [...this.hubEl.querySelectorAll<HTMLElement>('[data-dev]')];
+    const showDev = (on: boolean): void => { for (const e of devOnly) e.hidden = !on; };
+    showDev(isDev()); onDev(showDev);
     this.flyEl = html('div', 'ws-x-fly', `
       <div class="ws-x-rail">
         <button class="ws-x-btn ws-x-up" type="button" aria-label="Up">▲</button>
@@ -187,7 +200,14 @@ export class Explore {
 
     this.closeBtn.addEventListener('click', () => { this.back(); }); // E182 (Jake: "the X button kicks you back out to level select")
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.addEventListener('click', () => { this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
-    this.hubEl.querySelectorAll<HTMLElement>('.ws-x-card').forEach((b) => { b.addEventListener('click', () => { if (b.dataset['m'] === 'practice') this.startPractice(); else this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
+    this.hubEl.querySelectorAll<HTMLElement>('.ws-x-card').forEach((b) => {
+      b.addEventListener('click', () => {
+        const pg = asPlaygroundId(b.dataset['pg']);
+        if (pg !== null) this.startPlayground(pg);
+        else if (b.dataset['m'] === 'practice') this.startPractice();
+        else this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world');
+      });
+    });
     this.speedBtn.addEventListener('click', () => { this.setSpeed((this.speed + 1) % SPEEDS.length); });
     note.addEventListener('click', () => { void this.note(); });
     const hold = (sel: string, v: number): void => {
@@ -315,6 +335,12 @@ export class Explore {
 
   /** Option A: the third equal hub card opens the current shard's shared practice room. */
   private startPractice(): void { if (this.leave()) this.host.onPractice(); }
+
+  /** E307: a feature playground's card — out of Explore and into that shard's dev level */
+  private startPlayground(id: PlaygroundId): void {
+    const go = this.host.onPlayground;
+    if (go !== undefined && this.leave()) go(id);
+  }
 
   /** set by the select layer (X4): a click / tap on the world at client (x, y) */
   onTap?: (x: number, y: number) => void;

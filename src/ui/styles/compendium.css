@@ -131,3 +131,5 @@
 /* ── the HUD's journal disc (touch: a tag of the base HUD's status column — touch.css .ws-touch-tag, E154): amber while a new page waits ── */
 .ws-cmp-disc.new svg { border-color: var(--ws-amber); color: var(--ws-amber); }
 
+/* a feature playground (src/playgrounds/, E307): no journal disc in the dev level */
+#hud.playground-active .ws-cmp-disc { display: none !important; }
