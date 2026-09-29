@@ -68,7 +68,8 @@ export async function loadTrainingDummy(variant: DummyVariant): Promise<Training
       material.emissive.set(0xffffff);
       material.emissiveMap = material.map;
       material.emissiveIntensity = 0.55; // the grid room has no sky probe; preserve the baked armor colour at night
-      material.metalness = Math.min(material.metalness, 0.55);
+      // TRELLIS baked the all-wood figure 0.57 metallic: its brown reflected like tinted brass (yellow-orange in the arena, E285)
+      material.metalness = variant === 'wood' ? 0 : Math.min(material.metalness, 0.55);
       part.material = material;
     }
   });
