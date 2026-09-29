@@ -259,17 +259,40 @@ export class TrainingArena {
 
   get entered(): boolean { return this.active; }
 
+  /**
+   * Fetch, decode and upload the three figures before the room opens, so it is full on its first frame (E291: it opened
+   * empty for a second or more). Explore's hub calls it (the Practice card is one tap away) and enter() does; once only.
+   */
+  preload(): Promise<void> {
+    this.loadPromise ??= this.prepareModels();
+    return this.loadPromise;
+  }
+
   private async prepareModels(): Promise<void> {
     const renderer = this.game.renderer;
     await Promise.all(this.targets.map(async (target) => {
-      try { target.install(await loadTrainingDummy(target.variant), renderer); }
+      let model: TrainingDummyModel;
+      try { model = await loadTrainingDummy(target.variant); }
       catch (error) {
         console.warn(`[practice] ${target.variant} mesh unavailable; using procedural fallback`, error);
-        target.install(buildTrainingDummy(target.variant), renderer);
+        model = buildTrainingDummy(target.variant);
       }
+      target.install(model, renderer);
+      await this.upload(model.root);
     }));
     this.modelsReady = true;
     this.preparation.hidden = true;
+  }
+
+  /** textures to the GPU and the studio program compiled now, off screen, not on the room's first frame */
+  private async upload(root: THREE.Object3D): Promise<void> {
+    const renderer = this.game.renderer;
+    root.traverse((part) => {
+      if (!(part instanceof THREE.Mesh) || !(part.material instanceof THREE.MeshStandardMaterial)) return;
+      for (const t of [part.material.map, part.material.metalnessMap, part.material.roughnessMap, part.material.normalMap]) if (t !== null) renderer.initTexture(t);
+    });
+    try { await renderer.compileAsync(root, this.game.camera, this.game.scene); }
+    catch (error) { console.warn('[practice] precompile skipped', error); }
   }
 
   /**
@@ -300,8 +323,10 @@ export class TrainingArena {
     for (const t of this.targets) t.attacker = player.position;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
     this.overlay.parentElement?.classList.add('practice-active');
-    this.preparation.hidden = this.modelsReady;
-    this.loadPromise ??= this.prepareModels();
+    // still loading: the procedural figures stand in at once, never an empty room; the meshes replace them on arrival
+    if (!this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(buildTrainingDummy(t.variant), this.game.renderer);
+    this.preparation.hidden = true;
+    void this.preload();
     weapons.select(weapons.list[0]?.id ?? weapons.current.id, true);
     player.setHover(false); // off the board: spawn() keeps it, and on it there is no dodge (E285)
     const centre = LINEUP[1] ?? { x: 0, z: -7 };
@@ -320,7 +345,7 @@ export class TrainingArena {
   }
 
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
-    if (!this.active || !this.modelsReady) return null;
+    if (!this.active || !this.targets.every((t) => t.ready)) return null;
     const hit = trainingTargetRaycast(this.physics, origin, dir, maxDist);
     const target = this.targets.find((t) => t === hit?.target);
     return hit && target ? { animal: target, point: new THREE.Vector3(hit.point.x, hit.point.y, hit.point.z), distance: hit.distance, headshot: hit.headshot } : null;

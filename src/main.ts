@@ -127,6 +127,7 @@ import { consumeTitleArrival, type TitleArrival } from './boot/titleArrival';
 import { setAliveSource } from './boot/lastEnd';
 import { beginNineExploreEntry, recordNineBootCheckpoint, markNineBootContextLost, markNineBootHandledError } from './boot/nineBootTrace';
 import { asShell } from './core/shardScope';
+import { isDev } from './core/devMode';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -534,7 +535,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   await macrotask();
-  await step('menu', (p) => (menuLoad ?? startMenuPreload(files, chunk)).wait(p)); // the cards' art in memory before the title builds its deck (showIntro below)
+  await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
+    const practice = isDev() ? arena.preload() : null; // + the practice room's dummies in Developer mode: full on its first frame (E291)
+    await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
+    await practice;
+  });
   const audio = new Audio();
   if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
   // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
@@ -897,6 +902,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const t2 = performance.now();
     recordNineBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
+    if (isDev()) void arena.preload(); // the hub's Practice card (Developer mode): its dummies load now, not when it opens (E291)
     console.info(`[explore] open: import ${Math.round(t1 - t0)} ms · build ${Math.round(t2 - t1)} ms · open ${Math.round(performance.now() - t2)} ms`);
   };
   const exploreParam = params.get('explore');
