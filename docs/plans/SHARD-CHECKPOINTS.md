@@ -1,6 +1,6 @@
 # Plan: Shard checkpoints — the repeatable review loop (E206)
 
-**State:** `draft` 2026-09-26 — skill and two A4 portrait review PDFs are prepared; the five-page example runs from the Nine Dragon fragment to the finished nine-stratum shard. Jake's review of the example and manual is the next process checkpoint.
+**State:** `draft` 2026-09-28 — the skill and the two A4 portrait review PDFs are prepared (E206 / E207, 3ed3285e); the five-page example runs from the Nine Dragon fragment to the finished nine-stratum shard. Jake has not reviewed the process yet (E207: "waiting for Jake's process review"); that review is the next checkpoint. Meanwhile the practice arena this plan scoped was approved and built under E212 (ce1305ac), and the Nine Dragon rows move in NINE-DRAGON-STACK.
 
 ## Purpose
 
