@@ -197,6 +197,7 @@ export class ForestAmbience {
   /** the zone weights → every bed's target level, the ambient shade and every reverb send (10 Hz, 300 ms crossfades) */
   private mix(dt: number): void {
     const a = this.audio, t = a.ctx.currentTime, x = this.px, y = this.py, z = this.pz, D = this.diag;
+    if (!Number.isFinite(x + y + z + this.night + this.dawn + this.rain)) return; // hold the last mix rather than feed NaN to the AudioParams (E278)
     const uw = this.underwater ? 1 : 0, dry = 1 - uw;
     const night = Math.max(0, Math.min(1, this.night)), dawn = Math.max(0, Math.min(1, this.dawn)), rain = Math.max(0, Math.min(1, this.rain));
     const cabin = this.inCabin(x, z, y), outside = 1 - cabin;
@@ -226,7 +227,7 @@ export class ForestAmbience {
     const listed = this.sfx.available;
     D.beds = [];
     for (const [name, w0] of want) {
-      const w = w0 * dry;
+      const w = Number.isFinite(w0) ? w0 * dry : 0; // a NaN weight throws in setTargetAtTime and the loop switches this system off (E278)
       let b = this.beds.get(name);
       if (!b && w > 0.01 && listed) b = this.bed(name);
       if (!b) continue;

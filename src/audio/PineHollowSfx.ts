@@ -237,6 +237,7 @@ export class PineHollowSfx {
       pan = d > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / d)) * 0.8 : 0;
       cutoff = 12000 / (1 + d / 30);
     }
+    if (!Number.isFinite(gain + pan + cutoff)) return false; // a NaN position would throw on the AudioParam (E278)
     const s = c.createBufferSource(); s.buffer = clip.buffer; s.playbackRate.value = 2 ** ((Math.random() * 80 - 40) / 1200);
     const g = c.createGain(); g.gain.value = gain;
     let node: AudioNode = s.connect(g);

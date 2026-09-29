@@ -1,7 +1,7 @@
 /**
  * Lifecycle trace (E135): what the page did around an app switch, kept across reloads and sent home.
  *
- *   installLifeTrace(send);          // once, at boot (ErrorModal.installErrorModal): logs the boot, reports a boot that
+ *   installLifeTrace(send);          // once, at boot (ErrorModal.installErrorModal): logs the boot, reports an unhealthy boot that
  *                                    // followed a page which ended hidden or reloading (iOS killed it, or GpuRecovery reloaded)
  *   trace('hide', 'why');            // one line in the ring (GpuRecovery: hide / show / lost / restore / reload)
  *   traceReturn(awayMs);             // after a long absence: watch the next seconds of frames, then report the whole trace
@@ -83,6 +83,16 @@ function watchFrames(ms: number, done: (frames: number, maxGap: number) => void)
   window.setTimeout(() => { maxGap = Math.max(maxGap, performance.now() - last); finish(); }, ms + 1000);
 }
 
+/** the watched seconds looked fine: the page painted and drew at least 15 fps, or it was hidden (rAF paused, 0 frames is
+ *  not a finding). E278: every cross-shard switch ends its page on "hide", so a healthy-boot report was 68 of 98 inbox
+ *  entries, and not one showed E135's unpainted state. Healthy runs stay in the trace ring; only a finding is sent. */
+function healthy(frames: number): boolean {
+  if (document.visibilityState !== 'visible') return true;
+  let painted = true;
+  try { painted = performance.getEntriesByType('paint').length > 0; } catch { /* old WebKit: judge by frames */ }
+  return painted && frames >= (WATCH_MS / 1000) * 15;
+}
+
 function report(message: string): void {
   trace('report', message);
   // the server keeps the first MAX_STACK_CHARS (4000) of a stack: send the newest lines, which are the ones that matter
@@ -95,7 +105,7 @@ export function traceReturn(awayMs: number, path: string): void {
   if (awayMs < REPORT_AWAY_MS) return;
   watchFrames(WATCH_MS, (frames, maxGap) => {
     trace('after return', `${frames} frames in ${WATCH_MS / 1000}s, longest gap ${maxGap}ms · ${layout()}`);
-    report(`back after ${Math.round(awayMs / 60_000)} min: ${path}, ${frames} frames / ${WATCH_MS / 1000}s`);
+    if (!healthy(frames)) report(`back after ${Math.round(awayMs / 60_000)} min: ${path}, ${frames} frames / ${WATCH_MS / 1000}s`);
   });
 }
 
@@ -129,7 +139,7 @@ export function installLifeTrace(sendFn: LifeSend): void {
   window.setTimeout(() => {
     watchFrames(WATCH_MS, (frames, maxGap) => {
       trace('after boot', `${frames} frames in ${WATCH_MS / 1000}s, longest gap ${maxGap}ms · ${paints()} · ${layout()}`);
-      report(`boot after the last page ended on "${last}" (nav ${nav}): ${frames} frames / ${WATCH_MS / 1000}s`);
+      if (!healthy(frames)) report(`boot after the last page ended on "${last}" (nav ${nav}): ${frames} frames / ${WATCH_MS / 1000}s`);
     });
   }, 20_000);
 }
