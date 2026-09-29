@@ -7,8 +7,8 @@
  *   const roads = buildRoadFurniture(ctx);   // PoiPiece (object = a group of the two meshes)
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3 } from './paint';
-import { addFence, PC } from './props';
+import { PaintKit, M, v3, woodPole } from './paint';
+import { addFence, PC, GRAIN, WOOD } from './props';
 import { painterlyMaterial } from '../painterly';
 import { CAMP } from './layout';
 import { PASTURE, HORSE_PLAINS, KOKPAR, EAGLE_ROCK, SUMMER_YURTS, WATCHTOWER, KURGANS } from '../../chunks/nalatiLayout';
@@ -77,7 +77,7 @@ export function buildRoadFurniture(ctx: PoiCtx): PoiPiece {
   const quads: { p: THREE.Vector3; yaw: number; w: number; row: number; flip: boolean }[] = [];
   for (const s of SIGNS) {
     const gy = ground(s.x, s.z), H = 1.9 + s.boards.length * 0.36;
-    kit.add(pole(v3(s.x, gy - 0.4, s.z), v3(s.x, gy + H, s.z), 0.09, 0.075, 8), PC.woodGrey, { foot: 0.7 });
+    kit.add(woodPole(v3(s.x, gy - 0.4, s.z), v3(s.x, gy + H, s.z), 0.09, 0.075, 8, 3), GRAIN, { ...WOOD, foot: 0.7, brush: 0.14 });
     kit.add(new THREE.ConeGeometry(0.11, 0.2, 8).translate(s.x, gy + H + 0.1, s.z), PC.woodDark);
     colliders.push({ x: s.x, z: s.z, hw: 0.14, hd: 0.14, rot: 0, yBottom: gy - 1, yTop: gy + H });
     s.boards.forEach((b, i) => {
@@ -96,6 +96,8 @@ export function buildRoadFurniture(ctx: PoiCtx): PoiPiece {
   }
   const mesh = kit.mesh(sky, { ground });
   mesh.name = 'nalati-roads';
+  const wood = kit.texturedMesh(sky, 'rock', { ground });   // the fences + the sign posts (props.ts GRAIN)
+  if (wood) wood.name = 'nalati-roads-wood';
 
   // lettering: quads on both faces of every board, uv into the atlas (the back face mirrors so it reads right)
   const atlas = makeAtlas(labels);
@@ -132,5 +134,6 @@ export function buildRoadFurniture(ctx: PoiCtx): PoiPiece {
   text.receiveShadow = true;
   const group = new THREE.Group();
   group.add(mesh, text);
-  return { name: 'roads', object: group, colliders, surface: 'wood', tris: mesh.geometry.getAttribute('position').count / 3 + idx.length / 3 };
+  if (wood) group.add(wood);
+  return { name: 'roads', object: group, colliders, surface: 'wood', tris: mesh.geometry.getAttribute('position').count / 3 + idx.length / 3 + (wood ? wood.geometry.getAttribute('position').count / 3 : 0) };
 }

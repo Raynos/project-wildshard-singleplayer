@@ -14,9 +14,9 @@
  * Terrain request: a flat pad r 30 at (95, 205) (the valley floor, ≈ −8).
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, blob } from './paint';
+import { PaintKit, M, pole, v3, blob, woodPole } from './paint';
 import { addYurt, yurtSolid } from './Yurt';
-import { PC, addBarrel, addStove, addCart, addSaddleRack, addGroundRug, addRugRack, addCarvedPost, addRugLine, addChoppingBlock, addMilkCans } from './props';
+import { PC, GRAIN, WOOD, addBarrel, addStove, addCart, addSaddleRack, addGroundRug, addRugRack, addCarvedPost, addRugLine, addChoppingBlock, addMilkCans } from './props';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import { CAMP, CORRAL, HITCHING_RAIL } from './layout';
 import { ModelSink } from './glbPaint';
@@ -94,7 +94,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     const x = cx - 9, z = cz + 1.5, y = ground(x, z), H = 2.55;
     for (let i = 0; i < 3; i++) {
       const a = (i / 3) * Math.PI * 2 + 0.3;
-      kit.add(pole(v3(x + Math.cos(a) * 0.95, y - 0.2, z + Math.sin(a) * 0.95), v3(x - Math.cos(a) * 0.1, y + H + 0.1, z - Math.sin(a) * 0.1), 0.055, 0.04, 6), PC.woodGrey);
+      kit.add(woodPole(v3(x + Math.cos(a) * 0.95, y - 0.2, z + Math.sin(a) * 0.95), v3(x - Math.cos(a) * 0.1, y + H + 0.1, z - Math.sin(a) * 0.1), 0.055, 0.04, 7, 3), GRAIN, { ...WOOD, brush: 0.14 });
     }
     kit.add(new THREE.CylinderGeometry(0.075, 0.075, 0.22, 8).translate(x, y + H - 0.25, z), PC.leather);          // lashing
     kit.add(pole(v3(x - 0.5, y + H + 0.08, z), v3(x + 0.5, y + H + 0.08, z), 0.045, 0.045, 7), PC.wood);             // T-bar
@@ -168,12 +168,12 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
       if (!p) continue;
       const da = Math.abs(((a - gate + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI);
       const big = da < 0.3;
-      kit.add(pole(v3(p.x, p.y - 0.4, p.z), v3(p.x + rng.range(-0.04, 0.04), p.y + (big ? 1.75 : 1.45), p.z + rng.range(-0.04, 0.04)), big ? 0.12 : 0.085, big ? 0.1 : 0.07, 7), PC.woodGrey, { foot: 0.7, jitter: 0.1 });
+      kit.add(woodPole(v3(p.x, p.y - 0.4, p.z), v3(p.x + rng.range(-0.04, 0.04), p.y + (big ? 1.75 : 1.45), p.z + rng.range(-0.04, 0.04)), big ? 0.12 : 0.085, big ? 0.1 : 0.07, 7, 3), GRAIN, { ...WOOD, foot: 0.7, jitter: 0.1, brush: 0.14 });
       const q = posts[(i + 1) % n];
       const am = ((i + 0.5) / n) * Math.PI * 2;
       const dm = Math.abs(((am - gate + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI);
       if (!q || dm < 0.2) continue;                     // the gate gap
-      for (const ry of [0.62, 1.2]) kit.add(pole(v3(p.x, p.y + ry, p.z), v3(q.x, q.y + ry - 0.03, q.z), 0.055, 0.055, 6), PC.woodGrey, { jitter: 0.12 });
+      for (const ry of [0.62, 1.2]) kit.add(woodPole(v3(p.x, p.y + ry, p.z), v3(q.x, q.y + ry - 0.03, q.z), 0.055, 0.055, 7, 4), GRAIN, { ...WOOD, jitter: 0.12, brush: 0.14 });
       const mx = (p.x + q.x) / 2, mz = (p.z + q.z) / 2, len = Math.hypot(q.x - p.x, q.z - p.z);
       const yaw = Math.atan2(q.x - p.x, q.z - p.z), gy = Math.min(p.y, q.y);
       colliders.push({ x: mx, z: mz, hw: 0.1, hd: len / 2 + 0.05, rot: -yaw, yBottom: gy - 1, yTop: gy + 1.3 });
@@ -182,9 +182,10 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     {
       const gx = x + Math.cos(gate + 0.12) * r, gz = z + Math.sin(gate + 0.12) * r, gy = ground(gx, gz);
       const m = M(gx - 1.1, gy, gz + 0.9, 0.5);
-      for (const ry of [0.4, 0.8, 1.2]) kit.add(new THREE.BoxGeometry(0.06, 0.1, 2.2).translate(0, ry, 0), PC.woodGrey, { matrix: m, flat: true });
-      for (const s of [-1.05, 1.05]) kit.add(new THREE.BoxGeometry(0.07, 1.35, 0.1).translate(0, 0.68, s), PC.woodGrey, { matrix: m, flat: true });
-      kit.add(new THREE.BoxGeometry(0.05, 0.1, 2.5).rotateX(0.5).translate(0, 0.8, 0), PC.woodGrey, { matrix: m, flat: true });
+      // split rails and posts (they were sharp flat boxes that read as untextured purple-grey — E302 B9)
+      for (const ry of [0.4, 0.8, 1.2]) kit.add(woodPole(v3(0, ry, -1.1), v3(0, ry, 1.1), 0.045, 0.04, 6, 4), GRAIN, { ...WOOD, matrix: m, brush: 0.14 });
+      for (const s of [-1.05, 1.05]) kit.add(woodPole(v3(0, 0, s), v3(0, 1.36, s), 0.055, 0.05, 7, 3), GRAIN, { ...WOOD, matrix: m, brush: 0.14, foot: 0.75 });
+      kit.add(woodPole(v3(0, 0.38, -1.02), v3(0, 1.22, 1.02), 0.035, 0.035, 6, 4), GRAIN, { ...WOOD, matrix: m, brush: 0.14 });
     }
     // hay pile + a feed trough inside
     const hx = x + 3, hz = z + 2, hy = ground(hx, hz);
@@ -222,6 +223,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   group.add(mesh);
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { felt.name = 'nalati-camp-felt'; group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
+  const wood = kit.texturedMesh(sky, 'rock', { ground });   // the corral, the gate, the racks and the perch (props.ts GRAIN)
+  if (wood) { wood.name = 'nalati-camp-wood'; group.add(wood); tris += wood.geometry.getAttribute('position').count / 3; }
   tris += sink.tris();
   void sink.flush(group, sky);
   return { name: 'camp', object: group, colliders, surface: 'wood', descs, tris };

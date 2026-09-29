@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../../../core/rng';
 import { heightAt } from '../../Heightfield';
-import { PaintKit, pole, v3, blob, lathe, logPainter, poiMaterial, M } from '../paint';
+import { PaintKit, pole, v3, blob, lathe, logPainter, poiMaterial, texturedMaterial, M } from '../paint';
 import type { Flutter } from '../Flutter';
 import type { Sky } from '../../Sky';
 import type { Collider } from '../../../player/Player';
@@ -143,11 +143,14 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
   }
 
   // ── the sky road's guard fences (the POI fence builder) + the gateway on the rim ──
+  // (the timber is the kit's 'rock' textured layer — props.ts GRAIN — so every run goes into one extra mesh, `wood`)
+  const woodGeos: THREE.BufferGeometry[] = [];
   for (const run of plan.fences) {
     const kit = new PaintKit(rng.int(1, 1e6));
     addFence(kit, ground, run, colliders, { h: 1.05, spacing: 2.6 });
-    const mid = run[Math.floor(run.length / 2)] ?? [0, 0];
-    put(mid[0], mid[1], kit.finish({ ground, aoH: 0.3, ao: false }));
+    const g = kit.finishTextured({ ground, aoH: 0.3, ao: false }, 'rock');
+    if (g) woodGeos.push(g);
+    if (!kit.empty) { const mid = run[Math.floor(run.length / 2)] ?? [0, 0]; put(mid[0], mid[1], kit.finish({ ground, aoH: 0.3, ao: false })); }
   }
   for (const g of plan.gates) {
     const kit = new PaintKit(rng.int(1, 1e6));
@@ -178,6 +181,16 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     geo.computeBoundingSphere();
     const m = new THREE.Mesh(geo, poiMaterial(sky));
     m.name = `nalati-dress-props-${k}`;
+    m.castShadow = true; m.receiveShadow = true;
+    meshes.push(m);
+    tris += geo.getAttribute('position').count / 3;
+  }
+  if (woodGeos.length > 0) {
+    const geo = mergeGeometries(woodGeos, false);
+    for (const g of woodGeos) g.dispose();
+    geo.computeBoundingSphere();
+    const m = new THREE.Mesh(geo, texturedMaterial(sky, 'rock'));
+    m.name = 'nalati-dress-fences';
     m.castShadow = true; m.receiveShadow = true;
     meshes.push(m);
     tris += geo.getAttribute('position').count / 3;

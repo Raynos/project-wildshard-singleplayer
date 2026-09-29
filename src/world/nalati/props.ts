@@ -6,14 +6,16 @@
  * collider) and pushes nothing global.
  */
 import * as THREE from 'three';
-import { type PaintKit, M, pole, v3, lathe, logPainter } from './paint';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { type PaintKit, type PaintOpts, M, pole, v3, lathe, logPainter, woodPainter, woodPole } from './paint';
+import { TEX_MEAN } from '../nalatiTextures';
 import type { Collider } from '../../player/Player';
 
 export const PC = {
   wood: new THREE.Color('#8b5e36'),
   woodLight: new THREE.Color('#a8784a'),
   woodDark: new THREE.Color('#553821'),
-  woodGrey: new THREE.Color('#8a7d6c'),
+  woodGrey: new THREE.Color('#8c7457'), // weathered larch (E302: the old #8a7d6c went purple in the violet shade)
   iron: new THREE.Color('#34312f'),
   red: new THREE.Color('#b1301d'),
   redDark: new THREE.Color('#5a1d13'),
@@ -29,6 +31,16 @@ export const PC = {
 };
 
 type Ground = (x: number, z: number) => number;
+
+/**
+ * The weathered timber of the fences, racks and rails (E302, NALATI-FINISH B9: they read as untextured purple-grey
+ * boxes): the kit's 'rock' textured layer — the painted granite the terrain already has on the GPU, so no new texture —
+ * laid as grain along each pole (paint.ts woodPole), × the painted wood colour over the tile's mean (paint.ts woodPainter).
+ * Every builder that paints timber with it finishes the layer: `kit.texturedMesh(sky, 'rock', …)`.
+ */
+const ROCK_MEAN = TEX_MEAN.rock;
+export const GRAIN = woodPainter(PC.woodGrey, '#b3a792', new THREE.Color(1 / ROCK_MEAN[0], 1 / ROCK_MEAN[1], 1 / ROCK_MEAN[2]));
+export const WOOD: PaintOpts = { uv: true, tex: 'rock', brush: 0.1 };
 
 // ── felt rugs ────────────────────────────────────────────────────────────────────────────────────────
 
@@ -80,10 +92,10 @@ export function addRugRack(kit: PaintKit, ground: Ground, x: number, z: number, 
   const W = 3.6, H = 1.9;
   const at = (lx: number, ly: number, lz: number) => v3(x + lx * cs + lz * sn, y + ly, z - lx * sn + lz * cs);
   for (const sx of [-1, 1]) {
-    kit.add(pole(at(sx * W / 2, -0.2, -0.55), at(sx * W / 2, H + 0.1, 0), 0.05, 0.045), PC.woodGrey);
-    kit.add(pole(at(sx * W / 2, -0.2, 0.55), at(sx * W / 2, H + 0.1, 0), 0.05, 0.045), PC.woodGrey);
+    kit.add(woodPole(at(sx * W / 2, -0.2, -0.55), at(sx * W / 2, H + 0.1, 0), 0.05, 0.045, 7, 3), GRAIN, { ...WOOD, brush: 0.14 });
+    kit.add(woodPole(at(sx * W / 2, -0.2, 0.55), at(sx * W / 2, H + 0.1, 0), 0.05, 0.045, 7, 3), GRAIN, { ...WOOD, brush: 0.14 });
   }
-  kit.add(pole(at(-W / 2 - 0.2, H, 0), at(W / 2 + 0.2, H, 0), 0.045), PC.woodGrey);
+  kit.add(woodPole(at(-W / 2 - 0.2, H, 0), at(W / 2 + 0.2, H, 0), 0.045, 0.045, 7, 3), GRAIN, { ...WOOD, brush: 0.14 });
   // rugs over the bar: a long drop on the front, a short one behind, each leaning off the bar a little
   pals.forEach((pal, i) => {
     const rw = 1.05, n = pals.length, cx = -W / 2 + (W / n) * (i + 0.5) + kit.rng.range(-0.05, 0.05);
@@ -106,16 +118,42 @@ export function addBarrel(kit: PaintKit, ground: Ground, x: number, z: number, c
   colliders.push({ x, z, hw: 0.3 * s, hd: 0.3 * s, rot: 0, yBottom: y - 1, yTop: y + 0.9 * s });
 }
 
-/** the camp stove: an iron box stove on legs with a pipe and a kettle; returns the pipe's mouth */
+/**
+ * the camp stove: an iron box stove on legs with a pipe and a kettle; returns the pipe's mouth. Painted iron, not a flat
+ * black box (E302, NALATI-FINISH B9): warm rust-brown plates with heat-worn lighter edges and rust strokes, riveted
+ * seams, a glowing firebox door, the pipe in jointed lengths (pale collars) sooted toward the cap.
+ */
 export function addStove(kit: PaintKit, ground: Ground, x: number, z: number, yaw: number, colliders: Collider[]): THREE.Vector3 {
   const y = ground(x, z), m = M(x, y, z, yaw);
-  kit.add(new THREE.BoxGeometry(0.75, 0.48, 0.5).translate(0, 0.5, 0), PC.iron, { matrix: m, flat: true });
-  for (const [lx, lz] of [[-0.32, -0.2], [0.32, -0.2], [-0.32, 0.2], [0.32, 0.2]] as const) kit.add(new THREE.CylinderGeometry(0.03, 0.03, 0.28, 5).translate(lx, 0.14, lz), PC.iron, { matrix: m });
-  kit.add(new THREE.BoxGeometry(0.28, 0.2, 0.02).translate(-0.12, 0.48, -0.26), new THREE.Color('#7a2a10'), { matrix: m, flat: true });
-  kit.add(new THREE.CylinderGeometry(0.075, 0.075, 1.7, 8).translate(0.24, 1.58, 0.1), PC.iron, { matrix: m });
-  kit.add(new THREE.CylinderGeometry(0.13, 0.08, 0.08, 8).translate(0.24, 2.46, 0.1), PC.iron, { matrix: m });
+  const iron = new THREE.Color('#4d3b30'), rust = new THREE.Color('#86502d'), worn = new THREE.Color('#8d7a66'), soot = new THREE.Color('#2a2521');
+  // painted per row, never per triangle (a per-face hash split every quad into a harlequin): the hot plate worn pale,
+  // a heat-worn band under the lip, rust creeping up from the foot; the brush noise does the rest
+  const plate = (p: THREE.Vector3, n: THREE.Vector3): THREE.Color => {
+    if (n.y > 0.5) return iron.clone().lerp(worn, 0.5);
+    if (p.y > 0.66) return iron.clone().lerp(worn, 0.22);
+    if (p.y < 0.34) return iron.clone().lerp(rust, 0.45);
+    return Math.abs(n.x) > 0.5 ? iron.clone().lerp(rust, 0.18) : iron;
+  };
+  kit.add(new THREE.BoxGeometry(0.75, 0.48, 0.5, 1, 3, 1).translate(0, 0.5, 0), plate, { matrix: m, flat: true, brush: 0.16 });
+  for (const [lx, lz] of [[-0.32, -0.2], [0.32, -0.2], [-0.32, 0.2], [0.32, 0.2]] as const) kit.add(new THREE.CylinderGeometry(0.03, 0.022, 0.28, 6).translate(lx, 0.14, lz), iron, { matrix: m, foot: 0.7 });
+  // the trim as ONE part (the kit's rng is drawn once per part, so the camp keeps its old part count and every later
+  // placement stays put): a lip round the top plate, riveted seams, the firebox door frame and the glow through its grate
+  const trimParts: THREE.BufferGeometry[] = [new THREE.BoxGeometry(0.8, 0.035, 0.55).translate(0, 0.745, 0).toNonIndexed(), new THREE.BoxGeometry(0.32, 0.24, 0.02).translate(-0.12, 0.48, -0.258).toNonIndexed(),
+    new THREE.BoxGeometry(0.26, 0.17, 0.02, 6, 1, 1).translate(-0.12, 0.48, -0.266).toNonIndexed()];
+  for (const sx of [-0.34, 0.34]) for (const sy of [0.33, 0.5, 0.67]) trimParts.push(new THREE.SphereGeometry(0.012, 5, 3).translate(sx, sy, -0.255).toNonIndexed());
+  for (const g of trimParts) g.deleteAttribute('uv');
+  const trim = mergeGeometries(trimParts, false);
+  for (const g of trimParts) g.dispose();
+  const frame = worn.clone().lerp(iron, 0.5);
+  kit.add(trim, (p) => (p.z < -0.262 && Math.abs(p.x + 0.12) < 0.13 && Math.abs(p.y - 0.48) < 0.085 ? (Math.round((p.x + 0.12) * 46) % 2 === 0 ? '#ffb24a' : '#e2561c') : p.y > 0.72 ? worn.clone().lerp(iron, 0.4) : frame), { matrix: m, flat: true, brush: 0.05 });
+  // the pipe: jointed lengths, sooted toward the cap
+  kit.add(new THREE.CylinderGeometry(0.075, 0.075, 1.7, 10, 8).translate(0.24, 1.58, 0.1), (p) => {
+    const t = (p.y - 0.73) / 1.7, joint = Math.abs(((t * 3) % 1) - 0.5) > 0.44;
+    return joint ? worn : iron.clone().lerp(rust, 0.15).lerp(soot, Math.max(0, t - 0.55) * 1.6);
+  }, { matrix: m, brush: 0.12 });
+  kit.add(new THREE.CylinderGeometry(0.13, 0.08, 0.08, 10).translate(0.24, 2.46, 0.1), soot, { matrix: m });
   // kettle
-  kit.add(new THREE.SphereGeometry(0.13, 10, 8).scale(1, 0.8, 1).translate(-0.12, 0.84, 0.02), new THREE.Color('#9a6a2a'), { matrix: m });
+  kit.add(new THREE.SphereGeometry(0.13, 10, 8).scale(1, 0.8, 1).translate(-0.12, 0.84, 0.02), new THREE.Color('#9a6a2a'), { matrix: m, brush: 0.1 });
   kit.add(pole(v3(-0.02, 0.86, 0.02), v3(0.09, 0.95, 0.02), 0.022, 0.012, 5), new THREE.Color('#9a6a2a'), { matrix: m });
   colliders.push({ x, z, hw: 0.42, hd: 0.3, rot: -yaw, yBottom: y - 1, yTop: y + 0.8 });
   return v3(0.24, 2.55, 0.1).applyMatrix4(m);
@@ -150,10 +188,10 @@ export function addCart(kit: PaintKit, ground: Ground, x: number, z: number, yaw
 export function addSaddleRack(kit: PaintKit, ground: Ground, x: number, z: number, yaw: number, colliders: Collider[]): void {
   const y = ground(x, z), m = M(x, y, z, yaw);
   for (const sx of [-0.45, 0.45]) {
-    kit.add(pole(v3(sx, 0, -0.3), v3(sx, 0.95, 0), 0.04, 0.035, 5), PC.woodGrey, { matrix: m });
-    kit.add(pole(v3(sx, 0, 0.3), v3(sx, 0.95, 0), 0.04, 0.035, 5), PC.woodGrey, { matrix: m });
+    kit.add(woodPole(v3(sx, 0, -0.3), v3(sx, 0.95, 0), 0.04, 0.035, 6, 2), GRAIN, { ...WOOD, matrix: m, brush: 0.14 });
+    kit.add(woodPole(v3(sx, 0, 0.3), v3(sx, 0.95, 0), 0.04, 0.035, 6, 2), GRAIN, { ...WOOD, matrix: m, brush: 0.14 });
   }
-  kit.add(pole(v3(-0.6, 0.95, 0), v3(0.6, 0.95, 0), 0.05, 0.05, 6), PC.woodGrey, { matrix: m });
+  kit.add(woodPole(v3(-0.6, 0.95, 0), v3(0.6, 0.95, 0), 0.05, 0.05, 7, 3), GRAIN, { ...WOOD, matrix: m, brush: 0.14 });
   kit.add(new THREE.BoxGeometry(0.9, 0.03, 0.8).translate(0, 0.98, 0), PC.red, { matrix: m, flat: true });
   kit.add(new THREE.BoxGeometry(0.92, 0.035, 0.1).translate(0, 0.985, -0.41), PC.gold, { matrix: m, flat: true });
   kit.add(new THREE.BoxGeometry(0.92, 0.035, 0.1).translate(0, 0.985, 0.41), PC.gold, { matrix: m, flat: true });
@@ -207,7 +245,7 @@ export function addFence(kit: PaintKit, ground: Ground, pts: [number, number][],
       const t = k / n, x = p[0] + (q[0] - p[0]) * t + rng.range(-0.05, 0.05), z = p[1] + (q[1] - p[1]) * t + rng.range(-0.05, 0.05);
       const y = ground(x, z);
       const lean = rng.range(-0.05, 0.05);
-      kit.add(pole(v3(x, y - 0.3, z), v3(x + lean, y + h + rng.range(-0.05, 0.08), z + lean * 0.5), 0.075, 0.06, 6), PC.woodGrey, { jitter: 0.1, foot: 0.7 });
+      kit.add(woodPole(v3(x, y - 0.3, z), v3(x + lean, y + h + rng.range(-0.05, 0.08), z + lean * 0.5), 0.075, 0.06, 7, 3), GRAIN, { ...WOOD, jitter: 0.1, foot: 0.7, brush: 0.14 });
       posts.push(v3(x, y, z));
     }
     for (let k = 0; k + 1 < posts.length; k++) {
@@ -215,8 +253,8 @@ export function addFence(kit: PaintKit, ground: Ground, pts: [number, number][],
       if (!a || !b) continue;
       for (const ry of [h * 0.45, h * 0.88]) {
         const mid = v3((a.x + b.x) / 2, (a.y + b.y) / 2 + ry - 0.05, (a.z + b.z) / 2);
-        kit.add(pole(v3(a.x, a.y + ry, a.z), mid, 0.05, 0.05, 5), PC.woodGrey, { jitter: 0.1 });
-        kit.add(pole(mid, v3(b.x, b.y + ry, b.z), 0.05, 0.05, 5), PC.woodGrey, { jitter: 0.1 });
+        kit.add(woodPole(v3(a.x, a.y + ry, a.z), mid, 0.05, 0.05, 6, 2), GRAIN, { ...WOOD, jitter: 0.1, brush: 0.14 });
+        kit.add(woodPole(mid, v3(b.x, b.y + ry, b.z), 0.05, 0.05, 6, 2), GRAIN, { ...WOOD, jitter: 0.1, brush: 0.14 });
       }
     }
     const cx = (p[0] + q[0]) / 2, cz = (p[1] + q[1]) / 2, yaw = Math.atan2(q[0] - p[0], q[1] - p[1]);
@@ -231,9 +269,9 @@ export function addFence(kit: PaintKit, ground: Ground, pts: [number, number][],
 export function addRugLine(kit: PaintKit, ground: Ground, ax: number, az: number, bx: number, bz: number, pals: number[], colliders: Collider[]): void {
   const H = 1.75, ya = ground(ax, az), yb = ground(bx, bz);
   for (const [x, z, y] of [[ax, az, ya], [bx, bz, yb]] as const) {
-    kit.add(pole(v3(x, y - 0.35, z), v3(x, y + H + 0.1, z), 0.06, 0.05, 6), PC.woodGrey, { foot: 0.75 });
-    kit.add(pole(v3(x, y + H - 0.05, z), v3(x + 0.14, y + H + 0.25, z), 0.025, 0.02, 4), PC.woodGrey);
-    kit.add(pole(v3(x, y + H - 0.05, z), v3(x - 0.14, y + H + 0.25, z), 0.025, 0.02, 4), PC.woodGrey);
+    kit.add(woodPole(v3(x, y - 0.35, z), v3(x, y + H + 0.1, z), 0.06, 0.05, 7, 3), GRAIN, { ...WOOD, foot: 0.75, brush: 0.14 });
+    kit.add(woodPole(v3(x, y + H - 0.05, z), v3(x + 0.14, y + H + 0.25, z), 0.025, 0.02, 5, 2), GRAIN, { ...WOOD, brush: 0.14 });
+    kit.add(woodPole(v3(x, y + H - 0.05, z), v3(x - 0.14, y + H + 0.25, z), 0.025, 0.02, 5, 2), GRAIN, { ...WOOD, brush: 0.14 });
     colliders.push({ x, z, hw: 0.12, hd: 0.12, rot: 0, yBottom: y - 1, yTop: y + H });
   }
   const len = Math.hypot(bx - ax, bz - az), yaw = Math.atan2(bx - ax, bz - az) - Math.PI / 2;

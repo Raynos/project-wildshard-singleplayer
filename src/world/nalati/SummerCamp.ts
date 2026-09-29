@@ -6,9 +6,9 @@
  *   const summer = buildSummerCamp(ctx);   // PoiPiece
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3 } from './paint';
+import { PaintKit, M, pole, v3, woodPole } from './paint';
 import { addYurt, yurtSolid } from './Yurt';
-import { PC, addCart, addGroundRug, addBarrel } from './props';
+import { PC, GRAIN, WOOD, addCart, addGroundRug, addBarrel } from './props';
 import { SUMMER_CAMP } from './layout';
 import { ModelSink } from './glbPaint';
 import { addKazanModel, addChestModel } from './modelProps';
@@ -46,8 +46,8 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   {
     const ax = cx - 12, az = cz - 3, bx = cx - 12, bz = cz + 5;
     const ay = ground(ax, az), by = ground(bx, bz);
-    kit.add(pole(v3(ax, ay - 0.4, az), v3(ax, ay + 1.3, az), 0.09, 0.08, 7), PC.woodGrey, { foot: 0.7 });
-    kit.add(pole(v3(bx, by - 0.4, bz), v3(bx, by + 1.3, bz), 0.09, 0.08, 7), PC.woodGrey, { foot: 0.7 });
+    kit.add(woodPole(v3(ax, ay - 0.4, az), v3(ax, ay + 1.3, az), 0.09, 0.08, 7, 3), GRAIN, { ...WOOD, foot: 0.7, brush: 0.14 });
+    kit.add(woodPole(v3(bx, by - 0.4, bz), v3(bx, by + 1.3, bz), 0.09, 0.08, 7, 3), GRAIN, { ...WOOD, foot: 0.7, brush: 0.14 });
     const n = 8;
     for (let i = 0; i < n; i++) {
       const t0 = i / n, t1 = (i + 1) / n;
@@ -69,7 +69,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   // a ribbon post by the hearth
   {
     const x = cx - 2.5, z = cz + 1.2, y = ground(x, z);
-    kit.add(pole(v3(x, y - 0.3, z), v3(x, y + 3.6, z), 0.06, 0.045, 7), PC.woodGrey);
+    kit.add(woodPole(v3(x, y - 0.3, z), v3(x, y + 3.6, z), 0.06, 0.045, 7, 3), GRAIN, { ...WOOD, brush: 0.14 });
     for (const [i, c] of ['#c8321e', '#f4efe4', '#2f5fae'].entries()) flutter.streamer(v3(x, y + 3.5 - i * 0.12, z), rng.range(1.6, 2.3), 0.1, c);
     colliders.push({ x, z, hw: 0.1, hd: 0.1, rot: 0, yBottom: y - 1, yTop: y + 3.6 });
   }
@@ -85,6 +85,8 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   group.add(mesh);
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
+  const wood = kit.texturedMesh(sky, 'rock', { ground });   // the posts (props.ts GRAIN)
+  if (wood) { wood.name = 'nalati-summer-wood'; group.add(wood); tris += wood.geometry.getAttribute('position').count / 3; }
   tris += sink.tris();
   void sink.flush(group, sky);
   return { name: 'summerCamp', object: group, colliders, surface: 'wood', descs, tris };

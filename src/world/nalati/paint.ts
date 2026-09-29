@@ -42,6 +42,8 @@ export interface PaintOpts {
   flat?: boolean;
   /** keep the part's `uv` and put it on the kit's TEXTURED layer (finishTextured / texturedMesh: a painted map) */
   uv?: boolean;
+  /** which textured layer (default 'felt'): a kit can carry several, each finished by `texturedMesh(sky, name)` */
+  tex?: NalatiTexName;
 }
 
 /** contact-shade target: a dusky violet-blue (the painterly shade side), as a colour multiplier */
@@ -64,14 +66,14 @@ export class PaintKit {
   readonly rng: Rng;
   private parts: THREE.BufferGeometry[] = [];
   /** parts that keep their uv, for a mesh with a painted texture (nalatiTextures.ts) */
-  private uvParts: THREE.BufferGeometry[] = [];
+  private uvLayers = new Map<NalatiTexName, THREE.BufferGeometry[]>();
   private noise: Noise2D;
 
   constructor(seed: number) { this.rng = new Rng(seed); this.noise = new Noise2D(seed ^ 0x51f3); }
 
   get triangleCount(): number { let n = 0; for (const p of this.parts) n += p.getAttribute('position').count / 3; return n; }
   get empty(): boolean { return this.parts.length === 0; }
-  get texturedTriangles(): number { let n = 0; for (const p of this.uvParts) n += p.getAttribute('position').count / 3; return n; }
+  get texturedTriangles(): number { let n = 0; for (const l of this.uvLayers.values()) for (const p of l) n += p.getAttribute('position').count / 3; return n; }
 
   /** add a geometry (consumed) painted `col` — a colour, or a per-face painter in the part's local space */
   add(g: THREE.BufferGeometry, col: ColorLike | Painter, o: PaintOpts = {}): void {
@@ -132,7 +134,11 @@ export class PaintKit {
       }
       out[i * 3] = r; out[i * 3 + 1] = gg; out[i * 3 + 2] = bb;
     }
-    (keepUv ? this.uvParts : this.parts).push(ni);
+    if (keepUv) {
+      const k = o.tex ?? 'felt';
+      let l = this.uvLayers.get(k); if (!l) this.uvLayers.set(k, (l = []));
+      l.push(ni);
+    } else this.parts.push(ni);
   }
 
   /**
@@ -149,17 +155,18 @@ export class PaintKit {
     return geo;
   }
 
-  /** the textured layer (parts added with `uv: true`), shaded the same way; null when it is empty */
-  finishTextured(o: FinishOpts = {}): THREE.BufferGeometry | null {
-    if (this.uvParts.length === 0) return null;
-    const geo = PaintKit.shade(this.uvParts, o);
-    this.uvParts = [];
+  /** the textured layer `name` (parts added with `uv: true`, `tex: name`; default 'felt'), shaded the same way; null when it is empty */
+  finishTextured(o: FinishOpts = {}, name: NalatiTexName = 'felt'): THREE.BufferGeometry | null {
+    const parts = this.uvLayers.get(name);
+    if (!parts || parts.length === 0) return null;
+    const geo = PaintKit.shade(parts, o);
+    this.uvLayers.delete(name);
     return geo;
   }
 
   /** finishTextured() on a painterly material carrying the painted `name` texture (lazy-loaded) */
   texturedMesh(sky: Sky, name: NalatiTexName, o: FinishOpts = {}): THREE.Mesh | null {
-    const geo = this.finishTextured(o);
+    const geo = this.finishTextured(o, name);
     if (!geo) return null;
     const m = new THREE.Mesh(geo, texturedMaterial(sky, name));
     m.castShadow = true; m.receiveShadow = true;
@@ -237,11 +244,11 @@ export function M(x: number, y: number, z: number, yaw = 0, sx = 1, sy = sx, sz 
 }
 
 const UP = new THREE.Vector3(0, 1, 0);
-/** a smooth round pole / log from a to b, radius r0 at a → r1 at b */
-export function pole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1 = r0, sides = 7): THREE.BufferGeometry {
+/** a smooth round pole / log from a to b, radius r0 at a → r1 at b; `segs` rings along it (for a painter that varies along the length) */
+export function pole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1 = r0, sides = 7, segs = 1): THREE.BufferGeometry {
   const d = new THREE.Vector3().subVectors(b, a);
   const len = d.length();
-  const g = new THREE.CylinderGeometry(r1, r0, len, sides, 1, false, 0.3);
+  const g = new THREE.CylinderGeometry(r1, r0, len, sides, segs, false, 0.3);
   g.applyMatrix4(_m.makeRotationFromQuaternion(_q.setFromUnitVectors(UP, d.normalize())));
   g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
   return g;
@@ -420,6 +427,31 @@ export function revolve(fn: (theta: number, t: number) => [number, number], segU
   g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
   g.setIndex(idx);
   g.computeVertexNormals();
+  return g;
+}
+
+const hash3 = (x: number, y: number, z: number): number => { const h = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return h - Math.floor(h); };
+/**
+ * Weathered timber (E302, NALATI-FINISH B9: the fence rails read as untextured purple-grey boxes): the wood colour, the
+ * faces that look up silvered by the weather. The grain itself is the texture of the kit's textured layer, laid along
+ * each pole by `woodPole` — a per-face stroke here would split every quad into two triangles of different paint.
+ * `gain` scales the result (a textured layer's 1 / tile mean, so the texture keeps the painted colour on average).
+ */
+export function woodPainter(base: ColorLike, silver: ColorLike = '#b3a792', gain?: THREE.Color): Painter {
+  const b = toColor(base, new THREE.Color()), sv = toColor(silver, new THREE.Color()), g = gain ?? new THREE.Color(1, 1, 1), out = new THREE.Color();
+  return (_pos, n) => { const up = Math.max(0, n.y); return out.copy(b).lerp(sv, up * up * 0.55).multiply(g); };
+}
+
+/**
+ * `pole()` with its uv laid for a painted tile as wood grain (the kit's textured layer): the tile squeezed round the
+ * pole and stretched along it, so its detail runs as streaks down the timber; a per-pole offset so neighbours differ.
+ * `tileAround` / `tileAlong` = metres of the timber one tile covers (defaults: 0.7 m round, 22 m along).
+ */
+export function woodPole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1 = r0, sides = 7, segs = 1, tileAround = 0.7, tileAlong = 22): THREE.BufferGeometry {
+  const g = pole(a, b, r0, r1, sides, segs);
+  const uv = g.getAttribute('uv'), len = a.distanceTo(b), circ = Math.PI * (r0 + r1);
+  const ou = hash3(a.x, a.y, a.z), ov = hash3(b.z, b.x, b.y);
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * circ / tileAround + ou, uv.getY(i) * len / tileAlong + ov);
   return g;
 }
 
