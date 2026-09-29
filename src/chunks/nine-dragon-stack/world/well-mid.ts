@@ -50,6 +50,11 @@ const HERO: readonly [string, number, 'W' | 'E', number, number, number][] = [
   ['旅館', NEON.jade, 'E', -56, Y0 - 9, 1.85], ['麵', NEON.magenta, 'W', -47, Y0 - 13, 2.0], ['火鍋', NEON.red, 'E', -74, Y0 + 15, 1.75], ['藥房', NEON.jade, 'W', -90, Y0 - 16, 1.6],
 ];
 
+/** the main shaft's lantern strings, one a level (z, the floor they hang over) */
+const LEVEL_STRINGS: readonly [number, number][] = [
+  [-20, Y0 - 21], [-21, Y0 - 27], [-25, Y0 - 30], [-24, Y0 - 36], [0, Y0 - 36], [-4, Y0 - 45], [-29, Y0 - 51], [-13, Y0 - 51], [-24, Y0 - 57],
+];
+
 /** the pipes run across the gap (z, height, radius, colour) */
 const PIPES: readonly [number, number, number, number][] = [
   [-46, Y0 - 3.2, 0.22, 0x7c8187], [-61, Y0 + 6.4, 0.3, 0x8a6650], [-68, Y0 - 12.5, 0.2, 0x6d7178], [-79, Y0 + 3.6, 0.26, 0x7c8187],
@@ -92,13 +97,15 @@ const COLLIDERS: ColliderDesc[] = [];
 export function crossingColliders(): readonly ColliderDesc[] { return COLLIDERS; }
 
 /** a string of paper lanterns on a sagging wire from a to b, one every `spacing` m */
-function lanternLine(ctx: Ctx, k: Kit, a: Vector3, b: Vector3, spacing: number): void {
+function lanternLine(ctx: Ctx, k: Kit, a: Vector3, b: Vector3, spacing: number, scale = 0.62, cordSegs = 0): void {
   const len = a.distanceTo(b);
   const n = Math.max(2, Math.round(len / spacing));
   const sag = len * 0.06;
   const at = (t: number): Vector3 => a.clone().lerp(b, t).add(new Vector3(0, -sag * 4 * t * (1 - t), 0));
-  for (let i = 0; i < n; i++) k.beam(at(i / n), at((i + 1) / n), 0.025, 0.025, { wash: 0x2a2c31, line: 0.5 });
-  for (let i = 1; i < n; i++) { const p = at(i / n); ctx.lantern(p.x, p.y - 0.15, p.z, 0.62); }
+  // the cord: a segment per lantern, or `cordSegs` (a far string's cord is a hairline; each segment is a 24-vertex beam)
+  const m = cordSegs > 0 ? cordSegs : n;
+  for (let i = 0; i < m; i++) k.beam(at(i / m), at((i + 1) / m), 0.025, 0.025, { wash: 0x2a2c31, line: 0.5 });
+  for (let i = 1; i < n; i++) { const p = at(i / n); ctx.lantern(p.x, p.y - 0.15, p.z, scale); }
 }
 
 export function buildMid(plan: WellPlan): void {
@@ -210,6 +217,16 @@ export function buildMid(plan: WellPlan): void {
     const [fw, fe] = plan.fronts(z, floor);
     const ya = floor + rng.range(1.9, 2.5);
     spanStreet(ctx.fd, new Vector3(fw + 0.1, ya, z), new Vector3(fe - 0.1, ya + rng.range(-1.2, 1.2), z + rng.range(-3, 3)), Math.floor(rng.next() * 1e6));
+  }
+  // (F5, mockup D: "level after level … stepping down into the mist") strings of paper lanterns across the main shaft,
+  // one a level, each deeper and further on than the last: from mockup D's camera they step down the frame from the
+  // gate bridge (~22 %) to the temple (~64 %), lines of warm light the silk lets through (a lit surface punches through
+  // it, look/style.ts EMIT_FOG). Clear of every crossing and net, and ≥ 6 m off dome D2's anchor (−14, +97.6, −6): one
+  // strung 3 m under it hung as a row of big orange blobs across its look-down
+  for (const [z, floor] of LEVEL_STRINGS) {
+    const [fw, fe] = plan.fronts(z, floor);
+    const ya = floor + 2.4;
+    lanternLine(ctx, KC.main, new Vector3(fw + 0.1, ya, z), new Vector3(fe - 0.1, ya + 0.3, z + 0.6), 1.5, 1.0, 3);
   }
   skyCables(ctx, KC.main, rng);
   outriggers(plan, KX.kit, KX.alpha, CROSSINGS, rng);

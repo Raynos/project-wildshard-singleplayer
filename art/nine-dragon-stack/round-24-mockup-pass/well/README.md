@@ -34,3 +34,19 @@ Each `pass-<n>/` holds:
   better.
 - **The Well's upper tower walls dressed at mid detail with more galleries.** In the look-ups the walls read the same,
   for about 0.1 M more triangles per look-up.
+
+## Pass 5 (on `2a5428f`)
+
+- **Lines of warm light, level after level, for mockup D.** Nine strings of paper lanterns (1 m, 1.5 m apart) hang
+  across the main shaft, one a level, each deeper and further north than the last (`well-mid.ts` LEVEL_STRINGS). From
+  mockup D's camera they step down the frame from the gate bridge to the temple, and the mist lets their light through.
+  Every string is clear of the crossings and nets and at least 6 m from dome D2's anchor. A string 3 m under the anchor
+  was dropped: it hung as a row of big orange blobs across D2's look-down. Each string's cord is 3 beams instead of one
+  per lantern.
+- **Memory.** Fragment geometry 154.4 → 154.5 MB, textures 79.6 MB unchanged. Mockup B has 117 draws and 1.34 M
+  triangles, mockup D 101 draws and 1.06 M, both the same as the base (the lanterns ride the existing instanced
+  draws). No collider changed.
+- `camera-D-proposal.jpg`: mockup D against D's camera now, **A** (back 1.3 m and up 0.6 m, pitch −50) and **B** (over
+  the lion post at x −16.75, pitch −62, yaw 18). No camera puts the lion where the mockup has it. The first-person
+  gauntlet fills the frame's lower left, where the mockup's arm points up out of the way. In B the lion peeks out at the
+  left edge behind it. A shows the balustrade as a band but no lion. The coordinator decides.
