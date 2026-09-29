@@ -436,7 +436,8 @@ The full method is in `LOOK-LOOP.md`.
   - `trellis-mac/setup.sh` printed "Setup complete" while every Metal package had failed to build. Check the import.
   - Meshopt-quantised positions shrank models into a 2 m box until the loader was fixed. Check the scale after the
     build.
-  - Hunyuan3D-2 is **not for this game** (its licence bars the EU, UK and South Korea).
+  - Hunyuan3D-2 is as allowed as TRELLIS.2 (the game ships in North and South America only, AGENTS.md): use whichever
+    gives the better model.
 - **Shard 4:**
   - Candidates: the banyan, the paifang's dragon hooks, the mahjong table and stools, the gondola, the people, the Fei
     Zhua claw.

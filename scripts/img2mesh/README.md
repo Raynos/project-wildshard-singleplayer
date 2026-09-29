@@ -94,7 +94,7 @@ Weights (~18 GB) go into `~/projects/weights/manual` with that store's `bin/fetc
 access here) and **CC BY-NC**, so it uses **BiRefNet (MIT)**. BiRefNet's weights load as fp16, and
 `trellis_batch.py` casts them to fp32 because the pipeline feeds it fp32.
 
-### Hunyuan3D-2 (Tencent Hunyuan Community Licence: excludes the EU, UK and South Korea; see the note in §4)
+### Hunyuan3D-2 (allowed for shipped assets, like TRELLIS.2: the game ships in North and South America only)
 
 ```bash
 cd ~/ml/img2mesh && git clone --depth 1 https://github.com/Tencent-Hunyuan/Hunyuan3D-2.git && cd Hunyuan3D-2
@@ -175,9 +175,8 @@ Side by side: `art/driftwood-isle/round-8-assets/hunyuan-vs-trellis.jpg`.
   - the texture painter's `custom_rasterizer` is a CUDA extension. It does carry a CPU rasteriser, and
     `hunyuan_cpu_rasterizer.sh` builds just that;
   - the multiview paint pipeline also needs `trust_remote_code` for its custom diffusers pipeline.
-  - **Licence:** the Tencent Hunyuan Community Licence does not cover the EU, UK or South Korea, and adds
-    conditions above 1 M MAU. TRELLIS.2 is MIT, and its weights ship under MIT with DINOv3 under Meta's DINOv3
-    licence. So TRELLIS.2 is the default for shipped game assets.
+  - **Which to use:** Hunyuan3D-2 and TRELLIS.2 are equally allowed for shipped game assets (the game ships in
+    North and South America only, AGENTS.md). Run both where it matters and ship the better model.
 
 ## 5. Next
 

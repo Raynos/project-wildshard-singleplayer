@@ -53,9 +53,8 @@ Heights are chosen, not measured: rescale per placement if the scene needs it (w
 ## Not here, and why
 
 - **Hunyuan3D-2 versions exist locally** (`~/ml/img2mesh/final-hy/`) and several read better (the yurt most
-  of all, and both horses' colours). They are **not delivered**: the Tencent Hunyuan 3D 2.0 Community
-  Licence does not apply in, and forbids using or displaying outputs in, the EU, the UK and South Korea, and
-  this game is a public web build. The user decides whether that matters.
+  of all, and both horses' colours). Hunyuan3D is as allowed as TRELLIS.2 for shipped assets (the game ships in
+  North and South America only, AGENTS.md), so the better take of each can ship.
 - No rigs, no animations, no painterly repaint pass on the atlases (the `--paint` option in
   `blender_post.py` exists but is off: it muddied the TRELLIS textures).
 
