@@ -133,6 +133,8 @@ class Emit {
   winR: Rng | null = null;
   /** no sign slots from this tower (DressOptions.signs) */
   noSigns = false;
+  /** E281 pass 9: how far the cell being dressed stands out of the face plane (a stepped-out bay column), m */
+  zOff = 0;
 
   sign(slot: SignSlot): void { if (!this.noSigns) this.out.addSign(slot); }
 
@@ -140,7 +142,7 @@ class Emit {
     readonly timber: number, readonly lit: number) {}
 
   put(piece: PieceId, f: Face, s: number, y: number, z: number, sx = 1, sy = 1, sz = 1, c = 0xffffff): void {
-    const p = f.o.clone().addScaledVector(f.u, s).addScaledVector(f.n, z).setY(y);
+    const p = f.o.clone().addScaledVector(f.u, s).addScaledVector(f.n, z + this.zOff).setY(y);
     const m = new Matrix4().makeBasis(f.u, up, f.n).scale(new Vector3(sx, sy, sz)).setPosition(p);
     this.out.pieces.push({ piece, m, c: new Color(c) });
   }
@@ -156,7 +158,7 @@ class Emit {
   /** an interior-mapped window: centre s along the face, sill y, size w × h, `z` out from the wall plane */
   win(f: Face, s: number, y: number, w: number, h: number, wall: number, z = 0, door = false, litBias = 0, n: Vector3 = f.n, u: Vector3 = f.u, base: Vector3 | null = null): void {
     const r = this.winR ?? this.rng;
-    const p = (base ?? f.o.clone().addScaledVector(u, s)).clone().addScaledVector(n, z + 0.012).setY(y);
+    const p = (base ?? f.o.clone().addScaledVector(u, s).addScaledVector(f.n, this.zOff)).clone().addScaledVector(n, z + 0.012).setY(y);
     // (E281 pass 5) no two windows quite alike: a plain window's lintel drops by up to a quarter and its width narrows
     // by up to a sixth, from a hash of where it is (the rng is untouched, so nothing else in the city re-rolls)
     let ww = w, hh = h;
@@ -313,6 +315,20 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
   // E281: the square's corner towers hid mockup C's 牙科); the rolls stay, so the street faces are unchanged
   const side = f.bit !== 1;
   for (let fi = 0; fi < floors; fi++) galleryFloor.push(gal > 0 && fi > 0 && rng.chance(gal) && !side);
+  // E281 pass 9, the lumpy outline: a near face's bay columns step out 0.5–1.6 m from floor 1 up (never on a gallery
+  // floor), from the clutter stream; everything on a stepped cell moves out with it (em.zOff) and the steps get their
+  // sides, tops and soffits in the shell. Neighbours often share a step (a wider block)
+  const cz: number[] = [];
+  for (let b = 0; b < bays; b++) {
+    const prev = cz[b - 1] ?? 0;
+    cz.push(em.lod !== 0 || side || bays < 2 ? 0 : b > 0 && prev > 0 && em.rx.chance(0.35) ? prev : em.rx.chance(0.5) ? em.rx.pick([0.5, 0.8, 1.2, 1.6]) : 0);
+  }
+  const off = (fi: number, b: number): number => (fi >= 1 && fi < floors && b >= 0 && b < bays && galleryFloor[fi] !== true ? cz[b] ?? 0 : 0);
+  const maxOff = (f0: number, f1: number, b0: number, b1: number): number => {
+    let m = 0;
+    for (let fi = f0; fi < f1; fi++) for (let b = b0; b < b1; b++) m = Math.max(m, off(fi, b));
+    return m;
+  };
   const plan: Cell[][] = [];
   for (let fi = 0; fi < floors; fi++) {
     const row: Cell[] = [];
@@ -341,7 +357,9 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     }
     if (!free || side) continue;
     for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) { const c = plan[fi]?.[b]; if (c !== undefined) c.mod = 'addon'; }
+    em.zOff = maxOff(f0, f0 + fs, b0, b0 + bs);
     addon(em, f, b0 * bw, bs * bw, f.y0 + f0 * fh, fs, fh, rng.range(0.9, 1.7), rng);
+    em.zOff = 0;
   }
   // E281 round 2: more rooms hung off a near face's lower floors, from the clutter stream, as an overlay: the plan is
   // untouched (so every later roll of this face and tower, and every sign slot, stays as it was); a room covers plain
@@ -362,7 +380,9 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       if (!free || galleryFloor.slice(f0, f0 + fs).some(Boolean)) continue;
       for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) covered.add(fi * bays + b);
       em.winR = rx;
+      em.zOff = maxOff(f0, f0 + fs, b0, b0 + bs);
       addon(em, f, b0 * bw, bs * bw, f.y0 + f0 * fh, fs, fh, rx.range(1.1, 1.9), rx);
+      em.zOff = 0;
       em.winR = null;
     }
   }
@@ -384,7 +404,9 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       for (let b = 0; b < bays; b++) {
         const c = plan[fi]?.[b];
         if (timberCol[b] !== true || c === undefined || c.mod === 'addon' || c.mod === 'gallery' || !rng.chance(0.85)) continue;
+        em.zOff = off(fi, b);
         em.put('eave', f, (b + 0.5) * bw, f.y0 + (fi + 1) * fh - 0.08, 0, bw, 0.8, rng.range(0.7, 0.85), rng.chance(0.8) ? PAL.malachite : PAL.azurite);
+        em.zOff = 0;
         c.aoTop = Math.min(c.aoTop, 0.7);
       }
       continue;
@@ -394,7 +416,9 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     for (let b = 0; b < bays; b++) {
       const c = plan[fi]?.[b];
       if (c === undefined || c.mod === 'addon') continue;
+      em.zOff = off(fi, b);
       em.put('eave', f, (b + 0.5) * bw, f.y0 + (fi + 1) * fh - 0.08, 0, bw, 1, rng.range(0.85, 1.05), tile);
+      em.zOff = 0;
       c.aoTop = Math.min(c.aoTop, 0.66);
     }
   }
@@ -406,9 +430,11 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       if (cell === undefined) continue;
       const sc = (b + 0.5) * bw;
       em.lattice = timberCol[b] === true || (cell.mod === 'gallery' && rng.chance(0.5 + 0.4 * em.timber));
+      em.zOff = off(fi, b);
       const wins = module(em, f, cell, sc, y, bw, fh, wash, smallAt(y), rng, street);
       em.lattice = false;
       if (smallAt(y) && y - street < 36 && !covered.has(fi * bays + b)) clutter(em, f, cell, wins, sc, y, bw, fh, fi, timberCol[b] === true);
+      em.zOff = 0;
     }
     // a gallery: one slab along the face, real bars, posts at the seams, a glazed pent eave over it on some floors
     if (galleryFloor[fi] === true) gallery(em, f, y, fh, bays, bw, wash, rng, smallAt(y));
@@ -416,7 +442,7 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
   // tall neon (E281, the targets' stacked vertical signs), 2–14 floors over the street: flat on a window cell (in front
   // of its cage / bay box), or a blade hung out at a bay seam, where the balconies either side leave a gap
   // (only on a wall's street face: a run's open end faces a side street — the stair lane asked for its ends clear)
-  if (em.lod < 2 && f.bit === 1) tallSigns(em, f, plan, bays, bw, floors, fh, street, galleryFloor, rng);
+  if (em.lod < 2 && f.bit === 1) tallSigns(em, f, plan, bays, bw, floors, fh, street, galleryFloor, rng, off);
   // pipes at the bay seams: runs of 1–3 from the segment base to its top
   for (let k = 0; k <= bays; k++) {
     if (!rng.chance(0.7 * dens)) continue;
@@ -425,7 +451,12 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     const s0 = k * bw + (k === 0 ? 0.3 : k === bays ? -0.3 - (n - 1) * 0.2 : rng.range(-0.3, 0.1));
     const yA = Math.max(f.y0, street);
     const r = rng.chance(0.35) ? rng.range(1.7, 2.3) : rng.range(1.0, 1.4);
-    for (let i = 0; i < n; i++) em.put('pipe', f, s0 + i * 0.2 * r, yA, 0, r, f.y1 - yA, r * (1 + i * 0.3), rust ? PAL.rust : shade(PAL.pipe, rng.range(0.9, 1.1)));
+    // (not down a seam beside a stepped column: it would stand off the floors below the step)
+    const stepped = (cz[k - 1] ?? 0) > 0 || (cz[k] ?? 0) > 0;
+    for (let i = 0; i < n; i++) {
+      const pc = rust ? PAL.rust : shade(PAL.pipe, rng.range(0.9, 1.1));
+      if (!stepped) em.put('pipe', f, s0 + i * 0.2 * r, yA, 0, r, f.y1 - yA, r * (1 + i * 0.3), pc);
+    }
   }
   // cable bundles sagging across the face under the slab lips
   const nCab = Math.round(floors * 0.2 * dens);
@@ -434,9 +465,10 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     const b0 = rng.int(0, bays - 1), b1 = Math.min(bays, b0 + rng.int(1, 3));
     const yy = f.y0 + fi * fh - rng.range(0.35, 0.6);
     const count = rng.int(2, 4);
+    const zc = maxOff(fi - 1, fi, b0, b1);
     for (let j = 0; j < count; j++) {
-      const a = f.o.clone().addScaledVector(f.u, b0 * bw + 0.2).addScaledVector(f.n, 0.12 + j * 0.05).setY(yy - j * 0.07);
-      const bb = f.o.clone().addScaledVector(f.u, b1 * bw - 0.2).addScaledVector(f.n, 0.12 + j * 0.05).setY(yy - j * 0.07 + rng.range(-0.2, 0.2));
+      const a = f.o.clone().addScaledVector(f.u, b0 * bw + 0.2).addScaledVector(f.n, 0.12 + j * 0.05 + zc).setY(yy - j * 0.07);
+      const bb = f.o.clone().addScaledVector(f.u, b1 * bw - 0.2).addScaledVector(f.n, 0.12 + j * 0.05 + zc).setY(yy - j * 0.07 + rng.range(-0.2, 0.2));
       sag(out.shell, a, bb, rng.range(0.25, 0.7), f.n, 0.035);
     }
   }
@@ -456,13 +488,33 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       w = mixHex(w, cell.spillC, cell.spill * 0.35);
       wt = mixHex(wt, cell.spillC, cell.spill * 0.55);
     }
-    const edges = (b === 0 ? E.u0 : 0) | (b === bays - 1 ? E.u1 : 0) | (fi === floors - 1 ? E.v1 : 0);
-    const p0 = f.o.clone().addScaledVector(f.u, b * bw).setY(y);
+    const d = off(fi, b);
+    const edges = (b === 0 || d !== off(fi, b - 1) ? E.u0 : 0) | (b === bays - 1 || d !== off(fi, b + 1) ? E.u1 : 0) | (fi === floors - 1 || d !== off(fi + 1, b) ? E.v1 : 0) | (d !== off(fi - 1, b) ? E.v0 : 0);
+    const p0 = f.o.clone().addScaledVector(f.u, b * bw).addScaledVector(f.n, d).setY(y);
     // the finish runs in vertical strips (a column retiled, a column boarded), with the odd cell patched
     const fin = colFinish[b] ?? 0;
     // (finish 3: timber planks, the timber columns)
     const finish = tcell ? 3 : rng.chance(0.12) ? rng.int(0, 2) : fin;
     out.shell.quad(p0, f.u, up, bw, fh, { wash: w, washTop: wt, kind: K.wall, p1: cell.stainX, p2: cell.stain * 0.999 + finish * 2, line: 1, edges });
+  }
+  // the steps (E281 pass 9): a side at each seam where two neighbours stand out differently, a top where a cell stands
+  // out further than the one above it, a soffit where it stands out less
+  if (cz.some((z) => z > 0)) for (let fi = 1; fi < floors; fi++) {
+    const y = f.y0 + fi * fh, yt = y + fh;
+    for (let k = 0; k <= bays; k++) {
+      const dl = off(fi, k - 1), dr = off(fi, k);
+      if (dl === dr) continue;
+      const p = f.o.clone().addScaledVector(f.u, k * bw).addScaledVector(f.n, Math.min(dl, dr)).setY(y);
+      const look: Look = { wash: shade(wash, 0.8), kind: K.wall, line: 1, edges: E.all };
+      if (dl > dr) out.shell.quad(p, up, f.n, fh, dl - dr, look);
+      else out.shell.quad(p, f.n, up, dr - dl, fh, look);
+    }
+    for (let b = 0; b < bays; b++) {
+      const d = off(fi, b), da = off(fi + 1, b), db = off(fi - 1, b);
+      const p = f.o.clone().addScaledVector(f.u, b * bw);
+      if (d > da) out.shell.quad(p.clone().addScaledVector(f.n, da).setY(yt), f.n, f.u, d - da, bw, { wash: shade(wash, 0.86), line: 1.2 });
+      if (d > db) out.shell.quad(p.clone().addScaledVector(f.n, db).setY(y), f.u, f.n, bw, d - db, { wash: shade(wash, 0.6), line: 1 });
+    }
   }
 }
 
@@ -568,7 +620,7 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
       em.win(f, sc, sill, w, wh, wash, d);
       // side lights on the box's flanks
       for (const side of [-1, 1] as const) {
-        const at = f.o.clone().addScaledVector(f.u, sc + side * (w + 0.3) / 2).addScaledVector(f.n, d / 2).setY(sill);
+        const at = f.o.clone().addScaledVector(f.u, sc + side * (w + 0.3) / 2).addScaledVector(f.n, d / 2 + em.zOff).setY(sill);
         const n = f.u.clone().multiplyScalar(side);
         em.win(f, 0, sill, 0.34, wh, wash, 0.012, false, 0, n, new Vector3().crossVectors(up, n), at);
       }
@@ -696,7 +748,7 @@ const FLAT_OK = new Set<Mod>(['win1', 'win2', 'win3', 'blank', 'ac', 'cage1', 'c
 const BLADE_BAD = new Set<Mod>(['gallery', 'addon', 'shop', 'enclosed']);
 
 function tallSigns(em: Emit, f: Face, plan: Cell[][], bays: number, bw: number, floors: number, fh: number, street: number,
-  galleryFloor: boolean[], rng: Rng): void {
+  galleryFloor: boolean[], rng: Rng, off: (fi: number, b: number) => number): void {
   const dens = em.dens;
   for (let fi = 0; fi < floors - 1; fi++) {
     const y = f.y0 + fi * fh;
@@ -709,7 +761,7 @@ function tallSigns(em: Emit, f: Face, plan: Cell[][], bays: number, bw: number, 
         const m0 = plan[fi]?.[b]?.mod, m1 = plan[fi + 1]?.[b]?.mod;
         if (m0 === undefined || m1 === undefined || !FLAT_OK.has(m0) || !FLAT_OK.has(m1)) continue;
         const col = rng.pick(NEONS);
-        em.sign({ at: f.o.clone().addScaledVector(f.u, (b + 0.5) * bw + rng.range(-0.4, 0.4)).addScaledVector(f.n, 0.66).setY(y + fh * rng.range(0.9, 1.2)),
+        em.sign({ at: f.o.clone().addScaledVector(f.u, (b + 0.5) * bw + rng.range(-0.4, 0.4)).addScaledVector(f.n, 0.66 + Math.max(off(fi, b), off(fi + 1, b))).setY(y + fh * rng.range(0.9, 1.2)),
           normal: f.n.clone(), size: rng.range(0.95, 1.2), color: col, blade: true });
       } else if (r < 0.052 * dens && b > 0 && b < bays) {
         // a blade at the seam of bays b-1 | b, out from the wall on two arms
@@ -720,8 +772,9 @@ function tallSigns(em: Emit, f: Face, plan: Cell[][], bays: number, bw: number, 
         const size = rng.range(0.8, 1.2);
         const out = 0.95 + size * 0.68;
         const yc = y + fh * rng.range(0.8, 1.3);
-        em.sign({ at: f.o.clone().addScaledVector(f.u, b * bw).addScaledVector(f.n, out).setY(yc), normal: f.u.clone(), size, color: col, blade: true });
-        for (const dy of [0.7, -0.7]) em.put('box', f, b * bw, yc + dy * size, 0, 0.06, 0.06, out - size * 0.6, 0x3a3d44);
+        const ext = Math.max(off(fi, b - 1), off(fi, b), off(fi + 1, b - 1), off(fi + 1, b));
+        em.sign({ at: f.o.clone().addScaledVector(f.u, b * bw).addScaledVector(f.n, out + ext).setY(yc), normal: f.u.clone(), size, color: col, blade: true });
+        for (const dy of [0.7, -0.7]) em.put('box', f, b * bw, yc + dy * size, 0, 0.06, 0.06, out + ext - size * 0.6, 0x3a3d44);
       }
     }
   }
@@ -734,10 +787,10 @@ function addon(em: Emit, f: Face, s0: number, w: number, y: number, fs: number, 
   const tin = rng.chance(0.5);
   const aw = tin ? rng.pick([0x9ea3a6, 0x8f9aa0, 0xa8a196, 0x9a8f80]) : shade(rng.pick(WALLS), rng.range(0.92, 1.02));
   const look: Look = tin ? { wash: aw, kind: K.slats, p1: rng.pick([0.2, 0.32]), line: 1 } : { wash: aw, kind: K.tiles, line: 1 };
-  const c = f.o.clone().addScaledVector(f.u, s0 + w / 2).addScaledVector(f.n, depth / 2).setY(y + 0.1 + h / 2);
+  const c = f.o.clone().addScaledVector(f.u, s0 + w / 2).addScaledVector(f.n, depth / 2 + em.zOff).setY(y + 0.1 + h / 2);
   o.boxAxes(c, f.u, up, f.n, w / 2 - 0.12, h / 2, depth / 2, look, { sides: 1 | 2 | 4, top: { wash: shade(aw, 0.9), line: 1.2 }, bottom: { wash: shade(aw, 0.62), line: 1.2 } });
   // a lean-to tin roof over it
-  const r0 = f.o.clone().addScaledVector(f.u, s0 + 0.02).setY(y + 0.1 + h + 0.35);
+  const r0 = f.o.clone().addScaledVector(f.u, s0 + 0.02).addScaledVector(f.n, em.zOff).setY(y + 0.1 + h + 0.35);
   const r1 = r0.clone().addScaledVector(f.u, w - 0.04);
   const r2 = r1.clone().addScaledVector(f.n, depth + 0.3).setY(y + 0.1 + h + 0.02);
   const r3 = r0.clone().addScaledVector(f.n, depth + 0.3).setY(y + 0.1 + h + 0.02);

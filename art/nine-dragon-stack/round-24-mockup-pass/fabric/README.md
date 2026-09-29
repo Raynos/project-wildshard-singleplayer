@@ -209,3 +209,22 @@ Build: `main` at `94e4be80` + this lane's files. Sheets: `pass-8/`.
 **Numbers:** geometry 151.1 MB (every lane), textures 79.6 MB. Worst pose mockup A 128 draws / 1.59 M; worst
 triangles A2·9 1.61 M. Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all three profiles
 (~24,600 instances).
+
+## Pass 9
+
+Build: `main` at `5841ed68` + this lane's files. Sheets: `pass-9/`.
+
+- **The lumpy outline.** A near face's bay columns step out of the face plane, 0.5–1.6 m from its first floor up (half
+  the columns, neighbours often sharing a step, never on a veranda floor), from the clutter stream: everything on a
+  stepped cell moves out with it (windows, balconies, cages, AC units, eaves, hung rooms, tall signs and their arms,
+  the cables across it), and the steps get their sides, tops and soffits in the shell. Pipes skip the seams beside a
+  step. Seen along a wall (A1·6, C1·4, the street north) the face breaks into stacked blocks instead of one plane.
+  The grammar's rolls are untouched: no wall, window or sign re-rolls.
+
+**Reverted:** a first cut stepped 0.35–1.2 m on 42 % of columns; it barely read at the sheets' grazing angles, so the
+steps went to 0.5–1.6 m on half the columns before the capture.
+
+**Numbers:** geometry 151.1 MB (every lane; pass 6 154.4), textures 79.6 MB. This lane's own geometry pass 6 → 9:
+11.0 → 10.8 MB (pass 7's packing paid for the street, the clutter and the steps). Worst pose mockup A 128 draws /
+1.60 M; worst triangles A2·9 1.63 M. Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all
+three profiles (~24,400 instances).
