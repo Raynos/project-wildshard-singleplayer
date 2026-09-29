@@ -1,6 +1,6 @@
 # Training dummy model pass
 
-**State:** `in progress` 2026-09-29 — Jake's go (E285): "Fix the models and the graphics by any means necessary". Built, not yet live: the rebuilt meshes and 18-bone rig (round 7), hit-driven motion, studio light and arena HUD (round 8). Open: the phone memory reading and Jake's look at the live sheets (`art/hud-explorer/round-7-dummy-rebuild/`, `round-8-arena-motion/`).
+**State:** `blocked` 2026-09-29 — every build row is done and pushed (E285): the rebuilt TRELLIS.2 meshes with an 18-bone rig (round 7), hit-driven motion, studio light and arena HUD (round 8), and weapon and dodge working in all four arenas. Waiting on Jake's approval of the live sheets (`art/hud-explorer/round-7-dummy-rebuild/*-approved-vs-live.jpg`); his playtest is the phone check (about 33 MB of decoded textures for three figures). Then it finishes and is archived.
 
 This is a shared asset for the HUD + Weapon Explorer arena and Model Explorer in all four shards. The approved nine-angle sheets in `art/hud-explorer/round-1-arena/` are the visual target. Preserve the distinct constructions: wood frame with wooden armor, straw body with cloth armor, and wood frame with steel armor.
 
