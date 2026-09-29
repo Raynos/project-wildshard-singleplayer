@@ -9,9 +9,10 @@
 //   band B     LOW − 3 … LOW − 36: the same gallery bands without their life (so bridges can land on them too),
 //              mostly blocks built far out (the narrowing gap), lanterns, lit rooms,
 //   the ghosts well-lower-deep.ts: 12 more floors as deck slabs and lit rooms (6 tris a run) into the silk,
-//   the temple the rock spur rising out of the depth with the temple the view straight down ends on,
-//   the walls  painted shells to far below, and a silk backstop under everything (no visible floor).
+//   the temple an island in the cloud sea: the temple on a rock root the view straight down ends on,
+//   the walls  painted shells to far below, and a dark backstop under everything (no visible floor).
 import { Vector3 } from 'three';
+import { SURF } from '../look/paint';
 import { FLOOR_H } from './well-galleries';
 import { dressLower } from './well-lower-life';
 import { deepTemple, ghostLevels } from './well-lower-deep';
@@ -33,11 +34,11 @@ const lowerKits = (ctx: WellPlan['ctx']): BandKits => ({ kit: (y) => ctx.kit(y >
 
 /** the temple spur: its centre, the terrace height and its radius. Seen from mockup D's camera it sits ~60° down, 51 %
  *  down the frame, above the balustrade's rail (steeper than ~76° the rail hides it) and 71 m under the eye (F5: its
- *  terrace +48 → +56, above the cloud sea at +44, look/style.ts BANDS; a 6.2 m spur filled the gap between the
- *  galleries and read no better through the silk), no crossing over or under it (well-plan.ts CROSSINGS: the covered one
+ *  terrace +48 → +56, above the cloud sea at +44, look/style.ts BANDS; round 2: r 4.6 → 5.6 with a wooded skirt round
+ *  its rim, well-lower-deep.ts — at 4.6 it was a 7° speck at the frame's centre; 6.2 filled the gap between the galleries), no crossing over or under it (well-plan.ts CROSSINGS: the covered one
  *  at z −33 (+71) runs 9 m over its roof ridge, the timber one at z −20 (+32) clear of the spur, z −35…−25). Centred on the gap between the deep west galleries and the
  *  shallower east ones */
-export const TEMPLE = { x: -13.5, z: -30, top: LOW - 3, r: 4.6 } as const;
+export const TEMPLE = { x: -13.5, z: -30, top: LOW - 3, r: 5.6 } as const;
 
 /** the lower galleries' depths: the near band's (well-rim.ts) carried on down, so the canyon's walls run on unbroken
  *  from the rim through SPLIT into the depth (the south wall keeps the plan's) */
@@ -89,9 +90,12 @@ export function buildLower(plan: WellPlan): void {
     ghostLevels(ctx, KL.kit, { p0: P.p0, n: P.n, len: P.len, dMin: depths?.dMin ?? P.dMin, dMax: depths?.dMax ?? P.dMax, wash: P.wash, ...(P.g0 === undefined ? {} : { g0: P.g0 }), ...(P.g1 === undefined ? {} : { g1: P.g1 }) },
       GHOST_TOP, GHOST_FLOORS, 2.5, seed + 7000, cap);
   }
-  deepTemple(ctx, KL.kit(TEMPLE.top), TEMPLE.x, TEMPLE.z, BOTTOM + 10, TEMPLE.top, TEMPLE.r);
-  // the silk backstop far below (the mist is solid there): a ray that gets this far ends in silk, not the sky
+  // (round 2) the island's rock root ends 24 m under the terrace, in the cloud sea (it was a column from BOTTOM + 10)
+  deepTemple(ctx, KL.kit(TEMPLE.top), TEMPLE.x, TEMPLE.z, TEMPLE.top - 24, TEMPLE.top, TEMPLE.r);
+  // the backstop far below: a ray that gets this far ends in the deep, not the sky. (E281 round 2: it was pale silk,
+  // 0xa7b0bd, for the old solid mist; with the render lane's thin, darkening air it read as a pale lit floor at the
+  // bottom of D2's views — it is the deep void now, a dark indigo the lower strata fall away into)
   for (const r of WELL_RECTS) {
-    ctx.kit(DEEP_KIT).quad(new Vector3(r.x0, BOTTOM, r.z1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), r.x1 - r.x0, r.z1 - r.z0, { wash: 0xa7b0bd, line: 0 });
+    ctx.kit(DEEP_KIT).quad(new Vector3(r.x0, BOTTOM, r.z1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), r.x1 - r.x0, r.z1 - r.z0, { wash: 0x141c2b, line: 0, surf: SURF.none });
   }
 }

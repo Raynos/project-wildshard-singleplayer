@@ -97,11 +97,16 @@ export function deepTemple(ctx: Ctx, k: Kit, x: number, z: number, yBase: number
   // the spur: a rough column, wider at its foot, ruled only at its rims (a lathe of irregular radii)
   const prof: [number, number][] = [];
   const H = top - yBase;
+  // (E281 round 2: the render lane's "pale tiled floor" at the bottom of D2's views was this spur — a 100 m column
+  // flaring to 1.15 r at its foot, its flanks seen from above as a grey ruled plane round the temple) it is an island
+  // now: a dark rock root ~24 m tall (deepTemple's caller) tapering to a point in the cloud sea, the shaft's depth
+  // open below it
   for (let i = 0; i <= 8; i++) {
     const t = i / 8;
-    prof.push([r * (1.15 - 0.35 * Math.sin(t * Math.PI * 0.9) + rng.range(-0.08, 0.08)) * (t > 0.95 ? 1.04 : 1), t * H - 0.6]);
+    const j = rng.range(-0.08, 0.08); // (drawn every step, so the rest of the temple's rolls are unchanged)
+    prof.push([r * (0.08 + 0.97 * t ** 0.55 + j * 0.5 * t) * (t > 0.95 ? 1.04 : 1), t * H - 0.6]);
   }
-  k.lathe(x, yBase, z, prof, 9, { wash: 0x5f5b55, kind: K.stone, line: 1 }, true, 3);
+  k.lathe(x, yBase, z, prof, 9, { wash: 0x2f3134, kind: K.stone, line: 1 }, true, 3);
   // the terrace: a flagged disc with a stone lip
   k.cyl(x, top - 0.6, z, r * 1.05, r * 1.05, 0.6, 14, { wash: 0x7c7870, line: 1.8, surf: SURF.stone }, { caps: false });
   k.cyl(x, top, z, r * 1.05, r * 1.05, 0.001, 14, { wash: 0x6a6760, kind: K.flag, line: 0, wet: 0.6 });
@@ -156,6 +161,20 @@ export function deepTemple(ctx: Ctx, k: Kit, x: number, z: number, yBase: number
     const s = rng.range(1.3, 2.0) * Math.sqrt(sc);
     k.limb(new Vector3(px, top, pz), new Vector3(px, top + 1.4, pz), 0.18, 0.12, 5, { wash: 0x3a2e26, line: 0 });
     k.blob(pos, null, px, top + 1.2 + s, pz, s, s * 0.85, s, { ...leaf, wash: rng.pick([0x2e5a3f, 0x3d6b48, 0x27503a]) }, true);
+  }
+  // (E281 round 2, mockup D: the temple on its island in the cloud sea) a skirt of dark crowns round the spur's rim, from
+  // just under the terrace down into the cloud sea (+44): from the rim the temple sits in a dark wooded island the silk
+  // laps at, not on a bare column. Deterministic ring (the spur's rng above is unchanged), ~80 tris a crown
+  const ringCol = [0x27503a, 0x2e5a3f, 0x224a35, 0x335f44] as const;
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + 0.2;
+    const south = Math.sin(a) > 0.92; // the stair up the spur's south face stays open
+    if (south) continue;
+    const layer = i % 2;
+    const rr = r * (1.05 + 0.18 * layer);
+    const s = (1.9 + 0.5 * ((i * 7) % 3) / 2) * Math.sqrt(sc);
+    const py = top - 1.4 - layer * 3.2;
+    k.blob(pos, null, x + Math.cos(a) * rr, py, z + Math.sin(a) * rr, s, s * 0.8, s, { ...leaf, wash: ringCol[i % 4] ?? 0x2e5a3f }, true);
   }
   // monks / pilgrims on the terrace
   for (let i = 0; i < 5; i++) {

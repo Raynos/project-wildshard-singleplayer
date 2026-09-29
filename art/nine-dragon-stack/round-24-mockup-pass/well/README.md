@@ -108,3 +108,22 @@ Each `pass-<n>/` holds:
 - **Memory.** Fragment geometry 151.0 → 150.8 MB, textures 79.6 MB unchanged. Mockup B has 118 draws and 1.43 M
   triangles, mockup D 102 draws and 1.13 M.
 - **Walk test:** 19 legs, 0 stuck, 0 escapes.
+
+### Pass 9 (on `57f0528`): the temple on its island in the cloud sea, the Well's floor
+
+- **The temple is an island.** Its spur was a 100 m stone column that flared to 1.15 r at its foot. From above, its
+  flanks spread round the temple as a grey, line-ruled plane (the render lane's "pale tiled floor" in D2·5 / D2·8). It is
+  now a dark rock root about 24 m tall that tapers to a point in the cloud sea, with the shaft's depth open below it
+  (`well-lower-deep.ts`). The temple is wider (r 4.6 → 5.6) and a skirt of dark crowns rings its rim down toward the
+  cloud sea, with the south stair kept open. From mockup D it now reads as a wooded island in the mist, not a speck on a
+  column. `temple-island.jpg`: D2·8 then mockup D, before and after.
+- **The backstop.** The quad at the shaft's bottom (−40) was pale silk (`0xa7b0bd`), a leftover from the old solid
+  mist. It is now a dark indigo void (`well-lower.ts`). At that depth the mist covers it fully, so the view down ends in
+  the render lane's mist colour.
+- **The steel catwalk at +83** moved from z −17 to −6.5; it crossed mockup D's line of sight to the temple
+  (`well-plan.ts`).
+- **What is still pale in D2·8** is not a floor. It is the flagstoned stone crossing at z −14 (+62), 35 m under D2's
+  anchor, and the mist seen through the nets. The mist's colour at 100 m and more below the eye is the render lane's.
+- **Memory.** Fragment geometry 151.1 → 150.8 MB, textures 79.6 MB unchanged. Mockup B has 118 draws and 1.43 M
+  triangles, mockup D 102 draws and 1.13 M.
+- **Walk test** (catwalk moved): 19 legs, 0 stuck, 0 escapes.

@@ -51,7 +51,8 @@ export const CROSSINGS: readonly Crossing[] = [
   { kind: 'gate', z: -27, y: Y0 - 18, w: 7, crowd: 16, ext: false },
   { kind: 'timber', z: 4, y: Y0 - 27, w: 2.2, crowd: 2, ext: false },
   { kind: 'stone', z: -38, y: Y0 - 33, w: 3, crowd: 2, ext: false },
-  { kind: 'steel', z: -17, y: Y0 - 42, w: 1.4, crowd: 1, ext: false },
+  // (round 2) the steel catwalk at +83 moved from z −17 to −6.5: it crossed mockup D's line of sight to the temple
+  { kind: 'steel', z: -6.5, y: Y0 - 42, w: 1.4, crowd: 1, ext: false },
   { kind: 'timber', z: -4, y: Y0 - 48, w: 2.2, crowd: 1, ext: false },
   { kind: 'covered', z: -33, y: Y0 - 54, w: 2.6, crowd: 1, ext: false },
   { kind: 'stone', z: -14, y: Y0 - 63, w: 3, crowd: 0, ext: false },
