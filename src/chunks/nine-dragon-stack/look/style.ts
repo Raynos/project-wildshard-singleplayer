@@ -152,8 +152,6 @@ export class Shared {
     // z: how much of the baked neon spill (vSpill) the glints take (round 2: the targets' treads glint in the neon's
     // colours), w: the sparkle cell's length (m)
     uGlint: { value: new Vector4(3, 0.28, 2, 0.1) },
-    // (E283, Debug ▸ Performance) the Jiehua program's far LOD: x / y the fade (m), z on (1) / off (0)
-    uJLod: { value: new Vector4(25, 45, 0, 0) },
     // (render, E281) how much of the silk the mineral accents take (T^x; 1 = as any wash)
     uAccentFog: { value: 0.35 },
     // (render, E281) the flagstones: x the per-stone value swing, y the speckle's contrast, w the granite paint's
@@ -245,6 +243,10 @@ export class Shared {
 /** (round 14, dome B2: the run north's lit crossings 60–110 m off read grey) how far a light punches through the silk:
  *  an emitter's colour is × T^EMIT_FOG where a wash is × T (0.5 = √T, the lab's; 0.35 lets lit rails, neon strips and
  *  windows read as lines of light down the Well's runs) */
+/** (E283, Jake's pick from the before / after stills) the architecture program's painted detail fades out between these
+ *  distances (m): near only */
+export const JLOD = { near: 15, far: 30 } as const;
+
 export const EMIT_FOG = '0.25';
 
 export const NOISE_GLSL = /* glsl */ `
@@ -524,7 +526,6 @@ uniform vec3 uSutraWin;
 uniform float uFogScale;
 uniform sampler2D uSilk;
 uniform vec4 uGlint;
-uniform vec4 uJLod;
 uniform float uAccentFog;
 uniform vec4 uFlag;
 varying vec3 vWorld;
@@ -565,10 +566,10 @@ void main() {
   vec3 toCam = uCam - vWorld;
   float dist = length(toCam);
   vec3 V = toCam / max(dist, 1e-4);
-  // (E283, Debug ▸ Performance, off by default) the far LOD: the painted grain, the stains and mottle, the silk weave, the
-  // paper's grain on the fog and the lamplight's gloss / rim fade out from uJLod.x to uJLod.y m and are not computed past
-  // it — detail the silk has mostly swallowed by then. 1 = far
-  float jl = uJLod.z > 0.5 ? smoothstep(uJLod.x, uJLod.y, dist) : 0.0;
+  // (E283, Jake's pick: stone & wall detail near only) the far LOD: the painted grain, the stains and mottle, the silk
+  // weave, the paper's grain on the fog and the lamplight's gloss / rim fade out from JLOD.near to JLOD.far m and are not
+  // computed past it — detail the silk has mostly swallowed by then. 1 = far
+  float jl = smoothstep(${JLOD.near.toFixed(1)}, ${JLOD.far.toFixed(1)}, dist);
   pk *= 1.0 - jl;
   // (render) the silk fog once per pixel: the wet ground's two sheen terms read its colour from it (fogCol() re-ran the
   // 9-band march twice more on every ground pixel)

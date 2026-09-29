@@ -13,7 +13,6 @@ import { gradeUniforms, loadLut } from './light/grade';
 import { LUT_URL, lightSources } from './light/install';
 import { type Halos, buildHalos } from './light/halos';
 import { STREAK_PERF } from './streaks';
-import { onSettingChange, setting } from '../../../ui/Settings';
 import { clearLanterns, updateLanterns } from './lanterns';
 import { BleedPass } from './render/bleed';
 import { BLEED, JiehuaEffect } from './render/jiehua';
@@ -21,7 +20,6 @@ import { ReflectPass } from './render/reflect';
 import { HazePass } from './render/haze';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
-import { setVmLite } from '../vm/materials';
 
 export interface NdRenderHandle {
   reflect: ReflectPass | null;
@@ -41,8 +39,6 @@ export interface NdRenderHandle {
   halos: Halos | null;
   /** (E283) the streak cards' perf knobs (streaks.ts STREAK_PERF, shared by every card set) */
   streakPerf: Vector4;
-  /** (E283) the lighter viewmodel (vm/materials.ts), for A / B */
-  vmLite: (on: boolean) => void;
 }
 
 /** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
@@ -80,7 +76,6 @@ export function createRender(): ShardRender {
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
   let lastPr = 0;
   let clouds: Object3D | null = null;
-  let unsub: (() => void)[] = [];
 
   return {
     // n8ao on the phone tier too (the tier row has it off): the city's corners, eaves, awnings and feet. With it, the
@@ -153,15 +148,6 @@ export function createRender(): ShardRender {
         }
       }
       // the phone's glow: no bleed pyramid, so every light gets a halo in the drizzle
-      // (E283) the streak cards' Debug ▸ Performance rows, live
-      const perf = (): void => {
-        const d = setting('ndShaderDetail');
-        world.shared.u.uJLod.value.set(d === 'none' ? 0 : 15, d === 'none' ? 0.01 : 30, d === 'full' ? 0 : 1, 0);
-        setVmLite(setting('ndVmLite') === 'on');
-      };
-      perf();
-      unsub.forEach((f) => { f(); });
-      unsub = [onSettingChange('ndShaderDetail', perf), onSettingChange('ndVmLite', perf)];
       const src = lightSources();
       const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
       if (halos !== null) world.root.add(halos.mesh);
@@ -169,7 +155,7 @@ export function createRender(): ShardRender {
       if (hideEngineClouds(c.scene)) clouds = null;
       const sky = world.root.getObjectByName('sky');
       if (sky !== undefined) sky.renderOrder = SKY_ORDER;
-      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos, streakPerf: STREAK_PERF, vmLite: setVmLite };
+      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos, streakPerf: STREAK_PERF };
       Reflect.set(window, '__ndRender', handle);
       return { beforeChain, chain: [jiehua] };
     },
@@ -195,8 +181,6 @@ export function createRender(): ShardRender {
       updateLanterns(handle.camera);
     },
     dispose(): void {
-      unsub.forEach((f) => { f(); });
-      unsub = [];
       document.removeEventListener('ws:practice-active', onPractice);
       if (handle?.halos) { handle.halos.mesh.removeFromParent(); handle.halos.mesh.geometry.dispose(); handle.halos.mesh.material.dispose(); }
       if (handle !== null && Reflect.get(window, '__ndRender') === handle) Reflect.deleteProperty(window, '__ndRender');

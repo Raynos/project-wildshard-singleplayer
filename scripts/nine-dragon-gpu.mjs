@@ -3,7 +3,7 @@
 // scripts/pine-hollow-gpu.mjs, read its header for why it is built this way).
 //
 //   node scripts/nine-dragon-gpu.mjs --url=http://localhost:4173 [--poses=A,B,C,D|none] [--domes=all|A1,B2] [--rounds=10]
-//     [--subtract=all|none|a,b] [--gate=1.5] [--debug=ndShaderDetail:none,…]
+//     [--subtract=all|none|a,b] [--gate=1.5] [--debug=key:value,…]
 //
 // --debug: pause ▸ Settings ▸ Debug options set before the load (scripts/debug-settings.mjs), `key:value` pairs: a Debug ▸
 // Performance row measured on, against a run with it off.
