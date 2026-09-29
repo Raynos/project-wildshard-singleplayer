@@ -24,7 +24,7 @@ import { KitX, merge } from './hero/kitx';
 import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';
 import { hipRoof } from './square';
-import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, cutByHoles, flushExtraFigures, frontBalconies, pushClimbers, stairFloor, wallShop } from './stairstreet';
+import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, stairFloor, towerStack, wallShop } from './stairstreet';
 import { SURF } from '../look/paint';
 import { SignBuilder, type SignPlace } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
@@ -348,7 +348,8 @@ const SETBACK = 3.4;
 
 /** the frontage's glazed pent roof: from the set-back tower's face down over the parapet to an eave past the face */
 function pentRoof(k: Kit, rng: Rng, s: Seg, face: number, n: Vector3, fTop: number): void {
-  const tile = rng.pick([MIN.malachite, MIN.malachite, 0x3d6a58, MIN.azurite, 0x4a4e56]);
+  // (deep glazed teal and slate: from the aerials the targets' roofs are dark tiles, E281 round 2)
+  const tile = tint(rng.pick([MIN.malachite, MIN.malachite, 0x3d6a58, MIN.azurite, 0x4a4e56]), 0.62);
   const zB = face - n.z * SETBACK, zF = face + n.z * 0.85, yB = fTop + 2.4, yF = fTop + 0.55;
   const xa = s.xa - 0.12, xb = s.xb + 0.12, len = xb - xa, slope = Math.hypot(SETBACK + 0.85, yB - yF);
   const A = new Vector3(xa, yF, zF), B = new Vector3(xb, yF, zF), C = new Vector3(xb, yB, zB), D = new Vector3(xa, yB, zB);
@@ -375,7 +376,7 @@ function veranda(ctx: Ctx, k: Kit, s: Seg, face: number, edge: number, side: num
   const yIn = s.floor + 3.95, yOut = s.floor + 3.0;
   const zIn = face + side * 0.05, zOut = edge + side * 0.35;
   const xa = s.xa + 0.05, xb = s.xb - 0.05;
-  const tile = rng.chance(0.7) ? MIN.malachite : MIN.azurite;
+  const tile = tint(rng.chance(0.7) ? MIN.malachite : MIN.azurite, 0.62);
   const a = new Vector3(xa, yOut, zOut), b = new Vector3(xb, yOut, zOut), c = new Vector3(xb, yIn, zIn), d = new Vector3(xa, yIn, zIn);
   if (side > 0) k.quad4(a, b, c, d, len - 0.1, Math.hypot(yIn - yOut, zOut - zIn), { wash: tile, kind: K.tiles, line: 1, accent: true });
   else k.quad4(b, a, d, c, len - 0.1, Math.hypot(yIn - yOut, zOut - zIn), { wash: tile, kind: K.tiles, line: 1, accent: true });
@@ -491,23 +492,6 @@ function lattice(k: Kit, p0: Vector3, u: Vector3, len: number, h: number, pitch:
 }
 
 /**
- * Red lanterns hung on iron arms off a set-back tower's face, over its frontage's pent roof: one or two a segment, the
- * targets' columns of lanterns up both sides of the canyon (E281). Their own numbers (`lr`).
- */
-function towerLanterns(ctx: Ctx, k: Kit, lr: Rng, s: Seg, face: number, n: Vector3, fTop: number): void {
-  if (Math.abs((s.xa + s.xb) / 2 - STAIR_GATE.x) < 3) return;
-  const wall = face - n.z * SETBACK;
-  const m = lr.chance(0.5) ? 2 : 1;
-  for (let j = 0; j < m; j++) {
-    const x = s.xa + (s.xb - s.xa) * ((j + lr.range(0.3, 0.7)) / m);
-    const y = fTop + 2.4 + lr.range(1.3, 2.2) + j * lr.range(0.6, 2.4), out = lr.range(1.0, 1.4);
-    k.beam(new Vector3(x, y + 0.45, wall), new Vector3(x, y + 0.45, wall + n.z * out), 0.05, 0.05, IRON);
-    k.beam(new Vector3(x, y - 0.3, wall), new Vector3(x, y + 0.4, wall + n.z * out * 0.7), 0.04, 0.04, IRON);
-    ctx.lantern(x, y, wall + n.z * (out - 0.1), lr.range(0.74, 0.88));
-  }
-}
-
-/**
  * The shop windows a flight segment's retaining wall takes (none on the landings, where the wall is only the terrace's
  * lift, nor by the paifang's outer posts): past the pier, as tall as the wall at each window's upper end allows; a
  * second, shorter counter window further up the segment where the wall still has the height (E281 pass 5).
@@ -528,7 +512,7 @@ function shopHoles(s: Seg, side: number): Hole[] {
 }
 
 function terraces(ctx: Ctx, rng: Rng): void {
-  const lr = new Rng(6127), shops = new Rng(7311), green = new Rng(7312), bal = new Rng(7313);
+  const shops = new Rng(7311), green = new Rng(7312), bal = new Rng(7313), stack = new Rng(7316);
   for (const side of [1, -1] as const) {
     // north (side 1): the face at FACE_N facing +z, the terrace from it to the stair's edge; south mirrored
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
@@ -560,8 +544,9 @@ function terraces(ctx: Ctx, rng: Rng): void {
           shops: true, street: s.floor, detailY: [s.floor - 1, fTop + 1], timber: 0.6, density: 0.8, lit: 0.8, lod: 0, roof: false, setbacks: false,
         }, SETBACK, 1 + (prevFront !== undefined && prevFront < fTop - 1 ? downhill : 0));
         pentRoof(k, rng, s, face, n, fTop);
-        towerLanterns(ctx, k, lr, s, face, n, fTop);
         frontBalconies(ctx, bal, s, face, n, u, fTop);
+        // (E281 round 2) stacked tea-house balconies up the set-back tower, where the lantern arms were
+        if (Math.abs((s.xa + s.xb) / 2 - STAIR_GATE.x) >= 3.4) towerStack(ctx, stack, s.xa, s.xb, face - n.z * SETBACK, n, u, fTop + 3.1, s.top - fTop > 14 ? 3 : 2);
         dressWall(ctx.fd, p0.clone().addScaledVector(n, -SETBACK), n, len, fTop + 0.9, s.top, Math.floor(rng.next() * 1e6), {
           shops: false, street: s.floor, detailY: [fTop, fTop + 12], timber: 0.3, lit: 0.75, lod: 1, density: 0.55, roof: true, setbacks: s.top - fTop > 24,
         }, 12 - SETBACK, 1 + (prev !== undefined && prev.top < s.top - 3 ? downhill : 0));
@@ -683,7 +668,9 @@ function stairGate(ctx: Ctx): void {
   // its lanterns hang smaller than the square gate's: this gate is lower (s 1.3), and seven full-size lantern pools
   // washed the landing salmon (render round 14 made the lantern pools ×1.7)
   buildGate(k, x, xs, (lx, ly, lz, s) => { p.set(lx, ly, lz).applyMatrix4(xf); ctx.lantern(p.x, p.y, p.z, s * 0.72); }, {
-    x: 0, y: 0, z: 0, posts: G.posts, s: G.s, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false,
+    // (E281 round 2: cinnabar and gold with bare lacquer posts, as mockup C and C2·5 paint it; the mineral blue-greens
+    // read as a teal band up the stair)
+    x: 0, y: 0, z: 0, posts: G.posts, s: G.s, plaque: '九龍', couplets: null, neonEaves: null, lions: false, paint: 'cinnabar',
   });
 }
 
@@ -973,6 +960,29 @@ function crowd(ctx: Ctx, rng: Rng): void {
     m++;
   }
   pushClimbers(ctx, list);
+  // (E281 round 2) the targets' upper stair is busy: more climbers on flights 2 and 3, on landing 2 and up the top of
+  // flight 1 toward landing 1 (C2·7 looks down it at a crowd coming up). None on landing 1 itself: dome C2's cameras
+  // stand there and a figure 2 m off fills C2·4 / C2·6. Clear of the paifang's posts and, below x 45, of the axis
+  // (flight 1's to the sides, as C1's). They join the crowd with the other figures this lane adds (flushExtraFigures:
+  // a multiple of ten, the nearest in dark coats)
+  const busy = new Rng(5154);
+  for (let tries = 0, m = 0; tries < 600 && m < 22; tries++) {
+    const pick = busy.next();
+    const f = pick < 0.4 ? FLIGHTS[1] : pick < 0.65 ? FLIGHTS[2] : pick < 0.85 ? FLIGHTS[0] : undefined;
+    const l = LANDINGS[1];
+    const x = f === FLIGHTS[0] && f !== undefined ? busy.range(f.x1 - 5.5, f.x1 - 0.4)
+      : f !== undefined ? busy.range(f.x0 + 0.5, f.x1 - 0.3) : busy.range((l?.x0 ?? 52.7) + 0.3, (l?.x1 ?? 56.7) - 0.3);
+    const z = zc + busy.range(-3.5, 3.5);
+    if ((x - 37.3) ** 2 + (z - zc) ** 2 < 3.2 ** 2) continue;
+    if (x < 35.3 && Math.abs(z - zc) < 1.7) continue;
+    if (x < 45 && Math.abs(z - zc) < 1.3) continue;
+    if (Math.abs(x - STAIR_GATE.x) < 1.6 && STAIR_GATE.posts.some((p) => Math.abs(z - zc - p) < 1.2)) continue;
+    if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 1.4)) continue;
+    placed.push([x, z]);
+    const up = busy.chance(0.6);
+    extraFigure(mat4(x, visFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + busy.range(-0.35, 0.35), busy.range(0.95, 1.04)), x + Math.abs(z - zc));
+    m++;
+  }
 }
 
 // ── the far end: the street runs on past the top landing, a last flight into the haze, a tower closing the view ──

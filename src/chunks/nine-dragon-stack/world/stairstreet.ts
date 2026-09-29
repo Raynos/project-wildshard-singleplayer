@@ -214,11 +214,13 @@ export function cutByHole(bx0: number, bx1: number, y: number, h: number, hole: 
  * crowd at the end of the stair's build, cut to a multiple of ten: world/build.ts gives walkers their coat and umbrella
  * by index (i % 10), so every figure after this lane's — the Well's — keeps its variant (the square lane's rule, E281).
  */
-const extraFigures: Matrix4[] = [];
-export function extraFigure(m: Matrix4): void { extraFigures.push(m); }
+const extraFigures: { m: Matrix4; rank: number }[] = [];
+/** `rank`: lower is more prominent (a climber's x up the stair); people at counters and rails rank after every climber */
+export function extraFigure(m: Matrix4, rank = 1000): void { extraFigures.push({ m, rank }); }
 export function flushExtraFigures(ctx: Ctx): void {
   const n = Math.floor(extraFigures.length / 10) * 10;
-  for (const m of extraFigures.slice(0, n)) ctx.walkers.push(m);
+  // (the lowest ranks first, so the cut drops the least prominent figures)
+  pushClimbers(ctx, [...extraFigures].sort((a, b) => a.rank - b.rank).slice(0, n));
   extraFigures.length = 0;
 }
 
@@ -307,6 +309,43 @@ export function frontBalconies(ctx: Ctx, r: Rng, s: { xa: number; xb: number; fl
     ctx.lantern(xc + w / 2 - 0.25, yb + 2.1, face + n.z, 0.6);
     ctx.emitters.push({ at: new Vector3(xc, yb + 1.2, face + n.z * 0.4), color: new Color(0xffc48a), w: w - 0.8, h: 2, power: 0.16, spill: 0.2 });
     if (r.chance(0.5)) extraFigure(mat4(xc + r.range(-w / 3, w / 3), yb, face + n.z * 0.7, n.z > 0 ? r.range(-0.3, 0.3) : Math.PI + r.range(-0.3, 0.3), r.range(0.95, 1.02)));
+  }
+}
+
+/**
+ * Stacked tea houses up a set-back tower over the pent roof (the C targets' stair walls: deep timber balconies storey on
+ * storey, plants spilling over their rails, a glazed eave or an awning over each, hanging signs, lanterns and people at
+ * the rails; E281 round 2). `wall` is the tower's face, `n` out of it toward the stair, `y0` the first balcony floor.
+ * All instances but the blade signs; the grammar's dressing behind is cleared first (its sign slots only shrink).
+ */
+export function towerStack(ctx: Ctx, r: Rng, xa: number, xb: number, wall: number, n: Vector3, u: Vector3, y0: number, levels: number): void {
+  const len = xb - xa, w = Math.min(len - 0.5, 3.4);
+  if (w < 1.8) return;
+  const xc = (xa + xb) / 2 + r.range(-0.25, 0.25);
+  const at = (x: number, y: number, out: number): Vector3 => new Vector3(x, y, wall + n.z * out);
+  clearBand(ctx, xc - w / 2 - 0.3, xc + w / 2 + 0.3, Math.min(wall, wall + n.z * 2.2) - 0.4, Math.max(wall, wall + n.z * 2.2) + 0.4, y0 - 0.5, y0 + levels * 3.1 + 0.4);
+  for (let j = 0; j < levels; j++) {
+    const yb = y0 + j * 3.1, deep = r.range(1.35, 1.6);
+    piece(ctx, 'balconyTimber', at(xc, yb, 0), u, n, w / 3.6, 1, deep, 0xffffff);
+    ctx.fd.windows.push({
+      m: new Matrix4().makeBasis(u, UP, n).scale(new Vector3(w - 1.0, 2.1, 1)).setPosition(at(xc, yb + 0.05, 0.012)),
+      win: new Vector4(r.range(0, 97), r.range(1.1, 1.4), 0, 16 + r.int(0, 1)), wall: new Color(0x6d6a66), light: new Color(r.pick([0xffc47e, 0xffb870, 0xffd09a])),
+    });
+    // plants on the rail and spilling over it, a pot in the corner
+    for (let x = xc - w / 2 + 0.5; x < xc + w / 2 - 0.4; x += r.range(0.9, 1.4)) {
+      piece(ctx, 'planter', at(x, yb + 0.98, 1.2 * deep - 0.28), u, n, r.range(0.75, 1.0), r.range(0.9, 1.3), 0.55);
+    }
+    piece(ctx, 'plant', at(xc + w / 2 - 0.45, yb, 0.55), u, n, r.range(1.0, 1.3), r.range(1.2, 1.6), 1);
+    // over it a glazed eave or a striped awning, and a lantern under its lip; now and then a hanging sign
+    if (r.chance(0.65)) piece(ctx, 'eave', at(xc, yb + 2.75, 0), u, n, w + 0.5, 0.7, 1.35 * deep / 1.25, r.pick([0x3f8f6a, 0x357d62, 0x3a6ea8, 0x2f6f5c]));
+    else piece(ctx, 'awning', at(xc, yb + 2.7, 0.1), u, n, w, 0.9, 1.1 * deep, r.pick([MIN.cinnabar, MIN.azurite, MIN.malachite, 0xd9a441]));
+    ctx.lantern(xc - w / 2 + 0.3, yb + 2.15, wall + n.z * (1.2 * deep - 0.1), r.range(0.55, 0.7));
+    if (r.chance(0.45)) {
+      const sx = xc + (r.chance(0.5) ? -1 : 1) * (w / 2 + 0.35), word = r.pick(SHOP_WORDS), size = 0.36;
+      ctx.signs.place({ at: at(sx, yb + 1.5, 0.75), normal: XN, size, spec: { text: word, color: hex(r.pick(SHOP_NEON)), vertical: true, style: r.chance(0.6) ? 'tube' : 'box' }, blade: true }, null);
+    }
+    ctx.emitters.push({ at: at(xc, yb + 1.2, 0.5), color: new Color(0xffc48a), w: w - 0.8, h: 2, power: 0.14, spill: 0.2 });
+    if (r.chance(0.55)) extraFigure(mat4(xc + r.range(-w / 3, w / 3), yb, wall + n.z * 0.8, n.z > 0 ? r.range(-0.3, 0.3) : Math.PI + r.range(-0.3, 0.3), r.range(0.95, 1.02)));
   }
 }
 
@@ -734,7 +773,7 @@ function footShop(ctx: Ctx, k: Kit, rng: Rng, s: FootSeg, face: number, n: Vecto
 function footTerraces(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('stair-foot', true);
   const mid = (SQ_CORNER + SQ_BACK) / 2;
-  const shops = new Rng(7310), green = new Rng(7314), bal = new Rng(7315);
+  const shops = new Rng(7310), green = new Rng(7314), bal = new Rng(7315), stack = new Rng(7317);
   for (const side of [1, -1] as const) {
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
     const n = side > 0 ? ZP : ZN, u = side > 0 ? XP : XN;
@@ -761,6 +800,7 @@ function footTerraces(ctx: Ctx, rng: Rng): void {
       }, SETBACK, 1);
       pentRoof(k, rng, s, face, n);
       frontBalconies(ctx, bal, s, face, n, u, s.fTop);
+      towerStack(ctx, stack, s.xa, s.xb, face - n.z * SETBACK, n, u, s.fTop + 3.1, 2);
       dressWall(ctx.fd, p0.clone().addScaledVector(n, -SETBACK), n, len, s.fTop + 0.9, s.top, Math.floor(rng.next() * 1e6), {
         shops: false, street: s.floor, detailY: [s.fTop, s.fTop + 12], timber: 0.3, lit: 0.75, lod: 0, roof: true, setbacks: false,
       }, side > 0 ? 4.9 : 10.2, 1);

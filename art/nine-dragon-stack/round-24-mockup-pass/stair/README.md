@@ -131,3 +131,24 @@ Still open for the other lanes: the square's lantern string along the east shops
 in front of mockup C's camera (two big lanterns on a wire across the frame's upper third; plan F6 asks for the frame
 over the stair to stay open); the Fei Zhua dragon-hook casting (build.ts places it at the three Well mounts nearest the
 Well) would read far better than the jian's guard head on the stair's hero bracket.
+
+## Round 2 (passes 7–9): the coordinator's brief
+
+Round 1 is live (`d6ca7e6-mumavuoz`). The coordinator tried the Fei Zhua casting on the stair's bracket and reverted it
+by eye: the gold guard head reads closer to mockup C. Round 2: judge all nine C1 / C2 views against the targets and close
+the biggest gaps. The targets' stair walls are stacked tea houses with deep balconies, plants spilling over, hanging
+signs and awnings at every level and people on the balconies; the upper stair and landing are busier. Memory-neutral
+against pass 6.
+
+## Pass 7 (on HEAD 69722f30)
+
+| Change | Where | Kept? |
+|---|---|---|
+| The stair paifang in cinnabar and gold with bare lacquer posts (gate.ts's `paint: 'cinnabar'`, the square's): mockup C, C2·5 and C2·2 paint it red; the mineral blue-greens read as a teal band up the stair | C2 | kept |
+| Stacked tea houses up the set-back towers over the pent roofs, 2–3 storeys a segment (2 at the foot): deep timber balconies, a lit door, planters on the rail with greenery spilling over, a potted plant, a glazed eave or a striped awning, a lantern, now and then a hanging sign and somebody at the rail. They replace pass 2's lantern arms there. All instances but the signs (`tower-stacks-close.jpg`) | C1 + C2 | kept |
+| 22 more climbers on flights 2 and 3, landing 2 and the top of flight 1 (C2·7 looks down it at a crowd coming up); the extra figures now join ranked, the nearest in the dark coats and umbrellas | C2 | kept |
+| The same climbers on landing 1 too | C2 | reverted: a figure 2 m off filled C2·4's and C2·6's foregrounds |
+| The pent roofs' and verandas' tiles a deeper glazed teal (× 0.62): the aerials' roofs in the targets are dark tile | C2 | kept |
+
+Memory against the same HEAD: geometry 154.58 → 154.54 MB (the lantern arms' beams went; everything new is instances),
+textures unchanged. No collider changes.
