@@ -60,7 +60,7 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 | SFX, take 1 | **MOSS-SoundEffect v2** (MPS bf16) | `OpenMOSS-Team/MOSS-SoundEffect-v2.0` | `~/ml/music/sfx/MOSS-TTS/moss_soundeffect_v2` + `scripts/music/gen/gen_sfx_moss.py` | Apache-2.0 |
 | SFX, take 2 | **Stable Audio 3 Medium** (MPS fp32) | `cocktailpeanut/stable-audio-3-medium` | `~/ml/music/sfx/stable-audio-3` (`uv run`) + `scripts/music/gen/gen_sfx.py --model medium` | "Powered by Stability AI" |
 | SFX, the pick | the better take per sound (CLAP rank) | — | `scripts/music/gen/sfx_merge.py` → `public/assets/sfx/best/` | both credits |
-| 3D props / creatures | **TRELLIS.2-4B** (MPS), then a Blender post | `microsoft/TRELLIS.2-4B` + TRELLIS-image-large, DINOv3, BiRefNet | `~/ml/img2mesh/trellis-mac/.venv` + `scripts/img2mesh/` ([README](scripts/img2mesh/README.md)) | MIT. Hunyuan3D-2 is in the store and faster, but **not for this game** (its licence bars the EU, UK and South Korea) |
+| 3D props / creatures | **TRELLIS.2-4B** (MPS), then a Blender post | `microsoft/TRELLIS.2-4B` + TRELLIS-image-large, DINOv3, BiRefNet | `~/ml/img2mesh/trellis-mac/.venv` + `scripts/img2mesh/` ([README](scripts/img2mesh/README.md)) | MIT. **Hunyuan3D-2** (`~/ml/img2mesh/Hunyuan3D-2`) is equally allowed and faster: use whichever gives the better model |
 | Mockups, fidelity | **codex `image_gen`** (OpenAI, cloud, ~3 min + upload): see [Mockups](#mockups) | — | `codex exec` / `scripts/horizon-matte/run_codex.py` | — |
 | Mockups, fast local | **Qwen-Image-2.1 + turbo LoRA** (7B, diffusers MPS bf16, 6 steps, **~20–35 s**), + an edit mask for localised edits. The only local model that felt decent in the E104 bake-off ([scoreboard](art/local-image/round-2-bakeoff/README.md)) | `Qwen/Qwen-Image-2.1` + `Viggle/Qwen-Image-2.1-viggle-turbo` | **`scripts/mockup-local.sh`** ([how-to](../../localai/docs/image-models.md)) | research licence: fine for mockups, never for shipped art |
 
@@ -73,8 +73,8 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 - **`~/projects/localai/bin/evict.sh` unloads every LLM server on the box**, other agents' included. A music, SFX, 3D
   or image batch frees its memory when its python exits, so it needs no evict.
 - **Check the licence before a new model**: read the card *and* its LICENSE file.
-  - Non-commercial, research-only or territory-restricted means it is not for the game. TangoFlux and
-    HunyuanVideo-Foley were refused for this.
+  - Non-commercial or research-only means it is not for the game. **Territory limits don't matter**: the game ships in
+    South America only (Jake, 2026-09-29), so never raise an EU / UK / Korea licence caveat.
   - Then fetch it with `fetch-repo.sh`, add a `MODELS.md` row, and write down its speed and memory in a localai doc.
 
 ## Plans (`docs/plans/`) and their state

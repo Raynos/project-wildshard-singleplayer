@@ -1,6 +1,6 @@
 # Training dummy model pass
 
-**State:** `in progress` 2026-09-29 — Jake's go (E285): "Fix the models and the graphics by any means necessary" (TRELLIS, Hunyuan3D and Blender allowed). The arena's weapon and dodge bugs are fixed and live (`fca9e1a-mumq2sgo`). Being built by two Claude subagents: mesh cleanup and a real 18-bone rig (TRELLIS.2 first; Hunyuan3D-2 only if it clearly wins, and then recorded as licence debt, since it excludes the EU, UK and South Korea), and in code the hit-driven motion, arena lighting and arena HUD. Then the phone reading and Jake's approval of the live sheets.
+**State:** `in progress` 2026-09-29 — Jake's go (E285): "Fix the models and the graphics by any means necessary" (TRELLIS, Hunyuan3D and Blender allowed). The arena's weapon and dodge bugs are fixed and live (`fca9e1a-mumq2sgo`). Being built by two Claude subagents: mesh cleanup and a real 18-bone rig (TRELLIS.2 or Hunyuan3D-2, whichever is better per figure), and in code the hit-driven motion, arena lighting and arena HUD. Then the phone reading and Jake's approval of the live sheets.
 
 This is a shared asset for the HUD + Weapon Explorer arena and Model Explorer in all four shards. The approved nine-angle sheets in `art/hud-explorer/round-1-arena/` are the visual target. Preserve the distinct constructions: wood frame with wooden armor, straw body with cloth armor, and wood frame with steel armor.
 
@@ -19,4 +19,4 @@ The model input references are `art/hud-explorer/round-3-dummy-meshes/ref-straw-
 
 The first meshopt pass collapsed the skinned positions into a signed unit cube, putting half the figure under the floor. The shipped GLBs now preserve float positions before meshopt encoding: each spans approximately 0–2.65 m in Y, and the game scales it to the player's 1.8 m (`TRAINING_DUMMY_SCALE`, E252, 4fdcca55) with the hit volumes and Rapier solids to match. Each WebP/meshopt GLB is 0.85–0.97 MB, with one 512² base map, one 512² material map, roughly 38–40k triangles, and one skinned draw call. Reproduce the export with `scripts/practice/rig_dummy.py` followed by `scripts/practice/pack_dummy.mjs`. A 390 × 844 browser capture (`/tmp/e215-arena-portrait-v4.png`) confirms all three render; physical phone memory, nine-angle live capture, and art approval remain to be checked.
 
-Do not substitute Hunyuan3D-2 output: its territory restrictions exclude a shipped game. The local TRELLIS.2 weights are MIT licensed.
+TRELLIS.2 and Hunyuan3D-2 are both allowed; use whichever gives the better figure (the game ships in South America only, so territory licence limits do not apply).
