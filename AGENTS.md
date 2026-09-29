@@ -174,6 +174,15 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
     90 min, and vite servers started from a session scratchpad more than 24 h ago. It runs before every lane wait and
     from the SessionStart / Stop / SubagentStop hooks. `scripts/browser-lane.sh status` shows who holds what; the
     log is `~/.browser-lane/reap.log`.
+  - **No vite dev servers (Jake, E317: "Vite dev sucks").** Serve a build:
+    `scripts/serve-build.sh [--head] [--hours <h>] [--name <label>]` (≈ 10 s; public/ is symlinked, not copied) prints
+    `http://127.0.0.1:<port>/`; `scripts/serve-build.sh stop <port>` when done. `pnpm dev` runs it too. The hook blocks
+    `vite` dev; the reaper stops a preview past its `--hours` (default 4), an unregistered preview after 6 h and any dev
+    server after 2 h.
+  - **iOS Simulators go through `scripts/sim-lane.sh` (E316):** at most 1 booted machine-wide; `run [--max <min>]
+    <device> <cmd…>` boots, runs and shuts down, `lease <device> [<min>]` holds it while you drive it by hand, `release`
+    shuts it down. The reaper shuts down a Simulator whose lease expired, or one with no lease that has been idle for
+    30 min. The hook blocks a raw `simctl boot` / `open -a Simulator`. How to drive one: `.claude/skills/ios-simulator/SKILL.md`.
   - Render on the GPU: agent-browser does by default, and Playwright scripts pass `--use-angle=metal` like
     `scripts/bench-load.mjs`. **SwiftShader (`--use-angle=swiftshader`, Android `-gpu swiftshader_indirect`) only when
     the user asks for it**: it draws on the CPU, ~3 cores per page. No `--disable-frame-rate-limit`. One Android emulator

@@ -21,6 +21,40 @@ lane="$root/scripts/browser-lane.sh"
 
 case "$cmd" in *SKIP_BROWSER_LANE=1*|*browser-lane.sh*) exit 0;; esac
 
+# ── no vite dev servers (E317): build + preview through scripts/serve-build.sh ─────────────────────────────────────────
+if ! printf '%s' "$cmd" | grep -q 'serve-build\.sh' \
+  && printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])((pnpm exec|npx|pnpm dlx|bunx)[[:space:]]+vite([[:space:]]|$)|vite/bin/vite\.js)'; then
+  if ! printf '%s' "$cmd" | grep -qE '(vite|vite\.js)[[:space:]]+(build|preview|optimize)|[[:space:]]--(version|help)'; then
+    cat >&2 <<'EOF'
+BLOCKED by .claude/hooks/guard-browser-lane.sh: a vite DEV server.
+
+Nobody runs `vite` dev on this machine any more (Jake, E317). Build and serve the build instead:
+
+    scripts/serve-build.sh [--head] [--hours <h>] [--name <label>]     # prints http://127.0.0.1:<port>/
+    scripts/serve-build.sh stop <port>                                  # when you are done
+
+It builds in ~10 s (public/ is symlinked, not copied) and the preview is reaped after --hours (default 4).
+EOF
+    exit 2
+  fi
+fi
+
+# ── iOS Simulators through the sim lane (E316) ───────────────────────────────────────────────────────────────────────
+if ! printf '%s' "$cmd" | grep -q 'sim-lane\.sh' && printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])(xcrun[[:space:]]+simctl[[:space:]]+boot|open[[:space:]]+-a[[:space:]]+"?Simulator)'; then
+  cat >&2 <<EOF
+BLOCKED by .claude/hooks/guard-browser-lane.sh: booting an iOS Simulator outside the sim lane.
+
+A booted Simulator costs ~6 GB; at most ${SIM_LANES:-1} runs machine-wide, and idle ones are shut down (E316):
+
+    scripts/sim-lane.sh run [--max <min>] <device> <cmd …>     # boot, run, shut down
+    scripts/sim-lane.sh lease <device> [<min>]                 # drive it by hand; renew with the same command
+    scripts/sim-lane.sh release <device>                       # done: shut it down
+
+See .claude/skills/ios-simulator/SKILL.md.
+EOF
+  exit 2
+fi
+
 # ── agent-browser: a new session only while the lane has room ────────────────────────────────────────────────────────
 if printf '%s' "$cmd" | grep -qE '(^|[;&|[:space:]])agent-browser([[:space:]][^;&|]*)?[[:space:]]open([[:space:]]|$)'; then
   s="$(printf '%s' "$cmd" | grep -oE -- '--session[= ]+[^ ;&|]+' | head -1 | sed -E 's/--session[= ]+//')"

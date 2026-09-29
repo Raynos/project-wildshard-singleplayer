@@ -20,8 +20,10 @@
 #   - a headless Chromium (Playwright's chrome-headless-shell / chromium, agent-browser's Chrome) whose parent died
 #     (re-parented to launchd, ppid 1): nothing can ever close it;
 #   - any of them older than BROWSER_MAX_AGE_MIN (default 90) — no capture runs that long;
-#   - a vite dev / preview server started from a session scratchpad (/private/tmp/claude-*/…/scratchpad) older than
-#     VITE_MAX_AGE_H (default 24). The shared main-checkout server is never touched.
+#   - vite servers (E317 — nobody runs `vite` dev any more; scripts/serve-build.sh builds + previews): a registered
+#     preview past its expiry, an unregistered preview older than PREVIEW_MAX_AGE_H (default 6), a dev server older than
+#     DEV_MAX_AGE_H (default 2); and served build dirs nothing serves any more;
+#   - iOS Simulators, through scripts/sim-lane.sh reap (E316).
 # The user's own desktop Chrome is never matched (only the ms-playwright / agent-browser binaries are).
 # Log: ~/.browser-lane/reap.log.
 
@@ -31,7 +33,8 @@ LANES="${BROWSER_LANES:-3}"
 DIR="$HOME/.browser-lane"
 mkdir -p "$DIR"
 MAX_AGE_MIN="${BROWSER_MAX_AGE_MIN:-90}"
-VITE_MAX_AGE_H="${VITE_MAX_AGE_H:-24}"
+PREVIEW_MAX_AGE_H="${PREVIEW_MAX_AGE_H:-6}"
+DEV_MAX_AGE_H="${DEV_MAX_AGE_H:-2}"
 BROWSER_RE='/(ms-playwright|\.agent-browser/browsers)/[^ ]*(chrome-headless-shell|Chromium|Google Chrome for Testing|chrome)( |$)'
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
@@ -92,18 +95,42 @@ reap() {
     echo "reaped browser $pid ($why)"
     kill_tree "$pid"
   done < <(browser_roots)
+  # vite servers (E317: no dev servers — scripts/serve-build.sh builds and previews). Registered previews
+  # (~/.dev-servers/<port>: "pid expiry dir cwd name") live until their expiry; an unregistered preview for
+  # PREVIEW_MAX_AGE_H; a dev server (`vite` with neither build nor preview) for DEV_MAX_AGE_H. `vite build` is left alone.
+  local reg="$HOME/.dev-servers" f rpid exp dir rcwd name
+  for f in "$reg"/*; do
+    [ -f "$f" ] || continue
+    read -r rpid exp dir rcwd name < "$f"
+    if ! kill -0 "$rpid" 2>/dev/null; then [ "$dry" = "--dry-run" ] || { rm -f "$f"; [ -d "$dir" ] && rm -rf "$dir"; }; continue; fi
+    [ "$exp" -lt "$(date +%s)" ] || continue
+    n=$((n + 1))
+    if [ "$dry" = "--dry-run" ]; then echo "would reap preview :$(basename "$f") ($name, expired)"; continue; fi
+    log "reap preview :$(basename "$f") pid $rpid ($name): expired"; echo "reaped preview :$(basename "$f") ($name, expired)"
+    kill_tree "$rpid"; rm -f "$f"; [ -d "$dir" ] && rm -rf "$dir"
+  done
   while read -r pid; do
     [ -z "$pid" ] && continue
-    a="$(age_s "$pid")"; [ "$a" -gt $((VITE_MAX_AGE_H * 3600)) ] || continue
+    c="$(ps -o command= -p "$pid" 2>/dev/null)"
+    [[ "$c" == *" build"* ]] && continue
+    grep -qs "^$pid " "$reg"/* && continue
+    a="$(age_s "$pid")"
+    if [[ "$c" == *" preview"* ]]; then kind="preview"; lim=$((PREVIEW_MAX_AGE_H * 3600)); else kind="dev server"; lim=$((DEV_MAX_AGE_H * 3600)); fi
+    [ "$a" -gt "$lim" ] || continue
     cwd="$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')"
-    [[ "$cwd" == /private/tmp/claude-*/scratchpad* || "$cwd" == /private/tmp/claude-*/*/scratchpad/* ]] || continue
     n=$((n + 1))
-    if [ "$dry" = "--dry-run" ]; then echo "would reap vite $pid ($((a / 3600)) h, $cwd)"; continue; fi
-    log "reap vite $pid: $((a / 3600)) h old, cwd $cwd"
-    echo "reaped vite $pid ($((a / 3600)) h, $cwd)"
+    if [ "$dry" = "--dry-run" ]; then echo "would reap vite $kind $pid ($((a / 3600)) h, $cwd)"; continue; fi
+    log "reap vite $kind $pid: $((a / 3600)) h old, cwd $cwd"
+    echo "reaped vite $kind $pid ($((a / 3600)) h, $cwd)"
     kill_tree "$pid"
   done < <(pgrep -f 'vite/bin/vite\.js' 2>/dev/null)
-  [ "$dry" = "--dry-run" ] && [ $n -eq 0 ] && echo "nothing to reap"
+  # served build dirs nothing serves any more (a preview killed by hand), a day on
+  find "${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}" -mindepth 1 -maxdepth 1 -type d -mtime +0 2>/dev/null | while read -r d; do
+    grep -qs " $d " "$reg"/* || { [ "$dry" = "--dry-run" ] && echo "would remove $d" || rm -rf "$d"; }
+  done
+  [ "$dry" = "--dry-run" ] && [ $n -eq 0 ] && echo "no browser or vite server to reap"
+  # iOS Simulators (E316)
+  [ -x "$(dirname "$SELF")/sim-lane.sh" ] && bash "$(dirname "$SELF")/sim-lane.sh" reap "$dry"
   return 0
 }
 

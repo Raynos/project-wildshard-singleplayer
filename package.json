@@ -4,7 +4,7 @@
   "version": "0.3.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "bash scripts/serve-build.sh",
     "prebuild": "node scripts/check-css.mjs",
     "build": "tsc --noEmit && vite build",
     "build:native": "vite build --mode native",

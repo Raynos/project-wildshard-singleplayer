@@ -89,8 +89,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    (`git show --stat` the commits in `$BASE..HEAD`, `git rev-parse HEAD:<path>` for the files they touched) — the
    read-tree / commit-tree race silently reverts a sibling's commit if HEAD moved in between. An unpushed commit at
    exit is an OOPS; so is a pushed commit whose CI run is red or still unknown.
-4. **Sync the worktree after a private-index commit.** It never writes the working tree, so the dev server on :5173
-   keeps serving the old code. Bring *your* files to HEAD with the Write / Edit tool (or `git show HEAD:<path>`
+4. **Sync the worktree after a private-index commit.** It never writes the working tree, so a build you serve
+   (`scripts/serve-build.sh`) would still have the old code. Bring *your* files to HEAD with the Write / Edit tool (or `git show HEAD:<path>`
    into a literal path) — only where the worktree copy is an older version of *yours*; never overwrite a copy that
    carries someone else's hunks. Pathspec commits need no sync.
 5. **Ledgers.** Every ask you took this session has its own file `docs/tasks/asks/<ID>.md` (claimed with
