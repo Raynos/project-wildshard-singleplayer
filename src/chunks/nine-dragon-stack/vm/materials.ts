@@ -273,6 +273,7 @@ uniform vec4 uSpill;
 uniform vec4 uTune;   // x crease ink, y edge wear, z AO strength, w env tint
 uniform float uExposure;
 uniform float uDetail;
+uniform float uGrain; // (E283) 1 = the grain / fleck noises; 0 = their mean (the lighter viewmodel, Debug ▸ Performance)
 varying vec3 vN;
 varying vec3 vNs;
 varying vec3 vView;
@@ -344,7 +345,7 @@ void main() {
     // raised ridges of the engraving catch light
     col = mix(col, base * 1.3 + 0.015, wear * 0.35 * v1);
     // a faint brushed / patinated grain (object space, metres): antique, not polished plastic
-    col *= 0.92 + 0.16 * vn3(vObj * vec3(900.0, 260.0, 900.0));
+    col *= 0.92 + 0.16 * (uGrain > 0.5 ? vn3(vObj * vec3(900.0, 260.0, 900.0)) : 0.5);
     col = mix(col, col * envC * 1.8, uTune.w);
     col += base * 0.3 * band(rim * max(n.y, 0.0), 0.25);
   } else if (ci == ${CLS.steel} || ci == ${CLS.bevel}) {
@@ -385,7 +386,7 @@ void main() {
     if (ci == ${CLS.glove} || ci == ${CLS.leather}) {
       // leather: a soft sheen band and a cool wet rim (codex's edits light the knuckles and the finger backs)
       // pebbled leather: ~1 mm grain in object space; the sheen breaks up on it
-      float grain = vn3(vObj * 1100.0) * 0.6 + vn3(vObj * 2600.0) * 0.4;
+      float grain = uGrain > 0.5 ? vn3(vObj * 1100.0) * 0.6 + vn3(vObj * 2600.0) * 0.4 : 0.5;
       col *= 0.8 + 0.4 * grain;
       float spec = pow(max(dot(R, Hk), 0.0), 10.0);
       col += vec3(0.44, 0.44, 0.46) * smoothstep(0.1, 0.9, spec) * 0.1 * (0.4 + grain);
@@ -394,9 +395,9 @@ void main() {
       col += base * 0.4 * band(rim, 0.35) * band(ndl, -0.05);
     } else if (ci == ${CLS.cloth} || ci == ${CLS.sleeve}) {
       // linen: a fine thread fleck and a slow tonal drift (the wraps are hand-dyed cloth, not paint)
-      float fleck = vn3(vObj * vec3(1800.0, 700.0, 1800.0));
+      float fleck = uGrain > 0.5 ? vn3(vObj * vec3(1800.0, 700.0, 1800.0)) : 0.5;
       col *= 0.86 + 0.24 * fleck;
-      col *= 0.94 + 0.12 * vn3(vObj * 60.0);
+      col *= 0.94 + 0.12 * (uGrain > 0.5 ? vn3(vObj * 60.0) : 0.5);
     } else if (ci == ${CLS.carbon}) {
       float spec = pow(max(dot(R, Hk), 0.0), 30.0);
       col += vec3(0.4, 0.44, 0.5) * band(spec, 0.4) * (0.4 + 0.6 * det);
@@ -493,13 +494,37 @@ export function vmUniforms(silk: Texture, decals: Decals): VmUniforms {
 const BLACK = new DataTexture(new Uint8Array([255, 128, 128, 255]), 1, 1);
 BLACK.needsUpdate = true;
 
+/**
+ * (E283, Debug ▸ Performance "Viewmodel: lighter shading", off by default) the phone's GPU: the brass grain, the leather
+ * pebbling and the linen fleck (3D value noise, up to two octaves a pixel) drawn as their mean, and a double-sided part
+ * (the sleeves, the gauntlet: transparent, so three drew their back faces and then their front faces, two passes) drawn
+ * in one pass. Every program material made here follows it (`setVmLite`), those made later too.
+ */
+const VM_GRAIN = { value: 1 };
+let vmLite = false;
+const vmMade = new Set<ShaderMaterial>();
+export function setVmLite(on: boolean): void {
+  vmLite = on;
+  VM_GRAIN.value = on ? 0 : 1;
+  for (const m of vmMade) m.forceSinglePass = on;
+}
+
 /** the program; `maps` / `nrm` given = a textured asset (its own material instance sharing every other uniform) */
 export function vmMaterial(u: VmUniforms, maps: Texture | null = null, nrm: Texture | null = null, assetRot: Matrix3 | null = null): ShaderMaterial {
+  const m = vmProgram(u, maps, nrm, assetRot);
+  // (forceSinglePass only acts on a double-sided material: the parts made double-sided after this keep it too)
+  m.forceSinglePass = vmLite;
+  vmMade.add(m);
+  m.addEventListener('dispose', () => { vmMade.delete(m); });
+  return m;
+}
+
+function vmProgram(u: VmUniforms, maps: Texture | null, nrm: Texture | null, assetRot: Matrix3 | null): ShaderMaterial {
   return new ShaderMaterial({
     uniforms: {
       uPal: u.uPal, uSilk: u.uSilk, uDecal: u.uDecal, uEtch: u.uEtch, uFu: u.uFu, uKey: u.uKey, uInk: u.uInk, uLinePx: u.uLinePx,
       uSutra: u.uSutra, uGold: u.uGold, uEnvHi: u.uEnvHi, uEnvLo: u.uEnvLo, uBladeA: u.uBladeA, uBladeB: u.uBladeB, uSpill: u.uSpill,
-      uTune: u.uTune, uExposure: u.uExposure, uDetail: u.uDetail,
+      uTune: u.uTune, uExposure: u.uExposure, uDetail: u.uDetail, uGrain: VM_GRAIN,
       uMapsTex: { value: maps ?? BLACK }, uNrmTex: { value: nrm ?? BLACK }, uTexOn: { value: maps === null ? 0 : 1 },
       uAssetRot: { value: assetRot ?? new Matrix3() },
     },

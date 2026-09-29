@@ -21,6 +21,7 @@ import { ReflectPass } from './render/reflect';
 import { HazePass } from './render/haze';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import type { Shared } from './style';
+import { setVmLite } from '../vm/materials';
 
 export interface NdRenderHandle {
   reflect: ReflectPass | null;
@@ -40,6 +41,8 @@ export interface NdRenderHandle {
   halos: Halos | null;
   /** (E283) the streak cards' perf knobs (streaks.ts STREAK_PERF, shared by every card set) */
   streakPerf: Vector4;
+  /** (E283) the lighter viewmodel (vm/materials.ts), for A / B */
+  vmLite: (on: boolean) => void;
 }
 
 /** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
@@ -154,10 +157,11 @@ export function createRender(): ShardRender {
       const perf = (): void => {
         const d = setting('ndShaderDetail');
         world.shared.u.uJLod.value.set(d === 'none' ? 0 : 15, d === 'none' ? 0.01 : 30, d === 'full' ? 0 : 1, 0);
+        setVmLite(setting('ndVmLite') === 'on');
       };
       perf();
       unsub.forEach((f) => { f(); });
-      unsub = [onSettingChange('ndShaderDetail', perf)];
+      unsub = [onSettingChange('ndShaderDetail', perf), onSettingChange('ndVmLite', perf)];
       const src = lightSources();
       const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
       if (halos !== null) world.root.add(halos.mesh);
@@ -165,7 +169,7 @@ export function createRender(): ShardRender {
       if (hideEngineClouds(c.scene)) clouds = null;
       const sky = world.root.getObjectByName('sky');
       if (sky !== undefined) sky.renderOrder = SKY_ORDER;
-      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos, streakPerf: STREAK_PERF };
+      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos, streakPerf: STREAK_PERF, vmLite: setVmLite };
       Reflect.set(window, '__ndRender', handle);
       return { beforeChain, chain: [jiehua] };
     },

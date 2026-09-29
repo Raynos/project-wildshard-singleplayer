@@ -147,6 +147,8 @@ export const OPTION_VALUES = {
   // E283: the Jiehua architecture program's painted detail (grain, stains, mottle, silk weave, paper grain, gloss and rim):
   // full, faded out past 15–30 m, or none; live
   ndShaderDetail: ['full', 'near', 'none'],
+  // E283: Nine Dragon's lighter viewmodel (vm/materials.ts setVmLite): no grain noises, double-sided parts in one pass; live
+  ndVmLite: ['off', 'on'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -166,7 +168,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, nineLanterns: DEBUG_ONLY,
-  ndShaderDetail: DEBUG_ONLY,
+  ndShaderDetail: DEBUG_ONLY, ndVmLite: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
@@ -189,7 +191,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   dwShadows: option('dwShadows'),
   prototypes: option('prototypes'),
   nineLanterns: option('nineLanterns'),
-  ndShaderDetail: option('ndShaderDetail'),
+  ndShaderDetail: option('ndShaderDetail'), ndVmLite: option('ndVmLite'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
