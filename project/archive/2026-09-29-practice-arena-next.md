@@ -1,6 +1,6 @@
 # Practice arena: what's next
 
-**State:** `in progress` 2026-09-29 — Jake picked row A (E298). A is built (the whole kit lent in the room); B–E stay unapproved, to pick later.
+**State:** `archived` 2026-09-29 (finished 2026-09-29) — row A (the full kit) built and live in `9cf4138-mun8njsr`; Jake dropped B, C, D and E ("B no c no d no e no"). The leftover Pine Hollow fault is E300.
 
 The practice room (HUD + weapon explorer) works on all four shards as of `021767d-mun80nj1`. Each of the rows below would
 extend it, and each is independent of the others.
@@ -8,10 +8,10 @@ extend it, and each is independent of the others.
 | Row | What | Why | Size |
 |---|---|---|---|
 | A · Full kit | While in the room, every weapon the shard has is unlocked and swappable (Driftwood: iron sword + AR-15; Pine Hollow: lever-action + Warden's longbow; Nine Dragon: iron sword + AR-15; Nalati already has bow · sabre · spear). The SWAP pill / weapon strip shows; the world's own unlocks are restored on exit | It is called the weapon explorer, but today only the starter weapon is usable | small · **done** (E298): `Weapons.lendAll` / `endLoan`, every kit weapon checked landing on all four shards |
-| B · Sparring dummy | One of the three telegraphs and swings on a slow timer (wind-up glow, a short hit). The player's DODGE, lock-on orbit and hurt feedback get something to answer; vitals refill in the room | The dodge and the lock-on orbit have nothing to react to; the dummies only stand | medium |
-| C · Readouts + reset | A small panel: last hit, combo count, damage per second over 5 s; a RESET that clears stuck bolts and settles the dummies | Tuning feel needs numbers, not only floating damage | small |
-| D · Fei Zhua post (Nine Dragon) | One dragon-hook post in the Nine Dragon room so the grapple and zip can be practised there | Nine Dragon's signature verb is the one thing the room can't show (LOCK there is now plain lock-on, E298) | small |
-| E · Open to players | The Explore hub's Practice card shows without Developer mode; the dummies preload for everyone (~3.3 MB of GLBs, about 33 MB decoded) | The room is dev-only today | tiny, plus a phone memory check |
+| B · Sparring dummy | One of the three telegraphs and swings on a slow timer (wind-up glow, a short hit). The player's DODGE, lock-on orbit and hurt feedback get something to answer; vitals refill in the room | The dodge and the lock-on orbit have nothing to react to; the dummies only stand | medium · **dropped** (Jake) |
+| C · Readouts + reset | A small panel: last hit, combo count, damage per second over 5 s; a RESET that clears stuck bolts and settles the dummies | Tuning feel needs numbers, not only floating damage | small · **dropped** (Jake) |
+| D · Fei Zhua post (Nine Dragon) | One dragon-hook post in the Nine Dragon room so the grapple and zip can be practised there | Nine Dragon's signature verb is the one thing the room can't show (LOCK there is now plain lock-on, E298) | small · **dropped** (Jake) |
+| E · Open to players | The Explore hub's Practice card shows without Developer mode; the dummies preload for everyone (~3.3 MB of GLBs, about 33 MB decoded) | The room is dev-only today | tiny · **dropped** (Jake) |
 
 ## Audit facts (E298, live `e4405df` → `021767d`)
 
