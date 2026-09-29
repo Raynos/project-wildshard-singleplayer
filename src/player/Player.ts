@@ -345,7 +345,10 @@ export class Player {
     const ws = this.waterSurfaceAt(x, z);
     if (ws === null || ws - heightAt(x, z) <= WADE_MAX) return false;
     for (const p of this.platforms) { const y = p(x, z); if (y !== undefined && y > ws - 0.5) return false; }
-    const deck = floorBelow(this.physics, x, z, ws + 3, 3.5, this.motor.collider); // a pier / jetty / boat deck over the water
+    // a pier / jetty / boat deck over the water — or any floor the feet are on, however high: the practice arena stands
+    // 900 m over Driftwood's sea, and a probe from just over the surface found no deck there and killed every dodge (E285)
+    const top = Math.max(ws + 3, this.position.y + 0.5);
+    const deck = floorBelow(this.physics, x, z, top, top - ws + 0.5, this.motor.collider);
     return deck === undefined || deck <= ws - 0.5;
   }
 

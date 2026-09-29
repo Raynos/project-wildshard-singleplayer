@@ -192,6 +192,7 @@ export class TrainingArena {
     this.preparation.hidden = this.modelsReady;
     this.loadPromise ??= this.prepareModels();
     weapons.select(weapons.list[0]?.id ?? weapons.current.id, true);
+    player.setHover(false); // off the board: spawn() keeps it, and on it there is no dodge (E285)
     player.spawn(this.center.x, this.center.z + 5, 0, Y);
   }
 

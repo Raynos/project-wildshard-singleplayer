@@ -713,6 +713,9 @@ export class HUD {
 
   /** skip the intro (`?skipintro`, `?tour`, a GPU-recovery reload): straight into the world. `onEnter` is what the title's
    *  ENTER WORLD runs once pause → "Exit to main menu" brings the title back — without it that exit froze the game (E86) */
+  /** what ENTER WORLD runs, for a boot that opens on Explore instead of the title (a shard switch into EXPLORE WORLD) */
+  setOnEnter(onEnter: () => void): void { this.onEnter = onEnter; }
+
   markEntered(onEnter?: () => void): void { if (onEnter) this.onEnter = onEnter; this.entered = true; this.root.classList.remove('intro'); }
 
   /** E155: the deck picked this shard while it was resident: into the world at once, as its own ENTER WORLD would */

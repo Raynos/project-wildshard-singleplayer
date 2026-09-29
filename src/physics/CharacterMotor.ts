@@ -80,6 +80,7 @@ export class CharacterMotor {
   private yaw = 0;
   private readonly rot = { x: 0, y: 0, z: 0, w: 1 };
   private readonly probe = { x: 0, y: 0, z: 0 };
+  private readonly flat = { x: 0, y: 0, z: 0 };
   private touchShape: Capsule | null = null; private touchMargin = -1;
 
   constructor(private readonly physics: Physics, readonly opts: MotorOptions) {
@@ -142,6 +143,15 @@ export class CharacterMotor {
     return false;
   }
 
+  /** the last computed move touched only walkable floor (every contact's normal within the climb angle of straight up) */
+  private stalledOnFloor(): boolean {
+    const n = this.kcc.numComputedCollisions();
+    if (n === 0) return false;
+    const minUp = Math.cos(this.kcc.maxSlopeClimbAngle());
+    for (let i = 0; i < n; i++) { const c = this.kcc.computedCollision(i); if (c === null || c.normal1.y < minUp) return false; }
+    return true;
+  }
+
   /** the steepest slope climbed from now on (degrees); it slides on ground 5° steeper */
   setClimb(deg: number): void {
     this.kcc.setMaxSlopeClimbAngle(deg * Math.PI / 180);
@@ -182,12 +192,21 @@ export class CharacterMotor {
     if (!this.enabled) { feet.x += want.x; feet.y += want.y; feet.z += want.z; r.grounded = false; r.groundNormalY = 1; r.horizontalFreedom = 1; r.groundCollider = null; this.anchorBody = null; return r; }
     const { R } = this.physics;
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
-    this.kcc.computeColliderMovement(this.collider, want, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, ignoreGround ? this.notGround : undefined);
-    const m = this.kcc.computedMovement();
+    const pred = ignoreGround ? this.notGround : undefined;
+    this.kcc.computeColliderMovement(this.collider, want, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
+    let m = this.kcc.computedMovement();
+    const wantH = Math.hypot(want.x, want.z);
+    // E285: now and then Rapier stops the whole move on the floor the capsule already rests on (one contact, normal
+    // straight up, time of impact 0), and a dash ended on that "wall" (~1 dodge in 5). Such a stall is retried flat;
+    // the snap still keeps the feet on the ground, and anything that really blocks the way blocks the retry too.
+    if (wantH > 1e-6 && want.y <= 0 && Math.hypot(m.x, m.z) < wantH * 0.3 && this.stalledOnFloor()) {
+      this.flat.x = want.x; this.flat.y = 0; this.flat.z = want.z;
+      this.kcc.computeColliderMovement(this.collider, this.flat, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
+      m = this.kcc.computedMovement();
+    }
     feet.x += m.x; feet.y += m.y; feet.z += m.z;
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
     r.grounded = this.kcc.computedGrounded();
-    const wantH = Math.hypot(want.x, want.z);
     r.horizontalFreedom = wantH > 1e-6 ? Math.min(1, Math.hypot(m.x, m.z) / wantH) : 1;
     // the ground under the feet: a short ray down from just above them. (The controller's own contacts are empty while
     // resting — snapped or standing still — so they can't say what we stand on.)
