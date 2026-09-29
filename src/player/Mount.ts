@@ -127,7 +127,7 @@ const SEAT_TILT = 0.13;
 // B1: the skid stop, the rhythm spur's STEED, the panic
 const SKID_MIN = 7, SKID = 16, SKID_TIME = 1.2, SKID_TURN = 1.6;   // m/s it starts from, m/s² it stops at, s at most, the pivot's rein ×
 const STEED_RHYTHM = 2;              // STEED/s a gallop held by the rhythm costs (a held GALLOP: STEED_GALLOP)
-const PANIC_REAR = 0.5, PANIC_SPEED = 9.5, PANIC_TURN = 2;   // s the horse rears first (from a walk or a stand), m/s it bolts at, its whirl (rein ×)
+const PANIC_REAR = 0.5, PANIC_SPEED = 9.5, PANIC_TURN = 2, PANIC_REAR_POSE = 0.45;   // s the horse rears first (from a walk or a stand), m/s it bolts at, its whirl (rein ×), the rear knob (higher lifts its neck into the rider's eye)
 const ROAD_TURN = 2.2;               // the rein per radian off the road's line ahead
 const FORD_DEPTH = 0.95;             // m of water a horse wades before it swims (its back stays dry)               // rad the saddle view looks down past the player's pitch
 const _e = new THREE.Euler(0, 0, 0, 'YXZ'), _seat = new THREE.Vector3(), _tilt = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -460,7 +460,7 @@ export class Mount {
       this.panicT = Math.max(0, this.panicT - dt); this.panicRear = Math.max(0, this.panicRear - dt);
       target = this.panicRear > 0 ? 0 : PANIC_SPEED;
       turnSteer = THREE.MathUtils.clamp(-angDiff(this.panicYaw, this.heading) * 2.5, -1, 1);
-      if (this.panicRear > 0) a.mem['rear'] = Math.max(a.mem['rear'] ?? 0, 0.8);
+      if (this.panicRear > 0) a.mem['rear'] = Math.max(a.mem['rear'] ?? 0, PANIC_REAR_POSE);
     }
     if (this.breaking || p.moveScale === 0) target = 0;                       // the bucking rounds; a boss intro locks the reins
     // (steep ground is the motor's: the horse's climb limit by gait, in step)

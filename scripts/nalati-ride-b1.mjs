@@ -54,7 +54,10 @@ try {
   await sleep(4000);
   await page.evaluate(async () => {
     const L = await import('/src/chunks/nalatiLayout.ts');
-    const S = await import('/src/ui/Settings.ts');
+    // the app's own Settings module (the URL it was loaded by: after an edit on the shared tree Vite adds a ?t= stamp, and
+    // a plain import would be a second copy whose saveSetting reaches nothing)
+    const settingsUrl = performance.getEntriesByType('resource').map((e) => e.name).find((n) => n.includes('/src/ui/Settings.ts')) ?? '/src/ui/Settings.ts';
+    const S = await import(settingsUrl);
     const E = await import('/src/entities/wildEnv.ts');
     const w = window.__world;
     const t = { L, S, E, steps: 0, trace: [], rec: false };
@@ -233,7 +236,7 @@ try {
     // away from the scare: the scare was ahead, so the horse ends up behind where it stood
     const along = (end.x - p0.x) * Math.sin(p0.heading) + (end.z - p0.z) * Math.cos(p0.heading);
     out.panic = { accepted: ok, rear: Number(Math.max(...tr.map((s) => s.rear)).toFixed(2)), along: Number(along.toFixed(1)), top: Number(Math.max(...tr.map((s) => s.speed)).toFixed(1)) };
-    check('panic: rears, then bolts away from the scare', ok && out.panic.rear > 0.5 && along < -6, JSON.stringify(out.panic));
+    check('panic: rears, then bolts away from the scare', ok && out.panic.rear > 0.3 && along < -6, JSON.stringify(out.panic));
     await stand();
     const ev = await page.evaluate(async () => {
       const w = window.__world, m = w.ride.mount, h = m.horse, E = window.__rb.E;
