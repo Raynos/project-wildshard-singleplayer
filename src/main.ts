@@ -514,7 +514,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
   const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : [], nalatiKit?.options); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
-  new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
+  const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
@@ -523,6 +523,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
     toast: (message) => { hud.toast(message); },
     enabled: () => hud.entered && !world.freeCamera && !world.tour.active,
+    touchHint: (lockHint, jumpHint) => { touchControls.hint(lockHint, jumpHint); }, // E286: the verb re-dresses LOCK / JUMP (Nine Dragon's GRAPPLE / ZIP)
   });
   const weaponStrip = chunk.hud?.weaponStrip === true ? new WeaponStrip(weapons) : null; // the base HUD's weapon strip (E154; Pine Hollow, Nalati): tabs down the left edge on touch, a hotbar on desktop
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)

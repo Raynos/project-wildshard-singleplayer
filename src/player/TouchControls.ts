@@ -68,7 +68,8 @@
  * every look drag (the LOOK side, the free-look area, a drag from ATTACK) is the ±10° glance that springs back, a FLICK on
  * the LOOK side (≥ 28 px at ≥ 600 px/s within 200 ms) switches target, the LOOK pad reads SWITCH ‹ ›, MOVE reads ORBIT
  * with an arc lit on the pushed side, and aim assist / the lunge turn stand down. A short tap on an enemy above the bar
- * locks it.
+ * locks it. A shard's traversal verb may re-dress LOCK and JUMP (`hint()`, ChunkDef TouchDiscHint, E286: Nine Dragon's
+ * GRAPPLE / LOCKED / ZIP in the grapple's gold); every other shard keeps them as they are.
  * Talks to the player through `player.touchMove / touchSprint / touchJump / touchDodge / touchDive / touchSurface`
  * (analog, summed with WASD) and to the held weapon through the Weapons manager's `tryFire() / adsHeld / enabled / swap()`
  * (Weapons.ts). The layer only receives events once the intro is gone (`#hud.intro` hides it), and never needs pointer
@@ -81,6 +82,7 @@ import { lockOn, meleeLock } from './AimTargets';
 import { FlickTracker, LOCK_WEAPONS, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
 import { hudSlots } from '../ui/hudSlots';
+import type { TouchDiscHint } from '../chunks/ChunkDef';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
@@ -98,6 +100,9 @@ const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', '
 const SPEAR: ReadonlySet<WeaponId> = new Set<WeaponId>(['spear']);
 const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera turn (≈ 60 % of the bearing over a 0.15 s lunge)
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
+
+/** a disc a shard's traversal verb may re-dress (ChunkDef TouchDiscHint): its button, label, icon and own label / icon */
+interface HintDisc { btn: HTMLElement; label: HTMLElement; svg: Element; ownIcon: string; hint: TouchDiscHint | null }
 
 /** a control the layer's own markup (above) must contain — a miss is a template typo, not a runtime state */
 function el(parent: ParentNode, sel: string): HTMLElement {
@@ -127,6 +132,7 @@ export class TouchControls {
   private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
   private wasLockable = false; // the LOCK disc shows while a weapon that locks is held (LOCK_WEAPONS: the swords, Nalati's sabre + spear)
   private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
+  private hintLock?: HintDisc; private hintJump?: HintDisc; // LOCK / JUMP as a shard's traversal verb re-dresses them (E286)
 
   constructor(private player: Player, private weapons: Weapons, force = false, private lock?: LockOnSystem) {
     this.active = force || IS_TOUCH;
@@ -172,6 +178,9 @@ export class TouchControls {
     this.knob = el(stick, 'i');
     const moveZone = el(root, '.ws-touch-zone.move'), lookpad = el(root, '.ws-touch-lookpad');
     const lockBtn = el(root, '.ws-touch-disc.lock'), lockLabel = el(lockBtn, 'span'), lookLabel = el(lookpad, 'span'), moveLabel = el(moveZone, '.ws-touch-label');
+    const hintDisc = (btn: HTMLElement): HintDisc => { const svg = el(btn, 'svg'); return { btn, label: el(btn, 'span'), svg, ownIcon: svg.innerHTML, hint: null }; };
+    const hintLock = this.hintLock = hintDisc(lockBtn);
+    this.hintJump = hintDisc(el(root, '.ws-touch-disc.jump'));
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
@@ -222,7 +231,7 @@ export class TouchControls {
       if (ls !== this.lockShown) {
         this.lockShown = ls;
         root.classList.toggle('lock-available', ls === 'available'); root.classList.toggle('locked', ls === 'locked');
-        lockLabel.textContent = ls === 'locked' ? 'Locked' : 'Lock'; lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' && !riding ? 'Orbit' : 'Move';
+        lockLabel.textContent = hintLock.hint?.label ?? (ls === 'locked' ? 'Locked' : 'Lock'); lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' && !riding ? 'Orbit' : 'Move';
       }
       const orbit = ls === 'locked' && !riding ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
       if (orbit !== this.orbitShown) { this.orbitShown = orbit; root.classList.toggle('orbit-l', orbit < 0); root.classList.toggle('orbit-r', orbit > 0); }
@@ -341,7 +350,7 @@ export class TouchControls {
     btn('.ws-touch-disc.lock', () => { if (this.weapons.enabled) this.lock?.toggle(); });
     if (this.lock) {
       const prevNone = this.lock.onNoTarget;
-      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = 'No target'; setTimeout(() => { if (lockOn.state !== 'locked') lockLabel.textContent = 'Lock'; }, 700); };
+      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = 'No target'; setTimeout(() => { if (lockOn.state !== 'locked') lockLabel.textContent = hintLock.hint?.label ?? 'Lock'; }, 700); };
     }
     // DODGE (Player.dodge, project/archive/2026-09-29-dodge-feel.md — E63's T feel, V deleted in E82). A tap during the cooldown only
     // shakes the disc (.deny) — no dodge is queued (E59)
@@ -402,6 +411,29 @@ export class TouchControls {
       const mo = new MutationObserver(() => { const p = hud.querySelector<HTMLElement>('.ws-game-prompt'); if (p) { mo.disconnect(); bindPrompt(p); } });
       mo.observe(hud, { childList: true });
     }
+  }
+
+  /**
+   * A shard's traversal verb re-dresses LOCK and JUMP (ChunkDef `ShardTraversalContext.touchHint`, E286: Nine Dragon's
+   * GRAPPLE / LOCKED / ZIP): the label, the icon and a tone class (`.hint.hint-rest|ready|active`, accent `--hint`); null
+   * gives the disc its own back. Only a change touches the DOM. A no-op without the touch layer.
+   */
+  hint(lock: TouchDiscHint | null, jump: TouchDiscHint | null): void {
+    if (this.hintLock !== undefined) this.applyHint(this.hintLock, lock, lockOn.state === 'locked' ? 'Locked' : 'Lock');
+    if (this.hintJump !== undefined) this.applyHint(this.hintJump, jump, 'Jump');
+  }
+
+  private applyHint(d: HintDisc, h: TouchDiscHint | null, own: string): void {
+    const was = d.hint;
+    if (was === h || (was !== null && h !== null && was.label === h.label && was.icon === h.icon && was.tone === h.tone && was.accent === h.accent)) return;
+    d.hint = h;
+    d.label.textContent = h?.label ?? own;
+    const icon = h?.icon ?? d.ownIcon;
+    if (icon !== (was?.icon ?? d.ownIcon)) d.svg.innerHTML = icon;
+    d.btn.classList.toggle('hint', h !== null);
+    for (const t of ['rest', 'ready', 'active'] as const) d.btn.classList.toggle(`hint-${t}`, h?.tone === t);
+    if (h?.accent === undefined) d.btn.style.removeProperty('--hint');
+    else d.btn.style.setProperty('--hint', h.accent);
   }
 
   /** during a sword lunge, ease the view onto the locked animal: ~60 % of the bearing over the dash, capped — touch only,

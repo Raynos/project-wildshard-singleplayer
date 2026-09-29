@@ -39,6 +39,23 @@ import type { Physics } from '../physics/Physics';
  *  (`arms`) swung by the engine's own moves */
 export interface ShardSword { rig?: SwordRig; arms?: SwordArms; moves?: SwordMoveSet; framing?: Partial<SwordFraming>; portraitPullX?: number }
 
+/**
+ * How a shard's traversal verb re-dresses one of the base touch discs while the verb applies (E286: Nine Dragon's LOCK
+ * reads GRAPPLE with a dragon hook in reach, LOCKED once one is locked, and JUMP reads ZIP). The disc keeps its place,
+ * size and glass; only its label, its icon and its accent change.
+ */
+export interface TouchDiscHint {
+  /** the disc's label in place of its own */
+  label: string;
+  /** the disc's icon in place of its own: inner SVG markup for a 24 × 24 viewBox (omitted: its own icon) */
+  icon?: string;
+  /** 'rest' its own look at full strength (the verb is live), 'ready' an accent rim that pulses (it can act now),
+   *  'active' filled with the accent (it is committed) */
+  tone: 'rest' | 'ready' | 'active';
+  /** the accent colour (any CSS colour; omitted: the HUD's cyan) */
+  accent?: string;
+}
+
 /** Shared controls and motor, handed to a shard's optional traversal verb after its world and HUD exist. */
 export interface ShardTraversalContext {
   game: Game;
@@ -48,6 +65,8 @@ export interface ShardTraversalContext {
   lock: LockOnSystem;
   toast: (message: string) => void;
   enabled: () => boolean;
+  /** re-dress the touch LOCK and JUMP discs (null gives a disc its own label and look back); a no-op without the touch layer */
+  touchHint?: (lock: TouchDiscHint | null, jump: TouchDiscHint | null) => void;
 }
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */

@@ -117,6 +117,19 @@
 .ws-touch.locked .ws-touch-disc.lock { border-color: var(--ws-cyan); color: #06121a; background: radial-gradient(circle at 50% 35%, #bff0ff, var(--ws-cyan) 70%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 24px rgba(143, 227, 255, 0.6); }
 .ws-touch.locked .ws-touch-disc.lock svg, .ws-touch.locked .ws-touch-disc.lock span { opacity: 1; color: #06121a; }
 .ws-touch-disc.lock.none { animation: ws-touch-dodge-deny 0.3s ease-out; }
+/* E286: a shard's traversal verb re-dresses LOCK / JUMP (TouchControls.hint, ChunkDef TouchDiscHint; Nine Dragon's GRAPPLE /
+   LOCKED / ZIP in the grapple's gold). The disc keeps its place and glass; --hint is the accent (default the HUD's cyan).
+   rest: its own look at full strength (never the dim "nothing to lock"); ready: an accent rim and label with a glow that
+   pulses; active: filled with the accent, dark label, the glow breathing. After the lock-on states, so a hint wins. */
+.ws-touch .ws-touch-disc.hint { --h: var(--hint, var(--ws-cyan)); }
+.ws-touch .ws-touch-disc.hint svg, .ws-touch .ws-touch-disc.hint span { opacity: 1; }
+.ws-touch .ws-touch-disc.hint.hint-ready { border-color: var(--h); color: var(--h); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--h) 28%, transparent), rgba(6, 10, 18, 0.86) 72%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 16px color-mix(in srgb, var(--h) 45%, transparent), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4.5px var(--h); animation: ws-touch-hint-pulse 1s ease-in-out infinite; }
+.ws-touch .ws-touch-disc.hint.hint-ready svg, .ws-touch .ws-touch-disc.hint.hint-ready span { color: var(--h); text-shadow: 0 0 6px color-mix(in srgb, var(--h) 70%, transparent); }
+.ws-touch .ws-touch-disc.hint.hint-active { border-color: var(--h); color: #140d02; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--h) 45%, #fff), var(--h) 72%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 26px color-mix(in srgb, var(--h) 70%, transparent); animation: ws-touch-hint-glow 1.2s ease-in-out infinite; }
+.ws-touch .ws-touch-disc.hint.hint-active svg, .ws-touch .ws-touch-disc.hint.hint-active span { color: #140d02; font-weight: 700; }
+.ws-touch .ws-touch-disc.hint.down { filter: brightness(1.3); }
+@keyframes ws-touch-hint-pulse { 50% { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 30px color-mix(in srgb, var(--h) 80%, transparent), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4.5px var(--h), inset 0 0 18px color-mix(in srgb, var(--h) 45%, transparent); } }
+@keyframes ws-touch-hint-glow { 50% { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 40px color-mix(in srgb, var(--h) 95%, transparent); } }
 /* locked: the LOOK pad is the SWITCH pad (‹ › chevrons, a solid rim) and MOVE shows ORBIT arcs round the stick, the pushed side lit */
 .ws-touch-lookpad svg.sw { display: none; }
 .ws-touch.locked .ws-touch-lookpad svg:not(.sw) { display: none; }
