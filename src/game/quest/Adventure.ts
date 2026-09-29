@@ -30,6 +30,7 @@ import { IslandSfx } from '../../audio/IslandSfx';
 import { installSpine, type Spine } from './Spine';
 import { installFeats, type ProgressSink } from './Feats';
 import { installPlaces, type Places } from './Places';
+import { installGullGuide } from './gullGuide';
 import { installFinale, type Finale } from './Finale';
 import { installComplete, type Complete, type CompleteProgress } from './Complete';
 import { installEcology, type RespawnQueue } from './Ecology';
@@ -57,7 +58,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
   prompts: Interactable[];
   /** the HUD: toasts; the complete card (E132) resumes play through `onResume` (the pause menu's close) and leaves by `exitToMenu` */
-  hud: { toast: (text: string) => void; onResume?: (() => void) | undefined; exitToMenu?: () => void };
+  hud: { toast: (text: string) => void; onResume?: (() => void) | undefined; exitToMenu?: () => void; readonly entered?: boolean; readonly paused?: boolean };
   /** the game's Audio: the kit's sounds are IslandSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
   audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
@@ -69,7 +70,9 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
   progress?: ProgressSink & CompleteProgress;
   /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5), and the quest card (E51) */
-  fullMap?: { setPois: (source: () => MapPoi[]) => void; setQuest?: (source: () => MapQuest | null) => void };
+  fullMap?: { setPois: (source: () => MapPoi[], opts?: { tally?: boolean }) => void; setQuest?: (source: () => MapQuest | null) => void };
+  /** the island's gulls: three fly you toward the nearest unfound place when you wander or idle (E309 B, gullGuide.ts) */
+  gulls?: { guide: (player: THREE.Vector3, yaw: number, tx: number, tz: number) => boolean } | null;
   /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
   /** the rope bridge's walkable floor (RopeBridge.floorHeightAt) — the camera sways while you cross (A7) */
   bridgeFloor?: ((x: number, z: number) => number | undefined) | undefined;
@@ -214,7 +217,8 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
 
   const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
   adventure.places = places;
-  w.fullMap?.setPois(places.mapPois);
+  w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
+  if (w.gulls) installGullGuide({ game: w.game, player: w.player, hud: w.hud, gulls: w.gulls }, places, flags);
   adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
   adventure.finale = installFinale(adventure, w);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);

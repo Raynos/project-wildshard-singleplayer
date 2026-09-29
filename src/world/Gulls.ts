@@ -13,7 +13,9 @@
  * Behaviour: (a) perched gulls (posts, gunwale, rocks, sand) idle with head turns and the odd hop;
  * (b) wheeling gulls circle in 2–3 loose flocks on slow lissajous loops at 15–40 m, gliding with
  * flap bursts, banking into the turns; (c) a perched gull flushes with a flap burst when the player
- * comes within ~4 m, joins a flock and lands on a free perch 20–40 s later.
+ * comes within ~4 m, joins a flock and lands on a free perch 20–40 s later; (d) `guide(player, yaw, tx, tz)` (E309 pick B,
+ * src/game/quest/gullGuide.ts): three gulls borrowed from far away fly a loose V from behind you, over you at ~10 m (one
+ * call), on toward (tx, tz) and up, then drift back to their flocks.
  *
  * Cost: ≤ 40 instances × ~80 tris, one InstancedMesh; the wings, head and legs are animated in the
  * vertex shader from a per-instance vec4 (flap, head yaw, wing fold, leg tuck). No per-frame allocations.
@@ -56,7 +58,7 @@ type Vec3 = readonly [number, number, number];
 const SHOULDER_X = 0.06, SHOULDER_Y = 0.045, ELBOW_X = 0.36, NECK: Vec3 = [0, 0.05, 0.15], HIP: Vec3 = [0, -0.06, 0.0];
 
 // oxlint-disable-next-line oxc/no-const-enum -- inlined by rolldown; keeps the gull state machine branch-free
-const enum S { Perched = 0, Hop = 1, Takeoff = 2, Wheel = 3, Landing = 4 }
+const enum S { Perched = 0, Hop = 1, Takeoff = 2, Wheel = 3, Landing = 4, Guide = 5 }
 
 interface Flock { cx: number; cz: number; r: number; alt: number; w: number; p1: number; p2: number; p3: number; p4: number }
 
@@ -81,10 +83,15 @@ interface Gull {
   bx: number; by: number; bz: number;   // control
   tx: number; ty: number; tz: number;   // target (landing); takeoff targets the moving path
   yaw0: number;
+  /** guide: the leader's one call is still to come */
+  call: boolean;
 }
 
 /** the model is built at ~0.65 m wingspan; instances are scaled up so a gull reads against a post at a distance (the mockups' chunky birds) */
 const GULL_SCALE = 1.3, FOOT = 0.17 * GULL_SCALE;
+/** the guide (E309 B): m/s along the pass; a gull is borrowed only from this far from the player (it pops out of its flock
+ *  unseen); the V: wingmen this far behind the leader and to its sides (m) */
+const GUIDE_SPEED = 12, GUIDE_BORROW_M = 60, V_BACK = 3.5, V_SIDE = 3;
 const _p = new THREE.Vector3(), _q = new THREE.Vector3(), _m = new THREE.Matrix4(), _quat = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(GULL_SCALE, GULL_SCALE, GULL_SCALE);
 
 export class Gulls {
@@ -157,7 +164,7 @@ export class Gulls {
         t: 0, dur: 1, timer: rng.range(20, 40), flush: this.flushR * rng.range(0.8, 1.25),
         flapT: 0, burst: 0, glide: rng.range(1, 4),
         headFrom: 0, headTo: 0, headT: 1, headDur: 1,
-        ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, tx: 0, ty: 0, tz: 0, yaw0: 0,
+        ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, tx: 0, ty: 0, tz: 0, yaw0: 0, call: false,
       };
       const perch = order[i];
       if (i < perched && perch !== undefined) this.perchOn(g, perch);
@@ -476,6 +483,18 @@ export class Gulls {
           flying++;
           break;
         }
+        case S.Guide: {
+          g.t += dt;
+          const u = Math.min(1, g.t / g.dur);
+          this.bez(g, g.tx, g.ty, g.tz, u, _p);
+          this.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.5);
+          g.x = _p.x; g.y = _p.y; g.z = _p.z;
+          this.flapBurst(g, dt, true);
+          if (g.call && u > 0.4) { g.call = false; this.onCall?.(_q.set(g.x, g.y, g.z)); }
+          if (u >= 1) this.endGuide(g);
+          flying++;
+          break;
+        }
         case S.Landing: {
           g.t += dt;
           const u = Math.min(1, g.t / g.dur), e = u < 0.5 ? 2 * u * u : 1 - (2 * (1 - u) * (1 - u)) * 0.85 - 0.15 * (1 - u); // ease-in, then a steady glide down
@@ -507,6 +526,67 @@ export class Gulls {
       if (flying > 0 && g.state === S.Perched) { for (let j = 0; j < this.gulls.length; j++) { const h = this.gulls[(k + j) % this.gulls.length]; if (h !== undefined && h.state === S.Wheel) { g = h; break; } } }
       this.onCall?.(_q.set(g.x, g.y, g.z));
     }
+  }
+
+  /** E309 B: three gulls fly a loose V past the player (from behind, over at ~10 m, one call) toward (tx, tz), climbing, then
+   *  drift back to their flocks. Borrows wheeling gulls (else perched ones) at least GUIDE_BORROW_M away. false = none free. */
+  guide(player: THREE.Vector3, _yaw: number, tx: number, tz: number): boolean {
+    let dx = tx - player.x, dz = tz - player.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 1) return false;
+    dx /= dist; dz /= dist;
+    const rx = dz, rz = -dx;                                  // the pass's right-hand side
+    const gy = Math.max(player.y, heightAt(player.x, player.z));
+    // S behind you (along the line to the place), P over you and a little ahead, E out along the line, clear of the ground under it
+    const sx = player.x - dx * 30 + rx * 3, sz = player.z - dz * 30 + rz * 3, sy = Math.max(gy, heightAt(sx, sz)) + 14;
+    const px = player.x + dx * 6 + rx * 4, pz = player.z + dz * 6 + rz * 4, py = gy + 10;
+    const L = Math.min(120, Math.max(40, dist));
+    let ground = gy;
+    for (let k = 1; k <= 6; k++) { const f = (L * k) / 6; ground = Math.max(ground, heightAt(player.x + dx * f, player.z + dz * f)); }
+    const ex = player.x + dx * L, ez = player.z + dz * L, ey = ground + 20;
+    // the quadratic that passes through P at u = ½: control = 2P − (S + E) / 2
+    const cx = 2 * px - (sx + ex) / 2, cy = Math.max(py, 2 * py - (sy + ey) / 2), cz = 2 * pz - (sz + ez) / 2;
+    const dur = (Math.hypot(px - sx, py - sy, pz - sz) + Math.hypot(ex - px, ey - py, ez - pz)) / GUIDE_SPEED;
+    let free = 0;
+    for (const g of this.gulls) if ((g.state === S.Wheel || g.state === S.Perched) && Math.hypot(g.x - player.x, g.z - player.z) >= GUIDE_BORROW_M) free++;
+    if (free < 3) return false;
+    for (let k = 0; k < 3; k++) {
+      let best = -1, bestScore = -Infinity;
+      for (let i = 0; i < this.gulls.length; i++) {
+        const g = this.gulls[i];
+        if (g === undefined || (g.state !== S.Wheel && g.state !== S.Perched)) continue;
+        const d = Math.hypot(g.x - player.x, g.z - player.z);
+        if (d < GUIDE_BORROW_M) continue;
+        const score = d + (g.state === S.Wheel ? 1000 : 0);
+        if (score > bestScore) { bestScore = score; best = i; }
+      }
+      const g = this.gulls[best];
+      if (g === undefined) return false;
+      if (g.perch >= 0) this.occupied[g.perch] = 0;
+      g.perch = -1;
+      // the V: the leader at the apex, the wingmen back and out to either side, a touch lower
+      const back = k === 0 ? 0 : V_BACK, off = k === 0 ? 0 : k === 1 ? -V_SIDE : V_SIDE, oy = k === 0 ? 0 : -0.6;
+      const ox = -dx * back + rx * off, oz = -dz * back + rz * off;
+      g.ax = sx + ox; g.ay = sy + oy; g.az = sz + oz;
+      g.bx = cx + ox; g.by = cy + oy; g.bz = cz + oz;
+      g.tx = ex + ox; g.ty = ey + oy; g.tz = ez + oz;
+      g.x = g.ax; g.y = g.ay; g.z = g.az;
+      g.yaw = Math.atan2(dx, dz); g.pitch = 0; g.roll = 0; g.legs = 1; g.head = 0;
+      g.state = S.Guide; g.t = 0; g.dur = dur; g.call = k === 0;
+      g.burst = 3 + k; g.flapT = k * 1.3; g.glide = 0;
+    }
+    return true;
+  }
+
+  /** a guide gull's pass is over: on along its heading and up, then back into a flock's loop (the takeoff curve) */
+  private endGuide(g: Gull) {
+    const hx = Math.sin(g.yaw), hz = Math.cos(g.yaw);
+    g.ax = g.x; g.ay = g.y; g.az = g.z;
+    g.bx = g.x + hx * 60; g.by = g.y + 14; g.bz = g.z + hz * 60;
+    g.flock = this.flockAt(this.rng.int(0, 2)); g.phase = this.rng.range(0, 6.28);
+    this.wheelPos(g, this.time, _q);
+    g.state = S.Takeoff; g.t = 0; g.dur = Math.max(8, Math.hypot(_q.x - g.x, _q.z - g.z) / 10);
+    g.timer = this.rng.range(20, 40); g.call = false;
   }
 
   private writeInstance(i: number) {

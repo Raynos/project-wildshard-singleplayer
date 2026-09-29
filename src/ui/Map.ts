@@ -14,13 +14,15 @@
  *   fullMap.setZoom(2) / fullMap.zoom / fullMap.onZoom / fullMap.fit()
  *   fullMap.setPois(() => MapPoi[])        // a shard's own points of interest (Driftwood: its places with discovery + the
  *                                          // quest's markers, src/game/quest/Places.ts); unset = the cabins / pond as before
+ *   fullMap.setPois(src, { tally: true })  // + "PLACES n / N" (found / all places) in the frame's bottom-left corner (E309 A)
  *   fullMap.setQuest(() => MapQuest|null)  // the quest in full — title, objective, sub-steps — for the MAP tab's card (E51)
  *   fullMap.setZones(MapZone[])            // the shard's zone names under the pins (Pine Hollow, PH-C9)
  *   fullMap.setFeatures({ trees, roofs })  // the shard's real trees + extra roofs on the ground layer (Minimap.setFeatures)
  *
  * Labels (E130 C): a quest marker is labelled with its short name behind a small cyan ◆ (the glyph says "a shard / goal waits
  * here" instead of the word); a marker at a place of the same name puts its ◆ on that place's label (an undiscovered one then
- * shows the marker's name, not "?"). Every label is laid out against the others, the markers and your arrow: it tries below,
+ * shows the marker's name, not "?"). An undiscovered place is a dashed cyan ring with a "?" inside (E309 A: the dim "?" read
+ * as noise on the phone). Every label is laid out against the others, the markers and your arrow: it tries below,
  * above, right, left, then a line further, and takes the first spot that is free.
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
@@ -41,6 +43,7 @@ const TILE_PX = 256;          // a zoom tile's side, device px
 const TILE_CACHE = 64;        // tiles kept (256 KB each)
 const TILE_BUDGET_MS = 6;     // painting new tiles, per frame
 const CYAN = '#8fe3ff';
+const NO_DASH: number[] = [];
 /** metres: a quest marker this close to a place of its name tags that place's label instead of carrying its own */
 const MERGE_M = 30;
 const ctx2d = (c: HTMLCanvasElement): CanvasRenderingContext2D => { const ctx = c.getContext('2d'); if (!ctx) throw new Error('FullMap: no 2d context'); return ctx; };
@@ -99,7 +102,9 @@ export class FullMap {
   get isOpen(): boolean { return this.open; }
   /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open.
    *  (`declutter` is kept for its callers: every label is laid out apart now, E130 — NALATI-MERGE F11's elder included) */
-  setPois(source: () => MapPoi[], _opts: { declutter?: boolean } = {}): void { this.poiSource = source; }
+  setPois(source: () => MapPoi[], opts: { declutter?: boolean; tally?: boolean } = {}): void { this.poiSource = source; this.tally = opts.tally === true; }
+  private tally = false;
+  private dash: number[] = [3, 2.5];
   /** the shard's zone names (Pine Hollow: THE RIDGE, THE OLD-GROWTH, …), big faint caps under the pins up to 2.5× */
   setZones(zones: readonly MapZone[]): void { this.zones = zones; }
   private zones: readonly MapZone[] = [];
@@ -129,6 +134,7 @@ export class FullMap {
     const w = this.root.clientWidth || window.innerWidth, h = this.root.clientHeight || window.innerHeight;
     this.canvas.width = Math.round(w * this.dpr);
     this.canvas.height = Math.round(h * this.dpr);
+    this.dash = [3 * this.dpr, 2.5 * this.dpr];
   }
   /** screen px (device) per metre at the current zoom */
   private ppm() { return (Math.min(this.canvas.width, this.canvas.height) * 0.9 / CHUNK_SIZE) * this._zoom; }
@@ -196,7 +202,9 @@ export class FullMap {
       ...CABIN_SITES.map((c, i): Pin => ({ x: c.x, z: c.z, label: `CABIN ${i + 1}`, kind: 'place', color: '#8fe3ff' })),
       ...(hasPond() ? [{ x: POND.x, z: POND.z, label: 'THE POND', kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
     ];
-    this.drawPois(list, sx, sz, fs, { x: px, y: py, r: r * 2.2 });
+    const tally = this.tally ? this.layTally(list, ox, oy + side) : null;
+    this.drawPois(list, sx, sz, fs, { x: px, y: py, r: r * 2.2 }, tally);
+    if (tally) this.drawTally(tally);
 
     // you
     const deg = 180 - (yaw * 180) / Math.PI;
@@ -252,7 +260,7 @@ export class FullMap {
 
   /** the points of interest: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top);
    *  then every label, placed where it covers no other label, marker or your arrow (`you`) */
-  private drawPois(list: Pin[], sx: (x: number) => number, sz: (z: number) => number, fs: number, you: { x: number; y: number; r: number }): void {
+  private drawPois(list: Pin[], sx: (x: number) => number, sz: (z: number) => number, fs: number, you: { x: number; y: number; r: number }, avoid: Box | null): void {
     const ctx = this.ctx, d = this.dpr;
     // the shard's zone names (setZones — Pine Hollow's THE RIDGE, THE OLD-GROWTH, …): big faint caps under everything, up to 2.5×
     if (this._zoom <= 2.5 && this.zones.length > 0) {
@@ -264,9 +272,20 @@ export class FullMap {
     ctx.font = `${fs}px JetBrains Mono, Menlo, monospace`;
     ctx.textBaseline = 'top'; ctx.textAlign = 'left';
     const pins = list.map((p) => {
-      const r = p.kind === 'quest' ? Math.max(6 * d, fs * 0.55) : p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(3.5 * d, fs * 0.3);
+      const r = p.kind === 'quest' ? Math.max(6 * d, fs * 0.55) : p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(10 * d, fs * 0.85);
       return { p, x: sx(p.x), y: sz(p.z), r, text: p.kind === 'unknown' ? '?' : p.kind === 'quest' ? (p.short ?? p.label) : p.label, glyph: p.kind === 'quest', own: true };
     });
+    // two unfound rings that would overlap (the sea cave by the wreck, at 1×) are pushed apart along the line between them
+    for (let i = 0; i < pins.length; i++) for (let j = i + 1; j < pins.length; j++) {
+      const a = pins[i], b = pins[j];
+      if (a === undefined || b === undefined || a.p.kind !== 'unknown' || b.p.kind !== 'unknown') continue;
+      let dx = b.x - a.x, dy = b.y - a.y;
+      const dd = Math.hypot(dx, dy), want = a.r + b.r + 2 * d;
+      if (dd >= want) continue;
+      if (dd < 1e-3) { dx = 1; dy = 0; } else { dx /= dd; dy /= dd; }
+      const push = (want - dd) / 2;
+      a.x -= dx * push; a.y -= dy * push; b.x += dx * push; b.y += dy * push;
+    }
     // a quest marker at a place of its own name (LOOKOUT at THE LOOKOUT) puts its ◆ on that place's label, one marker a place
     for (const q of pins) {
       if (q.p.kind !== 'quest') continue;
@@ -279,11 +298,22 @@ export class FullMap {
       }
       if (best) { best.glyph = true; if (best.p.kind === 'unknown') best.text = q.text; q.own = false; }
     }
-    // markers: places + "?" under the quest diamonds
+    // markers: places (dots) + unfound places (a dashed cyan ring, "?" inside: E309 A) under the quest diamonds
     for (const m of pins) {
       if (m.p.kind === 'quest') continue;
-      ctx.fillStyle = m.p.kind === 'place' ? (m.p.color ?? '#e6f2f8') : 'rgba(196, 220, 232, 0.35)';
-      ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = (m.p.kind === 'place' ? 2 : 1.5) * d;
+      if (m.p.kind === 'unknown') {
+        ctx.fillStyle = 'rgba(8, 20, 30, 0.72)';
+        ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(6, 10, 18, 0.8)'; ctx.lineWidth = 3.5 * d; ctx.stroke();
+        ctx.setLineDash(this.dash); ctx.strokeStyle = CYAN; ctx.lineWidth = 1.6 * d; ctx.stroke(); ctx.setLineDash(NO_DASH);
+        ctx.save();
+        ctx.font = `700 ${Math.round(m.r * 1.25)}px JetBrains Mono, Menlo, monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = CYAN; ctx.fillText('?', m.x, m.y + m.r * 0.06);
+        ctx.restore();
+        continue;
+      }
+      ctx.fillStyle = m.p.color ?? '#e6f2f8';
+      ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 2 * d;
       ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     }
     const pulse = (performance.now() % 1600) / 1600;
@@ -297,9 +327,11 @@ export class FullMap {
     // labels: ◆-tagged first, then places, then "?"; each takes the first candidate spot that is free (else the least covered)
     const taken: Box[] = [{ x0: you.x - you.r, y0: you.y - you.r, x1: you.x + you.r, y1: you.y + you.r }];
     for (const m of pins) taken.push({ x0: m.x - m.r, y0: m.y - m.r, x1: m.x + m.r, y1: m.y + m.r });
+    if (avoid) taken.push(avoid);   // the PLACES tally (E309 A)
     const rank = (m: (typeof pins)[number]): number => (m.glyph ? 0 : m.p.kind === 'place' ? 1 : 2);
     const gw = fs * 0.62, gap = fs * 0.3, pad = 2 * d;
-    for (const m of pins.filter((q) => q.own).sort((a, b) => rank(a) - rank(b))) {
+    // (an unfound place's "?" is inside its ring: it carries no label unless a quest marker named it)
+    for (const m of pins.filter((q) => q.own && (q.glyph || q.p.kind !== 'unknown')).sort((a, b) => rank(a) - rank(b))) {
       const w = ctx.measureText(m.text).width + (m.glyph ? gw + gap : 0), h = fs, o = m.r + 3 * d;
       const spots: [number, number][] = [
         [m.x - w / 2, m.y + o], [m.x - w / 2, m.y - o - h], [m.x + o + d, m.y - h / 2], [m.x - o - d - w, m.y - h / 2],
@@ -329,7 +361,35 @@ export class FullMap {
     }
     ctx.textAlign = 'center';
   }
+
+  /** E309 A: "PLACES n / N" (found / all places) on a navy glass plate in the bottom-left corner, fixed while you pan: inside
+   *  the chunk's corner while it is on screen (1×), else the frame's. Laid out first, so the place labels keep clear of it */
+  private layTally(list: readonly Pin[], chunkLeft: number, chunkBottom: number): Tally | null {
+    let found = 0, all = 0;
+    for (const p of list) { if (p.kind === 'place') { found++; all++; } else if (p.kind === 'unknown') all++; }
+    if (all === 0) return null;
+    const ctx = this.ctx, d = this.dpr, fs = 11 * d, sp = fs * 0.2, text = `PLACES ${found} / ${all}`;
+    ctx.font = `600 ${fs}px JetBrains Mono, Menlo, monospace`;
+    let w = 0;
+    for (const ch of text) w += ctx.measureText(ch).width + sp;
+    w -= sp;
+    const padX = 8 * d, h = fs + 10 * d, x0 = Math.max(10 * d, chunkLeft + 8 * d), y0 = Math.min(this.canvas.height - 10 * d, chunkBottom - 8 * d) - h;
+    return { x0, y0, x1: x0 + w + padX * 2, y1: y0 + h, text, fs, sp, padX };
+  }
+
+  private drawTally(t: Tally): void {
+    const ctx = this.ctx, d = this.dpr, h = t.y1 - t.y0;
+    ctx.save();
+    ctx.font = `600 ${t.fs}px JetBrains Mono, Menlo, monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(13, 27, 38, 0.8)'; ctx.fillRect(t.x0, t.y0, t.x1 - t.x0, h);
+    ctx.strokeStyle = 'rgba(143, 227, 255, 0.55)'; ctx.lineWidth = d; ctx.strokeRect(t.x0 + d / 2, t.y0 + d / 2, t.x1 - t.x0 - d, h - d);
+    ctx.fillStyle = CYAN;
+    let x = t.x0 + t.padX;
+    for (const ch of t.text) { ctx.fillText(ch, x, t.y0 + h / 2); x += ctx.measureText(ch).width + t.sp; }
+    ctx.restore();
+  }
 }
+
 
 /** a pin as the map draws it: a MapPoi, with a dot colour for the built-in cabins / pond */
 type Pin = MapPoi & { color?: string };
@@ -338,3 +398,5 @@ function diamond(ctx: CanvasRenderingContext2D, x: number, y: number, r: number)
 }
 
 interface Box { x0: number; y0: number; x1: number; y1: number }
+/** the PLACES tally's plate (a Box) and how its letter-spaced text is set */
+interface Tally extends Box { text: string; fs: number; sp: number; padX: number }

@@ -1,7 +1,7 @@
 /**
  * Driftwood's named places and their discovery (A5): walk within a place's radius and it is DISCOVERED — a flag
  * (`seen:<id>`, persisted with the rest of the adventure), a "Discovered · The Lookout" toast, and its name on the full
- * map (src/ui/Map.ts `setPois`). The discovery itself is the shared quest core's (core.ts `placesWithDiscovery`). Undiscovered places show as a dim "?" so the map still hints where to go; the quest's
+ * map (src/ui/Map.ts `setPois`). The discovery itself is the shared quest core's (core.ts `placesWithDiscovery`). Undiscovered places show as a dashed ring with a "?" (E309 A) so the map still hints where to go, and three gulls fly you toward the nearest one when you wander or idle (gullGuide.ts, E309 B); the quest's
  * live markers are drawn on top (pulsing diamonds).
  */
 import type { Place } from '../../world/interact/types';
