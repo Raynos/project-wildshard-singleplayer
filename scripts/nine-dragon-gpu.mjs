@@ -2,7 +2,12 @@
 // nine-dragon-gpu.mjs — E283, where Nine Dragon Stack's GPU milliseconds go on the phone frame (the method of
 // scripts/pine-hollow-gpu.mjs, read its header for why it is built this way).
 //
-//   node scripts/nine-dragon-gpu.mjs --url=http://localhost:4173 [--poses=A,B,C,D] [--rounds=10] [--subtract=all|none|a,b]
+//   node scripts/nine-dragon-gpu.mjs --url=http://localhost:4173 [--poses=A,B,C,D|none] [--domes=all|A1,B2] [--rounds=10]
+//     [--subtract=all|none|a,b] [--gate=1.5]
+//
+// THE GATE (E283, Jake: the pre-pass baseline was no stable 30 fps either): every pose at or under 1.5 ms on this ruler.
+// Jake's 5cb1ecd reading (gpu~ 18.7 ms p50 where this ruler read 3.15 at the spawn) puts the phone at ~6× the M5 when
+// cool, and it throttles ~2× within minutes; with ~8 ms of the phone's CPU in the 33 ms frame, the GPU gets ~22 ms hot.
 //
 // Jake's phone frame: an iPhone 17 Pro home-screen PWA, 402×812 CSS px, tier phone → the game's DPR 2 (804×1624).
 // Each pose is one of the four mockup cameras (src/chunks/nine-dragon-stack/mockupCameras.ts), posed through a late hook
@@ -30,7 +35,11 @@ const flag = (name, dflt) => { const a = argv.find((x) => x.startsWith(`--${name
 const base = flag('url', 'http://localhost:4173');
 const ROUNDS = Number(flag('rounds', '10'));
 const SUB = flag('subtract', 'all');
-const poseKeys = flag('poses', 'A,B,C,D').split(',');
+const poseKeys = flag('poses', 'A,B,C,D').split(',').filter((k) => k !== '' && k !== 'none');
+const domePick = flag('domes', 'none');
+/** the phone budget (E283): GPU ms per frame on this ruler that holds 30 fps on Jake's HOT iPhone 17 Pro (~6× the M5 cool, ×2
+ *  throttled: ~22 ms of GPU inside the 33 ms frame with the phone's ~8 ms of CPU) */
+const GATE = Number(flag('gate', '1.5'));
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
@@ -141,10 +150,21 @@ try {
   });
   const size = await page.evaluate(() => { const c = window.__world.game.renderer.domElement; return `${c.width}×${c.height}`; });
   console.info(`buffer ${size} · ${base}`);
-  for (const k of poseKeys) {
+  const poses = poseKeys.map((k) => {
     const c = MOCKUP_CAMERAS[k];
     const yaw = (c.yaw * Math.PI) / 180, pitch = (c.pitch * Math.PI) / 180;
-    const look = [c.eye[0] + Math.sin(yaw) * Math.cos(pitch) * 20, c.eye[1] + Math.sin(pitch) * 20, c.eye[2] - Math.cos(yaw) * Math.cos(pitch) * 20];
+    return { id: `mockup ${k}`, eye: c.eye, look: [c.eye[0] + Math.sin(yaw) * Math.cos(pitch) * 20, c.eye[1] + Math.sin(pitch) * 20, c.eye[2] - Math.cos(yaw) * Math.cos(pitch) * 20] };
+  });
+  // --domes: the eight domes' nine cameras each (art/nine-dragon-stack/round-15-eight-domes/<dome>/cameras.json), on the
+  // phone frame at the game's own portrait FOV
+  const DOMES = ['A1-spawn-stand', 'A2-gate-look', 'B1-well-edge-stand', 'B2-well-edge-look', 'C1-stair-stand', 'C2-stair-look', 'D1-well-down-stand', 'D2-well-down-look'];
+  for (const d of DOMES.filter((x) => domePick === 'all' || domePick.split(',').includes(x.slice(0, 2)))) {
+    const cams = JSON.parse(readFileSync(join(ROOT, 'art/nine-dragon-stack/round-15-eight-domes', d, 'cameras.json'), 'utf8'));
+    for (const v of cams.views) poses.push({ id: `${d.slice(0, 2)}·${v.n}`, eye: v.eye, look: v.look });
+  }
+  const summary = [];
+  for (const c of poses) {
+    const look = c.look;
     await page.evaluate(() => { const g = window.__world.game; if (window.__ndGate !== undefined) g.frameGate = window.__ndGate; });
     await page.evaluate((v) => {
       const w = window.__world;
@@ -157,7 +177,8 @@ try {
     await page.evaluate(installProbe);
     const b = await page.evaluate(runBase, ROUNDS * 2);
     const f = await page.evaluate(() => { const g = window.__world.game, rd = g.renderer; rd.info.reset(); g.composer.render(1 / 30); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; });
-    console.info(`\nmockup ${k}: GPU ${b.p20.toFixed(2)} ms/frame (p50 ${b.p50.toFixed(2)}) · cpu submit ${b.cpu.toFixed(2)} ms · ${f.calls} draws · ${(f.tris / 1e6).toFixed(2)} M tris`);
+    summary.push({ id: c.id, ms: b.p20, calls: f.calls, tris: f.tris });
+    console.info(`\n${c.id}: GPU ${b.p20.toFixed(2)} ms/frame (p50 ${b.p50.toFixed(2)}) · cpu submit ${b.cpu.toFixed(2)} ms · ${f.calls} draws · ${(f.tris / 1e6).toFixed(2)} M tris${b.p20 > GATE ? `  OVER the ${GATE} ms gate` : ''}`);
     if (SUB === 'none') continue;
     const names = await page.evaluate(() => [...window.__gpu.toggles.keys()]);
     const want = SUB === 'all' ? names : names.filter((n) => SUB.split(',').some((s) => n.includes(s)));
@@ -169,6 +190,9 @@ try {
     rows.sort((x, y) => y.delta - x.delta);
     for (const r of rows) console.info(`  ${r.delta >= 0 ? ' ' : ''}${r.delta.toFixed(2).padStart(6)} ms  ${((100 * r.delta) / b.p20).toFixed(0).padStart(4)} %  ${r.n}`);
   }
+  summary.sort((x, y) => y.ms - x.ms);
+  const over = summary.filter((x) => x.ms > GATE);
+  console.info(`\n${over.length} of ${summary.length} poses over the ${GATE} ms gate; worst: ${summary.slice(0, 8).map((x) => `${x.id} ${x.ms.toFixed(2)}`).join(' · ')}`);
 } finally {
   await browser.close();
   release();
