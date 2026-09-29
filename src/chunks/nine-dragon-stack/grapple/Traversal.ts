@@ -6,6 +6,9 @@
  * screen; the one nearest the centre wears the "◇ DRAGON HOOK" chip and turns the touch LOCK disc into GRAPPLE (gold,
  * pulsing), a locked one makes it LOCKED and JUMP reads ZIP (ChunkDef `touchHint`). The reach test is a round robin, a
  * couple of hooks a frame, so the phone never raycasts the whole registry in one frame (E283).
+ *
+ * E307: the hooks and the Well's rules are a course (course.ts). The fragment's is `fragmentCourse` below; a playground
+ * hands in its own while it is open (setGrappleCourse) and gets the same verbs, markers, rope and FX on its own hooks.
  */
 import {
   AdditiveBlending, Color, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3,
@@ -17,6 +20,7 @@ import { nineDragonWorld, setGrappleGuardOpen } from '../index';
 import { RIM } from '../world/well-plan';
 import { Filament, Rope } from './line';
 import { Flash, Sparks } from './fx';
+import { onGrappleCourse, playgroundCourse, type GrappleCourse } from './course';
 
 const MIN_RANGE = 2.5;
 const MAX_RANGE = 38;
@@ -48,15 +52,20 @@ const HINT_ZIP: TouchDiscHint = { label: 'Zip', icon: ZIP_ICON, tone: 'active', 
 const HINT_ARMED: TouchDiscHint = { label: 'Armed', icon: CLAW_ICON, tone: 'ready', accent: GOLD };
 const HINT_FIRE: TouchDiscHint = { label: 'Fire', icon: ZIP_ICON, tone: 'ready', accent: GOLD };
 
-interface Target { hook: Vector3; landing: Vector3; approach: Vector3; crossesWell: boolean }
+interface Target { hook: Vector3; landing: Vector3; approach: Vector3; lifts: boolean }
 
 const UP = { x: 0, y: 1, z: 0 };
 const vDir = new Vector3(), vPast = new Vector3(), vToward = new Vector3(), vSide = new Vector3(), vProbe = new Vector3();
 
-/** A hook beyond the Well rail is visible to the claw if the rail is the only obstruction. */
-function hookVisible(ctx: ShardTraversalContext, eye: Vector3, hook: Vector3): boolean {
+/** The claw sees a hook: a clear line of sight, or past what only the course knows (the fragment's Well rail). */
+function hookVisible(ctx: ShardTraversalContext, course: GrappleCourse, eye: Vector3, hook: Vector3): boolean {
+  if (lineOfSight(ctx.physics, eye, hook, 1.1, ctx.player.motor.collider)) return true;
+  return course.seePast?.(ctx, eye, hook) === true;
+}
+
+/** A hook beyond the Well rail is visible to the claw if the rail is the only obstruction (the line of sight is blocked). */
+function seePastWellRail(ctx: ShardTraversalContext, eye: Vector3, hook: Vector3): boolean {
   const body = ctx.player.motor.collider;
-  if (lineOfSight(ctx.physics, eye, hook, 1.1, body)) return true;
   const hit = castSegment(ctx.physics, eye, hook, ['WORLD'], body);
   if (hit === null || Math.abs(hit.point.z - RIM.z0) > 0.45 || hit.point.x < WELL.x0 || hit.point.x > WELL.x1) return false;
   const id: unknown = typeof hit.owner === 'object' && hit.owner !== null ? Reflect.get(hit.owner, 'id') : null;
@@ -64,6 +73,27 @@ function hookVisible(ctx: ShardTraversalContext, eye: Vector3, hook: Vector3): b
   vDir.subVectors(hook, eye).normalize();
   vPast.set(hit.point.x, hit.point.y, hit.point.z).addScaledVector(vDir, 1.1);
   return lineOfSight(ctx.physics, vPast, hook, 1.1, body);
+}
+
+/**
+ * The fragment's own course: its dragon hooks (read once, at install), the Well rail a hook may be seen past, and the
+ * crossing north over the Well from the south rim — it lifts over the rim's stone parapet first, with the safety cap open.
+ */
+function fragmentCourse(): GrappleCourse {
+  return {
+    name: 'Nine Dragon Stack',
+    hooks: nineDragonWorld()?.ctx.hooks ?? [],
+    seePast: seePastWellRail,
+    lifts: (p, landing) => p.z > RIM.z0 && landing.z < RIM.z0 && p.x >= WELL.x0 && p.x <= WELL.x1 && p.y >= Y0 - 1,
+    // lift high enough that the straight pull to the approach point clears the rim's stone parapet (its top + a
+    // margin, measured where the capsule has passed the stone), never less than the old 3.5 m, under the cap's top
+    liftTo: (p, a) => {
+      const past = RIM.z0 - 0.7;
+      const t = Math.min(0.9, Math.max(0, (p.z - past) / Math.max(0.01, p.z - a.z)));
+      return Math.min(Y0 + 11, Math.max(p.y + 3.5, (RIM_WALL + 0.35 - a.y * t) / (1 - t)));
+    },
+    guard: setGrappleGuardOpen,
+  };
 }
 
 /** the capsule's footprint (Player.ts RADIUS 0.38 and a hair): four probes round the landing */
@@ -124,33 +154,29 @@ function approachFor(ctx: ShardTraversalContext, hook: Vector3, landing: Vector3
   out.y += clear;
 }
 
-function targetFor(ctx: ShardTraversalContext, hook: Vector3, landing: Vector3, side: Side): Target {
-  const p = ctx.player.position;
+function targetFor(ctx: ShardTraversalContext, course: GrappleCourse, hook: Vector3, landing: Vector3, side: Side): Target {
   const approach = landing.clone();
   if (side === PAST) approachFor(ctx, hook, landing, approach);
-  return {
-    hook, landing: landing.clone(), approach,
-    crossesWell: p.z > RIM.z0 && landing.z < RIM.z0 && p.x >= WELL.x0 && p.x <= WELL.x1 && p.y >= Y0 - 1,
-  };
+  return { hook, landing: landing.clone(), approach, lifts: course.lifts?.(ctx.player.position, landing) === true };
 }
 
 /** the full test of every hook, for the LOCK press when the round robin has no candidate yet (a one-off, not per frame) */
-function nearest(ctx: ShardTraversalContext, hooks: readonly Vector3[]): Target | null {
+function nearest(ctx: ShardTraversalContext, course: GrappleCourse): Target | null {
   const camera = ctx.game.camera;
   camera.updateMatrixWorld(true);
   const eye = camera.position;
   const landing = new Vector3(), p = new Vector3();
   let chosen: Target | null = null, score = Infinity;
-  for (const hook of hooks) {
+  for (const hook of course.hooks) {
     const d = eye.distanceTo(hook);
     if (d < MIN_RANGE || d > MAX_RANGE) continue;
     p.copy(hook).project(camera);
     if (p.z < -1 || p.z > 1 || Math.abs(p.x) > WIN_X || Math.abs(p.y) > WIN_Y) continue;
     const s = p.x * p.x + p.y * p.y * 0.55 + d * 0.0008;
-    if (s >= score || !hookVisible(ctx, eye, hook)) continue;
+    if (s >= score || !hookVisible(ctx, course, eye, hook)) continue;
     const side = landingFor(ctx, ctx.player.position, hook, landing);
     if (side === NONE) continue;
-    chosen = targetFor(ctx, hook, landing, side);
+    chosen = targetFor(ctx, course, hook, landing, side);
     score = s;
   }
   return chosen;
@@ -224,7 +250,9 @@ class Pin {
 }
 
 export function installFeiZhua(ctx: ShardTraversalContext): void {
-  const hooks = nineDragonWorld()?.ctx.hooks ?? [];
+  const fragment = fragmentCourse();
+  let course = playgroundCourse() ?? fragment;
+  let hooks = course.hooks;
   const tracer = makeTracer(ctx);
   const touchUi = document.getElementById('hud')?.classList.contains('touch') === true;
   const hud = document.getElementById('hud');
@@ -247,10 +275,10 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
   }
 
   // ── the reach cache: per hook, its screen spot this frame (cheap), and its sight + landing from the round robin ──
-  const n = hooks.length;
-  const ndcX = new Float32Array(n), ndcY = new Float32Array(n), dist = new Float32Array(n);
-  const inView = new Uint8Array(n), reach = new Uint8Array(n), hasLanding = new Uint8Array(n);
-  const landings = hooks.map(() => new Vector3()), landedFrom = hooks.map(() => new Vector3(Infinity, 0, 0));
+  let n = hooks.length;
+  let ndcX = new Float32Array(n), ndcY = new Float32Array(n), dist = new Float32Array(n);
+  let inView = new Uint8Array(n), reach = new Uint8Array(n), hasLanding = new Uint8Array(n);
+  let landings = hooks.map(() => new Vector3()), landedFrom = hooks.map(() => new Vector3(Infinity, 0, 0));
   let cursor = 0;
   let candidate = -1;
   const ndc = new Vector3();
@@ -297,9 +325,20 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     phase = 'idle'; target = null; armedMiss = false; clock = blocked = 0;
     tracer.hide(); hideCues();
     lockHalo.visible = muzzleFlash.mesh.visible = biteFlash.mesh.visible = dockFlash.mesh.visible = sparks.mesh.visible = false;
-    setGrappleGuardOpen(false);
+    course.guard?.(false);
     ctx.arms?.playLeft?.('idle'); ctx.arms?.setClawVisible?.(true);
   };
+  // E307: a playground opens / closes — let go of anything in flight on the old course, then its hooks and a fresh cache
+  onGrappleCourse(() => {
+    const next = playgroundCourse() ?? fragment;
+    if (next === course) return;
+    if (phase !== 'idle' || target !== null || armedMiss) release();
+    course = next; hooks = next.hooks; n = hooks.length;
+    ndcX = new Float32Array(n); ndcY = new Float32Array(n); dist = new Float32Array(n);
+    inView = new Uint8Array(n); reach = new Uint8Array(n); hasLanding = new Uint8Array(n);
+    landings = hooks.map(() => new Vector3()); landedFrom = hooks.map(() => new Vector3(Infinity, 0, 0));
+    cursor = 0; candidate = -1;
+  });
   /** the touch discs follow the verb: LOCK / GRAPPLE / LOCKED (+ ZIP on JUMP) / ARMED (+ FIRE) */
   const hint = (lock: TouchDiscHint | null): void => {
     if (lock === hintShown) return;
@@ -311,23 +350,24 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
   const pickCandidate = (): Target | null => {
     if (candidate < 0) return null;
     const hook = hooks[candidate];
-    if (hook === undefined || !hookVisible(ctx, ctx.game.camera.position, hook)) return null;
+    if (hook === undefined || !hookVisible(ctx, course, ctx.game.camera.position, hook)) return null;
     const landing = new Vector3();
     const side = landingFor(ctx, ctx.player.position, hook, landing);
-    return side === NONE ? null : targetFor(ctx, hook, landing, side);
+    return side === NONE ? null : targetFor(ctx, course, hook, landing, side);
   };
 
   // E298: the practice room hangs 900 m over the city: no hook is in it, so LOCK there is the plain lock-on (the nearest
-  // hook below would otherwise take the tap, and a zip would leave the room)
+  // hook below would otherwise take the tap, and a zip would leave the room). A playground's room is a practice room too,
+  // but it brings its own course (E307): the claw works there
   let inPractice = false;
   document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) inPractice = e.detail === true; });
   const priorToggle = ctx.lock.onTryToggle;
   ctx.lock.onTryToggle = () => {
-    if (!ctx.enabled() || inPractice) return priorToggle?.() ?? false;
+    if (!ctx.enabled() || (inPractice && course === fragment)) return priorToggle?.() ?? false;
     // Once a crossing starts the safety guard must stay open until a safe landing or bailout.
     if (phase !== 'idle' && phase !== 'miss' && phase !== 'reel' && phase !== 'dock') return true;
     if (target !== null || armedMiss) { release(); return true; }
-    const pick = pickCandidate() ?? nearest(ctx, hooks);
+    const pick = pickCandidate() ?? nearest(ctx, course);
     if (pick === null) {
       if (priorToggle?.() === true) return true;
       armedMiss = true;
@@ -353,14 +393,9 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
       ctx.game.camera.getWorldDirection(want);
       missEnd.copy(ctx.game.camera.position).addScaledVector(want, 19);
       missEnd.y -= 1.2;
-    } else if (target.crossesWell) {
-      setGrappleGuardOpen(true);
-      // lift high enough that the straight pull to the approach point clears the rim's stone parapet (its top + a
-      // margin, measured where the capsule has passed the stone), never less than the old 3.5 m, under the cap's top
-      const p = ctx.player.position, a = target.approach;
-      const past = RIM.z0 - 0.7;
-      const t = Math.min(0.9, Math.max(0, (p.z - past) / Math.max(0.01, p.z - a.z)));
-      liftY = Math.min(Y0 + 11, Math.max(p.y + 3.5, (RIM_WALL + 0.35 - a.y * t) / (1 - t)));
+    } else if (target.lifts) {
+      course.guard?.(true);
+      liftY = course.liftTo?.(ctx.player.position, target.approach) ?? ctx.player.position.y + 3.5;
     }
     tracer.reset(muzzle);
     ctx.arms?.playLeft?.('grapple_fire');
@@ -389,7 +424,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     if (target === null) { release(); return false; }
     if (phase === 'bite') {
       p.velocity.set(0, 0, 0);
-      if (clock >= BITE_TIME) { phase = target.crossesWell ? 'lift' : 'zip'; clock = 0; p.onGround = false; }
+      if (clock >= BITE_TIME) { phase = target.lifts ? 'lift' : 'zip'; clock = 0; p.onGround = false; }
       return true;
     }
     if (phase === 'lift') {
@@ -471,7 +506,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
       const landing = landings[i], from = landedFrom[i];
       if (hook === undefined || landing === undefined || from === undefined || inView[i] === 0) continue;
       done++;
-      if (!hookVisible(ctx, eye, hook)) { reach[i] = 0; continue; }
+      if (!hookVisible(ctx, course, eye, hook)) { reach[i] = 0; continue; }
       if (landed === 0 && from.distanceToSquared(ctx.player.position) > LANDING_STALE * LANDING_STALE) {
         landed++;
         hasLanding[i] = landingFor(ctx, ctx.player.position, hook, landing) === NONE ? 0 : 1;
