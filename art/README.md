@@ -408,3 +408,12 @@ pickup toast, D all three. Recommended: A, A, A. The folder's README lists every
 shards' Model Explorer catalogs today (54 cards). Middle: four real models (Hut, Coconut palm, Scots pine, Guardian
 lion). Bottom: four whole places on a turntable, the "blur" (Kurgan field, Snow lotus, Spring camp, Wreck cove). The
 audit is `docs/audits/models-and-model-explorer.md`; the draft plan `docs/plans/MODEL-ARCHITECTURE.md`.
+
+### Loot loop, the in-world moments (`art/loot/round-1-loop/`, 2026-09-29, E314)
+
+Four boards for DRIFTWOOD-LOOT L1–L4, codex edits of live iPhone 16 Pro portrait captures. `board-1-coins.jpg`: how coins
+come out of a kill (A burst + magnet with a "coin 23" HUD chip, B on the ground, C a number only, D a pouch for big kills).
+`board-2-shop-world.jpg`: Wendell's shop in the world (A a counter, B the hut wall, C a beach stall, D today).
+`board-3-charm.jpg`: the sea glass charm (A beads on the sword hilt, B a HUD pendant, C a door wind chime, plus A's night
+glow at 15 / 15). `board-4-trophies.jpg`: where trophies go (A plaques, B a tagged shelf, C the hat worn). Recommended:
+A, A, A, A. The folder's README lists every frame.
