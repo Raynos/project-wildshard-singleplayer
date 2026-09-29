@@ -209,3 +209,36 @@ Nothing was reverted. Walk test: 19 legs, 0 stuck, 0 out. No colliders changed i
 | mockup A | 126 draws / 1.51 M | 126 draws / 1.51 M |
 | mockup C | — | 107 draws / 0.89 M |
 | worst A1 / A2 pose | A2·9 106 draws / 1.28 M | A2·9 106 draws / 1.28 M; A1·2 1.32 M |
+
+## Round 2, pass 7 (the coordinator's list: the market, the umbrellas, the balustrade)
+
+Sheets: `pass-7/A1-spawn-stand-sheet.jpg`, `pass-7/A2-gate-look-sheet.jpg`, `pass-7/balustrade-tables-umbrellas.jpg`
+(A1·5's target balustrade, the engine's carved panels, a full parasol table, the market aisle's umbrellas).
+
+What changed:
+
+- **Carved balustrade panels.** Each panel face is one carving drawn instanced on every panel, both faces: a raised
+  frame, a pair of big ruyi scrolls curling in from the ends, a lotus medallion, and small scrolls toward the middle.
+  There are 56 faces, one geometry and one draw. The per-panel dragon reliefs in the square's kit are gone. The panel
+  wall is 24 cm thick under a 34 cm rail, as in the targets' heavy balustrade. It still sits inside the colliders'
+  span (x −0.1 to 0.5), so no collider changed.
+- **The umbrella mix** (`crowd.ts`). The crowd is built when its meshes are first read. The black-umbrella walker's
+  figures are then dealt out by a hash of where they stand: a quarter keep black, a quarter go dark blue, and the rest
+  join the oxblood and paper variants that `build.ts` already adds. The result is about a quarter each of black, blue,
+  oxblood and paper, with no new geometry.
+- **Every table full.** The mahjong tables' empty seats are filled, and each parasol table seats four. The parasol set's
+  two empty stools are gone, since the sitters bring their own. The 15 new sitters come last, a multiple of three, so
+  no other lane's sitter changes coat.
+- **The booths as lit boxes.** Each has a warm ceiling under its roof and a brighter back wall. Five glazed roast ducks
+  and strings of lap cheong hang from the front beam. There are four lanterns along the eave (was two), a column of
+  steam, and a second emitter throwing a warm pool onto the flagstones in front, which the render lane turns into a
+  tight pool.
+
+Nothing was reverted.
+
+| | pass 6 | pass 7 (69722f30 + this lane) |
+|---|---|---|
+| lane geometry | 29.08 MB | 28.39 MB (−0.69) |
+| textures | +0 | +0 |
+| mockup A | 126 draws / 1.51 M | 127 draws / 1.55 M |
+| worst A1 / A2 pose | A2·9 106 draws / 1.28 M | A2·9 107 draws / 1.33 M; A1·2 1.37 M |

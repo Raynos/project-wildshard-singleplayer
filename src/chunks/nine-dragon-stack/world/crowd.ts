@@ -84,27 +84,33 @@ export function clusterLod(src: BufferGeometry, maxTris: number): BufferGeometry
 }
 
 /**
- * E281, umbrella variety: the targets' crowd carries dark blue umbrellas beside the black, oxblood and paper ones. A
- * walker added with a dark, neutral umbrella (the dark-coat ramp's) hands a share of its figures — picked by a hash of
- * where they stand, so the pick is stable — to a copy whose umbrella is tinted `BLUE_UMBRELLA`: one more geometry and
- * two more meshes (near / far) for the whole crowd, once per Crowd, never per figure.
+ * E281, umbrella variety: the targets' crowd is a mix of black, dark blue, oxblood and paper umbrellas, about a
+ * quarter each; the variants handed in are mostly the dark-coat walker's black one. When the crowd is built, the
+ * dark-umbrella walker's figures are dealt out by a hash of where they stand (so the deal is stable): a quarter keep
+ * black, a quarter go to a copy whose umbrella is `BLUE_UMBRELLA` (one more geometry and two meshes, once per crowd),
+ * and the rest join the variants already added with an oxblood umbrella and with a paper one (no geometry at all).
  */
 export const BLUE_UMBRELLA = 0x34507e;
-const BLUE_SHARE = 0.35;
+const SHARE = { blue: 0.25, oxblood: 0.5, paper: 0.72 } as const;
 
-/** mean linear luminance and chroma of the umbrella's vertex colours (above `above` m), or null without an umbrella */
-function umbrellaTone(g: BufferGeometry, above = 1.8): { lum: number; chroma: number } | null {
+interface Tone { lum: number; chroma: number; r: number; g: number; b: number }
+/** the umbrella's mean linear colour, luminance and chroma (vertices above `above` m), or null without an umbrella */
+function umbrellaTone(g: BufferGeometry, above = 1.8): Tone | null {
   const pos = g.getAttribute('position'), col = g.getAttribute('color');
-  let n = 0, lum = 0, chroma = 0;
+  let n = 0, lum = 0, chroma = 0, sr = 0, sg = 0, sb = 0;
   for (let i = 0; i < col.count; i++) {
     if (pos.getY(i) <= above) continue;
     const r = col.getX(i), gg = col.getY(i), b = col.getZ(i);
     lum += 0.2126 * r + 0.7152 * gg + 0.0722 * b;
     chroma += Math.max(r, gg, b) - Math.min(r, gg, b);
+    sr += r; sg += gg; sb += b;
     n++;
   }
-  return n === 0 ? null : { lum: lum / n, chroma: chroma / n };
+  return n === 0 ? null : { lum: lum / n, chroma: chroma / n, r: sr / n, g: sg / n, b: sb / n };
 }
+const isBlack = (t: Tone | null): boolean => t !== null && t.lum < 0.06 && t.chroma < 0.03;
+const isOxblood = (t: Tone | null): boolean => t !== null && t.chroma > 0.05 && t.g < t.r * 0.2 && t.b < t.r * 0.2;
+const isPaper = (t: Tone | null): boolean => t !== null && t.chroma > 0.05 && t.g > t.r * 0.25 && t.g < t.r * 0.75 && t.b < t.r * 0.3;
 
 /** a stable 0..1 hash of a figure's standing point */
 const spot = (m: Matrix4): number => {
@@ -121,31 +127,54 @@ export const LOD_TRIS = 320;
 interface Variant { hi: InstancedMesh; lo: InstancedMesh; mats: Matrix4[]; at: Vector3[] }
 
 export class Crowd {
-  readonly meshes: InstancedMesh[] = [];
+  private readonly built: InstancedMesh[] = [];
   private readonly variants: Variant[] = [];
+  /** the variants handed in, built into meshes on first use (the umbrella deal needs all of them) */
+  private pending: { geo: BufferGeometry; mats: Matrix4[] }[] | null = [];
   private readonly frustum = new Frustum();
   private readonly pv = new Matrix4();
   private readonly last = new Matrix4();
   private readonly sphere = new Sphere(new Vector3(), 1.3);
   private readonly eye = new Vector3();
   private dirty = true;
-  /** the blue-umbrella split is made once per crowd (it costs a geometry and two meshes) */
-  private split = false;
 
   constructor(private readonly mat: Material) {}
+
+  /** the crowd's meshes (reading them builds the crowd: add every variant first) */
+  get meshes(): readonly InstancedMesh[] {
+    this.build();
+    return this.built;
+  }
 
   /** one variant: its full geometry and where its figures stand (their base points are the matrices' translations) */
   add(geo: BufferGeometry, mats: readonly Matrix4[]): void {
     if (mats.length === 0) return;
-    const tone = this.split ? null : umbrellaTone(geo);
-    if (tone !== null && tone.lum < 0.06 && tone.chroma < 0.03) {
-      this.split = true;
-      const blue = mats.filter((m) => spot(m) < BLUE_SHARE), rest = mats.filter((m) => spot(m) >= BLUE_SHARE);
-      this.variant(geo, rest);
-      this.variant(tintUmbrella(geo, BLUE_UMBRELLA), blue);
-      return;
+    if (this.pending === null) throw new Error('Crowd.add after the crowd was built');
+    this.pending.push({ geo, mats: [...mats] });
+  }
+
+  /** deal the black-umbrella walker's figures out (see BLUE_UMBRELLA), then make each variant's near / far meshes */
+  private build(): void {
+    const parts = this.pending;
+    if (parts === null) return;
+    this.pending = null;
+    const tones = parts.map((p) => umbrellaTone(p.geo));
+    const black = parts[tones.findIndex(isBlack)];
+    const oxblood = parts[tones.findIndex(isOxblood)], paper = parts[tones.findIndex(isPaper)];
+    const blue: Matrix4[] = [];
+    if (black !== undefined) {
+      const keep: Matrix4[] = [];
+      for (const m of black.mats) {
+        const h = spot(m);
+        if (h < SHARE.blue) blue.push(m);
+        else if (h < SHARE.oxblood && oxblood !== undefined) oxblood.mats.push(m);
+        else if (h < SHARE.paper && paper !== undefined) paper.mats.push(m);
+        else keep.push(m);
+      }
+      black.mats = keep;
     }
-    this.variant(geo, mats);
+    for (const p of parts) this.variant(p.geo, p.mats);
+    if (black !== undefined) this.variant(tintUmbrella(black.geo, BLUE_UMBRELLA), blue);
   }
 
   private variant(geo: BufferGeometry, mats: readonly Matrix4[]): void {
@@ -157,7 +186,7 @@ export class Crowd {
       im.visible = false;
       im.frustumCulled = false; // culled per figure in update()
       im.name = name;
-      this.meshes.push(im);
+      this.built.push(im);
       return im;
     };
     this.variants.push({ hi: mk(geo, 'crowd'), lo: mk(lo, 'crowd'), mats: [...mats], at: mats.map((m) => new Vector3().setFromMatrixPosition(m)) });
@@ -166,6 +195,7 @@ export class Crowd {
 
   /** re-pick the figures in view (only when the camera moved) */
   update(camera: PerspectiveCamera): void {
+    this.build();
     camera.updateMatrixWorld();
     this.pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     if (!this.dirty && this.pv.equals(this.last)) return;

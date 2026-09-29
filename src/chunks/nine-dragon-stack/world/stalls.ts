@@ -356,13 +356,6 @@ function warmSpill(g: BufferGeometry, at: Vector3, color: Color, r: number, powe
   sp.needsUpdate = true;
 }
 
-/** a low timber stool, seat at 0.45 */
-function lowStool(k: Kit, x: number, z: number): void {
-  const w: Look = { wash: 0x5e3a22, line: 0.8, accent: true, surf: SURF.wood };
-  k.box(x, 0.42, z, 0.34, 0.04, 0.34, w, { bottom: null });
-  for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) k.beam(new Vector3(x + lx * 0.15, 0, z + lz * 0.15), new Vector3(x + lx * 0.13, 0.42, z + lz * 0.13), 0.035, 0.035, w);
-}
-
 /**
  * A market booth in its own frame: the front (the counter) on z = 0 facing +z, the back wall at z = −d, the counter
  * along x. Lacquer posts under a small teal tiled hip roof (the gate's curved roof in small: tile rolls, a painted
@@ -390,7 +383,9 @@ export function boothSet(rng: Rng): BufferGeometry {
   }
   // the back wall: a white-tiled dado, warm-lit plaster, a shelf of jars; half-height side boards
   k.box(0, 0, -D + 0.03, W - 0.12, 1.0, 0.06, { wash: 0xc9c3b6, kind: K.facade, row: 0.15, col: 0.15, line: 0.8 }, { bottom: null });
-  k.box(0, 1.0, -D + 0.03, W - 0.12, 1.36, 0.06, { wash: 0x8e6038, emit: 0.2, line: 1, accent: true, surf: SURF.none }, { bottom: null });
+  k.box(0, 1.0, -D + 0.03, W - 0.12, 1.36, 0.06, { wash: 0x8e6038, emit: 0.4, line: 1, accent: true, surf: SURF.none }, { bottom: null });
+  // E281 round 2: a lit box — a warm ceiling under the roof, so from the square and the aerials the booth glows inside
+  k.box(0, 2.3, -D / 2, W - 0.1, 0.04, D - 0.1, { wash: 0xd89a58, emit: 0.55, line: 0.6, accent: true, surf: SURF.none }, { top: null });
   k.box(0, 1.52, -D + 0.2, W - 0.5, 0.04, 0.26, { wash: 0x4a3322, line: 0.8 });
   for (let i = 0; i < 7; i++) k.cyl(-0.9 + i * 0.3, 1.56, -D + 0.2, 0.08, 0.07, 0.22, 8, { wash: [0xc0703a, 0x8a3a24, 0xd8c070][i % 3] ?? 0xc0703a, line: 0.6, gloss: true });
   for (const sx of [-1, 1]) k.box(sx * (hw - 0.05), 0, -D / 2 - 0.25, 0.05, 1.05, D - 0.6, TIMBER, { bottom: null });
@@ -405,6 +400,17 @@ export function boothSet(rng: Rng): BufferGeometry {
   k.cyl(0.85, 0.97, -0.48, 0.2, 0.2, 0.3, 12, { wash: 0xa9aeb3, line: 1, gloss: true }, { edges: E.rims });
   k.box(-0.3, 0.97, -0.55, 0.46, 0.03, 0.3, { wash: 0x3a3d44, line: 0.6 });
   for (let i = 0; i < 6; i++) x.ellipsoid(new Vector3(-0.47 + (i % 3) * 0.17, 1.03, -0.62 + Math.floor(i / 3) * 0.15), X, Y, Z, 0.07, 0.045, 0.07, { wash: 0xeee4cc, line: 0 }, () => 1, 3, 6);
+  // hanging goods from the front beam (the targets' stalls): five glazed roast ducks on hooks at the left, strings of
+  // lap cheong sausages at the right
+  for (let i = 0; i < 5; i++) {
+    const hx = -1.05 + i * 0.16;
+    x.sweep([new Vector3(hx, 2.2, -0.14), new Vector3(hx, 1.98, -0.14)], () => 0.006, 3, { wash: 0x9aa0a6, line: 0 });
+    x.ellipsoid(new Vector3(hx, 1.84, -0.14), X, Y, Z, 0.075, 0.15, 0.06, { wash: 0x9a4a18, line: 0, accent: true, gloss: true }, (d) => 1 + (d.y > 0.5 ? -0.25 : 0), 4, 8);
+  }
+  for (let i = 0; i < 4; i++) {
+    const hx = 0.55 + i * 0.14;
+    for (let j = 0; j < 3; j++) x.ellipsoid(new Vector3(hx + (j % 2) * 0.02, 2.08 - j * 0.13, -0.14), X, Y, Z, 0.022, 0.065, 0.022, { wash: 0x8a2418, line: 0, accent: true, gloss: true }, () => 1, 3, 6);
+  }
   // a bare bulb under the roof
   const bulb = new Vector3(-0.3, 1.9, -0.75);
   x.sweep([bulb.clone().add(new Vector3(0, 0.5, 0)), bulb.clone().add(new Vector3(0, 0.06, 0))], () => 0.006, 3, { wash: 0x1c1c1f, line: 0 });
@@ -416,8 +422,8 @@ export function boothSet(rng: Rng): BufferGeometry {
   return g;
 }
 
-/** a parasol table in its own frame (table at the origin): a steel folding table, bowls, two empty stools (east and
- * north; the TRELLIS sitters bring their own to the other two sides), a red oil-paper parasol on a bamboo pole */
+/** a parasol table in its own frame (table at the origin): a steel folding table, bowls, a red oil-paper parasol on a
+ * bamboo pole; the four diners are TRELLIS sitters, who bring their own stools (E281 round 2: every table full) */
 export function parasolSet(): BufferGeometry {
   const k = new Kit(), x = new KitX();
   k.box(0, 0.7, 0, 0.8, 0.04, 0.8, { wash: 0xb7bcc0, line: 1 });
@@ -425,8 +431,6 @@ export function parasolSet(): BufferGeometry {
   bowls(k, -0.16, 0.74, 0.06, 1, 0xece8dd);
   bowls(k, 0.14, 0.74, -0.12, 2, 0xd7e0e4);
   k.cyl(0.04, 0.74, 0.22, 0.05, 0.05, 0.12, 8, { wash: 0x6f8a6a, line: 0.6 });
-  lowStool(k, 0.66, 0);
-  lowStool(k, 0, -0.66);
   const pole: Look = { wash: 0x6a5030, line: 0 };
   x.sweep([new Vector3(0, 0.74, 0), new Vector3(0, 2.62, 0)], () => 0.028, 5, pole);
   const top = new Vector3(0, 2.28, 0);
@@ -452,7 +456,8 @@ export function marketRow(ctx: Ctx, rng: Rng): void {
     placeSet('booth', () => boothSet(rng), m);
     const w = (lx: number, ly: number, lz: number): Vector3 => new Vector3(lx, ly, lz).applyMatrix4(m);
     const front = new Vector3(-1, 0, 0);
-    for (const sx of [-1, 1]) { const p = w(sx * 1.45, 2.3, 0.3); ctx.lantern(p.x, p.y, p.z, 0.7); }
+    // four lanterns along the front eave (the targets hang three or four a stall)
+    for (const lx of [-1.45, -0.5, 0.5, 1.45]) { const p = w(lx, 2.3, 0.3); ctx.lantern(p.x, p.y, p.z, Math.abs(lx) > 1 ? 0.7 : 0.55); }
     if (i % 2 === 0) {
       ctx.signs.place({ at: w(-0.85, 1.35, 0.06), normal: front, size: 0.46, spec: { text: '麵', color: '#b8261a', vertical: true, style: 'banner', ink: '#efe8d8' }, gain: 1.4, blade: true }, null);
     } else {
@@ -463,7 +468,10 @@ export function marketRow(ctx: Ctx, rng: Rng): void {
       }
     }
     ctx.emitters.push({ at: w(0, 1.5, -0.3), color: new Color(0xffb870), w: 2.2, h: 1.4, power: 0.4, spill: 0.5 });
-    ctx.steam.push(w(0.32, 1.5, -0.45), w(0.85, 1.35, -0.48));
+    // the warm light it throws out on the flagstones in front (the render lane turns it into a tight pool)
+    ctx.emitters.push({ at: w(0, 0.4, 0.9), color: new Color(0xffa860), w: 2.4, h: 0.6, power: 0.25, spill: 0.45 });
+    // steam off the steamer and the pot, rising in a column past the eave
+    ctx.steam.push(w(0.32, 1.5, -0.45), w(0.85, 1.35, -0.48), w(0.5, 2.6, -0.2), w(0.55, 3.4, 0.1));
     // one or two customers at the counter, facing it (east)
     for (let c = 0; c < 1 + (i % 2); c++) {
       const p = w(-0.7 + c * 1.1 + rng.range(-0.2, 0.2), 0, 0.55 + rng.range(0, 0.25));
@@ -475,7 +483,7 @@ export function marketRow(ctx: Ctx, rng: Rng): void {
     const r = (q * Math.PI) / 2;
     const m = new Matrix4().compose(new Vector3(tx, Y0, tz), new Quaternion().setFromAxisAngle(UP, r), new Vector3(1, 1, 1));
     placeSet('parasol', parasolSet, m);
-    // the sitters at the table's west and south sides (local), facing it
+    // the sitters at the table's west and south sides (local), facing it (the east and north ones: marketDiners)
     for (const [lx, lz, yaw] of [[-0.64, 0, Math.PI / 2], [0, 0.64, Math.PI]] as const) {
       const p = new Vector3(lx, 0, lz).applyMatrix4(m);
       ctx.sitters.push(new Matrix4().compose(p, new Quaternion().setFromAxisAngle(UP, r + yaw), new Vector3(1, 1, 1)));
@@ -483,5 +491,21 @@ export function marketRow(ctx: Ctx, rng: Rng): void {
     const lp = new Vector3(0, 2.0, 0).applyMatrix4(m);
     ctx.lantern(lp.x, lp.y, lp.z, 0.45);
     ctx.steam.push(new Vector3(-0.16, 0.85, 0.06).applyMatrix4(m));
+  }
+}
+
+/**
+ * E281 round 2: every parasol table full — the diners on each table's east and north sides (the west and south ones
+ * sit down in marketRow). Called after everything else the square seats, so no earlier sitter changes variant.
+ */
+export function marketDiners(ctx: Ctx): void {
+  const UP = new Vector3(0, 1, 0);
+  for (const [tx, tz, q] of PARASOLS) {
+    const r = (q * Math.PI) / 2;
+    const m = new Matrix4().compose(new Vector3(tx, Y0, tz), new Quaternion().setFromAxisAngle(UP, r), new Vector3(1, 1, 1));
+    for (const [lx, lz, yaw] of [[0.64, 0, -Math.PI / 2], [0, -0.64, 0]] as const) {
+      const p = new Vector3(lx, 0, lz).applyMatrix4(m);
+      ctx.sitters.push(new Matrix4().compose(p, new Quaternion().setFromAxisAngle(UP, r + yaw), new Vector3(1, 1, 1)));
+    }
   }
 }

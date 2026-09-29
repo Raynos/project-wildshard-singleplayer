@@ -1,15 +1,15 @@
 // Lantern Square: wet granite, the Well's stone balustrade and sign masts, the cinnabar paifang (九龍疊城), the banyan
 // in its round planter with the earth-god shrine, mahjong tables, the noodle stall, lantern strings and the crowd.
-import { Matrix4, Quaternion, Vector3 } from 'three';
+import { type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
 import { buildBanyan } from './banyan';
 import { mahjongSeats } from './hero/figures';
 import type { Ctx } from './ctx';
-import { buildGate, relief } from './gate';
+import { buildGate } from './gate';
 import { SURF } from '../look/paint';
-import { lionOnPost } from './props3d';
-import type { KitX } from './hero/kitx';
-import { BOOTH, BOOTHS, PARASOLS, hawkerStall, marketRow, noodleStall } from './stalls';
-import { E, K, type Kit, type Look } from './kit';
+import { lionOnPost, placeSet } from './props3d';
+import { KitX, merge } from './hero/kitx';
+import { BOOTH, BOOTHS, PARASOLS, hawkerStall, marketDiners, marketRow, noodleStall } from './stalls';
+import { E, K, Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
 import { dragonHook, scooter } from './props';
 import { MIN, METAL, Rng } from '../util';
@@ -27,11 +27,51 @@ function flagstones(k: Kit, x0: number, z0: number, x1: number, z1: number, y: n
   k.quad(new Vector3(x0, y, z1), new Vector3(1, 0, 0), new Vector3(0, 0, -1), x1 - x0, z1 - z0, { wash: 0x3e4148, kind: K.flag, wet: 1, line: 0 });
 }
 
+/** the carved panel's width in its own frame (the plaza run's gap between posts); each copy is scaled to its gap */
+const PANEL_W = 1.86, PANEL_H = 0.6;
+const CARVE: Look = { wash: 0x767880, line: 1, wet: 0.35, surf: SURF.concrete };
+
+/**
+ * E281 round 2: one carved balustrade panel face, drawn instanced on every panel, both faces (props3d.ts `placeSet`).
+ * The targets' panels are deep carvings in a raised frame: a pair of big ruyi scrolls curling in from the ends, a lotus
+ * medallion in the middle, small scrolls in the corners. In its own frame: the face on z = 0 facing +z, x across
+ * (−PANEL_W/2 … PANEL_W/2), y up from the panel's foot. One geometry for all ~56 faces, where the per-panel dragon
+ * reliefs cost ~190 vertices a panel in the square's kit.
+ */
+function carvedPanel(): BufferGeometry {
+  const k = new Kit(), x = new KitX();
+  const hw = PANEL_W / 2, Z = new Vector3(0, 0, 1);
+  // the raised frame: rails and stiles standing 4 cm proud
+  k.box(0, 0.03, 0.02, PANEL_W - 0.06, 0.06, 0.04, CARVE, { bottom: null });
+  k.box(0, PANEL_H - 0.09, 0.02, PANEL_W - 0.06, 0.06, 0.04, CARVE, { bottom: null });
+  for (const sx of [-1, 1]) k.box(sx * (hw - 0.06), 0.09, 0.02, 0.06, PANEL_H - 0.18, 0.04, CARVE, { top: null, bottom: null });
+  const mid = PANEL_H / 2;
+  const spiral = (cx: number, cy: number, r0: number, turns: number, dir: number, t0: number): void => {
+    const pts: Vector3[] = [];
+    for (let i = 0; i <= 18; i++) {
+      const t = i / 18, a = t0 + dir * t * turns * Math.PI * 2, r = r0 * (1 - 0.82 * t);
+      pts.push(new Vector3(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 0.025));
+    }
+    x.sweep(pts, (t) => 0.024 * (1 - 0.5 * t), 4, CARVE, { flat: 0.5, up: Z.clone(), capEnd: true });
+  };
+  // the two big ruyi scrolls, their tails running in along the panel's middle to the medallion
+  for (const sx of [-1, 1]) {
+    spiral(sx * (hw - 0.34), mid, 0.17, 1.15, sx, sx > 0 ? Math.PI : 0);
+    x.sweep([new Vector3(sx * (hw - 0.34), mid - 0.17, 0.025), new Vector3(sx * 0.45, mid - 0.1, 0.025), new Vector3(sx * 0.2, mid, 0.025)], () => 0.02, 4, CARVE, { flat: 0.5, up: Z.clone() });
+    // small scrolls in the corners toward the middle
+    spiral(sx * 0.42, mid + 0.14, 0.07, 0.9, -sx, -Math.PI / 2);
+  }
+  // the lotus medallion: a petalled disc and a boss
+  x.ellipsoid(new Vector3(0, mid, 0.02), new Vector3(1, 0, 0), new Vector3(0, 1, 0), Z, 0.15, 0.12, 0.035, CARVE, (d) => 1 + 0.16 * Math.abs(Math.cos(Math.atan2(d.y, d.x) * 4)), 3, 16);
+  x.ellipsoid(new Vector3(0, mid, 0.05), new Vector3(1, 0, 0), new Vector3(0, 1, 0), Z, 0.05, 0.05, 0.03, CARVE, () => 1, 3, 8);
+  return merge([k.build(), x.build()]);
+}
+
 /**
  * The Well's balustrade: plinth, carved panels, posts with lotus caps, a top rail; the ground line is heavier.
  * It runs along z at x = `at` (or along x at z = `at` when `alongX`), from `a0` down to `a1`.
  */
-export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false, carve?: { x: KitX; side: number }, lionRun?: 'plaza' | 'street'): void {
+export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false, carved = false, lionRun?: 'plaza' | 'street'): void {
   const len = a0 - a1;
   const n = Math.max(1, Math.round(len / 2.3));
   const step = len / n;
@@ -52,14 +92,20 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
     if (lionRun === undefined || !lionOnPost(lionRun, i, n)) lotusBud(k, cx, y + 1.12, cz);
     if (i < n) {
       const pm = p - step / 2;
-      bx(pm, y + 0.16, 0.16, 0.6, step - 0.36, { wash: 0x5c5e64, kind: K.panel, line: 1, wet: 0.5 });
-      // dome B: the panel's face toward the square carved in relief (a dragon among clouds, as the targets' balustrades)
-      if (carve !== undefined) {
+      // (E281 round 2: the panel wall 24 cm thick under a 34 cm rail, as the targets' heavy carved balustrade; the
+      // colliders' span, x −0.1 … 0.5, still holds it)
+      bx(pm, y + 0.16, 0.24, PANEL_H, step - 0.44, { wash: 0x55575d, kind: K.panel, line: 1, wet: 0.5 });
+      // both faces carved: the instanced panel (carvedPanel), scaled to this gap
+      if (carved) {
         const [pcx, pcz] = px(pm);
-        const nrm = alongX ? new Vector3(0, 0, carve.side) : new Vector3(carve.side, 0, 0);
-        relief(carve.x, new Vector3(pcx + nrm.x * 0.085, y + 0.46, pcz + nrm.z * 0.085), new Vector3(-nrm.z, 0, nrm.x), UPV.clone(), nrm, step - 0.5, 0.52, 3000 + i, { wash: 0x76787e, line: 0, wet: 0.3 });
+        for (const side of [1, -1]) {
+          const nrm = alongX ? new Vector3(0, 0, side) : new Vector3(side, 0, 0);
+          const m = new Matrix4().compose(new Vector3(pcx + nrm.x * 0.12, y + 0.16, pcz + nrm.z * 0.12),
+            new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), nrm), new Vector3((step - 0.44) / PANEL_W, 1, 1));
+          placeSet('balustrade-panel', carvedPanel, m);
+        }
       }
-      bx(pm, y + 0.76, 0.26, 0.12, step - 0.3, STONE);
+      bx(pm, y + 0.76, 0.34, 0.12, step - 0.3, STONE);
     }
   }
 }
@@ -229,9 +275,8 @@ export function buildSquare(ctx: Ctx): void {
   // the plaza's lip over the Well
   floor.box(PLAZA.x0 - 0.3, Y0 - 1.4, (PLAZA.z0 + PLAZA.z1) / 2, 0.6, 1.4, PLAZA.z1 - PLAZA.z0, { wash: 0x8d8f93, line: 1.5, surf: SURF.concrete });
   const props = floor;
-  const carve = { x: ctx.kitx('paifang'), side: 1 };
-  balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0, false, carve, 'plaza');
-  balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0, false, carve, 'street');
+  balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0, false, true, 'plaza');
+  balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0, false, true, 'street');
   ctx.map.push({ x0: PLAZA.x0, z0: PLAZA.z0, x1: PLAZA.x1, z1: PLAZA.z1, kind: 'plaza' });
   ctx.map.push({ x0: STREET.x0, z0: -140, x1: STREET.x1, z1: STREET.z1, kind: 'street' });
   paifang(ctx);
@@ -318,6 +363,10 @@ export function buildSquare(ctx: Ctx): void {
   // a short queue at the stall, beyond its tables
   for (let i = 0; i < 4; i++) ctx.walkers.push(standAt(STALL.x0 + 2.4 + i * 0.95, STALL.z1 + 3.9 + rng.range(-0.3, 0.3), Math.PI + rng.range(-0.4, 0.4), 1));
   moreCrowd(ctx, free, placed);
+  // E281 round 2: every table full — the mahjong tables' empty seats, then the parasol tables' other two diners (last,
+  // and 3 + 12 of them, a multiple of three: build.ts deals the sitters' coats by index mod 3)
+  for (const [tx0, tz0, tr, n] of tables) for (const st of mahjongSeats(tx0, tz0, tr).slice(n)) ctx.sitters.push(standAt(st.x, st.z, st.yaw, 1));
+  marketDiners(ctx);
   scooter(props, 20.4, Y0, 13.5, 0.3, 0x2e5fa3);
   scooter(props, 20.9, Y0, 15.4, 0.2, 0xb8321f);
   scooter(props, 20.6, Y0, -4.5, 1.2, 0x7fbf9a);
