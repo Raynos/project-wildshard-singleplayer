@@ -82,7 +82,9 @@ const COLUMN_WEIGHTS: readonly (readonly [Mod, number])[] = [
   ['enclosed', 0.12], ['bay', 0.08], ['ac', 0.05], ['blank', 0.03],
 ];
 
-export const WALLS = [0xa89d8a, 0xa19a88, 0xae9f86, 0x9b9a90, 0xa69884, 0xafa28c, 0x9a9b8d, 0xa29f97, 0xb09c7e, 0x989a8b, 0x8f887b, 0x958b7c] as const;
+// (E281 pass 6: the mockups' walls are pale warm stone and render — they win over the darker dome targets — so the
+// washes are lighter and warmer than pass 1's; the same twelve, so every pick lands on the same slot)
+export const WALLS = [0xc0b39c, 0xb9af9a, 0xc6b598, 0xb3b0a3, 0xbeae95, 0xc8b99f, 0xb2b1a0, 0xbab4a8, 0xc9b392, 0xb0af9d, 0xa79d8b, 0xada08c] as const;
 /** the timber cladding of a Chongqing stilt-house front (E281): dark lacquered boards */
 const TIMBER = [0x5a4230, 0x4e3a2b, 0x634633, 0x553a2c, 0x6a4a34] as const;
 const WARM = [0xffb866, 0xffab55, 0xffc47c, 0xf2a052, 0xffbc70, 0xffc98a] as const;

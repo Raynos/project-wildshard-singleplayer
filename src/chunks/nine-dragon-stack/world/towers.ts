@@ -266,8 +266,10 @@ export function buildTowers(ctx: Ctx): void {
   // hero signs on the square's north side, right of the gate (the spawn sees this wall head-on)
   const north2: [string, number, number, number, number, 'tube' | 'box'][] = [
     ['酒家', NEON.amber, 20.6, Y0 + 16, 1.4, 'tube'], ['藥', NEON.red, 18.2, Y0 + 10.5, 1.5, 'box'], ['茶', NEON.cyan, 15.8, Y0 + 19, 1.3, 'tube'],
-    ['金行', NEON.jade, 21.4, Y0 + 7.6, 1.0, 'tube'], ['當舖', NEON.magenta, 14.6, Y0 + 10.5, 1.0, 'tube'], ['押', NEON.red, 19.4, Y0 + 24.5, 1.5, 'box'],
+    ['金行', NEON.jade, 21.4, Y0 + 7.6, 1.0, 'tube'], ['當舖', NEON.magenta, 14.6, Y0 + 10.5, 1.0, 'tube'], ['押', NEON.red, 17.6, Y0 + 20.5, 1.2, 'box'],
   ];
+  // mockup A's top-right gold 旅館, face-on to the spawn over the gate's right (E281 pass 6)
+  heroFlat(ctx, bs, '旅館', NEON.amber, 20, Y0 + 24.2, PLAZA.z0 - 0.6, 1.9, 1.9);
   for (const [text, col, x, y, size, style] of north2) {
     ctx.signs.place({ at: new Vector3(x, y, PLAZA.z0 + 1.2), normal: new Vector3(0, 0, 1), size, spec: { text, color: hex(col), vertical: true, style } }, bs);
     bs.beam(new Vector3(x, y, PLAZA.z0 - 0.6), new Vector3(x, y, PLAZA.z0 + 1.1), 0.1, 0.1, { wash: 0x2e3036, line: 0.8 });

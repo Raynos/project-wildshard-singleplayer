@@ -142,3 +142,22 @@ behind the paifang's roofs; moved (checked on two quick mockup-A captures) befor
 
 **Numbers:** geometry 155.5 MB (every lane), textures 79.6 MB. Worst pose mockup A 125 draws / 1.50 M triangles.
 Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all three profiles (~16,930 instances).
+
+## Pass 6
+
+Build: `main` at `73cabfa4` + this lane's files. Sheets: `pass-6/`. Judged against the mockups first.
+
+- **Paler, warmer walls.** The mockups' walls are pale warm stone and render (they win over the darker dome targets):
+  the twelve wall washes are lighter and warmer than pass 1's (the same twelve slots, so every pick lands where it
+  did). Timber columns keep their dark boards. Subtle on the sheets: the light is the render lane's.
+- **Glazed tiles from above.** Mockup D's eaves read as flat, bright green panels in the engine. A tile face now shows
+  its barrels' roundness near, and far (or from above) averages to the barrels and their dark joints: a deeper,
+  greyer glaze. The green panels down the Well in mockup D are mostly the Well lane's gallery roofs (the kit program,
+  not this one), so D moves less than the stair and square top-downs.
+- **Mockup A's top-right 旅館.** A gold 旅館 board, face-on to the spawn over the gate's right at +24 m, lands where the
+  mockup has it (about 90–95 % across, 13–19 % down). The red 押 box it replaces moved lower and left.
+
+**Reverted:** nothing.
+
+**Numbers:** geometry 154.4 MB (every lane), textures 79.6 MB. Worst pose mockup A 127 draws / 1.51 M triangles.
+Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all three profiles (~17,000 instances).

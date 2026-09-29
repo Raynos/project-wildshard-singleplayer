@@ -175,6 +175,13 @@ void main() {
     col *= 0.92 + 0.14 * h12(floor(q / tp));
     col *= paintTiles(q, tp, uPaintK.x * uPaintK.w);
     lines = max(lines, max(cr, cj));
+    // (E281 pass 6) the barrels' roundness near; far and from above, a glazed roof is its barrels and their dark
+    // joints averaged — a deeper, greyer glaze than one tile's, not the flat bright panel mockup D's eaves read as
+    float farT = 1.0 - smoothstep(2.0, 5.0, tp.x / max(fq.x, 1e-6));
+    float bx = abs(fract(q.x / tp.x) - 0.5) * 2.0;
+    col *= mix(0.8 + 0.3 * (1.0 - bx * bx), 1.0, farT);
+    float lum = dot(col, vec3(0.3, 0.59, 0.11));
+    col = mix(col, mix(vec3(lum), col, 0.68) * 0.72, farT);
   } else if (kind == 3.0) {
     // railings / grilles: vertical bars every p1, rails every p2 (0 = only the frame)
     float bars = ruleEvery(q.x, p1, fq.x, Wp * 0.95);
