@@ -379,6 +379,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
       // a landing arrow / javelin (not a blow at arm's length): TRUST −30 near a stallion
       if (Math.hypot(point.x - player.position.x, point.z - player.position.z) >= 4.5) ride?.noteShot(point.x, point.z);
     };
+    game.onLate((dt) => { ride?.late(dt); }, 'nalati-reins');   // B1: the reins, from this frame's final horse + camera
     updates.push((dt) => {
       ride?.update(dt);
       // dev `?ride=`: 1 s of play in (the elites have spawned Argymaq), then the follow-up 0.8 s later

@@ -10,6 +10,8 @@ import { RideHUD } from '../ui/RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/nalati/layout';
 import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../chunks/nalatiLayout';
 import { wildEnv } from '../entities/wildEnv';
+import { Reins } from '../player/Reins';
+import { setting } from '../ui/Settings';
 
 /** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */
 const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL];
@@ -24,6 +26,7 @@ const BOLT_PANIC = 35;
  *                                           //   "Mount Camp horse" / "Mount Tulpar" / "Dismount" / "Mount the stallion"
  *   ride.bind({ kit, toast })                // once the weapon kit + HUD exist (nalati.bindPlay); hurt → animals.onCharge
  *   ride.update(dt)                          // every frame
+ *   game.onLate((dt) => ride.late(dt))       // B1: the reins in your hand, from this frame's final horse pose + camera
  *   ride.noteShot(x, z)                      // an arrow / javelin landed (TRUST)
  *   ride.mounted                             // for Wildlife's `extra.mounted` (the pack's two tokens, the herd's stampede)
  *
@@ -49,6 +52,9 @@ export interface Ride {
   readonly mounted: boolean;
   bind: (p: RidePlay) => void;
   update: (dt: number) => void;
+  /** after every updater (Game.onLate): the reins (Reins.ts) from the horse's final pose and the saddle's camera */
+  late: (dt: number) => void;
+  reins: Reins;
   noteShot: (x: number, z: number) => void;
 }
 
@@ -89,6 +95,9 @@ export function wireRide(ctx: RideCtx): Ride {
     }
   };
 
+  // B1: the reins in the rider's left hand (Debug ▸ Riding: reins in hand); they drop while the bow draws or the stallion bucks
+  const reins = new Reins(ctx.camera);
+
   // one prompt for main's list: whichever horse action is nearest the camera (it copies that one's position / label)
   const ix: Interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: '', onInteract: () => undefined };
   let pick: Interactable | null = null;
@@ -111,7 +120,7 @@ export function wireRide(ctx: RideCtx): Ride {
   };
 
   return {
-    mount, taming, hud, interactable: ix,
+    mount, taming, hud, interactable: ix, reins,
     get mounted() { return mount.mounted; },
     bind(p) { play = p; mount.setKit(p.kit); },
     update(dt) {
@@ -119,6 +128,11 @@ export function wireRide(ctx: RideCtx): Ride {
       taming.update(dt);
       hud.update(taming.view);
       choose();
+    },
+    late(dt) {
+      const b = play?.kit?.bow;
+      const busy = mount.breaking || (play?.isDrawing?.() ?? (b !== undefined && (b.adsHeld || b.drawing)));
+      reins.update(dt, mount.horse, mount.mounted && setting('rideReins') === 'on', busy);
     },
     noteShot(x, z) { taming.noteShot(x, z); },
   };
