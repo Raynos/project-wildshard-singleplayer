@@ -132,7 +132,16 @@ class Emit {
   win(f: Face, s: number, y: number, w: number, h: number, wall: number, z = 0, door = false, litBias = 0, n: Vector3 = f.n, u: Vector3 = f.u, base: Vector3 | null = null): void {
     const r = this.rng;
     const p = (base ?? f.o.clone().addScaledVector(u, s)).clone().addScaledVector(n, z + 0.012).setY(y);
-    const m = new Matrix4().makeBasis(u, up, n).scale(new Vector3(w, h, 1)).setPosition(p);
+    // (E281 pass 5) no two windows quite alike: a plain window's lintel drops by up to a quarter and its width narrows
+    // by up to a sixth, from a hash of where it is (the rng is untouched, so nothing else in the city re-rolls)
+    let ww = w, hh = h;
+    if (!door && h > 0.9) {
+      const hx = Math.sin(p.x * 12.9898 + p.y * 78.233 + p.z * 37.719) * 43758.5453;
+      const k = hx - Math.floor(hx), k2 = (k * 7.13) % 1;
+      hh = h * (1 - 0.25 * k);
+      ww = w * (1 - 0.16 * k2);
+    }
+    const m = new Matrix4().makeBasis(u, up, n).scale(new Vector3(ww, hh, 1)).setPosition(p);
     const lit = r.chance(this.lit + litBias) ? r.range(0.8, 1.15) : 0;
     const cool = r.chance(0.045);
     const light = new Color(cool ? r.pick(COOL) : r.pick(WARM));

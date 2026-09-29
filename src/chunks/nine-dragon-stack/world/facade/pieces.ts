@@ -358,15 +358,23 @@ function ledge(): Builder {
   return o;
 }
 
-/** a pent eave strip (腰檐) along a wall: 1 m (scaled x), glazed tiles sloping 1.2 m out, a cinnabar beam + brackets */
+/**
+ * A pent eave strip (腰檐) along a wall: 1 m (scaled x), glazed tiles sloping 1.25 m out and 0.55 m down (the instance
+ * colour glazes them). E281 pass 5, what the street sees of it (from eye height an eave is its underside and its lip):
+ * timber rafters running down the slope under it, a row of round glazed tile ends (瓦当) along the lip, tilted to face
+ * down to the street and glazed with the tiles, and an oxblood beam under them. The rafters and the beams keep their
+ * own colours (`keep`); the tiles and their ends take the glaze.
+ */
 function eave(): Builder {
   const o = new Builder();
   const tl: Look = { wash: 0xffffff, kind: K.tiles, line: 1 };
   const a = new Vector3(-0.5, 0, 0), b = new Vector3(0.5, 0, 0), c2 = new Vector3(0.5, -0.55, 1.25), d = new Vector3(-0.5, -0.55, 1.25);
   o.quad4(d, c2, b, a, 1, 1.37, tl, E.u0 | E.u1 | E.v0);
-  o.quad4(a, b, c2, d, 1, 1.37, { wash: 0x5b4a3a, kind: K.slats, p1: 0.22, line: 0.8 });
-  o.box(0, -0.72, 1.2, 1.0, 0.16, 0.12, { wash: PAL.cinnabar, line: 1 });
-  o.box(0, -0.05, 0.03, 1.0, 0.12, 0.06, { wash: PAL.cinnabar, line: 1 });
+  o.quad4(a, b, c2, d, 1, 1.37, keep({ wash: 0x7a5a42, kind: K.bars, p1: 0.19, line: 0.8 }));
+  const v = new Vector3(0, 1, 0.3).normalize();
+  o.quad(new Vector3(-0.5, -0.67, 1.3), X, v, 1, 0.18, { wash: 0xffffff, kind: K.tileEnd, p1: 0.2, line: 1 });
+  o.box(0, -0.8, 1.22, 1.0, 0.13, 0.12, keep({ wash: 0x7e1e1a, line: 1 }));
+  o.box(0, -0.05, 0.03, 1.0, 0.12, 0.06, keep({ wash: 0x7e1e1a, line: 1 }));
   return o;
 }
 

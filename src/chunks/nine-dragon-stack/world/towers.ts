@@ -97,7 +97,8 @@ function heroBlade(ctx: Ctx, kit: Kit, text: string, col: number, wallX: number,
 /** a big neon board flat toward +z on two arms out of a wall (z = wallZ): the north wall's signs, face-on to the square */
 function heroFlat(ctx: Ctx, kit: Kit, text: string, col: number, x: number, y: number, wallZ: number, out: number, size: number): void {
   const w = size * 1.36, h = size * (chars(text).length + 0.62);
-  ctx.signs.place({ at: new Vector3(x, y, wallZ + out), normal: new Vector3(0, 0, 1), size, spec: { text, color: hex(col), vertical: true, style: 'tube' }, blade: true }, kit);
+  // (full strength across the Well's mist: 1.5× the gain, the tubes cut through 0.8 of the silk)
+  ctx.signs.place({ at: new Vector3(x, y, wallZ + out), normal: new Vector3(0, 0, 1), size, spec: { text, color: hex(col), vertical: true, style: 'tube' }, blade: true, gain: 6.6, clear: 0.8 }, kit);
   for (const dx of [-w / 3, w / 3]) kit.beam(new Vector3(x + dx, y + h / 2 - 0.35, wallZ), new Vector3(x + dx, y + h / 2 - 0.35, wallZ + out - 0.1), 0.09, 0.09, { wash: 0x2e3036, line: 0.8 });
 }
 
@@ -285,9 +286,11 @@ export function buildTowers(ctx: Ctx): void {
   for (const [text, col, wx, sg, y, z, size] of tall) heroBlade(ctx, bs, text, col, wx, sg, 2.7, y, z, size);
   // the Well's north wall (z = -44, x -12..0) is the left quarter of mockup A's frame: its stack of neon, face-on to the
   // spawn across the Well (九龍 highest, 牙科, 火鍋, 茶 at the foot), out past the wall's galleries
+  // (pass 5: placed from the mockup's frame — each board's span in style-A mapped through the mockup camera — and
+  // raised and enlarged; 九龍's top stays under the Cable Deck at +30 m, 火鍋 and 茶 left of the paifang's roofs)
   const flat: [string, number, number, number, number][] = [
-    ['九龍', NEON.magenta, -8.2, Y0 + 23, 2.1], ['牙科', NEON.cyan, -3.4, Y0 + 16.5, 1.45],
-    ['火鍋', NEON.red, -9.6, Y0 + 12, 1.35], ['茶', NEON.jade, -4.6, Y0 + 7, 1.9],
+    ['九龍', NEON.magenta, -7, Y0 + 25.4, 3.0], ['牙科', NEON.cyan, -1.9, Y0 + 22.2, 1.95],
+    ['火鍋', NEON.red, -5.2, Y0 + 15.1, 1.75], ['茶', NEON.jade, -8.4, Y0 + 9, 2.1],
   ];
   for (const [text, col, x, y, size] of flat) heroFlat(ctx, bs, text, col, x, y, WELL.z0, 2.9, size);
   // lantern strings at several heights: across the square and the Well (east towers → the Well's west wall), over the

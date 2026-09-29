@@ -111,3 +111,34 @@ Build: `main` at `3ba3a700` + this lane's files. Sheets: `pass-4/`.
 **Numbers:** geometry 156.0 MB (every lane), textures 79.6 MB. Worst pose mockup A 125 draws / 1.50 M triangles. This
 lane's own geometry, pass 0 → pass 4: 18.3 → 11.3 MB (the facade shell 12.55 → 5.4 MB). The facade dressing's draws:
 23–30 a pose in pass 0, at most 20 now.
+
+## Pass 5
+
+Build: `main` at `d5acb0c2` (the square lane's bare hook masts) + this lane's files. Sheets: `pass-5/`.
+
+- **Windows: many small ones, each its own.** The window program splits a plain opening into panes: 1–4 across
+  (≈ 0.6 m each) with a 0.17 m pier of wall between them, and on four in ten tall ones a small transom pane over the
+  main one. Each pane rolls its own state from the window's seed: lit warm (its own hue), lit cool fluorescent, dark,
+  a curtain, a roller shutter part-way down, venetian blinds. The piers are drawn as the wall (the shell's wash,
+  painted concrete, top light and light pools). Far off, each pane is drawn flat (lit amber / dark / shutter grey,
+  antialiased by coverage) instead of the whole opening collapsing into one block, and the ruled cut thins under 5 px,
+  so a far wall is many small windows rather than an ink grid. The grammar also shortens a plain window's lintel by up
+  to a quarter and narrows it by up to a sixth, from a hash of its position (the rng is untouched: nothing re-rolls).
+  The painted far faces split most cells into two windows the same way. No geometry, no draws: the same one window
+  instance per opening. Doors, shop fronts and lattice windows stay whole.
+- **Eaves from the street.** From eye height an eave is its underside and its lip, so those now carry it: timber
+  rafters down the slope under every eave, a row of round glazed tile ends (瓦当, a new pattern kind) along the lip,
+  tilted to face down to the street and glazed with the tiles, an oxblood beam under them (the rafters and beams keep
+  their colours; the tiles and tile ends take the glaze). The shopfronts' pent roofs were one-sided kit quads that
+  vanished from below: they are now the facade's instanced eave (no draw added; the kit lost their geometry).
+- **Mockup A's stack, raised and at full strength** (the square lane's ask). Each board's span in style-A mapped
+  through the mockup camera: 九龍 larger (3.0 m characters) and higher, its top just under the Cable Deck; 牙科 over
+  火鍋 in one column; 茶 lowest; 火鍋 and 茶 left of the paifang's roofs. Neon signs can now cut through the silk
+  (`clear` on a sign: the tubes and the frame fade less, and the board keeps its dark so the neon reads saturated,
+  not pastel on mist). The stack runs at 1.5× gain and 0.8 clear.
+
+**Reverted:** a first placement of the stack (x −10…−3.4) put 九龍 half off the frame's left edge and 火鍋 / 茶
+behind the paifang's roofs; moved (checked on two quick mockup-A captures) before the full pass.
+
+**Numbers:** geometry 155.5 MB (every lane), textures 79.6 MB. Worst pose mockup A 125 draws / 1.50 M triangles.
+Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all three profiles (~16,930 instances).

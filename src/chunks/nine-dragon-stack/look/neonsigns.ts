@@ -28,6 +28,9 @@ export interface NeonDef {
   twoSided?: boolean;
   gain?: number;
   flicker?: number;
+  /** 0..1: how much of the silk the neon cuts through (0: the tubes fade as √ of the fog, 1: not at all). The hero
+   *  signs across the Well (E281) are the frame's one saturated light and must read at full strength through the mist */
+  clear?: number;
 }
 
 const MODE = { face: 0, side: 1 } as const;
@@ -169,7 +172,9 @@ void main() {
   D = mix(D, D * 0.4 + uPaperDeep * 0.6, uSutra);
   D = mix(D, mix(uBoard * 0.25, uGold * 1.2, uSutra), inkEdge);
   vec4 fg = silkFog(vWorld, 1.0);
-  vec3 col = D * fg.a + fg.rgb + E * pow(max(fg.a, 1e-4), ${EMIT_FOG});
+  // (a sign that cuts the silk keeps its dark board too, so its neon reads saturated against it, not pastel on mist)
+  float cl = vP.w * 0.6;
+  vec3 col = D * mix(fg.a, 1.0, cl) + fg.rgb * (1.0 - cl) + E * pow(max(fg.a, 1e-4), ${EMIT_FOG} * (1.0 - vP.w));
   gl_FragColor = vec4(col, uNear / max(vViewZ, uNear));
 }
 `;
@@ -211,7 +216,7 @@ void main() {
   float d = mix(dFill, uTube.y - dSk, uTube.x);
   float w = max(fwidth(d), 1e-4) * 0.75;
   float fill = smoothstep(-w, w, d);
-  float fk = sqrt(max(silkFog(vWorld, 1.0).a, 1e-4));
+  float fk = pow(max(silkFog(vWorld, 1.0).a, 1e-4), 0.5 * (1.0 - vP.z));
   float fl = flick(vP.y);
   float rim = fill * (1.0 - smoothstep(uTube.z - w, uTube.z + w, d));
   vec3 core = mix(vTint, vec3(1.0), 0.5);
@@ -283,7 +288,8 @@ export class NeonSigns {
     const gain = def.gain ?? NEON_LOOK.gain;
     const seed = def.flicker ?? 0;
     const two = def.twoSided === true;
-    this.boards.box(at, right, up, f, w / 2, h / 2, depth / 2, tint, [gain, seed, MODE.face, 0], MODE.side, two);
+    const clear = Math.min(1, Math.max(0, def.clear ?? 0));
+    this.boards.box(at, right, up, f, w / 2, h / 2, depth / 2, tint, [gain, seed, MODE.face, clear], MODE.side, two);
     const cellEm = GlyphAtlas.CELL / GlyphAtlas.FONT_PX;
     for (const side of two ? [1, -1] : [1]) {
       const fn = f.clone().multiplyScalar(side);
@@ -292,7 +298,7 @@ export class NeonSigns {
       cs.forEach((ch, i) => {
         const g = this.atlas.rect(ch);
         const off = def.vertical ? new Vector3().addScaledVector(up, h / 2 - em * (0.79 + i)) : new Vector3().addScaledVector(r, -w / 2 + em * (0.81 + i));
-        this.tubes.quad(c0.clone().add(off), r, up, (em * cellEm) / 2, (em * cellEm) / 2, [g.u0, g.v0, g.u1, g.v1], [0, 0], true, tint, [gain, seed, 0, 0]);
+        this.tubes.quad(c0.clone().add(off), r, up, (em * cellEm) / 2, (em * cellEm) / 2, [g.u0, g.v0, g.u1, g.v1], [0, 0], true, tint, [gain, seed, clear, 0]);
       });
     }
     // the neon owns the wet ground (the targets' streaks are cyan / jade / magenta, not the shops' amber)

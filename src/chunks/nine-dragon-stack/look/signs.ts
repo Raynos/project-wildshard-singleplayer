@@ -285,6 +285,8 @@ export interface SignPlace {
   blade?: boolean;
   board?: number;
   fogK?: number;
+  /** tube signs: how much of the silk the neon cuts through (neonsigns.ts NeonDef.clear) */
+  clear?: number;
 }
 
 /** neon quad modes (aNeon.w) */
@@ -346,7 +348,7 @@ export class SignBuilder {
   place(p: SignPlace, kit: Kit | null): { w: number; h: number } {
     if (p.spec.style === 'tube' && this.calligraphy !== null) {
       return this.calligraphy.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size, at: p.at, facing: p.normal,
-        twoSided: p.blade === true, gain: ((p.gain ?? 4.4) / 4.4) * 4.2, flicker: p.flicker ?? 0 });
+        twoSided: p.blade === true, gain: ((p.gain ?? 4.4) / 4.4) * 4.2, flicker: p.flicker ?? 0, clear: p.clear ?? 0 });
     }
     const cell = this.atlas.get(p.spec);
     const n = chars(p.spec.text).length;

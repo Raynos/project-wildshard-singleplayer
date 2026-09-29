@@ -8,6 +8,8 @@ import { BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribu
 /** pattern kinds the material draws (aPat.x) */
 export const K = {
   plain: 0, wall: 1, tiles: 2, bars: 3, cloth: 4, leaf: 5, ac: 6, slats: 7, pipe: 8, sign: 9, panel: 10, painted: 11,
+  /** a row of round glazed tile ends (瓦当) along an eave's lip, one every p1 */
+  tileEnd: 12,
 } as const;
 
 /** edge mask bits: which borders of a face get a ruled ink line */
