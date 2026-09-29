@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-09-27 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple with phone-reduced rope/FX, and the shared practice arena are live. F3's latest 15-second portrait recut is in round 22 for Jake's review. F4–F10 still need visual, budget, lab-parity and physical iPhone work. On `0825d9a7`, Simulator Nine Dragon failed with Auto/KTX2 and entered World Explorer with Images; `427cd5e7` now defaults Nine Dragon phone Auto to Images, cuts boot peaks, and enters World Explorer in Simulator. F10 physical iPhone retest is pending. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
+**State:** `in progress` 2026-09-28 — P0, F1 containment (19 walk legs, 0 stuck), the playable F2 grapple and the practice arena are live; F3's round-22 trailer awaits Jake's review. Facade multi-draw is removed on every shard (E271 / E272), so the fragment's facades are instanced only; E264's iPhone memory caps (1.8 GB loading, 1.0 GB World Explorer) and F9's physical retest are open. In flight: the Well-rim slice, F4 + F5 (E276). F6–F8 and F10 are todo. The full nine-stratum shard (P1 onward) is unbuilt and awaits the next checkpoint.
 
 ## 0. Read this first
 
@@ -281,15 +281,16 @@ slots, per-frame hook, tier overrides, `aa`), the registry's `PROTOTYPES` + the 
 ### 6.3 What is left in the fragment (→ §10 F)
 
 The Well's deep levels still wash out below ~50 m; mockup B's rim post blocks its lower-left; mockup C's frame is capped by
-lantern strings and a near sky screen; several lanes are over their draw caps; the facade dressing needs multi-draw; the
-grapple is a lab; out of bounds; no phone reading yet.
+lantern strings and a near sky screen; several lanes are over their draw caps; the grapple has parity work left (F2); the
+iPhone memory caps (E264) and a physical phone reading (F9) are open.
 
 ### 6.4 The budget (`art/nine-dragon-stack/budget.md`, ruler `scripts/nine-dragon-budget.mjs`)
 
-Per pose on the phone frame: **≤ 2.3 M triangles, ≤ 180 draws** (lane caps sum to ~2.0 M / 175). Worst pose now
-**1.53 M / 160**; mockups A 1.52 M / 147, B 1.37 / 140, C 0.89 / 139, D 1.11 / 116. Levers that made it: the per-instance
+Per pose on the phone frame: **≤ 2.3 M triangles, ≤ 180 draws** (lane caps sum to ~2.0 M / 175). Worst pose on the
+instanced facade path, the only one since E272: **1.67 M / 160**; mockups A 1.66 M / 147, B 1.43 / 141, C 0.82 / 136,
+D 1.17 / 117. Levers that made it: the per-instance
 culler run from the drawn camera, the crowd LOD (~550 k → ~60 k), the lantern LOD (−390 k). Over their caps: B2 17 / 16
-draws, C2 15 / 12, C1 8 / 6, B1/D1 13 / 12, viewmodel 25 / 24, post 39 / 38, facade dressing 28 / 20 (needs BatchedMesh).
+draws, C2 15 / 12, C1 8 / 6, B1/D1 13 / 12, viewmodel 25 / 24, post 39 / 38, facade dressing ~28 / 20 (instanced; merge kits and cull, never multi-draw).
 
 ## 7. How we build (the method the fragment proved)
 
@@ -322,7 +323,7 @@ For every area (a stratum, a hero space):
 | E10 | Look chain | **done** (`64cb07bd` + look/) | per-stratum colour script (the gold-on-indigo flip for 1–3) |
 | E11 | Boot / build time | todo | measure the procedural build on the phone; bake heavy output into packs if > ~2 s |
 | E12 | Viewmodel | **done** (`7a339ed2`) | landscape pose, cloth clip in a hard slash, combo timing polish |
-| E13 | Facade multi-draw | todo | the dressing on three's BatchedMesh (per-instance culling built in) → ≤ 20 draws |
+| E13 | Facade draws | **multi-draw dropped** (E271 / E272: it killed the game on physical iPhones; prohibited on every shard) | the dressing stays instanced; its lane comes under 20 draws by merged kits, the per-instance culler and cuts |
 
 ## 9. Audio
 
@@ -358,11 +359,11 @@ State of each row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `need
 | F1 | **Out of bounds** (Jake's playtest): invisible walls on every edge of the walkable fragment and every reachable roof, a soft respawn for anything below / outside the built volume, the hoverboard clamped; edge legs added to the walk test | continuation | done `fcd49d9d`; 19 legs, 0 stuck/escape |
 | F2 | **The grapple as the real verb**: port the lab's fire → fly → bite → zip into the shard, LOCK targets dragon hooks (a hook registry from `ctx.hooks` / the Well), JUMP fires and zips (a pull on the Rapier capsule), the arms' grapple clips; delete the lab only after [parity](../audits/nine-dragon-grapple-parity.md) | continuation | playable zip `03b04b67`; rope, FX and miss/reel ported with phone reductions; motion polish, casting parity and enemy yank remain |
 | F3 | **A 15 s portrait teaser trailer** from the engine (the `scripts/steam-trailer/` pipeline): rise up the Well, breach onto the square, the jian, the stair-street, the grapple, the end card; a MiniMax cue + MOSS / SA3 SFX; portrait 1080p60 master for the portrait iOS PWA | continuation | latest grapple recut `d76d79c0`, [round 22](../../art/nine-dragon-stack/round-22-portrait-grapple-final/README.md); awaiting Jake's review |
-| F4 | **Mockup B**: move the rim post out of the lower-left (look over a carved panel, a post lower-right), `placeLion` on the posts | dome C | todo |
-| F5 | **The deep Well**: levels 50–90 m down and the temple readable through the mist (a lighter curve / lit surfaces punching through), mockup D's frame | render + D2 | todo |
+| F4 | **Mockup B**: move the rim post out of the lower-left (look over a carved panel, a post lower-right), `placeLion` on the posts | dome C | in flight (E276, 2026-09-28) with F5: the Well-rim slice, memory-neutral |
+| F5 | **The deep Well**: levels 50–90 m down and the temple readable through the mist (a lighter curve / lit surfaces punching through), mockup D's frame | render + D2 | in flight (E276, 2026-09-28) with F4 |
 | F6 | **Mockup C**: open depth over the stair (thin the lantern strings, push back the near sky screen, the paifang big and centred, the skybridges at the mockup's depths) | C2 + render | todo |
 | F7 | Each dome loops against its 3×3 targets until "a stranger has to look twice" at phone size: A1, A2, B1, B2, C1, C2, D1, D2 | the domes | in progress |
-| F8 | Lanes back under their caps (§6.4) + the facade dressing on BatchedMesh (E13) | port lead + domes | todo |
+| F8 | Lanes back under their caps (§6.4) by merged kits, culling and cuts; instancing only, facade multi-draw is prohibited (E271 / E272) | port lead + domes | todo |
 | F9 | **Jake's iPhone reading** of the fragment: first confirm title → Nine Dragon reaches play once on the physical home-screen PWA; then FPS at the four mockup cameras and boot time | Jake | needs you; Simulator pass is not a physical-device result |
 | F10 | Cleanup: `public/assets/nine-dragon/lab/*` → final asset paths; the art index rows (rounds 7–17); LOOK-LOOP.md gotchas (§12); D2's cameras 2–3 re-seated; the crossings' keep-clear for the moved temple (z −35…−25 below +54) | coordinator | todo |
 | F11 | **Decision**: keep the fragment behind the Debug row, or show it to everyone as an EXPERIMENTAL prototype card | Jake | resolved by E222: the title-first selector shows Nine Dragon as Experimental |
@@ -447,7 +448,7 @@ Every stratum: 2–4 hero mockups → Jake picks → two domes per mockup → 3�
 
 | Risk | Why it bites | Mitigation |
 |---|---|---|
-| Draw calls | a dense city is thousands of objects; draws bind before triangles | lane caps, merged kits, per-instance culling, BatchedMesh, stratum streaming |
+| Draw calls | a dense city is thousands of objects; draws bind before triangles | lane caps, merged kits, per-instance culling, stratum streaming (never facade multi-draw: E271) |
 | Content scale | 9 strata × ~100 000 m², and the fragment alone is ~20 k lines | the stratum grammar (E3); hand-built hero spaces only; the §7 method per stratum |
 | Boot time + memory | the procedural build runs at load; a 500 m cube beside another resident shard on iOS (E167) | stream strata (E4); bake to packs (E11); shared kit textures |
 | The mist eats the depth | a uniform fog turned the Well into a white slab | layered bands, clear near the eye, lights punching through (F5) |

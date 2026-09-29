@@ -1,9 +1,10 @@
 # Nine Dragon Stack: the phone budget (P0-5c)
 
-**State:** 2026-09-26. The caps below are in force. Latest measure: a clean export of `f962b730` with the F8 facade
-batch, three Fei Zhua hook sculpts and the corrected B2 bridge camera. All 76 portrait ruler poses pass the whole-frame
-gate on Chrome/Metal with and without multi-draw. Five lanes still exceed their own caps; iPhone frame time and resident
-memory are unmeasured.
+**State:** 2026-09-28. The caps below are in force. Facade multi-draw is removed on every shard (E271 / E272: it
+killed the game on physical iPhones), so the instanced path, measured below as the "no-multi-draw fallback", is the only
+one. Latest measure: a clean export of `f962b730` with three Fei Zhua hook sculpts and the corrected B2 bridge camera.
+All 76 portrait ruler poses pass the whole-frame gate on Chrome/Metal. Five lanes still exceed their own caps. iPhone
+memory has its own caps under E264 (1.8 GB loading, 1.0 GB World Explorer), and the fragment is over the Explorer cap.
 
 ## The gate
 
@@ -11,9 +12,9 @@ On the phone frame (402×874 @3, tier phone, the shard's portrait FOV), every ru
 **2.3 M triangles and 180 draw calls**. The lane caps below add up to about 2.0 M and 175 draws, which leaves about
 0.3 M of headroom.
 
-The current multi-draw build peaks at **139 draws** and **1.65 M triangles** (not the same pose). The tested
-no-multi-draw fallback peaks at **160 draws** and **1.67 M triangles**. That leaves at least 20 draw calls and 0.63 M
-triangles of whole-frame headroom in this ruler. It is a Chrome/Metal phone-profile test, not an iOS PWA frame-time test.
+The instanced build peaks at **160 draws** and **1.67 M triangles** (not the same pose). That leaves 20 draw calls and
+0.63 M triangles of whole-frame headroom in this ruler. It is a Chrome/Metal phone-profile test, not an iOS PWA
+frame-time test. (The removed multi-draw build peaked at 139 draws and 1.65 M.)
 
 ## The ruler
 
@@ -32,10 +33,8 @@ triangles of whole-frame headroom in this ruler. It is a Chrome/Metal phone-prof
   D2, `well-r-*` → B1/D1, `stair-terraces|far` → C2, `stair-foot` → C1.
 - Everything else goes to the lane of the region its triangles or instances stand in: the facade dressing, lanterns,
   crowd, instanced dressing and shared kits.
-- The facade dressing's draws are a shared lane. With `WEBGL_multi_draw`, the large pieces are one BatchedMesh draw,
-  small distance-shrunk pieces remain instanced and the windows remain one draw. The ruler reads BatchedMesh's rendered
-  instance IDs and geometry ranges to assign only visible triangles to their world regions. Without the extension it
-  keeps the original per-piece InstancedMeshes.
+- The facade dressing's draws are a shared lane: per-piece InstancedMeshes, the small distance-shrunk pieces and one
+  draw for the windows. Multi-draw is prohibited (E271 / E272).
 
 ## The frame now
 
@@ -44,11 +43,10 @@ triangles of whole-frame headroom in this ruler. It is a Chrome/Metal phone-prof
 | Before the culler (all 72 poses) | 2.81 M / 174 | 2.62 M | 2.44 M | 2.08 M | 2.22 M |
 | ex16: culler + crowd / lantern LODs | 1.51 M / 179 | 1.36 M / 158 | 1.21 M / 155 | 0.75 M / 133 | 0.83 M / 128 |
 | ex18: + the rigged arms (P8), the domes' first cuts | 1.53 M / 160 | 1.52 M / 147 | 1.37 M / 140 | 0.89 M / 139 | 1.11 M / 116 |
-| **Current: facade multi-draw + three sculpted hooks** | **1.65 M / 139** | 1.65 M / 130 | 1.41 M / 122 | 0.82 M / 117 | 1.17 M / 116 |
-| Current: no-multi-draw fallback | 1.67 M / 160 | 1.66 M / 147 | 1.43 M / 141 | 0.82 M / 136 | 1.17 M / 117 |
+| Removed: facade multi-draw + three sculpted hooks | 1.65 M / 139 | 1.65 M / 130 | 1.41 M / 122 | 0.82 M / 117 | 1.17 M / 116 |
+| **Current: instanced facades + three sculpted hooks** | **1.67 M / 160** | 1.66 M / 147 | 1.43 M / 141 | 0.82 M / 136 | 1.17 M / 117 |
 
-- In the current multi-draw run, A2·9 has the most draws (139) and A1·5 has the most triangles (1.645 M). In the
-  fallback run A2·9 has 160 draws and A1·2 has 1.673 M triangles. The B2 first-person cameras now stand at the
+- In the current instanced run A2·9 has the most draws (160) and A1·2 has the most triangles (1.673 M). The B2 first-person cameras now stand at the
   built timber bridge's center, clearing the railing seen in the previous camera 5 capture.
 - The rigged arms cost 214 k triangles and 25 draws, drawn once. They sit out n8ao's transparency pre-pass
   (`treatAsOpaque`), which had drawn them a second time; an A/B of the frame shows no visible difference.
@@ -60,7 +58,7 @@ triangles of whole-frame headroom in this ruler. It is a Chrome/Metal phone-prof
 
 ## The lanes: caps and where each stands
 
-"Now" is the lane's worst over the 13 distinct pass-2 poses in the current multi-draw run. Numbers in **bold** are over their cap. Until the
+"Now" is the lane's worst over the 13 distinct pass-2 poses in the removed multi-draw run; re-measure on the instanced build. Numbers in **bold** are over their cap. Until the
 ruler shows a lane under its cap, the lane's owner cuts before adding anything. The frame gate stands either way:
 every pose must be ≤ 2.3 M triangles and ≤ 180 draws.
 
@@ -73,7 +71,7 @@ every pose must be ≤ 2.3 M triangles and ≤ 180 draws.
 | C1 stair foot | dome D | 0.10 M | 6 | 0.066 M | **10** | The mockup C pose has four more draws than its lane cap. |
 | C2 upper stair | dome C2 | 0.30 M | 12 | 0.232 M | 11 | Terraces, stair gate and stair-wall dressing. |
 | Towers + street | dome D | 0.30 M | 12 | 0.278 M | 12 | Tower kits and facade triangles on their fronts. |
-| Facade batches (draws only) | port lead | — | 20 | — | 9 | One BatchedMesh for large pieces, six small-piece batches, windows and shell; uses multi-draw only where supported. |
+| Facade dressing (draws only) | port lead | — | 20 | — | **~28** | Instanced pieces, small-piece batches, windows and shell (~28 draws at ex18; re-measure). Merge kits and cull; never multi-draw. |
 | Look | render agent | 0.03 M | 11 | 0.014 M | 9 | |
 | Viewmodel | P8 | 0.25 M | 24 | 0.214 M | **25** | Rigged arms, jian, Fei Zhua, cloth, halo and trail. |
 | Post chain (the empty frame) | render agent | 0.03 M | 38 | 0.023 M | **39** | |
@@ -95,13 +93,13 @@ every pose must be ≤ 2.3 M triangles and ≤ 180 draws.
 - **Crowd LOD** (dome B, `crowd.ts`): per-figure culling, a ~320-triangle copy past 35 m, none past 130 m. About 550 k
   → about 60 k.
 - **Lantern LOD** (render agent, `look/lanterns.ts`): near and far buckets. About −390 k.
-- **Facade multi-draw** (`world/facade/batch.ts`, `look/facadeMaterial.ts`): the large kit pieces are one BatchedMesh
-  on the tested Chrome/Metal renderer. The shared facade lane falls from 28 to 9 draws at its measured maximum; small
-  clutter and windows keep their old paths. The fallback stays under the whole-frame gate without the extension.
+- ~~Facade multi-draw~~ **removed** (E271 / E272). It cut the facade lane from 28 to 9 draws on Chrome/Metal, and it
+  also got the WebContent process Jetsam-killed on physical iPhones. It is prohibited on every shard
+  (`docs/audits/nine-dragon-mobile-multidraw.md`).
 
 **Next**
-- **iOS validation.** Check `WEBGL_multi_draw` and frame time on the portrait Safari PWA, plus process memory with
-  another shard resident. The Chrome fallback total passing the gate does not establish 60 FPS on the phone.
+- **iOS validation.** Frame time on the portrait Safari PWA, plus process memory against E264's caps. The Chrome
+  total passing the gate does not establish the frame rate on the phone.
 - **Lane cap reconciliation.** B1/D1, B2, C1, viewmodel and post are over their agreed caps even though the whole
   frame passes. The B1/D1 hook sculpt is a deliberate new cost; give it room through a measured cut or an approved
   lane rebalance before further additions.
