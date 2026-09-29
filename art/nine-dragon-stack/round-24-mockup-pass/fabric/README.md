@@ -94,3 +94,20 @@ Build: `main` at `be97ea90` (the stair's sky screen removed) + this lane's files
 
 **Numbers:** geometry 156.2 MB (every lane), textures 79.6 MB. Worst pose mockup A 125 draws / 1.49 M triangles.
 `scripts/test-facade-instancing.mjs`: pass on all three profiles (no batched facade, ~16,860 facade instances).
+
+## Pass 4
+
+Build: `main` at `3ba3a700` + this lane's files. Sheets: `pass-4/`.
+
+- **The second Cable Deck went with its sky screen.** The coordinator removed the stair's sky screen (it read as a
+  flat teal ceiling); the deck it hung from was left as a bare grey slab over the stair, in every view from above
+  (C2·9 top-down: now the street and its roofs).
+- **Far faces, less of a grid.** The painted far faces give each cell its own opening (narrow, wide, some bricked
+  up) and now and then a painted vertical neon sign two floors tall on a bay's first column, in one of the five neon
+  hues: the far stacks keep a little of the near walls' clutter. Shader only.
+
+**Reverted:** nothing. The far-face change is subtle at sheet size; C2·9 is the clear one.
+
+**Numbers:** geometry 156.0 MB (every lane), textures 79.6 MB. Worst pose mockup A 125 draws / 1.50 M triangles. This
+lane's own geometry, pass 0 → pass 4: 18.3 → 11.3 MB (the facade shell 12.55 → 5.4 MB). The facade dressing's draws:
+23–30 a pose in pass 0, at most 20 now.

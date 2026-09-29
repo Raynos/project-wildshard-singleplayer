@@ -164,8 +164,7 @@ function cableDeck(ctx: Ctx, rng: Rng): void {
   ctx.signs.place({ at: new Vector3(1, y + 1.6, f + 0.3), normal: new Vector3(0, 0, 1), size: 1.25, spec: { text: '九龍', color: hex(NEON.red), vertical: false, style: 'tube' } }, k);
   dragonHook(k, ctx, new Vector3(-4, y + 0.2, f + 0.1), new Vector3(0, 0, 1), 0.6);
   dragonHook(k, ctx, new Vector3(22, y + 0.2, f + 0.1), new Vector3(0, 0, 1), 0.6);
-  // a second deck over the stair-street (in the deck's own mesh: one draw for both, the budget's towers lane)
-  k.box(78, Y0 + 50, 6, 70, 3, 64, { wash: 0x8a9099, kind: K.facade, row: 1.5, col: 4, seed: 12, line: 1.5 }, { bottom: null });
+  // (E281: the second deck over the stair-street went with its sky screen — a bare slab over the stair from above)
 }
 
 /**

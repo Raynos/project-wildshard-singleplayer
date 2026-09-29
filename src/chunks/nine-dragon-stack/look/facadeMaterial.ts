@@ -253,7 +253,10 @@ void main() {
     col *= 0.84 + 0.26 * h12(vec2(bay, fseed + 5.7));
     col = mix(col, col * vec3(0.55, 0.42, 0.32), timber * 0.85);
     float isLit = step(h12(cell + fseed * 7.0), 0.48 + 0.12 * timber);
-    float win = cover1(f.x, 0.18, 0.82, fg.x) * cover1(f.y, 0.3, 0.8, fg.y);
+    // (pass 4) each cell its own opening — narrow, wide or bricked up — so the face never reads as an even grid
+    float hw = h12(cell + fseed * 3.7 + 11.0);
+    float wx0 = 0.14 + 0.16 * hw, wx1 = 0.86 - 0.16 * h12(cell + fseed * 5.3 + 2.0);
+    float win = cover1(f.x, wx0, wx1, fg.x) * cover1(f.y, 0.3, 0.78 + 0.06 * hw, fg.y) * step(0.07, h12(cell.yx + fseed));
     vec3 dark = col * vec3(0.42, 0.47, 0.58);
     vec3 cellC = mix(col, dark, win * (1.0 - isLit));
     float lip = balc * cover1(f.y, 0.0, 0.07, fg.y);
@@ -263,8 +266,17 @@ void main() {
     float eave = step(0.8, h12(vec2(cell.y, fseed + 2.9))) * cover1(f.y, 0.85, 1.0, fg.y);
     vec3 tile = mix(vec3(0.1, 0.3, 0.23), vec3(0.11, 0.2, 0.38), step(0.8, h12(vec2(cell.y, fseed))));
     cellC = mix(cellC, tile, eave);
+    // (pass 4) painted neon: now and then a vertical sign two floors tall on a bay's first column, in one of the five
+    // neon hues — the far stacks keep the near walls' clutter of signs
+    vec2 sc = vec2(bay, floor(cell.y / 2.0));
+    float pSign = step(h12(sc + fseed * 1.3 + 7.0), 0.06) * step(cell.x - bay * bw, 0.5)
+      * cover1(f.x, 0.28, 0.72, fg.x) * cover1(g.y - sc.y * 2.0, 0.25, 1.75, fg.y);
+    float hn = h12(sc + fseed);
+    vec3 neonC = hn < 0.2 ? vec3(1.0, 0.25, 0.64) : hn < 0.4 ? vec3(0.25, 0.9, 1.0) : hn < 0.6 ? vec3(0.2, 0.94, 0.69) : hn < 0.8 ? vec3(1.0, 0.23, 0.19) : vec3(1.0, 0.7, 0.28);
+    cellC = mix(cellC, neonC * 0.35, pSign);
     col = mix(mix(col, dark, 0.3), cellC, det);
-    emitC = vec3(1.0, 0.7, 0.38) * mix(0.45 * 0.3, win * isLit * (1.0 - rail * 0.6) * (1.0 - eave), det) * 1.15;
+    emitC = vec3(1.0, 0.7, 0.38) * mix(0.45 * 0.3, win * isLit * (1.0 - rail * 0.6) * (1.0 - eave) * (1.0 - pSign), det) * 1.15;
+    emitC += neonC * pSign * det * 1.6;
     lines = max(lines, ruleEvery(q.y, p1, fq.y, Wp) * 0.8);
   }
 
