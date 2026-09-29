@@ -38,3 +38,13 @@ their own currency / trophy once Driftwood's version is played.
 
 Jake picks which of L1–L5 to take. Each picked row gets its own ask and an iPhone-portrait board (the shop, the
 Gear / Collection tabs, the doubloon pop) before it is built.
+
+## Jake's steer, 2026-09-29 (after the draft)
+
+"I want inventory to be a separate tab that's full. Collection and gear are supposed to be simpler new tabs that are
+really clean and polished. Inventory is the junk tab." So:
+- L5 becomes MAP · GEAR · COLLECTION · INVENTORY · ACHIEVEMENTS. GEAR and COLLECTION are the clean, polished tabs; INVENTORY
+  keeps the full pack of junk. How five tabs stay uncluttered on the phone is its own board (`board-8-bag-tabs.jpg`).
+- L1 changes with it: kills still drop junk into INVENTORY, and the junk **sells to Wendell for doubloons** (a BUY | SELL
+  switch on his shop, "SELL ALL JUNK"). The junk finally has a use, and doubloons still flow from fights. Needs the
+  12-slot pack fixed (it silently refuses a 13th kind today).
