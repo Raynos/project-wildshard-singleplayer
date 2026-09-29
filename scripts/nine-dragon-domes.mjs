@@ -72,7 +72,11 @@ try {
   await sleep(6000);
   await page.evaluate(() => {
     const w = window.__world;
-    window.__nd = { pose: null, bare: false };
+    window.__nd = { pose: null, bare: false, saved: new Map() };
+    // the grapple's hook marker goes stale under a free camera (it tracks the player's aim): never in a capture
+    const st = document.createElement('style');
+    st.textContent = '.ws-dragon-hook { display: none !important; }';
+    document.head.append(st);
     w.game.onLate(() => {
       const p = window.__nd.pose, cam = w.game.camera;
       if (!p) return;
@@ -84,7 +88,13 @@ try {
         cam.fov = (2 * Math.atan(Math.tan((p.hfov * Math.PI) / 360) / cam.aspect) * 180) / Math.PI;
         cam.updateProjectionMatrix();
       }
-      for (const c of cam.children) c.visible = !window.__nd.bare;
+      // bare hides the viewmodel; leaving bare restores what the game had (the kit's idle weapons stay hidden)
+      if (window.__nd.bare) {
+        for (const c of cam.children) { if (!window.__nd.saved.has(c)) window.__nd.saved.set(c, c.visible); c.visible = false; }
+      } else if (window.__nd.saved.size > 0) {
+        for (const [c, v] of window.__nd.saved) c.visible = v;
+        window.__nd.saved.clear();
+      }
       cam.updateMatrixWorld(true);
     });
     w.freeCamera = true;

@@ -35,8 +35,8 @@ export const MOCKUP_CAMERAS: Readonly<Record<'A' | 'B' | 'C' | 'D', MockupCamera
   },
   B: {
     mockup: 'comp-B-well-edge.jpg',
-    eye: [-19.5, 126.68, 12.25], feet: [-19.5, 125, 12.25], yaw: 0, pitch: -10,
-    frame: 'on the Well\'s south rim a metre back from the balustrade (its rail across the lower third), looking north down the axis of the canyon\'s run north (x −28…−12; at x −10.5 the stub wall fills the frame): the crossings like ladder rungs receding into the mist to the far gate at z −95, the dragon hook on the right-hand gallery',
+    eye: [-19.5, 126.68, 13.3], feet: [-19.5, 125, 13.3], yaw: 0, pitch: -10,
+    frame: 'on the Well\'s south rim two metres back from the balustrade (its carved rail and a post across the lower third; at a metre the 57° phone frame held one bay of it, E281), looking north down the axis of the canyon\'s run north (x −28…−12; at x −10.5 the stub wall fills the frame): the crossings like ladder rungs receding into the mist to the far gate at z −95, the dragon hook on the right-hand gallery',
   },
   C: {
     mockup: 'comp-C-stair-street.jpg',
