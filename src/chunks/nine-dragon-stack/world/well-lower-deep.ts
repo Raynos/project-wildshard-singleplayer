@@ -105,30 +105,35 @@ export function deepTemple(ctx: Ctx, k: Kit, x: number, z: number, yBase: number
   // the terrace: a flagged disc with a stone lip
   k.cyl(x, top - 0.6, z, r * 1.05, r * 1.05, 0.6, 14, { wash: 0x7c7870, line: 1.8, surf: SURF.stone }, { caps: false });
   k.cyl(x, top, z, r * 1.05, r * 1.05, 0.001, 14, { wash: 0x6a6760, kind: K.flag, line: 0, wet: 0.6 });
-  // the hall: 6 × 4.2 m, red columns, lit doors all round, a two-tier glazed roof
-  const hw = 3, hd = 2.1, hy = top;
+  // the hall: 6 × 4.2 m at a 4.6 m spur, scaled with the spur's radius, red columns, lit screens all round, a two-tier
+  // glazed roof
+  const sc = r / 4.6;
+  const hw = 3 * sc, hd = 2.1 * sc, hy = top, H1 = 2.6 * sc;
   k.box(x, hy, z, 2 * hw + 0.8, 0.45, 2 * hd + 0.8, { wash: 0x8a857c, line: 1.8, surf: SURF.stone });
   const base = hy + 0.45;
-  k.box(x, base, z, 2 * hw - 0.3, 2.6, 2 * hd - 0.3, { wash: 0x7e1e1a, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer }, { top: null, bottom: null });
+  k.box(x, base, z, 2 * hw - 0.3, H1, 2 * hd - 0.3, { wash: 0x7e1e1a, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer }, { top: null, bottom: null });
   for (let i = -2; i <= 2; i++) {
     for (const s of [-1, 1]) {
-      k.cyl(x + i * (hw / 2.1), base, z + s * hd, 0.16, 0.14, 2.7, 6, { wash: 0xa8341f, line: 1, accent: true, surf: SURF.lacquer }, { caps: false });
+      k.cyl(x + i * (hw / 2.1), base, z + s * hd, 0.16 * sc, 0.14 * sc, H1 + 0.1, 6, { wash: 0xa8341f, line: 1, accent: true, surf: SURF.lacquer }, { caps: false });
     }
   }
-  // glowing lattice doors on the south and north faces, windows on the ends
+  // (F5) a lantern hall: its south and north faces are one glowing lattice screen between the columns, its ends lit
+  // windows — the warm glow the view down from the rim ends on, 70 m through the silk (lit doors alone read as a dot)
   for (const s of [-1, 1]) {
-    for (let i = -1; i <= 1; i++) {
-      const p = new Vector3(x + i * 1.7, base + 0.05, z + s * (hd - 0.14));
-      k.quad(p.clone().add(new Vector3(-0.6 * s, 0, 0)), new Vector3(s, 0, 0), UP, 1.2, 2.2, { wash: 0xffc98a, emit: 1.7, kind: K.bars, row: 0.35, col: 0.22, line: 1, accent: true });
-    }
-    k.quad(new Vector3(x + s * (hw - 0.14), base + 0.9, z + 0.7 * s), new Vector3(0, 0, -s), UP, 1.4, 1.1, { wash: 0xffbf78, emit: 1.5, kind: K.bars, row: 0.3, col: 0.3, line: 1, accent: true });
+    k.quad(new Vector3(x - s * (hw - 0.3), base + 0.05, z + s * (hd - 0.14)), new Vector3(s, 0, 0), UP, 2 * hw - 0.6, H1 * 0.86, { wash: 0xffc98a, emit: 2.2, kind: K.bars, row: 0.35, col: 0.22, line: 1, accent: true });
+    k.quad(new Vector3(x + s * (hw - 0.14), base + 0.6 * sc, z + s * (hd - 0.5)), new Vector3(0, 0, -s), UP, 2 * hd - 1.0, H1 * 0.6, { wash: 0xffbf78, emit: 1.9, kind: K.bars, row: 0.3, col: 0.3, line: 1, accent: true });
   }
-  hipRoof(k, new Vector3(x, base + 2.75, z), 2 * hw, 2 * hd, 1.1, 0.9, 0x2f8a6a);
-  k.box(x, base + 3.3, z, 2 * hw - 1.4, 0.9, 2 * hd - 1.2, { wash: 0x7e1e1a, kind: K.panel, line: 1, accent: true }, { top: null, bottom: null });
-  hipRoof(k, new Vector3(x, base + 4.1, z), 2 * hw - 1.6, 2 * hd - 1.2, 1.3, 0.7, 0x2f8a6a);
-  // lanterns under the lower eave, all round (the glow the view down finds through the silk)
+  hipRoof(k, new Vector3(x, base + H1 + 0.15, z), 2 * hw, 2 * hd, 1.1 * sc, 0.9 * sc, 0x2f8a6a);
+  k.box(x, base + H1 + 0.7 * sc, z, 2 * hw - 1.4 * sc, 0.9 * sc, 2 * hd - 1.2 * sc, { wash: 0x7e1e1a, kind: K.panel, line: 1, accent: true }, { top: null, bottom: null });
+  // a band of lit lattice round the upper storey: seen from above, the lit hall shows between its two roofs
+  for (const s of [-1, 1]) {
+    k.quad(new Vector3(x - s * (hw - 0.75 * sc), base + H1 + 0.8 * sc, z + s * (hd - 0.6 * sc + 0.01)), new Vector3(s, 0, 0), UP, 2 * hw - 1.5 * sc, 0.6 * sc, { wash: 0xffc98a, emit: 2.2, kind: K.bars, row: 0.3, col: 0.2, line: 1, accent: true });
+  }
+  hipRoof(k, new Vector3(x, base + H1 + 1.5 * sc, z), 2 * hw - 1.6 * sc, 2 * hd - 1.2 * sc, 1.3 * sc, 0.7 * sc, 0x2f8a6a);
+  // lanterns hung from the lower eave's tips, all round (the glow the view down finds through the silk: F5, hung
+  // outside the eave line so the view from the rim sees them, not the roof over them)
   for (const [ex, ez] of [[-1, -1], [0, -1], [1, -1], [-1, 1], [0, 1], [1, 1], [-1, 0], [1, 0]] as const) {
-    litLantern(ctx, k, new Vector3(x + ex * (hw + 0.5), base + 2.6, z + ez * (hd + 0.5)), 1.0, ez !== 0 && ex === 0);
+    litLantern(ctx, k, new Vector3(x + ex * (hw + 1.2 * sc), base + H1 - 0.3, z + ez * (hd + 1.2 * sc)), 1.1, ez !== 0 && ex === 0);
   }
   // the incense burner, the path, the lanterns (paper ones on posts, their pools light the terrace)
   k.cyl(x, top, z + hd + 2.2, 0.45, 0.55, 0.9, 8, { wash: 0x3a3d44, line: 1 });
@@ -139,7 +144,7 @@ export function deepTemple(ctx: Ctx, k: Kit, x: number, z: number, yBase: number
     k.beam(p, p.clone().add(new Vector3(0, 2.1, 0)), 0.1, 0.1, { wash: 0x7e1e1a, line: 1, accent: true });
     litLantern(ctx, k, p.clone().setY(p.y + 2.1), 1.1, true);
   }
-  // the trees round it: dark round crowns on short trunks (brush-round, never ruled)
+  // the trees round it: dark round crowns on short trunks (brush-round, never ruled), the island's dark-green ring
   const ico = new IcosahedronGeometry(1, 1);
   const pos = ico.getAttribute('position').array;
   const leaf: Look = { wash: 0x2e5a3f, kind: K.leaf, line: 0, accent: true };
@@ -148,14 +153,14 @@ export function deepTemple(ctx: Ctx, k: Kit, x: number, z: number, yBase: number
     if (Math.abs(Math.sin(a)) > 0.85 && Math.sin(a) > 0) continue; // keep the south approach open
     const rr = r * rng.range(0.55, 0.7);
     const px = x + Math.cos(a) * rr, pz = z + Math.sin(a) * rr;
-    const s = rng.range(1.3, 2.0);
+    const s = rng.range(1.3, 2.0) * Math.sqrt(sc);
     k.limb(new Vector3(px, top, pz), new Vector3(px, top + 1.4, pz), 0.18, 0.12, 5, { wash: 0x3a2e26, line: 0 });
     k.blob(pos, null, px, top + 1.2 + s, pz, s, s * 0.85, s, { ...leaf, wash: rng.pick([0x2e5a3f, 0x3d6b48, 0x27503a]) }, true);
   }
   // monks / pilgrims on the terrace
   for (let i = 0; i < 5; i++) {
     const a = rng.range(0, Math.PI * 2);
-    figure(k, rng, new Vector3(x + Math.cos(a) * rng.range(3.6, 4.6), top, z + Math.sin(a) * rng.range(3.0, 3.8)), new Vector3(-Math.cos(a), 0, -Math.sin(a)));
+    figure(k, rng, new Vector3(x + Math.cos(a) * rng.range(3.6, 4.6) * sc, top, z + Math.sin(a) * rng.range(3.0, 3.8) * sc), new Vector3(-Math.cos(a), 0, -Math.sin(a)));
   }
   // a stair down the spur's south face, lanterns along it
   for (let i = 0; i < 10; i++) {

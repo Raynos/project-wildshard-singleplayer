@@ -9,11 +9,12 @@
 import { Vector3 } from 'three';
 import type { ColliderDesc } from '../../../world/registry';
 import { spanStreet } from './facade/grammar';
-import type { Kit } from './kit';
+import { K, type Kit, type Look } from './kit';
 import { WELL, Y0 } from '../layout';
 import { dragonHook } from './props';
 import { NEONS, WORDS } from './towers';
 import { NEON, Rng } from '../util';
+import { SURF } from '../look/paint';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';
 import type { Ctx } from './ctx';
@@ -53,6 +54,26 @@ const PIPES: readonly [number, number, number, number][] = [
   [-46, Y0 - 3.2, 0.22, 0x7c8187], [-61, Y0 + 6.4, 0.3, 0x8a6650], [-68, Y0 - 12.5, 0.2, 0x6d7178], [-79, Y0 + 3.6, 0.26, 0x7c8187],
   [-92, Y0 - 7.3, 0.22, 0x8a6650], [-36, Y0 - 24.4, 0.24, 0x6d7178], [-2, Y0 - 38.5, 0.2, 0x8a6650],
 ];
+
+/** the run north's parked gondola (F4): its cable across the slot at z, height y, the cabin at x */
+const RUN_CABLE = { z: -46.5, y: Y0 + 16, x: -21 } as const;
+
+/** mockup B's gondola far off: the detailed cabin's (well-bridges.ts gondolaCabin) big masses, hung from a cable point */
+function farCabin(k: Kit, x: number, y: number, z: number): void {
+  const W = 2.9, D = 2.1, y0 = y - 4.35;
+  const RED: Look = { wash: 0xb32a1b, line: 1.1, accent: true, gloss: true, surf: SURF.lacquer };
+  const ROOF: Look = { wash: 0x7e1f14, kind: K.tiles, line: 1, accent: true };
+  const GOLD: Look = { wash: 0xd9b25a, line: 1, accent: true, gloss: true };
+  k.box(x, y0, z, W - 0.1, 0.14, D - 0.1, { wash: 0x6e1a10, line: 1, accent: true });
+  k.box(x, y0 + 0.14, z, W, 0.92, D, { wash: 0xa82619, kind: K.panel, line: 1, accent: true, surf: SURF.lacquer });
+  k.box(x, y0 + 1.06, z, W - 0.06, 1.0, D - 0.06, { wash: 0xffdca6, emit: 1.2, kind: K.facade, row: 1.0, col: 0.6, seed: 5, line: 1, accent: true });
+  k.box(x, y0 + 1.02, z, W + 0.06, 0.06, D + 0.06, GOLD);
+  k.box(x, y0 + 2.06, z, W, 0.3, D, RED);
+  k.box(x, y0 + 2.36, z, W + 0.28, 0.2, D + 0.28, ROOF);
+  k.box(x, y0 + 2.56, z, W - 0.7, 0.3, D - 0.9, ROOF);
+  k.box(x, y0 + 2.86, z, 0.14, y - 0.5 - (y0 + 2.86), 0.14, { wash: 0x2a2c31, line: 1 });
+  k.box(x, y - 0.5, z, 1.4, 0.34, 0.34, { wash: 0x3a3d44, line: 1 });
+}
 
 /** the run north's lowest gallery floor (its lowest crossing lands at Y0 − 39) */
 const X_LOW = Y0 - 42;
@@ -125,6 +146,18 @@ export function buildMid(plan: WellPlan): void {
   ck.beam(new Vector3(CABLE.x0 + 1, CABLE.y + 0.02, CABLE.z), new Vector3(CABLE.x1 - 1, CABLE.y + 0.82, CABLE.z), 0.07, 0.07, { wash: 0x1d1e22, line: 0.6 });
   station(ctx, ck, CABLE.x0, CABLE.x0 + 5.2, CABLE.z, CABLE.y + 1.4, 1, CABLE.y);
   station(ctx, ck, CABLE.x1 - 5.2, CABLE.x1, CABLE.z, CABLE.y + 2.2, -1, CABLE.y + 0.8);
+  // ── (F4, mockup B) a second line across the run north, its cabin parked mid-span: mockup B's red gondola hangs in the
+  // middle of the view up the canyon (from B's camera ~33 % down the frame, 59 m off in the silk). Its cable pair ties
+  // to brackets on the gallery fronts; the cabin is a far LOD (~150 tris) in the run north's crossings kit (no draw) ──
+  {
+    const [fw, fe] = plan.fronts(RUN_CABLE.z, snapFloor(RUN_CABLE.y));
+    const k = KC.at(RUN_CABLE.z), rise = 0.6;
+    const wire = { wash: 0x1d1e22, line: 0.6 };
+    for (const dz of [-0.4, 0.4]) k.beam(new Vector3(fw - 0.2, RUN_CABLE.y, RUN_CABLE.z + dz), new Vector3(fe + 0.2, RUN_CABLE.y + rise, RUN_CABLE.z + dz), 0.05, 0.05, wire);
+    for (const [x, t] of [[fw + 0.25, 0], [fe - 0.25, 1]] as const) k.box(x, RUN_CABLE.y - 0.5 + rise * t, RUN_CABLE.z, 0.5, 0.9, 1.3, { wash: 0x3a3d44, line: 1 });
+    const cx = RUN_CABLE.x, t = (cx - fw) / Math.max(fe - fw, 1);
+    farCabin(k, cx, RUN_CABLE.y + rise * t, RUN_CABLE.z);
+  }
 
   // ── the far signs and hooks ──
   const hk = (z: number): Kit => KC.at(z);
