@@ -122,12 +122,15 @@ export interface Places {
   /** call a few times a second with the player's feet */
   update: (x: number, z: number) => void;
   discovered: (id: string) => boolean;
+  /** the places themselves, in world coords (E295: the last one reached is where a death puts you back, src/game/LastPlace.ts) */
+  points: readonly PlacePoint[];
 }
 
 /** named places with saved discovery (`seen:<id>` flags) + the live quest markers, for the full map */
 export function placesWithDiscovery(pts: PlacePoint[], flags: Flags, toast: (t: string) => void, markers: () => LiveMarker[]): Places {
   const out: MapPoi[] = [];
   return {
+    points: pts,
     discovered: (id) => flags.has(`seen:${id}`),
     update: (x, z) => {
       for (const p of pts) {

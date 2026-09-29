@@ -80,8 +80,12 @@ const VERB: Record<string, string> = {
 /** who (or what) hurt you last: an animal (`Animal.kind` / `Animal.label`), or a cause with no attacker ("Struck by lightning") */
 export type Killer = { kind: string; label: string } | { cause: string };
 
-/** where this shard puts you back (the death toast's tail) */
-export function respawnWhere(def: { slug: string; ocean?: unknown }): string {
+/**
+ * where this shard puts you back (the death card's second line): `place` = the last named place you reached (E295,
+ * src/game/LastPlace.ts `placeName`) when the shard has places and you have reached one; else the shard's spawn
+ */
+export function respawnWhere(def: { slug: string; ocean?: unknown }, place?: string | null): string {
+  if (place !== undefined && place !== null && place !== '') return `respawning at ${place}`;
   if (def.ocean !== undefined) return 'washed back to the pier';
   if (def.slug === 'nalati-grasslands') return 'respawning on the north road';
   return 'respawning at the south gate';
@@ -94,9 +98,14 @@ export function respawnWhere(def: { slug: string; ocean?: unknown }): string {
  * you, null for a fall; `where` = `respawnWhere(chunk)`.
  */
 export function deathLine(killer: Killer | null, where: string): string {
-  if (killer === null) return `Fell too far — ${where}`;
-  if ('cause' in killer) return `${killer.cause} — ${where}`;
+  return `${deathCause(killer)} — ${where}`;
+}
+
+/** the death card's headline (E295): who or what killed you — "Mauled by a brown bear", "Fell too far" */
+export function deathCause(killer: Killer | null): string {
+  if (killer === null) return 'Fell too far';
+  if ('cause' in killer) return killer.cause;
   const name = killer.label.trim() === '' ? killer.kind : killer.label.toLowerCase();
   const article = /^(the |a |an )/.test(name) ? '' : /^[aeiou]/.test(name) ? 'an ' : 'a ';
-  return `${VERB[killer.kind] ?? 'Killed by'} ${article}${name} — ${where}`;
+  return `${VERB[killer.kind] ?? 'Killed by'} ${article}${name}`;
 }

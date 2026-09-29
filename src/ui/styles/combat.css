@@ -44,3 +44,33 @@
   filter: drop-shadow(0 0 6px rgba(255, 60, 40, 0.7));
 }
 .ws-combat-hurt-arc.show { display: block; }
+
+/* ── death (src/ui/DeathFade.ts, E295): the view fades to dark (the veil, --ws-death-veil 0..1 set per frame), a glass
+   card names the killer and where you come back, the respawn happens under the dark, the view fades back in ── */
+.ws-combat-death {
+  --ws-death-veil: 0;
+  position: absolute; inset: 0; z-index: 58; display: none; align-items: center; justify-content: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 24px) 22px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text);
+}
+.ws-combat-death.show { display: flex; }
+.ws-combat-death::before {
+  content: ''; position: absolute; inset: 0; opacity: var(--ws-death-veil);
+  background: radial-gradient(ellipse at 50% 46%, #0a121b 0%, #04070c 62%, #010204 100%);
+}
+.ws-combat-death-card {
+  position: relative; width: 100%; max-width: 340px; padding: 18px 18px 16px; text-align: center; will-change: opacity, transform;
+  background: rgba(13, 27, 38, 0.82); border: 1px solid var(--ws-cyan-line);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 10px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(143, 227, 255, 0.12);
+}
+.ws-combat-death-card > .cb { position: absolute; width: 14px; height: 14px; border: 0 solid var(--ws-cyan); opacity: 0.9; }
+.ws-combat-death-card > .cb.tl { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
+.ws-combat-death-card > .cb.tr { right: -1px; top: -1px; border-width: 1px 1px 0 0; }
+.ws-combat-death-card > .cb.bl { left: -1px; bottom: -1px; border-width: 0 0 1px 1px; }
+.ws-combat-death-card > .cb.br { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+.ws-combat-death-cause {
+  font-family: var(--ws-display); font-weight: 700; font-size: 22px; line-height: 1.15; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #ffe2dc; text-shadow: 0 0 14px rgba(255, 90, 74, 0.55), 0 2px 3px rgba(0, 0, 0, 0.8);
+}
+.ws-combat-death-rule { width: 56px; height: 1px; margin: 11px auto 10px; background: var(--ws-cyan-line); }
+.ws-combat-death-where { font-size: 10px; line-height: 1.5; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan); }

@@ -73,7 +73,9 @@ import { dayClockClock, dayNightClock, setActiveClock } from './world/WorldClock
 import { DayNight } from './world/DayNight';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat, aimReadout } from './ui/Combat';
-import { HurtArc, deathLine, respawnWhere, type Killer } from './ui/HurtArc';
+import { HurtArc, deathCause, respawnWhere, type Killer } from './ui/HurtArc';
+import { DeathFade } from './ui/DeathFade';
+import { LastPlace, placeName } from './game/LastPlace';
 import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from './player/AimTargets';
 import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
@@ -113,7 +115,7 @@ import { pathRampDescs } from './physics/paths';
 import type { Collider } from './player/Player';
 import type { Material } from './physics/surface';
 import { activePhysics } from './physics/active';
-import { lineOfSight } from './physics/query';
+import { floorBelow, lineOfSight } from './physics/query';
 import { pickInteractable, setSight } from './world/interact/Interactables';
 import { installCompendium } from './ui/compendium/install';
 import { installPineCombat } from './pinehollow';
@@ -689,7 +691,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
-  installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, stowWeapon: (on) => { weapons.stowed = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
+  const adventure = installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, stowWeapon: (on) => { weapons.stowed = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/nalati/adventure.ts on the shared quest core) — null on any other shard ──
   installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });
@@ -846,6 +848,37 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   lockSys.onFlickMiss = (dir) => { lockOn.flashMiss(dir); };
   player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
   player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); if (health <= 0) killer = null; } };
+  // ── death (E295): a fade to dark with a "Mauled by a brown bear / respawning at Wreck Cove" card (src/ui/DeathFade.ts),
+  // the respawn under the dark at the last named place you reached (src/game/LastPlace.ts; Driftwood's places, the spawn
+  // when none), input frozen and no hit taken until the view is back. A boss fight's death keeps its own checkpoint. ──
+  const deathFade = new DeathFade();
+  const placePts = adventure?.places?.points ?? null;
+  const lastPlace = placePts !== null ? new LastPlace(() => placePts) : null;
+  if (lastPlace !== null) {
+    let since = 0;
+    game.onUpdate((dt) => {
+      since += dt;
+      if (since < 0.25) return;
+      since = 0;
+      if (deathFade.active || !hud.entered || world.freeCamera || world.tour.active || arena.entered) return;
+      const p = player.position, ph = activePhysics();
+      const floor = ph ? floorBelow(ph, p.x, p.z, p.y + 0.6, 1.2) : undefined; // real walkable footing under the feet
+      const grounded = floor !== undefined && Math.abs(floor - p.y) < 0.3 && player.onGround && !player.swimming && !player.wading && !player.hover
+        && !player.carried && player.ride === null && (sea === undefined || floor > sea.level + 0.3);
+      lastPlace.observe({ x: p.x, y: floor ?? p.y, z: p.z, grounded });
+    }, 'last place');
+  }
+  const chargeHit = animals.onCharge;
+  animals.onCharge = (a, dmg) => { if (!deathFade.active) chargeHit(a, dmg); }; // no hit lands while the view is dark
+  const die = (by: Killer | null): void => {
+    const stand = lastPlace?.stand ?? null;
+    music.sting('death');
+    player.carried = true; weapons.setEnabled(false); // frozen: the fixed step leaves the body alone, no swing / shot
+    deathFade.play(deathCause(by), respawnWhere(chunk, stand !== null && stand.id !== 'pier' ? placeName(stand.label) : null), {
+      dark: () => { if (stand !== null) player.spawn(stand.x, stand.z, stand.yaw, stand.y); else toSpawn(); },
+      done: () => { player.carried = false; weapons.setEnabled(!player.swimming); },
+    });
+  };
   hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
 
   // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
@@ -859,7 +892,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   let firstIn = true;
   let fromTitle = false; // pause → "Exit to main menu" → ENTER WORLD starts over at the spawn (E121), a plain resume does not
   const enter = () => {
-    if (fromTitle) { fromTitle = false; toSpawn(); }
+    if (fromTitle) { fromTitle = false; toSpawn(); lastPlace?.reset(); }
     audio.resume();
     audio.worldMuted = false;
     if (!music.isPlaying) music.play('theme'); // normally already playing: the title screen's first gesture started it
@@ -1018,12 +1051,14 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
-    // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up.
+    // death → the fade + card name the killer and where you come back (die, E295); only a weapon with ammo is topped up.
     // A death in a boss fight is handled there (back at the phase checkpoint): Nalati's King / Titan, Pine Hollow's Antler King
+    deathFade.update(dt);
+    if (deathFade.active) health = 100; // nothing else (a fall, lightning) kills you twice under the fade
     if (health <= 0) {
       health = 100; audio.death(); hud.damageFlash();
       if (ride?.mounted === true) ride.mount.dismount();
-      if (pineFights?.onPlayerDeath() !== true && nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) { hud.toast(deathLine(killer, respawnWhere(chunk))); respawn(); }
+      if (pineFights?.onPlayerDeath() !== true && nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) die(killer);
       if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
       killer = null; nalatiKit?.refill(); pineLoadout?.onPlayerDeath();
     }
