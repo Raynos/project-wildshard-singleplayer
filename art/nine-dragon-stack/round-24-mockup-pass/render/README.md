@@ -156,3 +156,16 @@ lights over a darker, bluer shaft. Rejected: dense cloud puffs (×4–×8): pale
 top of the rest: marginal.
 
 Memory: geometry 151.5 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.55 M triangles.
+
+## Round 2, pass 8: the skyline's ink, the Well's shadow lifted
+
+`pass-8/`, captured at `94e4be80` + the lane's files.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| The far skyline's ink 1.6 → 2.6 and its lit windows / lanterns ×1.5: the layers read as a dark blue city with warm lights in the sky gaps over the stair and the gate | `look/style.ts` | none |
+| The Well's deep ambient floor 0.3 → 0.45: pass 7's levels were a little too dark under their lights (mockup D L* p10 / p50 24 / 42 → 25 / 43) | `look/style.ts` | none |
+
+A small pass: the uniform tuning on these features is close to its plateau.
+
+Memory: geometry 151.0 MB, textures 79.6 MB. Worst pose: mockup A, 128 draws, 1.59 M triangles (A2·9 1.60 M, 108 draws).

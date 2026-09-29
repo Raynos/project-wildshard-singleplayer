@@ -144,7 +144,7 @@ export class Shared {
     uSkyTop: { value: c(0x6f94c8) },
     uSkyHorizon: { value: c(0xb3c3d8) },
     // (render, E281) the far Stack painted into the sky (FS_SKY skyline): strength, elevation scale, lit windows, ink
-    uSkyline: { value: new Vector4(1, 1, 1, 1.6) },
+    uSkyline: { value: new Vector4(1, 1, 1.5, 2.6) },
     // (render, E281) the wet nosings' glints: x gain, y the share of the sparkle cells lit
     // z: how much of the baked neon spill (vSpill) the glints take (round 2: the targets' treads glint in the neon's
     // colours), w: the sparkle cell's length (m)
@@ -191,7 +191,7 @@ export class Shared {
     uPuff: { value: new Vector2(1, 2) },
     // (round 2) the Well's washes under the datum: x the ambient's floor, y / z where it starts / is full (m under the
     // square's datum; smoothstep from z up to y), w its strength (0 = off)
-    uDeepAmb: { value: new Vector4(0.3, 4, 50, 1) },
+    uDeepAmb: { value: new Vector4(0.45, 4, 50, 1) },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
