@@ -155,7 +155,7 @@ export const WIND_QUEST: QuestDef = {
     {
       id: 'feathers',
       objective: 'Win three storm feathers from the great beasts · {n} / {of}',
-      hint: 'Kokbori, Qyran, Aqbars, Qara Batyr — or break Argymaq · any three',
+      hint: 'Kokbori from dusk, Qyran in a storm, Aqbars, Qara Batyr after 5 of his night riders fall — or break Argymaq · any three',
       count: [...FEATHER_FLAGS],
       done: { any: ['feather:3', 'dead:jel-ata'] },
       markers: FEATHER_ELITES.map((e) => ({ id: e.id, label: e.label, short: e.short, at: world(e.at), hideWhen: { all: [`felled:${e.id}`] } })),
@@ -217,7 +217,7 @@ export const ELDER: NpcDef = {
       'Jel Ata is quiet. The rain will come gentle now, the way the grass likes it. The whole steppe owes you, and the steppe is bad at paying debts — so I will: sit, eat, and we sing tonight.',
     ], sets: ['talked:elder:3', 'told:wind'] },
     { when: { all: [KING_DONE, 'talked:elder:3'] }, lines: [
-      'The storm feathers: Kokbori in her den, Qyran on Eagle Rock, the pale leopard in his cave, Qara Batyr at night by his cairn — or Argymaq, if he still lets you near. Any three.',
+      'The storm feathers: Kokbori in her den from dusk, Qyran over Eagle Rock when a storm comes, the pale leopard in his cave, Qara Batyr at night by his cairn — cut down five of his ghost riders and he rides out himself — or Argymaq, if he still lets you near. Any three.',
       'Then wait for the sky to turn, ride to the Wind Cairn on the south rim and tie them on. Jel Ata will come. He always comes when someone is rude to his cairn.',
     ] },
     { when: { all: [KING_DONE] }, lines: [

@@ -169,7 +169,9 @@ export class Stealth {
     this.inLongGrass = blocked ? false : this.inLongGrass ? this.offT < OUT_AFTER : this.onT >= IN_AFTER;
     this.canCrouch = !blocked && (this.inLongGrass || this.crouchHere());
     if (this.toggleReq) { this.toggleReq = false; if (this.canCrouch || this.latched) this.latched = !this.latched; }
-    const sprint = p.touchSprint || (k.has('ShiftLeft') && (k.has('KeyW') || p.touchMove.y > 0.1));
+    // a full push on the phone's stick is not a sprint while crouched (you creep; E288: it stood you up in front of the
+    // stallion) — on touch the CROUCH disc or JUMP stands you up
+    const sprint = k.has('ShiftLeft') && (k.has('KeyW') || p.touchMove.y > 0.1);
     const jump = k.has('Space') || p.touchJump;
     if (!this.canCrouch || sprint || jump) this.latched = false; // leaving the grass / sprinting / jumping stands you up
     const crouch = this.latched || (this.ctrlDown && this.canCrouch);

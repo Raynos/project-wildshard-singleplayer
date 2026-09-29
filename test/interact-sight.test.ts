@@ -25,6 +25,15 @@ function wall(ph: Physics): void {
 describe('interact line of sight', () => {
   const eye = new THREE.Vector3(0, 1.6, 0);
 
+  it('a weak prompt (the saddle\'s Dismount) gives way to any other in reach, and shows when it is alone (E288)', () => {
+    const dismount = { ...prompt(0.3, 1.2, 0, 3.6), label: 'Dismount', weak: true };
+    const tie = { ...prompt(3.2, 1.2, 0, 4.6), label: 'Tie a cloth strip' };
+    expect(pickInteractable([dismount, tie], eye, null)).toBe(tie);
+    expect(pickInteractable([dismount], eye, null)).toBe(dismount);
+    tie.position.set(9, 1.2, 0);
+    expect(pickInteractable([dismount, tie], eye, null)).toBe(dismount);
+  });
+
   it('a prompt behind a wall is not picked; with the wall gone it is', async () => {
     const R = await rapier();
     const walled = new Physics(R), open = new Physics(R);

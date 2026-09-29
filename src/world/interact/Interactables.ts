@@ -136,12 +136,13 @@ export function canSee(physics: Physics | null, eye: { x: number; y: number; z: 
 
 /** The nearest prompt within its own radius of `eye` that `eye` can see (main.ts's "[E] …" pick, and so the E key). */
 export function pickInteractable<T extends Interactable>(list: readonly T[], eye: THREE.Vector3, physics: Physics | null): T | undefined {
-  let best = Infinity, pick: T | undefined;
+  let best = Infinity, pick: T | undefined, weakBest = Infinity, weak: T | undefined;
   for (const it of list) {
     const d = it.position.distanceTo(eye);
+    if (it.weak === true) { if (d < it.radius && d < weakBest && canSee(physics, eye, it)) { weakBest = d; weak = it; } continue; }
     if (d < it.radius && d < best && canSee(physics, eye, it)) { best = d; pick = it; }
   }
-  return pick;
+  return pick ?? weak;
 }
 
 const T = (x: number, y: number, z: number, out: THREE.Matrix4, rx = 0, ry = 0, rz = 0, s = 1): void => {

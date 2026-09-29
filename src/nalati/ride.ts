@@ -78,6 +78,8 @@ export function wireRide(ctx: RideCtx): Ride {
     pick = best;
     if (best === null) { ix.radius = 0; ix.position.set(0, -1e4, 0); return; }
     ix.position.copy(best.position); ix.radius = best.radius; ix.label = best.label;
+    // in the saddle the horse prompts (Dismount) give way to any other prompt in reach — the Wind Cairn's tie (E288)
+    ix.weak = mount.mounted && best !== taming.interactable;
   };
 
   return {

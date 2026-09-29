@@ -46,7 +46,8 @@ import { stateSlot } from '../core/shardState';
  * material, the never-hidden materials across the cabins (Cabins.batchCores); props are instanced across cabins.
  */
 
-export interface Interactable { position: THREE.Vector3; radius: number; label: string; onInteract: () => void }
+/** `weak`: shown only when no other prompt is in reach (the saddle's Dismount: it hid the Wind Cairn's tie, E288) */
+export interface Interactable { position: THREE.Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean }
 
 const LOG = 0.25;           // log row pitch (m)
 const LOG_R = 0.112;        // log radius → ~2.6 cm chinking line between logs
