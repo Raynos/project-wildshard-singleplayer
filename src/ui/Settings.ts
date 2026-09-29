@@ -144,6 +144,15 @@ export const OPTION_VALUES = {
   // place of their COMING SOON teasers — Debug ▸ Developer tools only, a reload (the deck is built once); off by default
   prototypes: ['off', 'on'],
   nineLanterns: ['on', 'off'],
+  // NALATI-FINISH B1 (N13, E302): the riding feel — Debug ▸ Creatures & NPCs, all live. The look behind the ears (±140°, the
+  // research's 120–150°; 170 = the old free look), the horse keeping to the road when you let go of the stick, the rhythm spur
+  // (GALLOP tapped in time with the stride), the skid stop (reins pulled back at a canter+), the horse panicking (a wolf's
+  // bite, lightning close by)
+  rideLook: ['140', '170'],
+  rideRoad: ['on', 'off'],
+  rideSpur: ['on', 'off'],
+  rideSkid: ['on', 'off'],
+  ridePanic: ['on', 'off'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -165,6 +174,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, nineLanterns: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY,
+  rideLook: DEBUG_ONLY, rideRoad: DEBUG_ONLY, rideSpur: DEBUG_ONLY, rideSkid: DEBUG_ONLY, ridePanic: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
@@ -185,6 +195,8 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   dwShadows: option('dwShadows'),
   prototypes: option('prototypes'),
   nineLanterns: option('nineLanterns'),
+  rideLook: option('rideLook'), rideRoad: option('rideRoad'), rideSpur: option('rideSpur'), rideSkid: option('rideSkid'),
+  ridePanic: option('ridePanic'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

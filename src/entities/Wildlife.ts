@@ -218,6 +218,7 @@ export class Wildlife {
     for (const p of this.packs) p.scare(x, z, 20);
     for (const h of this.herds) if (Math.hypot(h.cx - x, h.cz - z) < r) h.stampede(x, z);
     for (const f of this.flocks) if (Math.hypot(f.cx - x, f.cz - z) < r) f.scare(x, z, 6);
+    wildEnv.onEvent?.('scare', x, z);   // B1: the horse under the rider panics (src/nalati/ride.ts)
   }
 
   raycastSheep(o: THREE.Vector3, dir: THREE.Vector3, maxDist: number): SheepHit | null {

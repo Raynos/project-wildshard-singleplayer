@@ -1,13 +1,20 @@
 import * as THREE from 'three';
 import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
-import type { AnimalManager } from '../entities/AnimalManager';
+import type { AnimalManager, AnimalSound } from '../entities/AnimalManager';
 import type { Wildlife } from '../entities/Wildlife';
 import type { Interactable } from '../world/Cabin';
 import { Mount, type MountKit } from '../player/Mount';
 import { Taming } from '../game/Taming';
 import { RideHUD } from '../ui/RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/nalati/layout';
+import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../chunks/nalatiLayout';
+import { wildEnv } from '../entities/wildEnv';
+
+/** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */
+const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL];
+/** B1: lightning within this many metres panics the horse under you (s: nearer, longer) */
+const BOLT_PANIC = 35;
 
 /**
  * The riding + taming wiring (Nalati rows B7 / B8) — one call from src/nalati/index.ts once the animals exist:
@@ -22,7 +29,14 @@ import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/nalati/layout';
  *
  * The camp's two saddled horses at the hitching rail are mountable from the start (so riding is testable before any
  * taming); TULPAR joins them once tamed (or on load, if tamed in an earlier session).
+ *
+ * B1 (N13): the horse under you panics (Mount.panic) at a wolf's bite on the rider (Pack's 'rider-bitten' event) and at
+ * lightning within 35 m (Wildlife.scare's 'scare' event, which every strike raises) — a squeal, a toast for the lightning.
+ * Mount keeps to the shard's roads (`ROADS`) when you let go of the stick.
  */
+/** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
+function voice(name: string): AnimalSound { return name as AnimalSound; }
+
 export interface RideCtx { player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
 /** `hurt` defaults to the animals' onCharge (main.ts's damage path); `isDrawing` to the kit bow's DRAW latch / draw */
 export interface RidePlay { kit: (MountKit & { bow: { drawing: boolean; adsHeld: boolean } }) | null; toast: (text: string) => void; hurt?: (damage: number) => void; isDrawing?: () => boolean }
@@ -51,6 +65,7 @@ export function wireRide(ctx: RideCtx): Ride {
     isDrawing: () => { const b = play?.kit?.bow; return play?.isDrawing?.() ?? (b !== undefined && (b.adsHeld || b.drawing)); },
     hurt: (d) => { hurt(d); },
     restAt: { x: rest.x, z: rest.z },
+    roads: ROADS,
   });
   for (const h of ctx.wildlife.campHorses) mount.addMountable(h, 'Camp horse');
   const hud = new RideHUD(mount, ctx.camera);
@@ -60,6 +75,19 @@ export function wireRide(ctx: RideCtx): Ride {
   });
   mount.onBolt = (_a, name) => { play?.toast(`${name} bolts for the camp — it needs a rest`); };
   mount.onThrown = () => { play?.toast('Thrown!'); };
+  // B1: the panic — a wolf's bite on the rider, lightning close by (chained after Taming's and the HUD's own listeners)
+  mount.onPanic = (h) => { ctx.animals.onSound?.(voice('horse_squeal'), h.position); };
+  const prevEvent = wildEnv.onEvent;
+  wildEnv.onEvent = (name, x, z) => {
+    prevEvent?.(name, x, z);
+    const h = mount.horse;
+    if (h === null) return;
+    if (name === 'rider-bitten') mount.panic(x, z, 0.9);
+    else if (name === 'scare') {
+      const d = Math.hypot(h.position.x - x, h.position.z - z);
+      if (d < BOLT_PANIC && mount.panic(x, z, d < 12 ? 2.2 : 1.5)) play?.toast(`${h.label} panics at the lightning — hold on`);
+    }
+  };
 
   // one prompt for main's list: whichever horse action is nearest the camera (it copies that one's position / label)
   const ix: Interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: '', onInteract: () => undefined };

@@ -333,7 +333,7 @@ export class Pack {
             m['bit'] = 1; this.bites++;
             this.sound(c, a, 'wolf_bite');
             if (this.prey !== null) { _t.set(dx, 0, dz).normalize(); this.prey.applyDamage(role === ROLE_ALPHA ? 22 : 15, this.prey.position, _t); }
-            else c.hurt(a.mods.chargeDamage);
+            else { c.hurt(a.mods.chargeDamage); if (wildEnv.playerMounted) wildEnv.onEvent?.('rider-bitten', a.position.x, a.position.z); }   // B1: the horse panics
             m['lunge'] = 3; m['lt'] = BREAKOFF;
           } else if ((m['lt'] ?? 0) <= 0) { m['lunge'] = 3; m['lt'] = BREAKOFF * 0.6; }
           break;

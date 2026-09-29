@@ -160,6 +160,8 @@ export class Animal {
   private gaitW = new Float32Array(5);
   private gaitTarget = new Float32Array(5);
   private phase = 0;
+  /** the gait's stride phase 0..1 (the legs' cycle; Mount's rhythm spur reads the beat off it) */
+  get gaitPhase(): number { return this.phase; }
   private lookAmt = 0;
   private flinch = 0; private flinchRoll = 0; private flinchPitch = 0;
   private stunT = 0; private pushT = 0; private pushDist = 0; private pushDir = new THREE.Vector3(); private brace = 0;

@@ -22,6 +22,11 @@
    OFFER AIM's — touch.css `.at-*`); this file only colours them. GALLOP: amber when held */
 .ws-ride-gallop.down, .ws-ride-lean.down, .ws-ride-offer.down { background: radial-gradient(circle at 50% 35%, rgba(255, 196, 74, 0.45), rgba(40, 24, 6, 0.85) 70%); border-color: #ffc44a; }
 .ws-ride-gallop.winded { opacity: 0.45; }
+/* B1: the rhythm spur — the disc pulses amber on the stride's beat; a tap in time flashes it cyan (desktop: the STEED horse) */
+#hud .ws-touch-disc.ws-ride-gallop.ws-ride-beat { box-shadow: 0 0 0 2px rgba(255, 196, 74, 0.7), 0 0 18px rgba(255, 196, 74, 0.4); }
+#hud .ws-touch-disc.ws-ride-gallop.ws-ride-spur { border-color: #8fe3ff; box-shadow: 0 0 0 3px rgba(143, 227, 255, 0.8), 0 0 22px rgba(143, 227, 255, 0.5); }
+.ws-ride-steed.beat .ws-ride-glyph svg { filter: drop-shadow(0 0 4px rgba(255, 196, 74, 0.9)); }
+.ws-ride-steed.spur .ws-ride-glyph svg { filter: drop-shadow(0 0 5px rgba(143, 227, 255, 1)); }
 /* in the saddle the same tab reads DISMOUNT (N17): small, on the right edge, well above GALLOP — amber (the horse's colour),
    the horse over a down-arrow (D-saddle.jpg) */
 #hud .ws-touch-disc.ws-ride-dismount { height: 58px; gap: 1px; color: #ffc44a; border-color: rgba(255, 196, 74, 0.8); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 14px rgba(255, 196, 74, 0.25), inset 0 0 10px rgba(255, 196, 74, 0.12); }

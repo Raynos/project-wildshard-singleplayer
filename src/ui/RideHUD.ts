@@ -66,7 +66,8 @@ export class RideHUD {
   /** the phone's controls + STEED row (hudSlots: detached, and never shown, on a mouse / trackpad device) */
   private readonly t: { gallop: HTMLElement; horse: HTMLElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
   private layer: HTMLElement | null = null; private use: HTMLElement | null = null;
-  private last = { mounted: true, breaking: true, offer: true, steed: -1, gait: '', winded: false }; // ≠ the first frame's: paint it
+  private last = { mounted: true, breaking: true, offer: true, steed: -1, gait: '', winded: false, beat: false, spur: 0 }; // ≠ the first frame's: paint it
+  private spurUntil = 0;
 
   constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera) {
     this.root = document.getElementById('hud') ?? document.body;
@@ -153,8 +154,15 @@ export class RideHUD {
         this.sbar.style.width = `${s}%`; this.steed.classList.toggle('winded', m.winded);
         t.sbar.style.width = `${s}%`; t.steed.classList.toggle('winded', m.winded); t.gallop.classList.toggle('winded', m.winded);
       }
-      const gait = m.leanLow > 0.5 ? 'gallop · low' : m.gait;
-      if (gait !== this.last.gait) { this.last.gait = gait; this.gait.textContent = gait; t.gait.textContent = m.gait; } // the phone row is 170 px: the gait alone (D-saddle.jpg)
+      // B1: the rhythm spur — the gait reads "gallop »»" while taps in time hold it (a » per tap in a row)
+      const rhythm = m.spur.latched && m.gait === 'gallop' ? `gallop ${'»'.repeat(Math.max(1, m.spur.streak))}` : null;
+      const gait = rhythm ?? (m.leanLow > 0.5 ? 'gallop · low' : m.gait);
+      if (gait !== this.last.gait) { this.last.gait = gait; this.gait.textContent = gait; t.gait.textContent = rhythm ?? m.gait; } // the phone row is 170 px: the gait alone (D-saddle.jpg)
+      // B1: the GALLOP disc (the STEED panel's horse on a desktop) pulses on the stride's beat; a tap in time flashes it cyan
+      if (m.beat !== this.last.beat) { this.last.beat = m.beat; t.gallop.classList.toggle('ws-ride-beat', m.beat); this.steed.classList.toggle('beat', m.beat); }
+      const now = performance.now();
+      if (m.spurFlash !== this.last.spur) { this.last.spur = m.spurFlash; this.spurUntil = now + 220; t.gallop.classList.add('ws-ride-spur'); this.steed.classList.add('spur'); }
+      else if (this.spurUntil > 0 && now > this.spurUntil) { this.spurUntil = 0; t.gallop.classList.remove('ws-ride-spur'); this.steed.classList.remove('spur'); }
       const name = m.horse?.label ?? 'Steed';
       if (this.sname.textContent !== name) { this.sname.textContent = name; t.sname.textContent = name; }
     }

@@ -180,6 +180,11 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
   opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
+  opt('rideLook', 'creatures', 'Riding: look behind', [['140', '±140°'], ['170', '±170°']], { when: nalati, note: 'B1 / N13 · how far round the free look turns off the horse\'s heading (research: 120–150°; 170 = before)' }),
+  opt('rideRoad', 'creatures', 'Riding: keep to the road', ON_OFF, { when: nalati, note: 'B1 / N13 · let go of the stick on a road and the horse keeps its gait along it; pull back to stop' }),
+  opt('rideSpur', 'creatures', 'Riding: rhythm spur', ON_OFF, { when: nalati, note: 'B1 / N13 · tap GALLOP in time with the stride (the disc pulses): a faster gallop that costs almost no STEED' }),
+  opt('rideSkid', 'creatures', 'Riding: skid stop', ON_OFF, { when: nalati, note: 'B1 / N13 · pull the stick back at a canter or gallop: the horse sits down and skids to a stop (a pivot with the stick aside)' }),
+  opt('ridePanic', 'creatures', 'Riding: horse panics', ON_OFF, { when: nalati, note: 'B1 / N13 · a wolf\'s bite or lightning close by: the horse shies and bolts for a second or two' }),
 
   // ── Performance ──
   opt('nineLanterns', 'perf', 'Paper lantern geometry', ON_OFF, { reload: true, when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E265 · isolate lantern geometry and shaders; baked light remains' }),
