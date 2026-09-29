@@ -14,6 +14,7 @@ export const ART_BYTES: Readonly<Record<string, number>> = {
   "src/chunks/thumbs/pine-hollow.jpg": 46844,
   "src/explore/img/models-driftwood-isle.webp": 31812,
   "src/explore/img/models-nalati-grasslands.webp": 20894,
+  "src/explore/img/models-nine-dragon-stack.webp": 26776,
   "src/explore/img/models-pine-hollow.webp": 33030,
   "src/explore/img/models.webp": 21828,
   "src/explore/img/practice-driftwood-isle.webp": 33866,

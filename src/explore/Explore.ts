@@ -44,13 +44,14 @@ import worldNine from './img/world-nine-dragon-stack.webp';
 import modelsDriftwood from './img/models-driftwood-isle.webp';
 import modelsPine from './img/models-pine-hollow.webp';
 import modelsNalati from './img/models-nalati-grasslands.webp';
+import modelsNine from './img/models-nine-dragon-stack.webp';
 import { isDev, onDev } from '../core/devMode';
 
 /** the Practice card's art, one per shard: the arena in that shard's grade with its weapon (E292) */
 const PRACTICE_ART: Record<string, string> = { 'driftwood-isle': practiceDriftwood, 'pine-hollow': practicePine, 'nalati-grasslands': practiceNalati, 'nine-dragon-stack': practiceNine };
 /** the World card: the shard from the god-mode camera; the Models card: six of the catalog's own thumbnails (E293) */
 const WORLD_ART: Record<string, string> = { 'driftwood-isle': worldDriftwood, 'pine-hollow': worldPine, 'nalati-grasslands': worldNalati, 'nine-dragon-stack': worldNine };
-const MODELS_ART: Record<string, string> = { 'driftwood-isle': modelsDriftwood, 'pine-hollow': modelsPine, 'nalati-grasslands': modelsNalati };
+const MODELS_ART: Record<string, string> = { 'driftwood-isle': modelsDriftwood, 'pine-hollow': modelsPine, 'nalati-grasslands': modelsNalati, 'nine-dragon-stack': modelsNine };
 
 export type ExploreMode = 'hub' | 'world' | 'model';
 
