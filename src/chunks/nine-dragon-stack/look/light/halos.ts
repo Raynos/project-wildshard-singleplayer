@@ -21,7 +21,7 @@ export const HALO = {
 export interface HaloSources { lanterns: readonly EmitterLike[]; shops: readonly EmitterLike[]; signs: readonly EmitterLike[] }
 
 /** the knobs: x gain, y radius scale, z the near fade's end (m), w the screen-size cap (share of the view's height) */
-export const HALO_DEFAULTS = new Vector4(1.3, 1, 5, 0.12);
+export const HALO_DEFAULTS = new Vector4(2, 1.2, 5, 0.12);
 
 const NOISE_VS = /* glsl */ `
 float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }

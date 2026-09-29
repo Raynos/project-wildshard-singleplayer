@@ -32,3 +32,26 @@ target's sky), pool gains cut as a whole (they dimmed the shopfronts' pools with
 
 Memory: geometry 168.5 MB, textures 79.6 MB (pass 0: 168.7 / 79.6). Worst pose: mockup A, 162 draws, 1.66 M triangles
 (pass 0: the same).
+
+## Pass 2
+
+`pass-2/`, captured at `4fea5c24` + the lane's files (the other lanes moved too: the Well's pass 3 and the stair's
+pass 1 are in both columns' difference, so this pass was judged in the live tuning, one build, the lane's uniforms
+switched per variant).
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| The pools' soft ceiling, E / (1 + E / 0.8): under the gate's ~20 lanterns the plinths, the walkers and the floor were one flat orange | `look/light/lightvol.ts` | ~4 ALU per volume read |
+| The knee 0.3 → 0.4, and an up-facing surface keeps 30 % of the diffuse pool (was 50 %) | `look/light/lightvol.ts` | none |
+| The halos 1.3 → 2.0 and ×1.2 wider: the lanterns hang in their glow, as in the targets (2 006 discs) | `look/light/halos.ts` | a little more fill round the clusters |
+| The sky screens: saturation 1.1 → 1.3, their fog 0.45 → 0.32 (the targets' screens are vivid azurite and malachite) | `look/scroll.ts` | none |
+| Silk clouds in the painted sky: soft pale drifts lit from below, faded toward the horizon (the flat blue read as a CG fill once the white cumulus went) | `look/style.ts` (sky) | two value noises per sky pixel |
+
+Reverted in the live tuning: the lit air (the light volume read twice along each view ray in the composite, the phone's
+haze march without a target): at σ 0.004 it washed the gate orange and lifted the darks (A2·5 p10 L* 24 → 31), as the
+desktop haze march had in round 14. Filling each sky screen with the painting (span = the screen's depth): one huge
+mountain on a flat teal field instead of the scroll's range. Long anisotropic cloud bands: they drew rays toward the
+vanishing point low in the sky (C1·1).
+
+Memory: geometry 165.2 MB, textures 79.6 MB (the fabric lane's diet in the same build). Worst pose: mockup A, 161 draws,
+1.51 M triangles.

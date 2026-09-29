@@ -954,6 +954,7 @@ uniform float uSutra;
 uniform sampler2D uSilk;
 uniform vec3 uSkyTop;
 uniform vec3 uSkyHorizon;
+uniform vec2 uSkyCloud;
 varying vec3 vDir;
 ${NOISE_GLSL}
 void main() {
@@ -965,6 +966,13 @@ void main() {
   vec2 ci = floor(sc);
   float st = step(0.975, h12(ci)) * (1.0 - smoothstep(0.05, 0.32, length(fract(sc) - 0.5))) * smoothstep(0.05, 0.3, e);
   s += st * vec3(0.95, 0.72, 0.32) * 2.0;
+  // (render, E281) silk clouds: long pale bands lit from below by the city, on a plane over the Stack (the engine's white
+  // cumulus dome is hidden: render.ts). x: their share, y: their scale
+  // (a steep plane projection with long bands drew rays toward the vanishing point low in the sky: soft drifts, faded low)
+  vec2 cp = d.xz / (e + 0.25) * uSkyCloud.y;
+  float cn = vnoise(cp * vec2(1.0, 1.7) + 7.0) * 0.62 + vnoise(cp * vec2(2.6, 4.1) + 1.7) * 0.38;
+  float cov = smoothstep(0.52, 0.8, cn) * smoothstep(0.22, 0.55, e);
+  j = mix(j, mix(uSkyHorizon * 1.2, vec3(0.86, 0.74, 0.66), 0.25), cov * uSkyCloud.x);
   vec3 col = mix(j, s, uSutra);
   col *= 1.0 + (texture(uSilk, gl_FragCoord.xy / 380.0).r - 0.5) * 0.07;
   gl_FragColor = vec4(col, 0.0);
@@ -972,7 +980,7 @@ void main() {
 `;
 export function skyMaterial(shared: Shared): ShaderMaterial {
   return new ShaderMaterial({
-    uniforms: { uCam: shared.u.uCam, uSutra: shared.u.uSutra, uSilk: shared.u.uSilk, uSkyTop: shared.u.uSkyTop, uSkyHorizon: shared.u.uSkyHorizon },
+    uniforms: { uCam: shared.u.uCam, uSutra: shared.u.uSutra, uSilk: shared.u.uSilk, uSkyTop: shared.u.uSkyTop, uSkyHorizon: shared.u.uSkyHorizon, uSkyCloud: { value: new Vector2(0.45, 1.4) } },
     vertexShader: VS_SKY, fragmentShader: FS_SKY, side: BackSide, depthWrite: false, depthTest: false,
   });
 }

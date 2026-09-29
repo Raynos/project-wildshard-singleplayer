@@ -78,8 +78,9 @@ export function lightVolUniforms(): {
      *  (the median cell holds ~0.1: a flat salmon wash on the whole floor) drops away and the pools read as pools round
      *  their lights; y: how much of the rim an up-facing surface keeps (a floor's "rim" was the field under it, a warm
      *  band toward the horizon); z: how much of the diffuse pool an up-facing surface keeps (wet stone under a cluster of
-     *  lanterns shows them as reflections — the streaks, the gloss lobe — not as a salmon fill: the gate's floor) */
-    uLpCut: { value: new Vector4(0.3, 0.15, 0.5, 0) },
+     *  lanterns shows them as reflections — the streaks, the gloss lobe — not as a salmon fill: the gate's floor); w: the
+     *  soft ceiling (lpKnee) */
+    uLpCut: { value: new Vector4(0.4, 0.15, 0.3, 0.8) },
   };
 }
 
@@ -172,7 +173,12 @@ uniform vec4 uLpSpec;
 uniform vec4 uLpRim;
 uniform vec4 uLpCut;
 // (render, E281) the knee: E² / (E + k) keeps a lantern's pool (E ≫ k) and drops the faint field between them
-vec3 lpKnee(vec3 E) { return uLpCut.x > 0.0 ? E * E / (E + vec3(uLpCut.x)) : E; }
+vec3 lpKnee(vec3 E) {
+  if (uLpCut.x > 0.0) E = E * E / (E + vec3(uLpCut.x));
+  // w: a soft ceiling (E / (1 + E / w)): under the gate's ~20 lanterns every face went one flat orange
+  if (uLpCut.w > 0.0) E = E / (1.0 + max(E.r, max(E.g, E.b)) / uLpCut.w);
+  return E;
+}
 vec4 lpSample(highp sampler3D v, vec3 wp, vec3 mn, vec3 iv) {
   vec3 t = (wp - mn) * iv;
   if (any(lessThan(t, vec3(0.0))) || any(greaterThan(t, vec3(1.0)))) return vec4(0.0, 0.0, 0.0, 0.5);

@@ -125,8 +125,9 @@ export interface ScrollOpt {
 export const SCROLL: ScrollOpt = {
   pitch: 0.06, span: 32, speed: 0.35, offset: 0, near: 0.74,
   led: new Vector4(0.8, 0.5, 0.08, 0.9),
-  // (round 14) fog scale 0.22 → 0.45: the screens sit 30–90 m up in the rain; the far rows take the silk like the towers
-  grade: new Vector4(1.15, 1.1, 0.62, 0.45),
+  // (round 14) fog scale 0.22 → 0.45: the screens sit 30–90 m up in the rain; the far rows take the silk like the towers.
+  // (render, E281) saturation 1.1 → 1.3 and fog 0.45 → 0.32: the targets' screens are vivid azurite and malachite
+  grade: new Vector4(1.15, 1.3, 0.62, 0.32),
   module: [1.2, 0.35],
 };
 
