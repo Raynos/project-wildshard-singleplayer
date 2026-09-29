@@ -146,7 +146,7 @@ export class Shared {
     // (render, E281) the far Stack painted into the sky (FS_SKY skyline): strength, elevation scale, lit windows, ink
     uSkyline: { value: new Vector4(1, 1, 1, 1.6) },
     // (render, E281) the wet nosings' glints: x gain, y the share of the sparkle cells lit
-    uGlint: { value: new Vector2(2, 0.22) },
+    uGlint: { value: new Vector2(3, 0.28) },
     // (render, E281) how much of the silk the mineral accents take (T^x; 1 = as any wash)
     uAccentFog: { value: 0.35 },
     // (render, E281) the flagstones: x the per-stone value swing, y the speckle's contrast, w the granite paint's
@@ -1071,9 +1071,12 @@ vec3 skyline(vec3 d, vec3 col) {
     // lit windows on the nearer layers: warm dots in a grid of storeys
     vec2 g = vec2(u / 0.0042, el / 0.0068);
     vec2 gi = floor(g), gf = abs(fract(g) - 0.5);
-    float lit = step(0.72, h12(gi + cid * 7.0)) * step(0.5, fl) * step(0.08, y) * step(y, 0.95);
+    float hw2 = h12(gi + cid * 7.0);
+    float lit = step(0.66, hw2) * step(0.5, fl) * step(0.08, y) * step(y, 0.95);
     float win = lit * (1.0 - smoothstep(0.2, 0.2 + fwidth(g.x), gf.x)) * (1.0 - smoothstep(0.24, 0.24 + fwidth(g.y), gf.y));
-    layerC += vec3(1.0, 0.72, 0.42) * win * uSkyline.z * (0.5 + 0.25 * fl);
+    // a third of them the targets' red lanterns hung along the far galleries, the rest warm windows
+    vec3 winC = hw2 > 0.9 ? vec3(1.0, 0.36, 0.22) : vec3(1.0, 0.72, 0.42);
+    layerC += winC * win * uSkyline.z * (0.5 + 0.25 * fl);
     col = mix(col, layerC, cov * op);
     // the band of silk the layer stands in
     float band = exp(-pow((el - base + 0.015) / (0.045 * uSkyline.y), 2.0));

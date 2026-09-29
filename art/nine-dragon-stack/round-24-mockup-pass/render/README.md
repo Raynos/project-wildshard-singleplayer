@@ -117,3 +117,17 @@ wash again.
 
 Memory: geometry 155.8 MB, textures 79.6 MB. Worst pose: mockup A, 125 draws, 1.50 M triangles (no new draws: the
 features are all in existing programs).
+
+## Pass 6: the features tuned
+
+`pass-6/`, captured at `f785ac6e` + the lane's files.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| The tread and riser glints stronger (gain 2 → 3) and denser (22 → 28 % of the cells): C2·5's treads sparkle as the target's do | `look/style.ts` | none |
+| The far layers' lit windows denser (28 → 34 %), a third of them the targets' red lanterns strung along the far galleries | `look/style.ts` (FS_SKY) | none |
+
+Reverted in the tuning: the skyline higher (×1.25, bases up to 72°): the towers pointed at the zenith and read as a
+radial crown in the look-ups. Lower (×0.8): hidden behind the near towers.
+
+Memory: geometry 155.1 MB, textures 79.6 MB. Worst pose: mockup A, 125 draws, 1.50 M triangles.
