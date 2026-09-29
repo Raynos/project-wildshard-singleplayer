@@ -186,6 +186,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('rideSkid', 'creatures', 'Riding: skid stop', ON_OFF, { when: nalati, note: 'B1 / N13 · pull the stick back at a canter or gallop: the horse sits down and skids to a stop (a pivot with the stick aside)' }),
   opt('ridePanic', 'creatures', 'Riding: horse panics', ON_OFF, { when: nalati, note: 'B1 / N13 · a wolf\'s bite or lightning close by: the horse shies and bolts for a second or two' }),
   opt('rideReins', 'creatures', 'Riding: reins in hand', ON_OFF, { when: nalati, note: 'B1 / N13 · the reins run from the bit to your hand in the lower frame' }),
+  opt('sheepRaids', 'creatures', 'Wolf raids on the flock', ON_OFF, { when: nalati, note: 'B1 / N13 · every 6–9 min the pack raids the camp\'s sheep while you are near; a mounted shepherd rides out with a whip' }),
 
   // ── Performance ──
   opt('nineLanterns', 'perf', 'Paper lantern geometry', ON_OFF, { reload: true, when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E265 · isolate lantern geometry and shaders; baked light remains' }),

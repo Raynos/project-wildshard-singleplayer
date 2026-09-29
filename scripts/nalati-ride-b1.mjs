@@ -12,6 +12,8 @@
 //   spur   canter, then tap GALLOP on the stride's beat: the gallop holds with no hold, faster than a held one, at ~no STEED
 //   panic  a scare 6 m ahead at a stand (a bite / lightning): the horse rears, then bolts away from it, deaf to the stick;
 //          the wolf-bite and lightning events reach it (Pack 'rider-bitten', Wildlife.scare)
+//   name   on foot at the hitching rail: the prompt reads "Name Camp horse"; the NAME panel opens, a name typed + Enter
+//          renames the horse (its prompt, the save in localStorage ws.nalati.horseNames)
 // Prints PASS / FAIL per check, writes b1-checks.json and one JPEG per leg (portrait) into --out.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -22,7 +24,7 @@ const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const URL_BASE = flag('url', 'http://127.0.0.1:5467');
 const OUT = resolvePath(flag('out', 'progress/e302-ride'));
-const ONLY = flag('only', 'look,road,bend,skid,spur,panic').split(',');
+const ONLY = flag('only', 'look,road,bend,skid,spur,panic,name').split(',');
 const DPR = Number(flag('dpr', '3'));
 mkdirSync(OUT, { recursive: true });
 
@@ -246,6 +248,33 @@ try {
     });
     check('panic: a wolf\'s bite and lightning within 35 m reach the horse', ev.bite && ev.bolt > 1, JSON.stringify(ev));
     await simWait(2500);
+  }
+
+  // ── name: on foot at the rail, NAME the camp horse tied there ──
+  if (ONLY.includes('name')) {
+    await page.evaluate(() => {
+      const w = window.__world;
+      localStorage.removeItem('ws.nalati.horseNames');
+      w.ride.mount.dismount();
+      // at the head of the camp horse still tied there (the black; the bay is out on the road from ?ride=gallop), on its side of the rail
+      const h = w.wildlife.campHorses[1], hx = h.position.x + Math.sin(h.yaw) * 1.3, hz = h.position.z + Math.cos(h.yaw) * 1.3 - 0.9;
+      w.player.position.set(hx, window.__hf.heightAt(hx, hz), hz); w.player.velocity.set(0, 0, 0);
+      w.player.yaw = Math.atan2(-(h.position.x - hx), -(h.position.z - hz)); w.player.pitch = -0.15;
+    });
+    await simWait(1200);
+    const label = await page.evaluate(() => ({ ride: window.__world.ride.interactable.label, use: document.querySelector('.ws-touch-use')?.textContent.trim() ?? '' }));
+    check('name: at the tied horse\'s head the USE band reads "Name …"', label.ride.startsWith('Name ') && /name/i.test(label.use), JSON.stringify(label));
+    await page.evaluate(() => { window.__world.ride.interactable.onInteract(); });
+    await page.waitForSelector('.ws-ride-nameinput', { timeout: 5000 });
+    await page.fill('.ws-ride-nameinput', 'kara  jorga');
+    await shot('name');
+    await page.press('.ws-ride-nameinput', 'Enter');
+    await simWait(600);
+    const res = await page.evaluate(() => {
+      const w = window.__world, a = w.wildlife.campHorses.find((h) => w.ride.mount.nameOf(h) === 'Kara Jorga') ?? null;
+      return { renamed: a !== null, label: a?.label ?? null, stored: localStorage.getItem('ws.nalati.horseNames'), open: document.querySelector('.ws-ride-namebox') !== null, prompt: w.ride.interactable.label };
+    });
+    check('name: typed + Enter renames it, saved, the panel closed', res.renamed && res.label === 'Kara Jorga' && (res.stored ?? '').includes('Kara Jorga') && !res.open, JSON.stringify(res));
   }
 
   out.errors = errors;

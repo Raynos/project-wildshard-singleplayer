@@ -62,7 +62,7 @@ export class RideHUD {
   private readonly trust: HTMLElement; private readonly trustFill: SVGPathElement;
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
-  private readonly tags = new Map<string, HTMLElement>();
+  private readonly tags = new Map<object, { el: HTMLElement; name: HTMLElement }>();   // per horse (a rename at the rail re-labels it)
   /** the phone's controls + STEED row (hudSlots: detached, and never shown, on a mouse / trackpad device) */
   private readonly t: { gallop: HTMLElement; horse: HTMLElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
   private layer: HTMLElement | null = null; private use: HTMLElement | null = null;
@@ -199,12 +199,16 @@ export class RideHUD {
     // ── name tags over your horses ──
     for (const mt of m.mountables) {
       if ((mt.a.mem['whistle'] ?? 0) !== 1) continue;
-      let tag = this.tags.get(mt.name);
-      if (tag === undefined) {
-        tag = document.createElement('div'); tag.className = 'ws-ride-tag';
-        tag.innerHTML = `${SVG_HORSE}<span>${mt.name}</span><span class="ws-ride-heart">♥</span>`;
-        this.root.append(tag); this.tags.set(mt.name, tag);
+      let tg = this.tags.get(mt.a);
+      if (tg === undefined) {
+        const el = document.createElement('div'); el.className = 'ws-ride-tag';
+        el.innerHTML = `${SVG_HORSE}<span></span><span class="ws-ride-heart">♥</span>`;
+        const nm = el.querySelector('span');
+        if (nm === null) continue;
+        this.root.append(el); tg = { el, name: nm }; this.tags.set(mt.a, tg);
       }
+      if (tg.name.textContent !== mt.name) tg.name.textContent = mt.name;
+      const tag = tg.el;
       const d = mt.a.position.distanceTo(this.camera.position);
       _p.copy(mt.a.position); _p.y += 2.35 * mt.a.scale;
       const vis = m.horse !== mt.a && d < 30 && d > 2 && this.project(_p);

@@ -3,6 +3,8 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { AnimalManager, AnimalSound } from '../entities/AnimalManager';
 import type { Wildlife } from '../entities/Wildlife';
+import type { Animal } from '../entities/Animal';
+import { heightAt } from '../world/Heightfield';
 import type { Interactable } from '../world/Cabin';
 import { Mount, type MountKit } from '../player/Mount';
 import { Taming } from '../game/Taming';
@@ -11,10 +13,15 @@ import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/nalati/layout';
 import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../chunks/nalatiLayout';
 import { wildEnv } from '../entities/wildEnv';
 import { Reins } from '../player/Reins';
+import { SheepRaid } from './sheepRaid';
+import { HorseNamePrompt } from '../ui/HorseNamePrompt';
 import { setting } from '../ui/Settings';
 
 /** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */
 const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL];
+/** B1: the NAME prompt at the rail: at the tied horse's head (its reach, from the eye), for a horse within NAME_HORSE of
+ *  the rail — at its head, not its flank (MOUNT) and not the rail's far side (Erlan's TALK) */
+const NAME_REACH = 1.9, NAME_HORSE = 5, NAME_HEAD = 1.15;
 /** B1: lightning within this many metres panics the horse under you (s: nearer, longer) */
 const BOLT_PANIC = 35;
 
@@ -35,7 +42,8 @@ const BOLT_PANIC = 35;
  *
  * B1 (N13): the horse under you panics (Mount.panic) at a wolf's bite on the rider (Pack's 'rider-bitten' event) and at
  * lightning within 35 m (Wildlife.scare's 'scare' event, which every strike raises) — a squeal, a toast for the lightning.
- * Mount keeps to the shard's roads (`ROADS`) when you let go of the stick.
+ * Mount keeps to the shard's roads (`ROADS`) when you let go of the stick. At the hitching rail, on foot, a NAME prompt
+ * names the horse standing nearest you there (HorseNamePrompt; the name is saved, horseNames.ts).
  */
 /** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
 function voice(name: string): AnimalSound { return name as AnimalSound; }
@@ -55,6 +63,8 @@ export interface Ride {
   /** after every updater (Game.onLate): the reins (Reins.ts) from the horse's final pose and the saddle's camera */
   late: (dt: number) => void;
   reins: Reins;
+  /** B1: the wolves' raids on the flock and the mounted shepherd who defends it (sheepRaid.ts) */
+  raid: SheepRaid;
   noteShot: (x: number, z: number) => void;
 }
 
@@ -97,6 +107,33 @@ export function wireRide(ctx: RideCtx): Ride {
 
   // B1: the reins in the rider's left hand (Debug ▸ Riding: reins in hand); they drop while the bow draws or the stallion bucks
   const reins = new Reins(ctx.camera);
+  // B1: wolves raiding the flock, the mounted shepherd (Debug ▸ Creatures & NPCs ▸ Wolf raids on the flock)
+  const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: (t) => { play?.toast(t); } });
+
+  // B1: NAME at the hitching rail — the horse standing nearest you by the rail, on foot
+  const namer = new HorseNamePrompt();
+  let naming: Animal | null = null;
+  const nameIt: Interactable = {
+    position: new THREE.Vector3(HITCHING_RAIL.x, 0, HITCHING_RAIL.z), radius: 0, label: 'Name',
+    onInteract: () => { const a = naming; if (a !== null) namer.open(mount.nameOf(a) ?? a.label, (n) => { mount.rename(a, n); play?.toast(`Your horse is ${n}`); }); },
+  };
+  const nameUpdate = (): void => {
+    naming = null;
+    nameIt.radius = 0;
+    if (mount.mounted || namer.isOpen) return;
+    const p = ctx.player.position;
+    let bd = Infinity;
+    for (const m of mount.mountables) {
+      if (!m.a.alive || Math.hypot(m.a.position.x - HITCHING_RAIL.x, m.a.position.z - HITCHING_RAIL.z) > NAME_HORSE) continue;
+      const d = Math.hypot(m.a.position.x - p.x, m.a.position.z - p.z);
+      if (d < bd) { bd = d; naming = m.a; }
+    }
+    if (naming === null) return;
+    const a = naming, hx = a.position.x + Math.sin(a.yaw) * NAME_HEAD * a.scale, hz = a.position.z + Math.cos(a.yaw) * NAME_HEAD * a.scale;
+    nameIt.position.set(hx, heightAt(hx, hz) + 1.5, hz);
+    nameIt.radius = NAME_REACH;
+    nameIt.label = `Name ${mount.nameOf(naming) ?? naming.label}`;
+  };
 
   // one prompt for main's list: whichever horse action is nearest the camera (it copies that one's position / label)
   const ix: Interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: '', onInteract: () => undefined };
@@ -106,8 +143,8 @@ export function wireRide(ctx: RideCtx): Ride {
     const cam = ctx.camera.position;
     let best: Interactable | null = null, bd = Infinity;
     const n = mount.interactables.length;
-    for (let i = 0; i <= n; i++) {
-      const it = i < n ? mount.interactables[i] : taming.interactable;
+    for (let i = 0; i <= n + 1; i++) {
+      const it = i < n ? mount.interactables[i] : i === n ? taming.interactable : nameIt;
       if (it === undefined || it.radius <= 0) continue;
       const d = it.position.distanceTo(cam);
       if (d < it.radius && d < bd) { bd = d; best = it; }
@@ -120,13 +157,15 @@ export function wireRide(ctx: RideCtx): Ride {
   };
 
   return {
-    mount, taming, hud, interactable: ix, reins,
+    mount, taming, hud, interactable: ix, reins, raid,
     get mounted() { return mount.mounted; },
     bind(p) { play = p; mount.setKit(p.kit); },
     update(dt) {
       mount.update(dt);
       taming.update(dt);
       hud.update(taming.view);
+      raid.update(dt, ctx.player.position);
+      nameUpdate();
       choose();
     },
     late(dt) {

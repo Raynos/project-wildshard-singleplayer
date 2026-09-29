@@ -56,3 +56,11 @@
 .ws-ride-tag.show { display: flex; }
 .ws-ride-tag svg { width: 14px; height: 14px; fill: var(--ws-cyan); }
 .ws-ride-tag .ws-ride-heart { color: #7fe3ff; }
+/* B1: the hitching rail's NAME prompt (src/ui/HorseNamePrompt.ts) — high on the screen, clear of the phone's keyboard */
+.ws-ride-namebox { position: absolute; left: 50%; top: 18%; transform: translateX(-50%); z-index: 60; width: min(320px, calc(100% - 40px)); padding: 14px 16px 12px; pointer-events: auto; box-sizing: border-box; }
+.ws-ride-namecap { font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan); margin-bottom: 10px; }
+.ws-ride-nameinput { display: block; width: 100%; box-sizing: border-box; padding: 9px 10px; background: rgba(6, 10, 18, 0.6); border: 1px solid var(--ws-cyan-line); border-radius: 0; color: #fff; font: 16px var(--ws-display); letter-spacing: 0.08em; outline: none; -webkit-user-select: text; user-select: text; }
+.ws-ride-nameinput:focus { border-color: var(--ws-cyan); }
+.ws-ride-namebtns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+.ws-ride-namebtn { appearance: none; -webkit-appearance: none; padding: 8px 16px; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); border-radius: 0; color: var(--ws-text); font-family: var(--ws-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; cursor: pointer; }
+.ws-ride-namebtn.ok { color: #fff; border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.16); }

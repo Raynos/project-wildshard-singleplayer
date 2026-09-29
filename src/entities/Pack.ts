@@ -32,12 +32,25 @@ import { listSlot } from '../core/shardState';
  * Prey: `pack.findPrey = (x, z, r) => Animal | null` (Wildlife hands it the herds' foals) — a roaming pack that has not
  * found you may hunt a foal instead, with the same ring and lunges; the bite lands on the foal.
  *
+ * Raids (NALATI-FINISH B1, N13): `pack.raid(prey)` hands a roaming pack any `PackPrey` — src/nalati/sheepRaid.ts gives it a
+ * sheep of the camp's flock (Flock.prey(i)); the pack takes it at its next tick (whatever it had sensed of you), shadows,
+ * rings and lunges at it as at a foal, and the bite kills it. A crack of the mounted shepherd's whip breaks the pack
+ * (`scare`).
+ *
  * For other rows: `isLunging(wolf)` (a braced spear kills a dashing wolf — B3), `wolf.mem.hidden` (1 = still in grass
  * ≥ 0.8 m and > 10 m away: off the minimap and out of aim assist — B9 / HUD), `pack.phase`, `pack.awareness`,
  * `pack.scare(x, z)`, `Pack.all` (every live pack).
  */
 
 export type PackPhase = 'roam' | 'shadow' | 'encircle' | 'regroup' | 'break';
+
+/** what a pack can hunt instead of the player: a foal (an Animal), a sheep of the flock (Flock.prey) */
+export interface PackPrey {
+  readonly position: THREE.Vector3;
+  readonly yaw: number;
+  readonly alive: boolean;
+  readonly applyDamage: (amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3) => boolean;
+}
 
 export const ROLE_ALPHA = 0, ROLE_FLANK = 1, ROLE_SCOUT = 2;
 
@@ -65,8 +78,10 @@ export class Pack {
   awareness = 0;
   /** the den / home range centre */
   homeX: number; homeZ: number;
-  /** a foal (or any Animal) the pack is hunting instead of the player */
-  prey: Animal | null = null;
+  /** a foal (or a raided sheep, any PackPrey) the pack is hunting instead of the player */
+  prey: PackPrey | null = null;
+  /** B1: a raid's prey, taken at the next tick while roaming (`raid`) */
+  private pendingPrey: PackPrey | null = null;
   findPrey?: ((x: number, z: number, r: number) => Animal | null) | undefined;
   onPhase?: ((phase: PackPhase, pack: Pack) => void) | undefined;
 
@@ -118,6 +133,13 @@ export class Pack {
   }
 
   get alive(): number { let n = 0; for (const w of this.members) if (w.alive) n++; return n; }
+
+  /** B1: send a roaming pack after `p` (a raid on the flock) — false if it is busy (hunting, ringing you, fleeing) or dead */
+  raid(p: PackPrey): boolean {
+    if (this.phase !== 'roam' || this.alive === 0 || !p.alive) return false;
+    this.pendingPrey = p;
+    return true;
+  }
 
   private setPhase(p: PackPhase, c: ThinkCtx): void {
     if (p === this.phase) return;
@@ -196,6 +218,12 @@ export class Pack {
     const dAlpha = al?.alive === true ? al.position.distanceTo(tgt) : Math.hypot(this.cx() - tgt.x, this.cz() - tgt.z);
     switch (this.phase) {
       case 'roam': {
+        // B1: a raid — the pack goes after the flock's sheep, whatever it had of you
+        if (this.pendingPrey !== null) {
+          const p = this.pendingPrey;
+          this.pendingPrey = null;
+          if (p.alive) { this.prey = p; this.awareness = 0; this.calmT = 0; this.setPhase('shadow', c); break; }
+        }
         this.roamT -= dt;
         if (this.roamT <= 0 || (Math.hypot(this.cx() - this.roamX, this.cz() - this.roamZ) < 6 && c.rng.next() < 0.05)) this.pickRoam(c);
         if (this.awareness >= 0.35) { this.setPhase(hit ? 'encircle' : 'shadow', c); break; }

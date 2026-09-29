@@ -16,6 +16,7 @@ import { riding } from './riding';
 import { lockOn } from './AimTargets';
 import { setting } from '../ui/Settings';
 import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';
+import { savedHorseName, saveHorseName } from './horseNames';
 
 /**
  * Mount — riding a horse (Nalati row B7; docs/design/nalati/wolves-horses-taming.md "Riding", controls.md "The mounted
@@ -215,10 +216,16 @@ export class Mount {
   setKit(kit: MountKit | null): void { this.opts.kit = kit; }
   /** a spot the horse refuses to ride into (the Storm Titan's fire line) — checked a stride ahead */
   refuse: ((x: number, z: number) => boolean) | null = null;
+  /** E307: a playground's track, kept to instead of the shard's roads while it is open (null: the shard's again) */
+  setRoads(roads: readonly (readonly RoadXZ[])[] | null): void { this.roadsOverride = roads; }
+  private roadsOverride: readonly (readonly RoadXZ[])[] | null = null;
 
-  /** register a horse you may ride (a camp horse, Tulpar): marks it owned (no herd AI, can't die) and adds a MOUNT prompt */
-  addMountable(a: Animal, name: string): void {
+  /** register a horse you may ride (a camp horse, Tulpar): marks it owned (no herd AI, can't die) and adds a MOUNT prompt.
+   *  A name you gave it at the rail (horseNames.ts) wins over `fallback` */
+  addMountable(a: Animal, fallback: string): void {
     if (this.mountables.some((m) => m.a === a)) return;
+    const name = savedHorseName(a) ?? fallback;
+    if (name !== fallback) a.label = name;
     a.mem['owned'] = 1;
     const it: Interactable = { position: a.position, radius: 3.3, label: `Mount ${name}`, onInteract: () => { if (this.horse === a) this.dismount(); else if (this.horse === null) this.mount(a); } };
     const m: Mountable = { a, name, it, restT: 0, bolting: false, comeT: 0 };
@@ -232,6 +239,15 @@ export class Mount {
     this.mountables.splice(i, 1);
     if (m !== undefined) { const j = this.interactables.indexOf(m.it); if (j !== -1) this.interactables.splice(j, 1); }
   }
+
+  /** B1: name a horse you may ride (the rail's NAME prompt): its prompts, the STEED row and its tag take it; saved */
+  rename(a: Animal, name: string): void {
+    const m = this.mountables.find((x) => x.a === a);
+    if (m === undefined || name.length === 0) return;
+    m.name = name; a.label = name;
+    saveHorseName(a, name);
+  }
+  nameOf(a: Animal): string | null { return this.mountables.find((x) => x.a === a)?.name ?? null; }
 
   /** can this horse be ridden right now (not resting / bolting) */
   canRide(a: Animal): boolean {
@@ -425,7 +441,7 @@ export class Mount {
     // ── B1: keep to the road — the stick let go on a road: the gait held (GALLOP gallops it), the reins along the road ──
     let turnSteer = turnIn;
     this.onRoad = false;
-    const roads = this.opts.roads;
+    const roads = this.roadsOverride ?? this.opts.roads;
     if (roads !== undefined && sector === 2 && !this.breaking && p.moveScale !== 0 && (this.speed > HORSE_SPEED.walk * 0.8 || galloping) && setting('rideRoad') === 'on') {
       const r = roadSteer(roads, this.feet.x, this.feet.z, this.heading, 5 + Math.abs(this.speed) * 0.9);
       if (r !== null) {

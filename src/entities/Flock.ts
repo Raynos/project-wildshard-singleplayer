@@ -5,6 +5,7 @@ import { Rng } from '../core/rng';
 import { attachFogUniforms } from '../world/Atmosphere';
 import type { Animal } from './Animal';
 import type { ThinkCtx } from './species/registry';
+import type { PackPrey } from './Pack';
 import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from './species/sheep';
 import { loadCreatureRig, type RigAsset } from './glbCreatures';
 import { modelsOn } from '../world/nalati/glbPaint';
@@ -26,6 +27,8 @@ import { listSlot } from '../core/shardState';
  *                                                                        the design's penalty is the caller's)
  *   flock.onSound = (name, x, z) => …                                   'sheep_bleat' (ambient, panicked), 'dog_bark'
  *   flock.positions(i, out)                                              world position of sheep i
+ *   flock.prey(i) / flock.nearest(x, z)                                  B1: sheep i as a wolf pack's prey (Pack.raid —
+ *                                                                        src/nalati/sheepRaid.ts); the living sheep nearest (x, z)
  *
  * Behaviour: grazing head-down with the odd shuffle; the flock drifts across its pasture (a new spot every 60–90 s,
  * within `range` m of home); a sheep > 12 m out is a straggler (the dog fetches it); a wolf within 30 m or the player
@@ -41,6 +44,16 @@ const flockOfDog = new WeakMap<Animal, Flock>();
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 /** the wolves the sheepdog watches for (Wildlife keeps it current) */
 export const dogWolves: Animal[] = [];
+
+/** B1: one sheep as a wolf pack's prey (Pack.raid): its position and heading read live off the flock, a bite kills it */
+export class SheepPrey implements PackPrey {
+  private readonly p = new THREE.Vector3();
+  constructor(readonly flock: Flock, readonly index: number) {}
+  get position(): THREE.Vector3 { return this.flock.positions(this.index, this.p); }
+  get yaw(): number { return this.flock.headingOf(this.index); }
+  get alive(): boolean { return this.flock.isAlive(this.index); }
+  readonly applyDamage = (): boolean => { this.flock.kill(this.index); return true; };
+}
 
 export class Flock {
   mesh!: THREE.InstancedMesh;
@@ -155,6 +168,21 @@ export class Flock {
   }
 
   positions(i: number, out: THREE.Vector3): THREE.Vector3 { return out.set(this.px[i] ?? 0, (this.py[i] ?? 0) + 0.6, this.pz[i] ?? 0); }
+  /** sheep i's heading (animal yaw) and whether it lives */
+  headingOf(i: number): number { return this.yaw[i] ?? 0; }
+  isAlive(i: number): boolean { return i >= 0 && i < this.n && this.dead[i] === 0; }
+  /** B1: sheep i as a wolf pack's prey (Pack.raid): live position / heading, a bite kills it */
+  prey(i: number): SheepPrey { return new SheepPrey(this, i); }
+  /** the living sheep nearest (x, z) — the one a raid from that side reaches first — or -1 */
+  nearest(x: number, z: number): number {
+    let bi = -1, bd = Infinity;
+    for (let i = 0; i < this.n; i++) {
+      if (this.dead[i] === 1) continue;
+      const d = Math.hypot((this.px[i] ?? 0) - x, (this.pz[i] ?? 0) - z);
+      if (d < bd) { bd = d; bi = i; }
+    }
+    return bi;
+  }
 
   /** the sheep index a ray hits (a 0.42 m body sphere + a 0.14 m head sphere per sheep), or -1 */
   raycast(o: THREE.Vector3, d: THREE.Vector3, maxDist: number): number {
