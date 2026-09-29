@@ -146,3 +146,36 @@ Walk test: 19 legs, 0 stuck, 0 out.
 | textures | — | +0 |
 | mockup A | 160 draws / 1.51 M | 124 draws / 1.50 M |
 | worst A1 / A2 pose | A2·9 113 draws; A1·5 1.31 M | A2·9 104 draws / 1.27 M; A1·2 / A1·5 1.29 M |
+
+## Pass 5 (the coordinator's list: the crowd, the banyan)
+
+Sheets: `pass-5/A1-spawn-stand-sheet.jpg`, `pass-5/A2-gate-look-sheet.jpg`, `pass-5/mockup-A.jpg` (style-A | pass 4 |
+pass 5), `pass-5/banyan-and-crowd.jpg` (A2·6's target, the engine's A2·6 in pass 4 and pass 5, then A2·9 in pass 4 and
+pass 5).
+
+What changed:
+
+- **A denser crowd.** About 50 more figures across the street north of the gate, the gate's passage, the square, the
+  market aisle and the south promenade. They are instances of the same TRELLIS walkers, so they add no geometry. They
+  are placed after everything else the square places and on their own random stream, so no earlier figure moves. Their
+  number is cut to a multiple of ten, so the figures the other lanes place keep their coat and umbrella: `build.ts`
+  picks a figure's variant by its index mod 10.
+- **Dark blue umbrellas** (`crowd.ts`). A third of the dark-coat walkers carry `BLUE_UMBRELLA` (0x34507e). Which ones is
+  picked by a hash of where they stand. Next to the existing black, oxblood and paper umbrellas, that makes the targets'
+  mix. It costs one tinted copy of the walker and two meshes, so +2 draws at most (mockup A 124 → 126) and 0.46 MB.
+- **The banyan's ribbons and lanterns.** The limbs leave the trunk at about 6.6 m, so the old 6.5 m cut had kept only a
+  handful of ribbons. There are now up to 160 red and gold strips, 0.8–1.8 m long, hanging below the canopy. Twelve red
+  lanterns hang on cords from the limbs on the square's side, 5–7.5 m up (style-A, A2·6). The lanterns are instances in
+  the lantern system, so they cost no geometry.
+- **Memory paid back** (`gate.ts` `relief`). Each carved relief has two cloud scrolls instead of four. The square's ~76
+  reliefs spent half their vertices on scrolls a few pixels long at phone size. This saves 0.65 MB. The Well lane's
+  reliefs get the same trim.
+
+Nothing was reverted.
+
+| | pass 4 | pass 5 (169402bc + this lane) |
+|---|---|---|
+| lane geometry | 29.09 MB | 29.07 MB |
+| textures | +0 | +0 |
+| mockup A | 124 draws / 1.50 M | 126 draws / 1.51 M |
+| worst A1 / A2 pose | A2·9 104 draws / 1.27 M | A2·9 106 draws / 1.28 M; A1·2 / A1·5 1.31 / 1.30 M |

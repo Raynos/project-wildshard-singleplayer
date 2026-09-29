@@ -339,8 +339,9 @@ export function relief(x: KitX, c: Vector3, right: Vector3, up: Vector3, n: Vect
     const p = body[i];
     if (p !== undefined) x.ellipsoid(p.clone().addScaledVector(up, m * 0.07), right, up, n, m * 0.03, m * 0.045, m * 0.035, look, () => 1, 3, 5);
   }
-  // cloud scrolls in the gaps
-  for (let sIdx = 0; sIdx < 4; sIdx++) {
+  // cloud scrolls in the gaps (E281: two, not four — the square's ~76 reliefs spent half their vertices on scrolls a
+  // few pixels long at phone size; the first two are the same as before)
+  for (let sIdx = 0; sIdx < 2; sIdx++) {
     const cu = rng.range(-0.75, 0.75), cv = (sIdx % 2 === 0 ? 1 : -1) * rng.range(0.45, 0.8);
     const pts: Vector3[] = [];
     for (let i = 0; i <= 8; i++) {

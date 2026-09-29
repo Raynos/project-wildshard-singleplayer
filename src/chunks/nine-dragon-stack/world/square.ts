@@ -102,6 +102,41 @@ function mahjongTable(k: Kit, rng: Rng, px: number, py: number, pz: number, r: n
   }
 }
 
+/**
+ * E281 pass 5: the targets' crowd is about half again as dense (A1·2, A2·2, A2·9: the square, the gate's passage and
+ * the street thick with umbrellas). The extra figures come after everything else the square places and on their own
+ * random streams, so no earlier figure moves; their number is cut to a multiple of ten, so the figures the other
+ * modules place after the square keep their coat and umbrella (build.ts picks a figure's variant by its index mod 10).
+ */
+function moreCrowd(ctx: Ctx, free: (x: number, z: number) => boolean, placed: [number, number][]): void {
+  const r = new Rng(2815);
+  const n0 = ctx.walkers.length;
+  const both = (): number => (r.chance(0.5) ? Math.PI : 0) + r.range(-0.3, 0.3);
+  const any = (): number => r.range(0, Math.PI * 2);
+  const zones: { n: number; x: [number, number]; z: [number, number]; yaw: () => number }[] = [
+    { n: 18, x: [STREET.x0 + 1.5, STREET.x1 - 1.2], z: [-95, -36], yaw: both },
+    { n: 8, x: [1.6, 11.2], z: [-27, -19.5], yaw: both },
+    { n: 8, x: [1.8, 11.4], z: [-36, -27], yaw: both },
+    { n: 12, x: [2.2, 13], z: [-19.5, 1], yaw: any },
+    { n: 6, x: [14.5, 19.4], z: [-11.5, 1], yaw: any },
+    { n: 12, x: [2.5, 20.5], z: [1, 18], yaw: any },
+    { n: 6, x: [1.6, 6.5], z: [10.5, 19.2], yaw: both },
+  ];
+  for (const zn of zones) {
+    let n = 0;
+    for (let tries = 0; tries < zn.n * 12 && n < zn.n; tries++) {
+      const x = r.range(zn.x[0], zn.x[1]), z = r.range(zn.z[0], zn.z[1]);
+      // the street north of the gate is outside `free`'s plan; its canyon-up camera stays clear
+      const street = z < -36;
+      if (street ? (x - 7) ** 2 + (z + 52) ** 2 < 16 || placed.some(([px, pz]) => (x - px) ** 2 + (z - pz) ** 2 < 0.81) : !free(x, z)) continue;
+      placed.push([x, z]);
+      ctx.walkers.push(standAt(x, z, zn.yaw(), r.range(0.94, 1.04)));
+      n++;
+    }
+  }
+  ctx.walkers.length -= (ctx.walkers.length - n0) % 10;
+}
+
 /** a hip roof with upturned corners, glazed tiles, a ridge with end-beasts, painted eaves and a neon eave tube */
 export function hipRoof(ctx: Ctx, k: Kit, cx: number, y0: number, cz: number, w: number, d: number, h: number, up: number, tile: number, neon: number | null): void {
   const x0 = cx - w / 2, x1 = cx + w / 2, z0 = cz - d / 2, z1 = cz + d / 2;
@@ -278,6 +313,7 @@ export function buildSquare(ctx: Ctx): void {
   }
   // a short queue at the stall, beyond its tables
   for (let i = 0; i < 4; i++) ctx.walkers.push(standAt(STALL.x0 + 2.4 + i * 0.95, STALL.z1 + 3.9 + rng.range(-0.3, 0.3), Math.PI + rng.range(-0.4, 0.4), 1));
+  moreCrowd(ctx, free, placed);
   scooter(props, 20.4, Y0, 13.5, 0.3, 0x2e5fa3);
   scooter(props, 20.9, Y0, 15.4, 0.2, 0xb8321f);
   scooter(props, 20.6, Y0, -4.5, 1.2, 0x7fbf9a);

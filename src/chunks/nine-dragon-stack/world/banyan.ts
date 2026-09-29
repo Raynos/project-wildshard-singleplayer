@@ -27,8 +27,8 @@ export interface BanyanSpec {
 
 /** one lump of foliage (the organic lab's `Lump` shape): centre, radii, how high it sits on its shelf, a seed, a wash */
 export interface CanopyLump { c: Vector3; r: Vector3; up: number; seed: number; wash: number }
-/** what the tree hands on: the canopy's lumps (crown fill first, then the shelves) */
-export interface BanyanPlan { lumps: CanopyLump[] }
+/** what the tree hands on: the canopy's lumps (crown fill first, then the shelves), and where lanterns hang in it */
+export interface BanyanPlan { lumps: CanopyLump[]; hangs: Vector3[] }
 
 const BARK: Look = { wash: 0x4a3727, kind: K.bars, col: 0.09, row: 0, line: 0 };
 const BARK_DARK: Look = { wash: 0x392b21, kind: K.bars, col: 0.07, row: 0, line: 0 };
@@ -249,16 +249,32 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
       }
     }
   }
-  // red and gold wish ribbons on the lower limbs
-  for (let i = 0; i < 90; i++) {
+  // red and gold wish ribbons on the lower limbs (E281 pass 5: A2·6's target hangs the tree with long red strips. The
+  // limbs leave the trunk at ~6.6 m, so the old cut at 6.5 m kept a handful; now 160 tries up to 9.5 m, 0.8–1.8 m long,
+  // hanging below the canopy's underside. They are the tree's last random draws: nothing else moves)
+  for (let i = 0; i < 160; i++) {
     const L = rng.pick(limbs);
     const p = L.from.clone().lerp(L.tip, rng.range(0.15, 0.7)).add(new Vector3(0, -rng.range(0.1, 0.4), 0));
-    if (p.y > soil + 6.5) continue;
-    const len = rng.range(0.5, 1.1);
+    if (p.y > soil + 9.5) continue;
+    const len = rng.range(0.8, 1.8);
     const d = new Vector3(rng.range(-1, 1), 0, rng.range(-1, 1)).normalize();
-    x.sweep([p, p.clone().add(new Vector3(0, -len * 0.5, 0)).addScaledVector(d, 0.05), p.clone().add(new Vector3(0, -len, 0)).addScaledVector(d, 0.1)], () => 0.035, 3, { wash: i % 4 === 0 ? 0xd9a441 : 0xb8261a, line: 0, accent: true }, { flat: 0.2, up: d });
+    x.sweep([p, p.clone().add(new Vector3(0, -len * 0.5, 0)).addScaledVector(d, 0.05), p.clone().add(new Vector3(0, -len, 0)).addScaledVector(d, 0.1)], () => 0.045, 3, { wash: i % 4 === 0 ? 0xd9a441 : 0xb8261a, line: 0, accent: true }, { flat: 0.2, up: d });
   }
-  return { lumps };
+  // lanterns on cords from the lower limbs on the side the square sees (style-A: four or five red lanterns in the banyan
+  // beside the gate; A2·6), hanging 5–7.5 m up under the canopy, on their own random stream
+  const hrng = new Rng(B.seed + 303);
+  const hangs: Vector3[] = [];
+  const low = limbs.filter((l) => l.tip.x < cx + 1 || l.tip.z > cz + 0.5);
+  for (let i = 0; i < 60 && hangs.length < 12 && low.length > 0; i++) {
+    const L = hrng.pick(low);
+    const p = L.from.clone().lerp(L.tip, hrng.range(0.25, 0.85));
+    if (p.y > soil + 9.5) continue;
+    const top = p.clone().add(new Vector3(0, -hrng.range(0.8, 2.0), 0));
+    if (top.y < soil + 5.2 || hangs.some((h) => h.distanceToSquared(top) < 1.6 * 1.6)) continue;
+    x.sweep([p, top], () => 0.008, 3, { wash: 0x2a2c31, line: 0 });
+    hangs.push(top);
+  }
+  return { lumps, hangs };
 }
 
 /** the earth-god shrine (土地公) at the planter's front: a red lacquer cabinet under a tiled roof, candles, a censer */
@@ -324,6 +340,7 @@ export function buildBanyan(ctx: Ctx, rng: Rng): void {
   // no K.leaf lumps: the organic lab's painted leaf cards dress the plan (canopy.ts, wired in main.ts)
   banyanOut.plan = buildBanyanTree(k, kx, { x, y, z, r, seed: 7, height: 14, spread: 8.6, leaves: false });
   for (let i = 0; i < 7; i++) ctx.lantern(x + rng.range(-4.5, 4.5), y + rng.range(6.2, 8.4), z + rng.range(-3, 3.5), 0.8);
+  for (const h of banyanOut.plan.hangs) ctx.lantern(h.x, h.y, h.z, 0.72);
   // the shrine stands at the planter's south-west, clear of the stall's back, facing the square
   shrine(ctx, k, kx, x - 3.2, y, z + 2.2);
   // the 九龍城 stele: a dark granite slab on a tortoise-back plinth

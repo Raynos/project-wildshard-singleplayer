@@ -83,6 +83,36 @@ export function clusterLod(src: BufferGeometry, maxTris: number): BufferGeometry
   return g;
 }
 
+/**
+ * E281, umbrella variety: the targets' crowd carries dark blue umbrellas beside the black, oxblood and paper ones. A
+ * walker added with a dark, neutral umbrella (the dark-coat ramp's) hands a share of its figures — picked by a hash of
+ * where they stand, so the pick is stable — to a copy whose umbrella is tinted `BLUE_UMBRELLA`: one more geometry and
+ * two more meshes (near / far) for the whole crowd, once per Crowd, never per figure.
+ */
+export const BLUE_UMBRELLA = 0x34507e;
+const BLUE_SHARE = 0.35;
+
+/** mean linear luminance and chroma of the umbrella's vertex colours (above `above` m), or null without an umbrella */
+function umbrellaTone(g: BufferGeometry, above = 1.8): { lum: number; chroma: number } | null {
+  const pos = g.getAttribute('position'), col = g.getAttribute('color');
+  let n = 0, lum = 0, chroma = 0;
+  for (let i = 0; i < col.count; i++) {
+    if (pos.getY(i) <= above) continue;
+    const r = col.getX(i), gg = col.getY(i), b = col.getZ(i);
+    lum += 0.2126 * r + 0.7152 * gg + 0.0722 * b;
+    chroma += Math.max(r, gg, b) - Math.min(r, gg, b);
+    n++;
+  }
+  return n === 0 ? null : { lum: lum / n, chroma: chroma / n };
+}
+
+/** a stable 0..1 hash of a figure's standing point */
+const spot = (m: Matrix4): number => {
+  const e = m.elements;
+  const h = Math.sin(e[12] * 12.9898 + e[14] * 78.233) * 43758.5453;
+  return h - Math.floor(h);
+};
+
 /** full detail inside this distance, the clustered copy past it, nothing past LOD_FAR */
 export const LOD_NEAR = 35, LOD_FAR = 130;
 /** the far copy's triangle cap */
@@ -99,11 +129,26 @@ export class Crowd {
   private readonly sphere = new Sphere(new Vector3(), 1.3);
   private readonly eye = new Vector3();
   private dirty = true;
+  /** the blue-umbrella split is made once per crowd (it costs a geometry and two meshes) */
+  private split = false;
 
   constructor(private readonly mat: Material) {}
 
   /** one variant: its full geometry and where its figures stand (their base points are the matrices' translations) */
   add(geo: BufferGeometry, mats: readonly Matrix4[]): void {
+    if (mats.length === 0) return;
+    const tone = this.split ? null : umbrellaTone(geo);
+    if (tone !== null && tone.lum < 0.06 && tone.chroma < 0.03) {
+      this.split = true;
+      const blue = mats.filter((m) => spot(m) < BLUE_SHARE), rest = mats.filter((m) => spot(m) >= BLUE_SHARE);
+      this.variant(geo, rest);
+      this.variant(tintUmbrella(geo, BLUE_UMBRELLA), blue);
+      return;
+    }
+    this.variant(geo, mats);
+  }
+
+  private variant(geo: BufferGeometry, mats: readonly Matrix4[]): void {
     if (mats.length === 0) return;
     const lo = clusterLod(geo, LOD_TRIS);
     const mk = (g: BufferGeometry, name: string): InstancedMesh => {
