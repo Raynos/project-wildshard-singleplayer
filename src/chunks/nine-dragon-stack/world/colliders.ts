@@ -26,6 +26,9 @@ function span(x0: number, y0: number, z0: number, x1: number, y1: number, z1: nu
 const WALL_H = 40, SLAB = 1.2;
 /** the invisible parapets over the Well reach this high above the floor (out of reach of every jump, on foot or board) */
 const PARAPET = 12;
+/** where the square's invisible parapet over the Well joins the grapple guard (E286: the rim → square crossing to the
+ *  (−3.2, −13) mast's hook comes in over the balustrade at z ≈ −12) */
+const GUARD_Z0 = -18;
 
 /** the fragment's collision in four pieces (their looks on the maps: floors stone, fronts rock, edges rock, props timber) */
 export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[]; edges: ColliderDesc[]; props: ColliderDesc[] }
@@ -66,11 +69,11 @@ export function fragmentColliders(): FragmentColliders {
   out.push(span(PLAZA.x0 - 0.1, Y0, WELL.z0, PLAZA.x0 + 0.5, Y0 + 1.12, PLAZA.z1 + 0.6));
   // the square's and the street's, except where the Well's south rim ledge meets the square (a hop over the stone
   // onto the rim, where mockup B stands; the rim is walled on its other three sides)
-  out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, WELL.z0, PLAZA.x0 + 0.1, Y0 + PARAPET, RIM.z0));
+  out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, WELL.z0, PLAZA.x0 + 0.1, Y0 + PARAPET, GUARD_Z0));
   out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, RIM.z1, PLAZA.x0 + 0.1, Y0 + PARAPET, PLAZA.z1 + 0.6));
   // the rim's own (dome C's stone and 3.2 m parapet, well.ts wellColliders), carried up to the same height
-  // The south rim's tall cap is registered separately as a kinematic grapple guard (index.ts): it opens only during
-  // an actual Fei Zhua pull. The stone parapet in wellColliders() remains solid under it.
+  // The south rim's tall cap, and the square's parapet from GUARD_Z0 to the rim, are registered separately as a
+  // kinematic grapple guard (index.ts): they open only during an actual Fei Zhua pull. The stone under them stays solid.
   // ── props you would walk into ──
   out = props;
   // (the gate's lion pair and their pedestals are gone: dome B took them out, style-A and the A2 targets have none)
@@ -92,9 +95,13 @@ export function fragmentColliders(): FragmentColliders {
   return { floors, fronts, edges, props };
 }
 
-/** Invisible upper cap of the south Well rail; a kinematic piece can disable it for a committed grapple only. */
+/** Invisible upper cap of the south Well rail, and the square's parapet south of GUARD_Z0; a kinematic piece can disable
+ *  them for a committed grapple from the rim only (Traversal.ts `crossesWell`). */
 export function fragmentGrappleGuard(): ColliderDesc[] {
-  return [span(WELL.x0, Y0 + 3.2, RIM.z0 - 0.1, WELL.x1, Y0 + PARAPET, RIM.z0 + 0.1)];
+  return [
+    span(WELL.x0, Y0 + 3.2, RIM.z0 - 0.1, WELL.x1, Y0 + PARAPET, RIM.z0 + 0.1),
+    span(PLAZA.x0 - 0.1, Y0 + 1.12, GUARD_Z0, PLAZA.x0 + 0.1, Y0 + PARAPET, RIM.z0),
+  ];
 }
 
 /** the floor under (x, z) where the player can stand (placement, footsteps), or undefined off the fragment */

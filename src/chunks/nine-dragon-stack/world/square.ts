@@ -255,6 +255,11 @@ function signMasts(ctx: Ctx): void {
     k.beam(new Vector3(mx, Y0 - 3, mz), new Vector3(mx, top, mz), 0.14, 0.14, steel);
     dragonHook(k, ctx, new Vector3(mx - 0.3, top - 0.6, mz), new Vector3(-1, 0, 0.25), 0.8);
   }
+  // E286 (mockup B: "the claw fires across the Well at a hook on the right-hand gallery"): a second hook low on the
+  // (−3.2, −13) mast, snarling at the south rim a metre over the eye. From B's spot it is a third of a turn right and
+  // 31 m off; the pull crosses the Well's corner and comes in over the balustrade onto the square (colliders.ts
+  // fragmentGrappleGuard opens the parapet there for that one crossing). The masts' tops are 20 m over any floor.
+  dragonHook(k, ctx, new Vector3(-3.2, Y0 + 2.9, -13), new Vector3(-16.3, 0, 26.3), 0.8);
 }
 
 function lanternString(ctx: Ctx, a: Vector3, b: Vector3, spacing: number, k: Kit): void {
