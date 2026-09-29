@@ -141,6 +141,9 @@ export class Shared {
     uFogBaseCol: { value: c(0xb8c2d2) },
     uBands: { value: BANDS.map((b) => new Vector4(b.y, b.w, b.d, b.puff ?? 0)) },
     uBandCols: { value: BANDS.map((b) => c(b.jiehua)) },
+    // (E283) the bands a ray from the eye can reach (bandWindow(), from uCam): x the first going down, y the last going
+    // up, z 1 = use it (0: every band tested, the old loop)
+    uBandWin: { value: new Vector3(0, BAND_COUNT - 1, 0) },
     uSkyTop: { value: c(0x6f94c8) },
     uSkyHorizon: { value: c(0xb3c3d8) },
     // (render, E281) the far Stack painted into the sky (FS_SKY skyline): strength, elevation scale, lit windows, ink
@@ -216,6 +219,27 @@ export class Shared {
 
   /** kept for the old API: 0 = blue hour, 1 = sutra */
   setSutra(s: number): void { this.setLook(s > 0.5 ? 'sutra' : 'jiehua'); }
+
+  /**
+   * (E283) the silk fog's band window for the eye at uCam (call it after every uCam write): the bands run top to bottom,
+   * each reaching 3 widths either side of its height, so a ray going down from the eye can reach no band before the
+   * first whose bottom is at or under the eye, and a ray going up none after the last whose top is at or over it — and
+   * past the first band the ray's far end cannot reach, no later one either. silkFog then walks only those bands, in the
+   * same order, with the same test on each: the same fog, bit for bit. Off (z 0) if the bands ever stop running top to
+   * bottom.
+   */
+  bandWindow(): void {
+    const B = this.u.uBands.value, cy = this.u.uCam.value.y;
+    let ordered = true, down = B.length, up = -1;
+    for (let k = 0; k < B.length; k++) {
+      const b = B[k], prev = B[k - 1];
+      if (b === undefined) continue;
+      if (prev !== undefined && (b.x + 3 * b.y > prev.x + 3 * prev.y || b.x - 3 * b.y > prev.x - 3 * prev.y)) ordered = false;
+      if (down === B.length && b.x - 3 * b.y <= cy) down = k;
+      if (b.x + 3 * b.y >= cy) up = k;
+    }
+    this.u.uBandWin.value.set(down, up, ordered ? 1 : 0);
+  }
 }
 
 /** (round 14, dome B2: the run north's lit crossings 60–110 m off read grey) how far a light punches through the silk:
@@ -262,13 +286,15 @@ uniform vec4 uDeepAmb;
 uniform vec2 uWetSky;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
+uniform vec3 uBandWin;
 // the colour script: the silk's tint at an altitude, interpolated between the bands
 vec3 scriptCol(float y) {
   vec3 c = uBandCols[0];
   for (int i = 0; i < ${BAND_COUNT - 2}; i++) {
     vec4 a = uBands[i];
     vec4 b = uBands[i + 1];
-    if (y <= a.x && y >= b.x) c = mix(uBandCols[i + 1], uBandCols[i], (y - b.x) / max(a.x - b.x, 1.0));
+    // (E283) the intervals only touch at their ends, where both give the same colour: the first match is the answer
+    if (y <= a.x && y >= b.x) { c = mix(uBandCols[i + 1], uBandCols[i], (y - b.x) / max(a.x - b.x, 1.0)); if (uBandWin.z > 0.5) break; }
   }
   if (y < uBands[${BAND_COUNT - 2}].x) c = uBandCols[${BAND_COUNT - 2}];
   return c;
@@ -288,9 +314,16 @@ vec4 silkFog(vec3 wp, float scale) {
   vec3 acc = vec3(0.0);
   float T = 1.0;
   float yLo = min(uCam.y, wp.y), yHi = max(uCam.y, wp.y);
+  // (E283) the band window (Shared.bandWindow): start at the first band this ray can reach, stop at the first its far
+  // end cannot (every later one is further from the eye still); off, every band in order as before
+  bool bw = uBandWin.z > 0.5;
+  int kS = bw ? int(dy < 0.0 ? uBandWin.x : uBandWin.y) : (dy < 0.0 ? 0 : ${BAND_COUNT - 1});
+  int kD = dy < 0.0 ? 1 : -1;
   for (int i = 0; i < ${BAND_COUNT}; i++) {
-    int k = dy < 0.0 ? i : ${BAND_COUNT - 1} - i;
+    int k = kS + kD * i;
+    if (k < 0 || k > ${BAND_COUNT - 1}) break;
     vec4 b = uBands[k];
+    if (bw && (dy < 0.0 ? wp.y > b.x + 3.0 * b.y : wp.y < b.x - 3.0 * b.y)) break;
     if (b.z <= 0.0) continue;
     // (render, the phone's cost) a band the ray never comes within 3 widths of holds < 0.5 % of its depth: skip its
     // tanh / cosh and billow noise — from the square only one or two of the nine are ever in reach
@@ -351,7 +384,10 @@ vec4 silkFog(vec3 wp, float scale) {
   // And aerial perspective ALONG the canyon: z per metre on the ray's stretch inside the shaft's footprint up to w m over
   // the rim, weighted to level rays ((1 − |dy|)², so looking down stays clear) and after the first uFogStart metres —
   // mockup B's crossings step paler rung by rung into the run north, the far end lost in the silk.
-  if ((uShaftK.x > 0.0 || uShaftK.z > 0.0) && L > 1e-3) {
+  // (E283) a ray with both ends on one side of the shaft's footprint (west, east, north or south of it) cannot cross the
+  // shaft: the slab test below would find nothing; skip it (with the band window: uBandWin.z)
+  bool shaftMiss = uBandWin.z > 0.5 && (max(uCam.x, wp.x) < uShaft.x || min(uCam.x, wp.x) > uShaft.z || max(uCam.z, wp.z) < uShaft.y || min(uCam.z, wp.z) > uShaft.w);
+  if ((uShaftK.x > 0.0 || uShaftK.z > 0.0) && L > 1e-3 && !shaftMiss) {
     vec3 dn = d / L;
     vec3 inv = vec3(abs(dn.x) > 1e-5 ? 1.0 / dn.x : 1e5, abs(dn.y) > 1e-5 ? 1.0 / dn.y : 1e5, abs(dn.z) > 1e-5 ? 1.0 / dn.z : 1e5);
     vec3 t0 = (vec3(uShaft.x, -260.0, uShaft.y) - uCam) * inv, t1 = (vec3(uShaft.z, uShaftK.y + uShaftK.w, uShaft.w) - uCam) * inv;

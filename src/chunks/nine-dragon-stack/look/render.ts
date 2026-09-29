@@ -185,6 +185,7 @@ export function createRender(): ShardRender {
       // the eye the materials' silk fog is measured from: the camera as it is drawn (the world's updater runs before the
       // late hooks pose the camera, so it lags a frame — and a posed capture camera would fog from the player's eye)
       world.shared.u.uCam.value.setFromMatrixPosition(handle.camera.matrixWorld);
+      world.shared.bandWindow();
       world.shared.u.uNear.value = handle.camera.near;
       // the paper lanterns in view, bucketed near / far for this camera (look/lanterns.ts LOD)
       updateLanterns(handle.camera);

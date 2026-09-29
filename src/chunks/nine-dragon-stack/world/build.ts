@@ -442,6 +442,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     shared.u.uTime.value = t;
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
+    shared.bandWindow();
     train.position.set(-100 + ((t * 16) % 300), Y0 + 25.5, -27);
     const gx = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(t * 0.12 - 0.62));
     gondola.position.set(gx, CABLE.y + ((gx - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, CABLE.z);

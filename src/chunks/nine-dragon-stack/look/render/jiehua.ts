@@ -203,7 +203,7 @@ export class JiehuaEffect extends Effect {
       uDpr: new Uniform(1), uSilPx: new Uniform(new Vector2(2.1, 1.2)), uSilFade: new Uniform(new Vector2(60, 170)), uSilGain: new Uniform(0.35),
       uInvProj: new Uniform(new Matrix4()), uCamWorld: new Uniform(new Matrix4()), uNF: new Uniform(new Vector2(0.1, 1000)), uSharp: new Uniform(0),
       uCam: new Uniform(s.uCam.value), uFogBase: new Uniform(s.uFogBase.value), uFogStart: new Uniform(s.uFogStart.value), uFogBaseCol: new Uniform(s.uFogBaseCol.value),
-      uShaft: new Uniform(s.uShaft.value), uShaftK: new Uniform(s.uShaftK.value), uBands: new Uniform(s.uBands.value), uBandCols: new Uniform(s.uBandCols.value),
+      uShaft: new Uniform(s.uShaft.value), uShaftK: new Uniform(s.uShaftK.value), uBands: new Uniform(s.uBands.value), uBandCols: new Uniform(s.uBandCols.value), uBandWin: new Uniform(s.uBandWin.value),
       uFogDeep: new Uniform(s.uFogDeep.value), uShaftLit: new Uniform(s.uShaftLit.value), uDeepAir: new Uniform(s.uDeepAir.value), uDeepAir2: new Uniform(s.uDeepAir2.value), uPuff: new Uniform(s.uPuff.value),
       uBleed: new Uniform(new Vector4(B.tight, B.wide / 4, B.stain, B.stainResponse)),
       uBleed2: new Uniform(new Vector4(B.weave, B.warp, B.edge, B.exposure)),
