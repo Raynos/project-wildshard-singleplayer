@@ -179,3 +179,33 @@ Nothing was reverted.
 | textures | +0 | +0 |
 | mockup A | 124 draws / 1.50 M | 126 draws / 1.51 M |
 | worst A1 / A2 pose | A2·9 104 draws / 1.27 M | A2·9 106 draws / 1.28 M; A1·2 / A1·5 1.31 / 1.30 M |
+
+## Pass 6
+
+Sheets: `pass-6/A1-spawn-stand-sheet.jpg`, `pass-6/A2-gate-look-sheet.jpg`, `pass-6/A1-7-and-A1-6.jpg` (A1·7's target,
+A1·7 in pass 5 and pass 6, then A1·6 in pass 5 and pass 6), `pass-6/mockup-C-and-C1-5.jpg` (mockup C, the engine's
+mockup C and C1·5 after the east-shops string was split, and A1·6).
+
+What changed:
+
+- **The last lamp post is gone.** It stood in the middle of A1·7, turned round from the spawn; the target has none.
+  With it went `props.ts` `lamp`, now unused.
+- **Lanterns over the south half.** Two strings run from the south-west corner's front to the east shops. They hang
+  where A1·7's and A1·6's targets hang theirs, behind the spawn and out of mockup A's frame.
+- **The east shops' string is in two runs** (the stair lane's note). One runs north of the stair-street's mouth (z 2 to
+  10), one south of it. It had crossed the mouth about 3 m in front of mockup C's camera, putting two big lanterns
+  across the upper third of that frame. Mockup C and C1·5 are clear of it now (`pass-6/mockup-C-and-C1-5.jpg`).
+- **The lotus buds are a shade darker** (0x505157). They are the nearest stone in A1·7, A2·4 and mockup A, and they
+  read as pale eggs.
+- **Ten more walkers on the south promenade** (A1·7's stream of umbrellas). They are placed like pass 5's extras: last,
+  on their own stream, cut to a multiple of ten.
+
+Nothing was reverted. Walk test: 19 legs, 0 stuck, 0 out. No colliders changed in passes 5 or 6.
+
+| | pass 5 | pass 6 (4bd549f7 + this lane) |
+|---|---|---|
+| lane geometry | 29.07 MB | 29.08 MB (29.09 MB after pass 4, the cap) |
+| textures | +0 | +0 |
+| mockup A | 126 draws / 1.51 M | 126 draws / 1.51 M |
+| mockup C | — | 107 draws / 0.89 M |
+| worst A1 / A2 pose | A2·9 106 draws / 1.28 M | A2·9 106 draws / 1.28 M; A1·2 1.32 M |

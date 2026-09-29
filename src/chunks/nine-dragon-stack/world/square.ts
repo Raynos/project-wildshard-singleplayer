@@ -1,6 +1,6 @@
 // Lantern Square: wet granite, the Well's stone balustrade and sign masts, the cinnabar paifang (九龍疊城), the banyan
 // in its round planter with the earth-god shrine, mahjong tables, the noodle stall, lantern strings and the crowd.
-import { Color, Matrix4, Quaternion, Vector3 } from 'three';
+import { Matrix4, Quaternion, Vector3 } from 'three';
 import { buildBanyan } from './banyan';
 import { mahjongSeats } from './hero/figures';
 import type { Ctx } from './ctx';
@@ -11,12 +11,14 @@ import type { KitX } from './hero/kitx';
 import { BOOTH, BOOTHS, PARASOLS, hawkerStall, marketRow, noodleStall } from './stalls';
 import { E, K, type Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
-import { dragonHook, lamp, scooter } from './props';
+import { dragonHook, scooter } from './props';
 import { MIN, METAL, Rng } from '../util';
 
 // the balustrade's stone: a mid wet grey (dome A's ΔE: 0x76767b rendered #757784, 0x4a4c53 #44454e; the spawn target #656469)
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };
-const BUD: Look = { wash: 0x66676c, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };
+// (E281 pass 6: a shade darker than the posts — the buds are the nearest stone in A1·7, A2·4 and mockup A, and at
+// 0x66676c they read as pale eggs against the targets' weathered buds)
+const BUD: Look = { wash: 0x505157, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };
 const UPV = new Vector3(0, 1, 0);
 /** a figure's placement on the square's floor */
 const standAt = (x: number, z: number, yaw: number, s: number): Matrix4 => new Matrix4().compose(new Vector3(x, Y0, z), new Quaternion().setFromAxisAngle(UPV, yaw), new Vector3(s, s, s));
@@ -121,6 +123,8 @@ function moreCrowd(ctx: Ctx, free: (x: number, z: number) => boolean, placed: [n
     { n: 6, x: [14.5, 19.4], z: [-11.5, 1], yaw: any },
     { n: 12, x: [2.5, 20.5], z: [1, 18], yaw: any },
     { n: 6, x: [1.6, 6.5], z: [10.5, 19.2], yaw: both },
+    // (pass 6) the promenade south of the spawn, walking toward it and away (A1·7's target: a stream of umbrellas)
+    { n: 10, x: [1.5, 8.5], z: [9.5, 19.5], yaw: both },
   ];
   for (const zn of zones) {
     let n = 0;
@@ -317,23 +321,21 @@ export function buildSquare(ctx: Ctx): void {
   scooter(props, 20.4, Y0, 13.5, 0.3, 0x2e5fa3);
   scooter(props, 20.9, Y0, 15.4, 0.2, 0xb8321f);
   scooter(props, 20.6, Y0, -4.5, 1.2, 0x7fbf9a);
-  // lamps and lantern strings
-  // (E281: only the south lamp is left — the two along the balustrade stood in the middle of A1·5 and A2·4, where
-  // style-A and the targets have none, and the east one stood inside a market booth)
-  lamp(props, 1.1, Y0, 12, 4.2);
-  // the light lab's hunk (round-9-lab-light): the lamps are lights too (a warm pool under each, a streak in the wet stone)
-  for (const [x, z] of [[1.1, 12]] as const) {
-    ctx.emitters.push({ at: new Vector3(x, Y0 + 4.1, z), color: new Color(0xffc987), w: 0.34, h: 0.3, power: 0.5, spill: 0.25 });
-  }
+  // lantern strings (E281: the square's lamp posts are gone — the two along the balustrade stood in the middle of A1·5
+  // and A2·4, the east one inside a market booth, the south one in the middle of A1·7; style-A and the targets light
+  // the square with lanterns)
   const str = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 12.2, GATE.z + 0.5), new Vector3(22.6, Y0 + 12.5, -22), 1.9, str);
   lanternString(ctx, new Vector3(-1.2, Y0 + 10.4, -26), new Vector3(GATE.x - 1, Y0 + 11, GATE.z + 0.5), 1.8, str);
   lanternString(ctx, new Vector3(GATE.x + 4, Y0 + 9.8, GATE.z + 0.6), new Vector3(22.6, Y0 + 9.6, -28), 1.8, str);
   // (E281: the two strings across the square's north half are gone — they crossed style-A's frame in front of the gate's
-  // roofs, where the mockup has none; the east shops carry one instead, over the market, out of that frame)
-  lanternString(ctx, new Vector3(22.3, Y0 + 6.2, -12.4), new Vector3(22.3, Y0 + 6.5, 18.6), 1.9, str);
-  // E281: one over the south half, from the lamp by the balustrade to the east shops (A1·6 / A1·7's lanterns overhead;
-  // behind the spawn, out of the mockup's frame)
-  lanternString(ctx, new Vector3(1.1, Y0 + 4.4, 12), new Vector3(22.4, Y0 + 7.6, 14.5), 1.9, str);
+  // roofs, where the mockup has none; the east shops carry one instead, over the market, out of that frame — in two runs
+  // either side of the stair-street's mouth (z 2 … 10), whose frame (mockup C, F6) stays open over the stair)
+  lanternString(ctx, new Vector3(22.3, Y0 + 6.2, -12.4), new Vector3(22.3, Y0 + 6.4, 0.6), 1.9, str);
+  lanternString(ctx, new Vector3(22.3, Y0 + 6.3, 11.8), new Vector3(22.3, Y0 + 6.5, 18.6), 1.9, str);
+  // E281: two over the south half, from the south-west corner's front to the east shops (A1·7's target: strings
+  // crossing overhead all down the promenade; behind the spawn, out of the mockup's frame)
+  lanternString(ctx, new Vector3(0.4, Y0 + 6.6, 19.6), new Vector3(22.4, Y0 + 7.6, 14.5), 1.9, str);
+  lanternString(ctx, new Vector3(0.4, Y0 + 7.2, 19.8), new Vector3(22.4, Y0 + 6.4, 10.6), 2.0, str);
   for (let z = -26; z > -150; z -= 6) lanternString(ctx, new Vector3(STREET.x0 - 0.2, Y0 + 6.5 + (z % 3), z), new Vector3(STREET.x1 + 0.2, Y0 + 7.2, z - 1.5), 1.8, str);
 }

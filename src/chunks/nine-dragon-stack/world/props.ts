@@ -3,7 +3,7 @@
 import { Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
-import { MIN, METAL, type Rng } from '../util';
+import { METAL, type Rng } from '../util';
 
 const rot = (ox: number, oz: number, r: number): [number, number] => [ox * Math.cos(r) + oz * Math.sin(r), -ox * Math.sin(r) + oz * Math.cos(r)];
 
@@ -186,9 +186,3 @@ export function laundry(k: Kit, rng: Rng, a: Vector3, b: Vector3): void {
   }
 }
 
-/** a street lamp: a pole with a hooded warm lamp */
-export function lamp(k: Kit, x: number, y: number, z: number, h: number): void {
-  k.beam(new Vector3(x, y, z), new Vector3(x, y + h, z), 0.1, 0.1, { wash: 0x2a2c31, line: 1 });
-  k.box(x, y + h - 0.1, z, 0.34, 0.3, 0.34, { wash: 0xffd9a0, emit: 1.8, line: 1, accent: true });
-  k.box(x, y + h + 0.2, z, 0.5, 0.08, 0.5, { wash: MIN.malachite, line: 1, accent: true });
-}
