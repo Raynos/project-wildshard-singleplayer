@@ -7,6 +7,7 @@ import type { Player } from '../player/Player';
 import type { TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { Weapons } from '../player/Weapons';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
+import { BOSS_NAMES } from '../ui/Combat';
 import { buildTrainingDummy, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
 import { loadTrainingDummy } from './TrainingDummyAssets';
 import './arena.css';
@@ -14,6 +15,7 @@ import './arena.css';
 const HALF_WIDTH = 50, HALF_DEPTH = 50, WALL_HEIGHT = 9;
 const Y = 900; // an isolated room high over each shard; existing world geometry and AI never enter it
 const CYAN = 0x75d9ff;
+BOSS_NAMES.set('training-dummy', 'Training dummy'); // the aim readout's name (E285: it read the raw kind, "TRAINING-DUMMY · 12 M")
 
 interface FloatingText { el: HTMLElement; point: THREE.Vector3; time: number }
 

@@ -1,18 +1,21 @@
 # Training dummy model pass
 
-**State:** `in progress` 2026-09-28 — E215 (Codex, no commit since 2026-09-27): three rigged TRELLIS candidates render in the arena and Model Explorer (b70ae6b9); the dev-only Explore entry is done (E233 / E255, 04d5fa2b); the dummies are human-sized solid lock targets (E252, 4fdcca55). Open: the physical-iPhone memory reading and the nine-angle live capture (agent), then Jake's approval of the dummy look against the approved sheets.
+**State:** `in progress` 2026-09-29 — E285 audit: the arena's weapon and dodge bugs are fixed on all four shards (Claude). Jake saw the dummies live: odd hands, other glitches, barely moving. The cleanup and motion row was never met: five crude bones, no hand cleanup, a ±0.7° code sway. Open, awaiting Jake's go on the E285 finish list: mesh cleanup, a real rig, hit-driven motion, arena HUD cleanup, then the phone reading and his approval.
 
 This is a shared asset for the HUD + Weapon Explorer arena and Model Explorer in all four shards. The approved nine-angle sheets in `art/hud-explorer/round-1-arena/` are the visual target. Preserve the distinct constructions: wood frame with wooden armor, straw body with cloth armor, and wood frame with steel armor.
 
 The model input references are `art/hud-explorer/round-3-dummy-meshes/ref-straw-cloth.jpg`, `ref-wood-wood.jpg`, and `ref-wood-steel.jpg`. These are source targets for the three rigged candidates, not live engine captures.
 
-| Checkpoint | Lever | Gate |
-|---|---|---|
-| Three candidate meshes | Local TRELLIS.2 1024 cascade from approved front references | Front and side read as humanoid, with armor material distinct |
-| Art cleanup and motion | Preserve TRELLIS texture; Blender scale, orient, skin; local detail repair where generation has holes | Nine-angle turntables and sampled hit pose have no severe gaps or collapsing limbs |
-| Phone asset budget | WebP textures and meshopt, original mesh detail retained where visible | Model load, decoded memory, triangles and draw calls measured in portrait iOS target |
-| Shared integration | One asset family used by the arena and Model Explorer, loaded only when requested | All shards enter arena; all three variants visible and hittable; Model Explorer buttons visible; entry belongs inside dev-only Explore World |
-| Approval | Compare live portrait captures with approved sheets | User sees the candidate before this plan can be marked finished |
+| Checkpoint | Lever | Gate | Status |
+|---|---|---|---|
+| Three candidate meshes | Local TRELLIS.2 1024 cascade from approved front references | Front and side read as humanoid, with armor material distinct | done (E215) |
+| Mesh cleanup | Blender repair against the approved sheets: straw-bundle fists (straw), wrapped wooden fists (wood), steel gauntlets (steel); close the neck and shin holes, trim the spikes. If a figure is beyond repair, re-run TRELLIS from a reference with closed fists | A nine-angle live capture per dummy has no spikes, holes or melted hands | open (E285): the hands are raw TRELLIS claws |
+| Real rig | A humanoid skeleton that follows the figure: post root, pelvis, spine, chest, neck, head; shoulder, upper arm, forearm and hand on each side; legs bound to the post. Heat weights after the cleanup, checked against `img2-character`'s rig gate | No tearing or collapsing limbs at the hit-pose extremes | open (E285): today five bones (root, torso, head, two arm regions), weighted by height and width ramps |
+| Hit-driven motion | Procedural, from the hit: a damped spring at the post base (a heavy hit rocks the figure away from the hit and it wobbles home); secondary springs on the head and both arms (they swing and settle); a headshot snaps the head back; idle is a slow settle | A short video per weapon class (sword light / heavy, crossbow body / head) shows a readable reaction | open (E285): a ±0.7° sine sway and a small flinch |
+| Arena HUD | Hide the world-only verbs in the room (HOVER: the board kills the dodge; Nalati's HORSE; Pine Hollow's JOURNAL); fit the side dummies inside Nalati's narrower portrait frame; name the target in the aim readout | Every shard's arena shows the weapon HUD and nothing that leads out of the room | open (E285). The aim readout name is done |
+| Phone asset budget | WebP textures and meshopt, original mesh detail retained where visible | Model load, decoded memory, triangles and draw calls measured in portrait iOS target | open: GLBs measured (below), memory not |
+| Shared integration | One asset family used by the arena and Model Explorer, loaded only when requested | All shards enter arena; all three variants visible and hittable; Model Explorer buttons visible; entry belongs inside dev-only Explore World | done (E212, E252, E255). E285 fixed Explore ▸ Practice arriving without the weapon or the dodge, and dodges dying over Driftwood's sea |
+| Approval | Compare live portrait captures with approved sheets | User sees the candidate before this plan can be marked finished | open |
 
 The first meshopt pass collapsed the skinned positions into a signed unit cube, putting half the figure under the floor. The shipped GLBs now preserve float positions before meshopt encoding: each spans approximately 0–2.65 m in Y, and the game scales it to the player's 1.8 m (`TRAINING_DUMMY_SCALE`, E252, 4fdcca55) with the hit volumes and Rapier solids to match. Each WebP/meshopt GLB is 0.85–0.97 MB, with one 512² base map, one 512² material map, roughly 38–40k triangles, and one skinned draw call. Reproduce the export with `scripts/practice/rig_dummy.py` followed by `scripts/practice/pack_dummy.mjs`. A 390 × 844 browser capture (`/tmp/e215-arena-portrait-v4.png`) confirms all three render; physical phone memory, nine-angle live capture, and art approval remain to be checked.
 
