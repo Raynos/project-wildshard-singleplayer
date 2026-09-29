@@ -81,7 +81,8 @@ export function buildLower(plan: WellPlan): void {
     const keep = keepOut(name), cap = templeCap(name);
     const depths = DEPTHS[name];
     const opt = depths === undefined ? {} : { depths };
-    const a = plan.band(name, SPLIT, LOW, seed, KL, undefined, stairs, opt);
+    // (round 2) the upper lower band's fronts carry the lantern row on (well-rim.ts): the lit levels step on down to LOW
+    const a = plan.band(name, SPLIT, LOW, seed, KL, undefined, stairs, name === 'south' ? opt : { ...opt, lanternRow: { yMin: LOW, yMax: SPLIT, spacing: 3.6 } });
     dressLower(ctx, a, KL, { yTop: SPLIT, yLow: LOW, taper, yNear: SPLIT - 12, seed: seed + 5000, life: 1, keep, cap });
     const b = plan.band(name, B_TOP, B_TOP - (B_FLOORS - 1) * FLOOR_H, seed + 31, KL, BOTTOM, 0, opt);
     dressLower(ctx, b, KL, { yTop: B_TOP, yLow: B_TOP - (B_FLOORS - 1) * FLOOR_H, taper, yNear: SPLIT - 12, seed: seed + 6000, life: 0, keep, cap });

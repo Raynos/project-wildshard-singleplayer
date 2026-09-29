@@ -88,3 +88,23 @@ Each `pass-<n>/` holds:
   the canyon reads as a long one (the `in` view in the pass log). But mockup B's centre-right is still the **stub**: the
   main shaft's north wall at z −44, x −12…0, which is the south face of the street's west block. It faces B head-on 57 m
   off, because the main shaft is 12 m wider than the run north. Only a change to the main shaft's footprint removes it.
+
+### Pass 8 (on `94e4be8`): the A1·4 roof slab, a lantern ring per level, two dome cameras re-seated
+
+- **The A1·4 roof slab was mine.** It was the Well's east wall: its top floor at +122, 5–7 m deep, sits right under
+  the square's balustrade. From the spawn it filled the lower half of the view into the Well (a flat timber deck).
+  South of z −12 the east wall now steps back under the square. Its top floor is 1.4 m deep, the next 3 m, the next
+  4.6 m, then the band's own depths (`well-rim.ts` eastReach, `well-galleries.ts` `reach`). `A1-4-fix.jpg` shows
+  target, before and after: the view now goes down into the Well past lit galleries and neon. Mockup A and mockup B
+  are unchanged.
+- **A lantern ring per level for mockup D.** A row of paper lanterns runs along every open gallery front of the west
+  and east walls, from three floors under the rim down to LOW (+59): 3.2 m apart in the near band, 3.6 m in the lower
+  one (`well-galleries.ts` `lanternRow`; no randomness, so each wall's layout is unchanged). Each level draws a warm
+  line stepping down the shaft in D and in D2's side views. This costs about +30 k triangles at mockup D.
+- **Dome cameras re-seated (`round-15-eight-domes/*/cameras.json`, noted in each view's `reseat` field).**
+  B1·2 moved from z 15 to 12.5; it was inside the rim towers' eave. B2·3 moved from z −42 to −35; it was inside the
+  stub wall's galleries next to the skybridge. Both keep their look point. `reseated-B1-2-B2-3.jpg` shows target and
+  engine for each.
+- **Memory.** Fragment geometry 151.0 → 150.8 MB, textures 79.6 MB unchanged. Mockup B has 118 draws and 1.43 M
+  triangles, mockup D 102 draws and 1.13 M.
+- **Walk test:** 19 legs, 0 stuck, 0 escapes.

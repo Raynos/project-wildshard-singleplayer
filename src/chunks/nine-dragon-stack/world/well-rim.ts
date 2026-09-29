@@ -31,6 +31,10 @@ const HERO: readonly [string, number, 'W' | 'E', number, number, number][] = [
   ['旅館', NEON.jade, 'E', 1.5, Y0 - 21, 2.0], ['九龍', NEON.red, 'E', -8, Y0 - 4.5, 1.3],
 ];
 
+/** the east wall's fronts under the spawn's side of the square (south of z −12; u = z − WELL.z0): 1.4 m on the top floor
+ *  (Y0 − 3), +1.6 m a floor down */
+const eastReach = (u: number, y: number): number => (WELL.z0 + u < -12 ? 99 : 1.4 + 1.6 * Math.round((Y0 - FLOOR_H - y) / FLOOR_H));
+
 /** the brass dragon hooks on the near gallery corners (the mockup cameras' two first: shots.ts hookNear) */
 const HOOKS: readonly ['W' | 'E', number, number][] = [['E', -24, Y0 - 2.2], ['E', -6, Y0 - 11.2], ['W', -20, Y0 + 1.6], ['W', -2, Y0 - 7.2], ['E', -40, Y0 - 20.2], ['W', -36, Y0 - 14.2]];
 
@@ -77,8 +81,14 @@ export function buildRim(plan: WellPlan): void {
   // shallow (the mockup B camera stands at x −19.5 beside it).
   plan.band('south', Y0, SPLIT + FLOOR_H, 811, K2, undefined, 1);
   plan.band('west', Y0, Y0, 821, K2, undefined, 0, { street: 5.4 });
-  plan.band('west', Y0 - FLOOR_H, SPLIT + FLOOR_H, 823, K2, undefined, 3, { depths: { dMin: 6.2, dMax: 8.2 } });
-  plan.band('east', Y0, SPLIT + FLOOR_H, 839, K2, undefined, 3, { depths: { dMin: 5.2, dMax: 7 } });
+  // (E281 round 2, mockup D: "level after level of galleries ringing the shaft") from three floors under the rim down,
+  // a lantern row along every open front: each level a lit line stepping down into the mist
+  const row = { yMin: -999, yMax: Y0 - 3 * FLOOR_H, spacing: 3.2 };
+  plan.band('west', Y0 - FLOOR_H, SPLIT + FLOOR_H, 823, K2, undefined, 3, { depths: { dMin: 6.2, dMax: 8.2 }, lanternRow: row });
+  // (E281 round 2, dome A1·4: from the spawn by the square's balustrade the east wall's top floors, 5–7 m deep right
+  // under it, were a flat roof slab filling the lower half of the view into the Well) south of z −12 the east wall steps
+  // back under the square: its top floor 1.4 m deep, the next 3 m, the next 4.6, then the band's own depths
+  plan.band('east', Y0, SPLIT + FLOOR_H, 839, K2, undefined, 3, { depths: { dMin: 5.2, dMax: 7 }, reach: eastReach, lanternRow: row });
 
   // ── the hero signs, hung out from the fronts on brackets, facing the rim ──
   const hk = ctx.kit('well-rim', true);

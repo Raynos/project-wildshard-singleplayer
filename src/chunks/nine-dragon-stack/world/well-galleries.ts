@@ -55,6 +55,11 @@ export interface GalleryWall {
   /** galleries only over [g0, len - g1] (a corner another wall's galleries take) */
   g0?: number;
   g1?: number;
+  /** the deepest a front may reach at (u, floor y) (a wall stepping back under a viewpoint) */
+  reach?: (u: number, y: number) => number;
+  /** a row of paper lanterns along every open front on the floors in [yMin, yMax], one per `spacing` m, hung under the
+   *  floor above (no rng: the wall's layout stays its seed's) — the lit line each level draws round the shaft */
+  lanternRow?: { yMin: number; yMax: number; spacing: number };
 }
 
 /** what a wall built: its front edge (depth) at each floor and stack, for the bridges and nets to tie into */
@@ -196,6 +201,7 @@ export function galleryWall(ctx: Ctx, W: GalleryWall, K2: GalleryKits): GalleryP
       if (rng.chance(0.06)) d = 0;
       if (isStreet(y)) d = W.cascade === undefined ? W.street ?? W.dMax + 0.6 : W.cascade.cap;
       for (const l of W.landings ?? []) if (Math.abs(l.y - y) < 0.1 && l.u1 > st.u0 && l.u0 < st.u1) d = Math.max(d, l.d);
+      if (W.reach !== undefined && d > 0) d = Math.min(d, W.reach((st.u0 + st.u1) / 2, y));
       for (const v of W.voids ?? []) if (y >= v.y0 - 0.01 && y <= v.y1 + 0.01 && v.u1 > st.u0 && v.u0 < st.u1) d = 0;
       const row = depth[fi];
       if (row !== undefined) row[si] = d <= 0 ? 0 : Math.min(W.cascade?.cap ?? W.dMax + 1.4, Math.max(1.2, d));
@@ -290,6 +296,13 @@ export function galleryWall(ctx: Ctx, W: GalleryWall, K2: GalleryKits): GalleryP
         if (g1 < r[1] - 0.3) runs.push([g1, r[1]]);
       }
       for (const [a0, a1] of runs) railing(k, ka, world(a0, y, d - 0.06), world(a1, y, d - 0.06), timber, red);
+      const lr = W.lanternRow;
+      if (lr !== undefined && y <= lr.yMax + 0.01 && y >= lr.yMin - 0.01) {
+        for (const [a0, a1] of runs) {
+          const nL = Math.floor((a1 - a0) / lr.spacing);
+          for (let i = 0; i < nL; i++) { const p = world(a0 + (i + 0.5) * ((a1 - a0) / nL), y + 2.2, d - 0.25); ctx.lantern(p.x, p.y, p.z, 0.72); }
+        }
+      }
       const left = si > 0 ? dAt(fi, si - 1) : 0, right = si < stacks.length - 1 ? dAt(fi, si + 1) : 0;
       if (left < d - 0.3) railing(k, ka, world(st.u0 + 0.05, y, d - 0.06), world(st.u0 + 0.05, y, left + 0.05), timber, red);
       if (right < d - 0.3) railing(k, ka, world(st.u1 - 0.05, y, right + 0.05), world(st.u1 - 0.05, y, d - 0.06), timber, red);

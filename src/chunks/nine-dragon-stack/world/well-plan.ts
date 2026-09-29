@@ -130,7 +130,10 @@ export const wallPlan = (name: WallPlan['name']): WallPlan => {
 
 /** a band's own overrides: its depth range (else the wall's), grey-tin eaves (default: the bands below SPLIT), the depth
  *  of its every-15-m street floors (default: its dMax + 0.6) */
-export interface BandOptions { depths?: { dMin: number; dMax: number }; tin?: boolean; street?: number }
+export interface BandOptions {
+  depths?: { dMin: number; dMax: number }; tin?: boolean; street?: number; reach?: (u: number, y: number) => number;
+  lanternRow?: { yMin: number; yMax: number; spacing: number };
+}
 
 /** the kits a region writes a band into */
 export interface BandKits { kit: (y: number) => Kit; alpha: (y: number) => Kit }
@@ -169,7 +172,8 @@ export class WellPlan {
       name: `${name}@${yTop}`, p0: P.p0, n: P.n, len: P.len, yTop: Math.min(yTop, P.top), yBottom,
       wallTop: holdsTop ? P.wallTop : Math.min(yTop, P.top) + FLOOR_H - 0.3, wallBottom,
       dMin, dMax, timber: P.timber, seed, wash: P.wash, landings, voids, stairs, tin: opt.tin ?? yTop <= SPLIT + 0.1,
-      ...(opt.street === undefined ? {} : { street: opt.street }),
+      ...(opt.street === undefined ? {} : { street: opt.street }), ...(opt.reach === undefined ? {} : { reach: opt.reach }),
+      ...(opt.lanternRow === undefined ? {} : { lanternRow: opt.lanternRow }),
       ...(P.g0 === undefined ? {} : { g0: P.g0 }), ...(P.g1 === undefined ? {} : { g1: P.g1 }), ...(P.cascade === undefined ? {} : { cascade: P.cascade }),
     }, kits);
     const list = this.bands.get(name) ?? [];

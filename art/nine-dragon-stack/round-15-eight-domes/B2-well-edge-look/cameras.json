@@ -57,17 +57,18 @@
    "eye": [
     -4.0,
     138.0,
-    -42.0
+    -35.0
    ],
-   "yaw": -153.4,
-   "pitch": -43.2,
+   "yaw": -142.4,
+   "pitch": -52.0,
    "hfov": 60,
    "look": [
     -14.0,
     117.0,
     -22.0
    ],
-   "desc": "a high diagonal from further north over the canyon looking back south-west down at the bridge: the bridge in the middle, the rim and its balustrade and towers beyond it at the top, both gallery walls"
+   "desc": "a high diagonal from further north over the canyon looking back south-west down at the bridge: the bridge in the middle, the rim and its balustrade and towers beyond it at the top, both gallery walls",
+   "reseat": "E281 round 2: re-seated from z −42 to −35 (the eye sat inside the stub wall's galleries, z −44…−39, beside the skybridge at z −38); same look point"
   },
   {
    "n": 4,

@@ -38,17 +38,18 @@
    "eye": [
     -14.0,
     146.0,
-    15.0
+    12.5
    ],
-   "yaw": 1.6,
-   "pitch": -44.2,
+   "yaw": 1.8,
+   "pitch": -46.3,
    "hfov": 60,
    "look": [
     -13.0,
     112.0,
     -20.0
    ],
-   "desc": "a crane shot ~20 m above the rim, just behind and above the mockup camera, looking north-down the whole length of the canyon: the rim balustrade at the bottom of the frame, both gallery walls, the bridges, nets and gondola below receding into mist, the paifang bridge far along"
+   "desc": "a crane shot ~20 m above the rim, just behind and above the mockup camera, looking north-down the whole length of the canyon: the rim balustrade at the bottom of the frame, both gallery walls, the bridges, nets and gondola below receding into mist, the paifang bridge far along",
+   "reseat": "E281 round 2: re-seated from z 15.0 to 12.5 (the eye sat inside the rim towers' eave and balcony dressing, z 14–16); same look point"
   },
   {
    "n": 3,
