@@ -537,6 +537,12 @@ export interface ChunkDef {
   faunaTuning?: Partial<Record<FaunaKind, Partial<HuntTuning>>>;
   /** the most one enemy hit may take off the player's 100 health (`hitDamage`; E294: Driftwood 20); omitted = uncapped */
   maxHitDamage?: number;
+  /**
+   * E297: one set of fight rules for every enemy (src/entities/fightRules.ts) — at most `maxAttackers` attack at once (the
+   * rest hold back on a ring), engaged boars / bears circle back and charge again instead of fleeing, an amber edge chevron
+   * warns of a wind-up you can't see, and a big animal's body never swallows the camera. Driftwood: 2. Omitted = the old fights
+   */
+  fightRules?: { maxAttackers: number };
   sky: ChunkSky;
   atmosphere: ChunkAtmosphere;
   grade: ChunkGrade;

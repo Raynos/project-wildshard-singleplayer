@@ -227,6 +227,9 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   // E294 (Jake's yes, 2026-09-29): no single enemy hit takes more than 20 of your 100 health, so you survive ~5 hits of
   // anything (brown bear 45 → 20, boars 25 / 32 / 40 → 20, the drowned captain's swing 24 → 20; the sailor's cutlass is 14 in sailor.ts)
   maxHitDamage: 20,
+  // E297 (Jake's yes, 2026-09-29): one set of fight rules — at most 2 enemies attack at once, boars circle back instead of
+  // fleeing, an off-screen wind-up is flagged at the screen edge, no animal's body swallows the camera
+  fightRules: { maxAttackers: 2 },
   faunaTuning: {
     boar: { sightRange: 42, sightRangeGraze: 26, sightCone: 1.22, hearWalk: 18, hearSprint: 34, noticeRate: 0.65, impactAlert: 28 },
     deer: { sightRange: 44, sightRangeGraze: 22, noticeRate: 0.4 },

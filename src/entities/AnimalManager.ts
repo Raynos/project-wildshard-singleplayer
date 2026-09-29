@@ -18,6 +18,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
 import { AnimalGroup } from './animalMatrices';
+import { AttackTokens, reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
@@ -91,6 +92,20 @@ import { AnimalGroup } from './animalMatrices';
  *     a strike or a charge only lands when `canReach` — the physics `lineOfSight` from your chest to the attacker's finds
  *     nothing (a hull wall, a beam, a deck, a rock) short of the attacker's own body. Asked only on the frame a hit would
  *     land; `ThinkCtx.reach` lets a species skip a swing it could not land (the sailor does).
+ *
+ * FIGHT RULES (E297, `ChunkDef.fightRules` — Driftwood only; src/entities/fightRules.ts): one set of rules for every enemy.
+ *   • At most `maxAttackers` (2) attack at once: a charge (wind-up + run) or a species' strike needs an attack token
+ *     (`tokens`; `ThinkCtx.claim` / `mayAttack`); the rest hold back on a ring and wait. A token goes back when the
+ *     charge ends / the strike's attackPhase drops below 0 (swept every think tick), or at once on leaving 'charge'.
+ *   • Boars fight like the bears: a boar gets a synthesized `stalk` (RULES_STALK) — it does not bolt when it notices you,
+ *     it comes for you. After a charge (landed, missed, timed out or broken by a blow) a charger BACKS OFF past the ring
+ *     (`backoffPoint`, ≤ BACKOFF_MAX_T s), then circles on it (RING: boar 6.5 m, bear 7.5 m) facing you until its
+ *     cooldown (RULES_CD_HIT 3.4 s / RULES_CD_MISS 2.0 s) and a token let it turn, wind up and charge again (`reengage`).
+ *     Only a nearly dead (< 25 %), non-relentless one may break off after a hit (50 %).
+ *   • A big animal's body never swallows the camera (`clearBody`, per frame): a boar / bear / deer body closer to the
+ *     player than its radius + the player's capsule + a margin is moved back out, through its physics motor.
+ *   • `isThreat(a)` says an attack is coming (a charge's wind-up or run, a strike's wind-up) — src/ui/WindupWarn.ts draws
+ *     the off-screen warning from it.
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
@@ -114,6 +129,10 @@ interface Brain {
   wary: number;         // seconds of sharpened senses left after a scare
   sensed: boolean;      // the player was sensed this think
   windup: number;       // melee shards: seconds of charge wind-up left (0 = running / none)
+  // ── E297 fight rules ──
+  backoff: number;      // s of the after-charge back-off left (0 = none); br.tx / tz is where it backs off to
+  side: number;         // ±1: which way it arcs round you (flipped every back-off)
+  committed: boolean;   // this charge got inside CHARGE_COMMIT of the player (a miss is then a pass-through)
   // ── the navmesh path being followed (PHYSICS P6b; empty without a navmesh) ──
   path: THREE.Vector3[]; pathI: number; goalX: number; goalZ: number; repathAt: number;
 }
@@ -199,6 +218,14 @@ const PLAYER_CHEST = 1.2; // m over the player's feet: where an attacker's line 
 const _losFrom = new THREE.Vector3(), _losTo = new THREE.Vector3(), _losHead = new THREE.Vector3();
 const CHARGE_COMMIT = 4.5, CHARGE_COMMIT_TURN = 1.1;   // m from the player inside which a charge stops tracking, and its turn rate there (rad/s)
 const ANIM_LOD = 140;
+/** E297 fight rules: the stalk a boar gets when it has none (it comes for you instead of bolting); its circling / back-off speeds (m/s) */
+const RULES_STALK: NonNullable<HuntTuning['stalk']> = { detect: 0, speed: 3.0, giveUp: 45, rechargeCd: RULES_CD_HIT, huffMin: 2.5, huffMax: 5, roar: 'boar_grunt', fleeBelowHp: BREAK_OFF_HP, fleeChance: BREAK_OFF_CHANCE };
+const CIRCLE_SPEED = 1.7, BACKOFF_SPEED = 4.2;
+/** E297: a charger turns to within this of you (rad) before its wind-up starts */
+const FACE_BEFORE_CHARGE = 0.6;
+/** E297 body clearance: the player's capsule radius (Player.ts RADIUS) + a margin for the camera's near plane (m) */
+const CLEAR_PLAYER = 0.38 + 0.3;
+const _ring = { x: 0, z: 0 };
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3();
@@ -332,7 +359,7 @@ export class AnimalManager {
   onCharge?: (animal: Animal, damage: number) => void;
   onSound?: (name: AnimalSound, position: THREE.Vector3) => void;
   /** melee shards: an attack's wind-up began (see the header) */
-  onWindup?: ((animal: Animal) => void) | undefined;
+  onWindup?: ((animal: Animal, dur: number) => void) | undefined;
   /** every non-lethal AND lethal hit: amount actually dealt, world hit point, whether it was the head (Combat draws the numbers) */
   onDamage?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, headshot: boolean, died: boolean) => void;
   debug = false;
@@ -354,6 +381,16 @@ export class AnimalManager {
   private shellIdx = new Int32Array(SHELL_MAX);
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
   private readonly melee = meleeShard(getActiveChunk()); // Driftwood's swords, Nalati's sabre / spear
+  /** E297: the shard's fight rules (Driftwood), null = the old fights (see the header) */
+  private readonly rules = getActiveChunk().fightRules ?? null;
+  /** E297: the attack tokens — at most `rules.maxAttackers` attacking at once */
+  readonly tokens = new AttackTokens<Animal>(this.rules?.maxAttackers ?? 0);
+  /** a token holder still attacking: a charger while it charges, a self-thinking species while its strike runs */
+  private readonly stillAttacking = (a: Animal): boolean =>
+    a.alive && !a.hidden && (speciesDef(a.kind).think !== undefined ? a.attackPhase >= 0 : a.state === 'charge');
+  /** E297: an attack is coming from `a` — a charge's wind-up or run, a strike before it lands (WindupWarn reads it) */
+  readonly isThreat = (a: Animal): boolean =>
+    a.alive && !a.hidden && !a.stunned && (speciesDef(a.kind).think !== undefined ? a.attackPhase >= 0 && a.attackPhase < 1 : a.state === 'charge');
   /** each multi-group rig's one-draw shadow caster (animalShadow.ts); the per-frame shadow distance switches it */
   private readonly casters = new Map<Animal, THREE.SkinnedMesh>();
   /** PH-P2: the far animals drawn per model (farHerd.ts), desktop past TIER_CONFIG.animalFarBatchDist; each rig's entry */
@@ -503,7 +540,9 @@ export class AnimalManager {
     const sp = speciesDef(a.kind);
     const base = sp.tuning ?? (sp.aggressive ? BOAR_TUNING : DEER_TUNING);
     const over = getActiveChunk().faunaTuning?.[a.kind];
-    const t = over !== undefined ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ChunkDef.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
+    let t = over !== undefined ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ChunkDef.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
+    // E297 fight rules: a charger without a stalk (the boar) gets one — it comes for you instead of bolting
+    if (this.rules !== null && sp.aggressive === true && sp.think === undefined && t.stalk === undefined) t = { ...t, stalk: { ...RULES_STALK, roar: sp.sounds?.call ?? 'boar_grunt' } };
     this.tuningCache.set(a.kind, t);
     return t;
   }
@@ -546,9 +585,10 @@ export class AnimalManager {
     this.brains.set(a, {
       timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, fleeUntil: this.rng.range(tune.fleeUntil, tune.fleeUntilMax), chargeCd: 0,
       callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false, windup: 0,
+      backoff: 0, side: a.seed % 0.02 < 0.01 ? -1 : 1, committed: false, // from its own seed: no extra draw on the shared rng (the herds' rolls stay put)
       path: [], pathI: 0, goalX: 0, goalZ: 0, repathAt: 0,
     });
-    if (this.melee) { a.attackTurnCap = ATTACK_TURN; a.onAttack = (who) => { this.onWindup?.(who); }; }
+    if (this.melee) { a.attackTurnCap = ATTACK_TURN; a.onAttack = (who, dur) => { this.onWindup?.(who, dur); }; }
     return a;
   }
 
@@ -588,6 +628,7 @@ export class AnimalManager {
       this.playerPrev.copy(playerPos);
       this.playerSpeed += (Math.min(moved / 0.1, 9) - this.playerSpeed) * 0.5;
       this.repaths = 0;
+      if (this.rules !== null) this.tokens.sweep(this.stillAttacking); // E297: the tokens of attacks that are over go back
       const t0 = frameCost.on ? performance.now() : 0;
       for (const a of this.animals) this.think(a, 0.1, playerPos, playerSprinting);
       if (frameCost.on) frameCost.sub('think', t0);
@@ -607,6 +648,7 @@ export class AnimalManager {
       const near = d2 < ANIM_LOD * ANIM_LOD;
       a.update(dt, t, near);
       if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
+      if (this.rules !== null && a.alive && d2 < 36) this.clearBody(a, playerPos); // E297: no body swallows the camera
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
       const hide = TIER_CONFIG.animalHideDist;
@@ -786,10 +828,13 @@ export class AnimalManager {
         // hunters only: walk the player down, huffing, and charge once inside panicDist (again after rechargeCd)
         const st = T.stalk;
         if (st === undefined) throw new Error(`AnimalManager: ${a.kind} is stalking without HuntTuning.stalk`);
-        if (this.calm || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; this.enter(a, br, 'wander'); break; }
-        if (panic && br.chargeCd <= 0) { this.enter(a, br, 'charge'); break; }
-        this.steerTo(a, br, player.x, player.z, st.speed * M.speed, 2.5, 0.4);
-        a.lookTarget.copy(player); a.lookWeight = 1;
+        if (this.calm || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; br.backoff = 0; this.enter(a, br, 'wander'); break; }
+        if (this.rules !== null) { if (this.circle(a, br, player, dPlayer, st.speed * M.speed, dt)) break; }
+        else {
+          if (panic && br.chargeCd <= 0) { this.enter(a, br, 'charge'); break; }
+          this.steerTo(a, br, player.x, player.z, st.speed * M.speed, 2.5, 0.4);
+          a.lookTarget.copy(player); a.lookWeight = 1;
+        }
         br.timer -= dt;
         if (br.timer <= 0) { br.timer = rng.range(st.huffMin, st.huffMax); if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position); }
         break;
@@ -809,8 +854,14 @@ export class AnimalManager {
         else this.steerTo(a, br, player.x, player.z, (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0, 0.3);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
         const after: Animal['state'] = T.stalk !== undefined ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
+        if (dPlayer < CHARGE_COMMIT) br.committed = true;
+        // E297: a charge you sidestepped thunders past and is over — it backs off and comes round again, not a U-turn into you
+        const passed = this.rules !== null && br.committed && dPlayer > CHARGE_COMMIT && !this.facing(a, player, CHARGE_ARC);
         if (!this.melee && dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) this.chargeHit(a, br);   // melee shards connect per frame on an arc (chargeContact)
-        else if (br.timer <= 0) { br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
+        else if (br.timer <= 0 || passed) {
+          br.chargeCd = this.rules !== null ? RULES_CD_MISS : T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4;
+          this.enter(a, br, after);
+        }
         break;
       }
       case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
@@ -826,7 +877,7 @@ export class AnimalManager {
     const T = this.tuningFor(a), sp = speciesDef(a.kind);
     this.onCharge?.(a, a.mods.chargeDamage);
     this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
-    br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : a.mods.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
+    br.chargeCd = this.rules !== null ? Math.max(RULES_CD_HIT, T.stalk?.rechargeCd ?? 0) : T.stalk !== undefined ? T.stalk.rechargeCd : a.mods.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
     this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'flee');
   }
 
@@ -840,6 +891,77 @@ export class AnimalManager {
     if (!this.facing(a, player, CHARGE_ARC)) return; // it runs past a player who stepped aside
     if (!this.canReach(a, player)) return;           // nor through a wall, a rock or a deck (E296)
     this.chargeHit(a, br);
+  }
+
+  /** E297: the ring a charger circles on (m from the player): RING by kind, a little wider for a big one */
+  private ringFor(a: Animal): number { return (RING[a.kind] ?? RING_DEFAULT) * Math.max(1, a.scale * 0.6); }
+
+  /** E297: back off past the ring (fightRules.backoffPoint), arcing round you — the other way from last time */
+  private startBackoff(a: Animal, br: Brain): void {
+    br.side = -br.side;
+    backoffPoint(this.playerPos.x, this.playerPos.z, a.position.x, a.position.z, this.ringFor(a), br.side, _ring);
+    br.tx = _ring.x; br.tz = _ring.z; br.backoff = BACKOFF_MAX_T;
+  }
+
+  /**
+   * E297 fight rules, the engaged charger's think (its 'stalk'): the back-off after a charge, then round and round on the
+   * ring facing you until `reengage` says charge — it turns square to you first, then winds up (enter 'charge' takes the
+   * token; none free → it keeps circling). Closer than the ring it steps back out; further, it closes at `speed`.
+   * True when it charged (left the stalk).
+   */
+  private circle(a: Animal, br: Brain, player: THREE.Vector3, d: number, speed: number, dt: number): boolean {
+    a.lookTarget.copy(player);
+    if (br.backoff > 0) {
+      br.backoff -= dt;
+      if (br.backoff > 0 && Math.hypot(br.tx - a.position.x, br.tz - a.position.z) > 1.2) {
+        this.steerTo(a, br, br.tx, br.tz, BACKOFF_SPEED * a.mods.speed, 4.5, 0.5);
+        a.lookWeight = 0.5;
+        return false;
+      }
+      br.backoff = 0;
+    }
+    a.lookWeight = 1;
+    const T = this.tuningFor(a), ring = this.ringFor(a);
+    const next = reengage({ hpFrac: a.hp / a.maxHp, relentless: a.mods.relentless, roll: 1, ready: br.chargeCd <= 0, token: this.tokens.free(a), dist: d, chargeDist: Math.max(T.panicDist * a.mods.chargeDist, ring + 2), hit: false });
+    const toPlayer = Math.atan2(player.x - a.position.x, player.z - a.position.z);
+    if (next === 'charge') {
+      if (this.facing(a, player, FACE_BEFORE_CHARGE)) { this.enter(a, br, 'charge'); return a.state === 'charge'; }
+      a.setMotion(toPlayer, 0, 4.0); // square up to you first: the wind-up reads as aimed at you
+      return false;
+    }
+    if (d > ring + 2) this.steerTo(a, br, player.x, player.z, speed, 3.0, 0.4);
+    else if (d < ring - 2) { aroundPoint(player.x, player.z, a.position.x, a.position.z, ring, br.side * 0.5, _ring); this.steerTo(a, br, _ring.x, _ring.z, speed, 3.5, 0.3); }
+    else {
+      // on the ring: walk round you (a step ahead along the ring), head turned to you
+      aroundPoint(player.x, player.z, a.position.x, a.position.z, ring, br.side * 0.45, _ring);
+      this.steerTo(a, br, _ring.x, _ring.z, CIRCLE_SPEED * a.mods.speed, 3.0, 0.3);
+    }
+    return false;
+  }
+
+  /**
+   * E297: a big animal's body never swallows the camera. The body (rump → head, horizontally) closer to the player than
+   * its own radius + CLEAR_PLAYER is moved straight back out — through its physics motor when it has one, so a wall
+   * behind it still stops it (then the player's own knock-back does the rest). Self-thinking species keep their own spacing.
+   */
+  private clearBody(a: Animal, player: THREE.Vector3): void {
+    if (a.hidden || speciesDef(a.kind).think !== undefined) return;
+    if (Math.abs(player.y - a.position.y) > 2.5) return;
+    a.bodyCapsule(_a, _b); a.headWorld(_c);
+    // the segment rump (_a) → head (_c), flattened
+    const sx = _c.x - _a.x, sz = _c.z - _a.z, len2 = sx * sx + sz * sz;
+    const t = len2 > 1e-6 ? THREE.MathUtils.clamp(((player.x - _a.x) * sx + (player.z - _a.z) * sz) / len2, 0, 1) : 0;
+    const qx = _a.x + sx * t, qz = _a.z + sz * t;
+    let ox = qx - player.x, oz = qz - player.z;
+    const dist = Math.hypot(ox, oz);
+    const min = Math.max(a.dims.bodyRadius, a.dims.headRadius) * a.scale + CLEAR_PLAYER;
+    if (dist >= min) return;
+    if (dist > 1e-3) { ox /= dist; oz /= dist; } else { ox = -Math.sin(a.yaw); oz = -Math.cos(a.yaw); } // dead centre: straight back
+    const push = min - dist;
+    const x0 = a.position.x, z0 = a.position.z;
+    if (a.motor !== null) { const y = a.position.y; _d.set(ox * push, 0, oz * push); a.motor.move(a.position, _d, true); a.position.y = y; }
+    else { a.position.x += ox * push; a.position.z += oz * push; }
+    a.mesh.position.x += a.position.x - x0; a.mesh.position.z += a.position.z - z0; // this frame's pose already went out
   }
 
   /**
@@ -872,6 +994,8 @@ export class AnimalManager {
     pathYaw: (a, tx, tz, every = 1) => { const br = this.brains.get(a); return br === undefined ? Math.atan2(tx - a.position.x, tz - a.position.z) : this.pathYaw(a, br, tx, tz, every); },
     confine: (a) => this.confine(a),
     reach: (a) => !this.melee || this.canReach(a, this.thinkCtx.player),
+    claim: (a) => this.rules === null || this.tokens.take(a),
+    mayAttack: (a) => this.rules === null || this.tokens.free(a),
   };
 
   private enter(a: Animal, br: Brain, s: Animal['state']): void {
@@ -879,6 +1003,19 @@ export class AnimalManager {
     const T = this.tuningFor(a);
     const sp = speciesDef(a.kind);
     const from = a.state;
+    if (this.rules !== null) {
+      if (s === 'charge' && !this.tokens.take(a)) {
+        // E297: two others are attacking — it holds back on the ring (a charger without a stalk holds its alert)
+        if (T.stalk !== undefined) { if (from !== 'stalk') this.enter(a, br, 'stalk'); }
+        else if (from !== 'alert') this.enter(a, br, 'alert');
+        return;
+      }
+      if (from === 'charge' && s !== 'charge') {
+        this.tokens.release(a);
+        br.windup = 0; br.committed = false;
+        if (s === 'stalk') this.startBackoff(a, br);   // after every charge: back off past the ring, then come round again
+      }
+    }
     a.state = s;
     switch (s) {
       case 'idle': br.timer = rng.range(3, 7); a.setMotion(a.desiredYaw, 0, 1.5); break;
@@ -931,7 +1068,7 @@ export class AnimalManager {
         br.timer = 0.4; br.wary = T.waryTime; br.awareness = 1; br.spooked = false;
         break;
       case 'charge':
-        br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime;
+        br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime; br.committed = false; br.backoff = 0;
         // melee shard: the charge opens with a readable wind-up (think 'charge'; the roar below is its cue)
         br.windup = this.melee ? CHARGE_WINDUP[a.kind] ?? CHARGE_WINDUP_DEFAULT : 0;
         if (br.windup > 0) { a.startAttack(br.windup); a.setMotion(a.yaw, 0, 3); }
@@ -1191,7 +1328,16 @@ export class AnimalManager {
       if (T.stalk !== undefined) {
         // a hunter never runs from a hit — it comes for you from wherever it is (the charge times out into a stalk);
         // only a nearly dead, non-relentless one (a black bear under 20 %) may break off
-        if (!M.relentless && a.hp / a.maxHp < T.stalk.fleeBelowHp && this.rng.next() < T.stalk.fleeChance) { br.spooked = true; this.enter(a, br, 'flee'); }
+        if (this.rules !== null) {
+          // E297: the same decision every charger makes (fightRules.reengage) — break off only nearly dead; else it
+          // charges when it can, and one you hit at arm's length first backs off to charge distance
+          const d = Math.hypot(this.playerPos.x - a.position.x, this.playerPos.z - a.position.z);
+          const next = reengage({ hpFrac: a.hp / a.maxHp, relentless: M.relentless, roll: this.rng.next(), ready: true, token: this.tokens.free(a), dist: d, chargeDist: T.panicDist * M.chargeDist, hit: true });
+          if (next === 'flee') { br.spooked = true; this.enter(a, br, 'flee'); }
+          else if (next === 'charge' && d > this.ringFor(a) * 0.6) { br.chargeCd = 0; this.enter(a, br, 'charge'); }
+          else { if (a.state !== 'stalk') this.enter(a, br, 'stalk'); br.chargeCd = Math.min(br.chargeCd, 0.5); if (d < this.ringFor(a) * 0.6) this.startBackoff(a, br); }
+        }
+        else if (!M.relentless && a.hp / a.maxHp < T.stalk.fleeBelowHp && this.rng.next() < T.stalk.fleeChance) { br.spooked = true; this.enter(a, br, 'flee'); }
         else { br.chargeCd = 0; this.enter(a, br, 'charge'); }
       } else if (a.aggressive && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST * M.chargeDist && (br.chargeCd <= 0 || M.relentless) && (M.relentless || this.rng.next() < 0.7)) this.enter(a, br, 'charge');
       else { br.spooked = true; this.enter(a, br, 'flee'); }

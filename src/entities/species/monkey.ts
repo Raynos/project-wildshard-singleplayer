@@ -231,6 +231,8 @@ function animateMonkey(c: RigAnimCtx): void {
 
 const ST_PERCH = 0, ST_GROUND_IDLE = 1, ST_ATTACK = 2, ST_DROP = 3, ST_GROUND = 4, ST_RETURN = 5, ST_CLIMB = 6;
 const THROW_R = 14, THROW_DUR = 1.0, THROW_RELEASE = 0.62, BITE_R = 1.3, BITE_DAMAGE = 6, BITE_DUR = 0.9 /* the bite lands at 0.45 → a 0.41 s readable wind-up */, UNDER_R = 2.6, UNDER_T = 2.0, RUN = 3.2;
+/** E297 fight rules: a monkey on the sand waiting its turn (two others attacking) hangs back this far (m) */
+const HOLD_R = 3.4;
 
 function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?: THREE.Vector3): number {
   const P = c.world.perches; if (P === undefined || P.length === 0) return -1;
@@ -284,7 +286,7 @@ function thinkMonkey(a: Animal, c: ThinkCtx): void {
       const du = Math.hypot(c.player.x - m.px, c.player.z - m.pz);
       m.under = du < UNDER_R ? m.under + c.dt : 0;
       if (m.under > UNDER_T) { m.st = ST_DROP; m.drop = 1; m.vy = 0; m.under = 0; m.gt = 7; c.sound('monkey_shriek'); break; }
-      if (d < THROW_R && d > 2.5 && m.cd <= 0) { m.st = ST_ATTACK; m.bite = 0; m.hit = 0; a.startAttack(THROW_DUR); c.sound('monkey_chatter'); }
+      if (d < THROW_R && d > 2.5 && m.cd <= 0 && c.claim(a)) { m.st = ST_ATTACK; m.bite = 0; m.hit = 0; a.startAttack(THROW_DUR); c.sound('monkey_chatter'); } // E297: a throw is an attack too (a token)
       break;
     }
     case ST_ATTACK: {
@@ -310,8 +312,10 @@ function thinkMonkey(a: Animal, c: ThinkCtx): void {
       // on the sand: chase and bite, then back to the trunk
       a.state = 'charge'; m.onGround = 1;
       m.gt -= c.dt;
-      if (d > BITE_R * 0.85) c.steer(a, toPlayer, RUN, 5); else a.setMotion(toPlayer, 0, 6);
-      if (d < BITE_R && m.cd <= 0) { m.st = ST_ATTACK; m.bite = 1; m.hit = 0; a.startAttack(BITE_DUR); break; }
+      // E297: two others attacking — it hangs back just out of reach, chattering, until a token frees
+      if (!c.mayAttack(a)) { if (d < HOLD_R - 0.5) c.steer(a, toPlayer + Math.PI, RUN * 0.6, 5); else if (d > HOLD_R + 0.8) c.steer(a, toPlayer, RUN, 5); else a.setMotion(toPlayer, 0, 6); }
+      else if (d > BITE_R * 0.85) c.steer(a, toPlayer, RUN, 5); else a.setMotion(toPlayer, 0, 6);
+      if (d < BITE_R && m.cd <= 0 && c.claim(a)) { m.st = ST_ATTACK; m.bite = 1; m.hit = 0; a.startAttack(BITE_DUR); break; }
       if (m.gt <= 0 || (m.bit && d > 5) || c.calm) { m.st = ST_RETURN; if (m.perch < 0) { m.st = ST_GROUND_IDLE; } }
       break;
     }
@@ -321,7 +325,7 @@ function thinkMonkey(a: Animal, c: ThinkCtx): void {
       if (rd < 0.6) { m.st = ST_CLIMB; m.climb = 1; a.yOffset = 0; a.setMotion(Math.atan2(m.px - m.bx, m.pz - m.bz) || a.yaw, 0, 4); a.setStrafe(0); break; }
       c.steer(a, Math.atan2(rx, rz), RUN, 5);
       // bitten on the way back: turns and fights
-      if (!c.calm && d < BITE_R && m.cd <= 0) { m.st = ST_ATTACK; m.bite = 1; m.hit = 0; a.startAttack(BITE_DUR); }
+      if (!c.calm && d < BITE_R && m.cd <= 0 && c.claim(a)) { m.st = ST_ATTACK; m.bite = 1; m.hit = 0; a.startAttack(BITE_DUR); }
       break;
     }
     case ST_CLIMB: {
@@ -334,8 +338,8 @@ function thinkMonkey(a: Animal, c: ThinkCtx): void {
       a.state = 'idle'; m.onGround = 1;
       a.setMotion(d < 20 ? toPlayer : a.desiredYaw, 0, 3); a.setStrafe(0);
       if (c.calm) break;
-      if (d < BITE_R && m.cd <= 0) { m.st = ST_ATTACK; m.bite = 1; m.hit = 0; a.startAttack(BITE_DUR); }
-      else if (d < THROW_R && d > 2.5 && m.cd <= 0) { m.st = ST_ATTACK; m.bite = 0; m.hit = 0; a.startAttack(THROW_DUR); c.sound('monkey_chatter'); }
+      if (d < BITE_R && m.cd <= 0 && c.claim(a)) { m.st = ST_ATTACK; m.bite = 1; m.hit = 0; a.startAttack(BITE_DUR); }
+      else if (d < THROW_R && d > 2.5 && m.cd <= 0 && c.claim(a)) { m.st = ST_ATTACK; m.bite = 0; m.hit = 0; a.startAttack(THROW_DUR); c.sound('monkey_chatter'); }
       break;
     }
     default: break;

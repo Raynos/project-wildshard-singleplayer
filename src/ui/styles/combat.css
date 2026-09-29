@@ -45,6 +45,27 @@
 }
 .ws-combat-hurt-arc.show { display: block; }
 
+/* ── off-screen wind-up warning (src/ui/WindupWarn.ts, E297): an amber chevron on a navy glass disc at the screen edge
+   toward an enemy winding up where you can't see it — the "look out" before HurtArc's red "hit from there" after.
+   Placed / turned / pulsed per frame by JS (rotate 0 = pointing right, outward); no CSS animation loop (E142) ── */
+.ws-combat-warn { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top, 0px); bottom: env(safe-area-inset-bottom, 0px); overflow: hidden; pointer-events: none; }
+#hud.intro .ws-combat-warn { display: none; }
+/* touch: the marks keep above the control bar and the action row (touch.css: --bar-in + half the home inset + a disc) */
+#hud.touch .ws-combat-warn { bottom: calc(max(15vh, 104px) + max(env(safe-area-inset-bottom, 0px), var(--ws-home, 0px)) * 0.5 + min(15vw, 84px) + 22px); }
+.ws-combat-warn-mark {
+  position: absolute; left: 0; top: 0; width: 38px; height: 38px; margin: -19px 0 0 -19px; display: none; will-change: transform, opacity;
+  border-radius: 50%; background: rgba(13, 27, 38, 0.8); border: 1px solid var(--ws-amber);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 14px rgba(255, 181, 71, 0.55), inset 0 0 8px rgba(255, 181, 71, 0.25);
+}
+.ws-combat-warn-mark.show { display: block; }
+/* the chevron, pointing out of the screen toward the attacker (a thick "›"), and a second one outside the disc: "incoming" */
+.ws-combat-warn-mark::before, .ws-combat-warn-mark::after {
+  content: ''; position: absolute; top: 50%; background: var(--ws-amber);
+  clip-path: polygon(0 0, 55% 0, 100% 50%, 55% 100%, 0 100%, 45% 50%);
+}
+.ws-combat-warn-mark::before { left: 11px; width: 16px; height: 20px; margin-top: -10px; filter: drop-shadow(0 0 3px rgba(255, 181, 71, 0.9)); }
+.ws-combat-warn-mark::after { left: 40px; width: 9px; height: 14px; margin-top: -7px; opacity: 0.85; }
+
 /* ── death (src/ui/DeathFade.ts, E295): the view fades to dark (the veil, --ws-death-veil 0..1 set per frame), a glass
    card names the killer and where you come back, the respawn happens under the dark, the view fades back in ── */
 .ws-combat-death {

@@ -74,6 +74,7 @@ import { DayNight } from './world/DayNight';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat, aimReadout } from './ui/Combat';
 import { HurtArc, deathCause, respawnWhere, type Killer } from './ui/HurtArc';
+import { WindupWarn } from './ui/WindupWarn';
 import { DeathFade } from './ui/DeathFade';
 import { LastPlace, placeName } from './game/LastPlace';
 import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from './player/AimTargets';
@@ -767,6 +768,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     swordEvents.onClang = (point, strength, clang) => { islandSfx.impact(clang, strength, point); }; // stone / wood by what the tip met (P5)
     animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
   }
+  // E297 fight rules (Driftwood): an amber edge chevron toward an enemy winding up where you can't see it (src/ui/WindupWarn.ts);
+  // chained after the wind-up's sound cue
+  const windupWarn = chunk.fightRules !== undefined ? new WindupWarn<(typeof animals.animals)[number]>() : null;
+  if (windupWarn !== null) { const cue = animals.onWindup; animals.onWindup = (a, dur) => { cue?.(a, dur); windupWarn.start(a, dur); }; }
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins }) : null; // PH-A2
   if (ambience instanceof ForestAmbience) pineFights?.useSfx(ambience.sfx); // the King's bells / stomp / roar, the thralls
   if (ambience instanceof ForestAmbience) pineQuest?.useSfx(ambience.sfx); // the NPC barks, the lanterns, the zipline, the night's thralls
@@ -1077,6 +1082,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     }
     unmark();
     hurtArc.update(dt, player.position, player.yaw);
+    windupWarn?.update(dt, game.camera, player.position, player.yaw, animals.isThreat);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(!arena.entered && edge < 14 && hud.entered);

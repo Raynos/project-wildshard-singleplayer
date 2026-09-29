@@ -36,6 +36,8 @@ interface SailorMem extends Record<string, number> {
   init: number; hx: number; hz: number; cd: number; hitT: number; away: number;
   rise: number; rising: number; sinking: number; floor: number; floorS?: number;
   st: number; hit: number;
+  /** E297: the side-step round a beam — ±1, and the time left before it tries the other side */
+  sd?: number; sdT?: number;
 }
 
 function sailorPaint(v: VariantDef): Paint {
@@ -220,6 +222,9 @@ function animateSailor(c: RigAnimCtx): void {
 
 const ST_HIDE = 0, ST_RISE = 1, ST_ATTACK = 2, ST_GUARD = 3, ST_SINK = 4;
 const SWING_R = 1.8, HIT_R = 1.9, SWING_DAMAGE = 14 /* E294: 18 → 14 */, WINDUP = 0.6, SWING_DUR = 0.9, SHAMBLE = 1.1, SINK_AFTER = 6;
+/** E297 fight rules: waiting its turn (two others attacking) it stands off this far (m); blocked by a beam or the mast
+ *  (no line of sight, E296) it side-steps round it at STEP_AROUND m/s, flipping side every SIDE_FLIP s */
+const HOLD_R = 3.0, STEP_AROUND = 1.0, SIDE_FLIP = 1.6;
 
 function thinkSailor(a: Animal, c: ThinkCtx): void {
   const m = a.mem as SailorMem, H = c.world.hold;
@@ -254,14 +259,23 @@ function thinkSailor(a: Animal, c: ThinkCtx): void {
       a.state = 'stalk';
       const dh = Math.hypot(a.position.x - cx, a.position.z - cz);
       if (hit) a.cancelAttack();
-      if (!c.calm && d < SWING_R && m.cd <= 0 && c.reach(a)) { m.st = ST_ATTACK; m.hit = 0; a.startAttack(SWING_DUR); a.setMotion(toPlayer, 0, 6); c.sound('sailor_groan'); break; } // no swing through the mast or a beam (E296)
+      const reach = c.reach(a);
+      if (!c.calm && d < SWING_R && m.cd <= 0 && reach && c.claim(a)) { m.st = ST_ATTACK; m.hit = 0; a.setStrafe(0); a.startAttack(SWING_DUR); a.setMotion(toPlayer, 0, 6); c.sound('sailor_groan'); break; } // no swing through the mast or a beam (E296)
       if (!c.calm && dPlayerHold < guardR && d < 14) {
         m.away = 0;
-        if (d > SWING_R * 0.8) { if (dh < guardR || (dx * (cx - a.position.x) + dz * (cz - a.position.z)) > 0) a.setMotion(toPlayer, SHAMBLE, 2.5); else a.setMotion(toPlayer, 0, 2.5); }
+        const wait = !c.mayAttack(a), stand = wait ? HOLD_R : SWING_R * 0.8; // E297: two others attacking — it stands off and waits
+        if (d > stand) { if (dh < guardR || (dx * (cx - a.position.x) + dz * (cz - a.position.z)) > 0) a.setMotion(toPlayer, SHAMBLE, 2.5); else a.setMotion(toPlayer, 0, 2.5); }
+        else if (wait && d < HOLD_R - 0.6) a.setMotion(toPlayer, -0.6, 4);
         else a.setMotion(toPlayer, 0, 4);
+        // E297 (E296 follow-up): close, but a beam or the mast between — it steps round it for a clear cut instead of waiting there
+        if (!reach && d < SWING_R + 1.2) {
+          m.sdT = (m.sdT ?? 0) - c.dt;
+          if (m.sd === undefined || m.sdT <= 0) { m.sd = m.sd === undefined ? (c.rng.next() < 0.5 ? -1 : 1) : -m.sd; m.sdT = SIDE_FLIP; }
+          a.setStrafe(m.sd * STEP_AROUND);
+        } else a.setStrafe(0);
       } else {
         // nobody in the hold: drift back to its spot, glare, and after a while sink out of sight
-        m.away += c.dt;
+        m.away += c.dt; a.setStrafe(0);
         const hx = m.hx - a.position.x, hz = m.hz - a.position.z, hd = Math.hypot(hx, hz);
         if (hd > 0.6) a.setMotion(Math.atan2(hx, hz), SHAMBLE * 0.8, 2.5);
         else { a.setMotion(d < 30 ? toPlayer : a.desiredYaw, 0, 2); if (m.away > SINK_AFTER) { m.st = ST_SINK; m.sinking = 1; m.rising = 0; c.world.splash?.(a.position, 0.5); } }

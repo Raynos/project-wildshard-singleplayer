@@ -225,6 +225,8 @@ const ST_HIDE = 0, ST_RISE = 1, ST_FIGHT = 2, ST_ATTACK = 3, ST_SINK = 4, ST_UND
 const SWING_R = 2.3, HIT_R = 2.5, SWING_DMG = 24, BURST_R = 3, BURST_DMG = 16;
 const WADE = [0, 1.2, 1.35, 1.7], WINDUP = [0, 0.7, 0.62, 0.5], COOLDOWN = [0, 1.4, 1.2, 0.8], SINK_EVERY = [0, 0, 7, 5];
 const UNDER_T = 1.1;
+/** E297: how far out he waits while two others hold the attack tokens (m) */
+const HOLD_R = 3.4;
 const _bub = new THREE.Vector3();
 
 /** the fight phase by hp: 1, 2, 3 */
@@ -259,8 +261,9 @@ function thinkCaptain(a: Animal, c: ThinkCtx): void {
       a.state = 'stalk';
       if (hit && phase === 1) a.cancelAttack();
       if (SINK_EVERY[phase] && m.subT > (SINK_EVERY[phase] ?? 99) && m.cd <= 0) { m.st = ST_SINK; m.sinking = 1; m.rising = 0; c.world.splash?.(a.position, 1.4); c.sound('sailor_groan'); break; }
-      if (!c.calm && d < SWING_R && m.cd <= 0) { m.st = ST_ATTACK; m.hit = 0; a.startAttack((WINDUP[phase] ?? 0.7) + 0.35); a.setMotion(toPlayer, 0, 6); c.sound('sailor_groan'); break; }
-      if (!c.calm && playerFromPool < m.arena) a.setMotion(toPlayer, d > SWING_R * 0.85 ? WADE[phase] ?? 1.2 : 0, 3);
+      if (!c.calm && d < SWING_R && m.cd <= 0 && c.claim(a)) { m.st = ST_ATTACK; m.hit = 0; a.startAttack((WINDUP[phase] ?? 0.7) + 0.35); a.setMotion(toPlayer, 0, 6); c.sound('sailor_groan'); break; }
+      // E297 fight rules: two others attacking — he wades to just out of reach and waits his turn
+      if (!c.calm && playerFromPool < m.arena) a.setMotion(toPlayer, d > (c.mayAttack(a) ? SWING_R * 0.85 : HOLD_R) ? WADE[phase] ?? 1.2 : 0, 3);
       else {   // you ran: he wades back to the pool and glares
         const hx = m.poolX - a.position.x, hz = m.poolZ - a.position.z;
         if (Math.hypot(hx, hz) > 1) a.setMotion(Math.atan2(hx, hz), (WADE[phase] ?? 1.2) * 0.8, 2.5); else a.setMotion(toPlayer, 0, 2);

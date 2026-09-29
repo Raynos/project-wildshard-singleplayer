@@ -157,6 +157,12 @@ export interface ThinkCtx {
   /** melee shards: nothing solid (a wall, a beam, a deck, a rock) between it and the player — `hurt` lands only then
    *  (E296); a species asks before it starts a swing it could not land. Always true on a ranged shard */
   reach: (a: Animal) => boolean;
+  /** E297 fight rules (`ChunkDef.fightRules`, Driftwood): take an attack token before `startAttack` — false = the others
+   *  hold them all, so wait (hold back on a ring). The token goes back by itself once the attack is over (attackPhase < 0).
+   *  Always true on a shard without the rules */
+  claim: (a: Animal) => boolean;
+  /** E297: a token is free for it (or it holds one) — false = hold back on the ring instead of closing in. Takes nothing */
+  mayAttack: (a: Animal) => boolean;
 }
 
 export interface BoneDef { name: string; parent: string | null; pos: [number, number, number] }

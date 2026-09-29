@@ -212,6 +212,8 @@ function animateCrab(c: RigAnimCtx): void {
 
 const ST_IDLE = 0, ST_ENGAGE = 1, ST_ATTACK = 2, ST_FLEE = 3;
 const ENGAGE_R = 9, SHY_R = 3, DISENGAGE_R = 18, SNAP_R = 1.6, SNAP_DAMAGE = 10, WINDUP = 0.5, SNAP_DUR = 0.78;
+/** E297 fight rules: a crab waiting its turn (two others attacking) circles this far out (m), not in snapping range */
+const HOLD_R = 3.6;
 
 function thinkCrab(a: Animal, c: ThinkCtx): void {
   const m = a.mem as CrabMem, rng = c.rng;
@@ -248,10 +250,13 @@ function thinkCrab(a: Animal, c: ThinkCtx): void {
       if (c.calm || d > DISENGAGE_R) { m.st = ST_IDLE; m.tm = 2; a.setStrafe(0); a.setMotion(a.yaw, 0, 2); break; }
       m.tm -= c.dt;
       if (m.tm <= 0) { m.sd = -m.sd; m.tm = rng.range(1.0, 2.5); }
-      if (d > 2.6) { a.setMotion(toPlayer, 1.7, 5); a.setStrafe(m.sd * 0.5); }
-      else if (d < 1.4) { a.setMotion(toPlayer, -0.6, 5); a.setStrafe(m.sd * 1.3); }      // too close: back off a step while circling
+      // E297: while two others hold the attack tokens it circles out at HOLD_R, claws up, and waits its turn
+      const wait = !c.mayAttack(a), far = wait ? HOLD_R + 0.6 : 2.6, near = wait ? HOLD_R - 0.6 : 1.4;
+      if (d > far) { a.setMotion(toPlayer, 1.7, 5); a.setStrafe(m.sd * 0.5); }
+      else if (!wait && m.cd <= 0 && d > 1.75) { a.setMotion(toPlayer, 1.2, 5); a.setStrafe(m.sd * 0.3); } // its turn: it steps in to snap
+      else if (d < near) { a.setMotion(toPlayer, wait ? -1.1 : -0.6, 5); a.setStrafe(m.sd * 1.3); }      // too close: back off a step while circling
       else { a.setMotion(toPlayer, 0, 5); a.setStrafe(m.sd * 1.3); }
-      if (d < 1.9 && m.cd <= 0) { m.st = ST_ATTACK; m.hit = 0; a.startAttack(SNAP_DUR); a.setStrafe(0); a.setMotion(toPlayer, 0, 6); c.sound('crab_click'); }
+      if (!wait && d < 1.9 && m.cd <= 0 && c.claim(a)) { m.st = ST_ATTACK; m.hit = 0; a.startAttack(SNAP_DUR); a.setStrafe(0); a.setMotion(toPlayer, 0, 6); c.sound('crab_click'); }
       break;
     }
     case ST_ATTACK: {
