@@ -1,6 +1,6 @@
 # NALATI-FINISH — land Nalati on main, then the user's picks and the leftovers
 
-**State:** `in progress` 2026-09-29 — unowned: no plan row has moved since 2026-09-25 (the shard itself got the E287 / E288 touch and crouch fixes on 09-29). Nalati is on main and live. Done: U1–U3, P1–P3, B4 (moot), B6, B7. Open for an agent, nobody on it: B8 (the phone load peaks at 1.83 GB, over the 1.8 GB cap: the only shard over), B9 (the E299 capture bugs), B5 (the elder's face reads, the cook's does not), B3 (spearThrust + javelinImpact-flesh still synth), B1 (N13 riding extras), B2 (N14 look polish). The user's: P4 (N11, no Nalati fps reading exists) and N24. E299 review: progress/e299/.
+**State:** `in progress` 2026-09-29 — the user said yes to B8 + B9 + B5 + the fps reading (E301): all three in flight with the E301 session. Nalati is on main and live. Done: U1–U3, P1–P3, B4 (moot), B6, B7. Open: B8 (the phone load peaks at 1.83 GB, over the 1.8 GB cap: the only shard over), B9 (the E299 capture bugs), B5 (the elder's face reads, the cook's does not) — nobody on B3 (spearThrust + javelinImpact-flesh still synth), B1 (N13 riding extras), B2 (N14 look polish). The user's: P4 (N11, no Nalati fps reading exists) and N24. E299 review: progress/e299/.
 
 The mini plan for everything left after [NALATI-MERGE](../../project/archive/2026-09-24-nalati-merge.md) (archived
 2026-09-24, every row built on the `nalati-grasslands` branch). The asks: N10, N11, N13, N14, N20, N21, N22.
