@@ -705,6 +705,7 @@ export class ModelExplorer implements ExplorePane {
     const d = Math.max(this.dist * (cam.aspect < 1 ? 1.08 : 0.8), (size.y * 0.56) / Math.max(0.05, tanV) + size.z / 2);
     cam.position.set(this.target.x + Math.sin(this.yaw) * cp * d, this.target.y + Math.sin(this.pitch) * d, this.target.z + Math.cos(this.yaw) * cp * d);
     cam.lookAt(this.target);
+    game.shardFrame(); // the shard's per-frame uniforms for this eye (Nine Dragon's fog), not the last frame's
     game.composer.render(0);
     const c = document.createElement('canvas'); c.width = THUMB_W; c.height = THUMB_H;
     c.getContext('2d')?.drawImage(src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, 0, 0, THUMB_W, THUMB_H);

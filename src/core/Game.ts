@@ -179,6 +179,11 @@ export class Game {
    * is not preserved). The app-switch resume screen's backdrop, taken as the page hides (E61, GpuRecovery.ts). Null
    * before the composer exists or on a dead context.
    */
+  /** A shard's per-frame render uniforms, re-read for the camera as it stands now: a render outside the loop from a
+   *  moved camera (Model Explorer's catalog thumbnail) must call it first. Nine Dragon's silk fog is measured from the
+   *  camera `frame()` saw, so a thumbnail fogged from the turntable's eye came out a white silhouette (E289). */
+  shardFrame(): void { this.camera.updateMatrixWorld(); this.shardRender?.frame?.(0, this.clock.elapsedTime); }
+
   snapshot(maxW: number): HTMLCanvasElement | null {
     if (this._composer === null || this.hold || this.renderer.getContext().isContextLost()) return null;
     this.shardRender?.frame?.(0, this.clock.elapsedTime);
