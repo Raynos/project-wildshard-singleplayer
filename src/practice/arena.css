@@ -8,3 +8,9 @@
 .ws-practice-float.miss { color: #b4c3cc; font-size: 18px; letter-spacing: 0.08em; text-shadow: 0 2px 4px #06101a; }
 #hud.practice-active .ws-quest-obj { display: none; }
 @media (max-width: 700px) { .ws-practice-label { font-size: 8px; padding: 4px 5px; } }
+/* E285: the tag clamps inside a narrow portrait frame; its arrow stays over the figure */
+.ws-practice-label::after { left: calc(50% - 4px + var(--ws-practice-arrow, 0px)); }
+/* E285: the world-only verbs leave the practice room (the board kills the dodge; the horse and the journal lead out) */
+#hud.practice-active .ws-touch .ws-touch-hover,
+#hud.practice-active .ws-touch .ws-ride-horse,
+#hud.practice-active .ws-touch .ws-cmp-disc { display: none !important; }

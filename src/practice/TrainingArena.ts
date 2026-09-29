@@ -8,6 +8,8 @@ import type { TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { Weapons } from '../player/Weapons';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { BOSS_NAMES } from '../ui/Combat';
+import { DummyMotion, DummyPose } from './DummyMotion';
+import { applyDummyStudio } from './DummyStudio';
 import { buildTrainingDummy, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
 import { loadTrainingDummy } from './TrainingDummyAssets';
 import './arena.css';
@@ -17,7 +19,21 @@ const Y = 900; // an isolated room high over each shard; existing world geometry
 const CYAN = 0x75d9ff;
 BOSS_NAMES.set('training-dummy', 'Training dummy'); // the aim readout's name (E285: it read the raw kind, "TRAINING-DUMMY · 12 M")
 
+/**
+ * The lineup (room-local x, z). The centre figure stands forward, the two sides a step back and close in, so all three
+ * and their labels fit the narrowest portrait frame (Nalati's) from a spawn the arena picks from the camera's FOV.
+ */
+const LINEUP: readonly { x: number; z: number }[] = [{ x: -2.1, z: -8.5 }, { x: 0, z: -7 }, { x: 2.1, z: -8.5 }];
+/** the dummy's half width with its arms, metres: what must stay inside the frame */
+const DUMMY_HALF_WIDTH = 0.5;
+const LABEL_Y = 2.05;
+/** the figure's weight against a blow: straw is light, steel heavy */
+const MASS: Record<DummyVariant, number> = { 'straw-cloth': 0.8, wood: 1, 'wood-steel': 1.3 };
+const HEAD_BOTTOM = 1.36; // trainingTargets.ts: the head volume spans 1.36 – 1.78 m
+
 interface FloatingText { el: HTMLElement; point: THREE.Vector3; time: number }
+
+const _label = new THREE.Vector3(), _float = new THREE.Vector3(), _toward = new THREE.Vector3();
 
 class TrainingTarget implements TargetAnimal {
   readonly kind = 'training-dummy';
@@ -28,25 +44,41 @@ class TrainingTarget implements TargetAnimal {
   ready = false;
   readonly variant: DummyVariant;
   readonly label: HTMLElement;
-  private flinch = 0;
-  private phase = 0;
+  /** the springs (hit-driven motion) and the bones they drive; the pose waits for the model */
+  readonly motion: DummyMotion;
+  private pose: DummyPose | null = null;
+  private materials: THREE.MeshStandardMaterial[] = [];
+  private flash = 0;
+  private flashShown = 0;
+  /** the tag's width in px, measured once it is laid out (reading it every frame would force a layout per frame) */
+  labelWidth = 0;
+  /** the last blow, so the melee stagger that follows it in the same frame adds to that blow */
+  private lastHit = { px: 0, py: 0, pz: 0, frame: -1 };
+  private frame = 0;
+  /** who is swinging: the push falls back to "away from the player" when a hit carries no direction */
+  attacker: THREE.Vector3 | null = null;
   onDamage: (amount: number, point: THREE.Vector3) => void = () => undefined;
 
-  constructor(variant: DummyVariant, x: number, y: number, z: number, localX: number, localZ: number, layer: HTMLElement) {
+  constructor(variant: DummyVariant, x: number, y: number, z: number, localX: number, localZ: number, layer: HTMLElement, seed: number) {
     this.variant = variant;
     this.position = new THREE.Vector3(x, y, z);
     this.model = { root: new THREE.Group(), joints: {}, rig: 'placeholder' };
     this.model.root.position.set(localX, 0, localZ);
+    this.motion = new DummyMotion(seed);
     const label = document.createElement('div'); label.className = 'ws-practice-label';
     label.textContent = DUMMY_VARIANTS.find((v) => v.id === variant)?.label ?? variant;
     layer.append(label); this.label = label;
   }
 
-  install(model: TrainingDummyModel): void {
+  install(model: TrainingDummyModel, renderer: THREE.WebGLRenderer): void {
     const previous = this.model.root;
     model.root.position.copy(previous.position);
     const parent = previous.parent;
     if (parent) { parent.remove(previous); parent.add(model.root); }
+    this.materials = applyDummyStudio(model.root, renderer);
+    // the springs rotate bones from their rest pose; measure it before anything moves them
+    this.pose = new DummyPose(model.root, model.joints);
+    this.motion.leftSign = DummyPose.leftSign(model.root, model.joints);
     this.model = model;
     this.ready = true;
   }
@@ -58,41 +90,89 @@ class TrainingTarget implements TargetAnimal {
 
   headWorld(out: THREE.Vector3): THREE.Vector3 { out.copy(this.position); out.y += 1.58; return out; }
 
-  applyDamage(amount: number, point: THREE.Vector3): boolean {
+  /** the push along `dir` (world), flattened; away from the attacker when it has no horizontal part */
+  private push(dir: THREE.Vector3 | undefined, point: THREE.Vector3): { dx: number; dz: number } {
+    let dx = dir?.x ?? 0, dz = dir?.z ?? 0;
+    let len = Math.hypot(dx, dz);
+    if (len < 0.2) {
+      _toward.copy(this.position).sub(this.attacker ?? point.clone().setZ(point.z + 1));
+      dx = _toward.x; dz = _toward.z; len = Math.hypot(dx, dz);
+    }
+    return len > 1e-4 ? { dx: dx / len, dz: dz / len } : { dx: 0, dz: -1 };
+  }
+
+  applyDamage(amount: number, point: THREE.Vector3, dir?: THREE.Vector3): boolean {
     const armor = this.variant === 'wood-steel' ? 0.62 : this.variant === 'wood' ? 0.82 : 1;
     const dealt = Math.max(1, Math.round(amount * armor));
-    this.flinch = Math.min(1, this.flinch + (dealt > 45 ? 0.85 : 0.55));
+    const px = point.x - this.position.x, py = point.y - this.position.y, pz = point.z - this.position.z;
+    const { dx, dz } = this.push(dir, point);
+    // the punch of any hit; a melee blow's stagger (Sword/Sabre call it right after) adds the knock-back
+    this.motion.hit({ px, py, pz, dx, dz, weight: Math.min(3, Math.max(0.3, amount / 25)) / MASS[this.variant], headshot: py > HEAD_BOTTOM });
+    this.lastHit.py = py; this.lastHit.frame = this.frame;
+    this.flash = Math.min(1, this.flash + 0.35 + dealt / 120);
     this.onDamage(dealt, point);
     return false;
   }
 
-  stagger(_dir: THREE.Vector3, strength: number): void { this.flinch = Math.min(1, this.flinch + strength * 0.16); }
+  /** a melee knock-back: the blow's rock grows with the move's stagger (light 0 … charged 1) */
+  stagger(dir: THREE.Vector3, strength: number): void {
+    const h = this.lastHit;
+    const { dx, dz } = this.push(dir, this.position);
+    this.motion.shove(h.frame === this.frame ? h.py : 1.1, dx, dz, Math.max(0, strength), MASS[this.variant]);
+  }
+
+  /** Sword.ts's white hit flash (C5): the figure's emissive for a beat */
+  hitFlash(strength: number): void { this.flash = Math.min(1, Math.max(this.flash, strength)); }
 
   update(dt: number): void {
-    this.phase += dt;
-    this.flinch = Math.max(0, this.flinch - dt * 2.6);
-    const sway = Math.sin(this.phase * 1.7) * 0.012;
-    const { spine, head, leftUpperArm, rightUpperArm } = this.model.joints;
-    if (spine) { spine.rotation.z = sway + this.flinch * 0.12; spine.rotation.x = -this.flinch * 0.09; }
-    if (head) head.rotation.z = -this.flinch * 0.14;
-    if (leftUpperArm) leftUpperArm.rotation.z = -0.09 - this.flinch * 0.17;
-    if (rightUpperArm) rightUpperArm.rotation.z = 0.09 + this.flinch * 0.17;
+    this.frame++;
+    this.motion.update(dt);
+    this.pose?.apply(this.motion);
+    if (this.flash > 0 || this.flashShown > 0) {
+      this.flash = Math.max(0, this.flash - dt * 7);
+      const e = this.flash * this.flash * 0.08;
+      for (const m of this.materials) m.emissive.setRGB(e, e * 0.97, e * 0.92);
+      this.flashShown = e;
+    }
   }
+}
+
+/** a plane with a vertex-colour gradient: `shade(u, v)` (0 … 1 across, 0 … 1 up) gives each vertex's colour */
+function shadedPlane(w: number, h: number, sw: number, sh: number, shade: (u: number, v: number, out: THREE.Color) => void): THREE.BufferGeometry {
+  const g = new THREE.PlaneGeometry(w, h, sw, sh);
+  const uv = g.getAttribute('uv');
+  const colors = new Float32Array(uv.count * 3);
+  const c = new THREE.Color();
+  for (let i = 0; i < uv.count; i++) { shade(uv.getX(i), uv.getY(i), c); colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b; }
+  g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return g;
 }
 
 function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: ColliderDesc[] } {
   const root = new THREE.Group(); root.name = 'HUD + Weapon Explorer · grid arena';
   root.position.set(cx, Y, cz);
-  const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x0b1726, fog: false });
-  const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x07101d, side: THREE.DoubleSide, fog: false });
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(HALF_WIDTH * 2, HALF_DEPTH * 2).rotateX(-Math.PI / 2), floorMaterial);
+  const shaded = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, fog: false });
+  const low = new THREE.Color(0x12304a), high = new THREE.Color(0x1d3f5e), deep = new THREE.Color(0x0a1624);
+  // the floor: a pool of light under the lineup, fading to the room's navy toward the walls
+  const floor = new THREE.Mesh(shadedPlane(HALF_WIDTH * 2, HALF_DEPTH * 2, 40, 40, (u, v, out) => {
+    const x = (u - 0.5) * HALF_WIDTH * 2, z = (0.5 - v) * HALF_DEPTH * 2; // rotateX(−90°) maps the plane's +v to −z
+    const d = Math.hypot(x / 9, (z + 5) / 11);
+    out.set(0x0b1726).lerp(low, Math.max(0, 1 - d) ** 1.5 * 0.85);
+  }).rotateX(-Math.PI / 2), shaded);
   floor.position.y = -0.03; root.add(floor);
-  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(HALF_WIDTH * 2, HALF_DEPTH * 2).rotateX(Math.PI / 2), wallMaterial);
+  // the ceiling: lit over the lineup, so the portrait frame's top half reads as a room
+  const ceiling = new THREE.Mesh(shadedPlane(HALF_WIDTH * 2, HALF_DEPTH * 2, 40, 40, (u, v, out) => {
+    const x = (u - 0.5) * HALF_WIDTH * 2, z = (0.5 - v) * HALF_DEPTH * 2; // rotateX(+90°) maps +v to +z
+    const d = Math.hypot(x / 18, (-z - 8) / 22);
+    out.copy(deep).lerp(high, Math.max(0, 1 - d) ** 0.9);
+  }).rotateX(Math.PI / 2), shaded);
   ceiling.position.y = WALL_HEIGHT; root.add(ceiling);
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(HALF_WIDTH * 2, WALL_HEIGHT), wallMaterial);
+  // walls: brighter where they meet the floor (the grid's glow), dark toward the ceiling
+  const wallShade = (_u: number, v: number, out: THREE.Color): void => { out.copy(low).lerp(deep, Math.min(1, v * 1.4) ** 0.8); };
+  const back = new THREE.Mesh(shadedPlane(HALF_WIDTH * 2, WALL_HEIGHT, 1, 6, wallShade), shaded);
   back.position.set(0, WALL_HEIGHT / 2, -HALF_DEPTH); root.add(back);
   const front = back.clone(); front.position.z = HALF_DEPTH; root.add(front);
-  const side = new THREE.Mesh(new THREE.PlaneGeometry(HALF_DEPTH * 2, WALL_HEIGHT), wallMaterial);
+  const side = new THREE.Mesh(shadedPlane(HALF_DEPTH * 2, WALL_HEIGHT, 1, 6, wallShade), shaded);
   side.rotation.y = Math.PI / 2; side.position.set(-HALF_WIDTH, WALL_HEIGHT / 2, 0); root.add(side);
   const other = side.clone(); other.position.x = HALF_WIDTH; root.add(other);
 
@@ -101,6 +181,9 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
   const push = (a: readonly number[], b: readonly number[]): void => { lines.push(a[0] ?? 0, a[1] ?? 0, a[2] ?? 0, b[0] ?? 0, b[1] ?? 0, b[2] ?? 0); };
   for (let x = -HALF_WIDTH; x <= HALF_WIDTH; x += 2) push([x, 0.015, -HALF_DEPTH], [x, 0.015, HALF_DEPTH]);
   for (let z = -HALF_DEPTH; z <= HALF_DEPTH; z += 2) push([-HALF_WIDTH, 0.015, z], [HALF_WIDTH, 0.015, z]);
+  // the ceiling grid, every 4 m: perspective lines converging over the lineup instead of a black lid (E285)
+  for (let x = -HALF_WIDTH; x <= HALF_WIDTH; x += 4) push([x, WALL_HEIGHT - 0.02, -HALF_DEPTH], [x, WALL_HEIGHT - 0.02, HALF_DEPTH]);
+  for (let z = -HALF_DEPTH; z <= HALF_DEPTH; z += 4) push([-HALF_WIDTH, WALL_HEIGHT - 0.02, z], [HALF_WIDTH, WALL_HEIGHT - 0.02, z]);
   for (let x = -HALF_WIDTH; x <= HALF_WIDTH; x += 2) {
     push([x, 0.02, -HALF_DEPTH + 0.01], [x, WALL_HEIGHT, -HALF_DEPTH + 0.01]);
     push([x, 0.02, HALF_DEPTH - 0.01], [x, WALL_HEIGHT, HALF_DEPTH - 0.01]);
@@ -120,9 +203,6 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
   const corners: number[] = [];
   for (const x of [-HALF_WIDTH, HALF_WIDTH]) for (const z of [-HALF_DEPTH, HALF_DEPTH]) corners.push(x, 0, z, x, WALL_HEIGHT, z);
   root.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(corners, 3)), new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.9, fog: false, toneMapped: false })));
-  const ambient = new THREE.AmbientLight(0xabcce2, 0.45); root.add(ambient);
-  const key = new THREE.PointLight(0xcfe8ff, 40, 35); key.position.set(-4, 7, 5); root.add(key);
-  const fill = new THREE.PointLight(0x78b9d7, 25, 28); fill.position.set(6, 6, -5); root.add(fill);
   root.visible = false;
   const colliders: ColliderDesc[] = [
     { kind: 'box', x: cx, y: Y - 0.14, z: cz, hx: HALF_WIDTH, hy: 0.14, hz: HALF_DEPTH },
@@ -143,7 +223,9 @@ export class TrainingArena {
   private modelsReady = false;
   private loadPromise: Promise<void> | null = null;
   private readonly preparation: HTMLElement;
-  private readonly center: { x: number; z: number };
+  /** the room's centre (world x, z); the lineup and the spawn are laid out from it */
+  readonly center: { x: number; z: number };
+  private player: Player | null = null;
 
   constructor(private readonly game: Game, registry: WorldRegistry, private readonly physics: Physics, center: { x: number; z: number }) {
     this.center = center;
@@ -155,13 +237,12 @@ export class TrainingArena {
     const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = 'PREPARING TRAINING TARGETS';
     overlay.append(preparation); this.preparation = preparation;
     this.targets = DUMMY_VARIANTS.map((v, i) => {
-      // The outer targets stand back: 8.5 m between neighbors while all three fit a portrait first view.
-      const localX = (i - 1) * 6, localZ = i === 1 ? -7 : -13;
-      const x = center.x + localX, z = center.z + localZ;
-      const target = new TrainingTarget(v.id, x, Y, z, localX, localZ, overlay);
+      const spot = LINEUP[i] ?? { x: (i - 1) * 2.1, z: -8.5 };
+      const x = center.x + spot.x, z = center.z + spot.z;
+      const target = new TrainingTarget(v.id, x, Y, z, spot.x, spot.z, overlay, i + 1);
       addTrainingTarget(physics, target, x, Y, z);
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.69, 0.012, 6, 48).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: CYAN, fog: false, toneMapped: false }));
-      ring.position.set(localX, 0.01, localZ); root.add(ring);
+      ring.position.set(spot.x, 0.01, spot.z); root.add(ring);
       target.onDamage = (amount, point) => { this.float(String(amount), point, 'hit'); };
       return target;
     });
@@ -173,30 +254,57 @@ export class TrainingArena {
   get entered(): boolean { return this.active; }
 
   private async prepareModels(): Promise<void> {
+    const renderer = this.game.renderer;
     await Promise.all(this.targets.map(async (target) => {
-      try { target.install(await loadTrainingDummy(target.variant)); }
+      try { target.install(await loadTrainingDummy(target.variant), renderer); }
       catch (error) {
         console.warn(`[practice] ${target.variant} mesh unavailable; using procedural fallback`, error);
-        target.install(buildTrainingDummy(target.variant));
+        target.install(buildTrainingDummy(target.variant), renderer);
       }
     }));
     this.modelsReady = true;
     this.preparation.hidden = true;
   }
 
+  /**
+   * How far back from the centre dummy the player stands so the whole lineup, arms included, is inside the frame:
+   * nearer on a wide frame (Driftwood's portrait, any landscape), further on Nalati's narrow one. The labels clamp
+   * inside the frame on their own (update).
+   */
+  private viewDistance(): number {
+    const cam = this.game.camera;
+    // the frame's usable half width: less the touch weapon strip down the left edge (Pine Hollow, Nalati)
+    this.measureInset();
+    const half = innerWidth / 2;
+    const usable = Math.max(0.5, (half - Math.max(10, this.leftInset + 4)) / half);
+    const tanH = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * cam.aspect * usable;
+    const centre = LINEUP[1] ?? { x: 0, z: -7 };
+    let need = 4.8;
+    for (const spot of LINEUP) {
+      const reach = Math.abs(spot.x) + DUMMY_HALF_WIDTH;
+      need = Math.max(need, reach / Math.max(0.15, tanH) - (centre.z - spot.z));
+    }
+    return Math.min(11, need);
+  }
+
   enter(player: Player, weapons: Weapons): void {
     this.active = true; this.root.visible = true; this.overlay.classList.add('show');
+    this.player = player;
+    for (const t of this.targets) t.attacker = player.position;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
     this.overlay.parentElement?.classList.add('practice-active');
     this.preparation.hidden = this.modelsReady;
     this.loadPromise ??= this.prepareModels();
     weapons.select(weapons.list[0]?.id ?? weapons.current.id, true);
     player.setHover(false); // off the board: spawn() keeps it, and on it there is no dodge (E285)
-    player.spawn(this.center.x, this.center.z + 5, 0, Y);
+    const centre = LINEUP[1] ?? { x: 0, z: -7 };
+    player.spawn(this.center.x, this.center.z + centre.z + this.viewDistance(), 0, Y);
+    player.pitch = -0.1; // a touch down: the lineup and its floor pool fill the frame, not the ceiling
   }
 
   exit(): void {
     this.active = false; this.root.visible = false; this.overlay.classList.remove('show');
+    this.player = null;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
     this.overlay.parentElement?.classList.remove('practice-active');
     for (const f of this.floats) f.el.remove();
@@ -217,20 +325,46 @@ export class TrainingArena {
     this.overlay.append(el); this.floats.push({ el, point: point.clone(), time: 0 });
   }
 
+  /** the touch weapon strip's right edge (Pine Hollow, Nalati: tabs down the left): a tag never tucks under it */
+  private leftInset = 0;
+  private measureInset(): void {
+    let right = 0;
+    for (const el of document.querySelectorAll<HTMLElement>('#hud .ws-touch-slot')) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.top < innerHeight * 0.75) right = Math.max(right, r.right);
+    }
+    this.leftInset = right;
+  }
+
   private update(dt: number): void {
+    // the hoverboard has no place in the room: it kills the dodge (E285); the H key would otherwise bring it back
+    if (this.player?.hover === true) this.player.setHover(false);
+    const W = innerWidth, H = innerHeight;
     for (const target of this.targets) {
       target.update(dt);
-      const p = target.position.clone().add(new THREE.Vector3(0, 2.05, 0)).project(this.game.camera);
-      target.label.style.display = target.ready && p.z < 1 ? '' : 'none';
-      target.label.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-p.y * 0.5 + 0.5) * innerHeight)}px) translate(-50%, -50%)`;
+      const p = _label.copy(target.position);
+      p.y += LABEL_Y;
+      p.project(this.game.camera);
+      const shown = target.ready && p.z < 1;
+      target.label.style.display = shown ? '' : 'none';
+      if (!shown) continue;
+      // keep the tag inside the frame (a side dummy on a narrow portrait frame), its arrow still over the figure
+      const x = (p.x * 0.5 + 0.5) * W, y = (-p.y * 0.5 + 0.5) * H;
+      if (target.labelWidth === 0) { target.labelWidth = target.label.offsetWidth; this.measureInset(); }
+      const half = target.labelWidth / 2 + 6;
+      const cx = Math.min(W - half, Math.max(this.leftInset + half, x));
+      target.label.style.transform = `translate(${Math.round(cx)}px, ${Math.round(y)}px) translate(-50%, -50%)`;
+      target.label.style.setProperty('--ws-practice-arrow', `${Math.round(x - cx)}px`);
     }
     for (let i = this.floats.length - 1; i >= 0; i--) {
       const f = this.floats[i]; if (!f) continue;
       f.time += dt;
       if (f.time > 0.85) { f.el.remove(); this.floats.splice(i, 1); continue; }
-      const p = f.point.clone().add(new THREE.Vector3(0, 0.25 + f.time * 0.6, 0)).project(this.game.camera);
+      const p = _float.copy(f.point);
+      p.y += 0.25 + f.time * 0.6;
+      p.project(this.game.camera);
       f.el.style.opacity = String(1 - f.time / 0.85);
-      f.el.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-p.y * 0.5 + 0.5) * innerHeight)}px) translate(-50%, -50%)`;
+      f.el.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * W)}px, ${Math.round((-p.y * 0.5 + 0.5) * H)}px) translate(-50%, -50%)`;
     }
   }
 }
