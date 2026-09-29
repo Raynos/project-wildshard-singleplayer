@@ -18,8 +18,9 @@
 // (E283, the phone's CPU) a re-cull runs every few frames while the player walks or looks round, over ~35 k instances: the
 // frustum's planes are read into plain numbers once per cull; runs of GROUP consecutive instances are tested as one sphere
 // first (wholly in view or wholly out: no per-instance test, the same answer for each of them); the kept instances are
-// copied in consecutive runs, one block copy each; and a batch whose kept instances are the same as at its last cull keeps
-// its buffers (no copy, no upload). The packing is exactly the per-instance one's: pixel-identical.
+// copied in consecutive runs, one block copy each; and only what changed since the batch's last cull is copied and
+// uploaded (the kept instances it shares with the last cull, from the front, are already in place; an unchanged batch
+// costs nothing). The packing is exactly the per-instance one's: pixel-identical.
 import { Box3, type BufferAttribute, Frustum, type InstancedBufferAttribute, type InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 /** extra field of view per side (degrees) */
@@ -192,13 +193,17 @@ export class InstanceCuller {
       }
       instances += e.n;
       kept += k;
-      // the same instances as the batch's last cull: its buffers already hold exactly this packing
-      if (k === e.k && same(keep, e.idx, k)) { tris += triangles(mesh, k); continue; }
+      // the same instances as the batch's last cull up to `same`: the buffer's front already holds them there (all of them:
+      // nothing to copy or upload)
+      let same = 0;
+      const lim = Math.min(k, e.k);
+      while (same < lim && keep[same] === e.idx[same]) same++;
+      if (same === k && k === e.k) { tris += triangles(mesh, k); continue; }
       const dst = mesh.instanceMatrix.array;
       const cdst = mesh.instanceColor?.array ?? null;
       // (always from the master: the buffer's front holds the last cull's packing) in runs of consecutive instances — the
       // kept ones mostly come in long runs (a street's worth of one facade piece), each run one block copy
-      for (let j = 0; j < k;) {
+      for (let j = same; j < k;) {
         const i = keep[j] ?? 0;
         let len = 1;
         while (j + len < k && keep[j + len] === i + len) len++;
@@ -207,9 +212,9 @@ export class InstanceCuller {
         for (const a of attrs) a.attr.array.set(a.master.subarray(i * a.size, (i + len) * a.size), j * a.size);
         j += len;
       }
-      e.idx.set(keep.subarray(0, k));
+      e.idx.set(keep.subarray(same, k), same);
       e.k = k;
-      tris += pack(mesh, k, attrs);
+      tris += pack(mesh, k, same, attrs);
     }
     for (const f of this.fars) f.mesh.visible = f.box.distanceToPoint(this.pos) <= f.far;
     this.stats.instances = instances;
@@ -219,32 +224,25 @@ export class InstanceCuller {
   }
 }
 
-/** the first k entries of a and b are equal */
-function same(a: Int32Array, b: Int32Array, k: number): boolean {
-  for (let j = 0; j < k; j++) if (a[j] !== b[j]) return false;
-  return true;
-}
-
 /** k instances' triangles */
 function triangles(mesh: InstancedMesh, k: number): number {
   const g = mesh.geometry;
   return (k * (g.index !== null ? g.index.count : g.getAttribute('position').count)) / 3;
 }
 
-/** a batch's packed count: set it, upload the front, hide it when empty; its triangles */
-function pack(mesh: InstancedMesh, k: number, attrs: readonly Packed[]): number {
+/** a batch's packed count: set it, upload what changed of the front (instances p … k), hide it when empty; its triangles */
+function pack(mesh: InstancedMesh, k: number, p: number, attrs: readonly Packed[]): number {
   mesh.count = k;
   mesh.visible = k > 0;
-  upload(mesh.instanceMatrix, k * 16);
-  if (mesh.instanceColor !== null) upload(mesh.instanceColor, k * 3);
-  for (const a of attrs) upload(a.attr, k * a.size);
+  upload(mesh.instanceMatrix, p * 16, (k - p) * 16);
+  if (mesh.instanceColor !== null) upload(mesh.instanceColor, p * 3, (k - p) * 3);
+  for (const a of attrs) upload(a.attr, p * a.size, (k - p) * a.size);
   return triangles(mesh, k);
 }
 
-/** upload only the packed front of an attribute */
-function upload(a: BufferAttribute | InstancedBufferAttribute, n: number): void {
-  a.clearUpdateRanges();
-  if (n === 0) return;
-  a.addUpdateRange(0, n);
+/** upload n floats of an attribute from `from` (added to any range not yet uploaded: two culls before a draw keep both) */
+function upload(a: BufferAttribute | InstancedBufferAttribute, from: number, n: number): void {
+  if (n <= 0) return;
+  a.addUpdateRange(from, n);
   a.needsUpdate = true;
 }
