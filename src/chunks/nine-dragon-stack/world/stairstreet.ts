@@ -23,7 +23,7 @@ import type { PieceId } from './facade/pieces';
 import { mahjongSeats } from './hero/figures';
 import { KitX } from './hero/kitx';
 import { buildGuardProcedural } from './hero/weapon-parts';
-import { K, type Kit, type Look } from './kit';
+import { K, Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { PLAZA, STAIR, Y0 } from '../layout';
 import { MIN, NEON, Rng } from '../util';
@@ -191,6 +191,79 @@ function teaTable(k: Kit, rng: Rng, px: number, py: number, pz: number, r: numbe
   }
 }
 
+// ── shops let into the terraces' retaining walls on the stair's edges (E281: the C targets' warm-lit shopfronts stepping
+// up the flights). Everything but the stone sill is an instance of a shared piece: the facade's interior-mapped window,
+// posts, a ledge, a glazed eave or a striped awning, lattice rails, couplets; plus a hanging sign, a lantern, a warm pool
+// of light and now and then a customer at the counter. C2 (stairstreet-upper.ts) uses it too ──
+
+/** a shop window in a retaining wall: x0…x1 along the wall, y0 (its sill, over the highest step under it) … y1 */
+export interface Hole { x0: number; x1: number; y0: number; y1: number }
+
+/** the running-bond blocks a hole cuts: the parts of [bx0, bx1] outside it (the course y…y + h overlapping it) */
+export function cutByHole(bx0: number, bx1: number, y: number, h: number, hole: Hole | undefined): [number, number][] {
+  if (hole === undefined || y + h <= hole.y0 - 0.12 || y >= hole.y1 + 0.02 || bx1 <= hole.x0 - 0.1 || bx0 >= hole.x1 + 0.1) return [[bx0, bx1]];
+  const out: [number, number][] = [];
+  if (hole.x0 - 0.1 - bx0 > 0.12) out.push([bx0, hole.x0 - 0.1]);
+  if (bx1 - (hole.x1 + 0.1) > 0.12) out.push([hole.x1 + 0.1, bx1]);
+  return out;
+}
+
+const SHOP_WORDS = ['麵', '茶', '涼茶', '豆花', '抄手', '小面', '雲吞', '糖水', '粥麵', '燒臘', '藥房', '冰室'] as const;
+const SHOP_NEON = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber] as const;
+
+/**
+ * A shop in a retaining wall facing the stair (`n` out of the wall, toward the steps; `floor(x)` the drawn step under x).
+ * `tea`: a glazed green eave and red couplets; else a striped awning. Its own numbers (`r`).
+ */
+export function wallShop(ctx: Ctx, k: Kit, r: Rng, hole: Hole, edge: number, n: Vector3, floor: (x: number) => number, tea: boolean): void {
+  const u = n.z > 0 ? XP : XN;
+  const w = hole.x1 - hole.x0, h = hole.y1 - hole.y0, cx = (hole.x0 + hole.x1) / 2;
+  const at = (x: number, y: number, out: number): Vector3 => new Vector3(x, y, edge + n.z * out);
+  ctx.fd.windows.push({
+    m: new Matrix4().makeBasis(u, UP, n).scale(new Vector3(w - 0.08, h, 1)).setPosition(at(cx, hole.y0, 0.012)),
+    win: new Vector4(r.range(0, 97), r.range(1.2, 1.45), 0, 16 + r.int(0, 1)), wall: new Color(0x6d6a66), light: new Color(r.pick([0xffc47e, 0xffb870, 0xffd09a, 0xffc98a])),
+  });
+  // the sill (a worn granite slab), red jambs, a dark timber lintel
+  k.box(cx, hole.y0 - 0.1, edge + n.z * 0.08, w + 0.36, 0.1, 0.3, { ...COPING, wash: 0x86837d });
+  for (const x of [hole.x0 + 0.02, hole.x1 - 0.02]) piece(ctx, 'post', at(x, hole.y0 - 0.1, 0.1), u, n, 0.8, h + 0.16, 0.8);
+  piece(ctx, 'ledge', at(cx, hole.y1 + 0.02, 0), u, n, w + 0.36, 1.2, 0.8, 0x7a5a44);
+  // over it a glazed eave (a tea room) or a striped cloth awning, springing from under the terrace's coping
+  if (tea) piece(ctx, 'eave', at(cx, hole.y1 + 0.46, 0), u, n, w + 0.6, 0.62, 0.5, r.pick([0x3f8f6a, 0x357d62, 0x3a6ea8]));
+  else piece(ctx, 'awning', at(cx, hole.y1 + 0.42, 0), u, n, w + 0.3, 0.8, 0.75, r.pick([MIN.cinnabar, MIN.azurite, MIN.malachite, 0xd9a441]));
+  // a lattice counter front across the window's lower part
+  const nr = Math.max(1, Math.round(w - 0.15));
+  for (let i = 0; i < nr; i++) piece(ctx, 'rail', at(hole.x0 + 0.1 + ((i + 0.5) * (w - 0.2)) / nr, hole.y0, 0.05), u, n, (w - 0.2) / nr, Math.min(0.95, h * 0.42), 1, 0x6a2e1e);
+  if (tea) for (const x of [hole.x0 - 0.3, hole.x1 + 0.3]) piece(ctx, 'couplet', at(x, hole.y0 + h * 0.15, 0.01), u, n, 1, Math.min(1, (h * 0.72) / 1.3), 1);
+  // its hanging sign on a bracket, reading down the stair (≥ 2.1 m over the steps), a lantern under the eave
+  const sx = hole.x1 + 0.45, word = r.pick(SHOP_WORDS), size = 0.34;
+  const sh = size * (Array.from(word).length + 0.62);
+  const sy = Math.max(hole.y1 - 0.2, floor(sx) + 2.15 + sh / 2);
+  ctx.signs.place({ at: at(sx, sy, 0.62), normal: XN, size, spec: { text: word, color: hex(r.pick(SHOP_NEON)), vertical: true, style: r.chance(0.55) ? 'tube' : 'box' }, blade: true }, k);
+  k.beam(at(sx, sy + sh / 2 + 0.12, 0), at(sx, sy + sh / 2 + 0.12, 0.95), 0.05, 0.05, IRON);
+  ctx.lantern(hole.x0 + 0.25, hole.y1 - 0.12, edge + n.z * 0.45, 0.5);
+  ctx.emitters.push({ at: at(cx, hole.y0 + h * 0.5, 0.3), color: new Color(0xffc48a), w: w - 0.2, h, power: 0.24, spill: 0.3 });
+  // now and then a customer at the counter (never on the landing's camera spot, dome C2's anchor)
+  const keep = Math.hypot(cx - 37.3, edge + n.z * 0.72 - 6) > 3;
+  if (r.chance(0.45) && keep) ctx.walkers.push(mat4(cx + r.range(-0.3, 0.3), floor(cx), edge + n.z * 0.72, n.z > 0 ? Math.PI : 0, r.range(0.95, 1.02)));
+}
+
+/**
+ * Push a run of climbers so the most prominent of them (lowest `rank` first: the nearest the square's and the landing's
+ * cameras) take the crowd's dark-coat, dark-umbrella slots and the rest the beige ones. world/build.ts sorts
+ * `ctx.walkers` into variants by index (i % 10: 0–6 dark coats, 2 of them a red umbrella; 7–9 beige, 8 an ochre umbrella):
+ * the C targets' climbers are dark robes under dark umbrellas with a red one here and there (E281). The count is unchanged,
+ * so no other lane's figure changes variant.
+ */
+export function pushClimbers(ctx: Ctx, list: readonly { m: Matrix4; rank: number }[]): void {
+  const s0 = ctx.walkers.length;
+  const dark: number[] = [], light: number[] = [];
+  list.forEach((_, j) => { ((s0 + j) % 10 < 7 ? dark : light).push(j); });
+  const byRank = [...list].sort((a, b) => a.rank - b.rank);
+  const out: (Matrix4 | undefined)[] = Array.from({ length: list.length }, () => undefined);
+  [...dark, ...light].forEach((slot, i) => { const c = byRank[i]; if (c !== undefined) out[slot] = c.m; });
+  for (const m of out) if (m !== undefined) ctx.walkers.push(m);
+}
+
 // ── the first flight ──
 
 /** the drawn floor on flight 1 (its half-step tops) — where people stand; stairFloor(x) is the collider's */
@@ -201,9 +274,12 @@ function drawnFloor(x: number): number {
 }
 
 // C2's step looks (stairstreet-upper.ts), so the whole stair reads as one
-const HALF_TOP: Look = { wash: 0x4a4c52, kind: K.flag, wet: 1, line: 1.8 };
-const HALF_RISER: Look = { wash: 0x4f4e53, kind: K.stone, line: 1.8, wet: 0.7 };
-const NOSING: Look = { wash: 0xa4a7ad, kind: K.stone, line: 0, wet: 0.8 };
+const HALF_TOP: Look = { wash: 0x51545a, kind: K.flag, wet: 1, line: 1.8 };
+// (E281: dark risers in their own shadow, wet treads a shade lighter, and a bright worn nosing on every step, so that
+// from the square the flights read as single stone steps edged in light, as the C targets paint them, not as a dark
+// ramp. Light granite risers were tried and read as a pale ramp under the high-key grade.)
+const HALF_RISER: Look = { wash: 0x44454a, kind: K.stone, line: 1.8, wet: 0.6 };
+const NOSING: Look = { wash: 0xd6d8da, kind: K.stone, line: 0, wet: 0.6 };
 const MOSS: Look = { wash: 0x3a4a34, kind: K.leaf, line: 0, wet: 0.6 };
 
 /**
@@ -228,8 +304,8 @@ function flightOne(ctx: Ctx, rng: Rng): void {
       k.box(x + hd / 2, top - hr - 0.22, z + len / 2, hd + 0.03, hr + 0.22 - sag, len - 0.025,
         { ...HALF_RISER, wash: tint(HALF_RISER.wash, tone) }, { top: { ...HALF_TOP, wash: tint(HALF_TOP.wash, tone) } });
       const nx = x - 0.005, ny = top - sag;
-      k.quad4(new Vector3(nx, ny - 0.06, z + len - 0.02), new Vector3(nx, ny - 0.06, z + 0.01), new Vector3(nx + 0.06, ny + 0.002, z + 0.01), new Vector3(nx + 0.06, ny + 0.002, z + len - 0.02),
-        len - 0.03, 0.085, { ...NOSING, wash: tint(NOSING.wash, tone) });
+      k.quad4(new Vector3(nx, ny - 0.085, z + len - 0.02), new Vector3(nx, ny - 0.085, z + 0.01), new Vector3(nx + 0.085, ny + 0.002, z + 0.01), new Vector3(nx + 0.085, ny + 0.002, z + len - 0.02),
+        len - 0.03, 0.12, { ...NOSING, wash: tint(NOSING.wash, tone) });
       z += len;
     }
     for (const [ze, dz] of [[STAIR.z0, 1], [STAIR.z1, -1]] as const) {
@@ -494,7 +570,7 @@ function pottedPlant(k: Kit, rng: Rng, x: number, y: number, z: number, s: numbe
 interface FootSeg { xa: number; xb: number; floor: number; fTop: number; top: number }
 
 /** the ashlar face of a terrace's retaining wall on the stair's edge, a coping, a pier with a lamp at its low end */
-function ashlarWall(k: Kit, rng: Rng, s: FootSeg, edge: number, n: Vector3, lamps: Vector3[]): void {
+function ashlarWall(k: Kit, rng: Rng, s: FootSeg, edge: number, n: Vector3, lamps: Vector3[], hole?: Hole): void {
   const course = 0.46, D = 0.16;
   const base = stairFloor(s.xa + 0.01) - 0.3, topY = s.floor - 0.16;
   let c = 0;
@@ -505,7 +581,10 @@ function ashlarWall(k: Kit, rng: Rng, s: FootSeg, edge: number, n: Vector3, lamp
       const bx0 = Math.max(x, s.xa), bx1 = Math.min(x + rng.range(0.75, 1.35), s.xb);
       x = bx1;
       if (bx1 - bx0 < 0.12 || y + h < stairFloor(bx0) - 0.02) continue;
-      k.box((bx0 + bx1) / 2, y, edge + n.z * (rng.range(0, 0.045) - D / 2), bx1 - bx0 - 0.02, h - 0.02, D, { ...ASHLAR, wash: tint(ASHLAR.wash, rng.range(0.82, 1.12)), seed: rng.range(0, 9) }, { top: null, bottom: null });
+      const p = rng.range(0, 0.045), tone = rng.range(0.82, 1.12), seed = rng.range(0, 9);
+      for (const [a, b] of cutByHole(bx0, bx1, y, h, hole)) {
+        k.box((a + b) / 2, y, edge + n.z * (p - D / 2), b - a - 0.02, h - 0.02, D, { ...ASHLAR, wash: tint(ASHLAR.wash, tone), seed }, { top: null, bottom: null });
+      }
     }
   }
   for (let x = s.xa; x < s.xb - 0.05;) {
@@ -523,7 +602,8 @@ function ashlarWall(k: Kit, rng: Rng, s: FootSeg, edge: number, n: Vector3, lamp
   // ferns in the joints
   for (let i = 0; i < 2; i++) {
     const fx = rng.range(s.xa + 0.6, s.xb - 0.4), fy = rng.range(Math.max(stairFloor(fx) + 0.3, base + 0.3), topY - 0.1);
-    if (fy < topY) leafBush(k, rng, fx, fy, edge + n.z * 0.1, rng.range(0.14, 0.24), 10);
+    const inHole = hole !== undefined && fx > hole.x0 - 0.3 && fx < hole.x1 + 0.3 && fy > hole.y0 - 0.3;
+    if (fy < topY) leafBush(inHole ? new Kit() : k, rng, fx, fy, edge + n.z * 0.1, rng.range(0.14, 0.24), 10);
   }
 }
 
@@ -607,6 +687,7 @@ function footShop(ctx: Ctx, k: Kit, rng: Rng, s: FootSeg, face: number, n: Vecto
 function footTerraces(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('stair-foot', true);
   const mid = (SQ_CORNER + SQ_BACK) / 2;
+  const shops = new Rng(7310);
   for (const side of [1, -1] as const) {
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
     const n = side > 0 ? ZP : ZN, u = side > 0 ? XP : XN;
@@ -620,7 +701,11 @@ function footTerraces(ctx: Ctx, rng: Rng): void {
       const cx = (s.xa + s.xb) / 2, len = s.xb - s.xa;
       const below = Math.min(stairFloor(s.xa + 0.01), s.floor) - 1.5;
       k.box(cx, below, (face + edge) / 2, len, s.floor - below, Math.abs(edge - face), PLINTH, { top: TERRACE });
-      ashlarWall(k, rng, s, edge, n, lamps);
+      const hx0 = s.xa + 0.7, hx1 = Math.min(hx0 + 1.3, s.xb - 0.35);
+      const hy0 = stairFloor(hx1 - 0.01) + 0.1, hy1 = s.floor - 0.5;
+      const hole = hy1 - hy0 > 1.3 ? { x0: hx0, x1: hx1, y0: hy0, y1: hy1 } : undefined;
+      ashlarWall(k, rng, s, edge, n, lamps, hole);
+      if (hole !== undefined) wallShop(ctx, k, shops, hole, edge, n, drawnFloor, side > 0);
       // the pavilion: a two-storey frontage (the facade grammar, timber, its ground floor at the terrace), the pent
       // roof, the tower set back behind it (as deep as the square's towers leave room for)
       const p0 = new Vector3(side > 0 ? s.xa : s.xb, 0, face);
@@ -701,6 +786,7 @@ function footSigns(ctx: Ctx): void {
 function footCrowd(ctx: Ctx, rng: Rng): void {
   const zc = (STAIR.z0 + STAIR.z1) / 2;
   const placed: [number, number][] = [];
+  const list: { m: Matrix4; rank: number }[] = [];
   let n = 0;
   for (let tries = 0; tries < 140 && n < 12; tries++) {
     const x = rng.range(STAIR.x0 + 3, (LANDINGS[0]?.x0 ?? 35.3) - 0.2), z = zc + rng.range(-3.3, 3.3);
@@ -711,9 +797,10 @@ function footCrowd(ctx: Ctx, rng: Rng): void {
     if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 1.1)) continue;
     placed.push([x, z]);
     const up = rng.chance(0.6);
-    ctx.walkers.push(mat4(x, drawnFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + rng.range(-0.25, 0.25), rng.range(0.95, 1.04)));
+    list.push({ m: mat4(x, drawnFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + rng.range(-0.25, 0.25), rng.range(0.95, 1.04)), rank: x });
     n++;
   }
+  pushClimbers(ctx, list);
 }
 
 /** C1: the stair-street's foot and first flight (x < SQ_BACK); buildStairUpper (C2) builds landing 1 upward */

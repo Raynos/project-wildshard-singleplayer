@@ -74,3 +74,28 @@ with the stair's sky screen left out (build.ts `screen2`) and the one crown towe
 sky instead of the flat teal grid, which is how the targets and mockup C paint it; the second deck over the stair has
 no underside, so nothing else shows. The targets also put far towers and pagodas in that sky, which the experiment does
 not have.
+
+## Passes 4–6: the coordinator's brief
+
+The coordinator took the experiment (the stair's sky screen is gone, `be97ea90`) and set passes 4–6 on three things the
+C targets show and the engine lacks: warm-lit timber shopfronts, verandas, plants, hanging signs and people up the flanks;
+treads that read as single wet granite steps with bright edges, not a dark ramp; umbrellas in the climbing crowd. The
+new pieces are instances of shared pieces, and memory stays neutral against pass 3. From here each pass's eye-check puts
+the previous pass and this one on the same HEAD (a HEAD-only build beside HEAD plus this lane's two files), since the
+other lanes keep landing.
+
+## Pass 4 (on HEAD 80c4259e)
+
+| Change | Where | Kept? |
+|---|---|---|
+| Shops let into the terraces' retaining walls on the stair's edges, one per flight segment (and two at the foot): the facade's interior-mapped window lit warm, red jamb posts, a timber lintel, a glazed eave (tea rooms) or a striped awning, a lattice counter, red couplets, a hanging sign reading down the stair (≥ 2.1 m over the steps), a lantern, a warm light pool, now and then a customer at the counter. The ashlar is cut round each window (the rng stays in step), so the walls are lighter | C1 + C2 | kept |
+| Planter troughs along the terraces' copings in front of the rails, greenery over the stair's lip (the facade's planter, instanced) | C2 | kept |
+| The climbers sorted into the crowd's variants by prominence: the nearest to the square and landing 1 take the dark coats and dark umbrellas (one in ten red), the rest the beige ones. world/build.ts sorts `ctx.walkers` by index; the count is unchanged | C1 + C2 | kept |
+| The steps: darker risers in their own shadow, the treads a shade lighter, a brighter nosing on every step, its bevel 0.06 → 0.085 m | C1 + C2 | kept |
+| Light granite risers (0x8b8a85) | C1 + C2 | reverted: under the render lane's high-key grade the flights read as a pale ramp, further from the targets than before |
+| A customer at the landing-1 shop | C2 | reverted: it stood in C2·4's foreground on the dome's camera spot |
+
+Memory against the same HEAD: geometry 156.05 → 155.96 MB (the windows, posts, eaves, planters and rails are instances;
+the ashlar cut for the windows pays for the sills, signs and brackets), textures unchanged. No collider changes. The
+customers change the number of walkers, so the Well's figures after this lane's take other coat and umbrella variants
+(a random re-colouring, nothing moves).

@@ -24,16 +24,19 @@ import { KitX, merge } from './hero/kitx';
 import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';
 import { hipRoof } from './square';
-import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from './stairstreet';
+import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, cutByHole, pushClimbers, stairFloor, wallShop } from './stairstreet';
 import { SURF } from '../look/paint';
 import { SignBuilder, type SignPlace } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
 import { MIN, NEON, Rng } from '../util';
 
 // ── looks ──
-const STEP_TOP: Look = { wash: 0x4a4c52, kind: K.flag, wet: 1, line: 1.8 };
-const STEP_RISER: Look = { wash: 0x4f4e53, kind: K.stone, line: 1.8, wet: 0.7 };
-const NOSING: Look = { wash: 0xa4a7ad, kind: K.stone, line: 0, wet: 0.8 };
+const STEP_TOP: Look = { wash: 0x51545a, kind: K.flag, wet: 1, line: 1.8 };
+// (E281: dark risers in their own shadow, wet treads a shade lighter, and a bright worn nosing on every step, so that
+// from the square the flights read as single stone steps edged in light, as the C targets paint them, not as a dark
+// ramp. Light granite risers were tried and read as a pale ramp under the high-key grade.)
+const STEP_RISER: Look = { wash: 0x44454a, kind: K.stone, line: 1.8, wet: 0.6 };
+const NOSING: Look = { wash: 0xd6d8da, kind: K.stone, line: 0, wet: 0.6 };
 const MOSS: Look = { wash: 0x3a4a34, kind: K.leaf, line: 0, wet: 0.6 };
 const PLINTH: Look = { wash: 0x6a6866, kind: K.stone, line: 1, wet: 0.45, surf: SURF.concrete };
 const ASHLAR: Look = { wash: 0x7a7872, kind: K.stone, line: 1, wet: 0.5, surf: SURF.stone };
@@ -191,8 +194,8 @@ function steps(ctx: Ctx, rng: Rng): void {
           { ...STEP_RISER, wash: tint(STEP_RISER.wash, tone) }, { top: { ...STEP_TOP, wash: tint(STEP_TOP.wash, tone) } });
         // the worn nosing: a narrow bevel that catches the sky (the mockup's bright step edges)
         const nx = x - 0.005, ny = top - sag;
-        k.quad4(new Vector3(nx, ny - 0.06, z + len - 0.02), new Vector3(nx, ny - 0.06, z + 0.01), new Vector3(nx + 0.06, ny + 0.002, z + 0.01), new Vector3(nx + 0.06, ny + 0.002, z + len - 0.02),
-          len - 0.03, 0.085, { ...NOSING, wash: tint(NOSING.wash, tone) });
+        k.quad4(new Vector3(nx, ny - 0.085, z + len - 0.02), new Vector3(nx, ny - 0.085, z + 0.01), new Vector3(nx + 0.085, ny + 0.002, z + 0.01), new Vector3(nx + 0.085, ny + 0.002, z + len - 0.02),
+          len - 0.03, 0.12, { ...NOSING, wash: tint(NOSING.wash, tone) });
         z += len;
       }
       // moss where the treads meet the walls
@@ -251,7 +254,7 @@ function segments(rng: Rng, side: number): Seg[] {
 }
 
 /** the retaining wall's face: ashlar blocks in running bond over the core, a coping, a pier at the segment's start */
-function retainingWall(k: Kit, rng: Rng, s: Seg, edge: number, n: Vector3, pier: boolean): void {
+function retainingWall(k: Kit, rng: Rng, s: Seg, edge: number, n: Vector3, pier: boolean, hole?: Hole): void {
   const course = 0.46, D = 0.16;
   const base = visFloor(s.xa + 0.01) - 0.25, topY = s.floor - 0.16;
   let c = 0;
@@ -262,8 +265,10 @@ function retainingWall(k: Kit, rng: Rng, s: Seg, edge: number, n: Vector3, pier:
       const bx0 = Math.max(x, s.xa), bx1 = Math.min(x + rng.range(0.75, 1.35), s.xb);
       x = bx1;
       if (bx1 - bx0 < 0.12 || y + h < visFloor(bx0) - 0.02) continue;
-      const p = rng.range(0.0, 0.045);
-      k.box((bx0 + bx1) / 2, y, edge + n.z * (p - D / 2), bx1 - bx0 - 0.02, h - 0.02, D, { ...ASHLAR, wash: tint(ASHLAR.wash, rng.range(0.82, 1.12)), seed: rng.range(0, 9) }, { top: null, bottom: null });
+      const p = rng.range(0.0, 0.045), tone = rng.range(0.82, 1.12), seed = rng.range(0, 9);
+      for (const [a, b] of cutByHole(bx0, bx1, y, h, hole)) {
+        k.box((a + b) / 2, y, edge + n.z * (p - D / 2), b - a - 0.02, h - 0.02, D, { ...ASHLAR, wash: tint(ASHLAR.wash, tone), seed }, { top: null, bottom: null });
+      }
     }
   }
   // the coping: long capstones overhanging the face
@@ -289,12 +294,15 @@ function retainingWall(k: Kit, rng: Rng, s: Seg, edge: number, n: Vector3, pier:
   for (let x = s.xa + rng.range(0.6, 1.4); x < s.xb - 0.3; x += rng.range(1.6, 2.6)) {
     const y = Math.max(visFloor(x) + 0.5, base + 0.4) + rng.range(0, 0.5);
     if (y > topY - 0.3) continue;
+    if (hole !== undefined && x > hole.x0 - 0.35 && x < hole.x1 + 0.35) continue;
     k.box(x, y, edge + n.z * 0.06, 0.1, 0.1, 0.12, { wash: 0x1c1d20, line: 0.6 });
     k.quad(new Vector3(x - 0.07, visFloor(x) + 0.02, edge + n.z * 0.05), n.z > 0 ? XP : XN, UP, 0.14, y - visFloor(x) - 0.02, { wash: 0x3a3b3e, line: 0, wet: 1 }, 0);
   }
   if (rng.chance(0.55)) {
     const fx = rng.range(s.xa + 0.4, s.xb - 0.4), fy = rng.range(Math.max(visFloor(fx) + 0.3, base + 0.3), topY - 0.2);
-    leafBush(k, rng, fx, fy, edge + n.z * 0.1, rng.range(0.12, 0.2), 9, [0.2, 1.0]);
+    // (a fern that would grow over a shop window is drawn into a kit nobody keeps: the rng stays in step)
+    const inHole = hole !== undefined && fx > hole.x0 - 0.3 && fx < hole.x1 + 0.3 && fy > hole.y0 - 0.3;
+    leafBush(inHole ? new Kit() : k, rng, fx, fy, edge + n.z * 0.1, rng.range(0.12, 0.2), 9, [0.2, 1.0]);
   }
 }
 
@@ -498,8 +506,20 @@ function towerLanterns(ctx: Ctx, k: Kit, lr: Rng, s: Seg, face: number, n: Vecto
   }
 }
 
+/**
+ * The shop window a flight segment's retaining wall takes (none on the landings, where the wall is only the terrace's
+ * lift, nor by the paifang's outer posts): past the pier, as tall as the wall at the window's upper end allows.
+ */
+function shopHole(s: Seg, side: number): Hole | undefined {
+  const mid = (s.xa + s.xb) / 2;
+  if (s.xa >= STAIR.x1 - 0.5 || Math.abs(mid - STAIR_GATE.x) < 3.2) return undefined;
+  const x0 = s.xa + 0.72, x1 = Math.min(x0 + (side > 0 ? 1.8 : 1.6), s.xb - 0.4);
+  const y0 = visFloor(x1 - 0.01) + 0.1, y1 = s.floor - 0.5;
+  return x1 - x0 > 0.9 && y1 - y0 > 1.3 ? { x0, x1, y0, y1 } : undefined;
+}
+
 function terraces(ctx: Ctx, rng: Rng): void {
-  const lr = new Rng(6127);
+  const lr = new Rng(6127), shops = new Rng(7311), green = new Rng(7312);
   for (const side of [1, -1] as const) {
     // north (side 1): the face at FACE_N facing +z, the terrace from it to the stair's edge; south mirrored
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
@@ -513,8 +533,10 @@ function terraces(ctx: Ctx, rng: Rng): void {
       const below = Math.min(visFloor(s.xa + 0.01), s.floor) - 1.5;
       // the plinth (its core; the ashlar skin is its face on the stair), its top the terrace
       k.box(cx, below, (face + edge) / 2, len, s.floor - below, Math.abs(edge - face), PLINTH, { top: TERRACE });
-      if (onStair) retainingWall(k, rng, s, edge, n, i % 2 === 0);
+      const hole = onStair ? shopHole(s, side) : undefined;
+      if (onStair) retainingWall(k, rng, s, edge, n, i % 2 === 0, hole);
       else k.box(cx, s.floor - 0.1, edge - side * 0.15, len + 0.02, 0.14, 0.32, COPING);
+      if (hole !== undefined) wallShop(ctx, k, shops, hole, edge, n, visFloor, side > 0 ? shops.chance(0.7) : shops.chance(0.35));
       // what stands on it: along the stair a low frontage (2–3 storeys, shops at the terrace's level) under a glazed
       // pent roof, the tower set back behind it (the mockup's tea houses under the towers, the canyon opening upward);
       // past the top, the tower on the street as before
@@ -560,6 +582,11 @@ function terraces(ctx: Ctx, rng: Rng): void {
       if (onStair) {
         const nv = rng.int(2, 3);
         for (let j = 0; j < nv; j++) vines(k, rng, s.xa + len * rng.range(0.15, 0.85), s.floor - 0.1, edge, n);
+        // planter troughs along the coping in front of the rail, their greenery spilling over the stair's edge (the C
+        // targets' terraces are green at the lip): instances of the facade's planter (E281)
+        for (let x = s.xa + green.range(0.5, 1.1); x < s.xb - 0.6; x += green.range(1.3, 2.2)) {
+          piece(ctx, 'planter', new Vector3(x, s.floor, edge - side * 0.14), u, n, green.range(0.8, 1.1), green.range(0.8, 1.15), 0.62);
+        }
       }
       if (tea && len > 3.2) {
         const tx = cx + rng.range(-0.5, 0.5), tz = (face + edge) / 2 + side * 0.1, tr = rng.range(-0.3, 0.3);
@@ -902,6 +929,8 @@ function stairSigns(ctx: Ctx, rng: Rng): void {
 function crowd(ctx: Ctx, rng: Rng): void {
   const zc = (STAIR.z0 + STAIR.z1) / 2;
   const placed: [number, number][] = [];
+  // (the most prominent from the square and landing 1 — the nearest — take the dark coats and umbrellas: pushClimbers)
+  const list: { m: Matrix4; rank: number }[] = [];
   let n = 0;
   // a handful, spaced (the mockup's few climbing mid-stair): half on flight 2 (view 5's), the rest on to the top; none
   // in the paifang's centre bay as seen from the square
@@ -917,7 +946,7 @@ function crowd(ctx: Ctx, rng: Rng): void {
     if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 2.6)) continue;
     placed.push([x, z]);
     const up = rng.chance(0.6);
-    ctx.walkers.push(mat4(x, visFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + rng.range(-0.25, 0.25), rng.range(0.95, 1.04)));
+    list.push({ m: mat4(x, visFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + rng.range(-0.25, 0.25), rng.range(0.95, 1.04)), rank: x + Math.abs(z - zc) });
     n++;
   }
   // (E281) more climbers on flights 2 and 3 — the targets' stair is busy — with their own numbers, off the axis near
@@ -930,9 +959,10 @@ function crowd(ctx: Ctx, rng: Rng): void {
     if (Math.abs(x - STAIR_GATE.x) < 2.4) continue;
     if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 2.2)) continue;
     placed.push([x, z]);
-    ctx.walkers.push(mat4(x, visFloor(x), z, (more.chance(0.65) ? Math.PI / 2 : -Math.PI / 2) + more.range(-0.3, 0.3), more.range(0.95, 1.04)));
+    list.push({ m: mat4(x, visFloor(x), z, (more.chance(0.65) ? Math.PI / 2 : -Math.PI / 2) + more.range(-0.3, 0.3), more.range(0.95, 1.04)), rank: x + Math.abs(z - zc) });
     m++;
   }
+  pushClimbers(ctx, list);
 }
 
 // ── the far end: the street runs on past the top landing, a last flight into the haze, a tower closing the view ──
