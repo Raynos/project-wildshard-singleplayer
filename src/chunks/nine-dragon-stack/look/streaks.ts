@@ -8,7 +8,7 @@
 // per-step broken reflection — and a flat set on each landing.
 import {
   Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, ShaderMaterial,
-  Uint16BufferAttribute, Vector2, Vector3, Vector4,
+  Uint16BufferAttribute, Vector3, Vector4,
 } from 'three';
 import type { Emitter } from './emitters';
 import { FLAG_GLSL } from './paint'; // (the flag layout: flagCell)
@@ -29,7 +29,6 @@ attribute vec2 aCorner;
 attribute vec3 aE;
 attribute vec3 aCol;
 attribute vec3 aSize;
-attribute vec3 aSub;
 ${NOISE_VS}
 ${FOG_GLSL}
 varying float vFogT;
@@ -43,9 +42,8 @@ uniform vec4 uCardK; // x: card gain, also used by the vertex-stage visibility g
 uniform float uCardOn;
 uniform float uLift;
 uniform float uCardWarm;
-uniform vec2 uCardSplit; // (round 2) x: a split sub-card's width share of its slot, y: its gain
 uniform vec4 uClip; // (render) the plane's extent (x0, z0, x1, z1); −1e5 … 1e5 = none
-uniform vec4 uPerf; // (E283, Debug ▸ Performance) x: the tail-by-brightness reference (0 = off), y: a brightness floor (0 = off), z: the warm split (1 on, 0 one card per light), w: −1 = no reject (the A / B harness)
+uniform vec4 uPerf; // (E283) x: the tail-by-brightness reference (0 = off), y: a brightness floor (0 = off), w: −1 = no reject (the A / B harness)
 varying vec2 vC;
 varying vec3 vWorld;
 varying vec3 vCol;
@@ -57,18 +55,8 @@ vec3 toPlane(vec3 p) { vec3 q = p - uPlaneO; return vec3(dot(q, uPlaneU), dot(q,
 vec3 fromPlane(vec3 l) { return uPlaneO + uPlaneU * l.x + uPlaneN * l.y + cross(uPlaneU, uPlaneN) * l.z; }
 void main() {
   vec3 camL = toPlane(uCam), eL = toPlane(aE);
-  // (render, E281 round 2) a wide warm light (a lit shopfront, a stall's counter) is split into narrow sub-cards side by
-  // side across the view: a row of tight warm runs straight under the shop, not one broad soft band
+  // (E283, Jake's pick) one card per light: round 2's split of a wide warm light into 2–6 narrow sub-cards is gone
   vec3 sizeE = aSize;
-  // (E283) the split off: a split light's first sub-card draws the whole light, the others collapse
-  bool split = aSub.y < 1.0 && uPerf.z > 0.5;
-  bool dropSub = aSub.y < 1.0 && uPerf.z <= 0.5 && aSub.z > 0.5;
-  if (split) {
-    vec2 d0 = eL.xz - camL.xz;
-    vec2 sd = vec2(-d0.y, d0.x) / max(length(d0), 0.1);
-    eL.xz += sd * aSub.x * aSize.x;
-    sizeE.x = aSize.x * aSub.y * uCardSplit.x;
-  }
   float c = max(camL.y, 0.05);
   float hB = max(eL.y - sizeE.y * 0.5, 0.05);
   float hT = max(eL.y + sizeE.y * 0.5, hB + 0.05);
@@ -90,7 +78,7 @@ void main() {
   // reflect, not a starburst of every card reaching the camera's feet
   float tail = (1.0 - 0.4 * steep) * (1.0 - 0.75 * down);
   // below the ground's height (a lantern in the Well, the camera under the square): no streak
-  vCol = aCol * aSize.z * step(-0.5, camL.y) * step(0.2, eL.y) * (split ? uCardSplit.y : 1.0);
+  vCol = aCol * aSize.z * step(-0.5, camL.y) * step(0.2, eL.y);
   // (render, E281) the warm lights' runs brighter: the neon's power is ~8× a lantern's or a shop's, so the wet stone
   // carried magenta and cyan only, where the targets' runs are amber and lantern-red as much as neon
   vCol *= 1.0 + uCardWarm * clamp((aCol.r - aCol.b) / max(aCol.r, 1e-3), 0.0, 1.0);
@@ -102,7 +90,7 @@ void main() {
   vCol *= mix(1.0, uCardOn, onScreen);
   // (E283) the card's brightest possible pixel before the fog: every fragment term but prof and the fog is ≤ 1 × this
   float gm = max(vCol.r, max(vCol.g, vCol.b)) * uCardK.x;
-  // (E283, Debug ▸ Performance, off by default) a dim card's tail toward the eye is short: a far window or lantern lays a
+  // (E283, Jake's pick) a dim card's tail toward the eye is short: a far window or lantern lays a
   // short run round its mirror point, the bright neon and shop runs keep theirs (the tails converging at the bottom of
   // the screen were ~45 % of mockup A's frame)
   float tailK = uPerf.x > 0.0 ? clamp(gm / uPerf.x, 0.15, 1.0) : 1.0;
@@ -170,7 +158,7 @@ void main() {
   float fogM = silkFog(fromPlane(vec3(camL.x + radial.x * sM, 0.0, camL.z + radial.y * sM)), 1.0).a;
   if (max(vCol.r, max(vCol.g, vCol.b)) * uCardK.x * fogM < 0.03) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
   // (E283) nothing of it survives the fragment stage, a dropped sub-card, or (Debug ▸ Performance) under the floor
-  if (!keep || dropSub || gm < uPerf.y) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+  if (!keep || gm < uPerf.y) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 }
 `;
 const FS_CARD = /* glsl */ `
@@ -234,16 +222,15 @@ void main() {
 
 // (render, E281) width 0.4 → 0.3 and dash 0.45 → 0.6: the square's runs smeared into one sheet of colour; the targets'
 // are separate broken stripes with the stone between them
-export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.6, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.3, fine: 0.4, warm: 1.5,
-  /** (round 2) a warm light wider than splitOver m is split into sub-cards about splitPitch m apart */
-  splitOver: 1.4, splitPitch: 0.8, splitWidth: 0.9, splitGain: 1.6 } as const;
+export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.6, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.3, fine: 0.4, warm: 1.5 } as const;
 
-/** (E283) the cards' perf knobs, shared by every card set (one object): x the tail-by-brightness reference (0 = off),
- *  y a brightness floor (0 = off), z the warm split (1 = on), w −1 = no whole-card reject (the A / B harness).
- *  Debug ▸ Performance rows set x–z (render.ts) */
-export const STREAK_PERF = new Vector4(0, 0, 1, 0);
-/** (E283) the rows' values: the tail-by-brightness reference and the brightness floor (measured on the M5 at mockup A) */
+/** (E283, Jake's pick after the before / after stills in art/nine-dragon-stack/round-24-mockup-pass/render/e283-streaks/)
+ *  the tail-by-brightness reference and the brightness floor: the square's cards at mockup A 1.6–2.0 → 0.11 ms on the
+ *  M5 ruler (scripts/nine-dragon-gpu.mjs), C1·4 1.53 → 0.20, the stair at C 0.23 → 0.12 */
 export const STREAK_CUT = { tails: 2.5, floor: 0.3 } as const;
+/** the cards' perf knobs, shared by every card set (one object): x the tail-by-brightness reference (0 = off), y a
+ *  brightness floor (0 = off), w −1 = no whole-card reject (the A / B harness) */
+export const STREAK_PERF = new Vector4(STREAK_CUT.tails, STREAK_CUT.floor, 0, 0);
 
 /** a reflecting plane: a point on it, its axis along x (tilted with a slope), its normal, and its extent (x0, z0, x1, z1) */
 export interface StreakPlane { o: Vector3; u: Vector3; n: Vector3; clip: Vector4 }
@@ -263,7 +250,6 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
       uCardOn: { value: 1 },
       uLift: { value: lift },
       uCardWarm: { value: STREAK_LOOK.warm },
-      uCardSplit: { value: new Vector2(STREAK_LOOK.splitWidth, STREAK_LOOK.splitGain) },
       uPerf: { value: STREAK_PERF },
       uHole: { value: hole },
     },
@@ -275,25 +261,16 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
   g.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 3));
   g.setAttribute('aCorner', new Float32BufferAttribute([-1, 0, 1, 0, 1, 1, -1, 1], 2));
   g.setIndex(new Uint16BufferAttribute([0, 1, 2, 0, 2, 3], 1));
-  // (round 2) wide warm lights split into sub-cards (aSub: x the offset across, in shares of the width; y the width share)
-  const list: { m: Emitter; sub: [number, number, number] }[] = [];
-  for (const m of emitters) {
-    const warm = (m.color.r - m.color.b) / Math.max(m.color.r, 1e-4);
-    const n = m.w > L.splitOver && warm > 0.5 ? Math.min(6, Math.max(2, Math.round(m.w / L.splitPitch))) : 1;
-    for (let k = 0; k < n; k++) list.push({ m, sub: n === 1 ? [0, 1, 0] : [(k + 0.5) / n - 0.5, 1 / n, k] });
-  }
-  const e = new Float32Array(list.length * 3), col = new Float32Array(list.length * 3), size = new Float32Array(list.length * 3), sub = new Float32Array(list.length * 3);
-  list.forEach(({ m, sub: sb }, i) => {
+  const e = new Float32Array(emitters.length * 3), col = new Float32Array(emitters.length * 3), size = new Float32Array(emitters.length * 3);
+  emitters.forEach((m, i) => {
     e.set([m.at.x, m.at.y, m.at.z], i * 3);
     col.set([m.color.r, m.color.g, m.color.b], i * 3);
     size.set([m.w, m.h, m.power], i * 3);
-    sub.set(sb, i * 3);
   });
   g.setAttribute('aE', new InstancedBufferAttribute(e, 3));
   g.setAttribute('aCol', new InstancedBufferAttribute(col, 3));
   g.setAttribute('aSize', new InstancedBufferAttribute(size, 3));
-  g.setAttribute('aSub', new InstancedBufferAttribute(sub, 3));
-  g.instanceCount = list.length;
+  g.instanceCount = emitters.length;
   const m = new Mesh(g, mat);
   m.frustumCulled = false;
   m.renderOrder = 4;
