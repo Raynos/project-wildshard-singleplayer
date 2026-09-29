@@ -48,3 +48,8 @@ really clean and polished. Inventory is the junk tab." So:
 - L1 changes with it: kills still drop junk into INVENTORY, and the junk **sells to Wendell for doubloons** (a BUY | SELL
   switch on his shop, "SELL ALL JUNK"). The junk finally has a use, and doubloons still flow from fights. Needs the
   12-slot pack fixed (it silently refuses a 13th kind today).
+
+**Then, same day:** Jake leans hard toward lean ("the more we can delete and simplify, the better … too much placeholder
+shit floating around"), but wants to see the full plan and mockups first: "afterwards we figure out what lean means and
+what to drop". So all boards finish; the lean cut is decided after them. The leanest option on the table: delete
+harvesting + junk, no Inventory tab on Driftwood, Bag = MAP · GEAR · COLLECTION, no shop / currency / charms / trophies.
