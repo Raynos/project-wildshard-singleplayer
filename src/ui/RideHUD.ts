@@ -92,7 +92,7 @@ export class RideHUD {
 
   /** the phone's discs and STEED row, through the base HUD's slots */
   private buildTouch(): RideHUD['t'] {
-    const gallop = hudSlots.disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { this.mount.touchGallop = true; }, release: () => { this.mount.touchGallop = false; } });
+    const gallop = hudSlots.disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { this.mount.touchGallop = true; this.mount.gallopTap(); }, release: () => { this.mount.touchGallop = false; } });
     // HORSE ⇄ DISMOUNT (N17): one small tab on the right edge — on foot it whistles your horse, in the saddle it reads
     // DISMOUNT and gets you off (the full-width USE band's DISMOUNT hides, syncUse)
     const horse = hudSlots.disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-r', press: () => { if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); } });

@@ -201,7 +201,7 @@ export class Mount {
   private shoveX = 0; private shoveZ = 0; private jostleCd = 0; private jolt = 0;
   // ── B1: the gait kept on a road, the GALLOP press edge + the stride's clock, the reins' last sector, the panic's way ──
   private cruise = 0;
-  private gallopWas = false; private clock = 0; private lastPhase = 0; private strideHz = 2;
+  private gallopWas = false; private tapQueued = false; private clock = 0; private lastPhase = 0; private strideHz = 2;
   private sectorWas = 2; private skidDip = 0;
   private panicYaw = 0; private panicRear = 0;
 
@@ -209,8 +209,12 @@ export class Mount {
     this.player = opts.player;
     document.addEventListener('keydown', (e) => {
       if (e.code === 'KeyX' && !e.repeat) this.whistle();
+      if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) this.gallopTap();
     });
   }
+
+  /** B1: a GALLOP press (the disc's press, a Shift keydown) — counted even when the tap is shorter than a frame */
+  gallopTap(): void { if (this.horse !== null) this.tapQueued = true; }
 
   /** hand over the weapon kit once it exists (the wiring builds the mount before main.ts builds the kit) */
   setKit(kit: MountKit | null): void { this.opts.kit = kit; }
@@ -424,7 +428,8 @@ export class Mount {
     if (dt > 0 && dph < 0.5) this.strideHz += (dph / dt - this.strideHz) * Math.min(1, dt * 6);
     this.lastPhase = ph;
     const spurOn = setting('rideSpur') === 'on', canSpur = spurOn && this.speed > 6 && sector !== -1 && !this.winded && !this.breaking && this.panicT <= 0;
-    const press = gallopKey && !this.gallopWas;
+    const press = this.tapQueued || (gallopKey && !this.gallopWas);
+    this.tapQueued = false;
     this.gallopWas = gallopKey;
     this.spur.update(dt);
     if (!canSpur && this.speed < 5) this.spur.reset();
