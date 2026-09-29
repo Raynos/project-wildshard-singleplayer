@@ -48,8 +48,9 @@ export interface CoveSpec {
   caveBounds: CaveBounds;
 }
 
+// the crag's rock: E310 T2 B, a warmer grey lifted ~25 % from the old charcoal (#50555d): still heavy, never black
 const C = {
-  rock: '#50555d', rockB: '#474c54', rockDark: '#383c43', rockWet: '#46535a', rockIn: '#5a544d', rockInB: '#655e56',
+  rock: '#6a6862', rockB: '#605e59', rockDark: '#4c4a47', rockWet: '#56605f', rockIn: '#5a544d', rockInB: '#655e56',
   grass: '#6fa23e', grassB: '#86b84a', moss: '#5f8a3a', vine: '#4f8a32', vineB: '#6aa640', sand: '#b9a67c', slab: '#7a756c', slabB: '#8a847a',
   star: '#e8622a', starPurple: '#6b3fa0', crystal: '#7ff0ff', crystalB: '#5fd0ff', flame: '#ffc46a', torch: '#5a4230', stala: '#555860',
 };

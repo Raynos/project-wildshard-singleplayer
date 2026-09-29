@@ -24,10 +24,11 @@ export const SHORE_ROCK: RockPalette = {
   foot: '#2f3134', dark: '#45474c', mid: '#5f6165', light: '#7f7e7c', edge: '#918f8b', warm: '#776e63', cool: '#535b64', crease: '#2a2d33',
   moss: '#62853a', mossLight: '#8ea24f', mossDark: '#40602b', wet: '#2e3a36',
 };
-/** the wreck's reef rocks (Wreck.ts), the cove's loose rocks, the pebbles: darker, weedier basalt */
+/** the wreck's reef rocks (Wreck.ts), the cove's loose rocks, the pebbles: weedier basalt, a warmer grey (E310 T2 B: lifted
+ * ~25 % from the old charcoal, still heavy, never black in shade) */
 export const REEF_ROCK: RockPalette = {
-  foot: '#2a2c30', dark: '#3e4045', mid: '#5a5c60', light: '#7c7b7a', edge: '#8e8c8a', warm: '#766c61', cool: '#4d555e', crease: '#25282e',
-  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#3d5d2a', wet: '#25312d',
+  foot: '#3a3836', dark: '#535050', mid: '#726e69', light: '#958f87', edge: '#a8a198', warm: '#8a7f72', cool: '#63666a', crease: '#35333a',
+  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#3d5d2a', wet: '#34403b',
 };
 
 export interface RockOpts {

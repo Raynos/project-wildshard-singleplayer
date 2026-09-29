@@ -31,7 +31,7 @@ export interface LookoutAnchor { x: number; y: number; z: number; yaw: number }
 const C = {
   post: '#6a4e33', log: '#735438', plank: '#a58056', plankB: '#8f6d47', plankDark: '#6f5335', rope: '#bfa274',
   thatch: '#c9a355', thatchB: '#b89346', thatchDark: '#9c7a38', thatchLight: '#dcbb6c',
-  banner: '#2f5bd0', bannerB: '#2750bd', bannerDark: '#1c3c96', sigil: '#e8f0ff', iron: '#3a3c42', brass: '#c49a45', crate: '#a47b4b', sign: '#9a7550',
+  banner: '#2f5bd0', bannerB: '#2750bd', bannerDark: '#1c3c96', bannerTrim: '#182c72', sigil: '#e8f0ff', iron: '#3a3c42', brass: '#c49a45', crate: '#a47b4b', sign: '#9a7550',
   gull: '#eceae4', gullGrey: '#9aa0a8', beak: '#e0a83a',
 };
 
@@ -153,34 +153,89 @@ export class Lookout {
       collider(s * (stairW / 2 + 0.35), z0 - run - 0.5, 0.18, 0.18, fp.y - 1, fp.y + 1.3);
     }
     this.stair = { x0: z0, len: run, w: stairW, n: steps };
-    // ── the banner: hung from the platform's front beam beside the stair, a pole through its head, a white diamond ──
+    // ── the banner (E310 T1 B): hung from the platform's front beam beside the stair, a pole through its head. A
+    // swallowtail like the pier's pennant (E111): a V cut up into the foot, a navy trim down both sides, along the V and
+    // round the pole, and faceted pleats (zigzag columns, flat-shaded, every other one a shade darker). The white diamond
+    // and the two white bands are decals clipped to the cloth's own triangles and lifted a hair along its facing, so
+    // they ride its folds and its sway and the cloth never pokes through them. Still one kit mesh, vertex colours.
     {
       const bx = -1.35, bw = 1.25, bh = 3.0, top = platY - 0.3, zf = -PLAT / 2 - 0.22;
+      const notch = 0.5, trimW = 0.06, trimH = 0.075, sleeve = 0.08, straightTo = 2.2, pleats = 6;
       kit.add(log(this.V(bx - bw / 2 - 0.15, top + 0.05, zf), this.V(bx + bw / 2 + 0.15, top + 0.05, zf), 0.04, 0.04, 5), C.post);
-      const cols = 4, rows = 7, v: number[] = [];
-      const P = (u: number, f: number): number[] => {
-        const x = bx - bw / 2 + u * bw, y = top - f * bh + (f > 0.9 ? -Math.abs(u - 0.5) * 0.9 * (f - 0.9) * 10 * 0.1 : 0);
-        const wv = Math.sin(u * Math.PI * 2 + f * 2.2) * 0.07 * f;
-        const [wx, wz] = this.toWorld(x, zf - wv);
-        return [wx, f === 1 ? y - (0.5 - Math.abs(u - 0.5)) * 0.5 : y, wz];
+      const sway = { w: 0.8, phase: 1.3, span: [top, top - bh] as [number, number] };
+      const out = this.V(0, 0, -1).sub(this.V(0, 0, 0));                 // the cloth's front, world, unit
+      // x runs from the banner's centre; the foot is a V, its tails at the hems and its apex `notch` up at the centre
+      const foot = (x: number) => top - bh + notch * (1 - Math.abs((2 * x) / bw));
+      const inner = bw / 2 - trimW, xs: number[] = [-bw / 2], zig: number[] = [-1];
+      for (let k = 0; k <= pleats; k++) { xs.push(-inner + (k * 2 * inner) / pleats); zig.push(k % 2 ? 1 : -1); }
+      xs.push(bw / 2); zig.push(-1);
+      // row lines, top down: the sleeve, straight rows to `straightTo`, then two rows easing into the V's trim line, the foot
+      const rowY: ((x: number) => number)[] = [top, top - sleeve, top - 0.45, top - 0.8, top - 1.15, top - 1.5, top - 1.85, top - straightTo].map((y) => () => y);
+      const trimLine = (x: number) => foot(x) + trimH;
+      rowY.push((x) => top - straightTo + (trimLine(x) - (top - straightTo)) * 0.5, trimLine, foot);
+      // the cloth's depth out of the beam's plane: it hangs out 10 cm per metre, clear of the tower's face (which splays
+      // out 7.7 cm per metre, its braces 10 cm proud), plus pleats that deepen toward the foot and a slow diagonal wave
+      const depth = (x: number, y: number, z: number) => {
+        const f = (top - y) / bh;
+        return (top - y) * 0.1 + z * (0.018 + 0.035 * f) + Math.sin((x / bw + 0.5) * Math.PI * 2 + f * 2.2) * 0.03 * f;
       };
-      for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
-        const u0 = c / cols, u1 = (c + 1) / cols, f0 = r / rows, f1 = (r + 1) / rows;
-        v.push(...P(u0, f0), ...P(u1, f0), ...P(u1, f1), ...P(u0, f0), ...P(u1, f1), ...P(u0, f1));
+      interface Vert { x: number; y: number; w: THREE.Vector3 }
+      const grid: Vert[][] = rowY.map((ry) => xs.map((x, c) => {
+        const y = ry(x), [wx, wz] = this.toWorld(bx + x, zf - depth(x, y, zig[c] ?? 0));
+        return { x, y, w: new THREE.Vector3(wx, y, wz) };
+      }));
+      type Tri = [Vert, Vert, Vert];
+      const cloth: Tri[] = [], fill: Record<'trim' | 'a' | 'b', number[]> = { trim: [], a: [], b: [] };
+      for (let r = 0; r + 1 < grid.length; r++) for (let c = 0; c + 1 < xs.length; c++) {
+        const a = grid[r]?.[c], b = grid[r]?.[c + 1], d = grid[r + 1]?.[c + 1], g = grid[r + 1]?.[c];
+        if (!a || !b || !d || !g) continue;
+        const key = r === 0 || r === grid.length - 2 || c === 0 || c === xs.length - 2 ? 'trim' : c % 2 ? 'a' : 'b';
+        for (const t of [[a, b, d], [a, d, g]] as Tri[]) { cloth.push(t); for (const q of t) fill[key].push(q.w.x, q.w.y, q.w.z); }
       }
-      const bSpan: [number, number] = [top, top - bh];
-      kit.add(tris(v), C.banner, { jitter: 0.04, sway: { w: 0.8, phase: 1.3, span: bSpan } });
-      // the sigil: a diamond outline + a small solid diamond, a hair proud of the cloth, and a white wave band at the foot
-      const cy = top - bh * 0.42, n = this.V(0, 0, -1).sub(this.V(0, 0, 0)).normalize().multiplyScalar(0.03);
-      const dia = (s: number, col: string, dz: number) => {
-        const p = (x: number, y: number) => { const w = this.V(bx + x, y, zf); return [w.x + n.x * dz, y, w.z + n.z * dz]; };
-        kit.add(tris([...p(0, cy + s * 1.4), ...p(-s, cy), ...p(s, cy), ...p(-s, cy), ...p(0, cy - s * 1.4), ...p(s, cy)]), col, { jitter: 0.02, sway: { w: 0.8, phase: 1.3, span: [top, top - bh] } });
+      kit.add(tris(fill.a), C.banner, { jitter: 0.04, sway });
+      kit.add(tris(fill.b), C.bannerB, { jitter: 0.04, sway });
+      kit.add(tris(fill.trim), C.bannerTrim, { jitter: 0.03, sway });
+      // a decal: a convex polygon in the banner's (x, y), cut to each cloth triangle and mapped onto it
+      type P2 = [number, number];
+      const side = (a: Vert, b: Vert, p: P2) => (b.x - a.x) * (p[1] - a.y) - (b.y - a.y) * (p[0] - a.x);
+      const clip = (poly: P2[], a: Vert, b: Vert, r: Vert): P2[] => {
+        const s = Math.sign(side(a, b, [r.x, r.y])), res: P2[] = [];
+        if (s === 0) return res;
+        let prev = poly[poly.length - 1];
+        for (const q of poly) {
+          if (prev) {
+            const dp = side(a, b, prev) * s, dq = side(a, b, q) * s;
+            if ((dp >= 0) !== (dq >= 0)) { const t = dp / (dp - dq); res.push([prev[0] + (q[0] - prev[0]) * t, prev[1] + (q[1] - prev[1]) * t]); }
+            if (dq >= 0) res.push(q);
+          }
+          prev = q;
+        }
+        return res;
       };
-      dia(0.36, C.sigil, 1.2); dia(0.25, C.bannerDark, 1.6); dia(0.12, C.sigil, 2.0);
-      for (const y of [top - bh * 0.82, top - bh * 0.9]) {
-        const p = (x: number, yy: number) => { const w = this.V(bx + x, yy, zf); return [w.x + n.x * 1.2, yy, w.z + n.z * 1.2]; };
-        kit.add(tris([...p(-bw / 2 + 0.05, y), ...p(bw / 2 - 0.05, y), ...p(bw / 2 - 0.05, y - 0.08), ...p(-bw / 2 + 0.05, y), ...p(bw / 2 - 0.05, y - 0.08), ...p(-bw / 2 + 0.05, y - 0.08)]), C.sigil, { jitter: 0.02, sway: { w: 0.8, phase: 1.3, span: [top, top - bh] } });
-      }
+      const decal = (poly: P2[], col: string, lift: number) => {
+        const v: number[] = [];
+        for (const [a, b, d] of cloth) {
+          let p = clip(clip(clip(poly, a, b, d), b, d, a), d, a, b);
+          if (p.length < 3) continue;
+          const area = side(a, b, [d.x, d.y]);
+          let pa = 0;
+          for (let i = 0; i < p.length; i++) { const q = p[i], n = p[(i + 1) % p.length]; if (q && n) pa += q[0] * n[1] - n[0] * q[1]; }
+          if (pa * area < 0) p = p.reverse();                         // keep the cloth triangle's winding
+          const pts = p.map(([x, y]) => {
+            const l0 = side(b, d, [x, y]) / area, l1 = side(d, a, [x, y]) / area, l2 = 1 - l0 - l1;
+            return a.w.clone().multiplyScalar(l0).addScaledVector(b.w, l1).addScaledVector(d.w, l2).addScaledVector(out, lift);
+          });
+          const p0 = pts[0];
+          if (!p0) continue;
+          for (let i = 1; i + 1 < pts.length; i++) { const p1 = pts[i], p2 = pts[i + 1]; if (p1 && p2) v.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z); }
+        }
+        kit.add(tris(v), col, { jitter: 0.02, sway });
+      };
+      // the sigil: a white diamond outline round a blue one round a small white one; the two white bands above the V
+      const cy = top - 1.1;
+      const dia = (s: number, col: string, lift: number) => decal([[0, cy + s * 1.4], [-s, cy], [0, cy - s * 1.4], [s, cy]], col, lift);
+      dia(0.36, C.sigil, 0.012); dia(0.25, C.bannerDark, 0.02); dia(0.12, C.sigil, 0.028);
+      for (const y of [top - 1.95, top - 2.12]) decal([[-inner + 0.04, y], [inner - 0.04, y], [inner - 0.04, y - 0.08], [-inner + 0.04, y - 0.08]], C.sigil, 0.012);
     }
     // ── the zipline post on the corner facing the sea cave, a pulley and the cable's first metres ──
     const cave = Cove.forIsland().cave;
