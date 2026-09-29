@@ -708,7 +708,16 @@ export class ModelExplorer implements ExplorePane {
     game.shardFrame(); // the shard's per-frame uniforms for this eye (Nine Dragon's fog), not the last frame's
     game.composer.render(0);
     const c = document.createElement('canvas'); c.width = THUMB_W; c.height = THUMB_H;
-    c.getContext('2d')?.drawImage(src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, 0, 0, THUMB_W, THUMB_H);
+    const g = c.getContext('2d');
+    if (g) {
+      g.drawImage(src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, 0, 0, THUMB_W, THUMB_H);
+      // the frame is premultiplied and not always opaque: Nine Dragon's materials keep the view depth in alpha for its
+      // post chain, so a copy kept those pixels translucent and they came out white once exported (E289). The screen
+      // shows the frame over black: flatten it the same way
+      g.globalCompositeOperation = 'destination-over';
+      g.fillStyle = '#000'; g.fillRect(0, 0, THUMB_W, THUMB_H);
+      g.globalCompositeOperation = 'source-over';
+    }
     this.thumbs.set(e.id, c);
     this.unisolate();
     if (!e.live) o.removeFromParent();

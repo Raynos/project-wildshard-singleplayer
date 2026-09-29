@@ -390,6 +390,17 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const source = castMeshes[0];
   if (source !== undefined) {
     const geo = source.geometry.clone();
+    // the cast is quantized (KHR_mesh_quantization: int16-normalised position / normal / tangent, the node's matrix
+    // restoring the scale). Baking that matrix into int16 storage clamped every coordinate to ±1 and flattened the
+    // dragon into a card (E289, Model Explorer): widen the transformed attributes to float first
+    for (const name of ['position', 'normal', 'tangent']) {
+      if (!geo.hasAttribute(name)) continue;
+      const a = geo.getAttribute(name);
+      if (a.array instanceof Float32Array && !a.normalized) continue;
+      const out = new Float32Array(a.count * a.itemSize);
+      for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
+      geo.setAttribute(name, new Float32BufferAttribute(out, a.itemSize));
+    }
     geo.applyMatrix4(source.matrixWorld);
     const hookMat = source.material instanceof MeshStandardMaterial ? source.material.clone() : new MeshStandardMaterial({ color: 0xc9a24a });
     hookMat.color.multiply(new Color(0xffd891));
@@ -415,7 +426,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     }
     models.push({
       id: 'nds-dragon-hook', name: 'Fei Zhua dragon hook', category: 'buildings', file: 'src/chunks/nine-dragon-stack/world/build.ts', live: false,
-      object: () => new Mesh(geo, hookMat),
+      // (E289) the cast's back is its flat wall plate (model −Z, against the wall in the city): Model Explorer opens on
+      // the sun side, which on this shard is the plate — turn the dragon round to face that first view
+      object: () => { const m = new Mesh(geo, hookMat); m.rotation.y = Math.PI; return m; },
     });
   }
   // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (a ~320-tri far copy past 35 m, none past
