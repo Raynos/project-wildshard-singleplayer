@@ -205,7 +205,7 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
   root.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(corners, 3)), new THREE.LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.9, fog: false, toneMapped: false })));
   root.visible = false;
   const colliders: ColliderDesc[] = [
-    { kind: 'box', x: cx, y: Y - 0.14, z: cz, hx: HALF_WIDTH, hy: 0.14, hz: HALF_DEPTH },
+    { kind: 'box', x: cx, y: Y - 2, z: cz, hx: HALF_WIDTH, hy: 2, hz: HALF_DEPTH }, // a 4 m slab: a 0.28 m one sank faster (E285)
     { kind: 'box', x: cx, y: Y + WALL_HEIGHT / 2, z: cz - HALF_DEPTH, hx: HALF_WIDTH, hy: WALL_HEIGHT / 2, hz: 0.22 },
     { kind: 'box', x: cx, y: Y + WALL_HEIGHT / 2, z: cz + HALF_DEPTH, hx: HALF_WIDTH, hy: WALL_HEIGHT / 2, hz: 0.22 },
     { kind: 'box', x: cx - HALF_WIDTH, y: Y + WALL_HEIGHT / 2, z: cz, hx: 0.22, hy: WALL_HEIGHT / 2, hz: HALF_DEPTH },
@@ -231,7 +231,12 @@ export class TrainingArena {
     this.center = center;
     const { root, colliders } = makeRoom(center.x, center.z);
     this.root = root;
-    registry.add({ id: 'practice-arena', name: 'HUD + Weapon Explorer arena', category: 'ground', file: 'src/practice/TrainingArena.ts', object: root, colliders, surface: 'metal', solidFloor: true });
+    // E285: on Nine Dragon the capsule sank through the floor slab a few mm a step at some spots (Rapier lost the contact),
+    // until the ground read as a slope and every dodge was refused. The floor is also a P2-bridge floor function, which
+    // puts sunk feet back on top. It answers only while the room is open: the room hangs over the shard's spawn.
+    const floor = (x: number, z: number): number | undefined =>
+      this.active && Math.abs(x - center.x) < HALF_WIDTH && Math.abs(z - center.z) < HALF_DEPTH ? Y : undefined;
+    registry.add({ id: 'practice-arena', name: 'HUD + Weapon Explorer arena', category: 'ground', file: 'src/practice/TrainingArena.ts', object: root, colliders, surface: 'metal', floor, solidFloor: false });
     const overlay = document.createElement('div'); overlay.className = 'ws-practice';
     document.getElementById('hud')?.append(overlay); this.overlay = overlay;
     const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = 'PREPARING TRAINING TARGETS';
