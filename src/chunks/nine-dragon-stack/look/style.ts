@@ -35,11 +35,13 @@ const BANDS: readonly Band[] = [
   // square are THIN silk — a crossing leaves 60–90 % of the light, so each level reads a step paler, not a white slab
   // (F5, the Well's strata: Jake's "down the Well is the weakest … not layered and complex") the Well's bands are CLOUD
   // (puff 1): dense puffs lying across the shaft with clear holes, a stratum every ~20 m, so looking down each level
-  // reads through the holes a step deeper and paler; the lowest is the cloud sea the temple's terrace (+48) floats on
-  { y: 103, w: 2.5, d: 0.085, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257, puff: 1 },
-  { y: 84, w: 3, d: 0.1, jiehua: 0xbec6d3, silk: 0xbfb4a3, sutra: 0x213055, puff: 1 },
-  { y: 64, w: 3, d: 0.085, jiehua: 0xb8c2d0, silk: 0xb7ad9d, sutra: 0x202f52, puff: 1 },
-  { y: 44, w: 4, d: 0.15, jiehua: 0xb3becc, silk: 0xaea698, sutra: 0x1e2d4f, puff: 1 },
+  // reads through the holes a step deeper and paler; the lowest is the cloud sea the temple's terrace (+48) floats on.
+  // Thin (τ ≈ 0.2 a stratum): at twice this, D2's views from inside the Well (its look-down, its aerial from below) went
+  // to a white slab — a stratum 5 m under the eye is one puff across the whole frame
+  { y: 103, w: 2.5, d: 0.03, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257, puff: 1 },
+  { y: 84, w: 3, d: 0.035, jiehua: 0xbec6d3, silk: 0xbfb4a3, sutra: 0x213055, puff: 1 },
+  { y: 64, w: 3, d: 0.035, jiehua: 0xb8c2d0, silk: 0xb7ad9d, sutra: 0x202f52, puff: 1 },
+  { y: 44, w: 4, d: 0.1, jiehua: 0xb3becc, silk: 0xaea698, sutra: 0x1e2d4f, puff: 1 },
   { y: -30, w: 5, d: 0.045, jiehua: 0x9eabbe, silk: 0x8f8a82, sutra: 0x192644 },
   { y: -110, w: 5, d: 0.06, jiehua: 0x5d6a86, silk: 0x5f6478, sutra: 0x142039 },
   { y: -190, w: 5, d: 0.1, jiehua: 0x2c3a5e, silk: 0x2c3a5e, sutra: 0x101b31 },
@@ -147,7 +149,7 @@ export class Shared {
     // the Well's shaft mist: its box (x0, z0, x1, z1) (set by build.ts from well-plan.ts SHAFT); x the depth silk's
     // density (0.085 = round 14's profile), y the rim height (build.ts), z the along-canyon air (1/m), w its ceiling over the rim (m)
     uShaft: { value: new Vector4(0, 0, 0, 0) },
-    uShaftK: { value: new Vector4(0.05, 0, 0.01, 30) },
+    uShaftK: { value: new Vector4(0.05, 0, 0.006, 30) },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
