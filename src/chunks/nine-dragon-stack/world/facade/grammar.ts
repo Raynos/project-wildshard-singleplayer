@@ -112,6 +112,11 @@ interface Cell { mod: Mod; aoTop: number; aoAll: number; stainX: number; stain: 
 class Emit {
   /** the module being emitted is a timber column: its windows are lattice (窗格) */
   lattice = false;
+  /** E281 round 2: the near-face clutter's own stream (a fork per face: the grammar's rolls are untouched, so no wall
+   *  re-rolls and no sign slot moves) */
+  rx: Rng = new Rng(1);
+  /** when set, windows draw their states from it instead of the tower's stream (the clutter's hung rooms) */
+  winR: Rng | null = null;
 
   constructor(readonly out: Dressing, readonly rng: Rng, readonly fh: number, readonly lod: number, readonly dens: number,
     readonly timber: number, readonly lit: number) {}
@@ -132,7 +137,7 @@ class Emit {
 
   /** an interior-mapped window: centre s along the face, sill y, size w × h, `z` out from the wall plane */
   win(f: Face, s: number, y: number, w: number, h: number, wall: number, z = 0, door = false, litBias = 0, n: Vector3 = f.n, u: Vector3 = f.u, base: Vector3 | null = null): void {
-    const r = this.rng;
+    const r = this.winR ?? this.rng;
     const p = (base ?? f.o.clone().addScaledVector(u, s)).clone().addScaledVector(n, z + 0.012).setY(y);
     // (E281 pass 5) no two windows quite alike: a plain window's lintel drops by up to a quarter and its width narrows
     // by up to a sixth, from a hash of where it is (the rng is untouched, so nothing else in the city re-rolls)
@@ -268,6 +273,7 @@ function parapet(out: Dressing, fl: Face[], y: number, wash: number): void {
 function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, opt: DressOptions, street: number, rng: Rng): void {
   const out = em.out;
   const dens = em.dens;
+  em.rx = rng.fork(4099);
   const band = opt.detailY ?? [-1e9, 1e9];
   const smallAt = (y: number): boolean => em.lod === 0 && y >= band[0] && y <= band[1];
   const bays = Math.max(1, Math.round(f.len / bayW));
@@ -318,6 +324,26 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) { const c = plan[fi]?.[b]; if (c !== undefined) c.mod = 'addon'; }
     addon(em, f, b0 * bw, bs * bw, f.y0 + f0 * fh, fs, fh, rng.range(0.9, 1.7), rng);
   }
+  // E281 round 2: more rooms hung off a near face's lower floors (the clutter stream: the rolls above are untouched)
+  if (em.lod === 0 && floors > 3 && !side) {
+    const rx = em.rx;
+    const n2 = Math.round(bays * Math.min(floors, 9) * 0.05 * dens);
+    for (let i = 0; i < n2; i++) {
+      const bs = rx.int(1, Math.min(2, bays)), fs = rx.int(1, 2);
+      const b0 = rx.int(0, bays - bs), f0 = rx.int(1, Math.max(1, Math.min(floors, 9) - fs - 1));
+      if (f.y0 + f0 * fh - street > 24 || f.y0 + f0 * fh < band[0]) continue;
+      let free = true;
+      for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) {
+        const m = plan[fi]?.[b]?.mod;
+        if (m === undefined || m === 'addon' || m === 'gallery' || m === 'shop' || m === 'balcony' || m === 'balconySolid' || m === 'enclosed') free = false;
+      }
+      if (!free || galleryFloor.slice(f0, f0 + fs).some(Boolean)) continue;
+      for (let fi = f0; fi < f0 + fs; fi++) for (let b = b0; b < b0 + bs; b++) { const c = plan[fi]?.[b]; if (c !== undefined) c.mod = 'addon'; }
+      em.winR = rx;
+      addon(em, f, b0 * bw, bs * bw, f.y0 + f0 * fh, fs, fh, rx.range(1.1, 1.9), rx);
+      em.winR = null;
+    }
+  }
   // AO: a projection at floor fi darkens the top of the cell below it; a balcony / gallery darkens its own back wall
   const projects = (m: Mod): number => (m === 'gallery' ? 0.45 : m === 'balcony' || m === 'balconySolid' ? 0.55 : m === 'addon' ? 0.64 : m === 'enclosed' ? 0.7 : m === 'bay' ? 0.8 : m === 'cage1' || m === 'cage2' ? 0.86 : 1);
   for (let fi = 0; fi < floors; fi++) for (let b = 0; b < bays; b++) {
@@ -358,8 +384,9 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
       if (cell === undefined) continue;
       const sc = (b + 0.5) * bw;
       em.lattice = timberCol[b] === true || (cell.mod === 'gallery' && rng.chance(0.5 + 0.4 * em.timber));
-      module(em, f, cell, sc, y, bw, fh, wash, smallAt(y), rng, street);
+      const wins = module(em, f, cell, sc, y, bw, fh, wash, smallAt(y), rng, street);
       em.lattice = false;
+      if (smallAt(y) && y - street < 26) clutter(em, f, cell, wins, sc, y, bw, fh, fi, timberCol[b] === true);
     }
     // a gallery: one slab along the face, real bars, posts at the seams, a glazed pent eave over it on some floors
     if (galleryFloor[fi] === true) gallery(em, f, y, fh, bays, bw, wash, rng, smallAt(y));
@@ -417,9 +444,10 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
   }
 }
 
-/** a sagging cable from a to b (a shallow catenary in 6 segments), `out` pushes it off the wall */
+/** a sagging cable from a to b (a shallow catenary in 4 segments; E281 round 2: 6 cost a third of the shell), `out`
+ *  pushes it off the wall */
 function sag(o: Builder, a: Vector3, b: Vector3, depth: number, out: Vector3, r: number): void {
-  const N = 6;
+  const N = 4;
   let prev = a.clone();
   for (let i = 1; i <= N; i++) {
     const t = i / N;
@@ -431,12 +459,15 @@ function sag(o: Builder, a: Vector3, b: Vector3, depth: number, out: Vector3, r:
   }
 }
 
-function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number, fh: number, wash: number, small: boolean, rng: Rng, street: number): void {
+/** a plain window a module emitted (the clutter pass hangs cages, AC units and poles off it) */
+interface Win { s: number; w: number }
+
+function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number, fh: number, wash: number, small: boolean, rng: Rng, street: number): Win[] {
   const dens = em.dens;
   const sill = y + 0.85, wh = 1.62;
   const wins: { s: number; w: number }[] = [];
   const m = cell.mod;
-  if (m === 'addon') return;
+  if (m === 'addon') return [];
   switch (m) {
     case 'win1': case 'ac': case 'cage1': {
       const w = Math.min(bw * 0.68, 2.8);
@@ -475,12 +506,12 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
         em.put('signFlat', f, sc, y + 3.12, 0.02, bw * 0.7, 0.72, 1, col);
         em.out.signs.push({ at: f.o.clone().addScaledVector(f.u, sc).addScaledVector(f.n, 0.14).setY(y + 3.48), normal: f.n.clone(), size: 0.62, color: col, blade: false });
       }
-      return;
+      return [];
     }
     case 'balcony': case 'balconySolid': {
       const sx = (bw - 0.3) / BALCONY_W;
       const piece: PieceId = m === 'balcony' && (em.lattice || rng.chance(Math.min(1, em.timber * 1.3))) ? 'balconyTimber' : m;
-      em.put(piece, f, sc, y, 0, sx, 1, rng.range(0.95, 1.2), shade(0xffffff, rng.range(0.94, 1.04)));
+      em.put(piece, f, sc, y, 0, sx, 1, rng.range(0.95, 1.2) * (small ? em.rx.range(1.05, 1.45) : 1), shade(0xffffff, rng.range(0.94, 1.04)));
       em.win(f, sc - bw * 0.22, y + 0.05, 0.9, 2.15, wash, 0, true);
       em.win(f, sc + bw * 0.18, sill, 1.3, wh, wash);
       if (small && rng.chance(0.5 * dens)) em.put('laundryAlong', f, sc, y + 2.35, 0.1, (bw - 0.6) * 0.9, 1, 1);
@@ -495,7 +526,7 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
       // a red lantern at a timber balcony's edge (the targets' warm dots up the walls)
       if (piece === 'balconyTimber' && rng.chance(0.35)) em.put('lantern', f, sc + rng.range(-bw * 0.35, bw * 0.35), y + 2.75, 1.05, 1, 1, 1);
       if (rng.chance(0.3 * dens)) em.put('acUnit', f, sc + bw * 0.44 - 0.5, y + 2.0, 0, 1, 1, 1, shade(0xffffff, rng.range(0.88, 1.02)));
-      return;
+      return [];
     }
     case 'enclosed': {
       // an enclosed balcony: a box across the bay, a band of windows on its front, a ledge under it
@@ -507,7 +538,7 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
       em.put('ledge', f, sc, y + 0.02, d - 0.1, bw - 0.2, 1, 0.8);
       if (small && rng.chance(0.3 * dens)) em.put('planter', f, sc + rng.range(-0.8, 0.8), y + 0.12, d - 0.05, 1.2, 1, 1);
       if (rng.chance(0.35 * dens)) em.put('acBox', f, sc + rng.range(-1, 1), y + 0.3, d, 1, 1, 1);
-      return;
+      return [];
     }
     case 'bay': {
       const w = Math.min(bw - 1.0, 2.6), d = 0.55;
@@ -529,7 +560,7 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
       em.win(f, sc + bw * 0.2, sill, 1.4, wh, wash, 0, false, 0.2);
       if (rng.chance(0.3 + 0.5 * em.timber)) for (const k of [-1, 1]) em.put('couplet', f, sc - bw * 0.2 + k * 0.72, y + 0.55, 0, 1, 1, 1);
       if (small && rng.chance(0.3)) em.put('plant', f, sc + rng.range(-0.4, 0.8), y + 0.02, 0.35, 1.1, 1.3, 1);
-      return;
+      return [];
     }
     default:
       break;
@@ -585,6 +616,56 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
     cell.spill = 1;
     cell.spillC = col;
   }
+  return wins;
+}
+
+/**
+ * E281 round 2, the near faces' depth: what projects off a cell of the lower floors, from the clutter stream. On a
+ * window: a security cage round it, an AC unit or two (stacked, on brackets), a bamboo laundry pole straight out, an
+ * awning; now and then a shallow hung balcony across the cell with the wash on it. On a balcony: the wash along it,
+ * pot plants, an AC on its side wall. A drain pipe down the middle of some cells.
+ */
+function clutter(em: Emit, f: Face, cell: Cell, wins: Win[], sc: number, y: number, bw: number, fh: number, fi: number, timber: boolean): void {
+  const rx = em.rx;
+  const m = cell.mod;
+  const sill = y + 0.85;
+  if (m === 'balcony' || m === 'balconySolid') {
+    if (rx.chance(0.45)) em.put('laundryAlong', f, sc + rx.range(-0.3, 0.3), y + 2.3, 0.35, (bw - 0.8) * 0.8, 1, 1.25);
+    for (let i = rx.int(0, 2); i > 0; i--) em.put('plant', f, sc + rx.range(-bw * 0.4, bw * 0.4), y + 0.02, rx.range(0.7, 1.15), rx.range(0.9, 1.3), rx.range(0.9, 1.5), 1);
+    if (rx.chance(0.3)) em.put('acUnit', f, sc - bw * 0.46 + 0.5, y + rx.range(1.6, 2.1), 0.05, 1, 1, 1, shade(0xffffff, rx.range(0.86, 1.02)));
+    return;
+  }
+  if (!(m === 'win1' || m === 'win2' || m === 'win3' || m === 'blank' || m === 'ac' || m === 'bay')) return;
+  // a shallow balcony hung across the whole cell (not on the ground floor), its rail and the wash
+  if (fi > 0 && m !== 'bay' && rx.chance(0.18)) {
+    em.put(timber ? 'balconyTimber' : 'balcony', f, sc, y + 0.02, 0, (bw - 0.3) / BALCONY_W, 1, rx.range(0.9, 1.35), shade(0xffffff, rx.range(0.92, 1.04)));
+    if (rx.chance(0.6)) em.put('laundryAlong', f, sc, y + 2.3, 0.4, (bw - 0.8) * 0.85, 1, 1.2);
+    if (rx.chance(0.5)) em.put('plant', f, sc + rx.range(-bw * 0.35, bw * 0.35), y + 0.02, rx.range(0.7, 1.1), 1, rx.range(0.9, 1.4), 1);
+    return;
+  }
+  for (const wi of wins) {
+    const caged = m === 'bay' ? true : rx.chance(0.45);
+    if (caged && m !== 'bay') {
+      const wide = wi.w > 1.6;
+      em.put(wide ? 'cageW' : 'cageS', f, wi.s, sill - 0.12, 0, (wi.w + 0.25) / (wide ? CAGE_W[1] : CAGE_W[0]), rx.range(0.95, 1.08), rx.range(1.0, 1.5), shade(0xffffff, rx.range(0.8, 1.1)));
+      if (rx.chance(0.6)) em.put('plant', f, wi.s + rx.range(-0.3, 0.3), sill - 0.06, 0.15, 0.8, 0.8, 0.8);
+    }
+    const out = caged && m !== 'bay' ? 0.62 : 0;
+    // AC units: one under the window or two stacked beside it
+    const acR = rx.next();
+    if (acR < 0.34) em.put('acUnit', f, wi.s + rx.range(-0.2, 0.2), y + 0.25, out, 1, 1, 1, shade(0xffffff, rx.range(0.86, 1.03)));
+    else if (acR < 0.54) {
+      const sgn = rx.chance(0.5) ? -1 : 1;
+      const s = wi.s + sgn * (wi.w / 2 + 0.55);
+      if (Math.abs(s - sc) < bw / 2 - 0.4) for (const dy of [0.5, 1.35]) em.put('acUnit', f, s, y + dy, 0, 1, 1, 1, shade(0xffffff, rx.range(0.86, 1.03)));
+    }
+    // a bamboo pole straight out with the wash on it
+    if (rx.chance(0.26)) em.put('laundryOut', f, wi.s + (rx.chance(0.5) ? -1 : 1) * (wi.w / 2 + 0.05), sill + 1.75, out, 1, 1, rx.range(0.9, 1.25));
+    // a striped awning over it
+    if (!caged && rx.chance(0.14)) em.put('awning', f, wi.s, sill + 1.95, 0, wi.w + 0.35, 0.85, rx.range(0.8, 1.1), rx.pick(AWN));
+  }
+  // a drain pipe down the middle of the cell
+  if (rx.chance(0.12)) em.put('pipe', f, sc + rx.range(-0.2, 0.2), y, 0, 1, fh, 1, rx.chance(0.3) ? PAL.rust : PAL.pipe);
 }
 
 /** the cell mods a flat sign may cover (nothing standing out past its 0.65 m) */

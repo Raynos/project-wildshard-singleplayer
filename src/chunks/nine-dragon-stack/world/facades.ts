@@ -160,51 +160,73 @@ export function buildWall(ctx: Ctx, s: WallSpec, rng: Rng): void {
   }
 }
 
-/** a shopfront band along the bottom of a wall: dark recess, a warm interior, an awning, a sign board over each shop */
+/**
+ * A shopfront band along the bottom of a wall: dark recess, a warm interior, an awning, a sign board over each shop.
+ * `skip` (run-local metres [from, to]) leaves a gap — a street's mouth — without changing a single roll: the shops in
+ * it are rolled as before and not built, so every later shop, sign and lantern in the city stays where it was.
+ */
 export function shopfronts(ctx: Ctx, kitName: string, p0: Vector3, nIn: Vector3, length: number, y: number, rng: Rng,
-  words: readonly string[], colors: readonly number[]): void {
+  words: readonly string[], colors: readonly number[], skip?: readonly [number, number]): void {
   const k = ctx.kit(kitName, true);
+  k.compact = true;
   const { u, n } = frame(nIn);
-  // the building mass behind the shops and the fascia band the signs hang on
-  k.boxAxes(p0.clone().addScaledVector(u, length / 2).addScaledVector(n, -3.4).setY(y + 2.6), u, up, n, length / 2, 2.6, 3.0, { wash: 0x3a3d44, line: 1 }, { top: null, bottom: null, sides: 4 });
-  k.boxAxes(p0.clone().addScaledVector(u, length / 2).addScaledVector(n, 0.12).setY(y + 4.85), u, up, n, length / 2, 0.3, 0.12, { wash: 0x6d727a, line: 1.5 });
+  // the building mass behind the shops and the fascia band the signs hang on (in pieces round the gap)
+  const spans: [number, number][] = skip === undefined ? [[0, length]] : [[0, Math.max(0, skip[0])], [Math.min(length, skip[1]), length]];
+  for (const [s0, s1] of spans) {
+    if (s1 - s0 < 0.05) continue;
+    const half = (s1 - s0) / 2, mid = (s0 + s1) / 2;
+    k.boxAxes(p0.clone().addScaledVector(u, mid).addScaledVector(n, -3.4).setY(y + 2.6), u, up, n, half, 2.6, 3.0, { wash: 0x3a3d44, line: 1 }, { top: null, bottom: null, sides: 4 });
+    k.boxAxes(p0.clone().addScaledVector(u, mid).addScaledVector(n, 0.12).setY(y + 4.85), u, up, n, half, 0.3, 0.12, { wash: 0x6d727a, line: 1.5 });
+  }
   let x = 0.3;
   while (x < length - 2) {
     const w = Math.min(length - x - 0.3, rng.range(3.2, 5.5));
     const c = p0.clone().addScaledVector(u, x + w / 2);
+    const on = skip === undefined || x + w <= skip[0] || x >= skip[1];
     // pillar
-    k.boxAxes(c.clone().addScaledVector(u, -w / 2).addScaledVector(n, 0.3).setY(y + 2.3), u, up, n, 0.22, 2.3, 0.3, { wash: 0x8f949b, line: 1 });
+    // (E281 round 2: only the faces anyone sees — the front and the two sides, no top or bottom)
+    if (on) k.boxAxes(c.clone().addScaledVector(u, -w / 2).addScaledVector(n, 0.3).setY(y + 2.3), u, up, n, 0.22, 2.3, 0.3, { wash: 0x8f949b, line: 1 }, { sides: 1 | 2 | 4, top: null, bottom: null });
     // warm interior
     const lit = rng.chance(0.8);
-    if (lit) ctx.emitters.push({ at: c.clone().addScaledVector(n, -0.1).setY(y + 1.6), color: new Color(0xffc48a), w: w - 0.5, h: 2.6, power: 0.24, spill: 0.3 });
-    k.boxAxes(c.clone().addScaledVector(n, -0.2).setY(y + 1.6), u, up, n, w / 2 - 0.25, 1.6, 0.2,
-      { wash: lit ? rng.pick([0xd9a868, 0xe0b47a, 0x9fc4c0, 0xd49a5c]) : 0x2c2f35, emit: lit ? 0.42 : 0, kind: K.facade, row: 0.55, col: 0.7, seed: rng.next() * 50, line: 1, accent: true, edges: E.all });
-    // shelves / counter silhouettes
-    k.boxAxes(c.clone().addScaledVector(n, 0.25).setY(y + 0.5), u, up, n, w / 2 - 0.5, 0.5, 0.3, { wash: 0x4a3a2c, kind: K.panel, line: 1 });
+    if (lit && on) ctx.emitters.push({ at: c.clone().addScaledVector(n, -0.1).setY(y + 1.6), color: new Color(0xffc48a), w: w - 0.5, h: 2.6, power: 0.24, spill: 0.3 });
+    const glass: Look = { wash: lit ? rng.pick([0xd9a868, 0xe0b47a, 0x9fc4c0, 0xd49a5c]) : 0x2c2f35, emit: lit ? 0.42 : 0, kind: K.facade, row: 0.55, col: 0.7, seed: rng.next() * 50, line: 1, accent: true, edges: E.all };
+    if (on) {
+      k.boxAxes(c.clone().addScaledVector(n, -0.2).setY(y + 1.6), u, up, n, w / 2 - 0.25, 1.6, 0.2, glass, { sides: 4, top: null, bottom: null });
+      // shelves / counter silhouettes
+      k.boxAxes(c.clone().addScaledVector(n, 0.25).setY(y + 0.5), u, up, n, w / 2 - 0.5, 0.5, 0.3, { wash: 0x4a3a2c, kind: K.panel, line: 1 }, { sides: 1 | 2 | 4, bottom: null });
+    }
     // awning
     if (rng.chance(0.6)) {
       const aw = rng.pick([0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441]);
       const a0 = c.clone().addScaledVector(u, -w / 2 + 0.2).addScaledVector(n, 0.4).setY(y + 3.4);
-      k.quad4(a0.clone().addScaledVector(n, 1.5).setY(y + 2.9), a0.clone().addScaledVector(n, 1.5).addScaledVector(u, w - 0.4).setY(y + 2.9),
+      if (on) k.quad4(a0.clone().addScaledVector(n, 1.5).setY(y + 2.9), a0.clone().addScaledVector(n, 1.5).addScaledVector(u, w - 0.4).setY(y + 2.9),
         a0.clone().addScaledVector(u, w - 0.4), a0.clone(), w - 0.4, 1.6, { wash: aw, kind: K.cloth, row: 1, col: 0.5, line: 1, accent: true });
     }
     // a glazed pent roof over the shop, a lantern under it now and then
     const tile = rng.pick([0x2f7d5e, 0x2e5fa3, 0x2f7d5e, 0xb8321f]);
     // (E281 pass 5: the facade's instanced eave — seen from the street it has rafters under it and a row of glazed tile
     // ends along its lip; the kit's one-sided quad vanished from below)
-    ctx.fd.pieces.push({ piece: 'eave', m: new Matrix4().makeBasis(u, up, n).scale(new Vector3(w, 1.1, 1.08)).setPosition(c.clone().addScaledVector(n, 0.1).setY(y + 5.05)), c: new Color(tile) });
+    if (on) ctx.fd.pieces.push({ piece: 'eave', m: new Matrix4().makeBasis(u, up, n).scale(new Vector3(w, 1.1, 1.08)).setPosition(c.clone().addScaledVector(n, 0.1).setY(y + 5.05)), c: new Color(tile) });
     // E281: a lantern (or two) under most shops' eaves — the targets' warm red row along every street
-    if (rng.chance(0.8)) ctx.lantern(c.x + n.x * 1.2 + u.x * rng.range(-w / 3, -w / 8), y + 4.25, c.z + n.z * 1.2 + u.z * rng.range(-w / 3, -w / 8), 0.75);
-    if (rng.chance(0.5)) ctx.lantern(c.x + n.x * 1.2 + u.x * rng.range(w / 8, w / 3), y + 4.25, c.z + n.z * 1.2 + u.z * rng.range(w / 8, w / 3), 0.75);
+    // (two draws each, x then z, exactly as the lanterns always rolled them)
+    if (rng.chance(0.8)) {
+      const tx = rng.range(-w / 3, -w / 8), tz = rng.range(-w / 3, -w / 8);
+      if (on) ctx.lantern(c.x + n.x * 1.2 + u.x * tx, y + 4.25, c.z + n.z * 1.2 + u.z * tz, 0.75);
+    }
+    if (rng.chance(0.5)) {
+      const tx = rng.range(w / 8, w / 3), tz = rng.range(w / 8, w / 3);
+      if (on) ctx.lantern(c.x + n.x * 1.2 + u.x * tx, y + 4.25, c.z + n.z * 1.2 + u.z * tz, 0.75);
+    }
     // sign board over the shop
     const word = rng.pick(words);
     const col = rng.pick(colors);
     const hexs = `#${col.toString(16).padStart(6, '0')}`;
     const style = rng.chance(0.55) ? 'tube' : 'box';
-    ctx.signs.place({
+    const flicker = rng.chance(0.1) ? rng.range(0.1, 1) : 0;
+    if (on) ctx.signs.place({
       at: c.clone().addScaledVector(n, 0.45).setY(y + 3.75), normal: n.clone(), size: Math.min(0.72, (w - 0.5) / (chars(word).length + 0.62)),
       spec: style === 'tube' ? { text: word, color: hexs, vertical: false, style: 'tube' } : { text: word, color: hexs, vertical: false, style: 'box' },
-      flicker: rng.chance(0.1) ? rng.range(0.1, 1) : 0,
+      flicker,
     }, k);
     x += w;
   }

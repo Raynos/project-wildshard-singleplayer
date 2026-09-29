@@ -161,3 +161,32 @@ Build: `main` at `73cabfa4` + this lane's files. Sheets: `pass-6/`. Judged again
 
 **Numbers:** geometry 154.4 MB (every lane), textures 79.6 MB. Worst pose mockup A 127 draws / 1.51 M triangles.
 Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all three profiles (~17,000 instances).
+
+# Round 2: 3-D depth and clutter
+
+## Pass 7
+
+Build: `main` at `51bfc032` + this lane's files. Sheets: `pass-7/`.
+
+- **The lantern street south (A1·7).** Turning round from the spawn, the target looks down a long, lit,
+  lantern-strung street; the square's south-west corner building filled that frame. That corner now opens (x 0.6…8.6)
+  on a street 150 m long: Kowloon walls both sides with shops, flagstones, blade signs reading toward the square,
+  lantern strings every 5–8 m at +7…+24 m, two skybridges, a far wall in the mist and walkers. Its own random stream;
+  the south wall's run and its shopfronts take a gap without changing a roll (`wallRun` `open`, `shopfronts` `skip`),
+  so nothing else in the city moves. Scenery for now: the square's edge still bounds the walk.
+- **Near-face clutter.** On a dressed wall's lower floors (within 26 m of its street, full LOD), each cell gets what
+  projects off a Kowloon face, from a clutter stream forked per face (the grammar's rolls are untouched): security
+  cages round windows, AC units under a window or two stacked beside it, bamboo laundry poles straight out, striped
+  awnings, a shallow hung balcony with the wash on it, the wash and pot plants on balconies, drain pipes; balconies
+  stand deeper; more rooms hung off a face's lower floors. All instances of the existing pieces: no draw added.
+- **Paid for.** Facade `aFace` as half floats (the facade vertex 52 → 44 bytes); sagging cables in 4 segments, not 6
+  (they were a third of the shell); lantern cords in 6; this lane's kits (shops, blades, bridges, deck, monorail,
+  Crown) in a compact layout (half-float `aFace` / `aPat`: 104 → 88 bytes a vertex); shopfront boxes without their
+  unseen faces; neon signs' size, params and tint packed (56 → 36 bytes a vertex).
+
+**Reverted:** nothing. The clutter is a moderate step on the sheets (A1·4, A1·6, the stair's walls); A1·7 is the
+clear one.
+
+**Numbers:** geometry 150.9 MB (every lane; pass 6 154.4), textures 79.6 MB. Worst pose mockup A 128 draws /
+1.58 M; worst triangles A2·9 1.59 M. Facade dressing ≤ 20 draws. `scripts/test-facade-instancing.mjs`: pass on all
+three profiles (~24,250 instances).

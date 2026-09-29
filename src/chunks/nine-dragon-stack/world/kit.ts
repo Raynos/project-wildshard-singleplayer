@@ -1,7 +1,7 @@
 // The modular kit: every built surface is a quad that knows where it sits on its face, in metres (aFace = u, v, w, h),
 // so the Jiehua material can rule its edges and its window / tile / flagstone rows analytically (antialiased with
 // fwidth, never a texture). Geometry is merged per region into one BufferGeometry: one program, few draw calls.
-import { BufferGeometry, Color, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 
 /** pattern kinds the material draws (vPat.x) */
 export const K = { plain: 0, facade: 1, tiles: 2, flag: 3, bars: 4, panel: 5, net: 6, leaf: 7, cloth: 8, stone: 9 } as const;
@@ -42,6 +42,13 @@ export class Kit {
   private readonly off: number[] = [];
   private readonly idx: number[] = [];
   private n = 0;
+  /**
+   * E281 round 2 (memory): aFace and aPat as half floats — 88 bytes a vertex instead of 104. Only for a kit that is
+   * never merged with a KitX of its name (mergeGeometries needs one array type per attribute): the fabric lane's own
+   * kits set it. The program reads the same values; aMisc (exact flag bits), aOff (world metres), the normals the
+   * spill bake reads and the spill itself stay float.
+   */
+  compact = false;
 
   get vertexCount(): number { return this.n; }
 
@@ -266,8 +273,14 @@ export class Kit {
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new Float32BufferAttribute(this.nor, 3));
     g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
-    g.setAttribute('aFace', new Float32BufferAttribute(this.face, 4));
-    g.setAttribute('aPat', new Float32BufferAttribute(this.pat, 4));
+    if (this.compact) {
+      const h = (a: number[]): Uint16Array => { const o = new Uint16Array(a.length); for (let i = 0; i < a.length; i++) o[i] = DataUtils.toHalfFloat(a[i] ?? 0); return o; };
+      g.setAttribute('aFace', new Float16BufferAttribute(h(this.face), 4));
+      g.setAttribute('aPat', new Float16BufferAttribute(h(this.pat), 4));
+    } else {
+      g.setAttribute('aFace', new Float32BufferAttribute(this.face, 4));
+      g.setAttribute('aPat', new Float32BufferAttribute(this.pat, 4));
+    }
     g.setAttribute('aMisc', new Float32BufferAttribute(this.misc, 4));
     g.setAttribute('aOff', new Float32BufferAttribute(this.off, 2));
     // baked neon spill (emitters.ts bakeSpill overwrites it for the static kits)

@@ -248,16 +248,17 @@ export class Builder {
   }
 
   /**
-   * The packed layout (E281, the fabric pass: the shell is the lane's biggest geometry): position and aFace stay
-   * float (metres the ruling needs exact), the directions are normalized bytes (the program re-normalizes them), the
-   * wash is a normalized byte, the pattern and misc words are half floats (kinds, flags and metre pitches all exact
-   * enough there). 52 bytes a vertex instead of 88, four-byte aligned for the phone's Metal. The program reads the
-   * same values (a vec3 attribute takes the first three of a padded four).
+   * The packed layout (E281, the fabric pass: the shell is the lane's biggest geometry): position stays float, the
+   * directions are normalized bytes (the program re-normalizes them), the wash is a normalized byte, aFace and the
+   * pattern and misc words are half floats (kinds, flags and metre pitches all exact enough there; aFace is only ever
+   * interpolated across a face, so its rounding at the corners is a stretch of well under a millimetre per metre).
+   * 44 bytes a vertex instead of 88, four-byte aligned for the phone's Metal. The program reads the same values (a
+   * vec3 attribute takes the first three of a padded four).
    */
   build(): BufferGeometry {
     const n = this.n;
     const nor = new Int8Array(n * 4), tan = new Int8Array(n * 4), col = new Uint8Array(n * 4);
-    const pat = new Uint16Array(n * 4), misc = new Uint16Array(n * 2);
+    const pat = new Uint16Array(n * 4), misc = new Uint16Array(n * 2), face = new Uint16Array(n * 4);
     const sn = (v: number): number => Math.round(Math.max(-1, Math.min(1, v)) * 127);
     const un = (v: number): number => Math.round(Math.max(0, Math.min(1, v)) * 255);
     const h = (v: number): number => DataUtils.toHalfFloat(v);
@@ -269,6 +270,7 @@ export class Builder {
       }
       col[i * 4 + 3] = 255;
       for (let k = 0; k < 4; k++) pat[i * 4 + k] = h(this.pat[i * 4 + k] ?? 0);
+      for (let k = 0; k < 4; k++) face[i * 4 + k] = h(this.face[i * 4 + k] ?? 0);
       misc[i * 2] = h(this.misc[i * 2] ?? 0);
       misc[i * 2 + 1] = h(this.misc[i * 2 + 1] ?? 0);
     }
@@ -276,7 +278,7 @@ export class Builder {
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new BufferAttribute(nor, 4, true));
     g.setAttribute('color', new BufferAttribute(col, 4, true));
-    g.setAttribute('aFace', new Float32BufferAttribute(this.face, 4));
+    g.setAttribute('aFace', new Float16BufferAttribute(face, 4));
     g.setAttribute('aTan', new BufferAttribute(tan, 4, true));
     g.setAttribute('aPat', new Float16BufferAttribute(pat, 4));
     g.setAttribute('aMisc', new Float16BufferAttribute(misc, 2));

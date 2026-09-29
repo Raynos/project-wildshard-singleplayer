@@ -7,7 +7,7 @@
 // The fog is the clean room's banded silk (FOG_GLSL); neon is fogged at half strength. `emitters` feeds the streak
 // cards and the baked spill.
 import {
-  BufferGeometry, Color, Float32BufferAttribute, Mesh, ShaderMaterial, Uint32BufferAttribute, Vector3,
+  BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, ShaderMaterial, Uint32BufferAttribute, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
 import { GlyphAtlas } from './glyphs';
@@ -88,9 +88,14 @@ class Batch {
     const g = new BufferGeometry();
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
     g.setAttribute(names[0], new Float32BufferAttribute(this.a2, 2));
-    g.setAttribute(names[1], new Float32BufferAttribute(this.b2, 2));
-    g.setAttribute('aTint', new Float32BufferAttribute(this.tint, 3));
-    g.setAttribute('aP', new Float32BufferAttribute(this.p, 4));
+    // (E281 round 2, memory: the board size / quad corner and the params as half floats, the tint as bytes — 36
+    // bytes a vertex instead of 56; the programs read the same values, a vec3 tint takes the first three of four)
+    const half = (a: number[]): Uint16Array => { const o = new Uint16Array(a.length); for (let i = 0; i < a.length; i++) o[i] = DataUtils.toHalfFloat(a[i] ?? 0); return o; };
+    const tint = new Uint8Array(this.n * 4);
+    for (let i = 0; i < this.n; i++) for (let k = 0; k < 3; k++) tint[i * 4 + k] = Math.round(Math.min(1, Math.max(0, this.tint[i * 3 + k] ?? 0)) * 255);
+    g.setAttribute(names[1], new Float16BufferAttribute(half(this.b2), 2));
+    g.setAttribute('aTint', new BufferAttribute(tint, 4, true));
+    g.setAttribute('aP', new Float16BufferAttribute(half(this.p), 4));
     g.setIndex(new Uint32BufferAttribute(this.idx, 1));
     g.computeBoundingSphere();
     return g;
