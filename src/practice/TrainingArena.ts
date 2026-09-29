@@ -250,6 +250,7 @@ export class TrainingArena {
   /** the room's centre (world x, z); the lineup and the spawn are laid out from it */
   readonly center: { x: number; z: number };
   private player: Player | null = null;
+  private weapons: Weapons | null = null;
 
   constructor(private readonly game: Game, registry: WorldRegistry, private readonly physics: Physics, center: { x: number; z: number }) {
     this.center = center;
@@ -350,6 +351,8 @@ export class TrainingArena {
     if (!this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(buildTrainingDummy(t.variant), this.game.renderer);
     this.preparation.hidden = true;
     void this.preload();
+    weapons.lendAll(); // the weapon explorer: every weapon this shard has, only while in here (E298 A)
+    this.weapons = weapons;
     weapons.select(weapons.list[0]?.id ?? weapons.current.id, true);
     player.setHover(false); // off the board: spawn() keeps it, and on it there is no dodge (E285)
     const centre = LINEUP[1] ?? { x: 0, z: -7 };
@@ -360,6 +363,7 @@ export class TrainingArena {
   exit(): void {
     this.active = false; this.root.visible = false; this.overlay.classList.remove('show');
     practiceFps.on = false;
+    this.weapons?.endLoan(); this.weapons = null; // the world's own unlocks again
     this.player = null;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
     this.overlay.parentElement?.classList.remove('practice-active');

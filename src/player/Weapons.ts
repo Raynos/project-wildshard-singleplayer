@@ -227,6 +227,23 @@ export class Weapons implements WeaponHooks {
     this.unlocked.add(id);
     this.onUnlock?.(id);
   }
+  /** what the player owned before the practice room lent the whole kit (null = no loan running) */
+  private loaned: Set<WeaponId> | null = null;
+  /** the practice room lends every weapon of the kit (E298 A, the weapon explorer); `endLoan` puts back what was owned */
+  lendAll(): void {
+    if (this.loaned !== null) return;
+    this.loaned = new Set(this.unlocked);
+    for (const w of this.list) this.unlock(w.id);
+  }
+  endLoan(): void {
+    const owned = this.loaned;
+    if (owned === null) return;
+    this.loaned = null;
+    this.unlocked = owned;
+    const first = this.list.find((w) => owned.has(w.id));
+    if (!owned.has(this.current.id) && first !== undefined) this.select(first.id, true);
+    this.onUnlock?.(this.current.id); // the SWAP pill / the strip re-read what is owned
+  }
   /** hold `id` (if unlocked); animated unless `instant` (start-up `?weapon=`) */
   select(id: WeaponId, instant = false): void {
     if (!this.unlocked.has(id)) return;

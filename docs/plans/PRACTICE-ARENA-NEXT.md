@@ -1,13 +1,13 @@
 # Practice arena: what's next
 
-**State:** `draft` 2026-09-29 — from the E298 audit. Jake approved none yet; nothing is built from this until he picks rows.
+**State:** `in progress` 2026-09-29 — Jake picked row A (E298). A is built (the whole kit lent in the room); B–E stay unapproved, to pick later.
 
 The practice room (HUD + weapon explorer) works on all four shards as of `021767d-mun80nj1`. Each of the rows below would
 extend it, and each is independent of the others.
 
 | Row | What | Why | Size |
 |---|---|---|---|
-| A · Full kit | While in the room, every weapon the shard has is unlocked and swappable (Driftwood: iron sword + AR-15; Pine Hollow: lever-action + Warden's longbow; Nine Dragon: iron sword + AR-15; Nalati already has bow · sabre · spear). The SWAP pill / weapon strip shows; the world's own unlocks are restored on exit | It is called the weapon explorer, but today only the starter weapon is usable | small |
+| A · Full kit | While in the room, every weapon the shard has is unlocked and swappable (Driftwood: iron sword + AR-15; Pine Hollow: lever-action + Warden's longbow; Nine Dragon: iron sword + AR-15; Nalati already has bow · sabre · spear). The SWAP pill / weapon strip shows; the world's own unlocks are restored on exit | It is called the weapon explorer, but today only the starter weapon is usable | small · **done** (E298): `Weapons.lendAll` / `endLoan`, every kit weapon checked landing on all four shards |
 | B · Sparring dummy | One of the three telegraphs and swings on a slow timer (wind-up glow, a short hit). The player's DODGE, lock-on orbit and hurt feedback get something to answer; vitals refill in the room | The dodge and the lock-on orbit have nothing to react to; the dummies only stand | medium |
 | C · Readouts + reset | A small panel: last hit, combo count, damage per second over 5 s; a RESET that clears stuck bolts and settles the dummies | Tuning feel needs numbers, not only floating damage | small |
 | D · Fei Zhua post (Nine Dragon) | One dragon-hook post in the Nine Dragon room so the grapple and zip can be practised there | Nine Dragon's signature verb is the one thing the room can't show (LOCK there is now plain lock-on, E298) | small |
