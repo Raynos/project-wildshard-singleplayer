@@ -114,3 +114,20 @@ customers change the number of walkers, so the Well's figures after this lane's 
 Memory against the same HEAD: geometry 154.43 → 154.44 MB (the second windows' sills, signs and brackets less the ashlar
 they cut; the balconies and planters are instances), textures unchanged; since pass 3 this lane is net −0.08 MB. No
 collider changes.
+
+## Pass 6 (on HEAD 2a5428f5)
+
+| Change | Where | Kept? |
+|---|---|---|
+| The brass dragon a deep gold-bronze (its viewmodel colours × 0.78 / 0.54 / 0.22): under the high-key grade the warm gold of pass 1 read as cream | C1 | kept |
+| Mockup C's green terrace lips at the foot: planter troughs along the foot terraces' copings and a big potted shrub at each lip (instances) | C1 | kept |
+| Timber tea-house balconies over the foot's north veranda too (the helper moved to stairstreet.ts, shared with C2; the south fronts are too low for one) | C1 | kept |
+
+Memory against the same HEAD: 154.449 → 154.450 MB geometry (all instances), textures unchanged. Worst pose at these
+domes and mockup C: mockup C 106 draws / 0.89 M triangles, C1·4 1.40 M triangles. No collider changes; the walk test is
+unchanged since pass 1 (19 legs, 0 stuck, 0 out).
+
+Still open for the other lanes: the square's lantern string along the east shops crosses the stair's mouth three metres
+in front of mockup C's camera (two big lanterns on a wire across the frame's upper third; plan F6 asks for the frame
+over the stair to stay open); the Fei Zhua dragon-hook casting (build.ts places it at the three Well mounts nearest the
+Well) would read far better than the jian's guard head on the stair's hero bracket.

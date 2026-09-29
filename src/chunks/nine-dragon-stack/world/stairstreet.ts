@@ -112,8 +112,9 @@ class XfKitX extends KitX {
         if (pat.getX(i) < 20) continue;
         pat.setX(i, 0);
         misc.setW(i, misc.getX(i) > 0 ? 16 : 16 + 32 + 64);
-        // (a warm gold, not the brown it was: mockup C's dragon is the brightest metal in the frame, E281)
-        if (misc.getX(i) <= 0) col.setXYZ(i, col.getX(i) * 0.86, col.getY(i) * 0.7, col.getZ(i) * 0.4);
+        // (a deep gold, not the brown it was nor the cream it read as under the high-key grade: mockup C's dragon is the
+  // richest metal in the frame, E281)
+        if (misc.getX(i) <= 0) col.setXYZ(i, col.getX(i) * 0.78, col.getY(i) * 0.54, col.getZ(i) * 0.22);
       }
     }
     g.applyMatrix4(this.xf);
@@ -282,6 +283,31 @@ export function pushClimbers(ctx: Ctx, list: readonly { m: Matrix4; rank: number
   const out: (Matrix4 | undefined)[] = Array.from({ length: list.length }, () => undefined);
   [...dark, ...light].forEach((slot, i) => { const c = byRank[i]; if (c !== undefined) out[slot] = c.m; });
   for (const m of out) if (m !== undefined) ctx.walkers.push(m);
+}
+
+/**
+ * Timber tea-house balconies on a frontage over its veranda or shop (the C targets' verandas stacked up the flanks, E281):
+ * the facade's timber balcony, a lit door behind it, a potted plant, a lantern under the pent roof, now and then
+ * somebody at the rail looking down the stair. One a storey (two on the 9 m fronts), stepping up with the segments.
+ * The grammar's dressing behind is cleared first (its sign slots only shrink: the city's signs keep their words).
+ */
+export function frontBalconies(ctx: Ctx, r: Rng, s: { xa: number; xb: number; floor: number }, face: number, n: Vector3, u: Vector3, fTop: number): void {
+  if (Math.abs((s.xa + s.xb) / 2 - STAIR_GATE.x) < 3.4) return;
+  const len = s.xb - s.xa, w = Math.min(len - 0.9, 2.8);
+  if (w < 1.6) return;
+  const xc = s.xa + len / 2 + r.range(-0.3, 0.3);
+  for (let yb = s.floor + 4.4; yb + 1.7 < fTop; yb += 3.0) {
+    clearBand(ctx, xc - w / 2 - 0.2, xc + w / 2 + 0.2, Math.min(face, face + n.z * 1.5) - 0.3, Math.max(face, face + n.z * 1.5) + 0.3, yb - 0.4, yb + 2.4);
+    piece(ctx, 'balconyTimber', new Vector3(xc, yb, face), u, n, w / 3.6, 1, r.range(0.95, 1.15), 0xffffff);
+    ctx.fd.windows.push({
+      m: new Matrix4().makeBasis(u, UP, n).scale(new Vector3(w - 0.9, 2.1, 1)).setPosition(new Vector3(xc, yb + 0.05, face + n.z * 0.012)),
+      win: new Vector4(r.range(0, 97), r.range(1.1, 1.35), 0, 16 + r.int(0, 1)), wall: new Color(0x6d6a66), light: new Color(r.pick([0xffc47e, 0xffb870, 0xffd09a])),
+    });
+    piece(ctx, 'plant', new Vector3(xc - w / 2 + 0.4, yb, face + n.z * 0.72), u, n, r.range(1.0, 1.3), r.range(1.1, 1.5), 1);
+    ctx.lantern(xc + w / 2 - 0.25, yb + 2.1, face + n.z, 0.6);
+    ctx.emitters.push({ at: new Vector3(xc, yb + 1.2, face + n.z * 0.4), color: new Color(0xffc48a), w: w - 0.8, h: 2, power: 0.16, spill: 0.2 });
+    if (r.chance(0.5)) extraFigure(mat4(xc + r.range(-w / 3, w / 3), yb, face + n.z * 0.7, n.z > 0 ? r.range(-0.3, 0.3) : Math.PI + r.range(-0.3, 0.3), r.range(0.95, 1.02)));
+  }
 }
 
 // ── the first flight ──
@@ -708,7 +734,7 @@ function footShop(ctx: Ctx, k: Kit, rng: Rng, s: FootSeg, face: number, n: Vecto
 function footTerraces(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('stair-foot', true);
   const mid = (SQ_CORNER + SQ_BACK) / 2;
-  const shops = new Rng(7310);
+  const shops = new Rng(7310), green = new Rng(7314), bal = new Rng(7315);
   for (const side of [1, -1] as const) {
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
     const n = side > 0 ? ZP : ZN, u = side > 0 ? XP : XN;
@@ -734,6 +760,7 @@ function footTerraces(ctx: Ctx, rng: Rng): void {
         shops: true, street: s.floor, detailY: [s.floor - 1, s.fTop + 1], timber: 0.7, lit: 0.85, lod: 0, roof: false, setbacks: false,
       }, SETBACK, 1);
       pentRoof(k, rng, s, face, n);
+      frontBalconies(ctx, bal, s, face, n, u, s.fTop);
       dressWall(ctx.fd, p0.clone().addScaledVector(n, -SETBACK), n, len, s.fTop + 0.9, s.top, Math.floor(rng.next() * 1e6), {
         shops: false, street: s.floor, detailY: [s.fTop, s.fTop + 12], timber: 0.3, lit: 0.75, lod: 0, roof: true, setbacks: false,
       }, side > 0 ? 4.9 : 10.2, 1);
@@ -744,6 +771,12 @@ function footTerraces(ctx: Ctx, rng: Rng): void {
       k.box(cx, s.floor + 1.0, rz, len - 0.1, 0.07, 0.1, timber ? LACQUER : IRON);
       for (let j = 0; j <= 2; j++) k.box(s.xa + 0.1 + (j * (len - 0.2)) / 2, s.floor, rz, 0.09, 1.1, 0.09, timber ? LACQUER : IRON);
       for (let j = 0; j < 3; j++) pottedPlant(k, rng, s.xa + len * ((j + rng.range(0.25, 0.75)) / 3), s.floor, rz - side * rng.range(0.35, 0.55), rng.range(0.9, 1.3), rng.chance(0.25));
+      // planter troughs on the coping in front of the rail and a big potted shrub at the lip: mockup C's stone terrace
+      // walls at the foot are green along their tops (instances of the facade's planter and plant, E281 pass 6)
+      for (let x = s.xa + green.range(0.5, 0.9); x < s.xb - 0.6; x += green.range(1.2, 1.8)) {
+        piece(ctx, 'planter', new Vector3(x, s.floor, edge - side * 0.14), u, n, green.range(1.0, 1.35), green.range(1.1, 1.5), 0.7);
+      }
+      piece(ctx, 'plant', new Vector3(s.xb - 0.45, s.floor, edge - side * 0.32), u, n, green.range(1.5, 1.9), green.range(1.7, 2.2), 1.5);
       if (side > 0) {
         clearBand(ctx, s.xa - 0.05, s.xb + 0.05, Math.min(face, edge) - 0.6, Math.max(face, edge) + 0.6, s.floor - 0.3, s.floor + 3.3);
         teaVeranda(ctx, k, rng, s, face, edge, side);

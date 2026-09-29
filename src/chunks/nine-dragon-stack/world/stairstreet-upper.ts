@@ -24,7 +24,7 @@ import { KitX, merge } from './hero/kitx';
 import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';
 import { hipRoof } from './square';
-import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, cutByHoles, extraFigure, flushExtraFigures, pushClimbers, stairFloor, wallShop } from './stairstreet';
+import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, cutByHoles, flushExtraFigures, frontBalconies, pushClimbers, stairFloor, wallShop } from './stairstreet';
 import { SURF } from '../look/paint';
 import { SignBuilder, type SignPlace } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
@@ -525,31 +525,6 @@ function shopHoles(s: Seg, side: number): Hole[] {
     x0 = x1 + 0.95;
   }
   return out;
-}
-
-/**
- * Timber tea-house balconies on a frontage over its veranda or shop (the C targets' verandas stacked up the flanks, E281):
- * the facade's timber balcony, a lit door behind it, a potted plant, a lantern under the pent roof, now and then
- * somebody at the rail looking down the stair. One a storey (two on the 9 m fronts), stepping up with the segments.
- * The grammar's dressing behind is cleared first (its sign slots only shrink: the city's signs keep their words).
- */
-function frontBalconies(ctx: Ctx, r: Rng, s: Seg, face: number, n: Vector3, u: Vector3, fTop: number): void {
-  if (Math.abs((s.xa + s.xb) / 2 - STAIR_GATE.x) < 3.4) return;
-  const len = s.xb - s.xa, w = Math.min(len - 0.9, 2.8);
-  if (w < 1.6) return;
-  const xc = s.xa + len / 2 + r.range(-0.3, 0.3);
-  for (let yb = s.floor + 4.4; yb + 1.7 < fTop; yb += 3.0) {
-    clearBand(ctx, xc - w / 2 - 0.2, xc + w / 2 + 0.2, Math.min(face, face + n.z * 1.5) - 0.3, Math.max(face, face + n.z * 1.5) + 0.3, yb - 0.4, yb + 2.4);
-    piece(ctx, 'balconyTimber', new Vector3(xc, yb, face), u, n, w / 3.6, 1, r.range(0.95, 1.15), 0xffffff);
-    ctx.fd.windows.push({
-      m: new Matrix4().makeBasis(u, UP, n).scale(new Vector3(w - 0.9, 2.1, 1)).setPosition(new Vector3(xc, yb + 0.05, face + n.z * 0.012)),
-      win: new Vector4(r.range(0, 97), r.range(1.1, 1.35), 0, 16 + r.int(0, 1)), wall: new Color(0x6d6a66), light: new Color(r.pick([0xffc47e, 0xffb870, 0xffd09a])),
-    });
-    piece(ctx, 'plant', new Vector3(xc - w / 2 + 0.4, yb, face + n.z * 0.72), u, n, r.range(1.0, 1.3), r.range(1.1, 1.5), 1);
-    ctx.lantern(xc + w / 2 - 0.25, yb + 2.1, face + n.z, 0.6);
-    ctx.emitters.push({ at: new Vector3(xc, yb + 1.2, face + n.z * 0.4), color: new Color(0xffc48a), w: w - 0.8, h: 2, power: 0.16, spill: 0.2 });
-    if (r.chance(0.5)) extraFigure(mat4(xc + r.range(-w / 3, w / 3), yb, face + n.z * 0.7, n.z > 0 ? r.range(-0.3, 0.3) : Math.PI + r.range(-0.3, 0.3), r.range(0.95, 1.02)));
-  }
 }
 
 function terraces(ctx: Ctx, rng: Rng): void {
