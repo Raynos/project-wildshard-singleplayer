@@ -36,3 +36,22 @@ Numbers (C1·5 / C2·5 / mockup C draws): 94 / 82 / 149 → 90 / 81 / 144. Fragm
 
 Left for later passes: the far end is still a wall through the paifang (the targets see a deep, layered city); the sky
 screen over the stair (build.ts `screen2`, +173.45) still caps everything above the paifang from the square.
+
+## Pass 2 (on HEAD 8279eb35)
+
+The render agent's pass 2, the fabric agent's pass 1 and the capture tool's viewmodel fix landed between pass 1 and
+pass 2, so the eye-check's pass-1 column is an older world; judge this lane's changes by the rows below.
+
+| Change | Where | Kept? |
+|---|---|---|
+| A gatehouse (城樓) across the top street at x 86, past the walkable end: an ashlar base with an arched passage, a lit timber hall under a double green-glazed hip roof, lanterns along both eaves, a 九龍城 plaque. The paifang's centre bay now frames a lit hall with lanterns (C2·5, mockup C), and C2·2's aerial ends on it, as the targets do | C2 | kept |
+| The two far crossings from pass 1 removed: a far tower of the city fabric (towers.ts `crown()`, base +155, face at x 91.5) spans the canyon and hid the one at x 108; the gatehouse replaces the one at x 86 | C2 | kept |
+| Red lanterns on iron arms off the set-back towers over the pent roofs, one or two a segment (the targets' columns of lanterns up both sides) | C2 | kept |
+| Nine more climbers on flights 2 and 3 (the targets' stair is busy), off the axis near the eye and clear of the paifang's posts | C2 | kept |
+
+Memory against the same HEAD without this pass: geometry 159.09 → 158.91 MB (the gatehouse and lanterns cost less than
+the two crossings they replace), textures unchanged. No collider changes (the gatehouse stands past the end wall).
+
+For the other lanes (the view up the stair is still capped): the far tower at x 91.5 closes the canyon past the
+gatehouse (towers.ts `crown()`), and the stair's sky screen (build.ts `screen2`, +173.45, under the second deck in
+towers.ts) is the flat teal ceiling over everything above the paifang from the square.

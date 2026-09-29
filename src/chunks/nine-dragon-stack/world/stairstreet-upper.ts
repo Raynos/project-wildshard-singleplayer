@@ -23,6 +23,7 @@ import type { PieceId } from './facade/pieces';
 import { KitX, merge } from './hero/kitx';
 import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';
+import { hipRoof } from './square';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from './stairstreet';
 import { SURF } from '../look/paint';
 import { SignBuilder, type SignPlace } from '../look/signs';
@@ -480,7 +481,25 @@ function lattice(k: Kit, p0: Vector3, u: Vector3, len: number, h: number, pitch:
   for (let y = 0; y <= h + 0.001; y += rows) k.quad(p0.clone().add(new Vector3(0, Math.min(y, h - 0.035), 0)), u, UP, len, 0.035, look);
 }
 
+/**
+ * Red lanterns hung on iron arms off a set-back tower's face, over its frontage's pent roof: one or two a segment, the
+ * targets' columns of lanterns up both sides of the canyon (E281). Their own numbers (`lr`).
+ */
+function towerLanterns(ctx: Ctx, k: Kit, lr: Rng, s: Seg, face: number, n: Vector3, fTop: number): void {
+  if (Math.abs((s.xa + s.xb) / 2 - STAIR_GATE.x) < 3) return;
+  const wall = face - n.z * SETBACK;
+  const m = lr.chance(0.5) ? 2 : 1;
+  for (let j = 0; j < m; j++) {
+    const x = s.xa + (s.xb - s.xa) * ((j + lr.range(0.3, 0.7)) / m);
+    const y = fTop + 2.4 + lr.range(1.3, 2.2) + j * lr.range(0.6, 2.4), out = lr.range(1.0, 1.4);
+    k.beam(new Vector3(x, y + 0.45, wall), new Vector3(x, y + 0.45, wall + n.z * out), 0.05, 0.05, IRON);
+    k.beam(new Vector3(x, y - 0.3, wall), new Vector3(x, y + 0.4, wall + n.z * out * 0.7), 0.04, 0.04, IRON);
+    ctx.lantern(x, y, wall + n.z * (out - 0.1), lr.range(0.74, 0.88));
+  }
+}
+
 function terraces(ctx: Ctx, rng: Rng): void {
+  const lr = new Rng(6127);
   for (const side of [1, -1] as const) {
     // north (side 1): the face at FACE_N facing +z, the terrace from it to the stair's edge; south mirrored
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
@@ -510,6 +529,7 @@ function terraces(ctx: Ctx, rng: Rng): void {
           shops: true, street: s.floor, detailY: [s.floor - 1, fTop + 1], timber: 0.6, density: 0.8, lit: 0.8, lod: 0, roof: false, setbacks: false,
         }, SETBACK, 1 + (prevFront !== undefined && prevFront < fTop - 1 ? downhill : 0));
         pentRoof(k, rng, s, face, n, fTop);
+        towerLanterns(ctx, k, lr, s, face, n, fTop);
         dressWall(ctx.fd, p0.clone().addScaledVector(n, -SETBACK), n, len, fTop + 0.9, s.top, Math.floor(rng.next() * 1e6), {
           shops: false, street: s.floor, detailY: [fTop, fTop + 12], timber: 0.3, lit: 0.75, lod: 1, density: 0.55, roof: true, setbacks: s.top - fTop > 24,
         }, 12 - SETBACK, 1 + (prev !== undefined && prev.top < s.top - 3 ? downhill : 0));
@@ -725,11 +745,80 @@ function overhead(ctx: Ctx, rng: Rng): void {
     k.box(mx, yb + 0.72, z, 2.66, 0.22, 13.02, { wash: 0xc23b22, line: 1, accent: true }, { top: null, bottom: null });
     for (const dz of [-4.5, 4.5]) k.box(mx, my - 1.4, z + dz, 1.2, 0.2, 1.6, { wash: 0x2a2c31, line: 1 });
   }
-  // two far crossings past the top landing, seen through the paifang's centre bay (mockup C's layered depth): their own
-  // numbers, so nothing after them re-rolls
-  const far = new Rng(7781);
-  bridge(ctx, k, far, 86, TOP_Y + 12, 2.2, ['茶'], 3, false);
-  bridge(ctx, k, far, 108, TOP_Y + 15, 2.0, [], 2, false);
+}
+
+// ── the gatehouse at the head of the street (城樓): what the paifang's centre bay frames, from the square and from landing 1 ──
+
+/**
+ * A city gatehouse across the top street past the landing (scenery: the walkable top ends at x 78): an ashlar base with
+ * an arched passage, a timber hall of lit lattice windows under a double green-glazed hip roof, lanterns along both
+ * eaves, a 九龍城 plaque. Mockup C and C2·5 see a lit hall with lanterns through the paifang's bay, one layer deeper
+ * than the skybridge (E281, plan F6). Built across x (the square gate's hipRoof) and turned to span the street.
+ */
+function gatehouse(ctx: Ctx): void {
+  const gx = 86, gy = TOP_Y, zc = (FACE_N + FACE_S) / 2, W = FACE_S - FACE_N;
+  const xf = new Matrix4().makeTranslation(gx, gy, zc).multiply(new Matrix4().makeRotationY(-Math.PI / 2));
+  const k = new XfKit(xf);
+  terraceKit(ctx).k.extra.push(k);
+  const at = (lx: number, ly: number, lz: number): Vector3 => new Vector3(lx, ly, lz).applyMatrix4(xf);
+  // local frame: x across the street (world z − zc), y up from the top street, z toward the stair (world gx − x)
+  const hw = W / 2 + 0.4, bh = 7, bd = 8;
+  const STONE: Look = { ...ASHLAR, wash: 0x77746d };
+  k.box(0, -0.5, 0, 2 * hw, bh + 0.5, bd, STONE, { top: { ...TERRACE } });
+  // courses ruled across the front, a plinth, a coping
+  for (let y = 0.9; y < bh - 0.4; y += 0.9) k.box(0, y, bd / 2 + 0.01, 2 * hw, 0.05, 0.04, { wash: 0x5d5b56, line: 0 });
+  k.box(0, -0.5, bd / 2 + 0.15, 2 * hw + 0.3, 0.9, 0.3, { ...STONE, wash: 0x66635d });
+  k.box(0, bh - 0.3, 0, 2 * hw + 0.3, 0.3, bd + 0.3, COPING);
+  // the arched passage: a dark opening, its voussoir ring, a lamp over it
+  const aw = 4.2, ah = 4.4;
+  const zf = bd / 2 + 0.02;
+  k.quad(new Vector3(-aw / 2, 0, zf), XP, UP, aw, ah - aw / 2, { wash: 0x15161a, line: 1 });
+  const arc = 10;
+  for (let i = 0; i < arc; i++) {
+    const a0 = (i / arc) * Math.PI, a1 = ((i + 1) / arc) * Math.PI, r = aw / 2, yc = ah - aw / 2;
+    k.tri(new Vector3(0, yc, zf), new Vector3(Math.cos(a0) * r, yc + Math.sin(a0) * r, zf), new Vector3(Math.cos(a1) * r, yc + Math.sin(a1) * r, zf), { wash: 0x15161a, line: 0 });
+    k.beam(new Vector3(Math.cos(a0) * (r + 0.2), yc + Math.sin(a0) * (r + 0.2), zf + 0.05), new Vector3(Math.cos(a1) * (r + 0.2), yc + Math.sin(a1) * (r + 0.2), zf + 0.05), 0.4, 0.14, { ...COPING, wash: 0x8e8b83 });
+  }
+  // the parapet: crenels along the front and the back
+  for (const sz of [1, -1]) {
+    for (let x = -hw + 0.3; x < hw - 0.3; x += 1.2) k.box(x + 0.35, bh, sz * (bd / 2 - 0.2), 0.7, 0.9, 0.4, STONE);
+  }
+  // the hall: red posts, lit lattice windows between them, a timber band
+  const hy = bh + 0.1, hh = 4.2, hwid = 11, hd = 5;
+  k.box(0, hy, 0, hwid - 0.4, hh, hd - 0.4, { wash: 0x4a3526, line: 1, surf: SURF.wood });
+  const nb = 5, bw = hwid / nb;
+  for (let b = 0; b <= nb; b++) k.box(-hwid / 2 + b * bw, hy, hd / 2, 0.32, hh, 0.32, LACQUER);
+  for (let b = 0; b < nb; b++) {
+    const cx = -hwid / 2 + (b + 0.5) * bw;
+    // (the facade's interior-mapped window program, facing the stair: world −x)
+    ctx.fd.windows.push({
+      m: new Matrix4().makeBasis(new Vector3(0, 0, 1), UP, new Vector3(-1, 0, 0)).scale(new Vector3(bw - 0.5, hh - 1.0, 1)).setPosition(at(cx, hy + 0.35, hd / 2 - 0.18).add(new Vector3(-0.012, 0, 0))),
+      win: new Vector4(b * 13 + 5, 1.15, 0, 16), wall: new Color(0x6d6a66), light: new Color(0xffc47e),
+    });
+    lattice(k, new Vector3(cx - (bw - 0.5) / 2, hy + 0.35, hd / 2 - 0.12), XP, bw - 0.5, hh - 1.0, 0.22, 0.44, { wash: 0x3d1d12, line: 0.5, accent: true });
+  }
+  k.box(0, hy + hh - 0.5, hd / 2 + 0.05, hwid, 0.5, 0.2, { wash: MIN.lacquer, line: 1, accent: true });
+  hipRoof(ctx, k, 0, hy + hh + 0.1, 0, hwid + 3.2, hd + 3.4, 2.1, 0.55, MIN.malachite, null);
+  // the upper hall and its roof
+  const uy = hy + hh + 1.2, uh = 3.0, uw = 7.4, ud = 3.8;
+  k.box(0, uy - 1.1, 0, uw, uh + 1.1, ud, { wash: 0x4a3526, line: 1, surf: SURF.wood });
+  for (let b = 0; b <= 3; b++) k.box(-uw / 2 + (b * uw) / 3, uy, ud / 2 + 0.05, 0.26, uh, 0.26, LACQUER);
+  for (let b = 0; b < 3; b++) {
+    const cx = -uw / 2 + ((b + 0.5) * uw) / 3;
+    ctx.fd.windows.push({
+      m: new Matrix4().makeBasis(new Vector3(0, 0, 1), UP, new Vector3(-1, 0, 0)).scale(new Vector3(uw / 3 - 0.5, uh - 0.9, 1)).setPosition(at(cx, uy + 0.3, ud / 2 + 0.02).add(new Vector3(-0.012, 0, 0))),
+      win: new Vector4(b * 17 + 3, 1.1, 0, 0), wall: new Color(0x6d6a66), light: new Color(0xffc98a),
+    });
+  }
+  hipRoof(ctx, k, 0, uy + uh + 0.1, 0, uw + 3.0, ud + 3.2, 2.4, 0.6, MIN.malachite, null);
+  // the plaque between the eaves, facing the stair
+  ctx.signs.place({ at: at(0, uy + 1.5, ud / 2 + 0.2), normal: new Vector3(-1, 0, 0), size: 0.6, spec: { text: '九龍城', color: '#f0c86a', vertical: false, style: 'plaque' }, gain: 1.4 }, null);
+  // lanterns along both eaves and a pair by the arch
+  for (let i = 0; i < 6; i++) { const p = at(-hwid / 2 - 0.6 + ((i + 0.5) * (hwid + 1.2)) / 6, hy + hh - 0.75, hd / 2 + 1.2); ctx.lantern(p.x, p.y, p.z, 0.8); }
+  for (let i = 0; i < 4; i++) { const p = at(-uw / 2 - 0.4 + ((i + 0.5) * (uw + 0.8)) / 4, uy + uh - 0.7, ud / 2 + 1.1); ctx.lantern(p.x, p.y, p.z, 0.7); }
+  for (const sx of [-1, 1]) { const p = at(sx * (aw / 2 + 1.1), 3.6, bd / 2 + 0.45); ctx.lantern(p.x, p.y, p.z, 0.8); }
+  const glow = at(0, hy + 1.8, hd / 2 + 0.6);
+  ctx.emitters.push({ at: glow, color: new Color(0xffc48a), w: hwid - 1, h: 3, power: 0.22, spill: 0.2 });
 }
 
 // ── the signs: the mockup's hero stack on the right (旅館 · 火鍋 · 牙科), blade signs up both sides ──
@@ -818,6 +907,19 @@ function crowd(ctx: Ctx, rng: Rng): void {
     ctx.walkers.push(mat4(x, visFloor(x), z, (up ? Math.PI / 2 : -Math.PI / 2) + rng.range(-0.25, 0.25), rng.range(0.95, 1.04)));
     n++;
   }
+  // (E281) more climbers on flights 2 and 3 — the targets' stair is busy — with their own numbers, off the axis near
+  // the eye and clear of the paifang's posts
+  const more = new Rng(5153);
+  for (let tries = 0, m = 0; tries < 300 && m < 9; tries++) {
+    const f = FLIGHTS[1 + (m % 2)] ?? f2;
+    const x = more.range(f.x0 + 1, f.x1 - 0.3), z = zc + more.range(-3.4, 3.4);
+    if (x < 45 && Math.abs(z - zc) < 1.6) continue;
+    if (Math.abs(x - STAIR_GATE.x) < 2.4) continue;
+    if (placed.some(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 < 2.2)) continue;
+    placed.push([x, z]);
+    ctx.walkers.push(mat4(x, visFloor(x), z, (more.chance(0.65) ? Math.PI / 2 : -Math.PI / 2) + more.range(-0.3, 0.3), more.range(0.95, 1.04)));
+    m++;
+  }
 }
 
 // ── the far end: the street runs on past the top landing, a last flight into the haze, a tower closing the view ──
@@ -849,4 +951,5 @@ export function buildStairUpper(ctx: Ctx): void {
   stairSigns(ctx, rng);
   crowd(ctx, rng);
   farEnd(ctx, rng);
+  gatehouse(ctx);
 }
