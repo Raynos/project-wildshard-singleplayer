@@ -400,3 +400,10 @@ gulls lead you to unfound places: A a flock over the place, B gulls fly past you
 `board-2-map.jpg` asks how the map shows found and unfound places: A ring "?" pins + "PLACES 4 / 11", B fog, C "???"
 rings, D today. `board-3-sea-glass.jpg` asks where the sea glass count goes: A the map tag, B the inventory, C today's
 pickup toast, D all three. Recommended: A, A, A. The folder's README lists every frame.
+
+### What is a model (`art/models-audit/round-1-census/`, 2026-09-29, E306)
+
+`models-census-sheet.jpg`: live phone-tier captures (390×844 @3×, build `412d443`), no image model. Top row: the four
+shards' Model Explorer catalogs today (54 cards). Middle: four real models (Hut, Coconut palm, Scots pine, Guardian
+lion). Bottom: four whole places on a turntable, the "blur" (Kurgan field, Snow lotus, Spring camp, Wreck cove). The
+audit is `docs/audits/models-and-model-explorer.md`; the draft plan `docs/plans/MODEL-ARCHITECTURE.md`.
