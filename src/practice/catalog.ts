@@ -1,10 +1,12 @@
 /** One shared Model Explorer family card for the three training-dummy armor variants. */
 import * as THREE from 'three';
 import { registerModel } from '../explore/registry';
+import { applyDummyStudio } from './DummyStudio';
 import { buildTrainingDummy, DUMMY_VARIANTS, TRAINING_DUMMY_HEIGHT, type DummyVariant } from './TrainingDummy';
 import { loadTrainingDummy } from './TrainingDummyAssets';
 
-export function registerTrainingDummyModel(): void {
+/** `renderer` builds the dummies' studio light (DummyStudio): the turntable and its thumbnail light them like the arena (E289) */
+export function registerTrainingDummyModel(renderer: THREE.WebGLRenderer): void {
   const group = new THREE.Group();
   const cache = new Map<DummyVariant, THREE.Group>();
   const loading = new THREE.Mesh(new THREE.BoxGeometry(0.58, TRAINING_DUMMY_HEIGHT, 0.34), new THREE.MeshBasicMaterial({ color: 0x8fe3ff, transparent: true, opacity: 0.22, wireframe: true, depthWrite: false }));
@@ -17,6 +19,7 @@ export function registerTrainingDummyModel(): void {
       console.warn(`[practice] Model Explorer could not load ${id}; using procedural fallback`, error);
       specimen = buildTrainingDummy(id).root;
     }
+    applyDummyStudio(specimen, renderer); // not the old emissive = base-map trick: the arena's studio set, emissive 0
     cache.set(id, specimen);
     if (current !== id) return;
     group.clear(); group.add(specimen);

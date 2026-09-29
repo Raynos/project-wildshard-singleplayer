@@ -11,7 +11,7 @@ import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { BOSS_NAMES } from '../ui/Combat';
 import { DummyMotion, DummyPose } from './DummyMotion';
 import { applyDummyStudio } from './DummyStudio';
-import { buildTrainingDummy, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
+import { buildTrainingDummy, DUMMY_JOINTS, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
 import { loadTrainingDummy } from './TrainingDummyAssets';
 import './arena.css';
 
@@ -120,6 +120,29 @@ class TrainingTarget implements TargetAnimal {
     const h = this.lastHit;
     const { dx, dz } = this.push(dir, this.position);
     this.motion.shove(h.frame === this.frame ? h.py : 1.1, dx, dz, Math.max(0, strength), MASS[this.variant]);
+  }
+
+  /**
+   * The bone a bolt or arrow stuck at `point` rides (E289: Crossbow / Projectiles attach to it, so it rocks with the
+   * figure): the joint whose segment (the joint to its child joint) passes nearest the point.
+   */
+  stuckFrame(point: THREE.Vector3): THREE.Object3D | null {
+    let best: THREE.Object3D | null = null, bestD = Infinity;
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), ab = new THREE.Vector3(), ap = new THREE.Vector3();
+    this.model.root.updateMatrixWorld(true);
+    for (const joint of DUMMY_JOINTS) {
+      const bone = this.model.joints[joint];
+      if (!bone) continue;
+      bone.getWorldPosition(a);
+      const child = bone.children.find((c) => c instanceof THREE.Bone || Object.values(this.model.joints).includes(c));
+      if (child) child.getWorldPosition(b); else b.copy(a);
+      ab.subVectors(b, a); ap.subVectors(point, a);
+      const len2 = ab.lengthSq();
+      const t = len2 > 1e-8 ? Math.min(1, Math.max(0, ap.dot(ab) / len2)) : 0;
+      const d = ap.addScaledVector(ab, -t).lengthSq();
+      if (d < bestD) { bestD = d; best = bone; }
+    }
+    return best ?? this.model.root;
   }
 
   /** Sword.ts's white hit flash (C5): the figure's emissive for a beat */

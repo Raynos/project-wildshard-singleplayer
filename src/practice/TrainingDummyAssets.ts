@@ -64,10 +64,8 @@ export async function loadTrainingDummy(variant: DummyVariant): Promise<Training
     if (!(part instanceof THREE.Mesh)) return;
     part.castShadow = false; part.receiveShadow = false; part.frustumCulled = true;
     if (part.material instanceof THREE.MeshStandardMaterial) {
-      const material = part.material.clone(); // the arena and turntable can light their copies independently
-      material.emissive.set(0xffffff);
-      material.emissiveMap = material.map;
-      material.emissiveIntensity = 0.55; // the grid room has no sky probe; preserve the baked armor colour at night
+      // the arena and the turntable light their copies with the studio set (DummyStudio.ts): no emissive here (E289)
+      const material = part.material.clone();
       // TRELLIS baked the all-wood figure 0.57 metallic: its brown reflected like tinted brass (yellow-orange in the arena, E285)
       material.metalness = variant === 'wood' ? 0 : Math.min(material.metalness, 0.55);
       part.material = material;

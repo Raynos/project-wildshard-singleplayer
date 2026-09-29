@@ -54,6 +54,9 @@ export interface TargetAnimal {
   alive: boolean;
   /** a melee / javelin blow's knock-back (Animal.stagger: 0 light … 1 heavy, breaks a running charge); absent on targets without one */
   stagger?: (dir: THREE.Vector3, strength: number) => void;
+  /** the part a bolt / arrow stuck at `point` rides (a practice dummy's bone, E289); absent = it rides the target's
+   *  position and yaw (Projectiles) or, for the crossbow, does not stick */
+  stuckFrame?: (point: THREE.Vector3) => THREE.Object3D | null;
 }
 export interface TargetHit { animal: TargetAnimal; point: THREE.Vector3; distance: number; headshot: boolean }
 export interface Targets { raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => TargetHit | null }
@@ -1168,7 +1171,8 @@ export class Crossbow implements Weapon {
       if (hit) {
         const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)) * b.mod.damage(hit.animal.kind), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
-        this.stopBolt(b, hit.point, _dir, 'flesh', false);
+        const frame = hit.animal.stuckFrame?.(hit.point) ?? null; // a practice dummy keeps the bolt, on the bone it hit
+        this.stopBolt(b, hit.point, _dir, 'flesh', frame !== null, STUCK_BURY, false, frame);
         return true;
       }
     }

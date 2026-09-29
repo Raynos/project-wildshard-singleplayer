@@ -89,6 +89,8 @@ interface Stuck {
   slot: number; pos: THREE.Vector3; dir: THREE.Vector3; roll: number;
   /** riding a live animal: offset + direction in its yaw frame */
   animal: TargetAnimal | null; local: THREE.Vector3; localDir: THREE.Vector3;
+  /** riding a part of the target instead (a practice dummy's bone, TargetAnimal.stuckFrame): local is in its frame */
+  frame: THREE.Object3D | null;
   /** reachable from the ground (not 4 m up a trunk) */
   recoverable: boolean;
 }
@@ -255,6 +257,12 @@ export class Projectiles {
       const a = s?.animal;
       if (s === undefined || a === null || a === undefined) continue;
       if (!a.alive || hiddenOf(a)) { this.dropToGround(s); continue; }
+      if (s.frame !== null) { // on a bone: its world matrix as last drawn
+        s.pos.copy(s.local).applyMatrix4(s.frame.matrixWorld);
+        s.dir.copy(s.localDir).transformDirection(s.frame.matrixWorld);
+        this.writeStuck(s);
+        continue;
+      }
       const yaw = yawOf(a);
       s.pos.copy(s.local).applyAxisAngle(Y_AXIS, yaw).add(a.position);
       s.dir.copy(s.localDir).applyAxisAngle(Y_AXIS, yaw);
@@ -349,7 +357,7 @@ export class Projectiles {
     if (this.stuck.length >= this.kind.maxStuck) this.removeStuck(0);
     const slot = this.freeStuckSlots.pop();
     if (slot === undefined) return;
-    const s: Stuck = { slot, pos: at.clone(), dir: along.clone(), roll: f.roll, animal: null, local: new THREE.Vector3(), localDir: new THREE.Vector3(), recoverable: true };
+    const s: Stuck = { slot, pos: at.clone(), dir: along.clone(), roll: f.roll, animal: null, local: new THREE.Vector3(), localDir: new THREE.Vector3(), frame: null, recoverable: true };
     this.stuck.push(s);
     this.writeStuck(s);
   }
@@ -365,8 +373,14 @@ export class Projectiles {
     if (slot === undefined) return;
     const bury = surface === 'flesh' ? this.kind.bury * 2.2 : this.kind.bury;
     const pos = new THREE.Vector3().copy(point).addScaledVector(dir, bury);
-    const s: Stuck = { slot, pos, dir: dir.clone(), roll, animal, local: new THREE.Vector3(), localDir: new THREE.Vector3(), recoverable: true };
-    if (animal !== null) {
+    const s: Stuck = { slot, pos, dir: dir.clone(), roll, animal, local: new THREE.Vector3(), localDir: new THREE.Vector3(), frame: null, recoverable: true };
+    const frame = animal?.stuckFrame?.(point) ?? null;
+    if (frame !== null) {
+      _m.copy(frame.matrixWorld).invert();
+      s.frame = frame;
+      s.local.copy(pos).applyMatrix4(_m);
+      s.localDir.copy(dir).transformDirection(_m);
+    } else if (animal !== null) {
       const yaw = yawOf(animal);
       s.local.copy(pos).sub(animal.position).applyAxisAngle(Y_AXIS, -yaw);
       s.localDir.copy(dir).applyAxisAngle(Y_AXIS, -yaw);
@@ -381,7 +395,7 @@ export class Projectiles {
 
   /** an arrow from a dead / vanished animal: into the ground where it hung, tilted a little off vertical */
   private dropToGround(s: Stuck): void {
-    s.animal = null;
+    s.animal = null; s.frame = null;
     const g = floorUnder(s.pos.x, s.pos.y, s.pos.z);   // the ground, a deck, a rock — whatever it hangs over
     s.dir.set(s.dir.x * 0.35, -1, s.dir.z * 0.35).normalize();
     s.pos.set(s.pos.x, g, s.pos.z).addScaledVector(s.dir, this.kind.bury * 1.5);

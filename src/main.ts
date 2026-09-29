@@ -474,7 +474,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
   if (isOcean) registerDriftwoodModels({ sky, palms, bushes, palmSpecs });
   else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
-  registerTrainingDummyModel(); // the same three shared prop variants in every shard's Model Explorer
+  registerTrainingDummyModel(game.renderer); // the same three shared prop variants in every shard's Model Explorer
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   // the day clock behind one interface (src/world/WorldClock.ts, NALATI-MERGE F8): Driftwood's DayNight or Nalati's DayClock —

@@ -697,13 +697,16 @@ export class ModelExplorer implements ExplorePane {
     // landscape one the full height — frame on the model's own centre, not the turntable's raised aim
     const bb = new THREE.Box3().setFromObject(o);
     bb.getCenter(this.target);
-    const d = this.dist * (cam.aspect < 1 ? 1.08 : 0.8);
+    const src = game.canvas, k = Math.min(src.width / THUMB_W, src.height / THUMB_H);
+    const sw = THUMB_W * k, sh = THUMB_H * k;
+    // a tall model (the training dummy, E289) must fit the crop's height too, not only its width: back off until it does
+    const size = bb.getSize(new THREE.Vector3());
+    const tanV = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * (sh / src.height);
+    const d = Math.max(this.dist * (cam.aspect < 1 ? 1.08 : 0.8), (size.y * 0.56) / Math.max(0.05, tanV) + size.z / 2);
     cam.position.set(this.target.x + Math.sin(this.yaw) * cp * d, this.target.y + Math.sin(this.pitch) * d, this.target.z + Math.cos(this.yaw) * cp * d);
     cam.lookAt(this.target);
     game.composer.render(0);
     const c = document.createElement('canvas'); c.width = THUMB_W; c.height = THUMB_H;
-    const src = game.canvas, k = Math.min(src.width / THUMB_W, src.height / THUMB_H);
-    const sw = THUMB_W * k, sh = THUMB_H * k;
     c.getContext('2d')?.drawImage(src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, 0, 0, THUMB_W, THUMB_H);
     this.thumbs.set(e.id, c);
     this.unisolate();
