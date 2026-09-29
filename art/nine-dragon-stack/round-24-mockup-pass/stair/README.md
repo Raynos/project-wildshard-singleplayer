@@ -164,3 +164,28 @@ textures unchanged. No collider changes.
 
 Memory against the same HEAD: geometry 153.85 → 150.89 MB, textures unchanged. The lane is now 2.9 MB under its pass-6
 numbers. No collider changes.
+
+## Pass 9 (on HEAD 51bfc032)
+
+| Change | Where | Kept? |
+|---|---|---|
+| A red 火鍋 over a jade 旅館 on an iron mast 1.2 m off the south frontage at landing 1, facing the landing, left of the shop: C2·6's target composition (`c2-6-before-after-target.jpg`). Pass 3's flat 冰室 / 宾馆 go: the frontage's balconies hid them | C2 | kept (first hung at +12 m with 0.95 m characters: only the foot of 旅館 was in C2·6's frame; lowered to +7.2 m, 0.72 m) |
+| No coping planters on landing 1's segments: 3 m from dome C2's camera the instanced planter blobs read as green crystals; the potted plants behind the rail read better alone | C2 | kept |
+
+Memory against the same HEAD: geometry 151.39 → 151.40 MB, textures unchanged. No collider changes.
+
+### Where round 2 leaves the lane
+
+Worst pose at C1, C2 and mockup C: mockup C 108 draws / 1.03 M triangles; C1·4 1.44 M triangles (under the 180 / 2.3 M
+gate). Geometry is 2.9 MB under pass 6 on the same HEADs (the far pots), textures unchanged, colliders unchanged since
+pass 1 (walk test 19 legs, 0 stuck, 0 out).
+
+Gaps left, and whose they are:
+- The landings read pale pink (C2·4, C2·6, C2·8, the square's foot in C1·5) where the targets' landings are dark wet
+  stone carrying the neon: a darker slab changed nothing, so it is the wet-ground reflection of the bright sky (render).
+- C2·1 / C1·1 look up at a blue sky between the towers; the targets fill it with far pagoda towers and more bridges
+  (the sky / far city: render + fabric).
+- C2·4's target stands in a crowded tea house veranda with a big 麵 sign above it; from landing 1 the veranda's roof caps
+  the frame at 4 m, so a sign above it cannot be seen there (the plan's geometry).
+- The square's foot (C1·8, the bottom of C1·5) is flagstones, where the target puts steps down to the frame's foot: the
+  stair starts 4 m from the camera (the plan).

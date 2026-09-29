@@ -590,8 +590,10 @@ function terraces(ctx: Ctx, rng: Rng): void {
         for (let j = 0; j < nv; j++) vines(k, rng, s.xa + len * rng.range(0.15, 0.85), s.floor - 0.1, edge, n);
         // planter troughs along the coping in front of the rail, their greenery spilling over the stair's edge (the C
         // targets' terraces are green at the lip): instances of the facade's planter (E281)
+        // (not on landing 1's segments: 3 m from dome C2's camera the instanced blobs read as green crystals, pass 9)
         for (let x = s.xa + green.range(0.5, 1.1); x < s.xb - 0.6; x += green.range(1.3, 2.2)) {
-          piece(ctx, 'planter', new Vector3(x, s.floor, edge - side * 0.14), u, n, green.range(1.0, 1.35), green.range(1.1, 1.5), 0.7);
+          const sx = green.range(1.0, 1.35), sy = green.range(1.1, 1.5);
+          if (!nearL1) piece(ctx, 'planter', new Vector3(x, s.floor, edge - side * 0.14), u, n, sx, sy, 0.7);
         }
       }
       if (tea && len > 3.2) {
@@ -878,17 +880,23 @@ function stairSigns(ctx: Ctx, rng: Rng): void {
     ['豆花', NEON.jade, 58.5, 7.4, 1, 1.0],
     ['按摩', NEON.magenta, 63.5, 8.2, -1, 1.1],
   ];
-  // landing 1's own neon, flat on the south fronts facing the stair (C2·6 looks straight at them; from the square they
-  // are edge-on): a column on the shop front and one on the tower above it (E281; on the north the veranda's eave and
-  // the pent roof hide the fronts from the landing)
+  // landing 1's own neon on the south side, facing the landing (C2·6's target: a big red 火鍋 over a jade 旅館 on the
+  // wall across from you; from the square they are edge-on). Hung 1.2 m off the frontage on an iron mast and brackets,
+  // in front of its balconies (pass 3's flat 冰室 / 宾馆 were hidden behind them), left of the shop as the target has
+  // them, low enough that C2·6's frame (pitch 4°, its top 46° up) holds both (E281 pass 9)
   const L1 = LANDINGS[0] ?? { x0: 35.3, x1: 39.3, y: 132 };
-  const flat: [string, number, number, number, number, number, boolean][] = [
-    ['冰室', NEON.cyan, L1.x0 + 2.2, L1.y + 5.6, FACE_S - 0.14, 0.8, true],
-    ['宾馆', NEON.jade, L1.x0 + 1.4, L1.y + 10.6, FACE_S + SETBACK - 0.14, 1.05, true],
-  ];
-  for (const [text, col, x, y, z, size, vertical] of flat) {
-    const nz = z < (FACE_N + FACE_S) / 2 ? ZP : ZN;
-    ctx.signs.place({ at: new Vector3(x, y, z), normal: nz, size, spec: { text, color: hex(col), vertical, style: 'tube' } }, k);
+  {
+    const x = L1.x0 + 0.35, z = FACE_S - 1.2, size = 0.72, w = size * 1.36, h = size * 2.62;
+    const yTop = L1.y + 7.2;
+    const col: [string, number][] = [['火鍋', NEON.red], ['旅館', NEON.jade]];
+    col.forEach(([text, c], i) => {
+      const y = yTop - 0.2 - h / 2 - i * (h + 0.25);
+      ctx.signs.place({ at: new Vector3(x, y, z), normal: ZN, size, spec: { text, color: hex(c), vertical: true, style: 'tube' }, blade: true }, k);
+    });
+    const bottom = yTop - 0.2 - 2 * h - 0.45;
+    for (const dx of [-w / 2 - 0.08, w / 2 + 0.08]) k.beam(new Vector3(x + dx, bottom, z + 0.08), new Vector3(x + dx, yTop, z + 0.08), 0.06, 0.06, IRON);
+    for (const y of [yTop, bottom + 0.3]) k.beam(new Vector3(x, y, FACE_S), new Vector3(x, y, z + 0.05), 0.08, 0.1, IRON);
+    ctx.lantern(x - w / 2 - 0.1, bottom + 0.2, z, 0.6);
   }
   for (const [text, col, x, dy, side, size] of hero) {
     const wall = side > 0 ? FACE_N : FACE_S;
