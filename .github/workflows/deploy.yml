@@ -1,10 +1,8 @@
-# Continuous deployment: every push to main that passes the gates ships to production on Vercel.
-# Pull requests run the same gates and nothing else. Deploys go through the Vercel CLI with a token
-# held in this repo's Actions secrets, so whoever pushes to main (any collaborator) deploys — Vercel's
-# git-author check only applies to its own git integration, which this project deliberately does not use.
-# Vercel rebuilds the upload remotely, so a deploy lands ~1–2 min after the ~30 s of gates here.
-#
-# Secrets: VERCEL_TOKEN (project-scoped token), VERCEL_ORG_ID (team id), VERCEL_PROJECT_ID (project id).
+# Pushes and pull requests run the gates. Production deploys hourly or on manual dispatch.
+# The hourly run checks /version.json first and skips when HEAD is already live.
+# GitHub builds the Vercel artifact; Vercel only uploads the prebuilt output.
+# Secrets: VERCEL_TOKEN (project-scoped deploy token), VERCEL_BUILD_TOKEN (team-scoped
+# token for vercel pull/build), VERCEL_ORG_ID and VERCEL_PROJECT_ID.
 name: deploy
 
 on:
@@ -12,28 +10,36 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch: # re-deploy HEAD by hand: gh workflow run deploy
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Redeploy even if this commit is already live
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions:
+  contents: read
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  # deploy steps run only for pushes to main AND only once the token secret exists; until then the
-  # gates still run and the job stays green so the missing token is a notice, not a red build.
-  DEPLOY: ${{ github.event_name != 'pull_request' && secrets.VERCEL_TOKEN != '' }}
+  DEPLOY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
-          # The repo carries ~900 MB of progress captures / art / sources that the build never reads.
-          # Partial clone + sparse checkout keeps the runner to the code and the shipped assets.
+          # Progress captures and art sources are not used by this build.
           filter: blob:none
           sparse-checkout: |
             /*
@@ -43,52 +49,90 @@ jobs:
             !/docs/
           sparse-checkout-cone-mode: false
 
+      - name: Check live commit
+        id: live
+        if: env.DEPLOY == 'true'
+        env:
+          DEPLOY_FORCE: ${{ inputs.force }}
+        run: node scripts/deploy-version.mjs check
+
+      - name: Require deployment credentials
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN is missing'; exit 1; }
+          test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::VERCEL_BUILD_TOKEN is missing; create a team-scoped token for vercel pull/build'; exit 1; }
+          test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID" || { echo '::error::Vercel project IDs are missing'; exit 1; }
+
       - uses: pnpm/action-setup@v4
+        if: steps.live.outputs.skip != 'true'
         with:
           version: 10
 
       - uses: actions/setup-node@v4
+        if: steps.live.outputs.skip != 'true'
         with:
           node-version: 24
           cache: pnpm
 
       - name: Install
+        if: steps.live.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
 
-      # ---- gates: a red step here means no deploy -----------------------------------------------
       - name: Typecheck
+        if: steps.live.outputs.skip != 'true'
         run: pnpm run typecheck
 
       - name: Lint
+        if: steps.live.outputs.skip != 'true'
         run: pnpm run lint
 
       - name: Test
+        if: steps.live.outputs.skip != 'true'
         run: pnpm test
 
       - name: CSS check
+        if: steps.live.outputs.skip != 'true'
         run: node scripts/check-css.mjs
 
-      - name: Build
+      # Push/PR CI still verifies the web bundle; scheduled deploys build it with vercel build below.
+      - name: Web build gate
+        if: env.DEPLOY != 'true'
         run: pnpm exec vite build
 
-      # The iOS / Android shells' web bundle (docs/plans/NATIVE-APPS.md): a push that breaks it is red here.
-      # It ships nowhere from this workflow — apps update through the stores or `gh workflow run ota-promote`.
       - name: Native web build
+        if: steps.live.outputs.skip != 'true'
         run: pnpm run build:native
 
-      # ---- deploy (main only) ------------------------------------------------------------------
-      - name: No token, no deploy
-        if: github.event_name != 'pull_request' && env.DEPLOY != 'true'
-        run: echo "::warning::VERCEL_TOKEN secret is not set — gates passed but nothing was deployed"
-
-      # The token is project-scoped (vcp_…): it can deploy this one project and nothing else, which also
-      # means `vercel pull` / `vercel build` (they look the user up) refuse it. So: link the directory by
-      # writing .vercel/project.json ourselves and let Vercel build the upload remotely (`pnpm run build`).
-      - name: Vercel deploy
-        if: env.DEPLOY == 'true'
+      - name: Build Vercel output in GitHub Actions
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
+          npm install --global vercel@59.11.2
           mkdir -p .vercel
           printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
-          url=$(pnpm dlx vercel@latest deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }})
-          echo "deployed $url for ${{ github.sha }}"
-          echo "### Deployed \`${{ github.sha }}\` to $url" >> "$GITHUB_STEP_SUMMARY"
+          vercel pull --yes --environment production --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
+          vercel build --prod --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
+          test -f .vercel/output/config.json
+          test -f .vercel/output/static/version.json
+          test -f .vercel/output/functions/api/inbox.func/.vc-config.json
+          test -f .vercel/output/functions/api/errors.func/.vc-config.json
+
+      - name: Deploy prebuilt output
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_TOKEN")
+          echo "deployed $url for $GITHUB_SHA"
+          echo "### Deployed \`$GITHUB_SHA\` to $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify production
+        if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        run: |
+          node scripts/deploy-version.mjs verify
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'x-review-password: invalid' https://wildshard-singleplayer.vercel.app/api/inbox)
+          test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }

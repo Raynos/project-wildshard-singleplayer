@@ -11,7 +11,7 @@ const list = vi.fn(() => Promise.resolve({
 }));
 vi.mock('@vercel/blob', () => ({ put, list, get: vi.fn() }));
 
-const { POST, GET, OPTIONS, cleanContext, errorRecord, errorRateLimited, resetErrorRateLimit, MAX_ERROR_BODY_BYTES, MAX_STACK_CHARS, ERROR_RATE_PER_MIN } = await import('./errors');
+const { POST, GET, OPTIONS, cleanContext, errorRecord, errorRateLimited, resetErrorRateLimit, MAX_ERROR_BODY_BYTES, MAX_STACK_CHARS, ERROR_RATE_PER_MIN } = await import('../api/errors');
 
 const PW = 'test-pass-42';
 const post = (body: unknown, ip = '1.2.3.4'): Request =>
@@ -29,8 +29,8 @@ beforeEach(() => {
 describe('POST', () => {
   it('retains bounded boot diagnostics in the first-party inbox', () => {
     const diagnostic = JSON.stringify({ checkpoints: [{ operation: 'renderer:failed', facts: { contextLost: true } }] });
-    expect(cleanContext({ bootDiagnostic: diagnostic })['bootDiagnostic']).toBe(diagnostic);
-    expect(String(cleanContext({ bootDiagnostic: 'x'.repeat(9000) })['bootDiagnostic'])).toHaveLength(8000);
+    expect(cleanContext({ bootDiagnostic: diagnostic }).bootDiagnostic).toBe(diagnostic);
+    expect(String(cleanContext({ bootDiagnostic: 'x'.repeat(9000) }).bootDiagnostic)).toHaveLength(8000);
   });
   it('stores the report under errors/ as category error — no password needed, no IP kept', async () => {
     const res = await POST(post(report));
@@ -44,7 +44,7 @@ describe('POST', () => {
       context: { shard: 'driftwood-isle', tier: 'phone', touch: true, pos: [1.23, 2, 3] },
     });
     expect(rec).not.toHaveProperty('ip');
-    expect(rec['context']).not.toHaveProperty('secret'); // whitelisted fields only
+    expect(rec.context).not.toHaveProperty('secret'); // whitelisted fields only
   });
 
   it('refuses an empty message, bad json, an oversize body; clamps a long stack', async () => {
@@ -53,7 +53,7 @@ describe('POST', () => {
     expect((await POST(post({ ...report, stack: 'x'.repeat(MAX_ERROR_BODY_BYTES) }))).status).toBe(413);
     expect(put).not.toHaveBeenCalled();
     const rec = errorRecord({ message: 'm', stack: 's'.repeat(MAX_STACK_CHARS * 2) }, 'id', '');
-    expect(rec?.['error']).toMatchObject({ stack: 's'.repeat(MAX_STACK_CHARS), system: 'window' });
+    expect(rec?.error).toMatchObject({ stack: 's'.repeat(MAX_STACK_CHARS), system: 'window' });
   });
 
   it('answers 503 when the blob store is not configured', async () => {
@@ -72,7 +72,7 @@ describe('POST', () => {
 
   it('cleanContext survives junk', () => {
     expect(cleanContext(null)).toEqual({});
-    expect(cleanContext({ pos: ['x', 1, Number.NaN, 4] })['pos']).toEqual([0, 1, 0]);
+    expect(cleanContext({ pos: ['x', 1, Number.NaN, 4] }).pos).toEqual([0, 1, 0]);
   });
 });
 

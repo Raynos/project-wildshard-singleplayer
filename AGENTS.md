@@ -100,7 +100,8 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 ## Version control
 
 - Commit early and often with small commits, and `scripts/push-main.sh` after every commit —
-  don't let local commits pile up. **A push is a deploy** (see Deploy), so before you push,
+  don't let local commits pile up. A push runs CI; the hourly deploy ships the latest green `main`
+  (see Deploy), so before you push,
   HEAD must pass the four CI gates on a clean export of the tree — `tsc --noEmit`, `oxlint`,
   `node scripts/check-css.mjs`, `vite build` — not just the files you touched.
 - **Strict means strict.** `tsconfig.json` has every strictness flag on and `.oxlintrc.json` is
@@ -288,16 +289,16 @@ on his laptop.
 
 ## Deploy
 
-- **Continuous deployment: every push to `main` deploys.** `.github/workflows/deploy.yml`
-  runs typecheck → oxlint → css check → vite build and, if all green, ships the commit to
-  production (project `wildshard-singleplayer`, live at
-  https://wildshard-singleplayer.vercel.app) — about a minute push-to-live. A red gate means
-  no deploy and the run is red on GitHub; that is your red to fix, now.
-- After every push: `gh run watch $(gh run list --limit 1 --json databaseId -q '.[0].databaseId')
-  --exit-status`, then confirm `https://wildshard-singleplayer.vercel.app/version.json` reports
-  your HEAD's short SHA. Put that build id in the ask's file.
-- Don't `vercel deploy` by hand while CI is healthy; `gh workflow run deploy` re-ships HEAD.
-  The deploy uses a project-scoped Vercel token held in the repo's Actions secrets, so any
-  collaborator's push deploys — nobody needs a Vercel login.
-- Deploy frequently still applies: small commits, pushed as they land. Don't batch up a day
-  of work before shipping it.
+- `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
+  deploys at :17 each hour or from `gh workflow run deploy`; the job skips if
+  `/version.json` already reports `main`'s short SHA. `gh workflow run deploy -f force=true`
+  redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it
+  with `vercel deploy --prebuilt`, so Vercel does not repeat the build. The deploy token is
+  project-scoped; `VERCEL_BUILD_TOKEN` must be a team-scoped Actions secret for `vercel pull`
+  and `vercel build`. No credentials belong in Git.
+- After every push, watch that push's CI run. After the next hourly or manual deployment,
+  confirm `https://wildshard-singleplayer.vercel.app/version.json` reports the shipped
+  short SHA and record the build ID in the ask file. A green push means verified in GitHub,
+  not yet live. If the game needs an immediate release, run `gh workflow run deploy` and watch it.
+- Do not run `vercel deploy` by hand while CI is healthy. Keep commits and pushes small;
+  the hourly job releases the newest green `main` together.

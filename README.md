@@ -48,3 +48,15 @@ What each is, its systems, where its code lives, and how to add a fourth: `docs/
 
 Live plans are in `docs/plans/` — each opens with a **State** line (`draft` · `in progress` · `blocked`).
 Finished or dropped plans move to `project/archive/<date>-<name>.md`. The rules are in `AGENTS.md` → Plans.
+
+## Deployment
+
+`pnpm install --frozen-lockfile && pnpm run build` builds locally. Pushes to `main`
+run GitHub CI without deploying. Production at
+https://wildshard-singleplayer.vercel.app updates hourly at :17, or on demand with
+`gh workflow run deploy`. The workflow skips when the live `/version.json` already
+has the current commit; use `gh workflow run deploy -f force=true` to redeploy it.
+GitHub Actions runs the checks and `vercel build`, then uploads the output with
+`vercel deploy --prebuilt`. The workflow needs `VERCEL_ORG_ID`,
+`VERCEL_PROJECT_ID`, a project-scoped `VERCEL_TOKEN` for deployment, and a
+team-scoped `VERCEL_BUILD_TOKEN` for local Vercel builds in Actions.

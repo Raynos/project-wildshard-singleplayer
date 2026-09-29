@@ -5,7 +5,8 @@
 # agents pushed the same ~12 MB at once and every push hung for 15+ minutes. So pushes take .git/push.lock
 # (macOS lockf: released even if the push dies), and a held lock means LEAVE LOCAL, never wait: the push in flight
 # re-checks origin/main..main before it lets go and pushes again, so it carries every commit that landed meanwhile.
-# Shipped? `git log origin/main..main` is empty, then https://wildshard-singleplayer.vercel.app/version.json.
+# Pushed? `git log origin/main..main` is empty. Live? Check the next hourly deploy and
+# https://wildshard-singleplayer.vercel.app/version.json (or dispatch the workflow now).
 #
 #   scripts/push-main.sh
 set -uo pipefail
