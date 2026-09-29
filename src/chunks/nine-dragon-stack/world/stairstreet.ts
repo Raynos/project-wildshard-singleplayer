@@ -208,6 +208,26 @@ export function cutByHole(bx0: number, bx1: number, y: number, h: number, hole: 
   return out;
 }
 
+/**
+ * The figures this lane added after pass 3 (the shops' customers, the people on the balconies) wait here and join the
+ * crowd at the end of the stair's build, cut to a multiple of ten: world/build.ts gives walkers their coat and umbrella
+ * by index (i % 10), so every figure after this lane's — the Well's — keeps its variant (the square lane's rule, E281).
+ */
+const extraFigures: Matrix4[] = [];
+export function extraFigure(m: Matrix4): void { extraFigures.push(m); }
+export function flushExtraFigures(ctx: Ctx): void {
+  const n = Math.floor(extraFigures.length / 10) * 10;
+  for (const m of extraFigures.slice(0, n)) ctx.walkers.push(m);
+  extraFigures.length = 0;
+}
+
+/** the same through several holes */
+export function cutByHoles(bx0: number, bx1: number, y: number, h: number, holes: readonly Hole[]): [number, number][] {
+  let parts: [number, number][] = [[bx0, bx1]];
+  for (const hole of holes) parts = parts.flatMap(([a, b]) => cutByHole(a, b, y, h, hole));
+  return parts;
+}
+
 const SHOP_WORDS = ['麵', '茶', '涼茶', '豆花', '抄手', '小面', '雲吞', '糖水', '粥麵', '燒臘', '藥房', '冰室'] as const;
 const SHOP_NEON = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber] as const;
 
@@ -242,9 +262,9 @@ export function wallShop(ctx: Ctx, k: Kit, r: Rng, hole: Hole, edge: number, n: 
   k.beam(at(sx, sy + sh / 2 + 0.12, 0), at(sx, sy + sh / 2 + 0.12, 0.95), 0.05, 0.05, IRON);
   ctx.lantern(hole.x0 + 0.25, hole.y1 - 0.12, edge + n.z * 0.45, 0.5);
   ctx.emitters.push({ at: at(cx, hole.y0 + h * 0.5, 0.3), color: new Color(0xffc48a), w: w - 0.2, h, power: 0.24, spill: 0.3 });
-  // now and then a customer at the counter (never on the landing's camera spot, dome C2's anchor)
-  const keep = Math.hypot(cx - 37.3, edge + n.z * 0.72 - 6) > 3;
-  if (r.chance(0.45) && keep) ctx.walkers.push(mat4(cx + r.range(-0.3, 0.3), floor(cx), edge + n.z * 0.72, n.z > 0 ? Math.PI : 0, r.range(0.95, 1.02)));
+  // now and then a customer at the counter (never on landing 1, where dome C2's cameras stand)
+  const L1 = LANDINGS[0], keep = L1 === undefined || cx < L1.x0 - 1.5 || cx > L1.x1 + 1.5;
+  if (r.chance(0.45) && keep) extraFigure(mat4(cx + r.range(-0.3, 0.3), floor(cx), edge + n.z * 0.72, n.z > 0 ? Math.PI : 0, r.range(0.95, 1.02)));
 }
 
 /**
@@ -279,7 +299,8 @@ const HALF_TOP: Look = { wash: 0x51545a, kind: K.flag, wet: 1, line: 1.8 };
 // from the square the flights read as single stone steps edged in light, as the C targets paint them, not as a dark
 // ramp. Light granite risers were tried and read as a pale ramp under the high-key grade.)
 const HALF_RISER: Look = { wash: 0x44454a, kind: K.stone, line: 1.8, wet: 0.6 };
-const NOSING: Look = { wash: 0xd6d8da, kind: K.stone, line: 0, wet: 0.6 };
+// (a faint glow on the worn edge: the wet sheen that picks out every step from the square, E281 pass 5)
+const NOSING: Look = { wash: 0xdfe1e3, kind: K.stone, line: 0, wet: 0.6, emit: 0.3 };
 const MOSS: Look = { wash: 0x3a4a34, kind: K.leaf, line: 0, wet: 0.6 };
 
 /**
@@ -300,7 +321,7 @@ function flightOne(ctx: Ctx, rng: Rng): void {
       const len = Math.min(STAIR.z1 - z, rng.range(1.5, 3.2));
       const mid = Math.abs(z + len / 2 - zc) < 2.2;
       const sag = mid && rng.chance(0.35) ? rng.range(0.008, 0.025) : 0;
-      const tone = rng.range(0.86, 1.1);
+      const tone = rng.range(0.78, 1.14);
       k.box(x + hd / 2, top - hr - 0.22, z + len / 2, hd + 0.03, hr + 0.22 - sag, len - 0.025,
         { ...HALF_RISER, wash: tint(HALF_RISER.wash, tone) }, { top: { ...HALF_TOP, wash: tint(HALF_TOP.wash, tone) } });
       const nx = x - 0.005, ny = top - sag;
@@ -806,6 +827,7 @@ function footCrowd(ctx: Ctx, rng: Rng): void {
 /** C1: the stair-street's foot and first flight (x < SQ_BACK); buildStairUpper (C2) builds landing 1 upward */
 export function buildStairStreet(ctx: Ctx): void {
   const rng = new Rng(4404);
+  extraFigures.length = 0;
   flightOne(ctx, rng);
   teaHouse(ctx, rng);
   hotpotShop(ctx, rng);

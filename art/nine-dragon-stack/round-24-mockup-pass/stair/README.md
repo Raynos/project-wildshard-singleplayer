@@ -98,4 +98,19 @@ other lanes keep landing.
 Memory against the same HEAD: geometry 156.05 → 155.96 MB (the windows, posts, eaves, planters and rails are instances;
 the ashlar cut for the windows pays for the sills, signs and brackets), textures unchanged. No collider changes. The
 customers change the number of walkers, so the Well's figures after this lane's take other coat and umbrella variants
-(a random re-colouring, nothing moves).
+(a random re-colouring, nothing moves; pass 5 puts that right).
+
+## Pass 5 (on HEAD 73cabfa4)
+
+| Change | Where | Kept? |
+|---|---|---|
+| A second, shorter counter window further up each flight segment where the wall still has the height: twice the warm shopfronts up the flanks at eye level | C2 | kept |
+| Timber tea-house balconies on the frontages over the verandas and shops, one a storey (two on the 9 m fronts): the facade's timber balcony, a lit door behind it, a potted plant, a lantern, sometimes somebody at the rail. They show from the landing and the aerials; from the square they are edge-on | C2 | kept |
+| The coping planters a size larger | C2 | kept |
+| The nosings glow faintly (emission 0.3, a whiter wash) and the step slabs vary more in tone: every step's edge reads from the square and the landing, as in the targets | C1 + C2 | kept (0.14 first: too faint to see) |
+| The customer at landing 1's shop stood in C2·4's foreground (pass 4's rule kept it 3 m off the camera; that was not enough): no customers on landing 1 at all | C1 helper | kept |
+| The figures added since pass 3 (customers, people on balconies) join the crowd at the end of the stair's build, cut to a multiple of ten, so the Well's figures keep their coat and umbrella variants (the square lane's rule) | C1 + C2 | kept |
+
+Memory against the same HEAD: geometry 154.43 → 154.44 MB (the second windows' sills, signs and brackets less the ashlar
+they cut; the balconies and planters are instances), textures unchanged; since pass 3 this lane is net −0.08 MB. No
+collider changes.
