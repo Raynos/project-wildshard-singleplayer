@@ -10,7 +10,8 @@ import { nineDragonWorld } from '../index';
 import { TIER } from '../../../core/tier';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
-import { LUT_URL } from './light/install';
+import { LUT_URL, lightSources } from './light/install';
+import { type Halos, buildHalos } from './light/halos';
 import { clearLanterns, updateLanterns } from './lanterns';
 import { BleedPass } from './render/bleed';
 import { BLEED, JiehuaEffect } from './render/jiehua';
@@ -33,10 +34,26 @@ export interface NdRenderHandle {
   setCardOn: (v: number) => void;
   /** the streak cards' meshes (the square's, the stair flights' and landings') */
   streaks: Object3D[];
+  /** (E281) the phone's light halos (light/halos.ts; null where the bleed pyramid glows instead) */
+  halos: Halos | null;
 }
 
 /** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
 const CARD_ON = 0.6;
+/** (E281) the phone has no screen-space reflection: its cards are the whole wet-ground reflection, at full strength and
+ *  brighter (the targets' every light lays a long bright run on the stone) */
+const PHONE_CARD_GAIN = 1.5;
+
+/** (E281) the engine's cloud layer (world/Sky.ts: a white cumulus dome for the daylight shards) has no place in a
+ *  blue-hour sky under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky. Hiding it also
+ *  drops its draw and its full-sky fill */
+function hideEngineClouds(scene: Object3D): boolean {
+  let found = false;
+  for (const o of scene.children) {
+    if (o instanceof Mesh && o.material instanceof ShaderMaterial && o.material.uniforms['tClouds'] !== undefined) { o.visible = false; found = true; }
+  }
+  return found;
+}
 
 export function createRender(): ShardRender {
   let handle: NdRenderHandle | null = null;
@@ -51,6 +68,7 @@ export function createRender(): ShardRender {
   const grade = gradeUniforms();
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
   let lastPr = 0;
+  let clouds: Object3D | null = null;
 
   return {
     // n8ao on the phone tier too (the tier row has it off): the city's corners, eaves, awnings and feet. With it, the
@@ -115,14 +133,28 @@ export function createRender(): ShardRender {
         if (u !== undefined && typeof u.value === 'number') { cardOns.push(u as IUniform<number>); streaks.push(o); }
       });
       const setCardOn = (v: number): void => { for (const u of cardOns) u.value = v; };
-      setCardOn(CARD_ON);
-      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks };
+      setCardOn(reflect === null ? 1 : CARD_ON);
+      if (reflect === null) {
+        for (const o of streaks) {
+          const k = o instanceof Mesh && o.material instanceof ShaderMaterial ? o.material.uniforms['uCardK'] : undefined;
+          if (k !== undefined && k.value instanceof Vector4) k.value.x *= PHONE_CARD_GAIN;
+        }
+      }
+      // the phone's glow: no bleed pyramid, so every light gets a halo in the drizzle
+      const src = lightSources();
+      const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
+      if (halos !== null) world.root.add(halos.mesh);
+      clouds = c.scene;
+      if (hideEngineClouds(c.scene)) clouds = null;
+      handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos };
       Reflect.set(window, '__ndRender', handle);
       return { beforeChain, chain: [jiehua] };
     },
     frame(): void {
       const world = nineDragonWorld();
       if (world === null || handle === null) return;
+      // (the cloud layer may be made after the composer: look once more on the first frame)
+      if (clouds !== null) { hideEngineClouds(clouds); clouds = null; }
       // line widths are authored at 3× (look/style.ts uDpr); the drawing buffer's size for the screen-space pieces
       // line widths are authored at 3× (look/style.ts uDpr). Below 3× a ruled line is thinner in buffer pixels and the
       // upscale to the screen softens it further: the phone's 2× draws them 20 % heavier, so they read at the clean
@@ -140,6 +172,7 @@ export function createRender(): ShardRender {
     },
     dispose(): void {
       document.removeEventListener('ws:practice-active', onPractice);
+      if (handle?.halos) { handle.halos.mesh.removeFromParent(); handle.halos.mesh.geometry.dispose(); handle.halos.mesh.material.dispose(); }
       if (handle !== null && Reflect.get(window, '__ndRender') === handle) Reflect.deleteProperty(window, '__ndRender');
       handle = null;
       clearLanterns();

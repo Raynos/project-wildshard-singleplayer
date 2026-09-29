@@ -17,6 +17,8 @@ import { VM_SLICE } from './bleed';
 export const BLEED = {
   threshold: 1.0, knee: 0.08, tight: 0.16, wide: 0.4, stain: 0.5, stainResponse: 2.2, weave: 0.5, warp: 0.004, edge: 0.12,
   exposure: 1, rain: 0.55, rainAngle: 0.14, rainSpeed: 520, vignette: 0.3, grain: 2.5, shadowBlue: 0.12,
+  /** (render, E281) the toe (see the composite) and the vibrance */
+  toe: 0.5, toeEnd: 0.32, vibrance: 0.3,
 };
 
 const FS = /* glsl */ `
@@ -39,6 +41,7 @@ uniform vec4 uBleed;   // x: tight light, y: wide light, z: stain (pigment glaze
 uniform vec4 uBleed2;  // x: weave soak, y: fibre warp (uv), z: edge darkening, w: exposure
 uniform vec4 uRain;    // x: strength, y: angle (rad), z: speed (px/s), w: px scale (DPR)
 uniform vec3 uGrade;   // x: vignette, y: grain, z: shadow lift toward ink-blue
+uniform vec4 uTone;    // (render, E281) x: the toe's floor (a black's scale), y: the luminance where the toe ends, z: vibrance
 uniform float uDpr;
 uniform vec2 uSilPx;   // silhouette width near, at 60 m (px at 3×)
 uniform vec2 uSilFade; // silhouettes gone between these distances (m)
@@ -161,6 +164,15 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   c *= uBleed2.w;
   c = shoulderHP(c);
   float l = lum(c);
+  // (render, E281) the blue-hour toe: the targets' darks sit ~10 L* under ours (p10 L* 16 against 23–40) while their
+  // lights match — the shadows, eaves and gaps go deep and the pale silk stays pale, so the depth reads in layers; and
+  // the targets' colour is richer (mean saturation 0.3 against 0.2): vibrance, the dull washes lifted most and the
+  // cinnabar and neon (already saturated) left alone. Hue-preserving
+  float tk = mix(uTone.x, 1.0, smoothstep(0.0, uTone.y, l));
+  c *= tk;
+  l *= tk;
+  float cmx = max(c.r, max(c.g, c.b)), sat0 = (cmx - min(c.r, min(c.g, c.b))) / max(cmx, 1e-5);
+  c = max(mix(vec3(l), c, 1.0 + uTone.z * (1.0 - sat0)), 0.0);
   c = mix(c, c * vec3(0.9, 0.96, 1.1), (1.0 - smoothstep(0.02, 0.25, l)) * uGrade.z * (1.0 - uSutra));
   c *= 1.0 + (weave - 0.5) * 0.035;
   vec2 q = uv - 0.5;
@@ -193,6 +205,7 @@ export class JiehuaEffect extends Effect {
       uBleed2: new Uniform(new Vector4(B.weave, B.warp, B.edge, B.exposure)),
       uRain: new Uniform(new Vector4(B.rain, B.rainAngle, B.rainSpeed, 2)),
       uGrade: new Uniform(new Vector3(B.vignette, B.grain, B.shadowBlue)),
+      uTone: new Uniform(new Vector4(B.toe, B.toeEnd, B.vibrance, 0)),
       uGlow2: new Uniform(glow.uGlow2.value), uGlowCol: new Uniform<Color>(glow.uGlowCol.value),
       uLut: new Uniform(grade.uLut.value), uLutAmt: new Uniform(grade.uLutAmt.value),
     };

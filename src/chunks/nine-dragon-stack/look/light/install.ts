@@ -28,7 +28,8 @@ export interface LightSettings {
 
 /** the lab's tuning on the clean room at 3c39b36f (round-9-lab-light/README.md §What won); round 14: the pools are
  *  stronger (pools.ts), so the flat wet sheen 1.0 → 0.55 (the view-dependent lobe, lightvol.ts poolSpec, carries the gloss) */
-export const LIGHT_DEFAULTS: LightSettings = { pools: 1, poolGain: 1, sheen: 0.55, glow: 1, halo: 0.6, veil: 0.15, glowThr: 0.22, glowNear: 6, glowFar: 40, grade: 1, wetSky: 0.1, ambient: 0.78 };
+// (render, E281) the ambient 0.78 → 0.62: the blue-hour targets' washes sit well under their lights
+export const LIGHT_DEFAULTS: LightSettings = { pools: 1, poolGain: 1, sheen: 0.55, glow: 1, halo: 0.6, veil: 0.15, glowThr: 0.22, glowNear: 6, glowFar: 40, grade: 1, wetSky: 0.1, ambient: 0.62 };
 
 // refitted on the clean room's own frames after the merge (round 11; LOOK-LOOP.md step 6), not the lab's 3c39b36f fit
 export const LUT_URL = '/assets/nine-dragon/grade-lut-cleanroom.bin';
@@ -49,11 +50,16 @@ export interface Light {
   stats: () => { square: BakeStats; well: BakeStats; lights: number; lut: boolean };
 }
 
+/** (render, E281) the last installed light's sources, lit windows aside: the phone's halos (halos.ts) are made from them */
+let sources: { lanterns: readonly EmitterLike[]; shops: readonly EmitterLike[]; signs: readonly EmitterLike[] } | null = null;
+export function lightSources(): typeof sources { return sources; }
+
 export function installLight(opt: {
   u: LightUniforms; pipe: LightPipe;
   lanterns: readonly EmitterLike[]; ctxEmitters: readonly EmitterLike[]; signs: readonly EmitterLike[]; windows: readonly WindowLike[];
 }): Light {
   const u = opt.u;
+  sources = { lanterns: opt.lanterns, shops: opt.ctxEmitters, signs: opt.signs };
   const shops = opt.ctxEmitters.filter((e) => !isLamp(e));
   const lamps = opt.ctxEmitters.filter(isLamp).map((e) => e.at);
   const lights = gatherPools({ lanterns: opt.lanterns, shops, lamps, signs: opt.signs, windows: opt.windows });

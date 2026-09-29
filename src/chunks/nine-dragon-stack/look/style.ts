@@ -52,7 +52,9 @@ export const BAND_COUNT = 11;
 
 interface LookPreset { fog: number; sky: [number, number]; tint: [number, number, number]; shade: number }
 const LOOKS: Readonly<Record<LookName, LookPreset>> = {
-  jiehua: { fog: 0x97a7c0, sky: [0x7390b8, 0xaec0d8], tint: [0.9, 0.93, 1.0], shade: 0x939bae },
+  // (render, E281) the blue hour of the eight domes' targets: the sky a deep cerulean (#4a7cb9 looking up), the far air a
+  // blue haze, the shaded faces a cool ink-blue (Shared.u holds the same: the game never calls setLook)
+  jiehua: { fog: 0x8596b6, sky: [0x4674b4, 0x6a80a6], tint: [0.9, 0.93, 1.0], shade: 0x7a86a6 },
   silk: { fog: 0xc4b59a, sky: [0xa8977a, 0xd2c3a4], tint: [1.1, 1.0, 0.82], shade: 0xbcb2a0 },
   sutra: { fog: 0x22325a, sky: [0x0a1224, 0x1d2b4a], tint: [1, 1, 1], shade: 0xadb2bf },
 };
@@ -116,7 +118,7 @@ export class Shared {
     uGoldDim: { value: c(0x7a5f2a) },
     // washes
     uLightDir: { value: new Vector3(0.35, 0.86, 0.38).normalize() },
-    uShade: { value: c(0xadb2bf) },
+    uShade: { value: c(0x7a86a6) },
     uPool: { value: 0.06 },
     uStain: { value: 0.1 },
     uMottle: { value: 0.12 },
@@ -132,11 +134,11 @@ export class Shared {
     // fog
     uFogBase: { value: 0.0052 },
     uFogStart: { value: 16 },
-    uFogBaseCol: { value: c(0x9aa6ba) },
+    uFogBaseCol: { value: c(0x8596b6) },
     uBands: { value: BANDS.map((b) => new Vector4(b.y, b.w, b.d, b.puff ?? 0)) },
     uBandCols: { value: BANDS.map((b) => c(b.jiehua)) },
-    uSkyTop: { value: c(0x7c8aa3) },
-    uSkyHorizon: { value: c(0xc6cbd3) },
+    uSkyTop: { value: c(0x4674b4) },
+    uSkyHorizon: { value: c(0x6a80a6) },
     uSilk: { value: silkWeave() as Texture },
     uGroundY: { value: 0 },
     // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths; the glazed tiles' pitch
@@ -624,7 +626,8 @@ void main() {
     col = base * (0.82 + 0.3 * st.y) * (0.74 + 0.52 * speck) * pInk(mix(vec3(1.0), pf.rgb, kf), uPaintInk);
     float wAmt = wet * mix(0.55, 1.0, wLoc);
     wetPool = wAmt * (1.0 - st.x);
-    col *= 1.0 - 0.45 * wAmt;
+    // (render, E281) wet granite at blue hour is dark slate: the lights live in its reflections, not in its wash
+    col *= 1.0 - 0.6 * wAmt;
     float ndv = clamp(V.y, 0.0, 1.0);
     float fres = 0.04 + 0.96 * pow(clamp(1.0 - ndv, 0.0, 1.0), 5.0);
     emit += fogHere * fres * wAmt * 0.3 * (1.0 - st.x);

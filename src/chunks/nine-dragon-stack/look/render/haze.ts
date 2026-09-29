@@ -119,7 +119,7 @@ export class HazePass extends Pass {
       tDepth: { value: null as Texture | null }, uInvProj: { value: new Matrix4() }, uCamWorld: { value: new Matrix4() },
       uNF: { value: new Vector2(0.1, 1000) }, uHz: { value: new Vector4() }, uHz2: { value: new Vector4() }, uGroundY: { value: groundY },
       uLpVolA: s.uLpVolA, uLpMinA: s.uLpMinA, uLpInvA: s.uLpInvA, uLpVolB: s.uLpVolB, uLpMinB: s.uLpMinB, uLpInvB: s.uLpInvB,
-      uLpGain: s.uLpGain, uLpSky: s.uLpSky, uLpAmb: s.uLpAmb, uLpSpec: s.uLpSpec,
+      uLpGain: s.uLpGain, uLpSky: s.uLpSky, uLpAmb: s.uLpAmb, uLpSpec: s.uLpSpec, uLpCut: s.uLpCut,
     };
     this.mMarch = this.marchMaterial();
     this.mAdd = new ShaderMaterial({
