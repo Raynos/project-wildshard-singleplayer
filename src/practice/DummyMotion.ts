@@ -58,12 +58,12 @@ export interface DummyHit {
 
 export class DummyMotion {
   /** the post / pelvis: the whole upper figure rocks on it */
-  readonly rock = Spring.of(7.4, 0.23, 0.42);
+  readonly rock = Spring.of(7.4, 0.26, 0.5);
   /** spine and chest follow-through, relative to their parent */
   readonly spine = Spring.of(12, 0.34, 0.3);
   readonly chest = Spring.of(15, 0.34, 0.25);
   /** the head on the neck: stiff, but a headshot snaps it */
-  readonly head = Spring.of(14, 0.27, 0.6);
+  readonly head = Spring.of(14, 0.27, 0.7);
   /** each arm: a loose pendulum at the shoulder, a stiffer elbow and a light hand */
   readonly armL = Spring.of(6.2, 0.15, 0.7);
   readonly armR = Spring.of(6.2, 0.15, 0.7);
@@ -94,13 +94,13 @@ export class DummyMotion {
     const twist = h.pz * h.dx - h.px * h.dz;
     // every hit is a punch into the body (a bolt is only this); a melee blow's knock-back follows through shove()
     // a headshot spends the blow on the neck: the body rocks half as much
-    const rockI = soft(0.62 * w * lever, 2.2) * (h.headshot ? 0.5 : 1), chestI = soft(1.9 * w, 3.4) * (h.headshot ? 0.6 : 1);
+    const rockI = soft(0.85 * w * lever, 2.8) * (h.headshot ? 0.5 : 1), chestI = soft(2.4 * w, 4) * (h.headshot ? 0.6 : 1);
     const twistI = soft(twist * 4.5 * w, 3);
     this.rock.kick(ax * rockI, twistI * 0.25, az * rockI);
     this.spine.kick(ax * chestI * 0.6, twistI * 0.5, az * chestI * 0.6);
     this.chest.kick(ax * chestI * 0.4, twistI * 0.35, az * chestI * 0.4);
     if (h.headshot) {
-      const headI = soft(6.2 * w, 9);
+      const headI = soft(7 * w, 10.5);
       this.head.kick(ax * headI, twistI * 0.6, az * headI);
     } else {
       this.head.kick(ax * chestI * 0.25, 0, az * chestI * 0.25);
@@ -120,7 +120,7 @@ export class DummyMotion {
    */
   shove(py: number, dx: number, dz: number, strength: number, mass: number): void {
     const lever = 0.55 + 0.55 * Math.min(1.2, Math.max(0, (py - 0.85) / 0.75));
-    const I = soft((0.45 + 1.5 * strength) * lever / mass, 3.1);
+    const I = soft((0.65 + 2.1 * strength) * lever / mass, 4);
     this.rock.kick(dz * I, 0, -dx * I);
     const arms = soft(0.9 * (0.3 + strength) / mass, 2.4);
     this.armL.kick(-dz * arms, 0, dx * arms); this.armR.kick(-dz * arms, 0, dx * arms);

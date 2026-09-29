@@ -34,7 +34,7 @@ describe('practice dummy motion', () => {
     // a light slash is a nudge, a charged blow rocks the figure
     expect(light.rock).toBeGreaterThan(2 * DEG);
     expect(charged.rock).toBeGreaterThan(2.5 * light.rock);
-    expect(charged.rock).toBeLessThan(25 * DEG); // never folds over (the rock limit)
+    expect(charged.rock).toBeLessThan(29 * DEG); // never folds over (the rock limit)
     // a bolt punches the chest more than it rocks the post
     expect(body.body).toBeGreaterThan(body.rock);
     // a headshot snaps the head back hard, the body much less

@@ -552,6 +552,8 @@ export class Sky {
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, toneMapped: false }));
     halo.scale.setScalar(getActiveChunk().sky.painted ? 250 : 420); // a painted sun: a tighter glow (the mockups keep the sky blue right up to it)
     halo.scale.z = 1;
+    // the practice room (src/practice/TrainingArena.ts) is a closed box: there its ceiling must hide the glow (E285)
+    document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) halo.material.depthTest = e.detail === true; });
     this.sunDisc.add(halo);
     this.scene.add(this.sunDisc);
   }
