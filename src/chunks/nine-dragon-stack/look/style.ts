@@ -27,21 +27,26 @@ export type LookName = 'jiehua' | 'silk' | 'sutra';
 
 /** the fog bands down the Well (centre y, half-width m, density /m) and their silk per look: thin dense bands with
  *  clear air between read as counted bands (ink lab learning 6); deeper = bluer, to indigo */
-interface Band { y: number; w: number; d: number; jiehua: number; silk: number; sutra: number }
+interface Band { y: number; w: number; d: number; jiehua: number; silk: number; sutra: number; puff?: number }
 const BANDS: readonly Band[] = [
   { y: 212, w: 6, d: 0.022, jiehua: 0xd6dbe2, silk: 0xd8cfbd, sutra: 0x2a3a62 },
   { y: 152, w: 3, d: 0.008, jiehua: 0xc9ced6, silk: 0xcbc0ad, sutra: 0x24345a },
   // (round 14, the layered Well: Jake's "looking down the Well is flat, there's nothing") the strata bands under the
   // square are THIN silk — a crossing leaves 60–90 % of the light, so each level reads a step paler, not a white slab
-  { y: 101, w: 5, d: 0.03, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257 },
-  { y: 36, w: 5, d: 0.035, jiehua: 0xb1bccb, silk: 0xaba396, sutra: 0x1e2c4e },
+  // (F5, the Well's strata: Jake's "down the Well is the weakest … not layered and complex") the Well's bands are CLOUD
+  // (puff 1): dense puffs lying across the shaft with clear holes, a stratum every ~20 m, so looking down each level
+  // reads through the holes a step deeper and paler; the lowest is the cloud sea the temple's terrace (+48) floats on
+  { y: 103, w: 2.5, d: 0.085, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257, puff: 1 },
+  { y: 84, w: 3, d: 0.1, jiehua: 0xbec6d3, silk: 0xbfb4a3, sutra: 0x213055, puff: 1 },
+  { y: 64, w: 3, d: 0.085, jiehua: 0xb8c2d0, silk: 0xb7ad9d, sutra: 0x202f52, puff: 1 },
+  { y: 44, w: 4, d: 0.15, jiehua: 0xb3becc, silk: 0xaea698, sutra: 0x1e2d4f, puff: 1 },
   { y: -30, w: 5, d: 0.045, jiehua: 0x9eabbe, silk: 0x8f8a82, sutra: 0x192644 },
   { y: -110, w: 5, d: 0.06, jiehua: 0x5d6a86, silk: 0x5f6478, sutra: 0x142039 },
   { y: -190, w: 5, d: 0.1, jiehua: 0x2c3a5e, silk: 0x2c3a5e, sutra: 0x101b31 },
   { y: -236, w: 5, d: 0.12, jiehua: 0x16223c, silk: 0x16223c, sutra: 0x0c1729 },
   { y: -400, w: 1, d: 0, jiehua: 0x000000, silk: 0x000000, sutra: 0x000000 },
 ];
-export const BAND_COUNT = 9;
+export const BAND_COUNT = 11;
 
 interface LookPreset { fog: number; sky: [number, number]; tint: [number, number, number]; shade: number }
 const LOOKS: Readonly<Record<LookName, LookPreset>> = {
@@ -126,7 +131,7 @@ export class Shared {
     uFogBase: { value: 0.0052 },
     uFogStart: { value: 16 },
     uFogBaseCol: { value: c(0x9aa6ba) },
-    uBands: { value: BANDS.map((b) => new Vector4(b.y, b.w, b.d, 0)) },
+    uBands: { value: BANDS.map((b) => new Vector4(b.y, b.w, b.d, b.puff ?? 0)) },
     uBandCols: { value: BANDS.map((b) => c(b.jiehua)) },
     uSkyTop: { value: c(0x7c8aa3) },
     uSkyHorizon: { value: c(0xc6cbd3) },
@@ -139,9 +144,10 @@ export class Shared {
     // x: bare stone (balustrade rails, posts, the Well lip), y: the carved frieze, z: concrete walls
     uPaintFlag: { value: 0.18 },
     uPaintStone: { value: new Vector3(0.2, 0.0, 0.65) },
-    // the Well's shaft mist: its box (x0, z0, x1, z1) and density / rim height (set by main.ts from layout.ts WELL)
+    // the Well's shaft mist: its box (x0, z0, x1, z1) (set by build.ts from well-plan.ts SHAFT); x the depth silk's
+    // density (0.085 = round 14's profile), y the rim height (build.ts), z the along-canyon air (1/m), w its ceiling over the rim (m)
     uShaft: { value: new Vector4(0, 0, 0, 0) },
-    uShaftK: { value: new Vector2(0.085, 0) },
+    uShaftK: { value: new Vector4(0.05, 0, 0.01, 30) },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
@@ -197,7 +203,7 @@ uniform float uFogBase;
 uniform float uFogStart;
 uniform vec3 uFogBaseCol;
 uniform vec4 uShaft;
-uniform vec2 uShaftK;
+uniform vec4 uShaftK;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
 // the colour script: the silk's tint at an altitude, interpolated between the bands
@@ -247,8 +253,9 @@ vec4 silkFog(vec3 wp, float scale) {
     float bil = smoothstep(0.28, 0.72, vnoise(xp * 0.11 + b.x) * 0.6 + vnoise(xp * 0.33 - b.x) * 0.4);
     bil = mix(bil, 0.5, smoothstep(50.0, 160.0, length(d.xz) * clamp(tc, 0.0, 1.0)));
     // (round 14, dome D2) clear air round the eye wherever it is: inside a band (gliding down the Well) the galleries
-    // 10 m away stay crisp
-    tau *= (0.35 + 1.3 * bil) * scale * smoothstep(4.0, 22.0, L);
+    // 10 m away stay crisp. (F5, the Well's strata) a band's w is its puff: 0 the soft billow, 1 clouds — dense puffs
+    // with clear holes between them, so a stratum reads as cloud lying across the shaft, not a veil over everything
+    tau *= mix(0.35 + 1.3 * bil, 0.03 + 2.8 * bil * bil, b.w) * scale * smoothstep(4.0, 22.0, L);
     float a = 1.0 - exp(-tau);
     acc += T * a * uBandCols[k] * (1.1 - 0.34 * smoothstep(0.4, 1.0, bil));
     T *= 1.0 - a;
@@ -267,21 +274,34 @@ vec4 silkFog(vec3 wp, float scale) {
   // σ(h) = a·h + b·h², integrated exactly along the straight stretch (h is linear in it): clear for the first ~30 m,
   // looking straight down 50 m keeps ~75 % of the light, 100 m ~30 %, and below ~150 m everything dissolves into silk.
   // (It was a flat 0.085 /m from 25 m down: a white slab under the first crossing.)
-  if (uShaftK.x > 0.0 && L > 1e-3) {
+  // (F5 / F4, the Well from the rim) two more terms. The depth silk is lighter (uShaftK.x 0.085 → 0.05: D2's finding,
+  // 50–90 m down the old curve erased every level) and the strata's cloud bands (BANDS, puff) carry the steps instead.
+  // And aerial perspective ALONG the canyon: z per metre on the ray's stretch inside the shaft's footprint up to w m over
+  // the rim, weighted to level rays ((1 − |dy|)², so looking down stays clear) and after the first uFogStart metres —
+  // mockup B's crossings step paler rung by rung into the run north, the far end lost in the silk.
+  if ((uShaftK.x > 0.0 || uShaftK.z > 0.0) && L > 1e-3) {
     vec3 dn = d / L;
     vec3 inv = vec3(abs(dn.x) > 1e-5 ? 1.0 / dn.x : 1e5, abs(dn.y) > 1e-5 ? 1.0 / dn.y : 1e5, abs(dn.z) > 1e-5 ? 1.0 / dn.z : 1e5);
-    vec3 t0 = (vec3(uShaft.x, -260.0, uShaft.y) - uCam) * inv, t1 = (vec3(uShaft.z, uShaftK.y, uShaft.w) - uCam) * inv;
+    vec3 t0 = (vec3(uShaft.x, -260.0, uShaft.y) - uCam) * inv, t1 = (vec3(uShaft.z, uShaftK.y + uShaftK.w, uShaft.w) - uCam) * inv;
     vec3 tn = min(t0, t1), tf = max(t0, t1);
     float ta = max(max(tn.x, tn.y), max(tn.z, 0.0)), tb = min(min(tf.x, tf.y), min(tf.z, L));
     if (tb > ta) {
-      float ref = min(uShaftK.y, uCam.y);
-      float ha = max(ref - (uCam.y + dn.y * ta), 0.0), hb = max(ref - (uCam.y + dn.y * tb), 0.0);
-      float len = tb - ta;
-      float k = uShaftK.x / 0.085; // the Shared default (0.085) is the tuned profile
-      float tauS = k * len * (1.87e-4 * 0.5 * (ha + hb) + 8.0e-7 * (ha * ha + ha * hb + hb * hb) / 3.0) * scale * smoothstep(4.0, 22.0, L);
+      // the depth silk lies below the rim: the part of [ta, tb] under it
+      float tr = abs(dn.y) > 1e-5 ? (uShaftK.y - uCam.y) / dn.y : (uCam.y < uShaftK.y ? 1e9 : -1e9);
+      float da = dn.y < 0.0 ? max(ta, tr) : ta, db = dn.y < 0.0 ? tb : min(tb, tr);
+      float tauS = 0.0;
+      if (db > da) {
+        float ref = min(uShaftK.y, uCam.y);
+        float ha = max(ref - (uCam.y + dn.y * da), 0.0), hb = max(ref - (uCam.y + dn.y * db), 0.0);
+        float k = uShaftK.x / 0.085; // 0.085 was the tuned profile's density
+        tauS = k * (db - da) * (1.87e-4 * 0.5 * (ha + hb) + 8.0e-7 * (ha * ha + ha * hb + hb * hb) / 3.0);
+      }
+      float lv = 1.0 - abs(dn.y);
+      tauS += uShaftK.z * max(tb - max(ta, uFogStart), 0.0) * lv * lv;
+      tauS *= scale * smoothstep(4.0, 22.0, L);
       float as = 1.0 - exp(-tauS);
       float my = uCam.y + dn.y * 0.5 * (ta + tb);
-      acc += T * as * mix(uFogBaseCol * 1.12, scriptCol(my), 0.45);
+      acc += T * as * mix(uFogBaseCol * 1.12, scriptCol(min(my, uShaftK.y)), 0.45);
       T *= 1.0 - as;
     }
   }
