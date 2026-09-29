@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `in progress` 2026-09-28 — E274: removed API test functions; remaining asset cuts await usage and offline fallback verification.
+**State:** `in progress` 2026-09-28 — E274: API test functions removed and deployed; T2–T5 await source-map, asset-reference, offline and cost verification.
 
 The clean-export prebuilt output contains 1,375 static files / 524.5 MiB.
 Largest classes: GPU assets 202.7 MiB, original textures 82.7 MiB,
@@ -10,7 +10,7 @@ The Vercel build also creates four API functions. Two are test files under
 
 | Priority | Candidate | Gate before removal | Expected effect |
 | --- | --- | --- | --- |
-| T1 — done | Move `api/*.test.ts` out of Vercel's function discovery path | Unit tests still run; `/api/inbox` and `/api/errors` keep their handlers and status codes | Remove two unnecessary functions from every deployment |
+| T1 — done | Move `api/*.test.ts` out of Vercel's function discovery path | 619 tests pass; clean prebuilt output has two real functions; production `/api/inbox` and `/api/errors` each return 401 without credentials | Removed two unnecessary functions from every deployment |
 | T2 | Audit production `.js.map` files | Confirm Sentry debugging does not depend on publicly served maps; retain a private upload if needed | Up to 19.2 MiB less static output |
 | T3 | Map original `assets/tex/` textures against GPU KTX2 variants and runtime fallbacks | Automated reference search plus real desktop and phone boot/offline checks for all three shards | Remove only verified duplicate originals from the 82.7 MiB class |
 | T4 | Inventory 26 HDRIs and two videos against live scenes and trailer links | Keep every selected sky/time-of-day and user-facing video | Compress or omit unused members of the 48.5 MiB combined class |
