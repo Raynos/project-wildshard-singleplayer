@@ -38,10 +38,12 @@ const BANDS: readonly Band[] = [
   // reads through the holes a step deeper and paler; the lowest is the cloud sea the temple's terrace (+48) floats on.
   // Thin (τ ≈ 0.2 a stratum): at twice this, D2's views from inside the Well (its look-down, its aerial from below) went
   // to a white slab — a stratum 5 m under the eye is one puff across the whole frame
-  { y: 103, w: 2.5, d: 0.03, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257, puff: 1 },
-  { y: 84, w: 3, d: 0.035, jiehua: 0xbec6d3, silk: 0xbfb4a3, sutra: 0x213055, puff: 1 },
-  { y: 64, w: 3, d: 0.035, jiehua: 0xb8c2d0, silk: 0xb7ad9d, sutra: 0x202f52, puff: 1 },
-  { y: 44, w: 4, d: 0.1, jiehua: 0xb3becc, silk: 0xaea698, sutra: 0x1e2d4f, puff: 1 },
+  // (render, E281: the coordinator's D eye-check — 50–80 m down the mist passed a quarter of the light, the deep levels
+  // and the temple a pale floor) the strata at half their depth
+  { y: 103, w: 2.5, d: 0.015, jiehua: 0xc2cad6, silk: 0xc6baa7, sutra: 0x223257, puff: 1 },
+  { y: 84, w: 3, d: 0.0175, jiehua: 0xbec6d3, silk: 0xbfb4a3, sutra: 0x213055, puff: 1 },
+  { y: 64, w: 3, d: 0.0175, jiehua: 0xb8c2d0, silk: 0xb7ad9d, sutra: 0x202f52, puff: 1 },
+  { y: 44, w: 4, d: 0.05, jiehua: 0xb3becc, silk: 0xaea698, sutra: 0x1e2d4f, puff: 1 },
   { y: -30, w: 5, d: 0.045, jiehua: 0x9eabbe, silk: 0x8f8a82, sutra: 0x192644 },
   { y: -110, w: 5, d: 0.06, jiehua: 0x5d6a86, silk: 0x5f6478, sutra: 0x142039 },
   { y: -190, w: 5, d: 0.1, jiehua: 0x2c3a5e, silk: 0x2c3a5e, sutra: 0x101b31 },
@@ -52,9 +54,10 @@ export const BAND_COUNT = 11;
 
 interface LookPreset { fog: number; sky: [number, number]; tint: [number, number, number]; shade: number }
 const LOOKS: Readonly<Record<LookName, LookPreset>> = {
-  // (render, E281) the blue hour of the eight domes' targets: the sky a deep cerulean (#4a7cb9 looking up), the far air a
-  // blue haze, the shaded faces a cool ink-blue (Shared.u holds the same: the game never calls setLook)
-  jiehua: { fog: 0x8596b6, sky: [0x4674b4, 0x6a80a6], tint: [0.9, 0.93, 1.0], shade: 0x7a86a6 },
+  // (render, E281) blue hour, high key (the four mockups: a bright silver-blue silk, a pale sky, mid-grey wet stone under
+  // bright reflections — not night): the sky a soft cerulean, the air a pale silver silk, the shaded faces a cool
+  // ink-blue (Shared.u holds the same: the game never calls setLook)
+  jiehua: { fog: 0xb8c2d2, sky: [0x6f94c8, 0xb3c3d8], tint: [0.9, 0.93, 1.0], shade: 0x8f9ab4 },
   silk: { fog: 0xc4b59a, sky: [0xa8977a, 0xd2c3a4], tint: [1.1, 1.0, 0.82], shade: 0xbcb2a0 },
   sutra: { fog: 0x22325a, sky: [0x0a1224, 0x1d2b4a], tint: [1, 1, 1], shade: 0xadb2bf },
 };
@@ -118,7 +121,7 @@ export class Shared {
     uGoldDim: { value: c(0x7a5f2a) },
     // washes
     uLightDir: { value: new Vector3(0.35, 0.86, 0.38).normalize() },
-    uShade: { value: c(0x7a86a6) },
+    uShade: { value: c(0x8f9ab4) },
     uPool: { value: 0.06 },
     uStain: { value: 0.1 },
     uMottle: { value: 0.12 },
@@ -132,13 +135,14 @@ export class Shared {
     uPaperDeep: { value: c(SUTRA.deep) },
     uSutraWin: { value: c(0xe8b85a) },
     // fog
-    uFogBase: { value: 0.0052 },
+    // (render, E281) the silk twice as dense (0.0052): the mockups' distance dissolves into pale silk layer by layer
+    uFogBase: { value: 0.01 },
     uFogStart: { value: 16 },
-    uFogBaseCol: { value: c(0x8596b6) },
+    uFogBaseCol: { value: c(0xb8c2d2) },
     uBands: { value: BANDS.map((b) => new Vector4(b.y, b.w, b.d, b.puff ?? 0)) },
     uBandCols: { value: BANDS.map((b) => c(b.jiehua)) },
-    uSkyTop: { value: c(0x4674b4) },
-    uSkyHorizon: { value: c(0x6a80a6) },
+    uSkyTop: { value: c(0x6f94c8) },
+    uSkyHorizon: { value: c(0xb3c3d8) },
     uSilk: { value: silkWeave() as Texture },
     uGroundY: { value: 0 },
     // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths; the glazed tiles' pitch
@@ -148,10 +152,14 @@ export class Shared {
     // x: bare stone (balustrade rails, posts, the Well lip), y: the carved frieze, z: concrete walls
     uPaintFlag: { value: 0.18 },
     uPaintStone: { value: new Vector3(0.2, 0.0, 0.65) },
-    // the Well's shaft mist: its box (x0, z0, x1, z1) (set by build.ts from well-plan.ts SHAFT); x the depth silk's
+    // the Well's shaft mist: its box (x0, z0, x1, z1) (set by build.ts from well-plan.ts SHAFT); x the depth silk's (E281: 0.05 → 0.02)
     // density (0.085 = round 14's profile), y the rim height (build.ts), z the along-canyon air (1/m), w its ceiling over the rim (m)
     uShaft: { value: new Vector4(0, 0, 0, 0) },
-    uShaftK: { value: new Vector4(0.05, 0, 0.006, 30) },
+    uShaftK: { value: new Vector4(0.02, 0, 0.006, 30) },
+    // (render, E281) how far the shaft's silk takes the strata's pale colour script over the blue base air (0 = round 14)
+    uShaftLit: { value: 0.8 },
+    // (render, E281) the base air under the square's datum: x its thickening's cap, y its e-fold depth (m)
+    uFogDeep: { value: new Vector2(1, 70) },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
@@ -176,7 +184,7 @@ export class Shared {
 /** (round 14, dome B2: the run north's lit crossings 60–110 m off read grey) how far a light punches through the silk:
  *  an emitter's colour is × T^EMIT_FOG where a wash is × T (0.5 = √T, the lab's; 0.35 lets lit rails, neon strips and
  *  windows read as lines of light down the Well's runs) */
-export const EMIT_FOG = '0.35';
+export const EMIT_FOG = '0.25';
 
 export const NOISE_GLSL = /* glsl */ `
 float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
@@ -208,6 +216,8 @@ uniform float uFogStart;
 uniform vec3 uFogBaseCol;
 uniform vec4 uShaft;
 uniform vec4 uShaftK;
+uniform float uShaftLit;
+uniform vec2 uFogDeep;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
 // the colour script: the silk's tint at an altitude, interpolated between the bands
@@ -268,7 +278,7 @@ vec4 silkFog(vec3 wp, float scale) {
   // aerials see lamp-lit depth, the shaft fills with silk. Looking up (from inside the Well) the ray is read nearer
   // its top: the shaft opens toward the lit sky instead of greying out
   float hy = dy > 0.0 ? mix(midY, max(uCam.y, wp.y), 0.8) : midY;
-  float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / 70.0), 2.5) : max(exp(-(hy - ${Y0}.0) / 45.0), 0.35);
+  float hk = hy < ${Y0}.0 ? min(exp((${Y0}.0 - hy) / uFogDeep.y), uFogDeep.x) : max(exp(-(hy - ${Y0}.0) / 45.0), 0.35);
   float a0 = 1.0 - exp(-uFogBase * hk * max(L - uFogStart, 0.0) * scale);
   vec3 baseC = mix(uFogBaseCol, scriptCol(wp.y), clamp((uCam.y - wp.y) / 150.0, 0.0, 1.0));
   acc += T * a0 * baseC;
@@ -305,7 +315,8 @@ vec4 silkFog(vec3 wp, float scale) {
       tauS *= scale * smoothstep(4.0, 22.0, L);
       float as = 1.0 - exp(-tauS);
       float my = uCam.y + dn.y * 0.5 * (ta + tb);
-      acc += T * as * mix(uFogBaseCol * 1.12, scriptCol(min(my, uShaftK.y)), 0.45);
+      vec3 sc = scriptCol(min(my, uShaftK.y));
+      acc += T * as * mix(mix(uFogBaseCol * 1.12, sc, 0.45), sc * 1.08, uShaftLit);
       T *= 1.0 - as;
     }
   }

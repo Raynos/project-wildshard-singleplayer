@@ -28,8 +28,9 @@ export interface LightSettings {
 
 /** the lab's tuning on the clean room at 3c39b36f (round-9-lab-light/README.md §What won); round 14: the pools are
  *  stronger (pools.ts), so the flat wet sheen 1.0 → 0.55 (the view-dependent lobe, lightvol.ts poolSpec, carries the gloss) */
-// (render, E281) the ambient 0.78 → 0.62: the blue-hour targets' washes sit well under their lights
-export const LIGHT_DEFAULTS: LightSettings = { pools: 1, poolGain: 1, sheen: 0.55, glow: 1, halo: 0.6, veil: 0.15, glowThr: 0.22, glowNear: 6, glowFar: 40, grade: 1, wetSky: 0.1, ambient: 0.62 };
+// (render, E281) the ambient 0.78 → 0.9 and the wet film's sky sheen 0.1 → 0.3: the mockups are high key (blue hour,
+// not night), their wet stone a mid-grey silver under the reflections
+export const LIGHT_DEFAULTS: LightSettings = { pools: 1, poolGain: 1, sheen: 0.55, glow: 1, halo: 0.6, veil: 0.15, glowThr: 0.22, glowNear: 6, glowFar: 40, grade: 1, wetSky: 0.3, ambient: 0.9 };
 
 // refitted on the clean room's own frames after the merge (round 11; LOOK-LOOP.md step 6), not the lab's 3c39b36f fit
 export const LUT_URL = '/assets/nine-dragon/grade-lut-cleanroom.bin';

@@ -55,3 +55,30 @@ vanishing point low in the sky (C1·1).
 
 Memory: geometry 165.2 MB, textures 79.6 MB (the fabric lane's diet in the same build). Worst pose: mockup A, 161 draws,
 1.51 M triangles.
+
+## Pass 3: high key (the coordinator's eye-check) and the Well's mist (the Well lane's request)
+
+`pass-3/`, captured at `6249a22b` + the lane's files. The coordinator's eye-check of passes 1–2 on the four mockup
+cameras: the wet streaks and the neon read better, but A and C sank into a purple night. The mockups are high key: a
+bright silver-blue silk, a pale sky, mid-grey wet stone under bright reflections, warm lanterns as accents. Measured on
+the mockup frames' world region (L* p10 / p50): the mockups 29–33 / 48–60, pass 2 2–4 / 31–38, **pass 3 26–33 / 50–60**.
+The Well lane's request: from the rim, 50–80 m down the mist passed only a quarter of the light and the deep levels and
+the temple read as a pale floor.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| The toe lightened to 0.8 (only the deepest darks) and vibrance 0.3 → 0.15; a lit-side warm split (+6 % red, −6 % blue above luminance 0.06 → 0.4) over the cool shadow lift | `look/render/jiehua.ts` | ~6 ALU per pixel |
+| The ambient 0.62 → 0.9, the shaded faces #8f9ab4, the wet film's sky sheen 0.1 → 0.3 (mid-grey silver stone) | `look/light/install.ts`, `look/style.ts` | none |
+| The silk: a pale silver-blue (#b8c2d2) at twice the density (0.0052 → 0.01), the sky a soft cerulean (#6f94c8 → #b3c3d8) | `look/style.ts` | none |
+| Lights cut through the silk harder (emitters × T^0.25, was T^0.35): the lit windows, lanterns and neon down the Well and across the far city | `look/style.ts` (`EMIT_FOG`, shared by every program) | none |
+| The Well's mist: the cloud strata at half their depth, the depth silk 0.05 → 0.02, the base air's thickening under the square capped at 1× (was 2.5×), and the shaft's silk takes the strata's pale colour script (`uShaftLit`) instead of the grey-blue base air | `look/style.ts` | none (uniforms; the cap and e-fold became uniforms) |
+| The streak cards: the phone's ×1.5 back to ×1 and the stair's ×2 to ×1.3 (a curtain of colour over the stone the mockups keep visible), and the warm lights' runs ×2.5 (`uCardWarm` 1.5: the neon's power is ~8× a lantern's, so the stone carried magenta and cyan only) | `look/render.ts`, `look/streaks.ts` | none |
+
+Kept from the eye-check: every mockup frame reads high key at blue hour; the paifang keeps its warm lanterns; mockup D
+shows the levels stepping down into the mist; mockup B's silk thins into the run north. Traded: the domes' dusk views
+(their targets are darker than the mockups) and the aerials read paler and hazier than their targets; the mockups won,
+as the coordinator asked. Rejected in the tuning: dropping the toe entirely (flat, no ink in the darks), the warm-cards
+boost without the gain cuts (orange curtain on the stair).
+
+Memory: geometry 157.0 MB, textures 79.6 MB (the fabric lane's diet in the same build). Worst pose: mockup A, 125 draws,
+1.50 M triangles.

@@ -17,8 +17,9 @@ import { VM_SLICE } from './bleed';
 export const BLEED = {
   threshold: 1.0, knee: 0.08, tight: 0.16, wide: 0.4, stain: 0.5, stainResponse: 2.2, weave: 0.5, warp: 0.004, edge: 0.12,
   exposure: 1, rain: 0.55, rainAngle: 0.14, rainSpeed: 520, vignette: 0.3, grain: 2.5, shadowBlue: 0.12,
-  /** (render, E281) the toe (see the composite) and the vibrance */
-  toe: 0.5, toeEnd: 0.32, vibrance: 0.3,
+  /** (render, E281) the toe (see the composite), the vibrance and the lit side's warmth. Pass 1's toe (0.5 to 0.32) sank
+   *  the mockup cameras into a purple night: the mockups are high key, so only the deepest darks take a light toe */
+  toe: 0.8, toeEnd: 0.22, vibrance: 0.15, warm: 0.06,
 };
 
 const FS = /* glsl */ `
@@ -41,7 +42,7 @@ uniform vec4 uBleed;   // x: tight light, y: wide light, z: stain (pigment glaze
 uniform vec4 uBleed2;  // x: weave soak, y: fibre warp (uv), z: edge darkening, w: exposure
 uniform vec4 uRain;    // x: strength, y: angle (rad), z: speed (px/s), w: px scale (DPR)
 uniform vec3 uGrade;   // x: vignette, y: grain, z: shadow lift toward ink-blue
-uniform vec4 uTone;    // (render, E281) x: the toe's floor (a black's scale), y: the luminance where the toe ends, z: vibrance
+uniform vec4 uTone;    // (render, E281) x: the toe's floor (a black's scale), y: the luminance where the toe ends, z: vibrance, w: the lit side's warmth
 uniform float uDpr;
 uniform vec2 uSilPx;   // silhouette width near, at 60 m (px at 3×)
 uniform vec2 uSilFade; // silhouettes gone between these distances (m)
@@ -173,6 +174,8 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   l *= tk;
   float cmx = max(c.r, max(c.g, c.b)), sat0 = (cmx - min(c.r, min(c.g, c.b))) / max(cmx, 1e-5);
   c = max(mix(vec3(l), c, 1.0 + uTone.z * (1.0 - sat0)), 0.0);
+  // the split: the targets' lit mids and lights are warm (mean r > g > b) over cool ink-blue shadows (the lift below)
+  c *= mix(vec3(1.0), vec3(1.0 + uTone.w, 1.0, 1.0 - uTone.w), smoothstep(0.06, 0.4, l));
   c = mix(c, c * vec3(0.9, 0.96, 1.1), (1.0 - smoothstep(0.02, 0.25, l)) * uGrade.z * (1.0 - uSutra));
   c *= 1.0 + (weave - 0.5) * 0.035;
   vec2 q = uv - 0.5;
@@ -201,11 +204,12 @@ export class JiehuaEffect extends Effect {
       uInvProj: new Uniform(new Matrix4()), uCamWorld: new Uniform(new Matrix4()), uNF: new Uniform(new Vector2(0.1, 1000)), uSharp: new Uniform(0),
       uCam: new Uniform(s.uCam.value), uFogBase: new Uniform(s.uFogBase.value), uFogStart: new Uniform(s.uFogStart.value), uFogBaseCol: new Uniform(s.uFogBaseCol.value),
       uShaft: new Uniform(s.uShaft.value), uShaftK: new Uniform(s.uShaftK.value), uBands: new Uniform(s.uBands.value), uBandCols: new Uniform(s.uBandCols.value),
+      uFogDeep: new Uniform(s.uFogDeep.value), uShaftLit: new Uniform(s.uShaftLit.value),
       uBleed: new Uniform(new Vector4(B.tight, B.wide / 4, B.stain, B.stainResponse)),
       uBleed2: new Uniform(new Vector4(B.weave, B.warp, B.edge, B.exposure)),
       uRain: new Uniform(new Vector4(B.rain, B.rainAngle, B.rainSpeed, 2)),
       uGrade: new Uniform(new Vector3(B.vignette, B.grain, B.shadowBlue)),
-      uTone: new Uniform(new Vector4(B.toe, B.toeEnd, B.vibrance, 0)),
+      uTone: new Uniform(new Vector4(B.toe, B.toeEnd, B.vibrance, B.warm)),
       uGlow2: new Uniform(glow.uGlow2.value), uGlowCol: new Uniform<Color>(glow.uGlowCol.value),
       uLut: new Uniform(grade.uLut.value), uLutAmt: new Uniform(grade.uLutAmt.value),
     };
@@ -251,6 +255,7 @@ export class JiehuaEffect extends Effect {
     u.uLineFog.value = s.uLineFog.value;
     u.uFogBase.value = s.uFogBase.value;
     u.uFogStart.value = s.uFogStart.value;
+    u.uShaftLit.value = s.uShaftLit.value;
     u.uLut.value = this.grade.uLut.value;
     u.uLutAmt.value = this.grade.uLutAmt.value;
     u.uRain.value.w = renderer.getPixelRatio();

@@ -40,9 +40,9 @@ export interface NdRenderHandle {
 
 /** how much of an on-screen emitter's streak card stays once the reflection mirrors it */
 const CARD_ON = 0.6;
-/** (E281) the phone has no screen-space reflection: its cards are the whole wet-ground reflection, at full strength and
- *  brighter (the targets' every light lays a long bright run on the stone) */
-const PHONE_CARD_GAIN = 1.5;
+/** (E281) the phone has no screen-space reflection: its cards are the whole wet-ground reflection, at full strength
+ *  (pass 2's ×1.5 drew a curtain of colour over the stone the mockups keep visible) */
+const PHONE_CARD_GAIN = 1;
 
 /** (E281) the engine's cloud layer (world/Sky.ts: a white cumulus dome for the daylight shards) has no place in a
  *  blue-hour sky under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky. Hiding it also

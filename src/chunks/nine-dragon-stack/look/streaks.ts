@@ -41,6 +41,7 @@ uniform vec4 uSpread; // x: tail toward the eye, y: tail away, z: width scale, w
 uniform vec4 uCardK; // x: card gain, also used by the vertex-stage visibility gate
 uniform float uCardOn;
 uniform float uLift;
+uniform float uCardWarm;
 varying vec2 vC;
 varying vec3 vWorld;
 varying vec3 vCol;
@@ -92,6 +93,9 @@ void main() {
   vC = aCorner;
   // below the ground's height (a lantern in the Well, the camera under the square): no streak
   vCol = aCol * aSize.z * step(-0.5, camL.y) * step(0.2, eL.y);
+  // (render, E281) the warm lights' runs brighter: the neon's power is ~8× a lantern's or a shop's, so the wet stone
+  // carried magenta and cyan only, where the targets' runs are amber and lantern-red as much as neon
+  vCol *= 1.0 + uCardWarm * clamp((aCol.r - aCol.b) / max(aCol.r, 1e-3), 0.0, 1.0);
   // (render) an emitter on screen is mirrored by the screen-space reflection (render/reflect.ts): its card fades to
   // uCardOn; the cards stay for what is above or beside the frame (the signs over the street)
   vec4 ce = projectionMatrix * viewMatrix * vec4(aE, 1.0);
@@ -171,7 +175,7 @@ void main() {
 }
 `;
 
-export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.45, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.4, fine: 0.4 } as const;
+export const STREAK_LOOK = { cardGain: 1.15, cardDash: 0.45, cardJog: 0.45, tailNear: 0.9, tailFar: 0.95, cardWidth: 0.4, fine: 0.4, warm: 1.5 } as const;
 
 /** a reflecting plane: a point on it, its axis along x (tilted with a slope), its normal, and its extent (x0, z0, x1, z1) */
 export interface StreakPlane { o: Vector3; u: Vector3; n: Vector3; clip: Vector4 }
@@ -190,6 +194,7 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
       uFine: { value: L.fine },
       uCardOn: { value: 1 },
       uLift: { value: lift },
+      uCardWarm: { value: STREAK_LOOK.warm },
       uHole: { value: hole },
     },
     vertexShader: VS_CARD, fragmentShader: FS_CARD,
@@ -218,7 +223,8 @@ export function buildStreaks(shared: Shared, emitters: readonly Emitter[], hole:
 
 /** (dome C1: the tread runs read faint against the targets' continuous lines) the stair's cards are brighter: each
  *  shows on half a tread only */
-const STAIR_GAIN = 2;
+// (render, E281) 2 → 1.3: mockup C's treads carry thin runs, not a curtain (the phone's cards also run at full strength now)
+const STAIR_GAIN = 1.3;
 
 /** the stair-street's flights and landings, as world/stairstreet.ts exports them */
 export interface StairPlan {
