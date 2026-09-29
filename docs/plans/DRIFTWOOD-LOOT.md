@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `draft` 2026-09-29 — five proposals, **Jake approved none yet**. Driftwood only; generalise to the other shards later. Waits on Jake's pick of which of L1–L5 to board and build.
+**State:** `draft` 2026-09-29 — Jake approved the loop (fight for doubloons → spend at Wendell → stronger; sea glass charms and trophies to explore for; Gear / Collection tabs) and said "board it all" (AskUserQuestion, 2026-09-29). Boards for L1–L5 in flight (driftwood-top10 plan agent, `art/loot/round-1-loop/`); nothing built until he picks the details.
 
 ## Why
 
