@@ -3,7 +3,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { TRAINING_DUMMY_SCALE, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
+import {
+  DUMMY_BONE_NAMES, DUMMY_JOINTS, LEGACY_BONE_NAMES, TRAINING_DUMMY_SCALE,
+  type DummyJoints, type DummyRig, type DummyVariant, type TrainingDummyModel,
+} from './TrainingDummy';
 
 const URLS: Record<DummyVariant, string> = {
   wood: '/assets/practice/dummies/wood-wood.glb',
@@ -23,10 +26,34 @@ function template(variant: DummyVariant): Promise<THREE.Group> {
   return promise;
 }
 
-function namedBone(root: THREE.Object3D, name: string): THREE.Object3D {
-  const bone = root.getObjectByName(name);
-  if (!(bone instanceof THREE.Bone)) throw new Error(`Training dummy GLB is missing ${name}`);
-  return bone;
+function bone(root: THREE.Object3D, name: string): THREE.Bone | null {
+  const found = root.getObjectByName(name);
+  return found instanceof THREE.Bone ? found : null;
+}
+
+/**
+ * The joints of a loaded figure: the humanoid skeleton when the GLB has its spine (Pelvis, Chest, Head), else the first
+ * five-bone export (Torso, Head, LeftArm, RightArm). Throws when neither is there; the caller falls back to the
+ * procedural figure.
+ */
+export function dummyJoints(root: THREE.Object3D): { joints: DummyJoints; rig: DummyRig } {
+  const joints: DummyJoints = {};
+  if (bone(root, DUMMY_BONE_NAMES.pelvis) && bone(root, DUMMY_BONE_NAMES.chest) && bone(root, DUMMY_BONE_NAMES.head)) {
+    for (const joint of DUMMY_JOINTS) {
+      const found = bone(root, DUMMY_BONE_NAMES[joint]);
+      if (found) joints[joint] = found;
+    }
+    return { joints, rig: 'humanoid' };
+  }
+  for (const joint of DUMMY_JOINTS) {
+    const name = LEGACY_BONE_NAMES[joint];
+    const found = name === undefined ? null : bone(root, name);
+    if (found) joints[joint] = found;
+  }
+  if (!joints.spine || !joints.head || !joints.leftUpperArm || !joints.rightUpperArm) {
+    throw new Error('Training dummy GLB has neither the humanoid skeleton (Pelvis, Chest, Head) nor the five-bone one (Torso, Head, LeftArm, RightArm)');
+  }
+  return { joints, rig: 'five-bone' };
 }
 
 export async function loadTrainingDummy(variant: DummyVariant): Promise<TrainingDummyModel> {
@@ -45,9 +72,5 @@ export async function loadTrainingDummy(variant: DummyVariant): Promise<Training
       part.material = material;
     }
   });
-  return {
-    root,
-    torso: namedBone(root, 'Torso'), head: namedBone(root, 'Head'),
-    leftArm: namedBone(root, 'LeftArm'), rightArm: namedBone(root, 'RightArm'),
-  };
+  return { root, ...dummyJoints(root) };
 }

@@ -13,7 +13,35 @@ export const DUMMY_VARIANTS: readonly { id: DummyVariant; label: string; full: s
   { id: 'wood-steel', label: 'Wood + steel', full: 'Wood frame · steel armor' },
 ];
 
-export interface TrainingDummyModel { root: THREE.Group; torso: THREE.Object3D; head: THREE.Object3D; leftArm: THREE.Object3D; rightArm: THREE.Object3D }
+/**
+ * The bone contract (E285). The humanoid skeleton the Blender rig exports, by exact bone name:
+ *   Root (the post, legs bound to it) → Pelvis → Spine → Chest → Neck → Head;
+ *   Chest → {Left,Right}Shoulder → …UpperArm → …ForeArm → …Hand;  {Left,Right}Thigh → …Shin.
+ * The code drives the joints by these logical names. A GLB missing some of them still animates: the motion folds a
+ * missing joint's swing into its neighbour (TrainingArena's DummyMotion). The first GLBs had five bones (Root, Torso,
+ * Head, LeftArm, RightArm): Torso drives as the spine, the arms as the upper arms.
+ */
+export const DUMMY_JOINTS = [
+  'root', 'pelvis', 'spine', 'chest', 'neck', 'head',
+  'leftShoulder', 'leftUpperArm', 'leftForeArm', 'leftHand',
+  'rightShoulder', 'rightUpperArm', 'rightForeArm', 'rightHand',
+  'leftThigh', 'leftShin', 'rightThigh', 'rightShin',
+] as const;
+export type DummyJoint = typeof DUMMY_JOINTS[number];
+/** The GLB bone name of each joint in the humanoid skeleton. */
+export const DUMMY_BONE_NAMES: Readonly<Record<DummyJoint, string>> = {
+  root: 'Root', pelvis: 'Pelvis', spine: 'Spine', chest: 'Chest', neck: 'Neck', head: 'Head',
+  leftShoulder: 'LeftShoulder', leftUpperArm: 'LeftUpperArm', leftForeArm: 'LeftForeArm', leftHand: 'LeftHand',
+  rightShoulder: 'RightShoulder', rightUpperArm: 'RightUpperArm', rightForeArm: 'RightForeArm', rightHand: 'RightHand',
+  leftThigh: 'LeftThigh', leftShin: 'LeftShin', rightThigh: 'RightThigh', rightShin: 'RightShin',
+};
+/** The first five-bone export (scripts/practice/rig_dummy.py before E285): the bone that stands in for each joint. */
+export const LEGACY_BONE_NAMES: Readonly<Partial<Record<DummyJoint, string>>> = {
+  root: 'Root', spine: 'Torso', head: 'Head', leftUpperArm: 'LeftArm', rightUpperArm: 'RightArm',
+};
+export type DummyRig = 'humanoid' | 'five-bone' | 'procedural' | 'placeholder';
+export type DummyJoints = Partial<Record<DummyJoint, THREE.Object3D>>;
+export interface TrainingDummyModel { root: THREE.Group; joints: DummyJoints; rig: DummyRig }
 
 function mat(color: number, metalness = 0, roughness = 0.82): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, metalness, roughness, flatShading: true });
@@ -136,5 +164,5 @@ export function buildTrainingDummy(variant: DummyVariant): TrainingDummyModel {
   // The room's floor uses an unlit grid. Casting each armor detail into the shard's distant shadow map costs a
   // second draw per piece without changing the visible practice-room floor.
   for (const rigid of [root, torso, head, leftArm, rightArm]) mergeRigid(rigid);
-  return { root, torso, head, leftArm, rightArm };
+  return { root, rig: 'procedural', joints: { spine: torso, head, leftUpperArm: leftArm, rightUpperArm: rightArm } };
 }

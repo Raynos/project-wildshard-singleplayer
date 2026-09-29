@@ -35,10 +35,7 @@ class TrainingTarget implements TargetAnimal {
   constructor(variant: DummyVariant, x: number, y: number, z: number, localX: number, localZ: number, layer: HTMLElement) {
     this.variant = variant;
     this.position = new THREE.Vector3(x, y, z);
-    const root = new THREE.Group(), torso = new THREE.Group(), head = new THREE.Group();
-    const leftArm = new THREE.Group(), rightArm = new THREE.Group();
-    root.add(torso); torso.add(head, leftArm, rightArm);
-    this.model = { root, torso, head, leftArm, rightArm };
+    this.model = { root: new THREE.Group(), joints: {}, rig: 'placeholder' };
     this.model.root.position.set(localX, 0, localZ);
     const label = document.createElement('div'); label.className = 'ws-practice-label';
     label.textContent = DUMMY_VARIANTS.find((v) => v.id === variant)?.label ?? variant;
@@ -75,11 +72,11 @@ class TrainingTarget implements TargetAnimal {
     this.phase += dt;
     this.flinch = Math.max(0, this.flinch - dt * 2.6);
     const sway = Math.sin(this.phase * 1.7) * 0.012;
-    this.model.torso.rotation.z = sway + this.flinch * 0.12;
-    this.model.torso.rotation.x = -this.flinch * 0.09;
-    this.model.head.rotation.z = -this.flinch * 0.14;
-    this.model.leftArm.rotation.z = -0.09 - this.flinch * 0.17;
-    this.model.rightArm.rotation.z = 0.09 + this.flinch * 0.17;
+    const { spine, head, leftUpperArm, rightUpperArm } = this.model.joints;
+    if (spine) { spine.rotation.z = sway + this.flinch * 0.12; spine.rotation.x = -this.flinch * 0.09; }
+    if (head) head.rotation.z = -this.flinch * 0.14;
+    if (leftUpperArm) leftUpperArm.rotation.z = -0.09 - this.flinch * 0.17;
+    if (rightUpperArm) rightUpperArm.rotation.z = 0.09 + this.flinch * 0.17;
   }
 }
 
