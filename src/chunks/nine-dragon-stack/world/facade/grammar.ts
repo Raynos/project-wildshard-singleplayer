@@ -197,7 +197,11 @@ export function dressTower(t: TowerSpec, seed: number, opt: DressOptions = {}, o
       { o: toWorld(x0, y0, z0), u: dirW(0, 1), n: dirW(-1, 0), len: z1 - z0, y0, y1, dressed: (faces & 8) !== 0, bit: 8, floor0: seg.f0 },
     ];
     for (const f of fl) {
-      if (!f.dressed || lod >= 2) paintedFace(out, f, wash, fh, rng);
+      if (!f.dressed || lod >= 2) {
+        paintedFace(out, f, wash, fh, rng);
+        // (every face but a back: the ends of a run and its far faces show in the look-ups)
+        if ((f.dressed || f.bit !== 2) && f.len > 5) farBands(em, f, fh, rng);
+      }
       else dressFace(em, f, wash, fh, bayW, opt, street, rng.fork(f.bit * 31 + si * 7));
     }
     // the roof slab of this segment (a terrace if another segment stands on it)
@@ -227,6 +231,19 @@ export function dressWall(d: Dressing, p0: Vector3, n: Vector3, length: number, 
 function paintedFace(out: Dressing, f: Face, wash: number, fh: number, rng: Rng): void {
   // (the face's pattern seed rides above the edge bits: vPat.w = edges + 16 × seed)
   out.shell.quad(f.o, f.u, up, f.len, f.y1 - f.y0, { wash, kind: K.painted, p1: fh, p2: rng.pick([1.8, 2.0, 2.2]), line: 1, edges: E.sides + 16 * rng.int(0, 63) });
+}
+
+/**
+ * A far face's relief (E281): the painted faces read as flat slabs in every look-up, so every 2–4 floors a slab lip
+ * or a glazed pent eave runs the face's length — instanced (unit box / eave), so it costs no geometry and culls.
+ */
+function farBands(em: Emit, f: Face, fh: number, rng: Rng): void {
+  const floors = Math.round((f.y1 - f.y0) / fh);
+  for (let fi = rng.int(1, 3); fi < floors - 1; fi += rng.int(2, 4)) {
+    const y = f.y0 + fi * fh;
+    if (rng.chance(0.32)) em.put('eave', f, f.len / 2, y - 0.1, 0, f.len, 1.1, rng.range(0.9, 1.2), rng.chance(0.75) ? PAL.malachite : PAL.azurite);
+    else em.put('box', f, f.len / 2, y - 0.16, 0, f.len + 0.3, 0.16, rng.range(0.55, 1.1), rng.chance(0.2) ? PAL.timber : shade(PAL.slab, rng.range(0.85, 1.05)));
+  }
 }
 
 function parapet(out: Dressing, fl: Face[], y: number, wash: number): void {
@@ -304,7 +321,7 @@ function dressFace(em: Emit, f: Face, wash: number, fh: number, bayW: number, op
     if (fi < nextEave) {
       for (let b = 0; b < bays; b++) {
         const c = plan[fi]?.[b];
-        if (timberCol[b] !== true || c === undefined || c.mod === 'addon' || c.mod === 'gallery' || !rng.chance(0.55)) continue;
+        if (timberCol[b] !== true || c === undefined || c.mod === 'addon' || c.mod === 'gallery' || !rng.chance(0.85)) continue;
         em.put('eave', f, (b + 0.5) * bw, f.y0 + (fi + 1) * fh - 0.08, 0, bw, 0.8, rng.range(0.7, 0.85), rng.chance(0.8) ? PAL.malachite : PAL.azurite);
         c.aoTop = Math.min(c.aoTop, 0.7);
       }
@@ -521,6 +538,8 @@ function module(em: Emit, f: Face, cell: Cell, sc: number, y: number, bw: number
         for (let i = 0; i < n; i++) em.put('plant', f, wi.s + rng.range(-wi.w / 2, wi.w / 2), sill - 0.02, 0.05, 0.75, rng.range(0.7, 1.1), 0.75);
       }
       if (rng.chance(0.12 * dens)) em.put('awning', f, wi.s, sill + wh + 0.35, 0, wi.w + 0.3, 0.8, 0.8, rng.pick(AWN));
+      // a little glazed hood over the window now and then (the targets' tiled eaves on every storey)
+      else if (rng.chance(0.14)) em.put('eave', f, wi.s, sill + wh + 0.5, 0, wi.w + 0.6, 0.55, 0.5, rng.chance(0.75) ? PAL.malachite : PAL.azurite);
       if (small && rng.chance(0.16 * dens)) em.put('laundryOut', f, wi.s + (rng.chance(0.5) ? -1 : 1) * (wi.w / 2 + 0.1), sill + wh + 0.2, 0, 1, 1, 1);
     }
   }

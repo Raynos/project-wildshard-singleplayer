@@ -164,8 +164,8 @@ function cableDeck(ctx: Ctx, rng: Rng): void {
 /**
  * The far towers rising to the Crown: silhouettes in the fog around the strip of sky. E281: no longer plain boxes with a
  * window grid (they read as modern slabs in every look-up) — each is the facade grammar's far tower (painted faces,
- * 2–3 setback segments, parapets), banded by slab lips and glazed pent eaves on the faces toward the square (instanced),
- * crowned with a glazed pavilion, tanks and an antenna forest with red beacons.
+ * 2–3 setback segments, parapets, slab lips and glazed pent eaves banding every face), crowned with a glazed pavilion,
+ * tanks and an antenna forest with red beacons.
  */
 function crown(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('crown');
@@ -185,22 +185,6 @@ function crown(ctx: Ctx, rng: Rng): void {
     const top = rng.range(Y0 + 70, 252);
     const y0 = Y0 + 30;
     dressTower({ x, z, w, d, y0, h: top - y0 }, Math.floor(rng.next() * 1e6), { lod: 2, setbacks: true, wash: rng.pick([0x8c8a86, 0x85878a, 0x938a7e, 0x7f8388]), roof: false }, ctx.fd);
-    // the faces toward the square: slab lips every 2–3 floors, a glazed eave every 4–6 (the lumpy KWC outline)
-    const toC = new Vector3(6 - x, 0, -10 - z);
-    const faces: [Vector3, number, number][] = [];
-    if (Math.abs(toC.x) > 1) faces.push([new Vector3(Math.sign(toC.x), 0, 0), d, w / 2]);
-    if (Math.abs(toC.z) > 1) faces.push([new Vector3(0, 0, Math.sign(toC.z)), w, d / 2]);
-    for (const [n, len, half] of faces) {
-      let y = y0 + 3 * rng.int(2, 3);
-      const segTop = y0 + (top - y0) * 0.4;
-      while (y < segTop) {
-        const eave = rng.chance(0.3);
-        const at = new Vector3(x, y, z).addScaledVector(n, half);
-        if (eave) put('eave', at, n, len, 1.2, 1.2, rng.chance(0.75) ? 0x2f8a6a : 0x2e5fa3);
-        else put('box', at.clone().setY(y - 0.15), n, len + 0.4, 0.15, rng.range(0.6, 1.1), rng.pick([0x9a9c9c, 0x8f9294, 0x6e5238]));
-        y += 3 * rng.int(2, 3);
-      }
-    }
     // the crown: a glazed pavilion, tanks, an antenna forest with red beacons (the lower segment's size bounds them)
     const rw = w * 0.35, rd = d * 0.35;
     if (rng.chance(0.55)) put(rng.chance(0.6) ? 'shackG' : 'shackB', new Vector3(x + rng.range(-rw, rw) * 0.5, top, z + rng.range(-rd, rd) * 0.5), new Vector3(0, 0, 1), rng.range(2.2, 3.2), rng.range(1.6, 2.4), rng.range(2.0, 2.8), 0xffffff);

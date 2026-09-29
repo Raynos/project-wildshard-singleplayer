@@ -194,7 +194,9 @@ export function shopfronts(ctx: Ctx, kitName: string, p0: Vector3, nIn: Vector3,
     k.quad4(e0.clone().addScaledVector(n, 1.45).setY(y + 4.45), e1.clone().addScaledVector(n, 1.45).setY(y + 4.45), e1.clone().addScaledVector(n, 0.1), e0.clone().addScaledVector(n, 0.1),
       w, 1.5, { wash: tile, kind: K.tiles, line: 1, accent: true });
     k.boxAxes(c.clone().addScaledVector(n, 1.45).setY(y + 4.38), u, up, n, w / 2, 0.09, 0.06, { wash: 0x7e1e1a, line: 1, accent: true });
-    if (rng.chance(0.45)) ctx.lantern(c.x + n.x * 1.2 + u.x * rng.range(-w / 3, w / 3), y + 4.25, c.z + n.z * 1.2 + u.z * rng.range(-w / 3, w / 3), 0.75);
+    // E281: a lantern (or two) under most shops' eaves — the targets' warm red row along every street
+    if (rng.chance(0.8)) ctx.lantern(c.x + n.x * 1.2 + u.x * rng.range(-w / 3, -w / 8), y + 4.25, c.z + n.z * 1.2 + u.z * rng.range(-w / 3, -w / 8), 0.75);
+    if (rng.chance(0.5)) ctx.lantern(c.x + n.x * 1.2 + u.x * rng.range(w / 8, w / 3), y + 4.25, c.z + n.z * 1.2 + u.z * rng.range(w / 8, w / 3), 0.75);
     // sign board over the shop
     const word = rng.pick(words);
     const col = rng.pick(colors);

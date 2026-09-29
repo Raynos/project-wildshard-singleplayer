@@ -53,3 +53,23 @@ before the commit; checked on a later snapshot, C1·9 and C2·9 are clear.
 11.9 MB), textures 79.6 → 79.6 MB. Worst pose mockup A 156 draws / 1.71 M triangles (pass 0: 161 / 1.66 M).
 `scripts/test-facade-instancing.mjs`: pass on desktop, phone tier and iPhone UA (no batched facade, 9,976–16,526
 facade instances).
+
+## Pass 2
+
+Build: `main` at `8279eb35` + this lane's files. Sheets: `pass-2/`. (Other lanes landed in between: the render lane's
+pass 2, the capture tool now hides the kit's idle weapons, so the mockup frames show the real viewmodel.)
+
+- **Far faces get relief.** Every painted face of the grammar (the far LOD, the ends and sides of a wall run; not the
+  backs) is banded every 2–4 floors by a slab lip or a glazed pent eave along its length: instanced unit boxes and
+  eaves, no new geometry. The Crown's own bands went (the grammar does it now). In the look-ups these read as the
+  horizontal strata of the stacks rather than a slab's window grid.
+- **Eaves on every storey of a timber column** (0.55 → 0.85 of its floors) and a small glazed hood over one plain
+  window in seven.
+- **Lanterns under the shop eaves**: the square's and the street's shopfronts hang one at 0.8 and a second at 0.5
+  (was one at 0.45): the warm red row along each street of the targets.
+
+**Reverted:** nothing. The pass is small on the sheets; the look-ups (A1·1, B2·1, D1·1) and the far Well walls (A2·7,
+B2·7) are where it shows.
+
+**Numbers:** geometry 162.0 → 158.8 MB (every lane), textures 79.6 MB. Worst pose mockup A 124 draws / 1.52 M
+triangles.
