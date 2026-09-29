@@ -1,6 +1,6 @@
 # Plan: a better dodge (E60)
 
-**State:** `in progress` 2026-09-23 — **T** is built and is the only dodge (E63 built T + V side by side; the user picked T, V deleted in E82). Open T rows, no owner yet: D1's Reduce motion setting, D3 the plant beat (foot-plant sound + haptic), D7 the desktop shader smear; U / V rows (D5, D6) are dropped with V.
+**State:** `in progress` 2026-09-28 — unowned: no commit on it since 2026-09-23. **T** is built and is the only dodge (E63 `f6cc18c` built T + V; the user picked T, V deleted in E82 `5c5cee3`): D1's envelope, D2 on the sword, D4's CSS smear and D8's slow-mo check are done. Open, nobody on them: D1's Reduce motion setting, D2's 60 % offsets on the crossbow / rifle (and now the bow / spear), D3 the plant beat (foot-plant sound + two-pulse haptic), D7 the desktop shader smear. D5 / D6 (U / V) are dropped.
 
 Jake (E60): "Make a sequence of mockups for how to have a better, cool animation for dodge. The placeholder animation for
 dodge is a lot better than what it was previously, but I think we can still do a couple of steps better."
@@ -292,13 +292,13 @@ V's foot-plant sound + haptic is also cheap and worth folding into whichever let
 
 ## Levers (built only after a pick)
 
-| # | lever | variant | size |
-|---|---|---|---|
-| D1 | `dodgeT` / `dodgeSide` / `env()` in Player.ts; roll / dip / FOV on the envelope; a new Reduce motion setting (`Settings.ts`, `Menu.ts`) that scales them | all | S |
-| D2 | viewmodel dodge offsets (T: lag spring · U: light tuck · V: `TUCK` key) on the sword; 60 % on crossbow / rifle | all | S |
-| D3 | the plant beat: the foot-plant sound at 250 ms + the two-pulse haptic | all | S |
-| D4 | SpeedLines smear mode (T) / cyan tint + corner glow (U) | T, U | S |
-| D5 | `DodgeGhost` pool + flakes, the rim uniform, precompile | U | M |
-| D6 | `DodgeDust` by surface, the vignette pulse, precompile | V | M |
-| D7 | desktop-only shader smear (T) / fringe (U) in the merged EffectPass | T, U | S |
-| D8 | verify: a slow-mo capture at 390×844 (`performance.now` / rAF scaled ×0.1, as for these boards) + a phone fps check with 5 dodges in a row | all | S |
+| # | lever | variant | size | status (checked on main 2026-09-28) |
+|---|---|---|---|---|
+| D1 | `dodgeT` / `dodgeSide` / `env()` in Player.ts; roll / dip / FOV on the envelope; a new Reduce motion setting (`Settings.ts`, `Menu.ts`) that scales them | all | S | **half**: the envelope, roll / lead / dip / FOV built (`dodgeFx` / `dodgeEnv`, E63 `f6cc18c`); **Reduce motion not built** |
+| D2 | viewmodel dodge offsets (T: lag spring · U: light tuck · V: `TUCK` key) on the sword; 60 % on crossbow / rifle | all | S | **half**: T's lag spring on the sword (`f6cc18c`); **the crossbow / rifle offsets not built** |
+| D3 | the plant beat: the foot-plant sound at 250 ms + the two-pulse haptic | all | S | **not built** (`Audio.dodge()` is one whoosh, `haptics.dodge` one 10 ms pulse) |
+| D4 | SpeedLines smear mode (T) / cyan tint + corner glow (U) | T, U | S | T's smear **done** (`.ws-game-smear`, `f6cc18c`); U's dropped |
+| D5 | `DodgeGhost` pool + flakes, the rim uniform, precompile | U | M | dropped (U not picked) |
+| D6 | `DodgeDust` by surface, the vignette pulse, precompile | V | M | dropped (V deleted, E82 `5c5cee3`) |
+| D7 | desktop-only shader smear (T) / fringe (U) in the merged EffectPass | T, U | S | **not built** |
+| D8 | verify: a slow-mo capture at 390×844 (`performance.now` / rAF scaled ×0.1, as for these boards) + a phone fps check with 5 dodges in a row | all | S | slow-mo **done** (`progress/213-e63-dodge-T-vs-V-slowmo.jpg`); no phone fps reading recorded |
