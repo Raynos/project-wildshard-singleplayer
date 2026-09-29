@@ -9,8 +9,10 @@
 // stand only SQ_DEPTH deep, towers.ts) the tea room and the hotpot shop at the foot, the timber skin of the tea house's
 // upper floors and a lit shop row on the towers' end faces; behind the corner towers (SQ_CORNER…SQ_BACK) raised terraces
 // on ashlar walls with low pavilions (the tea house's veranda north, shops south) and their towers set back 3.4 m; the
-// 麵 sign, the brass dragon (the jian's guard head at ×11) with the grapple ring, two lantern strings, the crowd on the
-// first flight. Landing 1
+// 麵 sign, the brass dragon (the jian's guard head at ×11) with the grapple ring, the crowd on the first flight. All of it
+// is ONE kit, 'stair-foot' (the steps, the signs' boards, real lattice bars instead of alpha cards, the dragon folded into
+// its KitX): the C1 lane's draws (E281). No lantern string crosses the foot any more: from the square it capped mockup
+// C's frame (plan F6). Landing 1
 // upward (terraces, towers, the paifang, the bridges, the monorail, the upper signs and crowd, the far end) is C2's:
 // stairstreet-upper.ts, buildStairUpper(ctx).
 import { type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
@@ -18,7 +20,7 @@ import type { ColliderDesc } from '../../../world/registry';
 import type { Ctx } from './ctx';
 import { dressWall } from './facade/grammar';
 import type { PieceId } from './facade/pieces';
-import { mahjong, mahjongSeats } from './hero/figures';
+import { mahjongSeats } from './hero/figures';
 import { KitX } from './hero/kitx';
 import { buildGuardProcedural } from './hero/weapon-parts';
 import { K, type Kit, type Look } from './kit';
@@ -45,7 +47,9 @@ export const LANDINGS: readonly { x0: number; x1: number; y: number }[] = [0, 1]
 export const TOP_Y = Y0 + STAIR.rise;
 /** the paifang on the second landing, spanning the stair (its front faces down the stair, west) */
 const L2 = LANDINGS[1] ?? { x0: 0, x1: 0, y: 0 };
-export const STAIR_GATE = { x: (L2.x0 + L2.x1) / 2, y: L2.y, z: (STAIR.z0 + STAIR.z1) / 2, s: 1.5, posts: [-4.6, -1.75, 1.75, 4.6] } as const;
+/** (E281: wide and a little lower, as mockup C and C2·5 draw it — a 6.2 m centre bay, the outer posts on the terraces;
+ *  it was 3.5 m between 10 m posts, a slot) */
+export const STAIR_GATE = { x: (L2.x0 + L2.x1) / 2, y: L2.y, z: (STAIR.z0 + STAIR.z1) / 2, s: 1.3, posts: [-5.6, -3.1, 3.1, 5.6] } as const;
 /** the street between the tower faces past the square's towers (the stair is the middle 8 m; terraces either side) */
 export const FACE_N = STAIR.z0 - 3, FACE_S = STAIR.z1 + 3;
 /** the square's east towers flank the stair's first 12 m (their end faces on the stair's edges, base at Y0 + 5): C1 / C2's
@@ -108,7 +112,8 @@ class XfKitX extends KitX {
         if (pat.getX(i) < 20) continue;
         pat.setX(i, 0);
         misc.setW(i, misc.getX(i) > 0 ? 16 : 16 + 32 + 64);
-        if (misc.getX(i) <= 0) col.setXYZ(i, col.getX(i) * 0.52, col.getY(i) * 0.48, col.getZ(i) * 0.42);
+        // (a warm gold, not the brown it was: mockup C's dragon is the brightest metal in the frame, E281)
+        if (misc.getX(i) <= 0) col.setXYZ(i, col.getX(i) * 0.86, col.getY(i) * 0.7, col.getZ(i) * 0.4);
       }
     }
     g.applyMatrix4(this.xf);
@@ -150,6 +155,42 @@ function mat4(x: number, y: number, z: number, yaw: number, s = 1): Matrix4 {
   return new Matrix4().compose(new Vector3(x, y, z), new Quaternion().setFromAxisAngle(UP, yaw), new Vector3(s, s, s));
 }
 
+/**
+ * Real flat bars (one quad each, facing u × up) from p0 along u for len, h tall, every pitch, with a rail every `rows` m
+ * (0 = only the top and bottom rails): the lattices and balustrades the alpha kit drew as dithered cards, which cost the
+ * C1 lane a draw of their own (E281).
+ */
+function lattice(k: Kit, p0: Vector3, u: Vector3, len: number, h: number, pitch: number, rows: number, look: Look): void {
+  const count = Math.max(1, Math.round(len / pitch)), t = 0.035;
+  for (let i = 1; i < count; i++) k.quad(p0.clone().addScaledVector(u, (i / count) * len - t / 2), u, UP, t, h, look);
+  const step = rows > 0 ? rows : h;
+  for (let y = 0; y <= h + 0.001; y += step) k.quad(p0.clone().add(new Vector3(0, Math.min(y, h - t), 0)), u, UP, len, t, look);
+}
+
+/**
+ * A tea table (a round top on a pedestal, a cloth, a pot and cups; with `hotpot` a wide pot of broth). It stands where
+ * a mahjong table (~1 900 vertices of tiles nobody sees from the stair) stood, and takes the same 36 numbers from the rng
+ * so every later piece of the street keeps its roll.
+ */
+function teaTable(k: Kit, rng: Rng, px: number, py: number, pz: number, r: number, cloth: number, hotpot = false): void {
+  for (let i = 0; i < 36; i++) rng.next();
+  const wood: Look = { wash: 0x4a3020, line: 1, accent: true, surf: SURF.wood };
+  k.cyl(px, py, pz, 0.09, 0.06, 0.66, 6, { wash: 0x2e2018, line: 0.8 }, { caps: false });
+  k.cyl(px, py, pz, 0.28, 0.24, 0.05, 6, { wash: 0x2e2018, line: 0.8 });
+  k.cyl(px, py + 0.66, pz, 0.46, 0.46, 0.06, 10, wood);
+  k.box(px, py + 0.72, pz, 0.62, 0.008, 0.28, { wash: cloth, line: 0.6, accent: true }, { rotY: r });
+  if (hotpot) {
+    k.cyl(px, py + 0.72, pz, 0.2, 0.24, 0.14, 8, { wash: 0x3a3a3e, line: 1 });
+    k.cyl(px, py + 0.855, pz, 0.22, 0.22, 0.012, 8, { wash: 0xb8352a, emit: 0.25, line: 0, accent: true });
+  } else {
+    k.cyl(px + Math.cos(r) * 0.12, py + 0.73, pz - Math.sin(r) * 0.12, 0.08, 0.1, 0.13, 6, { wash: 0x2f5f7a, line: 1, accent: true });
+  }
+  for (let i = 0; i < 3; i++) {
+    const a = r + 1.2 + i * 2.1;
+    k.cyl(px + Math.cos(a) * 0.3, py + 0.73, pz + Math.sin(a) * 0.3, 0.032, 0.04, 0.05, 5, { wash: 0xe8e0cc, line: 0.6, accent: true }, { caps: false });
+  }
+}
+
 // ── the first flight ──
 
 /** the drawn floor on flight 1 (its half-step tops) — where people stand; stairFloor(x) is the collider's */
@@ -171,7 +212,7 @@ const MOSS: Look = { wash: 0x3a4a34, kind: K.leaf, line: 0, wet: 0.6 };
  * 2–4 long granite slabs, worn lower in the middle, bright worn nosings, moss where they meet the walls.
  */
 function flightOne(ctx: Ctx, rng: Rng): void {
-  const k = ctx.kit('stair-steps', true);
+  const k = ctx.kit('stair-foot', true);
   const f = FLIGHTS[0];
   if (f === undefined) return;
   const zc = (STAIR.z0 + STAIR.z1) / 2;
@@ -213,11 +254,10 @@ function teaHouse(ctx: Ctx, rng: Rng): void {
   k.box(x1 - 0.1, floor, (zf + zb) / 2, 0.2, ceil - floor, zf - zb, { ...TIMBER_DK, kind: K.panel });
   // red posts at the front, lattice screens between the outer ones and the wall, a lattice rail along the veranda
   for (const px of [x0 + 0.15, cx, x1 - 0.15]) k.box(px, floor, zf - 0.2, 0.2, ceil - floor, 0.2, LACQUER);
-  const ka = ctx.alpha('stair-a');
-  ka.quad(new Vector3(x0 + 0.25, floor + 0.05, zf - 0.22), XP, UP, x1 - x0 - 0.5, 0.95, { wash: 0x5a2a1c, kind: K.bars, row: 1, col: 0.12, line: 1, accent: true });
+  lattice(k, new Vector3(x0 + 0.25, floor + 0.05, zf - 0.22), XP, x1 - x0 - 0.5, 0.95, 0.12, 0, { wash: 0x5a2a1c, line: 0.5, accent: true });
   k.box(cx, floor + 0.95, zf - 0.22, x1 - x0 - 0.3, 0.07, 0.1, LACQUER);
   // a lattice transom under the ceiling (格子)
-  ka.quad(new Vector3(x0 + 0.25, ceil - 0.85, zf - 0.21), XP, UP, x1 - x0 - 0.5, 0.55, { wash: 0x5a2a1c, kind: K.net, col: 0.18, line: 1, accent: true });
+  lattice(k, new Vector3(x0 + 0.25, ceil - 0.85, zf - 0.21), XP, x1 - x0 - 0.5, 0.55, 0.18, 0.18, { wash: 0x5a2a1c, line: 0.5, accent: true });
   // the pent eave out over the stair (glazed tiles, a lacquer fascia) with lanterns under it
   const ey = ceil - 0.2, ez = zf + 1.35;
   k.quad4(new Vector3(x0 - 0.2, ey - 0.55, ez), new Vector3(x1 + 0.2, ey - 0.55, ez), new Vector3(x1 + 0.2, ey + 0.1, zf), new Vector3(x0 - 0.2, ey + 0.1, zf),
@@ -225,9 +265,8 @@ function teaHouse(ctx: Ctx, rng: Rng): void {
   k.box(cx, ey - 0.68, ez, x1 - x0 + 0.4, 0.14, 0.08, { wash: MIN.lacquer, line: 1, accent: true });
   for (const t of [0.2, 0.5, 0.8]) ctx.lantern(x0 + (x1 - x0) * t, ey - 0.72, ez - 0.25, 0.62);
   // two tea tables on the veranda with their drinkers (TRELLIS sitters come with stools), a pot of plants at the end
-  const kx = ctx.kitx('stair-foot');
   for (const [tx, tz, tr, n] of [[x0 + 1.1, zf - 1.4, 0.3, 3], [x0 + 3.0, zf - 1.5, -0.2, 2]] as const) {
-    mahjong(k, kx, rng, tx, floor, tz, tr, 0, 0xb8352a, false);
+    teaTable(k, rng, tx, floor, tz, tr, 0xb8352a);
     for (const st of mahjongSeats(tx, tz, tr).slice(0, n)) ctx.sitters.push(mat4(st.x, floor, st.z, st.yaw));
   }
   for (const [px, sc] of [[x0 + 0.4, 1.3], [x0 + 2.1, 1.1], [x1 - 0.5, 1.4]] as const) piece(ctx, 'plant', new Vector3(px, floor, zf - 0.45), XP, ZP, sc, sc * 1.2, sc);
@@ -249,12 +288,10 @@ function hotpotShop(ctx: Ctx, rng: Rng): void {
   k.box(x1 - 0.1, floor, (zf + zb) / 2, 0.2, ceil - floor, zb - zf, { wash: 0x6d6a66, kind: K.panel, line: 1 });
   for (const px of [x0 + 0.15, x1 - 0.15]) k.box(px, floor, zf + 0.2, 0.22, ceil - floor, 0.22, { wash: 0x8f949b, line: 1 });
   // a steel railing on the stone wall, a striped awning, a hotpot table with three diners, a cook at the pass
-  const ka = ctx.alpha('stair-a');
-  ka.quad(new Vector3(x1 - 0.25, floor + 0.05, zf + 0.18), XN, UP, x1 - x0 - 0.5, 0.95, { wash: 0x2a2c31, kind: K.bars, row: 1, col: 0.14, line: 1 });
+  lattice(k, new Vector3(x1 - 0.25, floor + 0.05, zf + 0.18), XN, x1 - x0 - 0.5, 0.95, 0.14, 0, { wash: 0x2a2c31, line: 0.5 });
   k.box(cx, floor + 0.95, zf + 0.18, x1 - x0 - 0.3, 0.05, 0.06, IRON);
   piece(ctx, 'awning', new Vector3(cx, ceil - 0.55, zf), XN, ZN, x1 - x0 - 0.3, 1, 1.35, MIN.cinnabar);
-  const kx = ctx.kitx('stair-foot');
-  mahjong(k, kx, rng, cx - 0.5, floor, zf + 1.5, 0.1, 0, 0x2f5f9a, false);
+  teaTable(k, rng, cx - 0.5, floor, zf + 1.5, 0.1, 0x2f5f9a, true);
   for (const st of mahjongSeats(cx - 0.5, zf + 1.5, 0.1).slice(0, 3)) ctx.sitters.push(mat4(st.x, floor, st.z, st.yaw));
   ctx.steam.push(new Vector3(cx - 0.5, floor + 1.0, zf + 1.5));
   for (const t of [0.25, 0.75]) ctx.lantern(x0 + (x1 - x0) * t, ceil - 0.7, zf + 0.9, 0.62);
@@ -320,7 +357,6 @@ interface FrontSpec {
  */
 function timberFront(ctx: Ctx, rng: Rng, S: FrontSpec): void {
   const k = ctx.kit('stair-foot', true);
-  const ka = ctx.alpha('stair-a');
   const { a, u, n, len, yA } = S;
   const yB = yA + 3.4, yTop = yA + 6.8;
   const P = (s: number, y: number, out: number): Vector3 => a.clone().addScaledVector(u, s).addScaledVector(n, out).setY(y);
@@ -333,13 +369,13 @@ function timberFront(ctx: Ctx, rng: Rng, S: FrontSpec): void {
   for (let b = 0; b < nb; b++) {
     const s0 = b * bw, sc = s0 + bw / 2;
     shopGlass(ctx, rng, P(sc, yA + 0.12, 0.04), u, n, bw - 0.36, yB - yA - 0.5, rng.pick([0xffc47e, 0xffb870, 0xffd09a]), rng.range(0.95, 1.15));
-    ka.quad(P(s0 + 0.18, yA + 0.12, 0.1), u, UP, bw - 0.36, yB - yA - 0.5, { wash: 0x3d1d12, kind: K.bars, row: 1, col: 0.2, line: 1, accent: true });
+    lattice(k, P(s0 + 0.18, yA + 0.12, 0.1), u, bw - 0.36, yB - yA - 0.5, 0.2, 0.72, { wash: 0x3d1d12, line: 0.5, accent: true });
     shopGlass(ctx, rng, P(sc, yB + 0.55, 0.04), u, n, bw - 0.5, 2.0, 0xffc47e, rng.chance(0.8) ? 1 : 0, false);
-    ka.quad(P(s0 + 0.25, yB + 0.55, 0.1), u, UP, bw - 0.5, 2.0, { wash: 0x3d1d12, kind: K.net, col: 0.2, line: 1, accent: true });
+    lattice(k, P(s0 + 0.25, yB + 0.55, 0.1), u, bw - 0.5, 2.0, 0.2, 0.2, { wash: 0x3d1d12, line: 0.5, accent: true });
     if (S.lower(sc)) {
       const g = P(sc, 0, 0.35), r = P(sc, 0, 0.68);
       k.box(g.x, yB - 0.02, g.z, bw, 0.14, 0.7, TIMBER_DK);
-      ka.quad(P(s0 + 0.05, yB + 0.12, 0.68), u, UP, bw - 0.1, 0.85, { wash: 0x5a2a1c, kind: K.bars, row: 1, col: 0.11, line: 1, accent: true });
+      lattice(k, P(s0 + 0.05, yB + 0.12, 0.68), u, bw - 0.1, 0.85, 0.11, 0, { wash: 0x5a2a1c, line: 0.5, accent: true });
       k.box(r.x, yB + 0.95, r.z, bw, 0.07, 0.09, LACQUER);
       if (rng.chance(0.45)) {
         const w = P(sc + rng.range(-0.5, 0.5), yB + 0.12, 0.35);
@@ -511,7 +547,7 @@ function pentRoof(k: Kit, rng: Rng, s: FootSeg, face: number, n: Vector3): void 
 
 /** the tea house's veranda (north): red posts with brackets along the rail, a glazed eave, a lattice frieze, lanterns,
  *  lit lattice doors across the pavilion, tea tables with drinkers */
-function teaVeranda(ctx: Ctx, k: Kit, kx: KitX, rng: Rng, s: FootSeg, face: number, edge: number, side: number): void {
+function teaVeranda(ctx: Ctx, k: Kit, rng: Rng, s: FootSeg, face: number, edge: number, side: number): void {
   const len = s.xb - s.xa, cx = (s.xa + s.xb) / 2;
   const yIn = s.floor + 3.95, yOut = s.floor + 3.0, zIn = face + side * 0.05, zOut = edge + side * 0.35;
   const xa = s.xa + 0.05, xb = s.xb - 0.05;
@@ -528,9 +564,8 @@ function teaVeranda(ctx: Ctx, k: Kit, kx: KitX, rng: Rng, s: FootSeg, face: numb
     k.beam(new Vector3(px - 0.35, yOut - 0.22, rz), new Vector3(px, yOut - 0.62, rz), 0.07, 0.07, LACQUER);
     k.beam(new Vector3(px + 0.35, yOut - 0.22, rz), new Vector3(px, yOut - 0.62, rz), 0.07, 0.07, LACQUER);
   }
-  const ka = ctx.alpha('stair-a');
   const u = side > 0 ? XP : XN, n = side > 0 ? ZP : ZN;
-  ka.quad(new Vector3(side > 0 ? xa : xb, yOut - 0.62, rz), u, UP, len - 0.1, 0.42, { wash: 0x5a2a1c, kind: K.net, col: 0.16, line: 1, accent: true });
+  lattice(k, new Vector3(side > 0 ? xa : xb, yOut - 0.62, rz + side * 0.09), u, len - 0.1, 0.42, 0.16, 0.14, { wash: 0x5a2a1c, line: 0.5, accent: true });
   const nl = Math.max(1, Math.round(len / 1.6));
   for (let j = 0; j < nl; j++) ctx.lantern(xa + ((j + 0.5) * (len - 0.1)) / nl, yOut - 0.3, rz - side * 0.1, 0.66);
   // the tea room: lit lattice doors across the pavilion's face
@@ -538,7 +573,7 @@ function teaVeranda(ctx: Ctx, k: Kit, kx: KitX, rng: Rng, s: FootSeg, face: numb
   for (let j = 0; j < nb; j++) {
     const bc = s.xa + 0.15 + (j + 0.5) * bw;
     shopGlass(ctx, rng, new Vector3(bc, s.floor + 0.05, face + side * 0.05), u, n, bw - 0.2, 2.5, rng.pick([0xffc47e, 0xffb870, 0xffd09a]), rng.range(1.0, 1.2));
-    ka.quad(new Vector3(bc - ((bw - 0.2) / 2) * u.x, s.floor + 0.05, face + side * 0.1), u, UP, bw - 0.2, 2.5, { wash: 0x3d1d12, kind: K.bars, row: 1, col: 0.2, line: 1, accent: true });
+    lattice(k, new Vector3(bc - ((bw - 0.2) / 2) * u.x, s.floor + 0.05, face + side * 0.1), u, bw - 0.2, 2.5, 0.2, 0.42, { wash: 0x3d1d12, line: 0.5, accent: true });
     k.box(bc - (bw / 2) * u.x, s.floor, face + side * 0.1, 0.14, 2.7, 0.14, TIMBER_DK);
     ctx.emitters.push({ at: new Vector3(bc, s.floor + 1.4, face + side * 0.3), color: new Color(0xffc48a), w: bw - 0.3, h: 2.4, power: 0.2, spill: 0.15 });
   }
@@ -551,7 +586,7 @@ function teaVeranda(ctx: Ctx, k: Kit, kx: KitX, rng: Rng, s: FootSeg, face: numb
   }
   // a tea table under the eave with its drinkers, one more at the rail looking down onto the stair
   const tx = cx + rng.range(-0.4, 0.4), tz = (face + edge) / 2 + side * 0.1, tr = rng.range(-0.3, 0.3);
-  mahjong(k, kx, rng, tx, s.floor, tz, tr, 0, rng.pick([0xb8352a, 0x2f5f9a, 0x3c7a5a]), false);
+  teaTable(k, rng, tx, s.floor, tz, tr, rng.pick([0xb8352a, 0x2f5f9a, 0x3c7a5a]));
   for (const st of mahjongSeats(tx, tz, tr).slice(0, 3)) ctx.sitters.push(mat4(st.x, s.floor, st.z, st.yaw));
   ctx.walkers.push(mat4(s.xa + len * rng.range(0.2, 0.4), s.floor, rz - side * 0.42, side > 0 ? rng.range(-0.3, 0.3) : Math.PI + rng.range(-0.3, 0.3), rng.range(0.95, 1.02)));
 }
@@ -571,8 +606,6 @@ function footShop(ctx: Ctx, k: Kit, rng: Rng, s: FootSeg, face: number, n: Vecto
 
 function footTerraces(ctx: Ctx, rng: Rng): void {
   const k = ctx.kit('stair-foot', true);
-  const ka = ctx.alpha('stair-a');
-  const kx = ctx.kitx('stair-foot');
   const mid = (SQ_CORNER + SQ_BACK) / 2;
   for (const side of [1, -1] as const) {
     const face = side > 0 ? FACE_N : FACE_S, edge = side > 0 ? STAIR.z0 : STAIR.z1;
@@ -601,63 +634,46 @@ function footTerraces(ctx: Ctx, rng: Rng): void {
       // the balustrade: red timber on the tea house, iron by the shops; pots along its inside, a tree now and then
       const rz = edge - side * 0.2;
       const timber = side > 0;
-      ka.quad(new Vector3(side > 0 ? s.xa + 0.1 : s.xb - 0.1, s.floor + 0.08, rz), u, UP, len - 0.2, 0.92, timber ? { wash: 0x6a2418, kind: K.bars, row: 1, col: 0.13, line: 1, accent: true } : { wash: 0x2a2c31, kind: K.bars, row: 1, col: 0.15, line: 1 });
+      lattice(k, new Vector3(side > 0 ? s.xa + 0.1 : s.xb - 0.1, s.floor + 0.08, rz + side * 0.05), u, len - 0.2, 0.92, timber ? 0.13 : 0.15, 0, timber ? { wash: 0x6a2418, line: 0.5, accent: true } : { wash: 0x2a2c31, line: 0.5 });
       k.box(cx, s.floor + 1.0, rz, len - 0.1, 0.07, 0.1, timber ? LACQUER : IRON);
       for (let j = 0; j <= 2; j++) k.box(s.xa + 0.1 + (j * (len - 0.2)) / 2, s.floor, rz, 0.09, 1.1, 0.09, timber ? LACQUER : IRON);
       for (let j = 0; j < 3; j++) pottedPlant(k, rng, s.xa + len * ((j + rng.range(0.25, 0.75)) / 3), s.floor, rz - side * rng.range(0.35, 0.55), rng.range(0.9, 1.3), rng.chance(0.25));
       if (side > 0) {
         clearBand(ctx, s.xa - 0.05, s.xb + 0.05, Math.min(face, edge) - 0.6, Math.max(face, edge) + 0.6, s.floor - 0.3, s.floor + 3.3);
-        teaVeranda(ctx, k, kx, rng, s, face, edge, side);
+        teaVeranda(ctx, k, rng, s, face, edge, side);
       } else footShop(ctx, k, rng, s, face, n, u);
     }
     for (const p of lamps) ctx.emitters.push({ at: p, color: new Color(0xffd9a0), w: 0.24, h: 0.32, power: 0.12, spill: 0.2 });
   }
 }
 
-// ── over the foot: two strings of red lanterns across ──
-
-function lanternString(ctx: Ctx, k: Kit, a: Vector3, b: Vector3, spacing: number, sag: number): void {
-  const len = a.distanceTo(b);
-  const nSeg = Math.max(2, Math.round(len / spacing));
-  const at = (t: number): Vector3 => a.clone().lerp(b, t).add(new Vector3(0, -sag * 4 * t * (1 - t), 0));
-  for (let i = 0; i < nSeg; i++) k.beam(at(i / nSeg), at((i + 1) / nSeg), 0.025, 0.025, IRON);
-  for (let i = 1; i < nSeg; i++) { const q = at(i / nSeg); ctx.lantern(q.x, q.y, q.z, 0.72); }
-}
-
-function footStrings(ctx: Ctx, rng: Rng): void {
-  const k = ctx.kit('stair-over', true);
-  for (const x of [28.5]) {
-    const y = stairFloor(x) + 9;
-    lanternString(ctx, k, new Vector3(x + rng.range(-1, 1), y, STAIR.z0), new Vector3(x + rng.range(-1, 1), y + rng.range(-0.6, 0.6), STAIR.z1), 1.25, 0.9);
-  }
-}
-
 // ── the 麵 sign and the brass dragon on its bracket (the mockup's grapple point) ──
 
 function footSigns(ctx: Ctx): void {
-  const k = ctx.kit('stair-signs', true);
-  // the 麵 sign: big, high on the tea house's corner, hung clear of its upper gallery (the mockup's upper-left)
-  const x = MIAN_X, size = 1.95, wall = STAIR.z0;
+  const k = ctx.kit('stair-foot', true);
+  // the 麵 sign: high on the tea house's corner, hung close to its wall, clear of its upper gallery — the mockup's
+  // upper-left corner, not the middle of the frame (E281: at 1.95 m and 0.3 m off the wall it filled mockup C's top)
+  const x = MIAN_X, size = 1.25, wall = STAIR.z0;
   const w = size * 1.36, h = size * 1.62;
-  const z = wall + 0.3 + w / 2, y = Y0 + 9.1;
+  const z = wall + 0.2 + w / 2, y = Y0 + 9.85;
   ctx.signs.place({ at: new Vector3(x, y, z), normal: XN, size, spec: { text: '麵', color: hex(NEON.magenta), vertical: true, style: 'tube' }, blade: true }, k);
   const by = y + h / 2 + 0.3, zOut = z + w / 2 + 0.2;
   k.beam(new Vector3(x, by, wall), new Vector3(x, by, zOut), 0.1, 0.12, IRON);
   k.beam(new Vector3(x, by - 1.3, wall), new Vector3(x, by - 0.05, wall + (zOut - wall) * 0.6), 0.06, 0.06, IRON);
   for (const dz of [-w / 2 + 0.2, w / 2 - 0.2]) k.box(x, y + h / 2 + 0.05, z + dz, 0.05, by - y - h / 2 - 0.05, 0.05, IRON);
   // the brass dragon (the grapple's anchor, the mockup's hero prop): the jian's own sculpted guard head
-  // (hero/weapon-parts.ts buildGuardProcedural, snout +y, crown +x) at 7×, on an iron bracket out of the wall just past
-  // the sign, looking out over the stair toward the square, the grapple ring hanging from its jaw
+  // (hero/weapon-parts.ts buildGuardProcedural, snout +y, crown +x) at 11×, on an iron bracket out of the wall just past
+  // the sign and level with it (mockup C: a quarter of the way down the frame, right of the sign), looking out over the
+  // stair toward the square, the grapple ring hanging from its jaw. Its KitX is the foot's (one draw with the kit).
   const out = new Vector3(-0.3, 0, 0.95).normalize();
-  const base = new Vector3(DRAGON_X, Y0 + 7.1, wall);
+  const base = new Vector3(DRAGON_X, Y0 + 9.6, wall);
   const head = base.clone().addScaledVector(out, 2.7);
   const ez = new Vector3().crossVectors(UP, out);
   const xf = new Matrix4().makeBasis(UP, out, ez).scale(new Vector3(11, 11, 11)).setPosition(head);
   const dx = new XfKitX(xf, true);
-  ctx.kitxs.set('stair-dragon', dx);
-  ctx.reflective.add('stair-dragon');
+  ctx.kitxs.set('stair-foot', dx);
   buildGuardProcedural(dx);
-  const brass: Look = { wash: 0x8a6a2c, line: 1.1, gloss: true, gold: true, accent: true };
+  const brass: Look = { wash: 0xa8842e, line: 1.1, gloss: true, gold: true, accent: true };
   k.box(base.x, base.y - 0.45, wall + 0.05, 0.5, 1.1, 0.1, IRON);
   k.beam(base, head.clone().addScaledVector(out, -0.45), 0.15, 0.17, brass);
   k.beam(base.clone().add(new Vector3(0, -0.55, 0)), head.clone().addScaledVector(out, -0.5).add(new Vector3(0, -0.1, 0)), 0.07, 0.07, brass);
@@ -703,7 +719,9 @@ export function buildStairStreet(ctx: Ctx): void {
   shopRowUpper(ctx, rng);
   southTeaHouse(ctx, rng);
   footTerraces(ctx, rng);
-  footStrings(ctx, rng);
+  // (the lantern string across the foot is gone, E281: it capped mockup C's frame; its three numbers are still drawn so
+  // the crowd below keeps its places)
+  for (let i = 0; i < 3; i++) rng.next();
   footSigns(ctx);
   footCrowd(ctx, rng);
   ctx.map.push({ x0: STAIR.x0, z0: STAIR.z0, x1: STAIR.x1 + 8, z1: STAIR.z1, kind: 'street' });

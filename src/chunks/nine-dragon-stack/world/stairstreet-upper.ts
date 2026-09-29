@@ -20,7 +20,6 @@ import type { Ctx } from './ctx';
 import { buildGate } from './gate';
 import { dressWall, spanStreet } from './facade/grammar';
 import type { PieceId } from './facade/pieces';
-import { mahjong } from './hero/figures';
 import { KitX, merge } from './hero/kitx';
 import { K, Kit, type Look } from './kit';
 import { dragonHook } from './props';
@@ -374,7 +373,9 @@ function veranda(ctx: Ctx, k: Kit, s: Seg, face: number, edge: number, side: num
   // upturned end tiles at the corners
   k.box(cx, yOut - 0.2, zOut, len - 0.05, 0.2, 0.08, TIMBER);
   k.box(cx, yOut - 0.22, zOut + side * 0.045, len - 0.05, 0.04, 0.02, { wash: MIN.lacquer, line: 0, accent: true });
-  for (let x = xa + 0.1; x < xb - 0.05; x += 0.22) k.blob(ICO0, null, x, yOut - 0.01, zOut + side * 0.05, 0.075, 0.075, 0.03, { wash: tint(tile, 0.75), line: 0, accent: true });
+  // (a flat square each, facing the stair: the icospheres they were cost 60 vertices apiece, E281)
+  const tu = side > 0 ? XP : XN;
+  for (let x = xa + 0.1; x < xb - 0.05; x += 0.22) k.quad(new Vector3(x - tu.x * 0.07, yOut - 0.08, zOut + side * 0.08), tu, UP, 0.14, 0.14, { wash: tint(tile, 0.75), line: 0.6, accent: true });
   for (const ex of [xa, xb]) k.beam(new Vector3(ex, yOut - 0.05, zOut), new Vector3(ex + (ex === xa ? -0.25 : 0.25), yOut + 0.28, zOut + side * 0.15), 0.08, 0.08, { wash: tile, line: 1, accent: true });
   const rz = edge - side * 0.2;
   const nPost = Math.max(2, Math.round(len / 2.2) + 1);
@@ -488,7 +489,7 @@ function terraces(ctx: Ctx, rng: Rng): void {
     const fronts: number[] = [];
     segs.forEach((s, i) => {
       const cx = (s.xa + s.xb) / 2, len = s.xb - s.xa;
-      const { k, kx } = terraceKit(ctx);
+      const { k } = terraceKit(ctx);
       const onStair = s.xa < STAIR.x1;
       const below = Math.min(visFloor(s.xa + 0.01), s.floor) - 1.5;
       // the plinth (its core; the ashlar skin is its face on the stair), its top the terrace
@@ -542,7 +543,7 @@ function terraces(ctx: Ctx, rng: Rng): void {
       }
       if (tea && len > 3.2) {
         const tx = cx + rng.range(-0.5, 0.5), tz = (face + edge) / 2 + side * 0.1, tr = rng.range(-0.3, 0.3);
-        mahjong(k, kx, rng, tx, s.floor, tz, tr, 0, rng.pick([0xb8352a, 0x2f5f9a, 0x3c7a5a]), false);
+        teaTable(k, rng, tx, s.floor, tz, tr, rng.pick([0xb8352a, 0x2f5f9a, 0x3c7a5a]));
         clearBand(ctx, s.xa - 0.05, s.xb + 0.05, Math.min(face, edge) - 0.6, Math.max(face, edge) + 0.6, s.floor - 0.3, s.floor + 3.3);
         veranda(ctx, k, s, face, edge, side, new Rng(900 + i * 7 + side * 50), s.xa < (LANDINGS[0]?.x1 ?? 40));
         // tea drinkers standing at the rail, looking down onto the stair (the mockup's)
@@ -572,6 +573,25 @@ function terraces(ctx: Ctx, rng: Rng): void {
     for (let j = 0; j < 3; j++) leafBush(k, rng, p.x + (j - 1) * p.w * 0.3, p.y + 0.62, p.z, rng.range(0.26, 0.36), 26);
     const fc = rng.pick(FLOWER_COLS);
     for (let j = 0; j < 9; j++) k.blob(ICO0, null, p.x + rng.range(-p.w / 2, p.w / 2) * 0.85, p.y + rng.range(0.75, 0.95), p.z + rng.range(-0.12, 0.12), 0.035, 0.028, 0.035, { wash: fc, line: 0, accent: true, emit: 0.05 });
+  }
+}
+
+/**
+ * A tea table (a round top on a pedestal, a cloth, a pot and cups) where a mahjong table stood: its ~1 900 vertices of
+ * tiles were never seen from the stair (E281, the memory the new bridges spend). It takes the same 36 numbers from the rng
+ * as the mahjong table did, so every later terrace keeps its roll.
+ */
+function teaTable(k: Kit, rng: Rng, px: number, py: number, pz: number, r: number, cloth: number): void {
+  for (let i = 0; i < 36; i++) rng.next();
+  const wood: Look = { wash: 0x4a3020, line: 1, accent: true, surf: SURF.wood };
+  k.cyl(px, py, pz, 0.09, 0.06, 0.66, 6, { wash: 0x2e2018, line: 0.8 }, { caps: false });
+  k.cyl(px, py, pz, 0.28, 0.24, 0.05, 6, { wash: 0x2e2018, line: 0.8 });
+  k.cyl(px, py + 0.66, pz, 0.46, 0.46, 0.06, 10, wood);
+  k.box(px, py + 0.72, pz, 0.62, 0.008, 0.28, { wash: cloth, line: 0.6, accent: true }, { rotY: r });
+  k.cyl(px + Math.cos(r) * 0.12, py + 0.73, pz - Math.sin(r) * 0.12, 0.08, 0.1, 0.13, 6, { wash: 0x2f5f7a, line: 1, accent: true });
+  for (let i = 0; i < 3; i++) {
+    const a = r + 1.2 + i * 2.1;
+    k.cyl(px + Math.cos(a) * 0.3, py + 0.73, pz + Math.sin(a) * 0.3, 0.032, 0.04, 0.05, 5, { wash: 0xe8e0cc, line: 0.6, accent: true }, { caps: false });
   }
 }
 
@@ -665,37 +685,51 @@ function bridge(ctx: Ctx, k: Kit, rng: Rng, bx: number, by: number, bw: number, 
 
 function overhead(ctx: Ctx, rng: Rng): void {
   const { k } = terraceKit(ctx);
-  // two strings of red lanterns across, high (+9 m) and staggered: from the square (mockup C) they frame the paifang
-  // instead of veiling it; the low dense strings made a ceiling over the canyon
-  for (const [x, dy, dx] of [[43.5, 9.5, 1.4], [62.5, 8.5, -1.2]] as const) {
+  // ONE string of red lanterns across, past the paifang (+8.5 m): it hangs behind the gate from the square and from
+  // landing 1. The string over flight 2 (x 43.5) capped both mockup C and view C2·5 (plan F6, E281): gone.
+  for (const [x, dy, dx] of [[62.5, 8.5, -1.2]] as const) {
     const y = stairFloor(x) + dy;
     lanternString(ctx, k, new Vector3(x - dx, y, FACE_N + 0.3), new Vector3(x + dx, y - 0.5, FACE_S - 0.3), 1.8, 1.1);
   }
-  // cables and laundry strung between the towers higher up (the facade grammar's spans)
+  // cables and laundry strung between the towers higher up (the facade grammar's spans): only past the paifang and
+  // every other one, so the view up the stair from the square stays open (E281); the rng still draws every span's
+  // numbers, so the signs and the crowd after it keep their rolls
+  let span = 0;
   for (let x = 36; x < FAR_X - 4; x += rng.range(2.6, 5)) {
     const ya = stairFloor(x) + rng.range(9, 22);
-    spanStreet(ctx.fd, new Vector3(x, ya, FACE_N + 0.6), new Vector3(x + rng.range(-1.5, 1.5), ya + rng.range(-1.5, 1.5), FACE_S - 0.6), Math.floor(rng.next() * 1e6));
+    const b = new Vector3(x + rng.range(-1.5, 1.5), ya + rng.range(-1.5, 1.5), FACE_S - 0.6), seed = Math.floor(rng.next() * 1e6);
+    if (x > STAIR_GATE.x + 6 && span++ % 2 === 0) spanStreet(ctx.fd, new Vector3(x, ya + 3, FACE_N + 0.6), b.setY(b.y + 3), seed);
   }
-  // layered in depth as mockup C has them (from its camera, frame fractions from the top): the monorail's lit train
-  // (~20 %), the skybridge with its people and banners (~23 %), the paifang's roof (~32 %); both clear of the aerial
-  // cameras over flight 2 and, from landing 1, above the paifang. (A third, far bridge under the sky screen read as a
-  // ceiling from the square: dropped, round B.)
-  bridge(ctx, k, rng, 67.2, TOP_Y + 20, 2.6, ['九龍', '萬家燈火', '天下一家', '九龍城'], 7, true);
+  // layered in depth as mockup C has them (from its camera on the phone frame, fractions from the top): the monorail's
+  // lit train nearest and highest (~18 %), the skybridge with its people and banners over the paifang (~25 %), the
+  // paifang's roof (~31 %), two far crossings seen through the paifang's centre bay (~40 %); from landing 1 (C2·5) the
+  // skybridge stands clear above the paifang's roof and the train is overhead (C2·1). All under the stair's sky screen
+  // (+173.45). E281.
+  bridge(ctx, k, rng, 67.2, Y0 + 45, 2.6, ['九龍', '萬家燈火', '天下一家', '九龍城'], 7, true);
   // the monorail: a box-girder track across the street slung from the deck overhead, a train standing on it
-  const mx = 60, my = Y0 + 44;
-  k.box(mx, my - 1.2, (FACE_N + FACE_S) / 2, 1.4, 1.2, 150, { wash: 0x7e8591, kind: K.panel, line: 1.5 });
-  k.box(mx, my - 1.45, (FACE_N + FACE_S) / 2, 2.2, 0.25, 150, { wash: 0x5c626c, line: 1.2 });
-  for (let z = -60; z <= 70; z += 13) {
-    k.beam(new Vector3(mx, my - 0.1, z), new Vector3(mx - 2, Y0 + 50, z - 2), 0.14, 0.14, IRON);
-    k.beam(new Vector3(mx, my - 0.1, z), new Vector3(mx + 2, Y0 + 50, z + 2), 0.14, 0.14, IRON);
+  const mx = 50, my = Y0 + 39.5, zc = (FACE_N + FACE_S) / 2;
+  // (only the canyon's width and a little into the towers: the 150 m girder was hidden in them)
+  k.box(mx, my - 1.0, zc + 1, 1.0, 1.0, 40, { wash: 0x3b3e45, kind: K.panel, line: 1.5 }, { bottom: { wash: 0x2a2c31, line: 1 } });
+  k.box(mx, my - 1.2, zc + 1, 1.8, 0.2, 40, { wash: 0x4a4f58, line: 1.2 }, { bottom: { wash: 0x26282d, line: 1 } });
+  for (const sx of [-1, 1]) ctx.signs.light(new Vector3(mx + sx * 0.52, my - 0.55, zc + 1), sx > 0 ? ZP : ZN, UP, 38, 0.08, 0xffd9a0, 1.3);
+  for (let z = -6; z <= 18; z += 12) {
+    k.beam(new Vector3(mx, my - 0.1, z), new Vector3(mx - 2, Y0 + 48.4, z - 2), 0.14, 0.14, IRON);
+    k.beam(new Vector3(mx, my - 0.1, z), new Vector3(mx + 2, Y0 + 48.4, z + 2), 0.14, 0.14, IRON);
   }
+  // the train standing on it, seen from below on the square (mockup C's top): a dark belly, a tall band of lit windows
+  // down both sides (the targets' train is its windows), a cinnabar stripe under them, the bogies on the rail
   for (let i = 0; i < 3; i++) {
-    const z = -8 + i * 13.6;
-    k.box(mx, my - 4.1, z, 2.7, 2.9, 13, { wash: 0x6a717c, line: 1.2 }, { top: { wash: 0x565c66, line: 1 } });
-    k.box(mx, my - 3.1, z, 2.74, 0.9, 12.2, { wash: 0xffd9a0, emit: 0.9, kind: K.facade, row: 0.9, col: 1.4, seed: 17 + i, line: 1, accent: true });
-    k.box(mx, my - 4.05, z, 2.76, 0.28, 13.02, { wash: 0xc23b22, line: 1, accent: true });
-    k.box(mx, my - 1.2, z, 1.4, 0.6, 2.2, { wash: 0x5c626c, line: 1 });
+    const z = -8 + i * 13.6, yb = my - 4.4;
+    k.box(mx, yb, z, 2.6, 3.0, 13, { wash: 0x6d7480, line: 1.2 }, { top: { wash: 0x4d535c, line: 1 }, bottom: { wash: 0x1f2126, line: 1 } });
+    k.box(mx, yb + 1.05, z, 2.64, 1.3, 12.3, { wash: 0xffd9a0, emit: 1.3, kind: K.facade, row: 1.3, col: 1.1, seed: 17 + i, line: 1, accent: true }, { top: null, bottom: null });
+    k.box(mx, yb + 0.72, z, 2.66, 0.22, 13.02, { wash: 0xc23b22, line: 1, accent: true }, { top: null, bottom: null });
+    for (const dz of [-4.5, 4.5]) k.box(mx, my - 1.4, z + dz, 1.2, 0.2, 1.6, { wash: 0x2a2c31, line: 1 });
   }
+  // two far crossings past the top landing, seen through the paifang's centre bay (mockup C's layered depth): their own
+  // numbers, so nothing after them re-rolls
+  const far = new Rng(7781);
+  bridge(ctx, k, far, 86, TOP_Y + 12, 2.2, ['茶'], 3, false);
+  bridge(ctx, k, far, 108, TOP_Y + 15, 2.0, [], 2, false);
 }
 
 // ── the signs: the mockup's hero stack on the right (旅館 · 火鍋 · 牙科), blade signs up both sides ──
