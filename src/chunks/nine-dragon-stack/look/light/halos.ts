@@ -22,6 +22,8 @@ export interface HaloSources { lanterns: readonly EmitterLike[]; shops: readonly
 
 /** the knobs: x gain, y radius scale, z the near fade's end (m), w the screen-size cap (share of the view's height) */
 export const HALO_DEFAULTS = new Vector4(2, 1.2, 5, 0.12);
+/** (E281) the gain per kind: lanterns, lamps, shops, signs */
+export const HALO_KIND = new Vector4(3, 1, 2, 1);
 
 const NOISE_VS = /* glsl */ `
 float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
@@ -35,9 +37,10 @@ float vnoise(vec2 p) {
 const VS = /* glsl */ `
 attribute vec2 aCorner;
 attribute vec3 aAt;
-attribute vec3 aCol;
+attribute vec4 aCol;
 attribute float aR;
 uniform vec4 uHalo;
+uniform vec4 uHaloKind;
 ${NOISE_VS}
 ${FOG_GLSL}
 varying vec2 vC;
@@ -56,7 +59,9 @@ void main() {
   vC = aCorner;
   float T = silkFog(aAt, 1.0).a;
   // a capped disc keeps its energy per pixel, not its total: a close lantern glows as hard, just not as wide
-  vCol = aCol * uHalo.x * pow(max(T, 1e-4), ${EMIT_FOG}) * smoothstep(1.2, uHalo.z, d) * step(0.0, -mv.z);
+  // (E281) a gain per kind (aCol.w: 0 lantern, 1 lamp, 2 shop, 3 sign): the lanterns read as lit red globes at 20–40 m
+  float kg = aCol.w < 0.5 ? uHaloKind.x : aCol.w < 1.5 ? uHaloKind.y : aCol.w < 2.5 ? uHaloKind.z : uHaloKind.w;
+  vCol = aCol.rgb * kg * uHalo.x * pow(max(T, 1e-4), ${EMIT_FOG}) * smoothstep(1.2, uHalo.z, d) * step(0.0, -mv.z);
   gl_Position = projectionMatrix * mv;
   if (max(vCol.r, max(vCol.g, vCol.b)) < 0.004) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 }
@@ -78,21 +83,21 @@ export interface Halos { mesh: Mesh<InstancedBufferGeometry, ShaderMaterial>; kn
 
 export function buildHalos(shared: Shared, src: HaloSources): Halos {
   const at: number[] = [], col: number[] = [], rad: number[] = [];
-  const push = (e: EmitterLike, r: number, k: number, pull = 0): void => {
+  const push = (e: EmitterLike, r: number, k: number, pull = 0, kind = 0): void => {
     at.push(e.at.x, e.at.y, e.at.z);
     // a lantern's paper glows orange-red, a sign its own neon, a shop amber: the halo is the light's colour, not the
     // emitter's saturated body colour pulled to white
-    col.push(e.color.r * k, (e.color.g + pull) * k, e.color.b * k);
+    col.push(e.color.r * k, (e.color.g + pull) * k, e.color.b * k, kind);
     rad.push(r);
   };
   for (const e of src.lanterns) push(e, HALO.lantern.r * (e.w / 0.5), HALO.lantern.k, 0.18);
   for (const e of src.shops) {
-    if (isLamp(e)) { push(e, HALO.lamp.r, HALO.lamp.k); continue; }
-    push(e, Math.min(Math.max(HALO.shop.rPerW * e.w, HALO.shop.rMin), HALO.shop.rMax), HALO.shop.k * Math.min(Math.max(e.spill / 0.3, 0.5), 1.5));
+    if (isLamp(e)) { push(e, HALO.lamp.r, HALO.lamp.k, 0, 1); continue; }
+    push(e, Math.min(Math.max(HALO.shop.rPerW * e.w, HALO.shop.rMin), HALO.shop.rMax), HALO.shop.k * Math.min(Math.max(e.spill / 0.3, 0.5), 1.5), 0, 2);
   }
   for (const e of src.signs) {
     if (e.power <= 0) continue;
-    push(e, HALO.sign.r + HALO.sign.rPerSize * Math.max(e.w, e.h), HALO.sign.k * Math.min(e.power, 1.5));
+    push(e, HALO.sign.r + HALO.sign.rPerSize * Math.max(e.w, e.h), HALO.sign.k * Math.min(e.power, 1.5), 0, 3);
   }
   const n = rad.length;
   const g = new InstancedBufferGeometry();
@@ -100,12 +105,12 @@ export function buildHalos(shared: Shared, src: HaloSources): Halos {
   g.setAttribute('aCorner', new Float32BufferAttribute([-1, -1, 1, -1, 1, 1, -1, 1], 2));
   g.setIndex(new Uint16BufferAttribute([0, 1, 2, 0, 2, 3], 1));
   g.setAttribute('aAt', new InstancedBufferAttribute(new Float32Array(at), 3));
-  g.setAttribute('aCol', new InstancedBufferAttribute(new Float32Array(col), 3));
+  g.setAttribute('aCol', new InstancedBufferAttribute(new Float32Array(col), 4));
   g.setAttribute('aR', new InstancedBufferAttribute(new Float32Array(rad), 1));
   g.instanceCount = n;
   const knobs = HALO_DEFAULTS.clone();
   const mat = new ShaderMaterial({
-    uniforms: { ...shared.u, uHalo: { value: knobs } },
+    uniforms: { ...shared.u, uHalo: { value: knobs }, uHaloKind: { value: HALO_KIND.clone() } },
     vertexShader: VS, fragmentShader: FS,
     transparent: true, depthWrite: false,
     ...ADD_KEEP_ALPHA,

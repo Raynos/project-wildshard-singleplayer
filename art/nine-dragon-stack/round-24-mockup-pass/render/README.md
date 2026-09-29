@@ -96,3 +96,24 @@ thin broken stripes on mid-grey wet stone with every tread edge readable.
 | The silk over the datum thins faster (e-fold 45 → 18 m, floor 0.35 → 0.2): pass 3's denser silk turned the aerials over the square into a pale haze; the eye-level views keep theirs | `look/style.ts` | none |
 
 Memory: geometry 156.2 MB, textures 79.6 MB. Worst pose: mockup A, 125 draws, 1.49 M triangles.
+
+## Pass 5: three features (the far skyline, the tread glints, the amber pools) and the square lane's notes
+
+`pass-5/`, captured at `d5acb0c2` + the lane's files. The uniform levers were spent after pass 4, so pass 5 adds shader
+features, in the look files only: no textures, no render targets, no new draws.
+
+| Change | File | GPU cost on the phone |
+|---|---|---|
+| **The far Stack at infinity**: four layers of procedural pagoda and tower silhouettes painted into the sky shader round the whole sky, the farther layer higher (高遠, the hanging scroll's high distance), each layer's feet dissolving into a band of silk, lit windows on the nearer ones. One seamless panorama (whole cells round the sky), never a card in the playable space. It stands 33–60° up, the only sky the fragment shows (the gaps between towers and decks looking up) | `look/style.ts` (FS_SKY `skyline`) | 4 layers × ~40 ALU per **sky** pixel only: the sky now draws after the opaques (render order 900, depth-tested at the far plane, `look/render.ts`), so it shades only where sky shows. Before, it filled the whole screen under the city (depthTest off) |
+| **Tread and riser glints**: a wet step's tread top (under 0.6 m deep) and a riser's top edge (the nosing seen from below) catch broken, twinkling cells of light just inside the ruled ground line: the lamps' reflection (one light-volume read along R) and the sky's. Far off they average into one bright line | `look/style.ts` (FS_JIEHUA) | one volume read + ~25 ALU on wet step faces only |
+| **Amber pools**: the floor keeps 80 % of an amber light's pool (lit shops, stalls, lamps; g / r ≥ 0.28–0.42 on the raw irradiance) against 30 % of the lanterns' red-orange field (which washed the gate's floor salmon in pass 1), plus a warm sheen of it on wet stone | `look/light/lightvol.ts`, `look/style.ts` | ~6 ALU |
+| The square lane's notes: the lanterns' halos ×3 and the shops' ×2 (per-kind gains, `uHaloKind`), so each lantern reads as a lit red globe at 20–40 m; the mineral accents (the paifang's cinnabar, the roofs' malachite) take T^0.35 of the silk (a pigment holds its colour through the silk) | `look/light/halos.ts`, `look/style.ts` | none |
+| The square lane's notes: the flagstones as big wet granite slabs, a stronger per-stone value swing (0.3 → 0.5) and granite speckle (0.52 → 0.8), the granite paint at 0.3 on wet stone, the joints at least 12 mm | `look/style.ts` (STONES_GLSL, kind 3) | none |
+
+Reverted in the tuning: the skyline at the horizon (0–30°): the fragment never shows that sky. Silk-coloured layers:
+invisible against the pale sky (an ink-blue wash instead). Glints on the nosing strip alone: a 0.085 m strip is under a
+pixel from the mockup cameras. 20 mm joints: bold brown lines. The amber sheen at ×4: a flat orange floor, the pass-2
+wash again.
+
+Memory: geometry 155.8 MB, textures 79.6 MB. Worst pose: mockup A, 125 draws, 1.50 M triangles (no new draws: the
+features are all in existing programs).

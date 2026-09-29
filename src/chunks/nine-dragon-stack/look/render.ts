@@ -44,6 +44,10 @@ const CARD_ON = 0.6;
  *  (pass 2's ×1.5 drew a curtain of colour over the stone the mockups keep visible) */
 const PHONE_CARD_GAIN = 1;
 
+/** (E281) the painted sky draws after the world's opaques (the viewmodels' depth clearer sits at 999): with its depth
+ *  test at the far plane it then shades only where the sky shows — the skyline's layers cost nothing under the city */
+const SKY_ORDER = 900;
+
 /** (E281) the engine's cloud layer (world/Sky.ts: a white cumulus dome for the daylight shards) has no place in a
  *  blue-hour sky under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky. Hiding it also
  *  drops its draw and its full-sky fill */
@@ -146,6 +150,8 @@ export function createRender(): ShardRender {
       if (halos !== null) world.root.add(halos.mesh);
       clouds = c.scene;
       if (hideEngineClouds(c.scene)) clouds = null;
+      const sky = world.root.getObjectByName('sky');
+      if (sky !== undefined) sky.renderOrder = SKY_ORDER;
       handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos };
       Reflect.set(window, '__ndRender', handle);
       return { beforeChain, chain: [jiehua] };

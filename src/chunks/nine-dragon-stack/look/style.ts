@@ -143,6 +143,18 @@ export class Shared {
     uBandCols: { value: BANDS.map((b) => c(b.jiehua)) },
     uSkyTop: { value: c(0x6f94c8) },
     uSkyHorizon: { value: c(0xb3c3d8) },
+    // (render, E281) the far Stack painted into the sky (FS_SKY skyline): strength, elevation scale, lit windows, ink
+    uSkyline: { value: new Vector4(1, 1, 1, 1.6) },
+    // (render, E281) the wet nosings' glints: x gain, y the share of the sparkle cells lit
+    uGlint: { value: new Vector2(2, 0.22) },
+    // (render, E281) how much of the silk the mineral accents take (T^x; 1 = as any wash)
+    uAccentFog: { value: 0.35 },
+    // (render, E281) the flagstones: x the per-stone value swing, y the speckle's contrast, w the granite paint's
+    // strength on wet stone
+    // (the square lane's ask: big wet granite slabs with clear joints, A1·8)
+    uFlag: { value: new Vector4(0.5, 0.8, 0, 0.3) },
+    // (render, E281) the flagstones' joint: at least this wide (m), so the slabs read as slabs up close
+    uFlagJoint: { value: 0.012 },
     uSilk: { value: silkWeave() as Texture },
     uGroundY: { value: 0 },
     // the painted surfaces (paint.ts, merged from lab P5): the texture array and its strengths; the glazed tiles' pitch
@@ -341,6 +353,7 @@ float silkPaper(vec2 fc) {
 `;
 
 export const STONES_GLSL = /* glsl */ `
+uniform float uFlagJoint;
 // (needs PAINT_GLSL before it: the layout is paint.ts FLAG, shared with the paint's per-stone windows)
 // (render) stoneFw: the same with the pixel footprint passed in (a caller that discards first takes its derivatives
 // while the whole quad is still alive)
@@ -350,7 +363,7 @@ vec4 stoneFw(vec2 p, float px, vec2 fwIn) {
   float L = flagLen(r), rh = ${FLAG.rh.toFixed(3)};
   float fx = fc.z / L, fy = fc.w / rh;
   vec2 fw = max(fwIn, vec2(1e-5));
-  vec2 lw = min(fw * px, vec2(0.012));
+  vec2 lw = max(min(fw * px, vec2(0.012)), vec2(uFlagJoint));
   float jx = 1.0 - smoothstep(lw.x, lw.x + fw.x, min(fx, 1.0 - fx) * L);
   float jy = 1.0 - smoothstep(lw.y, lw.y + fw.y, min(fy, 1.0 - fy) * rh);
   float joint = max(jx * smoothstep(4.0, 9.0, L / fw.x), jy * smoothstep(4.0, 9.0, rh / fw.y));
@@ -429,6 +442,9 @@ uniform vec3 uPaperDeep;
 uniform vec3 uSutraWin;
 uniform float uFogScale;
 uniform sampler2D uSilk;
+uniform vec2 uGlint;
+uniform float uAccentFog;
+uniform vec4 uFlag;
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec3 vColor;
@@ -636,7 +652,8 @@ void main() {
     vec4 pf = paintFlag(p, 1.0);
     float wLoc = st.z;
     float kf = pk * uPaintK.y * uPaintFlag * (1.0 - smoothstep(0.15, 0.5, wLoc));
-    col = base * (0.82 + 0.3 * st.y) * (0.74 + 0.52 * speck) * pInk(mix(vec3(1.0), pf.rgb, kf), uPaintInk);
+    kf = max(kf, pk * uPaintK.y * uFlag.w);
+    col = base * (1.0 - 0.6 * uFlag.x + uFlag.x * st.y) * (1.0 - 0.5 * uFlag.y + uFlag.y * speck) * pInk(mix(vec3(1.0), pf.rgb, kf), uPaintInk);
     float wAmt = wet * mix(0.55, 1.0, wLoc);
     wetPool = wAmt * (1.0 - st.x);
     // (render, E281) wet granite at blue hour is dark slate: the lights live in its reflections, not in its wash
@@ -799,6 +816,32 @@ void main() {
   // (round 14: a wet tread seen from above read beige-lit) the flat sheen is a grazing-angle thing: looking down, wet
   // stone stays dark and only the gloss lobe below shows the lights
   emit += lp * wetPool * uLpGain.y * (0.08 + 0.92 * pow(clamp(1.0 - abs(V.y), 0.0, 1.0), 2.0));
+  // (render, E281) the warm pools: in front of a lit shop, a stall or under a lamp the wet stone carries the light's own
+  // amber as a soft glow (lpAmberness: the lanterns' red and the neon stay out, so the gate's floor does not go salmon)
+  emit += lp * lpAmb * max(wetPool, wet * 0.5) * step(0.6, n.y) * uLpAmber.y;
+  // (render, E281) the wet treads' glints: a step's tread (a narrow wet top, under 0.6 m deep) catches light along its
+  // long edges — the nosing, and the wet inside corner — just inside the ruled ground line: broken cells of light that
+  // twinkle, the lamps' and the sky's reflection; far off they average into one bright line
+  // Looking up a flight the treads hide behind their risers: a riser's top edge (a low, long wet face, v up) is the
+  // nosing seen from below and takes the same glints
+  bool tread = n.y > 0.9 && min(sz.x, sz.y) < 0.6;
+  bool riser = abs(n.y) < 0.3 && sz.y < 0.5 && sz.x > 2.0 * sz.y;
+  if (uGlint.x > 0.0 && wet > 0.3 && (tread || riser)) {
+    bool acrossU = tread && sz.x < sz.y;
+    float dE = riser ? dpx.w : (acrossU ? min(dpx.x, dpx.y) : min(dpx.z, dpx.w));
+    float along = acrossU ? uv.y : uv.x;
+    float ga = acrossU ? gv : gu;
+    float edgeW = Wg * 0.5;
+    float band = smoothstep(edgeW - 0.5, edgeW + 0.5, dE) * (1.0 - smoothstep(edgeW + 1.5, edgeW + 3.0, dE));
+    float cellL = 0.06;
+    float gc = floor(along / cellL);
+    float hc = h12(vec2(gc, vPat.w * 7.0 + floor(vWorld.y * 5.0) + floor((acrossU ? vWorld.x : vWorld.z) * 3.0)));
+    float tw = 0.55 + 0.45 * sin(uTime * (1.5 + 3.0 * hc) + hc * 40.0);
+    float spark = step(1.0 - uGlint.y, hc) * tw * (1.0 - smoothstep(0.2, 0.45, abs(fract(along / cellL) - 0.5)));
+    float gk = mix(uGlint.y * 0.45, spark, smoothstep(0.7, 2.5, cellL / max(ga, 1e-5))) * band;
+    vec3 Rg = reflect(-V, n);
+    emit += (lpRaw(vWorld + Rg * 1.5) * 1.5 + uFogBaseCol * 0.45) * gk * uGlint.x * wet;
+  }
   // (render) the lamplight's glossy lobe (lightvol.ts poolSpec): lacquer and gilt glint, wet stone and decks shine
   // toward the lanterns; Schlick on the film, a lacquer's own sheen a little broader
   {
@@ -844,7 +887,10 @@ void main() {
   vec3 fogC = fgc.rgb * silkPaper(gl_FragCoord.xy);
   // (round 14) a light punches through the silk further than the wash it sits on (√T, as the facade windows do):
   // the lanterns and lit shops of the lower strata glow through the bands
-  vec3 outc = col * fgc.a + fogC + emit * pow(max(fgc.a, 1e-4), ${EMIT_FOG});
+  // (render, E281) the mineral accents (the paifang's cinnabar, the malachite roofs) hold their colour through the silk
+  // like a pigment on the scroll: they take T^uAccentFog of the fog, the silk's inscatter scaled to match
+  float Ta = pow(max(fgc.a, 1e-4), mix(1.0, uAccentFog, accent));
+  vec3 outc = col * Ta + fogC * ((1.0 - Ta) / max(1.0 - fgc.a, 1e-4)) + emit * pow(max(fgc.a, 1e-4), ${EMIT_FOG});
   // alpha = normalised inverse view depth: the MSAA resolve averages it, the post silhouette reads it
   gl_FragColor = vec4(outc, uNear / max(vViewZ, uNear));
 }
@@ -968,8 +1014,73 @@ uniform sampler2D uSilk;
 uniform vec3 uSkyTop;
 uniform vec3 uSkyHorizon;
 uniform vec2 uSkyCloud;
+uniform vec4 uSkyline;
+uniform vec3 uFogBaseCol;
 varying vec3 vDir;
 ${NOISE_GLSL}
+// (render, E281) the far Stack at infinity: four layers of pagoda and tower silhouettes round the whole sky, the farther
+// set higher (高遠, the high distance: a hanging scroll stacks what is far above what is near), each layer's feet
+// dissolving into a band of silk. From the fragment the sky only shows overhead — the gaps between the towers and decks
+// looking up, 35–75° — so the layers stand there: the upper strata of the Stack seen through the canyon. One seamless
+// panorama: every shape stays inside its own cell of a whole number of cells round the sky, so the wrap has no seam. u is
+// across and el up, both in radians of arc, so the shapes keep their proportions at any elevation. uSkyline x:
+// strength, y: the elevation scale, z: the lit windows, w: the layers' ink.
+float pagodaW(float y, float W, float T, float fy) {
+  if (y > 1.28) return -1.0;
+  if (y > 1.0) return W * 0.07 * (1.0 - smoothstep(1.0, 1.28, y) * 0.6);
+  float t = y * T, ft = fract(t);
+  float bw = W * (1.0 - 0.42 * y);
+  // each storey: a wall, then its roof flaring out over it (the eaves' upturned tips as a little lift at the edge)
+  float roof = smoothstep(0.66 - fy * T, 0.66 + fy * T, ft);
+  return bw * mix(0.62, mix(1.35, 0.7, (ft - 0.66) / 0.34), roof);
+}
+float towerW(float y, float W, float h) {
+  if (y > 1.18) return -1.0;
+  if (y > 1.0) return W * 0.05;
+  return W * (y < 0.55 + 0.2 * h ? 1.0 : (y < 0.86 ? 0.74 : 0.5));
+}
+vec3 skyline(vec3 d, vec3 col) {
+  float e = d.y;
+  if (uSkyline.x <= 0.0 || e > 0.985 || e < 0.2) return col;
+  float el = asin(clamp(e, -1.0, 1.0));
+  float a = atan(d.z, d.x) * 0.15915494 + 0.5;
+  float ce = sqrt(max(1.0 - e * e, 0.0));
+  float fe = max(fwidth(el), 1e-5);
+  vec3 mistC = mix(uSkyHorizon, vec3(0.93, 0.94, 0.96), 0.3);
+  for (int L = 0; L < 4; L++) {
+    float fl = float(L);
+    float N = 36.0 + fl * 12.0;
+    float base = uSkyline.y * (1.0 - fl * 0.14);
+    float x = a * N, cell = floor(x), f = x - cell;
+    float fx = min(fwidth(x), fwidth(fract(x + 0.5)));
+    float cid = mod(cell, N) + fl * 131.0;
+    float h1 = h12(vec2(cid, 3.7)), h2 = h12(vec2(cid, 9.1)), h3 = h12(vec2(cid, 17.3)), h4 = h12(vec2(cid, 23.1));
+    float cellR = 6.2831853 / N;
+    float W = cellR * (0.12 + 0.12 * h3);
+    float H = uSkyline.y * (0.1 + 0.16 * h4) * (1.0 + 0.2 * fl);
+    float u = (f - 0.5 - (h1 - 0.5) * 0.3) * cellR * ce;
+    float fu = max(fx * cellR * ce, 1e-5);
+    float y = (el - base) / H;
+    float fy = fe / H;
+    float hw = h1 < 0.2 ? -1.0 : (h2 > 0.5 ? pagodaW(y, W, 5.0 + floor(h3 * 5.0), fy) : towerW(y, W * 1.25, h3));
+    float cov = clamp((hw - abs(u)) / fu + 0.5, 0.0, 1.0);
+    // the feet dissolve into the silk; the farther layers are paler (aerial perspective), the nearer an ink-blue wash
+    float op = smoothstep(-0.3, 0.55, y) * uSkyline.x;
+    // (the silk-coloured layers vanished against the pale sky: the ink is a deep blue-grey wash, the far layers take less)
+    vec3 layerC = mix(mistC, vec3(0.1, 0.14, 0.26), clamp(uSkyline.w * (0.22 + 0.14 * fl), 0.0, 1.0));
+    // lit windows on the nearer layers: warm dots in a grid of storeys
+    vec2 g = vec2(u / 0.0042, el / 0.0068);
+    vec2 gi = floor(g), gf = abs(fract(g) - 0.5);
+    float lit = step(0.72, h12(gi + cid * 7.0)) * step(0.5, fl) * step(0.08, y) * step(y, 0.95);
+    float win = lit * (1.0 - smoothstep(0.2, 0.2 + fwidth(g.x), gf.x)) * (1.0 - smoothstep(0.24, 0.24 + fwidth(g.y), gf.y));
+    layerC += vec3(1.0, 0.72, 0.42) * win * uSkyline.z * (0.5 + 0.25 * fl);
+    col = mix(col, layerC, cov * op);
+    // the band of silk the layer stands in
+    float band = exp(-pow((el - base + 0.015) / (0.045 * uSkyline.y), 2.0));
+    col = mix(col, mistC, band * 0.55 * uSkyline.x);
+  }
+  return col;
+}
 void main() {
   vec3 d = normalize(vDir);
   float e = d.y;
@@ -986,6 +1097,7 @@ void main() {
   float cn = vnoise(cp * vec2(1.0, 1.7) + 7.0) * 0.62 + vnoise(cp * vec2(2.6, 4.1) + 1.7) * 0.38;
   float cov = smoothstep(0.52, 0.8, cn) * smoothstep(0.22, 0.55, e);
   j = mix(j, mix(uSkyHorizon * 1.2, vec3(0.86, 0.74, 0.66), 0.25), cov * uSkyCloud.x);
+  j = skyline(d, j);
   vec3 col = mix(j, s, uSutra);
   col *= 1.0 + (texture(uSilk, gl_FragCoord.xy / 380.0).r - 0.5) * 0.07;
   gl_FragColor = vec4(col, 0.0);
@@ -993,8 +1105,10 @@ void main() {
 `;
 export function skyMaterial(shared: Shared): ShaderMaterial {
   return new ShaderMaterial({
-    uniforms: { uCam: shared.u.uCam, uSutra: shared.u.uSutra, uSilk: shared.u.uSilk, uSkyTop: shared.u.uSkyTop, uSkyHorizon: shared.u.uSkyHorizon, uSkyCloud: { value: new Vector2(0.45, 1.4) } },
-    vertexShader: VS_SKY, fragmentShader: FS_SKY, side: BackSide, depthWrite: false, depthTest: false,
+    uniforms: { uCam: shared.u.uCam, uSutra: shared.u.uSutra, uSilk: shared.u.uSilk, uSkyTop: shared.u.uSkyTop, uSkyHorizon: shared.u.uSkyHorizon, uSkyCloud: { value: new Vector2(0.45, 1.4) }, uSkyline: shared.u.uSkyline, uFogBaseCol: shared.u.uFogBaseCol },
+    // (render, E281) depth-tested at the far plane (xyww): drawn after the world's opaques (render.ts sets its order) it
+    // shades only the pixels where the sky shows, not the whole screen under the city
+    vertexShader: VS_SKY, fragmentShader: FS_SKY, side: BackSide, depthWrite: false, depthTest: true,
   });
 }
 

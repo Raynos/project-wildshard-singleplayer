@@ -55,6 +55,7 @@ export function lightVolUniforms(): {
   uLpSpec: { value: Vector4 };
   uLpRim: { value: Vector4 };
   uLpCut: { value: Vector4 };
+  uLpAmber: { value: Vector4 };
 } {
   return {
     uLpVolA: { value: blank() }, uLpMinA: { value: new Vector3() }, uLpInvA: { value: new Vector3() },
@@ -81,6 +82,11 @@ export function lightVolUniforms(): {
      *  lanterns shows them as reflections — the streaks, the gloss lobe — not as a salmon fill: the gate's floor); w: the
      *  soft ceiling (lpKnee) */
     uLpCut: { value: new Vector4(0.4, 0.15, 0.3, 0.8) },
+    /** (render, E281) warm pools on the wet floor. The floor keeps only uLpCut.z of the pools (the lanterns' red-orange
+     *  field washed the gate's floor salmon), but the lit shops', stalls' and lamps' amber light (g / r ≥ z…w: a lantern's
+     *  pool sits at ~0.25, a shop's at ~0.47) lies on the stone in front of them: x the floor's keep of amber light, y a
+     *  warm sheen of it on wet stone (the light's own colour, not the dark wet albedo × it) */
+    uLpAmber: { value: new Vector4(0.8, 1, 0.28, 0.42) },
   };
 }
 
@@ -172,6 +178,11 @@ uniform float uLpAmb;
 uniform vec4 uLpSpec;
 uniform vec4 uLpRim;
 uniform vec4 uLpCut;
+uniform vec4 uLpAmber;
+// (render, E281) how amber a light is (a shop's, a lamp's: 1; a lantern's red-orange, the neon: 0), judged on the raw
+// irradiance (the knee shifts the ratio); poolLight leaves the last read's in lpAmb
+float lpAmberness(vec3 E) { return smoothstep(uLpAmber.z, uLpAmber.w, E.g / max(E.r, 1e-4)) * step(E.b, E.g); }
+float lpAmb = 0.0;
 // (render, E281) the knee: E² / (E + k) keeps a lantern's pool (E ≫ k) and drops the faint field between them
 vec3 lpKnee(vec3 E) {
   if (uLpCut.x > 0.0) E = E * E / (E + vec3(uLpCut.x));
@@ -187,14 +198,17 @@ vec4 lpSample(highp sampler3D v, vec3 wp, vec3 mn, vec3 iv) {
 vec3 poolLight(vec3 wp, vec3 n) {
   if (uLpGain.w < 0.5) return vec3(0.0);
   vec4 s = wp.y > uLpMinA.y ? lpSample(uLpVolA, wp, uLpMinA, uLpInvA) : lpSample(uLpVolB, wp, uLpMinB, uLpInvB);
-  vec3 E = lpKnee(s.rgb * s.rgb * ${LP_MAX.toFixed(1)});
+  vec3 E0 = s.rgb * s.rgb * ${LP_MAX.toFixed(1)};
+  lpAmb = lpAmberness(E0);
+  vec3 E = lpKnee(E0);
   float fromUp = s.a * 2.0 - 1.0;
   // facing: the light's mean direction is mostly vertical (up / down) with a level share; walls take the level share
   float fUp = max(fromUp, 0.0), fDown = max(-fromUp, 0.0), fLevel = 1.0 - abs(fromUp);
   float face = fUp * mix(uLpGain.z, 1.0, clamp(n.y * 0.5 + 0.5, 0.0, 1.0))
              + fDown * clamp(0.6 - n.y * 0.6, 0.15, 1.0)
              + fLevel * (abs(n.y) < 0.5 ? 1.0 : 0.85);
-  return E * face * mix(1.0, uLpCut.z, smoothstep(0.5, 0.9, n.y));
+  float keep = mix(uLpCut.z, max(uLpCut.z, uLpAmber.x), lpAmb);
+  return E * face * mix(1.0, keep, smoothstep(0.5, 0.9, n.y));
 }
 // (render) the raw irradiance at a point (no facing): what a glossy surface sees of the pools along its reflection
 vec3 lpRaw(vec3 wp) {
