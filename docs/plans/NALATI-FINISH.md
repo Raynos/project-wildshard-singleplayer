@@ -1,6 +1,6 @@
 # NALATI-FINISH — land Nalati on main, then the user's picks and the leftovers
 
-**State:** `in progress` 2026-09-29 — the user (E301, E302): build everything left. Five agents with the E302 session, one per lane: B5 faces (every Nalati human; variants on a Debug row + a board, the user picks), B2 + B9 look polish and the capture bugs, B1 riding extras, B3 audio, B8 load memory (1.83 GB, over the 1.8 GB cap) + the fps reading (P4 / N11; needs the USB iPhone plugged in and unlocked). Done: U1–U3, P1–P3, B4 (moot), B6, B7. The user's: N24. E299 review: progress/e299/.
+**State:** `in progress` 2026-09-29 — the user (E301, E302): build everything left. B1 riding extras is built and pushed (21239ee7…3aebdeb5), every piece on its own Debug row, default ON; waiting on the deploy and the user's ride. In flight with the E302 session: B5 faces (every face in the catalog, E304), B2 + B9 look polish and the capture bugs, B3 audio, B8 load memory (1.83 GB, over the 1.8 GB cap) + the fps reading (P4 / N11; needs the USB iPhone plugged in and unlocked). The Nalati HUD is being reworked alongside: the left edge becomes HORSE · HOVER · SWAP (E319, plus a mockup round). Done: U1–U3, P1–P3, B4 (moot), B6, B7. The user's: N24. E299 review: progress/e299/.
 
 The mini plan for everything left after [NALATI-MERGE](../../project/archive/2026-09-24-nalati-merge.md) (archived
 2026-09-24, every row built on the `nalati-grasslands` branch). The asks: N10, N11, N13, N14, N20, N21, N22.
