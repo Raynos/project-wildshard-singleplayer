@@ -19,12 +19,16 @@ import { type BandKits, RIM, SPLIT, type WellPlan, snapFloor } from './well-plan
 
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 
-/** the near hero signs, big and legible from the rim: text, colour, side (W / E wall), z, height, size */
+/** the near hero signs, big and legible from the rim: text, colour, side (W / E wall), z, height, size. (F5, mockup D and
+ *  dome D1's targets: big neon calligraphy framing the view down the shaft) the five mockup D sees are placed where its
+ *  frame has them — 麵 over 牙科 down the left edge (south of the steel catwalk at z −8, which hid the west one), 火鍋
+ *  over 茶 over 旅館 down the right — at 2–2.3 m a character (they were 1.3–1.5, and 茶 hung behind a net); 麵 at z −26
+ *  and 火鍋 at z −32 are mockup B's */
 const HERO: readonly [string, number, 'W' | 'E', number, number, number][] = [
-  ['麵', NEON.magenta, 'W', -26, Y0 - 4, 1.55], ['牙科', NEON.cyan, 'W', -10, Y0 - 12, 1.4], ['火鍋', NEON.red, 'W', 2, Y0 - 18, 1.35],
+  ['麵', NEON.magenta, 'W', -26, Y0 - 4, 1.55], ['麵', NEON.magenta, 'W', -4.5, Y0 - 12, 2.3], ['牙科', NEON.cyan, 'W', 2, Y0 - 20, 2.0],
   ['藥房', NEON.magenta, 'W', -38, Y0 - 9, 1.2], ['麻雀', NEON.jade, 'W', -2, Y0 - 26, 1.1],
-  ['火鍋', NEON.red, 'E', -32, Y0 - 6, 1.45], ['茶', NEON.amber, 'E', -17, Y0 - 12, 1.5], ['旅館', NEON.jade, 'E', -4, Y0 - 22, 1.3],
-  ['九龍', NEON.red, 'E', -8, Y0 - 4.5, 1.3],
+  ['火鍋', NEON.red, 'E', -32, Y0 - 6, 1.45], ['火鍋', NEON.red, 'E', -6.5, Y0 - 12, 2.2], ['茶', NEON.amber, 'E', -1.5, Y0 - 15, 2.3],
+  ['旅館', NEON.jade, 'E', 1.5, Y0 - 21, 2.0], ['九龍', NEON.red, 'E', -8, Y0 - 4.5, 1.3],
 ];
 
 /** the brass dragon hooks on the near gallery corners (the mockup cameras' two first: shots.ts hookNear) */

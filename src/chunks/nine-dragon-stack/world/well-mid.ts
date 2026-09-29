@@ -30,7 +30,7 @@ const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
 const ANCHOR = { x: -14, z: -21, y: Y0 - 6 } as const;
 
 /** mockup B / D's cameras (mockupCameras.ts) and dome B2's anchor: a crossing's detail steps down with its distance */
-const VIEWS = [new Vector3(-19.5, Y0 + 1.68, 12.25), new Vector3(-14, Y0 + 1.9, 11.3), new Vector3(-14, Y0 - 4, -21)] as const;
+const VIEWS = [new Vector3(-19.5, Y0 + 1.68, 13.3), new Vector3(-14, Y0 + 1.9, 11.3), new Vector3(-14, Y0 - 4, -21)] as const;
 const lodAt = (x: number, y: number, z: number): number => {
   const d = Math.min(...VIEWS.map((v) => v.distanceTo(new Vector3(x, y, z))));
   return d < 45 ? 0 : d < 70 ? 1 : 2;
@@ -43,10 +43,11 @@ const NETS: readonly [number, number, number][] = [
   [-91, -94, Y0 - 28.5], [-60, -63, Y0 - 40.5], [-80, -83, Y0 - 46.5],
 ];
 
-/** the far hero signs: text, colour, side, z, height, size */
+/** the far hero signs: text, colour, side, z, height, size (F4, mockup B: its canyon walls carry big calligraphy on both
+ *  sides, receding: ×1.6, and 旅館 off the stone crossing's end at z −51) */
 const HERO: readonly [string, number, 'W' | 'E', number, number, number][] = [
-  ['酒家', NEON.amber, 'W', -58, Y0 + 7, 1.2], ['理髮', NEON.cyan, 'E', -66, Y0 + 2, 1.1], ['當舖', NEON.red, 'W', -78, Y0 - 4, 1.1], ['冰室', NEON.magenta, 'E', -86, Y0 + 9, 1.1],
-  ['旅館', NEON.jade, 'E', -52, Y0 - 9, 1.15], ['麵', NEON.magenta, 'W', -48, Y0 - 13, 1.3], ['火鍋', NEON.red, 'E', -74, Y0 + 15, 1.1], ['藥房', NEON.jade, 'W', -90, Y0 - 16, 1.0],
+  ['酒家', NEON.amber, 'W', -58, Y0 + 7, 1.9], ['理髮', NEON.cyan, 'E', -66, Y0 + 2, 1.75], ['當舖', NEON.red, 'W', -78, Y0 - 4, 1.75], ['冰室', NEON.magenta, 'E', -86, Y0 + 9, 1.75],
+  ['旅館', NEON.jade, 'E', -56, Y0 - 9, 1.85], ['麵', NEON.magenta, 'W', -47, Y0 - 13, 2.0], ['火鍋', NEON.red, 'E', -74, Y0 + 15, 1.75], ['藥房', NEON.jade, 'W', -90, Y0 - 16, 1.6],
 ];
 
 /** the pipes run across the gap (z, height, radius, colour) */

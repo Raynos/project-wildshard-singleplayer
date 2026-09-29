@@ -57,14 +57,18 @@ export const CROSSINGS: readonly Crossing[] = [
   // the gate bridge (25 %) and the temple (53 %), and the cloud sea the terrace floats on is at +44, look/style.ts BANDS)
   { kind: 'timber', z: -28, y: Y0 - 36, w: 2.2, crowd: 2, ext: false },
   { kind: 'timber', z: -20, y: Y0 - 93, w: 2.2, crowd: 1, ext: false },
-  { kind: 'stone', z: -51, y: Y0 + 3, w: 3, crowd: 4, ext: true },
+  // the run north (F4, mockup B: "crossings like ladder rungs receding into the mist to the far gate"). Seen from the
+  // rim's cameras (B at +126.7, B2 on its bridge at +120.6) a rung above the eye is an underside at the horizon: the
+  // three that were (+128, +137, +143) stacked with the gate into one block in the middle of B's frame. They are rungs
+  // below the eye now, stepping down toward the rim (+119 far, +104 near), with the gate raised to +134 over their end
+  { kind: 'stone', z: -51, y: Y0 - 12, w: 3, crowd: 4, ext: true },
   { kind: 'steel', z: -58, y: Y0 - 27, w: 1.4, crowd: 1, ext: true },
-  { kind: 'covered', z: -63, y: Y0 + 12, w: 2.6, crowd: 3, ext: true },
-  { kind: 'timber', z: -70, y: Y0 - 6, w: 2.2, crowd: 3, ext: true },
+  { kind: 'covered', z: -63, y: Y0 - 9, w: 2.6, crowd: 3, ext: true },
+  { kind: 'timber', z: -70, y: Y0 - 15, w: 2.2, crowd: 3, ext: true },
   { kind: 'stone', z: -77, y: Y0 - 39, w: 3, crowd: 1, ext: true },
-  { kind: 'stone', z: -81, y: Y0 + 18, w: 3, crowd: 2, ext: true },
-  { kind: 'steel', z: -87, y: Y0 - 15, w: 1.4, crowd: 1, ext: true },
-  { kind: 'gate', z: -95, y: Y0 + 3, w: 6, crowd: 10, ext: true },
+  { kind: 'stone', z: -81, y: Y0 - 6, w: 3, crowd: 2, ext: true },
+  { kind: 'steel', z: -87, y: Y0 - 21, w: 1.4, crowd: 1, ext: true },
+  { kind: 'gate', z: -95, y: Y0 + 9, w: 6, crowd: 10, ext: true },
   { kind: 'timber', z: -99, y: Y0 - 30, w: 2.2, crowd: 1, ext: true },
 ];
 
