@@ -35,8 +35,14 @@ import { MiniMap } from './MiniMap';
 import { Compare, hasCompareTargets } from './Compare';
 import modelsArt from './img/models.webp';
 import worldArt from './img/world.webp';
-import practiceArt from './img/practice.jpg';
+import practiceDriftwood from './img/practice-driftwood-isle.webp';
+import practicePine from './img/practice-pine-hollow.webp';
+import practiceNalati from './img/practice-nalati-grasslands.webp';
+import practiceNine from './img/practice-nine-dragon-stack.webp';
 import { isDev, onDev } from '../core/devMode';
+
+/** the Practice card's art, one per shard: the arena in that shard's grade with its weapon (E292) */
+const PRACTICE_ART: Record<string, string> = { 'driftwood-isle': practiceDriftwood, 'pine-hollow': practicePine, 'nalati-grasslands': practiceNalati, 'nine-dragon-stack': practiceNine };
 
 export type ExploreMode = 'hub' | 'world' | 'model';
 
@@ -146,6 +152,8 @@ export class Explore {
     this.tabs = top.querySelector<HTMLElement>('.ws-x-tabs') ?? top;
     this.readout = html('div', 'ws-x-readout');
     const shard = host.world.chunk, own = shard.slug === 'driftwood-isle'; // the hub art is Driftwood's; another shard shows its picker art
+    // the Practice card is this shard's own arena: the room takes each shard's grade and weapon (E292)
+    const practiceArt = PRACTICE_ART[shard.slug] ?? practiceDriftwood;
     this.hubEl = html('div', 'ws-x-hub', `
       <div class="ws-x-hub-heading">Choose an explorer</div>
       <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${own ? modelsArt : shard.thumbnail}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
