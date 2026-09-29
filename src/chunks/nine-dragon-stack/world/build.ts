@@ -333,10 +333,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const screen = new Mesh(new PlaneGeometry(58, 80), scrollMaterial(shared, scrollTex, 58, 80, SCROLL).mat);
   screen.rotation.x = Math.PI / 2;
   screen.position.set(1, Y0 + 29.85, -64);
-  const screen2 = new Mesh(new PlaneGeometry(70, 64), scrollMaterial(shared, scrollTex, 70, 64, { ...SCROLL, offset: 97 }).mat);
-  screen2.rotation.x = Math.PI / 2;
-  screen2.position.set(78, Y0 + 48.45, 6);
-  root.add(named(screen, 'screens'), named(screen2, 'screens'));
+  // (the stair-street's own screen over x 43…113 at +173 is gone: from the square and landing 1 it was a flat teal
+  // ceiling over the stair paifang, where every C target paints blue-hour sky; E281 stair pass 3's experiment)
+  root.add(named(screen, 'screens'));
   const sheets = new Mesh(sheetsGeometry(), sheetMaterial(shared));
   sheets.renderOrder = 2;
   const steam = new Mesh(steamGeometry(ctx.steam), steamMaterial(shared));
