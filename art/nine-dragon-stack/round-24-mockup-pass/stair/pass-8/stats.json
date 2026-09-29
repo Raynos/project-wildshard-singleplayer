@@ -1,0 +1,91 @@
+{
+ "url": "http://localhost:5423",
+ "when": "2026-09-29T06:51:11.402Z",
+ "poses": {
+  "C1·1": {
+   "calls": 88,
+   "tris": 921821
+  },
+  "C1·2": {
+   "calls": 87,
+   "tris": 955549
+  },
+  "C1·3": {
+   "calls": 104,
+   "tris": 1251040
+  },
+  "C1·4": {
+   "calls": 102,
+   "tris": 1444003
+  },
+  "C1·5": {
+   "calls": 83,
+   "tris": 764433
+  },
+  "C1·6": {
+   "calls": 71,
+   "tris": 536107
+  },
+  "C1·7": {
+   "calls": 96,
+   "tris": 938287
+  },
+  "C1·8": {
+   "calls": 57,
+   "tris": 670856
+  },
+  "C1·9": {
+   "calls": 103,
+   "tris": 1196686
+  },
+  "C2·1": {
+   "calls": 73,
+   "tris": 685192
+  },
+  "C2·2": {
+   "calls": 83,
+   "tris": 776402
+  },
+  "C2·3": {
+   "calls": 105,
+   "tris": 1379632
+  },
+  "C2·4": {
+   "calls": 99,
+   "tris": 1232197
+  },
+  "C2·5": {
+   "calls": 73,
+   "tris": 556163
+  },
+  "C2·6": {
+   "calls": 65,
+   "tris": 427551
+  },
+  "C2·7": {
+   "calls": 102,
+   "tris": 1264499
+  },
+  "C2·8": {
+   "calls": 48,
+   "tris": 493238
+  },
+  "C2·9": {
+   "calls": 101,
+   "tris": 1160917
+  },
+  "mockup C": {
+   "calls": 107,
+   "tris": 976781
+  }
+ },
+ "memory": {
+  "geometries": 125,
+  "textures": 65,
+  "sceneGeometries": 191,
+  "sceneTextures": 43,
+  "geometryMB": 150.9,
+  "textureMB": 79.6,
+  "jsHeapMB": 16.1
+ }
+}

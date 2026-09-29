@@ -152,3 +152,15 @@ against pass 6.
 
 Memory against the same HEAD: geometry 154.58 → 154.54 MB (the lantern arms' beams went; everything new is instances),
 textures unchanged. No collider changes.
+
+## Pass 8 (on HEAD e357e28a)
+
+| Change | Where | Kept? |
+|---|---|---|
+| A footbridge over the top of flight 1 at +31 m (x 31.2) with people at its rail and 茶 / 九龍 banners: overhead in C1·1's look up, across the top of C1·9's top-down and C2·2's aerial, as the targets stack their bridges. It stays above mockup C's frame (66° up from its camera; the frame ends at 49°) | C2 | kept |
+| Landing 1's terrace segments always take the red timber balustrade (the rng is drawn as before): C2·4 / C2·6's targets | C2 | kept |
+| Pots on the terraces past x 47 (10 m and more from every stair camera) are the facade's instanced plant instead of ~350 vertices of leaves each; their leafy build goes into a throwaway kit so the rng stays in step. No visible change at the domes or mockup C | C2 | kept: −2.96 MB |
+| The landings' and the top landing's slabs darker (0x3c3e44) | C2 | kept, but no visible change: the pale pink of the landings in C2·4 / C2·6 / C2·8 is the wet-ground reflection of the bright sky (render lane), not the wash |
+
+Memory against the same HEAD: geometry 153.85 → 150.89 MB, textures unchanged. The lane is now 2.9 MB under its pass-6
+numbers. No collider changes.

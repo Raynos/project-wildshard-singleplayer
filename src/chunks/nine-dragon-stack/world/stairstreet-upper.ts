@@ -206,7 +206,9 @@ function steps(ctx: Ctx, rng: Rng): void {
     }
   }
   for (const l of LANDINGS) {
-    k.box((l.x0 + l.x1) / 2, l.y - 0.6, zc, l.x1 - l.x0, 0.6, w, STEP_RISER, { top: { ...STEP_TOP, wet: 1 } });
+    // (E281 pass 8: a darker slab than the steps' treads — the wide flat read pale under the high-key grade, where the
+    // targets' landings are dark wet stone carrying the neon)
+    k.box((l.x0 + l.x1) / 2, l.y - 0.6, zc, l.x1 - l.x0, 0.6, w, STEP_RISER, { top: { ...STEP_TOP, wash: 0x3c3e44, wet: 1 } });
     // a curb of long stones along the landing's edges (the top step of the flight below), a drain channel at the sides
     k.box(l.x0 + 0.2, l.y - 0.1, zc, 0.4, 0.12, w - 0.02, { ...COPING, wash: 0x5d5c60, wet: 0.9 });
     for (const zs of [STAIR.z0 + 0.12, STAIR.z1 - 0.12]) k.box((l.x0 + l.x1) / 2, l.y - 0.05, zs, l.x1 - l.x0 - 0.1, 0.06, 0.2, { wash: 0x2f3034, line: 1, wet: 1 });
@@ -224,7 +226,7 @@ function steps(ctx: Ctx, rng: Rng): void {
     }
   }
   // the top landing and the scenery street past it, one slab across the whole street
-  k.box((STAIR.x1 + FAR_X) / 2, TOP_Y - 0.6, (FACE_N + FACE_S) / 2, FAR_X - STAIR.x1, 0.6, FACE_S - FACE_N, STEP_RISER, { top: STEP_TOP });
+  k.box((STAIR.x1 + FAR_X) / 2, TOP_Y - 0.6, (FACE_N + FACE_S) / 2, FAR_X - STAIR.x1, 0.6, FACE_S - FACE_N, STEP_RISER, { top: { ...STEP_TOP, wash: 0x3c3e44 } });
 }
 
 // ── the terraces and the towers standing on them (past the square's towers) ──
@@ -560,7 +562,10 @@ function terraces(ctx: Ctx, rng: Rng): void {
       // the north side of flight 2 is a run of tea verandas (view 5's left, the mockup's tea house on up the stair)
       const tea = onStair && ((side > 0 && s.xa < 53) || i % 3 === (side > 0 ? 0 : 1) || rng.chance(0.25));
       const rz = edge - side * 0.2;
-      const timberRail = tea || rng.chance(0.5);
+      const L1 = LANDINGS[0];
+      const nearL1 = L1 !== undefined && s.xb > L1.x0 - 1 && s.xa < L1.x1 + 1;
+      // (the rng is drawn as before; landing 1's segments always take the red timber rail, C2·4 / C2·6's targets)
+      const timberRail = (tea || rng.chance(0.5)) || nearL1;
       const railLook: Look = timberRail ? { wash: 0x6a2418, line: 0.5, accent: true } : { wash: 0x2a2c31, line: 0.5 };
       barRow(k, new Vector3(side > 0 ? s.xa + 0.1 : s.xb - 0.1, s.floor + 0.08, rz + side * 0.05), u, len - 0.2, 0.92, timberRail ? 0.13 : 0.15, railLook);
       k.box(cx, s.floor + 1.0, rz, len - 0.1, 0.07, 0.1, timberRail ? LACQUER : IRON);
@@ -572,7 +577,13 @@ function terraces(ctx: Ctx, rng: Rng): void {
       for (let j = 0; j < nPots; j++) {
         const px = s.xa + len * ((j + rng.range(0.25, 0.75)) / nPots);
         const form = rng.chance(0.18) ? 'tree' : rng.chance(0.3) ? 'tall' : 'bush';
-        pottedPlant(k, rng, px, s.floor, rz - side * rng.range(0.35, 0.6), rng.range(0.8, 1.35) * (form === 'tree' ? 1.5 : 1), form, rng.chance(0.4));
+        const pz = rz - side * rng.range(0.35, 0.6), ps = rng.range(0.8, 1.35) * (form === 'tree' ? 1.5 : 1), fl = rng.chance(0.4);
+        // (E281 pass 8) past x 47 — 10 m and more from every stair camera — a pot is the facade's instanced plant, not ~350
+        // vertices of leaves; its leafy build goes into a kit nobody keeps, so the rng stays in step
+        if (px > 47) {
+          pottedPlant(new Kit(), rng, px, s.floor, pz, ps, form, fl);
+          piece(ctx, 'plant', new Vector3(px, s.floor, pz - side * 0.18), u, n, ps * 1.25, ps * (form === 'tall' ? 1.7 : 1.35), ps * 1.25);
+        } else pottedPlant(k, rng, px, s.floor, pz, ps, form, fl);
       }
       if (onStair) {
         const nv = rng.int(2, 3);
@@ -750,6 +761,10 @@ function overhead(ctx: Ctx, rng: Rng): void {
   // skybridge stands clear above the paifang's roof and the train is overhead (C2·1). All under the stair's sky screen
   // (+173.45). E281.
   bridge(ctx, k, rng, 67.2, Y0 + 45, 2.6, ['九龍', '萬家燈火', '天下一家', '九龍城'], 7, true);
+  // (E281 pass 8) a footbridge over the top of flight 1, +31 m: overhead in C1·1's look up and C1·9's top-down, high in
+  // C2·2's aerial, as the targets stack their bridges; above the top of mockup C's frame (66° up from its camera, the
+  // frame ends at 49°). Its own numbers, so nothing after it re-rolls
+  bridge(ctx, k, new Rng(7318), 31.2, Y0 + 31, 2.4, ['茶', '九龍'], 6, false);
   // the monorail: a box-girder track across the street slung from the deck overhead, a train standing on it
   const mx = 50, my = Y0 + 39.5, zc = (FACE_N + FACE_S) / 2;
   // (only the canyon's width and a little into the towers: the 150 m girder was hidden in them)
