@@ -1,6 +1,6 @@
 # Plan: model architecture (E306): what a model is, where it lives, how the Model Explorer shows it
 
-**State:** `draft` 2026-09-29 — Jake approved none; written from the E306 audit (`docs/audits/models-and-model-explorer.md`). Nothing built. Waits on Jake's pick: option A / B / C (B recommended), and B1 or B2 for the folders if B, then a go for step M0.
+**State:** `in progress` 2026-09-29 — Jake picked option B1 (`defineModel` + `place()`; shared `src/models/`, each shard's own `src/chunks/<slug>/models/`) and gave the go for M0 (E306). M0a + M0b are in flight with the models agent; M1–M6 wait on Jake's review of M0 on the phone.
 
 ## Read this first
 
@@ -167,12 +167,12 @@ file in, one registration and one hand-written specimen out, and the card reads 
 test is 0 stuck, the other three shards compile to identical programs, and the before / after catalog is on one phone
 board.
 
-## Rows (none approved)
+## Rows (B1 approved 2026-09-29; M0 approved, the rest after M0's review)
 
 | # | Row | Size | Status |
 |---|---|---|---|
-| M0a | Explorer facts: count, drawnAs, pipeline badge, explicit category, `worldView` on a real copy | S | not approved |
-| M0b | `defineModel` / `place()` contract + Driftwood shore boulder (or the training dummy) | S–M | not approved |
+| M0a | Explorer facts: count, drawnAs, pipeline badge, explicit category, `worldView` on a real copy | S | in flight (E306) |
+| M0b | `defineModel` / `place()` contract + Driftwood shore boulder (or the training dummy) | S–M | in flight (E306) |
 | M1 | Driftwood models | M | not approved |
 | M2 | Pine Hollow models | M | not approved |
 | M3 | Nalati models + Sets | M–L | not approved |
