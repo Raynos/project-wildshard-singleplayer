@@ -95,22 +95,38 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
   > engine, game and kit stay locked until the plan is archived. If you are not the E357 lead, stop and ask Jake.
 
 - The session brief prints the lock line and the reopened folders.
-- **Reopening.** At milestone Mn, `src/shards/<slug>/` reopens to content agents. They may edit only that folder, its
-  tests and its `art/` / `public/assets/` files. A CODEOWNERS-style path check (`scripts/check-lock.mjs`, in the
-  pre-commit hook while the lock lasts) refuses other paths unless the commit message carries `E357-lead`.
+- **The lock check (R1-09).** `scripts/check-lock.mjs`, built in F0 (02 F0 step 5), runs as the **`commit-msg`** hook
+  (a pre-commit hook runs before the message exists). The lead's commits, and those of the subagents it spawns, carry
+  the trailer **`E357-Lead: yes`** and pass. Any other commit may touch only a reopened shard's allowlist; anything
+  else is refused, path by path. The reopened slugs, with the extra asset folders each manifest declares, live in
+  `.github/lock.json`, which each milestone commit edits.
+- **Reopening.** At milestone Mn, `src/shards/<slug>/` reopens to content agents. The reopened-shard allowlist
+  (R1-09): `src/shards/<slug>/**`, `test/shards/<slug>/**`, `test/parity/baselines/*/<slug>.*` (its baselines,
+  below), `art/<slug>/**`, `public/assets/<slug>/**` and the asset folders its manifest declares,
+  `scripts/blender/<slug>/**`, and `docs/tasks/asks/**`. Generated files are never committed (they are built at build
+  and test time, 02 F9; R1-11), so a content commit never needs one.
+- **A reopened shard's lane owns its baselines (R1-12).** A content commit re-records its own shard's baselines in the
+  same commit (`parity --rebaseline=<slug>`, 03 §8 case 6), and every other shard must stay identical in that run (the
+  cross-shard proof). The lead's engine commits keep every shard identical except boarded items.
 
 ## 3. Deploys: milestones only (decisions 32, 53)
 
 - **At F3.1, production is pinned** to the build live that day (`version.json` when F3.1 lands; milestone `M0`,
   `gate: "grandfathered"`). `deploy.yml` and `ota-promote.yml` deploy only the SHA in **`.github/deploy-pin.json`**
   (03-harness-gate §13; 13-lead-resolutions G7); main keeps moving.
-- **At each milestone** (M1–M4, then Z3's shard 5 and the archive), the lead (03 §13.4):
-  1. checks the gate is green on HEAD;
-  2. after Jake's go, runs `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M<n> --go "<where Jake said go>"`,
-     which refuses a SHA without a green `gpu-gate`, and commits `.github/deploy-pin.json` alone;
-  3. runs `gh workflow run deploy`;
-  4. confirms `version.json` reports it;
-  5. records the build id in `docs/tasks/asks/E357.md`.
+- **At each milestone** (M1–M4, then Z3's shard 5 and the archive), the flow is (R1-15; 03 §13.4):
+  1. the gate is green on HEAD (dispatched with the offline boot check, 03 §11.1);
+  2. the boards go to Jake, with clips and images from the harness's capture of HEAD;
+  3. Jake OKs the board items (`parity --accept`), or they're fixed or reverted, so nothing is pending;
+  4. the pin moves to HEAD: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M<n> --go "<where Jake OKed>"`,
+     which refuses a SHA without a green `gpu-gate`, while a board item is pending (R1-13) or while `gpu-perf/memory`
+     is red (R1-53); the lead commits `.github/deploy-pin.json` alone, runs `gh workflow run deploy`, confirms
+     `version.json` reports it, and records the build id in `docs/tasks/asks/E357.md`;
+  5. Jake plays it live;
+  6. **Jake's go starts the next shard.** The go is not a ship gate.
+- **Playing before the pin moves.** If Jake wants to play the candidate first, the lead deploys it as a Vercel
+  **preview** deployment (`vercel deploy --prebuilt` from a clean export, which keeps `/api`; 03 §13.4), never with
+  `scripts/release-url.sh` (static `dist/` only, no `/api`) (R1-15).
 - **Bug fixes land on main and ship at the next milestone** (53). No hotfix branch.
 - **If the pinned build breaks on Jake's phone,** the fix still waits for the milestone, unless Jake asks for an early
   pin move. The lead then moves the pin to the newest green SHA, since every commit is parity-proven.
@@ -119,7 +135,7 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 
 - **The lead** (the top-level session) builds in row order and owns the spine files. Those are everything under
   `src/engine/app/`, `src/engine/boot/`, `src/game/shard/`, the composition root (`src/entry.ts`, `src/main.ts`), the index
-  files, `lint/`, `scripts/parity.mjs`, `.github/deploy-pin.json` and `deploy.yml`.
+  files, `lint/`, `scripts/parity.mjs`, `.github/deploy-pin.json`, `.github/lock.json` and `deploy.yml`.
 - **Up to 3 subagents at once,** each one job, on disjoint files:
   - Good jobs: a weapon family, the audio engine, one shard's file move, one X5 item, one spec rewrite.
   - Never a spine file, and never two subagents on one shard folder.
@@ -134,6 +150,8 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
   7. Report ≤ 40 lines.
   8. No `set-label.sh`.
   9. Waits over ~4 min become "queued: <command>" for the lead.
+  10. Commits carry the trailer `E357-Lead: yes` (§2; R1-09). Parity per commit is only the phone lane for its own
+      shard (< 4 min, §5; R1-10); the all-shards run before the push is the lead's.
 - **Long waits belong to the lead:** the model lock for S1.5's audio, the gate runs, deploys. They run with
   `run_in_background`, and the lead is notified when they exit.
 - **Never recycle a subagent.** What is left goes to a fresh one whose brief says "read the last Handoff in E357.md,
@@ -141,15 +159,22 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 
 ## 5. Every commit
 
-1. Parity green on the changed shard(s): `node scripts/parity.mjs --shards <changed> --tier phone,desktop`. The full
-   4-shard run happens before every push.
-2. Node checks green: `pnpm test` (incl. layers, ratchets, contract tests, gen-shards `--check`, the asset audit,
+1. Node checks green: `pnpm test` (incl. layers, ratchets, contract tests, gen-shards `--check`, the asset audit,
    check-paths, coverage).
-3. A pathspec commit (`git commit -m "E357 <row>: …" -- <paths>`). The message names the row and says "parity green"
-   or "board: <wave>".
-4. `scripts/push-main.sh`, and the `gpu-gate` status is watched.
-5. **A red result is reverted, not patched forward.** Parity red after a commit means
-   `git revert <sha>` → push → re-plan the step.
+2. A pathspec commit (`git commit -m "E357 <row>: …" -- <paths>`), with the trailer `E357-Lead: yes` in its trailer
+   block (§2; R1-09). The message names the row and says "parity green" or "board: <wave>".
+3. **One per-commit parity command (R1-10),** on that local commit: `node scripts/parity.mjs --export=HEAD
+   --shards=<changed> --tiers=phone` against the lane's baselines (`<changed>` = the shards the commit touches, `all`
+   for an engine / game / kit commit; 03 §1). A subagent runs it for its own shard only (< 4 min); anything longer is
+   "queued: <command>" for the lead (AGENTS.md).
+4. **Before every push:** `node scripts/parity.mjs --export=HEAD --shards=all --tiers=phone,desktop` green, then
+   `scripts/push-main.sh`, and the `gpu-gate` status is watched.
+5. **A change waiting for a board is pending, not red (R1-13).** The commit that makes a visible change for a wave
+   board adds its entry to `docs/plans/game-normalization/reviews/pending.json` (03 §8): its fields then show yellow
+   (allowed) until Jake OKs the item (`parity --accept=<ids>`) or it is reverted.
+6. **A red result is reverted, not patched forward.** Parity red after a commit means
+   `git revert <sha>` → push → re-plan the step. The one exception is F6 after F8 has started: a break the move caused
+   is fixed forward, with a test, citing F6 (02 F6; R1-54).
 
 ## 6. Boards (decisions 4, 6, 42)
 
@@ -162,28 +187,30 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 | Look | M4, X9, and whenever a pose differs beyond noise | the Drowned Captain on the shared BossBar (decision 91, S4.2; 13-lead-resolutions 07/08#9, G21); the title deck's read-only Wildshard summary strip, A / B (X9, decision 76; 13-lead-resolutions G10); the pose triptych (before / after / diff) | Board |
 
 - A board goes to Jake with SendUserFile + AskUserQuestion. One recommended option per item.
-- An OK re-baselines exactly the boarded items in the harness (`scripts/parity.mjs --accept <item ids>`, with the item
-  ids recorded in the commit).
+- An OK re-baselines exactly the boarded items in the harness (R1-13): `node scripts/parity.mjs --accept=<ids>
+  --export=HEAD`, where the ids are the entries of `docs/plans/game-normalization/reviews/pending.json` (03 §8), recorded
+  in the commit. A "no" reverts the change and removes its entry. The pin can't move while any entry is pending.
 
 ## 7. Reporting
 
 - **The plan's State line** is rewritten (not appended) at every row finish. It names the current row, the next row,
   the milestone count and the lines deleted so far.
-- **At each milestone:** the summary (what moved, lines deleted, ratchet counts, budgets), the boards, and "play it on
-  your phone" (42).
-- **M1's summary also states:** the one-time 2.7 MB re-download of Pine Hollow's phone-pack part that F6 causes (the
-  bakers' `hash` fields re-stamp once; 13-lead-resolutions 04#5), and Nine Dragon's load cap (its F2 baseline rounded
-  up to the next second, 13-lead-resolutions 05/06#7) for Jake to confirm.
+- **At each milestone:** the summary (what moved, lines deleted, ratchet counts, budgets) and the boards; after the pin
+  moves, "play it on your phone" (42), and Jake's go starts the next shard (§3; R1-15).
+- **M1's summary also states:** the one-time 2.7 MB re-download of Pine Hollow's phone-pack part that F1 causes (the
+  bakers' `hash` fields re-stamp once when F1 takes their own source out of the hash, 02 F1 step 7; R1-20;
+  13-lead-resolutions 04#5), and Nine Dragon's load cap (its F2 baseline rounded up to the next second,
+  13-lead-resolutions 05/06#7) for Jake to confirm.
 - **No silent stretches:** a decision Jake owns goes to him with the tool as it comes up ([[ask-with-tool]]).
 
 ## 8. Risk register
 
 | Risk | Where | Guard | If it hits |
 |---|---|---|---|
-| The big move (F6) breaks the bakers silently | F6 | F1's alias spike, `check-paths`, the non-empty glob asserts, bake byte-identity in parity | Revert F6, fix the tool, redo |
-| The harness is non-deterministic (flaky) | F2 | green twice on unchanged HEAD before anything moves; re-run once, quarantine with an owner | A flaky check blocks nothing only while quarantined, max 3 days, then fixed or deleted |
-| iPhone memory regression (the E271 class) | any render change | budgets + GPU bytes in the nightly perf; the nightly Simulator memory run and soak bot (03 §14.1–§14.2: regression checks, not phone evidence); the physical iPhone reading at each milestone that touched render or memory | Revert to the last milestone pin; no render optimisation ships without iPhone evidence (AGENTS.md) |
-| Rapier 0.21 changes walks | F12 | walk + trails 0 stuck, nav bake `--check`, an iPhone load reading | Stay on 0.20 (pin) and file an ask; the engine hides Rapier, so it's one module |
+| The big move (F6) breaks the bakers silently | F6 | F1's alias spike, `check-paths`, the non-empty glob asserts, bake byte-identity in parity | Revert F6, fix the tool, redo, until F8 starts; after that, fix forward with a test citing F6 (R1-54) |
+| The harness is non-deterministic (flaky) | F2 | green twice on unchanged HEAD before anything moves; re-run once, quarantine with an owner | A flaky check blocks nothing only while quarantined, max 3 days (03 §12), then fixed, or deleted only with a replacement check covering the same field (R1-36) |
+| iPhone memory regression (the E271 class) | any render change | budgets + GPU bytes in the nightly perf; the nightly Simulator memory run and soak bot (03 §14.1–§14.2: regression checks, not phone evidence); the physical iPhone reading at each milestone that touched render or memory | **Memory red stops the line** (R1-53): the next commit fixes or reverts, and the pin can't move while `gpu-perf/memory` is red (03 §14.1). A pinned build that breaks on the phone goes back with `deploy-pin.mjs rollback <sha>` to any earlier pin, M0 included (R1-16; past F10 the old build can't read the v2 saves, which decision 13 accepts and the rollback states). No render optimisation ships without iPhone evidence (AGENTS.md) |
+| Rapier 0.21 changes walks | F12 | walk + trails 0 stuck, nav bake `--check`, an iPhone load reading at M1 | 0 stuck but `end` / `maxY` beyond the band: the lead inspects the legs and trails; a pure numeric drift is re-baselined with a note (decision 89); a new stuck or a fall reverts F12 and files an ask (R1-52; 03 §8 case 5). The engine hides Rapier, so it's one module |
 | `macos-15` runner changes (image, Chromium) | F3.2 | image label and Chromium version pinned; baselines recorded on the runner | Re-baseline in one commit with a board only if pixels moved |
 | A profile can't express a weapon's old behaviour | S1–S3 | parity trajectory / timing tests per weapon | The family gains the field (a bug in the family, decision 12′), never the weapon converges |
 | The scope creeps (new features mid-refactor) | any | the lock; the plan's rows are the only work | New ideas become asks; a draft plan marked "Jake approved none" ([[park-unapproved-ideas]]) |

@@ -10,9 +10,10 @@ specified in [03-harness-gate.md](03-harness-gate.md) (cited as "03 §n"); this 
 - "Today" is the tree at `b1b8f9c9` (2026-09-30). Every count was measured on it, `src/dev/` excluded unless stated.
 - Paths are today's paths for rows that run before F6. For rows after F6, the path is given as `today → after F6` the
   first time, then the new path. The F6 folder map (F6 step 3) decides every new path.
-- Every commit follows the plan's rule (GAME-NORMALIZATION §3): the local parity run is green (03 §10) → a pathspec
-  commit (`git commit -m "…" -- <paths>`) → `scripts/push-main.sh`. A red result is reverted with `git revert <sha>`,
-  never patched forward and never `git reset`.
+- Every commit follows the plan's rule (GAME-NORMALIZATION §3): a pathspec commit (`git commit -m "…" -- <paths>`,
+  with the `E357-Lead: yes` trailer, F0 step 5) → the local parity run on it, `--export=HEAD` (12 §5; R1-10) →
+  `scripts/push-main.sh` once green. A red result is reverted with `git revert <sha>`, never patched forward and never
+  `git reset`.
 - Sizes: **S** ≤ ½ agent-day, **M** ≤ 2 agent-days, **L** more (the plan's scale).
 - "The lead" is the build session that holds the lock (decision 33). A subagent runs a row only when this spec says the
   row is splittable, under the E352 caps.
@@ -74,13 +75,40 @@ the plan is archived, with each shard's folder reopening at its milestone (decis
 4. `herdr agent list`; send each live agent `"[from E357] The repo is locked for GAME-NORMALIZATION v2 from <sha>. Stop,
    commit your own paths, and end. Details: AGENTS.md → The E357 lock."` (no `--wait`). Record who was told in
    `docs/tasks/asks/E357.md`.
+5. **The lock check (R1-09).** `scripts/check-lock.mjs`, run by a new `.githooks/commit-msg` hook (`node
+   scripts/check-lock.mjs "$1"`; a `commit-msg` hook can read the message, a pre-commit hook cannot). It reads the
+   message file and `git diff --cached --name-only` (the paths being committed; a pathspec commit's hook sees its
+   temporary index) and `.github/lock.json`: `{ "locked": true, "reopened": { "<slug>": ["<extra asset glob>", …] } }`.
+   F0 writes `{ "locked": true, "reopened": {} }`; each milestone commit adds its shard's slug with the asset folders
+   its manifest declares (for example `public/assets/nine-dragon/**`); the archive commit sets `"locked": false`.
+   While `locked` is true, a commit whose trailers (`git interpret-trailers --parse`) carry `E357-Lead: yes` passes
+   (the lead and the subagents it spawns); any other commit may touch only the reopened-shard allowlist of a slug in
+   `reopened`: `src/shards/<slug>/**`, `test/shards/<slug>/**`, `test/parity/baselines/*/<slug>.*` (its lane owns its
+   baselines, R1-12), `art/<slug>/**`, `public/assets/<slug>/**` and that slug's extra asset globs,
+   `scripts/blender/<slug>/**`, and `docs/tasks/asks/**`. Anything else exits 1, listing each refused path. Generated
+   files are never committed (F9, R1-11), so none is on the list. The pure check `lockVerdict(message, paths, lock)`
+   is a named export, so the test calls it without git.
+6. **AGENTS.md beyond the lock section (R1-49).**
+   - **Deploy** is rewritten for the pin: production and the OTA channel serve the SHA in `.github/deploy-pin.json`
+     (F3.1: `M0`, then `M1` … `Mn`), moved only by `node scripts/deploy-pin.mjs set` at a milestone or `rollback`
+     (03 §13); after a push, verify CI and the `gpu-gate` status only (`version.json` stays on the pinned build, and
+     `gh workflow run deploy` ships the pin, never main's head).
+   - **No URL switches** gains the route for a new Debug toggle: its owner adds it through `ctx.debugRow` (01 §7) once
+     that owner is a plugin, else through today's registry (`src/ui/Settings.ts` + `src/ui/debugOptions.ts`). During
+     the lock a new toggle is added only for an E357 row or a Jake ask: by the lead, or by a content agent through
+     `ctx.debugRow` inside its reopened shard folder.
 
-**Tests added.** None (docs and a hook).
+**Tests added.** `test/check-lock.test.ts` (R1-09): `lockVerdict` refuses a message without the trailer that touches
+`src/engine/app/app.ts`, passes the same paths with `E357-Lead: yes`, passes `src/shards/<slug>/x.ts` and
+`docs/tasks/asks/E400.md` for a reopened slug, refuses them for a slug that isn't reopened, and passes everything when
+`locked` is false.
 
 **Done when.**
 - `bash .claude/hooks/session-brief.sh | grep -c '^LOCK: E357'` prints `1`.
 - `grep -l 'E357' docs/plans/*.md` lists every plan in the table above, and `docs/plans/ENGINE-FIT.md` no longer exists.
 - `herdr agent list` shows no agent other than the lead with a working state in this repo.
+- A planted commit without the trailer that touches `src/main.ts` is refused by the `commit-msg` hook, naming the
+  path (the plant is not kept), and `grep -c 'deploy-pin' AGENTS.md` is at least 1 (R1-09, R1-49).
 
 **Risks and rollback.** An agent that ignores the notice commits into a locked folder: the lead reverts that commit and
 tells the agent again. Rollback of F0 itself: `git revert` of its commit.
@@ -110,14 +138,21 @@ resolver, the `wildshard/no-url-switch` rule, `scripts/bake-loader.mjs`); a path
    }
    ```
    Targets end in `.ts`, so Node resolves them with no extension probing. A deep specifier always names a file
-   (`#shards/pine-hollow/manifest`), never a folder. Create the three layer indexes with one export each so the spike
+   (`#shards/pine-hollow/manifest`), never a folder. **Asset specifiers (R1-21).** The map also gets one
+   extension-preserving entry per layer for each asset type imported across folders today (`.jpg`, `.webp`):
+   `"#engine/*.jpg": "./src/engine/*.jpg"`, `"#engine/*.webp": "./src/engine/*.webp"`, and the same pair for `#game`,
+   `#kit` and `#shards`. The longer key wins in Node's and Vite's pattern match, so a non-TS target never gets `.ts`
+   appended. Create the three layer indexes with one export each so the spike
    has something to import: `src/engine/index.ts` (`export const ENGINE_API = 1;`), `src/game/index.ts`
-   (`export const GAME_API = 1;`), `src/kit/index.ts` (`export const KIT_API = 1;`), and the lint fixture
-   `src/engine/aliasFixture.ts` (`export const ALIAS_FIXTURE_PARAM = 'tier';`, a param on the `harness` allowlist).
+   (`export const GAME_API = 1;`), `src/kit/index.ts` (`export const KIT_API = 1;`), the lint fixture
+   `src/engine/aliasFixture.ts` (`export const ALIAS_FIXTURE_PARAM = 'tier';`, a param on the `harness` allowlist), and
+   the asset fixture `src/engine/aliasFixture.webp` (a 1 × 1 WebP).
 2. Prove each consumer with one import through the alias:
-   - src: `src/main.ts` gets `import { ENGINE_API } from '#engine';` and `void ENGINE_API;` in its first line of
-     `main()` (removed again in F6 when real engine imports exist);
-   - test: `test/alias.test.ts` imports `#engine`, `#game`, `#kit`, `#engine/aliasFixture` and asserts the values;
+   - src: `src/main.ts` gets `import { ENGINE_API } from '#engine';`, `import aliasArt from
+     '#engine/aliasFixture.webp';` and `void ENGINE_API; void aliasArt;` in its first line of `main()` (removed again
+     in F6 when real engine imports exist);
+   - test: `test/alias.test.ts` imports `#engine`, `#game`, `#kit`, `#engine/aliasFixture` and asserts the values, and
+     imports `#engine/aliasFixture.webp` and asserts its URL ends in `.webp` (R1-21);
    - baker: `test/alias.test.ts` also runs `node --import ./scripts/bake-loader.mjs -e "…import('#engine/aliasFixture')…"`
      through `child_process.execFileSync` and asserts stdout `tier`;
    - oxlint: `pnpm exec oxlint src/main.ts` exits 0 (the `import/no-cycle` resolver follows `#engine`);
@@ -151,19 +186,33 @@ resolver, the `wildshard/no-url-switch` rule, `scripts/bake-loader.mjs`); a path
    `test/ktx2-auto.test.ts` (all three of its globs), `test/species.ts` (the helper; the assert throws at import).
    The 4 src globs (`src/boot/extras.ts:47`, `src/explore/Compare.ts:9`, `src/entities/AnimalFactory.ts:15`, and the
    `species/registry.ts` doc reference) are covered by `check-paths`.
+7. **Bakers hash their inputs, not their own source (R1-20).** A baker whose stamp hashes its own script file
+   re-stamps on every edit of that script, and F7, F6 and F9 all edit the bakers. Each such baker drops its own source
+   from the digest and hashes a `BAKE_VERSION` constant (bumped by hand when its output format or maths changes) plus
+   its data inputs: `bake-sky.mjs:22,32` (`self` leaves the digest; its `VERSION` stays), `bake-navmesh.mjs:419`
+   (`readFileSync(import.meta.filename)` → `BAKE_VERSION`), and `bake-chunk.mjs:40` (`'scripts/bake-chunk.mjs'` leaves
+   `shared`). The lead greps `scripts/bake-*.mjs` for any other baker that reads its own file into a hash and changes
+   it the same way. The re-stamp this causes once (the `hash` fields under `public/assets/baked/`, and the packs that
+   carry them) is committed in F1: it is the accepted one-time re-download (13-lead-resolutions 04#5), which now
+   happens here instead of in F6.
 
 **Tests added.** `test/alias.test.ts` (aliases in vitest, in a baker, the lint resolver via the exported
-`importedConst` with a `#engine/aliasFixture` specifier → `'tier'`); `test/check-paths.test.ts` (runs the script on a
+`importedConst` with a `#engine/aliasFixture` specifier → `'tier'`, and the asset specifier
+`#engine/aliasFixture.webp`); `test/check-paths.test.ts` (runs the script on a
 temp copy with one planted bad path in a script string and one planted empty glob; both must exit 1 and name the
 planted item).
 
 **Done when.**
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm exec vite build` all exit 0.
-- `test/alias.test.ts` passes (a baker and a lint key both resolve through `#engine/…`).
+- `test/alias.test.ts` passes (a baker and a lint key both resolve through `#engine/…`, and an asset specifier resolves
+  with its own extension).
 - `test/check-paths.test.ts` passes (a moved file can't make a test pass vacuously).
+- The bakers' re-stamp is committed, and a comment-only edit to `scripts/bake-sky.mjs` followed by `pnpm exec vite
+  build` leaves `git status --porcelain public/assets src` empty (the edit is not kept; R1-20).
 
 **Risks and rollback.** TS 7's bundler resolution may reject `.ts` targets under `verbatimModuleSyntax` → the fallback
-in step 2. Rollback: `git revert` (no runtime change; the bundle is byte-identical except the `ENGINE_API` constant).
+in step 2. Rollback: `git revert` (no runtime change; the bundle is byte-identical except the `ENGINE_API` constant, the
+fixture image and step 7's re-stamped `hash` fields).
 
 **Size.** S.
 
@@ -202,7 +251,11 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      `tap.hit?.('training-dummy', amount)`. `AnimalManager`'s kill path calls `tap.kill?.(a.kind)` where it calls
      `onKill`. A third tap, `resume: (() => void) | null`, is called by the pause menu's resume handler
      (`src/ui/Menu.ts`) right before it clears the pause, so `probe.onResume` reads the state before the next frame
-     (03 §5.6). The probe sets the functions only when `window.__wildshardHarness` exists (03 §6).
+     (03 §5.6). A fourth, `sound: ((id: string) => void) | null`, feeds the sound-play log (03 §2.3; R1-45): the probe
+     wraps each public cue method of the page's `Audio` instance (`src/audio/Audio.ts`: `crossbowFire`, `swordSwing`,
+     `footstep`, `boltImpact` and the rest from line 350 on, a name list in `probe.ts`) so a call records `<method>`,
+     or `<method>:<its first string argument>`, then runs unchanged. The probe sets the functions only when
+     `window.__wildshardHarness` exists (03 §6).
    - `src/entities/AnimalManager.ts`: an animal with `harnessHold === true` skips its think / motor update (the harness
      holds one target still, 03 §5). Nothing sets it except the probe.
 3. `src/main.ts`: move the `const handle = {…}` line (1296) and `debug.__world = handle` (1298) above
@@ -260,7 +313,9 @@ while main moves; the pin moves only at a milestone (decision 32).
    when F3.1 lands (read `https://wildshard-singleplayer.vercel.app/version.json`, `build` = `<sha7>-<time>`, resolve
    `<sha7>` with `git rev-parse`), `milestone: "M0"`, `gate: "grandfathered"` (it predates the gate).
 2. `scripts/deploy-pin.mjs` (03 §13.2): `read` (prints the SHA; writes `sha=` and `mode=` to `$GITHUB_OUTPUT`),
-   `check-gate <sha>`, `set <sha> --milestone <Mn> --go <where Jake said go>`.
+   `check-gate <sha>`, `set <sha> --milestone <Mn> --go <where Jake said go>`, and `rollback <sha> --go <Jake's words>`
+   (any SHA in the pin history, M0 included, with no gate check; R1-16). The F3.1 commit is M0's entry in that
+   history: M0 is recorded as trusted there.
 3. `.github/workflows/deploy.yml` (03 §13.3): the schedule / dispatch path deploys the pinned SHA; the push / PR path
    is unchanged. `scripts/deploy-version.mjs` reads the target SHA from `DEPLOY_SHA` when set.
 4. `.github/workflows/ota-promote.yml`: the same pin read, and `actions/checkout` of the pinned SHA before its build.
@@ -284,8 +339,11 @@ timing and GPU bytes. Neither is a self-hosted runner (the repo is public).
    `scripts/check-asset-case.mjs` (03 §11.6; 13-lead-resolutions G15).
 3. Port `scripts/test-facade-instancing.mjs` to launch with `channel: 'chromium'` (its `chromium.launch` at line 8 uses
    the headless shell, which falls back to SwiftShader on the runner). `pnpm test:gpu-boot` keeps calling it unchanged.
-4. **Runner baselines.** Dispatch `gpu-gate.yml` with `record: true` on the F2 baseline SHA; download the artifact
-   (`gh run download <run> -n parity-baselines-gh-macos15`); commit `test/parity/baselines/gh-macos15/**`.
+4. **Runner baselines.** Dispatch `gpu-gate.yml` with `record: true` on the F2 baseline SHA (the harness runs from
+   main's head against a build of that SHA, 03 §8; R1-19); download the four artifacts, one per matrix job
+   (`gh run download <run> -p 'parity-baselines-gh-macos15-*' -D <tmp>`, each into its own folder), merge their files
+   into `test/parity/baselines/gh-macos15/`, check that all four shards are there, and commit
+   `test/parity/baselines/gh-macos15/**` (R1-18).
 5. **Nightly.** `scripts/gpu-perf/nightly.sh`, `scripts/gpu-perf/com.wildshard.gpu-perf.plist`,
    `scripts/gpu-perf/install.sh` (03 §14), with the Simulator memory run (`scripts/sim-memory.mjs`, 03 §14.1;
    13-lead-resolutions G2) and the soak bot (`scripts/soak.mjs`, 03 §14.2; G13, MW19). The lead runs `install.sh`
@@ -338,11 +396,10 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
      crossbow, rifle, naizagai, feizhua`), case-insensitive, whole words. A hit in a comment counts like one in code;
      an English false positive ("bear in mind") is fixed by rewording the comment.
    - `wildshard/no-shard-branch`, outside `src/shards/**` and (until F6) outside today's shard territories
-     (`src/chunks/<slug>/**`, `src/chunks/<slug>.ts`, `src/nalati/**`, `src/pinehollow/**`): (a) a string literal equal
-     to a shard slug, or to the style values `'painterly'` / `'lowpoly'` (`'toon'` from F6 on, which maps `lowpoly` → `toon`), used as an operand of `===`, `!==`, `==`, `!=`,
-     as a `case` label, or as the argument of `.includes(…)` / `.has(…)`; (b) an identifier named `isOcean`, `isPine`,
-     `isNine`, `isNalati`, `painterly` or `nalatiNow` in the test of an `if`, `?:`, `&&` or `||`; (c) a member read of
-     `.ocean`, `.structures`, `.style` or `.weapon` on a value typed `ChunkDef` / `ShardManifest` in such a test.
+     (`src/chunks/<slug>/**`, `src/chunks/<slug>.ts`, `src/nalati/**`, `src/pinehollow/**`): exactly the patterns of
+     01 §24's list, which is the rule's one definition (R1-06). F4 writes that list as `SHARD_BRANCH` in
+     `lint/wildshard-plugin.js` and adds no pattern of its own; a pattern the rule should gain is added to 01 §24 first.
+     The `style` literals follow F6's rename (`'lowpoly'` → `'toon'`), so the count is unchanged.
    - `wildshard/no-raw-save`: the identifiers `localStorage` / `sessionStorage` anywhere outside `src/engine/saves/**`
      (created by F10, after the move) and `src/native/**` (`src/engine/native/**` after F6: the Capacitor save mirror
      and OTA storage; `ws.ota.*` is never reset, 01 §9, 13-lead-resolutions 02/03#2).
@@ -359,7 +416,9 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
      contextmenu touchstart touchmove touchend touchcancel` outside `src/core/input/**` (→ `src/engine/input/**`).
    - `wildshard/no-renderer-type` (counted now, driven to 0 in X6): the identifier `WebGLRenderer` outside
      `src/engine/render/**` (before F6: outside `src/core/Game.ts` and `src/core/bootstrap.ts`). Its start count is the
-     rule's own count at F4, not the audit's "52 files" grep (13-lead-resolutions C9, 02 Q15).
+     rule's own count at F4, not the audit's "52 files" grep (13-lead-resolutions C9, 02 Q15). F6 re-keys the two
+     exempt files to their moved paths (`src/engine/core/Game.ts`, `src/engine/core/bootstrap.ts`), which stay exempt
+     beside `src/engine/render/**` until X6 moves their renderer code, so the move adds no count (R1-07).
    - `wildshard/sim-no-render` (01 §0 "Simulation apart from visuals", §24; decision 56; 13-lead-resolutions G12): in
      `src/engine/{combat,ai,saves,quests,effects}/**`, (a) an import from `three` of anything but the math types
      `Vector3`, `Quaternion`, `Matrix4`, `Box3`, `Ray` (type-only imports included); (b) an import of a module under
@@ -376,7 +435,11 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
    per rule per file, compares with `lint/ratchet.json` (`{ "<rule>": { "<file>": <count> }, "allow": {…} }`):
    a count above its entry, or any count for a file with no entry, exits 1 and prints file, rule, was, now.
    `--update` rewrites the file with the lower counts, drops entries at 0 and entries for deleted files, and refuses
-   (exit 1) if any count rose. The file is sorted (rule, then path) so diffs are readable.
+   (exit 1) if any count rose. `--add-rule <rule>` (R1-07) records the counts of one rule that has no file entry yet,
+   once, and refuses (exit 1) when the rule already has entries: every rule added after F4 is recorded this way (F8's
+   `no-hook-chain`, `no-active-singleton`, `no-active-chunk`; F11's `no-global-listener-patch`; the later rows' rules),
+   and so is `wildshard/layer` at F6, which has no entry until files are layered. The file is sorted (rule, then path)
+   so diffs are readable.
 3. `package.json`: `"lint:ratchet": "node lint/ratchet.mjs"`; `"test"` gains `&& node lint/ratchet.mjs` after
    `check-paths`. `scripts/vercel-tree-gate.sh` runs `pnpm test`, so the pre-push gate enforces it too.
 4. Record today's counts: `node lint/ratchet.mjs --init` (the one-time write mode; refuses if the file exists) and
@@ -389,16 +452,16 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
 reported case per rule clause above; for `sim-no-render`: `import { Vector3 } from 'three'` in
 `src/engine/ai/x.ts` allowed, `import { Mesh } from 'three'` there reported, the same `Mesh` import in
 `src/engine/combat/view/x.ts` allowed) through `oxlint -c .oxlintrc.ratchet.json -f json`; and runs `ratchet.mjs`
-against a temp ratchet file to prove a rise exits 1, a fall with `--update` lowers, and a new file with a count exits 1.
+against a temp ratchet file to prove a rise exits 1, a fall with `--update` lowers, a new file with a count exits 1,
+and `--add-rule` records a rule with no entries and refuses one that has entries (R1-07).
 
 **Done when.**
 - `pnpm test` exits 0 on the F4 commit.
 - A planted `if (chunk.slug === 'pine-hollow')` in `src/ui/HUD.ts` and a planted `localStorage.getItem('x')` in
   `src/core/Game.ts` each make `pnpm test` exit 1 naming the rule and file (the plant is not committed).
 
-**Risks and rollback.** oxlint's JS-plugin API may not expose types for clause (c) of `no-shard-branch`: then clause
-(c) matches the member names on any object whose identifier is `chunk`, `def` or `manifest`, and the lead notes it in
-the rule's docstring. Rollback: `git revert`.
+**Risks and rollback.** 01 §24's patterns are syntactic (`slug ===`, `chunk.ocean`, a slug literal), so
+`no-shard-branch` needs no type information from oxlint's JS-plugin API (R1-06). Rollback: `git revert`.
 
 **Size.** S.
 
@@ -496,7 +559,8 @@ script reads the typed probe instead of `window.__world`.
    "the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts").
    `src/player/meleeGeo.ts` lines 157-213: `RIDER` and `forearm()` (imported by nothing; the other 12 exports are used by
    `Sabre.ts`, `Spear.ts`, `nalati-grasslands/models/gear.ts`). `src/chunks/_template.ts` (146 lines; imported by
-   nothing; `bake-chunk.mjs:39` and `bake-sky.mjs:24` only exclude it by name — drop `_template` from both regexes; its
+   nothing; `bake-chunk.mjs:39` and `bake-sky.mjs:24` only exclude it by name — drop `_template` from both regexes, which
+   re-stamps nothing since F1 step 7 took the bakers' own source out of their hashes (R1-20); its
    role passes to Z1's `src/shards/_template/`; `ChunkDef.ts:16`'s comment points at `docs/SHARDS.md` instead).
    The 7 images under `src/explore/img/` that nothing shows (04 Q7, 13-lead-resolutions 04#7): `practice.jpg`,
    `models.webp`, `world.webp` (`extras.ts`'s ART glob preloads them; no code displays them) and
@@ -554,6 +618,11 @@ script reads the typed probe instead of `window.__world`.
    `installProbe`, and delete `__world` from `scripts/types/wildshard-probe.d.ts`. The other 51 `window.__*` names
    (`__loot`, `__pine*`, `__nalati*` …) stay until the row that moves their owner; each such row ports its scripts.
    Each ported script that is typechecked (`scripts/tsconfig.json` include) must pass `tsc -p scripts`.
+   **The living docs that teach `window.__world` are ported in the same commit (R1-55)**, by the same rewrite to
+   `window.__wildshard.world`: `docs/SUBAGENT-BRIEF.md:98` (the subagent brief template), `docs/RUNNING.md:28,36`,
+   `docs/BENCH.md:26`, `docs/design/scorecard.md`, `docs/design/LOOK-LOOP.md`, `docs/design/nalati/look-pass.md`, and
+   any hit in `AGENTS.md`, `README.md` or `.claude/skills/**` on the day. The engine-fit-v2 research files and the
+   history folders quote today's code and are not touched.
 6. **`scripts/README.md`** (new): one line per surviving entry, grouped as in the tooling audit §2 (bake, check,
    infra, bench, gameplay verify, test harness, capture, one-off `eNNN`, other, folders), generated by
    `node scripts/normalize/liveness.mjs --readme` and checked by `--readme --check` in `pnpm test`.
@@ -565,7 +634,8 @@ live; a script run under `lockf -k` is live; a `.d.mts` beside a live `.mjs` is 
 - `test -e src/dev || test -e dev` fails (both gone); `grep -rn "src/dev\|nd-lab" scripts src .oxlintrc.json` prints
   nothing.
 - `node scripts/check-paths.mjs` and `pnpm test` exit 0.
-- `grep -rn "__world" scripts src` prints nothing.
+- `grep -rn "__world" scripts src` prints nothing, and `grep -rln "__world" docs AGENTS.md README.md .claude/skills |
+  grep -v "^docs/design/engine-fit-v2/\|^docs/tasks/\|^docs/audits/\|^docs/plans/"` prints nothing (R1-55).
 - The parity run (03 §10) is green: the fingerprint is identical under `test/parity/renames/F7.json` (the three
   preloaded images are the only change; nothing else deleted was reachable at runtime).
 - `git diff --stat <before>..<after> -- src dev` shows ≥ 5,200 deleted lines (src/dev 6,553 + post.ts 372 + meleeGeo
@@ -660,19 +730,35 @@ ratchet count; parity green; the bakers bake the same bytes.
       | `src/chunks/nine-dragon-stack/vm/rig.ts`, `src/player/rigArms.ts`, `src/world/GrassField.ts`, `src/world/GrassTrample.ts`, `src/world/Particles.ts` | `src/kit/viewmodel/armRig.ts`, `src/kit/viewmodel/rigArms.ts`, `src/kit/looks/grassField.ts`, `src/kit/looks/trample.ts`, `src/kit/looks/particles.ts` (13-lead-resolutions 04#9: the 5 files 2+ shards already use; 04 §2 has each today path). Beside `src/kit/index.ts` (from F1), nothing else: the rest of the kit moves in the rows that restructure it (weapons S1.2 / S2.2, species S2.3, the rain curtain S2.4, `#kit/npc` S2.5) |
       | `test/<shard-importing>.test.ts` | `test/shards/<slug>/` (step 6) |
 
-   The reviewed map's rows are `{ "from", "to", "final", "layer", "rule", "row", "why" }` (04 §0). The check also exits
-   1 on any destination collision (two sources, one target, case-insensitive) or any `src/` file left unmapped. The map
-   was committed with 04, before the move; the lead re-runs the check on the day F6 executes (a file added since 04's
-   tree gets a row by 04 §1's rules first). **One amendment before the move** (13-lead-resolutions C6): the committed
+   The reviewed map's `files` rows have the keys `from · lines · bytes · f6 · final · layer · rule · row · why` (04 §0;
+   R1-05): the codemod moves `from` to `f6` (a row with `"f6": null` was deleted by F7 and is skipped), `final` is the
+   end-state path a later row moves it to, and `lines` / `bytes` record the file's size on the map's tree. The check
+   also exits 1 on any destination collision (two sources, one target, case-insensitive) or any `src/` file left
+   unmapped. The map was committed with 04, before the move; the lead re-runs the check on the day F6 executes (a
+   file added since 04's tree gets a row by 04 §1's rules first). **One amendment before the move**
+   (13-lead-resolutions C6): the committed
    map still sends `src/boot/entry.ts` to `src/engine/boot/entry.ts` (its file row and its `index.html` line-137
    rewrite). The lead's map commit changes both to `src/entry.ts` (`"layer": "root"`, `"rule": "C6"`), and
    `classify.mjs`'s rule 6 gains the same one-line exception, so check and map agree. F7 already rewrote the rows of
    the files it deleted (F7 step 3).
-2. **The codemod** `scripts/normalize/move.mjs docs/plans/game-normalization/move-map.json`, idempotent (a second run changes nothing):
+2. **The codemod** `scripts/normalize/move.mjs docs/plans/game-normalization/move-map.json`, idempotent (a second run changes nothing).
+   **Safe to run, safe to undo (R1-54).** It refuses to start unless `git status --porcelain` is empty (a clean tree;
+   under the lock every path is the lead's). `move.mjs --dry-run` first writes the full list of paths the run will
+   touch (every `from`, every `f6`, every file it rewrites) to `scripts/normalize/move.dry-run.json`, and the lead
+   commits that list on its own before the real run. A run that stops half-way is undone by restoring exactly those
+   paths: `git restore --source=HEAD --staged --worktree -- <every listed path that exists in HEAD>`, then `git rm -f
+   -q -- <every listed destination that does not>`; never a tree-wide restore.
    1. `git mv` every row, creating each destination folder first (`mkdir -p`).
    2. Rewrite imports in `src/**` and `test/**`: an import between two files of the same layer folder stays relative
       (recomputed); an import across layers becomes an alias — `#engine/<path>`, `#game/<path>`, `#kit/<path>`,
-      `#shards/<slug>/<path>` (deep aliases are allowed now; `wildshard/layer` counts them, step 5).
+      `#shards/<slug>/<path>` (deep aliases are allowed now; `wildshard/layer` counts them, step 5). **Asset imports
+      (R1-21).** The shard art the map moves (the card thumbs to `src/shards/<slug>/thumbs/`, the Explore and
+      playground images to `src/shards/<slug>/explore/`) is imported by its own shard's manifest, relative, into
+      `card` and `explore`. The title deck and Explore end up reading those URLs from the manifests: the title deck
+      at F9 (until then a manifest import would pull the world modules into the opening document, `titleDeck.ts:15`),
+      Explore as each S row moves its shard's art map (04's `Explore.ts` row). Until then their remaining
+      cross-layer asset imports keep the file's own extension (`#shards/<slug>/thumbs/<x>.jpg`, F1's
+      extension-preserving entries) and are counted by `wildshard/layer`.
    3. Rewrite `import.meta.glob` patterns (the 14 of F1), `?raw` / `?url` imports, and `readFileSync` paths in tests.
    4. Rewrite path strings with the map: every file `check-paths` scans (scripts, `vite.config.ts`, `vite/**`,
       `.oxlintrc.json`, `scripts/blender/targets.json` `sources` / `feeds`, `scripts/check-models.mjs`'s folder rules and
@@ -698,10 +784,11 @@ ratchet count; parity green; the bakers bake the same bytes.
    `audio`, `input`, `boot`, `load`) are **absent** from the F6 type and are added by the row named in the last
    column of the table below or its footnote; there are no optional stubs. `type ChunkDef = ShardManifest` is not
    kept: every user is rewritten (tsc finds them).
-5. **The layer counts.** After the move, `node lint/ratchet.mjs --update` must only lower counts (the rules now see
-   layered files), then `--add-layer` records the new `wildshard/layer` counts per file once (the only time a count
-   may be added, a flag that refuses when run outside the F6 commit's parent diff). Commit `lint/ratchet.json` with
-   the move.
+5. **The layer counts (R1-07).** After the move, in this order: (a) step 2.4 has re-keyed `lint/ratchet.json`'s
+   entries to the moved paths (the `no-renderer-type` exemption included, F4 step 1); (b) `node lint/ratchet.mjs
+   --add-rule wildshard/layer` records the first `wildshard/layer` counts per file (the rule has no entry before F6,
+   so this is its one recording); (c) `node lint/ratchet.mjs --update` then runs as the post-move check and must only
+   lower counts. Commit `lint/ratchet.json` with the move.
 6. **Tests** (TP11; 04 §4; 13-lead-resolutions 04#6): a test moves when its subject is a shard's code. **34** files
    move to `test/shards/<slug>/`: Nine Dragon 3 (`bag-tabs`, `nd-specimen-light`, `nine-dragon-models`); Pine Hollow 15
    (`models-pine-hollow`, `pine-audio-wiring`, `pine-bag`, `pine-beaver-pool`, `pine-combat`, `pine-crags`,
@@ -757,7 +844,7 @@ sets it today). "Kept" means the name and type are unchanged at F6.
 | 37 | `pondClip` | P | `pondClip` (kept, carried as data) | S2.1 / X5: `WaterBody` |
 | 38 | `map: ChunkMapDef` | D 9 | `minimap` (renamed: `map` now means the Wildshard map place, 01 §6) | X2 |
 | 39 | `pois` | D P N | `pois` (kept, carried as data: 01 §6) | — |
-| 40 | `explore: boolean` | D P N 9 (all true) | `explore: ExploreSpec` (present = offered; the Explore art and compare pairs join it in S1.1–S4.1 and X3) | X3: Explore art from `boot.explore` |
+| 40 | `explore: boolean` | D P N 9 (all true) | `explore: ExploreSpec` (present = offered; at F6 it carries the URLs of the shard's Explore images, imported by the manifest from `src/shards/<slug>/explore/`, R1-21; the compare pairs join it in S1.1–S4.1 and X3) | X3: Explore art from `boot.explore` |
 | 41 | `render` | 9 | `render` | S1–S4: every shard gets one |
 | 42 | `structures: ChunkStructures` | 9 | `ground.structures` (the builder thunk and `files`) | S1.1: the builder → the plugin's world build; `files` → `boot.files` |
 | 43 | `bounds` | 9 | `bounds` | — |
@@ -787,7 +874,8 @@ with its old value (the old values are inlined as fixtures in the test file, tak
   src/shards`, and `grep -n "/src/entry.ts" index.html` prints the module script line.
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `node scripts/check-css.mjs`, `pnpm exec vite build` exit 0;
   `lint/ratchet.json` has a count for every layer violation and `pnpm lint:ratchet` exits 0.
-- **Bakers bake the same bytes:** after `pnpm exec vite build` on the moved tree, `git status --porcelain public/assets
+- **Bakers bake the same bytes** (their stamps hash inputs, not their own source, since F1 step 7; R1-20): after `pnpm
+  exec vite build` on the moved tree, `git status --porcelain public/assets
   src` prints nothing (terrain, sky, packs, generated modules unchanged), and `node --experimental-transform-types
   --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs --check` exits 0.
 - The parity run (03 §10) is green on both lanes with **no** rename map (the move changes no system label, key or
@@ -797,7 +885,10 @@ with its old value (the old values are inlined as fixtures in the test file, tak
 `check-paths` covers string literals; a computed path (`join('src', x)`) is found by `grep -rn "'src'" scripts` during
 step 2 and fixed by hand. A Vite chunk graph change (aliases can alter chunk boundaries): the parity fingerprint does not
 see chunk names; the lead compares `ls dist/assets/*.js | wc -l` and the main chunk's byte size before / after
-(±1 %). Rollback: `git revert` of the move commit (the map commit stays; it is data).
+(±1 %). A half-applied, uncommitted run: undone from the committed dry-run list (step 2; R1-54). Rollback: `git
+revert` of the move commit (the map commit and the dry-run list stay; they are data), **only until F8's first commit**.
+From then on F8 builds on the new paths, so a break the move caused (a rarely run script or baker) is fixed forward,
+with a test, in a commit that cites F6: the one exception to 12 §5's revert rule (R1-54).
 
 **Size.** L. The classifier and codemod may be written by one subagent (disjoint: `scripts/normalize/`); the run, the
 review of the map and the commit are the lead's.
@@ -861,7 +952,8 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
    `EventMap` / `AskMap` / `TagMap` for declaration merging. F8 declares only the engine events it emits itself:
    `'app.state'`, `'level.loaded'`, `'level.unloaded'`, `'fault'`. The 48 `onFoo =` fields, 29 chained hooks and 8
    `ws:*` DOM events move in the S / X rows (09-combat-ai.md and each shard spec map them); F8 adds a ratchet rule
-   `wildshard/no-hook-chain` counting `const prior = x.onY` chains (29 today), recorded in `lint/ratchet.json`.
+   `wildshard/no-hook-chain` counting `const prior = x.onY` chains (29 today), recorded in `lint/ratchet.json` with
+   `--add-rule` (F4 step 2; R1-07), as are step 5's two rules.
 5. **Services.** `App` of 01 §5 with typed fields. F8 fills `clock`, `rng`, `events`, `scene`, `render`, `physics`,
    `registry`, `saves` (a placeholder that throws until F10), `debug`, `scheduler` (today: every system every frame;
    S2.6 adds rates); the rest are filled by the rows that build them (the `App` type lists them as they land). The 6
@@ -870,15 +962,20 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
    (target 0 at S4.4). The `wildshard/no-active-chunk` rule (01 §24) is recorded here too: every `getActiveChunk()`
    call outside `#game/shard` (136 calls in 42 files); every shard phase lowers it and S4.4 takes it to 0
    (13-lead-resolutions 02/03#5).
-6. **Scope + leak test.** `src/engine/app/scope.ts` of 01 §4. For the code that does not call the scope yet, the
+6. **Scope + leak test (R1-28; 01 §4 "Owned vs acquired").** `src/engine/app/scope.ts` of 01 §4, and
+   `app.assets` (`acquire(key)` / `release(key)`, ref-counted). For the code that does not call the scope yet, the
    scope records what today's `ShardScope` capture sees (`src/core/shardScope.ts` → `src/engine/core/shardScope.ts`:
-   `window` / `document` listeners, timers, `<body>` appends while a shard scope is current) into `scope.census`, and
-   `scope.dispose()` releases them exactly as ShardHost's evict does today (`dispose` in `src/main.ts`'s host
-   return: `loot.dispose(); windupWarn?.dispose(); game.dispose(); world.physics.dispose(); audio.evict();`, plus the
-   geometries / materials / textures reachable from the shard's scene root). The engine / shard boundary for the
-   baseline is **after** renderer + physics world + UI shell + audio context + input are created and **before**
-   `bootstrap()`'s sky step (`src/engine/core/bootstrap.ts`); everything built after it is owned by the shard scope.
-   The probe gains `leak()` (03 §5.5).
+   `window` / `document` listeners, timers, `<body>` appends while a shard scope is current) into `scope.census`.
+   **Unload is not app shutdown.** `scope.dispose()` releases only what the shard created: the shard half of today's
+   host `dispose` (`src/main.ts`: `loot.dispose(); windupWarn?.dispose();`), the shard's physics bodies and colliders
+   (removed from the world one by one; never `world.physics.dispose()`), its sound handles (never `audio.evict()`
+   of the engine's context and buses), its look strategy's render targets, its registry pieces and systems, and the
+   geometries / materials / textures reachable from the shard's scene root, skipping anything acquired. It never
+   calls `game.dispose()`, which kills the renderer (`src/core/Game.ts:736-747`) and stays the whole-app shutdown.
+   Shared engine / kit assets (the sky rig, the composer, a kit mesh, the title's art) are `acquire`d and `release`d,
+   never disposed by a scope. **B0** is the census when the engine has booted to `title` (01 §4): renderer, physics
+   world, sky rig, UI shell, audio context and input exist, and no shard resource does yet (with the harness's
+   `?skipintro=1` the title isn't shown, and B0 is taken at that same point). The probe gains `leak()` (03 §5.5).
 7. The probe (`src/engine/debug/probe.ts`) is built from the services (01 §5): `__wildshard.app` = a read-only view of
    `app` (state, systems by phase, clock, rng seed, census).
 
@@ -887,14 +984,17 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
 
 **Tests added.** `test/engine/systems.test.ts` (sort, ties, cycle error), `test/engine/states.test.ts`,
 `test/engine/events.test.ts` (queue per phase, flush order, 1,000-per-frame fault, `ask` chaining),
-`test/engine/scope.test.ts` (dispose order, idempotent, census counts, a scope that owns a geometry disposes it),
+`test/engine/scope.test.ts` (dispose order, idempotent, census counts, a scope that owns a geometry disposes it, an
+acquired asset is released and not disposed, and after a dispose the fake `Game`'s renderer and physics world still
+run a frame: unload leaves the engine usable, R1-28),
 `test/engine/rng.test.ts` (same seed → same sequence per stream, streams independent, `fork`; the old core and
 facade sequences reproduced, step 1),
 `test/engine/clock.test.ts` (capture mode advances exactly `1/fps`). F5's `loop.test.ts` passes unchanged.
 
 **Done when.**
 - The phase-list fingerprint is identical under `test/parity/renames/F8.json` (03 §7) on both lanes.
-- The leak test (03 §5.5) is green for all 4 shards: load → unload returns every counted field to the baseline.
+- The leak test (03 §5.5) is green for all 4 shards: load → unload returns every shard-owned count to B0
+  (engine-retained resources are not counted; R1-28).
 - `pnpm test` exits 0 with the new tests; the ratchets for `no-hook-chain`, `no-active-singleton` and `no-active-chunk`
   are recorded.
 - `grep -rn "class Rng" src` prints one line (`src/engine/core/rng.ts`), and Nine Dragon's boot fingerprint is
@@ -922,7 +1022,18 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
    creates it), writes `src/game/shard/shards.generated.ts`:
    `import m0 from '#shards/driftwood-isle/manifest'; … export const SHARDS: readonly ShardManifest[] = [m0, …]
    .sort((a, b) => a.order - b.order); export type ShardSlug = 'driftwood-isle' | …;`. `--check` exits 1 when the
-   file on disk differs. `vite.config.ts` runs it (write mode) before the bakers; `pnpm test` runs `--check`.
+   file on disk differs from what it would write. **Generated files are built, not committed (R1-11).** The file is
+   written by a Vite plugin (`vite/genShards.ts`, before the bakers, on every build) and by `pnpm gen`, and is listed
+   in `.gitignore`. The same rule covers every `src/**/*.generated.*` file, so a content commit never carries one
+   (R1-09): the six boot tables (`src/engine/boot/{art,audio,bytes,gpu,packs,versions}.generated.ts`, committed
+   today) are removed from the index in this row (`git rm --cached`, the lead's own files under the lock), and
+   `.gitignore` gains `src/**/*.generated.*`. `pnpm gen` (`scripts/gen.mjs`) writes all of them: `gen-shards.mjs`, the
+   table writers `vite.config.ts` runs today (moved into `vite/gen.ts`, which the Vite plugin and the script both
+   import) and `bake-packs.mjs` for `packs.generated.ts`. `package.json`'s `"test"`, `"typecheck"` and `"lint"` each
+   start with `pnpm gen &&`, because tsc and oxlint read the generated modules too; CI and
+   `scripts/vercel-tree-gate.sh` run those scripts on a clean export, so they generate first as well. With the
+   registry generated and the gate's matrix derived from it (03 §11.1), a new shard lands with **zero engine edits**:
+   no change under `src/engine`, `src/game`, `src/kit`, `lint`, `scripts` or `.github` (R1-11; 11 Z3).
    Each `manifest.ts` gets `export default` of its manifest (named exports stay for existing importers until they are
    rewritten in this row).
 2. `ShardManifest` gains `api: 1`. `src/game/shard/registry.ts` (today's `chunks/registry.ts`) becomes a thin module
@@ -956,9 +1067,12 @@ screen has the stack and a RELOAD button).
 **Done when.**
 - `grep -rn "CHUNKS\|PROTOTYPES\|TITLE_CARDS" src scripts` prints nothing.
 - `node scripts/gen-shards.mjs --check` exits 0; the title deck, the 6 bakers and `unused-assets` read `SHARDS`.
+- `git ls-files 'src/**/*.generated.*'` prints nothing, and on a fresh `git archive HEAD` export `pnpm test` and
+  `pnpm run typecheck` exit 0 (they generate first; R1-11).
 - A planted `throw` in Nine Dragon's `render` thunk shows the error screen with the stack in the harness (plant
   `render-throw`, 03 §9), and the gate reports that shard red.
-- Parity green; bakers unchanged (`git status --porcelain public/assets src` empty after a build).
+- Parity green; bakers unchanged (`git status --porcelain public/assets src` empty after a build: F9 edits the bakers,
+  whose stamps no longer hash their own source, F1 step 7; R1-20).
 
 **Risks and rollback.** A manifest that reaches a module with import-time side effects breaks the node-safety test:
 the side effect moves behind a function (TP8's rule). Rollback: `git revert`.
@@ -1005,12 +1119,17 @@ the side effect moves behind a function (TP8's rule). Rollback: `git revert`.
    handled as in step 2 (aside, `initial()`, report), but its aside copies are not listed in Settings (device keys are
    never exported). A `session` key lives in the sessionStorage document `wildshard.save.v2.session`: per-tab
    state, never exported; a schema failure falls back to `initial()` and is reported the same way.
-4. **The reset** (`src/engine/saves/legacy.ts`): on the first boot of a build with the v2 store, if
-   `wildshard.save.v2.global` does not exist, delete every key in the legacy list (the "old key" column of the table
-   below, prefixes expanded by enumerating `localStorage` / `sessionStorage`), then create the global document with
-   `{ keys: {} }`. `ws.ota.*` is **never** deleted (native OTA state). The native mirror
-   (`src/engine/native/saves.ts:15`, `PREFIX = 'ws.'`) mirrors `wildshard.save.v2.` and `ws.ota.` from now on, and the
-   reset calls its new `forgetLegacy(keys)` so the deleted keys also leave Capacitor Preferences.
+4. **The reset** (`src/engine/saves/legacy.ts`; R1-08): on the first boot of a build with the v2 store, if
+   `wildshard.save.v2.global` does not exist, delete the **game-save** keys only: the "old key" of every **G** and
+   **S** row of the table below (prefixes expanded by enumerating `localStorage`), plus the dead `ws.debug`; then
+   create the global document with `{ keys: {} }`. Never deleted: the **L** (`device`) and **X** (`session`) rows'
+   keys, `ws.ota.*` (native OTA state) and the three pre-boot keys (step 6). Before the new readers run, the same
+   first boot copies each L / X row's old value into its new `device` / `session` key (`ws.dev` `'1'` → `devMode:
+   true`), so the machine-local and per-tab values carry over; the old keys stay where they are. The native mirror
+   (`src/engine/native/saves.ts:15`, `PREFIX = 'ws.'`) mirrors exactly the documents `wildshard.save.v2.global` and
+   `wildshard.save.v2.<slug>` (one per `ShardSlug`, 01 §9's per-shard document), plus `ws.ota.*` as today: never
+   `wildshard.save.v2.device`, never a `*.corrupt.*` copy, and never sessionStorage. The reset calls the mirror's new
+   `forgetLegacy(keys)` so the deleted keys also leave Capacitor Preferences.
 5. **Port every user** by the table below; delete `src/game/loot/store.ts` (`readShard` / `writeShard`) and the
    `legacyShardId` helper (F6 row 1). `ws.elites.v1` becomes shard-scoped, which fixes bug §7.6 (Nalati and Pine
    shared one store), with a test.
@@ -1094,9 +1213,12 @@ Paths in the table are today's under `src/`; after F6 they are under `src/engine
 per the move map.
 
 **Tests added.** `test/engine/saves.test.ts`: round-trip per scope; migration chain 1 → 2 → 3 on a fixture key; a
-newer stored version stays untouched and read-only; unknown keys kept; the reset deletes the legacy list and never
-`ws.ota.*`; `exportAll` → `importAll` round-trip; a key failing its schema is moved to `<key>.corrupt.<time>`, reset
-to `initial()` and reported once (a stubbed `reportError` sees scope, key, version and the first issue), with no throw;
+newer stored version stays untouched and read-only; unknown keys kept; the reset deletes the G / S old keys and never
+`ws.ota.*`, an L or X old key, or a pre-boot key, and it carries `ws.dev = '1'` into `devMode: true` (R1-08); the
+mirror's key filter passes `wildshard.save.v2.global`, `wildshard.save.v2.pine-hollow` and `ws.ota.x` and refuses
+`wildshard.save.v2.device` and `wildshard.save.v2.pine-hollow.corrupt.<time>`; `exportAll` → `importAll` round-trip;
+a key failing its schema is moved to `<key>.corrupt.<time>`, reset to `initial()` and reported once (a stubbed
+`reportError` sees scope, key, version and the first issue), with no throw;
 an unparseable document is moved aside whole and replaced; a fourth aside copy drops the oldest; `corrupt()` lists
 `global` / `shard` copies and not `device` ones. `test/preboot-keys.test.ts` (happy-dom) runs `index.html`'s pre-boot
 reader against a device document with `devMode` true, a session document with `resume.shot`, and a garbage document
@@ -1111,8 +1233,10 @@ store's contract test.
   `test/parity/renames/F10.json` (`{ "saves": { "<old key>": "<new doc>/<key>" } }`).
 - A save exported on Driftwood imports into a fresh browser context and restores purse, owned and progress (a
   Playwright check in `scripts/parity/combat.mjs`'s save step, run once, recorded in E357).
-- On the physical iPhone home-screen app, Debug ▸ Loading & memory ▸ storage shows `persisted: true` (Jake's one
-  glance at M1; recorded in E357).
+
+**Milestone check, not a row done-when (R1-50).** On the physical iPhone home-screen app, Debug ▸ Loading & memory ▸
+storage shows `persisted: true`. It is Jake's one glance on the M1 checklist (05 §9), recorded in E357; F11 does not
+wait for it.
 
 **Risks and rollback.** A native install loses its saves because the mirror prefix changed: the reset is deliberate
 (decision 13); the risk is losing OTA state, which the `ws.ota.*` rule protects, with a test. Rollback: `git revert`;
@@ -1209,25 +1333,30 @@ rebuilds that piece's collider on change. Rollback: two commits (colliders, host
 3. Fix API changes inside `src/engine/physics/` only.
 4. Re-bake the navmesh only if `bake-navmesh.mjs --check` reports stale (it should not: the navmesh is baked from
    colliders, not from Rapier's solver).
-5. **The iPhone reading.** Tag the F12 commit `v0.3.1` locally and run `scripts/release-url.sh v0.3.1` (a frozen
-   URL on its own Vercel project; production stays pinned). Jake opens it on his iPhone 17 Pro in Safari, loads Nine
-   Dragon (the fragile phone boot) and Pine Hollow (the largest phone pack), plays 60 s in each, and files one in-game
-   NOTE from each with Debug ▸ Performance ▸ RUN PROBE's text attached; the lead pulls them with `pnpm inbox:pull` and
-   records both in E357.
+5. **The iPhone reading is on the M1 checklist (05 §9), not this row's done-when (R1-50).** At M1, on the M1 build
+   (the Vercel preview candidate or the pinned production, 12 §3), Jake loads Nine Dragon (the fragile phone boot)
+   and Pine Hollow (the largest phone pack) on his iPhone 17 Pro, plays 60 s in each, and sends each reading **in the
+   chat** (R1-17): the lead asks with AskUserQuestion carrying the reading template (shard; build id; reached play
+   yes / no; WebContent crash yes / no; Debug ▸ Performance ▸ RUN PROBE's text, copied with the panel's COPY button,
+   `src/ui/Perf.ts:61`), and records both answers in E357. The in-game inbox isn't used for it.
 
 **Tests added.** None new; F5's and the physics tests (`test/physics*`, 14 files) must pass unchanged.
 
 **Done when.**
 - Walk + trails 0 stuck (as F11).
 - `node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs --check` exits 0.
-- Parity green on both lanes with no rename map.
-- One physical-iPhone load reading per shard named in step 5, recorded in E357 (both reach play, no WebContent crash).
+- Parity green on both lanes with no rename map, or green after a pure numeric walk drift is re-baselined (Risks
+  below; R1-52).
+- The physical-iPhone reading of step 5 is an M1 checklist item (R1-50), not a condition of this row.
 
 **Risks and rollback.** The wasm grows 732 → 1,145 KB gz (E357 handoff, engine-fit research): +413 KB on every cold
 load, accepted by Jake (decision 89), against Driftwood's 30 s Fast-4G cap that the scorecard already reads at 23.7 s. The parity boot fingerprint's
 bytes field is information only; the nightly scorecard (03 §14) reports it. The new solver changes the character
-controller's behaviour at steps: the walk and trails runs are the check. Rollback: `git revert` of the package bump
-(the lockfile returns to 0.20.0).
+controller's behaviour at steps: the walk and trails runs are the check. **A walk that drifts (R1-52; 03 §8 case
+5).** If every leg and trail still has 0 stuck but a `walk.legs[].end` or `maxY` moves beyond its band, the lead
+inspects those legs (and the trails, `--full`): a pure numeric drift is re-baselined with a note in the commit
+(decision 89 accepted the upgrade); a new stuck waypoint or a fall (a leg ending lower than its baseline by more than
+the band, or an `out` frame) reverts F12. Rollback: `git revert` of the package bump (the lockfile returns to 0.20.0).
 
 **Size.** S.
 
