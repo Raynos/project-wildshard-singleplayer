@@ -10,8 +10,11 @@
  *   5. `src/models/` importing a shard (`chunks/…`): the contract stays shard-agnostic
  *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again (a registry `.add({ … })` with
  *      an `object`, found by a balanced scan of the literal: `addsWithObject`)
- *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4; Pine Hollow, M2; Driftwood, M1) drawing or registering a thing by hand outside its models/
- *      folder — only the files it declares world may, each with its reason and its counts
+ *   7. any area (`DONE`: every shard since its wave, the shared code since M6) drawing or registering a thing by hand
+ *      outside a models folder — only the files it declares world may, each with its reason and its counts. The old
+ *      registrations (`addBuilt`, `registerModel`, `registerSolid`) are gone, and a registry `add` with a `model` is
+ *      `place` / `listModel`'s alone (src/models/): each counts, and no area declares one. src/dev/ (the dev labs, not the
+ *      game) is exempt
  *   8. a species rig with no model (E315 M5): every kind a file registers (`registerSpecies({ … kind: '<kind>'` or a string
  *      constant) is some model's species rig — `creature(<kind>…)` (src/models/creature.ts) or its `rig: { species }` — so a
  *      new creature can't slip past the Model Explorer
@@ -20,10 +23,8 @@
  *      Pine Hollow's PINE_HOLLOW_POIS + its quest places, Nine Dragon's NINE_DRAGON_PLACES) is named by some
  *      `placeSet({ … place: '<slug>/<id>' … })` (or a set table's row), and every such `place` names a real place.
  *      Enforced per shard (`PLACES_ENFORCED`) once its pass has registered them; reported for the rest
- * REPORTS (never fails) what has not moved onto the contract yet, per area: registrations by hand (`addBuilt`,
- * `registerModel`, `registerSolid`, a registry `add` with an `object`, a `model:` flag) and hand-rolled drawing
- * (`new InstancedMesh` / `BatchedMesh`, `mergeGeometries`) outside src/models/. Each migration wave (M1–M5) drives its
- * area's numbers to zero; then M6 turns the report into rules.
+ * REPORTS each area's declared world (its hand registrations and hand-rolled drawing: `new InstancedMesh` /
+ * `BatchedMesh`, `mergeGeometries`, a registry `add` with an `object`), every one held by rule 7 since M6.
  *
  *   node scripts/check-models.mjs            # the report + the rules
  *   node scripts/check-models.mjs --quiet    # the rules only
@@ -98,6 +99,45 @@ export const DONE = {
     'src/world/Cabin.ts': { why: "the homestead draws its building and prop models (placed drawnInto, src/chunks/pine-hollow/world/cabins.ts): its log kit merges each building per material and the cabins' cores across them, its props are instanced across the buildings, a specimen's for the Explorer", counts: { InstancedMesh: 3, mergeGeometries: 9 } },
     'src/world/PineStreams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
   },
+  // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
+  // registered by hand here fails too
+  'shared (src/world, src/player, src/entities, …)': {
+    'src/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },
+    'src/entities/Enemies.ts': { why: "the island's enemies, drawn by their live system (creatures, M5)", counts: { InstancedMesh: 1 } },
+    'src/entities/Flock.ts': { why: 'a bird flock drawn as one instanced mesh by its live system (creatures, M5)', counts: { InstancedMesh: 1 } },
+    'src/entities/Marmots.ts': { why: 'the marmot colony drawn instanced by its live system (creatures, M5)', counts: { InstancedMesh: 1, mergeGeometries: 1 } },
+    'src/entities/species/sheep.ts': { why: "the sheep rig's fleece merged onto it (a creature, M5)", counts: { mergeGeometries: 1 } },
+    'src/fx/Impacts.ts': { why: 'hit sparks and debris: an effect', counts: { InstancedMesh: 1 } },
+    'src/game/loot/CoinBurst.ts': { why: 'the coins bursting from a kill: an effect', counts: { InstancedMesh: 1 } },
+    'src/player/BodyShadow.ts': { why: "the player's own shadow-casting body: the player, not a thing in the world", counts: { mergeGeometries: 2 } },
+    'src/player/Bow.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
+    'src/player/Crossbow.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 4 } },
+    'src/player/LeverRifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 8 } },
+    'src/player/Longbow.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
+    'src/player/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
+    'src/player/Spear.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { InstancedMesh: 1 } },
+    'src/player/Sword.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
+    'src/player/meleeGeo.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
+    'src/player/nalatiArms.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
+    'src/player/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
+    'src/player/Projectiles.ts': { why: 'bolts and arrows in flight: an effect of the held gear', counts: { InstancedMesh: 1 } },
+    'src/player/WeaponPickup.ts': { why: "a weapon lying in the world to pick up: its Gear model's display copy", counts: { mergeGeometries: 1 } },
+    'src/playgrounds/GrapplePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
+    'src/playgrounds/HorsePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
+    'src/playgrounds/devGrid.ts': { why: "the playgrounds' grid floor (a practice scene, not a shard)", counts: { mergeGeometries: 1 } },
+    'src/practice/TrainingArena.ts': { why: "the practice room's walls and floor (the arena's world)", counts: { 'registry add with object': 1 } },
+    'src/practice/TrainingDummy.ts': { why: "the shared training dummy's builder (the model shared/training-dummy, M5: listed on every shard)", counts: { mergeGeometries: 1 } },
+    'src/world/Boundary.ts': { why: "the shard's edge — cliffs, walls, the sea wall: world, welded to the ground", counts: { mergeGeometries: 6 } },
+    'src/world/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
+    'src/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
+    'src/world/Particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
+    'src/world/TreeFactory.ts': { why: "the forest field's tree geometry (world, §1: the field's own kinds)", counts: { mergeGeometries: 1 } },
+    'src/world/TrophyWall.ts': { why: "the trophy wall's mounts: each a creature's head built from its rig (creatures, M5)", counts: { mergeGeometries: 2 } },
+    'src/world/WeatherFX.ts': { why: 'rain and snow: an effect', counts: { InstancedMesh: 1 } },
+    'src/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
+    'src/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 2 } },
+    'src/world/rockKit.ts': { why: "the rock kit the rock models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
+  },
 };
 
 /**
@@ -105,7 +145,11 @@ export const DONE = {
  * the shorthand `object` at the literal's TOP level, however deeply the rest of it nests (E323: a `[^}]*` regex stopped
  * at the first nested `}`, so `.add({ colliders: [{ … }], object })` escaped rules 6 and 7).
  */
-export function addsWithObject(code) {
+export function addsWithObject(code) { return addsWithKey(code, 'object'); }
+
+/** the same for any top-level key of the literal (M6: `model`, a catalog entry — `place` / `listModel`'s alone) */
+export function addsWithKey(code, key) {
+  const at = new RegExp(`^${key}\\s*[:,}]`);
   let n = 0;
   for (const m of code.matchAll(/\.add\(\s*\{/g)) {
     let depth = 0;
@@ -114,7 +158,7 @@ export function addsWithObject(code) {
       if (c === "'" || c === '"' || c === '`') { const q = c; for (i++; i < code.length && code[i] !== q; i++) if (code[i] === '\\') i++; continue; }
       if (c === '{' || c === '[' || c === '(') { depth++; continue; }
       if (c === '}' || c === ']' || c === ')') { if (--depth === 0) break; continue; }
-      if (depth === 1 && c === 'o' && /[\s,{]/.test(code[i - 1] ?? '') && /^object\s*[:,}]/.test(code.slice(i, i + 16))) { n++; break; }
+      if (depth === 1 && c === key[0] && /[\s,{]/.test(code[i - 1] ?? '') && at.test(code.slice(i, i + key.length + 8))) { n++; break; }
     }
   }
   return n;
@@ -127,7 +171,7 @@ function countsOf(code) {
     registerModel: (code.match(/\bregisterModel\(/g) ?? []).length - (/export function registerModel/.test(code) ? 1 : 0),
     registerSolid: (code.match(/\bregisterSolid\(/g) ?? []).length - (/export function registerSolid/.test(code) ? 1 : 0),
     'registry add with object': addsWithObject(code),
-    'model flag': (code.match(/\bmodel:\s*(?:\{|true)/g) ?? []).length,
+    'registry add with model': addsWithKey(code, 'model'),
     InstancedMesh: (code.match(/new (?:THREE\.)?InstancedMesh\(/g) ?? []).length,
     BatchedMesh: (code.match(/new (?:THREE\.)?BatchedMesh\(/g) ?? []).length,
     mergeGeometries: (code.match(/\bmergeGeometries\(/g) ?? []).length,
@@ -149,7 +193,7 @@ export function areaOf(file) {
   if (/^src\/(pinehollow\/|world\/Pine)/.test(file) || PINE_WORLD.test(file)) return 'pine-hollow';
   if (DRIFTWOOD_WORLD.test(file)) return 'driftwood-isle';
   if (file.startsWith('src/models/')) return 'models (contract)';
-  return 'shared / driftwood (src/world, main.ts, …)';
+  return 'shared (src/world, src/player, src/entities, …)';
 }
 
 /** the import specifiers of a file, resolved repo-relative when they are relative */
@@ -264,7 +308,8 @@ export function checkModels(files) {
       if (inShared && /(?:^|\/)chunks\//.test(spec)) violations.push(`${file}: src/models/ imports a shard (${spec})`);
     }
     if (inShared || inShardModels) continue;
-    if (ON_CONTRACT.includes(file) && (/\bregisterSolid\(|\bregisterModel\(|\bmodel:\s*(?:\{|true)/.test(code) || addsWithObject(code) > 0)) {
+    if (file.startsWith('src/dev/')) continue; // the dev labs: pages of their own, not the game (rule 7's exemption)
+    if (ON_CONTRACT.includes(file) && (/\bregisterSolid\(|\bregisterModel\(/.test(code) || addsWithObject(code) > 0 || addsWithKey(code, 'model') > 0)) {
       violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
     }
     const area = areaOf(file);
@@ -286,11 +331,11 @@ export function checkModels(files) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { violations, report, places } = checkModels();
   if (!process.argv.includes('--quiet')) {
-    console.info('Not yet on the model contract (src/models/place.ts), per area — the migration waves take these to zero:');
-    for (const [area, r] of Object.entries(report)) console.info(`  ${area.padEnd(44)} ${Object.entries(r).map(([k, n]) => `${k} ${n}`).join(' · ')}`);
+    console.info('Declared world, per area (M6: every area is held — a new thing drawn or registered by hand fails, rule 7):');
+    for (const [area, r] of Object.entries(report)) console.info(`  ${area.padEnd(50)} ${Object.entries(r).map(([k, n]) => `${k} ${n}`).join(' · ')}`);
     console.info('Named places with a set (M12), per shard:');
-    for (const [shard, p] of Object.entries(places)) console.info(`  ${shard.padEnd(44)} ${p.sets} / ${p.named}${PLACES_ENFORCED.includes(shard) ? ' (enforced)' : ''}${p.missing.length > 0 ? ` · no set: ${p.missing.join(', ')}` : ''}`);
-    for (const shard of Object.keys(NAMED_PLACES)) if (!(shard in places)) console.info(`  ${shard.padEnd(44)} no list of named places yet (${NAMED_PLACES[shard].map((l) => `${l.list} in ${l.file}`).join(', ')})`);
+    for (const [shard, p] of Object.entries(places)) console.info(`  ${shard.padEnd(50)} ${p.sets} / ${p.named}${PLACES_ENFORCED.includes(shard) ? ' (enforced)' : ''}${p.missing.length > 0 ? ` · no set: ${p.missing.join(', ')}` : ''}`);
+    for (const shard of Object.keys(NAMED_PLACES)) if (!(shard in places)) console.info(`  ${shard.padEnd(50)} no list of named places yet (${NAMED_PLACES[shard].map((l) => `${l.list} in ${l.file}`).join(', ')})`);
   }
   if (violations.length > 0) {
     console.error(`check-models: ${violations.length} broken rule(s):\n  ${violations.join('\n  ')}`);

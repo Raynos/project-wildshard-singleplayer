@@ -2,7 +2,7 @@
 // scan of the literal — nested colliders, arrays and calls before the key, and the shorthand `{ id, object }`, used to
 // slip past rule 6 (and the DONE counts) because the regex stopped at the first `}`.
 import { describe, expect, it } from 'vitest';
-import { addsWithObject, checkModels, ON_CONTRACT } from '../scripts/check-models.mjs';
+import { addsWithKey, addsWithObject, checkModels, DONE, ON_CONTRACT } from '../scripts/check-models.mjs';
 
 describe('check-models: a registry add with an object (E323)', () => {
   it('finds the object key at the literal\'s top level, however deeply the rest nests', () => {
@@ -31,5 +31,30 @@ describe('check-models: a registry add with an object (E323)', () => {
 
   it('the whole tree holds with the stricter finder', () => {
     expect(checkModels().violations).toEqual([]);
+  });
+});
+
+describe('check-models after M6: every area is held (E315)', () => {
+  it('a registry add with a model entry is place / listModel\'s alone: counted as a top-level key, anywhere else it fails', () => {
+    expect(addsWithKey("registry.add({ id: 'x', name: 'X', model: entry });", 'model')).toBe(1);
+    expect(addsWithKey("registry.add({ id, model });", 'model')).toBe(1);
+    expect(addsWithKey("const plate = { label: 'Deer', model: { build: () => g } };", 'model')).toBe(0); // (a Journal plate is no registration)
+    const bad = checkModels({ 'src/world/Palms.ts': "registry.add({ id: 'palm', name: 'Palm', category: 'nature', file: 'x', model: entry });" }).violations;
+    expect(bad.some((v) => v.includes('registry add with model'))).toBe(true);
+  });
+
+  it('the shared code is held too: a new file drawing by hand fails until it is declared world with its reason', () => {
+    const shared = Object.keys(DONE).find((a) => a.startsWith('shared'));
+    expect(shared).toBeDefined();
+    const bad = checkModels({ 'src/world/NewScatter.ts': 'const m = new THREE.InstancedMesh(g, mat, 40);' }).violations;
+    expect(bad.some((v) => v.startsWith('src/world/NewScatter.ts: shared'))).toBe(true);
+    for (const [area, files] of Object.entries(DONE)) for (const [file, d] of Object.entries(files)) expect(d.why.length, `${area} ${file}`).toBeGreaterThan(10);
+  });
+
+  it('the dev labs are exempt; the old registrations fail everywhere', () => {
+    expect(checkModels({ 'src/dev/lab/page.ts': 'new THREE.InstancedMesh(g, m, 1); mergeGeometries([a, b]);' }).violations).toEqual([]);
+    const bad = checkModels({ 'src/world/Grass.ts': "registerModel({ id: 'x' }); addBuilt('x', mesh);" }).violations;
+    expect(bad.some((v) => v.includes('registerModel'))).toBe(true);
+    expect(bad.some((v) => v.includes('addBuilt'))).toBe(true);
   });
 });
