@@ -7,7 +7,7 @@ import { WorldRegistry, type RegisteredSet } from '../src/world/registry';
 import { defineModel, modelContext } from '../src/models/model';
 import { place } from '../src/models/place';
 import { placeSet } from '../src/models/sets';
-import { boxEdges, copyBoxes, cornerBrackets, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, poseOrbit, setsOf, setTotals, type NdcWindow } from '../src/explore/setView';
+import { boxEdges, copyBoxes, cornerBrackets, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '../src/explore/setView';
 
 const ctx = modelContext(null);
 const mat = new THREE.MeshBasicMaterial();
@@ -79,6 +79,20 @@ describe('the Sets explorer', () => {
     expect(measureDrawn([kit])).toEqual({ tris: 12, calls: 1 });
     kit.visible = false;
     expect(measureDrawn([kit])).toEqual({ tris: 0, calls: 0 }); // hidden (a far LOD level, a culled cell): not drawn
+  });
+
+  it('a shard\'s 10–20 places read in order: by region (north is −z), by name, or most copies first; one still to come waits at the end', () => {
+    const at = (id: string, x: number, z: number, copies: number): { set: RegisteredSet; totals: { copies: number } } => ({
+      set: { id, name: id, file: 'x.ts', members: [], bounds: new THREE.Box3(new THREE.Vector3(x - 5, 0, z - 5), new THREE.Vector3(x + 5, 4, z + 5)) }, totals: { copies },
+    });
+    const none = { set: { id: 'Ghost', name: 'Ghost', file: 'x.ts', members: [], bounds: new THREE.Box3(), pending: ['a/b'] }, totals: { copies: 0 } };
+    const sets = [at('Wreck', 200, 10, 3), at('Hut', 0, 0, 1), at('Lookout', 150, -180, 9), at('Pier', 0, -240, 2), at('Cove', -200, 190, 40), none];
+    expect(sets.map((s) => s.set.bounds.isEmpty() ? null : regionOf(s.set.bounds, 250))).toEqual(['East', 'Centre', 'North-east', 'North', 'South-west', null]);
+    expect(orderSets(sets, 'map', 250).map((r) => [r.region, r.info.set.id])).toEqual([['Centre', 'Hut'], ['North', 'Pier'], ['North-east', 'Lookout'], ['East', 'Wreck'], ['South-west', 'Cove'], [null, 'Ghost']]);
+    expect(orderSets(sets, 'az', 250).map((r) => r.info.set.id)).toEqual(['Cove', 'Ghost', 'Hut', 'Lookout', 'Pier', 'Wreck']);
+    expect(orderSets(sets, 'size', 250).map((r) => r.info.set.id)).toEqual(['Cove', 'Lookout', 'Wreck', 'Pier', 'Hut', 'Ghost']);
+    expect(pendingOf(none.set)).toEqual(['a/b']);
+    expect(pendingOf(at('x', 0, 0, 1).set)).toEqual([]);
   });
 
   it('marks: eight corner brackets of three arms, twelve edges a box', () => {

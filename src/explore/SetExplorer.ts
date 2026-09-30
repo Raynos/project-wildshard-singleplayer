@@ -24,7 +24,7 @@ import { measure, type CatalogEntry } from './catalog';
 import type { Explore, ExplorePane } from './Explore';
 import { registeredSets } from './registry';
 import type { DrawnAs, Pipeline, RegisteredSet } from '../world/registry';
-import { boxEdges, copyBoxes, cornerBrackets, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, poseOrbit, setTotals, type MemberFact, type NdcWindow } from './setView';
+import { boxEdges, copyBoxes, cornerBrackets, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setTotals, type MemberFact, type NdcWindow, type SetOrder } from './setView';
 
 type View = 'list' | 'set';
 
@@ -35,6 +35,10 @@ const THUMB_W = 480, THUMB_H = 240;
 const PITCH = 0.72;
 /** frames the camera holds a set's view before its thumbnail is copied (the cullers, LODs and near-eye layers settle) */
 const SHOT_FRAMES = 5;
+/** the list's orders (a shard names 10–20 places: E315 M12) */
+const ORDERS: readonly [SetOrder, string][] = [['map', 'By region'], ['az', 'A–Z'], ['size', 'Most copies']];
+/** member chips on a card before '+ n more' */
+const CHIPS = 4;
 
 /** 86 · 5.3k · 1.24 M */
 const count = (n: number): string => (n < 1000 ? String(n) : n < 1e6 ? `${(n / 1000).toFixed(n < 1e4 ? 1 : 0)}k` : `${(n / 1e6).toFixed(2)} M`);
@@ -84,6 +88,7 @@ export class SetExplorer implements ExplorePane {
   private readonly eachTris = new Map<string, number>();
   private readonly retries = new Map<string, number>();
   private listT = 0;
+  private order: SetOrder = 'map';
   private readoutT = 0;
 
   constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: readonly CatalogEntry[]) {
@@ -91,13 +96,18 @@ export class SetExplorer implements ExplorePane {
     const shard = world.chunk.displayName;
     this.listEl = html('div', 'ws-x-setlist', `
       <div class="ws-x-setlist-head"><span>Sets · ${esc(shard)}</span><b class="ws-x-setcount"></b></div>
-      <p class="ws-x-setlist-blurb">Groups of placed models — a camp, a square, a field. Each opens where it stands in the world.</p>
+      <p class="ws-x-setlist-blurb">Every named place, camp and square: the models placed there. Each opens where it stands in the world.</p>
+      <div class="ws-x-setsort">${ORDERS.map(([o, l]) => `<button type="button" data-o="${o}">${l}</button>`).join('')}</div>
       <div class="ws-x-setcards"></div>`);
     this.cards = this.listEl.querySelector<HTMLElement>('.ws-x-setcards') ?? this.listEl;
+    this.listEl.querySelectorAll<HTMLElement>('.ws-x-setsort button').forEach((b) => {
+      b.addEventListener('click', () => { this.order = ORDERS.find(([o]) => o === b.dataset['o'])?.[0] ?? 'map'; this.renderList(); this.shots = this.listed().filter((i) => i.thumb === null && !i.set.bounds.isEmpty()); });
+    });
     this.sheet = html('div', 'ws-x-setsheet', `
       <div class="ws-x-sethead"><button class="ws-x-setback" type="button">‹ Sets</button><b class="ws-x-setname"></b><span class="ws-x-setstep"><button class="ws-x-setprev" type="button" aria-label="Previous set">‹</button><button class="ws-x-setnext" type="button" aria-label="Next set">›</button></span><span class="ws-x-setfile"></span></div>
       <div class="ws-x-setstats"><span><i>Models</i><b data-s="models"></b></span><span><i>Copies</i><b data-s="copies"></b></span><span><i>Tris</i><b data-s="tris"></b></span><span><i>Draws</i><b data-s="calls"></b></span></div>
       <div class="ws-x-setframe"></div>
+      <div class="ws-x-setmembers-head"><span>◎ shows its copies · a row opens its card</span><span>Tris each</span></div>
       <div class="ws-x-setmembers"></div>
       <div class="ws-x-setactions"><button class="ws-x-setworld" type="button">View in world</button></div>`);
     this.members = this.sheet.querySelector<HTMLElement>('.ws-x-setmembers') ?? this.sheet;
@@ -148,7 +158,7 @@ export class SetExplorer implements ExplorePane {
     this.sync();
     const id = opts['set'];
     const info = id !== undefined ? this.infos.find((i) => i.set.id === id) : undefined;
-    if (info) this.openSet(info); else this.openList();
+    if (info && !info.set.bounds.isEmpty()) this.openSet(info); else this.openList();
   }
 
   hide(): void {
@@ -178,31 +188,53 @@ export class SetExplorer implements ExplorePane {
     this.closeSet();
     this.el.dataset['view'] = 'list' satisfies View;
     this.renderList();
-    this.shots = this.infos.filter((i) => i.thumb === null);
+    this.shots = this.listed().filter((i) => i.thumb === null && !i.set.bounds.isEmpty());
   }
+
+  /** the sets in the list's order (the ‹ › of an open set walk it too) */
+  private listed(): SetInfo[] { return orderSets(this.infos, this.order, CHUNK_HALF).map((r) => r.info); }
 
   private renderList(): void {
     const n = this.infos.length;
     const countEl = this.listEl.querySelector('.ws-x-setcount');
     if (countEl) countEl.textContent = `${n} set${n === 1 ? '' : 's'}`;
+    this.listEl.querySelectorAll<HTMLElement>('.ws-x-setsort button').forEach((b) => { b.classList.toggle('on', b.dataset['o'] === this.order); });
+    this.listEl.classList.toggle('few', n < 4); // (no ordering to choose between a handful)
     this.cards.replaceChildren();
     if (n === 0) {
       this.cards.append(html('div', 'ws-x-setempty', `<b>No sets on ${esc(this.world.chunk.displayName)} yet</b><small>A set names a group of placed models — <code>placeSet</code> in src/models/sets.ts.</small>`));
       return;
     }
-    for (const info of this.infos) {
-      const { set, totals, facts } = info;
-      const chips = facts.map((f) => `<span class="ws-x-setchip"><em>${badge(f.pipeline)}</em>${esc(f.name)}<small>× ${f.copies.toLocaleString()}</small></span>`).join('');
-      const card = html('button', 'ws-x-set', `
-        <span class="ws-x-set-thumb"><span class="ws-x-set-title"><b>${esc(set.name)}</b><small>${totals.models} model${totals.models === 1 ? '' : 's'} · ${totals.copies.toLocaleString()} copies</small></span><span class="ws-x-set-go">›</span></span>
-        <span class="ws-x-set-cost">${this.costLabel(info)}</span>
-        <span class="ws-x-setchips">${chips}</span>`);
-      (card as HTMLButtonElement).type = 'button';
-      card.dataset['id'] = set.id;
-      if (info.thumb) card.querySelector('.ws-x-set-thumb')?.prepend(info.thumb);
-      card.addEventListener('click', () => { this.openSet(info); });
-      this.cards.append(card);
+    let region: string | null = null;
+    for (const { region: r, info } of orderSets(this.infos, this.order, CHUNK_HALF)) {
+      if (this.order === 'map' && r !== region) {
+        region = r;
+        const inRegion = this.infos.filter((i) => !i.set.bounds.isEmpty() && regionOf(i.set.bounds, CHUNK_HALF) === r).length;
+        this.cards.append(html('div', 'ws-x-setregion', `<span>${r ?? 'Not placed yet'}</span><b>${r === null ? '' : inRegion}</b>`));
+      }
+      this.cards.append(this.card(info));
     }
+  }
+
+  /** one set's card: its aerial, name, size, cost, and its models as chips (the first few, then how many more) */
+  private card(info: SetInfo): HTMLElement {
+    const { set, totals, facts } = info;
+    const pending = pendingOf(set), empty = set.bounds.isEmpty();
+    const shown = facts.slice(0, CHIPS);
+    const chips = shown.map((f) => `<span class="ws-x-setchip"><em>${badge(f.pipeline)}</em>${esc(f.name)}<small>× ${f.copies.toLocaleString()}</small></span>`).join('')
+      + (facts.length > shown.length ? `<span class="ws-x-setchip ws-x-setchip-more">+ ${facts.length - shown.length} more</span>` : '')
+      + (pending.length > 0 ? `<span class="ws-x-setchip ws-x-setchip-pending">+ ${pending.length} to come</span>` : '');
+    const card = html('button', 'ws-x-set', `
+      <span class="ws-x-set-thumb">${empty ? '<i>no models placed yet</i>' : ''}</span>
+      <span class="ws-x-set-text"><b>${esc(set.name)}</b><small>${totals.models} model${totals.models === 1 ? '' : 's'} · ${totals.copies.toLocaleString()} ${totals.copies === 1 ? 'copy' : 'copies'}</small><small class="ws-x-set-cost">${empty ? '—' : this.costLabel(info)}</small></span>
+      <span class="ws-x-set-go">›</span>
+      <span class="ws-x-setchips">${chips}</span>`);
+    (card as HTMLButtonElement).type = 'button';
+    (card as HTMLButtonElement).disabled = empty;
+    card.dataset['id'] = set.id;
+    if (info.thumb) card.querySelector('.ws-x-set-thumb')?.prepend(info.thumb);
+    card.addEventListener('click', () => { if (!empty) this.openSet(info); });
+    return card;
   }
 
   private costLabel(info: SetInfo): string {
@@ -222,7 +254,7 @@ export class SetExplorer implements ExplorePane {
     const name = q('.ws-x-setname'), file = q('.ws-x-setfile'), step = q('.ws-x-setstep');
     if (name) name.textContent = set.name;
     if (file) file.textContent = set.file;
-    if (step) step.hidden = this.infos.length < 2;
+    if (step) step.hidden = this.openable().length < 2;
     this.stat('models', String(totals.models)); this.stat('copies', totals.copies.toLocaleString());
     this.stat('tris', info.inView ? count(info.inView.tris) : '…'); this.stat('calls', info.inView ? String(info.inView.calls) : '…');
     this.renderMembers(info);
@@ -260,19 +292,23 @@ export class SetExplorer implements ExplorePane {
     for (const f of info.facts) {
       const row = html('div', 'ws-x-member', `
         <button class="ws-x-locate" type="button" aria-label="Show its copies"><i></i></button>
-        <button class="ws-x-member-open" type="button"${f.drawnAs === null ? ' disabled' : ''}><em>${badge(f.pipeline)}</em><b>${esc(f.name)}</b><small>${this.memberLine(f)}</small><span>›</span></button>`);
+        <button class="ws-x-member-open" type="button"${f.drawnAs === null ? ' disabled' : ''}><em>${badge(f.pipeline)}</em><b>${esc(f.name)}</b><small>${this.memberLine(f)}</small><strong class="ws-x-member-tris">${this.memberTris(f)}</strong><span>›</span></button>`);
       row.dataset['model'] = f.model;
       row.querySelector('.ws-x-locate')?.addEventListener('click', () => { this.locate(this.locatedModel === f.model ? null : f.model); });
       row.querySelector('.ws-x-member-open')?.addEventListener('click', () => { const c = this.current; if (c && f.drawnAs !== null) this.explore.openModelFromSet(f.model, c.set.id); });
       this.members.append(row);
     }
+    const pending = pendingOf(info.set);
+    if (pending.length > 0) this.members.append(html('div', 'ws-x-setpending', `<b>To come</b> ${pending.map((m) => esc(this.entries.find((e) => e.id === m)?.name ?? m)).join(' · ')}: this place's models not on the model contract yet`));
   }
 
   private memberLine(f: MemberFact): string {
-    const t = this.eachTris.get(f.model);
     const drawn: DrawnAs | '' = f.drawnAs ?? '';
-    return `× ${f.copies.toLocaleString()}${drawn === '' ? ' · not in the catalog' : ` · ${drawn}`}${t === undefined ? '' : ` · ${count(t)} tris each`}`;
+    return `× ${f.copies.toLocaleString()}${drawn === '' ? ' · not in the catalog' : ` · ${drawn}`}`;
   }
+
+  /** one copy's triangles, once measured */
+  private memberTris(f: MemberFact): string { const t = this.eachTris.get(f.model); return t === undefined ? '…' : count(t); }
 
   /** ◎: outline one member's copies in amber (null: none) */
   private locate(model: string | null): void {
@@ -285,12 +321,16 @@ export class SetExplorer implements ExplorePane {
     this.members.querySelectorAll<HTMLElement>('.ws-x-member').forEach((r) => { r.classList.toggle('on', r.dataset['model'] === model); });
   }
 
-  /** ‹ › : the neighbouring set, wrapping round */
+  /** the sets that can open (placed somewhere), in the list's order */
+  private openable(): SetInfo[] { return this.listed().filter((i) => !i.set.bounds.isEmpty()); }
+
+  /** ‹ › : the neighbouring set in the list's order, wrapping round */
   private step(by: -1 | 1): void {
     const c = this.current;
-    if (!c || this.infos.length < 2) return;
-    const i = this.infos.indexOf(c);
-    const next = this.infos[(i + by + this.infos.length) % this.infos.length];
+    const list = this.openable();
+    if (!c || list.length < 2) return;
+    const i = list.indexOf(c);
+    const next = list[(i + by + list.length) % list.length];
     if (next) this.openSet(next);
   }
 
@@ -393,8 +433,8 @@ export class SetExplorer implements ExplorePane {
     if (tris === 0) { if ((this.retries.get(f.model) ?? 0) < 600) { this.retries.set(f.model, (this.retries.get(f.model) ?? 0) + 1); this.tallies.push(f); } return; } // (a GLB still loading: again later)
     this.eachTris.set(f.model, e.live && e.drawnAs === 'instanced' && e.copies > 1 ? Math.round(tris / e.copies) : tris);
     const row = [...this.members.querySelectorAll<HTMLElement>('.ws-x-member')].find((r) => r.dataset['model'] === f.model);
-    const small = row?.querySelector('.ws-x-member-open small');
-    if (small) small.textContent = this.memberLine(f);
+    const cell = row?.querySelector('.ws-x-member-tris');
+    if (cell) cell.textContent = this.memberTris(f);
   }
 
   /**

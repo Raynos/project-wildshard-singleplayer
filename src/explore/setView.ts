@@ -95,6 +95,33 @@ export function setTotals(set: RegisteredSet): { models: number; copies: number 
   return { models: set.members.length, copies };
 }
 
+/** the compass regions a shard's sets are grouped by (north is −z, east +x, as the map draws them), in list order */
+export const REGIONS = ['Centre', 'North', 'North-east', 'East', 'South-east', 'South', 'South-west', 'West', 'North-west'] as const;
+export type Region = (typeof REGIONS)[number];
+
+/** where a set stands on its shard: the centre within `half / 4` of the middle, else one of eight compass sectors */
+export function regionOf(bounds: THREE.Box3, half: number): Region {
+  const c = bounds.getCenter(_p);
+  if (Math.hypot(c.x, c.z) < half / 4) return 'Centre';
+  const sector = Math.round((Math.atan2(c.x, -c.z) / (Math.PI * 2)) * 8 + 8) % 8; // 0 = north, clockwise
+  return REGIONS[sector + 1] ?? 'Centre';
+}
+
+/** how the list is ordered: by where the sets stand (grouped by region), by name, or most copies first */
+export type SetOrder = 'map' | 'az' | 'size';
+
+/** the sets in list order; with 'map', each group's region heads it */
+export function orderSets<T extends { set: RegisteredSet; totals: { copies: number } }>(infos: readonly T[], order: SetOrder, half: number): { region: Region | null; info: T }[] {
+  const byName = (a: T, b: T): number => a.set.name.localeCompare(b.set.name);
+  if (order === 'az') return [...infos].sort(byName).map((info) => ({ region: null, info }));
+  if (order === 'size') return [...infos].sort((a, b) => b.totals.copies - a.totals.copies || byName(a, b)).map((info) => ({ region: null, info }));
+  const at = (t: T): number => (t.set.bounds.isEmpty() ? REGIONS.length : REGIONS.indexOf(regionOf(t.set.bounds, half)));
+  return [...infos].sort((a, b) => at(a) - at(b) || byName(a, b)).map((info) => ({ region: info.set.bounds.isEmpty() ? null : regionOf(info.set.bounds, half), info }));
+}
+
+/** the models of a set's place not on the contract yet (`placeSet({ pending })`, M12): their ids */
+export function pendingOf(set: RegisteredSet): string[] { return [...(set.pending ?? [])]; }
+
 /** the sets a model is a member of (its card's PART OF) */
 export function setsOf(model: string, sets: readonly RegisteredSet[]): RegisteredSet[] {
   return sets.filter((s) => s.members.some((m) => m.model === model));
