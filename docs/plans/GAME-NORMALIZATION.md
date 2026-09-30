@@ -103,8 +103,10 @@ The manifest is typed data and node-safe. It is Lyra's "experience" and today's 
 - **Identity:** slug, name, `biome`, card art, `label` (today's `gridCoords` string) and `placement` (`grid`, `size`: its own
   origin and its place on the Wildshard map).
 - **Look:** style, the `LookStrategy` strategy loader.
-- **Mechanisms:** `uses`, the opt-in list (`weather`, `dayCycle`, `elites`, `bosses`, `quests`, `trample`, `compendium`, `bounds`, `grapple`: the values the four
-  manifests use). Nothing is on unless listed.
+- **Mechanisms:** `uses`, the opt-in list: only the 15 mechanisms of 01 §6 (engine `weather`, `dayCycle`, `bosses`,
+  `elites`, `spawns`, `quests`, `swim`, `hover`, `explore`, `practice`; game `coins`, `loot`, `compendium`, `feats`,
+  `bag.pack`). Nothing is on unless listed, and each manifest lists exactly what the shard runs today (R1-02). A
+  shard's own verbs (riding, stealth, the grapple) aren't mechanisms: its plugin installs them.
 - **Content:** loadout, species and encounter rows, loot tables, effects, audio (ambience, score, cue map).
 - **Budgets and tiers:** budget inputs per tier (§2.6), tier overrides.
 - **Boot:** steps, assets (files, packs, audio, Explore, precache).
@@ -113,7 +115,10 @@ The manifest is typed data and node-safe. It is Lyra's "experience" and today's 
 - **Input:** contexts and touch verbs.
 - **Contract:** `api` version and `load: () => import('./plugin')`.
 
-The plugin's `install(ctx)` may only use the fixed plugin verbs (`ShardContext`, 01 §7):
+**The engine never reads a manifest (R1-01).** `#game` builds an engine-side `LevelSpec` from it (01 §5a) and calls
+`app.loadLevel(spec, hooks)`. The plugin has **staged hooks** `world(ctx)`, `kit(ctx)` and `play(ctx)`, each awaited
+in its boot stage with the engine's work in between (R1-24). They may only use the fixed plugin verbs (`ShardContext`,
+every verb bound to the shard's scope, 01 §7, R1-25):
 - add systems (id, phase, before / after, run condition);
 - add events and `ask` handlers;
 - add content rows;
@@ -135,7 +140,8 @@ Boss`, while `LONGBOW` is a typed profile row with a parent. Names are dot-case 
 // src/shards/pine-hollow/manifest.ts (an excerpt; the full manifest is 06 §3) — node-safe: the title deck, bakers and checks read it
 export default defineShard({
   slug: 'pine-hollow', api: 1, style: 'pbr', label: '(+3, −2)', placement: { grid: [3, -2], size: [500, 500, 500] },
-  uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests', 'trample', 'compendium'],
+  uses: ['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice',
+         'coins', 'loot', 'compendium', 'feats', 'bag.pack'],   // Pine's exact list today is 06 §3; this example shows the full set
   loadout: { start: ['weapon.crossbow'], pickups: [{ id: 'lever', at: 'cabin-3' }] },
   species: ['creature.deer', 'creature.elk', 'kit:creature.boar', 'kit:creature.bear', 'creature.thrall'],
   audio: { ambience: 'ambience.pine', score: 'score.pine', cues: () => import('./audio/cues').then((m) => m.CUES) },
@@ -373,7 +379,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 
 | Row | What | Size |
 |---|---|---|
-| X1 | **Input**: every action and context, key rebinding, buffer + coyote, TouchControls drawn from the top context, reserved verb slots (EI9–EI12). The hoverboard moves to `#kit/tools/` as a Tool. With X2 it moves the last listeners onto scopes, so the `addEventListener` patch is deleted. The **input / HUD board** (a late roof jump, a dodge pressed mid-swing, the verb slots) | L |
+| X1 | **Input**: every action and context, key rebinding, buffer + coyote, TouchControls drawn from the merged context stack (contexts are additive, R1-29), reserved verb slots (EI9–EI12). The hoverboard moves to `#kit/tools/` as a Tool. With X2 it moves the last listeners onto scopes, so the `addEventListener` patch is deleted. The **input / HUD board** (a late roof jump, a dodge pressed mid-swing, the verb slots) | L |
 | X2 | **UI layers**, HUD slot bands and registered Bag tabs (EI13–EI16) | M |
 | X3 | **Boot and assets from the manifest** (EI3, EI4, TP9, MW13, MW17): staged steps, per-shard asset lists (fixes Explore's offline preload on 3 shards), DEPLOYMENT_ASSET_TRIM T3 and the unused-assets KTX2 fix (TP17). **The chunk layout** (decision 2, EF10): Vite 8 `codeSplitting.groups` (three · engine + game + kit · one chunk per shard), a build check in the pre-push gate that no `src/shards/**` plugin module is in the main chunk (read from Vite's manifest), the shard chunk through E188's `retried()`, and an E188 import-retry re-test on iOS 27 in the Simulator (sim-lane). Nine Dragon already joined the boot packs in S1.1 | M |
 | X4 | **The animation engine layer**: rig loader, clip naming, the animation state machine, the rig contract | M |

@@ -55,7 +55,9 @@ at F2's baseline.
    context is on top), the fake `KeyE` from the touch USE button (`TouchControls.ts:398`), and the 20
    enable / disable / pointer-lock sites in `main.ts`. The UI layer stack pushes `menu` (X2), so weapons stop firing
    under a menu without a flag.
-3. **TouchControls draws the top context's discs from its table** (EI11). The weapon-id sets go and become each
+3. **TouchControls draws the merged discs of the whole context stack** (EI11; contexts are additive, 01 §10, R1-29):
+   a higher context's relabel wins per disc spot, and a context hides only what its `blocks` names. So `ride`,
+   `stealth` or a Tool's context on top keeps the weapon's discs working. The weapon-id sets go and become each
    family's `touch` fragment: `MELEE`, `SPEAR` (`:99-101`), `LOCK_WEAPONS` (`LockOnTarget.ts:57`) and `id === 'bow'`
    (`:198-215`). `touchHint` (`ChunkDef.ts:80`) is already gone at S1.
 4. **Reserved verb slots** `verb.1` / `verb.2`: two named disc spots next to JUMP. Their exact position is decided on
@@ -148,7 +150,8 @@ at F2's baseline.
 **Done when**
 - `wildshard/no-raw-hud` = 0.
 - No overlay owns an Escape handler.
-- `src/ui/**` holds no shard name.
+- `src/engine/ui/**` and `src/game/**` hold no shard name (the post-F6 paths, R1-40), and the grep is asserted to scan
+  a non-empty file set.
 - Parity is green.
 
 ## X3 — Boot and assets from the manifest (EI3, EI4, TP9, MW13, MW17; DEPLOYMENT_ASSET_TRIM T3, TP17)
@@ -206,10 +209,12 @@ branches in `src/engine/boot/` and adds the checks.
    composition root is outside the layer rule, F4). The staged boot
    wraps `manifest.load()` and the `render()` import in it too (01 §7 load order), so a shard chunk dropped
    mid-download on LTE gets the same two retries (0.8 s, 2.5 s) as `three` and `main` do today.
-10. **The E188 re-test on iOS 27** (EF10: iOS 27's module loader was rewritten). `scripts/ios-retry-check.mjs` serves the
+10. **The E188 re-test on the newest installed iOS runtime** (EF10 flagged iOS 27's rewritten module loader; the Mac
+    has iOS 26.5 today, so the check runs on the newest runtime `xcrun simctl list runtimes` shows, and Jake's physical
+    phone confirms it at the next milestone (R1-51)). `scripts/ios-retry-check.mjs` serves the
     X3 build (`scripts/serve-build.sh`) behind a local proxy that cuts the connection mid-body on the **first**
     request for the `three`, `engine` and `shard-pine-hollow` chunks. Inside `scripts/sim-lane.sh run --max 15
-    wildshard-iphone …` (the iOS 27 runtime), it opens `http://127.0.0.1:<proxy>/?chunk=pine-hollow&skipintro=1&mute=1`
+    wildshard-iphone …` (the newest installed iOS runtime), it opens `http://127.0.0.1:<proxy>/?chunk=pine-hollow&skipintro=1&mute=1`
     in Safari. It reads the page through Web Inspector (`ios_webkit_debug_proxy`, as `scripts/nine-sim-memory.mjs`
     does). Pass: the proxy logs a second, complete request for each of the three files, and
     `typeof window.__wildshard.boot === 'object'` (the world was reached) within 120 s. The result is recorded in E357.
@@ -232,7 +237,8 @@ branches in `src/engine/boot/` and adds the checks.
   network off, then Explore opens).
 - `pnpm check:chunks` exits 0 on the X3 build, with the JS chunks `three`, `engine`, one `shard-<slug>` per shard,
   plus the ones Rolldown keeps apart (Rapier's bindings, workers) listed by name in E357.
-- `scripts/ios-retry-check.mjs` passes on iOS 27, and its result is recorded in E357.
+- `scripts/ios-retry-check.mjs` passes on the newest installed runtime (its version recorded in E357), and the next
+  milestone's checklist carries the physical-phone confirmation.
 
 ## X4 — The animation engine layer (decision 64; ANIMATION-REMASTER's mechanism half)
 
@@ -366,15 +372,18 @@ also gets a byte-identical vertex-colour test on one model per baker.
 
 **Steps**
 1. **Session health.**
-   - A `sessionStorage` + `localStorage` heartbeat (through `#engine/saves`, a `global` key) records the session's
+   - A `sessionStorage` + `localStorage` heartbeat (through `#engine/saves`, a **`device`** key: never exported or reset,
+     R1-39) records the session's
      state every 5 s (shard, stage, fps median).
    - The next boot classifies the last session: clean exit, crash (an error with no clean exit), context loss, or a
      likely OOM (heartbeat stopped mid-play with no error).
-   - It posts to `api/` with the build id.
+   - It posts to **`api/telemetry`** (a new Vercel function beside `api/inbox.ts` and `api/errors.ts`, storing to the
+     same `@vercel/blob` store under `telemetry/<yyyy-mm-dd>/`) with the build id.
    - `.claude/hooks/session-brief.sh` prints the crash-free-session rate per build (last 3 builds).
 2. **Analytics sink.** `#engine/analytics` subscribes to the events in 01 §23 (`death.cause`, `quest.step`,
-   `weapon.used`, `shard.time`, `boss.attempt`). It batches every 30 s and on `pagehide` to `api/`, with no personal
-   data and a random per-install id. A daily digest goes in the session brief. The `api/` function keeps 30 days.
+   `weapon.used`, `shard.time`, `boss.attempt`). It batches every 30 s and on `pagehide` to `api/telemetry` (the same
+   function, `kind: 'analytics'`), with no personal data and a random per-install id (a `device` key). A daily digest
+   goes in the session brief, and the function keeps 30 days of blobs.
 3. **Capture mode.** `clock.setCapture(fps)` and seeded streams (built at F8). X8 ports `steam-trailer/capture.mjs` and
    the board-clip script onto it and deletes the `performance.now` patch.
 4. **Strings.** Every player-facing string still inline in `src/engine/**` moves to `#engine/strings`. Shards moved

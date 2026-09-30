@@ -272,6 +272,20 @@ arrow would reach it (distance ÷ (30 + 28 p)), × 3 on a balbal; the arrow's ow
 | muzzle light | `!isOcean` (always on now that no ocean shard carries it) | `main.ts:541` |
 | HUD | name "AR-15", icon `rifle` | `main.ts:623, 770` |
 
+**W13 action states (R1-37).** The lever's reload and trigger state machine maps onto Firearm's hooks, with nothing
+private left out:
+- `reloadStep` loads one round per step and stops after the round in hand when the trigger is pressed
+  (`LeverRifle.ts:487–501`). A trigger during a partial reload fires the chambered round if there is one; otherwise
+  it chambers from the tube (`onEmptyTrigger` → `cycle`).
+- `dryAtStart` is recorded when a reload begins with an empty chamber, and a dry reload ends with a `cycle`
+  (`:767–779`).
+- Auto-reload fires only in the 0.35–5 s window after the last shot, and stow / swap cancels it.
+- The HUD shows chamber and tube state separately.
+
+`lever-actions.test.ts` records today's action traces **before** the move (full, partial and dry reloads; a trigger
+mid-reload; reserve exhaustion; swap and stow mid-reload; the chamber / tube HUD states), and requires the Firearm
+subclass to replay them exactly (12′).
+
 **W13 `LEVER`** (Pine; `class LeverRifle extends Firearm`, parent row `AR15`; overrides: `cycle` (lever throw), `reloadStep`
 (per round), `animateAction` (lever / hammer / bolt parts)):
 
@@ -456,16 +470,42 @@ is `manifest.fight.capExempt`), R3 (two source conditions that must both hold) a
 | R0 | `rule.death-fade` | 0 | target `actor.player`, the death fade is active | negate | `main.ts:966–967, 1191` |
 | R0b | `rule.boss-god` | 1 | param `bossGod` (harness allowlist), target `actor.player`, source `boss.*` \| `elite.*` \| `add.*` | veto | `kurganBoss.ts:652–657`, `stormTitan.ts:994–995`, `pinehollow/index.ts:67, 85–86` |
 | R2 | `rule.dodge-guard` | 10 | target `actor.player` has `guard.dodge` and `player.dodging`; source `creature.*` \| `boss.*` \| `elite.*` \| `add.*` | veto | `main.ts:832` |
-| R3 | `rule.sneak-shot` | 20 | req `dmg.ranged` (arrows, javelins) and source has `state.sneak-shot` (landing within 4 s) | mul 2 | `stealth.ts:61, 150–161` |
-| R4 | `rule.broadhead` | 20 | req `ammo.broadhead`, target `size.deer` (deer, boar) | mul 1.4 | `ammo.ts:27–28, 45–46` |
-| R5 | `rule.golden-vs-balbal` | 20 | req `weapon.golden-bow`, target `creature.balbal` \| `creature.kurgan-balbal` | mul 2, or 3 with `arrow.sun` | `GoldenBow.ts:84–90` |
-| R6 | `rule.bolt-model` | 30 | req with `model.bolt` | amount = `damageFor(headshot, dist)` (seeded) × `scale` | `Animal.ts:57–64` |
-| R7 | species / elite / boss damage rules | 40 | target = that actor | the brain's rule (§3.3 table) | `damageMul` hooks |
-| R8 | `rule.damage-taken` | 50 | target has `damageTakenMul` ≠ 1, not a headshot | mul, `max(1, round(·))` | `Animal.ts:336–340` |
+| R8 | `rule.damage-taken` | 40 | **creature target**, it has `damageTakenMul` ≠ 1, not a headshot | amount = `max(1, round(amount × damageTakenMul))` | `Animal.ts:336–340` (variant **before** species, as today) |
+| R7 | species / elite / boss damage rules | 50 | **creature target** = that actor | amount = `max(1, round(amount × damageMul(·)))` (the brain's rule, §3.3 table) | `Animal.ts:341–342` `damageMul` hooks |
 | R1 | `rule.hit-cap` | 90 | target `actor.player` with `incomingCap`; source `creature.*` \| `boss.*` \| `elite.*` \| `add.*`; `not` = `manifest.fight.capExempt` (Driftwood `creature.captain`) | cap | `ChunkDef.ts:452–453` |
 
-The order matches today's arithmetic: multiplicative bonuses before the model's rounding, the variant's shrug and the
-species rule after it (`Animal.ts:333–342`), the cap last. Rounding points are kept exactly (a test per rule, §3.6).
+**How today's arithmetic is kept exactly (R1-31, finding A14).** A hit's damage is built in three stages, never by
+one rule overwriting another.
+
+1. **The base, per source** (not a rule: the source's `DamageRequest.amount` is computed exactly as today, before the
+   pipeline). The source multipliers sit at the rounding point each source has today:
+
+   | Source | `amount` handed to the pipeline (today's expression) | Source multipliers inside it | Code today |
+   |---|---|---|---|
+   | arrow (Bow, Longbow, Golden Bow) | `max(1, round(damageFor(head, dist) × damageScale × Π sourceMul))` | sneak ×2 (was R3), golden vs balbal ×2 / ×3 with `arrow.sun` (was R5) | `Projectiles.ts:316` |
+   | bolt (Crossbow) | `damageFor(head, dist) × boltMul` (damageFor already rounds; the product stays unrounded) | broadhead ×1.4 on `size.deer` (was R4) | `Crossbow.ts:1231`, `Animal.ts:59–64` |
+   | javelin (Spear) | `round(JAV_DAMAGE × (head ? JAV_HEAD : 1) × Π sourceMul)` | sneak ×2 (was R3) | `Spear.ts:455` |
+   | thrust / brace / lance (Spear) | `THRUST_DAMAGE` and today's brace / lance values, flat | none | `Spear.ts:523, 552, 572` |
+   | melee swing (Sword family) | the move's damage × the weapon's base, as `Sword.ts:870` computes it | none | `Sword.ts:870` |
+   | golden pierce | `balbal ? q.dmg × 3 : q.dmg` | — | `GoldenBow.ts:166` |
+
+   `damageFor` draws from the seeded `rng.stream('gameplay')` instead of `Math.random` (B5). `SourceMulDef` rows
+   (`{ id, when, mul }`) hold sneak, broadhead and golden. The source's formula multiplies them in **at that
+   source's own point**, so a later rule can never discard them.
+2. **Creature-target rules** (`ask('damage.modify')`, only when the target is a creature): R8 (variant shrug, order
+   40), then R7 (species / elite / boss `damageMul`, order 50), each `max(1, round(·))` exactly as
+   `Animal.applyDamage` does today. `Animal.applyDamage` then takes the **final** amount and applies no modifier of
+   its own: its variant and species code **moves** into R8 / R7, so nothing is applied twice.
+3. **Player-target rules** (only when the target is the player): R0 (0), R0b (1), R2 (10), R1 the cap (90).
+
+**Proof:** `damage-golden.test.ts` (§3.6) is a golden table of today's damage for every combination that can happen
+today: each source × head / body × with and without each source multiplier × plain / variant (Old Ironhide
+`damageTaken`) × each species with a `damageMul` × distance 20 / 60 / 100 m, on a seeded stream. The combined cases
+include:
+- a broadhead bolt to a variant boar, head and body;
+- a sneak golden arrow to a kurgan balbal, with and without `arrow.sun`;
+- a sneak javelin to a variant deer.
+Expected values are computed by calling today's code before S1.3 lands, and the table must match exactly after.
 
 ### 2.3 AmmoRow (the crossbow's bolt mods)
 
@@ -852,6 +892,15 @@ The director is on only when `attackers` is finite, which reproduces `this.rules
 
 ### 5.7 Tick classes (01 §12)
 
+**Driftwood's self-thinking species (crab, monkey, sailor, the Drowned Captain), R1-32.** Their strike checks sit in
+their `think` callback, sampled at the 10 Hz brain tick (`AnimalManager.ts:686–699, 777–782`, `captain.ts:275–285`).
+- **Until S4.2**, they stay on that callback, unchanged; S2.6's switch covers only the creatures already on the runtime.
+- **At S4.2** they join the runtime, and their strike phases move to the body clock (decision 85). That can shift a
+  hit by up to one brain tick (≤ 100 ms).
+- **Parity at S4.2** is identical **except** those strike frames. A seeded before / after trace (the first and second
+  cuts, rise and sink, the phase transitions, damage, the kill) is the boarded item at M4, with a clip. "His fight
+  unchanged" means rules, moves, phases and damage; the timing shift is the one boarded difference.
+
 | System | Today | Class | During S2.3 (identical) | From S2.6 (decision 85, creatures board) |
 |---|---|---|---|---|
 | creature brains (herd, species `think`, elite brains) | 10 Hz for every animal at any distance (`AnimalManager.ts:686–699`) | `ai` | shard tier override `ai: { bands: [{ upTo: ∞, brainHz: 10, body: 'frame' }] }` | decision 85's bands: near 0–60 m brain 20 Hz + body every frame; mid 60–160 m brain 10 Hz + body every 2nd frame; far paused; interrupts; pinned bosses / elites / quest actors |
@@ -873,6 +922,9 @@ enters its phases at the listed fractions; `death.checkpoint` returns true insid
 `test/ai/tick-rates.test.ts` (S2.6: rates by distance).
 
 ## 6. Migration order (combat + AI inside S1–S4)
+
+**Inside S1 (R1-23):** S1.2 (Equipment / Weapon + the Melee family) and S1.3 (the pipeline, cues, the effects core)
+land **before** S1.4 (the Tool contract and the Fei Zhua, which uses them). 05 §0 follows this order.
 
 Every step: harness green → pathspec commit → `scripts/push-main.sh` (plan §3). A red step is reverted.
 

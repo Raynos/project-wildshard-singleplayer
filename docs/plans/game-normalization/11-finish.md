@@ -16,7 +16,7 @@ shard".
 | `ground.terrain` | a 200 × 200 m gently rolling heightfield (one noise octave) with one trail |
 | `sky` / `atmosphere` / `grade` | a plain gradient sky, linear fog, neutral grade |
 | `render` | a minimal `LookStrategy` (`mode: 'extend'`) that only passes the engine chain through (the "nothing custom" case) |
-| `uses` | **every** mechanism the four shards use: `weather`, `dayCycle`, `elites`, `bosses`, `quests`, `trample`, `compendium`, `bounds`, `grapple` (so each mechanism is exercised) |
+| `uses` | **all 15 mechanisms** (01 §6, decision 54, R1-02), so each one is exercised: engine `weather`, `dayCycle`, `bosses`, `elites`, `spawns`, `quests`, `swim`, `hover`, `explore`, `practice`; game `coins`, `loot`, `compendium`, `feats`, `bag.pack` |
 | `ctx.piece` | one grey-box hut (a box collider + a door interactable) and one ramp with stair treads (the physics rules) |
 | `loadout` + `rows` | a kit weapon (the iron-sword profile from `#kit/weapons`), plus a **custom weapon**: `class TemplateWhip extends Weapon`, built from `blocks.viewmodel` + `blocks.melee` with a `lane` sweep |
 | a Tool | `class TemplateLantern extends Tool` in the off hand, with its own action `toggle` in `verb.1` |
@@ -66,8 +66,14 @@ sections are updated for the new paths (`src/engine/physics/`,
    - the template;
    - `docs/ENGINE.md`;
    - the AGENTS.md rules.
-   The E352 caps apply. It works in `src/shards/<new-slug>/` only, and a pre-commit check blocks any path outside it
-   for this job.
+   The E352 caps apply. It works only inside the **reopened-shard allowlist** for its new slug (R1-09, R1-11):
+   `src/shards/<new-slug>/**`, `test/shards/<new-slug>/**`, `art/<new-slug>/**`, `public/assets/<new-slug>/**`,
+   `scripts/blender/<new-slug>/**` and `docs/tasks/asks/**`. The `commit-msg` lock check refuses any other path.
+   - It commits no generated file: `shards.generated.ts` is built at build and test time.
+   - Its gate job and baselines appear by themselves: the matrix is derived from the registry, and a shard with no
+     baselines gets a bootstrap record on its first gate run.
+   - **"Zero engine edits" means no change under `src/engine`, `src/game`, `src/kit`, `lint`, `.github` or `scripts`**
+     (except its own `scripts/blender/<new-slug>/`).
 2. **Pick.** The agent first proposes **3 small shard ideas as portrait mockups**: biome, look, custom weapon,
    creature. It uses `scripts/mockup-local.sh`, or codex `image_gen` for the finals, and saves them to
    `art/shard-5/round-1-proposals/`. Jake picks one through AskUserQuestion (73).

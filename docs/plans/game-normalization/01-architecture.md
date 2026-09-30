@@ -152,12 +152,17 @@ export class Scope {
 
 **Rules**
 - Every plugin verb (§7) takes the shard's scope implicitly. Engine services take the scope of whatever owns them.
-- Objects added to the scene under a shard's root group are freed by traversing that root:
-  - geometries, materials and textures reachable from the root are disposed;
-  - shared engine or kit assets are ref-counted by `#engine/assets` and never disposed by a shard.
-- **The leak test** (the gate, [03-harness-gate.md](03-harness-gate.md)): boot → load a shard → unload (dispose its
-  scope) → `renderer.info.memory` (geometries, textures), the physics body count, the listener count and the audio
-  node count all return to the post-boot baseline.
+- **Owned vs acquired (R1-28).** `scope.own(…)` covers only what the level itself creates. A shared engine or kit
+  asset (a kit species' mesh, a kit weapon's model, an engine texture) comes through `app.assets.acquire(key)`
+  (ref-counted) and is `release`d, never disposed, when the scope ends. The asset service frees it at ref 0 unless
+  the engine retains it. Objects under the level's root group are disposed by traversal, skipping anything acquired.
+- **The leak test** (the gate, [03-harness-gate.md](03-harness-gate.md) §5.5):
+  - **B0** is the census after the engine boots to `title`, engine-retained resources included.
+  - Load a level, then unload it (dispose its scope), and take **B1**.
+  - For the level-owned kinds, B1 must equal B0: geometries, textures and materials the level created, physics
+    bodies, listeners, audio nodes and timers.
+  - Engine-retained resources aren't counted: the renderer, the sky rig, the title's assets, and acquired assets the
+    engine still references.
 - **Replaces** (decisions 21, 60; EI6):
   - `shardScope.ts`'s global `addEventListener` patch;
   - `disposeListeners.ts`'s `EventDispatcher` patch;
@@ -179,6 +184,8 @@ export interface App {                      // typed fields; no string-keyed ser
   readonly scheduler: Scheduler; readonly analytics: AnalyticsSink; readonly debug: DebugService;
   readonly explore: ExploreService; readonly practice: PracticeService;
   readonly params: HarnessParams;            // the only URL-param reader: the `harness` allowlist in lint/url-params.json (tier, touch, chunk, spawn, skipintro, mute …)
+  readonly assets: AssetService;            // acquire(key) / release(key), ref-counted (§4, R1-28)
+  loadLevel(spec: LevelSpec, hooks: LevelHooks): Promise<void>;   // runs the level.* boot stages (§5a, §8)
 }
 ```
 
@@ -195,7 +202,46 @@ export interface App {                      // typed fields; no string-keyed ser
     engine entirely (§20);
   - the 52 `window.__*` names, of which 26 are shard-named.
 
-## 6. The shard manifest (the game layer's type; the engine never sees it)
+## 5a. LevelSpec: all the engine sees of a level (R1-01)
+
+```ts
+// #engine — src/engine/level/spec.ts
+export interface LevelSpec {
+  id: string;                                   // opaque: the engine logs it and never compares it
+  ground: { terrain?: TerrainSpec; structures?: true }; spawn: SpawnPose; bounds?: Bounds;
+  camera?: { portraitFov?: number };
+  sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec; wind?: WindSpec; water?: readonly WaterBodyRow[];
+  look?: () => Promise<LookStrategy>; tiers?: TierOverrides; budgets: BudgetInputs;
+  mechanisms: readonly EngineMechanism[];       // the engine half of the manifest's `uses` (§6)
+  fight: FightRules; input?: readonly InputContextDef[]; boot: BootSpec; audio: AudioSpec;
+  dayCycle?: DayCycleKeyframes; weather?: WeatherSpec;
+}
+export interface LevelContext {                 // the engine's verbs, every one bound to ctx.scope (R1-25)
+  readonly app: App; readonly scope: Scope; readonly root: THREE.Group; progress: StepProgress;
+  system(spec: SystemSpec): void;
+  on<K extends keyof EventMap>(name: K, fn: (p: EventMap[K]) => void, opts?: { order?: number }): void;
+  answer<K extends keyof AskMap>(name: K, fn: (v: AskMap[K][0]) => AskMap[K][1], opts?: { order?: number }): void;
+  rows: EngineRows;                             // weapon / tool / species / species-look / effect / damage-rule / encounter / spawn rows
+  inputContext(def: InputContextDef): void; hud: HudVerbs; piece(p: PieceSpec): void;
+  debugRow(r: DebugRowSpec): void; playground(p: PlaygroundSpec): void; strings(t: StringTable): void;
+  tiers: { knobs(schema: TierKnobSchema): void }; debug: { expose(name: string, value: unknown): void };
+}
+export interface LevelHooks {                   // each awaited in its stage, with the engine's work in between (R1-24)
+  world?(ctx: LevelContext): Promise<void> | void;   // level.world
+  kit?(ctx: LevelContext): Promise<void> | void;     // level.kit
+  play?(ctx: LevelContext): Promise<void> | void;    // level.play
+}
+```
+
+**Rules**
+- **The engine never reads a manifest and never says "shard".** `#game` builds the `LevelSpec` with
+  `toLevelSpec(manifest)`, a pure function that a node test runs on every shard. It then calls
+  `app.loadLevel(spec, hooks)`, where the hooks wrap the plugin's `world` / `kit` / `play` with a `ShardContext` (the
+  `LevelContext` plus the game verbs, §7).
+- The engine's code says `level` everywhere: `LookStrategy`, the stages `level.data / world / kit / play`, the events
+  `level.loaded / unloaded`. The word list (§24) keeps "shard" out of `src/engine/**`.
+
+## 6. The shard manifest (the game layer's type; the engine sees only the `LevelSpec` built from it, §5a)
 
 ```ts
 // #game — src/game/shard/manifest.ts
@@ -261,6 +307,8 @@ export const defineShard: (m: ShardManifest) => ShardManifest;      // identity 
   - engine: `'weather' | 'dayCycle' | 'bosses' | 'elites' | 'spawns' | 'quests' | 'swim' | 'hover' | 'explore' | 'practice'`;
   - game: `'coins' | 'loot' | 'compendium' | 'feats' | 'bag.pack'`.
   A shard's own verbs (riding, stealth, the grapple) are not on it, because the shard's plugin installs them itself.
+  `trample` (a kit look piece), `bounds` (data) and `grapple` (Nine Dragon's own verb) are not mechanisms and never
+  appear in `uses` (R1-02). Each manifest lists exactly the mechanisms it runs today (parity).
   A mechanism a manifest doesn't list isn't built at all, so there's no cost and no system. The template lists all 15.
 - A manifest imports only node-safe modules: data, types and the lazy `load` / `render` / `cues` / `roster` thunks.
   A node test imports every manifest to prove it. The bakers (`bake-chunk`, `bake-sky`, `bake-packs`, `bake-navmesh`)
@@ -280,26 +328,17 @@ export const defineShard: (m: ShardManifest) => ShardManifest;      // identity 
 
 ```ts
 // #game — src/game/shard/plugin.ts
-export abstract class ShardPlugin {
-  abstract install(ctx: ShardContext): Promise<void> | void;   // may await its own world build
+export abstract class ShardPlugin {         // staged hooks, each awaited in its boot stage (R1-24)
+  world?(ctx: ShardContext): Promise<void> | void;   // level.world: terrain dressing, structures, pieces, field models
+  kit?(ctx: ShardContext): Promise<void> | void;     // level.kit: weapon / tool / species / effect / encounter rows
+  play?(ctx: ShardContext): Promise<void> | void;    // level.play: systems, events, input contexts, HUD, quests
 }
-export interface ShardContext {             // the plugin verbs: everything is owned by ctx.scope
-  readonly app: App; readonly manifest: ShardManifest; readonly scope: Scope;
-  readonly root: THREE.Group;               // the shard's scene root (disposed with the scope)
-  progress: StepProgress;                   // the loading bar for the current boot step (§8)
-  system(spec: SystemSpec): void;
-  on: Events['on']; answer: Events['answer'];
-  rows: ContentRows;                        // add weapon / tool / species / effect / encounter / loot / spawn rows
-  inputContext(ctx: InputContextDef): void;
-  hud: HudVerbs;                            // widgets into slot bands, disc relabels, reserved verb slots (§11)
-  bag: BagVerbs;                            // tabs + item fragments (#game)
-  piece(p: PieceSpec): void;                // world registry piece (colliders, floor, model card)
-  debugRow(r: DebugRowSpec): void;          // pause ▸ Settings ▸ Debug, into an existing group
-  playground(p: PlaygroundSpec): void;      // Explore's playground list (EI22)
-  strings(t: StringTable): void;
-  // rows.creatureLook(kitLook, factory): a shard or a kit look registers the creature material factory for its look
-  tiers: { knobs(schema: TierKnobSchema): void };   // a shard may declare its own tier knobs (defaults per tier, overridable in its manifest)
-  debug: { expose(name: string, value: unknown): void };   // → window.__wildshard.shard[name]; replaces __ndRender, the seven __pine*, __titan …
+export interface ShardContext extends LevelContext {   // every verb bound to ctx.scope: no verb takes a scope (R1-25)
+  readonly manifest: ShardManifest;
+  readonly game: GameServices;              // Bag, coins, loot, compendium, feats (#game)
+  bag: BagVerbs;                            // tabs + item fragments
+  rows: EngineRows & GameRows;              // + item / loot-table rows; rows.creatureLook(kitLook, factory) registers a look's creature material factory
+  // debug.expose(name, value) → window.__wildshard.shard[name]; replaces __ndRender, the seven __pine*, __titan …
 }
 // src/game/shard/shards.generated.ts — written by scripts/gen-shards.mjs from src/shards/*/manifest.ts
 export const SHARDS: readonly ShardManifest[];
@@ -311,9 +350,11 @@ export const SHARDS: readonly ShardManifest[];
 - **Load order**, for one shard per page:
   1. The engine boots (stage `engine`).
   2. `manifest.load()` downloads the plugin chunk, prefetched in parallel with the renderer and sky build.
-  3. `new Plugin().install(ctx)` runs inside the boot stages (§8).
+  3. `#game` calls `app.loadLevel(toLevelSpec(manifest), hooks)`: the engine runs `level.data`, then
+     `plugin.world(ctx)` in `level.world`, its own kit work and `plugin.kit(ctx)` in `level.kit`, its play wiring and
+     `plugin.play(ctx)` in `level.play`, then `finish` (§8).
   4. `app.setState('play')`.
-- **A load failure** is any throw or rejected promise in `load` / `install`. The engine disposes the shard's scope,
+- **A load failure** is any throw or rejected promise in `load` or a hook (`world` / `kit` / `play`). The engine disposes the shard's scope,
   reports to Sentry (shard, build, stage, stack) and shows the **full-screen error with the stack** and a Reload
   button (decision 69).
 - **Unload** is `scope.dispose()`. Switching shards is still a page reload (21). The leak test (§4) exercises unload.
@@ -325,7 +366,7 @@ export const SHARDS: readonly ShardManifest[];
 | Stage | Engine does | The shard fills (manifest / plugin) |
 |---|---|---|
 | `engine` | renderer, physics world, sky rig, audio unlock, input, UI shell, saves | — |
-| `level.data` | reads the manifest, `tiers`, `budgets`, string tables | `boot.steps` labels and weights |
+| `level.data` | reads the `LevelSpec`: `tiers`, `budgets`, string tables | `boot.steps` labels and weights |
 | `level.world` | terrain (if `ground.terrain`), registry wiring | plugin world build (today's `edge` / `grass` / `cabins` / `props` / `structures` / `fieldModels`) |
 | `level.kit` | equipment service, loadout from rows | its weapon / tool / species / effect rows |
 | `level.play` | creatures, encounters, quests runtime, audio beds, HUD | its systems, events, contexts, widgets |
@@ -402,7 +443,7 @@ export type Action = keyof ActionMap & string;
 export interface InputContextDef {
   id: string;                               // 'onFoot' | 'swim' | 'ride' | 'board' | 'grapple' | 'menu' | 'explore' | 'dialog' | shard ids
   actions: readonly Action[];               // live in this context
-  blocks?: 'below' | readonly Action[];     // what it hides from contexts under it
+  blocks?: 'below' | readonly Action[];     // what it hides from contexts under it (default: nothing; contexts are additive)
   touch?: TouchLayout;                      // disc relabels + reserved verb slots (§11)
 }
 export interface InputService {
@@ -423,6 +464,10 @@ export interface InputService {
 - **Coyote time** is a player-motor number (`coyoteMs`, 100): a jump is allowed for that long after leaving ground.
 - Both buffer and coyote are **per-shard data** (`manifest.fight` / tier). They are on everywhere and shown on the
   input / HUD board (40).
+- **Contexts are additive (R1-29).** An action resolves top-down through the stack; a context blocks only what its
+  `blocks` names. TouchControls draws the **merged** discs of the whole stack, with a higher context's relabel winning
+  per disc spot. So a Tool context (the grapple), `ride` or `stealth` sits on top of the weapon's context and the
+  weapon keeps firing.
 - **Contexts.** The context stack replaces ~12 scattered mode flags. Nalati's stealth rewriting `player.keys` becomes
   the `crouch` action (EI12). The touch USE button stops faking an `E` keypress.
 - **Key rebinding:** a Controls screen in Settings, stored in `saves('controls', global)`. No gamepad (38).
@@ -622,7 +667,7 @@ export interface AnimService { load(rig: RigRef): Promise<RigInstance>; machine(
 // #engine — src/engine/combat/
 export abstract class Equipment {           // the shared base (27)
   abstract readonly id: string; abstract readonly name: string;   // name via string table
-  readonly bag: BagEntrySpec;               // #game renders it; the engine only carries it
+  readonly meta: EquipmentMeta;             // { name (string key), icon, blurb, category }: #game's Bag builds its entries from it (R1-26)
   protected blocks: BlockSet;               // viewmodel, aim, input … (below)
   install(ctx: EquipContext): void;         // wires blocks, actions, cues, HUD
   abstract update(dt: number, t: number): void;
@@ -703,12 +748,32 @@ export interface DamageRequest {             // the superset every path fills (0
 
 ```ts
 // #engine — src/engine/ai/
-export interface SpeciesRow {                // tuning: kit (2+ shards) or shard
+export interface Actor {                     // anything that has attributes and can hit or be hit (the player, a creature, a boss)
+  readonly id: string; readonly tags: ReadonlySet<Tag>; readonly attributes: AttributeSet;
+  readonly position: THREE.Vector3; readonly forward: THREE.Vector3; readonly alive: boolean;
+}
+export interface SpeciesRow {                // SIMULATION only (sim-no-render applies): kit (2+ shards) or shard (R1-27)
   id: SpeciesId; parent?: SpeciesId; tags: readonly Tag[];
-  rig: RigRef; mesh: () => Promise<THREE.Object3D>; health: number; speeds: MoveSpeeds;
+  health: number; speeds: MoveSpeeds; locomotion: 'ground' | 'fly' | 'swim';   // fly = the engine's flying body (today's eagle mover)
   senses: Senses; strikes: readonly StrikeSpec[]; loot?: LootTableId; tick?: TickRateId;
   brain: new (a: Actor) => CreatureBrain;    // behaviour: a subclass (67)
 }
+export interface SpeciesLook {               // RENDER only: registered separately, lives in src/engine/ai/view/** or a shard / kit look folder
+  species: SpeciesId; kitLook?: string; rig: RigRef; mesh: () => Promise<THREE.Object3D>;
+}
+export interface Move {                      // decision 15: moves as data with tags
+  id: string; windup: number; active: number; recover: number; damage: number; reach: number;
+  sweep: number; stagger: number; hitStop: number; kick: { pitch: number; roll: number; fov?: number };
+  tags: readonly Tag[]; blockedBy?: readonly Tag[]; cancels?: readonly Tag[];
+}
+export interface MoveSet { light: readonly Move[]; heavy?: Move; mounted?: readonly Move[]; lunge?: Move }   // today's SwordMoves shape, generalised
+export interface BossPhase { at: number; caption: string; name: string; strikes: readonly string[]; enrage?: number }   // today's BossPhaseDef + its strike list
+export interface BossDef {                   // today's Boss.ts BossDef, generalised (arena, wake, intro, seal, reward, persistence)
+  id: string; name: string; title: string; arena: { at: string; r: number }; wake?: { flag: string };
+  intro: { long: number; short: number } | null; seal: boolean; checkpoint: boolean; bar: 'boss';
+  phases: readonly BossPhase[]; reward: BossReward | null; persist: { deadFlag: string }; capExempt?: boolean;
+}
+export interface EliteDef { id: string; name: string; species: SpeciesId; rearmSeconds: number; phase2At?: number; loot?: LootTableId; persist: { key: string } }
 export type StrikeShape =
   | { kind: 'arc'; radius: number; halfAngle: number } | { kind: 'lane'; length: number; width: number }
   | { kind: 'ring'; inner: number; outer: number } | { kind: 'wedge'; length: number; halfAngle: number }
@@ -717,7 +782,8 @@ export interface StrikeSpec {                // replaces the 24 hand-rolled wind
   id: string; shape: StrikeShape;
   windup: number; active: number; recover: number; cooldown: number;
   range: number; damage: number; tags: readonly Tag[]; telegraph?: GroundTellSpec; weight: UtilityCurve;
-  motion?: { speed?: number; delay?: number; track?: 'none' | 'lead' | 'follow' };   // a lane charge's speed, a ring's growth speed, a point strike's delay
+  motion?: { speed?: number; delay?: number; track?: 'none' | 'lead' | 'follow'; overshoot?: number; skid?: number };   // m/s, s; a lane charge's speed / overshoot (m) / skid (s), a ring's growth speed, a point strike's delay
+  eligibility?: { maxDy?: number; jumpDodges?: boolean };   // contact height window (m; an arc's maxDy) and whether a jump dodges a ring (R1-33)
 }
 export abstract class CreatureBrain {        // a hierarchical state machine: idle → alert → fight → flee, with sub-states
   protected hfsm: Hfsm; abstract pickStrike(ctx: BrainCtx): StrikeSpec | null;   // default: utility-weighted
@@ -794,7 +860,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |
 | `wildshard/no-renderer-type` | `WebGLRenderer` named outside `src/engine/render/**` (before F6: outside `Game.ts` and `bootstrap.ts`; F6 re-keys it) | the rule's own count at F4 (the audit's "52 files" was a grep, not the rule) |
-| `wildshard/sim-no-render` | `src/engine/{combat,ai,saves,quests,effects}/**` importing three beyond its math types, or any render / DOM module (decision 56). **Exempt:** `src/engine/combat/view/**`, the drawing half of the combat blocks (viewmodel, slash trail, brass); their state and rules stay in the checked folders | 0 from day one (the folders are new) |
+| `wildshard/sim-no-render` | `src/engine/{combat,ai,saves,quests,effects}/**` importing three beyond its math types, or any render / DOM module (decision 56). **Exempt:** `src/engine/combat/view/**` (the drawing half of the combat blocks: viewmodel, slash trail, brass) and `src/engine/ai/view/**` (`SpeciesLook`s, R1-27); their state and rules stay in the checked folders | 0 from day one (the folders are new) |
 | `wildshard/no-active-chunk` | `getActiveChunk()` calls outside `#game/shard` (each becomes `game.shard` or manifest data, file by file from F8 on) | 136 calls / 42 files |
 | `wildshard/no-global-listener-patch` | teardown through `shardScope`'s `addEventListener` patch (kept until X1 / X2 move the 396 listeners onto scopes) | 396 |
 | `wildshard/no-url-switch` | unchanged (the allowlist) | — |

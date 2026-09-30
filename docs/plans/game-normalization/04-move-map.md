@@ -84,7 +84,7 @@ From F6 on, `src/` holds exactly `engine/`, `game/`, `kit/` and `shards/` (02 F6
 
 | # | The other spec says | This map | Why |
 |---|---|---|---|
-| 1 | 02 F6: `src/main.ts` → `src/engine/main.ts`. 05 §0: `src/main.ts` keeps its path until S4.4 | `E:main.ts` at F6, `E:boot.ts` at S4.4 | 02's done-when needs `src/` to hold only the four layer folders. 05's line references find it by grep key anyway |
+| 1 | 02 F6: `src/main.ts` → `src/engine/main.ts`. 05 §0: `src/main.ts` keeps its path until S4.4 | **Resolved (13 04#12, R1-03):** `src/main.ts` stays at the root permanently as the composition root (with `src/entry.ts`); the generic boot moves to `src/engine/boot.ts` at S4.4 | `src/` holds the four layer folders plus the two composition-root files |
 | 2 | 02 rule 2: `src/chunks/fauna-layout.ts` → Pine | `E:world/faunaLayout.ts` | 06 §1.1: a placement primitive with no Pine word (M overrides I) |
 | 3 | 02 Q10: `src/kit/` stays empty at F6 | 5 files enter the kit at F6: `vm/rig.ts` and `rigArms.ts` (05 §1.2), `Particles.ts` and `GrassTrample.ts` (06 §1.3), `GrassField.ts` (the trample reads it) | Whole-file moves with a known home (§1.1 rule 1). Families, species and weather still wait for their rows, for 02's reason |
 | 4 | 02 rule 2 moves the 7 Nalati-only species and `eliteBrain.ts` to Nalati at F6 | They wait (E1); `eliteBrain.ts` merges into the engine `EliteBrain` at S2.3 | The species glob (E1); 09 §5.1 |
@@ -108,7 +108,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
-| `main.ts` | 1336 | `E:main.ts` | `E:boot.ts` | engine | SPLIT | F6 → S4.4 | composition root; 91 gate lines leave in S1–S4, then it becomes engine/boot.ts ≤ 150 lines (split table §3.1) |  |
+| `main.ts` | 1336 | `src/main.ts` | = | root | composition root | F6 → S4.4 | the composition root stays at `src/` (R1-03); its 91 gate lines leave in S1–S4, and the generic boot moves to `src/engine/boot.ts` (≤ 150) at S4.4, leaving main.ts ≤ 20 lines (split table §3.1) |  |
 | `meshopt-simplifier.d.ts` | 10 | `E:types/meshopt-simplifier.d.ts` | = | engine | F | F6 | ambient module types (02 F6 folder map) |  |
 | `n8ao.d.ts` | 37 | `E:types/n8ao.d.ts` | = | engine | F | F6 | ambient module types (02 F6 folder map) |  |
 
@@ -1506,8 +1506,8 @@ matched before (each at its new path); a test that scans for a banned pattern ma
 | File | Today | After F6 | Also |
 |---|---|---|---|
 | `test/facade-no-multidraw.test.ts` (stays) | `'../src/chunks/nine-dragon-stack/**/*.ts'`, `FACADE = '../src/chunks/nine-dragon-stack/world/facade/batch.ts'` | `['../src/shards/nine-dragon-stack/**/*.ts', '../src/kit/viewmodel/armRig.ts']`; `FACADE` → `'../src/shards/nine-dragon-stack/world/facade/batch.ts'` | the E271 guard; it now also scans the grapple playground (stricter) |
-| `test/shards/driftwood-isle/models-driftwood.test.ts` | `['../src/world/*.ts', '../src/main.ts']` | `['../../../src/engine/world/*.ts', '../../../src/shards/driftwood-isle/world/*.ts', '../../../src/engine/main.ts']` | **manual**: `SOURCES[\`../${file}\`]` → `SOURCES[\`../../../${file}\`]` (the key is built from each model's `file:` field, which the codemod rewrites) |
-| `test/shards/pine-hollow/models-pine-hollow.test.ts` | `['../src/world/*.ts', '../src/main.ts', '../src/chunks/pine-hollow/world/*.ts', '../src/pinehollow/quest/*.ts']` | `['../../../src/engine/world/*.ts', '../../../src/engine/main.ts', '../../../src/shards/pine-hollow/world/*.ts', '../../../src/shards/pine-hollow/quest/*.ts']` | **manual**: the same `../${file}` key prefix |
+| `test/shards/driftwood-isle/models-driftwood.test.ts` | `['../src/world/*.ts', '../src/main.ts']` | `['../../../src/engine/world/*.ts', '../../../src/shards/driftwood-isle/world/*.ts', '../../../src/main.ts']` | **manual**: `SOURCES[\`../${file}\`]` → `SOURCES[\`../../../${file}\`]` (the key is built from each model's `file:` field, which the codemod rewrites) |
+| `test/shards/pine-hollow/models-pine-hollow.test.ts` | `['../src/world/*.ts', '../src/main.ts', '../src/chunks/pine-hollow/world/*.ts', '../src/pinehollow/quest/*.ts']` | `['../../../src/engine/world/*.ts', '../../../src/main.ts', '../../../src/shards/pine-hollow/world/*.ts', '../../../src/shards/pine-hollow/quest/*.ts']` | **manual**: the same `../${file}` key prefix |
 | `test/shards/nalati-grasslands/nalati-roster.test.ts` | `['../src/nalati/*.ts', '../src/entities/Wildlife.ts', '../src/game/Taming.ts']` | `['../../../src/shards/nalati-grasslands/*.ts', '../../../src/shards/nalati-grasslands/ride/ride.ts', '../../../src/engine/entities/Wildlife.ts', '../../../src/shards/nalati-grasslands/ride/Taming.ts']` | the root glob now also scans `manifest.ts`, `layout.ts`, `edge.ts`, `quest.ts` (stricter) |
 | `test/species.ts` (helper, stays) | `['../src/entities/species/*.ts', '!…/registry.ts', '!…/loft.ts']` | `['../src/engine/entities/species/*.ts', '!../src/engine/entities/species/registry.ts', '!../src/engine/entities/species/loft.ts']` | S2.3, S3.4 and S4.2 each add their new species folder to the list |
 | `test/compendium.test.ts`, `test/ktx2-auto.test.ts`, `test/shell.test.ts` | `../public/…` globs | unchanged (`public/` does not move) | — |
