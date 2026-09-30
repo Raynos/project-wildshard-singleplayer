@@ -68,6 +68,7 @@ export const sign = defineModel<SignParams>({
   defaults: { style: 'tube', text: '重慶小麵', color: '#ff3b30', vertical: false, size: 0.5, blade: false, gain: 5 },
   variants: VARIANTS,
   build: (ctx, p) => build(ctx, p),
+  specimenYaw: Math.PI, // (the Explorer's camera looks down +z: turned, the sign's face (+z) faces it)
 });
 
 const _up = new Vector3(), _r = new Vector3(), _c = new Vector3(), _b = new Box3();

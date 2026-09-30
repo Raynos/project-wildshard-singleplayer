@@ -69,6 +69,7 @@ export const banyan = defineModel({
 export const earthGodShrine = defineModel({
   id: 'nine-dragon-stack/earth-god-shrine', name: 'Earth-god shrine (土地公)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
   build: (ctx) => built(ctx, 'shrine', (c, k, x) => { shrine(c, k, x, 0, 0, 0); }),
+  specimenYaw: Math.PI, // (the Explorer's camera looks down +z: turned, its niche faces it)
   // its stone base and altar, a box of their footprint
   colliders: () => [{ kind: 'box', x: 0, y: 0.9, z: 0.05, hx: 1.0, hy: 0.9, hz: 0.65, surface: 'stone' }],
 });
@@ -76,5 +77,6 @@ export const earthGodShrine = defineModel({
 export const kowloonSteleModel = defineModel({
   id: 'nine-dragon-stack/kowloon-stele', name: '九龍城 stele', category: 'props', pipeline: 'code', file: FILE, defaults: {},
   build: (ctx) => built(ctx, 'stele', (c, k) => { kowloonStele(c, k, 0, 0, 0); }),
+  specimenYaw: Math.PI,
   colliders: () => [{ kind: 'box', x: 0, y: 1.1, z: 0, hx: 0.6, hy: 1.1, hz: 0.5, surface: 'stone' }],
 });

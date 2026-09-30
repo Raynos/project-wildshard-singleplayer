@@ -46,6 +46,7 @@ const NOODLE = centred(STALL), HAWK = centred(HAWKER);
 export const noodleStallModel = defineModel({
   id: 'nine-dragon-stack/noodle-stall', name: 'Noodle stall (大牌檔)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
   build: (ctx) => stall(ctx, 'noodle', (c) => { noodleStall(c, new Rng(301), NOODLE, 0); }),
+  specimenYaw: Math.PI, // (the Explorer's camera looks down +z: turned, its counter faces it)
   // the frame, the counter and the stools in front: 3.2 m up, 0.6 m past the counter
   colliders: () => [footprint(NOODLE, 3.2, 0.6)],
 });
@@ -53,5 +54,6 @@ export const noodleStallModel = defineModel({
 export const hawkerStallModel = defineModel({
   id: 'nine-dragon-stack/hawker-stall', name: 'Hawker stall', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
   build: (ctx) => stall(ctx, 'hawker', (c) => { hawkerStall(c, new Rng(302), HAWK, 0); }),
+  specimenYaw: Math.PI,
   colliders: () => [footprint(HAWK, 2.4)],
 });

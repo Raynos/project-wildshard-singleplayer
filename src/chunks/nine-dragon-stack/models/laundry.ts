@@ -31,6 +31,7 @@ export const laundryLineModel = defineModel<LaundryParams>({
   id: 'nine-dragon-stack/laundry-line', name: 'Laundry line', category: 'props', pipeline: 'code', file: FILE,
   defaults: { kind: 'gallery', span: 2.6, rise: -0.05 },
   variants: [variant('gallery', 'Between gallery posts', 2.6, -0.05), variant('lower', 'Along a lower-Well front', 2.4, -0.05), variant('pole', 'A pole out from the wall', 1.6, 0.05)],
+  specimenYaw: Math.PI, // (the washing's faces look down +z, where the Explorer's camera looks from)
   build: (ctx, p) => {
     const geometry = ctx.once(`nds:laundry:${p.kind}:${p.span}:${p.rise}`, () => {
       const k = new Kit(), rng = new Rng(17);
