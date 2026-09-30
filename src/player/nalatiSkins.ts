@@ -185,7 +185,7 @@ export class NalatiSkinPainter {
       const m0 = mats[0];
       if (m0?.map) {
         d.map = m0.map;
-        const felt = skyMarkedAtlas(m0.map, FELT_BLUE, FELT_WHITE);
+        const felt = skyMarkedAtlas(m0.map, FELT_BLUE, FELT_WHITE, a.mesh.geometry);
         for (const m of mats) { m.map = felt; m.needsUpdate = true; }
       } else {
         const orig = a.mesh.geometry, g = orig.clone();
