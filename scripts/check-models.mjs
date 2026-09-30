@@ -40,6 +40,9 @@ function sources(dir = join(ROOT, 'src')) {
  *    (M3, Nalati: every place but the camps and the road fences, whose files other lanes hold; E315).
  */
 export const ON_CONTRACT = [
+  // M1, Driftwood (E315): the world side of every model moved so far (their hand-rolled drawing is held by test/models-driftwood.test.ts)
+  'src/world/Palms.ts', 'src/world/Bushes.ts', 'src/world/Boulders.ts', 'src/world/Pier.ts', 'src/world/Hut.ts', 'src/world/Shrine.ts',
+  'src/world/Boat.ts', 'src/world/Seabed.ts', 'src/world/BlenderIsland.ts', 'src/world/Trailside.ts',
   'src/world/nalati/painted.ts', 'src/world/nalati/KurganField.ts', 'src/world/nalati/Balbals.ts', 'src/world/nalati/Bridge.ts',
   'src/world/nalati/EagleRock.ts', 'src/world/nalati/Cairn.ts', 'src/world/nalati/Crags.ts', 'src/world/nalati/Stair.ts',
   'src/world/nalati/Bowl.ts',
@@ -47,6 +50,8 @@ export const ON_CONTRACT = [
 
 const SHARD_MODELS = /^src\/chunks\/([^/]+)\/models\//;
 const SHARD_FILE = /^src\/chunks\/([^/]+)\//;
+/** Driftwood's world side in src/world (only Driftwood builds these; its report counts them apart from the shared code) */
+const DRIFTWOOD_WORLD = /^src\/world\/(Palms|Bushes|Boulders|Pier|Hut|Shrine|Boat|Seabed|BlenderIsland|blenderArea|coverTint|Trailside|Lookout|Wreck|Cove|RopeBridge|Gulls|GroundCover|driftwood)\.ts$/;
 
 /** which area a file belongs to, for the report */
 export function areaOf(file) {
@@ -54,6 +59,7 @@ export function areaOf(file) {
   if (m) return m[1];
   if (/^src\/(nalati|world\/nalati)\//.test(file)) return 'nalati-grasslands';
   if (/^src\/(pinehollow\/|world\/Pine)/.test(file)) return 'pine-hollow';
+  if (DRIFTWOOD_WORLD.test(file)) return 'driftwood-isle';
   if (file.startsWith('src/models/')) return 'models (contract)';
   return 'shared / driftwood (src/world, main.ts, …)';
 }
