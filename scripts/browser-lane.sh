@@ -13,7 +13,7 @@
 #   scripts/browser-lane.sh free                    exit 0 if the lane has room now, 1 if not (the hook asks this)
 #   scripts/browser-lane.sh reap [--dry-run]        kill zombie browsers (see below) and stale scratch dev servers
 #
-# Lane size: BROWSER_LANES (default 3). A slot counts as used when a lane run holds it OR a browser is open outside any
+# Lane size: BROWSER_LANES (default 4, Jake 2026-09-30). A slot counts as used when a lane run holds it OR a browser is open outside any
 # lane run (agent-browser sessions, a script run without this wrapper), so the cap holds whoever opened what.
 #
 # Reaping (runs before every wait, from the Stop / SessionStart hooks, and by hand):
@@ -29,7 +29,7 @@
 
 set -uo pipefail
 
-LANES="${BROWSER_LANES:-3}"
+LANES="${BROWSER_LANES:-4}"
 DIR="$HOME/.browser-lane"
 mkdir -p "$DIR"
 MAX_AGE_MIN="${BROWSER_MAX_AGE_MIN:-90}"

@@ -166,7 +166,7 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
   tree, so nobody's half-finished files ship.
 - Every screenshot session must be closed (`agent-browser --session <s> close`) before you
   report — an open one keeps rendering the game and pins the box.
-- **Game browsers are a shared lane: at most 3 open across all agents on this machine, enforced (E312).**
+- **Game browsers are a shared lane: at most 4 open across all agents on this machine (Jake raised it from 3 on 2026-09-30), enforced (E312).**
   Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open, and memory competes with the local-model jobs.
   - Run every Playwright / Puppeteer script through **`scripts/browser-lane.sh [--max <min>] <cmd…>`**. It waits for a
     free slot, releases it when the command exits (a crash included) and kills the command after `--max` minutes
