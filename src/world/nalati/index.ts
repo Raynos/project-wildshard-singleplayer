@@ -52,16 +52,15 @@ const ENTRY: Record<string, { name: string; category: PieceCategory; file: strin
   camp: { name: 'Spring camp', category: 'buildings', file: 'src/world/nalati/NomadCamp.ts', model: true, pipeline: ['code', 'trellis'] },
   roads: { name: 'Road fences', category: 'props', file: 'src/world/nalati/RoadFurniture.ts', model: false },
   summerCamp: { name: 'Summer camp', category: 'buildings', file: 'src/world/nalati/SummerCamp.ts', model: true, pipeline: ['code', 'trellis'] },
-  watchtower: { name: 'Watchtower', category: 'buildings', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: ['hunyuan', 'code'] },
-  kokpar: { name: 'Kokpar field', category: 'props', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: ['code', 'hunyuan'] },
-  snowLotus: { name: 'Snow lotus', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: 'trellis' },
-  glacier: { name: 'Glacier', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true },
 };
 
 /** the places on the model contract (E306 / E315 M3): the models the named POIs placed are one set each (M7 explores them) */
 const SETS: readonly { id: string; name: string; file: string; pois: readonly string[] }[] = [
   { id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/world/nalati/KurganField.ts', pois: ['kurgans', 'balbals'] },
   { id: 'nalati-grasslands/crags', name: "The Crags: Aqbars' ledges and cave", file: 'src/world/nalati/Crags.ts', pois: ['crags'] },
+  { id: 'nalati-grasslands/watchtower-hill', name: 'Watchtower hill', file: 'src/world/nalati/Bowl.ts', pois: ['watchtower'] },
+  { id: 'nalati-grasslands/kokpar-field', name: 'Kokpar field', file: 'src/world/nalati/Bowl.ts', pois: ['kokpar'] },
+  { id: 'nalati-grasslands/snow-lotus-meadow', name: 'Snow lotus meadow', file: 'src/world/nalati/Bowl.ts', pois: ['snowLotus'] },
 ];
 
 export class NalatiPOIs {

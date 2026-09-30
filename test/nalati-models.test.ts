@@ -17,6 +17,7 @@ import { kurganKerb } from '../src/chunks/nalati-grasslands/models/kurganKerb';
 import { fieldstone } from '../src/chunks/nalati-grasslands/models/fieldstone';
 import { kurganEntrance } from '../src/chunks/nalati-grasslands/models/kurganEntrance';
 import { balbal } from '../src/chunks/nalati-grasslands/models/balbal';
+import { checkModels, ON_CONTRACT } from '../scripts/check-models.mjs';
 
 // a stand-in sky: the painterly material asks it for its sun and to prepare the material (no renderer in a test)
 const lights: THREE.DirectionalLight[] = [];
@@ -115,6 +116,13 @@ describe('Nalati models (E306 / E315 M3)', () => {
     const set = placeSet({ id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/world/nalati/KurganField.ts', members: [placed], registry: reg });
     expect(set.members).toEqual([{ model: balbal.id, copies: 4 }]);
     expect(reg.models().find((x) => x.id === balbal.id)?.variants?.map((v) => v.id)).toEqual(['generated', 'bare', 'capped']);
+  });
+
+  it('a place on the contract never registers a built thing by hand again (check-models rule 6)', () => {
+    expect(ON_CONTRACT).toContain('src/world/nalati/KurganField.ts');
+    expect(checkModels().violations).toEqual([]);
+    const bad = checkModels({ 'src/world/nalati/Bridge.ts': "registerSolid(registry, { id: 'nalati-bridge', object: mesh });" }).violations;
+    expect(bad).toEqual(['src/world/nalati/Bridge.ts: on the model contract — it places models, it never registers a built thing by hand']);
   });
 
   it('`drawnInto`: place draws nothing, keeps the object where its set put it, and carries boxes and colliders', () => {

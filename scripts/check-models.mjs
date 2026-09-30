@@ -8,6 +8,7 @@
  *   3. a model id not prefixed by its folder: `<slug>/…` in a shard's models, `shared/…` in src/models/
  *   4. a shard importing another shard's models (`src/chunks/<a>/**` → `chunks/<b>/models/`)
  *   5. `src/models/` importing a shard (`chunks/…`): the contract stays shard-agnostic
+ *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again
  * REPORTS (never fails) what has not moved onto the contract yet, per area: registrations by hand (`addBuilt`,
  * `registerModel`, `registerSolid`, a registry `add` with an `object`, a `model:` flag) and hand-rolled drawing
  * (`new InstancedMesh` / `BatchedMesh`, `mergeGeometries`) outside src/models/. Each migration wave (M1–M5) drives its
@@ -32,6 +33,17 @@ function sources(dir = join(ROOT, 'src')) {
   }
   return out;
 }
+
+/**
+ * 6. Files already moved onto the contract never register a built thing by hand again (a `registerSolid` /
+ *    `registerModel`, a registry `add` with an `object`, a `model:` flag): they place models. Each wave adds its files
+ *    (M3, Nalati: every place but the camps and the road fences, whose files other lanes hold; E315).
+ */
+export const ON_CONTRACT = [
+  'src/world/nalati/painted.ts', 'src/world/nalati/KurganField.ts', 'src/world/nalati/Balbals.ts', 'src/world/nalati/Bridge.ts',
+  'src/world/nalati/EagleRock.ts', 'src/world/nalati/Cairn.ts', 'src/world/nalati/Crags.ts', 'src/world/nalati/Stair.ts',
+  'src/world/nalati/Bowl.ts',
+];
 
 const SHARD_MODELS = /^src\/chunks\/([^/]+)\/models\//;
 const SHARD_FILE = /^src\/chunks\/([^/]+)\//;
@@ -80,6 +92,9 @@ export function checkModels(files) {
       if (inShared && /(?:^|\/)chunks\//.test(spec)) violations.push(`${file}: src/models/ imports a shard (${spec})`);
     }
     if (inShared || inShardModels) continue;
+    if (ON_CONTRACT.includes(file) && /\bregisterSolid\(|\bregisterModel\(|\.add\(\{[^}]*?\bobject:|\bmodel:\s*(?:\{|true)/.test(code)) {
+      violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
+    }
     const area = areaOf(file);
     bump(area, 'addBuilt', (code.match(/\baddBuilt\(/g) ?? []).length - (/const addBuilt\s*=/.test(code) ? 1 : 0));
     bump(area, 'registerModel', (code.match(/\bregisterModel\(/g) ?? []).length - (/export function registerModel/.test(code) ? 1 : 0));

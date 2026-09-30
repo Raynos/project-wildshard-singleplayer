@@ -12,22 +12,31 @@
  *   buildSnowLotus(ctx)    snow lotus in the rocks of the snow ring, clustered at SNOW_LOTUS (one instanced draw)
  *   buildGlacier(ctx)      the glacier snout's ice cliff and portal (the tongue's ice is the terrain's, terrainSurface.ts)
  *
- * Each returns a PoiPiece; the animated ones carry `update(dt, viewer)`, which NalatiPOIs calls every frame.
+ * Each returns a PoiPiece; the animated ones carry `update(dt, viewer)`, which NalatiPOIs calls every frame. Each places
+ * models (E306 / E315 M3, src/chunks/nalati-grasslands/models/) through a NalatiSet (./painted.ts) and registers itself:
+ * the watchtower (+ its stone steps and fallen blocks), the kokpar field (posts, goals, the spectators' saddled horses,
+ * the riders), the herd horses, the snow lotus. The glacier's snout is the terrain's (world: no model).
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, blob, poiMaterial } from './paint';
+import { PaintKit, poiMaterial, v3 } from './paint';
 import { painterlyMaterial, painterlyUniforms } from '../painterly';
 import type { Sky } from '../Sky';
-import { PC } from './props';
-import { ModelSink, loadNalatiModel, instanceModel, MODEL_SIZE, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './glbPaint';
+import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './glbPaint';
 import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE, GLACIER } from '../../chunks/nalatiLayout';
 import { inPoiClearing } from './clearings';
 import { Rng } from '../../core/rng';
 import { TIER } from '../../core/tier';
-import type { ColliderDesc } from '../registry';
-import { prism, type Box } from './solid';
+import { NalatiSet } from './painted';
 import { addStoneStair } from './Stair';
 import type { PoiCtx, PoiPiece } from './types';
+import { watchtower } from '../../chunks/nalati-grasslands/models/watchtower';
+import { fieldstone } from '../../chunks/nalati-grasslands/models/fieldstone';
+import { kokparPost } from '../../chunks/nalati-grasslands/models/kokparPost';
+import { kokparGoal } from '../../chunks/nalati-grasslands/models/kokparGoal';
+import { saddledHorse } from '../../chunks/nalati-grasslands/models/saddledHorse';
+import { kokparRider } from '../../chunks/nalati-grasslands/models/kokparRider';
+import { herdHorse } from '../../chunks/nalati-grasslands/models/herdHorse';
+import { snowLotus } from '../../chunks/nalati-grasslands/models/snowLotus';
 
 const PHONE = TIER === 'phone';
 
@@ -37,31 +46,27 @@ export function buildWatchtower(ctx: PoiCtx): PoiPiece {
   const { sky, ground } = ctx;
   const group = new THREE.Group();
   group.name = 'nalati-watchtower';
-  const colliders: Box[] = [];
   const { x, z } = WATCHTOWER;
   // stand it on the lowest ground under its footprint so no corner floats; the rubble skirt runs into the rock
   let y = ground(x, z);
   for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; y = Math.min(y, ground(x + Math.cos(t) * 3.2, z + Math.sin(t) * 3.2)); }
   const rot = Math.PI / 2; // the doorway (the model's +Z) faces west (+x), into the bowl
-  const sink = new ModelSink();
-  sink.add('watchtower', { x, y: y - 0.4, z, rot });
-  // the tower's shell: the four walls as colliders (the ruin is open at the top; you can stand in the doorway)
-  const [w, h, d] = MODEL_SIZE.watchtower;
-  colliders.push({ x, z, hw: w * 0.36, hd: d * 0.36, rot: -rot, yBottom: y - 2, yTop: y + h * 0.85 });
-  // a few fallen blocks down the slope below it
   const kit = new PaintKit(0x70e7);
   const rng = kit.rng;
+  const set = new NalatiSet(kit, ctx);
+  set.instance(watchtower, { x, y, z, rot }, {});
+  // a few fallen blocks down the slope below it
   for (let i = 0; i < 9; i++) {
     const a = rng.range(0, Math.PI * 2), r = rng.range(5, 12), bx = x + Math.cos(a) * r, bz = z + Math.sin(a) * r, s = rng.range(0.35, 0.8);
-    kit.add(blob(s, rng, 1, 0.7, 0.25), new THREE.Color('#948b7c'), { matrix: M(bx, ground(bx, bz) - s * 0.2, bz, rng.range(0, 6)), top: { color: new THREE.Color('#b3a35a'), threshold: 0.6, amount: 0.4 }, brush: 0.12 });
+    set.paint(fieldstone, { x: bx, y: ground(bx, bz), z: bz, yaw: 0 }, { s, squash: 0.7, rough: 0.25, lift: -0.2, look: 'rubble' });
   }
   // NALATI-MERGE P1: the tower's rock stands past the motor's 40° on every side — a stone stair climbs its west shoulder
   // from the bowl (the walkable way up, found over the physics heightfield) to the doorway's terrace
-  const descs = addStoneStair(kit, ground, [[x + 31.5, z + 4.7], [x + 23.7, z + 2.7], [x + 10, z + 0.7], [x + 7.5, z + 0.5]], { depth: 0.4, maxRise: 0.33 });
+  addStoneStair(set, ground, [[x + 31.5, z + 4.7], [x + 23.7, z + 2.7], [x + 10, z + 0.7], [x + 7.5, z + 0.5]], { depth: 0.4, maxRise: 0.33 });
   const mesh = kit.mesh(sky, { ground });
   group.add(mesh);
-  void sink.flush(group, sky, { watchtower: { rim: 0.3, bands: 0.8 } });
-  return { name: 'watchtower', object: group, colliders, surface: 'stone', descs, tris: sink.tris() + mesh.geometry.getAttribute('position').count / 3 };
+  set.flush(group, sky);
+  return { name: 'watchtower', object: group, colliders: set.boxes, surface: 'stone', tris: set.tris() + mesh.geometry.getAttribute('position').count / 3, register: (o) => set.register({ ...o, object: mesh, group }) };
 }
 
 // ── the riders' gallop ──
@@ -120,36 +125,33 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
   const { sky, ground, flutter } = ctx;
   const kit = new PaintKit(0x60ba);
   const rng = kit.rng;
-  const colliders: Box[] = [];
-  const descs: ColliderDesc[] = [];
+  const set = new NalatiSet(kit, ctx);
   const group = new THREE.Group();
   group.name = 'nalati-kokpar';
   // marker posts round the oval, a pennant on every fourth
   const n = 34;
   for (let i = 0; i < n; i++) {
     const p = onOval((i / n) * Math.PI * 2, 1.08), gy = ground(p.x, p.z);
-    kit.add(pole(v3(p.x, gy - 0.3, p.z), v3(p.x, gy + 1.25, p.z), 0.06, 0.05, 6), PC.woodGrey, { foot: 0.7 });
+    set.paint(kokparPost, { x: p.x, y: gy, z: p.z, yaw: 0 }, {});
     if (i % 4 === 0) flutter.flag(v3(p.x, gy + 1.2, p.z), 0.25, 0.55, i % 8 === 0 ? '#c9361f' : '#2f5fae', { taper: 1, droop: 0.2 });
   }
   // the two goals (the tai-kazan: a raised ring of turf with a stone rim) at the oval's ends
   for (const t of [0, Math.PI]) {
-    const p = onOval(t, 0.82), gy = ground(p.x, p.z);
-    kit.add(new THREE.CylinderGeometry(2.2, 2.6, 0.9, 18, 1), new THREE.Color('#6f5a3a'), { matrix: M(p.x, gy + 0.2, p.z), brush: 0.1 });
-    kit.add(new THREE.TorusGeometry(2.25, 0.28, 6, 18).rotateX(Math.PI / 2), PC.stone, { matrix: M(p.x, gy + 0.68, p.z), brush: 0.1 });
-    descs.push(prism(p.x, p.z, gy - 1, gy + 0.72, 2.6, 18, 0, 'earth', 2.3));
+    const p = onOval(t, 0.82);
+    set.paint(kokparGoal, { x: p.x, y: ground(p.x, p.z), z: p.z, yaw: 0 }, {});
   }
   const mesh = kit.mesh(sky, { ground });
   group.add(mesh);
   // the spectators' saddled horses standing round the rail (static), a little way out
-  const sink = new ModelSink();
   for (let i = 0; i < 6; i++) {
     const p = onOval(1.2 + i * 0.55 + rng.range(-0.1, 0.1), 1.2 + rng.range(0, 0.1));
-    sink.add('horse-saddled', { x: p.x, y: ground(p.x, p.z) - 0.03, z: p.z, rot: p.yaw + Math.PI / 2 + rng.range(-0.3, 0.3) });
+    set.instance(saddledHorse, { x: p.x, y: ground(p.x, p.z) - 0.03, z: p.z, rot: p.yaw + Math.PI / 2 + rng.range(-0.3, 0.3) }, {});
   }
-  void sink.flush(group, sky, { 'horse-saddled': { rim: 0.8, bands: 0.85 } });
+  set.flush(group, sky);
 
   // the riders: six laps round the oval at different radii and speeds, bunched as in a game (the goat carried by one)
   const riders = Array.from({ length: 6 }, (_, i) => ({ t: (i < 4 ? 0.35 * i : 3 + i * 0.5), k: 0.45 + (i % 3) * 0.14, w: 0.28 + (i % 2) * 0.03 + i * 0.006, bob: rng.range(0, 6) }));
+  set.moving(kokparRider, riders.map((r) => { const p = onOval(r.t, r.k); return { x: p.x, y: ground(p.x, p.z), z: p.z, rot: p.yaw }; }));
   let inst: THREE.InstancedMesh | null = null;
   const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 };
   loadNalatiModel(sky, 'kokpar-rider', { rim: 0.8, bands: 0.85 }, PHONE ? 'far' : 'near').then((m) => {
@@ -181,7 +183,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
     m.instanceMatrix.needsUpdate = true;
   };
   const riderTris = riders.length * (PHONE ? FAR_TRIS['kokpar-rider'] : MODEL_TRIS['kokpar-rider']);
-  return { name: 'kokpar', object: group, colliders, surface: 'wood', descs, tris: mesh.geometry.getAttribute('position').count / 3 + sink.tris() + riderTris, update };
+  return { name: 'kokpar', object: group, colliders: set.boxes, surface: 'wood', tris: mesh.geometry.getAttribute('position').count / 3 + set.tris() + riderTris, update, register: (o) => set.register({ ...o, object: mesh, group }) };
 }
 
 // ── the herds in the hundreds ────────────────────────────────────────────────────────────────────────────────────────
@@ -221,6 +223,9 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
     }
     total += herd.horses.length;
   }
+  // the herd horses where they start (they drift): counted on the model's card, nothing collides
+  const set = new NalatiSet(null, ctx);
+  set.moving(herdHorse, herds.flatMap((h) => h.horses.map((q) => ({ x: q.x, y: ground(q.x, q.z) - 0.04, z: q.z, rot: q.yaw, scale: q.s }))));
   /** hidden within HIDE of the viewer (the AI herd is the near one); on the phone a whole herd goes past FAR */
   const HIDE = 45, FAR = PHONE ? 165 : Infinity;
   const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 }, col = new THREE.Color();
@@ -270,7 +275,7 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
       if (m.instanceColor) m.instanceColor.needsUpdate = true;
     }
   };
-  return { name: 'farHerds', object: group, colliders: [], surface: 'ground', tris: total * FAR_TRIS['horse-wild'], update };
+  return { name: 'farHerds', object: group, colliders: [], surface: 'ground', tris: total * FAR_TRIS['horse-wild'], update, register: (o) => set.register({ ...o, object: group }) };
 }
 
 // ── snow lotus ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -280,6 +285,7 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
   const group = new THREE.Group();
   group.name = 'nalati-snow-lotus';
   const rng = new Rng(0x5107);
+  const set = new NalatiSet(null, ctx);
   const places: ModelPlacement[] = [];
   const slope = (x: number, z: number): number => { const e = 1; return Math.hypot(ground(x + e, z) - ground(x - e, z), ground(x, z + e) - ground(x, z - e)) / (2 * e); };
   for (const c of SNOW_LOTUS) {
@@ -292,9 +298,9 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
       i++;
     }
   }
-  void loadNalatiModel(sky, 'snow-lotus', { rim: 0.6, bands: 0.7 }).then((m) => { group.add(instanceModel(m, places, { castShadow: !PHONE })); return m; })
-    .catch((e: unknown) => { console.warn('[nalati] snow lotus failed', e); });
-  return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: places.length * MODEL_TRIS['snow-lotus'] };
+  for (const p of places) set.instance(snowLotus, p, {});
+  set.flush(group, sky);
+  return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: set.tris(), register: (o) => set.register({ ...o, object: group }) };
 }
 
 // ── the glacier ──────────────────────────────────────────────────────────────────────────────────────────────────────

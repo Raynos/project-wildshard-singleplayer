@@ -7,22 +7,22 @@
  * stair hold by construction: rise ≤ `maxRise` (0.32 m), tread ≥ `depth` (0.4 m) — PHYSICS.md: autostep climbs them,
  * never a ramp; a landing at a bend (not two flights' treads overlapping at an angle) keeps every step's top whole.
  *
- *   descs.push(...addStoneStair(kit, ground, [[x0, z0], [x1, z1], [x2, z2]], { width: 1.8 }));
+ *   addStoneStair(set, ground, [[x0, z0], [x1, z1], [x2, z2]], { width: 1.8 });   // its steps: stone-step models
+ *
+ * The stair is the route (world): it lays `stoneStep` models (E306 / E315 M3, src/chunks/nalati-grasslands/models/),
+ * painted into the place's kit through its NalatiSet, each colliding as the box it draws.
  */
-import * as THREE from 'three';
-import { M, type PaintKit } from './paint';
-import { graniteBlock } from './granite';
-import type { ColliderDesc } from '../registry';
+import type { NalatiSet } from './painted';
 import type { Ground } from './types';
-
-const C = { top: new THREE.Color('#b3a58e'), side: new THREE.Color('#7d7264'), lichen: new THREE.Color('#b4a860') };
+import { stoneStep } from '../../chunks/nalati-grasslands/models/stoneStep';
 
 export interface StairOpts { width?: number; depth?: number; maxRise?: number; clear?: number }
 
 /** one step (or landing): centre, heading, depth along the heading */
 interface Step { x: number; z: number; yaw: number; d: number }
 
-export function addStoneStair(kit: PaintKit, ground: Ground, pts: readonly (readonly [number, number])[], o: StairOpts = {}): ColliderDesc[] {
+/** lay a stair's steps (stone-step models) into `set`; returns how many */
+export function addStoneStair(set: NalatiSet, ground: Ground, pts: readonly (readonly [number, number])[], o: StairOpts = {}): number {
   const width = o.width ?? 1.8, depth = o.depth ?? 0.4, maxRise = o.maxRise ?? 0.32, clear = o.clear ?? 0.12;
   // the flights (between landings of side `width` at every bend) and the landings
   const steps: Step[] = [];
@@ -64,12 +64,10 @@ export function addStoneStair(kit: PaintKit, ground: Ground, pts: readonly (read
     const [, l] = sample(s);
     steps.unshift(s); lo.unshift(l); top.unshift(t0 - maxRise);
   }
-  const out: ColliderDesc[] = [];
   steps.forEach((s, i) => {
     const y1 = top[i] ?? 0, y0 = Math.min((lo[i] ?? y1) - 0.4, y1 - 0.3), h = y1 - y0;
     // the step: a rough granite block a touch wider than the tread, its top flat at the tread
-    kit.add(graniteBlock(width + 0.3, h, s.d + 0.12, 0x5a1 + i, 0.06, 1), (_p, n) => (n.y > 0.6 ? C.top : C.side), { matrix: M(s.x, y0 + h / 2, s.z, s.yaw), top: { color: C.lichen, threshold: 0.75, amount: 0.2 }, brush: 0.1 });
-    out.push({ kind: 'box', x: s.x, y: y0 + h / 2, z: s.z, hx: width / 2, hy: h / 2, hz: s.d / 2 + 0.01, yaw: s.yaw, surface: 'stone' });
+    set.paint(stoneStep, { x: s.x, y: y0, z: s.z, yaw: s.yaw }, { width, depth: s.d, height: h, seed: 0x5a1 + i });
   });
-  return out;
+  return steps.length;
 }
