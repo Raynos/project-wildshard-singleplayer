@@ -80,7 +80,7 @@ export function carvedPanelFar(): BufferGeometry { return carvedPanel(true); }
  * The Well's balustrade: plinth, carved panels, posts with lotus caps, a top rail; the ground line is heavier.
  * It runs along z at x = `at` (or along x at z = `at` when `alongX`), from `a0` down to `a1`.
  */
-export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false, carved = false, lionRun?: 'plaza' | 'street'): void {
+export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false, carved = false, lionRun?: 'plaza' | 'street', onBud?: (x: number, y: number, z: number, drawn: Box3) => void): void {
   const len = a0 - a1;
   const n = Math.max(1, Math.round(len / 2.3));
   const step = len / n;
@@ -98,7 +98,12 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
     bx(p, y + 1.02, 0.54, 0.1, 0.54, STONE);
     // a lotus-bud finial (style-A's balustrade): a petal collar, the bud swelling and closing to a point; a post that
     // carries a TRELLIS lion (props3d.ts) keeps only its cap block
-    if (lionRun === undefined || !lionOnPost(lionRun, i, n)) lotusBud(k, cx, y + 1.12, cz);
+    // (each bud is a copy of the lotus finial model, models/lotusFinial.ts: `onBud` records where it stands)
+    if (lionRun === undefined || !lionOnPost(lionRun, i, n)) {
+      const v0 = k.vertexCount;
+      lotusBud(k, cx, y + 1.12, cz);
+      onBud?.(cx, y + 1.12, cz, k.boundsFrom(v0, new Box3()));
+    }
     if (i < n) {
       const pm = p - step / 2;
       // (E281 round 2: the panel wall 24 cm thick under a 34 cm rail, as the targets' heavy carved balustrade; the
@@ -125,7 +130,7 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
  * buds are as wide as the post, ~0.55 m, and ~0.7 m tall, carved stone with petal lines; a smooth brushed bud read as
  * an egg). ~290 vertices where the old 12-sided lathe took 336.
  */
-function lotusBud(k: Kit, cx: number, yb: number, cz: number): void {
+export function lotusBud(k: Kit, cx: number, yb: number, cz: number): void {
   k.lathe(cx, yb, cz, [[0.25, 0], [0.29, 0.05], [0.27, 0.1], [0.2, 0.13], [0.25, 0.22], [0.265, 0.32], [0.225, 0.44], [0.15, 0.55], [0.06, 0.64], [0, 0.69]], 8, BUD, true, 3);
 }
 
@@ -293,8 +298,9 @@ export function buildSquare(ctx: Ctx): void {
   // the plaza's lip over the Well
   floor.box(PLAZA.x0 - 0.3, Y0 - 1.4, (PLAZA.z0 + PLAZA.z1) / 2, 0.6, 1.4, PLAZA.z1 - PLAZA.z0, { wash: 0x8d8f93, line: 1.5, surf: SURF.concrete });
   const props = floor;
-  balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0, false, true, 'plaza');
-  balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0, false, true, 'street');
+  const bud = (x: number, y: number, z: number, drawn: Box3): void => { ctx.inKit.push({ model: 'nine-dragon-stack/lotus-finial', kit: props, at: { x, y, z }, box: drawn }); };
+  balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0, false, true, 'plaza', bud);
+  balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0, false, true, 'street', bud);
   ctx.map.push({ x0: PLAZA.x0, z0: PLAZA.z0, x1: PLAZA.x1, z1: PLAZA.z1, kind: 'plaza' });
   ctx.map.push({ x0: STREET.x0, z0: -140, x1: STREET.x1, z1: STREET.z1, kind: 'street' });
   paifang(ctx);
