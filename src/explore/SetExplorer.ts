@@ -276,7 +276,7 @@ export class SetExplorer implements ExplorePane {
     // a diorama (Debug ▸ Set Explorer cut): only the world inside a circle or a dome round the set, on the studio backdrop
     const shape = setting('setCut');
     const vol = shape === 'off' ? null : this.diorama.enter(set.bounds, shape, [this.marks]);
-    const top = Math.max(set.bounds.max.y, vol !== null && Number.isFinite(vol.dome) ? vol.centre.y + vol.dome : set.bounds.max.y);
+    const top = Math.max(set.bounds.max.y, vol !== null && Number.isFinite(vol.dome) ? vol.centre.y + vol.dome : vol !== null && Number.isFinite(vol.top) ? vol.top : set.bounds.max.y);
     if (vol) {
       this.framed.set(new THREE.Vector3(vol.centre.x - vol.radius, vol.floor, vol.centre.z - vol.radius), new THREE.Vector3(vol.centre.x + vol.radius, top, vol.centre.z + vol.radius));
       const ring = (y: number, r: number): THREE.Vector3[] => Array.from({ length: 16 }, (_, k) => new THREE.Vector3(vol.centre.x + Math.cos((k / 16) * Math.PI * 2) * r, y, vol.centre.z + Math.sin((k / 16) * Math.PI * 2) * r));

@@ -34,17 +34,28 @@ export interface DioramaVolume {
   readonly dome: number;
   /** the floor of the cut, world y: nothing under it is drawn */
   readonly floor: number;
+  /** the circle's lid, world y: Infinity (open upward), or just over the set on a stacked shard, where towers stand round it */
+  readonly top: number;
 }
 
-/** the set's ground, a margin round it (25 %, at least 12 m), and a dome tall enough for what stands in it */
-export function dioramaVolume(bounds: THREE.Box3, cut: Cut, ground: (x: number, z: number) => number): DioramaVolume {
+/**
+ * The set's ground, a margin round it (25 %, at least 12 m), and a dome tall enough for what stands in it. `stacked`: a
+ * structure-first shard (Nine Dragon), a set down among towers — the circle gets a lid just over the set, the dome is
+ * squashed to the set's height, so neither shows a slice of city standing far over the set (Jake's night market row).
+ */
+export function dioramaVolume(bounds: THREE.Box3, cut: Cut, ground: (x: number, z: number) => number, stacked = false): DioramaVolume {
   const c = bounds.getCenter(new THREE.Vector3()), size = bounds.getSize(new THREE.Vector3());
   const radius = Math.max(12, Math.hypot(size.x, size.z) * 0.5 * 1.25);
   const centre = new THREE.Vector3(c.x, bounds.min.y, c.z);
   let low = bounds.min.y;
   for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; low = Math.min(low, ground(c.x + Math.cos(a) * radius, c.z + Math.sin(a) * radius)); }
   // (a dome high enough that the set's own box stands inside it: its corners at 80 % of the base radius)
-  return { cut, centre, radius, dome: cut === 'dome' ? Math.max(radius, size.y * 1.75) : Infinity, floor: low - Math.max(2, radius * 0.16) };
+  const lid = bounds.max.y + Math.max(3, size.y * 0.5);
+  return {
+    cut, centre, radius, floor: low - Math.max(2, radius * 0.16),
+    dome: cut !== 'dome' ? Infinity : stacked ? Math.max(6, size.y * 1.75) : Math.max(radius, size.y * 1.75),
+    top: cut === 'circle' && stacked ? lid : Infinity,
+  };
 }
 
 /** the planes that keep the inside (a point is drawn when every plane's signed distance to it is ≥ 0) */
@@ -54,6 +65,7 @@ export function cutPlanes(v: DioramaVolume): THREE.Plane[] {
   const u = new THREE.Vector3();
   if (v.cut === 'circle') {
     for (let k = 0; k < 32; k++) { const a = (k / 32) * Math.PI * 2; keep(u.set(Math.cos(a), 0, Math.sin(a)), v.radius); }
+    if (Number.isFinite(v.top)) keep(u.set(0, 1, 0), v.top - v.centre.y); // the lid
   } else {
     // the dome: a vertical band at the base (the round ground cut), then rings up its side, squashed to `dome` high
     for (const [elev, n] of [[0, 32], [35, 14], [65, 6]] as const) {
@@ -75,7 +87,7 @@ export function cutPlanes(v: DioramaVolume): THREE.Plane[] {
 /** a world sphere wholly outside the cut */
 export function outside(s: THREE.Sphere, v: DioramaVolume): boolean {
   const dx = s.center.x - v.centre.x, dz = s.center.z - v.centre.z, h = Math.hypot(dx, dz);
-  if (h - s.radius > v.radius || s.center.y + s.radius < v.floor) return true;
+  if (h - s.radius > v.radius || s.center.y + s.radius < v.floor || s.center.y - s.radius > v.top) return true;
   if (v.cut === 'dome') return Math.hypot(h / v.radius, Math.max(0, s.center.y - v.centre.y) / v.dome) > 1 + s.radius / Math.min(v.radius, v.dome);
   return false;
 }
@@ -171,7 +183,7 @@ export class Diorama {
     const sea = chunk.ocean?.level ?? -Infinity;
     const built = chunk.spawn.y !== undefined; // a structure-first shard (Nine Dragon): its ground is what it built, not heightAt
     const ground = (x: number, z: number): number => (built ? bounds.min.y : Math.max(heightAt(x, z), sea));
-    const vol = dioramaVolume(bounds, cut, ground);
+    const vol = dioramaVolume(bounds, cut, ground, built);
     this.vol = vol;
     const planes = cutPlanes(vol);
     const { renderer, scene } = game;
@@ -264,6 +276,13 @@ export class Diorama {
         }
       }
       this.arcs.set(Float32Array.from(arcs));
+    } else if (Number.isFinite(v.top)) { // the lid's rim, faint: where the towers round the set are cut
+      const lid = new Float32Array(64 * 6);
+      for (let k = 0; k < 64; k++) {
+        const a0 = (k / 64) * Math.PI * 2, a1 = ((k + 1) / 64) * Math.PI * 2, r = v.radius * 0.999;
+        lid.set([v.centre.x + Math.cos(a0) * r, v.top - 0.02, v.centre.z + Math.sin(a0) * r, v.centre.x + Math.cos(a1) * r, v.top - 0.02, v.centre.z + Math.sin(a1) * r], k * 6);
+      }
+      this.arcs.set(lid);
     } else this.arcs.set(new Float32Array(0));
   }
 }

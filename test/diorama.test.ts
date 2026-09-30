@@ -35,6 +35,17 @@ describe('the diorama cut', () => {
     expect(kept(planes, new THREE.Vector3(v.radius * 1.05, 3, 0))).toBe(false);
   });
 
+  it('on a stacked shard the circle has a lid just over the set, and the dome is squashed to the set\'s height', () => {
+    const c = dioramaVolume(bounds, 'circle', flat, true), d = dioramaVolume(bounds, 'dome', flat, true);
+    expect(c.top).toBe(14 + 6);
+    expect(cutPlanes(c)).toHaveLength(34);
+    expect(kept(cutPlanes(c), new THREE.Vector3(0, 19, 0))).toBe(true);
+    expect(kept(cutPlanes(c), new THREE.Vector3(0, 21, 0))).toBe(false);
+    expect(outside(new THREE.Sphere(new THREE.Vector3(0, 40, 0), 5), c)).toBe(true); // a tower's upper floors
+    expect(d.dome).toBeCloseTo(12 * 1.75, 6);
+    expect(dioramaVolume(bounds, 'circle', flat).top).toBe(Infinity);
+  });
+
   it('a thing wholly outside is left out; one crossing the rim or inside stays', () => {
     const c = dioramaVolume(bounds, 'circle', flat), d = dioramaVolume(bounds, 'dome', flat);
     expect(outside(new THREE.Sphere(new THREE.Vector3(c.radius + 10, 0, 0), 5), c)).toBe(true);
