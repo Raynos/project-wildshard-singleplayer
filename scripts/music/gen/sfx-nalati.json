@@ -2,8 +2,8 @@
   "rule": "per family: each model's best take by CLAP (siblings in a group not competing); the lower rank wins, ties to the higher p; ships only in the top 5",
   "wins": {
     "moss": 24,
-    "medium": 25,
-    "synth": 2,
+    "medium": 27,
+    "synth": 0,
     "missing": 0
   },
   "families": {
@@ -320,7 +320,12 @@
         "seed": 1,
         "best_match": "a single footstep on tall dry grass"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 1 p 0.949 (kept)",
+        "moss seed 1 rank 1 p 0.598 (kept)"
+      ]
     },
     "footstep-gravel": {
       "moss": {
@@ -335,14 +340,19 @@
         "seed": 3,
         "best_match": "a single footstep on gravel"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 1 p 0.893 (kept)",
+        "moss seed 1 rank 1 p 0.727 (kept)"
+      ]
     },
     "bowDraw": {
       "moss": {
-        "rank": 5,
-        "p": 0.009,
-        "seed": 2,
-        "best_match": "a curved steel sabre swishing through the air"
+        "rank": 1,
+        "p": 0.43,
+        "seed": 3,
+        "best_match": "a small click and creak of a bow held at full draw"
       },
       "medium": {
         "rank": 1,
@@ -350,7 +360,12 @@
         "seed": 3,
         "best_match": "a wooden bow being drawn with a creak"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 3 rank 1 p 0.99 (kept)",
+        "medium seed 2 rank 1 p 0.906 (kept)"
+      ]
     },
     "bowFullDraw": {
       "moss": {
@@ -365,7 +380,11 @@
         "seed": 2,
         "best_match": "a bow string twanging as an arrow is shot"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 3 p 0.018 (kept)"
+      ]
     },
     "bowLetDown": {
       "moss": {
@@ -380,7 +399,11 @@
         "seed": 1,
         "best_match": "a wooden bow being drawn with a creak"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 5 p 0.047 (kept)"
+      ]
     },
     "bowTwang": {
       "moss": {
@@ -395,7 +418,12 @@
         "seed": 3,
         "best_match": "a sabre chopping into wood with a ringing blade"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 2 p 0.235 (kept)",
+        "moss seed 1 rank 2 p 0.161 (kept)"
+      ]
     },
     "arrowWhoosh": {
       "moss": {
@@ -410,13 +438,18 @@
         "seed": 2,
         "best_match": "an arrow whooshing past through the air"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 2 rank 1 p 0.956 (kept)",
+        "medium seed 1 rank 1 p 0.92 (kept)"
+      ]
     },
     "arrowImpact-wood": {
       "moss": {
-        "rank": 4,
-        "p": 0.001,
-        "seed": 2,
+        "rank": 3,
+        "p": 0.034,
+        "seed": 3,
         "best_match": "a sabre chopping into wood with a ringing blade"
       },
       "medium": {
@@ -425,7 +458,12 @@
         "seed": 2,
         "best_match": "an arrow thudding into wood and quivering"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 2 rank 1 p 0.775 (kept)",
+        "medium seed 3 rank 1 p 0.707 (kept)"
+      ]
     },
     "arrowImpact-ground": {
       "moss": {
@@ -440,14 +478,18 @@
         "seed": 2,
         "best_match": "a sabre chopping into wood with a ringing blade"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 2 rank 5 p 0.006 (kept)"
+      ]
     },
     "arrowImpact-flesh": {
       "moss": {
-        "rank": 34,
-        "p": 0.0,
-        "seed": 1,
-        "best_match": "wind blowing through tall grass on an open steppe"
+        "rank": 3,
+        "p": 0.053,
+        "seed": 3,
+        "best_match": "a sabre chopping into wood with a ringing blade"
       },
       "medium": {
         "rank": 1,
@@ -455,7 +497,12 @@
         "seed": 3,
         "best_match": "an arrow hitting an animal's body"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 3 rank 1 p 0.687 (kept)",
+        "medium seed 2 rank 2 p 0.367 (kept)"
+      ]
     },
     "sabreSwing": {
       "moss": {
@@ -470,13 +517,18 @@
         "seed": 2,
         "best_match": "an arrow whooshing past through the air"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 1 rank 1 p 0.938 (kept)",
+        "moss seed 2 rank 1 p 0.744 (kept)"
+      ]
     },
     "sabreHit-flesh": {
       "moss": {
         "rank": 1,
-        "p": 0.604,
-        "seed": 2,
+        "p": 0.919,
+        "seed": 3,
         "best_match": "a sabre chopping into wood with a ringing blade"
       },
       "medium": {
@@ -485,7 +537,12 @@
         "seed": 3,
         "best_match": "a sabre slashing into flesh"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 3 rank 1 p 0.99 (kept)",
+        "medium seed 2 rank 1 p 0.983 (kept)"
+      ]
     },
     "sabreHit-wood": {
       "moss": {
@@ -500,22 +557,32 @@
         "seed": 2,
         "best_match": "a sabre chopping into wood with a ringing blade"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 2 rank 1 p 0.994 (kept)",
+        "medium seed 1 rank 1 p 0.805 (kept)"
+      ]
     },
     "spearThrust": {
       "moss": {
-        "rank": 13,
-        "p": 0.0,
-        "seed": 1,
+        "rank": 3,
+        "p": 0.021,
+        "seed": 12,
         "best_match": "an arrow whooshing past through the air"
       },
       "medium": {
-        "rank": 10,
-        "p": 0.002,
-        "seed": 1,
-        "best_match": "a sabre slashing into flesh"
+        "rank": 2,
+        "p": 0.137,
+        "seed": 23,
+        "best_match": "an arrow whooshing past through the air"
       },
-      "winner": "synth"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 23 rank 2 p 0.137 (new)",
+        "medium seed 22 rank 3 p 0.041 (new)"
+      ]
     },
     "javelinThrow": {
       "moss": {
@@ -530,7 +597,11 @@
         "seed": 3,
         "best_match": "an armoured giant roaring in pain"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 3 p 0.007 (kept)"
+      ]
     },
     "javelinImpact-wood": {
       "moss": {
@@ -545,7 +616,11 @@
         "seed": 1,
         "best_match": "an arrow thudding into wood and quivering"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 1 rank 4 p 0.034 (kept)"
+      ]
     },
     "javelinImpact-ground": {
       "moss": {
@@ -560,29 +635,39 @@
         "seed": 1,
         "best_match": "a sabre chopping into wood with a ringing blade"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 2 p 0.016 (kept)",
+        "medium seed 3 rank 3 p 0.015 (kept)"
+      ]
     },
     "javelinImpact-flesh": {
       "moss": {
-        "rank": 24,
-        "p": 0.002,
-        "seed": 2,
-        "best_match": "a javelin stabbing into the earth"
+        "rank": 1,
+        "p": 0.984,
+        "seed": 32,
+        "best_match": "a heavy spear thudding into an animal's body"
       },
       "medium": {
-        "rank": 40,
-        "p": 0.0,
-        "seed": 1,
-        "best_match": "a sabre chopping into wood with a ringing blade"
+        "rank": 1,
+        "p": 0.997,
+        "seed": 22,
+        "best_match": "a heavy spear thudding into an animal's body"
       },
-      "winner": "synth"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 22 rank 1 p 0.997 (new)",
+        "medium seed 38 rank 1 p 0.997 (new)"
+      ]
     },
     "thunder-near": {
       "moss": {
-        "rank": 2,
-        "p": 0.451,
-        "seed": 1,
-        "best_match": "static electricity crackling before a lightning strike"
+        "rank": 1,
+        "p": 0.997,
+        "seed": 3,
+        "best_match": "a close thunderclap cracking overhead"
       },
       "medium": {
         "rank": 1,
@@ -590,13 +675,18 @@
         "seed": 1,
         "best_match": "a close thunderclap cracking overhead"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 1 p 0.998 (kept)",
+        "medium seed 2 rank 1 p 0.995 (kept)"
+      ]
     },
     "thunder-far": {
       "moss": {
         "rank": 2,
-        "p": 0.074,
-        "seed": 2,
+        "p": 0.236,
+        "seed": 3,
         "best_match": "static electricity crackling before a lightning strike"
       },
       "medium": {
@@ -605,13 +695,18 @@
         "seed": 1,
         "best_match": "a close thunderclap cracking overhead"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 1 p 0.403 (kept)",
+        "medium seed 3 rank 1 p 0.353 (kept)"
+      ]
     },
     "lightningCrackle": {
       "moss": {
         "rank": 1,
-        "p": 0.982,
-        "seed": 1,
+        "p": 0.985,
+        "seed": 3,
         "best_match": "static electricity crackling before a lightning strike"
       },
       "medium": {
@@ -620,7 +715,12 @@
         "seed": 3,
         "best_match": "static electricity crackling before a lightning strike"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 3 rank 1 p 0.985 (new)",
+        "moss seed 1 rank 1 p 0.982 (kept)"
+      ]
     },
     "bed-steppe-wind": {
       "moss": {
@@ -635,7 +735,11 @@
         "seed": 3,
         "best_match": "wind blowing through tall grass on an open steppe"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 3 rank 1 p 0.998 (kept)"
+      ]
     },
     "bed-steppe-larks": {
       "moss": {
@@ -650,7 +754,11 @@
         "seed": 2,
         "best_match": "skylarks singing high above a meadow"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 1 p 0.999 (kept)"
+      ]
     },
     "bed-steppe-night": {
       "moss": {
@@ -665,7 +773,11 @@
         "seed": 1,
         "best_match": "crickets chirping in grassland at night"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 1 p 0.962 (kept)"
+      ]
     },
     "bed-river": {
       "moss": {
@@ -680,7 +792,11 @@
         "seed": 1,
         "best_match": "a fast mountain river rushing over stones"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 1 p 0.976 (kept)"
+      ]
     },
     "bed-meltwater": {
       "moss": {
@@ -695,13 +811,17 @@
         "seed": 2,
         "best_match": "meltwater trickling and dripping from a glacier"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 2 rank 1 p 0.982 (kept)"
+      ]
     },
     "bed-camp": {
       "moss": {
         "rank": 1,
-        "p": 0.655,
-        "seed": 1,
+        "p": 0.757,
+        "seed": 3,
         "best_match": "a crackling wood fire with tent fabric flapping in the wind"
       },
       "medium": {
@@ -710,13 +830,17 @@
         "seed": 1,
         "best_match": "a crackling wood fire with tent fabric flapping in the wind"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 1 p 0.914 (kept)"
+      ]
     },
     "bed-highwind": {
       "moss": {
-        "rank": 4,
-        "p": 0.051,
-        "seed": 1,
+        "rank": 7,
+        "p": 0.069,
+        "seed": 3,
         "best_match": "a cold howling wind in snowy mountains"
       },
       "medium": {
@@ -725,7 +849,11 @@
         "seed": 1,
         "best_match": "wind blowing through tall grass on an open steppe"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 1 p 0.707 (kept)"
+      ]
     },
     "bed-coldwind": {
       "moss": {
@@ -740,7 +868,11 @@
         "seed": 3,
         "best_match": "a cold howling wind in snowy mountains"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 3 rank 1 p 0.975 (kept)"
+      ]
     },
     "bed-rain": {
       "moss": {
@@ -755,7 +887,11 @@
         "seed": 1,
         "best_match": "heavy rain falling on grassland"
       },
-      "winner": "medium"
+      "winner": "medium",
+      "round": "b3",
+      "ships": [
+        "medium seed 1 rank 1 p 0.979 (kept)"
+      ]
     },
     "bed-stormwind": {
       "moss": {
@@ -770,12 +906,43 @@
         "seed": 2,
         "best_match": "a violent storm wind roaring"
       },
-      "winner": "moss"
+      "winner": "moss",
+      "round": "b3",
+      "ships": [
+        "moss seed 2 rank 1 p 0.987 (kept)"
+      ]
     }
   },
   "takes": {
     "moss": {
       "arrowImpact-flesh": [
+        {
+          "family": "arrowImpact-flesh",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "arrowImpact-flesh",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "An arrow hitting an animal's body: a short wet thud, close. No music.",
+            "desc": "an arrow hitting an animal's body",
+            "duration_s": 0.8,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 49.88,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.053,
+          "rank": 3,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "an arrow hitting an animal's body",
+          "peak": 0.898
+        },
         {
           "family": "arrowImpact-flesh",
           "model": "moss",
@@ -800,7 +967,8 @@
           "p": 0.0,
           "rank": 34,
           "best_match": "wind blowing through tall grass on an open steppe",
-          "peak": 0.0
+          "peak": 0.0,
+          "prior": true
         },
         {
           "family": "arrowImpact-flesh",
@@ -826,7 +994,8 @@
           "p": 0.0,
           "rank": 34,
           "best_match": "silence",
-          "peak": 0.001
+          "peak": 0.001,
+          "prior": true
         }
       ],
       "arrowImpact-ground": [
@@ -854,6 +1023,34 @@
           "p": 0.003,
           "rank": 20,
           "best_match": "wind blowing through tall grass on an open steppe",
+          "peak": 0.0,
+          "prior": true
+        },
+        {
+          "family": "arrowImpact-ground",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "arrowImpact-ground",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "An arrow sticking into soft earth and turf: a dull short thud. No music.",
+            "desc": "an arrow sticking into the ground",
+            "duration_s": 0.8,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 51.74,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.002,
+          "rank": 22,
+          "best_match": "wind blowing through tall grass on an open steppe",
+          "rubric": "an arrow sticking into the ground",
           "peak": 0.0
         },
         {
@@ -880,10 +1077,38 @@
           "p": 0.001,
           "rank": 9,
           "best_match": "silence",
-          "peak": 0.001
+          "peak": 0.001,
+          "prior": true
         }
       ],
       "arrowImpact-wood": [
+        {
+          "family": "arrowImpact-wood",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "arrowImpact-wood",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "An arrow striking a wooden post: a hard thunk and the shaft quivering, close. No music.",
+            "desc": "an arrow thudding into wood and quivering",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 54.91,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.034,
+          "rank": 3,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "an arrow thudding into wood and quivering",
+          "peak": 0.93
+        },
         {
           "family": "arrowImpact-wood",
           "model": "moss",
@@ -908,7 +1133,8 @@
           "p": 0.001,
           "rank": 4,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.684
+          "peak": 0.684,
+          "prior": true
         },
         {
           "family": "arrowImpact-wood",
@@ -934,7 +1160,8 @@
           "p": 0.0,
           "rank": 32,
           "best_match": "silence",
-          "peak": 0.001
+          "peak": 0.001,
+          "prior": true
         }
       ],
       "arrowWhoosh": [
@@ -962,7 +1189,35 @@
           "p": 0.829,
           "rank": 1,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.141
+          "peak": 0.141,
+          "prior": true
+        },
+        {
+          "family": "arrowWhoosh",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "arrowWhoosh",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "An arrow flying fast past the listener: a short sharp whoosh of air. No music.",
+            "desc": "an arrow whooshing past through the air",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 54.84,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.419,
+          "rank": 1,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "an arrow whooshing past through the air",
+          "peak": 1.0
         },
         {
           "family": "arrowWhoosh",
@@ -988,10 +1243,48 @@
           "p": 0.187,
           "rank": 2,
           "best_match": "wind blowing through tall grass on an open steppe",
-          "peak": 0.01
+          "peak": 0.01,
+          "prior": true
         }
       ],
       "bed-camp": [
+        {
+          "family": "bed-camp",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-camp",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of a nomad camp: a wood fire crackling and popping close by, heavy felt and canvas tent flaps rustling and flapping in a steady wind, open grassland all around. Continuous field recording, no music, no voices.",
+            "desc": "a crackling wood fire with tent fabric flapping in the wind",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 54.61,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.757,
+          "rank": 1,
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind",
+          "rubric": "a crackling wood fire with tent fabric flapping in the wind",
+          "peak": 0.777,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.593,
+            "similarity": 0.597,
+            "level_match": 0.978,
+            "start_s": 9.0,
+            "end_s": 19.0,
+            "bars": 2,
+            "loop_s": 10.0
+          }
+        },
         {
           "family": "bed-camp",
           "model": "moss",
@@ -1026,7 +1319,8 @@
             "end_s": 18.75,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-camp",
@@ -1062,7 +1356,8 @@
             "end_s": 17.25,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-coldwind": [
@@ -1100,7 +1395,8 @@
             "end_s": 19.5,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-coldwind",
@@ -1136,10 +1432,85 @@
             "end_s": 17.25,
             "bars": 3,
             "loop_s": 15.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-coldwind",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-coldwind",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of a snowy mountain valley: a cold thin howling wind whistling over snow and rock, lonely and icy. Continuous field recording, no music.",
+            "desc": "a cold howling wind in snowy mountains",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 57.78,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.772,
+          "rank": 1,
+          "best_match": "a cold howling wind in snowy mountains",
+          "rubric": "a cold howling wind in snowy mountains",
+          "peak": 0.067,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.555,
+            "similarity": 0.557,
+            "level_match": 0.991,
+            "start_s": 4.75,
+            "end_s": 14.75,
+            "bars": 2,
+            "loop_s": 10.0
           }
         }
       ],
       "bed-highwind": [
+        {
+          "family": "bed-highwind",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-highwind",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience on a high open mountain plateau: a strong steady wind blowing across wide grassland, deep whooshing gusts, far away a herd of horses. Continuous field recording, no music.",
+            "desc": "strong wind across a high open plateau",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 54.01,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.069,
+          "rank": 7,
+          "best_match": "a cold howling wind in snowy mountains",
+          "rubric": "strong wind across a high open plateau",
+          "peak": 0.213,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.566,
+            "similarity": 0.575,
+            "level_match": 0.943,
+            "start_s": 4.25,
+            "end_s": 14.25,
+            "bars": 2,
+            "loop_s": 10.0
+          }
+        },
         {
           "family": "bed-highwind",
           "model": "moss",
@@ -1174,7 +1545,8 @@
             "end_s": 18.75,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-highwind",
@@ -1210,7 +1582,8 @@
             "end_s": 21.0,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-meltwater": [
@@ -1248,6 +1621,44 @@
             "end_s": 19.5,
             "bars": 3,
             "loop_s": 15.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-meltwater",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-meltwater",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience at the foot of a glacier: meltwater trickling and gurgling in small icy streams, drips of water, a cold faint wind. Continuous field recording, no music.",
+            "desc": "meltwater trickling and dripping from a glacier",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 51.1,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.938,
+          "rank": 1,
+          "best_match": "meltwater trickling and dripping from a glacier",
+          "rubric": "meltwater trickling and dripping from a glacier",
+          "peak": 0.609,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.547,
+            "similarity": 0.548,
+            "level_match": 0.994,
+            "start_s": 8.75,
+            "end_s": 18.75,
+            "bars": 2,
+            "loop_s": 10.0
           }
         },
         {
@@ -1284,7 +1695,8 @@
             "end_s": 16.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-rain": [
@@ -1322,7 +1734,8 @@
             "end_s": 19.5,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-rain",
@@ -1356,6 +1769,44 @@
             "level_match": 0.939,
             "start_s": 6.0,
             "end_s": 16.0,
+            "bars": 2,
+            "loop_s": 10.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-rain",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-rain",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of heavy rain falling on open grassland: a dense steady patter and hiss of raindrops on grass and earth, no thunder. Continuous field recording, no music.",
+            "desc": "heavy rain falling on grassland",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 56.56,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.886,
+          "rank": 1,
+          "best_match": "heavy rain falling on grassland",
+          "rubric": "heavy rain falling on grassland",
+          "peak": 0.645,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.593,
+            "similarity": 0.604,
+            "level_match": 0.937,
+            "start_s": 2.5,
+            "end_s": 12.5,
             "bars": 2,
             "loop_s": 10.0
           }
@@ -1396,7 +1847,8 @@
             "end_s": 17.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-river",
@@ -1432,6 +1884,44 @@
             "end_s": 21.0,
             "bars": 3,
             "loop_s": 15.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-river",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-river",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience beside a fast clear mountain river: water rushing and splashing over gravel and stones, steady and continuous. Field recording, no music.",
+            "desc": "a fast mountain river rushing over stones",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 56.17,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.937,
+          "rank": 1,
+          "best_match": "a fast mountain river rushing over stones",
+          "rubric": "a fast mountain river rushing over stones",
+          "peak": 0.605,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.578,
+            "similarity": 0.582,
+            "level_match": 0.973,
+            "start_s": 9.25,
+            "end_s": 19.25,
+            "bars": 2,
+            "loop_s": 10.0
           }
         }
       ],
@@ -1470,6 +1960,44 @@
             "end_s": 17.75,
             "bars": 3,
             "loop_s": 15.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-steppe-larks",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-steppe-larks",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of skylarks singing high above a summer meadow: long tumbling bright trills from several birds far overhead, a faint breeze. Continuous field recording, no music.",
+            "desc": "skylarks singing high above a meadow",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 53.89,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 1.0,
+          "rank": 1,
+          "best_match": "skylarks singing high above a meadow",
+          "rubric": "skylarks singing high above a meadow",
+          "peak": 0.895,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.35,
+            "similarity": 0.352,
+            "level_match": 0.975,
+            "start_s": 8.0,
+            "end_s": 18.0,
+            "bars": 2,
+            "loop_s": 10.0
           }
         },
         {
@@ -1506,7 +2034,8 @@
             "end_s": 21.75,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-steppe-night": [
@@ -1544,7 +2073,8 @@
             "end_s": 19.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-night",
@@ -1578,6 +2108,44 @@
             "level_match": 0.875,
             "start_s": 9.5,
             "end_s": 19.5,
+            "bars": 2,
+            "loop_s": 10.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-steppe-night",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-steppe-night",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of a grassland at night: many crickets chirping steadily, a very light cool breeze in the grass, calm and still. Continuous field recording, no music.",
+            "desc": "crickets chirping in grassland at night",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 62.83,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.068,
+          "rank": 4,
+          "best_match": "static electricity crackling before a lightning strike",
+          "rubric": "crickets chirping in grassland at night",
+          "peak": 0.131,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.611,
+            "similarity": 0.617,
+            "level_match": 0.966,
+            "start_s": 2.25,
+            "end_s": 12.25,
             "bars": 2,
             "loop_s": 10.0
           }
@@ -1618,7 +2186,8 @@
             "end_s": 17.5,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-wind",
@@ -1654,6 +2223,44 @@
             "end_s": 17.0,
             "bars": 3,
             "loop_s": 15.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-steppe-wind",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-steppe-wind",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of an open grassy steppe by day: a steady wind hissing through tall dry grass, soft gusts swelling and fading, no birds, no voices. Continuous field recording, no music.",
+            "desc": "wind blowing through tall grass on an open steppe",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 64.7,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.001,
+          "rank": 12,
+          "best_match": "crickets chirping in grassland at night",
+          "rubric": "wind blowing through tall grass on an open steppe",
+          "peak": 0.06,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.496,
+            "similarity": 0.502,
+            "level_match": 0.964,
+            "start_s": 4.25,
+            "end_s": 14.25,
+            "bars": 2,
+            "loop_s": 10.0
           }
         }
       ],
@@ -1692,7 +2299,8 @@
             "end_s": 13.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-stormwind",
@@ -1728,10 +2336,75 @@
             "end_s": 19.5,
             "bars": 2,
             "loop_s": 10.0
+          },
+          "prior": true
+        },
+        {
+          "family": "bed-stormwind",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-stormwind",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of a violent storm wind: a deep roaring gale blasting across an open plain, surging and howling, no rain, no thunder. Continuous field recording, no music.",
+            "desc": "a violent storm wind roaring",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 71.03,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.943,
+          "rank": 1,
+          "best_match": "a violent storm wind roaring",
+          "rubric": "a violent storm wind roaring",
+          "peak": 0.781,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.553,
+            "similarity": 0.559,
+            "level_match": 0.964,
+            "start_s": 5.25,
+            "end_s": 15.25,
+            "bars": 2,
+            "loop_s": 10.0
           }
         }
       ],
       "bowDraw": [
+        {
+          "family": "bowDraw",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bowDraw",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "An archer slowly drawing a horn and wood recurve bow: the string stretching and the limbs creaking under tension, close. No music.",
+            "desc": "a wooden bow being drawn with a creak",
+            "duration_s": 1.5,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 75.35,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.43,
+          "rank": 1,
+          "best_match": "a small click and creak of a bow held at full draw",
+          "rubric": "a wooden bow being drawn with a creak",
+          "peak": 0.023
+        },
         {
           "family": "bowDraw",
           "model": "moss",
@@ -1756,7 +2429,8 @@
           "p": 0.009,
           "rank": 5,
           "best_match": "a curved steel sabre swishing through the air",
-          "peak": 0.031
+          "peak": 0.031,
+          "prior": true
         },
         {
           "family": "bowDraw",
@@ -1782,7 +2456,8 @@
           "p": 0.002,
           "rank": 7,
           "best_match": "a curved steel sabre swishing through the air",
-          "peak": 0.2
+          "peak": 0.2,
+          "prior": true
         }
       ],
       "bowFullDraw": [
@@ -1810,7 +2485,35 @@
           "p": 0.018,
           "rank": 3,
           "best_match": "silence",
-          "peak": 0.001
+          "peak": 0.001,
+          "prior": true
+        },
+        {
+          "family": "bowFullDraw",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bowFullDraw",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A bow held at full draw: one small tight creak of wood and a soft click of the arrow nock, close, quiet. No music.",
+            "desc": "a small click and creak of a bow held at full draw",
+            "duration_s": 0.6,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 62.05,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.003,
+          "rank": 20,
+          "best_match": "wind blowing through tall grass on an open steppe",
+          "rubric": "a small click and creak of a bow held at full draw",
+          "peak": 0.0
         },
         {
           "family": "bowFullDraw",
@@ -1836,7 +2539,8 @@
           "p": 0.001,
           "rank": 10,
           "best_match": "silence",
-          "peak": 0.001
+          "peak": 0.001,
+          "prior": true
         }
       ],
       "bowLetDown": [
@@ -1864,7 +2568,8 @@
           "p": 0.047,
           "rank": 5,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.022
+          "peak": 0.022,
+          "prior": true
         },
         {
           "family": "bowLetDown",
@@ -1890,7 +2595,35 @@
           "p": 0.001,
           "rank": 15,
           "best_match": "a wooden bow being drawn with a creak",
-          "peak": 0.385
+          "peak": 0.385,
+          "prior": true
+        },
+        {
+          "family": "bowLetDown",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bowLetDown",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "An archer easing a drawn bow back down without shooting: the string relaxing with a soft creak and a faint rattle of the arrow, close. No music.",
+            "desc": "a bow string eased back without shooting",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 57.42,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.0,
+          "rank": 21,
+          "best_match": "an arrow hitting an animal's body",
+          "rubric": "a bow string eased back without shooting",
+          "peak": 0.695
         }
       ],
       "bowTwang": [
@@ -1918,7 +2651,8 @@
           "p": 0.235,
           "rank": 2,
           "best_match": "an arrow thudding into wood and quivering",
-          "peak": 0.013
+          "peak": 0.013,
+          "prior": true
         },
         {
           "family": "bowTwang",
@@ -1944,7 +2678,35 @@
           "p": 0.161,
           "rank": 2,
           "best_match": "a javelin stabbing into the earth",
-          "peak": 0.016
+          "peak": 0.016,
+          "prior": true
+        },
+        {
+          "family": "bowTwang",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bowTwang",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A recurve bow shooting an arrow: the string releases with a deep twang and a thump of the limbs, close. No music.",
+            "desc": "a bow string twanging as an arrow is shot",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 63.87,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.001,
+          "rank": 6,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a bow string twanging as an arrow is shot",
+          "peak": 0.883
         }
       ],
       "dog_bark": [
@@ -2212,7 +2974,8 @@
           "p": 0.949,
           "rank": 1,
           "best_match": "a single footstep on tall dry grass",
-          "peak": 0.025
+          "peak": 0.025,
+          "prior": true
         },
         {
           "family": "footstep-grass",
@@ -2238,7 +3001,35 @@
           "p": 0.598,
           "rank": 1,
           "best_match": "a single footstep on tall dry grass",
-          "peak": 0.1
+          "peak": 0.1,
+          "prior": true
+        },
+        {
+          "family": "footstep-grass",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "footstep-grass",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A single footstep of a leather boot on tall dry steppe grass, a soft crush and swish, close. No music.",
+            "desc": "a single footstep on tall dry grass",
+            "duration_s": 0.8,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 68.61,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.529,
+          "rank": 1,
+          "best_match": "a single footstep on tall dry grass",
+          "rubric": "a single footstep on tall dry grass",
+          "peak": 0.104
         }
       ],
       "footstep-gravel": [
@@ -2266,7 +3057,8 @@
           "p": 0.893,
           "rank": 1,
           "best_match": "a single footstep on gravel",
-          "peak": 0.098
+          "peak": 0.098,
+          "prior": true
         },
         {
           "family": "footstep-gravel",
@@ -2292,7 +3084,35 @@
           "p": 0.727,
           "rank": 1,
           "best_match": "a single footstep on gravel",
-          "peak": 0.328
+          "peak": 0.328,
+          "prior": true
+        },
+        {
+          "family": "footstep-gravel",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "footstep-gravel",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A single footstep of a leather boot on a gravel road, a small crunch of stones, close. No music.",
+            "desc": "a single footstep on gravel",
+            "duration_s": 0.8,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 64.68,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.57,
+          "rank": 1,
+          "best_match": "a single footstep on gravel",
+          "rubric": "a single footstep on gravel",
+          "peak": 0.233
         }
       ],
       "hoof-grass": [
@@ -2779,7 +3599,7 @@
         {
           "family": "javelinImpact-flesh",
           "model": "moss",
-          "seed": 2,
+          "seed": 32,
           "side": {
             "model": "MOSS-SoundEffect v2.0",
             "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
@@ -2787,25 +3607,26 @@
             "backend": "PyTorch mps bf16",
             "family": "javelinImpact-flesh",
             "kind": "oneshot",
-            "seed": 2,
-            "prompt": "A heavy javelin hitting a large animal's body: a deep wet thud, close. No music.",
+            "seed": 32,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
             "desc": "a javelin hitting a body",
             "duration_s": 1.0,
             "steps": 100,
             "cfg": 4.0,
-            "gen_time_s": 47.14,
-            "model_load_s": 7.4,
+            "gen_time_s": 57.67,
+            "model_load_s": 9.0,
             "mps_driver_gb": 19.8
           },
-          "p": 0.002,
-          "rank": 24,
-          "best_match": "a javelin stabbing into the earth",
-          "peak": 0.052
+          "p": 0.984,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 1.0
         },
         {
           "family": "javelinImpact-flesh",
           "model": "moss",
-          "seed": 1,
+          "seed": 12,
           "side": {
             "model": "MOSS-SoundEffect v2.0",
             "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
@@ -2813,20 +3634,129 @@
             "backend": "PyTorch mps bf16",
             "family": "javelinImpact-flesh",
             "kind": "oneshot",
-            "seed": 1,
-            "prompt": "A heavy javelin hitting a large animal's body: a deep wet thud, close. No music.",
+            "seed": 12,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
             "desc": "a javelin hitting a body",
             "duration_s": 1.0,
             "steps": 100,
             "cfg": 4.0,
-            "gen_time_s": 45.79,
-            "model_load_s": 7.4,
+            "gen_time_s": 54.59,
+            "model_load_s": 9.8,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.955,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.758
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "moss",
+          "seed": 31,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 31,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 55.02,
+            "model_load_s": 9.0,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.665,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 1.0
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "moss",
+          "seed": 11,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 11,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 55.05,
+            "model_load_s": 9.8,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.183,
+          "rank": 2,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 1.0
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "moss",
+          "seed": 21,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 21,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 52.2,
+            "model_load_s": 5.8,
             "mps_driver_gb": 19.8
           },
           "p": 0.0,
-          "rank": 28,
-          "best_match": "silence",
-          "peak": 0.001
+          "rank": 33,
+          "best_match": "a single footstep on tall dry grass",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.005
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "moss",
+          "seed": 22,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 22,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 55.92,
+            "model_load_s": 5.8,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.0,
+          "rank": 51,
+          "best_match": "wind blowing through tall grass on an open steppe",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.0
         }
       ],
       "javelinImpact-ground": [
@@ -2854,6 +3784,34 @@
           "p": 0.038,
           "rank": 3,
           "best_match": "a sabre chopping into wood with a ringing blade",
+          "peak": 1.0,
+          "prior": true
+        },
+        {
+          "family": "javelinImpact-ground",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "javelinImpact-ground",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A heavy javelin stabbing deep into the earth: a deep thud and a spray of dirt. No music.",
+            "desc": "a javelin stabbing into the earth",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 63.22,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.006,
+          "rank": 3,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a javelin stabbing into the earth",
           "peak": 1.0
         },
         {
@@ -2880,7 +3838,8 @@
           "p": 0.002,
           "rank": 3,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         }
       ],
       "javelinImpact-wood": [
@@ -2908,7 +3867,8 @@
           "p": 0.034,
           "rank": 4,
           "best_match": "a bow string twanging as an arrow is shot",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "javelinImpact-wood",
@@ -2934,7 +3894,35 @@
           "p": 0.0,
           "rank": 10,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.934
+          "peak": 0.934,
+          "prior": true
+        },
+        {
+          "family": "javelinImpact-wood",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "javelinImpact-wood",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A heavy javelin slamming into a wooden post: a deep thunk and the long shaft ringing, close. No music.",
+            "desc": "a javelin slamming into wood",
+            "duration_s": 1.2,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 64.03,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.0,
+          "rank": 10,
+          "best_match": "an arrow thudding into wood and quivering",
+          "rubric": "a javelin slamming into wood",
+          "peak": 1.0
         }
       ],
       "javelinThrow": [
@@ -2962,7 +3950,8 @@
           "p": 0.007,
           "rank": 3,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.914
+          "peak": 0.914,
+          "prior": true
         },
         {
           "family": "javelinThrow",
@@ -2988,7 +3977,35 @@
           "p": 0.003,
           "rank": 5,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.82
+          "peak": 0.82,
+          "prior": true
+        },
+        {
+          "family": "javelinThrow",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "javelinThrow",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A heavy javelin thrown hard: a grunt of effort and a long heavy whoosh of the spear flying away. No music.",
+            "desc": "a javelin thrown with a heavy whoosh",
+            "duration_s": 1.2,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 57.91,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.003,
+          "rank": 5,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "a javelin thrown with a heavy whoosh",
+          "peak": 0.996
         }
       ],
       "king_call": [
@@ -3235,6 +4252,33 @@
         {
           "family": "lightningCrackle",
           "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "lightningCrackle",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "Crackling static electricity building in the air just before a lightning strike: dry rapid snaps and sizzles rising in intensity. No music.",
+            "desc": "static electricity crackling before a lightning strike",
+            "duration_s": 1.5,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 50.7,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.985,
+          "rank": 1,
+          "best_match": "static electricity crackling before a lightning strike",
+          "rubric": "static electricity crackling before a lightning strike",
+          "peak": 0.455
+        },
+        {
+          "family": "lightningCrackle",
+          "model": "moss",
           "seed": 1,
           "side": {
             "model": "MOSS-SoundEffect v2.0",
@@ -3256,7 +4300,8 @@
           "p": 0.982,
           "rank": 1,
           "best_match": "static electricity crackling before a lightning strike",
-          "peak": 0.988
+          "peak": 0.988,
+          "prior": true
         },
         {
           "family": "lightningCrackle",
@@ -3282,7 +4327,8 @@
           "p": 0.972,
           "rank": 1,
           "best_match": "static electricity crackling before a lightning strike",
-          "peak": 0.992
+          "peak": 0.992,
+          "prior": true
         }
       ],
       "marmot_whistle": [
@@ -3369,6 +4415,33 @@
         {
           "family": "sabreHit-flesh",
           "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "sabreHit-flesh",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A steel sabre slashing into a body: a sharp cutting slash with a wet thud, close. No music.",
+            "desc": "a sabre slashing into flesh",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 55.56,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.919,
+          "rank": 1,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a sabre slashing into flesh",
+          "peak": 0.992
+        },
+        {
+          "family": "sabreHit-flesh",
+          "model": "moss",
           "seed": 2,
           "side": {
             "model": "MOSS-SoundEffect v2.0",
@@ -3390,7 +4463,8 @@
           "p": 0.604,
           "rank": 1,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.996
+          "peak": 0.996,
+          "prior": true
         },
         {
           "family": "sabreHit-flesh",
@@ -3416,7 +4490,8 @@
           "p": 0.03,
           "rank": 2,
           "best_match": "a curved steel sabre swishing through the air",
-          "peak": 0.996
+          "peak": 0.996,
+          "prior": true
         }
       ],
       "sabreHit-wood": [
@@ -3444,7 +4519,35 @@
           "p": 0.99,
           "rank": 1,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.996
+          "peak": 0.996,
+          "prior": true
+        },
+        {
+          "family": "sabreHit-wood",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "sabreHit-wood",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A steel sabre chopping into wood: a hard chop with the blade ringing afterwards, close. No music.",
+            "desc": "a sabre chopping into wood with a ringing blade",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 54.96,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.97,
+          "rank": 1,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a sabre chopping into wood with a ringing blade",
+          "peak": 1.0
         },
         {
           "family": "sabreHit-wood",
@@ -3470,7 +4573,8 @@
           "p": 0.315,
           "rank": 2,
           "best_match": "a bow string twanging as an arrow is shot",
-          "peak": 0.996
+          "peak": 0.996,
+          "prior": true
         }
       ],
       "sabreSwing": [
@@ -3498,7 +4602,8 @@
           "p": 0.938,
           "rank": 1,
           "best_match": "a curved steel sabre swishing through the air",
-          "peak": 0.996
+          "peak": 0.996,
+          "prior": true
         },
         {
           "family": "sabreSwing",
@@ -3524,7 +4629,35 @@
           "p": 0.744,
           "rank": 1,
           "best_match": "a curved steel sabre swishing through the air",
-          "peak": 0.918
+          "peak": 0.918,
+          "prior": true
+        },
+        {
+          "family": "sabreSwing",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "sabreSwing",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A curved steel cavalry sabre swung fast: a thin sharp swish through the air with a faint ring of the blade, close. No music.",
+            "desc": "a curved steel sabre swishing through the air",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 48.74,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.093,
+          "rank": 3,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a curved steel sabre swishing through the air",
+          "peak": 0.855
         }
       ],
       "sheep_bleat": [
@@ -3611,7 +4744,7 @@
         {
           "family": "spearThrust",
           "model": "moss",
-          "seed": 1,
+          "seed": 12,
           "side": {
             "model": "MOSS-SoundEffect v2.0",
             "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
@@ -3619,25 +4752,26 @@
             "backend": "PyTorch mps bf16",
             "family": "spearThrust",
             "kind": "oneshot",
-            "seed": 1,
-            "prompt": "A spear thrust hard forward: a short fast rip of air and the wooden shaft creaking, close. No music.",
+            "seed": 12,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
             "desc": "a spear thrust fast forward",
             "duration_s": 1.0,
             "steps": 100,
             "cfg": 4.0,
-            "gen_time_s": 42.85,
-            "model_load_s": 7.4,
+            "gen_time_s": 56.27,
+            "model_load_s": 9.8,
             "mps_driver_gb": 19.8
           },
-          "p": 0.0,
-          "rank": 13,
+          "p": 0.021,
+          "rank": 3,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.582
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.051
         },
         {
           "family": "spearThrust",
           "model": "moss",
-          "seed": 2,
+          "seed": 31,
           "side": {
             "model": "MOSS-SoundEffect v2.0",
             "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
@@ -3645,20 +4779,129 @@
             "backend": "PyTorch mps bf16",
             "family": "spearThrust",
             "kind": "oneshot",
-            "seed": 2,
-            "prompt": "A spear thrust hard forward: a short fast rip of air and the wooden shaft creaking, close. No music.",
+            "seed": 31,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
             "desc": "a spear thrust fast forward",
             "duration_s": 1.0,
             "steps": 100,
             "cfg": 4.0,
-            "gen_time_s": 44.02,
-            "model_load_s": 7.4,
+            "gen_time_s": 62.13,
+            "model_load_s": 9.0,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.018,
+          "rank": 4,
+          "best_match": "a curved steel sabre swishing through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 1.0
+        },
+        {
+          "family": "spearThrust",
+          "model": "moss",
+          "seed": 11,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 11,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 59.61,
+            "model_load_s": 9.8,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.008,
+          "rank": 4,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.992
+        },
+        {
+          "family": "spearThrust",
+          "model": "moss",
+          "seed": 32,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 32,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 56.37,
+            "model_load_s": 9.0,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.004,
+          "rank": 7,
+          "best_match": "a sabre slashing into flesh",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.996
+        },
+        {
+          "family": "spearThrust",
+          "model": "moss",
+          "seed": 22,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 22,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 58.51,
+            "model_load_s": 5.8,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.002,
+          "rank": 5,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 1.0
+        },
+        {
+          "family": "spearThrust",
+          "model": "moss",
+          "seed": 21,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 21,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 56.62,
+            "model_load_s": 5.8,
             "mps_driver_gb": 19.8
           },
           "p": 0.0,
-          "rank": 9,
-          "best_match": "an arrow whooshing past through the air",
-          "peak": 0.586
+          "rank": 7,
+          "best_match": "a curved steel sabre swishing through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 1.0
         }
       ],
       "stampede": [
@@ -3745,6 +4988,33 @@
         {
           "family": "thunder-far",
           "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "thunder-far",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "Distant thunder: a low soft rolling rumble far away over the mountains, no crack. No music.",
+            "desc": "distant thunder rolling",
+            "duration_s": 6.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 53.13,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.236,
+          "rank": 2,
+          "best_match": "static electricity crackling before a lightning strike",
+          "rubric": "distant thunder rolling",
+          "peak": 0.155
+        },
+        {
+          "family": "thunder-far",
+          "model": "moss",
           "seed": 2,
           "side": {
             "model": "MOSS-SoundEffect v2.0",
@@ -3766,7 +5036,8 @@
           "p": 0.074,
           "rank": 2,
           "best_match": "static electricity crackling before a lightning strike",
-          "peak": 0.734
+          "peak": 0.734,
+          "prior": true
         },
         {
           "family": "thunder-far",
@@ -3792,10 +5063,38 @@
           "p": 0.05,
           "rank": 2,
           "best_match": "a close thunderclap cracking overhead",
-          "peak": 0.758
+          "peak": 0.758,
+          "prior": true
         }
       ],
       "thunder-near": [
+        {
+          "family": "thunder-near",
+          "model": "moss",
+          "seed": 3,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "thunder-near",
+            "kind": "oneshot",
+            "seed": 3,
+            "prompt": "A lightning strike very close: an ear-splitting thunder crack tearing overhead, then a long heavy rolling rumble, open plain. No music.",
+            "desc": "a close thunderclap cracking overhead",
+            "duration_s": 6.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 52.95,
+            "model_load_s": 5.5,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.997,
+          "rank": 1,
+          "best_match": "a close thunderclap cracking overhead",
+          "rubric": "a close thunderclap cracking overhead",
+          "peak": 1.0
+        },
         {
           "family": "thunder-near",
           "model": "moss",
@@ -3820,7 +5119,8 @@
           "p": 0.451,
           "rank": 2,
           "best_match": "static electricity crackling before a lightning strike",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "thunder-near",
@@ -3846,7 +5146,8 @@
           "p": 0.134,
           "rank": 2,
           "best_match": "static electricity crackling before a lightning strike",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         }
       ],
       "wolf_bite": [
@@ -4276,7 +5577,8 @@
           "p": 0.687,
           "rank": 1,
           "best_match": "an arrow hitting an animal's body",
-          "peak": 0.641
+          "peak": 0.641,
+          "prior": true
         },
         {
           "family": "arrowImpact-flesh",
@@ -4302,7 +5604,8 @@
           "p": 0.367,
           "rank": 2,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.716
+          "peak": 0.716,
+          "prior": true
         },
         {
           "family": "arrowImpact-flesh",
@@ -4328,7 +5631,8 @@
           "p": 0.016,
           "rank": 3,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.598
+          "peak": 0.598,
+          "prior": true
         }
       ],
       "arrowImpact-ground": [
@@ -4356,7 +5660,8 @@
           "p": 0.006,
           "rank": 5,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "arrowImpact-ground",
@@ -4382,7 +5687,8 @@
           "p": 0.003,
           "rank": 4,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.901
+          "peak": 0.901,
+          "prior": true
         },
         {
           "family": "arrowImpact-ground",
@@ -4408,7 +5714,8 @@
           "p": 0.001,
           "rank": 7,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.792
+          "peak": 0.792,
+          "prior": true
         }
       ],
       "arrowImpact-wood": [
@@ -4436,7 +5743,8 @@
           "p": 0.775,
           "rank": 1,
           "best_match": "an arrow thudding into wood and quivering",
-          "peak": 0.624
+          "peak": 0.624,
+          "prior": true
         },
         {
           "family": "arrowImpact-wood",
@@ -4462,7 +5770,8 @@
           "p": 0.707,
           "rank": 1,
           "best_match": "an arrow thudding into wood and quivering",
-          "peak": 0.667
+          "peak": 0.667,
+          "prior": true
         },
         {
           "family": "arrowImpact-wood",
@@ -4488,7 +5797,8 @@
           "p": 0.002,
           "rank": 7,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.666
+          "peak": 0.666,
+          "prior": true
         }
       ],
       "arrowWhoosh": [
@@ -4516,7 +5826,8 @@
           "p": 0.956,
           "rank": 1,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.655
+          "peak": 0.655,
+          "prior": true
         },
         {
           "family": "arrowWhoosh",
@@ -4542,7 +5853,8 @@
           "p": 0.92,
           "rank": 1,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.242
+          "peak": 0.242,
+          "prior": true
         },
         {
           "family": "arrowWhoosh",
@@ -4568,7 +5880,8 @@
           "p": 0.91,
           "rank": 1,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.686
+          "peak": 0.686,
+          "prior": true
         }
       ],
       "bed-camp": [
@@ -4606,7 +5919,8 @@
             "end_s": 19.5,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-camp",
@@ -4642,7 +5956,8 @@
             "end_s": 15.5,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-camp",
@@ -4678,7 +5993,8 @@
             "end_s": 12.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-camp",
@@ -4714,7 +6030,8 @@
             "end_s": 17.75,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-coldwind": [
@@ -4752,7 +6069,8 @@
             "end_s": 12.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-coldwind",
@@ -4788,7 +6106,8 @@
             "end_s": 16.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-coldwind",
@@ -4824,7 +6143,8 @@
             "end_s": 13.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-highwind": [
@@ -4862,7 +6182,8 @@
             "end_s": 12.5,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-highwind",
@@ -4898,7 +6219,8 @@
             "end_s": 17.0,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-highwind",
@@ -4934,7 +6256,8 @@
             "end_s": 19.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-meltwater": [
@@ -4972,7 +6295,8 @@
             "end_s": 18.75,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-meltwater",
@@ -5008,7 +6332,8 @@
             "end_s": 19.5,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-meltwater",
@@ -5044,7 +6369,8 @@
             "end_s": 17.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-rain": [
@@ -5082,7 +6408,8 @@
             "end_s": 17.25,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-rain",
@@ -5118,7 +6445,8 @@
             "end_s": 13.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-rain",
@@ -5154,7 +6482,8 @@
             "end_s": 17.75,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-river": [
@@ -5192,7 +6521,8 @@
             "end_s": 21.25,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-river",
@@ -5228,7 +6558,8 @@
             "end_s": 17.25,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-river",
@@ -5264,7 +6595,8 @@
             "end_s": 13.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-steppe-larks": [
@@ -5302,7 +6634,8 @@
             "end_s": 18.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-larks",
@@ -5338,7 +6671,8 @@
             "end_s": 12.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-larks",
@@ -5374,7 +6708,8 @@
             "end_s": 19.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-steppe-night": [
@@ -5412,7 +6747,8 @@
             "end_s": 17.75,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-night",
@@ -5448,7 +6784,8 @@
             "end_s": 13.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-night",
@@ -5484,7 +6821,8 @@
             "end_s": 21.25,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-steppe-wind": [
@@ -5522,7 +6860,8 @@
             "end_s": 12.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-wind",
@@ -5558,7 +6897,8 @@
             "end_s": 12.0,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-steppe-wind",
@@ -5594,7 +6934,8 @@
             "end_s": 17.75,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         }
       ],
       "bed-stormwind": [
@@ -5632,7 +6973,8 @@
             "end_s": 17.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-stormwind",
@@ -5668,7 +7010,8 @@
             "end_s": 17.75,
             "bars": 3,
             "loop_s": 15.0
-          }
+          },
+          "prior": true
         },
         {
           "family": "bed-stormwind",
@@ -5704,7 +7047,8 @@
             "end_s": 12.25,
             "bars": 2,
             "loop_s": 10.0
-          }
+          },
+          "prior": true
         }
       ],
       "bowDraw": [
@@ -5732,7 +7076,8 @@
           "p": 0.99,
           "rank": 1,
           "best_match": "a wooden bow being drawn with a creak",
-          "peak": 0.537
+          "peak": 0.537,
+          "prior": true
         },
         {
           "family": "bowDraw",
@@ -5758,7 +7103,8 @@
           "p": 0.906,
           "rank": 1,
           "best_match": "a wooden bow being drawn with a creak",
-          "peak": 0.708
+          "peak": 0.708,
+          "prior": true
         },
         {
           "family": "bowDraw",
@@ -5784,7 +7130,8 @@
           "p": 0.18,
           "rank": 3,
           "best_match": "a small click and creak of a bow held at full draw",
-          "peak": 0.545
+          "peak": 0.545,
+          "prior": true
         }
       ],
       "bowFullDraw": [
@@ -5812,7 +7159,8 @@
           "p": 0.018,
           "rank": 5,
           "best_match": "a bow string twanging as an arrow is shot",
-          "peak": 0.031
+          "peak": 0.031,
+          "prior": true
         },
         {
           "family": "bowFullDraw",
@@ -5838,7 +7186,8 @@
           "p": 0.009,
           "rank": 9,
           "best_match": "a marmot's piercing alarm whistle",
-          "peak": 0.142
+          "peak": 0.142,
+          "prior": true
         },
         {
           "family": "bowFullDraw",
@@ -5864,7 +7213,8 @@
           "p": 0.001,
           "rank": 22,
           "best_match": "a curved steel sabre swishing through the air",
-          "peak": 0.046
+          "peak": 0.046,
+          "prior": true
         }
       ],
       "bowLetDown": [
@@ -5892,7 +7242,8 @@
           "p": 0.001,
           "rank": 14,
           "best_match": "a wooden bow being drawn with a creak",
-          "peak": 0.354
+          "peak": 0.354,
+          "prior": true
         },
         {
           "family": "bowLetDown",
@@ -5918,7 +7269,8 @@
           "p": 0.001,
           "rank": 12,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.227
+          "peak": 0.227,
+          "prior": true
         },
         {
           "family": "bowLetDown",
@@ -5944,7 +7296,8 @@
           "p": 0.0,
           "rank": 22,
           "best_match": "a wooden bow being drawn with a creak",
-          "peak": 0.281
+          "peak": 0.281,
+          "prior": true
         }
       ],
       "bowTwang": [
@@ -5972,7 +7325,8 @@
           "p": 0.016,
           "rank": 6,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.703
+          "peak": 0.703,
+          "prior": true
         },
         {
           "family": "bowTwang",
@@ -5998,7 +7352,8 @@
           "p": 0.011,
           "rank": 5,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.891
+          "peak": 0.891,
+          "prior": true
         },
         {
           "family": "bowTwang",
@@ -6024,7 +7379,8 @@
           "p": 0.003,
           "rank": 7,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.884
+          "peak": 0.884,
+          "prior": true
         }
       ],
       "dog_bark": [
@@ -6292,7 +7648,8 @@
           "p": 0.933,
           "rank": 1,
           "best_match": "a single footstep on tall dry grass",
-          "peak": 0.212
+          "peak": 0.212,
+          "prior": true
         },
         {
           "family": "footstep-grass",
@@ -6318,7 +7675,8 @@
           "p": 0.737,
           "rank": 1,
           "best_match": "a single footstep on tall dry grass",
-          "peak": 0.333
+          "peak": 0.333,
+          "prior": true
         },
         {
           "family": "footstep-grass",
@@ -6344,7 +7702,8 @@
           "p": 0.187,
           "rank": 2,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.384
+          "peak": 0.384,
+          "prior": true
         }
       ],
       "footstep-gravel": [
@@ -6372,7 +7731,8 @@
           "p": 0.474,
           "rank": 1,
           "best_match": "a single footstep on gravel",
-          "peak": 0.308
+          "peak": 0.308,
+          "prior": true
         },
         {
           "family": "footstep-gravel",
@@ -6398,7 +7758,8 @@
           "p": 0.129,
           "rank": 2,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.51
+          "peak": 0.51,
+          "prior": true
         },
         {
           "family": "footstep-gravel",
@@ -6424,7 +7785,8 @@
           "p": 0.106,
           "rank": 2,
           "best_match": "a herd of wild horses stampeding past",
-          "peak": 0.411
+          "peak": 0.411,
+          "prior": true
         }
       ],
       "hoof-grass": [
@@ -6911,7 +8273,7 @@
         {
           "family": "javelinImpact-flesh",
           "model": "medium",
-          "seed": 1,
+          "seed": 22,
           "side": {
             "model": "Stable Audio 3 medium",
             "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -6919,25 +8281,269 @@
             "backend": "PyTorch mps fp32",
             "family": "javelinImpact-flesh",
             "kind": "oneshot",
-            "seed": 1,
-            "prompt": "A heavy javelin hitting a large animal's body: a deep wet thud, close. No music.",
+            "seed": 22,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.85,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.997,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.758
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 38,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 38,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
             "desc": "a javelin hitting a body",
             "duration_s": 1,
             "steps": 8,
             "cfg": 1.0,
             "gen_time_s": 0.81,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.19
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
           },
-          "p": 0.0,
-          "rank": 40,
-          "best_match": "a sabre chopping into wood with a ringing blade",
+          "p": 0.997,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.651
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 32,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 32,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.99,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.996,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.954
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 35,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 35,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.8,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.994,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.621
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 36,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 36,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.8,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.993,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.631
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 31,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 31,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.87,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.992,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.661
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 33,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 33,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.96,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.988,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.517
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 37,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 37,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.8,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.976,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.513
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 25,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 25,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.92,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.971,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.759
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 26,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 26,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.89,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.948,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
           "peak": 0.852
         },
         {
           "family": "javelinImpact-flesh",
           "model": "medium",
-          "seed": 2,
+          "seed": 34,
           "side": {
             "model": "Stable Audio 3 medium",
             "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -6945,25 +8551,26 @@
             "backend": "PyTorch mps fp32",
             "family": "javelinImpact-flesh",
             "kind": "oneshot",
-            "seed": 2,
-            "prompt": "A heavy javelin hitting a large animal's body: a deep wet thud, close. No music.",
+            "seed": 34,
+            "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
             "desc": "a javelin hitting a body",
             "duration_s": 1,
             "steps": 8,
             "cfg": 1.0,
-            "gen_time_s": 0.81,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.19
+            "gen_time_s": 0.89,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
           },
-          "p": 0.0,
-          "rank": 35,
-          "best_match": "an armoured giant roaring in pain",
-          "peak": 0.73
+          "p": 0.942,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.838
         },
         {
           "family": "javelinImpact-flesh",
           "model": "medium",
-          "seed": 3,
+          "seed": 27,
           "side": {
             "model": "Stable Audio 3 medium",
             "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -6971,20 +8578,345 @@
             "backend": "PyTorch mps fp32",
             "family": "javelinImpact-flesh",
             "kind": "oneshot",
-            "seed": 3,
-            "prompt": "A heavy javelin hitting a large animal's body: a deep wet thud, close. No music.",
+            "seed": 27,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
             "desc": "a javelin hitting a body",
             "duration_s": 1,
             "steps": 8,
             "cfg": 1.0,
-            "gen_time_s": 0.77,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.19
+            "gen_time_s": 0.85,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
           },
-          "p": 0.0,
-          "rank": 24,
+          "p": 0.904,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.71
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 21,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 21,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.85,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.884,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.726
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 24,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 24,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.94,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.857,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 1.0
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 15,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 15,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.04,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.818,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.975
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 28,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 28,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.84,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.642,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.654
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 12,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 12,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.01,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.595,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.564
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 14,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 14,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.03,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.537,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.742
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 17,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 17,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.15,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.463,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.887
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 18,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 18,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.06,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.45,
+          "rank": 1,
+          "best_match": "a heavy spear thudding into an animal's body",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.831
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 23,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 23,
+            "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.92,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.412,
+          "rank": 2,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.94
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.566
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 13,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 13,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.99,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.203,
+          "rank": 2,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 0.83
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 16,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 16,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.05,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.125,
+          "rank": 2,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 1.0
+        },
+        {
+          "family": "javelinImpact-flesh",
+          "model": "medium",
+          "seed": 11,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "javelinImpact-flesh",
+            "kind": "oneshot",
+            "seed": 11,
+            "prompt": "A heavy spear striking a large animal's body: a deep, heavy, meaty thump as the spearhead punches into flesh, close. No music.",
+            "desc": "a javelin hitting a body",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.01,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.106,
+          "rank": 2,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a heavy spear thudding into an animal's body",
+          "peak": 1.0
         }
       ],
       "javelinImpact-ground": [
@@ -7012,7 +8944,8 @@
           "p": 0.016,
           "rank": 2,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "javelinImpact-ground",
@@ -7038,7 +8971,8 @@
           "p": 0.015,
           "rank": 3,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.771
+          "peak": 0.771,
+          "prior": true
         },
         {
           "family": "javelinImpact-ground",
@@ -7064,7 +8998,8 @@
           "p": 0.018,
           "rank": 4,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.941
+          "peak": 0.941,
+          "prior": true
         }
       ],
       "javelinImpact-wood": [
@@ -7092,7 +9027,8 @@
           "p": 0.007,
           "rank": 7,
           "best_match": "an arrow thudding into wood and quivering",
-          "peak": 0.784
+          "peak": 0.784,
+          "prior": true
         },
         {
           "family": "javelinImpact-wood",
@@ -7118,7 +9054,8 @@
           "p": 0.003,
           "rank": 7,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "javelinImpact-wood",
@@ -7144,7 +9081,8 @@
           "p": 0.0,
           "rank": 8,
           "best_match": "an arrow thudding into wood and quivering",
-          "peak": 0.865
+          "peak": 0.865,
+          "prior": true
         }
       ],
       "javelinThrow": [
@@ -7172,7 +9110,8 @@
           "p": 0.01,
           "rank": 8,
           "best_match": "an armoured giant roaring in pain",
-          "peak": 0.583
+          "peak": 0.583,
+          "prior": true
         },
         {
           "family": "javelinThrow",
@@ -7198,7 +9137,8 @@
           "p": 0.009,
           "rank": 6,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.66
+          "peak": 0.66,
+          "prior": true
         },
         {
           "family": "javelinThrow",
@@ -7224,7 +9164,8 @@
           "p": 0.002,
           "rank": 8,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.625
+          "peak": 0.625,
+          "prior": true
         }
       ],
       "king_call": [
@@ -7492,7 +9433,8 @@
           "p": 0.258,
           "rank": 1,
           "best_match": "static electricity crackling before a lightning strike",
-          "peak": 0.79
+          "peak": 0.79,
+          "prior": true
         },
         {
           "family": "lightningCrackle",
@@ -7518,7 +9460,8 @@
           "p": 0.015,
           "rank": 8,
           "best_match": "a herd of wild horses stampeding past",
-          "peak": 0.88
+          "peak": 0.88,
+          "prior": true
         },
         {
           "family": "lightningCrackle",
@@ -7544,7 +9487,8 @@
           "p": 0.014,
           "rank": 11,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.528
+          "peak": 0.528,
+          "prior": true
         }
       ],
       "marmot_whistle": [
@@ -7652,7 +9596,8 @@
           "p": 0.99,
           "rank": 1,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.566
+          "peak": 0.566,
+          "prior": true
         },
         {
           "family": "sabreHit-flesh",
@@ -7678,7 +9623,8 @@
           "p": 0.983,
           "rank": 1,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.788
+          "peak": 0.788,
+          "prior": true
         },
         {
           "family": "sabreHit-flesh",
@@ -7704,7 +9650,8 @@
           "p": 0.465,
           "rank": 1,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.679
+          "peak": 0.679,
+          "prior": true
         }
       ],
       "sabreHit-wood": [
@@ -7732,7 +9679,8 @@
           "p": 0.994,
           "rank": 1,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.635
+          "peak": 0.635,
+          "prior": true
         },
         {
           "family": "sabreHit-wood",
@@ -7758,7 +9706,8 @@
           "p": 0.805,
           "rank": 1,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.801
+          "peak": 0.801,
+          "prior": true
         },
         {
           "family": "sabreHit-wood",
@@ -7784,7 +9733,8 @@
           "p": 0.187,
           "rank": 2,
           "best_match": "an arrow hitting an animal's body",
-          "peak": 0.46
+          "peak": 0.46,
+          "prior": true
         }
       ],
       "sabreSwing": [
@@ -7812,7 +9762,8 @@
           "p": 0.226,
           "rank": 2,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.646
+          "peak": 0.646,
+          "prior": true
         },
         {
           "family": "sabreSwing",
@@ -7838,7 +9789,8 @@
           "p": 0.167,
           "rank": 2,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.588
+          "peak": 0.588,
+          "prior": true
         },
         {
           "family": "sabreSwing",
@@ -7864,7 +9816,8 @@
           "p": 0.158,
           "rank": 2,
           "best_match": "an arrow whooshing past through the air",
-          "peak": 0.698
+          "peak": 0.698,
+          "prior": true
         }
       ],
       "sheep_bleat": [
@@ -7951,7 +9904,7 @@
         {
           "family": "spearThrust",
           "model": "medium",
-          "seed": 1,
+          "seed": 23,
           "side": {
             "model": "Stable Audio 3 medium",
             "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -7959,25 +9912,323 @@
             "backend": "PyTorch mps fp32",
             "family": "spearThrust",
             "kind": "oneshot",
-            "seed": 1,
-            "prompt": "A spear thrust hard forward: a short fast rip of air and the wooden shaft creaking, close. No music.",
+            "seed": 23,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.95,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.137,
+          "rank": 2,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.326
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 22,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 22,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.92,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.041,
+          "rank": 3,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.584
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 28,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 28,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.87,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.011,
+          "rank": 3,
+          "best_match": "a sabre slashing into flesh",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.732
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 24,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 24,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
             "desc": "a spear thrust fast forward",
             "duration_s": 1,
             "steps": 8,
             "cfg": 1.0,
             "gen_time_s": 0.91,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.19
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
           },
-          "p": 0.002,
+          "p": 0.157,
+          "rank": 4,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.809
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 25,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 25,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.92,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.066,
+          "rank": 4,
+          "best_match": "an arrow whooshing past through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.689
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 27,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 27,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.9,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.052,
+          "rank": 4,
+          "best_match": "a sabre slashing into flesh",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.394
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 26,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 26,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.93,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.022,
+          "rank": 4,
+          "best_match": "a curved steel sabre swishing through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.665
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 36,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 36,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.81,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.008,
+          "rank": 4,
+          "best_match": "a curved steel sabre swishing through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.765
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 37,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 37,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.81,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.008,
+          "rank": 6,
+          "best_match": "a sabre slashing into flesh",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.533
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 34,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 34,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.82,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.007,
+          "rank": 13,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.461
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 35,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 35,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.81,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.006,
+          "rank": 17,
+          "best_match": "an armoured giant roaring in pain",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.582
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 32,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 32,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.77,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.005,
           "rank": 10,
           "best_match": "a sabre slashing into flesh",
-          "peak": 0.928
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.674
         },
         {
           "family": "spearThrust",
           "model": "medium",
-          "seed": 2,
+          "seed": 18,
           "side": {
             "model": "Stable Audio 3 medium",
             "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -7985,25 +10236,134 @@
             "backend": "PyTorch mps fp32",
             "family": "spearThrust",
             "kind": "oneshot",
-            "seed": 2,
-            "prompt": "A spear thrust hard forward: a short fast rip of air and the wooden shaft creaking, close. No music.",
+            "seed": 18,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
             "desc": "a spear thrust fast forward",
             "duration_s": 1,
             "steps": 8,
             "cfg": 1.0,
-            "gen_time_s": 0.78,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.19
+            "gen_time_s": 1.0,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.003,
+          "rank": 12,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.772
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 21,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 21,
+            "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.84,
+            "model_load_s": 6.6,
+            "mps_driver_gb": 11.23
+          },
+          "p": 0.003,
+          "rank": 12,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.679
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 14,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 14,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.09,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.002,
+          "rank": 18,
+          "best_match": "a herd of wild horses stampeding past",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.71
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 33,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 33,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.82,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.002,
+          "rank": 23,
+          "best_match": "a herd of wild horses stampeding past",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.476
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 31,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 31,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.57,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.23
           },
           "p": 0.001,
-          "rank": 8,
-          "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.9
+          "rank": 34,
+          "best_match": "a curved steel sabre swishing through the air",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.781
         },
         {
           "family": "spearThrust",
           "model": "medium",
-          "seed": 3,
+          "seed": 38,
           "side": {
             "model": "Stable Audio 3 medium",
             "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -8011,20 +10371,183 @@
             "backend": "PyTorch mps fp32",
             "family": "spearThrust",
             "kind": "oneshot",
-            "seed": 3,
-            "prompt": "A spear thrust hard forward: a short fast rip of air and the wooden shaft creaking, close. No music.",
+            "seed": 38,
+            "prompt": "A warrior thrusting a spear forward and pulling it back: a fast forward swish of air and a short wooden rattle of the shaft, close. No music.",
             "desc": "a spear thrust fast forward",
             "duration_s": 1,
             "steps": 8,
             "cfg": 1.0,
-            "gen_time_s": 0.91,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.19
+            "gen_time_s": 0.85,
+            "model_load_s": 6.3,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.001,
+          "rank": 10,
+          "best_match": "a sabre slashing into flesh",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.416
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 11,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 11,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 6.9,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.23
           },
           "p": 0.0,
-          "rank": 16,
+          "rank": 13,
           "best_match": "a sabre chopping into wood with a ringing blade",
-          "peak": 0.988
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.878
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 12,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 12,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 0.95,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.0,
+          "rank": 14,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.873
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 13,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 13,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.16,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.0,
+          "rank": 15,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.955
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 15,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 15,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.04,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.0,
+          "rank": 14,
+          "best_match": "a sabre chopping into wood with a ringing blade",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.747
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 16,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 16,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.0,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.0,
+          "rank": 8,
+          "best_match": "a sabre slashing into flesh",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.743
+        },
+        {
+          "family": "spearThrust",
+          "model": "medium",
+          "seed": 17,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "spearThrust",
+            "kind": "oneshot",
+            "seed": 17,
+            "prompt": "A long wooden spear stabbed forward fast: one quick short whoosh of air as the spear lunges, and a creak of the wooden shaft in the hands. Close foley, dry. No music.",
+            "desc": "a spear thrust fast forward",
+            "duration_s": 1,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 1.01,
+            "model_load_s": 11.0,
+            "mps_driver_gb": 11.24
+          },
+          "p": 0.0,
+          "rank": 17,
+          "best_match": "a sabre slashing into flesh",
+          "rubric": "a quick swoosh of a spear stabbing forward",
+          "peak": 0.731
         }
       ],
       "stampede": [
@@ -8132,7 +10655,8 @@
           "p": 0.403,
           "rank": 1,
           "best_match": "a close thunderclap cracking overhead",
-          "peak": 0.9
+          "peak": 0.9,
+          "prior": true
         },
         {
           "family": "thunder-far",
@@ -8158,7 +10682,8 @@
           "p": 0.353,
           "rank": 1,
           "best_match": "a close thunderclap cracking overhead",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "thunder-far",
@@ -8184,7 +10709,8 @@
           "p": 0.285,
           "rank": 1,
           "best_match": "a close thunderclap cracking overhead",
-          "peak": 0.588
+          "peak": 0.588,
+          "prior": true
         }
       ],
       "thunder-near": [
@@ -8212,7 +10738,8 @@
           "p": 0.998,
           "rank": 1,
           "best_match": "a close thunderclap cracking overhead",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "thunder-near",
@@ -8238,7 +10765,8 @@
           "p": 0.995,
           "rank": 1,
           "best_match": "a close thunderclap cracking overhead",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         },
         {
           "family": "thunder-near",
@@ -8264,7 +10792,8 @@
           "p": 0.993,
           "rank": 1,
           "best_match": "a close thunderclap cracking overhead",
-          "peak": 1.0
+          "peak": 1.0,
+          "prior": true
         }
       ],
       "wolf_bite": [
@@ -8669,5 +11198,5 @@
       ]
     }
   },
-  "bytes": 2388858
+  "bytes": 2407229
 }

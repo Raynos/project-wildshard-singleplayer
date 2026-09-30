@@ -720,8 +720,8 @@
     },
     "lightningCrackle": {
       "files": [
-        "lightningCrackle-1-38ea4f51.m4a",
-        "lightningCrackle-2-f39ea4ea.m4a"
+        "lightningCrackle-3-a3e695ea.m4a",
+        "lightningCrackle-1-38ea4f51.m4a"
       ],
       "gain": 1.0,
       "shard": "nalati"
@@ -745,6 +745,22 @@
         "footstep-wet-1-58d313a2.m4a"
       ],
       "gain": 1.0
+    },
+    "javelinImpact-flesh": {
+      "files": [
+        "javelinImpact-flesh-22-e83a7a00.m4a",
+        "javelinImpact-flesh-38-e58ddf4b.m4a"
+      ],
+      "gain": 1.0,
+      "shard": "nalati"
+    },
+    "spearThrust": {
+      "files": [
+        "spearThrust-23-d19fc200.m4a",
+        "spearThrust-22-5612e63b.m4a"
+      ],
+      "gain": 1.0,
+      "shard": "nalati"
     }
   },
   "provenance": [
@@ -2638,19 +2654,6 @@
       "round": "nalati"
     },
     {
-      "file": "lightningCrackle-2-f39ea4ea.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "Crackling static electricity building in the air just before a lightning strike: dry rapid snaps and sizzles rising in intensity. No music.",
-      "seed": 2,
-      "steps": 100,
-      "clap_p": 0.972,
-      "clap_rank": 1,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss",
-      "round": "nalati"
-    },
-    {
       "file": "bed-steppe-wind-3-51fa5a78.m4a",
       "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
       "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
@@ -3091,12 +3094,74 @@
       "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
       "set_of_origin": "sa3-medium",
       "round": "pine-hollow"
+    },
+    {
+      "file": "javelinImpact-flesh-22-e83a7a00.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A thrown javelin impaling a big animal: a thick wet thud of the spear punching into its body, close foley. No music.",
+      "seed": 22,
+      "steps": 8,
+      "clap_p": 0.997,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "nalati"
+    },
+    {
+      "file": "javelinImpact-flesh-38-e58ddf4b.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Body hit: a heavy spear plunging deep into a carcass, a dull deep stab and a short squelch, close. No music.",
+      "seed": 38,
+      "steps": 8,
+      "clap_p": 0.997,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "nalati"
+    },
+    {
+      "file": "lightningCrackle-3-a3e695ea.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Crackling static electricity building in the air just before a lightning strike: dry rapid snaps and sizzles rising in intensity. No music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.985,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "nalati"
+    },
+    {
+      "file": "spearThrust-23-d19fc200.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+      "seed": 23,
+      "steps": 8,
+      "clap_p": 0.137,
+      "clap_rank": 2,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "nalati"
+    },
+    {
+      "file": "spearThrust-22-5612e63b.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Spear thrust foley: a single sharp swoosh of a long spear jabbed hard forward, the pole whipping through the air, very short. No music.",
+      "seed": 22,
+      "steps": 8,
+      "clap_p": 0.041,
+      "clap_rank": 3,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "nalati"
     }
   ],
   "synth_keeps": [
-    "bed-camp",
-    "javelinImpact-flesh",
-    "jump",
-    "spearThrust"
+    "jump"
   ]
 }

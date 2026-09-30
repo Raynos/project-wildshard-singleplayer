@@ -600,7 +600,7 @@ export const ASSET_VERSIONS: Readonly<Record<string, string>> = {
   "/assets/practice/dummies/straw-cloth.glb": '1c0c4e5a',
   "/assets/practice/dummies/wood-steel.glb": '2842b551',
   "/assets/practice/dummies/wood-wood.glb": '2208d581',
-  "/assets/sfx/best/sfx.json": '3008fe6f',
+  "/assets/sfx/best/sfx.json": 'd7d01e0a',
   "/assets/sfx/pine-hollow/sfx.json": 'c81500dc',
   "/assets/tex/bark_willow_02/arm.jpg": '3c875ebf',
   "/assets/tex/bark_willow_02/arm.phone.webp": '26022406',

@@ -1,0 +1,406 @@
+{
+ "url": "http://localhost:4377/?chunk=nalati-grasslands&tier=phone&touch=1&skipintro=1&nolock=1&mute=1&boss=golden-king&bossGod=1",
+ "when": "2026-09-30T00:01:54.202Z",
+ "polls": [
+  {
+   "at": 7886,
+   "inside": true,
+   "scene": {
+    "zone": "snow",
+    "night": false,
+    "storm": false,
+    "boss": "king"
+   },
+   "target": "steppe-king",
+   "resident": [
+    "steppe-king"
+   ],
+   "pending": false,
+   "decodeLog": [
+    {
+     "slot": "steppe-king",
+     "ms": 45
+    }
+   ],
+   "kingSpec": {
+    "calm": "steppe-king-calm-bbcfbe31.m4a",
+    "tension": "steppe-king-tension-9d5ec1d2.m4a",
+    "bpm": 79.712,
+    "loopStart": 15.0233,
+    "loopEnd": 42.121
+   },
+   "kingCalm": {
+    "duration": 45.132,
+    "channels": 2,
+    "sampleRate": 48000,
+    "rms": 0.0782,
+    "peak": 0.828
+   },
+   "kingTension": {
+    "duration": 45.132,
+    "channels": 1,
+    "sampleRate": 48000,
+    "rms": 0.0205,
+    "peak": 0.45
+   },
+   "deck": {
+    "slot": "steppe-king",
+    "t0": 2.971,
+    "sources": 2,
+    "sourceBuffers": [
+     "45.13",
+     "45.13"
+    ]
+   },
+   "ctx": {
+    "state": "running",
+    "currentTime": 2.4
+   },
+   "muted": true
+  },
+  {
+   "at": 9390,
+   "inside": true,
+   "scene": {
+    "zone": "snow",
+    "night": false,
+    "storm": false,
+    "boss": "king"
+   },
+   "target": "steppe-king",
+   "resident": [
+    "steppe-king"
+   ],
+   "pending": false,
+   "decodeLog": [
+    {
+     "slot": "steppe-king",
+     "ms": 45
+    }
+   ],
+   "kingSpec": {
+    "calm": "steppe-king-calm-bbcfbe31.m4a",
+    "tension": "steppe-king-tension-9d5ec1d2.m4a",
+    "bpm": 79.712,
+    "loopStart": 15.0233,
+    "loopEnd": 42.121
+   },
+   "kingCalm": {
+    "duration": 45.132,
+    "channels": 2,
+    "sampleRate": 48000,
+    "rms": 0.0782,
+    "peak": 0.828
+   },
+   "kingTension": {
+    "duration": 45.132,
+    "channels": 1,
+    "sampleRate": 48000,
+    "rms": 0.0205,
+    "peak": 0.45
+   },
+   "deck": {
+    "slot": "steppe-king",
+    "t0": 2.971,
+    "sources": 2,
+    "sourceBuffers": [
+     "45.13",
+     "45.13"
+    ]
+   },
+   "ctx": {
+    "state": "running",
+    "currentTime": 3.909
+   },
+   "muted": true
+  },
+  {
+   "at": 10894,
+   "inside": true,
+   "scene": {
+    "zone": "snow",
+    "night": false,
+    "storm": false,
+    "boss": "king"
+   },
+   "target": "steppe-king",
+   "resident": [
+    "steppe-king"
+   ],
+   "pending": false,
+   "decodeLog": [
+    {
+     "slot": "steppe-king",
+     "ms": 45
+    }
+   ],
+   "kingSpec": {
+    "calm": "steppe-king-calm-bbcfbe31.m4a",
+    "tension": "steppe-king-tension-9d5ec1d2.m4a",
+    "bpm": 79.712,
+    "loopStart": 15.0233,
+    "loopEnd": 42.121
+   },
+   "kingCalm": {
+    "duration": 45.132,
+    "channels": 2,
+    "sampleRate": 48000,
+    "rms": 0.0782,
+    "peak": 0.828
+   },
+   "kingTension": {
+    "duration": 45.132,
+    "channels": 1,
+    "sampleRate": 48000,
+    "rms": 0.0205,
+    "peak": 0.45
+   },
+   "deck": {
+    "slot": "steppe-king",
+    "t0": 2.971,
+    "sources": 2,
+    "sourceBuffers": [
+     "45.13",
+     "45.13"
+    ]
+   },
+   "ctx": {
+    "state": "running",
+    "currentTime": 5.408
+   },
+   "muted": true
+  },
+  {
+   "at": 12398,
+   "inside": true,
+   "scene": {
+    "zone": "snow",
+    "night": false,
+    "storm": false,
+    "boss": "king"
+   },
+   "target": "steppe-king",
+   "resident": [
+    "steppe-king"
+   ],
+   "pending": false,
+   "decodeLog": [
+    {
+     "slot": "steppe-king",
+     "ms": 45
+    }
+   ],
+   "kingSpec": {
+    "calm": "steppe-king-calm-bbcfbe31.m4a",
+    "tension": "steppe-king-tension-9d5ec1d2.m4a",
+    "bpm": 79.712,
+    "loopStart": 15.0233,
+    "loopEnd": 42.121
+   },
+   "kingCalm": {
+    "duration": 45.132,
+    "channels": 2,
+    "sampleRate": 48000,
+    "rms": 0.0782,
+    "peak": 0.828
+   },
+   "kingTension": {
+    "duration": 45.132,
+    "channels": 1,
+    "sampleRate": 48000,
+    "rms": 0.0205,
+    "peak": 0.45
+   },
+   "deck": {
+    "slot": "steppe-king",
+    "t0": 2.971,
+    "sources": 2,
+    "sourceBuffers": [
+     "45.13",
+     "45.13"
+    ]
+   },
+   "ctx": {
+    "state": "running",
+    "currentTime": 6.917
+   },
+   "muted": true
+  }
+ ],
+ "errors": [],
+ "failedAudio": [],
+ "bootMs": 6375,
+ "tap": {
+  "windows": [
+   {
+    "at": 4.65,
+    "deckOut": {
+     "rmsDb": -56.3,
+     "peak": 0.003
+    },
+    "stemBus": {
+     "rmsDb": -56.2,
+     "peak": 0.004
+    }
+   },
+   {
+    "at": 5.35,
+    "deckOut": {
+     "rmsDb": -53.8,
+     "peak": 0.005
+    },
+    "stemBus": {
+     "rmsDb": -53.8,
+     "peak": 0.005
+    }
+   },
+   {
+    "at": 6.05,
+    "deckOut": {
+     "rmsDb": -53,
+     "peak": 0.008
+    },
+    "stemBus": {
+     "rmsDb": -53,
+     "peak": 0.008
+    }
+   },
+   {
+    "at": 6.75,
+    "deckOut": {
+     "rmsDb": -52.1,
+     "peak": 0.012
+    },
+    "stemBus": {
+     "rmsDb": -52.1,
+     "peak": 0.012
+    }
+   },
+   {
+    "at": 7.46,
+    "deckOut": {
+     "rmsDb": -50.5,
+     "peak": 0.013
+    },
+    "stemBus": {
+     "rmsDb": -50.5,
+     "peak": 0.013
+    }
+   },
+   {
+    "at": 8.15,
+    "deckOut": {
+     "rmsDb": -53,
+     "peak": 0.009
+    },
+    "stemBus": {
+     "rmsDb": -53,
+     "peak": 0.009
+    }
+   },
+   {
+    "at": 8.86,
+    "deckOut": {
+     "rmsDb": -32.5,
+     "peak": 0.18
+    },
+    "stemBus": {
+     "rmsDb": -32.5,
+     "peak": 0.18
+    }
+   },
+   {
+    "at": 9.56,
+    "deckOut": {
+     "rmsDb": -21.5,
+     "peak": 0.286
+    },
+    "stemBus": {
+     "rmsDb": -21.5,
+     "peak": 0.286
+    }
+   }
+  ],
+  "deck": "steppe-king",
+  "deckOutGain": 1,
+  "stemBusGain": 1
+ },
+ "audioLog": [
+  {
+   "t": 6377,
+   "kind": "music",
+   "name": "deck:title",
+   "ok": true,
+   "detail": "piano"
+  },
+  {
+   "t": 6377,
+   "kind": "music",
+   "name": "sting:chunk",
+   "ok": true
+  },
+  {
+   "t": 6377,
+   "kind": "music",
+   "name": "mode:calm"
+  },
+  {
+   "t": 6423,
+   "kind": "music",
+   "name": "deck:steppe-king",
+   "ok": true,
+   "detail": "folk"
+  }
+ ],
+ "sfx": {
+  "spearThrust": [
+   {
+    "duration": 0.307,
+    "peak": 0.876,
+    "rms": 0.1519
+   },
+   {
+    "duration": 0.587,
+    "peak": 0.878,
+    "rms": 0.1074
+   }
+  ],
+  "javelinImpact-flesh": [
+   {
+    "duration": 0.311,
+    "peak": 0.865,
+    "rms": 0.2192
+   },
+   {
+    "duration": 0.465,
+    "peak": 0.86,
+    "rms": 0.1106
+   }
+  ],
+  "javelinImpact-wood": [
+   {
+    "duration": 1.039,
+    "peak": 0.906,
+    "rms": 0.1028
+   }
+  ],
+  "javelinThrow": [
+   {
+    "duration": 0.258,
+    "peak": 0.882,
+    "rms": 0.1395
+   }
+  ],
+  "fired": {
+   "spearThrust": 1,
+   "javelinImpact:flesh": 1
+  }
+ },
+ "verdict": {
+  "kingSlotSelected": true,
+  "kingDecoded": true,
+  "kingDeckOnAir": true,
+  "signalOnStemBus": true,
+  "logDeckKing": true
+ }
+}

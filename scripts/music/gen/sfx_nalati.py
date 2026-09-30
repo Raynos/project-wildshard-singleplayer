@@ -17,6 +17,15 @@ Merged INTO public/assets/sfx/best/ additively: every entry is tagged `shard: 'n
 the steppe only); a re-run first removes the previous Nalati files (the provenance rows marked `round: 'nalati'`) and
 nothing else. Writes scripts/music/gen/sfx-nalati.json (every take, every score, the decision per family) and adds the
 rows to sfx-best.json under `nalati`.
+
+    ... sfx_nalati.py <new-raw-dir> --only fam,fam,...      (NALATI-FINISH B3)
+
+A later round of a few families, after the first round's raw takes are gone: only these families' takes in <raw> are
+ranked (against every family's description, as ever) and pooled with the takes sfx-nalati.json already scored for them;
+the same rule decides. A first-round take that still ships keeps its shipped file (found by family, seed and engine in
+the provenance); one that was never shipped cannot be re-encoded and is skipped; one scored by another rubric (the family
+got a `clap_desc` since) is left out of the pool. Only these families' files, rows and
+`synth_keeps` entries change; every other Nalati family, bed and file stays as it is.
 """
 
 from __future__ import annotations
@@ -60,7 +69,7 @@ def encode(x: np.ndarray, sr: int, dest: Path, mono: bool) -> int:
     return dest.stat().st_size
 
 
-def rank_all(raw: Path, fams: dict) -> dict[str, dict[str, list[dict]]]:
+def rank_all(raw: Path, fams: dict, only: set[str] | None = None) -> dict[str, dict[str, list[dict]]]:
     import torch
     from transformers import ClapModel, ClapProcessor
 
@@ -71,13 +80,19 @@ def rank_all(raw: Path, fams: dict) -> dict[str, dict[str, list[dict]]]:
     texts = [fams[f]["desc"] for f in names] + FOILS
     with torch.no_grad():
         te = torch.nn.functional.normalize(_tensor(clap.get_text_features(**proc(text=texts, return_tensors="pt", padding=True))), dim=-1)
+    # `clap_desc`: the text a family's OWN takes are judged by, when its `desc` is a weak CLAP anchor (B3: "a spear thrust fast
+    # forward" lost to a bowstring on every take, whatever the take). Other families still meet its plain `desc` as a rival.
+    own = {f: fams[f]["clap_desc"] for f in names if "clap_desc" in fams[f]}
+    with torch.no_grad():
+        te_own = {f: torch.nn.functional.normalize(_tensor(clap.get_text_features(**proc(text=[t], return_tensors="pt", padding=True))), dim=-1)[0]
+                  for f, t in own.items()}
     out: dict[str, dict[str, list[dict]]] = {}
     for model in MODELS:
         by: dict[str, list[dict]] = {}
         for wav in sorted((raw / model).glob("*/*.wav")):
             side = json.loads(wav.with_suffix(".json").read_text())
             fam = side["family"]
-            if fam not in fams:
+            if fam not in fams or (only and fam not in only):
                 continue
             x, sr = sf.read(str(wav), always_2d=True)
             y = x.mean(1).astype(np.float32)
@@ -89,28 +104,46 @@ def rank_all(raw: Path, fams: dict) -> dict[str, dict[str, list[dict]]]:
                 ae = torch.nn.functional.normalize(_tensor(clap.get_audio_features(**a)), dim=-1).mean(0, keepdim=True)
                 sims = (torch.nn.functional.normalize(ae, dim=-1) @ te.T)[0]
             i = names.index(fam)
+            ttexts = list(texts)
+            if fam in te_own:
+                sims = sims.clone()
+                sims[i] = float((torch.nn.functional.normalize(ae, dim=-1)[0] * te_own[fam]).sum())
+                ttexts[i] = own[fam]
             grp = fams[fam].get("group")
             keep = torch.tensor([j == i or j >= len(names) or grp is None or fams[names[j]].get("group") != grp for j in range(len(texts))])
             ks, ki = sims[keep], int(keep[:i].sum())
             r = {"family": fam, "model": model, "seed": side["seed"], "wav": str(wav), "side": side,
                  "p": round(float(torch.softmax(ks * scale, 0)[ki]), 3), "rank": int((ks > ks[ki]).sum()) + 1,
-                 "best_match": texts[int(sims.argmax())], "peak": round(float(np.abs(x).max()), 3)}
+                 "best_match": ttexts[int(sims.argmax())], "rubric": ttexts[i], "peak": round(float(np.abs(x).max()), 3)}
             if fams[fam]["kind"] == "bed":
                 r["seam"] = loop_seam(librosa.resample(y, orig_sr=sr, target_sr=22050), 22050, 48.0, len(y) / sr)  # a 5 s grid, >= 10 s loops
             by.setdefault(fam, []).append(r)
         for rs in by.values():
-            rs.sort(key=lambda r: (r["rank"] <= 3, r["p"] * (0.7 + 0.3 * max(r.get("seam", {}).get("score", 1.0), 0.0))), reverse=True)
+            order(rs)
         out[model] = by
     return out
+
+
+def order(rs: list[dict]) -> None:
+    """best take first: rank <= 3 first, then p (a bed's p weighted by its loop seam)"""
+    rs.sort(key=lambda r: (r["rank"] <= 3, r["p"] * (0.7 + 0.3 * max(r.get("seam", {}).get("score", 1.0), 0.0))), reverse=True)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("raw")
     ap.add_argument("--dry-run", action="store_true", help="rank and decide only; write sfx-nalati.json, touch no shipped file")
+    ap.add_argument("--only", default="", help="a later round: rank just these families' new takes, pool them with the scored ones, replace only these")
     args = ap.parse_args()
     raw = Path(args.raw)
     fams = json.loads((HERE / "sfx-nalati-jobs.json").read_text())["families"]
+    only = {f for f in args.only.split(",") if f}
+    if only:
+        unknown = only - set(fams)
+        if unknown:
+            raise SystemExit(f"--only: not Nalati families: {sorted(unknown)}")
+        only_round(raw, fams, only, args.dry_run)
+        return
     ranked = rank_all(raw, fams)
 
     table: dict[str, dict] = {}
@@ -181,6 +214,117 @@ def main() -> None:
     bt["nalati"] = {"rule": rec["rule"], "wins": wins, "bytes": total, "families": table}
     (HERE / "sfx-best.json").write_text(json.dumps(bt, indent=2) + "\n")
     print(f"nalati: +{total / 1e6:.2f} MB into best/, wins {wins}")
+
+
+def ship_take(r: dict, fam: str, kind: str) -> tuple[str, int, dict]:
+    """trim / level / encode one take into best/ (sfx_build.py's rules); returns its file name, bytes and bed entry"""
+    x, sr = sf.read(r["wav"], always_2d=True)
+    x = x.T.astype(np.float64)
+    if kind == "bed":
+        s = r["seam"]
+        y, _ = seam(x, sr, {"loopStart": s["start_s"], "loopEnd": s["end_s"]}, 1.0)
+    else:
+        y = trim(x, sr, 5.0 if fam in ("stampede", "thunder-near", "thunder-far", "wolf_howl") else 3.0)
+    L, tp = lufs(y, sr)
+    y = y * 10 ** (min(LEVEL[kind] - L, -1.0 - tp) / 20)
+    tmp = BEST / ".tmp.m4a"
+    size = encode(y, sr, tmp, mono=(kind == "oneshot"))
+    lag, dlen = decode_offset(tmp, y, sr) if kind == "bed" else (0.0, 0.0)
+    fname = shipped_name(BEST, tmp, f"{fam}-{r['seed']}")
+    bed: dict = {}
+    if kind == "bed":
+        bed = {"file": fname, "loopStart": round(r["seam"]["start_s"] + lag, 4), "loopEnd": round(r["seam"]["end_s"] + lag, 4),
+               "duration": round(dlen, 4), "gain": BED_GAIN, "shard": "nalati"}
+        assert bed["loopEnd"] <= dlen and bed["loopEnd"] - bed["loopStart"] > 0.5
+    return fname, size, bed
+
+
+def only_round(raw: Path, fams: dict, only: set[str], dry_run: bool) -> None:
+    """NALATI-FINISH B3: a later round of `only`, pooled with the takes sfx-nalati.json already scored"""
+    rec = json.loads((HERE / "sfx-nalati.json").read_text())
+    new = rank_all(raw, fams, only)
+    man = json.loads((BEST / "sfx.json").read_text())
+    prov = {p["file"]: p for p in man["provenance"] if p.get("round") == "nalati"}
+    for fam in sorted(only):
+        kind = fams[fam]["kind"]
+        pools: dict[str, list[dict]] = {}
+        for m in MODELS:
+            fresh = new[m].get(fam, [])
+            seeds = {r["seed"] for r in fresh}
+            rubric = fams[fam].get("clap_desc", fams[fam]["desc"])  # a take scored by another rubric is not comparable: left out
+            prior = [{**r, "prior": True} for r in rec["takes"].get(m, {}).get(fam, [])
+                     if r["seed"] not in seeds and r.get("rubric", fams[fam]["desc"]) == rubric]
+            pools[m] = prior + fresh
+            order(pools[m])
+        row: dict = {m: ({"rank": rs[0]["rank"], "p": rs[0]["p"], "seed": rs[0]["seed"], "best_match": rs[0]["best_match"]} if rs else None)
+                     for m, rs in pools.items()}
+        cands = [(rs[0]["rank"], -rs[0]["p"], m) for m, rs in pools.items() if rs]
+        rank, _, win = min(cands)
+        row["winner"] = win if rank <= SHIP_MAX_RANK else "synth"
+        chosen: list[dict] = []
+        if rank <= SHIP_MAX_RANK:
+            rs = pools[win]
+            chosen = rs[:1] if kind != "oneshot" else [r for r in rs[:2] if r is rs[0] or r["rank"] <= 3]
+        row["round"] = "b3"
+        old_files = [f for f, p in prov.items() if p["file"].startswith(f"{fam}-") and
+                     (man["oneshots"].get(fam, {}).get("files", []).count(f) or man["beds"].get(fam.split("-", 1)[1], {}).get("file") == f)]
+        keep: list[tuple[dict, str | None]] = []
+        for r in chosen:
+            if r.get("prior"):
+                f = next((f for f in old_files if f.startswith(f"{fam}-{r['seed']}-") and prov[f]["set_of_origin"] == SET_OF[r["model"]]), None)
+                if f is None:
+                    print(f"  {fam}: {r['model']} seed {r['seed']} (first round) was never shipped and its wav is gone: skipped")
+                    continue
+                keep.append((r, f))
+            else:
+                keep.append((r, None))
+        row["ships"] = [f"{r['model']} seed {r['seed']} rank {r['rank']} p {r['p']}" + (" (kept)" if f else " (new)") for r, f in keep]
+        print(f"{fam}: winner {row['winner']}  " + "; ".join(row["ships"]) + f"   (was {rec['families'].get(fam, {}).get('winner')})")
+        rec["families"][fam] = row
+        for m in MODELS:
+            rec["takes"].setdefault(m, {})[fam] = [{k: v for k, v in r.items() if k != "wav"} for r in pools[m]]
+        if dry_run:
+            continue
+        kept = {f for _, f in keep if f}
+        for f in old_files:
+            if f not in kept:
+                (BEST / f).unlink(missing_ok=True)
+        man["provenance"] = [p for p in man["provenance"] if not (p["file"] in old_files and p["file"] not in kept)]
+        files: list[str] = []
+        for r, f in keep:
+            if f is None:
+                f, _, bed = ship_take(r, fam, kind)
+                if kind == "bed":
+                    man["beds"][fam.split("-", 1)[1]] = bed
+                man["provenance"].append({"file": f, "model": r["side"]["repo"], "code": r["side"]["code_commit"], "prompt": r["side"]["prompt"],
+                                          "seed": r["seed"], "steps": r["side"]["steps"], "clap_p": r["p"], "clap_rank": r["rank"],
+                                          "source": MODELS[r["model"]], "set_of_origin": SET_OF[r["model"]], "round": "nalati"})
+            files.append(f)
+        if kind == "oneshot":
+            if files:
+                man["oneshots"][fam] = {"files": files, "gain": man["oneshots"].get(fam, {}).get("gain", 1.0), "shard": "nalati"}
+            else:
+                man["oneshots"].pop(fam, None)
+        elif not files:
+            man["beds"].pop(fam.split("-", 1)[1], None)
+        keeps = set(man.get("synth_keeps", []))
+        man["synth_keeps"] = sorted(keeps - {fam} if files else keeps | {fam})
+    rec["wins"] = {k: sum(1 for t in rec["families"].values() if t["winner"] == k) for k in ("moss", "medium", "synth", "missing")}
+    (HERE / "sfx-nalati.json").write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n")
+    if dry_run:
+        print(f"dry run: wins {rec['wins']}")
+        return
+    # a family the first round shipped but left in synth_keeps (the camp bed's re-roll): out
+    shipped = {k for k, v in man["oneshots"].items() if v.get("shard") == "nalati"} | {f"bed-{k}" for k, v in man["beds"].items() if v.get("shard") == "nalati"}
+    man["synth_keeps"] = sorted(set(man["synth_keeps"]) - shipped)
+    (BEST / "sfx.json").write_text(json.dumps(man, indent=2, ensure_ascii=False) + "\n")
+    total = sum((BEST / p["file"]).stat().st_size for p in man["provenance"] if p.get("round") == "nalati")
+    rec["bytes"] = total
+    (HERE / "sfx-nalati.json").write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n")
+    bt = json.loads((HERE / "sfx-best.json").read_text())
+    bt["nalati"] = {"rule": rec["rule"], "wins": rec["wins"], "bytes": total, "families": rec["families"]}
+    (HERE / "sfx-best.json").write_text(json.dumps(bt, indent=2) + "\n")
+    print(f"nalati ({','.join(sorted(only))}): {total / 1e6:.2f} MB of Nalati files in best/, wins {rec['wins']}")
 
 
 if __name__ == "__main__":

@@ -1057,8 +1057,8 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    },
    "lightningCrackle": {
     "files": [
-     "lightningCrackle-1-38ea4f51.m4a",
-     "lightningCrackle-2-f39ea4ea.m4a"
+     "lightningCrackle-3-a3e695ea.m4a",
+     "lightningCrackle-1-38ea4f51.m4a"
     ],
     "gain": 1,
     "shard": "nalati"
@@ -1082,6 +1082,22 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
      "footstep-wet-1-58d313a2.m4a"
     ],
     "gain": 1
+   },
+   "javelinImpact-flesh": {
+    "files": [
+     "javelinImpact-flesh-22-e83a7a00.m4a",
+     "javelinImpact-flesh-38-e58ddf4b.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "spearThrust": {
+    "files": [
+     "spearThrust-23-d19fc200.m4a",
+     "spearThrust-22-5612e63b.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
    }
   }
  },

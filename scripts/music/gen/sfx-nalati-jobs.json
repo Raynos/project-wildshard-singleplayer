@@ -1,5 +1,5 @@
 {
-  "_doc": "NALATI-MERGE A1: Nalati's sound families, rendered with MOSS-SoundEffect v2 (gen_sfx_moss.py --jobs sfx-nalati-jobs.json) and Stable Audio 3 Medium (gen_sfx.py --model medium --jobs sfx-nalati-jobs.json); sfx_nalati.py ranks both with CLAP and merges the better take per family INTO public/assets/sfx/best/ (the one set). `group`: siblings that are not each other's CLAP competitors (a hoof on grass vs on gravel). Every entry ships tagged shard 'nalati' in sfx.json, so only the steppe decodes it.",
+  "_doc": "`clap_desc` (NALATI-FINISH B3): the text that family's own takes are judged by when `desc` is a weak CLAP anchor; other families still meet `desc` as a rival (sfx_nalati.py). NALATI-MERGE A1: Nalati's sound families, rendered with MOSS-SoundEffect v2 (gen_sfx_moss.py --jobs sfx-nalati-jobs.json) and Stable Audio 3 Medium (gen_sfx.py --model medium --jobs sfx-nalati-jobs.json); sfx_nalati.py ranks both with CLAP and merges the better take per family INTO public/assets/sfx/best/ (the one set). `group`: siblings that are not each other's CLAP competitors (a hoof on grass vs on gravel). Every entry ships tagged shard 'nalati' in sfx.json, so only the steppe decodes it.",
   "families": {
     "wolf_howl": {
       "kind": "oneshot",
@@ -216,6 +216,7 @@
       "kind": "oneshot",
       "duration": 1,
       "desc": "a spear thrust fast forward",
+      "clap_desc": "a quick swoosh of a spear stabbing forward",
       "prompt": "A spear thrust hard forward: a short fast rip of air and the wooden shaft creaking, close. No music."
     },
     "javelinThrow": {
@@ -243,6 +244,7 @@
       "duration": 1,
       "group": "javelinImpact",
       "desc": "a javelin hitting a body",
+      "clap_desc": "a heavy spear thudding into an animal's body",
       "prompt": "A heavy javelin hitting a large animal's body: a deep wet thud, close. No music."
     },
     "thunder-near": {

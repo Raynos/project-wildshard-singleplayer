@@ -1570,11 +1570,11 @@
     "rule": "per family: each model's best take by CLAP (siblings in a group not competing); the lower rank wins, ties to the higher p; ships only in the top 5",
     "wins": {
       "moss": 24,
-      "medium": 25,
-      "synth": 2,
+      "medium": 27,
+      "synth": 0,
       "missing": 0
     },
-    "bytes": 2388858,
+    "bytes": 2407229,
     "families": {
       "wolf_howl": {
         "moss": {
@@ -1889,7 +1889,12 @@
           "seed": 1,
           "best_match": "a single footstep on tall dry grass"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 1 p 0.949 (kept)",
+          "moss seed 1 rank 1 p 0.598 (kept)"
+        ]
       },
       "footstep-gravel": {
         "moss": {
@@ -1904,14 +1909,19 @@
           "seed": 3,
           "best_match": "a single footstep on gravel"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 1 p 0.893 (kept)",
+          "moss seed 1 rank 1 p 0.727 (kept)"
+        ]
       },
       "bowDraw": {
         "moss": {
-          "rank": 5,
-          "p": 0.009,
-          "seed": 2,
-          "best_match": "a curved steel sabre swishing through the air"
+          "rank": 1,
+          "p": 0.43,
+          "seed": 3,
+          "best_match": "a small click and creak of a bow held at full draw"
         },
         "medium": {
           "rank": 1,
@@ -1919,7 +1929,12 @@
           "seed": 3,
           "best_match": "a wooden bow being drawn with a creak"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 3 rank 1 p 0.99 (kept)",
+          "medium seed 2 rank 1 p 0.906 (kept)"
+        ]
       },
       "bowFullDraw": {
         "moss": {
@@ -1934,7 +1949,11 @@
           "seed": 2,
           "best_match": "a bow string twanging as an arrow is shot"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 3 p 0.018 (kept)"
+        ]
       },
       "bowLetDown": {
         "moss": {
@@ -1949,7 +1968,11 @@
           "seed": 1,
           "best_match": "a wooden bow being drawn with a creak"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 5 p 0.047 (kept)"
+        ]
       },
       "bowTwang": {
         "moss": {
@@ -1964,7 +1987,12 @@
           "seed": 3,
           "best_match": "a sabre chopping into wood with a ringing blade"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 2 p 0.235 (kept)",
+          "moss seed 1 rank 2 p 0.161 (kept)"
+        ]
       },
       "arrowWhoosh": {
         "moss": {
@@ -1979,13 +2007,18 @@
           "seed": 2,
           "best_match": "an arrow whooshing past through the air"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 2 rank 1 p 0.956 (kept)",
+          "medium seed 1 rank 1 p 0.92 (kept)"
+        ]
       },
       "arrowImpact-wood": {
         "moss": {
-          "rank": 4,
-          "p": 0.001,
-          "seed": 2,
+          "rank": 3,
+          "p": 0.034,
+          "seed": 3,
           "best_match": "a sabre chopping into wood with a ringing blade"
         },
         "medium": {
@@ -1994,7 +2027,12 @@
           "seed": 2,
           "best_match": "an arrow thudding into wood and quivering"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 2 rank 1 p 0.775 (kept)",
+          "medium seed 3 rank 1 p 0.707 (kept)"
+        ]
       },
       "arrowImpact-ground": {
         "moss": {
@@ -2009,14 +2047,18 @@
           "seed": 2,
           "best_match": "a sabre chopping into wood with a ringing blade"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 2 rank 5 p 0.006 (kept)"
+        ]
       },
       "arrowImpact-flesh": {
         "moss": {
-          "rank": 34,
-          "p": 0.0,
-          "seed": 1,
-          "best_match": "wind blowing through tall grass on an open steppe"
+          "rank": 3,
+          "p": 0.053,
+          "seed": 3,
+          "best_match": "a sabre chopping into wood with a ringing blade"
         },
         "medium": {
           "rank": 1,
@@ -2024,7 +2066,12 @@
           "seed": 3,
           "best_match": "an arrow hitting an animal's body"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 3 rank 1 p 0.687 (kept)",
+          "medium seed 2 rank 2 p 0.367 (kept)"
+        ]
       },
       "sabreSwing": {
         "moss": {
@@ -2039,13 +2086,18 @@
           "seed": 2,
           "best_match": "an arrow whooshing past through the air"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 1 rank 1 p 0.938 (kept)",
+          "moss seed 2 rank 1 p 0.744 (kept)"
+        ]
       },
       "sabreHit-flesh": {
         "moss": {
           "rank": 1,
-          "p": 0.604,
-          "seed": 2,
+          "p": 0.919,
+          "seed": 3,
           "best_match": "a sabre chopping into wood with a ringing blade"
         },
         "medium": {
@@ -2054,7 +2106,12 @@
           "seed": 3,
           "best_match": "a sabre slashing into flesh"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 3 rank 1 p 0.99 (kept)",
+          "medium seed 2 rank 1 p 0.983 (kept)"
+        ]
       },
       "sabreHit-wood": {
         "moss": {
@@ -2069,22 +2126,32 @@
           "seed": 2,
           "best_match": "a sabre chopping into wood with a ringing blade"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 2 rank 1 p 0.994 (kept)",
+          "medium seed 1 rank 1 p 0.805 (kept)"
+        ]
       },
       "spearThrust": {
         "moss": {
-          "rank": 13,
-          "p": 0.0,
-          "seed": 1,
+          "rank": 3,
+          "p": 0.021,
+          "seed": 12,
           "best_match": "an arrow whooshing past through the air"
         },
         "medium": {
-          "rank": 10,
-          "p": 0.002,
-          "seed": 1,
-          "best_match": "a sabre slashing into flesh"
+          "rank": 2,
+          "p": 0.137,
+          "seed": 23,
+          "best_match": "an arrow whooshing past through the air"
         },
-        "winner": "synth"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 23 rank 2 p 0.137 (new)",
+          "medium seed 22 rank 3 p 0.041 (new)"
+        ]
       },
       "javelinThrow": {
         "moss": {
@@ -2099,7 +2166,11 @@
           "seed": 3,
           "best_match": "an armoured giant roaring in pain"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 3 p 0.007 (kept)"
+        ]
       },
       "javelinImpact-wood": {
         "moss": {
@@ -2114,7 +2185,11 @@
           "seed": 1,
           "best_match": "an arrow thudding into wood and quivering"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 1 rank 4 p 0.034 (kept)"
+        ]
       },
       "javelinImpact-ground": {
         "moss": {
@@ -2129,29 +2204,39 @@
           "seed": 1,
           "best_match": "a sabre chopping into wood with a ringing blade"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 2 p 0.016 (kept)",
+          "medium seed 3 rank 3 p 0.015 (kept)"
+        ]
       },
       "javelinImpact-flesh": {
         "moss": {
-          "rank": 24,
-          "p": 0.002,
-          "seed": 2,
-          "best_match": "a javelin stabbing into the earth"
+          "rank": 1,
+          "p": 0.984,
+          "seed": 32,
+          "best_match": "a heavy spear thudding into an animal's body"
         },
         "medium": {
-          "rank": 40,
-          "p": 0.0,
-          "seed": 1,
-          "best_match": "a sabre chopping into wood with a ringing blade"
+          "rank": 1,
+          "p": 0.997,
+          "seed": 22,
+          "best_match": "a heavy spear thudding into an animal's body"
         },
-        "winner": "synth"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 22 rank 1 p 0.997 (new)",
+          "medium seed 38 rank 1 p 0.997 (new)"
+        ]
       },
       "thunder-near": {
         "moss": {
-          "rank": 2,
-          "p": 0.451,
-          "seed": 1,
-          "best_match": "static electricity crackling before a lightning strike"
+          "rank": 1,
+          "p": 0.997,
+          "seed": 3,
+          "best_match": "a close thunderclap cracking overhead"
         },
         "medium": {
           "rank": 1,
@@ -2159,13 +2244,18 @@
           "seed": 1,
           "best_match": "a close thunderclap cracking overhead"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 1 p 0.998 (kept)",
+          "medium seed 2 rank 1 p 0.995 (kept)"
+        ]
       },
       "thunder-far": {
         "moss": {
           "rank": 2,
-          "p": 0.074,
-          "seed": 2,
+          "p": 0.236,
+          "seed": 3,
           "best_match": "static electricity crackling before a lightning strike"
         },
         "medium": {
@@ -2174,13 +2264,18 @@
           "seed": 1,
           "best_match": "a close thunderclap cracking overhead"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 1 p 0.403 (kept)",
+          "medium seed 3 rank 1 p 0.353 (kept)"
+        ]
       },
       "lightningCrackle": {
         "moss": {
           "rank": 1,
-          "p": 0.982,
-          "seed": 1,
+          "p": 0.985,
+          "seed": 3,
           "best_match": "static electricity crackling before a lightning strike"
         },
         "medium": {
@@ -2189,7 +2284,12 @@
           "seed": 3,
           "best_match": "static electricity crackling before a lightning strike"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 3 rank 1 p 0.985 (new)",
+          "moss seed 1 rank 1 p 0.982 (kept)"
+        ]
       },
       "bed-steppe-wind": {
         "moss": {
@@ -2204,7 +2304,11 @@
           "seed": 3,
           "best_match": "wind blowing through tall grass on an open steppe"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 3 rank 1 p 0.998 (kept)"
+        ]
       },
       "bed-steppe-larks": {
         "moss": {
@@ -2219,7 +2323,11 @@
           "seed": 2,
           "best_match": "skylarks singing high above a meadow"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 1 p 0.999 (kept)"
+        ]
       },
       "bed-steppe-night": {
         "moss": {
@@ -2234,7 +2342,11 @@
           "seed": 1,
           "best_match": "crickets chirping in grassland at night"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 1 p 0.962 (kept)"
+        ]
       },
       "bed-river": {
         "moss": {
@@ -2249,7 +2361,11 @@
           "seed": 1,
           "best_match": "a fast mountain river rushing over stones"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 1 p 0.976 (kept)"
+        ]
       },
       "bed-meltwater": {
         "moss": {
@@ -2264,13 +2380,17 @@
           "seed": 2,
           "best_match": "meltwater trickling and dripping from a glacier"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 2 rank 1 p 0.982 (kept)"
+        ]
       },
       "bed-camp": {
         "moss": {
           "rank": 1,
-          "p": 0.655,
-          "seed": 1,
+          "p": 0.757,
+          "seed": 3,
           "best_match": "a crackling wood fire with tent fabric flapping in the wind"
         },
         "medium": {
@@ -2279,13 +2399,17 @@
           "seed": 1,
           "best_match": "a crackling wood fire with tent fabric flapping in the wind"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 1 p 0.914 (kept)"
+        ]
       },
       "bed-highwind": {
         "moss": {
-          "rank": 4,
-          "p": 0.051,
-          "seed": 1,
+          "rank": 7,
+          "p": 0.069,
+          "seed": 3,
           "best_match": "a cold howling wind in snowy mountains"
         },
         "medium": {
@@ -2294,7 +2418,11 @@
           "seed": 1,
           "best_match": "wind blowing through tall grass on an open steppe"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 1 p 0.707 (kept)"
+        ]
       },
       "bed-coldwind": {
         "moss": {
@@ -2309,7 +2437,11 @@
           "seed": 3,
           "best_match": "a cold howling wind in snowy mountains"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 3 rank 1 p 0.975 (kept)"
+        ]
       },
       "bed-rain": {
         "moss": {
@@ -2324,7 +2456,11 @@
           "seed": 1,
           "best_match": "heavy rain falling on grassland"
         },
-        "winner": "medium"
+        "winner": "medium",
+        "round": "b3",
+        "ships": [
+          "medium seed 1 rank 1 p 0.979 (kept)"
+        ]
       },
       "bed-stormwind": {
         "moss": {
@@ -2339,7 +2475,11 @@
           "seed": 2,
           "best_match": "a violent storm wind roaring"
         },
-        "winner": "moss"
+        "winner": "moss",
+        "round": "b3",
+        "ships": [
+          "moss seed 2 rank 1 p 0.987 (kept)"
+        ]
       }
     }
   }
