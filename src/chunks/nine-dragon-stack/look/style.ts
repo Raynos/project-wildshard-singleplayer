@@ -198,6 +198,9 @@ export class Shared {
     // (round 2, the stair lane: pale pink landings) the silk sky's share of the wet reflection: x the flagstones' fresnel
     // sheen, y the wet tops' (decks, treads, landings) film. The lights' and neon's share (pools, cards, glints) is apart
     uWetSky: { value: new Vector2(0.15, 0.08) },
+    // (E315) how dry the rain-wet washes are drawn: 0 in the world; the Model Explorer's studio (specimenLight.ts) dries its
+    // specimens (a program without it reads 0: the world's)
+    uDry: { value: 0 },
     ...lightVolUniforms(),
   };
   look: LookName = 'jiehua';
@@ -286,6 +289,7 @@ uniform vec4 uDeepAir2;
 uniform vec2 uPuff;
 uniform vec4 uDeepAmb;
 uniform vec2 uWetSky;
+uniform float uDry;
 uniform vec4 uBands[${BAND_COUNT}];
 uniform vec3 uBandCols[${BAND_COUNT}];
 uniform vec3 uBandWin;
@@ -599,7 +603,7 @@ void main() {
 
   vec3 col = base;
   vec3 emit = base * vMisc.x;
-  float wet = vMisc.z;
+  float wet = vMisc.z * (1.0 - uDry);
   float wetPool = 0.0;
   float vert = 1.0 - abs(n.y);
   float forceInk = 0.0;

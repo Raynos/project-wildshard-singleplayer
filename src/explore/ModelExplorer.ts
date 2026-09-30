@@ -17,6 +17,10 @@
  * higher), the lens shifted onto that band (setView.ts lensShift: the orbit still turns round the model), and it is
  * fitted there with a margin — the model and the disc it stands on, from every side as it turns, never nearer than
  * MIN_DIST. The bottom third is the card's: a fixed height for every model (one-line path, name, stats, PART OF, budget).
+ * A flat piece drawn from one side (a sign board, a roll shutter, a couplet: Nine Dragon's facade pieces face +z out of
+ * their wall) opens facing its face, and the idle turn sways round its front instead of turning its blank back to you.
+ * While a model is on show, `ws:turntable` tells the shard (Nine Dragon lights its specimens like a studio, not the
+ * city's night: src/chunks/nine-dragon-stack/look/specimenLight.ts).
  */
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
@@ -67,6 +71,13 @@ const RIG_REACH = 1.8;
 const ZONE_BOTTOM = 2 / 3;
 /** a path as its folder (it gives way, an ellipsis in the middle of the path) and its file name (it never does) */
 const fileHtml = (path: string): string => { const i = path.lastIndexOf('/') + 1; return `<span class="ws-x-file-dir">${path.slice(0, i)}</span><span class="ws-x-file-name">${path.slice(i)}</span>`; };
+/** oneSided's threshold: the share of a piece's area its faces' level sum must reach */
+const ONE_SIDED = 0.3;
+/** a one-sided piece is flat when its depth along its face is at most this share of its width across it; its disc's
+ *  radius, as a share of its half-width (a round model's is 1.3) */
+const FLAT = 0.35, FLAT_DISC = 0.6;
+/** a one-sided piece (oneSided): opened this far (rad) off its front; its idle sway's half-angle; the sway's phase there */
+const SWAY_OPEN = 0.35, SWAY = 0.8, SWAY_PHASE = Math.asin(SWAY_OPEN / SWAY);
 /** the turntable's shadow map, every tier: one model in the map, so 2048 is cheap */
 const STUDIO_SHADOW_MAP = 2048;
 
@@ -103,6 +114,9 @@ export class ModelExplorer implements ExplorePane {
   // orbit
   private readonly target = new THREE.Vector3();
   private yaw = 0.7; private pitch = 0.32; private dist = 12; private minDist = 2; private maxDist = 60;
+  /** a one-sided model's front (the camera's yaw that faces it): the idle turn sways round it; null = it turns all round */
+  private front: number | null = null;
+  private swayT = 0;
   /** the fitted distance (the zoom is a ratio of it), the box that is fitted, where the lens is centred (CSS px) */
   private fitDist = 0;
   private readonly framed = new THREE.Box3();
@@ -380,6 +394,8 @@ export class ModelExplorer implements ExplorePane {
       this.savedBackground = scene.background; scene.background = studioBackdrop();
       // the studio is indoors: a shard's weather drawn in its post (Nine Dragon's drizzle) stops while a model is on show (E306)
       document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: true }));
+      // (the Model Explorer's own: a shard's specimen light, keyed from the side the turntable opens on — frameModel)
+      document.dispatchEvent(new CustomEvent('ws:turntable', { detail: { on: true, key: this.world.game.sky.sunDir.clone() } }));
     }
     // every level from the model up to the scene: its siblings go (one cabin out of the homestead group, one jetty
     // out of the pier), the lights stay
@@ -409,6 +425,7 @@ export class ModelExplorer implements ExplorePane {
     if (this.savedBackground !== undefined) {
       this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined;
       document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: false }));
+      document.dispatchEvent(new CustomEvent('ws:turntable', { detail: { on: false } }));
     }
   }
 
@@ -443,7 +460,14 @@ export class ModelExplorer implements ExplorePane {
   private frameModel(o: THREE.Object3D): void {
     const box = visibleBox(o);
     const size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
-    const r = Math.max(size.x, size.z) * 0.5, disc = Math.max(0.5, r * 1.3);
+    // a flat piece seen from one side only (its faces' normals add up to one way, and it is thin that way: a sign board, a
+    // roll shutter, a laundry line): opened facing it, a little off-axis; it stands on a smaller disc (a wall piece on a
+    // plinth), so the fit is the piece's own width, not a disc wider than it
+    const face = oneSided(o);
+    const flat = face !== null && Math.abs(face.x) * size.x + Math.abs(face.z) * size.z <= FLAT * (Math.abs(face.z) * size.x + Math.abs(face.x) * size.z);
+    this.front = face !== null && flat ? Math.atan2(face.x, face.z) : null;
+    this.swayT = 0;
+    const r = Math.max(size.x, size.z) * 0.5, disc = Math.max(0.5, r * (this.front === null ? 1.3 : FLAT_DISC));
     this.floor.position.set(centre.x, box.min.y, centre.z);
     this.floor.scale.setScalar(disc);
     this.contact.position.set(centre.x, box.min.y + 0.004, centre.z);
@@ -454,6 +478,7 @@ export class ModelExplorer implements ExplorePane {
     // open on the lit side: the camera sits between the sun and the model, a little off-axis so the form reads
     const sun = this.world.game.sky.sunDir;
     this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = 0.3; this.idle = 0;
+    if (this.front !== null) this.yaw = this.front + SWAY_OPEN;
   }
 
   /**
@@ -474,7 +499,11 @@ export class ModelExplorer implements ExplorePane {
     this.lens();
     this.scratch.copy(cam); this.scratch.updateProjectionMatrix();
     const turns = this.lineup === null; // (the lineup is seen from one side)
-    const fit = Math.max(MIN_DIST, fitOrbit(this.framed, this.scratch, this.pitch, bandWindow(top, bottom, H, 0.1, 0.72), turns ? 8 : 1, turns ? 0 : this.yaw, 0));
+    const win = bandWindow(top, bottom, H, 0.1, 0.72), front = this.front;
+    // (a flat piece is fitted over its sway round its front, not all the way round: edge-on it never shows)
+    const fit = Math.max(MIN_DIST, turns && front !== null
+      ? Math.max(...[-1, -0.5, 0, 0.5, 1].map((k) => fitOrbit(this.framed, this.scratch, this.pitch, win, 1, front + k * SWAY, 0)))
+      : fitOrbit(this.framed, this.scratch, this.pitch, win, turns ? 8 : 1, turns ? 0 : this.yaw, 0));
     const k = reset || this.fitDist <= 0 ? 1 : this.dist / this.fitDist;
     this.fitDist = fit; this.dist = fit * k; this.minDist = Math.max(0.4, fit * 0.3); this.maxDist = fit * 3;
     this.el.dataset['fit'] = String(Number(fit.toFixed(2))); // (a capture script reads it)
@@ -793,7 +822,14 @@ export class ModelExplorer implements ExplorePane {
       this.lens();
       this.fitShadows();
       this.idle += dt;
-      if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0 && this.lineup === null) this.yaw += dt * 0.22; // the turntable turns while you look (not while comparing tiers / the lineup)
+      if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0 && this.lineup === null) { // the turntable turns while you look (not while comparing tiers / the lineup)
+        if (this.front === null) this.yaw += dt * 0.22;
+        else { // a flat piece sways round its front (the shorter way back to it after a drag)
+          this.swayT += (dt * 0.22) / SWAY;
+          const d = this.front + SWAY * Math.sin(this.swayT + SWAY_PHASE) - this.yaw;
+          this.yaw += Math.atan2(Math.sin(d), Math.cos(d)) * Math.min(1, dt * 2);
+        }
+      }
       const cp = Math.cos(this.pitch);
       camera.position.set(this.target.x + Math.sin(this.yaw) * cp * this.dist, this.target.y + Math.sin(this.pitch) * this.dist, this.target.z + Math.cos(this.yaw) * cp * this.dist);
       camera.lookAt(this.target);
@@ -925,6 +961,38 @@ function visibleBox(o: THREE.Object3D): THREE.Box3 {
     if (c.geometry.boundingBox) box.union(part.copy(c.geometry.boundingBox).applyMatrix4(c.matrixWorld));
   });
   return box.isEmpty() ? box.setFromObject(o) : box;
+}
+
+/**
+ * Which way a piece drawn from one side faces (world xz, unit), or null. Its triangles' area vectors are summed: a closed
+ * shape's cancel out, a one-sided panel's (a sign board, a shutter, a couplet) add up to its face; a double-sided
+ * material's count as area only (they are seen from both sides). A piece counts when that sum's level part is over
+ * ONE_SIDED of all its area; a big mesh (over 60 000 triangles) is taken as closed.
+ */
+function oneSided(o: THREE.Object3D): THREE.Vector3 | null {
+  const sum = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3(), w = new THREE.Matrix4();
+  const meshes: THREE.Mesh[] = [];
+  o.updateWorldMatrix(true, true);
+  o.traverseVisible((m) => { if (isMesh(m) && (m as Partial<THREE.SkinnedMesh>).isSkinnedMesh !== true && (m as Partial<THREE.BatchedMesh>).isBatchedMesh !== true) meshes.push(m); });
+  let area = 0;
+  for (const m of meshes) {
+    const pos = m.geometry.getAttribute('position') as THREE.BufferAttribute | undefined, idx = m.geometry.index;
+    if (pos === undefined) continue;
+    const tris = Math.floor((idx ? idx.count : pos.count) / 3);
+    if (tris > 60_000) return null;
+    w.copy(m.matrixWorld);
+    if (m instanceof THREE.InstancedMesh) { m.getMatrixAt(0, w); w.premultiply(m.matrixWorld); } // (a specimen's one copy)
+    const mats = m.material as THREE.Material | THREE.Material[], mat = Array.isArray(mats) ? mats[0] : mats;
+    const side = mat === undefined || mat.side === THREE.DoubleSide ? 0 : mat.side === THREE.BackSide ? -1 : 1;
+    for (let t = 0; t < tris; t++) {
+      const i0 = idx ? idx.getX(t * 3) : t * 3, i1 = idx ? idx.getX(t * 3 + 1) : t * 3 + 1, i2 = idx ? idx.getX(t * 3 + 2) : t * 3 + 2;
+      a.fromBufferAttribute(pos, i0).applyMatrix4(w); b.fromBufferAttribute(pos, i1).applyMatrix4(w); c.fromBufferAttribute(pos, i2).applyMatrix4(w);
+      n.subVectors(b, a).cross(c.sub(a));
+      sum.addScaledVector(n, side); area += n.length();
+    }
+  }
+  sum.y = 0;
+  return area <= 0 || sum.length() < ONE_SIDED * area ? null : sum.normalize();
 }
 
 /** the studio's backdrop: deep blue at the horizon line, near-black above and below (a canvas the renderer stretches to the screen) */

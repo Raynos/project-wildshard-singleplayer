@@ -8,6 +8,7 @@ import type { StructureContext } from '../ChunkDef';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './world/colliders';
 import { crossingColliders } from './world/well-mid';
+import { installSpecimenLight } from './look/specimenLight';
 
 let current: NineDragonWorld | null = null;
 let camera: PerspectiveCamera | null = null;
@@ -29,6 +30,7 @@ export const NINE_DRAGON_WORLD = {
     const world = await buildNineDragonWorld(ctx.renderer, ctx.progress);
     current = world;
     camera = ctx.camera;
+    installSpecimenLight(() => current?.shared ?? null); // the Model Explorer's turntable lights the specimens (E315)
     grappleGuardOpen = false;
     const c = fragmentColliders();
     ctx.registry.add({

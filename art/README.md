@@ -545,3 +545,14 @@ card's VIEW IN WORLD lands on, and what a tap at its centre selects: the earth-g
 and the noodle stall. Before (HEAD 24c8e415), the camera stood in the stack, a metre from a wall or a pipe (6 / 20 taps
 picked their own model). After, the eye is the old framing where it is clear, else the first clear one round the copy,
 checked on landing with a tap's own pick (19 / 20). `scripts/explore-view-taps.mjs` measures all four shards.
+
+### Nine Dragon specimens, brightened and refitted (`art/models-audit/round-13-nd-specimens/`, 2026-09-30, E315)
+
+Jake's pick after the Explorer review: Nine Dragon's dark or small Model Explorer specimens, brightened and refitted in the
+Explorer only. `nd-specimens-before-after.jpg`: the four he named (the Kowloon stele, the lotus-bud finial, the roll
+shutter, the sign), each one's first turntable frame, iPhone portrait, before (416416c6) / after. The turntable now lights
+Nine Dragon's specimens like a studio (look/specimenLight.ts: a raised ambient, the shade wash lifted, the top light keyed
+from the side the turntable opens on, the washes dry), and a flat piece drawn from one side (the shutter, the sign, the
+laundry line) opens facing its face on a smaller disc, fitted over its sway (the shutter showed its blank back, the sign
+stood on a disc wider than it). `framing-nine-dragon-before.jpg` / `framing-nine-dragon-after.jpg`: every Nine Dragon
+model's first frame (57), the same two builds.
