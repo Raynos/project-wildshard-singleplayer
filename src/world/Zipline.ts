@@ -24,7 +24,7 @@ import type { Interactable } from './Cabin';
 import type { ColliderDesc, WorldRegistry } from './registry';
 import { zipline, ziplineGeometry, ZiplineLayout, type ZiplineSpec } from '../chunks/driftwood-isle/models/zipline';
 import { modelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export type { ZiplineSpec } from '../chunks/driftwood-isle/models/zipline';
 
@@ -45,6 +45,8 @@ export class Zipline {
   private riding = false;
   private s = 0; private v = 0;
   private readonly lay: ZiplineLayout;
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
 
   constructor(private sky: Sky, private spec: ZiplineSpec) {
     const lay = this.lay = new ZiplineLayout(spec);
@@ -78,7 +80,7 @@ export class Zipline {
   place(registry: WorldRegistry): this {
     const t = this.spec.top, b = this.spec.bottom;
     const box = new THREE.Box3().setFromObject(this.group);
-    place(zipline, [{ x: t.x, y: t.y, z: t.z, params: { top: { x: t.x, y: t.y, z: t.z }, bottom: { x: b.x, y: b.y, z: b.z } } }], { ctx: modelContext(this.sky), draw: 'merged', registry,
+    this.placed = place(zipline, [{ x: t.x, y: t.y, z: t.z, params: { top: { x: t.x, y: t.y, z: t.z }, bottom: { x: b.x, y: b.y, z: b.z } } }], { ctx: modelContext(this.sky), draw: 'merged', registry,
       drawnInto: { object: this.group, boxes: Float32Array.from([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z]), colliders: this.colliderDescs() },
       piece: { id: 'zipline', floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     return this;

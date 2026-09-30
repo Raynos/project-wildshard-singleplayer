@@ -17,7 +17,7 @@ import type { ColliderDesc, WorldRegistry } from './registry';
 import type { Sky } from './Sky';
 import { ropeBridge, ropeBridgeLayout, type DeckPoses, type RopeBridgeLayout, type RopeBridgeParams, type RopeBridgeSpec } from '../chunks/driftwood-isle/models/ropeBridge';
 import { modelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export type { DeckPoses, DeckSegment, RopeBridgeSpec } from '../chunks/driftwood-isle/models/ropeBridge';
 
@@ -29,6 +29,8 @@ export class RopeBridge {
   private readonly params: RopeBridgeParams;
   private lay: RopeBridgeLayout | null = null;
   private descs: ColliderDesc[] = [];
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
 
   constructor(private sky: Sky, spec: RopeBridgeSpec) { this.params = { span: spec, ground: heightAt }; }
 
@@ -43,6 +45,7 @@ export class RopeBridge {
     const placed = place(ropeBridge, [{ x: o.x, y: o.y, z: o.z, params: this.params }], { ctx: modelContext(this.sky), draw: 'single', registry,
       piece: { id: 'bridge', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
     this.mesh = placed.object;
+    this.placed = placed;
     this.descs = [...placed.colliders];
     this.colliders = lay.colliders;
     return this;

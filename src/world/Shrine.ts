@@ -22,7 +22,7 @@ import type { Sky } from './Sky';
 import type { ColliderDesc, WorldRegistry } from './registry';
 import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin, type ShrineAnchor, type ShrineParams } from '../chunks/driftwood-isle/models/shrine';
 import { modelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export type { ShrineAnchor } from '../chunks/driftwood-isle/models/shrine';
 export interface ShrineSpec { x: number; z: number; rot: number }
@@ -40,6 +40,8 @@ export class Shrine {
   private readonly o: { x: number; y: number; z: number };
   private lay: ReturnType<typeof shrineLayout> | null = null;
   private descs: ColliderDesc[] = [];
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
   private baseY = 0;
   private glyphMat!: THREE.MeshBasicMaterial;
   private uniforms!: { uTime: THREE.IUniform<number> };
@@ -72,6 +74,7 @@ export class Shrine {
     const placed = place(shrine, [{ x, y: y0, z, params: this.params }], { ctx, draw: 'merged', registry,
       piece: { id: 'shrine', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
     this.group = placed.object;
+    this.placed = placed;
     this.descs = [...placed.colliders];
     const lay = this.lay = shrineLayout(this.params);
     this.baseY = y0 + lay.baseY;

@@ -18,7 +18,7 @@ import type { ColliderDesc, WorldRegistry } from './registry';
 import type { Sky } from './Sky';
 import { hut, hutLayout, hutOrigin, type HutAnchor, type HutParams } from '../chunks/driftwood-isle/models/hut';
 import { modelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export type { HutAnchor } from '../chunks/driftwood-isle/models/hut';
 export interface HutSpec { x: number; z: number; rot: number }
@@ -36,6 +36,8 @@ export class Hut {
   private readonly o: { x: number; y: number; z: number };
   private lay: ReturnType<typeof hutLayout> | null = null;
   private descs: ColliderDesc[] = [];
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
 
   constructor(private sky: Sky, spec: HutSpec) {
     this.params = { site: { x: spec.x, z: spec.z, rot: spec.rot }, ground: heightAt };
@@ -53,6 +55,7 @@ export class Hut {
     const placed = place(hut, [{ x: o.x, y: o.y, z: o.z, params: this.params }], { ctx: modelContext(this.sky), draw: 'merged', registry,
       piece: { id: 'hut', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
     this.group = placed.object;
+    this.placed = placed;
     this.descs = [...placed.colliders];
     const lay = this.lay = hutLayout(this.params);
     this.floorY = lay.floorY + o.y;

@@ -21,7 +21,7 @@ import type { ColliderDesc, WorldRegistry } from './registry';
 import type { Sky } from './Sky';
 import { lookout, lookoutLayout, lookoutOrigin, type LookoutAnchor, type LookoutParams } from '../chunks/driftwood-isle/models/lookout';
 import { modelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export type { LookoutAnchor } from '../chunks/driftwood-isle/models/lookout';
 export interface LookoutSpec { x: number; z: number; rot: number }
@@ -39,6 +39,8 @@ export class Lookout {
   private readonly o: { x: number; y: number; z: number };
   private lay: ReturnType<typeof lookoutLayout> | null = null;
   private descs: ColliderDesc[] = [];
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
 
   constructor(private sky: Sky, spec: LookoutSpec) {
     const cave = Cove.forIsland().cave;
@@ -57,6 +59,7 @@ export class Lookout {
     const placed = place(lookout, [{ x: o.x, y: o.y, z: o.z, params: this.params }], { ctx: modelContext(this.sky), draw: 'merged', registry,
       piece: { id: 'lookout', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
     this.group = placed.object;
+    this.placed = placed;
     this.descs = [...placed.colliders];
     const lay = this.lay = lookoutLayout(this.params);
     this.platformY = lay.platformY + o.y;

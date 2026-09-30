@@ -9,7 +9,7 @@
  * one unlit draw. Then it places the Wreck cove's models `drawnInto` what it drew: the shipwreck (piece `wreck`: every
  * collider of the site, in their old order, and the walkable floors), the barrel, the crate and the rope coil (the
  * hold's and the beach's), the drift log and the reef rock — each card counts its copies here, VIEW IN WORLD lands on a
- * real one — and registers them as the Wreck cove set.
+ * real one; `placed` joins the cove's rocks in the Wreck cove set (src/world/Cove.ts).
  *
  *   const wreck = new Wreck(sky, WRECK).place(registry);   // the game: piece `wreck` + the models' cards; add wreck.group to the scene
  *   const wreck = new Wreck(sky, WRECK).build();           // a dev page / the navmesh bake: not registered
@@ -36,7 +36,6 @@ import { driftLog, driftLogBox } from '../chunks/driftwood-isle/models/driftLog'
 import { reefRock } from '../chunks/driftwood-isle/models/reefRock';
 import { modelContext, type Placement } from '../models/model';
 import { place, type Placed } from '../models/place';
-import { placeSet } from '../models/sets';
 
 export type { WreckSpec, WreckAnchor, HoldBounds } from '../chunks/driftwood-isle/models/shipwreck';
 
@@ -120,8 +119,6 @@ export class Wreck {
       return { x: p.x, y: p.y, z: p.z, matrix: k.m, params: { r: k.r, squash: 0.62, moss: k.moss } };
     });
     this.placed.push(place(reefRock, rockPls, { ctx, draw: 'merged', registry, drawnInto: into(rockBoxes), piece: { id: 'wreck-reef-rocks' } }));
-    // the Wreck cove: the wreck and everything strewn round it, one place in the sets explorer (E315 M7)
-    if (registry !== null) placeSet({ id: 'driftwood-isle/wreck-cove', name: 'Wreck cove', file: 'src/world/Wreck.ts', members: this.placed, registry });
     return this;
   }
 

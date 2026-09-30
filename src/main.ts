@@ -24,6 +24,7 @@ import { Cove } from './world/Cove';
 import { Enemies } from './entities/Enemies';
 import { Lookout } from './world/Lookout';
 import { Wreck } from './world/Wreck';
+import { placeDriftwoodPlaces } from './chunks/driftwood-isle/world/places';
 import { Shrine } from './world/Shrine';
 import { Bushes } from './world/Bushes';
 import { Gulls } from './world/Gulls';
@@ -395,7 +396,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); });
       document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
     }
-    return { boundary, water, streams, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
+    return { boundary, water, streams, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover, trailside };
   });
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
@@ -709,6 +710,13 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
   const adventure = installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, stowWeapon: (on) => { weapons.stowed = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params, gulls });
+  // E315 M12: Driftwood's named places are Sets — what each place's radius holds (src/chunks/driftwood-isle/world/places.ts)
+  if (adventure !== null && isOcean) {
+    const d = dressing;
+    placeDriftwoodPlaces(adventure.place, [d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
+      ...(d.trailside?.placed ?? []), ...(d.seabed?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []),
+      adventure.zipline?.placed, ...adventure.kit.placed], { wreck: [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])] });
+  }
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/nalati/adventure.ts on the shared quest core) — null on any other shard ──
   installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });

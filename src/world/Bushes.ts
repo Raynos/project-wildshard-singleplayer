@@ -18,13 +18,15 @@ import type { WorldRegistry } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { hibiscusBush, type HibiscusBushParams } from '../chunks/driftwood-isle/models/hibiscusBush';
 import { modelContext, type Placement } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 
 export class Bushes {
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
   /** every bush, merged into one mesh (an empty mesh when nothing was placed) */
   mesh!: THREE.Mesh;
   count = 0;
@@ -73,6 +75,7 @@ export class Bushes {
     const placed = place(hibiscusBush, Bushes.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' } });
     // (an empty scatter — a stale terrain, a def with no land — places nothing: an empty mesh stands in, as it always did)
     this.mesh = isMesh(placed.object) ? placed.object : new THREE.Mesh();
+    this.placed = placed;
     this.count = placed.copies;
     return this;
   }

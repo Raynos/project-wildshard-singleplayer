@@ -24,6 +24,8 @@ import { place, type Placed } from '../models/place';
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 
 export class Boulders {
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
   /** every rock, merged into one mesh */
   mesh!: THREE.Object3D;
   /** the legacy boxes (r > 0.9 m): the melee sweep and the ocean's foam rings */
@@ -83,6 +85,7 @@ export class Boulders {
   private draw(specs: BoulderSpec[], registry: WorldRegistry | null): this {
     const placed: Placed = place(shoreBoulder, Boulders.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } });
     this.mesh = placed.object;
+    this.placed = placed;
     this.hulls = [...placed.colliders];
     this.count = placed.copies;
     // the legacy box of every rock that collides (r > 0.9 m), on the ground under it

@@ -24,7 +24,7 @@ import type { Sky } from './Sky';
 import { REEF, reefMaterial, type ReefParams } from '../chunks/driftwood-isle/models/reef';
 import { REEF_FISH_COLOURS, reefFish } from '../chunks/driftwood-isle/models/reefFish';
 import { modelContext, type ModelPart, type Placement } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export type SeabedKind = 'coral' | 'weed' | 'star';
 export interface SeabedSpec { kind: SeabedKind; x: number; z: number; s: number; rot: number; v: number }
@@ -34,6 +34,8 @@ const isParts = (b: readonly ModelPart[] | THREE.Object3D): b is readonly ModelP
 const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
 
 export class Seabed {
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  readonly placed: Placed[] = [];
   mesh!: THREE.Mesh;
   fish?: THREE.InstancedMesh;
   count = 0; tris = 0;
@@ -121,7 +123,7 @@ export class Seabed {
     this.mesh = new THREE.Mesh(geo, material);
     this.mesh.castShadow = false; this.mesh.receiveShadow = true;
     this.mesh.name = 'seabed';
-    for (const [kind, k] of kinds) place(REEF[kind], k.pls, { ctx, draw: 'merged', drawnInto: { object: this.mesh, boxes: Float32Array.from(k.boxes) }, piece: { id: `seabed-${kind}` } });
+    for (const [kind, k] of kinds) this.placed.push(place(REEF[kind], k.pls, { ctx, draw: 'merged', drawnInto: { object: this.mesh, boxes: Float32Array.from(k.boxes) }, piece: { id: `seabed-${kind}` } }));
     if (!Array.isArray(layout) && layout.school) this.buildSchool(ctx, layout.school);
     return this;
   }
@@ -137,6 +139,7 @@ export class Seabed {
       seeds[i * 3] = rng.range(0, Math.PI * 2); seeds[i * 3 + 1] = rng.range(0.6, 1); seeds[i * 3 + 2] = rng.range(-1, 1);
     }
     const placed = place(reefFish, pls, { ctx, draw: 'instanced', piece: { id: 'reef-fish' } });
+    this.placed.push(placed);
     const mesh = placed.object;
     if (!isInstanced(mesh)) return;
     // they swim: posed every frame (update), never culled as a set

@@ -28,6 +28,8 @@ export interface PalmSpec { x: number; z: number; h: number; lean: number; leanD
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 
 export class Palms {
+  /** its placements (the named places' sets read them, src/chunks/driftwood-isle/world/places.ts) */
+  placed: Placed | null = null;
   /** every palm, merged into one mesh (an empty group when nothing was placed) */
   mesh!: THREE.Mesh;
   /** the legacy upright box of every trunk: the ocean's foam rings and the melee sweep */
@@ -79,6 +81,7 @@ export class Palms {
     const placed: Placed = place(palm, pls, { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'palms', solidFloor: true } });
     // (an empty scatter — a stale terrain, a def with no land — places nothing: an empty mesh stands in, as it always did)
     this.mesh = isMesh(placed.object) ? placed.object : new THREE.Mesh();
+    this.placed = placed;
     this.trunks = [...placed.colliders];
     this.count = placed.copies;
     // the legacy upright box of every trunk, from 1 m under its foot to its crown

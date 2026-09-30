@@ -69,7 +69,7 @@ import { setting, onSettingChange } from '../ui/Settings';
 import type { Sky } from './Sky';
 import { driftLog, driftLogBox } from '../chunks/driftwood-isle/models/driftLog';
 import { modelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export interface GroundCoverOpts {
   sea: number;
@@ -257,6 +257,8 @@ function lookOf(g: THREE.BufferGeometry): Kind['look'] {
 
 export class GroundCover {
   group = new THREE.Group();
+  /** its placements: the dune line's drift logs (the named places' sets read them) */
+  readonly placed: Placed[] = [];
   private kinds: Kind[] = [];
   private cells = new Map<string, Float32Array[]>();
   private last = new THREE.Vector3(1e9, 0, 1e9);
@@ -539,7 +541,7 @@ export class GroundCover {
       const d = l.b.clone().sub(l.a);
       return { x: (l.a.x + l.b.x) / 2, y: (l.a.y + l.b.y) / 2, z: (l.a.z + l.b.z) / 2, yaw: Math.atan2(-d.z, d.x), params: { len: d.length(), r0: l.r, r1: l.r * 0.7, tone: ((l.tone % 3) + 3) % 3 } };
     });
-    if (pls.length > 0) place(driftLog, pls, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(boxes) }, piece: { id: 'cover-drift-logs' } });
+    if (pls.length > 0) this.placed.push(place(driftLog, pls, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(boxes) }, piece: { id: 'cover-drift-logs' } }));
   }
 
   /** a cell's candidates per kind: [x, y, z, yaw, scale, r, g, b, ground r, g, b] × n — generated once, then cached */
