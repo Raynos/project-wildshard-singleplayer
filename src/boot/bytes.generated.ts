@@ -183,7 +183,6 @@ export const PUBLIC_BYTES = {
   "/assets/gpu/nine-dragon/viewmodel/hand-r-nrm-7f97d7d4.ktx2": 1139252,
   "/assets/gpu/nine-dragon/viewmodel/hand-r-nrm.phone-aa4d7ff1.ktx2": 305925,
   "/assets/gpu/pine-hollow/life/birds-481030e6.glb": 1430660,
-  "/assets/gpu/pine-hollow/life/birds-b.phone-3c606615.glb": 948100,
   "/assets/gpu/pine-hollow/life/birds.phone-ddaa5402.glb": 555576,
   "/assets/gpu/pine-hollow/npcs/miller-3ccc5624.glb": 1960576,
   "/assets/gpu/pine-hollow/npcs/miller.phone-e10b54ef.glb": 649212,

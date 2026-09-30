@@ -12,8 +12,9 @@ The phone's birds.phone.glb carries the desktop atlas halved (2048×1024 → 102
     |             |wood_f| grey |
     +-------------+------+------+
 
-and rewrites each mesh's TEXCOORD_0 into its new rect (the geometry, the pivots, birds.json: unchanged). WebP q92 (the
-KTX2 twin, scripts/bake-ktx2.mjs, is encoded from this image: a high-quality source, not the q80 one).
+and rewrites each mesh's TEXCOORD_0 into its new rect (the geometry, the pivots, birds.json: unchanged). WebP q92: a
+high-quality source for the KTX2 twin scripts/bake-ktx2.mjs bakes once B is the pick (a variant's twin is in no default
+KTX2 set, so none is baked while it is a Debug row).
 
   python3 scripts/img2mesh/birds/birds_phone_b.py public/assets/pine-hollow/life/birds.glb public/assets/pine-hollow/life/birds.phone.glb public/assets/pine-hollow/life/birds-b.phone.glb
 """

@@ -68,9 +68,11 @@ the owl switched to its flying pose, the woodpecker against a stand-in trunk at 
   perched owl's) the desktop's own 512² texels, the rest 256² Lanczos + a light sharpen
   (`scripts/img2mesh/birds/birds_phone_b.py`). The feather breaks on the head and wing read in B, not in A.
 
-Cost (phone, B only; A is byte-for-byte today): the birds' GLB 200 404 → 275 124 B with images (+73 KB), 555 576 →
-948 100 B as KTX2 (+383 KB); the atlas 1024×512 → 1024² (GPU: ~2.8 → ~5.6 MB RGBA8 with mips, ~0.7 → 1.4 MB ASTC).
-The birds are a late read, not a boot file. Desktop: no new bytes (the fixes are done at load).
+Cost (phone, B only; A is byte-for-byte today): the birds' GLB 200 404 → 275 124 B (+73 KB); the atlas 1024×512 →
+1024² (GPU ~2.8 → ~5.6 MB RGBA8 with mips). B has no KTX2 twin yet (a variant's twin sits in no default KTX2 set, which
+test/ktx2-auto.test.ts forbids): in KTX2 mode B loads the WebP copy (275 KB instead of A's 556 KB twin, but RGBA8 on the
+GPU). When Jake picks B, the winner commit makes it birds.phone.glb and rebakes its twin. The birds are a late read, not
+a boot file. Desktop: no new bytes (the fixes are done at load).
 
 Left, visible on the board: B's folded feet catch the light as a thin grey sliver on the bark; the owl's belly is
 shaped by a field, not a new sculpt.

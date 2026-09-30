@@ -18,7 +18,8 @@
  * (birdFix.ts `inflateBody`: it came back a bas-relief), clings the perched woodpecker to its bark (`clingPose`: legs
  * folded up under the breast, tail propped, instead of standing on straight legs) and, on the phone, loads
  * `birds-b.phone.glb` — the same meshes on a 1024² atlas that gives the raven (and the perched owl) the desktop's 512²
- * tiles instead of 256² (scripts/img2mesh/birds/birds_phone_b.py).
+ * tiles instead of 256² (scripts/img2mesh/birds/birds_phone_b.py; no KTX2 twin while it is a variant: KTX2 mode loads it
+ * as WebP).
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
