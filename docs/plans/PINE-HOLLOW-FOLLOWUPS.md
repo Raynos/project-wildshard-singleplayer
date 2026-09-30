@@ -1,6 +1,6 @@
 # Pine Hollow — follow-ups after the remaster merge
 
-**State:** `blocked` 2026-09-30 — E322 built all 14 rows Jake picked (bug sweep, look pass, creatures & hands), live in `9eda772-muo2raeq` (the crossbow-hands polish `21cd9c23` ships next deploy). Waits on Jake: a pick among the rows not yet picked — the big lifts (F-B1 whole-map Blender pass, F-0.2 shard code split, F-B5, F-B6), F-L1's sky / far-rock misses, F-M4, F-M8, F-A1, F-U1, F-P1–P4, F-P6, the GPU levers F-G1–G13 — and the E322 leftovers now in the rows below (crags.glb dead bytes, the King's fight distances, Hale's forearm mesh, rain in practice rooms); F-J1 (an iPhone reading) is his.
+**State:** `in progress` 2026-09-30 — E322 built all 14 rows Jake picked (live `9eda772-muo2raeq`). Now E350 (claude session 341ca5a3 / herdr wildshard-9): the E322 leftovers F-X1 (crags.glb dead bytes), F-X2 (King fight distances), F-X3 (Hale's forearm mesh), F-X4 (no rain in practice rooms), and F-J1 automated as a one-tap PERF lap (Jake picked "Automate it"). Not picked: the big lifts (F-B1, F-0.2, F-B5, F-B6), F-L1, F-M4, F-M8, F-A1, F-U1, F-P1–P4, F-P6, the GPU levers F-G1–G13.
 Each row names where it came from (the remaster lane that left it) so the next agent can read the evidence.
 
 ## Moved out of the remaster to finish it sooner (PH-U32)
