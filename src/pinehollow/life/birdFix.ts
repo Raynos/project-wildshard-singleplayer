@@ -6,8 +6,9 @@
  *                                      back are pushed out to an ellipsoid between the wing roots, the head, and the tail
  *   clingPose(pos, side, pitch)        the perched woodpecker: it stood on the bark on straight legs, its tail in the air;
  *                                      in the frame its perch puts it in (the trunk a vertical plane in front of its belly)
- *                                      the body leans back to the bark, the legs fold up under the breast onto the bark,
- *                                      the tail bends down until its tip props on the bark
+ *                                      the body lies along the bark, the generated legs go into the belly and new feet
+ *                                      grip the bark (a short tarsus, four dark toes hooked in at the claws: `feet`, which
+ *                                      birdModels.ts appends), the tail bends down until its tip braces on the bark
  *
  * Pure geometry on a flat xyz array (no three.js loader): scripts/img2mesh/birds/birds_fix_preview.mjs runs them in Node.
  */
@@ -45,57 +46,133 @@ export function inflateBody(pos: Float32Array, nor: Float32Array, s: FixSide, o:
   }
 }
 
+/** the clinging woodpecker's new feet (clingPose): in the pose frame, dark (every vertex on the old feet's own texel) */
+export interface ClingFeet { pos: Float32Array; uv: Float32Array; idx: Uint32Array }
+
+/** a tapered tube along `path` (world), appended to `P` / `I` — rings of `sides`, radius `rad[i]`, the last ring a point */
+function tube(P: number[], I: number[], path: readonly THREE.Vector3[], rad: readonly number[], sides: number): void {
+  const base = P.length / 3, T = new THREE.Vector3(), N1 = new THREE.Vector3(), N2 = new THREE.Vector3(), ref = new THREE.Vector3();
+  const m = path.length;
+  for (let i = 0; i < m; i++) {
+    const a = path[Math.max(0, i - 1)], b = path[Math.min(m - 1, i + 1)], c = path[i];
+    if (!a || !b || !c) continue;
+    T.subVectors(b, a).normalize();
+    ref.set(0, 0, 1); if (Math.abs(T.z) > 0.9) ref.set(1, 0, 0);
+    N1.crossVectors(T, ref).normalize(); N2.crossVectors(T, N1);
+    const r = rad[i] ?? 0;
+    for (let j = 0; j < sides; j++) {
+      const t = (j / sides) * Math.PI * 2, cs = Math.cos(t) * r, sn = Math.sin(t) * r;
+      P.push(c.x + N1.x * cs + N2.x * sn, c.y + N1.y * cs + N2.y * sn, c.z + N1.z * cs + N2.z * sn);
+    }
+  }
+  // (a, b, c) with a→b round the ring and a→c along the path faces outward (smoothNormals' winding)
+  for (let i = 0; i + 1 < m; i++) for (let j = 0; j < sides; j++) {
+    const a = base + i * sides + j, b = base + i * sides + ((j + 1) % sides), c = a + sides, d = b + sides;
+    I.push(a, b, c, b, d, c);
+  }
+}
+
 /**
  * The perched woodpecker, clinging. `pos` is in the pose frame (the model levelled, feet down, beak +z: birdModels.ts),
  * which its perch pitches nose-up by `pitch` on a trunk whose bark is the plane `bark` metres in front of the pose point
- * (life/index.ts: the spot is `sec.r + 0.05` out from the trunk's axis). Returns the rigid move applied to the whole bird
- * (the neck and shoulder pivots take it too); the legs and the tail then bend on top of it.
+ * (life/index.ts: the spot is `sec.r + 0.05` out from the trunk's axis). In that world frame (+y up, +z toward the trunk):
+ *
+ *  1. rigid: the body turned until its breast-and-belly line lies along the bark (the lean that leaves the least mean gap
+ *     down the torso), then slid in until its nearest point is `gap` off the bark — belly to the trunk, head held off it;
+ *  2. the generated legs (straight tarsi, flat plate feet — pressed onto the bark they read as a grey sliver, E322 F-M5
+ *     round 2) are drawn into the body, and `feet` are built instead: per side a short tarsus from the lower belly to the
+ *     bark and four toes splayed on it (two up, one out, one down-back), each arched off the bark and hooked into it at the
+ *     tip — dark curved claws, on the old feet's own dark texel (`uv`, when given);
+ *  3. the tail bent down from its root until its tip braces on the bark.
+ *
+ * Returns the rigid move applied to the whole bird (the neck and shoulder pivots take it) and the feet (pose frame).
  */
-export function clingPose(pos: Float32Array, s: FixSide, gen2pose: THREE.Matrix4, o: { pitch: number; bark?: number; lean?: number; gap?: number }): THREE.Matrix4 {
-  const n = pos.length / 3, bark = o.bark ?? 0.05;
+export function clingPose(pos: Float32Array, s: FixSide, gen2pose: THREE.Matrix4, o: { pitch: number; bark?: number; gap?: number; uv?: Float32Array | null }): { move: THREE.Matrix4; feet: ClingFeet } {
+  const n = pos.length / 3, bark = o.bark ?? 0.05, gap = o.gap ?? 0.004;
   // pose → the perch's world frame (+y up, +z toward the trunk; the bark the plane z = bark) and back
   const W = new THREE.Matrix4().makeRotationX(-o.pitch), Wi = new THREE.Matrix4().makeRotationX(o.pitch);
   const P = new THREE.Vector3();
-  const tail = new Uint8Array(n), leg = new Uint8Array(n);
-  // the parts, told in the generated frame (gen2pose⁻¹): the tail past its root plane, the legs below the belly
+  const tail = new Uint8Array(n), leg = new Uint8Array(n), head = new Uint8Array(n);
+  // the parts, told in the generated frame (gen2pose⁻¹): the tail past its root plane, the legs below the belly, the head
+  // above the neck
   const toGen = gen2pose.clone().invert();
   const tr = new THREE.Vector3(...(s.tailRoot ?? [0, -0.1, -0.1])), ta = new THREE.Vector3(...(s.tailAxis ?? [0, -0.63, -0.77])).normalize();
+  const headY = s.neck[1] - 0.005;   // above the neck: the head (left out of the torso's profile)
   const legTop = s.feetY + 0.065;   // the belly's underside: the tarsi hang below it (wood_perch: feet −0.200, belly ≈ −0.13)
   const sTail = new Float32Array(n);
+  let footUv = -1, footY = Infinity;
   for (let i = 0; i < n; i++) {
     P.set(pos[i * 3] ?? 0, pos[i * 3 + 1] ?? 0, pos[i * 3 + 2] ?? 0).applyMatrix4(toGen);
     const st = P.clone().sub(tr).dot(ta);
-    if (st > 0) { tail[i] = 1; sTail[i] = st; } else if (P.y < legTop) leg[i] = 1;
+    // the feet reach back past the tail's root plane: below the belly and forward of the tail's underside (z > −0.1) is leg
+    if (P.y < legTop && P.z > -0.1) { leg[i] = 1; if (P.y < footY) { footY = P.y; footUv = i; } } else if (st > 0) { tail[i] = 1; sTail[i] = st; } else if (P.y < legTop) leg[i] = 1; else if (P.y > headY) head[i] = 1;
   }
   // world
   const w = new Float32Array(pos.length);
   for (let i = 0; i < n; i++) { P.set(pos[i * 3] ?? 0, pos[i * 3 + 1] ?? 0, pos[i * 3 + 2] ?? 0).applyMatrix4(W); w[i * 3] = P.x; w[i * 3 + 1] = P.y; w[i * 3 + 2] = P.z; }
-  // 1. rigid: lean the body back from its nose-into-the-trunk tilt to `lean` (head away from the bark), then slide it in
-  //    until the breast is `gap` off the bark
-  const beak = new THREE.Vector3(...(s.beakTip ?? [0, 0.07, 0.15])).applyMatrix4(gen2pose).applyMatrix4(W);
-  const tt = new THREE.Vector3(...(s.tailTip ?? [0, -0.2, -0.21])).applyMatrix4(gen2pose).applyMatrix4(W);
-  const axisAng = Math.atan2(beak.z - tt.z, beak.y - tt.y);          // the body axis's lean toward the trunk (+) from vertical
-  const turn = new THREE.Matrix4().makeRotationX(-(axisAng + (o.lean ?? 0.06)));   // about +x (+y turns toward +z): minus leans it back
+  // 1. rigid: the lean (about +x; + turns +y toward the bark) that lays the torso's front along the bark
+  const bins = 24;
+  let bestLean = 0, bestGap = Infinity;
+  for (let lean = -0.4; lean <= 0.4001; lean += 0.01) {
+    const c = Math.cos(lean), sn = Math.sin(lean);
+    const prof = new Float32Array(bins).fill(-Infinity);
+    let y0 = Infinity, y1 = -Infinity, front = -Infinity;
+    const ys: number[] = [], zs: number[] = [];
+    for (let i = 0; i < n; i++) {
+      if (tail[i] === 1 || leg[i] === 1) continue;
+      const y = w[i * 3 + 1] ?? 0, z = w[i * 3 + 2] ?? 0;
+      const y2 = y * c - z * sn, z2 = y * sn + z * c;
+      front = Math.max(front, z2);
+      if (head[i] === 1) continue;
+      ys.push(y2); zs.push(z2); y0 = Math.min(y0, y2); y1 = Math.max(y1, y2);
+    }
+    for (let k = 0; k < ys.length; k++) {
+      const b = Math.min(bins - 1, Math.floor(((ys[k] ?? 0) - y0) / (y1 - y0 + 1e-6) * bins));
+      prof[b] = Math.max(prof[b] ?? -Infinity, zs[k] ?? 0);
+    }
+    // the middle of the torso (its ends are the rump and the shoulders' round-off): the mean gap to the front
+    let sum = 0, cnt = 0;
+    for (let b = 3; b < bins - 3; b++) { const v = prof[b] ?? -Infinity; if (v > -Infinity) { sum += front - v; cnt++; } }
+    const mean = cnt > 0 ? sum / cnt : Infinity;
+    if (mean < bestGap - 1e-5) { bestGap = mean; bestLean = lean; }
+  }
+  const turn = new THREE.Matrix4().makeRotationX(bestLean);   // three: +a turns +y toward +z (the bark)
   let front = -Infinity;
   for (let i = 0; i < n; i++) {
     P.set(w[i * 3] ?? 0, w[i * 3 + 1] ?? 0, w[i * 3 + 2] ?? 0).applyMatrix4(turn);
     w[i * 3] = P.x; w[i * 3 + 1] = P.y; w[i * 3 + 2] = P.z;
     if (tail[i] === 0 && leg[i] === 0) front = Math.max(front, P.z);
   }
-  const slide = bark - (o.gap ?? 0.012) - front;
+  const slide = bark - gap - front;
   for (let i = 0; i < n; i++) w[i * 3 + 2] = (w[i * 3 + 2] ?? 0) + slide;
   const rigid = new THREE.Matrix4().makeTranslation(0, 0, slide).multiply(turn);
-  // 2. the legs, folded up under the breast: turned about the hip (the tarsi's top, centre) until they lie along the
-  //    bark with the feet up toward the chest, then pressed onto the bark
-  const hip = new THREE.Vector3(0, s.feetY + 0.07, tr.z + 0.07).applyMatrix4(gen2pose).applyMatrix4(W).applyMatrix4(rigid);
-  const fold = new THREE.Matrix4().makeTranslation(hip.x, hip.y, hip.z).multiply(new THREE.Matrix4().makeRotationX(-1.25)).multiply(new THREE.Matrix4().makeScale(1, 0.85, 0.85)).multiply(new THREE.Matrix4().makeTranslation(-hip.x, -hip.y, -hip.z));
-  for (let i = 0; i < n; i++) {
-    if (leg[i] === 0) continue;
-    P.set(w[i * 3] ?? 0, w[i * 3 + 1] ?? 0, w[i * 3 + 2] ?? 0).applyMatrix4(fold);
-    w[i * 3] = P.x; w[i * 3 + 1] = P.y; w[i * 3 + 2] = Math.min(P.z, bark - 0.002);
+  const toWorld = (g: readonly [number, number, number]): THREE.Vector3 => new THREE.Vector3(...g).applyMatrix4(gen2pose).applyMatrix4(W).applyMatrix4(rigid);
+  // 2. the generated legs drawn into the belly (their faces collapse inside the body) …
+  const inside = toWorld([0, s.feetY + 0.1, tr.z + 0.07]);
+  for (let i = 0; i < n; i++) if (leg[i] === 1) { w[i * 3] = inside.x; w[i * 3 + 1] = inside.y; w[i * 3 + 2] = inside.z; }
+  // … and the new feet: per side a tarsus from the lower belly to the bark, four toes on it hooked in at the tip
+  const FP: number[] = [], FI: number[] = [];
+  const TOES = [[0.3, 0.03], [-0.15, 0.027], [1.75, 0.024], [2.75, 0.02]] as const;   // (angle from straight up, outward +; length m)
+  for (const side of [-1, 1]) {
+    const hip = toWorld([side * 0.021, s.feetY + 0.08, tr.z + 0.075]);
+    const foot = new THREE.Vector3(side * 0.03, hip.y + 0.01, bark - 0.0042);
+    const tp: THREE.Vector3[] = [], trd: number[] = [];
+    for (let k = 0; k <= 4; k++) { const f = k / 4; tp.push(hip.clone().lerp(foot, f)); trd.push(0.005 - 0.0012 * f); }
+    tube(FP, FI, tp, trd, 6);
+    for (const [ang, len] of TOES) {
+      const dx = side * Math.sin(ang), dy = Math.cos(ang), path: THREE.Vector3[] = [], rd: number[] = [];
+      for (let k = 0; k <= 8; k++) {
+        const f = k / 8, r = 0.0032 * (1 - 0.85 * f);
+        const off = r + 0.0035 * Math.sin(Math.PI * Math.min(1, f / 0.85)) - 0.0048 * smooth(0.7, 1, f);   // arched off the bark, the claw hooked into it
+        path.push(new THREE.Vector3(foot.x + dx * len * f, foot.y + dy * len * f, bark - off));
+        rd.push(k === 8 ? 0 : r);
+      }
+      tube(FP, FI, path, rd, 5);
+    }
   }
   // 3. the tail, bent down (toward the bark) progressively from its root until its tip props on the bark
   const root = tr.clone().applyMatrix4(gen2pose).applyMatrix4(W).applyMatrix4(rigid);
+  const tt = new THREE.Vector3(...(s.tailTip ?? [0, -0.2, -0.21])).applyMatrix4(gen2pose).applyMatrix4(W);
   let sMax = 0;
   for (let i = 0; i < n; i++) if (tail[i] === 1) sMax = Math.max(sMax, sTail[i] ?? 0);
   const tip = tt.clone().applyMatrix4(rigid);
@@ -115,5 +192,10 @@ export function clingPose(pos: Float32Array, s: FixSide, gen2pose: THREE.Matrix4
   }
   // back to the pose frame
   for (let i = 0; i < n; i++) { P.set(w[i * 3] ?? 0, w[i * 3 + 1] ?? 0, w[i * 3 + 2] ?? 0).applyMatrix4(Wi); pos[i * 3] = P.x; pos[i * 3 + 1] = P.y; pos[i * 3 + 2] = P.z; }
-  return Wi.clone().multiply(rigid).multiply(W);
+  const fp = new Float32Array(FP.length);
+  for (let i = 0; i < FP.length / 3; i++) { P.set(FP[i * 3] ?? 0, FP[i * 3 + 1] ?? 0, FP[i * 3 + 2] ?? 0).applyMatrix4(Wi); fp[i * 3] = P.x; fp[i * 3 + 1] = P.y; fp[i * 3 + 2] = P.z; }
+  const fuv = new Float32Array((FP.length / 3) * 2);
+  const u0 = footUv >= 0 && o.uv ? (o.uv[footUv * 2] ?? 0) : 0, v0 = footUv >= 0 && o.uv ? (o.uv[footUv * 2 + 1] ?? 0) : 0;
+  for (let i = 0; i < fuv.length / 2; i++) { fuv[i * 2] = u0; fuv[i * 2 + 1] = v0; }
+  return { move: Wi.clone().multiply(rigid).multiply(W), feet: { pos: fp, uv: fuv, idx: Uint32Array.from(FI) } };
 }

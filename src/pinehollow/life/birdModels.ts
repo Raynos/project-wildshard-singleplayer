@@ -15,8 +15,9 @@
  * height the procedural bird's did (RAVEN_STAND / OWL_STAND), so every perch spot and landing lines up.
  *
  * E322 F-M5, Debug ▸ Creatures & NPCs ▸ Bird fix (a reload; A = the above, untouched): B gives the flying owl a body
- * (birdFix.ts `inflateBody`: it came back a bas-relief), clings the perched woodpecker to its bark (`clingPose`: legs
- * folded up under the breast, tail propped, instead of standing on straight legs) and, on the phone, loads
+ * (birdFix.ts `inflateBody`: it came back a bas-relief), clings the perched woodpecker to its bark (`clingPose`: belly along
+ * the bark, new dark clawed feet gripping it — `appendFeet` adds them — tail braced, instead of standing on straight
+ * legs) and, on the phone, loads
  * `birds-b.phone.glb` — the same meshes on a 1024² atlas that gives the raven (and the perched owl) the desktop's 512²
  * tiles instead of 256² (scripts/img2mesh/birds/birds_phone_b.py; no KTX2 twin while it is a variant: KTX2 mode loads it
  * as WebP).
@@ -27,7 +28,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { KIND, type WildKind } from '../../chunks/pine-hollow/models/wildlife';
 import { setting } from '../../ui/Settings';
 import { phoneUrl } from '../../boot/bytes';
-import { clingPose, inflateBody } from './birdFix';
+import { clingPose, inflateBody, type ClingFeet } from './birdFix';
 
 export const BIRDS_URL = '/assets/pine-hollow/life/birds.glb';
 export const BIRDS_JSON_URL = '/assets/pine-hollow/life/birds.json';
@@ -110,6 +111,25 @@ function floats(g: THREE.BufferGeometry, name: string): Float32Array | null {
   return a instanceof Float32Array ? a : null;
 }
 
+/** E322 F-M5 B: the clinging woodpecker's new feet appended to its geometry (position / uv / index; body part 0; the
+ *  normals are rebuilt after). Returns the parts grown to match. */
+function appendFeet(g: THREE.BufferGeometry, parts: Uint8Array, f: ClingFeet): Uint8Array {
+  const P = floats(g, 'position'), U = floats(g, 'uv'), idx = g.getIndex();
+  if (!P || !U || !idx) return parts;
+  const n0 = P.length / 3, nf = f.pos.length / 3;
+  const pos = new Float32Array(P.length + f.pos.length); pos.set(P); pos.set(f.pos, P.length);
+  const uv = new Float32Array(U.length + f.uv.length); uv.set(U); uv.set(f.uv, U.length);
+  const ix = new Uint32Array(idx.count + f.idx.length);
+  for (let i = 0; i < idx.count; i++) ix[i] = idx.getX(i);
+  for (let i = 0; i < f.idx.length; i++) ix[idx.count + i] = (f.idx[i] ?? 0) + n0;
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(pos.length), 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  g.setIndex(new THREE.BufferAttribute(ix, 1));
+  const out = new Uint8Array(n0 + nf); out.set(parts);
+  return out;
+}
+
 function parseBirds(root: THREE.Object3D, side: Sidecar, fix: boolean): BirdSet {
   root.updateMatrixWorld(true);
   const found = new Map<string, THREE.Mesh>();
@@ -140,7 +160,8 @@ function parseBirds(root: THREE.Object3D, side: Sidecar, fix: boolean): BirdSet 
       smoothNormals(g);
       // the parts, in the generated frame: flying, outboard of the body's half-width a wing; the head past the plane
       // through the neck across its axis (+z flying; up-and-forward on the upright perched birds)
-      const pos = g.getAttribute('position'), parts = new Uint8Array(pos.count);
+      const pos = g.getAttribute('position');
+      let parts: Uint8Array = new Uint8Array(pos.count);
       const N = s.neck, A = s.headAxis ?? [0, 0, 1];
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
@@ -161,8 +182,9 @@ function parseBirds(root: THREE.Object3D, side: Sidecar, fix: boolean): BirdSet 
         // E322 F-M5 B: the woodpecker clinging to its bark (legs folded, tail propped); the pivots take its rigid move
         const Q = floats(g, 'position');
         if (fix && b.kind === KIND.woodpecker && Q) {
-          _m.premultiply(clingPose(Q, s, _m.clone(), { pitch: b.perchPitch }));
-          g.getAttribute('position').needsUpdate = true;
+          const cling = clingPose(Q, s, _m.clone(), { pitch: b.perchPitch, uv: floats(g, 'uv') });
+          _m.premultiply(cling.move);
+          parts = appendFeet(g, parts, cling.feet);
           smoothNormals(g);
         }
         // the head held back by the pitch the life code pitches it down by (the owl's 1.1 on its perch)

@@ -49,11 +49,13 @@ function smoothNormals(pos, idx, nor) {
 }
 
 for (const variant of ['A', 'B']) {
-  const { json, bin } = parse(readFileSync(src));
+  const parsed = parse(readFileSync(src)), json = parsed.json;
+  let bin = parsed.bin;
   for (const node of json.nodes) {
     if (node.mesh === undefined) continue;
     const prim = json.meshes[node.mesh].primitives[0];
-    const pos = view(json, bin, prim.attributes.POSITION), nor = view(json, bin, prim.attributes.NORMAL), idx = view(json, bin, prim.indices);
+    let pos = view(json, bin, prim.attributes.POSITION);
+    const nor = view(json, bin, prim.attributes.NORMAL), idx = view(json, bin, prim.indices);
     const s = side[node.name];
     if (node.name === 'owl_fly' && variant === 'B') { inflateBody(pos, nor, s); smoothNormals(pos, idx, nor); }
     if (node.name === 'wood_perch') {
@@ -63,10 +65,34 @@ for (const variant of ['A', 'B']) {
       const g2p = new THREE.Matrix4().makeRotationX(tilt).multiply(lift);
       const p = new THREE.Vector3();
       for (let i = 0; i < pos.length / 3; i++) { p.fromArray(pos, i * 3).applyMatrix4(g2p); p.toArray(pos, i * 3); }
-      if (variant === 'B') clingPose(pos, s, g2p, { pitch: WOOD_PITCH });
+      let P = pos, N = nor, I = idx, appended = null;
+      if (variant === 'B') {
+        // the cling, then its new feet appended (birdModels.ts appendFeet): new accessors at the end of the buffer
+        const uv = view(json, bin, prim.attributes.TEXCOORD_0);
+        const { feet } = clingPose(pos, s, g2p, { pitch: WOOD_PITCH, uv });
+        const n0 = pos.length / 3;
+        P = new Float32Array(pos.length + feet.pos.length); P.set(pos); P.set(feet.pos, pos.length);
+        N = new Float32Array(P.length);
+        const U = new Float32Array(uv.length + feet.uv.length); U.set(uv); U.set(feet.uv, uv.length);
+        I = new Uint32Array(idx.length + feet.idx.length); I.set(idx); I.set(Array.from(feet.idx, (v) => v + n0), idx.length);
+        const add = (arr, type, target) => {
+          const pad = (4 - (bin.length % 4)) % 4, off = bin.length + pad;
+          bin = Buffer.concat([bin, Buffer.alloc(pad), Buffer.from(arr.buffer, arr.byteOffset, arr.byteLength)]);
+          json.bufferViews.push({ buffer: 0, byteOffset: off, byteLength: arr.byteLength, ...(target ? { target } : {}) });
+          json.accessors.push({ bufferView: json.bufferViews.length - 1, componentType: arr instanceof Uint32Array ? 5125 : 5126, count: arr.length / { VEC3: 3, VEC2: 2, SCALAR: 1 }[type], type });
+          return json.accessors.length - 1;
+        };
+        appended = () => {   // after the world move and the normals: add() copies
+          prim.attributes.POSITION = add(P, 'VEC3', 34962); prim.attributes.NORMAL = add(N, 'VEC3', 34962);
+          prim.attributes.TEXCOORD_0 = add(U, 'VEC2', 34962); prim.indices = add(I, 'SCALAR', 34963);
+          json.buffers[0].byteLength = bin.length;
+        };
+      }
       const W = new THREE.Matrix4().makeRotationX(-WOOD_PITCH);
-      for (let i = 0; i < pos.length / 3; i++) { p.fromArray(pos, i * 3).applyMatrix4(W); p.toArray(pos, i * 3); }
-      smoothNormals(pos, idx, nor);
+      for (let i = 0; i < P.length / 3; i++) { p.fromArray(P, i * 3).applyMatrix4(W); p.toArray(P, i * 3); }
+      smoothNormals(P, I, N);
+      appended?.();
+      pos = P;
     }
     const a = json.accessors[prim.attributes.POSITION];
     a.min = [0, 1, 2].map((k) => Math.min(...Array.from({ length: pos.length / 3 }, (_, i) => pos[i * 3 + k])));

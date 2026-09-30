@@ -63,6 +63,11 @@ the owl switched to its flying pose, the woodpecker against a stand-in trunk at 
 - `birds-woodpecker.jpg`: the pileated woodpecker on its trunk. A stands on the bark on straight legs, tail in the air.
   B (`clingPose`) leans the body back to the bark, folds the legs up under the breast onto the bark (feet by the belly)
   and bends the tail down until its tip props on the bark. The pivots move with it.
+  **Re-shot (E322 F-M5 fix):** that first B pressed the folded legs flat onto the bark (a grey sliver) and left the body
+  a little off it. Now the generated legs go into the belly and B builds new feet: a short tarsus to the bark and four
+  dark toes per foot, arched and hooked into the bark at the claws; the body is turned so its breast-and-belly line lies
+  along the bark, 4 mm off. The board is now in the world: the woodpecker called onto a real Pine Hollow trunk
+  (`__pineLife.woodNow()`, x 85, z −93), A and B on the same perch.
 - `birds-raven-phone.jpg`: the raven on the phone tier, whole and close. A's phone atlas is the desktop's halved (every
   tile 256²). B loads `birds-b.phone.glb`: the same meshes on a 1024² atlas that gives the raven's two tiles (and the
   perched owl's) the desktop's own 512² texels, the rest 256² Lanczos + a light sharpen
