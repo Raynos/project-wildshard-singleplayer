@@ -26,9 +26,12 @@ the whole context is written to cache again at full price.
   `.claude/hooks/guard-subagents.sh` (PreToolUse `Agent`). It counts a subagent as live until its transcript ends on
   `end_turn`. When it blocks, wait for a result, or do the job yourself. Escape (rare): `SKIP_SUBAGENT_CAP=1`.
 - **One job per subagent, then it reports and ends.** Brief it with a job it can finish inside the caps.
-- **Max context 400k tokens, max wall clock 90 min.** These caps cut off the >2 h, 600k+ tail (73 % of subagent spend)
-  without chopping normal jobs in half. Put both in the brief: "stop at 400k context or 90 min, whichever comes first.
-  Commit what is done and report what is left." The parent starts a **fresh** subagent for what is left.
+- **Max context 400k tokens, max wall clock 90 min, max ~200 turns.** These caps cut off the >2 h, 600k+ tail (73 % of
+  subagent spend) without chopping normal jobs in half. A subagent can't see its own context size, but it can count its
+  turns, so 200 is the cap it checks itself. Put all three in the brief: "stop at 400k context, 90 min or ~200 turns,
+  whichever comes first. Commit what is done, update your Handoff, report what is left." The parent starts a
+  **fresh** subagent for what is left.
+- **Reports are 40 lines at most.** The detail goes in the Handoff; the report lands in the main agent's context.
 - **Never recycle a subagent.** Don't SendMessage a finished subagent a new job: its context only grows and its cache is
   cold. Spawn a new one with a short brief.
 - **No forks.** A fork starts with the parent's whole context. Spawn a general-purpose agent with a written brief.
@@ -40,9 +43,11 @@ the whole context is written to cache again at full price.
     turns while it waits, and its 1 h cache is still warm, even for a 30 min queue.
   - No `until …; do sleep …; done` loops longer than 4 min anywhere.
 - Resumed agents count against the cap.
-- **Every stop leaves a handoff in the ask file** (Jake, E352). A subagent stops when it hits a cap, before a long
-  wait, or when it is done with work left over. Before it ends, it appends (never rewrites) a `## Handoff (<date>
-  <time>)` section to its `docs/tasks/asks/<ID>.md`:
+- **Every subagent keeps a handoff current in the ask file** (Jake, E352; prior art: the FF gauntlet repo's
+  `project/handoff/<lane>.md`). On its first commit, a subagent appends its own `## Handoff (<date> <time>, <job>)`
+  section to `docs/tasks/asks/<ID>.md`. It updates that section at every commit after that, not only at the stop, so
+  an agent that is killed or hits a cap mid-way still leaves one. It never edits an earlier agent's section. The
+  section holds:
   - **Done:** the commits (SHA and one line each), and what is verified (a screenshot path, a measurement).
   - **Next:** the exact next command or step. If the next step is queued: "queued: <command>".
   - **Owns:** the files the job edits, so the next agent stays inside them.

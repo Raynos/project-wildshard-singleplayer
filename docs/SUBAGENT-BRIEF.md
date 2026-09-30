@@ -4,14 +4,21 @@ Read this fully before writing code. Several agents work in parallel **in the sa
 `main`** (no worktrees, no branches). Stay inside the files assigned to you.
 
 **Your limits (AGENTS.md "Subagents are short-lived", E352):**
-- One job. Stop at **400k context or 90 min**, whichever comes first.
+- One job. Stop at **400k context, 90 min or ~200 turns**, whichever comes first.
 - Never wait more than ~4 min on anything (a browser lane, the model lock, a capture, CI). Report the command as queued
   instead of waiting.
 - No subagents of your own.
-- Before you end, append a `## Handoff (<date> <time>)` to your ask file (`docs/tasks/asks/<ID>.md`) with **Done**
-  (commits + what is verified), **Next** (the exact command; "queued: …" if it has to wait), **Owns** (your files),
-  **Learned** (gotchas) and **Done when**. If your brief says "continue from the Handoff", read the last one first and
+- On your first commit, append your own `## Handoff (<date> <time>, <job>)` to your ask file
+  (`docs/tasks/asks/<ID>.md`). Update it at every commit after that. It holds:
+  - **Done:** commits, and what is verified.
+  - **Next:** the exact command; "queued: …" if it has to wait.
+  - **Owns:** your files.
+  - **Learned:** gotchas.
+  - **Done when:** the finish line.
+
+  Never edit an earlier agent's section. If your brief says "continue from the Handoff", read the last one first and
   trust it.
+- Your final report to the parent is **40 lines at most**. The detail lives in the Handoff.
 
 ## What we are building
 
