@@ -755,7 +755,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); } } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
   // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
   // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
-  installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });
+  const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
@@ -1244,6 +1244,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       else if (req.enter === true) { fromTitle = false; hud.enterNow(); } // where the player left off: no respawn at the gate (E121 is for the same shard's title)
     },
     dispose: () => {
+      loot.dispose(); // E314: the coin chip leaves #hud, the purse's last write
       game.dispose();
       world.physics.dispose();
       audio.evict();

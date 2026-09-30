@@ -38,6 +38,19 @@ describe('Purse', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it("a burst's coins are counted per landing but written once, on flush", () => {
+    const p = new Purse(DRIFT), fn = vi.fn();
+    p.onChange((n) => { fn(n); });
+    p.add(2, false); p.add(3, false);
+    expect(p.coins).toBe(5);
+    expect(fn).toHaveBeenLastCalledWith(5);
+    expect(p.unsaved).toBe(true);
+    expect(new Purse(DRIFT).coins).toBe(0);
+    p.flush();
+    expect(p.unsaved).toBe(false);
+    expect(new Purse(DRIFT).coins).toBe(5);
+  });
+
   it('ignores a corrupt save and survives a throwing store', () => {
     localStorage.setItem('ws.purse.v1', '{"chunk://local/driftwood-isle":"lots"}');
     expect(new Purse(DRIFT).coins).toBe(0);
@@ -85,7 +98,8 @@ describe('Owned', () => {
 
 describe('coins', () => {
   it("Jake's first-guess values", () => {
-    expect(COIN_VALUES).toEqual({ crab: 1, monkey: 1, boar: 2, deer: 1, sailor: 5, bear: 10, captain: 25 });
+    expect(COIN_VALUES).toEqual({ crab: 1, monkey: 1, boar: 2, sailor: 5, bear: 10, captain: 25 });
+    expect(coinsFor(DRIFTWOOD_ISLE, 'deer')).toBe(0); // Jake cut the deer from Driftwood
   });
 
   it('only Driftwood pays coins (ChunkDef.loot gating)', () => {

@@ -1,7 +1,8 @@
 /**
  * What a kill is worth in doubloons (E314 L1, Jake's pick board 1 A): coins come only from kills, and only on a shard
  * whose ChunkDef says `loot: { coins: true }` (Driftwood today). First-guess values, tuned after a playthrough (a run
- * earns ~60–100; the trader's goods cost 15–50, docs/plans/DRIFTWOOD-LOOT.md).
+ * earns ~60–100; the trader's goods cost 15–50, docs/plans/DRIFTWOOD-LOOT.md). No deer: Jake cut them from Driftwood
+ * (their removal is a later pass), so they pay nothing meanwhile.
  *
  *   coinsFor(chunk, a.kind)   → 0 on a shard without coins, or a creature that pays nothing
  *   burstCount(n)             → how many coin meshes fly (a big purse is split over fewer coins)
@@ -10,7 +11,6 @@ export const COIN_VALUES: Readonly<Record<string, number>> = {
   crab: 1,
   monkey: 1,
   boar: 2,
-  deer: 1,
   sailor: 5,
   bear: 10,
   captain: 25,

@@ -10,7 +10,8 @@
  * Other shards: GEAR shows their weapons and skins only, no FINDS tab, no coins (Jake: FINDS elsewhere is a later review).
  *
  *   const owned = new Owned(chunk.id);  // early: owned.has('iron-sword') = the sword taken on an earlier visit
- *   installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });
+ *   const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });
+ *   loot.dispose()                      // the shard is evicted
  *   window.__loot = { purse, owned, grant(id), coins(n) }   // dev console / captures: grant an item, add coins
  */
 import * as THREE from 'three';
@@ -38,28 +39,41 @@ export interface LootHost<A extends { kind: string; position: THREE.Vector3 }> {
   /** the adventure's saved flags (Driftwood) — FINDS reads them; null on a shard with no adventure */
   flags: FlagReader | null;
 }
-export interface Loot { purse: Purse | null }
+export interface Loot {
+  purse: Purse | null;
+  /** the shard is evicted (main.ts's ShardWorld.dispose): the chip and its pops leave #hud, the coins leave the scene,
+   *  the purse is written, the page listeners go */
+  dispose: () => void;
+}
 
 const MAX_HEALTH = 100;
 const _v = new THREE.Vector3();
 
 export function installLoot<A extends { kind: string; position: THREE.Vector3 }>(h: LootHost<A>): Loot {
   const owned = h.owned;
-  if (!coinsOn(h.chunk)) return { purse: null };
+  if (!coinsOn(h.chunk)) return { purse: null, dispose: () => undefined };
 
   const purse = new Purse(h.chunk.id);
   const chip = new CoinChip(purse.coins);
   purse.onChange((n) => { chip.set(n); });
   const burst = new CoinBurst(h.game.scene);
-  h.game.onUpdate((dt) => { burst.update(dt, h.player.position); }, 'loot');
+  let live = true;
+  h.game.onUpdate((dt) => { if (live) burst.update(dt, h.player.position); }, 'loot'); // Game has no off: the flag stops it
+  // a burst's coins are counted as they land but written once, when the last one lands (a captain = 12 landings, each a
+  // native Preferences write on iOS); leaving the page or hiding the tab writes whatever a burst in flight has counted
+  const flush = (): void => { purse.flush(); };
+  const onHidden = (): void => { if (document.visibilityState === 'hidden') purse.flush(); };
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', onHidden);
   const sfx = new IslandSfx(h.audio);
 
   const prevKill = h.animals.onKill;
   h.animals.onKill = (a) => {
     prevKill?.(a);
+    if (!live) return;
     const n = coinsFor(h.chunk, a.kind);
     if (n <= 0) return;
-    burst.spawn(a.position, n, (share) => { purse.add(share); }, () => { sfx.interact('chime', undefined, { gain: 0.55 }); });
+    burst.spawn(a.position, n, (share) => { purse.add(share, false); }, () => { purse.flush(); sfx.interact('chime', undefined, { gain: 0.55 }); });
     _v.set(a.position.x, a.position.y + 1.5, a.position.z).project(h.camera);
     if (_v.z < 1 && Math.abs(_v.x) < 1.1 && Math.abs(_v.y) < 1.1) chip.pop((_v.x + 1) * 0.5 * window.innerWidth, (1 - _v.y) * 0.5 * window.innerHeight, n);
   };
@@ -86,6 +100,21 @@ export function installLoot<A extends { kind: string; position: THREE.Vector3 }>
   owned.onChange(refresh); purse.onChange(refresh);
 
   // dev console / capture scripts (not a URL switch): grant an item, add coins
-  Object.assign(window, { __loot: { purse, owned, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); } } });
-  return { purse };
+  const dev = { purse, owned, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); } };
+  Object.assign(window, { __loot: dev });
+  return {
+    purse,
+    dispose: () => {
+      if (!live) return;
+      live = false;
+      purse.flush();
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onHidden);
+      h.menu.setLoot(null);
+      chip.dispose();
+      burst.dispose();
+      const w = window as { __loot?: unknown };
+      if (w.__loot === dev) delete w.__loot;
+    },
+  };
 }

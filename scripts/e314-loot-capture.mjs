@@ -52,7 +52,7 @@ try {
         if (!a) return false;
         const d = cam.getWorldDirection(p.clone()); d.y = 0; d.normalize();
         a.position.set(p.x + d.x * 6, p.y, p.z + d.z * 6);
-        a.applyDamage(a.hp, a.position.clone().setY(p.y + 0.6), d);
+        for (let i = 0; i < 20 && a.alive; i++) a.applyDamage(Math.max(1, a.hp), a.position.clone().setY(p.y + 0.6), d); // armour / a guard can soak one hit
         return true;
       });
       if (!ok) { console.log('burst: no animal'); continue; }

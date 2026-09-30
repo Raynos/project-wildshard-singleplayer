@@ -4,8 +4,10 @@
  * Inventory pattern. Whole coins only; never below 0.
  *
  *   const purse = new Purse(chunk.id);
- *   purse.add(2);                 // a kill's coins landed (the coin burst adds on arrival)
- *   purse.spend(15)               // → false, nothing taken, when there are fewer
+ *   purse.add(2);                 // coins in, saved at once
+ *   purse.add(2, false)           // a coin of a burst landed: counted and told, not written (a captain = 12 landings)
+ *   purse.flush()                 // write what is unsaved — the burst's end (CoinBurst onDone), pagehide, a hidden tab
+ *   purse.spend(15)               // → false, nothing taken, when there are fewer (saved at once)
  *   purse.coins                   // the total (the HUD chip, GEAR)
  *   purse.onChange((n, delta) => chip.set(n))   // returns an unsubscribe
  */
@@ -15,6 +17,7 @@ const STORE = 'ws.purse.v1';
 
 export class Purse {
   private n: number;
+  private dirty = false;
   private listeners: ((coins: number, delta: number) => void)[] = [];
 
   constructor(readonly shard: string) {
@@ -23,11 +26,13 @@ export class Purse {
   }
 
   get coins(): number { return this.n; }
+  /** coins counted but not written yet */
+  get unsaved(): boolean { return this.dirty; }
 
-  add(n: number): void {
+  add(n: number, save = true): void {
     const k = Math.floor(n);
     if (!(k > 0)) return;
-    this.set(this.n + k);
+    this.set(this.n + k, save);
   }
 
   /** take `n` coins; false (nothing taken) when the purse holds fewer */
@@ -35,8 +40,14 @@ export class Purse {
     const k = Math.floor(n);
     if (k <= 0) return true;
     if (this.n < k) return false;
-    this.set(this.n - k);
+    this.set(this.n - k, true);
     return true;
+  }
+
+  flush(): void {
+    if (!this.dirty) return;
+    this.dirty = false;
+    writeShard(STORE, this.shard, this.n);
   }
 
   onChange(fn: (coins: number, delta: number) => void): () => void {
@@ -44,10 +55,11 @@ export class Purse {
     return () => { const i = this.listeners.indexOf(fn); if (i !== -1) this.listeners.splice(i, 1); };
   }
 
-  private set(v: number): void {
+  private set(v: number, save: boolean): void {
     const delta = v - this.n;
     this.n = v;
-    writeShard(STORE, this.shard, v);
+    this.dirty = true;
+    if (save) this.flush();
     for (const l of this.listeners) l(v, delta);
   }
 }
