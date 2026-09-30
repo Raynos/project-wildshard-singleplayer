@@ -43,6 +43,8 @@ if v.startswith("hunyuan") or v == "paint":
             "--bust-dy", str(g.get("dy", 0.0)), "--head-tris", tris, "--smooth-face", str(g.get("smooth_face", 0.0 if pbr else 0.8))]
     if v == "paint":   # E339 D: Hunyuan3D-2's own all-round paint, no portrait projected
         i = out.index("--bust-image"); del out[i:i + 2]
+    if g.get("v2", True):    # E339 graft fix: the bust cut at its own neck, the ring blended, fragments dropped
+        out += ["--graft-v2", "--bust-neck-auto", "0.45", "0.8", "--bust-fit", g.get("fit", "height")]
     if "beard" in g:
         out += ["--bust-beard", str(g["beard"][0]), str(g["beard"][1])]
     if "ptop" in g:

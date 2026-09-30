@@ -66,6 +66,17 @@ ap.add_argument("--project-top", type=float, default=None, help="E304: project t
 ap.add_argument("--paint", default=None)
 ap.add_argument("--smooth-face", type=float, default=0.0, help="0..1: bend the face normals toward a head ellipsoid")
 ap.add_argument("--front", default=None)
+ap.add_argument("--graft-v2", action="store_true", help="E339 graft fix: the bust cut at ITS OWN neck (the narrowest section "
+                "under the chin, so it never carries a collar), placed and scaled by it, both cuts straight (bisect), the bust's "
+                "neck ring blended onto the body's (shape and colour), thin / sliver / floating fragments dropped, the head smooth")
+ap.add_argument("--bust-neck-auto", type=float, nargs=2, default=None, help="with --graft-v2: search the bust's neck between "
+                "these fractions of its height from the top (else --bust-neck)")
+ap.add_argument("--bust-fit", default="height", choices=["height", "box"], help="scale the bust by neck-to-top (height) or by "
+                "the geometric mean of that and the head's width (box: Pine Hollow's heads came out smaller than A's)")
+ap.add_argument("--cut-tilt", type=float, default=30.0, help="with --graft-v2: the neck cut dips this many degrees toward the "
+                "front (under the jaw: a level cut took the new chin off and left the old one)")
+ap.add_argument("--ring-band", type=float, default=0.035, help="with --graft-v2: how far up the bust's neck (fraction of H) its "
+                "ring is blended onto the body's")
 ap.add_argument("--normal-map", action="store_true", help="E304 (Pine Hollow, PBR): also bake a tangent-space normal map from "
                 "the hi sources (the body's own normal map included) and export it")
 a = ap.parse_args(argv)
@@ -220,6 +231,118 @@ def project_portrait(ob, path, neck_z):
     log(f"portrait {os.path.basename(path)} projected on the bust front (alpha box {ax1 - ax0}x{ay1 - ay0} px)")
 
 
+def split_at(ob, z):
+    """cut every face that crosses the plane z (no geometry removed): a straight edge there instead of a zig-zag"""
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-6, plane_co=(0, 0, z), plane_no=(0, 0, 1))
+    bm.to_mesh(ob.data); bm.free(); ob.data.update()
+
+
+def drop_fragments(ob, sliver=0.0, keep_frac=0.02):
+    """E339: the generated bust's torn paper — connected pieces smaller than keep_frac of the largest (collar flakes, loose
+    strands), degenerate triangles, and (sliver > 0) needle triangles whose shortest height is under sliver × longest edge"""
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+    kill = set()
+    if sliver > 0:
+        # needles are collapsed, never deleted (a deleted needle is a hole): their shortest edge merged away
+        for _ in range(3):
+            short = []
+            for f in bm.faces:
+                if not f.is_valid or len(f.verts) != 3:
+                    continue
+                es = sorted(f.edges, key=lambda e: e.calc_length())
+                lmax = es[-1].calc_length()
+                if lmax > 0 and 2 * f.calc_area() / lmax < sliver * lmax and es[0].is_valid:
+                    short.append(es[0])
+            short = list({e for e in short if e.is_valid})
+            if not short:
+                break
+            bmesh.ops.collapse(bm, edges=short, uvs=True)
+            bmesh.ops.triangulate(bm, faces=bm.faces)
+    for f in bm.faces:
+        if f.calc_area() < 1e-12:
+            kill.add(f)
+    bmesh.ops.delete(bm, geom=list(kill), context="FACES")
+    # islands by shared edges
+    seen, islands = set(), []
+    for f in bm.faces:
+        if f in seen:
+            continue
+        stack, isl = [f], []
+        seen.add(f)
+        while stack:
+            g = stack.pop(); isl.append(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h not in seen:
+                        seen.add(h); stack.append(h)
+        islands.append((sum(x.calc_area() for x in isl), isl))
+    n = len(kill)
+    if islands:
+        big = max(i[0] for i in islands)
+        small = [f for area, isl in islands if area < keep_frac * big for f in isl]
+        bmesh.ops.delete(bm, geom=small, context="FACES"); n += len(small)
+    loose = [v for v in bm.verts if not v.link_faces]
+    bmesh.ops.delete(bm, geom=loose, context="VERTS")
+    bm.to_mesh(ob.data); bm.free(); ob.data.update()
+    return n
+
+
+def ring_blend(bust, body, z, band):
+    """E339: the bust's neck meets the body's. Both are cut straight at z; per angle round the neck the bust's ring is moved
+    onto the body's ring (radius and centre), fading out up to z + band, and its rim tucked a hair inside and below the
+    body's so no crack shows"""
+    BV = verts_np(body)
+    rim = BV[np.abs(BV[:, 2] - z) < 1e-4 * max(1.0, abs(z) + 1)]
+    Bu = verts_np(bust)
+    brim = Bu[np.abs(Bu[:, 2] - z) < 1e-4 * max(1.0, abs(z) + 1)]
+    if len(rim) < 6 or len(brim) < 6:
+        log(f"ring blend skipped (rims: body {len(rim)}, bust {len(brim)})"); return
+    # only the body rim round the neck (the cut also crosses a beard or a raised collar): near the bust's rim centre
+    bc_ = brim[:, :2].mean(0)
+    rr = np.hypot(rim[:, 0] - bc_[0], rim[:, 1] - bc_[1])
+    rim = rim[rr < np.percentile(rr, 60) * 1.6]
+    c_body, c_bust = rim[:, :2].mean(0), brim[:, :2].mean(0)
+    NB = 36
+    def prof(P, c):
+        ang = np.arctan2(P[:, 1] - c[1], P[:, 0] - c[0]); r = np.hypot(P[:, 0] - c[0], P[:, 1] - c[1])
+        out = np.full(NB, np.nan)
+        idx = ((ang + np.pi) / (2 * np.pi) * NB).astype(int) % NB
+        for b in range(NB):
+            if (idx == b).any():
+                out[b] = r[idx == b].max()
+        ok = ~np.isnan(out)
+        xs = np.arange(NB)
+        return np.interp(xs, xs[ok], out[ok], period=NB) if ok.any() else out
+    rb, ru = prof(rim, c_body), prof(brim, c_bust)
+    # where the bust's rim is a beard / chin (far out from its neck), leave it: only the neck proper is blended
+    wbin = np.clip((1.35 - ru / max(np.median(ru), 1e-6)) / 0.2, 0, 1)
+    me = bust.data
+    moved = 0
+    for v in me.vertices:
+        h = v.co.z - z
+        if h > band or h < -1e-4:     # the neck band only (a beard kept below the cut is left alone)
+            continue
+        t = max(0.0, min(1.0, h / band)); w = 1 - t * t * (3 - 2 * t)
+        dx, dy = v.co.x - c_bust[0], v.co.y - c_bust[1]
+        ang = math.atan2(dy, dx); r = math.hypot(dx, dy)
+        b = (ang + math.pi) / (2 * math.pi) * NB
+        i0 = int(math.floor(b)) % NB; fr = b - math.floor(b); i1 = (i0 + 1) % NB
+        tb = rb[i0] * (1 - fr) + rb[i1] * fr; tu = ru[i0] * (1 - fr) + ru[i1] * fr
+        wb_ = wbin[i0] * (1 - fr) + wbin[i1] * fr
+        # only the neck's own surface: a jaw or chin just above the cut stands far out of the rim — left where it is
+        wb_ *= min(1.0, max(0.0, (1.2 - r / max(tu, 1e-6)) / 0.2))
+        k_ = 1 + ((tb * 0.97) / max(tu, 1e-6) - 1) * w * wb_
+        cx = c_bust[0] + (c_body[0] - c_bust[0]) * w * wb_; cy = c_bust[1] + (c_body[1] - c_bust[1]) * w * wb_
+        v.co.x = cx + math.cos(ang) * r * k_; v.co.y = cy + math.sin(ang) * r * k_
+        if h < 1e-4 and wb_ > 0.5:
+            v.co.z = z - 0.004 * H
+        moved += 1
+    me.update()
+    log(f"ring blend: {moved} bust verts onto the body's neck (body rim r≈{np.median(rb):.3f}, bust rim r≈{np.median(ru):.3f})")
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 body = import_mesh(a.body, "body")
 V = verts_np(body)
@@ -254,9 +377,31 @@ if a.graft:
     B = verts_np(bust)
     bt, bb = B[:, 2].max(), B[:, 2].min()
     bc = bt - a.bust_neck * (bt - bb)
+    if a.graft_v2 and a.bust_neck_auto is not None:
+        # the neck = the narrowest section of the head's back half (a beard hangs in front) between chin and shoulders
+        hb_ = bt - bb; tp_ = B[B[:, 2] > bt - 0.3 * hb_]; tcx, tcy = tp_[:, 0].mean(), tp_[:, 1].mean()
+        bw_, bf_ = 1e9, a.bust_neck
+        for f_ in np.arange(a.bust_neck_auto[0], a.bust_neck_auto[1] + 1e-6, 0.0125):
+            z_ = bt - f_ * hb_
+            band_ = B[np.abs(B[:, 2] - z_) < 0.006 * hb_]
+            back_ = band_[band_[:, 1] > tcy - 0.02 * hb_]
+            if len(back_) < 8:
+                continue
+            w_ = np.percentile(np.abs(back_[:, 0] - tcx), 95)
+            if w_ < bw_:
+                bw_, bf_ = w_, f_
+        log(f"bust neck measured at {bf_:.3f} of its height from the top (was --bust-neck {a.bust_neck:.3f})")
+        bc = bt - bf_ * hb_
     ztop = zmax if a.keep_above is None else zmin + a.keep_above * H
     btop = bt if a.bust_top is None else bt - a.bust_top * (bt - bb)
     s = (ztop - zc) / max(1e-6, btop - bc) * a.bust_grow
+    if a.bust_fit == "box":
+        # match the old head's width too (above the cut; the hat brim included), the geometric mean of the two scales
+        ow_ = np.percentile(np.abs(V[V[:, 2] > zc][:, 0] - hc[0]), 99)
+        bhv_ = B[B[:, 2] > bc]; nw_ = np.percentile(np.abs(bhv_[:, 0] - bhv_[:, 0].mean()), 99)
+        sw_ = ow_ / max(nw_, 1e-6) * a.bust_grow
+        log(f"bust scale: {s:.4f} by neck-to-top, {sw_:.4f} by width → {math.sqrt(s * sw_):.4f}")
+        s = math.sqrt(s * sw_)
     # centre: the bust's head (above its neck) on the old head, horizontally; its neck on the cut
     bh = B[B[:, 2] > bc]
     bcx, bcy = bh[:, 0].mean(), bh[:, 1].mean()
@@ -280,11 +425,35 @@ if a.graft:
                     v_.co.y = hc[1] + (v_.co.y - hc[1]) * (1 + (ky - 1) * f_)
             ob_.data.update()
         log(f"kept hat above {ztop - zmin:.3f}: its foot flared x{kx:.2f} / y{ky:.2f} to the bust's")
-    clip = zc - a.bust_clip * H
+    tilt = None
+    if a.graft_v2 and a.keep_above is None and a.cut_tilt > 0:
+        # the cut dips under the jaw: work in a frame turned about x so that plane is level (turned back after the cuts)
+        # (a shear, level behind the neck's centre and dipping in front of it: a turned plane rose at the back and left
+        # the old neck standing up behind the new head like a collar)
+        tk_ = math.tan(math.radians(a.cut_tilt)); py_ = float(hc[1])
+        def tilt(ob_, sign):
+            co_ = np.empty(len(ob_.data.vertices) * 3); ob_.data.vertices.foreach_get("co", co_); co_ = co_.reshape(-1, 3)
+            co_[:, 2] += sign * np.maximum(0.0, py_ - co_[:, 1]) * tk_
+            ob_.data.vertices.foreach_set("co", co_.ravel()); ob_.data.update()
+        for ob_ in (body, bust):
+            tilt(ob_, 1)
+    if a.graft_v2:
+        split_at(bust, zc); split_at(body, zc)          # straight cuts: the centroid rule left a zig-zag hem on both
+    clip = zc - a.bust_clip * H if not a.graft_v2 else zc
     bw, bd = a.bust_beard
     # a beard hangs over the chest: keep the bust's front strip down to bd below the cut (bw wide) so the new beard
     # covers the old one
-    k = delete_faces(bust, lambda c: c.z < clip and not (bw > 0 and abs(c.x - hc[0]) < bw * H and c.z > zc - bd * H and c.y < hc[1] - 0.02 * H))
+    if a.graft_v2:
+        # the chin / beard that hangs forward of the neck below the cut: the bust keeps its own, the body loses its old one
+        # (both measured against their own neck's front at the cut)
+        def neck_front(ob):
+            P_ = verts_np(ob); r_ = P_[(np.abs(P_[:, 2] - zc) < 0.004 * H) & (np.abs(P_[:, 0] - hc[0]) < 0.05 * H)]
+            return np.percentile(r_[:, 1], 50) if len(r_) else hc[1]
+        fb_, fo_ = neck_front(bust), neck_front(body)
+        fwd_b = lambda c: bw > 0 and abs(c.x - hc[0]) < bw * H and c.z > zc - bd * H and c.y < fb_ - 0.01 * H
+        k = delete_faces(bust, lambda c: c.z < zc and not fwd_b(c))
+    else:
+        k = delete_faces(bust, lambda c: c.z < clip and not (bw > 0 and abs(c.x - hc[0]) < bw * H and c.z > zc - bd * H and c.y < hc[1] - 0.02 * H))
     if a.keep_above is not None:
         k += delete_faces(bust, lambda c: c.z > ztop + a.bust_overlap * H)
     if a.bust_collar is not None:
@@ -296,6 +465,16 @@ if a.graft:
     body_hi = body.copy(); body_hi.data = body.data.copy(); body_hi.name = "body_hi"
     bpy.context.collection.objects.link(body_hi)
     in_beard = lambda c: bw > 0 and abs(c.x - hc[0]) < bw * H * 0.9 and c.z > zc - bd * H * 0.9 and c.y < hc[1] - 0.03 * H
+    if a.graft_v2:
+        # the old beard goes only where the new one covers it (a face in the strip with the bust in front of it): a fixed
+        # strip cut a hole in the coat wherever the new beard was shorter than the old (Baqyt Ata)
+        from mathutils.bvhtree import BVHTree as _BVH
+        _bm = bmesh.new(); _bm.from_mesh(bust.data); _tree = _BVH.FromBMesh(_bm); _bm.free()
+        def in_beard(c):
+            if not (bw > 0 and abs(c.x - hc[0]) < bw * H and c.z > zc - bd * H and c.z <= zc and c.y < fo_ - 0.015 * H):
+                return False
+            hit = _tree.ray_cast(Vector((c.x, c.y + 0.002 * H, c.z)), Vector((0.0, -1.0, 0.0)), 0.08 * H)
+            return hit[0] is not None
     kept = (lambda c: False) if a.keep_above is None else (lambda c: c.z > ztop)
     if a.body_collar is not None:
         # a high coat collar: the body keeps its faces over the cut (up to <h>) farther than <r> from the head's axis (a
@@ -304,6 +483,15 @@ if a.graft:
         kept = lambda c: kept0(c) or (c.z < zc + ch_ * H and math.hypot(c.x - hc[0], c.y - hc[1]) > cr_ * H)
     k = delete_faces(body, lambda c: (c.z > zc and not kept(c)) or in_beard(c))  # the old beard goes with the old head
     log(f"body: {k} head faces removed")
+    if a.graft_v2:
+        k = drop_fragments(bust)
+        log(f"bust: {k} floating / sliver faces dropped")
+        if a.keep_above is None:
+            ring_blend(bust, body, zc, a.ring_band * H)
+        delete_faces(body_hi, lambda c: (c.z > zc and not kept(c)) or in_beard(c))
+        if tilt is not None:
+            for ob_ in (body, body_hi, bust):
+                tilt(ob_, -1)
     # low bust: decimated copy
     bust_lo = bust.copy(); bust_lo.data = bust.data.copy(); bust_lo.name = "bust_lo"
     bpy.context.collection.objects.link(bust_lo)
@@ -336,8 +524,11 @@ if a.graft:
     flip += [None] * nmore
     bm.to_mesh(bust_lo.data); bm.free(); bust_lo.data.update()
     log(f"bust: {ntris(bust_lo)} tris after the collapse, {len(flip)} flipped faces turned back")
+    if a.graft_v2:
+        log(f"bust lo: {drop_fragments(bust_lo, sliver=0.06)} sliver / floating faces dropped after the collapse")
     # hi = the untouched body minus its head + the full bust; low = the body minus its head + the decimated bust
-    delete_faces(body_hi, lambda c: (c.z > zc and not kept(c)) or in_beard(c))
+    if not a.graft_v2:
+        delete_faces(body_hi, lambda c: (c.z > zc and not kept(c)) or in_beard(c))
     his = [body_hi, bust]
     for o in bpy.context.scene.objects:
         o.select_set(o in (body, bust_lo))
@@ -502,6 +693,33 @@ def raster_maps(zlo):
     return pos, nrm, cov
 
 
+if a.graft and a.graft_v2 and a.keep_above is None:
+    # E339: the neck's colour runs on from the body into the bust over the blended band (the bust's own neck paint met the
+    # body's in a hard line): per angle round the neck, the bust side shifted by the difference of the two sides' means
+    pos, nrm, _ = raster_maps(zc - 0.06 * H)
+    px = np.empty(a.tex * a.tex * 4, dtype=np.float32); img.pixels.foreach_get(px)
+    col = px.reshape(a.tex, a.tex, 4)
+    ok = pos[..., 0] < 1e2
+    rel = pos[..., 2] - zc
+    rad = np.hypot(pos[..., 0] - hc[0], pos[..., 1] - hc[1])
+    near = ok & (rad < 0.12 * H)
+    NB_ = 24
+    bi = (((np.arctan2(pos[..., 1] - hc[1], pos[..., 0] - hc[0]) + np.pi) / (2 * np.pi)) * NB_).astype(int) % NB_
+    below = near & (rel > -0.03 * H) & (rel < -0.004 * H)
+    above = near & (rel > 0.004 * H) & (rel < 0.03 * H)
+    band_ = a.ring_band * H
+    if below.sum() > 20 and above.sum() > 20:
+        gb, ga = col[below][:, :3].mean(0), col[above][:, :3].mean(0)
+        dif = np.zeros((NB_, 3), np.float32)
+        for b in range(NB_):
+            mb = below & (bi == b); ma = above & (bi == b)
+            dif[b] = (col[mb][:, :3].mean(0) if mb.sum() > 4 else gb) - (col[ma][:, :3].mean(0) if ma.sum() > 4 else ga)
+        sel = near & (rel > -0.002 * H) & (rel < band_)
+        t = np.clip(rel / band_, 0, 1); w = (1 - t * t * (3 - 2 * t)) * 0.85
+        col[..., :3] = np.where(sel[..., None], np.clip(col[..., :3] + dif[bi] * w[..., None], 0, 1), col[..., :3])
+        img.pixels.foreach_set(col.ravel())
+        log(f"neck colour blended over {int(sel.sum())} texels (mean body-bust gap {np.abs(gb - ga).mean():.3f})")
+
 if a.paint:
     P = json.loads(a.paint)
     pos, nrm, _ = raster_maps(zc - 0.06 * H)
@@ -630,6 +848,15 @@ for md in list(low.modifiers):
         bpy.ops.object.modifier_apply(modifier=md.name)
     except Exception:
         pass
+if a.graft and a.graft_v2:
+    # E339: the grafted head smooth all over (the 50° split left beards, scarves and fur as torn-paper facets)
+    bm = bmesh.new(); bm.from_mesh(low.data)
+    for f_ in bm.faces:
+        if f_.calc_center_median().z > zc - 0.01 * H:
+            f_.smooth = True
+            for e_ in f_.edges:
+                e_.smooth = True
+    bm.to_mesh(low.data); bm.free(); low.data.update()
 if a.smooth_face > 0:
     # the generated face is a few hundred lumpy facets: under the painterly cel bands a dent reads as a dark blob (the
     # cook's cheek, the child's nose). Bend the face's normals toward an ellipsoid round the head — the procedural

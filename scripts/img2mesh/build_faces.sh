@@ -34,6 +34,8 @@ elif v in ("hunyuan", "trellis", "paint"):   # paint (E339 D): the Hunyuan bust 
     out += ["--smooth-face", str(g.get("smooth_face", 0.8))]
     if v == "trellis":
         out += ["--no-weld"]
+    else:   # E339 graft fix: the bust cut at its own neck (dipping under the jaw), the ring blended, fragments dropped
+        out += ["--graft-v2"] + ([] if g.get("neck_auto") is False else ["--bust-neck-auto", "0.45", "0.8"])
     if "beard" in g:
         out += ["--bust-beard", str(g["beard"][0]), str(g["beard"][1])]
     if g.get("project", True) and v != "paint":

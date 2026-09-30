@@ -1,5 +1,5 @@
 {
-  "about": "NALATI-FINISH B5 / E302: per camp person, the face remaster's knobs (scripts/img2mesh/face_remaster.py via build_faces.sh). neck = the procedural figure's neck / height (campPeople.ts). paint = the painted face in the --front render's pixels (768² ortho of the head). graft = the generated bust: neck (its neck, fraction of its height from the top), clip (how far under the cut it reaches, fraction of the figure's height), grow / dz / dy nudges.",
+  "about": "NALATI-FINISH B5 / E302: per camp person, the face remaster's knobs (scripts/img2mesh/face_remaster.py via build_faces.sh). neck = the procedural figure's neck / height (campPeople.ts). paint = the painted face in the --front render's pixels (768² ortho of the head). graft = the generated bust: neck (its neck, fraction of its height from the top), clip (how far under the cut it reaches, fraction of the figure's height), grow / dz / dy nudges. E339: the busts are cut at their own measured neck (neck_auto false: the cook's headscarf hides hers, graft.neck kept).",
   "people": {
     "elder": {
       "neck": 0.769,
@@ -24,7 +24,7 @@
     "cook": {
       "neck": 0.829,
       "paint": { "eyes": [310, 425, 337], "brow_y": 308, "nose_y": 398, "mouth_y": 442, "face_y": 390, "top_y": 285, "face": [1.1, 1.05] },
-      "graft": { "neck": 0.53, "clip": 0.05 }
+      "graft": { "neck": 0.53, "clip": 0.05, "neck_auto": false }
     }
   }
 }
