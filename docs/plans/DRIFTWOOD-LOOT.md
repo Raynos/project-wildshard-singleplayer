@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `draft` 2026-09-29 — Jake approved the loop (fight for doubloons → spend at Wendell → stronger; sea glass charms and trophies to explore for; Gear / Collection tabs) and said "board it all" (AskUserQuestion, 2026-09-29). Boards for L1–L5 in flight (driftwood-top10 plan agent, `art/loot/round-1-loop/`); nothing built until he picks the details.
+**State:** `draft` 2026-09-30 — Jake kept all five pieces (AskUserQuestion, 2026-09-29) with changes: the shop is a **second NPC** (Wendell stays the quest giver), **no selling junk**, coins only from kills. Junk + INVENTORY tab stay. Open: the per-board letter picks (`art/loot/round-1-loop/`) and a shopkeeper board; nothing built yet.
 
 ## Why
 
@@ -53,3 +53,12 @@ really clean and polished. Inventory is the junk tab." So:
 shit floating around"), but wants to see the full plan and mockups first: "afterwards we figure out what lean means and
 what to drop". So all boards finish; the lean cut is decided after them. The leanest option on the table: delete
 harvesting + junk, no Inventory tab on Driftwood, Bag = MAP · GEAR · COLLECTION, no shop / currency / charms / trophies.
+
+## Jake's keep list, 2026-09-29 (after all eight boards)
+
+Kept: coins + a shop, GEAR + COLLECTION tabs, junk + the INVENTORY tab, charms + trophies. His words: "Wendell is the
+quest giver. Any shop should be a second NPC. Don't allow for the selling of junk. Coins are just earned from killing."
+- L1: coins from kills only (no chest / sale income beyond what the quest already hands out).
+- L2: the shop moves off Wendell to a **new shopkeeper NPC** (who and where: a board). No SELL side.
+- L3 / L4: kept. Who strings the charms and where trophies hang follows the shopkeeper pick.
+- L5: MAP · GEAR · COLLECTION · INVENTORY (junk, unchanged in role) · ACHIEVEMENTS, the tab-bar board decides the look.
