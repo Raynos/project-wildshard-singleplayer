@@ -580,6 +580,23 @@ const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vect
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
 const NEG_Z = new THREE.Vector3(0, 0, -1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
 
+/**
+ * The bolt (E348): its atlas (the iron shaft, the steel head, the feather vanes), its geometry along −Z (tip at −Z, 0.36 m)
+ * and its material, on the viewmodels' program group. The loaded bolt, every bolt in flight or stuck (`buildCrossbow`'s
+ * parts) and the Model Explorer's bolt card (src/chunks/pine-hollow/models/gear.ts: its own copy) are built by this.
+ */
+export function buildBolt(sky: Sky): { geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial } {
+  const atlas = makeBoltAtlas();
+  const geometry = buildBoltGeometry();
+  const material = new THREE.MeshStandardMaterial({ map: atlas.map, normalMap: atlas.normalMap, aoMap: atlas.armMap, roughnessMap: atlas.armMap, metalnessMap: atlas.armMap, roughness: 1, metalness: 1, alphaTest: 0.5, side: THREE.DoubleSide });
+  // one DoubleSide pass: the viewmodel makes this material transparent (Crossbow), and three draws a transparent
+  // DoubleSide material as a BackSide + a FrontSide pass — two programs. The fletching is alpha-tested and the
+  // bolt writes depth, so one pass looks the same.
+  material.forceSinglePass = true;
+  material.name = 'xbow-bolt'; fixIBL(material, VIEWMODEL_GROUP); sky.setupMaterial(material);
+  return { geometry, material };
+}
+
 /** the crossbow's parts `buildCrossbow` hands back: the ones the viewmodel animates, and its measured rest points */
 export interface CrossbowParts {
   readonly stringLeft: THREE.Mesh; readonly stringRight: THREE.Mesh; readonly serving: THREE.Mesh; readonly loadedBolt: THREE.Mesh;
@@ -722,14 +739,7 @@ export function buildCrossbow(sky: Sky, into: { readonly model: THREE.Group; rea
   model.add(new THREE.Mesh(grip, leatherMat));
 
   // ── loaded bolt on the rail ──
-  const atlas = makeBoltAtlas();
-  const boltGeo = buildBoltGeometry();
-  const boltMat = new THREE.MeshStandardMaterial({ map: atlas.map, normalMap: atlas.normalMap, aoMap: atlas.armMap, roughnessMap: atlas.armMap, metalnessMap: atlas.armMap, roughness: 1, metalness: 1, alphaTest: 0.5, side: THREE.DoubleSide });
-  // one DoubleSide pass: the viewmodel makes this material transparent (below), and three draws a transparent
-  // DoubleSide material as a BackSide + a FrontSide pass — two programs. The fletching is alpha-tested and the
-  // bolt writes depth, so one pass looks the same.
-  boltMat.forceSinglePass = true;
-  boltMat.name = 'xbow-bolt'; fixIBL(boltMat, VIEWMODEL_GROUP); sky.setupMaterial(boltMat);
+  const { geometry: boltGeo, material: boltMat } = buildBolt(sky);
   const loadedBolt = new THREE.Mesh(boltGeo, boltMat);
   loadedBolt.position.set(0, 0.0095, 0.128 - 0.18);
   model.add(loadedBolt);

@@ -1,8 +1,9 @@
 /**
  * Every shard's live models in its Model Explorer (E306 / E315 M5), listed once at boot (main.ts): the shared training
- * dummy, then the shard's roster (`ChunkDef.roster`: its creatures — the species list, alive now or not — its people and
- * the gear its player holds; a lazy loader, so the def stays node-safe). None of it is placed: the AnimalManager, the
- * quests and the weapons keep drawing the copies (./live.ts).
+ * dummy (the practice arena's lineup, E348) and the hoverboard every player rides (E348), then the shard's roster
+ * (`ChunkDef.roster`: its creatures — the species list, alive now or not — its people and the gear its player holds; a
+ * lazy loader, so the def stays node-safe). None of it is placed: the AnimalManager, the quests, the arena and the
+ * weapons keep drawing the copies (./live.ts).
  */
 import type * as THREE from 'three';
 import type { AnimalStyle } from '../entities/AnimalFactory';
@@ -11,9 +12,8 @@ import type { WorldRegistry } from '../world/registry';
 import { creatureContext } from './creature';
 import { listRoster, live, type RosterEntry } from './live';
 import { trainingDummy } from './trainingDummy';
-
-/** the practice arena's lineup: its three dummies (src/practice/TrainingArena.ts LINEUP) */
-const ARENA_DUMMIES = 3;
+import { hoverboard } from './hoverboard';
+import { ARENA_LINEUP } from '../practice/lineup';
 
 export interface ShardModelsOptions {
   /** the shard's roster (ChunkDef.roster) */
@@ -27,10 +27,11 @@ export interface ShardModelsOptions {
   readonly registry: WorldRegistry;
 }
 
-/** List the shard's live models (the dummy at once, the roster once its module is in). */
+/** List the shard's live models (the dummy and the hoverboard at once, the roster once its module is in). */
 export async function listShardModels(o: ShardModelsOptions): Promise<void> {
   const ctx = creatureContext(o.sky, o.style, o.renderer);
-  listRoster([live(trainingDummy, { copies: ARENA_DUMMIES, drawnAs: 'skinned' })], ctx, o.animals, o.registry);
+  // the arena's dummies: the copies its lineup places (src/practice/lineup.ts); the board: the player's one (Player.board)
+  listRoster([live(trainingDummy, { copies: ARENA_LINEUP.length, drawnAs: 'skinned' }), live(hoverboard, { copies: 1 })], ctx, o.animals, o.registry);
   try {
     const roster = await o.roster?.();
     if (roster) listRoster(roster, ctx, o.animals, o.registry);

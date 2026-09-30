@@ -26,14 +26,14 @@ import { painterlyMaterial } from '../world/painterly';
 
 /** where the hands hold the reins: just under the frame's bottom edge (NDC y < −1), a hand's width either side of the
  *  centre, this far in front of the eye — so they enter the frame at the bottom on a phone and a desktop alike */
-const HAND_NDC = { x: 0.2, y: -1.12 }, HAND_DEPTH = 0.55;
+export const HAND_NDC = { x: 0.2, y: -1.12 }, HAND_DEPTH = 0.55;
 /** the withers (body-bone space): where the reins lie when the hands let go */
 const WITHERS = new THREE.Vector3(0, 0.42, 0.62);
 const SPAN = 5, SEG = SPAN * 3, HALF_W = 0.009;
 const LEATHER = new THREE.Color(0.42, 0.26, 0.13), LEATHER_EDGE = new THREE.Color(0.62, 0.42, 0.24);
 /** the path's waypoints, each out on the rein's own side: the neck's flank at the mane2 bone (down from the crest, out
  *  past the neck), then under the jowl (below the head bone, out past the cheek), then the bit by the muzzle */
-const NECK_DOWN = -0.05, NECK_OUT = 0.1, JOWL_DOWN = 0.1, JOWL_OUT = 0.17, BIT_BACK = 0.3, BIT_OUT = 0.07;
+export const NECK_DOWN = -0.05, NECK_OUT = 0.1, JOWL_DOWN = 0.1, JOWL_OUT = 0.17, BIT_BACK = 0.3, BIT_OUT = 0.07;
 
 const _w = new THREE.Vector3(), _b = new THREE.Vector3(), _e = new THREE.Vector3(), _p = new THREE.Vector3();
 const _t = new THREE.Vector3(), _s = new THREE.Vector3(), _down = new THREE.Vector3(), _q = new THREE.Quaternion();
@@ -50,6 +50,56 @@ function catmull(out: THREE.Vector3, p0: THREE.Vector3, p1: THREE.Vector3, p2: T
   return out.set(f(p0.x, p1.x, p2.x, p3.x), f(p0.y, p1.y, p2.y, p3.y), f(p0.z, p1.z, p2.z, p3.z));
 }
 
+/**
+ * The two reins' ribbon (E348: the one the rider holds, and the Model Explorer card's own copy,
+ * src/chunks/nalati-grasslands/models/reins.ts): two strips of SEG + 1 cross-sections, two vertices each, in leather
+ * with a lighter edge, their normals toward the eye (camera space). `fillRein` writes a rein's path into `pos`.
+ */
+export function buildReinsRibbon(): { mesh: THREE.Mesh; pos: Float32Array; attr: THREE.BufferAttribute } {
+  // two ribbons of SEG + 1 cross-sections, two vertices each, facing the eye (camera space)
+  const verts = 2 * (SEG + 1) * 2;
+  const pos = new Float32Array(verts * 3);
+  const nrm = new Float32Array(verts * 3), col = new Float32Array(verts * 3), idx: number[] = [];
+  for (let v = 0; v < verts; v++) {
+    nrm[v * 3 + 2] = 1;
+    const c = v % 2 === 0 ? LEATHER_EDGE : LEATHER;
+    col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b;
+  }
+  for (let r = 0; r < 2; r++) {
+    const o = r * (SEG + 1) * 2;
+    for (let i = 0; i < SEG; i++) { const a = o + i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const g = new THREE.BufferGeometry();
+  const attr = new THREE.BufferAttribute(pos, 3);
+  attr.setUsage(THREE.DynamicDrawUsage);
+  g.setAttribute('position', attr);
+  g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setIndex(idx);
+  return { mesh: new THREE.Mesh(g, painterlyMaterial(null, { rim: 0.3, bands: 0.7, shade: 1.6, side: THREE.DoubleSide })), pos, attr };
+}
+
+/**
+ * Rein r (0: the horse's left, 1: its right) along K = [the hand's phantom, the hand, the neck's flank, under the jowl,
+ * the bit, the bit's phantom] (camera space, the eye at the origin): SPAN cross-sections per span of the Catmull-Rom
+ * path, each a flat strap turned to the eye, written into `pos` (buildReinsRibbon's).
+ */
+export function fillRein(pos: Float32Array, r: number, K: readonly THREE.Vector3[]): void {
+  const o = r * (SEG + 1) * 2;
+  for (let i = 0; i <= SEG; i++) {
+    const span = Math.min(2, Math.floor(i / SPAN)), t = (i - span * SPAN) / SPAN;
+    const p0 = K[span], p1 = K[span + 1], p2 = K[span + 2], p3 = K[span + 3];
+    if (p0 === undefined || p1 === undefined || p2 === undefined || p3 === undefined) continue;
+    catmull(_p, p0, p1, p2, p3, t, false);
+    catmull(_t, p0, p1, p2, p3, t, true);
+    // a flat strap turned to the eye: its width across the tangent and the line of sight
+    _s.crossVectors(_t, _p).normalize().multiplyScalar(HALF_W);
+    const k = (o + i * 2) * 3;
+    pos[k] = _p.x + _s.x; pos[k + 1] = _p.y + _s.y; pos[k + 2] = _p.z + _s.z;
+    pos[k + 3] = _p.x - _s.x; pos[k + 4] = _p.y - _s.y; pos[k + 5] = _p.z - _s.z;
+  }
+}
+
 export class Reins {
   readonly group = new THREE.Group();
   private readonly pos: Float32Array;
@@ -61,27 +111,8 @@ export class Reins {
   private readonly muzzleLocal = new WeakMap<Animal, THREE.Vector3>();
 
   constructor(private readonly camera: THREE.PerspectiveCamera) {
-    // two ribbons of SEG + 1 cross-sections, two vertices each, facing the eye (camera space)
-    const verts = 2 * (SEG + 1) * 2;
-    this.pos = new Float32Array(verts * 3);
-    const nrm = new Float32Array(verts * 3), col = new Float32Array(verts * 3), idx: number[] = [];
-    for (let v = 0; v < verts; v++) {
-      nrm[v * 3 + 2] = 1;
-      const c = v % 2 === 0 ? LEATHER_EDGE : LEATHER;
-      col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b;
-    }
-    for (let r = 0; r < 2; r++) {
-      const o = r * (SEG + 1) * 2;
-      for (let i = 0; i < SEG; i++) { const a = o + i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
-    }
-    const g = new THREE.BufferGeometry();
-    this.posAttr = new THREE.BufferAttribute(this.pos, 3);
-    this.posAttr.setUsage(THREE.DynamicDrawUsage);
-    g.setAttribute('position', this.posAttr);
-    g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    g.setIndex(idx);
-    this.ribbon = new THREE.Mesh(g, painterlyMaterial(null, { rim: 0.3, bands: 0.7, shade: 1.6, side: THREE.DoubleSide }));
+    const { mesh, pos, attr } = buildReinsRibbon();
+    this.pos = pos; this.posAttr = attr; this.ribbon = mesh;
     this.ribbon.frustumCulled = false; this.ribbon.castShadow = false; this.ribbon.receiveShadow = false;
     this.ribbon.raycast = () => undefined;   // never in an aim ray / pick
     this.group.add(this.ribbon);
@@ -145,20 +176,7 @@ export class Reins {
       _k2.copy(_head).addScaledVector(_upW, -JOWL_DOWN).addScaledVector(_leftW, side * JOWL_OUT).applyMatrix4(toCam);
       _k0.copy(_e).multiplyScalar(2).sub(_k1);           // phantom ends: the path leaves the hand and meets the bit straight
       _k3.copy(_b).multiplyScalar(2).sub(_k2);
-      const K = [_k0, _e, _k1, _k2, _b, _k3];
-      const o = r * (SEG + 1) * 2;
-      for (let i = 0; i <= SEG; i++) {
-        const span = Math.min(2, Math.floor(i / SPAN)), t = (i - span * SPAN) / SPAN;
-        const p0 = K[span], p1 = K[span + 1], p2 = K[span + 2], p3 = K[span + 3];
-        if (p0 === undefined || p1 === undefined || p2 === undefined || p3 === undefined) continue;
-        catmull(_p, p0, p1, p2, p3, t, false);
-        catmull(_t, p0, p1, p2, p3, t, true);
-        // a flat strap turned to the eye: its width across the tangent and the line of sight
-        _s.crossVectors(_t, _p).normalize().multiplyScalar(HALF_W);
-        const k = (o + i * 2) * 3;
-        this.pos[k] = _p.x + _s.x; this.pos[k + 1] = _p.y + _s.y; this.pos[k + 2] = _p.z + _s.z;
-        this.pos[k + 3] = _p.x - _s.x; this.pos[k + 4] = _p.y - _s.y; this.pos[k + 5] = _p.z - _s.z;
-      }
+      fillRein(this.pos, r, [_k0, _e, _k1, _k2, _b, _k3]);
     }
     this.posAttr.needsUpdate = true;
   }

@@ -12,8 +12,10 @@ import { BOSS_NAMES } from '../ui/Combat';
 import { DummyMotion, DummyPose } from './DummyMotion';
 import { DummyClips, loadDummyClips } from './DummyClips';
 import { applyDummyStudio } from './DummyStudio';
-import { buildTrainingDummy, DUMMY_JOINTS, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
-import { loadTrainingDummy } from './TrainingDummyAssets';
+import { DUMMY_JOINTS, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
+import { ARENA_LINEUP } from './lineup';
+import { paramsOf } from '../models/model';
+import { dummyFigure, dummyStandIn, trainingDummy } from '../models/trainingDummy';
 import './arena.css';
 
 const HALF_WIDTH = 50, HALF_DEPTH = 50, WALL_HEIGHT = 9;
@@ -21,11 +23,8 @@ const Y = 900; // an isolated room high over each shard; existing world geometry
 const CYAN = 0x75d9ff;
 BOSS_NAMES.set('training-dummy', 'Training dummy'); // the aim readout's name (E285: it read the raw kind, "TRAINING-DUMMY · 12 M")
 
-/**
- * The lineup (room-local x, z). The centre figure stands forward, the two sides a step back and close in, so all three
- * and their labels fit the narrowest portrait frame (Nalati's) from a spawn the arena picks from the camera's FOV.
- */
-const LINEUP: readonly { x: number; z: number }[] = [{ x: -2.1, z: -8.5 }, { x: 0, z: -7 }, { x: 2.1, z: -8.5 }];
+/** the lineup (./lineup.ts: placements of the shared dummy model, room-local) */
+const LINEUP = ARENA_LINEUP;
 /** the dummy's half width with its arms, metres: what must stay inside the frame */
 const DUMMY_HALF_WIDTH = 0.5;
 const LABEL_Y = 2.05;
@@ -287,10 +286,10 @@ export class TrainingArena {
     document.getElementById('hud')?.append(overlay); this.overlay = overlay;
     const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = 'PREPARING TRAINING TARGETS';
     overlay.append(preparation); this.preparation = preparation;
-    this.targets = DUMMY_VARIANTS.map((v, i) => {
-      const spot = LINEUP[i] ?? { x: (i - 1) * 2.1, z: -8.5 };
+    // E348: each copy of the shared dummy model its lineup places, its armour the placement's variant
+    this.targets = LINEUP.map((spot, i) => {
       const x = center.x + spot.x, z = center.z + spot.z;
-      const target = new TrainingTarget(v.id, x, Y, z, spot.x, spot.z, overlay, i + 1);
+      const target = new TrainingTarget(paramsOf(trainingDummy, spot.variant, spot.params).variant, x, Y, z, spot.x, spot.z, overlay, i + 1);
       target.bodies = addTrainingTarget(physics, target, x, Y, z);
       target.bodies.setEnabled(false); // E300: shot at only while the room is open (enter / exit)
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.69, 0.012, 6, 48).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: CYAN, fog: false, toneMapped: false }));
@@ -317,12 +316,7 @@ export class TrainingArena {
   private async prepareModels(): Promise<void> {
     const renderer = this.game.renderer;
     await Promise.all(this.targets.map(async (target) => {
-      let model: TrainingDummyModel;
-      try { model = await loadTrainingDummy(target.variant); }
-      catch (error) {
-        console.warn(`[practice] ${target.variant} mesh unavailable; using procedural fallback`, error);
-        model = buildTrainingDummy(target.variant);
-      }
+      const model = await dummyFigure(target.variant, 'arena'); // the model's builder (src/models/trainingDummy.ts)
       target.install(model, renderer);
       await this.upload(model.root);
     }));
@@ -369,7 +363,7 @@ export class TrainingArena {
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
     this.overlay.parentElement?.classList.add('practice-active');
     // still loading: the procedural figures stand in at once, never an empty room; the meshes replace them on arrival
-    if (!this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(buildTrainingDummy(t.variant), this.game.renderer);
+    if (!this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(dummyStandIn(t.variant), this.game.renderer);
     this.preparation.hidden = true;
     void this.preload();
     weapons.lendAll(); // the weapon explorer: every weapon this shard has, only while in here (E298 A)

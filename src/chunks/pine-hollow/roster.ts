@@ -15,6 +15,7 @@ import { owl, raven, woodpecker } from './models/birds';
 import { snowshoeHare } from './models/wildlife';
 import { millerBrandt, rangerHale, traderMott } from './models/people';
 import { GEAR } from './models/gear';
+import { swimHands } from '../../models/swimHands';
 
 /** the small wildlife's copies (src/pinehollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */
@@ -32,6 +33,8 @@ export const ROSTER: readonly RosterEntry[] = [
   live(woodpecker, { copies: WOODPECKERS, drawnAs: 'instanced' }), live(snowshoeHare, { copies: HARES, drawnAs: 'instanced' }),
   // the people (src/pinehollow/quest/index.ts): one each, the generated person skinned on its code rig
   live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
-  // the gear its player holds (the crossbow, the lever-action, the Warden's longbow, the skinning knife)
+  // the gear its player holds (the crossbow and its bolts, the lever-action, the Warden's longbow and its arrows, the
+  // skinning knife) and the gloved hands in the pond and the creek (E348)
   ...GEAR,
+  live(swimHands, { copies: 1 }),
 ];

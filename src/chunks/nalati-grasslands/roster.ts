@@ -10,6 +10,9 @@ import { CAMP_PEOPLE } from '../../game/quest/nalati';
 import { aqbars, argymaq, balbalWarrior, ghostRider, goldenKing, horse, kokbori, marmot, qyran, sheep, sheepdog, stormTitan, wolf } from './models/creatures';
 import { campPeople, shepherd } from './models/people';
 import { GEAR } from './models/gear';
+import { BUTTERFLIES, butterfly, RAPTORS, raptor } from './models/ambientLife';
+import { reins } from './models/reins';
+import { swimHands } from '../../models/swimHands';
 
 /** the camp's flock (Wildlife NALATI_WILDLIFE: 40 sheep, one instanced draw) */
 const FLOCK = NALATI_WILDLIFE.flocks.reduce((n, f) => n + f.count, 0);
@@ -29,8 +32,13 @@ export const ROSTER: readonly RosterEntry[] = [
   live(ghostRider, { planned: 3 }), live(balbalWarrior, { planned: 5 }),
   // the bosses: the Golden King (src/nalati/kurganBoss.ts) and Jel Ata, the Storm Titan (src/nalati/stormTitan.ts)
   live(goldenKing), live(stormTitan, { copies: 1, drawnAs: 'instanced' }),
+  // the dressing's ambient life (src/world/nalati/dressing/life.ts, E348): the butterflies over the drifts, the raptors
+  // circling the valley — one instanced draw each
+  live(butterfly, { copies: BUTTERFLIES, drawnAs: 'instanced' }), live(raptor, { copies: RAPTORS, drawnAs: 'instanced' }),
   // people: the camp's five (one skinned mesh) and the mounted shepherd (src/nalati/sheepRaid.ts)
   live(campPeople, { copies: Object.keys(CAMP_PEOPLE).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
-  // the gear its player holds (bow · sabre · spear and its javelins, the Golden Bow and the Naizagai once won, the AR-15)
+  // the gear its player holds (bow and its arrows · sabre · spear and its javelins, the Golden Bow and the Naizagai once
+  // won, the AR-15), the reins in the saddle (src/nalati/ride.ts) and the gloved hands in the river (E348)
   ...GEAR,
+  live(reins, { copies: 1 }), live(swimHands, { copies: 1 }),
 ];

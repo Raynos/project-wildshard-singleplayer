@@ -5,16 +5,35 @@
  * file fails. Variants: the three armours. The arena stands its three up and swings them on springs
  * (src/practice/TrainingArena.ts, DummyMotion.ts); the Explorer's specimen is lit with the arena's studio set
  * (DummyStudio.ts, E289), and waits for its file as the arena does: a wireframe box until it lands.
+ *
+ * E348: the arena's dummies go through the contract. Its lineup is placements of this model (src/practice/lineup.ts, one
+ * armour per spot: `paramsOf` reads each copy's variant), and every copy is built here — `dummyFigure`, and `dummyStandIn`
+ * while the files load — so the arena's figures and the card's specimen are one builder.
  */
 import * as THREE from 'three';
 import { applyDummyStudio } from '../practice/DummyStudio';
-import { buildTrainingDummy, DUMMY_VARIANTS, TRAINING_DUMMY_HEIGHT, type DummyVariant } from '../practice/TrainingDummy';
+import { buildTrainingDummy, DUMMY_VARIANTS, TRAINING_DUMMY_HEIGHT, type DummyVariant, type TrainingDummyModel } from '../practice/TrainingDummy';
 import { loadTrainingDummy } from '../practice/TrainingDummyAssets';
 import { defineModel } from './model';
 
 export interface TrainingDummyParams { readonly variant: DummyVariant }
 
 const ID = 'shared/training-dummy';
+
+/**
+ * One figure of this armour: the rigged TRELLIS.2 cast, or the procedural figure when its file fails (`who` names whose
+ * copy fell back, in the warning). The arena's copies and the Explorer's specimen are both built by this.
+ */
+export async function dummyFigure(variant: DummyVariant, who: string): Promise<TrainingDummyModel> {
+  try { return await loadTrainingDummy(variant); }
+  catch (error) {
+    console.warn(`[practice] ${who}: ${variant} mesh unavailable; using procedural fallback`, error);
+    return buildTrainingDummy(variant);
+  }
+}
+
+/** the procedural figure of this armour: the arena's stand-in while the files load (E291: never an empty room) */
+export function dummyStandIn(variant: DummyVariant): TrainingDummyModel { return buildTrainingDummy(variant); }
 
 /** the wireframe box a specimen shows while its file loads */
 function loadingBox(): THREE.Mesh {
@@ -31,12 +50,7 @@ export const trainingDummy = defineModel<TrainingDummyParams>({
     const holder = new THREE.Group();
     holder.add(loadingBox());
     void (async (): Promise<void> => {
-      let figure: THREE.Group;
-      try { figure = (await loadTrainingDummy(p.variant)).root; }
-      catch (error) {
-        console.warn(`[practice] Model Explorer could not load ${p.variant}; using procedural fallback`, error);
-        figure = buildTrainingDummy(p.variant).root;
-      }
+      const figure = (await dummyFigure(p.variant, 'Model Explorer')).root;
       if (ctx.renderer) applyDummyStudio(figure, ctx.renderer); // the arena's studio set, emissive 0 (E289)
       holder.clear();
       holder.add(figure);

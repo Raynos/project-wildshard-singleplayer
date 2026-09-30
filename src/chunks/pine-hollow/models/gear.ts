@@ -8,10 +8,10 @@ import * as THREE from 'three';
 import { defineModel, type ModelDef } from '../../../models/model';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '../../../models/gear';
 import { live, type RosterEntry } from '../../../models/live';
-import { buildCrossbow, isMesh, whiteColors } from '../../../player/Crossbow';
+import { buildBolt, buildCrossbow, isMesh, MAX_BOLTS, whiteColors } from '../../../player/Crossbow';
 import { crossbowDisplayModel } from '../../../player/Skins';
 import { leverSpecimen, preloadLeverModel } from '../../../player/LeverRifle';
-import { longbowSpecimen } from '../../../player/Longbow';
+import { arrowMaterial, buildArrowGeometry, longbowSpecimen, QUIVER_MAX } from '../../../player/Longbow';
 import { skinningKnife } from './skinningKnife';
 
 const FILE = 'src/chunks/pine-hollow/models/gear.ts';
@@ -64,11 +64,40 @@ export const wardensLongbow: ModelDef<object> = defineModel<object>({
   build: (ctx) => ctx.once('gear:wardens-longbow', () => longbowSpecimen(ctx.sky)).clone(),
 });
 
+/**
+ * The crossbow bolt (E348): an ash shaft, a steel socket and a two-edged broadhead, three feather vanes, 0.36 m — the
+ * crossbow's `buildBolt` (its atlas drawn in code, the viewmodels' program group) as its own copy, in the normal queue.
+ * The loaded one rides the rail; each one in flight or stuck in the world is its own mesh (Crossbow.ts); MAX_BOLTS carried.
+ */
+export const crossbowBolt: ModelDef<object> = defineModel<object>({
+  id: 'pine-hollow/crossbow-bolt', name: 'Crossbow bolt', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
+  defaults: {},
+  specimenYaw: Math.PI / 2, // side on: the shaft runs across the card
+  build: (ctx) => {
+    const { geometry, material } = ctx.once('gear:crossbow-bolt', () => buildBolt(ctx.sky));
+    return [{ geometry, material, castShadow: true, receiveShadow: true }];
+  },
+});
+
+/**
+ * The longbow's arrow (E348): an ash shaft, a sinew-bound bodkin head, three grey-goose feathers with a white cock
+ * feather, 0.76 m — the longbow's `buildArrowGeometry` on its own copy of the arrows' material (`arrowMaterial`). Every
+ * arrow loosed, flying or stuck, is one instanced draw (Projectiles.ts); the quiver holds QUIVER_MAX.
+ */
+export const longbowArrow: ModelDef<object> = defineModel<object>({
+  id: 'pine-hollow/longbow-arrow', name: 'Longbow arrow', category: 'gear', pipeline: 'code', file: FILE, surface: 'wood',
+  defaults: {},
+  specimenYaw: Math.PI / 2,
+  build: (ctx) => [{ geometry: ctx.once('gear:longbow-arrow', buildArrowGeometry), material: ctx.once('gear:longbow-arrow-material', () => arrowMaterial(ctx.sky)), castShadow: true, receiveShadow: true }],
+});
+
 /** the Hollow's kit (src/main.ts): the crossbow (1), the lever-action (2, the cabin pickup), the longbow (3, the King's
  *  reward); and the skinning beat's knife */
 export const GEAR: readonly RosterEntry[] = [
   live(crossbow, { copies: 1 }),
+  live(crossbowBolt, { copies: MAX_BOLTS, drawnAs: 'single' }),
   live(leverAction, { copies: 1 }),
   live(wardensLongbow, { copies: 1 }),
+  live(longbowArrow, { copies: QUIVER_MAX, drawnAs: 'instanced' }),
   live(skinningKnife, { copies: 1 }),
 ];

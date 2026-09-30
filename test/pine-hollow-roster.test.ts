@@ -19,7 +19,7 @@ const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */
 
 describe("Pine Hollow's roster (E315 M5)", () => {
   it('every fauna species and the Antler King are roster creatures; ids unique; every entry a defined model', () => {
-    const gear = new Set(GEAR.map((g) => g.id));
+    const gear = new Set([...GEAR.map((g) => g.id), 'shared/swim-hands']); // (the gloved hands in the pond: shared gear, E348)
     const ids = ROSTER.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
     const species = new Set(ROSTER.map((r) => r.species).filter((s) => s !== undefined));
@@ -36,7 +36,8 @@ describe("Pine Hollow's roster (E315 M5)", () => {
       'shared/deer', 'shared/boar', 'shared/bear', 'pine-hollow/elk', 'pine-hollow/antler-king',
       'pine-hollow/raven', 'pine-hollow/great-grey-owl', 'pine-hollow/pileated-woodpecker', 'pine-hollow/snowshoe-hare',
       'pine-hollow/ranger-hale', 'pine-hollow/miller-brandt', 'pine-hollow/trader-mott',
-      'pine-hollow/crossbow', 'pine-hollow/lever-action', 'pine-hollow/wardens-longbow', 'pine-hollow/skinning-knife',
+      'pine-hollow/crossbow', 'pine-hollow/crossbow-bolt', 'pine-hollow/lever-action', 'pine-hollow/wardens-longbow', 'pine-hollow/longbow-arrow',
+      'pine-hollow/skinning-knife', 'shared/swim-hands',
     ]);
   });
 

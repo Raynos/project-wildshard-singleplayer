@@ -9,7 +9,8 @@
  *    round the flower-drift hearts nearest the player just above the grass, and dart up and away when you come close.
  *  - **kites / eagles**: three raptors circling high over the valley and the plateau, gliding on bent wings with the
  *    odd flap burst, banking into the turn.
- * Butterflies and raptors are painterly-lit instanced meshes (the shared material + instanceColor).
+ * Butterflies and raptors are painterly-lit instanced meshes (the shared material + instanceColor). Both are models (E348:
+ * src/chunks/nalati-grasslands/models/ambientLife.ts builds their geometry, the Model Explorer lists them from the roster).
  *
  *   const life = new DressLife(sky, drifts).build();   scene.add(life.group);
  *   life.update(dt, camera, playerPos);
@@ -23,6 +24,7 @@ import { grassBaseHeightAt } from '../../GrassField';
 import { wind } from '../../steppeWind';
 import { painterlyMaterial, painterlyUniforms } from '../../painterly';
 import type { Sky } from '../../Sky';
+import { BUTTERFLIES, BUTTERFLY_HUES, FLY_SCALE, halfBirdGeo, RAPTORS, wingGeo } from '../../../chunks/nalati-grasslands/models/ambientLife';
 
 const PHONE = TIER === 'phone';
 
@@ -83,65 +85,14 @@ void main() {
 
 // ── critters ────────────────────────────────────────────────────────────────────────────────────────
 
-const BUTTERFLIES = PHONE ? 14 : 30;
-/** the wing scale (NALATI-FINISH B2 / E302: the bigger ones picked, 2026-09-30 — they were 1.7) */
-const FLY_SCALE = 2.8;
-const BIRDS = 3;
-
-/** a butterfly wing: a fore + hind wing fan hinged on +x from the body line (x = 0), two-sided, painted */
-function wingGeo(): THREE.BufferGeometry {
-  const v = [0, 0, 0.004, 0.034, 0.004, 0.02, 0.044, 0, -0.004, 0.03, 0, -0.026, 0, 0, -0.012];
-  const idx = [0, 1, 2, 0, 2, 3, 0, 3, 4];
-  const back = [0, 2, 1, 0, 3, 2, 0, 4, 3];
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], 3));
-  // dark at the hinge, the colour in the middle, dark wingtips (the instance colour tints it)
-  g.setAttribute('color', new THREE.Float32BufferAttribute([0.15, 0.12, 0.1, 0.6, 0.55, 0.5, 0.9, 0.88, 0.85, 0.75, 0.72, 0.7, 0.2, 0.18, 0.16], 3));
-  g.setIndex([...idx, ...back]);
-  g.computeBoundingSphere();
-  return g;
-}
-
-/** half a raptor (its right side): half the body, one long fingered wing on +x, half the tail; mirrored for the left */
-function halfBirdGeo(): THREE.BufferGeometry {
-  // (x, y, z) with −z forward; wing chord ~0.45 at the root, tapering to fingers at 1.0 m
-  const v: number[] = [
-    0, 0.02, -0.55, 0.07, 0, -0.35, 0.09, 0.0, 0.05, 0, 0.04, 0.2, 0, -0.05, -0.1,  // body: beak, shoulder, hip, back, belly (0-4)
-    0.07, 0.0, -0.22, 0.45, 0.03, -0.2, 0.85, 0.06, -0.12, 1.0, 0.07, 0.0, 0.8, 0.05, 0.12, 0.4, 0.02, 0.2, 0.08, 0.0, 0.15, // wing (5-11)
-    0, 0.02, 0.3, 0.13, 0.02, 0.55, 0, 0.02, 0.6, // tail (12-14)
-  ];
-  const tri = [
-    0, 1, 3, 1, 2, 3, 0, 4, 1, 1, 4, 2,          // body top + belly
-    5, 6, 11, 6, 10, 11, 6, 7, 10, 7, 9, 10, 7, 8, 9, // wing
-    12, 13, 14,                                  // tail
-  ];
-  const back: number[] = [];
-  for (let i = 0; i < tri.length; i += 3) back.push(tri[i] ?? 0, tri[i + 2] ?? 0, tri[i + 1] ?? 0);
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
-  g.setIndex([...tri, ...back]);
-  g.computeVertexNormals();
-  const n = v.length / 3, col = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) {
-    const x = v[i * 3] ?? 0, z = v[i * 3 + 2] ?? 0;
-    // rufous body, darker wing, black fingertips, a pale band under the hand
-    let r = 0.36, gg = 0.22, b = 0.12;
-    if (x > 0.3) { r = 0.22; gg = 0.15; b = 0.1; }
-    if (x > 0.8) { r = 0.06; gg = 0.05; b = 0.05; }
-    if (z > 0.5) { r = 0.42; gg = 0.28; b = 0.16; }
-    col[i * 3] = r; col[i * 3 + 1] = gg; col[i * 3 + 2] = b;
-  }
-  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  g.computeBoundingSphere();
-  return g;
-}
+// the counts, the wing scale, the colours and the two builders are the models' (E348: the butterfly and the raptor,
+// src/chunks/nalati-grasslands/models/ambientLife.ts), moved there unchanged
+const BIRDS = RAPTORS;
 
 interface Fly { x: number; y: number; z: number; vx: number; vy: number; vz: number; tx: number; ty: number; tz: number; retarget: number; phase: number; rate: number; home: number; scare: number; hue: THREE.Color }
 interface Bird { cx: number; cz: number; alt: number; r: number; w: number; a: number; flap: number; nextFlap: number; phase: number; s: number }
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _mf = new THREE.Matrix4(), _mw = new THREE.Matrix4();
-const BUTTERFLY_HUES = ['#f08a2a', '#f4f1e2', '#7fa0f0', '#f2d23c', '#f4f1e2', '#e9702a'];
 
 export class DressLife {
   group = new THREE.Group();

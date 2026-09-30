@@ -132,10 +132,16 @@ export function buildArrowGeometry(): THREE.BufferGeometry {
   return g;
 }
 
-/** the arrow as a `Projectiles` kind: one instanced standard material for every arrow in flight or stuck in the world */
-export function arrowKind(sky: Sky): ProjectileKind {
+/** the arrows' one standard material (the world pool's; E348: the Model Explorer's arrow card makes its own) */
+export function arrowMaterial(sky: Sky): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0 });
   material.name = 'longbow-arrow'; fixIBL(material, 'longbow-arrow'); sky.setupMaterial(material);
+  return material;
+}
+
+/** the arrow as a `Projectiles` kind: one instanced standard material for every arrow in flight or stuck in the world */
+export function arrowKind(sky: Sky): ProjectileKind {
+  const material = arrowMaterial(sky);
   return { geometry: buildArrowGeometry(), material, length: ARROW_LEN, gravity: 6, drag: 0.014, windCoupling: 0.25, bury: 0.09, recover: 0.7, maxFlying: 8, maxStuck: 48 };
 }
 

@@ -167,10 +167,13 @@ export function buildArrowGeometry(): THREE.BufferGeometry {
   return g;
 }
 
+/** the arrows' one painterly material (the world pool's; E348: the Model Explorer's arrow card makes its own) */
+export function arrowMaterial(sky: Sky): THREE.MeshLambertMaterial { return painterlyMaterial(sky, { rim: 0.45 }); }
+
 /** the arrow as a `Projectiles` kind (the world pool) — combat.md §C numbers */
 export function arrowKind(sky: Sky): ProjectileKind {
   return {
-    geometry: buildArrowGeometry(), material: painterlyMaterial(sky, { rim: 0.45 }),
+    geometry: buildArrowGeometry(), material: arrowMaterial(sky),
     length: ARROW_LEN, gravity: 5, drag: 0.015, windCoupling: 0.25, bury: 0.09, recover: 0.7, maxFlying: 8, maxStuck: 64,
   };
 }
