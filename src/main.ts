@@ -327,8 +327,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (wreck) addBuilt('wreck', 'Shipwreck', 'buildings', 'src/world/Wreck.ts', wreck.group, wreck.colliders, 'planks', (x, z) => wreck.floorHeightAt(x, z), wreck.colliderDescs(), {});
     await slice();
     // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
-    const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
-    if (shrine) addBuilt('shrine', 'Ring shrine', 'buildings', 'src/world/Shrine.ts', shrine.group, shrine.colliders, 'stone', (x, z) => shrine.floorHeightAt(x, z), shrine.colliderDescs(), {});
+    // E315 M1: the ring shrine model (src/chunks/driftwood-isle/models/shrine.ts) placed through src/models/place.ts, which registers piece `shrine`
+    const shrine = isOcean ? new Shrine(sky, SHRINE).place(registry) : null;
+    if (shrine) statics.push(...shrine.colliders);
     await slice();
     // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
     const jetties: Pier[] = [];
