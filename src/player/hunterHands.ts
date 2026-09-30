@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ARM_PAL, gloveFist } from './nalatiArms';
-import { onSettingChange, setting } from '../ui/Settings';
 
 /**
  * hunterHands — the Pine Hollow hunter's first-person hands: the Longbow's dark-tan leather gloves (nalatiArms.gloveFist in
- * the hunter's palette), here on the crossbow and the lever-action too (E322 F-M6, Debug ▸ Combat & weapons ▸ Weapon hands).
+ * the hunter's palette), here on the crossbow and the lever-action too (E322 F-M6, Jake's pick B: always on).
  *
  *   withHunterPalette(() => gloveFist(…))      build nalatiArms geometry in the hunter's colours (the Longbow's hands)
  *   handGeometry(spec)                          a gloved fist + a light forearm (gauntlet → knit cuff → waxed-canvas sleeve),
@@ -16,7 +15,7 @@ import { onSettingChange, setting } from '../ui/Settings';
  *   new WeaponHands(parent, material, left, right)   the two hands as two meshes (two draws) under a weapon's model: the left
  *        fixed on the weapon, the right posed every frame (`placeRight`) — the grip, the string, the lever, the gate
  *
- * Built only when the Debug row picks B: nothing is made, drawn or uploaded on A. `userData['viewmodelOnly']` keeps them off the
+ * Always on in Pine Hollow (Jake picked B over no hands). `userData['viewmodelOnly']` keeps them off the
  * world copies of the held weapon (Skins.crossbowDisplayModel) — the Model Explorer's Gear cards are built from
  * `buildCrossbow` / `leverSpecimen`, never from the held viewmodel, so they carry no hands either way.
  */
@@ -194,11 +193,6 @@ export interface HandHold { spec: HandSpec; at: V3; axis: V3; palm: V3 }
 export const holdDef = (h: HandHold): HandDef => ({ spec: h.spec, pose: gripPose(h.at, h.axis, h.palm) });
 /** the hands' material parameters (the Longbow's: the viewmodels' shared lit program, vertex colours × the 1×1 fillers) */
 export const HANDS_MATERIAL: THREE.MeshPhysicalMaterialParameters = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
-
-/** Debug ▸ Combat & weapons ▸ Weapon hands: B = the hands (E322 F-M6) */
-export const handsWanted = (): boolean => setting('weaponHands') === 'b';
-/** call `fn` on every pick of the Weapon hands row (live) */
-export const onHandsSetting = (fn: () => void): void => { onSettingChange('weaponHands', () => { fn(); }); };
 
 /**
  * A weapon's two gloved hands under its model (they move, scale and hide with it): the left fixed where `left.pose` puts

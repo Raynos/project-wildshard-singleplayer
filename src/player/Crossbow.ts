@@ -16,7 +16,7 @@ import { makePixels, clamp01, sstep, CROSSBOW_SETS, RIFLE_SETS, type Pixels, typ
 // oxlint-disable-next-line import/default -- a Vite `?worker&inline` import: its default export is the worker constructor (typed by vite/client), which oxlint's resolver cannot see
 import TexturesWorker from './viewmodelTextures.worker?worker&inline';
 import type { Weapon } from './Weapon';
-import { HANDS_MATERIAL, WeaponHands, handsWanted, holdDef, onHandsSetting, type HandHold } from './hunterHands';
+import { HANDS_MATERIAL, WeaponHands, holdDef, type HandHold } from './hunterHands';
 
 /**
  * Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,
@@ -813,7 +813,7 @@ export class Crossbow implements Weapon {
   /** the rear peep sight: ring + post, posed from `adsPose` every sighted frame */
   private peep = new THREE.Group(); private peepRing = new THREE.Group(); private peepPost!: THREE.Mesh;
   private peepMats: THREE.Material[] = [];
-  /** E322 F-M6: the hunter's gloved hands (hunterHands.ts; Debug ▸ Combat & weapons ▸ Weapon hands = B), made on the first B */
+  /** E322 F-M6: the hunter's gloved hands (hunterHands.ts; Jake's pick B) */
   private hands: WeaponHands | null = null;
   private handsMat: THREE.MeshPhysicalMaterial | null = null;
   /** the holds, in model space: the left hand cradling the fore-end's leather (its sleeve free: aimed at an elbow below the
@@ -844,21 +844,15 @@ export class Crossbow implements Weapon {
     if (!cam.parent) this.game.scene.add(cam);
     this.game.scene.add(this.puffs.points);
     this.bindInput();
-    this.syncHands();
-    onHandsSetting(() => { this.syncHands(); });
+    this.buildHands();
   }
 
-  /** the Weapon hands row: B makes the hands (once) and shows them, A hides them */
-  private syncHands(): void {
-    const on = handsWanted();
-    if (on && this.hands === null) {
-      this.handsMat ??= viewmodelMaterial(this.sky, 'hunter-hands', HANDS_MATERIAL);
-      this.hands = new WeaponHands(this.model, this.handsMat, holdDef(this.handHolds.left), holdDef(this.handHolds.right));
-    }
-    if (this.hands) this.hands.group.visible = on;
+  private buildHands(): void {
+    this.handsMat ??= viewmodelMaterial(this.sky, 'hunter-hands', HANDS_MATERIAL);
+    this.hands = new WeaponHands(this.model, this.handsMat, holdDef(this.handHolds.left), holdDef(this.handHolds.right));
   }
   /** dev: rebuild the hands after editing `handHolds` */
-  rebuildHands(): void { this.hands?.dispose(); this.hands = null; this.syncHands(); }
+  rebuildHands(): void { this.hands?.dispose(); this.buildHands(); }
   /** dev / the cost readout: what the hands add (null: not made yet) */
   get handsCost(): WeaponHands['cost'] | null { return this.hands?.cost ?? null; }
 

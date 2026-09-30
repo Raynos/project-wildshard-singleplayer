@@ -153,7 +153,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Combat & weapons ──
   opt('aimRing', 'combat', 'Aim assist ring', [['off', 'Off'], ['on', 'On']], { note: 'the aim-assist bubble on screen, with its angle and snap (was ?aimdebug)' }),
-  opt('weaponHands', 'combat', 'Weapon hands', [['a', 'A · Today (no hands)'], ['b', 'B · Hands']], { when: (c) => pineHollow(c) && (c.weapons.has('crossbow') || c.weapons.has('rifle')), note: 'E322 F-M6 · B: the hunter\'s gloved hands on the crossbow and the lever-action (art/pine-hollow/round-29-e322-hands/)' }),
 
   // ── Creatures & NPCs ──
   opt('creatures', 'creatures', 'Creatures', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: (c) => pineHollow(c) || nalati(c), note: 'PH-U11 / E136 · models picked; procedural = what the rig bakes need' }),

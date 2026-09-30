@@ -14,7 +14,7 @@ import type { Sky } from '../world/Sky';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { shardSlot } from '../core/shardState';
 import { MAY_KTX2 } from '../boot/gpuFiles';
-import { HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, handsWanted, holdDef, onHandsSetting, type HandHold } from './hunterHands';
+import { HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from './hunterHands';
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11): a 1900s backwoods lever-action carbine in the
@@ -320,7 +320,7 @@ export class LeverRifle implements KitWeapon {
   private readonly caseGeo: THREE.BufferGeometry;
   private readonly tracers: HitLine[] = []; private readonly tracerRes = new THREE.Vector2();
   private readonly puffs = new Puffs();
-  /** E322 F-M6: the hunter's gloved hands (hunterHands.ts; Debug ▸ Combat & weapons ▸ Weapon hands = B), made on the first B */
+  /** E322 F-M6: the hunter's gloved hands (hunterHands.ts; Jake's pick B) */
   private hands: WeaponHands | null = null;
   private handsMat: THREE.MeshPhysicalMaterial | null = null;
   private readonly leverPivot: THREE.Vector3;
@@ -412,23 +412,17 @@ export class LeverRifle implements KitWeapon {
     this.game.scene.add(this.puffs.points);
     this.bindInput();
     this.syncState();
-    this.syncHands();
-    onHandsSetting(() => { this.syncHands(); });
+    this.buildHands();
   }
 
-  /** the Weapon hands row: B makes the hands (once) and shows them, A hides them */
-  private syncHands(): void {
-    const on = handsWanted();
-    if (on && this.hands === null) {
-      this.handsMat ??= viewmodelMaterial(this.sky, 'hunter-hands', HANDS_MATERIAL);
-      const right = holdDef(this.handHolds.right), g = this.handHolds.gate;
-      this.grips.rest = right.pose; this.grips.gate = gripPose(g.at, g.axis, g.palm);
-      this.hands = new WeaponHands(this.model, this.handsMat, holdDef(this.handHolds.left), right);
-    }
-    if (this.hands) this.hands.group.visible = on;
+  private buildHands(): void {
+    this.handsMat ??= viewmodelMaterial(this.sky, 'hunter-hands', HANDS_MATERIAL);
+    const right = holdDef(this.handHolds.right), g = this.handHolds.gate;
+    this.grips.rest = right.pose; this.grips.gate = gripPose(g.at, g.axis, g.palm);
+    this.hands = new WeaponHands(this.model, this.handsMat, holdDef(this.handHolds.left), right);
   }
   /** dev: rebuild the hands after editing `handHolds` */
-  rebuildHands(): void { this.hands?.dispose(); this.hands = null; this.syncHands(); }
+  rebuildHands(): void { this.hands?.dispose(); this.buildHands(); }
   /** dev / the cost readout: what the hands add (null: not made yet) */
   get handsCost(): WeaponHands['cost'] | null { return this.hands?.cost ?? null; }
 
