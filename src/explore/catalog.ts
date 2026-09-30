@@ -1,7 +1,6 @@
 /**
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
- *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins (everything else there is a model: E315 M2)
  *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present
  *   measure(object)                           // tris / draw calls
  *
@@ -20,7 +19,7 @@ import type { DrawnAs, Pipeline } from '../world/registry';
 import { creatureHull } from '../entities/glbCreatures';
 import { pineHull } from '../entities/pineCreatures';
 import { HULL_PIPELINE, SPECIES_PIPELINE } from '../models/provenance';
-import { registerModel, registeredModels, type ModelCategory, type RegisteredModel } from './registry';
+import { registeredModels, type ModelCategory, type RegisteredModel } from './registry';
 
 export type Category = ModelCategory;
 export const CATEGORIES: readonly { id: Category | 'all'; label: string }[] = [
@@ -48,21 +47,7 @@ export interface CatalogEntry extends Omit<RegisteredModel, 'worldBox'> {
 // ── Driftwood's models are on the model contract (E306 / E315 M1, src/models/): `place` registers each one, its copies
 // and its tap targets, so the shard's setup registers nothing here.
 
-// ── Pine Hollow's cabins (E66): the three log cabins, until their models land (E315 M2 placed everything else there: its
-// props, TRELLIS props, crags, landmarks, trees and forest floor are models in src/chunks/pine-hollow/models/) ──
-
-export interface PineHollowModels {
-  cabins?: { roots: readonly THREE.Object3D[] } | null;
-}
-
-const CABIN_NAMES = ['Log cabin · hollow', 'Log cabin · east', 'Log cabin · ridge'] as const;
-
-export function registerPineHollowModels(h: PineHollowModels): void {
-  // the cabins' cores are merged across the three by material (Cabins.batchCores): each card is one copy of that batch
-  (h.cabins?.roots ?? []).forEach((root, i) => {
-    registerModel({ id: `cabin-${i + 1}`, name: CABIN_NAMES[i] ?? `Log cabin ${i + 1}`, category: 'buildings', file: 'src/world/Cabin.ts', live: true, object: () => root, pipeline: 'code', drawnAs: 'merged', copies: 1 });
-  });
-}
+// ── Pine Hollow's models are on the contract (E315 M2, src/chunks/pine-hollow/models/): `place` registers each one.
 
 // ── the catalog Explore shows: every registered model + a creature per species on the shard ──
 

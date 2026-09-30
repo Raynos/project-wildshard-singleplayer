@@ -113,6 +113,8 @@ describe('Pine Hollow models (E315 M2)', () => {
     const WORLD: Record<string, { why: string; draws: Partial<Record<'mergeGeometries' | 'InstancedMesh' | 'BatchedMesh' | 'Mesh', number>>; registers?: number }> = {
       'src/chunks/pine-hollow/world/props.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/drawnModels.ts': { why: '', draws: {} },
+      'src/chunks/pine-hollow/world/cabins.ts': { why: '', draws: {} },
+      'src/chunks/pine-hollow/world/cabinKit.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/timber.ts': { why: "the timber kit's glass pane (merged per building: the models' own parts)", draws: { Mesh: 1 } },
       'src/pinehollow/quest/hollowLog.ts': { why: '', draws: {} },
       'src/world/PineCrags.ts': { why: 'the ONE batch the models are placed into, sized for the face skin and the cave (world); the cave\'s light shaft and drips (effects)', draws: { BatchedMesh: 1, Mesh: 2 } },
@@ -133,6 +135,7 @@ describe('Pine Hollow models (E315 M2)', () => {
     expect(strip(source('src/pinehollow/quest/index.ts'))).not.toMatch(/registry\.add\(\{ id: 'hollow-log'/);
     // and the shard's setup never hand-registers the migrated pieces again
     const main = strip(source('src/main.ts'));
-    for (const id of ['props', 'props-rocks-2', 'props-wood', 'pine-landmark-props', 'pine-crags-', 'hollow-log']) expect(main, id).not.toMatch(new RegExp(`registry\\.add\\(\\{ id: '${id}`));
+    for (const id of ['props', 'props-rocks-2', 'props-wood', 'pine-landmark-props', 'pine-crags-', 'hollow-log', 'cabins']) expect(main, id).not.toMatch(new RegExp(`registry\\.add\\(\\{ id: '${id}`));
+    expect(main, 'registerPineHollowModels').not.toMatch(/registerPineHollowModels/);
   });
 });

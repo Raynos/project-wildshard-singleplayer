@@ -631,18 +631,23 @@ class CabinBuilder {
   private toSink = new THREE.Matrix4();
   /** a cluster member's lights are anchors only (the phone's pooled pair may visit them; never a light of their own) */
   private anchorLights: boolean;
+  /** the fire pit and the porch lantern it placed (their models' copies, E315 M2) */
+  firePitObj: THREE.Object3D | null = null;
+  lanternObj: THREE.Object3D | null = null;
 
   constructor(
     private owner: Cabins, private spec: CabinSpec, private index: number,
     private cx: number, private cy: number, private cz: number, private rot: number,
     private mats: Mats, private sky: Sky, private propInstances: Record<PropKind, THREE.Matrix4[]>,
     private sink?: ClusterSink,
+    /** the Model Explorer's specimen (E315 M2): its lights are anchors (no light of its own on any tier) */
+    specimen = false,
   ) {
     this.rng = new Rng(SEED + 500 + index * 17);
     this.root.position.set(cx, cy, cz);
     this.root.rotation.y = rot;
     this.root.updateMatrixWorld(true);
-    this.anchorLights = sink !== undefined;
+    this.anchorLights = sink !== undefined || specimen;
     this.doorAt = [spec.W / 2, spec.doorZ];
     this.rooms.push({ x: 0, z: 0, hw: spec.W / 2, hd: spec.L / 2 });
     if (spec.wing) this.rooms.push({ x: -(spec.W / 2) - spec.wing.L / 2, z: 0, hw: spec.wing.L / 2, hd: spec.wing.W / 2 });
@@ -1342,6 +1347,7 @@ class CabinBuilder {
     pit.position.set(fx, 0.19 - 0.06, fz);
     pit.rotation.y = this.rng.range(0, 6);
     this.root.add(pit); this.detail.push(pit);
+    this.firePitObj = pit;
     const casters = this.casters;
     if (casters !== null) {
       // desktop: its depth goes into the building's double-sided near proxy (addNearProxies), in the root's frame
@@ -1443,6 +1449,7 @@ class CabinBuilder {
     this.pointLight(pivot, 0xffb060, 9, 11, 2, 0, -0.3, 0, 2.2 + this.index, 'lamp', 1);
     this.root.add(pivot);
     this.detail.push(lan, ring); // never the pivot: its light must stay visible (a changing light count recompiles every shader)
+    this.lanternObj = lan;
     this.owner._swing({ pivot, seed: this.index * 2.3 });
   }
 
@@ -1809,6 +1816,34 @@ function geometrySlice(geo: THREE.BufferGeometry, start: number, count: number):
  */
 export interface ExtraBuilding { id: string; x: number; z: number; rot: number; spec: CabinSpec }
 
+/** a prop kind the buildings set about (E315 M2: each is a model — src/chunks/pine-hollow/models/) */
+export type CabinPropKind = PropKind;
+export const CABIN_PROP_KINDS: readonly CabinPropKind[] = PROP_KINDS;
+
+/**
+ * One building as its model sees it (E315 M2): which (the 3 cabins in CABIN_SITES order, then the extras), where it stands,
+ * what it collides with and stands on (world space, the doors apart), the props it set about (world matrices), its fire pit
+ * and porch lantern.
+ */
+export interface CabinBuilding {
+  readonly id: string;
+  readonly index: number;
+  readonly spec: CabinSpec;
+  readonly x: number; readonly y: number; readonly z: number; readonly rot: number;
+  /** what draws it: its own root (a cluster member's holds only its doors, lantern, smoke and wheel) */
+  readonly root: THREE.Object3D;
+  /** a cluster member: the merged cluster that draws the rest of it */
+  readonly cluster: THREE.Object3D | null;
+  readonly colliders: ColliderDesc[];
+  readonly floors: readonly { x: number; z: number; rot: number; hw: number; hd: number; y: number }[];
+  readonly props: Readonly<Record<CabinPropKind, readonly THREE.Matrix4[]>>;
+  readonly firePit: THREE.Object3D | null;
+  readonly lantern: THREE.Object3D | null;
+}
+
+/** the props' drawn meshes (E315 M2: each kind a model): the cabins' shared instanced meshes, the cluster's own */
+export interface CabinPropMeshes { readonly kind: CabinPropKind; readonly mesh: THREE.InstancedMesh; readonly cluster: boolean }
+
 export class Cabins {
   group = new THREE.Group();
   /** the merged cluster of the extra buildings (null without any) */
@@ -1846,8 +1881,59 @@ export class Cabins {
   private tmpL = new THREE.Vector3();
   private cabinCount = 0;
   private tmpV = new THREE.Vector3();
+  /** every building, as its model sees it (E315 M2) */
+  readonly buildings: CabinBuilding[] = [];
+  /** every prop kind's drawn meshes (E315 M2) */
+  readonly propMeshes: CabinPropMeshes[] = [];
+  /** what the buildings were built from: kept for the Model Explorer's specimens */
+  private kit: { mats: Mats; props: Record<PropKind, PropPart[]>; firePit: THREE.Object3D; lantern: THREE.Object3D } | null = null;
 
   constructor(private sky: Sky, private extra: readonly ExtraBuilding[] = []) {}
+
+  /** what the building just built by `b` (its slice of the shared lists since `mark`) */
+  private record(b: CabinBuilder, id: string, index: number, spec: CabinSpec, x: number, y: number, z: number, rot: number, mark: { colliders: number; solids: number; floors: number; props: Record<PropKind, number> }, props: Record<PropKind, THREE.Matrix4[]>, cluster: THREE.Object3D | null): void {
+    const doorBoxes = new Set(this.doors.map((d) => d.collider));
+    const colliders = [...this.colliders.slice(mark.colliders).filter((c) => !doorBoxes.has(c)).map((c) => boxDesc(c)), ...this.solids.slice(mark.solids)];
+    const own = { crate: props.crate.slice(mark.props.crate), barrel: props.barrel.slice(mark.props.barrel), bucket: props.bucket.slice(mark.props.bucket), hatchet: props.hatchet.slice(mark.props.hatchet) };
+    this.buildings.push({ id, index, spec, x, y, z, rot, root: b.root, cluster, colliders, floors: this.floors.slice(mark.floors), props: own, firePit: b.firePitObj, lantern: b.lanternObj });
+  }
+
+  private mark(props: Record<PropKind, THREE.Matrix4[]>): { colliders: number; solids: number; floors: number; props: Record<PropKind, number> } {
+    return { colliders: this.colliders.length, solids: this.solids.length, floors: this.floors.length, props: { crate: props.crate.length, barrel: props.barrel.length, bucket: props.bucket.length, hatchet: props.hatchet.length } };
+  }
+
+  /**
+   * Building `i` alone, in its own frame, for the Model Explorer (E315 M2): built where it stands (its site-fitted parts:
+   * the mill's stilts) with its lights as anchors, then set at the origin; its props drawn with it. null before `build`.
+   */
+  specimen(i: number): THREE.Group | null {
+    const b = this.buildings[i], kit = this.kit;
+    if (!b || !kit) return null;
+    const props: Record<PropKind, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
+    const cb = new CabinBuilder(new Cabins(this.sky), b.spec, b.index, b.x, b.y, b.z, b.rot, kit.mats, this.sky, props, undefined, true);
+    cb.build(kit.firePit, kit.lantern);
+    cb.addNearProxies();
+    const toLocal = cb.root.matrixWorld.clone().invert();
+    cb.root.position.set(0, 0, 0); cb.root.rotation.set(0, 0, 0);
+    cb.root.updateMatrixWorld(true);
+    const m = new THREE.Matrix4();
+    for (const k of PROP_KINDS) for (const part of kit.props[k]) {
+      const list = props[k];
+      if (list.length === 0) continue;
+      const im = new THREE.InstancedMesh(part.geometry, part.material, list.length);
+      list.forEach((w, j) => { im.setMatrixAt(j, m.multiplyMatrices(toLocal, w).multiply(part.matrix)); });
+      im.instanceMatrix.needsUpdate = true;
+      im.computeBoundingSphere();
+      im.castShadow = true; im.receiveShadow = true;
+      cb.root.add(im);
+    }
+    return cb.root;
+  }
+
+  /** a prop kind's parts (for its model's specimen), their node transforms baked in; null before `build` */
+  propParts(kind: CabinPropKind): readonly PropPart[] | null { return this.kit?.props[kind] ?? null; }
+  /** the fire pit's and the lantern's loaded models (for their models' specimens); null before `build` */
+  get models(): { firePit: THREE.Object3D; lantern: THREE.Object3D } | null { return this.kit ? { firePit: this.kit.firePit, lantern: this.kit.lantern } : null; }
 
   async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
     // the seven PBR sets and the six models in one round of fetches (they were two, back to back)
@@ -1856,6 +1942,7 @@ export class Cabins {
     ])]);
     // each model's parts share one material: merged into one part, a cabin's crates / barrels / buckets are one draw each (9 → 4)
     const props = { crate: mergeParts(prepModel(crate.scene, this.sky)), barrel: mergeParts(prepModel(barrel.scene, this.sky)), bucket: mergeParts(prepModel(bucket.scene, this.sky)), hatchet: mergeParts(prepModel(hatchet.scene, this.sky)) };
+    this.kit = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene };
     this._lamp(mats.glass, mats.glass.emissiveIntensity);
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
@@ -1870,8 +1957,10 @@ export class Cabins {
       // per-cabin prop instances: a cabin's crates / barrels / buckets / hatchet show only within cabinDetailDist (with
       // the rest of its hardware), drawn by the shared per-part instanced meshes (sharedProps)
       const propInstances: Record<PropKind, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
+      const at = this.mark(propInstances);
       const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances);
       b.build(firePitGltf.scene, lanternGltf.scene);
+      this.record(b, `cabin-${i + 1}`, i, spec, site.x, y, site.z, site.rot, at, propInstances, null);
       this.group.add(b.root);
       if (b.casters !== null) {
         // desktop: the props' depth goes into this cabin's double-sided near proxy (they cast no shadow of their own)
@@ -1894,6 +1983,7 @@ export class Cabins {
       im.castShadow = false; im.receiveShadow = true;   // desktop: the near proxies cast for them; the phone: no prop shadow
       this.group.add(im);
       this.sharedProps.push({ im, lists });
+      this.propMeshes.push({ kind: k, mesh: im, cluster: false });
     }
     this.refreshProps();
     await macrotask();
@@ -1956,9 +2046,11 @@ export class Cabins {
     let pad = 0;
     for (const [j, e] of this.extra.entries()) {
       await macrotask(); // one building per task, as the cabins
-      const b = new CabinBuilder(this, e.spec, this.cabinCount + j, e.x, heightAt(e.x, e.z), e.z, e.rot, mats, this.sky, propInstances, sink);
+      const ey = heightAt(e.x, e.z), at = this.mark(propInstances);
+      const b = new CabinBuilder(this, e.spec, this.cabinCount + j, e.x, ey, e.z, e.rot, mats, this.sky, propInstances, sink);
       b.root.name = e.id;
       b.build(firePit, lantern);
+      this.record(b, e.id, this.cabinCount + j, e.spec, e.x, ey, e.z, e.rot, at, propInstances, root);
       this.group.add(b.root);
       b.addNearProxies();
       if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
@@ -1985,6 +2077,7 @@ export class Cabins {
         im.computeBoundingSphere();
         this.group.add(im);
         detail.push(im);
+        this.propMeshes.push({ kind: k, mesh: im, cluster: true });
       }
     }
     // the cluster's small merged hardware (iron, cloth, char, the chinking behind the logs, glass, the crates and barrels)

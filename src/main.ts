@@ -101,8 +101,8 @@ import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
-import { registerPineHollowModels } from './explore/catalog';
 import { placeDrawnModels } from './chunks/pine-hollow/world/drawnModels';
+import { placeCabins } from './chunks/pine-hollow/world/cabins';
 import { registerTrainingDummyModel } from './practice/catalog';
 import { TrainingArena } from './practice/TrainingArena';
 import { loadPlayground } from './playgrounds/load';
@@ -436,7 +436,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     game.scene.add(cabinGroup);
     // P3: the cabins as real colliders (walls, floors, porch + step, furniture); their doors swing as kinematic pieces that
     // collide only when fully shut or open, and never switch on around a player standing in the doorway
-    registry.add({ id: 'cabins', name: 'Cabins', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', colliders: cabins.colliderDescs(), floor: (x, z) => cabins.floorHeightAt(x, z), solidFloor: true });
+    // E315 M2: each building and prop is a model the homestead draws: placed (drawnInto) with its own colliders and floors
+    placeCabins({ cabins, sky, registry });
     const _dp = new THREE.Vector3();
     for (const d of cabins.doorPieces()) {
       registry.add({ id: d.id, name: 'Cabin door', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', follows: d.pivot, colliders: d.colliders,
@@ -480,8 +481,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
   // the shard's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built);
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
-  // E315 M2: Pine Hollow's trees and forest-floor kinds are models the world draws (placed drawnInto); its cabins' cards until theirs land
-  if (chunk.slug === 'pine-hollow') { registerPineHollowModels({ cabins }); placeDrawnModels({ sky, renderer: game.renderer, forest, under, registry }); }
+  // E315 M2: Pine Hollow's trees and forest-floor kinds are models the world draws (placed drawnInto)
+  if (chunk.slug === 'pine-hollow') placeDrawnModels({ sky, renderer: game.renderer, forest, under, registry });
   registerTrainingDummyModel(game.renderer); // the same three shared prop variants in every shard's Model Explorer
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
