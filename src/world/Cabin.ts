@@ -1237,7 +1237,8 @@ class CabinBuilder {
       const g = new THREE.ExtrudeGeometry(outline, { depth: 0.015, bevelEnabled: false }).toNonIndexed();
       g.translate(0, -0.44, 0);                                   // hang from the rope
       const pos = g.getAttribute('position');
-      const c = new THREE.Color(0x120b06), col = new Float32Array(pos.count * 3);
+      // E341: a tanned-hide brown. It was 0x120b06, near black once linear (≈ 0.006), so by the fire it read as a black hole
+      const c = new THREE.Color(0x7a5a3c), col = new Float32Array(pos.count * 3);
       for (let i = 0; i < pos.count; i++) { const f = 0.75 + 0.35 * Math.abs(Math.sin(pos.getX(i) * 9 + pos.getY(i) * 7)); col[i * 3] = c.r * f; col[i * 3 + 1] = c.g * f; col[i * 3 + 2] = c.b * f; }
       g.setAttribute('color', new THREE.BufferAttribute(col, 3));
       this.m.makeRotationFromEuler(new THREE.Euler(sgn * 0.1, yaw, 0, 'YXZ')).setPosition(x, y, z);
