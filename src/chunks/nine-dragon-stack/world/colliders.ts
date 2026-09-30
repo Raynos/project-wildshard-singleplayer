@@ -4,10 +4,10 @@
 // of the fragment are walls: the building fronts (40 m), the balustrades over the Well (with an invisible parapet 12 m
 // up so nobody vaults into the shaft), the street's and the stair's far ends. What still gets out (a grapple gone wrong)
 // the def's `bounds` catches: a soft respawn on the last floor stood on. The props you would walk into — the gate's
-// posts, the stalls — are boxes of their footprints; the models' own colliders (the banyan's planter, the shrine, the
-// stele: ../models/) come with their copies (src/models/place.ts).
+// posts — are boxes of their footprints; the models' own colliders (the banyan's planter, the shrine, the stele, the
+// stalls: ../models/) come with their copies (src/models/place.ts).
 import type { ColliderDesc } from '../../../world/registry';
-import { GATE, HAWKER, PLAZA, STAIR, STALL, STREET, WELL, Y0 } from '../layout';
+import { GATE, PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairstreet';
 import { stairUpperColliders } from './stairstreet-upper';
 import { marketColliders } from './stalls';
@@ -82,8 +82,7 @@ export function fragmentColliders(): FragmentColliders {
   // the stair-street landings' planters (dome C2's)
   out.push(...stairUpperColliders());
   // (the banyan's planter, the earth-god shrine and the 九龍城 stele collide as their models: models/banyan.ts)
-  out.push(span(STALL.x0, Y0, STALL.z0, STALL.x1, Y0 + 3.2, STALL.z1 + 0.6, 'wood'));                    // the noodle stall
-  out.push(span(HAWKER.x0, Y0, HAWKER.z0, HAWKER.x1, Y0 + 2.4, HAWKER.z1, 'wood'));                      // the hawker stall
+  // (the noodle and hawker stalls collide as their models: models/stalls.ts)
   out.push(...marketColliders());                                                                         // E281: the east market's booths
   return { floors, fronts, edges, props };
 }

@@ -4,7 +4,7 @@
 // board, a timber counter with a steel top crowded with bowls, chopstick cups and sauce bottles, three steaming
 // stockpots and a wok on a glowing burner, a lit back wall of menu strips and shelves of jars, bare bulbs and lanterns,
 // cooks behind the counter, customers on stools and at two folding tables in front, gas bottles and crates at the side.
-import { type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
+import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
 import { HAWKER, STALL, Y0 } from '../layout';
@@ -46,11 +46,27 @@ function quad2(k: Kit, a: Vector3, b: Vector3, c: Vector3, d: Vector3, w: number
   k.quad4(b, a, d, c, w, h, look, 0, 0, edges);
 }
 
-export function noodleStall(ctx: Ctx, rng: Rng): void {
+/** a stall's footprint (x0 … x1 along its front, z0 its back, z1 its front) */
+export interface StallRect { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number }
+
+/** a stall's footprint about the origin (the stall models' own space, ../models/stalls.ts) */
+export const centred = (r: StallRect): StallRect => {
+  const cx = (r.x0 + r.x1) / 2, cz = (r.z0 + r.z1) / 2;
+  return { x0: r.x0 - cx, x1: r.x1 - cx, z0: r.z0 - cz, z1: r.z1 - cz };
+};
+
+/** where a stall drawn into the square's kit stands (its footprint's centre): the stall models' placement */
+function standsAt(ctx: Ctx, model: string, r: StallRect, y: number, k: Kit, x: KitX, v0: number, w0: number): void {
+  ctx.inKit.push({ model, kit: k, at: { x: (r.x0 + r.x1) / 2, y, z: (r.z0 + r.z1) / 2 }, box: x.boundsFrom(w0, k.boundsFrom(v0, new Box3())) });
+}
+
+/** the noodle stall (the noodle stall model, ../models/stalls.ts), drawn into the square cluster's kit at `rect` */
+export function noodleStall(ctx: Ctx, rng: Rng, rect: StallRect = STALL, ground: number = Y0): void {
   const k = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
   const x = ctx.kitx('paifang');
-  const { x0, x1, z0, z1 } = STALL;
-  const y = Y0;
+  const v0 = k.vertexCount, w0 = x.vertexCount;
+  const { x0, x1, z0, z1 } = rect;
+  const y = ground;
   const xc = (x0 + x1) / 2, W = x1 - x0;
   // ── the frame: four steel posts, a roof frame, a corrugated roof sloping to the front ──
   const yb = y + 3.25, yf = y + 2.95;
@@ -229,6 +245,7 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
   // the cord from the roof to the tower wall (the stall's power)
   x.sweep(curve([new Vector3(x1, yb, z0 + 0.3), new Vector3(x1 + 0.4, yb - 0.3, z0 + 0.3), new Vector3(x1 + 0.6, yb + 1.2, z0 + 0.3)], 4), () => 0.012, 3, { wash: 0x1c1c1f, line: 0 });
   ctx.map.push({ x0, z0, x1, z1, kind: 'block' });
+  standsAt(ctx, 'nine-dragon-stack/noodle-stall', rect, y, k, x, v0, w0);
 }
 
 /**
@@ -239,11 +256,12 @@ export function noodleStall(ctx: Ctx, rng: Rng): void {
  * a warm-lit back wall with menu strips, a cook, two customers on stools, lanterns, a bulb; the steam rises past the
  * roof. Every sign reuses a spec of the big stall's (the colour atlas is small).
  */
-export function hawkerStall(ctx: Ctx, rng: Rng): void {
+export function hawkerStall(ctx: Ctx, rng: Rng, rect: StallRect = HAWKER, ground: number = Y0): void {
   const k = ctx.kit('paifang', true); // the square cluster's kit (one draw, budget.md)
   const x = ctx.kitx('paifang');
-  const { x0, x1, z0, z1 } = HAWKER;
-  const y = Y0;
+  const v0 = k.vertexCount, w0 = x.vertexCount;
+  const { x0, x1, z0, z1 } = rect;
+  const y = ground;
   const xc = mid(x0, x1), L = x1 - x0;
   const yf = y + 2.7, yb = y + 3.0;
   // the frame and a canvas roof sloping down to the front (south)
@@ -342,6 +360,7 @@ export function hawkerStall(ctx: Ctx, rng: Rng): void {
   k.cyl(x1 + 0.3, y, z1 - 0.4, 0.16, 0.16, 0.6, 10, { wash: 0xb8261a, line: 1, accent: true }, { edges: E.rims });
   k.box(x1 + 0.3, y, z0 + 0.4, 0.38, 0.28, 0.5, { wash: 0x6a5a44, kind: K.bars, col: 0.05, row: 0, line: 0.8 });
   ctx.map.push({ x0, z0, x1, z1, kind: 'block' });
+  standsAt(ctx, 'nine-dragon-stack/hawker-stall', rect, y, k, x, v0, w0);
 }
 
 function mid(a: number, b: number): number { return (a + b) / 2; }
