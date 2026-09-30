@@ -187,7 +187,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   clearDownloadsRow,
 
   // ── Developer tools ──
-  opt('setCut', 'tools', 'Set Explorer cut', [['off', 'Off · the world'], ['circle', 'A · Circle'], ['dome', 'B · Dome']], { note: 'E315 M7 · an opened set as a diorama on the studio backdrop: a round cut (A) or a dome (B) — Jake picks' }),
   opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
 ];
 

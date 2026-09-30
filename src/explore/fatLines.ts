@@ -14,8 +14,8 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 export interface LineStyle { readonly core: number; readonly coreWidth: number; readonly halo: number; readonly haloWidth: number; readonly haloOpacity: number }
 /** the set's bounds: deep blue (#1447c2) on a pale halo — dark enough for bright sand and sea, haloed for forest and neon */
 export const OUTLINE: LineStyle = { core: 0x1447c2, coreWidth: 3, halo: 0xe6f4ff, haloWidth: 6.5, haloOpacity: 0.72 };
-/** the diorama dome's arcs (./diorama.ts): the same blue, fainter and finer */
-export const DOME_ARCS: LineStyle = { core: 0x1447c2, coreWidth: 1.5, halo: 0xe6f4ff, haloWidth: 3.5, haloOpacity: 0.35 };
+/** a stacked diorama's lid rim (./diorama.ts): the same blue, fainter and finer */
+export const LID_RIM: LineStyle = { core: 0x1447c2, coreWidth: 1.5, halo: 0xe6f4ff, haloWidth: 3.5, haloOpacity: 0.35 };
 /** ◎ a member's copies: amber on a dark halo */
 export const LOCATED: LineStyle = { core: 0xffb547, coreWidth: 2, halo: 0x06121c, haloWidth: 4.5, haloOpacity: 0.6 };
 

@@ -11,7 +11,8 @@
  * List: a card per set — an aerial thumbnail the game renders itself (behind the glass the camera visits each set for a
  * few frames and the frame is copied, so the look, the LODs and the culling are the real ones), its models with their
  * copies and pipeline badges, and the set's own triangles and draws in that view.
- * Scene: drag = orbit, pinch / wheel = zoom, idle → it slowly turns; a deep-blue box on a light halo marks the set's
+ * Scene: the set as a diorama (./diorama.ts, Jake's pick A · circle): only the world inside a round cut about it, on the
+ * studio backdrop, seen from a 3/4 aerial. Drag = orbit, pinch / wheel = zoom, idle → it slowly turns; a deep-blue box on a light halo marks the set's
  * bounds (Jake: "way darker, higher contrast"), ◎ on a member
  * outlines its copies (amber); a member row opens its model card (✕ / Esc come back here); ‹ › step through the sets;
  * VIEW IN WORLD hands the view to the World Explorer where it stands. The pure parts (framing, facts, measures) are
@@ -27,7 +28,6 @@ import { registeredSets } from './registry';
 import { FatLines, LOCATED, OUTLINE } from './fatLines';
 import { Diorama } from './diorama';
 import { studioBackdrop } from './ModelExplorer';
-import { onSettingChange, setting } from '../ui/Settings';
 import type { DrawnAs, Pipeline, RegisteredSet } from '../world/registry';
 import { bandWindow, boxEdges, copyBoxes, drawnRoots, fitOrbit, fitPoints, lensReset, lensShift, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setTotals, type MemberFact, type NdcWindow, type SetOrder } from './setView';
 
@@ -91,7 +91,7 @@ export class SetExplorer implements ExplorePane {
   private readonly res = new THREE.Vector2();
   /** what the camera frames: the set's bounds, or the diorama's whole cut */
   private readonly framed = new THREE.Box3();
-  /** a diorama's outline, fitted instead of its box: the rim top and bottom, the set's top or the dome */
+  /** a diorama's outline, fitted instead of its box: the rim top and bottom, the set's top or a stacked set's lid */
   private framedPoints: THREE.Vector3[] | null = null;
   private readonly diorama: Diorama;
   private locatedModel: string | null = null;
@@ -142,7 +142,6 @@ export class SetExplorer implements ExplorePane {
     this.located = new FatLines(LOCATED);
     this.marks.add(this.outline.group, this.located.group);
     this.diorama = new Diorama(world, studioBackdrop);
-    onSettingChange('setCut', () => { const c = this.current; if (c && this.el.classList.contains('show')) this.openSet(c); }); // live
     this.marks.visible = false;
     world.game.scene.add(this.marks);
 
@@ -273,22 +272,19 @@ export class SetExplorer implements ExplorePane {
     this.renderMembers(info);
     this.mark(set);
     this.locate(null);
-    // a diorama (Debug ▸ Set Explorer cut): only the world inside a circle or a dome round the set, on the studio backdrop
-    const shape = setting('setCut');
-    const vol = shape === 'off' ? null : this.diorama.enter(set.bounds, shape, [this.marks]);
-    const top = Math.max(set.bounds.max.y, vol !== null && Number.isFinite(vol.dome) ? vol.centre.y + vol.dome : vol !== null && Number.isFinite(vol.top) ? vol.top : set.bounds.max.y);
-    if (vol) {
-      this.framed.set(new THREE.Vector3(vol.centre.x - vol.radius, vol.floor, vol.centre.z - vol.radius), new THREE.Vector3(vol.centre.x + vol.radius, top, vol.centre.z + vol.radius));
-      const ring = (y: number, r: number): THREE.Vector3[] => Array.from({ length: 16 }, (_, k) => new THREE.Vector3(vol.centre.x + Math.cos((k / 16) * Math.PI * 2) * r, y, vol.centre.z + Math.sin((k / 16) * Math.PI * 2) * r));
-      // the disc (its rim top and bottom) and what rises from it: the dome's crown, a stacked circle's lid, else the set's top
-      const crown = Number.isFinite(vol.dome) ? vol.radius * 0.3 : Number.isFinite(vol.top) ? vol.radius : Math.hypot(set.bounds.max.x - set.bounds.min.x, set.bounds.max.z - set.bounds.min.z) / 2;
-      this.framedPoints = [...ring(vol.floor, vol.radius), ...ring(vol.centre.y, vol.radius), ...ring(top, crown)];
-    } else { this.framed.copy(set.bounds); this.framedPoints = null; }
+    // the diorama (Jake's pick, A · circle): only the world inside a round cut about the set, on the studio backdrop
+    const vol = this.diorama.enter(set.bounds, [this.marks]);
+    const top = Math.max(set.bounds.max.y, Number.isFinite(vol.top) ? vol.top : set.bounds.max.y);
+    this.framed.set(new THREE.Vector3(vol.centre.x - vol.radius, vol.floor, vol.centre.z - vol.radius), new THREE.Vector3(vol.centre.x + vol.radius, top, vol.centre.z + vol.radius));
+    const ring = (y: number, r: number): THREE.Vector3[] => Array.from({ length: 16 }, (_, k) => new THREE.Vector3(vol.centre.x + Math.cos((k / 16) * Math.PI * 2) * r, y, vol.centre.z + Math.sin((k / 16) * Math.PI * 2) * r));
+    // the disc (its rim top and bottom) and what rises from it: a stacked set's lid, else the set's top
+    const crown = Number.isFinite(vol.top) ? vol.radius : Math.hypot(set.bounds.max.x - set.bounds.min.x, set.bounds.max.z - set.bounds.min.z) / 2;
+    this.framedPoints = [...ring(vol.floor, vol.radius), ...ring(vol.centre.y, vol.radius), ...ring(top, crown)];
     // the view: from the lit side (the camera between the sun and the set, a little off-axis), fitted to the screen above the sheet
     this.framed.getCenter(this.centre);
     const sun = this.world.game.sky.sunDir;
     // (a diorama cuts the towers away, so every shard's is seen from the same 3/4 aerial; the whole world, steeper on a stacked one)
-    this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = vol ? PITCH : this.pitch0(); this.idle = 0;
+    this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = PITCH; this.idle = 0;
     this.fit = 0;
     this.refit();
     this.dist = this.fit;

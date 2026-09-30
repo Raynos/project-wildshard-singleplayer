@@ -2,17 +2,16 @@
  * The Set Explorer's diorama (E315 M7; Jake, on Wreck Cove: "Can we make the Set Explorer render a partial world in a
  * circle or dome around the set? I want a focused review."): an opened set is drawn as a cut-out of the world — its
  * ground, its water, its models and the neighbours inside the cut — on the explorer's studio backdrop, with a deep-blue
- * rim at the cut. Two cuts for Jake to pick (pause ▸ Settings ▸ Debug ▸ Developer tools ▸ Set Explorer cut):
- *   circle  a round cake slice: a vertical cylinder round the set, the ground's cut side an earth skirt
- *   dome    a hemisphere: the same round base, and anything taller clipped at the dome's surface
+ * rim at the cut: a round cake slice, a vertical cylinder round the set, the ground's cut side an earth skirt (Jake picked
+ * A · circle over B · dome and the whole world; it is how every set opens).
  *
  *   const d = new Diorama(world);
- *   const vol = d.enter(set.bounds, 'circle');   // the cut on; the camera frames `vol`
+ *   const vol = d.enter(set.bounds, keep);        // the cut on; the camera frames `vol`
  *   d.update(cssSize);                           // each frame (the rim's line width)
  *   d.exit();                                    // everything as it was
  *
  * How it cuts, only while it is on (it never touches the game's own frames): the renderer's global clipping planes (a
- * 32-sided prism, or a 32 + 14 + 6-plane dome, and a floor) cut every built-in and patched material; a custom shader
+ * 32-sided prism, a floor, and a lid on a stacked shard) cut every built-in and patched material; a custom shader
  * without clipping gets the clipping chunks for the while (patchClipping, its view position read back from gl_Position),
  * and anything wholly outside the cut is moved to a layer the camera doesn't draw (the shard's cullers keep setting
  * `visible`, never `layers`). Cost: the materials in the cut compile a clipping variant on the way in (and the originals
@@ -21,41 +20,30 @@
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
 import { heightAt } from '../world/Heightfield';
-import { DOME_ARCS, FatLines, OUTLINE } from './fatLines';
+import { FatLines, LID_RIM, OUTLINE } from './fatLines';
 
-export type Cut = 'circle' | 'dome';
-
-/** the cut: a round base of `radius` round `centre` (its y the set's ground), open upward (circle) or a hemisphere (dome) */
+/** the cut: a round base of `radius` round `centre` (its y the set's ground), open upward (or lidded on a stacked shard) */
 export interface DioramaVolume {
-  readonly cut: Cut;
   readonly centre: THREE.Vector3;
   readonly radius: number;
-  /** the dome's radius (its base is `radius`, its top this high over the ground); the circle's: Infinity */
-  readonly dome: number;
   /** the floor of the cut, world y: nothing under it is drawn */
   readonly floor: number;
-  /** the circle's lid, world y: Infinity (open upward), or just over the set on a stacked shard, where towers stand round it */
+  /** the lid, world y: Infinity (open upward), or just over the set on a stacked shard, where towers stand round it */
   readonly top: number;
 }
 
 /**
- * The set's ground, a margin round it (25 %, at least 12 m), and a dome tall enough for what stands in it. `stacked`: a
- * structure-first shard (Nine Dragon), a set down among towers — the circle gets a lid just over the set, the dome is
- * squashed to the set's height, so neither shows a slice of city standing far over the set (Jake's night market row).
+ * The set's ground and a margin round it (25 %, at least 12 m). `stacked`: a structure-first shard (Nine Dragon), a set
+ * down among towers — the circle gets a lid just over the set, so it shows no slice of city standing far over the set
+ * (Jake's night market row).
  */
-export function dioramaVolume(bounds: THREE.Box3, cut: Cut, ground: (x: number, z: number) => number, stacked = false): DioramaVolume {
+export function dioramaVolume(bounds: THREE.Box3, ground: (x: number, z: number) => number, stacked = false): DioramaVolume {
   const c = bounds.getCenter(new THREE.Vector3()), size = bounds.getSize(new THREE.Vector3());
   const radius = Math.max(12, Math.hypot(size.x, size.z) * 0.5 * 1.25);
   const centre = new THREE.Vector3(c.x, bounds.min.y, c.z);
   let low = bounds.min.y;
   for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2; low = Math.min(low, ground(c.x + Math.cos(a) * radius, c.z + Math.sin(a) * radius)); }
-  // (a dome high enough that the set's own box stands inside it: its corners at 80 % of the base radius)
-  const lid = bounds.max.y + Math.max(3, size.y * 0.5);
-  return {
-    cut, centre, radius, floor: low - Math.max(2, radius * 0.16),
-    dome: cut !== 'dome' ? Infinity : stacked ? Math.max(6, size.y * 1.75) : Math.max(radius, size.y * 1.75),
-    top: cut === 'circle' && stacked ? lid : Infinity,
-  };
+  return { centre, radius, floor: low - Math.max(2, radius * 0.16), top: stacked ? bounds.max.y + Math.max(3, size.y * 0.5) : Infinity };
 }
 
 /** the planes that keep the inside (a point is drawn when every plane's signed distance to it is ≥ 0) */
@@ -63,23 +51,8 @@ export function cutPlanes(v: DioramaVolume): THREE.Plane[] {
   const out: THREE.Plane[] = [];
   const keep = (u: THREE.Vector3, r: number): void => { out.push(new THREE.Plane(u.clone().negate(), u.dot(v.centre) + r)); };
   const u = new THREE.Vector3();
-  if (v.cut === 'circle') {
-    for (let k = 0; k < 32; k++) { const a = (k / 32) * Math.PI * 2; keep(u.set(Math.cos(a), 0, Math.sin(a)), v.radius); }
-    if (Number.isFinite(v.top)) keep(u.set(0, 1, 0), v.top - v.centre.y); // the lid
-  } else {
-    // the dome: a vertical band at the base (the round ground cut), then rings up its side, squashed to `dome` high
-    for (const [elev, n] of [[0, 32], [35, 14], [65, 6]] as const) {
-      const e = THREE.MathUtils.degToRad(elev);
-      for (let k = 0; k < n; k++) {
-        const a = ((k + (elev === 0 ? 0 : 0.5)) / n) * Math.PI * 2;
-        // an ellipsoid (radius wide, dome high): the tangent plane's normal at the point, and its distance
-        const p = new THREE.Vector3(Math.cos(a) * Math.cos(e) * v.radius, Math.sin(e) * v.dome, Math.sin(a) * Math.cos(e) * v.radius);
-        const nrm = new THREE.Vector3(p.x / (v.radius * v.radius), p.y / (v.dome * v.dome), p.z / (v.radius * v.radius)).normalize();
-        keep(nrm, nrm.dot(p));
-      }
-    }
-    keep(u.set(0, 1, 0), v.dome); // the top
-  }
+  for (let k = 0; k < 32; k++) { const a = (k / 32) * Math.PI * 2; keep(u.set(Math.cos(a), 0, Math.sin(a)), v.radius); }
+  if (Number.isFinite(v.top)) keep(u.set(0, 1, 0), v.top - v.centre.y); // the lid
   out.push(new THREE.Plane(new THREE.Vector3(0, 1, 0), -v.floor)); // the floor
   return out;
 }
@@ -87,16 +60,13 @@ export function cutPlanes(v: DioramaVolume): THREE.Plane[] {
 /** a world sphere wholly outside the cut */
 export function outside(s: THREE.Sphere, v: DioramaVolume): boolean {
   const dx = s.center.x - v.centre.x, dz = s.center.z - v.centre.z, h = Math.hypot(dx, dz);
-  if (h - s.radius > v.radius || s.center.y + s.radius < v.floor || s.center.y - s.radius > v.top) return true;
-  if (v.cut === 'dome') return Math.hypot(h / v.radius, Math.max(0, s.center.y - v.centre.y) / v.dome) > 1 + s.radius / Math.min(v.radius, v.dome);
-  return false;
+  return h - s.radius > v.radius || s.center.y + s.radius < v.floor || s.center.y - s.radius > v.top;
 }
 
 /** a world sphere wholly inside the cut (nothing of it to clip) */
 function inside(s: THREE.Sphere, v: DioramaVolume): boolean {
   const h = Math.hypot(s.center.x - v.centre.x, s.center.z - v.centre.z);
-  if (h + s.radius > v.radius || s.center.y - s.radius < v.floor) return false;
-  return v.cut === 'circle' || Math.hypot(h / v.radius, Math.max(0, s.center.y - v.centre.y) / v.dome) + s.radius / Math.min(v.radius, v.dome) < 1;
+  return h + s.radius <= v.radius && s.center.y - s.radius >= v.floor;
 }
 
 const LAYER = 30; // what the cut hides is moved here: the camera draws layer 0 only
@@ -160,7 +130,7 @@ function patchClipping(m: THREE.ShaderMaterial): () => void {
 export class Diorama {
   private readonly group = new THREE.Group();
   private readonly rim = new FatLines(OUTLINE);
-  private readonly arcs = new FatLines(DOME_ARCS);
+  private readonly lid = new FatLines(LID_RIM);
   private skirt: THREE.Mesh | null = null;
   private readonly hidden: { o: THREE.Object3D; mask: number }[] = [];
   private readonly undo: (() => void)[] = [];
@@ -168,7 +138,7 @@ export class Diorama {
   private vol: DioramaVolume | null = null;
 
   constructor(private readonly world: World, private readonly backdrop: () => THREE.Texture) {
-    this.group.add(this.rim.group, this.arcs.group);
+    this.group.add(this.rim.group, this.lid.group);
     this.group.visible = false;
     this.group.name = 'diorama';
     world.game.scene.add(this.group);
@@ -177,13 +147,13 @@ export class Diorama {
   get volume(): DioramaVolume | null { return this.vol; }
 
   /** cut the world round `bounds`; `keep` (the explorer's own marks) is never hidden */
-  enter(bounds: THREE.Box3, cut: Cut, keep: readonly THREE.Object3D[]): DioramaVolume {
+  enter(bounds: THREE.Box3, keep: readonly THREE.Object3D[]): DioramaVolume {
     this.exit();
     const { game, chunk } = this.world;
     const sea = chunk.ocean?.level ?? -Infinity;
     const built = chunk.spawn.y !== undefined; // a structure-first shard (Nine Dragon): its ground is what it built, not heightAt
     const ground = (x: number, z: number): number => (built ? bounds.min.y : Math.max(heightAt(x, z), sea));
-    const vol = dioramaVolume(bounds, cut, ground, built);
+    const vol = dioramaVolume(bounds, ground, built);
     this.vol = vol;
     const planes = cutPlanes(vol);
     const { renderer, scene } = game;
@@ -215,7 +185,7 @@ export class Diorama {
   }
 
   /** the rim's line width follows the screen (CSS px) */
-  update(res: THREE.Vector2): void { if (this.vol) { this.rim.resize(res); this.arcs.resize(res); } }
+  update(res: THREE.Vector2): void { if (this.vol) { this.rim.resize(res); this.lid.resize(res); } }
 
   exit(): void {
     if (!this.vol) return;
@@ -237,7 +207,7 @@ export class Diorama {
     o.layers.set(LAYER);
   }
 
-  /** the ground's cut side (an earth skirt from the rim down to the floor) and the deep-blue rim; the dome's arcs */
+  /** the ground's cut side (an earth skirt from the rim down to the floor) and the deep-blue rim; a stacked set's lid rim */
   private buildRim(v: DioramaVolume, ground: (x: number, z: number) => number): void {
     const K = 128, pos: number[] = [], col: number[] = [], rim = new Float32Array(K * 6);
     const top = new THREE.Color(0x6b4a2e), bottom = new THREE.Color(0x1d140d);
@@ -264,25 +234,13 @@ export class Diorama {
     this.skirt.name = 'diorama-skirt';
     this.group.add(this.skirt);
     this.rim.set(rim);
-    // the dome: four arcs over it, faint, so its surface reads where it cuts
-    if (v.cut === 'dome') {
-      const arcs: number[] = [], N = 24;
-      for (let m = 0; m < 4; m++) {
-        const a = (m / 4) * Math.PI + Math.PI / 8;
-        for (let i = 0; i < N; i++) {
-          const e0 = (i / N) * Math.PI, e1 = ((i + 1) / N) * Math.PI;
-          const at = (e: number): number[] => [v.centre.x + Math.cos(e) * Math.cos(a) * v.radius, v.centre.y + Math.sin(e) * v.dome, v.centre.z + Math.cos(e) * Math.sin(a) * v.radius];
-          arcs.push(...at(e0), ...at(e1));
-        }
-      }
-      this.arcs.set(Float32Array.from(arcs));
-    } else if (Number.isFinite(v.top)) { // the lid's rim, faint: where the towers round the set are cut
+    if (Number.isFinite(v.top)) { // the lid's rim, faint: where the towers round the set are cut
       const lid = new Float32Array(64 * 6);
       for (let k = 0; k < 64; k++) {
         const a0 = (k / 64) * Math.PI * 2, a1 = ((k + 1) / 64) * Math.PI * 2, r = v.radius * 0.999;
         lid.set([v.centre.x + Math.cos(a0) * r, v.top - 0.02, v.centre.z + Math.sin(a0) * r, v.centre.x + Math.cos(a1) * r, v.top - 0.02, v.centre.z + Math.sin(a1) * r], k * 6);
       }
-      this.arcs.set(lid);
-    } else this.arcs.set(new Float32Array(0));
+      this.lid.set(lid);
+    } else this.lid.set(new Float32Array(0));
   }
 }
