@@ -13,8 +13,11 @@
 //    meshoptimizer copies of each figure whose surface stays within MID_PX of a pixel of the full one where they start
 //    (world/lod.ts). A figure 20 m off is ~100 px tall and its ~1.4 k triangles are ~1 px² each: every one costs a 2 × 2
 //    quad of the architecture program.
-import { type BufferGeometry, Color, Float32BufferAttribute, Frustum, InstancedMesh, type Material, Matrix4, type PerspectiveCamera, Sphere, Uint32BufferAttribute, Vector3 } from 'three';
-import { PX_PER_M, simplifiedCopy } from './lod';
+// 4. (E306 M4) the walker and the sitter are models (models/crowd.ts: the TRELLIS casts, their colourways, these LODs);
+//    this file deals the figures out to the colourways (`dealCrowd`) and culls them (`Crowd`, handed each colourway's
+//    levels by `place`).
+import { type BufferGeometry, Color, Float32BufferAttribute, Frustum, type InstancedMesh, Matrix4, type PerspectiveCamera, Sphere, Uint32BufferAttribute, Vector3 } from 'three';
+import type { HandedBatch, InstancedCuller } from '../../../models/place';
 
 export function tintUmbrella(src: BufferGeometry, color: number, above = 1.8): BufferGeometry {
   const g = src.clone();
@@ -130,15 +133,67 @@ export const LOD_NEAR = 35, LOD_FAR = 130;
 export const LOD_TRIS = 320;
 /** (E283) the middle levels' starts (m) and their error there (px on the phone frame) */
 export const MID_FROM = [12, 22] as const;
-const MID_PX = 0.8;
+export const MID_PX = 0.8;
 
-interface Variant { hi: InstancedMesh; lo: InstancedMesh; mids: InstancedMesh[]; mats: Matrix4[]; at: Vector3[] }
+interface Variant { hi: InstancedMesh; lo: InstancedMesh; mids: InstancedMesh[]; mats: readonly Matrix4[]; at: Vector3[] }
 
-export class Crowd {
-  private readonly built: InstancedMesh[] = [];
+/** a figure's colourway (models/crowd.ts): the coat's ramp, and the umbrella's dye when it is not the ramp's own */
+export type WalkerPick = 'dark' | 'light' | 'oxblood' | 'paper' | 'blue';
+export type SitterPick = 'dark' | 'light';
+
+/**
+ * The crowd's colourways (E281), as the old `Crowd.add` / `build` dealt them — now the placement of the walker and sitter
+ * models (world/build.ts): the walkers by their index (seven in ten dark coats, one red and one ochre oil-paper umbrella
+ * in ten), the sitters two dark coats to one light; then the black-umbrella figures dealt by a hash of where they stand
+ * (see BLUE_UMBRELLA): a quarter keep black, a quarter go blue, the rest join the oxblood and the paper ones. The tones
+ * come from the colourways' own geometry (`geo`), as before. Each colourway's figures in the order the old deal left them,
+ * the colourways in the order it built them (blue after the rest).
+ */
+export function dealCrowd(walkers: readonly Matrix4[], sitters: readonly Matrix4[], geo: { walker: (p: WalkerPick) => BufferGeometry; sitter: (p: SitterPick) => BufferGeometry }): { walkers: [WalkerPick, Matrix4[]][]; sitters: [SitterPick, Matrix4[]][] } {
+  type Part = { walker: true; pick: WalkerPick; mats: Matrix4[] } | { walker: false; pick: SitterPick; mats: Matrix4[] };
+  const all: Part[] = [
+    { walker: true, pick: 'dark', mats: walkers.filter((_, i) => i % 10 < 7 && i % 10 !== 2) },
+    { walker: true, pick: 'light', mats: walkers.filter((_, i) => i % 10 >= 7 && i % 10 !== 8) },
+    { walker: true, pick: 'oxblood', mats: walkers.filter((_, i) => i % 10 === 2) },
+    { walker: true, pick: 'paper', mats: walkers.filter((_, i) => i % 10 === 8) },
+    { walker: false, pick: 'dark', mats: sitters.filter((_, i) => i % 3 !== 1) },
+    { walker: false, pick: 'light', mats: sitters.filter((_, i) => i % 3 === 1) },
+  ];
+  // (an empty colourway was never added, so the tones only look at the ones with figures)
+  const parts = all.filter((p) => p.mats.length > 0);
+  const tones = parts.map((p) => umbrellaTone(p.walker ? geo.walker(p.pick) : geo.sitter(p.pick)));
+  const black = parts[tones.findIndex(isBlack)];
+  const oxblood = parts[tones.findIndex(isOxblood)], paper = parts[tones.findIndex(isPaper)];
+  const blue: Matrix4[] = [];
+  // (the blue copy is the black walker's umbrella dyed: the walker model's 'blue' colourway is the dark walker's)
+  const dealt = black !== undefined && black.walker && black.pick === 'dark';
+  if (dealt) {
+    const keep: Matrix4[] = [];
+    for (const m of black.mats) {
+      const h = spot(m);
+      if (h < SHARE.blue) blue.push(m);
+      else if (h < SHARE.oxblood && oxblood !== undefined) oxblood.mats.push(m);
+      else if (h < SHARE.paper && paper !== undefined) paper.mats.push(m);
+      else keep.push(m);
+    }
+    black.mats = keep;
+  }
+  const out: { walkers: [WalkerPick, Matrix4[]][]; sitters: [SitterPick, Matrix4[]][] } = { walkers: [], sitters: [] };
+  for (const p of parts) {
+    if (p.mats.length === 0) continue;
+    if (p.walker) out.walkers.push([p.pick, p.mats]); else out.sitters.push([p.pick, p.mats]);
+  }
+  if (dealt && blue.length > 0) out.walkers.push(['blue', blue]);
+  return out;
+}
+
+/**
+ * The crowd's culler (E306 M4): the walker and sitter models are placed through `place`, which hands each colourway's
+ * levels here (`PlaceOptions.culler`, src/models/place.ts) — full detail with every figure written, the E283 middle
+ * copies, the clustered far copy, nothing past LOD_FAR. They start empty and hidden; `update` fills them per figure.
+ */
+export class Crowd implements InstancedCuller {
   private readonly variants: Variant[] = [];
-  /** the variants handed in, built into meshes on first use (the umbrella deal needs all of them) */
-  private pending: { geo: BufferGeometry; mats: Matrix4[] }[] | null = [];
   private readonly frustum = new Frustum();
   private readonly pv = new Matrix4();
   private readonly last = new Matrix4();
@@ -146,67 +201,30 @@ export class Crowd {
   private readonly eye = new Vector3();
   private dirty = true;
 
-  /** `simplify`: meshoptimizer is ready (world/lod.ts lodReady): the middle levels are built */
-  constructor(private readonly mat: Material, private readonly simplify = false) {}
-
-
-  /** the crowd's meshes (reading them builds the crowd: add every variant first) */
-  get meshes(): readonly InstancedMesh[] {
-    this.build();
-    return this.built;
-  }
-
-  /** one variant: its full geometry and where its figures stand (their base points are the matrices' translations) */
-  add(geo: BufferGeometry, mats: readonly Matrix4[]): void {
-    if (mats.length === 0) return;
-    if (this.pending === null) throw new Error('Crowd.add after the crowd was built');
-    this.pending.push({ geo, mats: [...mats] });
-  }
-
-  /** deal the black-umbrella walker's figures out (see BLUE_UMBRELLA), then make each variant's near / far meshes */
-  private build(): void {
-    const parts = this.pending;
-    if (parts === null) return;
-    this.pending = null;
-    const tones = parts.map((p) => umbrellaTone(p.geo));
-    const black = parts[tones.findIndex(isBlack)];
-    const oxblood = parts[tones.findIndex(isOxblood)], paper = parts[tones.findIndex(isPaper)];
-    const blue: Matrix4[] = [];
-    if (black !== undefined) {
-      const keep: Matrix4[] = [];
-      for (const m of black.mats) {
-        const h = spot(m);
-        if (h < SHARE.blue) blue.push(m);
-        else if (h < SHARE.oxblood && oxblood !== undefined) oxblood.mats.push(m);
-        else if (h < SHARE.paper && paper !== undefined) paper.mats.push(m);
-        else keep.push(m);
-      }
-      black.mats = keep;
-    }
-    for (const p of parts) this.variant(p.geo, p.mats);
-    if (black !== undefined) this.variant(tintUmbrella(black.geo, BLUE_UMBRELLA), blue);
-  }
-
-  private variant(geo: BufferGeometry, mats: readonly Matrix4[]): void {
-    if (mats.length === 0) return;
-    const lo = clusterLod(geo, LOD_TRIS);
-    const mk = (g: BufferGeometry, name: string): InstancedMesh => {
-      const im = new InstancedMesh(g, this.mat, mats.length);
+  /**
+   * one colourway from `place`: the middle copies are left out when meshoptimizer was not ready (the model's middle
+   * levels are then its full geometry: world/modelLook.ts `canLod`), as the old crowd built none
+   */
+  take(b: HandedBatch): void {
+    const hi = b.levels[0]?.mesh ?? null, lo = b.levels.find((l) => l.from === LOD_NEAR)?.mesh ?? null;
+    if (hi === null || lo === null || b.poses.length === 0) return;
+    const mid = MID_FROM.map((d) => b.levels.find((l) => l.from === d)?.mesh ?? null);
+    const mids = mid.filter((m): m is InstancedMesh => m !== null && m.geometry !== hi.geometry);
+    for (const im of [hi, lo, ...mid]) {
+      if (im === null) continue;
       im.count = 0;
       im.visible = false;
       im.frustumCulled = false; // culled per figure in update()
-      im.name = name;
-      this.built.push(im);
-      return im;
-    };
-    const mids = this.simplify ? MID_FROM.map((d) => mk(simplifiedCopy(geo, d * PX_PER_M * MID_PX), 'crowd')) : [];
-    this.variants.push({ hi: mk(geo, 'crowd'), lo: mk(lo, 'crowd'), mids, mats: [...mats], at: mats.map((m) => new Vector3().setFromMatrixPosition(m)) });
+      im.name = 'crowd';
+    }
+    // (three measures its sphere on the first frame that draws it, as it did for the old empty batch)
+    hi.boundingSphere = null;
+    this.variants.push({ hi, lo, mids: mids.length === MID_FROM.length ? mids : [], mats: b.poses, at: b.poses.map((m) => new Vector3().setFromMatrixPosition(m)) });
     this.dirty = true;
   }
 
   /** re-pick the figures in view (only when the camera moved) */
   update(camera: PerspectiveCamera): void {
-    this.build();
     camera.updateMatrixWorld();
     this.pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     if (!this.dirty && this.pv.equals(this.last)) return;

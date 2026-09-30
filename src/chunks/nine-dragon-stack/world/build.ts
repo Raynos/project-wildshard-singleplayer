@@ -4,8 +4,8 @@
 // Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 // (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,
-// the Fei Zhua hook, the wall kit), placed through `place` under the root;
-// the instanced ones are handed to the fragment's own culler (world/cull.ts). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
+// the crowd, the Fei Zhua hook, the wall kit), placed through `place` under the root;
+// the instanced ones are handed to the fragment's own cullers (world/cull.ts, crowd.ts `Crowd`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
   BufferGeometry, Color, Float32BufferAttribute, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
   SphereGeometry, Uint32BufferAttribute, Vector3, Vector4, type WebGLRenderer,
@@ -25,7 +25,7 @@ import { SCROLL, loadScroll, scrollMaterial } from '../look/scroll';
 import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
-import { Crowd, tintUmbrella } from './crowd';
+import { Crowd, dealCrowd } from './crowd';
 import { banyanOut } from './banyan';
 import { buildCanopy } from './canopy';
 import { placeSquareProps } from './squareProps';
@@ -34,17 +34,16 @@ import { buildSquare } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
 import { WORDS, buildTowers, droneKit, trainKit } from './towers';
 import { Rng, chars } from '../util';
-import { type HandedBatch, type InstancedCuller, copyBoxNear, place } from '../../../models/place';
+import { type HandedBatch, type InstancedCuller, place } from '../../../models/place';
 import type { ModelDef, Placement } from '../../../models/model';
 import { ndModelContext } from './modelLook';
 import { airConBox, galleryPlant } from '../models/wallKit';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
+import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { CABLE, SHAFT, WELL_RECTS, buildWell, gondolaKit, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { type InstanceLevel, InstanceCuller } from './cull';
 import { lodReady } from './lod';
-import { loadGlb } from './hero/glb';
-import type { RegisteredModel } from '../../../world/registry';
 import { setting } from '../../../ui/Settings';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
@@ -119,8 +118,6 @@ export interface NineDragonWorld {
   readonly shared: Shared;
   /** the build's context: its layout records (hooks, the map's floor plan, the crowd) */
   readonly ctx: { readonly hooks: readonly Vector3[] };
-  /** specimens of the crowd's GLBs (the rest of the fragment's models register themselves as they are placed) */
-  readonly models: readonly RegisteredModel[];
   /** per frame: time (s) and the camera the frame is drawn from */
   update: (t: number, camera: PerspectiveCamera) => void;
   /**
@@ -354,25 +351,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   progress(0.75, 'crowd models');
   phaseDone('streaks + dressing', phaseStart);
 
-  // the TRELLIS crowd, colour-ramped to the ink (two tones per model, one instanced draw each); scenery only
-  const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
-  const DARK = [0x1f2126, 0x2a2c31, 0x3b3f4a, 0x55585f, 0x6b6f78, 0x8a8f96];
-  const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
-  const person3 = (name: string, ramp: readonly number[]): Promise<BufferGeometry> => loadGlb(`/assets/nine-dragon/lab/${name}.glb`, { kind: 0, line: 0, ao: 0.6, ramp, hues: HUES });
-  const [walkD, walkL, sitD, sitL] = await Promise.all([person3('walker', DARK), person3('walker', LIGHT), person3('sitter', DARK), person3('sitter', LIGHT)]);
+  // the TRELLIS crowd (models/crowd.ts: the casts in their ramps and dyes), dealt to its colourways (crowd.ts `dealCrowd`)
+  await loadCrowd(nd.look);
   phaseStart = performance.now();
-  // E306 M0a: each specimen says how it's made (TRELLIS), how many copies the fragment instances, and where the real
-  // copies stand (VIEW IN WORLD flies to the one nearest the spawn, not to the specimen at the origin 125 m below). The
-  // lion and the Fei Zhua hook are models now (E306 M4: ../models/); the crowd's move next
-  const specimen = (id: string, name: string, category: RegisteredModel['category'], file: string, geometry: BufferGeometry, mats: readonly Matrix4[]): RegisteredModel => {
-    const object = new Mesh(geometry, mat);
-    object.name = `model:${id}`;
-    return { id, name, category, file, live: false, object: () => object, pipeline: 'trellis', drawnAs: 'instanced', copies: mats.length, worldBox: (near) => copyBoxNear(geometry, mats, near) };
-  };
-  const models: RegisteredModel[] = [
-    specimen('nds-walker', 'Umbrella walker', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', walkD, ctx.walkers),
-    specimen('nds-sitter', 'Mahjong sitter', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', sitD, ctx.sitters),
-  ];
   // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks (models/feiZhuaHook.ts).
   // One instanced draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring
   // anchors stay.
@@ -383,16 +364,12 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
       .slice(0, 3);
     if (mounts.length > 0) nameDraws(place(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }), 'glb:dragon-hook');
   }
-  // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (a ~320-tri far copy past 35 m, none past
-  // 130 m); its meshes start empty, so the InstanceCuller below leaves them alone
-  const crowd = new Crowd(mat, canLod);
-  crowd.add(walkD, ctx.walkers.filter((_, i) => i % 10 < 7 && i % 10 !== 2));
-  crowd.add(walkL, ctx.walkers.filter((_, i) => i % 10 >= 7 && i % 10 !== 8));
-  crowd.add(tintUmbrella(walkD, 0x9a2e1c), ctx.walkers.filter((_, i) => i % 10 === 2));
-  crowd.add(tintUmbrella(walkL, 0xb07a34), ctx.walkers.filter((_, i) => i % 10 === 8));
-  crowd.add(sitD, ctx.sitters.filter((_, i) => i % 3 !== 1));
-  crowd.add(sitL, ctx.sitters.filter((_, i) => i % 3 === 1));
-  for (const im of crowd.meshes) root.add(named(im, 'crowd'));
+  // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (the E283 middle copies, a ~320-tri far copy
+  // past 35 m, none past 130 m); its meshes start empty, so the batch culler leaves them alone
+  const crowd = new Crowd();
+  const dealt = dealCrowd(ctx.walkers, ctx.sitters, { walker: (k) => walkerGeometry(nd.ctx, k), sitter: (k) => sitterGeometry(nd.ctx, k) });
+  if (dealt.walkers.length > 0) place(umbrellaWalker, dealt.walkers.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-walkers' } }).object.name = 'crowd';
+  if (dealt.sitters.length > 0) place(mahjongSitter, dealt.sitters.flatMap(([pick, mats]) => mats.map((m) => ({ ...at(m), variant: pick }))), { ctx: nd.ctx, draw: 'instanced', culler: crowd, parent: root, piece: { id: 'nds-crowd-sitters' } }).object.name = 'crowd';
   atlas.finish();
   phaseDone('crowd + atlas', phaseStart);
 
@@ -445,5 +422,5 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   };
   // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
   // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  return { root, shared, ctx: { hooks: ctx.hooks }, models, update, cull, culler };
+  return { root, shared, ctx: { hooks: ctx.hooks }, update, cull, culler };
 }
