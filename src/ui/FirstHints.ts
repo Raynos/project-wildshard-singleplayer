@@ -80,6 +80,14 @@ function loadSeen(): Set<HintControl> {
 }
 
 interface Box { l: number; t: number; r: number; b: number }
+/** drawn and seen: a box on screen, not faded out (E319's idle LOCK disc keeps its box but goes `opacity: 0; visibility:
+ *  hidden` while nothing is lockable) — a hint never points at, or steps around, a control the player cannot see */
+function shown(el: HTMLElement): boolean {
+  const r = el.getBoundingClientRect();
+  if (r.width <= 0 || r.height <= 0) return false;
+  const cs = getComputedStyle(el);
+  return cs.visibility !== 'hidden' && Number.parseFloat(cs.opacity) > 0.05;
+}
 const overlaps = (a: Box, b: Box): boolean => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
 
 export class FirstHints {
@@ -173,9 +181,7 @@ export class FirstHints {
   private anchor(c: HintControl): HTMLElement | null | undefined {
     if (!this.opts.touch) return null;
     const el = document.querySelector<HTMLElement>(`.ws-touch ${ANCHOR[c]}`);
-    if (el === null) return undefined;
-    const r = el.getBoundingClientRect();
-    return r.width > 0 && r.height > 0 ? el : undefined;
+    return el !== null && shown(el) ? el : undefined;
   }
 
   private show(t: HintTrigger | null): void {
@@ -209,9 +215,9 @@ export class FirstHints {
     const cx = x0 + w / 2;
     const obstacles: Box[] = [];
     for (const o of document.querySelectorAll<HTMLElement>(`.ws-touch :is(${OBSTACLES})`)) {
-      if (o === el || o.contains(el)) continue;
+      if (o === el || o.contains(el) || !shown(o)) continue;
       const b = o.getBoundingClientRect();
-      if (b.width > 0) obstacles.push({ l: b.left - hud.left - 4, t: b.top - hud.top - 4, r: b.right - hud.left + 4, b: b.bottom - hud.top + 4 });
+      obstacles.push({ l: b.left - hud.left - 4, t: b.top - hud.top - 4, r: b.right - hud.left + 4, b: b.bottom - hud.top + 4 });
     }
     const clampX = (l: number): number => Math.max(MARGIN, Math.min(W - MARGIN - tw, l));
     // candidates: centred over the control, then slid left / right clear of whatever it covered, then a row higher
