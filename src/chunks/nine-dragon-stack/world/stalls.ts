@@ -14,7 +14,6 @@ import { person } from './hero/figures';
 import { KitX, curve, merge } from './hero/kitx';
 import { curvedRoof } from './gate';
 import { placeSet } from './props3d';
-import type { ColliderDesc } from '../../../world/registry';
 
 const X = new Vector3(1, 0, 0), Y = new Vector3(0, 1, 0), Z = new Vector3(0, 0, 1);
 const STEEL: Look = { wash: 0x2c463a, line: 1, accent: true };
@@ -380,23 +379,9 @@ export const PARASOLS: readonly (readonly [number, number, number])[] = [[17.5, 
 
 /** E281 round 2: the dining pavilions (x, z, yaw): a table of four under a plum canopy on four posts, in the south half */
 export const PAVILIONS: readonly (readonly [number, number, number])[] = [[7.6, 15.6, 0.2], [14.6, 10.2, -0.3], [4.1, 12.9, 0.5]];
-const PAV = { half: 1.3, h: 2.4 } as const;
-
-/** the booths, the parasol tables and the pavilions (with their stools and sitters) as boxes of their footprints */
-export function marketColliders(): ColliderDesc[] {
-  const booths: ColliderDesc[] = BOOTHS.map(([x, z]) => ({ kind: 'box', x: x + BOOTH.d / 2, y: Y0 + 1.2, z, hx: BOOTH.d / 2, hy: 1.2, hz: BOOTH.w / 2, surface: 'wood' }));
-  const tables: ColliderDesc[] = PARASOLS.map(([x, z]) => ({ kind: 'box', x, y: Y0 + 0.4, z, hx: 0.75, hy: 0.4, hz: 0.75, surface: 'metal' }));
-  // a pavilion: its table and diners, and its four posts (the canopy is out of reach)
-  const pav: ColliderDesc[] = [];
-  for (const [x, z, r] of PAVILIONS) {
-    pav.push({ kind: 'box', x, y: Y0 + 0.45, z, hx: 0.85, hy: 0.45, hz: 0.85, surface: 'wood' });
-    for (const [lx, lz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
-      const c = Math.cos(r), sn = Math.sin(r), ox = lx * PAV.half, oz = lz * PAV.half;
-      pav.push({ kind: 'box', x: x + ox * c + oz * sn, y: Y0 + PAV.h / 2, z: z - ox * sn + oz * c, hx: 0.08, hy: PAV.h / 2, hz: 0.08, surface: 'wood' });
-    }
-  }
-  return [...booths, ...tables, ...pav];
-}
+/** a dining pavilion's size: half its span between posts, its height to the eave (the dining pavilion model collides
+ *  with its table and posts, ../models/market.ts) */
+export const PAV = { half: 1.3, h: 2.4 } as const;
 
 /** a lamp's warm light baked into a set's aSpill (the instanced sets miss bakeSpill): falls off over `r` m from `at` */
 function warmSpill(g: BufferGeometry, at: Vector3, color: Color, r: number, power: number, below = Number.POSITIVE_INFINITY): void {

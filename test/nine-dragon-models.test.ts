@@ -22,13 +22,14 @@ import { hawkerStallModel, noodleStallModel } from '../src/chunks/nine-dragon-st
 import { sign } from '../src/chunks/nine-dragon-stack/models/signs';
 import { lotusFinial } from '../src/chunks/nine-dragon-stack/models/lotusFinial';
 import { laundryLineModel } from '../src/chunks/nine-dragon-stack/models/laundry';
+import { landingPlanterModel } from '../src/chunks/nine-dragon-stack/models/landingPlanter';
 import { GATE } from '../src/chunks/nine-dragon-stack/layout';
 import { STAIR_GATE } from '../src/chunks/nine-dragon-stack/world/stairstreet';
 
 /** every Nine Dragon model but the facade's (FACADE_MODELS, FACADE_BAKED) */
 const OTHERS = [balustradePanel, umbrellaWalker, mahjongSitter, feiZhuaHook, guardianLion, marketBooth, parasolTable, diningPavilion, monorailTrain, cableGondola, drone, paperLantern, galleryPlant, airConBox, brassDragonHook, drumStool, parkedScooter, mahjongTableModel, inkFigure, paifang,
   // (the E315 second pass: drawn into the kits, the sign mesh and the facade shell)
-  banyan, earthGodShrine, kowloonSteleModel, noodleStallModel, hawkerStallModel, sign, lotusFinial, laundryLineModel];
+  banyan, earthGodShrine, kowloonSteleModel, noodleStallModel, hawkerStallModel, sign, lotusFinial, laundryLineModel, landingPlanterModel];
 
 const ctx = modelContext(null);
 

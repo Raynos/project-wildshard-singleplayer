@@ -41,7 +41,7 @@ export const NINE_DRAGON_WORLD = {
       id: 'nds-grapple-guard', name: 'The Well safety cap', category: 'buildings', file: FILE, surface: 'stone',
       colliders: fragmentGrappleGuard(), follows: new Group(), active: () => !grappleGuardOpen,
     });
-    ctx.registry.add({ id: 'nds-props', name: 'The square\'s props', category: 'props', file: FILE, surface: 'wood', colliders: c.props });
+    // (the props collide as their models: registered as the world places them, world/build.ts)
     // the Well's crossings (dome B2's well-mid.ts: each deck's slabs following its hump / sag, its rail walls, the gate
     // bridges' posts; every box names its own surface): filled while the world builds, so read after it
     ctx.registry.add({

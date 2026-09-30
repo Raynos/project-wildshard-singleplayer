@@ -12,10 +12,9 @@
 //   blade signs up both sides; the crowd with umbrellas; the far end.
 // Dome D's stairstreet.ts keeps the plan (stairFloor, the colliders), the foot and flight 1; towers.ts calls
 // `buildStairUpper(ctx)` after `buildStairStreet(ctx)`. Nothing here hangs over the stair lower than 2.1 m above it; the
-// only things standing in the walkable stair are the landings' stone planters, whose boxes are `stairUpperColliders()`.
+// only things standing in the walkable stair are the landings' stone planters, which collide as their model (models/landingPlanter.ts).
 // The terraces' kit is split per 32 m cell with a draw distance (ctx.cell / ctx.far), the paifang too.
 import { Box3, type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import type { ColliderDesc } from '../../../world/registry';
 import type { Ctx } from './ctx';
 import { buildGate } from './gate';
 import { dressWall, spanStreet } from './facade/grammar';
@@ -620,15 +619,25 @@ function terraces(ctx: Ctx, rng: Rng): void {
       if (rng.chance(0.6)) piece(ctx, 'acUnit', new Vector3(s.xa + len * rng.range(0.2, 0.8), s.floor + rng.range(3.4, 4.2), face), u, n, 1, 1, 1, 0xe6e4df);
     });
   }
-  // stone planters against the landings' walls, in flower (their boxes are stairUpperColliders())
+  // stone planters against the landings' walls, in flower: copies of the landing planter model (models/landingPlanter.ts)
   for (const p of landingPlanters()) {
     const { k } = terraceKit(ctx);
-    k.box(p.x, p.y, p.z, p.w, 0.5, p.d, { ...ASHLAR, wash: 0x6f6d68 }, { top: { wash: 0x2e2a24, line: 0 } });
-    k.box(p.x, p.y + 0.5, p.z, p.w + 0.08, 0.07, p.d + 0.08, COPING);
-    for (let j = 0; j < 3; j++) leafBush(k, rng, p.x + (j - 1) * p.w * 0.3, p.y + 0.62, p.z, rng.range(0.26, 0.36), 26);
-    const fc = rng.pick(FLOWER_COLS);
-    for (let j = 0; j < 9; j++) k.blob(ICO0, null, p.x + rng.range(-p.w / 2, p.w / 2) * 0.85, p.y + rng.range(0.75, 0.95), p.z + rng.range(-0.12, 0.12), 0.035, 0.028, 0.035, { wash: fc, line: 0, accent: true, emit: 0.05 });
+    const v0 = k.vertexCount;
+    landingPlanter(k, rng, p);
+    ctx.inKit.push({ model: 'nine-dragon-stack/landing-planter', kit: k, at: { x: p.x, y: p.y, z: p.z }, box: k.boundsFrom(v0, new Box3()) });
   }
+}
+
+/** a planter's size (w along the landing, d out from its wall) */
+export const PLANTER = { w: 1.1, d: 0.5 } as const;
+
+/** a stone planter in flower at (x, y, z): an ashlar trough, its coping, three leafy bushes, a spray of one flower's colour */
+export function landingPlanter(k: Kit, rng: Rng, p: { readonly x: number; readonly y: number; readonly z: number; readonly w: number; readonly d: number }): void {
+  k.box(p.x, p.y, p.z, p.w, 0.5, p.d, { ...ASHLAR, wash: 0x6f6d68 }, { top: { wash: 0x2e2a24, line: 0 } });
+  k.box(p.x, p.y + 0.5, p.z, p.w + 0.08, 0.07, p.d + 0.08, COPING);
+  for (let j = 0; j < 3; j++) leafBush(k, rng, p.x + (j - 1) * p.w * 0.3, p.y + 0.62, p.z, rng.range(0.26, 0.36), 26);
+  const fc = rng.pick(FLOWER_COLS);
+  for (let j = 0; j < 9; j++) k.blob(ICO0, null, p.x + rng.range(-p.w / 2, p.w / 2) * 0.85, p.y + rng.range(0.75, 0.95), p.z + rng.range(-0.12, 0.12), 0.035, 0.028, 0.035, { wash: fc, line: 0, accent: true, emit: 0.05 });
 }
 
 /**
@@ -655,15 +664,10 @@ function landingPlanters(): { x: number; y: number; z: number; w: number; d: num
   const out: { x: number; y: number; z: number; w: number; d: number }[] = [];
   for (const l of LANDINGS) {
     for (const [ze, dz] of [[STAIR.z0, 1], [STAIR.z1, -1]] as const) {
-      for (const t of [0.22, 0.78]) out.push({ x: l.x0 + (l.x1 - l.x0) * t, y: l.y, z: ze + dz * 0.26, w: 1.1, d: 0.5 });
+      for (const t of [0.22, 0.78]) out.push({ x: l.x0 + (l.x1 - l.x0) * t, y: l.y, z: ze + dz * 0.26, w: PLANTER.w, d: PLANTER.d });
     }
   }
   return out;
-}
-
-/** dome C2's walkable-area props for the physics (colliders.ts): the landings' planters as boxes */
-export function stairUpperColliders(): ColliderDesc[] {
-  return landingPlanters().map((p) => ({ kind: 'box', x: p.x, y: p.y + 0.29, z: p.z, hx: p.w / 2 + 0.04, hy: 0.29, hz: p.d / 2 + 0.04, surface: 'stone' }));
 }
 
 // ── the paifang on the second landing (dome B's gate, turned to span the stair) ──

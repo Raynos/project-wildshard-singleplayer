@@ -42,4 +42,8 @@ export const paifang = defineModel<PaifangParams>({
   id: 'nine-dragon-stack/paifang', name: 'Paifang (memorial gate)', category: 'buildings', pipeline: 'code', file: FILE, defaults: { kind: 'square' },
   variants: [variant('square', 'Lantern Square (cinnabar)'), variant('stair', 'The stair-street'), variant('well', 'The Well\'s gate bridge (mineral)')],
   build: (ctx, p) => gate(ctx, p.kind),
+  // the square gate's posts (0.9 m square, 7 m up, lacquered wood); the stair's and the gate bridge's posts are part of
+  // the stair's and the crossings' own fabric (their floors hold the grapple's rail rules: world/stairstreet.ts,
+  // world/well-mid.ts)
+  colliders: (p) => (p.kind === 'square' ? PAIFANG.square.posts.map((x) => ({ kind: 'box', x, y: 3.5, z: 0, hx: 0.45, hy: 3.5, hz: 0.45, surface: 'wood' })) : []),
 });

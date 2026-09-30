@@ -4,13 +4,11 @@
 // of the fragment are walls: the building fronts (40 m), the balustrades over the Well (with an invisible parapet 12 m
 // up so nobody vaults into the shaft), the street's and the stair's far ends. What still gets out (a grapple gone wrong)
 // the def's `bounds` catches: a soft respawn on the last floor stood on. The props you would walk into — the gate's
-// posts — are boxes of their footprints; the models' own colliders (the banyan's planter, the shrine, the stele, the
-// stalls: ../models/) come with their copies (src/models/place.ts).
+// posts, the banyan's planter, the stalls, the market — are their models' own colliders, which come with their copies
+// (../models/, src/models/place.ts).
 import type { ColliderDesc } from '../../../world/registry';
-import { GATE, PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
+import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairstreet';
-import { stairUpperColliders } from './stairstreet-upper';
-import { marketColliders } from './stalls';
 import { RIM, wellColliders, wellFloor } from './well';
 
 /** how far north the street is walkable (its far part is scenery in the fragment) */
@@ -31,14 +29,15 @@ const PARAPET = 12;
  *  (−3.2, −13) mast's hook comes in over the balustrade at z ≈ −12) */
 const GUARD_Z0 = -18;
 
-/** the fragment's collision in four pieces (their looks on the maps: floors stone, fronts rock, edges rock, props timber) */
-export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[]; edges: ColliderDesc[]; props: ColliderDesc[] }
+/** the fragment's own collision in three pieces (their looks on the maps: floors stone, fronts rock, edges rock); its props
+ *  collide as their models (their looks on the maps: timber, def.ts) */
+export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[]; edges: ColliderDesc[] }
 
 /** a building front's depth behind its line (it is a solid block to the map; the player never reaches its back) */
 const DEEP = 6;
 
 export function fragmentColliders(): FragmentColliders {
-  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [], edges: ColliderDesc[] = [], props: ColliderDesc[] = [];
+  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [], edges: ColliderDesc[] = [];
   let out = floors;
   // ── floors ──
   out.push(span(PLAZA.x0, Y0 - SLAB, PLAZA.z0, PLAZA.x1 + 0.6, Y0, PLAZA.z1 + 0.6));                  // the square
@@ -75,16 +74,10 @@ export function fragmentColliders(): FragmentColliders {
   // the rim's own (dome C's stone and 3.2 m parapet, well.ts wellColliders), carried up to the same height
   // The south rim's tall cap, and the square's parapet from GUARD_Z0 to the rim, are registered separately as a
   // kinematic grapple guard (index.ts): they open only during an actual Fei Zhua pull. The stone under them stays solid.
-  // ── props you would walk into ──
-  out = props;
-  // (the gate's lion pair and their pedestals are gone: dome B took them out, style-A and the A2 targets have none)
-  for (const px of GATE.posts) out.push(span(px - 0.45, Y0, GATE.z - 0.45, px + 0.45, Y0 + 7, GATE.z + 0.45, 'wood'));
-  // the stair-street landings' planters (dome C2's)
-  out.push(...stairUpperColliders());
-  // (the banyan's planter, the earth-god shrine and the 九龍城 stele collide as their models: models/banyan.ts)
-  // (the noodle and hawker stalls collide as their models: models/stalls.ts)
-  out.push(...marketColliders());                                                                         // E281: the east market's booths
-  return { floors, fronts, edges, props };
+  // ── props you would walk into: every one collides as its model, placed with its copies (E315: the paifang's posts,
+  // the banyan's planter, the shrine, the stele, the stalls, the market's booths, parasol tables and pavilions, the
+  // stair-street landings' planters — models/, src/models/place.ts) ──
+  return { floors, fronts, edges };
 }
 
 /** Invisible upper cap of the south Well rail, and the square's parapet south of GUARD_Z0; a kinematic piece can disable
