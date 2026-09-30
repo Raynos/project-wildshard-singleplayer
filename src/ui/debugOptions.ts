@@ -5,7 +5,7 @@
  * pause ▸ Settings ▸ Debug (src/ui/DebugMenu.ts) renders it: one collapsible section per group, only the rows that apply to
  * the shard you are in, a filter box on top. There are no URL switches (AGENTS.md "No URL switches, ever").
  *
- *   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 …' })
+ *   opt('pineTrample', 'cover', 'Grass trample', [['off', 'A · Off'], ['on', 'B · On']], { when: pineHollow, note: 'E322 …' })
  *   action('clearDownloads', 'loading', 'Downloads', 'Clear', () => …, { note: 'E172 …' })   // a button row, not a pick
  *   DEBUG_READOUTS        → a live readout under a row, by row id (E172: Shards in memory's; both menus show it)
  *   DEBUG_ROWS            → every row, in menu order within its group
@@ -33,10 +33,7 @@ export interface DebugGroup { id: DebugGroupId; label: string; note?: string }
  *  shadows and post go in Look; water in Look too). A group with no row fails test/debug-options.test.ts. */
 export const DEBUG_GROUPS: readonly DebugGroup[] = [
   { id: 'look', label: 'Look' },
-  {
-    id: 'cover', label: 'Ground cover & foliage',
-    note: 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Far stand-ins reloads the page.',
-  },
+  { id: 'cover', label: 'Ground cover & foliage' },
   { id: 'sky', label: 'Sky & weather' },
   { id: 'audio', label: 'Audio' },
   { id: 'combat', label: 'Combat & weapons' },
@@ -69,7 +66,6 @@ export interface DebugRow {
 }
 
 // ── the shards ──
-const driftwood: When = (c) => c.chunk.style === 'lowpoly';
 const pineHollow: When = (c) => c.chunk.slug === 'pine-hollow';
 const nalati: When = (c) => c.chunk.slug === 'nalati-grasslands';
 const always: When = () => true;
@@ -136,11 +132,8 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
 
-  // ── Ground cover & foliage: Driftwood (E156; src/world/GroundCover.ts, coverTint.ts) ──
-  opt('coverTint', 'cover', 'Ground tint', ON_OFF, { when: driftwood, note: 'E156 · far ground wears the cover\'s colour' }),
-  opt('coverReach', 'cover', 'Slope reach', ON_OFF, { when: driftwood, note: 'E156 · slope plants drawn 1.7× further' }),
-  opt('coverBlend', 'cover', 'Far colour blend', ON_OFF, { when: driftwood, note: 'E117 / E156 · far plants fade into the ground' }),
-  opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 · the far stand-in meshes' }),
+  // ── Ground cover & foliage (Driftwood's four decided E156 rows went in E318: tint, slope reach, far blend and far
+  // stand-ins are on for good) ──
   opt('pineTrample', 'cover', 'Grass trample', [['off', 'A · Off'], ['on', 'B · On']], { when: pineHollow, note: 'E322 F-L4 · the grass parts round you and the animals and stays flattened a while (Nalati\'s trample)' }),
 
   // ── Sky & weather ──

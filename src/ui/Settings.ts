@@ -110,13 +110,6 @@ export const OPTION_VALUES = {
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/pinehollow/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): mobile is locked at 30 whatever the pick (E193); desktop: auto = the display's rate — live
-  // Driftwood's ground cover (E156, pause ▸ Settings ▸ Debug ▸ Ground cover; no URL switch — Jake: never): the far ground wearing
-  // the cover's colour (coverTint.ts) · plants on slopes kept further out · far plants fading into the ground's colour (E117) — all
-  // live · the far stand-ins (a reload: their meshes and caps are built once)
-  coverTint: ['on', 'off'],
-  coverReach: ['on', 'off'],
-  coverBlend: ['on', 'off'],
-  coverFar: ['on', 'off', 'far'],
   // E158: download the other shards' files in the background once this one is playable (src/boot/shardPrefetch.ts) — the
   // debug menu only (no URL switch); the bench scripts turn it off through the saved settings
   prefetch: ['on', 'off'],
@@ -158,8 +151,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
-  coverTint: { def: 'on', params: [], url: () => null }, coverReach: { def: 'on', params: [], url: () => null }, // the debug menu only
-  coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
@@ -176,7 +167,6 @@ const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   tier: option('tier'), touch: option('touch'), time: option('time'),
   weather: option('weather'), fps: option('fps'),
-  coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'),
   prefetch: option('prefetch'),
   tex: option('tex'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),

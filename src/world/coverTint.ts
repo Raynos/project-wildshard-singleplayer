@@ -13,15 +13,10 @@
  *   const grid = CoverGrid.create();          // GroundCover.build() fills it (grid.fill), the Blender cove splats its own
  *   tintTerrain(terrain.mesh);                // after the fill: aCover per vertex + the shader
  *
- * Pause ▸ Settings ▸ Debug ▸ Ground cover ▸ Ground tint turns it off live (the grid stays built; uCoverTint goes to 0).
+ * Always on (E318: the decided Debug row "Ground tint" is gone).
  */
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
-import { setting, onSettingChange } from '../ui/Settings';
-
-/** the shaders' switch: pause ▸ Settings ▸ Debug ▸ Ground cover ▸ Ground tint (live) */
-export const coverTintUniform = { value: setting('coverTint') === 'on' ? 1 : 0 };
-onSettingChange('coverTint', (v) => { coverTintUniform.value = v === 'on' ? 1 : 0; });
 
 /** metres per grid cell */
 const STEP = 4;
@@ -155,15 +150,14 @@ function patchTerrainMaterial(mat: THREE.Material): void {
   const prev = mat.onBeforeCompile.bind(mat);
   mat.onBeforeCompile = (sh, r) => {
     prev(sh, r);
-    sh.uniforms['uCoverTint'] = coverTintUniform;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec4 aCover;\nattribute float aCoverSide;\nflat varying vec4 vCover;\nflat varying float vCoverSide;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCover = aCover; vCoverSide = aCoverSide;');
     // after the normal is known (flat: from derivatives) and before the lights read diffuseColor
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\nflat varying vec4 vCover;\nflat varying float vCoverSide;\nuniform float uCoverTint;\n${COVER_SEEN_GLSL}`)
+      .replace('#include <common>', `#include <common>\nflat varying vec4 vCover;\nflat varying float vCoverSide;\n${COVER_SEEN_GLSL}`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-	diffuseColor.rgb = mix( diffuseColor.rgb, vCover.rgb, coverSeen( vCover.a, vCoverSide, abs( dot( normal, normalize( vViewPosition ) ) ) ) * uCoverTint );`);
+	diffuseColor.rgb = mix( diffuseColor.rgb, vCover.rgb, coverSeen( vCover.a, vCoverSide, abs( dot( normal, normalize( vViewPosition ) ) ) ) );`);
   };
   const key = mat.customProgramCacheKey.bind(mat);
   mat.customProgramCacheKey = () => `${key()}|cover-tint`;
