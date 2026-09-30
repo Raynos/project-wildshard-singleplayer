@@ -500,3 +500,11 @@ codex edits of the live idle frame: A castaway (recommended), B sailor, C advent
 plus A with the iron sword. `board-3-swimming-hands.jpg`: A breaststroke (recommended), B front crawl, C dog-paddle. The
 README holds the Nine Dragon vs Driftwood viewmodel comparison and the build route: reuse the fp-rig skeleton and clips
 with Driftwood meshes, and put the swim clips on the same rig.
+
+### Nalati models, second pass (`art/models-audit/round-10-second-pass/`, 2026-09-30, E315)
+
+`nalati-board.jpg`: phone-tier captures (390×844 @3×) of clean exports before (41 cards: the camps as whole-place cards)
+and after the Nalati second pass (87 cards: the yurt, the camp props, the fence and signpost, the dressing's scatter and
+props, the escarpment's and the snow ring's rock, the glacier snout), five turntables (yurt, hitching rail, kazan, crag
+rock, ovoo cairn) and the Sets explorer (17 sets: every named place). `nalati-spin.mp4`: an 8 s spin of the same five
+models in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` rows M3, M12.
