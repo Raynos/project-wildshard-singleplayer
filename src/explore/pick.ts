@@ -12,6 +12,13 @@
  * never to a baked piece metres away (the nearest copy used to win with no containment check). When nothing takes the
  * hit, a copy box the ray entered in front of it does: the tap threaded that copy's open shape — between a mahjong
  * table's legs, past a laundry line's cloth — and landed on the world behind. A box behind the surface never does.
+ *
+ * E345: a target drawn inside another target's object (a Pine Hollow cabin's root holds its fire pit and its porch
+ * lantern: both raycasts hit the pit's stones at the same distance) is weighed with every target on the hit's own chain
+ * of parents — the smallest copy box holding the point wins, else the innermost plain target — so the pit is the pit's,
+ * not the cabin's that happened to be registered first. And a copy smaller than MIN_PICK takes a tap whose ray passes
+ * through its box in front of the surface it hits: a flint & steel a hand across on a lookout's roof (spinning, as the
+ * pickups do) is a few pixels wide, and the finger lands on the roof beside it.
  */
 import * as THREE from 'three';
 
@@ -43,6 +50,10 @@ function shown(o: THREE.Object3D): boolean {
 
 const _size = new THREE.Vector3();
 const volume = (b: THREE.Box3): number => { b.getSize(_size); return _size.x * _size.y * _size.z; };
+/** metres: a drawn-into copy whose box's longest side is at most this is small enough to take a tap that passes through its
+ *  box in front of the surface hit (E345) — a pickup, a stool, a lotus finial */
+export const MIN_PICK = 0.75;
+const tiny = (b: THREE.Box3): boolean => { b.getSize(_size); return Math.max(_size.x, _size.y, _size.z) <= MIN_PICK; };
 
 /** the target under the ray, or null (nothing hit, or a surface no target claims) */
 export function pickTarget(ray: THREE.Raycaster, targets: readonly SelectTarget[]): Picked | null {
@@ -51,20 +62,26 @@ export function pickTarget(ray: THREE.Raycaster, targets: readonly SelectTarget[
     const list = byObject.get(t.object);
     if (list) list.push(t); else byObject.set(t.object, [t]);
   }
-  let near: { object: THREE.Object3D; point: THREE.Vector3; d: number } | null = null;
+  let near: { mesh: THREE.Object3D; point: THREE.Vector3; d: number } | null = null;
   for (const object of byObject.keys()) {
     if (!shown(object)) continue;
     const hit = ray.intersectObject(object, true)[0];
-    if (hit && (!near || hit.distance < near.d)) near = { object, point: hit.point.clone(), d: hit.distance };
+    if (hit && (!near || hit.distance < near.d)) near = { mesh: hit.object, point: hit.point.clone(), d: hit.distance };
   }
+  // a small copy the ray passes through before the surface it hits (E345: the minimum pick size)
+  const small = throughCopy(ray, byObject, near?.d ?? ray.far, tiny);
+  if (small) return small;
   if (!near) return throughCopy(ray, byObject, ray.far);
   const { point } = near;
   let claimed: Picked | null = null, plain: Picked | null = null;
-  for (const t of byObject.get(near.object) ?? []) {
-    if (t.claim) {
-      const box = t.claim(point);
-      if (box && (!claimed || volume(box) < volume(claimed.box))) claimed = { target: t, point, box };
-    } else plain ??= { target: t, point, box: t.boxAt ? t.boxAt(point) : new THREE.Box3().setFromObject(t.object) };
+  // every target whose object holds the mesh hit, innermost first (E345: nested targets hit at the same point)
+  for (let o: THREE.Object3D | null = near.mesh; o; o = o.parent) {
+    for (const t of byObject.get(o) ?? []) {
+      if (t.claim) {
+        const box = t.claim(point);
+        if (box && (!claimed || volume(box) < volume(claimed.box))) claimed = { target: t, point, box };
+      } else plain ??= { target: t, point, box: t.boxAt ? t.boxAt(point) : new THREE.Box3().setFromObject(t.object) };
+    }
   }
   return claimed ?? plain ?? throughCopy(ray, byObject, near.d);
 }
@@ -85,14 +102,15 @@ export function copyInTheWay(ray: THREE.Ray, far: number, look: THREE.Vector3, t
   return false;
 }
 
-/** the copy box the ray enters first, in front of `far` (the surface it hit), among the claiming targets shown */
-function throughCopy(ray: THREE.Raycaster, byObject: ReadonlyMap<THREE.Object3D, readonly SelectTarget[]>, far: number): Picked | null {
+/** the copy box the ray enters first, in front of `far` (the surface it hit), among the claiming targets shown (`only`:
+ *  the boxes it accepts) */
+function throughCopy(ray: THREE.Raycaster, byObject: ReadonlyMap<THREE.Object3D, readonly SelectTarget[]>, far: number, only?: (box: THREE.Box3) => boolean): Picked | null {
   let best: Picked | null = null, bd = Number.POSITIVE_INFINITY;
   for (const [object, list] of byObject) {
     if (!shown(object)) continue;
     for (const t of list) {
       const h = t.boxHit?.(ray.ray, far);
-      if (h && (h.distance < bd || (h.distance === bd && best !== null && volume(h.box) < volume(best.box)))) {
+      if (h && (only === undefined || only(h.box)) && (h.distance < bd || (h.distance === bd && best !== null && volume(h.box) < volume(best.box)))) {
         bd = h.distance;
         best = { target: t, point: ray.ray.at(h.distance, new THREE.Vector3()), box: h.box };
       }

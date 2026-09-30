@@ -6,6 +6,7 @@
  *   const eyes = viewCandidates(box);                     // the old framing first, then rings round the copy
  *   const i = firstView(eyes, (eye) => clear(eye));       // the first that passes, in that order (-1: none)
  *   physicsClear(physics, eye, look, box)                 // no collider at the eye or on the way to the copy
+ *   roundBlocker(indices, eyes, look, hit)                // the landed search's order round what the centre hit (E345)
  *
  * The candidates: the old framing's distance, then 60 % and 35 % of it (never inside the copy's box), each at the old
  * 22° elevation, 43°, 5° and 69°, each round eight headings — the old one first, then ±45°, ±90°, ±135°, 180°. The old
@@ -82,4 +83,18 @@ export function physicsClear(physics: Physics, eye: THREE.Vector3, look: THREE.V
   if (sweepBall(physics, eye, ballTo, EYE_CLEAR) !== null) return false;
   const hit = castSegment(physics, eye, _to.multiplyScalar(entry).add(eye));
   return hit === null || hit.distance >= entry - 0.1;
+}
+
+const _toward = new THREE.Vector3(), _d = new THREE.Vector3();
+
+/**
+ * The landed search round a blocker (E345): `indices` into `eyes` ordered from the eye looking most away from `blocker` —
+ * the point a centre tap hit in front of the copy at `look` (a market booth's canopy over a scooter) — to the one looking
+ * straight past it, so the search reaches the eyes under the canopy's far edge before the rest of the ring above it
+ * (VIEW_TRIES caps the search). Ties keep their order.
+ */
+export function roundBlocker(indices: readonly number[], eyes: readonly THREE.Vector3[], look: THREE.Vector3, blocker: THREE.Vector3): number[] {
+  _toward.subVectors(blocker, look).normalize();
+  const facing = (i: number): number => { const eye = eyes[i]; return eye === undefined ? 1 : _d.subVectors(eye, look).normalize().dot(_toward); };
+  return indices.map((i) => ({ i, f: facing(i) })).sort((a, b) => a.f - b.f).map((x) => x.i);
 }

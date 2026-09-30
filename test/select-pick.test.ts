@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { WorldRegistry, type RegisteredPick } from '../src/world/registry';
 import { defineModel, modelContext } from '../src/models/model';
 import { CLAIM_MARGIN, claimCopy, place } from '../src/models/place';
-import { pickTarget, type SelectTarget } from '../src/explore/pick';
+import { MIN_PICK, pickTarget, type SelectTarget } from '../src/explore/pick';
 
 const ctx = modelContext(null);
 const mat = new THREE.MeshBasicMaterial();
@@ -93,5 +93,43 @@ describe('a tap on a kit several models are drawn into (E323)', () => {
     expect(pickTarget(at(4, 5), all)?.target.entry).toBe('post');
     post.visible = false;
     expect(pickTarget(at(4, 5), all)).toBeNull();
+  });
+});
+
+describe('E345: a nested target and a small copy', () => {
+  it('a target drawn inside another target\'s object (a cabin\'s root holds its fire pit) is the one hit, whichever registered first', () => {
+    const reg = new WorldRegistry();
+    // the cabin: its root holds its walls and its fire pit out front; its copy box covers the yard the pit stands in
+    const root = new THREE.Group();
+    root.add(new THREE.Mesh(new THREE.BoxGeometry(6, 4, 6).translate(0, 2, -6), mat));
+    const pit = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.4, 1.8).translate(0, 0.2, 2), mat);
+    root.add(pit);
+    root.updateMatrixWorld(true);
+    place(lamp, [{ x: 0, y: 0, z: -3 }], { ctx, draw: 'merged', registry: reg, drawnInto: { object: root, boxes: Float32Array.from([-3, 0, -9, 3, 4, 3.5]) } });
+    place(sign, [{ x: 0, y: 0, z: 2 }], { ctx, draw: 'single', registry: reg, drawnInto: { object: pit, boxes: Float32Array.from([-0.9, 0, 1.1, 0.9, 0.4, 2.9]) } });
+    const targets = reg.picks.map(asTarget);
+    expect(targets.map((t) => t.entry)).toEqual([lamp.id, sign.id]); // the cabin first, as Pine Hollow registers them
+    const down = (x: number, z: number): THREE.Raycaster => new THREE.Raycaster(new THREE.Vector3(x, 10, z), new THREE.Vector3(0, -1, 0));
+    expect(pickTarget(down(0.3, 2.2), targets)?.target.entry).toBe(sign.id); // on the pit: the pit
+    expect(pickTarget(down(0, -6), targets)?.target.entry).toBe(lamp.id); // on the walls: the cabin
+  });
+
+  it('a copy under MIN_PICK takes a tap whose ray passes through its box in front of the surface; a bigger one does not', () => {
+    const { reg, targets } = kit();
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(8, 1, 8).translate(0, -0.5, 0), mat);
+    roof.updateMatrixWorld(true);
+    const batch = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.05).translate(20, 0, 20), mat); // the pickups' batch, far off
+    batch.updateMatrixWorld(true);
+    const flint = defineModel({ id: 'shared/test-pick-flint', name: 'Flint', category: 'props', pipeline: 'code', file: 'test/select-pick.test.ts', defaults: {}, build: () => [{ geometry: new THREE.BoxGeometry(0.1, 0.05, 0.1), material: mat }] });
+    // a 0.5 m pick box on the roof (at the origin) and a 1.2 m one 3 m off, both drawn into the batch; the roof is a model of its own
+    place(flint, [{ x: 0, y: 0, z: 0 }, { x: 3, y: 0, z: 0 }], { ctx, draw: 'single', registry: reg,
+      drawnInto: { object: batch, boxes: Float32Array.from([-0.25, 0, -0.25, 0.25, 0.5, 0.25, 2.4, 0, -0.6, 3.6, 1.2, 0.6]) } });
+    const all: SelectTarget[] = [...reg.picks.map(asTarget), { object: roof, entry: 'roof' }];
+    expect(targets.length).toBeLessThan(all.length);
+    const ray = (x: number, z: number): THREE.Raycaster => new THREE.Raycaster(new THREE.Vector3(x - 2, 8, z), new THREE.Vector3(2, -8, 0).normalize());
+    expect(MIN_PICK).toBeGreaterThanOrEqual(0.5);
+    expect(pickTarget(ray(0.1, 0.05), all)?.target.entry).toBe(flint.id); // lands on the roof beside it: through its box first
+    expect(pickTarget(ray(3.1, 0.05), all)?.target.entry).toBe('roof'); // a 1.2 m box is no small copy: the roof's
+    expect(pickTarget(ray(1.5, 0.05), all)?.target.entry).toBe('roof');
   });
 });

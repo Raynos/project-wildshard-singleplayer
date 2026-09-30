@@ -12,6 +12,9 @@
 //
 // Prints one line per model and a "<shard>: <ok> / <n>" total; the report JSON has every row: the model, what the tap
 // selected, where the camera landed. Exit 0 whatever the score (it measures, it doesn't gate).
+// The cost (E345): `land` ms from VIEW IN WORLD to the model selected (the 1.1 s flight, the landing's check, any search
+// and hop), the landing's worst frame (`frame`, ms: a frame that ran the check's pick or a search's), and `tap` ms — one
+// tap's pick (pointerdown / up on the canvas, the median of three) where the camera landed.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { chromium } from 'playwright';
@@ -57,14 +60,26 @@ try {
       if (!can) { rows.push({ ...m, sel: 'no VIEW IN WORLD' }); continue; }
       // the last tap's selection card stays up behind the Model Explorer: clear it, so the wait below sees this landing's
       await page.evaluate(() => { document.querySelector('.ws-x-deselect')?.dispatchEvent(new MouseEvent('click', { bubbles: true })); });
+      // the landing's frames: every rAF gap until the model is selected
+      await page.evaluate(() => {
+        const rec = { t0: performance.now(), last: performance.now(), worst: 0, done: 0 };
+        window.__landRec = rec;
+        const step = () => {
+          const t = performance.now();
+          rec.worst = Math.max(rec.worst, t - rec.last); rec.last = t;
+          if (document.querySelector('.ws-x-select.show') !== null) { rec.done = t - rec.t0; return; }
+          if (t - rec.t0 < 12_000) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
       await page.locator('.ws-x-inworld').click();
       // the flight (1.1 s) lands with the model selected; after E342 a landing whose centre picks something else first
       // tries the other eyes (a pick a frame) and hops (0.6 s)
       await page.waitForFunction(() => document.querySelector('.ws-x-select.show') !== null, undefined, { timeout: 8000, polling: 100 }).catch(() => undefined);
       await sleep(300);
       const view = await page.evaluate(() => {
-        const cam = window.__world.game.camera.position;
-        return { cam: [cam.x, cam.y, cam.z].map((v) => Math.round(v * 100) / 100) };
+        const cam = window.__world.game.camera.position, rec = window.__landRec;
+        return { cam: [cam.x, cam.y, cam.z].map((v) => Math.round(v * 100) / 100), land: Math.round(rec?.done ?? 0), frame: Math.round((rec?.worst ?? 0) * 10) / 10 };
       });
       if (SHOTS !== '' && SHOT_SHARDS.has(shard)) await page.screenshot({ path: join(resolvePath(SHOTS), `${shard}--${m.id.replaceAll(/[^\w.-]+/g, '_')}.jpg`), type: 'jpeg', quality: 86 });
       await page.evaluate(() => { document.querySelector('.ws-x-deselect')?.dispatchEvent(new MouseEvent('click', { bubbles: true })); });
@@ -72,12 +87,26 @@ try {
       await page.mouse.click(W / 2, H / 2);
       await sleep(300);
       const sel = await page.evaluate(() => (document.querySelector('.ws-x-select.show') ? document.querySelector('.ws-x-select b')?.textContent ?? '' : null));
-      rows.push({ ...m, sel, cam: view.cam });
-      console.log(`${shard}: ${m.name} → ${sel ?? '—'}${sel === m.name ? '' : '   ✗'}`);
+      // one tap's pick, timed: the canvas's own pointer handlers (Select.pick), three times at the centre
+      const tap = await page.evaluate(([x, y]) => {
+        const cv = window.__world.game.canvas, ms = [];
+        for (let i = 0; i < 3; i++) {
+          const t0 = performance.now();
+          cv.dispatchEvent(new PointerEvent('pointerdown', { clientX: x, clientY: y, button: 0, pointerType: 'mouse', bubbles: true }));
+          cv.dispatchEvent(new PointerEvent('pointerup', { clientX: x, clientY: y, button: 0, pointerType: 'mouse', bubbles: true }));
+          ms.push(performance.now() - t0);
+        }
+        ms.sort((a, b) => a - b);
+        return Math.round((ms[1] ?? 0) * 10) / 10;
+      }, [W / 2, H / 2]);
+      rows.push({ ...m, sel, cam: view.cam, land: view.land, frame: view.frame, tap });
+      console.log(`${shard}: ${m.name} → ${sel ?? '—'}${sel === m.name ? '' : '   ✗'}   (land ${view.land} ms · worst frame ${view.frame} ms · tap ${tap} ms)`);
     }
     const ok = rows.filter((r) => r.sel === r.name).length;
-    console.log(`${shard}: ${ok} / ${rows.length} drawn-into models, tapped where VIEW IN WORLD looks, selected themselves`);
-    report.shards[shard] = { ok, n: rows.length, rows };
+    const med = (k) => { const v = rows.map((r) => r[k]).filter((x) => typeof x === 'number').sort((a, b) => a - b); return v.length === 0 ? 0 : v[Math.floor(v.length / 2)]; };
+    const cost = { land: med('land'), frame: med('frame'), tap: med('tap'), worstFrame: Math.max(0, ...rows.map((r) => r.frame ?? 0)) };
+    console.log(`${shard}: ${ok} / ${rows.length} drawn-into models, tapped where VIEW IN WORLD looks, selected themselves · median land ${cost.land} ms, worst frame ${cost.frame} ms (max ${cost.worstFrame}), tap ${cost.tap} ms`);
+    report.shards[shard] = { ok, n: rows.length, cost, rows };
     await ctx.close();
   }
 } finally {

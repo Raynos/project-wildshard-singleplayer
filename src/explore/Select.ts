@@ -7,7 +7,7 @@
  *   const sel = new Select(explore, world, targets);   // targets: what a tap can hit (catalog entries, batched meshes, animals)
  *   sel.pick(clientX, clientY)   // from TouchFly.onTap or a desktop left click
  *   sel.selectEntry(entry)       // VIEW IN WORLD lands with the model selected
- *   sel.copyInTheWay(eye, look, far) / sel.picksFrom(eye, look, entry)   // VIEW IN WORLD's eye test (E342, viewPoint.ts)
+ *   sel.copyInTheWay(eye, look, far) / sel.pickFrom(eye, look)   // VIEW IN WORLD's eye test (E342, viewPoint.ts)
  *   sel.update()                 // every frame: the tag and the card follow the box on screen
  */
 import * as THREE from 'three';
@@ -15,7 +15,7 @@ import type { World } from '../core/bootstrap';
 import type { ContextValue } from '../ui/review';
 import { measure, type CatalogEntry } from './catalog';
 import type { Explore } from './Explore';
-import { copyInTheWay, pickTarget, type SelectTarget } from './pick';
+import { copyInTheWay, pickTarget, type Picked, type SelectTarget } from './pick';
 
 export type { SelectTarget } from './pick';
 
@@ -85,16 +85,17 @@ export class Select {
     return copyInTheWay(this.probe.ray, far, look, this.targets);
   }
 
-  /** VIEW IN WORLD (E342): would a tap at the centre of a view from `eye` looking at `look` select `entry`? (as drawn now) */
-  picksFrom(eye: THREE.Vector3, look: THREE.Vector3, entry: string): boolean {
+  /** VIEW IN WORLD (E342): what a tap at the centre of a view from `eye` looking at `look` would select (as drawn now) —
+   *  the landing's check reads `target.entry`, and where it hit (`point`) when that is something else (E345) */
+  pickFrom(eye: THREE.Vector3, look: THREE.Vector3): Picked | null {
     this.probe.set(eye, this.tmp.subVectors(look, eye).normalize());
     this.probe.far = 600;
-    return pickTarget(this.probe, this.targets)?.target.entry === entry;
+    return pickTarget(this.probe, this.targets);
   }
 
-  /** select a catalog entry directly (VIEW IN WORLD): boxed on the real copy it flew to (E306), else its own object */
-  selectEntry(e: CatalogEntry): void {
-    const copy = e.worldBox?.();
+  /** select a catalog entry directly (VIEW IN WORLD): boxed on the real copy it flew to (`copy`, else the one nearest the
+   *  spawn; E306), else its own object */
+  selectEntry(e: CatalogEntry, copy: THREE.Box3 | null = e.worldBox?.() ?? null): void {
     if (copy) { this.box.copy(copy); this.show(e, e.name); return; }
     const o = e.object();
     if (!o.parent) return;

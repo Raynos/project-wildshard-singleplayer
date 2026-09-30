@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { loadRapier } from '../src/physics/rapier';
 import { Physics } from '../src/physics/Physics';
 import { groups } from '../src/physics/groups';
-import { boxEntry, firstView, physicsClear, viewCandidates } from '../src/explore/viewPoint';
+import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from '../src/explore/viewPoint';
 import { copyInTheWay, type SelectTarget } from '../src/explore/pick';
 import { WorldRegistry, type RegisteredPick } from '../src/world/registry';
 import { defineModel, modelContext } from '../src/models/model';
@@ -96,5 +96,19 @@ describe("VIEW IN WORLD's eye (E342)", () => {
     expect(way(new THREE.Vector3(0, 0.5, 7))).toBe(true); // the sign is in front
     expect(way(new THREE.Vector3(7, 0.5, 0))).toBe(false); // from the side: only the booth, which holds the stool
     expect(way(new THREE.Vector3(-8.5, 1, 8))).toBe(true); // the eye stands in the pipe
+  });
+  it('E345: the landed search looks round what the centre hit — a canopy over the copy puts the low eyes from under its far edge first', () => {
+    const b = copy(), eyes = viewCandidates(b), look = centre(b);
+    // the landed eye (the old framing) hit a canopy 2 m over the copy, a metre toward that eye
+    const landed = eyes[0] ?? look;
+    const flat = new THREE.Vector3(landed.x - look.x, 0, landed.z - look.z).normalize();
+    const canopy = look.clone().addScaledVector(flat, 1).add(new THREE.Vector3(0, 2, 0));
+    const order = roundBlocker(eyes.map((_, i) => i).slice(1), eyes, look, canopy);
+    expect(order).toHaveLength(eyes.length - 1);
+    const first = eyes[order[0] ?? 0] ?? look, last = eyes[order[order.length - 1] ?? 0] ?? look;
+    expect(first.y - look.y).toBeLessThan(landed.y - look.y); // under the canopy's line
+    expect(new THREE.Vector3(first.x - look.x, 0, first.z - look.z).dot(flat)).toBeLessThan(0); // from its far side
+    expect(last.y).toBeGreaterThan(first.y);
+    expect(roundBlocker([3, 1, 2], eyes, look, look.clone().add(new THREE.Vector3(0, 0, 0.001)))).toHaveLength(3);
   });
 });

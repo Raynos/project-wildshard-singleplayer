@@ -37,7 +37,8 @@ import { SetExplorer } from './SetExplorer';
 import { catalogEntries, type CatalogEntry } from './catalog';
 import { registeredPicks } from './registry';
 import { Select, type SelectTarget } from './Select';
-import { boxEntry, firstView, physicsClear, viewCandidates } from './viewPoint';
+import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from './viewPoint';
+import { placedGroups } from '../models/place';
 import { MiniMap } from './MiniMap';
 import { Compare, hasCompareTargets } from './Compare';
 import practiceDriftwood from './img/practice-driftwood-isle.webp';
@@ -127,10 +128,16 @@ const SPEEDS = [['Slow', 4], ['Normal', 12], ['Fast', 40]] as const;
 const VIEW_BUDGET_MS = 40;
 /** VIEW IN WORLD's landed search (E342): at most this many other eyes, one tap's pick a frame (Nine Dragon: ~25 ms each) */
 const VIEW_TRIES = 24;
+/** VIEW IN WORLD's landed search (E345): the copies it may try, the landed one and the next nearest it, VIEW_TRIES eyes each */
+const VIEW_COPIES = 3;
 /** VIEW IN WORLD in flight (E342): the copy it frames, the eyes it may use, the one it is flying to; `checked` once it hopped */
 interface Landing { entry: CatalogEntry; eyes: THREE.Vector3[]; at: number; look: THREE.Vector3; box: THREE.Box3; checked: boolean }
-/** the landed view's search (E342): the eyes left to try, and where the camera landed (moved by hand: the search stops) */
-interface ViewSearch { l: Landing; queue: number[]; from: THREE.Vector3 }
+/**
+ * the landed view's search (E342): the eyes left to try round the copy `l` frames, and where the camera landed (moved by
+ * hand: the search stops); E345: the model's next copies nearest the landed one (null until the landed copy's eyes are
+ * spent) and the landed copy's box, selected where the camera stands when no eye of any copy picks the model
+ */
+interface ViewSearch { l: Landing; queue: number[]; from: THREE.Vector3; next: THREE.Box3[] | null; landed: THREE.Box3 }
 const PARK = new THREE.Vector3(0, -600, -CHUNK_HALF * 12); // where the player waits: out of every animal's senses
 
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
@@ -310,24 +317,44 @@ export class Explore {
   /** VIEW IN WORLD has landed: the model selected — unless, as drawn, a tap at the centre picks something else (E342) */
   private land(l: Landing): void {
     this.landing = null;
-    const here = l.eyes[l.at];
-    if (l.checked || here === undefined || this.select?.picksFrom(here, l.look, l.entry.id) !== false) { this.select?.selectEntry(l.entry); return; }
-    // the other eyes, the clear ones first, each tried with a tap's pick on a frame of its own (searchView)
+    const here = l.eyes[l.at], sel = this.select;
+    if (l.checked || here === undefined || sel === null) { sel?.selectEntry(l.entry, l.box); return; }
+    const hit = sel.pickFrom(here, l.look);
+    if (hit?.target.entry === l.entry.id) { sel.selectEntry(l.entry, l.box); return; }
+    // the other eyes, the clear ones first, each tried with a tap's pick on a frame of its own (searchView); each group
+    // looks round what the centre hit when that stands in front of the copy (E345: a market booth's canopy over a
+    // scooter — the eyes from under its far edge come before the rest of the ring above)
+    const blocker = hit !== null && hit.point.distanceTo(here) < l.look.distanceTo(here) ? hit.point : null;
+    this.search = { l, queue: this.searchQueue(l, blocker), from: here.clone(), next: null, landed: l.box };
+  }
+
+  /** the eyes a landed search tries round `l`'s copy (but its own), the clear ones first, VIEW_TRIES of them (E342) */
+  private searchQueue(l: Landing, blocker: THREE.Vector3 | null): number[] {
     const clear: number[] = [], rest: number[] = [];
     l.eyes.forEach((eye, i) => { if (i !== l.at) (this.clearView(eye, l.look, l.box) ? clear : rest).push(i); });
-    this.search = { l, queue: [...clear, ...rest].slice(0, VIEW_TRIES), from: here.clone() };
+    const queue = blocker === null ? [...clear, ...rest] : [...roundBlocker(clear, l.eyes, l.look, blocker), ...roundBlocker(rest, l.eyes, l.look, blocker)];
+    return queue.slice(0, VIEW_TRIES);
   }
 
   /** one eye of the landed view's search a frame (E342): the first whose centre picks the model is flown to */
   private searchView(): void {
     const s = this.search;
     if (!s) return;
+    // the camera was flown off by hand: the model selected where the camera is
+    if (this.host.world.game.camera.position.distanceToSquared(s.from) > 0.25) { this.search = null; this.select?.selectEntry(s.l.entry, s.landed); return; }
     const i = s.queue.shift(), eye = i === undefined ? undefined : s.l.eyes[i];
-    // none picks it, or the camera was flown off by hand: the model selected where the camera is
-    if (i === undefined || eye === undefined || this.host.world.game.camera.position.distanceToSquared(s.from) > 0.25) {
-      this.search = null; this.select?.selectEntry(s.l.entry); return;
+    if (i === undefined || eye === undefined) {
+      // this copy's eyes are spent: the model's next copy nearest the landed one (E345: Nine Dragon's scooter nearest the
+      // spawn is parked between two market booths, under both canopies — the next one is seen from under a canopy's edge)
+      s.next ??= otherCopies(s.l.entry.id, s.landed, VIEW_COPIES - 1);
+      const box = s.next.shift();
+      if (box === undefined) { this.search = null; this.select?.selectEntry(s.l.entry, s.landed); return; }
+      const look = box.getCenter(new THREE.Vector3());
+      s.l = { entry: s.l.entry, eyes: viewCandidates(box), at: -1, look, box, checked: false };
+      s.queue = this.searchQueue(s.l, null);
+      return;
     }
-    if (this.select?.picksFrom(eye, s.l.look, s.l.entry.id) !== true) return;
+    if (this.select?.pickFrom(eye, s.l.look)?.target.entry !== s.l.entry.id) return;
     this.search = null;
     this.flyTo(eye, s.l.look, 0.6);
     this.landing = { ...s.l, at: i, checked: true };
@@ -575,6 +602,22 @@ export class Explore {
       this.readout.textContent = `ALT ${alt.toFixed(alt < 10 ? 1 : 0)} m · x ${Math.round(p.x)} z ${Math.round(p.z)} · HDG ${String(hdg).padStart(3, '0')}°\n${stats.fps} fps · ${lastFrame.calls} calls · ${(lastFrame.triangles / 1e6).toFixed(2)} M tris`;
     }
   }
+}
+
+/**
+ * VIEW IN WORLD's next copies (E345): up to `n` of model `id`'s placed copies (src/models/place.ts `placedGroups`) nearest
+ * the copy `first` (not it), nearest first — the copies a landed search moves on to when none of `first`'s eyes picks it
+ */
+function otherCopies(id: string, first: THREE.Box3, n: number): THREE.Box3[] {
+  const c = first.getCenter(new THREE.Vector3()), v = new THREE.Vector3(), all: { box: THREE.Box3; d: number }[] = [];
+  for (const g of placedGroups()) {
+    if (g.model !== id) continue;
+    for (let i = 0; i < g.copies; i++) {
+      const box = g.copyBox(i, new THREE.Box3()), d = box.getCenter(v).distanceToSquared(c);
+      if (d > 1e-6) all.push({ box, d });
+    }
+  }
+  return all.sort((a, b) => a.d - b.d).slice(0, n).map((x) => x.box);
 }
 
 /** what a tap in the World Explorer can hit: every live registered model, the registered batch picks, each live animal */
