@@ -54,18 +54,22 @@ vTNormal = normalize( mat3( modelMatrix ) * objectNormal );
  * dark and cool so the snow reads against it.
  */
 const CRAG_ROCK_GLSL = /* glsl */`
-vec3 cragRock( vec3 p, vec3 N ) {
+vec3 cragRock( vec3 p, vec3 N, vec3 sunDir ) {
   vec3 w = pow( abs( N ), vec3( 4.0 ) ); w /= ( w.x + w.y + w.z );
   float s = uTexScale.w;
   vec3 r = ( texture2D( tRock, p.zy * s ).rgb * w.x + texture2D( tRock, p.xz * s ).rgb * w.y + texture2D( tRock, p.xy * s ).rgb * w.z ) / uMeanRock;
-  ${isPhoneTier() ? '' : `vec2 st = vec2( 1.0, 0.45 ) * s * 0.21;
+  ${isPhoneTier() ? `r = mix( r, tRockBig( p, N, s ), smoothstep( 0.25, 0.75, tNoise( p.xz * 0.045 + p.y * 0.03 ) ) );` : `vec2 st = vec2( 1.0, 0.45 ) * s * 0.21;
   vec3 b = texture2D( tRock, p.zy * st ).rgb * w.x + texture2D( tRock, p.xz * s * 0.21 ).rgb * w.y + texture2D( tRock, p.xy * st ).rgb * w.z;
   r *= mix( vec3( 1.0 ), b / uMeanRock, 0.6 );`}
   float u = mix( p.x, p.z, w.x / max( w.x + w.z, 1e-3 ) );
   float frac = smoothstep( 0.0, 0.07, abs( tNoise( vec2( u * 0.16, p.y * 0.018 ) ) - 0.5 ) );
   float band = tNoise( vec2( u * 0.012, p.y * 0.11 + tNoise( p.xz * 0.02 ) * 2.0 ) );
   r *= mix( 0.5, 1.0, frac ) * mix( 0.78, 1.14, band );
-  return r * vec3( 0.34, 0.35, 0.39 );
+  // (E302, NALATI-FINISH B9: the grey cone by the summer camp read as one tiled grey) big soft value patches at two scales
+  // and a cool blue-grey ↔ warm grey drift across the faces break the 4 m repeat; the sunlit faces a touch warm
+  r *= mix( 0.7, 1.2, tNoise( p.xz * 0.06 + p.y * 0.045 ) ) * mix( 0.84, 1.12, tNoise( p.xz * 0.21 - p.y * 0.13 + 7.0 ) );
+  vec3 tint = mix( vec3( 0.32, 0.34, 0.39 ), vec3( 0.4, 0.37, 0.34 ), smoothstep( 0.3, 0.8, tNoise( p.xz * 0.028 - p.y * 0.02 + 3.0 ) ) );
+  return r * tint * mix( vec3( 0.92, 0.95, 1.04 ), vec3( 1.06, 1.02, 0.95 ), smoothstep( -0.1, 0.5, dot( N, sunDir ) ) );
 }
 `;
 
@@ -96,6 +100,13 @@ vec3 tTriplanar( sampler2D t, vec3 p, vec3 n, float s ) {
   vec3 w = pow( abs( n ), vec3( 4.0 ) ); w /= ( w.x + w.y + w.z );
   return texture2D( t, p.zy * s ).rgb * w.x + texture2D( t, p.xz * s ).rgb * w.y + texture2D( t, p.xy * s ).rgb * w.z;
 }
+// the rock at 0.37×, turned 30°, on the face's dominant projection only (one tap): mixed by a slow noise over the
+// 4 m triplanar it breaks the repeat that read as a tiled grey cone (E302, NALATI-FINISH B9)
+vec3 tRockBig( vec3 p, vec3 N, float s ) {
+  vec3 a = abs( N );
+  vec2 uv = a.y > max( a.x, a.z ) ? p.xz : ( a.x > a.z ? p.zy : p.xy );
+  return texture2D( tRock, mat2( 0.866, 0.5, -0.5, 0.866 ) * uv * s * 0.37 + 0.43 ).rgb / uMeanRock;
+}
 ${CRAG_ROCK_GLSL}
 `;
 
@@ -120,7 +131,7 @@ const ZONES_V2 = /* glsl */`
       // snow in the shade goes blue, in the sun a touch warm
       snow *= mix( vec3( 0.84, 0.91, 1.08 ), vec3( 1.05, 1.02, 0.97 ), smoothstep( -0.05, 0.45, dot( N, normalize( uPSunDir ) ) ) );
       vec3 g = mix( diffuseColor.rgb, scree, smoothstep( 0.3, 0.6, vSurf.y + brk * 0.4 ) );
-      g = mix( g, cragRock( vTWorld, N ), smoothstep( 0.3, 0.6, vSurf.w + brk * 0.3 ) );
+      g = mix( g, cragRock( vTWorld, N, normalize( uPSunDir ) ), smoothstep( 0.3, 0.6, vSurf.w + brk * 0.3 ) );
       // snow: the def's fields, and above the line the flatter facets of a face catch a dusting of their own
       float hiS = smoothstep( 44.0, 84.0, vTWorld.y );
       float sn = max( smoothstep( 0.35, 0.6, vSurf.z + brk * 0.5 ), smoothstep( 0.8 - 0.3 * hiS, 0.9 - 0.3 * hiS, n ) * smoothstep( ${(SNOW_LINE - 10).toFixed(1)}, ${(SNOW_LINE + 2).toFixed(1)}, vTWorld.y + brk * 12.0 ) * 0.9 );
@@ -164,7 +175,15 @@ const FRAG_MAIN = /* glsl */`
   diffuseColor.rgb = ground;
 
   // ── meadow: the painted grass detail over the macro colour (its hue stays the vertex colour's) ──
+  vec3 tN = normalize( vTNormal );
   vec3 meadow = tTiled( tMeadow, wp * uTexScale.x ) / uMeanMeadow;
+  // steep banks: the top-down tap smears down the slope (E302 B9 "stretched and blurry") — blend the side projections in
+  float steepK = 1.0 - smoothstep( 0.62, 0.86, tN.y );
+  if ( steepK > 0.01 ) {
+    float sx = abs( tN.x ) / ( abs( tN.x ) + abs( tN.z ) + 1e-4 );
+    vec3 side = mix( texture2D( tMeadow, vTWorld.xy * uTexScale.x ).rgb, texture2D( tMeadow, vTWorld.zy * uTexScale.x ).rgb, sx ) / uMeanMeadow;
+    meadow = mix( meadow, side, steepK );
+  }
   float detailAmt = 0.9 - 0.45 * smoothstep( 60.0, 260.0, dist );
   diffuseColor.rgb = ground * mix( vec3( 1.0 ), meadow, detailAmt );
   ground = diffuseColor.rgb;
@@ -172,9 +191,20 @@ const FRAG_MAIN = /* glsl */`
   ${ZONES_V2}
 
   // ── rock: painted granite, triplanar, tinted by the macro colour ──
+  // (E302, NALATI-FINISH B2: the escarpment read as flat grey tiled patches) — the repeat broken by a larger turned tap,
+  // big soft value / hue patches (ochre ↔ cool blue-grey), strata, warm on the sunlit faces and cool on the shade side,
+  // and moss / turf on the ledges that look up; all ALU apart from the one extra tap
   if ( vSurf.w * ( 1.0 - ringK ) > 0.02 ) {
-    vec3 rock = tTriplanar( tRock, vTWorld, normalize( vTNormal ), uTexScale.w ) / uMeanRock;
-    diffuseColor.rgb = mix( diffuseColor.rgb, mix( vec3( 0.36, 0.33, 0.29 ), ground, 0.35 ) * rock, vSurf.w * ( 1.0 - ringK ) );
+    vec3 rock = tTriplanar( tRock, vTWorld, tN, uTexScale.w ) / uMeanRock;
+    rock = mix( rock, tRockBig( vTWorld, tN, uTexScale.w ), smoothstep( 0.25, 0.75, tNoise( wp * 0.05 + vTWorld.y * 0.04 ) ) );
+    float rp = tNoise( wp * 0.035 + vTWorld.y * 0.02 ), rq = tNoise( wp * 0.11 - vTWorld.y * 0.07 + 5.0 );
+    vec3 tint = mix( vec3( 0.34, 0.33, 0.33 ), vec3( 0.46, 0.37, 0.27 ), smoothstep( 0.25, 0.75, rp ) );   // cool grey ↔ warm ochre
+    tint *= mix( 0.8, 1.16, rq ) * mix( 0.86, 1.1, tNoise( vec2( wp.x * 0.02 + wp.y * 0.02, vTWorld.y * 0.35 ) ) ); // patches + strata
+    tint *= mix( vec3( 0.86, 0.9, 1.06 ), vec3( 1.08, 1.02, 0.92 ), smoothstep( -0.2, 0.5, dot( tN, normalize( uPSunDir ) ) ) );
+    vec3 rc = mix( tint, ground, 0.3 ) * rock;
+    float ledge = smoothstep( 0.5, 0.75, tN.y + ( tNoise( wp * 0.6 ) - 0.5 ) * 0.35 );
+    rc = mix( rc, ground * mix( vec3( 0.92, 1.0, 0.8 ), vec3( 1.0 ), rq ), ledge * 0.75 );              // turf / moss on the ledges
+    diffuseColor.rgb = mix( diffuseColor.rgb, rc, vSurf.w * ( 1.0 - ringK ) );
   }
 
   // ── gravel bars: the painted river stones, darker and greener where wet ──
@@ -189,6 +219,8 @@ const FRAG_MAIN = /* glsl */`
   if ( across < 5.5 ) {
     float rag = tNoise( wp * 0.8 ) * 0.9 + tNoise( wp * 3.0 ) * 0.35;
     float road = 1.0 - smoothstep( 2.2 + rag, 3.2 + rag, across );
+    // not up the cut banks of a graded road: there the dirt smeared up the wall as a ribbon (E302, NALATI-FINISH B9)
+    road *= smoothstep( 0.66, 0.86, tN.y + ( rag - 0.6 ) * 0.08 );
     vec2 rd = normalize( vRdir + vec2( 1e-4 ) );
     vec2 ruv = vec2( vSurf.x, dot( wp, rd ) ) * uTexScale.y;
     ruv = mat2( 0.7071, 0.7071, -0.7071, 0.7071 ) * ruv;          // the painted ruts run diagonally in the tile
