@@ -16,6 +16,10 @@
  * water's own program ('ph-water': the clock's sky in them, the rain's rings, a dark wet rim) at a fading alpha: 0 new
  * programs.
  *
+ * THE CAVE MOUTH (E322 F-L5): the cover map's roofs reach the bear cave's passage (`roofAt` knows its footprint) but the
+ * 2 m texels start it a metre in and the arch's hood stood open to the sky — a box in the cave's frame (BEAR_CAVE: the
+ * mouth, the hood and the first metres in, under the arch's height) is tested exactly in the rain's vertex shader.
+ *
  * Draws: 0 while dry (both hidden). Raining: the rain + the puddles = 2. Programs: +1 (the rain), built at boot (the meshes
  * are in the scene, hidden, when the precompile walks it).
  */
@@ -29,8 +33,12 @@ import { createWaterMaterial } from './waterSurface';
 import type { Sky } from './Sky';
 import type { TreeInstance } from './placement';
 import type { PineWeather } from './PineWeather';
+import { BEAR_CAVE } from '../chunks/pineHollowLayout';
 
 const COVER_N = 256;
+/** the cave's hood in its own frame (lx across, lz into the rock; the mouth faces −lz): half width, from, to, height over
+ *  the mouth's ground — the arch's opening is 2.6 × 4.8 m (caveArch.ts `openCaveArch`); the cover map takes over at lz ≈ 1.5 */
+const CAVE_HOOD = { hw: 3.2, lz0: -1.4, lz1: 4.5, up: 5.6 };
 
 export interface PineWeatherFXOpts {
   sky: Sky;
@@ -52,6 +60,9 @@ export class PineWeatherFX {
     uOffset: { value: new THREE.Vector3() }, uR: { value: 16 }, uVel: { value: new THREE.Vector3(0, -9, 0) }, uLen: { value: 0.9 },
     uCol: { value: new THREE.Color(0.6, 0.65, 0.75) }, uAlpha: { value: 0.3 }, uWidth: { value: 0.012 },
     uCover: { value: null as THREE.Texture | null }, uCoverK: { value: 1 / (2 * CHUNK_HALF) },
+    /** the cave's frame (x, z, cos yaw, sin yaw) and its hood box (half width, lz from, lz to, the ceiling's world y) */
+    uCave: { value: new THREE.Vector4(BEAR_CAVE.x, BEAR_CAVE.z, Math.cos(BEAR_CAVE.rot), Math.sin(BEAR_CAVE.rot)) },
+    uCaveBox: { value: new THREE.Vector4(CAVE_HOOD.hw, CAVE_HOOD.lz0, CAVE_HOOD.lz1, heightAt(BEAR_CAVE.x, BEAR_CAVE.z) + CAVE_HOOD.up) },
   };
   private readonly puddleFade = { value: 0 };
   private readonly rainCount: number;
@@ -132,7 +143,7 @@ export class PineWeatherFX {
       vertexShader: /* glsl */`
         attribute vec4 seed; attribute vec2 corner;
         uniform vec3 uOffset; uniform float uR; uniform vec3 uVel; uniform float uLen; uniform float uWidth;
-        uniform sampler2D uCover; uniform float uCoverK;
+        uniform sampler2D uCover; uniform float uCoverK; uniform vec4 uCave; uniform vec4 uCaveBox;
         varying float vA; varying vec3 vW; varying float vDrip;
         void main() {
           float R = uR;
@@ -143,6 +154,10 @@ export class PineWeatherFX {
           vec4 cv = texture2D( uCover, w.xz * uCoverK + 0.5 );
           float drip = smoothstep( 0.25, 0.8, cv.r );
           float keep = step( drip * 0.86, fract( seed.x * 91.7 + seed.z * 13.3 ) ) * ( 1.0 - step( 0.5, cv.g ) );
+          // the cave's hood (E322 F-L5): no rain in the mouth or under the arch, below its ceiling
+          vec2 cd = w.xz - uCave.xy;
+          float clx = cd.x * uCave.z - cd.y * uCave.w, clz = cd.x * uCave.w + cd.y * uCave.z;
+          keep *= 1.0 - step( abs( clx ), uCaveBox.x ) * step( uCaveBox.y, clz ) * step( clz, uCaveBox.z ) * step( w.y, uCaveBox.w );
           vDrip = drip;
           vec3 v = normalize( uVel + vec3( 0.0, -3.0 * drip, 0.0 ) );   // drips fall straight: the canopy breaks the wind
           float len = mix( uLen, 0.28, drip ) * seed.w;
