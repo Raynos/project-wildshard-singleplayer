@@ -591,7 +591,7 @@ and the death check (1192–1197) are deleted. What replaces them:
 | B3 | The Storm Titan's hits skip the hit cap and the dodge guard | its requests are `boss.storm-titan`; R1 / R2 answer `boss.*` | with `incomingCap` 20 a 40 spear deals 20; with `guard.dodge` + dodging it deals 0; lightning 60 and a fall 8 are unchanged by both | S3.4 (creatures board) |
 | B4 | `canReach` runs only on melee shards (`AnimalManager.ts:435, 779, 926, 1043`): Pine's boar / bear charges, both elite sets, all four bosses and the thralls hit through walls | every strike's request carries `from` (the attacker); occlusion is default on every shard; `through.walls` only for the listed AoE | `test/ai/can-reach.test.ts`: on a Pine-shaped fake world a bear charge through a cabin wall deals 0; the same charge in the open deals 35; a Blackpaw roar ring (`through.walls`) still lands | S2.3 (creatures board) |
 | B5 | `damageFor` uses `Math.random()` (`Animal.ts:62`) | the seeded `gameplay` stream | the same seed gives the same 20 rolls; the range stays 32–40 | S1.3 |
-| B6 | The big crab's `mods.chargeDamage 14` (`crab.ts:301`) is dead data: the snap always deals `SNAP_DAMAGE` 10 (`crab.ts:266`) | none now (identical); the row keeps 10 and drops the dead field | strike table (§5.3) asserts 10 | S4.2 (flagged Q8) |
+| B6 | The big crab's `mods.chargeDamage 14` (`crab.ts:301`) is dead data: the snap always deals `SNAP_DAMAGE` 10 (`crab.ts:266`) | **Jake, decision 86: the big crab hits for 14** (the data wins); the snap reads its row's damage | strike table (§5.3) asserts 14 for the big crab, 10 for the others | S4.2 (on the creatures board) |
 
 ### 3.5 Randomness that moves to the seeded streams
 
@@ -689,7 +689,7 @@ the regen timing; `death.checkpoint` answered by a fake encounter; `bossGod` vet
 |---|---|---|---|---|---|---|
 | boar | **kit** (Driftwood + Pine) | `species/boar.ts:236` | 100 (sow 70, big 140, scarback 180, ironhide 300, thrall 140) | Herd: idle · graze · wander · alert · flee · charge · stalk · dead (+ circle / backoff with the director) | S8 (Driftwood rows), S9 (Pine rows) | `ai` |
 | bear | **kit** | `species/bear.ts:247` | 220 (brown 320, black-old 330, brown-old 480) | Herd hunter (stalk) | S8 / S9 | `ai` |
-| horse | **kit** (Nalati + the horse playground; see Q5) | `species/horse.ts:574` | 150 (foals 70, tulpar / stallion 150) | Herd (`Herd.ts`): graze · flee · stampede; stallion watch · warn · display · charge · wheel · lead · beaten · ridden (`Herd.ts:44`); `horseDamageMul` (§5.4) | S18 (stallion) | `ai` |
+| horse | **Nalati** (rule of two: its only other user, the horse playground, is Nalati's; 13-lead-resolutions 09#5) | `species/horse.ts:574` | 150 (foals 70, tulpar / stallion 150) | Herd (`Herd.ts`): graze · flee · stampede; stallion watch · warn · display · charge · wheel · lead · beaten · ridden (`Herd.ts:44`); `horseDamageMul` (§5.4) | S18 (stallion) | `ai` |
 | deer | Pine | `species/deer.ts:265` | 60 (big-stag 90, ghost 130) | Herd prey (never charges) | — | `ai` |
 | elk | Pine | `species/elk.ts:310` | 160 (bull 200, big-bull 260, imperial 340, thrall 220), `damageTaken` .8 | Herd prey | — | `ai` |
 | thrall | Pine (variant rows of boar / elk: `spawnOnly`) | `species/thrall.ts`, `quest/nightThralls.ts` | as the variants | Herd (roam, millrace, the King's adds) | S9, S33 | `ai` |
@@ -722,7 +722,7 @@ does it check walls now.
 
 | # | Strike | file:line | windup → hit | recover / cooldown | shape | dmg | cover (today → after) | token |
 |---|---|---|---|---|---|---|---|---|
-| S1 | `strike.crab.snap` | `crab.ts:214–267` | starts d < 1.9; dur .78, hit at .5 s | cd 1.4; a hit taken cancels, cd ≥ .6 | point r 1.6 × max(1, .8 scale) | 10 (big crab too, B6) | ✔ → ✔ | yes |
+| S1 | `strike.crab.snap` | `crab.ts:214–267` | starts d < 1.9; dur .78, hit at .5 s | cd 1.4; a hit taken cancels, cd ≥ .6 | point r 1.6 × max(1, .8 scale) | 10; the big crab 14 (B6, decision 86) | ✔ → ✔ | yes |
 | S2 | `strike.monkey.bite` | `monkey.ts:233, 296` | d < 1.3; dur .9, hit at .45 (.405 s) | cd 1.2 | point r 1.3 | 6 | ✔ → ✔ | yes |
 | S3 | `strike.monkey.coconut` | `monkey.ts:289–303`, `Enemies.ts:58, 300–312` | 2.5 < d < 14; dur 1.0, release at .62; ballistic (g 9.81, r .13, ≤ 16 in flight) | cd 2.5–4 (`ai` rng) | projectile, hit within .45 m of the feet→head segment | 8 | ✔ (physics body) → `cover.checked` | yes |
 | S4 | `strike.sailor.swing` | `sailor.ts:276, 315, 340` | d < 1.8 and `reach`; dur .9, hit at .645 s (.6 / .9 + .05) | cd 1.5 → guard | point r 1.9 | 14 | ✔ → ✔ | yes |
@@ -839,8 +839,8 @@ The director is on only when `attackers` is finite, which reproduces `this.rules
 
 | System | Today | Class | During S2.3 (identical) | From S2.6 (decision 23, creatures board) |
 |---|---|---|---|---|
-| creature brains (herd, species `think`, elite brains) | 10 Hz for every animal at any distance (`AnimalManager.ts:686–699`) | `ai` | shard tier override `ai: { near: 10, far: 10, farFrom: ∞, pausedFrom: ∞ }` | 30 Hz near, 15 Hz from 60 m, paused from 160 m |
-| strike runner (contact, active windows) | per frame for charges (`:716`), 10 Hz for `think` strikes | fixed step (60 Hz) | yes for S8 (as today); `think` strikes sampled at the brain tick (as today) | every strike on the fixed step |
+| creature brains (herd, species `think`, elite brains) | 10 Hz for every animal at any distance (`AnimalManager.ts:686–699`) | `ai` | shard tier override `ai: { bands: [{ upTo: ∞, brainHz: 10, body: 'frame' }] }` | decision 85's bands: near 0–60 m brain 20 Hz + body every frame; mid 60–160 m brain 10 Hz + body every 2nd frame; far paused; interrupts; pinned bosses / elites / quest actors |
+| strike runner (contact, active windows) | per frame for charges (`:716`), 10 Hz for `think` strikes | fixed step (60 Hz) | yes for S8 (as today); `think` strikes sampled at the brain tick (as today) | every strike on the body clock (01 §12): fixes the up-to-100 ms telegraph / hit drift |
 | group brains (pack, herd, flock) | 10 Hz | `ai` | as above | as above |
 | engaged elites and bosses | every frame (`Elite.ts` tick, `Boss` update) | `always` | same | same (never paused while engaged or in an arena) |
 | creature animation | every frame, LOD at 140 m, far batch | `fx` (visual only) | same | same |
@@ -871,9 +871,9 @@ Every step: harness green → pathspec commit → `scripts/push-main.sh` (plan �
 | 6 | S1.4 | `FeiZhua extends Tool`, the `grapple` input context + LOCK / JUMP relabels; the `traversal` hook deleted | harness grapple pose identical; ND playground boots |
 | M1 | — | weapons board (§7) | Jake's go |
 | 7 | S2.2 | Bow family (`BOW` serves Nalati's bow too; `LONGBOW` as a row; ~450 Longbow lines deleted), Crossbow family (+ `AmmoRow`s), Firearm family (`AR15` row, `LeverRifle extends Firearm`); projectile, ADS, brass blocks | trajectory snapshots unchanged, `weapon-profiles` (ranged), `hitscan-damage` |
-| 8 | S2.3 | AI runtime: HFSM, `StrikeRunner`, director, `BossBrain` + the Antler King, one `EliteBrain` (Pine's four), night thralls, spawn / loot tables; kit species `boar`, `bear` (+ Driftwood / Pine child rows), `horse`; **B4** | strike table, can-reach, director, hfsm, boss-phases, spawn-tables |
+| 8 | S2.3 | AI runtime: HFSM, `StrikeRunner`, director, `BossBrain` + the Antler King, one `EliteBrain` (Pine's four), night thralls, spawn / loot tables; kit species `boar`, `bear` (+ Driftwood / Pine child rows); the horse moves to Nalati's folder in S3.3; **B4** | strike table, can-reach, director, hfsm, boss-phases, spawn-tables |
 | 9 | S2.5 | Starter effects in `#kit/effects/` + the Debug row; Blackpaw's stun on `effect.stun` | `effects.test.ts` starter rows |
-| 10 | S2.6 | Tick classes: the decision-23 rates replace the 10 Hz override | `tick-rates.test.ts` |
+| 10 | S2.6 | Tick classes: decision 85's bands replace the 10 Hz override; strikes move to the body clock; interrupts on | `tick-rates.test.ts` |
 | M2 | — | creatures board (§7), ranged clips on the weapons board | Jake's go |
 | 11 | S3.3 | `GoldenBow extends Bow`, `Naizagai extends Sabre` via `replace`; the sabre's mounted pass and the bow's mount data verified; stealth's sneak = E10 / R3 | `weapon-profiles` (Nalati), upgrade `replace` test |
 | 12 | S3.4 | Golden King and Storm Titan on `BossBrain` (**B3**), Nalati's five elites on `EliteBrain`, wolves' `GroupBrain`, balbals, ghost riders, herds, flock | boss-phases, strike table S10–S28 |
@@ -890,7 +890,7 @@ Every step: harness green → pathspec commit → `scripts/push-main.sh` (plan �
 | Weapons (M1) | parity proof | a one-line table: every row of §1.4 "identical" (the `weapon-profiles` test output) and the harness's swing + shot on 4 shards; no clip unless a family could not match a weapon (none expected) |
 | Weapons (M2) | ranged | the trajectory-snapshot diff (empty) and one clip each of the Longbow, Crossbow (3 bolt kinds), lever and AR-15 before / after, side by side |
 | Creatures (M2) | B4 | Pine: a brown bear charging at a cabin wall with you inside (before: hit, after: no hit); Old Ironhide's lane through a fence; the Antler King's sweep through the fallen log |
-| Creatures (M2) | tick rates | a herd at 40 m, 100 m and 200 m, before (10 Hz) / after (30 / 15 / paused) — a clip each; plus the frame-time delta from the harness |
+| Creatures (M2) | tick rates | a herd at 40 m, 100 m and 200 m, before (10 Hz) / after (near 20 Hz, mid 10 Hz, far paused) — a clip each; a strike telegraph at 40 m before / after the body-clock move; plus the frame-time delta from the harness |
 | Creatures (M2) | starter effects | 5 clips (the Debug "Apply effect" row) with the proposed numbers of §2.4 in a table for Jake to accept or retune |
 | Creatures (M3) | B3 | the test output only: Nalati sets no hit cap and has no tusk, so the Titan fix changes nothing a player sees today (it matters for a shard that sets a cap) |
 | Creatures (M3) | strike sampling | one clip of the Golden King's cut and a balbal slam before / after moving strikes to the fixed step (hits land up to one brain tick, ≤ 100 ms, earlier) |
@@ -902,11 +902,11 @@ Every step: harness green → pathspec commit → `scripts/push-main.sh` (plan �
 | Q1 | 01 §19's `StrikeSpec.shape` is a bare string with one `range`; lanes, rings and arcs need their own params (§5.3 `ShapeSpec`) | `shape` becomes the `ShapeSpec` union |
 | Q2 | 01 §18's `EffectDef` cannot express hit-dependent rules (the cap, the tusk, the sneak shot, broadheads, balbal bonuses) | add `DamageRuleDef` (§2.2) as an engine row type answering `damage.modify` |
 | Q3 | Whetstones, the bear claw and the Golden draw modify a weapon, and 01's `EffectService.apply` takes an `Actor` | `Equipment` owns an `AttributeSet`; an effect row names `appliesTo: Tag` (e.g. `weapon.blade`) and the service resolves the owner's equipment |
-| Q4 | 01 §12 defaults `ai` to 30 Hz near; today every brain runs at 10 Hz | 10 Hz through S2.3 (identical), decision 23's rates at S2.6 on the creatures board |
-| Q5 | The horse's second "user" is the horse playground, which 01 §22 moves into Nalati's folder: by the rule of two it is Nalati-only | keep it in the kit as plan §2.5 / 01 §21 say |
+| Q4 | 01 §12 defaults `ai` to 30 Hz near; today every brain runs at 10 Hz | **Resolved** (Jake, decision 85): 10 Hz through S2.5 (identical); at S2.6 the 3 bands (20 / 10 / paused) + interrupts + strikes on the body clock, on the creatures board |
+| Q5 | The horse's second "user" is the horse playground, which 01 §22 moves into Nalati's folder: by the rule of two it is Nalati-only | **Resolved: Nalati** (13-lead-resolutions 09#5) |
 | Q6 | A fall does not reset the regen delay (`main.ts:945` never sets `lastHurt`) | kept identical |
 | Q7 | The hoverboard fits the Tool contract (own button, runs alongside the weapon) but no plan row names it | `tool.hoverboard` in `#kit/tools/`, moved in X1 (input sweep) |
-| Q8 | The big crab's `chargeDamage 14` is dead data (the snap deals 10) | keep 10; drop the field |
+| Q8 | The big crab's `chargeDamage 14` is dead data (the snap deals 10) | **Resolved: 14** (Jake, decision 86) |
 | Q9 | 01 §19's `WeightedTable.rolls: number` has no "every row once" mode for fixed harvest yields | `rolls: number \| 'each'` |
 | Q10 | Pine's finishes and Nalati's skins have no numbers; decision 55 lists them as effects | cosmetic effects (E12, E13) that grant a tag; the alternative is `#game` item fragments |
 | Q11 | `DamageRequest` here adds `from`, `headshot`, `distance`, `scale`, `stagger`, `knock`, `cause`, `toast` to 01 §18's six fields | accept the superset |

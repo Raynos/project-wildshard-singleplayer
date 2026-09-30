@@ -56,3 +56,19 @@ Questions that were Jake's to decide went to him and are numbered decisions in
 | 6 | No plugin verb for putting shard handles on the probe | `ctx.debug.expose` | 01 §7 |
 | 7 | Gate coverage: Nine Dragon has no creatures; Pine has no melee weapon; the runner is phone-tier only; loot | **Nine Dragon:** the gate kills a practice-arena dummy. **Pine:** the swing check runs only where the loadout has melee (the shot check covers Pine). **Tiers:** the runner covers phone; the desktop tier runs in the nightly on Jake's Mac. **Loot:** checked as the save keys written after a kill | 03 |
 | 8 | The pin also covers `ota-promote.yml`; the first pin; a GitHub token for the nightly; Rapier +413 KB | **Pin:** yes, it covers `ota-promote.yml`, and the first pin is the build live when F3.1 lands. **Token:** none needed; the nightly posts statuses with the Mac's existing `gh` login (`gh api`). **Rapier:** Jake accepts the +413 KB (decision 89) | 03, 02 F12 |
+
+## From 07-nalati / 08-driftwood
+
+| # | Question | Resolution | Applied in |
+|---|---|---|---|
+| 1 | Manifest fields not in 01 §6; a reader for the harness URL params | Every carried-over field is on the manifest (see 05 / 06 #1). `app.params` is the only URL-param reader (the `harness` allowlist) | 01 §5, §6 |
+| 2 | `ShardRender` needs chain replacement, lighting, shadows, fog suspend / resume and backdrop apply | Added: `mode: 'extend' \| 'replace'`, `lighting`, `shadows`, `fogControl`, `backdrop.apply` | 01 §13.1 |
+| 3 | An engine wind the Bow family and grass read? | Yes: one `WindField` (`app.world.wind`) with per-shard `manifest.wind` data. Nalati's `steppeWind.ts` and `world/wind.ts` merge into it | 01 §17 |
+| 4 | The horse in Nalati vs 01 §21 / 09 | Nalati. 01 §21 is updated; 09's species table follows | 01 §21, 09 §5 |
+| 5 | S3.5 edits Pine's and Nine Dragon's audio | In scope: one implementation at once, parity identical on those shards | 07 S3.5 |
+| 6 | Park Driftwood's island audio in `legacyIsland.ts` from S3.5 to S4.3? | Yes; S4.3 moves it into Driftwood's folder and deletes the park | 07 S3.5, 08 S4.3 |
+| 7 | `WaterBody` early for the sea in S4.1? | Yes: S4.1 builds the interface and the sea on it; X5 converts the other bodies | 01 §17 |
+| 8 | Can a shard declare its own tier knobs? | Yes: `ctx.tiers.knobs(schema)` | 01 §7 |
+| 9 | The Captain's boss bar keeps its own look (two bar looks)? | Asked Jake (a look call) — decision 91 | E357 #91 |
+| 10 | `rockKit.ts`: Driftwood or engine until X5? | Wherever 04's import analysis puts it by the rule of two (kit if `GroundCover` serves another shard, otherwise Driftwood). X5 lifts its generic primitives into the engine geometry toolkit | 04, 10 X5 |
+| 11 | The native shell's `ws:ready` DOM event | It stays (it's the native shell's contract), dispatched once on reaching `title`; the probe also exposes `ready` | 01 §5 |
