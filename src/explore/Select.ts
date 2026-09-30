@@ -77,7 +77,11 @@ export class Select {
     for (const t of this.targets) {
       if (!t.object.visible) continue;
       const hit = this.ray.intersectObject(t.object, true)[0];
-      if (hit && (!best || hit.distance < best.d)) best = { t, point: hit.point.clone(), d: hit.distance };
+      if (!hit) continue;
+      // several models drawn as one mesh (a Nalati place, E306 M3) hit alike: the one whose copy is under the finger
+      if (!best || hit.distance < best.d || (hit.distance === best.d && t.boxAt && best.t.boxAt && t.boxAt(hit.point).distanceToPoint(hit.point) < best.t.boxAt(hit.point).distanceToPoint(hit.point))) {
+        best = { t, point: hit.point.clone(), d: hit.distance };
+      }
     }
     if (!best) { this.clear(); return; }
     const entry = this.entries.find((e) => e.id === best.t.entry);

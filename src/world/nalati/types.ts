@@ -1,7 +1,9 @@
 /** Shared shapes for the Nalati POI modules (B5). */
 import type * as THREE from 'three';
 import type { Material } from '../../physics/surface';
-import type { ColliderDesc } from '../registry';
+import type { ColliderDesc, WorldRegistry } from '../registry';
+import type { ModelContext } from '../../models/model';
+import type { Placed } from '../../models/place';
 import type { Sky } from '../Sky';
 import type { Box } from './solid';
 import type { Flutter } from './Flutter';
@@ -38,4 +40,10 @@ export interface PoiPiece {
   tris: number;
   /** per-frame animation (NalatiPOIs.update calls it with the viewer's position when it has one) */
   update?: (dt: number, viewer: THREE.Vector3 | null) => void;
+  /**
+   * A POI on the model contract (E306 / E315 M3): it registers itself — one `place` per model (its colliders, its floor,
+   * its catalog entry) — instead of being one registry piece; `colliders` stay as data. What each call placed (its set's
+   * members).
+   */
+  register?: (o: { readonly registry: WorldRegistry; readonly ctx: ModelContext }) => readonly Placed[];
 }

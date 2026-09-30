@@ -37,15 +37,17 @@ import type { Sky } from '../Sky';
 import { activeRegistry, type PieceCategory, type Pipeline, type WorldRegistry } from '../registry';
 import { boxDescs, registerSolid, type Box } from './solid';
 import type { Ground, PoiCtx, PoiPiece } from './types';
+import { modelContext, type ModelContext } from '../../models/model';
+import type { Placed } from '../../models/place';
+import { placeSet } from '../../models/sets';
 
-/** each POI's entry in the registry (and Explore's catalog when `model`, with how it's made: E306 M0a; M3 splits them into models + sets) */
+/** each POI not yet on the model contract: its entry in the registry (and Explore's catalog when `model`, with how it's
+ *  made: E306 M0a). M3 moves each onto models (src/chunks/nalati-grasslands/models/) + a set (`SETS`), and its row goes */
 const ENTRY: Record<string, { name: string; category: PieceCategory; file: string; model: boolean; pipeline?: Pipeline | readonly Pipeline[] }> = {
   camp: { name: 'Spring camp', category: 'buildings', file: 'src/world/nalati/NomadCamp.ts', model: true, pipeline: ['code', 'trellis'] },
   bridge: { name: 'Kunes bridge', category: 'buildings', file: 'src/world/nalati/Bridge.ts', model: true },
   roads: { name: 'Road fences', category: 'props', file: 'src/world/nalati/RoadFurniture.ts', model: false },
   summerCamp: { name: 'Summer camp', category: 'buildings', file: 'src/world/nalati/SummerCamp.ts', model: true, pipeline: ['code', 'trellis'] },
-  kurgans: { name: 'Kurgan field', category: 'buildings', file: 'src/world/nalati/KurganField.ts', model: true },
-  balbals: { name: 'Balbals', category: 'buildings', file: 'src/world/nalati/Balbals.ts', model: true, pipeline: 'trellis' },
   eagleRock: { name: 'Eagle Rock', category: 'nature', file: 'src/world/nalati/EagleRock.ts', model: true },
   cairn: { name: 'Wind Cairn', category: 'buildings', file: 'src/world/nalati/Cairn.ts', model: true },
   crags: { name: 'Crag ledges + the leopard cave', category: 'nature', file: 'src/world/nalati/Crags.ts', model: true },
@@ -54,6 +56,11 @@ const ENTRY: Record<string, { name: string; category: PieceCategory; file: strin
   snowLotus: { name: 'Snow lotus', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: 'trellis' },
   glacier: { name: 'Glacier', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true },
 };
+
+/** the places on the model contract (E306 / E315 M3): the models the named POIs placed are one set each (M7 explores them) */
+const SETS: readonly { id: string; name: string; file: string; pois: readonly string[] }[] = [
+  { id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/world/nalati/KurganField.ts', pois: ['kurgans', 'balbals'] },
+];
 
 export class NalatiPOIs {
   group = new THREE.Group();
@@ -76,7 +83,10 @@ export class NalatiPOIs {
   /** where a rider ties a strip at the Wind Cairn (B14) */
   cairnTieSpot: THREE.Vector3 | null = null;
 
-  constructor(private sky: Sky, private ground: Ground = (x, z) => heightAt(x, z)) { this.group.name = 'nalati-pois'; }
+  /** the shard's model context (its sky: the painterly look) for the POIs' models */
+  private readonly models: ModelContext;
+
+  constructor(private sky: Sky, private ground: Ground = (x, z) => heightAt(x, z)) { this.group.name = 'nalati-pois'; this.models = modelContext(sky); }
 
   build(): this {
     const ctx: PoiCtx = { sky: this.sky, ground: this.ground, flutter: this.flutter, smoke: this.smoke };
@@ -125,7 +135,9 @@ export class NalatiPOIs {
   }
 
   private *registrations(registry: WorldRegistry): Generator<string> {
+    const placed = new Map<string, readonly Placed[]>();
     for (const p of this.pieces) {
+      if (p.register) { placed.set(p.name, p.register({ registry, ctx: this.models })); yield p.name; continue; }
       const e = ENTRY[p.name];
       const colliders = [...boxDescs(p.colliders), ...(p.descs ?? [])];
       if (colliders.length === 0 && e?.model !== true) continue;
@@ -134,6 +146,10 @@ export class NalatiPOIs {
         object: p.object, colliders, surface: p.surface, ...(p.floor ? { floor: p.floor } : {}), ...(e?.model === true ? { model: e.pipeline === undefined ? {} : { pipeline: e.pipeline } } : {}),
       });
       yield p.name;
+    }
+    for (const s of SETS) {
+      const members = s.pois.flatMap((n) => placed.get(n) ?? []);
+      if (members.length > 0) placeSet({ id: s.id, name: s.name, file: s.file, members, registry });
     }
     this.balbals?.register(registry, this.group.getObjectByName('nalati-balbals') ?? this.group);
   }

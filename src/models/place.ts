@@ -67,6 +67,27 @@ export interface PlaceOptions {
    * Always batched: there is no instanced fallback for a shared batch.
    */
   readonly batch?: THREE.BatchedMesh;
+  /**
+   * The copies are drawn already (M3, Nalati): `place` draws nothing and carries what they made (`DrawnInto`) — their
+   * colliders, boxes, count and the model's catalog entry. `draw` still says how they are drawn (the card's fact).
+   */
+  readonly drawnInto?: DrawnInto;
+}
+
+/**
+ * Copies drawn by the set they stand in, not by `place` (M3): each Nalati place is ONE painted mesh — every model of a
+ * camp or a kurgan field welded into one kit, painted per vertex in world space and AO-baked against the terrain
+ * together (src/world/nalati/painted.ts) — and its generated models are instanced per place when their file lands. The
+ * object stays where its set put it (the registry's piece goes without it). The model's own-space colliders still go to
+ * each placement; `colliders` are the ones the copies made in world space as they were drawn (a model fitted to the
+ * ground under it). A `drawn-hull` collider needs `place` to draw.
+ */
+export interface DrawnInto {
+  /** what draws them (shared by the set's models: a tap on it picks the model whose copy is under the finger) */
+  readonly object: THREE.Object3D;
+  /** each copy's world box, 6 floats per copy (min xyz, max xyz), in placement order */
+  readonly boxes: Float32Array;
+  readonly colliders?: readonly ColliderDesc[];
 }
 
 /** what a `place` call built */
@@ -539,13 +560,30 @@ export function copyBoxNear(geometry: THREE.BufferGeometry, matrices: readonly T
   return best !== undefined && geometry.boundingBox ? geometry.boundingBox.clone().applyMatrix4(best) : null;
 }
 
+// ── drawn by the set (`drawnInto`): nothing to draw, the copies' colliders and boxes carried ──
+
+function drawnElsewhere<P extends object>(def: ModelDef<P>, poses: readonly Pose[], params: readonly P[], o: PlaceOptions, d: DrawnInto): Drawn {
+  const colliders: ColliderDesc[] = [];
+  poses.forEach((pose, i) => { const p = params[i]; if (p !== undefined) collideCopy(def, p, pose, null, [], colliders, o.ctx); });
+  colliders.push(...(d.colliders ?? []));
+  return { object: d.object, drawnAs: o.draw, colliders, boxes: d.boxes, cull: null };
+}
+
+/** the centre of every copy's box (a piece without an object of its own: VIEW IN WORLD's anchor) */
+function boxesCentre(boxes: Float32Array): THREE.Vector3 {
+  const b = new THREE.Box3();
+  for (let i = 0; i + 5 < boxes.length; i += 6) b.union(_box.set(_v.set(boxes[i] ?? 0, boxes[i + 1] ?? 0, boxes[i + 2] ?? 0), new THREE.Vector3(boxes[i + 3] ?? 0, boxes[i + 4] ?? 0, boxes[i + 5] ?? 0)));
+  return b.getCenter(new THREE.Vector3());
+}
+
 // ── place ──
 
 /** Place copies of a model (see the file header and ./model.ts's migration guide). */
 export function place<P extends object>(def: ModelDef<P>, placements: readonly Placement<P>[], o: PlaceOptions): Placed {
   const poses = placements.map((pl) => poseOf(pl));
   const params = placements.map((pl) => paramsOf(def, pl.variant, pl.params));
-  const drawn = o.draw === 'merged' ? drawMerged(def, placements, poses, params, o)
+  const drawn = o.drawnInto !== undefined ? drawnElsewhere(def, poses, params, o, o.drawnInto)
+    : o.draw === 'merged' ? drawMerged(def, placements, poses, params, o)
     : o.draw === 'instanced' ? drawInstanced(def, placements, poses, params, o)
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, o)
         : drawSingle(def, placements, poses, params, o);
@@ -580,7 +618,7 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   const every = split === undefined ? drawn.colliders.length : Math.max(1, split.every);
   registry.add({
     id: pieceId, name: pc.name ?? def.name, category: def.category, file: def.file,
-    object: drawn.object, colliders: drawn.colliders.slice(0, every),
+    ...(o.drawnInto === undefined ? { object: drawn.object } : { anchor: boxesCentre(boxes) }), colliders: drawn.colliders.slice(0, every),
     ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
     ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows }),
     ...(pc.active === undefined ? {} : { active: pc.active }),

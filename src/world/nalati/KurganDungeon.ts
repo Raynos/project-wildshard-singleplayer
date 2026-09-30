@@ -40,7 +40,7 @@
  */
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob, lathe } from './paint';
-import { balbalGeometry } from './Balbals';
+import { balbalGeometry } from '../../chunks/nalati-grasslands/models/balbal';
 import type { Collider } from '../../player/Player';
 import { boxDesc, type ColliderDesc, type WorldRegistry } from '../registry';
 import type { Material } from '../../physics/surface';
