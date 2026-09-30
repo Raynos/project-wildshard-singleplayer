@@ -438,3 +438,10 @@ ATTACK at the practice crab (A on the control, B a banner, C a ghost thumb, D in
 what you practise on at the pier's foot (A a crab, B the E289 dummy, C Wendell spars, D nothing). `board-3-start-length.jpg`:
 where you spawn, with walk times to Wendell (A today 49 s, B half way down the pier 38 s, C the pier's foot 30 s, D
 Wendell meets you, 19 s). Recommended: A, A, B. The folder's README lists every frame.
+
+### Model Explorer, M0 (`art/models-audit/round-2-m0/`, 2026-09-29, E306)
+
+`m0-before-after.jpg`: live phone-tier captures (390×844 @3×) of clean exports before (22f7da91) and after the model
+contract (src/models/). Each shard's catalog before / after (every card now says how it's made, its copies and how
+they are drawn), the shore boulder's card (the first model on `place()`), and Nine Dragon's VIEW IN WORLD (before: the
+origin under the square; after: a real lion). Plan: `docs/plans/MODEL-ARCHITECTURE.md`.
