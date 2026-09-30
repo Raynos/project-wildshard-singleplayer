@@ -180,6 +180,7 @@ export class HorsePlayground implements Playground {
     a.yOffset = PLAYGROUND_Y - heightAt(x, z);
     a.position.y = PLAYGROUND_Y;
     a.levelGround = true;
+    a.hp = a.maxHp;             // whole again: under 20 % Mount's bolt would run it for the camp's rail, 3 km down
     a.speed = 0;
     a.setMotion(yaw, 0, 2);
     a.mesh.position.copy(a.position);

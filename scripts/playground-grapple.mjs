@@ -45,7 +45,7 @@ process.on('exit', releaseSlot);
 for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { releaseSlot(); process.exit(1); });
 
 const HOPS = ['p1', 'p2', 'base', 'l1', 'l2', 'top']; // the run's hooks, in HOOKS order (grappleCourse.ts)
-/** @type {{ ok: boolean, hub: unknown, hops: Record<string, unknown>[], errors: string[], perf: Record<string, number> | null, video: Record<string, unknown> | null, end?: unknown }} */
+/** @type {{ ok: boolean, hub: unknown, hops: Record<string, unknown>[], errors: string[], perf: Record<string, number> | null, video: Record<string, unknown> | null, end?: unknown, exit?: { menu: { sub: string, exit: string }, left: boolean, back: boolean } }} */
 const report = { ok: false, hub: null, hops: [], errors: [], perf: null, video: null };
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
@@ -113,6 +113,23 @@ try {
   await page.screenshot({ path: join(OUT, 'grapple-3-top.jpg'), type: 'jpeg', quality: 86 });
   const top = await state();
   report.perf = { ...report.perf, topCalls: top.calls, topTris: top.tris, fps: top.fps };
+  // pause ▸ the menu names the room and exits to Explore's hub; the card again puts you back on START, the clock reset
+  if (!VIDEO) {
+    await tap(page, '.ws-touch-pause');
+    await page.waitForFunction(() => document.querySelector('.ws-gmenu-exit') !== null && getComputedStyle(document.querySelector('.ws-gmenu-exit')).display !== 'none', undefined, { timeout: 8000, polling: 100 });
+    await sleep(500);
+    const menu = await page.evaluate(() => ({ sub: document.querySelector('.ws-gmenu-sub')?.textContent ?? '', exit: document.querySelector('.ws-gmenu-exit')?.getAttribute('aria-label') ?? '' }));
+    await page.screenshot({ path: join(OUT, 'grapple-4-pause.jpg'), type: 'jpeg', quality: 86 });
+    await tap(page, '.ws-gmenu-exit');
+    await page.waitForFunction(() => document.querySelector('.ws-x.show[data-mode="hub"]') !== null, undefined, { timeout: 30000, polling: 250 });
+    const out = await page.evaluate(() => window.__world.playground()?.entered ?? null);
+    await sleep(1000);
+    await enterPlayground(page, 'grapple');
+    const again = await state();
+    report.exit = { menu, left: out !== true, back: again.pad === 'start' && /READY/.test(again.chip) };
+    report.ok &&= report.exit.left && report.exit.back && menu.sub === 'Grapple playground' && menu.exit === 'Exit to Explore';
+    console.log(`exit: ${JSON.stringify(report.exit)}`);
+  }
   if (VIDEO) {
     await sleep(800);
     const webm = join(OUT, 'grapple-run.webm');
