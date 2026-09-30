@@ -71,10 +71,43 @@ const TARGETS = {
     if (!per) return null;
     const g = per.fig.group, t = per.fig.talkPoint;
     return { feet: { x: g.position.x, y: g.position.y, z: g.position.z }, yaw: g.rotation.y, head: { x: t.x, y: t.y + 0.03, z: t.z } };`,
+  // E343: Wendell (by name) · the Drowned Sailor and the Captain spawned on the sand in front of him, stood up out of it
+  'driftwood-isle': `
+    const w = window.__world;
+    const g = w.game.scene.getObjectByName('npc-castaway');
+    if (id === 'wendell') {
+      if (!g) return null;
+      g.updateMatrixWorld(true);
+      const h = g.localToWorld(g.position.clone().set(0, 1.66, 0.05));
+      return { feet: { x: g.position.x, y: g.position.y, z: g.position.z }, yaw: g.rotation.y, head: { x: h.x, y: h.y, z: h.z } };
+    }
+    window.__e343 = window.__e343 || {};
+    let a = window.__e343[id];
+    if (!a) {
+      const wy = g.rotation.y, d = id === 'sailor' ? 7 : 12;   // on open sand (4.5 m put a rock in front of the sailor)
+      a = w.animals.spawn(id, g.position.x + Math.sin(wy) * d, g.position.z + Math.cos(wy) * d, wy, id === 'captain' ? 'captain' : undefined);
+      a.aggressive = false; a.driven = true;   // held where it stands (the Captain awake walks at you)
+      window.__e343[id] = a;
+    }
+    a.mem.rise = 1; a.mem.rising = 0; a.mem.sinking = 0; if (id === 'captain') a.mem.awake = 1;
+    a.desiredSpeed = 0; a.speed = 0; a.desiredYaw = a.yaw;
+    a.mesh.updateMatrixWorld(true);
+    const hb = a.mesh.skeleton.bones.find((b) => b.name === 'head');
+    const h = hb.getWorldPosition(hb.position.clone());
+    return { feet: { x: a.position.x, y: a.position.y, z: a.position.z }, yaw: a.yaw, head: { x: h.x, y: h.y + 0.08 * a.scale, z: h.z } };`,
+  // E343: the square's brushed figures (merged into its kit, no handle: their spots from layout.ts / stalls.ts)
+  'nine-dragon-stack': `
+    const T = {
+      cook: { feet: { x: 18.0, y: 125, z: -16.65 }, yaw: 0, head: { x: 18.0, y: 126.72, z: -16.57 } },
+      hawker: { feet: { x: 7.5, y: 125, z: -2.45 }, yaw: 0, head: { x: 7.5, y: 126.72, z: -2.37 } },
+    };
+    return T[id] || null;`,
 };
 const READY = {
   'nalati-grasslands': () => Boolean(window.__world?.game && window.__nalatiQuest?.people?.group?.children.some((o) => o.name === 'nalati-camp-people-gen')),
   'pine-hollow': () => Boolean(window.__world?.game && window.__pineQuest?.people?.length > 0),
+  'driftwood-isle': () => Boolean(window.__world?.game && window.__world.game.scene.getObjectByName('npc-castaway')),
+  'nine-dragon-stack': () => Boolean(window.__world?.game && window.__world?.player),
 };
 
 const locate = TARGETS[SHARD];

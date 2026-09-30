@@ -29,6 +29,7 @@ import type { Sky } from '../../world/Sky';
 import type { Collider } from '../../player/Player';
 import { attachFogUniforms } from '../../world/Atmosphere';
 import { setting } from '../../ui/Settings';
+import { loadFaceHead, type FaceHead } from '../../world/faceHeads';
 
 const C = {
   skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',
@@ -56,6 +57,31 @@ const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s)
  * brows heavier and tipped up at the middle (a friendly worry), a wedge nose with nostrils, sun-burnt cheeks and ears, and
  * a mouth line in the beard under the moustache. ~120 triangles, the same one head mesh.
  */
+/** E343 D: Wendell's generated head (public/assets/models/driftwood-hero/faces/wendell-head.glb: scripts/img2mesh/head_cut.py
+ *  → driftwood_post.py, 1 m tall, the beard's foot at y = 0), fitted to the code head's frame: its neck on the pivot, the
+ *  hat's crown at the code hat's 0.335 m. NECK_FROM_TOP is head_cut's measure for this file. */
+const WENDELL_HEAD = '/assets/models/driftwood-hero/faces/wendell-head.glb';
+const WENDELL_NECK_FROM_TOP = 0.7698;
+function wendellHead(fh: FaceHead): THREE.BufferGeometry {
+  const g = new THREE.BufferGeometry();
+  const pos = Float32Array.from(fh.pos);
+  let top = -Infinity, bot = Infinity;
+  for (let i = 1; i < pos.length; i += 3) { top = Math.max(top, pos[i] ?? 0); bot = Math.min(bot, pos[i] ?? 0); }
+  const neck = top - WENDELL_NECK_FROM_TOP * (top - bot);
+  const k = 0.335 / Math.max(1e-6, top - neck);
+  let cx = 0, cz = 0, n = 0;
+  for (let i = 0; i < fh.count; i++) if ((pos[i * 3 + 1] ?? 0) > neck) { cx += pos[i * 3] ?? 0; cz += pos[i * 3 + 2] ?? 0; n++; }
+  cx /= Math.max(1, n); cz /= Math.max(1, n);
+  for (let i = 0; i < fh.count; i++) {
+    pos[i * 3] = ((pos[i * 3] ?? 0) - cx) * k; pos[i * 3 + 1] = ((pos[i * 3 + 1] ?? 0) - neck) * k; pos[i * 3 + 2] = ((pos[i * 3 + 2] ?? 0) - cz) * k + 0.01;
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(fh.nrm), 3));
+  g.setAttribute('color', new THREE.BufferAttribute(Float32Array.from(fh.col), 3));
+  g.computeBoundingSphere();
+  return g;
+}
+
 function lowPolyFace(h: LowPolyKit): void {
   const FC = { white: '#efe8da', iris: '#4a6a7a', lid: '#7d5236', cheek: '#d9826a', mouth: '#5a2a22' };
   // the nose: a 4-sided wedge, broader at the base, with two nostril shadows
@@ -176,6 +202,11 @@ export class Castaway {
     h.add(new THREE.CylinderGeometry(0.132, 0.132, 0.03, 8), C.band, { matrix: at(0, 0.225, -0.005, 0, 0.08) });
     this.head = new THREE.Mesh(h.finish({ ao: false }), mat);
     this.head.position.set(0, NECK, 0.01);
+    if (setting('driftwoodFaces') === 'paint') {
+      // E343 D: the generated head (Hunyuan3D-2 from a codex portrait in the island's toon look, its own paint, cut at its
+      // neck, the faceted post) replaces the code head once loaded
+      void loadFaceHead(WENDELL_HEAD).then((fh) => { if (fh !== null) { this.head.geometry.dispose(); this.head.geometry = wendellHead(fh); } return fh; });
+    }
 
     // ── the right arm (pivot at the shoulder, hanging along −Y) ──
     const a = new LowPolyKit(0xca57c);

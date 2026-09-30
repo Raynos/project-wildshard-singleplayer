@@ -130,10 +130,10 @@ export const OPTION_VALUES = {
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
   ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
   clockSpeed: ['1', '10', '60'],                       // Nalati's day clock speed — live                                  // the learned LUT (src/world/lut.ts); off = the captures scripts/fit-lut.py fits from — a reload
-  nineDragonFaces: ['current', 'ink'],   // E304: Nine Dragon (world/hero/figures.ts): B ink (a jiehua ink face on the brushed figures)
+  nineDragonFaces: ['current', 'ink', 'paint'],   // E304: Nine Dragon (world/hero/figures.ts): B ink (a jiehua ink face on the brushed figures)
   // E304: Driftwood's faces (Castaway.ts, species/sailor.ts, species/captainMesh.ts) — a reload: B lowpoly (Wendell's and
   // the Drowned Sailor's readable faceted faces, in code) · C hunyuan (B + the Captain's head a Hunyuan3D-2 bust)
-  driftwoodFaces: ['current', 'lowpoly', 'hunyuan'],
+  driftwoodFaces: ['current', 'lowpoly', 'hunyuan', 'paint'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];

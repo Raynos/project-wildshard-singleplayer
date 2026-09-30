@@ -4,6 +4,7 @@ import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, typ
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
 import { setting } from '../../ui/Settings';
+import { faceHead, loadFaceHead, type FaceHead } from '../../world/faceHeads';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
@@ -96,6 +97,41 @@ function skullFace(hard: THREE.BufferGeometry[], head: number, paint: Paint): vo
   }
 }
 
+/**
+ * E343 D: the Drowned Sailor's generated head (public/assets/models/driftwood-hero/faces/sailor-head.glb: a Hunyuan3D-2 skull
+ * + bandana from a codex portrait in the island's toon look, its own paint, cut at its neck, the faceted post) on the head
+ * bone, fitted to the lofted skull's span (its neck at 1.53 m, the bandana's top at 1.80 m). Loaded as the module loads
+ * when the Debug row asks for it; a sailor built before the file lands keeps the lofted skull (AnimalFactory caches it).
+ */
+const SAILOR_HEAD = '/assets/models/driftwood-hero/faces/sailor-head.glb';
+const SAILOR_NECK_FROM_TOP = 0.8159;
+if (typeof window !== 'undefined' && setting('driftwoodFaces') === 'paint') void loadFaceHead(SAILOR_HEAD);
+function sailorHead(fh: FaceHead, bone: number): THREE.BufferGeometry {
+  const pos = Float32Array.from(fh.pos);
+  let top = -Infinity, bot = Infinity;
+  for (let i = 1; i < pos.length; i += 3) { top = Math.max(top, pos[i] ?? 0); bot = Math.min(bot, pos[i] ?? 0); }
+  const neck = top - SAILOR_NECK_FROM_TOP * (top - bot);
+  const k = (1.80 - 1.53) / Math.max(1e-6, top - neck);
+  let cx = 0, cz = 0, n = 0;
+  for (let i = 0; i < fh.count; i++) if ((pos[i * 3 + 1] ?? 0) > neck) { cx += pos[i * 3] ?? 0; cz += pos[i * 3 + 2] ?? 0; n++; }
+  cx /= Math.max(1, n); cz /= Math.max(1, n);
+  for (let i = 0; i < fh.count; i++) {
+    pos[i * 3] = ((pos[i * 3] ?? 0) - cx) * k; pos[i * 3 + 1] = 1.53 + ((pos[i * 3 + 1] ?? 0) - neck) * k; pos[i * 3 + 2] = ((pos[i * 3 + 2] ?? 0) - cz) * k + 0.02;
+  }
+  const g = new THREE.BufferGeometry(), cnt = fh.count;
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(fh.nrm), 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(cnt * 2), 2));
+  g.setAttribute('color', new THREE.BufferAttribute(Float32Array.from(fh.col), 3));
+  const si = new Uint16Array(cnt * 4), sw = new Float32Array(cnt * 4);
+  for (let i = 0; i < cnt; i++) { si[i * 4] = bone; sw[i * 4] = 1; }
+  g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
+  g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+  g.setAttribute('furLen', new THREE.BufferAttribute(new Float32Array(cnt), 1));
+  g.setIndex(Array.from({ length: cnt }, (_, i) => i));   // the lofts are indexed: mergeGeometries wants them all so
+  return g;
+}
+
 function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.95, 0] },
@@ -118,8 +154,11 @@ function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
   const paint = sailorPaint(v);
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), spine = B('spine'), chest = B('chest'), head = B('head');
+  // E343 D: the generated skull + bandana (loaded early, below) in place of the lofted ones
+  const dHead = setting('driftwoodFaces') === 'paint' ? faceHead(SAILOR_HEAD) : null;
+  if (dHead !== null) hard.push(sailorHead(dHead, head));
   // skull: cranium, brow, jaw
-  fur.push(loft([
+  if (dHead === null) fur.push(loft([
     S(0, 1.63, -0.09, 0.075, 0.075, head),
     S(0, 1.65, -0.02, 0.10, 0.10, head, head, 0, 1.05, 0.95),
     S(0, 1.64, 0.06, 0.095, 0.095, head, head, 0, 1.05, 0.9),
@@ -127,14 +166,14 @@ function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
     S(0, 1.55, 0.09, 0.05, 0.045, head),
   ], 16, 'skull', paint, true, true));
   // the bandana: a band round the cranium and a tail hanging at the back
-  hard.push(loft([S(0, 1.69, -0.02, 0.108, 0.108, head), S(0, 1.745, -0.025, 0.098, 0.098, head), S(0, 1.785, -0.03, 0.06, 0.06, head), S(0, 1.80, -0.035, 0.015, 0.015, head)], 16, 'bandana', paint, false, true));
-  hard.push(loft([S(0, 1.72, -0.10, 0.04, 0.014, head), S(0, 1.64, -0.16, 0.032, 0.01, head), S(0, 1.54, -0.19, 0.018, 0.006, chest, head, 0.6)], 8, 'bandana', paint, false, true, 'z'));
+  if (dHead === null) hard.push(loft([S(0, 1.69, -0.02, 0.108, 0.108, head), S(0, 1.745, -0.025, 0.098, 0.098, head), S(0, 1.785, -0.03, 0.06, 0.06, head), S(0, 1.80, -0.035, 0.015, 0.015, head)], 16, 'bandana', paint, false, true));
+  if (dHead === null) hard.push(loft([S(0, 1.72, -0.10, 0.04, 0.014, head), S(0, 1.64, -0.16, 0.032, 0.01, head), S(0, 1.54, -0.19, 0.018, 0.006, chest, head, 0.6)], 8, 'bandana', paint, false, true, 'z'));
   for (const sx of [1, -1]) {
     const eye = new THREE.SphereGeometry(0.024, 8, 6);
     eye.translate(sx * 0.04, 1.63, 0.11);
     eyes.push(skinPlain(eye, head, 'eye', paint));
   }
-  if (setting('driftwoodFaces') !== 'current') skullFace(hard, head, paint);
+  if (setting('driftwoodFaces') !== 'current' && dHead === null) skullFace(hard, head, paint);
   // neck + spine column
   fur.push(loft([S(0, 1.45, 0.0, 0.035, 0.035, chest), S(0, 1.55, 0.01, 0.03, 0.03, chest, head, 0.7)], 8, 'bone', paint, false, false));
   // torso in the striped shirt: pelvis → ribcage → shoulders, hunched

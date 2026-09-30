@@ -18,6 +18,7 @@ import { paifang } from '../models/paifang';
 import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
 import { hawkerStallModel, noodleStallModel } from '../models/stalls';
 import { registerSigns } from '../models/signs';
+import { loadInkHeads } from './hero/figures';
 import { placeRegionSets } from './sets';
 import { lotusFinial } from '../models/lotusFinial';
 import { laundryLineModel } from '../models/laundry';
@@ -151,6 +152,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
+  await loadInkHeads();   // E343 D (Debug ▸ Nine Dragon faces): the figures' generated heads, before any kit is built
   const phaseProfile: { name: string; ms: number }[] = [];
   const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
   progress(0, 'paint + fonts');

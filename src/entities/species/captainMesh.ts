@@ -24,7 +24,9 @@ export const CAPTAIN_GLB_URL = '/assets/models/driftwood-hero/captain/captain.gl
 /** E304 (Debug ▸ Creatures & NPCs ▸ Driftwood faces = C): his head a Hunyuan3D-2 bust from a codex front portrait in the
  *  island's faceted toon look (art/driftwood-isle/round-14-faces/), grafted at the neck, the portrait projected on the skull
  *  (scripts/img2mesh/e304_faces.sh hunyuan captain) — the same body, bound the same way */
-const URL_GLB = setting('driftwoodFaces') === 'hunyuan' ? CAPTAIN_GLB_URL.replace('/captain/captain.glb', '/captain/faces-hunyuan/captain.glb') : CAPTAIN_GLB_URL;
+const FACES = setting('driftwoodFaces');
+// E343 D: the same graft with the bust's own paint (no portrait), cut at its own neck (face_remaster.py --graft-v2)
+const URL_GLB = FACES === 'hunyuan' || FACES === 'paint' ? CAPTAIN_GLB_URL.replace('/captain/captain.glb', `/captain/faces-${FACES}/captain.glb`) : CAPTAIN_GLB_URL;
 const HEIGHT = 1.9;
 /** metres from the centre line below which a vertex under the shoulders never rides an arm bone (the coat skirt) */
 const ARM_MIN_X = 0.36;

@@ -7,3 +7,7 @@
 
 Wendell's and the Drowned Sailor's faces are code (src/entities/npc/Castaway.ts lowPolyFace, species/sailor.ts
 skullFace), no art. Board: progress/e304-faces/driftwood-isle-board.jpg (Debug ▸ Creatures & NPCs ▸ Driftwood faces).
+- portrait-wendell.jpg, portrait-sailor.jpg (E343): codex front portraits in the same faceted toon look — the D heads'
+  source (Hunyuan3D-2 → scripts/img2mesh/head_cut.py → driftwood_post.py: public/assets/models/driftwood-hero/faces/).
+  The Captain's D is portrait-captain.jpg's bust with its own paint (faces-paint/captain.glb). Board:
+  progress/e343-faces/driftwood-board.jpg.
