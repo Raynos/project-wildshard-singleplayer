@@ -11,6 +11,8 @@ loadSpecies();
 const HEALTH = 100;
 /** every hit a Driftwood enemy can land: each variant's charge / swing / snap / bite */
 const DRIFTWOOD_ENEMIES = ['boar', 'bear', 'crab', 'monkey', 'sailor', 'captain'];
+/** kinds Driftwood lets past the cap (Jake, 2026-09-30: the Drowned Captain, the final boss) */
+const EXEMPT = new Set(['captain']);
 const hits = (kind: string): { id: string; dmg: number }[] => {
   const s = speciesDef(kind);
   return [...s.variants, ...(s.spawnOnly ?? [])].map((v) => ({ id: `${kind}/${v.id}`, dmg: variantMods(s, v).chargeDamage }));
@@ -21,12 +23,19 @@ describe('hitDamage (E294)', () => {
     expect(hitDamage({ maxHitDamage: 20 }, 45)).toBe(20);
     expect(hitDamage({ maxHitDamage: 20 }, 14)).toBe(14);
     expect(hitDamage({}, 45)).toBe(45);
+    expect(hitDamage({ maxHitDamage: 20, hitCapExempt: ['captain'] }, 24, 'captain')).toBe(24);
+    expect(hitDamage({ maxHitDamage: 20, hitCapExempt: ['captain'] }, 45, 'bear')).toBe(20);
+  });
+
+  it('Driftwood: the Drowned Captain (the final boss) swings past the cap', () => {
+    for (const h of hits('captain')) expect(hitDamage(DRIFTWOOD_ISLE, h.dmg, 'captain'), h.id).toBe(h.dmg);
   });
 
   it('Driftwood: no enemy hit takes more than 20 % of your health, so every enemy needs at least 5 hits', () => {
     expect(DRIFTWOOD_ISLE.maxHitDamage).toBe(20);
     for (const kind of DRIFTWOOD_ENEMIES) for (const h of hits(kind)) {
-      const d = hitDamage(DRIFTWOOD_ISLE, h.dmg);
+      if (EXEMPT.has(kind)) continue;
+      const d = hitDamage(DRIFTWOOD_ISLE, h.dmg, kind);
       expect(d, h.id).toBeLessThanOrEqual(HEALTH * 0.2);
       expect(Math.ceil(HEALTH / d), h.id).toBeGreaterThanOrEqual(5);
     }

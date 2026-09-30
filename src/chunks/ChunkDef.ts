@@ -426,8 +426,8 @@ export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean =
  * when the shard sets one (E294: Driftwood caps every hit at 20, so any common enemy needs ~5 hits to kill you). Falls and
  * hazards are not enemy hits and do not come through here.
  */
-export const hitDamage = (def: { maxHitDamage?: number | undefined }, damage: number): number =>
-  def.maxHitDamage === undefined ? damage : Math.min(damage, def.maxHitDamage);
+export const hitDamage = (def: { maxHitDamage?: number | undefined; hitCapExempt?: readonly string[] | undefined }, damage: number, kind?: string): number =>
+  def.maxHitDamage === undefined || (kind !== undefined && def.hitCapExempt?.includes(kind) === true) ? damage : Math.min(damage, def.maxHitDamage);
 
 /**
  * The engine's post chain as a shard's render strategy sees it (`ShardRender.compose`, called once by
@@ -542,6 +542,8 @@ export interface ChunkDef {
   faunaTuning?: Partial<Record<FaunaKind, Partial<HuntTuning>>>;
   /** the most one enemy hit may take off the player's 100 health (`hitDamage`; E294: Driftwood 20); omitted = uncapped */
   maxHitDamage?: number;
+  /** enemy kinds that hit past `maxHitDamage` (Jake, 2026-09-30: Driftwood's Drowned Captain, the final boss, swings for his full 24) */
+  hitCapExempt?: readonly string[];
   /** the shard's loot rules (E314, docs/plans/DRIFTWOOD-LOOT.md; src/game/loot/): `coins` = kills burst doubloons into a
    *  saved purse, shown by a coin chip under VITALS (src/game/loot/coins.ts has the values). Omitted = no coins */
   loot?: { coins?: boolean };

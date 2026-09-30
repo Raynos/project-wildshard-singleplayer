@@ -249,6 +249,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   // E294 (Jake's yes, 2026-09-29): no single enemy hit takes more than 20 of your 100 health, so you survive ~5 hits of
   // anything (brown bear 45 → 20, boars 25 / 32 / 40 → 20, the drowned captain's swing 24 → 20; the sailor's cutlass is 14 in sailor.ts)
   maxHitDamage: 20,
+  hitCapExempt: ['captain'], // the final boss hits harder than the cap (Jake, 2026-09-30)
   // E314 (Jake's picks, 2026-09-30): kills burst doubloons that fly to you (crab 1 … captain 25, src/game/loot/coins.ts)
   loot: { coins: true },
   // E297 (Jake's yes, 2026-09-29): one set of fight rules — at most 2 enemies attack at once, boars circle back instead of
