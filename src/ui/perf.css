@@ -52,3 +52,7 @@
   .ws-perf-panel .ws-perf-ab { margin: 0; padding: 5px 7px; }
   .ws-perf-panel .ws-perf-ab.off { background: var(--ws-cyan); color: #06121a; }
 }
+/* E350 F-J1: the PERF LAP's progress line (src/ui/perfLap.ts) — top centre, under the safe area, over the HUD; the panel is
+   closed while the lap runs, so this is all it draws (one text write a second) */
+.ws-perf-lap-status { position: fixed; left: 50%; top: calc(var(--ws-top, 10px) + 34px); z-index: 57; transform: translateX(-50%); max-width: calc(100vw - 32px); box-sizing: border-box; padding: 5px 10px; border: 1px solid var(--ws-cyan-line, rgba(143, 227, 255, 0.4)); background: rgba(13, 27, 38, 0.8); font-family: var(--ws-mono, monospace); font-size: 9px; letter-spacing: 0.14em; line-height: 1.2; color: var(--ws-cyan, #8fe3ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; font-variant-numeric: tabular-nums; }
+.ws-perf-lap-status[hidden] { display: none; }

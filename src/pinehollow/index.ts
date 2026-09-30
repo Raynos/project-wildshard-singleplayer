@@ -24,6 +24,8 @@ import { AntlerKing, KING_KIND } from './antlerKing';
 import { BOSS_NAMES } from '../ui/Combat';
 import { activePhysics } from '../physics/active';
 import { lineOfSight } from '../physics/query';
+import { perfLap } from '../core/perfLap';
+import { registerPineLap } from './perfLapHost';
 
 /**
  * Pine Hollow's fights, wired in one call (PINE-HOLLOW-REMASTER: PH-C3 the four named elites, PH-C2 the Antler King,
@@ -138,10 +140,12 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   game.onUpdate((dt, t) => {
     if (stunT > 0) { stunT = Math.max(0, stunT - dt); if (stunT === 0) legs(); }
     feel.update(dt, t);
+    if (perfLap.active) return; // E350 F-J1: the PERF LAP's teleports find no lair and wake no King
     pineElites.update(dt, t);
     king.update(dt, t);
   }, 'elites');
   Object.assign(window, { __pineElites: pineElites, __antlerKing: king });
+  registerPineLap({ game, player, animals, music: h.music, hud: h.hud, elites, king }); // E350 F-J1: the fps panel's PERF LAP
 
   return {
     onPlayerDeath: () => { stunT = 0; introLock = false; legs(); return king.onPlayerDeath(); },

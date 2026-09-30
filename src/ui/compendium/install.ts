@@ -22,6 +22,7 @@ import { compendiumFinds } from './finds';
 import { TrophyWall } from '../../world/TrophyWall';
 import { activePhysics } from '../../physics/active';
 import { lineOfSight } from '../../physics/query';
+import { perfLap } from '../../core/perfLap';
 import type { HUD } from '../HUD';
 import type { GameMenu } from '../Menu';
 import type { AnimalManager } from '../../entities/AnimalManager';
@@ -120,7 +121,7 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
     const e = cam.matrixWorld.elements;
     eye.position.x = e[12]; eye.position.y = e[13]; eye.position.z = e[14];
     eye.forward.x = -e[8]; eye.forward.y = -e[9]; eye.forward.z = -e[10];
-    tracker.update(dt, eye, host.animals.animals);
+    if (!perfLap.active) tracker.update(dt, eye, host.animals.animals); // E350 F-J1: the PERF LAP's spots are not seen / heard of
     wall?.update(cam);
   });
   return { state, journal, wall };

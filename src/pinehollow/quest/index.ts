@@ -62,6 +62,7 @@ import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
 import { markUnload } from '../../boot/lastEnd';
 import { BeaverPool } from '../../world/BeaverPool';
+import { perfLap } from '../../core/perfLap';
 
 export interface PineQuestHost {
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
@@ -540,8 +541,10 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
       if (k >= 1) { const to = ff.to; ff = null; void sky.pine.setPhase(to); }
     }
     dawnTick(dt);
-    stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
-    thralls.update(dt, t, pp);
+    if (!perfLap.active) { // E350 F-J1: the PERF LAP's teleports call no stag and no thralls
+      stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
+      thralls.update(dt, t, pp);
+    }
     objective.update(t);
     if (t - navT > 0.1) {
       navT = t;
@@ -559,8 +562,8 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
       const cam = game.camera.position;
       for (const p of people) p.fig.lod(cam.distanceTo(p.fig.talkPoint));
       if (zip) zip.trolley.visible = zip.isRiding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
-      for (const p of PINE_HOLLOW_POIS) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`);
-      if (hollow && !flags.has('secret:log') && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
+      if (!perfLap.active) for (const p of PINE_HOLLOW_POIS) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`); // E350 F-J1: a lap's spot is not discovered
+      if (!perfLap.active && hollow && !flags.has('secret:log') && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
         flags.set('secret:log'); hud.toast('Inside the fallen giant. It smells of rain and old resin');
       }
       if (journalFull()) progress.recordEvent('journal', 1);
