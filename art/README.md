@@ -445,3 +445,13 @@ Wendell meets you, 19 s). Recommended: A, A, B. The folder's README lists every 
 contract (src/models/). Each shard's catalog before / after (every card now says how it's made, its copies and how
 they are drawn), the shore boulder's card (the first model on `place()`), and Nine Dragon's VIEW IN WORLD (before: the
 origin under the square; after: a real lion). Plan: `docs/plans/MODEL-ARCHITECTURE.md`.
+
+### Nalati models + sets, M3 (`art/models-audit/round-6-m3-nalati/`, 2026-09-29, E315)
+
+`m3-nalati-before-after.jpg`: live phone-tier captures (390×844 @3×) of clean exports before (280c442f) and after the M3
+tree. Top: Nalati's Model Explorer catalog before (17 cards, whole places: the Kurgan field, Balbals, Kokpar field, Snow
+lotus, Glacier …) and the Kurgan field on its turntable. Middle: the catalog after, every card (the kerb stone ×332, the
+fieldstone, the kurgan entrance, the balbal, Eagle Rock, the Wind Cairn, the crag ledge, the leopard's cave, the
+watchtower, the stone step ×54, the kokpar post / goal / rider, the standing saddled horse, the herd horse, the snow
+lotus; the camps stay whole cards this pass). Bottom: six turntables. `nalati-m3-five.mp4`: a 10 s spin of five of them
+(balbal, kurgan entrance, Kunes bridge, watchtower, Wind Cairn) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M3.
