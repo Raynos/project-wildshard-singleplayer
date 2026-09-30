@@ -102,7 +102,7 @@ if (flag('set', '') === 'ph') POSES.splice(0, POSES.length, ...PH_POSES); // --s
 const URL_BASE = flag('url', '');
 // --query=<k=v&…>: appended to every page's URL (a dev param, e.g. `--query=tier=phone`)
 const EXTRA_Q = flag('query', '');
-// --settings=<k=v,…>: pause ▸ Settings ▸ Debug picks set before every load (scripts/debug-settings.mjs; e.g. pineCrags=b)
+// --settings=<k=v,…>: pause ▸ Settings ▸ Debug picks set before every load (scripts/debug-settings.mjs; e.g. weather=clear)
 const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
 
 const waitFor = async (fn, ms, what) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return; await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(what); };

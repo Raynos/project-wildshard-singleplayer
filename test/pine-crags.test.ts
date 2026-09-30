@@ -61,13 +61,13 @@ describe('the granite kit', () => {
   });
 });
 
-describe('Debug ▸ Crags B (E322 F-L2)', () => {
+describe('the crags Jake picked (E322 F-L2 B)', () => {
   const kitB = JSON.parse(kitBJson) as KitMeta;
   const hb = kitB.modules[CRAG_HERO];
   const hero: CragSize | undefined = hb ? { hw: Math.max(-(hb.min[0] ?? 0), hb.max[0] ?? 0), hd: Math.max(-(hb.min[1] ?? 0), hb.max[1] ?? 0), h: hb.max[2] ?? 0 } : undefined;
-  const b = placeCrags({ sizes: { ...sizes(), ...(hero ? { hero } : {}) }, v2: true });
+  const b = placeCrags({ sizes: { ...sizes(), ...(hero ? { hero } : {}) } });
 
-  it('B\'s fused modules keep A\'s budgets', () => {
+  it('the fused modules keep the kit\'s budgets', () => {
     for (const [id, m] of Object.entries(kitB.modules)) {
       expect(m.lod0, id).toBeLessThanOrEqual(id === CRAG_HERO ? 9000 : 4000);
       expect(m.lod1, id).toBeLessThanOrEqual(m.lod0 / 3);
@@ -85,11 +85,11 @@ describe('Debug ▸ Crags B (E322 F-L2)', () => {
     }
   });
 
-  it('the skin\'s stepped bands fold back into the slope far less than A\'s', () => {
-    const folded = (v2: boolean): number => {
+  it('the skin\'s stepped bands barely fold back into the slope (the old skin: 9.8 % of its area)', () => {
+    const folded = (): number => {
       let area = 0, back = 0;
       for (const [x0, z0] of [[-64, 160], [0, 160], [-128, 160]] as const) {
-        const g = skinTile(x0, z0, 64, 1, v2);
+        const g = skinTile(x0, z0, 64, 1);
         const p = g?.getAttribute('position'), idx = g?.getIndex();
         if (!p || !idx) continue;
         for (let i = 0; i < idx.count; i += 3) {
@@ -105,8 +105,7 @@ describe('Debug ▸ Crags B (E322 F-L2)', () => {
       }
       return back / Math.max(1e-9, area);
     };
-    const fa = folded(false), fb = folded(true);
-    expect(fb).toBeLessThan(fa * 0.6);
+    expect(folded()).toBeLessThan(0.059);
   });
 });
 

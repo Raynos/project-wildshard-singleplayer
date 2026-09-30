@@ -1,5 +1,5 @@
 """
-build_crags_b.py — the Debug ▸ Look ▸ Crags **B** kit (E322 F-L2): the Ridge's big modules rebuilt as fused, weathered
+build_crags_b.py — the crags Jake picked (E322 F-L2 B; the Debug row is gone): the Ridge's big modules rebuilt as fused, weathered
 masses, and the lookout's hero crag. Run by scripts/blender/build.sh pine-hollow/crags-b (targets.json):
 
     blender -b --factory-startup -P scripts/blender/pine-hollow/crags/build_crags_b.py -- <out dir> [--preview]
@@ -9,7 +9,7 @@ close the modules read as stacked blocks. Here the same blocks (rocklib, the sam
 the top outline goes ragged), welded into ONE watertight mass by a voxel remesh, and weathered along their normals
 (rocklib.weather: vertical joint cracks from a stretched Voronoi, sheeting ledges on the steep faces, a lumpy fractal),
 then decimated to A's budgets. `hero` is new: a ~26 m granite prow for the fire lookout's view (src/world/PineCrags.ts
-places it on the crest NE of the tower in B only).
+places it on the crest NE of the tower).
 
 Same contract as A (the game's crag material reads it): a node per module per LOD (`<id>`, `<id>-lod1`), COLOR_0 =
 (AO, 1, 0, 1) from a Cycles vertex AO bake, TEXCOORD_0 zero, no materials, Blender −Y = the module's front. Only the

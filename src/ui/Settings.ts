@@ -123,7 +123,6 @@ export const OPTION_VALUES = {
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
   learnedLut: ['on', 'off'],
   cragView: ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'], // Pine Hollow's crags drawn as one channel (src/world/PineCrags.ts) — live
-  pineCrags: ['a', 'b'],                               // E322 F-L2: Pine Hollow's Ridge crags — A today · B the new crags (src/world/PineCrags.ts) — a reload
   creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
   pineLife: ['on', 'off'],                             // Pine Hollow's birds, hares, ravens and the skinning beat (src/pinehollow/life/) — a reload
   pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/audio/Music.ts) — a reload
@@ -154,7 +153,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
-  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, pineCrags: DEBUG_ONLY,
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, nineDragonFaces: DEBUG_ONLY, driftwoodFaces: DEBUG_ONLY,
   pineTrample: DEBUG_ONLY,
@@ -170,7 +169,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   weather: option('weather'), fps: option('fps'),
   prefetch: option('prefetch'),
   tex: option('tex'),
-  loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'), pineCrags: option('pineCrags'),
+  loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   nineDragonFaces: option('nineDragonFaces'),

@@ -47,7 +47,7 @@ const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`
 const URL_BASE = flag('url', 'http://localhost:4391');
 const TAG = flag('tag', 'latest');
 const EXTRA = flag('query', '');
-/** pause ▸ Settings ▸ Debug picks set before the load (`--settings=pineCrags=b,weather=clear`, scripts/debug-settings.mjs) */
+/** pause ▸ Settings ▸ Debug picks set before the load (`--settings=weather=clear`, scripts/debug-settings.mjs) */
 const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
 const TIER = flag('tier', 'phone');
 const SETTLE = Number(flag('settle', '7')) * 1000;

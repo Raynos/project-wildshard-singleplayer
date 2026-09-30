@@ -54,23 +54,24 @@ import { SCREE_MODULES, scree as screeFan } from '../chunks/pine-hollow/models/s
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 
-/**
- * pause ▸ Settings ▸ Debug ▸ Look ▸ Crags (E322 F-L2, a reload): A today, B the new crags — the face skin's ledges
- * stepped outward (true risers and treads; A's folded back on themselves) and textured by their facets, not their
- * smoothed normals (A's projection picked the ledge's top texture on its face: the stretch); paler granite (F-L1).
+/*
+ * E322 F-L2 (Jake picked B; the old crags and their Debug ▸ Look ▸ Crags row went): the face skin's ledges stepped
+ * outward (true risers and treads; the old skin folded back on itself) and textured by their facets, not their smoothed
+ * normals (the old projection laid the ledge's top texture on its face: the stretch); the big modules fused and weathered
+ * (crags-b.glb over crags.glb), turned, rolled and sunk more freely, boulders in their joints, the lookout's hero crag;
+ * paler granite (F-L1).
  */
-export const CRAGS_B = setting('pineCrags') === 'b';
 
 /** the kit's modules (crags.glb nodes `<id>` and `<id>-lod1`) */
 export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
-/** B's own module (crags-b.glb): the lookout's hero crag */
+/** crags-b.glb's own module: the lookout's hero crag */
 export const CRAG_HERO = 'hero';
 export type KitId = (typeof CRAG_IDS)[number];
 export type CragId = KitId | typeof CRAG_HERO;
-/** every module's footprint; the hero's only when B's kit is loaded */
+/** every module's footprint; the hero's only when crags-b.glb loaded */
 export type CragSizes = Record<KitId, CragSize> & Partial<Record<typeof CRAG_HERO, CragSize>>;
 /**
- * B's hero crag: a ~21 m granite tower on the Ridge's crest 80 m east of the fire lookout, the landmark of its east
+ * The hero crag: a ~21 m granite tower on the Ridge's crest 80 m east of the fire lookout, the landmark of its east
  * catwalk's view and on the skyline over the face from the Hollow's trails; its front turned toward the tower
  */
 export const CRAG_HERO_SPOT = { x: -42, z: 227, sink: 2.5 };
@@ -142,8 +143,6 @@ export interface PlaceOpts {
   /** the forest's trunks: nothing is set on one (the kit steps round them) */
   trees?: readonly { x: number; z: number }[];
   seed?: number;
-  /** B (Debug ▸ Crags): the modules turned, rolled and sunk more freely, talus in their joints, the hero crag */
-  v2?: boolean;
 }
 
 /**
@@ -153,7 +152,6 @@ export interface PlaceOpts {
  */
 export function placeCrags(o: PlaceOpts): CragPlace[] {
   const rng = new Rng(o.seed ?? 0x5ca1ab1e);
-  const v2 = o.v2 ?? CRAGS_B;
   const out: CragPlace[] = [];
   const trees = o.trees ?? [];
   const treeGrid = new Map<string, { x: number; z: number }[]>();
@@ -168,8 +166,8 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
   const big: { x: number; z: number; r: number }[] = [];
   const clear = (x: number, z: number, r: number, k: number): boolean => big.every((b) => Math.hypot(b.x - x, b.z - z) > (b.r + r) * k);
 
-  // ── B: the hero crag first (the cliffs keep clear of it) ──
-  if (v2 && o.sizes.hero) {
+  // ── the hero crag first (the cliffs keep clear of it) ──
+  if (o.sizes.hero) {
     const hs = size(CRAG_HERO), { x, z, sink } = CRAG_HERO_SPOT;
     const [nx, , nz] = normalAt(x, z, 6);
     // its front half-way between down the slope and toward the lookout
@@ -197,25 +195,23 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
     if (plateau && (c.a < 0.8 || rng.next() < 0.45)) continue;
     const id = CLIFFS[rng.int(0, CLIFFS.length - 1)] ?? 'cliff-a';
     const sz = size(id);
-    const scale = plateau ? rng.range(0.8, 1.2) : v2 ? rng.range(1.0, 1.9) : rng.range(1.15, 1.7);
+    const scale = plateau ? rng.range(0.8, 1.2) : rng.range(1.0, 1.9);
     const r = Math.hypot(sz.hw, sz.hd) * scale;
-    // B turns a module further off the fall line: side by side, A's modules showed the same face in a row (the blocks)
-    const yaw = c.yaw + (v2 ? rng.range(-0.55, 0.55) : rng.range(-0.22, 0.22));
+    // turned well off the fall line: at ±0.22 rad, side by side, the modules showed the same face in a row (the blocks)
+    const yaw = c.yaw + rng.range(-0.55, 0.55);
     // on a steep face the module leans back with the slope (a little less than it: the columns stand steeper than the
     // ground, the top buried, the foot out) and sits into the face along its normal — a vertical box on a 55° face was
     // buried to the eaves or hung its base over the drop
     const lean = plateau ? 0 : Math.min(0.8, Math.max(0, c.a - 0.32));
     const [nx, ny, nz] = normalAt(c.x, c.z, 2.5);
-    const sink = (plateau ? 0.6 : v2 ? 2.1 : 1.6) * scale;
+    const sink = (plateau ? 0.6 : 2.1) * scale;
     const x = c.x - nx * sink, z = c.z - nz * sink;
     if (!clear(x, z, r, plateau ? 0.8 : 0.75)) continue;
     if (blocked(x, z, r, 5)) continue;
     if (treeNear(x, z, r * 0.5)) continue;
-    const y = heightAt(c.x, c.z) - ny * sink - (plateau ? 0.4 : v2 ? 1.7 : 1.2) * scale;
-    // B rolls it too (the bands no longer run level from module to module) and varies its lean
-    out.push(v2
-      ? { id, x, y, z, yaw, scale, tiltX: -lean + rng.range(-0.12, 0.08), tiltZ: rng.range(-0.16, 0.16) }
-      : { id, x, y, z, yaw, scale, tiltX: -lean + rng.range(-0.04, 0.04), tiltZ: rng.range(-0.05, 0.05) });
+    const y = heightAt(c.x, c.z) - ny * sink - (plateau ? 0.4 : 1.7) * scale;
+    // rolled too (the bands don't run level from module to module), its lean varied
+    out.push({ id, x, y, z, yaw, scale, tiltX: -lean + rng.range(-0.12, 0.08), tiltZ: rng.range(-0.16, 0.16) });
     big.push({ x, z, r });
   }
   const cliffs = out.length;
@@ -235,21 +231,19 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
 
   // ── talus: below each cliff, where the slope eases ──
   const small: { x: number; z: number; r: number }[] = [];
-  // B: a boulder half-buried in the joint between two neighbouring cliffs (their seam, where two modules meet)
-  if (v2) {
-    for (let i = 0; i < cliffs; i++) for (let j = i + 1; j < cliffs; j++) {
-      const a = out[i], b = out[j];
-      if (!a || !b || a.id === CRAG_HERO || b.id === CRAG_HERO) continue;
-      const ra = Math.hypot(size(a.id).hw, size(a.id).hd) * a.scale, rb = Math.hypot(size(b.id).hw, size(b.id).hd) * b.scale;
-      const d = Math.hypot(a.x - b.x, a.z - b.z);
-      if (d > (ra + rb) * 1.1) continue;
-      const t = ra / (ra + rb), x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t;
-      const id = BOULDERS[rng.int(0, 2)] ?? 'boulder-a';
-      const scale = rng.range(1.0, 1.6), r = Math.hypot(size(id).hw, size(id).hd) * scale;
-      if (blocked(x, z, r, 2.5) || !small.every((q) => Math.hypot(q.x - x, q.z - z) > (q.r + r) * 0.8)) continue;
-      out.push({ id, x, y: heightAt(x, z) - 0.45 * scale, z, yaw: rng.range(0, Math.PI * 2), scale, tiltX: rng.range(-0.3, 0.3), tiltZ: rng.range(-0.3, 0.3) });
-      small.push({ x, z, r });
-    }
+  // a boulder half-buried in the joint between two neighbouring cliffs (their seam, where two modules meet)
+  for (let i = 0; i < cliffs; i++) for (let j = i + 1; j < cliffs; j++) {
+    const a = out[i], b = out[j];
+    if (!a || !b || a.id === CRAG_HERO || b.id === CRAG_HERO) continue;
+    const ra = Math.hypot(size(a.id).hw, size(a.id).hd) * a.scale, rb = Math.hypot(size(b.id).hw, size(b.id).hd) * b.scale;
+    const d = Math.hypot(a.x - b.x, a.z - b.z);
+    if (d > (ra + rb) * 1.1) continue;
+    const t = ra / (ra + rb), x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t;
+    const id = BOULDERS[rng.int(0, 2)] ?? 'boulder-a';
+    const scale = rng.range(1.0, 1.6), r = Math.hypot(size(id).hw, size(id).hd) * scale;
+    if (blocked(x, z, r, 2.5) || !small.every((q) => Math.hypot(q.x - x, q.z - z) > (q.r + r) * 0.8)) continue;
+    out.push({ id, x, y: heightAt(x, z) - 0.45 * scale, z, yaw: rng.range(0, Math.PI * 2), scale, tiltX: rng.range(-0.3, 0.3), tiltZ: rng.range(-0.3, 0.3) });
+    small.push({ x, z, r });
   }
   for (let i = 0; i < cliffs; i++) {
     const c = out[i];
@@ -318,7 +312,7 @@ export function skinWeight(x: number, z: number): number {
  * it all — and diving back under the ground where the slope eases, so the skin comes out of the terrain without an edge.
  * Null when the tile has no face.
  */
-export function skinTile(x0: number, z0: number, size: number, step: number, v2 = CRAGS_B): THREE.BufferGeometry | null {
+export function skinTile(x0: number, z0: number, size: number, step: number): THREE.BufferGeometry | null {
   const n = Math.round(size / step) + 1;
   const w = new Float32Array(n * n);
   let any = false;
@@ -343,28 +337,21 @@ export function skinTile(x0: number, z0: number, size: number, step: number, v2 
     // the column (a joint every ~3–5 m along the contour) sets its bands' height and phase
     const along = x * -oz + z * ox;
     const col = Math.floor(along / 5.5 + vnoise2(x * 0.06, z * 0.06) * 1.4);
-    const H = v2 ? 3.0 + hash1(col) * 3.5 : 4.0 + hash1(col) * 4.0;
-    // the column's phase: A any, B within 0.4 of a band (the joints step, they don't fold the skin)
-    const t = fract((h + hash1(col + 7.3) * H * (v2 ? 0.4 : 1)) / H + (vnoise2(x * 0.2, z * 0.2) - 0.5) * 0.1);
+    const H = 3.0 + hash1(col) * 3.5;
+    // the column's phase, within 0.4 of a band (the joints step, they don't fold the skin)
+    const t = fract((h + hash1(col + 7.3) * H * 0.4) / H + (vnoise2(x * 0.2, z * 0.2) - 0.5) * 0.1);
     const rough = (vnoise2(x * 0.22, z * 0.22 + h * 0.1) - 0.5) * 0.45 + (vnoise2(x * 0.9 + h * 0.5, z * 0.9) - 0.5) * 0.12;
-    let out: number;
-    if (v2) {
-      // B: the band's points pushed OUT along the downhill normal as they climb (t·k·H/tan cancels the slope's own
-      // run), so each band is a riser ~80° steep standing on the slope, its foot on the ground, and the wrap (t 1 → 0)
-      // a tread stepping back into the slope: a staircase that stays outside the terrain. A pushed by (0.5 − t): its
-      // bands ran at half the slope and folded back under themselves at the wrap (9.8 % of the skin's area faces back
-      // into the slope; B 3.5 %). The wrap is a tread 40 % of a band wide (a hard wrap aliases on the grid and folds),
-      // and the columns' phases stay within 0.4 of a band. Coarse steps (the far level) alias the bands into noise:
-      // there the steps flatten toward their mean.
-      const tw = 0.4, f = t < 1 - tw ? t / (1 - tw) : (1 - t) / tw;
-      const kk = 0.8 * (1 - tw), amp = step > 1.5 ? 0.3 : 1, mean = 0.5 * kk * (H / tan);
-      const riser = mean + (f * kk * (H / tan) - mean) * amp;
-      out = ww * (0.4 + riser + rough + hash1(col + 3.1) * 0.25) - (1 - ww) * 0.5;
-    } else {
-      // the riser: the band's points pulled onto one vertical plane (t = 0 its foot, 1 its top); a crisp lip where it wraps
-      const riser = (0.5 - t) * (H / tan);
-      out = ww * (1.45 + riser + rough + hash1(col + 3.1) * 0.6) - (1 - ww) * 0.5;
-    }
+    // the band's points pushed OUT along the downhill normal as they climb (t·k·H/tan cancels the slope's own run), so
+    // each band is a riser ~80° steep standing on the slope, its foot on the ground, and the wrap (t 1 → 0) a tread
+    // stepping back into the slope: a staircase that stays outside the terrain. The old skin pushed by (0.5 − t): its
+    // bands ran at half the slope and folded back under themselves at the wrap (9.8 % of the skin's area faced back
+    // into the slope; this 3.5 %). The wrap is a tread 40 % of a band wide (a hard wrap aliases on the grid and folds),
+    // and the columns' phases stay within 0.4 of a band. Coarse steps (the far level) alias the bands into noise: there
+    // the steps flatten toward their mean.
+    const tw = 0.4, f = t < 1 - tw ? t / (1 - tw) : (1 - t) / tw;
+    const kk = 0.8 * (1 - tw), amp = step > 1.5 ? 0.3 : 1, mean = 0.5 * kk * (H / tan);
+    const riser = mean + (f * kk * (H / tan) - mean) * amp;
+    const out = ww * (0.4 + riser + rough + hash1(col + 3.1) * 0.25) - (1 - ww) * 0.5;
     pos[k * 3] = x + ox * out; pos[k * 3 + 1] = h - (1 - ww) * 0.15; pos[k * 3 + 2] = z + oz * out;
     // AO: the foot of each riser (under the tread above) darker, the treads open
     cd.set([0.5 + 0.45 * Math.min(1, t * 1.6), 1, 0, 1], k * 4);
@@ -381,9 +368,9 @@ export function skinTile(x0: number, z0: number, size: number, step: number, v2 
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos.slice(0, k * 3), 3));
   g.setAttribute('cdata', new THREE.BufferAttribute(cd.slice(0, k * 4), 4));
-  // B: ctint.y = 1 marks the skin for the material's facet projection (rock ignores ctint: its tint path needs rock = 0)
+  // ctint.y = 1 marks the skin for the material's facet projection (rock ignores ctint: its tint path needs rock = 0)
   const ct = new Float32Array(k * 2);
-  if (v2) for (let i = 0; i < k; i++) ct[i * 2 + 1] = 1;
+  for (let i = 0; i < k; i++) ct[i * 2 + 1] = 1;
   g.setAttribute('ctint', new THREE.BufferAttribute(ct, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
@@ -417,7 +404,7 @@ export interface CaveMeta {
 
 // ──────────────────────────────────────────────────── the material ─────────────────────────────────────────────────
 
-/** B: the granite's albedo lift (F-L1) */
+/** the granite's albedo lift (E322 F-L1) */
 const CRAG_LIFT = 1.3;
 /** the granite's tile (m): one mossy_rock repeat per 4.6 m on the faces, the grit per 3.4 m */
 const ROCK_TILE = 4.6, GRIT_TILE = 3.4;
@@ -446,8 +433,7 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
     uCragDebug: CRAG_VIEW,
   };
   for (const t of [rock.map, rock.normalMap, rock.armMap, grit.map, grit.normalMap]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true; }
-  mat.customProgramCacheKey = () => (CRAGS_B ? 'pine-crag-b' : 'pine-crag');
-  if (CRAGS_B) mat.defines = { ...mat.defines, CRAGS_B: '', CRAG_LIFT: CRAG_LIFT.toFixed(3) };
+  mat.customProgramCacheKey = () => 'pine-crag';
   sky.setupMaterial(mat);
   const csmHook = mat.onBeforeCompile.bind(mat);
   mat.onBeforeCompile = (shader, renderer) => {
@@ -498,18 +484,16 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
       .replace('#include <map_fragment>', `
         vec3 cwn = normalize( vCN );
         vec3 cln = cwn; // the base normal the lighting sees
-        #ifdef CRAGS_B
-          // the face skin (ctint.y = 1) is projected by its facets: its smoothed normals average a riser with the tread
-          // above it, and the projection laid the tread's texture down the riser (the stretch). It is lit half by its
-          // facets, half smooth: fully faceted, a 0.7 m grid read as low-poly
-          {
-            vec3 cfn = normalize( cross( dFdx( vCW ), dFdy( vCW ) ) );
-            cfn *= sign( dot( cfn, cwn ) + 1e-4 );
-            float skin = step( 0.5, vCT.y ) * step( 0.5, vCD.a );
-            cln = normalize( mix( cwn, cfn, 0.5 * skin ) );
-            cwn = normalize( mix( cwn, cfn, skin ) );
-          }
-        #endif
+        // the face skin (ctint.y = 1) is projected by its facets: its smoothed normals average a riser with the tread
+        // above it, and the projection laid the tread's texture down the riser (the stretch). It is lit half by its
+        // facets, half smooth: fully faceted, a 0.7 m grid read as low-poly
+        {
+          vec3 cfn = normalize( cross( dFdx( vCW ), dFdy( vCW ) ) );
+          cfn *= sign( dot( cfn, cwn ) + 1e-4 );
+          float skin = step( 0.5, vCT.y ) * step( 0.5, vCD.a );
+          cln = normalize( mix( cwn, cfn, 0.5 * skin ) );
+          cwn = normalize( mix( cwn, cfn, skin ) );
+        }
         vec3 cb = pow( abs( cwn ), vec3( 4.0 ) ); cb /= max( cb.x + cb.y + cb.z, 1e-5 );
         vec3 sg = sign( cwn + 1e-4 );
         vec2 uvX = vec2( vCW.z * sg.x, vCW.y ) * ${(1 / ROCK_TILE).toFixed(4)};
@@ -534,11 +518,7 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
         alb = mix( vec3( lum ) * vec3( 0.98, 1.0, 1.04 ), alb, keep );
         // rain streaks down the faces: dark vertical stains under the ledges
         float streak = cNoise( vec2( ( vCW.x + vCW.z ) * 0.9, vCW.y * 0.06 ) ) * cNoise( vec2( ( vCW.x - vCW.z ) * 0.33, vCW.y * 0.02 + 7.0 ) );
-        #ifdef CRAGS_B
-          alb *= 1.0 - 0.2 * smoothstep( 0.12, 0.45, streak ) * ( 1.0 - up ) * outside;
-        #else
-          alb *= 1.0 - 0.38 * smoothstep( 0.12, 0.45, streak ) * ( 1.0 - up ) * outside;
-        #endif
+        alb *= 1.0 - 0.2 * smoothstep( 0.12, 0.45, streak ) * ( 1.0 - up ) * outside;
         // moss on the up-facing, outside (the cave's floor stays bare)
         float mossN = cNoise( vCW.xz * 0.21 + 3.0 ) * 0.6 + cNoise( vCW.xz * 0.9 ) * 0.4;
         float moss = smoothstep( 0.62, 0.92, cwn.y ) * smoothstep( 0.42, 0.62, mossN ) * outside * rockW * ( 1.0 - grit * 0.6 );
@@ -546,14 +526,12 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
         // a macro variation so a face does not tile
         alb *= 0.86 + 0.28 * cNoise( vCW.xz * 0.045 + vCW.y * 0.03 );
         alb *= mix( vec3( 1.0 ), vec3( 1.1, 1.0, 0.86 ), smoothstep( 0.35, 0.75, cNoise( vCW.xz * 0.018 + 9.0 ) ) * rockW ); // warm iron-stained patches
-        #ifdef CRAGS_B
-          // F-L1: the look targets' pale granite (the Ridge's rock was ΔE00 8.8 darker and blotchier): lifted, the
-          // blotches pulled toward their mean
-          {
-            float gl = dot( alb, vec3( 0.299, 0.587, 0.114 ) );
-            alb = mix( alb, mix( vec3( gl ), vec3( 0.36, 0.35, 0.33 ), 0.35 ), 0.3 * rockW * ( 1.0 - moss ) ) * mix( 1.0, CRAG_LIFT, rockW );
-          }
-        #endif
+        // E322 F-L1: the look targets' pale granite (the Ridge's rock was ΔE00 8.8 darker and blotchier): lifted, the
+        // blotches pulled toward their mean
+        {
+          float gl = dot( alb, vec3( 0.299, 0.587, 0.114 ) );
+          alb = mix( alb, mix( vec3( gl ), vec3( 0.36, 0.35, 0.33 ), 0.35 ), 0.3 * rockW * ( 1.0 - moss ) ) * mix( 1.0, ${CRAG_LIFT.toFixed(3)}, rockW );
+        }
         // the tint path (the cave's bedding, bones, twigs): its own albedo, the granite's normal for grain
         vec3 tintCol = vCT.y < 0.25 ? vec3( 0.62, 0.58, 0.49 ) : vCT.y < 0.5 ? vec3( 0.42, 0.33, 0.19 ) : vec3( 0.19, 0.13, 0.08 );
         alb = mix( tintCol * vCT.x * ( 0.85 + 0.3 * cNoise( vCW.xz * 6.0 ) ), alb, rockW );
@@ -678,8 +656,8 @@ export class PineCrags {
     try {
       const [kit, kitB, caveGeo, caveMeta, tex] = await Promise.all([
         loadNodes(`${CRAG_DIR}/crags.glb`),
-        // B (Debug ▸ Crags): the fused, weathered big modules and the hero crag over A's kit (only fetched in B)
-        CRAGS_B ? loadNodes(`${CRAG_DIR}/crags-b.glb`).catch((e: unknown) => { console.warn('[crags] no crags-b.glb', e); return new Map<string, THREE.BufferGeometry>(); }) : Promise.resolve(new Map<string, THREE.BufferGeometry>()),
+        // E322 F-L2: the fused, weathered big modules and the hero crag, over the kit's cliff bands, buttress and slab
+        loadNodes(`${CRAG_DIR}/crags-b.glb`).catch((e: unknown) => { console.warn('[crags] no crags-b.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
         loadNodes(`${CRAG_DIR}/cave.glb`).catch((e: unknown) => { console.warn('[crags] no cave.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
         fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
         sky ? Promise.all([loadPBR('mossy_rock'), loadPBR('rock_ground')]) : Promise.resolve(null),

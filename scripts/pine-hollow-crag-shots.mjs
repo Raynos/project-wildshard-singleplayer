@@ -3,7 +3,7 @@
 // 390×844 @3, `tier=phone&touch`, HUD hidden) at named spots, per time of day, one page load per time of day.
 //
 //   node scripts/pine-hollow-crag-shots.mjs --url=http://localhost:4271 --out=<dir> [--tods=day,golden] [--only=lookout-ne,cave]
-//     [--query=<extra harness params>] [--tier=phone|desktop] [--settle=4] [--settings=pineCrags=b,weather=clear]
+//     [--query=<extra harness params>] [--tier=phone|desktop] [--settle=4] [--settings=weather=clear]
 //     (--settings: pause ▸ Settings ▸ Debug picks, set before the load, scripts/debug-settings.mjs)
 //
 // Writes <out>/<tod>-<spot>.jpg (+ the frame's calls / tris in <out>/shots.json). One headless Chromium on Metal, muted,

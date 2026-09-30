@@ -65,7 +65,7 @@
    "feeds": ["src/world/PineCrags.ts"]
   },
   "pine-hollow/crags-b": {
-   "about": "E322 F-L2, Debug ▸ Look ▸ Crags B: the Ridge's big modules fused and weathered (cliff bands, buttress, slab) and the lookout's hero crag, overlaid on crags.glb in B only",
+   "about": "E322 F-L2 (Jake picked B): the Ridge's big modules fused and weathered (cliff bands, buttress, slab) and the lookout's hero crag, overlaid on crags.glb",
    "script": "scripts/blender/pine-hollow/crags/build_crags_b.py",
    "args": ["$BUILD"],
    "sources": ["scripts/blender/pine-hollow/crags/rocklib.py"],

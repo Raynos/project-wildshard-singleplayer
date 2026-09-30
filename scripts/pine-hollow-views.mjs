@@ -33,7 +33,7 @@ const FRAMES = resolvePath(ROOT, flag('frames', resolvePath(tmpdir(), 'pine-holl
 const URL_BASE = flag('url', 'http://localhost:5176');
 const TAG = flag('tag', '');
 const EXTRA = flag('query', '');
-/** pause ▸ Settings ▸ Debug picks set before each load (`--settings=pineCrags=b`, scripts/debug-settings.mjs) */
+/** pause ▸ Settings ▸ Debug picks set before each load (`--settings=weather=clear`, scripts/debug-settings.mjs) */
 const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
 const SETTLE = Number(flag('settle', '4')) * 1000;
 const TIMEOUT = Number(flag('timeout', '300')) * 1000;
