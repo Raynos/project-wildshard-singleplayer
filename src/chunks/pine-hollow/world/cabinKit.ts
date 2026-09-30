@@ -38,6 +38,7 @@ export function dressedCopy(ctx: ModelContext, which: 'firePit' | 'lantern'): TH
   if (!src) return new THREE.Group();
   const o = src.clone(true);
   o.position.set(0, 0, 0); o.rotation.set(0, 0, 0);
+  o.traverse((c) => { c.visible = true; }); // the building's detail set may be hidden (far from the camera) as it is copied
   if (which === 'lantern') o.scale.setScalar(1.35);
   return o;
 }
