@@ -40,36 +40,67 @@ function shadowOnlyMaterial(): THREE.MeshBasicMaterial {
   return shadowOnly;
 }
 
+const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
+
+interface SavedMesh { readonly mesh: THREE.Mesh; readonly material: THREE.Material | THREE.Material[]; readonly castShadow: boolean; readonly receiveShadow: boolean }
+interface Saved { readonly parent: THREE.Object3D | null; readonly position: THREE.Vector3; readonly meshes: readonly SavedMesh[] }
+
 export class Wardrobe {
   readonly root = new THREE.Group();
   private readonly mode: WearMode;
   private readonly worn: Record<WearSlot, THREE.Object3D | null> = { hat: null, cape: null };
+  /** what wearing changed on each worn object, put back when it comes off (its pose, its meshes' materials and shadow flags) */
+  private readonly saved = new Map<THREE.Object3D, Saved>();
 
   constructor(mode: WearMode = 'shadow') {
     this.mode = mode;
     this.root.name = 'wardrobe';
   }
 
-  /** wear `object` in `slot` (replacing what was there), or take it off with null; returns what came off */
+  /**
+   * wear `object` in `slot` (replacing what was there), or take it off with null; returns what came off. Taking a thing
+   * off gives it back as it came: its parent, position, and every mesh's material and shadow flags (shadow mode swaps them)
+   */
   wear(slot: WearSlot, object: THREE.Object3D | null): THREE.Object3D | null {
     const prev = this.worn[slot];
     if (prev === object) return null;
-    if (prev) this.root.remove(prev);
+    if (object !== null) for (const s of WEAR_SLOTS) if (s !== slot && this.worn[s] === object) this.wear(s, null); // one object, one slot
+    if (prev) this.undress(prev);
     this.worn[slot] = object;
-    if (object) {
-      const s = WEAR_SOCKET[slot];
-      object.position.set(0, s.y, s.z);
-      if (this.mode === 'shadow') {
-        object.traverse((o) => {
-          if (!(o instanceof THREE.Mesh)) return;
-          o.material = shadowOnlyMaterial();
-          o.castShadow = true;
-          o.receiveShadow = false;
-        });
-      }
-      this.root.add(object);
-    }
+    if (object) this.dress(object, slot);
     return prev;
+  }
+
+  private dress(object: THREE.Object3D, slot: WearSlot): void {
+    const meshes: SavedMesh[] = [];
+    object.traverse((o) => {
+      if (isMesh(o)) meshes.push({ mesh: o, material: o.material, castShadow: o.castShadow, receiveShadow: o.receiveShadow });
+    });
+    this.saved.set(object, { parent: object.parent, position: object.position.clone(), meshes });
+    const s = WEAR_SOCKET[slot];
+    object.position.set(0, s.y, s.z);
+    if (this.mode === 'shadow') {
+      for (const m of meshes) {
+        m.mesh.material = shadowOnlyMaterial();
+        m.mesh.castShadow = true;
+        m.mesh.receiveShadow = false;
+      }
+    }
+    this.root.add(object);
+  }
+
+  private undress(object: THREE.Object3D): void {
+    this.root.remove(object);
+    const s = this.saved.get(object);
+    if (s === undefined) return;
+    this.saved.delete(object);
+    object.position.copy(s.position);
+    for (const m of s.meshes) {
+      m.mesh.material = m.material;
+      m.mesh.castShadow = m.castShadow;
+      m.mesh.receiveShadow = m.receiveShadow;
+    }
+    s.parent?.add(object);
   }
 
   /** what is worn in `slot` (null: nothing) */
