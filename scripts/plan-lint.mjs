@@ -36,14 +36,14 @@ const RETIRED = [
   [/boar, bear,? and horse/, 'the horse is Nalati\'s (13 09#5)'],
 ];
 // a quote of Jake runs *"…"* and can wrap lines: everything after an opening *" is his words, not the plan's
-const strip = (line) => line.replace(/\*"[^]*$/, '').replace(/`[^`]*`/g, '').replace(/"[^"]*"/g, '');
+const strip = (line) => line.replace(/\*"[^]*$/, '').replaceAll(/`[^`]*`/g, '').replaceAll(/"[^"]*"/g, '');
 // a line that names a retired term to say it's retired / renamed is not a use of it
 const NAMES_RETIREMENT = /renamed|\(was |was `|retired|Resolved|→ 13/;
 
 for (const f of files) {
   const lines = readFileSync(f, 'utf8').split('\n');
   let inQuote = false;   // inside a quote of Jake that wraps lines: *"… (next line) …"*
-  const isRecord = f.endsWith('13-lead-resolutions.md') || f.endsWith('00-traceability.md');
+  const isRecord = ['13-lead-resolutions.md', '00-traceability.md'].some((name) => f.endsWith(name));
   lines.forEach((raw, i) => {
     const opens = raw.includes('*"'), closes = raw.includes('"*');
     const plain = inQuote && !opens ? '' : strip(raw);
@@ -72,7 +72,7 @@ const askLines = readFileSync(ASK, 'utf8').split('\n');
 const decisionIds = askLines.map((l) => /^\| (\d+′?) \|/.exec(l)?.[1]).filter((x) => x !== undefined);
 const trace = readFileSync(join(PLAN_DIR, '00-traceability.md'), 'utf8');
 for (const id of new Set(decisionIds)) {
-  const re = new RegExp(`\\|\\s*(?:D|DEC-)?${id.replace('′', '′')}\\s*\\|`);
+  const re = new RegExp(String.raw`\|\s*(?:D|DEC-)?${id}\s*\|`);
   if (!re.test(trace)) add('decision', join(PLAN_DIR, '00-traceability.md'), 0, `decision ${id} is not a row of the matrix`);
 }
 
@@ -80,7 +80,7 @@ for (const id of new Set(decisionIds)) {
 const index = readFileSync(INDEX, 'utf8');
 const rowIds = new Set([...index.matchAll(/^\| \*?\*?((?:F\d+(?:\.\d)?)|(?:S\d\.\d)|(?:M\d)|(?:X\d)|(?:Z\d))\*?\*? \|/gm)].map((m) => m[1]));
 const specs = files.filter((f) => f !== INDEX).map((f) => readFileSync(f, 'utf8')).join('\n');
-for (const id of rowIds) if (!new RegExp(`\\b${id.replace('.', '\\.')}\\b`).test(specs)) add('row', INDEX, 0, `${id} has no spec that names it`);
+for (const id of rowIds) if (!new RegExp(String.raw`\b${id.replace('.', String.raw`\.`)}\b`).test(specs)) add('row', INDEX, 0, `${id} has no spec that names it`);
 
 const byCheck = {};
 for (const v of violations) byCheck[v.check] = (byCheck[v.check] ?? 0) + 1;
