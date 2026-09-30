@@ -90,6 +90,18 @@ const pulse = (t: number, period: number, seed: number, width = 0.12) => {
 };
 
 const _v = new THREE.Vector3();
+const _cc = new THREE.Vector3(), _ca = new THREE.Vector3(), _cb = new THREE.Vector3();
+
+/** a hit capsule on a bone (E350 F-X2, AnimalDims.bodyAt / fore): centre `at` (bone local, model units), the axis the bone's
+ *  x or z tilted `pitch` rad toward its y, `halfLen` model units each way. The matrix's columns carry the mesh scale, so
+ *  the segment comes out in world metres */
+function capsuleOn(m: THREE.Matrix4, at: readonly [number, number, number], axis: 'x' | 'z', pitch: number, halfLen: number, a: THREE.Vector3, b: THREE.Vector3): void {
+  _cc.set(at[0], at[1], at[2]).applyMatrix4(m);
+  const e = m.elements;
+  if (axis === 'x') _ca.set(e[0], e[1], e[2]); else _ca.set(e[8], e[9], e[10]);
+  _ca.multiplyScalar(Math.cos(pitch)).addScaledVector(_cb.set(e[4], e[5], e[6]), Math.sin(pitch));
+  a.copy(_cc).addScaledVector(_ca, -halfLen); b.copy(_cc).addScaledVector(_ca, halfLen);
+}
 
 /** stagger (a sword blow, Sword.ts): push distance / hold time at strength 0 (light) and 1 (heavy), the push's duration */
 const STAGGER_PUSH = [0.6, 1.5] as const, STAGGER_STUN = [0.4, 0.8] as const, STAGGER_PUSH_T = 0.25;
@@ -153,6 +165,8 @@ export class Animal {
   private bones: Record<string, THREE.Bone>;
   /** the two bones every rig has (hit volumes), and the full quadruped set (null on a custom rig) */
   private readonly bBody: THREE.Bone; private readonly bHead: THREE.Bone;
+  /** the second body capsule's bone (AnimalDims.fore), null when the species has none */
+  private readonly bFore: THREE.Bone | null;
   private quad: QuadBones | null = null;
   private model: AnimalModel;
   private pose = new Float32Array(P_COUNT);
@@ -212,6 +226,8 @@ export class Animal {
       return bn;
     };
     this.bBody = bone('body'); this.bHead = bone('head');
+    const fore = model.dims.fore;
+    this.bFore = fore === undefined ? null : bone(fore.bone);
     if (!this.custom) {
       this.quad = { body: this.bBody, neck1: bone('neck1'), neck2: bone('neck2'), head: this.bHead, earL: bone('earL'), earR: bone('earR'), tail: bone('tail'), belly: bone('belly') };
       this.legDir = [
@@ -278,20 +294,33 @@ export class Animal {
   /** damage a bolt does to this animal: body 32–40 with distance falloff, ×2.5 to the head (see DAMAGE) */
   damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist); }
 
-  /** world-space head hit sphere centre */
+  /** world-space head hit sphere centre (the head joint, or dims.headAt on the head bone) */
   headWorld(out: THREE.Vector3): THREE.Vector3 {
+    const at = this.model.dims.headAt;
+    if (at !== undefined) return out.set(at[0], at[1], at[2]).applyMatrix4(this.bHead.matrixWorld);
     const m = this.bHead.matrixWorld.elements;
     return out.set(m[12], m[13], m[14]);
   }
   /** world-space body capsule segment (a = rump, b = chest; or bottom → top for an upright rig, dims.capsuleAxis 'y') */
   bodyCapsule(a: THREE.Vector3, b: THREE.Vector3): void {
     const d = this.model.dims;
+    if (d.capsuleAxis !== 'y' && (d.bodyAt !== undefined || d.bodyPitch !== undefined)) {
+      capsuleOn(this.bBody.matrixWorld, d.bodyAt ?? [0, 0, 0], 'z', d.bodyPitch ?? 0, d.bodyHalfLen, a, b);
+      return;
+    }
     const m = this.bBody.matrixWorld.elements;
     // body bone world matrix: columns are the body axes in world space
     const cx = m[12], cy = m[13], cz = m[14];
     const o = d.capsuleAxis === 'y' ? 4 : 8;
     const fx = m[o] * d.bodyHalfLen, fy = (m[o + 1] ?? 0) * d.bodyHalfLen, fz = (m[o + 2] ?? 0) * d.bodyHalfLen;
     a.set(cx - fx, cy - fy, cz - fz); b.set(cx + fx, cy + fy, cz + fz);
+  }
+  /** world-space segment of the second body capsule (dims.fore); false when the species has none */
+  foreCapsule(a: THREE.Vector3, b: THREE.Vector3): boolean {
+    const f = this.model.dims.fore, bone = this.bFore;
+    if (f === undefined || bone === null) return false;
+    capsuleOn(bone.matrixWorld, f.at, 'x', 0, f.halfLen, a, b);
+    return true;
   }
 
   /**

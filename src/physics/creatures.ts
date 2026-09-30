@@ -1,6 +1,7 @@
 /**
  * Creatures in the physics world (PHYSICS.md P6):
- * - **hitboxes** — every live, shown animal has a head ball and a body capsule (`HITBOX` group), posed from its bones
+ * - **hitboxes** — every live, shown animal has a head ball and a body capsule (`HITBOX` group; a species with dims.fore
+ *   a second body capsule — the Antler King's shoulders, E350), posed from its bones
  *   every update. Weapons find animals by casting against them (`CreatureBodies.cast`), so a wall between the shooter
  *   and the animal is simply the nearer hit.
  * - **bodies** — animals near the player (the creature physics LOD: within NEAR m, released past FAR) get a
@@ -21,9 +22,11 @@ export interface Creature {
   readonly alive: boolean;
   readonly hidden: boolean;
   readonly scale: number;
-  readonly dims: { readonly headRadius: number; readonly bodyRadius: number; readonly bodyHalfLen: number; readonly bodyY: number };
+  readonly dims: { readonly headRadius: number; readonly bodyRadius: number; readonly bodyHalfLen: number; readonly bodyY: number; readonly fore?: { readonly halfLen: number; readonly radius: number } };
   headWorld: (out: THREE.Vector3) => THREE.Vector3;
   bodyCapsule: (a: THREE.Vector3, b: THREE.Vector3) => void;
+  /** the second body capsule (dims.fore: the Antler King's shoulders, E350 F-X2); false when there is none */
+  foreCapsule?: (a: THREE.Vector3, b: THREE.Vector3) => boolean;
   /** set by CreatureBodies while the animal is near: its moves go through this */
   motor: CharacterMotor | null;
   /** another body carries it (the ridden horse, on Mount's motor): no creature body of its own */
@@ -38,7 +41,7 @@ export interface CreatureHit<C extends Creature = Creature> { creature: C; head:
 const NEAR = 45, FAR = 55;
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0), _d = new THREE.Vector3();
 
-interface Boxes { head: Collider; body: Collider; bodyHalf: number; on: boolean }
+interface Boxes { head: Collider; body: Collider; fore: Collider | null; bodyHalf: number; on: boolean }
 
 export class CreatureBodies<C extends Creature = Creature> {
   private readonly boxes = new Map<C, Boxes>();
@@ -72,10 +75,16 @@ export class CreatureBodies<C extends Creature = Creature> {
         const headOwner: HitboxOwner<C> = { creature: c, part: 'head' }, bodyOwner: HitboxOwner<C> = { creature: c, part: 'body' };
         tagCollider(head, 'flesh', headOwner); tagCollider(body, 'flesh', bodyOwner);
         this.owners.set(head.handle, headOwner); this.owners.set(body.handle, bodyOwner);
-        b = { head, body, bodyHalf, on: true };
+        // a second body capsule (dims.fore): a body hit like the first
+        let fore: Collider | null = null;
+        if (d.fore !== undefined) {
+          fore = world.createCollider(R.ColliderDesc.capsule(Math.max(0.01, d.fore.halfLen * s), d.fore.radius * s).setCollisionGroups(groups('HITBOX')));
+          tagCollider(fore, 'flesh', bodyOwner); this.owners.set(fore.handle, bodyOwner);
+        }
+        b = { head, body, fore, bodyHalf, on: true };
         this.boxes.set(c, b);
       }
-      if (live !== b.on) { b.on = live; b.head.setEnabled(live); b.body.setEnabled(live); }
+      if (live !== b.on) { b.on = live; b.head.setEnabled(live); b.body.setEnabled(live); b.fore?.setEnabled(live); }
       if (live) {
         c.headWorld(_a);
         b.head.setTranslation(_a);
@@ -84,6 +93,12 @@ export class CreatureBodies<C extends Creature = Creature> {
         const len = _d.length();
         if (len > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / len)); b.body.setRotation(_q); }
         b.body.setTranslation({ x: (_a.x + _b.x) / 2, y: (_a.y + _b.y) / 2, z: (_a.z + _b.z) / 2 });
+        if (b.fore !== null && c.foreCapsule?.(_a, _b) === true) {
+          _d.subVectors(_b, _a);
+          const fl = _d.length();
+          if (fl > 1e-4) { _q.setFromUnitVectors(_up, _d.multiplyScalar(1 / fl)); b.fore.setRotation(_q); }
+          b.fore.setTranslation({ x: (_a.x + _b.x) / 2, y: (_a.y + _b.y) / 2, z: (_a.z + _b.z) / 2 });
+        }
       }
       // the creature physics LOD
       const dist = Math.hypot(c.position.x - player.x, c.position.z - player.z);
@@ -120,6 +135,7 @@ export class CreatureBodies<C extends Creature = Creature> {
     if (!b) return;
     this.owners.delete(b.head.handle); this.owners.delete(b.body.handle);
     this.physics.world.removeCollider(b.head, false); this.physics.world.removeCollider(b.body, false);
+    if (b.fore !== null) { this.owners.delete(b.fore.handle); this.physics.world.removeCollider(b.fore, false); }
     this.boxes.delete(c);
     if (c.motor !== null) { c.motor.dispose(); c.motor = null; }
   }

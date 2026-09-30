@@ -32,8 +32,8 @@ import { shardSlot } from '../core/shardState';
  *   THE FOG CLOSES — a drifting fog wall at r ≈ 31 round the clearing, the scene fog thickening, and a soft wall that
  *   shoves you back in past r 27.5 — until he falls or you do.
  *
- *   I · THE WARDEN (100 → 60 %): he walks you down. ANTLER SWEEP up close (a ring paints round him, 0.9 s → 24 in front of
- *     him). ROOT-RING STOMP (the paw wind-up, 1.0 s) → a ring of roots races out across the whole clearing — JUMP it
+ *   I · THE WARDEN (100 → 60 %): he walks you down. ANTLER SWEEP up close (a ring paints round him at the rack's reach,
+ *     0.9 s; he dives and the rack scythes through you → 24 in front of him). ROOT-RING STOMP (the paw wind-up, 1.0 s) → a ring of roots races out across the whole clearing — JUMP it
  *     (20 if it catches you on the ground). After a stomp the amber RIBCAGE OPENS for ~3 s: the weak point (×3; shut ×0.6;
  *     bark and skull ×0.25).
  *   II · LANTERNS FALL (60 → 30 %): his three antler lanterns drop and burn where they land (a fire ring each, 9 a bite
@@ -62,6 +62,27 @@ import { shardSlot } from '../core/shardState';
 export const KING_KIND = 'antler-king';
 const C = KINGS_CLEARING;
 const ARENA_IN = 22, WALL_R = 27.5, FOG_R = 31, KING_R = 24;
+/**
+ * His reach, measured on his own hull (E350 F-X2: scripts/e350-king-measure.mjs poses kingRig.ts's clips on the GLB; world
+ * m from his origin, the point between his hooves). The fight was tuned on the elk-rig King (a 10 m sweep, a 3.5 m stomp, a
+ * 4.2 m lane); these put every hit where his body visibly is. Timings and damage are unchanged. The player is 0.38 m wide.
+ */
+const PLAYER_R = 0.38;
+/** the sweep: he dives and scythes the rack through a standing player's height (kingRig.ts clipSweep). His mesh touches a
+ *  standing player (scripts/e350-king-measure.mjs --sweepmap: the skinned hull over the swing, both tiers) everywhere
+ *  within 4 m and ±75° of his heading (his forelegs, chest and face come down on you), and out to 7.1 m from 45° to his
+ *  right to 15° to his left (the rack's scythe): the blow is those two regions (7 % of the map's cells disagree, all on
+ *  their edges; the old single arc disagreed on 19 %). The ring tells the scythe's reach; he stops walking in at 0.9 of it
+ *  (the old 9 of 10 m) */
+const SWEEP_NEAR = 4, SWEEP_NEAR_ARC = 1.31, SWEEP_REACH = 7.1, SWEEP_AIM = -0.26, SWEEP_ARC = 0.52;
+const SWEEP_R = SWEEP_REACH - PLAYER_R, STALK_NEAR = 0.9 * SWEEP_REACH;
+/** the rearing strike's slam: the forehooves land 4.0 m ahead, ±1.7 m off his line (4.4 m out): the root ring bursts from there */
+const STOMP_R = 4.4;
+/** the lane charge: galloping past, his mesh touches a standing player up to 3.0 m off his line (his forelegs and the
+ *  shoulders over them; --lanemap, every gait phase), so the lane is 5.2 m wide (LaneCharge catches you within half of it
+ *  + 0.4 = 3.0 m; the elk-rig King's caught at 2.5); the contact reach 2.0 × his 2.6 scale = 5.2 m, his front (4.8 m) + the
+ *  player */
+const LANE_W = 5.2, LANE_REACH = 2.0;
 const AMBER_TELL = new THREE.Color(1.5, 0.62, 0.12), EMBER = new THREE.Color(2.6, 1.1, 0.3);
 const PHASES: BossDef['phases'] = [
   { at: KING_PHASE_AT[0], caption: 'I · THE WARDEN', name: 'The Warden' },
@@ -148,7 +169,7 @@ export class AntlerKingFight implements BossScript {
     this.kit = makeKingKit(ctx.sky);
     this.tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
     this.waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
-    this.lane = new LaneCharge(scene, AMBER_TELL, { width: 4.2, speed: 13, overshoot: 10, dmg: 32, skid: 1.6, reach: 1.9 });
+    this.lane = new LaneCharge(scene, AMBER_TELL, { width: LANE_W, speed: 13, overshoot: 10, dmg: 32, skid: 1.6, reach: LANE_REACH });
     this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, { width: 2.4, speed: 9, overshoot: 5, dmg: 14, skid: 1.2, reach: 1.7 }));
     this.wall = new FogWall(scene, C.x, heightAt(C.x, C.z) - 2.5, C.z, FOG_R, 22);
     this.puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
@@ -350,19 +371,19 @@ export class AntlerKingFight implements BossScript {
     this.tickWaves(k, dt, t);
     switch (this.mode) {
       case 'stalk': {
-        k.setMotion(yaw, d > 9 ? (this.phase === 1 ? 2.8 : 2.3) : 0, 1.4);
+        k.setMotion(yaw, d > STALK_NEAR ? (this.phase === 1 ? 2.8 : 2.3) : 0, 1.4);
         if (this.phase >= 1 && this.callCd <= 0 && this.aliveThralls() < 3) { this.setMode('call'); act(k, ACT_ROAR); k.startAttack(1.6); this.ctx.shot('king_bells', k.position); break; }
-        if (d < 10 && this.sweepCd <= 0) { this.setMode('sweep'); act(k, ACT_SWEEP); k.startAttack(0.9); break; }
+        if (d < SWEEP_REACH && this.sweepCd <= 0) { this.setMode('sweep'); act(k, ACT_SWEEP); k.startAttack(0.9); break; }
         if (this.stompCd <= 0 && this.modeT > 1) { this.setMode('stomp'); act(k, ACT_STRIKE); k.startAttack(1.0); }
         break;
       }
       case 'sweep': {
         k.setMotion(yaw, 0, 1.2);
         const kk = Math.min(1, this.modeT / 0.9);
-        this.tellRing.ring(k.position.x, k.position.z, 9.5, 0.3 + 0.6 * kk * (0.75 + 0.25 * Math.sin(t * 24)));
+        this.tellRing.ring(k.position.x, k.position.z, SWEEP_R, 0.3 + 0.6 * kk * (0.75 + 0.25 * Math.sin(t * 24)));
         if (this.modeT >= 0.9) {
           this.tellRing.hide();
-          if (inArc(k.position.x, k.position.z, k.yaw, p.x, p.z, 1.4, 10)) { this.ctx.hurt(k, 24); this.ctx.trauma(0.45); }
+          if (inArc(k.position.x, k.position.z, k.yaw, p.x, p.z, SWEEP_NEAR_ARC, SWEEP_NEAR) || inArc(k.position.x, k.position.z, k.yaw + SWEEP_AIM, p.x, p.z, SWEEP_ARC, SWEEP_REACH)) { this.ctx.hurt(k, 24); this.ctx.trauma(0.45); }
           this.ctx.trauma(0.15);
           this.sweepCd = 5; this.setMode('stalk');
         }
@@ -371,7 +392,7 @@ export class AntlerKingFight implements BossScript {
       case 'stomp': {
         k.setMotion(yaw, 0, 1.2);
         const kk = Math.min(1, this.modeT / 1.0);
-        this.tellRing.ring(k.position.x, k.position.z, 3.5 + kk, 0.4 + 0.5 * kk * (0.7 + 0.3 * Math.sin(t * 26)));
+        this.tellRing.ring(k.position.x, k.position.z, STOMP_R + kk, 0.4 + 0.5 * kk * (0.7 + 0.3 * Math.sin(t * 26)));
         if (this.modeT >= 1.0) { this.tellRing.hide(); this.stompNow(k); this.setMode('waves'); }
         break;
       }
@@ -414,7 +435,7 @@ export class AntlerKingFight implements BossScript {
     this.ctx.shot('king_stomp', k.position);
     this.ctx.trauma(0.3);
     const n = this.phase >= 1 ? 2 : 1;
-    this.waves.forEach((w, i) => { w.on = i < n; w.r = 3.5; w.hit = false; w.delay = i * 0.8; });
+    this.waves.forEach((w, i) => { w.on = i < n; w.r = STOMP_R; w.hit = false; w.delay = i * 0.8; });
   }
   private tickWaves(k: Animal, dt: number, t: number): void {
     const p = this.ctx.player.position;

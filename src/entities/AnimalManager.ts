@@ -1335,7 +1335,8 @@ export class AnimalManager {
       const t = _d.dot(dir);
       if (t < 0 || t > best) continue;
       const r = (a.dims.bodyHalfLen + a.dims.bodyRadius) * a.scale + tol;
-      if (_d.lengthSq() - t * t > r * r) continue;
+      // (a second body capsule, dims.fore — the Antler King — reaches past that bound: the refine alone decides)
+      if (a.dims.fore === undefined && _d.lengthSq() - t * t > r * r) continue;
       // refine against the head sphere and the body capsule
       a.headWorld(_p);
       const rh = a.dims.headRadius * a.scale + tol;
@@ -1345,6 +1346,8 @@ export class AnimalManager {
         a.bodyCapsule(_a, _b);
         ok = segRayDist2(origin, dir, _a, _b) < (a.dims.bodyRadius * a.scale + tol) ** 2;
       }
+      const fore = a.dims.fore;
+      if (!ok && fore !== undefined && a.foreCapsule(_a, _b)) ok = segRayDist2(origin, dir, _a, _b) < (fore.radius * a.scale + tol) ** 2;
       if (ok) { best = t; bestA = a; }
     }
     return bestA;

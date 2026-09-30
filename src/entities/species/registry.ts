@@ -73,6 +73,16 @@ export interface AnimalDims {
   halfWidth: number;
   /** body hit-capsule axis: 'z' (default, along the spine of a quadruped) or 'y' (upright: the Drowned Sailor) */
   capsuleAxis?: 'z' | 'y';
+  /** the head ball's centre, head-bone local (model units); default the joint itself. A hull whose skull sits off its head
+   *  joint (the Antler King, E350 F-X2) moves the ball onto it */
+  headAt?: readonly [number, number, number];
+  /** the body capsule's centre, body-bone local (model units; default the joint), and its axis tilted `bodyPitch` rad from
+   *  the bone's z toward its y (+ = the front up) — a 'z' capsule only */
+  bodyAt?: readonly [number, number, number];
+  bodyPitch?: number;
+  /** a second body capsule across `bone`'s x axis (the Antler King's shoulders and chest, E350 F-X2): centre (bone local,
+   *  model units), half-length along x and radius. Its hits are body hits */
+  fore?: { readonly bone: string; readonly at: readonly [number, number, number]; readonly halfLen: number; readonly radius: number };
 }
 
 /**

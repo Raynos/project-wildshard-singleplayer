@@ -1,0 +1,848 @@
+{
+ "url": "http://127.0.0.1:4400",
+ "tier": "phone",
+ "device": "iPhone 16 Pro",
+ "phases": {
+  "1": {
+   "build": {
+    "build": "106055f8-muo6v9sx",
+    "time": "2026-09-30T14:16:45.933Z"
+   },
+   "sweep": [
+    {
+     "d": 3,
+     "ang": 0,
+     "dReal": 3,
+     "hurt": true,
+     "minGap": -0.1,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5,
+     "ang": 0,
+     "dReal": 5,
+     "hurt": true,
+     "minGap": -0.01,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 6.5,
+     "ang": 0,
+     "dReal": 6.5,
+     "hurt": true,
+     "minGap": -0.35,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 7,
+     "ang": 0,
+     "dReal": 7,
+     "hurt": true,
+     "minGap": -0.05,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 7.5,
+     "ang": 0,
+     "dReal": 7.5,
+     "hurt": false,
+     "minGap": 0.43,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 8.5,
+     "ang": 0,
+     "dReal": 8.5,
+     "hurt": false,
+     "minGap": 1.42,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 10,
+     "ang": 0,
+     "dReal": 10,
+     "hurt": false,
+     "minGap": 2.9,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 3.5,
+     "ang": 70,
+     "dReal": 3.5,
+     "hurt": true,
+     "minGap": -0.27,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 3.5,
+     "ang": -85,
+     "dReal": 3.5,
+     "hurt": false,
+     "minGap": 0.46,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": 10,
+     "dReal": 5.5,
+     "hurt": true,
+     "minGap": 0.05,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": 25,
+     "dReal": 5.5,
+     "hurt": false,
+     "minGap": 0.37,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": -40,
+     "dReal": 5.5,
+     "hurt": true,
+     "minGap": -0.08,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": -55,
+     "dReal": 5.5,
+     "hurt": false,
+     "minGap": 0.49,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 6.5,
+     "ang": -30,
+     "dReal": 6.5,
+     "hurt": true,
+     "minGap": -0.15,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 6.5,
+     "ang": 30,
+     "dReal": 6.5,
+     "hurt": false,
+     "minGap": 0.48,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": 90,
+     "dReal": 5.5,
+     "hurt": false,
+     "minGap": 2.24,
+     "rackLowY": 0.78
+    }
+   ],
+   "stomp": [
+    {
+     "d": 3,
+     "ang": 0,
+     "hurtByRing": false,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.66
+    },
+    {
+     "d": 4.4,
+     "ang": 0,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.48
+    },
+    {
+     "d": 6,
+     "ang": 0,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.9
+    },
+    {
+     "d": 4.4,
+     "ang": 90,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 2.71
+    }
+   ],
+   "lane": [
+    {
+     "off": 0,
+     "hurt": true,
+     "minGap": 0.48,
+     "closestPass": 1.3,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 2.5,
+     "hurt": true,
+     "minGap": -0.31,
+     "closestPass": 2.5,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 3.5,
+     "hurt": false,
+     "minGap": 0.53,
+     "closestPass": 3.5,
+     "playerMoved": 0.02
+    }
+   ],
+   "bolts": [
+    {
+     "pose": "idle",
+     "views": [
+      {
+       "d": 15,
+       "ang": 0,
+       "hit": 131,
+       "through": 35,
+       "air": 17,
+       "ribSeen": 25,
+       "ribRegistered": 25,
+       "faceAimed": 5,
+       "faceHeadshot": 5
+      },
+      {
+       "d": 14,
+       "ang": 40,
+       "hit": 128,
+       "through": 28,
+       "air": 8,
+       "ribSeen": 22,
+       "ribRegistered": 16,
+       "faceAimed": 5,
+       "faceHeadshot": 5
+      },
+      {
+       "d": 13,
+       "ang": 90,
+       "hit": 129,
+       "through": 18,
+       "air": 15,
+       "ribSeen": 5,
+       "ribRegistered": 0,
+       "faceAimed": 5,
+       "faceHeadshot": 3
+      }
+     ]
+    },
+    {
+     "pose": "rear",
+     "views": [
+      {
+       "d": 15,
+       "ang": 0,
+       "hit": 110,
+       "through": 12,
+       "air": 10,
+       "ribSeen": 20,
+       "ribRegistered": 20,
+       "faceAimed": 5,
+       "faceHeadshot": 4
+      },
+      {
+       "d": 14,
+       "ang": 40,
+       "hit": 98,
+       "through": 17,
+       "air": 11,
+       "ribSeen": 6,
+       "ribRegistered": 4,
+       "faceAimed": 5,
+       "faceHeadshot": 4
+      },
+      {
+       "d": 13,
+       "ang": 90,
+       "hit": 128,
+       "through": 27,
+       "air": 9,
+       "ribSeen": 1,
+       "ribRegistered": 0,
+       "faceAimed": 5,
+       "faceHeadshot": 2
+      }
+     ]
+    }
+   ],
+   "fired": [
+    {
+     "what": "rib",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 20,
+     "fromAim": 0.44,
+     "at": 4.05
+    },
+    {
+     "what": "rib",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 20,
+     "fromAim": 0.41,
+     "at": 3.91
+    },
+    {
+     "what": "rib",
+     "d": 14,
+     "ang": 30,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 23,
+     "fromAim": 0.44,
+     "at": 4.07
+    },
+    {
+     "what": "face",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 21,
+     "fromAim": 0.82,
+     "at": 5.99
+    },
+    {
+     "what": "face",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 21,
+     "fromAim": 0.82,
+     "at": 6.13
+    },
+    {
+     "what": "face",
+     "d": 14,
+     "ang": -30,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 23,
+     "fromAim": 0.81,
+     "at": 6.09
+    }
+   ],
+   "errors": []
+  },
+  "2": {
+   "build": {
+    "build": "106055f8-muo6v9sx",
+    "time": "2026-09-30T14:16:45.933Z"
+   },
+   "sweep": [
+    {
+     "d": 3,
+     "ang": 0,
+     "dReal": 3,
+     "hurt": true,
+     "minGap": -0.1,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 7,
+     "ang": 0,
+     "dReal": 7,
+     "hurt": true,
+     "minGap": -0.05,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 10,
+     "ang": 0,
+     "dReal": 10,
+     "hurt": false,
+     "minGap": 2.9,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": 10,
+     "dReal": 5.5,
+     "hurt": true,
+     "minGap": 0.06,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": -55,
+     "dReal": 5.5,
+     "hurt": false,
+     "minGap": 0.49,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": 90,
+     "dReal": 5.5,
+     "hurt": false,
+     "minGap": 2.24,
+     "rackLowY": 0.78
+    }
+   ],
+   "stomp": [
+    {
+     "d": 3,
+     "ang": 0,
+     "hurtByRing": false,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.66
+    },
+    {
+     "d": 4.4,
+     "ang": 0,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.48
+    },
+    {
+     "d": 6,
+     "ang": 0,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.9
+    },
+    {
+     "d": 4.4,
+     "ang": 90,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 2.71
+    }
+   ],
+   "lane": [
+    {
+     "off": 0,
+     "hurt": true,
+     "minGap": 0.46,
+     "closestPass": 1.3,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 2.5,
+     "hurt": true,
+     "minGap": -0.3,
+     "closestPass": 2.5,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 3.5,
+     "hurt": false,
+     "minGap": 0.25,
+     "closestPass": 3.5,
+     "playerMoved": 0.02
+    }
+   ],
+   "bolts": [
+    {
+     "pose": "idle",
+     "views": [
+      {
+       "d": 15,
+       "ang": 0,
+       "hit": 135,
+       "through": 29,
+       "air": 13,
+       "ribSeen": 26,
+       "ribRegistered": 26,
+       "faceAimed": 5,
+       "faceHeadshot": 5
+      },
+      {
+       "d": 14,
+       "ang": 40,
+       "hit": 127,
+       "through": 28,
+       "air": 9,
+       "ribSeen": 22,
+       "ribRegistered": 15,
+       "faceAimed": 5,
+       "faceHeadshot": 5
+      },
+      {
+       "d": 13,
+       "ang": 90,
+       "hit": 129,
+       "through": 21,
+       "air": 15,
+       "ribSeen": 5,
+       "ribRegistered": 0,
+       "faceAimed": 5,
+       "faceHeadshot": 3
+      }
+     ]
+    }
+   ],
+   "fired": [
+    {
+     "what": "rib",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 22,
+     "fromAim": 0.45,
+     "at": 4.03
+    },
+    {
+     "what": "rib",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 22,
+     "fromAim": 0.42,
+     "at": 4.02
+    },
+    {
+     "what": "rib",
+     "d": 14,
+     "ang": 30,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 23,
+     "fromAim": 0.54,
+     "at": 3.88
+    },
+    {
+     "what": "face",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 24,
+     "fromAim": 0.79,
+     "at": 6.09
+    },
+    {
+     "what": "face",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 21,
+     "fromAim": 0.8,
+     "at": 6.19
+    },
+    {
+     "what": "face",
+     "d": 14,
+     "ang": -30,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 21,
+     "fromAim": 0.83,
+     "at": 6.2
+    }
+   ],
+   "errors": []
+  },
+  "3": {
+   "build": {
+    "build": "106055f8-muo6v9sx",
+    "time": "2026-09-30T14:16:45.933Z"
+   },
+   "sweep": [
+    {
+     "d": 3,
+     "ang": 0,
+     "dReal": 3,
+     "hurt": true,
+     "minGap": -0.1,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 7,
+     "ang": 0,
+     "dReal": 7,
+     "hurt": true,
+     "minGap": -0.05,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 10,
+     "ang": 0,
+     "dReal": 10,
+     "hurt": false,
+     "minGap": 2.9,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": 10,
+     "dReal": 5.5,
+     "hurt": true,
+     "minGap": 0.06,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": -55,
+     "dReal": 5.5,
+     "hurt": false,
+     "minGap": 0.49,
+     "rackLowY": 0.78
+    },
+    {
+     "d": 5.5,
+     "ang": 90,
+     "dReal": 5.5,
+     "hurt": false,
+     "minGap": 2.24,
+     "rackLowY": 0.78
+    }
+   ],
+   "stomp": [
+    {
+     "d": 3,
+     "ang": 0,
+     "hurtByRing": false,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.66
+    },
+    {
+     "d": 4.4,
+     "ang": 0,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.48
+    },
+    {
+     "d": 6,
+     "ang": 0,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 0.9
+    },
+    {
+     "d": 4.4,
+     "ang": 90,
+     "hurtByRing": true,
+     "forehoovesOut": [
+      4.35,
+      4.37
+     ],
+     "ringStartR": 4.4,
+     "slamGap": 2.71
+    }
+   ],
+   "lane": [
+    {
+     "off": 0,
+     "hurt": true,
+     "minGap": 0.47,
+     "closestPass": 1.3,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 1.5,
+     "hurt": true,
+     "minGap": -0.35,
+     "closestPass": 1.51,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 2.5,
+     "hurt": true,
+     "minGap": -0.31,
+     "closestPass": 2.5,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 3,
+     "hurt": true,
+     "minGap": -0.15,
+     "closestPass": 3,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 3.5,
+     "hurt": false,
+     "minGap": -0.2,
+     "closestPass": 3.5,
+     "playerMoved": 0.02
+    },
+    {
+     "off": 4,
+     "hurt": false,
+     "minGap": 0.31,
+     "closestPass": 4,
+     "playerMoved": 0.02
+    }
+   ],
+   "bolts": [
+    {
+     "pose": "idle",
+     "views": [
+      {
+       "d": 15,
+       "ang": 0,
+       "hit": 136,
+       "through": 27,
+       "air": 12,
+       "ribSeen": 26,
+       "ribRegistered": 26,
+       "faceAimed": 5,
+       "faceHeadshot": 5
+      },
+      {
+       "d": 14,
+       "ang": 40,
+       "hit": 125,
+       "through": 24,
+       "air": 12,
+       "ribSeen": 22,
+       "ribRegistered": 15,
+       "faceAimed": 5,
+       "faceHeadshot": 5
+      },
+      {
+       "d": 13,
+       "ang": 90,
+       "hit": 128,
+       "through": 20,
+       "air": 16,
+       "ribSeen": 5,
+       "ribRegistered": 0,
+       "faceAimed": 5,
+       "faceHeadshot": 3
+      }
+     ]
+    }
+   ],
+   "fired": [
+    {
+     "what": "rib",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 22,
+     "fromAim": 0.45,
+     "at": 3.92
+    },
+    {
+     "what": "rib",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 22,
+     "fromAim": 0.4,
+     "at": 4.01
+    },
+    {
+     "what": "rib",
+     "d": 14,
+     "ang": 30,
+     "landed": true,
+     "rib": true,
+     "headshot": false,
+     "dmg": 20,
+     "fromAim": 0.5,
+     "at": 4.05
+    },
+    {
+     "what": "face",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 25,
+     "fromAim": 0.82,
+     "at": 6.14
+    },
+    {
+     "what": "face",
+     "d": 15,
+     "ang": 0,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 24,
+     "fromAim": 0.83,
+     "at": 6.03
+    },
+    {
+     "what": "face",
+     "d": 14,
+     "ang": -30,
+     "landed": true,
+     "rib": false,
+     "headshot": true,
+     "dmg": 22,
+     "fromAim": 0.83,
+     "at": 5.91
+    }
+   ],
+   "errors": []
+  }
+ }
+}

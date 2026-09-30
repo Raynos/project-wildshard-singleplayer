@@ -253,16 +253,23 @@ function clipStrike(p: KingPose, r: KingRest, a: number, slam: boolean): void {
   }
 }
 
-/** the antler sweep, a 0..1: wound up to his left, swung hard to his right by 1 (the hit lands at the end) */
+/** the antler sweep, a 0..1: wound up to his left with the head driven down, swung hard to his right by 1 (the hit lands
+ *  at the end). E350 F-X2: the old sweep turned the head at standing height, the rack 6 m up, over a player's head; now the
+ *  body tips forward and drops, the chest, neck and head dive, so the rack scythes through a standing player's height: its
+ *  low tines 0.8–1.7 m off the ground from the wind-up's end to the blow, touching a standing player out to 7.1 m from 45°
+ *  right to 15° left of his heading (scripts/e350-king-measure.mjs --sweepmap; the fight's SWEEP_* numbers; the look is
+ *  held off while he dives). The pitch is split so the rig gate's edge stretch stays
+ *  ≤ 1.99 on both hulls (the neck's share stretches the chest under the beard, the head's the rack's base) */
 function clipSweep(p: KingPose, r: KingRest, a: number): void {
   const H = r.H;
   const wind = step(a, 0, 0.55), swing = step(a, 0.62, 0.95);
   const yaw = 0.42 * wind - 0.95 * swing;
-  p.chestYaw = yaw * 0.45; p.neckYaw = yaw * 0.35; p.headYaw = yaw * 0.5;
-  p.headPitch = 0.3 * wind; p.neckPitch = 0.15 * wind;
-  p.headRoll = -yaw * 0.25;
+  p.chestYaw = yaw * 0.45; p.neckYaw = yaw * 0.4; p.headYaw = yaw * 0.2;
+  p.rootPitch = 0.35 * wind; p.chestPitch = 0.3 * wind;
+  p.neckPitch = 0.4 * wind; p.headPitch = 0.8 * wind;
+  p.headRoll = -yaw * 0.05;
   p.chestRoll = -0.06 * wind + 0.1 * swing;
-  p.rootY = -0.04 * H * wind;
+  p.rootY = -0.3 * H * wind;
   p.rootYaw = yaw * 0.12;
 }
 
@@ -452,6 +459,7 @@ export function animateKing(c: RigAnimCtx): void {
   if (ww > 0) addScaled(P, clipPose(_clip, r, 'walk', ph), ww);
   if (rw > 0) addScaled(P, clipPose(_clip, r, 'charge', ph), rw);
   // the attack the fight named (held at 1 until the next: eased back out over 0.6 s)
+  let dive = 0;
   if (c.attack >= 0) {
     const a = c.attack, act = m['act'] ?? ACT_STRIKE;
     const held = a >= 1 ? (m['held'] ?? 0) + c.dt : 0;
@@ -466,6 +474,7 @@ export function animateKing(c: RigAnimCtx): void {
       for (const key of POSE_KEYS) P[key] *= keep;
       for (let i = 0; i < 16; i++) P.feet[i] = (P.feet[i] ?? 0) * keep;
       addScaled(P, clipPose(_clip, r, clip, a, c.t), k);
+      if (clip === 'sweep') dive = k;
     }
   } else m['held'] = 0;
   // the recoil: a hit (the flinch) and the stagger's brace
@@ -479,7 +488,8 @@ export function animateKing(c: RigAnimCtx): void {
     yaw = Math.atan2(Math.sin(yaw), Math.cos(yaw));
     const dist = Math.hypot(_look.x, _look.z);
     const pitch = clamp(Math.atan2(_look.y + 1.4 - (head?.y ?? 2.5) * c.scale, dist), -0.5, 0.4);
-    const k = c.lookWeight * (1 - rw * 0.6);
+    // (the sweep owns the head: its dive is measured without the look — the look's pitch would drive the rack into the ground)
+    const k = c.lookWeight * (1 - rw * 0.6) * (1 - dive);
     P.neckYaw += clamp(yaw, -1.0, 1.0) * 0.45 * k; P.headYaw += clamp(yaw, -1.0, 1.0) * 0.4 * k;
     P.headPitch -= pitch * 0.6 * k;
   }

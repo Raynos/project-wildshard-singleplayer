@@ -216,11 +216,18 @@ function buildOwnRig(): AnimalSpecies {
   const eye = new THREE.SphereGeometry(0.04, 8, 6); eye.translate(0.14, at('head')[1], at('head')[2] + 0.35);
   return {
     bones, furParts: [skinPlain(torso, bi('body'), 'body', BARK)], hardParts: [skinPlain(skull, bi('head'), 'head', BARK)], eyeParts: [skinPlain(eye, bi('head'), 'eye', BARK)],
-    // the hitbox path (src/physics/creatures.ts) reads these: the body capsule along the body bone (it rears with him),
-    // ×2.6 → a 5.2 m barrel of radius 1.7 m at 4.8 m; the head ball on the skull joint; the motor capsule 0.9 m wide
+    // the hitbox path (src/physics/creatures.ts) reads these, fitted to his hull (E350 F-X2, scripts/e350-king-measure.mjs:
+    // rays from a standing eye over his silhouette in idle, the rear, the slam, the gallop and the sweep; hit volumes vs
+    // the visible torso, shoulders and face — 77 % landed / 14 % through / 8 % from air, against 61 / 22 / 17 for the
+    // elk-sized capsule it replaces). ×2.6: the barrel a capsule on the body bone, r 1.46 m, tilted 22° up to the front
+    // and set back under the hips; the fore block (shoulders, chest, hump) a capsule r 1.79 m across the chest bone; the
+    // head ball r 0.83 m on the face, not the joint. All three ride their bones (the rear, the sweep's dive). The motor
+    // capsule stays 0.9 m wide (CreatureBodies clamps it)
     dims: {
-      bodyY: 1.85, bodyHalfLen: 1.0, bodyRadius: 0.65, headRadius: 0.36, legLen: 1.85, halfWidth: 0.8,
+      bodyY: 1.85, bodyHalfLen: 0.45, bodyRadius: 0.56, headRadius: 0.32, legLen: 1.85, halfWidth: 0.8,
       feet: [[0.65, 1.25], [-0.66, 1.25], [0.57, -1.42], [-0.6, -1.42]],
+      bodyAt: [0, -0.3, -0.32], bodyPitch: 0.38, headAt: [0, -0.06, 0.12],
+      fore: { bone: 'chest', at: [0, -0.14, 0.05], halfLen: 0.22, radius: 0.69 },
     },
   };
 }
