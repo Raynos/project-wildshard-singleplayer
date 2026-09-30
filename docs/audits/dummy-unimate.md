@@ -1,6 +1,6 @@
 # UniMate dummy pilot — E336
 
-**State:** 2026-09-30 — candidate implemented; numerical gates and HUD capture passed; release evidence pending.
+**State:** 2026-09-30 — trial implemented and verified, live in `d1cdcee-munun0hj`; visual preference awaits Jake's review.
 
 This is an offline motion trial on the existing wood, straw/cloth and wood/steel practice figures. Their appearance,
 positions, topology, 18-joint bind skeletons and textures are preserved. UniMate generated six two-second clips per
@@ -60,3 +60,6 @@ at portrait phone tier on Chromium Metal. All three models bound 13 upper-body j
 no page errors or dummy loading warnings occurred. Hits were scripted damage calls, followed by rapid repeats.
 This verifies integration and provides visual review; it is not a physical-iPhone performance reading or a recording
 of weapon input. The capture closed its browser and owned preview.
+
+Implementation `3ad39bbd` passed the full clean-export gate; push CI `36690133455` and release `36690327249` succeeded.
+Production `/version.json` reported `d1cdcee-munun0hj`, and the deployed motion SHA256 matched the tested asset.

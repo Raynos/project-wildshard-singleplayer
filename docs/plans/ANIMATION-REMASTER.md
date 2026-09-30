@@ -1,6 +1,6 @@
 # Animation and rigging remaster — four shards
 
-**State:** `draft` 2026-09-30 — E335 catalogue audited; broad implementation awaits Jake’s picks. E336’s separately authorized dummy pilot is built, passes numerical/HUD capture checks and awaits release.
+**State:** `draft` 2026-09-30 — E335 catalogue audited; broad implementation awaits Jake’s picks. E336’s separately authorized dummy pilot is verified and live in `d1cdcee-munun0hj` for visual review.
 
 ## Scope and evidence
 
@@ -43,8 +43,8 @@ This table is a proposed order, not approval to build the unpicked rows. Each im
 | Row | Deliverable | State / dependency | Review evidence |
 |---|---|---|---|
 | A0 | All four actual Explorer catalogues and source cross-check | Audited, E335 | Full card/variant table and JSON; rerun on landed baseline |
-| A1 | Reproducible local UniMate adapter | E336 in flight | Pinned setup, exact prompts/seeds, finite output, elapsed time + peak memory |
-| A2 | Three HUD arena dummy remasters | Authorized, E336 in flight | All three in portrait arena, idle and every reaction, repeated hits, skin sweep and gameplay tests |
+| A1 | Reproducible local UniMate adapter | Built, E336 `3ad39bbd` | Pinned setup, exact prompts/seeds; 18 finite clips, 450.271 s and 2.620 GB peak footprint |
+| A2 | Three HUD arena dummy remasters | Verified/live, E336; visual review | All three in portrait arena; 18 clip + 12 runtime sweeps pass; footage and tests; `d1cdcee-munun0hj` |
 | A3 | General Explorer clip review and specimen parity | Proposed | Actual playback for people/gear as well as Animal; ghost-rider attachments/material; seek, speed, loop, rest/skin/bone view; measured clip labels |
 | A4 | Driftwood humanoids + close creature contacts | Proposed | NPC rig prerequisite, soldier/captain attacks, crab/monkey-specific review |
 | A5 | Pine NPCs and animal gait remaster | Proposed; reconcile E322 | Every picked NPC + species/coat, paws/hooves, antler/boss constraints |
