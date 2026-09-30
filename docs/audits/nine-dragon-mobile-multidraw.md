@@ -68,7 +68,8 @@ shared helper, renamed feature or per-platform exception. Future agents must use
 with the retired Auto value still stored and lanterns on. It checks **desktop**, **phone tier** and **iPhone UA with
 desktop quality**, enters World Explorer, and requires no batched facade, positive instanced facade content, lantern
 content, a live context, rendering, and no unexpected reload/error. It is included in `pnpm test:gpu-boot`. This
-prevents selection of the known unsafe path; it is not an emulation of the native iPhone memory failure. The historical
+prevents selection of the known unsafe path; it is not an emulation of the native iPhone memory failure. Since E323 (2026-09-30) a static gate, `test/facade-no-multidraw.test.ts`, also runs in every push and CI: it fails
+if anything under `src/chunks/nine-dragon-stack/` asks for `draw: 'batched'`, `BatchedMesh` or the multi-draw extension. The historical
 pre-fix exported build failed the real-scene check with one batched facade in both tested mobile profiles.
 
 The prohibition is project policy, not a temporary flag agents may remove after a favorable benchmark. A future user
