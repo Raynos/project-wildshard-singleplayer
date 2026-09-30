@@ -172,13 +172,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
   opt('pineFaces', 'creatures', 'Pine Hollow faces', [['current', 'A · Current'], ['hunyuan', 'B · Hunyuan head (portrait)'], ['hunyuanref', 'C · Hunyuan head (reference)']], { reload: true, when: pineHollow, note: 'E304 · Hale, Mott and Brandt: a Hunyuan3D-2 head grafted at the neck (progress/e304-faces/pine-hollow-board.jpg)' }),
-  opt('rideLook', 'creatures', 'Riding: look behind', [['140', '±140°'], ['170', '±170°']], { when: nalati, note: 'B1 / N13 · how far round the free look turns off the horse\'s heading (research: 120–150°; 170 = before)' }),
-  opt('rideRoad', 'creatures', 'Riding: keep to the road', ON_OFF, { when: nalati, note: 'B1 / N13 · let go of the stick on a road and the horse keeps its gait along it; pull back to stop' }),
-  opt('rideSpur', 'creatures', 'Riding: rhythm spur', ON_OFF, { when: nalati, note: 'B1 / N13 · tap GALLOP in time with the stride (the disc pulses): a faster gallop that costs almost no STEED' }),
-  opt('rideSkid', 'creatures', 'Riding: skid stop', ON_OFF, { when: nalati, note: 'B1 / N13 · pull the stick back at a canter or gallop: the horse sits down and skids to a stop (a pivot with the stick aside)' }),
-  opt('ridePanic', 'creatures', 'Riding: horse panics', ON_OFF, { when: nalati, note: 'B1 / N13 · a wolf\'s bite or lightning close by: the horse shies and bolts for a second or two' }),
-  opt('rideReins', 'creatures', 'Riding: reins in hand', ON_OFF, { when: nalati, note: 'B1 / N13 · the reins run from the bit to your hand in the lower frame' }),
-  opt('sheepRaids', 'creatures', 'Wolf raids on the flock', ON_OFF, { when: nalati, note: 'B1 / N13 · every 6–9 min the pack raids the camp\'s sheep while you are near; a mounted shepherd rides out with a whip' }),
 
   // ── Performance ──
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),

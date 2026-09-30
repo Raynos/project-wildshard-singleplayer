@@ -15,7 +15,6 @@ import { wildEnv } from '../entities/wildEnv';
 import { Reins } from '../player/Reins';
 import { SheepRaid } from './sheepRaid';
 import { HorseNamePrompt } from '../ui/HorseNamePrompt';
-import { setting } from '../ui/Settings';
 
 /** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */
 const ROADS = [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL];
@@ -41,7 +40,8 @@ const BOLT_PANIC = 35;
  * taming); TULPAR joins them once tamed (or on load, if tamed in an earlier session).
  *
  * B1 (N13): the horse under you panics (Mount.panic) at a wolf's bite on the rider (Pack's 'rider-bitten' event) and at
- * lightning within 35 m (Wildlife.scare's 'scare' event, which every strike raises) — a squeal, a toast for the lightning.
+ * lightning within 35 m (Wildlife.scare's 'scare' event, which every storm strike raises, and the Storm Titan's own
+ * 'lightning' bolts) — a squeal, a toast for the lightning.
  * Mount keeps to the shard's roads (`ROADS`) when you let go of the stick. At the hitching rail, on foot, a NAME prompt
  * names the horse standing nearest you there (HorseNamePrompt; the name is saved, horseNames.ts).
  */
@@ -99,15 +99,15 @@ export function wireRide(ctx: RideCtx): Ride {
     const h = mount.horse;
     if (h === null) return;
     if (name === 'rider-bitten') mount.panic(x, z, 0.9);
-    else if (name === 'scare') {
+    else if (name === 'scare' || name === 'lightning') {   // a strike (Wildlife.scare) · the Storm Titan's bolts (stormTitan.ts)
       const d = Math.hypot(h.position.x - x, h.position.z - z);
       if (d < BOLT_PANIC && mount.panic(x, z, d < 12 ? 2.2 : 1.5)) play?.toast(`${h.label} panics at the lightning — hold on`);
     }
   };
 
-  // B1: the reins in the rider's left hand (Debug ▸ Riding: reins in hand); they drop while the bow draws or the stallion bucks
+  // B1: the reins (from the hands just under the frame along the neck to the bit, E320); they drop while the bow draws or the stallion bucks
   const reins = new Reins(ctx.camera);
-  // B1: wolves raiding the flock, the mounted shepherd (Debug ▸ Creatures & NPCs ▸ Wolf raids on the flock)
+  // B1: wolves raiding the flock, the mounted shepherd
   const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: (t) => { play?.toast(t); } });
 
   // B1: NAME at the hitching rail — the horse standing nearest you by the rail, on foot
@@ -171,7 +171,7 @@ export function wireRide(ctx: RideCtx): Ride {
     late(dt) {
       const b = play?.kit?.bow;
       const busy = mount.breaking || (play?.isDrawing?.() ?? (b !== undefined && (b.adsHeld || b.drawing)));
-      reins.update(dt, mount.horse, mount.mounted && setting('rideReins') === 'on', busy);
+      reins.update(dt, mount.horse, mount.mounted, busy);
     },
     noteShot(x, z) { taming.noteShot(x, z); },
   };

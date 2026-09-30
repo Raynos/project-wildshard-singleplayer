@@ -2,11 +2,13 @@ import type { Animal } from '../entities/Animal';
 
 /**
  * The names you give your horses at the hitching rail (NALATI-FINISH B1, N13 "renaming the horse at the rail"). Kept in
- * localStorage `ws.nalati.horseNames` ({ "<kind>:<variant>": "Name" }) — the same store the save uses for Tulpar
- * ('ws.nalati.tulpar'), so a name outlives the session and follows the horse (the camp's bay, its black, Tulpar, Argymaq).
+ * localStorage `ws.nalati.horseNames` ({ "<key>": "Name" }), so a name outlives the session and follows the horse.
+ * The key is per horse, not per look (E328): the horse's registered name + its kind and variant (`horseKey`), so the camp's
+ * bay ('Camp horse|horse:camp-bay'), the horse playground's track horse ('Track horse|horse:camp-bay', the same coat),
+ * the camp's black, Tulpar and Argymaq each keep their own. Mount.addMountable takes an explicit id to override it.
  *
  *   cleanHorseName('  kara  jorga ') → 'Kara Jorga'   (trimmed, spaces folded, ≤ 16 characters, letters / digits / ' - .)
- *   savedHorseName(a) → string | null ;  saveHorseName(a, name)
+ *   savedHorseName(key) → string | null ;  saveHorseName(key, name) ;  horseKey(a, registeredName)
  */
 
 const STORE = 'ws.nalati.horseNames';
@@ -21,8 +23,8 @@ export function cleanHorseName(raw: string): string {
   return Array.from(GRAPHEMES.segment(cased), (g) => g.segment).slice(0, HORSE_NAME_MAX).join('').trim();
 }
 
-/** the horse's key in the store: its kind and variant ('horse:camp-bay', 'horse:tulpar', 'argymaq:…') */
-export const horseKey = (a: Pick<Animal, 'kind' | 'variant'>): string => `${a.kind}:${a.variant}`;
+/** a horse's key in the store: the name it was registered under + its kind and variant ('Camp horse|horse:camp-bay') */
+export const horseKey = (a: Pick<Animal, 'kind' | 'variant'>, registered: string): string => `${registered}|${a.kind}:${a.variant}`;
 
 function readAll(): Record<string, string> {
   try {
@@ -36,15 +38,15 @@ function readAll(): Record<string, string> {
   } catch { return {}; }
 }
 
-export function savedHorseName(a: Pick<Animal, 'kind' | 'variant'>): string | null {
-  const n = readAll()[horseKey(a)];
+export function savedHorseName(key: string): string | null {
+  const n = readAll()[key];
   return n !== undefined && n.length > 0 ? n : null;
 }
 
-export function saveHorseName(a: Pick<Animal, 'kind' | 'variant'>, name: string): void {
+export function saveHorseName(key: string, name: string): void {
   try {
     const all = readAll();
-    all[horseKey(a)] = name;
+    all[key] = name;
     localStorage.setItem(STORE, JSON.stringify(all));
   } catch { /* no storage: the name lasts this session */ }
 }

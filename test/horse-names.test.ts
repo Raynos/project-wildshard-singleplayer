@@ -19,15 +19,17 @@ describe('cleanHorseName', () => {
 
 describe('saved names', () => {
   afterEach(() => { vi.unstubAllGlobals(); });
-  it('round-trips per horse (kind + variant), and survives no storage', () => {
+  it('round-trips per horse (its registered name + kind + variant: the track horse is not the camp bay), and survives no storage', () => {
     const store = new Map<string, string>();
     vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); } });
-    const bay = { kind: 'horse', variant: 'camp-bay' }, black = { kind: 'horse', variant: 'camp-black' };
-    expect(horseKey(bay)).toBe('horse:camp-bay');
+    const bay = horseKey({ kind: 'horse', variant: 'camp-bay' }, 'Camp horse'), black = horseKey({ kind: 'horse', variant: 'camp-black' }, 'Camp horse');
+    const track = horseKey({ kind: 'horse', variant: 'camp-bay' }, 'Track horse');
+    expect(bay).toBe('Camp horse|horse:camp-bay');
     expect(savedHorseName(bay)).toBeNull();
     saveHorseName(bay, 'Kara Jorga');
     expect(savedHorseName(bay)).toBe('Kara Jorga');
     expect(savedHorseName(black)).toBeNull();
+    expect(savedHorseName(track)).toBeNull();
     vi.stubGlobal('localStorage', { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); } });
     expect(savedHorseName(bay)).toBeNull();
     expect(() => { saveHorseName(bay, 'X'); }).not.toThrow();

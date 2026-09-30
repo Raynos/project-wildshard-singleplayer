@@ -1,28 +1,29 @@
 #!/usr/bin/env node
 // nalati-ride-b1.mjs — NALATI-FINISH B1 (N13, E302): the riding feel, headless (muted, Metal), iPhone portrait (touch, phone tier).
 //
-//   node scripts/nalati-ride-b1.mjs [--url=http://127.0.0.1:5467] [--out=progress/e302-ride] [--only=look,road,bend,skid,spur,panic,reins]
+//   scripts/browser-lane.sh node scripts/nalati-ride-b1.mjs --url=<a scripts/serve-build.sh URL> [--out=progress/e302-ride] \
+//     [--only=look,road,bend,skid,spur,panic,name]
 //
-// Legs (each teleports the camp horse from `?ride=gallop`, drives it with the touch stick / the GALLOP disc):
-//   look   the free look swung 175° off the heading stops at ±140° (Debug ▸ Riding: look behind); ±170° on '170'
-//   road   canter down the north road, let go of the stick: the horse keeps its gait on the road (4 s on: moving, on it);
-//          Debug ▸ Riding: keep to the road off → it coasts to a stand
+// The features are locked in (E331: no Debug rows). Legs (each teleports the camp horse from `?ride=gallop`, drives it
+// with the touch stick / the GALLOP disc):
+//   look   the free look swung 175° off the heading stops at ±140°
+//   road   canter down the north road, let go of the stick: the horse keeps its gait on the road (4 s on: moving, on it)
 //   bend   the same round the camp spur's bend (the reins follow the road round it)
-//   skid   gallop, then pull back: the stand in < 1.2 s (skid) vs the old rein-in (Debug off)
+//   skid   gallop, then pull back: the stand in < 1.2 s; and E320 — the horse's head is back where it stood (the rear knob
+//          back to 0) a second after the stop, not reared up in front of the rider's eye for good
 //   spur   canter, then tap GALLOP on the stride's beat: the gallop holds with no hold, faster than a held one, at ~no STEED
 //   panic  a scare 6 m ahead at a stand (a bite / lightning): the horse rears, then bolts away from it, deaf to the stick;
-//          the wolf-bite and lightning events reach it (Pack 'rider-bitten', Wildlife.scare)
+//          lightning within 35 m reaches it (Wildlife.scare); the head settles after the bolt (E320)
 //   name   on foot at the hitching rail: the prompt reads "Name Camp horse"; the NAME panel opens, a name typed + Enter
 //          renames the horse (its prompt, the save in localStorage ws.nalati.horseNames)
 // Prints PASS / FAIL per check, writes b1-checks.json and one JPEG per leg (portrait) into --out.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
-import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
-const URL_BASE = flag('url', 'http://127.0.0.1:5467');
+const URL_BASE = flag('url', 'http://127.0.0.1:4400');
 const OUT = resolvePath(flag('out', 'progress/e302-ride'));
 const ONLY = flag('only', 'look,road,bend,skid,spur,panic,name').split(',');
 const DPR = Number(flag('dpr', '3'));
@@ -48,25 +49,21 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
-  await debugSettings(page, { rideLook: '140', rideRoad: 'on', rideSpur: 'on', rideSkid: 'on', ridePanic: 'on', rideReins: 'on' });
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&ride=gallop&mute=1&nolock=1&skipintro=1&tier=phone&touch=1&weapon=bow`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(4000);
-  await page.evaluate(async () => {
-    const L = await import('/src/chunks/nalatiLayout.ts');
-    // the app's own Settings module (the URL it was loaded by: after an edit on the shared tree Vite adds a ?t= stamp, and
-    // a plain import would be a second copy whose saveSetting reaches nothing)
-    const settingsUrl = performance.getEntriesByType('resource').map((e) => e.name).find((n) => n.includes('/src/ui/Settings.ts')) ?? '/src/ui/Settings.ts';
-    const S = await import(settingsUrl);
-    const E = await import('/src/entities/wildEnv.ts');
+  await page.evaluate(() => {
+    // a build has no /src modules to import: the two roads the legs ride (src/chunks/nalatiLayout.ts N_ROAD_PTS, CAMP_SPUR)
+    const L = { N_ROAD_PTS: [[0, 250], [0, 190], [0, 156]], CAMP_SPUR: [[0, 214], [40, 218], [62, 215.5], [74, 206.5]] };
     const w = window.__world;
-    const t = { L, S, E, steps: 0, trace: [], rec: false };
+    const t = { L, steps: 0, trace: [], rec: false };
     t.m = () => w.ride.mount;
     t.input = (x, y, g) => { w.player.touchMove.x = x; w.player.touchMove.y = y; w.ride.mount.touchGallop = g; };
     t.state = () => {
       const m = w.ride.mount, h = m.horse;
       if (h === null) return { mounted: false };
-      return { mounted: true, x: h.position.x, z: h.position.z, speed: h.speed, gait: m.gait, heading: h.yaw, steed: m.steed, onRoad: m.onRoad, skidT: m.skidT, panicT: m.panicT, rear: h.mem.rear ?? 0, streak: m.spur.streak, good: m.spur.good, latched: m.spur.latched };
+      const hb = h.mesh.skeleton.getBoneByName('head'), hp = hb === undefined ? null : hb.getWorldPosition(h.position.clone());
+      return { mounted: true, x: h.position.x, z: h.position.z, speed: h.speed, gait: m.gait, heading: h.yaw, steed: m.steed, onRoad: m.onRoad, skidT: m.skidT, panicT: m.panicT, rear: h.mem.rear ?? 0, streak: m.spur.streak, good: m.spur.good, latched: m.spur.latched, headUp: hp === null ? 0 : hp.y - h.position.y };
     };
     w.game.onFixed('post', () => { t.steps++; if (t.rec && t.steps % 6 === 0) t.trace.push({ step: t.steps, ...t.state() }); });
     t.start = () => { t.trace = []; t.rec = true; };
@@ -108,7 +105,6 @@ try {
     const until = (await page.evaluate(() => window.__rb.steps)) + Math.round(ms * 0.06), wall = Date.now() + ms * 20;
     while (Date.now() < wall && (await page.evaluate(() => window.__rb.steps)) < until) await sleep(50);
   };
-  const setOpt = (k, v) => page.evaluate(({ k: kk, v: vv }) => { window.__rb.S.saveSetting(kk, vv); }, { k, v });
   const state = () => page.evaluate(() => window.__rb.state());
   const shot = async (name) => { const p = `${OUT}/b1-${name}.jpg`; await page.screenshot({ path: p, type: 'jpeg', quality: 72 }); return p; };
   const place = (x, z, yaw) => page.evaluate(({ x: px, z: pz, yaw: py }) => { window.__rb.place(px, pz, py); }, { x, z, yaw });
@@ -117,29 +113,24 @@ try {
 
   // ── look: the free look swung 175° round stops at the limit ──
   if (ONLY.includes('look')) {
-    for (const lim of ['140', '170']) {
-      await setOpt('rideLook', lim);
-      await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z, sp.yaw + Math.PI); });
-      await stand();
-      const rel = await page.evaluate(async () => {
-        const w = window.__world, h = w.ride.mount.horse;
-        w.player.yaw = h.yaw - Math.PI + (175 * Math.PI) / 180;
-        await new Promise((resolve) => { setTimeout(resolve, 400); });
-        const d = w.player.yaw + Math.PI - h.yaw;
-        return (Math.atan2(Math.sin(d), Math.cos(d)) * 180) / Math.PI;
-      });
-      out[`look${lim}`] = Number(rel.toFixed(1));
-      check(`look behind stops at ±${lim}°`, Math.abs(Math.abs(rel) - Number(lim)) < 2, `${rel.toFixed(1)}°`);
-      if (lim === '140') await shot('look-140');
-    }
-    await setOpt('rideLook', '140');
+    await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z, sp.yaw + Math.PI); });
+    await stand();
+    const rel = await page.evaluate(async () => {
+      const w = window.__world, h = w.ride.mount.horse;
+      w.player.yaw = h.yaw - Math.PI + (175 * Math.PI) / 180;
+      await new Promise((resolve) => { setTimeout(resolve, 400); });
+      const d = w.player.yaw + Math.PI - h.yaw;
+      return (Math.atan2(Math.sin(d), Math.cos(d)) * 180) / Math.PI;
+    });
+    out.look = Number(rel.toFixed(1));
+    check('look behind stops at ±140°', Math.abs(Math.abs(rel) - 140) < 2, `${rel.toFixed(1)}°`);
+    await shot('look-140');
   }
 
   // ── road: canter down the north road, let go ──
   const roadLeg = async (name, pts, x, z, yaw) => {
     const res = {};
-    for (const mode of ['on', 'off']) {
-      await setOpt('rideRoad', mode);
+    for (const mode of ['on']) {
       await place(x, z, yaw);
       await stand();
       await place(x, z, yaw);
@@ -153,7 +144,6 @@ try {
       const offs = await page.evaluate(({ p, tr: tt }) => tt.map((s) => window.__rb.off(p, s.x, s.z)), { p: pts, tr });
       res[mode] = { endSpeed: Number(end.speed.toFixed(1)), maxOff: Number(Math.max(...offs).toFixed(1)), metres: Number(Math.hypot(end.x - tr[0].x, end.z - tr[0].z).toFixed(1)), onRoad: tr.filter((s) => s.onRoad).length / tr.length };
     }
-    await setOpt('rideRoad', 'on');
     return res;
   };
   if (ONLY.includes('road')) {
@@ -161,7 +151,6 @@ try {
     // the north road from its gate, heading south (−z) — a straight 60 m
     out.road = await roadLeg('road', r, 0.5, 236, Math.PI);
     check('road: let go on the road, the horse keeps its gait', out.road.on.endSpeed > 5 && out.road.on.maxOff < 3.5, JSON.stringify(out.road.on));
-    check('road: Debug off, it coasts to a stand', out.road.off.endSpeed < 1, JSON.stringify(out.road.off));
   }
   if (ONLY.includes('bend')) {
     const spur = await page.evaluate(() => window.__rb.L.CAMP_SPUR.concat([]));
@@ -173,11 +162,12 @@ try {
   // ── skid: gallop, pull back ──
   if (ONLY.includes('skid')) {
     out.skid = {};
-    for (const mode of ['on', 'off']) {
-      await setOpt('rideSkid', mode);
+    for (const mode of ['on']) {
       await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
       await stand();
       await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
+      await simWait(1500);
+      out.standHead = (await state()).headUp;
       await input(0, 1, true); await simWait(4500);
       const top = (await state()).speed;
       await page.evaluate(() => { window.__rb.start(); });
@@ -186,14 +176,15 @@ try {
       if (mode === 'on') await shot('skid');
       await simWait(1800);
       await input(0, 0, false);
+      await simWait(1500);   // E320: stood still a moment — the head must be back down where it was
       const tr = await page.evaluate(() => window.__rb.stop());
       const i = tr.findIndex((s) => s.speed < 0.6);
       const secs = i === -1 ? 99 : (tr[i].step - tr[0].step) / 60;
-      out.skid[mode] = { top: Number(top.toFixed(1)), stopS: Number(secs.toFixed(2)), rear: Number(Math.max(...tr.map((s) => s.rear)).toFixed(2)) };
+      const end = tr[tr.length - 1];
+      out.skid[mode] = { top: Number(top.toFixed(1)), stopS: Number(secs.toFixed(2)), rear: Number(Math.max(...tr.map((s) => s.rear)).toFixed(2)), rearAfter: Number(end.rear.toFixed(2)), headUpStood: Number(out.standHead.toFixed(2)), headUpAfter: Number(end.headUp.toFixed(2)) };
     }
-    await setOpt('rideSkid', 'on');
-    check('skid: a gallop stands in < 1.2 s', out.skid.on.stopS < 1.2 && out.skid.on.top > 11, JSON.stringify(out.skid.on));
-    check('skid: slower without it (Debug off)', out.skid.off.stopS > out.skid.on.stopS + 0.3, JSON.stringify(out.skid.off));
+    check('skid: a gallop stands in < 1.2 s, sitting back on its haunches', out.skid.on.stopS < 1.2 && out.skid.on.top > 11 && out.skid.on.rear > 0.2, JSON.stringify(out.skid.on));
+    check('E320: after the skid the rear lets go and the head is back down (not reared in front of the eye)', out.skid.on.rearAfter < 0.02 && out.skid.on.headUpAfter < out.skid.on.headUpStood + 0.08, JSON.stringify(out.skid.on));
   }
 
   // ── spur: canter, then tap on the beat ──
@@ -238,18 +229,15 @@ try {
     out.panic = { accepted: ok, rear: Number(Math.max(...tr.map((s) => s.rear)).toFixed(2)), along: Number(along.toFixed(1)), top: Number(Math.max(...tr.map((s) => s.speed)).toFixed(1)) };
     check('panic: rears, then bolts away from the scare', ok && out.panic.rear > 0.3 && along < -6, JSON.stringify(out.panic));
     await stand();
-    const ev = await page.evaluate(async () => {
-      const w = window.__world, m = w.ride.mount, h = m.horse, E = window.__rb.E;
-      m.panicT = 0;
-      E.wildEnv.onEvent?.('rider-bitten', h.position.x + 1, h.position.z + 1);
-      const bite = m.panicT > 0;
-      await new Promise((resolve) => { setTimeout(resolve, 1600); });
+    const settled = await state();
+    check('E320: after the bolt the rear lets go (the head settles)', settled.rear < 0.02, JSON.stringify({ rear: settled.rear, headUp: settled.headUp }));
+    const ev = await page.evaluate(() => {
+      const w = window.__world, m = w.ride.mount, h = m.horse;
       m.panicT = 0;
       w.wildlife.scare(h.position.x + 10, h.position.z, 60);
-      const bolt = m.panicT;
-      return { bite, bolt };
+      return { bolt: m.panicT };
     });
-    check('panic: a wolf\'s bite and lightning within 35 m reach the horse', ev.bite && ev.bolt > 1, JSON.stringify(ev));
+    check('panic: lightning within 35 m reaches the horse', ev.bolt > 1, JSON.stringify(ev));
     await simWait(2500);
   }
 
@@ -269,6 +257,7 @@ try {
     check('name: at the tied horse\'s head the USE band reads "Name …"', label.ride.startsWith('Name ') && /name/i.test(label.use), JSON.stringify(label));
     await page.evaluate(() => { window.__world.ride.interactable.onInteract(); });
     await page.waitForSelector('.ws-ride-nameinput', { timeout: 5000 });
+    await sleep(300);   // the box drops input in its first 150 ms (the E that opened it, E328)
     await page.fill('.ws-ride-nameinput', 'kara  jorga');
     await shot('name');
     await page.press('.ws-ride-nameinput', 'Enter');

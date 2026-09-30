@@ -141,17 +141,6 @@ export const OPTION_VALUES = {
   // stays the default until Jake picks: B hunyuan (a Hunyuan3D-2 head from a codex portrait) · C hunyuanref (from the
   // model's own reference crop) — progress/e304-faces/pine-hollow-board.jpg
   pineFaces: ['current', 'hunyuan', 'hunyuanref'],
-  // NALATI-FINISH B1 (N13, E302): the riding feel — Debug ▸ Creatures & NPCs, all live. The look behind the ears (±140°, the
-  // research's 120–150°; 170 = the old free look), the horse keeping to the road when you let go of the stick, the rhythm spur
-  // (GALLOP tapped in time with the stride), the skid stop (reins pulled back at a canter+), the horse panicking (a wolf's
-  // bite, lightning close by), the reins in your hands
-  rideLook: ['140', '170'],
-  rideRoad: ['on', 'off'],
-  rideSpur: ['on', 'off'],
-  rideSkid: ['on', 'off'],
-  ridePanic: ['on', 'off'],
-  rideReins: ['on', 'off'],
-  sheepRaids: ['on', 'off'],                           // B1: the wolves' raids on the camp's flock (src/nalati/sheepRaid.ts) — live
   // E322 F-L4 (Pine Hollow follow-ups): the grass trampled by the player and the animals (src/world/Grass.ts, Nalati's
   // GrassTrample map) — Debug ▸ Ground cover & foliage, live; off = the grass before until Jake picks
   pineTrample: ['off', 'on'],
@@ -176,7 +165,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, pineFaces: DEBUG_ONLY,
-  rideLook: DEBUG_ONLY, rideRoad: DEBUG_ONLY, rideSpur: DEBUG_ONLY, rideSkid: DEBUG_ONLY, ridePanic: DEBUG_ONLY, rideReins: DEBUG_ONLY, sheepRaids: DEBUG_ONLY,
   pineTrample: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
@@ -195,8 +183,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   pineFaces: option('pineFaces'),
-  rideLook: option('rideLook'), rideRoad: option('rideRoad'), rideSpur: option('rideSpur'), rideSkid: option('rideSkid'),
-  ridePanic: option('ridePanic'), rideReins: option('rideReins'), sheepRaids: option('sheepRaids'),
   pineTrample: option('pineTrample'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];

@@ -10,7 +10,6 @@
 // and portrait JPEGs (raid-1-shepherd, raid-2-wolves, raid-3-whip).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
-import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const argv = process.argv.slice(2);
@@ -39,7 +38,6 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
-  await debugSettings(page, { sheepRaids: 'off' });   // no scheduled raid mid-check: the check starts its own
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&ride=gallop&mute=1&nolock=1&skipintro=1&tier=phone&touch=1&weapon=bow`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(3000);
@@ -85,7 +83,8 @@ try {
   await sleep(600);
   await page.screenshot({ path: `${OUT}/raid-1-shepherd.jpg`, type: 'jpeg', quality: 72 });
   await page.evaluate(() => { const f = window.__world.wildlife.flocks[0]; window.__rc.face(f.cx, f.cz, 26); });
-  const started = await page.evaluate(() => window.__world.ride.raid.start(true));
+  // (a scheduled raid may already be on — the first comes 2.5–4 min in: that one counts)
+  const started = await page.evaluate(() => { const r = window.__world.ride.raid; return r.start(true) ? true : r.raiding; });
   check('a raid starts (the pack takes a sheep as its prey)', started);
   const trace = [];
   let shotWolves = false, shotWhip = false, maxSpeed = 0, minWolfFlock = Infinity;

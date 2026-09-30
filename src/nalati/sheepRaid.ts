@@ -9,12 +9,11 @@ import { PaintKit, pole, v3, lathe } from '../world/nalati/paint';
 import { painterlyMaterial } from '../world/painterly';
 import { inChunk } from '../world/Heightfield';
 import { TIER } from '../core/tier';
-import { setting } from '../ui/Settings';
 import { practiceRoom } from '../core/practiceRoom';
 
 /**
  * Wolves raiding the flock, and the mounted shepherd who rides out to defend it (NALATI-FINISH B1, N13 — the archived
- * Nalati plan's "wolves raiding the sheep + a mounted shepherd"; Debug ▸ Creatures & NPCs ▸ Wolf raids on the flock).
+ * Nalati plan's "wolves raiding the sheep + a mounted shepherd"; locked in, E331).
  *
  * The raid: every 6–9 minutes (the first 2.5–4 min in), while you are within 220 m of the pasture to see it, a small
  * valley pack — three wolves that den in the valley's west end, 85 m past the pasture (Kokbori's pack on the NE rim can't
@@ -204,7 +203,6 @@ export class SheepRaid {
       else if (pk.phase === 'break' || this.cracksNow > 0) { this.drivenOff++; this.ctx.toast('The shepherd drove the wolves off'); }
       return;
     }
-    if (setting('sheepRaids') !== 'on') return;
     this.raidT -= dt;
     if (this.raidT <= 0 && !this.start(false, playerPos)) this.raidT = 30;
   }
