@@ -85,6 +85,9 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
   const fx = new PineWeatherFX({ sky: h.sky, trees: h.trees, roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED }).build();
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
   onSettingChange('weather', (m) => { weather.setMode(m, atT); });
+  // E322 F-L5: Debug ▸ Sky & weather ▸ Rain extras — splashes at the feet, the meadows' puddles, drops on the lens (live)
+  fx.setExtras(setting('pineRainFx') === 'on');
+  onSettingChange('pineRainFx', (v) => { fx.setExtras(v === 'on'); });
 
   // the height fog's own floor / falloff (Sky set them from the chunk's atmosphere): the dawn fog lifts and steepens them
   const baseH = fogUniforms.fogHeight.value, baseFall = fogUniforms.fogHeightFalloff.value;
@@ -182,7 +185,7 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
     wind.x = WIND_DIR.x * ws; wind.z = WIND_DIR.z * ws;
     const f = h.game.scene.fog;
     if (f instanceof THREE.Fog || f instanceof THREE.FogExp2) fogCol.copy(f.color);
-    fx.update(dt, weather, fogCol, wind);
+    fx.update(dt, weather, fogCol, wind, h.game.camera);
     shelterHerds(dt);
     stagInFog(eye);
   }, 'world.weather');
