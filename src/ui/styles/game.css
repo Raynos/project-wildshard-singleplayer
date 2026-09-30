@@ -257,5 +257,3 @@
   .ws-game-getlow { top: calc(var(--ws-top) + 34vw + 70px); font-size: 13px; letter-spacing: 0.16em; padding: 5px 12px 5px 9px; }
   .ws-game-getlow i { width: 16px; height: 16px; }
 }
-/* the weapon strip's edge tabs (Pine Hollow, Nalati — src/ui/WeaponStrip.ts): the lock-on's off-screen arrow clears them */
-#hud:has(.ws-touch.strip) .ws-game-lockedge.l { left: 46px; }
