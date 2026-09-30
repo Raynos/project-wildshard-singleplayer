@@ -42,8 +42,9 @@ DRIFTWOOD-LOOT; 30–32 are docs rows; 34–38 are keeps, so they have no card.
 - **Two rows are out of date on the live build:** **15** (E314's Bag ▸ Finds now reads `found:reef-treasure` and shows
   the pearl necklace as a treasure, `src/game/loot/finds.ts:52`), and **18** (the Gear tab now says "Tap a weapon to
   hold it" and HELD; only "Wooden sword" vs the desktop hotbar's "Sword" is left).
-- **Text cards:** 14 and 23 are sounds, 27–29 are code only, and 20 is text (both decks look the same until you swipe
-  to the Nine Dragon card).
+- **Text cards:** 14 and 23 are sounds, 27–29 are code only. Card 20's A is the app-launch title (the bare URL, as the
+  home-screen PWA opens it: `src/boot/entry.ts:43` shows StartTitle only with no query params), swiped to the Nine
+  Dragon card; B is the in-game title after Exit to main, same card.
 
 | Image | Cards |
 |---|---|
