@@ -107,7 +107,7 @@ void main() {
     col += lc * att * (alb * max(dot(N, L), 0.0) + F * ggxLobe(max(dot(N, normalize(L + V)), 0.0), max(rough, 0.3)) * 0.3);
   }
   // hookable: the whole casting warms toward bright gold leaf when locked
-  col += uGold * uLock * 0.35 * (0.4 + 0.6 * pow(1.0 - ndv, 2.0)) * cav;
+  col += uGold * uLock * 0.35 * (0.4 + 0.6 * (1.0 - ndv) * (1.0 - ndv)) * cav;
   // the bite: a hot flash of the talons' sparks on the ring
   vec3 Lb = uBitePos - vW;
   float db = length(Lb);

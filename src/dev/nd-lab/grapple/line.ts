@@ -138,7 +138,8 @@ void main() {
   float core = clamp(uCorePx * 0.5 + 0.7 - px, 0.0, 1.0);
   float halo = exp(-pow(px / max(uHaloPx * 0.45, 0.5), 2.0));
   float crawl = 0.85 + 0.3 * smoothstep(0.4, 1.0, sin(s * uLen * 6.0 - uTime * 38.0));
-  float pulse = exp(-pow((s - uPulse) / 0.05, 2.0)) * 3.5;
+  float dp = (s - uPulse) / 0.05;
+  float pulse = exp(-dp * dp) * 3.5;
   vec3 col = (uCore * core * 2.4 + uHalo * halo * 0.8) * uI * (crawl + pulse);
   gl_FragColor = vec4(col, 0.0);
 }

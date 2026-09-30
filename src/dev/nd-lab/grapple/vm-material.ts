@@ -98,12 +98,15 @@ vec3 envMap(vec3 R, float rough) {
   vec3 bot = vec3(0.035, 0.04, 0.055);
   vec3 c = mix(hor, top, smoothstep(0.05, 0.55 + rough * 0.35, y));
   c = mix(c, bot, smoothstep(-0.02, -0.5 - rough * 0.3, y));
-  float band = exp(-pow((y - 0.06) / (0.2 + rough * 0.3), 2.0));
+  float bandY = (y - 0.06) / (0.2 + rough * 0.3);
+  float band = exp(-bandY * bandY);
   float cellA = floor(az * 22.0), cellB = floor(y * 16.0);
   float win = step(0.6, eh21(vec2(cellA, cellB)));
   c += band * vec3(1.0, 0.58, 0.26) * 0.32 * mix(win, 0.4, clamp(rough * 1.4, 0.0, 1.0));
-  float m1 = exp(-pow((az - 2.3) / (0.07 + rough * 0.45), 2.0)) * band;
-  float m2 = exp(-pow((az + 0.8) / (0.06 + rough * 0.45), 2.0)) * band;
+  float mA = (az - 2.3) / (0.07 + rough * 0.45);
+  float m1 = exp(-mA * mA) * band;
+  float mB = (az + 0.8) / (0.06 + rough * 0.45);
+  float m2 = exp(-mB * mB) * band;
   c += m1 * vec3(1.0, 0.22, 0.62) * 1.5 + m2 * vec3(0.22, 0.88, 1.0) * 1.5;
   // sky-screen panel bars overhead: the sharp pale streaks on polished brass
   float bars = smoothstep(0.9 - rough * 0.6, 1.0, abs(sin(az * 3.0 + 0.4))) * smoothstep(0.35, 0.8, y);

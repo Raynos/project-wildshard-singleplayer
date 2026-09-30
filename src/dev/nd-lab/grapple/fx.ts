@@ -165,7 +165,8 @@ void main() {
   float a = atan(vP.y, vP.x);
   float core = exp(-r * r * 60.0) * 3.0 + exp(-r * r * 9.0) * 0.6;
   float rays = pow(abs(cos(a * 3.0)), 60.0) * exp(-r * 3.2) * 1.4 + pow(abs(cos(a * 3.0 + 1.047)), 90.0) * exp(-r * 5.0) * 0.6;
-  float ring = exp(-pow((r - uRing) / 0.03, 2.0)) * (1.0 - uRing) * 1.2;
+  float dr = (r - uRing) / 0.03;
+  float ring = exp(-dr * dr) * (1.0 - uRing) * 1.2;
   vec3 col = mix(uCol, vec3(1.0), clamp(core * 0.5, 0.0, 1.0)) * (core + rays + ring) * uI;
   gl_FragColor = vec4(col * smoothstep(1.0, 0.8, r), 0.0);
 }

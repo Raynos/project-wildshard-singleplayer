@@ -51,6 +51,8 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 try {
   const page = await phonePage(browser);
   page.on('pageerror', (e) => { report.errors.push(e.message.slice(0, 240)); console.log(`pageerror: ${e.message.slice(0, 240)}`); });
+  // a shader that fails to compile (the rope, the ring, the hook) is only a console error in three.js: it fails the run
+  page.on('console', (m) => { const t = m.text(); if (m.type() === 'error' && /WebGLProgram|Shader Error/.test(t)) { report.errors.push(t.slice(0, 240)); console.log(`shader: ${t.slice(0, 240)}`); } });
   const boot = await bootToTitle(page, BASE, 'nine-dragon-stack');
   console.log(`title in ${boot} s`);
   report.hub = await openHub(page);
@@ -144,6 +146,7 @@ try {
 } finally {
   await browser.close();
 }
+if (report.errors.some((e) => /WebGLProgram|Shader Error/.test(e))) report.ok = false;
 writeFileSync(join(OUT, 'grapple-report.json'), JSON.stringify(report, null, 2));
 console.log(`${report.ok ? 'PASS' : 'FAIL'}  grapple playground: ${report.hops.filter((h) => h.ok).length}/${HOPS.length} hops · ${JSON.stringify(report.perf)}${report.video ? ` · video ${report.video.file}` : ''}`);
 process.exit(report.ok ? 0 : 1);
