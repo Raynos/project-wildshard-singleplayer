@@ -465,3 +465,15 @@ fieldstone, the kurgan entrance, the balbal, Eagle Rock, the Wind Cairn, the cra
 watchtower, the stone step ×54, the kokpar post / goal / rider, the standing saddled horse, the herd horse, the snow
 lotus; the camps stay whole cards this pass). Bottom: six turntables. `nalati-m3-five.mp4`: a 10 s spin of five of them
 (balbal, kurgan entrance, Kunes bridge, watchtower, Wind Cairn) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M3.
+
+### Pine Hollow models, M2 (`art/models-audit/round-5-m2-pine-hollow/`, 2026-09-30, E315)
+
+`m2-pine-hollow-before-after.jpg`: live phone-tier captures (390×844 @3×) of clean exports before (be264e7f) and after
+M2 (451a0903). Top: Pine Hollow's Model Explorer catalog before (13 cards: three live cabins, the pond, one hand-made
+Scots pine for the whole forest, the boulder / stump / log specimens) and that pine on its turntable. Middle: the catalog
+after, all 42 cards (the log cabin ×3 and the Mill hamlet's five buildings with their crates, barrels, buckets, hatchets,
+fire pit and lanterns; the fire lookout, zipline landing, zip cable and creek footbridge; the eight TRELLIS props; the
+ridge crag ×60, crag boulder ×52, scree ×30; the mossy boulder ×380, stump, fallen log; the forest tree ×918 with its 14
+species; fern ×6,000 and the forest floor's other five kinds; the token shelf and the hollow log). Bottom: six
+turntables. `pine-m2-five.mp4`: a 10 s spin of five of them (forest tree, fire lookout, log cabin, ridge crag, standing
+stone) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M2.
