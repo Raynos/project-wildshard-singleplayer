@@ -4,8 +4,9 @@
 // Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 // (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,
-// the crowd, the Fei Zhua hook, the wall kit), placed through `place` under the root;
-// the instanced ones are handed to the fragment's own cullers (world/cull.ts, crowd.ts `Crowd`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
+// the crowd, the paper lanterns, the Fei Zhua hook, the wall kit), placed through `place` under the root;
+// the instanced ones are handed to the fragment's own cullers (world/cull.ts, crowd.ts `Crowd`, look/lanterns.ts
+// `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
   BufferGeometry, Color, Float32BufferAttribute, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
   SphereGeometry, Uint32BufferAttribute, Vector3, Vector4, type WebGLRenderer,
@@ -37,6 +38,7 @@ import { Rng, chars } from '../util';
 import { type HandedBatch, type InstancedCuller, place } from '../../../models/place';
 import type { ModelDef, Placement } from '../../../models/model';
 import { ndModelContext } from './modelLook';
+import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
@@ -189,6 +191,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const matA = jiehuaMaterial(shared, { alphaCut: true });
   const paper = new Lanterns(shared);
   nd.look.mat = mat;
+  nd.look.lantern = paper.material;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
   for (const m of ctx.lanterns) { m.decompose(tmpP, tmpQ, tmpS); paper.hang(tmpP.clone(), tmpS.x); }
   const emitters: Emitter[] = [...neonSigns.emitters, ...signs.lights, ...paper.emitters, ...ctx.emitters];
@@ -272,7 +275,10 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   };
   for (const [name, g] of kitGeos) kitMesh(name, g, mat);
   for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
-  if (setting('nineLanterns') === 'on') root.add(named(paper.build(), 'lanterns'));
+  if (setting('nineLanterns') === 'on') {
+    const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
+    lanterns.object.name = 'lanterns';
+  }
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.

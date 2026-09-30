@@ -6,17 +6,21 @@
 // — near (≤ LOD_NEAR m) an 8 × 6 lathe with caps and tassel (192 tris), far a 6 × 4 body alone (48 tris) — and each
 // frame the visible lanterns (a sphere per lantern against the view frustum) are bucketed into them (`updateLanterns`,
 // called by the render strategy before the draw). Before the first update every lantern is in the near draw (the dev page).
+// (E306 M4) the lantern is a model (models/paperLantern.ts: these three lathes are its level and LODs); `Lanterns` hangs
+// them (their placements, seeds and glow emitters) and culls them, handed the model's levels by `place`.
 import {
-  BufferGeometry, type Camera, Color, Float32BufferAttribute, Frustum, Group, InstancedBufferAttribute, InstancedMesh, LatheGeometry, Matrix4,
+  BufferGeometry, type Camera, Color, Float32BufferAttribute, Frustum, InstancedBufferAttribute, type InstancedMesh, LatheGeometry, Matrix4,
   Quaternion, ShaderMaterial, Sphere, Uint32BufferAttribute, Vector2, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
+import type { HandedBatch, InstancedCuller } from '../../../models/place';
+import type { Placement } from '../../../models/model';
 import { EMIT_FOG, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const R = 0.27, H = 0.24;
 
 /** the lantern's lathe: `rings` bands down the body, `segs` around; caps + tassel only on the near one */
-function lanternGeometry(rings: number, segs: number, dressing: boolean): BufferGeometry {
+export function lanternGeometry(rings: number, segs: number, dressing: boolean): BufferGeometry {
   const pts: Vector2[] = [];
   for (let i = 0; i <= rings; i++) {
     const t = -1 + (2 * i) / rings;
@@ -158,7 +162,7 @@ void main() {
 }
 `;
 
-export class Lanterns {
+export class Lanterns implements InstancedCuller {
   readonly emitters: Emitter[] = [];
   private readonly mats: Matrix4[] = [];
   private readonly seeds: number[] = [];
@@ -184,6 +188,11 @@ export class Lanterns {
     this.emitters.push({ at: c, color: new Color(0xff4a4a), w: 0.5 * scale, h: 0.5 * scale, power: 0.18, spill: 0.3 * scale });
   }
 
+  /** where they hang: the paper-lantern model's placements (world/build.ts places them), in hanging order */
+  placements(): Placement<object>[] {
+    return this.mats.map((m) => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m }));
+  }
+
   private near: InstancedMesh | null = null;
   private far: InstancedMesh | null = null;
   private dot: InstancedMesh | null = null;
@@ -192,31 +201,35 @@ export class Lanterns {
   private readonly last = new Matrix4();
   private readonly sphere = new Sphere();
 
-  build(): Group {
+  /**
+   * the model's levels from `place` (PlaceOptions.culler): the near lathe with every lantern, the far (LOD_NEAR) and the
+   * dot (LOD_DOT) ones. Each draw gets the lanterns' seeds and every matrix (its sphere round all of them, as before),
+   * the far and dot start empty; the buckets are the visible sets, so no draw is culled as a whole
+   */
+  take(b: HandedBatch): void {
+    const near = b.levels[0]?.mesh ?? null, far = b.levels.find((l) => l.from === LOD_NEAR)?.mesh ?? null, dot = b.levels.find((l) => l.from === LOD_DOT)?.mesh ?? null;
+    if (near === null || far === null || dot === null) return;
     const n = this.mats.length;
-    const mk = (g: BufferGeometry, name: string): InstancedMesh => {
-      g.setAttribute('aSeed', new InstancedBufferAttribute(new Float32Array(this.seeds), 1));
-      const m = new InstancedMesh(g, this.material, n);
+    const mk = (m: InstancedMesh, name: string): InstancedMesh => {
+      m.geometry.setAttribute('aSeed', new InstancedBufferAttribute(new Float32Array(this.seeds), 1));
+      m.count = n;
+      m.visible = true;
       this.mats.forEach((mm, i) => { m.setMatrixAt(i, mm); });
       m.instanceMatrix.needsUpdate = true;
       m.computeBoundingSphere();
       m.name = name;
       return m;
     };
-    this.near = mk(lanternGeometry(6, 8, true), 'lanterns-near');
-    this.far = mk(lanternGeometry(4, 6, false), 'lanterns-far');
+    this.near = mk(near, 'lanterns-near');
+    this.far = mk(far, 'lanterns-far');
     this.far.count = 0;
-    this.dot = mk(lanternGeometry(2, 6, false), 'lanterns-dot');
+    this.dot = mk(dot, 'lanterns-dot');
     this.dot.count = 0;
     this.dot.visible = false;
-    // the buckets are the visible sets: the draws are never culled as a whole
     this.near.frustumCulled = false;
     this.far.frustumCulled = false;
     this.dot.frustumCulled = false;
-    const g = new Group();
-    g.add(this.near, this.far, this.dot);
     live.push(this);
-    return g;
   }
 
   /** bucket the lanterns in view into the near, far (and dot) draws (skipped while the camera has not moved) */
