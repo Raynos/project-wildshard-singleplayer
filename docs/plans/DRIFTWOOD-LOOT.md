@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — stage 1 built (coins capped per enemy, the five icon tabs on every shard, GEAR, FINDS, iron sword saved: `5ce35281`…`25b571d3`), the trader + counter (`b047f294`) and the props (`bd9aa70e`) built; awaiting deploy. In flight with the driftwood-top10 plan agent: stage 2 (the trader's shop screen C, prices from the full-clear census, the whetstone / heart / sea chart / cape effects, stage 1 leftovers) and stage 3 (the chime + charms, trophies, the captain's hat drop, a body shadow for worn cosmetics). Last row after them: the other three shards' Bag review with Jake.
+**State:** `in progress` 2026-09-30 — stage 1 built (coins capped per enemy, the five icon tabs on every shard, GEAR, FINDS, iron sword saved: `5ce35281`…`25b571d3`), the trader + counter (`b047f294`) and the props (`bd9aa70e`) built; awaiting deploy. In flight with the driftwood-top10 plan agent: stage 2 (the trader's shop screen C, prices from the full-clear census, the whetstone / heart / sea chart / cape effects, stage 1 leftovers) and stage 3 paused at 3 subagents (Jake's cap): its pieces are committed unwired (`211b97a1`: charms — +10 health / dodge −30 % / night glow; bear claw +20 % heavy; boar tusk = no hit mid-dodge; the hat drop; a ~330-tri body shadow), wiring + in-game check + sheet left. Last row after them: the other three shards' Bag review with Jake.
 
 ## Why
 
