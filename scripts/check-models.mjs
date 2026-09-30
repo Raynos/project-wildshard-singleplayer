@@ -9,6 +9,8 @@
  *   4. a shard importing another shard's models (`src/chunks/<a>/**` → `chunks/<b>/models/`)
  *   5. `src/models/` importing a shard (`chunks/…`): the contract stays shard-agnostic
  *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again
+ *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4) drawing or registering a thing by hand outside its models/
+ *      folder — only the files it declares world may, each with its reason and its counts
  * REPORTS (never fails) what has not moved onto the contract yet, per area: registrations by hand (`addBuilt`,
  * `registerModel`, `registerSolid`, a registry `add` with an `object`, a `model:` flag) and hand-rolled drawing
  * (`new InstancedMesh` / `BatchedMesh`, `mergeGeometries`) outside src/models/. Each migration wave (M1–M5) drives its
@@ -47,6 +49,34 @@ export const ON_CONTRACT = [
   'src/world/nalati/EagleRock.ts', 'src/world/nalati/Cairn.ts', 'src/world/nalati/Crags.ts', 'src/world/nalati/Stair.ts',
   'src/world/nalati/Bowl.ts',
 ];
+
+/**
+ * 7. A shard whose migration wave is done draws and registers only through `defineModel` / `place` (E315 M8): outside
+ *    its models/ folder, no hand registration and no hand-rolled drawing (the report's counters) except in the files it
+ *    declares world — each with why, and how many of what (a declared file that grows one more fails too).
+ */
+export const DONE = {
+  'nine-dragon-stack': {
+    'src/chunks/nine-dragon-stack/index.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision', counts: { 'registry add with object': 1 } },
+    'src/chunks/nine-dragon-stack/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
+    'src/chunks/nine-dragon-stack/world/hero/kitx.ts': { why: 'the kits\' curved-piece builder merges a region\'s geometry (world)', counts: { mergeGeometries: 1 } },
+    'src/chunks/nine-dragon-stack/vm/geo.ts': { why: 'the first-person arms and the jian are Gear (M5)', counts: { mergeGeometries: 1 } },
+  },
+};
+
+/** a file's hand registrations and hand-rolled draws (comments stripped): the report's counters */
+function countsOf(code) {
+  return {
+    addBuilt: (code.match(/\baddBuilt\(/g) ?? []).length - (/const addBuilt\s*=/.test(code) ? 1 : 0),
+    registerModel: (code.match(/\bregisterModel\(/g) ?? []).length - (/export function registerModel/.test(code) ? 1 : 0),
+    registerSolid: (code.match(/\bregisterSolid\(/g) ?? []).length - (/export function registerSolid/.test(code) ? 1 : 0),
+    'registry add with object': (code.match(/\.add\(\{[^}]*?\bobject:/g) ?? []).length,
+    'model flag': (code.match(/\bmodel:\s*(?:\{|true)/g) ?? []).length,
+    InstancedMesh: (code.match(/new (?:THREE\.)?InstancedMesh\(/g) ?? []).length,
+    BatchedMesh: (code.match(/new (?:THREE\.)?BatchedMesh\(/g) ?? []).length,
+    mergeGeometries: (code.match(/\bmergeGeometries\(/g) ?? []).length,
+  };
+}
 
 const SHARD_MODELS = /^src\/chunks\/([^/]+)\/models\//;
 const SHARD_FILE = /^src\/chunks\/([^/]+)\//;
@@ -102,14 +132,15 @@ export function checkModels(files) {
       violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
     }
     const area = areaOf(file);
-    bump(area, 'addBuilt', (code.match(/\baddBuilt\(/g) ?? []).length - (/const addBuilt\s*=/.test(code) ? 1 : 0));
-    bump(area, 'registerModel', (code.match(/\bregisterModel\(/g) ?? []).length - (/export function registerModel/.test(code) ? 1 : 0));
-    bump(area, 'registerSolid', (code.match(/\bregisterSolid\(/g) ?? []).length - (/export function registerSolid/.test(code) ? 1 : 0));
-    bump(area, 'registry add with object', (code.match(/\.add\(\{[^}]*?\bobject:/g) ?? []).length);
-    bump(area, 'model flag', (code.match(/\bmodel:\s*(?:\{|true)/g) ?? []).length);
-    bump(area, 'InstancedMesh', (code.match(/new (?:THREE\.)?InstancedMesh\(/g) ?? []).length);
-    bump(area, 'BatchedMesh', (code.match(/new (?:THREE\.)?BatchedMesh\(/g) ?? []).length);
-    bump(area, 'mergeGeometries', (code.match(/\bmergeGeometries\(/g) ?? []).length);
+    const counts = countsOf(code);
+    for (const [key, n] of Object.entries(counts)) bump(area, key, n);
+    const done = DONE[area];
+    if (done !== undefined) {
+      const declared = done[file]?.counts ?? {};
+      for (const [key, n] of Object.entries(counts)) {
+        if (n > (declared[key] ?? 0)) violations.push(`${file}: ${area} is on the model contract (DONE) — ${n} × ${key} here; draw and register things through defineModel / place, or declare the file world in DONE with its reason`);
+      }
+    }
   }
   return { violations, report: Object.fromEntries([...report].sort(([a], [b]) => a.localeCompare(b))) };
 }
