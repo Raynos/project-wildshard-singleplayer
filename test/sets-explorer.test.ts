@@ -7,7 +7,7 @@ import { WorldRegistry, type RegisteredSet } from '../src/world/registry';
 import { defineModel, modelContext } from '../src/models/model';
 import { place } from '../src/models/place';
 import { placeSet } from '../src/models/sets';
-import { boxEdges, copyBoxes, cornerBrackets, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '../src/explore/setView';
+import { boxEdges, copyBoxes, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '../src/explore/setView';
 
 const ctx = modelContext(null);
 const mat = new THREE.MeshBasicMaterial();
@@ -95,11 +95,10 @@ describe('the Sets explorer', () => {
     expect(pendingOf(at('x', 0, 0, 1).set)).toEqual([]);
   });
 
-  it('marks: eight corner brackets of three arms, twelve edges a box', () => {
+  it('marks: twelve edges a box, every end on its corners', () => {
     const box = new THREE.Box3(new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, 4, 20));
-    const b = cornerBrackets(box);
-    expect(b).toHaveLength(8 * 3 * 2 * 3);
-    for (let i = 0; i < b.length; i += 3) expect(box.containsPoint(new THREE.Vector3(b[i], b[i + 1], b[i + 2]))).toBe(true);
-    expect(boxEdges([box, box])).toHaveLength(2 * 12 * 2 * 3);
+    const b = boxEdges([box, box]);
+    expect(b).toHaveLength(2 * 12 * 2 * 3);
+    for (let i = 0; i < b.length; i += 3) expect([b[i] === 0 || b[i] === 10, b[i + 1] === 0 || b[i + 1] === 4, b[i + 2] === 0 || b[i + 2] === 20]).toEqual([true, true, true]);
   });
 });

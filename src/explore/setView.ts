@@ -6,7 +6,7 @@
  *   poseOrbit(camera, centre, yaw, pitch, d, lift(window));   // a 3/4 aerial round the set, its centre raised to the window's middle
  *   memberFacts(set, entries) / setTotals(set)                 // the member rows, the card's line
  *   measureDrawn(drawnRoots(set))                              // the set's own triangles and draws in this frame
- *   cornerBrackets(box) / boxEdges(boxes)                      // LineSegments positions: the set's bounds, a member's copies
+ *   boxEdges(boxes)                                            // line positions: the set's bounds, a member's copies
  */
 import * as THREE from 'three';
 import type { DrawnAs, Pipeline, RegisteredSet } from '../world/registry';
@@ -182,23 +182,6 @@ export function boxEdges(boxes: readonly THREE.Box3[]): Float32Array {
     for (const y of ys) for (const z of zs) { put(a.x, y, z); put(c.x, y, z); }
     for (const x of xs) for (const z of zs) { put(x, a.y, z); put(x, c.y, z); }
     for (const x of xs) for (const y of ys) { put(x, y, a.z); put(x, y, c.z); }
-  }
-  return out;
-}
-
-/** LineSegments positions: a bracket at each of the box's eight corners, each arm `k` of its edge long */
-export function cornerBrackets(box: THREE.Box3, k = 0.14): Float32Array {
-  const out = new Float32Array(8 * 3 * 6);
-  const size = box.getSize(new THREE.Vector3());
-  const arm = Math.max(0.5, Math.min(size.x, size.z) * k);
-  const ay = Math.max(0.5, Math.min(size.y * 0.35, arm));
-  let o = 0;
-  for (const c of cornersOf(box)) {
-    const sx = c.x === box.min.x ? 1 : -1, sy = c.y === box.min.y ? 1 : -1, sz = c.z === box.min.z ? 1 : -1;
-    for (const [dx, dy, dz] of [[sx * arm, 0, 0], [0, sy * ay, 0], [0, 0, sz * arm]] as const) {
-      out.set([c.x, c.y, c.z, c.x + dx, c.y + dy, c.z + dz], o);
-      o += 6;
-    }
   }
   return out;
 }

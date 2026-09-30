@@ -11,12 +11,16 @@
  * List: a card per set — an aerial thumbnail the game renders itself (behind the glass the camera visits each set for a
  * few frames and the frame is copied, so the look, the LODs and the culling are the real ones), its models with their
  * copies and pipeline badges, and the set's own triangles and draws in that view.
- * Scene: drag = orbit, pinch / wheel = zoom, idle → it slowly turns; cyan brackets mark the set's bounds, ◎ on a member
+ * Scene: drag = orbit, pinch / wheel = zoom, idle → it slowly turns; a deep-blue box on a light halo marks the set's
+ * bounds (Jake: "way darker, higher contrast"), ◎ on a member
  * outlines its copies (amber); a member row opens its model card (✕ / Esc come back here); ‹ › step through the sets;
  * VIEW IN WORLD hands the view to the World Explorer where it stands. The pure parts (framing, facts, measures) are
  * ./setView.ts.
  */
 import * as THREE from 'three';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import type { World } from '../core/bootstrap';
 import { CHUNK_HALF } from '../core/config';
 import type { ContextValue } from '../ui/review';
@@ -24,7 +28,7 @@ import { measure, type CatalogEntry } from './catalog';
 import type { Explore, ExplorePane } from './Explore';
 import { registeredSets } from './registry';
 import type { DrawnAs, Pipeline, RegisteredSet } from '../world/registry';
-import { boxEdges, copyBoxes, cornerBrackets, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setTotals, type MemberFact, type NdcWindow, type SetOrder } from './setView';
+import { boxEdges, copyBoxes, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setTotals, type MemberFact, type NdcWindow, type SetOrder } from './setView';
 
 type View = 'list' | 'set';
 
@@ -45,6 +49,40 @@ const count = (n: number): string => (n < 1000 ? String(n) : n < 1e6 ? `${(n / 1
 const badge = (p: readonly Pipeline[]): string => (p.length === 0 ? '—' : p.map((x) => PIPELINE_LABEL[x]).join('+'));
 const esc = (s: string): string => s.replaceAll(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] ?? c);
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
+
+/** a line style: a core over a wider halo, widths in CSS px */
+interface LineStyle { readonly core: number; readonly coreWidth: number; readonly halo: number; readonly haloWidth: number; readonly haloOpacity: number }
+/** the set's bounds: deep blue (#1447c2) on a pale halo — dark enough for bright sand and sea, haloed for forest and neon */
+const OUTLINE: LineStyle = { core: 0x1447c2, coreWidth: 3, halo: 0xe6f4ff, haloWidth: 6.5, haloOpacity: 0.72 };
+/** ◎ a member's copies: amber on a dark halo */
+const LOCATED: LineStyle = { core: 0xffb547, coreWidth: 2, halo: 0x06121c, haloWidth: 4.5, haloOpacity: 0.6 };
+
+/** screen-space line segments (LineSegments2: a width in CSS px, not 1 px GL lines), drawn over everything, core over halo */
+class FatLines {
+  readonly group = new THREE.Group();
+  private readonly geo = new LineSegmentsGeometry();
+  private readonly mats: LineMaterial[];
+
+  constructor(style: LineStyle) {
+    const mat = (color: number, width: number, opacity: number): LineMaterial => {
+      const m = new LineMaterial({ linewidth: width, transparent: true, opacity, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
+      m.color = new THREE.Color(color);
+      return m;
+    };
+    this.mats = [mat(style.halo, style.haloWidth, style.haloOpacity), mat(style.core, style.coreWidth, 1)];
+    this.mats.forEach((m, i) => { const l = new LineSegments2(this.geo, m); l.frustumCulled = false; l.renderOrder = 998 + i; this.group.add(l); });
+    this.group.visible = false;
+  }
+
+  /** the segments (pairs of points, xyz each); none hides it */
+  set(positions: Float32Array): void {
+    this.group.visible = positions.length > 0;
+    if (positions.length > 0) this.geo.setPositions(positions);
+  }
+
+  /** the canvas's CSS size (the widths are in its pixels) */
+  resize(res: THREE.Vector2): void { for (const m of this.mats) m.resolution.copy(res); }
+}
 
 /** a set and what the explorer learned about it */
 interface SetInfo {
@@ -74,10 +112,12 @@ export class SetExplorer implements ExplorePane {
   private readonly pointers = new Map<number, { x: number; y: number }>();
   private pinch = 0;
   private readonly scratch = new THREE.PerspectiveCamera();
-  // the marks: the set's bounds (cyan brackets), one member's copies (amber boxes)
+  // the marks: the set's bounds (a deep-blue box on a light halo), one member's copies (amber boxes on a dark halo) —
+  // screen-space lines (LineSegments2), always on top, readable on sand and sea, dark forest and neon alike
   private readonly marks = new THREE.Group();
-  private readonly brackets: THREE.LineSegments;
-  private readonly located: THREE.LineSegments;
+  private readonly outline: FatLines;
+  private readonly located: FatLines;
+  private readonly res = new THREE.Vector2();
   private locatedModel: string | null = null;
   // thumbnails: the camera visits each set in turn behind the list's glass
   private shots: SetInfo[] = [];
@@ -122,14 +162,9 @@ export class SetExplorer implements ExplorePane {
       if (c) this.explore.viewSetInWorld(this.world.game.camera.position.clone(), this.centre.clone(), c.set.name);
     });
 
-    const line = (color: number, opacity: number): THREE.LineSegments => {
-      const l = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: new THREE.Color(color).multiplyScalar(1.4), transparent: true, opacity, depthTest: false, depthWrite: false, fog: false, toneMapped: false }));
-      l.renderOrder = 999; l.frustumCulled = false;
-      return l;
-    };
-    this.brackets = line(0x8fe3ff, 0.95);
-    this.located = line(0xffb547, 0.9);
-    this.marks.add(this.brackets, this.located);
+    this.outline = new FatLines(OUTLINE);
+    this.located = new FatLines(LOCATED);
+    this.marks.add(this.outline.group, this.located.group);
     this.marks.visible = false;
     world.game.scene.add(this.marks);
 
@@ -271,10 +306,9 @@ export class SetExplorer implements ExplorePane {
     this.readoutT = 0;
   }
 
-  /** the cyan brackets on a set's bounds */
+  /** the box on a set's bounds */
   private mark(set: RegisteredSet): void {
-    this.brackets.geometry.dispose();
-    this.brackets.geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(cornerBrackets(set.bounds), 3));
+    this.outline.set(boxEdges([set.bounds]));
     this.marks.visible = true;
   }
 
@@ -313,11 +347,8 @@ export class SetExplorer implements ExplorePane {
   /** ◎: outline one member's copies in amber (null: none) */
   private locate(model: string | null): void {
     this.locatedModel = model;
-    this.located.geometry.dispose();
     const c = this.current;
-    const boxes = model !== null && c ? copyBoxes(c.set, model) : [];
-    this.located.geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(boxEdges(boxes), 3));
-    this.located.visible = boxes.length > 0;
+    this.located.set(boxEdges(model !== null && c ? copyBoxes(c.set, model) : []));
     this.members.querySelectorAll<HTMLElement>('.ws-x-member').forEach((r) => { r.classList.toggle('on', r.dataset['model'] === model); });
   }
 
@@ -398,6 +429,7 @@ export class SetExplorer implements ExplorePane {
 
   update(dt: number): void {
     const { camera } = this.world.game;
+    if (this.marks.visible) { this.world.game.renderer.getSize(this.res); this.outline.resize(this.res); this.located.resize(this.res); }
     const c = this.current;
     if (c) {
       this.idle += dt;
