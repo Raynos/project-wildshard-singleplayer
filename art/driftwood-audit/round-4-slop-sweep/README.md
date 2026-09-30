@@ -1,6 +1,6 @@
 # Driftwood slop sweep, round 4 (E318, 2026-09-29)
 
-The top cut candidates from [`docs/plans/DRIFTWOOD-SLOP.md`](../../../docs/plans/DRIFTWOOD-SLOP.md) (38 rows), one
+The top cut candidates from [`project/archive/2026-09-30-driftwood-slop.md`](../../../project/archive/2026-09-30-driftwood-slop.md) (38 rows), one
 card each. Every card's number is that row's number in the plan, so a reply like "delete 1, 2, 5–9" maps straight onto
 the table. **PURE** marks a deletion with no taste call.
 

@@ -1,6 +1,6 @@
 # Plan: Driftwood slop sweep (E318)
 
-**State:** `finished` 2026-09-30 — every row Jake picked is live in `d1cdcee-munun0hj` (E318; DRIFTWOOD-TOP10 row 11). Row 27's markers had nothing to cut (Pine Hollow's own pins). No leftovers.
+**State:** `archived` 2026-09-30 (finished 2026-09-30) — every row Jake picked is live in `d1cdcee-munun0hj` (E318; DRIFTWOOD-TOP10 row 11). No leftovers.
 
 ## Read this first
 
