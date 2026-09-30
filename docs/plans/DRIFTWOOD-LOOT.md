@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — built: stages 1–3 (stage 1 live; stage 2 `8a56799b`, stage 3 `4b211dc9`, awaiting deploy; sheets `progress/293-e314-shop-stage2.jpg`, `progress/294-e314-keepsakes-stage3.jpg`). Open, all Jake's: his look review of three stage-3 calls (the chime hangs by the window, not over the doorway; the night glow is solid aqua; a low sun behind you shades the held sword), and the last row — the other three shards' Bag review: boards ready in `art/loot/round-3-other-shards/` (recommended: Pine Hollow C, then Nalati A, then Nine Dragon A; one yes/no for Jake).
+**State:** `in progress` 2026-09-30 — Driftwood's stages 1–3 are live (`24c8e41-munz58y9`). Last row, Jake picked 2026-09-30: Pine Hollow **C**, Nalati **C**, Nine Dragon **A**, built in that order — Pine Hollow in flight (driftwood-top10 plan agent, coordinated with each shard's own session). Also open, Jake's: the look review of three stage-3 calls.
 
 ## Why
 
@@ -102,11 +102,11 @@ fundamentally shared UI for the entire game." So the Bag is built once for all f
 **Prices (stage 2, `src/game/loot/shop.ts` GOODS; full clear = 92):** Whetstone I 12 · Whetstone II 22 · Sturdy Heart I
 14 · Sturdy Heart II 22 · Sea chart 12 · Sailcloth cape 8 = 90. The trader is **Maren**.
 
-**The other three shards (boards `art/loot/round-3-other-shards/`, 2026-09-30, Jake approved none yet):**
+**The other three shards (boards `art/loot/round-3-other-shards/`, 2026-09-30). Jake picked Pine Hollow C, Nalati C (not A), Nine Dragon A, order PH → Nalati → ND:**
 - Pine Hollow **C** (recommended): JOURNAL → FINDS, the pack keeps only Mott's 7 kinds (each says what Mott gives), a
   FINISHES row on GEAR; fixes the full-pack bugs that lose the Longbow unlock and paid trades. Size M.
-- Nalati **A** (recommended): MAP · GEAR · FEATS, no pack, no harvesting (12 junk kinds nothing reads); name the
-  upgrades; fix Argymaq's unknown skin id. Size S.
+- Nalati **C** (Jake's pick): MAP · GEAR · FINDS · FEATS, no pack, no harvesting (12 junk kinds nothing reads); FINDS
+  shows the 5 elites and their prizes; name the upgrades; fix Argymaq's unknown skin id.
 - Nine Dragon **A** (recommended): MAP · GEAR only (the Neon Jian + the Fei Zhua grapple); drop the unreachable iron
   sword. Size XS.
 - Order: Pine Hollow → Nalati → Nine Dragon.
