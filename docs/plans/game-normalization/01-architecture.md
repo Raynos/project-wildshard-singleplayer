@@ -198,10 +198,15 @@ export interface ShardManifest {
   slug: ShardSlug; name: string; blurb: string; order: number;       // deck order (Driftwood first: PH-U19)
   status: 'live' | 'experimental' | 'earlyAccess' | 'hidden';        // 'hidden' = Debug-only (the template)
   card: { thumb: string; portrait: string; landscape: string };
-  map: { grid: [number, number]; size: [number, number, number] };   // own origin + place on the Wildshard map (61)
-  style: string;                            // 'toon' | 'painterly' | 'pbr' | 'jiehua' | 'greybox' — data only, never branched on
+  placement: { grid: [number, number]; size: [number, number, number] };   // own origin + place on the Wildshard map (61)
+  label: string; seed: number; biome: string;   // today's ChunkDef.gridCoords (label), seed, biome
+  minimap: ChunkMapDef;                     // today's ChunkDef.map (the minimap / full-map drawing data), renamed
+  camera?: { portraitFov?: number };        // today's ChunkDef.fov
+  bag: { tabs: readonly BagTabId[] };      // E314's per-shard tab picks (X2)
+  hud?: ChunkHud;                           // today's ChunkDef.hud, as is (data the HUD reads)
+  style: 'toon' | 'painterly' | 'pbr' | 'jiehua' | 'greybox';   // data only, never branched on; F6 maps today's 'lowpoly' → 'toon'
   uses: readonly Mechanism[];               // opt-in engine mechanisms (54): 'weather' | 'dayCycle' | 'elites' | …
-  ground: { terrain: TerrainSpec } | { structures: true };           // today's ChunkDef.terrain / structures
+  ground: { terrain?: TerrainSpec; structures?: true };             // at least one; Nine Dragon has both today
   spawn: SpawnPose; bounds?: Bounds;
   sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec;        // today's pure-data look fields, as is
   render?: () => Promise<ShardRender>;      // the look strategy (§13)
@@ -212,7 +217,11 @@ export interface ShardManifest {
   species: readonly SpeciesRef[]; encounters?: readonly EncounterRef[];
   audio: { ambience: AmbienceRef; score: ScoreRef; cues: () => Promise<CueMap> };
   input?: readonly InputContextRef[];       // contexts it adds (§10)
-  boot: BootSpec;                           // steps, asset lists per tier, precache (§8)
+  boot: BootSpec;                           // steps, asset lists per tier, precache, barrier / fragile / trace (§8)
+  dayCycle?: DayCycleKeyframes; weather?: WeatherSpec;              // data for the opt-in mechanisms (§17)
+  // carried over from ChunkDef as data, unchanged: trees, forest, assets, look, horizon, pondClip, pois, spawns (was
+  // fauna: HerdPlan[]), faunaTuning, loot, bodyShadow, groundColor, surfaceAt; ocean becomes a WaterBody row (§17);
+  // weapon becomes loadout (§18)
   roster?: () => Promise<readonly RosterEntry[]>;   // Explore's cards (today's hook, as is)
   explore?: ExploreSpec;
   load: () => Promise<{ default: new () => ShardPlugin }>;           // the lazy plugin chunk
@@ -227,6 +236,13 @@ export const defineShard: (m: ShardManifest) => ShardManifest;      // identity 
 - **Today's `ChunkDef` fields map one to one**, listed in [02-foundations.md](02-foundations.md) F6. The hook fields
   `sword`, `fieldModels`, `traversal`, `structures` (the builder) and `fov` move into the plugin.
 - `ShardSlug` is a union generated from the folder names.
+- **Where each ChunkDef field goes:** all 48 `ChunkDef` fields map one to one (the table is in 02-foundations F6).
+  Three fields are renamed:
+  - `ChunkDef.map` becomes `minimap` (the name `map` is gone, to avoid a clash with world placement);
+  - `gridCoords` becomes `label`;
+  - `fov` becomes `camera.portraitFov`.
+  F6 leaves today's hook fields (`sword`, `fieldModels`, `traversal`, `structures` builder, `render`) on the
+  manifest. Each shard's phase moves them into its plugin (S1.1 / S2.1 / S3.1 / S4.1), and the type then drops them.
 
 ## 7. The shard plugin and the registry
 
@@ -249,6 +265,7 @@ export interface ShardContext {             // the plugin verbs: everything is o
   debugRow(r: DebugRowSpec): void;          // pause ▸ Settings ▸ Debug, into an existing group
   playground(p: PlaygroundSpec): void;      // Explore's playground list (EI22)
   strings(t: StringTable): void;
+  debug: { expose(name: string, value: unknown): void };   // → window.__wildshard.shard[name]; replaces __ndRender, the seven __pine*, __titan …
 }
 // src/game/shard/shards.generated.ts — written by scripts/gen-shards.mjs from src/shards/*/manifest.ts
 export const SHARDS: readonly ShardManifest[];
@@ -289,8 +306,13 @@ export const SHARDS: readonly ShardManifest[];
     and `boot.precache`.
   - `boot/manifest.ts`, `extras.ts`, `shardPrefetch.ts` and `audioFiles.ts` lose every shard branch.
   - The service worker precaches every shard's code and packs at install, as today (decision 29).
-- **Fragile-boot data** (Nine Dragon on phone): today's `extrasBarrier` / `deferExtras` / `fragileBoot` slug gates
-  become `boot.phone.deferExtras: true` and `boot.phone.barrier: true`.
+- **Fragile-boot data** (Nine Dragon) moves from slug gates into the manifest, flag by flag:
+  - `extrasBarrier` → `boot.barrier: true` (all tiers, since it applies on desktop too);
+  - `deferExtras` → `boot.phone.deferExtras: true`;
+  - `fragileBoot` → `boot.phone.fragile: true`;
+  - `nineBootTrace` → `boot.phone.trace: true`;
+  - its first-draw cull → `boot.cullBeforeFirstDraw: true`.
+  Its knobs `warmTurns` and `textures` are ordinary tier knobs (§13.3).
 
 ## 9. Saves
 
@@ -298,7 +320,9 @@ export const SHARDS: readonly ShardManifest[];
 // #engine — src/engine/saves/
 export interface SaveKeyDef<T> {
   key: string;                   // dot-case: 'progress', 'compendium', 'owned', 'purse' …
-  scope: 'global' | 'shard';     // shard = namespaced by slug under the hood
+  scope: 'global' | 'shard' | 'device' | 'session';
+  // shard = namespaced by slug; device = machine-local bookkeeping (never exported, never reset);
+  // session = sessionStorage (per tab)
   version: number;               // bump on any shape change
   schema: v.GenericSchema<T>;    // valibot: saves are outside data
   initial: () => T;
@@ -315,8 +339,12 @@ export interface SaveSlot<T> { read(shard?: string): T; write(v: T, shard?: stri
 **Rules**
 - **The format.** One localStorage document per scope, `wildshard.save.v2.global` plus one per shard
   (`wildshard.save.v2.<slug>`), each `{ keys: { <key>: { v: <version>, data } } }`.
-- **A reset now** (decision 13). On first boot of v2, every old `ws.*` key is deleted once (the list is in F10), and
-  the store starts empty. From then on every shape change bumps `version` and adds a migration. A node test loads a
+- **A reset now** (decision 13). On first boot of v2, every old **game-save** `ws.*` key is deleted once (the list is
+  in F10), and the store starts empty. Never reset:
+  - `device` and `session` keys;
+  - the native OTA keys `ws.ota.*`;
+  - the 3 keys `index.html` reads before the game code loads (they become `device` keys, read by a tiny pre-boot
+    reader in `index.html`). From then on every shape change bumps `version` and adds a migration. A node test loads a
   fixture save of every past version.
 - **A newer save, older build:** an old cached build reading a save whose version is newer than it knows keeps the
   save untouched and runs read-only for that key. It never downgrades a save.
@@ -374,6 +402,7 @@ export interface HudSlots {
   disc(o: DiscOpts, scope: Scope): HTMLButtonElement;                          // today's DiscOpts / DiscSpot, kept
   relabel(spot: DiscSpot, label: string, icon: string, scope: Scope): void;   // context relabel (39)
   verb(slot: 'verb.1' | 'verb.2', o: VerbSlotOpts, scope: Scope): void;        // reserved verb slots (39)
+  pin(at: THREE.Vector3 | (() => THREE.Vector3 | null), el: HTMLElement, scope: Scope): void;  // screen-projected world markers (Fei Zhua chip, ◇ marks, quest pins)
 }
 ```
 
@@ -390,19 +419,39 @@ export interface HudSlots {
 
 ```ts
 export type TickRateId = 'always' | 'ai' | 'npc' | 'fx' | 'weather' | string;
-export interface TickRate { near: number; far: number; farFrom: number; pausedFrom: number }  // Hz, metres
-export interface Scheduler { rate(id: TickRateId, r: TickRate): void; due(id: TickRateId, pos: THREE.Vector3): boolean }
+export interface TickBand { upTo: number; brainHz: number | 'paused'; body: 'frame' | 'half' | 'paused' }  // upTo metres
+export interface TickRate { bands: readonly TickBand[] }
+export interface Scheduler {
+  rate(id: TickRateId, r: TickRate): void;
+  brainDue(id: TickRateId, actor: Actor): boolean;   // the brain (decisions) this frame?
+  bodyDue(id: TickRateId, actor: Actor): boolean;    // the body (movement, animation, strike phases, hit checks) this frame?
+  interrupt(actor: Actor, why: InterruptReason): void;   // an immediate re-think this frame, whatever the band
+  pin(actor: Actor, scope: Scope): void;             // never paused (an active boss / elite, a quest actor)
+}
+export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.sight' | 'ally.died' | string;
 ```
 
 **Rules**
-- **Defaults, Genshin-style** (decision 23):
-  - `ai`: 30 Hz near, 15 Hz from `farFrom` 60 m, paused from 160 m;
-  - `npc` the same;
+- **Defaults** (decision 85, a Genshin hybrid). The same bands apply to `ai` and `npc`:
+
+  | Band | Distance | Brain | Body |
+  |---|---|---|---|
+  | near | 0–60 m | 20 Hz | every frame (30 Hz phone, 60 desktop) |
+  | mid | 60–160 m | 10 Hz | every 2nd frame |
+  | far | 160 m+ | paused | paused |
+
+  - Every band gets **instant interrupts**: the brain re-thinks the frame it's hit, the frame its target starts a
+    swing or dodge, and the frame it loses sight.
+  - **Never paused:** an active boss or elite, and a quest actor (`scheduler.pin`).
+  - **Strike phases** (wind-up → active → recover, 01 §19) run on the **body** clock, never on the brain tick. That
+    fixes the up-to-100 ms telegraph / hit drift of today's self-thinking species.
   - `fx`: 30 Hz near, paused from 120 m;
   - `weather`: 10 Hz.
 - A shard can override a rate in `manifest.tiers`.
 - Every creature, NPC, elite, boss and FX system declares its `tick`. The creatures board shows the before / after.
 - The first numbers are provisional and are checked against the budget calibration (S1.6).
+- **Until S2.6 every brain keeps today's 10 Hz** (parity). S2.6 switches to the bands above and goes on the
+  creatures board. It covers every shard's creatures, including Driftwood's far boars and bears.
 
 ## 13. Render, tiers, budgets
 
@@ -410,7 +459,7 @@ export interface Scheduler { rate(id: TickRateId, r: TickRate): void; due(id: Ti
 
 ```ts
 export interface ShardRender {
-  slices?: boolean; ao?: boolean; aa?: 'fxaa';              // today's fields, kept
+  // today's slices / ao / aa fields MOVE to manifest.tiers: one source for tier knobs (§13.3)
   compose: (c: ShardComposeContext) => ShardComposition;    // today's five pass slots, kept
   frame?: (dt: number, t: number) => void; dispose?: () => void;
   fog?: FogModel;                 // the shard's fog patch (replaces Game.ts:207-208 and Atmosphere's `painted`)
@@ -442,6 +491,8 @@ export interface ShaderPatches { patch(mat: THREE.Material, id: string, order: n
 
 - `src/engine/render/tiers.ts` holds the engine's knobs (~52 of today's 59). The kit declares knob schemas for its
   families (grass density, …). A manifest's `tiers` overrides them per tier.
+- **Precedence (one source):** engine default → kit schema default → `manifest.tiers[tier]`. The last one wins.
+  `ShardRender` carries no tier knobs.
 - `PINE_HOLLOW_PHONE` and the shard-named helpers are deleted.
 
 ### 13.4 Budgets (decisions 30, 35, 36, 37)
@@ -561,7 +612,18 @@ export interface EffectDef {
   cue?: CueId; icon?: string;               // HUD status icon (starter set)
   blockedBy?: readonly Tag[]; grants?: readonly Tag[];
 }
-export interface EffectService { apply(target: Actor, id: EffectId, source?: Actor): void; remove(target: Actor, id: EffectId): void; has(target: Actor, tag: Tag): boolean }
+export interface EffectService { apply(target: Actor | Equipment, id: EffectId, source?: Actor): void; remove(target: Actor | Equipment, id: EffectId): void; has(target: Actor | Equipment, tag: Tag): boolean }
+// weapons carry their own AttributeSet (damage, reach, drawSpeed, magazine …): whetstones, the bear claw and the Golden Bow's draw modify the weapon
+export interface DamageRuleDef {             // rules that depend on the hit itself: hit caps, the boar tusk, sneak shot, broadheads, balbal bonuses
+  id: string; order: number;                 // answers ask('damage.modify') in `order`
+  when: { sourceTags?: readonly Tag[]; targetTags?: readonly Tag[]; weaponTags?: readonly Tag[]; targetState?: readonly Tag[] };
+  op: 'cap' | 'add' | 'mul' | 'negate' | 'override'; value: number;
+}
+export interface DamageRequest {             // the superset every path fills (09-combat-ai §3 lists each path's values)
+  source: Actor | 'env'; sourceTags: readonly Tag[]; target: Actor; amount: number;
+  point: THREE.Vector3; dir: THREE.Vector3; surface?: SurfaceId; weaponId?: string; moveId?: string;
+  headshot?: boolean; stagger?: number; knockback?: number; throughWalls?: boolean;
+}
 ```
 
 - **Effects on day one:**
@@ -593,8 +655,12 @@ export interface SpeciesRow {                // tuning: kit (2+ shards) or shard
   senses: Senses; strikes: readonly StrikeSpec[]; loot?: LootTableId; tick?: TickRateId;
   brain: new (a: Actor) => CreatureBrain;    // behaviour: a subclass (67)
 }
+export type StrikeShape =
+  | { kind: 'arc'; radius: number; halfAngle: number } | { kind: 'lane'; length: number; width: number }
+  | { kind: 'ring'; inner: number; outer: number } | { kind: 'wedge'; length: number; halfAngle: number }
+  | { kind: 'point'; radius: number };
 export interface StrikeSpec {                // replaces the 24 hand-rolled windup / hit / cooldown blocks
-  id: string; shape: 'arc' | 'lane' | 'ring' | 'wedge' | 'point';
+  id: string; shape: StrikeShape;
   windup: number; active: number; recover: number; cooldown: number;
   range: number; damage: number; tags: readonly Tag[]; telegraph?: GroundTellSpec; weight: UtilityCurve;
 }
@@ -608,7 +674,7 @@ export interface EncounterService {         // today's Boss.ts runtime (arena, s
   elite(def: EliteDef, scope: Scope): EliteHandle;
   spawn(table: SpawnTableId, scope: Scope): Spawner;
 }
-export interface WeightedTable<T> { rows: readonly { item: T; weight: number; when?: Tag[] }[]; rolls: number }  // spawns + loot
+export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { item: T; weight: number; count?: [number, number]; when?: Tag[] }[]; rolls: number }  // spawns + loot; 'each' = every row once (fixed harvest yields)
 ```
 
 **Where things go**
@@ -637,10 +703,11 @@ export interface WeightedTable<T> { rows: readonly { item: T; weight: number; wh
 | Folder | Contents at the end (rule of two: 2+ shards) |
 |---|---|
 | `#kit/weapons/` | the Melee, Bow, Crossbow, Firearm and Thrown families + shared profiles (the iron sword) |
-| `#kit/species/` | boar, bear, horse |
+| `#kit/species/` | boar and bear (2+ shards). The horse stays in Nalati: its only other user is the horse playground, which is Nalati's |
 | `#kit/effects/` | poison, burn, bleed, slow, stun |
-| `#kit/weather/` | the rain / snow / puddle / lightning FX (Nalati + Pine) |
-| `#kit/npc/` | the NPC rig + idle (Castaway ≈ Trader ≈ campPeople ≈ Pine `npcRig`, D9) |
+| `#kit/weather/` | the rain curtain (the one weather FX Nalati and Pine share). Puddles are two different techniques, so they stay per shard as look content, and lightning is Nalati's alone |
+| `#kit/npc/` | the NPC rig + idle (D9). Seeded from Pine's `npcRig` in S2.5; Nalati's campPeople join in S3.3; Driftwood's Castaway and Trader join in S4.3 |
+| `#kit/tools/` | the hoverboard (used on all 4 shards) as a kit Tool, moved in X1; its movement mode (`board` context, motor) stays engine |
 | `#kit/looks/` | any look piece 2+ shards share (the grass trample: Pine + Nalati) |
 
 ## 22. Explore, practice, playgrounds
@@ -672,6 +739,8 @@ export interface WeightedTable<T> { rows: readonly { item: T; weight: number; wh
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |
 | `wildshard/no-renderer-type` | `WebGLRenderer` named outside `src/engine/render/**` | 52 files |
+| `wildshard/no-active-chunk` | `getActiveChunk()` calls outside `#game/shard` (each becomes `app.shard` or manifest data, file by file from F8 on) | 136 calls / 42 files |
+| `wildshard/no-global-listener-patch` | teardown through `shardScope`'s `addEventListener` patch (kept until X1 / X2 move the 396 listeners onto scopes) | 396 |
 | `wildshard/no-url-switch` | unchanged (the allowlist) | — |
 
 **How the ratchet works**

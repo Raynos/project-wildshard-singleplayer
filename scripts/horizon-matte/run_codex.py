@@ -17,7 +17,8 @@ for j in jobs:
     if os.path.exists(j['out']):
         print('skip (exists)', j['id']); continue
     log = os.path.join(HERE, f"{j['id']}.log")
-    cmd = ['codex', 'exec', '-s', 'workspace-write', '--skip-git-repo-check', '-C', HERE, '--add-dir', GEN]
+    # -m: the config default gpt-6.1-sol is refused under the ChatGPT login (E357); override with CODEX_MODEL
+    cmd = ['codex', 'exec', '-m', os.environ.get('CODEX_MODEL', 'gpt-6-sol'), '-s', 'workspace-write', '--skip-git-repo-check', '-C', HERE, '--add-dir', GEN]
     for i in j['inputs']:
         cmd += ['-i', i]
     cmd += ['-o', os.path.join(HERE, f"{j['id']}.last.txt"), j['prompt']]

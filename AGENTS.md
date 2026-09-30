@@ -278,7 +278,7 @@ on his laptop.
   fine, each takes a few minutes):
 
   ```bash
-  codex exec -s workspace-write --skip-git-repo-check -C "$REPO" --add-dir ~/.codex/generated_images \
+  codex exec -m gpt-6-sol -s workspace-write --skip-git-repo-check -C "$REPO" --add-dir ~/.codex/generated_images \
     -i "$SP/ref-desktop.png" -o "$SP/<id>.last.txt" "<COMMON><SCREEN>
   TASK FOR CODEX: Use the built-in image_gen tool to EDIT the attached reference screenshot into
   exactly ONE 16:9 landscape image as described above (keep the world, camera and existing HUD; add
@@ -293,7 +293,8 @@ on his laptop.
   reconnects over the slow uplink (E41, 2026-09-23). The runner reads `session id:` from each run's log, polls that
   folder, copies the PNG the moment it appears and kills that codex. Pass the reference as a JPEG (~300 KB, not a
   1.4 MB PNG): every run uploads it. More parallel runs don't slow each other; the waiting is per run, not a queue.
-  The model and effort come from `~/.codex/config.toml`. `image_gen` is codex's built-in tool (the
+  Pass `-m gpt-6-sol`: the config's default `gpt-6.1-sol` is refused under the ChatGPT login ("not supported when
+  using Codex with a ChatGPT account", E357, 2026-09-30). The effort comes from `~/.codex/config.toml`. `image_gen` is codex's built-in tool (the
   system `imagegen` skill), so it needs no `OPENAI_API_KEY`. Write the prompts and the runner script
   into the scratchpad with the Write tool: the `dcg` hook blocks shell redirects to computed paths.
 - **The prompt has two blocks.** COMMON is shared by every run. It says what the game is (low-poly
