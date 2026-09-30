@@ -23,7 +23,6 @@ import { heightAt, normalAt, trailDistance, inChunk, TRAILS } from '../../Height
 import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '../../GrassField';
 import { RIVER, riverMask, BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, zoneAt, snowValleyX, snowValleyHalf, glacierMask } from '../../../chunks/nalati-grasslands';
 import { inPoiClearing } from '../clearings';
-import { setting } from '../../../ui/Settings';
 import type { Forest } from '../../Forest';
 import type { Box } from '../solid';
 import type { Inst } from './layer';
@@ -135,11 +134,11 @@ export async function planDressing(forest: Forest | null, yieldTask: () => Promi
   woods(plan, occ, forest);
   landmarks(plan, occ);
   roadFences(plan);
-  if (setting('nalatiCampDress') === 'dense') campDense(plan, occ, nearTree);   // B2 taste variant (its own rng: the default plan is untouched)
+  campDense(plan, occ, nearTree);   // B2: the camps dressed to the felt (its own rng: the passes above never move)
   return plan;
 }
 
-// ── the camps, dressed denser (NALATI-FINISH B2 / E302, a Debug ▸ Ground cover row for Jake's pick) ─────────────────────
+// ── the camps, dressed to the felt (NALATI-FINISH B2 / E302: B picked, 2026-09-30 — the Debug row is gone) ─────────────
 
 /**
  * Flower clumps (buttercup / edelweiss, a few lupins) and small fieldstones inside the camps' clearings, between the
@@ -729,11 +728,9 @@ export function campClutterSpots(avoid: readonly Box[] = []): { x: number; z: nu
   };
   ring(CAMP.x, CAMP.z, 17.5, 24, 7, campYurts);
   ring(SUMMER_YURTS.x, SUMMER_YURTS.z, 12.5, 17, 7, summerYurts);
-  // B2 taste variant (Debug ▸ Ground cover ▸ Camp dressing): more painted clutter — pots, sacks, folded felts, a chopping
-  // block — round both camps; drawn after the default spots (the rng runs on), and nothing that collides
-  if (setting('nalatiCampDress') === 'dense') {
-    ring(CAMP.x, CAMP.z, 11, 24, 12, campYurts, [2, 3, 4, 5]);
-    ring(SUMMER_YURTS.x, SUMMER_YURTS.z, 7, 16, 6, summerYurts, [2, 3, 4, 5]);
-  }
+  // B2 (E302, B picked): more painted clutter — pots, sacks, folded felts, a chopping block — round both camps; drawn
+  // after the spots above (the rng runs on), and nothing that collides
+  ring(CAMP.x, CAMP.z, 11, 24, 12, campYurts, [2, 3, 4, 5]);
+  ring(SUMMER_YURTS.x, SUMMER_YURTS.z, 7, 16, 6, summerYurts, [2, 3, 4, 5]);
   return out;
 }

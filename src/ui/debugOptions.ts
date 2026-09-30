@@ -142,9 +142,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('coverReach', 'cover', 'Slope reach', ON_OFF, { when: driftwood, note: 'E156 · slope plants drawn 1.7× further' }),
   opt('coverBlend', 'cover', 'Far colour blend', ON_OFF, { when: driftwood, note: 'E117 / E156 · far plants fade into the ground' }),
   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 · the far stand-in meshes' }),
-  // ── Ground cover & foliage: Nalati (NALATI-FINISH B2, E302 — Jake's taste picks; progress/e302-look/board.jpg) ──
-  opt('nalatiCampDress', 'cover', 'Camp dressing', [['current', 'A · Current'], ['dense', 'B · Denser']], { reload: true, when: nalati, note: 'B2 / E302 · flowers + small stones up to the felt and more painted clutter round both camps' }),
-  opt('nalatiButterflies', 'cover', 'Butterflies', [['current', 'A · Current'], ['big', 'B · Bigger']], { when: nalati, note: 'B2 / E302 · the butterflies over the flower drifts, 1.65× the size' }),
 
   // ── Look: Driftwood's phone shadow maps (E174; src/world/shadowVariants.ts), live. Each choice says its MB ──
   {
