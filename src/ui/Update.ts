@@ -78,7 +78,7 @@ async function check(): Promise<void> {
 }
 void check();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void check(); });
-setInterval(check, 5 * 60 * 1000);
+setInterval(() => { void check(); }, 5 * 60 * 1000);
 
 // Only show while on the loading / title screen; hide once the player has entered the chunk. Players: only when a new build waits.
 // The running shard's #hud (E155: each resident shard has its own; a switch swaps them in <body>, which runs sync below)
