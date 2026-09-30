@@ -345,3 +345,31 @@ export class SetCull {
     this.levels.forEach((meshes, k) => { for (const m of meshes) m.visible = k === l; });
   }
 }
+
+/**
+ * `draw: 'single'`: the parts of a copy tagged `userData.until` (metres) are drawn only while the camera is nearer than
+ * that to the copy's origin — a building's detail set (its iron, cloth and glass) and its far set, dropped with distance
+ * as Pine Hollow's cabins and landmarks did by hand. Checked when the view changed; only a crossing touches `visible`.
+ */
+export class UntilCull {
+  private readonly view = new View();
+  private readonly shown: Int8Array;
+  /** `parts[k]` is shown while the eye is within `until[k]` of copy `copyOf[k]`, whose origin is `origins[3 × copy …]` */
+  constructor(private readonly parts: readonly THREE.Object3D[], private readonly until: Float32Array, private readonly copyOf: Uint32Array, private readonly origins: Float32Array) {
+    this.shown = new Int8Array(parts.length).fill(-1);
+  }
+
+  update(camera: THREE.Camera): void {
+    if (!this.view.changed(camera)) return;
+    const e = this.view.eye, o = this.origins;
+    for (let k = 0; k < this.parts.length; k++) {
+      const c = this.copyOf[k] ?? 0, u = this.until[k] ?? 0;
+      const dx = (o[c * 3] ?? 0) - e.x, dy = (o[c * 3 + 1] ?? 0) - e.y, dz = (o[c * 3 + 2] ?? 0) - e.z;
+      const on = dx * dx + dy * dy + dz * dz < u * u ? 1 : 0;
+      if (this.shown[k] === on) continue;
+      this.shown[k] = on;
+      const part = this.parts[k];
+      if (part) part.visible = on === 1;
+    }
+  }
+}

@@ -14,8 +14,10 @@
  *     contract board, and the bear cave's rock arch (opened into the cave). Placed here, each type a set: LOD0 until
  *     the nearest copy is past its distance, then LOD1, gone past the props' range (`place`'s `lodBy: 'set'`).
  *
- * The timber pieces build with the cabins' own kit and materials (Cabin.ts: `cabinMats`, `logGeo`, `finishParts`): one
- * merged mesh per material per landmark, two position-only shadow proxies, no new programs. Each prop type is ONE
+ * The timber pieces are models too (E315 M2): pine-hollow/fire-lookout, zipline-landing, creek-footbridge and the
+ * zip-cable, built on the cabins' own kit and materials (src/chunks/pine-hollow/world/timber.ts: one merged mesh per
+ * material per landmark, two position-only shadow proxies, no new programs), placed here at the frames their old
+ * world-space builders used; the landing and the footbridge are fitted to the ground under them. Each prop type is ONE
  * InstancedMesh per LOD. Lights: none of their own — the waystones' flames and the cab's glass are emissive, driven by
  * `sky.lamps` (PH-L3), and the waystones are lamp sites the phone's pooled cabin pair may visit (Cabins.addLampSite).
  *
@@ -24,7 +26,7 @@
  */
 import * as THREE from 'three';
 import { heightAt } from './Heightfield';
-import { cabinMats, finishParts, logGeo, boxUV, makeGlowTexture, type Mats, type MatKey, type ExtraBuilding, type Cabins } from './Cabin';
+import { makeGlowTexture, type ExtraBuilding, type Cabins } from './Cabin';
 import {
   LOOKOUT, ZIPLINE, CREEK_BRIDGE, E_ROAD, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,
 } from '../chunks/pineHollowLayout';
@@ -45,6 +47,11 @@ import { beaverDam } from '../chunks/pine-hollow/models/beaverDam';
 import { canoe } from '../chunks/pine-hollow/models/canoe';
 import { contractBoard } from '../chunks/pine-hollow/models/contractBoard';
 import { caveArch, openCaveArch } from '../chunks/pine-hollow/models/caveArch';
+import { loadTimber, placeFloors, timberFrame, type Floor, type TimberFacts } from '../chunks/pine-hollow/world/timber';
+import { fireLookout, fireLookoutFacts } from '../chunks/pine-hollow/models/fireLookout';
+import { ziplineLanding, ziplineLandingFacts } from '../chunks/pine-hollow/models/ziplineLanding';
+import { creekFootbridge, creekFootbridgeFacts } from '../chunks/pine-hollow/models/creekFootbridge';
+import { zipCable } from '../chunks/pine-hollow/models/zipCable';
 import { PineCrags, placeCrags } from './PineCrags';
 
 type V3 = THREE.Vector3;
@@ -97,374 +104,11 @@ export function pineHamletBuildings(): ExtraBuilding[] {
   ];
 }
 
-// ───────────────────────────── the timber kit: one landmark's parts in its own frame ─────────────────────────────
+// ───────────────────────────── the fire lookout, the zipline and the footbridge (models: ../chunks/pine-hollow/models/) ─────
 
-interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
-
-class Timber {
-  readonly root = new THREE.Group();
-  readonly detail: THREE.Object3D[] = [];
-  readonly far: THREE.Object3D[] = [];
-  readonly glass: THREE.BufferGeometry[] = [];
-  readonly rng: Rng;
-  private parts = new Map<MatKey, THREE.BufferGeometry[]>();
-  private m = new THREE.Matrix4();
-  private q = new THREE.Quaternion();
-
-  constructor(name: string, readonly x: number, readonly y: number, readonly z: number, readonly yaw: number, seed: number,
-    private out: ColliderDesc[], private floors: Floor[]) {
-    this.rng = new Rng(SEED + seed);
-    this.root.name = name;
-    this.root.position.set(x, y, z);
-    this.root.rotation.y = yaw;
-    this.root.updateMatrixWorld(true);
-    this.q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-  }
-
-  add(key0: MatKey, geo: THREE.BufferGeometry, m?: THREE.Matrix4): void {
-    if (m) geo.applyMatrix4(m);
-    const g = geo.index ? geo.toNonIndexed() : geo;
-    // fewer materials, fewer draws (a landmark is mostly seen from afar): the decks are the beams' planks
-    const key: MatKey = key0 === 'deck' ? 'beam' : key0;
-    const list = this.parts.get(key);
-    if (list === undefined) this.parts.set(key, [g]); else list.push(g);
-  }
-  /** a box of w × h × d centred at (x, y, z), turned ry about +Y (then rz, rx) */
-  box(key: MatKey, w: number, h: number, d: number, x: number, y: number, z: number, uv = 1, ry = 0, rz = 0, rx = 0): void {
-    const g = boxUV(new THREE.BoxGeometry(w, h, d), uv, this.rng.next(), this.rng.next());
-    this.m.makeRotationFromEuler(new THREE.Euler(rx, ry, rz, 'YXZ')).setPosition(x, y, z);
-    this.add(key, g, this.m);
-  }
-  /** a round log from a to b (peeled 'log' texture, or 'bark') with end grain caps */
-  log(a: V3, b: V3, r: number, key: 'log' | 'bark' = 'log', segs = 10): void {
-    const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-    if (len < 0.02) return;
-    const { side, caps } = logGeo(len, r, this.rng.int(0, 6), this.rng.range(0, 2), segs, key === 'bark');
-    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize());
-    const m = new THREE.Matrix4().makeRotationFromQuaternion(q).setPosition(a.clone().lerp(b, 0.5));
-    this.add(key, side, m.clone());
-    this.add(key, caps, m); // the caps in the log's own material: one draw per landmark for its logs
-  }
-  /** a sawn beam (square section `s`) from a to b */
-  beam(a: V3, b: V3, s: number, key: MatKey = 'beam'): void {
-    const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-    const g = boxUV(new THREE.BoxGeometry(len, s, s), 1, this.rng.next(), this.rng.next());
-    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize());
-    this.add(key, g, new THREE.Matrix4().makeRotationFromQuaternion(q).setPosition(a.clone().lerp(b, 0.5)));
-  }
-  world(lx: number, ly: number, lz: number): V3 { return V(lx, ly, lz).applyMatrix4(this.root.matrixWorld); }
-  /** a static box collider: local centre (lx, lz), half extents, from y0 to y1 above the frame's origin */
-  solid(lx: number, lz: number, hx: number, hz: number, y0: number, y1: number, localYaw = 0, surface: 'wood' | 'stone' = 'wood'): void {
-    const c = this.world(lx, (y0 + y1) / 2, lz);
-    this.out.push({ kind: 'box', x: c.x, y: c.y, z: c.z, hx, hy: (y1 - y0) / 2, hz, yaw: this.yaw + localYaw, surface });
-  }
-  /** a box collider along a sloped segment a → b (a leg, a deck on a slope): `hw` across (local ±Z of the segment), `hh` thick */
-  solidAlong(a: V3, b: V3, hw: number, hh: number): void {
-    const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-    const ql = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.clone().normalize());
-    const rot = this.q.clone().multiply(ql);
-    const mid = a.clone().lerp(b, 0.5), c = this.world(mid.x, mid.y, mid.z);
-    this.out.push({ kind: 'box', x: c.x, y: c.y, z: c.z, hx: len / 2, hy: hh, hz: hw, rot: { x: rot.x, y: rot.y, z: rot.z, w: rot.w }, surface: 'wood' });
-  }
-  /** a stair (Rapier treads): `count` risers from `from` (the first tread's foot) to `to` (the top edge), local */
-  treads(from: V3, to: V3, width: number, count: number): void {
-    const f = this.world(from.x, from.y, from.z), t = this.world(to.x, to.y, to.z);
-    this.out.push({ kind: 'treads', from: { x: f.x, y: f.y, z: f.z }, to: { x: t.x, y: t.y, z: t.z }, width, count, surface: 'wood' });
-  }
-  /** a walkable deck rectangle for `floorHeightAt` (placement only: the colliders are the real floor) */
-  floor(lx: number, lz: number, hw: number, hd: number, y: number): void {
-    const c = this.world(lx, y, lz);
-    this.floors.push({ x: c.x, z: c.z, rot: this.yaw, hw, hd, y: c.y });
-  }
-  finish(mats: Mats): void {
-    finishParts(this.parts, mats, this.root, this.detail, this.far);
-    if (this.glass.length > 0) {
-      const merged = this.glass.length === 1 ? this.glass[0] : mergeList(this.glass);
-      if (merged) {
-        const gm = new THREE.Mesh(merged, mats.glass);
-        gm.renderOrder = 2; gm.receiveShadow = true;
-        this.root.add(gm); this.detail.push(gm);
-      }
-    }
-  }
-}
-
-function mergeList(list: THREE.BufferGeometry[]): THREE.BufferGeometry | undefined {
-  const pos: number[] = [], nor: number[] = [], uv: number[] = [];
-  for (const g0 of list) {
-    const g = g0.index ? g0.toNonIndexed() : g0;
-    const p = g.getAttribute('position'), n = g.getAttribute('normal'), u = g.getAttribute('uv');
-    for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i)); uv.push(u.getX(i), u.getY(i)); }
-  }
-  if (pos.length === 0) return undefined;
-  const out = new THREE.BufferGeometry();
-  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
-  out.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  out.computeBoundingSphere();
-  return out;
-}
-
-// ───────────────────────────── the fire lookout ─────────────────────────────
-
-/** tower frame: local −Z faces the zipline's landing (the launch side), local +X the trail's arrival (the stair's door) */
-const TOWER = { base: 3.0, top: 2.1, deck: ZIPLINE.from.deck, deckHalf: 3.4, cab: 2.4, cabH: 2.3, flights: 5, flightRise: ZIPLINE.from.deck / 5, riser: 7, tread: 0.36, stairHalf: 1.26, landing: 0.9 } as const;
-const LAUNCH = { half: 0.8, out: 1.4, gantry: 3.6, cable: 3.3 };
-const LANDING = { hx: 1.5, hz: 1.6, deck: ZIPLINE.to.deck, gantry: 3.8, cable: 3.3 };
 /** the tower (and landing) turn: local −Z points from the lookout down the cable to the landing */
 /** the tower / landing turn (exported for the ride and the vista bench, PH-C1 / C8) */
 export const ZIP_YAW = Math.atan2(ZIPLINE.from.x - ZIPLINE.to.x, ZIPLINE.from.z - ZIPLINE.to.z);
-
-function buildLookout(t: Timber): { zipTop: V3; launch: V3 } {
-  const { base, top, deck, deckHalf, cab, cabH } = TOWER;
-  const legAt = (sx: number, sz: number, h: number): V3 => {
-    const f = (h + 0.4) / (deck - 0.2 + 0.4);
-    const r = base + (top - base) * f;
-    return V(sx * r, h, sz * r);
-  };
-  const corners: [number, number][] = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
-  // the legs, sunk into the crag
-  for (const [sx, sz] of corners) {
-    t.log(legAt(sx, sz, -0.4), legAt(sx, sz, deck - 0.2), 0.17);
-    t.solidAlong(legAt(sx, sz, -0.4), legAt(sx, sz, deck - 0.2), 0.18, 0.18);
-  }
-  // girts at the bay lines and X-bracing in every bay; the lowest bay of the +X face is the door into the stair
-  const bays = [0.35, 2.75, 5.5, 8.25, deck - 0.35];
-  for (let f = 0; f < 4; f++) {
-    const a = corners[f], b = corners[(f + 1) % 4];
-    if (!a || !b) continue;
-    const doorFace = a[0] === 1 && b[0] === 1;
-    for (let i = 0; i < bays.length; i++) {
-      const h = bays[i] ?? 0;
-      if (i > 0 || !doorFace) t.log(legAt(a[0], a[1], h), legAt(b[0], b[1], h), 0.1);
-      const h1 = bays[i + 1];
-      if (h1 === undefined || (i === 0 && doorFace)) continue;
-      t.log(legAt(a[0], a[1], h + 0.15), legAt(b[0], b[1], h1 - 0.15), 0.075);
-      t.log(legAt(b[0], b[1], h + 0.15), legAt(a[0], a[1], h1 - 0.15), 0.075);
-    }
-    // the lowest bay walls you off the stair's cage everywhere but the door face
-    if (!doorFace) {
-      const pa = legAt(a[0], a[1], 0), pb = legAt(b[0], b[1], 0);
-      t.solidAlong(V(pa.x, 1.2, pa.z), V(pb.x, 1.2, pb.z), 0.08, 1.2);
-    }
-  }
-  t.log(legAt(1, 1, 2.75), legAt(1, -1, 2.75), 0.1); // the door face's lintel girt
-  // outriggers: the deck (and the cab, wider than the leg tops) rides out on knee braces at the corners and mid-faces
-  for (const [sx, sz] of corners) t.log(legAt(sx, sz, deck - 1.7), V(sx * (deckHalf - 0.15), deck - 0.25, sz * (deckHalf - 0.15)), 0.08);
-  for (const [ax, az] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
-    const r0 = top + (base - top) * (1.5 / (deck + 0.2));
-    t.log(V(ax * r0, deck - 1.5, az * r0), V(ax * (deckHalf - 0.15), deck - 0.25, az * (deckHalf - 0.15)), 0.08);
-  }
-
-  // ── the stair: five flights zig-zag inside a railed cage (flights at z = ±0.5, landings at the x ends) ──
-  const { flightRise, riser, tread, stairHalf, landing, flights } = TOWER;
-  const run = riser * tread;                 // 2.52 m
-  for (let k = 0; k < flights; k++) {
-    const y0 = k * flightRise, even = k % 2 === 0;
-    const zc = even ? -0.5 : 0.5, x0 = even ? stairHalf : -stairHalf, dir = even ? -1 : 1;
-    t.treads(V(x0, y0, zc), V(x0 + dir * run, y0 + flightRise, zc), 0.9, riser);
-    for (let i = 0; i < riser - 1; i++) t.box('deck', 0.4, 0.05, 0.86, x0 + dir * tread * (i + 0.5), y0 + (flightRise / riser) * (i + 1) - 0.025, zc, 1.2);
-    // stringers under the tread ends, the outer handrail
-    for (const dz of [-0.45, 0.45]) t.beam(V(x0 + dir * 0.1, y0 + 0.05, zc + dz), V(x0 + dir * (run - 0.1), y0 + flightRise - 0.1, zc + dz), 0.09);
-    const zo = zc * 1.96;
-    t.beam(V(x0, y0 + 0.95, zo), V(x0 + dir * run, y0 + flightRise + 0.95, zo), 0.06);
-    t.beam(V(x0 + dir * run * 0.5, y0 + flightRise * 0.5, zo), V(x0 + dir * run * 0.5, y0 + flightRise * 0.5 + 0.95, zo), 0.06);
-    // the landing it arrives at (the top flight arrives at the deck)
-    if (k < flights - 1) {
-      const lx = (x0 + dir * run) + dir * landing / 2 - dir * 0.36 / 2, ly = y0 + flightRise;
-      const lxc = dir * (stairHalf + landing / 2);
-      t.box('deck', landing + 0.36, 0.06, 1.9, lxc - dir * 0.18, ly - 0.03, 0, 1.2);
-      t.beam(V(lxc - dir * 0.6, ly - 0.14, -0.95), V(lxc - dir * 0.6, ly - 0.14, 0.95), 0.12);
-      t.beam(V(lxc + dir * 0.4, ly - 0.14, -0.95), V(lxc + dir * 0.4, ly - 0.14, 0.95), 0.12);
-      t.solid(lxc - dir * 0.18, 0, (landing + 0.36) / 2, 0.95, ly - 0.14, ly);
-      // the landing's end rail (at the cage's end) with its posts
-      t.beam(V(dir * (stairHalf + landing), ly + 0.95, -0.95), V(dir * (stairHalf + landing), ly + 0.95, 0.95), 0.06);
-      for (const pz of [-0.95, 0.95]) t.beam(V(dir * (stairHalf + landing), ly, pz), V(dir * (stairHalf + landing), ly + 1.0, pz), 0.07);
-      void lx;
-    }
-  }
-  // the cage: a divider between the flights, the outer sides, the −X end all the way up, the +X end above the first
-  // landing on that side (below it is the door)
-  const endX = stairHalf + landing + 0.05;
-  t.solid(0, 0, stairHalf, 0.04, 0, deck);
-  t.solid(0, -1.0, endX, 0.04, 0, deck);
-  t.solid(0, 1.0, endX, 0.04, 0, deck);
-  t.solid(-endX, 0, 0.04, 1.0, 0, deck);
-  t.solid(endX, 0, 0.04, 1.0, 2 * flightRise, deck);
-  // the centre posts of the stair column (the divider drawn as posts + a mid rail per flight)
-  for (const px of [-stairHalf, 0, stairHalf]) t.beam(V(px, 0, 0), V(px, deck, 0), 0.1);
-
-  // ── the deck: joists, planks round the stairwell, a railing with a gap for the launch ──
-  // the stairwell is open over the top flight AND over the last landing + the flight before it (2.0 m under a closed deck
-  // is less than the capsule's head room): x from the top flight's arrival to the landing's end, the stair's full width
-  const well = { x0: -stairHalf, x1: stairHalf + landing + 0.06, z0: -1.0, z1: 1.0 };
-  for (let i = 0; i < 5; i++) { const z = -deckHalf + 0.15 + (i / 4) * (deckHalf * 2 - 0.3); t.box('beam', deckHalf * 2, 0.2, 0.14, 0, deck - 0.18, z, 1); }
-  const deckRects: [number, number, number, number][] = [
-    [-deckHalf, deckHalf, well.z1, deckHalf], [-deckHalf, deckHalf, -deckHalf, well.z0],
-    [-deckHalf, well.x0, well.z0, well.z1], [well.x1, deckHalf, well.z0, well.z1],
-  ];
-  for (const [x0, x1, z0, z1] of deckRects) {
-    t.box('deck', x1 - x0, 0.07, z1 - z0, (x0 + x1) / 2, deck - 0.035, (z0 + z1) / 2, 1.2);
-    t.solid((x0 + x1) / 2, (z0 + z1) / 2, (x1 - x0) / 2, (z1 - z0) / 2, deck - 0.2, deck);
-  }
-  t.floor(0, 0, deckHalf, deckHalf, deck);
-  // the stairwell's guard rail: both long sides, the far end, and the arrival end's half over the flight below (the top
-  // flight comes up through the other half: that is the way off the stair)
-  const guard = (a: V3, b: V3): void => {
-    t.beam(V(a.x, deck + 1.0, a.z), V(b.x, deck + 1.0, b.z), 0.06);
-    t.beam(V(a.x, deck + 0.5, a.z), V(b.x, deck + 0.5, b.z), 0.05);
-    for (const p of [a, b]) t.beam(V(p.x, deck, p.z), V(p.x, deck + 1.05, p.z), 0.07);
-    const c = a.clone().lerp(b, 0.5), len = a.distanceTo(b) / 2;
-    if (Math.abs(a.x - b.x) > Math.abs(a.z - b.z)) t.solid(c.x, c.z, len, 0.04, deck, deck + 1.05); else t.solid(c.x, c.z, 0.04, len, deck, deck + 1.05);
-  };
-  guard(V(well.x0, 0, well.z0), V(well.x1, 0, well.z0));
-  guard(V(well.x0, 0, well.z1), V(well.x1, 0, well.z1));
-  guard(V(well.x1, 0, well.z0), V(well.x1, 0, well.z1));
-  guard(V(well.x0, 0, 0), V(well.x0, 0, well.z1));
-  // the deck's railing: posts every ~1.5 m, a top and a mid rail, open on −Z for the launch
-  const railH = 1.05;
-  for (let side = 0; side < 4; side++) {
-    const n = 4;
-    for (let i = 0; i <= n; i++) {
-      const s = -deckHalf + (i / n) * deckHalf * 2;
-      const [px, pz] = side === 0 ? [s, deckHalf] : side === 1 ? [deckHalf, s] : side === 2 ? [s, -deckHalf] : [-deckHalf, s];
-      t.beam(V(px, deck - 0.3, pz), V(px, deck + railH, pz), 0.1);
-    }
-    const segs: [number, number][] = side === 2 ? [[-deckHalf, -LAUNCH.half], [LAUNCH.half, deckHalf]] : [[-deckHalf, deckHalf]];
-    for (const [a, b] of segs) {
-      const p = (s: number, y: number): V3 => (side === 0 ? V(s, y, deckHalf) : side === 1 ? V(deckHalf, y, s) : side === 2 ? V(s, y, -deckHalf) : V(-deckHalf, y, s));
-      t.beam(p(a, deck + railH), p(b, deck + railH), 0.08);
-      t.beam(p(a, deck + 0.5), p(b, deck + 0.5), 0.06);
-      const c = p((a + b) / 2, 0);
-      if (side === 0 || side === 2) t.solid(c.x, c.z, (b - a) / 2, 0.05, deck, deck + railH + 0.05);
-      else t.solid(c.x, c.z, 0.05, (b - a) / 2, deck, deck + railH + 0.05);
-    }
-  }
-
-  // ── the cab: a plank dado, a window band all round, corner posts, a hipped moss roof; the door faces the launch ──
-  const door = { x0: -1.45, x1: -0.55 };
-  const dado = 1.0, sill = deck + dado, head = deck + 2.1;
-  for (let side = 0; side < 4; side++) {
-    const p = (s: number, y: number): V3 => (side === 0 ? V(s, y, cab) : side === 1 ? V(cab, y, s) : side === 2 ? V(s, y, -cab) : V(-cab, y, s));
-    const segs: [number, number][] = side === 2 ? [[-cab, door.x0], [door.x1, cab]] : [[-cab, cab]];
-    for (const [a, b] of segs) {
-      const c = p((a + b) / 2, 0), along = b - a;
-      const w = side % 2 === 0 ? along : 0.07, d = side % 2 === 0 ? 0.07 : along;
-      t.box('beam', w, dado, d, c.x, deck + dado / 2, c.z, 1);
-      t.box('beam', w, cabH - 2.1, d, c.x, head + (cabH - 2.1) / 2, c.z, 1);
-      if (side % 2 === 0) t.solid(c.x, c.z, along / 2, 0.06, deck, deck + cabH); else t.solid(c.x, c.z, 0.06, along / 2, deck, deck + cabH);
-      // mullions + glass panes in the band between the dado and the head
-      const n = Math.max(1, Math.round(along / 0.95));
-      for (let i = 0; i <= n; i++) { const s = a + (i / n) * along, q = p(s, 0); t.box('beam', 0.07, 2.1 - dado, 0.07, q.x, sill + (2.1 - dado) / 2, q.z, 1); }
-      const pane = new THREE.PlaneGeometry(along, 2.1 - dado - 0.04);
-      const m = new THREE.Matrix4().makeRotationY(side === 0 ? 0 : side === 1 ? Math.PI / 2 : side === 2 ? Math.PI : -Math.PI / 2).setPosition(c.x, (sill + head) / 2, c.z);
-      t.glass.push(pane.applyMatrix4(m));
-    }
-    t.box('beam', side % 2 === 0 ? cab * 2 + 0.1 : 0.12, 0.08, side % 2 === 0 ? 0.12 : cab * 2 + 0.1, p(0, 0).x, sill, p(0, 0).z, 1);   // sill board
-  }
-  // the door's jambs above the dado line (the doorway itself is open)
-  for (const x of [door.x0, door.x1]) t.box('beam', 0.09, 2.1, 0.12, x, deck + 1.05, -cab, 1);
-  for (const [sx, sz] of corners) t.box('beam', 0.14, cabH + 0.05, 0.14, sx * cab, deck + cabH / 2, sz * cab, 1);
-  t.box('beam', cab * 2 + 0.1, 0.05, cab * 2 + 0.1, 0, deck + cabH + 0.02, 0, 1); // ceiling
-  // the hipped roof: four planked slopes up to a finial, the eaves out over the catwalk
-  const eave = 3.0, rise = 1.45, roofY = deck + cabH + 0.04;
-  const roof = new THREE.ConeGeometry(eave * Math.SQRT2, rise, 4, 1, true).rotateY(Math.PI / 4);
-  boxUV(roof, 1.5);
-  t.add('roof', roof, new THREE.Matrix4().makeTranslation(0, roofY + rise / 2, 0));
-  const soffit = boxUV(new THREE.BoxGeometry(eave * 2, 0.04, eave * 2), 1.5);
-  t.add('beam', soffit, new THREE.Matrix4().makeTranslation(0, roofY - 0.01, 0));
-  t.add('iron', new THREE.CylinderGeometry(0.02, 0.03, 1.1, 6), new THREE.Matrix4().makeTranslation(0, roofY + rise + 0.45, 0));
-  t.add('iron', new THREE.SphereGeometry(0.06, 8, 6), new THREE.Matrix4().makeTranslation(0, roofY + rise + 1.0, 0));
-  // the fire finder on its pedestal (the vista bench is PH-C8's), by the cab's north wall
-  t.box('beam', 0.18, 1.0, 0.18, 0.9, deck + 0.5, 1.45, 1);
-  t.box('beam', 0.62, 0.05, 0.62, 0.9, deck + 1.02, 1.45, 1);
-  t.add('iron', new THREE.CylinderGeometry(0.26, 0.26, 0.05, 20), new THREE.Matrix4().makeTranslation(0.9, deck + 1.07, 1.45));
-  t.solid(0.9, 1.45, 0.31, 0.31, deck, deck + 1.05);
-
-  // ── the zipline's launch: a railed plank jetty off the −Z deck edge, a two-post gantry with the cable's anchor ──
-  const z0 = -deckHalf, z1 = -deckHalf - LAUNCH.out;
-  t.box('deck', LAUNCH.half * 2, 0.07, LAUNCH.out, 0, deck - 0.035, (z0 + z1) / 2, 1.2);
-  t.solid(0, (z0 + z1) / 2, LAUNCH.half, LAUNCH.out / 2, deck - 0.2, deck);
-  t.floor(0, (z0 + z1) / 2, LAUNCH.half, LAUNCH.out / 2, deck);
-  for (const sx of [-1, 1]) {
-    const x = sx * (LAUNCH.half + 0.1);
-    t.log(V(x, deck - 2.6, z0 + 0.2), V(x, deck - 0.15, z1 + 0.15), 0.09);                     // strut from the leg bay
-    t.log(V(x, deck - 0.3, z1 + 0.1), V(x, deck + LAUNCH.gantry, z1 + 0.1), 0.12);               // gantry post
-    t.beam(V(x, deck + railH, z0), V(x, deck + railH, z1 + 0.1), 0.07);
-    t.solid(x, (z0 + z1) / 2, 0.05, LAUNCH.out / 2, deck, deck + railH + 0.05);
-  }
-  t.log(V(-LAUNCH.half - 0.35, deck + LAUNCH.gantry - 0.2, z1 + 0.1), V(LAUNCH.half + 0.35, deck + LAUNCH.gantry - 0.2, z1 + 0.1), 0.1);
-  t.box('iron', 0.18, 0.28, 0.12, 0, deck + LAUNCH.cable + 0.08, z1 + 0.1, 1);                  // the cable's anchor block
-  t.add('iron', new THREE.TorusGeometry(0.045, 0.012, 6, 12), new THREE.Matrix4().makeTranslation(0, deck + 0.95, z1 + 0.05)); // the gate chain's ring
-  t.beam(V(-LAUNCH.half, deck + 0.95, z1 + 0.05), V(LAUNCH.half, deck + 0.95, z1 + 0.05), 0.03, 'iron');
-  t.solid(0, z1 + 0.05, LAUNCH.half, 0.05, deck, deck + 1.0);   // the gate (the ride row opens it)
-  return { zipTop: t.world(0, deck + LAUNCH.cable, z1 + 0.1), launch: t.world(0, deck, z1 + 0.5) };
-}
-
-// ───────────────────────────── the zipline's landing (the Hollow, N of the crossroads) ─────────────────────────────
-
-function buildLanding(t: Timber): { zipBottom: V3; landing: V3 } {
-  // the N road runs under the deck along local Z (the cable's line): the posts stand 3 m apart either side of it, the
-  // X-bracing is on the road's sides only, and the stair comes down off the −X side, away from the road
-  const { hx, hz, deck } = LANDING;
-  const posts: [number, number][] = [[hx, hz], [-hx, hz], [-hx, -hz], [hx, -hz]];
-  const g = (lx: number, lz: number): number => { const w = t.world(lx, 0, lz); return heightAt(w.x, w.z) - t.y; };
-  for (const [px, pz] of posts) {
-    t.log(V(px, g(px, pz) - 0.35, pz), V(px, deck + 1.05, pz), 0.15);
-    t.solid(px, pz, 0.16, 0.16, g(px, pz) - 0.3, deck + 1.05);
-  }
-  for (const sx of [-1, 1]) {
-    const x = sx * hx, ga = g(x, hz) + 0.35, gb = g(x, -hz) + 0.35;
-    t.log(V(x, ga, hz), V(x, deck - 0.3, -hz), 0.07);
-    t.log(V(x, gb, -hz), V(x, deck - 0.3, hz), 0.07);
-    t.log(V(x, deck - 0.12, -hz - 0.2), V(x, deck - 0.12, hz + 0.2), 0.12);       // the beams the joists sit on
-  }
-  for (let i = 0; i < 4; i++) { const z = -hz + (i / 3) * hz * 2; t.box('beam', hx * 2 + 0.3, 0.16, 0.12, 0, deck - 0.2, z, 1); }
-  t.box('deck', hx * 2 + 0.3, 0.07, hz * 2 + 0.3, 0, deck - 0.035, 0, 1.2);
-  t.solid(0, 0, hx + 0.15, hz + 0.15, deck - 0.25, deck);
-  t.floor(0, 0, hx + 0.15, hz + 0.15, deck);
-  // rails: the +X side whole, the −X side either side of the stair's gap, the −Z end whole (the +Z end is the arrival)
-  const rail = (a: V3, b: V3): void => {
-    t.beam(V(a.x, deck + 1.0, a.z), V(b.x, deck + 1.0, b.z), 0.08);
-    t.beam(V(a.x, deck + 0.5, a.z), V(b.x, deck + 0.5, b.z), 0.06);
-    const c = a.clone().lerp(b, 0.5), len = a.distanceTo(b) / 2;
-    if (Math.abs(a.x - b.x) > Math.abs(a.z - b.z)) t.solid(c.x, c.z, len, 0.05, deck, deck + 1.05); else t.solid(c.x, c.z, 0.05, len, deck, deck + 1.05);
-  };
-  const gap = 0.6;
-  rail(V(hx, 0, -hz), V(hx, 0, hz));
-  rail(V(-hx, 0, -hz), V(-hx, 0, -gap));
-  rail(V(-hx, 0, gap), V(-hx, 0, hz));
-  rail(V(-hx, 0, -hz), V(hx, 0, -hz));
-  // the gantry: two posts at the +Z edge, a cross log, the cable's anchor + the buffer block the trolley meets
-  for (const sx of [-1, 1]) t.log(V(sx * (hx - 0.2), deck - 0.3, hz + 0.05), V(sx * (hx - 0.2), deck + LANDING.gantry, hz + 0.05), 0.12);
-  t.log(V(-hx - 0.1, deck + LANDING.gantry - 0.2, hz + 0.05), V(hx + 0.1, deck + LANDING.gantry - 0.2, hz + 0.05), 0.11);
-  t.box('iron', 0.18, 0.28, 0.12, 0, deck + LANDING.cable + 0.08, hz + 0.05, 1);
-  t.box('beam', 0.5, 0.7, 0.3, 0, deck + LANDING.cable - 0.9, hz - 0.1, 1);
-  // the stair down off the −X side: as many risers as the ground asks (≤ 0.33 m each), 0.38 m treads
-  const gFoot0 = g(-hx - 3.4, 0);
-  const count = Math.max(3, Math.ceil((deck - gFoot0) / 0.33)), run = count * 0.38;
-  const xTop = -hx - 0.15, xFoot = xTop - run, gf = g(xFoot, 0);
-  t.treads(V(xFoot, gf, 0), V(xTop, deck, 0), 1.1, count);
-  for (let i = 0; i < count - 1; i++) t.box('deck', 0.42, 0.05, 1.1, xFoot + 0.38 * (i + 0.5), gf + (deck - gf) * ((i + 1) / count) - 0.025, 0, 1.2);
-  for (const sz of [-gap, gap]) {
-    t.beam(V(xFoot, gf, sz), V(xTop, deck - 0.05, sz), 0.08);
-    t.beam(V(xFoot + 0.2, gf + 0.95, sz), V(xTop, deck + 0.95, sz), 0.06);
-    t.beam(V(xFoot + 0.2, gf - 0.2, sz), V(xFoot + 0.2, gf + 1.0, sz), 0.08);
-    t.solidAlong(V(xFoot + 0.2, gf + 0.6, sz * 1.08), V(xTop, deck + 0.6, sz * 1.08), 0.04, 0.5);
-  }
-  return { zipBottom: t.world(0, deck + LANDING.cable, hz + 0.05), landing: t.world(0, deck, 0) };
-}
-
-/** the steel cable: a sagging chord from the lookout's launch gantry to the landing's (sag ≈ 1.2 % of the span) */
-function zipCable(a: V3, b: V3, mats: Mats): THREE.Mesh {
-  const span = a.distanceTo(b), sag = span * 0.012;
-  const pts: V3[] = [];
-  for (let i = 0; i <= 40; i++) { const t = i / 40; pts.push(a.clone().lerp(b, t).add(V(0, -4 * sag * t * (1 - t), 0))); }
-  const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 80, 0.022, 5, false);
-  const mesh = new THREE.Mesh(geo, mats.iron);
-  mesh.name = 'zipline-cable';
-  return mesh;
-}
 
 // ───────────────────────────── the creek footbridge (the E road over the gully) ─────────────────────────────
 
@@ -476,38 +120,20 @@ function bridgeFrame(): { x: number; z: number; yaw: number; half: number } {
   return { x: CREEK_BRIDGE.x, z: CREEK_BRIDGE.z, yaw: Math.atan2(-dz, dx), half: 12 };
 }
 
-function buildBridge(t: Timber, half: number): void {
-  const g = (lx: number, lz: number): number => { const w = t.world(lx, 0, lz); return heightAt(w.x, w.z) - t.y; };
-  const yA = g(-half, 0) + 0.25, yB = g(half, 0) + 0.25;
-  const deckAt = (s: number): number => yA + (yB - yA) * ((s + half) / (half * 2));
-  const W = 1.9;
-  // two stringer logs, split-plank deck across them
-  for (const z of [-0.55, 0.55]) t.log(V(-half - 0.3, deckAt(-half) - 0.3, z), V(half + 0.3, deckAt(half) - 0.3, z), 0.22, 'bark', 12);
-  const n = Math.round((half * 2) / 0.27);
-  for (let i = 0; i < n; i++) {
-    const s = -half + (i + 0.5) * ((half * 2) / n);
-    t.box('deck', 0.25, 0.08, W + t.rng.range(-0.1, 0.1), s, deckAt(s) - 0.04, t.rng.range(-0.04, 0.04), 1.2, t.rng.range(-0.03, 0.03));
+/** the ground under a timber's own (x, z), relative to its frame's height (a site-fitted model's `ground`) */
+function siteGround(frame: THREE.Matrix4, y: number): (lx: number, lz: number) => number {
+  return (lx, lz) => { const w = V(lx, 0, lz).applyMatrix4(frame); return heightAt(w.x, w.z) - y; };
+}
+
+/** the highest deck rectangle over (x, z) */
+function floorIn(floors: readonly Floor[], x: number, z: number): number | undefined {
+  let best: number | undefined;
+  for (const f of floors) {
+    const c = Math.cos(f.rot), s = Math.sin(f.rot);
+    const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
+    if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd && (best === undefined || f.y > best)) best = f.y;
   }
-  // the deck's collider: one box along the slope
-  t.solidAlong(V(-half, deckAt(-half) - 0.1, 0), V(half, deckAt(half) - 0.1, 0), W / 2, 0.1);
-  t.floor(0, 0, half, W / 2, (yA + yB) / 2);
-  // trestles in the gully (where the ground falls a metre or more below the stringers)
-  for (const s of [-8, -2.5, 3, 8.5]) {
-    const top = deckAt(s) - 0.52, gl = Math.min(g(s, -0.7), g(s, 0.7));
-    if (top - gl < 0.8) continue;
-    for (const z of [-0.7, 0.7]) { t.log(V(s, gl - 0.4, z * 1.25), V(s, top, z), 0.14, 'bark'); t.solid(s, z * 1.1, 0.16, 0.16, gl - 0.4, top); }
-    t.log(V(s, top - 0.05, -1.05), V(s, top - 0.05, 1.05), 0.13, 'bark');
-    if (top - gl > 2.2) { t.log(V(s, gl + 0.5, -0.85), V(s, top - 0.3, 0.75), 0.07, 'bark'); t.log(V(s, gl + 0.5, 0.85), V(s, top - 0.3, -0.75), 0.07, 'bark'); }
-  }
-  // abutments: a crib of cross logs under each end
-  for (const [s, y] of [[-half, yA], [half, yB]] as const) for (let k = 0; k < 2; k++) t.log(V(s + (s < 0 ? 0.3 : -0.3) * k, y - 0.55 - k * 0.3, -1.2), V(s + (s < 0 ? 0.3 : -0.3) * k, y - 0.55 - k * 0.3, 1.2), 0.16, 'bark');
-  // the handrails: log posts every ~3 m on both sides, a peeled log rail
-  const m = Math.round((half * 2) / 3);
-  for (const z of [-W / 2 - 0.05, W / 2 + 0.05]) {
-    for (let i = 0; i <= m; i++) { const s = -half + 0.2 + (i / m) * (half * 2 - 0.4); t.log(V(s, deckAt(s) - 0.35, z), V(s, deckAt(s) + 1.0, z), 0.07); }
-    t.log(V(-half + 0.1, deckAt(-half) + 0.95, z), V(half - 0.1, deckAt(half) + 0.95, z), 0.06);
-    t.solidAlong(V(-half, deckAt(-half) + 0.5, z), V(half, deckAt(half) + 0.5, z), 0.05, 0.55);
-  }
+  return best;
 }
 
 // ───────────────────────────── the image-to-3D hero props ─────────────────────────────
@@ -568,11 +194,10 @@ export interface PineLandmarksHandle {
 export class PineLandmarks implements PineLandmarksHandle {
   readonly group = new THREE.Group();
   zip = { top: V(0, 0, 0), bottom: V(0, 0, 0), launch: V(0, 0, 0), landing: V(0, 0, 0) };
-  /** the timber builds' colliders, then the props' (split so the phone's per-task collider budget holds) */
+  /** the timber models' colliders, then the props' (world space: the navmesh bake reads them) */
   readonly timberColliders: ColliderDesc[] = [];
   readonly propColliders: ColliderDesc[] = [];
   private floors: Floor[] = [];
-  private timbers: { t: Timber; pad: number; detailOn: boolean; farOn: boolean }[] = [];
   private lit: Record<WaystoneId, boolean> = { pond: true, ridge: true, den: true };
   /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
   private canoe: { place: Place; placed: Placed } | null = null;
@@ -591,23 +216,28 @@ export class PineLandmarks implements PineLandmarksHandle {
    */
   async build(cabins: Cabins | null, trees: readonly { x: number; z: number }[] = [], registry: WorldRegistry | null = null): Promise<this> {
     const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
-    const mats = await cabinMats(this.sky);
-    // the timber landmarks, one task each
-    const lookout = new Timber('fire-lookout', LOOKOUT.x, ground(LOOKOUT.x, LOOKOUT.z), LOOKOUT.z, ZIP_YAW, 901, this.timberColliders, this.floors);
-    const top = buildLookout(lookout);
-    this.addTimber(lookout, mats, 6);
+    const ctx = pineModels(this.sky);
+    await loadTimber(ctx);
+    // the timber landmarks (models), one task each, at the frames their world-space builders used
+    const ly = ground(LOOKOUT.x, LOOKOUT.z), lookoutAt = timberFrame(LOOKOUT.x, ly, LOOKOUT.z, ZIP_YAW);
+    this.placeTimber(fireLookout, lookoutAt, ZIP_YAW, undefined, () => fireLookoutFacts(ctx, fireLookout.defaults), 'pine-lookout', registry);
+    const topAt = fireLookoutFacts(ctx, fireLookout.defaults).anchors;
     await macrotask();
-    const landing = new Timber('zipline-landing', ZIPLINE.to.x, ground(ZIPLINE.to.x, ZIPLINE.to.z), ZIPLINE.to.z, ZIP_YAW, 902, this.timberColliders, this.floors);
-    const bottom = buildLanding(landing);
-    this.addTimber(landing, mats, 4);
-    this.zip = { top: top.zipTop, bottom: bottom.zipBottom, launch: top.launch, landing: bottom.landing };
-    const cable = zipCable(top.zipTop, bottom.zipBottom, mats);
-    this.group.add(cable);
+    const zy = ground(ZIPLINE.to.x, ZIPLINE.to.z), landingAt = timberFrame(ZIPLINE.to.x, zy, ZIPLINE.to.z, ZIP_YAW);
+    const landingSite = { ground: siteGround(landingAt, zy) };
+    this.placeTimber(ziplineLanding, landingAt, ZIP_YAW, landingSite, () => ziplineLandingFacts(ctx, landingSite), 'pine-zip-landing', registry);
+    const bottomAt = ziplineLandingFacts(ctx, landingSite).anchors;
+    const world = (v: V3 | undefined, frame: THREE.Matrix4): V3 => (v ?? V(0, 0, 0)).clone().applyMatrix4(frame);
+    this.zip = { top: world(topAt['zipTop'], lookoutAt), bottom: world(bottomAt['zipBottom'], landingAt), launch: world(topAt['launch'], lookoutAt), landing: world(bottomAt['landing'], landingAt) };
+    // the steel cable between the two gantries
+    const { top, bottom } = this.zip;
+    const cable = place(zipCable, [{ x: top.x, y: top.y, z: top.z, params: { span: [bottom.x - top.x, bottom.y - top.y, bottom.z - top.z] } }], { ctx, draw: 'single', registry, piece: { id: 'pine-zip-cable' } });
+    if (registry === null) this.group.add(cable.object);
     await macrotask();
     const bf = bridgeFrame();
-    const bridge = new Timber('creek-footbridge', bf.x, (ground(bf.x - bf.half, bf.z) + ground(bf.x + bf.half, bf.z)) / 2, bf.z, bf.yaw, 903, this.timberColliders, this.floors);
-    buildBridge(bridge, bf.half);
-    this.addTimber(bridge, mats, bf.half);
+    const by = (ground(bf.x - bf.half, bf.z) + ground(bf.x + bf.half, bf.z)) / 2, bridgeAt = timberFrame(bf.x, by, bf.z, bf.yaw);
+    const bridgeSite = { half: bf.half, ground: siteGround(bridgeAt, by) };
+    this.placeTimber(creekFootbridge, bridgeAt, bf.yaw, bridgeSite, () => creekFootbridgeFacts(ctx, bridgeSite), 'pine-footbridge', registry);
     await macrotask();
     this.crags = await crags;
     await this.buildProps(cabins, registry);
@@ -621,11 +251,18 @@ export class PineLandmarks implements PineLandmarksHandle {
     return this;
   }
 
-  private addTimber(t: Timber, mats: Mats, pad: number): void {
-    t.finish(mats);
-    if (!TIER_CONFIG.cabinDetailShadows) for (const o of t.detail) o.traverse((c) => { c.castShadow = false; });
-    this.group.add(t.root);
-    this.timbers.push({ t, pad, detailOn: true, farOn: false });
+  /**
+   * Place a timber model once at its frame: drawn, colliding, its decks the piece's floors (`facts` reads them once the
+   * copy is built: the build keeps them).
+   */
+  private placeTimber<P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, yaw: number, params: P | undefined, facts: () => TimberFacts, id: string, registry: WorldRegistry | null): void {
+    const mine: Floor[] = [], e = frame.elements;
+    const placed = place(model, [{ x: e[12], y: e[13], z: e[14], matrix: frame, ...(params === undefined ? {} : { params }) }], { ctx: pineModels(this.sky), draw: 'single', registry,
+      piece: { id, solidFloor: true, floor: (x, z) => floorIn(mine, x, z) } });
+    mine.push(...placeFloors(facts().floors, frame, yaw));
+    this.floors.push(...mine);
+    this.timberColliders.push(...placed.colliders);
+    if (registry === null) this.group.add(placed.object);
   }
 
   private async buildProps(cabins: Cabins | null, registry: WorldRegistry | null): Promise<void> {
@@ -749,25 +386,10 @@ export class PineLandmarks implements PineLandmarksHandle {
   }
   isLit(id: WaystoneId): boolean { return this.lit[id]; }
 
-  floorHeightAt(x: number, z: number): number | undefined {
-    let best: number | undefined;
-    for (const f of this.floors) {
-      const c = Math.cos(f.rot), s = Math.sin(f.rot);
-      const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
-      if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd && (best === undefined || f.y > best)) best = f.y;
-    }
-    return best;
-  }
+  floorHeightAt(x: number, z: number): number | undefined { return floorIn(this.floors, x, z); }
 
   update(t: number): void {
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmp);
-    const dd = TIER_CONFIG.cabinDetailDist;
-    for (const e of this.timbers) {
-      const d = Math.max(0, this.tmp.distanceTo(e.t.root.position) - e.pad);
-      const on = d < dd, farOff = d > dd * 2;
-      if (on !== e.detailOn) { e.detailOn = on; for (const o of e.t.detail) o.visible = on; }
-      if (farOff !== e.farOn) { e.farOn = farOff; for (const o of e.t.far) o.visible = !farOff; }
-    }
     this.crags?.update(t);
     // the lanterns on the clock (PH-L3): a banked ember by day, full flame at night, a slow flicker
     const lamps = this.sky.lamps;
@@ -786,9 +408,9 @@ export class PineLandmarks implements PineLandmarksHandle {
  * buildings are not here: `new Cabins(sky, pineHamletBuildings())` builds them with the cabins.
  */
 export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void) => void; trees?: readonly { x: number; z: number }[] }): Promise<PineLandmarks> {
-  const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees, h.registry); // the hero props register themselves (models: E315 M2)
-  h.registry.add({ id: 'pine-landmarks', name: 'Fire lookout, zipline, footbridge', category: 'buildings', file: 'src/world/PineLandmarks.ts', object: lm.group,
-    colliders: lm.timberColliders, surface: 'wood', floor: (x, z) => lm.floorHeightAt(x, z), solidFloor: true });
+  const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees, h.registry); // the models register themselves (E315 M2)
+  // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
+  h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/world/PineLandmarks.ts', object: lm.group });
   // PH-B2: the crags' modules registered themselves (models, 90 hulls a task); the cave's shell + the ground over it
   const crags = lm.crags;
   if (crags) {

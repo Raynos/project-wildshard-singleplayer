@@ -22,7 +22,7 @@ import type { Sky } from '../../world/Sky';
 import type { Player } from '../../player/Player';
 import type { AnimalManager } from '../../entities/AnimalManager';
 import type { Animal } from '../../entities/Animal';
-import { cabinMats, type Interactable, type Cabins } from '../../world/Cabin';
+import type { Interactable, Cabins } from '../../world/Cabin';
 import type { WorldRegistry } from '../../world/registry';
 import type { HUD } from '../../ui/HUD';
 import type { Audio } from '../../audio/Audio';
@@ -52,7 +52,10 @@ import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, typ
 import type { Trade, TradeItem } from './trades';
 import { BoardPanel, TradePanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
-import { buildHollowLog, hollowLogFloor, HOLLOW_LOG, type HollowLog } from './hollowLog';
+import { hollowLogFloor, hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
+import { place as placeModel } from '../../models/place';
+import { hollowLog, loadHollowLog } from '../../chunks/pine-hollow/models/hollowLog';
+import { pineModels } from '../../chunks/pine-hollow/world/context';
 import { StagLead } from './stagLead';
 import { NightThralls, isThrall } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
@@ -385,19 +388,16 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     };
   }
 
-  // ── the hollow log (its materials are the cabins': already loaded, so this lands a frame later) ──
+  // ── the hollow log: a model (E315 M2) placed once on its bed; its materials are the cabins' (already loaded, so it
+  // lands a frame later). Its LOD (the shell alone past 60 m) is the model's
   let hollow: HollowLog | null = null;
-  const registerLog = (log: HollowLog): HollowLog => {
-    const inside = (x: number, z: number): boolean => {
-      const c = Math.cos(HOLLOW_LOG.yaw), s = Math.sin(HOLLOW_LOG.yaw), dx = x - HOLLOW_LOG.x, dz = z - HOLLOW_LOG.z;
-      return Math.abs(dx * c - dz * s) < HOLLOW_LOG.len / 2 && Math.abs(dx * s + dz * c) < HOLLOW_LOG.r * 0.8;
-    };
-    h.registry.add({ id: 'hollow-log', name: 'Hollow log', category: 'nature', file: 'src/pinehollow/quest/hollowLog.ts', object: log.group, colliders: log.colliders, surface: 'wood', floor: (x, z) => (inside(x, z) ? log.floorY : undefined), solidFloor: true });
-    return log;
-  };
-  void cabinMats(sky).then((mats) => {
-    hollow = buildHollowLog(mats);
-    return registerLog(hollow);
+  const logModels = pineModels(sky);
+  void loadHollowLog(logModels).then(() => {
+    const site = hollowLogSite();
+    placeModel(hollowLog, [{ x: HOLLOW_LOG.x, y: site.floorY, z: HOLLOW_LOG.z, yaw: HOLLOW_LOG.yaw, params: { len: HOLLOW_LOG.len, R: HOLLOW_LOG.R, r: HOLLOW_LOG.r } }],
+      { ctx: logModels, draw: 'single', registry: h.registry, piece: { id: 'hollow-log', floor: (x, z) => (insideHollowLog(x, z) ? site.floorY : undefined), solidFloor: true } });
+    hollow = site;
+    return site;
   });
 
   // ── the clock: Hale's watch till dark, the dawn ──
@@ -507,7 +507,6 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     dawnTick(dt);
     stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
     thralls.update(dt, t, pp);
-    if (hollow) hollow.update(game.camera.position);
     objective.update(t);
     if (t - navT > 0.1) {
       navT = t;

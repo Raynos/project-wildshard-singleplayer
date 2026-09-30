@@ -22,7 +22,7 @@ import { activeRegistry, type ColliderDesc, type DrawnAs, type ModelEntry, type 
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
-import { BatchedCull, CellCull, InstancedCull, SetCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
+import { BatchedCull, CellCull, InstancedCull, SetCull, UntilCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
 
 export type { CullOptions, CullView } from './cull';
 
@@ -599,7 +599,19 @@ function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<
     return obj;
   });
   const skinned = copies.some((c) => c.getObjectsByProperty('isSkinnedMesh', true).length > 0);
-  return { object: wrap(copies, def.id), drawnAs: skinned ? 'skinned' : 'single', colliders, boxes, cull: null };
+  // parts tagged `userData.until` (metres): drawn only while the camera is nearer to their copy (a building's detail set)
+  const parts: THREE.Object3D[] = [], until: number[] = [], copyOf: number[] = [];
+  copies.forEach((c, i) => { c.traverse((x) => { const u: unknown = x.userData['until']; if (typeof u === 'number') { parts.push(x); until.push(u); copyOf.push(i); } }); });
+  // a copy's LOD is chosen once a frame for the game camera (cullPlaced), never by three's autoUpdate: a pass that hides
+  // the opaque meshes and re-renders the scene (n8ao's transparency pre-passes) must not see a level shown again
+  const lods = copies.filter((c): c is THREE.LOD => c instanceof THREE.LOD);
+  for (const l of lods) l.autoUpdate = false;
+  let cull: ((camera: THREE.Camera) => void) | null = null;
+  if (parts.length > 0 || lods.length > 0) {
+    const c = parts.length > 0 ? new UntilCull(parts, Float32Array.from(until), Uint32Array.from(copyOf), Float32Array.from(poses.flatMap((p) => [p.x, p.y, p.z]))) : null;
+    cull = (camera) => { c?.update(camera); for (const l of lods) l.update(camera); };
+  }
+  return { object: wrap(copies, def.id), drawnAs: skinned ? 'skinned' : 'single', colliders, boxes, cull };
 }
 
 // ── the catalog entry: a specimen in own space, its variants, its facts ──
