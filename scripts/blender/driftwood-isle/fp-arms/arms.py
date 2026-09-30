@@ -433,9 +433,11 @@ def poses(side, bones):
         ds = aim_deltas(side, bones, 'thumb', targets)
         return {f'{side}_thumb{k + 1}': q_list(ds[k]) for k in range(3)}
 
-    # relaxed (the off hand at rest, board 2 A): a soft half-open hand, more curl toward the pinky
-    relaxed = flexes({'index': (14, 16, 8), 'middle': (18, 22, 10), 'ring': (24, 28, 12), 'pinky': (30, 32, 14)})
-    relaxed.update(thumb([L * 0.55 + R * 0.72 - B * 0.35, L * 0.75 + R * 0.45 - B * 0.35, L * 0.8 + R * 0.25 - B * 0.45]))
+    # relaxed (the off hand at rest, board 2 A; Jake's review 2026-09-30: "a relaxed, half-open hand, not the pointing
+    # look"): every finger curled about a third of the way, more toward the pinky (a cascade, so no one finger stands out
+    # straight), the splay mostly taken back, and the thumb in beside the index, not cocked out like a pistol's hammer
+    relaxed = flexes({'index': (34, 46, 24), 'middle': (40, 52, 26), 'ring': (46, 58, 28), 'pinky': (52, 62, 30)}, close=0.4)
+    relaxed.update(thumb([L * 0.66 + R * 0.5 - B * 0.45, L * 0.9 + R * 0.16 - B * 0.4, L * 0.82 + R * 0.02 - B * 0.55]))
     res['relaxed'] = relaxed
     # swim: fingers together, nearly straight, the thumb in along the index (a paddle)
     swim = flexes({'index': (8, 10, 6), 'middle': (8, 10, 6), 'ring': (9, 11, 6), 'pinky': (10, 12, 7)}, close=0.8)

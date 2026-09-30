@@ -244,17 +244,17 @@ const WATER_Y = -0.16;
 // breaststroke, right hand: glide (palms down, together) -> sweep out (palms out, thumbs down) -> pull in and down (palms
 // back) -> recover under the chin (palms in) -> shoot forward
 const STROKE = [
-  [0.00, { w: v3(0.050, WATER_Y + 0.004, -0.570), pron: 62, flex: 4, dev: 0, pole: v3(0.40, -0.20, 0.20) }],
-  [0.28, { w: v3(0.118, WATER_Y + 0.000, -0.515), pron: 72, flex: -8, dev: -14, pole: v3(0.45, -0.15, 0.15) }],
-  [0.50, { w: v3(0.135, WATER_Y - 0.026, -0.415), pron: 48, flex: -40, dev: -24, pole: v3(0.45, -0.25, 0.10) }],
-  [0.73, { w: v3(0.092, WATER_Y - 0.018, -0.39), pron: 30, flex: 6, dev: -22, pole: v3(0.35, -0.35, 0.10) }],
+  [0.00, { w: v3(0.078, WATER_Y + 0.004, -0.570), pron: 62, flex: 4, dev: 0, pole: v3(0.30, -0.38, 0.12) }],
+  [0.28, { w: v3(0.105, WATER_Y + 0.000, -0.515), pron: 72, flex: -8, dev: -14, pole: v3(0.34, -0.34, 0.10) }],
+  [0.50, { w: v3(0.115, WATER_Y - 0.026, -0.415), pron: 48, flex: -40, dev: -24, pole: v3(0.34, -0.40, 0.08) }],
+  [0.73, { w: v3(0.085, WATER_Y - 0.018, -0.39), pron: 30, flex: 6, dev: -22, pole: v3(0.28, -0.45, 0.08) }],
 ];
 const TREAD_T = 2.4;
 function treadKey(t) {
   const a = t * Math.PI * 2;
   return {
     w: v3(0.112 + Math.sin(a) * 0.028, WATER_Y + 0.003 + Math.sin(a + 0.8) * 0.008, -0.46 + Math.sin(2 * a) * 0.02),
-    pron: 55 + Math.sin(a) * 18, flex: -6 + Math.sin(a + 1.2) * 10, dev: -4, pole: v3(0.4, -0.25, 0.15),
+    pron: 55 + Math.sin(a) * 18, flex: -6 + Math.sin(a + 1.2) * 10, dev: -4, pole: v3(0.30, -0.40, 0.10),
   };
 }
 const mirror = (k) => ({ ...k, w: v3(-k.w.x, k.w.y, k.w.z), pole: v3(-k.pole.x, k.pole.y, k.pole.z) });

@@ -123,6 +123,9 @@ export interface SwordArms {
   /** true: the rig draws no trail of its own, so the Sword's ribbon and the heavy's tip glint follow its blade (Driftwood's
    *  castaway arms, E334); Nine Dragon's rig draws its own */
   engineTrail?: boolean;
+  /** E314 charm III on the rig's own blade (Driftwood's castaway arms: its two edges lit sea-glass aqua, the blade's own
+   *  colour kept; the Sword's halo, bladeGlow.ts, rides round it): the level 0…1 (breathing) each frame, 0 = off */
+  glow?: (level: number) => void;
 }
 /** the portrait framing (Sword.framing): shrink, extra drop / slide (m, camera space), the blade tipped forward and turned (rad) */
 export interface SwordFraming { shrink: number; dx: number; dy: number; tilt: number; yaw: number }
@@ -1038,13 +1041,15 @@ export class Sword implements Weapon {
     if (glintOn && this.arms) { this.arms.blade(_v1, _v2); this.glint.set(_v2.add(this.armsHolder.position)); }
     else if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(this.tipX, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
     this.glint.update(worldTime.realDt, t, glintOn);
-    // E314 charm III: the glow rides this frame's blade (either rig), made the first time it is on
+    // E314 charm III: the halo rides this frame's blade (either rig), made the first time it is on; a rig that can light its
+    // own blade's edges (the castaway arms) does, breathing with the halo
     if (this.bladeGlow > 0.005) {
       this.glow ??= new BladeGlow(this.model);
       if (this.arms) { this.arms.blade(_v1, _v2); _v1.add(this.armsHolder.position); _v2.add(this.armsHolder.position); }
       else { this.rig.updateMatrix(); _v1.set(0, this.baseY, 0).applyMatrix4(this.rig.matrix); _v2.set(this.tipX, this.tipY, 0).applyMatrix4(this.rig.matrix); }
       this.glow.set(_v1, _v2, this.bladeGlow, t);
-    } else this.glow?.hide();
+      this.arms?.glow?.(this.bladeGlow * this.glow.breath);
+    } else { this.glow?.hide(); this.arms?.glow?.(0); }
 
     // no aim readout ("BOAR · 15 M") on a melee weapon: the aimed enemy's name plate + health bar (Combat.ts) is its one label
     // (0.6: the plate and the readout showed at once); aimInfo stays null

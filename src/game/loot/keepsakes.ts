@@ -2,8 +2,8 @@
  * Driftwood's keepsakes (E314 stage 3, docs/plans/DRIFTWOOD-LOOT.md — Jake's picks 2026-09-30): what the beach and the
  * chosen fights give you to keep, hung in Wendell's hut, and what each one does. One call from main.ts on Driftwood.
  *
- *   - The sea glass chime (board 3 C): a wind chime hung under the eave left of the hut's door (clear of the doorway and
- *     of the trader's stall). It shows the sea glass you have found in whole charms — 0 / 5 / 10 / 15 pieces — and at 5, 10
+ *   - The sea glass chime (board 3 C): a wind chime hung under the eave over the hut's door (above the door opening's
+ *     headroom, clear of the trader's stall). It shows the sea glass you have found in whole charms — 0 / 5 / 10 / 15 pieces — and at 5, 10
  *     and 15 pieces the charm is yours (Owned charm-1 / 2 / 3) with a toast and a chime: I = +10 max health (shop.ts's
  *     maxHealthOf, stacking with the trader's hearts), II = the dodge recharges 30 % faster (0.8 s → 0.56 s), III = the
  *     held sword glows sea-glass aqua at night (both swords, src/player/bladeGlow.ts). The count is the beach pieces'
@@ -71,9 +71,14 @@ const TAKE_R = 1.4, TAKE_DY = 2;
 const CHARM_DELAY = 1.3;
 
 /** hut-local spots (the hut's own frame: the door at −z, its wall at z = −2.7; the back wall at +2.7; the floor is the
- *  door anchor's y). The chime's hook sits against the front wall's top plate, left of the door (the door lantern is
- *  on the right); the plaques on the back wall's inner face, between the shelves (left) and the chest (below right). */
-const CHIME = { x: -1.05, z: -2.86, up: 2.5 };
+ *  door anchor's y). The chime (Jake's look review 2026-09-30: "over Wendell's doorway, larger — as board 3 C, seen every
+ *  time you walk up") hangs on the door's centre line just outside the lintel batten (z −2.72 … −2.81), 1.25× the model,
+ *  its hook up under the porch thatch (the eave skirt's underside is ~3.46 m over the floor there, hut.ts `hip`; the top
+ *  of the cord runs into it): its lowest piece ends ~2.2 m over the floor (measured: scripts/e334-look-review-capture.mjs),
+ *  clear of the door opening (its top 2.07 m, under the 2.14 m lintel) — no one walks into it — and of the door lantern
+ *  (x +0.9) and the trader's stall (x −3.3, z −7.8). Stage 3 hung it left of the door in front of the window shutter. The
+ *  plaques on the back wall's inner face, between the shelves (left) and the chest (below right). */
+const CHIME = { x: 0, z: -2.95, up: 3.55, scale: 1.25 };
 const PLAQUES = { x: 0.3, z: 2.655, up: 1.3, scale: 1.5 };
 
 export interface KeepsakeAnimal { kind: string; variant?: string | undefined; position: THREE.Vector3 }
@@ -108,7 +113,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
 
   // ── the chime and the plaques, placed models (the Model Explorer's world pieces; no colliders: they hang out of reach) ──
   const c = adv.place({ poi: 'hut', x: CHIME.x, z: CHIME.z, y: floor + CHIME.up });
-  const chimeObj = place(seaGlassChime, [{ x: c.x, y: c.y, z: c.z, yaw: c.yaw, params: { count: 0 } }], { ctx, draw: 'single', ...registry, piece: { id: 'sea-glass-chime', name: 'Sea glass wind chime' } }).object;
+  const chimeObj = place(seaGlassChime, [{ x: c.x, y: c.y, z: c.z, yaw: c.yaw, scale: CHIME.scale, params: { count: 0 } }], { ctx, draw: 'single', ...registry, piece: { id: 'sea-glass-chime', name: 'Sea glass wind chime' } }).object;
   const chime = chimeObj instanceof SeaGlassChime ? chimeObj : null;
   const p = adv.place({ poi: 'hut', x: PLAQUES.x, z: PLAQUES.z, y: floor + PLAQUES.up, yaw: Math.PI });
   const plaquesObj = place(trophyPlaques, [{ x: p.x, y: p.y, z: p.z, yaw: p.yaw, scale: PLAQUES.scale, params: { bear: false, boar: false } }], { ctx, draw: 'single', ...registry, piece: { id: 'trophy-plaques', name: 'Trophy plaques' } }).object;

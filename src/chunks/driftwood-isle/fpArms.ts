@@ -10,7 +10,7 @@
 // swimming hands — sharing the geometry. Driftwood's toon look: flat facets, vertex colour, no textures, lit like the
 // island (sky.setupMaterial: the CSM shadows and the fog). ~9.5 k triangles of arms + ~0.8 k of sword, two draws + the
 // engine's trail.
-import { MeshStandardMaterial, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
+import { Color, MeshStandardMaterial, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
 import type { ShardSword } from '../ChunkDef';
 import type { Sky } from '../../world/Sky';
 import { RigArms, swordArmsOf, vmScale } from '../../player/rigArms';
@@ -26,22 +26,63 @@ const OFFSET = new Vector3(-0.03, -0.012, 0);
  *  right of centre, the off hand low left, the blade's tip below-right of the crosshair */
 const FRAME = { size: 0.6, pitch: -0.2, yaw: 0, roll: 0 };
 
-/** the toon material: flat facets, the vertex colours; `metal` reads a per-vertex metalness (the iron blade and guard; 0.6 at most, the code-built iron sword's) */
-function toonMaterial(sky: Sky, name: string, metal: boolean): MeshStandardMaterial {
+/** Jake's look review (2026-09-30): the body shadow (src/player/BodyShadow.ts) must not shade the arms and the sword. The
+ *  viewmodel sits at the eye, inside that invisible figure, so at a low sun behind you its head and shoulders stood between
+ *  the sun and the hands. The arms look their shadow up VM_SUNWARD metres toward the light instead of where they are:
+ *  anything nearer the arms than that on the light's side (the body: ≤ ~0.9 m from the hands at a grazing sun) is behind
+ *  the lookup and casts nothing on them, while the world's shadows (a palm's crown, the hut's eave, a cliff) still fall
+ *  on them as before. One vec3 add in the vertex shader: no pass, no draw. */
+const VM_SUNWARD = 1.2;
+
+/** the charm III glow on the held blade (E314 / Jake's review: "a soft glow + halo — the blade keeps its own colour with an
+ *  aqua edge"): the sea-glass aqua added as light along the blade's two edges (the outer 30 % of its half-width); `level` 0 = off */
+const GLOW_AQUA = new Color(0x5fe6d8);
+/** `dq`: the sword mesh's own node transform (y offset, uniform scale) — the GLB's positions are quantized
+ *  (KHR_mesh_quantization: normalised integers, the node scales them back), so the shader restores weapon-local metres */
+interface BladeRim { rim: { value: number }; base: number; halfW: number; taper: number; dq: { y: number; s: number } }
+
+/** the toon material: flat facets, the vertex colours, the arms' shadow lookup (VM_SUNWARD); `metal` reads a per-vertex
+ *  metalness (the iron blade and guard; 0.6 at most, the code-built iron sword's); `blade` (a sword: weapon-local positions,
+ *  +y along the blade from the guard, ±x its edges) lights its edges with charm III's glow: the blade's base (y), its
+ *  half-width there and the taper (m per m) */
+function toonMaterial(sky: Sky, name: string, metal: boolean, blade?: BladeRim): MeshStandardMaterial {
   const m = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: metal ? 0.6 : 0.85, metalness: metal ? 0.6 : 0, envMapIntensity: 0.6 });
   m.name = name;
-  if (metal) {
-    m.onBeforeCompile = (sh) => {
+  const lightDir = sky.csm.lightDirection; // the one vector the day / night clock copies the sun (or the moon) into (lowpolyKit.ts)
+  const f = (x: number): string => x.toFixed(4);
+  m.onBeforeCompile = (sh) => {
     attachFogUniforms(sh); // an own hook replaces Material.prototype's, which binds the fog + toon uniforms (Atmosphere.ts): unbound, the ramp fog reads 0 → the whole mesh the fog's colour
+    sh.uniforms['uVmLightDir'] = { value: lightDir };
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 uVmLightDir;')
+      .replace('#include <shadowmap_vertex>', `vec4 vmWorldPos = worldPosition;\nworldPosition.xyz -= uVmLightDir * ${f(VM_SUNWARD)};\n#include <shadowmap_vertex>\nworldPosition = vmWorldPos;`);
+    if (metal) {
       sh.vertexShader = sh.vertexShader
         .replace('#include <common>', '#include <common>\nattribute float _metal;\nvarying float vMetal;')
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvMetal = _metal;');
       sh.fragmentShader = sh.fragmentShader
         .replace('#include <common>', '#include <common>\nvarying float vMetal;')
         .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor *= vMetal;');
-    };
-    m.customProgramCacheKey = () => 'driftwood-fp-metal';
-  }
+    }
+    if (blade) {
+      sh.uniforms['uRim'] = blade.rim;
+      sh.uniforms['uRimAqua'] = { value: GLOW_AQUA };
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec2 vBlade;')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>\nvBlade = vec2(abs(position.x * ${f(blade.dq.s)}), position.y * ${f(blade.dq.s)} + ${f(blade.dq.y)});`);
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform float uRim;\nuniform vec3 uRimAqua;\nvarying vec2 vBlade;')
+        .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        if (uRim > 0.0) {
+          float onBlade = smoothstep(${f(blade.base)}, ${f(blade.base + 0.03)}, vBlade.y);
+          float halfW = max(0.003, ${f(blade.halfW)} - ${f(blade.taper)} * (vBlade.y - ${f(blade.base)}));
+          float edge = smoothstep(0.7, 1.0, vBlade.x / halfW);
+          totalEmissiveRadiance += uRimAqua * (uRim * onBlade * 1.3 * edge);
+        }`);
+    }
+  };
+  m.customProgramCacheKey = () => `driftwood-fp-${metal ? 'metal' : 'toon'}${blade ? '-blade' : ''}`;
+  if (blade) m.userData['rim'] = blade.rim; // the cost capture (scripts/e334-look-review-capture.mjs --measure) turns it off and on
   sky.setupMaterial(m);
   return m;
 }
@@ -84,6 +125,10 @@ function dress(rig: RigArms, m: Dress): void {
   }
 }
 
+/** the swim water line's tip toward the eye (m of rise per m nearer; Jake's review 2026-09-30: "the sleeves above the
+ *  water while swimming"), about the hands' depth (m ahead of the eye, view space) — the stroke's wrists run −0.43 … −0.62 */
+const SWIM_TILT = 1.1, SWIM_HANDS_Z = -0.5;
+
 /** the swimming hands on the rig (Hands.ts): the swim clips, the projection, the water line */
 function swimArms(rig: RigArms): SwimArms {
   const water = { n: { value: new Vector3(0, 1, 0) }, d: { value: -0.16 } };
@@ -102,13 +147,27 @@ function swimArms(rig: RigArms): SwimArms {
       rig.root.position.set(0, 0, 0);
       rig.swim(dt, s.stroke, s.phase);
       // the water plane in view space: the world's up turned into the camera (a third of the pitch: the arms are held to the
-      // surface, not to the head), at the height the clips were framed on (scaled by the projection) — every point under
-      // it when the eye itself is under the surface
+      // surface, not to the head), through the hands at the height the clips were framed on (scaled by the projection), and
+      // tipped up toward the eye (SWIM_TILT) so the forearms and the rolled sleeves in the lower corners ride above it and
+      // the water line crosses at the wrists (board 3 A) — every point under it when the eye itself is under the surface
       up.set(0, 1, 0).applyQuaternion(s.camera.getWorldQuaternion(q).invert());
-      water.n.value.set(up.x * 0.35, 1, up.z * 0.35).normalize();
-      water.d.value = s.eyeAbove < 0.02 ? 50 : waterY * k;
+      water.n.value.set(up.x * 0.35, 1, up.z * 0.35 + SWIM_TILT).normalize();
+      water.d.value = s.eyeAbove < 0.02 ? 50 : water.n.value.y * waterY * k + water.n.value.z * SWIM_HANDS_Z;
     },
   };
+}
+
+/** the swords' blades as arms.py models them (weapon-local): the half-width at the guard end and its taper per metre */
+const BLADES = { wood: { halfW: 0.040, taper: 0.009 / 0.52 }, iron: { halfW: 0.026, taper: 0.006 / 0.56 } } as const;
+
+/** the three materials, each sword's with its own charm III edge level */
+function materials(sky: Sky, rig: RigArms, rims: { wood: { value: number }; iron: { value: number } }): Dress {
+  const blade = (kind: 'wood' | 'iron'): BladeRim => {
+    const node = rig.nodes.get(`sword_${kind}`);
+    const dq = { y: node?.position.y ?? 0, s: node?.scale.x ?? 1 };
+    return { rim: rims[kind], base: rig.meta.swords[kind]?.bladeBase ?? 0.012, ...BLADES[kind], dq };
+  };
+  return { arms: toonMaterial(sky, 'driftwood-fp-arms', false), wood: toonMaterial(sky, 'driftwood-fp-wood', false, blade('wood')), iron: toonMaterial(sky, 'driftwood-fp-iron', true, blade('iron')) };
 }
 
 /** the rigs, loaded as ChunkDef.sword: the wooden sword's arms, the iron sword's, the swimming hands */
@@ -117,13 +176,16 @@ export async function castawayArms(): Promise<ShardSword> {
   wood.weapon('wood');
   iron.weapon('iron');
   let mats: Dress | null = null;
+  const rims = { wood: { value: 0 }, iron: { value: 0 } };
   const setup = (rig: RigArms) => (sky: Sky): void => {
-    mats ??= { arms: toonMaterial(sky, 'driftwood-fp-arms', false), wood: toonMaterial(sky, 'driftwood-fp-wood', false), iron: toonMaterial(sky, 'driftwood-fp-iron', true) };
+    mats ??= materials(sky, rig, rims);
     dress(rig, mats);
   };
+  /** charm III on the held blade: its edges lit (the Sword's halo, bladeGlow.ts, glows round it) */
+  const glow = (rim: { value: number }) => (level: number): void => { rim.value = level; };
   return {
-    arms: swordArmsOf(wood, { offset: OFFSET, frame: FRAME, setup: setup(wood) }),
-    ironArms: swordArmsOf(iron, { offset: OFFSET, frame: { ...FRAME }, setup: setup(iron) }),
+    arms: { ...swordArmsOf(wood, { offset: OFFSET, frame: FRAME, setup: setup(wood) }), glow: glow(rims.wood) },
+    ironArms: { ...swordArmsOf(iron, { offset: OFFSET, frame: { ...FRAME }, setup: setup(iron) }), glow: glow(rims.iron) },
     swim: swimArms(swim),
   };
 }
@@ -133,7 +195,7 @@ export async function castawayArms(): Promise<ShardSword> {
 export async function castawaySpecimen(sky: Sky, kind: 'wood' | 'iron'): Promise<Object3D> {
   const rig = await RigArms.load(FP_ARMS_URL);
   rig.weapon(kind);
-  dress(rig, { arms: toonMaterial(sky, 'driftwood-fp-arms', false), wood: toonMaterial(sky, 'driftwood-fp-wood', false), iron: toonMaterial(sky, 'driftwood-fp-iron', true) });
+  dress(rig, materials(sky, rig, { wood: { value: 0 }, iron: { value: 0 } }));
   rig.update(0.4, { speed: 0, lookVel: new Vector2() });
   return rig.root;
 }
