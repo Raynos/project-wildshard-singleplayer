@@ -605,7 +605,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
-  fullMap.bindMinimap(() => { if (hud.entered) menu.open(away() ? 'settings' : 'map'); });
+  fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); }); // in a practice room: its own map (E321)
   // E124: the BAG button squaring out the minimap's top-right corner (src/ui/BagButton.ts) — opens on GEAR (E314)
   new BagButton(minimap.root, () => { if (hud.entered) menu.openBag(); });
   // M / I / Esc are the menu's own keys (src/ui/Menu.ts, gated by the HUD: E130)
@@ -981,7 +981,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (!hud.entered) return;
     playground = pg;
     pg.enter();
-    setAimTargets([]); minimap.setPracticeArena(pg.center); menu.setPractice(true, pg.title);
+    setAimTargets([]); minimap.setRoom(pg.map); menu.setPractice(true, pg.title); // E321: the room's own map, not the shard's
   };
   const openExplore = async (mode: ExploreMode, opts: { cam?: number[]; model?: string } = {}): Promise<void> => {
     beginNineExploreEntry(mode);
@@ -1149,7 +1149,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
-    if (hud.entered) { hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(player.position, player.yaw, away() ? [] : animals.animals); if (!away()) fullMap.update(player.position, player.yaw); } // the arena has its own grid map, not the shard's terrain
+    if (hud.entered) { hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(player.position, player.yaw, away() ? [] : animals.animals); fullMap.update(player.position, player.yaw); } // a practice room's map is its own (Minimap.setRoom, E321), not the shard's terrain
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,

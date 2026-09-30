@@ -22,6 +22,7 @@ import { DevKit, devLabel, devMaterial } from './devGrid';
 import { FIELD, HORSE_START, JUMPS, JUMP_WIDTH, LINE_X, OVAL, POST_GAP, POST_OFF, RIDER_START, ovalLine } from './horseCourse';
 import { PlaygroundChip, clock } from './hud';
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from './Playground';
+import type { RoomMap, RoomMarker, RoomShape } from '../ui/roomMap';
 
 const FILE = 'src/playgrounds/HorsePlayground.ts';
 /** a place on the steppe whose field (240 × 150 m) is over dry ground well inside the chunk: Mount slows a horse over the
@@ -34,6 +35,9 @@ export class HorsePlayground implements Playground {
   readonly title = 'Horse playground';
   readonly center: { x: number; z: number };
   readonly root: THREE.Group;
+  /** the field's own map (E321): the walls, the oval and its posts, the start / finish and half-way lines, the jump rails,
+   *  the horse — the minimap draws this while you ride, not the steppe 3 km under the field */
+  readonly map: RoomMap;
   /** the track's centre line, world x / z, two laps long (the road wraps past the line) */
   readonly road: (readonly [number, number])[];
   private horse: Animal | null = null;
@@ -50,21 +54,23 @@ export class HorsePlayground implements Playground {
   constructor(private readonly host: PlaygroundHost) {
     if (host.ride === null) throw new Error('the horse playground needs Nalati\'s riding');
     this.center = { x: FIELD_AT.x, z: FIELD_AT.z };
-    const o = this.origin();
+    const o = this.origin;
     const { root, colliders } = this.build(o);
     this.root = root;
     root.visible = false;
     host.registry.add({ id: 'playground-horse', name: 'Horse playground', category: 'ground', file: FILE, object: root, colliders, surface: 'wood', solidFloor: true });
     const lap = ovalLine(4).map(([x, z]) => [o.x + x, o.z + z] as const);
     this.road = [...lap, ...lap.slice(1)];
+    const mark: RoomMarker = { x: 0, z: 0, kind: 'horse' }, marks = [mark], none: RoomMarker[] = [];   // reused: read every frame
+    this.map = { ...fieldMap(o), markers: () => { const h = this.horse; if (h === null || h.hidden) return none; mark.x = h.position.x; mark.z = h.position.z; return marks; } };
     this.chip = new PlaygroundChip('Horse track', () => { this.restart(); });
     host.game.onUpdate(() => { if (this.active) this.update(); }, 'playground-horse');
   }
 
   get entered(): boolean { return this.active; }
 
-  /** the field's floor centre, world space */
-  private origin(): THREE.Vector3 { return new THREE.Vector3(FIELD_AT.x, PLAYGROUND_Y, FIELD_AT.z); }
+  /** the field's floor centre, world space (one vector: update() reads it every frame) */
+  private readonly origin = new THREE.Vector3(FIELD_AT.x, PLAYGROUND_Y, FIELD_AT.z);
 
   private build(o: THREE.Vector3): { root: THREE.Group; colliders: ColliderDesc[] } {
     const kit = new DevKit();
@@ -191,7 +197,7 @@ export class HorsePlayground implements Playground {
     const ride = this.host.ride, a = this.horse;
     if (ride === null || a === null) return;
     if (ride.mount.horse === a) ride.mount.dismount();
-    const o = this.origin();
+    const o = this.origin;
     this.standHorse(a, o.x + HORSE_START.x, o.z + HORSE_START.z, HORSE_START.yaw);
     const px = o.x + RIDER_START.x, pz = o.z + RIDER_START.z;
     // face the horse's shoulder: Player.forward is (−sin yaw, −cos yaw)
@@ -208,9 +214,11 @@ export class HorsePlayground implements Playground {
     const ride = this.host.ride, a = this.horse, p = this.host.player;
     if (ride === null || a === null) return;
     if (p.hover) p.setHover(false);
-    const o = this.origin();
+    const o = this.origin;
     // unridden, the horse stands on the field (a dismount hands it back to the terrain's tilt: level it again)
-    if (ride.mount.horse !== a) a.levelGround = true;
+    // — and at the field's height where it stands now: its ground follow tracks the terrain 3 km under it, so the offset
+    // taken on the start would float or sink it anywhere else (a dismount mid-lap; E321 / E328)
+    if (ride.mount.horse !== a) { a.levelGround = true; a.yOffset = PLAYGROUND_Y - heightAt(a.position.x, a.position.z); }
     const mounted = riding.horse === a;
     // the laps: across the start line eastward on the front straight starts / ends one; half way counts on the back
     const x = p.position.x - o.x, z = p.position.z - o.z;
@@ -237,6 +245,37 @@ export class HorsePlayground implements Playground {
     // off the field (a dismount in mid-jump drops you to the terrain under it): back on the start
     if (p.position.y < o.y - 12) { this.restart(); this.host.toast('OFF THE FIELD · BACK ON THE START'); }
   }
+}
+
+/** the field as map shapes, world x / z (src/ui/roomMap.ts): what the minimap and the full map draw while the field is up */
+function fieldMap(o: THREE.Vector3): Omit<RoomMap, 'markers'> {
+  const F = FIELD, w = (x: number, z: number): [number, number] => [o.x + x, o.z + z];
+  const shapes: RoomShape[] = [
+    { kind: 'rect', x0: o.x + F.x0, z0: o.z + F.z0, x1: o.x + F.x1, z1: o.z + F.z1, fill: '#123326', stroke: '#9aa6ae' },
+    { kind: 'path', pts: ovalLine(2).map(([x, z]) => w(x, z)), width: OVAL.width, color: '#c9a468', closed: true },
+  ];
+  // the posts either side of the band (as the field builds them: every POST_GAP m along the line)
+  const line = ovalLine(1);
+  let run = POST_GAP / 2;
+  for (let i = 1; i < line.length; i++) {
+    const a = line[i - 1], b = line[i];
+    if (a === undefined || b === undefined) continue;
+    run += Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (run < POST_GAP) continue;
+    run = 0;
+    const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, nx = -dz / l, nz = dx / l;
+    for (const side of [-1, 1]) shapes.push({ kind: 'dot', x: o.x + b[0] + nx * POST_OFF * side, z: o.z + b[1] + nz * POST_OFF * side, r: 0.7, color: '#e8f4fa' });
+  }
+  const half = OVAL.width / 2 + 1;
+  shapes.push(
+    { kind: 'path', pts: [w(LINE_X, OVAL.radius - half), w(LINE_X, OVAL.radius + half)], width: 2.4, color: '#f2f4f6' },     // START · FINISH
+    { kind: 'path', pts: [w(LINE_X, -OVAL.radius - half), w(LINE_X, -OVAL.radius + half)], width: 2.4, color: '#e2843a' },   // HALF WAY
+    ...JUMPS.map((j): RoomShape => ({ kind: 'path', pts: [w(j.x, -JUMP_WIDTH / 2), w(j.x, JUMP_WIDTH / 2)], width: 1.6, color: '#e2843a' })),
+    { kind: 'label', x: o.x + LINE_X, z: o.z + OVAL.radius + half + 5, text: 'START · FINISH', color: '#f2f4f6' },
+    { kind: 'label', x: o.x + LINE_X, z: o.z - OVAL.radius - half - 5, text: 'HALF WAY', color: '#e2843a' },
+    { kind: 'label', x: o.x, z: o.z + 9, text: 'JUMPS', color: '#e8f4fa' },
+  );
+  return { bounds: { x0: o.x + F.x0, z0: o.z + F.z0, x1: o.x + F.x1, z1: o.z + F.z1 }, shapes };
 }
 
 /** the track: a 12 m sand band along the oval's centre line, world-aligned metre UVs, one draw */

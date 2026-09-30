@@ -205,7 +205,7 @@ export class GameMenu {
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
       const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
-      const on = (id !== 'feedback' || review) && (id !== 'finds' || this.hasFinds) && g === group && !(this.practice && id === 'map');
+      const on = (id !== 'feedback' || review) && (id !== 'finds' || this.hasFinds) && g === group && !(id === 'map' && this.noMap);
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
@@ -225,16 +225,20 @@ export class GameMenu {
 
   get isOpen(): boolean { return this._open; }
   get inPractice(): boolean { return this.practice; }
+  /** a practice room without a map of its own: no MAP tab (the shard's terrain is not where you are). The arena and the
+   *  playgrounds bring their own (Minimap.setRoom, E321), so their MAP tab shows the room */
+  private get noMap(): boolean { return this.practice && !this.opts.fullMap.hasRoom; }
 
-  /** The arena keeps Settings and Feedback but never presents the shard's terrain map. A feature playground (E307) is a
-   *  practice room too: `room` names it under the title (the arena's is "Training arena"). */
+  /** The arena keeps Settings and Feedback but never presents the shard's terrain map (its MAP tab is the room's own,
+   *  E321). A feature playground (E307) is a practice room too: `room` names it under the title (the arena's is
+   *  "Training arena"). */
   setPractice(active: boolean, room = 'Training arena'): void {
     this.practice = active;
     this.root.classList.toggle('practice', active);
     this.subtitle.textContent = active ? room : getActiveChunk().displayName;
     this.exitBtn.innerHTML = active ? 'Exit <span class="ws-gmenu-nowrap">to Explore</span>' : 'Exit <span class="ws-gmenu-nowrap">to main</span>';
     this.exitBtn.setAttribute('aria-label', active ? 'Exit to Explore' : 'Exit to main menu');
-    if (active && this._tab === 'map') this.select('settings'); else this.syncTabs();
+    if (active && this._tab === 'map' && this.noMap) this.select('settings'); else this.syncTabs();
   }
 
   /** pause ▸ Settings ▸ Debug, the grouped registry (E162; the title's Settings mounts the same one, E172) */
@@ -248,7 +252,7 @@ export class GameMenu {
   get tab(): MenuTab { return this._tab; }
 
   open(tab: MenuTab = this._tab): void {
-    const selected = this.practice && tab === 'map' ? 'settings' : tab;
+    const selected = this.noMap && tab === 'map' ? 'settings' : tab;
     this.select(selected);
     if (this._open) return;
     this._open = true;

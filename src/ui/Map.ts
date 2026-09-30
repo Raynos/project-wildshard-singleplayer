@@ -28,6 +28,7 @@
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
 import { LAYER_PPM, type MapFeatures, type Minimap } from './Minimap';
+import { ROOM_BG, fitRoom, paintRoom } from './roomMap';
 
 /** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond);
  *  `short` = a quest marker's short name ("SEA CAVE" for "SEA CAVE SHARD") — the map labels it with that */
@@ -112,7 +113,9 @@ export class FullMap {
   setFeatures(f: MapFeatures): void { this.minimap.setFeatures(f); }
   /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
   setQuest(source: () => MapQuest | null): void { this.questSource = source; }
-  get quest(): MapQuest | null { return this.questSource?.() ?? null; }
+  get quest(): MapQuest | null { return this.minimap.room !== null ? null : this.questSource?.() ?? null; }
+  /** a practice room's own map is up (the minimap's, E321): the MAP tab shows it — in the arena / a playground too */
+  get hasRoom(): boolean { return this.minimap.room !== null; }
   get zoom(): number { return this._zoom; }
   /** zoom about the frame centre (the menu's 1× / 2× / 4× chips) */
   setZoom(z: number): void { const r = this.canvas.getBoundingClientRect(); this.zoomTo(z, { x: r.left + r.width / 2, y: r.top + r.height / 2 }); }
@@ -168,6 +171,15 @@ export class FullMap {
   /** Every frame while open. */
   update(pos: { x: number; z: number }, yaw: number): void {
     if (!this.open) return;
+    const room = this.minimap.room;
+    if (room !== null) {   // a practice room: its own layout, fitted to the frame (the zoom chips scale it), no shard, no pins
+      const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height, view = fitRoom(room, W, H, false);
+      view.ppm *= this._zoom;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = ROOM_BG; ctx.fillRect(0, 0, W, H);
+      paintRoom(ctx, room, view, pos, yaw, this.dpr, { labels: true });
+      return;
+    }
     const { terrain, cover } = this.minimap.layers;
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height, ppm = this.ppm(), side = CHUNK_SIZE * ppm;
     const sx = (x: number) => W / 2 + (this.cx - x) * ppm;   // −X is east (screen right)

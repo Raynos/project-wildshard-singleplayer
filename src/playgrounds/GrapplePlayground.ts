@@ -20,6 +20,7 @@ import { DevKit, devLabel } from './devGrid';
 import { COLUMN, FALL_Y, HOOKS, PADS, RING_UP, ROOM, RUN, coursePad, type CoursePad } from './grappleCourse';
 import { PlaygroundChip, clock } from './hud';
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from './Playground';
+import type { RoomMap, RoomShape } from '../ui/roomMap';
 
 const FILE = 'src/playgrounds/GrapplePlayground.ts';
 const SLAB = 1;                  // a pad's slab thickness (m): thick, so the capsule never sinks through (E285)
@@ -35,6 +36,9 @@ export class GrapplePlayground implements Playground {
   readonly title = 'Grapple playground';
   readonly center: { x: number; z: number };
   readonly root: THREE.Group;
+  /** the room's own map (E321): the walls, the pads, the tower's column, the hooks — the minimap draws this while you run
+   *  the course, not the fragment under the room */
+  readonly map: RoomMap;
   /** the course's hooks in world space (what the grapple bites) */
   readonly hooks: THREE.Vector3[];
   private readonly course: GrappleCourse;
@@ -51,7 +55,8 @@ export class GrapplePlayground implements Playground {
 
   constructor(private readonly host: PlaygroundHost) {
     this.center = { x: host.spawn.x, z: host.spawn.z };
-    const o = this.origin();
+    this.origin = new THREE.Vector3(this.center.x, PLAYGROUND_Y, this.center.z);
+    const o = this.origin;
     this.checkpoint = coursePad(RUN.from);
     const { root, colliders } = this.build(o);
     this.root = root;
@@ -59,14 +64,15 @@ export class GrapplePlayground implements Playground {
     host.registry.add({ id: 'playground-grapple', name: 'Grapple playground', category: 'ground', file: FILE, object: root, colliders, surface: 'metal', solidFloor: true });
     this.hooks = HOOKS.map((h) => new THREE.Vector3(o.x + h.x, o.y + h.y, o.z + h.z));
     this.course = { name: this.title, hooks: this.hooks };
+    this.map = courseMap(o);
     this.chip = new PlaygroundChip('Grapple', () => { this.restart(); });
     host.game.onUpdate(() => { if (this.active) this.update(); }, 'playground-grapple');
   }
 
   get entered(): boolean { return this.active; }
 
-  /** the room's pit floor centre, world space */
-  private origin(): THREE.Vector3 { return new THREE.Vector3(this.center.x, PLAYGROUND_Y, this.center.z); }
+  /** the room's pit floor centre, world space (one vector: update() reads it every frame) */
+  private readonly origin: THREE.Vector3;
 
   private build(o: THREE.Vector3): { root: THREE.Group; colliders: ColliderDesc[] } {
     const kit = new DevKit();
@@ -166,7 +172,7 @@ export class GrapplePlayground implements Playground {
 
   /** on a pad's floor facing its next pad's hook (the start: at its south end, P1 dead ahead) */
   private place(p: CoursePad, atStart: boolean): void {
-    const o = this.origin(), player = this.host.player;
+    const o = this.origin, player = this.host.player;
     const x = p.x, z = atStart ? p.z + p.d / 2 - 3 : p.z;
     const next = p.next === undefined ? null : coursePad(p.next);
     const yaw = next === null ? 0 : yawToward(x, z, next.x, next.z);
@@ -177,7 +183,7 @@ export class GrapplePlayground implements Playground {
 
   /** the pad under the feet (on its floor), or null — the run's clock reads it, and so do the tests */
   padUnder(): CoursePad | null {
-    const o = this.origin(), p = this.host.player.position;
+    const o = this.origin, p = this.host.player.position;
     const lx = p.x - o.x, ly = p.y - o.y, lz = p.z - o.z;
     for (const pad of PADS) {
       if (Math.abs(lx - pad.x) <= pad.w / 2 && Math.abs(lz - pad.z) <= pad.d / 2 && Math.abs(ly - pad.top) < 0.35) return pad;
@@ -188,7 +194,7 @@ export class GrapplePlayground implements Playground {
   private update(): void {
     const { player } = this.host;
     if (player.hover) player.setHover(false); // no board in the dev room (as in the Practice arena)
-    const o = this.origin(), p = player.position;
+    const o = this.origin, p = player.position;
     const pad = player.onGround ? this.padUnder() : null;
     if (pad !== null) {
       this.checkpoint = pad;
@@ -214,6 +220,26 @@ export class GrapplePlayground implements Playground {
       this.host.toast(`FELL · BACK ON ${this.checkpoint.label}`);
     }
   }
+}
+
+/** the room as map shapes, world x / z (src/ui/roomMap.ts): the walls, the column, the pads (START / FINISH light), the gold
+ *  hooks, the pads' names on the full map */
+function courseMap(o: THREE.Vector3): RoomMap {
+  const R = ROOM, box = { x0: o.x + R.x0, z0: o.z + R.z0, x1: o.x + R.x1, z1: o.z + R.z1 };
+  const rect = (x: number, z: number, w: number, d: number, fill: string, stroke?: string): RoomShape => ({ kind: 'rect', x0: o.x + x - w / 2, z0: o.z + z - d / 2, x1: o.x + x + w / 2, z1: o.z + z + d / 2, fill, ...(stroke !== undefined ? { stroke } : {}) });
+  const shapes: RoomShape[] = [
+    { kind: 'rect', ...box, fill: '#15191e' },
+    { kind: 'grid', ...box, step: 10, color: 'rgba(117, 217, 255, 0.12)' },
+    { kind: 'rect', ...box, stroke: '#75d9ff' },
+    rect(COLUMN.x, COLUMN.z, COLUMN.w, COLUMN.d, '#b0591b'),
+  ];
+  for (const p of PADS) {
+    const lit = p.kind === 'start' || p.kind === 'finish';
+    shapes.push(rect(p.x, p.z, p.w, p.d, lit ? '#d7dde2' : '#6c737b', p.kind === 'finish' ? '#e2843a' : undefined));
+  }
+  for (const h of HOOKS) shapes.push({ kind: 'dot', x: o.x + h.x, z: o.z + h.z, r: 1.4, color: '#ffc24a' });
+  for (const p of PADS) if (p.kind !== 'range') shapes.push({ kind: 'label', x: o.x + p.x, z: o.z + p.z, text: p.label, color: p.kind === 'finish' ? '#e2843a' : '#e8f4fa' });
+  return { bounds: box, shapes };
 }
 
 function mergeAll(list: THREE.BufferGeometry[]): THREE.BufferGeometry {

@@ -45,6 +45,7 @@ import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { activeClock } from '../world/WorldClock';
 import { scopesInstalled } from '../core/shardScope';
+import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
 
 export interface MinimapAnimal {
   kind: string;
@@ -202,7 +203,8 @@ export class Minimap {
   private size = 0;      // device px, square
   private dpr = 1;
   private visible = true;
-  private practiceCenter: { x: number; z: number } | null = null;
+  /** a practice room's own map while one is up (the arena, a playground: src/ui/roomMap.ts, E321) — the shard's is not drawn */
+  private roomMap: RoomMap | null = null;
   private ro: ResizeObserver | null = null;
 
   constructor(parent: HTMLElement | null = document.getElementById('hud')) {
@@ -249,11 +251,17 @@ export class Minimap {
     this.root.classList.toggle('hidden', !v);
   }
 
-  /** Replace the shard terrain with the enclosed 100 m practice room while training. */
-  setPracticeArena(center: { x: number; z: number } | null): void {
-    this.practiceCenter = center;
-    this.root.classList.toggle('practice', center !== null);
+  /** Replace the shard terrain with the enclosed 100 m practice room while training (null: the shard's map again). */
+  setPracticeArena(center: { x: number; z: number } | null): void { this.setRoom(center === null ? null : arenaMap(center)); }
+
+  /** Replace the shard's map with a practice room's own (a playground's track / course, E321); null: the shard's again.
+   *  `.practice` on the root hides what belongs to the shard's map (the day badge, the elite skulls: minimap.css). */
+  setRoom(map: RoomMap | null): void {
+    this.roomMap = map;
+    this.root.classList.toggle('practice', map !== null);
   }
+  /** the room whose map is up (the full map draws it too), or null on the shard */
+  get room(): RoomMap | null { return this.roomMap; }
 
   /** has the player been near (x, z)? — the fog-of-war coverage (a place on the full map is named once explored, else "?") */
   explored(x: number, z: number): boolean {
@@ -294,7 +302,7 @@ export class Minimap {
     if (!this.visible) return;
     if (this.size === 0) this.fit();
     if (this.size === 0) return;
-    if (this.practiceCenter !== null) { this.paintPracticeArena(pos, yaw, this.practiceCenter); return; }
+    if (this.roomMap !== null) { this.paintRoom(pos, yaw, this.roomMap); return; }
     this.paintDay();
     if (this.layerDirty) this.paintLayer();
 
@@ -367,32 +375,12 @@ export class Minimap {
     ctx.restore();
   }
 
-  private paintPracticeArena(pos: { x: number; z: number }, yaw: number, center: { x: number; z: number }): void {
-    const D = this.size, c = D / 2, margin = D * 0.16, side = D - margin * 2;
-    const xy = (x: number, z: number): [number, number] => [c - (x - center.x) * side / 100, c - (z - center.z) * side / 100];
-    const ctx = this.ctx;
+  private paintRoom(pos: { x: number; z: number }, yaw: number, map: RoomMap): void {
+    const D = this.size, c = D / 2, ctx = this.ctx;
     ctx.clearRect(0, 0, D, D);
     ctx.save(); ctx.beginPath(); ctx.arc(c, c, c, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = '#07101d'; ctx.fillRect(0, 0, D, D);
-    ctx.strokeStyle = 'rgba(117, 217, 255, 0.25)'; ctx.lineWidth = Math.max(1, this.dpr * 0.6);
-    for (let m = -40; m <= 40; m += 10) {
-      const p = margin + (m + 50) * side / 100;
-      ctx.beginPath(); ctx.moveTo(p, margin); ctx.lineTo(p, D - margin); ctx.moveTo(margin, p); ctx.lineTo(D - margin, p); ctx.stroke();
-    }
-    ctx.strokeStyle = '#75d9ff'; ctx.lineWidth = Math.max(1.5, this.dpr);
-    ctx.strokeRect(margin, margin, side, side);
-    const dummies: readonly [number, number][] = [[-6, -13], [0, -7], [6, -13]];
-    for (const [x, z] of dummies) {
-      const [sx, sy] = xy(center.x + x, center.z + z);
-      ctx.beginPath(); ctx.arc(sx, sy, Math.max(2.5, this.dpr * 1.8), 0, Math.PI * 2);
-      ctx.fillStyle = '#ffb547'; ctx.fill();
-    }
-    const [px, py] = xy(pos.x, pos.z);
-    const heading = Math.PI - yaw;
-    ctx.translate(px, py); ctx.rotate(heading);
-    const s = this.dpr;
-    ctx.beginPath(); ctx.moveTo(0, -7 * s); ctx.lineTo(5 * s, 6 * s); ctx.lineTo(0, 3 * s); ctx.lineTo(-5 * s, 6 * s); ctx.closePath();
-    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#07101d'; ctx.lineWidth = 1.5 * s; ctx.stroke(); ctx.fill();
+    ctx.fillStyle = ROOM_BG; ctx.fillRect(0, 0, D, D);
+    paintRoom(ctx, map, fitRoom(map, D, D, true), pos, yaw, this.dpr);
     ctx.restore();
   }
 

@@ -9,7 +9,9 @@
  * Like the Practice arena, a playground hangs high over the shard it belongs to — so high (PLAYGROUND_Y) that the whole
  * shard is past the camera's 2.6 km far plane and frustum-culled while you play: the scene draws only the playground.
  * It dispatches `ws:practice-active` (a practice room is up: no city grade, no drizzle, a depth-tested sun halo) and asks
- * mobile for 60 fps like the arena does (tier.ts practiceFps).
+ * mobile for 60 fps like the arena does (tier.ts practiceFps). That event is `practiceRoom.open` (src/core/practiceRoom.ts):
+ * the shard's open-world systems read it and step aside while you play (E321: no crouch / stealth off the grass 3 km under
+ * you, no elites or night riders); the minimap draws the room's own `map`.
  */
 import type * as THREE from 'three';
 import type { Game } from '../core/Game';
@@ -19,6 +21,7 @@ import type { WorldRegistry } from '../world/registry';
 import type { Ride } from '../nalati/ride';
 import type { AnimalManager } from '../entities/AnimalManager';
 import type { PlaygroundId } from './catalog';
+import type { RoomMap } from '../ui/roomMap';
 
 /** metres over the shard's datum a playground's floor stands: every shard (≤ ~300 m tall) is past the 2 600 m far plane */
 export const PLAYGROUND_Y = 3000;
@@ -40,8 +43,11 @@ export interface Playground {
   readonly id: PlaygroundId;
   readonly title: string;
   readonly entered: boolean;
-  /** the room's centre (the minimap draws its grid round it) */
+  /** the room's centre */
   readonly center: { x: number; z: number };
+  /** the room's own map (E321): the minimap and the full map draw it while the room is up, not the shard's (main.ts
+   *  `minimap.setRoom(pg.map)`; src/ui/roomMap.ts) */
+  readonly map: RoomMap;
   enter: () => void;
   exit: () => void;
   /** the scene's root (tests and captures read it) */
