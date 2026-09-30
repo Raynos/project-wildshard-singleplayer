@@ -25,7 +25,8 @@
  *
  * Gameplay does not change: the Blender terrain sits on the exact heights `heightAt` walks (sampled from the same bake), the
  * game's own palms and boulders in the area keep their colliders (the Blender ones stand on the same spots), and the new
- * palms and the reachable crag rocks add theirs. `palmSpecs` gains the new palms (the monkeys climb them).
+ * palms and the reachable crag rocks add theirs — E344: on their models (the cove palm / broad-frond palm / crag plate
+ * families' pieces, `placeModels`), no longer on the P2 bridge. `palmSpecs` gains the new palms (the monkeys climb them).
  */
 import * as THREE from 'three';
 import { ktx2Texture } from '../core/ktx2';
@@ -38,6 +39,7 @@ import { CHUNK_HALF, TERRAIN_RES } from '../core/config';
 import { TIER } from '../core/tier';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
+import { boxDesc, type ColliderDesc } from './registry';
 import type { PalmSpec } from './Palms';
 import { slicer } from '../boot/plan';
 import { modelContext, type ModelContext, type Placement } from '../models/model';
@@ -457,7 +459,7 @@ export class BlenderIsland {
     this.stats.draws = this.group.children.length;
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
-    await this.placeModels(models, f, used, meta, protos, propsMat);
+    const unclaimed = await this.placeModels(models, f, used, meta, protos, propsMat);
 
     // ── hide what the area replaces ──
     clipTerrain(ctx.terrain);
@@ -485,7 +487,7 @@ export class BlenderIsland {
     }
 
     // ── gameplay ──
-    ctx.colliders.push(...meta.colliders);
+    ctx.colliders.push(...unclaimed); // E344: the cove's boxes are its models' (placeModels); one no copy claims stays on the P2 bridge
     ctx.palmSpecs.push(...meta.extraPalms);
     for (const tile of this.tiles) for (const [tm, far] of [[tile.near, false], [tile.far, true]] as const) {
       if (tm === null) continue;
@@ -529,8 +531,16 @@ export class BlenderIsland {
    * above are their drawing, so each family is placed `drawnInto` this group: its copies (the placements this tier
    * builds), each copy's world box, and the model's catalog card; `place` draws nothing. The specimens read the loaded
    * prototypes and the casters' material from the shard's model context.
+   *
+   * E344: the cove's collider boxes are its copies'. island.json's 200 `colliders` (build_island.py) are one box per extra
+   * palm (its trunk: 0.6 m square, from a metre under its foot to its crown) and one per reachable crag plate (a box a
+   * little inside the rock, 3 m into the ground), each standing on its copy's spot exactly (placements.bin holds the same
+   * x, z in f32). So each goes to that copy's family: the colliders the copies made as they were fitted to the ground,
+   * in world space (`drawnInto.colliders`: the palm, broad-frond palm and crag plate pieces), each the box the P2 bridge
+   * mirrored (`boxDesc`: the same centre, half extents and turn) in 'wood', as the bridge tagged it. Returns the boxes no
+   * copy claims (none: they would stay on the bridge).
    */
-  private async placeModels(models: ModelContext, f: Float32Array, used: number, meta: IslandMeta, protos: Proto[], material: THREE.Material): Promise<void> {
+  private async placeModels(models: ModelContext, f: Float32Array, used: number, meta: IslandMeta, protos: Proto[], material: THREE.Material): Promise<Collider[]> {
     const byName = new Map<string, Proto>();
     meta.protos.forEach((p, i) => { const pr = protos[i]; if (pr) byName.set(p.name, pr); });
     coveProtos(models, { protos: byName, material });
@@ -539,7 +549,11 @@ export class BlenderIsland {
       for (let k = 0; k < pr.pos.length; k += 3) b.expandByPoint(_v.set(pr.pos[k] ?? 0, pr.pos[k + 1] ?? 0, pr.pos[k + 2] ?? 0));
       return b;
     });
-    const fam = new Map<CoveFamily, { pls: Placement<CoveParams>[]; boxes: number[] }>();
+    const fam = new Map<CoveFamily, { pls: Placement<CoveParams>[]; boxes: number[]; colliders: ColliderDesc[] }>();
+    // the boxes by the spot they stand on, as placements.bin holds it (f32)
+    const spot = (x: number, z: number): string => `${x},${z}`;
+    const claim = new Map<string, Collider>();
+    for (const c of meta.colliders) claim.set(spot(Math.fround(c.x), Math.fround(c.z)), c);
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3(), b = new THREE.Box3();
     for (let i = 0; i < used; i++) {
       const o = i * 10, pi = f[o] ?? 0, name = meta.protos[pi]?.name ?? '', key = coveFamilyOf(name), lb = local[pi];
@@ -548,16 +562,20 @@ export class BlenderIsland {
       const sc = f[o + 8] ?? 1;
       b.copy(lb).applyMatrix4(m.compose(t, q, s.set(sc, sc, sc)));
       let e = fam.get(key);
-      if (!e) { e = { pls: [], boxes: [] }; fam.set(key, e); }
+      if (!e) { e = { pls: [], boxes: [], colliders: [] }; fam.set(key, e); }
       // the copy's pose lives in placements.bin (the tiles draw it): a placement carries where it stands and which prototype
       e.pls.push({ x: t.x, y: t.y, z: t.z, variant: name });
       e.boxes.push(b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z);
+      const own = claim.get(spot(t.x, t.z));
+      if (own !== undefined) { e.colliders.push(boxDesc(own, 'wood')); claim.delete(spot(t.x, t.z)); }
     }
     const slice = slicer(); // (~16 k copies on the desktop: a task ends once it has run 30 ms)
     for (const [key, e] of fam) {
-      placeModel(COVE_MODELS[key], e.pls, { ctx: models, draw: 'merged', drawnInto: { object: this.group, boxes: Float32Array.from(e.boxes) }, piece: { id: `cove-${key}` } });
+      placeModel(COVE_MODELS[key], e.pls, { ctx: models, draw: 'merged', drawnInto: { object: this.group, boxes: Float32Array.from(e.boxes), ...(e.colliders.length > 0 ? { colliders: e.colliders } : {}) }, piece: { id: `cove-${key}` } });
       await slice();
     }
+    if (claim.size > 0) console.warn(`[island] ${claim.size} collider boxes stand on no cove copy: they stay on the P2 bridge`);
+    return [...claim.values()];
   }
 
   /** per frame: the baked bounce follows the live sun (colour × intensity × elevation over the bake's reference) */
