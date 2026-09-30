@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — Driftwood's stages 1–3 are live (`24c8e41-munz58y9`). Last row, Jake picked 2026-09-30: Pine Hollow **C**, Nalati **C**, Nine Dragon **A**, built in that order — Pine Hollow C built (`708926b3`, awaiting deploy; sheet `progress/295-e314-pine-bag-c.jpg`), Nalati C built (`e14cba31`, awaiting deploy; sheet `progress/297-e314-nalati-bag-c.jpg`; Argymaq's prize is the horse itself, no skin — Jake, 2026-09-30), Nine Dragon A in flight (driftwood-top10 plan agent, coordinated with each shard's own session). Jake's stage-3 look review applied (`276494be`, awaiting deploy): the chime over the door, the soft glow + halo, no body shadow on the arms.
+**State:** `in progress` 2026-09-30 — every row built: Driftwood stages 1–3 (live `24c8e41-munz58y9`) + Jake's look review (`276494be`), Pine Hollow C (`708926b3`), Nalati C (`e14cba31`), Nine Dragon A (`018179cc`); the last four await a release (GitHub's hourly schedule keeps skipping and workflow dispatch returned HTTP 500 at 12:1x — retrying). Finishes and archives once they're live.
 
 ## Why
 
