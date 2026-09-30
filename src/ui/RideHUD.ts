@@ -13,7 +13,8 @@ import { ROW, hudSlots } from './hudSlots';
  *   STEED     amber bar + gait under VITALS while mounted (desktop panel over the health panel; touch: a row of the
  *             status column — the horse, its name, the bar, the gait)
  *   GALLOP    (touch) a held disc in JUMP's slot (`r0`); JUMP, DODGE and the HOVER tab hide in the saddle
- *   HORSE     (touch) a small tab on the right edge (`edge-r`): whistles your bonded horse (desktop: X); in the saddle the
+ *   HORSE     (touch) a tab on the LEFT edge just above HOVER (`edge-l`, E319), shown once a horse is bonded (tamed):
+ *             whistles it (desktop: X); in the saddle the
  *             same tab reads DISMOUNT, amber, the horse over a down-arrow (N17 — the USE band's DISMOUNT hides while it is up)
  *   TRUST     the arc over the crosshair while you approach a stallion (heart · horseshoe), and his ALERT ear over his head
  *   HOLD ON   TAMING n/5 + the balance arc while he bucks; LEAN L / LEAN R discs (touch) at the two edges over the bar
@@ -66,7 +67,7 @@ export class RideHUD {
   /** the phone's controls + STEED row (hudSlots: detached, and never shown, on a mouse / trackpad device) */
   private readonly t: { gallop: HTMLElement; horse: HTMLElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
   private layer: HTMLElement | null = null; private use: HTMLElement | null = null;
-  private last = { mounted: true, breaking: true, offer: true, steed: -1, gait: '', winded: false, beat: false, spur: 0 }; // ≠ the first frame's: paint it
+  private last = { mounted: true, breaking: true, offer: true, horseTab: true, steed: -1, gait: '', winded: false, beat: false, spur: 0 }; // ≠ the first frame's: paint it
   private spurUntil = 0;
 
   constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera) {
@@ -93,9 +94,10 @@ export class RideHUD {
   /** the phone's discs and STEED row, through the base HUD's slots */
   private buildTouch(): RideHUD['t'] {
     const gallop = hudSlots.disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { this.mount.touchGallop = true; this.mount.gallopTap(); }, release: () => { this.mount.touchGallop = false; } });
-    // HORSE ⇄ DISMOUNT (N17): one small tab on the right edge — on foot it whistles your horse, in the saddle it reads
-    // DISMOUNT and gets you off (the full-width USE band's DISMOUNT hides, syncUse)
-    const horse = hudSlots.disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-r', press: () => { if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); } });
+    // HORSE ⇄ DISMOUNT (N17): one tab on the left edge over HOVER (E319, Jake: HORSE right and HOVER left "makes no sense")
+    // — on foot it whistles your horse (shown only once one is bonded), in the saddle it reads DISMOUNT and gets you off
+    // (the full-width USE band's DISMOUNT hides, syncUse)
+    const horse = hudSlots.disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-l', press: () => { if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); } });
     const leanL = hudSlots.disc({ cls: 'ws-ride-lean', icon: SVG_LEFT, label: 'Lean L', spot: 'lean-l', press: () => { this.lean = -1; }, release: () => { if (this.lean < 0) this.lean = 0; } });
     const leanR = hudSlots.disc({ cls: 'ws-ride-lean', icon: SVG_RIGHT, label: 'Lean R', spot: 'lean-r', press: () => { this.lean = 1; }, release: () => { if (this.lean > 0) this.lean = 0; } });
     const offer = hudSlots.disc({ cls: 'ws-ride-offer', icon: SVG_HAND, label: 'Offer', spot: 'aim', press: () => { this.offer = true; }, release: () => { this.offer = false; } });
@@ -141,7 +143,6 @@ export class RideHUD {
       this.showDisc('.ws-touch-disc.dodge', !mounted);
       this.showDisc('.ws-touch-hover', !mounted);   // the base's HOVER tab: no board in the saddle
       this.showDisc('.ws-touch-disc.aim', !breaking);
-      hudSlots.show(t.horse, !breaking);
       t.horse.classList.toggle('ws-ride-dismount', mounted);
       t.horse.innerHTML = mounted ? `${SVG_HORSE}<b class="ws-ride-darrow">${SVG_DOWN}</b><span>Dismount</span>` : `${SVG_HORSE}<span>Horse</span>`;
       this.syncUse();
@@ -189,6 +190,9 @@ export class RideHUD {
       this.holdMark.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${((ang - Math.PI * 1.5) * 180 / Math.PI).toFixed(1)})`);
       this.hold.classList.toggle('danger', view.danger);
     }
+    // HORSE: only once you have a horse to call (Taming marks the bonded one mem.whistle = 1), or while riding one
+    const horseTab = !breaking && (mounted || m.mountables.some((mt) => (mt.a.mem['whistle'] ?? 0) === 1));
+    if (horseTab !== this.last.horseTab) { this.last.horseTab = horseTab; hudSlots.show(t.horse, horseTab); }
     const offer = (view?.offer ?? false) && !mounted;
     if (offer !== this.last.offer) {
       this.last.offer = offer;

@@ -15,7 +15,7 @@
  * Spots (touch.css `.at-*`): `r0` JUMP's · `r1` DODGE's · `r2` LOCK's · `r3` the 4th slot left of LOCK (all in the E119
  * row) · `aim` wherever AIM is (LOCK's slot, or the 4th when LOCK shows) · `up0` above JUMP (the row pushes the USE band
  * up while a disc there `.show`s) · `lean-l` / `lean-r` just above the bar at the two edges · `edge-r` a tab on the right
- * screen edge. A disc starts hidden; the caller toggles `.show` (or `hudSlots.show(el, on)`).
+ * screen edge · `edge-l` a tab on the left edge just above HOVER (E319: HORSE). A disc starts hidden; the caller toggles `.show` (or `hudSlots.show(el, on)`).
  *
  * Everything is queued until TouchControls mounts the layer (`mount`), so build order in main.ts never matters. On a
  * mouse / trackpad device nothing mounts: the calls are harmless and the elements stay detached.
@@ -23,7 +23,7 @@
 
 import { shardSlot } from '../core/shardState';
 
-export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r';
+export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r' | 'edge-l';
 export interface DiscOpts {
   /** the disc's own class(es), styled by the owner's stylesheet (`ws-ride-gallop`, `ws-stealth-crouch`) */
   cls: string;

@@ -40,7 +40,7 @@ const RECT_SEL = {
   pause: '.ws-touch-pause', status: '.ws-touch-status', vitals: '.ws-game-vitals', bolts: '.ws-game-bolts',
   steed: '.ws-ride-steed.ws-ride-touch', hidden: '.ws-stealth-row', grass: '.ws-stealth-grassrow', pip: '.ws-stealth-pip', note: '.ws-fb-disc', journal: '.ws-cmp-disc',
   minimap: '.ws-minimap', day: '.ws-minimap-day', quest: '.ws-quest-obj', weather: '.ws-game-weather', getlow: '.ws-game-getlow',
-  eliteBar: '.ws-elite-bar', eliteBanner: '.ws-elite-banner', bossBar: '.ws-boss-bar', strip: '.ws-touch-strip', pill: '.ws-touch-pill',
+  eliteBar: '.ws-elite-bar', eliteBanner: '.ws-elite-banner', bossBar: '.ws-boss-bar', strip: '.ws-touch-strip', chip: '.ws-touch-chip',
   horse: '.ws-ride-horse', hover: '.ws-touch-hover', aim: '.ws-touch-disc.aim', lock: '.ws-touch-disc.lock', dodge: '.ws-touch-disc.dodge',
   jump: '.ws-touch-disc.jump', crouch: '.ws-stealth-crouch', throw: '.ws-touch-disc.throw', brace: '.ws-touch-disc.brace',
   gallop: '.ws-ride-gallop', attack: '.ws-touch-attack', lookpad: '.ws-touch-lookpad', use: '.ws-touch-use',

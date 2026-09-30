@@ -410,8 +410,6 @@ export type ChunkWeapon = 'crossbow' | 'sword' | 'nalati';
 /** the optional pieces of the ONE base HUD a shard switches on (E154) — the layout, the controls and the status column are
  *  every shard's; a shard's own rows / discs come in through src/ui/hudSlots.ts from its own modules */
 export interface ChunkHud {
-  /** the weapon strip (src/ui/WeaponStrip.ts): tabs down the left edge on the phone, a hotbar on desktop — else the SWAP pill */
-  weaponStrip?: boolean;
   /** the sun / moon badge on the minimap's rim (Minimap.showDayBadge) */
   dayBadge?: boolean;
 }

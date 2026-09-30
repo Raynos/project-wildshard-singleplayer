@@ -45,7 +45,7 @@ export function buildNalatiKit(world: NalatiWorld, targets: Targets, allowUnlock
   const kit: NalatiKit = {
     base: sabre, bow, sabre, spear,
     extras: [{ weapon: bow, id: 'bow', name: 'Bow' }, { weapon: spear, id: 'spear', name: 'Spear' }],
-    options: { baseId: 'sabre', baseName: 'Sabre', order: ['bow', 'sabre', 'spear'], lastOnQ: true },
+    options: { baseId: 'sabre', baseName: 'Sabre', order: ['bow', 'sabre', 'spear'] },
     install(weapons) {
       for (const e of kit.extras) weapons.unlock(e.id);
       weapons.select('bow', true); // slot 1: the bow is the shard's main weapon

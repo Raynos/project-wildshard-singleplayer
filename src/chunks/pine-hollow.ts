@@ -215,7 +215,6 @@ function speciesMix(x: number, z: number): SpeciesWeights {
 export const PINE_HOLLOW: ChunkDef = {
   id: 'chunk://local/pine-hollow',
   slug: 'pine-hollow',
-  hud: { weaponStrip: true }, // the base HUD's weapon strip: crossbow · lever-action · the Warden's Longbow (PH-C11, E154)
   displayName: 'Pine Hollow',
   gridCoords: '(+3, −2)',
   seed: 1337,
@@ -244,7 +243,7 @@ export const PINE_HOLLOW: ChunkDef = {
       grassTint: [0.8, 0.74, 0.55],
     },
   },
-  trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees' },
+  trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees', drawnBy: 'model' }, // the forest tree model draws them (E315)
   forest: {
     spacing: 8.5,
     densityFreq: 0.008,

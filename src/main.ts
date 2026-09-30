@@ -545,7 +545,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     enabled: () => hud.entered && !world.freeCamera && !world.tour.active,
     touchHint: (lockHint, jumpHint) => { touchControls.hint(lockHint, jumpHint); }, // E286: the verb re-dresses LOCK / JUMP (Nine Dragon's GRAPPLE / ZIP)
   });
-  const weaponStrip = chunk.hud?.weaponStrip === true ? new WeaponStrip(weapons) : null; // the base HUD's weapon strip (E154; Pine Hollow, Nalati): tabs down the left edge on touch, a hotbar on desktop
+  const weaponStrip = new WeaponStrip(weapons); // every shard's one swap control (E303 / E319): the SWAP ring + pie on touch, a hotbar on desktop
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
   const speedLines = new SpeedLines(); // dodge / lunge edge streaks
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
@@ -1074,7 +1074,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); const heart = nalati?.titan.lockTarget() ?? null; if (heart !== null) aimList.push(heart); } // + Jel Ata's heart for the lock-on (NALATI-MERGE H3)
     mark('animals');
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
-    pineLoadout?.update(dt); weaponStrip?.update();
+    pineLoadout?.update(dt); weaponStrip.update();
     rifleDrop?.update(dt, t, game.renderer, game.camera);
     ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up
     for (const d of skinDrops) d.update(dt, t, game.renderer, game.camera);

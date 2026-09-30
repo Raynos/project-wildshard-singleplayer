@@ -326,10 +326,9 @@ export class TrainingArena {
    */
   private viewDistance(): number {
     const cam = this.game.camera;
-    // the frame's usable half width: less the touch weapon strip down the left edge (Pine Hollow, Nalati)
-    this.measureInset();
+    // the frame's usable half width, less a 10 px margin
     const half = innerWidth / 2;
-    const usable = Math.max(0.5, (half - Math.max(10, this.leftInset + 4)) / half);
+    const usable = Math.max(0.5, (half - 10) / half);
     const tanH = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * cam.aspect * usable;
     const centre = LINEUP[1] ?? { x: 0, z: -7 };
     let need = 4.8;
@@ -385,17 +384,6 @@ export class TrainingArena {
     this.overlay.append(el); this.floats.push({ el, point: point.clone(), time: 0 });
   }
 
-  /** the touch weapon strip's right edge (Pine Hollow, Nalati: tabs down the left): a tag never tucks under it */
-  private leftInset = 0;
-  private measureInset(): void {
-    let right = 0;
-    for (const el of document.querySelectorAll<HTMLElement>('#hud .ws-touch-slot')) {
-      const r = el.getBoundingClientRect();
-      if (r.width > 0 && r.top < innerHeight * 0.75) right = Math.max(right, r.right);
-    }
-    this.leftInset = right;
-  }
-
   private update(dt: number): void {
     // the hoverboard has no place in the room: it kills the dodge (E285); the H key would otherwise bring it back
     if (this.player?.hover === true) this.player.setHover(false);
@@ -410,9 +398,9 @@ export class TrainingArena {
       if (!shown) continue;
       // keep the tag inside the frame (a side dummy on a narrow portrait frame), its arrow still over the figure
       const x = (p.x * 0.5 + 0.5) * W, y = (-p.y * 0.5 + 0.5) * H;
-      if (target.labelWidth === 0) { target.labelWidth = target.label.offsetWidth; this.measureInset(); }
+      if (target.labelWidth === 0) { target.labelWidth = target.label.offsetWidth; }
       const half = target.labelWidth / 2 + 6;
-      const cx = Math.min(W - half, Math.max(this.leftInset + half, x));
+      const cx = Math.min(W - half, Math.max(half, x));
       target.label.style.transform = `translate(${Math.round(cx)}px, ${Math.round(y)}px) translate(-50%, -50%)`;
       target.label.style.setProperty('--ws-practice-arrow', `${Math.round(x - cx)}px`);
     }

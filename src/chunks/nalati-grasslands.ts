@@ -597,7 +597,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./nalati-grasslands/roster')).ROSTER,
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
-  hud: { weaponStrip: true, dayBadge: true }, // the base HUD's weapon strip (bow · sabre · spear) + the minimap's sun / moon (E154)
+  hud: { dayBadge: true }, // the minimap's sun / moon (E154)
   weapon: 'nalati', // its own kit (src/player/nalatiKit.ts: bow · sabre · spear) — no Driftwood sword built (NALATI-MERGE F2)
   // the rings re-aimed to layout v2 in front of the painted panorama (the far snow range is the painting); the camera's far
   // plane is 2.6 km: every ring stays inside 2.5 km

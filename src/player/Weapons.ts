@@ -18,8 +18,10 @@ import type { Weapon } from './Weapon';
  *   weapons.current.state → { ammo, magazine, reserve, loaded, reloading, reloadProgress, ads }   (the HUD reads this)
  *   weapons.reach → the held weapon's melee reach in m (the swords), undefined for the crossbow / rifle   (Combat reads this)
  *
- * Input (only while the held weapon's `inputAllowed()`): `1` / `2` / `3` the OWNED weapons in kit order (Pine Hollow:
- * 1 crossbow, 2 AR-15; Driftwood: 1 wooden sword, 2 iron sword once found), `Q` swap — a locked weapon is ignored. Touch: the SWAP pill (TouchControls.ts, shown once a second weapon is unlocked — `onUnlock`) calls `swap()`.
+ * Input (only while the held weapon's `inputAllowed()`), the same on every shard (E303): `1` … `9` the OWNED weapons in kit
+ * order (Pine Hollow: 1 crossbow, 2 lever-action; Driftwood: 1 wooden sword, 2 iron sword once found), `Q` = the next one,
+ * the mouse wheel = next / previous (over the game only) — a locked weapon is ignored. Touch: the SWAP ring + pie on the
+ * left edge (src/ui/WeaponStrip.ts, E319; shown once a second weapon is owned) calls `swap()` / `select()`.
  * Fire / ADS / reload input lives in each weapon; the manager keeps `enabled` and the touch AIM latch (`adsHeld`) and
  * applies them to whichever weapon is held.
  *
@@ -85,9 +87,11 @@ export type BaseLike = Weapon & Partial<Pick<KitWeapon, 'holster' | 'reload' | '
   /** HUD ammo strip overrides (the spear's javelins: 'Javelins', 3 pips over a magazine of 3) */
   readonly ammoLabel?: string; readonly segments?: number; readonly magazine?: number;
 };
-/** Nalati (nalatiKit.ts): the base weapon's kit id / HUD tag, the slot order of `available` (1 / 2 / 3 and the strip), and
- *  Q = the LAST weapon held instead of the next one. Omitted = Pine Hollow / Driftwood exactly as before. */
-export interface WeaponsOptions { baseId?: WeaponId; baseName?: string; order?: WeaponId[]; lastOnQ?: boolean }
+/** Nalati (nalatiKit.ts): the base weapon's kit id / HUD tag and the slot order of `available` (the number keys, the
+ *  ring's next, the pie). Omitted = Pine Hollow / Driftwood exactly as before. */
+export interface WeaponsOptions { baseId?: WeaponId; baseName?: string; order?: WeaponId[] }
+/** mouse-wheel travel (deltaY px) per weapon step, and the least time between two steps (a trackpad fling sends dozens) */
+const WHEEL_STEP = 60, WHEEL_GAP_MS = 180;
 /** an extra shard weapon for the kit (the iron sword): its rig, its kit id and its HUD tag */
 export interface ExtraWeapon { weapon: BaseLike; id: WeaponId; name: string }
 
@@ -151,15 +155,13 @@ export class Weapons implements WeaponHooks {
   private _visible = true;
   private _stowed = false; private stowT = 0;
   private order: WeaponId[] | undefined;
-  private lastOnQ: boolean;
-  /** the weapon held before the current one (Q with `lastOnQ`, the strip's double tap) */
-  previous: WeaponId | null = null;
+  private wheelAcc = 0; private wheelAt = 0;
   private swapping: { from: KitWeapon; to: KitWeapon; t: number; switched: boolean } | null = null;
 
   constructor(base: BaseLike, rifle: KitWeapon, extras: ExtraWeapon[] = [], opts: WeaponsOptions = {}) {
     const first = new BaseWeapon(base, opts.baseId, opts.baseName);
     this.unlocked.add(first.id);
-    this.order = opts.order; this.lastOnQ = opts.lastOnQ ?? false;
+    this.order = opts.order;
     this.list = [first, rifle, ...extras.map((e) => new BaseWeapon(e.weapon, e.id, e.name))];
     for (const w of this.list) {
       w.onFire = () => this.onFire?.();
@@ -174,9 +176,24 @@ export class Weapons implements WeaponHooks {
     this.apply();
     document.addEventListener('keydown', (e) => {
       if (e.repeat || !this.current.inputAllowed()) return;
-      if (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3') { const w = this.available[Number(e.code.slice(5)) - 1]; if (w) this.select(w.id); }
-      else if (e.code === 'KeyQ') { if (this.lastOnQ) this.last(); else this.swap(); }
+      const digit = /^Digit([1-9])$/.exec(e.code)?.[1];
+      if (digit !== undefined) { const w = this.available[Number(digit) - 1]; if (w) this.select(w.id); }
+      else if (e.code === 'KeyQ') this.swap();
     });
+    // the wheel steps only over the game itself (pointer locked, or the canvas under the cursor): the map, menus and
+    // Explore keep their own wheel zoom / scroll
+    document.addEventListener('wheel', (e) => {
+      if (!this.current.inputAllowed()) return;
+      if (document.pointerLockElement === null && !(e.target instanceof HTMLCanvasElement)) return;
+      if (Math.sign(e.deltaY) !== Math.sign(this.wheelAcc)) this.wheelAcc = 0;
+      this.wheelAcc += e.deltaMode === 1 ? e.deltaY * 20 : e.deltaY;
+      const now = performance.now();
+      if (Math.abs(this.wheelAcc) < WHEEL_STEP || now - this.wheelAt < WHEEL_GAP_MS) return;
+      this.wheelAt = now;
+      const dir = this.wheelAcc > 0 ? 1 : -1;
+      this.wheelAcc = 0;
+      this.step(dir);
+    }, { passive: true });
     (window as unknown as { __weapons: Weapons }).__weapons = this; // dev / screenshot hook
   }
 
@@ -256,22 +273,18 @@ export class Weapons implements WeaponHooks {
       this.apply();
       return;
     }
-    this.previous = this.current.id;
     this.swapping = { from: this.current, to, t: 0, switched: false };
     this.apply();
     this.onSwap?.(id);
   }
-  /** back to the weapon held before this one (Q in Nalati, the strip's double tap); no previous yet = the next one */
-  last(): void {
-    const p = this.previous;
-    if (p !== null && p !== this.current.id && this.unlocked.has(p)) this.select(p); else this.swap();
-  }
   /** the next unlocked weapon after the held one (nothing happens while only the crossbow is owned) */
-  swap(): void {
+  swap(): void { this.step(1); }
+  /** the owned weapon `dir` slots away from the held one, wrapping (the ring's tap, Q, the mouse wheel) */
+  step(dir: 1 | -1): void {
     const list = this.available;
     if (list.length < 2) return;
     const i = list.indexOf(this.current);
-    const next = list[(i + 1) % list.length];
+    const next = list[(i + dir + list.length) % list.length];
     if (next !== undefined) this.select(next.id);
   }
   private finishSwap(): void {
