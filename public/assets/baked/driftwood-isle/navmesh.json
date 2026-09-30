@@ -1,6 +1,6 @@
 {
  "version": 1,
- "hash": "509835dc5ca00af8c7f9e0eafa95a57bb980f1b4",
+ "hash": "73fa9a4f5a4903efac056522058c6e16d47d1c95",
  "bytes": 165924,
  "gzip": 94203,
  "brotli": 78167,
@@ -16,7 +16,7 @@
    "verts": 6874,
    "detailVerts": 144,
    "detailTris": 417,
-   "ms": 1426
+   "ms": 1668
   },
   {
    "name": "large",
@@ -29,7 +29,7 @@
    "verts": 6523,
    "detailVerts": 97,
    "detailTris": 295,
-   "ms": 1383
+   "ms": 1249
   }
  ]
 }
