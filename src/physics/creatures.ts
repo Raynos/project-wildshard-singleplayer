@@ -13,7 +13,7 @@ import type { Collider } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
 import { CharacterMotor } from './CharacterMotor';
 import { groups, queryGroups } from './groups';
-import { tagCollider, tagOf } from './surface';
+import { tagCollider } from './surface';
 
 /** What the physics needs of an animal (src/entities/Animal.ts implements it). */
 export interface Creature {
@@ -42,12 +42,16 @@ interface Boxes { head: Collider; body: Collider; bodyHalf: number; on: boolean 
 
 export class CreatureBodies<C extends Creature = Creature> {
   private readonly boxes = new Map<C, Boxes>();
+  /** collider handle → the animal part it is: the only colliders cast() answers with. The HITBOX group is shared (the
+   *  practice dummies' volumes, src/physics/trainingTargets.ts, sit in it too), so a tag's owner is never trusted to be
+   *  an animal's — E300: a dummy hit came back as `animal: undefined` and the crossbow's aim readout threw on `.alive`. */
+  private readonly owners = new Map<number, HitboxOwner<C>>();
   private readonly hitGroups = queryGroups(['HITBOX'], 'PROJECTILE');
   private readonly hitPoint = new THREE.Vector3();
   private result: CreatureHit<C> | null = null;
   /** skips a hitbox whose creature is hidden right now — the colliders only turn off at the next sync, and pastRidden
    *  (src/player/riding.ts) hides the ridden horse for the one call, so a rider never aims at / shoots his own mount */
-  private readonly shown = (col: Collider): boolean => { const o = tagOf(col)?.owner as HitboxOwner<C> | undefined; return o === undefined || !o.creature.hidden; };
+  private readonly shown = (col: Collider): boolean => { const o = this.owners.get(col.handle); return o !== undefined && !o.creature.hidden; };
   /** how many creatures had a body (a controller) at the last sync — the bench reads it */
   bodies = 0;
 
@@ -65,8 +69,9 @@ export class CreatureBodies<C extends Creature = Creature> {
         const head = world.createCollider(R.ColliderDesc.ball(d.headRadius * s).setCollisionGroups(groups('HITBOX')));
         const bodyHalf = Math.max(0.01, d.bodyHalfLen * s);
         const body = world.createCollider(R.ColliderDesc.capsule(bodyHalf, d.bodyRadius * s).setCollisionGroups(groups('HITBOX')));
-        tagCollider(head, 'flesh', { creature: c, part: 'head' } satisfies HitboxOwner<C>);
-        tagCollider(body, 'flesh', { creature: c, part: 'body' } satisfies HitboxOwner<C>);
+        const headOwner: HitboxOwner<C> = { creature: c, part: 'head' }, bodyOwner: HitboxOwner<C> = { creature: c, part: 'body' };
+        tagCollider(head, 'flesh', headOwner); tagCollider(body, 'flesh', bodyOwner);
+        this.owners.set(head.handle, headOwner); this.owners.set(body.handle, bodyOwner);
         b = { head, body, bodyHalf, on: true };
         this.boxes.set(c, b);
       }
@@ -101,8 +106,8 @@ export class CreatureBodies<C extends Creature = Creature> {
     const { R, world } = this.physics;
     const hit = world.castRay(new R.Ray(origin, dir), maxDist, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.hitGroups, undefined, undefined, this.shown);
     if (!hit) return null;
-    const owner = tagOf(hit.collider)?.owner as HitboxOwner<C> | undefined;
-    if (owner === undefined) return null;
+    const owner = this.owners.get(hit.collider.handle);
+    if (owner === undefined) return null; // not an animal's hitbox (the filter already skips those; belt and braces)
     const r = this.result ??= { creature: owner.creature, head: false, distance: 0, point: this.hitPoint };
     r.creature = owner.creature; r.head = owner.part === 'head'; r.distance = hit.timeOfImpact;
     r.point.copy(origin).addScaledVector(dir, hit.timeOfImpact);
@@ -113,6 +118,7 @@ export class CreatureBodies<C extends Creature = Creature> {
   remove(c: C): void {
     const b = this.boxes.get(c);
     if (!b) return;
+    this.owners.delete(b.head.handle); this.owners.delete(b.body.handle);
     this.physics.world.removeCollider(b.head, false); this.physics.world.removeCollider(b.body, false);
     this.boxes.delete(c);
     if (c.motor !== null) { c.motor.dispose(); c.motor = null; }

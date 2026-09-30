@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import { practiceFps } from '../core/tier';
 import type { Physics } from '../physics/Physics';
-import { addTrainingTarget, trainingTargetRaycast } from '../physics/trainingTargets';
+import { addTrainingTarget, trainingTargetRaycast, type TrainingTargetBodies } from '../physics/trainingTargets';
 import type { Player } from '../player/Player';
 import type { TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { Weapons } from '../player/Weapons';
@@ -45,6 +45,8 @@ class TrainingTarget implements TargetAnimal {
   ready = false;
   readonly variant: DummyVariant;
   readonly label: HTMLElement;
+  /** its Rapier colliders (src/physics/trainingTargets.ts), on only while the room is open */
+  bodies: TrainingTargetBodies | null = null;
   /** the springs (hit-driven motion) and the bones they drive; the pose waits for the model */
   readonly motion: DummyMotion;
   private pose: DummyPose | null = null;
@@ -270,7 +272,8 @@ export class TrainingArena {
       const spot = LINEUP[i] ?? { x: (i - 1) * 2.1, z: -8.5 };
       const x = center.x + spot.x, z = center.z + spot.z;
       const target = new TrainingTarget(v.id, x, Y, z, spot.x, spot.z, overlay, i + 1);
-      addTrainingTarget(physics, target, x, Y, z);
+      target.bodies = addTrainingTarget(physics, target, x, Y, z);
+      target.bodies.setEnabled(false); // E300: shot at only while the room is open (enter / exit)
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.69, 0.012, 6, 48).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: CYAN, fog: false, toneMapped: false }));
       ring.position.set(spot.x, 0.01, spot.z); root.add(ring);
       target.onDamage = (amount, point) => { this.float(String(amount), point, 'hit'); };
@@ -343,7 +346,7 @@ export class TrainingArena {
     this.active = true; this.root.visible = true; this.overlay.classList.add('show');
     practiceFps.on = true; // mobile targets 60 in here (E290, tier.ts frameCapFps)
     this.player = player;
-    for (const t of this.targets) t.attacker = player.position;
+    for (const t of this.targets) { t.attacker = player.position; t.bodies?.setEnabled(true); }
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
     this.overlay.parentElement?.classList.add('practice-active');
     // still loading: the procedural figures stand in at once, never an empty room; the meshes replace them on arrival
@@ -361,6 +364,7 @@ export class TrainingArena {
 
   exit(): void {
     this.active = false; this.root.visible = false; this.overlay.classList.remove('show');
+    for (const t of this.targets) t.bodies?.setEnabled(false); // E300: no dummy volume left for the world's rays over the shard
     practiceFps.on = false;
     this.weapons?.endLoan(); this.weapons = null; // the world's own unlocks again
     this.player = null;

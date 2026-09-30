@@ -7,14 +7,18 @@ import { tagCollider, tagOf } from './surface';
 interface Vec3 { x: number; y: number; z: number }
 interface TargetPart { target: object; headshot: boolean }
 
+/** A dummy's colliders, switched as one: on only while its room is open (E300 — they sat live over the shard at Y 900). */
+export interface TrainingTargetBodies { setEnabled: (on: boolean) => void }
+
 /** The body and the separate head are static HITBOX colliders; only the shared physics layer imports Rapier. */
-export function addTrainingTarget(physics: Physics, target: object, x: number, y: number, z: number): void {
+export function addTrainingTarget(physics: Physics, target: object, x: number, y: number, z: number): TrainingTargetBodies {
   const { R, world } = physics;
   // A CREATURE-group static body blocks the player's character controller without becoming WORLD geometry
   // (which would make each dummy obscure its own line-of-sight check). The hitboxes remain projectile-query only.
   const solid = world.createCollider(R.ColliderDesc.cuboid(0.38, 0.86, 0.29)
     .setTranslation(x, y + 0.9, z).setCollisionGroups(groups('CREATURE')));
   tagCollider(solid, 'wood', target);
+  const colliders = [solid];
   const parts = [
     { x, y: y + 0.83, z, hx: 0.44, hy: 0.58, hz: 0.3, headshot: false },
     { x, y: y + 1.57, z, hx: 0.23, hy: 0.21, hz: 0.22, headshot: true },
@@ -24,7 +28,9 @@ export function addTrainingTarget(physics: Physics, target: object, x: number, y
     const collider = world.createCollider(desc);
     const owner: TargetPart = { target, headshot: p.headshot };
     tagCollider(collider, 'wood', owner);
+    colliders.push(collider);
   }
+  return { setEnabled: (on) => { for (const c of colliders) c.setEnabled(on); } };
 }
 
 const rays = new WeakMap<Physics, Ray>();

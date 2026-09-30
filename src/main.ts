@@ -507,7 +507,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
       if (arena?.entered) return arena.raycast(origin, dir, maxDist);
       const h = pastRidden(() => animals.raycast(origin, dir, maxDist)); // never the horse you ride (src/player/riding.ts)
-      const hit = h ? { animal: h.animal as unknown as TargetHit['animal'], point: h.point, distance: h.distance, headshot: h.headshot } : null; // Animal.kind is any species id; the weapons only read deer / boar
+      const hit: TargetHit | null = h ? { animal: h.animal, point: h.point, distance: h.distance, headshot: h.headshot } : null; // E300: an Animal is a TargetAnimal (no cast), and cast() hands back animals only
       return wildlife ? nalatiNow()?.sheepTarget(origin, dir, maxDist, hit) ?? hit : hit; // Nalati: the sheep flock is a target too
     },
   };
