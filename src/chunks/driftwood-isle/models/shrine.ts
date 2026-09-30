@@ -11,10 +11,11 @@
  * Draws: the stone + jungle (one LowPolyKit mesh on lowPolyMaterial, AO baked), the pool water, the glyphs (unlit; the
  * world pulses them, `shrineMaterials`). The fireflies are an effect, not the model: src/world/Shrine.ts.
  *
- * Built in its own space: the origin is the shrine's centre on the ground, +Y up. Its turn is a param (`rot`: local +z,
- * the FRONT — the stair and the pool — faces R_y(rot)·+z) so its baked AO grid keeps the world's axes; it is placed by
- * translation. It reads its site through `ground(x, z)` (own y); the default is flat. `shrineLayout(params)` is the
- * builder's layout for a placement (colliders, floors, anchors), shared with the build.
+ * Its own space: the origin is the shrine's centre on the ground, +Y up, its front (the stair and the pool, local +z)
+ * turned by the site's `rot`. Its platform, pool and jungle read the ground, so the builder runs where the shrine stands
+ * — its `site` and the site's `ground(x, z)` — exactly as it always did, then hands everything over in its own space
+ * (the site's origin subtracted: the baked AO is the old one, bit for bit). The Explorer's specimen stands on flat ground
+ * at the origin. `shrineLayout(params)` is a placement's layout (colliders, floors, anchors), shared with its build.
  *
  * Anchors (own space, yaw = facing, 0 = +Z): altar (the top terrace in front of the monolith, y = terrace, facing the
  * stair), pool (the pool's middle, y = the water surface), stairFoot (y = ground), ring (the ring's centre — the reward
@@ -29,13 +30,19 @@ import type { Collider } from '../../../player/Player';
 import { boxDesc, type ColliderDesc } from '../../../world/registry';
 import { defineModel, type ModelContext } from '../../../models/model';
 
+/** where a shrine stands: its centre (world xz) and which way its front faces (rot, radians about +Y) */
+export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }
 export interface ShrineAnchor { x: number; y: number; z: number; yaw: number }
 
 export interface ShrineParams {
-  /** which way the front faces, radians about +Y */
-  readonly rot: number;
-  /** the site's ground under own (x, z), own y (the origin is on the ground at the shrine's centre) */
+  readonly site: ShrineSite;
+  /** the ground under a world (x, z) at the site: its y */
   readonly ground: (x: number, z: number) => number;
+}
+
+/** the site's origin: its centre on the ground (a float32 value, so moving the geometry to own space and back is exact) */
+export function shrineOrigin(p: ShrineParams): { x: number; y: number; z: number } {
+  return { x: p.site.x, y: Math.fround(p.ground(p.site.x, p.site.z)), z: p.site.z };
 }
 
 export const SHRINE_RUNE = new THREE.Color('#7fd9ff');
@@ -56,7 +63,7 @@ const MONO = { z: -3.2, w: 2.3, d: 0.85, shaft: 4.2 };
 const RING = { ro: 1.95, ri: 1.2, depth: 0.8, seg: 14 };
 const POOL = { z: 11, rx: 7, rz: 3.2, causeway: 1.2 };
 
-/** the builder, in the shrine's own space: its geometry (once) and its layout */
+/** the builder: where the shrine stands, then its own space */
 class ShrineBuilder {
   /** the kit, the pool's water and the glyphs (handed to the model's build once, then dropped) */
   geometry: { kit: THREE.BufferGeometry; water: THREE.BufferGeometry; glyphs: THREE.BufferGeometry } | null = null;
@@ -64,33 +71,38 @@ class ShrineBuilder {
   anchors: Record<string, ShrineAnchor> = {};
   /** the three tier boxes in `colliders` (their tops sit 6 cm under the terrace for the old step-up); `colliderDescs` swaps them for exact ones */
   private readonly tierBoxes = new Set<Collider>();
-  /** the floor of the platform's base, the pool's water, the top terrace (own y) */
+  /** the platform's base, the pool's water, the top terrace (own y once built) */
   baseY = 0;
   waterY = 0;
   terrace = 0;
-  private readonly rot: number;
-  private readonly ground: (x: number, z: number) => number;
   private cs: number;
   private sn: number;
   private glyphV: number[] = [];
+  private readonly spec: ShrineSite;
+  private readonly ground: (x: number, z: number) => number;
+  /** the site's origin (own space = world − origin) */
+  private readonly o: { x: number; y: number; z: number };
+  /** where it stands while it builds; own space (the origin at 0) after */
+  private at = { x: 0, z: 0 };
 
   constructor(p: ShrineParams) {
-    this.rot = p.rot; this.ground = p.ground;
-    this.cs = Math.cos(p.rot); this.sn = Math.sin(p.rot);
+    this.spec = p.site; this.ground = p.ground; this.o = shrineOrigin(p);
+    this.at = { x: p.site.x, z: p.site.z };
+    this.cs = Math.cos(p.site.rot); this.sn = Math.sin(p.site.rot);
   }
 
-  /** local (lx, lz) → own (x, z): turned by `rot` */
-  private W(lx: number, lz: number): [number, number] { return [lx * this.cs + lz * this.sn, -lx * this.sn + lz * this.cs]; }
-  private L(x: number, z: number): [number, number] { const dx = x, dz = z; return [dx * this.cs - dz * this.sn, dx * this.sn + dz * this.cs]; }
-  /** local point (y own) → an own-space matrix, `yaw` local */
+  /** local (lx, lz) → world (x, z) */
+  private W(lx: number, lz: number): [number, number] { return [this.at.x + lx * this.cs + lz * this.sn, this.at.z - lx * this.sn + lz * this.cs]; }
+  private L(x: number, z: number): [number, number] { const dx = x - this.at.x, dz = z - this.at.z; return [dx * this.cs - dz * this.sn, dx * this.sn + dz * this.cs]; }
+  /** local point (y absolute) → a world matrix, `yaw` local */
   private M(lx: number, y: number, lz: number, yaw = 0, rx = 0, rz = 0, s = 1): THREE.Matrix4 {
     const [x, z] = this.W(lx, lz);
-    return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, this.rot + yaw, rz, 'YXZ')), new THREE.Vector3(s, s, s));
+    return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, this.spec.rot + yaw, rz, 'YXZ')), new THREE.Vector3(s, s, s));
   }
 
   build(): this {
     const kit = new LowPolyKit(SEED ^ 0x5417), rng = kit.rng;
-    const base = this.ground(0, 0) + 0.02; this.baseY = base;
+    const base = this.ground(this.spec.x, this.spec.z) + 0.02; this.baseY = base;
     const stone = (): string => { const r = rng.next(); return r < 0.45 ? C.stone : r < 0.75 ? C.stoneB : r < 0.9 ? C.stoneLight : C.stoneDark; };
     const block = (lx: number, y: number, lz: number, w: number, h: number, d: number, yaw = 0, col = stone(), mossy = true): void => {
       kit.addTopped(new THREE.BoxGeometry(w, h, d), col, mossy && rng.next() < 0.7 ? (rng.next() < 0.5 ? C.moss : C.mossB) : col, { matrix: this.M(lx, y, lz, yaw), wobble: 0.025, minY: 0.6, jitter: 0.06 });
@@ -266,10 +278,10 @@ class ShrineBuilder {
       const [x, z] = this.W(lx, lz), gy = this.ground(x, z), h = rng.range(1.8, 3.2), w = rng.range(0.7, 1.1);
       const yaw = -a + Math.PI / 2;
       kit.addTopped(new THREE.BoxGeometry(w, h, w * 0.6).translate(0, h / 2, 0), rng.next() < 0.5 ? C.stone : C.stoneDark, C.moss, { matrix: this.M(lx, gy - 0.3, lz, yaw, 0, rng.range(-0.07, 0.07)), wobble: 0.08, minY: 0.6 });
-      const n = new THREE.Vector3(Math.sin(this.rot + yaw), 0, Math.cos(this.rot + yaw));
-      if (n.x * (0 - x) + n.z * (0 - z) < 0) n.negate();
+      const n = new THREE.Vector3(Math.sin(this.spec.rot + yaw), 0, Math.cos(this.spec.rot + yaw));
+      if (n.x * (this.at.x - x) + n.z * (this.at.z - z) < 0) n.negate();
       this.rune(rng, new THREE.Vector3(x + n.x * (w * 0.3 + 0.01), gy - 0.3 + h * 0.5, z + n.z * (w * 0.3 + 0.01)), new THREE.Vector3(-n.z, 0, n.x), n, h * 0.4);
-      this.colliders.push({ x, z, hw: w / 2, hd: w * 0.3, rot: -(this.rot + yaw), yTop: gy + h, yBottom: gy - 1 });
+      this.colliders.push({ x, z, hw: w / 2, hd: w * 0.3, rot: -(this.spec.rot + yaw), yTop: gy + h, yBottom: gy - 1 });
     }
     // ── the jungle: broad-leaf clumps, ferns and hibiscus round the platform; ferns + flowers on the ledges ──
     for (let i = 0; i < 170; i++) {
@@ -309,13 +321,29 @@ class ShrineBuilder {
     for (const side of [-1, 1]) this.colliders.push(this.box(side * (STAIR.hw + 0.28), (STAIR.z0 + STAIR.z1) / 2 + 0.3, 0.26, (STAIR.z1 - STAIR.z0) / 2 + 0.3, base - 2, base + TIERS[2].top + 0.5));
 
     // ── anchors ──
-    const A = (lx: number, lz: number, y: number, yaw: number): ShrineAnchor => { const [x, z] = this.W(lx, lz); return { x, y, z, yaw: this.rot + yaw }; };
+    const A = (lx: number, lz: number, y: number, yaw: number): ShrineAnchor => { const [x, z] = this.W(lx, lz); return { x, y, z, yaw: this.spec.rot + yaw }; };
     this.anchors['altar'] = A(0, MONO.z + 1.55, terrace, 0);
     this.anchors['pool'] = A(0, POOL.z, wy, Math.PI);
     this.anchors['stairFoot'] = A(0, STAIR.z1 + 0.6, this.ground(...this.W(0, STAIR.z1 + 0.6)), Math.PI);
     this.anchors['ring'] = A(0, MONO.z, ringY, 0);
+
+    // ── into own space: the site's origin subtracted from everything built where it stands ──
+    const o = this.o;
+    for (const gg of [geo, waterGeo, g]) { gg.translate(-o.x, -o.y, -o.z); gg.computeBoundingSphere(); }
+    this.descs = this.worldColliderDescs();
+    for (const d of this.descs) {
+      if (d.kind === 'treads') { for (const e of [d.from, d.to]) { e.x -= o.x; e.y -= o.y; e.z -= o.z; } } else { d.x -= o.x; d.y -= o.y; d.z -= o.z; }
+    }
+    for (const c of this.colliders) { c.x -= o.x; c.z -= o.z; c.yTop -= o.y; c.yBottom -= o.y; }
+    for (const a of Object.values(this.anchors)) { a.x -= o.x; a.y -= o.y; a.z -= o.z; }
+    this.baseY -= o.y; this.waterY -= o.y; this.terrace -= o.y;
+    this.at = { x: 0, z: 0 };
     return this;
   }
+
+  /** own-space colliders (see worldColliderDescs) */
+  private descs: ColliderDesc[] = [];
+  colliderDescs(): ColliderDesc[] { return this.descs; }
 
   /** a stone gull on a pedestal top, looking out along local +z (turned `yaw`) */
   private gull(kit: LowPolyKit, rng: Rng, lx: number, y: number, lz: number, yaw: number): void {
@@ -336,7 +364,7 @@ class ShrineBuilder {
   // ── glyph strokes (all into one unlit mesh) ──
   /** a stroke between two points given in face coordinates (u across, y up) */
   private glyphSeg(lx: number, lz: number, yaw: number, u0: number, y0: number, u1: number, y1: number, th = 0.05): void {
-    const n = new THREE.Vector3(Math.sin(this.rot + yaw), 0, Math.cos(this.rot + yaw)), u = new THREE.Vector3(n.z, 0, -n.x);
+    const n = new THREE.Vector3(Math.sin(this.spec.rot + yaw), 0, Math.cos(this.spec.rot + yaw)), u = new THREE.Vector3(n.z, 0, -n.x);
     const [x, z] = this.W(lx, lz), o = new THREE.Vector3(x, 0, z).addScaledVector(n, 0.012);
     const a = new THREE.Vector3(o.x, y0, o.z).addScaledVector(u, u0), b = new THREE.Vector3(o.x, y1, o.z).addScaledVector(u, u1);
     const across = new THREE.Vector3().crossVectors(b.clone().sub(a), n).normalize().multiplyScalar(th / 2);
@@ -373,11 +401,11 @@ class ShrineBuilder {
 
   private box(lx: number, lz: number, hw: number, hd: number, y0: number, y1: number): Collider {
     const [x, z] = this.W(lx, lz);
-    return { x, z, hw, hd, rot: -this.rot, yTop: y1, yBottom: y0 };
+    return { x, z, hw, hd, rot: -this.spec.rot, yTop: y1, yBottom: y0 };
   }
 
   /**
-   * PHYSICS P4: the shrine's static collision in own space — its walls / posts (the legacy boxes) and every floor
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
    * `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
    *
    * The pedestals, monolith, glyph pillars, standing stones and the stair's cheek walls are the legacy boxes; the three
@@ -386,8 +414,8 @@ class ShrineBuilder {
    * approach), treads down to the ground — its edge stands ~0.6 m over the terrain, past the 0.35 m autostep, and the
    * old 0.5 m step-up plus walking under the slab used to hide it. Its inner end drops ~0.55 m onto the stair foot.
    */
-  colliderDescs(): ColliderDesc[] {
-    const b = this.baseY, yaw = this.rot, out: ColliderDesc[] = [];
+  private worldColliderDescs(): ColliderDesc[] {
+    const b = this.baseY, yaw = this.spec.rot, out: ColliderDesc[] = [];
     for (const c of this.colliders) if (!this.tierBoxes.has(c)) out.push(boxDesc(c, 'stone'));
     const slab = (lx0: number, lx1: number, lz0: number, lz1: number, top: number, bottom: number): ColliderDesc => {
       const [x, z] = this.W((lx0 + lx1) / 2, (lz0 + lz1) / 2);
@@ -419,7 +447,7 @@ class ShrineBuilder {
     return out;
   }
 
-  /** the walkable stone under own (x, z): the stair (a ramp), the three terraces, the causeway across the pool */
+  /** the walkable stone under own (x, z) (once built): the stair (a ramp), the three terraces, the causeway across the pool */
   floorHeightAt(x: number, z: number): number | undefined {
     const [lx, lz] = this.L(x, z), b = this.baseY;
     if (Math.abs(lx) < STAIR.hw && lz >= STAIR.z0 && lz <= STAIR.z1) return b + TIERS[2].top * ((STAIR.z1 - lz) / (STAIR.z1 - STAIR.z0));
@@ -462,14 +490,15 @@ export function shrineMaterials(ctx: ModelContext): { water: THREE.MeshStandardM
   });
 }
 
-/** a specimen's site: flat ground */
+/** a specimen's site: at the origin, on flat ground */
+const ORIGIN: ShrineSite = { x: 0, z: 0, rot: 0 };
 const FLAT = (): number => 0;
 /** each placement's builder, by its site — the geometry is handed out once and dropped */
-const built = new WeakMap<ShrineParams['ground'], ShrineBuilder>();
+const built = new WeakMap<ShrineSite, ShrineBuilder>();
 
 function builderOf(p: ShrineParams, fresh: boolean): ShrineBuilder {
-  let b = built.get(p.ground);
-  if (!b || (fresh && !b.geometry)) { b = new ShrineBuilder(p).build(); if (p.ground !== FLAT) built.set(p.ground, b); }
+  let b = built.get(p.site);
+  if (!b || (fresh && !b.geometry)) { b = new ShrineBuilder(p).build(); if (p.site !== ORIGIN) built.set(p.site, b); }
   return b;
 }
 
@@ -481,7 +510,7 @@ export function shrineLayout(p: ShrineParams): Pick<ShrineBuilder, 'colliders' |
 export const shrine = defineModel<ShrineParams>({
   id: 'driftwood-isle/shrine', name: 'Ring shrine', category: 'buildings', pipeline: 'code',
   file: 'src/chunks/driftwood-isle/models/shrine.ts', surface: 'stone',
-  defaults: { rot: 0, ground: FLAT },
+  defaults: { site: ORIGIN, ground: FLAT },
   build: (ctx, p) => {
     const b = builderOf(p, true), g = b.geometry;
     b.geometry = null;

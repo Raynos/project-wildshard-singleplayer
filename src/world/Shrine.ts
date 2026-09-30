@@ -20,7 +20,7 @@ import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 import type { ColliderDesc, WorldRegistry } from './registry';
-import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, type ShrineAnchor, type ShrineParams } from '../chunks/driftwood-isle/models/shrine';
+import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin, type ShrineAnchor, type ShrineParams } from '../chunks/driftwood-isle/models/shrine';
 import { modelContext } from '../models/model';
 import { place } from '../models/place';
 
@@ -35,9 +35,9 @@ export class Shrine {
   /** the legacy boxes (pedestals, monolith, glyph pillars, standing stones, the stair's cheek walls, the tiers) */
   colliders: Collider[] = [];
   anchors: Record<string, ShrineAnchor> = {};
-  /** the ground at the shrine's centre: its own origin's world y */
-  private readonly y0: number;
   private readonly params: ShrineParams;
+  /** the site's origin: own space + this = world */
+  private readonly o: { x: number; y: number; z: number };
   private lay: ReturnType<typeof shrineLayout> | null = null;
   private descs: ColliderDesc[] = [];
   private baseY = 0;
@@ -52,9 +52,9 @@ export class Shrine {
   private t = 0;
 
   constructor(private sky: Sky, private spec: ShrineSpec) {
-    this.y0 = heightAt(spec.x, spec.z);
-    // its turn is part of its shape (the model's AO grid keeps the world's axes); the site: the terrain under an own point, own y
-    this.params = { rot: spec.rot, ground: (x, z) => heightAt(x + spec.x, z + spec.z) - this.y0 };
+    // the model is built for its site (where it stands, which way it faces, the terrain there) and handed over in own space
+    this.params = { site: { x: spec.x, z: spec.z, rot: spec.rot }, ground: heightAt };
+    this.o = shrineOrigin(this.params);
   }
 
   /** 0 = broad daylight (the fireflies barely show), 1 = dusk / night (the full cloud, the glyphs at their brightest) */
@@ -67,7 +67,7 @@ export class Shrine {
   build(): this { return this.draw(null); }
 
   private draw(registry: WorldRegistry | null): this {
-    const { x, z } = this.spec, y0 = this.y0;
+    const { x, y: y0, z } = this.o;
     const ctx = modelContext(this.sky);
     const placed = place(shrine, [{ x, y: y0, z, params: this.params }], { ctx, draw: 'merged', registry,
       piece: { id: 'shrine', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
@@ -139,7 +139,7 @@ export class Shrine {
 
   /** the walkable stone under (x, z): the stair (a ramp), the three terraces, the causeway across the pool */
   floorHeightAt(x: number, z: number): number | undefined {
-    const y = (this.lay ??= shrineLayout(this.params)).floorHeightAt(x - this.spec.x, z - this.spec.z);
-    return y === undefined ? undefined : y + this.y0;
+    const y = (this.lay ??= shrineLayout(this.params)).floorHeightAt(x - this.o.x, z - this.o.z);
+    return y === undefined ? undefined : y + this.o.y;
   }
 }

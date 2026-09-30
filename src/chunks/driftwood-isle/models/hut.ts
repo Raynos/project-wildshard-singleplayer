@@ -6,11 +6,12 @@
  * crates, a net and oars on the walls, a rug, a hanging lantern (its light baked into the vertex colours; the flames are
  * one unlit draw). Porch: crates, a barrel, a rope coil, a fishing rod, a door lantern.
  *
- * Built in its own space: the origin is the cabin's centre on the ground, x right, z toward the back, the door at −z.
- * The stilts, the braces and the step stringers reach down to the ground and the baked AO reads it, so the placement
- * hands in its site's `ground(lx, lz)` (own y); the default is flat. The world side (src/world/Hut.ts) places it, turns
- * the anchors and the floor into world coordinates. `hutLayout(params)` is the builder's layout for a placement — the
- * colliders, the floor, the anchors — shared with the build (built once).
+ * Its own space: the origin is the cabin's centre on the ground, x right, z toward the back, the door at −z (turned by
+ * the site's `rot`). The stilts, the braces, the step stringers and the baked AO read the ground, so the builder runs
+ * where the hut stands — its `site` (x, z, which way the door faces) and the site's `ground(x, z)` — exactly as it always
+ * did, and then hands over its geometry, colliders, floor and anchors in its own space (the site's origin subtracted:
+ * the AO voxels and the flat normals are the old ones, bit for bit). The Explorer's specimen stands on flat ground at
+ * the origin. `hutLayout(params)` is a placement's layout (colliders, floor, anchors), shared with its build.
  *
  * Anchors (own space, y = floor, yaw = facing, 0 = +Z): npc (the castaway's spot by his campfire in front of the
  * steps, facing the path), hutChest (against the back wall inside, facing the door), door (the doorway), porch (the
@@ -23,11 +24,19 @@ import type { Collider } from '../../../player/Player';
 import { boxDesc, type ColliderDesc } from '../../../world/registry';
 import { defineModel } from '../../../models/model';
 
+/** where a hut stands: its centre (world xz) and which way its door faces (rot, radians; 0 = −z) */
+export interface HutSite { readonly x: number; readonly z: number; readonly rot: number }
 export interface HutAnchor { x: number; y: number; z: number; yaw: number }
 
 export interface HutParams {
-  /** the site's ground under own (lx, lz), own y (the origin is on the ground at the cabin's centre) */
-  readonly ground: (lx: number, lz: number) => number;
+  readonly site: HutSite;
+  /** the ground under a world (x, z) at the site: its y */
+  readonly ground: (x: number, z: number) => number;
+}
+
+/** the site's origin: its centre on the ground (a float32 value, so moving the geometry to own space and back is exact) */
+export function hutOrigin(p: HutParams): { x: number; y: number; z: number } {
+  return { x: p.site.x, y: Math.fround(p.ground(p.site.x, p.site.z)), z: p.site.z };
 }
 
 const C = {
@@ -44,36 +53,45 @@ const WALL_H = 2.6, DOOR_W = 1.1;
 const LIFT = 1.1;                     // floor over the ground at the centre
 const TABLE = { x: -1.5, z: 0.9, w: 1.4, d: 0.85, h: 0.82, yaw: 0.05 }; // the chart table inside (hut-local, top over the floor)
 
-/** the builder, in the hut's own space: its geometry (once) and its layout */
+/** the builder: where the hut stands, then its own space */
 class HutBuilder {
   /** the kit mesh's geometry and the flames' (handed to the model's build once, then dropped) */
   geometry: { kit: THREE.BufferGeometry; flames: THREE.BufferGeometry } | null = null;
   colliders: Collider[] = [];
   anchors: Record<string, HutAnchor> = {};
   floorY = 0;
-  private readonly cos = 1; private readonly sin = 0;
+  private cos = 1; private sin = 0;
   private deck = { w: 0, d: 0, z: 0 };
   private steps = { z0: 0, len: 0, w: 0, n: 0, top: 0 };
 
-  constructor(private ground: (lx: number, lz: number) => number) {}
+  private readonly spec: HutSite;
+  private readonly ground: (x: number, z: number) => number;
+  /** the site's origin (own space = world − origin) */
+  private readonly o: { x: number; y: number; z: number };
 
-  private toWorld(lx: number, lz: number): [number, number] { return [lx, lz]; }
-  private M(lx: number, y: number, lz: number, yaw = 0, rx = 0, rz = 0): THREE.Matrix4 {
-    return new THREE.Matrix4().compose(new THREE.Vector3(lx, y, lz), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, yaw, rz, 'YXZ')), new THREE.Vector3(1, 1, 1));
+  constructor(p: HutParams) {
+    this.spec = p.site; this.ground = p.ground; this.o = hutOrigin(p);
+    this.cos = Math.cos(p.site.rot); this.sin = Math.sin(p.site.rot);
   }
-  private V(lx: number, y: number, lz: number): THREE.Vector3 { return new THREE.Vector3(lx, y, lz); }
+
+  private toWorld(lx: number, lz: number): [number, number] { return [this.spec.x + lx * this.cos + lz * this.sin, this.spec.z - lx * this.sin + lz * this.cos]; }
+  private M(lx: number, y: number, lz: number, yaw = 0, rx = 0, rz = 0): THREE.Matrix4 {
+    const [x, z] = this.toWorld(lx, lz);
+    return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, this.spec.rot + yaw, rz, 'YXZ')), new THREE.Vector3(1, 1, 1));
+  }
+  private V(lx: number, y: number, lz: number): THREE.Vector3 { const [x, z] = this.toWorld(lx, lz); return new THREE.Vector3(x, y, z); }
 
   build(): this {
     const kit = new LowPolyKit(SEED ^ 0x4077), rng = kit.rng;
     const glow = new LowPolyKit(SEED ^ 0x4078);
     const lamps: BakedLight[] = [];
-    const ground = this.ground(0, 0);
+    const ground = this.ground(this.spec.x, this.spec.z);
     const fy = ground + LIFT; this.floorY = fy;
     const box = (w: number, h: number, d: number, lx: number, y: number, lz: number, col: string, yaw = 0, jitter = 0.06, rx = 0, rz = 0) =>
       kit.add(new THREE.BoxGeometry(w, h, d), col, { matrix: this.M(lx, y, lz, yaw, rx, rz), jitter });
     const collider = (lx: number, lz: number, hw: number, hd: number, yBottom: number, yTop: number) => {
       const [wx, wz] = this.toWorld(lx, lz);
-      this.colliders.push({ x: wx, z: wz, hw, hd, rot: 0, yBottom, yTop });
+      this.colliders.push({ x: wx, z: wz, hw, hd, rot: -this.spec.rot, yBottom, yTop });
     };
 
     // ── the deck: cabin floor + porch on the front and both sides, plank by plank, on log joists and stilts ──
@@ -277,27 +295,42 @@ class HutBuilder {
     const gGeo = glow.finish({ ao: false });
     const gc = gGeo.getAttribute('color');
     for (let i = 0; i < gc.count; i++) gc.setXYZ(i, gc.getX(i) * 3, gc.getY(i) * 3, gc.getZ(i) * 3);
-    this.geometry = { kit: geo, flames: gGeo };
 
     // ── anchors ──
-    const A = (lx: number, lz: number, y: number, yaw: number): HutAnchor => { const [x, z] = this.toWorld(lx, lz); return { x, y, z, yaw }; };
+    const A = (lx: number, lz: number, y: number, yaw: number): HutAnchor => { const [x, z] = this.toWorld(lx, lz); return { x, y, z, yaw: this.spec.rot + yaw }; };
     const [nx, nz] = this.toWorld(2.4, -8.2);
     this.anchors['npc'] = A(2.4, -8.2, this.ground(nx, nz), Math.PI + 0.35);
     this.anchors['hutChest'] = A(0.9, D / 2 - 0.55, fy, Math.PI);
     this.anchors['door'] = A(0, -D / 2, fy, Math.PI);
     this.anchors['porch'] = A(0, -D / 2 - 1.1, fy, Math.PI);
+
+    // ── into own space: the site's origin subtracted from everything built where it stands ──
+    const o = this.o;
+    for (const g of [geo, gGeo]) { g.translate(-o.x, -o.y, -o.z); g.computeBoundingSphere(); g.computeBoundingBox(); }
+    this.geometry = { kit: geo, flames: gGeo };
+    this.descs = this.worldColliderDescs();
+    for (const d of this.descs) {
+      if (d.kind === 'treads') { for (const e of [d.from, d.to]) { e.x -= o.x; e.y -= o.y; e.z -= o.z; } } else { d.x -= o.x; d.y -= o.y; d.z -= o.z; }
+    }
+    for (const c of this.colliders) { c.x -= o.x; c.z -= o.z; c.yTop -= o.y; c.yBottom -= o.y; }
+    for (const a of Object.values(this.anchors)) { a.x -= o.x; a.y -= o.y; a.z -= o.z; }
+    this.floorY -= o.y;
     return this;
   }
 
+  /** own-space colliders (see worldColliderDescs) */
+  private descs: ColliderDesc[] = [];
+  colliderDescs(): ColliderDesc[] { return this.descs; }
+
   /**
-   * PHYSICS P4: the hut's static collision in own space — its walls / posts (the legacy boxes) and every floor
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
    * `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
    * The deck (cabin floor + porch) is one slab whose top is the floor; the front steps are the four treads the mesh
    * draws (0.275 m each, the top one 0.18 m under the deck); the chart table is solid (it had no box before).
    */
-  colliderDescs(): ColliderDesc[] {
+  private worldColliderDescs(): ColliderDesc[] {
     const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
-    const yaw = 0, fy = this.floorY, slab = 0.15;
+    const yaw = this.spec.rot, fy = this.floorY, slab = 0.15;
     const at = (lx: number, y: number, lz: number) => { const [x, z] = this.toWorld(lx, lz); return { x, y, z }; };
     out.push({ kind: 'box', ...at(0, fy - slab, this.deck.z), hx: this.deck.w / 2, hy: slab, hz: this.deck.d / 2, yaw });
     const { z0, len, w, n, top } = this.steps, rise = LIFT / n;
@@ -306,8 +339,10 @@ class HutBuilder {
     return out;
   }
 
-  /** deck / floor height under own (lx, lz), the steps ramp down in front, else undefined */
-  floorHeightAt(lx: number, lz: number): number | undefined {
+  /** deck / floor height under own (x, z), the steps ramp down in front, else undefined (own y) */
+  floorHeightAt(x: number, z: number): number | undefined {
+    const dx = x, dz = z;
+    const lz = dx * this.sin + dz * this.cos, lx = dx * this.cos - dz * this.sin;
     if (Math.abs(lx) <= this.deck.w / 2 && Math.abs(lz - this.deck.z) <= this.deck.d / 2) return this.floorY;
     if (Math.abs(lx) <= this.steps.w / 2 && lz < this.steps.z0 && lz > this.steps.z0 - this.steps.len) {
       const t = (this.steps.z0 - lz) / this.steps.len; // 0 at the deck → 1 at the ground
@@ -317,27 +352,30 @@ class HutBuilder {
   }
 }
 
-/** the site of a specimen: flat ground */
+/** a specimen's site: at the origin, on flat ground */
+const ORIGIN: HutSite = { x: 0, z: 0, rot: 0 };
 const FLAT = (): number => 0;
 /** each placement's builder, by its site (a `place` builds it for the geometry; its colliders, the world's floor and
  *  anchors read the same one) — the geometry is handed out once and dropped */
-const built = new WeakMap<HutParams['ground'], HutBuilder>();
+const built = new WeakMap<HutSite, HutBuilder>();
 
-/** the hut's layout on a site: colliders, floor, anchors (own space) — the builder `place` ran for it, or a new one */
-export function hutLayout(p: HutParams): Pick<HutBuilder, 'colliders' | 'anchors' | 'floorY' | 'colliderDescs' | 'floorHeightAt'> {
-  let b = built.get(p.ground);
-  if (!b) { b = new HutBuilder(p.ground).build(); if (p.ground !== FLAT) built.set(p.ground, b); }
+function builderOf(p: HutParams, fresh: boolean): HutBuilder {
+  let b = built.get(p.site);
+  if (!b || (fresh && !b.geometry)) { b = new HutBuilder(p).build(); if (p.site !== ORIGIN) built.set(p.site, b); }
   return b;
+}
+
+/** the hut's layout on a site: colliders, floor, anchors (own space) */
+export function hutLayout(p: HutParams): Pick<HutBuilder, 'colliders' | 'anchors' | 'floorY' | 'colliderDescs' | 'floorHeightAt'> {
+  return builderOf(p, false);
 }
 
 export const hut = defineModel<HutParams>({
   id: 'driftwood-isle/hut', name: 'Hut', category: 'buildings', pipeline: 'code',
   file: 'src/chunks/driftwood-isle/models/hut.ts', surface: 'planks',
-  defaults: { ground: FLAT },
+  defaults: { site: ORIGIN, ground: FLAT },
   build: (ctx, p) => {
-    let b = built.get(p.ground);
-    if (!b?.geometry) { b = new HutBuilder(p.ground).build(); if (p.ground !== FLAT) built.set(p.ground, b); }
-    const g = b.geometry;
+    const b = builderOf(p, true), g = b.geometry;
     b.geometry = null;
     if (!g) return [];
     return [

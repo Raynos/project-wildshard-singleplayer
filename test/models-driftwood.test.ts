@@ -84,13 +84,14 @@ describe('Driftwood models (E315 M1)', () => {
   });
 
   it("the hut's layout and its geometry come from one build per site", () => {
-    const ground = (): number => 0.5;
-    const lay = hutLayout({ ground });
-    expect(lay.floorY).toBeCloseTo(0.5 + 1.1, 9); // the cabin floor stands 1.1 m over the ground at its centre
-    expect(lay.floorHeightAt(0, 0)).toBeCloseTo(1.6, 9);
+    const ground = (): number => 0.5, site = { x: 10, z: -20, rot: 0 };
+    const lay = hutLayout({ site, ground });
+    expect(lay.floorY).toBeCloseTo(1.1, 9); // own space: the cabin floor stands 1.1 m over the ground at its centre
+    expect(lay.floorHeightAt(0, 0)).toBeCloseTo(1.1, 9);
     expect(Object.keys(lay.anchors).sort()).toEqual(['door', 'hutChest', 'npc', 'porch']);
-    const placed = place(hut, [{ x: 0, y: 0, z: 0, params: { ground } }], { ctx, draw: 'merged', registry: null });
-    expect(hutLayout({ ground })).toBe(lay); // the same builder
+    const placed = place(hut, [{ x: site.x, y: 0.5, z: site.z, params: { site, ground } }], { ctx, draw: 'merged', registry: null });
+    expect(hutLayout({ site, ground })).toBe(lay); // the same builder (by its site)
+    expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(10, 0); // built where it stands
     expect(placed.colliders.length).toBe(lay.colliderDescs().length);
   });
 });
