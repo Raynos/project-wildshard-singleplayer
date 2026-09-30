@@ -7,11 +7,12 @@
 // bake sees the canopy around the area), the cabin sites, the pond and the trails. No structures yet: the cabins are
 // built from textures at runtime (Cabin.ts is async and loads Poly Haven sets), so structures.bin carries 0 tris.
 //
-// Layer albedo: the mean of each public/assets/tex/<layer>/diffuse_1k.jpg, sRGB-decoded (measured 2026-09-24).
+// Layer albedo: the mean of each public/assets/tex/<layer>/diffuse_1k.jpg, sRGB-decoded (measured 2026-09-24; forrest_ground_03, the layer Pine Hollow swapped in since, 2026-09-29).
 import { writeFileSync } from 'node:fs';
 
 const LAYER_ALBEDO = {
   forest_ground_04: [0.1526, 0.1089, 0.064],
+  forrest_ground_03: [0.3501, 0.2279, 0.1415],
   leafy_grass: [0.3196, 0.236, 0.1066],
   rock_ground: [0.191, 0.1633, 0.133],
   stony_dirt_path: [0.0793, 0.0486, 0.0281],
