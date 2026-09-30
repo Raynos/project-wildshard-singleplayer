@@ -133,7 +133,10 @@ export class HorsePlayground implements Playground {
       l.position.set(o.x + j.x - 2.6, o.y + 0.03, o.z + 5.2);
       root.add(l);
     }
-    const arrow = devLabel('▶ ▶ ▶', 7, { color: '#e8f4fa' });
+    // the running direction in dark floor paint, like the grid's own lines: unlit near-white glyphs (MeshBasic, no tone
+    // map) glowed, and from the saddle at a gallop the middle ▶ peeked over the horse's poll as a floating white
+    // triangle — the rest of the row hidden by the head (E320 follow-up)
+    const arrow = devLabel('▶ ▶ ▶', 7, { color: '#7a5530' });
     arrow.position.set(o.x + LINE_X + 16, o.y + 0.035, o.z + OVAL.radius);
     root.add(arrow);
     return { root, colliders };
