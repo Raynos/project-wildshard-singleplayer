@@ -219,8 +219,9 @@ const FRAG_MAIN = /* glsl */`
   if ( across < 5.5 ) {
     float rag = tNoise( wp * 0.8 ) * 0.9 + tNoise( wp * 3.0 ) * 0.35;
     float road = 1.0 - smoothstep( 2.2 + rag, 3.2 + rag, across );
-    // not up the cut banks of a graded road: there the dirt smeared up the wall as a ribbon (E302, NALATI-FINISH B9)
-    road *= smoothstep( 0.66, 0.86, tN.y + ( rag - 0.6 ) * 0.08 );
+    // not up the cut banks of a graded road: there the verge's dirt smeared up the wall as a ribbon (E302, NALATI-FINISH B9).
+    // The bed itself (the middle ~3 m) always keeps its dirt, so a switchback still reads as a road from below
+    road *= mix( 1.0, smoothstep( 0.66, 0.86, tN.y + ( rag - 0.6 ) * 0.08 ), smoothstep( 1.3, 2.3, across ) );
     vec2 rd = normalize( vRdir + vec2( 1e-4 ) );
     vec2 ruv = vec2( vSurf.x, dot( wp, rd ) ) * uTexScale.y;
     ruv = mat2( 0.7071, 0.7071, -0.7071, 0.7071 ) * ruv;          // the painted ruts run diagonally in the tile
