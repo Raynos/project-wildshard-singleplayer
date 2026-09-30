@@ -10,6 +10,7 @@ row: a decision number in [E357](../../tasks/asks/E357.md), or a research row (E
 | Rule | Detail | Decision |
 |---|---|---|
 | **Layers** | `src/engine/` → `src/game/` → `src/kit/` → `src/shards/<slug>/`. Imports only point down the arrow; no shard imports another shard | 1, 5, 48, 62 |
+| **Composition root** | `src/main.ts` stays at the root permanently. It is the one file that imports `#engine`, `#game` and the generated shard registry and starts the app, and it is outside the layer rules (the engine may not import `#game`, so the entry can't live in the engine). It is ≤ 20 lines at S4.4, with the generic boot in `engine/boot.ts` (≤ 150). `index.html` keeps loading `/src/main.ts` | 13 (04 #12) |
 | **Aliases** | Package.json subpath imports `#engine/*`, `#game/*`, `#kit/*`, `#shards/*`. Relative imports only inside one layer folder (a shard's own files use `./`) | engine-fit #9, TP1 |
 | **Public API** | Each layer has one `index.ts` that is its public API. Kit and shards import `#engine` / `#game` / `#kit` **index only**; a deep path like `#engine/combat/pipeline` is a lint error. The engine's own internals may import each other freely | 26 |
 | **Extractable engine** | `src/engine/**` contains no Wildshard word: no shard slug, no "shard", Bag, coin, loot, compendium, feat, doubloon, or shard / creature / weapon names. `wildshard/layer` checks this against a word list (§24) | 58 |

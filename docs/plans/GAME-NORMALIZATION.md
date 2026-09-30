@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + 84 of Jake's decisions, §9) and being fleshed out into executable specs in [game-normalization/](game-normalization/) (01 architecture, 10 sweeps, 11 finish, 12 process written; 02–09 in progress). Not `ready` until the clean-room council (Codex GPT 6 Sol + 2 Claude seats) finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
+**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + 84 of Jake's decisions, §9) and being fleshed out into executable specs in [game-normalization/](game-normalization/) (01 architecture, 10 sweeps, 11 finish, 12 process written; 02–09 in progress). Not `ready` until the clean-room council (Codex GPT 6.1 Sol + 2 Claude seats) finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
 
 ## Specs (the executable detail) and the definition of ready
 
@@ -22,7 +22,7 @@ This file is the index. The executable detail lives in [game-normalization/](gam
 | reviews/ | The council's rounds: every finding and its response |
 
 **Definition of ready** (Jake, E357: *"the plan is not done and ready for execution until various independent review
-and auditors, including Codex, … have found no holes"*): a clean-room council of 3 seats per round (Codex GPT 6 Sol:
+and auditors, including Codex, … have found no holes"*): a clean-room council of 3 seats per round (Codex GPT 6.1 Sol:
 architecture + scenario battery; Claude: coverage + code audit; Claude: red-team execution battery) finds no
 must-fix / should-fix **two rounds in a row**. Only then is the State `ready` and Jake asked for the go.
 
@@ -438,5 +438,5 @@ The verbatim table (70 rows, with the revisions) is in [docs/tasks/asks/E357.md]
 | **Quality** | Small differences may merge (a board per wave); found bugs fixed inline. A fake Game + contract tests + a coverage ratchet. A full-screen error on a failed load. Budgets derived, over budget fails. 30 fps hot phone, 60-ready. Min desktop: a mid gaming PC. 1.0 GB in-world kept. Gate on free GitHub `macos-15`, nightly perf on Jake's Mac |
 | **Process** | Foundations, then Nine Dragon → Pine Hollow → Nalati → Driftwood. Lead + short subagents. Deploys at shard milestones only; bug fixes ship at milestones. The lock: each shard reopens at its milestone. Summary + boards + play at each milestone |
 | **Game layer** | Coins per shard. Items self-contained, travel-ready. Progress per shard + a Wildshard summary. Abilities per shard. String tables (English). Analytics from the event bus. Capture mode. No accessibility features in this plan |
-| **Council** | Not `ready` until 3 clean-room seats (Codex GPT 6 Sol + 2 Claude) find nothing two rounds in a row. Jake sees only the decisions that need him |
+| **Council** | Not `ready` until 3 clean-room seats (Codex GPT 6.1 Sol + 2 Claude) find nothing two rounds in a row. Jake sees only the decisions that need him |
 | **Scope** | ENGINE-FIT folded in. Nine Dragon's own audio. Save safety + session health. Input actions. Delete dead + dev copies. Live scripts kept, the rest deleted. The permanent gate. The template shard + docs + shard 5 by a fresh agent. Doors kept open for multiplayer and seamless travel |

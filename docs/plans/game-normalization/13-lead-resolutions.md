@@ -72,3 +72,20 @@ Questions that were Jake's to decide went to him and are numbered decisions in
 | 9 | The Captain's boss bar keeps its own look (two bar looks)? | Jake, decision 91: **the shared BossBar**; a small Driftwood look change, on the look board in S4.2 | 08 S4.2, 12 §6 |
 | 10 | `rockKit.ts`: Driftwood or engine until X5? | Wherever 04's import analysis puts it by the rule of two (kit if `GroundCover` serves another shard, otherwise Driftwood). X5 lifts its generic primitives into the engine geometry toolkit | 04, 10 X5 |
 | 11 | The native shell's `ws:ready` DOM event | It stays (it's the native shell's contract), dispatched once on reaching `title`; the probe also exposes `ready` | 01 §5 |
+
+## From 04-move-map
+
+| # | Question / departure | Resolution | Applied in |
+|---|---|---|---|
+| 1 | The horse: Nalati, against the old 01 §21 / 09 / the index | **Nalati** (matches 09 #5). A kit horse would also drag ~2k lines of Nalati wildlife AI into the kit | 01 §21, 09, index (consistency pass) |
+| 2 | One map: 02's classifier writes `scripts/normalize/move-map.json`; 04 made the reviewed `docs/plans/game-normalization/move-map.json` the input | **The reviewed JSON is the codemod's only input**. The classifier re-derives it and fails on a diff (a check, not a writer) | 02 F6 |
+| 3 | `LeverRifle.ts`: kit (06) or Pine (09)? | **Pine** (rule of two: only Pine uses it). It becomes a Firearm-family subclass in Pine's folder; the Firearm family (`Rifle`) is kit | 06 S2.2, 09 §1 |
+| 4 | `Grass.ts`: S2.1 or S3.1? | **S3.1**, the later of the two, because Nalati's painterly branch leaves last | 06, 07 |
+| 5 | F6 re-stamps the bakers' `hash` fields once, so Pine Hollow's 2.7 MB phone-pack part re-downloads once | **Accepted:** a one-time 2.7 MB for Pine phone players at M1's deploy, stated in the M1 summary (decision 1's "don't move public/assets" is about re-downloading everything; this is one part) | 04, 12 §7 |
+| 6 | Tests moving at F6: 34 (04) vs 28 (02) | **34**: the map moves a test when the code it tests is a shard's | 02 F6 |
+| 7 | 7 images under src/ that no code references | **Deleted at F7**, listed in 02 F7 | 02 F7 |
+| 8 | `fauna-layout.ts` and `models/slots.ts`: engine (04) or shard (02's classifier)? | **04's analysis wins** (the map is the reviewed source); the classifier is corrected to agree | 02 F6 |
+| 9 | `src/kit/` empty at F6 (02) vs 5 files (04) | **04:** the 5 files that already have 2+ shard users go to the kit at F6 | 02 F6 |
+| 10 | Nalati species at F6 (02) vs waiting for their rows (04) | **04:** species files wait for S2.3 / S3.4 / S4.2 (`AnimalFactory.ts:15` loads them through one folder-wide import) | 02 F6 |
+| 11 | The title deck and `switch.ts`: engine or `#game`? | **`#game`** (a Wildshard idea) | 01 §20 |
+| 12 | `main.ts`: `src/engine/main.ts` at F6 (02) or `src/main.ts` until S4.4 (05)? | **Neither.** `src/main.ts` stays at the root permanently as the **composition root**: the one file that imports `#engine`, `#game` and the generated shard registry and starts the app. It sits outside the layers (the engine may not import `#game`). ≤ 20 lines at S4.4; the generic boot is `engine/boot.ts` (≤ 150) | 01 §0, 02 F6, 08 S4.4 |

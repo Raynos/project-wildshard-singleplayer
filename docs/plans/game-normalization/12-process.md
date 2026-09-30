@@ -13,7 +13,7 @@ spoken about."*
 
   | Seat | Engine | Lens |
   |---|---|---|
-  | A | Codex CLI (`codex exec -m gpt-6-sol`, reasoning high; GPT 6.1 Sol is refused under Jake's ChatGPT login, decision 90) | Architecture review, plus a **scenario battery**: fixed scenarios walked step by step through the plan (§1.1) |
+  | A | Codex CLI (`codex exec`, GPT 6.1 Sol, reasoning high; decision 90′; Codex ≥ 0.159.2) | Architecture review, plus a **scenario battery**: fixed scenarios walked step by step through the plan (§1.1) |
   | B | Claude general-purpose subagent | **Coverage and code-grounded audit**: every decision and audit finding traced to a row (checks `00-traceability.md`), every file / line / count checked against the repo, an ambiguity hunt ("etc.", "TBD", "as needed", undefined terms, rows without done-when) |
   | C | Claude general-purpose subagent | **Red-team execution battery**: what breaks mid-way. Ordering and dependencies, harness blind spots, rollback gaps, cost and time, the iPhone memory wall, the lock and the deploy pin, anything that would make an executing agent guess |
 
