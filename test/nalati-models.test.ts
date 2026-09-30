@@ -135,7 +135,11 @@ describe('Nalati models (E306 / E315 M3)', () => {
     expect(ON_CONTRACT).toContain('src/world/nalati/KurganField.ts');
     expect(checkModels().violations).toEqual([]);
     const bad = checkModels({ 'src/world/nalati/Bridge.ts': "registerSolid(registry, { id: 'nalati-bridge', object: mesh });" }).violations;
-    expect(bad).toEqual(['src/world/nalati/Bridge.ts: on the model contract — it places models, it never registers a built thing by hand']);
+    expect(bad).toEqual([
+      'src/world/nalati/Bridge.ts: on the model contract — it places models, it never registers a built thing by hand',
+      // and Nalati is held on the contract (DONE, the second pass): nothing drawn or registered by hand outside models/
+      'src/world/nalati/Bridge.ts: nalati-grasslands is on the model contract (DONE) — 1 × registerSolid here; draw and register things through defineModel / place, or declare the file world in DONE with its reason',
+    ]);
   });
 
   it('`drawnInto`: place draws nothing, keeps the object where its set put it, and carries boxes and colliders', () => {
