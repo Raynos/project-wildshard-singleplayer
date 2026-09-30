@@ -6,6 +6,7 @@
  * allocates nothing while it runs: its matrices, bounds and counts are typed arrays made once, at `place` time.
  *   · InstancedCull — per copy: range, angular size, padded frustum; its LOD level by distance; its matrix copied into
  *     that level's shared instance buffer (one buffer per variant and level, shared by the level's parts)
+ *   · CelledCopiesCull — `cells`: the same buffers filled a cell of copies at a time (the forest floor's ~22 000)
  *   · BatchedCull   — the same decisions on a BatchedMesh: visibility and geometry id per copy, set only on change
  *   · CellCull      — merged cells: a whole cell's level (or nothing) by its distance
  *   · SetCull       — `lodBy: 'set'`: every copy at the level of the copy nearest the eye (one draw per level; three
@@ -46,6 +47,13 @@ export interface CullOptions {
   readonly lodBy?: 'copy' | 'set';
   /** a copy's bounding sphere: around its world box (default) or its parts' own bounding sphere, posed (`'sphere'`) */
   readonly bounds?: 'box' | 'sphere';
+  /**
+   * instanced: the copies bucketed once into `size`-metre squares by their placement point (`CelledCopiesCull`: Pine
+   * Hollow's forest floor, ~22 000 copies in ~250 cells). A view tests each cell's sphere — its ground square, its copies'
+   * height span, `pad` metres of a copy's own reach — for range and frustum, then writes the passing cells' copies that are
+   * within `far` themselves, in cell order. Distances on the ground; `keepNear` / `minAngular` / `radiusBias` don't apply.
+   */
+  readonly cells?: { readonly size: number; readonly pad: number };
 }
 
 /** a view that tells its cullers when it changed (`CullOptions.view`) */
@@ -209,6 +217,104 @@ export class InstancedCull {
       for (let j = 0, s = i * 16, d = n * 16; j < 16; j++) dst[d + j] = m[s + j] ?? 0;
       if (c && sink.color) { const cd = sink.color.array as Float32Array; cd[n * 3] = c[i * 3] ?? 1; cd[n * 3 + 1] = c[i * 3 + 1] ?? 1; cd[n * 3 + 2] = c[i * 3 + 2] ?? 1; }
       counts[k] = n + 1;
+    }
+    for (let k = 0; k < this.sinks.length; k++) {
+      const sink = this.sinks[k];
+      if (!sink) continue;
+      const n = counts[k] ?? 0;
+      for (const mesh of sink.meshes) { mesh.count = n; mesh.visible = n > 0; }
+      if (n === 0) continue;
+      const r = this.ranges[k];
+      if (r) { r.matrix.count = n * 16; upload(sink.matrix, r.matrix); if (sink.color) { r.color.count = n * 3; upload(sink.color, r.color); } }
+    }
+  }
+}
+
+/**
+ * `cells`: instanced copies bucketed into squares once (what Culling.ts's CelledInstances did for the forest floor); a
+ * view change tests the cells, then copies the passing cells' copies (by their own range) into their variant's and
+ * level's buffer. Cells keep the order their first copy came in; a cell's copies keep placement order.
+ */
+export class CelledCopiesCull {
+  private readonly view: View;
+  private readonly sphere = new THREE.Sphere();
+  private readonly counts: Int32Array;
+  private readonly ranges: readonly { matrix: { start: number; count: number }; color: { start: number; count: number } }[];
+  /** per cell: centre x, y, z, radius (float64: the sphere tests as the old culler made them) */
+  private readonly cells: Float64Array;
+  /** cell c's copies are `order[start[c] … start[c + 1])` */
+  private readonly start: Uint32Array;
+  private readonly order: Uint32Array;
+  private readonly far: number;
+  private readonly from2: Float32Array;
+  /** `origins`: each copy's placement point (x, y, z), float32 */
+  constructor(
+    private readonly sinks: readonly (InstancedSink | null)[], private readonly levels: number, private readonly variantOf: Uint16Array,
+    private readonly matrices: Float32Array, private readonly colors: Float32Array | null, private readonly origins: Float32Array,
+    from: readonly number[], o: CullOptions & { readonly cells: { readonly size: number; readonly pad: number } },
+  ) {
+    this.view = viewFor(o);
+    this.counts = new Int32Array(sinks.length);
+    this.ranges = sinks.map(() => ({ matrix: { start: 0, count: 0 }, color: { start: 0, count: 0 } }));
+    this.far = o.far ?? Number.POSITIVE_INFINITY;
+    this.from2 = Float32Array.from(from, (d) => d * d);
+    const { size, pad } = o.cells, n = origins.length / 3;
+    const buckets = new Map<string, number[]>();
+    for (let i = 0; i < n; i++) {
+      const k = `${Math.floor((origins[i * 3] ?? 0) / size)},${Math.floor((origins[i * 3 + 2] ?? 0) / size)}`;
+      let b = buckets.get(k);
+      if (!b) buckets.set(k, (b = []));
+      b.push(i);
+    }
+    this.cells = new Float64Array(buckets.size * 4);
+    this.start = new Uint32Array(buckets.size + 1);
+    this.order = new Uint32Array(n);
+    let c = 0, at = 0;
+    for (const [k, idx] of buckets) {
+      const [ix = 0, iz = 0] = k.split(',').map(Number);
+      let ymin = Number.POSITIVE_INFINITY, ymax = Number.NEGATIVE_INFINITY;
+      for (const i of idx) { const y = origins[i * 3 + 1] ?? 0; if (y < ymin) ymin = y; if (y > ymax) ymax = y; }
+      this.cells.set([(ix + 0.5) * size, (ymin + ymax) * 0.5, (iz + 0.5) * size, Math.hypot(size * 0.5, (ymax - ymin) * 0.5, size * 0.5) + pad], c * 4);
+      this.start[c] = at;
+      for (const i of idx) this.order[at++] = i;
+      c++;
+    }
+    this.start[c] = at;
+  }
+
+  update(camera: THREE.Camera): void {
+    if (this.view.changed(camera)) this.choose();
+  }
+
+  /** a view handed in (`CullOptions.view`) */
+  updateWith(frustum: THREE.Frustum, eye: THREE.Vector3): void {
+    this.view.use(frustum, eye);
+    this.choose();
+  }
+
+  private choose(): void {
+    const counts = this.counts, m = this.matrices, col = this.colors, p = this.origins, e = this.view.eye;
+    const far = this.far, max2 = far * far, cells = this.cells, from2 = this.from2;
+    counts.fill(0);
+    for (let c = 0; c + 1 < this.start.length; c++) {
+      const cx = cells[c * 4] ?? 0, cz = cells[c * 4 + 2] ?? 0, r = cells[c * 4 + 3] ?? 0;
+      const dx = cx - e.x, dz = cz - e.z;
+      if (dx * dx + dz * dz > (far + r) * (far + r)) continue;
+      this.sphere.center.set(cx, cells[c * 4 + 1] ?? 0, cz); this.sphere.radius = r;
+      if (!this.view.frustum.intersectsSphere(this.sphere)) continue;
+      for (let j = this.start[c] ?? 0; j < (this.start[c + 1] ?? 0); j++) {
+        const i = this.order[j] ?? 0;
+        const ex = (p[i * 3] ?? 0) - e.x, ez = (p[i * 3 + 2] ?? 0) - e.z, d2 = ex * ex + ez * ez;
+        if (d2 > max2) continue;
+        let l = from2.length - 1;
+        while (l > 0 && d2 < (from2[l] ?? 0)) l--;
+        const k = (this.variantOf[i] ?? 0) * this.levels + l, sink = this.sinks[k];
+        if (!sink) continue;
+        const n = counts[k] ?? 0, dst = sink.matrix.array as Float32Array;
+        for (let q = 0, s = i * 16, d = n * 16; q < 16; q++) dst[d + q] = m[s + q] ?? 0;
+        if (col && sink.color) { const cd = sink.color.array as Float32Array; cd[n * 3] = col[i * 3] ?? 1; cd[n * 3 + 1] = col[i * 3 + 1] ?? 1; cd[n * 3 + 2] = col[i * 3 + 2] ?? 1; }
+        counts[k] = n + 1;
+      }
     }
     for (let k = 0; k < this.sinks.length; k++) {
       const sink = this.sinks[k];

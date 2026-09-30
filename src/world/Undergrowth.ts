@@ -7,13 +7,15 @@ import { patchWindField } from './wind';
 import type { Sky } from './Sky';
 import type { Forest } from './Forest';
 import { TIER_CONFIG } from '../core/tier';
-import { CelledInstances } from './Culling';
 import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from './placement';
 import { bakedUndergrowth } from './BakedTerrain';
 import { stateSlot } from '../core/shardState';
 
 /**
- * Forest-floor undergrowth: instanced ferns, low round-leaf shrubs and needle/twig litter.
+ * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
+ * goes, each kind's geometry, texture and material. Each kind is a model (src/chunks/pine-hollow/models/fern.ts …) that
+ * `place` draws instanced into `group` and culls per 32 m cell round the forest's view (E315: `kinds`, `matrixOf`,
+ * `UNDER_CELLS`; src/chunks/pine-hollow/world/drawnModels.ts).
  *
  *   const under = new Undergrowth(sky, forest).build();
  *   scene.add(under.group);
@@ -30,10 +32,21 @@ import { stateSlot } from '../core/shardState';
  * Six draw calls (+ fern & shrub shadow passes). Instances scale to 0 beyond `fadeFar` metres
  * in the vertex shader so distant ones cost nothing in the fragment stage.
  *
- * Public: `group`, `ferns`, `shrubs`, `litter`, `stones`, `moss`, `reeds` (InstancedMesh), `counts`.
+ * Public: `group` (the kinds' placed meshes go in it), `kinds` (each kind's parts), `layout`, `counts`, `view`.
  */
 
 const FADE_FAR = TIER_CONFIG.undergrowthFar, FADE_BAND = Math.min(25, FADE_FAR * 0.3);
+/** how `place` culls the field's copies (the old CelledInstances: 32 m cells, a copy reaches 2.5 m, gone 2 m past the fade) */
+export const UNDER_CELLS = { size: 32, pad: 2.5, far: FADE_FAR + 2 } as const;
+
+/** one kind as the field draws it: its geometry, its material (and its shadow's) — a model's parts (E315) */
+export interface UnderKindDraw {
+  readonly geometry: THREE.BufferGeometry;
+  readonly material: THREE.MeshStandardMaterial;
+  readonly castShadow: boolean;
+  readonly customDepthMaterial?: THREE.Material;
+}
+export type UnderKind = keyof UnderPlacements;
 
 const underUniforms = {
   uFadeFar: { value: FADE_FAR },
@@ -47,17 +60,16 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 export class Undergrowth {
   group = new THREE.Group();
-  ferns!: THREE.InstancedMesh;
-  shrubs!: THREE.InstancedMesh;
-  litter!: THREE.InstancedMesh;
-  stones!: THREE.InstancedMesh;
-  moss!: THREE.InstancedMesh;
-  reeds!: THREE.InstancedMesh;
+  /** each kind's parts (the field's shader material): its model draws them (E315) */
+  kinds!: Readonly<Record<UnderKind, UnderKindDraw>>;
   counts = { ferns: 0, shrubs: 0, litter: 0, stones: 0, moss: 0, reeds: 0 };
   /** where every copy of every kind stands (E315 M2: each kind is a model the field draws; its card counts these) */
   layout: UnderPlacements = { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] };
 
   constructor(private sky: Sky, private forest: Forest) {}
+
+  /** the view the copies are culled from: the forest's padded frustum, refilled when it moves or turns */
+  get view(): Forest { return this.forest; }
 
   build(): this {
     const g = this.stages();
@@ -96,14 +108,15 @@ export class Undergrowth {
 
     const place = yield* this.placements();
     this.layout = place;
-    this.ferns = this.makeInstanced(buildFernGeometry(), fernMat, place.ferns, true, fernTex, 0.35);
-    this.shrubs = this.makeInstanced(buildShrubGeometry(), shrubMat, place.shrubs, true, shrubTex, 0.25);
-    this.litter = this.makeInstanced(buildLitterGeometry(1.4), litterMat, place.litter, false);
-    this.stones = this.makeInstanced(buildLitterGeometry(0.9), stoneMat, place.stones, false);
-    this.moss = this.makeInstanced(buildLitterGeometry(1.0), mossMat, place.moss, false);
-    this.reeds = this.makeInstanced(buildReedGeometry(), reedMat, place.reeds, true, reedTex, 0.5);
+    this.kinds = {
+      ferns: kindDraw(buildFernGeometry(), fernMat, true, fernTex, 0.35),
+      shrubs: kindDraw(buildShrubGeometry(), shrubMat, true, shrubTex, 0.25),
+      litter: kindDraw(buildLitterGeometry(1.4), litterMat, false),
+      stones: kindDraw(buildLitterGeometry(0.9), stoneMat, false),
+      moss: kindDraw(buildLitterGeometry(1.0), mossMat, false),
+      reeds: kindDraw(buildReedGeometry(), reedMat, true, reedTex, 0.5),
+    };
     this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
-    this.group.add(this.ferns, this.shrubs, this.litter, this.stones, this.moss, this.reeds);
   }
 
   /**
@@ -123,37 +136,6 @@ export class Undergrowth {
   }
 
   update(_dt: number, playerPos: THREE.Vector3): void { underUniforms.uViewerPos.value.copy(playerPos); }
-
-  private makeInstanced(geo: THREE.BufferGeometry, mat: THREE.Material, items: Placement[], shadow: boolean, tex?: THREE.Texture, wind = 0) {
-    const mesh = new THREE.InstancedMesh(geo, mat, Math.max(1, items.length));
-    mesh.frustumCulled = false;
-    mesh.receiveShadow = true;
-    const castShadow = shadow && TIER_CONFIG.undergrowthShadows;
-    mesh.castShadow = castShadow;
-    if (castShadow && tex) {
-      const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5, side: THREE.DoubleSide });
-      depth.onBeforeCompile = (shader) => { patchUndergrowthVertex(shader, wind); };
-      depth.customProgramCacheKey = () => 'under-depth'; // wind is a uniform: one depth program for every kind
-      mesh.customDepthMaterial = depth;
-    }
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), q2 = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), n = new THREE.Vector3();
-    const all = new Float32Array(items.length * 16), cols = new Float32Array(items.length * 3), pos = new Float32Array(items.length * 3);
-    items.forEach((it, i) => {
-      n.set(it.nx, it.ny, it.nz);
-      q2.setFromUnitVectors(UP, n);
-      q.setFromAxisAngle(UP, it.rot).premultiply(q2);
-      m.compose(p.set(it.x, it.y, it.z), q, s.set(it.scale, it.scale, it.scale));
-      m.toArray(all, i * 16);
-      cols[i * 3] = it.r; cols[i * 3 + 1] = it.g; cols[i * 3 + 2] = it.b;
-      pos[i * 3] = it.x; pos[i * 3 + 1] = it.y; pos[i * 3 + 2] = it.z;
-    });
-    mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(items.length * 3), 3);
-    mesh.count = 0;
-    // one draw call, but only the instances in the padded view frustum and inside the fade radius are live
-    const culled = new CelledInstances(mesh, all, cols, pos, FADE_FAR + 2, 32, 2.5);
-    this.forest.onViewChange((f, v) => culled.cull(f, v));
-    return mesh;
-  }
 
   private makeMaterial(tex: THREE.Texture, key: string, wind: number, alphaTest: number) {
     const mat = new THREE.MeshStandardMaterial({ map: tex, alphaTest, side: THREE.DoubleSide, roughness: 0.8, metalness: 0 });
@@ -186,6 +168,26 @@ export class Undergrowth {
 
 }
 
+
+/** a kind's parts: its geometry and material, and — where the tier casts its shadow — the alpha-tested shadow material */
+function kindDraw(geometry: THREE.BufferGeometry, material: THREE.MeshStandardMaterial, shadow: boolean, tex?: THREE.Texture, wind = 0): UnderKindDraw {
+  const castShadow = shadow && TIER_CONFIG.undergrowthShadows;
+  if (!castShadow || !tex) return { geometry, material, castShadow };
+  const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5, side: THREE.DoubleSide });
+  depth.onBeforeCompile = (shader) => { patchUndergrowthVertex(shader, wind); };
+  depth.customProgramCacheKey = () => 'under-depth'; // wind is a uniform: one depth program for every kind
+  return { geometry, material, castShadow, customDepthMaterial: depth };
+}
+
+const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _n = new THREE.Vector3();
+
+/** a copy's transform: tilted to the ground's normal, turned about it, scaled */
+export function matrixOf(it: Placement, target = new THREE.Matrix4()): THREE.Matrix4 {
+  _n.set(it.nx, it.ny, it.nz);
+  _q2.setFromUnitVectors(UP, _n);
+  _q.setFromAxisAngle(UP, it.rot).premultiply(_q2);
+  return target.compose(_p.set(it.x, it.y, it.z), _q, _s.set(it.scale, it.scale, it.scale));
+}
 
 /** Distance fade (scale to 0) + gentle wind, shared by the lit and the shadow-depth materials. */
 function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }, wind: number) {

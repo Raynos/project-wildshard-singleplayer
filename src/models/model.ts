@@ -173,6 +173,12 @@ export interface ModelDef<P extends object> {
   };
   /** the Explorer's specimen turned about +Y by this (radians), so its first view is its face (the Fei Zhua hook's back is its wall plate) */
   readonly specimenYaw?: number;
+  /**
+   * the Explorer's specimen when it can't be `build`'s parts (default: `build`): a field whose shader fades its copies by
+   * the player's distance (Pine Hollow's forest floor) draws them in the world, but the turntable stands one in a plain
+   * material of the same geometry and texture
+   */
+  readonly specimen?: (ctx: ModelContext, params: P, rng: Rng) => ModelBuild;
 }
 
 /** What every defined model says about itself, whatever its params (the catalog and the contract test read these). */

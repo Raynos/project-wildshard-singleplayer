@@ -100,6 +100,65 @@ describe('Pine Hollow models (E315 M2)', () => {
     expect(lod.levels.map((l) => l.object.visible)).toEqual([true, false]);
   });
 
+  it("cull.cells: place()'s cell culler writes exactly what the forest floor's old CelledInstances wrote, view after view", () => {
+    // the old culler (src/world/Culling.ts CelledInstances, before the E315 second pass), verbatim: its buckets and its cull
+    const oldCull = (matrices: Float32Array, colors: Float32Array, pos: Float32Array, maxDist: number, cell: number, pad: number, frustum: THREE.Frustum, viewer: THREE.Vector3): { m: Float32Array; c: Float32Array; n: number } => {
+      const buckets = new Map<string, number[]>();
+      const n = pos.length / 3;
+      for (let i = 0; i < n; i++) { const k = `${Math.floor((pos[i * 3] ?? 0) / cell)},${Math.floor((pos[i * 3 + 2] ?? 0) / cell)}`; let b = buckets.get(k); if (!b) buckets.set(k, (b = [])); b.push(i); }
+      const cells: { cx: number; cy: number; cz: number; r: number; idx: number[] }[] = [];
+      for (const [k, idx] of buckets) {
+        const [ix = 0, iz = 0] = k.split(',').map(Number);
+        let ymin = Infinity, ymax = -Infinity;
+        for (const i of idx) { const y = pos[i * 3 + 1] ?? 0; if (y < ymin) ymin = y; if (y > ymax) ymax = y; }
+        cells.push({ cx: (ix + 0.5) * cell, cy: (ymin + ymax) * 0.5, cz: (iz + 0.5) * cell, r: Math.hypot(cell * 0.5, (ymax - ymin) * 0.5, cell * 0.5) + pad, idx });
+      }
+      const arr = new Float32Array(n * 16), col = new Float32Array(n * 3), sphere = new THREE.Sphere(), max2 = maxDist * maxDist;
+      let out = 0;
+      for (const c of cells) {
+        const dx = c.cx - viewer.x, dz = c.cz - viewer.z;
+        if (dx * dx + dz * dz > (maxDist + c.r) * (maxDist + c.r)) continue;
+        sphere.center.set(c.cx, c.cy, c.cz); sphere.radius = c.r;
+        if (!frustum.intersectsSphere(sphere)) continue;
+        for (const i of c.idx) {
+          const ex = (pos[i * 3] ?? 0) - viewer.x, ez = (pos[i * 3 + 2] ?? 0) - viewer.z;
+          if (ex * ex + ez * ez > max2) continue;
+          arr.set(matrices.subarray(i * 16, i * 16 + 16), out * 16); col.set(colors.subarray(i * 3, i * 3 + 3), out * 3); out++;
+        }
+      }
+      return { m: arr.subarray(0, out * 16), c: col.subarray(0, out * 3), n: out };
+    };
+    let seed = 12345; // a local LCG: the same copies and views every run
+    const rnd = (): number => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return seed / 4294967296; };
+    const tuft = defineModel({ id: 'shared/test-cells-tuft', name: 'Tuft', category: 'nature', pipeline: 'code', file: 'test/models-pine-hollow.test.ts', defaults: {},
+      build: () => [{ geometry: new THREE.PlaneGeometry(1, 1), material: new THREE.MeshBasicMaterial() }] });
+    const pls = Array.from({ length: 3000 }, () => {
+      const x = (rnd() - 0.5) * 480, z = (rnd() - 0.5) * 480, y = rnd() * 30;
+      const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rnd() * 6), new THREE.Vector3(1, 1, 1).multiplyScalar(0.5 + rnd()));
+      return { x, y, z, matrix: m, color: new THREE.Color(rnd(), rnd(), rnd()) };
+    });
+    const listeners: ((f: THREE.Frustum, e: THREE.Vector3) => void)[] = [];
+    const placed = place(tuft, pls, { ctx, draw: 'instanced', registry: null, cull: { view: { onViewChange: (fn) => { listeners.push(fn); } }, cells: { size: 32, pad: 2.5 }, far: 62 } });
+    const mesh = placed.object as THREE.InstancedMesh;
+    const matrices = new Float32Array(pls.length * 16), colors = new Float32Array(pls.length * 3), pos = new Float32Array(pls.length * 3);
+    pls.forEach((p, i) => { p.matrix.toArray(matrices, i * 16); colors.set([p.color.r, p.color.g, p.color.b], i * 3); pos.set([p.x, p.y, p.z], i * 3); });
+    const cam = new THREE.PerspectiveCamera(84, 0.46, 0.1, 2000);
+    let seen = 0;
+    for (let k = 0; k < 40; k++) {
+      cam.position.set((rnd() - 0.5) * 400, 1.7 + rnd() * 20, (rnd() - 0.5) * 400);
+      cam.rotation.set((rnd() - 0.5) * 0.6, rnd() * 6.28, 0); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+      const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+      for (const fn of listeners) fn(frustum, cam.position);
+      const want = oldCull(matrices, colors, pos, 62, 32, 2.5, frustum, cam.position);
+      expect(mesh.count).toBe(want.n);
+      seen += want.n;
+      expect(mesh.visible).toBe(want.n > 0);
+      expect(Array.from((mesh.instanceMatrix.array as Float32Array).subarray(0, want.n * 16))).toEqual(Array.from(want.m));
+      expect(Array.from((mesh.instanceColor ? mesh.instanceColor.array as Float32Array : new Float32Array(0)).subarray(0, want.n * 3))).toEqual(Array.from(want.c));
+    }
+    expect(seen).toBeGreaterThan(500); // the views saw real copies
+  });
+
   it('every Pine Hollow model says how it is made, and the tree family carries its 14 species variants', () => {
     const pine = definedModels().filter((m) => m.id.startsWith('pine-hollow/'));
     expect(pine.map((m) => m.id)).toEqual(expect.arrayContaining(['pine-hollow/hollow-log', 'pine-hollow/forest-tree', 'pine-hollow/mossy-boulder']));
@@ -113,6 +172,7 @@ describe('Pine Hollow models (E315 M2)', () => {
     const WORLD: Record<string, { why: string; draws: Partial<Record<'mergeGeometries' | 'InstancedMesh' | 'BatchedMesh' | 'Mesh', number>>; registers?: number }> = {
       'src/chunks/pine-hollow/world/props.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/drawnModels.ts': { why: '', draws: {} },
+      'src/world/Undergrowth.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/cabins.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/cabinKit.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/timber.ts': { why: "the timber kit's glass pane (merged per building: the models' own parts)", draws: { Mesh: 1 } },

@@ -22,7 +22,7 @@ import { activeRegistry, type ColliderDesc, type DrawnAs, type ModelEntry, type 
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
-import { BatchedCull, CellCull, InstancedCull, SetCull, UntilCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
+import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
 
 export type { CullOptions, CullView } from './cull';
 
@@ -255,6 +255,13 @@ function originsOf(pls: readonly Placement<object>[], o: PlaceOptions): Float32A
   return out;
 }
 
+/** each copy's placement point (x, y, z per copy), float32 (`cull.cells` buckets by it) */
+function pointsOf(pls: readonly Placement<object>[]): Float32Array {
+  const out = new Float32Array(pls.length * 3);
+  pls.forEach((pl, i) => { out[i * 3] = pl.x; out[i * 3 + 1] = pl.y; out[i * 3 + 2] = pl.z; });
+  return out;
+}
+
 /** spheres (x, y, z, r per copy) around the world boxes: what the cullers test */
 function spheresOf(boxes: Float32Array): Float32Array {
   const n = boxes.length / 6, out = new Float32Array(n * 4);
@@ -441,8 +448,12 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
   });
   let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
   const bounds = (): Float32Array => (o.cull?.bounds === 'sphere' ? posedSpheres((i) => built[of[i] ?? 0]?.[0] ?? [], poses) : spheresOf(boxes));
+  const cells = o.cull?.cells;
   if (setMode) {
     const c = new SetCull(byLevel, n, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o));
+    cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
+  } else if (culls && cells !== undefined) {
+    const c = new CelledCopiesCull(sinks, levels, of, matrices, colors, pointsOf(pls), levelsOf(def), { ...o.cull, cells });
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   } else if (culls) {
     const c = new InstancedCull(sinks, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o));
@@ -620,7 +631,7 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   const specimen = new THREE.Group();
   specimen.name = `model:${def.id}`;
   const build = (variant?: string): THREE.Object3D => {
-    const built = def.build(o.ctx, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
+    const built = (def.specimen ?? def.build)(o.ctx, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
     // (a model its shard culls draws with its in-world program, which may need instancing: the specimen is one instance)
     const one = (x: ModelPart): THREE.Mesh => (o.culler === undefined ? meshOf(x) : instanceOf(x));
     const obj = Array.isArray(built) ? wrap((built as readonly ModelPart[]).map(one), def.id) : built as THREE.Object3D;
@@ -710,6 +721,9 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, o)
         : drawSingle(def, placements, poses, params, o);
   const { boxes } = drawn;
+  // where each copy stands, for `nearest` (float64: exact) — the placements themselves are not kept alive
+  const points = new Float64Array(placements.length * 3);
+  placements.forEach((pl, i) => { points[i * 3] = pl.x; points[i * 3 + 1] = pl.y; points[i * 3 + 2] = pl.z; });
   let registered: Promise<void> = Promise.resolve();
   const placed: Placed = {
     get registered(): Promise<void> { return registered; },
@@ -722,7 +736,7 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
     },
     nearest: (p) => {
       let bi = -1, bd = Number.POSITIVE_INFINITY;
-      placements.forEach((pl, i) => { const d = (pl.x - p.x) ** 2 + (pl.y - p.y) ** 2 + (pl.z - p.z) ** 2; if (d < bd) { bd = d; bi = i; } });
+      for (let i = 0; i * 3 < points.length; i++) { const d = ((points[i * 3] ?? 0) - p.x) ** 2 + ((points[i * 3 + 1] ?? 0) - p.y) ** 2 + ((points[i * 3 + 2] ?? 0) - p.z) ** 2; if (d < bd) { bd = d; bi = i; } }
       return bi;
     },
   };
