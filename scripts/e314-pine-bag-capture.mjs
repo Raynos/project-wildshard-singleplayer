@@ -55,7 +55,7 @@ async function run(seed, body) {
   await page.goto(`${URL_BASE}/?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&touch=1&tier=phone`, { waitUntil: 'domcontentloaded' });
   await load();
   const shot = async (name) => { const f = resolvePath(OUT, `${TAG}-${name}.jpg`); writeFileSync(f, await page.screenshot({ type: 'jpeg', quality: 82 })); console.log(f); };
-  const tab = async (want) => page.evaluate((w) => {
+  const tab = (want) => page.evaluate((w) => {
     const bag = document.querySelector('.ws-minimap-bag');
     if (!document.querySelector('.ws-gmenu.show')) bag?.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
     const b = [...document.querySelectorAll('.ws-gmenu-tab')].find((x) => !x.hidden && (x.dataset.tab === w || x.textContent.trim().toLowerCase() === w));
@@ -63,7 +63,7 @@ async function run(seed, body) {
     b.click();
     return true;
   }, want);
-  const scroll = async (sel) => page.evaluate((s) => { const p = document.querySelector('.ws-gmenu-panel.active'); const t = document.querySelector(s); if (p && t) p.scrollTop = t.getBoundingClientRect().top - p.getBoundingClientRect().top + p.scrollTop - 8; }, sel);
+  const scroll = (sel) => page.evaluate((s) => { const p = document.querySelector('.ws-gmenu-panel.active'); const t = document.querySelector(s); if (p && t) p.scrollTop = t.getBoundingClientRect().top - p.getBoundingClientRect().top + p.scrollTop - 8; }, sel);
   const reload = async () => { await page.reload({ waitUntil: 'domcontentloaded' }); await load(); };
   await body({ page, shot, tab, scroll, reload });
   await ctx.close();
