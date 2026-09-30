@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import type { BoneDef, RigAnimCtx } from '../entities/species/registry';
 
 /**
- * The Antler King's OWN rig (E322 F-M1; Debug ▸ Creatures & NPCs ▸ Antler King rig = B). Today (A) he is the Bark
- * Warden hull baked onto the elk's bones and walks like an elk ×2.6. This rig is his concept's body plan
+ * The Antler King's OWN rig (E322 F-M1; Jake picked B — A, the Bark Warden hull baked onto the elk's bones, walking like
+ * an elk ×2.6, went with its Debug row). This rig is his concept's body plan
  * (art/pine-hollow/round-2-antler-king/A-bark-warden.jpg): a raised barrel chest, a shoulder hump, long heavy forelimbs
  * that can rear and strike, shorter hind legs — on a hull generated in that stance
  * (art/pine-hollow/round-25-e322-king-rig/, `public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb`,

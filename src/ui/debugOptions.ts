@@ -163,7 +163,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Creatures & NPCs ──
   opt('creatures', 'creatures', 'Creatures', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: (c) => pineHollow(c) || nalati(c), note: 'PH-U11 / E136 · models picked; procedural = what the rig bakes need' }),
   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
-  opt('pineKingRig', 'creatures', 'Antler King rig', [['a', 'A · Elk rig'], ['b', 'B · His own']], { reload: true, when: pineHollow, note: 'E322 F-M1 · B: his own upright rig — a raised chest and hump, forelimbs that rear and strike, the stomp a rearing slam (art/pine-hollow/round-25-e322-king-rig/)' }),
   opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
   opt('driftwoodFaces', 'creatures', 'Driftwood faces', [['current', 'A · Current'], ['lowpoly', 'B · Low-poly faces'], ['hunyuan', 'C · + Captain Hunyuan head']], { reload: true, when: (c) => c.chunk.slug === 'driftwood-isle', note: 'E304 · Wendell, the Drowned Sailor and the Captain (progress/e304-faces/driftwood-isle-board.jpg)' }),

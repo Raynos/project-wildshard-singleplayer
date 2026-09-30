@@ -17,7 +17,6 @@ import type { Music } from '../audio/Music';
 import { FogWall, Puffs, flameCard } from './fxKit';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../chunks/pine-hollow/models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from './kingRig';
-import { kingOwnRigOn } from '../entities/pineCreatures';
 import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { KING_PHASE_AT, burnTick, headingTo, inArc, ringCatches, wallPush } from './combatMath';
 import type { FxMaterial } from '../world/fx';
@@ -51,7 +50,7 @@ import { shardSlot } from '../core/shardState';
  *
  *   STAND-IN MODEL: src/chunks/pine-hollow/models/antlerKing.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
  *   factory PH-M3's Bark Warden replaces. The King is its own kind, 'antler-king' (the journal's page answers to it).
- *   HIS OWN RIG (E322 F-M1, Debug ▸ Antler King rig = B): the same species as a custom rig (kingOwnSpecies, kingRig.ts) —
+ *   HIS OWN RIG (E322 F-M1, Jake picked B; the elk-rig King went): the species as a custom rig (kingOwnSpecies, kingRig.ts) —
  *   each move names itself in `mem.act` before its wind-up: the sweep → the antler sweep, the stomp → the rearing strike
  *   (up on the hind legs, the slam at the wind-up's end, when the root ring goes out), the bells → the roar (reared, no
  *   slam), a lane's tell → the brace; the lane itself → the charge gallop (his speed), a bolt → the hit recoil.
@@ -72,12 +71,11 @@ const PHASES: BossDef['phases'] = [
 
 let kingDamage: ((a: Animal, p: THREE.Vector3) => number) | null = null;
 
-/** the King's species: the elk rig re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark); with
- *  Debug ▸ Antler King rig = B the same species on his own upright rig (E322 F-M1) */
+/** the King's species: the elk's fields re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark) —
+ *  on his own upright rig (E322 F-M1, kingOwnSpecies) */
 function registerKing(): void {
   if (hasSpecies(KING_KIND)) return;
   const elk = speciesDef('elk');
-  const ownRig = kingOwnRigOn();
   const def: SpeciesDef = {
     ...elk, kind: KING_KIND, label: 'The Antler King', variants: [KING_VARIANT], aggressive: true, blood: false,
     walkSpeed: 2.2, chargeSpeed: 13,
@@ -86,10 +84,10 @@ function registerKing(): void {
     think: () => { /* the fight's update drives him (AntlerKingFight) */ },
     damageMul: (a, p) => kingDamage?.(a, p) ?? 1,
   };
-  registerSpecies(ownRig ? kingOwnSpecies(def) : def);
+  registerSpecies(kingOwnSpecies(def));
 }
 
-/** the move the King's own rig plays for the attack about to start (kingRig.ts ACT_*; the elk rig ignores it) */
+/** the move the King's rig plays for the attack about to start (kingRig.ts ACT_*) */
 const act = (k: Animal, move: number): void => { k.mem['act'] = move; };
 
 /** a thrall of `kind`: the creature lane's 'thrall' variant when it exists, else a moss-tinted stand-in */

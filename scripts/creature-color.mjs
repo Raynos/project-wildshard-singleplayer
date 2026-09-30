@@ -46,7 +46,7 @@ const CHUNKS = {
     src: 'art/pine-hollow/round-9-creature-refs',
     hulls: {
       'deer-hind': { k: 0.85 }, 'deer-stag': { k: 0.85 }, boar: { k: 0.85 },
-      'elk-cow': { k: 0.85 }, 'elk-bull': { k: 0.85 }, 'bear-black': { k: 0.8, lift: 2 }, 'bear-brown': { k: 0.85 }, 'antler-king': { k: 0.8 },
+      'elk-cow': { k: 0.85 }, 'elk-bull': { k: 0.85 }, 'bear-black': { k: 0.8, lift: 2 }, 'bear-brown': { k: 0.85 },
       // E322 F-M1: the Antler King's own upright hull (its own round and staging folder: the codex ref's backdrop sheet
       // stripped from the post by the scratch strip step, art/pine-hollow/round-25-e322-king-rig/README.md)
       'antler-king-rig': { k: 0.8, src: 'art/pine-hollow/round-25-e322-king-rig', post: '~/ml/img2mesh/out/pine-hollow-king-rig-clean' },

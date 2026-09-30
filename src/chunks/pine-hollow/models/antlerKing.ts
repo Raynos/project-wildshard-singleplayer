@@ -20,10 +20,11 @@ import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '../../../m
  *     ribs spread, the core flares) for the shot window
  *   · a bone-white SKULL plate over the face
  *
- * PH-M3 (the swap, done): with the generated creatures on (pineCreatures.ts, Debug ▸ Creatures = Procedural is this stand-in) the King
- * is the Bark Warden hull — `public/assets/pine-hollow/creatures/antler-king[.phone].rigged.glb`, codex ref → Hunyuan3D-2 →
- * rig-baked onto the elk's bones (art/pine-hollow/round-9-creature-refs/) — and `dressAntlerKing` hangs the lanterns off
- * its own rack and drops the skull plate (the hull has its skull face); the ribcage stays this kit's emissive part.
+ * PH-M3 (the swap, done) and E322 F-M1 (Jake picked B): the King is his own upright hull on his own rig —
+ * `public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb` (art/pine-hollow/round-25-e322-king-rig/,
+ * src/pinehollow/kingRig.ts; the Bark Warden hull on the elk's bones went with the Debug row) — and `dressAntlerKing`
+ * hangs the lanterns off its own rack and drops the skull plate (the hull has its skull face); the ribcage rides his chest
+ * bone. With Debug ▸ Creatures = Procedural (no hulls) he is kingRig's placeholder boxes with the lanterns at LANTERN_AT.
  *
  * THE SWAP: everything model-specific is here — `KING_VARIANT` (the coat), `KING_ANTLER_SCALE`, and `dressAntlerKing()`
  * (the one factory the fight calls on a freshly spawned King). When PH-M3's Bark Warden hull exists, `dressAntlerKing`
@@ -51,14 +52,10 @@ export const KING_VARIANT: VariantDef = {
 
 /** where the three lanterns hang (head-bone local, model units): off the left dagger tine, the right beam, the right fifth tine */
 const LANTERN_AT: [number, number, number][] = [[-0.6, 1.5, -0.19], [0.7, 1.02, -0.82], [0.84, 1.6, -0.67]];
-/** the ribcage basket (body-bone local): on the brisket, pushing out of the chest */
-const RIB_AT: [number, number, number] = [0, -0.22, 0.6];
 const RIB_R = 0.36;
-/** on the Bark Warden hull: in its chest cavity (body-bone local) */
-const RIB_AT_HULL: [number, number, number] = [0, -0.22, 0.6];
-/** E322 F-M1, his own upright rig: in the barrel chest's front, under the hump (chest-bone local; the hull's chest front is
- *  at z 1.37–1.43 between 1.6 and 1.75 m, the chest joint at (0, 2.1, 0.735)) */
-const RIB_AT_OWN: [number, number, number] = [0, -0.45, 0.47];
+/** the ribcage basket, E322 F-M1's upright rig: in the barrel chest's front, under the hump (chest-bone local; the hull's
+ *  chest front is at z 1.37–1.43 between 1.6 and 1.75 m, the chest joint at (0, 2.1, 0.735)) */
+const RIB_AT: [number, number, number] = [0, -0.45, 0.47];
 
 const AMBER = new THREE.Color(1.0, 0.56, 0.16);
 
@@ -152,11 +149,11 @@ function hullLanterns(a: Animal): [number, number, number][] | null {
   return mid >= 0 ? [at(left), at(right), at(mid)] : [at(left), at(right)];
 }
 
-/** dress a freshly spawned King: lanterns on the head bone, the ribcage on the body bone. On the Bark Warden hull
- *  (PH-M3, the generated model: its own skull face and rack) the lanterns hang off its rack and the skull plate is left off */
+/** dress a freshly spawned King: lanterns on the head bone, the ribcage on the chest bone. On his hull (the generated
+ *  model: its own skull face and rack) the lanterns hang off its rack and the skull plate is left off */
 export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
-  const head = a.mesh.getObjectByName('head'), body = a.mesh.getObjectByName('body');
-  if (!head || !body) throw new Error('antler-king: the rig has no head / body bone');
+  const head = a.mesh.getObjectByName('head'), chest = a.mesh.getObjectByName('chest');
+  if (!head || !chest) throw new Error('antler-king: the rig has no head / chest bone');
   const own: THREE.Object3D[] = [];
   const lanterns: THREE.Group[] = [];
   const makeLantern = (): THREE.Group => {
@@ -178,14 +175,12 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     head.add(skull); own.push(skull);
   }
   const cage = new THREE.Group();
-  // his own rig (a chest bone, no elk neck): the ribcage rides the chest, which rears and recoils with him
-  const chest = a.mesh.getObjectByName('neck1') === undefined ? a.mesh.getObjectByName('chest') : undefined;
-  const rib = chest ? RIB_AT_OWN : hull ? RIB_AT_HULL : RIB_AT;
-  cage.position.set(rib[0], rib[1], rib[2]);
+  // the ribcage rides the chest, which rears and recoils with him
+  cage.position.set(RIB_AT[0], RIB_AT[1], RIB_AT[2]);
   const ribs = new THREE.Mesh(kit.ribGeo, kit.ribMat), core = new THREE.Mesh(kit.coreGeo, kit.coreMat);
   ribs.castShadow = false; core.castShadow = false;
   cage.add(core, ribs);
-  (chest ?? body).add(cage); own.push(cage);
+  chest.add(cage); own.push(cage);
   let glow = 1;
   const scale = a.scale;
   return {
@@ -231,7 +226,7 @@ function buildOwnRig(): AnimalSpecies {
 }
 
 /**
- * The King's species on his own rig (Debug ▸ Antler King rig = B): `base` (the fight's elk-derived King: his coat, sounds,
+ * The King's species on his own rig (E322 F-M1): `base` (the fight's elk-derived King: his coat, sounds,
  * AI hook and damage rule) as a custom rig — KING_BONES and kingRig.ts's poses instead of the elk's bones and gaits. The
  * hull (`antler-king-rig[.phone].rigged.glb`) replaces the placeholder through pineCreatures.ts like every Pine Hollow hull.
  */
@@ -242,18 +237,18 @@ export function kingOwnSpecies(base: SpeciesDef): SpeciesDef {
 
 // ─────────────── the model (E306 / E315 M5) ───────────────
 
-/** his species (src/pinehollow/antlerKing.ts `KING_KIND`): the elk rig registered again by the fight at boot (`registerKing`) */
+/** his species (src/pinehollow/antlerKing.ts `KING_KIND`): registered by the fight at boot on his own rig (`registerKing`) */
 const KING_KIND = 'antler-king';
 const KING_KIT = 'pine-hollow/antler-king:kit';
 
 /**
- * The Antler King, Pine Hollow's boss: the Bark Warden hull (Hunyuan3D-2, `public/assets/pine-hollow/creatures/antler-king
- * [.phone].rigged.glb`) on the elk's bones, drawn ×2.6 by the fight, dressed in code (`dressAntlerKing`: the antler
+ * The Antler King, Pine Hollow's boss: his own hull (Hunyuan3D-2, `public/assets/pine-hollow/creatures/antler-king-rig
+ * [.phone].rigged.glb`) on his own rig (kingRig.ts), drawn ×2.6 by the fight, dressed in code (`dressAntlerKing`: the antler
  * lanterns, the amber ribcage; the skull plate on the procedural stand-in). The fight (src/pinehollow/antlerKing.ts) spawns,
  * dresses and drives the one copy at night in the King's clearing; nothing here draws him in the world.
  *
  * His fields are `creature(KING_KIND)`'s spelled out from his one coat (`KING_VARIANT`), not `creature()` itself: his
- * species is registered by the fight at boot (it is the elk's, re-registered with the fight's damage hook), and this module
+ * species is registered by the fight at boot (the elk's fields on his own rig, with the fight's damage hook), and this module
  * can load before that — importing the fight from here would be a cycle (it imports this file for his look). The specimen
  * (`build`) is one rig from the shard's creature factory, dressed as the fight dresses him — the lanterns and the ribcage
  * at full glow — at the rig's own scale like every species model.

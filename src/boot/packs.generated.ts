@@ -193,7 +193,7 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
           ["/assets/pine-hollow/creatures/elk-bull.phone.rigged.glb",702344,278684,"model/gltf-binary"],
           ["/assets/pine-hollow/creatures/bear-black.phone.rigged.glb",981028,239144,"model/gltf-binary"],
           ["/assets/pine-hollow/creatures/bear-brown.phone.rigged.glb",1220172,318676,"model/gltf-binary"],
-          ["/assets/pine-hollow/creatures/antler-king.phone.rigged.glb",1538848,704212,"model/gltf-binary"],
+          ["/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb",1538848,743584,"model/gltf-binary"],
         ],
       },
     ]),

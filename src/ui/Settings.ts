@@ -126,9 +126,6 @@ export const OPTION_VALUES = {
   pineCrags: ['a', 'b'],                               // E322 F-L2: Pine Hollow's Ridge crags — A today · B the new crags (src/world/PineCrags.ts) — a reload
   creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
   pineLife: ['on', 'off'],                             // Pine Hollow's birds, hares, ravens and the skinning beat (src/pinehollow/life/) — a reload
-  // E322 F-M1: the Antler King — A today (the Bark Warden hull on the elk's bones) · B his own upright rig (a raised chest,
-  // forelimbs that rear and strike: src/pinehollow/kingRig.ts) — a reload (the rig loads once)
-  pineKingRig: ['a', 'b'],
   pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/audio/Music.ts) — a reload
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/player/AimAssist.ts) — live
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
@@ -159,7 +156,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tex: { def: 'auto', params: [], url: () => null },
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, pineCrags: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
-  pineKingRig: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, nineDragonFaces: DEBUG_ONLY, driftwoodFaces: DEBUG_ONLY,
   pineTrample: DEBUG_ONLY,
 };
@@ -176,7 +172,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   tex: option('tex'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'), pineCrags: option('pineCrags'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
-  pineKingRig: option('pineKingRig'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   nineDragonFaces: option('nineDragonFaces'),
   driftwoodFaces: option('driftwoodFaces'),
