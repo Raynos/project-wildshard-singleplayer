@@ -1,13 +1,13 @@
 /**
  * Nalati's gear (E306 / E315 M5, `gear`): what the steppe's player holds — its own kit (src/player/nalatiKit.ts: the
  * composite bow, the sabre, the spear and its javelins), the two legendary rewards the bosses pay (the Golden Bow, the
- * Storm Sabre Naizagai) and the AR-15 (shared, src/models/gear.ts; locked in the kit until its pickup). The viewmodels keep
+ * Storm Sabre Naizagai) and the AR-15 (the rifle slot: since E333 only Nalati's kit builds it; locked until its pickup, lent
+ * in the practice room). The viewmodels keep
  * drawing the held ones; each card is a separate build by the weapon's own builder on its own materials, put back in the
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/models/gear.ts says why).
  */
-import type * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '../../../models/model';
-import { ar15 } from '../../../models/gear';
+import * as THREE from 'three';
 import { live, type RosterEntry } from '../../../models/live';
 import { bowSpecimen, type BowStyle } from '../../../player/Bow';
 import { buildSabre } from '../../../player/Sabre';
@@ -15,6 +15,8 @@ import { buildJavelin, buildSpear, type SpearParts } from '../../../player/Spear
 import { meleeMaterial, steelMaterial } from '../../../player/meleeGeo';
 import { goldenBowModel } from '../../../player/GoldenBow';
 import { naizagaiModel } from '../../../player/Naizagai';
+import { buildRifleParts } from '../../../player/Rifle';
+import { whiteColors } from '../../../player/Crossbow';
 
 const FILE = 'src/chunks/nalati-grasslands/models/gear.ts';
 
@@ -95,6 +97,34 @@ export const naizagai: ModelDef<object> = defineModel<object>({
   id: 'nalati-grasslands/naizagai', name: 'Naizagai', category: 'gear', pipeline: 'code', file: FILE,
   defaults: {},
   build: () => naizagaiModel(),
+});
+
+/**
+ * The AR-15: `buildRifleParts` — the receiver, rail, handguard, barrel, stock and grip (aluminium, polymer, steel), the
+ * charging handle, the bolt and the magazine in its well — on the specimen's own materials (the parts are built once per
+ * shard, never the viewmodel's). No ghost-ring glow (it only shows sighted), no flash, no depth clear. (Its legendary skins
+ * drop in Pine Hollow only, E333: none here.)
+ */
+export const ar15: ModelDef<object> = defineModel<object>({
+  id: 'nalati-grasslands/ar-15', name: 'AR-15', category: 'gear', pipeline: 'code', file: FILE,
+  defaults: {},
+  build: (ctx) => {
+    const parts = ctx.once('gear:ar-15', () => {
+      const r = buildRifleParts(ctx.sky);
+      const meshes = [r.alu, r.poly, r.steel, r.handle, r.bolt, r.mag];
+      for (const m of meshes) whiteColors(m.geometry); // the viewmodels' program reads vertex colours
+      return meshes;
+    });
+    const g = new THREE.Group();
+    g.name = 'AR-15';
+    for (const part of parts) {
+      const m = new THREE.Mesh(part.geometry, part.material);
+      m.position.copy(part.position);
+      m.castShadow = true; m.receiveShadow = true;
+      g.add(m);
+    }
+    return g;
+  },
 });
 
 /** the steppe's kit (src/player/nalatiKit.ts + src/main.ts): bow · sabre · spear (+ javelins), the bosses' rewards, the AR-15 */

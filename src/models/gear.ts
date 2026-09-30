@@ -1,13 +1,11 @@
 /**
  * The gear several shards' players hold (E306 / E315 M5, category `gear`), and what every shard's gear cards share.
  *
- *   shared/ar-15       the AR-15 (src/player/Rifle.ts): the rifle slot on Driftwood, Nalati and Nine Dragon (a cabin pickup,
- *                      locked until found; lent in the practice arena, E298). Pine Hollow's rifle slot is its lever-action.
  *   shared/iron-sword  the iron sword (src/player/Sword.ts `blade: 'iron'`): the wreck's loot on Driftwood, the second sword
  *                      on Nine Dragon.
  *
  * A weapon's viewmodel keeps its own render queue, depth clear, layers and materials; its card is the Explorer's specimen.
- * The specimen is a SEPARATE build by the weapon's own builder (`buildRifleParts`, `buildSword`: the functions the viewmodel
+ * The specimen is a SEPARATE build by the weapon's own builder (`buildSword`, a shard's `buildRifleParts`: the functions the viewmodel
  * is built with, so the two never drift) on the specimen's own materials — opaque, in the normal queue, no depth clear —
  * so nothing the Explorer does (its turntable, its paint / wire views, a skin) reaches the weapon in your hands. A shard
  * lists its gear with `live(model, { copies: 1 })` (./live.ts): one copy per weapon its kit holds.
@@ -17,9 +15,7 @@
  * while its file loads.
  */
 import * as THREE from 'three';
-import { buildRifleParts } from '../player/Rifle';
 import { buildSword, swordMaterial } from '../player/Sword';
-import { whiteColors } from '../player/Crossbow';
 import { SKINS, applySkin, type SkinId, type WeaponKind } from '../player/Skins';
 import type { Sky } from '../world/Sky';
 import { defineModel, type ModelContext, type ModelPart, type ModelVariant } from './model';
@@ -82,34 +78,6 @@ export function swordParts(ctx: ModelContext, blade: 'wood' | 'iron'): readonly 
 }
 
 // ───────────────────────────── the shared gear ─────────────────────────────
-
-/**
- * The AR-15: `buildRifleParts` — the receiver, rail, handguard, barrel, stock and grip (aluminium, polymer, steel), the
- * charging handle, the bolt and the magazine in its well — on the specimen's own materials (the parts are built once per
- * shard, never the viewmodel's). No ghost-ring glow (it only shows sighted), no flash, no depth clear. Variants: the rifle
- * skins (Ironhide, Scarback Furnace).
- */
-export const ar15 = defineModel<GearSkinParams>({
-  id: 'shared/ar-15', name: 'AR-15', category: 'gear', pipeline: 'code', file: FILE,
-  defaults: { skin: null }, variants: skinVariants('rifle'),
-  build: (ctx, p) => {
-    const parts = ctx.once('gear:ar-15', () => {
-      const r = buildRifleParts(ctx.sky);
-      const meshes = [r.alu, r.poly, r.steel, r.handle, r.bolt, r.mag];
-      for (const m of meshes) whiteColors(m.geometry); // the viewmodels' program reads vertex colours
-      return meshes;
-    });
-    const g = new THREE.Group();
-    g.name = 'AR-15';
-    for (const part of parts) {
-      const m = new THREE.Mesh(part.geometry, part.material);
-      m.position.copy(part.position);
-      m.castShadow = true; m.receiveShadow = true;
-      g.add(m);
-    }
-    return wearSkin(g, p, ctx.sky);
-  },
-});
 
 /** The iron sword: Sword.ts's rig with `blade: 'iron'` — the steel blade, the dark iron guard — as `swordParts` builds it. */
 export const ironSword = defineModel<object>({

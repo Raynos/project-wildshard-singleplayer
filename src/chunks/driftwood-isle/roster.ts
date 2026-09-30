@@ -23,7 +23,7 @@ export const ROSTER: readonly RosterEntry[] = [
   live(gull, { copies: 36, drawnAs: 'instanced' }),
   // people
   live(castaway, { copies: 1, drawnAs: 'single' }),
-  // the gear its player holds (the kit: the wooden sword, the iron sword found on the wreck, the AR-15 lent in the arena)
+  // the gear its player holds (the kit: the wooden sword, the iron sword found on the wreck)
   ...GEAR,
   // the loot (E314, DRIFTWOOD-LOOT): the hut's chime and trophy plaques, the captain's hat and the sailcloth cape — built
   // for review, not placed or worn yet (stage 2 / 3 wires them)

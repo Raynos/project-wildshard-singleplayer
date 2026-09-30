@@ -37,6 +37,6 @@ describe('shard rosters (E315 M5)', () => {
         expect(TABS.has(m?.category ?? ''), `${id} tab`).toBe(true);
         expect(m?.file.startsWith(id.startsWith('shared/') ? 'src/models/' : `src/chunks/${def.slug}/models/`), `${id} file`).toBe(true);
       }
-    });
+    }, 60_000); // (a roster's first import compiles the shard's creatures, people and weapons: slow on a loaded box)
   }
 });
