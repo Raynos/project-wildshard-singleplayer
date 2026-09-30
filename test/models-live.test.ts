@@ -62,6 +62,14 @@ describe('live models (E315 M5)', () => {
     const [b, k] = reg.models();
     expect(b).toMatchObject({ id: 'shared/test-live-boar', species: 'boar', drawnAs: 'skinned', pipeline: 'hunyuan', copies: 2 });
     expect(k).toMatchObject({ id: 'shared/test-live-king', name: 'A boss', species: 'bear', copies: 1 }); // none alive: its planned copy
+
+    // a species' live dressing (the Antler King's lanterns) reaches the catalog, bound to the shard's context
+    let dressedWith: unknown = null;
+    const dressed = defineModel({ ...king, id: 'shared/test-live-dressed', rig: { clips: [], species: 'bear', dress: (_a, c) => { dressedWith = c; } } });
+    listModel(dressed, { ctx, registry: reg });
+    const d = reg.models().find((m) => m.id === 'shared/test-live-dressed');
+    d?.dress?.({} as Parameters<NonNullable<typeof d.dress>>[0]);
+    expect(dressedWith).toBe(ctx);
   });
 
   it('check-models rule 8: a species rig with no model fails; creature(kind) or rig.species (a string constant too) is its model', () => {

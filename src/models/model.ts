@@ -76,6 +76,7 @@ import type { ColliderDesc, ModelCategory, Pipeline } from '../world/registry';
 import type { Material } from '../physics/surface';
 import type { Rng } from '../core/rng';
 import type { Sky } from '../world/Sky';
+import type { Animal } from '../entities/Animal';
 
 export type { DrawnAs, ModelCategory, Pipeline } from '../world/registry';
 
@@ -163,7 +164,13 @@ export interface ModelDef<P extends object> {
    * (src/entities/species/, E315 M5) — its copies are spawned and posed by the species' code, never placed; the shard lists
    * it (`listModel`, ./live.ts) and the Explorer stands it up as an Animal of that kind
    */
-  readonly rig?: { readonly clips: readonly string[]; readonly species?: string };
+  readonly rig?: {
+    readonly clips: readonly string[];
+    readonly species?: string;
+    /** what the species' live code adds to a copy (the Antler King's lanterns and ribcage): the Explorer's turntable Animal
+     *  is dressed the same way */
+    readonly dress?: (animal: Animal, ctx: ModelContext) => void;
+  };
   /** the Explorer's specimen turned about +Y by this (radians), so its first view is its face (the Fei Zhua hook's back is its wall plate) */
   readonly specimenYaw?: number;
 }

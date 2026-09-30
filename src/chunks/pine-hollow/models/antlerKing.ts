@@ -221,7 +221,7 @@ export const antlerKing: ModelDef<CreatureParams> = defineModel<CreatureParams>(
   id: 'pine-hollow/antler-king', name: KING_VARIANT.label, category: 'creatures', pipeline: ['hunyuan', 'code'], file: 'src/chunks/pine-hollow/models/antlerKing.ts', surface: 'wood',
   defaults: { variant: KING_VARIANT.id },
   variants: [{ id: KING_VARIANT.id, label: KING_VARIANT.label, params: { variant: KING_VARIANT.id } }],
-  rig: { clips: CREATURE_CLIPS, species: KING_KIND },
+  rig: { clips: CREATURE_CLIPS, species: KING_KIND, dress: (a, ctx) => { dressAntlerKing(a, ctx.once(KING_KIT, () => makeKingKit(ctx.sky))); } },
   build: (ctx, p) => {
     const f = creatureFactory(ctx);
     const model = f.model(KING_KIND, p.variant);

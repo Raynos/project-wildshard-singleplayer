@@ -63,6 +63,7 @@ export function catalogEntries(sky: Sky, animals: readonly { kind: string }[], s
       pipeline: pipelines(m.pipeline), copies: m.copies ?? drawn?.copies ?? 1, drawnAs: m.drawnAs ?? drawn?.drawnAs ?? 'single', shared: m.id.startsWith('shared/'),
     };
     if (m.species !== undefined) e.species = m.species;
+    if (m.dress !== undefined) e.dress = m.dress;
     const wb = m.worldBox;
     if (wb) e.worldBox = () => wb(near);
     if (m.buildAt) e.buildAt = m.buildAt;
@@ -96,6 +97,7 @@ export function catalogEntries(sky: Sky, animals: readonly { kind: string }[], s
       if (kind === 'sailor' || kind === 'captain') { a.mem['init'] = 1; a.mem['rise'] = 1; } // they wait sunk (under the wreck's deck, in the Captain's pool) until woken (sailor.ts, captain.ts): on the turntable they stand
       if (old) old.mesh.removeFromParent();
       group.add(a.mesh);
+      e.dress?.(a); // (the species' live dressing: the Antler King's lanterns and ribcage)
       e.animal = a;
       e.tick = (dt, t) => { a.update(dt, t, true); };
       e.buildMs = performance.now() - t0;

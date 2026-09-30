@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { Rng } from '../core/rng';
 import { activeRegistry, type DrawnAs, type ModelEntry, type Pipeline, type WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
+import type { Animal } from '../entities/Animal';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart } from './model';
 
 export interface ListOptions {
@@ -58,6 +59,7 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
     get copies(): number { return typeof copies === 'function' ? copies() : copies ?? 1; },
     ...(o.worldBox === undefined ? { worldView: false } : { worldBox: o.worldBox }),
     ...(def.rig?.species === undefined ? {} : { species: def.rig.species }),
+    ...(def.rig?.dress === undefined ? {} : { dress: ((dress) => (a: Animal): void => { dress(a, o.ctx); })(def.rig.dress) }),
   };
   if (def.variants && def.variants.length > 0) {
     entry.variants = def.variants.map((v) => ({ id: v.id, label: v.label }));

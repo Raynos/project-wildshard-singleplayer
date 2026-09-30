@@ -15,6 +15,7 @@
 import type * as THREE from 'three';
 import type { Material } from '../physics/surface';
 import type { Tier } from '../core/tier';
+import type { Animal } from '../entities/Animal';
 import { shardSlot } from '../core/shardState';
 
 interface Vec3 { x: number; y: number; z: number }
@@ -75,6 +76,8 @@ export interface ModelFacts {
    * on its turntable as an Animal, so its clip row plays the species' own gaits (idle · walk · trot · charge · hit · die)
    */
   species?: string;
+  /** a creature's dressing: what its live code adds to a copy, put on the turntable's Animal too (the Antler King's lanterns) */
+  dress?: (animal: Animal) => void;
 }
 
 /** A piece as a model in Explore's catalog (every field defaults from the piece). */
@@ -216,7 +219,7 @@ export class WorldRegistry {
       const e: RegisteredModel = {
         id, name: p.name, category, file: p.file, live: m.live ?? true, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
         ...(m.pipeline === undefined ? {} : { pipeline: m.pipeline }), ...(m.copies === undefined ? {} : { copies: m.copies }), ...(m.drawnAs === undefined ? {} : { drawnAs: m.drawnAs }), ...(m.worldBox === undefined ? {} : { worldBox: m.worldBox }),
-        ...(m.species === undefined ? {} : { species: m.species }),
+        ...(m.species === undefined ? {} : { species: m.species }), ...(m.dress === undefined ? {} : { dress: m.dress }),
       };
       const i = at.get(id);
       if (i === undefined) { at.set(id, out.length); out.push(e); } else out[i] = e;

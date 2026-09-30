@@ -61,7 +61,8 @@ describe("Pine Hollow's roster (E315 M5)", () => {
     expect(antlerKing.name).toBe(fields.name);
     expect(antlerKing.defaults).toEqual(fields.defaults);
     expect(antlerKing.variants).toEqual(fields.variants);
-    expect(antlerKing.rig).toEqual(fields.rig);
+    expect({ clips: antlerKing.rig?.clips, species: antlerKing.rig?.species }).toEqual(fields.rig); // (+ his dressing, rig.dress)
+    expect(antlerKing.rig?.dress).toBeTypeOf('function');
     expect(antlerKing.category).toBe(fields.category);
   });
 });
