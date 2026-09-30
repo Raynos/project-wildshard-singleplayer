@@ -11,16 +11,20 @@
  * and bones, drips, and a crack in the roof whose shaft of light falls on the floor; its hood is the rock over its first
  * metres where the passage runs shallower than the slope.
  *
- * Draws: ONE BatchedMesh (WEBGL_multi_draw) for everything — every module's two LODs, the cave, its far hood — so the
- * crags cost one draw + one per shadow cascade; per instance, the LOD is a geometry id and the range a visibility bit,
- * and three culls each live instance against every camera it renders. The shaft and the drips are drawn only near the
- * cave. One program (+ its depth program): triplanar granite in world space (Poly Haven CC0 `mossy_rock`, the lichened
+ * The modules are models (E315 M2, src/chunks/pine-hollow/models/): `pine-hollow/crag-cliff` (the cliff bands, the
+ * buttress, the slab, the tors), `pine-hollow/crag-boulder` and `pine-hollow/scree`, placed with `place()`; the face skin
+ * and the cave are the world (welded to the ground: the terrain is punched for the cave).
+ *
+ * Draws: ONE BatchedMesh (WEBGL_multi_draw) for everything — every module's two LODs (the models, `place`'s `batch`),
+ * the face skin, the cave, its far hood — so the crags cost one draw + one per shadow cascade; per instance, the LOD is a
+ * geometry id and the range a visibility bit, and three culls each live instance against every camera it renders. The
+ * shaft and the drips are drawn only near the cave. One program (+ its depth program): triplanar granite in world space (Poly Haven CC0 `mossy_rock`, the lichened
  * boreal granite), ledge grit from the terrain's own `rock_ground`, moss on the up-facing, rain streaks down the faces;
  * the vertex colour carries (AO → the indirect light, sun reach → the directional light only (the cave's lantern and
  * the lamps stay), wet, rock / tint).
  *
  *   const crags = await PineCrags.load(sky);                        // null: the kit is missing (a dev server without it)
- *   crags.build(placeCrags({ trees }));  scene.add(crags.group);  registry.add({ colliders: crags.colliders, … })
+ *   await crags.build(placeCrags({ trees }), registry, macrotask);  scene.add(crags.group);  // the modules register themselves
  *   cutTerrain(physics, crags.terrainCuts()); terrain.punch(crags.holeTest());  game.onUpdate(() => crags.update(t))
  */
 import * as THREE from 'three';
@@ -30,7 +34,7 @@ import { heightAt, normalAt, trailDistance, cabinMask, inChunk } from './Heightf
 import {
   BEAR_CAVE, DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, ridgeFootZ, nearestOnPolyline, type XZ,
 } from '../chunks/pineHollowLayout';
-import type { ColliderDesc } from './registry';
+import type { ColliderDesc, WorldRegistry } from './registry';
 import type { TerrainCut } from '../physics/terrain';
 import { attachFogUniforms } from './Atmosphere';
 import { setting, onSettingChange } from '../ui/Settings';
@@ -40,6 +44,13 @@ import { Rng } from '../core/rng';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '../core/config';
 import type { Sky } from './Sky';
 import { PINE_CRAG_DIR } from './pineHero';
+import { place, type Placed } from '../models/place';
+import type { ModelDef, Placement } from '../models/model';
+import { pineModels } from '../chunks/pine-hollow/world/context';
+import { CRAG_LOD, useCragKit } from '../chunks/pine-hollow/world/cragKit';
+import { CLIFF_MODULES, cragCliff } from '../chunks/pine-hollow/models/cragCliff';
+import { BOULDER_MODULES, cragBoulder } from '../chunks/pine-hollow/models/cragBoulder';
+import { SCREE_MODULES, scree as screeFan } from '../chunks/pine-hollow/models/scree';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 
@@ -532,10 +543,8 @@ async function loadNodes(url: string): Promise<Map<string, THREE.BufferGeometry>
   return out;
 }
 
-/** LOD / range per kind (m, camera to the instance): the cliffs' full model near, their LOD1 to the slab's edge */
-const LOD = TIER === 'phone'
-  ? { big: 95, bigFar: 900, small: 38, smallFar: 170, scree: 30, screeFar: 110, cave: 70 }
-  : { big: 170, bigFar: 900, small: 70, smallFar: 320, scree: 55, screeFar: 200, cave: 110 };
+/** LOD / range per kind (m, camera to the instance less half its radius): the kit's models' (world/cragKit.ts) */
+const LOD = CRAG_LOD;
 
 interface Inst { id: number; x: number; y: number; z: number; r: number; near: number; far: number; lod0: number; lod1: number; state: number }
 
@@ -543,8 +552,10 @@ export interface CaveHandle { meta: CaveMeta; inst: Inst | null; hood: Inst | nu
 
 export class PineCrags {
   readonly group = new THREE.Group();
-  /** the modules' hulls and the cave's trimesh (registered in a few pieces: the phone's per-task collider budget) */
+  /** the modules' hulls (their models' colliders, placed: the navmesh bake reads them) */
   readonly colliders: ColliderDesc[] = [];
+  /** the three place calls: cliffs (and tors), boulders, scree */
+  readonly placed: Placed[] = [];
   readonly caveColliders: ColliderDesc[] = [];
   places: CragPlace[] = [];
   private batch: THREE.BatchedMesh | null = null;
@@ -601,38 +612,17 @@ export class PineCrags {
     }
   }
 
-  build(places: CragPlace[]): this {
+  /**
+   * Draw (when a material exists) and collide the placements and the cave. The modules are placed as models into the ONE
+   * batch, registered on `registry` 90 hulls a `yieldTask` apart (the phone's per-task collider budget); `registry`
+   * null: built only (the navmesh bake reads `colliders`). The face skin and the cave are this world's own instances.
+   */
+  async build(places: CragPlace[], registry: WorldRegistry | null = null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
     this.places = places;
-    const geoIds = new Map<string, number>();
+    // the world's own geometry: the face skin (one geometry per tile per resolution, identity matrix: its vertices are
+    // world positions) and the cave (its interior + hood near, the hood alone (simplified) far)
     const geos: THREE.BufferGeometry[] = [];
-    const want = (name: string): number => {
-      let id = geoIds.get(name);
-      if (id !== undefined) return id;
-      const g = this.kit.get(name) ?? this.caveGeo.get(name);
-      if (!g) return -1;
-      id = geos.length; geos.push(g); geoIds.set(name, id);
-      return id;
-    };
     const plan: { p: THREE.Matrix4; lod0: number; lod1: number; near: number; far: number; r: number; x: number; y: number; z: number }[] = [];
-    const m = new THREE.Matrix4();
-    for (const p of places) {
-      const lod0 = want(p.id), lod1 = want(`${p.id}-lod1`);
-      if (lod0 < 0) continue;
-      const kind = p.id.startsWith('scree') ? 'scree' : p.id.startsWith('boulder') ? 'small' : 'big';
-      const near = kind === 'big' ? LOD.big : kind === 'small' ? LOD.small : LOD.scree;
-      const far = kind === 'big' ? LOD.bigFar : kind === 'small' ? LOD.smallFar : LOD.screeFar;
-      const g = geos[lod0];
-      const bs = g?.boundingSphere ?? new THREE.Sphere(new THREE.Vector3(), 5);
-      cragMatrix(p, m);
-      const c = bs.center.clone().applyMatrix4(m);
-      plan.push({ p: m.clone(), lod0, lod1: lod1 < 0 ? lod0 : lod1, near, far, r: bs.radius * p.scale, x: c.x, y: c.y, z: c.z });
-      // collision: a hull per cliff / tor / boulder from its LOD1 (the scree is ankle-high: walked over)
-      if (kind !== 'scree') {
-        const lg = geos[lod1 < 0 ? lod0 : lod1];
-        if (lg) this.colliders.push(hullOf(lg, m, p, kind === 'big' ? 110 : 60));
-      }
-    }
-    // the face skin: one geometry per tile per resolution, identity matrix (its vertices are world positions)
     if (this.mat) {
       for (const [g0, g1] of this.skin) {
         const i0 = geos.length; geos.push(g0); const i1 = geos.length; geos.push(g1);
@@ -640,32 +630,65 @@ export class PineCrags {
         plan.push({ p: new THREE.Matrix4(), lod0: i0, lod1: i1, near: LOD.big * 0.8, far: LOD.bigFar, r: bs.radius, x: bs.center.x, y: bs.center.y, z: bs.center.z });
       }
     }
-    // the cave: its interior + hood near, the hood alone (simplified) far; its walls and floor as a trimesh
     const caveM = new THREE.Matrix4().makeRotationY(CAVE_FRAME.yaw).setPosition(CAVE_FRAME.x, 0, CAVE_FRAME.z);
-    const cave0 = want('cave'), hoodFar = want('cave-far');
+    const caveG = this.caveGeo.get('cave'), hoodG = this.caveGeo.get('cave-far');
     let caveIdx = -1, hoodIdx = -1;
-    if (cave0 >= 0) {
-      const g = geos[cave0];
-      const bs = g?.boundingSphere ?? new THREE.Sphere(new THREE.Vector3(), 30);
+    if (caveG) {
+      const cave0 = geos.length; geos.push(caveG);
+      const bs = caveG.boundingSphere ?? new THREE.Sphere(new THREE.Vector3(), 30);
       const c = bs.center.clone().applyMatrix4(caveM);
       caveIdx = plan.length;
       plan.push({ p: caveM.clone(), lod0: cave0, lod1: cave0, near: 1e9, far: LOD.cave, r: bs.radius, x: c.x, y: c.y, z: c.z });
-      if (hoodFar >= 0) {
+      if (hoodG) {
+        const hoodFar = geos.length; geos.push(hoodG);
         hoodIdx = plan.length;
         plan.push({ p: caveM.clone(), lod0: hoodFar, lod1: hoodFar, near: 1e9, far: 1200, r: bs.radius, x: c.x, y: c.y, z: c.z });
       }
-      const col = this.caveGeo.get('cave-col') ?? g;
-      if (col) this.caveColliders.push(trimeshOf(col, caveM));
+      const col = this.caveGeo.get('cave-col') ?? caveG;
+      this.caveColliders.push(trimeshOf(col, caveM));
     }
     if (this.caveMeta) this.caveColliders.push(...this.roofPatch());
 
-    if (this.mat && plan.length > 0 && geos.length > 0) {
-      let v = 0, ix = 0;
-      for (const g of geos) { v += g.getAttribute('position').count; ix += g.index ? g.index.count : g.getAttribute('position').count; }
-      const bm = this.batch = new THREE.BatchedMesh(plan.length, v, ix, this.mat);
+    // the modules, as models: every place call adds its (variant, level) geometries and its copies to the one batch
+    const of = (ids: readonly string[]): CragPlace[] => places.filter((p) => ids.includes(p.id) && this.kit.has(p.id));
+    const byKind = [of(CLIFF_MODULES), of(BOULDER_MODULES), of(SCREE_MODULES)] as const;
+    const size = (g: THREE.BufferGeometry | undefined): { v: number; i: number } => (g ? { v: g.getAttribute('position').count, i: g.index ? g.index.count : g.getAttribute('position').count } : { v: 0, i: 0 });
+    if (this.mat && (plan.length > 0 || byKind.some((l) => l.length > 0))) {
+      // sized for all of it: the modules the placements use (each at both levels) and the world's own
+      let v = 0, ix = 0, n = plan.length;
+      for (const list of byKind) {
+        n += list.length;
+        for (const id of new Set(list.map((p) => p.id))) for (const g of [this.kit.get(id), this.kit.get(`${id}-lod1`) ?? this.kit.get(id)]) { const s0 = size(g); v += s0.v; ix += s0.i; }
+      }
+      for (const g of geos) { const s0 = size(g); v += s0.v; ix += s0.i; }
+      const bm = this.batch = new THREE.BatchedMesh(n, v, ix, this.mat);
       bm.name = 'pine-crags';
       bm.sortObjects = false; bm.perObjectFrustumCulled = true;
       bm.castShadow = true; bm.receiveShadow = true;
+    }
+    const sky = this.sky;
+    if (sky) {
+      const ctx = pineModels(sky);
+      useCragKit(ctx, { kit: this.kit, mat: this.mat });
+      const placeKind = async <P extends object>(model: ModelDef<P>, list: readonly CragPlace[], far: number): Promise<void> => {
+        if (list.length === 0) return;
+        const pls = list.map((p): Placement<P> => ({ x: p.x, y: p.y, z: p.z, matrix: cragMatrix(p), variant: p.id }));
+        // LOD by the camera's distance less half the module's radius, re-chosen once it has moved a metre; three culls
+        // each live copy per camera (the batch's per-object culling)
+        const placed = place(model, pls, { ctx, draw: 'batched', ...(this.batch ? { batch: this.batch } : {}), registry,
+          cull: { frustum: false, radiusBias: 0.5, step: 1, bounds: 'sphere', far },
+          piece: { id: `pine-crags-${model.id.slice('pine-hollow/'.length)}`, name: model.name, split: { every: 90, yieldTask } } });
+        this.placed.push(placed);
+        this.colliders.push(...placed.colliders);
+        await placed.registered;
+        if (placed.colliders.length > 0) await yieldTask();
+      };
+      await placeKind(cragCliff, byKind[0], LOD.bigFar);
+      await placeKind(cragBoulder, byKind[1], LOD.smallFar);
+      await placeKind(screeFan, byKind[2], LOD.screeFar);
+    }
+    const bm = this.batch;
+    if (bm) {
       const ids = geos.map((g) => bm.addGeometry(g));
       for (const q of plan) {
         const g0 = ids[q.lod0], g1 = ids[q.lod1];
@@ -674,7 +697,7 @@ export class PineCrags {
         bm.setMatrixAt(id, q.p);
         this.insts.push({ id, x: q.x, y: q.y, z: q.z, r: q.r, near: q.near, far: q.far, lod0: g0, lod1: g1, state: 0 });
       }
-      this.group.add(bm);
+      if (registry === null) this.group.add(bm);
     }
     if (this.caveMeta) {
       const find = (i: number): Inst | null => (i >= 0 ? this.insts[i] ?? null : null);
@@ -840,7 +863,8 @@ export class PineCrags {
     }
   }
 
-  /** per frame: the LODs and ranges (when the camera has moved a metre), the cave's shaft and drips near it */
+  /** per frame: the world's own instances' LODs and ranges (when the camera has moved a metre; the modules' are
+   *  `place`'s), the cave's shaft and drips near it */
   update(t: number): void {
     const sky = this.sky;
     if (!sky) return;
@@ -894,17 +918,6 @@ export class PineCrags {
       pos.needsUpdate = true;
     }
   }
-}
-
-/** a convex hull (≤ `maxPts` of the geometry's vertices, placed), relative to the placement's position */
-function hullOf(g: THREE.BufferGeometry, m: THREE.Matrix4, p: CragPlace, maxPts: number): ColliderDesc {
-  const pos = g.getAttribute('position');
-  const step = Math.max(1, Math.floor(pos.count / maxPts));
-  const pts = new Float32Array(Math.ceil(pos.count / step) * 3);
-  const v = new THREE.Vector3();
-  let k = 0;
-  for (let i = 0; i < pos.count; i += step) { v.fromBufferAttribute(pos, i).applyMatrix4(m); pts[k++] = v.x - p.x; pts[k++] = v.y - p.y; pts[k++] = v.z - p.z; }
-  return { kind: 'hull', x: p.x, y: p.y, z: p.z, points: pts.subarray(0, k), surface: 'rock' };
 }
 
 /** the geometry placed by `m` as a trimesh relative to m's translation */

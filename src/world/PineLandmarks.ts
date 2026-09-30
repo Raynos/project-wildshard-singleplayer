@@ -615,7 +615,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     if (this.crags) {
       // PH-B2: the kit over the Ridge, and the cave behind the arch
       await this.crags.prepareSkin(macrotask);
-      this.crags.build(placeCrags({ sizes: this.crags.sizes(), trees }));
+      await this.crags.build(placeCrags({ sizes: this.crags.sizes(), trees }), registry, macrotask); // the modules are models: they register themselves
       this.group.add(this.crags.group);
     }
     return this;
@@ -789,13 +789,9 @@ export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistr
   const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees, h.registry); // the hero props register themselves (models: E315 M2)
   h.registry.add({ id: 'pine-landmarks', name: 'Fire lookout, zipline, footbridge', category: 'buildings', file: 'src/world/PineLandmarks.ts', object: lm.group,
     colliders: lm.timberColliders, surface: 'wood', floor: (x, z) => lm.floorHeightAt(x, z), solidFloor: true });
-  // PH-B2: the crags' hulls a task per ~90 (the phone's per-task collider budget), then the cave's shell + the ground over it
+  // PH-B2: the crags' modules registered themselves (models, 90 hulls a task); the cave's shell + the ground over it
   const crags = lm.crags;
   if (crags) {
-    for (let i = 0; i < crags.colliders.length; i += 90) {
-      await macrotask();
-      h.registry.add({ id: `pine-crags-${i / 90}`, name: 'Ridge crags', category: 'nature', file: 'src/world/PineCrags.ts', colliders: crags.colliders.slice(i, i + 90), surface: 'rock' });
-    }
     await macrotask();
     h.registry.add({ id: 'pine-cave', name: 'Bear cave', category: 'nature', file: 'src/world/PineCrags.ts', colliders: crags.caveColliders, surface: 'rock' });
   }
