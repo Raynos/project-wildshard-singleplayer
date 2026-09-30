@@ -130,7 +130,6 @@ const SFX_TEXT: Record<SfxSet, string> = { best: 'Generated', synth: 'Synth' };
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
-  opt('pineCrowns', 'look', 'Crowns from above', [['a', 'A · Today'], ['b', 'B · Lit from above']], { when: pineHollow, note: 'E322 F-L3 · B: the far trees\' back faces lit the right way up (half read as a pale sheen), the crowns\' tops sunlit seen from above (art/pine-hollow/round-28-e322-crowns/)' }),
 
   // ── Sky & weather ──
   // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's PineDayNight

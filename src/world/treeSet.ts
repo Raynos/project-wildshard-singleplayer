@@ -131,11 +131,11 @@ export function standIn(rgba: [number, number, number, number]): THREE.DataTextu
 }
 
 /**
- * The species set's "Crowns from above" pick (E322 F-L3, pause ▸ Settings ▸ Debug ▸ Look): `value` 0 =
- * A (today), 1 = B, live; `tune` = B's strengths (the impostor's normal lean and albedo lift, the cards' lean and lift).
+ * The species set's crowns from above (E322 F-L3, Jake picked B): `tune` = the strengths (the impostor's normal lean and
+ * albedo lift, the cards' lean and lift).
  */
-export interface CrownTop { value: number; tune: THREE.Vector4 }
-export const crownTopUniforms = (): CrownTop => ({ value: 0, tune: new THREE.Vector4(0.8, 1.0, 0.5, 0.35) });
+export interface CrownTop { tune: THREE.Vector4 }
+export const crownTopUniforms = (): CrownTop => ({ tune: new THREE.Vector4(0.8, 1.0, 0.5, 0.35) });
 
 /** GLSL: the world's up in view space, and how far the view looks down (0 at the horizon → 1 from ~27° down) */
 const CROWN_VIEW = /* glsl */`
@@ -152,12 +152,11 @@ const CROWN_VIEW = /* glsl */`
  * canopy: its normal leans to the sky and its albedo lifts toward the sunlit top as the view looks down.
  */
 export function patchImpostorCrownTop(shader: { fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, crown: CrownTop): void {
-  shader.uniforms['uCrownTop'] = crown;
   shader.uniforms['uCrownTune'] = { value: crown.tune };
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nuniform float uCrownTop; uniform vec4 uCrownTune;')
+    .replace('#include <common>', '#include <common>\nuniform vec4 uCrownTune;')
     .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-      if ( uCrownTop > 0.5 ) {
+      {
         normal *= faceDirection;${CROWN_VIEW}
         normal = normalize( mix( normal, crownUp, uCrownTune.x * crownDown ) );
         diffuseColor.rgb *= 1.0 + uCrownTune.y * crownDown;
@@ -171,13 +170,12 @@ export function patchImpostorCrownTop(shader: { fragmentShader: string; uniforms
  * crown seen from the ground (looking level or up) is unchanged.
  */
 export function patchCardCrownTop(shader: { fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, crown: CrownTop, aoLift = 0.75): void {
-  shader.uniforms['uCrownTop'] = crown;
   shader.uniforms['uCrownTune'] = { value: crown.tune };
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nuniform float uCrownTop; uniform vec4 uCrownTune;')
+    .replace('#include <common>', '#include <common>\nuniform vec4 uCrownTune;')
     .replace('#include <emissivemap_fragment>', `
       float crownLift = 0.0;
-      if ( uCrownTop > 0.5 ) {${CROWN_VIEW}
+      {${CROWN_VIEW}
         crownLift = crownDown * smoothstep( -0.1, 0.6, dot( nonPerturbedNormal, crownUp ) );
         normal = normalize( mix( normal, crownUp, uCrownTune.z * crownLift ) );
         diffuseColor.rgb *= 1.0 + uCrownTune.w * crownLift;

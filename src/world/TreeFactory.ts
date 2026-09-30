@@ -10,7 +10,6 @@ import { macrotask } from '../boot/plan';
 import { markGpuOnly } from '../core/gpuOnly';
 import { TREE_SPECS, TREE_SPECS_V2, type TreeSpecies } from './placement';
 import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, crownTopUniforms, type CrownTop } from './treeSet';
-import { setting, onSettingChange } from '../ui/Settings';
 import { windUniforms as sharedWind, patchWindField } from './wind';
 import { stateSlot } from '../core/shardState';
 
@@ -474,8 +473,6 @@ export class TreeFactory {
     this.twigDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); };
     this.twigDepth.customProgramCacheKey = () => 'tree-depth';
     this.farMaterial = this.makeFarMaterial(farAlbedo, farNormal, new THREE.Color(0.92, 0.95, 0.9), true);
-    this.crownTop.value = setting('pineCrowns') === 'b' ? 1 : 0;
-    onSettingChange('pineCrowns', (v) => { this.crownTop.value = v === 'b' ? 1 : 0; });
 
     for (const s of TREE_SPECS_V2) {
       const g = geo.get(s.name);
