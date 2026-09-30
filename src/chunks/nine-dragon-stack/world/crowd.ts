@@ -135,7 +135,19 @@ export const LOD_TRIS = 320;
 export const MID_FROM = [12, 22] as const;
 export const MID_PX = 0.8;
 
-interface Variant { hi: InstancedMesh; lo: InstancedMesh; mids: InstancedMesh[]; mats: readonly Matrix4[]; at: Vector3[] }
+/** a colourway's levels and figures; `nm` the middle levels' figure counts, reused by every re-cull (nothing allocated per
+ *  frame: the place contract, src/models/place.ts) */
+interface Variant { hi: InstancedMesh; lo: InstancedMesh; mids: InstancedMesh[]; mats: readonly Matrix4[]; at: Vector3[]; nm: number[] }
+
+/** the middle levels' start distances, squared */
+const MID2: readonly number[] = MID_FROM.map((d) => d * d);
+
+/** show a level's first `n` figures (none: hidden) */
+function show(im: InstancedMesh, n: number): void {
+  im.count = n;
+  im.visible = n > 0;
+  if (n > 0) im.instanceMatrix.needsUpdate = true;
+}
 
 /** a figure's colourway (models/crowd.ts): the coat's ramp, and the umbrella's dye when it is not the ramp's own */
 export type WalkerPick = 'dark' | 'light' | 'oxblood' | 'paper' | 'blue';
@@ -219,7 +231,8 @@ export class Crowd implements InstancedCuller {
     }
     // (three measures its sphere on the first frame that draws it, as it did for the old empty batch)
     hi.boundingSphere = null;
-    this.variants.push({ hi, lo, mids: mids.length === MID_FROM.length ? mids : [], mats: b.poses, at: b.poses.map((m) => new Vector3().setFromMatrixPosition(m)) });
+    const levels = mids.length === MID_FROM.length ? mids : [];
+    this.variants.push({ hi, lo, mids: levels, mats: b.poses, at: b.poses.map((m) => new Vector3().setFromMatrixPosition(m)), nm: levels.map(() => 0) });
     this.dirty = true;
   }
 
@@ -233,10 +246,11 @@ export class Crowd implements InstancedCuller {
     this.frustum.setFromProjectionMatrix(this.pv);
     this.eye.setFromMatrixPosition(camera.matrixWorld);
     const near2 = LOD_NEAR * LOD_NEAR, far2 = LOD_FAR * LOD_FAR;
-    const mid2 = MID_FROM.map((d) => d * d);
+    const mid2 = MID2;
     for (const v of this.variants) {
       let nh = 0, nl = 0;
-      const nm = v.mids.map(() => 0);
+      const nm = v.nm;
+      nm.fill(0);
       const mid = v.mids.length === MID_FROM.length;
       for (let i = 0; i < v.at.length; i++) {
         const p = v.at[i], m = v.mats[i];
@@ -255,11 +269,9 @@ export class Crowd implements InstancedCuller {
         im.setMatrixAt(j, m);
         nm[l] = j + 1;
       }
-      for (const [im, n] of [[v.hi, nh], [v.lo, nl], ...v.mids.map((x, j) => [x, nm[j] ?? 0] as const)] as const) {
-        im.count = n;
-        im.visible = n > 0;
-        if (n > 0) im.instanceMatrix.needsUpdate = true;
-      }
+      show(v.hi, nh);
+      show(v.lo, nl);
+      for (let j = 0; j < v.mids.length; j++) { const im = v.mids[j]; if (im !== undefined) show(im, nm[j] ?? 0); }
     }
   }
 }
