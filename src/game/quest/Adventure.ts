@@ -28,6 +28,7 @@ import { ITEMS, type ItemId } from '../Inventory';
 import type { Audio } from '../../audio/Audio';
 import { IslandSfx } from '../../audio/IslandSfx';
 import { installSpine, type Spine } from './Spine';
+import { installTrader } from './TraderStall';
 import { installFeats, type ProgressSink } from './Feats';
 import { installPlaces, type Places } from './Places';
 import { installGullGuide } from './gullGuide';
@@ -188,6 +189,7 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
 
   const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
   adventure.spine = installSpine(adventure, w);
+  installTrader(adventure, w);   // E314: the trader and her counter of goods at the hut, beside Wendell (no shop yet)
   if (w.progress) installFeats(adventure, w, w.progress);
   if (w.ironDrop) {
     const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)
