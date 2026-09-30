@@ -1,0 +1,96 @@
+# GAME-NORMALIZATION v2 · 11 — The finish line (Z1–Z4)
+
+## Z1 — The template shard `src/shards/_template/` (decisions 43, 72)
+
+**Purpose.** It proves every plugin verb works with zero engine knowledge of the shard. It is the teaching example
+`docs/SHARDS.md` walks through, and it is booted by the gate on every push. The gate runs it as a fifth job next to
+the four real shards. It is **hidden**: `status: 'hidden'`, shown only through Debug ▸ Developer tools ▸ "Template
+shard".
+
+**Look:** grey-box (72): flat-shaded ground and primitives, a plain gradient sky, no LUT.
+
+**Contents: one of everything**
+
+| Plugin verb / manifest field | The template's use |
+|---|---|
+| `ground.terrain` | a 200 × 200 m gently rolling heightfield (one noise octave) with one trail |
+| `sky` / `atmosphere` / `grade` | a plain gradient sky, linear fog, neutral grade |
+| `render` | a minimal `ShardRender` that only passes the engine chain through (the "nothing custom" case) |
+| `uses` | **every** mechanism: weather, dayCycle, elites, bosses, quests (so each mechanism is exercised) |
+| `ctx.piece` | one grey-box hut (a box collider + a door interactable) and one ramp with stair treads (the physics rules) |
+| `loadout` + `rows` | a kit weapon (the iron-sword profile from `#kit/weapons`), plus a **custom weapon**: `class TemplateWhip extends Weapon`, built from `blocks.viewmodel` + `blocks.melee` with a `lane` sweep |
+| a Tool | `class TemplateLantern extends Tool` in the off hand, with its own action `toggle` in `verb.1` |
+| `species` + a brain | the kit boar (a kit species), plus one template-only creature `greyBlob` with a two-strike `StrikeSpec` and a `CreatureBrain` subclass |
+| an encounter | one elite (a named boar) and one mini-boss `BossBrain` with two HP phases |
+| effects | the kit's `effect.poison` on the whip's heavy |
+| a quest step | "Reach the hut" → "Beat the blob" → a reward row (a coin burst into the per-shard purse) |
+| `inputContext` | `template.lantern` (the lantern's toggle) |
+| `hud` | one widget in a band (a lantern-oil meter) and one relabel |
+| `bag` | one tab ("NOTES") with one fragment |
+| `debugRow` | one row in Developer tools |
+| `playground` | one playground: a 3-pad jump course |
+| `strings` | a string table for every player-facing line |
+| audio | the forest ambience from the kit and a silent score; the cue map points every cue at kit sounds |
+| budgets | inputs for phone 30 and desktop 60 |
+| saves | one shard-scoped key (`template.notes`) |
+
+**Tests**
+- The contract test boots it headless in node (the fake Game) through every stage.
+- The gate job boots it on `macos-15`, walks to the hut, kills the blob, and runs the leak test.
+
+**Done when**
+- The gate's template job is green on every push.
+- `wildshard/layer` shows the template imports only the `#engine` / `#game` / `#kit` indexes.
+
+## Z2 — Docs (decision 50)
+
+| Doc | Contents | Owner check |
+|---|---|---|
+| `docs/ENGINE.md` | The public API of `#engine`, `#game` and `#kit`: every contract, block, event, ask, tag, cue, action, context, UI layer, service, save key rule, lint rule and plugin verb, each with one short example. Layout: one section per 01-architecture § | A node test lists every export of the three index files and fails if `docs/ENGINE.md` doesn't mention it (no drift) |
+| `docs/SHARDS.md` (rewrite) | **How to write a shard.** Copy `_template` → fill the manifest → the plugin verbs → the weapon ladder (profile, extend, custom) and Tools → creatures (species rows, brains, strikes) → the look (`ShardRender`) → audio (cues, ambience, score) → budgets and tiers → saves → strings → the checklist to go from template to playable to `live` (the gate, boards, `status` flags). It replaces today's `docs/SHARDS.md` (227 lines). The history section is kept at the end | Z3 is the test: a fresh agent follows it |
+| `src/shards/<slug>/README.md` ×4 (+ template) | What the shard declares; its custom code and why it's custom; its budgets; its look; its open asks | Written at each shard's milestone (M1–M4) |
+
+AGENTS.md: the "Physics" and "Local models" sections are updated for the new paths (`src/engine/physics/`,
+`#engine/...`), and a short "Engine layers" section links `docs/ENGINE.md`.
+
+## Z3 — Shard 5, built by a fresh agent (decisions 51, 73)
+
+**Protocol**
+1. **A fresh general-purpose subagent** (clean room: never saw this plan's conversation) gets a brief with only:
+   - "build a small real 5th shard";
+   - `docs/SHARDS.md`;
+   - the template;
+   - `docs/ENGINE.md`;
+   - the AGENTS.md rules.
+   The E352 caps apply. It works in `src/shards/<new-slug>/` only, and a pre-commit check blocks any path outside it
+   for this job.
+2. **Pick.** The agent first proposes **3 small shard ideas as portrait mockups**: biome, look, custom weapon,
+   creature. It uses `scripts/mockup-local.sh`, or codex `image_gen` for the finals, and saves them to
+   `art/shard-5/round-1-proposals/`. Jake picks one through AskUserQuestion (73).
+3. **Build.** The agent builds the pick:
+   - its own look (`ShardRender`);
+   - at least one custom weapon (rung 2 or 3 of the ladder);
+   - one creature with its own brain;
+   - one quest step;
+   - budgets, strings, a README.
+   It ships as `status: 'experimental'`.
+4. **Engine edits.** Every time the agent needs something outside its folder, it **stops and files an "API gap"**
+   (appended to `docs/plans/game-normalization/reviews/shard5-gaps.md`) instead of editing. The lead fixes the gap in
+   the public API (with a test and an `ENGINE.md` entry). Then a **new** fresh agent restarts the shard from the
+   updated docs.
+5. **Done** when a run finishes with **zero engine edits and zero gaps**, the gate is green (the shard's own job
+   added), and Jake plays it.
+
+## Z4 — The permanent gate and archiving
+
+- **The per-push gate stays** (FINISH-LINE S1, decision 7). It covers:
+  - the `macos-15` jobs for every shard + the template;
+  - the node checks (layers, ratchets, contract tests, the asset audit, gen-shards `--check`, coverage);
+  - the nightly `gpu-perf` from Jake's Mac.
+  AGENTS.md gets a "Before you push" line for it.
+- **The ratchets stay.** They sit at 0 for every rule that reached 0, and any rise fails lint forever.
+- **The plan is archived** to `project/archive/<date>-game-normalization.md` in the commit that finishes it:
+  - its State line reads `archived (finished <date>)`;
+  - every leftover (for example gamepad, auto-rollback, the heat governor, TP18's per-shard `public/assets`,
+    ANIMATION-REMASTER A3–A7, NINE-DRAGON-STACK's re-plan) is an **open ask**, listed in the archived plan;
+  - links to the plan are fixed.
