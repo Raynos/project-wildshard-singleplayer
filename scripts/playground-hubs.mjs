@@ -3,8 +3,8 @@
 //
 // Per shard (iPhone-16-Pro portrait, touch, phone tier, Developer mode): boot to the title → EXPLORE WORLD (a tap) → the
 // hub's cards and sections, no sideways scroll, a JPEG → ✕ back to the title → ENTER WORLD (a tap) → the MOVE stick held
-// forward 2 s (a real touch drag): the player walked, frames ticked, no page errors. Then, on a short phone (402 × 600, so
-// the list overflows), a real swipe up the hub list must scroll it. Exit 1 on any failure.
+// forward 2 s (a real touch drag): the player walked, frames ticked, no page errors. Then, on a short phone (402 × 480, so
+// the list overflows), a real swipe up the hub list must scroll it to its end. Exit 1 on any failure.
 //
 // Expected lists (src/playgrounds/catalog.ts): Driftwood Isle and Pine Hollow — the shared three only; Nine Dragon — + the
 // grapple playground; Nalati — + the horse playground.
@@ -74,7 +74,7 @@ try {
   }
   // the list scrolls: a short phone, the hub overflows, a real swipe moves it
   if (ONLY.includes('nalati-grasslands')) {
-    const ctx = await browser.newContext({ viewport: { width: 402, height: 600 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const ctx = await browser.newContext({ viewport: { width: 402, height: 480 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
     await ctx.addInitScript(() => { try { localStorage.setItem('ws.dev', '1'); } catch { /* defaults */ } });
     const page = await ctx.newPage();
     await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
@@ -90,10 +90,11 @@ try {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await sleep(800);
     const top1 = await page.evaluate(() => document.querySelector('.ws-x-hub')?.scrollTop ?? -1);
-    const scroll = { overflow: hub.scroll.height > hub.scroll.view, from: top0, to: top1, sideways: hub.scroll.width > hub.scroll.viewW };
-    const scrolled = scroll.overflow && top1 > top0 + 40 && !scroll.sideways;
+    const max = hub.scroll.height - hub.scroll.view;
+    const scroll = { overflow: max, from: top0, to: top1, sideways: hub.scroll.width > hub.scroll.viewW };
+    const scrolled = max > 60 && top1 > top0 + Math.min(120, max - 2) && !scroll.sideways;
     await page.screenshot({ path: join(OUT, 'hub-scrolled-short-phone.jpg'), type: 'jpeg', quality: 84 });
-    rows.push({ slug: 'scroll (402 × 600)', ...scroll, ok: scrolled });
+    rows.push({ slug: 'scroll (402 × 480)', ...scroll, ok: scrolled });
     ok &&= scrolled;
     console.log(`${scrolled ? 'PASS' : 'FAIL'}  the hub list scrolls on a short phone: ${JSON.stringify(scroll)}`);
     await ctx.close();
