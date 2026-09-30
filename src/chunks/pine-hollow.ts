@@ -230,6 +230,8 @@ export const PINE_HOLLOW: ChunkDef = {
   explore: true,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./pine-hollow/roster')).ROSTER,
+  // the forest's trees and the forest floor's kinds drawn as its models (E315 M2), once core has built the fields (E349)
+  fieldModels: async () => (await import('./pine-hollow/world/drawnModels')).placeDrawnModels,
   pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),
 
   terrain: TERRAIN,

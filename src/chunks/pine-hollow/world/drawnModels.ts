@@ -9,15 +9,16 @@
  *    material); `place` draws each kind instanced into the field's group and culls it per 32 m cell round the forest's
  *    view (`cull.cells`, E315 second pass). Walked through: no colliders.
  *
- *   placeDrawnModels({ sky, renderer, forest, under, registry });   // main.ts, once the carpet step has built
+ * The shard's `fieldModels` hook (src/chunks/pine-hollow.ts, E349): core calls it once the props step has built, with
+ * the fields it made — no shard branch in main.ts.
+ *
+ *   fieldModels: async () => (await import('./pine-hollow/world/drawnModels')).placeDrawnModels,
  */
 import * as THREE from 'three';
 import { place } from '../../../models/place';
 import type { Placement } from '../../../models/model';
-import type { Forest } from '../../../world/Forest';
-import { matrixOf, UNDER_CELLS, type Undergrowth } from '../../../world/Undergrowth';
-import type { WorldRegistry } from '../../../world/registry';
-import type { Sky } from '../../../world/Sky';
+import { matrixOf, UNDER_CELLS } from '../../../world/Undergrowth';
+import type { FieldModelsContext } from '../../ChunkDef';
 import { TREE_SPECS_V2 } from '../../../world/treeSpecies';
 import type { Placement as UnderPlacement } from '../../../world/placement';
 import { pineModels } from './context';
@@ -30,7 +31,7 @@ import { pebbles } from '../models/pebbles';
 import { moss } from '../models/moss';
 import { reeds } from '../models/reeds';
 
-export function placeDrawnModels(h: { sky: Sky; renderer: THREE.WebGLRenderer | null; forest: Forest | null; under: Undergrowth | null; registry: WorldRegistry }): void {
+export function placeDrawnModels(h: FieldModelsContext): void {
   const ctx = pineModels(h.sky, h.renderer);
   const { forest, under, registry } = h;
   if (forest && forest.trees.length > 0) {

@@ -114,7 +114,6 @@ import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
-import { placeDrawnModels } from './chunks/pine-hollow/world/drawnModels';
 import { placeCabins } from './chunks/pine-hollow/world/cabins';
 import { placePineHollowSets } from './chunks/pine-hollow/world/places';
 import { listShardModels } from './models/roster';
@@ -251,6 +250,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const deferredAudio = deferExtras ? startDeferredAudioPreload(files, getActiveChunk()) : null;
   startViewmodelTextures((getActiveChunk().weapon ?? 'crossbow') === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
+  const fieldModels = getActiveChunk().fieldModels?.() ?? null; // the shard's field models' code (ChunkDef.fieldModels, E349), fetched while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
   // A phone can lose WebGL during Nine Dragon's large build, before the normal in-game GPU recovery
@@ -500,8 +500,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [], ...(chunk.slug === 'driftwood-isle' ? { practice: PRACTICE_CRAB } : {}) }).build() : null;
   // the shard's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built);
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
-  // E315 M2: Pine Hollow's trees and forest-floor kinds are models the world draws (placed drawnInto)
-  if (chunk.slug === 'pine-hollow') placeDrawnModels({ sky, renderer: game.renderer, forest, under, registry });
+  // the core fields' copies drawn as the shard's models (ChunkDef.fieldModels, E349: Pine Hollow's trees and forest-floor kinds, E315 M2)
+  if (fieldModels) (await fieldModels)({ sky, renderer: game.renderer, forest, under, registry });
   void listShardModels({ roster: chunk.roster, style: chunk.style ?? 'pbr', sky, renderer: game.renderer, animals: () => animals.animals, registry }); // every shard's live models in its Model Explorer (E315 M5): the shared training dummy, its creatures (its species list, alive now or not), people and gear
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;

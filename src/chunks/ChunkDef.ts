@@ -29,6 +29,9 @@ import type { VolumetricsEffect } from '../core/Volumetrics';
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { SpeciesWeights } from '../world/treeSpecies';
 import type { WorldRegistry } from '../world/registry';
+import type { Sky } from '../world/Sky';
+import type { Forest } from '../world/Forest';
+import type { Undergrowth } from '../world/Undergrowth';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '../player/Sword';
 import type { SwimArms } from '../player/Hands';
 import type { Player } from '../player/Player';
@@ -75,6 +78,17 @@ export interface ShardTraversalContext {
   enabled: () => boolean;
   /** re-dress the touch LOCK and JUMP discs (null gives a disc its own label and look back); a no-op without the touch layer */
   touchHint?: (lock: TouchDiscHint | null, jump: TouchDiscHint | null) => void;
+}
+
+/** What core hands a shard's field models (`ChunkDef.fieldModels`): the fields it built, the shard's sky and registry. */
+export interface FieldModelsContext {
+  sky: Sky;
+  renderer: WebGLRenderer | null;
+  /** the forest field (its trees' placements and view) */
+  forest: Forest | null;
+  /** the forest floor's field (its kinds' copies and cells); null where none was built */
+  under: Undergrowth | null;
+  registry: WorldRegistry;
 }
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
@@ -629,6 +643,14 @@ export interface ChunkDef {
    * Omitted = the models its world places, and a card per species of the animals alive when Explore opens.
    */
   roster?: () => Promise<readonly RosterEntry[]>;
+  /**
+   * The core fields' copies drawn as the shard's own models (E315 M2 / E349, Pine Hollow: the forest's trees as its forest
+   * tree model, the forest floor's six kinds as theirs — src/chunks/pine-hollow/world/drawnModels.ts). Called once, after
+   * the props step, with the fields core built. A lazy loader, so the def stays node-safe: `fieldModels: async () =>
+   * (await import('./<slug>/world/drawnModels')).placeDrawnModels`; main.ts starts it while the world builds. Omitted =
+   * the fields draw their copies themselves.
+   */
+  fieldModels?: () => Promise<(ctx: FieldModelsContext) => void>;
   /** An optional shard traversal verb installed on the shared LOCK and JUMP controls. */
   traversal?: (ctx: ShardTraversalContext) => Promise<void> | void;
   /** the first person's field of view: `portrait` = the sword's hip FOV base on a portrait screen before Hor+ (degrees;
