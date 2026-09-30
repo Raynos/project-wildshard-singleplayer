@@ -7,11 +7,32 @@ import { Vector3 } from 'three';
 import { K, type Kit, type Look } from '../kit';
 import type { Rng } from '../../util';
 import { type KitX, type XLook, curve } from './kitx';
+import { setting } from '../../../../ui/Settings';
 
 const COATS = [0x2a2c31, 0x33363e, 0x3b3f4a, 0x283044, 0x4a4336, 0x55504a, 0x3e4a44, 0x6b6f78, 0x2d2a2a, 0x8a8f96, 0x5b6470] as const;
 const TROUSERS = [0x1f2126, 0x2a2c31, 0x34363d, 0x3d3a35] as const;
 const SKIN = 0xc9a58a;
 const HAIR = [0x1b1b1e, 0x2a2622, 0x8f9097, 0xb9b8b4] as const;
+
+/**
+ * E304 (Debug ▸ Creatures & NPCs ▸ Nine Dragon faces = B): the brushed figures get an ink face — the jiehua way of drawing
+ * a figure's face in a few strokes: two dark eye dots under two brow strokes, a nose ridge a shade darker than the skin and
+ * a short mouth stroke; the cook's face (a bare, pale egg until now) reads at the counter. ~90 triangles a figure, merged
+ * into the same kit draw (no new draw, no instancing change).
+ */
+const INK_FACES = setting('nineDragonFaces') === 'ink';
+const INK: XLook = { wash: 0x17171a, line: 0 };
+const NOSE: XLook = { wash: 0xb08d74, line: 0 };
+const LIP: XLook = { wash: 0x8a4a3e, line: 0 };
+function inkFace(x: KitX, c: Vector3, R: Vector3, U: Vector3, F: Vector3, s: number): void {
+  const at = (r: number, u: number, f: number): Vector3 => c.clone().addScaledVector(R, r * s).addScaledVector(U, u * s).addScaledVector(F, f * s);
+  for (const sx of [-1, 1]) {
+    x.ellipsoid(at(sx * 0.036, 0.012, 0.094), R, U, F, 0.014 * s, 0.009 * s, 0.006 * s, INK, () => 1, 3, 6);    // eye
+    x.ellipsoid(at(sx * 0.038, 0.04, 0.092), R, U, F, 0.022 * s, 0.005 * s, 0.006 * s, INK, () => 1, 3, 6);     // brow
+  }
+  x.ellipsoid(at(0, -0.018, 0.103), R, U, F, 0.011 * s, 0.024 * s, 0.01 * s, NOSE, () => 1, 3, 6);               // nose
+  x.ellipsoid(at(0, -0.058, 0.093), R, U, F, 0.02 * s, 0.005 * s, 0.006 * s, LIP, () => 1, 3, 6);                // mouth
+}
 
 export type Pose = 'walk' | 'stand' | 'sit' | 'cook';
 
@@ -42,6 +63,7 @@ export function person(x: KitX, rng: Rng, px: number, py: number, pz: number, r:
   const head = (c: Vector3): void => {
     x.sweep([c.clone().add(new Vector3(0, -0.2 * s, 0)), c.clone().add(new Vector3(0, -0.07 * s, 0))], () => 0.05 * s, 6, skin);
     x.ellipsoid(c, R, U, F, 0.095 * s, 0.115 * s, 0.105 * s, skin, (d) => 1 + (d.z > 0.5 ? 0.04 : 0), 6, 8);
+    if (INK_FACES) inkFace(x, c, R, U, F, s);
     const hat = o.hat ?? (rng.chance(0.3) ? 'cap' : rng.chance(0.15) ? 'cone' : 'none');
     const hair: XLook = { wash: rng.pick(HAIR), line: 0 };
     if (hat === 'cap') {

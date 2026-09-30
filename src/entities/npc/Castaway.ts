@@ -28,6 +28,7 @@ import { LowPolyKit, log, rock, plank, lowPolyMaterial } from '../../world/lowpo
 import type { Sky } from '../../world/Sky';
 import type { Collider } from '../../player/Player';
 import { attachFogUniforms } from '../../world/Atmosphere';
+import { setting } from '../../ui/Settings';
 
 const C = {
   skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',
@@ -48,6 +49,33 @@ const NEAR_R = 85;
 const FACE_R = 6;          // m (feet to feet): inside this, or while talking, he turns his body to face you
 const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
 const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s)
+
+/**
+ * E304 (Debug ▸ Creatures & NPCs ▸ Driftwood faces = B / C): a face that reads at talking distance, still the kit's faceted
+ * low-poly — the old one was two 3 cm black chips under the brim. Faceted eye whites with a dark iris and a lid line, the
+ * brows heavier and tipped up at the middle (a friendly worry), a wedge nose with nostrils, sun-burnt cheeks and ears, and
+ * a mouth line in the beard under the moustache. ~120 triangles, the same one head mesh.
+ */
+function lowPolyFace(h: LowPolyKit): void {
+  const FC = { white: '#efe8da', iris: '#4a6a7a', lid: '#7d5236', cheek: '#d9826a', mouth: '#5a2a22' };
+  // the nose: a 4-sided wedge, broader at the base, with two nostril shadows
+  h.add(new THREE.ConeGeometry(0.036, 0.085, 4).rotateX(Math.PI / 2).rotateZ(Math.PI / 4), C.skinDark, { matrix: at(0, 0.098, 0.122, 0, -0.35, 0, [0.9, 1.25, 1]) });
+  for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.012, 0.008, 0.01), C.eye, { matrix: at(sx * 0.013, 0.074, 0.132) });
+  for (const sx of [-1, 1]) {
+    // the eye: a faceted white almond, an iris + pupil in front of it, a lid line over it
+    h.add(new THREE.OctahedronGeometry(0.02, 0), FC.white, { matrix: at(sx * 0.043, 0.135, 0.1, 0, 0, 0, [1.35, 0.8, 0.5]) });
+    h.add(new THREE.OctahedronGeometry(0.0115, 0), FC.iris, { matrix: at(sx * 0.041, 0.134, 0.1085, 0, 0, 0, [1, 1, 0.45]) });
+    h.add(new THREE.BoxGeometry(0.009, 0.009, 0.004), C.eye, { matrix: at(sx * 0.041, 0.134, 0.1135) });
+    h.add(new THREE.BoxGeometry(0.05, 0.007, 0.012), FC.lid, { matrix: at(sx * 0.043, 0.1495, 0.106, 0, 0, sx * -0.12) });
+    // the brows: heavier, the inner ends raised
+    h.add(new THREE.BoxGeometry(0.058, 0.02, 0.022), C.beardDark, { matrix: at(sx * 0.045, 0.168, 0.104, sx * -0.2, 0, sx * -0.22) });
+    // cheeks and ears
+    h.add(new THREE.IcosahedronGeometry(0.03, 0), FC.cheek, { matrix: at(sx * 0.066, 0.1, 0.086, 0, 0, 0, [1, 0.7, 0.55]) });
+    h.add(new THREE.IcosahedronGeometry(0.028, 0), C.skinDark, { matrix: at(sx * 0.108, 0.115, -0.005, 0, 0, 0, [0.45, 1, 0.8]) });
+  }
+  // the mouth, just under the moustache
+  h.add(new THREE.BoxGeometry(0.07, 0.012, 0.012), FC.mouth, { matrix: at(0, 0.052, 0.117) });
+}
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
 
@@ -134,9 +162,11 @@ export class Castaway {
     // ── head (pivot at the neck): face, nose, eyes, the beard, the straw hat ──
     const h = new LowPolyKit(0xca57b);
     h.add(new THREE.IcosahedronGeometry(0.115, 1), C.skin, { matrix: at(0, 0.11, 0, 0, 0, 0, [0.92, 1.05, 0.95]), wobble: 0.006 });
-    h.add(new THREE.ConeGeometry(0.03, 0.07, 4).rotateX(Math.PI / 2), C.skinDark, { matrix: at(0, 0.1, 0.12) });
-    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.028, 0.02, 0.01), C.eye, { matrix: at(sx * 0.042, 0.135, 0.108) });
-    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.05, 0.016, 0.02), C.beardDark, { matrix: at(sx * 0.042, 0.162, 0.105, 0, 0, sx * 0.15) });  // bushy brows
+    if (setting('driftwoodFaces') === 'current') {
+      h.add(new THREE.ConeGeometry(0.03, 0.07, 4).rotateX(Math.PI / 2), C.skinDark, { matrix: at(0, 0.1, 0.12) });
+      for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.028, 0.02, 0.01), C.eye, { matrix: at(sx * 0.042, 0.135, 0.108) });
+      for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.05, 0.016, 0.02), C.beardDark, { matrix: at(sx * 0.042, 0.162, 0.105, 0, 0, sx * 0.15) });  // bushy brows
+    } else lowPolyFace(h);
     const beard = new THREE.ConeGeometry(0.1, 0.26, 7);
     beard.rotateX(Math.PI);
     h.add(beard, C.beard, { matrix: at(0, -0.06, 0.075, 0, -0.3), wobble: 0.012, jitter: 0.12 });   // hangs from the jaw, the face stays clear
@@ -194,6 +224,7 @@ export class Castaway {
     this.smoke.renderOrder = 4;
 
     this.figure.add(this.body, this.head, this.arm);
+    this.group.name = 'npc-castaway';   // E304: the face capture finds him by name
     this.group.add(this.figure, this.camp, this.flames, this.smoke);
     return this;
   }

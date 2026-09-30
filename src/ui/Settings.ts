@@ -138,6 +138,10 @@ export const OPTION_VALUES = {
   // stays the default until Jake picks: B hunyuan (a Hunyuan3D-2 head from a codex portrait) · C hunyuanref (from the
   // model's own reference crop) — progress/e304-faces/pine-hollow-board.jpg
   pineFaces: ['current', 'hunyuan', 'hunyuanref'],
+  nineDragonFaces: ['current', 'ink'],   // E304: Nine Dragon (world/hero/figures.ts): B ink (a jiehua ink face on the brushed figures)
+  // E304: Driftwood's faces (Castaway.ts, species/sailor.ts, species/captainMesh.ts) — a reload: B lowpoly (Wendell's and
+  // the Drowned Sailor's readable faceted faces, in code) · C hunyuan (B + the Captain's head a Hunyuan3D-2 bust)
+  driftwoodFaces: ['current', 'lowpoly', 'hunyuan'],
   // E322 F-L4 (Pine Hollow follow-ups): the grass trampled by the player and the animals (src/world/Grass.ts, Nalati's
   // GrassTrample map) — Debug ▸ Ground cover & foliage, live; off = the grass before until Jake picks
   pineTrample: ['off', 'on'],
@@ -160,7 +164,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   setCut: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, pineCrags: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
-  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, pineFaces: DEBUG_ONLY,
+  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, pineFaces: DEBUG_ONLY, nineDragonFaces: DEBUG_ONLY, driftwoodFaces: DEBUG_ONLY,
   pineTrample: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
@@ -179,6 +183,8 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   pineFaces: option('pineFaces'),
+  nineDragonFaces: option('nineDragonFaces'),
+  driftwoodFaces: option('driftwoodFaces'),
   pineTrample: option('pineTrample'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];

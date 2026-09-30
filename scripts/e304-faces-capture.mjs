@@ -70,12 +70,15 @@ const TARGETS = {
     window.__e304 = window.__e304 || {};
     let a = window.__e304[id];
     if (!a) {
-      const yaw = p.yaw + Math.PI;
-      a = w.animals.spawn(id, p.position.x - Math.sin(p.yaw) * 6, p.position.z - Math.cos(p.yaw) * 6, yaw);
+      // on the open sand in front of Wendell (where you walk up to talk to him), facing away from him
+      const g = w.game.scene.getObjectByName('npc-castaway'), wy = g.rotation.y, d = id === 'sailor' ? 4.5 : 7.5;
+      a = w.animals.spawn(id, g.position.x + Math.sin(wy) * d, g.position.z + Math.cos(wy) * d, wy, id === 'captain' ? 'captain' : undefined);
       a.aggressive = false;
       window.__e304[id] = a;
     }
-    a.desiredSpeed = 0; a.speed = 0; a.desiredYaw = a.yaw; a.state = 'idle';
+    // up out of the sand (they wait under it until woken): standing, and the Captain awake
+    a.mem.rise = 1; a.mem.rising = 0; a.mem.sinking = 0; if (id === 'captain') a.mem.awake = 1;
+    a.desiredSpeed = 0; a.speed = 0; a.desiredYaw = a.yaw;
     a.mesh.updateMatrixWorld(true);
     const hb = a.mesh.skeleton.bones.find((b) => b.name === 'head');
     const h = hb.getWorldPosition(hb.position.clone());
@@ -106,6 +109,14 @@ try {
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.__world?.player && window.__world?.game), undefined, { timeout: 300000, polling: 1000 });
     await sleep(8000);
+    // a file the targets need before they spawn (the Captain's mesh loads in the background; spawned before it, he is the
+    // code stand-in)
+    const WAIT = flag('wait-res', '');
+    if (WAIT) {
+      await page.waitForFunction((w) => performance.getEntriesByType('resource').some((e) => e.name.includes(w)), WAIT, { timeout: 90000, polling: 1000 })
+        .catch(() => { console.log(`${v}: ${WAIT} never loaded`); });
+      await sleep(1500);
+    }
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch,.ws-touch *,[class*="elite"],[class*="banner"],[class*="quest"],[class*="toast"],[class*="crosshair"],[class*="reticle"],[class*="boss"]{visibility:hidden!important}' });
     for (const id of IDS) {
       const expr = `((id) => { ${locate} })(${JSON.stringify(id)})`;
@@ -130,6 +141,11 @@ try {
         p.pitch = Math.atan2(tt.head.y - c.y, Math.hypot(dx, dz));
       }, t);
       await sleep(2500);
+      // the held weapon (a camera child) crossed the faces: off every layer for the shot (the weapon code owns `visible`)
+      await page.evaluate(() => {
+        for (const c of window.__world.game.camera.children) c.traverse((o) => { o.layers.disableAll(); });
+      });
+      await sleep(400);
       const box = await page.evaluate((tt) => {
         const cam = window.__world.game.camera;
         cam.updateMatrixWorld();

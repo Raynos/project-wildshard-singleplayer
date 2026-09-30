@@ -47,8 +47,8 @@ when the images were generated.
 | `nalati-grasslands/` | `round-10-models-merge` (09-24) | NALATI-MERGE D1 / D2, every model made both ways (Blender pipeline + image-to-3D): `ref-*.jpg` the codex references (A-pose figures, side-on creatures; `refs-sheet.jpg` all eight), `collie` / `ghost-horse` (`.phone`) the Hunyuan3D-2 hulls behind their `*.rigged.glb` bakes; the in-engine sheets are `progress/nalati-merge/d/` |
 | `nalati-grasslands/` | `round-12-faces` (09-29) | NALATI-FINISH B5 / E302, the faces remaster: `portrait-*.jpg` the codex front head-and-shoulders portraits (five camp people + the Golden King) that Hunyuan3D-2 / TRELLIS.2 rebuilt the heads from and that are projected onto the new heads' fronts (scripts/img2mesh/face_remaster.py); the in-game board is `progress/e302-faces/` |
 | `pine-hollow/` | `round-20-e322-king-fog` (09-30) | E322 F-L7 / N25 evidence (not a pick): `king-fog-before-after.jpg` — the Antler King's sealed fight under Debug ▸ Weather = Fog, before (the weather's ×29 fog on top of the fight's ×26: a pale ghost) / after (the weather stands down in the sealed clearing); `n25-aim-dodge-phone.jpg` — phone touch HUD with the crossbow, AIM and DODGE discs side by side, no overlap |
-| `pine-hollow/` | `round-22-e322-beaver-pool` (09-30) | E322 F-L6 evidence (a bug fix, not a pick): the new beaver pool behind the dam, real build, iPhone portrait — `board-dam.jpg` A full / B drained after `open:dam-sluice` (from the dam's west end, looking up the pool to the riffle and the pond), `dam-{full,drained}.jpg`, `upstream-{full,drained}.jpg` (from the upstream bank toward the dam and its sluice) |
 | `pine-hollow/` | `round-18-faces` (09-30) | E304, the faces remaster: `portrait-ranger/trader/miller.jpg`, codex front portraits of Hale, Mott and Brandt (from their round-11 references) that Hunyuan3D-2 rebuilt the heads from, projected onto the new faces (scripts/img2mesh/e304_faces.sh); the in-game board is `progress/e304-faces/pine-hollow-board.jpg` |
+| `driftwood-isle/` | `round-14-faces` (09-30) | E304, the faces remaster: `portrait-captain.jpg`, a codex front portrait of the Drowned Captain in the island's faceted toon look that Hunyuan3D-2 rebuilt his head from (scripts/img2mesh/e304_faces.sh); Wendell's and the sailor's faces are code; the in-game board is `progress/e304-faces/driftwood-isle-board.jpg` |
 | `loot/` | `round-2-props` (09-30) | E314 DRIFTWOOD-LOOT props, code models (not a pick): `board.jpg` — the sea glass wind chime at 0 / 5 / 10 / 15, the trophy plaques empty / bear / boar / both, the captain's hat and the sailcloth cape at four turns, the Bag icons; live Model Explorer captures, iPhone 16 Pro portrait — see its README |
 | `bushes/` | `round-1-directions` (09-24) | E116 hibiscus bush: `board.jpg` (NOW / A leaf clump / B sculpted canopy / C leaf cards, live phone captures: Explore turntable + in world), `mockups.jpg` (the local-Qwen direction mockups); `?bush=a\|b\|c`, see its README |
 | `rocks/` | `round-1-directions` (09-24) | E114 rock looks: `board.jpg` (NOW / A chiselled / B smooth painted / C layered slabs / D ink outline, mockup only), `mockup-{A..D}` (masked Qwen edits of `ref-live-reef`), `game-{reef,wreck,boulder}-{current,a,b,c}` (`?rocks=`), `boulder-crack-fix-before-after` — see its README |
@@ -501,11 +501,3 @@ codex edits of the live idle frame: A castaway (recommended), B sailor, C advent
 plus A with the iron sword. `board-3-swimming-hands.jpg`: A breaststroke (recommended), B front crawl, C dog-paddle. The
 README holds the Nine Dragon vs Driftwood viewmodel comparison and the build route: reuse the fp-rig skeleton and clips
 with Driftwood meshes, and put the swim clips on the same rig.
-
-### Nalati models, second pass (`art/models-audit/round-10-second-pass/`, 2026-09-30, E315)
-
-`nalati-board.jpg`: phone-tier captures (390×844 @3×) of clean exports before (41 cards: the camps as whole-place cards)
-and after the Nalati second pass (87 cards: the yurt, the camp props, the fence and signpost, the dressing's scatter and
-props, the escarpment's and the snow ring's rock, the glacier snout), five turntables (yurt, hitching rail, kazan, crag
-rock, ovoo cairn) and the Sets explorer (17 sets: every named place). `nalati-spin.mp4`: an 8 s spin of the same five
-models in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` rows M3, M12.

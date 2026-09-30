@@ -3,6 +3,7 @@ import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
+import { setting } from '../../ui/Settings';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
@@ -62,9 +63,37 @@ function sailorPaint(v: VariantDef): Paint {
       case 'guard': out.copy(P.guard); break;
       case 'grip': out.copy(P.grip); break;
       case 'eye': out.copy(P.eye); break;
+      case 'socket': out.copy(P.socket); break;
+      case 'tooth': mix(out, P.skull, P.boneDark, 0.15); break;
       default: out.copy(P.bone);
     }
   };
+}
+
+/**
+ * E304 (Debug ▸ Creatures & NPCs ▸ Driftwood faces = B / C): a skull that reads as one at 3 m, still faceted — the old face
+ * was the painted socket shade round the glowing eyes and nothing else. Deep dark sockets the eyes glow out of, a heart-
+ * shaped nasal hole, cheekbones, and a row of teeth on a dark gap under it: ~150 triangles on the head bone.
+ */
+function skullFace(hard: THREE.BufferGeometry[], head: number, paint: Paint): void {
+  const put = (g: THREE.BufferGeometry, part: string, x: number, y: number, z: number, sx = 1, sy = 1, sz = 1, rz = 0): void => {
+    g.scale(sx, sy, sz); if (rz !== 0) g.rotateZ(rz); g.translate(x, y, z);
+    hard.push(skinPlain(g, head, part, paint));
+  };
+  for (const side of [1, -1]) {
+    put(new THREE.SphereGeometry(0.034, 6, 4), 'socket', side * 0.041, 1.633, 0.1, 1.05, 0.9, 0.45, side * 0.25);   // the socket
+    put(new THREE.SphereGeometry(0.03, 5, 3), 'skull', side * 0.068, 1.598, 0.082, 1.1, 0.6, 0.7);                   // cheekbone
+    put(new THREE.BoxGeometry(0.05, 0.012, 0.022), 'skull', side * 0.042, 1.664, 0.102, 1, 1, 1, side * -0.18);      // brow ridge
+  }
+  // the nasal hole: a 3-sided cone, point up
+  put(new THREE.ConeGeometry(0.017, 0.034, 3), 'socket', 0, 1.598, 0.118, 1, 1, 0.5);
+  // the teeth on their dark gap
+  put(new THREE.BoxGeometry(0.078, 0.028, 0.02), 'socket', 0, 1.563, 0.108);
+  for (let i = 0; i < 6; i++) {
+    const x = (i - 2.5) * 0.0125;
+    put(new THREE.BoxGeometry(0.0105, 0.013, 0.012), 'tooth', x, 1.571 + (i % 2) * 0.0015, 0.117 - Math.abs(x) * 0.25);
+    put(new THREE.BoxGeometry(0.0105, 0.011, 0.012), 'tooth', x, 1.555, 0.115 - Math.abs(x) * 0.25);
+  }
 }
 
 function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
@@ -105,6 +134,7 @@ function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
     eye.translate(sx * 0.04, 1.63, 0.11);
     eyes.push(skinPlain(eye, head, 'eye', paint));
   }
+  if (setting('driftwoodFaces') !== 'current') skullFace(hard, head, paint);
   // neck + spine column
   fur.push(loft([S(0, 1.45, 0.0, 0.035, 0.035, chest), S(0, 1.55, 0.01, 0.03, 0.03, chest, head, 0.7)], 8, 'bone', paint, false, false));
   // torso in the striped shirt: pelvis → ribcage → shoulders, hunched
