@@ -17,8 +17,9 @@
  *   sfx.interact(sound, at?, o?)        // the adventure kit (S4): 'chest' open · 'locked' rattle · 'lever' clunk · 'plate' grind
  *                                       //   (o.release: lighter, quicker) · 'door' creak · 'grate' iron grind · 'chime' pickup
  *                                       //   (sea glass, keys) · 'glyph' shard (brighter) · 'ignite' the beacon; o.delay / o.gain
- *   sfx.animal(name, at)                // AnimalManager.onSound on the island: the enemies' calls from the bank (boar grunt, crab
- *                                       //   clack, monkey shriek, sailor moan); false = not covered, play audio.animal()
+ *
+ * The creatures' calls (boar grunt, crab click, monkey shriek, sailor groan) are the generated samples, played by
+ * audio.animal() on every shard (E318 row 23: they were downloaded but this bank's synth played in their place).
  *
  * Player hurt / death are on Audio itself (both shards): `audio.hurt(intensity)`, `audio.death()`.
  */
@@ -90,14 +91,6 @@ export class IslandSfx {
   interact(sound: InteractSound, at?: At, o: { gain?: number; delay?: number; release?: boolean } = {}): void {
     const base = INTERACT_LEVEL[sound] * (o.gain ?? 1) * (o.release === true ? 0.6 : 1);
     this.audio.voices.play(`ui-${sound}`, { gain: base, rate: o.release === true ? 1.18 : 1, at, delay: o.delay ?? 0, jitter: sound === 'chime' || sound === 'glyph' ? 0.02 : 0.05 });
-  }
-
-  /** the island's creature calls (AnimalManager.onSound names) from the bank; returns false for a name it does not cover */
-  animal(name: string, at: At): boolean {
-    const e: Enemy | undefined = name === 'boar_grunt' ? 'boar' : name === 'crab_click' ? 'crab' : name === 'monkey_shriek' ? 'monkey' : name === 'sailor_groan' ? 'sailor' : undefined;
-    if (e === undefined) return false;
-    this.vocal(e, at);
-    return true;
   }
 
   plunge(up: boolean): void { this.audio.voices.play(up ? 'plunge-up' : 'plunge-down', { gain: up ? 0.35 : 0.5 }); }

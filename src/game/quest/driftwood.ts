@@ -70,7 +70,7 @@ export const CASTAWAY: NpcDef = {
   dialogue: [
     { when: { all: [QUEST_DONE] }, lines: [
       'Did you see it? The planet, right in the ring! Forty years at sea and I never saw a thing like it.',
-      'Stay as long as you like, friend. The boat\'s still at the pier when you want it.',
+      'Stay as long as you like, friend.', // E318: no "the boat's still at the pier" — the boat does not sail
     ] },
     { when: { all: ['dead:captain'] }, lines: [
       'You beat old Captain Brine? Then the ring is open. Go on — stand in it before the sun sets.',

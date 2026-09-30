@@ -654,7 +654,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const q = queuedCount(); noteDisc.classList.toggle('queued', q > 0); if (noteBadge) noteBadge.textContent = String(q);
   };
   onReview(syncNoteDisc);
-  progress.onEarned = (d) => { if (d.event === undefined || !CAPTIONED_EVENTS.has(d.event)) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
+  // the island's sound bank (IslandSfx: footsteps, the sword's layers, the adventure kit's sounds) — null off Driftwood
+  const islandSfx = sea ? new IslandSfx(audio) : null;
+  // an achievement: the island's interact chime there (E318 row 14: not the combat hit-tick), the hit-tick elsewhere
+  progress.onEarned = (d) => { if (d.event === undefined || !CAPTIONED_EVENTS.has(d.event)) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); if (islandSfx) islandSfx.interact('chime'); else audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
 
@@ -782,10 +785,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   };
   // footsteps (B9): the island asks its surface map — planks on every deck, stone on the shrine dais, sand / wet sand / grass /
   // rock off them as the terrain paints it, an ankle splash in the shallows — pitched and levelled by speed; Pine Hollow as before
-  const islandSfx = sea ? new IslandSfx(audio) : null;
   const surfaces = sea ? new SurfaceMap({ sea: sea.level, heightAt, trailDistance, decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck], stone: [shrine] }) : null;
   // the island's zoned soundscape + reverb rooms (S1 / S2): surf on the shoreline, palms, jungle, cove + waterfall, lookout wind; hold / cave / shrine reverb
-  animals.onSound = (name, pos) => { if (!islandSfx?.animal(name, pos)) audio.animal(name, pos, player.position, player.yaw); }; // the island's enemies from the bank (S3)
+  animals.onSound = (name, pos) => { audio.animal(name, pos, player.position, player.yaw); }; // the generated samples (E318 row 23: the island's crab / monkey / sailor / boar calls too, not the procedural bank)
   // the sword's combat layers on the island (S3 bank via IslandSfx; Pine Hollow has no sword): a whoosh per swing, an impact per blade
   // hit by material (+ a death bark), a clang where the blade meets a wall / trunk, each enemy wind-up's cue (C5)
   if (islandSfx) {

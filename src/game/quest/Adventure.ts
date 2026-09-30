@@ -178,9 +178,9 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
         if (e.text) w.hud.toast(e.text);
         sfx.interact(e.type === 'light' ? 'ignite' : 'chest', e.at);
         break;
-      case 'use': case 'sit': case 'barrel-reset':
+      case 'use': case 'sit': case 'barrel-reset': // the altar's shards, the bench, the barrel: a quest beat, not a sword hit (E318)
         if (e.text) w.hud.toast(e.text);
-        w.audio.hitMarker();
+        sfx.interact('chime', e.at);
         break;
       default: break;
     }
