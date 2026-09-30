@@ -23,6 +23,7 @@ import { grassBaseHeightAt } from '../../GrassField';
 import { wind } from '../../steppeWind';
 import { painterlyMaterial, painterlyUniforms } from '../../painterly';
 import type { Sky } from '../../Sky';
+import { setting, onSettingChange } from '../../../ui/Settings';
 
 const PHONE = TIER === 'phone';
 
@@ -145,6 +146,8 @@ export class DressLife {
   group = new THREE.Group();
   motes!: THREE.Points;
   butterflies!: THREE.InstancedMesh;
+  /** the wing scale: 1.7, or 2.8 for Debug ▸ Ground cover ▸ Butterflies = Bigger (NALATI-FINISH B2 / E302, Jake's pick) — live */
+  private flyScale = setting('nalatiButterflies') === 'big' ? 2.8 : 1.7;
   birds!: THREE.InstancedMesh;
   private moteMat!: THREE.ShaderMaterial;
   private flies: Fly[] = [];
@@ -155,7 +158,10 @@ export class DressLife {
   private homeCheck = 0;
   private rng = new Rng(0xb077);
 
-  constructor(private sky: Sky, private drifts: { x: number; y: number; z: number; r: number }[]) { this.group.name = 'nalati-dress-life'; }
+  constructor(private sky: Sky, private drifts: { x: number; y: number; z: number; r: number }[]) {
+    this.group.name = 'nalati-dress-life';
+    onSettingChange('nalatiButterflies', (v) => { this.flyScale = v === 'big' ? 2.8 : 1.7; });   // disposed with the shard's scope
+  }
 
   build(): this {
     // pollen
@@ -269,7 +275,7 @@ export class DressLife {
       const ang = (beat * 1.15 + 0.25) * (1 - glide) + 0.15 * glide;
       const yaw = Math.atan2(-f.vx, -f.vz);
       _e.set(-0.25, yaw, 0, 'YXZ');
-      _m.compose(_p.set(f.x, f.y, f.z), _q.setFromEuler(_e), _s.set(1.7, 1.7, 1.7));
+      _m.compose(_p.set(f.x, f.y, f.z), _q.setFromEuler(_e), _s.setScalar(this.flyScale));
       _mf.makeRotationZ(ang);
       bm.setMatrixAt(n++, _mw.multiplyMatrices(_m, _mf));
       _mf.makeRotationZ(-ang); _mf.premultiply(_mw.makeScale(-1, 1, 1));

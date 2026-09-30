@@ -23,6 +23,7 @@ import { heightAt, normalAt, trailDistance, inChunk, TRAILS } from '../../Height
 import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '../../GrassField';
 import { RIVER, riverMask, BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, zoneAt, snowValleyX, snowValleyHalf, glacierMask } from '../../../chunks/nalati-grasslands';
 import { inPoiClearing } from '../clearings';
+import { setting } from '../../../ui/Settings';
 import type { Forest } from '../../Forest';
 import type { Box } from '../solid';
 import type { Inst } from './layer';
@@ -134,7 +135,53 @@ export async function planDressing(forest: Forest | null, yieldTask: () => Promi
   woods(plan, occ, forest);
   landmarks(plan, occ);
   roadFences(plan);
+  if (setting('nalatiCampDress') === 'dense') campDense(plan, occ, nearTree);   // B2 taste variant (its own rng: the default plan is untouched)
   return plan;
+}
+
+// ── the camps, dressed denser (NALATI-FINISH B2 / E302, a Debug ▸ Ground cover row for Jake's pick) ─────────────────────
+
+/**
+ * Flower clumps (buttercup / edelweiss, a few lupins) and small fieldstones inside the camps' clearings, between the
+ * trodden yard and the clearing's edge, round the yurts' skirts and along the fence lines — the painted camps are
+ * flowered right up to the felt. Nothing solid (no collider changes); its own rng, so the default plan never moves.
+ */
+function campDense(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number, r: number) => boolean): void {
+  const rng = new Rng(SEED + 131);
+  const yurts = (cx: number, cz: number, angles: number[], d: number) => angles.map((a) => ({ x: cx + Math.cos((a * Math.PI) / 180) * d, z: cz + Math.sin((a * Math.PI) / 180) * d }));
+  const camps = [
+    { x: CAMP.x, z: CAMP.z, r0: 10.5, r1: 31, ys: yurts(CAMP.x, CAMP.z, [128, 88, 46, 2, -44, -92], 13.8), n: 3400 },
+    { x: SUMMER_YURTS.x, z: SUMMER_YURTS.z, r0: 10, r1: 21, ys: yurts(SUMMER_YURTS.x, SUMMER_YURTS.z, [70, 175, -60], 9.2), n: 1500 },
+  ];
+  const corral = { x: CAMP.x + 27, z: CAMP.z + 9, r: 9.6 };
+  for (const c of camps) {
+    for (let i = 0; i < c.n; i++) {
+      const a = rng.range(0, Math.PI * 2), d = rng.range(c.r0, c.r1);
+      const x = c.x + Math.cos(a) * d, z = c.z + Math.sin(a) * d, h = heightAt(x, z);
+      const kind = rng.next(), s = rng.range(0.9, 1.3), yaw = rng.range(0, Math.PI * 2), far = rng.range(45, 80);
+      if (c.ys.some((y) => Math.hypot(x - y.x, z - y.z) < 3.9)) continue;               // not on a yurt's floor
+      if (rng.next() < zoneAt(x, z)[2] * 0.9) continue;                                    // thin on the snow ring's scree (the summer camp)
+      if (Math.abs(Math.hypot(x - corral.x, z - corral.z) - corral.r) < 0.6) continue;   // not in the corral's fence line
+      if (trailDistance(x, z) < 2.6 || wet(x, z, h, 0.6) || slopeAt(x, z) > 0.3 || nearTree(x, z, 0.6) || !occ.free(x, z, 0.15)) continue;
+      // denser at the yurts' skirts and out toward the clearing's edge, thin in the yard's trodden ring
+      const skirt = c.ys.some((y) => Math.hypot(x - y.x, z - y.z) < 5.6);
+      if (!skirt && rng.next() > smoothstep(c.r0, c.r0 + 5, d) * 0.9) continue;
+      if (kind < 0.16) {
+        const r = rng.range(0.08, 0.2), sy = r * rng.range(0.6, 1.0);
+        const inst: Inst = { x, y: h - sy * 0.35, z, yaw, sx: r * rng.range(0.9, 1.3), sy, sz: r * rng.range(0.8, 1.2), far: 55, r: 0.98, g: 0.95, b: 0.9 };
+        lean(inst, x, z, 0.9);
+        plan.stone.push(inst);
+        continue;
+      }
+      const lupin = kind > 0.8;
+      const gh = grassBaseHeightAt(x, z);
+      const tall = lupin ? Math.max(1, (gh + 0.2) / 0.62) : Math.max(1, (gh + 0.1) / 0.36);
+      const tone = rng.range(0.9, 1.1);
+      const inst: Inst = { x, y: h - 0.02, z, yaw, sx: s, sy: s * Math.min(tall, 1.9), sz: s, far, r: tone, g: tone, b: tone };
+      lean(inst, x, z, 0.6);
+      (lupin ? plan.lupin : plan.daisy).push(inst);
+    }
+  }
 }
 
 // ── the camp's edges and the river banks by it (round-4 camp 9-angle, gap #10) ────────────────────────
@@ -262,9 +309,20 @@ function addRock(plan: DressPlan, rng: Rng, into: Inst[], x: number, z: number, 
 }
 
 function addStone(plan: DressPlan, rng: Rng, x: number, z: number, h: number, r: number, far: number, c: [number, number, number]): void {
-  const sy = r * rng.range(0.6, 1.0);
-  const inst: Inst = { x, y: h - sy * 0.25, z, yaw: rng.range(0, Math.PI * 2), sx: r * rng.range(0.85, 1.3), sy, sz: r * rng.range(0.8, 1.2), far: far * (0.6 + r * 1.4), ...col(c) };
-  lean(inst, x, z, 0.6);
+  // not on a steep bank (a road's cut bank, a gully wall): there a flat stone half sank on one side and floated on the
+  // other (E302, NALATI-FINISH B9 — the grey slab by the sky road); elsewhere it lies in the slope, buried by it
+  // (the rng is drawn in the old order either way, so every later placement — and its collider — stays where it was)
+  // taller than they were (0.6–1.0 × r on a mesh already squashed to 0.62) and never much wider than tall: a wide, thin,
+  // half-buried stone read as a flat grey plate on the verge (E302 B9, "the half-sunk grey slab")
+  const sy = r * rng.range(0.85, 1.2), yaw = rng.range(0, Math.PI * 2), sx0 = r * rng.range(0.85, 1.3), sz0 = r * rng.range(0.8, 1.2);
+  const sx = Math.min(sx0, sy * 1.35), sz = Math.min(sz0, sy * 1.35);
+  const s = slopeAt(x, z);
+  if (s > 0.24) return;
+  // seated on the lowest ground under its footprint (a road verge bends: the centre's height left one edge in the air)
+  const fr = Math.max(sx, sz) * 0.8;
+  const low = Math.min(h, heightAt(x + fr, z), heightAt(x - fr, z), heightAt(x, z + fr), heightAt(x, z - fr));
+  const inst: Inst = { x, y: low - sy * (0.22 + s * 1.2), z, yaw, sx, sy, sz, far: far * (0.6 + r * 1.4), ...col(c) };
+  lean(inst, x, z, 0.95);
   plan.stone.push(inst);
 }
 
@@ -314,7 +372,8 @@ function roadStones(plan: DressPlan): void {
           // a hairpin's inner verge can be another leg's road bed
           if (trailDistance(x, z) < 1.9) continue;
           const big = rng.next() < 0.15;
-          addStone(plan, rng, x, z, h, big ? rng.range(0.4, 0.62) : rng.range(0.16, 0.38), big ? 130 : 90, grey(rng, 0.88, 1.12));
+          // (the big verge stones were 0.8–1.6 m flat slabs that read as a grey slab pasted on the verge — E302 B9: rounder, smaller)
+          addStone(plan, rng, x, z, h, big ? rng.range(0.3, 0.44) : rng.range(0.16, 0.34), big ? 130 : 90, grey(rng, 0.88, 1.12));
           if (rng.next() < 0.3) {
             const x2 = x + rng.range(-0.6, 0.6), z2 = z + rng.range(-0.6, 0.6);
             addStone(plan, rng, x2, z2, heightAt(x2, z2), rng.range(0.08, 0.16), 60, grey(rng, 0.85, 1.1));
@@ -661,14 +720,20 @@ export function campClutterSpots(avoid: readonly Box[] = []): { x: number; z: nu
     if (ok(x, z, campYurts, 3.4)) { push(x, z, [0, 1, 3, 4, 6]); got++; }
   }
   // behind / between the yurts, and the summer camp
-  const ring = (cx: number, cz: number, d0: number, d1: number, n: number, ys: { x: number; z: number }[]) => {
+  const ring = (cx: number, cz: number, d0: number, d1: number, n: number, ys: { x: number; z: number }[], kinds = [0, 1, 2, 3, 4, 5, 6]) => {
     for (let i = 0, got = 0; i < n * 10 && got < n; i++) {
       const a = rng.range(0, Math.PI * 2), d = rng.range(d0, d1);
       const x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d;
-      if (ok(x, z, ys, 3.2)) { push(x, z, [0, 1, 2, 3, 4, 5, 6]); got++; }
+      if (ok(x, z, ys, 3.2)) { push(x, z, kinds); got++; }
     }
   };
   ring(CAMP.x, CAMP.z, 17.5, 24, 7, campYurts);
   ring(SUMMER_YURTS.x, SUMMER_YURTS.z, 12.5, 17, 7, summerYurts);
+  // B2 taste variant (Debug ▸ Ground cover ▸ Camp dressing): more painted clutter — pots, sacks, folded felts, a chopping
+  // block — round both camps; drawn after the default spots (the rng runs on), and nothing that collides
+  if (setting('nalatiCampDress') === 'dense') {
+    ring(CAMP.x, CAMP.z, 11, 24, 12, campYurts, [2, 3, 4, 5]);
+    ring(SUMMER_YURTS.x, SUMMER_YURTS.z, 7, 16, 6, summerYurts, [2, 3, 4, 5]);
+  }
   return out;
 }
