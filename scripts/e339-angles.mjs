@@ -32,6 +32,8 @@ const KEY = flag('key', '');
 const VARIANTS = flag('variants', 'default').split(',').filter(Boolean);
 const IDS = flag('targets', '').split(',').filter(Boolean);
 const DIST = Number(flag('dist', '2.5'));
+const HOUR = flag('time', '13');   // Nalati's hour (the harness `time`)
+const TOD = flag('tod', '');       // E343: Driftwood's / Pine's day phase 0..1 (the harness `tod`; 0.92 = night), the clock held
 const NEAR = Number(flag('near', '0.8'));
 const OUT = resolvePath(ROOT, flag('out', 'progress/e339-faces/raw'));
 mkdirSync(OUT, { recursive: true });
@@ -121,10 +123,12 @@ try {
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
-    const q = [`chunk=${SHARD}`, 'touch=1', 'tier=phone', 'skipintro=1', 'nolock=1', 'mute=1', 'time=13', 'clock=0', 'weather=clear'].join('&');
+    const q = [`chunk=${SHARD}`, 'touch=1', 'tier=phone', 'skipintro=1', 'nolock=1', 'mute=1', `time=${HOUR}`, ...(TOD === '' ? ['clock=0'] : [`tod=${TOD}`, 'clock=1000000']), 'weather=clear'].join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(READY[SHARD], undefined, { timeout: 360000, polling: 1000 });
     await sleep(6000);
+    // E343: the island's enemies as placed (the sailor waits for his head file before he spawns: he must still be there)
+    if (SHARD === 'driftwood-isle') console.log(`${v} enemies: ${await page.evaluate(() => JSON.stringify({ placed: window.__world.enemies?.placed, sailors: window.__world.enemies?.sailors?.length }))}`);
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch,.ws-touch *,[class*="elite"],[class*="banner"],[class*="quest"],[class*="toast"],[class*="crosshair"],[class*="reticle"],[class*="boss"],[class*="prompt"],[class*="talk"]{visibility:hidden!important}' });
     // the camera override: a late system (after the player's camera), active while window.__e339cam is set
     await page.evaluate(() => {
