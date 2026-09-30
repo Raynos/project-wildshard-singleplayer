@@ -54,6 +54,7 @@ import { heightAt } from '../world/Heightfield';
 import { activeRegistry } from '../world/registry';
 import { practiceRoom } from '../core/practiceRoom';
 import { modelContext } from '../models/model';
+import { registerNalatiPlaces } from '../world/nalati/places';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
 
@@ -145,14 +146,14 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `player.colliders`) —
   // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
   const rockCtx = modelContext(sky);
-  await outcrops.register(activeRegistry(), rockCtx, macrotask);
+  const rockPlaced = [...await outcrops.register(activeRegistry(), rockCtx, macrotask)];
   await macrotask();
   groups['outcrops'] = outcrops.mesh;
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
   const crags = buildCragRock(sky);
   game.scene.add(crags.group);
-  await crags.register(activeRegistry(), rockCtx, macrotask);   // the crag rock model (fins, ribs, towers), drawnInto its quadrants
+  rockPlaced.push(...await crags.register(activeRegistry(), rockCtx, macrotask));   // the crag rock model (fins, ribs, towers), drawnInto its quadrants
   await macrotask();
   groups['crags'] = crags.group;
 
@@ -172,7 +173,9 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const dressing = await new NalatiDressing(sky, ctx.forest).build(macrotask);
   reseedGrassV2(); // the grass mask baked before the dressing regrows around its boulders / shrubs (dressingCover)
   dressing.addTo(game.scene, [...pois.colliders, ...outcrops.colliders, ...crags.colliders]);   // the clutter keeps clear of these
-  await dressing.place(activeRegistry(), macrotask);
+  const dressPlaced = await dressing.place(activeRegistry(), macrotask);
+  // every named place is a set (E315 M12): the models placed in it — the POIs', the rocks', the dressing's
+  await registerNalatiPlaces({ registry: activeRegistry(), pois: pois.placed, others: [...rockPlaced, ...dressPlaced], yieldTask: macrotask });
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
   await macrotask();

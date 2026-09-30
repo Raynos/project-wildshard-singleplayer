@@ -9,9 +9,9 @@
  *
  * E306 / E315 M3: a POI places models (src/chunks/nalati-grasslands/models/: the kerb stones, the balbals, the bridge,
  * the watchtower, the kokpar's goals and riders …) through a NalatiSet (./painted.ts) and registers itself — one
- * `place` per model, its colliders and floor with it — and the models of a place are a set (`SETS`: the Kurgan field,
- * the Kokpar field, the Spring and Summer camps …). Every POI with a thing in it registers itself; one without (the
- * glacier's snout, the terrain's) is world, and is not registered.
+ * `place` per model, its colliders and floor with it — and every named place is a set (./places.ts, M12: the Kurgan
+ * field, the Kokpar field, the Spring and Summer camps …, registered once the whole shard is placed). A POI with no
+ * thing in it (the glacier's snout, the terrain's) is world, and is not registered.
  *
  * NALATI-MERGE P1: every collider is in the world registry (src/world/registry.ts) — boxes (with their material),
  * decks / floors as slabs, stairs as treads, rocks as hulls; a floor function is placement only. Nothing goes into
@@ -44,18 +44,6 @@ import type { Box } from './solid';
 import type { Ground, PoiCtx, PoiPiece } from './types';
 import { modelContext, type ModelContext } from '../../models/model';
 import type { Placed } from '../../models/place';
-import { placeSet } from '../../models/sets';
-
-/** the places on the model contract (E306 / E315 M3): the models the named POIs placed are one set each (M7 explores them) */
-const SETS: readonly { id: string; name: string; file: string; pois: readonly string[] }[] = [
-  { id: 'nalati-grasslands/spring-camp', name: 'Spring camp', file: 'src/world/nalati/NomadCamp.ts', pois: ['camp'] },
-  { id: 'nalati-grasslands/summer-camp', name: 'Summer camp', file: 'src/world/nalati/SummerCamp.ts', pois: ['summerCamp'] },
-  { id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/world/nalati/KurganField.ts', pois: ['kurgans', 'balbals'] },
-  { id: 'nalati-grasslands/crags', name: "The Crags: Aqbars' ledges and cave", file: 'src/world/nalati/Crags.ts', pois: ['crags'] },
-  { id: 'nalati-grasslands/watchtower-hill', name: 'Watchtower hill', file: 'src/world/nalati/Bowl.ts', pois: ['watchtower'] },
-  { id: 'nalati-grasslands/kokpar-field', name: 'Kokpar field', file: 'src/world/nalati/Bowl.ts', pois: ['kokpar'] },
-  { id: 'nalati-grasslands/snow-lotus-meadow', name: 'Snow lotus meadow', file: 'src/world/nalati/Bowl.ts', pois: ['snowLotus'] },
-];
 
 export class NalatiPOIs {
   group = new THREE.Group();
@@ -77,6 +65,9 @@ export class NalatiPOIs {
   private viewer: THREE.Vector3 | null = null;
   /** where a rider ties a strip at the Wind Cairn (B14) */
   cairnTieSpot: THREE.Vector3 | null = null;
+
+  /** what each POI placed (its models), by piece name — the named places' sets hold them (./places.ts) */
+  readonly placed = new Map<string, readonly Placed[]>();
 
   /** the shard's model context (its sky: the painterly look) for the POIs' models */
   private readonly models: ModelContext;
@@ -130,15 +121,10 @@ export class NalatiPOIs {
   }
 
   private *registrations(registry: WorldRegistry): Generator<string> {
-    const placed = new Map<string, readonly Placed[]>();
     for (const p of this.pieces) {
-      if (p.register) { placed.set(p.name, p.register({ registry, ctx: this.models })); yield p.name; continue; }
+      if (p.register) { this.placed.set(p.name, p.register({ registry, ctx: this.models })); yield p.name; continue; }
       // world (the glacier's snout): nothing to register — a POI that collides places models
       if (p.colliders.some((b) => b.ghost !== true) || (p.descs?.length ?? 0) > 0) throw new Error(`NalatiPOIs: '${p.name}' collides but places no models`);
-    }
-    for (const s of SETS) {
-      const members = s.pois.flatMap((n) => placed.get(n) ?? []);
-      if (members.length > 0) placeSet({ id: s.id, name: s.name, file: s.file, members, registry });
     }
     this.balbals?.register(registry, this.group.getObjectByName('nalati-balbals') ?? this.group);
   }

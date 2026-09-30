@@ -29,6 +29,8 @@ import { boulder } from '../src/chunks/nalati-grasslands/models/dressing';
 import { Rng } from '../src/core/rng';
 import { graniteOutcrop, roundedBoulder } from '../src/chunks/nalati-grasslands/models/outcrop';
 import { cragRock, finGeometry } from '../src/chunks/nalati-grasslands/models/cragRock';
+import { registerNalatiPlaces, PLACE_SETS } from '../src/world/nalati/places';
+import { NALATI_PLACES } from '../src/game/quest/nalati';
 
 // a stand-in sky: the painterly material asks it for its sun and to prepare the material (no renderer in a test)
 const lights: THREE.DirectionalLight[] = [];
@@ -264,6 +266,28 @@ describe('the dressing (E306 / E315 second pass)', () => {
     const a = finGeometry(new Rng(9), 10, 5, 14), b = finGeometry(new Rng(9), 10, 5, 14);
     expect(Array.from(a.getAttribute('position').array)).toEqual(Array.from(b.getAttribute('position').array));
     expect(cragRock.variants?.map((v) => v.id)).toEqual(['fin', 'rib', 'tower']);
+  });
+
+  it('every named place is a set (M12): a POI\'s models whole, and the copies of the others standing in its radius', async () => {
+    const reg = new WorldRegistry();
+    const layer = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), 2);
+    const camp = NALATI_PLACES.find((p) => p.id === 'nomad-camp');
+    expect(camp).toBeDefined();
+    const cx = camp?.x ?? 0, cz = camp?.z ?? 0;
+    // one boulder in the camp, one far away
+    const rocks = place(boulder, [{ x: cx + 5, y: 0, z: cz }, { x: cx + 200, y: 0, z: cz }], {
+      ctx, draw: 'instanced', registry: reg, drawnInto: { object: layer, boxes: Float32Array.of(cx + 4, 0, cz - 1, cx + 6, 1, cz + 1, cx + 199, 0, cz - 1, cx + 201, 1, cz + 1) },
+    });
+    const kit = new PaintKit(1);
+    const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: new Smoke() });
+    set.paint(barrel, { x: cx, y: 0, z: cz, yaw: 0 }, { s: 1 });
+    const campPlaced = set.register({ ctx, registry: reg, object: new THREE.Group() });
+    const n = await registerNalatiPlaces({ registry: reg, pois: new Map([['camp', campPlaced]]), others: [rocks], yieldTask: () => Promise.resolve() });
+    expect(n).toBeGreaterThanOrEqual(1);
+    const s = reg.sets.find((x) => x.place === 'nalati-grasslands/nomad-camp');
+    expect(s?.id).toBe('nalati-grasslands/spring-camp');
+    expect(s?.members).toEqual([{ model: barrel.id, copies: 1 }, { model: boulder.id, copies: 1 }]);
+    expect(PLACE_SETS.map((r) => r.place).sort()).toEqual(NALATI_PLACES.map((p) => `nalati-grasslands/${p.id}`).sort());
   });
 
   it('the dressing is on the contract', () => {

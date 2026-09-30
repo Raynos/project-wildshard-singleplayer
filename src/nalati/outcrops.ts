@@ -29,13 +29,14 @@ import type * as THREE from 'three';
 import type { Collider } from '../player/Player';
 import type { ColliderDesc, WorldRegistry } from '../world/registry';
 import type { ModelContext } from '../models/model';
+import type { Placed } from '../models/place';
 import type { Sky } from '../world/Sky';
 import { graniteOutcrop, roundedBoulder, type RockTint } from '../chunks/nalati-grasslands/models/outcrop';
 
 export interface Outcrops {
   mesh: THREE.Mesh; colliders: Collider[]; descs: ColliderDesc[]; count: number; triangles: number;
   /** its rocks into the world registry (their hulls 150 a task: the phone's per-task collider budget) */
-  register: (registry: WorldRegistry, ctx: ModelContext, yieldTask: () => Promise<void>) => Promise<void>;
+  register: (registry: WorldRegistry, ctx: ModelContext, yieldTask: () => Promise<void>) => Promise<readonly Placed[]>;
 }
 
 export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
@@ -176,6 +177,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     register: async (registry, ctx, yieldTask) => {
       const placed = set.register({ ctx, registry, object: mesh, split: { every: 200, yieldTask } });
       for (const p of placed) await p.registered;
+      return placed;
     },
   };
 }

@@ -36,13 +36,13 @@ import type { ColliderDesc, WorldRegistry } from '../world/registry';
 import { supportHull } from '../world/nalati/solid';
 import type { Sky } from '../world/Sky';
 import type { ModelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 import { cragRock, cragMaterial, finGeometry, ribGeometry, towerGeometry, type CragKind } from '../chunks/nalati-grasslands/models/cragRock';
 
 export interface CragRock {
   group: THREE.Group; colliders: Collider[]; descs: ColliderDesc[]; count: { fins: number; ribs: number; blocks: number }; triangles: number;
   /** its pieces into the world registry (their hulls 150 a task: the phone's per-task collider budget) */
-  register: (registry: WorldRegistry, ctx: ModelContext, yieldTask: () => Promise<void>) => Promise<void>;
+  register: (registry: WorldRegistry, ctx: ModelContext, yieldTask: () => Promise<void>) => Promise<readonly Placed[]>;
 }
 
 // ── placement ───────────────────────────────────────────────────────────────────────────────────────────────────
@@ -174,6 +174,7 @@ export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
         piece: { solidFloor: true, split: { every: 150, yieldTask } },
       });
       await placed.registered;
+      return [placed];
     },
   };
 }

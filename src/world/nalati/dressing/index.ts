@@ -218,19 +218,22 @@ export class NalatiDressing {
    * model placed `drawnInto` its layer, the big rocks' hulls 150 a task (the phone's per-task collider budget), then the
    * props (their region meshes) and the camps' clutter.
    */
-  async place(registry: WorldRegistry, yieldTask: () => Promise<void>): Promise<void> {
+  async place(registry: WorldRegistry, yieldTask: () => Promise<void>): Promise<readonly Placed[]> {
     const ctx = modelContext(this.sky);
+    const out: Placed[] = [];
     for (const d of this.drawn) {
       const placed = d.place({
         ctx, draw: 'instanced', registry, drawnInto: { object: d.layer.mesh, boxes: instanceBoxes(d.layer.mesh.geometry, d.list), colliders: d.descs },
         piece: { solidFloor: true, split: { every: 150, yieldTask } },
       });
       await placed.registered;
+      out.push(placed);
       await yieldTask();
     }
-    this.staticsSet?.register({ ctx, registry, object: this.statics });
+    if (this.staticsSet) out.push(...this.staticsSet.register({ ctx, registry, object: this.statics }));
     await yieldTask();
-    if (this.clutter) this.clutter.set.register({ ctx, registry, object: this.clutter.mesh });
+    if (this.clutter) out.push(...this.clutter.set.register({ ctx, registry, object: this.clutter.mesh }));
+    return out;
   }
 
   update(dt: number, camera: THREE.PerspectiveCamera, player: THREE.Vector3, renderer: THREE.WebGLRenderer): void {
