@@ -146,9 +146,6 @@ export const OPTION_VALUES = {
   // E322 F-L4 (Pine Hollow follow-ups): the grass trampled by the player and the animals (src/world/Grass.ts, Nalati's
   // GrassTrample map) — Debug ▸ Ground cover & foliage, live; off = the grass before until Jake picks
   pineTrample: ['off', 'on'],
-  // E322 F-L5: the rain's extras — splashes at the feet, the meadows' puddles, drops on the lens (src/world/PineWeatherFX.ts)
-  // — Debug ▸ Sky & weather, live; off = the rain before until Jake picks
-  pineRainFx: ['off', 'on'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -172,7 +169,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   pineBearFix: DEBUG_ONLY,
   pineKingRig: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, nineDragonFaces: DEBUG_ONLY, driftwoodFaces: DEBUG_ONLY,
-  pineTrample: DEBUG_ONLY, pineRainFx: DEBUG_ONLY,
+  pineTrample: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
   const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
@@ -194,7 +191,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   nineDragonFaces: option('nineDragonFaces'),
   driftwoodFaces: option('driftwoodFaces'),
-  pineTrample: option('pineTrample'), pineRainFx: option('pineRainFx'),
+  pineTrample: option('pineTrample'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

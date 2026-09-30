@@ -20,15 +20,15 @@
  * 2 m texels start it a metre in and the arch's hood stood open to the sky — a box in the cave's frame (BEAR_CAVE: the
  * mouth, the hood and the first metres in, under the arch's height) is tested exactly in the rain's vertex shader.
  *
- * RAIN EXTRAS (E322 F-L5, Debug ▸ Sky & weather ▸ Rain extras, `setExtras`; off = the look before, live):
+ * RAIN EXTRAS (E322 F-L5; Jake picked them, always on in the rain, none in a practice room):
  *  · splashes at the player's feet: a ring of crowns + ripples on the ground within a few metres of the eye, respawned on
  *    the CPU (≤ 96 slots, one instanced draw), none under a roof / in the cave, fewer under the crowns;
  *  · puddles off the trails too: the meadows' concave spots, appended to the same puddle mesh (a draw range, 0 draws more);
  *  · drops on the lens: ≤ 20 screen-space quads (NDC, no scene sample, no blur pass): a darker rim, the sky's light pooled
  *    in the lower half, a glint — they land while you face the open sky and bead, slide and dry.
  *
- * Draws: 0 while dry (both hidden). Raining: the rain + the puddles = 2 (+ 2 with the extras: the splashes, the lens).
- * Programs: +1 (the rain; + 2 with the extras), built at boot (the meshes are in the scene, hidden, when the precompile
+ * Draws: 0 while dry (all hidden). Raining: the rain + the puddles + the splashes + the lens = 4.
+ * Programs: +3 (the rain, the splashes, the lens), built at boot (the meshes are in the scene, hidden, when the precompile
  * walks it).
  */
 import * as THREE from 'three';
@@ -80,13 +80,9 @@ export class PineWeatherFX {
   };
   private readonly puddleFade = { value: 0 };
   private readonly rainCount: number;
-  /** E322 F-L5 Rain extras: the splashes at the feet, the lens drops (hidden unless `extras`) */
+  /** E322 F-L5 Rain extras: the splashes at the feet, the lens drops */
   splashes!: THREE.Mesh;
   lens!: THREE.Mesh;
-  /** Rain extras on (Debug ▸ Sky & weather ▸ Rain extras): splashes, the meadows' puddles, drops on the lens */
-  extras = false;
-  /** the index count of the trails' puddles (the meadows' follow them in the same mesh) */
-  private trailPuddleIdx = 0;
   private readonly splashU = { uTime: { value: 0 }, uCol: { value: new THREE.Color(0.8, 0.84, 0.9) }, uAlpha: { value: 0.5 } };
   private splashAttr!: THREE.InstancedBufferAttribute;
   private splashNext = 0;
@@ -123,14 +119,6 @@ export class PineWeatherFX {
     const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * COVER_N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * COVER_N);
     if (i < 0 || j < 0 || i >= COVER_N || j >= COVER_N) return 0;
     return (this.coverData[(j * COVER_N + i) * 4] ?? 0) / 255;
-  }
-
-  /** E322 F-L5: Rain extras on / off (live): the splashes and the lens drops show, the meadows' puddles are drawn */
-  setExtras(on: boolean): void {
-    this.extras = on;
-    const g = this.puddles.geometry;
-    g.setDrawRange(0, on ? (g.index?.count ?? Infinity) : this.trailPuddleIdx);
-    if (!on) { this.drops.length = 0; this.splashes.visible = false; this.lens.visible = false; }
   }
 
   /** no rain reaches (x, y, z): under a cabin's roof (the cover map's G) or in the cave's mouth / hood */
@@ -260,7 +248,7 @@ export class PineWeatherFX {
     }
     const trailSpots = spots.length;
     // E322 F-L5 (Rain extras): the meadows' low spots too — open (little crown over them), flat, not rock, the dips; their own
-    // random stream and appended, so the trails' puddles stay exactly as they were (the extras are a draw range past them)
+    // random stream and appended, so the trails' puddles stay exactly as they were
     const rx = new Rng(this.o.seed ^ 0x51ab), wantOff = this.o.phone ? 36 : 60;
     for (let tries = 0; tries < 40000 && spots.length < trailSpots + wantOff; tries++) {
       const x = rx.range(-CHUNK_HALF, CHUNK_HALF), z = rx.range(-CHUNK_HALF, CHUNK_HALF);
@@ -277,8 +265,7 @@ export class PineWeatherFX {
     const RINGS: readonly [number, number][] = [[0, 0.05], [0.55, 0.04], [1.0, 0.004], [1.12, -0.1], [1.35, -0.42]];
     const SEG = 14;
     const pos: number[] = [], uv: number[] = [], aw: number[] = [], idx: number[] = [];
-    for (const [si, s] of spots.entries()) {
-      if (si === trailSpots) this.trailPuddleIdx = idx.length;
+    for (const s of spots) {
       const base = pos.length / 3, ph = rng.range(0, 6.283), ph2 = rng.range(0, 6.283), stretch = rng.range(1, 1.7), rot = rng.range(0, Math.PI);
       const cr = Math.cos(rot), sr = Math.sin(rot);
       for (let r = 0; r < RINGS.length; r++) {
@@ -320,8 +307,6 @@ export class PineWeatherFX {
     mesh.visible = false;
     mesh.userData['spots'] = trailSpots;
     mesh.userData['extraSpots'] = spots.length - trailSpots;
-    if (trailSpots === spots.length) this.trailPuddleIdx = idx.length;
-    geo.setDrawRange(0, this.trailPuddleIdx);
     return mesh;
   }
 
@@ -522,7 +507,6 @@ export class PineWeatherFX {
     this.puddleFade.value = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
     this.puddles.visible = this.puddleFade.value > 0.01;
     // E322 F-L5: the extras — none in a practice room (E321: its x / z is no spot on the shard)
-    if (!this.extras) return;
     if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.drops.length = 0; return; }
     if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
     this.splashU.uTime.value += dt;
