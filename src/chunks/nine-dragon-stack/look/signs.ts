@@ -289,6 +289,9 @@ export interface SignPlace {
   clear?: number;
 }
 
+/** a sign a builder placed — the sign model's copies (../models/signs.ts): where it hangs, what it says, its size */
+export interface PlacedSign { readonly p: SignPlace; readonly w: number; readonly h: number; readonly neon: boolean }
+
 /** neon quad modes (aNeon.w) */
 const MODE = { mono: 0, solid: 1, blink: 2, colour: 3 } as const;
 
@@ -305,6 +308,8 @@ export class SignBuilder {
   readonly lights: Emitter[] = [];
   /** when set, 'tube' signs are drawn as SDF neon calligraphy (neonsigns.ts) instead of atlas quads */
   calligraphy: NeonSigns | null = null;
+  /** every sign `place` drew, in order (the sign model's copies: build.ts registers them where they are drawn) */
+  readonly placed: PlacedSign[] = [];
 
   constructor(readonly atlas: SignAtlas) {}
 
@@ -347,8 +352,10 @@ export class SignBuilder {
   /** place a sign; its board (and nothing else) goes into `kit` */
   place(p: SignPlace, kit: Kit | null): { w: number; h: number } {
     if (p.spec.style === 'tube' && this.calligraphy !== null) {
-      return this.calligraphy.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size, at: p.at, facing: p.normal,
+      const size = this.calligraphy.add({ text: p.spec.text, color: p.spec.color, vertical: p.spec.vertical, em: p.size, at: p.at, facing: p.normal,
         twoSided: p.blade === true, gain: ((p.gain ?? 4.4) / 4.4) * 4.2, flicker: p.flicker ?? 0, clear: p.clear ?? 0 });
+      this.placed.push({ p: { ...p, at: p.at.clone(), normal: p.normal.clone() }, ...size, neon: true });
+      return size;
     }
     const cell = this.atlas.get(p.spec);
     const n = chars(p.spec.text).length;
@@ -379,6 +386,7 @@ export class SignBuilder {
       if (p.blade !== true) c.addScaledVector(p.normal, -depth / 2 + 0.01);
       kit.boxAxes(c, right, upv, p.normal.clone(), w / 2 + 0.05, h / 2 + 0.05, depth / 2, look);
     }
+    this.placed.push({ p: { ...p, at: p.at.clone(), normal: p.normal.clone() }, w, h, neon: false });
     return { w, h };
   }
 

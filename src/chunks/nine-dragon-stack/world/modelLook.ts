@@ -6,6 +6,7 @@
 import type { BufferGeometry, Material, ShaderMaterial, WebGLRenderer } from 'three';
 import { modelContext, type ModelContext } from '../../../models/model';
 import { type SignAtlas, SignBuilder } from '../look/signs';
+import type { NeonSigns } from '../look/neonsigns';
 
 export interface NdLook {
   /** the Jiehua kit program (build.ts `mat`): the kits, the square's props and sets, the crowd, the dressing, the movers */
@@ -27,6 +28,8 @@ export interface NdLook {
   /** the banyan's painted canopy programs (world/canopy.ts `buildCanopy`: its core, its cards, the cards' depth pass;
    *  null while unbuilt, or when the leaf atlas failed and the tree stands bare) */
   canopy: { readonly core: Material; readonly cards: Material; readonly depth: Material } | null;
+  /** the neon calligraphy (look/neonsigns.ts: its glyph atlas and its board / tube programs), the neon sign's specimen */
+  calligraphy: NeonSigns | null;
 }
 
 /**
@@ -44,7 +47,7 @@ const KEY = 'nine-dragon-stack:look';
 
 /** the fragment's model context and its (still empty) look */
 export function ndModelContext(renderer: WebGLRenderer | null): { ctx: ModelContext; look: NdLook } {
-  const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null };
+  const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, calligraphy: null };
   const ctx = modelContext(null, renderer);
   ctx.once(KEY, () => look);
   return { ctx, look };

@@ -17,6 +17,7 @@ import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter
 import { paifang } from '../models/paifang';
 import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
 import { hawkerStallModel, noodleStallModel } from '../models/stalls';
+import { registerSigns } from '../models/signs';
 import { registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
@@ -168,6 +169,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const ctx = new Ctx(signs);
   // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
   const nd = ndModelContext(renderer);
+  nd.look.calligraphy = neonSigns;
   // the fragment's instanced models are culled per copy here (world/cull.ts), taken as `place` hands them over and set up
   // at the end, once the world is whole
   const culler = new InstanceCuller();
@@ -372,7 +374,10 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const droneAt = [0, 1].map((i) => ({ phase: i * 2.4, r: 22 + i * 14, y: Y0 + 58 + i * 16 }));
   const bodies = movers(drone, droneAt.map((d) => ({ x: 8 + Math.cos(d.phase) * d.r, y: d.y + Math.sin(d.phase) * 1.5, z: -8 + Math.sin(d.phase) * d.r, yaw: -d.phase })), 'nds-drones');
   const drones = droneAt.flatMap((d, i) => { const body = bodies[i]; return body === undefined ? [] : [{ body, ...d }]; });
-  root.add(named(new Mesh(signs.build(), neon), 'signs'));
+  const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
+  root.add(signsMesh);
+  // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
+  registerSigns(nd.ctx, signs.placed, { atlas: signsMesh, neon: neonMeshes.boards });
 
   // the painted sky, the LED sky screens (lab P7's 千里江山图 scroll), the Well's silk sheets, the stall's steam
   const sky = new Mesh(new SphereGeometry(900, 32, 16), skyMaterial(shared));

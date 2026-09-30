@@ -281,6 +281,24 @@ export class NeonSigns {
   }
 
   add(def: NeonDef): { w: number; h: number } {
+    const { w, h, at, f, tint, gain } = this.draw(def, this.boards, this.tubes);
+    // the neon owns the wet ground (the targets' streaks are cyan / jade / magenta, not the shops' amber)
+    const k = (1.4 * gain) / NEON_LOOK.gain;
+    this.emitters.push({ at: at.clone().addScaledVector(f, 0.09 / 2), color: tint.clone(), w, h, power: k, spill: 0.3 * k });
+    return { w, h };
+  }
+
+  /**
+   * One sign alone, its board and its tubes as two geometries — the sign model's specimen (../models/signs.ts), drawn by
+   * `boardMat` and `tubeMat` over this atlas (its characters must be in it)
+   */
+  one(def: NeonDef): { boards: BufferGeometry; tubes: BufferGeometry } {
+    const boards = new Batch(), tubes = new Batch();
+    this.draw(def, boards, tubes);
+    return { boards: boards.geometry(['aUv', 'aSize']), tubes: tubes.geometry(['aAtlas', 'aQ']) };
+  }
+
+  private draw(def: NeonDef, boards: Batch, tubes: Batch): { w: number; h: number; at: Vector3; f: Vector3; tint: Color; gain: number } {
     const cs = chars(def.text);
     const em = def.em;
     const { w, h } = NeonSigns.size(def.text, em, def.vertical);
@@ -294,7 +312,7 @@ export class NeonSigns {
     const seed = def.flicker ?? 0;
     const two = def.twoSided === true;
     const clear = Math.min(1, Math.max(0, def.clear ?? 0));
-    this.boards.box(at, right, up, f, w / 2, h / 2, depth / 2, tint, [gain, seed, MODE.face, clear], MODE.side, two);
+    boards.box(at, right, up, f, w / 2, h / 2, depth / 2, tint, [gain, seed, MODE.face, clear], MODE.side, two);
     const cellEm = GlyphAtlas.CELL / GlyphAtlas.FONT_PX;
     for (const side of two ? [1, -1] : [1]) {
       const fn = f.clone().multiplyScalar(side);
@@ -303,13 +321,10 @@ export class NeonSigns {
       cs.forEach((ch, i) => {
         const g = this.atlas.rect(ch);
         const off = def.vertical ? new Vector3().addScaledVector(up, h / 2 - em * (0.79 + i)) : new Vector3().addScaledVector(r, -w / 2 + em * (0.81 + i));
-        this.tubes.quad(c0.clone().add(off), r, up, (em * cellEm) / 2, (em * cellEm) / 2, [g.u0, g.v0, g.u1, g.v1], [0, 0], true, tint, [gain, seed, clear, 0]);
+        tubes.quad(c0.clone().add(off), r, up, (em * cellEm) / 2, (em * cellEm) / 2, [g.u0, g.v0, g.u1, g.v1], [0, 0], true, tint, [gain, seed, clear, 0]);
       });
     }
-    // the neon owns the wet ground (the targets' streaks are cyan / jade / magenta, not the shops' amber)
-    const k = (1.4 * gain) / NEON_LOOK.gain;
-    this.emitters.push({ at: at.clone().addScaledVector(f, depth / 2), color: tint.clone(), w, h, power: k, spill: 0.3 * k });
-    return { w, h };
+    return { w, h, at, f, tint, gain };
   }
 
   build(): { boards: Mesh; tubes: Mesh } {
