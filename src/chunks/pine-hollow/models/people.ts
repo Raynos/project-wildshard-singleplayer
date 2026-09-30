@@ -31,7 +31,7 @@ export interface NpcFigure {
   /** draw distance: drawn inside 140 m, casting a shadow inside 45 m (`d` = metres from the camera) */
   lod: (d: number) => void;
   /**
-   * E322 F-M3: walk to (x, y, z) at the rig's walk pace, playing its walk (Debug ▸ NPC rig B: the legs step; A slides),
+   * E322 F-M3: walk to (x, y, z) at the rig's walk pace, playing its walk (the legs step, npcRig.ts),
    * then face the post's way again; the collider and the talk point go along (a caller that moves a person moves its
    * prompt). Nothing in the quest moves the people yet: this is the walk, ready for when it does.
    */

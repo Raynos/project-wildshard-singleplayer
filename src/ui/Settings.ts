@@ -126,7 +126,6 @@ export const OPTION_VALUES = {
   pineCrags: ['a', 'b'],                               // E322 F-L2: Pine Hollow's Ridge crags — A today · B the new crags (src/world/PineCrags.ts) — a reload
   creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
   pineLife: ['on', 'off'],                             // Pine Hollow's birds, hares, ravens and the skinning beat (src/pinehollow/life/) — a reload
-  pineNpcRig: ['a', 'b'],                              // E322 F-M3: Pine Hollow's people — A today's upper-body rig · B legs, a clavicle + twist, the walk clip (src/pinehollow/quest/npcRig.ts) — a reload
   // E322 F-M1: the Antler King — A today (the Bark Warden hull on the elk's bones) · B his own upright rig (a raised chest,
   // forelimbs that rear and strike: src/pinehollow/kingRig.ts) — a reload (the rig loads once)
   pineKingRig: ['a', 'b'],
@@ -160,7 +159,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tex: { def: 'auto', params: [], url: () => null },
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, pineCrags: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
-  pineNpcRig: DEBUG_ONLY,
   pineKingRig: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, nineDragonFaces: DEBUG_ONLY, driftwoodFaces: DEBUG_ONLY,
   pineTrample: DEBUG_ONLY,
@@ -178,7 +176,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   tex: option('tex'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'), pineCrags: option('pineCrags'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
-  pineNpcRig: option('pineNpcRig'),
   pineKingRig: option('pineKingRig'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   nineDragonFaces: option('nineDragonFaces'),

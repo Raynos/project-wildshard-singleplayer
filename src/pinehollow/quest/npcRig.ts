@@ -1,7 +1,7 @@
 /**
- * E322 F-M3 — the Pine Hollow people's second rig (Debug ▸ Creatures & NPCs ▸ NPC rig = B; A = npcModels.ts's upper-body
- * rig, today's). Built at load from the hull like A, so it rigs every face variant (E304: the faces only change the head
- * above the neck). What B adds:
+ * E322 F-M3 — the Pine Hollow people's rig (Jake picked B; A, the upper-body-only rig that was in npcModels.ts, went with
+ * its Debug row — git 4da54ccc has it). Built at load from the hull like A was, so any head grafted above the neck
+ * (E304) rigs the same. What B adds over A:
  *
  *   legs      a thigh → shin → foot chain per side, placed on the legs' own centre lines (the generated people stand ~2–3 cm
  *             off x = 0, and their A-pose legs ~0.07 H apart). Weighted by height (the pelvis blends hips → thigh from 0.52 H
