@@ -1,4 +1,4 @@
-// E306 / E315 M7 (docs/plans/MODEL-ARCHITECTURE.md): the Sets explorer's pure parts (src/explore/setView.ts). A set is
+// E306 / E315 M7 (project/archive/2026-09-30-model-architecture.md): the Sets explorer's pure parts (src/explore/setView.ts). A set is
 // framed from the air so its bounds stay on screen from every yaw of the slow orbit, its members read as rows, it is
 // measured by the objects that draw it (each once), and `placeSet` hands the explorer what draws each member.
 import { describe, expect, it } from 'vitest';

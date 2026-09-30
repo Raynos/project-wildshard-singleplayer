@@ -10,7 +10,7 @@ were made with (docs/audits/models-and-model-explorer.md §2), written down once
 in `docs/design/image-to-threejs-review.md` and `docs/design/blender-practice.md`.
 
 A **model** is one reusable thing built by exactly one builder, in its own space: metres, +Y up, pivot at the centre of
-its foot on y = 0, front toward +Z (docs/plans/MODEL-ARCHITECTURE.md §1). A place (a camp, a field, a cove) is a Set of
+its foot on y = 0, front toward +Z (project/archive/2026-09-30-model-architecture.md §1). A place (a camp, a field, a cove) is a Set of
 models, not a model. If you are about to model a place, split it first.
 
 ## 0. Before you start

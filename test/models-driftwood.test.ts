@@ -1,4 +1,4 @@
-// E315 M1 (docs/plans/MODEL-ARCHITECTURE.md): Driftwood's models on the contract — a moving copy's colliders ride it
+// E315 M1 (project/archive/2026-09-30-model-architecture.md): Driftwood's models on the contract — a moving copy's colliders ride it
 // (`piece.follows: 'copy'`, the sailboat), and the island's models build in their own space (origin at their foot).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';

@@ -424,7 +424,7 @@ pickup toast, D all three. Recommended: A, A, A. The folder's README lists every
 `models-census-sheet.jpg`: live phone-tier captures (390×844 @3×, build `412d443`), no image model. Top row: the four
 shards' Model Explorer catalogs today (54 cards). Middle: four real models (Hut, Coconut palm, Scots pine, Guardian
 lion). Bottom: four whole places on a turntable, the "blur" (Kurgan field, Snow lotus, Spring camp, Wreck cove). The
-audit is `docs/audits/models-and-model-explorer.md`; the draft plan `docs/plans/MODEL-ARCHITECTURE.md`.
+audit is `docs/audits/models-and-model-explorer.md`; the draft plan `project/archive/2026-09-30-model-architecture.md`.
 
 ### Model spin clips (`art/models-audit/round-3-spin-clips/`, 2026-09-29, E315 / MODEL-ARCHITECTURE M9)
 
@@ -457,7 +457,7 @@ Wendell meets you, 19 s). Recommended: A, A, B. The folder's README lists every 
 `m0-before-after.jpg`: live phone-tier captures (390×844 @3×) of clean exports before (22f7da91) and after the model
 contract (src/models/). Each shard's catalog before / after (every card now says how it's made, its copies and how
 they are drawn), the shore boulder's card (the first model on `place()`), and Nine Dragon's VIEW IN WORLD (before: the
-origin under the square; after: a real lion). Plan: `docs/plans/MODEL-ARCHITECTURE.md`.
+origin under the square; after: a real lion). Plan: `project/archive/2026-09-30-model-architecture.md`.
 
 ### Driftwood models, M1 (`art/models-audit/round-4-m1-driftwood/`, 2026-09-29, E315)
 
@@ -467,7 +467,7 @@ Blender spawn cove with no card at all). Middle: the catalog after, all 42 cards
 sailboat, the coconut palm ×204, the hibiscus bush ×170, the small rock ×400, the cove's 16 prototype families — grass
 tuft ×4,996, cove fern ×1,779 … —, the coral clump, seaweed bed, reef starfish, reef fish, the fence post, signpost and
 plank step). Bottom: turntables. `m1-driftwood-spin.mp4`: a 12 s spin of five of them (coconut palm, pier, Ring
-shrine, cove palm, coral clump) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M1.
+shrine, cove palm, coral clump) in the real explorer. Plan: `project/archive/2026-09-30-model-architecture.md` row M1.
 
 ### Nalati models + sets, M3 (`art/models-audit/round-6-m3-nalati/`, 2026-09-29, E315)
 
@@ -477,7 +477,7 @@ lotus, Glacier …) and the Kurgan field on its turntable. Middle: the catalog a
 fieldstone, the kurgan entrance, the balbal, Eagle Rock, the Wind Cairn, the crag ledge, the leopard's cave, the
 watchtower, the stone step ×54, the kokpar post / goal / rider, the standing saddled horse, the herd horse, the snow
 lotus; the camps stay whole cards this pass). Bottom: six turntables. `nalati-m3-five.mp4`: a 10 s spin of five of them
-(balbal, kurgan entrance, Kunes bridge, watchtower, Wind Cairn) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M3.
+(balbal, kurgan entrance, Kunes bridge, watchtower, Wind Cairn) in the real explorer. Plan: `project/archive/2026-09-30-model-architecture.md` row M3.
 
 ### Pine Hollow models, M2 (`art/models-audit/round-5-m2-pine-hollow/`, 2026-09-30, E315)
 
@@ -489,7 +489,7 @@ fire pit and lanterns; the fire lookout, zipline landing, zip cable and creek fo
 ridge crag ×60, crag boulder ×52, scree ×30; the mossy boulder ×380, stump, fallen log; the forest tree ×918 with its 14
 species; fern ×6,000 and the forest floor's other five kinds; the token shelf and the hollow log). Bottom: six
 turntables. `pine-m2-five.mp4`: a 10 s spin of five of them (forest tree, fire lookout, log cabin, ridge crag, standing
-stone) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M2.
+stone) in the real explorer. Plan: `project/archive/2026-09-30-model-architecture.md` row M2.
 
 ### Creatures, people and gear, M5 (`art/models-audit/round-8-m5-creatures/`, 2026-09-30, E315)
 
@@ -500,7 +500,7 @@ camp people, NPCs; every weapon its kit holds, shared ones marked SHARED). Botto
 Captain, Wendell, the wooden sword, the AR-15; Pine Hollow: the Antler King dressed, Ranger Hale, the lever-action, the
 skinning knife; Nalati: Jel Ata, the Golden King, the camp people, the bow; Nine Dragon: the fp arms, the umbrella walker).
 `m5-pine-hollow-five.mp4`: a 10 s spin of the Antler King, the bear, Ranger Hale, the lever-action and the crossbow in the
-real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M5.
+real explorer. Plan: `project/archive/2026-09-30-model-architecture.md` row M5.
 
 ### Driftwood first-person remaster, round 1 (`art/driftwood-fp/round-1-remaster/`, 2026-09-30, E334)
 
@@ -511,13 +511,23 @@ plus A with the iron sword. `board-3-swimming-hands.jpg`: A breaststroke (recomm
 README holds the Nine Dragon vs Driftwood viewmodel comparison and the build route: reuse the fp-rig skeleton and clips
 with Driftwood meshes, and put the swim clips on the same rig.
 
+### Models, second pass: Driftwood, Nine Dragon, Pine Hollow (`art/models-audit/round-10-second-pass/`, 2026-09-30, E315)
+
+Phone-tier Model Explorer captures of clean exports before / after each shard's second pass (MODEL-ARCHITECTURE M1, M2,
+M4). `driftwood-board.jpg` (42 → 67 cards: the lookout, the Wreck cove's models, the rope bridge, the zipline, the drift
+logs, the interactables) and `driftwood-spin.mp4`; `nine-dragon-board.jpg` (39 → 57: the banyan, the stalls, the sign
+family, the laundry, the facade shell's pieces, the stone planter) and `nine-dragon-spin.mp4`;
+`nine-dragon-banyan-studio.jpg` (the banyan's specimen before / after the studio's city air went: grey fog → green
+crown); `pine-hollow-board.jpg` (the forest and its floor drawn by `place()`, the cabin props' own colliders, the 19 place
+Sets). Plan: `project/archive/2026-09-30-model-architecture.md`.
+
 ### Nalati models, second pass (`art/models-audit/round-10-second-pass/`, 2026-09-30, E315)
 
 `nalati-board.jpg`: phone-tier captures (390×844 @3×) of clean exports before (41 cards: the camps as whole-place cards)
 and after the Nalati second pass (87 cards: the yurt, the camp props, the fence and signpost, the dressing's scatter and
 props, the escarpment's and the snow ring's rock, the glacier snout), five turntables (yurt, hitching rail, kazan, crag
 rock, ovoo cairn) and the Sets explorer (17 sets: every named place). `nalati-spin.mp4`: an 8 s spin of the same five
-models in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` rows M3, M12.
+models in the real explorer. Plan: `project/archive/2026-09-30-model-architecture.md` rows M3, M12.
 
 ### Pine Hollow crags, A / B (`art/pine-hollow/round-24-e322-crags/`, 2026-09-30, E322 F-L2)
 

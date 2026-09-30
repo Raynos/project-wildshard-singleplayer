@@ -1,5 +1,5 @@
 /**
- * Set Explorer (E306 / E315 M7, docs/plans/MODEL-ARCHITECTURE.md): the Explore pane between single models and the whole
+ * Set Explorer (E306 / E315 M7, project/archive/2026-09-30-model-architecture.md): the Explore pane between single models and the whole
  * world. A set is a named group of placed models — a camp, a market square, a kurgan field (`placeSet`,
  * src/models/sets.ts). It owns no geometry, so it is shown where it stands: the real world, framed from a 3/4 aerial
  * camera round the set's bounds, orbitable, with its members alongside. Jake (E315): "we can explore individual models,

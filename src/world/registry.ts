@@ -6,7 +6,7 @@
  * catalog, and `models()` / `picks` are what src/explore/registry.ts serves. One list: a built thing is registered once
  * and is drawn, collides and is explorable from that one `add`.
  *
- * E306 / E315 (docs/plans/MODEL-ARCHITECTURE.md): models move onto the model contract, src/models/model.ts. There
+ * E306 / E315 (project/archive/2026-09-30-model-architecture.md): models move onto the model contract, src/models/model.ts. There
  * `place(model, placements, …)` makes the `add` — one piece per call, and the model's one catalog entry — and `sets`
  * holds the named groups of placements. A hand-written `model` on a piece is the old way; M6 removes it.
  *

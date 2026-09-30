@@ -1,4 +1,4 @@
-// E306 / E315 M3 (docs/plans/MODEL-ARCHITECTURE.md, src/world/nalati/painted.ts): Nalati's models on the model contract.
+// E306 / E315 M3 (project/archive/2026-09-30-model-architecture.md, src/world/nalati/painted.ts): Nalati's models on the model contract.
 // A Nalati place is ONE painted mesh, so its models are painted into the place's kit in the old builder's order (bit-
 // identical: the kerb ring below is the old KurganField loop verbatim) and `place(…, { drawnInto })` registers them —
 // one piece per model with no object of its own, the colliders the copies made, one catalog entry, the set's tap target.

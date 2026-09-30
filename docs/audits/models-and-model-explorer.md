@@ -1,7 +1,7 @@
 # Models and the Model Explorer: an audit (E306)
 
 2026-09-29. Read-only audit of the live build `412d443-mun9x88v` and `main` at `30252b0a`. Nothing in the game was
-changed. The proposal that follows from it is a separate draft plan: [MODEL-ARCHITECTURE](../plans/MODEL-ARCHITECTURE.md).
+changed. The proposal that follows from it is a separate draft plan: [MODEL-ARCHITECTURE](../../project/archive/2026-09-30-model-architecture.md).
 The picture version is [art/models-audit/round-1-census/models-census-sheet.jpg](../../art/models-audit/round-1-census/models-census-sheet.jpg)
 (the four live catalogs, four real models, four "areas on a turntable", all iPhone portrait).
 

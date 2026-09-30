@@ -1,6 +1,6 @@
 # The img2threejs skill: a review (MODEL-ARCHITECTURE M11, E315)
 
-2026-09-29. Research and a recommendation; no game code changed. Plan: [MODEL-ARCHITECTURE](../plans/MODEL-ARCHITECTURE.md)
+2026-09-29. Research and a recommendation; no game code changed. Plan: [MODEL-ARCHITECTURE](../../project/archive/2026-09-30-model-architecture.md)
 row M11. Companion: [blender-practice](blender-practice.md) (M10). The skill this review recommends is drafted at
 [`.claude/skills/mockup-to-model/SKILL.md`](../../.claude/skills/mockup-to-model/SKILL.md).
 

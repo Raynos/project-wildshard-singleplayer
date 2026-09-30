@@ -1,6 +1,6 @@
 # Blender: `.blend` files or Blender scripts? (MODEL-ARCHITECTURE M10, E315)
 
-2026-09-29. Research and a recommendation; no game code changed. Plan: [MODEL-ARCHITECTURE](../plans/MODEL-ARCHITECTURE.md)
+2026-09-29. Research and a recommendation; no game code changed. Plan: [MODEL-ARCHITECTURE](../../project/archive/2026-09-30-model-architecture.md)
 row M10. Census it builds on: [models-and-model-explorer](../audits/models-and-model-explorer.md) §2.
 
 Jake's words (E315): *"Figure out if we're supposed to have .blend files or Blender scripts: tell me what the best

@@ -1,4 +1,4 @@
-// E315 M2 (docs/plans/MODEL-ARCHITECTURE.md): Pine Hollow's models on the contract — the hollow log's own-space
+// E315 M2 (project/archive/2026-09-30-model-architecture.md): Pine Hollow's models on the contract — the hollow log's own-space
 // colliders land where the old world-space builder put them; the `until` detail set of a single-drawn building drops
 // with distance (the old landmark LOD, as data); and M8: the migrated Pine Hollow files never register a thing by hand
 // again, and draw by hand only what they declare world.

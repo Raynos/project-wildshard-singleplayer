@@ -1,4 +1,4 @@
-// E315 M1 (docs/plans/MODEL-ARCHITECTURE.md): the interactables kit's things are models (src/models/interact.ts) — every
+// E315 M1 (project/archive/2026-09-30-model-architecture.md): the interactables kit's things are models (src/models/interact.ts) — every
 // one builds its specimen at rest on the origin, and the kit places each row's drawnInto its batches.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';

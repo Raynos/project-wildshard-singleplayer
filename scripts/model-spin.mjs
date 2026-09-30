@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // model-spin.mjs — a ~10 s portrait turntable clip of 1–5 models, shot in the game's REAL Model Explorer, for review on
-// a phone in the Claude app (docs/plans/MODEL-ARCHITECTURE.md M9, E315). Jake: "an agent can just make a video spinning
+// a phone in the Claude app (project/archive/2026-09-30-model-architecture.md M9, E315). Jake: "an agent can just make a video spinning
 // the model in the Model Explorer, or a video spinning five models … in a little 10-second clip".
 //
 //   node scripts/model-spin.mjs --url=<served build> --shard=<slug> --models=<id,id,…|first:5> --out=<file.mp4>

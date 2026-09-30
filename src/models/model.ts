@@ -1,5 +1,5 @@
 /**
- * The model contract (E306 / E315, docs/plans/MODEL-ARCHITECTURE.md): what a model is, and the migration guide the shard
+ * The model contract (E306 / E315, project/archive/2026-09-30-model-architecture.md): what a model is, and the migration guide the shard
  * waves (M1 Driftwood · M2 Pine Hollow · M3 Nalati · M4 Nine Dragon · M5 creatures) follow.
  *
  * ── Definitions ───────────────────────────────────────────────────────────────────────────────────────────────────

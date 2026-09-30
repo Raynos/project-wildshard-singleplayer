@@ -1,4 +1,4 @@
-// E306 / E315 (docs/plans/MODEL-ARCHITECTURE.md, src/models/model.ts): the model contract. A model is defined once and
+// E306 / E315 (project/archive/2026-09-30-model-architecture.md, src/models/model.ts): the model contract. A model is defined once and
 // placed; `place` draws it the way the old builder did (the merged path bit-identical to the loop it replaced),
 // carries its own-space colliders to every placement, registers one piece per call and one catalog entry per model,
 // and the static rules hold over the whole tree (scripts/check-models.mjs).
