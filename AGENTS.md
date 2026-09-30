@@ -262,6 +262,18 @@ on his laptop.
 - **Commit JPEG, not PNG.** image_gen hands back 1.4–2 MB PNGs, and the uplink is slow.
   `sips -s format jpeg -s formatOptions 88 X.png --out X.jpg && rm X.png` → ~300–450 KB each.
 
+## HUD changes are coordinated over herdr (Jake, E332)
+
+Every shard shares one HUD (E154), so HUD work collides between sessions. The HUD files are src/player/TouchControls.ts,
+src/ui/HUD.ts, hudSlots.ts, WeaponStrip.ts, RideHUD.ts, FirstHints.ts, Minimap.ts, Map.ts and src/ui/styles/touch.css /
+game.css / ride.css.
+- **Before** you change what a HUD control is, where it sits or when it shows, tell the other live agents:
+  `herdr agent list`, then `herdr agent prompt <name> "[from <you>] HUD change: <what, which files, the ask id>"`
+  (no `--wait`). Say what their code may need to follow: a selector, a slot, a visibility rule.
+- **After** it lands, send the SHA to the same agents.
+- A HUD change that isn't only a bug fix also needs Jake's pick (a board) first. The current layout is E319: the left
+  edge is HORSE · HOVER · SWAP ring; VITALS hide at full health; LOCK shows only with a target.
+
 ## Games
 
 ### Rendering regression: no facade multi-draw anywhere (E271 / E272)
