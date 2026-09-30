@@ -670,7 +670,12 @@ function trailSegments(): Seg[] {
  */
 function signedTrailDistance(segs: Seg[], x: number, z: number, cap: number, out: [number, number, number]): void {
   let best = cap, sign = 1, dx = 1, dz = 0;
-  for (const [ax, az, bx, bz] of segs) {
+  // indexed, not `for (const [ax, az, bx, bz] of segs)`: the destructuring iterated every segment for every terrain vertex,
+  // ~0.6 GB of iterator garbage over Nalati's load (NALATI-FINISH B8, E302)
+  for (let k = 0; k < segs.length; k++) {
+    const s = segs[k];
+    if (s === undefined) continue;
+    const ax = s[0], az = s[1], bx = s[2], bz = s[3];
     const vx = bx - ax, vz = bz - az, wx = x - ax, wz = z - az;
     const l2 = vx * vx + vz * vz;
     const t = l2 > 0 ? Math.min(1, Math.max(0, (wx * vx + wz * vz) / l2)) : 0;

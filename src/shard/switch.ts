@@ -40,7 +40,10 @@ export function requestShard(slug: string, req: ShardRequest = {}): void {
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) u.searchParams.delete(name);
   if (req.explore === true) u.searchParams.set('explore', 'hub');
   markUnload(`shard switch to ${slug} (fresh page)`);
-  location.href = u.toString();
+  // replace, not assign (NALATI-FINISH B8, E302): an assigned navigation parks the old shard's page in WebKit's
+  // back/forward cache (pagehide `persisted`, measured in the iOS Simulator), its heap alive while the next shard boots on
+  // top of it; a replaced one is torn down
+  location.replace(u.toString());
 }
 
 /** the resident shards' memory (null without a host: a dev page) */
