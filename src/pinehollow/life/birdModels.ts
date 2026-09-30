@@ -1,8 +1,8 @@
 /**
  * Pine Hollow's modelled birds (PINE-HOLLOW-REMASTER §5 Polish): the raven, the great grey owl and the pileated woodpecker,
  * each PERCHED (wings folded) and FLYING (wings spread flat), generated from codex references (image-to-3D, PBR texture,
- * `art/pine-hollow/round-16-birds/`) into ONE GLB of six meshes sharing ONE atlas (4 × 2 tiles of 512², 1024 × 512 on the
- * phone: `birds.phone.glb` through tierUrl), plus a sidecar `birds.json` of the pivots measured on each mesh (the wing
+ * `art/pine-hollow/round-16-birds/`) into ONE GLB of six meshes sharing ONE atlas (4 × 2 tiles of 512²; the phone's
+ * `birds.phone.glb`, through tierUrl, lays the same tiles out on a 1024² atlas, E322 F-M5 below), plus a sidecar `birds.json` of the pivots measured on each mesh (the wing
  * roots, the body's half-width, the neck, the head's axis, the feet).
  *
  *   const set = await loadBirdModels();     // null: Debug ▸ Pine Hollow birds = Procedural, or the load failed — the procedural birds stay
@@ -14,30 +14,20 @@
  * laid level first so its perch pitch (1.3 rad) stands it against the trunk, belly to the bark — and its feet sit at the
  * height the procedural bird's did (RAVEN_STAND / OWL_STAND), so every perch spot and landing lines up.
  *
- * E322 F-M5, Debug ▸ Creatures & NPCs ▸ Bird fix (a reload; A = the above, untouched): B gives the flying owl a body
- * (birdFix.ts `inflateBody`: it came back a bas-relief), clings the perched woodpecker to its bark (`clingPose`: belly along
- * the bark, new dark clawed feet gripping it — `appendFeet` adds them — tail braced, instead of standing on straight
- * legs) and, on the phone, loads
- * `birds-b.phone.glb` — the same meshes on a 1024² atlas that gives the raven (and the perched owl) the desktop's 512²
- * tiles instead of 256² (scripts/img2mesh/birds/birds_phone_b.py; no KTX2 twin while it is a variant: KTX2 mode loads it
- * as WebP).
+ * E322 F-M5 (Jake picked B): the flying owl is given a body (birdFix.ts `inflateBody`: it came back a bas-relief), the
+ * perched woodpecker clings to its bark (`clingPose`: belly along the bark, new dark clawed feet gripping it — `appendFeet`
+ * adds them — tail braced, instead of standing on straight legs), and the phone's `birds.phone.glb` is the same meshes on
+ * a 1024² atlas that gives the raven (and the perched owl) the desktop's 512² tiles instead of 256²
+ * (scripts/img2mesh/birds/birds_phone_b.py), with its KTX2 twin.
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { KIND, type WildKind } from '../../chunks/pine-hollow/models/wildlife';
-import { setting } from '../../ui/Settings';
-import { phoneUrl } from '../../boot/bytes';
 import { clingPose, inflateBody, type ClingFeet } from './birdFix';
 
 export const BIRDS_URL = '/assets/pine-hollow/life/birds.glb';
 export const BIRDS_JSON_URL = '/assets/pine-hollow/life/birds.json';
-/** E322 F-M5 B: the phone's birds on the sharper 1024² atlas (the desktop keeps birds.glb: its tiles are 512² already) */
-export const BIRDS_B_PHONE_URL = '/assets/pine-hollow/life/birds-b.phone.glb';
-/** Debug ▸ Bird fix = B (read at load: the birds are parsed once) */
-export const birdFixOn = (): boolean => setting('pineBirdFix') === 'b';
-/** the birds' GLB this page loads (the tier's copy is still tierUrl's: this only picks B's phone file on the phone) */
-export function birdsUrl(): string { return birdFixOn() && phoneUrl(BIRDS_URL) !== BIRDS_URL ? BIRDS_B_PHONE_URL : BIRDS_URL; }
 
 type V3 = readonly [number, number, number];
 /** one mesh, in the pose frame, with what WildlifeMesh needs to tell its parts */
@@ -68,10 +58,10 @@ const BIRDS = [
 export async function loadBirdModels(): Promise<BirdSet | null> {
   try {
     const [gltf, side] = await Promise.all([
-      new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(birdsUrl()),
+      new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(BIRDS_URL),
       fetch(BIRDS_JSON_URL).then(async (r) => { if (!r.ok) throw new Error(`${BIRDS_JSON_URL}: ${r.status}`); return (await r.json()) as Sidecar; }),
     ]);
-    return parseBirds(gltf.scene, side, birdFixOn());
+    return parseBirds(gltf.scene, side);
   } catch (e: unknown) {
     console.warn('[birds] the modelled birds did not load — the procedural ones stay:', e);
     return null;
@@ -111,7 +101,7 @@ function floats(g: THREE.BufferGeometry, name: string): Float32Array | null {
   return a instanceof Float32Array ? a : null;
 }
 
-/** E322 F-M5 B: the clinging woodpecker's new feet appended to its geometry (position / uv / index; body part 0; the
+/** E322 F-M5: the clinging woodpecker's new feet appended to its geometry (position / uv / index; body part 0; the
  *  normals are rebuilt after). Returns the parts grown to match. */
 function appendFeet(g: THREE.BufferGeometry, parts: Uint8Array, f: ClingFeet): Uint8Array {
   const P = floats(g, 'position'), U = floats(g, 'uv'), idx = g.getIndex();
@@ -130,7 +120,7 @@ function appendFeet(g: THREE.BufferGeometry, parts: Uint8Array, f: ClingFeet): U
   return out;
 }
 
-function parseBirds(root: THREE.Object3D, side: Sidecar, fix: boolean): BirdSet {
+function parseBirds(root: THREE.Object3D, side: Sidecar): BirdSet {
   root.updateMatrixWorld(true);
   const found = new Map<string, THREE.Mesh>();
   root.traverse((o) => { if ('isMesh' in o && o.isMesh === true) found.set(o.name, o as THREE.Mesh); });
@@ -154,9 +144,9 @@ function parseBirds(root: THREE.Object3D, side: Sidecar, fix: boolean): BirdSet 
       const idx = src.getIndex();
       if (idx) g.setIndex(new THREE.BufferAttribute(Uint32Array.from(idx.array), 1));
       g.applyMatrix4(mesh.matrixWorld);
-      // E322 F-M5 B: the flying owl's body given volume, in the generated frame (the normals are rebuilt just below)
+      // E322 F-M5: the flying owl's body given volume, in the generated frame (the normals are rebuilt just below)
       const P = floats(g, 'position'), Nr = floats(g, 'normal');
-      if (fix && b.kind === KIND.owl && fly && P && Nr) inflateBody(P, Nr, s);
+      if (b.kind === KIND.owl && fly && P && Nr) inflateBody(P, Nr, s);
       smoothNormals(g);
       // the parts, in the generated frame: flying, outboard of the body's half-width a wing; the head past the plane
       // through the neck across its axis (+z flying; up-and-forward on the upright perched birds)
@@ -179,9 +169,9 @@ function parseBirds(root: THREE.Object3D, side: Sidecar, fix: boolean): BirdSet 
         // three's rotation about +x by +a turns the nose (+z) down: the instance's nose-up pitch takes it back
         _m.makeRotationX(tilt).multiply(lift);
         g.applyMatrix4(_m);
-        // E322 F-M5 B: the woodpecker clinging to its bark (legs folded, tail propped); the pivots take its rigid move
+        // E322 F-M5: the woodpecker clinging to its bark (legs folded, tail propped); the pivots take its rigid move
         const Q = floats(g, 'position');
-        if (fix && b.kind === KIND.woodpecker && Q) {
+        if (b.kind === KIND.woodpecker && Q) {
           const cling = clingPose(Q, s, _m.clone(), { pitch: b.perchPitch, uv: floats(g, 'uv') });
           _m.premultiply(cling.move);
           parts = appendFeet(g, parts, cling.feet);

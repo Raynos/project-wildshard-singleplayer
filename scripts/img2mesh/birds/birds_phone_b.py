@@ -1,6 +1,6 @@
-"""E322 F-M5 (Debug ▸ Bird fix = B): the phone's birds with a sharper atlas — `birds-b.phone.glb`.
+"""E322 F-M5 (Jake picked B): the phone's birds with a sharper atlas — `birds.phone.glb`, rewritten in place.
 
-The phone's birds.phone.glb carries the desktop atlas halved (2048×1024 → 1024×512, WebP q80, 34 KB): every bird tile is
+birds_pack.py's birds.phone.glb carries the desktop atlas halved (2048×1024 → 1024×512, WebP q80, 34 KB): every bird tile is
 256², and the raven — the bird you see closest, two to four of them on every kill — reads soft. Tiles 6 and 7 of the
 4×2 grid are filler no mesh samples. B lays the same tiles out on a 1024² atlas:
 
@@ -13,10 +13,9 @@ The phone's birds.phone.glb carries the desktop atlas halved (2048×1024 → 102
     +-------------+------+------+
 
 and rewrites each mesh's TEXCOORD_0 into its new rect (the geometry, the pivots, birds.json: unchanged). WebP q92: a
-high-quality source for the KTX2 twin scripts/bake-ktx2.mjs bakes once B is the pick (a variant's twin is in no default
-KTX2 set, so none is baked while it is a Debug row).
+high-quality source for the KTX2 twin scripts/bake-ktx2.mjs bakes (re-run it after this).
 
-  python3 scripts/img2mesh/birds/birds_phone_b.py public/assets/pine-hollow/life/birds.glb public/assets/pine-hollow/life/birds.phone.glb public/assets/pine-hollow/life/birds-b.phone.glb
+  python3 scripts/img2mesh/birds/birds_phone_b.py public/assets/pine-hollow/life/birds.glb public/assets/pine-hollow/life/birds.phone.glb public/assets/pine-hollow/life/birds.phone.glb
 """
 import io
 import json

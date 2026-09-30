@@ -128,7 +128,6 @@
  "7123cb384c3948569fedf168cd763510c0212b495f2d3ecc9a89998a55b0636f": "/assets/gpu/nalati/models/saddle.phone-7a54d62b.glb",
  "45197091143462f16c543c2bdd3261b7c31f53073f39b31ea55d66367e165326": "/assets/gpu/nalati/models/snow-lotus.phone-0dc236c0.glb",
  "abd0380ea644187664b63bd698ac7511ff47d43d5fc7bb1d0fbede6c95e88b1b": "/assets/gpu/nalati/models/watchtower.phone-cc619fab.glb",
- "f192cd49b1d92cbdbd83746112962f9c1f049b2fe9b8891b70927dabf3c08179": "/assets/gpu/pine-hollow/life/birds.phone-ddaa5402.glb",
  "7b4d39b9d9c94de7a61f06d7438ce20e2c753d00abdf57b458252d8df0443833": "/assets/gpu/pine-hollow/npcs/miller.phone-e10b54ef.glb",
  "9a23c7229338f7f926dc6fb15c9dc756fa66c22281a6693948525a1bd880ebce": "/assets/gpu/pine-hollow/npcs/ranger.phone-91bef3b1.glb",
  "d0f3a07a6081eddf8da329138008e55661d4ef202111611a53dcdd213259edb3": "/assets/gpu/pine-hollow/npcs/trader.phone-d2af3338.glb",
@@ -235,4 +234,5 @@
  "7846e992e134711c3ff7f79647a319456d2b709a53bc2b655a2fc1222ae31c7f": "/assets/gpu/nine-dragon/viewmodel/hand-r-nrm-7f97d7d4.ktx2",
  "5ff8b0a1e1dc0f61ca17c55bdebfbee9804e44555ab9da47d6504038124ebd0d": "/assets/gpu/nine-dragon/viewmodel/gauntlet-nrm-b6a9ff02.ktx2",
  "f63adf5d6dbf6a744584fef9afe9d6f1c528cb22ec3d36b942ba2a8ecb0b7294": "/assets/gpu/nine-dragon/lab/grapple/dragon-hook-28bd7a4c.glb"
+ "f8ffd0f9e33efe6e36de3858e444cdb18c4ffd2fbf3ddb0b9419451315377c8c": "/assets/gpu/pine-hollow/life/birds.phone-3c606615.glb",
 }

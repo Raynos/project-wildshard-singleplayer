@@ -5,6 +5,7 @@
 Each mesh's 0..1 UVs go into its 512² tile of the 2048×1024 atlas (4×2, row 0 at the image top: raven_perch, raven_fly,
 owl_perch, owl_fly / wood_perch, wood_fly, white, grey). Exports birds.glb (atlas.png as WebP q85) and birds.phone.glb
 (atlas.phone.png, 1024×512), POSITION/NORMAL/TEXCOORD_0 only, and birds.json (per-mesh tris + the measured pivots).
+Then birds_phone_b.py re-lays the phone file's atlas at 1024² (E322 F-M5), and scripts/bake-ktx2.mjs bakes its twin.
 """
 import argparse
 import json

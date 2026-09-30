@@ -1,5 +1,5 @@
 /**
- * E322 F-M5 (Debug ▸ Creatures & NPCs ▸ Bird fix = B): the two generated-bird shapes the round-16 meshes got wrong,
+ * E322 F-M5 (Jake picked B; the unfixed birds and their Debug row are gone): the two generated-bird shapes the round-16 meshes got wrong,
  * corrected on the vertices at load (birdModels.ts calls these before it tells the parts; the normals are rebuilt after):
  *
  *   inflateBody(pos, side)             the flying owl: its body came back a bas-relief (flat side-on); the belly and the
