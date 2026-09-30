@@ -120,8 +120,8 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
     if (added.body) moving.push(added.sync);
     if (piece.floor && piece.solidFloor !== true) player.platforms.push(piece.floor);
   });
-  // the forest's trunks (Pine Hollow's 1 770 pines; none on the island)
-  if (forest.trees.length > 0) registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/world/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() });
+  // the forest's trunks (Nalati's spruces; none on the island). A forest its shard's tree model draws: the model's (E315)
+  if (forest.trees.length > 0 && forest.drawer === 'self') registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/world/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() });
   // the shard's paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — laid by main.ts
   // once the builders have registered their decks, so no board pokes up through one (`addPathWalkways`)
   player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw), def.spawn.y);

@@ -12,6 +12,7 @@ import { placeCollider, poseOf } from '../src/models/colliders';
 import { hollowLog } from '../src/chunks/pine-hollow/models/hollowLog';
 import { forestTree } from '../src/chunks/pine-hollow/models/forestTree';
 import { mossyBoulder } from '../src/chunks/pine-hollow/models/mossyBoulder';
+import { Forest } from '../src/world/Forest';
 
 /** the migrated files' sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(['../src/world/*.ts', '../src/main.ts', '../src/chunks/pine-hollow/world/*.ts', '../src/pinehollow/quest/*.ts'], { query: '?raw', import: 'default', eager: true });
@@ -231,6 +232,24 @@ describe('Pine Hollow models (E315 M2)', () => {
       }
     }
     expect(seen).toBeGreaterThan(2000); // the views drew real trees in every band
+  });
+
+  it("the forest tree's own-space trunk capsule, placed on its tree, is the forest's world-space capsule", () => {
+    let seed = 99;
+    const rnd = (): number => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return seed / 4294967296; };
+    const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), at = new THREE.Vector3(), sc = new THREE.Vector3();
+    for (let k = 0; k < 200; k++) {
+      const scale = 0.7 + rnd() * 0.6, t = { x: (rnd() - 0.5) * 400, y: rnd() * 40, z: (rnd() - 0.5) * 400, rot: rnd() * 6.28, height: (0.5 + rnd() * 30) * scale, r: 0.1 + rnd() * 0.6 };
+      const want = Forest.prototype.colliderDescs.call({ trees: [t] } as unknown as Forest)[0];
+      const pose = poseOf({ x: t.x, y: t.y, z: t.z, matrix: new THREE.Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(scale, scale, scale)) });
+      const own = forestTree.colliders?.({ v: 0, height: t.height, r: t.r, scale }, ctx) ?? [];
+      expect(own).toHaveLength(1);
+      const got = own[0]?.kind === 'capsule' ? placeCollider(own[0], pose) : null;
+      if (got?.kind !== 'capsule' || want?.kind !== 'capsule') throw new Error('not a capsule');
+      for (const f of ['x', 'y', 'z', 'halfHeight', 'radius'] as const) expect(Math.abs(got[f] - want[f]), f).toBeLessThan(1e-9);
+      // an upright capsule: any turn about +Y is the same solid
+      if (got.rot) expect(Math.abs(got.rot.x) + Math.abs(got.rot.z)).toBeLessThan(1e-9);
+    }
   });
 
   it('every Pine Hollow model says how it is made, and the tree family carries its 14 species variants', () => {

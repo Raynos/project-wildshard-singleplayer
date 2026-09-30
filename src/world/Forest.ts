@@ -37,6 +37,16 @@ const KEEP2 = KEEP_NEAR * KEEP_NEAR, SHADOW_KEEP2 = SHADOW_KEEP * SHADOW_KEEP;
 export const FOREST_BANDS = { hi: LOD_DIST, far: FAR_DIST, twig: TWIG_DIST, fade: FAR_FADE } as const;
 
 /**
+ * A tree's trunk as the capsule it collides as (PHYSICS P3): its centre `y` above the tree's foot, half its straight
+ * length and its radius (the placement's trunk radius: the species' trunk × scale + a margin), in metres. The forest's
+ * own capsules (`colliderDescs`: Nalati's spruces, the navmesh bake) and the Pine Hollow tree model's (E315) are this one.
+ */
+export function trunkCapsule(t: { readonly height: number; readonly r: number }): { y: number; halfHeight: number; radius: number } {
+  const h = Math.max(1, t.height);
+  return { y: h / 2, halfHeight: Math.max(0.05, h / 2 - t.r), radius: t.r };
+}
+
+/**
  * Per-frame bucketing: every tree has one precomputed matrix; on move (> 1.5 m) or turn (> 3°) the
  * buckets are refilled with only the trees inside a padded view frustum (or within KEEP_NEAR), by
  * distance band: hi cards + twigs (near), lo cards, far impostor. Trunks follow the same near/far
@@ -226,8 +236,8 @@ export class Forest {
   /** PHYSICS P3: the trunks as upright capsules (their radius, ground to crown) — src/physics/pieces.ts builds them. */
   colliderDescs(): ColliderDesc[] {
     return this.trees.map((t) => {
-      const h = Math.max(1, t.height);
-      return { kind: 'capsule', x: t.x, y: t.y + h / 2, z: t.z, halfHeight: Math.max(0.05, h / 2 - t.r), radius: t.r };
+      const c = trunkCapsule(t);
+      return { kind: 'capsule', x: t.x, y: t.y + c.y, z: t.z, halfHeight: c.halfHeight, radius: c.radius };
     });
   }
 

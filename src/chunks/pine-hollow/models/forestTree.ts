@@ -9,18 +9,22 @@
  * material: needle cards near + far, bark near + far, twigs, impostors), else instanced per variant and band. Its LODs are
  * the forest's bands (src/world/Forest.ts `FOREST_BANDS`): the twigs only in the nearest metres (`until`), the impostor
  * dissolving in over the band before `far` (`fade`, the shaders' E94 dissolve). The forest hands `place` its view and its
- * visibility test (padded frustum, near, or casting its low-sun shadow into view), and sways them in the wind. Their
- * trunks collide as the forest's capsules (the core `forest` piece).
+ * visibility test (padded frustum, near, or casting its low-sun shadow into view), and sways them in the wind. Each trunk
+ * collides as an upright capsule (`colliders`: the forest's `trunkCapsule`, in the copy's own frame).
  */
 import { defineModel, type ModelContext, type ModelPart } from '../../../models/model';
 import { TREE_SPECS_V2 } from '../../../world/treeSpecies';
 import type { TreeFactory } from '../../../world/TreeFactory';
 import { TIER_CONFIG } from '../../../core/tier';
-import { FOREST_BANDS } from '../../../world/Forest';
+import { FOREST_BANDS, trunkCapsule } from '../../../world/Forest';
 
 export interface ForestTreeParams {
   /** the variant (TREE_SPECS_V2's order: the factory's) */
   readonly v: number;
+  /** its placement's height and trunk radius (metres: the trunk's capsule) and its scale; 0 height: no collider known */
+  readonly height: number;
+  readonly r: number;
+  readonly scale: number;
 }
 
 const KEY = 'pine-hollow/forest-tree:factory';
@@ -58,9 +62,15 @@ function band(ctx: ModelContext, v: number, level: 'near' | 'far' | 'impostor'):
 export const forestTree = defineModel<ForestTreeParams>({
   id: 'pine-hollow/forest-tree', name: 'Forest tree', category: 'nature', pipeline: 'blender',
   file: 'src/chunks/pine-hollow/models/forestTree.ts', surface: 'wood',
-  defaults: { v: 0 },
+  defaults: { v: 0, height: 0, r: 0, scale: 1 },
   variants: TREE_SPECS_V2.map((s, v) => ({ id: s.name, label: LABEL[s.name] ?? s.name, params: { v } })),
   build: (ctx, p) => band(ctx, p.v, 'near'),
+  // the trunk: the forest's capsule, in the copy's frame (its pose scales it back)
+  colliders: (p) => {
+    if (p.height <= 0) return [];
+    const c = trunkCapsule(p), s = p.scale;
+    return [{ kind: 'capsule', x: 0, y: c.y / s, z: 0, halfHeight: c.halfHeight / s, radius: c.radius / s }];
+  },
   lods: [
     { from: FOREST_BANDS.hi, build: (ctx, p) => band(ctx, p.v, 'far') },
     { from: FOREST_BANDS.far, fade: FOREST_BANDS.fade, build: (ctx, p) => band(ctx, p.v, 'impostor') },
