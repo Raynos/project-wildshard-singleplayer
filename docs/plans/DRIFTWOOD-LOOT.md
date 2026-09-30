@@ -74,6 +74,6 @@ quest giver. Any shop should be a second NPC. Don't allow for the selling of jun
 | Sea glass charm (board 3) | **C** | A wind chime of sea glass in the hut's doorway that grows every 5 pieces (5 → +10 max health, 10 → faster dodge recharge, 15 → the sword glows at night). |
 | Trophies (board 4) | **A + C** | The bear claw and the boar tusk on plaques on the hut wall; the captain's hat is worn by the player. |
 | Bag tabs (board 8) | **A** | Five icon tabs, one short word each: MAP · GEAR · FINDS · PACK · FEATS. |
-| GEAR (board 6) | **C** | A paper doll: the kit laid out round a silhouette (swords + sharpening, hearts, hat, cape, charms, coins). |
+| GEAR (board 6) | **C** | A paper doll: the kit laid out round a silhouette (swords + sharpening, hearts, charms, coins), with a **cosmetics** slot group holding the captain's hat and the sailcloth cape (Jake: "The hat also goes in the gear section as a cosmetic as does the cape"), worn / taken off from there. |
 | FINDS / collection (board 7) | **B** | A sticker book: found bright, missing dashed; 15 sea glass chips; places, glyph shards, trophies, treasures. |
 | PACK (inventory) | kept | The junk pack, as today (no sale). |
