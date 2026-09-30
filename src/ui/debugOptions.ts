@@ -180,6 +180,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
   opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
+  opt('nalatiFaces', 'creatures', 'Camp faces', [['current', 'A · Current'], ['hunyuan', 'B · Hunyuan head'], ['trellis', 'C · TRELLIS head'], ['painted', 'D · Painted face'], ['sharp', 'E · Sharp (re-UV)']], { reload: true, when: nalati, note: 'B5 / E302 · the five camp people\'s faces, remastered (progress/e302-faces/board.jpg)' }),
   opt('rideLook', 'creatures', 'Riding: look behind', [['140', '±140°'], ['170', '±170°']], { when: nalati, note: 'B1 / N13 · how far round the free look turns off the horse\'s heading (research: 120–150°; 170 = before)' }),
   opt('rideRoad', 'creatures', 'Riding: keep to the road', ON_OFF, { when: nalati, note: 'B1 / N13 · let go of the stick on a road and the horse keeps its gait along it; pull back to stop' }),
   opt('rideSpur', 'creatures', 'Riding: rhythm spur', ON_OFF, { when: nalati, note: 'B1 / N13 · tap GALLOP in time with the stride (the disc pulses): a faster gallop that costs almost no STEED' }),

@@ -23,6 +23,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '../core/tier';
+import { setting } from '../ui/Settings';
 import { painterlyMaterial } from '../world/painterly';
 import { rawFromGltf } from '../world/nalati/glbPaint';
 import type { Sky } from '../world/Sky';
@@ -42,8 +43,24 @@ let loader: GLTFLoader | null = null;
 export const PERSON_FILE = { elder: 'elder', herderGate: 'herder-dauren', herderRail: 'herder-erlan', child: 'child', cook: 'cook' } as const;
 export type PersonKey = keyof typeof PERSON_FILE;
 
+/**
+ * The face variant (NALATI-FINISH B5 / E302, the user: "all the models have terrible faces"): pause ▸ Settings ▸ Debug ▸
+ * Creatures & NPCs ▸ Camp faces, read at load. Each is a folder of the same five files, made by scripts/img2mesh/
+ * build_faces.sh (face_remaster.py: re-UV'd face first — the face ~25–35 % of the atlas, was ~2 % — then the face remade;
+ * the board's letters, progress/e302-faces/board.jpg) — current = today's files:
+ *   hunyuan  B: the head replaced by a Hunyuan3D-2 bust generated from a new codex front portrait, that portrait projected
+ *            on its face (art/nalati-grasslands/round-12-faces/)
+ *   trellis  C: the same from TRELLIS.2
+ *   painted  D: the current head with a simple readable face painted on (the procedural figures' style: eyes, brows, mouth)
+ *   sharp    E: the current heads, only re-UV'd
+ */
+function facesDir(): string {
+  const v = setting('nalatiFaces');
+  return v === 'current' ? '' : `faces-${v}/`;
+}
+
 export function peopleModelUrl(key: PersonKey): string {
-  return `${DIR}${PERSON_FILE[key]}.gen${TIER === 'phone' ? '.phone' : ''}.glb`;
+  return `${DIR}${facesDir()}${PERSON_FILE[key]}.gen${TIER === 'phone' ? '.phone' : ''}.glb`;
 }
 
 interface Figure { key: PersonKey; geometry: THREE.BufferGeometry; map: THREE.Texture | null; neck: THREE.Vector3; shoulder: THREE.Vector3; head: Float32Array; arm: Float32Array }
@@ -169,6 +186,7 @@ function packAtlases(figs: Figure[]): THREE.Texture | null {
   canvas.width = cell * 3; canvas.height = cell * 2;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
+  ctx.imageSmoothingQuality = 'high';   // the 512² → 256² phone downscale: 'low' aliased the faces into blocks (B5)
   figs.forEach((f, i) => {
     const cx = i % 3, cy = Math.floor(i / 3);
     const img = maps[i];
@@ -245,6 +263,8 @@ export async function loadPeopleRig<K extends PersonKey>(sky: Sky, frames: Recor
   geo.setIndex(new THREE.BufferAttribute(I, 1));
   geo.computeBoundingSphere();
   const mat = painterlyMaterial(sky, { map, rim: 0.35, bands: 0.8 });
+  // B5: a generated head keeps a few triangles its decimation turned inside out — drawn from both sides they are no holes
+  mat.side = THREE.DoubleSide;
   const mesh = new THREE.SkinnedMesh(geo, mat);
   mesh.name = 'nalati-camp-people-gen';
   mesh.bind(new THREE.Skeleton(boneList, inverses), new THREE.Matrix4());
