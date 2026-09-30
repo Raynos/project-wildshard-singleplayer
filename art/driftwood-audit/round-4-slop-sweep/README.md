@@ -28,3 +28,25 @@ the table. **PURE** marks a deletion with no taste call.
 | 10 | DEV pill + Sound on | the title's footer and the shard card's "(−1, +6)" subtitle |
 | 12 | Filler achievements + titles | the Achievements tab |
 | 24 | Decided Debug rows (and rows 25, 26) | text |
+
+## Boards 2–4: the rest of the rows that need Jake's call (E318, 2026-09-30)
+
+Jake: "15 is not in the board". These three boards show every row of the plan that board 1 left out and that still
+needs his call, one card per row, five cards per image. Card number = plan row. 16, 22 and 33 are decided in
+DRIFTWOOD-LOOT; 30–32 are docs rows; 34–38 are keeps, so they have no card.
+
+- **Build:** live `6ca63ec-munpj8lp`, Driftwood Isle. Same device and set-up as board 1 (Playwright iPhone 16 Pro
+  portrait, touch, phone tier, muted, Metal). The sea glass piece, the reef chest and the Captain's body were triggered
+  through the `__adventure` / `__world` debug handles; Developer mode was switched on with the title's DEV pill for the
+  Debug shots. Nothing in the game was changed.
+- **Two rows are out of date on the live build:** **15** (E314's Bag ▸ Finds now reads `found:reef-treasure` and shows
+  the pearl necklace as a treasure, `src/game/loot/finds.ts:52`), and **18** (the Gear tab now says "Tap a weapon to
+  hold it" and HELD; only "Wooden sword" vs the desktop hotbar's "Sword" is left).
+- **Text cards:** 14 and 23 are sounds, 27–29 are code only, and 20 is text (both decks look the same until you swipe
+  to the Nine Dragon card).
+
+| Image | Cards |
+|---|---|
+| [`board-2.jpg`](board-2.jpg) | 11 titles · 13 sea glass counted twice · 14 hit-tick on quest beats · 15 pearl necklace · 17 harvest the Captain |
+| [`board-3.jpg`](board-3.jpg) | 18 Bag wording · 19 dev text on card + map · 20 two title screens · 21 blank signposts · 23 samples never played |
+| [`board-4.jpg`](board-4.jpg) | 25 decided ground-cover rows · 26 stale Debug text · 27 AR-15 on sword shards · 28 Pine Hollow config · 29 dead onZone hook |
