@@ -103,6 +103,138 @@ export function hunterSleeve(len = 0.55, seed = 1): THREE.BufferGeometry {
   return g;
 }
 
+// ───────────────────────────── the coat sleeve (the crossbow's: E322 F-M6 polish) ─────────────────────────────
+
+/** rings × (RAD + 1) vertices → an indexed tube with smooth normals (and a uv if given) */
+function tube(rings: number, RAD: number, pos: number[], col: number[], uv: number[] | null): THREE.BufferGeometry {
+  const idx: number[] = [], row = RAD + 1;
+  for (let i = 0; i < rings - 1; i++) for (let k = 0; k < RAD; k++) { const a = i * row + k, b = a + 1, d = a + row, e = d + 1; idx.push(a, d, b, b, d, e); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  if (uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+/** the glove's gauntlet alone, `len` m along +Y from the wrist: flared leather, a rolled edge (it tucks into the coat's cuff) */
+export function hunterGauntlet(len = 0.06): THREE.BufferGeometry {
+  const P = HUNTER_PAL, leather = P.leather ?? ARM_PAL.leather, light = P.leatherLight ?? ARM_PAL.leatherLight, dark = P.leatherDark ?? ARM_PAL.leatherDark, edge = P.leatherEdge ?? ARM_PAL.leatherEdge;
+  const RAD = 24, ys: number[] = [];
+  for (let y = 0; y < len; y += 0.008) ys.push(y);
+  ys.push(len);
+  const pos: number[] = [], col: number[] = [], c = new THREE.Color();
+  for (const y of ys) for (let k = 0; k <= RAD; k++) {
+    const ph = (k / RAD) * Math.PI * 2, t = y / len;
+    const r = 0.033 + 0.007 * t + 0.0015 * Math.exp(-(((t - 0.92) / 0.07) ** 2));
+    c.copy(leather).lerp(light, 0.22 + 0.18 * Math.sin(ph + 0.4));
+    if (t > 0.85) c.lerp(edge, 0.55);
+    if (t < 0.15) c.lerp(dark, 0.45 * (1 - t / 0.15));
+    pos.push(Math.cos(ph) * r, y, Math.sin(ph) * r); col.push(c.r, c.g, c.b);
+  }
+  return tube(ys.length, RAD, pos, col, null);
+}
+
+/** where the coat's cuff starts past the glove's wrist (m, along the forearm): the gauntlet runs on inside it */
+export const COAT_FROM = 0.02;
+const CUFF_LEN = 0.075;
+/**
+ * The hunter's coat sleeve, along +Y from its cuff's edge (0) to `len`: a turned-back cuff (a rolled lip, two stitched
+ * seams, a step down to the sleeve), then the sleeve — compression folds bunched above the cuff, long soft folds, the
+ * seam along the underside, fuller toward the elbow. Vertex colours carry the shading (the fold valleys, the cuff's
+ * shadow, the lip's wear); the uv (6 tiles round, a tile per 5 cm along) lays `coatTextures()`' waxed canvas over it.
+ * 40 round, ~70 rings: ~5.5 k triangles.
+ */
+export function hunterCoatSleeve(len = 1, seed = 1): THREE.BufferGeometry {
+  const P = HUNTER_PAL, cloth = P.wool ?? ARM_PAL.wool, shade = P.woolShade ?? ARM_PAL.woolShade;
+  const RAD = 40, ys: number[] = [];
+  for (let y = 0; y < len;) { ys.push(y); y += y < CUFF_LEN + 0.004 ? 0.004 : y < 0.3 ? 0.008 : 0.03; }
+  ys.push(len);
+  const pos: number[] = [], col: number[] = [], uv: number[] = [], c = new THREE.Color();
+  const lip = lin(0x8a7650), stitch = lin(0x2e2618);
+  for (const y of ys) for (let k = 0; k <= RAD; k++) {
+    const a = k / RAD, ph = a * Math.PI * 2;
+    let r: number;
+    c.copy(cloth);
+    if (y <= CUFF_LEN) { // the cuff: a band of the same canvas turned back, thicker, its lip rolled and worn pale
+      const t = y / CUFF_LEN;
+      r = 0.05 + 0.0035 * Math.exp(-((t / 0.12) ** 2)) - 0.0035 * (t < 0.03 ? 1 - t / 0.03 : 0) + 0.0012 * Math.sin(ph * 2 + seed) * t;
+      for (const sy of [0.2, 0.86]) if (Math.abs(t - sy) < 0.03) { r -= 0.0007; c.lerp(stitch, 0.55); }
+      c.lerp(lip, 0.5 * Math.exp(-((t / 0.1) ** 2)));
+      c.lerp(shade, 0.25 * Math.max(0, -Math.sin(ph - 0.6))); // the cuff's underside
+      if (t < 0.03) c.multiplyScalar(0.55); // the inside of the lip, in shadow
+    } else { // the sleeve
+      const s = y - CUFF_LEN;
+      const bunch = Math.exp(-s * 16) * (0.5 + 0.5 * Math.sin(ph * 3 + seed + Math.sin(s * 60) * 1.5)) * Math.sin(s * 95);
+      const fold = Math.sin(ph * 3 + y * 6 + seed) * 0.6 + Math.sin(ph * 5 - y * 9 + seed * 2) * 0.4;
+      r = 0.046 + Math.min(1, s / 0.3) * 0.013 + 0.0026 * fold + 0.0022 * bunch - 0.002 * Math.exp(-((s / 0.006) ** 2));
+      c.lerp(shade, 0.42 * Math.max(0, -fold) + 0.35 * Math.max(0, -bunch) + 0.5 * Math.exp(-s * 70)); // valleys, the cuff's shadow
+      c.lerp(lip, 0.18 * Math.max(0, bunch));
+      if (Math.abs(Math.sin(ph * 0.5 + 1.1)) < 0.04) c.lerp(stitch, 0.5); // the seam along the underside
+    }
+    pos.push(Math.cos(ph) * r, y, Math.sin(ph) * r);
+    col.push(c.r, c.g, c.b);
+    uv.push(a * 6, y * 20);
+  }
+  const g = tube(ys.length, RAD, pos, col, uv);
+  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, len / 2, 0), len);
+  return g;
+}
+
+/** tileable value noise on a `per`-cell lattice (build-time only) */
+function tnoise(x: number, y: number, per: number, seed: number): number {
+  const h = (i: number, j: number): number => hash((((i % per) + per) % per) + seed * 17, (((j % per) + per) % per) - seed * 13);
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+interface CoatTex { map: THREE.DataTexture; normalMap: THREE.DataTexture; arm: THREE.DataTexture }
+let coatTex: CoatTex | null = null;
+/**
+ * The coat's waxed canvas, one 128² tile (drawn once, a few ms): a plain weave (16 threads a tile — it melts into the
+ * mips at arm's length), slubs, mottled wax (the albedo × 0.8–1.1 over the vertex colour; the roughness 0.5–0.85: the wax
+ * shines where the cloth is rubbed) and soft creases in the normal. Albedo sRGB; normal and ARM (ao · roughness · metal 0)
+ * linear; repeat-wrapped, mipmapped.
+ */
+export function coatTextures(): CoatTex {
+  if (coatTex) return coatTex;
+  const S = 128, N = 16;
+  const hgt = new Float32Array(S * S), col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4), nrm = new Uint8Array(S * S * 4);
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const u = x / S, v = y / S;
+    const cu = u * N, cv = v * N, over = (Math.floor(cu) + Math.floor(cv)) % 2 === 0;
+    const warp = Math.sin((cu % 1) * Math.PI), weft = Math.sin((cv % 1) * Math.PI), th = over ? warp : weft;
+    const slub = tnoise(u * 8, v * 32, 8, 3) * 0.5 + tnoise(u * 16, v * 16, 16, 5) * 0.5;
+    const crease = tnoise(u * 4 + v * 2, v * 4, 4, 7);
+    const mott = tnoise(u * 4, v * 4, 4, 11) * 0.6 + tnoise(u * 8, v * 8, 8, 2) * 0.4;
+    hgt[y * S + x] = th * 0.55 + slub * 0.25 + crease * 0.9;
+    const i = (y * S + x) * 4, a = Math.min(1, 0.8 + 0.3 * mott - 0.1 * (1 - th));
+    col[i] = col[i + 1] = col[i + 2] = Math.round(a * 255); col[i + 3] = 255;
+    arm[i] = Math.round((0.85 + 0.15 * th) * 255); arm[i + 1] = Math.round((0.5 + 0.35 * (1 - mott)) * 255); arm[i + 2] = 0; arm[i + 3] = 255;
+  }
+  const at = (xx: number, yy: number): number => hgt[(((yy + S) % S) * S) + ((xx + S) % S)] ?? 0;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const dx = (at(x + 1, y) - at(x - 1, y)) * 1.6, dy = (at(x, y + 1) - at(x, y - 1)) * 1.6;
+    const l = Math.hypot(dx, dy, 1), i = (y * S + x) * 4;
+    nrm[i] = Math.round((-dx / l * 0.5 + 0.5) * 255); nrm[i + 1] = Math.round((-dy / l * 0.5 + 0.5) * 255); nrm[i + 2] = Math.round((1 / l * 0.5 + 0.5) * 255); nrm[i + 3] = 255;
+  }
+  const tex = (data: Uint8Array, srgb: boolean): THREE.DataTexture => {
+    const t = new THREE.DataTexture(data, S, S, THREE.RGBAFormat);
+    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.generateMipmaps = true;
+    t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 8; t.needsUpdate = true;
+    return t;
+  };
+  coatTex = { map: tex(col, true), normalMap: tex(nrm, false), arm: tex(arm, false) };
+  return coatTex;
+}
+/** the coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas) */
+export function coatMaterialParams(): THREE.MeshPhysicalMaterialParameters {
+  const t = coatTextures();
+  return { map: t.map, normalMap: t.normalMap, normalScale: new THREE.Vector2(0.8, 0.8), aoMap: t.arm, roughnessMap: t.arm, metalnessMap: t.arm, roughness: 1, metalness: 0, envMapIntensity: 0.5, specularIntensity: 0.5 };
+}
+
 // ───────────────────────────── a hand ─────────────────────────────
 
 export interface HandSpec {
@@ -122,39 +254,60 @@ export interface HandSpec {
   armLen?: number;
   /** × the palette (the viewmodel sits in the weapon's shade: 1 = the Longbow's gloves as they are) */
   tint?: number;
+  /** the glove's own tint per channel (linear), over `tint` for the fist and gauntlet: a lighter buckskin that reads
+   *  against the walnut */
+  gloveTint?: V3;
   /** a free sleeve: the forearm is its own mesh, aimed every frame from the wrist at this point in CAMERA space (an elbow
    *  below the frame), so it keeps coming in from the bottom of the screen whatever the weapon's pose does */
   elbow?: V3;
+  /** the coat sleeve (hunterCoatSleeve, its own mesh on the coat's textured material) over a short gauntlet, instead of
+   *  the plain merged forearm */
+  coat?: boolean;
 }
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
-/** the vertex-colour attributes the viewmodel program reads, the palette × `tint`, a zero uv (its map slots hold 1×1 fillers) */
-function finish(g: THREE.BufferGeometry, tint: number): THREE.BufferGeometry {
-  if (tint !== 1) { const c = g.getAttribute('color'); for (let i = 0; i < c.count; i++) c.setXYZ(i, c.getX(i) * tint, c.getY(i) * tint, c.getZ(i) * tint); }
+/** the vertex colours × `t` (per channel) */
+function tintGeo(g: THREE.BufferGeometry, t: readonly [number, number, number]): THREE.BufferGeometry {
+  if (t[0] === 1 && t[1] === 1 && t[2] === 1) return g;
+  const c = g.getAttribute('color');
+  for (let i = 0; i < c.count; i++) c.setXYZ(i, c.getX(i) * t[0], c.getY(i) * t[1], c.getZ(i) * t[2]);
+  return g;
+}
+/** the attributes the viewmodel program reads: a zero uv beside the vertex colours (its map slots hold 1×1 fillers) */
+function finish(g: THREE.BufferGeometry): THREE.BufferGeometry {
   g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 2), 2));
   g.computeBoundingSphere();
   return g;
 }
 const onlyPNC = (g: THREE.BufferGeometry): THREE.BufferGeometry => { for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'color') g.deleteAttribute(k); return g; };
 
-/** A hand's geometry: `geometry` = the gloved fist in grip space, with its forearm merged in along the bent wrist — or, for
- *  a free sleeve (`free`), the fist alone and `sleeve` = the forearm along +Y from its start (placed every frame), `wrist`
- *  = where that starts in grip space. */
-export interface HandGeometry { geometry: THREE.BufferGeometry; sleeve: THREE.BufferGeometry | null; wrist: THREE.Vector3 }
+/** A hand's geometry: `geometry` = the gloved fist in grip space, with its forearm merged in along the bent wrist — or,
+ *  with a separate sleeve (`free`: aimed every frame; `spec.coat`: the coat, on its own material), the fist (+ the coat's
+ *  gauntlet) and `sleeve` = the forearm along +Y from its origin, `wrist` = where that origin sits in grip space and `dir`
+ *  = the wrist's bend there (grip space). */
+export interface HandGeometry { geometry: THREE.BufferGeometry; sleeve: THREE.BufferGeometry | null; wrist: THREE.Vector3; dir: THREE.Vector3 }
 export function handGeometry(spec: HandSpec, free = false): HandGeometry {
-  const mirror = spec.mirror === true, sx = mirror ? -1 : 1, tint = spec.tint ?? 1;
+  const mirror = spec.mirror === true, sx = mirror ? -1 : 1, k = spec.tint ?? 1, tint: V3 = [k, k, k], glove = spec.gloveTint ?? tint;
   return withHunterPalette(() => {
     const fist = gloveFist({ R: spec.R, mirror, span: spec.span ?? 1, curl: spec.curl ?? 1, thumbCurl: spec.thumbCurl ?? spec.curl ?? 1 });
     const bend = spec.bend ?? [0.12, 0];
-    const d = new THREE.Vector3(sx * bend[0], bend[1], 1).normalize();
-    const arm = onlyPNC(hunterSleeve(spec.armLen ?? 0.55, mirror ? 2 : 1));
+    const d = new THREE.Vector3(sx * bend[0], bend[1], 1).normalize(), toD = new THREE.Quaternion().setFromUnitVectors(Y_AXIS, d);
     const start = fist.wrist.clone().addScaledVector(d, -0.016); // the gauntlet laps over the back of the hand
-    if (free) return { geometry: finish(onlyPNC(fist.geometry), tint), sleeve: finish(arm, tint), wrist: fist.wrist.clone() };
-    arm.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(Y_AXIS, d));
+    if (spec.coat === true) {
+      const g = onlyPNC(hunterGauntlet(0.06)).applyQuaternion(toD).translate(start.x, start.y, start.z);
+      const out = mergeGeometries([onlyPNC(fist.geometry), g], false);
+      fist.geometry.dispose(); g.dispose();
+      const coat = tintGeo(hunterCoatSleeve(spec.armLen ?? 1, mirror ? 2 : 1), tint);
+      return { geometry: finish(tintGeo(out, glove)), sleeve: coat, wrist: start.clone().addScaledVector(d, COAT_FROM), dir: d };
+    }
+    const arm = tintGeo(onlyPNC(hunterSleeve(spec.armLen ?? 0.55, mirror ? 2 : 1)), tint);
+    tintGeo(onlyPNC(fist.geometry), glove);
+    if (free) return { geometry: finish(fist.geometry), sleeve: finish(arm), wrist: start, dir: d };
+    arm.applyQuaternion(toD);
     arm.translate(start.x, start.y, start.z);
-    const out = mergeGeometries([onlyPNC(fist.geometry), arm], false);
+    const out = mergeGeometries([fist.geometry, arm], false);
     fist.geometry.dispose(); arm.dispose();
-    return { geometry: finish(out, tint), sleeve: null, wrist: start };
+    return { geometry: finish(out), sleeve: null, wrist: start, dir: d };
   });
 }
 
@@ -188,6 +341,8 @@ export function blendGrip(a: GripPose, b: GripPose, t: number, out: GripPose): G
 
 export interface HandDef { spec: HandSpec; pose: GripPose }
 export type V3 = [number, number, number];
+/** the gloves' tint over the hunter palette (linear, per channel): a pale buckskin that reads against the walnut stocks */
+export const BUCKSKIN: V3 = [3.2, 4.2, 6.0];
 /** a hold as a weapon declares it (a dev knob: edit, then the weapon's `rebuildHands()`) */
 export interface HandHold { spec: HandSpec; at: V3; axis: V3; palm: V3 }
 export const holdDef = (h: HandHold): HandDef => ({ spec: h.spec, pose: gripPose(h.at, h.axis, h.palm) });
@@ -206,29 +361,35 @@ export class WeaponHands {
   /** the free sleeves (HandSpec.elbow): mesh, its start in the fist's grip space, the elbow in camera space */
   private readonly sleeves: { fist: THREE.Mesh; mesh: THREE.Mesh; wrist: THREE.Vector3; elbow: THREE.Vector3 }[] = [];
   private readonly q = new THREE.Quaternion();
+  /** every sleeve mesh (free or riding its fist) */
+  private readonly extra: THREE.Mesh[] = [];
 
-  constructor(parent: THREE.Object3D, material: THREE.Material, left: HandDef, right: HandDef) {
+  /** `coatMaterial`: the coat sleeves' (HandSpec.coat), else they fall back to `material` */
+  constructor(parent: THREE.Object3D, material: THREE.Material, left: HandDef, right: HandDef, coatMaterial: THREE.Material = material) {
     this.group.name = 'weapon-hands';
     this.group.userData['viewmodelOnly'] = true;
-    material.transparent = true; material.depthWrite = true;
+    for (const m of [material, coatMaterial]) { m.transparent = true; m.depthWrite = true; }
     const lg = handGeometry({ ...left.spec, mirror: true }, left.spec.elbow !== undefined), rg = handGeometry({ ...right.spec, mirror: false }, right.spec.elbow !== undefined);
     this.left = new THREE.Mesh(lg.geometry, material);
     this.right = new THREE.Mesh(rg.geometry, material);
     this.rightSpec = right.spec;
     const meshes = [this.left, this.right];
+    this.left.name = 'hand-left'; this.right.name = 'hand-right';
     for (const [fist, g, spec] of [[this.left, lg, left.spec], [this.right, rg, right.spec]] as const) {
-      if (g.sleeve === null || spec.elbow === undefined) continue;
-      const mesh = new THREE.Mesh(g.sleeve, material);
-      mesh.name = `${fist === this.left ? 'left' : 'right'}-sleeve`;
-      this.sleeves.push({ fist, mesh, wrist: g.wrist, elbow: new THREE.Vector3(...spec.elbow) });
-      meshes.push(mesh);
+      if (g.sleeve === null) continue;
+      const mesh = new THREE.Mesh(g.sleeve, spec.coat === true ? coatMaterial : material);
+      mesh.name = `${fist.name}-sleeve`;
+      mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = 1000;
+      mesh.userData['viewmodelOnly'] = true;
+      if (spec.elbow !== undefined) { this.sleeves.push({ fist, mesh, wrist: g.wrist, elbow: new THREE.Vector3(...spec.elbow) }); this.group.add(mesh); }
+      else { mesh.position.copy(g.wrist); mesh.quaternion.setFromUnitVectors(Y_AXIS, g.dir); fist.add(mesh); } // rigid: rides its fist
+      this.extra.push(mesh);
     }
     for (const m of meshes) {
       m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true; m.renderOrder = 1000;
       m.userData['viewmodelOnly'] = true;
       this.group.add(m);
     }
-    this.left.name = 'hand-left'; this.right.name = 'hand-right';
     this.placeLeft(left.pose);
     this.placeRight(right.pose);
     parent.add(this.group);
@@ -246,7 +407,7 @@ export class WeaponHands {
     for (const s of this.sleeves) {
       const w = _w.copy(s.wrist).applyQuaternion(s.fist.quaternion).add(s.fist.position);
       const d = _e.copy(s.elbow).applyMatrix4(_inv).sub(w).normalize();
-      s.mesh.position.copy(w).addScaledVector(d, -0.016);
+      s.mesh.position.copy(w);
       s.mesh.quaternion.setFromUnitVectors(Y_AXIS, d);
       s.mesh.visible = s.fist.visible;
     }
@@ -255,7 +416,7 @@ export class WeaponHands {
   /** the triangles and vertices the two hands add (a draw each) */
   get cost(): { draws: number; tris: number; verts: number; bytes: number } {
     let tris = 0, verts = 0, bytes = 0;
-    const meshes = [this.left, this.right, ...this.sleeves.map((s) => s.mesh)];
+    const meshes = [this.left, this.right, ...this.extra];
     for (const m of meshes) {
       const g = m.geometry, idx = g.getIndex();
       tris += (idx ? idx.count : g.getAttribute('position').count) / 3;
@@ -269,6 +430,6 @@ export class WeaponHands {
   dispose(): void {
     this.group.removeFromParent();
     this.left.geometry.dispose(); this.right.geometry.dispose();
-    for (const s of this.sleeves) s.mesh.geometry.dispose();
+    for (const m of this.extra) m.geometry.dispose();
   }
 }

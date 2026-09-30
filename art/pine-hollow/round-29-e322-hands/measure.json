@@ -1,135 +1,272 @@
 {
- "crossbow-rest": {
-  "calls": 3,
-  "tris": 16288,
-  "frameCalls": 105,
-  "frameTris": 1049599,
-  "gpuMsWith": 1.658,
-  "gpuMsWithout": 1.608,
-  "gpuMsHands": 0.05,
-  "geometry": {
-   "draws": 3,
+ "before_polish_9eda772": {
+  "crossbow-rest": {
+   "calls": 3,
    "tris": 16288,
-   "verts": 10539,
-   "bytes": 561444
+   "frameCalls": 105,
+   "frameTris": 1049599,
+   "gpuMsWith": 1.358,
+   "gpuMsWithout": 1.325,
+   "gpuMsHands": 0.033,
+   "geometry": {
+    "draws": 3,
+    "tris": 16288,
+    "verts": 10539,
+    "bytes": 561444
+   },
+   "buffer": [
+    804,
+    1748
+   ]
   },
-  "buffer": [
-   804,
-   1748
-  ]
- },
- "crossbow-aim": {
-  "calls": 3,
-  "tris": 16288,
-  "frameCalls": 99,
-  "frameTris": 984019,
-  "gpuMsWith": 1.492,
-  "gpuMsWithout": 1.483,
-  "gpuMsHands": 0.008,
-  "geometry": {
-   "draws": 3,
+  "crossbow-aim": {
+   "calls": 3,
    "tris": 16288,
-   "verts": 10539,
-   "bytes": 561444
+   "frameCalls": 99,
+   "frameTris": 984019,
+   "gpuMsWith": 1.467,
+   "gpuMsWithout": 1.425,
+   "gpuMsHands": 0.042,
+   "geometry": {
+    "draws": 3,
+    "tris": 16288,
+    "verts": 10539,
+    "bytes": 561444
+   },
+   "buffer": [
+    804,
+    1748
+   ]
   },
-  "buffer": [
-   804,
-   1748
-  ]
- },
- "crossbow-reload": {
-  "calls": 3,
-  "tris": 16288,
-  "frameCalls": 112,
-  "frameTris": 1047756,
-  "gpuMsWith": 1.417,
-  "gpuMsWithout": 1.367,
-  "gpuMsHands": 0.05,
-  "geometry": {
-   "draws": 3,
+  "crossbow-reload": {
+   "calls": 3,
    "tris": 16288,
-   "verts": 10539,
-   "bytes": 561444
+   "frameCalls": 111,
+   "frameTris": 1043762,
+   "gpuMsWith": 1.342,
+   "gpuMsWithout": 1.3,
+   "gpuMsHands": 0.042,
+   "geometry": {
+    "draws": 3,
+    "tris": 16288,
+    "verts": 10539,
+    "bytes": 561444
+   },
+   "buffer": [
+    804,
+    1748
+   ]
   },
-  "buffer": [
-   804,
-   1748
-  ]
- },
- "lever-rest": {
-  "calls": 2,
-  "tris": 15584,
-  "frameCalls": 108,
-  "frameTris": 1046242,
-  "gpuMsWith": 1.367,
-  "gpuMsWithout": 1.342,
-  "gpuMsHands": 0.025,
-  "geometry": {
-   "draws": 2,
+  "lever-rest": {
+   "calls": 2,
    "tris": 15584,
-   "verts": 10176,
-   "bytes": 541248
+   "frameCalls": 107,
+   "frameTris": 1042248,
+   "gpuMsWith": 1.367,
+   "gpuMsWithout": 1.325,
+   "gpuMsHands": 0.042,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
   },
-  "buffer": [
-   804,
-   1748
-  ]
- },
- "lever-aim": {
-  "calls": 1,
-  "tris": 7792,
-  "frameCalls": 93,
-  "frameTris": 992439,
-  "gpuMsWith": 1.342,
-  "gpuMsWithout": 1.317,
-  "gpuMsHands": 0.025,
-  "geometry": {
-   "draws": 2,
+  "lever-aim": {
+   "calls": 1,
+   "tris": 7792,
+   "frameCalls": 93,
+   "frameTris": 993023,
+   "gpuMsWith": 1.333,
+   "gpuMsWithout": 1.283,
+   "gpuMsHands": 0.05,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  },
+  "lever-reload": {
+   "calls": 2,
    "tris": 15584,
-   "verts": 10176,
-   "bytes": 541248
+   "frameCalls": 105,
+   "frameTris": 1063570,
+   "gpuMsWith": 1.367,
+   "gpuMsWithout": 1.333,
+   "gpuMsHands": 0.033,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
   },
-  "buffer": [
-   804,
-   1748
-  ]
- },
- "lever-reload": {
-  "calls": 2,
-  "tris": 15584,
-  "frameCalls": 106,
-  "frameTris": 1068070,
-  "gpuMsWith": 1.367,
-  "gpuMsWithout": 1.317,
-  "gpuMsHands": 0.05,
-  "geometry": {
-   "draws": 2,
+  "lever-cycle": {
+   "calls": 2,
    "tris": 15584,
-   "verts": 10176,
-   "bytes": 541248
-  },
-  "buffer": [
-   804,
-   1748
-  ]
+   "frameCalls": 103,
+   "frameTris": 1065273,
+   "gpuMsWith": 1.35,
+   "gpuMsWithout": 1.3,
+   "gpuMsHands": 0.05,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  }
  },
- "lever-cycle": {
-  "calls": 2,
-  "tris": 15584,
-  "frameCalls": 105,
-  "frameTris": 1072772,
-  "gpuMsWith": 1.35,
-  "gpuMsWithout": 1.292,
-  "gpuMsHands": 0.058,
-  "geometry": {
-   "draws": 2,
-   "tris": 15584,
-   "verts": 10176,
-   "bytes": 541248
+ "after_polish": {
+  "crossbow-rest": {
+   "calls": 4,
+   "tris": 22528,
+   "frameCalls": 106,
+   "frameTris": 1055839,
+   "gpuMsWith": 1.367,
+   "gpuMsWithout": 1.325,
+   "gpuMsHands": 0.042,
+   "geometry": {
+    "draws": 4,
+    "tris": 22528,
+    "verts": 13794,
+    "bytes": 742104
+   },
+   "buffer": [
+    804,
+    1748
+   ]
   },
-  "buffer": [
-   804,
-   1748
-  ]
+  "crossbow-aim": {
+   "calls": 4,
+   "tris": 22528,
+   "frameCalls": 100,
+   "frameTris": 990259,
+   "gpuMsWith": 1.458,
+   "gpuMsWithout": 1.408,
+   "gpuMsHands": 0.05,
+   "geometry": {
+    "draws": 4,
+    "tris": 22528,
+    "verts": 13794,
+    "bytes": 742104
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  },
+  "crossbow-reload": {
+   "calls": 4,
+   "tris": 22528,
+   "frameCalls": 113,
+   "frameTris": 1053984,
+   "gpuMsWith": 1.333,
+   "gpuMsWithout": 1.325,
+   "gpuMsHands": 0.008,
+   "geometry": {
+    "draws": 4,
+    "tris": 22528,
+    "verts": 13794,
+    "bytes": 742104
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  },
+  "lever-rest": {
+   "calls": 2,
+   "tris": 15584,
+   "frameCalls": 106,
+   "frameTris": 1039231,
+   "gpuMsWith": 1.342,
+   "gpuMsWithout": 1.308,
+   "gpuMsHands": 0.033,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  },
+  "lever-aim": {
+   "calls": 1,
+   "tris": 7792,
+   "frameCalls": 93,
+   "frameTris": 974665,
+   "gpuMsWith": 1.333,
+   "gpuMsWithout": 1.292,
+   "gpuMsHands": 0.042,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  },
+  "lever-reload": {
+   "calls": 2,
+   "tris": 15584,
+   "frameCalls": 104,
+   "frameTris": 1069458,
+   "gpuMsWith": 1.383,
+   "gpuMsWithout": 1.308,
+   "gpuMsHands": 0.075,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  },
+  "lever-cycle": {
+   "calls": 2,
+   "tris": 15584,
+   "frameCalls": 103,
+   "frameTris": 1074160,
+   "gpuMsWith": 1.333,
+   "gpuMsWithout": 1.3,
+   "gpuMsHands": 0.033,
+   "geometry": {
+    "draws": 2,
+    "tris": 15584,
+    "verts": 10176,
+    "bytes": 541248
+   },
+   "buffer": [
+    804,
+    1748
+   ]
+  }
  }
 }

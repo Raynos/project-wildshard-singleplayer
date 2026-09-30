@@ -16,7 +16,7 @@ import { makePixels, clamp01, sstep, CROSSBOW_SETS, RIFLE_SETS, type Pixels, typ
 // oxlint-disable-next-line import/default -- a Vite `?worker&inline` import: its default export is the worker constructor (typed by vite/client), which oxlint's resolver cannot see
 import TexturesWorker from './viewmodelTextures.worker?worker&inline';
 import type { Weapon } from './Weapon';
-import { HANDS_MATERIAL, WeaponHands, holdDef, type HandHold } from './hunterHands';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from './hunterHands';
 
 /**
  * Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,
@@ -815,12 +815,13 @@ export class Crossbow implements Weapon {
   private peepMats: THREE.Material[] = [];
   /** E322 F-M6: the hunter's gloved hands (hunterHands.ts; Jake's pick B) */
   private hands: WeaponHands | null = null;
-  private handsMat: THREE.MeshPhysicalMaterial | null = null;
-  /** the holds, in model space: the left hand cradling the fore-end's leather (its sleeve free: aimed at an elbow below the
-   *  frame, so the reload's tilt never swings the arm away), the right under the grip with the index by the trigger. A dev knob: edit, then `rebuildHands()` (`__world.crossbow`). */
+  private handsMat: THREE.MeshPhysicalMaterial | null = null; private coatMat: THREE.MeshPhysicalMaterial | null = null;
+  /** the holds, in model space: the left hand round the back of the fore-end's leather — its thumb up the near side, its
+   *  fingers up the far side, the coat sleeve free (aimed at an elbow off the frame's lower left, so the reload's tilt
+   *  never swings the arm away); the right under the grip with the index by the trigger. Both in the coat's sleeves. A dev knob: edit, then `rebuildHands()` (`__world.crossbow`). */
   readonly handHolds: { left: HandHold; right: HandHold } = {
-    left: { spec: { R: 0.03, curl: 0.5, thumbCurl: 0.85, armLen: 1, tint: 2.2, elbow: [-0.2, -0.5, -0.15] }, at: [0, -0.03, -0.15], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
-    right: { spec: { R: 0.03, curl: 0.6, thumbCurl: 0.9, bend: [0.8, -1.2], armLen: 0.5, tint: 2.2 }, at: [0, -0.09, 0.33], axis: [0, 0.34, -0.94], palm: [0, 1, 0] },
+    left: { spec: { R: 0.025, curl: 0.7, thumbCurl: 0.9, armLen: 1, tint: 2.2, gloveTint: BUCKSKIN, coat: true, elbow: [-0.35, -0.45, -0.45] }, at: [0.004, -0.034, -0.04], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
+    right: { spec: { R: 0.03, curl: 0.6, thumbCurl: 0.9, bend: [0.8, -1.2], armLen: 0.6, tint: 2.2, gloveTint: BUCKSKIN, coat: true }, at: [0, -0.09, 0.33], axis: [0, 0.34, -0.94], palm: [0, 1, 0] },
   };
 
   // projectiles
@@ -849,7 +850,8 @@ export class Crossbow implements Weapon {
 
   private buildHands(): void {
     this.handsMat ??= viewmodelMaterial(this.sky, 'hunter-hands', HANDS_MATERIAL);
-    this.hands = new WeaponHands(this.model, this.handsMat, holdDef(this.handHolds.left), holdDef(this.handHolds.right));
+    this.coatMat ??= viewmodelMaterial(this.sky, 'hunter-coat', coatMaterialParams());
+    this.hands = new WeaponHands(this.model, this.handsMat, holdDef(this.handHolds.left), holdDef(this.handHolds.right), this.coatMat);
   }
   /** dev: rebuild the hands after editing `handHolds` */
   rebuildHands(): void { this.hands?.dispose(); this.buildHands(); }

@@ -14,7 +14,7 @@ import type { Sky } from '../world/Sky';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { shardSlot } from '../core/shardState';
 import { MAY_KTX2 } from '../boot/gpuFiles';
-import { HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from './hunterHands';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from './hunterHands';
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11): a 1900s backwoods lever-action carbine in the
@@ -328,8 +328,8 @@ export class LeverRifle implements KitWeapon {
    *  rides the lever through a cycle); `gate` = the right hand thumbing a cartridge, relative to the round's base. A dev
    *  knob: edit, then `rebuildHands()` (`__world.weapons` → the rifle). */
   readonly handHolds: { left: HandHold; right: HandHold; gate: Omit<HandHold, 'spec'> } = {
-    left: { spec: { R: 0.02, curl: 0.8, bend: [0.4, -0.8], armLen: 0.5, tint: 2.2 }, at: [0, -0.017, -0.16], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
-    right: { spec: { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2 }, at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },
+    left: { spec: { R: 0.02, curl: 0.8, bend: [0.4, -0.8], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.017, -0.16], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
+    right: { spec: { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },
     gate: { at: [0.03, -0.01, 0.03], axis: [0, 0, -1], palm: [-1, 0, 0] },
   };
   private readonly grips = { rest: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), gate: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), cyc: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), held: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), out: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]) };
