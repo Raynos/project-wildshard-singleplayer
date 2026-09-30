@@ -4,7 +4,7 @@
 //
 //   node scripts/e314-loot-capture.mjs --url=http://127.0.0.1:4403 --out=<dir> [--chunk=driftwood-isle] [--scenes=…] [--demo]
 //
-// scenes: burst (a bear — else a boar — killed 6 m ahead: the arc + "+n", then the chip once the coins land) · map · gear · finds · pack ·
+// scenes: hurt (a 12-point hit: VITALS back, the coin chip where it was) · burst (a bear — else a boar — killed 6 m ahead: the arc + "+n", then the chip once the coins land) · map · gear · finds · pack ·
 // feats · inventory · achievements (today's names) — a tab that isn't there is skipped. --demo seeds a mid-game Driftwood
 // save (23 coins, whetstone I, charm I, the bear claw, the captain's hat worn, 7 sea glass, 6 places, 2 glyph shards, the
 // pearl necklace) through localStorage before the load; the game reads it like any save. Writes <out>/<chunk>-<scene>.jpg.
@@ -40,9 +40,21 @@ try {
   await page.goto(`${URL_BASE}/?chunk=${CHUNK}&mute=1&nolock=1&skipintro=1&touch=1&tier=phone`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro'), undefined, { timeout: 300000, polling: 1000 });
   await sleep(4000);
+  const census = await page.evaluate(() => {
+    const by = {};
+    for (const a of window.__world.animals.animals) if (a.alive) by[a.kind] = (by[a.kind] ?? 0) + 1;
+    return { by, fullClear: window.__loot?.fullClear ?? null };
+  });
+  console.log(`census ${JSON.stringify(census.by)} · full clear ${census.fullClear ?? '(no coins here)'}`);
   const shot = async (name) => { const f = resolvePath(OUT, `${CHUNK}-${name}.jpg`); writeFileSync(f, await page.screenshot({ type: 'jpeg', quality: 82 })); console.log(f); };
 
   for (const scene of SCENES) {
+    if (scene === 'hurt') {
+      // VITALS come back on a hit (E319): one 12-point bite from the nearest enemy, through main.ts's own onCharge
+      await page.evaluate(() => { const w = window.__world, a = w.animals.animals.find((x) => x.alive); if (a) w.animals.onCharge?.(a, 12); });
+      await sleep(600); await shot('hurt');
+      continue;
+    }
     if (scene === 'burst') {
       // a bear (else a boar, else anything alive) set down 6 m ahead of the camera and killed: the coins burst, fly in, land
       const ok = await page.evaluate(() => {
