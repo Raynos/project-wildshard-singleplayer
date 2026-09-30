@@ -107,6 +107,7 @@ import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
 import { placeDrawnModels } from './chunks/pine-hollow/world/drawnModels';
 import { placeCabins } from './chunks/pine-hollow/world/cabins';
+import { placePineHollowSets } from './chunks/pine-hollow/world/places';
 import { listShardModels } from './models/roster';
 import { TrainingArena } from './practice/TrainingArena';
 import { loadPlayground } from './playgrounds/load';
@@ -749,6 +750,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const compendium = installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
   // Pine Hollow's adventure (src/pinehollow/quest/): PH-C1 the lantern quest, PH-C6 the hamlet, PH-C7 the night, PH-C8 collectibles; chains onKill
   const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); } } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
+  if (chunk.slug === 'pine-hollow') placePineHollowSets(registry); // E315 M12: every named place is a Set (after the quest has placed its props)
   // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
   // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
   const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });

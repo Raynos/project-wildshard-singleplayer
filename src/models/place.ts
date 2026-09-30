@@ -170,6 +170,44 @@ export function placedCopies(id: string): number {
   return n;
 }
 
+/** every `place` call this shard has registered, in the order they were made (a shard's named places sort them into Sets) */
+export function placedGroups(): readonly Placed[] {
+  const out: Placed[] = [];
+  for (const r of records.values()) out.push(...r.groups);
+  return out;
+}
+
+const _near = new THREE.Box3(), _nearC = new THREE.Vector3();
+
+/**
+ * The copies of a `place` call whose box centre stands within each circle (x, z, r: metres, on the ground), as a `Placed`
+ * of their own per circle — a named place's share of a field or a scatter (M12: every named place is a Set). One pass over
+ * the copies. A share draws nothing of its own (`object` is the call's), owns no colliders and culls nothing; null where
+ * no copy stands.
+ */
+export function copiesNear(p: Placed, circles: readonly { readonly x: number; readonly z: number; readonly r: number }[]): (Placed | null)[] {
+  const idx: number[][] = circles.map(() => []);
+  for (let i = 0; i < p.copies; i++) {
+    p.copyBox(i, _near).getCenter(_nearC);
+    circles.forEach((c, k) => { if ((_nearC.x - c.x) ** 2 + (_nearC.z - c.z) ** 2 <= c.r * c.r) idx[k]?.push(i); });
+  }
+  return idx.map((list): Placed | null => {
+    if (list.length === 0) return null;
+    if (list.length === p.copies) return p;
+    const at = Uint32Array.from(list);
+    return {
+      model: p.model, object: p.object, colliders: [], copies: at.length, drawnAs: p.drawnAs, registered: p.registered,
+      cull: (): void => undefined,
+      copyBox: (i, target) => p.copyBox(at[i] ?? 0, target),
+      nearest: (q) => {
+        let bi = -1, bd = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < at.length; i++) { const d = p.copyBox(at[i] ?? 0, _near).getCenter(_nearC).distanceToSquared(q); if (d < bd) { bd = d; bi = i; } }
+        return bi;
+      },
+    };
+  });
+}
+
 // ── helpers ──
 
 const _box = new THREE.Box3(), _v = new THREE.Vector3(), _sphere = new THREE.Sphere();

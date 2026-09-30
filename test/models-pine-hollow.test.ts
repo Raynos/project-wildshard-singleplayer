@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import type { Sky } from '../src/world/Sky';
 import { WorldRegistry } from '../src/world/registry';
 import { defineModel, definedModels, modelContext } from '../src/models/model';
-import { cullPlaced, place } from '../src/models/place';
+import { copiesNear, cullPlaced, place } from '../src/models/place';
 import { placeCollider, poseOf } from '../src/models/colliders';
 import { hollowLog } from '../src/chunks/pine-hollow/models/hollowLog';
 import { forestTree } from '../src/chunks/pine-hollow/models/forestTree';
@@ -252,6 +252,22 @@ describe('Pine Hollow models (E315 M2)', () => {
     }
   });
 
+  it("copiesNear: a named place's share of a place call — the copies standing in each circle, boxed as the call boxes them", () => {
+    const stone = defineModel({ id: 'shared/test-near-stone', name: 'Stone', category: 'nature', pipeline: 'code', file: 'test/models-pine-hollow.test.ts', defaults: {},
+      build: () => [{ geometry: new THREE.BoxGeometry(1, 1, 1), material: new THREE.MeshBasicMaterial() }] });
+    const pls = Array.from({ length: 50 }, (_, i) => ({ x: (i % 10) * 10, y: 0, z: Math.floor(i / 10) * 10 }));
+    const all = place(stone, pls, { ctx, draw: 'instanced', registry: null });
+    const [a, b, none, every] = copiesNear(all, [{ x: 0, z: 0, r: 10.5 }, { x: 45, z: 20, r: 6 }, { x: 500, z: 500, r: 5 }, { x: 45, z: 20, r: 100 }]);
+    expect(a?.copies).toBe(3); // (0, 0), (10, 0), (0, 10)
+    expect(b?.copies).toBe(2); // (40, 20), (50, 20)
+    expect(none).toBeNull();
+    expect(every).toBe(all);
+    const box = new THREE.Box3();
+    expect(b?.copyBox(0, box).getCenter(new THREE.Vector3()).toArray()).toEqual([40, 0, 20]);
+    expect(b?.nearest(new THREE.Vector3(52, 0, 21))).toBe(1);
+    expect(b?.colliders).toEqual([]);
+  });
+
   it('every Pine Hollow model says how it is made, and the tree family carries its 14 species variants', () => {
     const pine = definedModels().filter((m) => m.id.startsWith('pine-hollow/'));
     expect(pine.map((m) => m.id)).toEqual(expect.arrayContaining(['pine-hollow/hollow-log', 'pine-hollow/forest-tree', 'pine-hollow/mossy-boulder']));
@@ -265,6 +281,7 @@ describe('Pine Hollow models (E315 M2)', () => {
     const WORLD: Record<string, { why: string; draws: Partial<Record<'mergeGeometries' | 'InstancedMesh' | 'BatchedMesh' | 'Mesh', number>>; registers?: number }> = {
       'src/chunks/pine-hollow/world/props.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/drawnModels.ts': { why: '', draws: {} },
+      'src/chunks/pine-hollow/world/places.ts': { why: '', draws: {} },
       'src/world/Undergrowth.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/cabins.ts': { why: '', draws: {} },
       'src/chunks/pine-hollow/world/cabinKit.ts': { why: '', draws: {} },

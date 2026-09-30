@@ -101,5 +101,5 @@ export function placeCabins(h: { cabins: Cabins; sky: Sky; registry: WorldRegist
       if (b.cluster) hamlet.push(placed);
     }
   }
-  if (hamlet.length > 0) placeSet({ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'src/chunks/pine-hollow/world/cabins.ts', members: hamlet, registry });
+  if (hamlet.length > 0) placeSet({ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'src/chunks/pine-hollow/world/cabins.ts', members: hamlet, place: 'pine-hollow/hamlet', registry }); // the named place (M12)
 }
