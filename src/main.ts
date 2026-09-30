@@ -71,6 +71,7 @@ import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { Owned } from './game/loot/Owned';
+import { practiceRoom } from './core/practiceRoom';
 import { installLoot } from './game/loot/install';
 import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { dayClockClock, dayNightClock, setActiveClock } from './world/WorldClock';
@@ -899,7 +900,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       since += dt;
       if (since < 0.25) return;
       since = 0;
-      if (deathFade.active || !hud.entered || world.freeCamera || world.tour.active || away()) return;
+      if (deathFade.active || !hud.entered || world.freeCamera || world.tour.active || away() || practiceRoom.open) return; // a practice room is never the checkpoint (E321)
       const p = player.position, ph = activePhysics();
       const floor = ph ? floorBelow(ph, p.x, p.z, p.y + 0.6, 1.2) : undefined; // real walkable footing under the feet
       const grounded = floor !== undefined && Math.abs(floor - p.y) < 0.3 && player.onGround && !player.swimming && !player.wading && !player.hover

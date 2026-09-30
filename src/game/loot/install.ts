@@ -25,6 +25,7 @@ import { CoinBurst } from './CoinBurst';
 import { coinsFor, coinsOn, type LootGate } from './coins';
 import { driftwoodFinds, nextCharmAt, seaGlassFound, type FlagReader } from './finds';
 import { isCosmetic, isOwnedId, OWNED, type Owned, type OwnedId } from './Owned';
+import { practiceRoom } from '../../core/practiceRoom';
 import { Purse } from './Purse';
 import { Bounty } from './Bounty';
 
@@ -79,7 +80,7 @@ export function installLoot<A extends LootAnimal>(h: LootHost<A>): Loot {
   const prevKill = h.animals.onKill;
   h.animals.onKill = (a) => {
     prevKill?.(a);
-    if (!live) return;
+    if (!live || practiceRoom.open) return; // a practice kill (arena / playground, E321) pays nothing and spends no one-time pay
     const n = coinsFor(h.chunk, a.kind);
     if (n <= 0 || !bounty.claim(a)) return;
     burst.spawn(a.position, n, (share) => { purse.add(share, false); }, () => { purse.flush(); sfx.interact('chime', undefined, { gain: 0.55 }); });
