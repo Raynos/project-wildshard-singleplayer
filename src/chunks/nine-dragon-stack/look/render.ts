@@ -71,10 +71,25 @@ export function createRender(): ShardRender {
     handle.jiehua.blendMode.opacity.value = active ? 0 : 1;
   };
   document.addEventListener('ws:practice-active', onPractice); // the enclosed arena has no outdoor drizzle / city grade
-  // the Model Explorer's studio (E306): no drizzle across the turntable or its thumbnails; the grade stays (it is the look)
+  // the Model Explorer's studio (E306): no drizzle across the turntable or its thumbnails; the grade stays (it is the look).
+  // No city air either (E315): a specimen framed whole stands 30–60 m from the camera, and the base air (from 16 m) and the
+  // silk bands washed the big ones grey (the banyan's crown read as fog). The air's density and the bands' depths are put
+  // back as they were when the studio closes; nothing else writes them after the build
+  let air: { base: number; depths: number[] } | null = null;
   const onStudio = (event: Event): void => {
     if (handle === null) return;
-    handle.jiehua.u.uRain.value.x = (event as CustomEvent<boolean>).detail ? 0 : BLEED.rain;
+    const on = (event as CustomEvent<boolean>).detail, u = handle.shared.u;
+    handle.jiehua.u.uRain.value.x = on ? 0 : BLEED.rain;
+    if (on && air === null) {
+      air = { base: u.uFogBase.value, depths: u.uBands.value.map((b) => b.z) };
+      u.uFogBase.value = 0;
+      for (const b of u.uBands.value) b.z = 0;
+    } else if (!on && air !== null) {
+      const was = air;
+      u.uFogBase.value = was.base;
+      u.uBands.value.forEach((b, i) => { b.z = was.depths[i] ?? b.z; });
+      air = null;
+    }
   };
   document.addEventListener('ws:studio-active', onStudio);
   const glow = glowUniforms();
