@@ -7,6 +7,7 @@ import { pwaPlugin } from './vite/pwa-plugin';
 import { contentNamed, hashTree } from './vite/assetHashes';
 import { copyRapierWasm, rapierAlias, rapierPreviewPlugin } from './vite/rapier';
 import { copyBasisTranscoder } from './vite/basis';
+import { backdropPrefixPlugin } from './vite/backdropPrefix';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
 // emitted as /version.json so the running app can tell when the server has a newer build
@@ -200,6 +201,6 @@ export default defineConfig(({ mode }) => {
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
-    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin()],
+    plugins: native ? [backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [backdropPrefixPlugin(), versionPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin()],
   };
 });
