@@ -57,35 +57,66 @@ while [ $# -gt 0 ]; do
 done
 
 # caps (E317 follow-up: one session held 26 previews registered for 8–12 h): --hours at most SERVE_MAX_HOURS (4), and at
-# most SERVE_MAX_LIVE (8) previews machine-wide — over it, this caller's oldest preview is stopped to make room, or, if
-# the caller has none, the one closest to its expiry (it's a shared lane). The reaper ends any preview after 6 h.
-MAX_H="${SERVE_MAX_HOURS:-4}"; MAX_LIVE="${SERVE_MAX_LIVE:-8}"
+# most SERVE_MAX_LIVE (12) previews machine-wide. Over it: this caller's own oldest preview is stopped to make room; else
+# another's, but only one older than SERVE_RECYCLE_MIN (60) minutes — a preview someone is capturing on right now is never
+# pulled (E339: the old any-preview recycling stopped agents' servers mid-capture); else it waits for room.
+# The port is picked and reserved under a lock (a placeholder registry entry, this shell's pid, until the preview's own
+# pid replaces it): two starts in the same second were both handed :4400 (E339).
+MAX_H="${SERVE_MAX_HOURS:-4}"; MAX_LIVE="${SERVE_MAX_LIVE:-12}"; RECYCLE_MIN="${SERVE_RECYCLE_MIN:-60}"
 if ! [[ "$HOURS" =~ ^[0-9]+$ ]] || [ "$HOURS" -lt 1 ]; then HOURS=1; fi
 if [ "$HOURS" -gt "$MAX_H" ]; then echo "serve-build: --hours capped at $MAX_H" >&2; HOURS=$MAX_H; fi
+age_min() {  # minutes since pid started (ps etime [[dd-]hh:]mm:ss)
+  local e d=0 h=0 m=0; e="$(ps -o etime= -p "$1" 2>/dev/null | tr -d ' ')"; [ -z "$e" ] && { echo 0; return; }
+  if [[ "$e" == *-* ]]; then d="${e%%-*}"; e="${e#*-}"; fi
+  IFS=: read -r -a t <<<"$e"
+  case "${#t[@]}" in 3) h=${t[0]}; m=${t[1]};; 2) m=${t[0]};; esac
+  echo $(( 10#$d * 1440 + 10#$h * 60 + 10#$m ))
+}
+lock() {  # a mkdir lock round the registry; a lock left by a killed start is broken after 60 s
+  local n=0
+  until mkdir "$REG/.lock" 2>/dev/null; do
+    n=$((n + 1)); [ $n -gt 300 ] && { rmdir "$REG/.lock" 2>/dev/null; n=0; }
+    sleep 0.2
+  done
+}
+unlock() { rmdir "$REG/.lock" 2>/dev/null; return 0; }
+said=0
 while :; do
-  n_live=0; oldest=""; oldest_exp=""; any=""; any_exp=""
+  lock
+  n_live=0; mine=""; mine_exp=""; other=""; other_age=0
   for f in "$REG"/*; do
     [ -f "$f" ] || continue
     read -r pid exp out cwd name < "$f"
     kill -0 "$pid" 2>/dev/null || { rm -f "$f"; continue; }
     n_live=$((n_live + 1))
-    if [ "$cwd" = "$CALLER" ] && { [ -z "$oldest_exp" ] || [ "$exp" -lt "$oldest_exp" ]; }; then oldest="$(basename "$f")"; oldest_exp="$exp"; fi
-    if [ -z "$any_exp" ] || [ "$exp" -lt "$any_exp" ]; then any="$(basename "$f")"; any_exp="$exp"; fi
+    if [ "$cwd" = "$CALLER" ]; then
+      if [ -z "$mine_exp" ] || [ "$exp" -lt "$mine_exp" ]; then mine="$(basename "$f")"; mine_exp="$exp"; fi
+    else
+      a="$(age_min "$pid")"; if [ "$a" -gt "$other_age" ]; then other="$(basename "$f")"; other_age="$a"; fi
+    fi
   done
-  [ "$n_live" -lt "$MAX_LIVE" ] && break
-  # none of the caller's own to recycle: the one closest to its expiry goes, whoever started it (it's a shared lane)
-  [ -z "$oldest" ] && oldest="$any"
-  echo "serve-build: $MAX_LIVE previews running — stopping the one closest to expiry, :$oldest" >&2
-  bash "$0" stop "$oldest" >/dev/null
+  if [ "$n_live" -lt "$MAX_LIVE" ]; then
+    if [ -z "$PORT" ]; then
+      for p in $(seq 4400 4999); do
+        [ -f "$REG/$p" ] && continue
+        lsof -nP -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1 && continue
+        PORT=$p; break
+      done
+    fi
+    # reserve it: this shell holds the entry until the preview's pid replaces it (an exit before that drops it)
+    [ -n "$PORT" ] && { echo "$$ $(( $(date +%s) + 3600 )) - $CALLER $NAME(building)" > "$REG/$PORT"; trap '[ -f "$REG/$PORT" ] && grep -q "^$$ " "$REG/$PORT" && rm -f "$REG/$PORT"' EXIT; }
+    unlock; break
+  fi
+  unlock
+  if [ -n "$mine" ]; then
+    echo "serve-build: $MAX_LIVE previews running — stopping your oldest, :$mine" >&2; bash "$0" stop "$mine" >/dev/null
+  elif [ -n "$other" ] && [ "$other_age" -ge "$RECYCLE_MIN" ]; then
+    echo "serve-build: $MAX_LIVE previews running — stopping :$other (up ${other_age} min)" >&2; bash "$0" stop "$other" >/dev/null
+  else
+    [ $said -eq 0 ] && { echo "serve-build: $MAX_LIVE previews running, all young and none yours — waiting (scripts/serve-build.sh list)" >&2; said=1; }
+    sleep 15
+  fi
 done
-
-if [ -z "$PORT" ]; then
-  for p in $(seq 4400 4999); do
-    [ -f "$REG/$p" ] && continue
-    lsof -nP -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1 && continue
-    PORT=$p; break
-  done
-fi
 [ -n "$PORT" ] || { echo "serve-build.sh: no free port in 4400–4999" >&2; exit 1; }
 
 stamp="$(date +%Y%m%d-%H%M%S)-$PORT"
