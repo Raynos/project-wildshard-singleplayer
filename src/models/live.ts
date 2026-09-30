@@ -51,10 +51,19 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
     if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
     return obj;
   };
+  // one specimen per variant, built on first view and kept: switching variants shows the kept one — nothing rebuilt, nothing
+  // left behind undisposed (the phone's Explorer has a 1.0 GB cap, E264 / E323)
+  const specimens = new Map<string, THREE.Object3D>();
+  const kept = (variant?: string): THREE.Object3D => {
+    const key = variant ?? '';
+    let obj = specimens.get(key);
+    if (obj === undefined) { obj = build(variant); specimens.set(key, obj); }
+    return obj;
+  };
   const { copies } = o;
   const entry: ModelEntry = {
     id: def.id, category: def.category, live: false, pipeline: o.pipeline ?? def.pipeline, drawnAs: o.drawnAs ?? (def.rig ? 'skinned' : 'single'),
-    object: () => { if (specimen.children.length === 0) specimen.add(build()); return specimen; },
+    object: () => { if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
     buildAt: (tier) => withTier(tier, () => build()),
     get copies(): number { return typeof copies === 'function' ? copies() : copies ?? 1; },
     ...(o.worldBox === undefined ? { worldView: false } : { worldBox: o.worldBox }),
@@ -65,7 +74,7 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
     entry.variants = def.variants.map((v) => ({ id: v.id, label: v.label }));
     entry.rebuild = (variant?: string): void => {
       specimen.clear();
-      specimen.add(build(variant));
+      specimen.add(kept(variant));
       if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: def.id } }));
     };
   }

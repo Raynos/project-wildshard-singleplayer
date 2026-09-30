@@ -24,12 +24,13 @@ import {
   LoopOnce, Matrix3, Matrix4, Mesh, NoColorSpace, type Object3D, type PerspectiveCamera, Quaternion, type ShaderMaterial, SkinnedMesh, type Texture, TextureLoader,
   Vector2, Vector3,
 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { type Capsule, Talisman, Tassel, penetration } from './cloth';
 import { CLS, Geo, v3 } from './geo';
 import { buildHalo } from './jian';
-import { type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, weaveTexture } from './materials';
+import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, weaveTexture } from './materials';
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from './rig';
 import { Trail, type TrailLook } from './trail';
 import { phoneUrl } from '../../../boot/bytes';
@@ -103,6 +104,35 @@ function sharedMapPair(name: string): Promise<[Texture | null, Texture | null]> 
   let p = mapLoads.get(name);
   if (p === undefined) { p = mapPair(name); mapLoads.set(name, p); }
   return p;
+}
+
+/**
+ * fp-rig.glb, parsed once per shard (E315 M5, E323): the first rig — the held one — takes the parsed scene itself, as it
+ * always has; a later rig (the Model Explorer's specimen, models/gear.ts) takes a skeleton clone of it made before the
+ * first was built: the same geometry (so the same GPU buffers), its own bones, materials, mixer and cloth.
+ */
+interface RigFile { readonly gltf: GLTF; readonly pristine: Object3D; taken: boolean }
+const rigFiles = new Map<string, Promise<RigFile>>();
+mapSlot('nds.vm.rig', rigFiles);
+async function rigScene(url: string): Promise<{ scene: Object3D; animations: AnimationClip[] }> {
+  let p = rigFiles.get(url);
+  if (p === undefined) {
+    p = loader.loadAsync(url).then((gltf): RigFile => ({ gltf, pristine: cloneSkeleton(gltf.scene), taken: false }));
+    rigFiles.set(url, p);
+    void p.catch(() => { rigFiles.delete(url); }); // a failed fetch can retry
+  }
+  const f = await p;
+  if (!f.taken) { f.taken = true; return { scene: f.gltf.scene, animations: f.gltf.animations }; }
+  return { scene: cloneSkeleton(f.pristine), animations: f.gltf.animations };
+}
+
+/** the decal atlas (a 2048 × 1024 canvas, drawn once): every rig of the shard reads the same one */
+const atlases = new Map<string, Decals>();
+mapSlot('nds.vm.decals', atlases);
+function sharedDecals(): Decals {
+  let d = atlases.get('decals');
+  if (d === undefined) { d = decalAtlas(); atlases.set('decals', d); }
+  return d;
 }
 
 interface Layer { action: AnimationAction; name: string; w: number; target: number; rate: number; hold: boolean }
@@ -188,7 +218,7 @@ export class NineDragonArms {
   private readonly claws: Object3D[] = [];
 
   private constructor(scene: Group, clips: AnimationClip[], textures: Map<string, [Texture | null, Texture | null]>, silk: Texture) {
-    this.u = vmUniforms(silk, decalAtlas());
+    this.u = vmUniforms(silk, sharedDecals());
     const data = scene.userData as { attach?: { tassel: number[]; talisman: number[]; muzzle: number[]; bladeBase: number; bladeTip: number }; clips?: Record<string, { side: 'R' | 'L'; loop: boolean; timing: Timing | null; trailFrom: number | null }> };
     const at = data.attach;
     this.attach = {
@@ -290,7 +320,7 @@ export class NineDragonArms {
   }
 
   static async load(url = RIG_URL): Promise<NineDragonArms> {
-    const gltf = await loader.loadAsync(url);
+    const gltf = await rigScene(url);
     const names = ['hand-r', 'arm-r', 'fist-l', 'gauntlet'];
     const pairs = await Promise.all(names.map((n) => sharedMapPair(n)));
     const textures = new Map<string, [Texture | null, Texture | null]>();

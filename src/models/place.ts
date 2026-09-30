@@ -627,14 +627,23 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
     if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
     return obj;
   };
+  // one specimen per variant, built on first view and kept: switching variants shows the kept one — nothing rebuilt, nothing
+  // left behind undisposed (the phone's Explorer has a 1.0 GB cap, E264 / E323)
+  const specimens = new Map<string, THREE.Object3D>();
+  const kept = (variant?: string): THREE.Object3D => {
+    const key = variant ?? '';
+    let obj = specimens.get(key);
+    if (obj === undefined) { obj = build(variant); specimens.set(key, obj); }
+    return obj;
+  };
   const rebuild = (variant?: string): void => {
     specimen.clear();
-    specimen.add(build(variant));
+    specimen.add(kept(variant));
     if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: def.id } }));
   };
   const entry: ModelEntry = {
     id: def.id, category: def.category, live: false, pipeline: def.pipeline, drawnAs,
-    object: () => { if (specimen.children.length === 0) specimen.add(build()); return specimen; },
+    object: () => { if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
     buildAt: (tier) => withTier(tier, () => build()),
     get copies(): number { let c = 0; for (const g of rec.groups) c += g.copies; return c; },
     worldBox: (near) => {

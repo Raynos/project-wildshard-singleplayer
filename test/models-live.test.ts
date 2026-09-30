@@ -7,6 +7,7 @@ import { WorldRegistry } from '../src/world/registry';
 import type { Sky } from '../src/world/Sky';
 import { defineModel, modelContext } from '../src/models/model';
 import { listModel, listRoster, live } from '../src/models/live';
+import { place } from '../src/models/place';
 import { creature } from '../src/models/creature';
 import { speciesDef } from '../src/entities/AnimalFactory'; // (the factory registers every species file)
 import { checkModels } from '../scripts/check-models.mjs';
@@ -79,5 +80,31 @@ describe('live models (E315 M5)', () => {
     expect(checkModels({ ...species, ...model }).violations).toEqual([]);
     const rig = { 'src/chunks/test-shard/models/newt.ts': "const NEWT = 'newt';\nexport const newt = defineModel({ id: 'test-shard/newt', rig: { clips: [], species: NEWT } });" };
     expect(checkModels({ ...species, ...rig }).violations).toEqual([]);
+  });
+
+  it('a variant switch shows a kept specimen: each variant is built once, nothing rebuilt and left undisposed (E323) — listModel and place', () => {
+    let builds = 0;
+    const lamp = defineModel<{ tall: boolean }>({
+      id: 'shared/test-live-lamp', name: 'Lamp', category: 'props', pipeline: 'code', file: 'test/models-live.test.ts', defaults: { tall: false },
+      variants: [{ id: 'short', label: 'Short', params: { tall: false } }, { id: 'tall', label: 'Tall', params: { tall: true } }],
+      build: (_c, p) => { builds++; return [{ geometry: new THREE.BoxGeometry(0.1, p.tall ? 0.4 : 0.2, 0.1), material: mat }]; },
+    });
+    for (const listed of [false, true]) {
+      builds = 0;
+      const reg = new WorldRegistry();
+      if (listed) listModel(lamp, { ctx, registry: reg });
+      else place(lamp, [{ x: 0, y: 0, z: 0 }], { ctx, draw: 'merged', registry: reg });
+      const m = reg.models()[0];
+      const shown = (): THREE.Object3D | undefined => m?.object().children[0];
+      const first = shown();
+      const before = builds;
+      m?.rebuild?.('tall');
+      const tall = shown();
+      m?.rebuild?.('short'); m?.rebuild?.('tall'); m?.rebuild?.('tall');
+      expect(shown()).toBe(tall); // the kept one, not a new build
+      expect(builds - before).toBe(2); // 'tall' and 'short' once each
+      m?.rebuild?.();
+      expect(shown()).toBe(first);
+    }
   });
 });
