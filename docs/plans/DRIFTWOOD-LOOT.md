@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — Jake: "Yes, build it". Stage 1 (coins, Purse / Owned stores, the five icon tabs, GEAR paper doll, FINDS sticker book, iron sword saved), the trader model and the small props (chime, plaques, hat, cape, icons) are in flight with the driftwood-top10 plan agent. Then: the shop screen + wiring (stage 2), the chime / trophies / hat wiring (stage 3).
+**State:** `in progress` 2026-09-30 — built, awaiting deploy: the trader + her counter at Wendell's hut (`b047f294`, no shop logic yet), the props (chime, plaques, hat, cape, icons: `bd9aa70e`, `86734738`). Stage 1 (coins capped per enemy, the five icon tabs on every shard, GEAR, FINDS) is being finished. Next: stage 2 (the shop screen C + pricing from the full-clear census), stage 3 (chime, trophies, the worn hat / cape on a body shadow), then the other three shards' Bag review with Jake.
 
 ## Why
 
