@@ -95,4 +95,7 @@ fundamentally shared UI for the entire game." So the Bag is built once for all f
   holds a fixed purse (one full clear), and the shop is priced so buying everything takes about one full clear.
 - **The Drowned Captain hits harder than the cap** (24, not 20): `ChunkDef.hitCapExempt: ['captain']`, commit `4cf7ac8e`.
 - **Respawn** stays "the last place you walked into" (E295 as built).
+- **Worn cosmetics:** the game has no player body, so the player gets a **simple body shadow** (an invisible low-poly
+  castaway that only casts a shadow), and the worn hat and cape ride on it (Jake, 2026-09-30). Stage 3 builds it; the
+  props (chime, plaques, hat, cape, icons) are built (`bd9aa70e`, `86734738`, board `art/loot/round-2-props/board.jpg`).
 
