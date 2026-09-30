@@ -18,17 +18,18 @@
  * ./setView.ts.
  */
 import * as THREE from 'three';
-import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import type { World } from '../core/bootstrap';
 import { CHUNK_HALF } from '../core/config';
 import type { ContextValue } from '../ui/review';
 import { measure, type CatalogEntry } from './catalog';
 import type { Explore, ExplorePane } from './Explore';
 import { registeredSets } from './registry';
+import { FatLines, LOCATED, OUTLINE } from './fatLines';
+import { Diorama } from './diorama';
+import { studioBackdrop } from './ModelExplorer';
+import { onSettingChange, setting } from '../ui/Settings';
 import type { DrawnAs, Pipeline, RegisteredSet } from '../world/registry';
-import { boxEdges, copyBoxes, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setTotals, type MemberFact, type NdcWindow, type SetOrder } from './setView';
+import { bandWindow, boxEdges, copyBoxes, drawnRoots, fitOrbit, fitPoints, lensReset, lensShift, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setTotals, type MemberFact, type NdcWindow, type SetOrder } from './setView';
 
 type View = 'list' | 'set';
 
@@ -37,6 +38,8 @@ const PIPELINE_LABEL: Readonly<Record<Pipeline, string>> = { code: 'CODE', blend
 const THUMB_W = 480, THUMB_H = 240;
 /** the 3/4 aerial: ~41° above the horizon */
 const PITCH = 0.72;
+/** on a structure-first shard (Nine Dragon: a set down among towers) steeper, so the towers round it don't stand in the view */
+const PITCH_BUILT = 1.15;
 /** frames the camera holds a set's view before its thumbnail is copied (the cullers, LODs and near-eye layers settle) */
 const SHOT_FRAMES = 5;
 /** the list's orders (a shard names 10–20 places: E315 M12) */
@@ -49,40 +52,6 @@ const count = (n: number): string => (n < 1000 ? String(n) : n < 1e6 ? `${(n / 1
 const badge = (p: readonly Pipeline[]): string => (p.length === 0 ? '—' : p.map((x) => PIPELINE_LABEL[x]).join('+'));
 const esc = (s: string): string => s.replaceAll(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] ?? c);
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
-
-/** a line style: a core over a wider halo, widths in CSS px */
-interface LineStyle { readonly core: number; readonly coreWidth: number; readonly halo: number; readonly haloWidth: number; readonly haloOpacity: number }
-/** the set's bounds: deep blue (#1447c2) on a pale halo — dark enough for bright sand and sea, haloed for forest and neon */
-const OUTLINE: LineStyle = { core: 0x1447c2, coreWidth: 3, halo: 0xe6f4ff, haloWidth: 6.5, haloOpacity: 0.72 };
-/** ◎ a member's copies: amber on a dark halo */
-const LOCATED: LineStyle = { core: 0xffb547, coreWidth: 2, halo: 0x06121c, haloWidth: 4.5, haloOpacity: 0.6 };
-
-/** screen-space line segments (LineSegments2: a width in CSS px, not 1 px GL lines), drawn over everything, core over halo */
-class FatLines {
-  readonly group = new THREE.Group();
-  private readonly geo = new LineSegmentsGeometry();
-  private readonly mats: LineMaterial[];
-
-  constructor(style: LineStyle) {
-    const mat = (color: number, width: number, opacity: number): LineMaterial => {
-      const m = new LineMaterial({ linewidth: width, transparent: true, opacity, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
-      m.color = new THREE.Color(color);
-      return m;
-    };
-    this.mats = [mat(style.halo, style.haloWidth, style.haloOpacity), mat(style.core, style.coreWidth, 1)];
-    this.mats.forEach((m, i) => { const l = new LineSegments2(this.geo, m); l.frustumCulled = false; l.renderOrder = 998 + i; this.group.add(l); });
-    this.group.visible = false;
-  }
-
-  /** the segments (pairs of points, xyz each); none hides it */
-  set(positions: Float32Array): void {
-    this.group.visible = positions.length > 0;
-    if (positions.length > 0) this.geo.setPositions(positions);
-  }
-
-  /** the canvas's CSS size (the widths are in its pixels) */
-  resize(res: THREE.Vector2): void { for (const m of this.mats) m.resolution.copy(res); }
-}
 
 /** a set and what the explorer learned about it */
 interface SetInfo {
@@ -106,7 +75,9 @@ export class SetExplorer implements ExplorePane {
   private current: SetInfo | null = null;
   // the orbit round the open set
   private readonly centre = new THREE.Vector3();
-  private yaw = 0; private pitch = PITCH; private dist = 100; private fit = 100; private lift = 0;
+  private yaw = 0; private pitch = PITCH; private dist = 100; private fit = 100;
+  /** where the lens is centred, CSS px from the top: the middle of the band above the sheet */
+  private lensY = 0;
   private idle = 0;
   private drag: { id: number; x: number; y: number } | null = null;
   private readonly pointers = new Map<number, { x: number; y: number }>();
@@ -118,6 +89,11 @@ export class SetExplorer implements ExplorePane {
   private readonly outline: FatLines;
   private readonly located: FatLines;
   private readonly res = new THREE.Vector2();
+  /** what the camera frames: the set's bounds, or the diorama's whole cut */
+  private readonly framed = new THREE.Box3();
+  /** a diorama's outline, fitted instead of its box: the rim top and bottom, the set's top or the dome */
+  private framedPoints: THREE.Vector3[] | null = null;
+  private readonly diorama: Diorama;
   private locatedModel: string | null = null;
   // thumbnails: the camera visits each set in turn behind the list's glass
   private shots: SetInfo[] = [];
@@ -165,6 +141,8 @@ export class SetExplorer implements ExplorePane {
     this.outline = new FatLines(OUTLINE);
     this.located = new FatLines(LOCATED);
     this.marks.add(this.outline.group, this.located.group);
+    this.diorama = new Diorama(world, studioBackdrop);
+    onSettingChange('setCut', () => { const c = this.current; if (c && this.el.classList.contains('show')) this.openSet(c); }); // live
     this.marks.visible = false;
     world.game.scene.add(this.marks);
 
@@ -295,16 +273,28 @@ export class SetExplorer implements ExplorePane {
     this.renderMembers(info);
     this.mark(set);
     this.locate(null);
+    // a diorama (Debug ▸ Set Explorer cut): only the world inside a circle or a dome round the set, on the studio backdrop
+    const shape = setting('setCut');
+    const vol = shape === 'off' ? null : this.diorama.enter(set.bounds, shape, [this.marks]);
+    const top = Math.max(set.bounds.max.y, vol !== null && Number.isFinite(vol.dome) ? vol.centre.y + vol.dome : set.bounds.max.y);
+    if (vol) {
+      this.framed.set(new THREE.Vector3(vol.centre.x - vol.radius, vol.floor, vol.centre.z - vol.radius), new THREE.Vector3(vol.centre.x + vol.radius, top, vol.centre.z + vol.radius));
+      const ring = (y: number, r: number): THREE.Vector3[] => Array.from({ length: 16 }, (_, k) => new THREE.Vector3(vol.centre.x + Math.cos((k / 16) * Math.PI * 2) * r, y, vol.centre.z + Math.sin((k / 16) * Math.PI * 2) * r));
+      this.framedPoints = [...ring(vol.floor, vol.radius), ...ring(vol.centre.y, vol.radius), ...ring(top, Number.isFinite(vol.dome) ? vol.radius * 0.3 : Math.hypot(set.bounds.max.x - set.bounds.min.x, set.bounds.max.z - set.bounds.min.z) / 2)];
+    } else { this.framed.copy(set.bounds); this.framedPoints = null; }
     // the view: from the lit side (the camera between the sun and the set, a little off-axis), fitted to the screen above the sheet
-    set.bounds.getCenter(this.centre);
+    this.framed.getCenter(this.centre);
     const sun = this.world.game.sky.sunDir;
-    this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = PITCH; this.idle = 0;
+    this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = this.pitch0(); this.idle = 0;
     this.fit = 0;
     this.refit();
     this.dist = this.fit;
     this.tallies = info.facts.filter((f) => !this.eachTris.has(f.model));
     this.readoutT = 0;
   }
+
+  /** the opening pitch of the aerial: steeper on a structure-first shard (ChunkDef.spawn.y: its ground is what it built) */
+  private pitch0(): number { return this.world.chunk.spawn.y === undefined ? PITCH : PITCH_BUILT; }
 
   /** the box on a set's bounds */
   private mark(set: RegisteredSet): void {
@@ -313,6 +303,8 @@ export class SetExplorer implements ExplorePane {
   }
 
   private closeSet(): void {
+    if (this.current !== null && lensReset(this.world.game.camera)) this.world.game.sky.csm.updateFrustums();
+    this.diorama.exit();
     this.current = null;
     this.marks.visible = false;
     this.locate(null);
@@ -365,19 +357,29 @@ export class SetExplorer implements ExplorePane {
     if (next) this.openSet(next);
   }
 
-  /** fit the set into the screen above the sheet and under the top bar, from every yaw; the zoom keeps its ratio */
+  /**
+   * Fit the set into the band between the top bar and the sheet, from every yaw; the lens is centred on that band (a view
+   * offset: the orbit still turns round the set, which sits above the sheet). The zoom keeps its ratio.
+   */
   private refit(): void {
     const c = this.current;
     if (!c || this.el.dataset['view'] !== 'set') return;
-    const cam = this.world.game.camera, H = innerHeight;
+    const cam = this.world.game.camera, H = this.world.game.canvas.clientHeight || innerHeight;
     const sheetTop = this.sheet.getBoundingClientRect().top, barBottom = document.querySelector('.ws-x-top')?.getBoundingClientRect().bottom ?? 60;
-    const top = 1 - (2 * (barBottom + 12)) / H, bottom = sheetTop > 0 ? 1 - (2 * (sheetTop - 10)) / H : -0.9;
-    const win: NdcWindow = { x0: -0.86, x1: 0.86, y0: Math.min(bottom, top - 0.2), y1: top };
-    this.scratch.fov = cam.fov; this.scratch.aspect = cam.aspect; this.scratch.near = cam.near; this.scratch.far = cam.far; this.scratch.updateProjectionMatrix();
+    const top = barBottom + 8, bottom = Math.max(top + 120, sheetTop > 0 ? sheetTop - 8 : H * 0.6);
+    this.lensY = (top + bottom) / 2;
+    this.lens();
+    this.scratch.copy(cam); this.scratch.updateProjectionMatrix();
     const k = this.fit > 0 ? this.dist / this.fit : 1;
-    this.lift = liftOf(win);
-    this.fit = fitOrbit(c.set.bounds, this.scratch, this.pitch, win);
+    const win = bandWindow(top, bottom, H, 0.04, 0.9), pts = this.framedPoints;
+    this.fit = pts ? fitPoints(this.framed.getCenter(new THREE.Vector3()), pts, this.scratch, this.pitch, win, 12, 0, 0) : fitOrbit(this.framed, this.scratch, this.pitch, win, 12, 0, 0);
     this.dist = this.fit * k;
+  }
+
+  /** the lens on the band above the sheet (again each frame: another pane may have reset it as the tabs switched) */
+  private lens(): void {
+    const canvas = this.world.game.canvas;
+    if (lensShift(this.world.game.camera, canvas.clientWidth || innerWidth, canvas.clientHeight || innerHeight, this.lensY)) this.world.game.sky.csm.updateFrustums();
   }
 
   // ── input: drag orbit, wheel / pinch zoom (only while a set is open) ──
@@ -423,18 +425,20 @@ export class SetExplorer implements ExplorePane {
     this.idle = 0;
   };
 
-  private zoom(k: number): void { this.dist = Math.max(this.fit * 0.2, Math.min(this.fit * 3, this.dist * k)); }
+  /** a diorama keeps the camera round its cut (from inside it the cut walls would face you); the world lets it go far */
+  private zoom(k: number): void { const d = this.diorama.volume !== null; this.dist = Math.max(this.fit * (d ? 0.45 : 0.2), Math.min(this.fit * (d ? 1.6 : 3), this.dist * k)); }
 
   // ── every frame ──
 
   update(dt: number): void {
     const { camera } = this.world.game;
-    if (this.marks.visible) { this.world.game.renderer.getSize(this.res); this.outline.resize(this.res); this.located.resize(this.res); }
+    if (this.marks.visible) { this.world.game.renderer.getSize(this.res); this.outline.resize(this.res); this.located.resize(this.res); this.diorama.update(this.res); }
     const c = this.current;
     if (c) {
       this.idle += dt;
       if (this.idle > 2.5 && !this.drag) this.yaw += dt * 0.12; // it turns slowly while you look
-      poseOrbit(camera, this.centre, this.yaw, this.pitch, this.dist, this.lift);
+      this.lens();
+      poseOrbit(camera, this.centre, this.yaw, this.pitch, this.dist, 0);
       this.tally();
       this.readoutT -= dt;
       if (this.readoutT <= 0) {
@@ -484,11 +488,11 @@ export class SetExplorer implements ExplorePane {
       const win: NdcWindow = { x0: -(band.w / W) * 0.9, x1: (band.w / W) * 0.9, y0: -(band.h / H) * 0.84, y1: (band.h / H) * 0.84 };
       const sun = game.sky.sunDir;
       const yaw = Math.atan2(sun.x, sun.z) + 0.55;
-      this.shot = { info, frames: 0, asked: false, dist: fitOrbit(info.set.bounds, this.scratch, PITCH, win, 1, yaw), yaw };
+      this.shot = { info, frames: 0, asked: false, dist: fitOrbit(info.set.bounds, this.scratch, this.pitch0(), win, 1, yaw), yaw };
       this.mark(info.set); // its brackets are in the picture: the card shows which ground is the set
     }
     const s = this.shot;
-    poseOrbit(game.camera, s.info.set.bounds.getCenter(this.centre), s.yaw, PITCH, s.dist, 0);
+    poseOrbit(game.camera, s.info.set.bounds.getCenter(this.centre), s.yaw, this.pitch0(), s.dist, 0);
     s.frames++;
     if (s.frames >= SHOT_FRAMES && !s.asked) {
       s.asked = true;

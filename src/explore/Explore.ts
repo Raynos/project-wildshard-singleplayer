@@ -51,14 +51,12 @@ import modelsDriftwood from './img/models-driftwood-isle.webp';
 import modelsPine from './img/models-pine-hollow.webp';
 import modelsNalati from './img/models-nalati-grasslands.webp';
 import modelsNine from './img/models-nine-dragon-stack.webp';
-import playgroundGrapple from './img/playground-grapple.webp';
-import playgroundHorse from './img/playground-horse.webp';
 import setsDriftwood from './img/sets-driftwood-isle.webp';
 import setsPine from './img/sets-pine-hollow.webp';
 import setsNalati from './img/sets-nalati-grasslands.webp';
 import setsNine from './img/sets-nine-dragon-stack.webp';
 import { isDev, onDev } from '../core/devMode';
-import { asPlaygroundId, playgroundsFor, type PlaygroundCard, type PlaygroundId } from '../playgrounds/catalog';
+import { asPlaygroundId, playgroundsFor, type PlaygroundId } from '../playgrounds/catalog';
 
 /** the Practice card's art, one per shard: the arena in that shard's grade with its weapon (E292) */
 const PRACTICE_ART: Record<string, string> = { 'driftwood-isle': practiceDriftwood, 'pine-hollow': practicePine, 'nalati-grasslands': practiceNalati, 'nine-dragon-stack': practiceNine };
@@ -71,10 +69,6 @@ const MODELS_ART: Record<string, string> = { 'driftwood-isle': modelsDriftwood, 
  * with none yet: the World card's art under a dashed set outline
  */
 const SETS_ART: Record<string, string> = { 'driftwood-isle': setsDriftwood, 'pine-hollow': setsPine, 'nalati-grasslands': setsNalati, 'nine-dragon-stack': setsNine };
-/** a playground's card (E325): its course in play, shot live in its shard's grade — Nine Dragon's Fei Zhua mid-zip toward
- *  BASE with the tower behind, Nalati's rider at a canter down the jump lane's rails. None yet → the verb's glyph on a
- *  dev tile (explore.css .ws-x-pg-art) */
-const PLAYGROUND_ART: Partial<Record<PlaygroundId, string>> = { grapple: playgroundGrapple, horse: playgroundHorse };
 
 export type ExploreMode = 'hub' | 'world' | 'model' | 'sets';
 /** a tab's / a card's `data-m` as a mode (anything else: the World Explorer) */
@@ -194,11 +188,7 @@ export class Explore {
     const practiceArt = PRACTICE_ART[shard.slug] ?? practiceDriftwood;
     // E307: the shard's own feature playgrounds under the shared cards (placeholder art: the verb's glyph on a dev tile)
     const playgrounds = playgroundsFor(shard.slug);
-    const pgArt = (c: PlaygroundCard): string => {
-      const art = PLAYGROUND_ART[c.id];
-      return art === undefined ? `<span class="ws-x-card-art ws-x-pg-art">${c.icon}</span>` : `<span class="ws-x-card-art" style="background-image:url('${art}')"></span>`;
-    };
-    const pgCards = playgrounds.map((c) => `<button class="ws-x-card" type="button" data-m="playground" data-pg="${c.id}" data-dev>${pgArt(c)}<span class="ws-x-card-text"><b>${c.title}</b><small>${c.blurb}</small></span><span class="ws-x-card-go">›</span></button>`).join('');
+    const pgCards = playgrounds.map((c) => `<button class="ws-x-card" type="button" data-m="playground" data-pg="${c.id}" data-dev><span class="ws-x-card-art ws-x-pg-art">${c.icon}</span><span class="ws-x-card-text"><b>${c.title}</b><small>${c.blurb}</small></span><span class="ws-x-card-go">›</span></button>`).join('');
     // a scrolling list (E307, Jake: "this is going to have to be a scrollable list"), anchored to the bottom while it fits
     this.hubEl = html('div', 'ws-x-hub', `<div class="ws-x-hub-list">
       <div class="ws-x-hub-heading">Choose an explorer</div>
@@ -405,7 +395,9 @@ export class Explore {
     // entering the world from the hub or the Model Explorer (whose camera was orbiting something else) starts at home;
     // VIEW IN WORLD / the map fly from there, a `cam` link (open) overrides it
     if (mode === 'world' && prev !== 'world') { const h = homeView(this.host.world); this.cam.placeAt(h.pos, h.look); }
-    for (const [m, p] of this.panes) { if (m === mode) p.show(opts); else p.hide(); }
+    // the others hide first (a Set's diorama puts the world back) and then the one shown sets itself up (E315 M7)
+    for (const [m, p] of this.panes) if (m !== mode) p.hide();
+    this.panes.get(mode)?.show(opts);
     this.syncBack();
   }
 

@@ -117,6 +117,9 @@ export const OPTION_VALUES = {
   // A load-time pick (pause ▸ Settings ▸ Debug saves and reloads); no URL switch (Jake: never) — the A/B scripts set it in
   // the saved settings
   tex: ['auto', 'ktx2', 'img'],
+  // E315 M7: an opened set in the Set Explorer (src/explore/diorama.ts) — off: in the whole world (today) · circle: a round
+  // cake slice of the world · dome: a hemisphere; live. Off stays the default until Jake picks
+  setCut: ['off', 'circle', 'dome'],
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/boot/perflog.ts) — a reload
@@ -154,6 +157,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
+  setCut: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, pineCrags: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, pineFaces: DEBUG_ONLY,
@@ -170,6 +174,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   weather: option('weather'), fps: option('fps'),
   prefetch: option('prefetch'),
   tex: option('tex'),
+  setCut: option('setCut'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'), pineCrags: option('pineCrags'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
