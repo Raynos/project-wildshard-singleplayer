@@ -3,11 +3,13 @@
 // 390×844 @3, `tier=phone&touch`, HUD hidden) at named spots, per time of day, one page load per time of day.
 //
 //   node scripts/pine-hollow-crag-shots.mjs --url=http://localhost:4271 --out=<dir> [--tods=day,golden] [--only=lookout-ne,cave]
-//     [--query=<extra harness params>] [--tier=phone|desktop] [--settle=4]
+//     [--query=<extra harness params>] [--tier=phone|desktop] [--settle=4] [--settings=pineCrags=b,weather=clear]
+//     (--settings: pause ▸ Settings ▸ Debug picks, set before the load, scripts/debug-settings.mjs)
 //
 // Writes <out>/<tod>-<spot>.jpg (+ the frame's calls / tris in <out>/shots.json). One headless Chromium on Metal, muted,
 // closed at the end.
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium, devices } = await import('playwright');
 const argv = process.argv.slice(2);
@@ -19,6 +21,7 @@ const TIER = flag('tier', 'phone');
 const tods = flag('tods', 'day,golden').split(',').filter(Boolean);
 const only = flag('only', '').split(',').filter(Boolean);
 const SETTLE = Number(flag('settle', '4')) * 1000;
+const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
@@ -40,6 +43,11 @@ const SPOTS = [
   { id: 'hollow-zip', x: 8, z: 24, yaw: 3.0, pitch: 0.12 },
   { id: 'hollow-ne', x: -30, z: 86, yaw: 3.5, pitch: 0.2 },
   { id: 'hollow-nw', x: 60, z: 110, yaw: 2.8, pitch: 0.22 },
+  // E322 F-L2 (Debug ▸ Crags A / B): up close at a buttress from the N road in the pass; the lookout's east catwalk toward
+  // B's hero crag on the crest; the Ridge's face and crest from the trail below it
+  { id: 'pass-face', x: 4.9, z: 200, yaw: -1.57, pitch: 0.22 },
+  { id: 'deck-hero', x: 33.2, z: 214.4, yaw: 1.74, pitch: -0.06, y: 57.46 },
+  { id: 'trail-ridge', x: 0, z: 170, yaw: 2.45, pitch: 0.2 },
   // the Den: its bowl toward the cave mouth
   { id: 'den', x: 184, z: 180, yaw: 3.93, pitch: 0.08 },
   // inside the cave (its frame: the mouth at (200, 200), local +z into the rock, `cave(lx, lz, lookLx, lookLz, y, pitch)`)
@@ -69,6 +77,7 @@ try {
       ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
       : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
     const page = await ctx.newPage();
+    if (Object.keys(SETTINGS).length > 0) await debugSettings(page, SETTINGS);
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 300)));
     page.on('console', (m) => { if (m.type() === 'error' || /\[crags\]|\[landmarks\]/.test(m.text())) errors.push(m.text().slice(0, 300)); });

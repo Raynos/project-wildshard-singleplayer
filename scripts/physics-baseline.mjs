@@ -28,6 +28,7 @@
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 
@@ -101,6 +102,8 @@ if (flag('set', '') === 'ph') POSES.splice(0, POSES.length, ...PH_POSES); // --s
 const URL_BASE = flag('url', '');
 // --query=<k=v&…>: appended to every page's URL (a dev param, e.g. `--query=tier=phone`)
 const EXTRA_Q = flag('query', '');
+// --settings=<k=v,…>: pause ▸ Settings ▸ Debug picks set before every load (scripts/debug-settings.mjs; e.g. pineCrags=b)
+const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
 
 const waitFor = async (fn, ms, what) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return; await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(what); };
 
@@ -129,6 +132,7 @@ const result = { label: LABEL, build, date: new Date().toISOString(), cpu: CPU, 
 async function openGame(shard, q, { cpu, video }) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
   const page = await ctx.newPage();
+  if (Object.keys(SETTINGS).length > 0) await debugSettings(page, SETTINGS);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);

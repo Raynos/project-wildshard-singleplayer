@@ -64,6 +64,18 @@
    "outputs": ["public/assets/models/pine-hollow-crags/crags.glb", "public/assets/models/pine-hollow-crags/crags.json"],
    "feeds": ["src/world/PineCrags.ts"]
   },
+  "pine-hollow/crags-b": {
+   "about": "E322 F-L2, Debug ▸ Look ▸ Crags B: the Ridge's big modules fused and weathered (cliff bands, buttress, slab) and the lookout's hero crag, overlaid on crags.glb in B only",
+   "script": "scripts/blender/pine-hollow/crags/build_crags_b.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/pine-hollow/crags/rocklib.py"],
+   "lock": true,
+   "build": ["crags-b.glb", "crags-b.json"],
+   "meshopt": [["crags-b.glb", "public/assets/models/pine-hollow-crags/crags-b.glb"]],
+   "copy": [["crags-b.json", "public/assets/models/pine-hollow-crags/crags-b.json"]],
+   "outputs": ["public/assets/models/pine-hollow-crags/crags-b.glb", "public/assets/models/pine-hollow-crags/crags-b.json"],
+   "feeds": ["src/world/PineCrags.ts"]
+  },
   "pine-hollow/cave": {
    "about": "The Den's bear cave: the interior + the hood over its first metres, fitted to the baked heights round the mouth (PH-B2)",
    "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/pine-hollow/crags/export-cave.mjs $BUILD/cave-in.json"],

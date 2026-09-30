@@ -336,3 +336,162 @@ def bake_material():
         m.use_nodes = True
         _BAKE_MAT = m
     return _BAKE_MAT
+
+
+# ── E322 F-L2 (the Debug ▸ Crags B kit, build_crags_b.py): one fused mass per module, weathered ─────────────────────────
+
+def _smooth(a, b, x):
+    t = min(1.0, max(0.0, (x - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
+def warp_bm(bm, rng, amp=0.9, freq=0.07):
+    """a slow 3-D warp of every vertex (the columns bend, the top outline goes ragged: no box read)"""
+    o = Vector((rng.uniform(-99, 99), rng.uniform(-99, 99), rng.uniform(-99, 99)))
+    for v in bm.verts:
+        w = noise.noise_vector(v.co * freq + o)
+        # the base stays put (it sits in the ground), the warp grows with height
+        v.co += Vector((w.x, w.y, w.z * 0.35)) * amp * _smooth(0.0, 3.0, v.co.z)
+    return bm
+
+
+def fuse(bm, name, scene, voxel):
+    """
+    The module's overlapping blocks as ONE watertight mass: a voxel remesh (`voxel` m) welds them, so the seams between
+    the stacked blocks (A's read: a pile of boxes) go and the joints come back as carved cracks (`weather`).
+    """
+    ob = bm_to_object(bm, name, scene)
+    mod = ob.modifiers.new('fuse', 'REMESH')
+    mod.mode = 'VOXEL'
+    mod.voxel_size = voxel
+    mod.adaptivity = 0.0
+    with bpy.context.temp_override(object=ob, active_object=ob, selected_objects=[ob], selected_editable_objects=[ob]):
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+    return ob
+
+
+def weather(ob, rng, joint=3.4, crack=0.32, strata=1.3, ledge=0.3, lump=0.3, base=0.0):
+    """
+    Granite's weathering carved into a fused mass along its normals: vertical joints (a Voronoi of columns, stretched up:
+    cracks `crack` m deep where two cells meet), sheeting ledges on the steep faces (a sawtooth in height, warped, `ledge`
+    m lips every ~`strata` m), and a lumpy fractal. The base (z < `base` + 0.3) is left alone.
+    """
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.normal_update()
+    o = Vector((rng.uniform(-99, 99), rng.uniform(-99, 99), rng.uniform(-99, 99)))
+    moves = []
+    for v in bm.verts:
+        p, n = v.co.copy(), v.normal.copy()
+        d, _pts = noise.voronoi(Vector((p.x / joint, p.y / joint, p.z / (joint * 3.5))) + o, distance_metric='DISTANCE', exponent=2.5)
+        edge = d[1] - d[0]
+        c = crack * (1 - _smooth(0.0, 0.16, edge))
+        zz = (p.z + noise.fractal(p * 0.12 + o, 0.8, 2.0, 2) * 1.6) / strata
+        f = zz - math.floor(zz)
+        steep = 1 - abs(n.z)
+        lp = ledge * (f ** 2.5) * steep * (0.6 + 0.8 * noise.noise(p * 0.2 + o * 1.7))
+        lm = lump * (noise.fractal(p * 0.32 + o, 0.9, 2.0, 3) + 0.35 * noise.fractal(p * 1.3 + o, 0.8, 2.0, 2))
+        keep = _smooth(base, base + 0.6, p.z)
+        moves.append(n * (lm - c - lp) * keep)
+    for v, m in zip(bm.verts, moves):
+        v.co += m
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.update()
+    return ob
+
+
+def hero(rng, height=26.0, width=20.0, depth=13.0):
+    """
+    The lookout's hero crag: a granite prow ~`height` m tall — four or five tall columns jointed vertically, the middle
+    ones highest and leaning a little out, shoulders stepping down each side, a spall of blocks at the foot — for
+    `fuse` + `weather` (one sculpted mass, not a stack).
+    """
+    bms = []
+    n = rng.randint(4, 5)
+    for i in range(n):
+        u = (i - (n - 1) / 2) / ((n - 1) / 2)                # −1 … 1 across
+        w = width / n * rng.uniform(1.05, 1.3)
+        h = height * (1 - 0.45 * abs(u) ** 1.4) * rng.uniform(0.9, 1.05)
+        d = depth * (1 - 0.3 * abs(u)) * rng.uniform(0.85, 1.0)
+        tiers = rng.randint(2, 3)
+        cuts = [0.0] + sorted(rng.uniform(0.3, 0.75) * h for _ in range(tiers - 1)) + [h]
+        for k in range(tiers):
+            sh = cuts[k + 1] - cuts[k]
+            ww = w * (1 - 0.1 * k)
+            b = convex_block(rng, ww, d * (1 - 0.12 * k), sh + 0.4, cuts=rng.randint(5, 8), front_bias=0.75, sub=4)
+            transform_bm(b, M(u * width / 2 + rng.uniform(-0.4, 0.4), -k * rng.uniform(0.2, 0.9) + abs(u) * 1.5, cuts[k] - 0.2,
+                              rng.uniform(-0.08, 0.08), rng.uniform(-0.1, 0.02)))
+            bms.append(b)
+    for _ in range(5):                                        # the spall at the foot
+        s = rng.uniform(1.4, 3.2)
+        b = convex_block(rng, s * rng.uniform(1.0, 1.5), s, s * rng.uniform(0.6, 0.9), cuts=rng.randint(4, 7))
+        transform_bm(b, M(rng.uniform(-width / 2.2, width / 2.2), -depth / 2 - rng.uniform(0.5, 3.0), -0.3, rng.uniform(0, 6.3), rng.uniform(-0.3, 0.3)))
+        bms.append(b)
+    return join_bms(bms)
+
+
+def chip(ob, rng, n=14, depth=(0.3, 1.4), front_bias=0.7, seg=0.7):
+    """
+    Fracture a fused mass: `n` planes each shear a layer `depth` m thick off the mass along a joint-set direction (steep
+    joints, most toward the front; sheeting off the top; a few free), leaving flat fracture faces that run across the
+    welded blocks — the facets granite breaks into, where the voxel weld alone leaves pillows. The cut faces are split
+    to `seg` m so `weather` can work them.
+    """
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    for _ in range(n):
+        kind = rng.random()
+        if kind < 0.5:
+            a = rng.uniform(-1.2, 1.2) if rng.random() < front_bias else rng.uniform(0, math.tau)
+            d = Vector((math.sin(a), -math.cos(a), rng.uniform(-0.15, 0.25)))
+        elif kind < 0.8:
+            d = Vector((rng.uniform(-0.5, 0.5), rng.uniform(-0.8, 0.3), rng.uniform(0.7, 1.3)))
+        else:
+            d = Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-0.2, 0.8)))
+        d.normalize()
+        top = max(v.co.dot(d) for v in bm.verts)
+        # an upward cut takes a thinner layer: repeated sheeting would plane the whole mass down
+        s = top - rng.uniform(*depth) * (0.35 if d.z > 0.5 else 1.0)
+        # a plane only shears where it bites into the side it faces: a cut near the base would undercut the module
+        co = d * s
+        if co.z < 0.8 and d.z < 0.3:
+            co.z = max(co.z, 0.8)
+        geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+        res = bmesh.ops.bisect_plane(bm, geom=geom, plane_co=co, plane_no=d, clear_outer=True)
+        edges = [e for e in res['geom_cut'] if isinstance(e, bmesh.types.BMEdge)]
+        if edges:
+            bmesh.ops.holes_fill(bm, edges=edges, sides=0)
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
+    _split_long_edges(bm, seg, rounds=6)
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.update()
+    return ob
+
+
+def monolith(rng, height=26.0, width=20.0, depth=13.0):
+    """the hero's body: one tall block with shoulders welded on each side and behind, for `fuse` → `chip` → `weather`"""
+    bms = []
+    b = convex_block(rng, width * 0.46, depth * 0.72, height, cuts=12, front_bias=0.75, sub=5, round_=0.08, lump=0.05, wobble=0.3)
+    transform_bm(b, M(0, 0, -0.2, rng.uniform(-0.1, 0.1), -0.07))
+    bms.append(b)
+    b = convex_block(rng, width * 0.3, depth * 0.55, height * 0.8, cuts=9, front_bias=0.75, sub=4, round_=0.08, lump=0.05)
+    transform_bm(b, M(width * 0.2 * rng.choice((-1, 1)), 1.2, -0.2, rng.uniform(-0.15, 0.15), -0.04))
+    bms.append(b)
+    for side in (-1, 1):
+        for k in range(2):
+            h = height * rng.uniform(0.3, 0.55) * (1 - 0.3 * k)
+            w = width * rng.uniform(0.25, 0.35)
+            b = convex_block(rng, w, depth * rng.uniform(0.6, 0.85), h, cuts=8, front_bias=0.7, sub=4, round_=0.12, lump=0.06)
+            transform_bm(b, M(side * (width * 0.28 + k * w * 0.6), rng.uniform(0.0, 1.5) + k * 1.2, -0.2, rng.uniform(-0.25, 0.25), rng.uniform(-0.08, 0.04)))
+            bms.append(b)
+    b = convex_block(rng, width * 0.7, depth * 0.5, height * 0.55, cuts=6, sub=4)
+    transform_bm(b, M(rng.uniform(-2, 2), depth * 0.4, -0.2))
+    bms.append(b)
+    for _ in range(6):                                        # the spall at the foot
+        s = rng.uniform(1.2, 3.0)
+        b = convex_block(rng, s * rng.uniform(1.0, 1.5), s, s * rng.uniform(0.6, 0.9), cuts=rng.randint(4, 7))
+        transform_bm(b, M(rng.uniform(-width / 2.2, width / 2.2), -depth / 2 - rng.uniform(0.5, 3.0), -0.3, rng.uniform(0, 6.3), rng.uniform(-0.3, 0.3)))
+        bms.append(b)
+    return join_bms(bms)

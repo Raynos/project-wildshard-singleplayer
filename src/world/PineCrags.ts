@@ -57,13 +57,23 @@ const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the 
 /**
  * pause ▸ Settings ▸ Debug ▸ Look ▸ Crags (E322 F-L2, a reload): A today, B the new crags — the face skin's ledges
  * stepped outward (true risers and treads; A's folded back on themselves) and textured by their facets, not their
- * smoothed normals (A's projection picked the ledge's top texture on its face: the stretch).
+ * smoothed normals (A's projection picked the ledge's top texture on its face: the stretch); paler granite (F-L1).
  */
 export const CRAGS_B = setting('pineCrags') === 'b';
 
 /** the kit's modules (crags.glb nodes `<id>` and `<id>-lod1`) */
 export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
-export type CragId = (typeof CRAG_IDS)[number];
+/** B's own module (crags-b.glb): the lookout's hero crag */
+export const CRAG_HERO = 'hero';
+export type KitId = (typeof CRAG_IDS)[number];
+export type CragId = KitId | typeof CRAG_HERO;
+/** every module's footprint; the hero's only when B's kit is loaded */
+export type CragSizes = Record<KitId, CragSize> & Partial<Record<typeof CRAG_HERO, CragSize>>;
+/**
+ * B's hero crag: a ~21 m granite tower on the Ridge's crest 80 m east of the fire lookout, the landmark of its east
+ * catwalk's view and on the skyline over the face from the Hollow's trails; its front turned toward the tower
+ */
+export const CRAG_HERO_SPOT = { x: -42, z: 227, sink: 2.5 };
 const CLIFFS: readonly CragId[] = ['cliff-a', 'cliff-b', 'cliff-c', 'cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab'];
 const TORS: readonly CragId[] = ['tor-a', 'tor-b'];
 const BOULDERS: readonly CragId[] = ['boulder-a', 'boulder-b', 'boulder-c'];
@@ -128,10 +138,12 @@ function slopeAt(x: number, z: number): { a: number; yaw: number } {
 }
 
 export interface PlaceOpts {
-  sizes: Record<CragId, CragSize>;
+  sizes: CragSizes;
   /** the forest's trunks: nothing is set on one (the kit steps round them) */
   trees?: readonly { x: number; z: number }[];
   seed?: number;
+  /** B (Debug ▸ Crags): the modules turned, rolled and sunk more freely, talus in their joints, the hero crag */
+  v2?: boolean;
 }
 
 /**
@@ -141,6 +153,7 @@ export interface PlaceOpts {
  */
 export function placeCrags(o: PlaceOpts): CragPlace[] {
   const rng = new Rng(o.seed ?? 0x5ca1ab1e);
+  const v2 = o.v2 ?? CRAGS_B;
   const out: CragPlace[] = [];
   const trees = o.trees ?? [];
   const treeGrid = new Map<string, { x: number; z: number }[]>();
@@ -151,9 +164,21 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
     }
     return false;
   };
-  const size = (id: CragId): CragSize => o.sizes[id];
+  const size = (id: CragId): CragSize => (id === CRAG_HERO ? o.sizes.hero ?? { hw: 10, hd: 7, h: 24 } : o.sizes[id]);
   const big: { x: number; z: number; r: number }[] = [];
   const clear = (x: number, z: number, r: number, k: number): boolean => big.every((b) => Math.hypot(b.x - x, b.z - z) > (b.r + r) * k);
+
+  // ── B: the hero crag first (the cliffs keep clear of it) ──
+  if (v2 && o.sizes.hero) {
+    const hs = size(CRAG_HERO), { x, z, sink } = CRAG_HERO_SPOT;
+    const [nx, , nz] = normalAt(x, z, 6);
+    // its front half-way between down the slope and toward the lookout
+    const down = Math.atan2(nx, nz), look = Math.atan2(LOOKOUT.x - x, LOOKOUT.z - z);
+    const yaw = down + Math.atan2(Math.sin(look - down), Math.cos(look - down)) * 0.5;
+    const scale = 1.0;
+    out.push({ id: CRAG_HERO, x, y: heightAt(x, z) - sink, z, yaw, scale, tiltX: -0.08, tiltZ: 0.03 });
+    big.push({ x, z, r: Math.hypot(hs.hw, hs.hd) * scale * 0.8 });
+  }
 
   // ── cliffs on the steep faces ──
   const cands: { x: number; z: number; a: number; yaw: number; w: number }[] = [];
@@ -172,21 +197,25 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
     if (plateau && (c.a < 0.8 || rng.next() < 0.45)) continue;
     const id = CLIFFS[rng.int(0, CLIFFS.length - 1)] ?? 'cliff-a';
     const sz = size(id);
-    const scale = plateau ? rng.range(0.8, 1.2) : rng.range(1.15, 1.7);
+    const scale = plateau ? rng.range(0.8, 1.2) : v2 ? rng.range(1.0, 1.9) : rng.range(1.15, 1.7);
     const r = Math.hypot(sz.hw, sz.hd) * scale;
-    const yaw = c.yaw + rng.range(-0.22, 0.22);
+    // B turns a module further off the fall line: side by side, A's modules showed the same face in a row (the blocks)
+    const yaw = c.yaw + (v2 ? rng.range(-0.55, 0.55) : rng.range(-0.22, 0.22));
     // on a steep face the module leans back with the slope (a little less than it: the columns stand steeper than the
     // ground, the top buried, the foot out) and sits into the face along its normal — a vertical box on a 55° face was
     // buried to the eaves or hung its base over the drop
     const lean = plateau ? 0 : Math.min(0.8, Math.max(0, c.a - 0.32));
     const [nx, ny, nz] = normalAt(c.x, c.z, 2.5);
-    const sink = (plateau ? 0.6 : 1.6) * scale;
+    const sink = (plateau ? 0.6 : v2 ? 2.1 : 1.6) * scale;
     const x = c.x - nx * sink, z = c.z - nz * sink;
     if (!clear(x, z, r, plateau ? 0.8 : 0.75)) continue;
     if (blocked(x, z, r, 5)) continue;
     if (treeNear(x, z, r * 0.5)) continue;
-    const y = heightAt(c.x, c.z) - ny * sink - (plateau ? 0.4 : 1.2) * scale;
-    out.push({ id, x, y, z, yaw, scale, tiltX: -lean + rng.range(-0.04, 0.04), tiltZ: rng.range(-0.05, 0.05) });
+    const y = heightAt(c.x, c.z) - ny * sink - (plateau ? 0.4 : v2 ? 1.7 : 1.2) * scale;
+    // B rolls it too (the bands no longer run level from module to module) and varies its lean
+    out.push(v2
+      ? { id, x, y, z, yaw, scale, tiltX: -lean + rng.range(-0.12, 0.08), tiltZ: rng.range(-0.16, 0.16) }
+      : { id, x, y, z, yaw, scale, tiltX: -lean + rng.range(-0.04, 0.04), tiltZ: rng.range(-0.05, 0.05) });
     big.push({ x, z, r });
   }
   const cliffs = out.length;
@@ -206,9 +235,25 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
 
   // ── talus: below each cliff, where the slope eases ──
   const small: { x: number; z: number; r: number }[] = [];
+  // B: a boulder half-buried in the joint between two neighbouring cliffs (their seam, where two modules meet)
+  if (v2) {
+    for (let i = 0; i < cliffs; i++) for (let j = i + 1; j < cliffs; j++) {
+      const a = out[i], b = out[j];
+      if (!a || !b || a.id === CRAG_HERO || b.id === CRAG_HERO) continue;
+      const ra = Math.hypot(size(a.id).hw, size(a.id).hd) * a.scale, rb = Math.hypot(size(b.id).hw, size(b.id).hd) * b.scale;
+      const d = Math.hypot(a.x - b.x, a.z - b.z);
+      if (d > (ra + rb) * 1.1) continue;
+      const t = ra / (ra + rb), x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t;
+      const id = BOULDERS[rng.int(0, 2)] ?? 'boulder-a';
+      const scale = rng.range(1.0, 1.6), r = Math.hypot(size(id).hw, size(id).hd) * scale;
+      if (blocked(x, z, r, 2.5) || !small.every((q) => Math.hypot(q.x - x, q.z - z) > (q.r + r) * 0.8)) continue;
+      out.push({ id, x, y: heightAt(x, z) - 0.45 * scale, z, yaw: rng.range(0, Math.PI * 2), scale, tiltX: rng.range(-0.3, 0.3), tiltZ: rng.range(-0.3, 0.3) });
+      small.push({ x, z, r });
+    }
+  }
   for (let i = 0; i < cliffs; i++) {
     const c = out[i];
-    if (!c) continue;
+    if (!c || c.id === CRAG_HERO) continue;
     const sz = size(c.id);
     const n = rng.int(2, 4);
     for (let k = 0; k < n; k++) {
@@ -372,6 +417,8 @@ export interface CaveMeta {
 
 // ──────────────────────────────────────────────────── the material ─────────────────────────────────────────────────
 
+/** B: the granite's albedo lift (F-L1) */
+const CRAG_LIFT = 1.3;
 /** the granite's tile (m): one mossy_rock repeat per 4.6 m on the faces, the grit per 3.4 m */
 const ROCK_TILE = 4.6, GRIT_TILE = 3.4;
 /** the cave's fill (see the material): PineCrags.update drives it from the clock */
@@ -400,7 +447,7 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
   };
   for (const t of [rock.map, rock.normalMap, rock.armMap, grit.map, grit.normalMap]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true; }
   mat.customProgramCacheKey = () => (CRAGS_B ? 'pine-crag-b' : 'pine-crag');
-  if (CRAGS_B) mat.defines = { ...mat.defines, CRAGS_B: '' };
+  if (CRAGS_B) mat.defines = { ...mat.defines, CRAGS_B: '', CRAG_LIFT: CRAG_LIFT.toFixed(3) };
   sky.setupMaterial(mat);
   const csmHook = mat.onBeforeCompile.bind(mat);
   mat.onBeforeCompile = (shader, renderer) => {
@@ -450,13 +497,17 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
         `)
       .replace('#include <map_fragment>', `
         vec3 cwn = normalize( vCN );
+        vec3 cln = cwn; // the base normal the lighting sees
         #ifdef CRAGS_B
-          // the face skin (ctint.y = 1) is projected and lit by its facets: its smoothed normals average a riser with
-          // the tread above it, and the projection laid the tread's texture down the riser (the stretch)
+          // the face skin (ctint.y = 1) is projected by its facets: its smoothed normals average a riser with the tread
+          // above it, and the projection laid the tread's texture down the riser (the stretch). It is lit half by its
+          // facets, half smooth: fully faceted, a 0.7 m grid read as low-poly
           {
             vec3 cfn = normalize( cross( dFdx( vCW ), dFdy( vCW ) ) );
             cfn *= sign( dot( cfn, cwn ) + 1e-4 );
-            cwn = normalize( mix( cwn, cfn, step( 0.5, vCT.y ) * step( 0.5, vCD.a ) ) );
+            float skin = step( 0.5, vCT.y ) * step( 0.5, vCD.a );
+            cln = normalize( mix( cwn, cfn, 0.5 * skin ) );
+            cwn = normalize( mix( cwn, cfn, skin ) );
           }
         #endif
         vec3 cb = pow( abs( cwn ), vec3( 4.0 ) ); cb /= max( cb.x + cb.y + cb.z, 1e-5 );
@@ -483,7 +534,11 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
         alb = mix( vec3( lum ) * vec3( 0.98, 1.0, 1.04 ), alb, keep );
         // rain streaks down the faces: dark vertical stains under the ledges
         float streak = cNoise( vec2( ( vCW.x + vCW.z ) * 0.9, vCW.y * 0.06 ) ) * cNoise( vec2( ( vCW.x - vCW.z ) * 0.33, vCW.y * 0.02 + 7.0 ) );
-        alb *= 1.0 - 0.38 * smoothstep( 0.12, 0.45, streak ) * ( 1.0 - up ) * outside;
+        #ifdef CRAGS_B
+          alb *= 1.0 - 0.2 * smoothstep( 0.12, 0.45, streak ) * ( 1.0 - up ) * outside;
+        #else
+          alb *= 1.0 - 0.38 * smoothstep( 0.12, 0.45, streak ) * ( 1.0 - up ) * outside;
+        #endif
         // moss on the up-facing, outside (the cave's floor stays bare)
         float mossN = cNoise( vCW.xz * 0.21 + 3.0 ) * 0.6 + cNoise( vCW.xz * 0.9 ) * 0.4;
         float moss = smoothstep( 0.62, 0.92, cwn.y ) * smoothstep( 0.42, 0.62, mossN ) * outside * rockW * ( 1.0 - grit * 0.6 );
@@ -491,6 +546,14 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
         // a macro variation so a face does not tile
         alb *= 0.86 + 0.28 * cNoise( vCW.xz * 0.045 + vCW.y * 0.03 );
         alb *= mix( vec3( 1.0 ), vec3( 1.1, 1.0, 0.86 ), smoothstep( 0.35, 0.75, cNoise( vCW.xz * 0.018 + 9.0 ) ) * rockW ); // warm iron-stained patches
+        #ifdef CRAGS_B
+          // F-L1: the look targets' pale granite (the Ridge's rock was ΔE00 8.8 darker and blotchier): lifted, the
+          // blotches pulled toward their mean
+          {
+            float gl = dot( alb, vec3( 0.299, 0.587, 0.114 ) );
+            alb = mix( alb, mix( vec3( gl ), vec3( 0.36, 0.35, 0.33 ), 0.35 ), 0.3 * rockW * ( 1.0 - moss ) ) * mix( 1.0, CRAG_LIFT, rockW );
+          }
+        #endif
         // the tint path (the cave's bedding, bones, twigs): its own albedo, the granite's normal for grain
         vec3 tintCol = vCT.y < 0.25 ? vec3( 0.62, 0.58, 0.49 ) : vCT.y < 0.5 ? vec3( 0.42, 0.33, 0.19 ) : vec3( 0.19, 0.13, 0.08 );
         alb = mix( tintCol * vCT.x * ( 0.85 + 0.3 * cNoise( vCW.xz * 6.0 ) ), alb, rockW );
@@ -511,9 +574,9 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
           float str = mix( 0.35, 1.0, rockW ) * ( 1.0 - 0.6 * moss );
           nX.xy *= str; nY.xy *= str; nZ.xy *= str;
           // whiteout blend (the tangent frames: X ← (z, y), Y ← (x, z), Z ← (x, y))
-          vec3 tX = vec3( nX.xy + cwn.zy, abs( nX.z ) * cwn.x );
-          vec3 tY = vec3( nY.xy + cwn.xz, abs( nY.z ) * cwn.y );
-          vec3 tZ = vec3( nZ.xy + vec2( -cwn.x, cwn.y ), abs( nZ.z ) * cwn.z );
+          vec3 tX = vec3( nX.xy + cln.zy, abs( nX.z ) * cln.x );
+          vec3 tY = vec3( nY.xy + cln.xz, abs( nY.z ) * cln.y );
+          vec3 tZ = vec3( nZ.xy + vec2( -cln.x, cln.y ), abs( nZ.z ) * cln.z );
           vec3 wN = normalize( tX.zyx * cb.x + tY.xzy * cb.y + vec3( -tZ.x, tZ.y, tZ.z ) * cb.z );
           normal = normalize( ( viewMatrix * vec4( wN, 0.0 ) ).xyz );
         }`)
@@ -613,13 +676,16 @@ export class PineCrags {
   /** the kit, the cave and their textures; null when the kit is not in this build. `sky` null: geometry only (the bake) */
   static async load(sky: Sky | null): Promise<PineCrags | null> {
     try {
-      const [kit, caveGeo, caveMeta, tex] = await Promise.all([
+      const [kit, kitB, caveGeo, caveMeta, tex] = await Promise.all([
         loadNodes(`${CRAG_DIR}/crags.glb`),
+        // B (Debug ▸ Crags): the fused, weathered big modules and the hero crag over A's kit (only fetched in B)
+        CRAGS_B ? loadNodes(`${CRAG_DIR}/crags-b.glb`).catch((e: unknown) => { console.warn('[crags] no crags-b.glb', e); return new Map<string, THREE.BufferGeometry>(); }) : Promise.resolve(new Map<string, THREE.BufferGeometry>()),
         loadNodes(`${CRAG_DIR}/cave.glb`).catch((e: unknown) => { console.warn('[crags] no cave.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
         fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
         sky ? Promise.all([loadPBR('mossy_rock'), loadPBR('rock_ground')]) : Promise.resolve(null),
       ]);
       const mat = sky && tex ? cragMaterial(sky, tex[0], tex[1]) : null;
+      for (const [name, g] of kitB) kit.set(name, g);
       return new PineCrags(sky, kit, caveGeo, caveMeta, mat);
     } catch (e: unknown) {
       console.warn('[crags] the kit did not load', e);
@@ -628,12 +694,14 @@ export class PineCrags {
   }
 
   /** every module's footprint (its LOD0's box, in its own frame) */
-  sizes(): Record<CragId, CragSize> {
-    const out = {} as Record<CragId, CragSize>;
-    for (const id of CRAG_IDS) {
+  sizes(): CragSizes {
+    const of = (id: CragId): CragSize => {
       const b = this.kit.get(id)?.boundingBox ?? new THREE.Box3(new THREE.Vector3(-4, 0, -3), new THREE.Vector3(4, 8, 3));
-      out[id] = { hw: Math.max(-b.min.x, b.max.x), hd: Math.max(-b.min.z, b.max.z), h: b.max.y };
-    }
+      return { hw: Math.max(-b.min.x, b.max.x), hd: Math.max(-b.min.z, b.max.z), h: b.max.y };
+    };
+    const out = {} as CragSizes;
+    for (const id of CRAG_IDS) out[id] = of(id);
+    if (this.kit.has(CRAG_HERO)) out.hero = of(CRAG_HERO);
     return out;
   }
 

@@ -2,11 +2,12 @@
 // the bear cave's data (scripts/blender/pine-hollow/crags/build_cave.py) is self-consistent in its frame.
 import { describe, expect, it } from 'vitest';
 import { setActiveChunk } from '../src/chunks/registry';
-import { placeCrags, caveLocal, caveWorld, skinWeight, skinTile, CRAG_IDS, type CragId, type CragSize, type CaveMeta } from '../src/world/PineCrags';
+import { placeCrags, caveLocal, caveWorld, skinWeight, skinTile, CRAG_IDS, CRAG_HERO, type CragId, type CragSize, type CaveMeta } from '../src/world/PineCrags';
 import { trailDistance, normalAt } from '../src/world/Heightfield';
 import { DEN, LOOKOUT } from '../src/chunks/pineHollowLayout';
 import kitJson from '../public/assets/models/pine-hollow-crags/crags.json?raw';
 import caveJson from '../public/assets/models/pine-hollow-crags/cave.json?raw';
+import kitBJson from '../public/assets/models/pine-hollow-crags/crags-b.json?raw';
 
 setActiveChunk('pine-hollow');
 interface KitMeta { modules: Record<string, { lod0: number; lod1: number; min: number[]; max: number[] }> }
@@ -61,6 +62,29 @@ describe('the granite kit', () => {
 });
 
 describe('Debug ▸ Crags B (E322 F-L2)', () => {
+  const kitB = JSON.parse(kitBJson) as KitMeta;
+  const hb = kitB.modules[CRAG_HERO];
+  const hero: CragSize | undefined = hb ? { hw: Math.max(-(hb.min[0] ?? 0), hb.max[0] ?? 0), hd: Math.max(-(hb.min[1] ?? 0), hb.max[1] ?? 0), h: hb.max[2] ?? 0 } : undefined;
+  const b = placeCrags({ sizes: { ...sizes(), ...(hero ? { hero } : {}) }, v2: true });
+
+  it('B\'s fused modules keep A\'s budgets', () => {
+    for (const [id, m] of Object.entries(kitB.modules)) {
+      expect(m.lod0, id).toBeLessThanOrEqual(id === CRAG_HERO ? 9000 : 4000);
+      expect(m.lod1, id).toBeLessThanOrEqual(m.lod0 / 3);
+    }
+  });
+
+  it('places the hero once, and every module off the trails, the lookout and the Den floor', () => {
+    expect(b.filter((p) => p.id === CRAG_HERO)).toHaveLength(1);
+    expect(b.length).toBeGreaterThan(60);
+    for (const p of b) {
+      if (p.id.startsWith('scree')) continue;
+      expect(trailDistance(p.x, p.z), `${p.id} at ${p.x.toFixed(0)}, ${p.z.toFixed(0)}`).toBeGreaterThan(2.4);
+      expect(Math.hypot(p.x - LOOKOUT.x, p.z - LOOKOUT.z)).toBeGreaterThan(LOOKOUT.r + 8);
+      expect(Math.hypot(p.x - DEN.x, p.z - DEN.z)).toBeGreaterThan(DEN.r - 7);
+    }
+  });
+
   it('the skin\'s stepped bands fold back into the slope far less than A\'s', () => {
     const folded = (v2: boolean): number => {
       let area = 0, back = 0;

@@ -453,6 +453,8 @@ export const PUBLIC_BYTES = {
   "/assets/models/hatchet/textures/hatchet_nor_gl_1k.phone.webp": 56924,
   "/assets/models/pine-hollow-crags/cave.glb": 372680,
   "/assets/models/pine-hollow-crags/cave.json": 11282,
+  "/assets/models/pine-hollow-crags/crags-b.glb": 462772,
+  "/assets/models/pine-hollow-crags/crags-b.json": 1874,
   "/assets/models/pine-hollow-crags/crags.glb": 348280,
   "/assets/models/pine-hollow-crags/crags.json": 3706,
   "/assets/models/pine-hollow-hero/beaver-dam-lod1/beaver-dam-lod1.glb": 77472,

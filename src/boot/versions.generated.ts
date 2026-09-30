@@ -213,6 +213,8 @@ export const ASSET_VERSIONS: Readonly<Record<string, string>> = {
   "/assets/models/hatchet/textures/hatchet_nor_gl_1k.phone.webp": '1fdb2faa',
   "/assets/models/pine-hollow-crags/cave.glb": '463cb198',
   "/assets/models/pine-hollow-crags/cave.json": 'd010607e',
+  "/assets/models/pine-hollow-crags/crags-b.glb": '2852dfdf',
+  "/assets/models/pine-hollow-crags/crags-b.json": '5d49a237',
   "/assets/models/pine-hollow-crags/crags.glb": '07c82d24',
   "/assets/models/pine-hollow-crags/crags.json": 'dd8da9af',
   "/assets/models/pine-hollow-hero/beaver-dam/beaver-dam.glb": '4f9a6aa9',

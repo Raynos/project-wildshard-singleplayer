@@ -20,6 +20,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, relative } from 'node:path';
 import { tmpdir } from 'node:os';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium, devices } = await import('playwright');
 
@@ -32,6 +33,8 @@ const FRAMES = resolvePath(ROOT, flag('frames', resolvePath(tmpdir(), 'pine-holl
 const URL_BASE = flag('url', 'http://localhost:5176');
 const TAG = flag('tag', '');
 const EXTRA = flag('query', '');
+/** pause ▸ Settings ▸ Debug picks set before each load (`--settings=pineCrags=b`, scripts/debug-settings.mjs) */
+const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
 const SETTLE = Number(flag('settle', '4')) * 1000;
 const TIMEOUT = Number(flag('timeout', '300')) * 1000;
 const only = flag('only', '').split(',').filter(Boolean);
@@ -74,6 +77,7 @@ try {
   for (const g of groups) {
     const ctx = await browser.newContext(g.ctx);
     const page = await ctx.newPage();
+    if (Object.keys(SETTINGS).length > 0) await debugSettings(page, SETTINGS);
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     const first = anchors[0];

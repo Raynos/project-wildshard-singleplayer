@@ -5,16 +5,18 @@
  * `mossy_rock`, ledge grit from the terrain's `rock_ground`). src/world/PineCrags.ts places them on every steep face of
  * the Ridge, the pass and the Den's walls (`placeCrags`), fronts down the slope, into ONE BatchedMesh with the boulders,
  * the scree, the face skin and the cave (one draw + one per shadow cascade). LOD0 near, LOD1 to the slab's edge; a copy
- * collides as the hull of ≤ 110 of its LOD1's vertices.
+ * collides as the hull of ≤ 110 of its LOD1's vertices. E322 F-L2: Debug ▸ Look ▸ Crags B swaps the cliff bands, the
+ * buttress and the slab for fused, weathered masses (build_crags_b.py → crags-b.glb) and adds `hero`, the lookout's ~26 m
+ * granite prow (a B-only variant: A's kit has no such node, so its card draws nothing in A).
  */
 import { defineModel } from '../../../models/model';
 import { cragHull, cragPart, CRAG_LOD } from '../world/cragKit';
 
-export const CLIFF_MODULES = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b'] as const;
+export const CLIFF_MODULES = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'hero'] as const;
 
 export interface CragCliffParams { readonly module: (typeof CLIFF_MODULES)[number] }
 
-const LABEL: Record<CragCliffParams['module'], string> = { 'cliff-a': 'Cliff band A', 'cliff-b': 'Cliff band B', 'cliff-c': 'Cliff band C', buttress: 'Buttress', slab: 'Slab', 'tor-a': 'Tor A', 'tor-b': 'Tor B' };
+const LABEL: Record<CragCliffParams['module'], string> = { 'cliff-a': 'Cliff band A', 'cliff-b': 'Cliff band B', 'cliff-c': 'Cliff band C', buttress: 'Buttress', slab: 'Slab', 'tor-a': 'Tor A', 'tor-b': 'Tor B', hero: 'Hero crag (Debug ▸ Crags B)' };
 
 export const cragCliff = defineModel<CragCliffParams>({
   id: 'pine-hollow/crag-cliff', name: 'Ridge crag', category: 'nature', pipeline: 'blender',

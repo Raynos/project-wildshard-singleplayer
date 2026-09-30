@@ -513,3 +513,9 @@ and after the Nalati second pass (87 cards: the yurt, the camp props, the fence 
 props, the escarpment's and the snow ring's rock, the glacier snout), five turntables (yurt, hitching rail, kazan, crag
 rock, ovoo cairn) and the Sets explorer (17 sets: every named place). `nalati-spin.mp4`: an 8 s spin of the same five
 models in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` rows M3, M12.
+
+### Pine Hollow crags, A / B (`art/pine-hollow/round-24-e322-crags/`, 2026-09-30, E322 F-L2)
+
+`board.jpg`: pause ▸ Settings ▸ Debug ▸ Look ▸ Crags, A today | B new crags (the face skin without the stretch, paler
+granite, fused and fractured cliff modules, a hero crag on the crest E of the lookout), iPhone portrait, close up at the
+pass, the lookout's east catwalk, the Ridge from the trail; the GPU ms and the bytes in the footer and the README.

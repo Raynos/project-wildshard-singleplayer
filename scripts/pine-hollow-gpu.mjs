@@ -37,6 +37,7 @@
 // Metal (`--use-angle=metal`), muted, closed at the end. Writes progress/pine-hollow-gpu-<tag>.json, prints tables.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { debugSettings } from './debug-settings.mjs';
 
 const { chromium, devices } = await import('playwright');
 
@@ -46,6 +47,8 @@ const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`
 const URL_BASE = flag('url', 'http://localhost:4391');
 const TAG = flag('tag', 'latest');
 const EXTRA = flag('query', '');
+/** pause ▸ Settings ▸ Debug picks set before the load (`--settings=pineCrags=b,weather=clear`, scripts/debug-settings.mjs) */
+const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
 const TIER = flag('tier', 'phone');
 const SETTLE = Number(flag('settle', '7')) * 1000;
 const ROUNDS = Number(flag('rounds', '12'));
@@ -79,6 +82,10 @@ const PINE_POSES = [
   { id: 'pond', x: -56, z: 95, yaw: 3.1416 },
   // the fire lookout's south catwalk facing down the zipline over the Hollow
   { id: 'lookout', x: 35.53, z: 211.14, yaw: 0.1635, y: 57.46 },
+  // E322: the Ridge's crags — from its foot facing up the face (the skin and the cliffs fill the frame), and the lookout's
+  // east catwalk along the Ridge (the hero crag in B)
+  { id: 'ridge', x: 70, z: 165, yaw: 2.9 },
+  { id: 'lookout-e', x: 35.2, z: 214.5, yaw: 1.75, y: 57.46 },
 ];
 const POSES = (CHUNK === 'driftwood-isle' ? DRIFTWOOD_POSES : PINE_POSES).filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 
@@ -314,7 +321,7 @@ function overdraw(wantHeat) {
 }
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
-const out = { tag: TAG, url: URL_BASE, query: EXTRA, tier: TIER, viewport: `${VW}x${VH}@${DPR}`, scale: SCALE, when: new Date().toISOString(), rows: [] };
+const out = { tag: TAG, url: URL_BASE, query: EXTRA, settings: SETTINGS, tier: TIER, viewport: `${VW}x${VH}@${DPR}`, scale: SCALE, when: new Date().toISOString(), rows: [] };
 const f2 = (x) => (x === undefined ? '—' : x.toFixed(2));
 try {
   const iphone = devices['iPhone 16 Pro'];
@@ -323,6 +330,7 @@ try {
     : { viewport: { width: VW, height: VH }, deviceScaleFactor: DPR };
   const ctx = await browser.newContext(ctxOpts);
   const page = await ctx.newPage();
+  if (Object.keys(SETTINGS).length > 0) await debugSettings(page, SETTINGS);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const p0 = POSES[0];
