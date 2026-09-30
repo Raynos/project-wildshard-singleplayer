@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — stage 1 built (coins capped per enemy, the five icon tabs on every shard, GEAR, FINDS, iron sword saved: `5ce35281`…`25b571d3`), the trader + counter (`b047f294`) and the props (`bd9aa70e`) built; awaiting deploy. In flight with the driftwood-top10 plan agent: stage 2 (the trader's shop screen C, prices from the full-clear census, the whetstone / heart / sea chart / cape effects, stage 1 leftovers) and stage 3 paused at 3 subagents (Jake's cap): its pieces are committed unwired (`211b97a1`: charms — +10 health / dodge −30 % / night glow; bear claw +20 % heavy; boar tusk = no hit mid-dodge; the hat drop; a ~330-tri body shadow), wiring + in-game check + sheet left. Last row after them: the other three shards' Bag review with Jake.
+**State:** `in progress` 2026-09-30 — built: stage 1 (live), the trader + props, **stage 2** (`8a56799b`, awaiting deploy: Maren's counter, screen C, six goods = 90 coins of a 92-coin full clear, whetstones 12→15→18 / 28→42, hearts 120 / 140, the sea chart beads on both maps, the cape in GEAR; sheet `progress/293-e314-shop-stage2.jpg`). In flight: stage 3 (chime + charms, trophies, the hat drop, the body shadow: wiring + in-game check). Last row after it: the other three shards' Bag review with Jake.
 
 ## Why
 
@@ -98,4 +98,7 @@ fundamentally shared UI for the entire game." So the Bag is built once for all f
 - **Worn cosmetics:** the game has no player body, so the player gets a **simple body shadow** (an invisible low-poly
   castaway that only casts a shadow), and the worn hat and cape ride on it (Jake, 2026-09-30). Stage 3 builds it; the
   props (chime, plaques, hat, cape, icons) are built (`bd9aa70e`, `86734738`, board `art/loot/round-2-props/board.jpg`).
+
+**Prices (stage 2, `src/game/loot/shop.ts` GOODS; full clear = 92):** Whetstone I 12 · Whetstone II 22 · Sturdy Heart I
+14 · Sturdy Heart II 22 · Sea chart 12 · Sailcloth cape 8 = 90. The trader is **Maren**.
 
