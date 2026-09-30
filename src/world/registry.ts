@@ -126,6 +126,10 @@ export interface RegisteredSet {
   bounds: THREE.Box3;
   /** what draws it: each member `place` call as it was made (the Sets explorer frames, outlines and measures the set by these) */
   placed?: readonly SetPlacement[];
+  /** the named place it is (`<slug>/<id>` in its shard's list of named places, M12) */
+  place?: string;
+  /** the place's models not on the contract yet (held by another lane): their ids */
+  pending?: readonly string[];
 }
 
 /** one `place` call in a set, as Explore reads it (a `Placed`, src/models/place.ts) */
