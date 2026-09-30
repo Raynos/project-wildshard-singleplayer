@@ -3,7 +3,7 @@
 // w, h) and which way its u runs (aTan), so the Jiehua program rules its edges at a constant pixel width with fwidth —
 // and keeps doing so when an instance is scaled non-uniformly (the vertex shader rescales aFace by the instance's
 // stretch along aTan and along normal × aTan). One layout for merged and instanced geometry alike.
-import { BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, type Matrix4, Matrix3, Uint16BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { type Box3, BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, type Matrix4, Matrix3, Uint16BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 
 /** pattern kinds the material draws (aPat.x) */
 export const K = {
@@ -50,6 +50,13 @@ export class Builder {
 
   get vertexCount(): number { return this.n; }
   get triangleCount(): number { return this.idx.length / 3; }
+
+  /** the bounds of what it holds (a baked piece's own box: its copies' boxes, batch.ts) */
+  bounds(target: Box3): Box3 {
+    const p = this.pos;
+    for (let i = 0; i + 2 < p.length; i += 3) target.expandByPoint(vs.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
+    return target;
+  }
 
   private vert(p: Vector3, nrm: Vector3, tan: Vector3, u: number, v: number, w: number, h: number, look: Look, edges: number, top = false): void {
     this.pos.push(p.x, p.y, p.z);

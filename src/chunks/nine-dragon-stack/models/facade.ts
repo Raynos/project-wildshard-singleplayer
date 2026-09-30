@@ -12,7 +12,7 @@
  * merged mesh that is drawn anyway — so they cost no draw of their own: the grammar records every copy and batch.ts
  * registers them on the shell (`place` with `drawnInto`).
  */
-import { Box3, type BufferGeometry, type Matrix4 } from 'three';
+import type { BufferGeometry, Matrix4 } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '../../../models/model';
 import { DRAWN_AS, PIECES, PIECE_LODS, SMALL, type PieceId } from '../world/facade/pieces';
 import { ndLook, need } from '../world/modelLook';
@@ -163,13 +163,6 @@ export const facadeAwning = defineModel<FacadeParams>({
 export const FACADE_BAKED: Readonly<Partial<Record<PieceId, typeof facadeBalcony>>> = {
   couplet: facadeCouplet, shutter: facadeShutter, signFlat: facadeSignFlat, signBox: facadeSignBox, acBox: facadeAcBox, washLine: facadeWashLine, awning: facadeAwning,
 };
-
-/** a baked piece's own bounds (its geometry, built once per fragment) */
-export function pieceBounds(ctx: ModelContext, id: PieceId): Box3 {
-  const g = geo(ctx, id);
-  if (g.boundingBox === null) g.computeBoundingBox();
-  return g.boundingBox ?? new Box3();
-}
 
 /** the model that draws each facade piece id (an alias draws as the piece it names in DRAWN_AS) */
 export const FACADE_MODELS: Readonly<Partial<Record<PieceId, typeof facadeBalcony>>> = {

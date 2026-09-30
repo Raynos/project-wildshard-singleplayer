@@ -9,13 +9,11 @@ import type { Builder } from './geo';
 import type { Dressing } from './grammar';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
 import { BAKED, DRAWN_AS, PIECES, SMALL, type PieceId } from './pieces';
-import { FACADE_BAKED, FACADE_MODELS, type FacadeParams, pieceBounds } from '../../models/facade';
+import { FACADE_BAKED, FACADE_MODELS, type FacadeParams } from '../../models/facade';
 import { type InstancedCuller, type Placed, place } from '../../../../models/place';
 import type { ModelContext, Placement } from '../../../../models/model';
 import type { NdLook } from '../modelLook';
 import { triCount } from '../lod';
-
-const bakeCache = new Map<PieceId, Builder>();
 
 export interface FacadeStats { draws: number; tris: number; instances: number; windows: number; shellTris: number; perPiece: Record<string, [number, number]> }
 
@@ -55,7 +53,9 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
   models.look.facade = { mat, small: matSmall };
   // the kit: one instanced draw per drawn geometry; the baked pieces go into the shell first
   const byPiece = new Map<PieceId, Copy[]>();
-  /** the baked pieces' copies, per piece (models/facade.ts FACADE_BAKED: registered on the shell below) */
+  /** the baked pieces' builders (built once a build, dropped with it) and copies, per piece (models/facade.ts
+   *  FACADE_BAKED: registered on the shell below) */
+  const bakeCache = new Map<PieceId, Builder>();
   const baked = new Map<PieceId, Copy[]>();
   const tc = new Color();
   for (const p of d.pieces) {
@@ -87,9 +87,9 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
     // the pieces baked into it are models drawn there (their copies' boxes: each piece's own bounds at its placement)
     const box = new Box3();
     for (const [id, list] of baked) {
-      const model = FACADE_BAKED[id];
-      if (model === undefined) throw new Error(`facade: no model is the baked piece '${id}' (models/facade.ts FACADE_BAKED)`);
-      const own = pieceBounds(models.ctx, id), boxes = new Float32Array(list.length * 6);
+      const model = FACADE_BAKED[id], b = bakeCache.get(id);
+      if (model === undefined || b === undefined) throw new Error(`facade: no model is the baked piece '${id}' (models/facade.ts FACADE_BAKED)`);
+      const own = b.bounds(new Box3()), boxes = new Float32Array(list.length * 6);
       const placements: Placement<FacadeParams>[] = list.map((p, i) => {
         box.copy(own).applyMatrix4(p.m);
         boxes.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], i * 6);
@@ -98,6 +98,9 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
       place(model, placements, { ctx: models.ctx, draw: 'merged', drawnInto: { object: shell, boxes }, piece: { id: `nds-facade-${id}`, name: model.name } });
     }
   }
+  // (the baked pieces' builders are done: nothing keeps them past the build)
+  for (const b of bakeCache.values()) b.release();
+  bakeCache.clear();
   // the pieces: one `place` each (a task apart when a piece took long: the phone's ~30 ms tasks)
   let lastYield = performance.now();
   for (const [id, list] of byPiece) {
