@@ -1,6 +1,6 @@
 # Plan: Driftwood top 10 (E126)
 
-**State:** `in progress` 2026-09-29 — rows 1–4 are live (Jake's yes 2026-09-29): E294 + E295 in `9cf4138-mun8njsr`, E296 + E297 in `412d443-mun9x88v`. Being boarded for Jake's picks (driftwood-top10 plan agent): row 5 (E308), row 9b (E309) and row 10's style leftovers T1–T3, T5, T6 (E310). Done: 1, 2, 3, 4, 6, 7, 8, 9a, 10.
+**State:** `in progress` 2026-09-30 — done and live: rows 1–4 (E294–E297), 6, 7, 8, 9a, 9b's gulls B + map A (E309, `7c442d35`, live `402a153-munn9ug3`; the sea glass count moved into DRIFTWOOD-LOOT's FINDS tab), 10 incl. T1 banner B + T2 rocks B (E310, `c12dae6f`, live `402a153-munn9ug3`). Open: row 5 (E308) — three boards made, waiting on Jake's picks.
 
 ## Read this first
 
