@@ -35,7 +35,7 @@ export interface FenceSpec { path: [number, number][]; spacing?: number }
 export interface StepsSpec { from: [number, number]; to: [number, number]; width?: number }
 /** a trestle stair down a cliff the path crosses: straight from the top (on the upper ground) to the bottom (on the path below) */
 export interface FlightSpec { top: [number, number]; bottom: [number, number]; width?: number }
-export interface SignSpec { x: number; z: number; /** arrow boards: heading in radians (0 = +z) and which side of the post */ arrows: { toward: number }[] }
+export interface SignSpec { x: number; z: number; /** arrow boards, top down: heading in radians (0 = +z: world (sin, cos)) and the place lettered on it */ arrows: { toward: number; label?: string }[] }
 export interface TrailsideSpec { fences: FenceSpec[]; steps: StepsSpec[]; signs: SignSpec[]; flights?: FlightSpec[] }
 
 /** a polyline moved `d` m to its left (negative: right), for fences either side of a path's centreline */
@@ -91,9 +91,13 @@ export class Trailside {
         { top: [10.8, -27.8], bottom: [15.4, -8.6] },
         { top: [-52, -30], bottom: [-61.7, -5.9] },
       ],
+      // E318 (Jake: "letter them"): each board names the place it points to, along the path you take there (the boards
+      // pointed south, at the pier and the plateau's rim, before: 2.9 / 2.5 rad are world (sin, cos) ≈ (0.2, −1))
       signs: [
-        { x: 5, z: -150, arrows: [{ toward: 2.9 }, { toward: 0.6 }] },     // pier landing (on the sand): ← hut, ↗ lookout
-        { x: -14, z: -62, arrows: [{ toward: 0.9 }, { toward: 2.5 }] },    // hut fork: → lookout / wreck, ↖ shrine
+        // pier landing (on the sand): ← the hut, up the fenced path west; ↗ the lookout on the headland, in sight from here
+        { x: 5, z: -150, arrows: [{ toward: -1.27, label: 'HUT' }, { toward: 0.35, label: 'LOOKOUT' }] },
+        // hut fork: ↗ the lookout and the wreck (one path to the fork at the bridge's foot), ↖ the shrine
+        { x: -14, z: -62, arrows: [{ toward: 0.45, label: 'LOOKOUT' }, { toward: 0.75, label: 'WRECK' }, { toward: -0.87, label: 'SHRINE' }] },
       ],
     };
   }
@@ -220,7 +224,7 @@ export class Trailside {
     // ── signposts: a post with an arrow board per direction, stacked ──
     for (const sg of spec.signs) {
       const y = heightAt(sg.x, sg.z);
-      const params: SignpostParams = { arrows: sg.arrows.map((a) => a.toward) };
+      const params: SignpostParams = { arrows: sg.arrows.map((a) => a.toward), labels: sg.arrows.map((a) => a.label ?? '') };
       if (weld(signpost.build(ctx, params, rng), sg.x, y, sg.z, signs.boxes)) signs.pls.push({ x: sg.x, y, z: sg.z, params });
       this.colliders.push({ x: sg.x, z: sg.z, hw: 0.12, hd: 0.12, rot: 0, yTop: y + 2.4, yBottom: y - 1 });
     }

@@ -1,8 +1,8 @@
 /**
  * The trail dressing's models (E306 / E315 M1: models on the contract, src/models/model.ts; they were built inside
  * src/world/Trailside.ts): the rope-fence POST (a thick weathered piling with a rope lashing under its cap), the
- * SIGNPOST (a post with an arrow board per direction, stacked) and the PLANK STEP let into a climb. Flat-shaded vertex
- * colour, per-face jitter from the stream they are handed.
+ * SIGNPOST (a post with an arrow board per direction, stacked, each lettered with the place it points to — E318) and the
+ * PLANK STEP let into a climb. Flat-shaded vertex colour, per-face jitter from the stream they are handed.
  *
  * Each builds in its own space, its foot at the origin: the trail (src/world/Trailside.ts) builds them in its layout's
  * order from ONE rng stream, between the geometry that is the trail's own (the ropes sagging between the posts, the
@@ -17,6 +17,7 @@ import { defineModel, type ModelContext, type ModelPart } from '../../../models/
 const C = {
   post: new THREE.Color('#6f5638'), postTop: new THREE.Color('#8a6d48'), rope: new THREE.Color('#d2bd85'),
   plank: new THREE.Color('#a07c53'), plankDark: new THREE.Color('#7d5f3f'), board: new THREE.Color('#b8925f'), boardEdge: new THREE.Color('#6a4e33'),
+  letter: new THREE.Color('#3b2716'),
 };
 export const TRAIL_COLOURS = C;
 
@@ -62,26 +63,79 @@ export const fencePost = defineModel<Record<string, never>>({
 });
 
 export interface SignpostParams {
-  /** the arrow boards, top down: each points this way (radians about +Y, 0 = +z) */
+  /** the arrow boards, top down: each points this way (radians about +Y, 0 = +z: world (sin, cos)) */
   readonly arrows: readonly number[];
+  /** each board's lettering, top down (E318: Jake, "letter them" — a blank board is a placeholder); '' or none = blank */
+  readonly labels?: readonly string[];
+}
+
+/** the lettering's block font: 5 × 7 cells, '#' painted (the island's faceted look: the letters are flat quads in the
+ *  weld's vertex colour, so a lettered sign costs no texture and no draw) */
+const GLYPHS: Readonly<Record<string, readonly string[]>> = {
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
+  E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+  H: ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  I: ['.###.', '..#..', '..#..', '..#..', '..#..', '..#..', '.###.'],
+  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+  L: ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+  N: ['#...#', '##..#', '##..#', '#.#.#', '#..##', '#..##', '#...#'],
+  O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+  R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+  S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
+  T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
+  U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+  W: ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'],
+};
+/** one font cell, metres: letters 0.18 m tall on a 0.3 m board (readable from ~10 m on a phone) */
+const CELL = 0.026;
+const textWidth = (text: string): number => Math.max(0, text.length * 6 - 1) * CELL;
+
+/** the lettering's quads on one face (`side` +1: the board's +z face, reading left → right from the post; −1: the back,
+ *  laid mirrored so it reads left → right from there too), centred on `cx`, in the board's own frame */
+function lettering(text: string, cx: number, side: 1 | -1): THREE.BufferGeometry[] {
+  const out: THREE.BufferGeometry[] = [], w = textWidth(text), x0 = cx - (side * w) / 2, z = side * 0.034;
+  text.toUpperCase().split('').forEach((ch, k) => { // the font is plain ASCII capitals
+    const rows = GLYPHS[ch];
+    if (!rows) return; // a space (or a letter the font lacks) is a gap
+    rows.forEach((row, r) => {
+      // one quad per run of painted cells in the row
+      for (let c = 0; c < 5;) {
+        if (row[c] !== '#') { c++; continue; }
+        let e = c; while (e < 5 && row[e] === '#') e++;
+        const a = (k * 6 + c) * CELL, b = (k * 6 + e) * CELL, y = (3.5 - r) * CELL - CELL / 2;
+        const q = new THREE.PlaneGeometry(b - a, CELL);
+        if (side < 0) q.rotateY(Math.PI);
+        q.translate(x0 + side * (a + b) / 2, y, z);
+        out.push(q);
+        c = e;
+      }
+    });
+  });
+  return out;
 }
 
 export const signpost = defineModel<SignpostParams>({
   id: 'driftwood-isle/signpost', name: 'Signpost', category: 'props', pipeline: 'code',
   file: 'src/chunks/driftwood-isle/models/trailside.ts', surface: 'wood',
-  defaults: { arrows: [2.9, 0.6] },
-  variants: [{ id: 'two', label: 'Two arrows', params: {} }, { id: 'one', label: 'One arrow', params: { arrows: [1.2] } }, { id: 'three', label: 'Three arrows', params: { arrows: [0.3, 2.2, 4.4] } }],
+  defaults: { arrows: [-1.27, 0.35], labels: ['HUT', 'LOOKOUT'] },
+  variants: [{ id: 'two', label: 'Two arrows', params: {} }, { id: 'one', label: 'One arrow', params: { arrows: [1.2], labels: ['WRECK'] } }, { id: 'three', label: 'Three arrows', params: { arrows: [0.45, 0.75, -0.87], labels: ['LOOKOUT', 'WRECK', 'SHRINE'] } }],
   seed: 0x5ea1 ^ 0x7a11,
   build: (ctx, p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
     add(new THREE.CylinderGeometry(0.09, 0.11, 2.4, 6).translate(0, 1.1, 0), C.post, 0.06);
     p.arrows.forEach((toward, i) => {
-      const by = 2.1 - i * 0.42;
-      // an arrow board: a box with a wedge tip, pointing along `toward`
-      const board = new THREE.BoxGeometry(0.9, 0.3, 0.06); board.translate(0.45 + 0.1, 0, 0);
-      const tip = new THREE.ConeGeometry(0.19, 0.3, 4); tip.rotateZ(-Math.PI / 2); tip.rotateX(Math.PI / 4); tip.translate(1.15, 0, 0);
+      const by = 2.1 - i * 0.42, text = p.labels?.[i] ?? '';
+      // an arrow board: a box with a wedge tip, pointing along `toward`; as long as its lettering needs (0.9 m at least)
+      const len = Math.max(0.9, textWidth(text) + 0.24);
+      const board = new THREE.BoxGeometry(len, 0.3, 0.06); board.translate(len / 2 + 0.1, 0, 0);
+      const tip = new THREE.ConeGeometry(0.19, 0.3, 4); tip.rotateZ(-Math.PI / 2); tip.rotateX(Math.PI / 4); tip.translate(len + 0.25, 0, 0);
       for (const g of [board, tip]) { g.rotateY(toward - Math.PI / 2); g.translate(0, by, 0); add(g, C.board, 0.05); }
-      const edge = new THREE.BoxGeometry(0.92, 0.04, 0.08); edge.translate(0.55, -0.16, 0); edge.rotateY(toward - Math.PI / 2); edge.translate(0, by, 0); add(edge, C.boardEdge, 0.04);
+      const edge = new THREE.BoxGeometry(len + 0.02, 0.04, 0.08); edge.translate(len / 2 + 0.1, -0.16, 0); edge.rotateY(toward - Math.PI / 2); edge.translate(0, by, 0); add(edge, C.boardEdge, 0.04);
+      // the place's name, burnt dark into both faces
+      for (const side of [1, -1] as const) for (const g of lettering(text, len / 2 + 0.1, side)) { g.rotateY(toward - Math.PI / 2); g.translate(0, by, 0); add(g, C.letter, 0.03); }
     });
     return one(ctx, parts);
   },
