@@ -20,6 +20,8 @@
  * 2 m texels start it a metre in and the arch's hood stood open to the sky — a box in the cave's frame (BEAR_CAVE: the
  * mouth, the hood and the first metres in, under the arch's height) is tested exactly in the rain's vertex shader.
  *
+ * A PRACTICE ROOM (the arena, a playground: `practiceRoom.open`) has none of it: no curtain, no extras (E322 F-L5, E350 F-X4).
+ *
  * RAIN EXTRAS (E322 F-L5; Jake picked them, always on in the rain, none in a practice room):
  *  · splashes at the player's feet: a ring of crowns + ripples on the ground within a few metres of the eye, respawned on
  *    the CPU (≤ 96 slots, one instanced draw), none under a roof / in the cave, fewer under the crowns;
@@ -489,7 +491,9 @@ export class PineWeatherFX {
   // ─────────────────────────────── per frame ───────────────────────────────
   /** `fogColor` the scene fog's (the rain's tint), `wind` the world wind (m/s, xz) for the slant, `cam` the view (the extras) */
   update(dt: number, w: PineWeather, fogColor: THREE.Color, wind: { x: number; z: number }, cam?: THREE.Camera): void {
-    const rainOn = w.rain > 0.01;
+    // E350 F-X4: the curtain is camera-local, so it followed the eye into a practice room (the arena's hall, a playground):
+    // none there, like the extras below; it is back the frame the room closes (`practiceRoom.open`, E321)
+    const rainOn = w.rain > 0.01 && !practiceRoom.open;
     this.rain.visible = rainOn;
     if (rainOn) {
       const r = this.rainU;

@@ -38,6 +38,7 @@ import { OLD_GROWTH } from '../chunks/pineHollowLayout';
 import { setting, onSettingChange } from '../ui/Settings';
 import { TIER } from '../core/tier';
 import { SEED } from '../core/config';
+import { practiceRoom } from '../core/practiceRoom';
 
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/pinehollow/antlerKing.ts) */
 export const weatherHold = { k: 0 };
@@ -173,11 +174,13 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
     volumetricFog.height = baseH; volumetricFog.falloff = baseFall; // the shafts keep the clear-sky floor (else a white-out)
     if (h.horizonVeil) h.horizonVeil.value.set(0.7 * weather.overcast, 0.75 * fog);
     if (h.particles) h.particles.params.mistOpacity = baseMist * (1 + 1.6 * fog) * (1 - 0.5 * weather.rain);
-    // the rain: wet surfaces (and the dew in the dawn fog), rings on the water, the wind up, the beds
-    weatherUniforms.uWet.value = Math.max(weather.wet, 0.22 * fog);
+    // the rain: wet surfaces (and the dew in the dawn fog), rings on the water, the wind up, the beds. A practice room (the
+    // arena, a playground) is out of the weather: no wet sheen, no rain beds or wet steps in it (E350 F-X4; back on exit)
+    const room = practiceRoom.open;
+    weatherUniforms.uWet.value = room ? 0 : Math.max(weather.wet, 0.22 * fog);
     waterWeather.uRainRings.value = weather.rain;
     windBoost.value = weather.wind;
-    if (h.ambience) h.ambience.rain = weather.rain;
+    if (h.ambience) h.ambience.rain = room ? 0 : weather.rain;
     const ws = 3 + 7 * windUniforms.uGust.value;
     wind.x = WIND_DIR.x * ws; wind.z = WIND_DIR.z * ws;
     const f = h.game.scene.fog;
