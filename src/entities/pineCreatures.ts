@@ -42,11 +42,8 @@ export function pineCreaturesOn(): boolean {
   return setting('creatures') !== 'proc';
 }
 
-/** E322 F-M2: Debug ▸ Creatures & NPCs ▸ Bear fix = B — the bears' stub-tail flap pressed away and their coats measured onto
- *  real brown-bear tones (bearFix.ts). A reload: the rigs load once */
-export function bearFixOn(): boolean {
-  return setting('pineBearFix') === 'b';
-}
+/** E322 F-M2 (Jake picked B): the bears' stub-tail flap pressed away and their coats measured onto real brown-bear tones
+ *  (bearFix.ts) */
 const isBear = (n: PineRigName): n is 'bear-black' | 'bear-brown' => n === 'bear-black' || n === 'bear-brown';
 
 /** E322 F-M1: Debug ▸ Creatures & NPCs ▸ Antler King rig = B — the King on his own upright rig (kingRig.ts), not the elk's.
@@ -140,9 +137,9 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
       geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(idx16, 4));
       const index = src.getIndex();
       if (index) geometry.setIndex(Array.from(index.array));
-      // E322 F-M2 (Bear fix = B): the stub-tail flap pressed onto the rump — positions + normals only, the skin untouched
+      // E322 F-M2: the bears' stub-tail flap pressed onto the rump — positions + normals only, the skin untouched
       let flap: Uint8Array | null = null;
-      if (bearFixOn() && isBear(name)) {
+      if (isBear(name)) {
         const pa = geometry.getAttribute('position').array, na = geometry.getAttribute('normal').array, ia = geometry.getIndex()?.array;
         if (pa instanceof Float32Array && na instanceof Float32Array && ia !== undefined) flap = trimTail(pa, na, ia, BEAR_TAIL_TRIM[name]);
       }
@@ -199,10 +196,10 @@ export function skinPineHull(kind: string, variant: string, bones: readonly Bone
   const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
   const v = variantDef(kind, variant);
   const thrall = Boolean(v.traits?.['thrall']);
-  // E322 F-M2 (Bear fix = B): the brown hull's coats measured onto real bear tones; either bear's pressed flap toned in
-  const fix = bearFixOn() && isBear(name);
-  const spec: CoatSpec = fix && name === 'bear-brown' ? { ...COATS[name], measured: BEAR_FIX_COATS } : COATS[name];
-  const map = rig.map ? pineCoatAtlas(`${name}:${kind}:${variant}${fix ? ':fix' : ''}`, spec, { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
+  // E322 F-M2: the brown hull's coats measured onto real bear tones; either bear's pressed flap toned in
+  const fix = isBear(name);
+  const spec: CoatSpec = name === 'bear-brown' ? { ...COATS[name], measured: BEAR_FIX_COATS } : COATS[name];
+  const map = rig.map ? pineCoatAtlas(`${name}:${kind}:${variant}`, spec, { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
   let geometry = rig.geometry;
   if (thrall) {
     const key = `${name}:${kind}:${variant}`;

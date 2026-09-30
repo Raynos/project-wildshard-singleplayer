@@ -1,5 +1,5 @@
 /**
- * bearFix — E322 F-M2, Debug ▸ Creatures & NPCs ▸ Bear fix = B (A = today's bears, the default until Jake picks).
+ * bearFix — E322 F-M2: Pine Hollow's bears, fixed (Jake picked B; the unfixed bears and their Debug row are gone).
  *
  * 1. The stub-tail flap. Both bear hulls (Hunyuan3D-2, art/pine-hollow/round-9-creature-refs/) came back with a ~25 cm lobe
  *    of fur hanging off the top of the rump like a dog's tail: the generator's, not a bear's. It is not a separate part —
@@ -13,9 +13,9 @@
  *    The plane per hull is read off a slice profile of the rig's mesh (per height band, the rearmost z of the rump
  *    below the flap, y < 0.47, and where the flap roots at the top of the rump): art/pine-hollow/round-19-e322-bears-birds/.
  *
- * 2. The coats (pineCoats.ts `CoatSpec.measured`): today the brown hull wears its own atlas unchanged (it IS the 'brown'
- *    source) and in Pine Hollow's light — the fur material's warm sheen and backlit rim over a pale tan — it reads pinkish;
- *    the Grizzled Sow is that atlas pushed paler still under a near-white rim, and reads near-white. Fixed, the hull's own
+ * 2. The coats (pineCoats.ts `CoatSpec.measured`): unfixed, the brown hull wore its own atlas unchanged (it IS the 'brown'
+ *    source) and in Pine Hollow's light — the fur material's warm sheen and backlit rim over a pale tan — it read pinkish;
+ *    the Grizzled Sow was that atlas pushed paler still under a near-white rim, and read near-white. Now the hull's own
  *    three tones are MEASURED off its atlas and mapped exactly onto real brown-bear tones (BEAR_FIX_COATS: a grizzly's
  *    deep brown legs, mid-brown body, blond guard-hair tips; the Sow a darker brown with silver tips painted over her hump,
  *    shoulders and back, her legs darker), and the sheen and rim take the coat's own hue (BEAR_FIX_FUR) instead of a pale
