@@ -3,11 +3,12 @@
 // and every entry is a defined model in a known tab; shared/… models are the ones several shards list.
 import { describe, expect, it } from 'vitest';
 import { DRIFTWOOD_ISLE } from '../src/chunks/driftwood-isle';
+import { PINE_HOLLOW } from '../src/chunks/pine-hollow';
 import type { ChunkDef } from '../src/chunks/ChunkDef';
 import type { RosterEntry } from '../src/models/live';
 import { definedModels } from '../src/models/model';
 
-const SHARDS: readonly ChunkDef[] = [DRIFTWOOD_ISLE];
+const SHARDS: readonly ChunkDef[] = [DRIFTWOOD_ISLE, PINE_HOLLOW];
 const TABS = new Set(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']);
 
 async function rosterOf(def: ChunkDef): Promise<readonly RosterEntry[]> {

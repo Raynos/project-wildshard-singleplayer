@@ -14,7 +14,7 @@ import { KINGS_CLEARING } from '../chunks/pineHollowLayout';
 import type { Interactable } from '../world/Cabin';
 import type { Music } from '../audio/Music';
 import { FogWall, Puffs, flameCard } from './fxKit';
-import { KING_VARIANT, dressAntlerKing, makeKingKit, type KingKit, type KingLook } from './kingModel';
+import { KING_VARIANT, dressAntlerKing, makeKingKit, type KingKit, type KingLook } from '../chunks/pine-hollow/models/antlerKing';
 import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { KING_PHASE_AT, burnTick, headingTo, inArc, ringCatches, wallPush } from './combatMath';
 import type { FxMaterial } from '../world/fx';
@@ -46,7 +46,7 @@ import { shardSlot } from '../core/shardState';
  *   src/player/Longbow.ts, adapted from Nalati's Bow.ts) joins the kit, with the WARDEN crossbow skin and the
  *   'warden-longbow' pack flag that keeps it across sessions; a re-fight pays the trophy (Amber heartwood). Music: Music.ts's Pine Hollow boss slot (setPineScene('boss') / setBossPhase).
  *
- *   STAND-IN MODEL: kingModel.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
+ *   STAND-IN MODEL: src/chunks/pine-hollow/models/antlerKing.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
  *   factory PH-M3's Bark Warden replaces. The King is its own kind, 'antler-king' (the journal's page answers to it).
  *
  * Dev: `?boss=antler-king` (night forced, you at the N gap, 26 m out; `&from=<m>`), `&bossPhase=2|3` (that checkpoint),

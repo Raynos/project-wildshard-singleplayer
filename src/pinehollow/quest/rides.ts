@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import type { Sky } from '../../world/Sky';
 import type { Interactable } from '../../world/Cabin';
 import { POND } from '../../chunks/pineHollowLayout';
-import { npcMaterial, PartKit } from './npcFigure';
+import { npcMaterial, PartKit } from '../../chunks/pine-hollow/models/people';
 
 interface Rider { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean }
 

@@ -51,7 +51,7 @@ import { CameraFX } from '../../player/CameraFX';
 import { TrunkProbe } from './trunks';
 import { SkinKnife } from './skinKnife';
 import { loadBirdModels } from './birdModels';
-import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from './wildlifeMesh';
+import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../../chunks/pine-hollow/models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 import { setting } from '../../ui/Settings';
 

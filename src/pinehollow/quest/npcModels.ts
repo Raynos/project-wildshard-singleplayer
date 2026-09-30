@@ -23,7 +23,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '../../core/tier';
 import type { Sky } from '../../world/Sky';
-import type { NpcKind } from './npcFigure';
+import type { NpcKind } from '../../chunks/pine-hollow/models/people';
 import { mapSlot } from '../../core/shardState';
 import { MAY_KTX2 } from '../../boot/gpuFiles';
 

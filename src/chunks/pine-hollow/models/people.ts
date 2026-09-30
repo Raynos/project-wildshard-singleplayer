@@ -11,11 +11,13 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Sky } from '../../world/Sky';
-import type { Collider } from '../../player/Player';
-import { KINGS_CLEARING } from '../../chunks/pineHollowLayout';
-import { npcRig, preloadNpcModels, type NpcRig } from './npcModels';
-import { shardSlot } from '../../core/shardState';
+import type { Sky } from '../../../world/Sky';
+import type { Collider } from '../../../player/Player';
+import { KINGS_CLEARING } from '../../pineHollowLayout';
+import { loadNpcModel, npcRig, preloadNpcModels, type NpcRig } from '../../../pinehollow/quest/npcModels';
+import { shardSlot } from '../../../core/shardState';
+import { defineModel, type ModelContext, type ModelDef } from '../../../models/model';
+import { MILLER, RANGER, TRADER } from '../../../pinehollow/quest/wardensHollow';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';
 
@@ -217,3 +219,53 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
 
 // E155 (src/core/shardState.ts): set up for one shard's sky (its CSM light loop): per shard, an evicted Pine Hollow's let go
 shardSlot('npcFigure.mats', () => ({ sharedMat, sharedGlow }), (v) => { ({ sharedMat, sharedGlow } = v); }, () => ({ sharedMat: null, sharedGlow: null }));
+
+// ─────────────── the models (E306 / E315 M5) ───────────────
+
+const FILE = 'src/chunks/pine-hollow/models/people.ts';
+/** the generated rig's procedural clips (npcModels.ts `pose`): breathing and a weight shift, the talk gestures, the point */
+const NPC_CLIPS: readonly string[] = ['idle', 'talk', 'point'];
+/** where a card's person looks while no one is near: straight ahead (the player far off down +z) */
+const NOBODY = new THREE.Vector3(0, 0, 1e4);
+
+/**
+ * A person's specimen: `makeNpcFigure` at the origin facing +z, exactly the figure the quest stands up — the generated,
+ * rigged person (npcModels.ts) once the model has loaded, the stand-in above until then (the card then swaps, `ws:model-ready`).
+ */
+function person(id: string, kind: NpcKind): (ctx: ModelContext) => THREE.Object3D {
+  return (ctx) => {
+    const fig = makeNpcFigure(kind, ctx.sky, { x: 0, y: 0, z: 0 }, 0);
+    const rigged = (): boolean => fig.group.children.some((c) => (c as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true);
+    fig.update(0, 0, NOBODY); // adopts the generated person when it has loaded, posed at rest
+    if (!rigged()) {
+      void (async (): Promise<void> => {
+        if (await loadNpcModel(kind) === null) return; // it failed: the stand-in stays, as in the hamlet
+        fig.update(0, 0, NOBODY);
+        if (rigged() && 'document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
+      })();
+    }
+    return fig.group;
+  };
+}
+
+/** Hale, the ranger (board B3 pick A, "the old warden": long coat, campaign hat, grey beard, brass badge, a lantern held
+ *  low): out front of his cabin, gives the quest, and points toward the old-growth now and then as he talks */
+export const rangerHale: ModelDef<object> = defineModel<object>({
+  id: 'pine-hollow/ranger-hale', name: RANGER.name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
+  defaults: {}, rig: { clips: NPC_CLIPS },
+  build: person('pine-hollow/ranger-hale', 'ranger'),
+});
+
+/** Brandt, the miller (the apron, the cap): in front of the miller's house */
+export const millerBrandt: ModelDef<object> = defineModel<object>({
+  id: 'pine-hollow/miller-brandt', name: MILLER.name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
+  defaults: {}, rig: { clips: NPC_CLIPS },
+  build: person('pine-hollow/miller-brandt', 'miller'),
+});
+
+/** Mott, the trader (the fur hat, the red coat): at his stall — his swaps and the errand */
+export const traderMott: ModelDef<object> = defineModel<object>({
+  id: 'pine-hollow/trader-mott', name: TRADER.name, category: 'people', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'flesh',
+  defaults: {}, rig: { clips: NPC_CLIPS },
+  build: person('pine-hollow/trader-mott', 'trader'),
+});

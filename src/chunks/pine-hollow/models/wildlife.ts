@@ -18,9 +18,10 @@
  * No shadow is cast (a bird-sized caster would add the cascades' draws); the forest's shadows fall on them.
  */
 import * as THREE from 'three';
-import { attachFogUniforms } from '../../world/Atmosphere';
-import type { Sky } from '../../world/Sky';
-import type { BirdMesh, BirdSet } from './birdModels';
+import { attachFogUniforms } from '../../../world/Atmosphere';
+import type { Sky } from '../../../world/Sky';
+import type { BirdMesh, BirdSet } from '../../../pinehollow/life/birdModels';
+import { defineModel, type ModelContext, type ModelDef } from '../../../models/model';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
@@ -437,3 +438,60 @@ float wlEye(vec3 t) { return smoothstep(0.3, 0.5, t.r) * smoothstep(0.18, 0.3, t
   }
   commit(): void { this.mesh.count = this.n; this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true; this.anim2.needsUpdate = true; }
 }
+
+// ─────────────── the models (E306 / E315 M5) ───────────────
+
+const FILE = 'src/chunks/pine-hollow/models/wildlife.ts';
+
+/**
+ * How the life code (src/pinehollow/life/index.ts) holds each kind at rest, for its specimen: a raven on the ground between
+ * pecks at a kill, the owl on its snag, the woodpecker on a trunk, a hare sat up alert — the part angles, the pitch, the
+ * scale, and the body centre over the feet (index.ts RAVEN_STAND / OWL_STAND; the woodpecker's is its spot on the bark).
+ */
+const REST: Readonly<Record<WildKind, Partial<Omit<WildPose, 'kind'>>>> = {
+  [KIND.raven]: { y: 0.2, pitch: 0.12, scale: 1.1, a0: -0.08, a1: 1, a3: -0.15 },
+  [KIND.owl]: { y: 0.16, pitch: 1.1, b2: 1.1, scale: 1.05, a0: -0.05, a1: 1, a3: 1.1 },
+  [KIND.woodpecker]: { y: 0.1, pitch: 1.3, b2: 1.3, b1: 0.3, scale: 1.05, a0: -0.05, a1: 1, a3: 0.35 },
+  [KIND.hare]: { y: 0, pitch: 0.18, scale: 1.12, a2: -0.5, a3: -0.15 },
+};
+
+/** one kind's own model in the shared geometry's layout (WildlifeMesh's `build`, the other kinds left out): the hare, or a
+ *  bird — its two generated poses when `birds` has landed, else the procedural one; `from` lends the per-instance pose */
+function kindGeometry(kind: WildKind, birds: BirdSet | null, from: THREE.BufferGeometry): THREE.InstancedBufferGeometry {
+  const b = new Builder();
+  if (kind === KIND.hare) hare(b);
+  else if (birds) { for (const m of birds.meshes) if (m.kind === kind) modelled(b, m); }
+  else if (kind === KIND.raven) raven(b);
+  else if (kind === KIND.owl) owl(b);
+  else woodpecker(b);
+  const src = b.geometry();
+  const geo = new THREE.InstancedBufferGeometry();
+  for (const [k, v] of Object.entries(src.attributes)) geo.setAttribute(k, v);
+  geo.setIndex(src.getIndex());
+  geo.setAttribute('aAnim', from.getAttribute('aAnim')); geo.setAttribute('aAnim2', from.getAttribute('aAnim2'));
+  return geo;
+}
+
+/**
+ * One copy of `kind` as the forest draws it, for its Model Explorer card: a WildlifeMesh of one instance (the same material,
+ * program and vertex-shader pose), its geometry cut down to this kind's own model, held at rest (`REST`) with its feet on
+ * the origin. `birds`: the generated birds (birdModels.ts) once they have landed, swapped in as the life code does.
+ */
+export function wildlifeSpecimen(ctx: ModelContext, kind: WildKind, birds: BirdSet | null = null): THREE.InstancedMesh {
+  const wild = new WildlifeMesh(ctx.sky, 1);
+  let set: BirdSet | null = null;
+  if (birds !== null && ctx.renderer !== null) { wild.useBirds(birds, ctx.renderer); set = birds; } // the atlas bound as the life code binds it
+  wild.mesh.geometry = kindGeometry(kind, set, wild.mesh.geometry);
+  wild.begin();
+  wild.add({ ...newPose(kind), ...REST[kind] });
+  wild.commit();
+  return wild.mesh;
+}
+
+/** the snowshoe hare, in its summer coat (code: `hare` above) — five about you on open ground (life/index.ts N_HARE):
+ *  they graze, hop, sit up when you are near and bolt in zig-zags; drawn in the forest's one wildlife draw */
+export const snowshoeHare: ModelDef<object> = defineModel<object>({
+  id: 'pine-hollow/snowshoe-hare', name: 'Snowshoe hare', category: 'creatures', pipeline: 'code', file: FILE, surface: 'flesh',
+  defaults: {},
+  build: (ctx) => wildlifeSpecimen(ctx, KIND.hare),
+});

@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Animal } from '../entities/Animal';
-import type { VariantDef } from '../entities/species/registry';
-import type { Sky } from '../world/Sky';
+import { Animal } from '../../../entities/Animal';
+import type { VariantDef } from '../../../entities/species/registry';
+import type { Sky } from '../../../world/Sky';
+import { defineModel, type ModelDef } from '../../../models/model';
+import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '../../../models/creature';
 
 /**
  * The Antler King's STAND-IN look (PINE-HOLLOW-REMASTER PH-C2; the final model is PH-M3, board B2 pick A "the Bark
@@ -196,3 +198,35 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     dispose: () => { for (const o of own) o.removeFromParent(); },
   };
 }
+
+// ─────────────── the model (E306 / E315 M5) ───────────────
+
+/** his species (src/pinehollow/antlerKing.ts `KING_KIND`): the elk rig registered again by the fight at boot (`registerKing`) */
+const KING_KIND = 'antler-king';
+const KING_KIT = 'pine-hollow/antler-king:kit';
+
+/**
+ * The Antler King, Pine Hollow's boss: the Bark Warden hull (Hunyuan3D-2, `public/assets/pine-hollow/creatures/antler-king
+ * [.phone].rigged.glb`) on the elk's bones, drawn ×2.6 by the fight, dressed in code (`dressAntlerKing`: the antler
+ * lanterns, the amber ribcage; the skull plate on the procedural stand-in). The fight (src/pinehollow/antlerKing.ts) spawns,
+ * dresses and drives the one copy at night in the King's clearing; nothing here draws him in the world.
+ *
+ * His fields are `creature(KING_KIND)`'s spelled out from his one coat (`KING_VARIANT`), not `creature()` itself: his
+ * species is registered by the fight at boot (it is the elk's, re-registered with the fight's damage hook), and this module
+ * can load before that — importing the fight from here would be a cycle (it imports this file for his look). The specimen
+ * (`build`) is one rig from the shard's creature factory, dressed as the fight dresses him — the lanterns and the ribcage
+ * at full glow — at the rig's own scale like every species model.
+ */
+export const antlerKing: ModelDef<CreatureParams> = defineModel<CreatureParams>({
+  id: 'pine-hollow/antler-king', name: KING_VARIANT.label, category: 'creatures', pipeline: ['hunyuan', 'code'], file: 'src/chunks/pine-hollow/models/antlerKing.ts', surface: 'wood',
+  defaults: { variant: KING_VARIANT.id },
+  variants: [{ id: KING_VARIANT.id, label: KING_VARIANT.label, params: { variant: KING_VARIANT.id } }],
+  rig: { clips: CREATURE_CLIPS, species: KING_KIND },
+  build: (ctx, p) => {
+    const f = creatureFactory(ctx);
+    const model = f.model(KING_KIND, p.variant);
+    const a = new Animal(f.instantiate(model, 0.5), model, 7, 1);
+    dressAntlerKing(a, ctx.once(KING_KIT, () => makeKingKit(ctx.sky)));
+    return a.mesh;
+  },
+});

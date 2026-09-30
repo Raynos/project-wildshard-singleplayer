@@ -8,7 +8,7 @@
  *   const quest = installPineQuest({ … });   // after installPineCombat + installCompendium (it chains animals.onKill)
  *   quest.useSfx(ambience.sfx);              // the barks, lanterns, the zipline, the thralls, once the ambience exists
  *
- *   npcFigure.ts   the ranger / miller / trader stand-ins — ONE factory PH-M4 swaps
+ *   src/chunks/pine-hollow/models/people.ts   the ranger / miller / trader stand-ins — ONE factory PH-M4 swaps
  *   contracts.ts   the lodge's rotating three (pure)      trades.ts   the trader's swaps (pure)
  *   rides.ts       the zipline ride, the canoe to the islet             hollowLog.ts   the hollow-log passage
  *   stagLead.ts    beat 5, the pale stag down the west road            nightThralls.ts the old-growth's night + the millrace
@@ -47,7 +47,7 @@ import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLL
 import { KING_KIND } from '../antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
 import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, SECRET_FLAGS, type Spot } from './table';
-import { makeNpcFigure, type NpcFigure, type NpcKind } from './npcFigure';
+import { makeNpcFigure, type NpcFigure, type NpcKind } from '../../chunks/pine-hollow/models/people';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import type { Trade, TradeItem } from './trades';
 import { BoardPanel, TradePanel, CountChip } from './ui';

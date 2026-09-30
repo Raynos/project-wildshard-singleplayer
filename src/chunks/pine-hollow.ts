@@ -226,6 +226,8 @@ export const PINE_HOLLOW: ChunkDef = {
   thumbnail, heroPortrait, heroLandscape,
   // EXPLORE WORLD (E66): the viewer over this shard, and the World Explorer map's pins (compass-true names, layout v2)
   explore: true,
+  // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
+  roster: async () => (await import('./pine-hollow/roster')).ROSTER,
   pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),
 
   terrain: TERRAIN,

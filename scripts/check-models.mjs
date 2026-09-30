@@ -68,10 +68,7 @@ export const DONE = {
     'src/world/Cabin.ts': { why: "the homestead draws its building and prop models (placed drawnInto, src/chunks/pine-hollow/world/cabins.ts): its log kit merges each building per material and the cabins' cores across them, its props are instanced across the buildings, a specimen's for the Explorer", counts: { InstancedMesh: 3, mergeGeometries: 9 } },
     'src/world/PineStreams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
     'src/world/Undergrowth.ts': { why: "the forest floor's field draws its six kinds' copies (models placed drawnInto: src/chunks/pine-hollow/world/drawnModels.ts)", counts: { InstancedMesh: 1 } },
-    'src/pinehollow/kingModel.ts': { why: 'the Antler King is a creature (M5: the species list)', counts: { mergeGeometries: 2 } },
-    'src/pinehollow/life/wildlifeMesh.ts': { why: 'the birds and the hare are creatures (M5)', counts: { InstancedMesh: 1 } },
     'src/pinehollow/life/skinKnife.ts': { why: 'the skinning knife is Gear (M5)', counts: { mergeGeometries: 1 } },
-    'src/pinehollow/quest/npcFigure.ts': { why: "the ranger, the trader and the miller are People (M5)", counts: { mergeGeometries: 1 } },
   },
 };
 

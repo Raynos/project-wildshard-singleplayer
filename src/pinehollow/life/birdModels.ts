@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { KIND, type WildKind } from './wildlifeMesh';
+import { KIND, type WildKind } from '../../chunks/pine-hollow/models/wildlife';
 
 export const BIRDS_URL = '/assets/pine-hollow/life/birds.glb';
 export const BIRDS_JSON_URL = '/assets/pine-hollow/life/birds.json';
