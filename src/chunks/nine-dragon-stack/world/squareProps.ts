@@ -4,32 +4,38 @@
 // is loaded first (`place` is synchronous); a set's geometry is the one its builder made at the first copy.
 import type { Group, Matrix4 } from 'three';
 import type { ModelContext, ModelDef, Placement } from '../../../models/model';
-import { type InstancedCuller, type Placed, place } from '../../../models/place';
+import { type InstancedCuller, type Placed, copiesAt, place } from '../../../models/place';
 import { placeSet } from '../../../models/sets';
 import { guardianLion, loadLion } from '../models/lion';
 import { diningPavilion, marketBooth, parasolTable } from '../models/market';
 import { balustradePanel } from '../models/balustradePanel';
 import { nameDraws } from './facade/batch';
 import type { NdLook } from './modelLook';
-import { takeLions, takeSets } from './props3d';
+import { lionShares, takeLions, takeSets } from './props3d';
 
 /** the model each queued set is (and the pavilion: diningPavilion, its copies carrying their turn) */
 const SETS: Readonly<Record<string, ModelDef<object>>> = { booth: marketBooth, parasol: parasolTable, 'balustrade-panel': balustradePanel };
 
 const at = (m: Matrix4): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m });
 
+/** what the named places' Sets take from the square's props (world/sets.ts): Lantern Square's balustrade panels and its
+ *  lions, the stair-street's lions (the street's balustrade), the Well rim's */
+export interface SquareShares { readonly square: Placed[]; readonly stair: Placed[]; readonly rim: Placed[] }
+
 /** place the lions and the queued sets under `root` (their draws named `glb:lion`, `set:<name>` as before); the night
- *  market is its named place's Set; returns the balustrade's panels as placed (Lantern Square's, world/sets.ts) */
-export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group }): Promise<Placed[]> {
-  const lions = takeLions();
+ *  market is its named place's Set; returns what the other places' Sets take (world/sets.ts) */
+export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group }): Promise<SquareShares> {
+  const lions = takeLions(), share = lionShares();
+  const out = { square: [] as Placed[], stair: [] as Placed[], rim: [] as Placed[] };
   if (lions.length > 0) {
     try {
       await loadLion(p.look);
       const placed = place(guardianLion, lions.map(at), { ctx: p.ctx, draw: 'instanced', culler: p.culler, parent: p.root, piece: { id: 'nds-lions' } });
       nameDraws(placed, 'glb:lion');
+      for (const [k, idx] of [['square', share.plaza], ['stair', share.street], ['rim', share.rim]] as const) { const s = copiesAt(placed, idx); if (s !== null) out[k].push(s); }
     } catch (e: unknown) { console.warn('nine-dragon: prop lion failed to load', e); }
   }
-  const market: Placed[] = [], panels: Placed[] = [];
+  const market: Placed[] = [];
   for (const [name, s] of takeSets()) {
     const opts = { ctx: p.ctx, draw: 'instanced', culler: p.culler, parent: p.root, piece: { id: `nds-set-${name}` } } as const;
     let placed: Placed;
@@ -44,9 +50,9 @@ export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; cul
       placed = place(model, s.at.map(at), opts);
     }
     nameDraws(placed, `set:${name}`);
-    if (name === 'balustrade-panel') panels.push(placed); else market.push(placed);
+    if (name === 'balustrade-panel') out.square.push(placed); else market.push(placed);
   }
   // the square's night market, one place: its booths, parasol tables and dining pavilions (E306 M7's sets explorer)
   if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/chunks/nine-dragon-stack/world/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });
-  return panels;
+  return out;
 }

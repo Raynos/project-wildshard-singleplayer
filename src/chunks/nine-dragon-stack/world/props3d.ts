@@ -55,6 +55,8 @@ function lionPosts(run: 'plaza' | 'street', at: number, a0: number, a1: number):
 
 /** the lions other domes queued (placeLion) */
 const queued: Matrix4[] = [];
+/** how many of the last `takeLions` stand where (in its order: the plaza's balustrade, the street's, then the Well rim's queue) */
+let lionCounts = { plaza: 0, street: 0, rim: 0 };
 
 /**
  * Other domes' lions (dome C's Well-rim balustrade): `placeLion` queues one TRELLIS guardian lion; squareProps.ts places
@@ -84,8 +86,9 @@ export function placeSet(name: string, build: () => BufferGeometry, m: Matrix4):
 
 function specs(): PropSpec[] {
   // the model faces glTF +z; on the Well's balustrade (x ≈ 0.2) a quarter turn faces the plaza, a little more the spawn
-  const lions = [...lionPosts('plaza', PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0), ...lionPosts('street', STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0)]
-    .map((p) => place(p.x, p.y, p.z, Math.PI / 2 + 0.35, 1));
+  const plaza = lionPosts('plaza', PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0), street = lionPosts('street', STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0);
+  const lions = [...plaza, ...street].map((p) => place(p.x, p.y, p.z, Math.PI / 2 + 0.35, 1));
+  lionCounts = { plaza: plaza.length, street: street.length, rim: queued.length };
   lions.push(...queued.splice(0));
   // the gate's pair, facing the square, turned a little in toward the passage
   // (the gate's pair is off since A2 round 1: style-A and the A2 targets have none, and the pedestals blocked A2's left /
@@ -114,6 +117,12 @@ function specs(): PropSpec[] {
 /** the lions' placements (dome B's posts, then the queue other domes filled), emptying the queue */
 export function takeLions(): Matrix4[] {
   return specs().find((x) => x.name === 'lion')?.at ?? [];
+}
+
+/** the last `takeLions`' lions by where they stand, as index lists into its order (M12: each named place's Set lists its lions) */
+export function lionShares(): { readonly plaza: number[]; readonly street: number[]; readonly rim: number[] } {
+  const { plaza, street, rim } = lionCounts, span = (from: number, n: number): number[] => Array.from({ length: n }, (_, i) => from + i);
+  return { plaza: span(0, plaza), street: span(plaza, street), rim: span(plaza + street, rim) };
 }
 
 /** the sets queued so far, by name, in the order they were first placed (built geometry + placements), emptying the queue */

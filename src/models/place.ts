@@ -191,21 +191,30 @@ export function copiesNear(p: Placed, circles: readonly { readonly x: number; re
     p.copyBox(i, _near).getCenter(_nearC);
     circles.forEach((c, k) => { if ((_nearC.x - c.x) ** 2 + (_nearC.z - c.z) ** 2 <= c.r * c.r) idx[k]?.push(i); });
   }
-  return idx.map((list): Placed | null => {
-    if (list.length === 0) return null;
-    if (list.length === p.copies) return p;
-    const at = Uint32Array.from(list);
-    return {
-      model: p.model, object: p.object, colliders: [], copies: at.length, drawnAs: p.drawnAs, registered: p.registered,
-      cull: (): void => undefined,
-      copyBox: (i, target) => p.copyBox(at[i] ?? 0, target),
-      nearest: (q) => {
-        let bi = -1, bd = Number.POSITIVE_INFINITY;
-        for (let i = 0; i < at.length; i++) { const d = p.copyBox(at[i] ?? 0, _near).getCenter(_nearC).distanceToSquared(q); if (d < bd) { bd = d; bi = i; } }
-        return bi;
-      },
-    };
-  });
+  return idx.map((list) => shareOf(p, list));
+}
+
+/** Copies `at` (indices into the call's placement order) of a `place` call as a `Placed` of their own, like `copiesNear`'s
+ *  shares: a named place's share of copies placed in one call across several places (Nine Dragon's lions). null: none. */
+export function copiesAt(p: Placed, at: readonly number[]): Placed | null {
+  return shareOf(p, at.filter((i) => i >= 0 && i < p.copies));
+}
+
+/** a share of a `place` call's copies (draws nothing of its own, owns no colliders, culls nothing); the call itself when it is all of them */
+function shareOf(p: Placed, list: readonly number[]): Placed | null {
+  if (list.length === 0) return null;
+  if (list.length === p.copies) return p;
+  const at = Uint32Array.from(list);
+  return {
+    model: p.model, object: p.object, colliders: [], copies: at.length, drawnAs: p.drawnAs, registered: p.registered,
+    cull: (): void => undefined,
+    copyBox: (i, target) => p.copyBox(at[i] ?? 0, target),
+    nearest: (q) => {
+      let bi = -1, bd = Number.POSITIVE_INFINITY;
+      for (let i = 0; i < at.length; i++) { const d = p.copyBox(at[i] ?? 0, _near).getCenter(_nearC).distanceToSquared(q); if (d < bd) { bd = d; bi = i; } }
+      return bi;
+    },
+  };
 }
 
 // ── helpers ──
@@ -781,6 +790,20 @@ export function claimCopy(p: Placed, pt: THREE.Vector3): THREE.Box3 | null {
   return best;
 }
 
+const _ray = new THREE.Vector3();
+
+/** the nearest of `p`'s copy boxes `ray` enters within `far` (a box it starts inside doesn't count), or null */
+export function rayCopy(p: Placed, ray: THREE.Ray, far: number): { box: THREE.Box3; distance: number } | null {
+  let best: { box: THREE.Box3; distance: number } | null = null;
+  for (let i = 0; i < p.copies; i++) {
+    p.copyBox(i, _claim);
+    if (_claim.containsPoint(ray.origin) || ray.intersectBox(_claim, _ray) === null) continue;
+    const d = _ray.distanceTo(ray.origin);
+    if (d <= far && (best === null || d < best.distance)) best = { box: _claim.clone(), distance: d };
+  }
+  return best;
+}
+
 // ── place ──
 
 /** Place copies of a model (see the file header and ./model.ts's migration guide). */
@@ -838,7 +861,7 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   // a tap on any copy selects the model, boxed on the copy under the finger
   registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()),
     // drawn into an object it shares (a kit, a painted place): a tap is this model's only on one of its copies (E323)
-    ...(o.drawnInto === undefined ? {} : { claim: (pt: THREE.Vector3): THREE.Box3 | null => claimCopy(placed, pt) }) });
+    ...(o.drawnInto === undefined ? {} : { claim: (pt: THREE.Vector3): THREE.Box3 | null => claimCopy(placed, pt), boxHit: (ray: THREE.Ray, far: number) => rayCopy(placed, ray, far) }) });
   if (split !== undefined && drawn.colliders.length > every) {
     // the rest of the colliders, a task per `every` (collider-only pieces: the object and the catalog entry are on the first)
     registered = (async (): Promise<void> => {

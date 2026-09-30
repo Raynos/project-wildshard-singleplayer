@@ -373,7 +373,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     if (!key.endsWith('@town')) wellKit.push(placed);
   }
   // the fragment's named places as Sets (../places.ts, world/sets.ts): what each region's kits carry
-  placeRegionSets(inKitPlaced, { square: squareSets, well: wellKit });
+  placeRegionSets(inKitPlaced, { ...squareSets, well: wellKit });
   if (ctx.acs.length > 0) nameDraws(place(airConBox, ctx.acs.map((m) => at(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }), 'inst:ac');
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
