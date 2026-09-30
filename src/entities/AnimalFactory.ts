@@ -356,13 +356,14 @@ export class AnimalFactory {
       return m;
     }
 
-    const style: FurStyle = { ...species.fur, ...v.fur };
+    let style: FurStyle = { ...species.fur, ...v.fur };
     // a generated hull skinned to this skeleton (Pine Hollow PH-M1, pineCreatures.ts; Debug ▸ Creatures = Procedural = the procedural
     // animal): one group drawn with the same fur material over the hull's photoreal atlas (the variant's coat) + normal
     // map, so the program is the procedural fur's own; no fur shells
     const hull = skinPineHull(kind, v.id, sp.bones, eyes);
     if (hull !== null && hull.map !== null) {
       geometry.dispose();
+      if (hull.fur !== undefined) style = { ...style, ...hull.fur };   // the coat's own sheen / rim (E322 F-M2's fixed bears)
       const fur = new THREE.MeshPhysicalMaterial({
         map: hull.map, normalMap: hull.normalMap, normalScale: new THREE.Vector2(1.0, -1.0),   // glTF's normal map, derivative tangents (as GLTFLoader); every rig ships one
         roughness: style.roughness, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),

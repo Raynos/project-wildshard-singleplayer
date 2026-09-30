@@ -30,6 +30,8 @@ import { BEAR_PALETTE } from './species/bear';
 import { mapSlot } from '../core/shardState';
 import { MAY_KTX2 } from '../boot/gpuFiles';
 import { setting } from '../ui/Settings';
+import { BEAR_FIX_COATS, BEAR_FIX_FUR, BEAR_TAIL_TRIM, trimTail } from './bearFix';
+import type { RGB } from './species/loft';
 
 export type { PineRigName } from './pineCreatureRigs';
 
@@ -39,6 +41,13 @@ export function pineCreaturesOn(): boolean {
   if (getActiveChunk().slug !== 'pine-hollow') return false;
   return setting('creatures') !== 'proc';
 }
+
+/** E322 F-M2: Debug ▸ Creatures & NPCs ▸ Bear fix = B — the bears' stub-tail flap pressed away and their coats measured onto
+ *  real brown-bear tones (bearFix.ts). A reload: the rigs load once */
+export function bearFixOn(): boolean {
+  return setting('pineBearFix') === 'b';
+}
+const isBear = (n: PineRigName): n is 'bear-black' | 'bear-brown' => n === 'bear-black' || n === 'bear-brown';
 
 /** (kind:variant) → its hull; a variant missing here stays procedural */
 const HULL: Readonly<Record<string, PineRigName>> = {
@@ -75,6 +84,8 @@ export function pineHull(kind: string, variant: string): PineRigName | null {
 export interface PineRig {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
   joints: { name: string; pos: THREE.Vector3 }[];
+  /** per vertex, 1 where a generator's flap was pressed onto the body (bearFix.ts; null: none) */
+  flap: Uint8Array | null;
 }
 export interface PineHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
@@ -82,6 +93,8 @@ export interface PineHull {
   bones: BoneDef[];
   /** a thrall: the geometry carries `aThrall` (the factory's glow patch reads it) */
   thrall: boolean;
+  /** the fur material's sheen and backlit rim for this coat, over the variant's own (E322 F-M2's fixed bears) */
+  fur?: { rim: RGB; sheenColor: RGB };
 }
 
 let loader: GLTFLoader | null = null;
@@ -115,6 +128,12 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
       geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(idx16, 4));
       const index = src.getIndex();
       if (index) geometry.setIndex(Array.from(index.array));
+      // E322 F-M2 (Bear fix = B): the stub-tail flap pressed onto the rump — positions + normals only, the skin untouched
+      let flap: Uint8Array | null = null;
+      if (bearFixOn() && isBear(name)) {
+        const pa = geometry.getAttribute('position').array, na = geometry.getAttribute('normal').array, ia = geometry.getIndex()?.array;
+        if (pa instanceof Float32Array && na instanceof Float32Array && ia !== undefined) flap = trimTail(pa, na, ia, BEAR_TAIL_TRIM[name]);
+      }
       const n = geometry.getAttribute('position').count;
       // the fur material reads vertex colours: white (the atlas carries the coat)
       geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
@@ -128,7 +147,7 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
       if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
       if (normalMap) normalMap.anisotropy = 4;
       const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
-      const out: PineRig = { geometry, map, normalMap, joints };
+      const out: PineRig = { geometry, map, normalMap, joints, flap };
       ready.set(name, out);
       return out;
     });
@@ -167,7 +186,10 @@ export function skinPineHull(kind: string, variant: string, bones: readonly Bone
   const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
   const v = variantDef(kind, variant);
   const thrall = Boolean(v.traits?.['thrall']);
-  const map = rig.map ? pineCoatAtlas(`${name}:${kind}:${variant}`, COATS[name], { geometry: rig.geometry, map: rig.map }, v, out) : null;
+  // E322 F-M2 (Bear fix = B): the brown hull's coats measured onto real bear tones; either bear's pressed flap toned in
+  const fix = bearFixOn() && isBear(name);
+  const spec: CoatSpec = fix && name === 'bear-brown' ? { ...COATS[name], measured: BEAR_FIX_COATS } : COATS[name];
+  const map = rig.map ? pineCoatAtlas(`${name}:${kind}:${variant}${fix ? ':fix' : ''}`, spec, { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
   let geometry = rig.geometry;
   if (thrall) {
     const key = `${name}:${kind}:${variant}`;
@@ -175,7 +197,8 @@ export function skinPineHull(kind: string, variant: string, bones: readonly Bone
     if (!g) { g = withThrallExtras(rig.geometry, out, eyes, v); thrallGeo.set(key, g); }
     geometry = g;
   }
-  return { geometry, map, normalMap: rig.normalMap, bones: out, thrall };
+  const fur = fix ? BEAR_FIX_FUR[variant] : undefined;
+  return { geometry, map, normalMap: rig.normalMap, bones: out, thrall, ...(fur !== undefined ? { fur } : {}) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────

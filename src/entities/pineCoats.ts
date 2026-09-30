@@ -29,10 +29,20 @@ export interface CoatSpec {
   source: readonly [string, string];
   /** the palette keys: [dark, body, light] */
   keys: readonly [string, string, string];
+  /**
+   * E322 F-M2 (Debug ▸ Bear fix = B): per variant id, the coat keys' target tones (sRGB). The SOURCE tones are then
+   * measured off the atlas itself (the mean colour round each key's luminance percentile), not taken from the palette,
+   * so the hull's own tones land exactly on the targets. A variant not listed keeps the palette path.
+   */
+  measured?: Readonly<Record<string, Readonly<Record<string, RGB>>>>;
 }
 
-/** what a coat reads from the rig: its rest-pose geometry (position, normal, uv, index) and its atlas */
-export interface CoatRig { geometry: THREE.BufferGeometry; map: THREE.Texture }
+/**
+ * What a coat reads from the rig: its rest-pose geometry (position, normal, uv, index) and its atlas. `flap` (E322 F-M2,
+ * bearFix.ts): per vertex, 1 where a generator's flap was pressed onto the body — those texels take the rump's colour
+ * beside the patch, keeping their own hair detail (flapTransplant + applyFlapFill), feathered across the border.
+ */
+export interface CoatRig { geometry: THREE.BufferGeometry; map: THREE.Texture; flap?: Uint8Array | null }
 
 const toLin = new Float32Array(256).map((_, i) => { const c = i / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
 const LUT_N = 4096;
@@ -149,7 +159,154 @@ function marksOf(v: VariantDef): { piebald: boolean; blaze: boolean; scar: boole
 /** true when (spec, variant) would repaint the atlas at all */
 export function coatDiffers(spec: CoatSpec, v: VariantDef): boolean {
   const m = marksOf(v);
-  return !isOwnCoat(spec, v.tint) || m.piebald || m.blaze || m.scar || m.thrall;
+  return spec.measured?.[v.id] !== undefined || !isOwnCoat(spec, v.tint) || m.piebald || m.blaze || m.scar || m.thrall;
+}
+
+/**
+ * Rasterise the triangles `want` accepts into atlas space: `visit(texel, l0, l1, l2, i0, i1, i2)` per covered texel with
+ * its barycentrics and the triangle's vertex indices.
+ */
+function rasterTris(geo: THREE.BufferGeometry, w: number, h: number, flipY: boolean, want: (i0: number, i1: number, i2: number) => boolean,
+  visit: (o: number, l0: number, l1: number, l2: number, i0: number, i1: number, i2: number) => void): void {
+  const U = geo.getAttribute('uv'), idx = geo.getIndex();
+  const nTri = idx ? idx.count / 3 : U.count / 3;
+  for (let t = 0; t < nTri; t++) {
+    const i0 = idx ? idx.getX(t * 3) : t * 3, i1 = idx ? idx.getX(t * 3 + 1) : t * 3 + 1, i2 = idx ? idx.getX(t * 3 + 2) : t * 3 + 2;
+    if (!want(i0, i1, i2)) continue;
+    const x0 = U.getX(i0) * w, x1 = U.getX(i1) * w, x2 = U.getX(i2) * w;
+    const fy = (i: number): number => (flipY ? 1 - U.getY(i) : U.getY(i)) * h;
+    const y0 = fy(i0), y1 = fy(i1), y2 = fy(i2);
+    const d = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2);
+    if (Math.abs(d) < 1e-9) continue;
+    const bx0 = Math.max(0, Math.floor(Math.min(x0, x1, x2))), bx1 = Math.min(w - 1, Math.ceil(Math.max(x0, x1, x2)));
+    const by0 = Math.max(0, Math.floor(Math.min(y0, y1, y2))), by1 = Math.min(h - 1, Math.ceil(Math.max(y0, y1, y2)));
+    for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
+      const px = x + 0.5, py = y + 0.5;
+      const l0 = ((y1 - y2) * (px - x2) + (x2 - x1) * (py - y2)) / d;
+      const l1 = ((y2 - y0) * (px - x2) + (x0 - x2) * (py - y2)) / d;
+      const l2 = 1 - l0 - l1;
+      if (l0 < -0.02 || l1 < -0.02 || l2 < -0.02) continue;
+      visit(y * w + x, l0, l1, l2, i0, i1, i2);
+    }
+  }
+}
+
+/** a pressed flap's texels and, per texel, the coat texel it takes its colour from (flapTransplant) */
+export interface FlapMap { dst: Int32Array; src: Int32Array; w: Float32Array }
+const flapMaps = new WeakMap<THREE.BufferGeometry, FlapMap & { W: number; H: number }>();
+
+/**
+ * Where a pressed flap (CoatRig.flap) takes its colour from (cached per geometry and atlas size). The flap's texels are
+ * the generator's tail — paler than the rump — and one tint for all of them never matched (tried: a mean-ratio tone left
+ * a visible patch): each takes the colour of the rump's own texel beside the patch — its rest position pushed sideways
+ * out of the patch (away from the patch's centre line, by the patch's width), then the nearest texel there that is not
+ * flap and faces the same way. `w` feathers it: the flag interpolated across the border triangles. applyFlapFill blurs
+ * it (a per-texel copy is a mosaic) and keeps the flap's own hair detail.
+ */
+export function flapTransplant(geo: THREE.BufferGeometry, flap: Uint8Array, W: number, H: number, flipY: boolean): FlapMap | null {
+  const hit = flapMaps.get(geo);
+  if (hit?.W === W && hit.H === H) return hit;
+  const P = geo.getAttribute('position'), N = geo.getAttribute('normal');
+  if (flap.length !== P.count) return null;
+  let x0 = Infinity, x1 = -Infinity;
+  for (let i = 0; i < P.count; i++) if (flap[i] === 1) { x0 = Math.min(x0, P.getX(i)); x1 = Math.max(x1, P.getX(i)); }
+  if (!Number.isFinite(x0)) return null;
+  const xc = (x0 + x1) / 2, shift = Math.max(0.06, x1 - x0);
+  // the flap's texels (+ their position, normal and feather)
+  const dst: number[] = [], wt: number[] = [], at: number[] = [];
+  const mark = new Uint8Array(W * H);
+  rasterTris(geo, W, H, flipY, (i0, i1, i2) => flap[i0] === 1 || flap[i1] === 1 || flap[i2] === 1, (o, l0, l1, l2, i0, i1, i2) => {
+    if (mark[o] === 1) return;
+    mark[o] = 1;
+    dst.push(o);
+    wt.push(Math.min(1, Math.max(0, l0 * (flap[i0] ?? 0) + l1 * (flap[i1] ?? 0) + l2 * (flap[i2] ?? 0))));
+    for (const A of [P, N]) for (let c = 0; c < 3; c++) at.push(l0 * A.getComponent(i0, c) + l1 * A.getComponent(i1, c) + l2 * A.getComponent(i2, c));
+  });
+  // every other texel of the body, in a 2 cm grid
+  const s = surfaceOf(geo, W, H, flipY);
+  const CELL = 0.02, grid = new Map<string, number[]>();
+  const cell = (x: number, y: number, z: number): string => `${Math.floor(x / CELL)},${Math.floor(y / CELL)},${Math.floor(z / CELL)}`;
+  for (let o = 0; o < W * H; o++) {
+    if (s.covered[o] !== 1 || mark[o] === 1) continue;
+    const k = cell(s.pos[o * 3] ?? 0, s.pos[o * 3 + 1] ?? 0, s.pos[o * 3 + 2] ?? 0);
+    const list = grid.get(k);
+    if (list) list.push(o); else grid.set(k, [o]);
+  }
+  const src = new Int32Array(dst.length).fill(-1);
+  for (let j = 0; j < dst.length; j++) {
+    const px = at[j * 6] ?? 0, py = at[j * 6 + 1] ?? 0, pz = at[j * 6 + 2] ?? 0, nx = at[j * 6 + 3] ?? 0, ny = at[j * 6 + 4] ?? 0, nz = at[j * 6 + 5] ?? 0;
+    const qx = px + (px >= xc ? shift : -shift);
+    const cx = Math.floor(qx / CELL), cy = Math.floor(py / CELL), cz = Math.floor(pz / CELL);
+    let best = -1, bd = Infinity;
+    for (let r = 0; r <= 8 && best < 0; r++) {
+      for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) for (let dz = -r; dz <= r; dz++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz)) !== r) continue;
+        const list = grid.get(`${cx + dx},${cy + dy},${cz + dz}`);
+        if (!list) continue;
+        for (const o of list) {
+          if ((s.nrm[o * 3] ?? 0) * nx + (s.nrm[o * 3 + 1] ?? 0) * ny + (s.nrm[o * 3 + 2] ?? 0) * nz < 0.2) continue;
+          const d = ((s.pos[o * 3] ?? 0) - qx) ** 2 + ((s.pos[o * 3 + 1] ?? 0) - py) ** 2 + ((s.pos[o * 3 + 2] ?? 0) - pz) ** 2;
+          if (d < bd) { bd = d; best = o; }
+        }
+      }
+    }
+    src[j] = best;
+  }
+  const out = { dst: Int32Array.from(dst), src, w: Float32Array.from(wt), W, H };
+  flapMaps.set(geo, out);
+  return out;
+}
+
+/**
+ * Fill a pressed flap's texels in `px` (the atlas, RGBA bytes): the transplanted rump colour, box-blurred over the flap's
+ * own texels (a per-texel copy alone came back as a mosaic — neighbouring texels take their fur from different charts),
+ * times the flap's own hair detail (its luminance over its blurred luminance), feathered by `w`.
+ */
+function applyFlapFill(m: FlapMap, px: Uint8ClampedArray, W: number, H: number): void {
+  const n = W * H, mask = new Float32Array(n), col = new Float32Array(n * 3), lum = new Float32Array(n);
+  for (let j = 0; j < m.dst.length; j++) {
+    const d = m.dst[j] ?? 0, sI = m.src[j] ?? -1;
+    if (sI < 0) continue;
+    mask[d] = 1;
+    for (let c = 0; c < 3; c++) col[d * 3 + c] = px[sI * 4 + c] ?? 0;
+    lum[d] = 0.2126 * (px[d * 4] ?? 0) + 0.7152 * (px[d * 4 + 1] ?? 0) + 0.0722 * (px[d * 4 + 2] ?? 0);
+  }
+  // masked separable box blur (2 passes each way), radius ~6 texels at 1024²
+  const R = Math.max(2, Math.round(6 * W / 1024));
+  const blur = (src: Float32Array, k: number): Float32Array => {
+    let cur = src, wts = mask;
+    for (let pass = 0; pass < 4; pass++) {
+      const horiz = pass % 2 === 0, out = new Float32Array(n * k), ow = new Float32Array(n);
+      const len = horiz ? W : H, lines = horiz ? H : W;
+      for (let li = 0; li < lines; li++) {
+        const at = (t: number): number => (horiz ? li * W + t : t * W + li);
+        const acc = new Float64Array(k);
+        let aw = 0;
+        for (let t = -R; t < len + R; t++) {
+          const a = t + R, b = t - R - 1;
+          if (a < len && a >= 0) { const o = at(a), mw = wts[o] ?? 0; aw += mw; for (let c = 0; c < k; c++) acc[c] = (acc[c] ?? 0) + (cur[o * k + c] ?? 0) * mw; }
+          if (b >= 0 && b < len) { const o = at(b), mw = wts[o] ?? 0; aw -= mw; for (let c = 0; c < k; c++) acc[c] = (acc[c] ?? 0) - (cur[o * k + c] ?? 0) * mw; }
+          if (t < 0 || t >= len) continue;
+          const o = at(t);
+          if ((mask[o] ?? 0) === 0 || aw <= 1e-6) continue;
+          for (let c = 0; c < k; c++) out[o * k + c] = (acc[c] ?? 0) / aw;
+          ow[o] = 1;
+        }
+      }
+      cur = out; wts = ow;
+    }
+    return cur;
+  };
+  const bc = blur(col, 3), bl = blur(lum, 1);
+  for (let j = 0; j < m.dst.length; j++) {
+    const d = m.dst[j] ?? 0, w = m.w[j] ?? 0;
+    if ((mask[d] ?? 0) === 0 || w <= 0) continue;
+    const detail = Math.min(1.5, Math.max(0.6, (lum[d] ?? 0) / Math.max(1, bl[d] ?? 0)));
+    for (let c = 0; c < 3; c++) {
+      const v = Math.min(255, (bc[d * 3 + c] ?? 0) * detail);
+      px[d * 4 + c] = (px[d * 4 + c] ?? 0) + (v - (px[d * 4 + c] ?? 0)) * w;
+    }
+  }
 }
 
 /** a bone's rest position (the rig's joints) */
@@ -164,7 +321,9 @@ function boneAt(bones: readonly BoneDef[], name: string): THREE.Vector3 | null {
  */
 export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: VariantDef, bones: readonly BoneDef[]): THREE.Texture {
   const map = rig.map;
-  if (!coatDiffers(spec, v)) return map;
+  const flap = rig.flap ?? null;
+  const measured = spec.measured?.[v.id];
+  if (!coatDiffers(spec, v) && flap === null) return map;
   const hit = cache.get(key);
   if (hit) return hit;
   const img = map.image as (CanvasImageSource & { width: number; height: number }) | null;
@@ -178,6 +337,8 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
   const data = ctx.getImageData(0, 0, W, H);
   const px = data.data;
   const geometry = rig.geometry, flipY = map.flipY;
+  // ── 0. a pressed flap (E322 F-M2) takes the rump's fur beside it ──
+  if (flap !== null) { const fm = flapTransplant(geometry, flap, W, H, flipY); if (fm) applyFlapFill(fm, px, W, H); }
   const texel = (u: number, vv: number): number => {
     const x = Math.min(W - 1, Math.max(0, Math.floor((u - Math.floor(u)) * W)));
     const yy = flipY ? 1 - vv : vv;
@@ -189,10 +350,11 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
   for (let i = 0, o = 0; i < W * H; i++, o += 4) { lin[i * 3] = toLin[px[o] ?? 0] ?? 0; lin[i * 3 + 1] = toLin[px[o + 1] ?? 0] ?? 0; lin[i * 3 + 2] = toLin[px[o + 2] ?? 0] ?? 0; }
 
   // ── 1. recolour by the palette keys ──
-  if (!isOwnCoat(spec, v.tint)) {
+  if (measured !== undefined || !isOwnCoat(spec, v.tint)) {
     const uv = geometry.getAttribute('uv'), idx = geometry.getIndex();
     const nTri = idx ? idx.count / 3 : uv.count / 3;
     const lums: number[] = [];
+    const cols: [number, number, number, number][] = [];   // (lum, r, g, b) per sample: the measured source tones
     let seed = 1234567;
     const rnd = (): number => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
     for (let s = 0; s < 24000; s++) {
@@ -202,16 +364,30 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
       const u = uv.getX(i0) + (uv.getX(i1) - uv.getX(i0)) * a + (uv.getX(i2) - uv.getX(i0)) * b;
       const w = uv.getY(i0) + (uv.getY(i1) - uv.getY(i0)) * a + (uv.getY(i2) - uv.getY(i0)) * b;
       const o = texel(u, w) / 4;
-      lums.push(0.2126 * (lin[o * 3] ?? 0) + 0.7152 * (lin[o * 3 + 1] ?? 0) + 0.0722 * (lin[o * 3 + 2] ?? 0));
+      const lr = lin[o * 3] ?? 0, lg = lin[o * 3 + 1] ?? 0, lb = lin[o * 3 + 2] ?? 0, lum = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+      lums.push(lum);
+      if (measured !== undefined) cols.push([lum, lr, lg, lb]);
     }
     lums.sort((p, q) => p - q);
     const pct = (p: number): number => lums[Math.min(lums.length - 1, Math.floor(p * lums.length))] ?? 0.1;
     const Ls = [Math.log(Math.max(1e-4, pct(0.12))), Math.log(Math.max(1e-4, pct(0.55))), Math.log(Math.max(1e-4, pct(0.92)))];
-    const tgtOf = (k: string): RGB => v.tint?.[k] ?? spec.palette[k] ?? [1, 1, 1];
+    // measured (E322 F-M2): each key's source = the atlas's mean linear colour over ±5 % round its percentile
+    cols.sort((p, q) => p[0] - q[0]);
+    const meanAt = (p: number): [number, number, number] => {
+      const a = Math.max(0, Math.floor((p - 0.05) * cols.length)), b = Math.min(cols.length, Math.ceil((p + 0.05) * cols.length));
+      const s: [number, number, number] = [0, 0, 0];
+      for (let i = a; i < b; i++) { const c = cols[i]; if (c) { s[0] += c[1]; s[1] += c[2]; s[2] += c[3]; } }
+      const k = Math.max(1, b - a);
+      return [s[0] / k, s[1] / k, s[2] / k];
+    };
+    const measuredSrc = measured !== undefined ? [meanAt(0.12), meanAt(0.55), meanAt(0.92)] : null;
+    const tgtOf = (k: string): RGB => measured?.[k] ?? v.tint?.[k] ?? spec.palette[k] ?? [1, 1, 1];
     const srcOf = (k: string): RGB => srcTint(spec)?.[k] ?? spec.palette[k] ?? [1, 1, 1];
-    const ratios = spec.keys.map((k) => { const a = linOf(tgtOf(k)), b = linOf(srcOf(k)); return a.map((x, i) => Math.min(14, x / Math.max(1e-3, b[i] ?? 1))); });
+    const srcLin = (k: string, i: number): [number, number, number] => measuredSrc?.[i] ?? linOf(srcOf(k));
+    const ratios = spec.keys.map((k, ki) => { const a = linOf(tgtOf(k)), b = srcLin(k, ki); return a.map((x, i) => Math.min(14, x / Math.max(1e-3, b[i] ?? 1))); });
     const satOf = (c: [number, number, number]): number => { const mx = Math.max(...c); return mx > 0 ? 1 - Math.min(...c) / mx : 0; };
-    const sats = spec.keys.map((k) => Math.min(1.3, satOf(linOf(tgtOf(k))) / Math.max(0.05, satOf(linOf(srcOf(k))))));
+    // measured: the per-channel ratios already land every key's mean exactly on its target — no extra saturation push
+    const sats = spec.keys.map((k, ki) => (measuredSrc !== null ? 1 : Math.min(1.3, satOf(linOf(tgtOf(k))) / Math.max(0.05, satOf(srcLin(k, ki))))));
     const l0 = Ls[0] ?? 0, l1 = Ls[1] ?? 0, l2 = Ls[2] ?? 0;
     for (let i = 0; i < W * H; i++) {
       const r = lin[i * 3] ?? 0, g = lin[i * 3 + 1] ?? 0, b = lin[i * 3 + 2] ?? 0;

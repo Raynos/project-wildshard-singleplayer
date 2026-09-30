@@ -164,6 +164,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Creatures & NPCs ──
   opt('creatures', 'creatures', 'Creatures', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: (c) => pineHollow(c) || nalati(c), note: 'PH-U11 / E136 · models picked; procedural = what the rig bakes need' }),
   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
+  opt('pineBearFix', 'creatures', 'Bear fix', [['a', 'A · Today'], ['b', 'B · Fixed']], { reload: true, when: pineHollow, note: 'E322 F-M2 · B: the stub-tail flap pressed away, brown / Grizzled Sow coats measured onto real bear tones (art/pine-hollow/round-19-e322-bears-birds/)' }),
   opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
   opt('nalatiFaces', 'creatures', 'Camp faces', [['hunyuan', 'B · Portrait on the head'], ['paint', 'D · Hunyuan paint (no portrait)']], { reload: true, when: nalati, note: 'E339 · the camp people and the Golden King: B ships today, D the head\'s own all-round paint — temporary, deleted with Jake\'s pick' }),
