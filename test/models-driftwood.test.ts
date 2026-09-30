@@ -60,8 +60,8 @@ describe('Driftwood models (E315 M1)', () => {
   });
 
   it('M8: the Driftwood files on the contract never register a thing by hand, and draw by hand only what they declare world', () => {
-    /** each migrated world-side file: what it may still draw itself, and why (a file that grows one more fails) */
-    const WORLD: Record<string, { why: string; draws: Partial<Record<'mergeGeometries' | 'InstancedMesh' | 'BatchedMesh' | 'Mesh', number>> }> = {
+    /** each migrated world-side file: what it may still draw (and register as a world piece) itself, and why (a file that grows one more fails) */
+    const WORLD: Record<string, { why: string; draws: Partial<Record<'mergeGeometries' | 'InstancedMesh' | 'BatchedMesh' | 'Mesh', number>>; registers?: number }> = {
       'src/world/Palms.ts': { why: 'an empty stand-in mesh when nothing was placed', draws: { Mesh: 1 } },
       'src/world/Bushes.ts': { why: 'an empty stand-in mesh when nothing was placed', draws: { Mesh: 1 } },
       'src/world/Boulders.ts': { why: '', draws: {} },
@@ -75,22 +75,26 @@ describe('Driftwood models (E315 M1)', () => {
       'src/world/Boat.ts': { why: 'the mooring lines: world geometry between two placed models', draws: { mergeGeometries: 1, Mesh: 1 } },
       'src/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 } },
       'src/world/BlenderIsland.ts': { why: 'the cove: its terrain tiles (world) and its tiles of prototype copies (drawnInto)', draws: { Mesh: 2 } },
-      'src/world/Trailside.ts': { why: 'the trail\'s weld: its ropes, rails and trestle stairs, and its posts / signposts / steps (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 } },
+      'src/world/Trailside.ts': { why: 'the trail\'s weld: its ropes, rails and trestle stairs (world, piece `trailside`), and its posts / signposts / steps (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 }, registers: 1 },
+      'src/world/Cove.ts': { why: 'the sea cave welded into the crag, the pools and the cascade (world, piece `cove`); its reef rocks drawnInto their smooth mesh', draws: { mergeGeometries: 2, Mesh: 4 }, registers: 1 },
+      'src/world/GroundCover.ts': { why: 'a scatter field streamed round the viewer (world, §1): its kinds\' instanced tiers, its dune logs\' mesh (drift logs drawnInto it)', draws: { InstancedMesh: 1, Mesh: 1 } },
     };
     const strip = (s: string): string => s.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, '');
     const count = (s: string, re: RegExp): number => (s.match(re) ?? []).length;
     for (const [file, w] of Object.entries(WORLD)) {
       const code = strip(source(file));
-      expect(code, `${file} registers by hand`).not.toMatch(/\bregisterModel\(|\bregisterSolid\(|\.add\(\{[^}]*?\bobject:|\bmodel:\s*(?:\{|true)|\baddBuilt\(/);
+      expect(code, `${file} registers by hand`).not.toMatch(/\bregisterModel\(|\bregisterSolid\(|\bmodel:\s*(?:\{|true)|\baddBuilt\(/);
+      expect(count(code, /\.add\(\{[^}]*?\bobject:/g), `${file}: world pieces registered by hand (declared: ${w.registers ?? 0})`).toBeLessThanOrEqual(w.registers ?? 0);
       const got = {
         mergeGeometries: count(code, /\bmergeGeometries\(/g), InstancedMesh: count(code, /new (?:THREE\.)?InstancedMesh\(/g),
         BatchedMesh: count(code, /new (?:THREE\.)?BatchedMesh\(/g), Mesh: count(code, /new (?:THREE\.)?(?:Mesh|Points|LineSegments)\(/g),
       };
       for (const [k, n] of Object.entries(got)) expect(n, `${file}: ${k} (declared world: ${w.why || 'nothing'})`).toBeLessThanOrEqual(w.draws[k as keyof typeof got] ?? 0);
     }
-    // and the shard's setup never hand-registers them again
+    // and the shard's setup registers no built thing by hand: every one registers itself (a model through place, a weld as world)
     const main = strip(source('src/main.ts'));
-    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'wreck', 'bridge', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`addBuilt\\(\`?'?${id}|registry\\.add\\(\\{ id: '${id}`));
+    expect(main).not.toMatch(/\baddBuilt\b/);
+    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'wreck', 'bridge', 'cove', 'trailside', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`registry\\.add\\(\\{ id: '${id}`));
   });
 
   it("the hut's layout and its geometry come from one build per site", () => {

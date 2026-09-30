@@ -9,7 +9,7 @@
  *   4. a shard importing another shard's models (`src/chunks/<a>/**` → `chunks/<b>/models/`)
  *   5. `src/models/` importing a shard (`chunks/…`): the contract stays shard-agnostic
  *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again
- *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4; Pine Hollow, M2) drawing or registering a thing by hand outside its models/
+ *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4; Pine Hollow, M2; Driftwood, M1) drawing or registering a thing by hand outside its models/
  *      folder — only the files it declares world may, each with its reason and its counts
  *   8. a species rig with no model (E315 M5): every kind a file registers (`registerSpecies({ … kind: '<kind>'` or a string
  *      constant) is some model's species rig — `creature(<kind>…)` (src/models/creature.ts) or its `rig: { species }` — so a
@@ -50,10 +50,6 @@ function sources(dir = join(ROOT, 'src')) {
  *    (M3, Nalati: every place but the camps and the road fences, whose files other lanes hold; E315).
  */
 export const ON_CONTRACT = [
-  // M1, Driftwood (E315): the world side of every model moved so far (their hand-rolled drawing is held by test/models-driftwood.test.ts)
-  'src/world/Palms.ts', 'src/world/Bushes.ts', 'src/world/Boulders.ts', 'src/world/Pier.ts', 'src/world/Hut.ts', 'src/world/Shrine.ts',
-  'src/world/Boat.ts', 'src/world/Seabed.ts', 'src/world/BlenderIsland.ts', 'src/world/Trailside.ts', 'src/world/Lookout.ts', 'src/world/Wreck.ts',
-  'src/world/RopeBridge.ts', 'src/world/Zipline.ts',
   'src/world/nalati/painted.ts', 'src/world/nalati/KurganField.ts', 'src/world/nalati/Balbals.ts', 'src/world/nalati/Bridge.ts',
   'src/world/nalati/EagleRock.ts', 'src/world/nalati/Cairn.ts', 'src/world/nalati/Crags.ts', 'src/world/nalati/Stair.ts',
   'src/world/nalati/Bowl.ts',
@@ -65,6 +61,15 @@ export const ON_CONTRACT = [
  *    declares world — each with why, and how many of what (a declared file that grows one more fails too).
  */
 export const DONE = {
+  'driftwood-isle': {
+    'src/world/Boat.ts': { why: "the mooring lines: world geometry between the placed sailboat and the pier's bollards", counts: { mergeGeometries: 1 } },
+    'src/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (the models placed drawnInto it)', counts: { mergeGeometries: 1 } },
+    'src/world/Trailside.ts': { why: "the trail's weld: its ropes, rails and trestle stairs are world (piece `trailside`, their treads); its posts, signposts and steps are models drawnInto it", counts: { 'registry add with object': 1, mergeGeometries: 1 } },
+    'src/world/Wreck.ts': { why: "the wreck site's weld: the vessel and the cove's surroundings in one kit (the AO and the lanterns' light over all of it) and the reef rocks' smooth mesh — its models placed drawnInto them", counts: { mergeGeometries: 1 } },
+    'src/world/Cove.ts': { why: 'the sea cave is welded into the crag (its floor cuts the physics terrain), the pools and the cascade are water: world (piece `cove`); its reef rocks are models drawnInto their smooth mesh', counts: { 'registry add with object': 1, mergeGeometries: 2 } },
+    'src/world/GroundCover.ts': { why: 'a scatter field streamed round the viewer (E117 / E186): world (§1). Its dune logs are drift-log models drawnInto their mesh; its five plant kinds have no fixed copies for place() to count', counts: { InstancedMesh: 1 } },
+    'src/world/Gulls.ts': { why: 'the gulls are creatures (M5)', counts: { InstancedMesh: 1 } },
+  },
   'nine-dragon-stack': {
     'src/chunks/nine-dragon-stack/index.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision', counts: { 'registry add with object': 1 } },
     'src/chunks/nine-dragon-stack/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
@@ -99,7 +104,7 @@ const SHARD_FILE = /^src\/chunks\/([^/]+)\//;
 /** Pine Hollow's world side in src/world (only Pine Hollow builds these: its homestead, its forest floor, its props' scatter) */
 const PINE_WORLD = /^src\/world\/(Cabin|Undergrowth|Props)\.ts$/;
 /** Driftwood's world side in src/world (only Driftwood builds these; its report counts them apart from the shared code) */
-const DRIFTWOOD_WORLD = /^src\/world\/(Palms|Bushes|Boulders|Pier|Hut|Shrine|Boat|Seabed|BlenderIsland|blenderArea|coverTint|Trailside|Lookout|Wreck|Cove|RopeBridge|Gulls|GroundCover|driftwood)\.ts$/;
+const DRIFTWOOD_WORLD = /^src\/world\/(Palms|Bushes|Boulders|Pier|Hut|Shrine|Boat|Seabed|BlenderIsland|blenderArea|coverTint|Trailside|Lookout|Wreck|Cove|RopeBridge|Zipline|Gulls|GroundCover|driftwood)\.ts$/;
 
 /** which area a file belongs to, for the report */
 export function areaOf(file) {

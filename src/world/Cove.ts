@@ -10,7 +10,14 @@
  *
  * Draws: rocks + cave (one LowPolyKit mesh on lowPolyMaterial), glow, pools, cascade.
  *
- *   const cove = new Cove(sky).build(Cove.forIsland());
+ * E306 / E315 M1 (second pass): the cove is WORLD — the sea cave is welded into the crag (its floor cuts the physics
+ * terrain, `terrainCuts`), the pools and the cascade are water. Its loose outdoor rocks (the tidepool rims, the plunge
+ * pool's ring, the cascade's banks) are the reef-rock model (src/chunks/driftwood-isle/models/reefRock.ts), placed
+ * `drawnInto` the smooth-rock mesh they are welded in. `place` registers the cove's own piece (`cove`: drawn, its
+ * colliders and floors; no card); the Wreck cove set (src/chunks/driftwood-isle/world/places.ts) lists these rocks.
+ *
+ *   const cove = new Cove(sky).place(registry, Cove.forIsland());   // the game: piece `cove` (world) + the reef rocks' card
+ *   const cove = new Cove(sky).build(Cove.forIsland());                          // a dev page / the navmesh bake: not registered
  *   scene.add(cove.group); player.colliders.push(...cove.colliders);
  *   player.platforms.push((x, z) => cove.floorHeightAt(x, z));      // the cave floor (antechamber, ramp, alcove)
  *   game.onUpdate((dt) => cove.update(dt));
@@ -33,7 +40,10 @@ import { Rng } from '../core/rng';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
-import { boxDesc, type ColliderDesc } from './registry';
+import { boxDesc, type ColliderDesc, type WorldRegistry } from './registry';
+import { reefRock } from '../chunks/driftwood-isle/models/reefRock';
+import { modelContext } from '../models/model';
+import { place, type Placed } from '../models/place';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }
@@ -83,6 +93,11 @@ export class Cove {
   private t = 0;
   private fall: WaterfallLike | null = null;
   private cave: CoveSpec['cave'] = { x: 0, z: 0, yaw: 0, w: 0, h: 0, depth: 0 };
+  /** the loose reef rocks as built: each copy's matrix, radius, squash, moss, world box */
+  private rocks: { m: THREE.Matrix4; r: number; squash: number; moss: number; box: THREE.Box3 }[] = [];
+  private rockMesh: THREE.Mesh | null = null;
+  /** the reef rocks' placement (the Wreck cove set's member) */
+  readonly placed: Placed[] = [];
 
   constructor(private sky: Sky) {}
 
@@ -100,6 +115,26 @@ export class Cove {
       cave,
       caveBounds: { x: cave.x + Math.sin(cave.yaw) * mid, z: cave.z + Math.cos(cave.yaw) * mid, r: 5.2, yMin: FLOOR - 0.4, yMax: FLOOR + 4.5 },
     };
+  }
+
+  /**
+   * The game's: build it, register the cove (piece `cove`: the sea cave, the pools and the cascade are world, drawn and
+   * colliding as always — no card) and its reef rocks' placements (drawnInto their mesh; `placed`, the Wreck cove set's).
+   */
+  place(registry: WorldRegistry, spec: CoveSpec): this {
+    this.build(spec);
+    registry.add({ id: 'cove', name: 'Wreck cove', category: 'nature', file: 'src/world/Cove.ts', object: this.group, colliders: this.colliderDescs(), surface: 'rock',
+      floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true });
+    if (this.rockMesh !== null && this.rocks.length > 0) {
+      const boxes: number[] = [], at = new THREE.Vector3();
+      const pls = this.rocks.map((k) => {
+        boxes.push(k.box.min.x, k.box.min.y, k.box.min.z, k.box.max.x, k.box.max.y, k.box.max.z);
+        at.setFromMatrixPosition(k.m);
+        return { x: at.x, y: at.y, z: at.z, matrix: k.m, params: { r: k.r, squash: k.squash, moss: k.moss } };
+      });
+      this.placed.push(place(reefRock, pls, { ctx: modelContext(this.sky), draw: 'merged', registry, drawnInto: { object: this.rockMesh, boxes: Float32Array.from(boxes) }, piece: { id: 'wreck-cove-reef-rocks' } }));
+    }
+    return this;
   }
 
   /** cave-local (lx, lz) → world (x, z) */
@@ -142,6 +177,7 @@ export class Cove {
       old.dispose();
       const g = rockGeometry(r, rockRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3, ground: -0.2 * r });
       g.applyMatrix4(m); smoothRocks.push(g);
+      g.computeBoundingBox(); this.rocks.push({ m, r, squash, moss: top === C.moss ? 0.8 : 0.3, box: g.boundingBox?.clone() ?? new THREE.Box3() });
     };
     const starfish = (x: number, y: number, z: number, r: number, col: string): void => {
       const v: number[] = [], rot = rng.range(0, 6.28);
@@ -313,6 +349,7 @@ export class Cove {
       for (const g of smoothRocks) g.dispose();
       sm.name = 'cove-rocks'; sm.castShadow = true; sm.receiveShadow = true;
       this.group.add(sm);
+      this.rockMesh = sm;
     }
     const gGeo = glow.finish({ ao: false });
     const gc = gGeo.getAttribute('color');

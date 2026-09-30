@@ -117,12 +117,10 @@ import { frameCost, type Bucket } from './core/frameCost';
 import { Impacts } from './fx/Impacts';
 import { wireNalati, type Nalati } from './nalati';
 import { shardCompleteUp } from './ui/ShardComplete';
-import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory } from './world/registry';
 import { cutTerrain } from './physics/terrain';
 import { RopeChain } from './physics/ropeChain';
 import { pathRampDescs } from './physics/paths';
 import type { Collider } from './player/Player';
-import type { Material } from './physics/surface';
 import { activePhysics } from './physics/active';
 import { floorBelow, lineOfSight } from './physics/query';
 import { pickInteractable, setSight } from './world/interact/Interactables';
@@ -265,15 +263,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     failGpuBoot('WebGL context lost during loading');
   };
   if (fragileBoot) game.canvas.addEventListener('webglcontextlost', onBootContextLost);
-  // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
-  // lends the player its floor function. `statics` keeps the boxes for the ocean's foam rings.
+  // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
+  // src/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];
-  // `model`: it is also in Explore's catalog (the one registry: drawn, collides, explorable — ENGINE-FIT E1 / X10)
-  const addBuilt = (id: string, name: string, category: PieceCategory, file: string, object: THREE.Object3D, boxes: readonly Collider[], surface: Material, floor?: (x: number, z: number) => number | undefined, descs?: ColliderDesc[], model?: ModelEntry): void => {
-    statics.push(...boxes);
-    // P4: a builder that emits its own ColliderDescs (floors as real geometry) — its floor function is placement only
-    registry.add({ id, name, category, file, object, colliders: descs ?? boxes.map((c) => boxDesc(c)), surface, ...(floor ? { floor } : {}), ...(descs ? { solidFloor: true } : {}), ...(model ? { model } : {}) });
-  };
   const nolock = params.has('nolock');
   // what the view-dependent layers (ground cover, grass, mist) fill around: the player, or Explore's free camera (E66)
   const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
@@ -363,7 +355,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
     // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
     // colliders with them); the trail's own piece keeps its steps' and stairs' treads
-    if (trailside) addBuilt('trailside', 'Trailside', 'props', 'src/world/Trailside.ts', trailside.mesh, trailside.colliders, 'wood', undefined, trailside.worldColliderDescs());
+    if (trailside) { statics.push(...trailside.colliders); trailside.place(registry); }
     await slice();
     // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
     // E315 M1: the rope bridge model (src/chunks/driftwood-isle/models/ropeBridge.ts) placed through src/models/place.ts, which registers piece `bridge`
@@ -378,9 +370,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const palmSpecs = isOcean ? Palms.scatterIsland(chunk.seed, undefined, AVOID) : [];
     await slice();
     // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
-    const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
+    // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
+    const cove = isOcean ? new Cove(sky).place(registry, Cove.forIsland()) : null;
     if (cove) {
-      addBuilt('cove', 'Wreck cove', 'nature', 'src/world/Cove.ts', cove.group, cove.colliders, 'rock', (x, z) => cove.floorHeightAt(x, z), cove.colliderDescs(), {});
+      statics.push(...cove.colliders);
       cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
     }
     await slice();

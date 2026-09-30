@@ -26,7 +26,7 @@ import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
-import type { ColliderDesc } from './registry';
+import type { ColliderDesc, WorldRegistry } from './registry';
 import { fencePost, plankStep, signpost, trailMaterial, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../chunks/driftwood-isle/models/trailside';
 import { modelContext, type ModelBuild, type ModelPart, type Placement } from '../models/model';
 import { place, type Placed } from '../models/place';
@@ -55,7 +55,7 @@ export class Trailside {
   private steps: StepsSpec[] = [];
   private flights: FlightSpec[] = [];
   /** the models placed into the weld: the posts' and signposts' colliders, in the layout's order */
-  private placed: Placed[] = [];
+  readonly placed: Placed[] = [];
 
   constructor(private sky: Sky) {}
 
@@ -96,6 +96,12 @@ export class Trailside {
         { x: -14, z: -62, arrows: [{ toward: 0.9 }, { toward: 2.5 }] },    // hut fork: → lookout / wreck, ↖ shrine
       ],
     };
+  }
+
+  /** the game's: the trail's own piece (`trailside`: its weld drawn, its steps' and stairs' treads) after its models' */
+  place(registry: WorldRegistry): this {
+    registry.add({ id: 'trailside', name: 'Trailside', category: 'props', file: 'src/world/Trailside.ts', object: this.mesh, colliders: this.worldColliderDescs(), surface: 'wood', solidFloor: true });
+    return this;
   }
 
   /** the models placed (pieces `trail-fence-posts`, `trail-signposts`, `trail-steps`) and the weld built */
