@@ -52,7 +52,7 @@ async function centre(page, sel) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
-/** in the page: a camera track, one sample per frame — { t, x, y, z, fx, fz } (fx / fz: the view's heading) */
+/** in the page: a camera track, one sample per frame — { t, x, y, z, fx, fy, fz } (the view's direction: fx / fz its heading) */
 const startTrack = (page) => page.evaluate(() => {
   const w = window;
   w.__mtTrack = [];
@@ -61,7 +61,7 @@ const startTrack = (page) => page.evaluate(() => {
   const tick = () => {
     if (w.__mtRun !== run) return;
     const c = w.__world.game.camera, q = c.quaternion;
-    w.__mtTrack.push({ t: performance.now(), x: c.position.x, y: c.position.y, z: c.position.z, fx: -2 * (q.x * q.z + q.w * q.y), fz: -(1 - 2 * (q.x * q.x + q.y * q.y)) });
+    w.__mtTrack.push({ t: performance.now(), x: c.position.x, y: c.position.y, z: c.position.z, fx: -2 * (q.x * q.z + q.w * q.y), fy: -2 * (q.y * q.z - q.w * q.x), fz: -(1 - 2 * (q.x * q.x + q.y * q.y)) });
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -75,9 +75,13 @@ const between = (tr, a, b) => tr.filter((s) => s.t >= a && s.t <= b);
 /** horizontal speed (m/s) and climb rate (m/s) over a window */
 function rate(tr, a, b) {
   const w = between(tr, a, b), s0 = w[0], s1 = w[w.length - 1];
-  if (s0 === undefined || s1 === undefined || s1.t - s0.t < 1) return { h: 0, v: 0, n: w.length };
+  if (s0 === undefined || s1 === undefined || s1.t - s0.t < 1) return { h: 0, v: 0, p: 0, n: w.length };
   const dt = (s1.t - s0.t) / 1000;
-  return { h: Math.hypot(s1.x - s0.x, s1.z - s0.z) / dt, v: (s1.y - s0.y) / dt, n: w.length };
+  // the stick flies along the view: a view tipped down descends as it flies — `p` is that share of `v`, so a check
+  // of the rail's own climb or sink reads v − p
+  const h = Math.hypot(s1.x - s0.x, s1.z - s0.z) / dt, fx = (s0.fx + s1.fx) / 2, fy = (s0.fy + s1.fy) / 2, fz = (s0.fz + s1.fz) / 2, fh = Math.hypot(fx, fz);
+  const along = (s1.x - s0.x) * fx + (s1.z - s0.z) * fz >= 0 ? 1 : -1; // (flying backward, a view tipped down climbs)
+  return { h, v: (s1.y - s0.y) / dt, p: fh > 1e-3 ? (along * h * fy) / fh : 0, n: w.length };
 }
 /** the slowest horizontal speed over consecutive `ms` slices of [a, b] (a slice needs two frames) — "it never stopped" */
 function minRate(tr, a, b, ms = 250) {
@@ -105,9 +109,9 @@ async function shot(page, name) {
 }
 
 /** push the stick forward (thumb id 1): press on its centre, slide up past the knob's travel */
-async function stickForward(ts, stick) {
+async function stickForward(ts, stick, dir = -1) {
   await ts.press(1, stick.x, stick.y);
-  for (let k = 1; k <= 4; k++) { await ts.move(1, stick.x, stick.y - k * 14); await sleep(16); }
+  for (let k = 1; k <= 4; k++) { await ts.move(1, stick.x, stick.y + dir * k * 14); await sleep(16); }
 }
 
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--mute-audio', '--enable-gpu', '--ignore-gpu-blocklist'] });
@@ -165,7 +169,9 @@ try {
   }
 
   if (ONLY.includes('rail')) {
-    await stickForward(ts, stick);
+    // backward: the home view faces its landmark, so forward climbs its ground and ▼ meets the floor clamp (Driftwood's
+    // crag), which reads as "▼ does nothing"; backward is over open air on every shard
+    await stickForward(ts, stick, 1);
     await sleep(700);
     const a = await mark(page);
     await ts.press(3, up.x, up.y); // ▲ held with the other thumb
@@ -189,8 +195,8 @@ try {
     const tr = await track(page);
     const climb = rate(tr, b, c), level = rate(tr, d, e), sink = rate(tr, f, g);
     check('rail: ▲ climbs while the stick flies', climb.v > 3 && climb.h > 2, `climb ${r2(climb.v)} m/s at ${r2(climb.h)} m/s forward`);
-    check('rail: ▲ released, the stick still flies level', Math.abs(level.v) < 1 && level.h > 4, `${r2(level.v)} m/s vertical at ${r2(level.h)} m/s forward`);
-    check('rail: ▼ sinks while the stick flies', sink.v < -3 && sink.h > 2, `sink ${r2(sink.v)} m/s at ${r2(sink.h)} m/s forward`);
+    check('rail: ▲ released, the stick still flies level (along the view)', Math.abs(level.v - level.p) < 1 && level.h > 4, `${r2(level.v)} m/s vertical (the view's own ${r2(level.p)}) at ${r2(level.h)} m/s forward`);
+    check('rail: ▼ sinks while the stick flies', sink.v - sink.p < -3 && sink.h > 2, `sink ${r2(sink.v)} m/s (the view's own ${r2(sink.p)}) at ${r2(sink.h)} m/s forward`);
     check('rail: never stopped', minRate(tr, a, g) > 2, `slowest slice ${r2(minRate(tr, a, g))} m/s`);
   }
 
