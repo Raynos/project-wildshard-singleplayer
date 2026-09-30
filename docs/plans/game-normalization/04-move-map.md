@@ -1084,7 +1084,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `Horizon.ts` | 319 | `E:world/Horizon.ts` | = | engine | F | F6 |  |  |
 | `HorizonMatte.ts` | 376 | `E:world/HorizonMatte.ts` | = | engine | M | F6 (+S2.1, S4.1, X5) | the painted-band mechanism; the Pine and Driftwood strips → manifest.horizon.matte (06 §1.3) |  |
 | `Hut.ts` | 79 | `DI:world/Hut.ts` | = | DI | G | F6 (+S4.1) | a Driftwood world builder (main.ts isOcean gate; 02 rule 3) | 08 |
-| `lookFlags.ts` | 22 | `E:world/lookFlags.ts` | `PH:look/lookFlags.ts` | PH | SPLIT | F6 → S2.1 | Pine's look-loop grade (`ChunkDef.look`, set by Pine only) → Pine's ShardRender (02 F6 table row 28) (split table §3.13) |  |
+| `lookFlags.ts` | 22 | `E:world/lookFlags.ts` | `PH:look/lookFlags.ts` | PH | SPLIT | F6 → S2.1 | Pine's look-loop grade (`ChunkDef.look`, set by Pine only) → Pine's LookStrategy (02 F6 table row 28) (split table §3.13) |  |
 | `Lookout.ts` | 83 | `DI:world/Lookout.ts` | = | DI | G | F6 (+S4.1) | a Driftwood world builder (main.ts isOcean gate; 02 rule 3) | 08 |
 | `lowpolyKit.ts` | 557 | `E:world/lowpolyKit.ts` | = | engine | F | F6 |  |  |
 | `lut.ts` | 47 | `E:world/lut.ts` | = | engine | F | F6 |  |  |
@@ -1119,7 +1119,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `spruceMask.ts` | 79 | `NG:world/spruceMask.ts` | = | NG | N | F6 | Nalati's ChunkForest.mask (node-safe; bake-chunk runs it) | 07 |
 | `steppeWind.ts` | 157 | `E:world/steppeWind.ts` | = | engine | F | F6 |  |  |
 | `stylize.ts` | 216 | `E:world/stylize.ts` | `DI:look/stylize.ts` | DI | SPLIT | F6 → S4.3 | Driftwood's toon lighting patch (a shader-patch registry entry, X6) (split table §3.13) | 08 |
-| `StylizedSky.ts` | 188 | `E:world/StylizedSky.ts` | `DI:look/StylizedSky.ts` | DI | SPLIT | F6 → S4.3 | Driftwood's sky (Sky.ts builds it when style === 'lowpoly'): the toon look as a ShardRender backdrop (S4.3 / X5) (split table §3.13) | 08 |
+| `StylizedSky.ts` | 188 | `E:world/StylizedSky.ts` | `DI:look/StylizedSky.ts` | DI | SPLIT | F6 → S4.3 | Driftwood's sky (Sky.ts builds it when style === 'lowpoly'): the toon look as a LookStrategy backdrop (S4.3 / X5) (split table §3.13) | 08 |
 | `Terrain.ts` | 713 | `E:world/Terrain.ts` | = | engine | SPLIT | F6 (+S2.1, S3.2, S4.3, X5) | shard branches leave (split table §3.7) |  |
 | `Trailside.ts` | 333 | `DI:world/Trailside.ts` | = | DI | G | F6 (+S4.1) | a Driftwood world builder (main.ts isOcean gate; 02 rule 3) | 08 |
 | `TreeFactory.ts` | 768 | `E:world/TreeFactory.ts` | `PH:world/treeFactory.ts` | PH | SPLIT | F6 → S2.1 | trees.factory 'pine' is Pine's; windUniforms (read by Nalati) → engine/world/wind.ts; buildEmpty goes with 'none' (06 §1.3) (split table §3.13) |  |
@@ -1206,7 +1206,7 @@ A part that "stays" stays in the file at its F6 path.
 | `addPaths()`, `const blenderIsland = isOcean` | paths, the Blender cove | the shards' world builds | S3.1, S4.1 |
 | `step('grass', …)`: `const bare = isOcean \|\| built`, `new Undergrowth` | Pine's carpet | Pine's plugin | S2.1 (Grass.ts itself: S3.1) |
 | `step('cabins', …)`: `new Cabins`, `pineHamletBuildings`, `installPineLandmarks` | the homestead | Pine's plugin | S2.1 |
-| `step('props', …)`: `wireNalati`, the `structures` branch, Pine's `Props` | the props step | each plugin's `shard.world` stage | S1.1, S2.1, S3.1 |
+| `step('props', …)`: `wireNalati`, the `structures` branch, Pine's `Props` | the props step | each plugin's `level.world` stage | S1.1, S2.1, S3.1 |
 | `step('animals', …)`, `nalatiNow()?.attachAnimals`, `nalatiNow()?.ride`, `new Enemies(` | creatures | `CreatureService` + spawn tables from the manifests | S2.3, S3.4, S4.2 |
 | `const nalatiClock`, the WorldClock wiring | the clocks | `app.world.dayCycle` | S2.4 |
 | `step('weapon', …)`, `buildNalatiKit`, `const isPine`, `new Longbow`, `const isNine`, `new Weapons(` | the loadout | `EquipmentService` from `manifest.loadout` | S1.2, S2.2, S3.3, S4.1 |
@@ -1231,11 +1231,11 @@ A part that "stays" stays in the file at its F6 path.
 
 | Part (grep key) | Goes to | Row |
 |---|---|---|
-| `import { installLookV2Fog }`, `buildLookV2Chain`, `installAtmosphere(getActiveChunk().style === 'painterly')`, `this._composer = buildLookV2Chain` | Nalati's `ShardRender` (fog + composer) | S3.2 |
+| `import { installLookV2Fog }`, `buildLookV2Chain`, `installAtmosphere(getActiveChunk().style === 'painterly')`, `this._composer = buildLookV2Chain` | Nalati's `LookStrategy` (fog + composer) | S3.2 |
 | `recordNineGpuCheckpoint`, `const phoneNine` (4 sites), `traceNineBootPasses` | `bootTrace.active` | S1.1 (05 §2.2) |
 | `getActiveChunk().slug !== 'nine-dragon-stack' \|\| TIER !== 'phone'` (the AO) | `manifest.tiers.phone.ao` | S1.1 |
 | `const slices = R?.slices ?? phonePictureCuts()` | tier data | S2.1 / X7 |
-| `const dwPhone = getActiveChunk().style === 'lowpoly'`, `getActiveChunk().style !== 'lowpoly'` (the LUT), `chain(getActiveChunk().style === 'lowpoly')` | Driftwood's `ShardRender` + tier data | S4.3 |
+| `const dwPhone = getActiveChunk().style === 'lowpoly'`, `getActiveChunk().style !== 'lowpoly'` (the LUT), `chain(getActiveChunk().style === 'lowpoly')` | Driftwood's `LookStrategy` + tier data | S4.3 |
 | `this.sky.attachPost({ vol, rays: godRays, hueSat: grade })` | Pine's backdrop | S2.4 |
 | the loop, phases, fault isolation, composer build | stays; F8 makes the phases App systems | F8 |
 
@@ -1285,8 +1285,8 @@ A part that "stays" stays in the file at its F6 path.
 | Part (grep key) | Goes to | Row |
 |---|---|---|
 | `if (getActiveChunk().structures !== undefined) return this.buildNone()` | `manifest.ground.structures` | S1.1 |
-| `buildLowPoly` (`style === 'lowpoly'`) | Driftwood's `ShardRender.terrainPainter` | S4.3 |
-| `buildPainterly`, `applyTerrainSurface`, `zoneWeights`, `loadNalatiTextures`, `painterlyMaterial` | Nalati's `ShardRender.terrainPainter` (02 F6 table rows 34–35) | S3.2 |
+| `buildLowPoly` (`style === 'lowpoly'`) | Driftwood's `LookStrategy.terrainPainter` | S4.3 |
+| `buildPainterly`, `applyTerrainSurface`, `zoneWeights`, `loadNalatiTextures`, `painterlyMaterial` | Nalati's `LookStrategy.terrainPainter` (02 F6 table rows 34–35) | S3.2 |
 | `getActiveChunk().ocean?.level` | `terrain.waterLevel()` / `WaterBody` | S4.1 / X5 |
 | the PBR terrain, the baked terrain, the heightfield mesh | stays | — |
 
@@ -1341,7 +1341,7 @@ A part that "stays" stays in the file at its F6 path.
 
 | File | Parts → destinations | Row |
 |---|---|---|
-| `world/Atmosphere.ts` | `installAtmosphere(painterly)` + `installPaintedAir` → Nalati's `ShardRender`; `const edge = getActiveChunk().slug === 'pine-hollow'` → Pine's look data; the fog core → engine, on the fog-patch registry | S3.2, S2.1, X5 |
+| `world/Atmosphere.ts` | `installAtmosphere(painterly)` + `installPaintedAir` → Nalati's `LookStrategy`; `const edge = getActiveChunk().slug === 'pine-hollow'` → Pine's look data; the fog core → engine, on the fog-patch registry | S3.2, S2.1, X5 |
 | `ui/HUD.ts` | Driftwood's sturdy-hearts maximum → `#game` perks; `ws:weather` → the bus; the crossbow's bolt labels → ammo rows; the title card match stays | S1.2, S2.2, S4.3, X2 |
 | `ui/Menu.ts` | the pause-menu shell (settings, debug, resume) stays engine; MAP · GEAR · FINDS · PACK · FEATS → registered `#game/bag` tabs; Pine's PACK trade lines, Nalati's skins, Nine Dragon's tools → their plugins | X2 |
 | `ui/debugOptions.ts` | the 9 gated rows (`const pineHollow: When`, `const nalati: When`) → each plugin's `ctx.debugRow` | S2.1, S3.1, X2 |
@@ -1361,7 +1361,7 @@ A part that "stays" stays in the file at its F6 path.
 | `world/DayClock.ts` | the clock → `E:world/dayCycle.ts`; the elevation keys and their application → `NG:look/dayClock.ts` | S2.4, S3.2 |
 | `world/StylizedSky.ts`, `world/stylize.ts` | Driftwood's backdrop and toon patch (a shader-patch registry entry, X6) | S4.3 |
 | `world/PainterlySky.ts` | Nalati's backdrop; the hidden builds deleted | S3.2, X5 |
-| `world/lookFlags.ts` | Pine's look-loop grade (`ChunkDef.look`, set by Pine only) → Pine's `ShardRender` | S2.1 |
+| `world/lookFlags.ts` | Pine's look-loop grade (`ChunkDef.look`, set by Pine only) → Pine's `LookStrategy` | S2.1 |
 | `chunks/pine-hollow.ts` | the data → `PH:manifest.ts`; `:23-216` → `PH:world/terrain.ts` | S2.1 |
 | `chunks/nine-dragon-stack/def.ts` | the data → `ND:manifest.ts`; the hook fields → `ND:plugin.ts` | S1.1 |
 | `boot/{manifest,extras,shardPrefetch,audioFiles,gpuFiles,steps,prefetch}.ts` | their shard branches → manifest `boot` data; the files stay engine | S1.1–S4.1, X3 |

@@ -745,14 +745,14 @@ sets it today). "Kept" means the name and type are unchanged at F6.
 | 25 | `sky` | D P N 9 | `sky` | — |
 | 26 | `atmosphere` | D P N 9 | `atmosphere` | — |
 | 27 | `grade` | D P N 9 | `grade` | — |
-| 28 | `look: ChunkLook` | P | `look` (kept) | S2.1: into Pine's `ShardRender` |
+| 28 | `look: ChunkLook` | P | `look` (kept) | S2.1: into Pine's `LookStrategy` |
 | 29 | `spawn` | D P N 9 | `spawn` | — |
 | 30 | `style` (omitted = `'pbr'`) | D `lowpoly`, N `painterly` | `style` required: D `'toon'` (F6 maps `lowpoly` → `toon`; the codemod rewrites every `'lowpoly'` style literal to `'toon'`, so the branch count is unchanged), P `'pbr'`, N `'painterly'`, 9 `'pbr'` (13-lead-resolutions 02/03#1) | S1.1: Nine Dragon `'jiehua'` (05 §3) |
 | 31 | `weapon` (omitted = `'crossbow'`) | D `sword`, N `nalati`, 9 `sword` | `weapon` required: D `'sword'`, P `'crossbow'`, N `'nalati'`, 9 `'sword'` | S1.2 (Nine), S2.2 (Pine), S3.3 (Nalati; fixes bug §7.5), S4.1 (Driftwood): `loadout` |
 | 32 | `hud: { dayBadge }` | N | `hud` (kept) | X2: Nalati's plugin adds the badge widget |
-| 33 | `horizon` | N 9 | `horizon` (kept) | X5: `ShardRender.backdrop` |
-| 34 | `groundColor` | N | `groundColor` (kept, carried as data) | S3.2: `ShardRender.terrainPainter` |
-| 35 | `surfaceAt` | N | `surfaceAt` (kept, carried as data) | S3.2: `ShardRender.terrainPainter` |
+| 33 | `horizon` | N 9 | `horizon` (kept) | X5: `LookStrategy.backdrop` |
+| 34 | `groundColor` | N | `groundColor` (kept, carried as data) | S3.2: `LookStrategy.terrainPainter` |
+| 35 | `surfaceAt` | N | `surfaceAt` (kept, carried as data) | S3.2: `LookStrategy.terrainPainter` |
 | 36 | `ocean: OceanDef` | D | `ocean` (kept) | S4.1: a `WaterBody` row, the sea (01 §6, §17: the interface is built in S4.1) |
 | 37 | `pondClip` | P | `pondClip` (kept, carried as data) | S2.1 / X5: `WaterBody` |
 | 38 | `map: ChunkMapDef` | D 9 | `minimap` (renamed: `map` now means the Wildshard map place, 01 §6) | X2 |
@@ -859,7 +859,7 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
    (`boot.appStates`, exact).
 4. **Events.** `src/engine/events/` with 01 §3's `Events` (`emit` queued per phase, `on`, `ask`, `answer`) and
    `EventMap` / `AskMap` / `TagMap` for declaration merging. F8 declares only the engine events it emits itself:
-   `'app.state'`, `'shard.loaded'`, `'shard.unloaded'`, `'fault'`. The 48 `onFoo =` fields, 29 chained hooks and 8
+   `'app.state'`, `'level.loaded'`, `'level.unloaded'`, `'fault'`. The 48 `onFoo =` fields, 29 chained hooks and 8
    `ws:*` DOM events move in the S / X rows (09-combat-ai.md and each shard spec map them); F8 adds a ratchet rule
    `wildshard/no-hook-chain` counting `const prior = x.onY` chains (29 today), recorded in `lint/ratchet.json`.
 5. **Services.** `App` of 01 §5 with typed fields. F8 fills `clock`, `rng`, `events`, `scene`, `render`, `physics`,
@@ -915,7 +915,7 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
 
 **Depends on.** F6, F8.
 
-**Interfaces.** 01 §6, §7, §20 (`app.shard`), decision 69.
+**Interfaces.** 01 §6, §7, §20 (`game.shard`), decision 69.
 
 **Steps.**
 1. `scripts/gen-shards.mjs`: lists `src/shards/*/manifest.ts` (every folder with one, `_template` included once Z1
@@ -937,7 +937,7 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
    and filter: terrain / sky bakers `ground.structures === undefined`, the others `playable(m)`; the
    `globalThis.location` fake in `bake-packs.mjs:43` is removed once no module a manifest reaches reads the URL at
    import (TP8; the `TIER` read in `src/engine/core/tier.ts` moves behind a function called at boot).
-   `getActiveChunk()` (136 calls in 42 files) becomes a one-line wrapper over `app.shard` (01 §20), still counted by F8's
+   `getActiveChunk()` (136 calls in 42 files) becomes a one-line wrapper over `game.shard` (01 §20), still counted by F8's
    `wildshard/no-active-chunk` ratchet (target 0 at S4.4).
 4. **The load-failure screen.** `src/engine/ui/errorScreen.ts`: a full-screen view (the `error` UI layer arrives with
    X2; until then it is appended to `<body>` with `data-ws-shell` so the shell owns it) with the shard name, build id,

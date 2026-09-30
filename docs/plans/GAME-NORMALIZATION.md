@@ -102,7 +102,7 @@ The layer rules:
 The manifest is typed data and node-safe. It is Lyra's "experience" and today's `ChunkDef`, grown up:
 - **Identity:** slug, name, `biome`, card art, `label` (today's `gridCoords` string) and `placement` (`grid`, `size`: its own
   origin and its place on the Wildshard map).
-- **Look:** style, the `ShardRender` strategy loader.
+- **Look:** style, the `LookStrategy` strategy loader.
 - **Mechanisms:** `uses`, the opt-in list (`weather`, `dayCycle`, `elites`, `bosses`, `quests`, `trample`, `compendium`, `bounds`, `grapple`: the values the four
   manifests use). Nothing is on unless listed.
 - **Content:** loadout, species and encounter rows, loot tables, effects, audio (ambience, score, cue map).
@@ -164,7 +164,7 @@ export default defineShard({
 | **Input** | 179 raw listeners in 47 files, ~12 mode flags, touch USE fakes an `E` key | Actions + a context stack (on foot, swim, ride, board, grapple, menu, explore, dialog), **key rebinding**, **input buffer 120 ms + coyote 100 ms** (two numbers per shard). Touch: contexts relabel the existing discs **and** fill named reserved verb slots. No gamepad now | EI9–EI12 |
 | **UI** | 42 files append to `#hud` / body, ~10 overlays with their own Escape, 24 z-index values | UI layers (hud / gameMenu / menu / modal) with push / pop / back; HUD slot bands the manifest orders; registered Bag tabs | EI13–EI16 |
 | **Scheduler** | Everything far away ticks every frame | Tick-rate classes per system in **three distance bands** (decision 85): near 0–60 m brain 20 Hz + body every frame, mid 60–160 m brain 10 Hz + body every 2nd frame, far 160 m+ paused; instant interrupts in every band; an active boss / elite and quest actors never paused; strike phases on the body clock. Every brain keeps today's 10 Hz until S2.6 | MW6 |
-| **Render** | 8 shard branches in `Game.ts`; Nalati's own composer; 87 `onBeforeCompile`, 112 `ShaderMaterial` | Every shard's look through `ShardRender`, post blocks in the engine. **WebGPU contained, no switch**: the renderer type only in `engine/render`, one shader-patch registry, one precompile. Tiers as data | EI5, EI24 |
+| **Render** | 8 shard branches in `Game.ts`; Nalati's own composer; 87 `onBeforeCompile`, 112 `ShaderMaterial` | Every shard's look through `LookStrategy`, post blocks in the engine. **WebGPU contained, no switch**: the renderer type only in `engine/render`, one shader-patch registry, one precompile. Tiers as data | EI5, EI24 |
 | **Physics** | Rapier 0.20; the legacy `player.colliders` bridge | **Rapier 0.21**; one collision path (the registry); `player.colliders` and `bridge.ts` retired (PHYSICS-POLISH F3) | F11, F12 |
 | **Audio** | `Audio.ts` 1,597 lines; 3 ambience classes, 2 voice engines, 3 SFX routings | One mixer and positional voice engine, ambience zones, a music engine with score sources, sounds mapped from cues by each shard | D12–D14 |
 | **Animation** | Per-species code | One rig loader, clip naming, an animation state machine for creatures / NPCs / viewmodels, the rig contract a species row declares (the engine half of ANIMATION-REMASTER) | X4 |
@@ -353,7 +353,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 | Row | What | Size |
 |---|---|---|
 | S3.1 | The manifest and plugin. `wireNalati` and the 18 `nalatiNow()` binds become plugin verbs and events | M |
-| S3.2 | **The painterly look** as a `ShardRender`: its fog and composer leave `Game.ts`, and `Terrain` and `Grass` lose their style branches | M |
+| S3.2 | **The painterly look** as a `LookStrategy`: its fog and composer leave `Game.ts`, and `Terrain` and `Grass` lose their style branches | M |
 | S3.3 | **The Nalati kit on the families** (Golden Bow, Naizagai, Sabre). **Riding** (the ride context, taming, reins) and **stealth** (the crouch action) stay shard mechanisms; the horse stays a Nalati species; the camp people join `#kit/npc` | M |
 | S3.4 | **Bosses and elites on the runtime**: the Kurgan Boss, the Storm Titan (hit-cap fix), ghost riders, balbals | M |
 | S3.5 | **The engine audio** (D12–D14), continuing the slice S1.5 built (score sources, ambience beds, cue maps): one positional voice engine, ambience zones, the merged SFX routing, the `Audio.ts` split. Steppe audio moves onto it, and so do Pine's and Nine Dragon's (one implementation, parity identical); Driftwood's island audio is parked in `legacyIsland.ts` until S4.3 | L |
@@ -365,7 +365,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 |---|---|---|
 | S4.1 | The manifest and plugin. The ~15 `isOcean ?` builders become the shard's world build; BlenderIsland, the iron-sword pickup. The `WaterBody` interface is built here for the sea (X5 converts the other bodies) | L |
 | S4.2 | Enemies (crab, monkey, sailor) on the AI runtime; the **Drowned Captain on the boss runtime**, his fight unchanged, on the shared BossBar (decision 91, look board). The big crab hits for 14 (decision 86) | M |
-| S4.3 | Adventure, keepsakes, first minutes, the shrine hum, the island SFX and ambience; the toon look as a `ShardRender`. The Castaway and the Trader join `#kit/npc`; the `legacyIsland.ts` park is deleted | M |
+| S4.3 | Adventure, keepsakes, first minutes, the shrine hum, the island SFX and ambience; the toon look as a `LookStrategy`. The Castaway and the Trader join `#kit/npc`; the `legacyIsland.ts` park is deleted | M |
 | S4.4 | **`main.ts` → the composition root (≤ 20 lines, beside `src/entry.ts`) + `engine/boot.ts` (≤ 150 lines)** (EI7, 01 §0). 0 shard branches in engine / game / kit (the ratchet reaches 0) | M |
 | **M4** | Gate green; summary; the board; Jake plays. Driftwood reopens | — |
 

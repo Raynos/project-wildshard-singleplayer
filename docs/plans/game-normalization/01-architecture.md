@@ -59,7 +59,7 @@ export class App {
   keeps today's order: parity proves the phase lists are identical.
 - A cycle is a boot error that names the ids in the cycle.
 - The fixed step stays 60 Hz and is slowed by hit-stop, as today (`Game.onFixed`). `render` runs last: the
-  `ShardRender.frame` hook, then the composer.
+  `LookStrategy.frame` hook, then the composer.
 - Fault isolation is today's `faults.ts`, unchanged: a streak of 3 → retry, a burst of 5 in 10 s → off, `core` →
   fatal.
 - Every system has an id, so the harness fingerprint lists `phase → [ids]`. Today's anonymous `update#12` labels go.
@@ -191,7 +191,7 @@ export interface App {                      // typed fields; no string-keyed ser
 - **Replaces:**
   - `buildShard`'s ~160 closure locals;
   - the 6 `active*()` singletons (`activeRegistry`, `activePhysics` …), which become `app.x`;
-  - `getActiveChunk()` (136 calls in 42 files), which becomes `app.shard` in the game layer and moves out of the
+  - `getActiveChunk()` (136 calls in 42 files), which becomes `game.shard` in the game layer and moves out of the
     engine entirely (§20);
   - the 52 `window.__*` names, of which 26 are shard-named.
 
@@ -216,7 +216,7 @@ export interface ShardManifest {
   ground: { terrain?: TerrainSpec; structures?: true };             // at least one; Nine Dragon has both today
   spawn: SpawnPose; bounds?: Bounds;
   sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec;        // today's pure-data look fields, as is
-  render?: () => Promise<ShardRender>;      // the look strategy (§13)
+  render?: () => Promise<LookStrategy>;      // the look strategy (§13)
   tiers?: TierOverrides;                    // data, replaces PINE_HOLLOW_PHONE and Game.ts:290 (EI24)
   budgets: BudgetInputs;                    // per tier: fps + lane split; the numbers are derived (§13.4, decision 30)
   fight: { maxHitDamage?: number; capExempt?: readonly Tag[]; attackers?: number };   // 18, 20
@@ -325,11 +325,11 @@ export const SHARDS: readonly ShardManifest[];
 | Stage | Engine does | The shard fills (manifest / plugin) |
 |---|---|---|
 | `engine` | renderer, physics world, sky rig, audio unlock, input, UI shell, saves | — |
-| `shard.data` | reads the manifest, `tiers`, `budgets`, string tables | `boot.steps` labels and weights |
-| `shard.world` | terrain (if `ground.terrain`), registry wiring | plugin world build (today's `edge` / `grass` / `cabins` / `props` / `structures` / `fieldModels`) |
-| `shard.kit` | equipment service, loadout from rows | its weapon / tool / species / effect rows |
-| `shard.play` | creatures, encounters, quests runtime, audio beds, HUD | its systems, events, contexts, widgets |
-| `finish` | composer (`ShardRender`), shader precompile, first frame, `window.__wildshard` | — |
+| `level.data` | reads the manifest, `tiers`, `budgets`, string tables | `boot.steps` labels and weights |
+| `level.world` | terrain (if `ground.terrain`), registry wiring | plugin world build (today's `edge` / `grass` / `cabins` / `props` / `structures` / `fieldModels`) |
+| `level.kit` | equipment service, loadout from rows | its weapon / tool / species / effect rows |
+| `level.play` | creatures, encounters, quests runtime, audio beds, HUD | its systems, events, contexts, widgets |
+| `finish` | composer (`LookStrategy`), shader precompile, first frame, `window.__wildshard` | — |
 
 **Rules**
 - The 16 fixed loading-screen keys (`STEP_INFO`) become the stages plus the manifest's `boot.steps`: labels and
@@ -495,12 +495,12 @@ export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.s
 
 ## 13. Render, tiers, budgets
 
-### 13.1 ShardRender (today's `ChunkDef.render`, extended)
+### 13.1 LookStrategy (today's `ChunkDef.render`, extended)
 
 ```ts
-export interface ShardRender {
+export interface LookStrategy {
   // today's slices / ao / aa fields MOVE to manifest.tiers: one source for tier knobs (§13.3)
-  compose: (c: ShardComposeContext) => ShardComposition;    // 'extend': today's five pass slots; 'replace': { chain: Pass[] }, the whole chain in order
+  compose: (c: LookComposeContext) => LookComposition;    // 'extend': today's five pass slots; 'replace': { chain: Pass[] }, the whole chain in order
   mode?: 'extend' | 'replace';     // 'replace': the shard's compose builds the whole chain (Nalati's painterly composer); default 'extend'
   lighting?: LightingRig;          // the shard's light setup (Driftwood's toon lighting, Pine's PBR sun) applied to the SkyRig
   shadows?: ShadowRig;             // CSM / single-map settings as data
@@ -515,7 +515,7 @@ export interface ShardRender {
 ```
 
 **Rules**
-- Every shard has a `ShardRender` (S1–S4). The engine keeps the post blocks (bloom, god-rays, SMAA / FXAA, LUT, n8ao)
+- Every shard has a `LookStrategy` (S1–S4). The engine keeps the post blocks (bloom, god-rays, SMAA / FXAA, LUT, n8ao)
   and `chain(clean)`. Nalati's own composer (`Game.ts:274`) moves inside its `compose`.
 - `Game.ts` loses all 8 shard branches (EI5), and `Game.ts:290`'s Nine Dragon AO decision becomes
   `tiers.phone.ao: false` in that manifest.
@@ -538,7 +538,7 @@ export interface ShaderPatches { patch(mat: THREE.Material, id: string, order: n
 - `src/engine/render/tiers.ts` holds the engine's knobs (~52 of today's 59). The kit declares knob schemas for its
   families (grass density, …). A manifest's `tiers` overrides them per tier.
 - **Precedence (one source):** engine default → kit schema default → `manifest.tiers[tier]`. The last one wins.
-  `ShardRender` carries no tier knobs.
+  `LookStrategy` carries no tier knobs.
 - **New engine knob `msaa`** (the composer's samples, engine default 0 as `Game.ts:277` today, clamped to
   `renderer.capabilities.maxSamples`). Nalati sets `phone: 2, desktop: 4`, so its composer becomes a
   `{ chain }` with no private MSAA code.
@@ -606,7 +606,7 @@ export interface AnimService { load(rig: RigRef): Promise<RigInstance>; machine(
 
 | Mechanism | Engine | Shard / kit data | Replaces |
 |---|---|---|---|
-| Terrain | heightfield, grid sampling, `heightAt` / `normalAt` / `splatAt`, bake input | `ground.terrain` spec; `terrainPainter` in its ShardRender | `Terrain.ts`' 2 grid copies and its style branches |
+| Terrain | heightfield, grid sampling, `heightAt` / `normalAt` / `splatAt`, bake input | `ground.terrain` spec; `terrainPainter` in its LookStrategy | `Terrain.ts`' 2 grid copies and its style branches |
 | Sky | `SkyRig`: CSM shadows, hemi light, sun, planet | `sky` data + `backdrop` strategy | `Sky.ts`'s 3 setup paths; the painterly sky and cloud dome built then hidden on 2 shards are deleted |
 | Day cycle | `DayCycle`: clock, keyframe interpolation, `sunAt` exact | keyframes as data (per shard; Nine Dragon has none) | `DayNight`, `DayClock`, `PineDayNight`, `WorldClock` and the misnamed `interface DayClock` |
 | Weather | `Weather`: states, schedule, feeds fog / wind / audio / wetness, `ask('weather.damage')` | the rain curtain in the kit (Nalati + Pine share it); puddles stay per shard (two techniques); lightning is Nalati's | the two stacks (1,334 + 888 lines) |
@@ -744,7 +744,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 
 | Part | Holds | Decision |
 |---|---|---|
-| Shard | `ShardManifest`, `ShardPlugin`, `ShardContext`, the generated registry, `app.shard` (the running manifest) | 14, 62 |
+| Shard | `ShardManifest`, `ShardPlugin`, `ShardContext`, the generated registry, `game.shard` (the running manifest) | 14, 62 |
 | Title deck | cards and order from the registry; the error screen's "back to title" | 62 |
 | Bag | tabs (MAP · GEAR · FINDS · PACK · FEATS per shard's picks, E314), item fragments, `travels` flag on item rows (default off) | 75 |
 | Coins | the purse, **per shard** | 74 |
@@ -795,7 +795,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |
 | `wildshard/no-renderer-type` | `WebGLRenderer` named outside `src/engine/render/**` (before F6: outside `Game.ts` and `bootstrap.ts`; F6 re-keys it) | the rule's own count at F4 (the audit's "52 files" was a grep, not the rule) |
 | `wildshard/sim-no-render` | `src/engine/{combat,ai,saves,quests,effects}/**` importing three beyond its math types, or any render / DOM module (decision 56). **Exempt:** `src/engine/combat/view/**`, the drawing half of the combat blocks (viewmodel, slash trail, brass); their state and rules stay in the checked folders | 0 from day one (the folders are new) |
-| `wildshard/no-active-chunk` | `getActiveChunk()` calls outside `#game/shard` (each becomes `app.shard` or manifest data, file by file from F8 on) | 136 calls / 42 files |
+| `wildshard/no-active-chunk` | `getActiveChunk()` calls outside `#game/shard` (each becomes `game.shard` or manifest data, file by file from F8 on) | 136 calls / 42 files |
 | `wildshard/no-global-listener-patch` | teardown through `shardScope`'s `addEventListener` patch (kept until X1 / X2 move the 396 listeners onto scopes) | 396 |
 | `wildshard/no-url-switch` | unchanged (the allowlist) | — |
 

@@ -77,7 +77,7 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 5. The gate goes red at M1 on a pose diff: what happens, and who decides.
 6. A bug found in Nine Dragon mid-S2: where it's fixed and when it ships (decision 53).
 7. Nalati riding under the input context stack: every action, touch disc and verb slot.
-8. A shard plugin throws during `shard.world` on the phone.
+8. A shard plugin throws during `level.world` on the phone.
 9. Unload a shard in-page (the leak test) with Nalati's weather running.
 10. Jake wants a new Debug toggle mid-refactor.
 11. The Drowned Captain onto the boss runtime with his fight unchanged: prove it.

@@ -299,7 +299,7 @@ menu).
    `app.debug.leakBaseline`.
 2. The shard loads and every other harness step runs.
 3. `await probe.leak()`: sets the app state to `loading`, calls `app.unloadShard()` (the shard scope's `dispose()`,
-   then `emit('shard.unloaded')`), waits two animation frames, and takes **B1** = `census()`.
+   then `emit('level.unloaded')`), waits two animation frames, and takes **B1** = `census()`.
 4. **Pass:** every field of B1 equals B0. **Red** lists each differing field with B0, B1 and, for listeners and timers,
    the first 5 registration stack traces the init script kept for entries still alive.
 5. The page is closed after the leak test (the next shard × tier gets a fresh context), so a failed unload never

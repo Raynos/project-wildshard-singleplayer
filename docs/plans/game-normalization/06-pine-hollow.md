@@ -62,7 +62,7 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | `src/world/BeaverPool.ts` | 196 | `shard:world/beaverPool.ts` | S2.1 | Imported by Pine's quest; `pondClip` (manifest) cuts the pond around it |
 | `src/world/pineHero.ts` | 18 | `shard:world/heroFiles.ts` | S2.1 | File lists for `boot.files` |
 | `src/world/pineSkyKeys.ts` | 39 | `shard:look/skyKeys.ts` | S2.4 | The seven photographic keys of the sky backdrop |
-| `src/world/PineDayNight.ts` | 609 | split: the clock → `src/engine/world/dayCycle.ts` (generic, §6.4); the presets `P` (:84-120) → `shard:look/dayKeys.ts` (keyframe data); the key-blend dome, the stepped IBL refresh and the sky-key residency (:206-609) → `shard:look/skyBackdrop.ts` (Pine's `ShardRender.backdrop`) | S2.4 | §6.4 |
+| `src/world/PineDayNight.ts` | 609 | split: the clock → `src/engine/world/dayCycle.ts` (generic, §6.4); the presets `P` (:84-120) → `shard:look/dayKeys.ts` (keyframe data); the key-blend dome, the stepped IBL refresh and the sky-key residency (:206-609) → `shard:look/skyBackdrop.ts` (Pine's `LookStrategy.backdrop`) | S2.4 | §6.4 |
 | `src/world/PineWeather.ts` | 153 | the state machine → `src/engine/world/weather.ts` (generic `Weather`); `PINE_WEATHER_LEN`, `FIRST_CLEAR`, `SOAK_S`, `DRY_S`, `dawnFogAt` → `shard:world/weatherProfile.ts` | S2.4 | §6.4 |
 | `src/world/PineWeatherFX.ts` | 527 | the rain curtain (`buildRain`, :164-236) → `src/kit/weather/rainCurtain.ts` (shared with Nalati's `WeatherFX.buildRain`); the cover map, puddles, splashes, lens drops (:136-163, :237-527) → `shard:world/weatherFx.ts` | S2.4 | Rule of two: only the curtain is shared (question Q3) |
 | `src/world/Cabin.ts` | 642 | the `Interactable` type and `setSight` users stay engine: `src/engine/world/interact/types.ts`; the `Cabins` class (the homestead) → `shard:world/homestead.ts` | S2.1 | `Cabins` is built only on Pine (`main.ts:444-445`); `Interactable` is imported by 30 files on every shard |
@@ -93,17 +93,17 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 
 | Line(s) | Grep key | Today | Replaced by |
 |---|---|---|---|
-| 9, 297-298 | `const streams = chunk.slug === 'pine-hollow' ? new PineStreams(sky).build()` | the creek, waterfall, foam, spray | the plugin's world build (`shard.world`) |
+| 9, 297-298 | `const streams = chunk.slug === 'pine-hollow' ? new PineStreams(sky).build()` | the creek, waterfall, foam, spray | the plugin's world build (`level.world`) |
 | 48, 445, 465-468 | `new Cabins(sky, chunk.slug === 'pine-hollow' ? pineHamletBuildings() : [])` / `installPineLandmarks(` / `cutTerrain(world.physics, landmarks.crags.terrainCuts())` | the homestead + hamlet, the landmarks, the cave's terrain cut and punch | the plugin's world build, same calls in the same order: `placeCabins`, the door pieces (`main.ts:453-463`, moved verbatim), `installLandmarks`, the cut and the punch (`world.terrain.punch` stays an engine terrain verb) |
 | 49, 481-486 | `const propsBuilt = new Props(sky, forest, game.renderer)` | the boulders, stumps, logs (the default branch of the `props` step) | the plugin's world build |
-| 51-54, 251-252, 517, 532-549 | `startViewmodelTextures(…=== 'crossbow')` / `if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel()` / `new Crossbow(` / `const isPine = chunk.slug === 'pine-hollow'` / `new LeverRifle(` / `new Longbow(` / `longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }]` | the default crossbow, the lever-action in the rifle slot, the Longbow in the extras; the texture worker and the lever model fetched while the world builds | `manifest.loadout` (S2.2): rows `weapon.crossbow` (start), `weapon.lever` (slot 2, pickup), `weapon.longbow` (slot 3, locked until granted). Each family row declares `preload` (the texture worker for the crossbow and the lever; the lever GLB `LEVER_MODEL_URL`); the equipment service starts the preloads at `shard.data` |
+| 51-54, 251-252, 517, 532-549 | `startViewmodelTextures(…=== 'crossbow')` / `if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel()` / `new Crossbow(` / `const isPine = chunk.slug === 'pine-hollow'` / `new LeverRifle(` / `new Longbow(` / `longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }]` | the default crossbow, the lever-action in the rifle slot, the Longbow in the extras; the texture worker and the lever model fetched while the world builds | `manifest.loadout` (S2.2): rows `weapon.crossbow` (start), `weapon.lever` (slot 2, pickup), `weapon.longbow` (slot 3, locked until granted). Each family row declares `preload` (the texture worker for the crossbow and the lever; the lever GLB `LEVER_MODEL_URL`); the equipment service starts the preloads at `level.data` |
 | 59-61, 619-630, 754-795 | `import { finishPick, pineFinishes }` / `import { mottLine }` / `let pineFinish` / `...(isPine ? { skins: () => pineFinishes(skins), …, pack: { note: "Everything here trades at Mott's stall"` / `if (isPine) pineFinish = (id) =>` / `const skin = isPine ? skinFor(a.kind, a.variant) : null` / `spawnSkinDrop` | the Bag's FINISHES and Mott's pack lines; the legendary skin drops on a kill | `ctx.bag` fragments registered by the plugin (S2.2): the finishes list (skins), the pack note / hint / gear hint / line (strings + `mottLine`); the kill drop → `ctx.on('actor.died')` in `shard:loadout/skins.ts` with today's code (`spawnSkinDrop`, `toss` from `app.rng.stream('loot')` in place of `Math.random()` at :771) |
 | 76 | `import { Inventory, ITEMS, isPineItem` | Pine's pack rule | `manifest.bag.pack` + Pine's item rows |
 | 111, 863-868, 885 | `new ForestAmbience(audio, { heightAt, cabins })` / `pineFights?.useSfx(ambience.sfx)` / `installPineAudio(` / `ambience.addSpot({ zone: 'cave'` | the forest's zoned ambience and its one-shots, the A-rows' wiring, the cave's reverb spots | the plugin (S2.1): it builds the ambience, hands its `sfx` to its own combat / quest / loadout (no host plumbing), runs `shard.pine.audio` (from `audioWiring.ts`) and adds the cave spots |
 | 117, 118, 800 | `import { placeCabins }` / `import { placePineHollowSets }` / `if (chunk.slug === 'pine-hollow') placePineHollowSets(registry)` | the Sets | the plugin, after its quest has placed its props (same order) |
 | 137-141, 786-789, 799, 887-893 | `installPineCombat` / `installPineQuest` / `installPineWeather` / `installPineLoadout` / `installPineLife` | the seven install calls (with landmarks and audio) | the plugin's `install` (§4) |
 | 252, 517 | `preloadLeverModel()` | see above | the lever row's `preload` |
-| 435, 431-439 | `const bare = isOcean \|\| built !== undefined` / `new Grass(sky, forest).build()` / `new Undergrowth(sky, forest)` / `new Particles(sky, forest)` | Pine's grass carpet, undergrowth, mist | the plugin builds grass (Pine's carpet), undergrowth and particles (the kit's) in `shard.world`; the engine's `grass` step runs only for Nalati until S3.1 (`manifest.slug` never read: Nalati's plugin takes the step at S3.1) |
+| 435, 431-439 | `const bare = isOcean \|\| built !== undefined` / `new Grass(sky, forest).build()` / `new Undergrowth(sky, forest)` / `new Particles(sky, forest)` | Pine's grass carpet, undergrowth, mist | the plugin builds grass (Pine's carpet), undergrowth and particles (the kit's) in `level.world`; the engine's `grass` step runs only for Nalati until S3.1 (`manifest.slug` never read: Nalati's plugin takes the step at S3.1) |
 | 503-504, 253 | `const fieldModels = getActiveChunk().fieldModels?.()` / `if (fieldModels) (await fieldModels)({ sky, renderer…, forest, under, registry })` | the forest's trees and floor kinds drawn as models (E349) | the plugin's world build calls `placeDrawnModels({ … })` itself after its props (same point in the boot). `ChunkDef.fieldModels` is deleted |
 | 511-514 | `// Pine Hollow's clock (PineDayNight) keeps its own Settings` / `dayNight instanceof DayNight ? dayNightClock(dayNight) : nalatiClock ? …` | Pine's clock is outside `WorldClock` | `app.world.dayCycle` (S2.4): one clock service for every shard with `uses: ['dayCycle']`; `setActiveClock` and the two adapters are deleted |
 | 587 | `const mood = … : 'pine'` | Pine's theme | `manifest.audio.score: 'score.pine'` (S2.1: Pine's `ScoreSource`, §6.1 step 7) |
@@ -342,17 +342,17 @@ export default class PineHollowPlugin extends ShardPlugin {
   async install(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     const rt = new PineRuntime(ctx.scope);
-    // ── shard.world (main.ts:289-504's Pine parts, in order) ──
+    // ── level.world (main.ts:289-504's Pine parts, in order) ──
     rt.streams = buildStreams(ctx);                          // edge step: PineStreams (main.ts:297)
     rt.carpet = await buildCarpet(ctx);                      // grass step: Grass (+ trample), Undergrowth, Particles (main.ts:429-440)
     rt.home = await buildHomestead(ctx);                     // cabins step: Cabins + hamlet, placeCabins, door pieces, landmarks, the cave cut + punch (main.ts:443-470)
     rt.props = await buildProps(ctx);                        // props step: Props (main.ts:481-486)
     await placeDrawnModels(ctx, rt);                         // after the animals step's position today (main.ts:504): the forest's trees + floor kinds as models
-    // ── shard.kit ──
+    // ── level.kit ──
     ctx.rows.weapon(CROSSBOW_ROW); ctx.rows.weapon(LEVER_ROW); ctx.rows.weapon(LONGBOW_ROW);   // S2.2
     ctx.rows.ammo(AMMO_ROWS); ctx.rows.species(PINE_SPECIES); ctx.rows.encounter(PINE_ELITES); ctx.rows.encounter(ANTLER_KING);
     ctx.rows.item(PINE_ITEMS); ctx.rows.feat(PINE_FEATS); ctx.rows.compendium(PINE_COMPENDIUM);
-    // ── shard.play (main.ts:786-893's Pine calls, in order) ──
+    // ── level.play (main.ts:786-893's Pine calls, in order) ──
     installLoadout(ctx, rt);                                 // S2.2: ammo, bolt cycle, the lever pickup, the Longbow grant, the skins + finishes
     installCombat(ctx, rt);                                  // S2.3: elites, the Antler King
     installQuest(ctx, rt);                                   // S2.5: the lantern quest, hamlet, night thralls, collectibles, the contract board, trades
@@ -382,7 +382,7 @@ export default class PineHollowPlugin extends ShardPlugin {
 | System | `shard.pine.life` | `update`; `tick: 'fx'` (S2.6) | `installPineLife`'s updater |
 | Events listened | `actor.died` (skin drops, life's ravens, quest), `damage.dealt` (elite / King bookkeeping), `player.died` (loadout → iron bolts), `app.ready` (bird and knife swaps), `practice.active` (weather out of practice rooms) | — | `main.ts:790-795`, `life/index.ts:276`, `quest/index.ts:385`, `ctx.ts:52`, `life/index.ts:131`, `skinningKnife.ts:54`, `practiceRoom.open` reads |
 | Asks answered | `player.death` (the King's checkpoint), `harvest.begin` (the skinning beat), `creature.wander-goal` (rain shelter), `damage.modify` (the King's phase guards) | — | `main.ts:1195`, `main.ts:1102`, `weather.ts:130`, `antlerKing.ts:235` |
-| Pieces | every id today: the cabin pieces and `Cabin door`s, the landmark pieces (lookout, zipline, footbridge, stones, waystones, dam, canoe, board, cave), props, the drawn tree / floor models, Sets | `shard.world` | `placeCabins`, `installPineLandmarks`, `Props.build`, `placeDrawnModels`, `placePineHollowSets` |
+| Pieces | every id today: the cabin pieces and `Cabin door`s, the landmark pieces (lookout, zipline, footbridge, stones, waystones, dam, canoe, board, cave), props, the drawn tree / floor models, Sets | `level.world` | `placeCabins`, `installPineLandmarks`, `Props.build`, `placeDrawnModels`, `placePineHollowSets` |
 | Input context | `crossbow.bolts` (`bolt.cycle` on `KeyB`) | pushed while the crossbow is held | `loadout.ts:157-160` |
 | HUD | the elite bar, the boss bar (engine encounter widgets, S2.3), the quest's board / trade panels (`ctx.hud.widget` until X2), the ammo strip (the weapon strip's, engine) | — | `EliteBar`, `BossBar`, `quest/ui.ts` |
 | Bag | FINISHES (the skins list + wear), the pack's Mott lines, FINDS (Pine's journal) | — | `main.ts:623-630` |
@@ -394,7 +394,7 @@ export default class PineHollowPlugin extends ShardPlugin {
 
 | System | What S2 needs of it | Must exist first | Row |
 |---|---|---|---|
-| Plugin world build in `shard.world` for a landscape shard | the engine builds the terrain (from `ground.terrain`), the Forest (factory from the manifest), then calls `install` | S1.1's staged boot | S2.1 |
+| Plugin world build in `level.world` for a landscape shard | the engine builds the terrain (from `ground.terrain`), the Forest (factory from the manifest), then calls `install` | S1.1's staged boot | S2.1 |
 | Tier knobs as data | `treeHiDist`, `shadowFar`, `animalShadowDist`, `grassSlots`, `slices`, `skipRaysOffscreen`, `envSteps`, `pointLightSkip` from the manifest | S1.1's tier resolution | S2.1 |
 | Bag fragments, item / feat / compendium rows | `ctx.bag` finishes and pack lines; `ctx.rows.item / feat / compendium` | F9, #game Bag | S2.1 |
 | `ScoreSource` for a style-bound score | Pine's source over the base style bank + its own set | S1.5 | S2.1 |

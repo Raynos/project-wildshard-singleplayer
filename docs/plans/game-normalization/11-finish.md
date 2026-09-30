@@ -15,7 +15,7 @@ shard".
 |---|---|
 | `ground.terrain` | a 200 × 200 m gently rolling heightfield (one noise octave) with one trail |
 | `sky` / `atmosphere` / `grade` | a plain gradient sky, linear fog, neutral grade |
-| `render` | a minimal `ShardRender` (`mode: 'extend'`) that only passes the engine chain through (the "nothing custom" case) |
+| `render` | a minimal `LookStrategy` (`mode: 'extend'`) that only passes the engine chain through (the "nothing custom" case) |
 | `uses` | **every** mechanism the four shards use: `weather`, `dayCycle`, `elites`, `bosses`, `quests`, `trample`, `compendium`, `bounds`, `grapple` (so each mechanism is exercised) |
 | `ctx.piece` | one grey-box hut (a box collider + a door interactable) and one ramp with stair treads (the physics rules) |
 | `loadout` + `rows` | a kit weapon (the iron-sword profile from `#kit/weapons`), plus a **custom weapon**: `class TemplateWhip extends Weapon`, built from `blocks.viewmodel` + `blocks.melee` with a `lane` sweep |
@@ -49,7 +49,7 @@ shard".
 | Doc | Contents | Owner check |
 |---|---|---|
 | `docs/ENGINE.md` | The public API of `#engine`, `#game` and `#kit`: every contract, block, event, ask, tag, cue, action, context, UI layer, service, save key rule, lint rule and plugin verb, each with one short example. Layout: one section per 01-architecture § | A node test lists every export of the three index files and fails if `docs/ENGINE.md` doesn't mention it (no drift) |
-| `docs/SHARDS.md` (rewrite) | **How to write a shard.** Copy `_template` → fill the manifest → the plugin verbs → the weapon ladder (profile, extend, custom) and Tools → creatures (species rows, brains, strikes) → the look (`ShardRender`) → audio (cues, ambience, score) → budgets and tiers → saves → strings → the checklist to go from template to playable to `live` (the gate, boards, `status` flags). It replaces today's `docs/SHARDS.md` (227 lines). The history section is kept at the end | Z3 is the test: a fresh agent follows it |
+| `docs/SHARDS.md` (rewrite) | **How to write a shard.** Copy `_template` → fill the manifest → the plugin verbs → the weapon ladder (profile, extend, custom) and Tools → creatures (species rows, brains, strikes) → the look (`LookStrategy`) → audio (cues, ambience, score) → budgets and tiers → saves → strings → the checklist to go from template to playable to `live` (the gate, boards, `status` flags). It replaces today's `docs/SHARDS.md` (227 lines). The history section is kept at the end | Z3 is the test: a fresh agent follows it |
 | `src/shards/<slug>/README.md` ×4 (+ template) | What the shard declares; its custom code and why it's custom; its budgets; its look; its open asks | Written at each shard's milestone (M1–M4) |
 
 AGENTS.md: the "No URL switches" section's Settings.ts steps are rewritten (a shard declares its own option keys
@@ -72,7 +72,7 @@ sections are updated for the new paths (`src/engine/physics/`,
    creature. It uses `scripts/mockup-local.sh`, or codex `image_gen` for the finals, and saves them to
    `art/shard-5/round-1-proposals/`. Jake picks one through AskUserQuestion (73).
 3. **Build.** The agent builds the pick:
-   - its own look (`ShardRender`);
+   - its own look (`LookStrategy`);
    - at least one custom weapon (rung 2 or 3 of the ladder);
    - one creature with its own brain;
    - one quest step;

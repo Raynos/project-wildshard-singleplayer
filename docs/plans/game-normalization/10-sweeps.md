@@ -441,11 +441,11 @@ also gets a byte-identical vertex-colour test on one model per baker.
    }
    export function travel(req: TravelRequest): void;            // the only implementation today: a page reload
    ```
-   - `travel()` builds the hand-off (`from` = `app.shard?.slug ?? null`; `carry` = the running shard's inventory lines
+   - `travel()` builds the hand-off (`from` = `game.shard?.slug ?? null`; `carry` = the running shard's inventory lines
      whose row has `travels: true`, removed from that shard's inventory in the same write). It stores it in the
      `session` key `travel.handoff` (per tab, 01 §9), calls `setTitleArrival` as today, and navigates exactly as
      `requestShard` does today: the same URL built from the `chunk` harness param, with the same params stripped.
-   - On the next boot, `#game`'s `shard.data` stage reads `travel.handoff` and deletes it at once. A hand-off whose
+   - On the next boot, `#game`'s `level.data` stage reads `travel.handoff` and deletes it at once. A hand-off whose
      `to` isn't the booting shard, or that is more than 60 s old, is dropped. `mode` does what today's
      `consumeArenaArrival` and the title arrival do; `arrive` replaces the manifest `spawn` for this boot; `carry` is
      added to the arriving shard's inventory through the Bag (`#game`), per shard (decisions 74, 77).
