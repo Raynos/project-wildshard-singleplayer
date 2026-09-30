@@ -2,8 +2,8 @@
 // the bear cave's data (scripts/blender/pine-hollow/crags/build_cave.py) is self-consistent in its frame.
 import { describe, expect, it } from 'vitest';
 import { setActiveChunk } from '../src/chunks/registry';
-import { placeCrags, caveLocal, caveWorld, skinWeight, CRAG_IDS, type CragId, type CragSize, type CaveMeta } from '../src/world/PineCrags';
-import { trailDistance } from '../src/world/Heightfield';
+import { placeCrags, caveLocal, caveWorld, skinWeight, skinTile, CRAG_IDS, type CragId, type CragSize, type CaveMeta } from '../src/world/PineCrags';
+import { trailDistance, normalAt } from '../src/world/Heightfield';
 import { DEN, LOOKOUT } from '../src/chunks/pineHollowLayout';
 import kitJson from '../public/assets/models/pine-hollow-crags/crags.json?raw';
 import caveJson from '../public/assets/models/pine-hollow-crags/cave.json?raw';
@@ -57,6 +57,32 @@ describe('the granite kit', () => {
       if (trailDistance(x, z) < 3) expect(skinWeight(x, z)).toBe(0);
     }
     expect(skinWeight(LOOKOUT.x, LOOKOUT.z)).toBe(0);
+  });
+});
+
+describe('Debug ▸ Crags B (E322 F-L2)', () => {
+  it('the skin\'s stepped bands fold back into the slope far less than A\'s', () => {
+    const folded = (v2: boolean): number => {
+      let area = 0, back = 0;
+      for (const [x0, z0] of [[-64, 160], [0, 160], [-128, 160]] as const) {
+        const g = skinTile(x0, z0, 64, 1, v2);
+        const p = g?.getAttribute('position'), idx = g?.getIndex();
+        if (!p || !idx) continue;
+        for (let i = 0; i < idx.count; i += 3) {
+          const [ia, ib, ic] = [idx.getX(i), idx.getX(i + 1), idx.getX(i + 2)];
+          const ux = p.getX(ib) - p.getX(ia), uy = p.getY(ib) - p.getY(ia), uz = p.getZ(ib) - p.getZ(ia);
+          const vx = p.getX(ic) - p.getX(ia), vy = p.getY(ic) - p.getY(ia), vz = p.getZ(ic) - p.getZ(ia);
+          const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz);
+          if (l === 0) continue;
+          const [tx, ty, tz] = normalAt((p.getX(ia) + p.getX(ib) + p.getX(ic)) / 3, (p.getZ(ia) + p.getZ(ib) + p.getZ(ic)) / 3, 2.5);
+          area += l;
+          if ((nx * tx + ny * ty + nz * tz) / l < -0.3) back += l;
+        }
+      }
+      return back / Math.max(1e-9, area);
+    };
+    const fa = folded(false), fb = folded(true);
+    expect(fb).toBeLessThan(fa * 0.6);
   });
 });
 

@@ -54,6 +54,13 @@ import { SCREE_MODULES, scree as screeFan } from '../chunks/pine-hollow/models/s
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 
+/**
+ * pause ▸ Settings ▸ Debug ▸ Look ▸ Crags (E322 F-L2, a reload): A today, B the new crags — the face skin's ledges
+ * stepped outward (true risers and treads; A's folded back on themselves) and textured by their facets, not their
+ * smoothed normals (A's projection picked the ledge's top texture on its face: the stretch).
+ */
+export const CRAGS_B = setting('pineCrags') === 'b';
+
 /** the kit's modules (crags.glb nodes `<id>` and `<id>-lod1`) */
 export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
 export type CragId = (typeof CRAG_IDS)[number];
@@ -266,7 +273,7 @@ export function skinWeight(x: number, z: number): number {
  * it all — and diving back under the ground where the slope eases, so the skin comes out of the terrain without an edge.
  * Null when the tile has no face.
  */
-export function skinTile(x0: number, z0: number, size: number, step: number): THREE.BufferGeometry | null {
+export function skinTile(x0: number, z0: number, size: number, step: number, v2 = CRAGS_B): THREE.BufferGeometry | null {
   const n = Math.round(size / step) + 1;
   const w = new Float32Array(n * n);
   let any = false;
@@ -291,12 +298,28 @@ export function skinTile(x0: number, z0: number, size: number, step: number): TH
     // the column (a joint every ~3–5 m along the contour) sets its bands' height and phase
     const along = x * -oz + z * ox;
     const col = Math.floor(along / 5.5 + vnoise2(x * 0.06, z * 0.06) * 1.4);
-    const H = 4.0 + hash1(col) * 4.0;
-    const t = fract((h + hash1(col + 7.3) * H) / H + (vnoise2(x * 0.2, z * 0.2) - 0.5) * 0.1);
-    // the riser: the band's points pulled onto one vertical plane (t = 0 its foot, 1 its top); a crisp lip where it wraps
-    const riser = (0.5 - t) * (H / tan);
+    const H = v2 ? 3.0 + hash1(col) * 3.5 : 4.0 + hash1(col) * 4.0;
+    // the column's phase: A any, B within 0.4 of a band (the joints step, they don't fold the skin)
+    const t = fract((h + hash1(col + 7.3) * H * (v2 ? 0.4 : 1)) / H + (vnoise2(x * 0.2, z * 0.2) - 0.5) * 0.1);
     const rough = (vnoise2(x * 0.22, z * 0.22 + h * 0.1) - 0.5) * 0.45 + (vnoise2(x * 0.9 + h * 0.5, z * 0.9) - 0.5) * 0.12;
-    const out = ww * (1.45 + riser + rough + hash1(col + 3.1) * 0.6) - (1 - ww) * 0.5;
+    let out: number;
+    if (v2) {
+      // B: the band's points pushed OUT along the downhill normal as they climb (t·k·H/tan cancels the slope's own
+      // run), so each band is a riser ~80° steep standing on the slope, its foot on the ground, and the wrap (t 1 → 0)
+      // a tread stepping back into the slope: a staircase that stays outside the terrain. A pushed by (0.5 − t): its
+      // bands ran at half the slope and folded back under themselves at the wrap (9.8 % of the skin's area faces back
+      // into the slope; B 3.5 %). The wrap is a tread 40 % of a band wide (a hard wrap aliases on the grid and folds),
+      // and the columns' phases stay within 0.4 of a band. Coarse steps (the far level) alias the bands into noise:
+      // there the steps flatten toward their mean.
+      const tw = 0.4, f = t < 1 - tw ? t / (1 - tw) : (1 - t) / tw;
+      const kk = 0.8 * (1 - tw), amp = step > 1.5 ? 0.3 : 1, mean = 0.5 * kk * (H / tan);
+      const riser = mean + (f * kk * (H / tan) - mean) * amp;
+      out = ww * (0.4 + riser + rough + hash1(col + 3.1) * 0.25) - (1 - ww) * 0.5;
+    } else {
+      // the riser: the band's points pulled onto one vertical plane (t = 0 its foot, 1 its top); a crisp lip where it wraps
+      const riser = (0.5 - t) * (H / tan);
+      out = ww * (1.45 + riser + rough + hash1(col + 3.1) * 0.6) - (1 - ww) * 0.5;
+    }
     pos[k * 3] = x + ox * out; pos[k * 3 + 1] = h - (1 - ww) * 0.15; pos[k * 3 + 2] = z + oz * out;
     // AO: the foot of each riser (under the tread above) darker, the treads open
     cd.set([0.5 + 0.45 * Math.min(1, t * 1.6), 1, 0, 1], k * 4);
@@ -313,7 +336,10 @@ export function skinTile(x0: number, z0: number, size: number, step: number): TH
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos.slice(0, k * 3), 3));
   g.setAttribute('cdata', new THREE.BufferAttribute(cd.slice(0, k * 4), 4));
-  g.setAttribute('ctint', new THREE.BufferAttribute(new Float32Array(k * 2), 2));
+  // B: ctint.y = 1 marks the skin for the material's facet projection (rock ignores ctint: its tint path needs rock = 0)
+  const ct = new Float32Array(k * 2);
+  if (v2) for (let i = 0; i < k; i++) ct[i * 2 + 1] = 1;
+  g.setAttribute('ctint', new THREE.BufferAttribute(ct, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
   g.computeBoundingBox(); g.computeBoundingSphere();
@@ -373,7 +399,8 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
     uCragDebug: CRAG_VIEW,
   };
   for (const t of [rock.map, rock.normalMap, rock.armMap, grit.map, grit.normalMap]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true; }
-  mat.customProgramCacheKey = () => 'pine-crag';
+  mat.customProgramCacheKey = () => (CRAGS_B ? 'pine-crag-b' : 'pine-crag');
+  if (CRAGS_B) mat.defines = { ...mat.defines, CRAGS_B: '' };
   sky.setupMaterial(mat);
   const csmHook = mat.onBeforeCompile.bind(mat);
   mat.onBeforeCompile = (shader, renderer) => {
@@ -423,6 +450,15 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
         `)
       .replace('#include <map_fragment>', `
         vec3 cwn = normalize( vCN );
+        #ifdef CRAGS_B
+          // the face skin (ctint.y = 1) is projected and lit by its facets: its smoothed normals average a riser with
+          // the tread above it, and the projection laid the tread's texture down the riser (the stretch)
+          {
+            vec3 cfn = normalize( cross( dFdx( vCW ), dFdy( vCW ) ) );
+            cfn *= sign( dot( cfn, cwn ) + 1e-4 );
+            cwn = normalize( mix( cwn, cfn, step( 0.5, vCT.y ) * step( 0.5, vCD.a ) ) );
+          }
+        #endif
         vec3 cb = pow( abs( cwn ), vec3( 4.0 ) ); cb /= max( cb.x + cb.y + cb.z, 1e-5 );
         vec3 sg = sign( cwn + 1e-4 );
         vec2 uvX = vec2( vCW.z * sg.x, vCW.y ) * ${(1 / ROCK_TILE).toFixed(4)};

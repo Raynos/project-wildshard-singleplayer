@@ -131,6 +131,7 @@ const SFX_TEXT: Record<SfxSet, string> = { best: 'Generated', synth: 'Synth' };
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
+  opt('pineCrags', 'look', 'Crags', [['a', 'A · Today'], ['b', 'B · New crags']], { reload: true, when: pineHollow, note: 'E322 F-L2 · B: the face skin\'s ledges without the stretch, paler granite, the modules broken up, a hero crag for the lookout' }),
 
   // ── Ground cover & foliage (Driftwood's four decided E156 rows went in E318: tint, slope reach, far blend and far
   // stand-ins are on for good) ──
