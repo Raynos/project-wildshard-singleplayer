@@ -8,9 +8,11 @@
  * grammar's non-uniform scale; its colour the wash. The pieces with parts thinner than a pixel from a distance drop
  * them there (PIECE_LODS, E283); the small clutter shrinks into the wall between 55 and 85 m (its program) and is not
  * drawn past 85 m. The few-and-small pieces (couplets, shutters, sign boards, window ACs, the wash on street lines,
- * awnings) are baked into the facade shell, which is the towers' built fabric (world), not a model.
+ * awnings: FACADE_BAKED, E315 second pass) are models too, baked into the facade shell — the towers' built fabric, one
+ * merged mesh that is drawn anyway — so they cost no draw of their own: the grammar records every copy and batch.ts
+ * registers them on the shell (`place` with `drawnInto`).
  */
-import type { BufferGeometry, Matrix4 } from 'three';
+import { Box3, type BufferGeometry, type Matrix4 } from 'three';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '../../../models/model';
 import { DRAWN_AS, PIECES, PIECE_LODS, SMALL, type PieceId } from '../world/facade/pieces';
 import { ndLook, need } from '../world/modelLook';
@@ -125,6 +127,49 @@ export const facadeLantern = defineModel<FacadeParams>({
   id: 'nine-dragon-stack/facade-lantern', name: 'Wall lantern (red paper, facade)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
   build: build('lantern'), ...lods('lantern'),
 });
+
+// ── the few-and-small pieces baked into the shell (BAKED) ──
+
+export const facadeCouplet = defineModel<FacadeParams>({
+  id: 'nine-dragon-stack/facade-couplet', name: 'Red paper couplet (春聯)', category: 'props', pipeline: 'code', file: FILE, defaults: {},
+  build: build('couplet'),
+});
+export const facadeShutter = defineModel<FacadeParams>({
+  id: 'nine-dragon-stack/facade-shutter', name: 'Roll shutter (a closed shop)', category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
+  build: build('shutter'),
+});
+export const facadeSignFlat = defineModel<FacadeParams>({
+  id: 'nine-dragon-stack/facade-sign-flat', name: 'Flat sign board', category: 'props', pipeline: 'code', file: FILE, defaults: {},
+  build: build('signFlat'),
+});
+export const facadeSignBox = defineModel<FacadeParams>({
+  id: 'nine-dragon-stack/facade-sign-box', name: 'Lit sign box', category: 'props', pipeline: 'code', file: FILE, defaults: {},
+  build: build('signBox'),
+});
+export const facadeAcBox = defineModel<FacadeParams>({
+  id: 'nine-dragon-stack/facade-ac-box', name: 'Window air-con box', category: 'props', pipeline: 'code', file: FILE, defaults: {},
+  build: build('acBox'),
+});
+export const facadeWashLine = defineModel<FacadeParams>({
+  id: 'nine-dragon-stack/facade-wash-line', name: 'Wash on a street line', category: 'props', pipeline: 'code', file: FILE, defaults: {},
+  build: build('washLine'),
+});
+export const facadeAwning = defineModel<FacadeParams>({
+  id: 'nine-dragon-stack/facade-awning', name: 'Striped window awning', category: 'props', pipeline: 'code', file: FILE, defaults: {},
+  build: build('awning'),
+});
+
+/** the model each piece baked into the shell is (BAKED) */
+export const FACADE_BAKED: Readonly<Partial<Record<PieceId, typeof facadeBalcony>>> = {
+  couplet: facadeCouplet, shutter: facadeShutter, signFlat: facadeSignFlat, signBox: facadeSignBox, acBox: facadeAcBox, washLine: facadeWashLine, awning: facadeAwning,
+};
+
+/** a baked piece's own bounds (its geometry, built once per fragment) */
+export function pieceBounds(ctx: ModelContext, id: PieceId): Box3 {
+  const g = geo(ctx, id);
+  if (g.boundingBox === null) g.computeBoundingBox();
+  return g.boundingBox ?? new Box3();
+}
 
 /** the model that draws each facade piece id (an alias draws as the piece it names in DRAWN_AS) */
 export const FACADE_MODELS: Readonly<Partial<Record<PieceId, typeof facadeBalcony>>> = {

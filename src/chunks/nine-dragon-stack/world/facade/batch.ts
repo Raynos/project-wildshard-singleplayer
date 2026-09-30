@@ -1,14 +1,15 @@
 // Copied from the facade lab (src/dev/nd-lab/facade/batch.ts, round-7-lab-facade) into the clean room.
-// A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in), the kit's
-// pieces placed as models (../../models/facade.ts: one InstancedMesh per piece), and instanced window quads.
+// A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in: models too,
+// registered where they are drawn), the kit's pieces placed as models (../../models/facade.ts: one InstancedMesh per
+// piece), and instanced window quads.
 // E271/E272: facade multi-draw is prohibited on every platform/shard, not just phones.
 // See docs/audits/nine-dragon-mobile-multidraw.md before changing this rendering policy.
-import { Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, type Object3D, PlaneGeometry, type ShaderMaterial } from 'three';
+import { Box3, Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, type Object3D, PlaneGeometry, type ShaderMaterial } from 'three';
 import type { Builder } from './geo';
 import type { Dressing } from './grammar';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
 import { BAKED, DRAWN_AS, PIECES, SMALL, type PieceId } from './pieces';
-import { FACADE_MODELS, type FacadeParams } from '../../models/facade';
+import { FACADE_BAKED, FACADE_MODELS, type FacadeParams, pieceBounds } from '../../models/facade';
 import { type InstancedCuller, type Placed, place } from '../../../../models/place';
 import type { ModelContext, Placement } from '../../../../models/model';
 import type { NdLook } from '../modelLook';
@@ -54,12 +55,17 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
   models.look.facade = { mat, small: matSmall };
   // the kit: one instanced draw per drawn geometry; the baked pieces go into the shell first
   const byPiece = new Map<PieceId, Copy[]>();
+  /** the baked pieces' copies, per piece (models/facade.ts FACADE_BAKED: registered on the shell below) */
+  const baked = new Map<PieceId, Copy[]>();
   const tc = new Color();
   for (const p of d.pieces) {
     if (BAKED.has(p.piece)) {
       let b = bakeCache.get(p.piece);
       if (b === undefined) { b = PIECES[p.piece](); bakeCache.set(p.piece, b); }
       d.shell.append(b, p.m, p.c);
+      let l = baked.get(p.piece);
+      if (l === undefined) { l = []; baked.set(p.piece, l); }
+      l.push(p);
       continue;
     }
     const alias = DRAWN_AS[p.piece];
@@ -78,6 +84,19 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
     stats.draws++;
     stats.tris += d.shell.triangleCount;
     d.shell.release();
+    // the pieces baked into it are models drawn there (their copies' boxes: each piece's own bounds at its placement)
+    const box = new Box3();
+    for (const [id, list] of baked) {
+      const model = FACADE_BAKED[id];
+      if (model === undefined) throw new Error(`facade: no model is the baked piece '${id}' (models/facade.ts FACADE_BAKED)`);
+      const own = pieceBounds(models.ctx, id), boxes = new Float32Array(list.length * 6);
+      const placements: Placement<FacadeParams>[] = list.map((p, i) => {
+        box.copy(own).applyMatrix4(p.m);
+        boxes.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], i * 6);
+        return { x: p.m.elements[12], y: p.m.elements[13], z: p.m.elements[14], matrix: p.m, color: p.c };
+      });
+      place(model, placements, { ctx: models.ctx, draw: 'merged', drawnInto: { object: shell, boxes }, piece: { id: `nds-facade-${id}`, name: model.name } });
+    }
   }
   // the pieces: one `place` each (a task apart when a piece took long: the phone's ~30 ms tasks)
   let lastYield = performance.now();

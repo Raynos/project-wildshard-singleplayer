@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { defineModel, definedModels, modelContext } from '../src/models/model';
 import { type HandedBatch, place } from '../src/models/place';
 import { BAKED, DRAWN_AS, PIECES, type PieceId } from '../src/chunks/nine-dragon-stack/world/facade/pieces';
-import { FACADE_MODELS } from '../src/chunks/nine-dragon-stack/models/facade';
+import { FACADE_BAKED, FACADE_MODELS } from '../src/chunks/nine-dragon-stack/models/facade';
 import { balustradePanel } from '../src/chunks/nine-dragon-stack/models/balustradePanel';
 import { mahjongSitter, umbrellaWalker } from '../src/chunks/nine-dragon-stack/models/crowd';
 import { feiZhuaHook } from '../src/chunks/nine-dragon-stack/models/feiZhuaHook';
@@ -17,11 +17,18 @@ import { paperLantern } from '../src/chunks/nine-dragon-stack/models/paperLanter
 import { airConBox, galleryPlant } from '../src/chunks/nine-dragon-stack/models/wallKit';
 import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../src/chunks/nine-dragon-stack/models/inKit';
 import { PAIFANG, paifang } from '../src/chunks/nine-dragon-stack/models/paifang';
+import { banyan, earthGodShrine, kowloonSteleModel } from '../src/chunks/nine-dragon-stack/models/banyan';
+import { hawkerStallModel, noodleStallModel } from '../src/chunks/nine-dragon-stack/models/stalls';
+import { sign } from '../src/chunks/nine-dragon-stack/models/signs';
+import { lotusFinial } from '../src/chunks/nine-dragon-stack/models/lotusFinial';
+import { laundryLineModel } from '../src/chunks/nine-dragon-stack/models/laundry';
 import { GATE } from '../src/chunks/nine-dragon-stack/layout';
 import { STAIR_GATE } from '../src/chunks/nine-dragon-stack/world/stairstreet';
 
-/** every Nine Dragon model but the facade's (FACADE_MODELS) */
-const OTHERS = [balustradePanel, umbrellaWalker, mahjongSitter, feiZhuaHook, guardianLion, marketBooth, parasolTable, diningPavilion, monorailTrain, cableGondola, drone, paperLantern, galleryPlant, airConBox, brassDragonHook, drumStool, parkedScooter, mahjongTableModel, inkFigure, paifang];
+/** every Nine Dragon model but the facade's (FACADE_MODELS, FACADE_BAKED) */
+const OTHERS = [balustradePanel, umbrellaWalker, mahjongSitter, feiZhuaHook, guardianLion, marketBooth, parasolTable, diningPavilion, monorailTrain, cableGondola, drone, paperLantern, galleryPlant, airConBox, brassDragonHook, drumStool, parkedScooter, mahjongTableModel, inkFigure, paifang,
+  // (the E315 second pass: drawn into the kits, the sign mesh and the facade shell)
+  banyan, earthGodShrine, kowloonSteleModel, noodleStallModel, hawkerStallModel, sign, lotusFinial, laundryLineModel];
 
 const ctx = modelContext(null);
 
@@ -64,9 +71,9 @@ describe('Nine Dragon models (E306 M4)', () => {
     expect(placed.drawnAs).toBe('instanced');
   });
 
-  it('every facade piece the grammar places is drawn as a model (or baked into the shell)', () => {
+  it('every facade piece the grammar places is drawn as a model, or baked into the shell as one', () => {
     for (const id of Object.keys(PIECES) as PieceId[]) {
-      if (BAKED.has(id)) continue;
+      if (BAKED.has(id)) { expect(FACADE_BAKED[id], id).toBeDefined(); continue; }
       // (an alias draws as the piece it names: batch.ts)
       const drawn = DRAWN_AS[id]?.as ?? id;
       expect(FACADE_MODELS[drawn], `${id} → ${drawn}`).toBeDefined();
@@ -82,7 +89,7 @@ describe('Nine Dragon models (E306 M4)', () => {
 
   it('Nine Dragon models say how they are made and live in the shard\'s models folder', () => {
     const nd = definedModels().filter((d) => d.id.startsWith('nine-dragon-stack/'));
-    expect(nd.map((d) => d.id).sort()).toEqual([...Object.values(FACADE_MODELS), ...OTHERS].map((d) => d.id).sort());
+    expect(nd.map((d) => d.id).sort()).toEqual([...Object.values(FACADE_MODELS), ...Object.values(FACADE_BAKED), ...OTHERS].map((d) => d.id).sort());
     for (const d of nd) {
       expect(d.file, d.id).toMatch(/^src\/chunks\/nine-dragon-stack\/models\/[a-zA-Z]+\.ts$/);
       expect(d.pipeline.length, d.id).toBeGreaterThan(0);
