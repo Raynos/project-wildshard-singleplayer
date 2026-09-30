@@ -1,0 +1,144 @@
+{
+ "about": "Every model a Blender script builds (M10, E315; docs/design/blender-practice.md). The script is the source, the GLB it exports is committed, a .blend never is. Run a target with `bash scripts/blender/build.sh <target>`, check one against its committed GLB with `--check`. Fields: script (the Blender entry, run with --python-exit-code 1), args, pre (shell, before Blender), sources (every other file the target needs: scripts/check-model-sources.mjs refuses a file under scripts/blender/ that no target names), inputs (committed files it reads), lock (Cycles work: take the model lock), build (files Blender must leave in $BUILD), meshopt / copy ([build file, repo file] pairs), post (shell, after the copies), outputs (the committed files it makes), feeds (the code that loads them), manual (not buildable here: why), check (the command --check runs for a manual target).",
+ "blender": { "version": "5.2.1", "path": "/opt/homebrew/bin/blender" },
+ "lock": "~/projects/localai/.model.lock",
+ "cache": "~/.cache/wildshard-blender",
+ "targets": {
+  "driftwood-isle/island": {
+   "about": "Driftwood's spawn cove: terrain tiles, ~60-72 prototypes, 16.7 k placements, Cycles AO + bounce lightmaps (DRIFTWOOD-REMASTER X2, E52)",
+   "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/export-scene.mjs --chunk driftwood-isle $CACHE"],
+   "script": "scripts/blender/build_island.py",
+   "args": ["$CACHE", "$BUILD"],
+   "sources": ["scripts/blender/assets.py", "scripts/blender/export-scene.mjs", "scripts/blender/shards/driftwood-isle.mjs", "scripts/blender/island-post.sh"],
+   "inputs": ["public/assets/baked/driftwood-isle/terrain.bin", "public/assets/models/driftwood-hero/", "public/assets/models/driftwood-cc0/"],
+   "lock": true,
+   "build": ["island.glb", "placements.bin", "island.json", "lm-ao.png", "lm-bounce.png"],
+   "meshopt": [["island.glb", "public/assets/models/driftwood-blender/island.glb"]],
+   "copy": [["placements.bin", "public/assets/models/driftwood-blender/placements.bin"], ["island.json", "public/assets/models/driftwood-blender/island.json"]],
+   "post": "scripts/blender/island-post.sh",
+   "outputs": [
+    "public/assets/models/driftwood-blender/island.glb", "public/assets/models/driftwood-blender/placements.bin", "public/assets/models/driftwood-blender/island.json",
+    "public/assets/models/driftwood-blender/lm-ao.webp", "public/assets/models/driftwood-blender/lm-ao.phone.webp",
+    "public/assets/models/driftwood-blender/lm-bounce.webp", "public/assets/models/driftwood-blender/lm-bounce.phone.webp"
+   ],
+   "feeds": ["src/world/BlenderIsland.ts"]
+  },
+  "pine-hollow/area-export": {
+   "about": "Pine Hollow's half of the island export (PH-0.3): area.bin, splat.bin, scene.json in the cache. Its Blender build is PINE-HOLLOW-REMASTER wave 2 (PH-U17), so it writes nothing to the repo",
+   "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/export-scene.mjs --chunk pine-hollow $CACHE"],
+   "script": null,
+   "sources": ["scripts/blender/export-scene.mjs", "scripts/blender/shards/pine-hollow.mjs"],
+   "inputs": ["public/assets/baked/pine-hollow/terrain.bin"],
+   "lock": false,
+   "outputs": [],
+   "feeds": []
+  },
+  "pine-hollow/trees": {
+   "about": "Pine Hollow's photoreal species set: 14 variants x 5 LOD parts, branch-card + impostor atlases, 4 bark sets (PH-B4)",
+   "script": "scripts/blender/trees/build_trees.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/trees/treegen.py", "scripts/blender/trees/barkgen.py", "scripts/blender/trees/glb.py", "scripts/blender/trees/post.sh"],
+   "inputs": ["public/assets/tex/pine_tree_01/", "public/assets/tex/pine_bark/"],
+   "lock": true,
+   "build": ["trees.glb", "trees.json"],
+   "meshopt": [["trees.glb", "public/assets/models/pine-hollow-trees/trees.glb"]],
+   "copy": [["trees.json", "public/assets/models/pine-hollow-trees/trees.json"]],
+   "post": "scripts/blender/trees/post.sh",
+   "outputs": [
+    "public/assets/models/pine-hollow-trees/trees.glb", "public/assets/models/pine-hollow-trees/trees.json",
+    "public/assets/models/pine-hollow-trees/cards-albedo.png", "public/assets/models/pine-hollow-trees/impostor-albedo.png",
+    "public/assets/models/pine-hollow-trees/cards-normal.jpg", "public/assets/models/pine-hollow-trees/cards-arm.jpg", "public/assets/models/pine-hollow-trees/impostor-normal.jpg",
+    "public/assets/tex/fir_bark/", "public/assets/tex/metasequoia_bark/", "public/assets/tex/birch_bark/", "public/assets/tex/bark_willow_02/"
+   ],
+   "feeds": ["src/world/treeSet.ts", "src/world/TreeFactory.ts"]
+  },
+  "pine-hollow/crags": {
+   "about": "The Ridge's granite crag kit, 12 modules (PH-B2)",
+   "script": "scripts/blender/crags/build_crags.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/crags/rocklib.py"],
+   "lock": true,
+   "build": ["crags.glb", "crags.json"],
+   "meshopt": [["crags.glb", "public/assets/models/pine-hollow-crags/crags.glb"]],
+   "copy": [["crags.json", "public/assets/models/pine-hollow-crags/crags.json"]],
+   "outputs": ["public/assets/models/pine-hollow-crags/crags.glb", "public/assets/models/pine-hollow-crags/crags.json"],
+   "feeds": ["src/world/PineCrags.ts"]
+  },
+  "pine-hollow/cave": {
+   "about": "The Den's bear cave: the interior + the hood over its first metres, fitted to the baked heights round the mouth (PH-B2)",
+   "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/crags/export-cave.mjs $BUILD/cave-in.json"],
+   "script": "scripts/blender/crags/build_cave.py",
+   "args": ["$BUILD/cave-in.json", "$BUILD"],
+   "sources": ["scripts/blender/crags/rocklib.py", "scripts/blender/crags/export-cave.mjs"],
+   "inputs": ["public/assets/baked/pine-hollow/terrain.bin", "public/assets/models/pine-hollow-hero/cave-arch/cave-arch.glb"],
+   "lock": true,
+   "build": ["cave.glb", "cave.json"],
+   "meshopt": [["cave.glb", "public/assets/models/pine-hollow-crags/cave.glb"]],
+   "copy": [["cave.json", "public/assets/models/pine-hollow-crags/cave.json"]],
+   "outputs": ["public/assets/models/pine-hollow-crags/cave.glb", "public/assets/models/pine-hollow-crags/cave.json"],
+   "feeds": ["src/world/PineCrags.ts"]
+  },
+  "pine-hollow/lever-rifle": {
+   "about": "The lever-action carbine, hi (desktop) + lo (phone), each baked on its own UVs (PH-C11)",
+   "pre": ["mkdir -p $SHARED/weapons-src && { [ -s $SHARED/weapons-src/walnut_veneer_02_diff_2k.jpg ] || curl -sfL -o $SHARED/weapons-src/walnut_veneer_02_diff_2k.jpg https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/walnut_veneer_02/walnut_veneer_02_diff_2k.jpg; }"],
+   "script": "scripts/blender/weapons/lever_rifle.py",
+   "args": ["$BUILD", "--wood=$SHARED/weapons-src/walnut_veneer_02_diff_2k.jpg"],
+   "sources": [],
+   "inputs": ["public/assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr"],
+   "lock": true,
+   "build": ["hi/lever-rifle.glb", "lo/lever-rifle.glb"],
+   "meshopt": [["hi/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.glb"], ["lo/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"]],
+   "outputs": ["public/assets/pine-hollow/weapons/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"],
+   "feeds": ["src/player/LeverRifle.ts"]
+  },
+  "pine-hollow/skinning-knife": {
+   "about": "The first-person skinning knife in a gloved hand, hi + lo, one mesh, one material, plus its sidecar points",
+   "pre": ["mkdir -p $SHARED/weapons-src && { [ -s $SHARED/weapons-src/walnut_veneer_02_diff_2k.jpg ] || curl -sfL -o $SHARED/weapons-src/walnut_veneer_02_diff_2k.jpg https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/walnut_veneer_02/walnut_veneer_02_diff_2k.jpg; }"],
+   "script": "scripts/blender/weapons/skinning_knife.py",
+   "args": ["$BUILD", "--wood=$SHARED/weapons-src/walnut_veneer_02_diff_2k.jpg"],
+   "sources": ["scripts/blender/weapons/knife-post.sh"],
+   "inputs": ["public/assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr"],
+   "lock": true,
+   "build": ["hi/skinning-knife.glb", "lo/skinning-knife.glb", "hi/skinning-knife.json", "lo/skinning-knife.json"],
+   "meshopt": [["hi/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.glb"], ["lo/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb"]],
+   "post": "scripts/blender/weapons/knife-post.sh",
+   "outputs": ["public/assets/pine-hollow/weapons/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb", "public/assets/pine-hollow/weapons/skinning-knife.json"],
+   "feeds": ["src/pinehollow/life/skinKnife.ts"]
+  },
+  "nine-dragon-stack/fei-zhua": {
+   "about": "Lab only: the Fei Zhua wrist grapple, modelled + AO-baked (lab P9, E169). Loaded only by the dev lab page (src/dev/nd-lab/grapple/)",
+   "script": "src/dev/nd-lab/grapple/blender/fei_zhua.py",
+   "args": ["$BUILD"],
+   "sources": [],
+   "lock": true,
+   "build": ["fei-zhua.glb"],
+   "meshopt": [["fei-zhua.glb", "public/assets/nine-dragon/lab/grapple/fei-zhua.glb"]],
+   "outputs": ["public/assets/nine-dragon/lab/grapple/fei-zhua.glb"],
+   "feeds": ["src/dev/nd-lab/grapple/feizhua.ts"]
+  },
+  "nine-dragon-stack/fp-rig": {
+   "about": "The Nine Dragon first-person arms: hand, gauntlet and guard parts (Blender), rigged with 16 clips into fp-rig.glb by the viewmodel lab's bake (lab P8 round 13, E169)",
+   "manual": "the rig bake ran in the deleted viewmodel lab page, and fp-rig.glb is the only complete copy: scripts/blender/nine-dragon-stack/viewmodel/README.md says how to re-derive it",
+   "check": "node --import ./scripts/bake-loader.mjs scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs",
+   "script": "scripts/blender/nine-dragon-stack/viewmodel/hand.py",
+   "sources": [
+    "scripts/blender/nine-dragon-stack/viewmodel/hand_lib.py", "scripts/blender/nine-dragon-stack/viewmodel/hand_model.py", "scripts/blender/nine-dragon-stack/viewmodel/hand_parts.py",
+    "scripts/blender/nine-dragon-stack/viewmodel/gauntlet.py", "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_geo.py", "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_maps.py",
+    "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_parts.py", "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_preview.py", "scripts/blender/nine-dragon-stack/viewmodel/guard.py",
+    "scripts/blender/nine-dragon-stack/viewmodel/rig/bake.ts.txt", "scripts/blender/nine-dragon-stack/viewmodel/rig/moves.ts.txt", "scripts/blender/nine-dragon-stack/viewmodel/rig/lab-main.ts.txt",
+    "scripts/blender/nine-dragon-stack/viewmodel/rig/rigbake.mjs", "scripts/blender/nine-dragon-stack/viewmodel/rig/riggate.mjs", "scripts/blender/nine-dragon-stack/viewmodel/rig/gate_chart.py",
+    "scripts/blender/nine-dragon-stack/viewmodel/rig/bakecap.sh", "scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs"
+   ],
+   "inputs": ["src/chunks/nine-dragon-stack/vm/rig.ts"],
+   "lock": true,
+   "outputs": [
+    "public/assets/nine-dragon/viewmodel/fp-rig.glb",
+    "public/assets/nine-dragon/viewmodel/hand-r-maps.webp", "public/assets/nine-dragon/viewmodel/hand-r-nrm.webp",
+    "public/assets/nine-dragon/viewmodel/arm-r-maps.webp", "public/assets/nine-dragon/viewmodel/arm-r-nrm.webp",
+    "public/assets/nine-dragon/viewmodel/fist-l-maps.webp", "public/assets/nine-dragon/viewmodel/fist-l-nrm.webp",
+    "public/assets/nine-dragon/viewmodel/gauntlet-maps.webp", "public/assets/nine-dragon/viewmodel/gauntlet-nrm.webp"
+   ],
+   "feeds": ["src/chunks/nine-dragon-stack/vm/fpArms.ts"]
+  }
+ }
+}
