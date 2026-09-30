@@ -13,6 +13,10 @@ import { getActiveChunk } from '../chunks/registry';
 import { groundSet } from './lookFlags';
 import { GrassV2 } from '../nalati/look/grass';
 import { stateSlot } from '../core/shardState';
+import { trample, TRAMPLE_GLSL } from './GrassTrample';
+import { pineTrample } from './pineTrample';
+import { practiceRoom } from '../core/practiceRoom';
+import { setting, onSettingChange } from '../ui/Settings';
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -42,6 +46,11 @@ import { stateSlot } from '../core/shardState';
  * Public: `group`, `mesh`, `flowers`, `material`, `update(dt, playerPos)`, `radius`,
  *         `params` = { budget, windStrength } (live tunables).
  *
+ * Pine Hollow's trample (E322 F-L4, Debug ▸ Ground cover & foliage ▸ Grass trample, live; off = the grass before): the
+ * carpet and the flowers bend round Nalati's trample map + live movers (GrassTrample.ts `trampleBend`) — the player and
+ * the animals (AnimalManager, while `pineTrample.on`) part it and leave it flattened a while. Only Pine Hollow's programs
+ * carry the code (their own cache keys); Driftwood's carpet is the same shader as before.
+ *
  * On the painterly shard (Nalati) `build()` builds the GPU blade rings instead (`GrassV2`, src/nalati/look/grass.ts,
  * exposed as `v2`; `mesh` / `material` / `flowers` stay unset) and `update()` forwards to it — the Pine Hollow /
  * Driftwood path below is untouched.
@@ -61,7 +70,23 @@ const grassUniforms = {
   uFade: { value: FADE },
   uSunDir: { value: new THREE.Vector3(0, 1, 0) },
   uSunColor: { value: new THREE.Color(1, 0.93, 0.8) },
+  /** E322 F-L4: 1 = Pine Hollow's trample bends the blades (the Grass trample row) */
+  uTrampleOn: { value: 0 },
 };
+
+/** E322 F-L4: the trample, after the wind (inside its block: `im`, `ipos`, `s2`, `fade` in scope) — the blade lies over by
+ *  the bend's angle (≤ 1.35 rad) the way it points, the top dropping as it goes */
+const TRAMPLE_APPLY = /* glsl */`
+            if ( uTrampleOn > 0.5 ) {
+              vec2 tb = trampleBend( ipos.xz );
+              float tl = length( tb );
+              if ( tl > 1e-3 ) {
+                float ta = min( tl, 1.35 );
+                vec2 td = tb / tl;
+                vec3 tw = vec3( td.x * sin( ta ), cos( ta ) - 1.0, td.y * sin( ta ) ) * transformed.y * sqrt( s2 );
+                transformed += ( tw * im ) / max( s2, 1e-6 );
+              }
+            }`;
 
 const UP = new THREE.Vector3(0, 1, 0);
 const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number) => lerp(lerp(a, b, u), lerp(c, d, u), v);
@@ -97,12 +122,21 @@ export class Grass {
   private zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
   private meshColor!: THREE.InstancedBufferAttribute;
   private flowerColor!: THREE.InstancedBufferAttribute;
+  /** E322 F-L4: Pine Hollow's carpet carries the trample code (the row switches it live) */
+  private trampleAble = false;
+  private lastPX = Number.NaN;
+  private lastPZ = Number.NaN;
 
   constructor(private sky: Sky, private forest: Forest) {}
 
   build(): this {
     if (getActiveChunk().style === 'painterly') { this.v2 = new GrassV2(this.sky, this.forest).build(); this.group.add(this.v2.group); return this; } // Nalati: the GPU blade rings (src/nalati/look/grass.ts)
     const geo = buildClumpGeometry();
+    this.trampleAble = getActiveChunk().slug === 'pine-hollow';
+    if (this.trampleAble) {
+      this.setTrample(setting('pineTrample') === 'on');
+      onSettingChange('pineTrample', (v) => { this.setTrample(v === 'on'); });
+    }
     this.material = this.buildMaterial();
     this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * K);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -133,6 +167,7 @@ export class Grass {
   }
 
   private buildMaterial() {
+    const withTrample = this.trampleAble;
     const tex = makeBladeAtlas();
     const mat = new THREE.MeshStandardMaterial({
       map: tex, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.85, metalness: 0,
@@ -143,11 +178,12 @@ export class Grass {
       Object.assign(shader.uniforms, grassUniforms);
       patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
+      if (withTrample) Object.assign(shader.uniforms, trample.uniforms);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform float uWindStrength; uniform float uGrassWind; uniform float uRadius; uniform float uFade;
           attribute float quadId;
-          varying float vH;`)
+          varying float vH;${withTrample ? `\n${TRAMPLE_GLSL}\nuniform float uTrampleOn;` : ''}`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
@@ -182,7 +218,7 @@ export class Grass {
             vec2 leanDir = vec2( cos( rnd * 6.2832 ), sin( rnd * 6.2832 ) ) * 0.05;
             vec3 off = vec3( dir.x * amp + flutter * 0.02 + leanDir.x, 0.0, dir.y * amp + flutter * 0.015 + leanDir.y ) * w;
             off.y = - length( off.xz ) * 0.3;
-            transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
+            transformed += ( off * im ) / max( s2, 1e-6 ) * fade;${withTrample ? TRAMPLE_APPLY : ''}
           }`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', /* glsl */`#include <common>
@@ -204,21 +240,23 @@ export class Grass {
             reflectedLight.indirectDiffuse += diffuseColor.rgb * ( 0.07 + bl * 0.55 * vH ) * uSunColor;
           }`);
     };
-    mat.customProgramCacheKey = () => 'grass-carpet';
+    mat.customProgramCacheKey = () => (withTrample ? 'grass-carpet-trample' : 'grass-carpet');
     this.sky.setupMaterial(mat);
     return mat;
   }
 
   private buildFlowerMaterial() {
+    const withTrample = this.trampleAble;
     const mat = new THREE.MeshStandardMaterial({ map: makeFlowerTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.7, metalness: 0 });
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
       patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
       shader.uniforms['uGrassWind'] = grassUniforms.uGrassWind;
+      if (withTrample) Object.assign(shader.uniforms, trample.uniforms, { uTrampleOn: grassUniforms.uTrampleOn });
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
-          uniform float uWindStrength; uniform float uGrassWind;`)
+          uniform float uWindStrength; uniform float uGrassWind;${withTrample ? `\n${TRAMPLE_GLSL}\nuniform float uTrampleOn;` : ''}`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
@@ -235,14 +273,14 @@ export class Grass {
             float s2 = dot( im[0], im[0] );
             float amp = ( 0.01 + gust * 0.07 ) * uWindStrength * uGrassWind * sqrt( s2 ) * 2.0;
             vec3 off = vec3( dir.x * amp, 0.0, dir.y * amp ) * h * h;
-            transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
+            transformed += ( off * im ) / max( s2, 1e-6 ) * fade;${withTrample ? TRAMPLE_APPLY : ''}
           }`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
         .replace('#include <lights_fragment_begin>', /* glsl */`#include <lights_fragment_begin>
           reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.12;`);
     };
-    mat.customProgramCacheKey = () => 'grass-flowers';
+    mat.customProgramCacheKey = () => (withTrample ? 'grass-flowers-trample' : 'grass-flowers');
     this.sky.setupMaterial(mat);
     return mat;
   }
@@ -261,6 +299,7 @@ export class Grass {
   update(dt: number, playerPos: THREE.Vector3): void {
     if (this.v2) { this.v2.update(dt, playerPos); return; }
     grassUniforms.uGrassWind.value = this.params.windStrength;
+    if (this.trampleAble) this.trampleStep(dt, playerPos);
     const pcx = Math.floor(playerPos.x / CELL), pcz = Math.floor(playerPos.z / CELL);
     if (pcx !== this.lastCellX || pcz !== this.lastCellZ) {
       const first = this.lastCellX === 0x7fffffff;
@@ -282,6 +321,23 @@ export class Grass {
       if (first) this.flush(Infinity);
     }
     if (this.queue.length > 0) this.flush(this.queue.length > 300 ? Infinity : this.params.budget);
+  }
+
+  /** E322 F-L4: Pine Hollow's trample on / off (the Grass trample row; live) */
+  setTrample(on: boolean): void {
+    if (!this.trampleAble) return;
+    pineTrample.on = on;
+    grassUniforms.uTrampleOn.value = on ? 1 : 0;
+  }
+
+  /** E322 F-L4: the player parts the grass and leaves a trail (the animals push from AnimalManager); the map advances */
+  private trampleStep(dt: number, playerPos: THREE.Vector3): void {
+    const vx = Number.isNaN(this.lastPX) || dt <= 0 ? 0 : (playerPos.x - this.lastPX) / dt;
+    const vz = Number.isNaN(this.lastPZ) || dt <= 0 ? 0 : (playerPos.z - this.lastPZ) / dt;
+    this.lastPX = playerPos.x; this.lastPZ = playerPos.z;
+    if (!pineTrample.on) return;
+    if (vx * vx + vz * vz < 900 && !practiceRoom.open) trample.push(playerPos.x, playerPos.z, 0.55, 1, vx, vz); // E321: not from a room
+    trample.update(dt, playerPos);
   }
 
   private flush(budget: number) {

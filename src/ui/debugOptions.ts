@@ -141,6 +141,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('coverReach', 'cover', 'Slope reach', ON_OFF, { when: driftwood, note: 'E156 · slope plants drawn 1.7× further' }),
   opt('coverBlend', 'cover', 'Far colour blend', ON_OFF, { when: driftwood, note: 'E117 / E156 · far plants fade into the ground' }),
   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 · the far stand-in meshes' }),
+  opt('pineTrample', 'cover', 'Grass trample', [['off', 'A · Off'], ['on', 'B · On']], { when: pineHollow, note: 'E322 F-L4 · the grass parts round you and the animals and stays flattened a while (Nalati\'s trample)' }),
 
   // ── Sky & weather ──
   // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's PineDayNight

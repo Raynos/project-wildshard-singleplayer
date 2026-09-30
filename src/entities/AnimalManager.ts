@@ -20,6 +20,8 @@ import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
 import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
+import { trample } from '../world/GrassTrample';
+import { pineTrample } from '../world/pineTrample';
 import { AttackTokens, reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 
 /**
@@ -394,6 +396,9 @@ interface FarRig extends FarMember {
 }
 /** the bearings `steerNav` tries round a blocked heading (rad, each side) */
 const NAV_FAN = [0.4, 0.8, 1.2, 1.6, 2.1, 2.6];
+/** E322 F-L4: the grass a body parts (m, the trample's radius) */
+const TRAMPLE_R: Partial<Record<AnimalKind, number>> = { deer: 0.5, elk: 0.65, boar: 0.45, bear: 0.75, wolf: 0.45, horse: 0.8 };
+
 export class AnimalManager {
   /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
   group = new AnimalGroup();
@@ -660,9 +665,21 @@ export class AnimalManager {
    * hitboxes and the footfalls stay on `playerPos`. Explore parks the player 3 km away, so a player-measured cull
    * hid every animal there. `camera`: the view — the far herd skips the far animals outside it (PH-P2).
    */
+  /** E322 F-L4: every moving animal within 70 m of the player parts the grass and flattens a track (Nalati's trample map) */
+  private trampleGrass(p: THREE.Vector3): void {
+    for (const a of this.animals) {
+      if (!a.alive || a.hidden || Math.abs(a.speed) < 0.4) continue;
+      const dx = a.position.x - p.x, dz = a.position.z - p.z;
+      if (dx * dx + dz * dz > 70 * 70) continue;
+      const r = TRAMPLE_R[a.kind] ?? 0.4;
+      trample.push(a.position.x, a.position.z, r, Math.min(1, 0.35 + Math.abs(a.speed) / 5), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
+    }
+  }
+
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
     this.clock += dt;
+    if (pineTrample.on && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's Grass trample row
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
     this.bodiesFor()?.sync(this.animals, playerPos);
     // AI at 10 Hz, staggered across animals so the cost is flat
