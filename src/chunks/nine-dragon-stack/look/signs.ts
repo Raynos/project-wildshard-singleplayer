@@ -14,6 +14,7 @@ import type { Kit, Look } from '../world/kit';
 import type { NeonSigns } from './neonsigns';
 import { chars } from '../util';
 import { TIER } from '../../../core/tier';
+import { gpuOnlyTexture } from '../../../core/gpuOnly';
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
 export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';
@@ -93,11 +94,18 @@ export class SignAtlas {
     this.monoTex.anisotropy = 8;
     this.monoTex.needsUpdate = true;
     this.colourTex.needsUpdate = true;
+    // (E264) the atlas is finished once: its canvases and the mono copy are on the GPU after the first draw. The mono
+    // canvas (8 MB on the phone) goes now (its red channel is copied above); the colour canvas and the R8 array once
+    // uploaded. A word the Model Explorer asks for must be one the fragment hangs (its cell is already drawn)
+    this.mono.width = 1;
+    this.mono.height = 1;
+    gpuOnlyTexture(this.monoTex, 'Nine Dragon sign atlas (GPU only)');
+    gpuOnlyTexture(this.colourTex, 'Nine Dragon sign atlas (GPU only)');
   }
 
   get textures(): { mono: Texture; colour: Texture } { return { mono: this.monoTex, colour: this.colourTex }; }
 
-  /** debug: the mono atlas as an image */
+  /** debug: the mono atlas as an image (before finish(): after it the canvas is gone, E264) */
   dump(): string { return this.mono.toDataURL('image/jpeg', 0.8); }
 
   private allocMono(w: number, h: number, vertical: boolean): { x: number; y: number } {

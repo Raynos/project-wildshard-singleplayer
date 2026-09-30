@@ -3,7 +3,7 @@
  * only on the GPU, so an in-place WebGL restore brings it back empty. A module that makes such a bake marks it here, and
  * src/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
-import { BufferAttribute, type BufferGeometry, StaticDrawUsage } from 'three';
+import { BufferAttribute, type BufferGeometry, DataArrayTexture, DataTexture, StaticDrawUsage, type Texture } from 'three';
 import { listSlot, shardSlot } from './shardState';
 import { currentScope } from './shardScope';
 
@@ -49,6 +49,30 @@ export function gpuOnlyAttributes(g: BufferGeometry, label: string, keep: readon
   }
   if (bytes > 0) markGpuOnly(label);
   return bytes;
+}
+
+/** Texture.onUpdate: let go of the texture's CPU source once it is on the GPU (a bitmap closed, a canvas shrunk to one
+ *  pixel, a data array emptied) */
+function releaseSource(t: Texture): void {
+  const im: unknown = t.image;
+  if (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) im.close();
+  else if (typeof HTMLCanvasElement !== 'undefined' && im instanceof HTMLCanvasElement) { im.width = 1; im.height = 1; }
+  else if ((t instanceof DataTexture || t instanceof DataArrayTexture) && t.image.data instanceof Uint8Array) t.image.data = new Uint8Array(0);
+}
+
+/**
+ * E264: a texture whose CPU source (decoded image, canvas or pixel array) nothing reads after its upload: it is released
+ * the moment the texture is uploaded (its size and format stay, the GPU copy is untouched). Set it before the first draw.
+ * Only for a texture nothing updates again. A lost context reloads the page (`label`).
+ */
+export function gpuOnlyTexture(t: Texture, label: string): void {
+  const prev = t.onUpdate;
+  t.onUpdate = (tex: Texture): void => {
+    prev?.(tex);
+    releaseSource(tex);
+    t.onUpdate = prev;
+  };
+  markGpuOnly(label);
 }
 
 // E155 (src/core/shardState.ts): each resident shard's own bakes

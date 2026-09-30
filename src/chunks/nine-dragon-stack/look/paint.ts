@@ -16,6 +16,7 @@
 import { Color, DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, RGBAFormat, UnsignedByteType, Vector4 } from 'three';
 import { TIER } from '../../../core/tier';
 import { phoneUrl } from '../../../boot/bytes';
+import { gpuOnlyTexture } from '../../../core/gpuOnly';
 
 /** the array layers, in order; `scale` = the ratio's storage scale (texprep.py spec.json `scale`) */
 export const LAYERS = [
@@ -133,6 +134,8 @@ export async function loadPaint(base: string, anisotropy: number, onLayer: (frac
   t.generateMipmaps = true;
   t.anisotropy = anisotropy;
   t.needsUpdate = true;
+  // (E264) the array's pixels are on the GPU once uploaded; nothing reads them again
+  gpuOnlyTexture(t, 'Nine Dragon paint array (GPU only)');
   return { tex: t, bytes };
 }
 

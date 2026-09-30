@@ -10,6 +10,7 @@ import { type BufferGeometry, Color, Float32BufferAttribute, type Material, Matr
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '../../../models/model';
+import { gpuOnlyTexture } from '../../../core/gpuOnly';
 import { PX_PER_M, SCULPT_PX, simplifiedCopy } from '../world/lod';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 
@@ -55,6 +56,8 @@ export async function loadFeiZhuaHook(look: NdLook): Promise<void> {
   mat.color.multiply(new Color(0xffd891));
   mat.metalness = 0.58;
   mat.roughness = 0.38;
+  // (E264) the sculpt's decoded maps (two 1024² bitmaps, 4 MB each) are on the GPU after the first draw
+  for (const t of [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap, mat.aoMap, mat.emissiveMap]) if (t !== null) gpuOnlyTexture(t, 'the Fei Zhua sculpt maps (GPU only)');
   look.geo.set('dragon-hook', geo);
   look.hookMat = mat;
 }
