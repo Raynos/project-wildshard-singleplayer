@@ -1,6 +1,29 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `draft` 2026-09-30 — rewritten from scratch by E357 after an audit of v1 ([audit](../audits/game-normalization-2026-09-30.md)), eight research and code audits ([docs/design/engine-fit-v2/](../design/engine-fit-v2/)) and 70 of Jake's decisions (§9). ENGINE-FIT is folded in. Nothing is built yet: it waits on Jake's go to start F0. The build session holds a lock on the whole repo (engine and kit until the end; each shard's folder reopens at its milestone).
+**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + 84 of Jake's decisions, §9) and being fleshed out into executable specs in [game-normalization/](game-normalization/) (01 architecture, 10 sweeps, 11 finish, 12 process written; 02–09 in progress). Not `ready` until the clean-room council (Codex GPT 6.1 Sol + 2 Claude seats) finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
+
+## Specs (the executable detail) and the definition of ready
+
+This file is the index. The executable detail lives in [game-normalization/](game-normalization/):
+
+| File | What |
+|---|---|
+| [00-traceability](game-normalization/00-traceability.md) | Every decision, audit finding and research row → the row / section that covers it, or why it's out |
+| [01-architecture](game-normalization/01-architecture.md) | The interfaces (TypeScript) and rules: app, events, scope, services, manifest + plugin, boot, saves, input, UI, scheduler, render / tiers / budgets, physics, audio, animation, world, combat, AI, game layer, kit, lint |
+| [02-foundations](game-normalization/02-foundations.md) | F0–F12 step by step |
+| [03-harness-gate](game-normalization/03-harness-gate.md) | The parity harness, the GPU gate, the deploy pin, the nightly perf |
+| [04-move-map](game-normalization/04-move-map.md) | Every file → its layer and destination |
+| [05-nine-dragon](game-normalization/05-nine-dragon.md) · [06-pine-hollow](game-normalization/06-pine-hollow.md) · [07-nalati](game-normalization/07-nalati.md) · [08-driftwood](game-normalization/08-driftwood.md) | Each shard's migration: every gate line → its replacement, the full manifest, the plugin, the milestone |
+| [09-combat-ai](game-normalization/09-combat-ai.md) | Every weapon's profile (today's values), effects, the damage pipeline, events, species, brains, bosses |
+| [10-sweeps](game-normalization/10-sweeps.md) | X1–X8 |
+| [11-finish](game-normalization/11-finish.md) | Z1–Z4: the template shard, docs, shard 5, the archive |
+| [12-process](game-normalization/12-process.md) | The council, the lock, deploys, lanes, commits, boards, risks, estimate |
+| reviews/ | The council's rounds: every finding and its response |
+
+**Definition of ready** (Jake, E357: *"the plan is not done and ready for execution until various independent review
+and auditors, including Codex, … have found no holes"*): a clean-room council of 3 seats per round (Codex GPT 6.1 Sol:
+architecture + scenario battery; Claude: coverage + code audit; Claude: red-team execution battery) finds no
+must-fix / should-fix **two rounds in a row**. Only then is the State `ready` and Jake asked for the go.
 
 ## 0. Read this first
 
@@ -215,7 +238,18 @@ export default shard({
     poller, never a runner.
   - **The iPhone** stays the only memory and stability evidence.
 
-### 2.7 Doors left open (built for, not built)
+### 2.7 Also in the engine and game layer (decisions 74–80, 84)
+
+- **Strings**: every player-facing string goes through a string table, English only (engine table + one per shard).
+- **Analytics**: a sink on the event bus (`death.cause`, `quest.step`, `weapon.used`, `shard.time`, `boss.attempt`)
+  batched anonymously to `api/`, with a digest in the session brief.
+- **Capture mode**: the engine clock runs fixed-step for trailers, board clips and the harness's poses.
+- **Across shards** (`#game`): coins stay per shard; items are self-contained, with a `travels` flag (default off);
+  progress, compendium and feats are per shard plus a read-only Wildshard summary on the title deck; abilities are
+  per shard.
+- **Accessibility**: none in this plan (84).
+
+### 2.8 Doors left open (built for, not built)
 
 - **Multiplayer:** simulation state (health, effects, AI, quest steps, saves) stays apart from visuals and input, and
   gameplay randomness goes through the seeded RNG. No netcode.
@@ -251,7 +285,7 @@ export default shard({
 
 ## 4. Rows
 
-Estimate: ~15–25 agent-days, ~2–4 weeks of wall clock. Each shard phase pulls in the engine systems it is the first to
+Estimate: ~24–33 agent-days, ~3–5 weeks of wall clock, the council included (12-process §9). Each shard phase pulls in the engine systems it is the first to
 need; the X rows collect what is left.
 
 ### F — Foundations (before the first shard)
@@ -398,4 +432,6 @@ The verbatim table (70 rows, with the revisions) is in [docs/tasks/asks/E357.md]
 | **Engine** | Typed TS rows with parents. Subclasses for behaviour. Dot-case typed names. Genshin tick rates now. WebGPU contained, no switch. Rapier 0.21. One versioned save store (a reset now is fine). Context stack + key rebinding + buffer / coyote; touch relabel + reserved verb slots; no gamepad now |
 | **Quality** | Small differences may merge (a board per wave); found bugs fixed inline. A fake Game + contract tests + a coverage ratchet. A full-screen error on a failed load. Budgets derived, over budget fails. 30 fps hot phone, 60-ready. Min desktop: a mid gaming PC. 1.0 GB in-world kept. Gate on free GitHub `macos-15`, nightly perf on Jake's Mac |
 | **Process** | Foundations, then Nine Dragon → Pine Hollow → Nalati → Driftwood. Lead + short subagents. Deploys at shard milestones only; bug fixes ship at milestones. The lock: each shard reopens at its milestone. Summary + boards + play at each milestone |
+| **Game layer** | Coins per shard. Items self-contained, travel-ready. Progress per shard + a Wildshard summary. Abilities per shard. String tables (English). Analytics from the event bus. Capture mode. No accessibility features in this plan |
+| **Council** | Not `ready` until 3 clean-room seats (Codex GPT 6.1 Sol + 2 Claude) find nothing two rounds in a row. Jake sees only the decisions that need him |
 | **Scope** | ENGINE-FIT folded in. Nine Dragon's own audio. Save safety + session health. Input actions. Delete dead + dev copies. Live scripts kept, the rest deleted. The permanent gate. The template shard + docs + shard 5 by a fresh agent. Doors kept open for multiplayer and seamless travel |
