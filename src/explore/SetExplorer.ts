@@ -280,12 +280,15 @@ export class SetExplorer implements ExplorePane {
     if (vol) {
       this.framed.set(new THREE.Vector3(vol.centre.x - vol.radius, vol.floor, vol.centre.z - vol.radius), new THREE.Vector3(vol.centre.x + vol.radius, top, vol.centre.z + vol.radius));
       const ring = (y: number, r: number): THREE.Vector3[] => Array.from({ length: 16 }, (_, k) => new THREE.Vector3(vol.centre.x + Math.cos((k / 16) * Math.PI * 2) * r, y, vol.centre.z + Math.sin((k / 16) * Math.PI * 2) * r));
-      this.framedPoints = [...ring(vol.floor, vol.radius), ...ring(vol.centre.y, vol.radius), ...ring(top, Number.isFinite(vol.dome) ? vol.radius * 0.3 : Math.hypot(set.bounds.max.x - set.bounds.min.x, set.bounds.max.z - set.bounds.min.z) / 2)];
+      // the disc (its rim top and bottom) and what rises from it: the dome's crown, a stacked circle's lid, else the set's top
+      const crown = Number.isFinite(vol.dome) ? vol.radius * 0.3 : Number.isFinite(vol.top) ? vol.radius : Math.hypot(set.bounds.max.x - set.bounds.min.x, set.bounds.max.z - set.bounds.min.z) / 2;
+      this.framedPoints = [...ring(vol.floor, vol.radius), ...ring(vol.centre.y, vol.radius), ...ring(top, crown)];
     } else { this.framed.copy(set.bounds); this.framedPoints = null; }
     // the view: from the lit side (the camera between the sun and the set, a little off-axis), fitted to the screen above the sheet
     this.framed.getCenter(this.centre);
     const sun = this.world.game.sky.sunDir;
-    this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = this.pitch0(); this.idle = 0;
+    // (a diorama cuts the towers away, so every shard's is seen from the same 3/4 aerial; the whole world, steeper on a stacked one)
+    this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = vol ? PITCH : this.pitch0(); this.idle = 0;
     this.fit = 0;
     this.refit();
     this.dist = this.fit;
