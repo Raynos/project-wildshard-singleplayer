@@ -1,13 +1,13 @@
 {
-  "hash": "8d463b7d1f1296c3",
+  "hash": "3772a1daa9211f4b",
   "version": 1,
   "res": 256,
   "size": 500,
   "seed": 1337,
-  "landscapeHash": 80138178,
-  "bytes": 537975,
+  "landscapeHash": 2407116310,
+  "bytes": 537984,
   "placement": {
-    "decisions": 108920,
+    "decisions": 108985,
     "counts": [
       6000,
       3750,
@@ -21,5 +21,5 @@
     -9,
     63.43809909193379
   ],
-  "bakedAt": "2026-09-26T06:04:13.187Z"
+  "bakedAt": "2026-09-30T06:57:08.712Z"
 }

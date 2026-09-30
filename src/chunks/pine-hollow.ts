@@ -14,7 +14,7 @@ import { TREE_SPECIES, type SpeciesWeights } from '../world/treeSpecies';
 import {
   SPAWN, CABIN_SITES, RIDGE, ridgeFootZ, LOOKOUT, ZIPLINE, POND, ISLET, WATERFALL, RIDGE_STREAM, CREEK, CREEK_BED, CREEK_BRIDGE,
   DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS, GRADED, PINE_HOLLOW_POIS,
-  nearestOnPolyline, creekBedAt, creekWaterAt,
+  BEAVER_POOL, nearestOnPolyline, creekBedAt, creekWaterAt, beaverPoolBed, inBeaverPool,
 } from './pineHollowLayout';
 import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
@@ -102,9 +102,10 @@ function landscape(x: number, z: number, noise: TerrainNoise): number {
   // the ridge-top stream that feeds the waterfall
   const st = nearestOnPolyline(RIDGE_STREAM, x, z);
   if (st.d < 5) h -= 1.6 * smoothstep(5, 1.5, st.d);
-  // the creek's gully: a flat bed and ~31° banks, carved after the pads so the hamlet's bank stays crisp
+  // the creek's gully: a flat bed and ~31° banks, carved after the pads so the hamlet's bank stays crisp; behind the dam it
+  // widens into the beaver pool's bowl (E322 F-L6: a mud flat each side of the channel, then a gentle bank)
   const c = nearestOnPolyline(CREEK, x, z);
-  const bank = creekBedAt(c.s) + Math.max(0, c.d - CREEK_BED.half) * CREEK_BED.bank;
+  const bank = Math.min(creekBedAt(c.s) + Math.max(0, c.d - CREEK_BED.half) * CREEK_BED.bank, beaverPoolBed(c.s, c.d));
   if (bank < h + 2) h = smin(h, bank, 1.5);
   return h;
 }
@@ -145,7 +146,9 @@ const TERRAIN = buildTerrain(1337, {
       + smoothstep(LOOKOUT.r + 2, LOOKOUT.r - 2, Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z)) * 0.6
       + smoothstep(DEN.r, DEN.r - 14, Math.hypot(x - DEN.x, z - DEN.z)) * 0.45;
     // the pond's bare shore is a narrow band at the water (PH-L1 round 3: it was a 10 m gravel apron up the bank)
-    const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + t.cabinMask(x, z) * 0.3 + smoothstep(0.62, 0.88, t.pondMask(x, z)) * 0.7 + pads;
+    // the beaver pool's bed (E322 F-L6): bare mud below its full line, what the drained pool shows
+    const mud = inBeaverPool(x, z) ? smoothstep(BEAVER_POOL.full + 0.35, BEAVER_POOL.full - 0.05, h) * 0.95 : 0;
+    const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + t.cabinMask(x, z) * 0.3 + smoothstep(0.62, 0.88, t.pondMask(x, z)) * 0.7 + pads + mud;
     const grassN = n.fbm(x * 0.012 + 50, z * 0.012, 4);
     const clearing = smoothstep(KINGS_CLEARING.blend, KINGS_CLEARING.r - 6, Math.hypot(x - KINGS_CLEARING.x, z - KINGS_CLEARING.z));
     const grass = Math.max(smoothstep(-0.05, 0.35, grassN) * smoothstep(0.25, 0.08, slope) * (1 - smoothstep(2, 10, h) * 0.5) * (1 - og * 0.7), clearing * 0.9);
@@ -323,4 +326,6 @@ export const PINE_HOLLOW: ChunkDef = {
     curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25, ambient: 1.3, sky: 1.18,
   },
   spawn: SPAWN,
+  // the beaver pool behind the dam draws its own water (src/world/BeaverPool.ts): it drains when the sluice opens
+  pondClip: inBeaverPool,
 };

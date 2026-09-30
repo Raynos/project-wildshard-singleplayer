@@ -6,6 +6,7 @@ import { Noise2D } from '../core/noise';
 import { SEED } from '../core/config';
 import { createWaterMaterial, buildSkyline } from './waterSurface';
 import { patchWindField } from './wind';
+import { getActiveChunk } from '../chunks/registry';
 import type { TreeInstance } from './placement';
 
 // ── the lily pads ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -103,6 +104,13 @@ function buildLilies(sky: Sky): THREE.Mesh | null {
   return mesh;
 }
 
+/** the pond surface's grid: a square `half` m round the pond's centre in `segs` cells a side (a body that meets the pond
+ *  across a `pondClip` lays its cells on the same grid) */
+export function pondGrid(): { half: number; segs: number; cell: number; x0: number; z0: number } {
+  const half = POND.r + 15, segs = 128;
+  return { half, segs, cell: (half * 2) / segs, x0: POND.x - half, z0: POND.z - half };
+}
+
 /**
  * The still pond (PH-L9, the user's pick PH-U28). `group` holds the surface (`mesh`) and the lily pads.
  *
@@ -130,7 +138,7 @@ export class Water {
   }
 
   private buildProbe(): THREE.Mesh {
-    const wl = waterLevel(), half = POND.r + 15, segs = 128;
+    const wl = waterLevel(), { half, segs } = pondGrid();
     const skyline = buildSkyline(POND.x, POND.z, wl, this.trees, heightAt);
     const { material } = createWaterMaterial(this.sky, { skyline: { tex: skyline, x: POND.x, z: POND.z, level: wl } });
     const n = segs + 1, pos = new Float32Array(n * n * 3), uv = new Float32Array(n * n * 2), aw = new Float32Array(n * n * 4);
@@ -147,9 +155,13 @@ export class Water {
     }
     const idx: number[] = [];
     const dry = (k: number): boolean => (depth[k] ?? 0) < -0.45;
+    // another water body's reach inside the square (Pine Hollow's beaver pool, E322 F-L6), by each cell's centre: that body
+    // draws the complementary cells on this same grid (src/world/BeaverPool.ts), so the two meet with no gap or overlap
+    const clip = getActiveChunk().pondClip, cell = (half * 2) / segs;
     for (let j = 0; j < segs; j++) for (let i = 0; i < segs; i++) {
       const a = j * n + i, b = a + 1, c = a + n, d = c + 1;
       if (dry(a) && dry(b) && dry(c) && dry(d)) continue; // under the bank everywhere: never seen
+      if (clip?.(POND.x - half + (i + 0.5) * cell, POND.z - half + (j + 0.5) * cell)) continue;
       idx.push(a, c, b, b, c, d);
     }
     const geo = new THREE.BufferGeometry();

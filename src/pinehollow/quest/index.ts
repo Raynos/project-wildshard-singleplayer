@@ -61,6 +61,7 @@ import { NightThralls, isThrall } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
 import { markUnload } from '../../boot/lastEnd';
+import { BeaverPool } from '../../world/BeaverPool';
 
 export interface PineQuestHost {
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
@@ -151,6 +152,13 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   });
   const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
   game.onUpdate((dt, t) => { kit.update(dt, t); }, 'quest.kit');
+
+  // ── the beaver pool behind the dam (E322 F-L6): the sluice's flag drains it, and a reload with it open starts drained ──
+  const pool = new BeaverPool(sky).build();
+  game.scene.add(pool.group);
+  pool.setOpen(flags.has('open:dam-sluice'), true);
+  flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); });
+  game.onUpdate((dt) => { pool.update(dt); }, 'quest.pool');
 
   // ── the counters, the toasts ──
   const chip = new CountChip();

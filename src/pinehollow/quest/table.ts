@@ -3,7 +3,8 @@
  * validated by `validateTable` (test/pine-quest.test.ts), built by `Interactables`, read by the quest through flags.
  *
  *   THE POND PUZZLE (beat 2): two logs jam the beaver dam's sluice (a lever on each bank: "Heave the log off the sluice");
- *     with both off the sluice gate lifts on its own and latches (`open:dam-sluice`), the beaver pool drains through it,
+ *     with both off the sluice gate lifts on its own and latches (`open:dam-sluice`), the beaver pool drains through it
+ *     (src/world/BeaverPool.ts, wired in ./index.ts; the pool's bowl: BEAVER_POOL in the layout),
  *     and the pond lantern's glass washes out onto the gravel bank below the dam (`taken:pond-glass`).
  *   THE RIDGE (beat 3): the fire-watcher's flint on the fire finder in the lookout's cab (`taken:ridge-flint`).
  *   COLLECTIBLES (PH-U22): 30 amber resin drops (walk into one: `resin:<n>`, an Amber resin in the pack) snapped onto the

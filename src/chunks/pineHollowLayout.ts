@@ -79,10 +79,29 @@ export const CREEK: XZ[] = [
   [-118, 92], [-130, 76], [-138, 64], [-146, 38], [-151, 6], [-156, -24], [-170, -58], [-184, -92], [-192, -122],
   [-197, -150], [-204, -186], [-212, -220], [-218, -250],
 ];
-/** the beaver dam: a sill at the pond's water line where the outlet leaves the pond (index into CREEK) */
+/** the beaver dam: across the creek where it leaves the pond's water square, its sluice at the bed (index into CREEK) */
 export const BEAVER_DAM = { x: -138, z: 64, at: 2 };
-/** creek bed: half-width of the flat bed, bank slope (rise / run, ~31°), bed height at the outlet and at the south edge */
-export const CREEK_BED = { half: 2.6, bank: 0.6, outlet: POND.level - 0.45, sill: POND.level + 0.2, afterDam: POND.level - 1.0, edge: -9 };
+/**
+ * The beaver pool (E322 F-L6, Jake's pick "Local pool"): the dam's own small pool on the creek between a gravel riffle at
+ * the pond's outlet and the dam. Full, the dam backs it up to the pond's level (one sheet of water over the riffle); with
+ * the sluice open (`open:dam-sluice`) it drains to a muddy bed, the pond's outflow a trickle over the riffle, down the bed
+ * and out through the sluice. The pond (its level, the canoe, the islet) is untouched: the riffle's crest holds it.
+ * Arc lengths on CREEK: the riffle's crest `riffle`, the pool's middle `centre` ± `half`. Across: a mud flat `width` m
+ * each side at the middle (narrowing to the ends, rising `flat` per m), then a bank rising `bank` per m. Heights: the bed
+ * at the riffle's crest `crest`, `bed` where the riffle's back slope ends (`riffle` + `slope`), the sluice's floor =
+ * CREEK_BED.sill; the water `full` → `drained` (the thin film left in the channel before the sluice).
+ */
+export const BEAVER_POOL = {
+  riffle: 16, slope: 7, centre: 24.5, half: 8.5, width: 5.5, flat: 0.08, bank: 0.4,
+  crest: POND.level - 0.05, bed: POND.level - 0.62, full: POND.level, drained: POND.level - 0.68,
+};
+/** the pool's water level now: `full` until the sluice opens, then falling to `drained` (src/world/BeaverPool.ts sets it
+ *  from the quest flag, so a reload with the sluice open starts drained). The one piece of run-time state in this file:
+ *  the creek's `streamAt` (wading, swimming, the animals' dry test) reads it. */
+export const beaverPoolLevel = { y: BEAVER_POOL.full };
+/** creek bed: half-width of the flat bed, bank slope (rise / run, ~31°), bed height at the outlet, the sluice's floor under
+ *  the dam (the pool drains to it), the toe below the dam and the south edge */
+export const CREEK_BED = { half: 2.6, bank: 0.6, outlet: POND.level - 0.45, sill: POND.level - 0.8, afterDam: POND.level - 1.3, edge: -9 };
 /** the E road's footbridge over the creek */
 export const CREEK_BRIDGE = { x: -151, z: -3 };
 
@@ -208,9 +227,11 @@ export function arcTo(poly: readonly XZ[], i: number): number {
 
 /** the creek's bed height at arc length `s` from the outlet: level in the outlet, the dam's sill, then a steady fall */
 export function creekBedAt(s: number): number {
-  const sDam = arcTo(CREEK, BEAVER_DAM.at), sEnd = arcTo(CREEK, CREEK.length - 1);
-  if (s <= sDam - 4) return CREEK_BED.outlet;
-  if (s <= sDam) return CREEK_BED.outlet + (CREEK_BED.sill - CREEK_BED.outlet) * ((s - sDam + 4) / 4);
+  const sDam = arcTo(CREEK, BEAVER_DAM.at), sEnd = arcTo(CREEK, CREEK.length - 1), P = BEAVER_POOL, rEnd = P.riffle + P.slope;
+  if (s <= P.riffle - 4) return CREEK_BED.outlet;
+  if (s <= P.riffle) return CREEK_BED.outlet + (P.crest - CREEK_BED.outlet) * ((s - P.riffle + 4) / 4);   // up the riffle
+  if (s <= rEnd) return P.crest + (P.bed - P.crest) * ((s - P.riffle) / P.slope);                         // down into the pool
+  if (s <= sDam) return P.bed + (CREEK_BED.sill - P.bed) * ((s - rEnd) / (sDam - rEnd));                   // on to the sluice
   if (s <= sDam + 3) return CREEK_BED.sill + (CREEK_BED.afterDam - CREEK_BED.sill) * ((s - sDam) / 3);
   return CREEK_BED.afterDam + (CREEK_BED.edge - CREEK_BED.afterDam) * ((s - sDam - 3) / (sEnd - sDam - 3));
 }
@@ -224,20 +245,23 @@ export function ziplineAt(t: number, lookoutGround: number, landingGround: numbe
 // ── the water on the creek (PH-L9) ──────────────────────────────────────────────────────────────────────────────────
 /*
  * The creek's water surface, flow and foam along its arc length `s`, for the ribbon PineStreams.ts draws and for the
- * player / animals (`streamAt` in the terrain: wading, the dry-ground test). Upstream of the dam's crest the outlet is the
- * pond (its level); over the crest a thin sheet spills, down the dam's face it runs fast and white, and from the toe it is
- * a clear 0.45 m run falling with the bed. The surface never rises downstream (the max of two falling profiles).
+ * player / animals (`streamAt` in the terrain: wading, the dry-ground test). Upstream of the riffle the outlet is the
+ * pond (its level), then the beaver pool to the dam (BEAVER_POOL: its own mesh, src/world/BeaverPool.ts); through the
+ * sluice a thin sheet runs, down the dam's face it runs fast and white, and from the toe it is a clear 0.45 m run falling
+ * with the bed. The surface never rises downstream (the max of two falling profiles).
  */
 /** depth over the bed in the run, the sheet over the crest, flow speeds (m/s) in the run / down the dam's face, how far
  *  before the crest the ribbon starts, and the half-width of the wetted strip the physics asks about */
-export const CREEK_WATER = { depth: 0.45, crest: 0.1, run: 0.55, dam: 2.4, lead: 1.5, halfWidth: 6 };
+export const CREEK_WATER = { depth: 0.45, crest: 0.1, run: 0.55, dam: 2.4, lead: 1.0, halfWidth: 6 };
 const S_DAM = arcTo(CREEK, BEAVER_DAM.at), S_END = arcTo(CREEK, CREEK.length - 1);
 /** the dam's crest and the creek's end (arc lengths) */
 export function creekSpan(): { dam: number; end: number } { return { dam: S_DAM, end: S_END }; }
 const sstep = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
-/** the creek's water surface at arc length `s` */
+/** the creek's water surface at arc length `s`: the pond's level to the riffle, then the beaver pool's (or, drained, the
+ *  trickle a few cm over its bed) to the dam */
 export function creekSurfaceAt(s: number): number {
-  if (s < S_DAM - CREEK_WATER.lead) return POND.level;
+  if (s < BEAVER_POOL.riffle) return POND.level;
+  if (s < S_DAM - CREEK_WATER.lead) return Math.max(beaverPoolLevel.y, creekBedAt(s) + 0.05);
   if (s <= S_DAM) return creekBedAt(s) + CREEK_WATER.crest;
   const run = CREEK_BED.afterDam + (CREEK_BED.edge - CREEK_BED.afterDam) * ((s - S_DAM - 3) / (S_END - S_DAM - 3)) + CREEK_WATER.depth;
   return Math.max(creekBedAt(s) + CREEK_WATER.crest, run);
@@ -251,6 +275,19 @@ export function creekFoamAt(s: number): number {
   const face = sstep(S_DAM - 0.6, S_DAM + 0.4, s) * (1 - sstep(S_DAM + 2.5, S_DAM + 5, s));
   const tail = sstep(S_DAM, S_DAM + 1, s) * (1 - sstep(S_DAM + 3, S_DAM + 14, s));
   return Math.max(0.06, 0.72 * face, 0.3 * tail);
+}
+// ── the beaver pool (E322 F-L6) ──────────────────────────────────────────────────────────────────────────────────────
+/** the pool's bowl at arc length `s`, `d` m off the creek's line (Infinity outside it): the terrain carves it after the gully */
+export function beaverPoolBed(s: number, d: number): number {
+  const P = BEAVER_POOL, u = (s - P.centre) / P.half;
+  if (Math.abs(u) >= 1) return Infinity;
+  const w = P.width * Math.sqrt(1 - u * u);
+  return creekBedAt(s) + P.flat * Math.min(d, w) + P.bank * Math.max(0, d - w);
+}
+/** the pool's reach, riffle crest to the dam's upstream face (the pond's surface mesh leaves it to the pool's own) */
+export function inBeaverPool(x: number, z: number): boolean {
+  const n = nearestOnPolyline(CREEK, x, z);
+  return n.d < 12 && n.s >= BEAVER_POOL.riffle && n.s <= S_DAM - CREEK_WATER.lead;
 }
 /** the running water's surface at (x, z), or null off the creek: the terrain's `streamAt` (wading, the dry test) */
 export function creekWaterAt(x: number, z: number): number | null {

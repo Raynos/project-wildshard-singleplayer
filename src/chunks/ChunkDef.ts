@@ -580,6 +580,9 @@ export interface ChunkDef {
   surfaceAt?: (x: number, z: number, h: number, slope: number) => [number, number, number];
   /** open water over the whole shard; omitted = dry land with an optional pond */
   ocean?: OceanDef;
+  /** where the pond's surface mesh (src/world/Water.ts) leaves out water inside its square — another body draws its own
+   *  there (Pine Hollow: the beaver pool, E322 F-L6); omitted = none */
+  pondClip?: (x: number, z: number) => boolean;
   /** what the minimap and the full map draw of the built world (E130); omitted = ground, trails and the def's own features only */
   map?: ChunkMapDef;
   /** named places — Explore World's mini map pins them and flies to them (src/explore/MiniMap.ts); omitted = none */
