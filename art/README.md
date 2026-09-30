@@ -592,3 +592,10 @@ stone lamp post (× 28), and the paifang (× 4, every gate's posts now its own c
 and on the balustrade. `e345-view-in-world-taps.jpg` (E345, `79c7232f`): VIEW IN WORLD's landing on the three models whose centre tap
 missed (Pine Hollow's stone fire pit and flint & steel, Nine Dragon's scooter), before (ba78a6e6) / after, what the tap
 selected, and each shard's score (`scripts/explore-view-taps.mjs`).
+
+### Migration leftover E347 (`art/models-audit/round-14-leftovers/`, 2026-09-30)
+
+Evidence, not a pick (real builds, iPhone portrait, phone tier). `e347-homestead-before-after.jpg` (E347, `f0b24872`):
+Pine Hollow's homestead and the mill hamlet before (src/world/Cabin.ts merging across buildings) / after (`place()`'s
+weld: one draw per shared material across the buildings, the detail and far parts dropped by distance per copy, the
+props instanced across buildings); identical census, colliders and Model Explorer sheets, GPU within ±0.06 ms a pose.
