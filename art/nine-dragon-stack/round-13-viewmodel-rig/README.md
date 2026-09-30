@@ -173,13 +173,20 @@ arms.update(dt, { speed, walkPhase: player.bobTime, lookVel, gravity: (0, −cos
 
 ## How to rebuild
 
+The sources moved to `scripts/blender/nine-dragon-stack/viewmodel/` (M10, E315):
+- the Blender part scripts, restored from `7a339ed2^` with this round's hand edits;
+- the rig bake (`rig/`), recovered from the session transcripts.
+
+Its README has the full re-derivation. `fp-rig.glb` is the only complete copy of the rig.
+
 1. The hand (only if the model changes):
-   `blender -b --factory-startup --python src/dev/nd-lab/viewmodel/blender/hand.py -- --out public/assets/nine-dragon/lab/viewmodel --scratch <dir>`.
-   Then re-make its hull proxy: `gltf-transform simplify hand-r.glb bake/hand-r-hull.glb --ratio 0.3`.
+   `blender -b --factory-startup --python scripts/blender/nine-dragon-stack/viewmodel/hand.py -- --out <lab>/public/assets/nine-dragon/lab/viewmodel --scratch <dir>`.
+   Then re-make its hull proxy: `gltf-transform simplify hand-r.glb bake/hand-r-hull.glb --ratio 0.3 --error 0.004`.
    **A stale proxy draws the old hand's silhouette in black**: it happened once this round.
-2. The bake. The lab page's `__ndVm.bake()` builds the rig from the part GLBs and exports the GLB (`rigbake.mjs` writes
-   it). Then run `pnpm exec gltf-transform meshopt fp-rig.raw.glb public/.../fp-rig.glb --level medium`.
-3. The gate: `riggate.mjs gate.json`, then `gate_chart.py gate.json rig-gate.jpg`.
+2. The bake. The lab page's `__ndVm.bake()` (`rig/bake.ts.txt`) builds the rig from the part GLBs and exports the GLB
+   (`rig/rigbake.mjs` writes it). Then run `pnpm exec gltf-transform meshopt fp-rig.raw.glb public/.../fp-rig.glb --level medium`.
+3. The gate: `rig/riggate.mjs gate.json`, then `rig/gate_chart.py gate.json rig-gate.jpg`. `rig/check-clips.mjs` checks the
+   clips in the committed GLB against `moves.ts`.
 
 ## Not done / next
 

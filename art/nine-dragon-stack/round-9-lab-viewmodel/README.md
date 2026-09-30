@@ -5,6 +5,7 @@ the arms — just like absolutely everything, pumped to the max." P8 owns everyt
 rest and in melee. The Fei Zhua's firing (claw deploy, line, zip, impact) is the sibling lab P9's.
 
 - Page: `dev/nd-lab-viewmodel.html`. Code: `src/dev/nd-lab/viewmodel/`. Blender scripts: `src/dev/nd-lab/viewmodel/blender/`.
+  The lab was deleted in `7a339ed2`; its Blender scripts now live in `scripts/blender/nine-dragon-stack/viewmodel/` (M10).
 - Assets: `public/assets/nine-dragon/lab/viewmodel/`, 4.1 MB of GLBs and WebP maps. `plates/` adds 1.4 MB of lab-only
   backdrops; don't integrate those.
 - The page draws the viewmodel over a **plate**: a clean-room capture with the weapon off, `plates/<shot>-plate.jpg`, taken
@@ -169,7 +170,7 @@ Measured at 1206×2622 on the M5 Max (Metal), with `bench(120)`, median of 3.
    - The halo and trail blend colour only.
    - **Don't raise `JIAN.emit` above ~1.5** (an HDR peak of ~2.5), or the clean room's bloom greys the blade (Learning 5).
 6. **Rebuilding the assets.**
-   - `blender -b --factory-startup --python src/dev/nd-lab/viewmodel/blender/guard.py -- <out> --clip 0.27`, then
+   - `blender -b --factory-startup --python scripts/blender/nine-dragon-stack/viewmodel/guard.py -- <out> --clip 0.27`, then
      `pnpm exec gltf-transform meshopt`.
    - `hand.py -- --out <dir> --scratch <dir>`.
    - `gauntlet.py -- <scratch>`, then `gauntlet_maps.py <scratch>`.

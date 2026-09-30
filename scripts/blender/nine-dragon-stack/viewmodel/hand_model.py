@@ -23,28 +23,35 @@ def psi_of(p):
     return np.arctan2(-p[2], p[0]) / D2R
 
 
-def walk(start, lens, radii, rg, sign=1.0, y_drift=0.0):
+def walk(start, lens, radii, rg, sign=1.0, y_drift=0.0, zc=0.0, cb=1.0, p1_dy=0.0):
     """
-    Wrap a digit round the grip: each phalanx leaves its joint along the tangent to the circle it may not enter
-    (rg + its radius), toward increasing ψ (sign +1) or decreasing (−1). Returns the joint points (len(lens)+1).
+    Wrap a digit round the grip: each phalanx leaves its joint along the tangent to the curve it may not enter (the
+    points of its plane at rg + its radius from the grip axis), toward increasing ψ (sign +1) or decreasing (−1).
+    The grip may be tilted in the palm plane (about +X, cos = cb): the plane then cuts it in an ellipse centred at
+    z = zc, semi-axes R (x) and R / cb (z). The walk runs in the scaled space z' = cb (z − zc), where it is a circle
+    (tangency survives the affine map); the steps are taken at true length. Returns the joint points.
     """
     pts = [start.copy()]
     for i, L in enumerate(lens):
         p = pts[-1]
         r_seg = 0.5 * (radii[i] + radii[i + 1])
         rc = rg + r_seg + 0.0003
-        q = v3(p[0], 0.0, p[2])
+        q = v3(p[0], 0.0, cb * (p[2] - zc))
         rho = np.linalg.norm(q)
         ap = psi_of(q)
         if rho > rc + 1e-5:
             at = ap + sign * np.arccos(rc / rho) / D2R
-            T = P(at, rc, 0.0)
-            d = norm(T - q)
+            Ts = P(at, rc, 0.0)
+            T = v3(Ts[0], 0.0, zc + Ts[2] / cb)
+            d = norm(T - v3(p[0], 0.0, p[2]))
         else:
             a = ap * D2R
-            d = sign * v3(-np.sin(a), 0.0, -np.cos(a))
-        nxt = q + d * L
-        nxt[1] = p[1] + y_drift
+            ts = sign * v3(-np.sin(a), 0.0, -np.cos(a))
+            d = norm(v3(ts[0], 0.0, ts[2] / cb))
+        dy = p1_dy if i == 0 else y_drift
+        L_xz = np.sqrt(max(L * L - dy * dy, (0.35 * L) ** 2))
+        nxt = v3(p[0], 0.0, p[2]) + d * L_xz
+        nxt[1] = p[1] + dy
         pts.append(nxt)
     return pts
 
@@ -63,25 +70,38 @@ FINGERS = [
 class Hand:
     """the right fist round a grip of radius rg on the Y axis (hand frame); `grip=False` = a loose empty fist"""
 
-    def __init__(self, rg=0.019, grip=True, curl=1.0, mcp_in=0.0):
+    def __init__(self, rg=0.019, grip=True, curl=1.0, mcp_in=0.0, tilt=0.0, pivot=-0.1315, mcp_shift=None):
+        """
+        tilt (rad): the grip crosses the palm diagonally — its axis turned about +X (the back-of-hand normal) from +Y
+        toward −Z (distal), through (0, pivot, 0). 0 = the old hammer grip (grip ⊥ the metacarpals).
+        """
         self.rg = rg
         self.grip = grip
+        self.tilt = tilt
+        self.cb, self.sb = np.cos(tilt), np.sin(tilt)
+        self.C = v3(0.0, pivot, 0.0)
+        self.g = v3(0.0, self.cb, -self.sb)
+        self.k = v3(0.0, self.sb, self.cb)
         self.fingers = []
-        for f in FINGERS:
+        for i, f in enumerate(FINGERS):
             mcp = P(f['psi'], f['rm'] - mcp_in, f['y'])
-            joints = walk(mcp, f['L'], f['r'], rg, +1.0, y_drift=0.0012 * curl)
-            self.fingers.append(dict(f, joints=joints, mcp=mcp))
+            if mcp_shift is not None:
+                mcp = mcp + np.asarray(mcp_shift[i], dtype=np.float64)
+            zc = self.zc(f['y'])
+            joints = walk(mcp, f['L'], f['r'], rg, +1.0, y_drift=0.0012 * curl, zc=zc, cb=self.cb)
+            self.fingers.append(dict(f, joints=joints, mcp=mcp, zc=zc))
         # the wrist and the carpal row (the metacarpals converge toward the wrist, which sits lower: the grip crosses
         # the palm diagonally, so the wrist only needs ~18° of ulnar deviation to the forearm)
         self.W = v3(0.017, -0.199, 0.066)
         self.carpals = [v3(0.031, -0.184 + dy, 0.047) for dy in (0.0095, 0.0032, -0.0032, -0.0095)]
         # the thumb: CMC deep in the thenar, MCP at the back-right, the proximal phalanx across the back of the grip,
         # the distal phalanx lying ON the index finger's middle / distal phalanges at the left-back (a hammer grip)
-        self.t_cmc = v3(0.026, -0.160, 0.052)
-        self.t_mcp = v3(0.010, -0.1245, 0.0405)
-        ip = P(-128.0, 0.0342 - (0.019 - rg), -0.1215)
-        tip = P(190.0, 0.0410 - (0.019 - rg), -0.1255)
+        self.t_cmc = v3(0.026, -0.160, 0.052 + 0.35 * self.zc(-0.160))
+        self.t_mcp = v3(0.010, -0.1245, 0.0405 + self.zc(-0.1245))
+        ip = P(-128.0, 0.0342 - (0.019 - rg), -0.1215) + v3(0, 0, self.zc(-0.1215))
+        tip = P(190.0, 0.0410 - (0.019 - rg), -0.1255) + v3(0, 0, self.zc(-0.1255))
         self.t_joints = [self.t_mcp, ip, tip]
+        self.carp_c = v3(0.024, -0.188, 0.055)
         # the forearm direction in the hand frame (JIAN d rotated back: (0, −0.655, 0.756))
         self.fore = norm(v3(0.0, -0.655, 0.756))
         # knuckle strip: across the MCP heads, its band direction ≈ the finger direction at the MCP
@@ -91,28 +111,37 @@ class Hand:
     def knuckle_head(self, f):
         """the outer apex of the MCP knuckle (radially out from the grip axis)"""
         m = f['mcp']
-        out = norm(v3(m[0], 0.0, m[2]))
-        return m + out * (f['r'][0] + 0.0012)
+        return m + self.out_dir(m) * (f['r'][0] + 0.0012)
+
+    def out_dir(self, pt):
+        """unit vector from the grip axis out to pt (perpendicular to the axis)"""
+        rel = pt - self.C
+        return norm(rel - self.g * (rel @ self.g))
+
+    def axis_dist(self, pt):
+        rel = pt - self.C
+        return float(np.linalg.norm(rel - self.g * (rel @ self.g)))
 
     # ─── the body ───
     def finger_sdf(self, p, f):
         J = f['joints']
         r = f['r']
         # flatten the finger dorsal-palmar (radially about the grip axis) so the fist's finger band reads flat-fronted
-        rc = 0.5 * (np.hypot(J[1][0], J[1][2]) + np.hypot(J[2][0], J[2][2]))
-        rho = np.maximum(np.hypot(p[:, 0], p[:, 2]), 1e-9)
+        rc = 0.5 * (self.axis_dist(J[1]) + self.axis_dist(J[2]))
+        rel = p - self.C
+        foot = np.outer(rel @ self.g, self.g)
+        perp = rel - foot
+        rho = np.maximum(np.linalg.norm(perp, axis=1), 1e-9)
         k = 0.8
         rho2 = rc + (rho - rc) / k
-        q = p.copy()
-        q[:, 0] = p[:, 0] * rho2 / rho
-        q[:, 2] = p[:, 2] * rho2 / rho
+        q = self.C + foot + perp * (rho2 / rho)[:, None]
         d = None
         for i in range(3):
             seg = sd_round_cone(q, J[i], J[i + 1], r[i], r[i + 1])
             d = seg if d is None else smin(d, seg, 0.005)
         # the PIP / DIP knuckle caps: a bony bump on the outside of each bend (0.5 mm proud)
         for i, (sz, off) in ((1, (0.62, 0.45)), (2, (0.55, 0.47))):
-            out = norm(v3(J[i][0], 0.0, J[i][2]))
+            out = self.out_dir(J[i])
             d = smin(d, sd_sphere(q, J[i] + out * r[i] * off, r[i] * sz), 0.0035)
         return d * (0.5 + 0.5 * k)
 
@@ -121,19 +150,21 @@ class Hand:
         for f, c in zip(self.fingers, self.carpals):
             m = f['mcp']
             meta = sd_round_cone(p, c, m, 0.0098, f['r'][0] * 0.98)
-            out = norm(v3(m[0], 0.0, m[2]))
+            out = self.out_dir(m)
             head = sd_sphere(p, m + out * 0.0010, f['r'][0] * 1.0)
             meta = smin(meta, head, 0.004)
             d = meta if d is None else smin(d, meta, 0.007)
-        # palm pad between the metacarpals and the grip (the grip is subtracted afterward)
-        pad = sd_round_cone(p, v3(0.020, -0.128, 0.020), v3(0.020, -0.200, 0.024), 0.019, 0.019)
+        # palm pad between the metacarpals and the grip, laid along the grip (it is subtracted afterward): with a
+        # diagonal grip the pads follow the grip, the metacarpals / carpus / wrist stay with the hand
+        t_of = lambda y: (y - self.C[1]) / self.cb  # noqa: E731
+        pad = sd_round_cone(p, self.grip_point(t_of(-0.128), 0.020, 0.020), self.grip_point(t_of(-0.200), 0.020, 0.024), 0.019, 0.019)
         d = smin(d, pad, 0.01)
-        hypo = sd_ellipsoid(p, v3(0.013, -0.196, 0.030), np.eye(3), (0.017, 0.016, 0.02))
+        hypo = sd_ellipsoid(p, self.grip_point(t_of(-0.196), 0.013, 0.030), np.eye(3), (0.017, 0.016, 0.02))
         d = smin(d, hypo, 0.008)
-        thenar = sd_ellipsoid(p, v3(0.012, -0.137, 0.040), np.eye(3), (0.018, 0.019, 0.017))
+        thenar = sd_ellipsoid(p, v3(0.012, -0.137, 0.040 + 0.6 * self.zc(-0.137)), np.eye(3), (0.018, 0.019, 0.017))
         d = smin(d, thenar, 0.008)
         # the palm's floor behind the grip, where the fingertips press (ψ ≈ −100°…−130°)
-        floor = sd_round_cone(p, v3(-0.004, -0.140, 0.036), v3(0.000, -0.198, 0.036), 0.0125, 0.0125)
+        floor = sd_round_cone(p, self.grip_point(t_of(-0.140), -0.004, 0.036), self.grip_point(t_of(-0.198), 0.0, 0.036), 0.0125, 0.0125)
         d = smin(d, floor, 0.012)
         # the carpus and the wrist, flattened dorsal-palmar (X) — a gloved wrist ~56 × 40 mm
         wrist0 = self.W - self.fore * 0.012
@@ -143,7 +174,7 @@ class Hand:
         q[:, 0] = self.W[0] + (p[:, 0] - self.W[0]) / 0.72
         wr = sd_round_cone(q, wrist0, wrist1, 0.0275, 0.0265) * 0.72
         d = smin(d, wr, 0.012)
-        carp = sd_ellipsoid(p, v3(0.024, -0.188, 0.055), np.eye(3), (0.018, 0.028, 0.02))
+        carp = sd_ellipsoid(p, self.carp_c, np.eye(3), (0.018, 0.028, 0.02))
         d = smin(d, carp, 0.01)
         return d
 
@@ -159,8 +190,26 @@ class Hand:
             d = seg if d is None else smin(d, seg, 0.006)
         return d
 
+    def move_wrist(self, delta):
+        """move the wrist centre by delta, the carpus and the metacarpal bases with it (by half)"""
+        delta = np.asarray(delta, dtype=np.float64)
+        self.W = self.W + delta
+        self.carp_c = self.carp_c + delta * 0.6
+        self.carpals = [c + delta * 0.45 for c in self.carpals]
+
+    def zc(self, y):
+        """z of the grip axis in the plane Y = y"""
+        return -np.tan(self.tilt) * (y - self.C[1])
+
+    def grip_point(self, t, x=0.0, w=0.0):
+        """a point in the grip's own frame: t along the axis from the pivot, x toward the back of the hand, w along k"""
+        return self.C + self.g * t + v3(1.0, 0.0, 0.0) * x + self.k * w
+
     def grip_sdf(self, p):
-        return np.sqrt(p[:, 0] ** 2 + p[:, 2] ** 2) - self.rg
+        q = p - self.C
+        along = q @ self.g
+        perp = q - np.outer(along, self.g)
+        return np.linalg.norm(perp, axis=1) - self.rg
 
     def body_sdf(self, p, details=True, thumb_on=True):
         fingers = None
@@ -203,7 +252,7 @@ class Hand:
         # three 'points' on the back of the hand (decorative stitched lines from each finger valley to the wrist)
         for k in range(3):
             a = 0.5 * (self.fingers[k]['mcp'] + self.fingers[k + 1]['mcp'])
-            out = norm(v3(a[0], 0, a[2]))
+            out = self.out_dir(a)
             s0 = a + out * 0.012 + v3(0, 0, 0.012)
             s1 = self.carpals[k] * 0.5 + self.carpals[k + 1] * 0.5 + v3(0.012, 0, 0.0)
             lines.append(catmull([s0, 0.5 * (s0 + s1) + v3(0.004, 0, 0), s1], 8))
@@ -215,7 +264,7 @@ class Hand:
         for f in self.fingers:
             J = f['joints']
             t = norm(J[1] - J[0])
-            n = norm(v3(0.5 * (J[0][0] + J[1][0]), 0, 0.5 * (J[0][2] + J[1][2])))
+            n = self.out_dir(0.5 * (J[0] + J[1]))
             r = f['r'][1]
             for k, back in enumerate((0.0065, 0.0105)):
                 c = J[1] - t * back
@@ -270,13 +319,17 @@ class Hand:
     def strip_sdf(self, p, body):
         """a 2.2 mm pad over the MCP heads, 13 mm across, following the knuckles; `body` = the body SDF at p"""
         heads = self.k_line
-        d_line, _, _ = seg_dist(p, catmull([heads[0] + v3(0, 0.006, 0)] + list(heads) + [heads[-1] - v3(0, 0.006, 0)], 6))
+        rw = norm(heads[0] - heads[-1])
+        d_line, _, _ = seg_dist(p, catmull([heads[0] + rw * 0.006] + list(heads) + [heads[-1] - rw * 0.006], 6))
         # across-band axis ≈ the finger direction at the MCP (front-left), the band is |dot| < 6.5 mm
         mid = heads.mean(axis=0)
-        n_out = norm(v3(mid[0], 0, mid[2]))
-        t_across = norm(np.cross(v3(0, 1, 0), n_out))
+        n_out = self.out_dir(mid)
+        row = norm(heads[0] - heads[-1])
+        t_across = norm(np.cross(row, n_out))
         slab = np.abs((p - mid) @ t_across) - 0.0065
-        yb = np.maximum(p[:, 1] - (heads[0][1] + 0.0085), (heads[-1][1] - 0.0075) - p[:, 1])
+        s_row = (p - mid) @ row
+        half = 0.5 * float(np.linalg.norm(heads[0] - heads[-1]))
+        yb = np.maximum(s_row - (half + 0.0085), -(half + 0.0075) - s_row)
         d = smax(body - 0.0022, slab, 0.0014)
         d = smax(d, yb, 0.002)
         d = smax(d, d_line - 0.022, 0.002)
@@ -285,10 +338,98 @@ class Hand:
     def stud_points(self):
         """the 4 brass studs: (centre, outward normal) on the strip over each MCP head"""
         mid = self.k_line.mean(axis=0)
-        n_out = norm(v3(mid[0], 0, mid[2]))
+        n_out = self.out_dir(mid)
         out = []
         for h in self.k_line:
-            nh = norm(v3(h[0], 0, h[2]))
+            nh = self.out_dir(h)
             n = norm(nh * 0.7 + n_out * 0.3)
             out.append((h + n * 0.0026, n))
+        return out
+
+
+class DiagonalHand(Hand):
+    """
+    The jian grip of the first-person pose (lab P8 round 13): the grip crosses the palm DIAGONALLY, from the index MCP
+    to the heel, so the blade nearly continues the forearm. HAND frame as above (+Y the grip, +X the back of the hand);
+    the landmarks are set explicitly:
+    - the metacarpals lie in the back plane (X ≈ 0.034) along m = (0, cos α, −sin α), α = 22° off the grip;
+    - the knuckle row runs along r = X × m (the thumb side), i.e. round the grip: index MCP at ψ ≈ 4°, pinky ≈ 56°;
+    - each finger's proximal phalanx fans from its knuckle to its wrap plane (index y −0.126 … pinky −0.191), the rest
+      wraps the grip perpendicular to it (the tangent walk);
+    - the wrist W = middle MCP − 0.078 m sits ~3.5 cm off the grip axis on the back / ulnar side, above the pommel;
+    - the thumb comes off the thenar and wraps across the back of the grip onto the index finger.
+    """
+
+    ALPHA = np.radians(22.0)
+    MCP_MID = v3(0.034, -0.1435, -0.022)
+    ROW = ((0.020, -0.003), (0.0, 0.0), (-0.019, -0.004), (-0.036, -0.012))   # along r, along m from the middle MCP
+    WRAP_Y = (-0.126, -0.148, -0.170, -0.191)
+
+    def __init__(self, rg=0.019, fore=None):
+        self.rg = rg
+        self.grip = True
+        self.tilt = 0.0
+        self.cb, self.sb = 1.0, 0.0
+        self.C = v3(0.0, -0.1435, 0.0)
+        self.g = v3(0.0, 1.0, 0.0)
+        self.k = v3(0.0, 0.0, 1.0)
+        a = self.ALPHA
+        self.m = v3(0.0, np.cos(a), -np.sin(a))
+        self.r = v3(0.0, np.sin(a), np.cos(a))
+        self.fingers = []
+        for f, (dr, dm), yw in zip(FINGERS, self.ROW, self.WRAP_Y):
+            mcp = self.MCP_MID + self.r * dr + self.m * dm
+            joints = walk(mcp, f['L'], f['r'], rg, +1.0, y_drift=0.0008, p1_dy=yw - mcp[1])
+            self.fingers.append(dict(f, y=yw, joints=joints, mcp=mcp, zc=0.0))
+        self.W = self.MCP_MID - self.m * 0.078
+        self.carpals = [self.W + self.m * 0.02 + self.r * (dr * 0.55) + v3(-0.003, 0, 0) for dr, _ in self.ROW]
+        self.carp_c = self.W + self.m * 0.012 + v3(-0.008, 0, 0)
+        # the thumb: CMC in the thenar (radial side of the wrist), MCP behind the grip, the proximal phalanx across the
+        # back of the grip, the distal phalanx lying on the index finger's middle phalanx
+        self.t_cmc = self.W + self.r * 0.022 + self.m * 0.012 + v3(-0.006, 0, 0)
+        self.t_mcp = v3(0.017, -0.152, 0.034)
+        self.t_joints = [self.t_mcp, P(-116.0, 0.0335, -0.1335), P(190.0, 0.0365, -0.127)]
+        self.fore = fore if fore is not None else norm(v3(0.052, -0.99, -0.014))
+        self.k_line = np.array([self.knuckle_head(fg) for fg in self.fingers])
+
+    def palm_sdf(self, p):
+        d = None
+        for f, c in zip(self.fingers, self.carpals):
+            mc = f['mcp']
+            meta = sd_round_cone(p, c, mc, 0.0098, f['r'][0] * 0.98)
+            head = sd_sphere(p, mc + self.out_dir(mc) * 0.0010, f['r'][0] * 1.0)
+            meta = smin(meta, head, 0.004)
+            d = meta if d is None else smin(d, meta, 0.007)
+        # the palm between the metacarpals and the grip, down to the heel (the grip is subtracted afterward)
+        pad = sd_round_cone(p, v3(0.022, -0.128, 0.006), v3(0.024, -0.222, 0.012), 0.019, 0.02)
+        d = smin(d, pad, 0.01)
+        # the heel (hypothenar) that the pommel tucks against, and the thenar under the thumb
+        hypo = sd_ellipsoid(p, v3(0.022, -0.212, -0.004), np.eye(3), (0.018, 0.02, 0.02))
+        d = smin(d, hypo, 0.01)
+        thenar = sd_ellipsoid(p, self.t_cmc * 0.5 + self.t_mcp * 0.5 + v3(-0.004, 0, 0), np.eye(3), (0.017, 0.022, 0.016))
+        d = smin(d, thenar, 0.009)
+        # the palm's radial half wraps the back of the grip (ψ ≈ −50°…−100°) between the thenar and the heel: a flat
+        # pad, not a finger (the grip is subtracted, so its inside is the grip's own surface)
+        palm2 = sd_ellipsoid(p, v3(0.010, -0.168, 0.026), np.eye(3), (0.017, 0.036, 0.013))
+        d = smin(d, palm2, 0.012)
+        # the carpus and the wrist, flattened dorsal-palmar (X)
+        wrist0 = self.W - self.fore * 0.012
+        wrist1 = self.W + self.fore * 0.035
+        q = p.copy()
+        q[:, 0] = self.W[0] + (p[:, 0] - self.W[0]) / 0.72
+        wr = sd_round_cone(q, wrist0, wrist1, 0.0275, 0.0265) * 0.72
+        d = smin(d, wr, 0.012)
+        carp = sd_ellipsoid(p, self.carp_c, np.eye(3), (0.018, 0.026, 0.024))
+        d = smin(d, carp, 0.01)
+        return d
+
+    def seam_lines(self):
+        lines = super().seam_lines()
+        # the 'points' on the back of the hand run from the finger valleys toward the wrist along m
+        out = lines[:-3]
+        for kk in range(3):
+            a = 0.5 * (self.fingers[kk]['mcp'] + self.fingers[kk + 1]['mcp'])
+            s0 = a + v3(0.012, 0, 0) - self.m * 0.012
+            s1 = a + v3(0.011, 0, 0) - self.m * 0.05
+            out.append(catmull([s0, 0.5 * (s0 + s1) + v3(0.002, 0, 0), s1], 8))
         return out

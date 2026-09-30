@@ -1,6 +1,6 @@
 # hand.py — lab P8 "viewmodel" (E169): the first-person gloved hands, built headless in Blender 5.2.
 #
-#   /opt/homebrew/bin/blender -b --factory-startup --python src/dev/nd-lab/viewmodel/blender/hand.py -- \
+#   /opt/homebrew/bin/blender -b --factory-startup --python scripts/blender/nine-dragon-stack/viewmodel/hand.py -- \
 #       --out public/assets/nine-dragon/lab/viewmodel --scratch <dir> [--only arm-r,hand-r,fist-l] [--voxel 0.0005]
 #       [--tex 1024] [--tag n] [--no-export]
 #
@@ -36,7 +36,7 @@ from mathutils import Vector, Matrix  # noqa: E402
 
 import hand_lib as L  # noqa: E402
 import hand_parts as HP  # noqa: E402
-from hand_model import Hand  # noqa: E402
+from hand_model import Hand, DiagonalHand  # noqa: E402
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 ap = argparse.ArgumentParser()
@@ -507,10 +507,10 @@ def add_context_jian():
     X = lambda s: L.v3(1, 0, 0)  # noqa: E731
     Z = lambda s: L.v3(0, 0, 1)  # noqa: E731
     specs = [
-        ('ctx_grip', 'lacquer', lambda s, a: 0.0187, lambda s, a: 0.0187, np.linspace(-0.30, -0.06, 30), 48),
+        ('ctx_grip', 'lacquer', lambda s, a: 0.0186, lambda s, a: 0.0186, np.linspace(-0.24, -0.06, 30), 48),
         ('ctx_ring', 'brass', lambda s, a: 0.0196, lambda s, a: 0.0196, np.linspace(-0.104, -0.096, 3), 48),
         ('ctx_collar', 'brass', lambda s, a: 0.021, lambda s, a: 0.021, np.linspace(-0.06, 0.0, 4), 48),
-        ('ctx_pommel', 'brass', lambda s, a: 0.02 * (1 - 0.3 * abs(s + 0.325) / 0.025), lambda s, a: 0.02, np.linspace(-0.35, -0.30, 6), 48),
+        ('ctx_pommel', 'brass', lambda s, a: 0.016 * (1 - 0.25 * abs(s + 0.26) / 0.02), lambda s, a: 0.016 * (1 - 0.25 * abs(s + 0.26) / 0.02), np.linspace(-0.28, -0.24, 6), 48),
     ]
     for name, mat, rw, rt, ss, n in specs:
         v, f = L.tube(ax, X, Z, rw, rt, ss, n, closed_start=True, closed_end=True)
@@ -590,12 +590,77 @@ def render_eevee(path, cam, res=1024, toon=False):
 
 # ───────────────────────────── assets ─────────────────────────────
 
+# the round-13 pose (parent lab, 2026-09-26): a DIAGONAL jian grip — the grip crosses the palm from the index MCP to
+# the heel, so the blade nearly continues the forearm. The hand model's grip is tilted 40° about the back-of-hand normal
+# (the fingers wrap its elliptical sections), the wrist is moved out to the ulnar / dorsal side so the pommel tucks
+# against the heel, and HAND → JIAN puts the back of the hand on (0.8, 0, 0.6) and the grip on +y.
+F_JIAN = L.norm(L.v3(0.05, -0.99, 0.02))       # the forearm, wrist → elbow
+NB_JIAN = L.norm(L.v3(0.8, 0.0, 0.6))          # the back of the hand
+E_EYE = L.norm(L.v3(0.0, -0.64, 0.77))         # the camera direction from the guard (0.69 m)
+TILT = math.radians(40.0)
+PIVOT = -0.155
+MCP_SHIFT = [L.v3(0.0015, 0, -0.003), L.v3(0, 0, 0.003), L.v3(0, 0, 0.007), L.v3(0, 0, 0.012)]
+POMMEL = (-0.285, -0.238, 0.0172)              # JIAN y range and the clearance radius the cuff keeps from the grip axis
+
+
+def hand_r_frame(hand):
+    """HAND → JIAN: rotation R and the translation T applied before it (v_jian = R (v + T)); the hand frame's grip is
+    already the JIAN y axis, so R only turns the back of the hand onto NB_JIAN"""
+    R = np.stack([NB_JIAN, L.v3(0, 1, 0), np.cross(NB_JIAN, L.v3(0, 1, 0))], axis=1)
+    return R, L.v3(0, 0, 0)
+
+
 def hand_r_parts():
-    hand = Hand(rg=0.019, grip=True)
-    eye_h = R_HJ.T @ E_JIAN
-    parts = HP.glove_parts(hand, args.voxel, log, np.array([-0.052, -0.258, -0.052]), np.array([0.068, -0.086, 0.128]), 15500,
+    R, T = hand_r_frame(None)
+    hand = DiagonalHand(rg=0.019, fore=L.norm(R.T @ F_JIAN))
+    eye_h = L.norm(R.T @ E_EYE)
+    parts = HP.glove_parts(hand, args.voxel, log, np.array([-0.062, -0.262, -0.082]), np.array([0.075, -0.09, 0.075]), 15500,
                            cuff=dict(eye_h=eye_h))
-    return hand, parts
+    # the pommel presses into the cuff: keep every cuff vertex in the pommel's span ≥ POMMEL[2] from the grip axis
+    for p in parts:
+        if p['name'] not in ('cuff', 'trim', 'piping', 'strap', 'buckle'):
+            continue
+        for key in ('hv', 'lv'):
+            v = p[key]
+            dist = np.hypot(v[:, 0], v[:, 2])
+            m = (v[:, 1] > POMMEL[0]) & (v[:, 1] < POMMEL[1]) & (dist < POMMEL[2])
+            if m.any():
+                v = v.copy()
+                v[m, 0] *= POMMEL[2] / np.maximum(dist[m], 1e-9)
+                v[m, 2] *= POMMEL[2] / np.maximum(dist[m], 1e-9)
+                p[key] = v
+                log(f'  {p["name"]}.{key}: {int(m.sum())} verts pushed off the pommel')
+    return hand, parts, R, T
+
+
+def report_hand_r(hand, R, T):
+    J = lambda v: R @ (v + T)  # noqa: E731
+    W = J(hand.W)
+    f = R @ hand.fore
+    mid = J(hand.fingers[1]['mcp'])
+    m = L.norm(mid - W)
+    idx, pnk = J(hand.fingers[0]['mcp']), J(hand.fingers[3]['mcp'])
+    nb_meas = L.norm(np.cross(idx - W, pnk - W))
+    if nb_meas @ NB_JIAN < 0:
+        nb_meas = -nb_meas
+    X = R @ L.v3(1, 0, 0)
+    dev = math.degrees(math.atan2(np.cross(-f, m) @ X, -f @ m))
+    flex = math.degrees(math.asin(max(-1.0, min(1.0, m @ X - (-f) @ X))))
+    axis_off = W - L.v3(0, W[1], 0)
+    log(f'hand-r W (JIAN) {np.round(W, 4).tolist()}  |W off grip axis| {np.linalg.norm(axis_off) * 100:.1f} cm dir {np.round(L.norm(axis_off), 3).tolist()}')
+    log(f'  f {np.round(f, 4).tolist()}  long axis m (W→middle MCP) {np.round(m, 4).tolist()}  angle(m, −f) {math.degrees(math.acos(max(-1, min(1, m @ -f)))):.1f}° '
+        f'(deviation {dev:.1f}°, flexion {flex:.1f}°)  angle(f, −y) {math.degrees(math.acos(-f[1])):.1f}°')
+    log(f'  back of hand: construct {np.round(X, 4).tolist()}  measured (W, index MCP, pinky MCP plane) {np.round(nb_meas, 4).tolist()}')
+    fy = [float(J(0.5 * (fg['joints'][1] + fg['joints'][2]))[1]) for fg in hand.fingers]
+    log(f'  fingers (PIP–DIP mid) at JIAN y {np.round(fy, 3).tolist()}; thumb tip {np.round(J(hand.t_joints[-1]), 3).tolist()}')
+    # the sleeve frame from the cuff's own axes
+    a, w, t = HP.cuff_frame(hand)
+    A = W + (R @ a) * 0.035
+    y_s = -(R @ a)
+    z_s = R @ t
+    x_s = np.cross(y_s, z_s)
+    log(f'  arm-r attach: origin {np.round(A, 4).tolist()}  x {np.round(x_s, 4).tolist()} y {np.round(y_s, 4).tolist()} z {np.round(z_s, 4).tolist()}')
+    return A, x_s, y_s, z_s
 
 
 def fist_l_parts():
@@ -627,19 +692,13 @@ def main():
         low, imgs = build_asset('arm-r', parts, np.eye(3), tex=args.tex)
         built['arm-r'] = (low, imgs)
     if 'hand-r' in only:
-        hand, parts = hand_r_parts()
+        hand, parts, R_h, T_h = hand_r_parts()
         ctx = add_context_jian()  # the grip occludes the fingers' AO
-        low, imgs = build_asset('hand-r', parts, R_HJ, tex=args.tex)
+        low, imgs = build_asset('hand-r', parts, R_h, tex=args.tex)
         for o in ctx:
             o.hide_render = True
         built['hand-r'] = (low, imgs)
-        W_j = R_HJ @ hand.W
-        A_j = W_j + D_JIAN * 0.035
-        z_s = R_HJ @ L.v3(1, 0, 0)
-        y_s = -D_JIAN
-        x_s = np.cross(y_s, z_s)
-        log(f'hand-r wrist W (JIAN) = {np.round(W_j, 4).tolist()}; sleeve origin A = W + 0.035·d = {np.round(A_j, 4).tolist()}')
-        log(f'  sleeve axes in JIAN: x {np.round(x_s, 4).tolist()} y {np.round(y_s, 4).tolist()} z {np.round(z_s, 4).tolist()}')
+        A_j, x_s, y_s, z_s = report_hand_r(hand, R_h, T_h)
         if 'arm-r' in built:
             arm = built['arm-r'][0]
             M = np.eye(4)
@@ -665,19 +724,26 @@ def main():
         for o in bpy.context.scene.objects:
             if o.name.startswith('ctx_'):
                 o.hide_render = False
-        centre = R_HJ @ L.v3(0.015, -0.175, 0.02)
+        centre = L.v3(0.01, -0.19, 0.01)
+        up_eye = L.norm(L.v3(0, 1, 0) - E_EYE * E_EYE[1])
         for toon in (False, True):
             for nm, (low, imgs) in built.items():
                 if nm == 'fist-l':
                     continue
                 preview_material(low, {'maps': load_img(nm, 'maps'), 'nrm': load_img(nm, 'nrm')}, toon, nm)
-            cam = look_at_cam('cam_eye', centre, E_JIAN, UP_JIAN, 0.55, 85)
+            eye_pos = E_EYE * 0.69
+            d_eye = eye_pos - centre
+            cam = look_at_cam('cam_eye', centre, d_eye, up_eye, float(np.linalg.norm(d_eye)), 95)
             render_eevee(os.path.join(args.scratch, f'preview-{args.tag}-eye-{"toon" if toon else "pbr"}.png'), cam, toon=toon)
             if not toon:
-                cam2 = look_at_cam('cam_game', centre + R_HJ @ L.v3(0.0, 0.0, 0.05), E_JIAN, UP_JIAN, 0.9, 42)
+                cam2 = look_at_cam('cam_game', L.v3(0, 0.05, 0), eye_pos - L.v3(0, 0.05, 0), up_eye, float(np.linalg.norm(eye_pos - L.v3(0, 0.05, 0))), 45)
                 render_eevee(os.path.join(args.scratch, f'preview-{args.tag}-game.png'), cam2)
-                cam3 = look_at_cam('cam_front', centre, R_HJ @ L.v3(-0.6, 0.3, -0.75), np.array([0, 1.0, 0]), 0.5, 70)
-                render_eevee(os.path.join(args.scratch, f'preview-{args.tag}-front.png'), cam3)
+                cam3 = look_at_cam('cam_side', centre, L.v3(1.0, 0.05, 0.25), np.array([0, 1.0, 0]), 0.5, 60)
+                render_eevee(os.path.join(args.scratch, f'preview-{args.tag}-side.png'), cam3)
+                cam4 = look_at_cam('cam_under', centre, L.v3(-0.7, -0.2, -0.65), np.array([0, 1.0, 0]), 0.5, 60)
+                render_eevee(os.path.join(args.scratch, f'preview-{args.tag}-under.png'), cam4)
+                cam5 = look_at_cam('cam_left', centre, L.v3(-1.0, 0.05, 0.3), np.array([0, 1.0, 0]), 0.5, 60)
+                render_eevee(os.path.join(args.scratch, f'preview-{args.tag}-left.png'), cam5)
     if 'fist-l' in built:
         for o in bpy.context.scene.objects:
             if o.type == 'MESH':

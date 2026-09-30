@@ -1,0 +1,356 @@
+// The authored first-person motion (lab P8 "viewmodel", round 13, E169): every clip is authored as the path of the
+// WEAPON (right: the jian's JIAN frame; left: the Fei Zhua's GAUNTLET frame) in rig space, and the arms follow it
+// through rig.ts (two-bone IK, twist, wrist limits). Rotations are quaternions all the way (slerp; never per-axis Euler);
+// the hand point is interpolated, not the guard, so a turn of the blade pivots at the fist.
+//
+// A strike is an ARC: the whole weapon turned rigidly about one axis through the shoulder, so the blade sweeps one clean
+// plane and the fist stays at arm's length. Every segment runs on a minimum-jerk profile (10u³ − 15u⁴ + 6u⁵: zero
+// velocity and acceleration at both ends), so anticipation → strike → follow-through → recovery has no snap.
+//
+// Timing is the engine's (src/player/SwordMoves.ts): `windup` opens the blade's active window, `slashEnd` closes it (a
+// queued combo swing chains here), `total` is when the engine considers the swing done; the clip runs on to `duration`
+// (the settle back to rest) and fpArms crossfades out of it.
+import { Quaternion, Vector3 } from 'three';
+import { type ArmConst, GRIP, LEFT_HAND, LIMITS, type Pose, RIGHT_HAND, armConst, frameYZ, settleLeft, solveArm } from './rig';
+
+/** the engine's world camera (Sword.ts FOV_HIP 72°, Hor+ on portrait) */
+export function fovForAspect(base: number, aspect: number): number {
+  if (aspect >= 1) return base;
+  return (2 * Math.atan(Math.tan((base * Math.PI) / 360) / Math.sqrt(aspect)) * 180) / Math.PI;
+}
+/**
+ * The canonical VIEWMODEL camera the clips are framed for: the clean room's first-person projection (vertical 70° on the
+ * iPhone portrait), a narrower viewmodel FOV than the world's ≈ 94° Hor+ — as first-person games do, so human-sized
+ * arms at arm's length fill the frame the way the mockups show. fpArms.layout() fits any other camera.
+ */
+export const CANON = { aspect: 402 / 874, fovV: 70 };
+
+/** the rest framing (the clean room's spawn framing, round-6 style-A: the long jian diagonal from the bottom right) */
+export const FRAMING = {
+  right: { guard: [0.55, -0.45], tip: [0.06, -0.04], guardDepth: 0.8, roll: 0.12 },
+  left: { hub: [-0.44, -0.52], hubDepth: 0.62, elbow: [-2.3, -1.1], elbowDepth: 0.82, roll: -0.3 },
+  shoulderR: new Vector3(0.17, -0.19, -0.05),
+  shoulderL: new Vector3(-0.17, -0.19, -0.05),
+  /** anatomical upper-arm lengths (m) */
+  upperR: 0.33,
+  upperL: 0.31,
+  /** where the left elbow prefers to be at rest (rig space): low and out, under the frame's bottom-left */
+  elbowHintL: new Vector3(-0.34, -0.55, -0.12),
+} as const;
+
+const v = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
+
+export function ndcPoint(x: number, y: number, d: number, fovV = CANON.fovV, aspect = CANON.aspect): Vector3 {
+  const ty = Math.tan((fovV * Math.PI) / 360);
+  return new Vector3(x * d * ty * aspect, y * d * ty, -d);
+}
+
+/** a rotation whose +y is `dir`, +z toward `face`, then turned by `roll` about +y */
+export function aimQ(dir: Vector3, face: Vector3, roll: number): Quaternion {
+  const q = frameYZ(dir, face);
+  return new Quaternion().setFromAxisAngle(dir.clone().normalize(), roll).multiply(q);
+}
+
+/** the rest poses: the jian (JIAN → rig) and the gauntlet (GAUNTLET → rig) */
+export function restPoses(fovV = CANON.fovV, aspect = CANON.aspect): { right: Pose; left: Pose } {
+  const R = FRAMING.right, L = FRAMING.left;
+  const G = ndcPoint(R.guard[0], R.guard[1], R.guardDepth, fovV, aspect);
+  const TIP = 0.81;
+  let td = R.guardDepth + 0.5;
+  for (let i = 0; i < 60; i++) td += (TIP - ndcPoint(R.tip[0], R.tip[1], td, fovV, aspect).distanceTo(G)) * 0.8;
+  const T = ndcPoint(R.tip[0], R.tip[1], td, fovV, aspect);
+  const right = { pos: G, quat: aimQ(T.clone().sub(G), G.clone().negate(), R.roll) };
+  const H = ndcPoint(L.hub[0], L.hub[1], L.hubDepth, fovV, aspect);
+  const Eb = ndcPoint(L.elbow[0], L.elbow[1], L.hubDepth * L.elbowDepth, fovV, aspect);
+  const left0 = { pos: H, quat: aimQ(H.clone().sub(Eb), v(0, 1, 0.35), L.roll) };
+  const left = settleLeft(left0, FRAMING.shoulderL.clone(), FRAMING.upperL, LEFT_HAND, FRAMING.elbowHintL.clone());
+  return { right, left };
+}
+
+/** the rig's rest: both owner poses and both arms' constants */
+export function restRig(): { R0: Pose; L0: Pose; cR: ArmConst; cL: ArmConst } {
+  const { right: R0, left: L0 } = restPoses();
+  const cR = armConst(1, RIGHT_HAND, R0, FRAMING.shoulderR.clone(), FRAMING.upperR, new Vector3());
+  const hint = FRAMING.elbowHintL.clone();
+  const cL = armConst(-1, LEFT_HAND, L0, FRAMING.shoulderL.clone(), FRAMING.upperL, new Vector3());
+  // the left pole follows the hint's offset from the rest wrist (the IK keeps the elbow low and out)
+  const WL = L0.pos.clone().add(LEFT_HAND.wrist.clone().applyQuaternion(L0.quat));
+  const want = WL.clone().addScaledVector(LEFT_HAND.fore.clone().applyQuaternion(L0.quat), LEFT_HAND.foreLen);
+  cL.poleBias.copy(hint.sub(want).multiplyScalar(0.5));
+  return { R0, L0, cR, cL };
+}
+
+/** grip centre → blade tip (m) */
+const BLADE_REACH = 0.97;
+
+/** minimum jerk */
+export const mj = (u: number): number => { const x = Math.min(1, Math.max(0, u)); return x * x * x * (10 + x * (-15 + 6 * x)); };
+
+/** the hand (grip centre) of a jian pose */
+export const gripOf = (p: Pose): Vector3 => p.pos.clone().add(GRIP.clone().applyQuaternion(p.quat));
+/** a jian pose from its grip point and orientation */
+export const fromGrip = (grip: Vector3, q: Quaternion): Pose => ({ pos: grip.clone().sub(GRIP.clone().applyQuaternion(q)), quat: q.clone() });
+
+/** the pose turned rigidly by `angle` about `axis` through `pivot` */
+export function arc(p: Pose, pivot: Vector3, axis: Vector3, angle: number): Pose {
+  const q = new Quaternion().setFromAxisAngle(axis.clone().normalize(), angle);
+  return { pos: p.pos.clone().sub(pivot).applyQuaternion(q).add(pivot), quat: q.clone().multiply(p.quat) };
+}
+
+/** a segment of a path: `ease` interpolates grip point + slerp between two poses; `arc` turns `from` about an axis */
+type Seg =
+  | { kind: 'ease'; t0: number; t1: number; a: Pose; b: Pose; pivot: Vector3 }
+  | { kind: 'arc'; t0: number; t1: number; a: Pose; pivot: Vector3; axis: Vector3; angle: number; profile?: (u: number) => number };
+
+export interface Timing { windup: number; slashEnd: number; total: number; sweep: number }
+
+export interface ClipDef {
+  name: string;
+  side: 'R' | 'L';
+  duration: number;
+  loop: boolean;
+  /** the owner pose (jian or gauntlet) at t */
+  owner: (t: number) => Pose;
+  /** the shoulder offset from rest at t (rig space) */
+  shoulder: (t: number) => Vector3;
+  timing?: Timing;
+  /** the blade share where the trail's inner edge rides (engine Trail.from) */
+  trailFrom?: number;
+}
+
+function evalSegs(segs: readonly Seg[], t: number, grip: boolean): Pose {
+  let s = segs[segs.length - 1];
+  for (const g of segs) if (t <= g.t1) { s = g; break; }
+  if (s === undefined) throw new Error('empty path');
+  const u = (t - s.t0) / Math.max(1e-6, s.t1 - s.t0);
+  if (s.kind === 'arc') return arc(s.a, s.pivot, s.axis, s.angle * (s.profile ?? mj)(u));
+  const k = mj(u);
+  const q = s.a.quat.clone().slerp(s.b.quat, k);
+  if (!grip) return { pos: s.a.pos.clone().lerp(s.b.pos, k), quat: q };
+  const g = gripOf(s.a).lerp(gripOf(s.b), k);
+  return fromGrip(g, q);
+}
+
+/** the pose with the blade's direction turned toward `dir` (the flat toward `face`, then `roll`), the grip moved by `dg` */
+function bladeAt(rest: Pose, dir: Vector3, face: Vector3, roll: number, dg: Vector3): Pose {
+  return fromGrip(gripOf(rest).add(dg), aimQ(dir, face, roll));
+}
+
+/** how hard a pose is on the right wrist: degrees beyond 60 % of each limit, plus what the clamp had to move … */
+function wristCost(p: Pose, c: ArmConst, S: Vector3): number {
+  const w = solveArm(c, p, S);
+  const a = w.angles;
+  const over = (x: number, lo: number, hi: number): number => Math.max(0, x - 0.6 * hi) + Math.max(0, 0.6 * lo - x);
+  // … and how far the forearm has to turn from its rest (a cut that starts by rolling the wrist 90° reads as a snap)
+  return over(a.pronation, LIMITS.pronation[0], LIMITS.pronation[1]) + over(a.flexion, LIMITS.flexion[0], LIMITS.flexion[1])
+    + over(a.deviation, LIMITS.deviation[0], LIMITS.deviation[1]) + 3 * w.clamped + 0.5 * Math.abs(a.pronation - c.restPronation);
+}
+
+/**
+ * The blade pointing along `dir` (free to lean up to `cone` rad off it) with its flat facing ±`face` (either side: an
+ * edge leads both ways), turned by up to ±`slack` about the blade — whichever the wrist holds most comfortably, so a
+ * held pose never asks the forearm to over-rotate or the wrist to fold.
+ */
+function bladeBest(rest: Pose, dir: Vector3, face: Vector3, dg: Vector3, c: ArmConst, S: Vector3, slack = 0.5, cone = 0.3, bothSides = true): Pose {
+  let best = bladeAt(rest, dir, face, 0, dg), bc = Infinity;
+  const d0 = dir.clone().normalize();
+  const u = new Vector3().crossVectors(d0, Math.abs(d0.y) < 0.9 ? v(0, 1, 0) : v(1, 0, 0)).normalize();
+  const w = new Vector3().crossVectors(d0, u);
+  for (let i = -2; i <= 2; i++) {
+    for (let j = -2; j <= 2; j++) {
+      const a = (i / 2) * cone, b = (j / 2) * cone;
+      const d = d0.clone().addScaledVector(u, Math.tan(a)).addScaledVector(w, Math.tan(b)).normalize();
+      for (const f of bothSides ? [face, face.clone().negate()] : [face]) {
+        for (let r = -slack; r <= slack + 1e-6; r += slack / 4) {
+          const p = bladeAt(rest, d, f, r, dg);
+          const k = wristCost(p, c, S) + Math.abs(r) * 2 + (Math.abs(a) + Math.abs(b)) * 12;
+          if (k < bc) { bc = k; best = p; }
+        }
+      }
+    }
+  }
+  return best;
+}
+
+
+
+/** the clips (right channel: the jian arm; left channel: the Fei Zhua arm) */
+export function buildClips(): ClipDef[] {
+  const { R0, L0, cR } = restRig();
+  const SR = FRAMING.shoulderR.clone();
+  const restGrip = gripOf(R0);
+  const eye = v(0, 0, 0);
+  // the shoulder protracts toward the hand's travel (a quarter of it, ≤ 6 cm) and rises a little as the hand lifts
+  const protract = (path: (t: number) => Pose) => (t: number): Vector3 => {
+    const d = gripOf(path(t)).sub(restGrip).multiplyScalar(0.25);
+    if (d.length() > 0.06) d.setLength(0.06);
+    return d;
+  };
+  const clips: ClipDef[] = [];
+  const add = (name: string, duration: number, segs: Seg[], timing?: Timing, trailFrom?: number): void => {
+    const owner = (t: number): Pose => evalSegs(segs, t, true);
+    const c: ClipDef = { name, side: 'R', duration, loop: false, owner, shoulder: protract(owner) };
+    if (timing !== undefined) c.timing = timing;
+    if (trailFrom !== undefined) c.trailFrom = trailFrom;
+    clips.push(c);
+  };
+
+  // ── idle: breathing (a 3.2 s loop): the fist rises / sinks 4 mm, the blade tip drifts ±0.6° ──
+  const breath = (t: number, T: number): number => Math.sin((t / T) * Math.PI * 2);
+  clips.push({
+    name: 'idle', side: 'R', duration: 3.2, loop: true,
+    owner: (t) => {
+      const b = breath(t, 3.2), b2 = Math.sin((t / 3.2) * Math.PI * 4 + 0.7);
+      const q = new Quaternion().setFromAxisAngle(v(1, 0, 0), 0.011 * b).multiply(new Quaternion().setFromAxisAngle(v(0, 0, 1), 0.006 * b2)).multiply(R0.quat);
+      return fromGrip(restGrip.clone().add(v(0.0015 * b2, 0.004 * b, 0.002 * b)), q);
+    },
+    shoulder: (t) => v(0, 0.004 * breath(t, 3.2), 0),
+  });
+  // ── walk: a 0.8 s two-step loop: the fist's figure-8 (±9 mm up, ±7 mm across), the blade nods with the step ──
+  clips.push({
+    name: 'walk', side: 'R', duration: 0.8, loop: true,
+    owner: (t) => {
+      const p = (t / 0.8) * Math.PI * 2;
+      const q = new Quaternion().setFromAxisAngle(v(1, 0, 0), 0.03 * Math.sin(2 * p)).multiply(new Quaternion().setFromAxisAngle(v(0, 0, 1), 0.025 * Math.sin(p))).multiply(R0.quat);
+      return fromGrip(restGrip.clone().add(v(0.007 * Math.sin(p), 0.009 * Math.sin(2 * p) - 0.004, 0.004 * Math.cos(2 * p))), q);
+    },
+    shoulder: (t) => { const p = (t / 0.8) * Math.PI * 2; return v(0.004 * Math.sin(p), 0.006 * Math.sin(2 * p), 0); },
+  });
+
+  // The strikes are authored ON SCREEN (the portrait viewmodel camera, vertical 70°: only ±18° of horizontal view): the
+  // fist's point and the blade tip's point in NDC at the cocked pose and at the end of the follow-through. The cut
+  // between them is one slerp about the plane normal (the flat faces the plane: the edge leads) with the fist moving on
+  // a straight line, on a minimum-jerk profile whose peak falls inside the engine's active window.
+  const blade = (g: readonly [number, number], gd: number, tip: readonly [number, number], face: Vector3 | null, slack = 0.5, both = true): Pose => {
+    const G = ndcPoint(g[0], g[1], gd);
+    let td = gd + 0.6;
+    for (let i = 0; i < 60; i++) td += (BLADE_REACH - ndcPoint(tip[0], tip[1], td).distanceTo(G)) * 0.8;
+    const dir = ndcPoint(tip[0], tip[1], td).sub(G).normalize();
+    return bladeBest(R0, dir, face ?? v(0, 0.3, 1), G.sub(restGrip), cR, SR, slack, 0.12, both);
+  };
+  // both ends of a cut keep the SAME side of the flat toward the plane normal (a flip would roll the wrist 180°
+  // through the cut): try each side, keep the one the wrist likes best end to end
+  const strike = (cock: [readonly [number, number], number, readonly [number, number]], end: [readonly [number, number], number, readonly [number, number]]): { a: Pose; b: Pose } => {
+    const gc = ndcPoint(cock[0][0], cock[0][1], cock[1]), ge = ndcPoint(end[0][0], end[0][1], end[1]);
+    const dc = ndcPoint(cock[2][0], cock[2][1], cock[1] + 0.8).sub(gc), de = ndcPoint(end[2][0], end[2][1], end[1] + 0.8).sub(ge);
+    const n = new Vector3().crossVectors(dc, de).normalize();
+    let best = { a: R0, b: R0 }, bc = Infinity;
+    for (const f of [n, n.clone().negate()]) {
+      const a = blade(cock[0], cock[1], cock[2], f, 1.2, false), b = blade(end[0], end[1], end[2], f, 1.2, false);
+      // the roll the cut itself asks of the wrist: the relative rotation beyond the blade's own swing
+      const turn = 2 * Math.acos(Math.min(1, Math.abs(a.quat.dot(b.quat))));
+      const swing = v(0, 1, 0).applyQuaternion(a.quat).angleTo(v(0, 1, 0).applyQuaternion(b.quat));
+      const k = wristCost(a, cR, SR) + wristCost(b, cR, SR) + Math.max(0, turn - swing) * 60;
+      if (k < bc) { bc = k; best = { a, b }; }
+    }
+    return best;
+  };
+
+  // ── light (the engine's SLASH): cocked high right, a diagonal cut down through the centre to the lower left ──
+  {
+    const { a, b } = strike([[0.95, -0.3], 0.52, [0.8, 0.95]], [[-0.25, -0.85], 0.58, [-0.95, -0.55]]);
+    add('light', 0.62, [
+      { kind: 'ease', t0: 0, t1: 0.07, a: R0, b: a, pivot: eye },
+      { kind: 'ease', t0: 0.07, t1: 0.29, a, b, pivot: eye },
+      { kind: 'ease', t0: 0.29, t1: 0.62, a: b, b: R0, pivot: eye },
+    ], { windup: 0.07, slashEnd: 0.235, total: 0.35, sweep: 1 }, 0.55);
+  }
+  // ── light2 (BACKHAND): from low left, rising back across the centre to the upper right ──
+  {
+    const { a, b } = strike([[-0.3, -0.8], 0.56, [-0.95, -0.2]], [[0.9, -0.35], 0.54, [0.9, 0.8]]);
+    add('light2', 0.62, [
+      { kind: 'ease', t0: 0, t1: 0.07, a: R0, b: a, pivot: eye },
+      { kind: 'ease', t0: 0.07, t1: 0.28, a, b, pivot: eye },
+      { kind: 'ease', t0: 0.28, t1: 0.62, a: b, b: R0, pivot: eye },
+    ], { windup: 0.06, slashEnd: 0.22, total: 0.34, sweep: -1 }, 0.55);
+  }
+  // ── light3 (FINISHER): raised high on the right, an overhead diagonal down to the lower left ──
+  {
+    const { a, b } = strike([[0.85, 0.2], 0.56, [0.4, 1.35]], [[0.0, -0.95], 0.68, [-0.9, -1.15]]);
+    add('light3', 0.74, [
+      { kind: 'ease', t0: 0, t1: 0.1, a: R0, b: a, pivot: eye },
+      { kind: 'ease', t0: 0.1, t1: 0.34, a, b, pivot: eye },
+      { kind: 'ease', t0: 0.34, t1: 0.74, a: b, b: R0, pivot: eye },
+    ], { windup: 0.1, slashEnd: 0.28, total: 0.44, sweep: 0.5 }, 0.5);
+  }
+  // ── charge (the heavy's wind-up, engine CHARGE_BLEND 0.16 s): the blade raised over the right shoulder, held ──
+  const charged = blade([0.78, 0.18], 0.6, [0.5, 1.35], v(-0.6, 0.1, 0.8), 1.0);
+  add('charge', 0.16, [{ kind: 'ease', t0: 0, t1: 0.16, a: R0, b: charged, pivot: eye }]);
+  // ── heavy (the release, engine HEAVY): a pull back, then a big overhead chop down to the lower left ──
+  {
+    const { a: pulled, b } = strike([[0.85, 0.3], 0.58, [0.65, 1.5]], [[0.05, -0.95], 0.72, [-0.95, -1.25]]);
+    add('heavy', 0.95, [
+      { kind: 'ease', t0: 0, t1: 0.06, a: charged, b: pulled, pivot: eye },
+      { kind: 'ease', t0: 0.06, t1: 0.36, a: pulled, b, pivot: eye },
+      { kind: 'ease', t0: 0.36, t1: 0.95, a: b, b: R0, pivot: eye },
+    ], { windup: 0.06, slashEnd: 0.3, total: 0.62, sweep: 0.35 }, 0.34);
+  }
+  // ── parry: the blade snapped upright across the centre (the flat to the front), held, a flick out to the right ──
+  {
+    const block = blade([0.05, -0.45], 0.5, [-0.15, 1.1], v(0.1, 0.1, 1), 0.4);
+    const flick = blade([0.35, -0.4], 0.5, [0.85, 0.95], v(0.1, 0.1, 1), 0.4);
+    add('parry', 0.58, [
+      { kind: 'ease', t0: 0, t1: 0.08, a: R0, b: block, pivot: eye },
+      { kind: 'ease', t0: 0.08, t1: 0.2, a: block, b: block, pivot: eye },
+      { kind: 'ease', t0: 0.2, t1: 0.3, a: block, b: flick, pivot: eye },
+      { kind: 'ease', t0: 0.3, t1: 0.58, a: flick, b: R0, pivot: eye },
+    ], { windup: 0.04, slashEnd: 0.2, total: 0.36, sweep: 0 }, 0.4);
+  }
+
+  // ── sheathe / draw: the arm drops and the blade lowers forward-down, out of the bottom of the frame; the draw lifts it
+  //    back through a small rising turn (the tip leads up into the rest) ──
+  const lowered = bladeBest(R0, v(0.15, -0.35, -0.92), v(0, 1, 0.3), v(0.06, -0.38, 0.12), cR, SR, 0.8, 0.4);
+  const rising = bladeBest(R0, v(0.1, 0.1, -0.99), v(0, 1, 0.4), v(0.03, -0.14, 0.05), cR, SR, 0.8, 0.3);
+  add('sheathe', 0.45, [
+    { kind: 'ease', t0: 0, t1: 0.45, a: R0, b: lowered, pivot: eye },
+  ]);
+  add('draw', 0.6, [
+    { kind: 'ease', t0: 0, t1: 0.28, a: lowered, b: rising, pivot: eye },
+    { kind: 'ease', t0: 0.28, t1: 0.6, a: rising, b: R0, pivot: eye },
+  ], { windup: 0.18, slashEnd: 0.38, total: 0.6, sweep: 0 }, 0.4);
+  add('sheathed', 0.1, [{ kind: 'ease', t0: 0, t1: 0.1, a: lowered, b: lowered, pivot: eye }]);
+
+  // ── the left arm (the Fei Zhua): idle, walk, and the grapple's aim / fire / hold ──
+  const L = (name: string, duration: number, loop: boolean, owner: (t: number) => Pose, shoulder: (t: number) => Vector3): void => {
+    clips.push({ name, side: 'L', duration, loop, owner, shoulder });
+  };
+  const hubRest = L0.pos.clone();
+  L('idleL', 3.2, true, (t) => {
+    const b = breath(t, 3.2);
+    const q = new Quaternion().setFromAxisAngle(v(1, 0, 0), -0.01 * b).multiply(L0.quat);
+    return { pos: hubRest.clone().add(v(0, 0.0035 * b, 0.0015 * b)), quat: q };
+  }, (t) => v(0, 0.004 * breath(t, 3.2), 0));
+  L('walkL', 0.8, true, (t) => {
+    const p = (t / 0.8) * Math.PI * 2 + Math.PI;
+    const q = new Quaternion().setFromAxisAngle(v(1, 0, 0), 0.025 * Math.sin(2 * p)).multiply(new Quaternion().setFromAxisAngle(v(0, 0, 1), -0.02 * Math.sin(p))).multiply(L0.quat);
+    return { pos: hubRest.clone().add(v(0.006 * Math.sin(p), 0.008 * Math.sin(2 * p) - 0.003, 0.003 * Math.cos(2 * p))), quat: q };
+  }, (t) => { const p = (t / 0.8) * Math.PI * 2 + Math.PI; return v(0.004 * Math.sin(p), 0.006 * Math.sin(2 * p), 0); });
+  // aim: the gauntlet lifted to point at the frame's centre, level with the eye (0.18 s), held
+  const aimDir = v(0.22, 0.28, -0.93);
+  const aimed: Pose = { pos: v(-0.1, -0.2, -0.46), quat: aimQ(aimDir, v(0, 1, 0.3), -0.2) };
+  const seg = (a: Pose, b: Pose, t0: number, t1: number): Seg => ({ kind: 'ease', t0, t1, a, b, pivot: eye });
+  const aimPath: Seg[] = [seg(L0, aimed, 0, 0.18)];
+  const lsh = (path: (t: number) => Pose) => (t: number): Vector3 => {
+    const d = path(t).pos.sub(hubRest).multiplyScalar(0.3);
+    if (d.length() > 0.06) d.setLength(0.06);
+    return d;
+  };
+  const aimOwner = (t: number): Pose => evalSegs(aimPath, t, false);
+  L('grapple_aim', 0.18, false, aimOwner, lsh(aimOwner));
+  // fire: the recoil — the launcher kicks back 5 cm and up 8°, recovers onto the aim (0.3 s)
+  const kicked: Pose = { pos: aimed.pos.clone().add(v(0.005, 0.02, 0.05)), quat: new Quaternion().setFromAxisAngle(v(1, 0, 0), 0.14).multiply(aimed.quat) };
+  const firePath: Seg[] = [seg(aimed, kicked, 0, 0.05), seg(kicked, aimed, 0.05, 0.3)];
+  const fireOwner = (t: number): Pose => evalSegs(firePath, t, false);
+  L('grapple_fire', 0.3, false, fireOwner, lsh(fireOwner));
+  // hold: the line taut, the arm braced forward-up, a slow tremble (a 1.6 s loop)
+  L('grapple_hold', 1.6, true, (t) => {
+    const p = (t / 1.6) * Math.PI * 2;
+    const q = new Quaternion().setFromAxisAngle(v(1, 0, 0), 0.012 * Math.sin(3 * p)).multiply(new Quaternion().setFromAxisAngle(v(0, 1, 0), 0.01 * Math.sin(2 * p))).multiply(aimed.quat);
+    return { pos: aimed.pos.clone().add(v(0.002 * Math.sin(5 * p), 0.003 * Math.sin(3 * p), 0.01)), quat: q };
+  }, () => v(0, 0.01, -0.02));
+  return clips;
+}
+
+/** the jian tip's local y (the blade's end) and its guard-end (for the trail and the hit sweep) */
+export const BLADE = { base: 0.05, tip: 0.81 } as const;
+

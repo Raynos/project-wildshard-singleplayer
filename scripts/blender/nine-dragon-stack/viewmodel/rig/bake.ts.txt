@@ -1,0 +1,344 @@
+// The rig baker (lab P8 "viewmodel", round 13, E169; lab-only): builds the first-person rig from the source assets —
+// the skeleton at the rest pose (rig.ts), every mesh moved into rig space and skinned, the clips sampled at 60 Hz from
+// the authored weapon paths (moves.ts) through the IK — and exports ONE GLB (`fp-rig.glb`) the engine module
+// (fpArms.ts) plays. Nothing here runs in the game.
+//
+// Skin weights come from the geometry, per mesh (distance along the rest forearm from the wrist, s):
+//   glove      s < 0 → hand; s 0 … 3.5 cm → hand → twist1 (the wrist bends in the skin); further → the twist tents
+//   sleeves    the twist tents; the last 3 cm before the elbow → the upper arm; past it → the upper arm
+//   gauntlet   everything forward of the wrist rides twist1 (the brass shell sits on the distal forearm), then the tents
+//   fist       hand
+//   jian, claw rigid children of R_weapon / L_claw
+// Ink hulls are separate skinned meshes built from decimated proxies (`bake/*-hull.glb`, gltf-transform simplify), so
+// the outline costs a quarter of the body's triangles; the blade has none (its neon edges are its silhouette).
+import {
+  Bone, BufferAttribute, type BufferGeometry, Group, Matrix3, Matrix4, Mesh, MeshBasicMaterial, Quaternion, QuaternionKeyframeTrack, Skeleton,
+  SkinnedMesh, AnimationClip, Vector3, VectorKeyframeTrack,
+} from 'three';
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+import { loadAsset } from './assets';
+import { CLS, Geo, merge, v3 } from './geo';
+import { buildBlade, buildBladeClip, buildGrip } from './jian';
+import { addHullNormals } from './materials';
+import { FRAMING, buildClips, restRig } from './moves';
+import { type ArmConst, type ArmWorld, BONES, LEFT_HAND, LEFT_SCALE, type Pose, RIGHT_HAND, TWISTS, solveArm } from './rig';
+
+const poseM = (p: Pose): Matrix4 => new Matrix4().compose(p.pos, p.quat, new Vector3(1, 1, 1));
+
+/** world matrices of one arm in BONES order (the weapon / claw last) */
+function armMatrices(w: ArmWorld): Matrix4[] {
+  return [w.shoulder, w.upper, w.fore, w.twists[0], w.twists[1], w.twists[2], w.hand, w.tip];
+}
+/** each bone's parent index in BONES order (−1 = the root) */
+const PARENT = [-1, 0, 1, 2, 2, 2, 2, 6];
+/** the left claw rides twist1 (the gauntlet shell), not the hand */
+const PARENT_L = [-1, 0, 1, 2, 2, 2, 2, 3];
+
+function locals(world: Matrix4[], parents: readonly number[]): Matrix4[] {
+  return world.map((m, i) => {
+    const p = parents[i] ?? -1;
+    const pw = p < 0 ? new Matrix4() : (world[p] ?? new Matrix4());
+    return pw.clone().invert().multiply(m);
+  });
+}
+
+/** transform a Geo-built geometry's positions / normals / aNs by m (in place) */
+function transformGeo(g: BufferGeometry, m: Matrix4): BufferGeometry {
+  g.applyMatrix4(m);
+  const ns = g.getAttribute('aNs') as BufferAttribute | undefined;
+  if (ns !== undefined) {
+    const nm = new Matrix3().getNormalMatrix(m);
+    const v = new Vector3();
+    for (let i = 0; i < ns.count; i++) {
+      v.fromBufferAttribute(ns, i).applyMatrix3(nm).normalize();
+      ns.setXYZ(i, v.x, v.y, v.z);
+    }
+    ns.needsUpdate = true;
+  }
+  return g;
+}
+
+interface Weights { idx: number[]; w: number[] }
+
+/** the skin weight rules; bone indices are into the arm's skeleton [shoulder, upper, fore, t1, t2, t3, hand] */
+function weightsFor(kind: 'glove' | 'sleeve' | 'upper' | 'gauntlet' | 'fist', p: Vector3, W: Vector3, E: Vector3, S: Vector3, Lf: number): Weights {
+  if (kind === 'fist') return { idx: [6, 0, 0, 0], w: [1, 0, 0, 0] };
+  const axis = E.clone().sub(W).normalize();
+  const s = p.clone().sub(W).dot(axis);
+  if (kind === 'upper') {
+    const u = p.clone().sub(E).dot(S.clone().sub(E).normalize());
+    const k = Math.min(1, Math.max(0, (u + 0.01) / 0.05));
+    return { idx: [1, 5, 0, 0], w: [k, 1 - k, 0, 0] };
+  }
+  // twist bones' distances from the wrist
+  const tpos = TWISTS.map((t) => (1 - t.at) * Lf);
+  const out = new Map<number, number>();
+  const put = (b: number, x: number): void => { if (x > 1e-4) out.set(b, (out.get(b) ?? 0) + x); };
+  let rest = 1;
+  if (kind === 'glove') {
+    const k = Math.min(1, Math.max(0, s / 0.035));
+    put(6, 1 - k);
+    rest = k;
+  }
+  // along the forearm: before twist1 → twist1; between twists → tent; past twist3 → twist3 → upper over the elbow
+  const t1 = tpos[0] ?? 0, t2 = tpos[1] ?? 0, t3 = tpos[2] ?? 0;
+  if (kind === 'gauntlet' && s < t1) { put(3, rest); rest = 0; }
+  if (rest > 0) {
+    if (s <= t1) put(3, rest);
+    else if (s <= t2) { const k = (s - t1) / (t2 - t1); put(3, rest * (1 - k)); put(4, rest * k); }
+    else if (s <= t3) { const k = (s - t2) / (t3 - t2); put(4, rest * (1 - k)); put(5, rest * k); }
+    else {
+      const k = Math.min(1, Math.max(0, (s - (Lf - 0.03)) / 0.07));
+      put(5, rest * (1 - k));
+      put(1, rest * k);
+    }
+  }
+  const e = [...out.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const sum = e.reduce((a, [, x]) => a + x, 0) || 1;
+  const idx = [0, 0, 0, 0], w = [0, 0, 0, 0];
+  e.forEach(([b, x], i) => { idx[i] = b; w[i] = x / sum; });
+  return { idx, w };
+}
+
+function skin(g: BufferGeometry, kind: 'glove' | 'sleeve' | 'upper' | 'gauntlet' | 'fist', rest: ArmWorld, Lf: number): void {
+  const pos = g.getAttribute('position');
+  const si = new Uint16Array(pos.count * 4), sw = new Float32Array(pos.count * 4);
+  const p = new Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    p.fromBufferAttribute(pos, i);
+    const r = weightsFor(kind, p, rest.W, rest.E, rest.S, Lf);
+    for (let k = 0; k < 4; k++) { si[i * 4 + k] = r.idx[k] ?? 0; sw[i * 4 + k] = r.w[k] ?? 0; }
+  }
+  g.setAttribute('skinIndex', new BufferAttribute(si, 4));
+  g.setAttribute('skinWeight', new BufferAttribute(sw, 4));
+}
+
+/** a hull copy: position, the averaged normal, the class, the skin (others dropped) */
+function hullOf(g: BufferGeometry): BufferGeometry {
+  const h = g.clone();
+  addHullNormals(h);
+  for (const k of Object.keys(h.attributes)) if (!['position', 'aHullN', 'aMat', 'skinIndex', 'skinWeight'].includes(k)) h.deleteAttribute(k);
+  return h;
+}
+
+/**
+ * The upper-arm sleeve: a navy tube from just below the elbow 14 cm up the upper arm, closed off. First-person rigs
+ * show the forearms; a full upper arm would pass right in front of the lens on a high cut (it filled half the frame).
+ */
+function upperTube(E: Vector3, S: Vector3): BufferGeometry {
+  const g = new Geo();
+  const dir = S.clone().sub(E).normalize();
+  const path: Vector3[] = [];
+  for (let i = 0; i <= 8; i++) path.push(E.clone().addScaledVector(dir, -0.04 + (i / 8) * 0.18));
+  g.sweep(path, (t) => 0.047 + 0.006 * t - 0.02 * Math.max(0, t - 0.85) / 0.15, 16, { cls: CLS.sleeve, maps: (t, a) => [0.85 + 0.15 * Math.sin(a * 6.28), 0.5, 0.5 + 0.06 * Math.sin(t * 40 + a * 9)] }, { capEnd: true });
+  return g.build();
+}
+
+/** drop what the module rebuilds (fpArms.prepGeometry): all-zero aFace, aNs equal to the normal, the neutral maps colour
+ *  on a textured mesh */
+function slim(g: BufferGeometry): void {
+  const same = (a: string, test: (arr: ArrayLike<number>, i: number) => boolean): boolean => {
+    const at = g.getAttribute(a) as BufferAttribute | undefined;
+    if (at === undefined) return false;
+    for (let i = 0; i < at.array.length; i++) if (!test(at.array, i)) return false;
+    return true;
+  };
+  if (same('aFace', (a, i) => a[i] === 0)) g.deleteAttribute('aFace');
+  const nor = g.getAttribute('normal') as BufferAttribute | undefined;
+  if (nor !== undefined && same('aNs', (a, i) => Math.abs((a[i] ?? 0) - (nor.array[i] ?? 0)) < 1e-4)) g.deleteAttribute('aNs');
+  if (same('color', (a, i) => Math.abs((a[i] ?? 0) - (i % 3 === 0 ? 1 : 0.5)) < 1e-4)) g.deleteAttribute('color');
+}
+
+export interface BakeResult { glb: ArrayBuffer; report: string[] }
+
+/** build the rig, bake every clip, export the GLB */
+export async function bakeRig(): Promise<BakeResult> {
+  const report: string[] = [];
+  const { R0, L0, cR, cL } = restRig();
+  const SR = FRAMING.shoulderR.clone(), SL = FRAMING.shoulderL.clone();
+  const restR = solveArm(cR, R0, SR), restL = solveArm(cL, L0, SL);
+  report.push(`rest R: elbow ${restR.angles.elbow.toFixed(1)} pron ${restR.angles.pronation.toFixed(1)} flex ${restR.angles.flexion.toFixed(1)} dev ${restR.angles.deviation.toFixed(1)} clamp ${restR.clamped.toFixed(2)}`);
+  report.push(`rest L: elbow ${restL.angles.elbow.toFixed(1)} pron ${restL.angles.pronation.toFixed(1)} clamp ${restL.clamped.toFixed(2)}`);
+  // the rest the skin binds to is the SOLVED rest (the hand clamped into its limits, the weapon following)
+  const R0s: Pose = { pos: new Vector3(), quat: new Quaternion() };
+  new Matrix4().copy(restR.tip).decompose(R0s.pos, R0s.quat, new Vector3());
+  const L0s: Pose = { pos: new Vector3(), quat: new Quaternion() };
+  restL.tip.decompose(L0s.pos, L0s.quat, new Vector3());
+
+  // ── the skeleton ──
+  const root = new Group();
+  root.name = 'vm_root';
+  const mkArm = (names: readonly string[], w: ArmWorld, parents: readonly number[]): Bone[] => {
+    const loc = locals(armMatrices(w), parents);
+    const bones = names.map((n, i) => {
+      const b = new Bone();
+      b.name = n;
+      (loc[i] ?? new Matrix4()).decompose(b.position, b.quaternion, b.scale);
+      return b;
+    });
+    bones.forEach((b, i) => { const p = parents[i] ?? -1; (p < 0 ? root : (bones[p] ?? root)).add(b); });
+    return bones;
+  };
+  const bonesR = mkArm(BONES.right, restR, PARENT);
+  const bonesL = mkArm(BONES.left, restL, PARENT_L);
+  root.updateMatrixWorld(true);
+  const skelR = new Skeleton(bonesR.slice(0, 7));
+  const skelL = new Skeleton(bonesL.slice(0, 7));
+
+  // ── the meshes ──
+  const dummy = new MeshBasicMaterial();
+  let tris = 0, hullTris = 0;
+  const addSkinned = (name: string, geo: BufferGeometry, skel: Skeleton, data: Record<string, unknown>): void => {
+    slim(geo);
+    const m = new SkinnedMesh(geo, dummy);
+    m.name = name;
+    m.userData = data;
+    root.add(m);
+    m.bind(skel, new Matrix4());
+    const n = (geo.index?.count ?? geo.getAttribute('position').count) / 3;
+    if (data['hull'] === true) hullTris += n; else tris += n;
+  };
+  const rotArr = (m: Matrix4): number[] => new Matrix3().setFromMatrix4(m).toArray();
+  const MR = poseM(R0s), ML = poseM(L0s).multiply(new Matrix4().makeScale(LEFT_SCALE, LEFT_SCALE, LEFT_SCALE));
+  const LS = new Matrix4().makeScale(LEFT_SCALE, LEFT_SCALE, LEFT_SCALE);
+  // right glove
+  const hand = await loadAsset('hand-r');
+  const handGeo = hand.parts.get('main');
+  if (handGeo === undefined) throw new Error('hand-r missing');
+  transformGeo(handGeo, MR);
+  skin(handGeo, 'glove', restR, RIGHT_HAND.foreLen);
+  addSkinned('R_glove', handGeo, skelR, { maps: 'hand-r', assetRot: rotArr(MR) });
+  const handHull = (await loadAsset('bake/hand-r-hull')).parts.get('main');
+  if (handHull !== undefined) { transformGeo(handHull, MR); skin(handHull, 'glove', restR, RIGHT_HAND.foreLen); addSkinned('R_glove_hull', hullOf(handHull), skelR, { hull: true, hullK: 1 }); }
+  // right sleeve: its own frame (origin 3.5 cm up the cuff, +y = −fore, +z = the back of the forearm) → JIAN → rig
+  const fore = RIGHT_HAND.fore.clone(), back = RIGHT_HAND.back.clone().addScaledVector(RIGHT_HAND.fore, -RIGHT_HAND.back.dot(RIGHT_HAND.fore)).normalize();
+  const ySl = fore.clone().negate(), xSl = new Vector3().crossVectors(ySl, back);
+  const armFrame = new Matrix4().makeBasis(xSl, ySl, back).setPosition(RIGHT_HAND.wrist.clone().addScaledVector(fore, 0.035));
+  const MA = MR.clone().multiply(armFrame);
+  const sleeve = await loadAsset('arm-r');
+  const sleeveGeo = sleeve.parts.get('main');
+  if (sleeveGeo !== undefined) { transformGeo(sleeveGeo, MA); skin(sleeveGeo, 'sleeve', restR, RIGHT_HAND.foreLen); addSkinned('R_sleeve', sleeveGeo, skelR, { maps: 'arm-r', assetRot: rotArr(MA) }); }
+  const sleeveHull = (await loadAsset('bake/arm-r-hull')).parts.get('main');
+  if (sleeveHull !== undefined) { transformGeo(sleeveHull, MA); skin(sleeveHull, 'sleeve', restR, RIGHT_HAND.foreLen); addSkinned('R_sleeve_hull', hullOf(sleeveHull), skelR, { hull: true, hullK: 1 }); }
+  // right upper arm
+  const up = upperTube(restR.E, restR.S);
+  skin(up, 'upper', restR, RIGHT_HAND.foreLen);
+  addSkinned('R_upper', up, skelR, {});
+  addSkinned('R_upper_hull', hullOf(up), skelR, { hull: true, hullK: 1 });
+  // left gauntlet (+ its sleeve up to the elbow and past it = the upper arm), fist
+  const gaunt = await loadAsset('gauntlet', ['claw']);
+  const gMain = gaunt.parts.get('main'), gClaw = gaunt.parts.get('claw');
+  if (gMain !== undefined) { transformGeo(gMain, ML); skin(gMain, 'gauntlet', restL, LEFT_HAND.foreLen); addSkinned('L_gauntlet', gMain, skelL, { maps: 'gauntlet', assetRot: rotArr(ML) }); }
+  const gHull = await loadAsset('bake/gauntlet-hull', ['claw']);
+  const ghMain = gHull.parts.get('main'), ghClaw = gHull.parts.get('claw');
+  if (ghMain !== undefined) { transformGeo(ghMain, ML); skin(ghMain, 'gauntlet', restL, LEFT_HAND.foreLen); addSkinned('L_gauntlet_hull', hullOf(ghMain), skelL, { hull: true, hullK: 1 }); }
+  const fist = await loadAsset('fist-l');
+  const fMain = fist.parts.get('main');
+  const MF = poseM(L0s).multiply(new Matrix4().makeTranslation(LEFT_HAND.wrist.x, LEFT_HAND.wrist.y, LEFT_HAND.wrist.z)).multiply(LS);
+  if (fMain !== undefined) { transformGeo(fMain, MF); skin(fMain, 'fist', restL, LEFT_HAND.foreLen); addSkinned('L_fist', fMain, skelL, { maps: 'fist-l', assetRot: rotArr(MF) }); }
+  const fHull = (await loadAsset('bake/fist-l-hull')).parts.get('main');
+  if (fHull !== undefined) { transformGeo(fHull, MF); skin(fHull, 'fist', restL, LEFT_HAND.foreLen); addSkinned('L_fist_hull', hullOf(fHull), skelL, { hull: true, hullK: 0.8 }); }
+  // the claw: a rigid child of L_claw, in GAUNTLET-local (the bone IS the gauntlet frame at the hub)
+  const clawBone = bonesL[7];
+  if (gClaw !== undefined && clawBone !== undefined) {
+    gClaw.applyMatrix4(LS);
+    slim(gClaw);
+    const m = new Mesh(gClaw, dummy);
+    m.name = 'L_claw_mesh';
+    m.userData = { maps: 'gauntlet', assetRot: new Matrix3().toArray() };
+    clawBone.add(m);
+    tris += (gClaw.index?.count ?? 0) / 3;
+    if (ghClaw !== undefined) {
+      ghClaw.applyMatrix4(LS);
+      const h = new Mesh(hullOf(ghClaw), dummy);
+      h.name = 'L_claw_hull';
+      h.userData = { hull: true, hullK: 0.8 };
+      clawBone.add(h);
+      hullTris += (ghClaw.index?.count ?? 0) / 3;
+    }
+  }
+  // the jian: blade + grip + clip + guard in one mesh (JIAN-local), a rigid child of R_weapon; its hull skips the blade
+  const weaponBone = bonesR[7];
+  const g = new Geo();
+  buildBlade(g);
+  const gh = new Geo();
+  buildGrip(gh);
+  buildBladeClip(gh);
+  // the guard's back was clipped off its TRELLIS socket ring (guard.py --clip 0.27): cap the opening with a dark brass
+  // boss (a cut swing shows the back of the head)
+  gh.ellipsoid(v3(0.025, 0.022, 0), v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1), 0.006, 0.045, 0.037, { cls: CLS.brassDark, line: 1 }, undefined, 20);
+  const guard = (await loadAsset('bake/guard30')).parts.get('main');
+  const guardH = (await loadAsset('bake/guard8')).parts.get('main');
+  if (weaponBone !== undefined && guard !== undefined && guardH !== undefined) {
+    const jianGeo = merge([g.build(), gh.build(), guard]);
+    slim(jianGeo);
+    const jian = new Mesh(jianGeo, dummy);
+    jian.name = 'R_jian';
+    jian.userData = { assetRot: new Matrix3().toArray() };
+    weaponBone.add(jian);
+    tris += (jianGeo.index?.count ?? 0) / 3;
+    const hullGeo = hullOf(merge([gh.build(), guardH]));
+    const hull = new Mesh(hullGeo, dummy);
+    hull.name = 'R_jian_hull';
+    hull.userData = { hull: true, hullK: 1 };
+    weaponBone.add(hull);
+    hullTris += (hullGeo.index?.count ?? 0) / 3;
+  }
+  report.push(`meshes: ${Math.round(tris)} body tris + ${Math.round(hullTris)} hull tris`);
+
+  // ── the clips: 60 Hz samples of the solved bones' local transforms ──
+  const clips: AnimationClip[] = [];
+  const rate = 60;
+  for (const c of buildClips()) {
+    const side = c.side === 'R' ? 'right' : 'left';
+    const cc: ArmConst = c.side === 'R' ? cR : cL;
+    const S0 = c.side === 'R' ? SR : SL;
+    const names = BONES[side];
+    const parents = c.side === 'R' ? PARENT : PARENT_L;
+    const n = Math.max(1, Math.round(c.duration * rate));
+    const times: number[] = [];
+    const quats: number[][] = names.map(() => []);
+    const spos: number[] = [];
+    let clampMax = 0;
+    for (let i = 0; i <= n; i++) {
+      const t = (i / n) * c.duration;
+      // a loop's last key is its first (seamless)
+      const tt = c.loop && i === n ? 0 : t;
+      const w = solveArm(cc, c.owner(tt), S0.clone().add(c.shoulder(tt)));
+      clampMax = Math.max(clampMax, w.clamped);
+      const loc = locals(armMatrices(w), parents);
+      times.push(t);
+      loc.forEach((m, k) => {
+        const q = new Quaternion(), p = new Vector3();
+        m.decompose(p, q, new Vector3());
+        const arr = quats[k];
+        if (arr === undefined) return;
+        // keep each track on one hemisphere (no long-way slerp between keys)
+        const L = arr.length;
+        if (L >= 4 && q.x * (arr[L - 4] ?? 0) + q.y * (arr[L - 3] ?? 0) + q.z * (arr[L - 2] ?? 0) + q.w * (arr[L - 1] ?? 0) < 0) q.set(-q.x, -q.y, -q.z, -q.w);
+        arr.push(q.x, q.y, q.z, q.w);
+        if (k === 0) spos.push(p.x, p.y, p.z);
+      });
+    }
+    const tracks: (VectorKeyframeTrack | QuaternionKeyframeTrack)[] = [new VectorKeyframeTrack(`${names[0]}.position`, times, spos)];
+    // the weapon / claw keep their bind (constant) transform: no track
+    for (let k = 1; k < 7; k++) tracks.push(new QuaternionKeyframeTrack(`${names[k] ?? ''}.quaternion`, times, quats[k] ?? []));
+    const clip = new AnimationClip(c.name, c.duration, tracks);
+    clip.userData = { side: c.side, loop: c.loop, timing: c.timing ?? null, trailFrom: c.trailFrom ?? null };
+    clips.push(clip);
+    report.push(`clip ${c.name}: ${c.duration.toFixed(2)} s, ${n + 1} keys, wrist clamp ≤ ${clampMax.toFixed(1)}°`);
+  }
+  root.userData = {
+    rig: 'nine-dragon-fp', version: 1, canon: { fovV: 70, aspect: 402 / 874 },
+    clips: Object.fromEntries(clips.map((c) => [c.name, c.userData])),
+    attach: {
+      tassel: [-0.022, -0.05, 0.026], talisman: [0.05, -0.036, 0.022], muzzle: [0, 0.006, 0], bladeBase: 0.05, bladeTip: 0.81,
+    },
+  };
+  const exporter = new GLTFExporter();
+  const glb = await exporter.parseAsync(root, { binary: true, animations: clips, onlyVisible: false });
+  if (!(glb instanceof ArrayBuffer)) throw new Error('GLTFExporter did not return a binary GLB');
+  report.push(`glb ${(glb.byteLength / 1024).toFixed(0)} KB`);
+  void v3;
+  return { glb, report };
+}

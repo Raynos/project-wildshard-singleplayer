@@ -52,12 +52,13 @@ def strip_B(hand, v):
     """the knuckle strip: grain + a stitch row 1.3 mm in from both long borders"""
     B = 0.5 + (L.hash3(v, 1100.0) - 0.5) * 0.07
     mid = hand.k_line.mean(axis=0)
-    n_out = L.norm(L.v3(mid[0], 0, mid[2]))
-    t_across = L.norm(np.cross(L.v3(0, 1, 0), n_out))
+    n_out = hand.out_dir(mid)
+    row = L.norm(hand.k_line[0] - hand.k_line[-1])
+    t_across = L.norm(np.cross(row, n_out))
     x = (v - mid) @ t_across
     for edge in (-0.0052, 0.0052):
         near = np.exp(-((x - edge) / 0.00045) ** 2)
-        dash = (np.mod(v[:, 1] / 0.0026, 1.0) < 0.6).astype(np.float64)
+        dash = (np.mod(((v - mid) @ row) / 0.0026, 1.0) < 0.6).astype(np.float64)
         B += 0.36 * near * dash
     return np.clip(B, 0, 1)
 
@@ -116,11 +117,11 @@ def glove_parts(hand, voxel, log, lo, hi, body_tris, cuff=None):
 # ───────────────────────────── the glove cuff ─────────────────────────────
 
 def cuff_frame(hand):
-    a = hand.fore
-    w = L.norm(L.v3(0, 1, 0) - a * a[1])
-    if np.cross(a, w)[0] < 0:
-        w = -w  # keep (w, t, a) right-handed so the tubes wind outward, and t = the dorsal side (+X)
-    t = L.norm(np.cross(a, w))
+    """the cuff's axes: a = the forearm (from the wrist toward the elbow), t = the dorsal side (the back-of-hand +X made
+    ⊥ a), w = t × a (so (w, t, a) is right-handed and the tubes wind outward)"""
+    a = L.norm(hand.fore)
+    t = L.norm(L.v3(1, 0, 0) - a * a[0])
+    w = L.norm(np.cross(t, a))
     return a, w, t
 
 

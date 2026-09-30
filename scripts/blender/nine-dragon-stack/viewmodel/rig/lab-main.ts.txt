@@ -1,0 +1,322 @@
+// Lab P8 "viewmodel", round 13 (E169): the rigged first-person arms (fpArms.ts, playing fp-rig.glb) over a backdrop
+// plate of the clean room, through the clean room's bloom and grade, on the ENGINE's first-person camera (vertical fov
+// fovForAspect(72°) — ≈ 94° on the iPhone portrait). Driven headless through window.__ndVm (no URL switches):
+//   ready, loaded(), shot(name), set(key, value), play(move), playLeft(name), step(frames, dt), clock(on), trail(look),
+//   plate(on), pixelRatio(r), stats(), bench(n), snapshot(w, h, q),
+//   bake() → the rig rebuilt from the source assets and exported as base64 GLB (the capture script writes fp-rig.glb),
+//   gate(script?) → the rig gate: the scripted sequence played at 60 Hz, joint angles / velocities per frame,
+//   skin() → the skin checks (weights normalised, indices in range, bind restore).
+import { LinearMipmapLinearFilter, PerspectiveCamera, SRGBColorSpace, Scene, SkinnedMesh, type Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from 'three';
+import { bakeRig } from './bake';
+import { ASSET_BASE, type ArmsState, type LeftName, type MoveName, NineDragonArms } from './fpArms';
+import { fovForAspect } from './moves';
+import { LabPost } from './post';
+import { weaveTexture } from './materials';
+
+interface LabShot { plate: string; pitch: number }
+const SHOTS: Readonly<Record<string, LabShot>> = {
+  'loop-1': { plate: 'loop-1', pitch: 5 },
+  spawn: { plate: 'spawn', pitch: -4 },
+  'stair-street': { plate: 'stair-street', pitch: 10 },
+};
+
+/** a gate script step: play a move / left pose, or wait (seconds at 60 Hz); walk sets the speed */
+type Step = { play: MoveName } | { left: LeftName } | { wait: number } | { walk: number };
+export const GATE_SCRIPT: readonly Step[] = [
+  { wait: 1.0 },
+  { play: 'light' }, { wait: 0.235 }, { play: 'light2' }, { wait: 0.22 }, { play: 'light3' }, { wait: 0.9 },
+  { play: 'charge' }, { wait: 0.5 }, { play: 'heavy' }, { wait: 1.2 },
+  { play: 'parry' }, { wait: 0.7 },
+  { play: 'light' }, { wait: 0.12 }, { play: 'parry' }, { wait: 0.7 },
+  { play: 'sheathe' }, { wait: 0.8 }, { play: 'draw' }, { wait: 1.0 },
+  { walk: 1 }, { wait: 1.6 }, { play: 'light' }, { wait: 0.8 }, { walk: 0 }, { wait: 0.6 },
+  { left: 'grapple_aim' }, { wait: 0.4 }, { left: 'grapple_fire' }, { wait: 0.4 }, { left: 'grapple_hold' }, { wait: 1.0 }, { left: 'idle' }, { wait: 0.8 },
+];
+
+interface GateFrame { t: number; R: number[]; L: number[]; cloth: number }
+interface GateOut { frames: GateFrame[]; max: Record<string, number>; events: { t: number; what: string }[] }
+
+interface VmLabApi {
+  ready: Promise<void>;
+  loaded: () => string[];
+  shot: (name: string) => Promise<void>;
+  set: (key: string, value: number) => void;
+  play: (m: MoveName) => void;
+  playLeft: (m: LeftName) => void;
+  step: (frames: number, dt: number) => void;
+  clock: (on: boolean) => void;
+  trail: (look: 'ink' | 'light') => void;
+  plate: (on: boolean) => void;
+  pixelRatio: (r: number) => void;
+  stats: () => { calls: number; triangles: number; width: number; height: number; vmTris: number; hullTris: number };
+  bench: (frames: number) => Promise<number>;
+  snapshot: (w: number, h: number, q: number) => string;
+  bake: () => Promise<{ b64: string; report: string[] }>;
+  gate: () => GateOut;
+  skin: () => Record<string, number | string>;
+  debug: () => unknown;
+}
+declare global { interface Window { __ndVm?: VmLabApi } }
+
+async function loadFonts(): Promise<void> {
+  const specs = ['700 64px "LXGW WenKai TC"', '900 64px "Noto Serif TC"'];
+  const all = Promise.all(specs.map((s) => document.fonts.load(s, '九龍鎮邪敕令印')));
+  await Promise.race([all.then(() => undefined), new Promise<void>((resolve) => { setTimeout(resolve, 8000); })]);
+}
+
+function b64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCodePoint(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+async function main(): Promise<void> {
+  const canvas = document.getElementById('lab-canvas');
+  if (!(canvas instanceof HTMLCanvasElement)) throw new Error('no #lab-canvas');
+  const renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, stencil: false, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+  renderer.info.autoReset = false;
+  await loadFonts();
+  const loaded: string[] = [];
+  let arms: NineDragonArms | null = null;
+  try {
+    arms = await NineDragonArms.load();
+    loaded.push(`fp-rig.glb: ${Math.round(arms.tris.body)} body + ${Math.round(arms.tris.hull)} hull tris, ${Object.keys(arms.moves).length} clips`);
+  } catch (e: unknown) {
+    loaded.push(`fp-rig.glb missing (${String(e).slice(0, 80)}): bake() it`);
+  }
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(94, 402 / 874, 0.05, 50);
+  if (arms !== null) scene.add(arms.root);
+  const silk = weaveTexture();
+  const post = new LabPost(renderer, silk);
+  const texLoader = new TextureLoader();
+  const plates = new Map<string, Texture>();
+  const plateTex = async (name: string): Promise<Texture | null> => {
+    const have = plates.get(name);
+    if (have !== undefined) return have;
+    try {
+      const t = await texLoader.loadAsync(`${ASSET_BASE}plates/${name}-plate.jpg`);
+      t.colorSpace = SRGBColorSpace;
+      t.minFilter = LinearMipmapLinearFilter;
+      plates.set(name, t);
+      return t;
+    } catch {
+      return null;
+    }
+  };
+  let plate: Texture | null = await plateTex('loop-1');
+  let plateOn = true;
+  let pr: number | null = null;
+  const resize = (): void => {
+    const w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+    const r = pr ?? Math.min(window.devicePixelRatio || 1, 3);
+    renderer.setPixelRatio(r);
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    // the viewmodel projection: 70° vertical on portrait (the canon the clips are framed for), the engine's on landscape
+    camera.fov = camera.aspect < 1 ? 70 : fovForAspect(72, camera.aspect);
+    camera.updateProjectionMatrix();
+    const bw = Math.round(w * r), bh = Math.round(h * r);
+    arms?.resize(bw, bh, r);
+    arms?.layout(camera);
+    post.setSize(bw, bh, r);
+  };
+  window.addEventListener('resize', resize);
+  resize();
+
+  let t = 0;
+  let clockOn = true;
+  const state: ArmsState = { speed: 0, lookVel: new Vector2(), gravity: new Vector3(0, -9.8, 0) };
+  let walkPhase = 0;
+  const frame = (dt: number): void => {
+    t += dt;
+    walkPhase += dt * state.speed * Math.PI * 2 / 0.8;
+    state.walkPhase = walkPhase;
+    arms?.update(dt, state);
+    renderer.info.reset();
+    post.render(plateOn ? plate : null, scene, camera, t);
+  };
+  window.addEventListener('keydown', (e) => {
+    const moves: Readonly<Record<string, MoveName>> = { Digit1: 'light', Digit2: 'light2', Digit3: 'light3', Digit4: 'heavy', Digit5: 'parry', Digit6: 'draw', Digit7: 'sheathe', Digit8: 'charge' };
+    const m = moves[e.code];
+    if (m !== undefined) arms?.play(m);
+    if (e.code === 'KeyW') state.speed = state.speed > 0 ? 0 : 1;
+    if (e.code === 'KeyG') arms?.playLeft('grapple_aim');
+    if (e.code === 'KeyF') arms?.playLeft('grapple_fire');
+  });
+  let last = performance.now();
+  const loop = (now: number): void => {
+    const dt = Math.min(0.05, Math.max(0.0001, (now - last) / 1000));
+    last = now;
+    if (clockOn) frame(dt);
+    requestAnimationFrame(loop);
+  };
+  for (let i = 0; i < 120; i++) arms?.update(1 / 60, state);
+  frame(1 / 60);
+
+  const nextFrames = (n: number): Promise<void> => new Promise((resolve) => {
+    let k = 0;
+    const step = (): void => { k++; if (k >= n) resolve(); else requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+
+  const gate = (): GateOut => {
+    const frames: GateFrame[] = [];
+    const events: { t: number; what: string }[] = [];
+    let tt = 0;
+    const dt = 1 / 60;
+    const rec = (): void => {
+      if (arms === null) return;
+      const a = arms.jointAngles();
+      frames.push({ t: tt, R: [a.R.elbow, a.R.pronation, a.R.flexion, a.R.deviation], L: [a.L.elbow, a.L.pronation, a.L.flexion, a.L.deviation], cloth: arms.clothPenetration() });
+    };
+    // settle
+    state.speed = 0;
+    for (let i = 0; i < 60; i++) frame(dt);
+    for (const s of GATE_SCRIPT) {
+      if ('play' in s) { arms?.play(s.play); events.push({ t: tt, what: s.play }); }
+      else if ('left' in s) { arms?.playLeft(s.left); events.push({ t: tt, what: `L:${s.left}` }); }
+      else if ('walk' in s) { state.speed = s.walk; events.push({ t: tt, what: `walk ${s.walk}` }); }
+      else {
+        const n = Math.round(s.wait * 60);
+        for (let i = 0; i < n; i++) { frame(dt); tt += dt; rec(); }
+      }
+    }
+    state.speed = 0;
+    // maxima: |angle| per channel, |velocity| (deg/s), |second difference| (deg/frame²)
+    const max: Record<string, number> = {};
+    const names = ['elbow', 'pronation', 'flexion', 'deviation'];
+    for (const side of ['R', 'L'] as const) {
+      names.forEach((nm, k) => {
+        let lo = Infinity, hi = -Infinity, v = 0, acc = 0;
+        for (let i = 0; i < frames.length; i++) {
+          const x = frames[i]?.[side][k] ?? 0;
+          lo = Math.min(lo, x);
+          hi = Math.max(hi, x);
+          const p = frames[i - 1]?.[side][k], pp = frames[i - 2]?.[side][k];
+          if (p !== undefined) v = Math.max(v, Math.abs(x - p) * 60);
+          if (p !== undefined && pp !== undefined) acc = Math.max(acc, Math.abs(x - 2 * p + pp));
+        }
+        max[`${side}.${nm}.min`] = lo;
+        max[`${side}.${nm}.max`] = hi;
+        max[`${side}.${nm}.vel`] = v;
+        max[`${side}.${nm}.acc`] = acc;
+      });
+    }
+    max['cloth.penetration'] = frames.reduce((m, f) => Math.max(m, f.cloth), 0);
+    return { frames, max, events };
+  };
+
+  const skin = (): Record<string, number | string> => {
+    if (arms === null) return { error: 'no rig' };
+    let maxSumErr = 0, badIdx = 0, verts = 0, meshes = 0;
+    let bindErr = 0;
+    for (const m of arms.skinned()) {
+      meshes++;
+      const sw = m.geometry.getAttribute('skinWeight'), si = m.geometry.getAttribute('skinIndex'), pos = m.geometry.getAttribute('position');
+      const nb = m.skeleton.bones.length;
+      // bind restore: with every bone at its bind matrix the skinned position is the stored one
+      const inv = m.skeleton.boneInverses;
+      const bindW = inv.map((x) => x.clone().invert());
+      for (let i = 0; i < sw.count; i++) {
+        verts++;
+        const s = sw.getX(i) + sw.getY(i) + sw.getZ(i) + sw.getW(i);
+        maxSumErr = Math.max(maxSumErr, Math.abs(s - 1));
+        const ids = [si.getX(i), si.getY(i), si.getZ(i), si.getW(i)];
+        const ws = [sw.getX(i), sw.getY(i), sw.getZ(i), sw.getW(i)];
+        if (ids.some((b, k) => (ws[k] ?? 0) > 0 && (b < 0 || b >= nb))) badIdx++;
+        if (i % 7 === 0) {
+          const p = new Vector3().fromBufferAttribute(pos, i), acc = new Vector3();
+          ids.forEach((b, k) => {
+            const w = ws[k] ?? 0;
+            if (w <= 0) return;
+            const bw = bindW[b], bi = inv[b];
+            if (bw === undefined || bi === undefined) return;
+            acc.addScaledVector(p.clone().applyMatrix4(bi).applyMatrix4(bw), w);
+          });
+          bindErr = Math.max(bindErr, acc.distanceTo(p));
+        }
+      }
+    }
+    return { meshes, verts, maxWeightSumError: maxSumErr, badIndices: badIdx, bindRestoreError: bindErr, skinnedMeshType: arms.skinned().every((m) => m instanceof SkinnedMesh) ? 'SkinnedMesh' : 'mixed' };
+  };
+
+  window.__ndVm = {
+    ready: nextFrames(3),
+    loaded: () => [...loaded],
+    shot: async (name) => {
+      const s = SHOTS[name];
+      if (s === undefined) throw new Error(`no shot ${name}`);
+      plate = await plateTex(s.plate);
+      const p = (s.pitch * Math.PI) / 180;
+      state.gravity.set(0, -Math.cos(p), -Math.sin(p)).multiplyScalar(9.8);
+      await nextFrames(2);
+    },
+    set: (key, value) => {
+      if (arms === null) return;
+      const tune = arms.u.uTune.value;
+      if (key === 'crease') tune.x = value;
+      else if (key === 'wear') tune.y = value;
+      else if (key === 'ao') tune.z = value;
+      else if (key === 'env') tune.w = value;
+      else if (key === 'spill') arms.u.uSpill.value.w = value;
+      else if (key === 'sutra') arms.u.uSutra.value = value;
+      else if (key === 'breeze') arms.breeze = value;
+      else if (key === 'walk') state.speed = value;
+      else if (key === 'vm') arms.root.visible = value > 0.5;
+      else if (key === 'claw') arms.setClawVisible(value > 0.5);
+      else throw new Error(`unknown key ${key}`);
+    },
+    play: (m) => { arms?.play(m); },
+    playLeft: (m) => { arms?.playLeft(m); },
+    step: (frames, dt) => { for (let i = 0; i < frames; i++) frame(dt); },
+    clock: (on) => { clockOn = on; last = performance.now(); },
+    trail: (look) => { arms?.setTrailLook(look); },
+    plate: (on) => { plateOn = on; },
+    pixelRatio: (r) => { pr = r; resize(); },
+    stats: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, width: renderer.domElement.width, height: renderer.domElement.height, vmTris: arms?.tris.body ?? 0, hullTris: arms?.tris.hull ?? 0 }),
+    bench: async (frames) => {
+      const gl = renderer.getContext();
+      const px = new Uint8Array(4);
+      frame(1 / 60);
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      await nextFrames(2);
+      const t0 = performance.now();
+      for (let i = 0; i < frames; i++) {
+        frame(1 / 60);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      }
+      return (performance.now() - t0) / frames;
+    },
+    snapshot: (w, h, q) => {
+      const out = document.createElement('canvas');
+      out.width = w;
+      out.height = h;
+      const c2 = out.getContext('2d');
+      if (c2 === null) throw new Error('2d canvas unavailable');
+      c2.imageSmoothingEnabled = true;
+      c2.imageSmoothingQuality = 'high';
+      c2.drawImage(renderer.domElement, 0, 0, w, h);
+      return out.toDataURL('image/jpeg', q);
+    },
+    bake: async () => {
+      const r = await bakeRig();
+      return { b64: b64(r.glb), report: r.report };
+    },
+    gate,
+    skin,
+    debug: () => {
+      if (arms === null) return null;
+      const out: Record<string, unknown> = { rootPos: arms.root.position.toArray(), rootScale: arms.root.scale.x, cam: [camera.fov, camera.aspect], rest: arms.restPoints() };
+      arms.root.traverse((o) => { if (o.name.startsWith('R_') || o.name.startsWith('L_')) out[o.name] = new Vector3().setFromMatrixPosition(o.matrixWorld).toArray().map((x) => Number(x.toFixed(3))); });
+      return out;
+    },
+  };
+  requestAnimationFrame(loop);
+}
+
+main().catch((e: unknown) => {
+  console.error(e);
+  document.body.textContent = `vm lab failed: ${String(e)}`;
+});
