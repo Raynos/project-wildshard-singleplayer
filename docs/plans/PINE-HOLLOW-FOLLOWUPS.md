@@ -1,6 +1,6 @@
 # Pine Hollow — follow-ups after the remaster merge
 
-**State:** `in progress` 2026-09-30 — E322 (claude session 341ca5a3 / herdr wildshard-9): 13 of Jake's 14 picked rows done (E300, F-U2, F-L7, F-M7, F-L6, F-L3, and B picked + made the only path for F-L4, F-L5, F-M2, F-M5, F-L2, F-M3, F-M1). Building: F-M6 (weapon hands, a board for Jake). Found and fixed on the way: shut cabin doors could be walked through (`156bb966`, verified), E341 the campfire 'black blob' (a near-black hide, `df02ebed`). Not picked: the big lifts (F-B1, F-0.2) and the rest. Still Jake's: F-J1 (iPhone reading).
+**State:** `blocked` 2026-09-30 — E322 built all 14 rows Jake picked (bug sweep, look pass, creatures & hands), live in `9eda772-muo2raeq` (the crossbow-hands polish `21cd9c23` ships next deploy). Waits on Jake: a pick among the rows not yet picked — the big lifts (F-B1 whole-map Blender pass, F-0.2 shard code split, F-B5, F-B6), F-L1's sky / far-rock misses, F-M4, F-M8, F-A1, F-U1, F-P1–P4, F-P6, the GPU levers F-G1–G13 — and the E322 leftovers now in the rows below (crags.glb dead bytes, the King's fight distances, Hale's forearm mesh, rain in practice rooms); F-J1 (an iPhone reading) is his.
 Each row names where it came from (the remaster lane that left it) so the next agent can read the evidence.
 
 ## Moved out of the remaster to finish it sooner (PH-U32)
@@ -43,9 +43,18 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-M3 | **done — Jake picked B; only path `e01791bc`** (built `4da54ccc` + `33c0f77b` (E322): Debug ▸ Creatures & NPCs ▸ NPC rig — legs, clavicle / twist, a walk (`walkTo`, no quest moves them yet), board `art/pine-hollow/round-21-e322-npc-rig/` — waits on Jake's pick; the grey sheet under Hale's raised forearm is the mesh (E341)**. Was: the NPCs: shoulders stretch when Hale lifts his arm; no walk clip | creatures lane |
 | F-M4 | A desktop far-distance LOD for the generated creature hulls (desktop animal tris +0.1–0.4 M) | creatures lane |
 | F-M5 | **done — Jake picked B; only path `972516a6` + `08fe9813` (KTX2 copy back)** (built `02c411cd` + `9e9d6ebb` (E322): Debug ▸ Creatures & NPCs ▸ Bird fix — owl volume, raven phone texture sharper; the woodpecker's feet being fixed — waits on Jake's pick**. Was: birds: the flying owl's body is flat side-on; the woodpecker clings with standing legs; the raven's phone texture is soft | polish lane (`art/pine-hollow/round-16-birds/`) |
-| F-M6 | First-person hands on the crossbow and the lever-action (the knife has a gloved hand; the guns have none) | loadout + polish lanes |
+| F-M6 | **done — Jake picked B + a crossbow polish: only path `fd213018`, polish `21cd9c23` (E322)** — was: first-person hands on the crossbow and the lever-action (the knife has a gloved hand; the guns have none) | loadout + polish lanes |
 | F-M7 | **done `04fa26f1` (E322)**: the door swings, barred until the miller's errand. Was: the mill door is merged into the building mesh: it can't open after the miller's errand | assets + quest lanes |
 | F-M8 | The lever-action's case colours read bright / silvery in game — a darker, more mottled finish if Jake wants it | rifle lane (`art/pine-hollow/round-15-rifle/`) |
+
+## E322 leftovers (2026-09-30, not picked yet)
+
+| # | Row | From |
+|---|---|---|
+| F-X1 | `crags.glb` still carries A's five replaced big modules (~215 KB dead bytes in the boot pack): trim `build_crags.py` | E322 F-L2 collapse |
+| F-X2 | The Antler King's fight distances (sweep radius, lane width) were tuned for the elk-rig King, not his bigger upright frame | E322 F-M1 |
+| F-X3 | Hale's raised forearm stretches a grey sheet: 75 triangles join his elbow / twist bones to the spine (a mesh repair) | E322 F-M3, E341 |
+| F-X4 | The existing rain still falls inside practice rooms (camera-local, no `practiceRoom` check) | E322 F-L5 |
 
 ## Sound, UI, perf
 
