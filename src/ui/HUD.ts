@@ -84,6 +84,11 @@ const CARDINALS: [number, string, boolean][] = [[0, 'N', true], [45, 'NE', false
 const BAND_DEGREES = 292; // the band spans this much heading (W · N · E all visible, like the K1 mockup); px/deg follows its width
 const PAW_RANGE = 120;   // m — the compass only pins an animal this close
 const MARKER_INSET = 22; // px — a marker behind the player parks at the band's edge instead of leaving it
+/** E319 (Jake's clean-HUD pick B, rule 1): VITALS hide at full health — back to full, they stay this long, then fade out
+ *  over VITALS_FADE_MS (game.css `.hp-fade`) and leave the column (`.hp-gone`, the rows under them move up). Any hit brings
+ *  them back at once. */
+const VITALS_HIDE_MS = 2000;
+const VITALS_FADE_MS = 400;
 
 /** compass bearing (deg, 0 = north) of the point (tx, tz) seen from (x, z). North is +Z (the south-gate spawn's forward,
  *  yaw π, is `player.forward = (−sin yaw, −cos yaw)` = +Z) and the heading is `180 − yaw°`, which puts east at −X. */
@@ -127,14 +132,17 @@ export class HUD {
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
   private animals: { x: number; z: number }[] = [];
   /** touch layout E (E42): the vitals + bolts strips rendered into TouchControls' top-left status column (`.ws-touch-status`, under PAUSE) */
-  private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
+  private bar?: { vitals: HTMLElement; hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   /** the band's width, measured when it resizes (build()'s fit): placeMark ran every frame and read clientWidth after the
    *  frame's HUD writes — a forced layout per frame (E142 aggro-perf) */
   private bandW = -1;
   private feed!: HTMLElement; private toasts!: ToastStack; private toastBox!: HTMLElement;
-  private healthVal!: HTMLElement; private healthBar!: HTMLElement;
+  private healthVal!: HTMLElement; private healthBar!: HTMLElement; private healthPanel!: HTMLElement;
+  /** E319: when health last reached full (performance.now; -Infinity = full since the start, null = hurt) and the VITALS
+   *  visibility as last painted — they start hidden, the player spawns at full health */
+  private hpFullAt: number | null = Number.NEGATIVE_INFINITY; private hpShown: 'show' | 'fade' | 'gone' = 'gone';
   private ammoCount!: HTMLElement; private ammoNum!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
   private cross!: HTMLElement; private killX!: HTMLElement; private hitRing!: HTMLElement; private aim!: HTMLElement; private aimText = '';
   private prompt!: HTMLElement; private boundary!: HTMLElement; private flash!: HTMLElement;
@@ -221,6 +229,7 @@ export class HUD {
     const health = el('div', 'ws-glass ws-game-health');
     health.innerHTML = `<div class="ws-game-hrow"><span class="ws-label">Vitals</span><span class="ws-game-hval"><span class="v">100</span><small>/ 100</small></span></div><div class="ws-bar"><i style="width:100%"></i><u style="left:25%"></u><u style="left:50%"></u><u style="left:75%"></u></div>`;
     this.healthVal = q(health, '.v'); this.healthBar = q(health, '.ws-bar i');
+    this.healthPanel = health; health.classList.add('hp-fade', 'hp-gone'); // E319: hidden at full health (setState)
     r.append(health);
 
     // ammo
@@ -312,6 +321,12 @@ export class HUD {
       this.healthBar.classList.toggle('low', h <= 30);
       this.syncBar('health');
     }
+    // E319: VITALS only while hurt — full → VITALS_HIDE_MS → a fade → gone; a hit shows them the same frame
+    const now = performance.now();
+    if (s.health < 100) this.hpFullAt = null; else this.hpFullAt ??= now;
+    const fullFor = this.hpFullAt === null ? -1 : now - this.hpFullAt;
+    const hp = fullFor < VITALS_HIDE_MS ? 'show' : fullFor < VITALS_HIDE_MS + VITALS_FADE_MS ? 'fade' : 'gone';
+    if (hp !== this.hpShown) { this.hpShown = hp; this.paintVitals(); }
     const noAmmo = s.bolts === undefined;
     if (noAmmo !== L.noAmmo) { L.noAmmo = noAmmo; this.ammoPanel.style.display = noAmmo ? 'none' : ''; if (this.bar) this.bar.bolts.style.display = noAmmo ? 'none' : ''; }
     const bolts = s.bolts ?? 0;
@@ -353,8 +368,15 @@ export class HUD {
     const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny"><span class="ws-game-weapon">${L.weaponName ?? 'Crossbow'}</span><span class="l">${L.ammoLabel ?? 'Bolts'}</span></span><span class="ws-game-segs">${'<i></i>'.repeat(segN)}</span><b class="ws-game-num"><span class="c">30</span><small> / <span class="m">${L.maxBolts ?? this.opts.maxBolts}</span></small><small class="ws-game-reserve">${reserve > 0 ? `+ ${reserve}` : ''}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
     hudSlots.statusRow(vitals, ROW.vitals, false); hudSlots.statusRow(bolts, ROW.ammo, false);
     if (this.last.noAmmo) bolts.style.display = 'none';
-    this.bar = { hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
-    this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status');
+    this.bar = { vitals, hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
+    this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status'); this.paintVitals();
+  }
+  /** E319: the desktop VITALS panel and the touch VITALS strip follow `hpShown` (fading out, then out of the layout) */
+  private paintVitals(): void {
+    for (const e of [this.healthPanel, this.bar?.vitals]) {
+      if (e === undefined) continue;
+      e.classList.toggle('hp-fade', this.hpShown !== 'show'); e.classList.toggle('hp-gone', this.hpShown === 'gone');
+    }
   }
   /** the touch strip's bars over the magazine: 4 for the crossbow, 6 for the rifle (rebuilt on a weapon change) */
   private buildSegs(n: number): void {

@@ -194,6 +194,11 @@
 #hud.touch .ws-game-health, #hud.touch .ws-game-ammo { display: none; }
 .ws-game-vitals, .ws-game-bolts { position: relative; display: flex; align-items: center; gap: 7px; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; white-space: nowrap; }
 .ws-game-bolts { height: 24px; }
+/* E319 (Jake's clean-HUD pick B): VITALS hide at full health — HUD.ts paintVitals: 2 s after health is back to full the panel /
+   strip fades (.hp-fade), then leaves the layout (.hp-gone); a hit shows it again at once (from display none, no fade) */
+.ws-game-vitals { transition: opacity 0.12s; }
+.ws-game-vitals.hp-fade, #hud .ws-game-health.hp-fade { opacity: 0; transition: opacity 0.4s ease; }
+.ws-game-vitals.hp-gone, #hud .ws-game-health.hp-gone { display: none; }
 /* the left column on touch (E47: the frame meter moved onto PAUSE's row): status (VITALS / BOLTS) +30, ✎ NOTE disc +90 (feedback.css),
    boss bar +130 (quest.css), then the feed (the toasts are top-right under the quest chip, A1) */
 @media (max-width: 700px) {

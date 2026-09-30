@@ -40,7 +40,8 @@
  *    (`player.touchDive` → `player.diveHeld`); once the eye is under (`player.submerged`, polled) SURFACE appears in
  *    DODGE's spot (`player.touchSurface`, hold to come up) and hides again on surfacing.
  *  - LOCK shows while a weapon that locks is held (`.lockable` — LockOnTarget's LOCK_WEAPONS: the swords, Nalati's sabre and
- *    spear, NALATI-MERGE H3); in Nalati's saddle (`player.ride`, `.riding`) MOVE steers the horse, so it never reads ORBIT.
+ *    spear, NALATI-MERGE H3) and there is something to lock (E319: a target in reach, or locked on — else `.lock-idle`
+ *    hides it and its slot stays empty; a shard verb's hint keeps it up); in Nalati's saddle (`player.ride`, `.riding`) MOVE steers the horse, so it never reads ORBIT.
  *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
  *    the FIRE disc, clear of the pill, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
  *    comes up charging and a crossbow never comes up sighted.
@@ -100,6 +101,7 @@ const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', '
 const SPEAR: ReadonlySet<WeaponId> = new Set<WeaponId>(['spear']);
 const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera turn (≈ 60 % of the bearing over a 0.15 s lunge)
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
+const LOCK_LINGER = 0.8;       // s — E319: LOCK stays up this long after the last lockable target leaves its reach
 
 /** a disc a shard's traversal verb may re-dress (ChunkDef TouchDiscHint): its button, label, icon and own label / icon */
 interface HintDisc { btn: HTMLElement; label: HTMLElement; svg: Element; ownIcon: string; hint: TouchDiscHint | null }
@@ -131,6 +133,7 @@ export class TouchControls {
   private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
   private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
   private wasLockable = false; // the LOCK disc shows while a weapon that locks is held (LOCK_WEAPONS: the swords, Nalati's sabre + spear)
+  private lockLinger = 0; private lockIdle = false; // E319: s left before LOCK hides with nothing to lock / `.lock-idle` as last painted
   private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
   private hintLock?: HintDisc; private hintJump?: HintDisc; // LOCK / JUMP as a shard's traversal verb re-dresses them (E286)
 
@@ -231,6 +234,15 @@ export class TouchControls {
         this.lockShown = ls;
         root.classList.toggle('lock-available', ls === 'available'); root.classList.toggle('locked', ls === 'locked');
         lockLabel.textContent = hintLock.hint?.label ?? (ls === 'locked' ? 'Locked' : 'Lock'); lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' && !riding ? 'Orbit' : 'Move';
+      }
+      // E319 (Jake: "only LOCK contextual" — DODGE stays): LOCK shows only while pressing it would lock (`available`: a
+      // target in LockOnTarget's reach, cone and sight) or while locked, and lingers LOCK_LINGER s after, so a target at
+      // the cone's edge doesn't blink it. Hidden (`.lock-idle`), its slot stays empty; an E286 hint keeps it up (touch.css).
+      // Without a lock system (the dev pages) it never hides.
+      if (this.lock !== undefined) {
+        this.lockLinger = ls === 'off' ? Math.max(0, this.lockLinger - dt) : LOCK_LINGER;
+        const idle = this.lockLinger <= 0;
+        if (idle !== this.lockIdle) { this.lockIdle = idle; root.classList.toggle('lock-idle', idle); }
       }
       const orbit = ls === 'locked' && !riding ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
       if (orbit !== this.orbitShown) { this.orbitShown = orbit; root.classList.toggle('orbit-l', orbit < 0); root.classList.toggle('orbit-r', orbit > 0); }
