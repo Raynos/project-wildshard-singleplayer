@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # e304_faces.sh — E304: the face remaster for the models outside Nalati's camp (Pine Hollow's hamlet, the Drowned Captain):
 #
-#   scripts/img2mesh/e304_faces.sh <hunyuan|hunyuanref|sharp> <name …>
+#   scripts/img2mesh/e304_faces.sh <hunyuan|hunyuanref|paint|sharp> <name …>   (paint: the codex bust, no projection)
 #
 # Per name (scripts/img2mesh/faces-e304.json): the shipped body (desktop + phone, decoded by nalati-faces-decode.mjs) →
 # Blender face_remaster.py (head-first re-UV + re-bake; hunyuan grafts the Hunyuan3D-2 bust ~/ml/img2mesh/out/e304-faces/
@@ -36,11 +36,13 @@ c, v, w, bust, tris, pbr = json.loads(sys.argv[1]), sys.argv[2], sys.argv[3], sy
 out = ["--neck", str(c["neck"])]
 if pbr:
     out += ["--normal-map"]
-if v.startswith("hunyuan"):
+if v.startswith("hunyuan") or v == "paint":
     g = c.get("graft", {})
     out += ["--graft", f"{w}/hy/{bust}.glb", "--bust-image", f"{w}/cut/{bust}.png", "--bust-neck", str(g.get("neck", 0.6)),
             "--bust-clip", str(g.get("clip", 0.015)), "--bust-grow", str(g.get("grow", 1.0)), "--bust-dz", str(g.get("dz", 0.0)),
             "--bust-dy", str(g.get("dy", 0.0)), "--head-tris", tris, "--smooth-face", str(g.get("smooth_face", 0.0 if pbr else 0.8))]
+    if v == "paint":   # E339 D: Hunyuan3D-2's own all-round paint, no portrait projected
+        i = out.index("--bust-image"); del out[i:i + 2]
     if "beard" in g:
         out += ["--bust-beard", str(g["beard"][0]), str(g["beard"][1])]
     if "ptop" in g:

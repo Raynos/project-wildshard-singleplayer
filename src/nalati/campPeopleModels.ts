@@ -26,6 +26,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '../core/tier';
+import { setting } from '../ui/Settings';
 import { painterlyMaterial } from '../world/painterly';
 import { rawFromGltf } from '../world/nalati/glbPaint';
 import type { Sky } from '../world/Sky';
@@ -45,8 +46,12 @@ let loader: GLTFLoader | null = null;
 export const PERSON_FILE = { elder: 'elder', herderGate: 'herder-dauren', herderRail: 'herder-erlan', child: 'child', cook: 'cook' } as const;
 export type PersonKey = keyof typeof PERSON_FILE;
 
+/** E339 (temporary, Debug ▸ Creatures & NPCs ▸ Camp faces): D = the same heads with the Hunyuan3D-2 bust's own all-round
+ *  paint instead of the projected portrait (scripts/img2mesh/build_faces.sh paint → people/faces-paint/); B ships */
+function facesDir(): string { return setting('nalatiFaces') === 'paint' ? 'faces-paint/' : ''; }
+
 export function peopleModelUrl(key: PersonKey): string {
-  return `${DIR}${PERSON_FILE[key]}.gen${TIER === 'phone' ? '.phone' : ''}.glb`;
+  return `${DIR}${facesDir()}${PERSON_FILE[key]}.gen${TIER === 'phone' ? '.phone' : ''}.glb`;
 }
 
 interface Figure { key: PersonKey; geometry: THREE.BufferGeometry; map: THREE.Texture | null; neck: THREE.Vector3; shoulder: THREE.Vector3; head: Float32Array; arm: Float32Array }

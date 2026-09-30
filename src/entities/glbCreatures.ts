@@ -25,6 +25,7 @@ import { variantDef, type BoneDef } from './species/registry';
 import { coatAtlas, HULL_COATS } from './creatureCoats';
 import { mapSlot } from '../core/shardState';
 import { MAY_KTX2 } from '../boot/gpuFiles';
+import { setting } from '../ui/Settings';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */
 export type { CreatureRigName } from './creatureRigs';
@@ -76,12 +77,19 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
   return new THREE.BufferAttribute(out, k);
 }
 
+/** the file a rig loads: creatureRigUrl's, but under Debug ▸ Creatures & NPCs ▸ Camp faces = D (E339, temporary) the Golden
+ *  King's head keeps the Hunyuan3D-2 bust's own paint, no projected portrait (models/faces-paint/, same skin and bones) */
+function rigFileUrl(name: CreatureRigName): string {
+  const url = creatureRigUrl(name);
+  return name === 'golden-king' && setting('nalatiFaces') === 'paint' ? url.replace('/models/', '/models/faces-paint/') : url;
+}
+
 /** load one rig (cached): its geometry in the skeleton's rest space, the atlas, the joints' rest positions */
 export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
   let p = loading.get(name);
   if (!p) {
     if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    p = loader.loadAsync(creatureRigUrl(name)).then((gltf) => {
+    p = loader.loadAsync(rigFileUrl(name)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: THREE.SkinnedMesh[] = [];
       gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });
