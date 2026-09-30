@@ -30,20 +30,21 @@ page.on('requestfailed', (r) => { const u = new URL(r.url()); if (/^\/assets\/(m
 
 const probe = () => page.evaluate(() => {
   const w = window.__world, m = w.music, st = m.steppe, d = m.deck, ctx = m.rig?.ctx;
-  const rms = (b) => { if (!b) return null; const x = b.getChannelData(0); let s = 0, pk = 0; for (let i = 0; i < x.length; i += 7) { s += x[i] * x[i]; pk = Math.max(pk, Math.abs(x[i])); } return { rms: +Math.sqrt(s / (x.length / 7)).toFixed(4), peak: +pk.toFixed(3) }; };
-  const buf = (b) => (b ? { duration: +b.duration.toFixed(3), channels: b.numberOfChannels, sampleRate: b.sampleRate, ...rms(b) } : null);
+  const rms = (b) => { if (!b) return null; const x = b.getChannelData(0); let s = 0, pk = 0; for (let i = 0; i < x.length; i += 7) { s += x[i] * x[i]; pk = Math.max(pk, Math.abs(x[i])); } return { rms: Number(Math.sqrt(s / (x.length / 7)).toFixed(4)), peak: Number(pk.toFixed(3)) }; };
+  const buf = (b) => (b ? { duration: Number(b.duration.toFixed(3)), channels: b.numberOfChannels, sampleRate: b.sampleRate, ...rms(b) } : null);
   const king = st.slots.get('steppe-king');
   return {
     inside: w.nalati?.boss?.inside ?? null,
     scene: { ...st.scene }, target: st.target(), resident: st.resident, pending: st.pending, decodeLog: st.log,
     kingSpec: king ? { calm: king.spec.calm, tension: king.spec.tension, bpm: king.spec.bpm, loopStart: king.spec.loopStart, loopEnd: king.spec.loopEnd } : null,
     kingCalm: buf(king?.calm), kingTension: buf(king?.tension),
-    deck: d ? { slot: d.audio.slot, t0: +d.t0.toFixed(3), sources: d.srcs.length, sourceBuffers: d.srcs.map((s) => s.buffer?.duration.toFixed(2)) } : null,
-    ctx: ctx ? { state: ctx.state, currentTime: +ctx.currentTime.toFixed(3) } : null,
+    deck: d ? { slot: d.audio.slot, t0: Number(d.t0.toFixed(3)), sources: d.srcs.length, sourceBuffers: d.srcs.map((s) => s.buffer?.duration.toFixed(2)) } : null,
+    ctx: ctx ? { state: ctx.state, currentTime: Number(ctx.currentTime.toFixed(3)) } : null,
     muted: w.audio.muted,
   };
 });
 
+let last = null;
 try {
   const t0 = Date.now();
   await page.goto(report.url, { waitUntil: 'domcontentloaded', timeout: 180_000 });
@@ -55,6 +56,7 @@ try {
   for (let i = 0; i < 40; i++) {
     await sleep(1500);
     const p = await probe();
+    last = p;
     report.polls.push({ at: Date.now() - t0, ...p });
     if (p.deck?.slot === 'steppe-king' && p.ctx && p.ctx.currentTime > p.deck.t0 + 3) break;
   }
@@ -66,17 +68,17 @@ try {
     const taps = { deckOut: tap(d.out), stemBus: tap(rig.stemBus) };
     const x = new Float32Array(32768), out = [];
     for (let i = 0; i < 8; i++) {
-      await new Promise((r) => { setTimeout(r, 700); });
-      const row = { at: +(rig.ctx.currentTime - d.t0).toFixed(2) }; // seconds into the king's calm stem
+      await new Promise((resolve) => { setTimeout(resolve, 700); });
+      const row = { at: Number((rig.ctx.currentTime - d.t0).toFixed(2)) }; // seconds into the king's calm stem
       for (const [k, an] of Object.entries(taps)) {
         an.getFloatTimeDomainData(x);
         let s = 0, pk = 0; for (const v of x) { s += v * v; pk = Math.max(pk, Math.abs(v)); }
-        row[k] = { rmsDb: +(20 * Math.log10(Math.sqrt(s / x.length) + 1e-9)).toFixed(1), peak: +pk.toFixed(3) };
+        row[k] = { rmsDb: Number((20 * Math.log10(Math.sqrt(s / x.length) + 1e-9)).toFixed(1)), peak: Number(pk.toFixed(3)) };
       }
       out.push(row);
     }
     d.out.disconnect(taps.deckOut); rig.stemBus.disconnect(taps.stemBus);
-    return { windows: out, deck: m.deck?.audio.slot ?? null, deckOutGain: +d.out.gain.value.toFixed(3), stemBusGain: +rig.stemBus.gain.value.toFixed(3) };
+    return { windows: out, deck: m.deck?.audio.slot ?? null, deckOutGain: Number(d.out.gain.value.toFixed(3)), stemBusGain: Number(rig.stemBus.gain.value.toFixed(3)) };
   });
   report.audioLog = await page.evaluate(() => window.__audioLog.filter((e) => e.kind === 'music'));
   // the B3 one-shots: decoded on the steppe? fire each and read their buffers
@@ -84,18 +86,17 @@ try {
     const a = window.__world.audio, out = {};
     for (const f of ['spearThrust', 'javelinImpact-flesh', 'javelinImpact-wood', 'javelinThrow']) {
       const set = a.shots.get(f);
-      out[f] = set ? set.bufs.map((b) => { const x = b.getChannelData(0); let pk = 0, s = 0; for (const v of x) { pk = Math.max(pk, Math.abs(v)); s += v * v; } return { duration: +b.duration.toFixed(3), peak: +pk.toFixed(3), rms: +Math.sqrt(s / x.length).toFixed(4) }; }) : 'synth (no file)';
+      out[f] = set ? set.bufs.map((b) => { const x = b.getChannelData(0); let pk = 0, s = 0; for (const v of x) { pk = Math.max(pk, Math.abs(v)); s += v * v; } return { duration: Number(b.duration.toFixed(3)), peak: Number(pk.toFixed(3)), rms: Number(Math.sqrt(s / x.length).toFixed(4)) }; }) : 'synth (no file)';
     }
     const before = { ...a.counts };
     a.spearThrust(); a.javelinImpact('flesh');
     out.fired = { spearThrust: (a.counts.spearThrust ?? 0) - (before.spearThrust ?? 0), 'javelinImpact:flesh': (a.counts['javelinImpact:flesh'] ?? 0) - (before['javelinImpact:flesh'] ?? 0) };
     return out;
   });
-  const last = report.polls.at(-1);
   report.verdict = {
     kingSlotSelected: last?.target === 'steppe-king',
-    kingDecoded: last?.kingCalm !== null && (last?.kingCalm?.duration ?? 0) > 1,
-    kingDeckOnAir: last?.deck?.slot === 'steppe-king' && (last?.ctx?.state === 'running') && (last?.ctx?.currentTime ?? 0) > (last?.deck?.t0 ?? Infinity),
+    kingDecoded: (last?.kingCalm?.duration ?? 0) > 1,
+    kingDeckOnAir: last?.deck?.slot === 'steppe-king' && last.ctx?.state === 'running' && last.ctx.currentTime > last.deck.t0,
     signalOnStemBus: typeof report.tap === 'object' && report.tap.windows.some((w) => w.stemBus.peak > 0.05),
     logDeckKing: report.audioLog.some((e) => e.name === 'deck:steppe-king' && e.ok === true),
   };
