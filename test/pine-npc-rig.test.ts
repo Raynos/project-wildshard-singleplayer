@@ -112,20 +112,20 @@ describe('Pine Hollow NPC rig B (E322 F-M3)', () => {
         expect(b.walkSpeed / H).toBeLessThan(0.6);
       });
 
-      // A (today's rig) on the same edges, measured 2026-09-30 with this metric: p99 2.5–6.3×, max 10–19× — the armpit's crease,
-      // one vertex on the arm and its neighbour on the chest. B: p99 1.4–2.2×, max 3.3–6.5×.
-      it('Hale\'s point: the edges round the raised shoulder stretch p99 < 2.5×, never past 7×', async () => {
-        const { b } = await ready;
+      // The edges within 0.2 H of either shoulder (a generated mesh's slivers < 0.003 H left out: a ratio on them is noise).
+      // A (today's rig), measured 2026-09-30 on the phone files with this metric, Hale's point: p99 2.4–5.5×, worst 16–25×
+      // (the armpit: one vertex on the arm, its neighbour on the chest). B: p99 1.5–2.1×, worst 5.6–13×. Idle: B is bound
+      // in A's hang, so its idle barely moves the mesh from the bind (a breath).
+      const shoulderEdges = (b: LegBuilt, inp: Parameters<ReturnType<typeof legPose>>[0]): number[] => {
         const { mesh, pose } = skinned(b);
-        const P = b.geometry.getAttribute('position'), idx = b.geometry.getIndex();
-        const sh = b.rest[bone('shoulderR')] ?? new THREE.Vector3(), H = b.height;
-        const near: number[] = [];
-        for (let i = 0; i < P.count; i++) if (new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i)).distanceTo(sh) < 0.14 * H) near.push(i);
-        const nearSet = new Set(near);
-        pose({ t: 1.3, talk: 1, point: 1, pointYaw: 0.6, look: 0, walk: 0, phase: 0 });
+        const P = b.geometry.getAttribute('position'), idx = b.geometry.getIndex(), H = b.height;
+        const js = [b.rest[bone('shoulderR')], b.rest[bone('shoulderL')]].map((v) => v ?? new THREE.Vector3());
+        const nearSet = new Set<number>();
+        for (let i = 0; i < P.count; i++) { const v = new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i)); if (js.some((j) => v.distanceTo(j) < 0.2 * H)) nearSet.add(i); }
+        pose(inp);
         mesh.updateMatrixWorld(true);
         const posed = new Map<number, THREE.Vector3>();
-        for (const i of near) posed.set(i, mesh.applyBoneTransform(i, new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i))));
+        for (const i of nearSet) posed.set(i, mesh.applyBoneTransform(i, new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i))));
         const ratios: number[] = [];
         const tri = idx ? idx.count / 3 : 0;
         for (let f = 0; f < tri; f++) {
@@ -134,14 +134,24 @@ describe('Pine Hollow NPC rig B (E322 F-M3)', () => {
             const a = v[e] ?? 0, c = v[(e + 1) % 3] ?? 0;
             if (!nearSet.has(a) || !nearSet.has(c)) continue;
             const r0 = new THREE.Vector3(P.getX(a), P.getY(a), P.getZ(a)).distanceTo(new THREE.Vector3(P.getX(c), P.getY(c), P.getZ(c)));
-            if (r0 < 0.003 * H) continue;   // a generated mesh's slivers: a ratio on them is noise
+            if (r0 < 0.003 * H) continue;
             ratios.push((posed.get(a) ?? new THREE.Vector3()).distanceTo(posed.get(c) ?? new THREE.Vector3()) / r0);
           }
         }
-        ratios.sort((x, y) => x - y);
-        expect(ratios.length).toBeGreaterThan(500);
-        expect(ratios[Math.floor(0.99 * (ratios.length - 1))]).toBeLessThan(2.5);
-        expect(ratios[ratios.length - 1]).toBeLessThan(7);
+        return ratios.sort((x, y) => x - y);
+      };
+      it('Hale\'s point: the edges round the shoulders stretch p99 < 2.5×, never past 15×', async () => {
+        const { b } = await ready;
+        const r = shoulderEdges(b, { t: 1.3, talk: 1, point: 1, pointYaw: 0.6, look: 0, walk: 0, phase: 0 });
+        expect(r.length).toBeGreaterThan(500);
+        expect(r[Math.floor(0.99 * (r.length - 1))]).toBeLessThan(2.5);
+        expect(r[r.length - 1]).toBeLessThan(15);
+      });
+      it('idle is the bind (A\'s hang): no edge round the shoulders moves past 1.6×', async () => {
+        const { b } = await ready;
+        const r = shoulderEdges(b, { t: 1.3, talk: 0, point: 0, pointYaw: 0, look: 0, walk: 0, phase: 0 });
+        expect(r[r.length - 1]).toBeLessThan(1.6);
+        expect(r[0]).toBeGreaterThan(0.6);
       });
     });
   }

@@ -55,19 +55,31 @@ try {
     await page.waitForFunction(() => Boolean(window.__world?.player && window.__pineQuest?.people?.length === 3), undefined, { timeout: 300000, polling: 1000 });
     await page.waitForFunction(() => window.__pineQuest.people.every((q) => q.fig.group.children.some((c) => c.isSkinnedMesh)), undefined, { timeout: 120000, polling: 500 });
     await sleep(4000);
+    // the game must be running: its clock advances (a paused or lost-context page shoots white and never walks)
+    const clock = await page.evaluate(async () => {
+      const g = window.__world.game, a = g.clock.elapsedTime;
+      await new Promise((resolve) => { setTimeout(resolve, 1000); });
+      const b = g.clock.elapsedTime;
+      return { a, b, paused: Boolean(window.__world.hud?.paused) };
+    });
+    console.log(`${v}: clock ${JSON.stringify(clock)}${errors.length > 0 ? ` errors ${errors.slice(0, 3).join(' | ')}` : ''}`);
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch,.ws-touch *,[class*="elite"],[class*="banner"],[class*="quest"],[class*="toast"],[class*="crosshair"],[class*="reticle"],[class*="boss"],[class*="dialog"],[class*="prompt"]{visibility:hidden!important}' });
     await page.evaluate(() => { for (const c of window.__world.game.camera.children) c.traverse((o) => { o.layers.disableAll(); }); });
     // every post and the way it faces, before anyone turns to the player
     const posts = await page.evaluate(() => Object.fromEntries(window.__pineQuest.people.map((q) => [q.kind, { x: q.fig.group.position.x, y: q.fig.group.position.y, z: q.fig.group.position.z, yaw: q.fig.group.rotation.y }])));
+    const where = await page.evaluate(() => { const p = window.__world.player.position, g = window.__pineQuest.people[0].fig.group; const wp = g.getWorldPosition(g.position.clone()); return { player: [p.x, p.y, p.z], parent: g.parent?.type ?? null, parentName: g.parent?.name ?? null, world0: [wp.x, wp.y, wp.z] }; });
+    console.log(`${v}: posts ${JSON.stringify(posts)} ${JSON.stringify(where)}`);
+    if (flag('probe', '') === '1') { await ctx.close(); continue; }
     const bones = await page.evaluate(() => window.__pineQuest.people.find((q) => q.kind === 'ranger').fig.group.children.find((c) => c.isSkinnedMesh).skeleton.bones.map((b) => b.name));
     console.log(`${v}: bones ${bones.join(' ')}`);
 
     // ── Hale's point, on his right shoulder ──
     {
       const h = posts.ranger, fx = Math.sin(h.yaw), fz = Math.cos(h.yaw), rx = -Math.cos(h.yaw), rz = Math.sin(h.yaw);
-      await lookFrom(page, { x: h.x + fx * 1.7 + rx * 0.9, z: h.z + fz * 1.7 + rz * 0.9 }, { x: h.x, y: h.y + 1.45, z: h.z });
+      await lookFrom(page, { x: h.x + fx * 1.7 + rx * 0.9, y: h.y + 0.2, z: h.z + fz * 1.7 + rz * 0.9 }, { x: h.x, y: h.y + 1.45, z: h.z });
+      // the quest's point: talking, from 5.5 s to 8 s of every 9 s (people.ts), eased in at 3 / s — shoot at ≈ 7 s
       await page.evaluate(() => { window.__pineQuest.people.find((q) => q.kind === 'ranger').fig.talking = true; });
-      await sleep(7000);
+      await sleep(5600);
       const sh = await page.evaluate(() => {
         const g = window.__pineQuest.people.find((q) => q.kind === 'ranger').fig.group;
         const m = g.children.find((c) => c.isSkinnedMesh);
@@ -75,8 +87,7 @@ try {
         const w = b.getWorldPosition(b.position.clone());
         return { x: w.x, y: w.y, z: w.z };
       });
-      await lookFrom(page, { x: h.x + fx * 1.7 + rx * 0.9, z: h.z + fz * 1.7 + rz * 0.9 }, { x: sh.x, y: sh.y - 0.05, z: sh.z });
-      await sleep(900);
+      await lookFrom(page, { x: h.x + fx * 1.7 + rx * 0.9, y: h.y + 0.2, z: h.z + fz * 1.7 + rz * 0.9 }, { x: sh.x, y: sh.y - 0.05, z: sh.z });
       const box = await page.evaluate((s) => {
         const cam = window.__world.game.camera; cam.updateMatrixWorld();
         const a = cam.position.clone().set(s.x, s.y, s.z).project(cam);
@@ -94,15 +105,22 @@ try {
       const h = posts[kind], fx = Math.sin(h.yaw), fz = Math.cos(h.yaw), rx = -Math.cos(h.yaw), rz = Math.sin(h.yaw);
       const to = { x: h.x + fx * 5, z: h.z + fz * 5 };
       // the floor at the far end: stand the player there
-      await lookFrom(page, to, { x: h.x, y: h.y + 1, z: h.z });
+      await lookFrom(page, { ...to, y: h.y + 1.2 }, { x: h.x, y: h.y + 1, z: h.z });
       await sleep(600);
       const ty = await page.evaluate(() => window.__world.player.position.y);
       const mid = { x: h.x + fx * 3.0, z: h.z + fz * 3.0 };
-      const eye = { x: mid.x + rx * 3.6 + fx * 0.6, z: mid.z + rz * 3.6 + fz * 0.6 };
+      const eye = { x: mid.x + rx * 2.7 + fx * 0.4, y: h.y + 0.6, z: mid.z + rz * 2.7 + fz * 0.4 };
       await lookFrom(page, eye, { x: mid.x, y: h.y + 0.95, z: mid.z });
       await page.evaluate(([k, t]) => { window.__pineQuest.people.find((q) => q.kind === k).fig.walkTo(t.x, t.y, t.z); }, [kind, { x: to.x, y: Math.min(ty, h.y + 0.6), z: to.z }]);
       await page.waitForFunction(([k, s]) => { const g = window.__pineQuest.people.find((q) => q.kind === k).fig.group.position; return Math.hypot(g.x - s.x, g.z - s.z) > 2.6; }, [kind, h], { timeout: 20000, polling: 50 });
       for (let k = 0; k < 3; k++) {
+        // keep him centred: the camera turns to where he is now (hips height)
+        await page.evaluate((kk) => {
+          const g = window.__pineQuest.people.find((q) => q.kind === kk).fig.group.position, p = window.__world.player, cam = window.__world.game.camera;
+          const c = cam.getWorldPosition(cam.position.clone()), dx = g.x - c.x, dz = g.z - c.z;
+          p.yaw = Math.atan2(-dx, -dz); p.pitch = Math.atan2(g.y + 0.9 - c.y, Math.hypot(dx, dz));
+        }, kind);
+        await sleep(80);
         writeFileSync(resolvePath(OUT, `${v}-walk-${kind}-${k}.jpg`), await page.screenshot({ type: 'jpeg', quality: 88 }));
         await sleep(300);
       }

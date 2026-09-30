@@ -8,16 +8,19 @@
  *             down to 0.40 H, the knee and the ankle blend over ±0.035 H / 0.035 H), split by side with a blend band round
  *             the legs' midline that widens up the thigh (0.015 H at the shin → 0.05 H at the crotch: a long coat's front
  *             panel rides both legs), the foot on its own bone below the ankle.
- *   shoulder  a clavicle (chest → clavicle → shoulder → twist → elbow → hand) protracts and lifts with a forward raise (15 % /
- *             12 % of it, + 30 % of a point's yaw); the deltoid cap — the torso side of the shoulder, which A left 100 % on
- *             the chest while the arm under it rose — is weighted by its distance from the joint (the shoulder 50 % at the
- *             joint → 0 at 0.10 H, the clavicle 50 % → 0 at 0.16 H), the arm root the same 50 / 50 so the two meet; an
- *             upper-arm twist bone takes half of the raise's twist about the arm (a swing-twist split). Then the girdle's
- *             weights (spine, chest, clavicles, shoulders, twists) are blurred along the welded surface within 0.18 H of
- *             either joint (`diffuse`): A's worst stretch was the armpit's crease, where the air-gap test put one vertex on
- *             the arm and its neighbour on the chest. Measured on Hale's point (test/pine-npc-rig.test.ts), the edges round
- *             the shoulder: A p99 2.5–6.3×, worst 10–19× · B p99 1.4–2.2×, worst 3.3–6.5×.
- *   clips     A's idle / talk / point, the same poses (the shoulder's Euler split over clavicle · shoulder · twist), plus a
+ *   shoulder  A's arm (its air-gap test and weight bands), split: a clavicle (chest → clavicle → shoulder → twist → elbow →
+ *             hand) that protracts and lifts with a forward raise (15 % / 12 % of it, + 30 % of a point's yaw), an upper-arm
+ *             twist bone taking half a raise's twist about the arm (a swing-twist split), the deltoid cap above the armpit
+ *             weighted by its distance from the joint (A left it 100 % on the chest). Then B is BOUND IN A's HANG (`HANG`:
+ *             the mesh pre-posed into A's idle with A's own weights), so an idle B is A's idle, and the girdle's weights
+ *             (spine, chest, clavicles, shoulders, twists) are blurred along the welded surface within 0.18 H of either
+ *             joint (`diffuse`), across the armpit. A's stretch on a raise was the armpit's crease: one vertex on the arm,
+ *             its neighbour on the chest. (Blurring in the A-pose bind instead spread the web between arm and coat into a
+ *             grey membrane as the arms lowered to hang: hence the hang bind.) Measured (test/pine-npc-rig.test.ts), the
+ *             edges within 0.2 H of the shoulders on Hale's point: A p99 2.4–5.5×, worst 16–25× · B p99 1.5–2.1×, worst
+ *             5.6–13×; B's idle moves no edge there past 1.6×.
+ *   clips     A's idle / talk / point, the same poses (A's shoulder Euler measured from the hang, split over clavicle ·
+ *             shoulder · twist; A's elbow bend conjugated into the hung frame), plus a
  *             walk: a phase machine per foot (stance 60 % of a 1.0 s cycle, the ball of the foot planted, the heel lifting
  *             before toe-off, a swing arc 0.04 H high), two-bone IK per leg solved in the hips' frame (so the idle weight
  *             shift and the walk's hip roll / yaw never slide a foot), the hips' bob of the compass gait (≈ 0.02 H), the
@@ -63,6 +66,16 @@ export interface LegBuilt {
   /** metres of travel per walk cycle */
   walkCycle: number;
 }
+
+/**
+ * The hang B is bound in (A's idle arms, npcModels.ts `pose`: each shoulder lowered from the A-pose about z, the elbows a
+ * little bent), right then left. B pre-poses the mesh into it with A's own weights and binds there, so an idle B is A's
+ * idle exactly and every arm rotation is measured from the hang: only a raise stretches what the shoulder blend spreads.
+ */
+const HANG = [
+  { sh: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0.42)), el: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.15, 0, 0)) },
+  { sh: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -0.42 * 0.9)), el: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.12, 0, 0)) },
+] as const;
 
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const median = (a: number[], d: number): number => { if (a.length === 0) return d; const s = [...a].sort((p, q) => p - q); return s[Math.floor(s.length / 2)] ?? d; };
@@ -177,7 +190,7 @@ export function rigLegs(kind: NpcKind, source: THREE.BufferGeometry): LegBuilt {
 
   // ── the torso and the arms (A's measure, about the torso's own midline) ──
   const chestBand = band(0.66, 0.8);
-  const xt = median(chestBand.map(X), 0), zc = median(chestBand.map(Z), 0);
+  const xt = 0, zc = median(chestBand.map(Z), 0);   // A's arms are measured about x = 0: B keeps them exactly
   const tw: number[] = [];
   for (let i = 0; i < n; i++) if (Math.abs(Y(i) - 0.7 * H) < 0.03 * H) tw.push(Math.abs(X(i) - xt));
   const torsoW = Math.max(0.1 * H, median(tw, 0.1 * H) * 1.05);
@@ -201,34 +214,28 @@ export function rigLegs(kind: NpcKind, source: THREE.BufferGeometry): LegBuilt {
     return v.length() > 0.4 * H ? sh.clone().addScaledVector(v.normalize(), 0.36 * H) : best;
   };
   const fR = far(-1), fL = far(1), sR = shoulder(-1), sL = shoulder(1);
-  // a lantern vertex (the ranger's): under the right hand, clear of the leg
-  const lanternOf = (i: number): boolean => kind === 'ranger' && Y(i) > 0.12 * H && P.getY(i) < fR.y && Math.abs(X(i) - fR.x) < 0.08 * H && X(i) < legR.hip.x - 0.07 * H;
+  // a lantern vertex (the ranger's): under the right hand and outside the coat — the lantern spans ~0.18–0.27 H left
+  // of his right leg's line and the coat's edge ends at ~0.07 H, so the cut sits in the gap between them
+  const lanternOf = (i: number): boolean => kind === 'ranger' && Y(i) > 0.12 * H && P.getY(i) < fR.y && Math.abs(X(i) - fR.x) < 0.08 * H && X(i) < legR.hip.x - 0.085 * H;
+  const isLantern = new Uint8Array(n);
+  for (let i = 0; i < n; i++) if (lanternOf(i)) isLantern[i] = 1;
   let lantern: THREE.Vector3 | null = null;
   if (kind === 'ranger') {
     let lo = Infinity;
-    for (let i = 0; i < n; i++) if (lanternOf(i) && P.getY(i) < lo) lo = P.getY(i);
+    for (let i = 0; i < n; i++) if (isLantern[i] && P.getY(i) < lo) lo = P.getY(i);
     if (Number.isFinite(lo)) lantern = new THREE.Vector3(fR.x, (lo + fR.y) * 0.5, fR.z);
   }
-  // an arm vertex must also lie near its arm (A's column test alone took a flared coat hem for the arm)
   const segT = (p: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): number => {
     const bx = b.x - a.x, by = b.y - a.y, bz = b.z - a.z;
     return Math.min(1, Math.max(0, ((p.x - a.x) * bx + (p.y - a.y) * by + (p.z - a.z) * bz) / Math.max(1e-9, bx * bx + by * by + bz * bz)));
   };
-  const p = new THREE.Vector3(), q = new THREE.Vector3();
-  for (let i = 0; i < n; i++) {
-    const s = side[i] ?? 0;
-    if (s === 0) continue;
-    p.set(P.getX(i), P.getY(i), P.getZ(i));
-    const a = s < 0 ? sR : sL, b = s < 0 ? fR : fL;
-    q.copy(a).lerp(b, segT(p, a, b));
-    if (p.distanceTo(q) > 0.085 * H) side[i] = 0;
-  }
+  const p = new THREE.Vector3();
 
   const rest: THREE.Vector3[] = [
     new THREE.Vector3(xm, y0 + 0.53 * H, zc), new THREE.Vector3(xt, y0 + 0.62 * H, zc), new THREE.Vector3(xt, y0 + 0.72 * H, zc),
     new THREE.Vector3(xt, y0 + 0.84 * H, zc), new THREE.Vector3(xt, y0 + 0.88 * H, zc),
-    new THREE.Vector3(xt - 0.025 * H, y0 + shY - 0.015 * H, zc), sR, sR.clone().lerp(fR, 0.22), sR.clone().lerp(fR, 0.45), sR.clone().lerp(fR, 0.78),
-    new THREE.Vector3(xt + 0.025 * H, y0 + shY - 0.015 * H, zc), sL, sL.clone().lerp(fL, 0.22), sL.clone().lerp(fL, 0.45), sL.clone().lerp(fL, 0.78),
+    new THREE.Vector3(xt - 0.025 * H, y0 + shY - 0.015 * H, zc), sR.clone(), sR.clone().lerp(fR, 0.25), sR.clone().lerp(fR, 0.5), fR.clone(),
+    new THREE.Vector3(xt + 0.025 * H, y0 + shY - 0.015 * H, zc), sL.clone(), sL.clone().lerp(fL, 0.25), sL.clone().lerp(fL, 0.5), fL.clone(),
     legR.hip, legR.knee, legR.ankle, legL.hip, legL.knee, legL.ankle,
   ];
 
@@ -249,21 +256,22 @@ export function rigLegs(kind: NpcKind, source: THREE.BufferGeometry): LegBuilt {
     const sk = smooth(kneeY + 0.035 * H, kneeY - 0.035 * H, y), fk = smooth(ankleY + 0.02 * H, ankleY - 0.015 * H, y);
     w[th] = (w[th] ?? 0) + k * (1 - sk); w[kn] = (w[kn] ?? 0) + k * sk * (1 - fk); w[ft] = (w[ft] ?? 0) + k * sk * fk;
   };
+  // A's arm bands exactly (root chest → shoulder over t < 0.15, shoulder → elbow 0.35–0.6, elbow → hand 0.85–1), A's
+  // shares split: the root's chest share half onto the clavicle, the upper arm's over shoulder → twist (0.1–0.35). With no
+  // raise and no twist the split bones move as A's one bone does, so an idle / talking B is A's arm
   const arm = (t: number, s: number): void => {
     const cl = s < 0 ? J.clR : J.clL, sh = cl + 1, tw2 = cl + 2, el = cl + 3, ha = cl + 4;
-    const chain = 0.5 + 0.5 * smooth(0, 0.16, t);
-    const kT = smooth(0.1, 0.4, t), kE = smooth(0.38, 0.52, t), kH = smooth(0.74, 0.84, t);
-    const up = chain * (1 - kE), lo = chain * kE;
-    w[cl] = (w[cl] ?? 0) + 1 - chain;
-    w[sh] = (w[sh] ?? 0) + up * (1 - kT); w[tw2] = (w[tw2] ?? 0) + up * kT;
-    w[el] = (w[el] ?? 0) + lo * (1 - kH); w[ha] = (w[ha] ?? 0) + lo * kH;
+    const add = (j: number, v: number): void => { w[j] = (w[j] ?? 0) + v; };
+    if (t < 0.15) { const k = t / 0.15; add(J.chest, 0.5 * (1 - k)); add(cl, 0.5 * (1 - k)); add(sh, k); return; }
+    if (t < 0.5) { const k = smooth(0.35, 0.6, t), kT = smooth(0.1, 0.35, t); add(sh, (1 - k) * (1 - kT)); add(tw2, (1 - k) * kT); add(el, k); return; }
+    const k = smooth(0.85, 1, t); add(el, 1 - k); add(ha, k);
   };
   const dense = new Float32Array(n * NB);
   for (let i = 0; i < n; i++) {
     w.fill(0);
     p.set(P.getX(i), P.getY(i), P.getZ(i));
     const y = p.y - y0, s = side[i] ?? 0;
-    if (lanternOf(i)) w[J.haR] = 1;
+    if (isLantern[i]) w[J.haR] = 1;
     else if (s !== 0) {
       const a = s < 0 ? sR : sL, b = s < 0 ? fR : fL;
       arm(kind === 'ranger' && s < 0 && p.y < b.y ? 1 : segT(p, a, b), s);
@@ -276,7 +284,7 @@ export function rigLegs(kind: NpcKind, source: THREE.BufferGeometry): LegBuilt {
         legChain(y, legK * (1 - sl), J.thR, J.knR, J.ftR);
       }
       // the deltoid cap: the torso round a shoulder joint follows it part way
-      if (y > shY - 0.2 * H) {
+      if (y > shY - 0.02 * H) {
         const r = p.x < xt ? -1 : 1, jt = r < 0 ? sR : sL, d = p.distanceTo(jt);
         const wS = 0.5 * (1 - smooth(0.02 * H, 0.1 * H, d)), wC = 0.5 * (1 - smooth(0.05 * H, 0.16 * H, d)), keep = 1 - wS - wC;
         if (keep < 1) {
@@ -288,7 +296,41 @@ export function rigLegs(kind: NpcKind, source: THREE.BufferGeometry): LegBuilt {
     }
     dense.set(w, i * NB);
   }
+  // ── into the hang: A's weights (the arm's hard cut, as today) carry the A-pose to A's idle; B binds there ──
+  const aboutPoint = (q: THREE.Quaternion, o: THREE.Vector3): THREE.Matrix4 => new THREE.Matrix4().makeTranslation(o.x, o.y, o.z).multiply(new THREE.Matrix4().makeRotationFromQuaternion(q)).multiply(new THREE.Matrix4().makeTranslation(-o.x, -o.y, -o.z));
+  const M = Array.from({ length: NB }, () => new THREE.Matrix4());
+  const RQ = Array.from({ length: NB }, () => new THREE.Quaternion());
+  HANG.forEach((hg, k) => {
+    const cl = k === 0 ? J.clR : J.clL, sh = rest[cl + 1] ?? new THREE.Vector3(), el = rest[cl + 3] ?? new THREE.Vector3();
+    const mSh = aboutPoint(hg.sh, sh), mFore = mSh.clone().multiply(aboutPoint(hg.el, el)), qFore = hg.sh.clone().multiply(hg.el);
+    M[cl + 1]?.copy(mSh); M[cl + 2]?.copy(mSh); M[cl + 3]?.copy(mFore); M[cl + 4]?.copy(mFore);
+    RQ[cl + 1]?.copy(hg.sh); RQ[cl + 2]?.copy(hg.sh); RQ[cl + 3]?.copy(qFore); RQ[cl + 4]?.copy(qFore);
+    // the bones and the lantern go with their chain (the rest points below the shoulder, measured in the A-pose)
+    for (const j of [cl + 2, cl + 3, cl + 4]) rest[j]?.applyMatrix4(M[j] ?? new THREE.Matrix4());
+    if (k === 0 && lantern) lantern.applyMatrix4(mFore);
+  });
+  {
+    const N = g.getAttribute('normal') as THREE.BufferAttribute | undefined;
+    const acc = new THREE.Vector3(), tmp = new THREE.Vector3(), nAcc = new THREE.Vector3(), src = new THREE.Vector3(), nSrc = new THREE.Vector3();
+    for (let i = 0; i < n; i++) {
+      src.set(P.getX(i), P.getY(i), P.getZ(i)); acc.set(0, 0, 0);
+      if (N) { nSrc.set(N.getX(i), N.getY(i), N.getZ(i)); nAcc.set(0, 0, 0); }
+      for (let j = 0; j < NB; j++) {
+        const wj = dense[i * NB + j] ?? 0;
+        if (wj <= 0) continue;
+        acc.addScaledVector(tmp.copy(src).applyMatrix4(M[j] ?? new THREE.Matrix4()), wj);
+        if (N) nAcc.addScaledVector(tmp.copy(nSrc).applyQuaternion(RQ[j] ?? new THREE.Quaternion()), wj);
+      }
+      P.setXYZ(i, acc.x, acc.y, acc.z);
+      if (N) { nAcc.normalize(); N.setXYZ(i, nAcc.x, nAcc.y, nAcc.z); }
+    }
+    P.needsUpdate = true;
+    if (N) N.needsUpdate = true;
+  }
   diffuse(g, dense, (i) => {
+    // the arm keeps its own chain, and so does the armpit: the generated meshes web the arm to the coat below the real
+    // armpit, and a blend there turns the web into a grey membrane when the arms hang (A's hard cut hides it)
+    if (isLantern[i]) return 0;
     p.set(P.getX(i), P.getY(i), P.getZ(i));
     return 1 - smooth(0.12 * H, 0.18 * H, Math.min(p.distanceTo(sR), p.distanceTo(sL)));
   }, 1e-4 * H, [J.spine, J.chest, J.clR, J.shR, J.twR, J.clL, J.shL, J.twL], 60);
@@ -357,7 +399,10 @@ export function legPose(bones: THREE.Bone[], b: LegBuilt): (i: LegPoseIn) => voi
   const H = b.height, rest = b.rest;
   const r = (j: number): THREE.Vector3 => rest[j] ?? new THREE.Vector3();
   // per side: the arm's twist axis (shoulder → elbow, the shoulder's frame = mesh frame at rest), the leg's lengths and bend axis
-  const arms = [J.clR, J.clL].map((cl) => ({ cl, axis: r(cl + 3).clone().sub(r(cl + 1)).normalize() }));
+  const arms = [J.clR, J.clL].map((cl, k) => {
+    const hg = HANG[k] ?? HANG[0];
+    return { cl, axis: r(cl + 3).clone().sub(r(cl + 1)).normalize(), hangInv: hg.sh.clone().invert(), hang: hg.sh.clone(), elRestInv: hg.el.clone().invert() };
+  });
   const legs = [J.thR, J.thL].map((th, k) => {
     const hip = r(th), knee = r(th + 1), ankle = r(th + 2), ball = b.ball[k] ?? ankle;
     const dir = ankle.clone().sub(hip).normalize();
@@ -372,7 +417,8 @@ export function legPose(bones: THREE.Bone[], b: LegBuilt): (i: LegPoseIn) => voi
   const setArm = (k: number, ex: number, ey: number, ez: number, elbow: number): void => {
     const a = arms[k];
     if (!a) return;
-    const Q = _q.setFromEuler(_e.set(ex, ey, ez));
+    // A's absolute arm rotation (from the A-pose), measured from the hang B is bound in
+    const Q = _q.setFromEuler(_e.set(ex, ey, ez)).multiply(a.hangInv);
     // the clavicle: a forward raise protracts and lifts it (≈ 15 % / 12 % of the raise), plus 30 % of a point's yaw;
     // the hang and a swing back leave it
     const s = k === 0 ? -1 : 1, up = Math.max(0, -ex);
@@ -387,7 +433,8 @@ export function legPose(bones: THREE.Bone[], b: LegBuilt): (i: LegPoseIn) => voi
     const swing = S.multiply(_tw.clone().invert());
     bn(a.cl + 1).quaternion.copy(swing).multiply(half);
     bn(a.cl + 2).quaternion.copy(half);
-    bn(a.cl + 3).quaternion.setFromEuler(_e.set(elbow, 0, 0));
+    // the elbow: A's bend, conjugated into the hung frame (hang · bend · rest bend⁻¹ · hang⁻¹)
+    bn(a.cl + 3).quaternion.copy(a.hang).multiply(_q2.setFromEuler(_e.set(elbow, 0, 0))).multiply(a.elRestInv).multiply(a.hangInv);
     bn(a.cl + 4).quaternion.identity();
   };
 
