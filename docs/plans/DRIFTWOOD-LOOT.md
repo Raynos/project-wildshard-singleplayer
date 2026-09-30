@@ -89,3 +89,10 @@ fundamentally shared UI for the entire game." So the Bag is built once for all f
   trophies?), whether it has coins / a shop / a trader, and what its PACK junk is for (Pine Hollow already trades hides
   for ammo with Mott). One board per shard, then build.
 
+## Jake, 2026-09-30 (AskUserQuestion)
+
+- **Coins are capped per enemy:** each enemy pays on its first death only; a respawned one pays nothing. So the island
+  holds a fixed purse (one full clear), and the shop is priced so buying everything takes about one full clear.
+- **The Drowned Captain hits harder than the cap** (24, not 20): `ChunkDef.hitCapExempt: ['captain']`, commit `4cf7ac8e`.
+- **Respawn** stays "the last place you walked into" (E295 as built).
+
