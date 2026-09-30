@@ -11,6 +11,7 @@
 import { LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, SRGBColorSpace, ShaderMaterial, type Texture, TextureLoader, Vector2, Vector4 } from 'three';
 import { phoneUrl } from '../../../boot/bytes';
 import { ktx2Texture } from '../../../core/ktx2';
+import { gpuOnlyTexture } from '../../../core/gpuOnly';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const VS = /* glsl */ `
@@ -140,6 +141,8 @@ export async function loadScroll(url: string): Promise<Texture> {
   t.magFilter = LinearFilter;
   t.anisotropy = 4;
   if (compressed === null) { t.generateMipmaps = true; t.needsUpdate = true; }
+  // (E264) the decoded painting (3.4 MB where it is not a KTX2 file) is on the GPU after the first draw
+  if (compressed === null) gpuOnlyTexture(t, 'Nine Dragon sky scroll (GPU only)');
   return t;
 }
 

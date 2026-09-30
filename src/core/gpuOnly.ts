@@ -3,7 +3,7 @@
  * only on the GPU, so an in-place WebGL restore brings it back empty. A module that makes such a bake marks it here, and
  * src/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
-import { BufferAttribute, type BufferGeometry, DataArrayTexture, DataTexture, StaticDrawUsage, type Texture } from 'three';
+import { BufferAttribute, type BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, StaticDrawUsage, type Texture } from 'three';
 import { listSlot, shardSlot } from './shardState';
 import { currentScope } from './shardScope';
 
@@ -52,12 +52,13 @@ export function gpuOnlyAttributes(g: BufferGeometry, label: string, keep: readon
 }
 
 /** Texture.onUpdate: let go of the texture's CPU source once it is on the GPU (a bitmap closed, a canvas shrunk to one
- *  pixel, a data array emptied) */
+ *  pixel, a data array emptied, a decoded image let go: only its size stays) */
 function releaseSource(t: Texture): void {
   const im: unknown = t.image;
   if (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) im.close();
   else if (typeof HTMLCanvasElement !== 'undefined' && im instanceof HTMLCanvasElement) { im.width = 1; im.height = 1; }
-  else if ((t instanceof DataTexture || t instanceof DataArrayTexture) && t.image.data instanceof Uint8Array) t.image.data = new Uint8Array(0);
+  else if (typeof HTMLImageElement !== 'undefined' && im instanceof HTMLImageElement) t.image = { width: im.width, height: im.height };
+  else if ((t instanceof DataTexture || t instanceof DataArrayTexture || t instanceof Data3DTexture) && t.image.data instanceof Uint8Array) t.image.data = new Uint8Array(0);
 }
 
 /**

@@ -5,6 +5,7 @@ import type { Color, Data3DTexture, Vector3, Vector4 } from 'three';
 import { SQUARE_BOX, WELL_BOX, bakeVolume, type BakeStats } from './lightvol';
 import { type EmitterLike, type WindowLike, gatherPools, isLamp } from './pools';
 import { loadLut } from './grade';
+import { gpuOnlyTexture } from '../../../../core/gpuOnly';
 
 export interface LightSettings {
   /** the light volume on / off, its diffuse gain on the wash, the wet stone's glossy sheen of it */
@@ -69,6 +70,9 @@ export function installLight(opt: {
   u.uLpVolA.value = a.tex;
   const b = bakeVolume(lights, WELL_BOX, u.uLpMinB.value, u.uLpInvB.value);
   u.uLpVolB.value = b.tex;
+  // (E264) the volumes are baked once: their texels are on the GPU after the first draw (6.3 MB of RGBA8 in JS)
+  gpuOnlyTexture(a.tex, 'Nine Dragon light volumes (GPU only)');
+  gpuOnlyTexture(b.tex, 'Nine Dragon light volumes (GPU only)');
   let cur: LightSettings = { ...LIGHT_DEFAULTS };
   let lutLoaded = false;
   const apply = (): void => {
