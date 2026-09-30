@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { WEAR_SOCKET, Wardrobe } from '../src/player/Cosmetics';
+import { SHADOW_LAYER } from '../src/core/shadowLayer';
 
 function hat(): { root: THREE.Group; brim: THREE.Mesh; crown: THREE.Mesh; brimMat: THREE.Material; crownMat: THREE.Material } {
   const brimMat = new THREE.MeshStandardMaterial(), crownMat = new THREE.MeshStandardMaterial();
@@ -32,12 +33,14 @@ describe('Wardrobe', () => {
       expect((m.material as THREE.Material).colorWrite).toBe(false);
       expect(m.castShadow).toBe(true);
       expect(m.receiveShadow).toBe(false);
+      expect(m.layers.mask).toBe(1 << SHADOW_LAYER); // the shadow pass only: no empty draw in the view
     }
     expect(w.wear('hat', null)).toBe(h.root);
     expect(w.wearing('hat')).toBeNull();
     expect(h.brim.material).toBe(h.brimMat);
     expect(h.crown.material).toBe(h.crownMat);
     expect([h.brim.castShadow, h.brim.receiveShadow, h.crown.castShadow, h.crown.receiveShadow]).toEqual([false, true, true, true]);
+    expect([h.brim.layers.mask, h.crown.layers.mask]).toEqual([1, 1]);
     expect(h.root.position.toArray()).toEqual([3, 0, -2]);
     expect(h.root.parent).toBe(pickup);
     expect(w.root.children).toHaveLength(0);

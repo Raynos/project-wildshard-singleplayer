@@ -558,6 +558,9 @@ export interface ChunkDef {
   /** the shard's loot rules (E314, docs/plans/DRIFTWOOD-LOOT.md; src/game/loot/): `coins` = kills burst doubloons into a
    *  saved purse, shown by a coin chip under VITALS (src/game/loot/coins.ts has the values). Omitted = no coins */
   loot?: { coins?: boolean };
+  /** E314 stage 3: the player's body shadow (src/player/BodyShadow.ts) — an invisible low-poly castaway on your feet whose
+   *  only trace is its shadow on the ground (worn hat / cape on it). Driftwood: true. Omitted = no body shadow */
+  bodyShadow?: boolean;
   /**
    * E297: one set of fight rules for every enemy (src/entities/fightRules.ts) — at most `maxAttackers` attack at once (the
    * rest hold back on a ring), engaged boars / bears circle back and charge again instead of fleeing, an amber edge chevron

@@ -12,19 +12,19 @@
  * sand under you: swimming or under water, on the hoverboard, in the saddle, on the zipline (carried), in a practice room
  * or when the shard is not in play.
  *
- * Shared code: any shard can have it; a `ChunkDef.bodyShadow` flag is to switch it on (Driftwood only for now).
- * NOT WIRED YET (E314 stage 3 paused 2026-09-30): nothing installs it, and its cost is unmeasured — new rendering needs
- * its draws / shadow-pass / phone GPU numbers before it ships (AGENTS.md).
+ * Shared code: any shard can have it; `ChunkDef.bodyShadow` switches it on (Driftwood only for now; main.ts installs it).
  *
  *   const body = installBodyShadow({ game, player });     // main.ts, once per shard
  *   body.wardrobe.wear('hat', hatMesh)                     // src/game/loot/keepsakes.ts dresses it from GEAR
  *   body.enabled = false                                   // dev / the cost capture: take it out of the frame
  *
- * Cost (docs/tasks/asks/E314.md, stage 3): one empty draw in the main pass (no pixels written) plus one small draw in each
- * shadow cascade it falls in; the hat and the cape add the same each while worn.
+ * Cost (E314 stage 3, scripts/e314-keepsakes-capture.mjs --measure, phone tier): it sits on SHADOW_LAYER, so NO draw in the
+ * view; one draw of ~330 triangles in each shadow map the frame renders (3 on Driftwood's phone frame: 3 draws, 984 tris;
+ * with the hat + cape 6 draws); the GPU time difference was below the measurement noise (±0.4 ms at 804 × 1748 on the M5).
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { SHADOW_LAYER } from '../core/shadowLayer';
 import { shadowOnlyMaterial, Wardrobe } from './Cosmetics';
 
 /** what the body reads of the player (Player.ts satisfies it) */
@@ -105,6 +105,7 @@ export class BodyShadow {
     this.mesh = new THREE.Mesh(bodyGeometry(), shadowOnlyMaterial());
     this.mesh.name = 'body-shadow';
     this.mesh.castShadow = true; this.mesh.receiveShadow = false;
+    this.mesh.layers.set(SHADOW_LAYER); // the shadow pass only: no draw at all in the view (src/core/shadowLayer.ts)
     this.mesh.morphTargetInfluences = [0];
     this.wardrobe.root.name = 'body-shadow-root';
     this.wardrobe.root.add(this.mesh);

@@ -19,8 +19,8 @@
  *     the game reloaded, it waits at the ring's reward spot (he only dies once).
  *   - Worn cosmetics (the hat, the trader's cape) dress the body shadow (src/player/BodyShadow.ts), following GEAR.
  *
- * NOT WIRED YET (stage 3 paused 2026-09-30): nothing calls it. main.ts would call it once the adventure and the loot are in,
- * and chain `perks.dodgeGuard` + `player.dodging` into animals.onCharge. Unverified in the game: no capture, no evidence.
+ * Wired in main.ts on Driftwood (after installLoot; main.ts's animals.onCharge reads `perks.dodgeGuard` + `player.dodging`).
+ * Seen in the game: scripts/e314-keepsakes-capture.mjs, progress/294-e314-keepsakes-stage3.jpg.
  *
  *   installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, swords, body, registry })
  *   window.__keepsakes = { chime, plaques, glass(n), drop(id), drops }   // dev / captures: set the found count, drop a
@@ -61,9 +61,9 @@ const CHARM_TOAST: Record<'charm-1' | 'charm-2' | 'charm-3', string> = {
   'charm-3': 'Sea glass charm III · your sword glows at night',
 };
 const DROP: Record<TrophyDropId, { tier: PickupTier; scale: number; toast: string }> = {
-  'bear-claw': { tier: 'rare', scale: 2.6, toast: 'Bear claw · your heavy attack hits 20 % harder — it hangs in Wendell\'s hut' },
+  'bear-claw': { tier: 'rare', scale: 1.7, toast: 'Bear claw · your heavy attack hits 20 % harder — it hangs in Wendell\'s hut' },
   'boar-tusk': { tier: 'rare', scale: 2.4, toast: 'Boar tusk · no hit lands while you dodge — it hangs in Wendell\'s hut' },
-  'captain-hat': { tier: 'legendary', scale: 1.35, toast: 'Captain\'s hat · you wear it now (GEAR to take it off)' },
+  'captain-hat': { tier: 'legendary', scale: 1.7, toast: 'Captain\'s hat · you wear it now (GEAR to take it off)' },
 };
 /** walk-over reach (m, feet to the drop, flat) and the height band it counts in */
 const TAKE_R = 1.4, TAKE_DY = 2;
@@ -74,7 +74,7 @@ const CHARM_DELAY = 1.3;
  *  door anchor's y). The chime's hook sits against the front wall's top plate, left of the door (the door lantern is
  *  on the right); the plaques on the back wall's inner face, between the shelves (left) and the chest (below right). */
 const CHIME = { x: -1.05, z: -2.86, up: 2.5 };
-const PLAQUES = { x: 0.3, z: 2.655, up: 1.28, scale: 1.25 };
+const PLAQUES = { x: 0.3, z: 2.655, up: 1.3, scale: 1.5 };
 
 export interface KeepsakeAnimal { kind: string; variant?: string | undefined; position: THREE.Vector3 }
 export interface KeepsakeHost<A extends KeepsakeAnimal> {
@@ -152,6 +152,8 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
 
   // ── the trophy drops ──
   const drops = new Map<TrophyDropId, ItemPickup>();
+  /** taken drops still playing their collapse + shockwave (ItemPickup disposes itself at the end; a few seconds' grace) */
+  const fading: { drop: ItemPickup; left: number }[] = [];
   const itemFor = (id: TrophyDropId): THREE.Object3D => (id === 'captain-hat' ? buildCaptainHat(ctx) : buildTrophy(ctx, id === 'bear-claw' ? 'bear' : 'boar'));
   const spawnDrop = (id: TrophyDropId, at: THREE.Vector3, toss: boolean): void => {
     if (owned.has(id) || drops.has(id)) return;
@@ -163,6 +165,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
     });
     drop.onPickup = () => {
       drops.delete(id);
+      fading.push({ drop, left: 5 });
       item.traverse((o) => { if ((o as Partial<THREE.Mesh>).isMesh === true) (o as THREE.Mesh).geometry.dispose(); }); // hidden at once; the orb's burst plays on
       owned.grant(id);
       if (id === 'captain-hat') owned.wear('captain-hat');
@@ -196,6 +199,12 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       if (next) { h.hud.toast(next.text); sfx.interact('chime', undefined, { gain: 0.9 }); h.music.sting('pickup'); }
     }
     const pl = h.player.position;
+    for (let i = fading.length - 1; i >= 0; i--) {
+      const f = fading[i];
+      if (f === undefined) continue;
+      f.drop.update(dt, t, h.game.renderer, h.game.camera);
+      if ((f.left -= dt) <= 0) fading.splice(i, 1);
+    }
     for (const [, drop] of drops) {
       drop.update(dt, t, h.game.renderer, h.game.camera);
       const g = drop.group.position;

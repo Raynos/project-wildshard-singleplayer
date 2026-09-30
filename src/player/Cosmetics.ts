@@ -20,6 +20,7 @@
  * and Driftwood's keepsakes (src/game/loot/keepsakes.ts) dress it from the Owned store's worn cosmetics.
  */
 import * as THREE from 'three';
+import { SHADOW_LAYER } from '../core/shadowLayer';
 
 /** where a worn model's own-space origin sits, from the player's feet (m): y up, z toward the way the player faces */
 export const WEAR_SOCKET = {
@@ -34,7 +35,8 @@ export const WEAR_SLOTS: readonly WearSlot[] = ['hat', 'cape'];
 /** `shadow`: seen only in the player's shadow (first person); `visible`: drawn as they are */
 export type WearMode = 'shadow' | 'visible';
 
-/** draws nothing to the screen; the shadow pass uses its own depth material, so the mesh still casts */
+/** draws nothing to the screen; the shadow pass uses its own depth material, so the mesh still casts (a shadow-mode mesh is
+ *  also moved to SHADOW_LAYER, so the view pass skips it altogether: no empty draw, E314 stage 3's cost pass) */
 let shadowOnly: THREE.MeshBasicMaterial | null = null;
 export function shadowOnlyMaterial(): THREE.MeshBasicMaterial {
   shadowOnly ??= new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, side: THREE.DoubleSide });
@@ -43,7 +45,7 @@ export function shadowOnlyMaterial(): THREE.MeshBasicMaterial {
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 
-interface SavedMesh { readonly mesh: THREE.Mesh; readonly material: THREE.Material | THREE.Material[]; readonly castShadow: boolean; readonly receiveShadow: boolean }
+interface SavedMesh { readonly mesh: THREE.Mesh; readonly material: THREE.Material | THREE.Material[]; readonly castShadow: boolean; readonly receiveShadow: boolean; readonly layers: number }
 interface Saved { readonly parent: THREE.Object3D | null; readonly position: THREE.Vector3; readonly meshes: readonly SavedMesh[] }
 
 export class Wardrobe {
@@ -75,7 +77,7 @@ export class Wardrobe {
   private dress(object: THREE.Object3D, slot: WearSlot): void {
     const meshes: SavedMesh[] = [];
     object.traverse((o) => {
-      if (isMesh(o)) meshes.push({ mesh: o, material: o.material, castShadow: o.castShadow, receiveShadow: o.receiveShadow });
+      if (isMesh(o)) meshes.push({ mesh: o, material: o.material, castShadow: o.castShadow, receiveShadow: o.receiveShadow, layers: o.layers.mask });
     });
     this.saved.set(object, { parent: object.parent, position: object.position.clone(), meshes });
     const s = WEAR_SOCKET[slot];
@@ -85,6 +87,7 @@ export class Wardrobe {
         m.mesh.material = shadowOnlyMaterial();
         m.mesh.castShadow = true;
         m.mesh.receiveShadow = false;
+        m.mesh.layers.set(SHADOW_LAYER); // drawn by the shadow pass only (src/core/shadowLayer.ts)
       }
     }
     this.root.add(object);
@@ -100,6 +103,7 @@ export class Wardrobe {
       m.mesh.material = m.material;
       m.mesh.castShadow = m.castShadow;
       m.mesh.receiveShadow = m.receiveShadow;
+      m.mesh.layers.mask = m.layers;
     }
     s.parent?.add(object);
   }

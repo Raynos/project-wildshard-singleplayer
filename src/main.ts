@@ -73,6 +73,9 @@ import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { Owned } from './game/loot/Owned';
 import { practiceRoom } from './core/practiceRoom';
 import { installLoot } from './game/loot/install';
+import { installKeepsakes } from './game/loot/keepsakes';
+import { dodgeGuard } from './game/loot/perks';
+import { installBodyShadow } from './player/BodyShadow';
 import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { dayClockClock, dayNightClock, setActiveClock } from './world/WorldClock';
 import { DayNight } from './world/DayNight';
@@ -783,6 +786,14 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       hud.onResume?.();
       shopHold = window.setTimeout(() => { hud.holdPause = false; if (!nolock && !touchUi() && !document.pointerLockElement && hud.entered && !menu.isOpen) hud.setPaused(true); }, 450);
     } });
+  // E314 stage 3: the body shadow (ChunkDef.bodyShadow, src/player/BodyShadow.ts) — hidden off play (the title, a practice
+  // room, the free camera / tour) — and Driftwood's keepsakes (src/game/loot/keepsakes.ts): the sea glass chime + charms,
+  // the trophy plaques and drops, the captain's hat; chains onKill after the loot's coin bursts
+  const bodyShadow = chunk.bodyShadow === true
+    ? installBodyShadow({ game, player, hidden: () => !hud.entered || practiceRoom.open || world.freeCamera || world.tour.active || explore?.active === true })
+    : null;
+  if (adventure !== null && isOcean) installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, registry, body: bodyShadow,
+    swords: [crossbow, ironSword].filter((w): w is Sword => w instanceof Sword) });
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
@@ -790,6 +801,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const hurtArc = new HurtArc();
   let killer: Killer | null = null;
   animals.onCharge = (a, raw) => {
+    if (player.dodging && dodgeGuard(owned)) return; // E314 the boar tusk: a hit that lands while a dodge carries you does nothing
     const dmg = hitDamage(chunk, raw, a.kind); // the shard's per-hit cap (E294: Driftwood 20; the captain is exempt)
     health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
     killer = { kind: a.kind, label: a.label };

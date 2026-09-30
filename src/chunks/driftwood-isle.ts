@@ -244,6 +244,8 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   hitCapExempt: ['captain'], // the final boss hits harder than the cap (Jake, 2026-09-30)
   // E314 (Jake's picks, 2026-09-30): kills burst doubloons that fly to you (crab 1 … captain 25, src/game/loot/coins.ts)
   loot: { coins: true },
+  // E314 stage 3 (Jake, 2026-09-30): "a simple body shadow" — your castaway's shadow on the sand (src/player/BodyShadow.ts)
+  bodyShadow: true,
   // E297 (Jake's yes, 2026-09-29): one set of fight rules — at most 2 enemies attack at once, boars circle back instead of
   // fleeing, an off-screen wind-up is flagged at the screen edge, no animal's body swallows the camera
   fightRules: { maxAttackers: 2 },
