@@ -26,7 +26,6 @@
  */
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
-import { CHUNK_SIZE } from '../core/config';
 import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import type { Inventory } from '../game/Inventory';
@@ -38,7 +37,7 @@ import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 import { isDev, onDev } from '../core/devMode';
-import { bindDevToggle, devSwitchRows } from './devSwitch';
+import { devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
 import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 import { renderFinds, renderGear, type FindsView, type GearLoot } from './bag';
@@ -125,12 +124,11 @@ export class GameMenu {
       <div class="ws-gmenu-head ws-gmenu-bar">
         <button class="ws-gmenu-close" type="button">Resume</button>
         <div class="ws-gmenu-mid">
-          <div class="ws-gmenu-titlerow"><div class="ws-gmenu-title">Menu</div><button class="ws-gmenu-dev" type="button">Dev</button></div>
+          <div class="ws-gmenu-titlerow"><div class="ws-gmenu-title">Menu</div></div>
           <div class="ws-gmenu-sub">${esc(def.displayName)}</div>
         </div>
         <button class="ws-gmenu-exit" type="button" aria-label="Exit to main menu">Exit <span class="ws-gmenu-nowrap">to main</span></button>
       </div>`;
-    bindDevToggle(this.sheet.querySelector<HTMLElement>('.ws-gmenu-dev') ?? el('ws-gmenu-dev')); // E140: developer mode from the header
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
       const b = el('ws-gmenu-tab', tabHtml(t.label, t.icon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
@@ -148,7 +146,7 @@ export class GameMenu {
     document.body.append(this.root);
 
     // ── MAP: the FullMap canvas lives inside this panel (Map.ts embedded mode) ──
-    this.mapMeta = el('ws-gmenu-mapmeta', `${esc(def.displayName)} · ${CHUNK_SIZE} m`);
+    this.mapMeta = el('ws-gmenu-mapmeta', esc(def.displayName)); // E318: the shard's name, no chunk size
     this.mapQuest = el('ws-gmenu-mapquest');
     const frame = el('ws-gmenu-mapframe');
     opts.fullMap.mount(frame);

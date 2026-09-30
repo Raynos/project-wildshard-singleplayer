@@ -914,7 +914,6 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       done: () => { player.carried = false; weapons.setEnabled(!player.swimming); },
     });
   };
-  hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
   // ── first-time control hints (E308, src/ui/FirstHints.ts: every shard's one system; after main's onJump / onDodge, which
   // it chains): a label + pulsing ring on the touch control the first time it matters. Driftwood feeds its six triggers
   // (src/chunks/driftwood-isle/firstMinutes.ts); another shard shows none until it feeds its own ──

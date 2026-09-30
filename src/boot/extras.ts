@@ -40,7 +40,7 @@ import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio
 import { decodeSteppe, steppeBootFiles, steppeFiles, type SteppeBank } from '../audio/SteppeScore';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { CHUNKS, getActiveChunk } from '../chunks/registry';
-import { PLACEHOLDERS } from '../chunks/placeholders';
+import { TITLE_CARDS } from '../ui/titleDeck';
 import { TIER } from '../core/tier';
 
 /** source path (`../chunks/thumbs/x.jpg`, relative to this file) → the bundle's URL for it */
@@ -105,7 +105,7 @@ function swapCardArt(blobs: ReadonlyMap<string, string>): void {
     c.heroLandscape = blobs.get(pathOf(c.heroLandscape)) ?? c.heroLandscape;
   };
   for (const c of CHUNKS) swap(c);
-  for (const t of PLACEHOLDERS) swap(t);
+  for (const t of TITLE_CARDS) swap(t); // the title deck's own cards (src/ui/titleDeck.ts) — the deck reads these
 }
 
 export interface Preload<T> { wait: (p: StepProgress) => Promise<T> }

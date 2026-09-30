@@ -33,10 +33,9 @@ export function chunkSlugFromUrl(search?: string): string {
 }
 
 /**
- * Prototype shards (NINE-DRAGON-STACK P0-5c): built on the engine, not in the deck by default. The deck shows them as
- * EXPERIMENTAL cards (in place of their COMING SOON teasers) when pause ▸ Settings ▸ Debug ▸ Developer tools ▸
- * "Prototype shards" is on; `?chunk=<slug>` (the harness) boots one regardless. Not in CHUNKS: the shard prefetch, the
- * packs and the every-shard tests do not reach them.
+ * Prototype shards (NINE-DRAGON-STACK P0-5c): built on the engine, in the title deck for everyone as an EXPERIMENTAL card
+ * (src/ui/titleDeck.ts — E318: one deck, one status, the cold launch's). Not in CHUNKS: the shard prefetch, the packs and
+ * the every-shard tests do not reach them.
  */
 export const PROTOTYPES: ChunkDef[] = [NINE_DRAGON_STACK];
 

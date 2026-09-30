@@ -1,13 +1,10 @@
-import { CHUNK_SIZE } from '../core/config';
-import { CHUNKS, PROTOTYPES, getActiveChunk } from '../chunks/registry';
+import { getActiveChunk } from '../chunks/registry';
 import { requestShard } from '../shard/switch';
-import { PLACEHOLDERS, type TeaserShot } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
-import { setting } from './Settings';
 import { isDev } from '../core/devMode';
-import { bindDevToggle } from './devSwitch';
+import { buildTitleDeck, TITLE_CARDS, type TitleDeck } from './titleDeck';
 import { ToastStack } from './ToastStack';
 import { ROW, hudSlots } from './hudSlots';
 
@@ -65,20 +62,7 @@ const SVG_STORM = '<svg viewBox="0 0 24 24"><path d="M7 15a5 5 0 0 1-.6-9.96A6.5
 const SVG_WARN = '<svg viewBox="0 0 24 24"><path d="M12 3 1.8 20.5h20.4z" fill="currentColor"/><path d="M12 9.5v5.2M12 16.8v1.6" stroke="#1a1204" stroke-width="2.2" stroke-linecap="round"/></svg>';
 export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 'warn' }>;
 
-/** One card in the title-screen deck: an authored chunk (playable) or a teaser (coming soon). */
-interface DeckCard {
-  slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
-  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean; earlyAccess: boolean;
-  /** ChunkDef.explore: the shard offers EXPLORE WORLD */
-  explore: boolean;
-  /** a teaser's slideshow (hero first, then its screens), crossfaded behind the deck while the card is selected; [] = a still hero */
-  shots: TeaserShot[];
-}
 const HERO_FADE_MS = 350;
-const SHOT_MS = 5200; // a teaser screen's time on the backdrop
-const SHOT_FADE_MS = 900; // menu.css .ws-menu-hero-next transition
-const GLYPH_SWORD = '<svg viewBox="0 0 24 24"><path d="M19.5 3.5L9 14l1 1L20.5 4.5z M6.5 12.5l5 5 M8 14l-4.5 4.5 1 1L9 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
-const GLYPH_EYE = '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 
 const CARDINALS: [number, string, boolean][] = [[0, 'N', true], [45, 'NE', false], [90, 'E', true], [135, 'SE', false], [180, 'S', true], [225, 'SW', false], [270, 'W', true], [315, 'NW', false]];
 const BAND_DEGREES = 292; // the band spans this much heading (W · N · E all visible, like the K1 mockup); px/deg follows its width
@@ -118,8 +102,6 @@ export class HUD {
   root: HTMLElement;
   onResume?: () => void;
   onExitToMenu?: () => void;
-  private soundOff = false; // the menu's sound toggle; applied via onSoundToggle when toggled (the title music) and on enter
-  onSoundToggle?: (on: boolean) => void;
   private opts: HUDOptions;
   entered = false;
   private onEnter?: () => void;
@@ -149,7 +131,7 @@ export class HUD {
   private intro?: HTMLElement | undefined;
   /** the in-game menu (src/ui/Menu.ts) — pause opens it on Settings; its close is our `onResume` */
   private _menu?: GameMenu;
-  private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void } | undefined;
+  private deck?: TitleDeck | undefined;
   private last: Partial<HUDState> & { statusKey?: string | undefined; headingDeg?: number | undefined; noAmmo?: boolean | undefined } = {};
   private ammoPanel!: HTMLElement;
   private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
@@ -184,7 +166,6 @@ export class HUD {
       if (!this.intro || this.entered || e.metaKey || e.ctrlKey || e.code === 'Escape') return;
       const deck = this.deck;
       if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); deck?.select(deck.index + (e.code === 'ArrowLeft' ? -1 : 1)); return; }
-      if (deck && !deck.cards[deck.index]?.playable) return;  // "press any key" is inert on a coming-soon shard
       if (deck) deck.activate(); else this.enter();
     });
   }
@@ -490,232 +471,33 @@ export class HUD {
   get paused(): boolean { return this._menu?.isOpen ?? false; }
 
   /**
-   * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the live world (the
-   * neighbours peek in from the edges, dots below — a swipe steps the shard); the centred card is the selection. Under it
-   * two compact buttons: ENTER WORLD (play; another shard opens in a fresh page) and EXPLORE WORLD
-   * (the viewer, project/archive/2026-09-23-explore-world.md; the shards whose ChunkDef.explore is on — D4, E66). Teasers from `PLACEHOLDERS` crossfade their hero art in
-   * behind the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility. (The user,
-   * 2026-09-23, on the p12 split panels: "way too big … it does not make it obvious you can swipe" — back to the deck.)
+   * Title screen: the shard deck IS the menu (src/ui/titleDeck.ts — the same deck the cold launch shows, E318). A horizontal
+   * carousel of shard cards over the selected card's hero art (the world is paused underneath); ENTER WORLD plays this
+   * shard or opens another in a fresh page, EXPLORE WORLD opens the viewer (project/archive/2026-09-23-explore-world.md).
+   * `stats` is accepted for API compatibility.
    */
   showIntro(onEnter: () => void, _stats?: IntroStats): void {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
-    const def = getActiveChunk();
-    // the prototype shards (registry.ts PROTOTYPES) join the deck as EXPERIMENTAL cards when Debug ▸ Developer tools ▸ the
-    // prototype row is on — or when one is the shard running (`?chunk=` booted it) — each in place of its COMING SOON teaser
-    const protos = PROTOTYPES.filter((c) => setting('prototypes') === 'on' || c === def);
-    const cards: DeckCard[] = [
-      ...[...CHUNKS, ...protos].map((c): DeckCard => ({
-        slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
-        label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
-        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, earlyAccess: c.earlyAccess === true, explore: c.explore === true,
-        heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape, shots: [],
-      })),
-      ...PLACEHOLDERS.filter((t) => !protos.some((c) => c.slug === t.slug)).map((t): DeckCard => ({
-        slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
-        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, earlyAccess: false, explore: false,
-        heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
-        shots: t.screens && t.screens.length > 0 ? [{ portrait: t.heroPortrait, landscape: t.heroLandscape, thumb: t.thumbnail, caption: t.heroCaption ?? t.displayName }, ...t.screens] : [],
-      })),
-    ];
-    const intro = el('div', 'ws-menu');
-    intro.innerHTML = `
-      <div class="ws-menu-hero"></div><div class="ws-menu-hero ws-menu-hero-next"></div>
-      <button class="ws-menu-shot" type="button"><span></span><i></i></button>
-      <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div>
-        <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><span class="ws-menu-explore-text"><b>Explore world</b><small>Fly · inspect</small></span></button></div>
-      <div class="ws-menu-deck">
-        <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
-          <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
-            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')">${c.shots.length > 1 ? '<span class="ws-menu-card-next"></span>' : ''}<i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.earlyAccess ? '<i class="ws-menu-card-exp ws-menu-card-ea">Early access</i>' : c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
-            <b>${c.displayName}</b><small>${c.label}</small>
-          </button>`).join('')}
-        </div></div>
-        <div class="ws-menu-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
-        <div class="ws-menu-modes">
-          <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
-        </div>
-        <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div><button class="ws-menu-sound ws-menu-dev" type="button">Dev</button></div>
-      </div>`;
-    const hero = q(intro, '.ws-menu-hero');
-    const list = q(intro, '.ws-menu-cards');
-    const cardEls = Array.from(list.querySelectorAll<HTMLElement>('.ws-menu-card'));
-    const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
-    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-play');
-    if (!enterBtn) throw new Error('HUD: no .ws-menu-play');
-    const enterTitle = q(enterBtn, 'b'), enterHint = q(enterBtn, 'small');
-    const exploreBtn = q(intro, '.ws-menu-explore');
-    const heroNext = q(intro, '.ws-menu-hero-next'), shotEl = q(intro, '.ws-menu-shot'), shotText = q(shotEl, 'span'), shotCount = q(shotEl, 'i');
-
-    const portrait = (): boolean => innerWidth < innerHeight;
-    const heroUrl = (c: DeckCard): string => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
-    let index = Math.max(0, cards.findIndex((c) => c.active));
-    // a teaser's slideshow: the next screen decodes first, then crossfades in over the backdrop and becomes it
-    let shotAt = 0, shotTimer: number | undefined;
-    const shotUrl = (s: TeaserShot): string => (portrait() ? s.portrait : s.landscape);
-    const caption = (c: DeckCard, i: number): void => { shotText.textContent = c.shots[i]?.caption ?? ''; shotCount.textContent = `${i + 1} / ${c.shots.length}`; };
-    const cardImg = (i: number): { img: HTMLElement; next: HTMLElement } | null => {
-      const img = cardEls[i]?.querySelector<HTMLElement>('.ws-menu-card-img'), next = img?.querySelector<HTMLElement>('.ws-menu-card-next');
-      return img && next ? { img, next } : null;
-    };
-    let shotCard = -1; // the card whose picture the slideshow moved (put back to its own thumbnail when it stops)
-    const stopShots = (): void => {
-      if (shotTimer !== undefined) { clearInterval(shotTimer); shotTimer = undefined; }
-      heroNext.classList.remove('show');
-      const k = cardImg(shotCard), c = cards[shotCard];
-      if (k && c) { k.next.classList.remove('show'); k.img.style.backgroundImage = `url('${c.thumbnail}')`; }
-      shotCard = -1;
-    };
-    const nextShot = (): void => {
-      const c = cards[index];
-      if (this.intro !== intro || !c || c.shots.length < 2) { stopShots(); return; }
-      const i = (shotAt + 1) % c.shots.length, s = c.shots[i];
-      if (!s) return;
-      const url = shotUrl(s), img = new Image(), thumb = new Image();
-      img.src = url; thumb.src = s.thumb;
-      const at = index, k = cardImg(at);
-      const show = async (): Promise<void> => {
-        try { await Promise.all([img.decode(), thumb.decode()]); } catch { /* shown anyway: the backdrop paints it when it lands */ }
-        if (this.intro !== intro || cards[index] !== c) return; // the player moved on while it decoded
-        shotAt = i; shotCard = at;
-        heroNext.style.backgroundImage = `url('${url}')`;
-        heroNext.classList.add('show');
-        if (k) { k.next.style.backgroundImage = `url('${s.thumb}')`; k.next.classList.add('show'); }
-        caption(c, i);
-        setTimeout(() => {
-          if (cards[index] !== c) return;
-          hero.style.backgroundImage = `url('${url}')`; heroNext.classList.remove('show');
-          if (k) { k.img.style.backgroundImage = `url('${s.thumb}')`; k.next.classList.remove('show'); }
-        }, SHOT_FADE_MS + 60);
-      };
-      void show();
-    };
-    const startShots = (c: DeckCard): void => {
-      stopShots(); shotAt = 0;
-      shotEl.classList.toggle('show', c.shots.length > 1);
-      if (c.shots.length < 2) return;
-      caption(c, 0);
-      shotTimer = window.setInterval(nextShot, SHOT_MS);
-    };
-    // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
-    const track = q(list, '.ws-menu-deck-track');
-    const offsetOf = (i: number): number => { const ce = cardEls[i]; return ce ? list.clientWidth / 2 - (ce.offsetLeft + ce.offsetWidth / 2) : 0; };
-    const place = (i: number, extra = 0, animate = true): void => {
-      track.style.transition = animate ? 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
-      track.style.transform = `translateX(${offsetOf(i) + extra}px)`;
-    };
-
-    const apply = (): void => {
-      const c = cards[index];
-      if (!c) return;
-      cardEls.forEach((e, i) => { e.classList.toggle('selected', i === index); });
-      dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
-      // every card has hero art — the menu never shows the live world (it is paused underneath)
-      const url = heroUrl(c);
-      if (url) { hero.style.backgroundImage = `url('${url}')`; hero.classList.add('show'); }
-      else hero.classList.remove('show');
-      enterBtn.classList.toggle('soon', !c.playable);
-      enterBtn.disabled = !c.playable;
-      enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : !c.active ? `Reloads with ${c.displayName}` : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : 'Play';
-      exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
-      startShots(c);
-    };
-    const select = (raw: number, smooth = true): void => {
-      const i = Math.max(0, Math.min(cards.length - 1, raw));
-      place(i, 0, smooth);
-      if (i !== index) { index = i; apply(); }
-    };
-    const activate = (): void => {
-      const c = cards[index];
-      if (!c || !c.playable) return;
-      if (c.active) this.enter(); else requestShard(c.slug, { enter: true });
-    };
-    // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
-    let drag: { id: number; x0: number; t0: number; dx: number } | null = null;
-    list.addEventListener('pointerdown', (e) => {
-      if (drag) return;
-      drag = { id: e.pointerId, x0: e.clientX, t0: performance.now(), dx: 0 };
-      list.setPointerCapture(e.pointerId);
+    const active = getActiveChunk().slug;
+    const deck = buildTitleDeck({
+      cards: TITLE_CARDS, active,
+      onEnter: (c) => { if (c.slug === active) this.enter(); else requestShard(c.slug, { enter: true }); },
+      onExplore: (c) => { if (c.slug !== active) { requestShard(c.slug, { explore: true }); return; } this.leaveForExplore(); },
+      onSettings: () => { openBootSettings(); }, // E55: the reload-to-apply picks
     });
-    list.addEventListener('pointermove', (e) => {
-      if (!drag || e.pointerId !== drag.id) return;
-      drag.dx = e.clientX - drag.x0;
-      const atEnd = (drag.dx > 0 && index === 0) || (drag.dx < 0 && index === cards.length - 1);
-      place(index, atEnd ? drag.dx * 0.3 : drag.dx, false);
-    });
-    let swipedAt = 0; // a swipe's trailing click must not re-select the card under the finger
-    const endDrag = (e: PointerEvent): void => {
-      if (!drag || e.pointerId !== drag.id) return;
-      const { dx, t0 } = drag; drag = null;
-      const v = dx / Math.max(1, performance.now() - t0); // px/ms
-      if (Math.abs(dx) > 36 || (Math.abs(v) > 0.35 && Math.abs(dx) > 14)) { swipedAt = performance.now(); select(index + (dx < 0 ? 1 : -1)); }
-      else place(index);
-    };
-    list.addEventListener('pointerup', endDrag); list.addEventListener('pointercancel', endDrag);
-    cardEls.forEach((e, i) => { e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
-    dots.forEach((d, i) => { d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }); });
-    enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
-    shotEl.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      const c = cards[index];
-      if (!c || c.shots.length < 2) return;
-      if (shotTimer !== undefined) clearInterval(shotTimer);
-      shotTimer = window.setInterval(nextShot, SHOT_MS);
-      nextShot();
-    });
-    exploreBtn.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      const c = cards[index];
-      if (c?.explore !== true) return;
-      if (!c.active) { requestShard(c.slug, { explore: true }); return; }
-      this.leaveForExplore();
-    });
-    q(intro, '.ws-menu-settings').addEventListener('click', (e) => { e.stopPropagation(); openBootSettings(); }); // E55: the reload-to-apply picks
-    bindDevToggle(q(intro, '.ws-menu-dev')); // E140: developer mode without opening Settings
-    const soundBtn = q(intro, 'div.ws-menu-sound');
-    if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
-    soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!this.soundOff); });
-    // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
-    let wasPortrait = portrait();
-    const onResize = (): void => {
-      if (!this.intro) { removeEventListener('resize', onResize); return; }
-      place(index, 0, false);
-      if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
-    };
-    addEventListener('resize', onResize);
-    // iOS (E131): a rotation can fire `resize` before the new layout settles (or while the rotate gate hides the menu, all
-    // widths 0), and it may leave the strip natively scrolled — so re-centre whenever the strip's own box really changes
-    const strip = new ResizeObserver(() => {
-      if (!this.intro) { strip.disconnect(); return; }
-      list.scrollLeft = 0;
-      if (!drag) place(index, 0, false);
-    });
-    strip.observe(list);
-    // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
-    // orientation on screen, loads with the menu (apply() above). A neighbour's loads when a swipe or a card tap starts
-    // toward it, so the crossfade on release is usually instant; the other orientation only on a real flip (onResize →
-    // apply()). Preloading all six up front was 1.7 MB of every cold launch (LOAD-PERF, first-launch transfer).
-    const warmed = new Set<string>();
-    const warm = (i: number): void => { const c = cards[i]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
-    const warmNeighbours = (): void => { warm(index - 1); warm(index + 1); };
-    list.addEventListener('pointerdown', warmNeighbours);
-    dots.forEach((d, i) => { d.addEventListener('pointerdown', () => { warm(i); }); });
-
-    this.root.append(intro);
-    this.intro = intro;
-    this.deck = { cards, get index() { return index; }, select, activate };
-    apply();
-    requestAnimationFrame(() => { place(index, 0, false); }); // after layout: offsets need the intro in the DOM
+    this.root.append(deck.root);
+    this.intro = deck.root;
+    this.deck = deck;
+    deck.start();
   }
 
   /** EXPLORE WORLD: the title goes away but the play HUD stays hidden (`#hud.intro` is kept) — Explore draws its own overlay */
   private leaveForExplore(): void {
     if (!this.intro) return;
-    const intro = this.intro; this.intro = undefined; this.deck = undefined;
+    const intro = this.intro; this.intro = undefined; this.deck?.dispose(); this.deck = undefined;
     intro.classList.add('hide');
     setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
-    this.onSoundToggle?.(!this.soundOff);
     this.onExplore?.();
   }
 
@@ -724,12 +506,11 @@ export class HUD {
 
   private enter(): void {
     if (!this.intro) return;
-    const intro = this.intro; this.intro = undefined; this.deck = undefined;
+    const intro = this.intro; this.intro = undefined; this.deck?.dispose(); this.deck = undefined;
     intro.classList.add('hide');
     setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
     this.root.classList.remove('intro');
     this.entered = true;
-    this.onSoundToggle?.(!this.soundOff); // the player's choice (main.ts hushes the world under the menu; the title music plays)
     this.onEnter?.();
   }
 
@@ -744,14 +525,13 @@ export class HUD {
   enterNow(): void {
     if (this.intro) {
       // the deck was parked on the card the player left for: its own card back first, so the fade-out shows this shard's art
-      const d = this.deck, own = d ? d.cards.findIndex((c) => c.active) : -1;
+      const d = this.deck, own = d ? d.cards.findIndex((c) => c.slug === getActiveChunk().slug) : -1;
       if (d && own !== -1 && own !== d.index) d.select(own, false);
       this.enter();
       return;
     }
     if (this.entered) return;
     this.markEntered();
-    this.onSoundToggle?.(!this.soundOff);
     this.onEnter?.();
   }
 

@@ -92,7 +92,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   gridCoords: '(−1, +6)',
   seed: SEED,
   treeCount: 0,
-  biome: 'Low-poly island · open ocean',
+  biome: 'Low-poly island, open ocean', // the title card's one-line blurb (E318: a player's words, not the grid)
   blurb: 'A small low-poly island in a bright ocean, in the spirit of Wind Waker. A pier, a moored sailboat, a hut on the plateau, a ring shrine in the jungle and a wreck in the cove — island boar hunted with a wooden sword.',
   thumbnail, heroPortrait, heroLandscape,
   style: 'lowpoly',

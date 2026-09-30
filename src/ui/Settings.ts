@@ -140,9 +140,6 @@ export const OPTION_VALUES = {
   // E174: Driftwood's phone shadow maps (src/world/shadowVariants.ts; debugOptions.ts 'look') — a Today · b Depth only ·
   // c 16-bit depth · d Lean; live. Default c (the user's pick, 2026-09-25)
   dwShadows: ['a', 'b', 'c', 'd'],
-  // NINE-DRAGON-STACK P0-5c: the prototype shards (registry.ts PROTOTYPES) in the title deck as EXPERIMENTAL cards, in
-  // place of their COMING SOON teasers — Debug ▸ Developer tools only, a reload (the deck is built once); off by default
-  prototypes: ['off', 'on'],
   // E304: Pine Hollow's faces (src/pinehollow/quest/npcModels.ts npcFileUrl) — Debug ▸ Creatures & NPCs, a reload; current
   // stays the default until Jake picks: B hunyuan (a Hunyuan3D-2 head from a codex portrait) · C hunyuanref (from the
   // model's own reference crop) — progress/e304-faces/pine-hollow-board.jpg
@@ -178,7 +175,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tex: { def: 'auto', params: [], url: () => null },
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
-  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY, pineFaces: DEBUG_ONLY,
+  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, pineFaces: DEBUG_ONLY,
   rideLook: DEBUG_ONLY, rideRoad: DEBUG_ONLY, rideSpur: DEBUG_ONLY, rideSkid: DEBUG_ONLY, ridePanic: DEBUG_ONLY, rideReins: DEBUG_ONLY, sheepRaids: DEBUG_ONLY,
   dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
 };
@@ -198,7 +195,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   dwShadows: option('dwShadows'),
-  prototypes: option('prototypes'),
   pineFaces: option('pineFaces'),
   rideLook: option('rideLook'), rideRoad: option('rideRoad'), rideSpur: option('rideSpur'), rideSkid: option('rideSkid'),
   ridePanic: option('ridePanic'), rideReins: option('rideReins'), sheepRaids: option('sheepRaids'),
