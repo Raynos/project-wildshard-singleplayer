@@ -13,6 +13,9 @@
  * - placements.bin (f32 × 10: proto, x, y, z, quaternion, scale, tint) + island.json (colliders, extra palms, bake notes):
  *   the prototypes are merged here into 2×2 tiles × {casters, ground cover} — one draw per tile, culled per tile. The phone
  *   builds every palm / rock / log and 70 % of the small cover (the file is ordered so that is a prefix).
+ * - E306 / E315 M1: the prototypes are models (src/chunks/driftwood-isle/models/cove.ts, one per family): the tiles are
+ *   the cove's own drawing of their copies, so each family is placed with `drawnInto` (its copies, boxes and card; nothing
+ *   drawn twice). The scattered small rocks are the small-rock model (rockKit), placed merged (src/models/place.ts).
  * - lm-ao / lm-bounce (.phone).webp: the terrain's baked GI — sky AO (5 m) and the sun's one-to-three-bounce indirect light.
  *
  * Lighting (the decision, see scripts/blender/README.md): the sun and its shadows stay dynamic (the toon ramp + CSM on the
@@ -36,9 +39,11 @@ import { TIER } from '../core/tier';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
 import type { PalmSpec } from './Palms';
-import { rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
-import { Rng } from '../core/rng';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { slicer } from '../boot/plan';
+import { modelContext, type ModelContext, type Placement } from '../models/model';
+import { place as placeModel } from '../models/place';
+import { smallRock, type SmallRockParams } from '../chunks/driftwood-isle/models/smallRock';
+import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../chunks/driftwood-isle/models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
 
 const BASE = blenderModelsBase('driftwood-isle'); // Driftwood's build: its palms / toon / sea are this file's own
@@ -139,6 +144,7 @@ export interface BlenderIslandCtx {
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
+const _v = new THREE.Vector3();
 const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
 
 /** keep only the triangles `keep(cx, cz)` accepts (centroid, world xz — the merged meshes are built in world space) */
@@ -292,6 +298,7 @@ export class BlenderIsland {
     gltf.scene.updateMatrixWorld(true);
     const protos: Proto[] = [];
     const protoIndex = new Map<string, number>(meta.protos.map((p, i) => [`proto_${p.name}`, i]));
+    const models = modelContext(ctx.sky);
     const v = new THREE.Vector3();
     const found: THREE.Mesh[] = [], terrainTiles: THREE.Mesh[] = [];
     gltf.scene.traverse((o) => { if (isMesh(o)) found.push(o); });
@@ -442,14 +449,15 @@ export class BlenderIsland {
       for (const tile of terrainTiles) tintTerrain(tile);
     }
     if (smallRocks.length > 0) {
-      const rm = this.smallRocks(smallRocks, f, protos, rockMaterial(ctx.sky));
-      this.group.add(rm);
-      this.stats.propTris += rm.geometry.getAttribute('position').count / 3;
+      // E315 M1: the small-rock model, merged into one mesh (piece `cove-small-rocks`; it used to hang in this group)
+      const rocks = placeModel(smallRock, this.smallRocks(smallRocks, f, protos), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } });
+      rocks.object.traverse((o) => { if (isMesh(o)) this.stats.propTris += o.geometry.getAttribute('position').count / 3; });
     }
     this.stats.placements = used;
     this.stats.draws = this.group.children.length;
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
+    await this.placeModels(models, f, used, meta, protos, propsMat);
 
     // ── hide what the area replaces ──
     clipTerrain(ctx.terrain);
@@ -490,9 +498,9 @@ export class BlenderIsland {
 
   /**
    * E114: the scattered small rocks as rockKit rocks — each at its placement's spot, tilt and yaw, as wide and as tall as
-   * the Blender rock it replaces; one lighter build (detail −1) since there are ~400. One mesh, one draw.
+   * the Blender rock it replaces; one lighter build (detail −1) since there are ~400: the small-rock model's placements.
    */
-  private smallRocks(items: number[], f: Float32Array, protos: Proto[], material: THREE.Material): THREE.Mesh {
+  private smallRocks(items: number[], f: Float32Array, protos: Proto[]): Placement<SmallRockParams>[] {
     const size = new Map<number, { half: number; top: number }>();
     const sizeOf = (pi: number): { half: number; top: number } => {
       const hit = size.get(pi);
@@ -507,24 +515,49 @@ export class BlenderIsland {
       size.set(pi, out);
       return out;
     };
-    const rng = new Rng(0x5a11 ^ 0x70c8), m = new THREE.Matrix4(), q = new THREE.Quaternion(), t = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
-    const parts: THREE.BufferGeometry[] = [];
-    for (const i of items) {
+    const q = new THREE.Quaternion(), t = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+    return items.map((i) => {
       const o = i * 10, pi = f[o] ?? 0, sc = f[o + 8] ?? 1, { half, top } = sizeOf(pi);
       t.set(f[o + 1] ?? 0, f[o + 2] ?? 0, f[o + 3] ?? 0); q.set(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1);
       const r = (half * sc) / 1.1, sq = THREE.MathUtils.clamp((top * sc) / (0.92 * r), 0.4, 0.9);
-      // the paint's ground line a little under the centre, as on the shore boulders: these sit only ~0.1 m deep, and a
-      // ground line that high put nearly all of a small rock in the foot's dark and the ground's AO (they drew black)
-      const g = rockGeometry(r, rng, { squash: sq, palette: SHORE_ROCK, moss: rng.range(0.3, 0.8), ground: -0.25 * r * sq, detail: -1 });
-      g.applyMatrix4(m.compose(t, q, one));
-      parts.push(g);
+      return { x: t.x, y: t.y, z: t.z, matrix: new THREE.Matrix4().compose(t, q, one), params: { r, sq } };
+    });
+  }
+
+  /**
+   * E315 M1: the cove's prototypes are models (one per family, src/chunks/driftwood-isle/models/cove.ts). The tiles
+   * above are their drawing, so each family is placed `drawnInto` this group: its copies (the placements this tier
+   * builds), each copy's world box, and the model's catalog card; `place` draws nothing. The specimens read the loaded
+   * prototypes and the casters' material from the shard's model context.
+   */
+  private async placeModels(models: ModelContext, f: Float32Array, used: number, meta: IslandMeta, protos: Proto[], material: THREE.Material): Promise<void> {
+    const byName = new Map<string, Proto>();
+    meta.protos.forEach((p, i) => { const pr = protos[i]; if (pr) byName.set(p.name, pr); });
+    coveProtos(models, { protos: byName, material });
+    const local = protos.map((pr) => {
+      const b = new THREE.Box3();
+      for (let k = 0; k < pr.pos.length; k += 3) b.expandByPoint(_v.set(pr.pos[k] ?? 0, pr.pos[k + 1] ?? 0, pr.pos[k + 2] ?? 0));
+      return b;
+    });
+    const fam = new Map<CoveFamily, { pls: Placement<CoveParams>[]; boxes: number[] }>();
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3(), b = new THREE.Box3();
+    for (let i = 0; i < used; i++) {
+      const o = i * 10, pi = f[o] ?? 0, name = meta.protos[pi]?.name ?? '', key = coveFamilyOf(name), lb = local[pi];
+      if (key === undefined || lb === undefined) continue;
+      t.set(f[o + 1] ?? 0, f[o + 2] ?? 0, f[o + 3] ?? 0); q.set(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1);
+      const sc = f[o + 8] ?? 1;
+      b.copy(lb).applyMatrix4(m.compose(t, q, s.set(sc, sc, sc)));
+      let e = fam.get(key);
+      if (!e) { e = { pls: [], boxes: [] }; fam.set(key, e); }
+      // the copy's pose lives in placements.bin (the tiles draw it): a placement carries where it stands and which prototype
+      e.pls.push({ x: t.x, y: t.y, z: t.z, variant: name });
+      e.boxes.push(b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z);
     }
-    const geo = mergeGeometries(parts, false);
-    for (const g of parts) g.dispose();
-    geo.computeBoundingSphere();
-    const mesh = new THREE.Mesh(geo, material);
-    mesh.name = 'island-rocks'; mesh.castShadow = true; mesh.receiveShadow = true;
-    return mesh;
+    const slice = slicer(); // (~16 k copies on the desktop: a task ends once it has run 30 ms)
+    for (const [key, e] of fam) {
+      placeModel(COVE_MODELS[key], e.pls, { ctx: models, draw: 'merged', drawnInto: { object: this.group, boxes: Float32Array.from(e.boxes) }, piece: { id: `cove-${key}` } });
+      await slice();
+    }
   }
 
   /** per frame: the baked bounce follows the live sun (colour × intensity × elevation over the bake's reference) */
