@@ -15,6 +15,10 @@
  * (reach forward together → sweep out and pull back → recover under the chin → reach) whose rate follows the swim
  * speed — one cycle per `STROKE_PERIOD` at full speed, the same clock Player uses for `onStroke`, so the sound and
  * the pull line up. Fades in / out over ~0.25 s (scale + drop) when swimming starts / stops.
+ *
+ * A shard with a skinned arm rig hands one in (`ChunkDef.sword` → `ShardSword.swim`, a `SwimArms`: Driftwood's castaway
+ * arms, E334): then there are no gloves — the rig plays its own swim clips (swimStroke / swimTread) on the same clock and
+ * speed blend, with the water line drawn on the arms, and it is the same pair of arms the sword is held in.
  */
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
@@ -40,16 +44,47 @@ const STROKE = new THREE.CatmullRomCurve3([
 const IDLE = new THREE.Vector3(0.27, -0.32, -0.56); // treading water: hands out to the sides at the surface
 const ELBOW = new THREE.Vector3(0.30, -0.70, 0.02); // where the (off-screen) elbow hangs; the forearm points from here to the wrist
 
+/** a skinned arm rig's swimming (ShardSword.swim): drawn under `root` in the camera's viewmodel queue */
+export interface SwimArms {
+  readonly root: THREE.Object3D;
+  /** the materials, made with the sky (CSM shadows + fog) before the first frame */
+  setup: (sky: Sky) => void;
+  /** per frame: `stroke` 0 (treading water) … 1 (the breaststroke), its `phase` (0..1 of a cycle), the camera, and how far
+   *  the eye is above the water (m; < 0 = under it) */
+  update: (dt: number, s: { stroke: number; phase: number; camera: THREE.PerspectiveCamera; eyeAbove: number }) => void;
+}
+
 export class Hands {
   readonly group = new THREE.Group();
   visible = false;
   readonly style: Style;
-  private arms: [THREE.Group, THREE.Group];
+  private arms: [THREE.Group, THREE.Group] | null = null;
   private blend = 0; private speed = 0; private phase = 0; private t = 0;
   private tmp = { p: new THREE.Vector3(), q: new THREE.Vector3(), e: new THREE.Vector3(), d: new THREE.Vector3(), fwd: new THREE.Vector3(0, 0, -1) };
 
-  constructor(sky: Sky, private camera: THREE.PerspectiveCamera) {
+  constructor(sky: Sky, private camera: THREE.PerspectiveCamera, private rig: SwimArms | null = null) {
     this.style = getActiveChunk().style === 'lowpoly' ? 'lowpoly' : 'pbr'; // painterly (Nalati): the smooth hands
+    if (rig !== null) rig.setup(sky);
+    else this.buildGloves(sky);
+
+    // depth clear so the arms never clip into the water / pier; the viewmodel lives in the transparent queue after it
+    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
+    clearer.renderOrder = 999; clearer.frustumCulled = false;
+    clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
+    this.group.add(clearer);
+    if (rig !== null) this.group.add(rig.root);
+    this.group.traverse((o) => {
+      if (!isMesh(o) || o === clearer) return;
+      o.frustumCulled = false; o.castShadow = false; o.receiveShadow = true; o.renderOrder = 1000 + o.renderOrder;
+      if (rig !== null) o.userData['treatAsOpaque'] = true; // the rig: out of the AO's transparency pre-pass, as the sword's arms (the queue's depth clear keeps the world depth behind it)
+      for (const mat of Array.isArray(o.material) ? o.material : [o.material]) { mat.transparent = true; mat.depthWrite = true; }
+    });
+    this.group.visible = false;
+    camera.add(this.group);
+  }
+
+  /** the white-gloved hands (no rig): two forearms + mitten hands built here */
+  private buildGloves(sky: Sky): void {
     const low = this.style === 'lowpoly';
     const rng = new Rng(0x5a1d);
     const seg = low ? 7 : 18;
@@ -105,19 +140,6 @@ export class Hands {
     };
     this.arms = [buildArm(1), buildArm(-1)];
     this.group.add(...this.arms);
-
-    // depth clear so the arms never clip into the water / pier; the viewmodel lives in the transparent queue after it
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
-    clearer.renderOrder = 999; clearer.frustumCulled = false;
-    clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
-    this.group.add(clearer);
-    this.group.traverse((o) => {
-      if (!isMesh(o) || o === clearer) return;
-      o.frustumCulled = false; o.castShadow = false; o.receiveShadow = true; o.renderOrder = 1000;
-      const mat = o.material as THREE.Material; mat.transparent = true; mat.depthWrite = true;
-    });
-    this.group.visible = false;
-    camera.add(this.group);
   }
 
   update(dt: number, p: Player): void {
@@ -134,6 +156,16 @@ export class Hands {
     const want = Math.min(1, hs / SWIM_SPEED);
     this.speed += (want - this.speed) * Math.min(1, dt * 4);
     this.phase = (this.phase + dt * (0.06 + this.speed / STROKE_PERIOD)) % 1; // 0.06 Hz idle drift keeps the pose alive even when parked
+    if (this.rig !== null) {
+      // the rig: its clips on the same clock and blend; the whole pair drops and shrinks in / out as the gloves do
+      const mixR = this.speed * this.speed * (3 - 2 * this.speed);
+      const surf = p.waterSurfaceAt(cam.position.x, cam.position.z);
+      const eye = cam.getWorldPosition(this.tmp.e);
+      this.rig.update(dt, { stroke: mixR, phase: this.phase, camera: cam, eyeAbove: surf === null ? 1 : eye.y - surf });
+      this.group.position.set(0, -(1 - this.blend) * 0.3, 0);
+      this.group.scale.setScalar(0.4 + 0.6 * this.blend);
+      return;
+    }
     const stroke = this.tmp.p; STROKE.getPointAt(this.phase, stroke);
     // idle tread: slow sculling — hands drift in a small figure-8 at the surface
     const idle = this.tmp.q.copy(IDLE);
@@ -142,7 +174,7 @@ export class Hands {
     const drop = (1 - this.blend) * 0.3;
 
     for (let i = 0; i < 2; i++) {
-      const side = i === 0 ? 1 : -1, arm = this.arms[i];
+      const side = i === 0 ? 1 : -1, arm = this.arms?.[i];
       if (arm === undefined) continue;
       // the left hand runs a hair behind the right so the pair doesn't read as one mirrored object
       const lag = i === 1 ? 0.03 : 0;

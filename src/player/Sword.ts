@@ -116,6 +116,11 @@ export interface SwordArms {
   /** Optional independent left-arm channel for a shard traversal tool. */
   playLeft?: (name: 'grapple_aim' | 'grapple_fire' | 'grapple_hold' | 'idle') => void;
   setClawVisible?: (visible: boolean) => void;
+  /** the rig's materials, made once the Sword hands over the sky (CSM shadows + fog: sky.setupMaterial) — before it is drawn */
+  setup?: (sky: Sky) => void;
+  /** true: the rig draws no trail of its own, so the Sword's ribbon and the heavy's tip glint follow its blade (Driftwood's
+   *  castaway arms, E334); Nine Dragon's rig draws its own */
+  engineTrail?: boolean;
 }
 /** the portrait framing (Sword.framing): shrink, extra drop / slide (m, camera space), the blade tipped forward and turned (rad) */
 export interface SwordFraming { shrink: number; dx: number; dy: number; tilt: number; yaw: number }
@@ -673,6 +678,7 @@ export class Sword implements Weapon {
    *  transparent queue, as the rigid rig); the rigid rig hidden */
   private useArms(arms: SwordArms): void {
     this.arms = arms;
+    arms.setup?.(this.sky);
     this.rig.visible = false; this.armRig.visible = false;
     arms.root.traverse((o) => {
       if (!(o instanceof THREE.Mesh)) return;
@@ -711,10 +717,16 @@ export class Sword implements Weapon {
   private trailA = new Float32Array(TRAIL_SAMPLES * 3); private trailB = new Float32Array(TRAIL_SAMPLES * 3);
   private trailSample(): void {
     // the ribbon spans the blade from the move's `from` fraction to the tip, in the model's (camera) space
-    this.rig.updateMatrix();
     const from = this.trailStyle.from;
-    _v1.set(this.tipX * from * from, this.baseY + (this.tipY - this.baseY) * from, 0).applyMatrix4(this.rig.matrix); // a curved blade: the offset grows ~ quadratically
-    _v2.set(this.tipX, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
+    if (this.arms) { // an animated rig's blade (engineTrail): the holder's drop added, as bladeDirs
+      this.arms.blade(_v1, _v2);
+      _v1.lerp(_v2, from).add(this.armsHolder.position);
+      _v2.add(this.armsHolder.position);
+    } else {
+      this.rig.updateMatrix();
+      _v1.set(this.tipX * from * from, this.baseY + (this.tipY - this.baseY) * from, 0).applyMatrix4(this.rig.matrix); // a curved blade: the offset grows ~ quadratically
+      _v2.set(this.tipX, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
+    }
     if (this.trailN > 0) { // skip a sample the tip has not moved for (hit-stop): no zero-width quads
       const l = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
       if (_v2.distanceToSquared(_v3.set(this.trailB[l * 3] ?? 0, this.trailB[l * 3 + 1] ?? 0, this.trailB[l * 3 + 2] ?? 0)) < 1e-4) return;
@@ -1006,16 +1018,18 @@ export class Sword implements Weapon {
     this.armRig.position.copy(this.posePos);
     this.armRig.quaternion.copy(this.mv.rest.q).slerp(this.poseQ, ARM_FOLLOW);
 
-    // trail: sample through the slash, then fade (an animated rig draws its own)
-    if (active && !this.arms) this.trailSample();
+    // trail: sample through the slash, then fade (an animated rig draws its own, unless it asks for the engine's)
+    const ownTrail = this.arms !== null && this.arms.engineTrail !== true;
+    if (active && !ownTrail) this.trailSample();
     if (this.trailN > 0) {
       this.trailRebuild();
       const newest = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
       if (t - (this.trailT[newest] ?? t) > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
     }
     // the heavy's tip glint: on through the chop's active window, then winks out
-    const glintOn = move === this.mv.heavy && active && !this.arms;
-    if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(this.tipX, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
+    const glintOn = move === this.mv.heavy && active && !ownTrail;
+    if (glintOn && this.arms) { this.arms.blade(_v1, _v2); this.glint.set(_v2.add(this.armsHolder.position)); }
+    else if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(this.tipX, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
     this.glint.update(worldTime.realDt, t, glintOn);
 
     // no aim readout ("BOAR · 15 M") on a melee weapon: the aimed enemy's name plate + health bar (Combat.ts) is its one label

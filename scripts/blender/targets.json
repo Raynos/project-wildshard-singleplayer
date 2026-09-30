@@ -139,6 +139,19 @@
     "public/assets/nine-dragon/viewmodel/gauntlet-maps.webp", "public/assets/nine-dragon/viewmodel/gauntlet-nrm.webp"
    ],
    "feeds": ["src/chunks/nine-dragon-stack/vm/fpArms.ts"]
+  },
+  "driftwood-isle/fp-arms": {
+   "about": "Driftwood's first-person castaway arms (E334, board 2 A / 3 A): the arms and both swords modelled round Nine Dragon's round-13 skeleton, which keeps its 16 clips; + 15 finger bones a hand, the swim clips and the skin (bake.mjs), then the rig gate (gate.mjs → gate.json). --preview also writes posed PLYs for preview.py",
+   "pre": ["mkdir -p $BUILD && node scripts/blender/driftwood-isle/fp-arms/skeleton.mjs $BUILD/bind.json"],
+   "script": "scripts/blender/driftwood-isle/fp-arms/arms.py",
+   "args": ["$BUILD/bind.json", "$BUILD"],
+   "sources": ["scripts/blender/driftwood-isle/fp-arms/skeleton.mjs", "scripts/blender/driftwood-isle/fp-arms/bake.mjs", "scripts/blender/driftwood-isle/fp-arms/gate.mjs", "scripts/blender/driftwood-isle/fp-arms/preview.py"],
+   "inputs": ["public/assets/nine-dragon/viewmodel/fp-rig.glb", "src/chunks/nine-dragon-stack/vm/rig.ts"],
+   "lock": false,
+   "build": ["fp-arms.raw.glb", "gate.json"],
+   "meshopt": [["fp-arms.raw.glb", "public/assets/models/driftwood-fp/fp-arms.glb"]],
+   "outputs": ["public/assets/models/driftwood-fp/fp-arms.glb"],
+   "feeds": ["src/chunks/driftwood-isle/fpArms.ts", "src/player/rigArms.ts"]
   }
  }
 }

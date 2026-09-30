@@ -30,6 +30,7 @@ import type { HuntTuning } from '../entities/AnimalManager';
 import type { SpeciesWeights } from '../world/treeSpecies';
 import type { WorldRegistry } from '../world/registry';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '../player/Sword';
+import type { SwimArms } from '../player/Hands';
 import type { Player } from '../player/Player';
 import type { LockOnSystem } from '../player/LockOnTarget';
 import type { Game } from '../core/Game';
@@ -38,7 +39,13 @@ import type { RosterEntry } from '../models/live';
 
 /** a shard's own sword (ChunkDef.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig
  *  (`arms`) swung by the engine's own moves */
-export interface ShardSword { rig?: SwordRig; arms?: SwordArms; moves?: SwordMoveSet; framing?: Partial<SwordFraming>; portraitPullX?: number }
+export interface ShardSword {
+  rig?: SwordRig; arms?: SwordArms; moves?: SwordMoveSet; framing?: Partial<SwordFraming>; portraitPullX?: number;
+  /** the found iron sword's own animated rig (Driftwood: the same castaway arms holding the iron blade, E334) */
+  ironArms?: SwordArms;
+  /** the swimming hands on the same rig (Hands.ts plays its swim clips); omitted = the white-gloved hands */
+  swim?: SwimArms;
+}
 
 /**
  * How a shard's traversal verb re-dresses one of the base touch discs while the verb applies (E286: Nine Dragon's LOCK

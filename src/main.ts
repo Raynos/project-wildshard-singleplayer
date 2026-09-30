@@ -513,8 +513,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // the shard hands the player its weapon (ChunkDef.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere;
   // Nalati its own three (src/player/nalatiKit.ts: bow · sabre · spear + javelins, the weapon strip)
   const nalatiKit = chunk.slug === 'nalati-grasslands' ? buildNalatiKit({ game, sky, player, forest }, targets, nolock) : null;
+  // Driftwood's castaway rig (E334) also carries the iron sword's arms and the swimming hands: those go to their own owners
+  const { ironArms, swim: swimArms, ...ownSword } = shardSword ?? {};
   const crossbow: Weapon = nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
-    ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, ...shardSword, ...(chunk.fov ? { portraitFov: chunk.fov.portrait } : {}) })
+    ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, ...ownSword, ...(chunk.fov ? { portraitFov: chunk.fov.portrait } : {}) })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
   // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 on Nalati
@@ -527,7 +529,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Pine Hollow's third weapon: the Warden's Longbow, the Antler King's reward (PH-C11, Longbow.ts; locked until his orb)
   const longbow = isPine ? new Longbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock }) : null;
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
-  const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
+  const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
   const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : [], nalatiKit?.options ?? (isOcean ? { baseName: 'Wooden sword' } : undefined)); // Driftwood's sword is "Wooden sword" everywhere — Bag, touch ring, hotbar (E318 row 18); held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
@@ -662,7 +664,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
 
-  const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
+  const hands = new Hands(sky, game.camera, swimArms ?? null); // the swimming hands (shown only while player.swimming): the shard's arm rig swimming (Driftwood, E334), else white gloves
   if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { if (!isOcean) audio.swordHeavy(); }; // the charged overhead (Weapons does not forward it); the island's is swordEvents.onSwing
   const meleeHeld = () => chunk.weapon === 'sword' || nalatiKit?.melee(weapons.current.id) === true; // the swords / the sabre / the spear
   // Nalati's kit voices (src/nalati/sound.ts) first; the island's whoosh is swordEvents.onSwing
