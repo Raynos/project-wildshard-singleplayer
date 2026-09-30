@@ -17,6 +17,7 @@ row: a decision number in [E357](../../tasks/asks/E357.md), or a research row (E
 | **Behaviour vs tuning** | Behaviour is a class that extends an engine or kit base class (`class GoldenBow extends Bow`). Tuning is a typed data row (a profile, a species row, an effect row) with an optional `parent` row it overrides field by field | 17, 67 |
 | **Names** | Events, tags, cues, actions and effect ids are dot-case string literals in typed unions (`'damage.dealt'`, `'creature.wolf'`, `'cue.hit.flesh'`). A layer above extends a union by **declaration merging** on the engine's registry interfaces (§3). Parent matching with `.*` | 70 |
 | **Strictness** | The repo's rules stand: strict TS, zero-warning type-aware oxlint, no `any` / `!` / `as unknown as` / ts-ignore | AGENTS.md |
+| **Simulation apart from visuals** | Gameplay state (attributes, effects, AI state, strike phases, quest steps, saves, inventory) lives in plain data that the fake `Game` (F5) drives with no renderer. The lint rule `wildshard/sim-no-render` stops `src/engine/{combat,ai,saves,quests,effects}/**` importing anything from three but its math types (`Vector3`, `Quaternion`, `Matrix4`, `Box3`, `Ray`) or any render / DOM module. The actor tests are the proof: they run with no WebGL. This is decision 56's door for later netcode | 56 |
 | **Determinism** | Gameplay randomness only through `app.rng`; time only through `app.clock`. `Math.random` / `performance.now` outside `src/engine/core/{rng,clock}.ts` and the cosmetic allowlist are ratcheted to 0 | 56, 80 |
 | **Strings** | Every player-facing string goes through a string table: `#engine/strings` for the engine's, `src/shards/<slug>/strings.ts` for a shard's. English only | 78 |
 
@@ -209,7 +210,7 @@ export interface ShardManifest {
   bag: { tabs: readonly BagTabId[] };      // E314's per-shard tab picks (X2)
   hud?: ChunkHud;                           // today's ChunkDef.hud, as is (data the HUD reads)
   style: 'toon' | 'painterly' | 'pbr' | 'jiehua' | 'greybox';   // data only, never branched on; F6 maps today's 'lowpoly' → 'toon'
-  uses: readonly Mechanism[];               // opt-in engine mechanisms (54): 'weather' | 'dayCycle' | 'elites' | …
+  uses: readonly Mechanism[];               // opt-in mechanisms (54): nothing below runs unless listed (the full list is under the Rules)
   ground: { terrain?: TerrainSpec; structures?: true };             // at least one; Nine Dragon has both today
   spawn: SpawnPose; bounds?: Bounds;
   sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec;        // today's pure-data look fields, as is
@@ -234,6 +235,27 @@ export const defineShard: (m: ShardManifest) => ShardManifest;      // identity 
 ```
 
 **Rules**
+- **Declared sub-fields** (from the shard specs; each is typed in `#game/shard/manifest.ts`):
+  - `kitLook`: the look shared kit pieces render in (`'toon' | 'painterly' | 'pbr'`; default `style` when the kit supports it, else `'pbr'`);
+  - `loadout.held`, `loadout.loans`, `loadout.grants[].replaces`, `loadout.viewmodel`;
+  - `minimap.palette`, `minimap.markers`;
+  - `audio.alertOnlyHostile`;
+  - `ground.paths: 'plugin'`;
+  - `bag.skinsTitle`, `bag.pack.slots`;
+  - `water.sea` (the sea's `WaterBody` row);
+  - `spawn.floor`, `respawn.spawnPlace`;
+  - `horizon.kind`;
+  - `world.blenderArea`, `world.blenderModels`;
+  - `swimArms`;
+  - `next` (the deck's next-shard hint);
+  - `spawnTables`;
+  - `fight.quietPromptInFight`, `fight.input = { bufferMs, coyoteMs }`;
+  - `dev.poses` (the harness and mockup camera poses).
+- **`Mechanism`** is the closed list of opt-in mechanisms the engine and game provide:
+  - engine: `'weather' | 'dayCycle' | 'bosses' | 'elites' | 'spawns' | 'quests' | 'swim' | 'hover' | 'explore' | 'practice'`;
+  - game: `'coins' | 'loot' | 'compendium' | 'feats' | 'bag.pack'`.
+  A shard's own verbs (riding, stealth, the grapple) are not on it, because the shard's plugin installs them itself.
+  A mechanism a manifest doesn't list isn't built at all, so there's no cost and no system. The template lists all 15.
 - A manifest imports only node-safe modules: data, types and the lazy `load` / `render` / `cues` / `roster` thunks.
   A node test imports every manifest to prove it. The bakers (`bake-chunk`, `bake-sky`, `bake-packs`, `bake-navmesh`)
   read manifests through the generated registry (§7) and never through `readdirSync`.
@@ -269,6 +291,7 @@ export interface ShardContext {             // the plugin verbs: everything is o
   debugRow(r: DebugRowSpec): void;          // pause ▸ Settings ▸ Debug, into an existing group
   playground(p: PlaygroundSpec): void;      // Explore's playground list (EI22)
   strings(t: StringTable): void;
+  // rows.creatureLook(kitLook, factory): a shard or a kit look registers the creature material factory for its look
   tiers: { knobs(schema: TierKnobSchema): void };   // a shard may declare its own tier knobs (defaults per tier, overridable in its manifest)
   debug: { expose(name: string, value: unknown): void };   // → window.__wildshard.shard[name]; replaces __ndRender, the seven __pine*, __titan …
 }
@@ -351,6 +374,10 @@ export interface SaveSlot<T> { read(shard?: string): T; write(v: T, shard?: stri
   - the 3 keys `index.html` reads before the game code loads (they become `device` keys, read by a tiny pre-boot
     reader in `index.html`). From then on every shape change bumps `version` and adds a migration. A node test loads a
   fixture save of every past version.
+- **A save that fails its schema** (hand-edited, corrupt, or from a bug): the store moves the raw value aside to
+  `<key>.corrupt.<ISO time>` in the same scope, resets the key to `initial()`, reports to Sentry (key, version,
+  the first validation error) and never throws. The game carries on, and the Settings save screen lists the aside
+  copies with an export button.
 - **A newer save, older build:** an old cached build reading a save whose version is newer than it knows keeps the
   save untouched and runs read-only for that key. It never downgrades a save.
 - **Scopes:** coins, progress, compendium, owned gear, bounty, elites, horse names and inventory are `'shard'` (74–77);
@@ -375,6 +402,7 @@ export interface InputService {
   push(ctx: string, scope: Scope): void; pop(ctx: string): void; readonly top: string;
   pressed(a: Action): boolean; held(a: Action): boolean; released(a: Action): boolean; axis2(a: Action): Vec2;
   consume(a: Action): boolean;               // take a buffered press (§ buffer)
+  // ask('player.crouch', { want }) → { allowed, toggle }: the engine owns `crouch`; a shard (Nalati's stealth) answers
   bindings: Bindings;                        // keyboard + mouse + touch; rebinding persists in saves('controls', global)
   readonly buffer: { ms: number };           // 120 default (decision 40)
 }
@@ -465,7 +493,7 @@ export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.s
 ```ts
 export interface ShardRender {
   // today's slices / ao / aa fields MOVE to manifest.tiers: one source for tier knobs (§13.3)
-  compose: (c: ShardComposeContext) => ShardComposition;    // today's five pass slots, kept
+  compose: (c: ShardComposeContext) => ShardComposition;    // 'extend': today's five pass slots; 'replace': { chain: Pass[] }, the whole chain in order
   mode?: 'extend' | 'replace';     // 'replace': the shard's compose builds the whole chain (Nalati's painterly composer); default 'extend'
   lighting?: LightingRig;          // the shard's light setup (Driftwood's toon lighting, Pine's PBR sun) applied to the SkyRig
   shadows?: ShadowRig;             // CSM / single-map settings as data
@@ -570,7 +598,7 @@ export interface AnimService { load(rig: RigRef): Promise<RigInstance>; machine(
 | Terrain | heightfield, grid sampling, `heightAt` / `normalAt` / `splatAt`, bake input | `ground.terrain` spec; `terrainPainter` in its ShardRender | `Terrain.ts`' 2 grid copies and its style branches |
 | Sky | `SkyRig`: CSM shadows, hemi light, sun, planet | `sky` data + `backdrop` strategy | `Sky.ts`'s 3 setup paths; the painterly sky and cloud dome built then hidden on 2 shards are deleted |
 | Day cycle | `DayCycle`: clock, keyframe interpolation, `sunAt` exact | keyframes as data (per shard; Nine Dragon has none) | `DayNight`, `DayClock`, `PineDayNight`, `WorldClock` and the misnamed `interface DayClock` |
-| Weather | `Weather`: states, schedule, feeds fog / wind / audio / wetness, `ask('weather.damage')` | FX in the kit (rain, snow, puddles, lightning): Nalati + Pine | the two stacks (1,334 + 888 lines) |
+| Weather | `Weather`: states, schedule, feeds fog / wind / audio / wetness, `ask('weather.damage')` | the rain curtain in the kit (Nalati + Pine share it); puddles stay per shard (two techniques); lightning is Nalati's | the two stacks (1,334 + 888 lines) |
 | Water | `WaterBody` interface (level, surface height at x/z, `inside`, swim, reflect hook) — **built in S4.1** for the sea (≈15 engine lines read `chunk.ocean` today); X5 converts the other bodies | Ocean, pond, stream and beaver pool are shard or kit by the rule of two | 6 bodies, `main.ts:297`'s slug branch |
 | Fog | the patch order (§13.2) and the density API | the shard's `FogModel` | 4 implicit writers |
 | Placement | `models/place.ts` (kept), scatter primitives with the same random draw order | the scatter rules | `scatterIsland` ×3 etc. |
@@ -693,7 +721,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
   encounter runtime.
 - **Bosses:** the Kurgan Boss, Storm Titan, Antler King and Drowned Captain become `BossBrain` subclasses in their
   shards, **each fight unchanged**. The Captain joins the runtime (decision 4 of v1 is kept, with no feel change).
-- **Species:** boar, bear and horse go to `#kit/species/`. Every other species stays in its shard (the list is in
+- **Species:** boar and bear go to `#kit/species/` (the horse stays in Nalati, 13-lead-resolutions 09#5). Every other species stays in its shard (the list is in
   [09-combat-ai.md](09-combat-ai.md)).
 
 ## 20. The game layer (`#game`)
@@ -750,6 +778,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |
 | `wildshard/no-renderer-type` | `WebGLRenderer` named outside `src/engine/render/**` | 52 files |
+| `wildshard/sim-no-render` | `src/engine/{combat,ai,saves,quests,effects}/**` importing three beyond its math types, or any render / DOM module (decision 56) | today's count at F4 |
 | `wildshard/no-active-chunk` | `getActiveChunk()` calls outside `#game/shard` (each becomes `app.shard` or manifest data, file by file from F8 on) | 136 calls / 42 files |
 | `wildshard/no-global-listener-patch` | teardown through `shardScope`'s `addEventListener` patch (kept until X1 / X2 move the 396 listeners onto scopes) | 396 |
 | `wildshard/no-url-switch` | unchanged (the allowlist) | — |

@@ -89,3 +89,37 @@ Questions that were Jake's to decide went to him and are numbered decisions in
 | 10 | Nalati species at F6 (02) vs waiting for their rows (04) | **04:** species files wait for S2.3 / S3.4 / S4.2 (`AnimalFactory.ts:15` loads them through one folder-wide import) | 02 F6 |
 | 11 | The title deck and `switch.ts`: engine or `#game`? | **`#game`** (a Wildshard idea) | 01 §20 |
 | 12 | `main.ts`: `src/engine/main.ts` at F6 (02) or `src/main.ts` until S4.4 (05)? | **Neither.** `src/main.ts` stays at the root permanently as the **composition root**: the one file that imports `#engine`, `#game` and the generated shard registry and starts the app. It sits outside the layers (the engine may not import `#game`). ≤ 20 lines at S4.4; the generic boot is `engine/boot.ts` (≤ 150) | 01 §0, 02 F6, 08 S4.4 |
+
+## Still-open spec questions (05 §10, 07 §10, 08 §10)
+
+| # | Question | Resolution | Applied in |
+|---|---|---|---|
+| 05#1 / 07#1 / 08#1 | Manifest sub-fields 01 §6 doesn't declare | All are **declared manifest fields** (01 §6 "Declared sub-fields"): `kitLook`, `bag.pack.slots`, `bag.skinsTitle`, `dev.poses`, `loadout.held`, `loadout.loans`, `loadout.grants[].replaces`, `loadout.viewmodel`, `minimap.palette`, `minimap.markers`, `audio.alertOnlyHostile`, `ground.paths: 'plugin'`, `water.sea`, `spawn.floor`, `respawn.spawnPlace`, `horizon.kind`, `world.blenderArea`, `world.blenderModels`, `swimArms`, `next`, `spawnTables`, `fight.quietPromptInFight` | 01 §6 |
+| 05#1 | `kitLook` | The look the shared kit pieces render in (creatures, the swim hands, the Explore catalog): `'toon' \| 'painterly' \| 'pbr'`. It defaults to `style` when the kit supports that style, otherwise `'pbr'`. It replaces `style ?? 'pbr'` at `main.ts:505`, `Explore.ts:269`, `AnimalManager.ts:459` and `Hands.ts` | 01 §6 |
+| 05#7 / 07#8 / 08#8 | Dead files `world/hero/paifang.ts` (267), `world/spruceMask.ts` (79), `world/interact/validate.ts` (67) | All three go in **F7's one dead list** (not in S1.1 / S3.1), so every deletion of dead code is in one reviewed row | 02 F7, 05, 07, 08 |
+| 07#9 | Nalati's crouch toggle and grass gate | `ask('player.crouch', { want }) → { allowed, toggle }`: the engine owns the `crouch` action; Nalati's stealth answers the ask | 01 §10 |
+| 07#10 | A shard registers its style's creature material factory | `ctx.rows.creatureLook(kitLook, factory)`: a kit species asks the registry for its material by `kitLook` | 01 §7, §19 |
+| 08#2 | How a compose returns the chain | `ShardComposition` = today's five pass slots for `'extend'`, or `{ chain: Pass[] }` for `'replace'` (the whole chain, in order) | 01 §13.1 |
+| 08#6 | `boss.attempt` for the Captain | A fix: once he's on the encounter runtime, his attempts reach analytics like every boss's | 08 S4.2 |
+
+## From 00-traceability §7 (gaps)
+
+| Gap | Resolution | Applied in |
+|---|---|---|
+| G1 (decision 2 / MW13) | X3 adds: the chunk layout (Vite 8 `codeSplitting.groups`: three · engine + game + kit · one chunk per shard), a build check that no `src/shards/**` module is in the main chunk (read from Vite's manifest), and an E188 import-retry re-test on iOS 27 in the Simulator (sim-lane) | 10 X3 |
+| G2 (decision 31) | The nightly (03) adds a Simulator memory run: each shard boots in iOS Safari through `scripts/sim-lane.sh`, and the WebContent footprint is recorded against 1.8 GB loading / 1.0 GB in world | 03 nightly |
+| G3 (decision 36) | X7 adds tier selection: the desktop tier needs a GPU at or above RTX 3060 class (a renderer-string table plus a 2 s GPU micro-benchmark at first boot, cached as a `device` save key); below it, the phone tier. Desktop budgets come from the M5 calibration × a documented M5 : 3060 throughput ratio (sources cited in budget-design), re-derived if a 3060-class reading is ever taken | 10 X7 |
+| G6 | 01's weather-FX and horse contradictions | fixed in 01 §17, §19 |
+| G7 | The deploy pin is **`.github/deploy-pin.json`** everywhere (02, 03 and the index already say so; 12 §3 and 05–08 §9 follow) | 12 §3, 05–08 §9 |
+| G10 (decisions 59, 75, 76) | A new row **X9 — the game-layer extras**: the `travels` flag on item rows (default off), the read-only Wildshard summary on the title deck (built from the per-shard saves), and the travel type plus its page-reload implementation; with tests | index X9, 10 X9 |
+| G11 | The `Mechanism` list is defined (15 names) | fixed in 01 §6 |
+| G12 (decision 56) | Simulation apart from visuals: the `wildshard/sim-no-render` rule, proven by the actor tests | fixed in 01 §0, §24; F4, F5 |
+| G13 | MW12 (KTX2 on phone for Nine Dragon) → an **after** ask. MW14 (wasm high-water across switches) → out (switching is a page reload). **MW16 (flag hygiene) → in X8**: every Debug row gets an ask id and a review-by date, a test lists overdue rows, and a count ratchet applies. **MW19 (soak bot) → in the nightly**: a navmesh wanderer 20 min per shard on the Mac (stuck states, errors, heap and GPU-byte growth, fps trend). MW22 (record / replay) → an after ask | 10 X8, 03 nightly, index §8 |
+| G14 | engine-fit's navcat crowd for herds, pooled projectiles / far crowd, a worker pool and steering → **after** asks, listed in index §8. The "borrow later" libraries (three-mesh-bvh for Explore) → the same | index §8 |
+| G15 | The gate adds a Linux job: the asset-URL case check (every referenced path's case matches the file; macOS disks ignore case) | 03 |
+| G16 | S2.3 adds the AI debug overlay (Debug ▸ Developer tools: per-creature HFSM state, utility scores, tick band, pinned flag). A save failing its schema → fixed in 01 §9 | index S2.3, 06 S2.3, 01 §9 |
+| G17 | `BOSS_NAMES` → a content registry fed by boss rows, and `TargetHit` → engine combat types: both in **S2.3** (the encounter runtime) | index S2.3, 06 S2.3 |
+| G18 | F8 deletes Nine Dragon's `util.ts` `Rng` and `world/facade/rng.ts` when it lands the one RNG | 02 F8 |
+| G19 | FINISH-LINE S1's pause-and-resume joins the harness's scripted run (pause → resume → state identical). S7's committed `latest.md` table is replaced by the gate's budget report artifact; the index says so | 03, index §8 |
+| G20 | See the table above | — |
+| G21 | 12 §6's Look row names the Captain's shared BossBar; X5's pan-from-yaw count is 8 | 12 §6, 10 X5 |
