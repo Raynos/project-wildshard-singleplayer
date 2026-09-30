@@ -107,6 +107,21 @@ function shepherdArm(): THREE.BufferGeometry {
   return a.finish({ ao: false });
 }
 
+/** the shepherd in the saddle (seated at SEAT on a horse's body bone): his body and the whip arm, one painterly material —
+ *  the camp's rider (SheepRaid) and the Model Explorer's (src/chunks/nalati-grasslands/models/people.ts, E315 M5) */
+export function shepherdRider(): { rider: THREE.Group; arm: THREE.Mesh } {
+  const mat = painterlyMaterial(null, { rim: 0.4, bands: 0.8 });
+  const rider = new THREE.Group();
+  rider.name = 'nalati-shepherd';
+  const body = new THREE.Mesh(shepherdBody(), mat);
+  const arm = new THREE.Mesh(shepherdArm(), mat);
+  arm.position.copy(SHOULDER_R);
+  rider.add(body, arm);
+  rider.position.copy(SEAT);
+  for (const m of [body, arm]) { m.castShadow = TIER !== 'phone'; m.receiveShadow = true; }
+  return { rider, arm };
+}
+
 export class SheepRaid {
   readonly shepherd: Animal | null = null;
   raiding = false;
@@ -134,15 +149,7 @@ export class SheepRaid {
     h.label = 'Shepherd\'s horse';
     this.shepherd = h;
     // the rider on the horse's body bone (the ghost riders' way — ghostRiders.ts), one mesh + the whip arm
-    const mat = painterlyMaterial(null, { rim: 0.4, bands: 0.8 });
-    const rider = new THREE.Group();
-    rider.name = 'nalati-shepherd';
-    const body = new THREE.Mesh(shepherdBody(), mat);
-    const arm = new THREE.Mesh(shepherdArm(), mat);
-    arm.position.copy(SHOULDER_R);
-    rider.add(body, arm);
-    rider.position.copy(SEAT);
-    for (const m of [body, arm]) { m.castShadow = TIER !== 'phone'; m.receiveShadow = true; }
+    const { rider, arm } = shepherdRider();
     try { horseBones(h).body.add(rider); } catch { /* not a horse rig: no rider drawn */ }
     this.rider = rider; this.arm = arm;
   }

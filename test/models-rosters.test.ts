@@ -4,11 +4,12 @@
 import { describe, expect, it } from 'vitest';
 import { DRIFTWOOD_ISLE } from '../src/chunks/driftwood-isle';
 import { PINE_HOLLOW } from '../src/chunks/pine-hollow';
+import { NALATI_GRASSLANDS } from '../src/chunks/nalati-grasslands';
 import type { ChunkDef } from '../src/chunks/ChunkDef';
 import type { RosterEntry } from '../src/models/live';
 import { definedModels } from '../src/models/model';
 
-const SHARDS: readonly ChunkDef[] = [DRIFTWOOD_ISLE, PINE_HOLLOW];
+const SHARDS: readonly ChunkDef[] = [DRIFTWOOD_ISLE, PINE_HOLLOW, NALATI_GRASSLANDS];
 const TABS = new Set(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']);
 
 async function rosterOf(def: ChunkDef): Promise<readonly RosterEntry[]> {

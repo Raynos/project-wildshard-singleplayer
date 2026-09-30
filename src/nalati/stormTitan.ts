@@ -103,7 +103,7 @@ function rng(seed: number): () => number { let s = seed >>> 0; return () => { s 
 interface Puff { bone: THREE.Object3D; p: THREE.Vector3; r: number; ph: number }
 
 /** the Titan's body: seven bones, ~340 cloud puffs on them (one InstancedMesh), the heart, the eyes, the spear */
-class TitanBody {
+export class TitanBody {
   readonly root = new THREE.Object3D();
   readonly chest = new THREE.Object3D();
   readonly head = new THREE.Object3D();

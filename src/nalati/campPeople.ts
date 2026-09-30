@@ -19,8 +19,9 @@
  * whatever the tier (the phone budget, ≤ ~110 calls at the camp). Each figure turns to face you as you come near,
  * breathes, glances about; the head follows you; while talking it gestures (the arm) and nods; the cook stirs, the
  * child skips until you are close. Colliders: a capsule each, registered with the world registry (the still ones as one
- * static piece, the child on a kinematic body that `follows` her), so they are drawn, collide and are in Explore's
- * catalog from one `add` (PHYSICS.md; the way P1 registers the Nalati builders).
+ * static piece, the child on a kinematic body that `follows` her), so they are drawn and collide from one `add`
+ * (PHYSICS.md; the way P1 registers the Nalati builders). Their Model Explorer card is the People model
+ * (src/chunks/nalati-grasslands/models/people.ts, E315 M5), listed with the shard's roster.
  *
  *   const people = buildCampPeople(sky, floorAt, registry);
  *   people.update(dt, t, player.position)           // every frame (cheap: skipped past 90 m)
@@ -213,12 +214,16 @@ const BUILD: Readonly<Record<PersonId, () => Parts>> = {
 };
 
 /** one procedural figure at rest (feet at the origin, facing +z) — the comparison sheets (scripts/nalati-models-merge-compare.mjs) */
-export function personPreview(sky: Sky, id: PersonId): THREE.Group {
+export function personPreview(sky: Sky, id: PersonId): THREE.Group { return personFigure(sky, id).group; }
+
+/** one procedural figure at rest and its frame (the height and pivots the generated figure is fitted to, as the camp's) —
+ *  the Model Explorer's specimen (src/chunks/nalati-grasslands/models/people.ts, E315 M5) */
+export function personFigure(sky: Sky, id: PersonId): { group: THREE.Group; frame: PersonFrame } {
   const p = BUILD[id](), mat = poiMaterial(sky), g = new THREE.Group();
   g.add(new THREE.Mesh(p.body, mat));
   const headM = new THREE.Mesh(p.head, mat); headM.position.copy(p.neck); g.add(headM);
   const armM = new THREE.Mesh(p.arm, mat); armM.position.copy(p.shoulder); g.add(armM);
-  return g;
+  return { group: g, frame: { height: p.height, neck: p.neck, shoulder: p.shoulder } };
 }
 
 // ── the runtime ──────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -281,8 +286,9 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
   const place = (p: Live): void => { p.anchor?.position.copy(p.feet); p.anchor?.updateMatrixWorld(true); };
   place(fig.child);
   if (registry) {
-    registry.add({ id: 'nalati-camp-people', name: 'Camp people', category: 'creatures', file: 'src/nalati/campPeople.ts', object: group, colliders: still, surface: 'flesh', model: { category: 'creatures', pipeline: 'hunyuan', drawnAs: 'skinned', copies: ids.length } });
-    registry.add({ id: 'nalati-camp-child', name: 'Camp child', category: 'creatures', file: 'src/nalati/campPeople.ts', colliders: [capsule(fig.child, true)], surface: 'flesh', follows: childAnchor });
+    // (their Model Explorer card is the model, src/chunks/nalati-grasslands/models/people.ts, listed with the shard's roster: E315 M5)
+    registry.add({ id: 'nalati-camp-people', name: 'Camp people', category: 'people', file: 'src/nalati/campPeople.ts', object: group, colliders: still, surface: 'flesh' });
+    registry.add({ id: 'nalati-camp-child', name: 'Camp child', category: 'people', file: 'src/nalati/campPeople.ts', colliders: [capsule(fig.child, true)], surface: 'flesh', follows: childAnchor });
   }
 
   // D2: the generated + rigged figures (campPeopleModels.ts) on the procedural figures' frames

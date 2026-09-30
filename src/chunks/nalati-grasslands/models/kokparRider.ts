@@ -8,7 +8,7 @@ import { defineModel } from '../../../models/model';
 import { generated } from '../../../world/nalati/painted';
 
 export const kokparRider = defineModel<object>({
-  id: 'nalati-grasslands/kokpar-rider', name: 'Kokpar rider', category: 'props', pipeline: 'hunyuan',
+  id: 'nalati-grasslands/kokpar-rider', name: 'Kokpar rider', category: 'people', pipeline: 'hunyuan',
   file: 'src/chunks/nalati-grasslands/models/kokparRider.ts', surface: 'flesh',
   defaults: {},
   build: generated({ id: 'nalati-grasslands/kokpar-rider', name: 'kokpar-rider', look: { rim: 0.8, bands: 0.85 } }),

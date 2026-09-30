@@ -36,7 +36,7 @@ const paint: Paint = (out, _x, y, _z, _nx, ny, _nz, part, t) => {
   if (part === 'head') mix(out, out, DARK, sstep(0.85, 0.98, t) * 0.8 + sstep(0.26, 0.3, y) * 0.2);
 };
 
-function buildMarmotGeometry(): THREE.BufferGeometry {
+export function buildMarmotGeometry(): THREE.BufferGeometry {
   // ~0.5 m long, plump; origin at the hind feet (the stand pivot), +Z forward
   const parts = [
     loft([S(0, 0.10, -0.16, 0.02, 0.02, 0), S(0, 0.11, -0.13, 0.09, 0.08, 0), S(0, 0.12, -0.02, 0.12, 0.11, 0), S(0, 0.13, 0.10, 0.10, 0.10, 0), S(0, 0.15, 0.18, 0.07, 0.07, 0), S(0, 0.16, 0.21, 0.02, 0.02, 0)], 12, 'body', paint),

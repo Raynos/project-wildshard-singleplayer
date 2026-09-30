@@ -699,7 +699,7 @@ function riderModel(sky: Sky): THREE.Group {
 // ─────────────────────────────── E4a · Argymaq the Unbroken ───────────────────────────────
 
 export const ARGYMAQ = 'argymaq';
-function registerArgymaq(): void {
+export function registerArgymaq(): void {
   if (hasSpecies(ARGYMAQ) || !hasSpecies('horse')) return;
   const H = speciesDef('horse');
   const base = H.variants.find((v) => v.id === 'stallion') ?? H.variants[0];
