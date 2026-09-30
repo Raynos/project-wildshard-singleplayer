@@ -1,24 +1,31 @@
 /**
- * Pine Hollow's homestead as models (E315 M2): the three log cabins, the mill hamlet's five buildings (the set
- * `pine-hollow/mill-hamlet`), and the props, fire pits and lanterns their builders set about. src/world/Cabin.ts still
- * builds and draws all of it exactly as before (the cores merged across the cabins, the hamlet one merged cluster, the
- * props instanced across the buildings, the detail / far sets and the doors, fires and lamps it runs); `place(…,
- * { drawnInto })` registers each building's copy with its colliders and floors (the old `cabins` piece, split per
- * building) and each prop's copies, so every card counts them, a tap picks the one under the finger and VIEW IN WORLD
- * lands on a real copy. The doors stay the homestead's moving pieces.
+ * Pine Hollow's homestead as models (E315 M2; E347: drawn by `place`): the three log cabins, the mill hamlet's five
+ * buildings (the set `pine-hollow/mill-hamlet`), and the props, fire pits and lanterns their builders set about.
+ * src/world/Cabin.ts builds each building where it stands (the log kit, ../models/logCabin.ts) and runs what lives in it
+ * (doors, fires, lamps, the wheel); here every building's model is placed into a weld (src/models/weld.ts):
+ *  - the cabins: each its own unit — its parts merged per material under its root, its detail and far sets dropped with
+ *    its distance — and their never-hidden materials welded across the three (one draw per material, a view per cabin)
+ *  - the hamlet: one unit — its five buildings' parts welded into one set under the hamlet's root, dropped with its
+ *    distance (+ its pad)
+ *  - the props (crate, barrel, bucket, hatchet): instanced across each weld, hosted by the building they stand about —
+ *    drawn while its detail set is
+ * Each building's piece carries its colliders and floors (the old `cabins` piece, split per building), each prop's its
+ * copies', so every card counts them, a tap picks the one under the finger and VIEW IN WORLD lands on a real copy. The
+ * fire pits and lanterns are drawn by their building (`drawnInto`); the doors stay the homestead's moving pieces.
  *
- *   placeCabins({ cabins, sky, registry });   // main.ts's cabins step, once `cabins.build()` has run
+ *   await placeCabins({ cabins, sky, registry });   // main.ts's cabins step, once `cabins.build()` has run
  */
 import * as THREE from 'three';
-import { place, type Placed } from '../../../models/place';
+import { finishWeld, place, weld, type Placed } from '../../../models/place';
 import type { ModelDef, Placement } from '../../../models/model';
 import { placeSet } from '../../../models/sets';
+import { macrotask } from '../../../boot/plan';
+import { TIER_CONFIG } from '../../../core/tier';
 import type { Cabins, CabinBuilding, CabinPropKind } from '../../../world/Cabin';
 import type { WorldRegistry } from '../../../world/registry';
 import type { Sky } from '../../../world/Sky';
 import { pineModels } from './context';
-import { useCabins } from './cabinKit';
-import { CABIN_VARIANTS, logCabin } from '../models/logCabin';
+import { CABIN_VARIANTS, logCabin, useCabins } from '../models/logCabin';
 import { huntingLodge } from '../models/huntingLodge';
 import { traderStall } from '../models/traderStall';
 import { millersHouse } from '../models/millersHouse';
@@ -45,48 +52,47 @@ function floorIn(floors: CabinBuilding['floors'], x: number, z: number): number 
   return undefined;
 }
 
-/** a building's world box: what its root draws, and its decks' rectangles up to its ridge */
-function buildingBox(b: CabinBuilding): Float32Array {
-  const box = new THREE.Box3().setFromObject(b.root), v = new THREE.Vector3();
-  for (const f of b.floors) {
-    const c = Math.cos(f.rot), s = Math.sin(f.rot);
-    for (const [sx, sz] of [[-1, -1], [-1, 1], [1, -1], [1, 1]] as const) {
-      const lx = sx * f.hw, lz = sz * f.hd;
-      box.expandByPoint(v.set(f.x + lx * c + lz * s, f.y - 0.3, f.z - lx * s + lz * c));
-      box.expandByPoint(v.set(f.x + lx * c + lz * s, f.y + 4.5, f.z - lx * s + lz * c));
-    }
-  }
-  return Float32Array.from([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z]);
-}
+const at = (m: THREE.Matrix4, host?: number): Placement<Record<string, never>> => { const e = m.elements; return { x: e[12], y: e[13], z: e[14], matrix: m, ...(host === undefined ? {} : { host }) }; };
 
-const at = (m: THREE.Matrix4): Placement<Record<string, never>> => { const e = m.elements; return { x: e[12], y: e[13], z: e[14], matrix: m }; };
-
-export function placeCabins(h: { cabins: Cabins; sky: Sky; registry: WorldRegistry }): void {
+export async function placeCabins(h: { cabins: Cabins; sky: Sky; registry: WorldRegistry }): Promise<void> {
   const { cabins, registry } = h;
   const ctx = pineModels(h.sky);
   useCabins(ctx, cabins);
+  const detail = TIER_CONFIG.cabinDetailDist;
+  // the cabins: each its own unit, their never-hidden materials welded across the three; on the desktop tier each draws its
+  // depth near as one proxy (its detail and props included)
+  const cabinWeld = weld({ unit: 'copy', parent: cabins.group, detail, near: TIER_CONFIG.cabinDetailShadows });
+  // the hamlet: one unit, its five buildings in one set under its root
+  const hamletWeld = cabins.cluster === null ? null : weld({ unit: 'whole', parent: cabins.group, root: cabins.cluster, pad: cabins.clusterPad, detail });
   const hamlet: Placed[] = [];
+  /** each building's index in its weld (a prop's host) */
+  const hostOf = new Map<CabinBuilding, number>();
   for (const b of cabins.buildings) {
+    const w = b.hamlet ? hamletWeld : cabinWeld;
+    if (w === null) continue;
+    if (hostOf.size > 0) await macrotask(); // one building's merge per task (the phone's ~30 ms budget)
+    hostOf.set(b, w.size);
     const pl = { x: b.x, y: b.y, z: b.z, yaw: b.rot };
     const piece = { solidFloor: true, floor: (x: number, z: number): number | undefined => floorIn(b.floors, x, z) };
-    const drawnInto = { object: b.cluster ?? b.root, boxes: buildingBox(b), colliders: b.colliders };
     const hm = HAMLET[b.id];
-    if (hm) hamlet.push(place(hm, [pl], { ctx, draw: 'merged', registry, drawnInto, piece: { ...piece, id: `pine-hollow/${b.id}` } }));
+    if (hm) hamlet.push(place(hm, [pl], { ctx, draw: 'merged', registry, weld: w, piece: { ...piece, id: `pine-hollow/${b.id}` } }));
     else {
       const site = b.index;
-      place(logCabin, [{ ...pl, variant: CABIN_VARIANTS[site] ?? 'hollow' }], { ctx, draw: 'merged', registry, drawnInto, piece: { ...piece, id: `cabin-${site + 1}` } });
+      place(logCabin, [{ ...pl, variant: CABIN_VARIANTS[site] ?? 'hollow' }], { ctx, draw: 'merged', registry, weld: w, piece: { ...piece, id: `cabin-${site + 1}` } });
     }
   }
-  // the props: the cabins' copies (drawn by the shared instanced meshes) and the hamlet's (the cluster's own)
+  await macrotask();
+  // the welds drawn (the hamlet's set merged here), their bands started, the buildings' pieces registered in order
+  finishWeld(cabinWeld);
+  if (hamletWeld) finishWeld(hamletWeld);
+  // the props: the cabins' copies (one instanced mesh per part across the three) and the hamlet's (its own)
   for (const [kind, model] of Object.entries(PROPS) as [CabinPropKind, Model][]) {
-    for (const cluster of [false, true]) {
-      const mats = cabins.buildings.filter((b) => (b.cluster !== null) === cluster).flatMap((b) => b.props[kind]);
-      const mesh = cabins.propMeshes.find((m) => m.kind === kind && m.cluster === cluster)?.mesh;
-      if (mats.length === 0 || !mesh) continue;
-      const boxes = new Float32Array(mats.length * 6), v = new THREE.Vector3();
-      mats.forEach((m, i) => { v.setFromMatrixPosition(m); boxes.set([v.x - 0.6, v.y - 0.1, v.z - 0.6, v.x + 0.6, v.y + 1.2, v.z + 0.6], i * 6); });
-      const placed = place(model, mats.map(at), { ctx, draw: 'instanced', registry, drawnInto: { object: mesh, boxes }, piece: { id: `${model.id}${cluster ? '#hamlet' : ''}` } });
-      if (cluster) hamlet.push(placed);
+    for (const [w, inHamlet] of [[cabinWeld, false], [hamletWeld, true]] as const) {
+      if (w === null) continue;
+      const copies = cabins.buildings.filter((b) => b.hamlet === inHamlet).flatMap((b) => b.props[kind].map((m) => at(m, hostOf.get(b))));
+      if (copies.length === 0) continue;
+      const placed = place(model, copies, { ctx, draw: 'instanced', registry, weld: w, piece: { id: `${model.id}${inHamlet ? '#hamlet' : ''}` } });
+      if (inHamlet) hamlet.push(placed);
     }
   }
   // each building's fire pit and porch lantern, drawn in its own root
@@ -98,7 +104,7 @@ export function placeCabins(h: { cabins: Cabins; sky: Sky; registry: WorldRegist
       const box = new THREE.Box3().setFromObject(o);
       const placed = place(model, [at(o.matrixWorld.clone())], { ctx, draw: 'single', registry,
         drawnInto: { object: o, boxes: Float32Array.from([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z]) }, piece: { id: `${model.id}@${b.id}` } });
-      if (b.cluster) hamlet.push(placed);
+      if (b.hamlet) hamlet.push(placed);
     }
   }
   if (hamlet.length > 0) placeSet({ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'src/chunks/pine-hollow/world/cabins.ts', members: hamlet, place: 'pine-hollow/hamlet', registry }); // the named place (M12)

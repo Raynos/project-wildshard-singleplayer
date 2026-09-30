@@ -447,8 +447,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     game.scene.add(cabinGroup);
     // P3: the cabins as real colliders (walls, floors, porch + step, furniture); their doors swing as kinematic pieces that
     // collide only when fully shut or open, and never switch on around a player standing in the doorway
-    // E315 M2: each building and prop is a model the homestead draws: placed (drawnInto) with its own colliders and floors
-    placeCabins({ cabins, sky, registry });
+    // E315 M2 / E347: each building and prop is a model `place` draws (the homestead's welds) with its own colliders and floors
+    await placeCabins({ cabins, sky, registry });
     const _dp = new THREE.Vector3();
     for (const d of cabins.doorPieces()) {
       // E322: the doorway check only holds a door OFF (after a swing, until the player steps clear); a door that is already

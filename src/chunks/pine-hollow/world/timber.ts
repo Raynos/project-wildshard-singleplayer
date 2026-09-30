@@ -12,7 +12,8 @@ import * as THREE from 'three';
 import { SEED } from '../../../core/config';
 import { Rng } from '../../../core/rng';
 import { TIER_CONFIG } from '../../../core/tier';
-import { cabinMats, finishParts, logGeo, boxUV, type Mats, type MatKey } from '../../../world/Cabin';
+import { cabinMats, type Mats, type MatKey } from '../../../world/Cabin';
+import { finishParts, logGeo, boxUV } from '../models/logCabin';
 import type { ColliderDesc } from '../../../world/registry';
 import type { ModelContext } from '../../../models/model';
 

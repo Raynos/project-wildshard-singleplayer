@@ -10,6 +10,11 @@
  *   const ferns = place(fern, placements, { ctx, draw: 'instanced', cull: { far: 60, keepNear: 12 } });
  *   game.onRender(() => cullPlaced(camera));   // once a frame, after the camera is posed, if anything culls or has LODs
  *
+ *   const homestead = weld({ unit: 'copy', parent: group, detail: 30, near: true });   // a merge across models (E347)
+ *   place(logCabin, [site], { ctx, draw: 'merged', weld: homestead, piece: { id: 'cabin-1' } });   // … one call per building
+ *   finishWeld(homestead);                                                                // welds them, registers their pieces
+ *   place(woodenCrate, crates, { ctx, draw: 'instanced', weld: homestead });              // `host`: the building each stands by
+ *
  * Cost: every path draws what the hand-rolled code drew (merged = one draw per material per cell; instanced = one per
  * part per variant per LOD level in view; batched = one per material; single = one per part per copy) and its cullers
  * allocate nothing per frame (./cull.ts).
@@ -22,7 +27,8 @@ import { activeRegistry, type ColliderDesc, type DrawnAs, type ModelEntry, type 
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
-import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
+import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, WeldCull, type BatchedSlot, type CullOptions, type HostedSet, type InstancedSink } from './cull';
+import { UnitParts, nearProxy, weldAcross, type WeldBuild } from './weld';
 
 export type { CullOptions, CullView } from './cull';
 
@@ -80,6 +86,13 @@ export interface PlaceOptions {
   readonly culler?: InstancedCuller;
   /** draw under this object (a shard's root group) instead of the scene root; the registry's piece is the same object */
   readonly parent?: THREE.Object3D;
+  /**
+   * A merge across several models (E347, ./weld.ts): `draw: 'merged'` — each copy is the model's site-fitted build
+   * (`ModelDef.weld`), its parts merged with its unit's, its bands culled by the weld; `draw: 'instanced'` — copies set
+   * about the weld's copies (`Placement.host`), drawn by their host. The weld draws what they share, so the piece anchors
+   * on its copies (as `drawnInto`); a welded copy's piece is registered by `finishWeld`, once the weld has drawn it.
+   */
+  readonly weld?: Weld;
 }
 
 /**
@@ -687,6 +700,210 @@ function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<
   return { object: wrap(copies, def.id), drawnAs: skinned ? 'skinned' : 'single', colliders, boxes, cull };
 }
 
+// ── welds: a merge across several models (E347, ./weld.ts) ──
+
+export interface WeldOptions {
+  /**
+   * 'copy': each copy its own unit — its parts merged under its root and banded by its distance, then the meshes drawn at
+   * every distance welded across the copies (one per material, a view per copy). 'whole': every copy's parts merged into
+   * one set under `root`, banded by its distance + `pad`
+   */
+  readonly unit: 'copy' | 'whole';
+  /** where the weld's shared meshes (the batches, the hosted copies' meshes) go; the copies' roots are the model's */
+  readonly parent: THREE.Object3D;
+  /** 'whole': the unit's root, posed (its meshes in its frame, its bands measured from it); the caller adds it to the scene */
+  readonly root?: THREE.Object3D;
+  /** 'whole': metres added to the unit's bands (its copies stand up to this far from its root) */
+  readonly pad?: number;
+  /** metres: the weld's detail band — the near proxies draw within it, the band proxies cast only past it (with `near`), and
+   *  the hosted copies are drawn while their unit is within it (+ its pad) */
+  readonly detail: number;
+  /** each 'copy' unit gets one near proxy of all it draws (and its copy's `casters`); its band proxies cast only past `detail` */
+  readonly near?: boolean;
+}
+
+interface WeldCopy { readonly build: WeldBuild; readonly always: THREE.Mesh[]; readonly onBox: (box: THREE.Box3) => void }
+
+/** A weld in progress: `weld(…)`, then `place(…, { weld })` per model, then `finishWeld`. */
+export class Weld {
+  private readonly copies: WeldCopy[] = [];
+  private readonly whole: UnitParts | null;
+  private readonly pending: (() => void)[] = [];
+  private readonly hostedSets: HostedSet[] = [];
+  private culler: WeldCull | null = null;
+  private done = false;
+  constructor(readonly options: WeldOptions) {
+    this.whole = options.unit === 'whole' ? new UnitParts() : null;
+    if (options.unit === 'whole' && options.root === undefined) throw new Error("weld: a 'whole' unit needs its root");
+  }
+  /** copies joined so far (the next one's index: a `Placement.host`) */
+  get size(): number { return this.copies.length; }
+  get finished(): boolean { return this.done; }
+  /** 'whole': its unit's root; 'copy': null */
+  get unitRoot(): THREE.Object3D | null { return this.options.unit === 'whole' ? this.options.root ?? null : null; }
+  /** the unit copy `i` belongs to */
+  unitOf(i: number): number {
+    if (i < 0 || i >= this.copies.length) throw new Error(`weld: no copy ${i} to host`);
+    return this.options.unit === 'whole' ? 0 : i;
+  }
+
+  /** a copy joins: a 'copy' unit is merged now (under its root), a 'whole' one's parts go to the unit */
+  join(b: WeldBuild, onBox: (box: THREE.Box3) => void): void {
+    if (this.done) throw new Error('weld: finished — no more copies');
+    const o = this.options, casters = b.casters ?? [];
+    const always: THREE.Mesh[] = [];
+    let np: THREE.Mesh | null;
+    const root = this.unitRoot;
+    if (this.whole !== null && root !== null) {
+      // the copy's frame → the unit's (both roots' own matrices: they stand directly under one parent); its own near proxy
+      // is only its dressing's
+      this.whole.add(b.parts, new THREE.Matrix4().copy(root.matrix).invert().multiply(b.root.matrix));
+      np = casters.length > 0 ? nearProxy([], casters) : null;
+    } else {
+      const near = o.near === true;
+      const unit = new UnitParts();
+      unit.add(b.parts);
+      const d = unit.draw(b.root, near);
+      for (const { mesh, part } of d.meshes) {
+        if (part.until === undefined) always.push(mesh); else mesh.userData['until'] = part.until;
+      }
+      for (const { mesh, until } of d.proxies) {
+        if (until !== undefined) mesh.userData['until'] = until;
+        if (near) mesh.userData['castFrom'] = o.detail;
+      }
+      np = near || casters.length > 0 ? nearProxy(near ? d.front : [], casters) : null;
+    }
+    if (np !== null) { b.root.add(np); np.userData['until'] = o.detail; }
+    this.copies.push({ build: b, always, onBox });
+  }
+
+  /** a registration that waits for the weld to be drawn */
+  defer(fn: () => void): void { if (this.done) fn(); else this.pending.push(fn); }
+
+  /** copies drawn by the weld's units (instanced into it) */
+  host(set: HostedSet): void { if (this.culler !== null) this.culler.host(set); else this.hostedSets.push(set); }
+
+  finish(): void {
+    if (this.done) return;
+    const o = this.options, pad = o.pad ?? 0;
+    const root = o.root;
+    if (this.whole !== null && root !== undefined) {
+      const d = this.whole.draw(root, false);
+      for (const { mesh, part } of d.meshes) if (part.until !== undefined) mesh.userData['until'] = part.until + pad;
+      for (const { mesh, until } of d.proxies) if (until !== undefined) mesh.userData['until'] = until + pad;
+    } else weldAcross(this.copies.map((c) => ({ root: c.build.root, meshes: c.always })), o.parent);
+    // the bands: every tagged object, from its copy's root (or the unit's)
+    const objects: THREE.Object3D[] = [], reach: number[] = [], cast: number[] = [], at: number[] = [], origins: number[] = [];
+    const collect = (top: THREE.Object3D, origin: number): void => {
+      top.traverse((x) => {
+        const u: unknown = x.userData['until'], c: unknown = x.userData['castFrom'];
+        if (typeof u === 'number') { objects.push(x); reach.push(u * u); cast.push(0); at.push(origin); }
+        if (typeof c === 'number') { objects.push(x); reach.push(c * c); cast.push(1); at.push(origin); }
+      });
+    };
+    this.copies.forEach((c, i) => { const p = c.build.root.position; origins.push(p.x, p.y, p.z); collect(c.build.root, i); });
+    let units: number[];
+    let detail2: number[];
+    if (this.whole !== null && root !== undefined) {
+      origins.push(root.position.x, root.position.y, root.position.z);
+      collect(root, this.copies.length);
+      units = [this.copies.length]; detail2 = [(o.detail + pad) ** 2];
+    } else { units = this.copies.map((_, i) => i); detail2 = this.copies.map(() => o.detail ** 2); }
+    const culler = new WeldCull(objects, Float64Array.from(reach), Uint8Array.from(cast), Uint32Array.from(at), Float64Array.from(origins), Uint32Array.from(units), Float64Array.from(detail2));
+    this.culler = culler;
+    for (const s of this.hostedSets) culler.host(s);
+    this.hostedSets.length = 0;
+    cullers.push((camera) => { culler.update(camera); });
+    this.done = true;
+    // the copies' boxes (what the weld drew), then their pieces, in the order they were placed
+    for (const c of this.copies) c.onBox(c.build.box(new THREE.Box3()));
+    for (const fn of this.pending.splice(0)) fn();
+  }
+}
+
+/** A merge across several models' copies (see `WeldOptions`, ./weld.ts); `finishWeld` once every building is in. */
+export function weld(options: WeldOptions): Weld { return new Weld(options); }
+
+/** Draw a weld's shared meshes, start its bands, and register its copies' pieces (in the order they were placed). */
+export function finishWeld(w: Weld): void { w.finish(); }
+
+function drawWelded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions, w: Weld): Drawn {
+  const build = def.weld;
+  if (build === undefined) throw new Error(`place: '${def.id}' has no weld build (ModelDef.weld)`);
+  const colliders: ColliderDesc[] = [];
+  const boxes = new Float32Array(pls.length * 6);
+  const roots: THREE.Object3D[] = [];
+  params.forEach((p, i) => {
+    const pose = poses[i];
+    if (pose === undefined) return;
+    const b = build(o.ctx, p);
+    collideCopy(def, p, pose, null, [], colliders, o.ctx);
+    colliders.push(...b.colliders);
+    roots.push(b.root);
+    w.join(b, (box) => { writeBox(boxes, i, box); });
+  });
+  const only = roots.length === 1 ? roots[0] : undefined;
+  return { object: w.unitRoot ?? only ?? w.options.parent, drawnAs: 'merged', colliders, boxes, cull: null };
+}
+
+/** instanced copies hosted by a weld's copies: one InstancedMesh per part (per variant) with room for all, drawn by the weld */
+function drawHosted<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions, w: Weld): Drawn {
+  const { keys, of } = variantKeys(pls);
+  const n = pls.length;
+  const colliders: ColliderDesc[] = [];
+  const boxes = new Float32Array(n * 6);
+  const built = keys.map((k) => partsOf(def.build(o.ctx, paramsOf(def, k, undefined), new Rng(seedOf(def))), def.id, 'instanced'));
+  const units = pls.map((pl) => {
+    if (pl.host === undefined) throw new Error(`place: '${def.id}' is instanced into a weld — every copy needs its host`);
+    return w.unitOf(pl.host);
+  });
+  pls.forEach((_, i) => {
+    const pose = poses[i], p = params[i], parts = built[of[i] ?? 0] ?? [];
+    if (pose === undefined || p === undefined) return;
+    writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
+    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders, o.ctx);
+  });
+  const objects: THREE.Object3D[] = [];
+  built.forEach((parts, v) => {
+    // the copies of this variant, per host run (consecutive copies of one host), in placement order
+    const lists: { unit: number; matrices: Float32Array }[] = [];
+    let run: number[] = [];
+    const close = (): void => {
+      const first = run[0];
+      if (first === undefined) return;
+      const m = new Float32Array(run.length * 16);
+      run.forEach((i, j) => { poses[i]?.matrix.toArray(m, j * 16); });
+      lists.push({ unit: units[first] ?? 0, matrices: m });
+      run = [];
+    };
+    pls.forEach((pl, i) => {
+      if (of[i] !== v) return;
+      const prev = run[0];
+      if (prev !== undefined && pls[prev]?.host !== pl.host) close();
+      run.push(i);
+    });
+    close();
+    const total = lists.reduce((c, l) => c + l.matrices.length / 16, 0);
+    if (total === 0) return;
+    const meshes = parts.map((part) => {
+      const im = new THREE.InstancedMesh(part.geometry, part.material, total);
+      im.castShadow = false; im.receiveShadow = part.receiveShadow ?? false;   // hosted: its host's near proxy carries its depth
+      if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
+      // as built: every copy drawn (the weld's bands choose from its first look)
+      const dst = im.instanceMatrix.array as Float32Array;
+      let c = 0;
+      for (const l of lists) { dst.set(l.matrices, c * 16); c += l.matrices.length / 16; }
+      im.computeBoundingSphere();
+      return im;
+    });
+    objects.push(...meshes);
+    w.host({ meshes, lists });
+  });
+  const object = wrap(objects, def.id);
+  w.options.parent.add(object);
+  return { object, drawnAs: 'instanced', colliders, boxes, cull: null };
+}
+
 // ── the catalog entry: a specimen in own space, its variants, its facts ──
 
 function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: ModelRecord, drawnAs: DrawnAs): ModelEntry {
@@ -799,7 +1016,10 @@ export function rayCopy(p: Placed, ray: THREE.Ray, far: number): { box: THREE.Bo
 export function place<P extends object>(def: ModelDef<P>, placements: readonly Placement<P>[], o: PlaceOptions): Placed {
   const poses = placements.map((pl) => poseOf(pl));
   const params = placements.map((pl) => paramsOf(def, pl.variant, pl.params));
+  const w = o.weld;
+  if (w !== undefined && o.draw !== 'merged' && o.draw !== 'instanced') throw new Error(`place: '${def.id}' — a weld takes merged or instanced copies (asked for '${o.draw}')`);
   const drawn = o.drawnInto !== undefined ? drawnElsewhere(def, poses, params, o, o.drawnInto)
+    : w !== undefined ? (o.draw === 'merged' ? drawWelded(def, placements, poses, params, o, w) : drawHosted(def, placements, poses, params, o, w))
     : o.draw === 'merged' ? drawMerged(def, placements, poses, params, o)
     : o.draw === 'instanced' ? (o.culler ? drawHanded(def, placements, poses, params, o, o.culler) : drawInstanced(def, placements, poses, params, o))
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, o)
@@ -828,38 +1048,45 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   if (view !== undefined && cullWith) view.onViewChange(cullWith); // the shard's view drives it (never per frame here)
   else if (drawn.cull) cullers.push(drawn.cull);
   const registry = o.registry === undefined ? activeRegistry() : o.registry;
-  if (registry === null) { o.parent?.add(drawn.object); return placed; }
-  let rec = records.get(def.id);
-  const first = rec === undefined;
-  if (!rec) { rec = { groups: [] }; records.set(def.id, rec); }
-  rec.groups.push(placed);
-  const pc = o.piece ?? {};
-  if (pc.follows === 'copy') followCopy(def, placements.length, params[0], o, drawn);
-  const pieceId = pc.id ?? (first ? def.id : `${def.id}#${rec.groups.length}`), split = pc.split;
-  const every = split === undefined ? drawn.colliders.length : Math.max(1, split.every);
-  registry.add({
-    id: pieceId, name: pc.name ?? def.name, category: def.category, file: def.file,
-    ...(o.drawnInto === undefined ? { object: drawn.object } : { anchor: boxesCentre(boxes) }), colliders: drawn.colliders.slice(0, every),
-    ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
-    ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows === 'copy' ? drawn.object : pc.follows }),
-    ...(pc.active === undefined ? {} : { active: pc.active }),
-    ...(first ? { model: modelEntry(def, o, rec, drawn.drawnAs) } : {}),
-  });
-  // (the registry's scene listener added it to the scene: under the shard's own group instead)
-  o.parent?.add(drawn.object);
-  // a tap on any copy selects the model, boxed on the copy under the finger
-  registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()),
-    // drawn into an object it shares (a kit, a painted place): a tap is this model's only on one of its copies (E323)
-    ...(o.drawnInto === undefined ? {} : { claim: (pt: THREE.Vector3): THREE.Box3 | null => claimCopy(placed, pt), boxHit: (ray: THREE.Ray, far: number) => rayCopy(placed, ray, far) }) });
-  if (split !== undefined && drawn.colliders.length > every) {
-    // the rest of the colliders, a task per `every` (collider-only pieces: the object and the catalog entry are on the first)
-    registered = (async (): Promise<void> => {
-      for (let at = every, k = 2; at < drawn.colliders.length; at += every, k++) {
-        await split.yieldTask();
-        registry.add({ id: `${pieceId}-${k}`, name: pc.name ?? def.name, category: def.category, file: def.file, colliders: drawn.colliders.slice(at, at + every),
-          ...(def.surface === undefined ? {} : { surface: def.surface }) });
-      }
-    })();
-  }
+  // drawn by what it shares (a set's kit, a weld): its piece anchors on its copies, and a tap claims one of them
+  const shared = o.drawnInto !== undefined || w !== undefined;
+  if (registry === null) { if (w === undefined) o.parent?.add(drawn.object); return placed; }
+  const register = (): void => {
+    let rec = records.get(def.id);
+    const first = rec === undefined;
+    if (!rec) { rec = { groups: [] }; records.set(def.id, rec); }
+    rec.groups.push(placed);
+    const pc = o.piece ?? {};
+    if (pc.follows === 'copy') followCopy(def, placements.length, params[0], o, drawn);
+    const pieceId = pc.id ?? (first ? def.id : `${def.id}#${rec.groups.length}`), split = pc.split;
+    const every = split === undefined ? drawn.colliders.length : Math.max(1, split.every);
+    registry.add({
+      id: pieceId, name: pc.name ?? def.name, category: def.category, file: def.file,
+      ...(shared ? { anchor: boxesCentre(boxes) } : { object: drawn.object }), colliders: drawn.colliders.slice(0, every),
+      ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
+      ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows === 'copy' ? drawn.object : pc.follows }),
+      ...(pc.active === undefined ? {} : { active: pc.active }),
+      ...(first ? { model: modelEntry(def, o, rec, drawn.drawnAs) } : {}),
+    });
+    // (the registry's scene listener added it to the scene: under the shard's own group instead; a weld's are where it put them)
+    if (w === undefined) o.parent?.add(drawn.object);
+    // a tap on any copy selects the model, boxed on the copy under the finger
+    registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()),
+      // drawn into an object it shares (a kit, a painted place, a weld): a tap is this model's only on one of its copies (E323)
+      ...(shared ? { claim: (pt: THREE.Vector3): THREE.Box3 | null => claimCopy(placed, pt), boxHit: (ray: THREE.Ray, far: number) => rayCopy(placed, ray, far) } : {}) });
+    if (split !== undefined && drawn.colliders.length > every) {
+      // the rest of the colliders, a task per `every` (collider-only pieces: the object and the catalog entry are on the first)
+      registered = (async (): Promise<void> => {
+        for (let at = every, k = 2; at < drawn.colliders.length; at += every, k++) {
+          await split.yieldTask();
+          registry.add({ id: `${pieceId}-${k}`, name: pc.name ?? def.name, category: def.category, file: def.file, colliders: drawn.colliders.slice(at, at + every),
+            ...(def.surface === undefined ? {} : { surface: def.surface }) });
+        }
+      })();
+    }
+  };
+  // a welded copy's piece waits for its weld: its box, its anchor and its drawing are final then (`finishWeld`)
+  if (w !== undefined && o.draw === 'merged') registered = new Promise((resolve) => { w.defer(() => { register(); resolve(); }); });
+  else register();
   return placed;
 }

@@ -11,6 +11,8 @@
  *   · CellCull      — merged cells: a whole cell's level (or nothing) by its distance
  *   · SetCull       — `lodBy: 'set'`: every copy at the level of the copy nearest the eye (one draw per level; three
  *     culls each level's mesh as a whole, per camera)
+ *   · WeldCull      — a weld's bands (./weld.ts, E347): tagged objects shown (or casting) by their copy's or unit's
+ *     distance, and the instanced copies each unit hosts rewritten when the unit crosses its detail band
  *
  * What a shard's hand-rolled culler did differently is data on the call (M2, Pine Hollow), never a branch here:
  * `view` (its own padded frustum and eye, e.g. the forest's), `frustum: false` (range and LOD only; three culls per
@@ -527,6 +529,81 @@ export class UntilCull {
       this.shown[k] = on;
       const part = this.parts[k];
       if (part) part.visible = on === 1;
+    }
+  }
+}
+
+/** instanced copies drawn by their host (./weld.ts: the props a weld's buildings set about) */
+export interface HostedSet {
+  /** one mesh per part, with room for every copy; three culls each by its bounding sphere, remade on every refresh */
+  readonly meshes: readonly THREE.InstancedMesh[];
+  /** the copies per host, in placement order: the host's unit (an index into the culler's units) and their matrices (16 floats each) */
+  readonly lists: readonly { readonly unit: number; readonly matrices: Float32Array }[];
+}
+
+/**
+ * A weld's bands (./weld.ts, E347): each tagged object drawn only while the eye is within its `until` of its origin (its
+ * copy's root, or its unit's root for the unit's meshes), or casting only from its `castFrom`; and each unit's detail band,
+ * which the copies its copies host follow — their meshes rewritten (every host within the band, in order) when a unit
+ * crosses it. Checked when the view changed; only a crossing touches an object or a mesh.
+ */
+export class WeldCull {
+  private readonly view = new View();
+  private readonly shown: Int8Array;
+  private readonly unitOn: Int8Array;
+  private readonly hosted: { set: HostedSet; dirty: boolean }[] = [];
+  private pending = false;
+  /**
+   * `objects[k]` is shown while the eye is within √`reach2[k]` of origin `at[k]` (`cast[k]` 1: casts a shadow only from that
+   * far instead); `origins` x, y, z per origin; unit u's origin is `units[u]` and its detail band √`detail2[u]`
+   */
+  constructor(
+    private readonly objects: readonly THREE.Object3D[], private readonly reach2: Float64Array, private readonly cast: Uint8Array,
+    private readonly at: Uint32Array, private readonly origins: Float64Array, private readonly units: Uint32Array, private readonly detail2: Float64Array,
+  ) {
+    this.shown = new Int8Array(objects.length).fill(-1);
+    this.unitOn = new Int8Array(units.length).fill(-1);
+  }
+
+  /** copies hosted by this weld's units: drawn from the next update on (as the units' bands stand then) */
+  host(set: HostedSet): void { this.hosted.push({ set, dirty: true }); this.pending = true; }
+
+  private d2(origin: number): number {
+    const o = this.origins, e = this.view.eye;
+    const dx = (o[origin * 3] ?? 0) - e.x, dy = (o[origin * 3 + 1] ?? 0) - e.y, dz = (o[origin * 3 + 2] ?? 0) - e.z;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  update(camera: THREE.Camera): void {
+    const changed = this.view.changed(camera);
+    if (!changed && !this.pending) return;
+    this.pending = false;
+    for (let k = 0; k < this.objects.length; k++) {
+      const d2 = this.d2(this.at[k] ?? 0), within = d2 < (this.reach2[k] ?? 0);
+      const on = (this.cast[k] === 1 ? !within : within) ? 1 : 0;
+      if (this.shown[k] === on) continue;
+      this.shown[k] = on;
+      const o = this.objects[k];
+      if (!o) continue;
+      if (this.cast[k] === 1) o.castShadow = on === 1; else o.visible = on === 1;
+    }
+    let flipped = false;
+    for (let u = 0; u < this.units.length; u++) {
+      const on = this.d2(this.units[u] ?? 0) < (this.detail2[u] ?? 0) ? 1 : 0;
+      if (this.unitOn[u] !== on) { this.unitOn[u] = on; flipped = true; }
+    }
+    for (const h of this.hosted) {
+      if (!flipped && !h.dirty) continue;
+      h.dirty = false;
+      for (const im of h.set.meshes) {
+        const dst = im.instanceMatrix.array as Float32Array;
+        let n = 0;
+        for (const l of h.set.lists) if (this.unitOn[l.unit] === 1) { dst.set(l.matrices, n * 16); n += l.matrices.length / 16; }
+        im.count = n; im.visible = n > 0;
+        if (n === 0) continue;
+        im.instanceMatrix.needsUpdate = true;
+        im.computeBoundingSphere();
+      }
     }
   }
 }

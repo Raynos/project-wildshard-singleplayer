@@ -96,7 +96,6 @@ export const DONE = {
   'pine-hollow': {
     'src/world/PineCrags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
     'src/world/PineLandmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
-    'src/world/Cabin.ts': { why: "the homestead draws its building and prop models (placed drawnInto, src/chunks/pine-hollow/world/cabins.ts): its log kit merges each building per material and the cabins' cores across them, its props are instanced across the buildings, a specimen's for the Explorer", counts: { InstancedMesh: 3, mergeGeometries: 9 } },
     'src/world/PineStreams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
   },
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or

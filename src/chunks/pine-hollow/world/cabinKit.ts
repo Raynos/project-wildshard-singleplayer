@@ -1,28 +1,15 @@
 /**
- * Pine Hollow's log buildings and their props, as their models read them (E315 M2): src/world/Cabin.ts builds the three
- * cabins and the mill hamlet on its log kit and draws them itself — the cabins' never-hidden cores merged across the
- * three by material, the hamlet as one merged cluster, the props instanced across the buildings, the detail and far sets
- * dropped with distance, the doors swinging, the fires and lamps on the clock. It hands itself here; each building model
- * (../models/logCabin.ts, huntingLodge.ts …) builds its Explorer specimen through it (`specimen`: the building alone, in
- * its own frame), and each prop model from the same loaded scan, colliding as the scan's bounds (`propBox`).
+ * The homestead's dressing as its models read it (E315 M2): each prop model (../models/woodenCrate.ts, wineBarrel.ts,
+ * woodenBucket.ts, hatchet.ts) is built from the loaded scan the buildings set about, colliding as the scan's bounds
+ * (`propBox`); the fire pit and the porch lantern are copies of what a building dressed (`dressedCopy`). The buildings
+ * themselves are the log kit's (../models/logCabin.ts: `useCabins`, `buildingSpecimen`, `builtBuilding`).
  */
 import * as THREE from 'three';
-import { PROP_BOXES, type Cabins, type CabinPropKind } from '../../../world/Cabin';
-import type { ColliderSpec, ModelBuild, ModelContext, ModelPart } from '../../../models/model';
+import type { CabinPropKind } from '../../../world/Cabin';
+import type { ColliderSpec, ModelContext, ModelPart } from '../../../models/model';
+import { PROP_BOXES, cabinsOf } from '../models/logCabin';
 
 const KEY = 'pine-hollow/cabins';
-
-/** hand the built cabins to their models */
-export function useCabins(ctx: ModelContext, cabins: Cabins): void { ctx.once(KEY, () => cabins); }
-
-const cabinsOf = (ctx: ModelContext): Cabins => ctx.once<Cabins>(KEY, () => { throw new Error('[cabins] not built (useCabins)'); });
-
-/** building `id` (Cabins.buildings' id: `cabin-1` … or an extra building's) alone, in its own frame */
-export function buildingSpecimen(ctx: ModelContext, id: string): ModelBuild {
-  const cabins = cabinsOf(ctx);
-  const i = cabins.buildings.findIndex((b) => b.id === id);
-  return (i === -1 ? null : cabins.specimen(i)) ?? new THREE.Group();
-}
 
 /** a prop kind's parts, their node transforms baked into copies of the scan's geometry (once per shard) */
 export function propPart(ctx: ModelContext, kind: CabinPropKind): ModelPart[] {

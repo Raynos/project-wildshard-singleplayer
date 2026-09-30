@@ -5,12 +5,14 @@
 import { bootstrap } from '../core/bootstrap';
 import { Cabins } from '../world/Cabin';
 import { Props } from '../chunks/pine-hollow/world/props';
+import { placeCabins } from '../chunks/pine-hollow/world/cabins';
 import { heightAt } from '../world/Heightfield';
 
 const world = await bootstrap();
 const cabins = new Cabins(world.sky);
 const { group, colliders, interactables } = await cabins.build();
 world.game.scene.add(group);
+await placeCabins({ cabins, sky: world.sky, registry: world.registry }); // their models drawn (E347: the homestead's welds)
 world.player.colliders.push(...colliders);
 
 const props = new Props(world.sky, world.forest, world.game.renderer);

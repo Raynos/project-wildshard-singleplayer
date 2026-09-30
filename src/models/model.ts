@@ -53,6 +53,9 @@
  *     visibility: the forest's shadow keep); a LOD's `fade` (a dissolve band where both levels draw) and a part's `until`
  *     (a detail band inside its level), `tint: false`, `sortObjects` (the forest tree's twigs, bark, needle cards).
  *     `batch` shares one BatchedMesh with the world's own geometry; `piece.split` registers the colliders a task apart.
+ *     `weld` (./weld.ts, E347) merges across several models: site-fitted buildings (`ModelDef.weld`: built where they
+ *     stand) merged per unit — a copy, or the whole weld — with their detail bands, the never-hidden materials welded
+ *     across copies, the props they stand about instanced and drawn by their host (`Placement.host`); `finishWeld` once.
  *     `piece: { id, name, … }` keeps the old registry id so saves, tests and footprints don't move.
  *  4. Delete the old drawing code (M6 deleted the old registrations: nothing but `place` / `listModel` gives a piece a
  *     `model`, check-models rule 6). `place` registers ONE registry piece per call (drawn object + world-space colliders + floor) and
@@ -79,6 +82,7 @@ import type { Material } from '../physics/surface';
 import type { Rng } from '../core/rng';
 import type { Sky } from '../world/Sky';
 import type { Animal } from '../entities/Animal';
+import type { WeldBuild } from './weld';
 
 export type { DrawnAs, ModelCategory, Pipeline } from '../world/registry';
 
@@ -195,6 +199,12 @@ export interface ModelDef<P extends object> {
    * material of the same geometry and texture
    */
   readonly specimen?: (ctx: ModelContext, params: P, rng: Rng) => ModelBuild;
+  /**
+   * A site-fitted model placed into a weld (`place(…, { draw: 'merged', weld })`, ./weld.ts, E347): one copy as it was
+   * built where it stands — its root, its parts to merge with its unit's, its world-space colliders (Pine Hollow's log
+   * buildings: their stilts reach the bank under them). `build` stays its Explorer specimen.
+   */
+  readonly weld?: (ctx: ModelContext, params: P) => WeldBuild;
 }
 
 /** What every defined model says about itself, whatever its params (the catalog and the contract test read these). */
@@ -238,6 +248,11 @@ export interface Placement<P extends object> {
   readonly variant?: string;
   /** instanced / batched: a per-copy tint (0xrrggbb, or a Color taken as it is: linear floats, nothing rounded) */
   readonly color?: number | THREE.Color;
+  /**
+   * instanced into a weld (`PlaceOptions.weld`, E347): the index, in the weld, of the copy this one stands about (a crate
+   * by a cabin's door) — it is drawn by its host, while the host's unit is within the weld's detail band
+   */
+  readonly host?: number;
 }
 
 /** A copy's params: the defaults, then its variant's, then its own. */
