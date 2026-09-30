@@ -480,3 +480,12 @@ ridge crag ×60, crag boulder ×52, scree ×30; the mossy boulder ×380, stump, 
 species; fern ×6,000 and the forest floor's other five kinds; the token shelf and the hollow log). Bottom: six
 turntables. `pine-m2-five.mp4`: a 10 s spin of five of them (forest tree, fire lookout, log cabin, ridge crag, standing
 stone) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M2.
+
+### Driftwood first-person remaster, round 1 (`art/driftwood-fp/round-1-remaster/`, 2026-09-30, E334)
+
+`board-1-today-vs-nine-dragon.jpg`: live iPhone-portrait captures of Driftwood's wooden / iron sword viewmodel (idle,
+mid-swing), its swimming hands, and Nine Dragon's rigged arms (idle, mid-swing). `board-2-sword-and-hands.jpg`: four
+codex edits of the live idle frame: A castaway (recommended), B sailor, C adventurer, D the Nine Dragon rig re-coloured,
+plus A with the iron sword. `board-3-swimming-hands.jpg`: A breaststroke (recommended), B front crawl, C dog-paddle. The
+README holds the Nine Dragon vs Driftwood viewmodel comparison and the build route: reuse the fp-rig skeleton and clips
+with Driftwood meshes, and put the swim clips on the same rig.
