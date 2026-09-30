@@ -221,7 +221,7 @@ export interface LevelContext {                 // the engine's verbs, every one
   system(spec: SystemSpec): void;
   on<K extends keyof EventMap>(name: K, fn: (p: EventMap[K]) => void, opts?: { order?: number }): void;
   answer<K extends keyof AskMap>(name: K, fn: (v: AskMap[K][0]) => AskMap[K][1], opts?: { order?: number }): void;
-  rows: EngineRows;                             // weapon / tool / species / species-look / effect / damage-rule / encounter / spawn rows
+  rows: EngineRows;                             // weapon / tool / species / effect / damage-rule / encounter / spawn rows; rows.speciesLook(look: SpeciesLook) registers a species' look (R1-27)
   inputContext(def: InputContextDef): void; hud: HudVerbs; piece(p: PieceSpec): void;
   debugRow(r: DebugRowSpec): void; playground(p: PlaygroundSpec): void; strings(t: StringTable): void;
   tiers: { knobs(schema: TierKnobSchema): void }; debug: { expose(name: string, value: unknown): void };
@@ -450,7 +450,9 @@ export interface InputService {
   push(ctx: string, scope: Scope): void; pop(ctx: string): void; readonly top: string;
   pressed(a: Action): boolean; held(a: Action): boolean; released(a: Action): boolean; axis2(a: Action): Vec2;
   consume(a: Action): boolean;               // take a buffered press (§ buffer)
-  // ask('player.crouch', { want }) → { allowed, toggle }: the engine owns `crouch`; a shard (Nalati's stealth) answers
+  // ask('player.crouch', { want: boolean; via: 'toggle' | 'hold' }) → { allowed: boolean; latched: boolean }:
+  // the engine owns `crouch`; `via` says which binding asked (C / the disc latch = 'toggle', Ctrl = 'hold').
+  // A shard answers: Nalati's stealth keeps taming's crouch exception, and a sprint or jump drops the latch (07 §6.3 C)
   bindings: Bindings;                        // keyboard + mouse + touch; rebinding persists in saves('controls', global)
   readonly buffer: { ms: number };           // 120 default (decision 40)
 }

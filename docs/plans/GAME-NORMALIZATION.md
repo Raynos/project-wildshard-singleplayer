@@ -141,7 +141,7 @@ Boss`, while `LONGBOW` is a typed profile row with a parent. Names are dot-case 
 export default defineShard({
   slug: 'pine-hollow', api: 1, style: 'pbr', label: '(+3, −2)', placement: { grid: [3, -2], size: [500, 500, 500] },
   uses: ['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice',
-         'coins', 'loot', 'compendium', 'feats', 'bag.pack'],   // Pine's exact list today is 06 §3; this example shows the full set
+         'loot', 'compendium', 'feats', 'bag.pack'],   // exactly what Pine runs today (06 §3): no coins
   loadout: { start: ['weapon.crossbow'], pickups: [{ id: 'lever', at: 'cabin-3' }] },
   species: ['creature.deer', 'creature.elk', 'kit:creature.boar', 'kit:creature.bear', 'creature.thrall'],
   audio: { ambience: 'ambience.pine', score: 'score.pine', cues: () => import('./audio/cues').then((m) => m.CUES) },

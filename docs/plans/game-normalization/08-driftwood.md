@@ -29,8 +29,8 @@ every push, `node scripts/parity.mjs --export=HEAD --shards=all --tiers=phone,de
 families, player health in the engine, the input service with the `grapple`, `crossbow.bolts`, `ride`, `ride.break`
 and `stealth` contexts, the AI runtime (HFSM, `StrikeRunner`, the director, `BossBrain`, `EliteBrain`, `GroupBrain`,
 weighted tables), `DayCycle` (Driftwood's `DayNight` clock is a `DayCycle` instance since S2.4, its keyframe
-application still in `DayNight.ts`), `Weather`, the quest runtime, the scheduler (the lead's rates: `ai` 20 Hz near,
-5 Hz from 60 m, paused from 160 m), `#kit/npc/npcRig.ts` (Pine's rig + Nalati's camp people), the finished audio
+application still in `DayNight.ts`), `Weather`, the quest runtime, the scheduler (decision 85's bands: `ai` brain 20 Hz near,
+10 Hz from 60 m, paused from 160 m, with interrupts), `#kit/npc/npcRig.ts` (Pine's rig + Nalati's camp people), the finished audio
 engine (`VoicePool`, `AmbienceZones`, one cue routing, the `Audio.ts` split) with Driftwood's leftovers parked in
 `src/engine/audio/legacyIsland.ts` (07 §6.5), `app.world.wind`, `app.player.mountedOn`, the creature look registry,
 `LookStrategy.{compose, fog, terrainPainter, backdrop}` (07 §6.2).
