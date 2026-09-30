@@ -50,7 +50,9 @@ shard".
 | `docs/SHARDS.md` (rewrite) | **How to write a shard.** Copy `_template` → fill the manifest → the plugin verbs → the weapon ladder (profile, extend, custom) and Tools → creatures (species rows, brains, strikes) → the look (`ShardRender`) → audio (cues, ambience, score) → budgets and tiers → saves → strings → the checklist to go from template to playable to `live` (the gate, boards, `status` flags). It replaces today's `docs/SHARDS.md` (227 lines). The history section is kept at the end | Z3 is the test: a fresh agent follows it |
 | `src/shards/<slug>/README.md` ×4 (+ template) | What the shard declares; its custom code and why it's custom; its budgets; its look; its open asks | Written at each shard's milestone (M1–M4) |
 
-AGENTS.md: the "Physics" and "Local models" sections are updated for the new paths (`src/engine/physics/`,
+AGENTS.md: the "No URL switches" section's Settings.ts steps are rewritten (a shard declares its own option keys
+and rows through `ctx.debugRow`, so no shard name lands in `src/ui/Settings.ts`). The "Physics" and "Local models"
+sections are updated for the new paths (`src/engine/physics/`,
 `#engine/...`), and a short "Engine layers" section links `docs/ENGINE.md`.
 
 ## Z3 — Shard 5, built by a fresh agent (decisions 51, 73)

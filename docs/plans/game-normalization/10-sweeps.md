@@ -164,7 +164,7 @@ branches in `src/engine/boot/` and adds the checks.
    is deleted without his pick.
 5. **TP17:** `unused-assets` counts `gpu.generated.ts` as a reference, so the 171 MB of shipped KTX2 is no longer
    called "dev-only".
-6. **Nine Dragon joins the boot packs**, the prefetch and the every-shard tests (it was listed as a prototype).
+6. (Nine Dragon already joined the boot packs, the prefetch and the every-shard tests in S1.1.)
 
 **Tests**
 - The asset audit.
@@ -247,8 +247,8 @@ also gets a byte-identical vertex-colour test on one model per baker.
 
 **Steps**
 1. **`src/engine/render/tiers.ts`** holds the engine's knobs. Of today's ~59 settings per tier, the 7 Driftwood-named
-   ones become Driftwood manifest overrides. `PINE_HOLLOW_PHONE` and the shard-named helpers are deleted, and
-   `tier.ts:113`'s Pine branch goes.
+   ones become Driftwood manifest overrides. S2.1 already deleted `PINE_HOLLOW_PHONE` and `tier.ts:113`'s Pine branch.
+   X7 deletes whatever shard-named knobs and helpers are left.
 2. **Budgets.** Each manifest's `budgets` inputs are filled from S1.6's calibration file `budgets/calibration.json`.
    `src/engine/render/budgets.ts` derives the numbers with the formula in
    [budget-design](../../design/engine-fit-v2/budget-design.md). `Perf.ts:36`'s single draw budget and the three

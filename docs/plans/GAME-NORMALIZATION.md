@@ -18,6 +18,7 @@ This file is the index. The executable detail lives in [game-normalization/](gam
 | [10-sweeps](game-normalization/10-sweeps.md) | X1–X8 |
 | [11-finish](game-normalization/11-finish.md) | Z1–Z4: the template shard, docs, shard 5, the archive |
 | [12-process](game-normalization/12-process.md) | The council, the lock, deploys, lanes, commits, boards, risks, estimate |
+| [13-lead-resolutions](game-normalization/13-lead-resolutions.md) | The lead's answer to every question the spec writers raised, and where each is applied |
 | reviews/ | The council's rounds: every finding and its response |
 
 **Definition of ready** (Jake, E357: *"the plan is not done and ready for execution until various independent review
@@ -290,6 +291,10 @@ need; the X rows collect what is left.
 
 ### F — Foundations (before the first shard)
 
+**Order:** F0 → F3.1 (the deploy pin, first: F2's probe is the first `src/` change and would otherwise ship hourly) → F1 →
+F2 → F3.2 (the gate) → F4 → F5 → **F7 before F6** (delete the dead before moving the living) → F8 → F9 → F10 → F11 →
+F12. The detail is in [02-foundations](game-normalization/02-foundations.md).
+
 | Row | What | Done when | Size |
 |---|---|---|---|
 | **F0** | Declare the lock: an AGENTS.md note and a session-brief line. The overlapping plans' State lines point here; ENGINE-FIT is archived as folded in | Every live plan agrees on who owns what | S |
@@ -303,14 +308,14 @@ need; the X rows collect what is left.
 | **F8** | **The spine** (EI1, EI2, EI17, EI20). App systems with ordering and run conditions, app states, the typed event bus (`emit` / `ask`), typed services, the per-shard scope with resource ownership + the leak test, the seeded RNG and game clock | Phase-list fingerprint identical; load → unload returns to baseline | L |
 | **F9** | **The shard registry** (EI8, TP8, MW20): a generated `shards.generated.ts` (manifests + lazy `load`), the `ShardManifest` type with `api` version, the full-screen error on a failed load | The title deck and the bakers read the registry; no hand-kept shard list | M |
 | **F10** | **SaveStore** (EI19, MW7, MW15): one namespaced, versioned store with a migration chain. Today's saves are reset (Jake: fine). `storage.persist()` on home-screen launch; export / import in Settings | 0 raw `localStorage` outside the store | M |
-| **F11** | **Retire the old machinery**: the resident host (EI6: ShardHost, 76 `shardSlot`s, the `addEventListener` patch, ~800 lines) and `player.colliders` + `src/physics/bridge.ts` (PHYSICS-POLISH F3) | One collision path; walk + trails 0 stuck | M |
+| **F11** | **Retire the old machinery**: the resident host (EI6: ShardHost's park / activate / evict, the 76 `shardSlot`s) and `player.colliders` + `src/physics/bridge.ts` (PHYSICS-POLISH F3). The `addEventListener` patch stays (396 listeners rely on it for teardown). A ratchet counts it, and X1 / X2 remove it | One collision path; walk + trails 0 stuck | M |
 | **F12** | **Rapier 0.21** | Walk + trails 0 stuck; nav bake `--check` green; one physical-iPhone load reading from Jake | S |
 
 ### S1 — Nine Dragon Stack becomes a plugin (milestone M1)
 
 | Row | What | Size |
 |---|---|---|
-| S1.1 | The manifest and plugin. The def hooks (`render`, `structures`, `sword`, `roster`, `traversal`, `fov`, `bounds`) fold in. The 5 slug gates (boot fragility → manifest boot data; `isNine`; Fei Zhua) go, and so do `Game.ts:210 / 290` (AO as tier data) | M |
+| S1.1 | Nine Dragon becomes a **full shard** (boot packs, prefetch, the every-shard tests; it was listed as a prototype). The manifest and plugin. The def hooks (`render`, `structures`, `sword`, `roster`, `traversal`, `fov`, `bounds`) fold in. The 5 slug gates (boot fragility → manifest boot data; `isNine`; Fei Zhua) go, and so do `Game.ts:210 / 290` (AO as tier data) | M |
 | S1.2 | **The Equipment base, the Weapon contract and the Melee family** in the kit. Sword, Sabre, Spear and the jian (12 damage, a real field now) become profiles and subclasses, each keeping its feel. Fixes inline: the Spear thrust, brace and couched lance, and Naizagai's crescent all hit through walls | L |
 | S1.3 | **The damage pipeline, cues and the effects core** (today's effects). Player health moves into the engine; the 5 hurt blocks go | M |
 | S1.4 | **The Tool contract.** The Fei Zhua becomes a Tool, and its playground a shard-registered playground (EI22). The first input context (grapple), with touch relabel | M |
@@ -338,7 +343,7 @@ need; the X rows collect what is left.
 | S3.2 | **The painterly look** as a `ShardRender`: its fog and composer leave `Game.ts`, and `Terrain` and `Grass` lose their style branches | M |
 | S3.3 | **The Nalati kit on the families** (Golden Bow, Naizagai, Sabre). **Riding** (the ride context, taming, reins) and **stealth** (the crouch action) stay shard mechanisms | M |
 | S3.4 | **Bosses and elites on the runtime**: the Kurgan Boss, the Storm Titan (hit-cap fix), ghost riders, balbals | M |
-| S3.5 | **The engine audio** (D12–D14): one voice engine, ambience zones, score sources, cue maps. Steppe audio moves onto it | L |
+| S3.5 | **The engine audio** (D12–D14), continuing the slice S1.5 built (score sources, ambience beds, cue maps): one positional voice engine, ambience zones, the merged SFX routing, the `Audio.ts` split. Steppe audio moves onto it | L |
 | **M3** | Gate green; summary; the board; Jake plays. Nalati reopens | — |
 
 ### S4 — Driftwood Isle (M4)
@@ -357,7 +362,7 @@ need; the X rows collect what is left.
 |---|---|---|
 | X1 | **Input**: every action and context, key rebinding, buffer + coyote, TouchControls drawn from the top context, reserved verb slots (EI9–EI12). The **input / HUD board** (a late roof jump, a dodge pressed mid-swing, the verb slots) | L |
 | X2 | **UI layers**, HUD slot bands and registered Bag tabs (EI13–EI16) | M |
-| X3 | **Boot and assets from the manifest** (EI3, EI4, TP9, MW13, MW17): staged steps, per-shard asset lists (fixes Explore's offline preload on 3 shards), DEPLOYMENT_ASSET_TRIM T3 and the unused-assets KTX2 fix (TP17) | M |
+| X3 | **Boot and assets from the manifest** (EI3, EI4, TP9, MW13, MW17): staged steps, per-shard asset lists (fixes Explore's offline preload on 3 shards), DEPLOYMENT_ASSET_TRIM T3 and the unused-assets KTX2 fix (TP17). Nine Dragon already joined the boot packs in S1.1 | M |
 | X4 | **The animation engine layer**: rig loader, clip naming, the animation state machine, the rig contract | M |
 | X5 | **World and look leftovers**: <br>• the sky rig + backdrop (delete the painterly sky and cloud dome built then hidden on 2 shards); <br>• the fog-patch registry; <br>• the `WaterBody` interface; <br>• one geometry kit and one AO baker; <br>• one LUT loader; <br>• one particle pool (7 → 1); <br>• one RNG (3 → 1); <br>• helpers (`lin` ×6, smoothstep, pan-from-yaw); <br>• one skin locker (3 → 1) | L |
 | X6 | **WebGPU containment**: the renderer type only in `engine/render`; the 87 `onBeforeCompile` sites through one shader-patch registry; one precompile | M |

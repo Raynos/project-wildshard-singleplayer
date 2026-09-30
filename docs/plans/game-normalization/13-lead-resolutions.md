@@ -1,0 +1,58 @@
+# GAME-NORMALIZATION v2 · 13 — The lead's resolutions
+
+Each spec writer ended its file with "Questions for the lead". This file answers every one of them. Each answer is
+applied in the file named in the "Applied in" column, and **those files are the source of truth**: this file is the
+record of why.
+
+Questions that were Jake's to decide went to him and are numbered decisions in
+[E357](../../tasks/asks/E357.md) (85–90).
+
+## From 09-combat-ai
+
+| # | Question | Resolution | Applied in |
+|---|---|---|---|
+| 1 | `StrikeSpec` has only a shape name and one range | Per-shape parameters: `StrikeShape` = arc (radius, halfAngle) / lane (length, width) / ring (inner, outer) / wedge (length, halfAngle) / point (radius) | 01 §19 |
+| 2 | `EffectDef` can't express hit-dependent rules (hit cap, boar tusk, sneak shot, broadheads, balbal bonuses) | A new row type, `DamageRuleDef` (`when` tags + `op` cap / add / mul / negate / override + `order`), answering `ask('damage.modify')` | 01 §18 |
+| 3 | Whetstones, the bear claw and the Golden Bow's draw modify weapons, but effects target actors | Weapons carry their own `AttributeSet`; `EffectService` targets `Actor \| Equipment` | 01 §18 |
+| 4 | AI tick rate: today's brains run at 10 Hz everywhere | Jake, decisions 85: three bands (near 0–60 m brain 20 Hz + body every frame; mid 60–160 m brain 10 Hz + body every 2nd frame; far paused), interrupts in every band, bosses / elites / quest actors pinned. Strike phases run on the body clock. **10 Hz until S2.6** (parity), then the switch, on the creatures board | 01 §12 |
+| 5 | Horse: kit or Nalati? | **Nalati** (rule of two: its only other user is the horse playground, which is Nalati's) | 01 §21 |
+| 6 | Falls don't reset the regen delay | Kept as today (parity); `env.fall` isn't tagged `interruptsRegen` | 09 §3 |
+| 7 | The hoverboard fits the Tool contract | A kit Tool (`#kit/tools/`, used on all 4 shards), moved in X1. Its movement mode (`board` context, motor) stays engine | 01 §21, 10 X1 |
+| 8 | Big crab: 10 or 14? | Jake, decision 86: **14**. On the creatures board | 09 §5 |
+| 9 | `WeightedTable` has no "every row once" mode | `mode: 'weighted' \| 'each'` + `count` | 01 §19 |
+| 10 | Pine finishes and Nalati skins have no numbers | Cosmetic `EffectDef` rows with no modifiers, tagged `cosmetic` | 09 §2 |
+| 11 | `DamageRequest` has more fields in 09 than in 01 | 01 takes the superset | 01 §18 |
+| 12 | The Spear's 5 javelins "with the camp upgrade" are never granted | Jake, decision 87: **keep 3**; the unreachable promise is removed | 09 §1 |
+
+## From 05-nine-dragon / 06-pine-hollow
+
+| # | Question | Resolution | Applied in |
+|---|---|---|---|
+| 1 | 01 §6 lacks many `ChunkDef` fields; `map` clashes | Every field carried over. Renames: `map` → `minimap`, world placement is `placement`, `gridCoords` → `label`, `fov` → `camera.portraitFov`. Added: `seed`, `biome`, `hud`, `bag`; carried as data: trees, forest, assets, look, horizon, pondClip, pois, spawns (was fauna), faunaTuning, loot, bodyShadow, groundColor, surfaceAt; `ocean` → a WaterBody row; `weapon` → `loadout` | 01 §6 |
+| 2 | Boot flag names | `boot.barrier` (all tiers), `boot.phone.deferExtras`, `boot.phone.fragile`, `boot.phone.trace`, `boot.cullBeforeFirstDraw`; `warmTurns` and `textures` are tier knobs | 01 §8 |
+| 3 | No HUD verb for screen-positioned world markers | `hud.pin(at, el, scope)` | 01 §11 |
+| 4 | Tier precedence | One source: engine default → kit schema default → `manifest.tiers[tier]`. `ShardRender`'s old `slices` / `ao` / `aa` move to `manifest.tiers` | 01 §13 |
+| 5 | Debug handles (`__ndRender`, `__pine*`, `__titan` …) | `ctx.debug.expose(name, value)` → `window.__wildshard.shard[name]` | 01 §7 |
+| 6 | S1.5 builds the first slice of the audio engine | Yes. S1.5 builds score sources, ambience beds and cue maps; S3.5 continues from it (the voice engine, ambience zones, merged SFX routing, the `Audio.ts` split) | index S1.5 / S3.5 |
+| 7 | Nine Dragon has no load-time cap | Its F2 baseline, rounded up, shown on the M1 summary for Jake to confirm | 05 S1.6 |
+| 8 | Budget file names differ between docs | 01 wins: `budgets/calibration.json`, `src/engine/render/budgets.ts` | 01 §13.4 |
+| 9 | Does F6 leave the old hook fields on the manifest? | Yes. Each shard's phase moves its hooks into its plugin, and the type drops them after S4.1 | 01 §6, 02 F6 |
+| 10 | `PINE_HOLLOW_PHONE`: S2.1 or X7? | S2.1 deletes it; X7 deletes whatever shard-named knobs are left | 10 X7 |
+| 11 | Weather FX in the kit | Only the rain curtain (shared). Puddles stay per shard (two techniques); lightning is Nalati's | 01 §21 |
+| 12 | Debug option keys like `pineScore` put a shard name in the engine | A shard declares its own keys through `ctx.debugRow`; AGENTS.md's Settings.ts rule is rewritten in Z2 | 11 Z2 |
+| 13 | S2.4 also swaps Driftwood's and Nalati's clocks and Nalati's storm | Yes: one implementation at once, parity identical on all three shards | 06 S2.4 |
+| 14 | No row merges the NPC rigs | `#kit/npc` is seeded from Pine's rig in S2.5; Nalati's campPeople join in S3.3, and Driftwood's Castaway / Trader in S4.3 | 01 §21, index |
+| 15 | S2.6 also slows Driftwood's far boars and bears | Yes; the M2 creatures board shows it | 06 S2.6 |
+
+## From 02-foundations / 03-harness-gate
+
+| # | Question | Resolution | Applied in |
+|---|---|---|---|
+| 1 | 11 `ChunkDef` fields without a home; the `ground` union; the `style` values | See the 05 / 06 answers above. `ground: { terrain?; structures? }` (at least one); `style: 'toon' \| 'painterly' \| 'pbr' \| 'jiehua' \| 'greybox'` (F6 maps `lowpoly` → `toon`) | 01 §6 |
+| 2 | 26 keys are machine-local or per-tab; `index.html` reads 3 keys before boot; `ws.ota.*` must never be reset | Scopes `device` (never exported or reset) and `session`. Never reset: device / session keys, `ws.ota.*`, and the 3 pre-boot keys (device keys with a tiny reader in `index.html`) | 01 §9 |
+| 3 | Decision 46 keeps 182 of 185 scripts | Jake, decision 88: one-offs of finished asks go, **and any script not run in the last 5 days goes**, unless package.json, a hook, CI, a skill or a doc references it | 02 F7 |
+| 4 | F11 can't remove the `addEventListener` patch (396 listeners depend on it) | Kept, counted by `wildshard/no-global-listener-patch`, and removed when X1 / X2 move the last listeners onto scopes | 01 §24, index F11 |
+| 5 | Kit folder empty at F6; no row for `#kit/npc`; no owner for the 136 `getActiveChunk()` calls; nobody makes Nine Dragon a full shard; F7 runs before F6 | The kit starts empty (it fills as rows move content in). `#kit/npc`: see 05/06 #14. `getActiveChunk()`: the `wildshard/no-active-chunk` ratchet from F8, lowered by every shard phase, 0 at S4.4. **Nine Dragon becomes a full shard in S1.1** (boot packs, prefetch, the every-shard tests; this moves out of X3). The order is **F0 → F3.1 → F1 → F2 → F3.2 → F4 → F5 → F7 → F6 → F8 → F9 → F10 → F11 → F12** | index §4, 01 §24 |
+| 6 | No plugin verb for putting shard handles on the probe | `ctx.debug.expose` | 01 §7 |
+| 7 | Gate coverage: Nine Dragon has no creatures; Pine has no melee weapon; the runner is phone-tier only; loot | **Nine Dragon:** the gate kills a practice-arena dummy. **Pine:** the swing check runs only where the loadout has melee (the shot check covers Pine). **Tiers:** the runner covers phone; the desktop tier runs in the nightly on Jake's Mac. **Loot:** checked as the save keys written after a kill | 03 |
+| 8 | The pin also covers `ota-promote.yml`; the first pin; a GitHub token for the nightly; Rapier +413 KB | **Pin:** yes, it covers `ota-promote.yml`, and the first pin is the build live when F3.1 lands. **Token:** none needed; the nightly posts statuses with the Mac's existing `gh` login (`gh api`). **Rapier:** Jake accepts the +413 KB (decision 89) | 03, 02 F12 |
