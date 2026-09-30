@@ -15,6 +15,11 @@
  *
  * No point lights (plan row 0.3: lights are never added / removed mid-play); glow is emissive-looking unlit colour that
  * blooms, pulsed through the per-instance colour.
+ *
+ * E306 / E315 M1 (second pass): each row's thing is a model (src/models/interact.ts: sea chest, key, pickups, door, lever,
+ * pressure plate, puzzle barrel, beacon, bench, shard altar), placed `drawnInto` the batch that draws it — one placement
+ * per row, so each card counts its copies and VIEW IN WORLD lands on one. The batches stay the kit's (two draws, posed
+ * every frame); so does the collision (moving boxes, the barrel's body).
  */
 import * as THREE from 'three';
 import { lowPolyMaterial } from '../lowpolyKit';
@@ -30,6 +35,9 @@ import { waterLevel } from '../Heightfield';
 import { test, type Flags } from './flags';
 import { autoFlag, type InteractDef, type InteractTable, type Place } from './types';
 import * as Mdl from './models';
+import * as Models from '../../models/interact';
+import { modelContext, type ModelDef, type Placement } from '../../models/model';
+import { place, type Placed } from '../../models/place';
 
 export interface InteractEvent {
   type: 'open' | 'locked' | 'take' | 'lever' | 'door' | 'press' | 'release' | 'light' | 'sit' | 'use' | 'loot' | 'barrel-reset';
@@ -217,6 +225,8 @@ export class Interactables {
   /** a bench was sat on: its world position and facing (the host turns the player to the view) */
   onSit?: (at: THREE.Vector3, yaw: number) => void;
   readonly lives: Live[] = [];
+  /** its rows' models as placed (the named places' sets read them) */
+  readonly placed: Placed[] = [];
   private byId = new Map<string, Live>();
   private batches!: Record<BatchId, THREE.BatchedMesh>;
   private geoIds = new Map<string, { batch: BatchId; id: number }>();
@@ -263,7 +273,54 @@ export class Interactables {
     for (const lv of this.lives) this.placeLive(lv);
     this.unsub = this.host.flags.onChange(() => this.refresh());
     this.refresh(true);
+    this.placeModels();
     return this;
+  }
+
+  /** E315: the rows' models, drawn into the batches (a card per model, a placement per row, no colliders: the kit's) */
+  private placeModels(): void {
+    const ctx = modelContext(this.host.sky), batches = this.batches, placed = this.placed;
+    /** one model's rows: a placement each, and its world box (the thing's size round where it stands) */
+    class Rows<P extends object> {
+      private readonly pls: Placement<P>[] = [];
+      private readonly boxes: number[] = [];
+      constructor(readonly def: ModelDef<P>, readonly batch: BatchId) {}
+      add(lv: Live, params: P, half: readonly [number, number, number], lift = 0, variant?: string): void {
+        const p = lv.home, [hx, hy, hz] = half, cy = p.y + lift + hy;
+        this.pls.push({ x: p.x, y: p.y, z: p.z, yaw: lv.yaw, params, ...(variant === undefined ? {} : { variant }) });
+        this.boxes.push(p.x - hx, cy - hy, p.z - hz, p.x + hx, cy + hy, p.z + hz);
+      }
+      place(): void {
+        if (this.pls.length === 0) return;
+        placed.push(place(this.def, this.pls, { ctx, draw: 'batched', drawnInto: { object: batches[this.batch], boxes: Float32Array.from(this.boxes) }, piece: { id: `interact:${this.def.id}` } }));
+      }
+    }
+    const chest = new Rows(Models.seaChest, 'lit'), key = new Rows(Models.holdKey, 'glow'), door = new Rows(Models.door, 'lit');
+    const lever = new Rows(Models.lever, 'lit'), plate = new Rows(Models.pressurePlate, 'lit'), barrel = new Rows(Models.puzzleBarrel, 'lit');
+    const beacon = new Rows(Models.beacon, 'lit'), bench = new Rows(Models.bench, 'lit'), altar = new Rows(Models.shardAltar, 'lit');
+    const pickups = {
+      flint: new Rows(Models.flintKit, 'lit'), seaglass: new Rows(Models.seaGlass, 'glow'), coin: new Rows(Models.doubloon, 'glow'),
+      resin: new Rows(Models.resinDrop, 'glow'), token: new Rows(Models.carvedToken, 'lit'), shard: new Rows(Models.glyphShard, 'glow'),
+    };
+    const lifts = { flint: 0, seaglass: 0.45, coin: 0.6, resin: 0, token: 0.55, shard: 1.2 };
+    const small = [0.25, 0.25, 0.25] as const;
+    for (const lv of this.lives) {
+      const d = lv.def;
+      switch (d.kind) {
+        case 'chest': { const look = d.look ?? 'chest', D = Mdl.CHEST_DIMS[look]; chest.add(lv, { look, locked: d.lock !== undefined }, [D.w / 2, (D.h + D.lidH) / 2, D.w / 2], 0, look); break; }
+        case 'key': key.add(lv, {}, [0.2, 0.2, 0.2], 0.9); break;
+        case 'pickup': pickups[d.look].add(lv, {}, small, lifts[d.look]); break;
+        case 'door': door.add(lv, { look: d.look, w: d.w, h: d.h }, [d.w / 2 + 0.1, d.h / 2, d.w / 2 + 0.1], 0, d.look); break;
+        case 'lever': lever.add(lv, {}, [0.25, 0.4, 0.25]); break;
+        case 'plate': plate.add(lv, { size: d.size }, [d.size / 2, 0.08, d.size / 2]); break;
+        case 'barrel': barrel.add(lv, {}, [0.4, 0.48, 0.4]); break;
+        case 'beacon': beacon.add(lv, {}, [0.6, 0.7, 0.6]); break;
+        case 'bench': bench.add(lv, {}, [0.9, 0.3, 0.9]); break;
+        case 'altar': altar.add(lv, { sockets: d.fills.length }, [0.8, 0.65, 0.8]); break;
+        default: break;
+      }
+    }
+    for (const r of [chest, key, ...Object.values(pickups), door, lever, plate, barrel, beacon, bench, altar]) r.place();
   }
 
   dispose(): void {
