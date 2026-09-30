@@ -43,7 +43,7 @@ import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
 import { LEVER_MODEL_URL } from '../player/LeverRifle';
 import { KNIFE_MODEL_URL } from '../chunks/pine-hollow/models/skinningKnife';
-import { BIRDS_JSON_URL, BIRDS_URL } from '../pinehollow/life/birdModels';
+import { BIRDS_JSON_URL, birdsUrl } from '../pinehollow/life/birdModels';
 import { NPC_KINDS, npcModelUrl } from '../pinehollow/quest/npcModels';
 import { JOURNAL_SKIN } from '../ui/compendium/shards/pine-hollow';
 import { PERSON_FILE, peopleModelUrl, type PersonKey } from '../nalati/campPeopleModels';
@@ -84,7 +84,7 @@ export function lateReads(def: ChunkDef, tex: TexMode = texMode()): string[] {
     out.push(tierUrl(`${base}island.glb`, tex), `${base}island.json`, `${base}placements.bin`, gpuUrl(`${base}lm-ao${lm}`, tex), gpuUrl(`${base}lm-bounce${lm}`, tex), tierUrl(CAPTAIN_GLB_URL, tex));
   }
   if (def.slug === 'pine-hollow') {
-    out.push(tierUrl(LEVER_MODEL_URL, tex), tierUrl(KNIFE_MODEL_URL, tex), tierUrl(BIRDS_URL, tex), BIRDS_JSON_URL, ...NPC_KINDS.map((k) => tierUrl(npcModelUrl(k), tex)));
+    out.push(tierUrl(LEVER_MODEL_URL, tex), tierUrl(KNIFE_MODEL_URL, tex), tierUrl(birdsUrl(), tex), BIRDS_JSON_URL, ...NPC_KINDS.map((k) => tierUrl(npcModelUrl(k), tex)));
     if (JOURNAL_SKIN.chalk) out.push(JOURNAL_SKIN.chalk.atlas);
   }
   if (def.style === 'painterly') out.push(...Object.keys(PERSON_FILE).filter((k): k is PersonKey => k in PERSON_FILE).map(peopleModelUrl));

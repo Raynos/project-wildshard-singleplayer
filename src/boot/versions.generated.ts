@@ -583,6 +583,7 @@ export const ASSET_VERSIONS: Readonly<Record<string, string>> = {
   "/assets/pine-hollow/journal/scarback.webp": '62057b67',
   "/assets/pine-hollow/journal/white-deer-sil.webp": '072ffc92',
   "/assets/pine-hollow/journal/white-deer.webp": 'f6ae4b66',
+  "/assets/pine-hollow/life/birds-b.phone.glb": '564c88fc',
   "/assets/pine-hollow/life/birds.glb": '08056074',
   "/assets/pine-hollow/life/birds.json": 'f5bd942e',
   "/assets/pine-hollow/life/birds.phone.glb": '5f8dbfaf',

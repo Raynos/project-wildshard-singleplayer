@@ -45,3 +45,27 @@ the tail itself — is gone on all three.
 
 Not touched: the black bear's coat (it reads right); the black hull sits ~0.45 m forward of its skeleton's hips (its hind
 feet at z 0…0.4 against hips at −0.5) — noted, not part of this row.
+
+## Birds (F-M5) — Debug ▸ Creatures & NPCs ▸ Bird fix
+
+Three boards from the real build's Model Explorer (phone tier, iPhone 16 Pro portrait, `scripts/e322-birds-capture.mjs`;
+the owl switched to its flying pose, the woodpecker against a stand-in trunk at its bark):
+
+- `birds-owl.jpg`: the great grey owl in flight, side-on and from below-front. A's body came back from Hunyuan3D-2 a
+  bas-relief (flat side-on). B (`src/pinehollow/life/birdFix.ts` `inflateBody`, at load) pushes the underside down (up to
+  13 cm) and the back up (4 cm) by a smooth field that is zero at the wing roots, the head and the tail, so the breast
+  fills out without spikes on the 900-triangle shell.
+- `birds-woodpecker.jpg`: the pileated woodpecker on its trunk. A stands on the bark on straight legs, tail in the air.
+  B (`clingPose`) leans the body back to the bark, folds the legs up under the breast onto the bark (feet by the belly)
+  and bends the tail down until its tip props on the bark. The pivots move with it.
+- `birds-raven-phone.jpg`: the raven on the phone tier, whole and close. A's phone atlas is the desktop's halved (every
+  tile 256²). B loads `birds-b.phone.glb`: the same meshes on a 1024² atlas that gives the raven's two tiles (and the
+  perched owl's) the desktop's own 512² texels, the rest 256² Lanczos + a light sharpen
+  (`scripts/img2mesh/birds/birds_phone_b.py`). The feather breaks on the head and wing read in B, not in A.
+
+Cost (phone, B only; A is byte-for-byte today): the birds' GLB 200 404 → 275 124 B with images (+73 KB), 555 576 →
+948 100 B as KTX2 (+383 KB); the atlas 1024×512 → 1024² (GPU: ~2.8 → ~5.6 MB RGBA8 with mips, ~0.7 → 1.4 MB ASTC).
+The birds are a late read, not a boot file. Desktop: no new bytes (the fixes are done at load).
+
+Left, visible on the board: B's folded feet catch the light as a thin grey sliver on the bark; the owl's belly is
+shaped by a field, not a new sculpt.

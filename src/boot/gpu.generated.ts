@@ -91,6 +91,7 @@ export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; read
     "/assets/nine-dragon/viewmodel/gauntlet-nrm.phone.webp": "/assets/gpu/nine-dragon/viewmodel/gauntlet-nrm.phone-f8d1632c.ktx2",
     "/assets/nine-dragon/viewmodel/hand-r-maps.phone.webp": "/assets/gpu/nine-dragon/viewmodel/hand-r-maps.phone-0e260f80.ktx2",
     "/assets/nine-dragon/viewmodel/hand-r-nrm.phone.webp": "/assets/gpu/nine-dragon/viewmodel/hand-r-nrm.phone-aa4d7ff1.ktx2",
+    "/assets/pine-hollow/life/birds-b.phone.glb": "/assets/gpu/pine-hollow/life/birds-b.phone-3c606615.glb",
     "/assets/pine-hollow/life/birds.phone.glb": "/assets/gpu/pine-hollow/life/birds.phone-ddaa5402.glb",
     "/assets/pine-hollow/npcs/miller.phone.glb": "/assets/gpu/pine-hollow/npcs/miller.phone-e10b54ef.glb",
     "/assets/pine-hollow/npcs/ranger.phone.glb": "/assets/gpu/pine-hollow/npcs/ranger.phone-91bef3b1.glb",
