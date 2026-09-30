@@ -1,8 +1,6 @@
 # Pine Hollow — follow-ups after the remaster merge
 
-**State:** `draft` 2026-09-28 — everything left on Pine Hollow after PINE-HOLLOW-REMASTER landed on main (archived at
-project/archive/2026-09-25-pine-hollow-remaster.md). Jake: "anything another agent needs to do on Pinewood going forward goes
-into a follow-up plan". **Jake has named only F-J3 (Mott re-rolled as a man: done, `309fe6d`) and closed F-J4 (keep the painted cabin); F-P5 is dropped (E184); nothing else is built from this plan until he names a row.** No row moved since 2026-09-25 (the E162 birds / people / knife model picks, `ed953a1`, landed outside this plan and don't close F-M3 / F-M5). Waits on Jake: a row pick, F-J1 (iPhone reading), F-J2 (a listen); F-U2 is ask N25 (open).
+**State:** `in progress` 2026-09-30 — Jake picked three groups (E322, owner: claude session 341ca5a3 / herdr wildshard-9): the **bug sweep** (E300 arena fault, F-U2 = N25, F-L7, F-L6, F-M7), the **look pass** (F-L2, F-L3, F-L4, F-L5: Debug variants + an iPhone board) and **creatures & hands** (F-M1, F-M2, F-M3, F-M5, F-M6). Not picked: the big lifts (F-B1, F-0.2) and the rest. Rows are being re-audited against main after E315's model migration before the build. Still Jake's: F-J1 (iPhone reading), F-J2 (a listen). Done earlier: F-J3, F-J4; F-P5 dropped (E184).
 Each row names where it came from (the remaster lane that left it) so the next agent can read the evidence.
 
 ## Moved out of the remaster to finish it sooner (PH-U32)
