@@ -14,16 +14,9 @@ import type { World } from '../core/bootstrap';
 import type { ContextValue } from '../ui/review';
 import { measure, type CatalogEntry } from './catalog';
 import type { Explore } from './Explore';
+import { pickTarget, type SelectTarget } from './pick';
 
-/** something a tap can hit: an object (or a batch mesh) and how it maps to a catalog entry + a box */
-export interface SelectTarget {
-  object: THREE.Object3D;
-  /** the catalog entry this hit opens (by id) */
-  entry: string;
-  /** the selection box for a hit at `point` (batches: the one member under the tap); default = the object's box */
-  boxAt?: (point: THREE.Vector3) => THREE.Box3;
-  label?: (point: THREE.Vector3) => string;
-}
+export type { SelectTarget } from './pick';
 
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
@@ -73,21 +66,13 @@ export class Select {
     this.ndc.set((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1);
     this.ray.setFromCamera(this.ndc, camera);
     this.ray.far = 600;
-    let best: { t: SelectTarget; point: THREE.Vector3; d: number } | null = null;
-    for (const t of this.targets) {
-      if (!t.object.visible) continue;
-      const hit = this.ray.intersectObject(t.object, true)[0];
-      if (!hit) continue;
-      // several models drawn as one mesh (a Nalati place, E306 M3) hit alike: the one whose copy is under the finger
-      if (!best || hit.distance < best.d || (hit.distance === best.d && t.boxAt && best.t.boxAt && t.boxAt(hit.point).distanceToPoint(hit.point) < best.t.boxAt(hit.point).distanceToPoint(hit.point))) {
-        best = { t, point: hit.point.clone(), d: hit.distance };
-      }
-    }
+    // each object raycast once; on a kit several models are drawn into, only a copy under the finger takes the tap (E323)
+    const best = pickTarget(this.ray, this.targets);
     if (!best) { this.clear(); return; }
-    const entry = this.entries.find((e) => e.id === best.t.entry);
+    const entry = this.entries.find((e) => e.id === best.target.entry);
     if (!entry) { this.clear(); return; }
-    this.box.copy(best.t.boxAt ? best.t.boxAt(best.point) : new THREE.Box3().setFromObject(best.t.object));
-    this.show(entry, best.t.label?.(best.point) ?? entry.name);
+    this.box.copy(best.box);
+    this.show(entry, best.target.label?.(best.point) ?? entry.name);
   }
 
   /** select a catalog entry directly (VIEW IN WORLD): boxed on the real copy it flew to (E306), else its own object */

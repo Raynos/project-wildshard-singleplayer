@@ -762,6 +762,25 @@ function followCopy<P extends object>(def: ModelDef<P>, copies: number, params: 
   drawn.colliders = out; // (the Placed keeps the placed, world-space ones)
 }
 
+// ── a tap on an object copies are drawn into (E323) ──
+
+/** how far outside a copy's box a tap still lands on it, metres (a hit on its face can round a hair outside) */
+export const CLAIM_MARGIN = 0.15;
+const _claim = new THREE.Box3();
+
+/** the smallest of `p`'s copy boxes holding `pt` (grown by CLAIM_MARGIN), or null when `pt` is on none of them */
+export function claimCopy(p: Placed, pt: THREE.Vector3): THREE.Box3 | null {
+  let best: THREE.Box3 | null = null, bv = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < p.copies; i++) {
+    p.copyBox(i, _claim);
+    if (pt.x < _claim.min.x - CLAIM_MARGIN || pt.x > _claim.max.x + CLAIM_MARGIN || pt.y < _claim.min.y - CLAIM_MARGIN || pt.y > _claim.max.y + CLAIM_MARGIN
+      || pt.z < _claim.min.z - CLAIM_MARGIN || pt.z > _claim.max.z + CLAIM_MARGIN) continue;
+    const s = _claim.getSize(_v), v = s.x * s.y * s.z;
+    if (v < bv) { bv = v; best = (best ?? new THREE.Box3()).copy(_claim); }
+  }
+  return best;
+}
+
 // ── place ──
 
 /** Place copies of a model (see the file header and ./model.ts's migration guide). */
@@ -817,7 +836,9 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   // (the registry's scene listener added it to the scene: under the shard's own group instead)
   o.parent?.add(drawn.object);
   // a tap on any copy selects the model, boxed on the copy under the finger
-  registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()) });
+  registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()),
+    // drawn into an object it shares (a kit, a painted place): a tap is this model's only on one of its copies (E323)
+    ...(o.drawnInto === undefined ? {} : { claim: (pt: THREE.Vector3): THREE.Box3 | null => claimCopy(placed, pt) }) });
   if (split !== undefined && drawn.colliders.length > every) {
     // the rest of the colliders, a task per `every` (collider-only pieces: the object and the catalog entry are on the first)
     registered = (async (): Promise<void> => {

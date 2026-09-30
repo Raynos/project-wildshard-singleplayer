@@ -152,6 +152,12 @@ export interface RegisteredPick {
   entry: string;
   /** the selection box for a hit at `point`; default: the object's box */
   boxAt?: (point: THREE.Vector3) => THREE.Box3;
+  /**
+   * The copy under a hit at `point`, or null when the point is on none of the entry's copies (E323): an object several
+   * things are drawn into (a Nine Dragon kit, a Nalati place's painted mesh) is a model's only where its copy stands; the
+   * rest of it is the world's. Absent: every hit on the object is the entry's.
+   */
+  claim?: (point: THREE.Vector3) => THREE.Box3 | null;
 }
 
 export interface Piece {

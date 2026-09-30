@@ -517,7 +517,7 @@ export class Explore {
 /** what a tap in the World Explorer can hit: every live registered model, the registered batch picks, each live animal */
 function selectTargets(entries: readonly CatalogEntry[], creatures: NonNullable<ExploreHost['creatures']>): SelectTarget[] {
   const out: SelectTarget[] = entries.filter((e) => e.live).map((e) => ({ object: e.object(), entry: e.id }));
-  for (const p of registeredPicks()) out.push({ object: p.object, entry: p.entry, ...(p.boxAt ? { boxAt: p.boxAt } : {}) });
+  for (const p of registeredPicks()) out.push({ object: p.object, entry: p.entry, ...(p.boxAt ? { boxAt: p.boxAt } : {}), ...(p.claim ? { claim: p.claim } : {}) });
   const bySpecies = new Map<string, string>(); // a live animal opens its species' card (E315 M5: the shard's roster model)
   for (const e of entries) if (e.species !== undefined) bySpecies.set(e.species, e.id);
   for (const a of creatures) {
