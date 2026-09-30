@@ -205,7 +205,8 @@ const reefBuild = (kind: Kind) => (ctx: ModelContext, p: ReefParams, rng: Rng): 
 export const coral = defineModel<ReefParams>({
   id: 'driftwood-isle/coral', name: 'Coral clump', category: 'nature', pipeline: 'code',
   file: 'src/chunks/driftwood-isle/models/reef.ts',
-  defaults: { s: 1, rot: 0, v: 0 },
+  // the specimen is the first variant (a brain coral); the lagoon's copies draw their shape from the stream
+  defaults: { s: 1, rot: 0, v: 0, shape: 0 },
   variants: [
     { id: 'brain', label: 'Brain', params: { shape: 0 } }, { id: 'staghorn', label: 'Staghorn', params: { shape: 1, v: 0.3 } },
     { id: 'fan', label: 'Fan', params: { shape: 2, v: 0.45 } }, { id: 'tube', label: 'Tube', params: { shape: 3, v: 0.6 } },
