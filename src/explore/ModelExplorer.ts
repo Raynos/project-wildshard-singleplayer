@@ -11,6 +11,12 @@
  * pinch = zoom; SOLID · WIREFRAME · FACETS · PAINT; DAWN · NOON · DUSK · NIGHT pin the day/night clock; the sheet shows
  * the source file, triangles, draw calls; PART OF names the sets it is in (each opens in the Set Explorer, E315 M7);
  * VIEW IN WORLD hands the model to the World Explorer.
+ *
+ * The turntable's frame (E315, Jake: "too zoomed in" · "the model rendering zone should be the top two thirds of the
+ * screen"): the model renders in the band between the top bars and 2/3 of the screen (or the clip / variant rows, if
+ * higher), the lens shifted onto that band (setView.ts lensShift: the orbit still turns round the model), and it is
+ * fitted there with a margin — the model and the disc it stands on, from every side as it turns, never nearer than
+ * MIN_DIST. The bottom third is the card's: a fixed height for every model (one-line path, name, stats, PART OF, budget).
  */
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
@@ -24,7 +30,7 @@ import type { Animal } from '../entities/Animal';
 import type { DrawnAs, Pipeline } from '../world/registry';
 import { activeClock, type LightPreset, type WorldClock } from '../world/WorldClock';
 import { registeredSets } from './registry';
-import { setsOf } from './setView';
+import { bandWindow, fitOrbit, lensReset, lensShift, setsOf } from './setView';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
@@ -38,6 +44,10 @@ const GAIT: Record<Clip, number> = { idle: 0, walk: 1.3, trot: 3.2, charge: 7, h
 
 /** a mesh with three's default generics (instanceof narrows to Mesh<any>) */
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
+/** something the renderer draws (a mesh, a line, points, a sprite) */
+const drawn = (o: THREE.Object3D): boolean => { const d = o as Partial<THREE.Mesh & THREE.Line & THREE.Points & THREE.Sprite>; return d.isMesh === true || d.isLine === true || d.isPoints === true || d.isSprite === true; };
+/** where isolate puts what it hides: the camera draws layer 0 only */
+const HIDDEN_LAYER = 31;
 /** 86 tris · 5.3k tris */
 const trisLabel = (n: number): string => (n < 1000 ? `${n} tris` : `${(n / 1000).toFixed(1)}k tris`);
 /** the card's badge words (E306: how each model is made) */
@@ -47,6 +57,12 @@ const DRAWN_LABEL: Readonly<Record<DrawnAs, string>> = { single: 'single', merge
 const factsLabel = (e: CatalogEntry): string => `${e.shared === true ? 'SHARED · ' : ''}${e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')} · × ${e.copies.toLocaleString()} ${DRAWN_LABEL[e.drawnAs]}`;
 /** one copy's triangles (a live instanced object measures every instance) */
 const perCopy = (e: CatalogEntry, tris: number): number => (e.live && e.drawnAs === 'instanced' && e.copies > 1 ? Math.round(tris / e.copies) : tris);
+/** the nearest the turntable's camera frames a model from, metres (a 0.4 m hatchet still stands on its disc) */
+const MIN_DIST = 1.1;
+/** the render zone's bottom: two thirds down the screen (the card and its rows have the third below) */
+const ZONE_BOTTOM = 2 / 3;
+/** a path as its folder (it gives way, an ellipsis in the middle of the path) and its file name (it never does) */
+const fileHtml = (path: string): string => { const i = path.lastIndexOf('/') + 1; return `<span class="ws-x-file-dir">${path.slice(0, i)}</span><span class="ws-x-file-name">${path.slice(i)}</span>`; };
 /** the turntable's shadow map, every tier: one model in the map, so 2048 is cheap */
 const STUDIO_SHADOW_MAP = 2048;
 
@@ -73,6 +89,8 @@ export class ModelExplorer implements ExplorePane {
   private view: View = 'solid';
   private light = -1;
   private readonly hidden = new Map<THREE.Object3D, boolean>();
+  /** what isolate moved off the camera's layer, and its layers before */
+  private readonly layered = new Map<THREE.Object3D, number>();
   private readonly swapped = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
   private readonly overlays: THREE.Object3D[] = [];
   private readonly thumbs = new Map<string, HTMLCanvasElement>();
@@ -81,6 +99,14 @@ export class ModelExplorer implements ExplorePane {
   // orbit
   private readonly target = new THREE.Vector3();
   private yaw = 0.7; private pitch = 0.32; private dist = 12; private minDist = 2; private maxDist = 60;
+  /** the fitted distance (the zoom is a ratio of it), the box that is fitted, where the lens is centred (CSS px) */
+  private fitDist = 0;
+  private readonly framed = new THREE.Box3();
+  private lensY = 0;
+  private zone = { top: 0, bottom: 0 };
+  /** frames until the fit is checked: the model's own vertices landed inside the zone (`data-clip`, for the sweep) */
+  private checkFit = 0;
+  private readonly scratch = new THREE.PerspectiveCamera();
   private idle = 0;
   private drag: { id: number; x: number; y: number } | null = null;
   private readonly pointers = new Map<number, { x: number; y: number }>();
@@ -112,16 +138,16 @@ export class ModelExplorer implements ExplorePane {
         <div class="ws-x-creature-row"><span class="ws-x-variants"></span><button type="button" class="ws-x-skel">Skeleton</button><button type="button" class="ws-x-slow">0.5×</button></div>
       </div>
       <div class="ws-x-sheet">
-        <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-step"><button class="ws-x-prev" type="button" aria-label="Previous model">‹</button><button class="ws-x-next" type="button" aria-label="Next model">›</button></span><span class="ws-x-file"></span></div>
+        <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-step"><button class="ws-x-prev" type="button" aria-label="Previous model">‹</button><button class="ws-x-next" type="button" aria-label="Next model">›</button></span></div>
+        <button class="ws-x-file" type="button" aria-label="Source file"></button>
         <div class="ws-x-stats"><span><i>Tris</i><b data-s="tris"></b></span><span><i>Draw calls</i><b data-s="calls"></b></span><span><i>Build</i><b data-s="build"></b></span><span><i>Made with</i><b data-s="made"></b></span><span><i>Copies</i><b data-s="copies"></b></span><span><i>Drawn as</i><b data-s="drawn"></b></span></div>
-        <div class="ws-x-partof" hidden><i>Part of</i><span></span></div>
         <div class="ws-x-budget"><span></span><div class="ws-x-budget-bar"><i></i></div></div>
-        <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
+        <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button><div class="ws-x-partof"><i>Part of</i><span></span></div></div>
       </div>`);
     this.el.append(this.grid, this.sheet);
     // The bottom sheet changes height with iPhone viewport, safe area, text wrapping and localization. Keep the
     // variant and clip controls above its *measured* top, rather than a fixed 208 px from the screen bottom.
-    this.sheetObserver = new ResizeObserver(() => { this.placeVariantControls(); });
+    this.sheetObserver = new ResizeObserver(() => { this.placeVariantControls(); this.refit(false); });
     document.addEventListener('ws:model-ready', (event) => {
       const id = (event as CustomEvent<{ id: string }>).detail.id;
       const entry = this.entries.find((candidate) => candidate.id === id);
@@ -133,6 +159,7 @@ export class ModelExplorer implements ExplorePane {
       if (this.current?.id !== id) return;
       const model = entry.object();
       this.frameModel(model);
+      this.refit(true);
       this.setView(this.view, false);
       const measured = measure(model);
       const set = (key: string, value: string): void => { const node = this.sheet.querySelector<HTMLElement>(`.ws-x-stats b[data-s="${key}"]`); if (node) node.textContent = value; };
@@ -146,6 +173,8 @@ export class ModelExplorer implements ExplorePane {
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
     this.sheet.querySelector('.ws-x-back')?.addEventListener('click', () => { this.openCatalog(); });
+    // the path is one line (its folder gives way in the middle): a tap shows the whole of it
+    this.sheet.querySelector('.ws-x-file')?.addEventListener('click', () => { const e = this.current; if (e) this.explore.toast(e.file); });
     // E181 (Jake: "there's no buttons to go left or right in the catalog"): step through the list the catalog is showing
     this.sheet.querySelector('.ws-x-prev')?.addEventListener('click', () => { this.step(-1); });
     this.sheet.querySelector('.ws-x-next')?.addEventListener('click', () => { this.step(1); });
@@ -289,10 +318,10 @@ export class ModelExplorer implements ExplorePane {
     const m = measure(o);
     const q = (s: string): HTMLElement | null => this.sheet.querySelector<HTMLElement>(s);
     const name = q('.ws-x-name'), file = q('.ws-x-file');
-    if (name) name.textContent = e.name;
-    if (file) file.textContent = e.file;
+    if (name) { name.textContent = e.name; name.title = e.name; }
+    if (file) { file.innerHTML = fileHtml(e.file); file.title = e.file; }
     const worldAction = this.sheet.querySelector<HTMLButtonElement>('.ws-x-inworld');
-    if (worldAction) worldAction.hidden = e.worldView === false;
+    if (worldAction) worldAction.classList.toggle('off', e.worldView === false); // (its room kept: the card never changes height)
     this.renderPartOf(e);
     const step = q('.ws-x-step'); // E181: nothing to step to in a one-model filter, or in a lineup
     if (step) step.hidden = this.lineup !== null || this.shown().length < 2;
@@ -302,6 +331,7 @@ export class ModelExplorer implements ExplorePane {
     set('made', `${e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')}${e.shared === true ? ' · shared' : ''}`); set('copies', `× ${e.copies.toLocaleString()}`); set('drawn', DRAWN_LABEL[e.drawnAs]);
     this.budget(each, m.calls, e.copies);
     this.placeVariantControls();
+    this.refit(true);
   }
 
   /** PART OF (E315 M7): the sets this model is a member of — each opens in the Set Explorer */
@@ -309,7 +339,7 @@ export class ModelExplorer implements ExplorePane {
     const row = this.sheet.querySelector<HTMLElement>('.ws-x-partof'), box = row?.querySelector('span');
     if (!row || !box) return;
     const sets = this.lineup === null ? setsOf(e.id, registeredSets()) : [];
-    row.hidden = sets.length === 0;
+    row.classList.toggle('none', sets.length === 0); // (the row keeps its room: no set reads 'Part of —')
     box.replaceChildren(...sets.map((s) => {
       const b = html('button', '', s.name);
       (b as HTMLButtonElement).type = 'button';
@@ -323,6 +353,7 @@ export class ModelExplorer implements ExplorePane {
     this.closeLineup();
     this.setSkeleton(false, false);
     if (!this.current) { this.unisolate(); return; }
+    if (lensReset(this.world.game.camera)) this.world.game.sky.csm.updateFrustums();
     this.setView('solid', false);
     this.restoreLight();
     this.releaseShadows();
@@ -348,6 +379,9 @@ export class ModelExplorer implements ExplorePane {
         if (node.parent === this.studio && !this.fresh.has(c)) continue; // the studio's own children are the stage
         if (!this.hidden.has(c)) this.hidden.set(c, c.visible);
         c.visible = c instanceof THREE.Light;
+        // (and every drawn thing under it off the camera's layer: Pine Hollow's forest bands and cells are culled per frame,
+        // their cullers set `visible` back on, never `layers` — they floated behind the turntable)
+        if (!(c instanceof THREE.Light)) c.traverse((d) => { if (drawn(d) && !this.layered.has(d)) { this.layered.set(d, d.layers.mask); d.layers.set(HIDDEN_LAYER); } });
       }
       if (node.parent === scene) break;
     }
@@ -358,6 +392,8 @@ export class ModelExplorer implements ExplorePane {
   private unisolate(): void {
     for (const [c, v] of this.hidden) c.visible = v;
     this.hidden.clear();
+    for (const [d, m] of this.layered) d.layers.mask = m;
+    this.layered.clear();
     this.studio.visible = false;
     if (this.savedBackground !== undefined) {
       this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined;
@@ -394,22 +430,66 @@ export class ModelExplorer implements ExplorePane {
   }
 
   private frameModel(o: THREE.Object3D): void {
-    const box = new THREE.Box3().setFromObject(o);
+    const box = visibleBox(o);
     const size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
-    const r = Math.max(size.x, size.z) * 0.5;
+    const r = Math.max(size.x, size.z) * 0.5, disc = Math.max(0.5, r * 1.3);
     this.floor.position.set(centre.x, box.min.y, centre.z);
-    this.floor.scale.setScalar(Math.max(0.8, r * 1.18));
+    this.floor.scale.setScalar(disc);
     this.contact.position.set(centre.x, box.min.y + 0.004, centre.z);
-    this.contact.scale.set(Math.max(0.4, size.x * 0.62), 1, Math.max(0.4, size.z * 0.62));
-    // aim below the centre so the model rides above the bottom sheet
-    this.target.copy(centre); this.target.y -= size.y * 0.18;
-    const cam = this.world.game.camera;
-    const vHalf = Math.tan((cam.fov * Math.PI) / 360), hHalf = vHalf * cam.aspect;
-    const fit = Math.max(r / (0.8 * hHalf), (size.y * 0.5) / (0.55 * vHalf)) + r * 0.6; // ≈ 60 % of a portrait screen's width
-    this.dist = fit; this.minDist = Math.max(0.6, fit * 0.15); this.maxDist = fit * 3;
+    this.contact.scale.set(Math.max(0.3, size.x * 0.62), 1, Math.max(0.3, size.z * 0.62));
+    // what the turntable frames: the model and the disc it stands on (refit), turning round their middle
+    this.framed.copy(box).union(new THREE.Box3(new THREE.Vector3(centre.x - disc, box.min.y - 0.06, centre.z - disc), new THREE.Vector3(centre.x + disc, box.min.y, centre.z + disc)));
+    this.framed.getCenter(this.target);
     // open on the lit side: the camera sits between the sun and the model, a little off-axis so the form reads
     const sun = this.world.game.sky.sunDir;
     this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = 0.3; this.idle = 0;
+  }
+
+  /**
+   * The render zone (the band between the top bars and 2/3 of the screen, or the clip / variant rows when they reach
+   * higher), the lens shifted onto it, and the model + disc fitted inside it with a margin from every side of the turn.
+   * `reset`: the fitted distance; else the zoom keeps its ratio (the screen or the card changed size).
+   */
+  private refit(reset: boolean): void {
+    if (this.current === null || this.el.dataset['view'] !== 'model') return;
+    const { camera: cam, canvas } = this.world.game, H = canvas.clientHeight || innerHeight;
+    const bottomOf = (s: string): number => { const r = this.el.querySelector(s)?.getBoundingClientRect(); return r && r.height > 0 ? r.bottom : 0; };
+    const topOf = (s: string): number => { const r = this.el.querySelector(s)?.getBoundingClientRect(); return r && r.height > 0 ? r.top : H; };
+    const top = Math.max(document.querySelector('.ws-x-top')?.getBoundingClientRect().bottom ?? 60, bottomOf('.ws-x-views'), bottomOf('.ws-x-lights')) + 8;
+    const rows = this.sheet.classList.contains('creature') || this.sheet.classList.contains('variant') ? topOf('.ws-x-creature') : H;
+    const bottom = Math.max(top + 160, Math.min(H * ZONE_BOTTOM, rows - 8, topOf('.ws-x-sheet') - 8));
+    this.lensY = (top + bottom) / 2;
+    this.zone = { top, bottom };
+    this.lens();
+    this.scratch.copy(cam); this.scratch.updateProjectionMatrix();
+    const turns = this.lineup === null; // (the lineup is seen from one side)
+    const fit = Math.max(MIN_DIST, fitOrbit(this.framed, this.scratch, this.pitch, bandWindow(top, bottom, H, 0.1, 0.72), turns ? 8 : 1, turns ? 0 : this.yaw, 0));
+    const k = reset || this.fitDist <= 0 ? 1 : this.dist / this.fitDist;
+    this.fitDist = fit; this.dist = fit * k; this.minDist = Math.max(0.4, fit * 0.3); this.maxDist = fit * 3;
+    this.el.dataset['fit'] = String(Number(fit.toFixed(2))); // (a capture script reads it)
+    if (reset) this.checkFit = 4; // (a few frames on: a rig's bones are posed by then)
+  }
+
+  /** is any vertex of the model on show outside the render zone from where the camera stands now? */
+  private clipped(): boolean {
+    const e = this.current;
+    if (!e) return false;
+    const { camera, canvas } = this.world.game, W = canvas.clientWidth || innerWidth, H = canvas.clientHeight || innerHeight;
+    const b = visibleBox(e.object()), v = new THREE.Vector3();
+    if (b.isEmpty()) return false;
+    camera.updateMatrixWorld();
+    for (let i = 0; i < 8; i++) {
+      v.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).project(camera);
+      const x = ((v.x + 1) / 2) * W, y = ((1 - v.y) / 2) * H;
+      if (x < 0 || x > W || y < this.zone.top || y > this.zone.bottom) return true;
+    }
+    return false;
+  }
+
+  /** the lens on the render zone (again each frame: the other pane may have reset it as the tabs switched) */
+  private lens(): void {
+    const { camera, canvas } = this.world.game;
+    if (lensShift(camera, canvas.clientWidth || innerWidth, canvas.clientHeight || innerHeight, this.lensY)) this.world.game.sky.csm.updateFrustums();
   }
 
   /**
@@ -555,14 +635,12 @@ export class ModelExplorer implements ExplorePane {
     this.lineup = lineup;
     this.sheet.classList.remove('creature'); this.sheet.classList.add('lineup');
     // frame the row itself (skinned bounds are loose): its span across the width, the tallest up the height
-    const cam = this.world.game.camera;
     const span = x - first.position.x + 1.2, tall = rows.reduce((m, r) => Math.max(m, r.h.y), 0);
-    const vHalf = Math.tan((cam.fov * Math.PI) / 360), hHalf = vHalf * cam.aspect;
-    this.target.set((first.position.x + x) / 2, base + tall * 0.35, z0);
-    this.dist = Math.max((span * 0.5) / (0.9 * hHalf), (tall * 0.5) / (0.45 * vHalf)) + 1;
-    this.minDist = this.dist * 0.3; this.maxDist = this.dist * 3;
-    this.floor.position.set(this.target.x, base, z0); this.floor.scale.setScalar(span * 0.62);
     this.yaw = 0.18; this.pitch = 0.14;
+    this.framed.set(new THREE.Vector3(first.position.x - 0.6, base, z0 - 1), new THREE.Vector3(x + 0.6, base + tall, z0 + 1));
+    this.framed.getCenter(this.target);
+    this.floor.position.set(this.target.x, base, z0); this.floor.scale.setScalar(span * 0.62);
+    this.refit(true); // (the row, from this one side: it doesn't turn)
   }
 
   private closeLineup(): void {
@@ -683,12 +761,14 @@ export class ModelExplorer implements ExplorePane {
     const { camera } = this.world.game;
     const e = this.current;
     if (e) {
+      this.lens();
       this.fitShadows();
       this.idle += dt;
       if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0 && this.lineup === null) this.yaw += dt * 0.22; // the turntable turns while you look (not while comparing tiers / the lineup)
       const cp = Math.cos(this.pitch);
       camera.position.set(this.target.x + Math.sin(this.yaw) * cp * this.dist, this.target.y + Math.sin(this.pitch) * this.dist, this.target.z + Math.cos(this.yaw) * cp * this.dist);
       camera.lookAt(this.target);
+      if (this.checkFit > 0 && --this.checkFit === 0) this.el.dataset['clip'] = this.clipped() ? 'clip' : 'ok';
       const a = e.animal;
       if (a?.alive === true) a.setMotion(a.yaw, GAIT[this.clip]);
       e.tick?.((this.slow ? 0.5 : 1) * dt, performance.now() / 1000);
@@ -736,16 +816,13 @@ export class ModelExplorer implements ExplorePane {
     this.isolate(o);
     this.frameModel(o);
     const cp = Math.cos(this.pitch);
-    // the card is a 4:3 centre crop: on a portrait screen it spans the full width (frameModel's width fit holds), on a
-    // landscape one the full height — frame on the model's own centre, not the turntable's raised aim
+    // the card is a 4:3 centre crop: the model's own box fitted into it, width and height, with a margin
     const bb = new THREE.Box3().setFromObject(o);
     bb.getCenter(this.target);
     const src = game.canvas, k = Math.min(src.width / THUMB_W, src.height / THUMB_H);
     const sw = THUMB_W * k, sh = THUMB_H * k;
-    // a tall model (the training dummy, E289) must fit the crop's height too, not only its width: back off until it does
-    const size = bb.getSize(new THREE.Vector3());
-    const tanV = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * (sh / src.height);
-    const d = Math.max(this.dist * (cam.aspect < 1 ? 1.08 : 0.8), (size.y * 0.56) / Math.max(0.05, tanV) + size.z / 2);
+    this.scratch.copy(cam); this.scratch.clearViewOffset();
+    const d = fitOrbit(bb, this.scratch, this.pitch, { x0: -(sw / src.width) * 0.84, x1: (sw / src.width) * 0.84, y0: -(sh / src.height) * 0.8, y1: (sh / src.height) * 0.8 }, 1, this.yaw, 0);
     cam.position.set(this.target.x + Math.sin(this.yaw) * cp * d, this.target.y + Math.sin(this.pitch) * d, this.target.z + Math.cos(this.yaw) * cp * d);
     cam.lookAt(this.target);
     game.shardFrame(); // the shard's per-frame uniforms for this eye (Nine Dragon's fog), not the last frame's
@@ -772,9 +849,42 @@ export class ModelExplorer implements ExplorePane {
   }
 }
 
+/**
+ * The box of what a model draws: its visible meshes only (a card's other weapons, a rig's hidden parts don't widen it —
+ * Nine Dragon's arms read small on a disc sized for all of them), from their vertices (a rig as posed) up to 200 k of
+ * them, else their geometry's box.
+ */
+function visibleBox(o: THREE.Object3D): THREE.Box3 {
+  const box = new THREE.Box3(), part = new THREE.Box3(), v = new THREE.Vector3();
+  o.updateWorldMatrix(true, true);
+  o.traverseVisible((c) => {
+    if (!isMesh(c)) return;
+    const im = c as Partial<THREE.InstancedMesh & THREE.BatchedMesh>;
+    if (im.isBatchedMesh === true) { // (its geometry holds every batched shape in its own frame: the batch's box)
+      const m = c as THREE.BatchedMesh;
+      m.computeBoundingBox();
+      if (m.boundingBox) box.union(part.copy(m.boundingBox).applyMatrix4(c.matrixWorld));
+      return;
+    }
+    if (im.isInstancedMesh === true) {
+      const m = c as THREE.InstancedMesh;
+      if (m.count === 0) return;
+      m.computeBoundingBox();
+      if (m.boundingBox) box.union(part.copy(m.boundingBox).applyMatrix4(c.matrixWorld));
+      return;
+    }
+    const pos = c.geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
+    if (pos === undefined) return;
+    if (pos.count <= 200_000) { for (let i = 0; i < pos.count; i++) box.expandByPoint(c.getVertexPosition(i, v).applyMatrix4(c.matrixWorld)); return; }
+    if (c.geometry.boundingBox === null) c.geometry.computeBoundingBox();
+    if (c.geometry.boundingBox) box.union(part.copy(c.geometry.boundingBox).applyMatrix4(c.matrixWorld));
+  });
+  return box.isEmpty() ? box.setFromObject(o) : box;
+}
+
 /** the studio's backdrop: deep blue at the horizon line, near-black above and below (a canvas the renderer stretches to the screen) */
 let backdrop: THREE.CanvasTexture | null = null;
-function studioBackdrop(): THREE.CanvasTexture {
+export function studioBackdrop(): THREE.CanvasTexture {
   if (backdrop) return backdrop;
   const c = document.createElement('canvas'); c.width = 256; c.height = 512;
   const g = c.getContext('2d');

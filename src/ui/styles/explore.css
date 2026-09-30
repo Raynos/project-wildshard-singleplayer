@@ -401,3 +401,33 @@
   .ws-x-setname { font-size: 17px; }
   .ws-x-setstats b { font-size: 14px; }
 }
+
+/* ─── the Model Explorer's card at one height for every model (E315, Jake: "how do we make it a fixed-height card?") ───
+   every row is one line of a set height: the name (and ‹ ›) on the head row, cut with an ellipsis; the path on one line,
+   its folder giving way in the middle (tap it: the whole path); the stats; the budget; VIEW IN WORLD and PART OF on one
+   row, kept even when empty. It sits in the bottom third; the model renders in the band above (ModelExplorer.refit) */
+.ws-x-sheet { gap: 6px; padding: 9px 12px 10px; }
+.ws-x-sheet-head { flex-wrap: nowrap; align-items: center; gap: 8px; min-width: 0; height: 32px; }
+.ws-x-sheet-head .ws-x-back { flex: none; padding: 5px 7px; font-size: 9.5px; }
+.ws-x-sheet-head b { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; }
+.ws-x-sheet-head .ws-x-step { margin-left: 0; }
+.ws-x-sheet-head .ws-x-step button { height: 32px; }
+.ws-x-file { display: flex; flex: none; min-width: 0; height: 14px; padding: 0; background: none; border: 0; font-size: 10.5px; line-height: 14px; letter-spacing: 0.02em; text-align: left; color: var(--ws-text-dim); cursor: pointer; }
+.ws-x-file-dir { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-x-file-name { flex: none; white-space: nowrap; color: var(--ws-text); }
+.ws-x-stats span { box-sizing: border-box; height: 36px; justify-content: center; padding: 4px 7px; min-width: 0; }
+.ws-x-stats i { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-x-stats b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-x-budget { flex: none; height: 16px; gap: 3px; }
+.ws-x-actions { flex: none; align-items: center; gap: 10px; height: 30px; min-width: 0; }
+.ws-x-actions .ws-x-inworld { flex: none; padding: 7px 11px; font-size: 10px; }
+.ws-x-actions .ws-x-inworld.off { visibility: hidden; }
+.ws-x-actions .ws-x-partof { flex: 1 1 auto; flex-wrap: nowrap; min-width: 0; overflow: hidden; }
+.ws-x-partof i { flex: none; }
+.ws-x-actions .ws-x-partof span { display: flex; gap: 4px; min-width: 0; overflow: hidden; }
+.ws-x-partof button { flex: none; }
+.ws-x-partof.none span::after { content: '—'; color: var(--ws-text-dim); }
+@media (max-width: 700px) {
+  .ws-x-sheet { padding: 8px 10px 9px; }
+  .ws-x-sheet-head b { font-size: 15px; letter-spacing: 0.1em; }
+}

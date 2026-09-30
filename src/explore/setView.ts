@@ -29,6 +29,36 @@ export function poseOrbit(cam: THREE.PerspectiveCamera, centre: THREE.Vector3, y
   cam.updateMatrixWorld();
 }
 
+/**
+ * Shift the lens (E315, Jake: "the model rendering zone should be the top two thirds of the screen"): the view's centre —
+ * where whatever the camera looks at lands — moves to `cy` CSS px from the top of a `w` × `h` screen, by a view offset,
+ * so an orbit still turns round what it looks at while it sits in the zone above a bottom sheet. The same camera pose
+ * sees the same things; only the frame slides. True when it changed the projection (a CSM's frustums follow it).
+ */
+export function lensShift(cam: THREE.PerspectiveCamera, w: number, h: number, cy: number): boolean {
+  const s = Math.round(h / 2 - cy);
+  const v = cam.view;
+  if (s === 0) return lensReset(cam);
+  // a frame taller by 2|s| (and wider in proportion, so nothing stretches), the screen a window slid into it
+  const fullH = h + 2 * Math.abs(s), fullW = (w * fullH) / h, x = (fullW - w) / 2, y = fullH / 2 - (h / 2 - s);
+  if (v?.enabled === true && v.fullWidth === fullW && v.fullHeight === fullH && v.offsetX === x && v.offsetY === y && v.width === w && v.height === h) return false;
+  cam.setViewOffset(fullW, fullH, x, y, w, h);
+  return true;
+}
+
+/** the lens back on the middle; true when it changed */
+export function lensReset(cam: THREE.PerspectiveCamera): boolean {
+  if (cam.view?.enabled !== true) return false;
+  cam.clearViewOffset();
+  return true;
+}
+
+/** a screen band (CSS px from the top) as an NDC window, `margin` of its height kept clear on every side */
+export function bandWindow(top: number, bottom: number, h: number, margin = 0.08, x = 0.8): NdcWindow {
+  const m = (bottom - top) * margin;
+  return { x0: -x, x1: x, y0: 1 - (2 * (bottom - m)) / h, y1: 1 - (2 * (top + m)) / h };
+}
+
 const _corners = Array.from({ length: 8 }, () => new THREE.Vector3());
 const _p = new THREE.Vector3();
 
@@ -43,8 +73,12 @@ function cornersOf(box: THREE.Box3): THREE.Vector3[] {
  * every side, as the view turns while you look; 1: this one view), at this pitch. `cam` is a scratch camera with the game
  * camera's fov and aspect (its projection up to date).
  */
-export function fitOrbit(box: THREE.Box3, cam: THREE.PerspectiveCamera, pitch: number, win: NdcWindow, yaws = 12, yaw0 = 0): number {
-  const centre = box.getCenter(new THREE.Vector3()), lift = liftOf(win), corners = cornersOf(box);
+export function fitOrbit(box: THREE.Box3, cam: THREE.PerspectiveCamera, pitch: number, win: NdcWindow, yaws = 12, yaw0 = 0, lift = liftOf(win)): number {
+  return fitPoints(box.getCenter(new THREE.Vector3()), cornersOf(box).map((c) => c.clone()), cam, pitch, win, yaws, yaw0, lift);
+}
+
+/** fitOrbit for any points round `centre` (a diorama's rim is a circle: its box's corners would over-fit it by √2) */
+export function fitPoints(centre: THREE.Vector3, corners: readonly THREE.Vector3[], cam: THREE.PerspectiveCamera, pitch: number, win: NdcWindow, yaws = 12, yaw0 = 0, lift = liftOf(win)): number {
   const fits = (d: number): boolean => {
     for (let k = 0; k < yaws; k++) {
       poseOrbit(cam, centre, yaw0 + (k / yaws) * Math.PI * 2, pitch, d, lift);
@@ -55,7 +89,8 @@ export function fitOrbit(box: THREE.Box3, cam: THREE.PerspectiveCamera, pitch: n
     }
     return true;
   };
-  const r = Math.max(1, box.getSize(_p).length() / 2);
+  let r = 1;
+  for (const c of corners) r = Math.max(r, c.distanceTo(centre));
   let lo = r * 0.2, hi = r * 2;
   for (let i = 0; i < 16 && !fits(hi); i++) { lo = hi; hi *= 2; }
   for (let i = 0; i < 22; i++) { const mid = (lo + hi) / 2; if (fits(mid)) hi = mid; else lo = mid; }

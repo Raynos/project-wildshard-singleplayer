@@ -7,7 +7,7 @@ import { WorldRegistry, type RegisteredSet } from '../src/world/registry';
 import { defineModel, modelContext } from '../src/models/model';
 import { place } from '../src/models/place';
 import { placeSet } from '../src/models/sets';
-import { boxEdges, copyBoxes, drawnRoots, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '../src/explore/setView';
+import { bandWindow, boxEdges, copyBoxes, drawnRoots, lensReset, lensShift, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '../src/explore/setView';
 
 const ctx = modelContext(null);
 const mat = new THREE.MeshBasicMaterial();
@@ -93,6 +93,29 @@ describe('the Sets explorer', () => {
     expect(orderSets(sets, 'size', 250).map((r) => r.info.set.id)).toEqual(['Cove', 'Lookout', 'Wreck', 'Pier', 'Hut', 'Ghost']);
     expect(pendingOf(none.set)).toEqual(['a/b']);
     expect(pendingOf(at('x', 0, 0, 1).set)).toEqual([]);
+  });
+
+  it('the lens shifts onto a band above the sheet: what the camera looks at lands in its middle, nothing stretched', () => {
+    const cam = new THREE.PerspectiveCamera(72, 402 / 874, 0.08, 2600);
+    const target = new THREE.Vector3(0, 1, 0);
+    expect(lensShift(cam, 402, 874, 874 / 2)).toBe(false); // the middle: no shift
+    expect(lensShift(cam, 402, 874, 330)).toBe(true);
+    expect(lensShift(cam, 402, 874, 330)).toBe(false); // (again: nothing to change)
+    poseOrbit(cam, target, 0.7, 0.3, 5, 0);
+    const p = target.clone().project(cam);
+    expect(p.x).toBeCloseTo(0, 6);
+    expect(((1 - p.y) / 2) * 874).toBeCloseTo(330, 3);
+    // a unit step right and a unit step up cover the same pixels (the frame widened with its height)
+    const r = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion).add(target).project(cam);
+    const u = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion).add(target).project(cam);
+    expect((r.x - p.x) * 402).toBeCloseTo((u.y - p.y) * 874, 3);
+    expect(lensReset(cam)).toBe(true);
+    expect(cam.view?.enabled ?? false).toBe(false);
+    expect(lensReset(cam)).toBe(false); // (already on the middle)
+    const win = bandWindow(100, 500, 874, 0.1, 0.8);
+    expect(win.x1).toBe(0.8);
+    expect(((1 - win.y1) / 2) * 874).toBeCloseTo(140, 6);
+    expect(((1 - win.y0) / 2) * 874).toBeCloseTo(460, 6);
   });
 
   it('marks: twelve edges a box, every end on its corners', () => {
