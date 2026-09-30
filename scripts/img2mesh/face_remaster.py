@@ -34,6 +34,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--body", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--neck", type=float, required=True)
+ap.add_argument("--neck-exact", action="store_true", help="E304: cut at --neck itself (no narrowest-section search: the "
+                "King's hood is narrower at the face than at the neck)")
 ap.add_argument("--tex", type=int, default=1024)
 ap.add_argument("--head-scale", type=float, default=1.4)
 ap.add_argument("--face-scale", type=float, default=5.0)
@@ -47,10 +49,21 @@ ap.add_argument("--bust-dy", type=float, default=0.0, help="nudge the bust forwa
 ap.add_argument("--head-tris", type=int, default=4000)
 ap.add_argument("--bust-beard", type=float, nargs=2, default=[0.0, 0.0], help="keep a front strip below the cut: half-width, depth (fractions of H)")
 ap.add_argument("--no-weld", action="store_true")
+ap.add_argument("--bust-collar", type=float, nargs=2, default=None, help="E304: drop the bust's collar and shoulders: its faces "
+                "below the cut + <h> farther than <r> from the head's axis (both fractions of H; the beard strip is kept)")
+ap.add_argument("--keep-above", type=float, default=None,
+                help="E304: keep the body's own head above this height (fraction of H: the Golden King's tall hat); the bust "
+                     "is cut there, and scaled so --bust-top lands on it")
+ap.add_argument("--bust-top", type=float, default=None, help="with --keep-above: the bust point (fraction of its height from "
+                "the top) that meets the kept part (the King's gold hood frame)")
+ap.add_argument("--bust-overlap", type=float, default=0.006, help="with --keep-above: the bust reaches this far (fraction of "
+                "H) over the cut, into the kept hat, so no gap shows")
 ap.add_argument("--bust-image", default=None, help="the cutout the bust was generated from: projected on its front")
 ap.add_argument("--paint", default=None)
 ap.add_argument("--smooth-face", type=float, default=0.0, help="0..1: bend the face normals toward a head ellipsoid")
 ap.add_argument("--front", default=None)
+ap.add_argument("--normal-map", action="store_true", help="E304 (Pine Hollow, PBR): also bake a tangent-space normal map from "
+                "the hi sources (the body's own normal map included) and export it")
 a = ap.parse_args(argv)
 
 
@@ -209,6 +222,8 @@ for z in np.arange(zmin + (a.neck - 0.07) * H, zmin + (a.neck + 0.05) * H, 0.005
     w = np.abs(band[:, 0]).max()
     if w < best:
         best, zc = w, z
+if a.neck_exact:
+    zc, best = zmin + a.neck * H, float("nan")
 head_sel = V[:, 2] > zc
 hc = V[head_sel].mean(0)
 log(f"body {os.path.basename(a.body)}: H {H:.3f} m, neck cut z {zc - zmin:.3f} ({(zc - zmin) / H:.3f} H), half-width {best:.3f}, "
@@ -227,7 +242,9 @@ if a.graft:
     B = verts_np(bust)
     bt, bb = B[:, 2].max(), B[:, 2].min()
     bc = bt - a.bust_neck * (bt - bb)
-    s = (zmax - zc) / max(1e-6, bt - bc) * a.bust_grow
+    ztop = zmax if a.keep_above is None else zmin + a.keep_above * H
+    btop = bt if a.bust_top is None else bt - a.bust_top * (bt - bb)
+    s = (ztop - zc) / max(1e-6, btop - bc) * a.bust_grow
     # centre: the bust's head (above its neck) on the old head, horizontally; its neck on the cut
     bh = B[B[:, 2] > bc]
     bcx, bcy = bh[:, 0].mean(), bh[:, 1].mean()
@@ -235,17 +252,40 @@ if a.graft:
     bust.data.transform(M); bust.data.update()
     if a.bust_image:
         project_portrait(bust, a.bust_image, zc)
+    if a.keep_above is not None:
+        # the kept hat flares at its foot to the bust's width there (tapering to nothing at its tip), so the two meet
+        def half_w(Vx, z):
+            b_ = Vx[np.abs(Vx[:, 2] - z) < 0.01 * H]
+            return (b_[:, 0].max() - b_[:, 0].min()) / 2 if len(b_) else 0.0, (b_[:, 1].max() - b_[:, 1].min()) / 2 if len(b_) else 0.0
+        bwx, bwy = half_w(verts_np(bust), ztop)
+        hwx, hwy = half_w(V, ztop)
+        kx, ky = (bwx / hwx if hwx > 0 else 1.0), (bwy / hwy if hwy > 0 else 1.0)
+        for ob_ in (body,):
+            for v_ in ob_.data.vertices:
+                if v_.co.z > ztop - 0.01 * H:
+                    f_ = max(0.0, 1 - (v_.co.z - ztop) / max(1e-6, zmax - ztop))
+                    v_.co.x = hc[0] + (v_.co.x - hc[0]) * (1 + (kx - 1) * f_)
+                    v_.co.y = hc[1] + (v_.co.y - hc[1]) * (1 + (ky - 1) * f_)
+            ob_.data.update()
+        log(f"kept hat above {ztop - zmin:.3f}: its foot flared x{kx:.2f} / y{ky:.2f} to the bust's")
     clip = zc - a.bust_clip * H
     bw, bd = a.bust_beard
     # a beard hangs over the chest: keep the bust's front strip down to bd below the cut (bw wide) so the new beard
     # covers the old one
     k = delete_faces(bust, lambda c: c.z < clip and not (bw > 0 and abs(c.x - hc[0]) < bw * H and c.z > zc - bd * H and c.y < hc[1] - 0.02 * H))
+    if a.keep_above is not None:
+        k += delete_faces(bust, lambda c: c.z > ztop + a.bust_overlap * H)
+    if a.bust_collar is not None:
+        ch, cr = a.bust_collar
+        k += delete_faces(bust, lambda c: c.z < zc + ch * H and math.hypot(c.x - hc[0], c.y - hc[1]) > cr * H
+                          and not (bw > 0 and abs(c.x - hc[0]) < bw * H and c.y < hc[1] - 0.02 * H))
     log(f"bust {os.path.basename(a.graft)}: scale {s:.4f}, neck at {a.bust_neck:.2f} of its height, clipped {k} faces below {clip - zmin:.3f}")
     # the body keeps what is under the cut
     body_hi = body.copy(); body_hi.data = body.data.copy(); body_hi.name = "body_hi"
     bpy.context.collection.objects.link(body_hi)
     in_beard = lambda c: bw > 0 and abs(c.x - hc[0]) < bw * H * 0.9 and c.z > zc - bd * H * 0.9 and c.y < hc[1] - 0.03 * H
-    k = delete_faces(body, lambda c: c.z > zc or in_beard(c))                  # the old beard goes with the old head
+    kept = (lambda c: False) if a.keep_above is None else (lambda c: c.z > ztop)
+    k = delete_faces(body, lambda c: (c.z > zc and not kept(c)) or in_beard(c))  # the old beard goes with the old head
     log(f"body: {k} head faces removed")
     # low bust: decimated copy
     bust_lo = bust.copy(); bust_lo.data = bust.data.copy(); bust_lo.name = "bust_lo"
@@ -280,7 +320,7 @@ if a.graft:
     bm.to_mesh(bust_lo.data); bm.free(); bust_lo.data.update()
     log(f"bust: {ntris(bust_lo)} tris after the collapse, {len(flip)} flipped faces turned back")
     # hi = the untouched body minus its head + the full bust; low = the body minus its head + the decimated bust
-    delete_faces(body_hi, lambda c: c.z > zc or in_beard(c))
+    delete_faces(body_hi, lambda c: (c.z > zc and not kept(c)) or in_beard(c))
     his = [body_hi, bust]
     for o in bpy.context.scene.objects:
         o.select_set(o in (body, bust_lo))
@@ -393,6 +433,18 @@ bpy.context.view_layer.objects.active = low
 ext = float(os.environ.get("BAKE_EXT", "0.012")) * H
 bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"}, use_selected_to_active=True, cage_extrusion=ext,
                     max_ray_distance=ext * 4, margin=3, margin_type="EXTEND")   # margin < padding / 2: no chart's margin runs into its neighbour
+nimg = None
+if a.normal_map:
+    nimg = bpy.data.images.new("normal", a.tex, a.tex, alpha=False)
+    nimg.colorspace_settings.name = "Non-Color"
+    ntex = nt.nodes.new("ShaderNodeTexImage"); ntex.image = nimg
+    nt.nodes.active = ntex
+    bpy.ops.object.bake(type="NORMAL", normal_space="TANGENT", use_selected_to_active=True, cage_extrusion=ext,
+                        max_ray_distance=ext * 4, margin=3, margin_type="EXTEND")
+    nmap = nt.nodes.new("ShaderNodeNormalMap")
+    nt.links.new(ntex.outputs["Color"], nmap.inputs["Color"]); nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
+    nt.nodes.active = tex
+    log("normal map baked (tangent space)")
 for o in his:
     bpy.data.objects.remove(o)
 
@@ -542,6 +594,14 @@ img.pixels.foreach_set(col.ravel())
 log(f"gutters filled: {(~cov).mean():.2f} of the atlas was off the charts")
 img.file_format = "PNG"
 img.pack()
+if nimg is not None:
+    npx = np.empty(a.tex * a.tex * 4, dtype=np.float32); nimg.pixels.foreach_get(npx)
+    ncol = npx.reshape(a.tex, a.tex, 4)
+    if os.environ.get("NO_FILL") != "1":
+        ncol[..., :3] = push_pull(ncol[..., :3].copy(), cov)
+    nimg.pixels.foreach_set(ncol.ravel())
+    nimg.file_format = "PNG"
+    nimg.pack()
 # smooth shading, hard only past 50° (the join + weld dropped the imported normals: a grafted head came out faceted, every
 # decimated triangle its own flat patch under the cel bands — rings round the eyes, shards in a beard)
 for o in bpy.context.scene.objects:
@@ -579,7 +639,8 @@ bpy.context.view_layer.objects.active = low
 # head's face narrower than the neck and bent the face across the eyes whenever the head turned (a crease under the brows)
 low["neckCut"] = round(float((zc - zmin) / H), 4)
 bpy.ops.export_scene.gltf(filepath=a.out, export_format="GLB", use_selection=True, export_image_format="AUTO",
-                          export_yup=True, export_apply=True, export_extras=True)
+                          export_yup=True, export_apply=True, export_extras=True,
+                          export_tangents=a.normal_map)
 json.dump({"tris": ntris(low), "verts": len(low.data.vertices), "neck_cut": round(float((zc - zmin) / H), 4),
            "head_share": round(float(ha / max(ta, 1e-9)), 3), "height": round(float(H), 3)}, open(a.out + ".json", "w"), indent=1)
 log(f"{a.out}: {ntris(low)} tris, {len(low.data.vertices)} verts")

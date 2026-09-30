@@ -2,11 +2,14 @@
  * The camp's people as generated + rigged models (NALATI-MERGE D2) — the user's pick (N20: "Models 3D local ai model is
  * best"): Nalati's pipeline, the image-to-3D mesh with its base-colour atlas (TRELLIS.2 / Hunyuan3D-2 → Blender normalise
  * → gltf-transform), the five atlases packed into one texture here. (D2's other take, main's faceted Blender pipeline,
- * lost and left the tree; Q2's procedural figures stay in campPeople.ts as the rig's frame and the fallback — and
- * NALATI-FINISH B5 puts their readable faces on these bodies.)
+ * lost and left the tree; Q2's procedural figures stay in campPeople.ts as the rig's frame and the fallback.)
  *
  * Files: `public/assets/nalati/models/people/<person>.gen[.phone].glb` (metres, +Y up, feet on y = 0, facing +z;
- * references art/nalati-grasslands/round-10-models-merge/).
+ * references art/nalati-grasslands/round-10-models-merge/). Their faces are NALATI-FINISH B5's remaster (E302, Jake's pick
+ * B, 2026-09-30: "it's fantastic"): scripts/img2mesh/build_faces.sh hunyuan — the head replaced by a Hunyuan3D-2 bust
+ * generated from a codex front portrait (art/nalati-grasslands/round-12-faces/), grafted at the neck, the portrait
+ * projected on its face, re-UV'd face first (the face ~25–35 % of the atlas, was ~2 %); each file carries its neck cut
+ * (glTF extras.neckCut, read below).
  *
  * The rig is the procedural figures' own (src/nalati/campPeople.ts): per figure a ROOT (the feet: its yaw + breath), a
  * HEAD bone at the neck and a right-ARM bone at the shoulder — so the one runtime (turn to you, glance, nod, gesture, the
@@ -23,7 +26,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '../core/tier';
-import { setting } from '../ui/Settings';
 import { painterlyMaterial } from '../world/painterly';
 import { rawFromGltf } from '../world/nalati/glbPaint';
 import type { Sky } from '../world/Sky';
@@ -43,24 +45,8 @@ let loader: GLTFLoader | null = null;
 export const PERSON_FILE = { elder: 'elder', herderGate: 'herder-dauren', herderRail: 'herder-erlan', child: 'child', cook: 'cook' } as const;
 export type PersonKey = keyof typeof PERSON_FILE;
 
-/**
- * The face variant (NALATI-FINISH B5 / E302, the user: "all the models have terrible faces"): pause ▸ Settings ▸ Debug ▸
- * Creatures & NPCs ▸ Camp faces, read at load. Each is a folder of the same five files, made by scripts/img2mesh/
- * build_faces.sh (face_remaster.py: re-UV'd face first — the face ~25–35 % of the atlas, was ~2 % — then the face remade;
- * the board's letters, progress/e302-faces/board.jpg) — current = today's files:
- *   hunyuan  B: the head replaced by a Hunyuan3D-2 bust generated from a new codex front portrait, that portrait projected
- *            on its face (art/nalati-grasslands/round-12-faces/)
- *   trellis  C: the same from TRELLIS.2
- *   painted  D: the current head with a simple readable face painted on (the procedural figures' style: eyes, brows, mouth)
- *   sharp    E: the current heads, only re-UV'd
- */
-function facesDir(): string {
-  const v = setting('nalatiFaces');
-  return v === 'current' ? '' : `faces-${v}/`;
-}
-
 export function peopleModelUrl(key: PersonKey): string {
-  return `${DIR}${facesDir()}${PERSON_FILE[key]}.gen${TIER === 'phone' ? '.phone' : ''}.glb`;
+  return `${DIR}${PERSON_FILE[key]}.gen${TIER === 'phone' ? '.phone' : ''}.glb`;
 }
 
 interface Figure { key: PersonKey; geometry: THREE.BufferGeometry; map: THREE.Texture | null; neck: THREE.Vector3; shoulder: THREE.Vector3; head: Float32Array; arm: Float32Array }
