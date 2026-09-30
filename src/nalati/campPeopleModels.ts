@@ -81,7 +81,7 @@ function weld(pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): { 
 }
 
 /** fit a loaded figure into its procedural frame and weight it (see the header) */
-function fitFigure(key: PersonKey, geometry: THREE.BufferGeometry, map: THREE.Texture | null, frame: PersonFrame): Figure {
+function fitFigure(key: PersonKey, geometry: THREE.BufferGeometry, map: THREE.Texture | null, frame: PersonFrame, neckCut: number | null): Figure {
   const g = geometry;
   g.computeBoundingBox();
   const box = g.boundingBox ?? new THREE.Box3();
@@ -97,10 +97,13 @@ function fitFigure(key: PersonKey, geometry: THREE.BufferGeometry, map: THREE.Te
     for (let i = 0; i < n; i++) { const vy = pos.getY(i), vx = pos.getX(i); if (Math.abs(vy - y) < band && Math.abs(vx) < lim) w = Math.max(w, Math.abs(vx)); }
     return w;
   };
-  let neckY = frame.neck.y, best = Infinity;
-  for (let y = frame.neck.y - 0.07 * H; y <= frame.neck.y + 0.05 * H; y += 0.005 * H) {
-    const w = widthAt(y, 0.006 * H, 0.14 * H);
-    if (w > 0 && w < best) { best = w; neckY = y; }
+  // a remastered file carries its neck cut (B5, glTF extras.neckCut): a generated head's face can be narrower than its neck
+  let neckY = neckCut ?? frame.neck.y, best = Infinity;
+  if (neckCut === null) {
+    for (let y = frame.neck.y - 0.07 * H; y <= frame.neck.y + 0.05 * H; y += 0.005 * H) {
+      const w = widthAt(y, 0.006 * H, 0.14 * H);
+      if (w > 0 && w < best) { best = w; neckY = y; }
+    }
   }
   const shY = neckY - (frame.neck.y - frame.shoulder.y);
   let shX = 0;
@@ -215,7 +218,9 @@ export async function loadPeopleRig<K extends PersonKey>(sky: Sky, frames: Recor
   const figs = await Promise.all(keys.map(async (key) => {
     const gltf = await gl.loadAsync(peopleModelUrl(key));
     const r = rawFromGltf(gltf.scene, `person ${key}`);
-    return fitFigure(key, r.geometry, r.map, frames[key]);
+    const cuts: number[] = [];
+    gltf.scene.traverse((o) => { const v: unknown = o.userData['neckCut']; if (typeof v === 'number') cuts.push(v * frames[key].height); });
+    return fitFigure(key, r.geometry, r.map, frames[key], cuts[0] ?? null);
   }));
   const map = packAtlases(figs);
   // merge: position, normal, color, uv (the packed atlas), skinIndex / skinWeight (root / head / arm of its figure)

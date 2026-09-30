@@ -30,6 +30,7 @@ elif v in ("hunyuan", "trellis"):
     out += ["--graft", f"{w}/{'hy' if v == 'hunyuan' else 't512'}/{n}.glb", "--bust-neck", str(g.get("neck", 0.5)),
             "--bust-clip", str(g.get("clip", 0.03)), "--bust-grow", str(g.get("grow", 1.0)), "--bust-dz", str(g.get("dz", 0.0)),
             "--bust-dy", str(g.get("dy", 0.0)), "--head-tris", str(g.get("tris", 4000))]
+    out += ["--smooth-face", str(g.get("smooth_face", 0.8))]
     if v == "trellis":
         out += ["--no-weld"]
     if "beard" in g:

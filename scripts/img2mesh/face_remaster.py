@@ -123,8 +123,36 @@ def project_portrait(ob, path, neck_z):
     ax0, ax1, ay0, ay1 = xs.min(), xs.max() + 1, ys.min(), ys.max() + 1        # in bottom-up rows
     Bv = verts_np(ob)
     x0, x1, z0, z1 = Bv[:, 0].min(), Bv[:, 0].max(), Bv[:, 2].min(), Bv[:, 2].max()
-    # u = ax0/W + (x - x0) * sx ; v = ay0/H + (z - z0) * sz   (the alpha box's bottom is the bust's bottom)
-    sx = (ax1 - ax0) / W_ / max(x1 - x0, 1e-6); sz = (ay1 - ay0) / H_ / max(z1 - z0, 1e-6)
+    # image column = a + x·k, row (bottom-up) = b + z·k: ONE scale (the generator keeps the aspect). A first guess from
+    # the boxes (widths, tops), then fitted: the mesh's front silhouette against the alpha over the head (upper 60 %).
+    # The box guess alone left the eyes a few rows off the geometry's sockets (a dark crease across the cook's eyes)
+    k0 = (ax1 - ax0) / max(x1 - x0, 1e-6)
+    step = int(np.ceil(max(W_, H_) / 256)); f_ = 1 / step
+    am = al[::step, ::step] > 0.5
+    hr, wr = am.shape
+    top_rows = slice(int((ay1 - 0.6 * (ay1 - ay0)) * f_), hr)
+    best_ = (-1.0, k0, ax0 - x0 * k0, ay0 - z0 * (ay1 - ay0) / max(z1 - z0, 1e-6))
+    sz_box = (ay1 - ay0) / H_ / max(z1 - z0, 1e-6)
+    for kk_ in ([] if os.environ.get("PORTRAIT_FIT", "0") != "1" else np.linspace(0.75, 1.15, 41) * k0):
+        for da in np.linspace(-0.03, 0.03, 7) * W_:
+            for db in np.linspace(-0.05, 0.05, 11) * H_:
+                a_ = (ax0 + ax1) / 2 - (x0 + x1) / 2 * kk_ + da
+                b_ = ay1 - z1 * kk_ + db
+                cc = ((a_ + Bv[:, 0] * kk_) * f_).astype(int); rr = ((b_ + Bv[:, 2] * kk_) * f_).astype(int)
+                ok = (cc >= 0) & (cc < wr) & (rr >= 0) & (rr < hr)
+                mm = np.zeros((hr, wr), bool); mm[rr[ok], cc[ok]] = True
+                mm = mm | np.roll(mm, 1, 0) | np.roll(mm, -1, 0) | np.roll(mm, 1, 1) | np.roll(mm, -1, 1)
+                A_, M_ = am[top_rows], mm[top_rows]
+                iou = (A_ & M_).sum() / max(1, (A_ | M_).sum())
+                if iou > best_[0]:
+                    best_ = (iou, kk_, a_, b_)
+    iou, kf, af, bf = best_
+    if iou >= 0:   # PORTRAIT_FIT=1 (off: the silhouette is mostly headwear, and the fit moved the eyes off the sockets)
+        log(f"portrait fit: IoU {iou:.3f}, scale {kf / k0:.3f} of the box guess")
+        sx = kf / W_; sz = kf / H_
+        ax0, x0, ay0, z0 = af, 0.0, bf, 0.0
+    else:          # the boxes: u = ax0/W + (x - x0)·sx ; v = ay0/H + (z - z0)·sz (the alpha box's bottom is the bust's)
+        sx = k0 / W_; sz = sz_box
     hv = Bv[Bv[:, 2] > neck_z]                                                  # the head: above the neck
     hcen = (hv.max(0) + hv.min(0)) / 2; hrad = np.maximum((hv.max(0) - hv.min(0)) / 2, 1e-3)
     for ms in ob.material_slots:
@@ -239,6 +267,16 @@ if a.graft:
         if hit[1] is not None and f.normal.dot(hit[1]) < -0.2:
             flip.append(f)
     bmesh.ops.reverse_faces(bm, faces=flip)
+    # then against its neighbours: a face whose winding disagrees with its corners' (area-weighted) vertex normals is
+    # still inside out — drawn double-sided, three lights it from behind: a dark line across the eyes (the cook)
+    nmore = 0
+    for _ in range(3):
+        bm.normal_update()
+        more = [f for f in bm.faces if f.normal.dot(sum((v.normal for v in f.verts), Vector())) < 0]
+        if not more:
+            break
+        bmesh.ops.reverse_faces(bm, faces=more); nmore += len(more)
+    flip += [None] * nmore
     bm.to_mesh(bust_lo.data); bm.free(); bust_lo.data.update()
     log(f"bust: {ntris(bust_lo)} tris after the collapse, {len(flip)} flipped faces turned back")
     # hi = the untouched body minus its head + the full bust; low = the body minus its head + the decimated bust
@@ -280,7 +318,35 @@ po = xatlas.PackOptions(); po.resolution = a.tex; po.padding = 8; po.bilinear = 
 co_ = xatlas.ChartOptions()
 co_.max_cost = float(os.environ.get("XATLAS_COST", "8")); co_.normal_seam_weight = 1.0   # fewer, bigger charts: a face in one piece
 atlas.generate(co_, po)
-_, idx, uvs = atlas[0]
+vmap, idx, uvs = atlas[0]
+# the face as ONE planar chart (front projection): xatlas still cut it into 2–4 charts, and on the phone's 256-px cell
+# with its mipmaps every cut through the face read as a dark line (the cook's "glasses")
+FF = F.astype(np.int64)
+c3 = LV[FF].mean(1)
+nf = np.cross(LV[FF[:, 1]] - LV[FF[:, 0]], LV[FF[:, 2]] - LV[FF[:, 0]])
+nf /= np.maximum(np.linalg.norm(nf, axis=1, keepdims=True), 1e-12)
+face_tri = (c3[:, 2] > zc + 0.01 * H) & (c3[:, 2] < ftop) & (nf[:, 1] < -0.3) & (c3[:, 1] < hc[1])
+if face_tri.sum() > 8 and os.environ.get("FACE_CHART", "1") == "1":
+    keys, P2, U2 = {}, [], []
+    F2 = np.zeros_like(FF)
+    for t in range(len(FF)):
+        for k in range(3):
+            if face_tri[t]:
+                ov = int(FF[t, k]); uv = (10.0 + float(LV[ov, 0]), float(LV[ov, 2])); key = (ov, "f")
+                pos_ = LVs[ov]
+            else:
+                av = int(idx[t][k]); ov = int(vmap[av]); uv = (float(uvs[av][0]), float(uvs[av][1])); key = (ov, av)
+                pos_ = LVs[ov]
+            j = keys.get(key)
+            if j is None:
+                j = keys[key] = len(P2); P2.append(pos_); U2.append(uv)
+            F2[t, k] = j
+    at2 = xatlas.Atlas()
+    at2.add_mesh(np.array(P2, np.float32), F2.astype(np.uint32), None, np.array(U2, np.float32))
+    co2 = xatlas.ChartOptions(); co2.use_input_mesh_uvs = True
+    at2.generate(co2, po)
+    _, idx, uvs = at2[0]
+    log(f"face chart: {int(face_tri.sum())} triangles in one front projection, {at2.chart_count} charts")
 uvl = low.data.uv_layers["UVMap"]
 for p, tri in zip(low.data.polygons, idx):
     for li, q in zip(p.loop_indices, tri):
@@ -508,8 +574,12 @@ low.data.name = low.name = os.path.splitext(os.path.basename(a.out))[0]
 for o in bpy.context.scene.objects:
     o.select_set(o == low)
 bpy.context.view_layer.objects.active = low
+# the neck cut rides along as a node extra (glTF extras.neckCut, fraction of the height): the game's rig pivots the head
+# there (campPeopleModels.ts). Its own search — the narrowest cross-section near the procedural neck — found a new
+# head's face narrower than the neck and bent the face across the eyes whenever the head turned (a crease under the brows)
+low["neckCut"] = round(float((zc - zmin) / H), 4)
 bpy.ops.export_scene.gltf(filepath=a.out, export_format="GLB", use_selection=True, export_image_format="AUTO",
-                          export_yup=True, export_apply=True)
+                          export_yup=True, export_apply=True, export_extras=True)
 json.dump({"tris": ntris(low), "verts": len(low.data.vertices), "neck_cut": round(float((zc - zmin) / H), 4),
            "head_share": round(float(ha / max(ta, 1e-9)), 3), "height": round(float(H), 3)}, open(a.out + ".json", "w"), indent=1)
 log(f"{a.out}: {ntris(low)} tris, {len(low.data.vertices)} verts")
