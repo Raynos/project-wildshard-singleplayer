@@ -481,6 +481,17 @@ species; fern ×6,000 and the forest floor's other five kinds; the token shelf a
 turntables. `pine-m2-five.mp4`: a 10 s spin of five of them (forest tree, fire lookout, log cabin, ridge crag, standing
 stone) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M2.
 
+### Creatures, people and gear, M5 (`art/models-audit/round-8-m5-creatures/`, 2026-09-30, E315)
+
+`m5-<shard>.jpg`, one per shard: live phone-tier captures (402×874 @3×) of clean exports before (7364cce1) and after M5.
+Top: the Model Explorer's Creatures tab before (only the species alive when Explore opened), then Creatures, the new
+People tab and the new Gear tab after (the shard's whole species list: bosses and flocks before they come; the crowd,
+camp people, NPCs; every weapon its kit holds, shared ones marked SHARED). Bottom: turntables (Driftwood: the Drowned
+Captain, Wendell, the wooden sword, the AR-15; Pine Hollow: the Antler King dressed, Ranger Hale, the lever-action, the
+skinning knife; Nalati: Jel Ata, the Golden King, the camp people, the bow; Nine Dragon: the fp arms, the umbrella walker).
+`m5-pine-hollow-five.mp4`: a 10 s spin of the Antler King, the bear, Ranger Hale, the lever-action and the crossbow in the
+real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M5.
+
 ### Driftwood first-person remaster, round 1 (`art/driftwood-fp/round-1-remaster/`, 2026-09-30, E334)
 
 `board-1-today-vs-nine-dragon.jpg`: live iPhone-portrait captures of Driftwood's wooden / iron sword viewmodel (idle,
