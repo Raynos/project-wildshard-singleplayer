@@ -170,6 +170,8 @@ export interface SetRegister {
   readonly object: THREE.Object3D;
   /** where its generated models' instances land (default: `object`) */
   readonly group?: THREE.Object3D;
+  /** register each model's colliders `every` at a time, a task apart (the phone's per-task collider budget: `Placed.registered`) */
+  readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
 }
 
 /**
@@ -186,13 +188,19 @@ export class NalatiSet {
   /** every box every copy made, in order (the POI's `colliders` data) */
   readonly boxes: Box[] = [];
 
-  /** `paintKit`: the place's kit (null: a place of generated models only) */
+  /** the kit the painters paint into now (`into` moves it: a dressing prop is a kit of its own, finished on its own) */
+  private current: PaintKit | null;
+
+  /** `paintKit`: the place's kit (null: a place of generated models only, or one whose props each bring a kit: `into`) */
   constructor(paintKit: PaintKit | null, readonly c: PaintCtx) {
-    const own = paintKit ?? new PaintKit(0);
+    this.current = paintKit;
+    let none: PaintKit | null = null;
+    const self = (): PaintKit | null => this.current;
     this.kit = {
-      rng: own.rng,
+      get rng() { return (self() ?? (none ??= new PaintKit(0))).rng; },
       add: (g, col, o) => {
-        if (!paintKit) throw new Error('NalatiSet: this place has no kit to paint into');
+        const k = self();
+        if (!k) throw new Error('NalatiSet: this place has no kit to paint into');
         if (this.tracking) {
           const pos = g.getAttribute('position');
           _part.makeEmpty();
@@ -200,10 +208,13 @@ export class NalatiSet {
           if (o?.matrix) _part.applyMatrix4(o.matrix);
           _box.union(_part);
         }
-        paintKit.add(g, col, o);
+        k.add(g, col, o);
       },
     };
   }
+
+  /** paint into `kit` from now on (its rng is the painters' stream): each dressing prop is a kit of its own */
+  into(kit: PaintKit): this { this.current = kit; return this; }
 
   private member<P extends object>(def: ModelDef<P>, draw: Draw, inKit: boolean): Member {
     let m = this.members.get(def.id);
@@ -215,7 +226,7 @@ export class NalatiSet {
           return place<P>(def, mm.placements, {
             ctx: o.ctx, draw: mm.draw, ...(o.registry === undefined ? {} : { registry: o.registry }),
             drawnInto: { object, boxes: Float32Array.from(mm.boxes), colliders: [...mm.solid, ...mm.descs] },
-            piece: { solidFloor: true, ...(floor === undefined ? {} : { floor }) },
+            piece: { solidFloor: true, ...(floor === undefined ? {} : { floor }), ...(o.split === undefined ? {} : { split: o.split }) },
           });
         },
       };

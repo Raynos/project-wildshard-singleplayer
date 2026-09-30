@@ -12,6 +12,11 @@
  *   game.onUpdate((dt) => dressing.update(dt, game.camera, player.position, renderer));
  *   dressing.stats()                                             // { calls, tris, perLayer } for the perf report
  *
+ * E306 / E315 second pass: every scatter kind and every prop is a model (src/chunks/nalati-grasslands/models/dressing.ts,
+ * dressingProps.ts, fence.ts) placed `drawnInto` what draws it — a layer, the props' region meshes, the camp clutter —
+ * with the colliders its copies made (the big rocks' hulls a task apart, the phone's collider budget). The drawing and
+ * its culling stay the dressing's (world: the field that scatters them); the dressing is no set (it is not a place).
+ *
  * Draw calls: 9 instanced scatter layers (boulder, slab, stone, juniper, rose, willow, lupin, daisy, reed) + up to
  * 4 merged prop meshes (frustum-culled by region) + the ribbon cloth + pollen + butterflies + raptors ≈ 17, of
  * which boulder / slab / the prop meshes also cast shadows. Everything is on the shared painterly material (one
@@ -25,31 +30,40 @@ import { painterlyMaterial } from '../../painterly';
 import { Flutter } from '../Flutter';
 import { DressLayer, type Inst } from './layer';
 import { planDressing, type DressPlan } from './place';
-import { boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo } from './models';
 import { buildStatics, buildCampClutter } from './statics';
 import { DressLife } from './life';
-import { loadNalatiModel, modelsOn, type NalatiModel } from '../glbPaint';
+import { loadNalatiModel, modelsOn } from '../glbPaint';
+import type { NalatiSet } from '../painted';
 import type { Sky } from '../../Sky';
 import type { Forest } from '../../Forest';
 import type { Collider } from '../../../player/Player';
 import type { ColliderDesc, WorldRegistry } from '../../registry';
-import { boxDescs, hullAt, hullCandidates, registerChunked, type Box } from '../solid';
+import { hullAt, hullCandidates, type Box } from '../solid';
+import { modelContext, type ModelDef } from '../../../models/model';
+import { place, type PlaceOptions, type Placed } from '../../../models/place';
+import {
+  boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK,
+  boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo,
+} from '../../../chunks/nalati-grasslands/models/dressing';
 
 const PHONE = TIER === 'phone';
 
-/**
- * A generated rock GLB fitted into a procedural rock's frame (centred on the origin, half-extents `half`: the placers
- * bury the bottom), so it drops into the same scatter plan with the same sizes. The model's own painterly material
- * (its atlas as the map) stays; the instances' rock tints multiply it.
- */
-function fitRock(m: NalatiModel, half: readonly [number, number, number]): THREE.BufferGeometry {
-  const g = m.geometry.clone();
-  const b = m.box, c = new THREE.Vector3(), sz = new THREE.Vector3();
-  b.getCenter(c); b.getSize(sz);
-  g.translate(-c.x, -c.y, -c.z);
-  g.scale((half[0] * 2) / sz.x, (half[1] * 2) / sz.y, (half[2] * 2) / sz.z);
-  g.computeVertexNormals();
-  return g;
+/** one scatter layer's model: what it draws, the colliders its big rocks made (world space, in plan order), its `place` */
+interface Drawn { readonly layer: DressLayer; readonly list: readonly Inst[]; readonly descs: ColliderDesc[]; readonly place: (o: PlaceOptions) => Placed }
+
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _b = new THREE.Box3();
+
+/** each instance's world box (6 floats: min xyz, max xyz): its layer's geometry box at the instance's transform */
+function instanceBoxes(geometry: THREE.BufferGeometry, list: readonly Inst[]): Float32Array {
+  if (geometry.boundingBox === null) geometry.computeBoundingBox();
+  const bb = geometry.boundingBox ?? new THREE.Box3();
+  const out = new Float32Array(list.length * 6);
+  list.forEach((it, i) => {
+    _m.compose(_p.set(it.x, it.y, it.z), _q.setFromEuler(_e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), _s.set(it.sx, it.sy, it.sz));
+    _b.copy(bb).applyMatrix4(_m);
+    out.set([_b.min.x, _b.min.y, _b.min.z, _b.max.x, _b.max.y, _b.max.z], i * 6);
+  });
+  return out;
 }
 /** per-layer draw-distance scale on this tier */
 const FAR = PHONE ? { rock: 0.6, small: 0.55, shrub: 0.6, flower: 0.55 } : { rock: 1, small: 1, shrub: 1, flower: 1 };
@@ -97,6 +111,11 @@ export class NalatiDressing {
   /** the collision as real geometry: big rocks as hulls of what they draw, logs as capsules, the ovoo heaps as prisms */
   descs: ColliderDesc[] = [];
   plan: DressPlan | null = null;
+  /** the one-off props (merged per region: the props' tap target) and the camps' clutter */
+  readonly statics = new THREE.Group();
+  private drawn: Drawn[] = [];
+  private staticsSet: NalatiSet | null = null;
+  private clutter: { set: NalatiSet; mesh: THREE.Mesh } | null = null;
   /** build ms per stage */
   timings: Record<string, number> = {};
   private frustum = new THREE.Frustum();
@@ -107,7 +126,7 @@ export class NalatiDressing {
   private camPos = new THREE.Vector3();
   private size = new THREE.Vector2();
 
-  constructor(private sky: Sky, private forest: Forest | null) { this.group.name = 'nalati-dressing'; }
+  constructor(private sky: Sky, private forest: Forest | null) { this.group.name = 'nalati-dressing'; this.statics.name = 'nalati-dress-statics'; }
 
   async build(yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
     let t0 = performance.now();
@@ -121,44 +140,47 @@ export class NalatiDressing {
     const shrub = painterlyMaterial(this.sky, { rim: 0.5, bands: 0.7, sway: 0.05 });
     const flower = painterlyMaterial(this.sky, { rim: 0.45, bands: 0.6, sway: 0.3 });
     const reed = painterlyMaterial(this.sky, { rim: 0.5, bands: 0.6, sway: 0.1 });
-    const add = (name: string, geo: THREE.BufferGeometry, mat: THREE.Material, list: Inst[], far: number, o: { castShadow?: boolean; keepNear?: number } = {}) => {
+    const add = <P extends object>(model: ModelDef<P>, name: string, geo: THREE.BufferGeometry, mat: THREE.Material, list: Inst[], far: number, o: { castShadow?: boolean; keepNear?: number } = {}) => {
       if (list.length === 0) { geo.dispose(); return; }
       const l = new DressLayer(name, geo, mat, list, { farScale: far, ...o });
       // P1: a big rock collides as the hull of what this layer draws for it
+      const descs: ColliderDesc[] = [];
       if (list.some((it) => it.solid === true)) {
         const cand = hullCandidates(geo), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
         for (const it of list) {
           if (it.solid !== true) continue;
           m.compose(p.set(it.x, it.y, it.z), q.setFromEuler(e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), sc.set(it.sx, it.sy, it.sz));
-          this.descs.push(hullAt(cand, m, 'rock'));
+          descs.push(hullAt(cand, m, 'rock'));
         }
+        this.descs.push(...descs);
       }
       this.layers.push(l);
+      this.drawn.push({ layer: l, list, descs, place: (how) => place(model, list.map((it) => ({ x: it.x, y: it.y, z: it.z })), how) });
       this.group.add(l.mesh);
     };
     // the rocks: the generated boulders (glbPaint.ts; every third boulder the tall faceted one) when `modelsOn('rocks')`,
     // else the procedural blobs — the same plan, sizes and tints either way
     const rockModels = modelsOn('rocks')
-      ? await Promise.all((['boulder-1', 'boulder-2', 'boulder-3'] as const).map((n) => loadNalatiModel(this.sky, n, { rim: 0.3, bands: 0.8 }))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; })
+      ? await Promise.all(([GENERATED_ROCK.round.name, GENERATED_ROCK.tall.name, GENERATED_ROCK.slab.name] as const).map((n) => loadNalatiModel(this.sky, n, ROCK_LOOK))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; })
       : null;
     if (rockModels) {
       const [b1, b2, b3] = rockModels;
       if (b1 && b2 && b3) {
-        add('boulder', fitRock(b1, [1, 0.74, 1]), b1.material, plan.boulder.filter((_, i) => i % 3 !== 2), FAR.rock, { castShadow: true, keepNear: 40 });
-        add('boulder-tall', fitRock(b2, [0.9, 0.95, 0.9]), b2.material, plan.boulder.filter((_, i) => i % 3 === 2), FAR.rock, { castShadow: true, keepNear: 40 });
-        add('slab', fitRock(b3, [1.45, 0.5, 0.95]), b3.material, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
+        add(boulder, 'boulder', fitRock(b1, GENERATED_ROCK.round.half), b1.material, plan.boulder.filter((_, i) => i % 3 !== 2), FAR.rock, { castShadow: true, keepNear: 40 });
+        add(boulder, 'boulder-tall', fitRock(b2, GENERATED_ROCK.tall.half), b2.material, plan.boulder.filter((_, i) => i % 3 === 2), FAR.rock, { castShadow: true, keepNear: 40 });
+        add(slab, 'slab', fitRock(b3, GENERATED_ROCK.slab.half), b3.material, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
       }
     } else {
-      add('boulder', boulderGeo(0xb01d, PHONE ? 2 : 3), rock, plan.boulder, FAR.rock, { castShadow: true, keepNear: 40 });
-      add('slab', slabGeo(0x51ab, PHONE ? 2 : 3), rock, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
+      add(boulder, 'boulder', boulderGeo(0xb01d, PHONE ? 2 : 3), rock, plan.boulder, FAR.rock, { castShadow: true, keepNear: 40 });
+      add(slab, 'slab', slabGeo(0x51ab, PHONE ? 2 : 3), rock, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
     }
-    add('stone', stoneGeo(0x5707), rock, plan.stone, FAR.small);
-    add('juniper', juniperGeo(0x1a9), shrub, plan.juniper, FAR.shrub, { castShadow: !PHONE });
-    add('rose', roseGeo(0x805e, PHONE), shrub, plan.rose, FAR.shrub, { castShadow: !PHONE });
-    add('willow', willowGeo(0x3170), shrub, plan.willow, FAR.shrub, { castShadow: !PHONE });
-    add('lupin', lupinGeo(0x1ab1, PHONE), flower, plan.lupin, FAR.flower);
-    add('daisy', daisyGeo(0xda15), flower, plan.daisy, FAR.flower);
-    add('reed', reedGeo(0x4eed), reed, plan.reed, FAR.shrub);
+    add(stone, 'stone', stoneGeo(0x5707), rock, plan.stone, FAR.small);
+    add(juniper, 'juniper', juniperGeo(0x1a9), shrub, plan.juniper, FAR.shrub, { castShadow: !PHONE });
+    add(wildRose, 'rose', roseGeo(0x805e, PHONE), shrub, plan.rose, FAR.shrub, { castShadow: !PHONE });
+    add(dwarfWillow, 'willow', willowGeo(0x3170), shrub, plan.willow, FAR.shrub, { castShadow: !PHONE });
+    add(lupin, 'lupin', lupinGeo(0x1ab1, PHONE), flower, plan.lupin, FAR.flower);
+    add(daisy, 'daisy', daisyGeo(0xda15), flower, plan.daisy, FAR.flower);
+    add(reeds, 'reed', reedGeo(0x4eed), reed, plan.reed, FAR.shrub);
     lap('layers');
     cover.clear();
     addCover(plan.boulder, 0.9); addCover(plan.slab, 1.1); addCover(plan.juniper, 0.85); addCover(plan.rose, 0.5); addCover(plan.willow, 0.4);
@@ -168,7 +190,9 @@ export class NalatiDressing {
     const st = buildStatics(this.sky, plan, this.flutter);
     this.props = st.meshes;
     this.propTris = st.tris;
-    for (const m of st.meshes) this.group.add(m);
+    this.staticsSet = st.set;
+    for (const m of st.meshes) this.statics.add(m);
+    this.group.add(this.statics);
     if (this.flutter.count > 0) this.group.add(this.flutter.build(this.sky));
     this.colliders = [...plan.colliders, ...st.colliders];
     this.descs.push(...st.descs);
@@ -184,17 +208,29 @@ export class NalatiDressing {
   addTo(scene: THREE.Object3D, avoid: readonly Collider[]): void {
     scene.add(this.group);
     const cl = buildCampClutter(this.sky, avoid);
-    if (cl.mesh) { this.group.add(cl.mesh); this.props.push(cl.mesh); this.propTris += cl.tris; }
+    if (cl.mesh) { this.group.add(cl.mesh); this.props.push(cl.mesh); this.propTris += cl.tris; this.clutter = { set: cl.set, mesh: cl.mesh }; }
     this.colliders.push(...cl.colliders);
     if (import.meta.env.DEV) Object.assign(window, { __nalatiDressing: this }); // dev: stats / poking from the console
   }
 
-  /** NALATI-MERGE P1: the dressing's collision into the world registry — the rocks' hulls, then the props (wood) */
+  /**
+   * The dressing's models into the world registry (E306 / E315; NALATI-MERGE P1: its collision): each scatter layer's
+   * model placed `drawnInto` its layer, the big rocks' hulls 150 a task (the phone's per-task collider budget), then the
+   * props (their region meshes) and the camps' clutter.
+   */
   async place(registry: WorldRegistry, yieldTask: () => Promise<void>): Promise<void> {
-    const rocks = this.descs.filter((d) => d.surface === 'rock' || d.surface === 'stone');
-    const wood = [...this.descs.filter((d) => d.surface !== 'rock' && d.surface !== 'stone'), ...boxDescs(this.colliders)];
-    await registerChunked(registry, { id: 'nalati-dressing-rocks', name: 'Boulders + ovoo cairns', category: 'nature', file: 'src/world/nalati/dressing/place.ts', colliders: rocks, surface: 'rock' }, 150, yieldTask);
-    await registerChunked(registry, { id: 'nalati-dressing-props', name: 'Logs, stumps, fences + camp clutter', category: 'props', file: 'src/world/nalati/dressing/statics.ts', colliders: wood, surface: 'wood' }, 200, yieldTask);
+    const ctx = modelContext(this.sky);
+    for (const d of this.drawn) {
+      const placed = d.place({
+        ctx, draw: 'instanced', registry, drawnInto: { object: d.layer.mesh, boxes: instanceBoxes(d.layer.mesh.geometry, d.list), colliders: d.descs },
+        piece: { solidFloor: true, split: { every: 150, yieldTask } },
+      });
+      await placed.registered;
+      await yieldTask();
+    }
+    this.staticsSet?.register({ ctx, registry, object: this.statics });
+    await yieldTask();
+    if (this.clutter) this.clutter.set.register({ ctx, registry, object: this.clutter.mesh });
   }
 
   update(dt: number, camera: THREE.PerspectiveCamera, player: THREE.Vector3, renderer: THREE.WebGLRenderer): void {

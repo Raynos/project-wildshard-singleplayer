@@ -24,6 +24,9 @@ import { kazan, firewood } from '../src/chunks/nalati-grasslands/models/campGene
 import { fence, fenceRun, addFence } from '../src/chunks/nalati-grasslands/models/fence';
 import { signpost, boardSpots } from '../src/chunks/nalati-grasslands/models/signpost';
 import type { Box } from '../src/world/nalati/solid';
+import { stump, fallenLog } from '../src/chunks/nalati-grasslands/models/dressingProps';
+import { boulder } from '../src/chunks/nalati-grasslands/models/dressing';
+import { Rng } from '../src/core/rng';
 
 // a stand-in sky: the painterly material asks it for its sun and to prepare the material (no renderer in a test)
 const lights: THREE.DirectionalLight[] = [];
@@ -216,5 +219,40 @@ describe('the roads (E306 / E315 second pass)', () => {
 
   it('the roads are on the contract, and NalatiPOIs registers nothing by hand', () => {
     expect(ON_CONTRACT).toEqual(expect.arrayContaining(['src/world/nalati/RoadFurniture.ts', 'src/world/nalati/index.ts']));
+  });
+});
+
+describe('the dressing (E306 / E315 second pass)', () => {
+  it('a prop painted into a kit of its own (`into`) is still one model: its copies and colliders summed over the kits', () => {
+    const set = new NalatiSet(null, { ground, flutter: new Flutter(), smoke: new Smoke() });
+    const rng = new Rng(0x0d7e);
+    const a = new PaintKit(rng.int(1, 1e6)), b = new PaintKit(rng.int(1, 1e6));
+    set.into(a).paint(stump, { x: 1, y: ground(1, 1), z: 1, yaw: 0 }, { s: 0.3, rng });
+    set.into(b).paint(stump, { x: 5, y: ground(5, 2), z: 2, yaw: 0 }, { s: 0.4, rng });
+    expect(a.empty).toBe(false);
+    expect(b.empty).toBe(false);
+    const made = set.into(b).paint(fallenLog, { x: 8, y: ground(8, 0), z: 0, yaw: 0 }, { ax: 0, az: 0, bx: 4, bz: 1, r: 0.3, drift: false, rng });
+    expect(made.descs?.map((d) => `${d.kind}:${d.surface ?? '-'}`)).toEqual(['capsule:wood']);
+    const reg = new WorldRegistry();
+    const placed = set.register({ ctx, registry: reg, object: new THREE.Group() });
+    expect(placed.map((p) => [p.model, p.copies, p.drawnAs])).toEqual([[stump.id, 2, 'merged'], [fallenLog.id, 1, 'merged']]);
+    expect(reg.pieces.map((p) => p.colliders?.length)).toEqual([2, 1]);
+  });
+
+  it('a scatter layer places its model drawnInto the layer: its copies counted, the big rocks\' hulls carried', () => {
+    const reg = new WorldRegistry();
+    const layer = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), 3);
+    const placed = place(boulder, [{ x: 0, y: 0, z: 0 }, { x: 4, y: 0, z: 0 }, { x: 8, y: 0, z: 0 }], {
+      ctx, draw: 'instanced', registry: reg,
+      drawnInto: { object: layer, boxes: Float32Array.of(-1, 0, -1, 1, 1, 1, 3, 0, -1, 5, 1, 1, 7, 0, -1, 9, 1, 1), colliders: [{ kind: 'ball', x: 4, y: 0.5, z: 0, radius: 1, surface: 'rock' }] },
+      piece: { solidFloor: true },
+    });
+    expect([placed.copies, placed.drawnAs, placed.object]).toEqual([3, 'instanced', layer]);
+    expect(reg.models().find((m) => m.id === boulder.id)).toMatchObject({ pipeline: ['hunyuan', 'code'], category: 'nature', copies: 3 });
+    expect(reg.pieces[0]?.colliders).toHaveLength(1);
+  });
+
+  it('the dressing is on the contract', () => {
+    expect(ON_CONTRACT).toEqual(expect.arrayContaining(['src/world/nalati/dressing/index.ts', 'src/world/nalati/dressing/statics.ts']));
   });
 });

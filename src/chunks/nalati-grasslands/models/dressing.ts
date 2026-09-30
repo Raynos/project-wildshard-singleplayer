@@ -1,8 +1,15 @@
 /**
- * Dressing models (Nalati, style B): every scatter shape the shard repeats — built once in code, smooth (welded,
- * averaged normals, never faceted), vertex-painted, no textures — to be instanced by `DressLayer` on the ONE shared
- * painterly material (`src/world/painterly.ts`). All shapes stand on their local origin (y = 0 is the ground) at
- * roughly unit size; the placer scales them.
+ * The Nalati dressing's scatter models (E306 / E315 second pass; the shapes were src/world/nalati/dressing/models.ts, the
+ * generated rocks' fitting src/world/nalati/dressing/index.ts): every small thing the shard repeats between the places,
+ * by the thousand — boulders, outcrop slabs and fieldstones; junipers, wild rose, dwarf willow; sage / lupin and
+ * edelweiss / buttercup drifts; reeds. Built once in code — smooth (welded, averaged normals, never faceted),
+ * vertex-painted, no textures — standing on their local origin (y = 0 is the ground) at roughly unit size; the
+ * placer scales them. The boulders and slabs that ship are the Hunyuan3D-2 rocks (`boulder-1/2/3.glb`) fitted into
+ * the procedural rocks' frames, so the same plan, sizes and tints hold either way.
+ *
+ * Drawn by the dressing's scatter layers (src/world/nalati/dressing/: one InstancedMesh per kind on the shared painterly
+ * material, culled per instance with per-instance draw distances) and placed `drawnInto` them; a big boulder or slab
+ * collides as the hull of what its layer draws for it (the dressing's). Plants are walk-through.
  *
  *   boulderGeo(seed)    a rounded granite boulder: warm / cool grey, moss on the tops, lichen spots, dark foot  (320 tris)
  *   slabGeo(seed)       a flatter, rougher outcrop rock for the slopes                                         (320 tris)
@@ -21,7 +28,11 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../../../core/rng';
 import { Noise2D, smoothstep, clamp } from '../../../core/noise';
-import { blob, mergeVerticesByPos } from '../paint';
+import { TIER } from '../../../core/tier';
+import { defineModel, type ModelBuild, type ModelContext } from '../../../models/model';
+import { blob, mergeVerticesByPos } from '../../../world/nalati/paint';
+import { painterlyMaterial } from '../../../world/painterly';
+import { loadNalatiModel, type NalatiModel } from '../../../world/nalati/glbPaint';
 
 const c = (hex: string): THREE.Color => new THREE.Color(hex);
 
@@ -356,3 +367,114 @@ export function reedGeo(seed: number): THREE.BufferGeometry {
   }
   return finish(parts, 0.2, 0.55);
 }
+
+// ── the generated rocks ─────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A generated rock GLB fitted into a procedural rock's frame (centred on the origin, half-extents `half`: the placers
+ * bury the bottom), so it drops into the same scatter plan with the same sizes. The model's own painterly material
+ * (its atlas as the map) stays; the instances' rock tints multiply it.
+ */
+export function fitRock(m: NalatiModel, half: readonly [number, number, number]): THREE.BufferGeometry {
+  const g = m.geometry.clone();
+  const b = m.box, ctr = new THREE.Vector3(), sz = new THREE.Vector3();
+  b.getCenter(ctr); b.getSize(sz);
+  g.translate(-ctr.x, -ctr.y, -ctr.z);
+  g.scale((half[0] * 2) / sz.x, (half[1] * 2) / sz.y, (half[2] * 2) / sz.z);
+  g.computeVertexNormals();
+  return g;
+}
+
+/** each generated rock's file and the procedural frame it is fitted into */
+export const GENERATED_ROCK = {
+  round: { name: 'boulder-1', half: [1, 0.74, 1] },
+  tall: { name: 'boulder-2', half: [0.9, 0.95, 0.9] },
+  slab: { name: 'boulder-3', half: [1.45, 0.5, 0.95] },
+} as const;
+
+/** the rocks' look on a generated file (its atlas, the painterly light) */
+export const ROCK_LOOK = { rim: 0.3, bands: 0.8 } as const;
+
+const PHONE = TIER === 'phone';
+const FILE = 'src/chunks/nalati-grasslands/models/dressing.ts';
+
+/** the dressing's four painterly materials (one each for the shard: every layer of a kind shares it) */
+export function dressMaterial(ctx: ModelContext, kind: 'rock' | 'shrub' | 'flower' | 'reed'): THREE.MeshLambertMaterial {
+  return ctx.once(`nalati-dress-${kind}`, () => painterlyMaterial(ctx.sky, kind === 'rock' ? { rim: 0.3, bands: 0.8 } : kind === 'shrub' ? { rim: 0.5, bands: 0.7, sway: 0.05 } : kind === 'flower' ? { rim: 0.45, bands: 0.6, sway: 0.3 } : { rim: 0.5, bands: 0.6, sway: 0.1 }));
+}
+
+/** a generated rock's specimen: the fitted file, filled in when it lands */
+function generatedRock(ctx: ModelContext, which: keyof typeof GENERATED_ROCK, id: string): THREE.Object3D {
+  const g = new THREE.Group();
+  const r = GENERATED_ROCK[which];
+  loadNalatiModel(ctx.sky, r.name, ROCK_LOOK).then((m) => {
+    const mesh = new THREE.Mesh(fitRock(m, r.half), m.material);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    g.add(mesh);
+    if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
+    return m;
+  }).catch((e: unknown) => { console.warn(`[nalati] rock model ${r.name} failed`, e); });
+  return g;
+}
+
+const specimen = (geometry: THREE.BufferGeometry, material: THREE.Material, castShadow = true): ModelBuild => [{ geometry, material, castShadow, receiveShadow: true }];
+
+export interface RockParams {
+  /** the generated (Hunyuan3D-2) rock that ships, or the procedural one */
+  readonly source: 'generated' | 'code';
+  /** the tall faceted boulder (every third boulder of the plan) */
+  readonly tall: boolean;
+}
+
+export const boulder = defineModel<RockParams>({
+  id: 'nalati-grasslands/boulder', name: 'Boulder', category: 'nature', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'rock',
+  defaults: { source: 'generated', tall: false },
+  variants: [
+    { id: 'round', label: 'Hunyuan3D-2', params: {} },
+    { id: 'tall', label: 'Hunyuan3D-2 · tall', params: { tall: true } },
+    { id: 'code', label: 'Code', params: { source: 'code' } },
+  ],
+  build: (ctx, p) => (p.source === 'code' ? specimen(boulderGeo(0xb01d, PHONE ? 2 : 3), dressMaterial(ctx, 'rock')) : generatedRock(ctx, p.tall ? 'tall' : 'round', 'nalati-grasslands/boulder')),
+});
+
+export const slab = defineModel<RockParams>({
+  id: 'nalati-grasslands/slab', name: 'Outcrop slab', category: 'nature', pipeline: ['hunyuan', 'code'], file: FILE, surface: 'rock',
+  defaults: { source: 'generated', tall: false },
+  variants: [{ id: 'generated', label: 'Hunyuan3D-2', params: {} }, { id: 'code', label: 'Code', params: { source: 'code' } }],
+  build: (ctx, p) => (p.source === 'code' ? specimen(slabGeo(0x51ab, PHONE ? 2 : 3), dressMaterial(ctx, 'rock')) : generatedRock(ctx, 'slab', 'nalati-grasslands/slab')),
+});
+
+export const stone = defineModel<object>({
+  id: 'nalati-grasslands/stone', name: 'Fieldstone / cobble', category: 'nature', pipeline: 'code', file: FILE, surface: 'stone',
+  defaults: {}, build: (ctx) => specimen(stoneGeo(0x5707), dressMaterial(ctx, 'rock'), false),
+});
+
+export const juniper = defineModel<object>({
+  id: 'nalati-grasslands/juniper', name: 'Juniper', category: 'nature', pipeline: 'code', file: FILE,
+  defaults: {}, build: (ctx) => specimen(juniperGeo(0x1a9), dressMaterial(ctx, 'shrub'), !PHONE),
+});
+
+export const wildRose = defineModel<object>({
+  id: 'nalati-grasslands/wild-rose', name: 'Wild rose', category: 'nature', pipeline: 'code', file: FILE,
+  defaults: {}, build: (ctx) => specimen(roseGeo(0x805e, PHONE), dressMaterial(ctx, 'shrub'), !PHONE),
+});
+
+export const dwarfWillow = defineModel<object>({
+  id: 'nalati-grasslands/dwarf-willow', name: 'Dwarf willow', category: 'nature', pipeline: 'code', file: FILE,
+  defaults: {}, build: (ctx) => specimen(willowGeo(0x3170), dressMaterial(ctx, 'shrub'), !PHONE),
+});
+
+export const lupin = defineModel<object>({
+  id: 'nalati-grasslands/lupin', name: 'Sage / lupin drift', category: 'nature', pipeline: 'code', file: FILE,
+  defaults: {}, build: (ctx) => specimen(lupinGeo(0x1ab1, PHONE), dressMaterial(ctx, 'flower'), false),
+});
+
+export const daisy = defineModel<object>({
+  id: 'nalati-grasslands/daisy', name: 'Edelweiss / buttercup drift', category: 'nature', pipeline: 'code', file: FILE,
+  defaults: {}, build: (ctx) => specimen(daisyGeo(0xda15), dressMaterial(ctx, 'flower'), false),
+});
+
+export const reeds = defineModel<object>({
+  id: 'nalati-grasslands/reed', name: 'Reeds', category: 'nature', pipeline: 'code', file: FILE,
+  defaults: {}, build: (ctx) => specimen(reedGeo(0x4eed), dressMaterial(ctx, 'reed'), false),
+});

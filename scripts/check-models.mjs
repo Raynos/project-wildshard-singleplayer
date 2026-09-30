@@ -54,7 +54,7 @@ export const ON_CONTRACT = [
   'src/world/nalati/painted.ts', 'src/world/nalati/KurganField.ts', 'src/world/nalati/Balbals.ts', 'src/world/nalati/Bridge.ts',
   'src/world/nalati/EagleRock.ts', 'src/world/nalati/Cairn.ts', 'src/world/nalati/Crags.ts', 'src/world/nalati/Stair.ts',
   'src/world/nalati/Bowl.ts', 'src/world/nalati/NomadCamp.ts', 'src/world/nalati/SummerCamp.ts', 'src/world/nalati/RoadFurniture.ts',
-  'src/world/nalati/index.ts',
+  'src/world/nalati/index.ts', 'src/world/nalati/dressing/index.ts', 'src/world/nalati/dressing/statics.ts',
 ];
 
 /**

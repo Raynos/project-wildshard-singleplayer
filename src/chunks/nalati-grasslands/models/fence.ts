@@ -65,10 +65,16 @@ const paint: Paint<FenceParams> = (kit, at, p, c) => {
   return { boxes };
 };
 
-/** a run's params from its world points (the run then stands at its first point) */
+/**
+ * A run's params from its world points: the run stands at its first point, its points relative to it — unless a point
+ * would not come back exactly (first + (p − first) ≠ p in floating point: far-apart or opposite-signed coordinates),
+ * then it stands at the world origin with its points as they are, so it is drawn and collides bit-identically.
+ */
 export function fenceRun(pts: readonly (readonly [number, number])[], o: { h?: number; spacing?: number } = {}): { at: { x: number; z: number }; params: FenceParams } {
   const [x0, z0] = pts[0] ?? [0, 0];
-  return { at: { x: x0, z: z0 }, params: { pts: pts.map(([x, z]) => [x - x0, z - z0] as const), h: o.h ?? 1.15, spacing: o.spacing ?? 2.4 } };
+  const exact = pts.every(([x, z]) => x0 + (x - x0) === x && z0 + (z - z0) === z);
+  const [ax, az] = exact ? [x0, z0] : [0, 0];
+  return { at: { x: ax, z: az }, params: { pts: pts.map(([x, z]) => [x - ax, z - az] as const), h: o.h ?? 1.15, spacing: o.spacing ?? 2.4 } };
 }
 
 export const fence = defineModel<FenceParams>({
