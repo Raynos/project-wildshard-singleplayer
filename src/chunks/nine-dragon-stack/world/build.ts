@@ -58,6 +58,10 @@ import { CABLE, SHAFT, WELL_RECTS, buildWell, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { type InstanceLevel, InstanceCuller } from './cull';
 import { lodReady } from './lod';
+import { gpuOnlyAttributes } from '../../../core/gpuOnly';
+
+/** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
+const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
 const CULL_R = 40;
@@ -274,7 +278,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   phaseDone('neon spill', phaseStart);
   phaseStart = performance.now();
   const crown = await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters);
-  for (const m of crown) root.add(named(m, 'canopy'));
+  for (const m of crown) { gpuOnlyAttributes(m.geometry, STATIC_GEOMETRY); root.add(named(m, 'canopy')); }
   // (the banyan model's specimen wears the same crown, models/banyan.ts)
   const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));
   if (core !== undefined && cards !== undefined && depth !== undefined) nd.look.canopy = { core, cards, depth };
@@ -291,6 +295,8 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const farKits: [Mesh, number][] = [];
   const kitMeshes = new Map<string, Mesh>();
   const kitMesh = (name: string, g: BufferGeometry, m: typeof mat): void => {
+    // (E264: the kits are ~100 MB of vertex data at the phone's World Explorer peak; nothing rewrites them after the build)
+    gpuOnlyAttributes(g, STATIC_GEOMETRY);
     const mesh = named(new Mesh(g, m), `kit:${name}`);
     root.add(mesh);
     if (m === mat) kitMeshes.set(name, mesh);
@@ -329,6 +335,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
   const facade = await buildFacade(ctx.fd, facadeUniforms(shared), { ctx: nd.ctx, look: nd.look, culler: batches }, { clutterFar: [55, 85] });
   phaseDone('facade', phaseStart);
+  const isMesh = (o: Object3D | undefined): o is Mesh => o instanceof Mesh;
+  const shell = facade.group.getObjectByName('facade-shell');
+  if (isMesh(shell)) gpuOnlyAttributes(shell.geometry, STATIC_GEOMETRY);
   root.add(named(facade.group, 'facade'));
   const neonMeshes = neonSigns.build();
   root.add(named(neonMeshes.boards, 'neon'), named(neonMeshes.tubes, 'neon'));

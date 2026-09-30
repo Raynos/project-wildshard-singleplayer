@@ -3,6 +3,7 @@
  * only on the GPU, so an in-place WebGL restore brings it back empty. A module that makes such a bake marks it here, and
  * src/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
+import { BufferAttribute, type BufferGeometry, StaticDrawUsage } from 'three';
 import { listSlot, shardSlot } from './shardState';
 import { currentScope } from './shardScope';
 
@@ -24,6 +25,31 @@ export function rebakeGpuContent(): void { for (const f of rebakes) f(); }
 
 /** what was marked (empty: an in-place restore brings the whole scene back) */
 export function gpuOnlyContent(): readonly string[] { return [...pageLabels, ...labels]; }
+
+/** BufferAttribute.onUpload: drop the CPU copy once it is on the GPU (the count stays; nothing reads the array again) */
+function releaseCpuCopy(this: BufferAttribute): void { this.array = this.array.slice(0, 0); }
+
+/**
+ * E264: a static mesh's vertex data, on the GPU only once drawn. Every static attribute but `keep` gives up its CPU copy
+ * the moment it is uploaded (tens of bytes a vertex across a shard's merged kits). `position` stays by default: the
+ * Explorer's tap picking raycasts the meshes models are drawn into, and its boxes read their vertices. The index stays
+ * too, for the raycast. The bounds are computed first: frustum culling and Box3.setFromObject read them, never the
+ * arrays. Call it where the mesh is made, before its first draw (a hook set after the upload never fires). Only for a
+ * geometry nothing rewrites, clones or reads after its first draw. A lost context reloads the page rather than restoring
+ * in place (`label`, above). Returns the bytes that will go.
+ */
+export function gpuOnlyAttributes(g: BufferGeometry, label: string, keep: readonly string[] = ['position']): number {
+  if (g.boundingBox === null) g.computeBoundingBox();
+  if (g.boundingSphere === null) g.computeBoundingSphere();
+  let bytes = 0;
+  for (const [name, a] of Object.entries(g.attributes)) {
+    if (keep.includes(name) || !(a instanceof BufferAttribute) || a.usage !== StaticDrawUsage) continue;
+    bytes += a.array.byteLength;
+    a.onUpload(releaseCpuCopy);
+  }
+  if (bytes > 0) markGpuOnly(label);
+  return bytes;
+}
 
 // E155 (src/core/shardState.ts): each resident shard's own bakes
 shardSlot('gpuOnly.labels', () => [...labels], (v) => { labels.clear(); for (const l of v) labels.add(l); }, () => []);
