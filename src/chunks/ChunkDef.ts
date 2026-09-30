@@ -192,6 +192,12 @@ export interface ChunkTrees {
    * `ChunkForest.species`. Omitted (or a build without its files): the runtime pines.
    */
   set?: string;
+  /**
+   * `'model'`: the shard's own tree model draws the forest (`place`, E315: Pine Hollow's forest tree,
+   * src/chunks/pine-hollow/world/drawnModels.ts) — the core Forest places the trees and hands the model its view, and
+   * draws nothing itself unless the shard hands the drawing back (`Forest.drawItself`). Omitted: the Forest draws them.
+   */
+  drawnBy?: 'model';
 }
 
 /** Forest placement tuning (`src/world/Forest.ts`). The total is `ChunkDef.treeCount`. */

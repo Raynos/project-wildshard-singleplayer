@@ -21,7 +21,7 @@ const { MeshoptDecoder, MeshoptEncoder } = req('meshoptimizer');
 const sharp = req('sharp');
 
 const args = process.argv.slice(2);
-const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
+const opt = (k, d) => { const i = args.indexOf(k); return i !== -1 ? args[i + 1] : d; };
 const [oldPath, newPath, outPath] = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1]?.startsWith('--')));
 const neckY = Number(opt('--neck-y', 'NaN'));
 const texSize = Number(opt('--tex', '1024'));
