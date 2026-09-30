@@ -9,6 +9,7 @@ import { defineModel, modelContext } from '../src/models/model';
 import { listModel, listRoster, live } from '../src/models/live';
 import { creature } from '../src/models/creature';
 import { speciesDef } from '../src/entities/AnimalFactory'; // (the factory registers every species file)
+import { checkModels } from '../scripts/check-models.mjs';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ } } as Sky;
 const ctx = modelContext(sky);
@@ -61,5 +62,14 @@ describe('live models (E315 M5)', () => {
     const [b, k] = reg.models();
     expect(b).toMatchObject({ id: 'shared/test-live-boar', species: 'boar', drawnAs: 'skinned', pipeline: 'hunyuan', copies: 2 });
     expect(k).toMatchObject({ id: 'shared/test-live-king', name: 'A boss', species: 'bear', copies: 1 }); // none alive: its planned copy
+  });
+
+  it('check-models rule 8: a species rig with no model fails; creature(kind) or rig.species (a string constant too) is its model', () => {
+    const species = { 'src/entities/species/newt.ts': "const NEWT = 'newt';\nregisterSpecies({ kind: NEWT, label: 'Newt' });" };
+    expect(checkModels(species).violations.some((v) => v.includes("'newt' is no model"))).toBe(true);
+    const model = { 'src/chunks/test-shard/models/newt.ts': "export const newt = defineModel({ id: 'test-shard/newt', file: 'x', pipeline: 'code', ...creature('newt') });" };
+    expect(checkModels({ ...species, ...model }).violations).toEqual([]);
+    const rig = { 'src/chunks/test-shard/models/newt.ts': "const NEWT = 'newt';\nexport const newt = defineModel({ id: 'test-shard/newt', rig: { clips: [], species: NEWT } });" };
+    expect(checkModels({ ...species, ...rig }).violations).toEqual([]);
   });
 });

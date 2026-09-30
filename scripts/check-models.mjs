@@ -11,6 +11,9 @@
  *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again
  *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4; Pine Hollow, M2) drawing or registering a thing by hand outside its models/
  *      folder — only the files it declares world may, each with its reason and its counts
+ *   8. a species rig with no model (E315 M5): every kind a file registers (`registerSpecies({ … kind: '<kind>'` or a string
+ *      constant) is some model's species rig — `creature(<kind>…)` (src/models/creature.ts) or its `rig: { species }` — so a
+ *      new creature can't slip past the Model Explorer
  * REPORTS (never fails) what has not moved onto the contract yet, per area: registrations by hand (`addBuilt`,
  * `registerModel`, `registerSolid`, a registry `add` with an `object`, a `model:` flag) and hand-rolled drawing
  * (`new InstancedMesh` / `BatchedMesh`, `mergeGeometries`) outside src/models/. Each migration wave (M1–M5) drives its
@@ -119,6 +122,20 @@ export function checkModels(files) {
   const texts = files ?? Object.fromEntries(sources().map((f) => [f, readFileSync(join(ROOT, f), 'utf8')]));
   const violations = [];
   const report = new Map();
+  // rule 8: the kinds registered (kind → the file) and the kinds some model is; a kind given as a constant is resolved
+  // through the tree's `const NAME = '…'` string constants (the file's own first)
+  const strip = (t) => t.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, '');
+  const constsIn = (code) => new Map([...code.matchAll(/\bconst\s+([A-Z][A-Z0-9_]*)\s*=\s*'([^']+)'/g)].map((m) => [m[1], m[2]]));
+  const globalConsts = new Map();
+  for (const text of Object.values(texts)) for (const [k, v] of constsIn(strip(text))) if (!globalConsts.has(k)) globalConsts.set(k, v);
+  const speciesKinds = new Map(), modelled = new Set();
+  for (const [file, text] of Object.entries(texts)) {
+    const code = strip(text), own = constsIn(code);
+    const value = (lit, name) => lit ?? own.get(name) ?? globalConsts.get(name);
+    for (const m of code.matchAll(/\bregisterSpecies\(\{[^}]*?\bkind:\s*(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) speciesKinds.set(k, file); }
+    if (SHARD_MODELS.test(file) || file.startsWith('src/models/')) for (const m of code.matchAll(/\b(?:creature\(\s*|species:\s*)(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) modelled.add(k); }
+  }
+  for (const [kind, file] of speciesKinds) if (!modelled.has(kind)) violations.push(`${file}: the species '${kind}' is no model — define it in a models folder with creature('${kind}') (src/models/creature.ts) and list it in its shard's roster`);
   const bump = (area, key, n) => { if (n === 0) return; const r = report.get(area) ?? {}; r[key] = (r[key] ?? 0) + n; report.set(area, r); };
   for (const [file, text] of Object.entries(texts)) {
     const code = text.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, ''); // comments don't count
