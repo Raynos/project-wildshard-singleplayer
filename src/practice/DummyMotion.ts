@@ -259,13 +259,13 @@ export class DummyPose {
     return p.x > 0 ? 1 : -1;
   }
 
-  apply(motion: DummyMotion): void {
+  apply(motion: DummyMotion, additive = false, gain = 1): void {
     const a = this.angles;
     motion.write(a);
     for (const d of this.driven) {
       let x = 0, y = 0, z = 0;
       for (const s of d.sources) { x += a[s * 3] ?? 0; y += a[s * 3 + 1] ?? 0; z += a[s * 3 + 2] ?? 0; }
-      d.x = x; d.y = y; d.z = z;
+      d.x = x * gain; d.y = y * gain; d.z = z * gain;
     }
     for (const d of this.driven) {
       let { x, y, z } = d;
@@ -273,7 +273,7 @@ export class DummyPose {
       if (parent) { x -= parent.x; y -= parent.y; z -= parent.z; }
       // q = frame⁻¹ · D · frame · rest: D is the model-space swing, expressed in the parent's rest frame
       _d.setFromEuler(_e.set(x, y, z, 'YXZ'));
-      _q.copy(d.frameInv).multiply(_d).multiply(d.frame).multiply(d.rest);
+      _q.copy(d.frameInv).multiply(_d).multiply(d.frame).multiply(additive ? d.object.quaternion : d.rest);
       d.object.quaternion.copy(_q);
     }
   }

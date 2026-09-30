@@ -10,6 +10,7 @@ import type { Weapons } from '../player/Weapons';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { BOSS_NAMES } from '../ui/Combat';
 import { DummyMotion, DummyPose } from './DummyMotion';
+import { DummyClips, loadDummyClips } from './DummyClips';
 import { applyDummyStudio } from './DummyStudio';
 import { buildTrainingDummy, DUMMY_JOINTS, DUMMY_VARIANTS, type DummyVariant, type TrainingDummyModel } from './TrainingDummy';
 import { loadTrainingDummy } from './TrainingDummyAssets';
@@ -50,6 +51,7 @@ class TrainingTarget implements TargetAnimal {
   /** the springs (hit-driven motion) and the bones they drive; the pose waits for the model */
   readonly motion: DummyMotion;
   private pose: DummyPose | null = null;
+  private clips: DummyClips | null = null;
   private materials: THREE.MeshStandardMaterial[] = [];
   private flash = 0;
   private flashShown = 0;
@@ -83,7 +85,18 @@ class TrainingTarget implements TargetAnimal {
     this.pose = new DummyPose(model.root, model.joints);
     this.motion.leftSign = DummyPose.leftSign(model.root, model.joints);
     this.model = model;
+    this.clips = null;
+    if (model.rig === 'humanoid') {
+      void this.installClips(model);
+    }
     this.ready = true;
+  }
+
+  private async installClips(model: TrainingDummyModel): Promise<void> {
+    try {
+      const clips = await loadDummyClips(this.variant);
+      if (this.model === model) this.clips = new DummyClips(model.root, clips, this.variant);
+    } catch (error: unknown) { console.warn('Training dummy motion unavailable', error); }
   }
 
   damageFor(headshot: boolean, distance: number): number {
@@ -111,6 +124,9 @@ class TrainingTarget implements TargetAnimal {
     const { dx, dz } = this.push(dir, point);
     // the punch of any hit; a melee blow's stagger (Sword/Sabre call it right after) adds the knock-back
     this.motion.hit({ px, py, pz, dx, dz, weight: Math.min(3, Math.max(0.3, amount / 25)) / MASS[this.variant], headshot: py > HEAD_BOTTOM });
+    const reaction = py > HEAD_BOTTOM ? 'head-hit' : Math.abs(px) > 0.18
+      ? (px * this.motion.leftSign > 0 ? 'hit-left' : 'hit-right') : amount >= 45 ? 'heavy-hit' : 'body-hit';
+    this.clips?.hit(reaction, amount / 25, MASS[this.variant]);
     this.lastHit.py = py; this.lastHit.frame = this.frame;
     this.flash = Math.min(1, this.flash + 0.35 + dealt / 120);
     this.onDamage(dealt, point);
@@ -122,6 +138,7 @@ class TrainingTarget implements TargetAnimal {
     const h = this.lastHit;
     const { dx, dz } = this.push(dir, this.position);
     this.motion.shove(h.frame === this.frame ? h.py : 1.1, dx, dz, Math.max(0, strength), MASS[this.variant]);
+    if (strength >= 0.7) this.clips?.hit('heavy-hit', 1 + strength, MASS[this.variant]);
   }
 
   /**
@@ -153,7 +170,9 @@ class TrainingTarget implements TargetAnimal {
   update(dt: number): void {
     this.frame++;
     this.motion.update(dt);
-    this.pose?.apply(this.motion);
+    this.clips?.update(dt);
+    // The generated base carries follow-through; a smaller immediate impulse avoids doubling joint travel (E336).
+    this.pose?.apply(this.motion, this.clips !== null, this.clips !== null ? 0.20 : 1);
     if (this.flash > 0 || this.flashShown > 0) {
       this.flash = Math.max(0, this.flash - dt * 7);
       const e = this.flash * this.flash * 0.08;

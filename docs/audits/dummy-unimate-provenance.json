@@ -1,0 +1,137 @@
+{
+  "model": "Linzhan/UniMate/unimate_uniml3d_f60_v2",
+  "codeRevision": "5d6aabedd947297b5ba6706d8e9113e68c0c3e4f",
+  "seed": 336,
+  "device": "mps",
+  "sampling": "EMA, CFG 3, Heun2 32 steps, objaverse statistics, 60 frames / 30 Hz",
+  "rawSHA256": "17df7576ce84e692f73c696a53e0c1c7e714e6d349172691b9ef77c87a3fb526",
+  "constraints": "Original geometry/binds preserved. Skin weights repaired separately by repair_dummy_weights.mjs (Gaussian radius 0.065m). Root/legs fixed. Original parent frame retargeting. Quaternion temporal smoothing before/after caps, ≤4 degrees per 30Hz step; head torso mask, lateral 80%, heavy 70%; rest-to-rest envelope; idle 28%.",
+  "clips": [
+    {
+      "variant": "wood",
+      "clip": "idle",
+      "prompt": "An object stands still with its arms hanging loosely and gently sways its upper body.",
+      "inferenceSeconds": 46.932,
+      "peakLocalDegrees": 4.145
+    },
+    {
+      "variant": "wood",
+      "clip": "body-hit",
+      "prompt": "An object recoils backward from a hit to the chest and returns to standing upright.",
+      "inferenceSeconds": 40.508,
+      "peakLocalDegrees": 14.786
+    },
+    {
+      "variant": "wood",
+      "clip": "head-hit",
+      "prompt": "An object snaps its head backward from a hit and then returns to standing upright.",
+      "inferenceSeconds": 20.205,
+      "peakLocalDegrees": 6.977
+    },
+    {
+      "variant": "wood",
+      "clip": "hit-left",
+      "prompt": "An object recoils sideways from a hit on its left shoulder and returns to standing upright.",
+      "inferenceSeconds": 20.563,
+      "peakLocalDegrees": 11.952
+    },
+    {
+      "variant": "wood",
+      "clip": "hit-right",
+      "prompt": "An object recoils sideways from a hit on its right shoulder and returns to standing upright.",
+      "inferenceSeconds": 20.999,
+      "peakLocalDegrees": 11.844
+    },
+    {
+      "variant": "wood",
+      "clip": "heavy-hit",
+      "prompt": "An object bends forward at the waist from a heavy hit and slowly recovers to standing upright.",
+      "inferenceSeconds": 20.417,
+      "peakLocalDegrees": 10.456
+    },
+    {
+      "variant": "straw-cloth",
+      "clip": "idle",
+      "prompt": "An object stands still with its arms hanging loosely and gently sways its upper body.",
+      "inferenceSeconds": 20.652,
+      "peakLocalDegrees": 2.449
+    },
+    {
+      "variant": "straw-cloth",
+      "clip": "body-hit",
+      "prompt": "An object recoils backward from a hit to the chest and returns to standing upright.",
+      "inferenceSeconds": 20.251,
+      "peakLocalDegrees": 11.945
+    },
+    {
+      "variant": "straw-cloth",
+      "clip": "head-hit",
+      "prompt": "An object snaps its head backward from a hit and then returns to standing upright.",
+      "inferenceSeconds": 19.754,
+      "peakLocalDegrees": 6.946
+    },
+    {
+      "variant": "straw-cloth",
+      "clip": "hit-left",
+      "prompt": "An object recoils sideways from a hit on its left shoulder and returns to standing upright.",
+      "inferenceSeconds": 19.261,
+      "peakLocalDegrees": 11.923
+    },
+    {
+      "variant": "straw-cloth",
+      "clip": "hit-right",
+      "prompt": "An object recoils sideways from a hit on its right shoulder and returns to standing upright.",
+      "inferenceSeconds": 19.888,
+      "peakLocalDegrees": 11.778
+    },
+    {
+      "variant": "straw-cloth",
+      "clip": "heavy-hit",
+      "prompt": "An object bends forward at the waist from a heavy hit and slowly recovers to standing upright.",
+      "inferenceSeconds": 20.391,
+      "peakLocalDegrees": 10.235
+    },
+    {
+      "variant": "wood-steel",
+      "clip": "idle",
+      "prompt": "An object stands still with its arms hanging loosely and gently sways its upper body.",
+      "inferenceSeconds": 19.886,
+      "peakLocalDegrees": 4.166
+    },
+    {
+      "variant": "wood-steel",
+      "clip": "body-hit",
+      "prompt": "An object recoils backward from a hit to the chest and returns to standing upright.",
+      "inferenceSeconds": 19.975,
+      "peakLocalDegrees": 14.479
+    },
+    {
+      "variant": "wood-steel",
+      "clip": "head-hit",
+      "prompt": "An object snaps its head backward from a hit and then returns to standing upright.",
+      "inferenceSeconds": 20.009,
+      "peakLocalDegrees": 6.974
+    },
+    {
+      "variant": "wood-steel",
+      "clip": "hit-left",
+      "prompt": "An object recoils sideways from a hit on its left shoulder and returns to standing upright.",
+      "inferenceSeconds": 19.973,
+      "peakLocalDegrees": 11.958
+    },
+    {
+      "variant": "wood-steel",
+      "clip": "hit-right",
+      "prompt": "An object recoils sideways from a hit on its right shoulder and returns to standing upright.",
+      "inferenceSeconds": 39.862,
+      "peakLocalDegrees": 11.837
+    },
+    {
+      "variant": "wood-steel",
+      "clip": "heavy-hit",
+      "prompt": "An object bends forward at the waist from a heavy hit and slowly recovers to standing upright.",
+      "inferenceSeconds": 38.456,
+      "peakLocalDegrees": 10.463
+    }
+  ]
+}

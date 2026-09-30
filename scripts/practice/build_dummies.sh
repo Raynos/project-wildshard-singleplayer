@@ -38,5 +38,6 @@ for f in "${FIGURES[@]}"; do
   blender -b -P "$REPO/scripts/practice/rig_dummy.py" -- "$WORK/$name.baked.glb" "$WORK/$name.rigged.glb" \
     --variant "$variant" --front "$front" --report "$WORK/$name.rig.json" | grep -E "^REPORT|Error" || true
   node "$REPO/scripts/practice/pack_dummy.mjs" "$WORK/$name.rigged.glb" "$REPO/public/assets/practice/dummies/$name.glb"
+  node "$REPO/scripts/practice/repair_dummy_weights.mjs" "$REPO/public/assets/practice/dummies/$name.glb" "$REPO/public/assets/practice/dummies/$name.glb"
 done
 ls -la "$REPO/public/assets/practice/dummies/"

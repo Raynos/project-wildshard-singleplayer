@@ -1,0 +1,43 @@
+{
+  "method": "Built game, actual HUD arena, scripted simultaneous damage calls; portrait phone tier on Chromium Metal",
+  "clips": [
+    {
+      "variant": "wood",
+      "rig": "humanoid",
+      "driven": 13,
+      "clips": [
+        "body-hit",
+        "head-hit",
+        "hit-left",
+        "hit-right",
+        "heavy-hit"
+      ]
+    },
+    {
+      "variant": "straw-cloth",
+      "rig": "humanoid",
+      "driven": 13,
+      "clips": [
+        "body-hit",
+        "head-hit",
+        "hit-left",
+        "hit-right",
+        "heavy-hit"
+      ]
+    },
+    {
+      "variant": "wood-steel",
+      "rig": "humanoid",
+      "driven": 13,
+      "clips": [
+        "body-hit",
+        "head-hit",
+        "hit-left",
+        "hit-right",
+        "heavy-hit"
+      ]
+    }
+  ],
+  "errors": [],
+  "videoTrimStart": 11.268
+}

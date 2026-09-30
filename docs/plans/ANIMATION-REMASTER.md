@@ -1,6 +1,6 @@
 # Animation and rigging remaster — four shards
 
-**State:** `draft` 2026-09-30 — E335 catalogue audited; broad implementation awaits Jake’s picks. E336’s three-dummy UniMate pilot is separately authorized and in flight.
+**State:** `draft` 2026-09-30 — E335 catalogue audited; broad implementation awaits Jake’s picks. E336’s separately authorized dummy pilot is built, passes numerical/HUD capture checks and awaits release.
 
 ## Scope and evidence
 
