@@ -1,6 +1,6 @@
 # Plan: model architecture (E306): what a model is, where it lives, how the Model Explorer shows it
 
-**State:** `in progress` 2026-09-29 — Jake approved option B1 and the WHOLE migration (M0–M6), plus rows M7–M11 from his E315 notes: a Sets explorer, static enforcement, model review clips, the Blender practice and the image-to-threejs review. M9 is done (`scripts/model-spin.mjs`, the review clips). In flight: M0 (the models agent) and M10 + M11 (research). M1–M4 run shard by shard, in parallel, once M0's contract lands.
+**State:** `in progress` 2026-09-30 — B1 and the whole migration approved (E306 / E315). Done: M0a + M0b (`aceae33a`: the `defineModel` / `place()` contract in `src/models/model.ts`, the Explorer facts, the shore boulder), M9 (spin clips), M10 (Blender), M11 (our mockup-to-model skill). In flight: M1–M4, one agent per shard in parallel, and M8 growing with each wave. Next: M5, M7, M6.
 
 ## Read this first
 
@@ -188,12 +188,12 @@ board.
 
 | # | Row | Size | Status |
 |---|---|---|---|
-| M0a | Explorer facts: count, drawnAs, pipeline badge, explicit category, `worldView` on a real copy | S | in flight (E306) |
-| M0b | `defineModel` / `place()` contract + Driftwood shore boulder (or the training dummy) | S–M | in flight (E306) |
-| M1 | Driftwood models | M | approved; after M0 |
-| M2 | Pine Hollow models | M | approved; after M0 |
-| M3 | Nalati models + Sets | M–L | approved; after M0 |
-| M4 | Nine Dragon models | M | approved; after M0 |
+| M0a | Explorer facts: count, drawnAs, pipeline badge, explicit category, `worldView` on a real copy | S | done `aceae33a` (board `art/models-audit/round-2-m0/m0-before-after.jpg`) |
+| M0b | `defineModel` / `place()` contract + Driftwood shore boulder (or the training dummy) | S–M | done `aceae33a`: every shard's scene, shaders and colliders identical before / after |
+| M1 | Driftwood models | M | in flight (E315) |
+| M2 | Pine Hollow models | M | in flight (E315) |
+| M3 | Nalati models + Sets | M–L | in flight (E315) |
+| M4 | Nine Dragon models | M | in flight (E315) |
 | M5 | Creatures from the species list; Gear | S | approved; after M0 |
 | M6 | Delete the old paths; archive | S | approved; last |
 | M7 | Sets explorer: explore sets / places / zones / scenes as their own mode between models and the world | M | approved; after M3 |
