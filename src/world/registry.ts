@@ -158,6 +158,12 @@ export interface RegisteredPick {
    * rest of it is the world's. Absent: every hit on the object is the entry's.
    */
   claim?: (point: THREE.Vector3) => THREE.Box3 | null;
+  /**
+   * The nearest of its copies' boxes the ray enters before `far` metres (not one it starts inside): a tap that threads a
+   * copy's open shape (between a table's legs, beside a laundry line) and lands on the world behind it is still that
+   * copy's (E323). Only for objects copies are drawn into, with `claim`.
+   */
+  boxHit?: (ray: THREE.Ray, far: number) => { readonly box: THREE.Box3; readonly distance: number } | null;
 }
 
 export interface Piece {

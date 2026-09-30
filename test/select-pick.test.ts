@@ -3,7 +3,7 @@
 // nearest copy, metres away — and the shared object is raycast once per tap, not once per model drawn into it.
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry } from '../src/world/registry';
+import { WorldRegistry, type RegisteredPick } from '../src/world/registry';
 import { defineModel, modelContext } from '../src/models/model';
 import { CLAIM_MARGIN, claimCopy, place } from '../src/models/place';
 import { pickTarget, type SelectTarget } from '../src/explore/pick';
@@ -13,6 +13,15 @@ const mat = new THREE.MeshBasicMaterial();
 const lamp = defineModel({ id: 'shared/test-pick-lamp', name: 'Lamp', category: 'props', pipeline: 'code', file: 'test/select-pick.test.ts', defaults: {}, build: () => [{ geometry: new THREE.BoxGeometry(1, 1, 1), material: mat }] });
 const sign = defineModel({ id: 'shared/test-pick-sign', name: 'Sign', category: 'props', pipeline: 'code', file: 'test/select-pick.test.ts', defaults: {}, build: () => [{ geometry: new THREE.BoxGeometry(1, 1, 1), material: mat }] });
 
+/** a registered pick as Explore hands it to Select (Explore.ts selectTargets) */
+function asTarget(p: RegisteredPick): SelectTarget {
+  const t: SelectTarget = { object: p.object, entry: p.entry };
+  if (p.boxAt) t.boxAt = p.boxAt;
+  if (p.claim) t.claim = p.claim;
+  if (p.boxHit) t.boxHit = p.boxHit;
+  return t;
+}
+
 /** a 40 m wall (the kit: one mesh) with two lamps and a sign drawn into it, 1 m boxes on its face (z = 0) */
 function kit(): { reg: WorldRegistry; wall: THREE.Mesh; targets: SelectTarget[] } {
   const reg = new WorldRegistry();
@@ -21,7 +30,7 @@ function kit(): { reg: WorldRegistry; wall: THREE.Mesh; targets: SelectTarget[] 
   const boxes = (xs: number[]): Float32Array => Float32Array.from(xs.flatMap((x) => [x - 0.5, 4.5, -0.5, x + 0.5, 5.5, 0.5]));
   place(lamp, [{ x: -10, y: 5, z: 0 }, { x: 10, y: 5, z: 0 }], { ctx, draw: 'instanced', registry: reg, drawnInto: { object: wall, boxes: boxes([-10, 10]) } });
   place(sign, [{ x: 0, y: 5, z: 0 }], { ctx, draw: 'single', registry: reg, drawnInto: { object: wall, boxes: boxes([0]) } });
-  const targets = reg.picks.map((p): SelectTarget => ({ object: p.object, entry: p.entry, ...(p.boxAt ? { boxAt: p.boxAt } : {}), ...(p.claim ? { claim: p.claim } : {}) }));
+  const targets = reg.picks.map(asTarget);
   return { reg, wall, targets };
 }
 
@@ -51,6 +60,20 @@ describe('a tap on a kit several models are drawn into (E323)', () => {
     expect(pickTarget(at(100, 5), targets)).toBeNull(); // off the wall
     const box = pickTarget(at(-10, 5), targets)?.box;
     expect(box?.getCenter(new THREE.Vector3()).x).toBeCloseTo(-10, 6); // boxed on that copy, not the whole wall
+  });
+
+  it('a tap through a copy\'s open shape (its box, in front of the wall it lands on) is that copy\'s; a box behind the wall is not', () => {
+    const { reg, wall } = kit();
+    const post = defineModel({ id: 'shared/test-pick-post', name: 'Post', category: 'props', pipeline: 'code', file: 'test/select-pick.test.ts', defaults: {}, build: () => [{ geometry: new THREE.BoxGeometry(1, 1, 1), material: mat }] });
+    // a table drawn into the wall's kit 1–3 m in front of it (its legs: nothing of it under the tap), and one behind
+    place(post, [{ x: 4.5, y: 1.5, z: 2 }, { x: 14.5, y: 1.5, z: -4 }], { ctx, draw: 'single', registry: reg,
+      drawnInto: { object: wall, boxes: Float32Array.from([4, 0, 1, 5, 3, 3, 14, 0, -5, 15, 3, -3]) } });
+    const targets = reg.picks.map(asTarget);
+    const hit = pickTarget(at(4.5, 1.5), targets);
+    expect(hit?.target.entry).toBe(post.id);
+    expect(hit?.point.z).toBeCloseTo(3, 6); // where the ray entered its box
+    expect(pickTarget(at(14.5, 1.5), targets)).toBeNull(); // behind the wall: the wall's
+    expect(pickTarget(at(10, 5), targets)?.target.entry).toBe(lamp.id); // a surface a copy claims still wins
   });
 
   it('raycasts the shared object once per tap, however many models are drawn into it', () => {
