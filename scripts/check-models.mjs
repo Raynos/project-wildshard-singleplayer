@@ -14,6 +14,11 @@
  *   8. a species rig with no model (E315 M5): every kind a file registers (`registerSpecies({ … kind: '<kind>'` or a string
  *      constant) is some model's species rig — `creature(<kind>…)` (src/models/creature.ts) or its `rig: { species }` — so a
  *      new creature can't slip past the Model Explorer
+ *   9. a named place with no Set (E315 M12, Jake: "all four shards need to have models and sets"): every place in a
+ *      shard's list of named places (`NAMED_PLACES`: Driftwood's DRIFTWOOD_PLACES, Nalati's map POIs = NALATI_PLACES,
+ *      Pine Hollow's PINE_HOLLOW_POIS + its quest places, Nine Dragon's NINE_DRAGON_PLACES) is named by some
+ *      `placeSet({ … place: '<slug>/<id>' … })` (or a set table's row), and every such `place` names a real place.
+ *      Enforced per shard (`PLACES_ENFORCED`) once its pass has registered them; reported for the rest
  * REPORTS (never fails) what has not moved onto the contract yet, per area: registrations by hand (`addBuilt`,
  * `registerModel`, `registerSolid`, a registry `add` with an `object`, a `model:` flag) and hand-rolled drawing
  * (`new InstancedMesh` / `BatchedMesh`, `mergeGeometries`) outside src/models/. Each migration wave (M1–M5) drives its
@@ -117,6 +122,70 @@ function importsOf(file, text) {
   return out;
 }
 
+/**
+ * 9. Every named place is a Set (M12). A shard's named places, read from its own list: `file` holds `list`, an array
+ *    whose rows carry `id: '…'` (or, `labels`, `label: '…'` slugged the way NALATI_PLACES slugs them). A shard's list
+ *    file not in the checked files (a test's partial map) skips that shard; in the whole tree a missing one fails.
+ */
+export const NAMED_PLACES = {
+  'driftwood-isle': [{ file: 'src/game/quest/Places.ts', list: 'DRIFTWOOD_PLACES' }],
+  'nalati-grasslands': [{ file: 'src/chunks/nalatiLayout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/game/quest/nalati.ts)
+  'pine-hollow': [{ file: 'src/chunks/pineHollowLayout.ts', list: 'PINE_HOLLOW_POIS' }, { file: 'src/chunks/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
+  'nine-dragon-stack': [{ file: 'src/chunks/nine-dragon-stack/places.ts', list: 'NINE_DRAGON_PLACES' }],
+};
+/** the shards whose every named place must have its set (the rest are reported) */
+export const PLACES_ENFORCED = [];
+
+/** the text of the array `name` (`name = [` or `name: [`), brackets matched; null when absent */
+function arrayText(code, name) {
+  const m = new RegExp(`\\b${name}\\b[^=\\n]*=\\s*\\[`).exec(code) ?? new RegExp(`\\b${name}\\s*:\\s*\\[`).exec(code);
+  if (!m) return null;
+  let depth = 0;
+  for (let i = m.index + m[0].length - 1; i < code.length; i++) {
+    const c = code[i];
+    if (c === "'" || c === '"' || c === '`') { const q = c; for (i++; i < code.length && code[i] !== q; i++) if (code[i] === '\\') i++; continue; }
+    if (c === '[') depth++;
+    else if (c === ']' && --depth === 0) return code.slice(m.index + m[0].length - 1, i + 1);
+  }
+  return null;
+}
+
+const placeSlug = (s) => s.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-').replaceAll(/^-|-$/g, '');
+
+/** rule 9: each shard's named places, the places some set names, and the gaps */
+function namedPlaceSets(texts, whole, strip) {
+  const named = new Map(), problems = [];
+  for (const [shard, lists] of Object.entries(NAMED_PLACES)) {
+    const ids = [];
+    let read = false;
+    for (const l of lists) {
+      const text = texts[l.file];
+      if (text === undefined) { if (whole && !l.optional) problems.push({ shard, msg: `${l.file}: ${shard}'s list of named places (${l.list}) is missing` }); continue; }
+      const arr = arrayText(strip(text), l.list);
+      if (arr === null) { problems.push({ shard, msg: `${l.file}: no ${l.list} array — ${shard}'s named places` }); continue; }
+      read = true;
+      for (const m of arr.matchAll(l.labels ? /\blabel:\s*'([^']+)'/g : /\{\s*id:\s*'([^']+)'/g)) ids.push(l.labels ? placeSlug(m[1]) : m[1]);
+    }
+    if (read) named.set(shard, ids);
+  }
+  const setFor = new Map();
+  for (const [file, text] of Object.entries(texts)) {
+    for (const m of strip(text).matchAll(/\bplace:\s*'([a-z0-9-]+)\/([a-z0-9-]+)'/g)) {
+      const [, shard, id] = m;
+      const ids = named.get(shard);
+      if (ids !== undefined && !ids.includes(id)) problems.push({ shard, msg: `${file}: a set names the place '${shard}/${id}', which is not in ${shard}'s named places` });
+      setFor.set(`${shard}/${id}`, file);
+    }
+  }
+  const places = {};
+  for (const [shard, ids] of named) {
+    const missing = ids.filter((id) => !setFor.has(`${shard}/${id}`));
+    places[shard] = { named: ids.length, sets: ids.length - missing.length, missing };
+    for (const id of missing) problems.push({ shard, msg: `${shard}: the named place '${id}' has no set — placeSet({ … place: '${shard}/${id}' … }) with the models placed there` });
+  }
+  return { places, problems };
+}
+
 /** Check the tree (or the given { file: text } map): the broken rules, and the not-yet-migrated report. */
 export function checkModels(files) {
   const texts = files ?? Object.fromEntries(sources().map((f) => [f, readFileSync(join(ROOT, f), 'utf8')]));
@@ -169,14 +238,19 @@ export function checkModels(files) {
       }
     }
   }
-  return { violations, report: Object.fromEntries([...report].sort(([a], [b]) => a.localeCompare(b))) };
+  const { places, problems } = namedPlaceSets(texts, files === undefined, (t) => t.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, ''));
+  for (const p of problems) if (PLACES_ENFORCED.includes(p.shard)) violations.push(p.msg);
+  return { violations, report: Object.fromEntries([...report].sort(([a], [b]) => a.localeCompare(b))), places, placeProblems: problems.map((p) => p.msg) };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { violations, report } = checkModels();
+  const { violations, report, places } = checkModels();
   if (!process.argv.includes('--quiet')) {
     console.info('Not yet on the model contract (src/models/place.ts), per area — the migration waves take these to zero:');
     for (const [area, r] of Object.entries(report)) console.info(`  ${area.padEnd(44)} ${Object.entries(r).map(([k, n]) => `${k} ${n}`).join(' · ')}`);
+    console.info('Named places with a set (M12), per shard:');
+    for (const [shard, p] of Object.entries(places)) console.info(`  ${shard.padEnd(44)} ${p.sets} / ${p.named}${PLACES_ENFORCED.includes(shard) ? ' (enforced)' : ''}${p.missing.length > 0 ? ` · no set: ${p.missing.join(', ')}` : ''}`);
+    for (const shard of Object.keys(NAMED_PLACES)) if (!(shard in places)) console.info(`  ${shard.padEnd(44)} no list of named places yet (${NAMED_PLACES[shard].map((l) => `${l.list} in ${l.file}`).join(', ')})`);
   }
   if (violations.length > 0) {
     console.error(`check-models: ${violations.length} broken rule(s):\n  ${violations.join('\n  ')}`);
