@@ -4,7 +4,7 @@
 // Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 // (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,
-// the crowd, the paper lanterns, the Fei Zhua hook, the wall kit), placed through `place` under the root;
+// the crowd, the paper lanterns, the Fei Zhua hook, the wall kit, the movers), placed through `place` under the root;
 // the instanced ones are handed to the fragment's own cullers (world/cull.ts, crowd.ts `Crowd`, look/lanterns.ts
 // `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
@@ -33,16 +33,17 @@ import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '../look/signs';
 import { buildSquare } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
-import { WORDS, buildTowers, droneKit, trainKit } from './towers';
+import { WORDS, buildTowers } from './towers';
 import { Rng, chars } from '../util';
 import { type HandedBatch, type InstancedCuller, place } from '../../../models/place';
 import type { ModelDef, Placement } from '../../../models/model';
 import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';
+import { cableGondola, drone, monorailTrain } from '../models/movers';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
-import { CABLE, SHAFT, WELL_RECTS, buildWell, gondolaKit, wellSheets } from './well';
+import { CABLE, SHAFT, WELL_RECTS, buildWell, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { type InstanceLevel, InstanceCuller } from './cull';
 import { lodReady } from './lod';
@@ -318,22 +319,24 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   }
   if (ctx.acs.length > 0) nameDraws(place(airConBox, ctx.acs.map((m) => at(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }), 'inst:ac');
 
-  // movers: the train, the gondola, the drones (their lights in small neon meshes)
+  // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0
   const neon = neonMaterial(shared, atlas.textures);
-  const train = new Mesh(trainKit().build(), mat);
-  const gondola = new Mesh(gondolaKit().build(), mat);
-  root.add(named(train, 'movers'), named(gondola, 'movers'));
-  const drones: { body: Mesh; phase: number; r: number; y: number }[] = [];
-  for (let i = 0; i < 2; i++) {
-    const body = new Mesh(droneKit().build(), mat);
-    const lb = new SignBuilder(atlas);
-    lb.light(new Vector3(1.3, 0.6, 1.3), new Vector3(1, 0, 0), new Vector3(0, 1, 0), 0.35, 0.35, 0xff3b30, 10, 2, 0.1);
-    lb.light(new Vector3(-1.3, 0.6, -1.3), new Vector3(1, 0, 0), new Vector3(0, 1, 0), 0.35, 0.35, 0xffffff, 10, 2, 0.6);
-    lb.light(new Vector3(0, -0.3, 0.82), new Vector3(1, 0, 0), new Vector3(0, 1, 0), 0.3, 0.2, 0x3fe6ff, 6, 1);
-    body.add(new Mesh(lb.build(), neon));
-    root.add(named(body, 'movers'));
-    drones.push({ body, phase: i * 2.4, r: 22 + i * 14, y: Y0 + 58 + i * 16 });
-  }
+  nd.look.neon = { mat: neon, atlas };
+  /** a mover's copies (one object each: the world moves them), named for the budget lanes */
+  const movers = (model: ModelDef<object>, pls: readonly Placement<object>[], id: string): Object3D[] => {
+    const placed = place(model, pls, { ctx: nd.ctx, draw: 'single', parent: root, piece: { id } });
+    const copies = pls.length === 1 ? [placed.object] : [...placed.object.children];
+    named(placed.object, 'movers');
+    for (const o of copies) named(o, 'movers');
+    return copies;
+  };
+  const one = (list: readonly Object3D[]): Object3D => list[0] ?? new Group();
+  const gx0 = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(-0.62));
+  const train = one(movers(monorailTrain, [{ x: -100, y: Y0 + 25.5, z: -27 }], 'nds-train'));
+  const gondola = one(movers(cableGondola, [{ x: gx0, y: CABLE.y + ((gx0 - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, z: CABLE.z }], 'nds-gondola'));
+  const droneAt = [0, 1].map((i) => ({ phase: i * 2.4, r: 22 + i * 14, y: Y0 + 58 + i * 16 }));
+  const bodies = movers(drone, droneAt.map((d) => ({ x: 8 + Math.cos(d.phase) * d.r, y: d.y + Math.sin(d.phase) * 1.5, z: -8 + Math.sin(d.phase) * d.r, yaw: -d.phase })), 'nds-drones');
+  const drones = droneAt.flatMap((d, i) => { const body = bodies[i]; return body === undefined ? [] : [{ body, ...d }]; });
   root.add(named(new Mesh(signs.build(), neon), 'signs'));
 
   // the painted sky, the LED sky screens (lab P7's 千里江山图 scroll), the Well's silk sheets, the stall's steam
