@@ -1,0 +1,79 @@
+{
+ "tag": "e322-crags-a",
+ "url": "http://127.0.0.1:4406",
+ "query": "",
+ "settings": {
+  "pineCrags": "a",
+  "weather": "clear"
+ },
+ "tier": "phone",
+ "viewport": "402x874@3",
+ "scale": "",
+ "when": "2026-09-30T08:46:40.915Z",
+ "rows": [
+  {
+   "pose": "lookout",
+   "gpu": 1.6166666746139526,
+   "gpuP50": 1.700000007947286,
+   "gpuP10": 1.6083333094914753,
+   "gpuP90": 1.774999976158142,
+   "cpu": 1.5999999046325684,
+   "calls": 112,
+   "tris": 1103445,
+   "subtract": {
+    "null": {
+     "base": 1.8333333333333333,
+     "off": 1.849999984105428,
+     "delta": -0.016666650772094727,
+     "n": 12
+    }
+   },
+   "overdraw": null
+  },
+  {
+   "pose": "ridge",
+   "gpu": 1.7166666587193806,
+   "gpuP50": 1.8416666587193806,
+   "gpuP10": 1.6833333571751912,
+   "gpuP90": 2,
+   "cpu": 1.5,
+   "calls": 86,
+   "tris": 819267,
+   "subtract": {
+    "null": {
+     "base": 2.275000015894572,
+     "off": 2.283333341280619,
+     "delta": -0.008333325386047363,
+     "n": 12
+    }
+   },
+   "overdraw": null
+  },
+  {
+   "pose": "lookout-e",
+   "gpu": 1.3583333492279053,
+   "gpuP50": 1.5166666507720947,
+   "gpuP10": 1.349999984105428,
+   "gpuP90": 1.6333333253860474,
+   "cpu": 1.5999999046325684,
+   "calls": 90,
+   "tris": 809083,
+   "subtract": {
+    "null": {
+     "base": 1.7583333651224773,
+     "off": 1.6583333412806194,
+     "delta": 0.10000002384185791,
+     "n": 12
+    }
+   },
+   "overdraw": null
+  }
+ ],
+ "env": {
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+  "buffer": "804x1748",
+  "pixelRatio": 2
+ },
+ "errors": [],
+ "table": "| pose | GPU ms/frame | cpu submit | null | alpha-tested layers (raster) | all layers (raster) |\n|---|---:|---:|---:|---:|---:|\n| lookout | 1.62 | 1.60 | -0.02 | — | — |\n| ridge | 1.72 | 1.50 | -0.01 | — | — |\n| lookout-e | 1.36 | 1.60 | 0.10 | — | — |"
+}

@@ -1,0 +1,45 @@
+{
+ "tag": "e322-crowns-b-s3-1",
+ "url": "http://127.0.0.1:4407",
+ "query": "",
+ "settings": {
+  "pineCrowns": "b"
+ },
+ "tier": "phone",
+ "viewport": "402x874@3",
+ "scale": "3",
+ "when": "2026-09-30T11:24:59.650Z",
+ "rows": [
+  {
+   "pose": "hollow",
+   "gpu": 1.8083333174387615,
+   "gpuP50": 1.849999984105428,
+   "gpuP10": 1.799999992052714,
+   "gpuP90": 1.924999992052714,
+   "cpu": 1.5999999046325684,
+   "calls": 105,
+   "tris": 1199561,
+   "subtract": {},
+   "overdraw": null
+  },
+  {
+   "pose": "lookout",
+   "gpu": 1.8000000317891438,
+   "gpuP50": 1.8333333333333333,
+   "gpuP10": 1.799999992052714,
+   "gpuP90": 1.8833333253860474,
+   "cpu": 1.0999999046325684,
+   "calls": 113,
+   "tris": 1106685,
+   "subtract": {},
+   "overdraw": null
+  }
+ ],
+ "env": {
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+  "buffer": "1206x2622",
+  "pixelRatio": 3
+ },
+ "errors": [],
+ "table": "| pose | GPU ms/frame | cpu submit |  | alpha-tested layers (raster) | all layers (raster) |\n|---|---:|---:||---:|---:|\n| hollow | 1.81 | 1.60 |  | — | — |\n| lookout | 1.80 | 1.10 |  | — | — |"
+}
