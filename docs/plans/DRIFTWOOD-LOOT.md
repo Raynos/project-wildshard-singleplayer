@@ -77,3 +77,15 @@ quest giver. Any shop should be a second NPC. Don't allow for the selling of jun
 | GEAR (board 6) | **C** | A paper doll: the kit laid out round a silhouette (swords + sharpening, hearts, charms, coins), with a **cosmetics** slot group holding the captain's hat and the sailcloth cape (Jake: "The hat also goes in the gear section as a cosmetic as does the cape"), worn / taken off from there. |
 | FINDS / collection (board 7) | **B** | A sticker book: found bright, missing dashed; 15 sea glass chips; places, glyph shards, trophies, treasures. |
 | PACK (inventory) | kept | The junk pack, as today (no sale). |
+
+## Last: the other three shards (Jake, 2026-09-30)
+
+Jake: "any changes you make to the shared UI, the five tabs, that needs to ripple across the other three shards. That is
+fundamentally shared UI for the entire game." So the Bag is built once for all four shards:
+- Stage 1 ships the icon tab bar and GEAR (weapons + skins move out of PACK) on **every** shard; PACK and FEATS as today.
+  FINDS shows on Driftwood only until the review below.
+- **Open, with Jake — the final row of this plan:** review Pine Hollow, Nalati and Nine Dragon, in an order Jake picks, and
+  agree per shard what its GEAR holds (weapons, skins, upgrades?), what its FINDS holds (its collectibles, places,
+  trophies?), whether it has coins / a shop / a trader, and what its PACK junk is for (Pine Hollow already trades hides
+  for ammo with Mott). One board per shard, then build.
+
