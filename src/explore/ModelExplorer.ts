@@ -851,8 +851,8 @@ export class ModelExplorer implements ExplorePane {
 
 /**
  * The box of what a model draws: its visible meshes only (a card's other weapons, a rig's hidden parts don't widen it —
- * Nine Dragon's arms read small on a disc sized for all of them), from their vertices (a rig as posed) up to 200 k of
- * them, else their geometry's box.
+ * Nine Dragon's arms read small on a disc sized for all of them), from their vertices up to 200 k of them, else (and
+ * for a rig: its rest pose) their geometry's box.
  */
 function visibleBox(o: THREE.Object3D): THREE.Box3 {
   const box = new THREE.Box3(), part = new THREE.Box3(), v = new THREE.Vector3();
@@ -875,7 +875,10 @@ function visibleBox(o: THREE.Object3D): THREE.Box3 {
     }
     const pos = c.geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
     if (pos === undefined) return;
-    if (pos.count <= 200_000) { for (let i = 0; i < pos.count; i++) box.expandByPoint(c.getVertexPosition(i, v).applyMatrix4(c.matrixWorld)); return; }
+    // (a rig's vertices as skinned need its bone matrices, which are only posed at its first render — a fresh creature's
+    // collapsed to the world's origin and the camera framed an empty disc: its rest pose instead)
+    const skinned = (c as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true;
+    if (!skinned && pos.count <= 200_000) { for (let i = 0; i < pos.count; i++) box.expandByPoint(c.getVertexPosition(i, v).applyMatrix4(c.matrixWorld)); return; }
     if (c.geometry.boundingBox === null) c.geometry.computeBoundingBox();
     if (c.geometry.boundingBox) box.union(part.copy(c.geometry.boundingBox).applyMatrix4(c.matrixWorld));
   });

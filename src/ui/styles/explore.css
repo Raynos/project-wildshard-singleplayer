@@ -359,7 +359,7 @@
 .ws-x-setsheet::after { right: -1px; bottom: -1px; width: calc(var(--ws-x-srb) + 10px); height: calc(var(--ws-x-srb) + 10px); border-width: 0 1px 1px 0; border-bottom-right-radius: var(--ws-x-srb); }
 .ws-x-sethead { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .ws-x-setback { flex: none; padding: 4px 8px; background: none; border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-cyan); }
-.ws-x-setname { flex: 1 1 auto; min-width: 0; font-family: var(--ws-display); font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-x-setname { flex: 1 1 0; min-width: 0; font-family: var(--ws-display); font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ws-x-setstep { display: flex; flex: none; gap: 6px; }
 .ws-x-setstep[hidden] { display: none; }
 .ws-x-setstep button { width: 36px; height: 32px; padding: 0; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); font-size: 16px; line-height: 1; }
