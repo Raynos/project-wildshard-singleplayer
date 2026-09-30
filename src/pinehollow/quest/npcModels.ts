@@ -2,7 +2,9 @@
  * The hamlet's people, generated (PINE-HOLLOW-REMASTER PH-M4): Hale the ranger (board B3 pick A, "the old warden"), Mott
  * the trader, Brandt the miller — photoreal codex references (A-pose, art/pine-hollow/round-11-npcs/) → Hunyuan3D-2 full +
  * paint → the PBR finish (scripts/img2mesh/driftwood_post.py --keep-texture: the generated texture + a normal map, 1.8 m,
- * feet at y = 0, facing +z) → `public/assets/pine-hollow/npcs/<kind>[.phone].glb`. npcFigure.ts's `makeNpcFigure` shows
+ * feet at y = 0, facing +z) → `public/assets/pine-hollow/npcs/<kind>[.phone].glb`. The heads are E304's remaster, Jake's
+ * pick D (E343): a Hunyuan3D-2 bust from a codex front portrait (art/pine-hollow/round-18-faces/) with its own all-round
+ * paint, grafted at its own neck (scripts/img2mesh/e304_faces.sh paint, face_remaster.py --graft-v2), normal map re-baked. npcFigure.ts's `makeNpcFigure` shows
  * its stand-in until the model has loaded, then swaps this in (Debug ▸ Pine Hollow people = Stand-ins keeps them).
  *
  *   void preloadNpcModels();                  // the quest's install: fetch all three early
@@ -56,23 +58,12 @@ function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
   return g;
 }
 
-/**
- * The file a person loads: npcModelUrl's, or its face remaster (E304, Debug ▸ Creatures & NPCs ▸ Pine Hollow faces;
- * scripts/img2mesh/e304_faces.sh — the body as shipped, the head replaced by a Hunyuan3D-2 bust grafted at the neck, the
- * face ~20 % of the atlas instead of ~2 %, the normal map re-baked): B = the bust from a codex front portrait
- * (art/pine-hollow/round-18-faces/), C = from the model's own reference crop (art/pine-hollow/round-11-npcs/).
- */
-function npcFileUrl(kind: NpcKind): string {
-  const v = setting('pineFaces'), url = npcModelUrl(kind);
-  return v === 'current' ? url : url.replace('/npcs/', `/npcs/faces-${v}/`);
-}
-
 /** load one person's model (cached; null when it fails — the stand-in stays) */
 export function loadNpcModel(kind: NpcKind): Promise<Source | null> {
   let p = loading.get(kind);
   if (!p) {
     if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    p = loader.loadAsync(npcFileUrl(kind)).then((gltf) => {
+    p = loader.loadAsync(npcModelUrl(kind)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: Source[] = [];
       gltf.scene.traverse((o) => {
