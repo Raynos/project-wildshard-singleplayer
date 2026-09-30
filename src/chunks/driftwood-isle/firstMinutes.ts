@@ -19,7 +19,7 @@ import { lockOn } from '../../player/AimTargets';
 
 interface Body { readonly position: { x: number; z: number }; readonly alive: boolean; readonly hidden: boolean; readonly kind: string }
 
-/** the island's fighters — what ATTACK / DODGE are about (not the deer, not the gull) */
+/** the island's fighters — what ATTACK / DODGE are about (not the gull) */
 const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'bear', 'monkey', 'sailor']);
 const ATTACK_R = 6, WINDUP_R = 10, CALM_R = 15, DODGE_FOR = 2.5, JUMP_AFTER = 12;
 /** s between scans of the animals for the nearest fighter */

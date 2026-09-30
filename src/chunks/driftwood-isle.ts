@@ -82,6 +82,8 @@ export const PIER_PENNANT_AT = 43.2;
 /** the practice crab (E308, Jake's pick A, board-2-practice-target.jpg): one lone small reef crab on the sand path at the
  *  pier's foot, where the landing's fenced corridor turns for the plateau ramp — the first enemy a new player meets */
 export const PRACTICE_CRAB = { x: -7, z: -143 };
+/** the boar variants the island rolls (E318): the common four, never Pine Hollow's Scarback or Old Ironhide (whose drop is a gun) */
+const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];
 
 export const DRIFTWOOD_ISLE: ChunkDef = {
   id: 'chunk://local/driftwood-isle',
@@ -233,16 +235,18 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   // treeless shard as all clearing and keeps animals above the water line. Trails are only the four jetties' sandbars,
   // hence the wide band. Anchors: boar sounders on the south beach by the pier, the west back-beach palms and the north
   // grove; a brown bear in the south-east jungle grove below the plateau (E294: off the Wreck Cove sand and the wreck path,
-  // ~70 m from every quest path, past its 45 m sight), a black bear in the NW jungle under the shrine; a few deer on the plateau.
+  // ~70 m from every quest path, past its 45 m sight), and a black bear on the south-west back beach past the vista point
+  // (E318: it was 15–35 m from the Ring Shrine, the finale; now ~90 m off the pier and shrine paths, 74 m from the vista
+  // point, clear of the brown bear across the island). Boars are the island's four (E318: no Scarback / Old Ironhide, the
+  // Pine Hollow legendaries); no deer (E318: a temperate game animal on a tropical island).
   fauna: [
     // E308: the south-beach sounder sits back from the pier's foot (was 45, −150: three boars within 45 m of the landing
     // met a new player before the practice crab did)
-    { kind: 'boar', count: 4, anchor: { x: 66, z: -132, rMin: 5, rMax: 20 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'boar', count: 3, anchor: { x: -140, z: -30, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'boar', count: 4, anchor: { x: 30, z: 150, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'boar', count: 4, variants: ISLAND_BOARS, anchor: { x: 66, z: -132, rMin: 5, rMax: 20 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'boar', count: 3, variants: ISLAND_BOARS, anchor: { x: -140, z: -30, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'boar', count: 4, variants: ISLAND_BOARS, anchor: { x: 30, z: 150, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
     { kind: 'bear', count: 1, variants: ['brown'], anchor: { x: 56, z: -84, rMin: 4, rMax: 16 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'bear', count: 1, variants: ['black', 'black-blaze'], anchor: { x: -98, z: 108, rMin: 15, rMax: 35 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'deer', count: 3, anchor: { x: -24, z: -62, rMin: 16, rMax: 30 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'bear', count: 1, variants: ['black', 'black-blaze'], anchor: { x: -122, z: -100, rMin: 4, rMax: 14 }, canopy: false, trailBand: [8, 600] },
   ],
   // open sand: a boar sees you from far off (Pine Hollow's numbers assume a forest) — ChunkDef.faunaTuning, merged over
   // the species' HuntTuning by AnimalManager.tuningFor
@@ -257,7 +261,6 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   fightRules: { maxAttackers: 2 },
   faunaTuning: {
     boar: { sightRange: 42, sightRangeGraze: 26, sightCone: 1.22, hearWalk: 18, hearSprint: 34, noticeRate: 0.65, impactAlert: 28 },
-    deer: { sightRange: 44, sightRangeGraze: 22, noticeRate: 0.4 },
   },
   sky: {
     hdri: 'kloofendal_48d_partly_cloudy_puresky', // unused: the sky is the stylized dome (Sky.setupStylized)

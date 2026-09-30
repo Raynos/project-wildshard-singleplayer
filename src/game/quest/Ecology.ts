@@ -1,5 +1,5 @@
 /**
- * Ecology — the island's enemies come back (DRIFTWOOD-REMASTER A6): a crab, monkey, boar, deer or bear you kill is
+ * Ecology — the island's enemies come back (DRIFTWOOD-REMASTER A6): a crab, monkey, boar or bear you kill is
  * replaced a few minutes later by a fresh one of the same kind + variant at its herd's home (the tidepool, the grove,
  * the beach), and the drowned sailor rises in the wreck's hold again after dark. A replacement only appears while you
  * are more than 60 m from where it would stand — nothing pops in in front of you.
@@ -20,7 +20,6 @@ export const RESPAWN: Record<string, RespawnRule> = {
   crab: { delay: [240, 360] },
   monkey: { delay: [300, 420] },
   boar: { delay: [300, 420] },
-  deer: { delay: [300, 420] },
   bear: { delay: [600, 900] },
   sailor: { delay: [180, 180], night: true },
 };
