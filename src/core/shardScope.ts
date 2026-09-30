@@ -240,7 +240,7 @@ export function scopesInstalled(): boolean { return installed; }
  * shard is current (the background prefetch's sleeps, an error report's retry). A shard's timers are cleared when it is
  * evicted; a shell flow must not lose its wake-up with it. (The browser's own functions, taken before the scoping.)
  */
-const nativeTimeout: (fn: () => void, ms?: number) => number = typeof window === 'undefined' ? (fn, ms) => setTimeout(fn, ms) : window.setTimeout.bind(window);
+const nativeTimeout: (fn: () => void, ms?: number) => number = typeof window === 'undefined' ? (fn, ms) => Number(setTimeout(fn, ms)) : window.setTimeout.bind(window); // Number(): with node's types in the program (vite's Plugin type, test/backdrop-prefix.test.ts) setTimeout returns a Timeout
 export const shell = {
   setTimeout: (fn: () => void, ms?: number): number => nativeTimeout(fn, ms),
   listen: (target: EventTarget, type: string, fn: EventListener, options?: boolean | AddEventListenerOptions): void => { EventTarget.prototype.addEventListener.call(target, type, fn, options); },
