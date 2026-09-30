@@ -38,8 +38,12 @@ export interface PieceOptions {
   readonly floor?: (x: number, z: number) => number | undefined;
   /** the floor is real geometry in the colliders (Piece.solidFloor) */
   readonly solidFloor?: boolean;
-  /** a moving placement: the colliders ride this object (Piece.follows; then they are in its local frame) */
-  readonly follows?: THREE.Object3D;
+  /**
+   * a moving placement: the colliders ride this object (Piece.follows; then they are in its local frame). `'copy'`: the
+   * one `single` copy this call places moves (the boat on the swell) — the piece follows it, its colliders the model's
+   * own-space ones (E315 M1)
+   */
+  readonly follows?: THREE.Object3D | 'copy';
   readonly active?: () => boolean;
   /**
    * Register the colliders `every` at a time, a `yieldTask` apart (the phone's ~30 ms per-task collider budget): the
@@ -576,6 +580,16 @@ function boxesCentre(boxes: Float32Array): THREE.Vector3 {
   return b.getCenter(new THREE.Vector3());
 }
 
+/** `piece.follows: 'copy'`: the one `single` copy moves — its colliders ride it, so they are the model's own-space ones */
+function followCopy<P extends object>(def: ModelDef<P>, copies: number, params: P | undefined, o: PlaceOptions, drawn: Drawn): void {
+  if (copies !== 1 || o.draw !== 'single' || params === undefined) throw new Error(`place: '${def.id}' follows its copy: one 'single' placement only`);
+  const own: THREE.BufferGeometry[] = [];
+  drawn.object.traverse((c) => { const m = c as Partial<THREE.Mesh>; if (m.isMesh === true && m.geometry) own.push(m.geometry); });
+  const out: ColliderDesc[] = [];
+  collideCopy(def, params, poseOf({ x: 0, y: 0, z: 0 }), null, own, out, o.ctx);
+  drawn.colliders = out; // (the Placed keeps the placed, world-space ones)
+}
+
 // ── place ──
 
 /** Place copies of a model (see the file header and ./model.ts's migration guide). */
@@ -614,13 +628,14 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   if (!rec) { rec = { groups: [] }; records.set(def.id, rec); }
   rec.groups.push(placed);
   const pc = o.piece ?? {};
+  if (pc.follows === 'copy') followCopy(def, placements.length, params[0], o, drawn);
   const pieceId = pc.id ?? (first ? def.id : `${def.id}#${rec.groups.length}`), split = pc.split;
   const every = split === undefined ? drawn.colliders.length : Math.max(1, split.every);
   registry.add({
     id: pieceId, name: pc.name ?? def.name, category: def.category, file: def.file,
     ...(o.drawnInto === undefined ? { object: drawn.object } : { anchor: boxesCentre(boxes) }), colliders: drawn.colliders.slice(0, every),
     ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
-    ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows }),
+    ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows === 'copy' ? drawn.object : pc.follows }),
     ...(pc.active === undefined ? {} : { active: pc.active }),
     ...(first ? { model: modelEntry(def, o, rec, drawn.drawnAs) } : {}),
   });

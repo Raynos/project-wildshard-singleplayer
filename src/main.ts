@@ -299,12 +299,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
     }
     // the little sailboat you arrived in, moored to the pier's sea-end bollards; you can drop into it
-    const boat = pier && sea ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build() : null;
+    // E315 M1: the sailboat model (src/chunks/driftwood-isle/models/boat.ts) placed through src/models/place.ts, which registers
+    // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
+    const boat = pier && sea ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).place(registry) : null;
     if (boat) {
-      // the boat rides the swell: its colliders (in the boat's own frame) follow the group on a kinematic body (P4)
       statics.push(...boat.colliders);
-      registry.add({ id: 'boat', name: 'Sailboat', category: 'buildings', file: 'src/world/Boat.ts', object: boat.group, follows: boat.group,
-        colliders: boat.colliderLocalDescs(), surface: 'planks', floor: (x, z) => boat.floorHeightAt(x, z), solidFloor: true, model: {} });
       if (boat.ropes) game.scene.add(boat.ropes);
     }
     await slice();
