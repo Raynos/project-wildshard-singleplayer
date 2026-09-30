@@ -20,8 +20,11 @@ on:
         required: false
         default: false
 
+# Releases (the hourly schedule, a manual dispatch) queue apart from push / PR CI: GitHub keeps one PENDING run per group,
+# and with many agents pushing, every push's CI run replaced the pending release, so nothing shipped for hours (E339,
+# 2026-09-30: two dispatches in a row cancelled). CI runs still queue behind each other; releases behind each other.
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'release' || 'ci' }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
