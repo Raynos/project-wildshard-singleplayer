@@ -1,6 +1,6 @@
 # Plan: Driftwood slop sweep (E318)
 
-**State:** `draft` 2026-09-29 — the sweep list; Jake approved none yet.
+**State:** `draft` 2026-09-30 — Jake is picking row by row (board 1 done, below); boards 2–4 for the rows board 1 didn't show are being made. Nothing cut yet. Folds into DRIFTWOOD-TOP10 as its last row once every row is picked.
 
 ## Read this first
 
@@ -68,3 +68,26 @@ pass.
 
 **Counts:** 38 rows: 19 DELETE (1–7, 9, 10, 12, 15–17, 21, 24–27, 29), 13 SIMPLIFY (8, 11, 13, 14, 18–20, 22, 23, 28,
 30–32), 6 KEEP (33–38). The 15 rows marked **Pure** (1, 4, 8, 9, 15, 17, 18, 24–30, 32) can be cut without a taste call.
+
+## Jake's picks (AskUserQuestion, one by one)
+
+Board 1 (2026-09-30):
+
+| Row | Pick |
+|---|---|
+| 1 load diagnostics | **cut** (developer mode only) |
+| 2 staging boundary | **keep** |
+| 3 hoverboard | **keep** |
+| 4 legendaries / AR-15 on Driftwood | **cut** |
+| 5 harvest + junk | decided in DRIFTWOOD-LOOT (kept as PACK) |
+| 6 deer on the plateau | **cut** |
+| 7 black bear at the shrine | **move it away** from the finale and the paths |
+| 8 North / West landings | **keep the landings** (Jake: "we need these landings for the shardfile requirements") **but take them out of the map's place system** |
+| 9 Wendell's boat line | **cut** |
+| 10 DEV pill + second Sound switch | **cut** |
+| 12 filler achievements | **keep** |
+| 24 decided Debug rows (shadows A/B/D, ground-cover A/Bs) | **cut** |
+
+Also decided in DRIFTWOOD-LOOT: 13 (sea glass counted once, FINDS), 16 (doubloons become the kill currency), 22 (iron sword
+saved), 33 (brown bear kept as the trophy fight). Still to pick, on boards 2–4: 11, 13–15, 17–21, 23, 25–29.
+
