@@ -582,3 +582,13 @@ Nalati's butterfly, raptor, reins and arrow and Pine Hollow's crossbow bolt and 
 (E344, `3ce5a3ab`): Driftwood's Blender cove in the collider debug view before (the 200 island.json boxes on the P2
 bridge, orange) / after (on their models: crag plates cyan, cove palms green, broad-frond palms yellow), the same camera,
 and the navmesh over the same view (a byte-identical bake).
+
+### Migration leftovers E346 / E345 (`art/models-audit/round-14-leftovers/`, 2026-09-30)
+
+Evidence, not picks (real builds, iPhone portrait 402 × 874, phone tier). `e346-nine-dragon-posts.jpg` (E346, `8842312f`): the Model
+Explorer cards of the models E346 put on the contract — the Well's balustrade (one 64.6 m run, which owns what was
+`nds-edges`: its stone box and the invisible parapets over it), the crossings' lotus-capped balustrade post (× 146) and
+stone lamp post (× 28), and the paifang (× 4, every gate's posts now its own colliders) — and VIEW IN WORLD on a lamp post
+and on the balustrade. `e345-view-in-world-taps.jpg` (E345, `79c7232f`): VIEW IN WORLD's landing on the three models whose centre tap
+missed (Pine Hollow's stone fire pit and flint & steel, Nine Dragon's scooter), before (ba78a6e6) / after, what the tap
+selected, and each shard's score (`scripts/explore-view-taps.mjs`).
