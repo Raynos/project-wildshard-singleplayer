@@ -19,9 +19,10 @@ const GRAVITY = 13;
 const ARC_TIME = 0.42;           // s of free arc before the magnet takes over
 const MAGNET_ACCEL = 60;         // m/s² toward the chest
 const MAGNET_MAX = 22;           // m/s
-const CATCH_R = 0.55;            // m from the chest: counted
+const CATCH_R = 1.0;             // m from the hip: counted — before it can fill the lens
 const MAX_LIFE = 2.6;            // s: counted anyway
-const CHEST_Y = 1.1;             // m over the player's feet
+const CHEST_Y = 0.75;            // m over the player's feet: the hip, under the view, so the coins sweep in low
+const SHRINK_R = 2.6;            // m: inside this a coin shrinks toward 35 % (a 13 cm coin a hand from the lens is a wall of gold)
 
 interface Coin {
   live: boolean;
@@ -35,7 +36,7 @@ interface Coin {
 }
 interface Burst { left: number; onCoin: (n: number) => void; onDone: (() => void) | undefined }
 
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(SCALE, SCALE, SCALE), _e = new THREE.Euler();
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _e = new THREE.Euler();
 const _to = new THREE.Vector3();
 
 export class CoinBurst {
@@ -82,7 +83,7 @@ export class CoinBurst {
 
   update(dt: number, player: THREE.Vector3): void {
     if (this.live === 0) { this.mesh.count = 0; return; }
-    const tx = player.x, ty = player.y + CHEST_Y, tz = player.z;
+    const tx = player.x, ty = player.y + CHEST_Y, tz = player.z, ey = player.y + 1.6;
     let n = 0;
     for (const c of this.coins) {
       if (!c.live) continue;
@@ -102,6 +103,8 @@ export class CoinBurst {
       c.pos.addScaledVector(c.vel, dt);
       c.spin += c.spinRate * dt;
       _q.setFromEuler(_e.set(0.35, c.spin, 0));
+      const near = Math.hypot(tx - c.pos.x, ey - c.pos.y, tz - c.pos.z);
+      _s.setScalar(SCALE * (near >= SHRINK_R ? 1 : 0.35 + 0.65 * (near / SHRINK_R)));
       _m.compose(c.pos, _q, _s);
       this.mesh.setMatrixAt(n++, _m);
     }
