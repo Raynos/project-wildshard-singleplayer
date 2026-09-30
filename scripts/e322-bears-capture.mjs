@@ -4,7 +4,7 @@
 // tier, muted, Metal). Per variant, per bear (brown, Grizzled Sow, black): a rear three-quarter (the tail) and a side-on
 // (the coat), the bear frozen at idle in daylight, the herds hidden; plus a bear-less frame of each view, so a
 // bear mask (frame − empty frame) can measure the coat's rendered hue against the reference photo.
-//   scripts/browser-lane.sh --max 20 node scripts/e322-bears-capture.mjs --url=http://127.0.0.1:4400 --out=<dir>
+//   scripts/browser-lane.sh --max 20 node scripts/e322-bears-capture.mjs --url=http://127.0.0.1:4400 --out=<dir> [--variants=a,b] [--bears=brown,sow,black]
 // Writes <out>/<variant>-<bear>-<view>.png and <out>/empty-<bear>-<view>.png.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -18,7 +18,8 @@ const OUT = resolvePath(flag('out', 'progress/e322-bears'));
 const ONLY = flag('variants', 'a,b').split(',');
 mkdirSync(OUT, { recursive: true });
 const SPOT = { x: 6, z: -178 };
-const BEARS = [['brown', 'brown'], ['sow', 'brown-old'], ['black', 'black']];
+const WANT = flag('bears', 'brown,sow,black').split(',');
+const BEARS = [['brown', 'brown'], ['sow', 'brown-old'], ['black', 'black']].filter(([n]) => WANT.includes(n));
 // camera per view, relative to the bear (facing −X: its nose at −x, rump at +x): [dx, dy, dz, look dy]
 const VIEWS = { rear: [5.6, 1.9, -4.4, 0.7], side: [0, 1.3, -10, 0.7] };
 

@@ -32,7 +32,8 @@ export interface CoatSpec {
   /**
    * E322 F-M2 (Debug ▸ Bear fix = B): per variant id, the coat keys' target tones (sRGB). The SOURCE tones are then
    * measured off the atlas itself (the mean colour round each key's luminance percentile), not taken from the palette,
-   * so the hull's own tones land exactly on the targets. A variant not listed keeps the palette path.
+   * so the hull's own tones land exactly on the targets. A variant not listed keeps the palette path. A `grizzle` entry
+   * (the tips' colour) paints silver guard-hair tips over the hump, the shoulders and the back, the legs darker.
    */
   measured?: Readonly<Record<string, Readonly<Record<string, RGB>>>>;
 }
@@ -486,6 +487,38 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
         }
       }
       lin[i * 3] = Math.min(1, Math.max(0, r)); lin[i * 3 + 1] = Math.min(1, Math.max(0, g)); lin[i * 3 + 2] = Math.min(1, Math.max(0, b));
+    }
+  }
+
+  // ── 3. a measured coat's grizzle (E322 F-M2: the Grizzled Sow — `measured[v.id].grizzle` = the tips' colour): silver
+  //    guard-hair tips over the hump, the shoulders and the back, streaky, riding the photo's own bright hairs; the legs
+  //    fade darker. Brown stays brown under it ──
+  const grizzle = measured?.['grizzle'];
+  if (grizzle !== undefined) {
+    const s = surfaceOf(geometry, W, H, flipY);
+    const box = geometry.boundingBox ?? new THREE.Box3().setFromBufferAttribute(geometry.getAttribute('position') as THREE.BufferAttribute);
+    const y0 = box.min.y, hgt = Math.max(0.2, box.max.y - box.min.y), sc = 1 / hgt;
+    const neck = boneAt(bones, 'neck1'), body = boneAt(bones, 'body');
+    const hump = neck && body ? neck.z - 0.25 * (neck.z - body.z) : null;   // the shoulder hump, just behind the neck
+    const tip = linOf(grizzle);
+    for (let i = 0; i < W * H; i++) {
+      if (s.covered[i] === 0) continue;
+      const x = s.pos[i * 3] ?? 0, y = s.pos[i * 3 + 1] ?? 0, z = s.pos[i * 3 + 2] ?? 0, ny = s.nrm[i * 3 + 1] ?? 0;
+      const h = (y - y0) * sc;   // 0 at the paws, 1 at the top of the hump
+      let r = lin[i * 3] ?? 0, g = lin[i * 3 + 1] ?? 0, b = lin[i * 3 + 2] ?? 0;
+      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      // the tips: up-facing, high on the body, strongest over the hump, broken into streaks
+      const streak = fbm(x * sc * 38 + 3, y * sc * 70, z * sc * 38, 2);   // hair-scale streaks, combed down
+      const humpW = hump !== null ? 1 - 0.45 * smooth(0.15, 0.55, Math.abs(z - hump) * sc) : 0.8;
+      const m = smooth(0, 0.7, ny) * smooth(0.6, 0.85, h) * humpW * smooth(0.42, 0.62, streak);
+      if (m > 0) {
+        const detail = Math.min(1.5, Math.max(0.5, Math.sqrt(lum / 0.1)));   // the photo's own hairs, as lightness
+        const k = 0.55 * m;
+        r += (tip[0] * detail - r) * k; g += (tip[1] * detail - g) * k; b += (tip[2] * detail - b) * k;
+      }
+      // the legs fade darker toward the paws
+      const leg = 1 - 0.3 * smooth(0.45, 0.12, h);
+      lin[i * 3] = Math.min(1, Math.max(0, r * leg)); lin[i * 3 + 1] = Math.min(1, Math.max(0, g * leg)); lin[i * 3 + 2] = Math.min(1, Math.max(0, b * leg));
     }
   }
 

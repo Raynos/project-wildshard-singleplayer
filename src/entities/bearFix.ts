@@ -17,8 +17,9 @@
  *    source) and in Pine Hollow's light — the fur material's warm sheen and backlit rim over a pale tan — it reads pinkish;
  *    the Grizzled Sow is that atlas pushed paler still under a near-white rim, and reads near-white. Fixed, the hull's own
  *    three tones are MEASURED off its atlas and mapped exactly onto real brown-bear tones (BEAR_FIX_COATS: a grizzly's
- *    deep brown legs, mid-brown body, blond guard-hair tips; the Sow's silver-tipped version), and the sheen and rim take
- *    the coat's own hue (BEAR_FIX_FUR) instead of a pale pink-white.
+ *    deep brown legs, mid-brown body, blond guard-hair tips; the Sow a darker brown with silver tips painted over her hump,
+ *    shoulders and back, her legs darker), and the sheen and rim take the coat's own hue (BEAR_FIX_FUR) instead of a pale
+ *    pink-white.
  */
 import type { RGB } from './species/loft';
 
@@ -97,11 +98,11 @@ export function weldIds(pos: ArrayLike<number>): Int32Array {
  * The fixed bears' coats: per variant, the brown hull's [dark, base, tip] keys (sRGB albedo). A variant not here keeps
  * its hull's own tones. Brown: a grizzly's deep brown legs and belly, mid-brown body, blond guard-hair tips (hue ~25–35°,
  * saturation ~0.5–0.6 — where the pink tan measured at hue 13–22° sat). Grizzled Sow: the same bear old and
- * silver-tipped — a greyer brown body, silver-cream tips, never near-white.
+ * silver-tipped — a darker brown body and legs, `grizzle`: silver tips over the hump and back (pineCoats.ts), never white.
  */
 export const BEAR_FIX_COATS: Readonly<Record<string, Readonly<Record<string, RGB>>>> = {
   brown: { dark: [0.17, 0.115, 0.08], base: [0.40, 0.28, 0.185], tip: [0.64, 0.51, 0.37] },
-  'brown-old': { dark: [0.16, 0.115, 0.08], base: [0.36, 0.28, 0.20], tip: [0.60, 0.54, 0.46] },
+  'brown-old': { dark: [0.14, 0.10, 0.07], base: [0.34, 0.25, 0.17], tip: [0.58, 0.50, 0.40], grizzle: [0.70, 0.67, 0.61] },
 };
 
 /** the fixed bears' sheen and backlit rim (FurStyle), in the coat's own hue */

@@ -35,9 +35,14 @@ Measured in game (torso crop of the side shot, sRGB mean at the 12 / 55 / 92 % l
 | A brown (today) | h4 s0.28 | **h16 s0.37** (rose-tan) | h29 s0.32 |
 | B brown | h14 s0.45 | **h22 s0.50** | h36 s0.36 |
 | A Grizzled Sow (today) | h290 s0.11 | h0 s0.11 | **[0.90, 0.87, 0.86] s0.04** (near-white) |
-| B Grizzled Sow | h12 s0.29 | h25 s0.38 | h36 s0.24 (silver-cream [0.75, 0.68, 0.57]) |
+| B Grizzled Sow, first cut | h12 s0.29 | h25 s0.38 | h36 s0.24 (silver-cream [0.75, 0.68, 0.57]) |
 
-B's brown body lands on the photo's hue (22°) at a touch more saturation; the Sow is a greyer, silver-tipped brown.
+B's brown body lands on the photo's hue (22°) at a touch more saturation. Review of the first cut (866b1070): the Sow
+was "nearly indistinguishable from the Brown bear". Now (the board's Sow B panels were re-shot): her base is a darker
+brown, and a `grizzle` pass in pineCoats.ts frosts silver guard-hair tips over her hump, shoulders and back (up-facing,
+high on the body, hair-scale streaks riding the photo's own bright hairs), her legs fading darker toward the paws. A
+first try at that frost was a white saddle with brown blotches (too strong, too coarse); the shipped one is finer and
+about half as strong.
 
 Left, visible on the board: from straight behind, B's pressed patch still shows a faint outline where it meets the rump
 (the black bear's most: its flap was the larger), and the colour fill softens the hair texture there. The silhouette —
