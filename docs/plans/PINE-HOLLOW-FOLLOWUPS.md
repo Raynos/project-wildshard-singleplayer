@@ -29,9 +29,9 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-L1 | Per-zone ΔE00 misses left after round 3: the Ridge's rock 8.8 (the crag meshes' dark, stretched granite), the Ridge / Den sky 6.7 / 7.0 (codex painted paler skies there), the Hollow's far rock 6.2 | look loop round 3 (`art/pine-hollow/round-17-look-loop-3/README.md`) |
 | F-L2 | Crags up close: the kit modules read as stacked blocks; the face skin's ledges stretch on near-vertical faces; a sculpted hero crag for the lookout's own view | crags lane (`art/pine-hollow/round-13-crags-cave/`) |
 | F-L3 | Tree crowns read near-black from above (god views, the lookout) | look loop TOP-10 #8 |
-| F-L4 | Grass trample (Nalati's `GrassTrample` is on main now) | look loop |
-| F-L5 | Weather extras: rain on the lens, splashes at the feet, puddles off the trails, the cave mouth masked from rain | weather lane |
-| F-L6 | **building (E322): Jake picked a local pool behind the dam** — The beaver pool doesn't visibly drain in the dam puzzle (pond and creek share one water level) | quest lane |
+| F-L4 | **built `109b3b87` (E322): Debug ▸ Ground cover & foliage ▸ Grass trample, off by default; board `art/pine-hollow/round-23-e322-weather-trample/` — waits on Jake's pick (board to be re-shot: the track barely reads)**. Was: grass trample (Nalati's `GrassTrample` is on main now) | look loop |
+| F-L5 | **built (E322): the cave mouth masked from rain `582bcdb1`; Debug ▸ Sky & weather ▸ Rain extras (splashes, meadow puddles, lens drops) `52ff4dd3`, off by default — waits on Jake's pick**. Was: weather extras: rain on the lens, splashes at the feet, puddles off the trails, the cave mouth masked from rain | weather lane |
+| F-L6 | **done `2912e470` + navmesh `40c1efd6` (E322): a local pool behind the dam drains when the sluice opens; evidence `art/pine-hollow/round-22-e322-beaver-pool/`** — The beaver pool doesn't visibly drain in the dam puzzle (pond and creek share one water level) | quest lane |
 | F-L7 | **done `394fa805` (E322)**: the sealed clearing keeps its own fog (fog 0.290 → 0.0100; clear weather unchanged). Was: under Debug ▸ Sky & weather ▸ Weather = Fog the Antler King turns pale ghost-white (the fog laid over his material) — likely a bug in the fog / selfLight mix | hero lane (`art/hero-images/round-4-pine-hollow-in-engine/README.md`) |
 
 ## Models and animation (from the creatures, polish, loadout and assets lanes)
@@ -39,7 +39,7 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | # | Row | From |
 |---|---|---|
 | F-M1 | The Antler King stands on four legs on the elk rig; the concept is more upright — a rig of his own | creatures lane (`art/pine-hollow/round-9-creature-refs/board-antler-king.jpg`) |
-| F-M2 | Both bears carry a small stub-tail flap from the generator; the brown bear reads pinkish, the Grizzled Sow near-white | creatures lane |
+| F-M2 | **built `866b1070` (E322): Debug ▸ Creatures & NPCs ▸ Bear fix (tail flap gone, coats corrected); the Grizzled Sow's grizzled read being added — waits on Jake's pick**. Was: both bears carry a small stub-tail flap from the generator; the brown bear reads pinkish, the Grizzled Sow near-white | creatures lane |
 | F-M3 | The NPCs: shoulders stretch when Hale lifts his arm; no walk clip | creatures lane |
 | F-M4 | A desktop far-distance LOD for the generated creature hulls (desktop animal tris +0.1–0.4 M) | creatures lane |
 | F-M5 | Birds: the flying owl's body is flat side-on; the woodpecker clings with standing legs; the raven's phone texture is soft | polish lane (`art/pine-hollow/round-16-birds/`) |
