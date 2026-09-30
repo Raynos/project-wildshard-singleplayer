@@ -917,8 +917,8 @@ answer.
 
 | # | Question | Resolution |
 |---|---|---|
-| Q1 | 01 §19's `StrikeSpec.shape` was a bare string with one `range` | **Resolved → 13-lead-resolutions 09#1:** `StrikeShape` = arc (radius, halfAngle) / lane (length, width) / ring (inner, outer) / wedge (length, halfAngle) / point (radius); §5.3 maps the table onto it. **Open, sent to the lead:** the strike's motion numbers (lane speed, ring speed, point delay …) have no `StrikeSpec` field yet |
-| Q2 | 01 §18's `EffectDef` can't express hit-dependent rules | **Resolved → 13-lead-resolutions 09#2:** `DamageRuleDef` (`when` tags + `op` cap / add / mul / negate / override + `order`), §2.2. **Open, sent to the lead:** R0b, R1, R3, R6 / R7 need more than a row and are plain answerers |
+| Q1 | 01 §19's `StrikeSpec.shape` was a bare string with one `range` | **Resolved → 13-lead-resolutions 09#1:** `StrikeShape` = arc (radius, halfAngle) / lane (length, width) / ring (inner, outer) / wedge (length, halfAngle) / point (radius); §5.3 maps the table onto it. **Also resolved → 13 C4 / C5:** the strike's motion numbers (lane speed, ring speed, point delay …) have no `StrikeSpec` field yet |
+| Q2 | 01 §18's `EffectDef` can't express hit-dependent rules | **Resolved → 13-lead-resolutions 09#2:** `DamageRuleDef` (`when` tags + `op` cap / add / mul / negate / override + `order`), §2.2. **Also resolved → 13 C4 / C5:** R0b, R1, R3, R6 / R7 need more than a row and are plain answerers |
 | Q3 | Whetstones, the bear claw and the Golden draw modify a weapon | **Resolved → 13-lead-resolutions 09#3:** weapons carry their own `AttributeSet`; `EffectService` targets `Actor \| Equipment` (§2.1) |
 | Q4 | Today every brain runs at 10 Hz | **Resolved → 13-lead-resolutions 09#4** (Jake, decision 85): 10 Hz through S2.5 (identical); at S2.6 the 3 bands (20 / 10 / paused) + interrupts + pinned bosses / elites / quest actors + strikes on the body clock, on the creatures board (§5.7) |
 | Q5 | The horse: kit or Nalati? | **Resolved → 13-lead-resolutions 09#5:** Nalati (§5.2) |
@@ -927,5 +927,5 @@ answer.
 | Q8 | The big crab's `chargeDamage 14` is dead data | **Resolved → 13-lead-resolutions 09#8** (Jake, decision 86): **14**, on the creatures board (§5.3) |
 | Q9 | `WeightedTable` has no "every row once" mode | **Resolved → 13-lead-resolutions 09#9:** `mode: 'weighted' \| 'each'` + `count` (§5.6) |
 | Q10 | Pine's finishes and Nalati's skins have no numbers | **Resolved → 13-lead-resolutions 09#10:** cosmetic `EffectDef` rows with no modifiers, tagged `cosmetic` (E12, E13) |
-| Q11 | `DamageRequest` has more fields here than in 01 | **Resolved → 13-lead-resolutions 09#11:** 01 takes the superset (§3.1 uses 01's names). **Open, sent to the lead:** `from`, `distance`, `scale`, `cause`, `toast` are not in 01 §18's type yet |
+| Q11 | `DamageRequest` has more fields here than in 01 | **Resolved → 13-lead-resolutions 09#11:** 01 takes the superset (§3.1 uses 01's names). **Also resolved → 13 C4 / C5:** `from`, `distance`, `scale`, `cause`, `toast` are not in 01 §18's type yet |
 | Q12 | The Spear's 5 javelins "with the camp upgrade" are never granted | **Resolved → 13-lead-resolutions 09#12** (Jake, decision 87): **keep 3**; the unreachable promise is removed |

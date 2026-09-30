@@ -148,6 +148,8 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 90 | Codex model GPT 6 Sol | — | superseded by 90′ |
 | 90′ | Codex back on GPT 6.1 Sol (CLI ≥ 0.159.2) | 12 §1 seat A | covered |
 | 91 | The Drowned Captain gets the shared BossBar (look board, S4.2) | 08 §6.2 (S4.2); IDX S4.2, §5 Look; 12 §6 Look row | covered (G21 resolved) |
+| 92 | The council's convergence protocol (frozen ledger, one bar, a cross-round register, diff-scoped rounds, a growing battery, plan-lint, minimal fixes, falling counts or stop) | 12 §1; reviews/register.md; reviews/battery.md; scripts/plan-lint.mjs | covered |
+| 93 | At most 4 rounds, then Jake decides what's open | 12 §1 item 8; reviews/register.md | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 

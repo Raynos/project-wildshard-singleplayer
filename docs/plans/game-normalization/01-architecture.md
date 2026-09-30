@@ -95,7 +95,8 @@ export type RngStream = 'gameplay' | 'ai' | 'loot' | 'spawn' | 'cosmetic';   // 
 - The harness and capture mode seed every stream.
 - Capture mode (decision 80) replaces the `performance.now` patch in `steam-trailer/capture.mjs`. Board clips and the
   harness's poses use it.
-- `core/rng.ts`, Nine Dragon's `util.ts` `Rng` and `world/facade/rng.ts` become one (X5).
+- `core/rng.ts`, Nine Dragon's `util.ts` `Rng` and `world/facade/rng.ts` become one in **F8** (`Rng.scrambled` keeps
+  the facade's sequence, so its layouts stay identical).
 
 ## 3. Events, asks, tags
 
@@ -251,7 +252,11 @@ export const defineShard: (m: ShardManifest) => ShardManifest;      // identity 
   - `next` (the deck's next-shard hint);
   - `spawnTables`;
   - `fight.quietPromptInFight`, `fight.input = { bufferMs, coyoteMs }`;
-  - `dev.poses` (the harness and mockup camera poses).
+  - `dev.poses` (the harness and mockup camera poses);
+  - Pine Hollow's `atmosphere.edgeHaze`, `atmosphere.wetSurfaces`, `loadout.grants[].by`, `loadout.ammo`,
+    `bag.pack.keeps`;
+  - `boot.bytes`, `boot.lateReads`, `boot.bakedUnread` (the pack-byte bookkeeping `boot/manifest.ts` does by slug
+    today).
 - **`Mechanism`** is the closed list of opt-in mechanisms the engine and game provide:
   - engine: `'weather' | 'dayCycle' | 'bosses' | 'elites' | 'spawns' | 'quests' | 'swim' | 'hover' | 'explore' | 'practice'`;
   - game: `'coins' | 'loot' | 'compendium' | 'feats' | 'bag.pack'`.
@@ -534,6 +539,9 @@ export interface ShaderPatches { patch(mat: THREE.Material, id: string, order: n
   families (grass density, …). A manifest's `tiers` overrides them per tier.
 - **Precedence (one source):** engine default → kit schema default → `manifest.tiers[tier]`. The last one wins.
   `ShardRender` carries no tier knobs.
+- **New engine knob `msaa`** (the composer's samples, engine default 0 as `Game.ts:277` today, clamped to
+  `renderer.capabilities.maxSamples`). Nalati sets `phone: 2, desktop: 4`, so its composer becomes a
+  `{ chain }` with no private MSAA code.
 - `PINE_HOLLOW_PHONE` and the shard-named helpers are deleted.
 
 ### 13.4 Budgets (decisions 30, 35, 36, 37)
@@ -786,7 +794,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |
 | `wildshard/no-renderer-type` | `WebGLRenderer` named outside `src/engine/render/**` (before F6: outside `Game.ts` and `bootstrap.ts`; F6 re-keys it) | the rule's own count at F4 (the audit's "52 files" was a grep, not the rule) |
-| `wildshard/sim-no-render` | `src/engine/{combat,ai,saves,quests,effects}/**` importing three beyond its math types, or any render / DOM module (decision 56) | today's count at F4 |
+| `wildshard/sim-no-render` | `src/engine/{combat,ai,saves,quests,effects}/**` importing three beyond its math types, or any render / DOM module (decision 56). **Exempt:** `src/engine/combat/view/**`, the drawing half of the combat blocks (viewmodel, slash trail, brass); their state and rules stay in the checked folders | 0 from day one (the folders are new) |
 | `wildshard/no-active-chunk` | `getActiveChunk()` calls outside `#game/shard` (each becomes `app.shard` or manifest data, file by file from F8 on) | 136 calls / 42 files |
 | `wildshard/no-global-listener-patch` | teardown through `shardScope`'s `addEventListener` patch (kept until X1 / X2 move the 396 listeners onto scopes) | 396 |
 | `wildshard/no-url-switch` | unchanged (the allowlist) | — |

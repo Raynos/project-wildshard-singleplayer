@@ -1,34 +1,73 @@
 # GAME-NORMALIZATION v2 · 12 — How the work runs
 
-## 1. Definition of ready: the council (decisions 81–83)
+## 1. Definition of ready: the council (decisions 81–83, 92–93)
 
 The plan stays `draft` until it passes the council. Jake: *"the plan is not done and ready for execution until
 various independent review and auditors, including Codex … have found no holes … stabilize to being fully thought
 out, fully fleshed out … no ambiguities, no laziness, no shortcuts, no holes. It needs to cover everything we've
 spoken about."*
 
-**A round**
-- **Three seats, clean-room.** Each seat is a fresh agent that sees the plan folder, the index, Jake's words, the
-  decision table in `docs/tasks/asks/E357.md`, the research docs and the repo. It never sees the conversation.
+**The protocol** (decisions 81–83, 92–93). It is built so that rounds converge rather than circle.
 
-  | Seat | Engine | Lens |
-  |---|---|---|
-  | A | Codex CLI (`codex exec`, GPT 6.1 Sol, reasoning high; decision 90′; Codex ≥ 0.159.2) | Architecture review, plus a **scenario battery**: fixed scenarios walked step by step through the plan (§1.1) |
-  | B | Claude general-purpose subagent | **Coverage and code-grounded audit**: every decision and audit finding traced to a row (checks `00-traceability.md`), every file / line / count checked against the repo, an ambiguity hunt ("etc.", "TBD", "as needed", undefined terms, rows without done-when) |
-  | C | Claude general-purpose subagent | **Red-team execution battery**: what breaks mid-way. Ordering and dependencies, harness blind spots, rollback gaps, cost and time, the iPhone memory wall, the lock and the deploy pin, anything that would make an executing agent guess |
+1. **A frozen ledger.** Settled means Jake's decisions in `docs/tasks/asks/E357.md` (1–93 and the ′ revisions) plus
+   the lead's resolutions in [13](13-lead-resolutions.md). A reviewer may reopen a settled item only with **new
+   evidence** that it is wrong against the code or contradicts another settled item, never on preference. Without
+   that, the finding is closed as `settled` on sight.
+2. **One bar.** A finding counts only if an executing agent would **fail, do the wrong thing, or have to guess**, and
+   it must carry a location (file §, row), evidence (file:line or a quote) and a concrete fix.
+   - `must-fix`: execution fails or is wrong, or a decision is violated.
+   - `should-fix`: a gap or ambiguity the executor would guess at.
+   - `nit`: wording, style or taste. Nits never block.
+   The lead verifies every finding against the repo before accepting it.
+3. **One register across rounds.** [reviews/register.md](reviews/register.md) gives every finding a stable ID and a
+   status (fixed + commit / rejected + reason / settled / escalated). Every round's seats get the register and the
+   ledger; these are the plan's own record, not the conversation, so the seats stay clean-room. A finding that
+   matches a closed row without new evidence is auto-closed.
+4. **The surface shrinks.**
+   - Round 1 reviews everything.
+   - From round 2, a round reviews (a) the **diff since the last round**: did each fix land, and did it break
+     anything nearby; and (b) **the battery**.
+   - A finding outside the diff counts only if it's must-fix with evidence.
+5. **A fixed battery that only grows.** [reviews/battery.md](reviews/battery.md) holds the scenarios (§1.1), and
+   every round walks all of them, pass or fail per step. The pass count may never fall. A seat may add a scenario
+   that covers something none does, and it stays forever, like a regression test.
+6. **Machines check the mechanical things.** `node scripts/plan-lint.mjs` runs before every round and after every
+   fix:
+   - vague words;
+   - every decision traced in 00;
+   - retired names;
+   - dead `src/` paths;
+   - broken links;
+   - every index row specced.
+   A round starts only on a clean lint.
+7. **Minimal fixes.** Each edit cites a register ID and touches only what the finding names; no section rewrites.
+   After each round, plan-lint and the traceability matrix re-run as the regression guard.
+8. **Convergence or stop.**
+   - The accepted must-fix plus should-fix count must **fall strictly** each round. If it doesn't, or a round
+     re-raises closed rows, the loop stops and the open rows go to Jake as decisions.
+   - **At most 4 rounds** (93).
+   - **Two clean rounds in a row** make the plan `ready`. A round is clean when it has zero accepted must-fix and
+     zero accepted should-fix.
+   - After 4 rounds, what's still open goes to Jake, one recommended answer each, and the plan is `ready` after his
+     answers.
 
-- **Findings.** Each finding is rated `must-fix` / `should-fix` / `nit` and carries a location (file §, row) and a
-  proposed fix.
-- **The review log.** `docs/plans/game-normalization/reviews/round-<n>.md` holds each finding verbatim, the lead's
-  response (fixed in `<commit>` / rebutted: reason / needs Jake), and the seat.
-- **Decisions for Jake.** A finding that needs Jake's decision goes to him through AskUserQuestion; nothing else does
-  (83). He also gets one status line per round.
-- **Clean.** A round is clean when no seat raises a `must-fix` or `should-fix` that the lead accepts. A rebuttal
-  counts as clean only if the next round's fresh seats don't raise the same point again.
-- **Stop rule:** **two clean rounds in a row** (81). Then the State line becomes `ready`, and the lead asks Jake for
-  the go.
+**The seats** (3 per round, decision 82), each a fresh agent every round (never a resumed one):
 
-### 1.1 The scenario battery (seat A; seat C adds its own)
+| Seat | Engine | Lens |
+|---|---|---|
+| A | Codex CLI (`codex exec`, GPT 6.1 Sol, reasoning high; decision 90′; Codex ≥ 0.159.2) | Architecture review + the scenario battery |
+| B | Claude general-purpose subagent | Coverage + code-grounded audit: 00-traceability against the ledger, claims (file / line / count) checked against the repo, undefined terms, rows without done-when |
+| C | Claude general-purpose subagent | Red-team execution: ordering and dependencies, harness blind spots, rollback gaps, cost and time, the iPhone memory wall, the lock and the deploy pin, and anything that would make an executor guess; it may add battery scenarios |
+
+**Round outputs.**
+- Each seat writes `reviews/round-<n>-seat-<A|B|C>.md` (a findings table plus the battery results; its last line is
+  the verdict).
+- The lead merges the findings into the register, fixes or rejects each one, updates the round summary table, and
+  re-runs plan-lint.
+- A decision that is Jake's goes to him through AskUserQuestion; nothing else does (83). He gets one status line per
+  round.
+
+### 1.1 The scenario battery (in reviews/battery.md; seat A walks it, seat C may add to it)
 
 Each scenario is walked through the plan. A step the plan doesn't answer unambiguously is a finding.
 1. Add shard 5 with a whip, a flying creature and a desert look, using only `docs/SHARDS.md` + 01-architecture.
