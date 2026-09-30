@@ -12,7 +12,7 @@ import { pathToFileURL } from 'node:url';
 const ROOT = resolve(import.meta.dirname, '../../..');
 const OUT = process.argv[2] ?? resolve(ROOT, 'cave-in.json');
 const noop = () => undefined;
-Object.assign(globalThis, { window: { addEventListener: noop, location: new URL('http://localhost/') }, location: new URL('http://localhost/'), document: { createElement: () => ({ getContext: () => null, style: {} }) } });
+Object.assign(globalThis, { window: { addEventListener: noop, location: new URL('http://localhost/'), setTimeout, clearTimeout }, location: new URL('http://localhost/'), document: { createElement: () => ({ getContext: () => null, style: {} }) } });
 Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', maxTouchPoints: 0, hardwareConcurrency: 8 }, configurable: true });
 const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 const registry = await src('chunks/registry.ts');

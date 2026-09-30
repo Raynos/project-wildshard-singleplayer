@@ -93,7 +93,12 @@ for T in "${TARGETS[@]}"; do
   # a fresh check folder every time (only ever under the cache)
   if [ "$CHECK" = 1 ]; then case "$BUILD" in "$SHARED"/*/check) rm -rf -- "$BUILD" ;; esac; fi
   mkdir -p "$CACHE" "$BUILD"
-  while IFS= read -r c; do [ -n "$c" ] && bash -c "$(expand "$c")"; done < <(fields '.pre')
+  prefail=0
+  while IFS= read -r c; do
+    [ -n "$c" ] || continue
+    bash -c "$(expand "$c")" || { echo "build.sh: $T: pre step failed: $c" >&2; prefail=1; break; }
+  done < <(fields '.pre')
+  [ "$prefail" = 0 ] || { FAILED+=("$T"); continue; }
 
   script=$(field '.script // empty')
   if [ -z "$script" ]; then echo "build.sh: $T has no Blender step (export only): $CACHE"; continue; fi
