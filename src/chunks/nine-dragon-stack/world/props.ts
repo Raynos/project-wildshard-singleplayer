@@ -134,11 +134,15 @@ export function acKit(): Kit {
   return k;
 }
 
+/** where a dragon hook's ring and its model's copy are recorded (the fragment's Ctx; a throwaway one for the model's own build) */
+export type HookSink = Pick<Ctx, 'hooks' | 'hookMounts' | 'inKit'>;
+
 /**
  * A brass dragon hook (飛爪 anchor): a bracket out from a wall along `out`, a snarling head, a hanging ring. Gold is
- * reserved for these (the grapple's Runner Vision). Returns the ring's centre, registered as a hook.
+ * reserved for these (the grapple's Runner Vision). Returns the ring's centre, registered as a hook. It is a model
+ * drawn into the kit `k` (models/inKit.ts `brassDragonHook`): its copy is recorded where it hangs.
  */
-export function dragonHook(k: Kit, ctx: Ctx, base: Vector3, out: Vector3, reach = 0.9): Vector3 {
+export function dragonHook(k: Kit, ctx: HookSink, base: Vector3, out: Vector3, reach = 0.9): Vector3 {
   const brass: Look = { wash: METAL.gold, line: 1.1, gloss: true, gold: true, accent: true };
   const o = out.clone().setY(0).normalize();
   const side = new Vector3(-o.z, 0, o.x);
@@ -165,6 +169,7 @@ export function dragonHook(k: Kit, ctx: Ctx, base: Vector3, out: Vector3, reach 
   }
   ctx.hooks.push(ringC.clone());
   ctx.hookMounts.push({ ring: ringC.clone(), out: o.clone() });
+  ctx.inKit.push({ model: 'nine-dragon-stack/brass-dragon-hook', kit: k, at: { x: base.x, y: base.y, z: base.z, yaw: Math.atan2(o.x, o.z), params: { reach } } });
   return ringC;
 }
 

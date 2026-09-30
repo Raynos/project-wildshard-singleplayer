@@ -135,7 +135,7 @@ function lotusBud(k: Kit, cx: number, yb: number, cz: number): void {
  * no hidden undersides (E281: ~490 vertices a table where it took ~1 950; the same random draws, so nothing after it
  * moves). From the spawn the nearest table is 8 m off: a tile is a pixel there.
  */
-function mahjongTable(k: Kit, rng: Rng, px: number, py: number, pz: number, r: number): void {
+export function mahjongTable(k: Kit, rng: Rng, px: number, py: number, pz: number, r: number): void {
   const c = Math.cos(r), sn = Math.sin(r);
   const at = (lx: number, lz: number, a: number): [number, number] => {
     const ca = Math.cos(a), sa = Math.sin(a);
@@ -307,6 +307,7 @@ export function buildSquare(ctx: Ctx): void {
   marketRow(ctx, new Rng(2811));
   for (const [tx0, tz0, tr, n] of tables) {
     mahjongTable(props, rng, tx0, Y0, tz0, tr);
+    ctx.inKit.push({ model: 'nine-dragon-stack/mahjong-table', kit: props, at: { x: tx0, y: Y0, z: tz0, yaw: tr } });
     for (const st of mahjongSeats(tx0, tz0, tr).slice(0, n)) ctx.sitters.push(standAt(st.x, st.z, st.yaw, 1));
   }
   // the crowd (dome B: the TRELLIS walkers only, the procedural mannequins are gone; the dome-B targets fill the square
@@ -396,9 +397,10 @@ export function buildSquare(ctx: Ctx): void {
       if (d < 2.0) { const k = 2.1 / Math.max(d, 0.01); m.setPosition(px + dx * k, p.y, pz + dz * k); }
     }
   }
-  scooter(props, 20.4, Y0, 13.5, 0.3, 0x2e5fa3);
-  scooter(props, 20.9, Y0, 15.4, 0.2, 0xb8321f);
-  scooter(props, 20.6, Y0, -4.5, 1.2, 0x7fbf9a);
+  for (const [x, z, r, wash] of [[20.4, 13.5, 0.3, 0x2e5fa3], [20.9, 15.4, 0.2, 0xb8321f], [20.6, -4.5, 1.2, 0x7fbf9a]] as const) {
+    scooter(props, x, Y0, z, r, wash);
+    ctx.inKit.push({ model: 'nine-dragon-stack/scooter', kit: props, at: { x, y: Y0, z, yaw: r, params: { wash } } });
+  }
   // lantern strings (E281: the square's lamp posts are gone — the two along the balustrade stood in the middle of A1·5
   // and A2·4, the east one inside a market booth, the south one in the middle of A1·7; style-A and the targets light
   // the square with lanterns)

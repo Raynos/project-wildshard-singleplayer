@@ -12,6 +12,9 @@ import {
   SphereGeometry, Uint32BufferAttribute, Vector3, Vector4, type WebGLRenderer,
 } from 'three';
 import { Ctx, type Piece } from './ctx';
+import { Kit } from './kit';
+import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../models/inKit';
+import { registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
 import { Lanterns } from '../look/lanterns';
@@ -188,6 +191,12 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   progress(0.4, 'geometry conversion');
 
   // ── the kits into meshes: one merged geometry per kit, the neon spill baked into their vertices ──
+  // (which kit each Kit object is: the models drawn into the kits name theirs by object, a folded kit's parts by its fold)
+  const kitName = new Map<Kit, string>();
+  for (const [name, k] of ctx.kits) {
+    kitName.set(k, name);
+    if ('extra' in k && Array.isArray(k.extra)) for (const e of k.extra) if (e instanceof Kit) kitName.set(e, name);
+  }
   const mat = jiehuaMaterial(shared);
   const matA = jiehuaMaterial(shared, { alphaCut: true });
   const paper = new Lanterns(shared);
@@ -268,14 +277,27 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   phaseDone('square props', phaseStart);
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below)
   const farKits: [Mesh, number][] = [];
+  const kitMeshes = new Map<string, Mesh>();
   const kitMesh = (name: string, g: BufferGeometry, m: typeof mat): void => {
     const mesh = named(new Mesh(g, m), `kit:${name}`);
     root.add(mesh);
+    if (m === mat) kitMeshes.set(name, mesh);
     const far = ctx.farOf.get(name);
     if (far !== undefined) farKits.push([mesh, far]);
   };
   for (const [name, g] of kitGeos) kitMesh(name, g, mat);
   for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
+  // the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and
+  // brush-drawn figures) registered on their kits' meshes
+  const meshOfKit = (k: Kit): Mesh | undefined => kitMeshes.get(kitName.get(k) ?? '');
+  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id]);
+  const inKit = ctx.inKit.filter((c) => !IN_KIT.has(c.model));
+  if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
+  registerInKit(nd.ctx, ctx.inKit, brassDragonHook, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, drumStool, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, parkedScooter, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, mahjongTableModel, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, inkFigure, meshOfKit);
   if (setting('nineLanterns') === 'on') {
     const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
     lanterns.object.name = 'lanterns';

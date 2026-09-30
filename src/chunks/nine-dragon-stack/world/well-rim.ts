@@ -138,7 +138,11 @@ function rimShops(plan: WellPlan, rng: Rng): void {
     if (open && rng.chance(0.5)) {
       const tx = cx + rng.range(-0.6, 0.6), tz = z - 2.3;
       k.box(tx, Y0, tz, 0.8, 0.66, 0.6, { wash: 0x5a4636, line: 1, surf: SURF.wood });
-      for (const [dx, dz] of [[0.65, 0], [-0.65, 0], [0, -0.55]] as const) stool(k, tx + dx, Y0, tz + dz, rng.pick([0x2e5fa3, 0xc23b22, 0x3e5a4a]));
+      for (const [dx, dz] of [[0.65, 0], [-0.65, 0], [0, -0.55]] as const) {
+        const lacquer = rng.pick([0x2e5fa3, 0xc23b22, 0x3e5a4a]);
+        stool(k, tx + dx, Y0, tz + dz, lacquer);
+        ctx.inKit.push({ model: 'nine-dragon-stack/stool', kit: k, at: { x: tx + dx, y: Y0, z: tz + dz, params: { wash: lacquer } } });
+      }
     }
     if (rng.chance(0.5)) ctx.put('plant', new Vector3(rng.chance(0.5) ? x0 + 0.4 : x1 - 0.4, Y0, z - 0.4), n.clone(), new Vector3(1.3, rng.range(1.2, 1.7), 1.3));
     x = x0;

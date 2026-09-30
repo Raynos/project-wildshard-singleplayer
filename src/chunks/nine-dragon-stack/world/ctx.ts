@@ -8,6 +8,7 @@ import { KitX } from './hero/kitx';
 import type { SignBuilder } from '../look/signs';
 import { Rng } from '../util';
 import { WELL, Y0 } from '../layout';
+import type { Placement } from '../../../models/model';
 
 /** instanced kit pieces (dressing.ts builds their geometry) */
 export type Piece = 'balcony' | 'cage' | 'plant' | 'awning' | 'laundry' | 'shack' | 'tank' | 'lightbox' | 'pipe' | 'shutter';
@@ -16,6 +17,13 @@ export interface Instance { m: Matrix4; c: Color }
 
 const WHITE = new Color(1, 1, 1);
 const ZAX = new Vector3(0, 0, 1);
+
+/**
+ * A model drawn into a kit (E306 M4, models/inKit.ts): its geometry is the kit's (merged with the region, the neon spill
+ * baked in), so the world records where each copy stands and registers them on the kit's mesh once it is built
+ * (build.ts, `place` with `drawnInto`)
+ */
+export interface InKit { readonly model: string; readonly kit: Kit; readonly at: Placement<object> }
 
 export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind: 'block' | 'street' | 'well' | 'plaza' | 'green' | 'gate' }
 
@@ -34,6 +42,8 @@ export class Ctx {
   readonly hooks: Vector3[] = [];
   /** placement records for the TRELLIS casting over selected procedural brass hook brackets */
   readonly hookMounts: { ring: Vector3; out: Vector3 }[] = [];
+  /** the models drawn into kits, where they stand (see InKit) */
+  readonly inKit: InKit[] = [];
   readonly map: MapRect[] = [];
   readonly steam: Vector3[] = [];
   /** lit shopfronts and other glowing fronts (streak cards + spill) */
