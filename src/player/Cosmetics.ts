@@ -16,7 +16,8 @@
  *   // each frame, after the player moves:
  *   wardrobe.follow(player.position.x, player.position.y, player.position.z, player.yaw);
  *
- * Not wired yet (stage 2 / 3): who calls wear(), the save, the Bag's toggle.
+ * Worn on the player's body shadow (src/player/BodyShadow.ts, E314 stage 3): its `wardrobe` follows the invisible castaway,
+ * and Driftwood's keepsakes (src/game/loot/keepsakes.ts) dress it from the Owned store's worn cosmetics.
  */
 import * as THREE from 'three';
 
@@ -35,7 +36,7 @@ export type WearMode = 'shadow' | 'visible';
 
 /** draws nothing to the screen; the shadow pass uses its own depth material, so the mesh still casts */
 let shadowOnly: THREE.MeshBasicMaterial | null = null;
-function shadowOnlyMaterial(): THREE.MeshBasicMaterial {
+export function shadowOnlyMaterial(): THREE.MeshBasicMaterial {
   shadowOnly ??= new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, side: THREE.DoubleSide });
   return shadowOnly;
 }

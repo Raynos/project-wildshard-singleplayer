@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { BladeGlow } from './bladeGlow';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
@@ -431,6 +432,11 @@ export class Sword implements Weapon {
   adsHeld = false;
   /** base damage per light hit: wooden 12, iron 28 (the finisher ×1.33, the heavy ×2) */
   damage: number;
+  /** E314 the bear claw: the heavy's damage × this (src/game/loot/perks.ts; 1 = as built) */
+  heavyMult = 1;
+  /** E314 sea glass charm III: 0…1, the sea-glass glow round the blade (src/player/bladeGlow.ts); 0 = none, no draw */
+  bladeGlow = 0;
+  private glow: BladeGlow | null = null;
   /** dev: showcase pose (model centred, slowly turning) */
   inspect = 0;
   /** portrait framing (0.6): shrink, extra drop / slide (m, camera space), the blade tipped forward (rad) and turned (rad) — dev-tunable */
@@ -854,7 +860,7 @@ export class Sword implements Weapon {
     _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2);                                       // the player's left
     _v1.copy(_fwd).multiplyScalar(0.7).addScaledVector(_v2, 0.7 * move.sweep).normalize();
     if (Math.abs(move.sweep) < 0.6) _v1.y -= 0.35 * (1 - Math.abs(move.sweep)); _v1.normalize();
-    const dmg = Math.round(this.damage * move.damage);
+    const dmg = Math.round(this.damage * move.damage * (move === this.mv.heavy ? this.heavyMult : 1));
     const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
     const animal = hit.animal;
     const killed = animal.applyDamage(dmg, point, _v1);
@@ -1031,6 +1037,13 @@ export class Sword implements Weapon {
     if (glintOn && this.arms) { this.arms.blade(_v1, _v2); this.glint.set(_v2.add(this.armsHolder.position)); }
     else if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(this.tipX, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
     this.glint.update(worldTime.realDt, t, glintOn);
+    // E314 charm III: the glow rides this frame's blade (either rig), made the first time it is on
+    if (this.bladeGlow > 0.005) {
+      this.glow ??= new BladeGlow(this.model);
+      if (this.arms) { this.arms.blade(_v1, _v2); _v1.add(this.armsHolder.position); _v2.add(this.armsHolder.position); }
+      else { this.rig.updateMatrix(); _v1.set(0, this.baseY, 0).applyMatrix4(this.rig.matrix); _v2.set(this.tipX, this.tipY, 0).applyMatrix4(this.rig.matrix); }
+      this.glow.set(_v1, _v2, this.bladeGlow, t);
+    } else this.glow?.hide();
 
     // no aim readout ("BOAR · 15 M") on a melee weapon: the aimed enemy's name plate + health bar (Combat.ts) is its one label
     // (0.6: the plate and the readout showed at once); aimInfo stays null

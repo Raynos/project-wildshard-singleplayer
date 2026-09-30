@@ -58,6 +58,9 @@ export interface ItemPickupOptions {
   /** a drop (PHYSICS P7-L2: a legendary's loot): it pops out TOSS_UP m over `position` with this velocity (m/s), falls,
    *  bounces and settles as a short-lived body on whatever is under it, then sits there like any other pickup */
   toss?: { x: number; y: number; z: number };
+  /** false: the item keeps its own look (no tier-coloured emissive) — an item on a material the world shares (the island's
+   *  low-poly one: a trophy drop, E314) must not tint everything drawn with it. Default true */
+  glow?: boolean;
 }
 
 const SPHERE_R = 0.65, HOVER = 0.78;
@@ -229,7 +232,7 @@ export class ItemPickup {
     this.light = LightPool.for(this.scene).acquire(colour, LIGHT, LIGHT_DIST, 2);
     this.light.position.set(at.x, at.y + HOVER, at.z);
     // the item glows faintly with the orb's colour while it sits inside (materials are shared with the viewmodel: restored on pickup)
-    item.traverse((o) => {
+    if (opts.glow !== false) item.traverse((o) => {
       if (!isMesh(o)) return;
       const m = o.material;
       if (Array.isArray(m) || !(m instanceof THREE.MeshStandardMaterial) || this.glowing.has(m)) return;

@@ -198,10 +198,29 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
     this.slots.set(this.full[id], filled);
     this.slots.set(this.empty[id], !filled);
   }
+  /** the trophy alone, no plaques or prints (the loose drop a kill leaves, src/game/loot/keepsakes.ts) */
+  trophyOnly(id: TrophyId): void {
+    this.slots.set(0, false);
+    for (const t of TROPHIES) { this.slots.set(this.empty[t], false); this.slots.set(this.full[t], t === id); }
+  }
 }
 
 export function buildTrophyPlaques(ctx: ModelContext, filled: Partial<Record<TrophyId, boolean>> = {}, gap = PLAQUE_GAP): TrophyPlaques {
   return new TrophyPlaques(gap, lowPolyMaterial(ctx.sky), filled);
+}
+
+/**
+ * a loose trophy (the bear's claw, the boar's tusk) as the drop a kill leaves: the plaques' own claw / tusk alone, centred
+ * on its origin (it hangs off the peg in the plaques' space), facing +z. One mesh, one draw, the island's material.
+ */
+export function buildTrophy(ctx: ModelContext, id: TrophyId): THREE.Group {
+  const m = new TrophyPlaques(0, lowPolyMaterial(ctx.sky), {});
+  m.trophyOnly(id);
+  m.position.set(0, -(MOUNT_Y + (id === 'boar' ? 0.13 : 0.01)), -FRONT - 0.04);
+  const g = new THREE.Group();
+  g.name = `trophy-${id}`;
+  g.add(m);
+  return g;
 }
 
 

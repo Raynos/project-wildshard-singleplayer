@@ -209,7 +209,12 @@ export class Player {
   /** true while a dodge / lunge burst is carrying the player */
   get dashing(): boolean { return this.dashT > 0; }
   /** the dodge cooldown still to run, 1 → 0 (0 = ready) — the touch DODGE disc's clock sweep (E59) */
-  get dodgeCooldown(): number { return this.dodgeCd / DODGE_COOLDOWN; }
+  get dodgeCooldown(): number { return this.dodgeCd / (DODGE_COOLDOWN * this.dodgeCooldownScale); }
+  /** E314 sea glass charm II: the dodge's cooldown × this (1 = DODGE_COOLDOWN; src/game/loot/perks.ts) */
+  dodgeCooldownScale = 1;
+  /** true while a DODGE's burst carries you (not a lunge) — the boar tusk's i-frames (src/game/loot/perks.ts) */
+  get dodging(): boolean { return this.dodgeT > 0; }
+  private dodgeT = 0;
 
   constructor(public camera: THREE.PerspectiveCamera, private readonly physics: Physics, private canvas: HTMLCanvasElement) {
     this.motor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
@@ -323,7 +328,8 @@ export class Player {
     }
     ok ??= this.dash(mx * v, mz * v, DODGE_TIME);
     if (!ok) return false;
-    this.dodgeCd = DODGE_COOLDOWN;
+    this.dodgeCd = DODGE_COOLDOWN * this.dodgeCooldownScale;
+    this.dodgeT = DODGE_TIME;
     // feel (E63): the camera / viewmodel / screen curves run off one clock — see the camera block in update()
     const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, mx * cos - mz * sin)); // + = the dodge goes right (view space)
     this.dodgeClock = 0;
@@ -415,6 +421,7 @@ export class Player {
     this.diveHeld = swim && (k.has('Space') || this.touchDive);
     this.surfaceHeld = swim && (k.has('ShiftLeft') || k.has('ShiftRight') || this.touchSurface);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
+    this.dodgeT = this.dashT > 0 ? Math.max(0, this.dodgeT - dt) : 0; // a shove / the water ends the burst: the guard with it
     if (hover || swim) this.dashT = 0;
 
     // ground for the hover spring, the swim float and the water depth: terrain, or a deck / floor / stair platform we
