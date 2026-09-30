@@ -498,7 +498,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   setActiveClock(worldClock);
   if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
-  // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
+  // ── player kit: the shard's weapon + the rifle slot where the shard has one (Weapons.ts: 1…N / Q, the touch SWAP ring), HUD, audio ──
   const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.slug === 'pine-hollow' ? preloadLeverModel() : null, chunk.sword?.() ?? null])))[2]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ChunkDef.sword); the build below is synchronous
   let arena: TrainingArena | null = null;
   const targets: Targets = {
@@ -516,9 +516,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, ...shardSword, ...(chunk.fov ? { portraitFov: chunk.fov.portrait } : {}) })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
-  // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 elsewhere
+  // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 on Nalati
+  // (the practice room's loan); none on the sword shards, Driftwood and Nine Dragon (E333, Jake: "why is there an AR-15 in Driftwood?")
   const isPine = chunk.slug === 'pine-hollow';
-  const rifle = isPine
+  const rifle = chunk.weapon === 'sword' ? null : isPine
     ? new LeverRifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock, woodFrom: crossbow instanceof Crossbow ? crossbow.model : null })
     : new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock, muzzleLight: !isOcean }); // the AR-15 pickup is in a cabin: no muzzle light on the island
   await macrotask();
@@ -687,7 +688,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
   const rifleDrop = (() => {
-    const site = CABIN_SITES[0]; if (!site || !cabins) return null;
+    const site = CABIN_SITES[0]; if (!site || !cabins || rifle === null) return null;
     const lx = 1.5, lz = -1.6, c = Math.cos(site.rot), sn = Math.sin(site.rot);
     const x = site.x + lx * c + lz * sn, z = site.z - lx * sn + lz * c;
     const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: isPine ? 'Take the lever-action' : 'Take AR-15', ...(isPine ? { scale: 1.3 } : {}) }); // the lever-action is slim: bigger, it fills its orb
@@ -724,10 +725,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
   const skinDrops: WeaponPickup[] = [];
-  const weaponModel = (w: 'crossbow' | 'rifle') => (w === 'rifle' ? rifle.model : crossbow instanceof Crossbow ? crossbow.model : null);
+  const weaponModel = (w: 'crossbow' | 'rifle') => (w === 'rifle' ? rifle?.model ?? null : crossbow instanceof Crossbow ? crossbow.model : null);
   const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) applySkin(m, skin, sky); skins.wear(skin.weapon, skin.id); };
   const spawnSkinDrop = (skin: SkinDef, at: THREE.Vector3) => {
-    const item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow instanceof Crossbow ? crossbowDisplayModel(crossbow, sky) : null;
+    const item = skin.weapon === 'rifle' ? rifle?.displayModel() ?? null : crossbow instanceof Crossbow ? crossbowDisplayModel(crossbow, sky) : null;
     if (!item) return;
     applySkin(item, skin, sky);
     const label = skin.weapon === 'rifle' ? (isPine ? 'lever-action' : 'AR-15') : 'crossbow';
@@ -747,12 +748,13 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Pine Hollow's fights (src/pinehollow/): PH-C3 the four named elites, PH-C2 the Antler King, PH-F1 the ranged kit's feel
   // PH-C11 the loadout: special bolts / cartridges / arrows, the lever gun's + the bow's sounds, the Longbow's grant
   const pineLoadout = rifle instanceof LeverRifle && longbow ? installPineLoadout({ scene: game.scene, sky, weapons, crossbow: crossbow instanceof Crossbow ? crossbow : null, rifle, longbow, inventory, hud, audio, params }) : null;
-  const pineFights = chunk.slug === 'pine-hollow' ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params,
+  const pineFights = chunk.slug === 'pine-hollow' && rifle !== null ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params,
     longbow: longbow && pineLoadout ? { displayModel: () => longbow.displayModel(), grant: () => { pineLoadout.grantLongbow(); } } : null, ironFirst: () => { pineLoadout?.onPlayerDeath(); } }) : null;
   animals.onKill = (a) => {
     // a sword kill is at arm's length: "Reef crab · 1 m" read as a marker to crabs 30 m off (E296); a shot keeps its distance
     hud.killFeed(meleeShard(chunk) ? `${a.label} killed` : `${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
-    const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id) && pineFights?.isElite(a) !== true) spawnSkinDrop(skin, a.position); // the legendary's drop, once (a named elite's comes from its own orb)
+    const skin = isPine ? skinFor(a.kind, a.variant) : null; // the legendary skins are Pine Hollow's (E318 row 4 / E333)
+    if (skin && !skins.has(skin.id) && pineFights?.isElite(a) !== true) spawnSkinDrop(skin, a.position); // the legendary's drop, once (a named elite's comes from its own orb)
   };
   // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
   const compendium = installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });

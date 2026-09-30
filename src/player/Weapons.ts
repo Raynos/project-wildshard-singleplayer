@@ -9,7 +9,8 @@ import type { Weapon } from './Weapon';
  *
  *   const weapons = new Weapons(crossbow, rifle);          // the base weapon is held first; the rifle is LOCKED until
  *                                                          // `unlock('rifle')` (the cabin pickup, WeaponPickup.ts; `?weapon=rifle` in main.ts)
- *   const weapons = new Weapons(sword, rifle, [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }]);
+ *   const weapons = new Weapons(sword, null, [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }]);
+ *                                                          // no rifle slot (E333: Driftwood and Nine Dragon carry no gun)
  *                                                          // `extras`: more shard weapons (Weapon.ts rigs) after the rifle, each LOCKED
  *                                                          // until `unlock(id)` — Driftwood's iron sword (IronSword.ts pickup on the wreck)
  *   weapons.onFire = …  weapons.onHit = …  weapons.onImpact = …   // wire the hooks ONCE here; every weapon forwards to them
@@ -158,11 +159,11 @@ export class Weapons implements WeaponHooks {
   private wheelAcc = 0; private wheelAt = 0;
   private swapping: { from: KitWeapon; to: KitWeapon; t: number; switched: boolean } | null = null;
 
-  constructor(base: BaseLike, rifle: KitWeapon, extras: ExtraWeapon[] = [], opts: WeaponsOptions = {}) {
+  constructor(base: BaseLike, rifle: KitWeapon | null, extras: ExtraWeapon[] = [], opts: WeaponsOptions = {}) {
     const first = new BaseWeapon(base, opts.baseId, opts.baseName);
     this.unlocked.add(first.id);
     this.order = opts.order;
-    this.list = [first, rifle, ...extras.map((e) => new BaseWeapon(e.weapon, e.id, e.name))];
+    this.list = [first, ...(rifle === null ? [] : [rifle]), ...extras.map((e) => new BaseWeapon(e.weapon, e.id, e.name))];
     for (const w of this.list) {
       w.onFire = () => this.onFire?.();
       w.onHit = (k, h, d) => this.onHit?.(k, h, d);
@@ -240,7 +241,7 @@ export class Weapons implements WeaponHooks {
     return list.sort((a, b) => rank(a.id) - rank(b.id));
   }
   unlock(id: WeaponId): void {
-    if (this.unlocked.has(id)) return;
+    if (this.unlocked.has(id) || !this.list.some((w) => w.id === id)) return; // a weapon this shard's kit lacks stays absent
     this.unlocked.add(id);
     this.onUnlock?.(id);
   }
