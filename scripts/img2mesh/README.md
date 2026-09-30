@@ -34,6 +34,7 @@ build_driftwood.sh (gltf-transform meshopt) ──▶ public/assets/models/drift
 | `build_props.py` | any shard: `build_props.py <props.json> <out dir> [ref …]`: runs `driftwood_post.py` per prop of the list into a staging folder, then meshopt into `<out dir>/<asset>/` (PH-0.3) |
 | `build_driftwood.sh` | Driftwood's: `build_props.py props/driftwood-hero.json public/assets/models/driftwood-hero` (the list: every size, budget and option) |
 | `props/<list>.json` | a prop list: `gen` (the generations), `stage`, `args` for every prop (`["--keep-texture"]` for a photoreal shard), `props: [{ref, args}]` |
+| `props/nalati.json` | not a `build_props.py` list: the recipe of Nalati's models (M10, E315), copied from localai's `bin/img2mesh/nalati-jobs.tsv` and its finish settings. Per model: the generator that ships, the TRELLIS rebake and `blender_post.py` settings, the reference prompt, and what was delivered. The runners stay in localai |
 | `split_sheet.py` | cut a sheet of separate objects on white into one RGBA crop per object |
 | `render_still.py` | a 3/4 Eevee still, the same sun + sky for every model; `a.glb,b.glb,…` lays a set out in a row |
 | `board.py` | the comparison board `art/driftwood-isle/round-8-assets/board.jpg`: concept crop, reference, new asset, current in-game model |

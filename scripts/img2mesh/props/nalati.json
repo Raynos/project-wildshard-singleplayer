@@ -1,0 +1,849 @@
+{
+ "about": "The recipe of the Nalati Grasslands image-to-3D models in public/assets/nalati/models/ (M10 item 6, E315), copied read-only from ~/projects/localai (bin/img2mesh/nalati-jobs.tsv @ 9db9ffd, finish.sh, finish-all.sh) and the generation metadata under ~/ml/img2mesh/, so this repo holds every recipe for what it ships (`shipped`: the model is in the game; the yurt went procedural in 609f4242). localai keeps the runners and the model installs; this file is the settings. It is not a driftwood_post.py prop list: the Nalati post is localai's blender_post.py (textured atlas, not faceted colour), so build_props.py does not run it.",
+ "localai": {
+  "repo": "~/projects/localai",
+  "commit": "9db9ffd",
+  "dir": "bin/img2mesh/"
+ },
+ "pipeline": [
+  "reference: codex image_gen from the prompt below -> ~/ml/img2mesh/refs/<name>.png; cutout.py (BiRefNet) -> refs/cut/<name>.png",
+  "generate, under ~/projects/localai/bin/img2mesh/run-locked.sh (the model lock): TRELLIS.2 `trellis_batch.py --pipeline 512` (keeps the raw decode as out/t512/<name>.npz) and Hunyuan3D-2 `hy3d_batch.py --out out/hy --shape turbo`",
+  "finish (no model, no lock): `finish-all.sh <outdir> nalati-jobs.tsv` per row. TRELLIS: `trellis_rebake.py <npz> <name>.rebake.glb --faces <tris> --tex <tex>` (base colour baked from the voxel attributes), then ALIGN=<align> KEEP_UV=1 finish.sh. Hunyuan: ALIGN=<align> finish.sh on out/hy/<name>.glb (decimate, xatlas unwrap, Cycles hi->low base-colour bake)",
+  "finish.sh <name> <raw.glb> <tris> <height> <yaw> <ref.png> <outdir> 0 <tex> = `blender -b -P blender_post.py -- --in <raw> --out <name>.raw.glb --tris <tris> --tex <tex> --height <height> --yaw <yaw> --paint 0 --align <align> --remesh 0 [--keep-uv] --ref <ref> --turntable <sheet>`, then `gltf-transform optimize <raw> <name>.glb --compress meshopt --texture-compress webp --texture-size <tex> --simplify false --instance false` and the same at --texture-size 512 for <name>.phone.glb. TRELLIS takes -> ~/ml/img2mesh/final/, Hunyuan takes -> ~/ml/img2mesh/final-hy/",
+  "spruce only: `blender -b -P blender_impostor.py -- --in <work>/spruce.raw.glb --out spruce.impostor.glb --res 256`, then gltf-transform optimize --texture-compress webp --simplify false --compress false",
+  "this repo: `node scripts/nalati-models-color.mjs` matches each model's atlas to its reference (its KNOBS pick the generator per model: `ships` below), writes <name>.glb (1024^2) + <name>.phone.glb (512^2) + the herds' <name>.far.glb into public/assets/nalati/models/",
+  "this repo: `node scripts/nalati-rig-bake.mjs` -> the creatures' *.rigged.glb / *.phone.rigged.glb; scripts/img2mesh/build_faces.sh + faces.json -> people/faces-*/"
+ ],
+ "props": [
+  {
+   "name": "yurt",
+   "ships": "Hunyuan3D-2",
+   "trellis": {
+    "source": "out/t512/yurt.npz",
+    "rebake": {
+     "faces": 6000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/yurt.glb"
+   },
+   "post": {
+    "tris": 6000,
+    "height": 3.2,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "POI, door faces +Z",
+   "prompt": "a Kazakh yurt (kiiz ui): round white felt walls over a lattice, a low domed felt roof with a smoke ring (shanyrak) at the top, broad red-and-ochre woven ornament bands (koshkar muiiz ram-horn pattern) around the wall top and roof edge, a carved painted wooden door. Whole yurt visible, seen from slightly above",
+   "delivered": {
+    "src_tris": 40000,
+    "tris": 6000,
+    "verts": 3002,
+    "size_m": [
+     4.52,
+     3.201,
+     4.462
+    ]
+   },
+   "shipped": false
+  },
+  {
+   "name": "horse-saddled",
+   "ships": "Hunyuan3D-2",
+   "trellis": {
+    "source": "out/t512/horse-saddled.npz",
+    "rebake": {
+     "faces": 8000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/horse-saddled.glb"
+   },
+   "post": {
+    "tris": 8000,
+    "height": 1.9,
+    "yaw": 0.0,
+    "align": "pca",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "hero creature",
+   "prompt": "a saddled Kazakh steppe horse: stocky chestnut horse with dark mane and tail, a wooden Kazakh saddle with a red felt saddle cloth with ornament, stirrups, bridle and reins. Standing still in a neutral side stance, all four legs straight and clearly separated, head up, tail down. Full body visible, side three-quarter view",
+   "delivered": {
+    "src_tris": 40000,
+    "tris": 8000,
+    "verts": 3920,
+    "size_m": [
+     0.71,
+     1.899,
+     2.305
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "horse-wild",
+   "ships": "Hunyuan3D-2",
+   "trellis": {
+    "source": "out/t512/horse-wild.npz",
+    "rebake": {
+     "faces": 8000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/horse-wild.glb"
+   },
+   "post": {
+    "tris": 8000,
+    "height": 1.75,
+    "yaw": 0.0,
+    "align": "pca",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "hero creature",
+   "prompt": "a wild steppe horse (Przewalski type): dun coat, pale belly, short upright dark mane, dark legs and tail, no tack. Standing still in a neutral side stance, all four legs straight and clearly separated, head up. Full body visible, side three-quarter view",
+   "delivered": {
+    "src_tris": 40000,
+    "tris": 8000,
+    "verts": 3926,
+    "size_m": [
+     0.779,
+     1.75,
+     2.161
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "wolf",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/wolf.npz",
+    "rebake": {
+     "faces": 8000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/wolf.glb"
+   },
+   "post": {
+    "tris": 8000,
+    "height": 0.85,
+    "yaw": 0.0,
+    "align": "pca",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "hero creature",
+   "prompt": "a grey steppe wolf: thick grey-brown fur, pale chest, amber eyes, bushy tail. Standing still in a neutral side stance, all four legs straight and clearly separated, mouth closed, tail relaxed. Full body visible, side three-quarter view",
+   "delivered": {
+    "src_tris": 7523,
+    "tris": 7523,
+    "verts": 4060,
+    "size_m": [
+     0.478,
+     0.85,
+     0.943
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "sheep",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/sheep.npz",
+    "rebake": {
+     "faces": 5000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/sheep.glb"
+   },
+   "post": {
+    "tris": 5000,
+    "height": 0.95,
+    "yaw": 0.0,
+    "align": "pca",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "herd creature",
+   "prompt": "a Kazakh fat-tailed sheep: cream and light brown fluffy wool, dark brown face and ears, broad fat tail. Standing still in a neutral side stance, all four legs straight and clearly separated. Full body visible, side three-quarter view",
+   "delivered": {
+    "src_tris": 4802,
+    "tris": 4802,
+    "verts": 2481,
+    "size_m": [
+     0.504,
+     0.95,
+     1.185
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "snow-leopard",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/snow-leopard.npz",
+    "rebake": {
+     "faces": 8000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/snow-leopard.glb"
+   },
+   "post": {
+    "tris": 8000,
+    "height": 0.8,
+    "yaw": 0.0,
+    "align": "pca",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "elite Aqbars",
+   "prompt": "a snow leopard: pale smoky-grey fur with dark rosettes, very long thick tail, large paws. Standing still in a neutral side stance, all four legs straight and clearly separated, tail curving behind. Full body visible, side three-quarter view",
+   "delivered": {
+    "src_tris": 7997,
+    "tris": 7997,
+    "verts": 5375,
+    "size_m": [
+     0.483,
+     0.8,
+     1.327
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "eagle",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/eagle.npz",
+    "rebake": {
+     "faces": 6000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/eagle.glb"
+   },
+   "post": {
+    "tris": 6000,
+    "height": 0.85,
+    "yaw": 180.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "perched, wings folded (the post was dropped); elite Qyran",
+   "prompt": "a golden eagle (berkut) perched on a short wooden post, wings folded, dark brown plumage with golden nape feathers, yellow beak and talons, looking to the side. Whole bird and post visible, side three-quarter view",
+   "delivered": {
+    "src_tris": 5903,
+    "tris": 5903,
+    "verts": 3108,
+    "size_m": [
+     0.427,
+     0.85,
+     0.567
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "golden-king",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/golden-king.npz",
+    "rebake": {
+     "faces": 8000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/golden-king.glb"
+   },
+   "post": {
+    "tris": 8000,
+    "height": 2.1,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "boss",
+   "prompt": "the Golden King, an undead Saka warrior-king risen from a burial kurgan: a tall figure in armour of thousands of small overlapping gold plaques, a tall pointed gold headdress with gold arrow and snow-leopard ornaments, a gold belt, a short akinak sword at the hip, a gold-trimmed red cape, a gaunt shadowed face with glowing eyes. Standing upright facing forward, arms slightly away from the body, legs apart, full body visible head to feet, front three-quarter view",
+   "delivered": {
+    "src_tris": 6543,
+    "tris": 6543,
+    "verts": 4967,
+    "size_m": [
+     1.194,
+     2.1,
+     0.694
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "spruce",
+   "ships": "Hunyuan3D-2",
+   "trellis": {
+    "source": "out/t512/spruce.npz",
+    "rebake": {
+     "faces": 3000,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/spruce.glb"
+   },
+   "post": {
+    "tris": 3000,
+    "height": 16.0,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "+ impostor card",
+   "prompt": "a single Tian Shan spruce tree (Picea schrenkiana): very tall and narrow columnar conifer, dense drooping dark blue-green branches in layers, straight brown trunk visible at the base only. Whole tree visible from base to tip, centred",
+   "delivered": {
+    "src_tris": 39999,
+    "tris": 2999,
+    "verts": 1204,
+    "size_m": [
+     5.961,
+     15.694,
+     5.582
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "balbal",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/balbal.npz",
+    "rebake": {
+     "faces": 1500,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/balbal.glb"
+   },
+   "post": {
+    "tris": 1500,
+    "height": 1.6,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "POI statue",
+   "prompt": "an ancient Turkic balbal stone statue: a weathered grey granite standing stone about 1.5 m tall carved into a stylised warrior with a flat face, moustache, hands holding a cup at the chest, a belt with a sword, lichen patches. Whole statue visible, standing upright",
+   "delivered": {
+    "src_tris": 1473,
+    "tris": 1473,
+    "verts": 752,
+    "size_m": [
+     0.679,
+     1.6,
+     0.586
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "boulder-1",
+   "ships": "Hunyuan3D-2",
+   "trellis": {
+    "source": "out/t512/boulder-1.npz",
+    "rebake": {
+     "faces": 800,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/boulder-1.glb"
+   },
+   "post": {
+    "tris": 800,
+    "height": 1.4,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "rock set",
+   "prompt": "one large rounded granite boulder, grey with warm ochre and green lichen patches, a few cracks, sitting flat on its base. Whole rock visible",
+   "delivered": {
+    "src_tris": 40000,
+    "tris": 800,
+    "verts": 402,
+    "size_m": [
+     1.645,
+     1.4,
+     1.661
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "boulder-2",
+   "ships": "Hunyuan3D-2",
+   "trellis": {
+    "source": "out/t512/boulder-2.npz",
+    "rebake": {
+     "faces": 800,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/boulder-2.glb"
+   },
+   "post": {
+    "tris": 800,
+    "height": 2.0,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "rock set",
+   "prompt": "one tall angular granite boulder with a flat top and sharp faceted sides, grey with lichen patches, sitting flat on its base. Whole rock visible",
+   "delivered": {
+    "src_tris": 40000,
+    "tris": 800,
+    "verts": 402,
+    "size_m": [
+     2.15,
+     1.996,
+     2.14
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "boulder-3",
+   "ships": "Hunyuan3D-2",
+   "trellis": {
+    "source": "out/t512/boulder-3.npz",
+    "rebake": {
+     "faces": 800,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/boulder-3.glb"
+   },
+   "post": {
+    "tris": 800,
+    "height": 0.8,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "rock set",
+   "prompt": "one low flat wide granite slab boulder, split in two by a crack, grey with moss and lichen, sitting flat on its base. Whole rock visible",
+   "delivered": {
+    "src_tris": 40000,
+    "tris": 800,
+    "verts": 402,
+    "size_m": [
+     3.106,
+     0.797,
+     2.58
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "kumis-churn",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/kumis-churn.npz",
+    "rebake": {
+     "faces": 1500,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/kumis-churn.glb"
+   },
+   "post": {
+    "tris": 1500,
+    "height": 1.1,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "camp prop",
+   "prompt": "a Kazakh kumis churn (saba / pisspek): a tall leather mare's-milk vessel with a wooden plunger sticking out of the top, standing on short wooden legs, stitched dark leather with a red woven strap. Whole object visible",
+   "delivered": {
+    "src_tris": 1334,
+    "tris": 1334,
+    "verts": 807,
+    "size_m": [
+     0.604,
+     1.1,
+     0.664
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "cauldron",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/cauldron.npz",
+    "rebake": {
+     "faces": 1500,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/cauldron.glb"
+   },
+   "post": {
+    "tris": 1500,
+    "height": 1.7,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "camp prop",
+   "prompt": "a black iron cauldron (kazan) with two handles hanging from a tripod of three wooden poles tied at the top with rope, over a small ring of stones with unlit firewood. Whole object visible",
+   "delivered": {
+    "src_tris": 1406,
+    "tris": 1406,
+    "verts": 799,
+    "size_m": [
+     1.567,
+     1.7,
+     1.315
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "saddle",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/saddle.npz",
+    "rebake": {
+     "faces": 1500,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/saddle.glb"
+   },
+   "post": {
+    "tris": 1500,
+    "height": 0.6,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "camp prop",
+   "prompt": "a traditional Kazakh wooden saddle (er-toqym) on its own, high front and back pommel carved and painted with red and gold ornament, a red felt saddle cloth, leather stirrups hanging down. Resting on the ground. Whole object visible",
+   "delivered": {
+    "src_tris": 1456,
+    "tris": 1456,
+    "verts": 916,
+    "size_m": [
+     0.535,
+     0.6,
+     0.455
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "firewood",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/firewood.npz",
+    "rebake": {
+     "faces": 1500,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/firewood.glb"
+   },
+   "post": {
+    "tris": 1500,
+    "height": 0.6,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "camp prop",
+   "prompt": "a neat stack of split firewood logs, pale birch and brown pine, about 1 m long and 60 cm high, a hatchet stuck in the top log. Whole object visible",
+   "delivered": {
+    "src_tris": 1492,
+    "tris": 1492,
+    "verts": 796,
+    "size_m": [
+     0.577,
+     0.6,
+     0.678
+    ]
+   },
+   "shipped": true
+  },
+  {
+   "name": "chest",
+   "ships": "TRELLIS.2",
+   "trellis": {
+    "source": "out/t512/chest.npz",
+    "rebake": {
+     "faces": 1500,
+     "tex": 1024
+    }
+   },
+   "hunyuan": {
+    "source": "out/hy/chest.glb"
+   },
+   "post": {
+    "tris": 1500,
+    "height": 0.6,
+    "yaw": 0.0,
+    "align": "none",
+    "tex": 1024,
+    "paint": 0,
+    "remesh": 0
+   },
+   "note": "camp prop",
+   "prompt": "a Kazakh wooden storage chest (sandyq): rectangular, painted deep red with ochre and blue carved ornament panels, iron corner fittings and a hasp. Lid closed. Whole object visible",
+   "delivered": {
+    "src_tris": 1417,
+    "tris": 1417,
+    "verts": 940,
+    "size_m": [
+     0.869,
+     0.6,
+     0.686
+    ]
+   },
+   "shipped": true
+  }
+ ],
+ "merge": {
+  "about": "NALATI-MERGE D1 / D2 (~/ml/img2mesh/out/nalati-merge/job.sh + post.sh): cutout -> TRELLIS.2 512 (--faces 80000 --tex 2048) and Hunyuan3D-2 --shape full, then `post.sh gen <id>` = the finish above (tex 1024, yaw 0) into out/nalati-merge/final/{t,hy}/; nalati-models-color.mjs --src / --ref / --out takes the picked generator. blenderCandidateTris is the driftwood_post.py candidate the board compared (--quant 14 --simplifier fqmr), not what ships",
+  "models": [
+   {
+    "name": "golden-king",
+    "shipped": true,
+    "ships": "TRELLIS.2",
+    "post": {
+     "tris": 8000,
+     "height": 2.1,
+     "yaw": 0,
+     "align": "none",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 3500
+   },
+   {
+    "name": "collie",
+    "shipped": true,
+    "ships": "Hunyuan3D-2",
+    "post": {
+     "tris": 6000,
+     "height": 0.75,
+     "yaw": 0,
+     "align": "pca",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 2200
+   },
+   {
+    "name": "ghost-horse",
+    "shipped": true,
+    "ships": "Hunyuan3D-2",
+    "post": {
+     "tris": 8000,
+     "height": 1.95,
+     "yaw": 0,
+     "align": "pca",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 3000
+   },
+   {
+    "name": "elder",
+    "shipped": true,
+    "ships": "Hunyuan3D-2",
+    "post": {
+     "tris": 6000,
+     "height": 1.95,
+     "yaw": 0,
+     "align": "none",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 2600
+   },
+   {
+    "name": "herder-dauren",
+    "shipped": true,
+    "ships": "Hunyuan3D-2",
+    "post": {
+     "tris": 6000,
+     "height": 1.85,
+     "yaw": 0,
+     "align": "none",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 2600
+   },
+   {
+    "name": "herder-erlan",
+    "shipped": true,
+    "ships": "Hunyuan3D-2",
+    "post": {
+     "tris": 6000,
+     "height": 1.85,
+     "yaw": 0,
+     "align": "none",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 2600
+   },
+   {
+    "name": "child",
+    "shipped": true,
+    "ships": "Hunyuan3D-2",
+    "post": {
+     "tris": 5000,
+     "height": 1.15,
+     "yaw": 0,
+     "align": "none",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 2200
+   },
+   {
+    "name": "cook",
+    "shipped": true,
+    "ships": "Hunyuan3D-2",
+    "post": {
+     "tris": 6000,
+     "height": 1.75,
+     "yaw": 0,
+     "align": "none",
+     "tex": 1024
+    },
+    "blenderCandidateTris": 2600
+   }
+  ]
+ },
+ "layout2": {
+  "about": "The POI models added with layout v2 (~/ml/img2mesh/out/layout2/): Hunyuan3D-2 hy3d_batch.py from refs9 cutouts, finished and colour-matched as above",
+  "models": [
+   {
+    "name": "watchtower",
+    "ships": "Hunyuan3D-2",
+    "hunyuan": {
+     "shape": "turbo",
+     "seed": 42,
+     "faces": 40000
+    },
+    "trellis": null,
+    "shipped": true,
+    "delivered": {
+     "src_tris": 40000,
+     "tris": 4000,
+     "verts": 1956,
+     "size_m": [
+      8.677,
+      12.013,
+      7.194
+     ]
+    }
+   },
+   {
+    "name": "snow-lotus",
+    "ships": "TRELLIS.2",
+    "hunyuan": {
+     "shape": "turbo",
+     "seed": 42,
+     "faces": 40000
+    },
+    "trellis": "the TRELLIS.2 512 take of the same cutout: ~/ml/img2mesh/logs/layout2-trellis.log",
+    "shipped": true,
+    "delivered": {
+     "src_tris": 2233,
+     "tris": 2233,
+     "verts": 1563,
+     "size_m": [
+      0.55,
+      0.5,
+      0.556
+     ]
+    }
+   },
+   {
+    "name": "kokpar-rider",
+    "ships": "Hunyuan3D-2",
+    "hunyuan": {
+     "shape": "turbo",
+     "seed": 42,
+     "faces": 40000
+    },
+    "trellis": null,
+    "shipped": true,
+    "delivered": {
+     "src_tris": 40000,
+     "tris": 9000,
+     "verts": 4328,
+     "size_m": [
+      1.191,
+      2.505,
+      3.251
+     ]
+    }
+   }
+  ]
+ },
+ "elsewhere": {
+  "people/faces-*/": "scripts/img2mesh/build_faces.sh + scripts/img2mesh/faces.json",
+  "*.rigged.glb, *.phone.rigged.glb": "scripts/nalati-rig-bake.mjs",
+  "*.far.glb": "scripts/nalati-models-color.mjs (farRatio)"
+ }
+}
