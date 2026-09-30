@@ -4,11 +4,11 @@
  * three by material, the hamlet as one merged cluster, the props instanced across the buildings, the detail and far sets
  * dropped with distance, the doors swinging, the fires and lamps on the clock. It hands itself here; each building model
  * (../models/logCabin.ts, huntingLodge.ts …) builds its Explorer specimen through it (`specimen`: the building alone, in
- * its own frame), and each prop model from the same loaded scan.
+ * its own frame), and each prop model from the same loaded scan, colliding as the scan's bounds (`propBox`).
  */
 import * as THREE from 'three';
-import type { Cabins, CabinPropKind } from '../../../world/Cabin';
-import type { ModelBuild, ModelContext, ModelPart } from '../../../models/model';
+import { PROP_BOXES, type Cabins, type CabinPropKind } from '../../../world/Cabin';
+import type { ColliderSpec, ModelBuild, ModelContext, ModelPart } from '../../../models/model';
 
 const KEY = 'pine-hollow/cabins';
 
@@ -29,6 +29,12 @@ export function propPart(ctx: ModelContext, kind: CabinPropKind): ModelPart[] {
   return ctx.once(`${KEY}:prop:${kind}`, () => (cabinsOf(ctx).propParts(kind) ?? []).map((p): ModelPart => ({
     geometry: p.geometry.clone().applyMatrix4(p.matrix), material: p.material, castShadow: true, receiveShadow: true,
   })));
+}
+
+/** a prop kind's collider in its own frame: the scan's bounds as a box standing on its foot (none for the hatchet) */
+export function propBox(kind: CabinPropKind): ColliderSpec[] {
+  const d = PROP_BOXES[kind];
+  return d === null ? [] : [{ kind: 'box', x: 0, y: d.h / 2, z: 0, hx: d.hw, hy: d.h / 2, hz: d.hd, surface: 'wood' }];
 }
 
 /** the fire pit or the porch lantern as a building dressed it (its materials fixed, lit like the rest), a copy at the origin */

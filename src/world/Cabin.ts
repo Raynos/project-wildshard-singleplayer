@@ -150,6 +150,15 @@ interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
 type PropKind = 'crate' | 'barrel' | 'bucket' | 'hatchet';
 const PROP_KINDS: readonly PropKind[] = ['crate', 'barrel', 'bucket', 'hatchet'];
+
+/**
+ * PHYSICS P3: a prop's box — the glTF scan's bounds (wooden_crate_02 0.53 × 0.45 × 1.17, wine_barrel_01 ⌀0.74 × 0.87,
+ * wooden_bucket_01 ⌀0.35 × 0.35) at scale 1, standing on its foot: half-width across (x), half-depth along (z), height.
+ * The hatchet has none (it sits in its chopping block's collider). Each prop model collides as its box (E315).
+ */
+export const PROP_BOXES: Readonly<Record<PropKind, { readonly hw: number; readonly hd: number; readonly h: number } | null>> = {
+  crate: { hw: 0.265, hd: 0.583, h: 0.455 }, barrel: { hw: 0.34, hd: 0.34, h: 0.872 }, bucket: { hw: 0.17, hd: 0.17, h: 0.35 }, hatchet: null,
+};
 /** one (geometry, material, world matrix) part of a flattened glTF prop */
 interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4 }
 
@@ -715,13 +724,13 @@ class CabinBuilder {
    * PHYSICS P3: a static box for `Cabins.colliderDescs()` only (not a legacy `Collider`), in the cabin's local frame:
    * centre (lx, lz), half-extents hw × hd turned by `localRot`, from yBottom to yTop above the cabin base.
    */
-  private solid(lx0: number, lz0: number, hw: number, hd: number, yBottom0: number, yTop0: number, localRot0 = 0, surface?: 'stone' | 'wood') {
+  private solid(lx0: number, lz0: number, hw: number, hd: number, yBottom0: number, yTop0: number, localRot0 = 0, surface?: 'stone' | 'wood', prop = false) {
     const [lx, lz] = this.fr(lx0, lz0), localRot = localRot0 + this.frYaw, yBottom = yBottom0 + this.frY, yTop = yTop0 + this.frY;
     const c = Math.cos(this.rot), s = Math.sin(this.rot);
     this.owner._solid({
       kind: 'box', x: this.cx + lx * c + lz * s, y: this.cy + (yTop + yBottom) / 2, z: this.cz - lx * s + lz * c,
       hx: hw, hy: (yTop - yBottom) / 2, hz: hd, yaw: this.rot + localRot, ...(surface === undefined ? {} : { surface }),
-    });
+    }, prop);
   }
   private worldPos(lx: number, ly: number, lz: number) {
     const v = new THREE.Vector3(lx, ly, lz);
@@ -745,10 +754,11 @@ class CabinBuilder {
     const local = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z).scale(new THREE.Vector3(scale, scale, scale));
     if (this.frame) local.premultiply(this.frameM);
     this.propInstances[kind].push(new THREE.Matrix4().multiplyMatrices(this.root.matrixWorld, local));
-    // PHYSICS P3: the glTF props' bounds (wooden_crate_02 0.53 × 0.45 × 1.17, wine_barrel_01 ⌀0.74 × 0.87,
-    // wooden_bucket_01 ⌀0.35 × 0.35); the hatchet sits in its chopping block's collider
-    const dims = { crate: { hw: 0.265, hd: 0.583, h: 0.455 }, barrel: { hw: 0.34, hd: 0.34, h: 0.872 }, bucket: { hw: 0.17, hd: 0.17, h: 0.35 }, hatchet: null }[kind];
-    if (dims) this.solid(x, z, dims.hw * scale, dims.hd * scale, y, y + dims.h * scale, ry, 'wood');
+    // PHYSICS P3: the glTF props' bounds (PROP_BOXES); the hatchet sits in its chopping block's collider. A prop's box is its
+    // model's collider (E315: src/chunks/pine-hollow/models/woodenCrate.ts …), not its building's — kept here too, in the
+    // order it always had, for `colliderDescs` (the navmesh bake)
+    const dims = PROP_BOXES[kind];
+    if (dims) this.solid(x, z, dims.hw * scale, dims.hd * scale, y, y + dims.h * scale, ry, 'wood', true);
   }
 
   build(firePit: THREE.Object3D, lantern: THREE.Object3D) {
@@ -1861,6 +1871,8 @@ export class Cabins {
   private floors: Floor[] = [];
   /** PHYSICS P3: static boxes that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
   private solids: ColliderDesc[] = [];
+  /** the props' boxes among `solids`: their models' colliders (E315), left out of their building's */
+  private readonly propSolids = new Set<ColliderDesc>();
   private lods: CabinLod[] = [];
   /**
    * the three cabins' props: ONE InstancedMesh per prop part across the cabins (was one per cabin), holding only the
@@ -1893,7 +1905,7 @@ export class Cabins {
   /** what the building just built by `b` (its slice of the shared lists since `mark`) */
   private record(b: CabinBuilder, id: string, index: number, spec: CabinSpec, x: number, y: number, z: number, rot: number, mark: { colliders: number; solids: number; floors: number; props: Record<PropKind, number> }, props: Record<PropKind, THREE.Matrix4[]>, cluster: THREE.Object3D | null): void {
     const doorBoxes = new Set(this.doors.map((d) => d.collider));
-    const colliders = [...this.colliders.slice(mark.colliders).filter((c) => !doorBoxes.has(c)).map((c) => boxDesc(c)), ...this.solids.slice(mark.solids)];
+    const colliders = [...this.colliders.slice(mark.colliders).filter((c) => !doorBoxes.has(c)).map((c) => boxDesc(c)), ...this.solids.slice(mark.solids).filter((d) => !this.propSolids.has(d))];
     const own = { crate: props.crate.slice(mark.props.crate), barrel: props.barrel.slice(mark.props.barrel), bucket: props.bucket.slice(mark.props.bucket), hatchet: props.hatchet.slice(mark.props.hatchet) };
     this.buildings.push({ id, index, spec, x, y, z, rot, root: b.root, cluster, colliders, floors: this.floors.slice(mark.floors), props: own, firePit: b.firePitObj, lantern: b.lanternObj });
   }
@@ -2205,7 +2217,7 @@ export class Cabins {
   /** @internal */ _swing(sw: Swing): void { this.swings.push(sw); }
   /** @internal */ _particles(m: THREE.ShaderMaterial): void { this.particleMats.add(m); }
   /** @internal */ _floor(f: Floor): void { this.floors.push(f); }
-  /** @internal */ _solid(d: ColliderDesc): void { this.solids.push(d); }
+  /** @internal */ _solid(d: ColliderDesc, prop = false): void { this.solids.push(d); if (prop) this.propSolids.add(d); }
   /** @internal */ _wheel(o: THREE.Object3D): void { this.wheels.push(o); }
 
   /**
