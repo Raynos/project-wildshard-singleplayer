@@ -7,7 +7,9 @@
  */
 export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'whetstone' | 'chart' | 'bearclaw' | 'boartusk' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'lever' | 'longbow' | 'laurel' | 'lock' | 'check' | 'poi' | 'you'
   // the Bag's tabs and its GEAR / FINDS slots (E314)
-  | 'map' | 'pack' | 'star' | 'book' | 'heart' | 'hat' | 'cape' | 'charm' | 'necklace' | 'glyph' | 'pin' | 'purse' | 'talon';
+  | 'map' | 'pack' | 'star' | 'book' | 'heart' | 'hat' | 'cape' | 'charm' | 'necklace' | 'glyph' | 'pin' | 'purse' | 'talon'
+  // Nalati's named elites, FINDS stickers (E314 C): Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq
+  | 'leopard' | 'wolf' | 'eagle' | 'rider' | 'horse';
 
 const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="currentColor" stroke="none" ${extra}>${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -49,6 +51,42 @@ const BEAR = `
   <path d="M4 32 L1 36 L5 36.5 Z"/>
   <circle cx="14" cy="18" r="3.2"/><circle cx="21" cy="15" r="3"/>
   ${legs([16, 24, 40, 48], 44, 13, 5.2)}`;
+
+/* Nalati's elites (E314 C): a snow leopard (long low body, a long curled tail), a wolf, a golden eagle wings spread, a
+   horse, and a rider on one (Qara Batyr) */
+const LEOPARD = `
+  <ellipse cx="34" cy="37" rx="18" ry="7"/>
+  <circle cx="13" cy="31" r="6"/>
+  <path d="M15 28 L25 32 L23 40 L14 35 Z"/>
+  <path d="M8 27 L9 21 L13 25 Z M15 25 L18 20 L19 26 Z"/>
+  <path d="M51 35 C59 37 62 45 58 52 C55 57 49 55 50 51" ${S} stroke-width="3.6"/>
+  ${legs([20, 26, 42, 48], 40, 16, 3.4)}`;
+const WOLF = `
+  <ellipse cx="36" cy="34" rx="17" ry="7.5"/>
+  <path d="M24 30 L17 19 L25 16 L31 29 Z"/>
+  <path d="M23 15 L6 20 L8 24 L25 24 Z"/>
+  <path d="M17 17 L18 8 L22 15 Z M22 16 L25 8 L26 16 Z"/>
+  <path d="M52 30 C58 33 62 40 61 48 C57 43 54 39 50 37 Z"/>
+  ${legs([24, 29, 44, 49], 38, 18, 2.8)}`;
+const EAGLE = `
+  <path d="M32 22 C26 17 15 13 1 14 C6 17 8 19 9 22 L6 23 C12 25 20 27 28 33 Z"/>
+  <path d="M32 22 C38 17 49 13 63 14 C58 17 56 19 55 22 L58 23 C52 25 44 27 36 33 Z"/>
+  <ellipse cx="32" cy="32" rx="5.5" ry="11"/>
+  <circle cx="32" cy="18" r="4.4"/>
+  <path d="M27 41 L32 55 L37 41 Z"/>`;
+const HORSE_BODY = `
+  <ellipse cx="38" cy="36" rx="16" ry="8.5"/>
+  <path d="M26 33 L17 16 L25 14 L32 31 Z"/>
+  <path d="M19 13 L6 22 L9 26 L24 17 Z"/>
+  <path d="M19 13 L20 7 L23 13 Z"/>
+  <path d="M53 32 C58 35 60 43 58 53 C55 47 53 41 51 38 Z"/>
+  ${legs([25, 31, 44, 50], 42, 15, 3.2)}`;
+const HORSE = HORSE_BODY;
+const RIDER = `
+  <g transform="translate(0 4)">${HORSE_BODY}</g>
+  <path d="M34 34 L33 20 L41 20 L42 34 Z"/>
+  <circle cx="37" cy="14" r="4.4"/>
+  <path d="M33 22 L24 12 L22 14 L31 26 Z"/>`;
 
 /* ── items ── */
 const MEAT = `
@@ -222,6 +260,7 @@ const GLYPHS: Record<IconId, string> = {
   crossbow: CROSSBOW, sword: SWORD, rifle: RIFLE, lever: LEVER, longbow: LONGBOW,
   laurel: LAUREL, lock: LOCK, check: CHECK, poi: POI, you: YOU,
   map: MAP, pack: PACK, star: STAR, book: BOOK, heart: HEART, hat: HAT, cape: CAPE, charm: CHARM, necklace: NECKLACE, glyph: GLYPH, pin: PIN, purse: PURSE, talon: TALON,
+  leopard: LEOPARD, wolf: WOLF, eagle: EAGLE, rider: RIDER, horse: HORSE,
 };
 
 export function icon(id: IconId): string {

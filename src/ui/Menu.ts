@@ -24,6 +24,8 @@
  * where a shard has none) · PACK (the Inventory's junk grid) · FEATS (Achievements); Pine Hollow's JOURNAL sits before
  * FEATS. The panels are src/ui/bag.ts. Pine Hollow (E314 C): its hunter's journal is its FINDS (`setFinds`, from
  * src/ui/compendium/install.ts), GEAR's skins row is FINISHES, and each PACK item says what Mott gives for it (`pack`).
+ * Nalati (E314 C, src/nalati/bag.ts): MAP · GEAR · FINDS · FEATS — no PACK (its Inventory has 0 slots), GEAR's SKINS row
+ * lists every skin (the locked ones dim), FINDS is the elites and their prizes plus the places (`setFinds`).
  */
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
@@ -214,7 +216,7 @@ export class GameMenu {
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
       const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
-      const on = (id !== 'feedback' || review) && (id !== 'finds' || this.hasFinds) && g === group && !(id === 'map' && this.noMap);
+      const on = (id !== 'feedback' || review) && (id !== 'finds' || this.hasFinds) && (id !== 'inventory' || this.hasPack) && g === group && !(id === 'map' && this.noMap);
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
@@ -262,7 +264,7 @@ export class GameMenu {
   get tab(): MenuTab { return this._tab; }
 
   open(tab: MenuTab = this._tab): void {
-    const selected = this.noMap && tab === 'map' ? 'settings' : tab;
+    const selected = this.noMap && tab === 'map' ? 'settings' : tab === 'inventory' && !this.hasPack ? 'gear' : tab;
     this.select(selected);
     if (this._open) return;
     this._open = true;
@@ -289,7 +291,8 @@ export class GameMenu {
     if (!silent) this.onClose?.();
   }
   toggle(tab: MenuTab): void { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
-  select(tab: MenuTab): void {
+  select(want: MenuTab): void {
+    const tab = want === 'inventory' && !this.hasPack ? 'gear' : want; // no pack (Nalati, E314 C): I / PACK land on GEAR
     this._tab = tab;
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
@@ -316,6 +319,8 @@ export class GameMenu {
   private finds: (() => FindsView) | null = null;
   private get findsView(): (() => FindsView) | null { return this.loot?.finds ?? this.finds; }
   private get hasFinds(): boolean { return this.findsView !== null; }
+  /** a shard with no pack (Nalati, E314 C: `inventory.slots` 0) has no PACK tab */
+  private get hasPack(): boolean { return this.opts.inventory.slots > 0; }
   setFinds(finds: (() => FindsView) | null): void {
     this.finds = finds;
     if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs();

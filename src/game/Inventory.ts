@@ -4,6 +4,11 @@
  * only, 12 slots, one slot per item kind; persisted per shard ('ws.inventory.v1'). Weapons and ammo are not
  * here — the menu's Inventory tab reads those live from Weapons.
  *
+ * Nalati has no pack at all (E314, Jake's pick C, art/loot/round-3-other-shards/board-2-nalati.jpg): its 12 kinds (wolf
+ * pelt / fang, horsehair, balbal shard, grave dust, marmot fur, the 5 elites' trophies, the Golden King's plaque) were
+ * never read by anything, so they are gone — an old save's copies are dropped on load (an id not in ITEMS), `slots` is 0
+ * there and the Bag shows no PACK tab (src/ui/Menu.ts).
+ *
  * Pine Hollow's pack (E314, Jake's pick C, art/loot/round-3-other-shards/) holds only the 7 kinds Mott trades for
  * (PINE_PACK_KINDS): everything else a Pine kill or reward used to hand out (boar / elk meat, elk hide, bear claw,
  * antlers, amber heartwood, the elites' trophies) never enters it, and an old save's copies are dropped on load. With
@@ -23,9 +28,7 @@ export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar
   | 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown' | 'amber-heartwood' | 'warden-longbow'
   // Pine Hollow's collectibles and the lodge (PH-C6 / C8, src/pinehollow/quest/): resin is the trader's currency-free swap
   // good, a ribbon is what a lodge contract pays
-  | 'amber-resin' | 'lodge-ribbon'
-  | 'gold-plaque' | 'leopard-pelt' | 'grey-mother-pelt' | 'eagle-feather' | 'captain-standard' | 'mane-braid'
-  | 'wolf-pelt' | 'wolf-fang' | 'horsehair' | 'stone-shard' | 'grave-dust' | 'marmot-fur';
+  | 'amber-resin' | 'lodge-ribbon';
 
 export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
@@ -46,21 +49,6 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'monkey-fur': { label: 'Monkey fur', icon: 'hide' },
   'silver-fur': { label: 'Silver fur', icon: 'hide' },
   'doubloon': { label: 'Salt-crusted doubloon', icon: 'coin' },
-  // Nalati Grasslands — boss trophies (src/nalati/kurganBoss.ts)
-  'gold-plaque': { label: "Golden King's plaque", icon: 'coin' },
-  // Nalati — named-elite trophies (src/nalati/elites.ts)
-  'leopard-pelt': { label: 'Snow-leopard pelt', icon: 'hide' },
-  'grey-mother-pelt': { label: "The grey mother's pelt", icon: 'hide' },
-  'eagle-feather': { label: 'Golden eagle feather', icon: 'rope' },
-  'captain-standard': { label: "The captain's standard", icon: 'ghost' },
-  'mane-braid': { label: 'Black mane braid', icon: 'rope' },
-  // Nalati — the steppe's ordinary harvests (B15)
-  'wolf-pelt': { label: 'Wolf pelt', icon: 'hide' },
-  'wolf-fang': { label: 'Wolf fang', icon: 'tusk' },
-  'horsehair': { label: 'Horsehair', icon: 'rope' },
-  'stone-shard': { label: 'Balbal stone shard', icon: 'shell' },
-  'grave-dust': { label: 'Grave dust', icon: 'ghost' },
-  'marmot-fur': { label: 'Marmot fur', icon: 'hide' },
   // Pine Hollow's elites and the Antler King
   'ironhide-tusk': { label: "Ironhide's broken tusk", icon: 'tusk' },
   'ghost-antler': { label: 'Pale antler', icon: 'antlers' },
@@ -81,12 +69,8 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
     case 'bear': return ['bear-pelt', 'bear-claw'];
     case 'crab': return variant === 'big' ? ['crab-meat', 'crab-claw', 'crab-shell'] : ['crab-meat', 'crab-claw']; // only the big one's shell is worth keeping
     case 'monkey': return variant === 'elder' ? ['coconut', 'silver-fur'] : ['coconut', 'monkey-fur']; // every monkey was carrying one
-    // Nalati Grasslands (B15) — the named elites' trophies come from src/nalati/elites.ts, not a harvest
-    case 'wolf': return variant === 'alpha' ? ['wolf-pelt', 'wolf-fang', 'wolf-fang'] : ['wolf-pelt', 'wolf-fang'];
-    case 'horse': return ['horsehair'];                      // a wild horse's tail (the camp's saddled horses can't die)
-    case 'balbal': return ['stone-shard'];                   // the stone warriors crumble
-    case 'ghost-rider': return ['grave-dust'];
-    case 'marmot': return ['marmot-fur'];
+    // Nalati Grasslands: nothing (E314 C — its pelts, fangs, horsehair, shards, dust and the elites' trophies were never
+    // read by anything; its prizes are skins and titles), so no carcass there shows [E] Harvest
     default: return [];
   }
 }
@@ -100,6 +84,8 @@ export const PINE_PACK_SLOTS = PINE_PACK_KINDS.length;
 const PINE_KEEPS: ReadonlySet<ItemId> = new Set<ItemId>(PINE_PACK_KINDS);
 export const isPineItem = (id: ItemId): id is PineItem => PINE_KEEPS.has(id);
 const isPineChunk = (chunkId: string): boolean => chunkId.endsWith('/pine-hollow');
+/** Nalati: no pack (E314 C) — nothing enters it, the Bag has no PACK tab */
+const isNalatiChunk = (chunkId: string): boolean => chunkId.endsWith('/nalati-grasslands');
 const STORE = 'ws.inventory.v1';
 
 export class Inventory {
@@ -115,14 +101,14 @@ export class Inventory {
     this.counts = saved.counts ?? {};
     this.order = [];
     for (const id of saved.order ?? []) {
-      if (!(id in ITEMS)) continue;
+      if (!(id in ITEMS)) { delete this.counts[id]; continue; } // a kind the game no longer has (Nalati's, E314 C)
       if (this.keeps(id)) this.order.push(id);
       else { if ((this.counts[id] ?? 0) > 0) this.legacy.add(id); delete this.counts[id]; }
     }
   }
 
-  /** does this shard's pack take `id` at all? (Pine Hollow: only PINE_PACK_KINDS) */
-  keeps(id: ItemId): boolean { return !isPineChunk(this.chunkId) || PINE_KEEPS.has(id); }
+  /** does this shard's pack take `id` at all? (Pine Hollow: only PINE_PACK_KINDS; Nalati: nothing) */
+  keeps(id: ItemId): boolean { return !isNalatiChunk(this.chunkId) && (!isPineChunk(this.chunkId) || PINE_KEEPS.has(id)); }
   /** what this shard's pack takes from a carcass: harvestOf, less the kinds it does not keep (empty = no [E] Harvest) */
   harvest(kind: string, variant?: string): ItemId[] { return harvestOf(kind, variant).filter((id) => this.keeps(id)); }
   /** did the save this pack loaded hold `id`, a kind the pack no longer keeps? ('warden-longbow' → Owned) */
@@ -144,8 +130,8 @@ export class Inventory {
     this.save(); this.onChange?.();
     return true;
   }
-  /** this shard's pack size */
-  get slots(): number { return isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS; }
+  /** this shard's pack size (0: no pack, no PACK tab — Nalati) */
+  get slots(): number { return isNalatiChunk(this.chunkId) ? 0 : isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS; }
   /** how many of `id` the pack holds */
   count(id: ItemId): number { return this.counts[id] ?? 0; }
   /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */

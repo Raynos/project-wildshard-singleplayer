@@ -36,6 +36,7 @@ import { buildNalatiKit } from './player/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import { installAdventure } from './game/quest/Adventure';
 import { installNalatiAdventure, CAPTIONED_EVENTS } from './nalati/adventure';
+import { kitName as nalatiKitName, nalatiFinds, skinRows as nalatiSkinRows } from './nalati/bag';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { HorizonMatte } from './world/HorizonMatte';
@@ -616,13 +617,13 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   let pineFinish: ((id: string) => void) | null = null;
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
+    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; const nl = nalatiNow(); return { id: w.id, name: nl ? nalatiKitName(w.id, w.name, { golden: nl.boss.golden?.applied === true, naizagai: nl.titan.naizagai?.applied === true }) : (w.id === 'crossbow' ? 'Hunting crossbow' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
     ...(isPine
       ? { skins: () => pineFinishes(skins), onWearSkin: (id: string) => { pineFinish?.(id); }, skinsTitle: 'Finishes',
         // E314 C: the pack is Mott's trade stock — each item says what he gives for it
         pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id: ItemId) => (isPineItem(id) ? mottLine(id) : null) } }
-      : { skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id: string) => { nalatiNow()?.skins.toggle(id); } }), // Nalati's wearable skins (B15)
+      : { skins: () => { const nl = nalatiNow(); return nl ? nalatiSkinRows(nl.skins) : []; }, onWearSkin: (id: string) => { nalatiNow()?.skins.toggle(id); } }), // Nalati's wearable skins (B15): every one, the locked ones dim (E314 C)
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
@@ -744,7 +745,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   }
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/nalati/adventure.ts on the shared quest core) — null on any other shard ──
-  installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });
+  const nalatiAdventure = installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });
+  if (nalatiAdventure) menu.setFinds(() => nalatiFinds(nalatiAdventure.flags)); // Nalati's FINDS: the elites + their prizes, the places (E314 C)
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
@@ -901,13 +903,13 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => { killer = { cause: 'Struck by lightning' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); hud.toast(why); audio.land(true); } });
   nalatiNow()?.boss.bind({
     animals, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, bow: nalatiKit?.bow ?? null, refill: () => { nalatiKit?.refill(); }, interactables, params,
-    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); }, trophy: () => { inventory.add('gold-plaque'); },
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); },
     music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
   });
   // Nalati's named elites (src/nalati/elites.ts, B12): lairs, bars, banners, drops — taming (B8) hands in when it is wired
   nalatiNow()?.elites.bind({
     animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables, params,
-    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, addItem: (id) => { inventory.add(id); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); },
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); },
     pickupHum: (on) => { audio.pickupHum(on); }, sound: (n, at) => { audio.animal(n, at, player.position, player.yaw); },
     sting: (e) => { if (e === 'kill') music.sting('chunk'); else music.combat(e === 'phase2' ? 1 : 0.8); },
   });

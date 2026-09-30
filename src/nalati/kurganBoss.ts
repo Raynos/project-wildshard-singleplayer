@@ -612,7 +612,6 @@ export interface KurganPlay {
   feed: (text: string) => void;
   music?: (event: 'intro' | 'phase' | 'victory' | 'death' | 'pickup', intensity?: number) => void;
   pickupHum?: (inside: boolean) => void;
-  trophy?: () => void;
   params: URLSearchParams;
 }
 
@@ -671,7 +670,6 @@ export class KurganBoss {
         tier: 'LEGENDARY', name: 'THE GOLDEN BOW', flavour: 'Bow of the Saka King', prompt: 'TAKE THE GOLDEN BOW',
         model: () => goldenBowModel(sky),
         grant: () => { if (play.bow && this.golden) this.golden.apply(play.bow); },
-        ...(play.trophy ? { trophy: play.trophy } : {}),
       },
     };
     this.boss = new Boss(def, this.fight, {

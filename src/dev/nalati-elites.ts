@@ -29,7 +29,7 @@ const interactables: Interactable[] = [];
 elites.bind({
   animals, wildlife, taming: null, ghosts: null, interactables, params,
   toast: (s) => { console.log('[elites] toast', s); }, feed: (s) => { console.log('[elites] feed', s); },
-  addItem: (id) => { console.log('[elites] item', id); }, record: (k, v) => { console.log('[elites] record', k, v); },
+  record: (k, v) => { console.log('[elites] record', k, v); },
 });
 const minimap = new Minimap();
 game.onUpdate((dt, t) => {

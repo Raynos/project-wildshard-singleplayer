@@ -10,7 +10,6 @@ import type { Pack } from '../entities/Pack';
 import type { HorseHerd } from '../entities/Herd';
 import type { Interactable } from '../world/Cabin';
 import type { Ledge } from '../world/nalati/Crags';
-import type { ItemId } from '../game/Inventory';
 import { heightAt } from '../world/Heightfield';
 import { wildEnv } from '../entities/wildEnv';
 import { setEliteBrain, setEliteDamage, eliteThink, eliteDamageMul } from '../entities/eliteBrain';
@@ -55,7 +54,8 @@ import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../chunks/nalatiLayout
  *     bucking → bonded); tamed, he is your horse (the bonded Tulpar grows to his ×1.3) and his lair retires for good.
  *
  * Drops are cosmetic (the skins are owned here, WORN by B15): IRBIS sabre · SKY-WOLF bow · STORM-WING arrows · NIGHT RIDER
- * mount. Trophies go to the pack (Inventory). Achievements + joke titles are src/game/achievements.ts's NALATI table.
+ * mount; Argymaq pays himself (no skin). No trophies (E314 C: Nalati has no pack). Achievements + joke titles are
+ * src/game/achievements.ts's NALATI table; the Bag's FINDS lists each elite with its prize (src/nalati/bag.ts).
  *
  *   const elites = wireElites({ game, sky, player, ledges, cave, clock, storm });     // boot (src/nalati/index.ts)
  *   elites.bind(play)                                                                   // main.ts, once animals / HUD exist
@@ -73,32 +73,30 @@ export const ELITE_DEFS: Record<string, EliteDef> = {
   aqbars: {
     id: 'aqbars', name: 'Aqbars the Pale', epithet: 'Irbis of the Crags', lair: { x: CRAG_CAVE.x, z: CRAG_CAVE.z, r: 14 },
     awareR: 60, engageR: 25, leashR: 90, rule: 'always', respawnMin: 20, signature: 'POUNCE', phase2: 'ENRAGED',
-    drop: { skin: 'irbis-sabre', skinName: 'IRBIS', weapon: 'sabre', blurb: 'pale frost steel, rosette damascus, a snow-leopard grip', trophyName: 'Snow-leopard pelt' },
+    drop: { skin: 'irbis-sabre', skinName: 'IRBIS', weapon: 'sabre', blurb: 'pale frost steel, rosette damascus, a snow-leopard grip' },
   },
   kokbori: {
     id: 'kokbori', name: 'Kokbori', epithet: 'Mother of the Pack', lair: { x: KOKBORI_DEN.x, z: KOKBORI_DEN.z, r: 16 },
     awareR: 80, engageR: 50, leashR: 120, rule: 'dusk', respawnMin: 20, signature: 'PACK HOWL', phase2: 'THE PACK FALLS BACK',
-    drop: { skin: 'sky-wolf-bow', skinName: 'SKY-WOLF', weapon: 'bow', blurb: 'blue-grey horn limbs, wolf-fang nocks, a silver string', trophyName: "The grey mother's pelt" },
+    drop: { skin: 'sky-wolf-bow', skinName: 'SKY-WOLF', weapon: 'bow', blurb: 'blue-grey horn limbs, wolf-fang nocks, a silver string' },
   },
   qyran: {
     id: 'qyran', name: 'Qyran the Storm-Wing', epithet: 'Berkut of the High Wind', lair: { x: EAGLE_ROCK.x, z: EAGLE_ROCK.z, r: 20 },
     awareR: 110, engageR: 75, leashR: 150, rule: 'storm', respawnMin: 20, signature: 'STOOP', phase2: 'INTO THE STORM',
-    drop: { skin: 'storm-wing-arrows', skinName: 'STORM-WING', weapon: 'arrow', blurb: 'golden fletching, a gold streak behind every arrow', trophyName: 'Golden eagle feather' },
+    drop: { skin: 'storm-wing-arrows', skinName: 'STORM-WING', weapon: 'arrow', blurb: 'golden fletching, a gold streak behind every arrow' },
   },
   'qara-batyr': {
     id: 'qara-batyr', name: 'Qara Batyr the Unburied', epithet: 'Captain of the Night Riders', lair: { x: QARA_CAIRN.x, z: QARA_CAIRN.z, r: 18 },
     awareR: 90, engageR: 60, leashR: 150, rule: 'night', respawnMin: 20, signature: 'DEATH CHARGE', phase2: 'THE DEAD RIDE',
-    drop: { skin: 'night-rider-mount', skinName: 'NIGHT RIDER', weapon: 'mount', blurb: 'black barding, a spectral mane that glows at night', trophyName: "The captain's standard" },
+    drop: { skin: 'night-rider-mount', skinName: 'NIGHT RIDER', weapon: 'mount', blurb: 'black barding, a spectral mane that glows at night' },
   },
   argymaq: {
     id: 'argymaq', name: 'Argymaq the Unbroken', epithet: 'Stallion of the High Crags', lair: { x: ARGYMAQ_PASTURE.x, z: ARGYMAQ_PASTURE.z, r: 22 },
     awareR: 80, engageR: 40, leashR: 100, rule: 'always', respawnMin: 20, once: true, signature: 'TRAMPLE', phase2: 'HE RUNS',
-    drop: { skin: 'argymaq', skinName: 'ARGYMAQ', weapon: 'horse', blurb: 'the best horse in Nalati', trophyName: 'Black mane braid' },
+    // no skin: the horse himself is the prize (docs/design/nalati/elites-and-bosses.md, and Jake's Bag pick C — FINDS says
+    // "Your horse"). The id used to be 'argymaq', which no skin list has, so it was silently dropped (E314)
+    drop: { skin: null, skinName: 'ARGYMAQ', weapon: 'horse', blurb: 'the best horse in Nalati' },
   },
-};
-
-const TROPHY: Record<string, ItemId> = {
-  aqbars: 'leopard-pelt', kokbori: 'grey-mother-pelt', qyran: 'eagle-feather', 'qara-batyr': 'captain-standard', argymaq: 'mane-braid',
 };
 
 /** the elites' voices (src/audio/Audio.ts animal sounds) */
@@ -116,7 +114,6 @@ interface Env {
   hurt: (a: Animal, dmg: number) => void;
   knock: (dx: number, dz: number) => void;
   feed: (text: string) => void;
-  addItem: (id: ItemId) => void;
   record: (kind: string, variant: string) => void;
   sound: (name: EliteSound, at: THREE.Vector3) => void;
 }
@@ -142,7 +139,8 @@ abstract class Base implements EliteScript {
   despawn(): void { if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
   reset(): void { this.p2 = false; }
   enterPhase2(): void { this.p2 = true; }
-  trophy(): void { const id = TROPHY[this.def.id]; if (id !== undefined) this.env.addItem(id); this.env.feed(`${this.def.drop.trophyName} — ${this.def.name}`); }
+  /** no trophy on Nalati (E314 C: no pack) — main.ts's kill feed names the kill, the orb holds the skin */
+  trophy(): void { /* nothing */ }
   dropModel(): THREE.Object3D { return trophyModel(this.def.id, this.env.sky); }
   protected sig(): void { this.env.elites.signature(this.def.id); }
   protected spawnAt(kind: string, variant: string, x: number, z: number, yaw: number): Animal {
@@ -822,7 +820,6 @@ export interface ElitesPlay {
   interactables: Interactable[];
   toast: (text: string) => void;
   feed: (text: string) => void;
-  addItem: (id: ItemId) => void;
   /** Progress.recordKill — Argymaq is tamed, not killed, so his achievement is recorded here */
   record: (kind: string, variant: string) => void;
   sting?: (event: 'banner' | 'phase2' | 'kill') => void;
@@ -863,7 +860,7 @@ export class NalatiElites {
       game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,
       hurt: (a, dmg) => { play.animals.onCharge?.(a, dmg); },
       knock: (dx, dz) => { const l = Math.hypot(dx, dz) || 1; wildEnv.onKnockdown?.(dx / l, dz / l, 1); },
-      feed: play.feed, addItem: play.addItem, record: play.record,
+      feed: play.feed, record: play.record,
       sound: (name, at) => { play.sound?.(name, at); },
     };
     this.scripts = [
@@ -873,7 +870,7 @@ export class NalatiElites {
       new QaraBatyr(ELITE_DEFS['qara-batyr'] ?? fail('qara-batyr'), env),
       new Argymaq(ELITE_DEFS['argymaq'] ?? fail('argymaq'), env),
     ];
-    for (const s of this.scripts) { elites.add(s); if (elites.owned(s.def.id)) this.skins.add(s.def.drop.skin); }
+    for (const s of this.scripts) { elites.add(s); const skin = s.def.drop.skin; if (skin !== null && elites.owned(s.def.id)) this.skins.add(skin); }
     // build the new rigs' models now (a first spawn mid-hunt must not stall a frame)
     for (const [k, v] of [[LEOPARD, 'aqbars'], [EAGLE, 'qyran'], [KOKBORI, 'kokbori']] as const) { try { play.animals.factory.model(k, v); } catch (e) { console.warn(`[elites] ${k} did not build`, e); } }
     // dev: `?elite=<id>` — spawn it whatever its rule and put the player DEV_FROM's distance from it (`&from=<m>`), facing it

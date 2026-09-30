@@ -283,6 +283,13 @@
 .ws-gmenu .ws-gmenu-stickers.dense { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .ws-gmenu .ws-gmenu-stickers.dense .ws-gmenu-sticker { aspect-ratio: 1 / 1.1; gap: 4px; padding: 6px 2px; }
 .ws-gmenu .ws-gmenu-stickers.dense .ws-gmenu-sticker span { font-size: 6.5px; letter-spacing: 0.12em; }
+/* Nalati's elites (E314 C): two to a row, the prize under the name (the skin or the horse, then the title) */
+.ws-gmenu .ws-gmenu-stickers.wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ws-gmenu .ws-gmenu-stickers.wide .ws-gmenu-sticker { aspect-ratio: auto; min-height: 118px; gap: 4px; padding: 10px 6px; }
+.ws-gmenu .ws-gmenu-stickers.wide .ws-gmenu-stickicon { width: 42px; height: 42px; }
+.ws-gmenu .ws-gmenu-stickers.wide .ws-gmenu-sticker span { font-size: 8.5px; }
+.ws-gmenu .ws-gmenu-prize { font-style: normal; font-size: 7px; letter-spacing: 0.14em; text-transform: uppercase; text-align: center; line-height: 1.35; color: var(--ws-text-dim); opacity: 0.8; }
+.ws-gmenu .ws-gmenu-sticker.found .ws-gmenu-prize { color: var(--ws-cyan); opacity: 1; }
 .ws-gmenu .ws-gmenu-sticker.tap { appearance: none; -webkit-appearance: none; margin: 0; font-family: var(--ws-mono); cursor: pointer; }
 .ws-gmenu .ws-gmenu-sticker.tap:not(.found) { background: none; }
 .ws-gmenu .ws-gmenu-sticker.tap:active { background: rgba(143, 227, 255, 0.16); }

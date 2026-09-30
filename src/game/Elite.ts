@@ -51,8 +51,9 @@ export interface EliteDef {
   signature: string;
   /** the phase-2 caption ("ENRAGED") */
   phase2: string;
-  /** the first-kill drop (cosmetic) and the trophy every kill leaves */
-  drop: { skin: string; skinName: string; weapon: string; blurb: string; trophyName: string };
+  /** the first-kill drop (cosmetic) and the trophy every kill leaves. `skin: null` — no skin, the prize is something
+   *  else (Argymaq: the horse himself, E314 C); no `trophyName` — no trophy (Nalati: no pack, E314 C) */
+  drop: { skin: string | null; skinName: string; weapon: string; blurb: string; trophyName?: string };
 }
 
 export interface EliteScript {
@@ -261,7 +262,7 @@ export class Elites {
     s.kills++;
     e.script.trophy();
     this.host.sting?.('kill');
-    if (!s.skinTaken && a) this.dropSkin(e, a.position);
+    if (!s.skinTaken && a && def.drop.skin !== null) this.dropSkin(e, a.position);
     e.state = 'dead'; e.forced = false;
     e.timer = def.respawnMin * 60; e.waitDusk = false;
     if (this.focus === e) { this.bar.set(0, 'pinned', null, this.host.camera, false); this.focus = null; setTimeout(() => { if (this.focus === null) this.bar.hide(); }, 1600); }
@@ -273,7 +274,8 @@ export class Elites {
     const e = this.entry(id), s = this.saved[id];
     if (!e || !s || e.state === 'retired') return;
     s.kills++; e.script.trophy();
-    if (!s.skinTaken) { s.skinTaken = true; this.host.ownSkin?.(e.script.def.drop.skin); }
+    const skin = e.script.def.drop.skin;
+    if (!s.skinTaken) { s.skinTaken = true; if (skin !== null) this.host.ownSkin?.(skin); } // Argymaq: no skin, the horse is the prize
     this.retire(e);
   }
 
@@ -285,7 +287,8 @@ export class Elites {
   }
 
   private dropSkin(e: Entry, at: THREE.Vector3): void {
-    const def = e.script.def, s = this.saved[def.id];
+    const def = e.script.def, s = this.saved[def.id], skin = def.drop.skin;
+    if (skin === null) return;
     const drop = new WeaponPickup({ scene: this.host.scene, item: e.script.dropModel(), position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, scale: 1.4 });
     e.drop = drop;
     this.host.addInteractable(drop.interactable);
@@ -293,7 +296,7 @@ export class Elites {
     drop.onPickup = () => {
       if (s) s.skinTaken = true;
       this.save();
-      this.host.ownSkin?.(def.drop.skin);
+      this.host.ownSkin?.(skin);
       this.host.removeInteractable(drop.interactable);
       this.host.pickupHum?.(false);
       this.host.toast(`${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`);

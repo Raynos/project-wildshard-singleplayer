@@ -16,6 +16,8 @@
  *           TREASURES: found bright, missing dashed "???"), and the 15 sea glass chips — Driftwood's (src/game/loot/finds.ts).
  *           Pine Hollow's is its hunter's journal (src/ui/compendium/finds.ts, E314 C): BEASTS / ELITES / PLACES /
  *           TROPHIES, no glass, an OPEN row on top and every sticker a tap onto its journal page.
+ *           Nalati's (src/nalati/bag.ts, E314 C): ELITES two to a row (`wide`), each with its prize under it (`prize`: the
+ *           skin or the horse, the title — shown found or not), then the 17 PLACES.
  */
 import { icon, type IconId } from './icons';
 import type { KitEntry, SkinRow } from './Menu';
@@ -38,8 +40,9 @@ export interface FindsView {
   counters: { label: string; n: number; of: number }[];
   /** "Next charm at 10" — null once every charm is strung */
   next: string | null;
-  /** `dense`: four to a row (Pine Hollow's 18 places); an item with an `id` is a button when the view has `onPick` */
-  sections: { title: string; dense?: boolean; items: { id?: string; label: string; icon: IconId; found: boolean }[] }[];
+  /** `dense`: four to a row (Pine Hollow's 18 places); `wide`: two to a row (Nalati's elites); an item with an `id` is a
+   *  button when the view has `onPick`; `prize`: lines under the name, shown found or not (what the find pays) */
+  sections: { title: string; dense?: boolean; wide?: boolean; items: { id?: string; label: string; icon: IconId; found: boolean; prize?: string[] }[] }[];
   /** the beach's sea glass, one chip per piece (none: no SEA GLASS section) */
   glass: { found: boolean; color: string }[];
   /** a row over the stickers that opens the full book (Pine Hollow's hunter's journal) */
@@ -178,10 +181,11 @@ export function renderFinds(p: HTMLElement, v: FindsView): void {
   if (v.next !== null) p.append(el('ws-gmenu-nextcharm', esc(v.next)));
   for (const s of v.sections) {
     p.append(el('ws-gmenu-label', esc(s.title)));
-    const grid = el(`ws-gmenu-stickers${s.dense === true ? ' dense' : ''}`);
+    const grid = el(`ws-gmenu-stickers${s.dense === true ? ' dense' : ''}${s.wide === true ? ' wide' : ''}`);
     for (const it of s.items) {
       const pick = v.onPick, id = it.id;
-      const html = `<i class="ws-gmenu-stickicon">${icon(it.icon)}</i><span>${it.found ? esc(it.label) : '???'}</span>`;
+      const prize = (it.prize ?? []).map((l) => `<em class="ws-gmenu-prize">${esc(l)}</em>`).join('');
+      const html = `<i class="ws-gmenu-stickicon">${icon(it.icon)}</i><span>${it.found ? esc(it.label) : '???'}</span>${prize}`;
       if (pick !== undefined && id !== undefined) {
         const b = el(`ws-gmenu-sticker tap${it.found ? ' found' : ''}`, html, 'button') as HTMLButtonElement;
         b.type = 'button';
