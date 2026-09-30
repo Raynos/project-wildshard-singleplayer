@@ -184,6 +184,19 @@ board.
 - Review on the phone: an agent can make a ~10 s clip spinning one model, or five, in the Model Explorer for the Claude
   app. Jake will also review the Model Explorer UI itself.
 
+## Sets on every shard (Jake, 2026-09-30)
+
+"If we're going to have models and sets, then all four shards need to have models and sets." The rule for a Set is
+mechanical, like the model rule:
+
+> **Every named place is a Set.** A shard's named places are its discovery list (`DRIFTWOOD_PLACES` in
+> `src/game/quest/Places.ts`, `NALATI_PLACES` in `src/game/quest/nalati.ts`, Pine Hollow's list; each one is also
+> a label on the full map). A shard without a discovery list names its places in its plan (Nine Dragon: Lantern
+> Square, the night market, the stair-street, the Well rim, the Well galleries, the crossings). Each Set lists the
+> models placed in that place, and a place's welded ground stays world.
+
+M8 enforces it: a named place without a Set fails the check.
+
 ## Rows (B1 and the whole migration approved 2026-09-29, E306 / E315)
 
 | # | Row | Size | Status |
@@ -201,3 +214,4 @@ board.
 | M9 | Model review clips: `scripts/model-spin.mjs`, a ~10 s portrait turntable of 1–5 models from the Model Explorer at phone size for the Claude app | S | done 2026-09-29 (E315): `scripts/browser-lane.sh node scripts/model-spin.mjs --url=<build> --shard=<slug> --models=<id,…> or first:5 --out=<mp4>`; `--list` prints the catalog's ids. First clips: `art/models-audit/round-3-spin-clips/` |
 | M10 | Blender best practice: **Blender scripts are the source, the exported GLB is committed, a `.blend` never is** (`docs/design/blender-practice.md`). Done in 13 commits (`ad797c52` … `a960c71a`): `scripts/blender/build.sh` + `targets.json` (Blender 5.2.1 pinned, `--python-exit-code 1`, the model lock, `--check` rebuild-compare), builders per shard under `scripts/blender/<slug>/` + `lib/`, the Nine Dragon arms' part scripts restored and the rig bake recovered (its 16 clips re-sample `fp-rig.glb` within 0.031°), the orphan yurt script deleted, the Nalati recipe in `scripts/img2mesh/props/nalati.json`, `scripts/check-model-sources.mjs` in `pnpm test`, a pre-commit refusal of `.blend`, one AGENTS.md bullet. Every rebuilt GLB is IDENTICAL to the committed one | S | done (E315) |
 | M11 | image-to-threejs skill: reviewed (`docs/design/image-to-threejs-review.md`): recent (Jul–Sep 2026) but single-agent and one-object, with no LODs, no phone budgets and no real colliders. **Our own skill instead**: `.claude/skills/mockup-to-model/SKILL.md` (`bdf3b4f7`) documents this repo's mockup → model workflow and keeps six of its ideas. The user-wide `~/.claude/skills/img2threejs` links are Jake's to remove | S–M | done (E315) |
+| M12 | Sets on all four shards: every named place is a Set (the rule above), on Driftwood, Pine Hollow, Nalati and Nine Dragon, plus the M8 check that no named place is missing one | M | in flight (E315, with the second pass) |
