@@ -170,7 +170,7 @@ if (import.meta.main) {
   const out = ji === -1 ? null : args[ji + 1];
   const files = args.filter((a, i) => a !== '--json' && (ji === -1 || i !== ji + 1));
   const [a, b] = await Promise.all(files.map((f) => digest(f)));
-  if (b === undefined) {
+  if (files.length < 2) {
     console.log(JSON.stringify(a, null, 1));
   } else {
     const r = compare(a, b);
