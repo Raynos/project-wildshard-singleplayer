@@ -11,7 +11,7 @@
  */
 import * as THREE from 'three';
 import { M, type PaintKit } from './paint';
-import { graniteBlock } from './EagleRock';
+import { graniteBlock } from './granite';
 import type { ColliderDesc } from '../registry';
 import type { Ground } from './types';
 

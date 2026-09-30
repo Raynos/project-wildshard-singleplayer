@@ -7,10 +7,15 @@
  *   pois.addTo(game.scene, player);                    // the same at once (the dev pages)
  *   game.onUpdate((dt) => pois.update(dt));             // cloth + smoke
  *
- * NALATI-MERGE P1: every POI is a piece in the world registry (src/world/registry.ts via ./solid.ts) — its boxes (with
- * their material), its decks / floors as slabs, its stairs as treads, its rocks as hulls; its floor function is
- * placement only. Nothing goes into `player.colliders` / `player.platforms`; `colliders` stays as data (the weather's
- * yurts, the dressing's keep-out).
+ * E306 / E315 M3: a POI places models (src/chunks/nalati-grasslands/models/: the kerb stones, the balbals, the bridge,
+ * the watchtower, the kokpar's goals and riders …) through a NalatiSet (./painted.ts) and registers itself — one
+ * `place` per model, its colliders and floor with it — and the models of a place are a set (`SETS`: the Kurgan field,
+ * the Kokpar field …). The POIs not moved yet (the camps, the road fences: other lanes are in those files) are still one
+ * piece each through `ENTRY`.
+ *
+ * NALATI-MERGE P1: every collider is in the world registry (src/world/registry.ts) — boxes (with their material),
+ * decks / floors as slabs, stairs as treads, rocks as hulls; a floor function is placement only. Nothing goes into
+ * `player.colliders` / `player.platforms`; `colliders` stays as data (the weather's yurts, the dressing's keep-out).
  *
  * Handles for later rows: `pois.balbals` (B11 wakes them: `setAwake(i, true)` hides the statue), `HITCHING_RAIL` /
  * `HITCH_HORSE_SPOTS` (B8), `CRAG_CAVE` / `pois.crags.ledges` (B12 Aqbars), `GREAT_KURGAN` + `pois.kurgans.entrance`
@@ -45,12 +50,8 @@ import { placeSet } from '../../models/sets';
  *  made: E306 M0a). M3 moves each onto models (src/chunks/nalati-grasslands/models/) + a set (`SETS`), and its row goes */
 const ENTRY: Record<string, { name: string; category: PieceCategory; file: string; model: boolean; pipeline?: Pipeline | readonly Pipeline[] }> = {
   camp: { name: 'Spring camp', category: 'buildings', file: 'src/world/nalati/NomadCamp.ts', model: true, pipeline: ['code', 'trellis'] },
-  bridge: { name: 'Kunes bridge', category: 'buildings', file: 'src/world/nalati/Bridge.ts', model: true },
   roads: { name: 'Road fences', category: 'props', file: 'src/world/nalati/RoadFurniture.ts', model: false },
   summerCamp: { name: 'Summer camp', category: 'buildings', file: 'src/world/nalati/SummerCamp.ts', model: true, pipeline: ['code', 'trellis'] },
-  eagleRock: { name: 'Eagle Rock', category: 'nature', file: 'src/world/nalati/EagleRock.ts', model: true },
-  cairn: { name: 'Wind Cairn', category: 'buildings', file: 'src/world/nalati/Cairn.ts', model: true },
-  crags: { name: 'Crag ledges + the leopard cave', category: 'nature', file: 'src/world/nalati/Crags.ts', model: true },
   watchtower: { name: 'Watchtower', category: 'buildings', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: ['hunyuan', 'code'] },
   kokpar: { name: 'Kokpar field', category: 'props', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: ['code', 'hunyuan'] },
   snowLotus: { name: 'Snow lotus', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: 'trellis' },
@@ -60,6 +61,7 @@ const ENTRY: Record<string, { name: string; category: PieceCategory; file: strin
 /** the places on the model contract (E306 / E315 M3): the models the named POIs placed are one set each (M7 explores them) */
 const SETS: readonly { id: string; name: string; file: string; pois: readonly string[] }[] = [
   { id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/world/nalati/KurganField.ts', pois: ['kurgans', 'balbals'] },
+  { id: 'nalati-grasslands/crags', name: "The Crags: Aqbars' ledges and cave", file: 'src/world/nalati/Crags.ts', pois: ['crags'] },
 ];
 
 export class NalatiPOIs {

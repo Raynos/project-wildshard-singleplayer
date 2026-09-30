@@ -15,24 +15,27 @@
  *     its legacy boxes, its colliders, its floor). The Explorer's specimen paints one copy on a kit of its own and
  *     moves it to the origin; a model `fitted` to the ground under it (the bridge finds its ends from the terrain) is
  *     painted at its first real placement for that.
- *   export const tower = defineModel<P>({ …, build: generated('watchtower', look, { id, pose, collide }) });
+ *   export const tower = defineModel<P>({ …, build: generated({ id, name: 'watchtower', look, pose, collide }) });
  *     a GLB model: the specimen is the loaded file; `pose` turns a copy's placement into the instance's, `collide`
- *     is what it collides with, world space.
+ *     is what it collides with, world space; `lod`, `castShadow` as the place drew it.
  *
  * and a place puts its models through a `NalatiSet`, in the old builder's order:
  *   const set = new NalatiSet(kit, c);
  *   set.paint(stone, { x, y, z, yaw }, params);     // painted into the kit now; the copy recorded
  *   set.instance(tower, { x, y, z, rot }, params);  // instanced when its GLB lands (the place's group)
+ *   set.moving(rider, starts);                      // copies the place draws and moves itself: counted, boxed
  *   const mesh = kit.mesh(sky, { ground });  set.flush(group, sky);
- *   set.register({ ctx, object: mesh, groups: group, registry })   // one `place` per model (drawnInto), in order
- * `placeSet` then names the place (src/models/sets.ts).
+ *   set.register({ ctx, object: mesh, group, registry })   // one `place` per model (drawnInto), in order
+ * `placeSet` then names the place (src/models/sets.ts; NalatiPOIs' `SETS`). A place's models' colliders come out in the
+ * old builder's order (a model's boxes, then its real-geometry colliders; models in the order first put), so the
+ * physics world and the navmesh bake see exactly what they did.
  */
 import * as THREE from 'three';
 import { PaintKit, poiMaterial, texturedMaterial, type ColorLike, type FinishOpts, type Painter, type PaintOpts } from './paint';
 import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { boxDescs, highest, type Box } from './solid';
-import { loadNalatiModel, MODEL_SIZE, ModelSink, placementMatrix, type ModelLook, type ModelPlacement, type NalatiModelName } from './glbPaint';
+import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './glbPaint';
 import { heightAt } from '../Heightfield';
 import type { NalatiTexName } from '../nalatiTextures';
 import type { ColliderDesc, WorldRegistry } from '../registry';
@@ -117,7 +120,11 @@ export interface GeneratedSpec<P> {
   readonly id: string;
   readonly name: NalatiModelName;
   readonly look?: ModelLook;
-  /** the instance's placement from a copy's (default: the same point, turned `yaw`) */
+  /** which of the file's LODs (the herds draw the far one) */
+  readonly lod?: ModelLod;
+  /** its instances cast shadows (default true) */
+  readonly castShadow?: boolean;
+  /** the instance's placement from a copy's (default: the same point, turned `rot`) */
   readonly pose?: (at: ModelPlacement, p: P) => ModelPlacement;
   /** what a copy collides with, world space, from its placement */
   readonly collide?: (at: ModelPlacement, p: P) => Made;
@@ -127,7 +134,7 @@ export interface GeneratedSpec<P> {
 export function generated<P extends object>(spec: GeneratedSpec<P>): GeneratedBuild<P> {
   const build = (ctx: ModelContext): THREE.Object3D => {
     const g = new THREE.Group();
-    loadNalatiModel(ctx.sky, spec.name, spec.look).then((m) => {
+    loadNalatiModel(ctx.sky, spec.name, spec.look, spec.lod).then((m) => {
       const mesh = new THREE.Mesh(m.geometry, m.material);
       mesh.castShadow = true; mesh.receiveShadow = true;
       g.add(mesh);
@@ -173,16 +180,19 @@ export class NalatiSet {
   /** the kit the painters paint into: the place's own, each part's world box tracked for its copy */
   readonly kit: Kit;
   private readonly members = new Map<string, Member>();
-  private readonly sink = new ModelSink();
-  private readonly looks: Partial<Record<NalatiModelName, ModelLook>> = {};
+  /** the generated models' instances, per model, in the order they were first put */
+  private readonly instances = new Map<NalatiModelName, { look: ModelLook; castShadow: boolean; placements: ModelPlacement[] }>();
   private tracking = false;
   /** every box every copy made, in order (the POI's `colliders` data) */
   readonly boxes: Box[] = [];
 
-  constructor(paintKit: PaintKit, readonly c: PaintCtx) {
+  /** `paintKit`: the place's kit (null: a place of generated models only) */
+  constructor(paintKit: PaintKit | null, readonly c: PaintCtx) {
+    const own = paintKit ?? new PaintKit(0);
     this.kit = {
-      rng: paintKit.rng,
+      rng: own.rng,
       add: (g, col, o) => {
+        if (!paintKit) throw new Error('NalatiSet: this place has no kit to paint into');
         if (this.tracking) {
           const pos = g.getAttribute('position');
           _part.makeEmpty();
@@ -243,21 +253,45 @@ export class NalatiSet {
     const b = def.build;
     if (!isGenerated(b)) throw new Error(`NalatiSet.instance: ${def.id} is not a generated model`);
     const pose = b.gen.pose?.(at, p) ?? at;
-    this.sink.add(b.gen.name, pose);
-    if (b.gen.look) this.looks[b.gen.name] = b.gen.look;
-    const [w, h, d] = MODEL_SIZE[b.gen.name];
-    const matrix = placementMatrix(pose);
-    _box.set(_part.min.set(-w / 2, 0, -d / 2), _part.max.set(w / 2, h, d / 2)).applyMatrix4(matrix);
+    let list = this.instances.get(b.gen.name);
+    if (!list) { list = { look: b.gen.look ?? {}, castShadow: b.gen.castShadow ?? true, placements: [] }; this.instances.set(b.gen.name, list); }
+    list.placements.push(pose);
     const made = b.gen.collide?.(at, p) ?? {};
-    this.record(this.member(def, 'instanced', false), { x: pose.x, y: pose.y, z: pose.z, matrix }, _box, made);
+    this.record(this.member(def, 'instanced', false), this.generatedCopy(b.gen.name, pose), _box, made);
     return made;
   }
 
-  /** the generated models' triangles (the POI's perf report) */
-  tris(): number { return this.sink.tris(); }
+  /**
+   * Copies of a generated model the place draws and moves itself (the kokpar's galloping riders, the grazing herds):
+   * counted and boxed where they start; nothing collides.
+   */
+  moving<P extends object>(def: ModelDef<P>, at: readonly ModelPlacement[]): void {
+    const b = def.build;
+    if (!isGenerated(b)) throw new Error(`NalatiSet.moving: ${def.id} is not a generated model`);
+    const m = this.member(def, 'instanced', false);
+    for (const pose of at) this.record(m, this.generatedCopy(b.gen.name, pose), _box, {});
+  }
 
-  /** instance the generated models into `group` as their files land (one InstancedMesh per model) */
-  flush(group: THREE.Object3D, sky: Sky): void { void this.sink.flush(group, sky, this.looks); }
+  /** a generated copy's placement, and its world box into `_box` (the file's measured size, before it has loaded) */
+  private generatedCopy(name: NalatiModelName, pose: ModelPlacement): Omit<Placement<object>, 'params'> {
+    const [w, h, d] = MODEL_SIZE[name];
+    const matrix = placementMatrix(pose);
+    _box.set(_part.min.set(-w / 2, 0, -d / 2), _part.max.set(w / 2, h, d / 2)).applyMatrix4(matrix);
+    return { x: pose.x, y: pose.y, z: pose.z, matrix };
+  }
+
+  /** the generated models' triangles (the POI's perf report) */
+  tris(): number { let n = 0; for (const [name, l] of this.instances) n += MODEL_TRIS[name] * l.placements.length; return n; }
+
+  /** instance the generated models into `group` as their files land: one InstancedMesh per model (a failed load draws
+   *  nothing and logs once; its colliders were registered already) */
+  flush(group: THREE.Object3D, sky: Sky): void {
+    for (const [name, l] of this.instances) {
+      if (l.placements.length === 0) continue;
+      loadNalatiModel(sky, name, l.look).then((m) => { group.add(instanceModel(m, l.placements, { castShadow: l.castShadow })); return m; })
+        .catch((e: unknown) => { console.warn(`[nalati] model ${name} failed`, e); });
+    }
+  }
 
   /** place every model of the set, in the order they were first put (so the physics sees the old builder's colliders
    *  in the old order); what each call registered */
