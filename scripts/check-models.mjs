@@ -161,7 +161,7 @@ export const NAMED_PLACES = {
   'nine-dragon-stack': [{ file: 'src/chunks/nine-dragon-stack/places.ts', list: 'NINE_DRAGON_PLACES' }],
 };
 /** the shards whose every named place must have its set (the rest are reported) */
-export const PLACES_ENFORCED = [];
+export const PLACES_ENFORCED = ['pine-hollow'];
 
 /** the text of the array `name` (`name = [` or `name: [`), brackets matched; null when absent */
 function arrayText(code, name) {
