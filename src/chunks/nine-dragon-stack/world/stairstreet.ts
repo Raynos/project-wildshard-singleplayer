@@ -74,15 +74,14 @@ export function stairFloor(x: number): number {
   return TOP_Y;
 }
 
-/** the stair's physics: three `treads` flights, the two landing slabs, the paifang's four post bases with drum stones */
+/** the stair's physics: three `treads` flights and the two landing slabs (the paifang's four post bases with their drum
+ *  stones collide as the paifang model's own, placed with its copy on landing 2: models/paifang.ts, E346) */
 export function stairColliders(): ColliderDesc[] {
   const zc = (STAIR.z0 + STAIR.z1) / 2, w = STAIR.z1 - STAIR.z0;
   const out: ColliderDesc[] = FLIGHTS.map((f) => ({
     kind: 'treads', from: { x: f.x0, y: f.y0, z: zc }, to: { x: f.x1, y: f.y0 + f.steps * RISE, z: zc }, width: w, count: f.steps, surface: 'stone',
   }));
   for (const l of LANDINGS) out.push({ kind: 'box', x: (l.x0 + l.x1) / 2, y: l.y - 0.6, z: zc, hx: (l.x1 - l.x0) / 2, hy: 0.6, hz: w / 2, surface: 'stone' });
-  const G = STAIR_GATE;
-  for (const p of G.posts) out.push({ kind: 'box', x: G.x, y: G.y + 4.5, z: G.z + p, hx: 1.4 * G.s, hy: 4.5, hz: 0.7 * G.s, surface: 'stone' });
   return out;
 }
 

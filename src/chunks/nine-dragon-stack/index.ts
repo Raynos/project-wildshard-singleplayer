@@ -38,14 +38,15 @@ export const NINE_DRAGON_WORLD = {
       object: world.root, surface: 'stone', colliders: c.floors, floor: fragmentFloor, solidFloor: true,
     });
     ctx.registry.add({ id: 'nds-fronts', name: 'The towers', category: 'buildings', file: FILE, surface: 'stone', colliders: c.fronts });
-    ctx.registry.add({ id: 'nds-edges', name: 'The balustrade', category: 'buildings', file: FILE, surface: 'stone', colliders: c.edges });
+    // (the balustrade over the Well collides as its model since E346: models/wellBalustrade.ts, placed by world/build.ts)
     ctx.registry.add({
       id: 'nds-grapple-guard', name: 'The Well safety cap', category: 'buildings', file: FILE, surface: 'stone',
       colliders: fragmentGrappleGuard(), follows: new Group(), active: () => !grappleGuardOpen,
     });
     // (the props collide as their models: registered as the world places them, world/build.ts)
-    // the Well's crossings (dome B2's well-mid.ts: each deck's slabs following its hump / sag, its rail walls, the gate
-    // bridges' posts; every box names its own surface): filled while the world builds, so read after it
+    // the Well's crossings (dome B2's well-mid.ts: each deck's slabs following its hump / sag, its rail walls; every box
+    // names its own surface; the gate bridges' paifang posts are the paifang model's, E346): filled while the world
+    // builds, so read after it
     ctx.registry.add({
       id: 'nds-crossings', name: 'The Well\'s crossings', category: 'buildings', file: 'src/chunks/nine-dragon-stack/world/well-mid.ts',
       surface: 'stone', colliders: [...crossingColliders()],

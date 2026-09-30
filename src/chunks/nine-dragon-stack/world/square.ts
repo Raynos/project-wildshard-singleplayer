@@ -77,10 +77,22 @@ export const PANEL_LOD = 50;
 export function carvedPanelFar(): BufferGeometry { return carvedPanel(true); }
 
 /**
- * The Well's balustrade: plinth, carved panels, posts with lotus caps, a top rail; the ground line is heavier.
- * It runs along z at x = `at` (or along x at z = `at` when `alongX`), from `a0` down to `a1`.
+ * The Well's balustrade over the square and the street (E346: the model nine-dragon-stack/well-balustrade,
+ * models/wellBalustrade.ts): the square's run and the street's, each along z at x = `at` from `a0` down to `a1`, its lions
+ * on the run's posts (props3d.ts `lionOnPost`). Its placement stands at the corner where the two runs meet.
  */
-export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false, carved = false, lionRun?: 'plaza' | 'street', onBud?: (x: number, y: number, z: number, drawn: Box3) => void): void {
+export const WELL_RUNS: readonly { readonly at: number; readonly a0: number; readonly a1: number; readonly lions: 'plaza' | 'street' }[] = [
+  { at: PLAZA.x0 + 0.2, a0: PLAZA.z1, a1: PLAZA.z0, lions: 'plaza' },
+  { at: STREET.x0 + 0.2, a0: PLAZA.z0 - 0.1, a1: WELL.z0, lions: 'street' },
+];
+export const WELL_BALUSTRADE_AT = { x: PLAZA.x0, y: Y0, z: PLAZA.z0 } as const;
+
+/**
+ * The Well's balustrade: plinth, carved panels, posts with lotus caps, a top rail; the ground line is heavier.
+ * It runs along z at x = `at` (or along x at z = `at` when `alongX`), from `a0` down to `a1`. `buds` false: the posts
+ * keep their cap blocks only (the balustrade model's specimen: its lotus buds are the finial model's)
+ */
+export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number, alongX = false, carved = false, lionRun?: 'plaza' | 'street', onBud?: (x: number, y: number, z: number, drawn: Box3) => void, buds = true): void {
   const len = a0 - a1;
   const n = Math.max(1, Math.round(len / 2.3));
   const step = len / n;
@@ -99,7 +111,7 @@ export function balustrade(k: Kit, at: number, a0: number, a1: number, y: number
     // a lotus-bud finial (style-A's balustrade): a petal collar, the bud swelling and closing to a point; a post that
     // carries a TRELLIS lion (props3d.ts) keeps only its cap block
     // (each bud is a copy of the lotus finial model, models/lotusFinial.ts: `onBud` records where it stands)
-    if (lionRun === undefined || !lionOnPost(lionRun, i, n)) {
+    if (buds && (lionRun === undefined || !lionOnPost(lionRun, i, n))) {
       const v0 = k.vertexCount;
       lotusBud(k, cx, y + 1.12, cz);
       onBud?.(cx, y + 1.12, cz, k.boundsFrom(v0, new Box3()));
@@ -299,8 +311,10 @@ export function buildSquare(ctx: Ctx): void {
   floor.box(PLAZA.x0 - 0.3, Y0 - 1.4, (PLAZA.z0 + PLAZA.z1) / 2, 0.6, 1.4, PLAZA.z1 - PLAZA.z0, { wash: 0x8d8f93, line: 1.5, surf: SURF.concrete });
   const props = floor;
   const bud = (x: number, y: number, z: number, drawn: Box3): void => { ctx.inKit.push({ model: 'nine-dragon-stack/lotus-finial', kit: props, at: { x, y, z }, box: drawn }); };
-  balustrade(props, PLAZA.x0 + 0.2, PLAZA.z1, PLAZA.z0, Y0, false, true, 'plaza', bud);
-  balustrade(props, STREET.x0 + 0.2, PLAZA.z0 - 0.1, WELL.z0, Y0, false, true, 'street', bud);
+  // the Well's balustrade (its model, models/wellBalustrade.ts, drawn into the square cluster's kit: one copy, both runs)
+  const b0 = props.vertexCount;
+  for (const r of WELL_RUNS) balustrade(props, r.at, r.a0, r.a1, Y0, false, true, r.lions, bud);
+  ctx.inKit.push({ model: 'nine-dragon-stack/well-balustrade', kit: props, at: { ...WELL_BALUSTRADE_AT }, box: props.boundsFrom(b0, new Box3()) });
   ctx.map.push({ x0: PLAZA.x0, z0: PLAZA.z0, x1: PLAZA.x1, z1: PLAZA.z1, kind: 'plaza' });
   ctx.map.push({ x0: STREET.x0, z0: -140, x1: STREET.x1, z1: STREET.z1, kind: 'street' });
   paifang(ctx);

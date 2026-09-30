@@ -123,7 +123,7 @@ function regionKits(ctx: Ctx): { main: Kit; ext: Kit; at: (z: number) => Kit; al
 }
 
 const COLLIDERS: ColliderDesc[] = [];
-/** the crossings' collision (deck slabs following each deck, rail walls, the gate's posts); filled by `buildWell` */
+/** the crossings' collision (deck slabs following each deck, rail walls; the gate bridges' paifang posts are the paifang model's, E346); filled by `buildWell` */
 export function crossingColliders(): readonly ColliderDesc[] { return COLLIDERS; }
 
 /** a string of paper lanterns on a sagging wire from a to b, one every `spacing` m */

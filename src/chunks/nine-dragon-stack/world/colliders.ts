@@ -1,13 +1,14 @@
 // The fragment's collision (P0-5c, PHYSICS.md): everything walkable on Lantern Square, its street through the paifang and
 // the stair-street stub, as engine-neutral ColliderDescs from the layout's plan. The floors are real boxes (their tops
 // at the square's datum), the stair is dome D's `treads` (rise 0.35: the motor's autostep climbs them), and the edges
-// of the fragment are walls: the building fronts (40 m), the balustrades over the Well (with an invisible parapet 12 m
-// up so nobody vaults into the shaft), the street's and the stair's far ends. What still gets out (a grapple gone wrong)
-// the def's `bounds` catches: a soft respawn on the last floor stood on. The props you would walk into — the gate's
-// posts, the banyan's planter, the stalls, the market — are their models' own colliders, which come with their copies
-// (../models/, src/models/place.ts).
+// of the fragment are walls: the building fronts (40 m), the street's and the stair's far ends. What still gets out (a
+// grapple gone wrong) the def's `bounds` catches: a soft respawn on the last floor stood on. The balustrade over the Well
+// (its stone and the invisible parapet 12 m up so nobody vaults into the shaft) and the props you would walk into — the
+// gates' posts, the banyan's planter, the stalls, the market — are their models' own colliders, which come with their
+// copies (../models/, src/models/place.ts; the balustrade's since E346, models/wellBalustrade.ts).
 import type { ColliderDesc } from '../../../world/registry';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
+import { GUARD_Z0, PARAPET } from '../models/wellBalustrade';
 import { stairColliders, stairFloor } from './stairstreet';
 import { RIM, wellColliders, wellFloor } from './well';
 
@@ -23,27 +24,23 @@ function span(x0: number, y0: number, z0: number, x1: number, y1: number, z1: nu
 
 /** a wall along x (at z) or along z (at x), 1 m thick, from the square's datum up `h` metres, on the far side of the line */
 const WALL_H = 40, SLAB = 1.2;
-/** the invisible parapets over the Well reach this high above the floor (out of reach of every jump, on foot or board) */
-const PARAPET = 12;
-/** where the square's invisible parapet over the Well joins the grapple guard (E286: the rim → square crossing to the
- *  (−3.2, −13) mast's hook comes in over the balustrade at z ≈ −12) */
-const GUARD_Z0 = -18;
 
-/** the fragment's own collision in three pieces (their looks on the maps: floors stone, fronts rock, edges rock); its props
- *  collide as their models (their looks on the maps: timber, def.ts) */
-export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[]; edges: ColliderDesc[] }
+/** the fragment's own collision in two pieces (their looks on the maps: floors stone, fronts rock); the balustrade over
+ *  the Well and the props collide as their models (their looks on the maps: the balustrade rock, the props timber, def.ts) */
+export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[] }
 
 /** a building front's depth behind its line (it is a solid block to the map; the player never reaches its back) */
 const DEEP = 6;
 
 export function fragmentColliders(): FragmentColliders {
-  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [], edges: ColliderDesc[] = [];
+  const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [];
   let out = floors;
   // ── floors ──
   out.push(span(PLAZA.x0, Y0 - SLAB, PLAZA.z0, PLAZA.x1 + 0.6, Y0, PLAZA.z1 + 0.6));                  // the square
   out.push(span(STREET.x0, Y0 - SLAB, STREET_END - 1, STREET.x1, Y0, PLAZA.z0));                       // the street north
   // the stair starts at the square's east edge (STAIR.x0 = PLAZA.x1): its first tread sits on the square's slab
-  // dome D's stair-street (stairstreet.ts): 3 flights × 20 treads, two landings, the paifang's post bases on landing 2
+  // dome D's stair-street (stairstreet.ts): 3 flights × 20 treads, two landings (the paifang's post bases on landing 2
+  // are the paifang model's, E346)
   out.push(...stairColliders());
   out.push(span(STAIR.x1, STAIR_TOP.y - SLAB, STAIR.z0, STAIR_TOP.x1, STAIR_TOP.y, STAIR.z1));         // its top landing
   // the Well's south rim at the square's level (dome C's well.ts: its ledge, balustrade + parapet, the wall ends)
@@ -63,21 +60,17 @@ export function fragmentColliders(): FragmentColliders {
   out.push(span(PLAZA.x1 + 0.6, Y0 - 1, STAIR.z0 - DEEP, STAIR_TOP.x1, STAIR_TOP.y + WALL_H, STAIR.z0));
   out.push(span(PLAZA.x1 + 0.6, Y0 - 1, STAIR.z1, STAIR_TOP.x1, STAIR_TOP.y + WALL_H, STAIR.z1 + DEEP));
   out.push(span(STAIR_TOP.x1, Y0 - 1, STAIR.z0 - DEEP, STAIR_TOP.x1 + DEEP, STAIR_TOP.y + WALL_H, STAIR.z1 + DEEP));
-  // ── the balustrades over the Well: the stone (1.12 m) and an invisible parapet PARAPET m over the floor, above any jump
-  // (a jump + double jump lifts the feet ~2.9 m; from the balustrade's top, a prop's or the board's, ~5 m) ──
-  out = edges;
-  out.push(span(PLAZA.x0 - 0.1, Y0, WELL.z0, PLAZA.x0 + 0.5, Y0 + 1.12, PLAZA.z1 + 0.6));
-  // the square's and the street's, except where the Well's south rim ledge meets the square (a hop over the stone
-  // onto the rim, where mockup B stands; the rim is walled on its other three sides)
-  out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, WELL.z0, PLAZA.x0 + 0.1, Y0 + PARAPET, GUARD_Z0));
-  out.push(span(PLAZA.x0 - 0.1, Y0 + 1.12, RIM.z1, PLAZA.x0 + 0.1, Y0 + PARAPET, PLAZA.z1 + 0.6));
-  // the rim's own (dome C's stone and 3.2 m parapet, well.ts wellColliders), carried up to the same height
-  // The south rim's tall cap, and the square's parapet from GUARD_Z0 to the rim, are registered separately as a
-  // kinematic grapple guard (index.ts): they open only during an actual Fei Zhua pull. The stone under them stays solid.
+  // ── the balustrade over the Well — the stone (1.12 m) and an invisible parapet PARAPET m over the floor, above any jump
+  // (a jump + double jump lifts the feet ~2.9 m; from the balustrade's top, a prop's or the board's, ~5 m), except where
+  // the Well's south rim ledge meets the square (a hop over the stone onto the rim, where mockup B stands) — is the
+  // balustrade model's own (models/wellBalustrade.ts, E346). The rim's own (dome C's stone and 3.2 m parapet) are
+  // well.ts wellColliders'. The south rim's tall cap, and the square's parapet from GUARD_Z0 to the rim, are registered
+  // separately as a kinematic grapple guard (index.ts): they open only during an actual Fei Zhua pull. The stone under
+  // them stays solid.
   // ── props you would walk into: every one collides as its model, placed with its copies (E315: the paifang's posts,
   // the banyan's planter, the shrine, the stele, the stalls, the market's booths, parasol tables and pavilions, the
   // stair-street landings' planters — models/, src/models/place.ts) ──
-  return { floors, fronts, edges };
+  return { floors, fronts };
 }
 
 /** Invisible upper cap of the south Well rail, and the square's parapet south of GUARD_Z0; a kinematic piece can disable

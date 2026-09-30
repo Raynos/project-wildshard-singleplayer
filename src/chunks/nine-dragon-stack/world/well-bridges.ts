@@ -16,7 +16,7 @@
 // Geometry detail steps down with `lod` (0 near the rim and dome B2's anchor, 2 far up the run north).
 import { Box3, Vector3 } from 'three';
 import type { ColliderDesc } from '../../../world/registry';
-import type { Ctx } from './ctx';
+import type { Ctx, InKit } from './ctx';
 import { buildGate } from './gate';
 import type { KitX } from './hero/kitx';
 import { E, K, Kit, type Look } from './kit';
@@ -120,25 +120,46 @@ function railLanterns(ctx: Ctx, x0: number, x1: number, z: number, yAt: (x: numb
   }
 }
 
-/** a lamp post: a stone post with a lotus cap and a paper lantern hung from a crook */
-function lampPost(ctx: Ctx, k: Kit, x: number, y: number, z: number, out: number): void {
+/**
+ * The stone lamp post (models/bridgePosts.ts `lampPostModel`): a stone post with a lotus cap and an iron crook reaching
+ * `out` (+1: +z, −1: −z) — its paper lantern is a paper lantern of its own (the fragment's lantern set)
+ */
+export function lampPostStone(k: Kit, x: number, y: number, z: number, out: number): void {
   k.box(x, y, z, 0.3, 2.1, 0.3, STONE);
   k.cyl(x, y + 2.1, z, 0.2, 0.14, 0.12, 8, STONE);
   k.beam(new Vector3(x, y + 2.05, z), new Vector3(x, y + 2.05, z + out * 0.55), 0.06, 0.06, STEEL_DK);
+}
+
+/** a lamp post (the lamp post model, drawn into the crossing's kit and recorded there) and its paper lantern on the crook */
+function lampPost(ctx: Ctx, k: Kit, x: number, y: number, z: number, out: number): void {
+  const v0 = k.vertexCount;
+  lampPostStone(k, x, y, z, out);
+  ctx.inKit.push({ model: 'nine-dragon-stack/lamp-post', kit: k, at: out < 0 ? { x, y, z, yaw: Math.PI } : { x, y, z }, box: k.boundsFrom(v0, new Box3()) });
   ctx.lantern(x, y + 1.75, z + out * 0.55, 0.8);
 }
 
-/** a carved balustrade along a deck edge (at z) from x0 to x1: lotus-bud posts, carved panels, a top rail, a plinth */
-function balustrade(k: Kit, x0: number, x1: number, z: number, yAt: (x: number) => number, lod: number): void {
+/**
+ * The balustrade's lotus-capped post (models/bridgePosts.ts `lotusPostModel`): a 26 cm stone post, 1.02 m, under a
+ * lotus cap and bud — `capped` false on the far crossings (lod 2), where the cap is under a pixel
+ */
+export function lotusPost(k: Kit, x: number, y: number, z: number, capped: boolean): void {
+  k.box(x, y, z, 0.26, 1.02, 0.26, STONE);
+  if (capped) {
+    k.cyl(x, y + 1.02, z, 0.17, 0.14, 0.1, 8, STONE);
+    k.cyl(x, y + 1.12, z, 0.14, 0.02, 0.3, 8, STONE, { caps: false });
+  }
+}
+
+/** a carved balustrade along a deck edge (at z) from x0 to x1: lotus-bud posts (the lotus post model, recorded in `inKit`
+ *  where each stands), carved panels, a top rail, a plinth */
+function balustrade(k: Kit, x0: number, x1: number, z: number, yAt: (x: number) => number, lod: number, inKit: InKit[]): void {
   const nP = Math.max(2, Math.round((x1 - x0) / 1.9));
   const xp = (i: number): number => x0 + ((x1 - x0) * i) / nP;
   for (let i = 0; i <= nP; i++) {
     const x = xp(i), y = yAt(x);
-    k.box(x, y, z, 0.26, 1.02, 0.26, STONE);
-    if (lod < 2) {
-      k.cyl(x, y + 1.02, z, 0.17, 0.14, 0.1, 8, STONE);
-      k.cyl(x, y + 1.12, z, 0.14, 0.02, 0.3, 8, STONE, { caps: false });
-    }
+    const v0 = k.vertexCount;
+    lotusPost(k, x, y, z, lod < 2);
+    inKit.push({ model: 'nine-dragon-stack/lotus-post', kit: k, at: lod < 2 ? { x, y, z } : { x, y, z, variant: 'bare' }, box: k.boundsFrom(v0, new Box3()) });
     if (i === nP) continue;
     const a = new Vector3(x + 0.13, y, z), b = new Vector3(xp(i + 1) - 0.13, yAt(xp(i + 1)), z);
     const d = b.clone().sub(a).normalize();
@@ -229,7 +250,7 @@ function stoneBridge(ctx: Ctx, k: Kit, B: BridgeSpec, rng: Rng): ColliderDesc[] 
   const drop = archDrop('stone', span);
   const crown = archDeck(k, B, yt, drop, lod);
   const zf = B.z + B.w / 2, zb = B.z - B.w / 2;
-  for (const zz of [zf - 0.14, zb + 0.14]) balustrade(k, B.x0 + 0.15, B.x1 - 0.15, zz, yt, lod);
+  for (const zz of [zf - 0.14, zb + 0.14]) balustrade(k, B.x0 + 0.15, B.x1 - 0.15, zz, yt, lod, ctx.inKit);
   const xm = (B.x0 + B.x1) / 2;
   // what still reads at 100 m (lanterns glow, vines break the arch's line): lanterns under the crown on cords, the
   // end lanterns (on stone lamp posts near, bare far), vines down the spandrels
@@ -512,11 +533,15 @@ function gateBridge(ctx: Ctx, k: Kit, kx: KitX, B: BridgeSpec, rng: Rng): Collid
   const span = B.x1 - B.x0;
   archDeck(k, B, yt, archDrop('gate', span), lod);
   const zf = B.z + B.w / 2, zb = B.z - B.w / 2;
-  for (const zz of [zf - 0.15, zb + 0.15]) balustrade(k, B.x0 + 0.15, B.x1 - 0.15, zz, yt, lod);
+  for (const zz of [zf - 0.15, zb + 0.15]) balustrade(k, B.x0 + 0.15, B.x1 - 0.15, zz, yt, lod, ctx.inKit);
   const cx = (B.x0 + B.x1) / 2;
   const posts = [cx - 5.4, cx - 2.3, cx + 2.3, cx + 5.4] as const;
-  if (lod >= 2) farGate(ctx, k, cx, B.y, B.z, posts, 1.05);
-  else {
+  if (lod >= 2) {
+    // the paifang model (models/paifang.ts, the gate bridges' variant) drawn in outline into the bridge's kit
+    const v0 = k.vertexCount;
+    farGate(ctx, k, cx, B.y, B.z, posts, 1.05);
+    ctx.inKit.push({ model: 'nine-dragon-stack/paifang', kit: k, at: { x: cx, y: B.y, z: B.z, variant: 'well' }, box: k.boundsFrom(v0, new Box3()) });
+  } else {
     const v0 = k.vertexCount, w0 = kx.vertexCount;
     buildGate(k, kx, ctx.signs, (px, py, pz, ls) => { ctx.lantern(px, py, pz, ls); }, {
       x: cx, y: B.y, z: B.z, posts, s: 1.05, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false,
@@ -530,9 +555,8 @@ function gateBridge(ctx: Ctx, k: Kit, kx: KitX, B: BridgeSpec, rng: Rng): Collid
     if (posts.some((p) => Math.abs(x - p) < 0.9)) continue;
     stand(ctx, new Vector3(x, B.y, B.z + rng.range(-B.w / 2 + 0.7, B.w / 2 - 0.7)), rng.chance(0.55) ? Z : rng.chance(0.5) ? X : X.clone().negate(), rng.range(0.94, 1.04));
   }
-  const out = deckColliders(B.x0, B.x1, B.z, B.w, yt, 1, 'stone');
-  for (const p of posts) out.push({ kind: 'box', x: p, y: B.y + 3.5, z: B.z, hx: 0.45, hy: 3.5, hz: 0.45, surface: 'wood' });
-  return out;
+  // (the paifang's posts collide as the model's own, placed with its copy: models/paifang.ts, E346)
+  return deckColliders(B.x0, B.x1, B.z, B.w, yt, 1, 'stone');
 }
 
 /** build one crossing; returns its collision */

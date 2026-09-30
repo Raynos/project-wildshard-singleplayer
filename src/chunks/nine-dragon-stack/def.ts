@@ -118,16 +118,19 @@ export const NINE_DRAGON_STACK: ChunkDef = {
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the maps: the built fragment over a dark void (the Well, the air between the towers) — the floors, the tower fronts,
-  // the balustrade, the props' footprints and the Well's crossings from the registry (index.ts registers them under these ids)
+  // the balustrade, the props' footprints and the Well's crossings from the registry (index.ts registers the fabric under
+  // these ids; the models' pieces are registered as they are placed, world/inKit.ts)
   map: {
     ground: [11, 16, 22],
     pieces: [
       { ids: ['nds-fronts'], look: 'rock' },
-      { ids: ['nds-floors'], look: 'stone' },
-      { ids: ['nds-edges'], look: 'rock' },
-      // (and the props that collide as models: their pieces are registered as they are placed, world/inKit.ts)
+      // (the stair paifang's post bases, stone like the stair they stand on; E346)
+      { ids: ['nds-floors', 'nds-paifang@stair-terraces'], look: 'stone' },
+      { ids: ['nds-well-balustrade@*'], look: 'rock' },
+      // (and the props that collide as models)
       { ids: ['nds-paifang@paifang', 'nds-banyan@*', 'nds-earth-god-shrine@*', 'nds-kowloon-stele@*', 'nds-noodle-stall@*', 'nds-hawker-stall@*', 'nds-set-booth', 'nds-set-parasol', 'nds-set-pavilion', 'nds-landing-planter@*'], look: 'timber' },
-      { ids: ['nds-crossings'], look: 'planks' },
+      // (the gate bridges' paifang posts, drawn with their crossings' decks; E346)
+      { ids: ['nds-crossings', 'nds-paifang@well-c-gates'], look: 'planks' },
     ],
   },
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,

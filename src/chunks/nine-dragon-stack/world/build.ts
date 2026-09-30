@@ -22,6 +22,8 @@ import { placeRegionSets } from './sets';
 import { lotusFinial } from '../models/lotusFinial';
 import { laundryLineModel } from '../models/laundry';
 import { landingPlanterModel } from '../models/landingPlanter';
+import { wellBalustrade } from '../models/wellBalustrade';
+import { lampPostModel, lotusPostModel } from '../models/bridgePosts';
 import { type InKitPlaced, registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
@@ -306,9 +308,10 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   for (const [name, g] of kitGeos) kitMesh(name, g, mat);
   for (const [name, g] of alphaGeos) kitMesh(name, g, matA);
   // the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and
-  // brush-drawn figures) registered on their kits' meshes
+  // brush-drawn figures; the paifang, the banyan …; E346: the Well's balustrade, the crossings' lotus and lamp posts)
+  // registered on their kits' meshes
   const meshOfKit = (k: Kit): Mesh | undefined => kitMeshes.get(kitName.get(k) ?? '');
-  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id, paifang.id, banyan.id, earthGodShrine.id, kowloonSteleModel.id, noodleStallModel.id, hawkerStallModel.id, lotusFinial.id, laundryLineModel.id, landingPlanterModel.id]);
+  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id, paifang.id, banyan.id, earthGodShrine.id, kowloonSteleModel.id, noodleStallModel.id, hawkerStallModel.id, lotusFinial.id, laundryLineModel.id, landingPlanterModel.id, wellBalustrade.id, lotusPostModel.id, lampPostModel.id]);
   const inKit = ctx.inKit.filter((c) => !IN_KIT.has(c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
   const inKitPlaced: InKitPlaced[] = [
@@ -326,6 +329,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     ...registerInKit(nd.ctx, ctx.inKit, lotusFinial, meshOfKit),
     ...registerInKit(nd.ctx, ctx.inKit, laundryLineModel, meshOfKit),
     ...registerInKit(nd.ctx, ctx.inKit, landingPlanterModel, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, wellBalustrade, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, lotusPostModel, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, lampPostModel, meshOfKit),
   ];
   const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
   lanterns.object.name = 'lanterns';
