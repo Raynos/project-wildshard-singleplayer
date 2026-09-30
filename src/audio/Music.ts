@@ -628,9 +628,11 @@ export class Music {
   useBank(bank: StyleBank): void {
     if (bank.style !== this._style) return; // the style changed while the bar ran: prepare() decodes that one
     // E155: another shard's bar decoded its own slot of the same style: add it to the resident bank (the title and the first
-    // shard's slot stay decoded), so switching back never waits on a decode
+    // shard's slot stay decoded), so switching back never waits on a decode. E264: a slot or sting already resident keeps its
+    // first copy (the one the deck plays): a second decode of the same file was the replacement, and the deck held the old
+    // buffers on while the bank held the new ones (Nine Dragon's two stems, 35 MB of PCM, twice)
     const old = this.bank;
-    this.bank = old?.style === bank.style && old.set === bank.set ? { ...bank, slots: new Map([...old.slots, ...bank.slots]), stings: new Map([...old.stings, ...bank.stings]), log: [...old.log, ...bank.log] } : bank;
+    this.bank = old?.style === bank.style && old.set === bank.set ? { ...bank, slots: new Map([...bank.slots, ...old.slots]), stings: new Map([...bank.stings, ...old.stings]), log: [...old.log, ...bank.log] } : bank;
     this.sync();
   }
 
