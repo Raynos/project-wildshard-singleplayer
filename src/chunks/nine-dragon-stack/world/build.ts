@@ -18,10 +18,11 @@ import { paifang } from '../models/paifang';
 import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
 import { hawkerStallModel, noodleStallModel } from '../models/stalls';
 import { registerSigns } from '../models/signs';
+import { placeRegionSets } from './sets';
 import { lotusFinial } from '../models/lotusFinial';
 import { laundryLineModel } from '../models/laundry';
 import { landingPlanterModel } from '../models/landingPlanter';
-import { registerInKit } from './inKit';
+import { type InKitPlaced, registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
 import { Lanterns } from '../look/lanterns';
@@ -45,7 +46,7 @@ import { buildSquare } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
 import { WORDS, buildTowers } from './towers';
 import { Rng, chars } from '../util';
-import { type HandedBatch, type InstancedCuller, place } from '../../../models/place';
+import { type HandedBatch, type InstancedCuller, type Placed, place } from '../../../models/place';
 import type { ModelDef, Placement } from '../../../models/model';
 import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
@@ -284,7 +285,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   // they are ~half a pixel wide), handed to the culler with their batches
   const canLod = await lodReady();
   nd.look.canLod = canLod;
-  await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root });
+  const squareSets = await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root });
   phaseDone('square props', phaseStart);
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below)
   const farKits: [Mesh, number][] = [];
@@ -304,20 +305,22 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id, paifang.id, banyan.id, earthGodShrine.id, kowloonSteleModel.id, noodleStallModel.id, hawkerStallModel.id, lotusFinial.id, laundryLineModel.id, landingPlanterModel.id]);
   const inKit = ctx.inKit.filter((c) => !IN_KIT.has(c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
-  registerInKit(nd.ctx, ctx.inKit, brassDragonHook, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, drumStool, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, parkedScooter, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, mahjongTableModel, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, inkFigure, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, paifang, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, banyan, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, earthGodShrine, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, kowloonSteleModel, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, noodleStallModel, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, hawkerStallModel, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, lotusFinial, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, laundryLineModel, meshOfKit);
-  registerInKit(nd.ctx, ctx.inKit, landingPlanterModel, meshOfKit);
+  const inKitPlaced: InKitPlaced[] = [
+    ...registerInKit(nd.ctx, ctx.inKit, brassDragonHook, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, drumStool, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, parkedScooter, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, mahjongTableModel, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, inkFigure, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, paifang, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, banyan, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, earthGodShrine, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, kowloonSteleModel, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, noodleStallModel, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, hawkerStallModel, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, lotusFinial, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, laundryLineModel, meshOfKit),
+    ...registerInKit(nd.ctx, ctx.inKit, landingPlanterModel, meshOfKit),
+  ];
   const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
   lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');
@@ -351,12 +354,17 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   for (const m of stairStreaks(shared, onStair, { flights: FLIGHTS, landings: LANDINGS, rise: RISE, run: RUN, z0: STAIR.z0, z1: STAIR.z1 })) root.add(named(m, 'streaks-stair'));
 
   // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)
+  const wellKit: Placed[] = [];
   for (const [key, list] of ctx.inst) {
     const piece = key.slice(0, key.indexOf('@')) as Piece;
     const model = WALL_KIT[piece];
     if (model === undefined) throw new Error(`nine-dragon: the wall kit's '${piece}' is no model yet (models/wallKit.ts)`);
-    nameDraws(place(model, list.map((it) => at(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } }), `inst:${key}`);
+    const placed = place(model, list.map((it) => at(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } });
+    nameDraws(placed, `inst:${key}`);
+    if (!key.endsWith('@town')) wellKit.push(placed);
   }
+  // the fragment's named places as Sets (../places.ts, world/sets.ts): what each region's kits carry
+  placeRegionSets(inKitPlaced, { square: squareSets, well: wellKit });
   if (ctx.acs.length > 0) nameDraws(place(airConBox, ctx.acs.map((m) => at(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }), 'inst:ac');
 
   // movers: the train, the gondola, the drones (models/movers.ts), each placed where the update puts it at t = 0

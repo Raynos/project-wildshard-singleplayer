@@ -18,8 +18,9 @@ const SETS: Readonly<Record<string, ModelDef<object>>> = { booth: marketBooth, p
 
 const at = (m: Matrix4): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m });
 
-/** place the lions and the queued sets under `root` (their draws named `glb:lion`, `set:<name>` as before) */
-export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group }): Promise<void> {
+/** place the lions and the queued sets under `root` (their draws named `glb:lion`, `set:<name>` as before); the night
+ *  market is its named place's Set; returns the balustrade's panels as placed (Lantern Square's, world/sets.ts) */
+export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; culler: InstancedCuller; root: Group }): Promise<Placed[]> {
   const lions = takeLions();
   if (lions.length > 0) {
     try {
@@ -28,7 +29,7 @@ export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; cul
       nameDraws(placed, 'glb:lion');
     } catch (e: unknown) { console.warn('nine-dragon: prop lion failed to load', e); }
   }
-  const market: Placed[] = [];
+  const market: Placed[] = [], panels: Placed[] = [];
   for (const [name, s] of takeSets()) {
     const opts = { ctx: p.ctx, draw: 'instanced', culler: p.culler, parent: p.root, piece: { id: `nds-set-${name}` } } as const;
     let placed: Placed;
@@ -43,8 +44,9 @@ export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; cul
       placed = place(model, s.at.map(at), opts);
     }
     nameDraws(placed, `set:${name}`);
-    if (name !== 'balustrade-panel') market.push(placed);
+    if (name === 'balustrade-panel') panels.push(placed); else market.push(placed);
   }
   // the square's night market, one place: its booths, parasol tables and dining pavilions (E306 M7's sets explorer)
-  if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/chunks/nine-dragon-stack/world/stalls.ts', members: market });
+  if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/chunks/nine-dragon-stack/world/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });
+  return panels;
 }

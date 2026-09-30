@@ -4,7 +4,7 @@
 // target on the kit's mesh. One `place` per model per kit.
 import { Box3, type Mesh } from 'three';
 import { type ModelContext, type ModelDef, type ModelPart, type Placement, paramsOf } from '../../../models/model';
-import { place } from '../../../models/place';
+import { type Placed, place } from '../../../models/place';
 import { poseOf } from '../../../models/colliders';
 import { Rng } from '../../../core/rng';
 import type { InKit } from './ctx';
@@ -28,11 +28,14 @@ function copyBox<P extends object>(ctx: ModelContext, model: ModelDef<P>, at: Pl
   out.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], i * 6);
 }
 
+/** one `place` of a model on one kit's mesh (`kit`: the kit's name — which region of the fragment it is, for its Sets) */
+export interface InKitPlaced { readonly kit: string; readonly placed: Placed }
+
 /**
  * Register the recorded copies of one model on the meshes of the kits they were drawn into (`meshOf`: the mesh a Kit
  * became), one `place` per kit. A copy's params are the ones its builder was called with (recorded as they were drawn).
  */
-export function registerInKit<P extends object>(ctx: ModelContext, copies: readonly InKit[], model: ModelDef<P>, meshOf: (k: Kit) => Mesh | undefined): void {
+export function registerInKit<P extends object>(ctx: ModelContext, copies: readonly InKit[], model: ModelDef<P>, meshOf: (k: Kit) => Mesh | undefined): InKitPlaced[] {
   const groups = new Map<Mesh, InKit[]>();
   for (const c of copies) {
     if (c.model !== model.id) continue;
@@ -42,10 +45,13 @@ export function registerInKit<P extends object>(ctx: ModelContext, copies: reado
     if (list === undefined) { list = []; groups.set(mesh, list); }
     list.push(c);
   }
+  const out: InKitPlaced[] = [];
   for (const [mesh, copiesHere] of groups) {
     const pls: Placement<P>[] = copiesHere.map((c) => c.at);
     const boxes = new Float32Array(pls.length * 6);
     pls.forEach((at, i) => { copyBox(ctx, model, at, copiesHere[i]?.box, boxes, i); });
-    place(model, pls, { ctx, draw: 'merged', drawnInto: { object: mesh, boxes }, piece: { id: `nds-${model.id.slice(model.id.indexOf('/') + 1)}@${mesh.name.slice(4)}` } });
+    const placed = place(model, pls, { ctx, draw: 'merged', drawnInto: { object: mesh, boxes }, piece: { id: `nds-${model.id.slice(model.id.indexOf('/') + 1)}@${mesh.name.slice(4)}` } });
+    out.push({ kit: mesh.name.slice(4), placed });
   }
+  return out;
 }
