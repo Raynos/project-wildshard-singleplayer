@@ -49,6 +49,8 @@ ap.add_argument("--bust-dy", type=float, default=0.0, help="nudge the bust forwa
 ap.add_argument("--head-tris", type=int, default=4000)
 ap.add_argument("--bust-beard", type=float, nargs=2, default=[0.0, 0.0], help="keep a front strip below the cut: half-width, depth (fractions of H)")
 ap.add_argument("--no-weld", action="store_true")
+ap.add_argument("--body-collar", type=float, nargs=2, default=None, help="E304: keep the body's faces over the cut up to <h> "
+                "farther than <r> from the head's axis (a coat's high collar; fractions of H)")
 ap.add_argument("--bust-collar", type=float, nargs=2, default=None, help="E304: drop the bust's collar and shoulders: its faces "
                 "below the cut + <h> farther than <r> from the head's axis (both fractions of H; the beard strip is kept)")
 ap.add_argument("--keep-above", type=float, default=None,
@@ -59,6 +61,8 @@ ap.add_argument("--bust-top", type=float, default=None, help="with --keep-above:
 ap.add_argument("--bust-overlap", type=float, default=0.006, help="with --keep-above: the bust reaches this far (fraction of "
                 "H) over the cut, into the kept hat, so no gap shows")
 ap.add_argument("--bust-image", default=None, help="the cutout the bust was generated from: projected on its front")
+ap.add_argument("--project-top", type=float, default=None, help="E304: project the portrait only below this height (fraction "
+                "of the neck cut → head top): a hat brim in front of the forehead took the portrait's forehead")
 ap.add_argument("--paint", default=None)
 ap.add_argument("--smooth-face", type=float, default=0.0, help="0..1: bend the face normals toward a head ellipsoid")
 ap.add_argument("--front", default=None)
@@ -201,6 +205,14 @@ def project_portrait(ob, path, neck_z):
         nt_.links.new(sn.outputs["Y"], mr.inputs["Value"])
         fac = nt_.nodes.new("ShaderNodeMath"); fac.operation = "MULTIPLY"
         nt_.links.new(mr.outputs["Result"], fac.inputs[0]); nt_.links.new(ti.outputs["Alpha"], fac.inputs[1])
+        if a.project_top is not None:
+            zt = neck_z + a.project_top * (Bv[:, 2].max() - neck_z)
+            mz = nt_.nodes.new("ShaderNodeMapRange"); mz.inputs["From Min"].default_value = zt
+            mz.inputs["From Max"].default_value = zt - 0.012 * (Bv[:, 2].max() - neck_z) * 2
+            nt_.links.new(sep.outputs["Z"], mz.inputs["Value"])
+            fac2 = nt_.nodes.new("ShaderNodeMath"); fac2.operation = "MULTIPLY"
+            nt_.links.new(fac.outputs[0], fac2.inputs[0]); nt_.links.new(mz.outputs["Result"], fac2.inputs[1])
+            fac = fac2
         mix = nt_.nodes.new("ShaderNodeMix"); mix.data_type = "RGBA"
         nt_.links.new(fac.outputs[0], mix.inputs["Factor"])
         nt_.links.new(src, mix.inputs[6]); nt_.links.new(ti.outputs["Color"], mix.inputs[7])
@@ -285,6 +297,11 @@ if a.graft:
     bpy.context.collection.objects.link(body_hi)
     in_beard = lambda c: bw > 0 and abs(c.x - hc[0]) < bw * H * 0.9 and c.z > zc - bd * H * 0.9 and c.y < hc[1] - 0.03 * H
     kept = (lambda c: False) if a.keep_above is None else (lambda c: c.z > ztop)
+    if a.body_collar is not None:
+        # a high coat collar: the body keeps its faces over the cut (up to <h>) farther than <r> from the head's axis (a
+        # flat cut there left a jagged hem round the neck); the bust takes the inside
+        kept0, (ch_, cr_) = kept, a.body_collar
+        kept = lambda c: kept0(c) or (c.z < zc + ch_ * H and math.hypot(c.x - hc[0], c.y - hc[1]) > cr_ * H)
     k = delete_faces(body, lambda c: (c.z > zc and not kept(c)) or in_beard(c))  # the old beard goes with the old head
     log(f"body: {k} head faces removed")
     # low bust: decimated copy

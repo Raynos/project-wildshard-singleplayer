@@ -26,6 +26,7 @@ import type { Sky } from '../../world/Sky';
 import type { NpcKind } from '../../chunks/pine-hollow/models/people';
 import { mapSlot } from '../../core/shardState';
 import { MAY_KTX2 } from '../../boot/gpuFiles';
+import { setting } from '../../ui/Settings';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
@@ -54,12 +55,23 @@ function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
   return g;
 }
 
+/**
+ * The file a person loads: npcModelUrl's, or its face remaster (E304, Debug ▸ Creatures & NPCs ▸ Pine Hollow faces;
+ * scripts/img2mesh/e304_faces.sh — the body as shipped, the head replaced by a Hunyuan3D-2 bust grafted at the neck, the
+ * face ~20 % of the atlas instead of ~2 %, the normal map re-baked): B = the bust from a codex front portrait
+ * (art/pine-hollow/round-18-faces/), C = from the model's own reference crop (art/pine-hollow/round-11-npcs/).
+ */
+function npcFileUrl(kind: NpcKind): string {
+  const v = setting('pineFaces'), url = npcModelUrl(kind);
+  return v === 'current' ? url : url.replace('/npcs/', `/npcs/faces-${v}/`);
+}
+
 /** load one person's model (cached; null when it fails — the stand-in stays) */
 export function loadNpcModel(kind: NpcKind): Promise<Source | null> {
   let p = loading.get(kind);
   if (!p) {
     if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    p = loader.loadAsync(npcModelUrl(kind)).then((gltf) => {
+    p = loader.loadAsync(npcFileUrl(kind)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: Source[] = [];
       gltf.scene.traverse((o) => {
