@@ -1,6 +1,6 @@
 # Pine Hollow — follow-ups after the remaster merge
 
-**State:** `blocked` 2026-09-30 — E322 built all 14 rows of Jake's first pick; E350 built the leftovers F-X1–X4 and automated F-J1 as a one-tap PERF lap (fps pill ▸ PERF LAP ▸ COPY; ships next deploy). Waits on Jake: his PERF LAP text (F-J1), and a pick among the rows not built — the new leftovers F-X5–X8, the big lifts (F-B1, F-0.2, F-B5, F-B6), F-L1, F-M4, F-M8, F-A1, F-U1, F-P1–P4, F-P6, the GPU levers F-G1–G13.
+**State:** `archived` 2026-09-30 (finished 2026-09-30, on Jake's word, E356: "enough work has been done on them") — E322 built all 14 rows of Jake's first pick and E350 the leftovers F-X1–X4, with F-J1 automated as a one-tap PERF LAP (fps pill ▸ PERF LAP ▸ COPY). Leftover open ask: E141 (F-J1's PERF LAP text, F-J2's listen). The rows never picked — F-X5–X8, F-B1 (whole-map Blender pass), F-0.2, F-B5, F-B6, F-L1, F-M4, F-M8, F-A1, F-U1, F-P1–P4, F-P6, the GPU levers F-G1–G13 — are not queued; they stay listed below for reference.
 Each row names where it came from (the remaster lane that left it) so the next agent can read the evidence.
 
 ## Moved out of the remaster to finish it sooner (PH-U32)

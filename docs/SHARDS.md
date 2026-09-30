@@ -198,7 +198,7 @@ the template so the dirt texture and prop placement follow the road.
   Hollow adds the hamlet's buildings on the same kit.
 - **The attract-mode camera path** (`src/core/Tour.ts`) follows Pine Hollow's trails.
 - **A shard's code as one module** (`ShardModule { build, look, quest, audio, fauna, loadSteps }`, ENGINE-FIT E5) is not
-  built yet: each shard still branches in `main.ts` (moved to `docs/plans/PINE-HOLLOW-FOLLOWUPS.md` by PH-U32).
+  built yet: each shard still branches in `main.ts` (moved to PINE-HOLLOW-FOLLOWUPS by PH-U32, archived `project/archive/2026-09-30-pine-hollow-followups.md`).
 
 ## Driftwood Isle — the low-poly pieces
 

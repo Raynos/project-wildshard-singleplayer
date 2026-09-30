@@ -1,8 +1,8 @@
 # NALATI-FINISH — land Nalati on main, then the user's picks and the leftovers
 
-**State:** `in progress` 2026-09-30 — every agent row is built, shipped and locked in: B1 riding (every feature kept, the Debug rows gone), B2 look (B + B), B3 audio (kept), B5 faces (D: Hunyuan3D-2's own paint + the neck-graft fix, Jake's pick E343, 1003136c; the Golden King too), B8 load memory (2d54fd57), B9 capture bugs; the follow-ups E319 (the HUD), E320 (the reins), E321 (the playgrounds), E328 and E333 are done and live. Only P4 is left, the user's: the real-iPhone memory + fps reading (scripts/iphone-mem-reading.sh with the phone plugged in and unlocked; it re-reads B8 too). Then the plan finishes and archives. N24 stays the user's.
+**State:** `archived` 2026-09-30 (finished 2026-09-30, on Jake's word, E356: "enough work has been done on them") — every agent row is built, shipped and locked in: B1 riding, B2 look, B3 audio, B5 faces (D, E343 `1003136c`), B8 load memory (`2d54fd57`), B9 capture bugs, and the follow-ups E319, E320, E321, E328, E333. Leftovers stay open asks: P4 = N11 (the real-iPhone memory + fps reading, `scripts/iphone-mem-reading.sh` with the phone on USB) and N24 (Jake's bug list).
 
-The mini plan for everything left after [NALATI-MERGE](../../project/archive/2026-09-24-nalati-merge.md) (archived
+The mini plan for everything left after [NALATI-MERGE](2026-09-24-nalati-merge.md) (archived
 2026-09-24, every row built on the `nalati-grasslands` branch). The asks: N10, N11, N13, N14, N20, N21, N22.
 
 ## U — land it on main (N10)

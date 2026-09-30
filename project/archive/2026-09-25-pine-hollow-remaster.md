@@ -75,7 +75,7 @@ lanes' own. **Status:** done · partial · open · Jake (waits on his pick, sign
 - **Measurements:** done by the verify lane (PH-C9, PH-P4, PH-P3). One row is left: load transfer is 36.01 MiB against the 35 MiB row. It waits on Jake's music-styles call (PH-P3).
 - **Jake:** the iPhone 30 fps reading and the music veto.
 - **Main:** merge main in (Nalati, PH-0.1) with 0 page errors on all three shards.
-- **Out of scope** (PH-U32 moved them to `PINE-HOLLOW-FOLLOWUPS.md`): P5, 0.2, B1, B5 / B6.
+- **Out of scope** (PH-U32 moved them to `project/archive/2026-09-30-pine-hollow-followups.md`): P5, 0.2, B1, B5 / B6.
 
 ## 1. The audit: Pine Hollow vs Driftwood vs Nalati (main `4539c39`, nalati `8a58b9d`)
 
