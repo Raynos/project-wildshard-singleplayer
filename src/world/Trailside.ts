@@ -4,6 +4,14 @@
  * forks. Flat-shaded vertex colours, one mesh; fence posts and signposts collide, steps are
  * decoration on the walkable slope.
  *
+ * E306 / E315 M1: the fence post, the signpost and the plank step are models
+ * (src/chunks/driftwood-isle/models/trailside.ts). The trail builds them in its layout's order from one stream, between
+ * what is its own — the ropes sagging between the posts, the steps' side rails, the trestle stairs — welds it all into
+ * the one mesh and places each model `drawnInto` it (its copies, its card, its colliders: pieces `trail-*`). The trail's
+ * own piece (`trailside`, main.ts) keeps the steps' and the stairs' treads (`worldColliderDescs`); `colliderDescs` is
+ * the whole trail's, as before (the navmesh bake reads it). A dev page's or the bake's trail registers its models in a
+ * registry nothing reads.
+ *
  *   const trailside = new Trailside(sky).build({ fences, steps, signs });
  *   scene.add(trailside.mesh); player.colliders.push(...trailside.colliders);
  *
@@ -18,7 +26,10 @@ import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
-import { boxDesc, type ColliderDesc } from './registry';
+import type { ColliderDesc } from './registry';
+import { fencePost, plankStep, signpost, trailMaterial, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../chunks/driftwood-isle/models/trailside';
+import { modelContext, type ModelBuild, type ModelPart, type Placement } from '../models/model';
+import { place, type Placed } from '../models/place';
 
 export interface FenceSpec { path: [number, number][]; spacing?: number }
 export interface StepsSpec { from: [number, number]; to: [number, number]; width?: number }
@@ -26,11 +37,6 @@ export interface StepsSpec { from: [number, number]; to: [number, number]; width
 export interface FlightSpec { top: [number, number]; bottom: [number, number]; width?: number }
 export interface SignSpec { x: number; z: number; /** arrow boards: heading in radians (0 = +z) and which side of the post */ arrows: { toward: number }[] }
 export interface TrailsideSpec { fences: FenceSpec[]; steps: StepsSpec[]; signs: SignSpec[]; flights?: FlightSpec[] }
-
-const C = {
-  post: new THREE.Color('#6f5638'), postTop: new THREE.Color('#8a6d48'), rope: new THREE.Color('#d2bd85'),
-  plank: new THREE.Color('#a07c53'), plankDark: new THREE.Color('#7d5f3f'), board: new THREE.Color('#b8925f'), boardEdge: new THREE.Color('#6a4e33'),
-};
 
 /** a polyline moved `d` m to its left (negative: right), for fences either side of a path's centreline */
 function offset(path: [number, number][], d: number): [number, number][] {
@@ -41,11 +47,15 @@ function offset(path: [number, number][], d: number): [number, number][] {
   });
 }
 
+const isParts = (b: ModelBuild): b is readonly ModelPart[] => Array.isArray(b);
+
 export class Trailside {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
   private steps: StepsSpec[] = [];
   private flights: FlightSpec[] = [];
+  /** the models placed into the weld: the posts' and signposts' colliders, in the layout's order */
+  private placed: Placed[] = [];
 
   constructor(private sky: Sky) {}
 
@@ -88,17 +98,27 @@ export class Trailside {
     };
   }
 
+  /** the models placed (pieces `trail-fence-posts`, `trail-signposts`, `trail-steps`) and the weld built */
   build(spec: TrailsideSpec): this {
+    const ctx = modelContext(this.sky);
     const rng = new Rng(SEED ^ 0x7a11);
     const parts: THREE.BufferGeometry[] = [];
-    const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.06) => {
-      g.deleteAttribute('uv'); g.deleteAttribute('normal');
-      const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
-      for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; } }
-      ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
-      parts.push(ni);
+    const add = trailPart(parts, rng);
+    // a model's copy, built here from the trail's stream, stood at (x, y, z) and welded in; its world box kept
+    const box = new THREE.Box3();
+    const weld = (built: ModelBuild, x: number, y: number, z: number, boxes: number[]): boolean => {
+      const part = isParts(built) ? built[0] : undefined;
+      if (!part) return false;
+      const g = part.geometry.translate(x, y, z);
+      parts.push(g);
+      g.computeBoundingBox();
+      box.copy(g.boundingBox ?? box);
+      boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
+      return true;
     };
+    const posts: { pls: Placement<Record<string, never>>[]; boxes: number[] } = { pls: [], boxes: [] };
+    const signs: { pls: Placement<SignpostParams>[]; boxes: number[] } = { pls: [], boxes: [] };
+    const planks: { pls: Placement<PlankStepParams>[]; boxes: number[] } = { pls: [], boxes: [] };
     const beam = (a: THREE.Vector3, b: THREE.Vector3, r: number, col: THREE.Color) => {
       const len = a.distanceTo(b), g = new THREE.CylinderGeometry(r, r, len, 4, 1, true);
       g.translate(0, len / 2, 0);
@@ -110,24 +130,21 @@ export class Trailside {
     // ── rope fences: a post every `spacing` metres along the polyline, rope in three sagging pieces ──
     for (const f of spec.fences) {
       const spacing = f.spacing ?? 2.6;
-      const posts: THREE.Vector3[] = [];
+      const line: THREE.Vector3[] = [];
       for (let i = 0; i < f.path.length - 1; i++) {
         const pa = f.path[i], pb = f.path[i + 1];
         if (!pa || !pb) continue;
         const [ax, az] = pa, [bx, bz] = pb;
         const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / spacing));
-        for (let k = i === 0 ? 0 : 1; k <= n; k++) { const t = k / n; const x = ax + (bx - ax) * t, z = az + (bz - az) * t; posts.push(new THREE.Vector3(x, heightAt(x, z), z)); }
+        for (let k = i === 0 ? 0 : 1; k <= n; k++) { const t = k / n; const x = ax + (bx - ax) * t, z = az + (bz - az) * t; line.push(new THREE.Vector3(x, heightAt(x, z), z)); }
       }
       // thick weathered pilings, a rope lashing under the cap, the rope sagging in a catenary between them (E43)
-      for (const p of posts) {
-        const tilt = rng.range(-0.06, 0.06);
-        add(new THREE.CylinderGeometry(0.13, 0.16, 1.55, 6).rotateZ(tilt).translate(p.x, p.y + 0.45, p.z), C.post, 0.08);
-        add(new THREE.CylinderGeometry(0.14, 0.14, 0.07, 6).translate(p.x, p.y + 1.22, p.z), C.postTop, 0.04);
-        for (let r = 0; r < 3; r++) add(new THREE.CylinderGeometry(0.175, 0.175, 0.07, 6).translate(p.x, p.y + 1.0 - r * 0.08, p.z), r === 1 ? C.postTop : C.rope, 0.04);
+      for (const p of line) {
+        if (weld(fencePost.build(ctx, {}, rng), p.x, p.y, p.z, posts.boxes)) posts.pls.push({ x: p.x, y: p.y, z: p.z });
         this.colliders.push({ x: p.x, z: p.z, hw: 0.16, hd: 0.16, rot: 0, yTop: p.y + 1.2, yBottom: p.y - 1 });
       }
-      for (let i = 0; i < posts.length - 1; i++) {
-        const pa = posts[i], pb = posts[i + 1];
+      for (let i = 0; i < line.length - 1; i++) {
+        const pa = line[i], pb = line[i + 1];
         if (!pa || !pb) continue;
         const a = pa.clone().setY(pa.y + 1.0), b = pb.clone().setY(pb.y + 1.0);
         const seg = 6, sag = 0.1 + a.distanceTo(b) * 0.06;
@@ -152,8 +169,8 @@ export class Trailside {
         const [x, z] = at(i / n), hw = w / 2;
         const lo = heightAt(x - ax * hw, z - az * hw), hi = heightAt(x + ax * hw, z + az * hw);
         const y = Math.max(heightAt(x, z), (lo + hi) / 2);
-        const g = new THREE.BoxGeometry(w, 0.14, 0.42); g.rotateZ(Math.atan2(hi - lo, w)); g.rotateY(ang); g.translate(x, y + 0.02, z);
-        add(g, i % 2 ? C.plankDark : C.plank, 0.05);
+        const params: PlankStepParams = { w, roll: Math.atan2(hi - lo, w), yaw: ang, dark: i % 2 === 1 };
+        if (weld(plankStep.build(ctx, params, rng), x, y, z, planks.boxes)) planks.pls.push({ x, y, z, params });
       }
       const runs = Math.max(1, Math.round(len / 2.8));
       for (const side of [-1, 1]) {
@@ -197,24 +214,20 @@ export class Trailside {
     // ── signposts: a post with an arrow board per direction, stacked ──
     for (const sg of spec.signs) {
       const y = heightAt(sg.x, sg.z);
-      add(new THREE.CylinderGeometry(0.09, 0.11, 2.4, 6).translate(sg.x, y + 1.1, sg.z), C.post, 0.06);
-      sg.arrows.forEach((a, i) => {
-        const by = y + 2.1 - i * 0.42;
-        // an arrow board: a box with a wedge tip, pointing along `toward`
-        const board = new THREE.BoxGeometry(0.9, 0.3, 0.06); board.translate(0.45 + 0.1, 0, 0);
-        const tip = new THREE.ConeGeometry(0.19, 0.3, 4); tip.rotateZ(-Math.PI / 2); tip.rotateX(Math.PI / 4); tip.translate(1.15, 0, 0);
-        for (const g of [board, tip]) { g.rotateY(a.toward - Math.PI / 2); g.translate(sg.x, by, sg.z); add(g, C.board, 0.05); }
-        const edge = new THREE.BoxGeometry(0.92, 0.04, 0.08); edge.translate(0.55, -0.16, 0); edge.rotateY(a.toward - Math.PI / 2); edge.translate(sg.x, by, sg.z); add(edge, C.boardEdge, 0.04);
-      });
+      const params: SignpostParams = { arrows: sg.arrows.map((a) => a.toward) };
+      if (weld(signpost.build(ctx, params, rng), sg.x, y, sg.z, signs.boxes)) signs.pls.push({ x: sg.x, y, z: sg.z, params });
       this.colliders.push({ x: sg.x, z: sg.z, hw: 0.12, hd: 0.12, rot: 0, yTop: y + 2.4, yBottom: y - 1 });
     }
 
     const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
-    this.sky.setupMaterial(mat);
-    this.mesh = new THREE.Mesh(geo, mat);
+    this.mesh = new THREE.Mesh(geo, trailMaterial(ctx));
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    const into = (boxes: number[]): { object: THREE.Mesh; boxes: Float32Array } => ({ object: this.mesh, boxes: Float32Array.from(boxes) });
+    // the posts' colliders, then the signposts' (the order the trail's boxes always had)
+    if (posts.pls.length > 0) this.placed.push(place(fencePost, posts.pls, { ctx, draw: 'merged', drawnInto: into(posts.boxes), piece: { id: 'trail-fence-posts' } }));
+    if (signs.pls.length > 0) this.placed.push(place(signpost, signs.pls, { ctx, draw: 'merged', drawnInto: into(signs.boxes), piece: { id: 'trail-signposts' } }));
+    if (planks.pls.length > 0) this.placed.push(place(plankStep, planks.pls, { ctx, draw: 'merged', drawnInto: into(planks.boxes), piece: { id: 'trail-steps' } }));
     return this;
   }
 
@@ -223,7 +236,15 @@ export class Trailside {
    * and, walkable for the first time, the plank steps. src/physics/pieces.ts turns it into Rapier colliders.
    */
   colliderDescs(): ColliderDesc[] {
-    const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
+    const out: ColliderDesc[] = this.placed.flatMap((p) => p.colliders);
+    out.push(...this.worldColliderDescs());
+    return out;
+  }
+
+  /** the trail's own collision (its piece `trailside`): the plank steps' treads and the trestle stairs'; the posts and
+   *  signposts collide as their models (pieces `trail-fence-posts`, `trail-signposts`) */
+  worldColliderDescs(): ColliderDesc[] {
+    const out: ColliderDesc[] = [];
     for (const s of this.steps) out.push(...stepTreads(s));
     for (const f of this.flights) {
       const fl = flightOf(f), { ux, uz, sx, sz, w, m } = fl;

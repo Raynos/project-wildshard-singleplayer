@@ -353,7 +353,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     await slice();
     // sand paths between the POIs: plank steps up the crag, rope fences, signposts
     const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
-    if (trailside) addBuilt('trailside', 'Trailside', 'props', 'src/world/Trailside.ts', trailside.mesh, trailside.colliders, 'wood', undefined, trailside.colliderDescs());
+    // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
+    // colliders with them); the trail's own piece keeps its steps' and stairs' treads
+    if (trailside) addBuilt('trailside', 'Trailside', 'props', 'src/world/Trailside.ts', trailside.mesh, trailside.colliders, 'wood', undefined, trailside.worldColliderDescs());
     await slice();
     // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
     const bridge = isOcean ? new RopeBridge(sky, BRIDGE).build() : null;

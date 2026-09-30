@@ -65,6 +65,7 @@ describe('Driftwood models (E315 M1)', () => {
       'src/world/Boat.ts': { why: 'the mooring lines: world geometry between two placed models', draws: { mergeGeometries: 1, Mesh: 1 } },
       'src/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 } },
       'src/world/BlenderIsland.ts': { why: 'the cove: its terrain tiles (world) and its tiles of prototype copies (drawnInto)', draws: { Mesh: 2 } },
+      'src/world/Trailside.ts': { why: 'the trail\'s weld: its ropes, rails and trestle stairs, and its posts / signposts / steps (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 } },
     };
     const strip = (s: string): string => s.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, '');
     const count = (s: string, re: RegExp): number => (s.match(re) ?? []).length;
