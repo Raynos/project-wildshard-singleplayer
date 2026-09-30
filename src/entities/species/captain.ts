@@ -116,7 +116,10 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
     S(0, 1.63, -0.09, 0.08, 0.08, head), S(0, 1.66, -0.02, 0.105, 0.105, head, head, 0, 1.05, 0.95),
     S(0, 1.65, 0.06, 0.10, 0.10, head, head, 0, 1.05, 0.9), S(0, 1.60, 0.11, 0.075, 0.075, head), S(0, 1.54, 0.10, 0.06, 0.05, head),
   ], 16, 'skull', paint, true, true));
-  for (const sx of [1, -1]) eyes.push(skinPlain(new THREE.SphereGeometry(0.027, 8, 6).translate(sx * 0.043, 1.635, 0.115), head, 'eye', paint));
+  // (the generated head's painted cyan eyes sit at x 0.022 ± 0.034, y 1.70, z 0.084 of its 1.9 m frame — measured off the
+  // file's texture, E343; the loft stand-in's at ± 0.043, 1.635, 0.115)
+  const gen = captainMeshLoaded();
+  for (const sx of [1, -1]) eyes.push(skinPlain(gen ? new THREE.SphereGeometry(0.02, 8, 6).translate(0.022 + sx * 0.034, 1.70, 0.092) : new THREE.SphereGeometry(0.027, 8, 6).translate(sx * 0.043, 1.635, 0.115), head, 'eye', paint));
   // v0.2: the generated captain (codex concept → Hunyuan3D-2, src/entities/species/captainMesh.ts) once it has loaded —
   // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. Until the
   // file is in (or if it fails) the loft stand-in below is built instead.

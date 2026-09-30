@@ -4,12 +4,13 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import type { BoneDef } from './registry';
 import { shardSlot } from '../../core/shardState';
 import { MAY_KTX2 } from '../../boot/gpuFiles';
-import { setting } from '../../ui/Settings';
 
 /**
  * The Drowned Captain's generated mesh (v0.2, DRIFTWOOD-REMASTER M3): a codex concept (art/driftwood-isle/round-8-assets/
  * ref-captain.jpg) → Hunyuan3D-2 full shape + paint → gltf-transform simplify (12.7 k tris, the generation's own UVs and
  * paint kept) → 1024² WebP → meshopt: public/assets/models/driftwood-hero/captain/captain.glb (~210 KB), facing +z.
+ * E343 (Jake's pick D): the head is a Hunyuan3D-2 bust from a codex portrait (art/driftwood-isle/round-14-faces/) with its
+ * own paint, grafted at its own neck (scripts/img2mesh/e304_faces.sh paint captain, face_remaster.py --graft-v2): ~346 KB.
  *
  *   void preloadCaptainMesh();          // Finale.ts installs it: loads in the background, long before the altar
  *   const m = captainMeshFor(bones);    // buildCaptain: { parts, map } bound to the captain's own bones, or null
@@ -21,12 +22,7 @@ import { setting } from '../../ui/Settings';
  * (or if it fails): buildCaptain then builds the loft stand-in, so the fight never waits on the file.
  */
 export const CAPTAIN_GLB_URL = '/assets/models/driftwood-hero/captain/captain.glb';
-/** E304 (Debug ▸ Creatures & NPCs ▸ Driftwood faces = C): his head a Hunyuan3D-2 bust from a codex front portrait in the
- *  island's faceted toon look (art/driftwood-isle/round-14-faces/), grafted at the neck, the portrait projected on the skull
- *  (scripts/img2mesh/e304_faces.sh hunyuan captain) — the same body, bound the same way */
-const FACES = setting('driftwoodFaces');
-// E343 D: the same graft with the bust's own paint (no portrait), cut at its own neck (face_remaster.py --graft-v2)
-const URL_GLB = FACES === 'hunyuan' || FACES === 'paint' ? CAPTAIN_GLB_URL.replace('/captain/captain.glb', `/captain/faces-${FACES}/captain.glb`) : CAPTAIN_GLB_URL;
+const URL_GLB = CAPTAIN_GLB_URL;
 const HEIGHT = 1.9;
 /** metres from the centre line below which a vertex under the shoulders never rides an arm bone (the coat skirt) */
 const ARM_MIN_X = 0.36;

@@ -3,7 +3,6 @@ import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
-import { setting } from '../../ui/Settings';
 import { faceHead, loadFaceHead, type FaceHead } from '../../world/faceHeads';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
@@ -64,49 +63,22 @@ function sailorPaint(v: VariantDef): Paint {
       case 'guard': out.copy(P.guard); break;
       case 'grip': out.copy(P.grip); break;
       case 'eye': out.copy(P.eye); break;
-      case 'socket': out.copy(P.socket); break;
-      case 'tooth': mix(out, P.skull, P.boneDark, 0.15); break;
       default: out.copy(P.bone);
     }
   };
 }
 
 /**
- * E304 (Debug ▸ Creatures & NPCs ▸ Driftwood faces = B / C): a skull that reads as one at 3 m, still faceted — the old face
- * was the painted socket shade round the glowing eyes and nothing else. Deep dark sockets the eyes glow out of, a heart-
- * shaped nasal hole, cheekbones, and a row of teeth on a dark gap under it: ~150 triangles on the head bone.
- */
-function skullFace(hard: THREE.BufferGeometry[], head: number, paint: Paint): void {
-  const put = (g: THREE.BufferGeometry, part: string, x: number, y: number, z: number, sx = 1, sy = 1, sz = 1, rz = 0): void => {
-    g.scale(sx, sy, sz); if (rz !== 0) g.rotateZ(rz); g.translate(x, y, z);
-    hard.push(skinPlain(g, head, part, paint));
-  };
-  for (const side of [1, -1]) {
-    put(new THREE.SphereGeometry(0.034, 6, 4), 'socket', side * 0.041, 1.633, 0.1, 1.05, 0.9, 0.45, side * 0.25);   // the socket
-    put(new THREE.SphereGeometry(0.03, 5, 3), 'skull', side * 0.068, 1.598, 0.082, 1.1, 0.6, 0.7);                   // cheekbone
-    put(new THREE.BoxGeometry(0.05, 0.012, 0.022), 'skull', side * 0.042, 1.664, 0.102, 1, 1, 1, side * -0.18);      // brow ridge
-  }
-  // the nasal hole: a 3-sided cone, point up
-  put(new THREE.ConeGeometry(0.017, 0.034, 3), 'socket', 0, 1.598, 0.118, 1, 1, 0.5);
-  // the teeth on their dark gap
-  put(new THREE.BoxGeometry(0.078, 0.028, 0.02), 'socket', 0, 1.563, 0.108);
-  for (let i = 0; i < 6; i++) {
-    const x = (i - 2.5) * 0.0125;
-    put(new THREE.BoxGeometry(0.0105, 0.013, 0.012), 'tooth', x, 1.571 + (i % 2) * 0.0015, 0.117 - Math.abs(x) * 0.25);
-    put(new THREE.BoxGeometry(0.0105, 0.011, 0.012), 'tooth', x, 1.555, 0.115 - Math.abs(x) * 0.25);
-  }
-}
-
-/**
- * E343 D: the Drowned Sailor's generated head (public/assets/models/driftwood-hero/faces/sailor-head.glb: a Hunyuan3D-2 skull
- * + bandana from a codex portrait in the island's toon look, its own paint, cut at its neck, the faceted post) on the head
- * bone, fitted to the lofted skull's span (its neck at 1.53 m, the bandana's top at 1.80 m). Loaded as the module loads
- * when the Debug row asks for it; a sailor built before the file lands keeps the lofted skull (AnimalFactory caches it).
+ * E343 (Jake's pick D): the Drowned Sailor's head (public/assets/models/driftwood-hero/faces/sailor-head.glb: a Hunyuan3D-2
+ * skull + bandana from a codex portrait in the island's toon look, art/driftwood-isle/round-14-faces/, its own paint, cut at
+ * its neck by scripts/img2mesh/head_cut.py, the faceted post) on the head bone, fitted to the lofted skull's span (its neck
+ * at 1.53 m, the bandana's top at 1.80 m). Enemies.ts spawns the sailor after preloadSailorHead(); the lofted skull is the
+ * stand-in if the file fails. `eyes` gets the painted sockets' centres (its cyan facets, per side) for the glow spheres.
  */
 const SAILOR_HEAD = '/assets/models/driftwood-hero/faces/sailor-head.glb';
 const SAILOR_NECK_FROM_TOP = 0.8159;
-if (typeof window !== 'undefined' && setting('driftwoodFaces') === 'paint') void loadFaceHead(SAILOR_HEAD);
-function sailorHead(fh: FaceHead, bone: number): THREE.BufferGeometry {
+export function preloadSailorHead(): Promise<unknown> { return loadFaceHead(SAILOR_HEAD); }
+function sailorHead(fh: FaceHead, bone: number, eyes: THREE.Vector3[]): THREE.BufferGeometry {
   const pos = Float32Array.from(fh.pos);
   let top = -Infinity, bot = Infinity;
   for (let i = 1; i < pos.length; i += 3) { top = Math.max(top, pos[i] ?? 0); bot = Math.min(bot, pos[i] ?? 0); }
@@ -118,6 +90,15 @@ function sailorHead(fh: FaceHead, bone: number): THREE.BufferGeometry {
   for (let i = 0; i < fh.count; i++) {
     pos[i * 3] = ((pos[i * 3] ?? 0) - cx) * k; pos[i * 3 + 1] = 1.53 + ((pos[i * 3 + 1] ?? 0) - neck) * k; pos[i * 3 + 2] = ((pos[i * 3 + 2] ?? 0) - cz) * k + 0.02;
   }
+  // the glows: the cyan (painted-eye) facets' centres on each side, a little out of the socket
+  const side = [new THREE.Vector3(), new THREE.Vector3()], sn = [0, 0];
+  for (let i = 0; i < fh.count; i++) {
+    const r = fh.col[i * 3] ?? 0, gr = fh.col[i * 3 + 1] ?? 0, b = fh.col[i * 3 + 2] ?? 0;
+    if (Math.min(gr, b) - r < 0.25 || (pos[i * 3 + 2] ?? 0) < 0.03) continue;
+    const k2 = (pos[i * 3] ?? 0) >= 0 ? 0 : 1;
+    side[k2]?.add(new THREE.Vector3(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2])); sn[k2] = (sn[k2] ?? 0) + 1;
+  }
+  for (const k2 of [0, 1]) { const n2 = sn[k2] ?? 0, v2 = side[k2]; if (n2 > 2 && v2) eyes[k2] = v2.divideScalar(n2).add(new THREE.Vector3(0, 0, 0.004)); }
   const g = new THREE.BufferGeometry(), cnt = fh.count;
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(fh.nrm), 3));
@@ -154,9 +135,10 @@ function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
   const paint = sailorPaint(v);
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), spine = B('spine'), chest = B('chest'), head = B('head');
-  // E343 D: the generated skull + bandana (loaded early, below) in place of the lofted ones
-  const dHead = setting('driftwoodFaces') === 'paint' ? faceHead(SAILOR_HEAD) : null;
-  if (dHead !== null) hard.push(sailorHead(dHead, head));
+  // E343 (Jake's pick D): the generated skull + bandana (preloaded before the spawn, below); the lofted skull is the stand-in
+  const dHead = faceHead(SAILOR_HEAD);
+  const dEyes: THREE.Vector3[] = [];
+  if (dHead !== null) hard.push(sailorHead(dHead, head, dEyes));
   // skull: cranium, brow, jaw
   if (dHead === null) fur.push(loft([
     S(0, 1.63, -0.09, 0.075, 0.075, head),
@@ -168,12 +150,13 @@ function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
   // the bandana: a band round the cranium and a tail hanging at the back
   if (dHead === null) hard.push(loft([S(0, 1.69, -0.02, 0.108, 0.108, head), S(0, 1.745, -0.025, 0.098, 0.098, head), S(0, 1.785, -0.03, 0.06, 0.06, head), S(0, 1.80, -0.035, 0.015, 0.015, head)], 16, 'bandana', paint, false, true));
   if (dHead === null) hard.push(loft([S(0, 1.72, -0.10, 0.04, 0.014, head), S(0, 1.64, -0.16, 0.032, 0.01, head), S(0, 1.54, -0.19, 0.018, 0.006, chest, head, 0.6)], 8, 'bandana', paint, false, true, 'z'));
-  for (const sx of [1, -1]) {
-    const eye = new THREE.SphereGeometry(0.024, 8, 6);
-    eye.translate(sx * 0.04, 1.63, 0.11);
+  for (const [i, sx] of [1, -1].entries()) {
+    // the glows sit in the sockets: the generated head's painted cyan eyes, else the lofted skull's
+    const at = dEyes[i] ?? new THREE.Vector3(sx * 0.04, 1.63, 0.11);
+    const eye = new THREE.SphereGeometry(dEyes[i] ? 0.019 : 0.024, 8, 6);
+    eye.translate(at.x, at.y, at.z);
     eyes.push(skinPlain(eye, head, 'eye', paint));
   }
-  if (setting('driftwoodFaces') !== 'current' && dHead === null) skullFace(hard, head, paint);
   // neck + spine column
   fur.push(loft([S(0, 1.45, 0.0, 0.035, 0.035, chest), S(0, 1.55, 0.01, 0.03, 0.03, chest, head, 0.7)], 8, 'bone', paint, false, false));
   // torso in the striped shirt: pelvis → ribcage → shoulders, hunched

@@ -7,8 +7,6 @@ import { Vector3 } from 'three';
 import { K, type Kit, type Look } from '../kit';
 import type { Rng } from '../../util';
 import { type KitX, type XLook, curve } from './kitx';
-import { setting } from '../../../../ui/Settings';
-import { faceHead, loadFaceHead, type FaceHead } from '../../../../world/faceHeads';
 
 const COATS = [0x2a2c31, 0x33363e, 0x3b3f4a, 0x283044, 0x4a4336, 0x55504a, 0x3e4a44, 0x6b6f78, 0x2d2a2a, 0x8a8f96, 0x5b6470] as const;
 const TROUSERS = [0x1f2126, 0x2a2c31, 0x34363d, 0x3d3a35] as const;
@@ -16,44 +14,11 @@ const SKIN = 0xc9a58a;
 const HAIR = [0x1b1b1e, 0x2a2622, 0x8f9097, 0xb9b8b4] as const;
 
 /**
- * E304 (Debug ▸ Creatures & NPCs ▸ Nine Dragon faces = B): the brushed figures get an ink face — the jiehua way of drawing
- * a figure's face in a few strokes: two dark eye dots under two brow strokes, a nose ridge a shade darker than the skin and
- * a short mouth stroke; the cook's face (a bare, pale egg until now) reads at the counter. ~90 triangles a figure, merged
- * into the same kit draw (no new draw, no instancing change).
+ * E304 / E343 (Jake's pick B): the brushed figures' ink face — the jiehua way of drawing a figure's face in a few strokes:
+ * two dark eye dots under two brow strokes, a nose ridge a shade darker than the skin and a short mouth stroke; the cook's
+ * face (a bare, pale egg before) reads at the counter. ~90 triangles a figure, merged into the same kit draw (no new draw,
+ * no instancing change).
  */
-const INK_FACES = setting('nineDragonFaces') === 'ink';
-/**
- * E343 D (Debug ▸ Nine Dragon faces = D): a generated head per figure — a Hunyuan3D-2 head from a codex portrait in the
- * flat-wash look (art/nine-dragon-stack/round-27-faces/), its own paint, cut at its neck (scripts/img2mesh/head_cut.py) and
- * put through the faceted post (~500 triangles, one flat colour per facet) — merged into the same kit as raw vertex-coloured
- * triangles (KitX.mesh): no texture, no new draw, no instancing change. Two heads: the cook's, and an old hawker's for
- * about a third of the others. buildNineDragonWorld awaits loadInkHeads() before any kit is built.
- */
-const PAINT_HEADS = setting('nineDragonFaces') === 'paint';
-const HEADS = [{ url: '/assets/nine-dragon/faces/ndcook-head.glb', neckFromTop: 0.8016 }, { url: '/assets/nine-dragon/faces/ndelder-head.glb', neckFromTop: 0.8458 }] as const;
-export async function loadInkHeads(): Promise<void> { if (PAINT_HEADS) await Promise.all(HEADS.map((h) => loadFaceHead(h.url))); }
-function paintHead(x: KitX, c: Vector3, R: Vector3, U: Vector3, F: Vector3, s: number, which: number): boolean {
-  const spec = HEADS[which] ?? HEADS[0];
-  const fh: FaceHead | null = faceHead(spec.url);
-  if (fh === null) return false;
-  let top = -Infinity, bot = Infinity;
-  for (let i = 1; i < fh.pos.length; i += 3) { top = Math.max(top, fh.pos[i] ?? 0); bot = Math.min(bot, fh.pos[i] ?? 0); }
-  const neck = top - spec.neckFromTop * (top - bot);
-  const k = (0.22 * s) / Math.max(1e-6, top - neck);          // the neck (0.09 s under the head's centre) to the hair's top
-  let cx = 0, cz = 0, n = 0;
-  for (let i = 0; i < fh.count; i++) if ((fh.pos[i * 3 + 1] ?? 0) > neck) { cx += fh.pos[i * 3] ?? 0; cz += fh.pos[i * 3 + 2] ?? 0; n++; }
-  cx /= Math.max(1, n); cz /= Math.max(1, n);
-  const pos = new Float32Array(fh.count * 3), nrm = new Float32Array(fh.count * 3), p = new Vector3();
-  for (let i = 0; i < fh.count; i++) {
-    const lx = ((fh.pos[i * 3] ?? 0) - cx) * k, ly = ((fh.pos[i * 3 + 1] ?? 0) - neck) * k - 0.09 * s, lz = ((fh.pos[i * 3 + 2] ?? 0) - cz) * k;
-    p.copy(c).addScaledVector(R, lx).addScaledVector(U, ly).addScaledVector(F, lz);
-    pos[i * 3] = p.x; pos[i * 3 + 1] = p.y; pos[i * 3 + 2] = p.z;
-    const nx = fh.nrm[i * 3] ?? 0, ny = fh.nrm[i * 3 + 1] ?? 1, nz = fh.nrm[i * 3 + 2] ?? 0;
-    nrm[i * 3] = R.x * nx + U.x * ny + F.x * nz; nrm[i * 3 + 1] = R.y * nx + U.y * ny + F.y * nz; nrm[i * 3 + 2] = R.z * nx + U.z * ny + F.z * nz;
-  }
-  x.mesh(pos, nrm, fh.col, null, { wash: 0xc9a58a, line: 0 });
-  return true;
-}
 const INK: XLook = { wash: 0x17171a, line: 0 };
 const NOSE: XLook = { wash: 0xb08d74, line: 0 };
 const LIP: XLook = { wash: 0x8a4a3e, line: 0 };
@@ -95,9 +60,8 @@ export function person(x: KitX, rng: Rng, px: number, py: number, pz: number, r:
   const long = o.long ?? rng.chance(0.45);
   const head = (c: Vector3): void => {
     x.sweep([c.clone().add(new Vector3(0, -0.2 * s, 0)), c.clone().add(new Vector3(0, -0.07 * s, 0))], () => 0.05 * s, 6, skin);
-    const painted = PAINT_HEADS && paintHead(x, c, R, U, F, s, o.pose === 'cook' ? 0 : (Math.floor(c.x * 7) + Math.floor(c.z * 13)) % 3 === 0 ? 1 : 0);   // no rng draw: the hats stay as A's
-    if (!painted) x.ellipsoid(c, R, U, F, 0.095 * s, 0.115 * s, 0.105 * s, skin, (d) => 1 + (d.z > 0.5 ? 0.04 : 0), 6, 8);
-    if (INK_FACES) inkFace(x, c, R, U, F, s);
+    x.ellipsoid(c, R, U, F, 0.095 * s, 0.115 * s, 0.105 * s, skin, (d) => 1 + (d.z > 0.5 ? 0.04 : 0), 6, 8);
+    inkFace(x, c, R, U, F, s);
     const hat = o.hat ?? (rng.chance(0.3) ? 'cap' : rng.chance(0.15) ? 'cone' : 'none');
     const hair: XLook = { wash: rng.pick(HAIR), line: 0 };
     if (hat === 'cap') {
@@ -105,7 +69,7 @@ export function person(x: KitX, rng: Rng, px: number, py: number, pz: number, r:
       x.ellipsoid(c.clone().add(new Vector3(0, 0.04 * s, 0)).addScaledVector(F, 0.07 * s), R, U, F, 0.09 * s, 0.015 * s, 0.08 * s, { wash: 0x1c1d21, line: 0 }, () => 1, 4, 8);
     } else if (hat === 'cone') {
       x.sweep([c.clone().add(new Vector3(0, 0.03 * s, 0)), c.clone().add(new Vector3(0, 0.2 * s, 0))], (t) => 0.3 * s * (1 - t) + 0.005, 12, { wash: 0xb89a62, line: 1, accent: true }, { capStart: true });
-    } else if (!painted) {
+    } else {
       x.ellipsoid(c.clone().add(new Vector3(0, 0.03 * s, -0.01 * s)), R, U, F, 0.1 * s, 0.1 * s, 0.108 * s, hair, (d) => (d.y < -0.1 && d.z > 0 ? 0.2 : 1), 5, 8);
     }
   };

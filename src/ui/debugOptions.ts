@@ -160,8 +160,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
   opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the statues that wake at night (was ?balbals)' }),
   opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, note: 'B11 · the night riders (was ?ghosts)' }),
-  opt('driftwoodFaces', 'creatures', 'Driftwood faces', [['current', 'A · Current'], ['lowpoly', 'B · Low-poly faces'], ['hunyuan', 'C · + Captain Hunyuan head'], ['paint', 'D · Hunyuan heads, own paint']], { reload: true, when: (c) => c.chunk.slug === 'driftwood-isle', note: 'E304 · Wendell, the Drowned Sailor and the Captain (progress/e304-faces/driftwood-isle-board.jpg)' }),
-  opt('nineDragonFaces', 'creatures', 'Nine Dragon faces', [['current', 'A · Current'], ['ink', 'B · Ink faces'], ['paint', 'D · Hunyuan heads, own paint']], { reload: true, when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E304 · the stall cooks and customers: a jiehua ink face (progress/e304-faces/nine-dragon-stack-board.jpg)' }),
 
   // ── Performance ──
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),

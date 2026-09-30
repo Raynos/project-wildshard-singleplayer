@@ -12,6 +12,7 @@ import { waveHeight } from '../world/waves';
 import { getActiveChunk } from '../chunks/registry';
 import { activeBodies, type Body, type BodySpec } from '../physics/bodies';
 import { groups } from '../physics/groups';
+import { preloadSailorHead } from './species/sailor';
 
 /**
  * Enemies — Driftwood Isle's three enemy species placed into the island's spaces, plus the pieces their AIs need
@@ -141,7 +142,9 @@ export class Enemies {
     this.placeCrabs();
     this.placePracticeCrab();
     this.placeMonkeys();
-    this.placeSailor();
+    // E343: the sailor's generated head first (AnimalFactory builds his model once, at the first spawn): a ~30 KB file, a
+    // beat after the boot; he waits under the hold's deck until night anyway
+    void preloadSailorHead().then(() => { this.placeSailor(); return null; });
     opts.scene.add(this.group);
     return this;
   }

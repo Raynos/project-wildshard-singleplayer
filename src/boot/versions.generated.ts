@@ -149,7 +149,7 @@ export const ASSET_VERSIONS: Readonly<Record<string, string>> = {
   "/assets/models/driftwood-hero/boulder-small-b/boulder-small-b.json": 'd9aec130',
   "/assets/models/driftwood-hero/boulder-wedge/boulder-wedge.glb": '3bd736f1',
   "/assets/models/driftwood-hero/boulder-wedge/boulder-wedge.json": '41929ca5',
-  "/assets/models/driftwood-hero/captain/captain.glb": '55db26c4',
+  "/assets/models/driftwood-hero/captain/captain.glb": '29c851bf',
   "/assets/models/driftwood-hero/captain/captain.json": '1a8f86eb',
   "/assets/models/driftwood-hero/coconut/coconut.glb": '245bfedb',
   "/assets/models/driftwood-hero/coconut/coconut.json": 'eeba3c6b',

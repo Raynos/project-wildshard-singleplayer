@@ -28,7 +28,6 @@ import { LowPolyKit, log, rock, plank, lowPolyMaterial } from '../../world/lowpo
 import type { Sky } from '../../world/Sky';
 import type { Collider } from '../../player/Player';
 import { attachFogUniforms } from '../../world/Atmosphere';
-import { setting } from '../../ui/Settings';
 import { loadFaceHead, type FaceHead } from '../../world/faceHeads';
 
 const C = {
@@ -51,13 +50,7 @@ const FACE_R = 6;          // m (feet to feet): inside this, or while talking, h
 const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
 const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s)
 
-/**
- * E304 (Debug ▸ Creatures & NPCs ▸ Driftwood faces = B / C): a face that reads at talking distance, still the kit's faceted
- * low-poly — the old one was two 3 cm black chips under the brim. Faceted eye whites with a dark iris and a lid line, the
- * brows heavier and tipped up at the middle (a friendly worry), a wedge nose with nostrils, sun-burnt cheeks and ears, and
- * a mouth line in the beard under the moustache. ~120 triangles, the same one head mesh.
- */
-/** E343 D: Wendell's generated head (public/assets/models/driftwood-hero/faces/wendell-head.glb: scripts/img2mesh/head_cut.py
+/** E343 (Jake's pick D): Wendell's generated head (public/assets/models/driftwood-hero/faces/wendell-head.glb: scripts/img2mesh/head_cut.py
  *  → driftwood_post.py, 1 m tall, the beard's foot at y = 0), fitted to the code head's frame: its neck on the pivot, the
  *  hat's crown at the code hat's 0.335 m. NECK_FROM_TOP is head_cut's measure for this file. */
 const WENDELL_HEAD = '/assets/models/driftwood-hero/faces/wendell-head.glb';
@@ -80,27 +73,6 @@ function wendellHead(fh: FaceHead): THREE.BufferGeometry {
   g.setAttribute('color', new THREE.BufferAttribute(Float32Array.from(fh.col), 3));
   g.computeBoundingSphere();
   return g;
-}
-
-function lowPolyFace(h: LowPolyKit): void {
-  const FC = { white: '#efe8da', iris: '#4a6a7a', lid: '#7d5236', cheek: '#d9826a', mouth: '#5a2a22' };
-  // the nose: a 4-sided wedge, broader at the base, with two nostril shadows
-  h.add(new THREE.ConeGeometry(0.036, 0.085, 4).rotateX(Math.PI / 2).rotateZ(Math.PI / 4), C.skinDark, { matrix: at(0, 0.098, 0.122, 0, -0.35, 0, [0.9, 1.25, 1]) });
-  for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.012, 0.008, 0.01), C.eye, { matrix: at(sx * 0.013, 0.074, 0.132) });
-  for (const sx of [-1, 1]) {
-    // the eye: a faceted white almond, an iris + pupil in front of it, a lid line over it
-    h.add(new THREE.OctahedronGeometry(0.02, 0), FC.white, { matrix: at(sx * 0.043, 0.135, 0.1, 0, 0, 0, [1.35, 0.8, 0.5]) });
-    h.add(new THREE.OctahedronGeometry(0.0115, 0), FC.iris, { matrix: at(sx * 0.041, 0.134, 0.1085, 0, 0, 0, [1, 1, 0.45]) });
-    h.add(new THREE.BoxGeometry(0.009, 0.009, 0.004), C.eye, { matrix: at(sx * 0.041, 0.134, 0.1135) });
-    h.add(new THREE.BoxGeometry(0.05, 0.007, 0.012), FC.lid, { matrix: at(sx * 0.043, 0.1495, 0.106, 0, 0, sx * -0.12) });
-    // the brows: heavier, the inner ends raised
-    h.add(new THREE.BoxGeometry(0.058, 0.02, 0.022), C.beardDark, { matrix: at(sx * 0.045, 0.168, 0.104, sx * -0.2, 0, sx * -0.22) });
-    // cheeks and ears
-    h.add(new THREE.IcosahedronGeometry(0.03, 0), FC.cheek, { matrix: at(sx * 0.066, 0.1, 0.086, 0, 0, 0, [1, 0.7, 0.55]) });
-    h.add(new THREE.IcosahedronGeometry(0.028, 0), C.skinDark, { matrix: at(sx * 0.108, 0.115, -0.005, 0, 0, 0, [0.45, 1, 0.8]) });
-  }
-  // the mouth, just under the moustache
-  h.add(new THREE.BoxGeometry(0.07, 0.012, 0.012), FC.mouth, { matrix: at(0, 0.052, 0.117) });
 }
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
@@ -188,11 +160,9 @@ export class Castaway {
     // ── head (pivot at the neck): face, nose, eyes, the beard, the straw hat ──
     const h = new LowPolyKit(0xca57b);
     h.add(new THREE.IcosahedronGeometry(0.115, 1), C.skin, { matrix: at(0, 0.11, 0, 0, 0, 0, [0.92, 1.05, 0.95]), wobble: 0.006 });
-    if (setting('driftwoodFaces') === 'current') {
-      h.add(new THREE.ConeGeometry(0.03, 0.07, 4).rotateX(Math.PI / 2), C.skinDark, { matrix: at(0, 0.1, 0.12) });
-      for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.028, 0.02, 0.01), C.eye, { matrix: at(sx * 0.042, 0.135, 0.108) });
-      for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.05, 0.016, 0.02), C.beardDark, { matrix: at(sx * 0.042, 0.162, 0.105, 0, 0, sx * 0.15) });  // bushy brows
-    } else lowPolyFace(h);
+    h.add(new THREE.ConeGeometry(0.03, 0.07, 4).rotateX(Math.PI / 2), C.skinDark, { matrix: at(0, 0.1, 0.12) });
+    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.028, 0.02, 0.01), C.eye, { matrix: at(sx * 0.042, 0.135, 0.108) });
+    for (const sx of [-1, 1]) h.add(new THREE.BoxGeometry(0.05, 0.016, 0.02), C.beardDark, { matrix: at(sx * 0.042, 0.162, 0.105, 0, 0, sx * 0.15) });  // bushy brows
     const beard = new THREE.ConeGeometry(0.1, 0.26, 7);
     beard.rotateX(Math.PI);
     h.add(beard, C.beard, { matrix: at(0, -0.06, 0.075, 0, -0.3), wobble: 0.012, jitter: 0.12 });   // hangs from the jaw, the face stays clear
@@ -202,11 +172,9 @@ export class Castaway {
     h.add(new THREE.CylinderGeometry(0.132, 0.132, 0.03, 8), C.band, { matrix: at(0, 0.225, -0.005, 0, 0.08) });
     this.head = new THREE.Mesh(h.finish({ ao: false }), mat);
     this.head.position.set(0, NECK, 0.01);
-    if (setting('driftwoodFaces') === 'paint') {
-      // E343 D: the generated head (Hunyuan3D-2 from a codex portrait in the island's toon look, its own paint, cut at its
-      // neck, the faceted post) replaces the code head once loaded
-      void loadFaceHead(WENDELL_HEAD).then((fh) => { if (fh !== null) { this.head.geometry.dispose(); this.head.geometry = wendellHead(fh); } return fh; });
-    }
+    // E343 (Jake's pick D): the generated head (Hunyuan3D-2 from a codex portrait in the island's toon look, its own paint,
+    // cut at its neck, the faceted post) replaces this code head — its stand-in — as soon as the ~35 KB file is in
+    void loadFaceHead(WENDELL_HEAD).then((fh) => { if (fh !== null) { this.head.geometry.dispose(); this.head.geometry = wendellHead(fh); } return fh; });
 
     // ── the right arm (pivot at the shoulder, hanging along −Y) ──
     const a = new LowPolyKit(0xca57c);
