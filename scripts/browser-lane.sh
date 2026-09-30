@@ -96,18 +96,23 @@ reap() {
     kill_tree "$pid"
   done < <(browser_roots)
   # vite servers (E317: no dev servers — scripts/serve-build.sh builds and previews). Registered previews
-  # (~/.dev-servers/<port>: "pid expiry dir cwd name") live until their expiry; an unregistered preview for
-  # PREVIEW_MAX_AGE_H; a dev server (`vite` with neither build nor preview) for DEV_MAX_AGE_H. `vite build` is left alone.
-  local reg="$HOME/.dev-servers" f rpid exp dir rcwd name
+  # (~/.dev-servers/<port>: "pid expiry dir cwd name") live until their expiry, and never past PREVIEW_MAX_AGE_H; an
+  # unregistered preview for PREVIEW_MAX_AGE_H; a dev server (`vite` with neither build nor preview) for DEV_MAX_AGE_H.
+  # `vite build` is left alone. A served dir is only ever deleted under /private/tmp/.
+  local reg="$HOME/.dev-servers" f rpid exp dir rcwd name why
+  rm_dir() { [[ "$1" == /private/tmp/?*/?* ]] && [ -d "$1" ] && rm -rf "$1"; return 0; }
   for f in "$reg"/*; do
     [ -f "$f" ] || continue
     read -r rpid exp dir rcwd name < "$f"
-    if ! kill -0 "$rpid" 2>/dev/null; then [ "$dry" = "--dry-run" ] || { rm -f "$f"; [ -d "$dir" ] && rm -rf "$dir"; }; continue; fi
-    [ "$exp" -lt "$(date +%s)" ] || continue
+    if ! kill -0 "$rpid" 2>/dev/null; then [ "$dry" = "--dry-run" ] || { rm -f "$f"; rm_dir "$dir"; }; continue; fi
+    why=""
+    if [ "$exp" -lt "$(date +%s)" ]; then why="expired"
+    elif [ "$(age_s "$rpid")" -gt $((PREVIEW_MAX_AGE_H * 3600)) ]; then why="older than ${PREVIEW_MAX_AGE_H} h"; fi
+    [ -z "$why" ] && continue
     n=$((n + 1))
-    if [ "$dry" = "--dry-run" ]; then echo "would reap preview :$(basename "$f") ($name, expired)"; continue; fi
-    log "reap preview :$(basename "$f") pid $rpid ($name): expired"; echo "reaped preview :$(basename "$f") ($name, expired)"
-    kill_tree "$rpid"; rm -f "$f"; [ -d "$dir" ] && rm -rf "$dir"
+    if [ "$dry" = "--dry-run" ]; then echo "would reap preview :$(basename "$f") ($name, $why)"; continue; fi
+    log "reap preview :$(basename "$f") pid $rpid ($name): $why"; echo "reaped preview :$(basename "$f") ($name, $why)"
+    kill_tree "$rpid"; rm -f "$f"; rm_dir "$dir"
   done
   while read -r pid; do
     [ -z "$pid" ] && continue
@@ -126,7 +131,7 @@ reap() {
   done < <(pgrep -f 'vite/bin/vite\.js' 2>/dev/null)
   # served build dirs nothing serves any more (a preview killed by hand), a day on
   find "${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}" -mindepth 1 -maxdepth 1 -type d -mtime +0 2>/dev/null | while read -r d; do
-    grep -qs " $d " "$reg"/* || { [ "$dry" = "--dry-run" ] && echo "would remove $d" || rm -rf "$d"; }
+    grep -qs " $d " "$reg"/* || { [ "$dry" = "--dry-run" ] && echo "would remove $d" || rm_dir "$d"; }
   done
   [ "$dry" = "--dry-run" ] && [ $n -eq 0 ] && echo "no browser or vite server to reap"
   # iOS Simulators (E316)
@@ -189,7 +194,7 @@ while :; do
   reap >/dev/null
   for i in $(seq 0 $((LANES - 1))); do
     marker="$DIR/got.$$.$i"; rm -f "$marker"
-    lockf -t 0 "$DIR/slot-$i.lock" bash "$SELF" _slot "$i" "$marker" "$MAX_MIN" "$@"
+    lockf -s -t 0 "$DIR/slot-$i.lock" bash "$SELF" _slot "$i" "$marker" "$MAX_MIN" "$@"
     rc=$?
     if [ -e "$marker" ]; then rm -f "$marker"; exit $rc; fi
   done

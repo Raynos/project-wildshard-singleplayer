@@ -54,6 +54,29 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# caps (E317 follow-up: one session held 26 previews registered for 8–12 h): --hours at most SERVE_MAX_HOURS (4), and at
+# most SERVE_MAX_LIVE (8) previews machine-wide — over it, this caller's oldest preview is stopped to make room, or, if
+# the caller has none, the one closest to its expiry (it's a shared lane). The reaper ends any preview after 6 h.
+MAX_H="${SERVE_MAX_HOURS:-4}"; MAX_LIVE="${SERVE_MAX_LIVE:-8}"
+if ! [[ "$HOURS" =~ ^[0-9]+$ ]] || [ "$HOURS" -lt 1 ]; then HOURS=1; fi
+if [ "$HOURS" -gt "$MAX_H" ]; then echo "serve-build: --hours capped at $MAX_H" >&2; HOURS=$MAX_H; fi
+while :; do
+  n_live=0; oldest=""; oldest_exp=""; any=""; any_exp=""
+  for f in "$REG"/*; do
+    [ -f "$f" ] || continue
+    read -r pid exp out cwd name < "$f"
+    kill -0 "$pid" 2>/dev/null || { rm -f "$f"; continue; }
+    n_live=$((n_live + 1))
+    if [ "$cwd" = "$CALLER" ] && { [ -z "$oldest_exp" ] || [ "$exp" -lt "$oldest_exp" ]; }; then oldest="$(basename "$f")"; oldest_exp="$exp"; fi
+    if [ -z "$any_exp" ] || [ "$exp" -lt "$any_exp" ]; then any="$(basename "$f")"; any_exp="$exp"; fi
+  done
+  [ "$n_live" -lt "$MAX_LIVE" ] && break
+  # none of the caller's own to recycle: the one closest to its expiry goes, whoever started it (it's a shared lane)
+  [ -z "$oldest" ] && oldest="$any"
+  echo "serve-build: $MAX_LIVE previews running — stopping the one closest to expiry, :$oldest" >&2
+  bash "$0" stop "$oldest" >/dev/null
+done
+
 if [ -z "$PORT" ]; then
   for p in $(seq 4400 4999); do
     [ -f "$REG/$p" ] && continue
