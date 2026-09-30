@@ -103,7 +103,7 @@
    "meshopt": [["hi/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.glb"], ["lo/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb"]],
    "post": "scripts/blender/pine-hollow/weapons/knife-post.sh",
    "outputs": ["public/assets/pine-hollow/weapons/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb", "public/assets/pine-hollow/weapons/skinning-knife.json"],
-   "feeds": ["src/pinehollow/life/skinKnife.ts"]
+   "feeds": ["src/chunks/pine-hollow/models/skinningKnife.ts"]
   },
   "nine-dragon-stack/fei-zhua": {
    "about": "Lab only: the Fei Zhua wrist grapple, modelled + AO-baked (lab P9, E169). Loaded only by the dev lab page (src/dev/nd-lab/grapple/)",

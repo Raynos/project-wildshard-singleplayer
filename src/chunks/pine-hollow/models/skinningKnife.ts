@@ -17,10 +17,11 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Game } from '../../core/Game';
-import type { Sky } from '../../world/Sky';
-import { isMesh, viewmodelMaterial, whiteColors } from '../../player/Crossbow';
-import { BEAT } from './lifeMath';
+import type { Game } from '../../../core/Game';
+import type { Sky } from '../../../world/Sky';
+import { isMesh, viewmodelMaterial, whiteColors } from '../../../player/Crossbow';
+import { BEAT } from '../../../pinehollow/life/lifeMath';
+import { defineModel, type ModelContext, type ModelDef } from '../../../models/model';
 
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';
 
@@ -168,3 +169,52 @@ function proceduralKnife(): THREE.BufferGeometry {
   const cuff = new THREE.CylinderGeometry(0.042, 0.046, 0.12, 14, 1, true); cuff.rotateX(Math.PI / 2 - 0.35); cuff.translate(0.014, -0.042, 0.15); paint(cuff, '#2b2f33');
   return mergeGeometries(parts, false);
 }
+
+// ───────────────────────────── the model (E306 / E315 M5: Gear) ─────────────────────────────
+
+/** the GLB as `parseKnife` reads it: plain float geometry + the atlas */
+interface KnifeFile { geo: THREE.BufferGeometry; tex: { map: THREE.Texture; normalMap: THREE.Texture; arm: THREE.Texture } }
+
+/**
+ * The Model Explorer's specimen: the stand-in at once, then the Blender knife from its own load of the GLB (the phone
+ * tier's file on a phone; parsed once per shard) — each on the specimen's own copy of the knife's material, dressed as
+ * `SkinKnife.use` dresses the held one but opaque, in the normal queue. Nothing is shared with the knife the skinning beat
+ * raises: that one loads its own copy after the boot.
+ */
+function knifeSpecimen(ctx: ModelContext, id: string): THREE.Group {
+  const holder = new THREE.Group();
+  const show = (geo: THREE.BufferGeometry, tex: KnifeFile['tex'] | null): void => {
+    whiteColors(geo);
+    const m = viewmodelMaterial(ctx.sky, 'skin-knife', { roughness: 0.55, metalness: 0.25 }); // the stand-in's factors
+    if (tex) {
+      m.map = tex.map; m.normalMap = tex.normalMap; m.aoMap = tex.arm; m.roughnessMap = tex.arm; m.metalnessMap = tex.arm;
+      m.normalScale.set(1, -1); // glTF's v runs down the image
+      m.roughness = 1; m.metalness = 1; m.envMapIntensity = 0.9;
+    }
+    const mesh = new THREE.Mesh(geo, m);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    holder.clear();
+    holder.add(mesh);
+  };
+  show(proceduralKnife(), null);
+  const file = ctx.once('gear:skinning-knife', (): Promise<KnifeFile> => new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(KNIFE_MODEL_URL).then((gltf) => parseKnife(gltf.scene)));
+  void (async (): Promise<void> => {
+    try {
+      const k = await file;
+      show(k.geo, k.tex);
+      if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
+    } catch (e: unknown) { console.warn('[skin-knife] Model Explorer: the Blender model did not load — the procedural knife stands in:', e); }
+  })();
+  return holder;
+}
+
+/**
+ * The skinning knife in a gloved hand: the Blender model (scripts/blender/pine-hollow/weapons/skinning_knife.py →
+ * public/assets/pine-hollow/weapons/skinning-knife[.phone].glb, one mesh, one baked atlas), the procedural stand-in when it
+ * does not load. One copy: the skinning beat raises it at a kill (`SkinKnife`, src/pinehollow/life/index.ts).
+ */
+export const skinningKnife: ModelDef<object> = defineModel<object>({
+  id: 'pine-hollow/skinning-knife', name: 'Skinning knife', category: 'gear', pipeline: ['blender', 'code'], file: 'src/chunks/pine-hollow/models/skinningKnife.ts',
+  defaults: {},
+  build: (ctx) => knifeSpecimen(ctx, skinningKnife.id),
+});

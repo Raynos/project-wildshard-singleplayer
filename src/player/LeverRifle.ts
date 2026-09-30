@@ -10,6 +10,7 @@ import {
 } from './Crossbow';
 import { makeFlashTexture, HitLine, brassFloor } from './Rifle';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
+import type { Sky } from '../world/Sky';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { shardSlot } from '../core/shardState';
 import { MAY_KTX2 } from '../boot/gpuFiles';
@@ -207,6 +208,60 @@ function parseLeverModel(root: THREE.Object3D): LeverModel {
 /** a build's parts, in model space (the lever / hammer about their pivots) */
 interface LeverParts { wood: THREE.BufferGeometry; stock: THREE.BufferGeometry; steel: THREE.BufferGeometry; lever: THREE.BufferGeometry; hammer: THREE.BufferGeometry; bolt: THREE.BufferGeometry; leverPivot: THREE.Vector3; gate: THREE.Vector3 }
 
+/** a lever-action build: its three materials (the viewmodels' shared lit program) and its parts in model space — the
+ *  Blender model's when it is in, else the procedural build (its walnut borrowed from `woodFrom`) — and the gold bead */
+interface LeverBuild { readonly brassMat: THREE.MeshPhysicalMaterial; readonly woodMat: THREE.MeshPhysicalMaterial; readonly steelMat: THREE.MeshPhysicalMaterial; readonly parts: LeverParts; readonly beadGeo: THREE.BufferGeometry }
+/** The viewmodel's build and the Model Explorer's card (`leverSpecimen`) are this one function, so the two never drift. */
+function buildLever(sky: Sky, model: LeverModel | null, woodFrom: THREE.Object3D | null): LeverBuild {
+  // ── materials: the viewmodels' shared lit program (MeshPhysical + vertex colours + the five map slots) ──
+  const std = (name: string, t: TexSet, extra: THREE.MeshPhysicalMaterialParameters) => viewmodelMaterial(sky, name, { map: t.map, normalMap: t.normalMap, aoMap: t.armMap, roughnessMap: t.armMap, metalnessMap: t.armMap, roughness: 1, metalness: 1, ...extra });
+  const steelTex = viewmodelTexSet('steel-rifle'); // the brass's (the cartridges' tiled UVs), and the procedural build's steel
+  for (const t of [steelTex.map, steelTex.normalMap, steelTex.armMap]) t.repeat.set(2, 2);
+  const brassMat = std('lever-brass', steelTex, { normalScale: new THREE.Vector2(0.25, 0.25), color: new THREE.Color(0.95, 0.7, 0.34), roughness: 0.75, envMapIntensity: 1.1 });
+  let woodMat: THREE.MeshPhysicalMaterial, steelMat: THREE.MeshPhysicalMaterial, parts: LeverParts;
+  if (model) {
+    // the baked atlases carry the colour, the AO and the roughness / metalness: the factors stay 1 (the skins set theirs);
+    // glTF's v runs down the image, so the normal map's green is flipped (three's GLTFLoader does the same)
+    woodMat = std('lever-wood', model.wood, { normalScale: new THREE.Vector2(0.9, -0.9), envMapIntensity: 0.55, specularIntensity: 0.55 });
+    steelMat = std('lever-steel', model.steel, { normalScale: new THREE.Vector2(0.8, -0.8), envMapIntensity: 0.95 });
+    const g = model.geo;
+    parts = { wood: g.forend, stock: g.stock, steel: g.steel, lever: g.lever, hammer: g.hammer, bolt: g.bolt, leverPivot: MODEL_LEVER_PIVOT, gate: MODEL_GATE };
+  } else {
+    const wood = borrowWood(woodFrom);
+    for (const t of [wood.map, wood.normalMap, wood.armMap]) t.repeat.set(1.6, 0.9);
+    woodMat = std('lever-wood', wood, { normalScale: new THREE.Vector2(0.8, 0.8), color: new THREE.Color(0.62, 0.47, 0.36), metalness: 0, roughness: 0.8, envMapIntensity: 0.5, specularIntensity: 0.45 });
+    steelMat = std('lever-steel', steelTex, { normalScale: new THREE.Vector2(0.45, 0.45), color: new THREE.Color(0.1, 0.105, 0.12), roughness: 0.95, envMapIntensity: 0.7 });
+    parts = proceduralParts();
+  }
+
+  // the gold bead (both builds): the aim reference, on the sight line; it catches the light — a vertex colour over 1
+  // brightens it on the shared program (no emissive, no new draw)
+  const beadGeo = new THREE.SphereGeometry(BEAD_R, 12, 10); beadGeo.translate(0, SIGHT_Y, FRONT_Z - 0.0035);
+  beadGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(beadGeo.getAttribute('position').count * 3).fill(2.2), 3));
+  return { brassMat, woodMat, steelMat, parts, beadGeo };
+}
+
+/**
+ * The Model Explorer's card (src/chunks/pine-hollow/models/gear.ts): the lever-action as the cabin pickup shows it — the
+ * seven parts, the hammer down — built by `buildLever` on its own materials and its own copy of the model's geometry, so
+ * nothing of the rifle in your hands is shared or touched. `model`: `await preloadLeverModel()` (null: the procedural build).
+ */
+export function leverSpecimen(sky: Sky, model: LeverModel | null): THREE.Group {
+  const { brassMat, woodMat, steelMat, parts, beadGeo } = buildLever(sky, model, null);
+  const g = new THREE.Group();
+  const add = (geo: THREE.BufferGeometry, mat: THREE.Material, pos?: THREE.Vector3, rotX = 0): void => {
+    const m = new THREE.Mesh(model === null ? geo : geo.clone(), mat); // the loaded model's geometry is the held rifle's: a copy
+    whiteColors(m.geometry);
+    if (pos) m.position.copy(pos);
+    m.rotation.x = rotX;
+    m.castShadow = true; m.receiveShadow = true;
+    g.add(m);
+  };
+  add(parts.wood, woodMat); add(parts.stock, woodMat); add(parts.steel, steelMat); add(beadGeo, brassMat);
+  add(parts.lever, steelMat, parts.leverPivot); add(parts.hammer, steelMat, HAMMER_PIVOT, HAMMER_DOWN); add(parts.bolt, steelMat);
+  return g;
+}
+
 export class LeverRifle implements KitWeapon {
   readonly id = 'rifle' as const;
   readonly name = 'Lever-action';
@@ -285,33 +340,10 @@ export class LeverRifle implements KitWeapon {
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
 
-    // ── materials: the viewmodels' shared lit program (MeshPhysical + vertex colours + the five map slots) ──
     const model = opts.model !== undefined ? opts.model : modelReady;
-    const std = (name: string, t: TexSet, extra: THREE.MeshPhysicalMaterialParameters) => viewmodelMaterial(this.sky, name, { map: t.map, normalMap: t.normalMap, aoMap: t.armMap, roughnessMap: t.armMap, metalnessMap: t.armMap, roughness: 1, metalness: 1, ...extra });
-    const steelTex = viewmodelTexSet('steel-rifle'); // the brass's (the cartridges' tiled UVs), and the procedural build's steel
-    for (const t of [steelTex.map, steelTex.normalMap, steelTex.armMap]) t.repeat.set(2, 2);
-    this.brassMat = std('lever-brass', steelTex, { normalScale: new THREE.Vector2(0.25, 0.25), color: new THREE.Color(0.95, 0.7, 0.34), roughness: 0.75, envMapIntensity: 1.1 });
-    let woodMat: THREE.MeshPhysicalMaterial, steelMat: THREE.MeshPhysicalMaterial, parts: LeverParts;
-    if (model) {
-      // the baked atlases carry the colour, the AO and the roughness / metalness: the factors stay 1 (the skins set theirs);
-      // glTF's v runs down the image, so the normal map's green is flipped (three's GLTFLoader does the same)
-      woodMat = std('lever-wood', model.wood, { normalScale: new THREE.Vector2(0.9, -0.9), envMapIntensity: 0.55, specularIntensity: 0.55 });
-      steelMat = std('lever-steel', model.steel, { normalScale: new THREE.Vector2(0.8, -0.8), envMapIntensity: 0.95 });
-      const g = model.geo;
-      parts = { wood: g.forend, stock: g.stock, steel: g.steel, lever: g.lever, hammer: g.hammer, bolt: g.bolt, leverPivot: MODEL_LEVER_PIVOT, gate: MODEL_GATE };
-    } else {
-      const wood = borrowWood(opts.woodFrom ?? null);
-      for (const t of [wood.map, wood.normalMap, wood.armMap]) t.repeat.set(1.6, 0.9);
-      woodMat = std('lever-wood', wood, { normalScale: new THREE.Vector2(0.8, 0.8), color: new THREE.Color(0.62, 0.47, 0.36), metalness: 0, roughness: 0.8, envMapIntensity: 0.5, specularIntensity: 0.45 });
-      steelMat = std('lever-steel', steelTex, { normalScale: new THREE.Vector2(0.45, 0.45), color: new THREE.Color(0.1, 0.105, 0.12), roughness: 0.95, envMapIntensity: 0.7 });
-      parts = proceduralParts();
-    }
+    const { brassMat, woodMat, steelMat, parts, beadGeo } = buildLever(this.sky, model, opts.woodFrom ?? null);
+    this.brassMat = brassMat;
     this.gate = parts.gate;
-
-    // the gold bead (both builds): the aim reference, on the sight line; it catches the light — a vertex colour over 1
-    // brightens it on the shared program (no emissive, no new draw)
-    const beadGeo = new THREE.SphereGeometry(BEAD_R, 12, 10); beadGeo.translate(0, SIGHT_Y, FRONT_Z - 0.0035);
-    beadGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(beadGeo.getAttribute('position').count * 3).fill(2.2), 3));
     // the stock is its own draw: sighted, the wrist and comb sit under the eye (a flat brown plane across the view) — hidden
     this.stock = new THREE.Mesh(parts.stock, woodMat);
     const meshW = new THREE.Mesh(parts.wood, woodMat), meshS = new THREE.Mesh(parts.steel, steelMat), meshB = new THREE.Mesh(beadGeo, this.brassMat);

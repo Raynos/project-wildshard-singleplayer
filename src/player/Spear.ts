@@ -127,10 +127,11 @@ function horsehair(n: number, y: number, r: number, len: number, flare: number, 
   parts.push(tube([section(12, r + 0.0005, r + 0.0005, y - 0.006), section(12, r + 0.0035, r + 0.0035, y), section(12, r + 0.0005, r + 0.0005, y + 0.008)], (_v, _a, out) => out.copy(THONG))); // the lashing that holds it
 }
 
-interface Parts { paint: THREE.BufferGeometry; metal: THREE.BufferGeometry }
+/** a spear's or a javelin's two draws: the painterly wood, horsehair and thongs; the PBR steel (with a `uv`) */
+export interface SpearParts { paint: THREE.BufferGeometry; metal: THREE.BufferGeometry }
 /** the spear (combat-B-spear-brace.png): 1.9 m of ash, grain + worn grip bands, a thong binding under a dark iron socket,
  *  a red horsehair tassel, a long leaf head with a midrib, an iron butt ferrule — origin at the right hand's grip */
-function buildSpear(): Parts {
+export function buildSpear(): SpearParts {
   const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
   const yButt = -1.3, ySocket = 0.62; // held choked up: the grip is 0.6 m behind the socket
   const shaft: THREE.Vector3[][] = [];
@@ -145,7 +146,7 @@ function buildSpear(): Parts {
 }
 /** the javelin (combat-B2-javelin-throw.png): a slimmer 1.3 m shaft, a narrow leaf head on a socket, a red horsehair tuft
  *  at the tail — origin at its balance point */
-function buildJavelin(): Parts {
+export function buildJavelin(): SpearParts {
   const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
   const y0 = -0.62, y1 = 0.6;
   const shaft: THREE.Vector3[][] = [];
@@ -158,7 +159,7 @@ function buildJavelin(): Parts {
   return { paint: merge(paint), metal: withUV(merge(metal)) };
 }
 /** one geometry for a thrown javelin in the world (painterly only: the head painted steel) */
-function worldJavelin(p: Parts): THREE.BufferGeometry {
+function worldJavelin(p: SpearParts): THREE.BufferGeometry {
   const m = p.metal.clone(); m.deleteAttribute('uv');
   return merge([p.paint.clone(), m]);
 }

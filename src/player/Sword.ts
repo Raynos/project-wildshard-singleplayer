@@ -246,8 +246,10 @@ function fist(w: number, h: number, d: number, round = 0.45): THREE.BufferGeomet
 /**
  * Sword model space: origin at the middle of the grip (between the two fists), +Y up the blade, +X across the
  * guard (the edges), +Z the flat facing the player's eye at rest. Blade 0.56 m, whole sword ≈ 0.78 m.
+ * `sword` is the blade, guard, grip, pommel and the two fists on it (one draw); `arms` the forearms. The viewmodel's build
+ * and the Model Explorer's gear cards (src/models/gear.ts, src/chunks/driftwood-isle/models/gear.ts) are this one function.
  */
-function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms: THREE.BufferGeometry; tipY: number; baseY: number } {
+export function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms: THREE.BufferGeometry; tipY: number; baseY: number } {
   const parts: THREE.BufferGeometry[] = [], armParts: THREE.BufferGeometry[] = [];
   const guardY = 0.085, bladeY0 = guardY + 0.014, L = 0.52, tipY = bladeY0 + L;
   // ── blade: hexagonal section, wide at the base, gently tapering, then a rounded (three-step) tip ──
@@ -307,6 +309,15 @@ function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms
   const sword = mergeGeometries(parts, false), arms = mergeGeometries(armParts, false);
   sword.computeBoundingSphere(); arms.computeBoundingSphere();
   return { sword, arms, tipY, baseY: bladeY0 };
+}
+
+/** the low-poly swords' material (flat facets, vertex colours; the iron blade metallic), prepared for the sky — opaque: the
+ *  viewmodel turns its own copy into the transparent queue */
+export function swordMaterial(sky: Sky, blade: 'wood' | 'iron'): THREE.MeshStandardMaterial {
+  const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
+  mat.name = 'sword'; mat.customProgramCacheKey = () => 'sword-lowpoly';
+  sky.setupMaterial(mat);
+  return mat;
 }
 
 // ───────────────────────────── hit stars ─────────────────────────────
@@ -623,13 +634,7 @@ export class Sword implements Weapon {
   private buildViewmodel(blade: 'wood' | 'iron', custom?: SwordRig): void {
     const { sword, arms, tipY, baseY } = custom ?? buildSword(blade);
     this.tipY = tipY; this.baseY = baseY; this.tipX = custom?.tipX ?? 0;
-    let mat: THREE.Material;
-    if (custom) mat = custom.material;
-    else {
-      mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
-      mat.name = 'sword'; mat.customProgramCacheKey = () => 'sword-lowpoly';
-      this.sky.setupMaterial(mat);
-    }
+    const mat: THREE.Material = custom ? custom.material : swordMaterial(this.sky, blade);
     mat.transparent = true; mat.depthWrite = true; // transparent queue, after the depth clear (see below)
     for (const [g, rig] of [[sword, this.rig], [arms, this.armRig]] as [THREE.BufferGeometry, THREE.Group][]) {
       const mesh = new THREE.Mesh(g, mat);

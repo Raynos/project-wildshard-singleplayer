@@ -8,6 +8,7 @@ import { live, type RosterEntry } from '../../models/live';
 import { bear, boar, deer } from '../../models/creatures';
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './models/creatures';
 import { castaway } from './models/people';
+import { GEAR } from './models/gear';
 
 export const ROSTER: readonly RosterEntry[] = [
   // the fauna (driftwood-isle.ts `fauna`), faceted low-poly in code here
@@ -18,4 +19,6 @@ export const ROSTER: readonly RosterEntry[] = [
   live(gull, { copies: 36, drawnAs: 'instanced' }),
   // people
   live(castaway, { copies: 1, drawnAs: 'single' }),
+  // the gear its player holds (the kit: the wooden sword, the iron sword found on the wreck, the AR-15 lent in the arena)
+  ...GEAR,
 ];

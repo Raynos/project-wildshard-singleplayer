@@ -115,6 +115,8 @@ export const NINE_DRAGON_STACK: ChunkDef = {
   // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World
   // Explorer's free camera over the fragment — no model catalog is registered
   explore: true,
+  // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
+  roster: async () => (await import('./roster')).ROSTER,
   // the maps: the built fragment over a dark void (the Well, the air between the towers) — the floors, the tower fronts,
   // the balustrade, the props' footprints and the Well's crossings from the registry (index.ts registers them under these ids)
   map: {

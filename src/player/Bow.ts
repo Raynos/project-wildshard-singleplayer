@@ -553,6 +553,24 @@ export const POSE = {
 } satisfies Record<string, GripPose>;
 const L_ELBOW = V(-0.42, -0.52, -0.3), L_ELBOW_PORT = V(-0.2, -0.75, -0.32);
 
+/** the viewmodel's painterly look (its one program): the rim, the bands, the cool fill on the shade side */
+const VM_LOOK = { rim: 0.55, bands: 0.7, shade: VM_SHADE } as const;
+
+/**
+ * The Model Explorer's card (src/chunks/nalati-grasslands/models/gear.ts): the braced bow and the left glove on it (the
+ * bow's one mesh, `BowMesh`, as the viewmodel builds it) in a style's paint — the recurve, the Golden King's gold, the
+ * Sky-Wolf skin — on its own painterly material, without a bow in your hands.
+ */
+export function bowSpecimen(sky: Sky, style: BowStyle): THREE.Group {
+  const bow = new BowMesh([gloveFist(L_FIST).geometry]);
+  if (style !== 'recurve') bow.repaint(style);
+  const m = new THREE.Mesh(bow.geometry, painterlyMaterial(sky, VM_LOOK));
+  m.castShadow = true; m.receiveShadow = true;
+  const g = new THREE.Group();
+  g.add(m);
+  return g;
+}
+
 export class Bow implements Weapon {
   readonly hasAmmo = true;
   /** the HUD strip (Weapons.ts BaseLike overrides): ARROWS n / 24 */
@@ -634,7 +652,7 @@ export class Bow implements Weapon {
     // one painterly program for the whole viewmodel; drawn after the depth clear (renderOrder 999 / 1000, like Crossbow)
     // shade > 1: the painted sky tint is ADDED on the shade side (painterly.ts), so it doubles as the viewmodel's cool fill —
     // an arm turned away from the sun reads as a cool-shadowed sleeve, not a black hole
-    this.mat = painterlyMaterial(this.sky, { rim: 0.55, bands: 0.7, shade: VM_SHADE, transparent: true, depthWrite: true });
+    this.mat = painterlyMaterial(this.sky, { ...VM_LOOK, transparent: true, depthWrite: true });
     const lf = gloveFist(L_FIST), rf = gloveFist(R_FIST);
     this.lWrist = lf.wrist; this.rWrist = rf.wrist; this.rHook = rf.hook; this.rWristDir = rf.wristDir;
     _rollQ.setFromAxisAngle(rf.wristDir, R_FIST_ROLL); // pronate about the forearm itself, so the forearm keeps its heading

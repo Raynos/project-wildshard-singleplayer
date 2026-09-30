@@ -31,8 +31,8 @@
  * blade-in-flesh; the birds are quiet.
  *
  * The skinning beat (`harvest(carcass, give)`): ~1.5 s — the weapon lowered, the view kneels and pitches down to the
- * carcass, a gloved hand brings the skinning knife up (skinKnife.ts: the Blender model on the viewmodels' program), two
- * knife strokes (the Pine Hollow set's two skinning strokes, a small kick each), then the drops land (`give`: the pack + the toast), the
+ * carcass, a gloved hand brings the skinning knife up (src/chunks/pine-hollow/models/skinningKnife.ts: the Blender model on
+ * the viewmodels' program), two knife strokes (the Pine Hollow set's two skinning strokes, a small kick each), then the drops land (`give`: the pack + the toast), the
  * knife drops away and the view comes back up.
  */
 import * as THREE from 'three';
@@ -49,7 +49,7 @@ import { cabinMask, heightAt, inChunk, normalAt, pondMask, streamAt, waterLevel 
 import { Rng } from '../../core/rng';
 import { CameraFX } from '../../player/CameraFX';
 import { TrunkProbe } from './trunks';
-import { SkinKnife } from './skinKnife';
+import { SkinKnife } from '../../chunks/pine-hollow/models/skinningKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../../chunks/pine-hollow/models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';

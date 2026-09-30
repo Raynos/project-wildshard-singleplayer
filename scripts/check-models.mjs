@@ -64,7 +64,7 @@ export const DONE = {
     'src/chunks/nine-dragon-stack/index.ts': { why: 'the fragment\'s built fabric — the square, the towers, the Well, their kits — is one world piece (`nds-floors`) with its collision', counts: { 'registry add with object': 1 } },
     'src/chunks/nine-dragon-stack/world/facade/batch.ts': { why: 'the facade shell and its ~10 k window quads are the towers\' own fabric; its pieces are models', counts: { InstancedMesh: 1 } },
     'src/chunks/nine-dragon-stack/world/hero/kitx.ts': { why: 'the kits\' curved-piece builder merges a region\'s geometry (world)', counts: { mergeGeometries: 1 } },
-    'src/chunks/nine-dragon-stack/vm/geo.ts': { why: 'the first-person arms and the jian are Gear (M5)', counts: { mergeGeometries: 1 } },
+    'src/chunks/nine-dragon-stack/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
   },
   'pine-hollow': {
     'src/world/PineCrags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
@@ -72,7 +72,6 @@ export const DONE = {
     'src/world/Cabin.ts': { why: "the homestead draws its building and prop models (placed drawnInto, src/chunks/pine-hollow/world/cabins.ts): its log kit merges each building per material and the cabins' cores across them, its props are instanced across the buildings, a specimen's for the Explorer", counts: { InstancedMesh: 3, mergeGeometries: 9 } },
     'src/world/PineStreams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
     'src/world/Undergrowth.ts': { why: "the forest floor's field draws its six kinds' copies (models placed drawnInto: src/chunks/pine-hollow/world/drawnModels.ts)", counts: { InstancedMesh: 1 } },
-    'src/pinehollow/life/skinKnife.ts': { why: 'the skinning knife is Gear (M5)', counts: { mergeGeometries: 1 } },
   },
 };
 

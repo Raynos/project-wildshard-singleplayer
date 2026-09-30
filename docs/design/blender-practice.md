@@ -29,7 +29,7 @@ first-person arms (details below).
 | Pine Hollow crag kit (12 modules) | `scripts/blender/crags/{build_crags,rocklib}.py` + `run.sh kit` | `pine-hollow-crags/crags.glb` (348 KB) | `src/world/PineCrags.ts` | yes | no |
 | Pine Hollow bear cave | `scripts/blender/crags/build_cave.py`, fed by `export-cave.mjs` (the baked heights round the mouth) | `pine-hollow-crags/cave.glb` (373 KB) | `src/world/PineCrags.ts` | yes | no |
 | Lever rifle (hi / lo) | `scripts/blender/weapons/lever_rifle.py` (1,091 lines) + `run.sh` | `public/assets/pine-hollow/weapons/lever-rifle{,.phone}.glb` | `src/player/LeverRifle.ts` | yes | yes, into the build cache |
-| Skinning knife in a gloved hand (hi / lo) | `scripts/blender/weapons/skinning_knife.py` (1,358) + `run-knife.sh` | `skinning-knife{,.phone}.glb` + `.json` | `src/pinehollow/life/skinKnife.ts` | yes | yes, into the build cache |
+| Skinning knife in a gloved hand (hi / lo) | `scripts/blender/weapons/skinning_knife.py` (1,358) + `run-knife.sh` | `skinning-knife{,.phone}.glb` + `.json` | `src/chunks/pine-hollow/models/skinningKnife.ts` | yes | yes, into the build cache |
 | **Nine Dragon first-person arms**: hand, gauntlet, jian guard, rigged into `fp-rig.glb` with 16 clips | **not at HEAD.** `src/dev/nd-lab/viewmodel/blender/{hand,hand_lib,hand_model,hand_parts,gauntlet,gauntlet_geo,gauntlet_maps,gauntlet_parts,gauntlet_preview,guard}.py` (4,110 lines) were deleted with the lab in `7a339ed2`; they exist only in history (`7a339ed2^`). The rig bake that turns the parts into `fp-rig.glb` (`bake.ts`, `moves.ts` with the clips, `rigbake.mjs`, `riggate.mjs`, `gate_chart.py`) was **never committed**, and is not under `~/projects`, `~/.claude/jobs` or the scratch folders | `public/assets/nine-dragon/viewmodel/fp-rig.glb` (2.4 MB) + 16 map WebPs (5.5 MB folder) | `src/chunks/nine-dragon-stack/vm/fpArms.ts` | — | — |
 | *Lab only:* Fei Zhua grapple | `src/dev/nd-lab/grapple/blender/fei_zhua.py` (844) | `public/assets/nine-dragon/lab/grapple/fei-zhua.glb` (402 KB), shipped but loaded only by the dev lab page | `src/dev/nd-lab/grapple/feizhua.ts` | no | no |
 | *Orphan:* Nalati yurt | `scripts/blender/nalati_yurt.py` (330) | none: Jake picked the procedural yurt and `609f4242` removed the GLB and its loader | — | — | — |
@@ -224,7 +224,7 @@ In order; each item is one small commit that doesn't collide with the lanes live
    - Point `pnpm blender:island` and the four existing `run*.sh` at it; each shrinks to a `targets.json` row. The island
      now takes the lock. (S–M)
 3. **Move the builders to the per-shard layout** (§3), one shard per commit. Pure moves plus path fixes in the comments
-   that cite them (`BlenderIsland.ts`, `PineCrags.ts`, `treeSet.ts`, `LeverRifle.ts`, `skinKnife.ts`, `fpArms.ts`,
+   that cite them (`BlenderIsland.ts`, `PineCrags.ts`, `treeSet.ts`, `LeverRifle.ts`, `skinningKnife.ts`, `fpArms.ts`,
    `scripts/blender/README.md`).
    - `scripts/blender/{build_island,assets}.py` and `shards/driftwood-isle.mjs` → `driftwood-isle/`.
    - `trees/`, `crags/`, `weapons/` and `shards/pine-hollow.mjs` → `pine-hollow/`.

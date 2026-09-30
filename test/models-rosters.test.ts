@@ -5,12 +5,15 @@ import { describe, expect, it } from 'vitest';
 import { DRIFTWOOD_ISLE } from '../src/chunks/driftwood-isle';
 import { PINE_HOLLOW } from '../src/chunks/pine-hollow';
 import { NALATI_GRASSLANDS } from '../src/chunks/nalati-grasslands';
+import { NINE_DRAGON_STACK } from '../src/chunks/nine-dragon-stack/def';
 import type { ChunkDef } from '../src/chunks/ChunkDef';
 import type { RosterEntry } from '../src/models/live';
 import { definedModels } from '../src/models/model';
 
-const SHARDS: readonly ChunkDef[] = [DRIFTWOOD_ISLE, PINE_HOLLOW, NALATI_GRASSLANDS];
+const SHARDS: readonly ChunkDef[] = [DRIFTWOOD_ISLE, PINE_HOLLOW, NALATI_GRASSLANDS, NINE_DRAGON_STACK];
 const TABS = new Set(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']);
+
+const defined = (id: string): ReturnType<typeof definedModels>[number] | undefined => definedModels().find((m) => m.id === id);
 
 async function rosterOf(def: ChunkDef): Promise<readonly RosterEntry[]> {
   const r = await def.roster?.();
@@ -26,9 +29,10 @@ describe('shard rosters (E315 M5)', () => {
       expect(new Set(ids).size).toBe(ids.length);
       const species = new Set(roster.map((r) => r.species).filter((s) => s !== undefined));
       for (const plan of def.fauna) expect(species.has(plan.kind), `${def.slug} fauna '${plan.kind}'`).toBe(true);
-      const defined = new Map(definedModels().map((m) => [m.id, m]));
+      // every shard lists the gear its player holds
+      expect(roster.some((r) => defined(r.id)?.category === 'gear'), `${def.slug} gear`).toBe(true);
       for (const id of ids) {
-        const m = defined.get(id);
+        const m = defined(id);
         expect(m, id).toBeDefined();
         expect(TABS.has(m?.category ?? ''), `${id} tab`).toBe(true);
         expect(m?.file.startsWith(id.startsWith('shared/') ? 'src/models/' : `src/chunks/${def.slug}/models/`), `${id} file`).toBe(true);

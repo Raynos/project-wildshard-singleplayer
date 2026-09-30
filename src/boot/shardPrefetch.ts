@@ -42,7 +42,7 @@ import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
 import { LEVER_MODEL_URL } from '../player/LeverRifle';
-import { KNIFE_MODEL_URL } from '../pinehollow/life/skinKnife';
+import { KNIFE_MODEL_URL } from '../chunks/pine-hollow/models/skinningKnife';
 import { BIRDS_JSON_URL, BIRDS_URL } from '../pinehollow/life/birdModels';
 import { NPC_KINDS, npcModelUrl } from '../pinehollow/quest/npcModels';
 import { JOURNAL_SKIN } from '../ui/compendium/shards/pine-hollow';

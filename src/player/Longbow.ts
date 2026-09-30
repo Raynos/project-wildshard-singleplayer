@@ -439,6 +439,25 @@ export const POSE = {
 } satisfies Record<string, GripPose>;
 const L_ELBOW = V(-0.42, -0.52, -0.3), L_ELBOW_PORT = V(-0.2, -0.75, -0.32);
 
+/** the longbow's one material: the viewmodels' shared lit program (vertex colours × the 1×1 fillers) — waxed yew, leather, linen */
+function longbowMaterial(sky: Sky): THREE.MeshPhysicalMaterial {
+  return viewmodelMaterial(sky, 'longbow', { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 });
+}
+
+/**
+ * The Model Explorer's card (src/chunks/pine-hollow/models/gear.ts): what `displayModel` shows — the braced stave and the
+ * left glove on it (the bow's one mesh) — built as the viewmodel builds it (`LongbowMesh`, the glove in the hunter's
+ * palette) on its own material, without a bow in your hands.
+ */
+export function longbowSpecimen(sky: Sky): THREE.Group {
+  const lf = withHunterPalette(() => gloveFist(L_FIST));
+  const m = new THREE.Mesh(new LongbowMesh([lf.geometry]).geometry, longbowMaterial(sky));
+  m.castShadow = true; m.receiveShadow = true;
+  const g = new THREE.Group();
+  g.add(m);
+  return g;
+}
+
 export class Longbow implements Weapon {
   readonly hasAmmo = true;
   readonly ammoLabel = 'Arrows';
@@ -509,7 +528,7 @@ export class Longbow implements Weapon {
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
 
     // one material on the viewmodels' shared lit program (vertex colours × the 1×1 fillers): waxed yew, leather, linen
-    this.mat = viewmodelMaterial(this.sky, 'longbow', { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 });
+    this.mat = longbowMaterial(this.sky);
     const { lf, rf, lArm, rArm } = withHunterPalette(() => ({ lf: gloveFist(L_FIST), rf: gloveFist(R_FIST), lArm: riderArm(1.0, 1), rArm: riderArm(0.9, 2) }));
     this.lWrist = lf.wrist; this.rWrist = rf.wrist; this.rHook = rf.hook; this.rWristDir = rf.wristDir;
     _rollQ.setFromAxisAngle(rf.wristDir, R_FIST_ROLL);

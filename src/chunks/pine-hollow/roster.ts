@@ -1,9 +1,8 @@
 /**
  * Pine Hollow's live models (E306 / E315 M5, `ChunkDef.roster`): every creature the Hollow can spawn — its fauna's deer,
  * boars, elk and bears on the species rigs wearing the generated hulls, the Antler King (before he comes out at night too),
- * the ravens, the owl, the woodpecker and the hares — and the hamlet's people. Listed in the Model Explorer at boot
- * (src/models/roster.ts); the Hollow keeps spawning, drawing and animating every copy as before. (Its gear is listed with
- * the gear models.)
+ * the ravens, the owl, the woodpecker and the hares — the hamlet's people and the gear its player holds. Listed in the
+ * Model Explorer at boot (src/models/roster.ts); the Hollow keeps spawning, drawing and animating every copy as before.
  *
  * `pipeline`: a generated mesh on a code rig lists its generator(s) first, then 'code'; a GLB posed in a shader (the
  * birds) is its generator alone.
@@ -15,6 +14,7 @@ import { antlerKing } from './models/antlerKing';
 import { owl, raven, woodpecker } from './models/birds';
 import { snowshoeHare } from './models/wildlife';
 import { millerBrandt, rangerHale, traderMott } from './models/people';
+import { GEAR } from './models/gear';
 
 /** the small wildlife's copies (src/pinehollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */
@@ -32,4 +32,6 @@ export const ROSTER: readonly RosterEntry[] = [
   live(woodpecker, { copies: WOODPECKERS, drawnAs: 'instanced' }), live(snowshoeHare, { copies: HARES, drawnAs: 'instanced' }),
   // the people (src/pinehollow/quest/index.ts): one each, the generated person skinned on its code rig
   live(rangerHale, { copies: 1 }), live(millerBrandt, { copies: 1 }), live(traderMott, { copies: 1 }),
+  // the gear its player holds (the crossbow, the lever-action, the Warden's longbow, the skinning knife)
+  ...GEAR,
 ];

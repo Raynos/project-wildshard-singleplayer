@@ -64,7 +64,7 @@ const SECTION: [number, number, 'edge' | 'bevel' | 'flat' | 'fuller' | 'spine'][
  * gold collar, a gold guard with down-swept quillons and ball finials, a leather grip bound in a raised spiral wrap with
  * gold wire, a gold cap pommel. Metal (blade + gold) → `extras` on the PBR steel; leather + the hand → painterly.
  */
-function buildSabre(material: THREE.Material, steel: THREE.Material): SwordRig & { tipX: number } {
+export function buildSabre(material: THREE.Material, steel: THREE.Material): SwordRig & { tipX: number } {
   const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
   const guardY = 0.064, y0 = guardY + 0.02, tipY = y0 + BLADE_L;
   // ── blade ──

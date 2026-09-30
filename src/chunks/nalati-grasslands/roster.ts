@@ -9,6 +9,7 @@ import { NALATI_WILDLIFE } from '../../entities/Wildlife';
 import { CAMP_PEOPLE } from '../../game/quest/nalati';
 import { aqbars, argymaq, balbalWarrior, ghostRider, goldenKing, horse, kokbori, marmot, qyran, sheep, sheepdog, stormTitan, wolf } from './models/creatures';
 import { campPeople, shepherd } from './models/people';
+import { GEAR } from './models/gear';
 
 /** the camp's flock (Wildlife NALATI_WILDLIFE: 40 sheep, one instanced draw) */
 const FLOCK = NALATI_WILDLIFE.flocks.reduce((n, f) => n + f.count, 0);
@@ -30,4 +31,6 @@ export const ROSTER: readonly RosterEntry[] = [
   live(goldenKing), live(stormTitan, { copies: 1, drawnAs: 'instanced' }),
   // people: the camp's five (one skinned mesh) and the mounted shepherd (src/nalati/sheepRaid.ts)
   live(campPeople, { copies: Object.keys(CAMP_PEOPLE).length, drawnAs: 'skinned' }), live(shepherd, { copies: 1, drawnAs: 'skinned' }),
+  // the gear its player holds (bow · sabre · spear and its javelins, the Golden Bow and the Naizagai once won, the AR-15)
+  ...GEAR,
 ];

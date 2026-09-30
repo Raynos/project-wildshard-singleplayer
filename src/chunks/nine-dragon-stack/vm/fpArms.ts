@@ -34,6 +34,7 @@ import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from './rig';
 import { Trail, type TrailLook } from './trail';
 import { phoneUrl } from '../../../boot/bytes';
 import { ktx2Texture } from '../../../core/ktx2';
+import { mapSlot } from '../../../core/shardState';
 
 export const ASSET_BASE = '/assets/nine-dragon/viewmodel/';
 export const RIG_URL = `${ASSET_BASE}fp-rig.glb`;
@@ -92,6 +93,16 @@ function mapPair(name: string): Promise<[Texture | null, Texture | null]> {
     }
   };
   return Promise.all([one(`${ASSET_BASE}${name}-maps.webp`), one(`${ASSET_BASE}${name}-nrm.webp`)]);
+}
+
+/** each part's maps, loaded once per shard: the held rig and the Model Explorer's specimen (models/gear.ts, E315 M5) read
+ *  the same textures (nothing writes them), so the card costs no second set */
+const mapLoads = new Map<string, Promise<[Texture | null, Texture | null]>>();
+mapSlot('nds.vm.maps', mapLoads);
+function sharedMapPair(name: string): Promise<[Texture | null, Texture | null]> {
+  let p = mapLoads.get(name);
+  if (p === undefined) { p = mapPair(name); mapLoads.set(name, p); }
+  return p;
 }
 
 interface Layer { action: AnimationAction; name: string; w: number; target: number; rate: number; hold: boolean }
@@ -281,7 +292,7 @@ export class NineDragonArms {
   static async load(url = RIG_URL): Promise<NineDragonArms> {
     const gltf = await loader.loadAsync(url);
     const names = ['hand-r', 'arm-r', 'fist-l', 'gauntlet'];
-    const pairs = await Promise.all(names.map((n) => mapPair(n)));
+    const pairs = await Promise.all(names.map((n) => sharedMapPair(n)));
     const textures = new Map<string, [Texture | null, Texture | null]>();
     for (let i = 0; i < names.length; i++) textures.set(names[i] ?? '', pairs[i] ?? [null, null]);
     const scene = gltf.scene.getObjectByName('vm_root') ?? gltf.scene;
