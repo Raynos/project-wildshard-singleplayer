@@ -72,6 +72,13 @@ at F2's baseline.
    The Sword's combo queue (`Sword.ts:481,564`) becomes `input.consume('attack')` inside the Melee family, with the
    same `CHAIN_LAG` 0.02 s. The harness's scripted combo must stay identical.
 7. **A dev overlay** (a Debug row under Developer tools): the live context stack and the last 20 actions.
+8. **The hoverboard becomes a kit Tool** (13-lead-resolutions 09#7; 09 §1.7 T2): `src/player/Hoverboard.ts` (the board
+   viewmodel) → `src/kit/tools/hoverboard.ts`, `class Hoverboard extends Tool`, slot `tool`, the `hover` action (`H`,
+   the HOVER disc), on all 4 shards through each manifest's `loadout.tools`. Its movement mode (`Player.hover`, the
+   ride-height spring, `HOVER_TOP`) stays in the engine motor as the `board` context. `Player` no longer constructs it.
+9. **The `addEventListener` patch.** Moving the input listeners onto `#engine/input` (steps 1–3) and X2's UI appends
+   onto scoped widgets takes `wildshard/no-global-listener-patch` (396 at F11, 01 §24) to 0; the later of X1 / X2
+   deletes `src/engine/app/legacyCapture.ts` (13-lead-resolutions 02/03#4).
 
 **Tests**
 - Node:
@@ -90,7 +97,9 @@ at F2's baseline.
 4. The Controls screen.
 
 **Done when**
-- `wildshard/no-raw-input` = 0.
+- `wildshard/no-raw-input` = 0; `wildshard/no-global-listener-patch` = 0 once X2 has also landed, and
+  `legacyCapture.ts` is gone.
+- `tool.hoverboard` is a kit Tool; `grep -n "new Hoverboard" src/engine` is empty.
 - No `inputAllowed` and no fake keypress remain.
 - TouchControls holds no weapon-id set.
 - The board is OK'd.
@@ -208,13 +217,13 @@ Each item is its own commit, with parity green:
 |---|---|---|
 | **Sky** | `Sky.ts` (899 lines) with 3 setup paths; `PainterlySky.ts` (273) and the cloud dome built then hidden on Nalati and Nine Dragon | `SkyRig` + each shard's `backdrop`; the hidden builds deleted, which saves their build time and memory, a measured win |
 | **Fog** | 4 `fog_fragment` writers (`Atmosphere.ts:120,205`, `stylize.ts:209`, `nalati/look/fog.ts:69`) in implicit order | the shader-patch registry slots 100 / 200 / 300 (01 §13.2) |
-| **Water** | 6 bodies | the `WaterBody` interface; each body is shard or kit by the rule of two |
+| **Water** | 6 bodies | S4.1 built the `WaterBody` interface and the sea on it (01 §17; 13-lead-resolutions 07/08#7). X5 converts the other bodies (`world/Water.ts`, `world/BeaverPool.ts`, `world/PineStreams.ts`, `nalati/water.ts`) and adds the `reflect` hook; each body is shard or kit by the rule of two |
 | **Geometry kit + AO** | `lowpolyKit.ts` (557), `nalati/paint.ts` (504), `rockKit.ts` (352); 3 AO bakers (`bakeAO`, `bakeSmoothAO`, `bakeVertexAO`) | one engine geometry toolkit (log, pole, blob, lathe, merge) + one `voxelAO(params)`; each baker's parameters kept as data, so every vertex colour is identical |
 | **LUT loader** | `world/lut.ts:28` and Nine Dragon `look/light/grade.ts:43` | one loader in `#engine/render` |
 | **Particle pools** | 7: `nightFx.ts:19`, `fx/Impacts.ts:51`, `Crossbow.ts:408` (`Puffs`), `Sword.ts:336` (`Stars`), `AnimalManager.ts:298` (`BloodFX`), `Enemies.ts:138`, Nine Dragon `grapple/fx.ts:55`; plus a second `Puffs` in `pinehollow/fxKit.ts:17` | one `ParticlePool` in `#engine/fx`; each pool's parameters are data |
 | **Telegraphs** | balbal `Wedge` (`balbalWarriors.ts:42`) beside `GroundTell` | `GroundTell` gains `'wedge'` |
 | **RNG** | 3 | 1 (01 §2), at F8 |
-| **Helpers** | `lin()` ×6, `smoothstep` ×~15, `sstep` ×5, pan-from-yaw ×6, loop-at-offset ×5, `compassDir` ×2 | one each, in `#engine/math` and `#engine/audio/util` |
+| **Helpers** | `lin()` ×6, `smoothstep` ×~15, `sstep` ×5, pan-from-yaw ×8 (07 §1 counted 8; 01 §15 says ×6), loop-at-offset ×5, `compassDir` ×2 | one each, in `#engine/math` and `#engine/audio/util` |
 | **Skin lockers** | `SkinLocker` (`Skins.ts:283`), `NalatiSkinLocker` (`nalatiSkins.ts:45`), Pine `finishes.ts` | one cosmetics service in `#game` + per-shard skin rows |
 | **Slash trail** | `Sword.ts:702-797` and Nine Dragon `vm/trail.ts` (197) | one trail block in `#engine/combat/blocks`; the shader stays per shard |
 | **Dead code** | `meleeGeo.ts:157-213` | deleted at F7 |
@@ -246,8 +255,9 @@ also gets a byte-identical vertex-colour test on one model per baker.
 ## X7 — Tiers as data and budgets per manifest (EI24, EI25; decisions 30, 35–37)
 
 **Steps**
-1. **`src/engine/render/tiers.ts`** holds the engine's knobs. Of today's ~59 settings per tier, the 7 Driftwood-named
-   ones become Driftwood manifest overrides. S2.1 already deleted `PINE_HOLLOW_PHONE` and `tier.ts:113`'s Pine branch.
+1. **`src/engine/render/tiers.ts`** holds the engine's knobs. Of today's 59 settings per tier, the 7 Driftwood-named
+   ones were declared by Driftwood's plugin at S4.1 (`ctx.tiers.knobs`, 01 §7; 13-lead-resolutions 07/08#8), so X7
+   only checks that no shard-named knob is left in the engine table. S2.1 already deleted `PINE_HOLLOW_PHONE` and `tier.ts:113`'s Pine branch.
    X7 deletes whatever shard-named knobs and helpers are left.
 2. **Budgets.** Each manifest's `budgets` inputs are filled from S1.6's calibration file `budgets/calibration.json`.
    `src/engine/render/budgets.ts` derives the numbers with the formula in

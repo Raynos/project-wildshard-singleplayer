@@ -15,8 +15,8 @@ shard".
 |---|---|
 | `ground.terrain` | a 200 × 200 m gently rolling heightfield (one noise octave) with one trail |
 | `sky` / `atmosphere` / `grade` | a plain gradient sky, linear fog, neutral grade |
-| `render` | a minimal `ShardRender` that only passes the engine chain through (the "nothing custom" case) |
-| `uses` | **every** mechanism: weather, dayCycle, elites, bosses, quests (so each mechanism is exercised) |
+| `render` | a minimal `ShardRender` (`mode: 'extend'`) that only passes the engine chain through (the "nothing custom" case) |
+| `uses` | **every** mechanism the four shards use: `weather`, `dayCycle`, `elites`, `bosses`, `quests`, `trample`, `compendium`, `bounds`, `grapple` (so each mechanism is exercised) |
 | `ctx.piece` | one grey-box hut (a box collider + a door interactable) and one ramp with stair treads (the physics rules) |
 | `loadout` + `rows` | a kit weapon (the iron-sword profile from `#kit/weapons`), plus a **custom weapon**: `class TemplateWhip extends Weapon`, built from `blocks.viewmodel` + `blocks.melee` with a `lane` sweep |
 | a Tool | `class TemplateLantern extends Tool` in the off hand, with its own action `toggle` in `verb.1` |
@@ -25,7 +25,9 @@ shard".
 | effects | the kit's `effect.poison` on the whip's heavy |
 | a quest step | "Reach the hut" → "Beat the blob" → a reward row (a coin burst into the per-shard purse) |
 | `inputContext` | `template.lantern` (the lantern's toggle) |
-| `hud` | one widget in a band (a lantern-oil meter) and one relabel |
+| `hud` | one widget in a band (a lantern-oil meter), one relabel, and one world pin (`hud.pin`: a marker over the hut door, 01 §11) |
+| `tiers.knobs` | one shard tier knob, `template.propCount` (phone 10, desktop 20), read by the grey-box prop scatter (01 §7) |
+| `debug.expose` | the template runtime as `window.__wildshard.shard.template` (01 §7) |
 | `bag` | one tab ("NOTES") with one fragment |
 | `debugRow` | one row in Developer tools |
 | `playground` | one playground: a 3-pad jump course |
@@ -51,7 +53,7 @@ shard".
 | `src/shards/<slug>/README.md` ×4 (+ template) | What the shard declares; its custom code and why it's custom; its budgets; its look; its open asks | Written at each shard's milestone (M1–M4) |
 
 AGENTS.md: the "No URL switches" section's Settings.ts steps are rewritten (a shard declares its own option keys
-and rows through `ctx.debugRow`, so no shard name lands in `src/ui/Settings.ts`). The "Physics" and "Local models"
+and rows through `ctx.debugRow`, so no shard name lands in `src/ui/Settings.ts`; 13-lead-resolutions 05/06#12). The "Physics" and "Local models"
 sections are updated for the new paths (`src/engine/physics/`,
 `#engine/...`), and a short "Engine layers" section links `docs/ENGINE.md`.
 

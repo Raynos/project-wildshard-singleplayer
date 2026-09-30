@@ -36,7 +36,7 @@ already did the move; the S1 row then restructures the file in place.
 | `grapple/Traversal.ts` (589) | `shard:grapple/FeiZhua.ts` | S1.4 | `installFeiZhua(ctx)` becomes `class FeiZhua extends Tool` (01 §18). The three hand-chained hooks (`lock.onTryToggle` :364, `player.onJumpRequest` :385, `player.traversalStep` :406) become the `grapple` input context and the `player.traversal` ask (§6.4). The `ws:practice-active` listener (:363) becomes `ctx.on('practice.active')`. The chip and ◇ marks appended to `#hud` (:258-274) become HUD widgets (§6.4) |
 | `grapple/course.ts` (48), `grapple/line.ts` (220) | same names under `shard:grapple/` | F6 | `setGrappleCourse` / `playgroundCourse` stay (the playground and the Tool are in the same shard now) |
 | `grapple/fx.ts` (201) | `shard:grapple/fx.ts` | F6; X5 | Its point pool (`fx.ts:55`) merges into the engine's one particle pool at X5 (10-sweeps) |
-| `look/render.ts` (213) | `shard:look/render.ts` | F6; S1.1 edits | Stays the `ShardRender`. `TIER` read (:10, :109) → the tier data of §3 (`tiers.phone.aa`). `document.addEventListener('ws:practice-active' / 'ws:studio-active')` (:73, :94) → bus events. `Reflect.set(window, '__ndRender')` (:180) → `app.debug.expose('nd.render', handle, scope)` (question Q5) |
+| `look/render.ts` (213) | `shard:look/render.ts` | F6; S1.1 edits | Stays the `ShardRender`. `TIER` read (:10, :109) → the tier data of §3 (`tiers.phone.aa`). `document.addEventListener('ws:practice-active' / 'ws:studio-active')` (:73, :94) → bus events. `Reflect.set(window, '__ndRender')` (:180) → `ctx.debug.expose('nd.render', handle)` (question Q5) |
 | `look/post.ts` (372) | deleted | F7 | Unimported (the dev page's copy, plan F7) |
 | `look/light/grade.ts` (90) | `shard:look/light/grade.ts` | F6; X5 | Its `loadLut` (:43) merges into the one LUT loader at X5 |
 | `look/specimenLight.ts` (55) | `shard:look/specimenLight.ts` | F6; S1.1 edit | `document.addEventListener('ws:turntable')` (:50) → `ctx.on('explore.turntable')` |
@@ -161,20 +161,22 @@ or a plugin verb named in the same row.
 | `playgrounds/catalog.ts:29`, `load.ts:13`, `GrapplePlayground.ts:17` | `shard: 'nine-dragon-stack'` / `import('./GrapplePlayground')` / `from '../chunks/nine-dragon-stack/grapple/course'` | the grapple room | `ctx.playground(...)` (S1.4) |
 | `audio/Audio.ts:145-146` | `this.bed = def.ocean ? 'island' : def.style === 'painterly' ? 'steppe' : 'forest'` | Nine Dragon hears **the pine-forest bed** | `manifest.audio.ambience` (S1.5). Bug §7 B1 |
 | `audio/Music.ts:500` | `shard: getActiveChunk().ocean ? 'island' : 'pine'` | the score's first mood | the running manifest's `audio.score` (S1.5) |
-| `world/Terrain.ts:186, 200-212` | `if (getActiveChunk().structures !== undefined) return this.buildNone();` | no ground drawn | `manifest.ground.structures === true`. The flat datum's `heightAt = 0` stays for `heightAt()` callers (placement, sound) |
+| `world/Terrain.ts:186, 200-212` | `if (getActiveChunk().structures !== undefined) return this.buildNone();` | no ground drawn | `manifest.ground.structures === true`. The flat `ground.terrain` (`heightAt = 0`) stays for `heightAt()` callers (placement, sound) |
 | `world/Sky.ts:95-103, 207-250, 440-470` | `const painted = S.painted ?? null` / `buildClouds` | Nine Dragon's painted gradient sky; the cloud dome is built and then hidden by `look/render.ts:57-63` | unchanged in S1 (identical draws: the dome is hidden). X5 gives Nine Dragon a `backdrop` and deletes the hidden build (10-sweeps X5) |
 | `world/Grass.ts`, `world/Atmosphere.ts` | — | no Nine Dragon branch | — |
 | `core/tier.ts` | — | no Nine Dragon branch (its phone cuts live in `Game.ts` and `gpuFiles.ts`, above) | — |
 
 ## 3. (c) The manifest, in full
 
-`src/shards/nine-dragon-stack/manifest.ts`. Node-safe: it imports only `layout.ts` (constants), `buildTerrain`-free
-data, the thumbnail URLs and lazy thunks. Every value is today's (source in the comment). Fields marked **Q1** are
-not in 01 §6 yet (question Q1 lists them).
+`src/shards/nine-dragon-stack/manifest.ts`. Node-safe: it imports only `layout.ts` (constants), the flat terrain
+(`./terrain.ts`: `def.ts:52-62` moved as is), the thumbnail URLs and lazy thunks. Every value is today's (source in the
+comment). Every `ChunkDef` field is carried over under 01 §6's names (13-lead-resolutions 05/06#1). Fields marked **Q1**
+are this spec's additions that 01 §6 still lacks (`kitLook`, `bag.pack`, `dev.poses`): question Q1 keeps them open.
 
 ```ts
 import { defineShard } from '#game';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
+import { TERRAIN } from './terrain';                                        // def.ts:52-62 as is: buildTerrain(SEED, { landscape: () => 0, 4 entry trails, no cabins })
 import thumb from './thumbs/nine-dragon-stack.jpg';
 import portrait from './thumbs/nine-dragon-stack-portrait.jpg';
 import landscape from './thumbs/nine-dragon-stack-landscape.jpg';
@@ -198,12 +200,13 @@ export default defineShard({
   slug: 'nine-dragon-stack',
   name: 'Nine Dragon Stack',                                              // def.ts:42
   blurb: "Lantern Square, halfway up a city stacked 500 m high: wet granite, a cinnabar gate, neon calligraphy and the Yamen Well dropping away into silk fog. A prototype fragment — the square, the Well's rim and the stair-street — rough edges everywhere.",
-  label: 'Vertical neon city',                                            // def.ts:46 biome; titleDeck.ts:51   (Q1: 01 §6 has no deck label)
+  label: '(−2, +1)',                                                      // def.ts:43 gridCoords (01 §6)
+  biome: 'Vertical neon city',                                            // def.ts:46; the title deck's card line (titleDeck.ts:51)
   order: 4,                                                               // titleDeck.ts:47-52: 4th card
   status: 'experimental',                                                 // def.ts:48; registry.ts:40 PROTOTYPES; E318 (in the deck for everyone)
   card: { thumb, portrait, landscape },
-  map: { grid: [-2, 1], size: [500, 500, 500] },                          // def.ts:43 '(−2, +1)'; def.ts:5 "a 500 m cube, ±250 on every axis"
-  mapDraw: {                                                              // Q1 — today's ChunkDef.map (ChunkMapDef), def.ts:123-135
+  placement: { grid: [-2, 1], size: [500, 500, 500] },                    // def.ts:43 '(−2, +1)'; def.ts:5 "a 500 m cube, ±250 on every axis"
+  minimap: {                                                              // today's ChunkDef.map (ChunkMapDef), renamed (01 §6), def.ts:123-135
     ground: [11, 16, 22],
     pieces: [
       { ids: ['nds-fronts'], look: 'rock' },
@@ -213,15 +216,14 @@ export default defineShard({
       { ids: ['nds-crossings', 'nds-paifang@well-c-gates'], look: 'planks' },
     ],
   },
-  seed: 0x9d2a,                                                           // Q1 — def.ts:23 (Rng / Noise2D seeds derive from it)
+  seed: 0x9d2a,                                                           // def.ts:23 (Rng / Noise2D seeds derive from it)
   style: 'jiehua',                                                        // data only (01 §6)
-  kitLook: 'pbr',                                                         // Q1 — the look the shared kit pieces use (creatures, Model Explorer catalog, swimming hands); today `style ?? 'pbr'` resolves to 'pbr' for this shard
+  kitLook: 'pbr',                                                         // Q1 (open) — the look the shared kit pieces use (creatures, Model Explorer catalog, swimming hands); today `style ?? 'pbr'` resolves to 'pbr' for this shard
   uses: ['bounds', 'grapple'],                                            // 'grapple' = the Tool's context; no weather, dayCycle, elites, bosses, quests, loot coins
-  ground: { structures: true },                                           // def.ts:149 `structures`; the flat datum below is `heightAt` for placement only
-  datum: { landscape: 0, splat: [1, 0, 0, 0] },                           // Q1 — def.ts:52-62: buildTerrain(SEED, { landscape: () => 0, 4 entry trails, no cabins }) is kept only because heightAt() callers read it; nothing draws or collides with it
+  ground: { terrain: TERRAIN, structures: true },                         // def.ts:149 `structures` + the flat terrain (01 §6: "Nine Dragon has both"); the terrain is `heightAt()` for placement only: nothing draws or collides with it
   spawn: { x: 0.95, z: 7.5, yaw: -12 * (Math.PI / 180), y: Y0 },          // def.ts:98
   bounds: { x0: WELL.x0 - 8, x1: STAIR.x1 + 20, z0: STREET.z0 + 100, z1: PLAZA.z1 + 8, floor: Y0 - 100 },   // def.ts:148
-  camera: { portraitFov: 78 },                                            // Q1 — def.ts:102 `fov: { portrait: 78 }` (combat-ai-audit M8: the camera's, not the weapon's)
+  camera: { portraitFov: 78 },                                            // 01 §6 — def.ts:102 `fov: { portrait: 78 }` (combat-ai-audit M8: the camera's, not the weapon's)
   sky: {                                                                  // def.ts:77-84, as is
     hdri: 'kloofendal_48d_partly_cloudy_puresky',
     painted: { zenith: [0.09, 0.14, 0.26], horizon: [0.36, 0.44, 0.58], ground: [0.16, 0.18, 0.22], glow: [0.2, 0.2, 0.3] },
@@ -230,7 +232,7 @@ export default defineShard({
     fogSunColor: [0.6, 0.66, 0.8], cloudSunColor: [0.6, 0.66, 0.8],
     hemiSky: 0x6f86a8, hemiGround: 0x2a2c34, hemiIntensity: 0.5,
   },
-  horizon: { rings: [], cloudSea: false },                                // Q1 — def.ts:114
+  horizon: { rings: [], cloudSea: false },                                // def.ts:114 (carried as data)
   atmosphere: {                                                           // def.ts:85-89
     fogHeight: Y0 - 40, fogHeightFalloff: 0.05, fogHeightDensity: 0.004, fogDistDensity: 0.004,
     volumetricSunColor: [0.55, 0.62, 0.85],
@@ -252,11 +254,11 @@ export default defineShard({
   fight: { attackers: Infinity },                                         // no fightRules today; no hit cap (maxHitDamage undefined)
   loadout: {
     weapons: ['weapon.jian'],                                             // S1.2 (09-combat-ai: the jian's profile, damage 12)
-    tools: ['tool.feiZhua'],                                              // S1.4
+    tools: ['tool.fei-zhua'],                                              // S1.4
     start: ['weapon.jian'],
     pickups: [],
   },
-  bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },                     // Q1 — E314 pick A (bag.ts:1-10); Inventory.ts:88
+  bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },                     // `tabs` 01 §6; `pack` Q1 (open) — E314 pick A (bag.ts:1-10); Inventory.ts:88
   species: [],                                                            // def.ts:75 fauna: []
   encounters: [],
   audio: {                                                                // S1.5 (decision 44 / 71)
@@ -289,7 +291,7 @@ export default defineShard({
 ```
 
 Fields that disappear: `id` (derived: `chunk://local/${slug}`, still used as the Progress / Inventory / Owned key until
-F10's SaveStore scopes keys by slug), `displayName` (→ `name`), `gridCoords` (→ `map.grid`), `treeCount: 0`, `trees`
+F10's SaveStore scopes keys by slug), `displayName` (→ `name`), `gridCoords` (→ `label`, `placement.grid`), `treeCount: 0`, `trees`
 (`factory: 'none'`: no Forest), `forest` (`density: () => 0`: no Forest), `assets` (never downloaded, `def.ts:63`),
 `fauna: []` (→ `species: []`), `weapon: 'sword'` (→ `loadout`), `sword` / `traversal` / `structures` (→ the plugin),
 `experimental` (→ `status`), `thumbnail` / `heroPortrait` / `heroLandscape` (→ `card`).
@@ -310,7 +312,7 @@ import { installAmbience } from './audio/ambience';
 
 export default class NineDragonPlugin extends ShardPlugin {
   async install(ctx: ShardContext): Promise<void> {
-    ctx.strings(STRINGS);                                   // 'weapon.jian': 'Neon Jian', 'tool.feiZhua': 'Fei Zhua', 'respawn.default', toasts
+    ctx.strings(STRINGS);                                   // 'weapon.jian': 'Neon Jian', 'tool.fei-zhua': 'Fei Zhua', 'respawn.default', toasts
     const rt = new NdRuntime(ctx.scope);                    // disposed with the scope; render.ts / FeiZhua read it through ndRuntime()
     // shard.world stage
     await installWorld(ctx, rt);                            // world/build.ts + the 4 fabric pieces + the per-frame system
@@ -341,10 +343,10 @@ export default class NineDragonPlugin extends ShardPlugin {
 | Pieces | `nds-floors`, `nds-fronts`, `nds-grapple-guard`, `nds-crossings` | `shard.world` | `index.ts:36-53` | Same ids, names, categories, `file`, surfaces, colliders, `floor`, `solidFloor`, `follows`, `active` |
 | Pieces (models) | every `nds-*` model piece | `shard.world` | `world/build.ts` through `src/models/place.ts` | Unchanged: `place` registers through `app.registry`, owned by `ctx.scope` |
 | Input context | `grapple` | pushed by the Fei Zhua | `Traversal.ts:346` `touchHint` | S1.4 |
-| HUD | the dragon-hook chip, 8 ◇ marks | band `world` (question Q3) | `Traversal.ts:260-274` | S1.4 |
+| HUD | the dragon-hook chip, 8 ◇ marks | `ctx.hud.pin` (01 §11) | `Traversal.ts:260-274` | S1.4 |
 | Bag | the Fei Zhua gear card | via the Tool's `bag` entry | `main.ts:625` | S1.4 |
 | Debug rows | none | — | `debugOptions.ts` has no Nine Dragon row | — |
-| Debug handle | `nd.render` | — | `render.ts:180` `window.__ndRender` | `app.debug.expose` (question Q5) |
+| Debug handle | `nd.render` | — | `render.ts:180` `window.__ndRender` | `ctx.debug.expose` (01 §7) |
 | Playground | `grapple` | — | `playgrounds/catalog.ts:29` | S1.4 |
 | Strings | `strings.ts` | — | `bag.ts:14`, the Fei Zhua toasts (`Traversal.ts:375, 381, 416`), `HurtArc.ts:91` | English only (decision 78) |
 
@@ -352,11 +354,11 @@ export default class NineDragonPlugin extends ShardPlugin {
 
 | System | What S1 needs of it (and no more) | Must exist first | Built in |
 |---|---|---|---|
-| Plugin verbs (01 §7) | `system`, `on`, `answer`, `rows.weapon`, `rows.tool`, `inputContext`, `hud.widget` / `hud.relabel`, `bag` via the Equipment base, `piece`, `playground`, `strings`, `progress` | F8 (App, scope, events), F9 (registry, `ShardContext` type) | S1.1 wires `system`, `on`, `piece`, `strings`, `progress`; S1.4 `inputContext`, `hud`, `playground`, `rows.tool`; S1.2 `rows.weapon` |
+| Plugin verbs (01 §7) | `system`, `on`, `answer`, `rows.weapon`, `rows.tool`, `inputContext`, `hud.widget` / `hud.relabel` / `hud.pin`, `debug.expose`, `bag` via the Equipment base, `piece`, `playground`, `strings`, `progress` | F8 (App, scope, events), F9 (registry, `ShardContext` type) | S1.1 wires `system`, `on`, `piece`, `strings`, `progress`; S1.4 `inputContext`, `hud`, `playground`, `rows.tool`; S1.2 `rows.weapon` |
 | Boot stages (01 §8) | `shard.data` reads `boot.*`; `shard.world` calls `install` up to the world build; `boot.barrier`, `boot.phone.deferExtras`, `boot.phone.fragile`, `boot.phone.trace`, `boot.cullBeforeFirstDraw`, `boot.files` for this shard; the others keep the old path until their phase | F8 (states), F9 | S1.1 |
 | `bootTrace` / `gpuTrace` (generic) | §1.2 | F10 (SaveStore global key) | S1.1 |
-| Render service tier resolution | `manifest.tiers[tier]` over `ShardRender` over engine tier, for `ao`, `aa`, `slices`, `warmTurns`, `textures` | F8 services | S1.1 (the rest of tiers-as-data is X7) |
-| Debug expose | `app.debug.expose(name, value, scope)` | F8 | S1.1 |
+| Render service tier resolution | one source (01 §13.3): engine default → kit schema default → `manifest.tiers[tier]`, for `ao`, `aa`, `slices`, `warmTurns`, `textures`; `ShardRender` carries no tier knobs (its old `ao` / `aa` / `slices` move to `manifest.tiers`) | F8 services | S1.1 (the rest of tiers-as-data is X7) |
+| Debug expose | `ctx.debug.expose(name, value)` → `window.__wildshard.shard[name]` (01 §7, owned by the shard scope) | F8 | S1.1 |
 | Equipment / Weapon / Tool contracts + blocks; the Melee family in `#kit/weapons/melee` | 09-combat-ai; for this shard: the jian row, the Tool row | F5 (fake Game for the contract tests) | S1.2, S1.4 |
 | Damage pipeline, effects core, player health attribute | 09-combat-ai; for this shard: falls (`env.fall`, 8), the practice dummies | S1.2 | S1.3 |
 | `#engine/input`: action map, one listener set, context stack, touch relabel | the `lock`, `jump` actions, `consume`, the `grapple` context; the rest of the actions exist but X1 moves the other listeners | F8 | S1.4 |
@@ -382,7 +384,7 @@ export default class NineDragonPlugin extends ShardPlugin {
 4. **Render.** `look/render.ts`: export `shardRender()` = today's `createRender()` wrapped with the cull (`def.ts:139-143`
    moves here). Remove the `TIER` import: `aa` comes from `tiers.phone.aa`. Replace the two `document.addEventListener`
    calls with `app.events.on('practice.active' | 'explore.studio', fn, scope)` (the scope passed to `compose`), and
-   `Reflect.set(window, '__ndRender')` with `app.debug.expose('nd.render', handle, scope)`. `dispose()` drops what the
+   `Reflect.set(window, '__ndRender')` with `ctx.debug.expose('nd.render', handle)`. `dispose()` drops what the
    scope now owns.
 5. **Tier reads.** Pass `tier` into `glyphs.ts`, `paint.ts`, `signs.ts`, `vm/materials.ts` (module constants become
    functions of the tier, same values).
@@ -398,11 +400,18 @@ export default class NineDragonPlugin extends ShardPlugin {
      `ui/StartTitle.ts`, `explore/Explore.ts`, `explore/Compare.ts`, `game/Inventory.ts:88`, `ui/HurtArc.ts:91`.
    - `main.ts:217` → `manifest.name`.
 7. **Delete** `world/hero/paifang.ts` (§1.1).
+7b. **A full shard** (13-lead-resolutions 02/03#5; this moved out of X3). Nine Dragon joins everything the other three
+   shards get: `playable()` in `src/game/shard/registry.ts` becomes `status !== 'hidden'` (so `experimental` counts),
+   which puts Nine Dragon into `bake-packs.mjs` (its phone and desktop packs from `boot.files`), `shardPrefetch.ts`,
+   `bake-ktx2.mjs`, `unused-assets.mjs` and every test that loops over the playable shards (`models-rosters`,
+   `manifests-node-safe`, the parity shard list). Its boot now reads its pack instead of per-file fetches: a
+   parity-visible change, recorded in `test/parity/renames/S1.1.json` (the boot's fetch list) and shown on the M1
+   summary.
 8. **Tests.** `test/engine/boot-trace.test.ts` (on / off by manifest flag), `test/shards/nine-dragon-stack/plugin.test.ts`
    (installs the plugin on the fake Game with a stub world build: 4 pieces added with today's ids; `shard.nd.world` in
    `update` after `engine.player.update`; scope dispose removes all four pieces, the system and the three listeners),
-   `test/engine/render-tiers.test.ts` (precedence: manifest tier > ShardRender > engine; the Nine Dragon phone resolves
-   `ao: false`, desktop `ao: true`).
+   `test/engine/render-tiers.test.ts` (precedence, 01 §13.3: engine default → kit schema default → `manifest.tiers[tier]`;
+   the Nine Dragon phone resolves `ao: false`, desktop `ao: true`).
 
 **Done when:** `grep -rn "nine-dragon-stack\|isNine\|phoneNine\|NineBoot\|nineBoot" src --include=*.ts` outside
 `src/shards/nine-dragon-stack/` returns only the generated registry; `wildshard/no-shard-branch` count for the files
@@ -465,8 +474,10 @@ the kill frame).
    `ctx.hud.relabel(spot, …)` when the hint changes (today's `hint()`, :343-347). `ChunkDef.touchHint` and
    `TouchControls.hint()` are deleted.
 4. **HUD.** The chip (`ws-dragon-hook`) and the 8 marks (`ws-dragon-mark`) are created as today and mounted with
-   `ctx.hud.widget('world', el, 25 | 24, scope)` (their z-indexes 25 / 24 become the order within the band; question
-   Q3). Positions are still set each frame in screen pixels.
+   `ctx.hud.pin(at, el)` (01 §11; 13-lead-resolutions 05/06#3), where `at` returns the hook's or the mark's world
+   position, or `null` while hidden. The engine projects every pin each frame, which replaces today's per-frame
+   screen-pixel writes; the marks are pinned first and the chip last, so the chip stacks above them (today's z-index
+   25 over 24).
 5. **The playground.** Move `GrapplePlayground.ts` and `grappleCourse.ts` (§1.2); register with `ctx.playground`
    (§4). `setGrappleCourse` is called on the Tool instance. `playgrounds/catalog.ts` loses the `grapple` row;
    `load.ts` loads registered playgrounds by id. `PlaygroundHost` stays as is (its Nalati `ride` field goes at S3).
@@ -659,28 +670,31 @@ Anything else that differs is a bug in the step: the commit is reverted (12-proc
 
 ## 10. Questions for the lead
 
-1. **Manifest fields not in 01 §6.** This spec needs: `label` (the deck's line), `mapDraw` (today's `ChunkMapDef`;
-   01's `map` is the grid position, a name clash), `seed`, `kitLook` (the style the shared kit pieces use: creatures,
-   the swimming hands, the Model Explorer catalog; today `style ?? 'pbr'` at `main.ts:505`, `Explore.ts:269`,
-   `AnimalManager.ts:459`, `Hands.ts`), `datum` (the flat `heightAt` of a structure-first shard), `horizon`, `camera`
-   (`portraitFov`), `bag` (tabs, pack slots), `dev.poses`. Add them to 01 §6, or say where each goes.
-2. **Boot flags.** 01 §8 names `boot.phone.deferExtras` and `boot.phone.barrier`. Today's barrier (`main.ts:241`) holds
-   on desktop too, so this spec uses `boot.barrier`. It also adds `boot.phone.fragile`, `boot.phone.trace`,
-   `boot.cullBeforeFirstDraw`, and the tier knobs `warmTurns` and `textures`. Confirm the names.
-3. **World-anchored HUD pins.** 01 §11 has `widget(band, …)` for slot bands only. The Fei Zhua's chip and ◇ marks
-   (and later the elites' name plates, the damage floats) are screen-positioned pins. This spec assumes a band
-   `'world'` (free-positioned, under the HUD's slots). Confirm or name the verb.
-4. **Tier precedence.** 01 §13.1 keeps `ShardRender.ao / slices / aa` and 01 §13.3 adds manifest tier overrides. This
-   spec resolves `manifest.tiers[tier] ?? render ?? engine tier`. Confirm.
-5. **Debug handles.** `window.__ndRender` (and Pine's six `__pine*` names) need a replacement; `ShardContext` has no
-   verb for it. This spec uses `app.debug.expose(name, value, scope)` feeding `window.__wildshard.shard.<name>`.
-6. **Audio slice timing.** S1.5 builds `ScoreSource` / `SetScore`, `AmbienceBeds` and per-shard SFX sets before S3.5
-   ("the engine audio"). Confirm S3.5 starts from this slice.
-7. **`world/hero/paifang.ts`** (267 lines) is unimported; add it to F7's dead list or keep it deleted in S1.1 as here.
-8. **Nine Dragon's load cap.** budget-design §6.6 has time caps for three shards only. Proposal: S1.6 sets Nine
-   Dragon's `budgets.load.coldPlay4G` to its F2 baseline rounded up to the next second, shown on the M1 summary for
-   Jake to confirm.
-9. **Budget file names.** budget-design §3-§4 says `engine/budget/derive.ts` and `calibration/*.json`; 01 §13.4 and
-   10-sweeps X7 say `src/engine/render/budgets.ts` and `budgets/calibration.json`. This spec follows 01.
-10. **F6's transitional manifest.** This spec assumes 02-foundations F6 leaves `manifest.ts` with the old hook fields
-    under a transitional type that S1.1 removes. Confirm 02 says so.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (05 / 06 table) unless marked open; the body above follows
+each answer.
+
+1. **Manifest fields not in 01 §6.** **Resolved → 13-lead-resolutions 05/06#1** for every `ChunkDef` field: `map` →
+   `minimap`, world placement is `placement`, `gridCoords` → `label`, `biome` stays `biome` (the deck's card line),
+   `fov` → `camera.portraitFov`; `seed`, `horizon`, `bag.tabs` are on 01 §6. The flat datum is gone: Nine Dragon keeps
+   its flat `ground.terrain` beside `structures` (01 §6). **Still open, sent to the lead:** `kitLook` (the style the
+   shared kit pieces use: creatures, the swimming hands, the Model Explorer catalog; today `style ?? 'pbr'` at
+   `main.ts:505`, `Explore.ts:269`, `AnimalManager.ts:459`, `Hands.ts`), `bag.pack.slots` and `dev.poses` are not on
+   01 §6.
+2. **Boot flags.** **Resolved → 13-lead-resolutions 05/06#2:** `boot.barrier` (all tiers), `boot.phone.deferExtras`,
+   `boot.phone.fragile`, `boot.phone.trace`, `boot.cullBeforeFirstDraw`; `warmTurns` and `textures` are tier knobs.
+3. **World-anchored HUD pins.** **Resolved → 13-lead-resolutions 05/06#3:** `hud.pin(at, el, scope)` (01 §11). S1.4
+   step 4 and §4 use it.
+4. **Tier precedence.** **Resolved → 13-lead-resolutions 05/06#4:** one source, engine default → kit schema default →
+   `manifest.tiers[tier]`; `ShardRender`'s old `slices` / `ao` / `aa` move to `manifest.tiers` (§3, §5, S1.1 step 8).
+5. **Debug handles.** **Resolved → 13-lead-resolutions 05/06#5:** `ctx.debug.expose(name, value)` →
+   `window.__wildshard.shard[name]` (01 §7).
+6. **Audio slice timing.** **Resolved → 13-lead-resolutions 05/06#6:** S1.5 builds score sources, ambience beds and
+   cue maps; S3.5 continues from it (the voice engine, ambience zones, merged SFX routing, the `Audio.ts` split).
+7. **`world/hero/paifang.ts`** (267 lines) is unimported. **Open (not in 13), sent to the lead:** this spec deletes it
+   in S1.1 (§1.1, S1.1 step 7) rather than adding it to F7's list.
+8. **Nine Dragon's load cap.** **Resolved → 13-lead-resolutions 05/06#7:** its F2 baseline, rounded up to the next
+   second, shown on the M1 summary for Jake to confirm (S1.6).
+9. **Budget file names.** **Resolved → 13-lead-resolutions 05/06#8:** 01 wins: `budgets/calibration.json`,
+   `src/engine/render/budgets.ts`.
+10. **F6's transitional manifest.** **Resolved → 13-lead-resolutions 05/06#9:** F6 leaves the old hook fields on the
+    manifest; S1.1 moves Nine Dragon's into its plugin, and the type drops them after S4.1 (01 §6, 02 F6).

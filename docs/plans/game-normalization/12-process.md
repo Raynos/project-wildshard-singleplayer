@@ -115,10 +115,10 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 | Wave | Assembled at | Content (from the specs) | Format |
 |---|---|---|---|
 | Weapons | M1, with M2's ranged additions | 09-combat-ai § boards | One iPhone-portrait board image, labelled A / B, plus ≤ 10 s clips per item |
-| Creatures | M2, M3 | 09-combat-ai § boards; tick rates; starter effects | Same |
+| Creatures | M2, M3, M4 | 09-combat-ai § boards; decision 85's tick bands (M2); starter effects; the big crab at 14 and the crab / monkey / sailor bands (M4) | Same |
 | Input / HUD | X1 | 10-sweeps X1 | Same |
 | Audio | M1 | Nine Dragon's ambience, score and SFX | A listening page (Artifact, MP3s, per [[artifact-audio-pages]]) |
-| Look | whenever a pose differs beyond noise | the pose triptych (before / after / diff) | Board |
+| Look | M4, and whenever a pose differs beyond noise | the Drowned Captain on the shared BossBar (decision 91, S4.2; 13-lead-resolutions 07/08#9); the pose triptych (before / after / diff) | Board |
 
 - A board goes to Jake with SendUserFile + AskUserQuestion. One recommended option per item.
 - An OK re-baselines exactly the boarded items in the harness (`scripts/parity.mjs --accept <item ids>`, with the item
@@ -130,6 +130,9 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
   the milestone count and the lines deleted so far.
 - **At each milestone:** the summary (what moved, lines deleted, ratchet counts, budgets), the boards, and "play it on
   your phone" (42).
+- **M1's summary also states:** the one-time 2.7 MB re-download of Pine Hollow's phone-pack part that F6 causes (the
+  bakers' `hash` fields re-stamp once; 13-lead-resolutions 04#5), and Nine Dragon's load cap (its F2 baseline rounded
+  up to the next second, 13-lead-resolutions 05/06#7) for Jake to confirm.
 - **No silent stretches:** a decision Jake owns goes to him with the tool as it comes up ([[ask-with-tool]]).
 
 ## 8. Risk register
@@ -140,7 +143,7 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 | The harness is non-deterministic (flaky) | F2 | green twice on unchanged HEAD before anything moves; re-run once, quarantine with an owner | A flaky check blocks nothing only while quarantined, max 3 days, then fixed or deleted |
 | iPhone memory regression (the E271 class) | any render change | budgets + GPU bytes in the nightly perf; the physical iPhone reading at each milestone that touched render or memory | Revert to the last milestone pin; no render optimisation ships without iPhone evidence (AGENTS.md) |
 | Rapier 0.21 changes walks | F12 | walk + trails 0 stuck, nav bake `--check`, an iPhone load reading | Stay on 0.20 (pin) and file an ask; the engine hides Rapier, so it's one module |
-| `macos-15` runner changes (image, Chromium) | F3 | image label and Chromium version pinned; baselines recorded on the runner | Re-baseline in one commit with a board only if pixels moved |
+| `macos-15` runner changes (image, Chromium) | F3.2 | image label and Chromium version pinned; baselines recorded on the runner | Re-baseline in one commit with a board only if pixels moved |
 | A profile can't express a weapon's old behaviour | S1–S3 | parity trajectory / timing tests per weapon | The family gains the field (a bug in the family, decision 12′), never the weapon converges |
 | The scope creeps (new features mid-refactor) | any | the lock; the plan's rows are the only work | New ideas become asks; a draft plan marked "Jake approved none" ([[park-unapproved-ideas]]) |
 | Cost (E352) | every subagent | caps in every brief, ≤ 3 live, no recycling, long waits on the lead | The lead builds alone for the rest of the phase |

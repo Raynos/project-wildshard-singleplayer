@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + 84 of Jake's decisions, §9) and being fleshed out into executable specs in [game-normalization/](game-normalization/) (01 architecture, 10 sweeps, 11 finish, 12 process written; 02–09 in progress). Not `ready` until the clean-room council (Codex GPT 6.1 Sol + 2 Claude seats) finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
+**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + Jake's decisions 1–91 with the revisions 12′, 28′, 55′, 90′, §9). Every spec in [game-normalization/](game-normalization/) is written (00–12), the lead's answers to every spec question are in 13, and a consistency pass aligned 02, 03 and 05–12 with 01 and 13. Not `ready` until the clean-room council (Codex GPT 6.1 Sol + 2 Claude seats) finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
 
 ## Specs (the executable detail) and the definition of ready
 
@@ -82,7 +82,7 @@ Research behind v2 (all in [docs/design/engine-fit-v2/](../design/engine-fit-v2/
 |---|---|---|---|
 | **Engine** | `src/engine/` (`#engine`) | Generic mechanisms that know no Wildshard idea. Loop and states, events, tags, services, saves, input, UI layers, render pipeline, physics, audio, animation, combat (GAS-lite, the Weapon and Tool contracts, blocks), creature AI, boss / elite / encounter / quest / loot runtimes, weather and day-cycle mechanisms, Explore, practice and playground frameworks | three, Rapier, valibot; nothing above |
 | **Game** | `src/game/` (`#game`) | Wildshard's own rules. The shard manifest type and generated registry, the title deck, the Bag, coins, loot tables, compendium, feats, travel | engine |
-| **Kit** | `src/kit/` (`#kit`) | Content shared by 2+ shards. Weapon families (Melee, Bow, Crossbow, Firearm, Thrown), shared species (boar, bear, horse …), look kits, rain / snow FX, the NPC rig, the starter effects | engine, game |
+| **Kit** | `src/kit/` (`#kit`) | Content shared by 2+ shards. Weapon families (Melee, Bow, Crossbow, Firearm, Thrown), shared species (boar, bear), look kits (the grass trample and field, particles, the viewmodel arm rig), the rain curtain, the NPC rig, the hoverboard Tool, the starter effects | engine, game |
 | **Shards** | `src/shards/<slug>/` (`#shards`) | One folder per shard. A node-safe `manifest.ts` (data the bakers, title deck and checks read) and a lazy `plugin.ts` (code). Everything only that shard uses | engine, game, kit; **never another shard** |
 
 The layer rules:
@@ -100,9 +100,11 @@ The layer rules:
 ### 2.2 A shard = a manifest (data) + a plugin (code)
 
 The manifest is typed data and node-safe. It is Lyra's "experience" and today's `ChunkDef`, grown up:
-- **Identity:** slug, name, card art, map position (`gridCoords`: its own origin, placed on the Wildshard map).
+- **Identity:** slug, name, `biome`, card art, `label` (today's `gridCoords` string) and `placement` (`grid`, `size`: its own
+  origin and its place on the Wildshard map).
 - **Look:** style, the `ShardRender` strategy loader.
-- **Mechanisms:** `uses`, the opt-in list (weather, dayCycle, elites, bosses, …). Nothing is on unless listed.
+- **Mechanisms:** `uses`, the opt-in list (`weather`, `dayCycle`, `elites`, `bosses`, `quests`, `trample`, `compendium`, `bounds`, `grapple`: the values the four
+  manifests use). Nothing is on unless listed.
 - **Content:** loadout, species and encounter rows, loot tables, effects, audio (ambience, score, cue map).
 - **Budgets and tiers:** budget inputs per tier (§2.6), tier overrides.
 - **Boot:** steps, assets (files, packs, audio, Explore, precache).
@@ -111,14 +113,15 @@ The manifest is typed data and node-safe. It is Lyra's "experience" and today's 
 - **Input:** contexts and touch verbs.
 - **Contract:** `api` version and `load: () => import('./plugin')`.
 
-The plugin's `install(app)` may only use the fixed plugin verbs:
+The plugin's `install(ctx)` may only use the fixed plugin verbs (`ShardContext`, 01 §7):
 - add systems (id, phase, before / after, run condition);
 - add events and `ask` handlers;
 - add content rows;
 - add input contexts;
-- add HUD widgets and Bag tabs;
+- add HUD widgets, disc relabels, reserved verb slots, world-anchored pins (`hud.pin`) and Bag tabs;
 - add registry pieces;
-- add Debug rows and playgrounds.
+- add Debug rows and playgrounds;
+- declare its own tier knobs (`ctx.tiers.knobs`) and put debug handles on the probe (`ctx.debug.expose`).
 
 Everything a shard creates goes through its **scope**, which owns every texture, geometry, listener, physics body,
 sound and timer. Unloading frees all of it, and the gate has a load → unload → back-to-baseline leak test. That is the
@@ -129,13 +132,13 @@ Boss`, while `LONGBOW` is a typed profile row with a parent. Names are dot-case 
 `creature.wolf`, `cue.hit.flesh`), and shards extend the unions.
 
 ```ts
-// src/shards/pine-hollow/manifest.ts — node-safe: the title deck, bakers and checks read it
-export default shard({
-  slug: 'pine-hollow', api: 1, style: 'pbr', map: { grid: [2, 1] },
-  uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests'],
-  loadout: { start: ['longbow'], pickups: [{ id: 'lever', at: 'cabin-3' }] },
-  species: ['deer', 'wolf', KIT.bear, 'antlerKing'],
-  audio: { ambience: 'forest', score: 'pine', cues: './cues' },
+// src/shards/pine-hollow/manifest.ts (an excerpt; the full manifest is 06 §3) — node-safe: the title deck, bakers and checks read it
+export default defineShard({
+  slug: 'pine-hollow', api: 1, style: 'pbr', label: '(+3, −2)', placement: { grid: [3, -2], size: [500, 500, 500] },
+  uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests', 'trample', 'compendium'],
+  loadout: { start: ['weapon.crossbow'], pickups: [{ id: 'lever', at: 'cabin-3' }] },
+  species: ['creature.deer', 'creature.elk', 'kit:creature.boar', 'kit:creature.bear', 'creature.thrall'],
+  audio: { ambience: 'ambience.pine', score: 'score.pine', cues: () => import('./audio/cues').then((m) => m.CUES) },
   budgets: { phone: { fps: 30 }, desktop: { fps: 60 } },   // inputs: the numbers are derived (§2.6)
   load: () => import('./plugin'),
 });
@@ -158,12 +161,12 @@ export default shard({
 | **Saves** | 36 keys by hand in 28 files, `ws.*.v1` | `SaveStore`: namespaced per shard, versioned, a migration chain from now on (**a reset now is fine**), `navigator.storage.persist()`, export / import in Settings | EI19, MW7, MW15 |
 | **Input** | 179 raw listeners in 47 files, ~12 mode flags, touch USE fakes an `E` key | Actions + a context stack (on foot, swim, ride, board, grapple, menu, explore, dialog), **key rebinding**, **input buffer 120 ms + coyote 100 ms** (two numbers per shard). Touch: contexts relabel the existing discs **and** fill named reserved verb slots. No gamepad now | EI9–EI12 |
 | **UI** | 42 files append to `#hud` / body, ~10 overlays with their own Escape, 24 z-index values | UI layers (hud / gameMenu / menu / modal) with push / pop / back; HUD slot bands the manifest orders; registered Bag tabs | EI13–EI16 |
-| **Scheduler** | Everything far away ticks every frame | Tick rates near / far / paused per system. **Genshin-style rates now**: AI 30 Hz near, half far, paused beyond | MW6 |
+| **Scheduler** | Everything far away ticks every frame | Tick-rate classes per system in **three distance bands** (decision 85): near 0–60 m brain 20 Hz + body every frame, mid 60–160 m brain 10 Hz + body every 2nd frame, far 160 m+ paused; instant interrupts in every band; an active boss / elite and quest actors never paused; strike phases on the body clock. Every brain keeps today's 10 Hz until S2.6 | MW6 |
 | **Render** | 8 shard branches in `Game.ts`; Nalati's own composer; 87 `onBeforeCompile`, 112 `ShaderMaterial` | Every shard's look through `ShardRender`, post blocks in the engine. **WebGPU contained, no switch**: the renderer type only in `engine/render`, one shader-patch registry, one precompile. Tiers as data | EI5, EI24 |
 | **Physics** | Rapier 0.20; the legacy `player.colliders` bridge | **Rapier 0.21**; one collision path (the registry); `player.colliders` and `bridge.ts` retired (PHYSICS-POLISH F3) | F11, F12 |
 | **Audio** | `Audio.ts` 1,597 lines; 3 ambience classes, 2 voice engines, 3 SFX routings | One mixer and positional voice engine, ambience zones, a music engine with score sources, sounds mapped from cues by each shard | D12–D14 |
-| **Animation** | Per-species code | One rig loader, clip naming, an animation state machine for creatures / NPCs / viewmodels, the rig contract a species row declares (the engine half of ANIMATION-REMASTER) | X5 |
-| **World** | 3 sky setups, 3 day clocks, 2 weather stacks, 6 water bodies, 4 `fog_fragment` writers in implicit order | Terrain optional (structure-first shards), a sky rig + backdrop strategy, `DayCycle` with keyframes as data, a `Weather` mechanism + FX in the kit, a `WaterBody` interface, one fog-patch order | X6 |
+| **Animation** | Per-species code | One rig loader, clip naming, an animation state machine for creatures / NPCs / viewmodels, the rig contract a species row declares (the engine half of ANIMATION-REMASTER) | X4 |
+| **World** | 3 sky setups, 3 day clocks, 2 weather stacks, 6 water bodies, 4 `fog_fragment` writers in implicit order | Terrain optional (structure-first shards), a sky rig + backdrop strategy, `DayCycle` with keyframes as data, a `Weather` mechanism (its one shared FX, the rain curtain, in the kit), a `WaterBody` interface (built in S4.1 for the sea), one `WindField`, one fog-patch order | S2.4, S4.1, X5 |
 | **Determinism** | 254 `Math.random`, 242 `performance.now` | A seeded RNG and a game clock, ratcheted: tests, the harness and a future netcode layer all need them | F4, F8 |
 | **Boot** | 16 fixed forest-shaped steps; `manifest.ts` / `extras.ts` branch on the shard (Explore preloads only on Driftwood) | Staged load from the manifest; every shard declares its assets | EI3, EI4, TP9 |
 
@@ -201,8 +204,8 @@ export default shard({
   - Melee: Sword, Sabre, Spear, the jian.
   - Bow: Bow, Longbow, Golden Bow.
   - Crossbow, with bolt mods.
-  - Firearm: Rifle, LeverRifle.
-  - Thrown: javelins.
+  - Firearm: Rifle (the LeverRifle is a Firearm subclass in Pine's folder: only Pine uses it).
+  - Thrown: javelins (3, decision 87).
 - **Every weapon keeps its own behaviour** (Jake: *"why can't we have multiple bows with different behavior, that
   should be a requirement"*). Every difference today becomes profile data: zoom, flight, hit-stop, swing speed, the
   Spear's lunge. If the family can't express one, that's a bug in the family. Nothing converges.
@@ -217,7 +220,8 @@ export default shard({
     Drowned Captain become subclasses, each fight unchanged.
   - **Elites and spawns:** one elite runtime; one weighted-table format for spawns and loot.
   - **`canReach` everywhere.** Today creatures on non-melee shards hit through walls.
-- **Where species go:** boar, bear and horse are in the kit (2+ shards). Every other species stays in its shard.
+- **Where species go:** boar and bear are in the kit (2+ shards). The horse stays in Nalati (its only other user, the
+  horse playground, is Nalati's). Every other species stays in its shard.
 
 ### 2.6 Budgets and gates
 
@@ -293,23 +297,24 @@ need; the X rows collect what is left.
 
 **Order:** F0 → F3.1 (the deploy pin, first: F2's probe is the first `src/` change and would otherwise ship hourly) → F1 →
 F2 → F3.2 (the gate) → F4 → F5 → **F7 before F6** (delete the dead before moving the living) → F8 → F9 → F10 → F11 →
-F12. The detail is in [02-foundations](game-normalization/02-foundations.md).
+F12. The table lists the rows in that order; the detail is in [02-foundations](game-normalization/02-foundations.md).
 
 | Row | What | Done when | Size |
 |---|---|---|---|
 | **F0** | Declare the lock: an AGENTS.md note and a session-brief line. The overlapping plans' State lines point here; ENGINE-FIT is archived as folded in | Every live plan agrees on who owns what | S |
+| **F3.1** | **The deploy pin** (decision 32; runs right after F0, before the first `src/` change). `.github/deploy-pin.json` + `scripts/deploy-pin.mjs`; `deploy.yml` and `ota-promote.yml` ship only the pinned release (the first pin is the build live when F3.1 lands), and the pin moves at a milestone | The hourly deploy doesn't move production or the OTA channel between milestones | S |
 | **F1** | **Tooling before any move** (TP1–TP3). An alias spike: `#engine/#game/#kit/#shards` as package.json subpath imports, proven against tsc, Vite 8, vitest, oxlint, `bake-loader.mjs` and the URL-param lint. `check-paths.mjs` in `pnpm test`. Non-empty asserts on every `import.meta.glob` test | A baker and a lint key both resolve through `#engine/…`; a moved file can't make a test pass vacuously | S |
 | **F2** | **Parity harness v1** (TP4, TP5, MW1). A typed probe `window.__wildshard`, plus `scripts/parity.mjs` built from scorecard, physics-baseline, nalati-boot-check, bench-load and test-facade-instancing. For 4 shards × phone / desktop it records: a boot fingerprint (systems in phase order, registry, scene census, programs, draws, triangles, audio beds, HUD slots, save keys), 3 poses, and a scripted walk + swing + shot to a kill and loot. Baselines come from today's HEAD. Nine Dragon joins | Green twice on unchanged HEAD; red on a planted one-line change | M |
-| **F3** | **GPU gate + pinned deploys** (TP6, ci-gpu-options). `macos-15` jobs, one per shard, Metal-or-fail, posting a `gpu-gate` status. `deploy.yml` ships only the pinned milestone release, and the pin moves at a milestone. A nightly `gpu-perf` launchd poller on Jake's Mac | A broken shard turns the status red; the hourly deploy doesn't move production between milestones | M |
+| **F3.2** | **The GPU gate** (TP6, ci-gpu-options; runs after F2). `macos-15` jobs, one per shard, phone tier, Metal-or-fail, posting a `gpu-gate` status. A nightly `gpu-perf` launchd poller on Jake's Mac (desktop tier, timing, GPU bytes) posts with the Mac's `gh` login | A broken shard turns the status red | M |
 | **F4** | **Ratchets** (MW2). `wildshard/layer` (the arrows in §2.1, no shard ↔ shard, public API only), shard-name branches outside `src/shards/`, raw `localStorage`, `Math.random` / `performance.now` outside the RNG and clock. Counts live in `lint/ratchet.json` and may only go down | Adding a branch or a raw save fails lint | S |
 | **F5** | **Actor tests** (TP15, MW4): a fake `Game`, the first contract tests, the coverage ratchet on `src/engine/` | Strike timing, a sword combo and a save round-trip run in node | M |
-| **F6** | **The big move** (TP7–TP12), by a codemod from one mapping table: `git mv`, imports, globs, script strings, `targets.json`. <br>• Engine folders go to `src/engine/`. <br>• `src/game/` and `src/kit/` are created. <br>• `src/chunks/<slug>` becomes `src/shards/<slug>/` (defs → `manifest.ts`, `ChunkDef` → `ShardManifest`). <br>• `src/nalati`, `src/pinehollow` and the ~100 single-shard files in engine folders (~42k lines) go to their shard; things 2+ shards use go to the kit. <br>• Tests go to `test/shards/<slug>/`, generated files to `src/engine/boot/`. <br>• `public/assets` is **not** moved (it would re-download for every player) | Every layer rule has a ratchet count; parity green; bakers bake the same bytes | L |
-| **F7** | **Delete the dead** (TP13, TP16): `src/dev/` and `dev/*.html` (6,590 lines, incl. the nd-lab's 4,771), Nine Dragon's unimported `look/post.ts`, `meleeGeo.ts`'s dead half. Scripts that aren't live (not in package.json / hooks / CI / skills / docs, not run in 14 days) go; live ones are ported to the probe | ~5,200 dead lines gone; `check-paths` green | S |
+| **F7** | **Delete the dead** (TP13, TP16; runs **before** F6): `src/dev/` and `dev/*.html` (6,553 lines in `src/dev`, incl. the nd-lab's 4,771), Nine Dragon's unimported `look/post.ts`, `meleeGeo.ts`'s dead half, `chunks/_template.ts`, the 7 images under `src/explore/img/` nothing shows. Scripts (decision 88): one-offs of finished asks go, and any script not run in the last 5 days goes, unless package.json, a hook, CI, a skill or a doc references it; live ones are ported to the probe | ≥ 5,200 dead lines gone; `check-paths` green | S |
+| **F6** | **The big move** (TP7–TP12), by a codemod from one mapping table (04's reviewed `move-map.json`, its only input): `git mv`, imports, globs, script strings, `targets.json`. <br>• Engine folders go to `src/engine/`. <br>• `src/game/` and `src/kit/` are created. <br>• `src/chunks/<slug>` becomes `src/shards/<slug>/` (defs → `manifest.ts`, `ChunkDef` → `ShardManifest`). <br>• `src/nalati`, `src/pinehollow` and the ~100 single-shard files in engine folders (~42k lines) go to their shard; the 5 files 2+ shards already use go to the kit (the viewmodel arm rig and `rigArms`, particles, the grass trample and field); weapon families, species and weather FX wait for their rows (04 §1.3). <br>• `src/main.ts` stays at the root as the composition root (01 §0). <br>• 34 tests go to `test/shards/<slug>/`, generated files to `src/engine/boot/`. <br>• `public/assets` is **not** moved (it would re-download for every player) | Every layer rule has a ratchet count; parity green; bakers bake the same bytes | L |
 | **F8** | **The spine** (EI1, EI2, EI17, EI20). App systems with ordering and run conditions, app states, the typed event bus (`emit` / `ask`), typed services, the per-shard scope with resource ownership + the leak test, the seeded RNG and game clock | Phase-list fingerprint identical; load → unload returns to baseline | L |
 | **F9** | **The shard registry** (EI8, TP8, MW20): a generated `shards.generated.ts` (manifests + lazy `load`), the `ShardManifest` type with `api` version, the full-screen error on a failed load | The title deck and the bakers read the registry; no hand-kept shard list | M |
-| **F10** | **SaveStore** (EI19, MW7, MW15): one namespaced, versioned store with a migration chain. Today's saves are reset (Jake: fine). `storage.persist()` on home-screen launch; export / import in Settings | 0 raw `localStorage` outside the store | M |
-| **F11** | **Retire the old machinery**: the resident host (EI6: ShardHost's park / activate / evict, the 76 `shardSlot`s) and `player.colliders` + `src/physics/bridge.ts` (PHYSICS-POLISH F3). The `addEventListener` patch stays (396 listeners rely on it for teardown). A ratchet counts it, and X1 / X2 remove it | One collision path; walk + trails 0 stuck | M |
-| **F12** | **Rapier 0.21** | Walk + trails 0 stuck; nav bake `--check` green; one physical-iPhone load reading from Jake | S |
+| **F10** | **SaveStore** (EI19, MW7, MW15): one namespaced, versioned store with a migration chain and four scopes (`global`, `shard`, `device`, `session`). Today's saves are reset (Jake: fine). `storage.persist()` on home-screen launch; export / import in Settings | 0 raw `localStorage` outside the store | M |
+| **F11** | **Retire the old machinery**: the resident host (EI6: ShardHost's park / activate / evict, the 76 `shardSlot`s) and `player.colliders` + `src/physics/bridge.ts` (PHYSICS-POLISH F3). The `addEventListener` patch stays (396 listeners rely on it for teardown). The `wildshard/no-global-listener-patch` ratchet counts it, and X1 / X2 remove it | One collision path; walk + trails 0 stuck | M |
+| **F12** | **Rapier 0.21** (decisions 45, 89: +~413 KB gz on a cold load, accepted) | Walk + trails 0 stuck; nav bake `--check` green; one physical-iPhone load reading from Jake | S |
 
 ### S1 — Nine Dragon Stack becomes a plugin (milestone M1)
 
@@ -319,7 +324,7 @@ F12. The detail is in [02-foundations](game-normalization/02-foundations.md).
 | S1.2 | **The Equipment base, the Weapon contract and the Melee family** in the kit. Sword, Sabre, Spear and the jian (12 damage, a real field now) become profiles and subclasses, each keeping its feel. Fixes inline: the Spear thrust, brace and couched lance, and Naizagai's crescent all hit through walls | L |
 | S1.3 | **The damage pipeline, cues and the effects core** (today's effects). Player health moves into the engine; the 5 hurt blocks go | M |
 | S1.4 | **The Tool contract.** The Fei Zhua becomes a Tool, and its playground a shard-registered playground (EI22). The first input context (grapple), with touch relabel | M |
-| S1.5 | **Nine Dragon's own audio** (decision 44): its ambience and score (MiniMax Music 3), its SFX (MOSS + Stable Audio 3, the better take), a cue map. A listening page for Jake | M |
+| S1.5 | **Nine Dragon's own audio** (decisions 44, 71). It builds the first slice of the engine audio (score sources, ambience beds, cue maps), which S3.5 continues: its ambience and score (MiniMax Music 3), its SFX (MOSS + Stable Audio 3, the better take), a cue map. A listening page for Jake | M |
 | S1.6 | **The budget calibration scene**, and Nine Dragon's budgets from the formula | M |
 | **M1** | Gate green. Jake gets the summary, the **weapons board** (the wall fixes, any spot a profile couldn't match) and the audio page, then plays it. Nine Dragon's folder reopens; NINE-DRAGON-STACK is re-planned for the new engine (decision 66) | — |
 
@@ -327,12 +332,12 @@ F12. The detail is in [02-foundations](game-normalization/02-foundations.md).
 
 | Row | What | Size |
 |---|---|---|
-| S2.1 | The manifest and plugin. The 7 `install*` calls, `fieldModels`, streams, the hamlet, landmarks and Sets move into the plugin. The Pine tier override and the `pine-hollow` gates go | M |
-| S2.2 | **The ranged families** in the kit, each weapon keeping its feel: Bow (Bow, Longbow as a profile), Crossbow (+ bolt mods), Firearm (Rifle, LeverRifle). Projectiles, DropArc, ADS and brass become engine blocks | L |
+| S2.1 | The manifest and plugin. The 7 `install*` calls, `fieldModels`, streams, the hamlet, landmarks and Sets move into the plugin. The Pine tier override (`PINE_HOLLOW_PHONE`, deleted here) and the `pine-hollow` gates go | M |
+| S2.2 | **The ranged families** in the kit, each weapon keeping its feel: Bow (Bow, Longbow as a profile), Crossbow (+ bolt mods), Firearm (Rifle; Pine's LeverRifle a subclass in Pine's folder). Projectiles, DropArc, ADS and brass become engine blocks | L |
 | S2.3 | **The AI runtime**: HFSM + StrikeSpec + the aggression director, the boss runtime (Antler King), one elite runtime (Pine's and Nalati's bases merged), night thralls, the weighted spawn and loot tables. Fix inline: `canReach` everywhere (Pine's boar, bear, elites and bosses stop hitting through walls) | L |
-| S2.4 | **Weather and the day cycle** as engine mechanisms: three clocks → `DayCycle` + keyframes, two weather stacks → `Weather` + FX in the kit | L |
-| S2.5 | **The quest runtime** (Pine's quest on `quest/core`), and the **starter effects** in the kit | M |
-| S2.6 | **The tick-rate scheduler** with Genshin rates | M |
+| S2.4 | **Weather and the day cycle** as engine mechanisms: three clocks → `DayCycle` + keyframes, two weather stacks → `Weather` + the rain curtain in the kit (puddles stay per shard, lightning is Nalati's). Driftwood's and Nalati's clocks and Nalati's storm move onto it here too (one implementation, parity identical on all three) | L |
+| S2.5 | **The quest runtime** (Pine's quest on `quest/core`), the **starter effects** in the kit, and `#kit/npc` seeded from Pine's `npcRig` | M |
+| S2.6 | **The tick-rate scheduler** with decision 85's three bands (20 Hz / 10 Hz / paused), interrupts, pinned bosses / elites / quest actors and strikes on the body clock. Every shard's creatures switch here, Driftwood's far boars and bears included | M |
 | **M2** | Gate green; summary; the **creatures board** (walls fixed, tick rates, starter effects); Jake plays. Pine Hollow reopens | — |
 
 ### S3 — Nalati Grasslands (M3)
@@ -341,32 +346,32 @@ F12. The detail is in [02-foundations](game-normalization/02-foundations.md).
 |---|---|---|
 | S3.1 | The manifest and plugin. `wireNalati` and the 18 `nalatiNow()` binds become plugin verbs and events | M |
 | S3.2 | **The painterly look** as a `ShardRender`: its fog and composer leave `Game.ts`, and `Terrain` and `Grass` lose their style branches | M |
-| S3.3 | **The Nalati kit on the families** (Golden Bow, Naizagai, Sabre). **Riding** (the ride context, taming, reins) and **stealth** (the crouch action) stay shard mechanisms | M |
+| S3.3 | **The Nalati kit on the families** (Golden Bow, Naizagai, Sabre). **Riding** (the ride context, taming, reins) and **stealth** (the crouch action) stay shard mechanisms; the horse stays a Nalati species; the camp people join `#kit/npc` | M |
 | S3.4 | **Bosses and elites on the runtime**: the Kurgan Boss, the Storm Titan (hit-cap fix), ghost riders, balbals | M |
-| S3.5 | **The engine audio** (D12–D14), continuing the slice S1.5 built (score sources, ambience beds, cue maps): one positional voice engine, ambience zones, the merged SFX routing, the `Audio.ts` split. Steppe audio moves onto it | L |
+| S3.5 | **The engine audio** (D12–D14), continuing the slice S1.5 built (score sources, ambience beds, cue maps): one positional voice engine, ambience zones, the merged SFX routing, the `Audio.ts` split. Steppe audio moves onto it, and so do Pine's and Nine Dragon's (one implementation, parity identical); Driftwood's island audio is parked in `legacyIsland.ts` until S4.3 | L |
 | **M3** | Gate green; summary; the board; Jake plays. Nalati reopens | — |
 
 ### S4 — Driftwood Isle (M4)
 
 | Row | What | Size |
 |---|---|---|
-| S4.1 | The manifest and plugin. The ~15 `isOcean ?` builders become the shard's world build; BlenderIsland, the iron-sword pickup | L |
-| S4.2 | Enemies (crab, monkey, sailor) on the AI runtime; the **Drowned Captain on the boss runtime**, his fight unchanged | M |
-| S4.3 | Adventure, keepsakes, first minutes, the shrine hum, the island SFX and ambience; the toon look as a `ShardRender` | M |
-| S4.4 | **`main.ts` → `engine/boot.ts` ≤ 150 lines** (EI7). 0 shard branches in engine / game / kit (the ratchet reaches 0) | M |
+| S4.1 | The manifest and plugin. The ~15 `isOcean ?` builders become the shard's world build; BlenderIsland, the iron-sword pickup. The `WaterBody` interface is built here for the sea (X5 converts the other bodies) | L |
+| S4.2 | Enemies (crab, monkey, sailor) on the AI runtime; the **Drowned Captain on the boss runtime**, his fight unchanged, on the shared BossBar (decision 91, look board). The big crab hits for 14 (decision 86) | M |
+| S4.3 | Adventure, keepsakes, first minutes, the shrine hum, the island SFX and ambience; the toon look as a `ShardRender`. The Castaway and the Trader join `#kit/npc`; the `legacyIsland.ts` park is deleted | M |
+| S4.4 | **`main.ts` → the composition root (≤ 20 lines) + `engine/boot.ts` (≤ 150 lines)** (EI7, 01 §0). 0 shard branches in engine / game / kit (the ratchet reaches 0) | M |
 | **M4** | Gate green; summary; the board; Jake plays. Driftwood reopens | — |
 
 ### X — Sweeps (any a shard phase didn't already pull in)
 
 | Row | What | Size |
 |---|---|---|
-| X1 | **Input**: every action and context, key rebinding, buffer + coyote, TouchControls drawn from the top context, reserved verb slots (EI9–EI12). The **input / HUD board** (a late roof jump, a dodge pressed mid-swing, the verb slots) | L |
+| X1 | **Input**: every action and context, key rebinding, buffer + coyote, TouchControls drawn from the top context, reserved verb slots (EI9–EI12). The hoverboard moves to `#kit/tools/` as a Tool. With X2 it moves the last listeners onto scopes, so the `addEventListener` patch is deleted. The **input / HUD board** (a late roof jump, a dodge pressed mid-swing, the verb slots) | L |
 | X2 | **UI layers**, HUD slot bands and registered Bag tabs (EI13–EI16) | M |
 | X3 | **Boot and assets from the manifest** (EI3, EI4, TP9, MW13, MW17): staged steps, per-shard asset lists (fixes Explore's offline preload on 3 shards), DEPLOYMENT_ASSET_TRIM T3 and the unused-assets KTX2 fix (TP17). Nine Dragon already joined the boot packs in S1.1 | M |
 | X4 | **The animation engine layer**: rig loader, clip naming, the animation state machine, the rig contract | M |
-| X5 | **World and look leftovers**: <br>• the sky rig + backdrop (delete the painterly sky and cloud dome built then hidden on 2 shards); <br>• the fog-patch registry; <br>• the `WaterBody` interface; <br>• one geometry kit and one AO baker; <br>• one LUT loader; <br>• one particle pool (7 → 1); <br>• one RNG (3 → 1); <br>• helpers (`lin` ×6, smoothstep, pan-from-yaw); <br>• one skin locker (3 → 1) | L |
+| X5 | **World and look leftovers**: <br>• the sky rig + backdrop (delete the painterly sky and cloud dome built then hidden on 2 shards); <br>• the fog-patch registry; <br>• the other water bodies onto the `WaterBody` interface S4.1 built; <br>• one geometry kit and one AO baker; <br>• one LUT loader; <br>• one particle pool (7 → 1); <br>• one RNG (3 → 1); <br>• helpers (`lin` ×6, smoothstep ×15, pan-from-yaw ×8, loop-at-offset ×5); <br>• one skin locker (3 → 1) | L |
 | X6 | **WebGPU containment**: the renderer type only in `engine/render`; the 87 `onBeforeCompile` sites through one shader-patch registry; one precompile | M |
-| X7 | **Tiers as data and budgets per manifest** (EI24, EI25) | M |
+| X7 | **Tiers as data and budgets per manifest** (EI24, EI25). It deletes any shard-named knob S2.1 left | M |
 | X8 | **Session health** (MW10): how the last session ended, context losses, fps per shard → a crash-free-session rate per build in the session brief | S |
 
 ### Z — The finish line
@@ -383,16 +388,16 @@ F12. The detail is in [02-foundations](game-normalization/02-foundations.md).
 | Wave | When | What's on it |
 |---|---|---|
 | Weapons | M1 (+ M2 ranged) | The wall fixes (Spear, Naizagai), any spot where a family couldn't match a weapon's old behaviour |
-| Creatures | M2 / M3 | `canReach` (Pine charges stop going through walls), the Storm Titan's hit cap, Genshin tick rates on far creatures, the starter effects tuned |
+| Creatures | M2 / M3 | `canReach` (Pine charges stop going through walls), the Storm Titan's hit cap, the three tick bands (decision 85) at M2, the starter effects tuned; at M4 the big crab at 14 and the crab / monkey / sailor bands |
 | Input / HUD | X1 | Buffer + coyote (before / after clips), the reserved verb slots, the rebinding screen |
 | Audio | M1 | Nine Dragon's ambience, score and SFX (a listening page) |
-| Look | any | Only if a pose differs beyond noise (nothing is expected to) |
+| Look | M4 (+ any) | The Drowned Captain on the shared BossBar (decision 91, S4.2); otherwise only a pose that differs beyond noise (nothing else is expected to) |
 
 ## 6. Done when
 
 - **Structure:** four layers with the lint ratchet at 0: no shard names, no upward imports, no shard ↔ shard imports,
   no deep imports.
-- **Wiring:** `engine/boot.ts` ≤ 150 lines, and every shard is a manifest + plugin.
+- **Wiring:** `src/main.ts` (the composition root) ≤ 20 lines, `engine/boot.ts` ≤ 150 lines, and every shard is a manifest + plugin.
 - **Duplicates:** every group in the audit has one implementation.
 - **Weapons:** every weapon keeps its own behaviour.
 - **Gate:** green on `macos-15` for the 4 shards + the template, including the leak test and the budgets.
@@ -426,17 +431,17 @@ F12. The detail is in [02-foundations](game-normalization/02-foundations.md).
 
 ## 9. Jake's decisions (E357, 2026-09-30)
 
-The verbatim table (70 rows, with the revisions) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
+The verbatim table (decisions 1–91 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
 
 | Area | Decisions |
 |---|---|
 | **Layers** | `src/engine/` + `src/game/` + `src/kit/` + `src/shards/<slug>/`. Mechanism vs content; the rule of two. The public API only. The engine is extractable, not extracted |
 | **Shards** | Data first, code where needed (manifest + plugin verbs). Lazy per shard. Mechanisms are opt-in via `uses`. Own origin + map position. Every resource is owned by the shard's scope. Switching stays a page reload; the resident host is retired |
-| **Combat** | Melee and ranged are engine. GAS-lite. The ladder: profile → extend (subclass) → custom. Families in the kit. **Every weapon keeps its own behaviour.** A Tool contract beside Weapon. One pipeline with tagged sources. The director at today's numbers. The jian keeps 12. Today's effects + a starter set |
+| **Combat** | Melee and ranged are engine. GAS-lite. The ladder: profile → extend (subclass) → custom. Families in the kit. **Every weapon keeps its own behaviour.** A Tool contract beside Weapon. One pipeline with tagged sources. The director at today's numbers. The jian keeps 12; the big crab hits for 14 (86); javelins stay 3 (87). The Drowned Captain gets the shared BossBar (91). Today's effects + a starter set |
 | **AI** | HFSM + utility + boss phases. Species by the rule of two |
-| **Engine** | Typed TS rows with parents. Subclasses for behaviour. Dot-case typed names. Genshin tick rates now. WebGPU contained, no switch. Rapier 0.21. One versioned save store (a reset now is fine). Context stack + key rebinding + buffer / coyote; touch relabel + reserved verb slots; no gamepad now |
+| **Engine** | Typed TS rows with parents. Subclasses for behaviour. Dot-case typed names. Three AI tick bands (85; 10 Hz until S2.6). WebGPU contained, no switch. Rapier 0.21 (+413 KB accepted, 89). One versioned save store (a reset now is fine). Context stack + key rebinding + buffer / coyote; touch relabel + reserved verb slots; no gamepad now |
 | **Quality** | Small differences may merge (a board per wave); found bugs fixed inline. A fake Game + contract tests + a coverage ratchet. A full-screen error on a failed load. Budgets derived, over budget fails. 30 fps hot phone, 60-ready. Min desktop: a mid gaming PC. 1.0 GB in-world kept. Gate on free GitHub `macos-15`, nightly perf on Jake's Mac |
 | **Process** | Foundations, then Nine Dragon → Pine Hollow → Nalati → Driftwood. Lead + short subagents. Deploys at shard milestones only; bug fixes ship at milestones. The lock: each shard reopens at its milestone. Summary + boards + play at each milestone |
 | **Game layer** | Coins per shard. Items self-contained, travel-ready. Progress per shard + a Wildshard summary. Abilities per shard. String tables (English). Analytics from the event bus. Capture mode. No accessibility features in this plan |
 | **Council** | Not `ready` until 3 clean-room seats (Codex GPT 6.1 Sol + 2 Claude) find nothing two rounds in a row. Jake sees only the decisions that need him |
-| **Scope** | ENGINE-FIT folded in. Nine Dragon's own audio. Save safety + session health. Input actions. Delete dead + dev copies. Live scripts kept, the rest deleted. The permanent gate. The template shard + docs + shard 5 by a fresh agent. Doors kept open for multiplayer and seamless travel |
+| **Scope** | ENGINE-FIT folded in. Nine Dragon's own audio. Save safety + session health. Input actions. Delete dead + dev copies. Scripts: one-offs of finished asks and anything not run in 5 days go, unless referenced (88). The permanent gate. The template shard + docs + shard 5 by a fresh agent. Doors kept open for multiplayer and seamless travel |

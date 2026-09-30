@@ -365,7 +365,7 @@ interface WeaponUi {
 **T2 `tool.hoverboard`** (kit, `#kit/tools/hoverboard.ts`, `class Hoverboard extends Tool`, slot `tool`): the board
 viewmodel (deck 0.9 × 0.28 m, cyan edge, 0.25 s fade) and the `hover` toggle action (`H`, the HOVER disc). The motor
 mode (`Player.hover`, ride height spring, `HOVER_TOP`) stays in the engine player motor as the `board` context
-(01 §10). See question Q7.
+(01 §10). It moves in X1 (13-lead-resolutions 09#7).
 
 Anything else considered and rejected as a Tool: the reins (part of Nalati's `ride` context), the lasso-less taming
 (Nalati's `Taming.ts`), the lock-on (engine ability), the swim hands (`Hands.ts`: player motor presentation).
@@ -404,9 +404,10 @@ commit; its row's parity test and the harness are green before the next weapon m
 | creature | `damageTakenMul` | the variant's `mods.damageTaken` (body hits only; head hits in full) | `Animal.ts:336–340` |
 | creature | `moveSpeedMul` | the variant's `mods.speed` | species rows |
 
-A weapon is not an `Actor`; its attributes live on its `Weapon` instance and the effect service applies to it through
-the owner (`effects.apply(player, id)` resolves `attr: 'weapon.sword.*.damage'`-style targets by the effect's
-`appliesTo` tag, §2.2). See question Q3.
+A weapon is not an `Actor`: it carries its own `AttributeSet` (01 §18), and `EffectService.apply` takes an
+`Actor | Equipment` target (13-lead-resolutions 09#3). A whetstone is applied to each owned equipment row tagged
+`weapon.blade` (`effects.apply(weapon, 'effect.whetstone.1')`), the bear claw to the melee weapons, and the Golden Bow
+row's draw to that bow.
 
 ### 2.2 Every effect today, as rows
 
@@ -434,17 +435,25 @@ cosmetic (they grant a tag the viewmodel reads).
 **Damage rules** (`DamageRuleDef`, engine type; registered by rows, run as `ask('damage.modify')` answerers in `order`):
 
 ```ts
-interface DamageRuleDef {
-  id: RuleId; order: number;                         // lower runs first
-  when: { req?: readonly Tag[]; source?: readonly Tag[]; target?: readonly Tag[]; targetHas?: readonly Tag[]; sourceHas?: readonly Tag[]; not?: readonly Tag[] };
-  op: 'veto' | 'mul' | 'cap' | 'add';
-  value: number | ((req: DamageRequest, app: App) => number);
+interface DamageRuleDef {                            // 01 §18, as is (13-lead-resolutions 09#2)
+  id: string; order: number;                         // lower runs first; answers ask('damage.modify') in `order`
+  when: { sourceTags?: readonly Tag[]; targetTags?: readonly Tag[]; weaponTags?: readonly Tag[]; targetState?: readonly Tag[] };
+  op: 'cap' | 'add' | 'mul' | 'negate' | 'override'; value: number;
 }
 ```
 
+How the table maps onto 01's row: "req" = the hit's own tags and "source" = the source actor's tags, both in the
+request's `sourceTags` (the pipeline adds the actor's own and granted tags, e.g. `state.sneak-shot`); "target" =
+`targetTags`; "has" = `targetState` (the target's granted state tags: `guard.dodge`, `state.dodging`,
+`state.death-fade`); `weapon.*` tags = `weaponTags`. A list matches when any of its tags matches (`.*` parent
+matching), and every list given must match. "negate" cancels the hit (the answer returns `null`). Four rules need more
+than a row can say, so each is a plain `ctx.answer('damage.modify', fn, { order })` answerer at the same `order`
+(sent to the lead as a gap in 01 §18): R0b (registered only when `app.params` has `bossGod`), R1 (its exemption list
+is `manifest.fight.capExempt`), R3 (two source conditions that must both hold) and R6 / R7 (computed values).
+
 | # | Rule | order | when | op / value | today |
 |---|---|---|---|---|---|
-| R0 | `rule.death-fade` | 0 | target `actor.player`, the death fade is active | veto | `main.ts:966–967, 1191` |
+| R0 | `rule.death-fade` | 0 | target `actor.player`, the death fade is active | negate | `main.ts:966–967, 1191` |
 | R0b | `rule.boss-god` | 1 | param `bossGod` (harness allowlist), target `actor.player`, source `boss.*` \| `elite.*` \| `add.*` | veto | `kurganBoss.ts:652–657`, `stormTitan.ts:994–995`, `pinehollow/index.ts:67, 85–86` |
 | R2 | `rule.dodge-guard` | 10 | target `actor.player` has `guard.dodge` and `player.dodging`; source `creature.*` \| `boss.*` \| `elite.*` \| `add.*` | veto | `main.ts:832` |
 | R3 | `rule.sneak-shot` | 20 | req `dmg.ranged` (arrows, javelins) and source has `state.sneak-shot` (landing within 4 s) | mul 2 | `stealth.ts:61, 150–161` |
@@ -511,19 +520,21 @@ Debug registry rules).
 ### 3.1 Types
 
 ```ts
-// #engine/combat — extends 01 §18's DamageRequest (source, tags, amount, point, dir, target)
+// #engine/combat — 01 §18's DamageRequest, the superset every path fills (13-lead-resolutions 09#11). The fields
+// marked (†) are this spec's and are not in 01 §18's type yet (sent to the lead).
 interface DamageRequest {
-  source: ActorRef | 'world';
-  target: ActorRef;
-  tags: ReadonlySet<Tag>;             // the source's own tags are added by the pipeline (creature.*, boss.*, …)
+  source: Actor | 'env'; target: Actor;
+  sourceTags: readonly Tag[];         // the hit's tags (dmg.*, ammo.*, model.bolt, env.*); the pipeline adds the source actor's own and granted tags (creature.*, boss.*, state.sneak-shot …)
   amount: number;                     // before rules; for model.bolt it is ignored and R6 computes it
-  point: Vec3; dir: Vec3;
-  from?: Vec3;                        // occlusion origin: the attacker's reach point or the player's eye; absent = no occlusion
-  headshot?: boolean; distance?: number; scale?: number;   // the bolt model's inputs
+  point: THREE.Vector3; dir: THREE.Vector3;   // dir × knockback is Nalati's env.knock push (today `knock: { x, z }`)
+  surface?: SurfaceId; weaponId?: string; moveId?: string;
+  headshot?: boolean;
   stagger?: number;                   // 0..1 → Animal.stagger / knock
-  knock?: { x: number; z: number };   // Nalati env.knock (elites)
-  cause?: { kind?: string; label?: string; text?: string };   // the death card (Killer, main.ts:830)
-  toast?: string;                     // the "why" line (Titan, lightning)
+  knockback?: number; throughWalls?: boolean;   // throughWalls mirrors the `through.walls` tag
+  from?: THREE.Vector3;               // (†) occlusion origin: the attacker's reach point or the player's eye; absent = no occlusion
+  distance?: number; scale?: number;  // (†) the bolt model's inputs
+  cause?: { kind?: string; label?: string; text?: string };   // (†) the death card (Killer, main.ts:830)
+  toast?: string;                     // (†) the "why" line (Titan, lightning)
 }
 interface DamageDealt { req: DamageRequest; dealt: number; killed: boolean }
 ```
@@ -617,7 +628,7 @@ the regen timing; `death.checkpoint` answered by a fake encounter; `bossGod` vet
 | Event | Payload | Emitted by | Listened by |
 |---|---|---|---|
 | `damage.dealt` | `DamageDealt` | the pipeline | Combat floats (`ui/Combat.ts`), health bars, hit-stop / kick cues, blood, audio, player feel (§3.3), analytics |
-| `actor.died` | `{ actor: ActorRef; req: DamageRequest }` | the pipeline | loot (coins, trophies), compendium, quests (Spine, Ecology, Pine quest, Nalati adventure), Pine life (ravens), feats, kill feed |
+| `actor.died` | `{ actor: Actor; req: DamageRequest }` | the pipeline | loot (coins, trophies), compendium, quests (Spine, Ecology, Pine quest, Nalati adventure), Pine life (ravens), feats, kill feed |
 | `player.died` | `{ cause }` | the player service | death fade, analytics `death.cause`, respawn flow |
 | `player.respawned` | `{ at: Vec3; checkpoint: boolean }` | respawn flow | kit refill (Nalati), Pine loadout, effects cleanup |
 | `weapon.fired` | `{ id: WeaponId; move?: MoveId }` | every weapon | cues, Combat's MISS judgement, analytics `weapon.used` |
@@ -639,7 +650,7 @@ the regen timing; `death.checkpoint` answered by a fake encounter; `bossGod` vet
 
 | Ask | In → out | Answered by |
 |---|---|---|
-| `damage.modify` | `DamageRequest` → `DamageRequest \| null` (null = vetoed) | R0–R8 (§2.2) + brains' rules |
+| `damage.modify` | `DamageRequest` → `DamageRequest \| null` (null = negated) | R0–R8 (§2.2) + brains' rules |
 | `death.checkpoint` | `{ cause }` → `boolean` | running encounters (Boss runtime) |
 | `ai.mayAttack` | `{ actor }` → `boolean` | the aggression director (§5.5) |
 | `ai.claim` | `{ actor }` → `boolean` | the director (takes a token) |
@@ -715,9 +726,13 @@ Driftwood's `ISLAND_BOARS` variant subset; Pine's charge tell and thrall variant
 
 ### 5.3 Strike table (every creature attack; windup / active / recover in s, range in m)
 
-`ShapeSpec` (the params 01 §19's `shape` string needs, Q1): `arc { reach, halfAngle, maxDy? }` · `lane { width,
-speed, overshoot, skid, reach }` · `ring { speed, halfWidth, maxR, jumpDodges }` · `wedge { reach, halfAngle }` ·
-`point { r, delay }` · `zone { r, period }`. "cover" = occlusion (✔ = `from` set, ✘ = `through.walls`); "today" =
+`shape` is 01 §19's `StrikeShape` (13-lead-resolutions 09#1): `arc { radius, halfAngle }` · `lane { length, width }` ·
+`ring { inner, outer }` · `wedge { length, halfAngle }` · `point { radius }`. The table's older names map onto it:
+arc / wedge `reach` → `radius` / `length`; lane `reach` → `length`; ring `maxR` → `outer`, `halfWidth` → `outer −
+inner` = 2 × `halfWidth`; point `r` → `radius`; a `zone { r, period }` is a `point` strike repeated every `period`.
+The motion and timing numbers a shape can't hold (arc `maxDy`; lane `speed`, `overshoot`, `skid`; ring `speed`,
+`jumpDodges`; point `delay`) stay on the strike row beside `shape` (sent to the lead: 01 §19's `StrikeSpec` has no
+field for them yet). "cover" = occlusion (✔ = `from` set, ✘ = `through.walls`); "today" =
 does it check walls now.
 
 | # | Strike | file:line | windup → hit | recover / cooldown | shape | dmg | cover (today → after) | token |
@@ -832,12 +847,12 @@ The director is on only when `attackers` is finite, which reproduces `this.rules
 | species variant rolls | each species' `variants[].weight` (e.g. boar 49 / 26 / 10 / 8 / 3 / 1) | species files |
 | `loot.driftwood.coins` | crab 1, monkey 1, boar 2, sailor 5, bear 10, captain 25; ≤ 12 coin meshes a burst | `coins.ts:10–31` |
 | `loot.driftwood.trophies` | brown bear → bear-claw; any boar → boar-tusk; captain → captain-hat; each only while not owned | `keepsakes.ts:49–66` |
-| `loot.<shard>.harvest` | fixed yields (`rolls: 'each'`, Q9): deer [venison, deer-hide (+ antlers: stag / ghost)], boar [meat, hide (+ tusk unless sow)], elk [meat, hide (+ antlers: bull / imperial)], bear [pelt, claw], crab [meat, claw (+ shell: big)], monkey [coconut, fur / silver-fur (elder)]; Pine keeps only its 7 kinds; Nalati and Nine Dragon none | `Inventory.ts:64–86` |
+| `loot.<shard>.harvest` | fixed yields (`mode: 'each'` with `count`, 01 §19; 13-lead-resolutions 09#9): deer [venison, deer-hide (+ antlers: stag / ghost)], boar [meat, hide (+ tusk unless sow)], elk [meat, hide (+ antlers: bull / imperial)], bear [pelt, claw], crab [meat, claw (+ shell: big)], monkey [coconut, fur / silver-fur (elder)]; Pine keeps only its 7 kinds; Nalati and Nine Dragon none | `Inventory.ts:64–86` |
 | elite / boss drops | the skins and rewards in §5.4 | `elites.ts:72–100`, `pinehollow/elites.ts:62–92` |
 
 ### 5.7 Tick classes (01 §12)
 
-| System | Today | Class | During S2.3 (identical) | From S2.6 (decision 23, creatures board) |
+| System | Today | Class | During S2.3 (identical) | From S2.6 (decision 85, creatures board) |
 |---|---|---|---|---|
 | creature brains (herd, species `think`, elite brains) | 10 Hz for every animal at any distance (`AnimalManager.ts:686–699`) | `ai` | shard tier override `ai: { bands: [{ upTo: ∞, brainHz: 10, body: 'frame' }] }` | decision 85's bands: near 0–60 m brain 20 Hz + body every frame; mid 60–160 m brain 10 Hz + body every 2nd frame; far paused; interrupts; pinned bosses / elites / quest actors |
 | strike runner (contact, active windows) | per frame for charges (`:716`), 10 Hz for `think` strikes | fixed step (60 Hz) | yes for S8 (as today); `think` strikes sampled at the brain tick (as today) | every strike on the body clock (01 §12): fixes the up-to-100 ms telegraph / hit drift |
@@ -897,17 +912,20 @@ Every step: harness green → pathspec commit → `scripts/push-main.sh` (plan �
 
 ## 8. Questions for the lead
 
-| # | Question | This spec's default |
+Every question is answered in [13-lead-resolutions.md](13-lead-resolutions.md) (09 table); the body above follows each
+answer.
+
+| # | Question | Resolution |
 |---|---|---|
-| Q1 | 01 §19's `StrikeSpec.shape` is a bare string with one `range`; lanes, rings and arcs need their own params (§5.3 `ShapeSpec`) | `shape` becomes the `ShapeSpec` union |
-| Q2 | 01 §18's `EffectDef` cannot express hit-dependent rules (the cap, the tusk, the sneak shot, broadheads, balbal bonuses) | add `DamageRuleDef` (§2.2) as an engine row type answering `damage.modify` |
-| Q3 | Whetstones, the bear claw and the Golden draw modify a weapon, and 01's `EffectService.apply` takes an `Actor` | `Equipment` owns an `AttributeSet`; an effect row names `appliesTo: Tag` (e.g. `weapon.blade`) and the service resolves the owner's equipment |
-| Q4 | 01 §12 defaults `ai` to 30 Hz near; today every brain runs at 10 Hz | **Resolved** (Jake, decision 85): 10 Hz through S2.5 (identical); at S2.6 the 3 bands (20 / 10 / paused) + interrupts + strikes on the body clock, on the creatures board |
-| Q5 | The horse's second "user" is the horse playground, which 01 §22 moves into Nalati's folder: by the rule of two it is Nalati-only | **Resolved: Nalati** (13-lead-resolutions 09#5) |
-| Q6 | A fall does not reset the regen delay (`main.ts:945` never sets `lastHurt`) | kept identical |
-| Q7 | The hoverboard fits the Tool contract (own button, runs alongside the weapon) but no plan row names it | `tool.hoverboard` in `#kit/tools/`, moved in X1 (input sweep) |
-| Q8 | The big crab's `chargeDamage 14` is dead data (the snap deals 10) | **Resolved: 14** (Jake, decision 86) |
-| Q9 | 01 §19's `WeightedTable.rolls: number` has no "every row once" mode for fixed harvest yields | `rolls: number \| 'each'` |
-| Q10 | Pine's finishes and Nalati's skins have no numbers; decision 55 lists them as effects | cosmetic effects (E12, E13) that grant a tag; the alternative is `#game` item fragments |
-| Q11 | `DamageRequest` here adds `from`, `headshot`, `distance`, `scale`, `stagger`, `knock`, `cause`, `toast` to 01 §18's six fields | accept the superset |
-| Q12 | `Spear.ts:37` promises 5 javelins "with the camp upgrade"; nothing implements it | keep 3; not in this plan |
+| Q1 | 01 §19's `StrikeSpec.shape` was a bare string with one `range` | **Resolved → 13-lead-resolutions 09#1:** `StrikeShape` = arc (radius, halfAngle) / lane (length, width) / ring (inner, outer) / wedge (length, halfAngle) / point (radius); §5.3 maps the table onto it. **Open, sent to the lead:** the strike's motion numbers (lane speed, ring speed, point delay …) have no `StrikeSpec` field yet |
+| Q2 | 01 §18's `EffectDef` can't express hit-dependent rules | **Resolved → 13-lead-resolutions 09#2:** `DamageRuleDef` (`when` tags + `op` cap / add / mul / negate / override + `order`), §2.2. **Open, sent to the lead:** R0b, R1, R3, R6 / R7 need more than a row and are plain answerers |
+| Q3 | Whetstones, the bear claw and the Golden draw modify a weapon | **Resolved → 13-lead-resolutions 09#3:** weapons carry their own `AttributeSet`; `EffectService` targets `Actor \| Equipment` (§2.1) |
+| Q4 | Today every brain runs at 10 Hz | **Resolved → 13-lead-resolutions 09#4** (Jake, decision 85): 10 Hz through S2.5 (identical); at S2.6 the 3 bands (20 / 10 / paused) + interrupts + pinned bosses / elites / quest actors + strikes on the body clock, on the creatures board (§5.7) |
+| Q5 | The horse: kit or Nalati? | **Resolved → 13-lead-resolutions 09#5:** Nalati (§5.2) |
+| Q6 | A fall does not reset the regen delay | **Resolved → 13-lead-resolutions 09#6:** kept as today; `env.fall` isn't tagged `interruptsRegen` (§3) |
+| Q7 | The hoverboard fits the Tool contract | **Resolved → 13-lead-resolutions 09#7:** a kit Tool in `#kit/tools/`, moved in X1; its movement mode (`board` context, motor) stays engine (§1.7, 10 X1) |
+| Q8 | The big crab's `chargeDamage 14` is dead data | **Resolved → 13-lead-resolutions 09#8** (Jake, decision 86): **14**, on the creatures board (§5.3) |
+| Q9 | `WeightedTable` has no "every row once" mode | **Resolved → 13-lead-resolutions 09#9:** `mode: 'weighted' \| 'each'` + `count` (§5.6) |
+| Q10 | Pine's finishes and Nalati's skins have no numbers | **Resolved → 13-lead-resolutions 09#10:** cosmetic `EffectDef` rows with no modifiers, tagged `cosmetic` (E12, E13) |
+| Q11 | `DamageRequest` has more fields here than in 01 | **Resolved → 13-lead-resolutions 09#11:** 01 takes the superset (§3.1 uses 01's names). **Open, sent to the lead:** `from`, `distance`, `scale`, `cause`, `toast` are not in 01 §18's type yet |
+| Q12 | The Spear's 5 javelins "with the camp upgrade" are never granted | **Resolved → 13-lead-resolutions 09#12** (Jake, decision 87): **keep 3**; the unreachable promise is removed |

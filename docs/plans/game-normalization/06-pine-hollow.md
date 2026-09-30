@@ -38,19 +38,19 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 
 | Files (lines) | Destination | When | Why / what changes |
 |---|---|---|---|
-| `index.ts` (156) | `shard:combat/install.ts` | F6; S2.3 | `installPineCombat(host)` becomes `installCombat(ctx, rt)`: the elites through the engine elite runtime, the Antler King through the boss runtime. `Object.assign(window, { __pineElites, __antlerKing })` (:147) → `app.debug.expose` (05 Q5). `BOSS_NAMES.set(KING_KIND, …)` (:113) → the boss row's display name (EI23). `animals.onCharge?.(a, dmg)` in `ctx.hurt` (:85) → `combat.hit` |
+| `index.ts` (156) | `shard:combat/install.ts` | F6; S2.3 | `installPineCombat(host)` becomes `installCombat(ctx, rt)`: the elites through the engine elite runtime, the Antler King through the boss runtime. `Object.assign(window, { __pineElites, __antlerKing })` (:147) → `ctx.debug.expose` (01 §7). `BOSS_NAMES.set(KING_KIND, …)` (:113) → the boss row's display name (EI23). `animals.onCharge?.(a, dmg)` in `ctx.hurt` (:85) → `combat.hit` |
 | `elites.ts` (473) | `shard:combat/elites.ts` (the four rows + their scripts) | S2.3 | `PineElite` (:120) merges with Nalati's `Base` into the engine elite script base (plan S2.3; 09-combat-ai). The four elites stay here as rows + subclasses |
 | `antlerKing.ts` (687), `kingRig.ts` (497), `combatMath.ts` (97) | `shard:combat/antlerKing.ts`, `kingRig.ts`, `combatMath.ts` | S2.3 | `class AntlerKing extends BossBrain` (01 §19), the fight unchanged. `window.addEventListener('pointerdown' / 'pointerup' / 'pointercancel')` (:646-648, the intro's touch-skip) → the `menu`-less `cutscene.skip` action at X1; S2.3 keeps the three listeners behind `ctx.scope.listen` (counted by `no-raw-input`, gone at X1). `scene.onBeforeRender` chaining (:189-190) → a `render`-phase system `shard.pine.king.atmosphere`. `a.onDamaged` chaining (:235) → `ctx.answer('damage.modify')` for the King |
 | `ctx.ts` (134) | `shard:combat/ctx.ts` | S2.3 | `LaneCharge` (:79, 17 uses) becomes StrikeSpec `lane` rows (09-combat-ai). `a.onDamaged` chaining (:52-54) → `ctx.on('damage.dealt')` |
 | `feel.ts` (83) | deleted | S2.2 | Its `weapons.onHit` / `onImpact` monkey-patches (:41-50) become the ranged profiles' hit-stop / kick / trauma cue fields (09-combat-ai: today's Pine values: 35 / 55 / 75 ms) |
 | `fxKit.ts` (116) | `shard:combat/fxKit.ts` | F6; X5 | Its `Puffs` (:17) merges into the one particle pool at X5 |
-| `loadout.ts` (241), `ammo.ts` (83), `finishes.ts` (44) | `shard:loadout/loadout.ts`, `ammo.ts`, `finishes.ts` | S2.2 | The ammo kinds (iron / pitch / broadhead bolts, arrows, cartridges) become AmmoRows; the chained `weapons.onFire / onReloadStart / onDry / onImpact` (:169-186) and `rifle.onCycle / onRoundIn`, `longbow.onDrawStart / onRecover` (:178-191) become cue-map entries and `weapon.*` events. The `KeyB` listener (:157-160) becomes the action `bolt.cycle` in the `crossbow.bolts` context; the ammo-strip `pointerdown` (:161-165) stays until X1 moves it to `verb.1` (10-sweeps X1). `STORE = 'ws.ph.loadout.v1'` (:66) → SaveStore key `loadout` (scope shard). `window.__loadout / __lever / __longbow` (:239) → `app.debug.expose` |
-| `weather.ts` (208) | `shard:world/weather.ts` | S2.4 | `installPineWeather` becomes `installWeather(ctx, rt)` over the engine `Weather` with Pine's profile (§6.4). `window.__pineWeather` (:194) → `app.debug.expose('pine.weather', …)`. `h.animals.wanderGoal = …` (:130) → `ctx.answer('creature.wanderGoal')` |
-| `audioWiring.ts` (131) | `shard:audio/wiring.ts` | S2.1 | `installPineAudio` becomes a plugin system; `window.__pineAudio` (:130) → `app.debug.expose` |
+| `loadout.ts` (241), `ammo.ts` (83), `finishes.ts` (44) | `shard:loadout/loadout.ts`, `ammo.ts`, `finishes.ts` | S2.2 | The ammo kinds (iron / pitch / broadhead bolts, arrows, cartridges) become AmmoRows; the chained `weapons.onFire / onReloadStart / onDry / onImpact` (:169-186) and `rifle.onCycle / onRoundIn`, `longbow.onDrawStart / onRecover` (:178-191) become cue-map entries and `weapon.*` events. The `KeyB` listener (:157-160) becomes the action `bolt.cycle` in the `crossbow.bolts` context; the ammo-strip `pointerdown` (:161-165) stays until X1 moves it to `verb.1` (10-sweeps X1). `STORE = 'ws.ph.loadout.v1'` (:66) → SaveStore key `loadout` (scope shard). `window.__loadout / __lever / __longbow` (:239) → `ctx.debug.expose` |
+| `weather.ts` (208) | `shard:world/weather.ts` | S2.4 | `installPineWeather` becomes `installWeather(ctx, rt)` over the engine `Weather` with Pine's profile (§6.4). `window.__pineWeather` (:194) → `ctx.debug.expose('pine.weather', …)`. `h.animals.wanderGoal = …` (:130) → `ctx.answer('creature.wander-goal')` |
+| `audioWiring.ts` (131) | `shard:audio/wiring.ts` | S2.1 | `installPineAudio` becomes a plugin system; `window.__pineAudio` (:130) → `ctx.debug.expose` |
 | `perfLapHost.ts` (59) | `shard:dev/perfLap.ts` | S2.1 | The fps panel's PERF LAP route, registered with `ctx.debugRow` (group `perf`) instead of `registerPineLap` |
-| `life/index.ts` (761), `birdFix.ts` (201), `birdModels.ts` (202), `lifeMath.ts` (61), `trunks.ts` (81) | `shard:life/…` | F6; S2.1 wiring | `animals.onKill` chaining (`index.ts:276`) → `ctx.on('actor.died')`; `document.addEventListener('ws:ready')` (:131) → `ctx.on('app.ready')`; `window.__pineLife` (:734) → `app.debug.expose` |
-| `quest/index.ts` (605), `beats.ts` (42), `contracts.ts` (190), `hollowLog.ts` (38), `nightThralls.ts` (142), `npcModels.ts` (138), `rides.ts` (162), `stagLead.ts` (108), `table.ts` (79), `tokenShelf.ts` (53), `trades.ts` (70), `ui.ts` (145), `wardensHollow.ts` (166) | `shard:quest/…` | F6; S2.5 | On the engine quest runtime (S2.5). `animals.onKill` chaining (`index.ts:385`) → `ctx.on('actor.died')`. `BOARD_STORE = 'ws.lodge.v1'` (`contracts.ts:164`) → SaveStore key `lodge` (shard). `window.__pineQuest` (`index.ts:602`) → `app.debug.expose`. `ui.ts` (the board / trade panels) mounts with `ctx.hud` now and moves onto the UI layers at X2; its `KeyE` / Escape listener (:50-53) goes at X1 / X2 |
-| `quest/npcRig.ts` (578) | `src/kit/npc/npcRig.ts` | S2.5 | The seed of the kit NPC rig (01 §21, D9: Castaway ≈ Trader ≈ campPeople ≈ Pine `npcRig`). Nalati's and Driftwood's rigs join it in their phases (question Q6) |
+| `life/index.ts` (761), `birdFix.ts` (201), `birdModels.ts` (202), `lifeMath.ts` (61), `trunks.ts` (81) | `shard:life/…` | F6; S2.1 wiring | `animals.onKill` chaining (`index.ts:276`) → `ctx.on('actor.died')`; `document.addEventListener('ws:ready')` (:131) → `ctx.on('app.ready')`; `window.__pineLife` (:734) → `ctx.debug.expose` |
+| `quest/index.ts` (605), `beats.ts` (42), `contracts.ts` (190), `hollowLog.ts` (38), `nightThralls.ts` (142), `npcModels.ts` (138), `rides.ts` (162), `stagLead.ts` (108), `table.ts` (79), `tokenShelf.ts` (53), `trades.ts` (70), `ui.ts` (145), `wardensHollow.ts` (166) | `shard:quest/…` | F6; S2.5 | On the engine quest runtime (S2.5). `animals.onKill` chaining (`index.ts:385`) → `ctx.on('actor.died')`. `BOARD_STORE = 'ws.lodge.v1'` (`contracts.ts:164`) → SaveStore key `lodge` (shard). `window.__pineQuest` (`index.ts:602`) → `ctx.debug.expose`. `ui.ts` (the board / trade panels) mounts with `ctx.hud` now and moves onto the UI layers at X2; its `KeyE` / Escape listener (:50-53) goes at X1 / X2 |
+| `quest/npcRig.ts` (578) | `src/kit/npc/npcRig.ts` | S2.5 | The seed of the kit NPC rig (01 §21, D9: Castaway ≈ Trader ≈ campPeople ≈ Pine `npcRig`). Nalati's camp people join it in S3.3, Driftwood's Castaway and Trader in S4.3 (13-lead-resolutions 05/06#14) |
 
 ### 1.3 Pine Hollow code in engine folders
 
@@ -71,7 +71,7 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | `src/audio/ForestAmbience.ts` | 288 | `shard:audio/ambience.ts` | S2.1 | Built only on Pine (`main.ts:863`); becomes an `AmbienceBeds` profile at S3.5 |
 | `src/audio/PineHollowSfx.ts` | 291 | `shard:audio/sfx.ts` | S2.1 | Pine's voice engine; merged with `Voices.ts` into the engine voice pool at S3.5 (01 §15) |
 | `src/entities/pineCreatures.ts` (361), `pineCoats.ts` (533), `pineCreatureRigs.ts` (17), `bearFix.ts` (112) | 1,023 | `shard:species/hulls.ts`, `coats.ts`, `rigs.ts`, `bearFix.ts` | S2.3 | The Pine look of its species (the TRELLIS hulls and coats). `pineCreatureRigs.ts` is also read by `boot/manifest.ts:24` → `boot.files` |
-| `src/player/Crossbow.ts` (1,307), `LeverRifle.ts` (929), `Longbow.ts` (792), `hunterHands.ts` (435) | 3,463 | `src/kit/weapons/crossbow/`, `firearm/leverRifle.ts`, `bow/` (Longbow as a Bow profile), `src/kit/viewmodel/hunterHands.ts` | S2.2 | Families live in the kit (01 §18); 09-combat-ai has every field |
+| `src/player/Crossbow.ts` (1,307), `LeverRifle.ts` (929), `Longbow.ts` (792), `hunterHands.ts` (435) | 3,463 | `src/kit/weapons/crossbow/`, `bow/` (Longbow as a Bow profile), `src/kit/viewmodel/hunterHands.ts`; `LeverRifle.ts` → `shard:weapons/LeverRifle.ts` at F6 (`class LeverRifle extends Firearm`, rule of two: only Pine uses it; 13-lead-resolutions 04#3) | S2.2 | Families live in the kit (01 §18); 09-combat-ai has every field |
 | `src/player/Skins.ts` | 299 | `SkinLocker` → `#game/cosmetics` (X5 "one skin locker"); `SKINS` (the seven legendary finishes) → `shard:loadout/skins.ts` | S2.2 | The legendary skins are Pine's (`main.ts:793`, E318 row 4 / E333) |
 | `src/ui/compendium/shards/pine-hollow.ts` | 145 | `shard:compendium.ts`, registered with `ctx.rows.compendium(…)` | S2.1 | `compendium/install.ts:14, 48` |
 | `src/game/achievements.ts:35-97` (the `PINE_HOLLOW` list), `:98` | ~63 | `shard:feats.ts`, `ctx.rows.feat(…)` | S2.1 | #game feats per shard (decision 76) |
@@ -80,7 +80,7 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | `src/world/blenderArea.ts:32` (`'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }`) | 1 | `manifest.world.blenderArea` | S2.1 | Data |
 | `src/world/HorizonMatte.ts:55-57` (the Pine strips) | 3 | `manifest.horizon.matte` | S2.1 | Data |
 | `src/world/TreeFactory.ts` (768) | 768 | `shard:world/treeFactory.ts` | S2.1 | `trees.factory: 'pine'` is Pine's only (Nalati: `spruce`, the others `none`); the template's comment (`_template.ts:98`) is the template's to change at Z1 |
-| `src/world/Grass.ts` (the non-painterly carpet, 614 in all), `Undergrowth.ts` (539) | 1,153 | `shard:world/grass.ts`, `undergrowth.ts` | S2.1 (Grass: after S3.1 takes Nalati's `GrassV2` dispatch out, `Grass.ts:129`) | Only Pine draws the carpet and the undergrowth |
+| `src/world/Grass.ts` (the non-painterly carpet, 614 in all), `Undergrowth.ts` (539) | 1,153 | `shard:world/grass.ts`, `undergrowth.ts` | S2.1 (`Undergrowth.ts`); `Grass.ts` at S3.1, once S3.1 takes Nalati's `GrassV2` dispatch out (`Grass.ts:129`; 13-lead-resolutions 04#4) | Only Pine draws the carpet and the undergrowth |
 | `src/world/Particles.ts` (423), `src/world/GrassTrample.ts` | — | `src/kit/looks/particles.ts`, `src/kit/looks/trample.ts` | F6 | Pine + Nalati (rule of two; 01 §21 names the trample) |
 | `src/world/Forest.ts` (351), `placement.ts` (323), `treeSpecies.ts`, `treeSet.ts` | — | `src/engine/world/forest/` | F6 | Placement + drawing of any forest (Pine, Nalati); the species names are data the shard's set declares |
 | `scripts/pine-hollow-*.mjs` (17 files), `e314-pine-bag-capture.mjs` | — | F7's liveness rule; `pine-hollow-perf-lap.mjs` is live (a harness block) and is ported to the probe | F7 | — |
@@ -96,7 +96,7 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | 9, 297-298 | `const streams = chunk.slug === 'pine-hollow' ? new PineStreams(sky).build()` | the creek, waterfall, foam, spray | the plugin's world build (`shard.world`) |
 | 48, 445, 465-468 | `new Cabins(sky, chunk.slug === 'pine-hollow' ? pineHamletBuildings() : [])` / `installPineLandmarks(` / `cutTerrain(world.physics, landmarks.crags.terrainCuts())` | the homestead + hamlet, the landmarks, the cave's terrain cut and punch | the plugin's world build, same calls in the same order: `placeCabins`, the door pieces (`main.ts:453-463`, moved verbatim), `installLandmarks`, the cut and the punch (`world.terrain.punch` stays an engine terrain verb) |
 | 49, 481-486 | `const propsBuilt = new Props(sky, forest, game.renderer)` | the boulders, stumps, logs (the default branch of the `props` step) | the plugin's world build |
-| 51-54, 251-252, 517, 532-549 | `startViewmodelTextures(…=== 'crossbow')` / `if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel()` / `new Crossbow(` / `const isPine = chunk.slug === 'pine-hollow'` / `new LeverRifle(` / `new Longbow(` / `longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }]` | the default crossbow, the lever-action in the rifle slot, the Longbow in the extras; the texture worker and the lever model fetched while the world builds | `manifest.loadout` (S2.2): rows `weapon.crossbow` (start), `weapon.leverRifle` (slot 2, pickup), `weapon.longbow` (slot 3, locked until granted). Each family row declares `preload` (the texture worker for the crossbow and the lever; the lever GLB `LEVER_MODEL_URL`); the equipment service starts the preloads at `shard.data` |
+| 51-54, 251-252, 517, 532-549 | `startViewmodelTextures(…=== 'crossbow')` / `if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel()` / `new Crossbow(` / `const isPine = chunk.slug === 'pine-hollow'` / `new LeverRifle(` / `new Longbow(` / `longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }]` | the default crossbow, the lever-action in the rifle slot, the Longbow in the extras; the texture worker and the lever model fetched while the world builds | `manifest.loadout` (S2.2): rows `weapon.crossbow` (start), `weapon.lever` (slot 2, pickup), `weapon.longbow` (slot 3, locked until granted). Each family row declares `preload` (the texture worker for the crossbow and the lever; the lever GLB `LEVER_MODEL_URL`); the equipment service starts the preloads at `shard.data` |
 | 59-61, 619-630, 754-795 | `import { finishPick, pineFinishes }` / `import { mottLine }` / `let pineFinish` / `...(isPine ? { skins: () => pineFinishes(skins), …, pack: { note: "Everything here trades at Mott's stall"` / `if (isPine) pineFinish = (id) =>` / `const skin = isPine ? skinFor(a.kind, a.variant) : null` / `spawnSkinDrop` | the Bag's FINISHES and Mott's pack lines; the legendary skin drops on a kill | `ctx.bag` fragments registered by the plugin (S2.2): the finishes list (skins), the pack note / hint / gear hint / line (strings + `mottLine`); the kill drop → `ctx.on('actor.died')` in `shard:loadout/skins.ts` with today's code (`spawnSkinDrop`, `toss` from `app.rng.stream('loot')` in place of `Math.random()` at :771) |
 | 76 | `import { Inventory, ITEMS, isPineItem` | Pine's pack rule | `manifest.bag.pack` + Pine's item rows |
 | 111, 863-868, 885 | `new ForestAmbience(audio, { heightAt, cabins })` / `pineFights?.useSfx(ambience.sfx)` / `installPineAudio(` / `ambience.addSpot({ zone: 'cave'` | the forest's zoned ambience and its one-shots, the A-rows' wiring, the cave's reverb spots | the plugin (S2.1): it builds the ambience, hands its `sfx` to its own combat / quest / loadout (no host plumbing), runs `shard.pine.audio` (from `audioWiring.ts`) and adds the cave spots |
@@ -165,10 +165,12 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 ## 3. (c) The manifest, in full
 
 `src/shards/pine-hollow/manifest.ts`, node-safe. Function values are the functions `pine-hollow.ts` defines today,
-moved verbatim to `world/terrain.ts` (§1.1). **Q1** marks fields 01 §6 does not declare yet.
+moved verbatim to `world/terrain.ts` (§1.1). Every `ChunkDef` field is carried over under 01 §6's names
+(13-lead-resolutions 05/06#1). **Q1** marks this spec's additions that 01 §6 still lacks; question Q1 keeps them open.
 
 ```ts
 import { defineShard } from '#game';
+import { WORLD_WIND } from '#kit';                                          // today's world/wind.ts values as data (Driftwood and Pine share them: kit by the rule of two)
 import { layoutFauna } from '#engine';                                    // engine/world/faunaLayout.ts
 import { CHUNK_HALF } from '#engine';
 import { TERRAIN, forestDensity, oldGrowthMask, speciesMix } from './world/terrain';
@@ -182,30 +184,31 @@ export default defineShard({
   api: 1,
   slug: 'pine-hollow',
   name: 'Pine Hollow',
-  label: 'Boreal pine forest',                                            // Q1 (titleDeck.ts:49; the def's biome)
+  label: '(+3, −2)',                                                      // gridCoords (01 §6)
+  biome: 'Boreal pine forest',                                            // the title deck's card line (titleDeck.ts:49)
   blurb: "A photoreal boreal forest, from dawn fog to lantern-lit night. Hunt deer, boar, elk and bear through the pines, relight the ranger's three dark waystone lanterns and face the Antler King in the old-growth — his thralls walk the fog until dawn.",
   order: 2,                                                               // after Driftwood (PH-U19)
   status: 'live',                                                         // PH-S2 graduated
   card: { thumb, portrait, landscape },
-  map: { grid: [3, -2], size: [500, 500, 500] },                          // gridCoords '(+3, −2)'; config.ts:2 CHUNK_SIZE 500
-  seed: 1337,                                                             // Q1
-  treeCount: 2600,                                                        // Q1 (the forest's cap)
+  placement: { grid: [3, -2], size: [500, 500, 500] },                    // gridCoords '(+3, −2)'; config.ts:2 CHUNK_SIZE 500
+  seed: 1337,                                                             // 01 §6
+  treeCount: 2600,                                                        // carried as data (the forest's cap)
   style: 'pbr',
-  kitLook: 'pbr',                                                         // Q1 (05 Q1)
+  kitLook: 'pbr',                                                         // Q1 (open, 05 Q1)
   uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests', 'trample', 'compendium'],
   ground: { terrain: TERRAIN },                                           // pine-hollow.ts:117-161 (buildTerrain(1337, { landscape, trails, cabinSites, pond, pondFill, graded, streamAt, finish, splat }))
-  pondClip: inBeaverPool,                                                 // Q1 — pine-hollow.ts:332
-  assets: {                                                               // Q1 — pine-hollow.ts:239-250
+  pondClip: inBeaverPool,                                                 // carried as data — pine-hollow.ts:332
+  assets: {                                                               // carried as data — pine-hollow.ts:239-250
     groundLayers: ['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
     groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [1.0, 0.98, 0.94], [0.95, 0.8, 0.6]],
     slabRock: 'rock_ground',
     boreal: { normalK: [1.2, 1.0, 1.4, 1.1], trailDust: [1.25, 1.02, 0.7, 0.6], grassTint: [0.8, 0.74, 0.55] },
   },
-  trees: {                                                                // Q1 — pine-hollow.ts:251 + the factory thunk (bootstrap.ts:34)
+  trees: {                                                                // carried as data — pine-hollow.ts:251 + the factory thunk (bootstrap.ts:34)
     factory: () => import('./world/treeFactory').then((m) => m.pineFactory),
     bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees', drawnBy: 'model',
   },
-  forest: {                                                               // Q1 — pine-hollow.ts:252-267
+  forest: {                                                               // carried as data — pine-hollow.ts:252-267
     spacing: 8.5, densityFreq: 0.008, clearings: [-0.45, 0.35], maxSlope: 0.72,
     tintHue: 0.25, tintHueJitter: [-0.04, 0.03], tintSat: [0.25, 0.5], tintLight: [0.5, 0.68], largeVariantChance: 0.1,
     density: forestDensity, scale: (x, z) => 1 + oldGrowthMask(x, z) * 0.25, species: speciesMix,
@@ -224,14 +227,15 @@ export default defineShard({
     saturation: 0.18, brightness: -0.015, contrast: 0.2, bloomIntensity: 0.55, bloomThreshold: 0.85,
     shadowTint: [0.9, 0.95, 1.08], highTint: [1.06, 1.0, 0.92], lift: [-0.01, -0.008, 0.0], gain: [1.03, 1.02, 1.0], gamma: 1.0,
   },
-  look: {                                                                 // Q1 — pine-hollow.ts:326-329 (the look loop's layer)
+  look: {                                                                 // carried as data — pine-hollow.ts:326-329 (the look loop's layer)
     grade: { shadowTint: [0.95, 0.97, 1.03] },
     curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25, ambient: 1.3, sky: 1.18,
   },
-  horizon: { matte: {                                                     // Q1 — HorizonMatte.ts:55-57
+  horizon: { matte: {                                                     // carried as data — HorizonMatte.ts:55-57
     day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,
     phone: { day: '/assets/horizon/pine-hollow-day-phone.webp', night: '/assets/horizon/pine-hollow-night-phone.webp' } } },
-  world: { blenderArea: { x0: 87, x1: 168, z0: 66, z1: 148 } },           // Q1 — blenderArea.ts:32
+  world: { blenderArea: { x0: 87, x1: 168, z0: 66, z1: 148 } },           // Q1 (open) — blenderArea.ts:32
+  wind: WORLD_WIND,                                                       // 01 §17: today's world/wind.ts values (sway, gusts) as data for the engine WindField
   dayCycle: () => import('./look/dayKeys').then((m) => m.PINE_DAY),       // S2.4: 24-min cycle, day = [0, 20/24), keys by phase (§6.4)
   weather: () => import('./world/weatherProfile').then((m) => m.PINE_WEATHER),   // S2.4
   render: () => import('./look/render').then((m) => m.shardRender()),     // S2.1: the engine chain as is (compose returns {}); S2.4 adds the sky backdrop
@@ -247,11 +251,11 @@ export default defineShard({
   },
   fight: { attackers: Infinity },                                         // no fightRules (Driftwood only), no hit cap
   loadout: {                                                              // S2.2 (09-combat-ai has the rows)
-    weapons: ['weapon.crossbow', 'weapon.leverRifle', 'weapon.longbow'],
+    weapons: ['weapon.crossbow', 'weapon.lever', 'weapon.longbow'],
     tools: [],
     start: ['weapon.crossbow'],
-    pickups: [{ id: 'weapon.leverRifle', at: 'cabin-1' }],                // main.ts:719-728
-    grants: [{ id: 'weapon.longbow', by: 'boss.antlerKing' }],            // Q1 — the King's orb (installPineLoadout grantLongbow)
+    pickups: [{ id: 'weapon.lever', at: 'cabin-1' }],                // main.ts:719-728
+    grants: [{ id: 'weapon.longbow', by: 'boss.antler-king' }],            // Q1 — the King's orb (installPineLoadout grantLongbow)
     ammo: ['ammo.bolt.iron', 'ammo.bolt.pitch', 'ammo.bolt.broadhead', 'ammo.arrow', 'ammo.cartridge'],
   },
   bag: {                                                                  // Q1 — E314 pick C
@@ -260,10 +264,10 @@ export default defineShard({
   },
   species: ['creature.deer', 'creature.elk', 'kit:creature.boar', 'kit:creature.bear', 'creature.thrall'],   // 09-combat-ai rows
   encounters: [
-    'elite.ironhide', 'elite.ghostStag', 'elite.blackpaw', 'elite.imperialBull',                            // elites.ts:64-90
-    'boss.antlerKing',
+    'elite.ironhide', 'elite.ghost-stag', 'elite.blackpaw', 'elite.imperial-bull',                            // elites.ts:64-90
+    'boss.antler-king',
   ],
-  spawns: [                                                               // Q1 — pine-hollow.ts:274-299, evaluated at import as today
+  spawns: [                                                               // 01 §6 (was fauna) — pine-hollow.ts:274-299, evaluated at import as today
     ...layoutFauna({
       seed: 1337, half: CHUNK_HALF, margin: 25, spacing: 56, jitter: 15, ring: 20, trailDistance: TERRAIN.trailDistance,
       avoid: [
@@ -288,7 +292,7 @@ export default defineShard({
     cues: () => import('./audio/cues').then((m) => m.CUES),
   },
   input: ['crossbow.bolts'],                                              // S2.2
-  pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),   // Q1 — pine-hollow.ts:235
+  pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),   // carried as data — pine-hollow.ts:235
   boot: {
     steps: {                                                              // steps.ts:63-84
       sky: { label: 'Sky · dawn to moonlight' }, terrain: { label: 'Terrain · boreal ground' },
@@ -323,8 +327,8 @@ export default defineShard({
 });
 ```
 
-Fields that disappear: `id`, `displayName`, `gridCoords`, `biome` (→ `label`), `thumbnail` / `heroPortrait` /
-`heroLandscape` (→ `card`), `fauna` (→ `species` + `spawns`), `fieldModels` (→ the plugin), `terrain` (→
+Fields that disappear: `id`, `displayName`, `gridCoords` (→ `label`, `placement.grid`), `thumbnail` / `heroPortrait` /
+`heroLandscape` (→ `card`), `fauna` (→ `spawns`, then `species` + spawn tables), `fieldModels` (→ the plugin), `terrain` (→
 `ground.terrain`), `weapon` (was omitted = `'crossbow'` → `loadout`).
 
 ## 4. (d) The plugin
@@ -376,13 +380,13 @@ export default class PineHollowPlugin extends ShardPlugin {
 | System | `shard.pine.weather.fx` | `update` (every frame) | `weather.ts:162-190` (uniforms, fx, stag fog) |
 | System | `shard.pine.life` | `update`; `tick: 'fx'` (S2.6) | `installPineLife`'s updater |
 | Events listened | `actor.died` (skin drops, life's ravens, quest), `damage.dealt` (elite / King bookkeeping), `player.died` (loadout → iron bolts), `app.ready` (bird and knife swaps), `practice.active` (weather out of practice rooms) | — | `main.ts:790-795`, `life/index.ts:276`, `quest/index.ts:385`, `ctx.ts:52`, `life/index.ts:131`, `skinningKnife.ts:54`, `practiceRoom.open` reads |
-| Asks answered | `player.death` (the King's checkpoint), `harvest.begin` (the skinning beat), `creature.wanderGoal` (rain shelter), `damage.modify` (the King's phase guards) | — | `main.ts:1195`, `main.ts:1102`, `weather.ts:130`, `antlerKing.ts:235` |
+| Asks answered | `player.death` (the King's checkpoint), `harvest.begin` (the skinning beat), `creature.wander-goal` (rain shelter), `damage.modify` (the King's phase guards) | — | `main.ts:1195`, `main.ts:1102`, `weather.ts:130`, `antlerKing.ts:235` |
 | Pieces | every id today: the cabin pieces and `Cabin door`s, the landmark pieces (lookout, zipline, footbridge, stones, waystones, dam, canoe, board, cave), props, the drawn tree / floor models, Sets | `shard.world` | `placeCabins`, `installPineLandmarks`, `Props.build`, `placeDrawnModels`, `placePineHollowSets` |
 | Input context | `crossbow.bolts` (`bolt.cycle` on `KeyB`) | pushed while the crossbow is held | `loadout.ts:157-160` |
 | HUD | the elite bar, the boss bar (engine encounter widgets, S2.3), the quest's board / trade panels (`ctx.hud.widget` until X2), the ammo strip (the weapon strip's, engine) | — | `EliteBar`, `BossBar`, `quest/ui.ts` |
 | Bag | FINISHES (the skins list + wear), the pack's Mott lines, FINDS (Pine's journal) | — | `main.ts:623-630` |
 | Debug rows | `pineScore` (Audio), `pineLife` (Creatures & NPCs), `cragView` (Developer tools), the PERF LAP (Performance) | existing groups only | `debugOptions.ts:152, 159, 177`; `perfLapHost.ts` |
-| Debug handles | `pine.elites`, `pine.king`, `pine.quest`, `pine.weather`, `pine.audio`, `pine.life`, `pine.loadout` | `app.debug.expose` | the seven `window.__pine*` / `__loadout` / `__lever` / `__longbow` assignments |
+| Debug handles | `pine.elites`, `pine.king`, `pine.quest`, `pine.weather`, `pine.audio`, `pine.life`, `pine.loadout` | `ctx.debug.expose` (01 §7) | the seven `window.__pine*` / `__loadout` / `__lever` / `__longbow` assignments |
 | Playgrounds | none | — | catalog.ts:7 |
 
 ## 5. (e) Engine systems this phase pulls in
@@ -441,7 +445,7 @@ The families, blocks and every per-weapon number are 09-combat-ai's. Pine's rows
 | Row | Family | Today (file) | Pine-specific data |
 |---|---|---|---|
 | `weapon.crossbow` | Crossbow | `Crossbow.ts:768` (the default `ChunkDef.weapon`) | name "Hunting crossbow" (`main.ts:623`), ammo label "Iron bolts", icon `crossbow`, bolt AmmoRows (iron, pitch, broadhead: `BoltMod`), the rain's effect on wet bolts (`pineLoadout.useRain`, `main.ts:888`) as an `ask('projectile.modify')` answered by Pine's weather |
-| `weapon.leverRifle` | Firearm (lever action) | `LeverRifle.ts:268` | slot 2, icon `lever`, pickup in cabin 1 (`main.ts:719-728`: local (1.5, −1.6), scale 1.3, prompt "Take the lever-action", toast "Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube"), `woodFrom` the crossbow's walnut |
+| `weapon.lever` | Firearm (lever action) | `LeverRifle.ts:268` | slot 2, icon `lever`, pickup in cabin 1 (`main.ts:719-728`: local (1.5, −1.6), scale 1.3, prompt "Take the lever-action", toast "Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube"), `woodFrom` the crossbow's walnut |
 | `weapon.longbow` | Bow (a profile with a parent, not a fork) | `Longbow.ts:454` | slot 3, name "Warden's longbow", locked until the Antler King's orb grants it |
 | skins | cosmetics rows | `Skins.ts:46-119` | seven legendary finishes (ghost-stag, hollow-ash, ironhide, blackpaw, imperial, warden, scarback-furnace) with today's drop rules (`skinFor(kind, variant)`) |
 
@@ -507,7 +511,7 @@ export interface DayCycle {
 - Driftwood's `DayNight` and Nalati's `DayClock` become `DayCycle` instances with their own schedules (Driftwood:
   48 min, day `[0, 20/24)`, `FIXED_PHASE`; Nalati: `DEFAULT_SCHEDULE`, elevation keys, `clockSpeed`); their
   keyframe application stays in their current files until S3.2 / S4.3. `WorldClock.ts` is deleted; `Minimap.ts:306`
-  and `ModelExplorer.ts:242` read `app.world.dayCycle`. Parity on both: identical (question Q1).
+  and `ModelExplorer.ts:242` read `app.world.dayCycle`. Parity on both: identical (13-lead-resolutions 05/06#13).
 
 **B. `Weather`** (`src/engine/world/weather.ts`; replaces `PineWeather` and the state machine of Nalati's `Weather`):
 
@@ -532,7 +536,7 @@ export class Weather { constructor(p: WeatherProfile, rng: Rng); update(dt: numb
 - **FX**: the rain curtain (`PineWeatherFX.buildRain` ≈ `WeatherFX.buildRain`) becomes `#kit/weather/rainCurtain.ts`
   with an optional cover map (Pine passes its crowns + roofs + cave box; Nalati passes none). Each shard's program
   source stays byte-identical (the cover code behind a define). Pine's puddles, splashes and lens drops stay Pine's;
-  Nalati's deck, curtains, bolt, smoke, puddles and rainbow stay Nalati's (rule of two; question Q3).
+  Nalati's deck, curtains, bolt, smoke, puddles and rainbow stay Nalati's (rule of two; 13-lead-resolutions 05/06#11).
 - Pine's wiring (`weather.ts`) keeps every number: the sky `mod` (overcast, fogDist `1 + fog·(2 + 26·og) + 0.4·haze`,
   fogHeight, mist), the fog floor and falloff, the veil, the mist opacity, `uWet` (0 in a practice room), the rain
   rings, the wind boost, the ambience's rain, the herds' shelter, the Ghost Stag's fog bank.
@@ -574,10 +578,15 @@ through `window.__wildshard`) reaches the same flags at the same beats.
 
 ### 6.6 S2.6 — the tick-rate scheduler
 
-1. `src/engine/app/scheduler.ts` implements 01 §12 with the Genshin defaults: `ai` 30 Hz near, 15 Hz from 60 m,
-   paused from 160 m; `npc` the same; `fx` 30 Hz, paused from 120 m; `weather` 10 Hz. `due(id, pos)` compares the
-   distance to the player (not the free camera: the AI is the player's, E125), accumulates each subject's `dt` since
-   its last tick and hands it to the system.
+1. `src/engine/app/scheduler.ts` implements 01 §12 with decision 85's defaults (13-lead-resolutions 09#4), for `ai`
+   and `npc` alike: **near** 0–60 m brain 20 Hz + body every frame (30 Hz phone, 60 desktop); **mid** 60–160 m brain
+   10 Hz + body every 2nd frame; **far** 160 m+ paused (brain and body). `fx`: 30 Hz near, paused from 120 m;
+   `weather`: 10 Hz. `brainDue(id, actor)` / `bodyDue(id, actor)` compare the distance to the player (not the free
+   camera: the AI is the player's, E125), accumulate each subject's `dt` since its last tick and hand it to the system.
+   **Interrupts** in every band: `scheduler.interrupt(actor, 'hit' | 'target.attack' | 'target.dodge' | 'lost.sight')`
+   re-thinks that brain the same frame. **Pinned** (never paused): an active boss or elite (the Antler King, Pine's four
+   elites while engaged) and quest actors (`scheduler.pin`). **Strike phases** (wind-up → active → recover) run on the
+   body clock, never the brain tick. Until this row every brain keeps today's 10 Hz (parity).
 2. **Who declares a tick in S2.6:** the creature runtime's think pass (per animal: `AnimalManager.update`'s AI half,
    `AnimalManager.ts:680-751`, split from its drawing half, which stays every frame), Pine's `shard.pine.elites` and
    `shard.pine.king` (`ai`), `shard.pine.npc` (`npc`), `shard.pine.life` (`fx`), `shard.pine.weather.state`
@@ -586,9 +595,11 @@ through `window.__wildshard`) reaches the same flags at the same beats.
    Nalati's own brains declare theirs at S3.x, Driftwood's `Enemies` at S4.2.
 3. Pine's manifest may override a rate in `tiers`; it overrides none.
 
-**Tests:** `test/engine/scheduler.test.ts` (rates, distances, accumulated dt, paused beyond 160 m).
+**Tests:** `test/engine/scheduler.test.ts` (the three bands, distances, accumulated dt, paused beyond 160 m, an
+interrupt re-thinks the same frame, a pinned actor never pauses, a strike's phases advance on the body clock).
 **Done when:** the harness's near-player fights (the elites, the King, a boar charge) are identical; the creatures
-board shows the far herds' before / after (they think at 15 Hz past 60 m and hold still past 160 m).
+board shows the herds' before / after (10 Hz everywhere → 20 Hz near, 10 Hz mid with the body every 2nd frame, still
+past 160 m), and Driftwood's far boars and bears with them (13-lead-resolutions 05/06#15).
 
 ## 7. (f) Bugs fixed inline in this phase (each with a test)
 
@@ -603,7 +614,8 @@ board shows the far herds' before / after (they think at 15 Hz past 60 m and hol
 
 **Identical** (`scripts/parity.mjs --shards pine-hollow --tier phone,desktop`; all four shards on engine edits): the
 systems list (new ids per 03's id map), the registry (sorted ids, categories, surfaces, colliders; 03 compares it
-sorted, since the plugin adds pieces in the same order but some engine pieces move stage), the scene census, programs
+sorted: the plugin adds its pieces in today's order, but the engine's own pieces may now register in a different boot
+stage, 01 §8), the scene census, programs
 (byte-identical shader sources: the edge haze and the wet surfaces stay Pine-only), draws and triangles at the three
 harness poses at pinned time / weather, the walk and `--trails` routes (0 stuck), a shot to a kill with each weapon,
 the lever pickup, the scripted elite and King encounters, the quest beats, the audio beds and score slots, the HUD
@@ -614,7 +626,7 @@ slots, the save keys (renamed by F10, then identical).
 | Difference | Row | Where it is shown |
 |---|---|---|
 | Charges and elite / King strikes no longer land through walls | S2.3 | the creatures board |
-| Far creatures think at 15 Hz past 60 m and hold still past 160 m (Pine and Driftwood, whose herds share the runtime) | S2.6 | the creatures board (clips from the fire lookout) |
+| Creatures think at 20 Hz near (0–60 m), 10 Hz mid (60–160 m, body every 2nd frame) and hold still past 160 m, instead of 10 Hz everywhere (Pine and Driftwood, whose herds share the runtime) | S2.6 | the creatures board (clips from the fire lookout) |
 | The starter effects (stun on the roar and stomp now the kit effect, same length) | S2.5 | the creatures board (tuning) |
 | The Model Explorer's light presets on Pine | S2.4 (P1) | M2 summary |
 | Weather phase changes up to 0.1 s later (the 10 Hz state tick) | S2.6 | M2 summary (not visible) |
@@ -634,25 +646,23 @@ slots, the save keys (renamed by F10, then identical).
 
 ## 10. Questions for the lead
 
-1. **Manifest fields not in 01 §6** (beyond 05 Q1): `treeCount`, `assets` (with `boreal`), `trees` (with the
-   factory thunk), `forest`, `pondClip`, `look`, `horizon.matte`, `world.blenderArea`, `atmosphere.edgeHaze` /
-   `wetSurfaces`, `dayCycle` and `weather` data thunks, `loadout.grants` / `ammo`, `bag.pack.keeps`, `spawns`
-   (today's `fauna` herd plans), `pois`, `boot.bytes` / `lateReads` / `bakedUnread`. Add them to 01 §6 or name where
-   each goes.
-2. **Who deletes `PINE_HOLLOW_PHONE`.** Plan S2.1 says the Pine tier override goes in S2.1; 10-sweeps X7 step 1 says
-   X7 deletes it. This spec deletes it in S2.1 (with `pinePhoneCuts` and `applyShardTier`); X7 should say "gone at
-   S2.1".
-3. **Weather FX in the kit.** 01 §21 puts rain, snow, puddles and lightning FX in `#kit/weather/`. Only the rain
-   curtain is shared today; the puddles are two different techniques and lightning is Nalati's alone. This spec
-   moves only the curtain to the kit (rule of two). Confirm, or say which puddle technique both shards should use
-   (that would be a Look-board item, not a refactor step).
-4. **Shard-declared option keys.** AGENTS.md puts every Debug option key in `src/ui/Settings.ts`, but `pineScore`,
-   `pineLife` and `cragView` would name a shard in the engine (01 §0 word list). This spec has the shard declare its
-   keys through `ctx.debugRow` (with the SaveStore global `settings` key); AGENTS.md's rule needs the matching edit.
-5. **S2.4's reach.** "Three clocks → DayCycle, two weather stacks → Weather" (plan S2.4) makes S2.4 swap Driftwood's
-   and Nalati's clocks and Nalati's storm state machine too, before their phases. This spec does that (parity
-   identical on both), leaving their look application and file moves to S3 / S4. Confirm, or restrict S2.4 to Pine.
-6. **The kit NPC rig (D9)** has no row: 01 §21 lists `#kit/npc/`, but no S / X row merges Castaway, Trader,
-   campPeople and Pine's `npcRig`. This spec seeds it with Pine's rig in S2.5; the other three need a row in S3 / S4.
-7. **Scheduler scope.** The creature runtime is shared, so S2.6 changes Driftwood's boars and bears too (far AI at
-   15 Hz / paused). This spec puts that on M2's creatures board; confirm Driftwood's change is shown at M2, not M4.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (05 / 06 table) unless marked open; the body above follows
+each answer.
+
+1. **Manifest fields not in 01 §6.** **Resolved → 13-lead-resolutions 05/06#1** for the `ChunkDef` fields: `treeCount`,
+   `assets`, `trees`, `forest`, `pondClip`, `look`, `horizon`, `pois`, `spawns` (was `fauna`) are carried as data;
+   `dayCycle` / `weather` are 01 §6's data for the opt-in mechanisms. **Still open, sent to the lead:** the sub-fields
+   01 §6's types don't declare yet — `world.blenderArea`, `atmosphere.edgeHaze` / `wetSurfaces`, `loadout.grants` /
+   `ammo`, `bag.pack.keeps`, `boot.bytes` / `lateReads` / `bakedUnread`, and `kitLook` (05 Q1).
+2. **Who deletes `PINE_HOLLOW_PHONE`.** **Resolved → 13-lead-resolutions 05/06#10:** S2.1 deletes it (with
+   `pinePhoneCuts` and `applyShardTier`); X7 deletes whatever shard-named knobs are left.
+3. **Weather FX in the kit.** **Resolved → 13-lead-resolutions 05/06#11:** only the rain curtain goes to
+   `#kit/weather/`; the puddles stay per shard (two techniques) and lightning is Nalati's (S2.4).
+4. **Shard-declared option keys** (`pineScore`, `pineLife`, `cragView`). **Resolved → 13-lead-resolutions 05/06#12:**
+   the shard declares its own keys through `ctx.debugRow`; AGENTS.md's Settings.ts rule is rewritten in Z2 (11).
+5. **S2.4's reach.** **Resolved → 13-lead-resolutions 05/06#13:** S2.4 also swaps Driftwood's and Nalati's clocks and
+   Nalati's storm, one implementation at once, parity identical on all three shards.
+6. **The kit NPC rig (D9).** **Resolved → 13-lead-resolutions 05/06#14:** `#kit/npc` is seeded from Pine's rig in
+   S2.5; Nalati's camp people join in S3.3, Driftwood's Castaway and Trader in S4.3.
+7. **Scheduler scope.** **Resolved → 13-lead-resolutions 05/06#15:** S2.6 also changes Driftwood's far boars and bears
+   (decision 85's bands), shown on M2's creatures board (S2.6, §8).

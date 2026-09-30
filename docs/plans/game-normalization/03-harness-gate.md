@@ -62,7 +62,7 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b] [--tiers=
 |---|---|---|
 | `version` | F2 | `1`; bumped with a breaking probe change, together with the `.d.ts` |
 | `world` | F2 | today's handle (`src/main.ts:1296`), every key; `window.__world` is the same object until F7 deletes the alias |
-| `shard` | F2 | `{ slug, handles }`: the shard-named handle keys (02 F2 step 1) |
+| `shard` | F2 | `{ slug, …handles }`: each shard-named handle key at `shard.<name>`, the place `ctx.debug.expose(name, value)` writes from S1.1 on (01 §7; 02 F2 step 1) |
 | `boot` | F2 | the §2.1 record, captured once inside `installProbe` |
 | `fingerprint()` | F2 | the §2.1 record taken now (used after F8 to compare a reloaded shard) |
 | `pose(p)` | F2 | teleports to a §3 pose and resolves after the landing (§2.2) |
@@ -604,9 +604,9 @@ After the existing sparse `actions/checkout` of main:
 - **Install** (`scripts/gpu-perf/install.sh`, run once by the lead): writes the plist with absolute paths (the current
   `node`, `pnpm`, `gh`, so an nvm switch cannot strand it), creates `~/.wildshard/gpu-perf/`, clones a bare mirror to
   `~/.cache/wildshard-gpu-perf/repo.git` (so the shared checkout is never touched), and loads it with `launchctl
-  bootstrap gui/$(id -u)`. It refuses to load until the Keychain item `wildshard-gpu-perf` exists: a fine-grained
-  GitHub token scoped to `Raynos/project-wildshard-singleplayer` only, permission **Commit statuses: read and write**
-  (plus the automatic Metadata: read). Jake creates that token once; `install.sh` prints the exact steps.
+  bootstrap gui/$(id -u)`. It needs no new token (13-lead-resolutions 02/03#8): the poller posts with the Mac's
+  existing `gh` login (`gh api repos/Raynos/project-wildshard-singleplayer/statuses/<sha> -f state=… -f
+  context=gpu-perf -f description=…`), and `install.sh` refuses to load the agent while `gh auth status` fails.
 - **`scripts/gpu-perf/nightly.sh`**, in order, under `caffeinate -i`:
   1. `git --git-dir=<mirror> fetch origin main`; pick the newest of the last 30 commits whose `gpu-gate` is `success`;
      stop if `~/.wildshard/gpu-perf/<sha7>.json` exists.
@@ -657,24 +657,25 @@ The report prints each number with its formula and inputs, so a re-calibration m
 
 ## Questions for the lead
 
-1. **Loot has no common observable today.** Driftwood has coins and bounty, Pine Hollow a compendium, Nalati progress
-   counters, Nine Dragon nothing. The harness checks loot as "the save keys written after the kill" (§5.3). If the plan
-   wants a typed loot check, it needs `#game`'s loot rows first (S4.3). Accept the save-diff until then?
-2. **Nine Dragon has no creatures**, so its gate kills nothing (dummies only, §5.2), and **Pine Hollow has no melee
-   weapon**, so its swing is `n/a`. The index's gate says "a swing and a shot to a kill and loot" per shard. Accept
-   these two gaps, or add a harness-only creature spawn (a probe verb that spawns a kit species in any shard — that is
-   new gameplay code and a layer question)?
-3. **The gate runs the phone tier only** on the 7 GB runner; desktop is checked by the lead before milestones and by
-   the nightly. The index's F2 says "4 shards × phone / desktop" for the harness (true: both are recorded and run on
-   m5) but does not say which tiers the per-push gate runs. Confirm phone-only on the runner.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (02/03 table) unless marked open; the body above follows
+each answer.
+
+1. **Loot has no common observable today.** **Resolved → 13-lead-resolutions 02/03#7:** loot is checked as the save keys
+   written after a kill (§5.3), until `#game`'s loot rows exist (S4.3).
+2. **Nine Dragon has no creatures; Pine Hollow has no melee weapon.** **Resolved → 13-lead-resolutions 02/03#7:** Nine
+   Dragon's gate kills a practice-arena dummy (§5.2); Pine's swing check runs only where the loadout has melee
+   (recorded `'n/a'`), and the shot check covers Pine. No harness-only creature spawn is added.
+3. **Which tiers the per-push gate runs.** **Resolved → 13-lead-resolutions 02/03#7:** the runner covers the phone
+   tier; the desktop tier runs in the nightly on Jake's Mac (§14) and in the lead's pre-milestone run (§10).
 4. **The gate walk is 3 legs per shard** (§4), not the full route, to keep a job under 12 minutes; the full route and
-   trails run nightly and at F11 / F12 / milestones. The index says "a walk (0 stuck)". Confirm.
-5. **01 §4 names "the listener count and the audio node count"** for the leak test; neither exists in the code today.
-   §2.4 instruments listeners and timers in the harness init script and asks F8 to add `app.audio.census()`. Confirm
-   that `census()` on today's `Audio.ts` (voices, beds, buses) is an acceptable audio count until S3.5's engine.
-6. **The native OTA channel** (`ota-promote.yml`) builds main's head today; §13.3 pins it too. Decision 32 names
-   production only. Confirm the OTA channel follows the pin.
-7. **The M0 pin is "grandfathered"** (no `gpu-gate` status exists for it). Confirm that M0 = the build live when F3.1
-   lands, not the F2 baseline SHA (which adds the read-only probe).
-8. **The `gpu-perf` token** needs Jake to create one fine-grained GitHub token (commit statuses only, this repo only)
-   and store it in the Keychain: the only step in F3 that needs him. Put it in the go request.
+   trails run nightly and at F11 / F12 / milestones. **Open (not in 13), sent to the lead:** this spec keeps 3 legs
+   on the runner.
+5. **The leak test's listener and audio counts** (01 §4) don't exist in today's code. §2.4 instruments listeners and
+   timers in the harness init script and asks F8 for `app.audio.census()` over today's `Audio.ts` (voices, beds,
+   buses) until S3.5's engine. **Open (not in 13), sent to the lead.**
+6. **The native OTA channel follows the pin.** **Resolved → 13-lead-resolutions 02/03#8:** yes, the pin covers
+   `ota-promote.yml` (§13.3).
+7. **The M0 pin.** **Resolved → 13-lead-resolutions 02/03#8:** the first pin is the build live when F3.1 lands
+   (`gate: "grandfathered"`, §13.1).
+8. **The `gpu-perf` token.** **Resolved → 13-lead-resolutions 02/03#8:** none needed; the nightly posts statuses with
+   the Mac's existing `gh` login (§14). Nothing in F3 needs Jake.

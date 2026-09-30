@@ -22,7 +22,7 @@ the shard side and every engine line that branches on Nalati.
 a pathspec commit `E357 S3.<n>: …` and `scripts/push-main.sh` (12-process §5).
 
 **At S3 start** S1 and S2 are done. That means these exist and are used here without being rebuilt:
-- the plugin verbs, the staged boot, tier resolution, `bootTrace`, `app.debug.expose` (05 §5);
+- the plugin verbs, the staged boot, tier resolution, `bootTrace`, `ctx.debug.expose` (05 §5);
 - the Equipment / Weapon / Tool contracts, the Melee family (Sword, Sabre, Spear + Thrown) with the B1 / B2 wall
   fixes, the damage pipeline and the effects core with player health in the engine (S1.2–S1.3);
 - the input service, the context stack and disc relabels (S1.4);
@@ -37,8 +37,9 @@ a pathspec commit `E357 S3.<n>: …` and `scripts/push-main.sh` (12-process §5)
   is `class SteppeStorm extends Weather` at `src/engine/world/…`'s old path, the rain curtain is `#kit/weather/
   rainCurtain.ts` (06 §6.4). Their **keyframe application** and **file moves** are left to this phase;
 - the quest runtime on `quest/core`, the starter effects, `#kit/npc/npcRig.ts` seeded with Pine's rig (S2.5);
-- the scheduler (S2.6) with the lead's rates: **`ai` 20 Hz near, 5 Hz from 60 m, paused from 160 m** (the lead's
-  answer to 09 Q4, replacing 01 §12's 30 / 15).
+- the scheduler (S2.6) with decision 85's bands (01 §12): **near 0–60 m brain 20 Hz + body every frame, mid 60–160 m
+  brain 10 Hz + body every 2nd frame, far 160 m+ paused**, instant interrupts, pinned bosses / elites / quest actors,
+  strike phases on the body clock (13-lead-resolutions 09#4).
 
 **Order inside S3:** S3.1 → S3.2 → S3.3 → S3.4 → S3.5. S3.2 (the look: `src/engine/render/**`, `shard:look/**`) and
 S3.4 (encounters: `shard:combat/**`, `shard:creatures/**`) may run as two subagent lanes after S3.1 lands; S3.3
@@ -66,16 +67,16 @@ shards' audio and runs parity on all four.
 |---|---|---|---|
 | `index.ts` (427) | `shard:plugin.ts` (the install order, §4) + `shard:runtime.ts` (`NalatiRuntime`: the fields of today's `Nalati` interface `:66-127`) | S3.1 | `wireNalati` is deleted; its body becomes `install(ctx)` in the same order. The `updates` array (`:124`, 14 pushes) becomes 14 systems (§4). The hand-chained wrappers of `attachAnimals` (`:343`, `:375`), `bindPlay` (`:332`, `:344`, `:381`, `:406`), `sheepTarget` (`:345`), `onImpact` (`:386`) and `onShot` (`:333`) disappear: each part subscribes to events itself. `new URLSearchParams(location.search).get('ride')` (`:384`) → `ctx.app.params.get('ride')` (harness param, `lint/url-params.json` has `ride`) |
 | `ride.ts` (178) | `shard:ride/ride.ts` | S3.3 | Riding + taming wiring. `ctx.animals.onCharge?.(a, d)` (`:76`) → `combat.hit({ source: 'env.ride', tags: ['env.ride'], amount: d, cause: 'Thrown from the saddle' })` (09 §3.3 *Ride*) |
-| `stealth.ts` (270) | `shard:stealth/stealth.ts` | S3.3 | Stops writing `player.keys` (`:164-180`): answers `ask('player.crouch')` (§6.3 C). Its `document` / `window` key listeners (`:136-141`) go (the `crouch` action). `hudSlots.disc` / `statusRow` (`:123-133`) → `ctx.hud.disc` / `ctx.hud.widget` (band from `ROW.stealth`, `ROW.grass`). `player.preUpdate` chaining (`:143-144`) → a system `shard.nalati.stealth.crouch` in `input`, `before: ['engine.player.input']`. `Object.assign(window, { __stealth })` (`:145`) → `app.debug.expose('nalati.stealth', …)` |
-| `sound.ts` (222) | `shard:audio/sound.ts` | S3.5 | The kit voices `fire(id)` / `impact(…)` (`:164-178`) become Nalati's CueMap entries; the creature calls and hooves stay here as the shard's voice table; `bind(audio, music)` becomes plugin wiring; `window.__nalatiSound` (`:220`) → `app.debug.expose('nalati.sound')` |
-| `weather.ts` (307) | `shard:world/weather.ts` | S3.1 | Constructs `SteppeStorm` (engine `Weather` subclass since S2.4) and Nalati's `DayCycle`. `qs.get('time')` / `qs.get('clock')` (`:171-179`) → `ctx.app.params` (both harness params). Its `bind({ audio, hurt })` lightning hurt → `combat.hit({ source: 'env.lightning', amount: 60, tags: ['env.lightning', 'through.walls'] })`; `window.__weather` (`:305`) → `app.debug.expose('nalati.weather')`; the `ws:weather` DOM event (`HUD.ts:55`) → `ctx.app.events.emit('weather.changed')` |
-| `kurganBoss.ts` (802) | `shard:combat/goldenKing.ts` | S3.4 | `class GoldenKing extends BossBrain` (§6.4). `play.animals.onCharge` wrap (`:656-657`) → R0b (09 §2.2), the `hurt` route (`:663`) → `combat.hit` (`boss.golden-king`). `window.addEventListener('pointerdown'…)` (`:690-692`) → `ctx.scope.listen` until X1's `cutscene.skip`. `player.keys.has('Space' \| 'KeyE' \| 'Enter')` (`:681`) → `input.held('jump') \|\| input.held('use') \|\| input.held('confirm')`. `window.__boss` (`:700`) → `app.debug.expose('nalati.boss')` |
-| `stormTitan.ts` (1,116), `stormTitanLook.ts` (304) | `shard:combat/stormTitan.ts`, `shard:combat/stormTitanLook.ts` | S3.4 | `class StormTitan extends BossBrain` (§6.4); every `hurt` → `combat.hit` tagged `boss.storm-titan` (bug B3 fixed by the tag); intro-skip listeners `:1031-1033` and `player.keys` `:1021` as the King's; `window.__titan` (`:1043`) → `app.debug.expose` |
-| `elites.ts` (896) | `shard:combat/elites.ts` | S3.4 | The five on the engine `EliteBrain` (09 §5.4). `hurt: (a, dmg) => { play.animals.onCharge?.(a, dmg) }` (`:861`) → `combat.hit` with `from` (bug §7.2's Nalati half). `window.__elites` (`:888`) → `app.debug.expose` |
-| `nightEnemies.ts` (65), `balbalWarriors.ts` (269), `ghostRiders.ts` (431), `nightFx.ts` (124) | `shard:combat/night.ts`, `balbalWarriors.ts`, `ghostRiders.ts`, `shard:combat/nightFx.ts` | S3.4 | Spawn tables with a `when` on the day cycle (09 §5.4). `animals.onCharge?.(a, damage)` (`nightEnemies.ts:59`) → `combat.hit`. `window.__balbals` / `__ghosts` (`balbalWarriors.ts:130`, `ghostRiders.ts:195`) → `app.debug.expose`. `nightFx.ts`'s pool merges into the one particle pool at X5. Every `Math.random()` in these four files → `app.rng.stream('ai' \| 'cosmetic')` (list in §6.4) |
-| `adventure.ts` (252), `campPeople.ts` (376), `campPeopleModels.ts` (265), `kokpar.ts` (122), `sheepRaid.ts` (265), `bag.ts` (91) | `shard:quest/adventure.ts`, `shard:quest/campPeople.ts`, `shard:quest/campPeopleModels.ts`, `shard:quest/kokpar.ts`, `shard:creatures/sheepRaid.ts`, folded into `shard:bag.ts` | S3.1 (wiring), S3.3 (`campPeople` rig onto `#kit/npc`) | `adventure.ts`: `an.onKill` chaining (`:222-223`) → `ctx.on('actor.died')`; its read of `'ws.elites.v1'` (`:94-102`) → the encounter service's `elites.felled(id)` (the store is SaveStore key `elites`, scope shard, since S2.3); `window.__nalatiQuest` (`:250`) → `app.debug.expose`. `bag.ts`: `kitName` (`:55-56`, the golden / naizagai names) is deleted (the replaced weapon's row name, 09 §1.5); `nalatiFinds` and `skinRows` become `ctx.bag` fragments |
+| `stealth.ts` (270) | `shard:stealth/stealth.ts` | S3.3 | Stops writing `player.keys` (`:164-180`): answers `ask('player.crouch')` (§6.3 C). Its `document` / `window` key listeners (`:136-141`) go (the `crouch` action). `hudSlots.disc` / `statusRow` (`:123-133`) → `ctx.hud.disc` / `ctx.hud.widget` (band from `ROW.stealth`, `ROW.grass`). `player.preUpdate` chaining (`:143-144`) → a system `shard.nalati.stealth.crouch` in `input`, `before: ['engine.player.input']`. `Object.assign(window, { __stealth })` (`:145`) → `ctx.debug.expose('nalati.stealth', …)` |
+| `sound.ts` (222) | `shard:audio/sound.ts` | S3.5 | The kit voices `fire(id)` / `impact(…)` (`:164-178`) become Nalati's CueMap entries; the creature calls and hooves stay here as the shard's voice table; `bind(audio, music)` becomes plugin wiring; `window.__nalatiSound` (`:220`) → `ctx.debug.expose('nalati.sound')` |
+| `weather.ts` (307) | `shard:world/weather.ts` | S3.1 | Constructs `SteppeStorm` (engine `Weather` subclass since S2.4) and Nalati's `DayCycle`. `qs.get('time')` / `qs.get('clock')` (`:171-179`) → `ctx.app.params` (both harness params). Its `bind({ audio, hurt })` lightning hurt → `combat.hit({ source: 'env.lightning', amount: 60, tags: ['env.lightning', 'through.walls'] })`; `window.__weather` (`:305`) → `ctx.debug.expose('nalati.weather')`; the `ws:weather` DOM event (`HUD.ts:55`) → `ctx.app.events.emit('weather.changed')` |
+| `kurganBoss.ts` (802) | `shard:combat/goldenKing.ts` | S3.4 | `class GoldenKing extends BossBrain` (§6.4). `play.animals.onCharge` wrap (`:656-657`) → R0b (09 §2.2), the `hurt` route (`:663`) → `combat.hit` (`boss.golden-king`). `window.addEventListener('pointerdown'…)` (`:690-692`) → `ctx.scope.listen` until X1's `cutscene.skip`. `player.keys.has('Space' \| 'KeyE' \| 'Enter')` (`:681`) → `input.held('jump') \|\| input.held('use') \|\| input.held('confirm')`. `window.__boss` (`:700`) → `ctx.debug.expose('nalati.boss')` |
+| `stormTitan.ts` (1,116), `stormTitanLook.ts` (304) | `shard:combat/stormTitan.ts`, `shard:combat/stormTitanLook.ts` | S3.4 | `class StormTitan extends BossBrain` (§6.4); every `hurt` → `combat.hit` tagged `boss.storm-titan` (bug B3 fixed by the tag); intro-skip listeners `:1031-1033` and `player.keys` `:1021` as the King's; `window.__titan` (`:1043`) → `ctx.debug.expose` |
+| `elites.ts` (896) | `shard:combat/elites.ts` | S3.4 | The five on the engine `EliteBrain` (09 §5.4). `hurt: (a, dmg) => { play.animals.onCharge?.(a, dmg) }` (`:861`) → `combat.hit` with `from` (bug §7.2's Nalati half). `window.__elites` (`:888`) → `ctx.debug.expose` |
+| `nightEnemies.ts` (65), `balbalWarriors.ts` (269), `ghostRiders.ts` (431), `nightFx.ts` (124) | `shard:combat/night.ts`, `balbalWarriors.ts`, `ghostRiders.ts`, `shard:combat/nightFx.ts` | S3.4 | Spawn tables with a `when` on the day cycle (09 §5.4). `animals.onCharge?.(a, damage)` (`nightEnemies.ts:59`) → `combat.hit`. `window.__balbals` / `__ghosts` (`balbalWarriors.ts:130`, `ghostRiders.ts:195`) → `ctx.debug.expose`. `nightFx.ts`'s pool merges into the one particle pool at X5. Every `Math.random()` in these four files → `app.rng.stream('ai' \| 'cosmetic')` (list in §6.4) |
+| `adventure.ts` (252), `campPeople.ts` (376), `campPeopleModels.ts` (265), `kokpar.ts` (122), `sheepRaid.ts` (265), `bag.ts` (91) | `shard:quest/adventure.ts`, `shard:quest/campPeople.ts`, `shard:quest/campPeopleModels.ts`, `shard:quest/kokpar.ts`, `shard:creatures/sheepRaid.ts`, folded into `shard:bag.ts` | S3.1 (wiring), S3.3 (`campPeople` rig onto `#kit/npc`) | `adventure.ts`: `an.onKill` chaining (`:222-223`) → `ctx.on('actor.died')`; its read of `'ws.elites.v1'` (`:94-102`) → the encounter service's `elites.felled(id)` (the store is SaveStore key `elites`, scope shard, since S2.3); `window.__nalatiQuest` (`:250`) → `ctx.debug.expose`. `bag.ts`: `kitName` (`:55-56`, the golden / naizagai names) is deleted (the replaced weapon's row name, 09 §1.5); `nalatiFinds` and `skinRows` become `ctx.bag` fragments |
 | `water.ts` (243), `wet.ts` (33), `outcrops.ts` (183), `cragRock.ts` (180), `terrainSurface.ts` (276) | `shard:world/water.ts`, `wet.ts`, `outcrops.ts`, `cragRock.ts`, `shard:look/terrainSurface.ts` | S3.1; `terrainSurface` S3.2 | `NalatiWater` implements `WaterBody` at X5 |
-| `look/*.ts` (11 files, 1,535 lines: `bake` 231, `cloudSea` 80, `fog` 97, `grade` 133, `grass` 697, `horizon` 39, `index` 87, `light` 66, `panoramaData` 9, `sky` 221, `tint` 66, `zones` 40) | `shard:look/…` (same names; `index.ts` → `shard:look/install.ts`) | S3.2 | The painterly `ShardRender` (§6.2). `window.__gradeV2` / `__grassV2` / `__skyV2` / `__bake` (`grade.ts:27`, `grass.ts:80`, `sky.ts:160`, `bake.ts:143`) → `app.debug.expose('nalati.look.*')`. `TIER` / `TIER_CONFIG` reads in `grade.ts`, `bake.ts` (`PHONE_STATIC_OFF_CSM`) → `app.tiers.current` passed in by `compose` |
+| `look/*.ts` (11 files, 1,535 lines: `bake` 231, `cloudSea` 80, `fog` 97, `grade` 133, `grass` 697, `horizon` 39, `index` 87, `light` 66, `panoramaData` 9, `sky` 221, `tint` 66, `zones` 40) | `shard:look/…` (same names; `index.ts` → `shard:look/install.ts`) | S3.2 | The painterly `ShardRender` (§6.2). `window.__gradeV2` / `__grassV2` / `__skyV2` / `__bake` (`grade.ts:27`, `grass.ts:80`, `sky.ts:160`, `bake.ts:143`) → `ctx.debug.expose('nalati.look.*')`. `TIER` / `TIER_CONFIG` reads in `grade.ts`, `bake.ts` (`PHONE_STATIC_OFF_CSM`) → `app.tiers.current` passed in by `compose` |
 
 ### 1.3 `src/world/nalati/` (31 files, 5,762 lines)
 
@@ -84,7 +85,7 @@ shards' audio and runs parity on all four.
 | `index.ts` (146, `NalatiPOIs`), `types.ts` (49), `layout.ts` (65), `places.ts` (106), `props.ts` (73), `solid.ts` (119), `granite.ts` (24), `clearings.ts` (44) | `shard:world/pois/…` | F6 | Only Nalati builds them (`nalati/index.ts:164`) |
 | `NomadCamp.ts` (165), `SummerCamp.ts` (71), `Yard.ts` (78), `Bowl.ts` (328), `Bridge.ts` (23), `Cairn.ts` (25), `Crags.ts` (65), `EagleRock.ts` (22), `Stair.ts` (73), `RoadFurniture.ts` (75), `Balbals.ts` (100), `KurganField.ts` (86), `Smoke.ts` (119), `Flutter.ts` (176) | `shard:world/pois/…` | F6 | POI builders |
 | `KurganDungeon.ts` (970) | `shard:combat/kurganDungeon.ts` | S3.1 (step 0 first, §6.1) | The Golden King's chamber. `fxMaterial`, `annulus`, `FX` are imported by the **engine** `game/Elite.ts:4` today: they move to `src/engine/fx/groundFx.ts` before the file moves (§6.1 step 0) |
-| `dressing/index.ts` (263), `layer.ts` (138), `life.ts` (267), `place.ts` (736), `statics.ts` (139) | `shard:world/dressing/…` | F6 | `window.__nalatiDressing` (`index.ts:213`, dev only) → `app.debug.expose`. Nalati's `DressLayer` merges with the engine culler at X5 (01 §17 *Culling*) |
+| `dressing/index.ts` (263), `layer.ts` (138), `life.ts` (267), `place.ts` (736), `statics.ts` (139) | `shard:world/dressing/…` | F6 | `window.__nalatiDressing` (`index.ts:213`, dev only) → `ctx.debug.expose`. Nalati's `DressLayer` merges with the engine culler at X5 (01 §17 *Culling*) |
 | `paint.ts` (504), `painted.ts` (312), `glbPaint.ts` (401) | `shard:look/paint.ts`, `painted.ts`, `glbPaint.ts` | F6; X5 | Painterly geometry and materials. `painted.ts:141` `document.dispatchEvent(new CustomEvent('ws:model-ready'…))` → `app.events.emit('model.ready', { id })`. `paint.ts`'s geometry helpers merge into the engine geometry kit at X5 (10-sweeps X5) |
 
 ### 1.4 Nalati code in other engine folders
@@ -95,7 +96,7 @@ shards' audio and runs parity on all four.
 | `src/world/PainterlySky.ts` | 273 | deleted | S3.2 | `buildPainterlyClouds` is built by `Sky.ts:450-458` and then hidden by `look/index.ts:48` (`sky.clouds.visible = false`); Nalati's backdrop (the panorama dome) replaces it. Nine Dragon's hidden build goes at X5 (05 §2.4) — see §6.2 step 5 |
 | `src/world/nalatiTextures.ts` | 132 | `shard:look/textures.ts` | S3.1 | `boot/manifest.ts:16, 38-46` → `manifest.boot.files` |
 | `src/world/Spruce.ts` (266), `spruceMask.ts` (79, unimported) | 345 | `shard:world/spruce.ts`; `spruceMask.ts` deleted | S3.1 | `bootstrap.ts:35` `spruce:` factory → `manifest.trees.factory` thunk (as Pine's, 06 §6.1 step 3). `spruceMask.ts` has no importer in `src/` (question Q8) |
-| `src/world/steppeWind.ts` | 157 | `shard:world/wind.ts`, installed as the world wind | S3.1 | Read by `Sky.ts:8` and the **kit** Bow family (`Bow.ts:8, 687` `this.arrows.wind = worldWind`). The Bow family reads `app.world.wind` (null = still air, today's `bow.wind = null` test path); Nalati's plugin sets it (question Q3) |
+| `src/world/steppeWind.ts` | 157 | merged into the engine `WindField` (`#engine/world/wind`, with `world/wind.ts`); its parameters become `manifest.wind` data | S3.1 | Read by `Sky.ts:8` and the **kit** Bow family (`Bow.ts:8, 687` `this.arrows.wind = worldWind`). The Bow family reads `app.world.wind`, one field per page fed by the running shard's `manifest.wind` (01 §17; 13-lead-resolutions 07/08#3). A shard whose manifest sets no gusts gives the arrows still air, today's `bow.wind = null` path |
 | `src/world/GrassField.ts` | 201 | `src/kit/looks/grassField.ts` | F6 | `GrassTrample.ts:2` (kit, Pine + Nalati, 06 §1.3) imports `grassBaseHeightAt`; a kit file cannot import a shard, so the field it reads moves with it |
 | `src/world/Weather.ts` (`SteppeStorm` since S2.4) | 349 | `shard:world/storm.ts` | S3.1 | Nalati's storm profile + lightning; `ask('weather.damage')` answered there (06 §6.4 B) |
 | `src/world/WeatherFX.ts` | 678 | `shard:world/weatherFx.ts` (the deck, curtains, bolt, smoke, puddles, rainbow; `buildRain` is the kit curtain since S2.4) | S3.1 | Rule of two (06 Q3) |
@@ -146,13 +147,13 @@ The 18 lines holding a `nalatiNow()` call (20 calls) are marked **N1–N18**; `w
 | N15 | 908-912 | `nalatiNow()?.boss.bind({ animals, setWeaponsEnabled: …, bow: nalatiKit?.bow ?? null, refill: …` | the Golden King's fight | `EncounterService.boss(GOLDEN_KING_DEF, new GoldenKing(...))` in the plugin (S3.4); weapons disabled through `equipment.enabled`; `refill` → `player.respawned`; `music` stings → cues `cue.boss.*` |
 | N16 | 914-919 | `nalatiNow()?.elites.bind({ animals, wildlife, taming: ride?.taming ?? null, …` | the five elites | `EncounterService.elite(def)` × 5 (S3.4); `record` → `ctx.on('actor.died')` in feats; `taming` read from `rt.ride` |
 | N17, N18 | 921-926 | `nalatiNow()?.titan.bind({ animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, …, hurt: (dmg, why) => { killer = { kind: 'storm-titan'` / `ownSkin: (id) => { nalatiNow()?.skins.own(id); }` | the Titan's fight, the Naizagai grant, the saddle skin | `EncounterService.boss(STORM_TITAN_DEF, new StormTitan(...))` (S3.4); `hurt` → `combat.hit` tagged `boss.storm-titan` (bug B3); `ownSkin` → `rt.skins.own(id)` inside the shard |
-| — | 1296 | `const handle = { …, wildlife, nalati: nalatiNow(), ride, …` | `window.__world.nalati` / `.wildlife` / `.ride` for scripts | `app.debug.expose('nalati', rt)` + the `__world` alias keeps the three keys until the scripts are ported (01 §5, F7) |
+| — | 1296 | `const handle = { …, wildlife, nalati: nalatiNow(), ride, …` | `window.__world.nalati` / `.wildlife` / `.ride` for scripts | `ctx.debug.expose('nalati', rt)` + the `__world` alias keeps the three keys until the scripts are ported (01 §5, F7) |
 | — | 1144 | `nalati?.update(dt, t)` | the 14 updaters, in one call | the 14 systems of §4 in the same order |
 | — | 1150 | `if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); const heart = nalati?.titan.lockTarget() …` | aim assist and lock-on skip hidden wolves, owned horses, the ridden horse; add the Titan's heart | `ctx.answer('combat.aimTargets', (list) => …)`: the engine builds the list each frame from the creature service and asks it; Nalati filters (`hidden`, `owned`, `app.player.mountedOn`) and appends the heart. `setAimTargets(painterly ? aimList : animals.animals)` (`:716`, `:1016`) → one engine call with the asked list |
 | — | 1194-1197 | `if (ride?.mounted === true) ride.mount.dismount();` / `nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true` / `nalatiKit?.refill()` | dismount on death; the bosses' checkpoint deaths; refill the quiver and javelins | `ctx.on('player.died', () => rt.ride.dismount())`; `death.checkpoint` answered by the boss runtime (09 §3.3 step 4); `refill` → each row's `player.respawned` listener |
 | — | 283, 418, 434, 444, 716, 1016, 1108 | `const painterly = chunk.style === 'painterly'` / `if (!painterly && built === undefined) addPaths()` / `const under = bare \|\| painterly ? null` / `if (isOcean \|\| painterly \|\| built !== undefined) return { cabins: null` / `const steppeMusic = chunk.style === 'painterly'` | Nalati has no undergrowth, cabins or props, lays paths after its decks, only hostile animals lift its score | the grass / cabins / props builders are Pine's since S2.1 (06 §6.1 step 2), so the engine steps no longer exist; `addPaths` is the plugin's; `steppeMusic` → `manifest.audio.alertOnlyHostile: true` (the music poll's filter, `:1122`) |
 | — | 529, 552, 692 | `const nalatiKit = chunk.slug === 'nalati-grasslands' ? buildNalatiKit(…) : null` / `nalatiKit?.install(weapons)` / `nalatiKit?.melee(weapons.current.id) === true` | the bow / sabre / spear kit, the AR-15 practice loan | `manifest.loadout` (§3) built by the equipment service (S3.3); `meleeHeld` → `current.row.ui.melee` (09 §1.6). Fixes plan §7.5 (`ChunkDef.weapon: 'nalati'` was ignored) |
-| — | 571 | `if (chunk.hud?.dayBadge === true) minimap.showDayBadge()` | the sun / moon on the minimap rim | `manifest.mapDraw.dayBadge: true` (data, read by the minimap) |
+| — | 571 | `if (chunk.hud?.dayBadge === true) minimap.showDayBadge()` | the sun / moon on the minimap rim | `manifest.hud.dayBadge: true` (01 §6 keeps `hud` as data the HUD reads; the minimap reads it) |
 | — | 587 | `const mood = chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine'` | the score's shard | gone at S2.1 for Pine; S3.1 makes Nalati's `manifest.audio.score: 'score.nalati'` the only source; `'steppe'` leaves `Music.Shard` |
 | — | 686 | `CAPTIONED_EVENTS.has(d.event)` | a Nalati chapter's own caption replaces the achievement toast | `ctx.answer('feat.toast', (e) => …)`: the quest vetoes the toast for its captioned events |
 | — | 898 | `const hoof = audio.hoofSurfaceAt?.(p.x, p.z); audio.footstep(sprinting, hoof !== undefined ? (hoof === 'wood' ? 'planks' : hoof) : …` | footsteps on the steppe use the hoof ground map | `cue.step.<surface>` with the surface from `ctx.answer('player.stepSurface', …)` (Nalati answers with its hoof ground) — S3.5 |
@@ -231,8 +232,9 @@ The 18 lines holding a `nalatiNow()` call (20 calls) are marked **N1–N18**; `w
 ## 3. (c) The manifest, in full
 
 `src/shards/nalati-grasslands/manifest.ts`, node-safe. Values are today's (`nalati-grasslands.ts:582-661`,
-`steps.ts:86-100`, `titleDeck.ts:50`). **Q1** marks fields 01 §6 does not declare (the same list as 05 Q1 / 06 Q1
-plus the new ones named in §10).
+`steps.ts:86-100`, `titleDeck.ts:50`). Every `ChunkDef` field is carried over under 01 §6's names
+(13-lead-resolutions 05/06#1, 07/08#1). **Q1** marks this spec's additions that 01 §6 still lacks; §10 Q1 keeps them
+open.
 
 ```ts
 import { defineShard } from '#game';
@@ -241,6 +243,7 @@ import { NALATI_MAP } from './layout';
 import { inSpruceClearing } from './world/pois/clearings';
 import { edgeSpruceMask } from './world/edge';
 import { NALATI_HORIZON_V2 } from './look/horizon';                      // data only (look/horizon.ts imports types)
+import { STEPPE_WIND } from './world/windData';                         // steppeWind.ts's parameters as data (01 §17; the field itself is the engine's)
 import { bootFiles, lateReads } from './boot/files';                     // boot/manifest.ts:38-46 (painterlyBoot) + shardPrefetch.ts:90
 import thumb from './thumbs/nalati-grasslands.jpg';
 import portrait from './thumbs/nalati-grasslands-portrait.jpg';
@@ -250,28 +253,29 @@ export default defineShard({
   api: 1,
   slug: 'nalati-grasslands',
   name: 'Nalati Grasslands',
-  label: 'Alpine steppe',                                                  // Q1 (titleDeck.ts:50; the def's biome)
+  label: '(+4, −2)',                                                       // gridCoords (01 §6)
+  biome: 'Alpine steppe',                                                  // the title deck's card line (titleDeck.ts:50)
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',
   order: 3,                                                                // titleDeck.ts:47-51
   status: 'earlyAccess',                                                   // def.earlyAccess (NALATI-MERGE E1)
   card: { thumb, portrait, landscape },
-  map: { grid: [4, -2], size: [500, 500, 500] },                           // gridCoords '(+4, −2)'
-  seed: SEED,                                                              // Q1 — 0x4a1a
-  treeCount: 1400,                                                         // Q1
+  placement: { grid: [4, -2], size: [500, 500, 500] },                     // gridCoords '(+4, −2)'
+  seed: SEED,                                                              // 01 §6 — 0x4a1a
+  treeCount: 1400,                                                         // carried as data
   style: 'painterly',
-  kitLook: 'painterly',                                                    // Q1 (05 Q1): creatures, swim hands, the catalog
+  kitLook: 'painterly',                                                    // Q1 (open, 05 Q1): creatures, swim hands, the catalog
   uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests', 'trample'],
   ground: { terrain: TERRAIN },                                            // pondMask = river + brook, waterLevel = RIVER.level (the def's :472)
-  assets: {                                                                // Q1 — unused by the painted terrain; kept for the PBR contract (nalati-grasslands.ts:611-616)
+  assets: {                                                                // carried as data — unused by the painted terrain; kept for the PBR contract (nalati-grasslands.ts:611-616)
     groundLayers: ['leafy_grass', 'stony_dirt_path', 'rock_ground', 'forest_ground_04'],
     groundTints: [[0.7, 0.85, 0.5], [0.9, 0.84, 0.66], [0.7, 0.7, 0.72], [0.95, 0.95, 0.95]],
     slabRock: 'rock_ground',
   },
-  trees: {                                                                 // Q1 — :618 + bootstrap.ts:35
+  trees: {                                                                 // carried as data — :618 + bootstrap.ts:35
     factory: () => import('./world/spruce').then((m) => m.spruceFactory),
     bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'spruces',
   },
-  forest: {                                                                // Q1 — :619-628
+  forest: {                                                                // carried as data — :619-628
     spacing: 4.2, densityFreq: 0.01, clearings: [-2, -1.5], maxSlope: 0.6,
     tintHue: 0.3, tintHueJitter: [-0.06, 0.06], tintSat: [0.05, 0.25], tintLight: [0.8, 0.95], largeVariantChance: 0.15,
     mask: (x, z) => (inSpruceClearing(x, z) ? 0 : Math.max(loneSpruceMask(x, z), edgeSpruceMask(x, z, edgeBermAt(x, z)))),
@@ -294,12 +298,13 @@ export default defineShard({
     saturation: 0.1, brightness: 0.0, contrast: 0.15, bloomIntensity: 0.35, bloomThreshold: 0.86,
     shadowTint: [0.9, 0.96, 1.1], highTint: [1.05, 1.01, 0.94], lift: [0.0, 0.004, 0.018], gain: [1.02, 1.02, 1.0], gamma: 1.0,
   },
-  horizon: NALATI_HORIZON_V2,                                              // Q1 (05 Q1)
-  mapDraw: {                                                               // Q1 (05 Q1's name) — Minimap.ts:101-119, 166-183, 294, 517-568
+  horizon: NALATI_HORIZON_V2,                                              // carried as data
+  minimap: {                                                               // today's ChunkDef.map, renamed (01 §6) — Minimap.ts:101-119, 166-183, 294, 517-568
     palette: () => import('./look/minimap').then((m) => m.PALETTE),        // nalatiGround + nalatiWetAt + the spruce mask
     markers: () => import('./look/minimap').then((m) => m.MARKERS),        // the herd marker (Minimap.ts:119)
-    dayBadge: true,                                                        // def.hud.dayBadge
   },
+  hud: { dayBadge: true },                                                 // def.hud, as is (01 §6: data the HUD reads; the minimap draws the badge)
+  wind: STEPPE_WIND,                                                       // 01 §17: steppeWind.ts's parameters (direction, gust period and strength) as data for the engine WindField
   dayCycle: () => import('./look/dayKeys').then((m) => m.NALATI_DAY),      // S2.4: DEFAULT_SCHEDULE + elevation keys; Debug ▸ Clock speed
   weather: () => import('./world/storm').then((m) => m.STEPPE_STORM),      // S2.4 profile; the SteppeStorm class
   render: () => import('./look/render').then((m) => m.shardRender()),      // S3.2
@@ -336,7 +341,7 @@ export default defineShard({
     'elite.aqbars', 'elite.kokbori', 'elite.qyran', 'elite.qara-batyr', 'elite.argymaq',   // elites.ts (09 §5.4)
     'boss.golden-king', 'boss.storm-titan',
   ],
-  spawns: [                                                                // Q1 — 09 §5.6 `spawn.nalati.*`
+  spawns: [                                                                // 01 §6 (was fauna) — 09 §5.6 `spawn.nalati.*`
     'spawn.nalati.wildlife',                                               // Wildlife.ts: packs, herds, the flock, marmots, camp horses
     'spawn.nalati.balbals',                                                // when: dusk (balbalWarriors.ts)
     'spawn.nalati.ghost-riders',                                           // when: night (ghostRiders.ts:65-66)
@@ -381,7 +386,7 @@ export default defineShard({
 
 Fields that disappear: `id`, `displayName`, `gridCoords`, `biome` (→ `label`), `earlyAccess` (→ `status`),
 `thumbnail` / `heroPortrait` / `heroLandscape` (→ `card`), `fauna: []` (→ `species` + `spawns`), `weapon: 'nalati'`
-(→ `loadout`), `hud.dayBadge` (→ `mapDraw.dayBadge`), `groundColor` / `surfaceAt` (→ the terrain painter, S3.2),
+(→ `loadout`), `hud.dayBadge` (kept: `hud`, 01 §6), `groundColor` / `surfaceAt` (→ the terrain painter, S3.2),
 `explore: true` (every shard has Explore), `terrain` (→ `ground.terrain`).
 
 ## 4. (d) The plugin
@@ -396,7 +401,7 @@ export default class NalatiPlugin extends ShardPlugin {
     ctx.strings(STRINGS);                                     // 'respawn.default', the toasts of index.ts:258-262, weapon / tool names
     const rt = new NalatiRuntime(ctx.scope);                  // shard:runtime.ts — replaces the Nalati interface
     // ── shard.world: main.ts's grass step first (it ran before props), then wireNalati :127-216 in order ──
-    ctx.app.world.setWind(steppeWind);                        // Q3 — the one wind the Bow family and the grass read
+    // the wind: no call — the engine's WindField (app.world.wind) reads manifest.wind (01 §17); the Bow family and the grass read it
     rt.grass = buildGrass(ctx);                               // GrassV2 (Grass.ts:129 today; progress into the `grass` key)
     installPainterly(ctx);                                    // syncPainterlySun, setPainterlyLook, system shard.nalati.painterly (:127-134)
     rt.water = buildWater(ctx);                               // :136-141
@@ -460,7 +465,7 @@ export default class NalatiPlugin extends ShardPlugin {
 | HUD | the stealth row + grass meter + CROUCH disc (`ROW.stealth` / `ROW.grass`, spot `up0`), the steed row + GALLOP / HORSE / LEAN L / LEAN R / OFFER discs (`ROW.steed`, spots `r0`, `edge-l`, `lean-l`, `lean-r`, `aim`), the elite bar, the boss bar (engine encounter widgets), the weather chip (`ws:weather`) | `ctx.hud.widget` / `ctx.hud.disc` | `stealth.ts:123-133`, `RideHUD.ts:96-108` |
 | Bag | SKINS (rows + wear), FINDS (the elites, their prizes, the places) | `ctx.bag` | `main.ts:630, 753` |
 | Debug rows | `balbals`, `ghosts` (group Creatures & NPCs) | `ctx.debugRow` | `debugOptions.ts:160-161` |
-| Debug handles | `nalati` (the runtime), `nalati.weather`, `nalati.boss`, `nalati.titan`, `nalati.elites`, `nalati.balbals`, `nalati.ghosts`, `nalati.stealth`, `nalati.quest`, `nalati.sound`, `nalati.look.grade`, `nalati.look.grass`, `nalati.look.sky`, `nalati.look.bake`, `nalati.dressing` | `app.debug.expose` | the 15 `window.__*` of §1.2–§1.3 |
+| Debug handles | `nalati` (the runtime), `nalati.weather`, `nalati.boss`, `nalati.titan`, `nalati.elites`, `nalati.balbals`, `nalati.ghosts`, `nalati.stealth`, `nalati.quest`, `nalati.sound`, `nalati.look.grade`, `nalati.look.grass`, `nalati.look.sky`, `nalati.look.bake`, `nalati.dressing` | `ctx.debug.expose` | the 15 `window.__*` of §1.2–§1.3 |
 | Playground | `horse` (title "Horse playground", blurb "Oval track · jumps · lap timer", icon `HORSE` from `catalog.ts:26`, art `playground-horse.webp`) | `ctx.playground` | `catalog.ts:30` |
 
 ## 5. (e) Engine systems this phase pulls in
@@ -470,8 +475,8 @@ export default class NalatiPlugin extends ShardPlugin {
 | `ctx.app.world.addPaths()` | the paths piece laid after a shard's decks | S1.1 world build | S3.1 |
 | `combat.targets.ray` / `combat.aimTargets` asks | the engine's target ray and aim list take shard additions and filters | S1.3 pipeline | S3.1 |
 | `app.player.mountedOn` | the ridden actor is not a target, not a float | S1.3 player service | S3.3 |
-| `ShardRender.compose → { replace }`, `fog.install`, `terrainPainter`, `backdrop.environment` | §6.2 | S1.1 render service | S3.2 |
-| `app.world.wind` (a `WindField`) | the Bow family's arrow drift, the grass | S2.2 Bow family | S3.1 (question Q3) |
+| `ShardRender.mode: 'replace'`, `fog.install`, `terrainPainter`, `backdrop.apply` (01 §13.1) | §6.2 | S1.1 render service | S3.2 |
+| `app.world.wind` (the one `WindField`, 01 §17) fed by `manifest.wind` | the Bow family's arrow drift, the grass, the trees' sway | S2.2 Bow family | S3.1 (13-lead-resolutions 07/08#3) |
 | `ask('player.crouch')` in the motor | stealth's toggle and grass gate | S1.4 input service | S3.3 |
 | Creature look registry (`ctx.rows.creatureLook`) | the painterly creature material | S2.3 creature runtime | S3.1 |
 | `src/engine/fx/groundFx.ts` | the elite / boss ring FX without a Nalati import | S2.3 encounter runtime | S3.1 |
@@ -529,7 +534,8 @@ the count of §2.1 + §2.3 + §2.5; parity green on 4 shards × 2 tiers.
 
 ```ts
 export const shardRender = (): ShardRender => ({
-  compose: (c) => ({ replace: buildLookV2Chain(c.renderer, c.scene, c.camera) }),   // Game.ts:274
+  mode: 'replace',                                                                   // 01 §13.1: this compose builds the whole chain
+  compose: (c) => buildLookV2Chain(c.renderer, c.scene, c.camera),                   // Game.ts:274
   fog: { order: 300, install: () => { installPaintedAir(); installLookV2Fog(); } },  // Game.ts:207-208, Atmosphere.ts:164
   terrainPainter: NALATI_TERRAIN_PAINTER,                                           // Terrain.ts:248-420 + groundColor / surfaceAt
   backdrop: NALATI_BACKDROP,                                                         // SkyDomeV2 + skyRig.ts + paintSky
@@ -544,14 +550,15 @@ export const shardRender = (): ShardRender => ({
    is the order they install in today: the program sources stay byte-identical (the parity `programs` check).
    `Atmosphere.ts:287`'s `shardSlot('atmosphere', …)` loses `painted` (F11 retired `shardSlot`; if a line survives, it
    is deleted here).
-2. **Composer.** `compose` may return `{ replace: EffectComposer }` (question Q2). `buildComposer` uses it and returns,
+2. **Composer.** With `mode: 'replace'` (01 §13.1; 13-lead-resolutions 07/08#2) `compose` builds the whole chain.
+   `buildComposer` uses it and returns,
    as `Game.ts:274` does; the engine's chain is not built, `game.post` stays null (the day rig leaves it alone, as today).
 3. **Terrain.** `TerrainPainter { build(t: TerrainHost): Promise<THREE.Group> }`: `buildPainterly`,
    `buildPainterlyGeometry`, `buildPainterlySlab` move with `loadNalatiTextures`, `applyTerrainSurface`, `zoneWeights`
    and `painterlyMaterial` (`Terrain.ts:10-13`). `Terrain.build()` calls `render.terrainPainter?.build(this)` and uses
    its group. `groundColor` / `surfaceAt` are read from `shard:look/ground.ts`, not the def.
 4. **Grass.** `Grass.ts:14, 99-100, 129` are deleted; the plugin builds `GrassV2` (§4). After S2.1 and S3.1 no shard
-   uses the engine `Grass` class: `Grass.ts` has moved whole to Pine (06 §1.3).
+   uses the engine `Grass` class: `Grass.ts` moves whole to Pine here, at S3.1's end (06 §1.3; 13-lead-resolutions 04#4).
 5. **Sky.** `SkyBackdrop { environment?(sun): THREE.Texture \| Promise<THREE.Texture>; build(sky): Promise<void>;
    update?(dt): void; halo?: number; planet?: { hazeAmt: number; gain: number; far: boolean } }`. Nalati's:
    `environment` = `paintSky(manifest.sky.painted, sunDir)` (`Sky.ts:218-219, 748-790` moved), `build` = today's
@@ -564,7 +571,7 @@ export const shardRender = (): ShardRender => ({
 6. **Keyframe application.** `DayClock.ts:195-533` (`makeLook`, `SkyRig`, `copyLook`, `lightLevel`) → the backdrop's
    `apply(key)` (06 §6.4 A: "the shard's backdrop for its own fields"); `nalati/weather.ts:185`'s `new SkyRig(game,
    sky)` builds it from there.
-7. **Minimap.** `Minimap.ts:43-45, 81-119, 166-183, 517-568` → `manifest.mapDraw.palette` / `markers`; the minimap
+7. **Minimap.** `Minimap.ts:43-45, 81-119, 166-183, 517-568` → `manifest.minimap.palette` / `markers`; the minimap
    paints with `palette.ground(x, z, h, slope, spruce, out)` when a manifest gives one.
 8. **Creature material and hands**: `AnimalFactory.ts:12, 89` → the creature look registry; `Hands.ts:130` →
    `manifest.kitLook`.
@@ -811,33 +818,30 @@ beds and score slots, the HUD slots, the save keys.
 
 ## 10. Questions for the lead
 
-1. **Manifest fields not in 01 §6** (beyond 05 Q1 / 06 Q1): `loadout.held`, `loadout.loans`, `loadout.grants[].
-   replaces`, `mapDraw.palette` / `markers` / `dayBadge`, `audio.alertOnlyHostile`, `ground.paths: 'plugin'`,
-   `bag.skinsTitle`. Add them to 01 §6 or name where each goes. Also `ctx.app.params` (a reader over
-   `lint/url-params.json`'s harness list, used for `?ride=`, `?time=`, `?clock=`): 01 §5 has no such service.
-2. **`ShardRender.compose` returning `{ replace }`.** 01 §13.1 says Nalati's composer "moves inside its `compose`",
-   but `ShardComposition` is today's five pass slots around the engine chain. This spec adds a `replace` result.
-   Confirm, or say how Nalati's single-grade chain (no AO, volumetrics, rays, SMAA) fits the slots.
-3. **The world wind.** The kit Bow family reads Nalati's `steppeWind` (`Bow.ts:8, 687`) and Driftwood's
-   `world/wind.ts` is a second, unrelated wind (sway + gust) read by ~10 engine files. 01 §17 has no wind row. This
-   spec adds `app.world.wind: WindField | null` (the arrow drift and the grass read it; Nalati sets its steppe wind)
-   and leaves `world/wind.ts` (the sway clock) as engine. Confirm, or say whether the two merge (a look-board item).
-4. **The horse overrides 09.** 09 §5.2 / §1.5 and 01 §21 put the horse in `#kit/species/`; the lead's answer to 09
-   Q5 keeps it in Nalati. 01 §21 and 09 need the edit (horse out of the kit list).
-5. **Big-lane audio.** S3.5 edits every shard's audio (Pine's ambience, Nine Dragon's beds, the cue maps) under
-   Nalati's milestone. Confirm that is S3.5's scope (the plan row says "Steppe audio moves onto it" only), or move
-   Pine's / Nine Dragon's profile moves to X-rows.
-6. **Driftwood's audio leftovers between S3.5 and S4.3.** This spec parks the island bed, gulls and the island voice
-   families in `src/engine/audio/legacyIsland.ts` (named, counted, deleted at S4.3) rather than branching. Confirm.
-7. **The camp people's rig differences.** If Nalati's people need rig features Pine's `npcRig` lacks (per-person
-   breathing phase, the elder's pipe prop), this spec adds them as `#kit/npc` row fields. Confirm that the kit may grow
-   in S3.3 (the engine and kit stay locked for content agents, but the lead edits them).
-8. **`src/world/spruceMask.ts`** (79 lines) has no importer in `src/`; add it to F7's dead list or delete it in S3.1
-   as here.
-9. **Crouch semantics.** Every shard crouches on C / Ctrl today through the motor's raw keys; the engine `crouch`
-   action keeps that. Nalati's toggle-and-grass-gate becomes an `ask('player.crouch')` answer. Confirm the ask (01
-   §10 names only "the crouch action").
-10. **`creatureLook` registry.** `AnimalFactory` builds three styles (`pbr`, `lowpoly`, `painterly`); this spec has a
-    shard register its style's material factory. Driftwood's `lowpoly` path (`AnimalFactory.ts:305-354`,
-    `entities/lowpoly.ts`) is used by boar and bear on Driftwood only, so it would register from Driftwood at S4.2.
-    Confirm the verb (`ctx.rows.creatureLook`) or name another.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (07 / 08 table unless named) unless marked open; the
+body above follows each answer.
+
+1. **Manifest fields not in 01 §6; a URL-param reader.** **Resolved → 13-lead-resolutions 07/08#1:** every carried-over
+   `ChunkDef` field is on the manifest (`map` → `minimap`, `hud` kept as is, so the day badge is `hud.dayBadge`);
+   `app.params` is the only URL-param reader (the `harness` allowlist: `?ride=`, `?time=`, `?clock=`). **Still open,
+   sent to the lead:** this spec's sub-fields that 01 §6's types don't declare yet — `loadout.held`, `loadout.loans`,
+   `loadout.grants[].replaces`, `minimap.palette` / `markers`, `audio.alertOnlyHostile`, `ground.paths: 'plugin'`,
+   `bag.skinsTitle`, and `kitLook` (05 Q1).
+2. **`ShardRender` chain replacement.** **Resolved → 13-lead-resolutions 07/08#2:** `mode: 'replace'` (01 §13.1); the
+   shard's `compose` builds the whole chain (S3.2 step 2).
+3. **The world wind.** **Resolved → 13-lead-resolutions 07/08#3:** one `WindField` (`app.world.wind`, 01 §17) with
+   per-shard `manifest.wind` data; `steppeWind.ts` and `world/wind.ts` merge into it (§1.4, §3, §4).
+4. **The horse.** **Resolved → 13-lead-resolutions 07/08#4 and 09#5:** Nalati; 01 §21 and 09 §5.2 follow.
+5. **S3.5 edits every shard's audio.** **Resolved → 13-lead-resolutions 07/08#5:** in scope, one implementation at
+   once, parity identical on Pine and Nine Dragon.
+6. **Driftwood's audio between S3.5 and S4.3.** **Resolved → 13-lead-resolutions 07/08#6:** parked in
+   `src/engine/audio/legacyIsland.ts` from S3.5; S4.3 moves it into Driftwood's folder and deletes the park.
+7. **The camp people's rig differences.** **Resolved → 13-lead-resolutions 05/06#14:** the camp people join `#kit/npc`
+   in S3.3, so the lead grows the kit rig there (per-person breathing phase, the elder's pipe prop as row fields);
+   the kit stays locked to content agents only.
+8. **`src/world/spruceMask.ts`** (79 lines) has no importer. **Open (not in 13), sent to the lead:** this spec deletes
+   it in S3.1.
+9. **Crouch semantics** (`ask('player.crouch')` for Nalati's toggle and grass gate). **Open (not in 13), sent to the
+   lead:** 01 §10 names only the `crouch` action; this spec adds the ask.
+10. **`creatureLook` registry** (`ctx.rows.creatureLook`, a shard registering its style's creature material factory;
+    Driftwood's toon path registers from Driftwood at S4.2). **Open (not in 13), sent to the lead.**
