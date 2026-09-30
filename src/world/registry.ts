@@ -45,9 +45,6 @@ export type PieceCategory = 'buildings' | 'nature' | 'props' | 'creatures' | 'pe
 /** Explore's catalog tabs (E315 M5: People — the crowd, camp people, NPCs — apart from Creatures; Gear, what the player holds) */
 export type ModelCategory = 'buildings' | 'nature' | 'creatures' | 'people' | 'gear' | 'props';
 
-/** Every piece category's catalog tab, spelled out (E306: a `props` piece used to land under Buildings) */
-export const MODEL_CATEGORY: Readonly<Record<PieceCategory, ModelCategory>> = { buildings: 'buildings', nature: 'nature', props: 'props', creatures: 'creatures', people: 'people', gear: 'gear', ground: 'nature' };
-
 /**
  * How a model is made (E306): the Model Explorer card's badge. `code` is procedural three.js; `blender` a Blender
  * script's GLB; `trellis` / `hunyuan` the image-to-3D generators (scripts/img2mesh/); `cc0` a downloaded CC0 file.
@@ -80,14 +77,14 @@ export interface ModelFacts {
   dress?: (animal: Animal) => void;
 }
 
-/** A piece as a model in Explore's catalog (every field defaults from the piece). */
+/** A piece as a model in Explore's catalog: what `place` / `listModel` (src/models/) register, the model's one entry. */
 export interface ModelEntry extends ModelFacts {
-  /** the catalog id, when it differs from the piece's (one catalog entry for all the jetties) */
-  id?: string;
-  category?: ModelCategory;
-  /** true (default): the model is the piece's `object`, already in the scene; false: `object()` builds one on first view */
-  live?: boolean;
-  object?: () => THREE.Object3D;
+  /** the model's id (`<slug>/<name>`, `shared/<name>`): one catalog entry per id, whatever piece carries it */
+  id: string;
+  category: ModelCategory;
+  /** true: `object()` is already in the scene (the Model Explorer isolates it in place); false: it builds one on first view */
+  live: boolean;
+  object: () => THREE.Object3D;
   /** a batch member's builder at a given detail tier (DETAIL TIERS); absent → one build for every tier */
   buildAt?: (tier: Tier) => THREE.Object3D;
   /** Material or skin variants shown on the same turntable card. */
@@ -194,7 +191,7 @@ export interface Piece {
   follows?: THREE.Object3D;
   /** a following piece that collides only while this says so (a door mid-swing is let through, never pins anyone) */
   active?: () => boolean;
-  /** Explore's catalog lists it (`models()`); a model-only piece (one palm out of a batch) has no object / colliders */
+  /** the model's catalog entry (`models()`), set only by `place` / `listModel` (src/models/): check-models rule 6 fails any other */
   model?: ModelEntry;
 }
 
@@ -225,11 +222,11 @@ export class WorldRegistry {
   models(): RegisteredModel[] {
     const out: RegisteredModel[] = [], at = new Map<string, number>();
     for (const p of this.pieces) {
-      const m = p.model, object = m?.object ?? (p.object ? ((o: THREE.Object3D) => () => o)(p.object) : undefined);
-      if (!m || !object) continue;
-      const id = m.id ?? p.id, category = m.category ?? MODEL_CATEGORY[p.category];
+      const m = p.model;
+      if (!m) continue;
+      const { id, category, object } = m;
       const e: RegisteredModel = {
-        id, name: p.name, category, file: p.file, live: m.live ?? true, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
+        id, name: p.name, category, file: p.file, live: m.live, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
         ...(m.pipeline === undefined ? {} : { pipeline: m.pipeline }), ...(m.copies === undefined ? {} : { copies: m.copies }), ...(m.drawnAs === undefined ? {} : { drawnAs: m.drawnAs }), ...(m.worldBox === undefined ? {} : { worldBox: m.worldBox }),
         ...(m.species === undefined ? {} : { species: m.species }), ...(m.dress === undefined ? {} : { dress: m.dress }),
       };

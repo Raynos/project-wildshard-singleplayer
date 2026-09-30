@@ -1,31 +1,15 @@
 /**
  * The model registry Explore World reads (project/archive/2026-09-23-explore-world.md X10) — a view onto the one world
- * registry (src/world/registry.ts, ENGINE-FIT E1): a built piece registered with `model` is in the Model Explorer's
- * catalog and the World Explorer's tap-to-select, so a shard's setup registers each thing once (main.ts `addBuilt(…,
- * model)`). Explore itself knows no shard; the rest of Explore stays a lazy chunk.
+ * registry (src/world/registry.ts, ENGINE-FIT E1). Models get there one way only (E306 / E315, M6): `place` and
+ * `listModel` (src/models/) register a model's ONE catalog entry per shard; nothing registers a model by hand. Explore
+ * itself knows no shard; the rest of Explore stays a lazy chunk.
  *
- *   registerModel({ …, live: false, object: () => buildOne(), buildAt: (tier) => … });   // one of a batch, built on view
- *   registerPick({ object: palms.mesh, entry: 'palm', boxAt: (hit) => boxOfThePalmAt(hit) }); // a tap on a batch mesh
  *   registeredModels() / registeredPicks() / registeredSets()
- *
- * Creatures are not registered: Explore builds one per species the shard's AnimalManager actually has.
  */
 import { activeRegistry, type RegisteredModel, type RegisteredPick, type RegisteredSet } from '../world/registry';
 
 export type { ModelCategory, RegisteredModel, RegisteredPick, RegisteredSet } from '../world/registry';
 
-/** a model that is not a built piece of the world (one out of a batch, built alone on view): a model-only piece */
-export function registerModel(m: RegisteredModel): void {
-  activeRegistry().add({
-    id: `model:${m.id}`, name: m.name, category: m.category, file: m.file,
-    model: {
-      id: m.id, category: m.category, live: m.live, object: m.object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
-      // E306 M0a: the card's facts
-      ...(m.pipeline === undefined ? {} : { pipeline: m.pipeline }), ...(m.copies === undefined ? {} : { copies: m.copies }), ...(m.drawnAs === undefined ? {} : { drawnAs: m.drawnAs }), ...(m.worldBox === undefined ? {} : { worldBox: m.worldBox }),
-    },
-  });
-}
-export function registerPick(p: RegisteredPick): void { activeRegistry().addPick(p); }
 export function registeredModels(): readonly RegisteredModel[] { return activeRegistry().models(); }
 export function registeredPicks(): readonly RegisteredPick[] { return activeRegistry().picks; }
 /** the shard's sets (E306 M7: `placeSet`, src/models/sets.ts) — the Sets explorer's list, a model card's PART OF */

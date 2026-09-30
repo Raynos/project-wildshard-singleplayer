@@ -1,14 +1,15 @@
 /**
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
- *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present
+ *   catalogEntries(sky, animals, style, at)   // Explore: every registered model (a creature on its species rig)
  *   measure(object)                           // tris / draw calls
  *
  * A registered model is either LIVE (already in the scene; the Model Explorer isolates it in place) or one of a batch
  * built alone on first view (one palm out of the merged palms), with a builder per detail tier. Creatures (E315 M5) are
  * the shard's roster, listed at boot on the species rigs (src/models/live.ts `listRoster`: every species it can spawn,
  * alive now or not): each gets its own rig from the factory in the shard's style, with no AI — it stands on the turntable
- * and plays what it is told (clips, variants, X8). A live animal of a species the shard does not list still gets a card.
+ * and plays what it is told (clips, variants, X8). A live animal of a species the shard does not list is a roster gap
+ * (warned once; M6 deleted the cards made off the live animal list).
  */
 import * as THREE from 'three';
 import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
@@ -17,9 +18,6 @@ import { hasSpecies, speciesDef } from '../entities/species/registry';
 import type { Sky } from '../world/Sky';
 import { heightAt } from '../world/Heightfield';
 import type { DrawnAs, Pipeline } from '../world/registry';
-import { creatureHull } from '../entities/glbCreatures';
-import { pineHull } from '../entities/pineCreatures';
-import { HULL_PIPELINE, SPECIES_PIPELINE } from '../models/provenance';
 import { registeredModels, type ModelCategory, type RegisteredModel } from './registry';
 
 export type Category = ModelCategory;
@@ -107,20 +105,9 @@ export function catalogEntries(sky: Sky, animals: readonly { kind: string }[], s
   // the roster's creatures (E315 M5): listed on the species rigs, alive now or not
   const listed = new Set<string>();
   for (const e of out) if (e.species !== undefined && hasSpecies(e.species)) { listed.add(e.species); standUp(e, e.species); } // (a species registered later — a boss's — keeps the model's own specimen)
-  // a live animal whose species the shard does not list: a card off the live list, as before M5
-  for (const kind of new Set(animals.map((a) => a.kind))) {
-    if (listed.has(kind)) continue;
-    const sp = speciesDef(kind);
-    // the rig is code; a generated hull (Nalati's, Pine Hollow's) or mesh (the Drowned Captain) is how it looks
-    const v0 = sp.variants[0]?.id ?? '', hull = creatureHull(kind, v0) ?? pineHull(kind, v0);
-    const made = (hull === null ? undefined : HULL_PIPELINE[hull]) ?? SPECIES_PIPELINE[kind] ?? 'code';
-    const e: CatalogEntry = {
-      id: kind, name: sp.label, category: 'creatures', file: `src/entities/species/${kind}.ts`, live: false, buildMs: 0, object: () => new THREE.Group(),
-      pipeline: [made], copies: animals.filter((a) => a.kind === kind).length, drawnAs: 'skinned', shared: false, species: kind,
-    };
-    standUp(e, kind);
-    out.push(e);
-  }
+  // (M6: the cards made off the live animal list before M5 are gone — every species is a model on its shard's roster; a
+  // live animal whose species no model lists is a roster gap, said once here)
+  for (const kind of new Set(animals.map((a) => a.kind))) if (!listed.has(kind)) console.warn(`[models] a live '${kind}' is no model on this shard's roster (ChunkDef.roster, src/models/live.ts)`);
   return out;
 }
 

@@ -54,8 +54,8 @@
  *     (a detail band inside its level), `tint: false`, `sortObjects` (the forest tree's twigs, bark, needle cards).
  *     `batch` shares one BatchedMesh with the world's own geometry; `piece.split` registers the colliders a task apart.
  *     `piece: { id, name, … }` keeps the old registry id so saves, tests and footprints don't move.
- *  4. Delete the old registration (`addBuilt`, `registry.add({ … model })`, `registerModel`, an ENTRY row) and the old
- *     drawing code. `place` registers ONE registry piece per call (drawn object + world-space colliders + floor) and
+ *  4. Delete the old drawing code (M6 deleted the old registrations: nothing but `place` / `listModel` gives a piece a
+ *     `model`, check-models rule 6). `place` registers ONE registry piece per call (drawn object + world-space colliders + floor) and
  *     the model's ONE catalog entry per shard (copies summed over every `place` of it, a tap target on its copies,
  *     VIEW IN WORLD on the nearest real copy).
  *  5. Prove it (the M0 bar): the same draws, triangles, programs and colliders before / after on this shard (the

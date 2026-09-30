@@ -734,17 +734,6 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   return entry;
 }
 
-/**
- * The world box of the copy nearest `near` among a geometry's instance matrices: VIEW IN WORLD for a shard's own
- * instanced copies that are not on `place` yet (Nine Dragon's GLB specimens until M4).
- */
-export function copyBoxNear(geometry: THREE.BufferGeometry, matrices: readonly THREE.Matrix4[], near: THREE.Vector3): THREE.Box3 | null {
-  if (geometry.boundingBox === null) geometry.computeBoundingBox();
-  let best: THREE.Matrix4 | undefined, bd = Number.POSITIVE_INFINITY;
-  for (const m of matrices) { const d = _v.setFromMatrixPosition(m).distanceToSquared(near); if (d < bd) { bd = d; best = m; } }
-  return best !== undefined && geometry.boundingBox ? geometry.boundingBox.clone().applyMatrix4(best) : null;
-}
-
 // ── drawn by the set (`drawnInto`): nothing to draw, the copies' colliders and boxes carried ──
 
 function drawnElsewhere<P extends object>(def: ModelDef<P>, poses: readonly Pose[], params: readonly P[], o: PlaceOptions, d: DrawnInto): Drawn {

@@ -228,9 +228,10 @@ describe('the model contract', () => {
     expect(reg.sets).toHaveLength(1);
   });
 
-  it('a props piece is a prop in the catalog (E306: it used to land under Buildings)', () => {
+  it('a model\'s catalog category is its own, never guessed from the piece (E306: a props piece used to land under Buildings)', () => {
     const reg = new WorldRegistry();
-    reg.add({ id: 't-kokpar', name: 'Kokpar field', category: 'props', file: 'x.ts', object: new THREE.Group(), model: {} });
+    const o = new THREE.Group();
+    reg.add({ id: 't-kokpar', name: 'Kokpar field', category: 'buildings', file: 'x.ts', object: o, model: { id: 't-kokpar', category: 'props', live: true, object: () => o } });
     expect(reg.models()[0]?.category).toBe('props');
   });
 

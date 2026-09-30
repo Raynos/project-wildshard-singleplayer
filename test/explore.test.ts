@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { reproUrl } from '../src/ui/Feedback';
 import { CHUNKS, findChunk } from '../src/chunks/registry';
 import { CHUNK_HALF } from '../src/core/config';
-import { registerModel, registeredModels } from '../src/explore/registry';
+import { registeredModels } from '../src/explore/registry';
+import { activeRegistry } from '../src/world/registry';
 
 describe('Explore World', () => {
   it('a note filed in the World Explorer reopens the same camera', () => {
@@ -50,9 +51,10 @@ describe('Explore World', () => {
   });
 
   it('the model registry keeps one entry per id (a shard re-registering after a rebuild replaces it)', () => {
-    const a = { id: 'test-a', name: 'A', category: 'nature' as const, file: 'x.ts', live: true, object: () => { throw new Error('not built in a test'); } };
+    const object = (): never => { throw new Error('not built in a test'); };
+    const a = { id: 'model:test-a', name: 'A', category: 'nature' as const, file: 'x.ts', model: { id: 'test-a', category: 'nature' as const, live: true, object } };
     const before = registeredModels().length;
-    registerModel(a); registerModel({ ...a, name: 'A2' });
+    activeRegistry().add(a); activeRegistry().add({ ...a, name: 'A2' });
     expect(registeredModels().length).toBe(before + 1);
     expect(registeredModels().find((m) => m.id === 'test-a')?.name).toBe('A2');
   });
