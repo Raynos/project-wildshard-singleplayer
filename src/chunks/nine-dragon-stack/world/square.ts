@@ -1,6 +1,6 @@
 // Lantern Square: wet granite, the Well's stone balustrade and sign masts, the cinnabar paifang (九龍疊城), the banyan
 // in its round planter with the earth-god shrine, mahjong tables, the noodle stall, lantern strings and the crowd.
-import { type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
+import { Box3, type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
 import { buildBanyan } from './banyan';
 import { mahjongSeats } from './hero/figures';
 import type { Ctx } from './ctx';
@@ -240,12 +240,15 @@ function paifang(ctx: Ctx): void {
   // dome-B targets light the gate with its lanterns only)
   const k = ctx.kit('paifang', true);
   const x = ctx.kitx('paifang');
+  const v0 = k.vertexCount, w0 = x.vertexCount;
   buildGate(k, x, ctx.signs, (px, py, pz, s) => { ctx.lantern(px, py, pz, s); }, {
     x: GATE.x, y: Y0, z: GATE.z, posts: GATE.posts, s: GATE.s, plaque: '九龍', couplets: null, neonEaves: null, lions: false,
     // E281: 14 m to the ridge beasts, not 18 (style-A's gate is about as tall as it is broad; A1·9's camera, 15 m up
     // behind the gate, looks down on its roofs); its posts bare lacquer, no paper couplets (style-A, the A2 targets)
     k: 0.78, paint: 'cinnabar',
   });
+  // the paifang model (models/paifang.ts), drawn into the square's kit
+  ctx.inKit.push({ model: 'nine-dragon-stack/paifang', kit: k, at: { x: GATE.x, y: Y0, z: GATE.z, variant: 'square' }, box: x.boundsFrom(w0, k.boundsFrom(v0, new Box3())) });
   ctx.map.push({ x0: GATE.posts[0] - 0.6, z0: GATE.z - 1.2, x1: GATE.posts[3] + 0.6, z1: GATE.z + 1.2, kind: 'gate' });
 }
 

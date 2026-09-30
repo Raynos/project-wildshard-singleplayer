@@ -1,6 +1,6 @@
 // The build context every world module writes into: named kits (one merged mesh each), instance lists, sign quads,
 // the grapple's dragon hooks and the minimap's floor plan.
-import { Color, Matrix4, Quaternion, Vector3 } from 'three';
+import { type Box3, Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { Kit } from './kit';
 import type { Emitter } from '../look/emitters';
 import { Dressing } from './facade/grammar';
@@ -23,7 +23,7 @@ const ZAX = new Vector3(0, 0, 1);
  * baked in), so the world records where each copy stands and registers them on the kit's mesh once it is built
  * (build.ts, `place` with `drawnInto`)
  */
-export interface InKit { readonly model: string; readonly kit: Kit; readonly at: Placement<object> }
+export interface InKit { readonly model: string; readonly kit: Kit; readonly at: Placement<object>; /** the copy's world bounds as drawn (else from its own build) */ readonly box?: Box3 }
 
 export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind: 'block' | 'street' | 'well' | 'plaza' | 'green' | 'gate' }
 

@@ -14,7 +14,7 @@
 // `buildStairUpper(ctx)` after `buildStairStreet(ctx)`. Nothing here hangs over the stair lower than 2.1 m above it; the
 // only things standing in the walkable stair are the landings' stone planters, whose boxes are `stairUpperColliders()`.
 // The terraces' kit is split per 32 m cell with a draw distance (ctx.cell / ctx.far), the paifang too.
-import { type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
+import { Box3, type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
 import type { ColliderDesc } from '../../../world/registry';
 import type { Ctx } from './ctx';
 import { buildGate } from './gate';
@@ -685,6 +685,8 @@ function stairGate(ctx: Ctx): void {
     // read as a teal band up the stair)
     x: 0, y: 0, z: 0, posts: G.posts, s: G.s, plaque: '九龍', couplets: null, neonEaves: null, lions: false, paint: 'cinnabar',
   });
+  // the paifang model (models/paifang.ts), drawn into C2's kit in its own frame, turned into the stair's
+  ctx.inKit.push({ model: 'nine-dragon-stack/paifang', kit: k, at: { x: G.x, y: G.y, z: G.z, yaw: -Math.PI / 2, variant: 'stair' }, box: x.boundsFrom(0, k.boundsFrom(0, new Box3())).applyMatrix4(xf) });
 }
 
 // ── over the street: lantern strings, cables, the skybridge, the high bridge, the monorail ──

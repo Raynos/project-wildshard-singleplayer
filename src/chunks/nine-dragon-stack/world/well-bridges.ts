@@ -14,7 +14,7 @@
 // - the gondola's stations (a platform, the machine room's lit windows, the bullwheel) and its cabin.
 // Walkable crossings return their collision (deck boxes following the hump or sag, rail walls on both edges).
 // Geometry detail steps down with `lod` (0 near the rim and dome B2's anchor, 2 far up the run north).
-import { Vector3 } from 'three';
+import { Box3, Vector3 } from 'three';
 import type { ColliderDesc } from '../../../world/registry';
 import type { Ctx } from './ctx';
 import { buildGate } from './gate';
@@ -517,9 +517,12 @@ function gateBridge(ctx: Ctx, k: Kit, kx: KitX, B: BridgeSpec, rng: Rng): Collid
   const posts = [cx - 5.4, cx - 2.3, cx + 2.3, cx + 5.4] as const;
   if (lod >= 2) farGate(ctx, k, cx, B.y, B.z, posts, 1.05);
   else {
+    const v0 = k.vertexCount, w0 = kx.vertexCount;
     buildGate(k, kx, ctx.signs, (px, py, pz, ls) => { ctx.lantern(px, py, pz, ls); }, {
       x: cx, y: B.y, z: B.z, posts, s: 1.05, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false,
     });
+    // the paifang model (models/paifang.ts), drawn into the bridge's kit
+    ctx.inKit.push({ model: 'nine-dragon-stack/paifang', kit: k, at: { x: cx, y: B.y, z: B.z, variant: 'well' }, box: kx.boundsFrom(w0, k.boundsFrom(v0, new Box3())) });
   }
   for (const x of [B.x0 + 0.5, B.x1 - 0.5]) for (const [zz, o] of [[zf - 0.15, 1], [zb + 0.15, -1]] as const) lampPost(ctx, k, x, B.y, zz, o);
   for (let i = 0; i < B.crowd; i++) {

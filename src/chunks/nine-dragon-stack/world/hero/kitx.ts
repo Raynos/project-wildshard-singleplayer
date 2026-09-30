@@ -3,7 +3,7 @@
 // (talons, horns, roots, cords, tassel strands, cloth wraps), deformed ellipsoids (heads, clumps, knuckles) and raw
 // triangle meshes (a TRELLIS GLB). It writes the SAME attributes as the Kit (position, normal, color, aFace, aPat,
 // aMisc, aOff), so both merge into one geometry, one program, one draw call (`merge`).
-import { BufferGeometry, Color, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { type Box3, BufferGeometry, Color, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /** the same Look the Kit takes (wash colour, pattern kind + params, emit, line weight, edge bits) */
@@ -24,6 +24,7 @@ export interface XLook {
 }
 
 const tc = new Color();
+const _bp = new Vector3();
 
 export class KitX {
   private readonly pos: number[] = [];
@@ -37,6 +38,13 @@ export class KitX {
   private n = 0;
 
   get vertexCount(): number { return this.n; }
+
+  /** the bounds of the vertices from the `from`-th on — what one builder call added (a model drawn into the kit) */
+  boundsFrom(from: number, target: Box3): Box3 {
+    const p = this.pos;
+    for (let i = from * 3; i + 2 < p.length; i += 3) target.expandByPoint(_bp.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
+    return target;
+  }
 
   /** Drop the transient JS number arrays after build() copied them into BufferGeometry. */
   release(): void {

@@ -14,6 +14,7 @@ import {
 import { Ctx, type Piece } from './ctx';
 import { Kit } from './kit';
 import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../models/inKit';
+import { paifang } from '../models/paifang';
 import { registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
@@ -290,7 +291,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   // the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and
   // brush-drawn figures) registered on their kits' meshes
   const meshOfKit = (k: Kit): Mesh | undefined => kitMeshes.get(kitName.get(k) ?? '');
-  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id]);
+  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id, paifang.id]);
   const inKit = ctx.inKit.filter((c) => !IN_KIT.has(c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
   registerInKit(nd.ctx, ctx.inKit, brassDragonHook, meshOfKit);
@@ -298,6 +299,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   registerInKit(nd.ctx, ctx.inKit, parkedScooter, meshOfKit);
   registerInKit(nd.ctx, ctx.inKit, mahjongTableModel, meshOfKit);
   registerInKit(nd.ctx, ctx.inKit, inkFigure, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, paifang, meshOfKit);
   if (setting('nineLanterns') === 'on') {
     const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
     lanterns.object.name = 'lanterns';

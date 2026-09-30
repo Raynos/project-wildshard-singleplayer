@@ -1,7 +1,7 @@
 // The modular kit: every built surface is a quad that knows where it sits on its face, in metres (aFace = u, v, w, h),
 // so the Jiehua material can rule its edges and its window / tile / flagstone rows analytically (antialiased with
 // fwidth, never a texture). Geometry is merged per region into one BufferGeometry: one program, few draw calls.
-import { BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { type Box3, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 
 /** pattern kinds the material draws (vPat.x) */
 export const K = { plain: 0, facade: 1, tiles: 2, flag: 3, bars: 4, panel: 5, net: 6, leaf: 7, cloth: 8, stone: 9 } as const;
@@ -30,6 +30,7 @@ export interface Look {
 }
 
 const tc = new Color();
+const _bp = new Vector3();
 const va = new Vector3(), vb = new Vector3(), vc = new Vector3(), vd = new Vector3(), vn = new Vector3(), vt = new Vector3();
 
 export class Kit {
@@ -51,6 +52,13 @@ export class Kit {
   compact = false;
 
   get vertexCount(): number { return this.n; }
+
+  /** the bounds of the vertices from the `from`-th on — what one builder call added (a model drawn into the kit) */
+  boundsFrom(from: number, target: Box3): Box3 {
+    const p = this.pos;
+    for (let i = from * 3; i + 2 < p.length; i += 3) target.expandByPoint(_bp.set(p[i] ?? 0, p[i + 1] ?? 0, p[i + 2] ?? 0));
+    return target;
+  }
 
   /** Drop the transient JS number arrays after build() copied them into BufferGeometry. */
   release(): void {

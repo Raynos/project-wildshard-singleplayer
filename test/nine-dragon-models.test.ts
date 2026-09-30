@@ -16,9 +16,12 @@ import { cableGondola, drone, monorailTrain } from '../src/chunks/nine-dragon-st
 import { paperLantern } from '../src/chunks/nine-dragon-stack/models/paperLantern';
 import { airConBox, galleryPlant } from '../src/chunks/nine-dragon-stack/models/wallKit';
 import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../src/chunks/nine-dragon-stack/models/inKit';
+import { PAIFANG, paifang } from '../src/chunks/nine-dragon-stack/models/paifang';
+import { GATE } from '../src/chunks/nine-dragon-stack/layout';
+import { STAIR_GATE } from '../src/chunks/nine-dragon-stack/world/stairstreet';
 
 /** every Nine Dragon model but the facade's (FACADE_MODELS) */
-const OTHERS = [balustradePanel, umbrellaWalker, mahjongSitter, feiZhuaHook, guardianLion, marketBooth, parasolTable, diningPavilion, monorailTrain, cableGondola, drone, paperLantern, galleryPlant, airConBox, brassDragonHook, drumStool, parkedScooter, mahjongTableModel, inkFigure];
+const OTHERS = [balustradePanel, umbrellaWalker, mahjongSitter, feiZhuaHook, guardianLion, marketBooth, parasolTable, diningPavilion, monorailTrain, cableGondola, drone, paperLantern, galleryPlant, airConBox, brassDragonHook, drumStool, parkedScooter, mahjongTableModel, inkFigure, paifang];
 
 const ctx = modelContext(null);
 
@@ -68,6 +71,13 @@ describe('Nine Dragon models (E306 M4)', () => {
       const drawn = DRAWN_AS[id]?.as ?? id;
       expect(FACADE_MODELS[drawn], `${id} → ${drawn}`).toBeDefined();
     }
+  });
+
+  it('the paifang\'s own-space gates are the ones the world builds (about their centre bay)', () => {
+    PAIFANG.square.posts.forEach((p, i) => { expect(p + GATE.x).toBeCloseTo(GATE.posts[i] ?? Number.NaN, 9); });
+    expect(PAIFANG.square.s).toBe(GATE.s);
+    expect(PAIFANG.stair.posts).toEqual(STAIR_GATE.posts);
+    expect(PAIFANG.stair.s).toBe(STAIR_GATE.s);
   });
 
   it('Nine Dragon models say how they are made and live in the shard\'s models folder', () => {
