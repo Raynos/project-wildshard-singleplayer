@@ -31,8 +31,8 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-L3 | Tree crowns read near-black from above (god views, the lookout) | look loop TOP-10 #8 |
 | F-L4 | Grass trample (Nalati's `GrassTrample` is on main now) | look loop |
 | F-L5 | Weather extras: rain on the lens, splashes at the feet, puddles off the trails, the cave mouth masked from rain | weather lane |
-| F-L6 | The beaver pool doesn't visibly drain in the dam puzzle (pond and creek share one water level) | quest lane |
-| F-L7 | Under Debug ▸ Sky & weather ▸ Weather = Fog the Antler King turns pale ghost-white (the fog laid over his material) — likely a bug in the fog / selfLight mix | hero lane (`art/hero-images/round-4-pine-hollow-in-engine/README.md`) |
+| F-L6 | **building (E322): Jake picked a local pool behind the dam** — The beaver pool doesn't visibly drain in the dam puzzle (pond and creek share one water level) | quest lane |
+| F-L7 | **done `394fa805` (E322)**: the sealed clearing keeps its own fog (fog 0.290 → 0.0100; clear weather unchanged). Was: under Debug ▸ Sky & weather ▸ Weather = Fog the Antler King turns pale ghost-white (the fog laid over his material) — likely a bug in the fog / selfLight mix | hero lane (`art/hero-images/round-4-pine-hollow-in-engine/README.md`) |
 
 ## Models and animation (from the creatures, polish, loadout and assets lanes)
 
@@ -44,7 +44,7 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-M4 | A desktop far-distance LOD for the generated creature hulls (desktop animal tris +0.1–0.4 M) | creatures lane |
 | F-M5 | Birds: the flying owl's body is flat side-on; the woodpecker clings with standing legs; the raven's phone texture is soft | polish lane (`art/pine-hollow/round-16-birds/`) |
 | F-M6 | First-person hands on the crossbow and the lever-action (the knife has a gloved hand; the guns have none) | loadout + polish lanes |
-| F-M7 | The mill door is merged into the building mesh: it can't open after the miller's errand | assets + quest lanes |
+| F-M7 | **done `04fa26f1` (E322)**: the door swings, barred until the miller's errand. Was: the mill door is merged into the building mesh: it can't open after the miller's errand | assets + quest lanes |
 | F-M8 | The lever-action's case colours read bright / silvery in game — a darker, more mottled finish if Jake wants it | rifle lane (`art/pine-hollow/round-15-rifle/`) |
 
 ## Sound, UI, perf
@@ -53,7 +53,7 @@ Each row names where it came from (the remaster lane that left it) so the next a
 |---|---|---|
 | F-A1 | The ambience beds are short loops (8–16 s; the cabin fire 8 s) — longer takes if they read repetitive | sound lane |
 | F-U1 | The Explore map's pin tags overlap in the hamlet / Den / pond clusters (the in-game MAP tab is fixed) | verify lane |
-| F-U2 | Touch HUD: on Pine Hollow with the crossbow the AIM disc overlaps DODGE (main's layout after E119) — main's own ask **N25** (`docs/tasks/asks/N25.md`) | the Nalati HUD agent |
+| F-U2 | **done (verified 2026-09-30, E322; N25 closed)**: no overlap on the phone. Was: touch HUD: on Pine Hollow with the crossbow the AIM disc overlaps DODGE (main's layout after E119) — main's own ask **N25** (`docs/tasks/asks/N25.md`) | the Nalati HUD agent |
 | F-P1 | Load: 36.01 MiB phone cold vs the 37 MiB row; the one big lever left is the two unselected music styles (3.85 MiB) — Jake kept them (PH-U33); others: Nalati code out of the main bundle (+0.34 MiB), glTF geometry compression (~0.25 MiB) | verify lane |
 | F-P2 | The shared machine was too loaded for a clean desktop 60 fps reading after the render fix — one quiet desktop run | render-fix lane |
 | F-P3 | E142 levers measured, not applied (fix lane; `docs/tasks/asks/E142.md` "Fix lane"). ~~A static phone render scale of 1.5 on Pine Hollow is −34 % GPU at the stones and in the grove … it waits on the heavy lane's dynamic resolution.~~ **Struck (2026-09-25): resolution is not a lever.** Jake: "Dynamic resolution is a hack … a complete bullshit hack. We should not be going back from 2 to 1.25. We should just be doing performance optimizations necessary for hitting 30 FPS at 2." The phone stays at 2×; the dynamic resolution (4b87508) is removed. Others: re-draw the shadow map every 2nd frame or cache the static casters (the shadow draw is −13–19 %); SMAA off (−4 %, but the foliage aliases); bloom / god rays / volumetric march off (−3 % each). (A dense-forest variant would be a Debug row, never a URL switch; `terrain.bin`'s placement log is baked for one forest.) | E142 fix lane |
