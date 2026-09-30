@@ -14,6 +14,7 @@ import type { Sky } from '../world/Sky';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { shardSlot } from '../core/shardState';
 import { MAY_KTX2 } from '../boot/gpuFiles';
+import { HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, handsWanted, holdDef, onHandsSetting, type HandHold } from './hunterHands';
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11): a 1900s backwoods lever-action carbine in the
@@ -97,6 +98,8 @@ const MODEL_LEVER_PIVOT = new THREE.Vector3(0, -0.031, -0.018);
 const MODEL_GATE = new THREE.Vector3(0.0158, -0.021, 0.028);
 const PORT = new THREE.Vector3(0.0, 0.026, 0.045);
 const BEAD_R = 0.0055;
+/** how much of the lever's throw the right hand turns with (its fist rides the loop all the way) */
+const HAND_TURN = 0.6;
 
 interface Brass { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number; down: boolean; floor: number }
 /** where the action is: idle (ready), firing (the recoil beat before the cycle), cycling, reloading */
@@ -317,6 +320,19 @@ export class LeverRifle implements KitWeapon {
   private readonly caseGeo: THREE.BufferGeometry;
   private readonly tracers: HitLine[] = []; private readonly tracerRes = new THREE.Vector2();
   private readonly puffs = new Puffs();
+  /** E322 F-M6: the hunter's gloved hands (hunterHands.ts; Debug ▸ Combat & weapons ▸ Weapon hands = B), made on the first B */
+  private hands: WeaponHands | null = null;
+  private handsMat: THREE.MeshPhysicalMaterial | null = null;
+  private readonly leverPivot: THREE.Vector3;
+  /** the holds, in model space: the left hand round the forend, the right on the wrist with its fingers through the loop (it
+   *  rides the lever through a cycle); `gate` = the right hand thumbing a cartridge, relative to the round's base. A dev
+   *  knob: edit, then `rebuildHands()` (`__world.weapons` → the rifle). */
+  readonly handHolds: { left: HandHold; right: HandHold; gate: Omit<HandHold, 'spec'> } = {
+    left: { spec: { R: 0.02, curl: 0.8, bend: [0.4, -0.8], armLen: 0.5, tint: 2.2 }, at: [0, -0.017, -0.16], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
+    right: { spec: { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2 }, at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },
+    gate: { at: [0.03, -0.01, 0.03], axis: [0, 0, -1], palm: [-1, 0, 0] },
+  };
+  private readonly grips = { rest: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), gate: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), cyc: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), held: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]), out: gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]) };
 
   // pose
   private recoil = 0; private kickPending = 0; private kickApplied = 0;
@@ -344,6 +360,7 @@ export class LeverRifle implements KitWeapon {
     const { brassMat, woodMat, steelMat, parts, beadGeo } = buildLever(this.sky, model, opts.woodFrom ?? null);
     this.brassMat = brassMat;
     this.gate = parts.gate;
+    this.leverPivot = parts.leverPivot.clone();
     // the stock is its own draw: sighted, the wrist and comb sit under the eye (a flat brown plane across the view) — hidden
     this.stock = new THREE.Mesh(parts.stock, woodMat);
     const meshW = new THREE.Mesh(parts.wood, woodMat), meshS = new THREE.Mesh(parts.steel, steelMat), meshB = new THREE.Mesh(beadGeo, this.brassMat);
@@ -395,6 +412,46 @@ export class LeverRifle implements KitWeapon {
     this.game.scene.add(this.puffs.points);
     this.bindInput();
     this.syncState();
+    this.syncHands();
+    onHandsSetting(() => { this.syncHands(); });
+  }
+
+  /** the Weapon hands row: B makes the hands (once) and shows them, A hides them */
+  private syncHands(): void {
+    const on = handsWanted();
+    if (on && this.hands === null) {
+      this.handsMat ??= viewmodelMaterial(this.sky, 'hunter-hands', HANDS_MATERIAL);
+      const right = holdDef(this.handHolds.right), g = this.handHolds.gate;
+      this.grips.rest = right.pose; this.grips.gate = gripPose(g.at, g.axis, g.palm);
+      this.hands = new WeaponHands(this.model, this.handsMat, holdDef(this.handHolds.left), right);
+    }
+    if (this.hands) this.hands.group.visible = on;
+  }
+  /** dev: rebuild the hands after editing `handHolds` */
+  rebuildHands(): void { this.hands?.dispose(); this.hands = null; this.syncHands(); }
+  /** dev / the cost readout: what the hands add (null: not made yet) */
+  get handsCost(): WeaponHands['cost'] | null { return this.hands?.cost ?? null; }
+
+  /** the right hand: on the wrist, its fingers in the loop — thrown with the lever through a cycle; on a reload, behind the
+   *  cartridge it thumbs through the gate */
+  private poseRightHand(open: number): void {
+    const hands = this.hands;
+    if (hands === null || !hands.group.visible) return;
+    const g = this.grips, piv = this.leverPivot;
+    // the fist rides the loop; the hand turns with it only part of the way (the wrist gives, the forearm stays low)
+    _q.setFromAxisAngle(_v3.set(1, 0, 0), LEVER_OPEN * open);
+    g.cyc.at.copy(g.rest.at).sub(piv).applyQuaternion(_q).add(piv);
+    _q.setFromAxisAngle(_v3, LEVER_OPEN * open * HAND_TURN);
+    g.cyc.axis.copy(g.rest.axis).applyQuaternion(_q); g.cyc.palm.copy(g.rest.palm).applyQuaternion(_q);
+    const k = sstep(0, 1, this.loadBlend);
+    if (k > 0.001) {
+      // the round's base (its rim at +z 0.0255) while one is in hand, else hovering by the gate
+      const base = this.round.visible ? _v1.copy(this.round.position).add(_v2.set(0, 0, 0.0255)) : _v1.copy(this.gate).add(_v2.set(0.03, -0.03, 0.08));
+      g.held.at.copy(g.gate.at).add(base); g.held.axis.copy(g.gate.axis); g.held.palm.copy(g.gate.palm);
+      blendGrip(g.cyc, g.held, k, g.out);
+    } else { g.out.at.copy(g.cyc.at); g.out.axis.copy(g.cyc.axis); g.out.palm.copy(g.cyc.palm); }
+    hands.placeRight(g.out);
+    hands.right.visible = this.stock.visible; // sighted, the wrist is under the eye: the hand goes with the stock
   }
 
   // ── input ──
@@ -607,6 +664,7 @@ export class LeverRifle implements KitWeapon {
     const cocked = this.freezeCycle !== null ? u >= 0.2 : this.hammerCocked;
     this.hammer.rotation.x += ((cocked ? HAMMER_COCKED : HAMMER_DOWN) - this.hammer.rotation.x) * Math.min(1, dt * (cocked ? 18 : 60));
     this.poseRound();
+    this.poseRightHand(open);
 
     // muzzle flash
     if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;

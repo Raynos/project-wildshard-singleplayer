@@ -136,6 +136,11 @@ export interface FistOpts {
   span?: number;
   /** turn about the grip (+Y), radians: aims the forearm (canonical +Z) */
   yaw?: number;
+  /** how far the fingers and the thumb close round the grip (1 = a full fist; less = an open cradle on a thick stock:
+   *  Pine Hollow's support hand under the crossbow's fore-end, E322 F-M6). The knuckles stay put; only the curl shortens. */
+  curl?: number;
+  /** the thumb's own curl (default: `curl`) */
+  thumbCurl?: number;
 }
 /** `hook`: the point on the grip axis inside the thumb's curl — where a bowstring sits in a thumb draw */
 export interface Fist { geometry: THREE.BufferGeometry; wrist: THREE.Vector3; wristDir: THREE.Vector3; hook: THREE.Vector3 }
@@ -210,9 +215,10 @@ export function gloveFist(opts: FistOpts): Fist {
   }
   // ── four fingers curled round the grip: index on top (the thumb side), pinky at the bottom ──
   const fingers: [number, number, number][] = [[0.029, 0.0112, 0], [0.0095, 0.0116, 4], [-0.0095, 0.011, 2], [-0.028, 0.0098, -8]]; // y, radius, tip angle trim
+  const curl = opts.curl ?? 1, fc = (deg: number): number => -18 + (deg + 18) * curl, tcurl = opts.thumbCurl ?? curl, tc = (deg: number): number => 28 + (deg - 28) * tcurl;
   for (const [fy, fr, trim] of fingers) {
     const y = fy * sp;
-    const j = [cyl(-18, R + 0.02, y), cyl(-48, R + 0.022, y), cyl(-92, R + fr + 0.003, y), cyl(-138, R + fr + 0.001, y * 0.98), cyl(-182, R + fr, y * 0.96), cyl(-222 - trim, R + fr * 0.95, y * 0.95)];
+    const j = [cyl(-18, R + 0.02, y), cyl(fc(-48), R + 0.022, y), cyl(fc(-92), R + fr + 0.003, y), cyl(fc(-138), R + fr + 0.001, y * 0.98), cyl(fc(-182), R + fr, y * 0.96), cyl(fc(-222 - trim), R + fr * 0.95, y * 0.95)];
     parts.push(finger(j, fr, [0.2, 0.5, 0.76], L.leather, dashes, 0.18, 0.62));
     // the knuckle bump on the back of the hand
     const kn = cyl(-47, R + 0.029, y);
@@ -220,7 +226,7 @@ export function gloveFist(opts: FistOpts): Fist {
   }
   // ── the thumb: from the heel of the palm, round the back of the grip, its tip over the index finger's middle joint ──
   const ty = 0.043 * sp;
-  const thumbJ = [new THREE.Vector3(R + 0.012, 0.022 * sp, 0.05), cyl(28, R + 0.02, 0.034 * sp), cyl(78, R + 0.013, ty), cyl(128, R + 0.011, ty + 0.002), cyl(176, R + 0.011, ty), cyl(204, R + 0.01, ty - 0.002)];
+  const thumbJ = [new THREE.Vector3(R + 0.012, 0.022 * sp, 0.05), cyl(28, R + 0.02, 0.034 * sp), cyl(tc(78), R + 0.013, ty), cyl(tc(128), R + 0.011, ty + 0.002), cyl(tc(176), R + 0.011, ty), cyl(tc(204), R + 0.01, ty - 0.002)];
   parts.push(finger(thumbJ, 0.013, [0.35, 0.66], L.leather, dashes, 0.25, 0.7));
   if (opts.thumbRing === true) {
     const c = new THREE.CatmullRomCurve3(thumbJ, false, 'centripetal');

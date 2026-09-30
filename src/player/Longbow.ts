@@ -8,7 +8,8 @@ import { WIND_DIR, windGustAt } from '../world/wind';
 import { fixIBL, fovForAspect, isMesh, viewmodelMaterial, FOV_HIP, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';
 import { BowDraw, RENOCK_TIME } from './bowDraw';
-import { ARM_PAL, gloveFist, riderArm, placeArm } from './nalatiArms';
+import { gloveFist, riderArm, placeArm } from './nalatiArms';
+import { withHunterPalette } from './hunterHands';
 import type { Weapon } from './Weapon';
 
 /**
@@ -396,21 +397,7 @@ class DropArc {
   }
 }
 
-// ───────────────────────────── the hands (nalatiArms.ts, a Pine Hollow hunter's palette) ─────────────────────────────
-
-const lin = (hex: number): THREE.Color => new THREE.Color(hex).convertSRGBToLinear();
-/** a hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches */
-const HUNTER_PAL: Partial<Record<keyof typeof ARM_PAL, THREE.Color>> = {
-  leather: lin(0x6a4a30), leatherLight: lin(0x8a6646), leatherDark: lin(0x3a281a), leatherEdge: lin(0x4a3424), thread: lin(0xa89878),
-  fleece: lin(0x6e685e), fleeceShade: lin(0x524c44), fleeceDeep: lin(0x3a352f),
-  wool: lin(0x5e5038), woolShade: lin(0x3e3424), red: lin(0x4a3422), redDeep: lin(0x33251a), redLine: lin(0x2a1e14),
-};
-/** build with the hunter's palette, then put Nalati's back (the module's palette is shared) */
-function withHunterPalette<T>(build: () => T): T {
-  const saved = new Map<keyof typeof ARM_PAL, THREE.Color>();
-  for (const k of Object.keys(HUNTER_PAL) as (keyof typeof ARM_PAL)[]) { const c = HUNTER_PAL[k]; if (c === undefined) continue; saved.set(k, ARM_PAL[k].clone()); ARM_PAL[k].copy(c); }
-  try { return build(); } finally { for (const [k, c] of saved) ARM_PAL[k].copy(c); }
-}
+// the hands: nalatiArms.ts in a Pine Hollow hunter's palette (hunterHands.ts: shared with the crossbow's and the lever-action's, E322 F-M6)
 
 // ───────────────────────────── the longbow ─────────────────────────────
 

@@ -1,0 +1,135 @@
+{
+ "crossbow-rest": {
+  "calls": 3,
+  "tris": 16288,
+  "frameCalls": 105,
+  "frameTris": 1049599,
+  "gpuMsWith": 1.658,
+  "gpuMsWithout": 1.608,
+  "gpuMsHands": 0.05,
+  "geometry": {
+   "draws": 3,
+   "tris": 16288,
+   "verts": 10539,
+   "bytes": 561444
+  },
+  "buffer": [
+   804,
+   1748
+  ]
+ },
+ "crossbow-aim": {
+  "calls": 3,
+  "tris": 16288,
+  "frameCalls": 99,
+  "frameTris": 984019,
+  "gpuMsWith": 1.492,
+  "gpuMsWithout": 1.483,
+  "gpuMsHands": 0.008,
+  "geometry": {
+   "draws": 3,
+   "tris": 16288,
+   "verts": 10539,
+   "bytes": 561444
+  },
+  "buffer": [
+   804,
+   1748
+  ]
+ },
+ "crossbow-reload": {
+  "calls": 3,
+  "tris": 16288,
+  "frameCalls": 112,
+  "frameTris": 1047756,
+  "gpuMsWith": 1.417,
+  "gpuMsWithout": 1.367,
+  "gpuMsHands": 0.05,
+  "geometry": {
+   "draws": 3,
+   "tris": 16288,
+   "verts": 10539,
+   "bytes": 561444
+  },
+  "buffer": [
+   804,
+   1748
+  ]
+ },
+ "lever-rest": {
+  "calls": 2,
+  "tris": 15584,
+  "frameCalls": 108,
+  "frameTris": 1046242,
+  "gpuMsWith": 1.367,
+  "gpuMsWithout": 1.342,
+  "gpuMsHands": 0.025,
+  "geometry": {
+   "draws": 2,
+   "tris": 15584,
+   "verts": 10176,
+   "bytes": 541248
+  },
+  "buffer": [
+   804,
+   1748
+  ]
+ },
+ "lever-aim": {
+  "calls": 1,
+  "tris": 7792,
+  "frameCalls": 93,
+  "frameTris": 992439,
+  "gpuMsWith": 1.342,
+  "gpuMsWithout": 1.317,
+  "gpuMsHands": 0.025,
+  "geometry": {
+   "draws": 2,
+   "tris": 15584,
+   "verts": 10176,
+   "bytes": 541248
+  },
+  "buffer": [
+   804,
+   1748
+  ]
+ },
+ "lever-reload": {
+  "calls": 2,
+  "tris": 15584,
+  "frameCalls": 106,
+  "frameTris": 1068070,
+  "gpuMsWith": 1.367,
+  "gpuMsWithout": 1.317,
+  "gpuMsHands": 0.05,
+  "geometry": {
+   "draws": 2,
+   "tris": 15584,
+   "verts": 10176,
+   "bytes": 541248
+  },
+  "buffer": [
+   804,
+   1748
+  ]
+ },
+ "lever-cycle": {
+  "calls": 2,
+  "tris": 15584,
+  "frameCalls": 105,
+  "frameTris": 1072772,
+  "gpuMsWith": 1.35,
+  "gpuMsWithout": 1.292,
+  "gpuMsHands": 0.058,
+  "geometry": {
+   "draws": 2,
+   "tris": 15584,
+   "verts": 10176,
+   "bytes": 541248
+  },
+  "buffer": [
+   804,
+   1748
+  ]
+ }
+}
