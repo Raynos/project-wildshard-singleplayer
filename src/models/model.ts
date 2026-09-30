@@ -49,8 +49,10 @@
  *     culled or LOD'd placements calls `cullPlaced(camera)` once a frame after the camera is posed. What an old
  *     hand-rolled culler did differently is data too (./cull.ts): `view` (the shard's own view drives it: Pine Hollow's
  *     forest frustum), `frustum: false`, `flat`, `from: 'origin'`, `radiusBias`, `step`, `lodBy: 'set'`,
- *     `bounds: 'sphere'`. `batch` shares one BatchedMesh with the world's own geometry; `piece.split` registers the
- *     colliders a task apart.
+ *     `bounds: 'sphere'`, `cells` (a field's copies bucketed per square: the forest floor), `test` (the shard's own
+ *     visibility: the forest's shadow keep); a LOD's `fade` (a dissolve band where both levels draw) and a part's `until`
+ *     (a detail band inside its level), `tint: false`, `sortObjects` (the forest tree's twigs, bark, needle cards).
+ *     `batch` shares one BatchedMesh with the world's own geometry; `piece.split` registers the colliders a task apart.
  *     `piece: { id, name, … }` keeps the old registry id so saves, tests and footprints don't move.
  *  4. Delete the old registration (`addBuilt`, `registry.add({ … model })`, `registerModel`, an ENTRY row) and the old
  *     drawing code. `place` registers ONE registry piece per call (drawn object + world-space colliders + floor) and
@@ -117,6 +119,15 @@ export interface ModelPart {
   /** the shadow pass's material (alpha-tested cards) */
   readonly customDepthMaterial?: THREE.Material;
   readonly renderOrder?: number;
+  /**
+   * instanced / batched, culled: metres — this part is drawn only while its copy is nearer, inside its level (a detail
+   * band: the forest tree's twigs go at 24–38 m while its near cards last to 60–110 m)
+   */
+  readonly until?: number;
+  /** false: the placement's `color` does not tint this part (the forest's bark: its needles and impostor are tinted) */
+  readonly tint?: boolean;
+  /** batched: this material's batch sorts its copies front to back every draw (the forest's needle cards: E142) */
+  readonly sortObjects?: boolean;
 }
 
 /** What `build` returns: the parts of one copy (every draw technique), or a whole object (`draw: 'single'` only). */
@@ -125,6 +136,11 @@ export type ModelBuild = readonly ModelPart[] | THREE.Object3D;
 /** A coarser copy from `from` metres out; `build` returning `[]` draws nothing past `from` (a cull distance). */
 export interface ModelLod<P> {
   readonly from: number;
+  /**
+   * metres before `from` over which the level before and this one are both drawn (culled copies): their shaders dissolve
+   * one into the other (the forest's impostor, E94). Default 0: a clean switch
+   */
+  readonly fade?: number;
   readonly build: (ctx: ModelContext, params: P, rng: Rng) => readonly ModelPart[];
 }
 

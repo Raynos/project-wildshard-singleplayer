@@ -87,7 +87,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   });
   const factory = await step('cards', () => TREE_FACTORIES[def.trees.factory](game.renderer, def, sky));
   const forest = await step('forest', (p) => {
-    const f = new Forest(factory, sky).build();
+    const f = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' }); // 'model': the shard's tree model draws them (E315)
     if (f.trees.length === 0) f.group.visible = false; // an ocean shard: the empty needle / twig batches still cost 24k tris + shadow draws on the phone
     else game.scene.add(f.group);
     terrain.applyCanopy(f.canopyMap);

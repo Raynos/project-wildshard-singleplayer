@@ -5,14 +5,18 @@
  * giants, a birch and a twin birch, two silver snags, a pine and a fir sapling. Each is a trunk (bark array), near branch
  * cards with twigs, far cards with the trunk's lo bark, and a 2-quad impostor — the LOD bands the TIERS view shows.
  *
- * Drawn by the forest (src/world/Forest.ts: 4 BatchedMeshes where multi-draw exists, else instanced per variant and
- * band; its dissolving LOD bands, shadow-keep culling and wind), so `place` is told the copies are drawn already
- * (`drawnInto`). Their trunks collide as the forest's capsules (the core `forest` piece).
+ * `place` draws the forest's 918 copies (../world/drawnModels.ts): 4 BatchedMeshes where multi-draw exists (one per
+ * material: needle cards near + far, bark near + far, twigs, impostors), else instanced per variant and band. Its LODs are
+ * the forest's bands (src/world/Forest.ts `FOREST_BANDS`): the twigs only in the nearest metres (`until`), the impostor
+ * dissolving in over the band before `far` (`fade`, the shaders' E94 dissolve). The forest hands `place` its view and its
+ * visibility test (padded frustum, near, or casting its low-sun shadow into view), and sways them in the wind. Their
+ * trunks collide as the forest's capsules (the core `forest` piece).
  */
 import { defineModel, type ModelContext, type ModelPart } from '../../../models/model';
 import { TREE_SPECS_V2 } from '../../../world/treeSpecies';
 import type { TreeFactory } from '../../../world/TreeFactory';
 import { TIER_CONFIG } from '../../../core/tier';
+import { FOREST_BANDS } from '../../../world/Forest';
 
 export interface ForestTreeParams {
   /** the variant (TREE_SPECS_V2's order: the factory's) */
@@ -32,19 +36,22 @@ const LABEL: Record<string, string> = {
   'sapling-pine': 'Pine sapling', 'sapling-fir': 'Fir sapling',
 };
 
-/** one band of a variant: its parts in the forest's materials */
+/**
+ * one band of a variant: its parts in the forest's materials. Each copy is tinted (its needles, twigs and impostor; the
+ * bark only when the factory tints it); the needle cards are sorted front to back in their batch (E142)
+ */
 function band(ctx: ModelContext, v: number, level: 'near' | 'far' | 'impostor'): ModelPart[] {
   const f = factoryOf(ctx), t = f.variants[v];
   if (!t) return [];
-  if (level === 'impostor') return [{ geometry: t.far, material: f.farMaterial }];
+  if (level === 'impostor') return [{ geometry: t.far, material: f.farMaterial, receiveShadow: true }];
   if (level === 'far') return [
-    { geometry: t.trunkLo ?? t.trunk, material: f.barkMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true },
-    { geometry: t.cardsLo, material: f.needleMaterial, customDepthMaterial: f.needleDepth, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true },
+    { geometry: t.trunkLo ?? t.trunk, material: f.barkMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, tint: f.tintBark },
+    { geometry: t.cardsLo, material: f.needleMaterial, customDepthMaterial: f.needleDepth, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, sortObjects: true },
   ];
   return [
-    { geometry: t.trunk, material: f.barkMaterial, castShadow: true, receiveShadow: true },
-    { geometry: t.cardsHi, material: f.needleMaterial, customDepthMaterial: f.needleDepth, castShadow: true, receiveShadow: true },
-    { geometry: t.twigs, material: f.twigMaterial, customDepthMaterial: f.twigDepth, castShadow: true, receiveShadow: true },
+    { geometry: t.trunk, material: f.barkMaterial, castShadow: true, receiveShadow: true, tint: f.tintBark },
+    { geometry: t.cardsHi, material: f.needleMaterial, customDepthMaterial: f.needleDepth, castShadow: true, receiveShadow: true, sortObjects: true },
+    { geometry: t.twigs, material: f.twigMaterial, customDepthMaterial: f.twigDepth, castShadow: true, receiveShadow: true, until: FOREST_BANDS.twig },
   ];
 }
 
@@ -55,7 +62,7 @@ export const forestTree = defineModel<ForestTreeParams>({
   variants: TREE_SPECS_V2.map((s, v) => ({ id: s.name, label: LABEL[s.name] ?? s.name, params: { v } })),
   build: (ctx, p) => band(ctx, p.v, 'near'),
   lods: [
-    { from: TIER_CONFIG.treeHiDist, build: (ctx, p) => band(ctx, p.v, 'far') },
-    { from: TIER_CONFIG.treeLoDist, build: (ctx, p) => band(ctx, p.v, 'impostor') },
+    { from: FOREST_BANDS.hi, build: (ctx, p) => band(ctx, p.v, 'far') },
+    { from: FOREST_BANDS.far, fade: FOREST_BANDS.fade, build: (ctx, p) => band(ctx, p.v, 'impostor') },
   ],
 });

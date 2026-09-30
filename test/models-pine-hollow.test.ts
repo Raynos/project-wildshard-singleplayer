@@ -159,6 +159,80 @@ describe('Pine Hollow models (E315 M2)', () => {
     expect(seen).toBeGreaterThan(500); // the views saw real copies
   });
 
+  it("the forest's LOD bands on place(): batched and instanced copies are what the forest's own loops drew, view after view", () => {
+    // four species, each part a geometry with its own vertex count (a batch's geometry id then names its source)
+    const hi = 60, far = 130, twig = 24, fade = 12, V = 4;
+    const plane = (n: number): THREE.BufferGeometry => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3).map((_, k) => (k % 7) * 0.3), 3)); g.setIndex(Array.from({ length: n }, (_, k) => k)); return g; };
+    const kinds = ['trunk', 'trunkLo', 'hi', 'lo', 'twig', 'far'] as const;
+    const geo = Array.from({ length: V }, (_, v) => Object.fromEntries(kinds.map((k, j) => [k, plane(3 * (1 + v * 10 + j))])) as Record<(typeof kinds)[number], THREE.BufferGeometry>);
+    const bark = new THREE.MeshStandardMaterial(), needles = new THREE.MeshStandardMaterial(), twigs = new THREE.MeshStandardMaterial(), imp = new THREE.MeshBasicMaterial();
+    const tree = defineModel<{ v: number }>({ id: 'shared/test-forest-bands', name: 'Tree', category: 'nature', pipeline: 'code', file: 'test/models-pine-hollow.test.ts', defaults: { v: 0 },
+      variants: Array.from({ length: V }, (_, v) => ({ id: `s${v}`, label: `s${v}`, params: { v } })),
+      build: (_c, p) => [{ geometry: geo[p.v]?.trunk ?? plane(3), material: bark, castShadow: true, receiveShadow: true, tint: false },
+        { geometry: geo[p.v]?.hi ?? plane(3), material: needles, castShadow: true, receiveShadow: true, sortObjects: true },
+        { geometry: geo[p.v]?.twig ?? plane(3), material: twigs, castShadow: true, receiveShadow: true, until: twig }],
+      lods: [{ from: hi, build: (_c, p) => [{ geometry: geo[p.v]?.trunkLo ?? plane(3), material: bark, tint: false }, { geometry: geo[p.v]?.lo ?? plane(3), material: needles, sortObjects: true }] },
+        { from: far, fade, build: (_c, p) => [{ geometry: geo[p.v]?.far ?? plane(3), material: imp, receiveShadow: true }] }],
+    });
+    let seed = 777; // a local LCG
+    const rnd = (): number => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return seed / 4294967296; };
+    const trees = Array.from({ length: 600 }, (_, i) => ({ x: (rnd() - 0.5) * 460, y: rnd() * 20, z: (rnd() - 0.5) * 460, v: i % V, rot: rnd() * 6.28, s: 0.8 + rnd() * 0.4, tint: new THREE.Color(rnd(), rnd(), rnd()) }));
+    const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), at = new THREE.Vector3(), sc = new THREE.Vector3();
+    const pls = trees.map((t) => ({ x: t.x, y: t.y, z: t.z, variant: `s${t.v}`, color: t.tint, matrix: new THREE.Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.s, t.s, t.s)) }));
+    // the view's visibility: any pure test of (tree, distance) — the forest's is its padded frustum and shadow keep
+    let phase = 0;
+    const keeps = (i: number, d2: number): boolean => d2 <= 45 * 45 || ((i * 7 + phase) % 5) !== 0;
+    const listeners: ((f: THREE.Frustum, e: THREE.Vector3) => void)[] = [];
+    const view = { onViewChange: (fn: (f: THREE.Frustum, e: THREE.Vector3) => void): void => { listeners.push(fn); } };
+    const multi = modelContext(sky, { extensions: { has: () => true } } as unknown as THREE.WebGLRenderer);
+    const batched = place(tree, pls, { ctx: multi, draw: 'batched', registry: null, sortObjects: false, cull: { view, test: keeps, from: 'origin', flat: true } });
+    const instanced = place(tree, pls, { ctx, draw: 'instanced', registry: null, cull: { view, test: keeps, from: 'origin', flat: true } });
+    const batches = batched.object.children as THREE.BatchedMesh[];
+    const batchOf = (m: THREE.Material): THREE.BatchedMesh => { const b = batches.find((x) => x.material === m); if (!b) throw new Error('no batch'); return b; };
+    expect(batchOf(needles).sortObjects).toBe(true);
+    expect(batchOf(bark).sortObjects).toBe(false);
+    expect(batchOf(imp).receiveShadow).toBe(true);
+    const vcount = (bm: THREE.BatchedMesh, i: number): number => bm.getGeometryRangeAt(bm.getGeometryIdAt(i))?.vertexCount ?? -1;
+    const meshes = instanced.object.children as THREE.InstancedMesh[];
+    const eye = new THREE.Vector3();
+    let seen = 0;
+    for (let k = 0; k < 30; k++) {
+      eye.set((rnd() - 0.5) * 400, 2, (rnd() - 0.5) * 400); phase = k;
+      for (const fn of listeners) fn(new THREE.Frustum(), eye);
+      // the forest's own loops (src/world/Forest.ts update(), before E315's second pass), verbatim in what they decide
+      const hiD2 = hi * hi, farD2 = far * far, twD2 = twig * twig, bandD2 = (far - fade) * (far - fade);
+      const lists = new Map<THREE.BufferGeometry, number[]>();
+      const put = (g: THREE.BufferGeometry | undefined, i: number): void => { if (!g) return; const l = lists.get(g) ?? []; l.push(i); lists.set(g, l); };
+      trees.forEach((t, i) => {
+        const dx = t.x - eye.x, dz = t.z - eye.z, d2 = dx * dx + dz * dz, G = geo[t.v];
+        const vis = keeps(i, d2), near = d2 < hiD2, mid = d2 < farD2;
+        // batched: the four batches' visibility and geometry per tree
+        expect(batchOf(needles).getVisibleAt(i)).toBe(vis && mid);
+        if (vis && mid) expect(vcount(batchOf(needles), i)).toBe((near ? G?.hi : G?.lo)?.getAttribute('position').count);
+        expect(batchOf(bark).getVisibleAt(i)).toBe(vis && mid);
+        if (vis && mid) expect(vcount(batchOf(bark), i)).toBe((near ? G?.trunk : G?.trunkLo)?.getAttribute('position').count);
+        expect(batchOf(imp).getVisibleAt(i)).toBe(vis && d2 >= bandD2);
+        expect(batchOf(twigs).getVisibleAt(i)).toBe(vis && d2 < twD2);
+        // instanced: which band meshes the tree is written into, in tree order
+        if (!vis) return;
+        seen++;
+        if (d2 < hiD2) { put(G?.hi, i); put(G?.trunk, i); if (d2 < twD2) put(G?.twig, i); }
+        else if (d2 < farD2) { put(G?.lo, i); put(G?.trunkLo, i); }
+        if (d2 >= bandD2) put(G?.far, i);
+      });
+      for (const m of meshes) {
+        const want = lists.get(m.geometry) ?? [];
+        expect(m.count, m.name).toBe(want.length);
+        const arr = m.instanceMatrix.array as Float32Array, e = new Float32Array(16);
+        want.forEach((i, j) => { pls[i]?.matrix.toArray(e); expect(Array.from(arr.subarray(j * 16, j * 16 + 16))).toEqual(Array.from(e)); });
+        // the bark is never tinted; the rest wear their tree's tint
+        if (m.material === bark) expect(m.instanceColor).toBeNull();
+        else want.forEach((i, j) => { const c = trees[i]?.tint, col = m.instanceColor ? m.instanceColor.array as Float32Array : new Float32Array(0); expect(Array.from(col.subarray(j * 3, j * 3 + 3))).toEqual(Array.from(new Float32Array([c?.r ?? 0, c?.g ?? 0, c?.b ?? 0]))); });
+      }
+    }
+    expect(seen).toBeGreaterThan(2000); // the views drew real trees in every band
+  });
+
   it('every Pine Hollow model says how it is made, and the tree family carries its 14 species variants', () => {
     const pine = definedModels().filter((m) => m.id.startsWith('pine-hollow/'));
     expect(pine.map((m) => m.id)).toEqual(expect.arrayContaining(['pine-hollow/hollow-log', 'pine-hollow/forest-tree', 'pine-hollow/mossy-boulder']));

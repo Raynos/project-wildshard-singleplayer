@@ -27,12 +27,25 @@ const KEEP_NEAR = Math.max(45, TIER_CONFIG.shadowFar * 0.5); // metres: trees th
  */
 const SHADOW_KEEP = Math.min(TIER_CONFIG.shadowFar, 110);
 const CULL_FOV_PAD = 24;                    // degrees added to the camera FOV for the cull frustum
+const KEEP2 = KEEP_NEAR * KEEP_NEAR, SHADOW_KEEP2 = SHADOW_KEEP * SHADOW_KEEP;
+
+/**
+ * The forest's LOD bands, for a tree model the shard places (E315 second pass: Pine Hollow's forest tree): near cards +
+ * twigs to `hi`, lo cards to `far`, the impostor from `far` (dissolving in over the `fade` metres before it), the twigs
+ * only within `twig` — the same distances the dissolve shaders are set to below.
+ */
+export const FOREST_BANDS = { hi: LOD_DIST, far: FAR_DIST, twig: TWIG_DIST, fade: FAR_FADE } as const;
 
 /**
  * Per-frame bucketing: every tree has one precomputed matrix; on move (> 1.5 m) or turn (> 3°) the
  * buckets are refilled with only the trees inside a padded view frustum (or within KEEP_NEAR), by
  * distance band: hi cards + twigs (near), lo cards, far impostor. Trunks follow the same near/far
  * split so the far half never enters a shadow pass on the phone tier.
+ *
+ * A shard whose trees are a model (`ChunkTrees.drawnBy: 'model'`, E315: Pine Hollow's forest tree) has `place` draw them
+ * instead: the forest builds no meshes, and on every view change hands its view to the model's culler (`onViewChange`)
+ * with its visibility test (`keeps`: in the padded frustum, near, or casting its shadow into view) — `place` owns the
+ * bands (`FOREST_BANDS` on the model's LODs), the batches and their buffers. `drawItself` is the forest's own drawing.
  */
 export class Forest {
   group = new THREE.Group();
@@ -70,7 +83,13 @@ export class Forest {
   /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
   canopyMap!: THREE.DataTexture;
 
-  build(): this {
+  /** 'model': the shard places its trees' model (`place`) and the forest draws nothing itself until `drawItself` */
+  private drawnBy: 'self' | 'model' = 'self';
+  /** its own meshes are built (`drawItself`) */
+  private drawing = false;
+
+  build(o: { readonly drawnBy?: 'self' | 'model' } = {}): this {
+    this.drawnBy = o.drawnBy ?? 'self';
     this.place();
     const F = this.factory.fade;
     F.cards.value.set(FAR_DIST - FAR_FADE, FAR_DIST, 1); F.trunk.value.set(FAR_DIST - FAR_FADE, FAR_DIST, 1);
@@ -80,6 +99,21 @@ export class Forest {
     this.sky.setupMaterial(this.factory.needleMaterial);
     this.sky.setupMaterial(this.factory.twigMaterial);
     this.sky.setupMaterial(this.factory.farMaterial);
+    if (this.drawnBy === 'self') this.drawItself();
+    return this;
+  }
+
+  /** who draws the trees: `'model'` until a shard that said so hands them to its model, or draws them itself after all */
+  get drawer(): 'self' | 'model' { return this.drawing ? 'self' : this.drawnBy; }
+
+  /**
+   * The forest's own meshes: 4 BatchedMeshes (multi-draw) or 6 InstancedMeshes per variant, refilled per view change.
+   * `build` calls it unless the shard's model draws the trees; a shard whose model can't (a build without its species
+   * set's files) calls it before the first frame.
+   */
+  drawItself(): this {
+    if (this.drawing) return this;
+    this.drawing = true;
     this.mats = new Float32Array(this.trees.length * 16);
     this.tints = new Float32Array(this.trees.length * 3);
     this.trees.forEach((t, i) => {
@@ -202,6 +236,16 @@ export class Forest {
   private tmpP = new THREE.Vector3();
   private tmpS = new THREE.Vector3();
 
+  /**
+   * Tree i, at ground distance² d2 from the viewer, is drawn from the view as it last changed: near (KEEP_NEAR), in the
+   * padded frustum, or — within SHADOW_KEEP — casting its shadow into it. The tree model's culler asks this
+   * (`CullOptions.test`) when the forest hands it the view.
+   */
+  readonly keeps = (i: number, d2: number): boolean => {
+    const t = this.trees[i];
+    return t !== undefined && (d2 <= KEEP2 || this.seen(t, d2 <= SHADOW_KEEP2));
+  };
+
   /** in the padded view frustum — or, within SHADOW_KEEP (`shadows`), casting its shadow into it */
   private seen(t: TreeInstance, shadows: boolean): boolean {
     this.sphere.center.set(t.x, t.y + t.height * 0.5, t.z); this.sphere.radius = t.height * 0.6;
@@ -241,6 +285,8 @@ export class Forest {
       this.shadowRun = s.y > 0.01 && flat > 1e-4 ? flat / s.y : 0;
       if (flat > 1e-4) this.shadowDir.set(-s.x / flat, -s.z / flat);
     }
+    // a model draws the trees: it culls them from this view, through `keeps`
+    if (!this.drawing) { for (const fn of this.viewListeners) fn(this.frustum, viewer); return; }
     // the impostor from the start of the fade band (a 1.5 m move refills the buckets: the band is wider than that)
     const bandD2 = (FAR_DIST - FAR_FADE) * (FAR_DIST - FAR_FADE);
     if (this.batched) {

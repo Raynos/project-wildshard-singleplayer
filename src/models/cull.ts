@@ -54,6 +54,12 @@ export interface CullOptions {
    * within `far` themselves, in cell order. Distances on the ground; `keepNear` / `minAngular` / `radiusBias` don't apply.
    */
   readonly cells?: { readonly size: number; readonly pad: number };
+  /**
+   * the shard's own visibility test in place of the frustum / `keepNear` / `minAngular` one: copy i at distance² d2 (on
+   * the ground when `flat`) is drawn when it says so. It reads the shard's view as it last changed — Pine Hollow's forest
+   * keeps a tree out of view while its long low-sun shadow can still fall into view (E94). `far` and the LODs still apply
+   */
+  readonly test?: (i: number, d2: number) => boolean;
 }
 
 /** a view that tells its cullers when it changed (`CullOptions.view`) */
@@ -100,6 +106,11 @@ class View {
 /** Shared copy-selection maths: which level (or -1: not drawn) copy i takes from this view. */
 class Chooser {
   private readonly sphere = new THREE.Sphere();
+  /** squared start of each level's dissolve band (`ModelLod.fade`): from there the level before it is drawn with it; ∞ without one */
+  private readonly fade2: Float64Array;
+  private readonly test: ((i: number, d2: number) => boolean) | null;
+  /** the distance² of the copy the last `level` call chose for (`also` and a part's `until` read it) */
+  d2 = 0;
   private readonly far2: number;
   private readonly keep2: number;
   private readonly ang2: number;
@@ -111,8 +122,10 @@ class Chooser {
   private readonly flat: boolean;
   private readonly bias: number;
   private readonly frustum: boolean;
-  /** `origins`: x, y, z per copy to measure from (`from: 'origin'`), else the bounds' centres */
-  constructor(from: readonly number[], o: CullOptions, private readonly bounds: Float32Array, private readonly origins: Float32Array | null = null) {
+  /** `origins`: x, y, z per copy to measure from (`from: 'origin'`), else the bounds' centres; `fades`: each level's `fade` */
+  constructor(from: readonly number[], o: CullOptions, private readonly bounds: Float32Array | Float64Array, private readonly origins: Float32Array | Float64Array | null = null, fades: readonly number[] = []) {
+    this.fade2 = Float64Array.from(from, (d, l) => { const f = fades[l] ?? 0; return l > 0 && f > 0 ? (d - f) * (d - f) : Number.POSITIVE_INFINITY; });
+    this.test = o.test ?? null;
     this.from2 = Float32Array.from(from, (d) => d * d);
     this.from = Float64Array.from(from);
     this.far = o.far ?? Number.POSITIVE_INFINITY;
@@ -146,13 +159,20 @@ class Chooser {
   level(i: number, view: View): number {
     const b = this.bounds, x = b[i * 4] ?? 0, y = b[i * 4 + 1] ?? 0, z = b[i * 4 + 2] ?? 0, r = b[i * 4 + 3] ?? 0;
     const d2 = this.dist2(i, view.eye);
+    this.d2 = d2;
     if (this.bias === 0 && d2 > this.far2) return -1;
-    if (this.frustum && d2 > this.keep2) {
+    if (this.test !== null) { if (!this.test(i, d2)) return -1; }
+    else if (this.frustum && d2 > this.keep2) {
       if (this.ang2 > 0 && r * r < this.ang2 * d2) return -1;
       this.sphere.center.set(x, y, z); this.sphere.radius = r;
       if (!view.frustum.intersectsSphere(this.sphere)) return -1;
     }
     return this.levelAt(d2, r);
+  }
+  /** the next level when the last copy chosen stands in its dissolve band (drawn with level `l`), else -1 */
+  also(l: number): number {
+    const n = l + 1;
+    return this.bias === 0 && n < this.fade2.length && this.d2 >= (this.fade2[n] ?? Number.POSITIVE_INFINITY) ? n : -1;
   }
 }
 
@@ -167,6 +187,55 @@ export interface InstancedSink {
   readonly matrix: THREE.InstancedBufferAttribute;
   readonly color: THREE.InstancedBufferAttribute | null;
   readonly meshes: readonly THREE.InstancedMesh[];
+  /** metres: its parts' `until` — a copy is written only while nearer (a detail band inside the level) */
+  readonly until?: number;
+}
+
+/**
+ * The instance buffers of a place call, grouped per (variant, level): `groups[v * levels + l]` are variant v's level l's
+ * sinks (usually one; a part with an `until` has its own). Filled copy by copy, then committed once per choice.
+ */
+class Sinks {
+  private readonly flat: InstancedSink[] = [];
+  /** group g's sinks are `flat[first[g] … first[g + 1])` */
+  private readonly first: Uint32Array;
+  private readonly counts: Int32Array;
+  private readonly until2: Float64Array;
+  /** each sink's upload ranges, reused (only the drawn prefix of a buffer goes to the GPU; nothing allocated per update) */
+  private readonly ranges: readonly { matrix: { start: number; count: number }; color: { start: number; count: number } }[];
+  constructor(groups: readonly (readonly InstancedSink[])[], private readonly matrices: Float32Array, private readonly colors: Float32Array | null) {
+    this.first = new Uint32Array(groups.length + 1);
+    groups.forEach((g, k) => { this.first[k] = this.flat.length; this.flat.push(...g); });
+    this.first[groups.length] = this.flat.length;
+    this.counts = new Int32Array(this.flat.length);
+    this.until2 = Float64Array.from(this.flat, (x) => (x.until === undefined ? Number.POSITIVE_INFINITY : x.until * x.until));
+    this.ranges = this.flat.map(() => ({ matrix: { start: 0, count: 0 }, color: { start: 0, count: 0 } }));
+  }
+  reset(): void { this.counts.fill(0); }
+  /** copy i, at distance² d2, into group g's sinks */
+  put(i: number, g: number, d2: number): void {
+    const m = this.matrices, c = this.colors;
+    for (let s = this.first[g] ?? 0; s < (this.first[g + 1] ?? 0); s++) {
+      if (d2 >= (this.until2[s] ?? Number.POSITIVE_INFINITY)) continue;
+      const sink = this.flat[s];
+      if (!sink) continue;
+      const n = this.counts[s] ?? 0, dst = sink.matrix.array as Float32Array;
+      for (let j = 0, a = i * 16, d = n * 16; j < 16; j++) dst[d + j] = m[a + j] ?? 0;
+      if (c && sink.color) { const cd = sink.color.array as Float32Array; cd[n * 3] = c[i * 3] ?? 1; cd[n * 3 + 1] = c[i * 3 + 1] ?? 1; cd[n * 3 + 2] = c[i * 3 + 2] ?? 1; }
+      this.counts[s] = n + 1;
+    }
+  }
+  commit(): void {
+    for (let s = 0; s < this.flat.length; s++) {
+      const sink = this.flat[s];
+      if (!sink) continue;
+      const n = this.counts[s] ?? 0;
+      for (const mesh of sink.meshes) { mesh.count = n; mesh.visible = n > 0; }
+      if (n === 0) continue;
+      const r = this.ranges[s];
+      if (r) { r.matrix.count = n * 16; upload(sink.matrix, r.matrix); if (sink.color) { r.color.count = n * 3; upload(sink.color, r.color); } }
+    }
+  }
 }
 
 /** the view a culler reads: the camera's (re-chosen when it changed, or moved past `step`) or one handed in */
@@ -175,25 +244,21 @@ const viewFor = (o: CullOptions): View => new View(o.frustum === false ? o.step 
 export class InstancedCull {
   private readonly view: View;
   private readonly chooser: Chooser;
-  private readonly counts: Int32Array;
+  private readonly sinks: Sinks;
   /**
-   * `sinks[v * levels + l]` is variant v's level l (null: a level that draws nothing); `variantOf[i]` copy i's variant;
-   * `matrices` 16 floats per copy; `colors` 3 per copy or null; `bounds` x, y, z, r per copy (world); `origins` x, y, z
-   * per copy (`from: 'origin'`)
+   * `groups[v * levels + l]` are variant v's level l's sinks (empty: a level that draws nothing); `variantOf[i]` copy i's
+   * variant; `matrices` 16 floats per copy; `colors` 3 per copy or null; `bounds` x, y, z, r per copy (world); `origins`
+   * x, y, z per copy (`from: 'origin'`); `fades` each level's dissolve band (a copy in it is drawn at both levels)
    */
   constructor(
-    private readonly sinks: readonly (InstancedSink | null)[], private readonly levels: number, private readonly variantOf: Uint16Array,
-    private readonly matrices: Float32Array, private readonly colors: Float32Array | null, bounds: Float32Array, from: readonly number[], o: CullOptions,
-    origins: Float32Array | null = null,
+    groups: readonly (readonly InstancedSink[])[], private readonly levels: number, private readonly variantOf: Uint16Array,
+    matrices: Float32Array, colors: Float32Array | null, bounds: Float32Array, from: readonly number[], o: CullOptions,
+    origins: Float32Array | Float64Array | null = null, fades: readonly number[] = [],
   ) {
     this.view = viewFor(o);
-    this.chooser = new Chooser(from, o, bounds, origins);
-    this.counts = new Int32Array(sinks.length);
-    this.ranges = sinks.map(() => ({ matrix: { start: 0, count: 0 }, color: { start: 0, count: 0 } }));
+    this.chooser = new Chooser(from, o, bounds, origins, fades);
+    this.sinks = new Sinks(groups, matrices, colors);
   }
-
-  /** each sink's upload ranges, reused (only the drawn prefix of a buffer goes to the GPU; nothing allocated per update) */
-  private readonly ranges: readonly { matrix: { start: number; count: number }; color: { start: number; count: number } }[];
 
   update(camera: THREE.Camera): void {
     if (this.view.changed(camera)) this.choose();
@@ -206,27 +271,16 @@ export class InstancedCull {
   }
 
   private choose(): void {
-    const counts = this.counts, m = this.matrices, c = this.colors;
-    counts.fill(0);
+    const ch = this.chooser, sinks = this.sinks;
+    sinks.reset();
     for (let i = 0; i < this.variantOf.length; i++) {
-      const l = this.chooser.level(i, this.view);
+      const l = ch.level(i, this.view);
       if (l < 0) continue;
-      const k = (this.variantOf[i] ?? 0) * this.levels + l, sink = this.sinks[k];
-      if (!sink) continue;
-      const n = counts[k] ?? 0, dst = sink.matrix.array as Float32Array;
-      for (let j = 0, s = i * 16, d = n * 16; j < 16; j++) dst[d + j] = m[s + j] ?? 0;
-      if (c && sink.color) { const cd = sink.color.array as Float32Array; cd[n * 3] = c[i * 3] ?? 1; cd[n * 3 + 1] = c[i * 3 + 1] ?? 1; cd[n * 3 + 2] = c[i * 3 + 2] ?? 1; }
-      counts[k] = n + 1;
+      const base = (this.variantOf[i] ?? 0) * this.levels, a = ch.also(l);
+      sinks.put(i, base + l, ch.d2);
+      if (a >= 0) sinks.put(i, base + a, ch.d2);
     }
-    for (let k = 0; k < this.sinks.length; k++) {
-      const sink = this.sinks[k];
-      if (!sink) continue;
-      const n = counts[k] ?? 0;
-      for (const mesh of sink.meshes) { mesh.count = n; mesh.visible = n > 0; }
-      if (n === 0) continue;
-      const r = this.ranges[k];
-      if (r) { r.matrix.count = n * 16; upload(sink.matrix, r.matrix); if (sink.color) { r.color.count = n * 3; upload(sink.color, r.color); } }
-    }
+    sinks.commit();
   }
 }
 
@@ -238,8 +292,7 @@ export class InstancedCull {
 export class CelledCopiesCull {
   private readonly view: View;
   private readonly sphere = new THREE.Sphere();
-  private readonly counts: Int32Array;
-  private readonly ranges: readonly { matrix: { start: number; count: number }; color: { start: number; count: number } }[];
+  private readonly sinks: Sinks;
   /** per cell: centre x, y, z, radius (float64: the sphere tests as the old culler made them) */
   private readonly cells: Float64Array;
   /** cell c's copies are `order[start[c] … start[c + 1])` */
@@ -249,13 +302,12 @@ export class CelledCopiesCull {
   private readonly from2: Float32Array;
   /** `origins`: each copy's placement point (x, y, z), float32 */
   constructor(
-    private readonly sinks: readonly (InstancedSink | null)[], private readonly levels: number, private readonly variantOf: Uint16Array,
-    private readonly matrices: Float32Array, private readonly colors: Float32Array | null, private readonly origins: Float32Array,
+    groups: readonly (readonly InstancedSink[])[], private readonly levels: number, private readonly variantOf: Uint16Array,
+    matrices: Float32Array, colors: Float32Array | null, private readonly origins: Float32Array,
     from: readonly number[], o: CullOptions & { readonly cells: { readonly size: number; readonly pad: number } },
   ) {
     this.view = viewFor(o);
-    this.counts = new Int32Array(sinks.length);
-    this.ranges = sinks.map(() => ({ matrix: { start: 0, count: 0 }, color: { start: 0, count: 0 } }));
+    this.sinks = new Sinks(groups, matrices, colors);
     this.far = o.far ?? Number.POSITIVE_INFINITY;
     this.from2 = Float32Array.from(from, (d) => d * d);
     const { size, pad } = o.cells, n = origins.length / 3;
@@ -293,9 +345,9 @@ export class CelledCopiesCull {
   }
 
   private choose(): void {
-    const counts = this.counts, m = this.matrices, col = this.colors, p = this.origins, e = this.view.eye;
+    const sinks = this.sinks, p = this.origins, e = this.view.eye;
     const far = this.far, max2 = far * far, cells = this.cells, from2 = this.from2;
-    counts.fill(0);
+    sinks.reset();
     for (let c = 0; c + 1 < this.start.length; c++) {
       const cx = cells[c * 4] ?? 0, cz = cells[c * 4 + 2] ?? 0, r = cells[c * 4 + 3] ?? 0;
       const dx = cx - e.x, dz = cz - e.z;
@@ -308,23 +360,10 @@ export class CelledCopiesCull {
         if (d2 > max2) continue;
         let l = from2.length - 1;
         while (l > 0 && d2 < (from2[l] ?? 0)) l--;
-        const k = (this.variantOf[i] ?? 0) * this.levels + l, sink = this.sinks[k];
-        if (!sink) continue;
-        const n = counts[k] ?? 0, dst = sink.matrix.array as Float32Array;
-        for (let q = 0, s = i * 16, d = n * 16; q < 16; q++) dst[d + q] = m[s + q] ?? 0;
-        if (col && sink.color) { const cd = sink.color.array as Float32Array; cd[n * 3] = col[i * 3] ?? 1; cd[n * 3 + 1] = col[i * 3 + 1] ?? 1; cd[n * 3 + 2] = col[i * 3 + 2] ?? 1; }
-        counts[k] = n + 1;
+        sinks.put(i, (this.variantOf[i] ?? 0) * this.levels + l, d2);
       }
     }
-    for (let k = 0; k < this.sinks.length; k++) {
-      const sink = this.sinks[k];
-      if (!sink) continue;
-      const n = counts[k] ?? 0;
-      for (const mesh of sink.meshes) { mesh.count = n; mesh.visible = n > 0; }
-      if (n === 0) continue;
-      const r = this.ranges[k];
-      if (r) { r.matrix.count = n * 16; upload(sink.matrix, r.matrix); if (sink.color) { r.color.count = n * 3; upload(sink.color, r.color); } }
-    }
+    sinks.commit();
   }
 }
 
@@ -334,6 +373,8 @@ export interface BatchedSlot {
   readonly instance: number;
   /** per level: the geometry id, -1 when this material draws nothing at that level */
   readonly geometry: Int32Array;
+  /** per level: the squared `until` of what it draws there (∞: none), or null when no level has one */
+  readonly until2: Float64Array | null;
 }
 
 export class BatchedCull {
@@ -341,10 +382,11 @@ export class BatchedCull {
   private readonly chooser: Chooser;
   /** the level each slot draws now (-1: hidden), so only changes touch the batch */
   private readonly shown: Int8Array;
-  /** `slots` are grouped per copy: copy i owns slots [start[i], start[i + 1]) */
-  constructor(private readonly slots: readonly BatchedSlot[], private readonly start: Uint32Array, bounds: Float32Array, from: readonly number[], o: CullOptions, origins: Float32Array | null = null) {
+  /** `slots` are grouped per copy: copy i owns slots [start[i], start[i + 1]); `fades` each level's dissolve band */
+  constructor(private readonly slots: readonly BatchedSlot[], private readonly start: Uint32Array, bounds: Float32Array, from: readonly number[], o: CullOptions,
+    origins: Float32Array | Float64Array | null = null, fades: readonly number[] = []) {
     this.view = viewFor(o);
-    this.chooser = new Chooser(from, o, bounds, origins);
+    this.chooser = new Chooser(from, o, bounds, origins, fades);
     this.shown = new Int8Array(slots.length).fill(-2);
   }
 
@@ -358,13 +400,22 @@ export class BatchedCull {
     this.choose();
   }
 
+  /** what a slot draws at level l for a copy at distance² d2: its geometry id, or -1 (none there, or past its `until`) */
+  private static at(slot: BatchedSlot, l: number, d2: number): number {
+    const g = slot.geometry[l] ?? -1;
+    return g >= 0 && slot.until2 !== null && d2 >= (slot.until2[l] ?? Number.POSITIVE_INFINITY) ? -1 : g;
+  }
+
   private choose(): void {
+    const ch = this.chooser;
     for (let i = 0; i + 1 < this.start.length; i++) {
-      const l = this.chooser.level(i, this.view);
+      const l = ch.level(i, this.view), a = l < 0 ? -1 : ch.also(l), d2 = ch.d2;
       for (let k = this.start[i] ?? 0; k < (this.start[i + 1] ?? 0); k++) {
         const slot = this.slots[k];
         if (!slot) continue;
-        const g = l < 0 ? -1 : slot.geometry[l] ?? -1;
+        // its level's geometry; in a dissolve band, the next level's when it has none at this one (the forest's impostor)
+        let g = l < 0 ? -1 : BatchedCull.at(slot, l, d2);
+        if (g < 0 && a >= 0) g = BatchedCull.at(slot, a, d2);
         if (this.shown[k] === g) continue;
         if (g < 0) slot.mesh.setVisibleAt(slot.instance, false);
         else { slot.mesh.setGeometryIdAt(slot.instance, g); slot.mesh.setVisibleAt(slot.instance, true); }
@@ -423,7 +474,7 @@ export class SetCull {
   private readonly chooser: Chooser;
   private shown = -2;
   /** `levels[l]` = the meshes of level l (every variant's); `bounds` x, y, z, r per copy; `origins` x, y, z per copy (`from: 'origin'`) */
-  constructor(private readonly levels: readonly (readonly THREE.Object3D[])[], private readonly n: number, bounds: Float32Array, from: readonly number[], o: CullOptions, origins: Float32Array | null = null) {
+  constructor(private readonly levels: readonly (readonly THREE.Object3D[])[], private readonly n: number, bounds: Float32Array, from: readonly number[], o: CullOptions, origins: Float32Array | Float64Array | null = null) {
     this.view = viewFor(o);
     this.chooser = new Chooser(from, o, bounds, origins);
     this.show(0); // as built: the full model, until the first view says otherwise

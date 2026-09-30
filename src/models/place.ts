@@ -247,10 +247,10 @@ function posedSpheres(copyParts: (i: number) => readonly ModelPart[], poses: rea
   return out;
 }
 
-/** `cull.from: 'origin'`: each copy's placement point (x, y, z per copy); null: the bounds' centres */
-function originsOf(pls: readonly Placement<object>[], o: PlaceOptions): Float32Array | null {
+/** `cull.from: 'origin'`: each copy's placement point (x, y, z per copy, float64: exact); null: the bounds' centres */
+function originsOf(pls: readonly Placement<object>[], o: PlaceOptions): Float64Array | null {
   if (o.cull?.from !== 'origin') return null;
-  const out = new Float32Array(pls.length * 3);
+  const out = new Float64Array(pls.length * 3);
   pls.forEach((pl, i) => { out.set([pl.x, pl.y, pl.z], i * 3); });
   return out;
 }
@@ -286,6 +286,8 @@ function collideCopy<P extends object>(def: ModelDef<P>, params: P, pose: Pose, 
 
 /** level start distances: 0 for the model's own parts, then each LOD's `from` */
 const levelsOf = <P extends object>(def: ModelDef<P>): number[] => [0, ...(def.lods ?? []).map((l) => l.from)];
+/** each level's dissolve band before its start (`ModelLod.fade`; level 0 has none) */
+const fadesOf = <P extends object>(def: ModelDef<P>): number[] => [0, ...(def.lods ?? []).map((l) => l.fade ?? 0)];
 
 /** the parts of every level for one set of params (each LOD level draws from its own rng stream, never the copies') */
 function levelParts<P extends object>(def: ModelDef<P>, o: PlaceOptions, params: P, rng: Rng): (readonly ModelPart[])[] {
@@ -411,39 +413,45 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
   });
   const objects: THREE.Object3D[] = [];
   const byLevel: THREE.Object3D[][] = Array.from({ length: levels }, () => []);
-  const sinks: (InstancedSink | null)[] = [];
+  /** `groups[v * levels + l]`: variant v's level l's instance buffers — its parts share one; a part with an `until` has its own */
+  const groups: InstancedSink[][] = [];
   built.forEach((lvls, v) => {
     const cap = perVariant[v] ?? 0;
     for (let l = 0; l < levels; l++) {
-      const parts = lvls[l] ?? [];
-      if (parts.length === 0 || cap === 0) { sinks.push(null); continue; }
-      const matrix = new THREE.InstancedBufferAttribute(new Float32Array(cap * 16), 16);
-      const color = colors ? new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3) : null;
-      if (culls) { matrix.setUsage(THREE.DynamicDrawUsage); color?.setUsage(THREE.DynamicDrawUsage); }
-      const meshes = parts.map((part) => {
-        const im = new THREE.InstancedMesh(part.geometry, part.material, cap);
-        im.instanceMatrix = matrix;
-        if (color) im.instanceColor = color;
-        im.castShadow = part.castShadow ?? false; im.receiveShadow = part.receiveShadow ?? false;
-        if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
-        if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
-        im.name = `${def.id}:${keys[v] ?? 'base'}:${l}`;
-        return im;
-      });
-      byLevel[l]?.push(...meshes);
-      if (!culls) {
-        // every copy of this variant, written once; three culls the set as a whole (as a hand-rolled InstancedMesh)
-        let c = 0;
-        for (let i = 0; i < n; i++) {
-          if (of[i] !== v) continue;
-          (matrix.array as Float32Array).set(matrices.subarray(i * 16, i * 16 + 16), c * 16);
-          if (color && colors) (color.array as Float32Array).set(colors.subarray(i * 3, i * 3 + 3), c * 3);
-          c++;
-        }
-        for (const im of meshes) { im.count = c; im.computeBoundingSphere(); }
-      } else for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; }
-      objects.push(...meshes);
-      sinks.push({ matrix, color, meshes });
+      const parts = lvls[l] ?? [], group: InstancedSink[] = [];
+      groups.push(group);
+      if (parts.length === 0 || cap === 0) continue;
+      for (const until of new Set(parts.map((part) => part.until))) {
+        const mine = parts.filter((part) => part.until === until);
+        const matrix = new THREE.InstancedBufferAttribute(new Float32Array(cap * 16), 16);
+        // a part with `tint: false` draws without the copies' colours (it shares their matrices)
+        const color = colors && mine.some((part) => part.tint !== false) ? new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3) : null;
+        if (culls) { matrix.setUsage(THREE.DynamicDrawUsage); color?.setUsage(THREE.DynamicDrawUsage); }
+        const meshes = mine.map((part) => {
+          const im = new THREE.InstancedMesh(part.geometry, part.material, cap);
+          im.instanceMatrix = matrix;
+          if (color && part.tint !== false) im.instanceColor = color;
+          im.castShadow = part.castShadow ?? false; im.receiveShadow = part.receiveShadow ?? false;
+          if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
+          if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
+          im.name = `${def.id}:${keys[v] ?? 'base'}:${l}`;
+          return im;
+        });
+        byLevel[l]?.push(...meshes);
+        if (!culls) {
+          // every copy of this variant, written once; three culls the set as a whole (as a hand-rolled InstancedMesh)
+          let c = 0;
+          for (let i = 0; i < n; i++) {
+            if (of[i] !== v) continue;
+            (matrix.array as Float32Array).set(matrices.subarray(i * 16, i * 16 + 16), c * 16);
+            if (color && colors) (color.array as Float32Array).set(colors.subarray(i * 3, i * 3 + 3), c * 3);
+            c++;
+          }
+          for (const im of meshes) { im.count = c; im.computeBoundingSphere(); }
+        } else for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; }
+        objects.push(...meshes);
+        group.push({ matrix, color, meshes, ...(until === undefined ? {} : { until }) });
+      }
     }
   });
   let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
@@ -453,10 +461,10 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
     const c = new SetCull(byLevel, n, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o));
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   } else if (culls && cells !== undefined) {
-    const c = new CelledCopiesCull(sinks, levels, of, matrices, colors, pointsOf(pls), levelsOf(def), { ...o.cull, cells });
+    const c = new CelledCopiesCull(groups, levels, of, matrices, colors, pointsOf(pls), levelsOf(def), { ...o.cull, cells });
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   } else if (culls) {
-    const c = new InstancedCull(sinks, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o));
+    const c = new InstancedCull(groups, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o), fadesOf(def));
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
   return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull, cullWith };
@@ -519,10 +527,10 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   const levels = levelsOf(def).length, n = pls.length;
   const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
   // one batch per material: every (variant, level) part with that material is one of its geometries
-  const byMat = new Map<THREE.Material, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry }[] }>();
+  const byMat = new Map<THREE.Material, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
   built.forEach((lvls, v) => { lvls.forEach((parts, l) => { for (const part of parts) {
-    const e = byMat.get(part.material);
-    if (e) e.geos.push({ v, l, g: part.geometry }); else byMat.set(part.material, { part, geos: [{ v, l, g: part.geometry }] });
+    const e = byMat.get(part.material), x = { v, l, g: part.geometry, until: part.until };
+    if (e) e.geos.push(x); else byMat.set(part.material, { part, geos: [x] });
   } }); });
   const count = (g: THREE.BufferGeometry): number => g.getAttribute('position').count;
   const shared = o.batch;
@@ -534,41 +542,48 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
       bm.castShadow = part.castShadow ?? false; bm.receiveShadow = part.receiveShadow ?? false;
       if (part.customDepthMaterial) bm.customDepthMaterial = part.customDepthMaterial;
       bm.perObjectFrustumCulled = true;
-      if (o.sortObjects !== undefined) bm.sortObjects = o.sortObjects;
+      const sort = part.sortObjects ?? o.sortObjects;
+      if (sort !== undefined) bm.sortObjects = sort;
       bm.name = `${def.id}:batch`;
     }
     /** geometry id per (variant, level) */
     const ids = new Int32Array(keys.length * levels).fill(-1);
-    for (const x of geos) ids[x.v * levels + x.l] = bm.addGeometry(x.g);
-    return { bm, ids };
+    /** a part's `until`, squared, per (variant, level) (∞: none) */
+    const until2 = new Float64Array(keys.length * levels).fill(Number.POSITIVE_INFINITY);
+    for (const x of geos) { ids[x.v * levels + x.l] = bm.addGeometry(x.g); if (x.until !== undefined) until2[x.v * levels + x.l] = x.until * x.until; }
+    // what each variant's copies draw per level, shared by its copies' slots
+    const perVariant = keys.map((_, v) => ({ geometry: ids.slice(v * levels, v * levels + levels), until2: geos.some((x) => x.v === v && x.until !== undefined) ? until2.slice(v * levels, v * levels + levels) : null }));
+    return { bm, perVariant, tint: part.tint !== false };
   });
   const colliders: ColliderDesc[] = [];
   const boxes = new Float32Array(n * 6);
   const slots: BatchedSlot[] = [];
   const start = new Uint32Array(n + 1);
   const tint = new THREE.Color();
+  // copies a handed-in view culls start hidden: the view chooses them before the game draws a frame (the forest's trees)
+  const hidden = o.cull?.view !== undefined;
   pls.forEach((pl, i) => {
     start[i] = slots.length;
     const pose = poses[i], p = params[i], v = of[i] ?? 0, parts = built[v]?.[0] ?? [];
     if (pose === undefined || p === undefined) return;
     writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
     collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders, o.ctx);
-    for (const { bm, ids } of batches) {
-      const geometry = ids.slice(v * levels, v * levels + levels);
-      const first = geometry.find((g) => g >= 0);
-      if (first === undefined) continue;
-      const instance = bm.addInstance(first);
-      bm.setMatrixAt(instance, pose.matrix);
-      if (pl.color !== undefined) bm.setColorAt(instance, tint.set(pl.color));
-      if ((geometry[0] ?? -1) < 0) bm.setVisibleAt(instance, false);
-      slots.push({ mesh: bm, instance, geometry });
+    for (const b of batches) {
+      const at = b.perVariant[v];
+      const first = at?.geometry.find((g) => g >= 0);
+      if (at === undefined || first === undefined) continue;
+      const instance = b.bm.addInstance(first);
+      b.bm.setMatrixAt(instance, pose.matrix);
+      if (pl.color !== undefined && b.tint) b.bm.setColorAt(instance, tint.set(pl.color));
+      if (hidden || (at.geometry[0] ?? -1) < 0) b.bm.setVisibleAt(instance, false);
+      slots.push({ mesh: b.bm, instance, geometry: at.geometry, until2: at.until2 });
     }
   });
   start[n] = slots.length;
   let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
   if (o.cull !== undefined || levels > 1) {
     const bounds = o.cull?.bounds === 'sphere' ? posedSpheres((i) => built[of[i] ?? 0]?.[0] ?? [], poses) : spheresOf(boxes);
-    const c = new BatchedCull(slots, start, bounds, levelsOf(def), o.cull ?? {}, originsOf(pls, o));
+    const c = new BatchedCull(slots, start, bounds, levelsOf(def), o.cull ?? {}, originsOf(pls, o), fadesOf(def));
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
   return { object: wrap(batches.map((b) => b.bm), def.id), drawnAs: 'batched', colliders, boxes, cull, cullWith };
