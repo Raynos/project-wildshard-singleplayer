@@ -59,6 +59,10 @@ const factsLabel = (e: CatalogEntry): string => `${e.shared === true ? 'SHARED �
 const perCopy = (e: CatalogEntry, tris: number): number => (e.live && e.drawnAs === 'instanced' && e.copies > 1 ? Math.round(tris / e.copies) : tris);
 /** the nearest the turntable's camera frames a model from, metres (a 0.4 m hatchet still stands on its disc) */
 const MIN_DIST = 1.1;
+/** frames a rig's idle loop is sampled for its widest reach (≈ 1.5 s at 60 fps) */
+const RIG_FRAMES = 90;
+/** how far past its first framed box a rig's idle loop may widen the fit (further is a journey, not a pose) */
+const RIG_REACH = 1.8;
 /** the render zone's bottom: two thirds down the screen (the card and its rows have the third below) */
 const ZONE_BOTTOM = 2 / 3;
 /** a path as its folder (it gives way, an ellipsis in the middle of the path) and its file name (it never does) */
@@ -106,6 +110,10 @@ export class ModelExplorer implements ExplorePane {
   private zone = { top: 0, bottom: 0 };
   /** frames until the fit is checked: the model's own vertices landed inside the zone (`data-clip`, for the sweep) */
   private checkFit = 0;
+  /** a rig's first frames on show: every few, its posed box is taken and the fit widens to the widest of its idle loop */
+  private rigFrames = 0;
+  /** the rig's first framed box, its largest side (metres): how far its loop may widen the fit is measured from it */
+  private rigBase = 0;
   private readonly scratch = new THREE.PerspectiveCamera();
   private idle = 0;
   private drag: { id: number; x: number; y: number } | null = null;
@@ -313,6 +321,9 @@ export class ModelExplorer implements ExplorePane {
     this.sheet.classList.toggle('variant', a === undefined && (e.variants?.length ?? 0) > 0 && this.lineup === null);
     this.sheet.classList.toggle('lineup', this.lineup !== null);
     if (a) { this.pin.set(a, { x: a.position.x, z: a.position.z }); this.clip = 'idle'; this.markClip(); if (this.skeleton) this.setSkeleton(true); }
+    this.rigFrames = this.lineup === null && o.getObjectsByProperty('isSkinnedMesh', true).length > 0 ? RIG_FRAMES : 0; // (a creature, the dummy)
+    const first = this.framed.getSize(new THREE.Vector3());
+    this.rigBase = Math.max(first.x, first.y, first.z, 0.5);
     if ((e.variants?.length ?? 0) > 0) this.renderVariants(e);
     this.sheet.classList.toggle('noclock', this.clock() === null);
     const m = measure(o);
@@ -467,7 +478,25 @@ export class ModelExplorer implements ExplorePane {
     const k = reset || this.fitDist <= 0 ? 1 : this.dist / this.fitDist;
     this.fitDist = fit; this.dist = fit * k; this.minDist = Math.max(0.4, fit * 0.3); this.maxDist = fit * 3;
     this.el.dataset['fit'] = String(Number(fit.toFixed(2))); // (a capture script reads it)
-    if (reset) this.checkFit = 4; // (a few frames on: a rig's bones are posed by then)
+    if (reset) this.checkFit = this.rigFrames > 0 ? 0 : 4; // (a rig: once its idle loop has been sampled)
+  }
+
+  /**
+   * A rig's reach over its idle loop (Nalati's Qyran spreads its wings past its rest pose): its first RIG_FRAMES frames on
+   * show, every sixth, the posed box widens what is framed (and the fit, the zoom keeping its ratio); then the fit check.
+   */
+  private sampleRig(e: CatalogEntry): void {
+    this.rigFrames--;
+    if (this.rigFrames % 6 === 0) {
+      const b = visibleBox(e.object());
+      // (a pose, not a journey: a rig whose loop carries it far past its first box — Qyran soars up out of its perch — is
+      // framed on its reach while it stays within RIG_REACH × that box, else left to leave the frame now and then)
+      const grown = new THREE.Box3().copy(this.framed).union(b), now = grown.getSize(new THREE.Vector3());
+      if (!b.isEmpty() && !this.framed.containsBox(b) && Math.max(now.x, now.y, now.z) <= RIG_REACH * this.rigBase) {
+        this.framed.copy(grown); this.framed.getCenter(this.target); this.refit(false);
+      }
+    }
+    if (this.rigFrames === 0) this.checkFit = 1;
   }
 
   /** is any vertex of the model on show outside the render zone from where the camera stands now? */
@@ -772,6 +801,7 @@ export class ModelExplorer implements ExplorePane {
       const a = e.animal;
       if (a?.alive === true) a.setMotion(a.yaw, GAIT[this.clip]);
       e.tick?.((this.slow ? 0.5 : 1) * dt, performance.now() / 1000);
+      if (this.rigFrames > 0) this.sampleRig(e);
       // the treadmill: whatever the gait, the animal stays on the disc
       for (const [an, p] of this.pin) { an.position.x = p.x; an.position.z = p.z; an.mesh.position.x = p.x; an.mesh.position.z = p.z; }
       const l = this.lineup;
@@ -851,8 +881,8 @@ export class ModelExplorer implements ExplorePane {
 
 /**
  * The box of what a model draws: its visible meshes only (a card's other weapons, a rig's hidden parts don't widen it —
- * Nine Dragon's arms read small on a disc sized for all of them), from their vertices up to 200 k of them, else (and
- * for a rig: its rest pose) their geometry's box.
+ * Nine Dragon's arms read small on a disc sized for all of them), from their vertices up to 200 k of them (a rig's
+ * as posed now), else their geometry's box.
  */
 function visibleBox(o: THREE.Object3D): THREE.Box3 {
   const box = new THREE.Box3(), part = new THREE.Box3(), v = new THREE.Vector3();
@@ -875,10 +905,22 @@ function visibleBox(o: THREE.Object3D): THREE.Box3 {
     }
     const pos = c.geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
     if (pos === undefined) return;
-    // (a rig's vertices as skinned need its bone matrices, which are only posed at its first render — a fresh creature's
-    // collapsed to the world's origin and the camera framed an empty disc: its rest pose instead)
-    const skinned = (c as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true;
-    if (!skinned && pos.count <= 200_000) { for (let i = 0; i < pos.count; i++) box.expandByPoint(c.getVertexPosition(i, v).applyMatrix4(c.matrixWorld)); return; }
+    // a rig as posed now: its bone matrices are only made at its first render (a fresh creature's vertices collapsed to
+    // the world's origin and the camera framed an empty disc), so they are brought up to date here first
+    if ((c as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true) {
+      const sm = c as THREE.SkinnedMesh, sw = sm.geometry.getAttribute('skinWeight') as THREE.BufferAttribute | undefined;
+      sm.skeleton.update();
+      // (three refreshes an attached rig's bindMatrixInverse in updateMatrixWorld, not updateWorldMatrix: without it the
+      // posed vertices come back in world space and the box landed a creature's distance from the origin away)
+      if (sm.bindMode === THREE.AttachedBindMode) sm.bindMatrixInverse.copy(sm.matrixWorld).invert();
+      // (a vertex no bone weighs lands on the world's origin, hundreds of metres from the rig: left out)
+      for (let i = 0, step = Math.max(1, Math.floor(pos.count / 40_000)); i < pos.count; i += step) {
+        if (sw !== undefined && sw.getX(i) + sw.getY(i) + sw.getZ(i) + sw.getW(i) < 0.5) continue;
+        box.expandByPoint(sm.getVertexPosition(i, v).applyMatrix4(c.matrixWorld));
+      }
+      return;
+    }
+    if (pos.count <= 200_000) { for (let i = 0; i < pos.count; i++) box.expandByPoint(c.getVertexPosition(i, v).applyMatrix4(c.matrixWorld)); return; }
     if (c.geometry.boundingBox === null) c.geometry.computeBoundingBox();
     if (c.geometry.boundingBox) box.union(part.copy(c.geometry.boundingBox).applyMatrix4(c.matrixWorld));
   });
