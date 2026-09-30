@@ -427,6 +427,28 @@ export const PIECES = {
 
 export type PieceId = keyof typeof PIECES;
 
+/** pieces small enough to shrink into the wall past the clutter distance (their program shrinks them; batch.ts) */
+export const SMALL: ReadonlySet<PieceId> = new Set<PieceId>(['plant', 'planter', 'laundryOut', 'laundryAlong', 'dish']);
+
+/**
+ * The facade lane's draw diet (E281: ~28 draws against a cap of 20; multi-draw is prohibited, E271 / E272).
+ * DRAWN_AS: ids that share another piece's geometry — the placement is composed with `local` and its colour
+ * multiplied by `tint` (the ledges, bay boxes and gallery posts are one unit box; the two cages one cage; the two
+ * rooftop shacks one shack whose roof takes the tint). BAKED: the few-and-small pieces (red couplets, shutters, sign
+ * boards and boxes, window ACs, the wash on street lines, awnings) are merged into the shell, which is drawn anyway.
+ */
+const S = (x: number, y: number, z: number): Matrix4 => new Matrix4().makeScale(x, y, z);
+export const DRAWN_AS: Readonly<Partial<Record<PieceId, { readonly as: PieceId; readonly local: Matrix4; readonly tint: number }>>> = {
+  ledge: { as: 'box', local: S(1, 0.1, 0.36), tint: PAL.slab },
+  bayBox: { as: 'box', local: S(1, 1, 0.6), tint: 0xffffff },
+  post: { as: 'box', local: new Matrix4().makeTranslation(0, 0, -0.11).multiply(S(0.22, 1, 0.22)), tint: 0xb8321f },
+  cageS: { as: 'cage', local: S(CAGE_W[0] / CAGE_W0, 1, 1), tint: 0xffffff },
+  cageW: { as: 'cage', local: S(CAGE_W[1] / CAGE_W0, 1, 1), tint: 0xffffff },
+  shackG: { as: 'shack', local: new Matrix4(), tint: PAL.malachite },
+  shackB: { as: 'shack', local: new Matrix4(), tint: PAL.azurite },
+};
+export const BAKED: ReadonlySet<PieceId> = new Set<PieceId>(['couplet', 'shutter', 'signFlat', 'signBox', 'acBox', 'washLine', 'awning']);
+
 /**
  * (E283, Jake's pick: the distance LODs) the pieces with parts thinner than a pixel from
  * a distance: past `from` m the batch draws the piece without them (the cage's and railings' flat bars, the ACs'

@@ -3,21 +3,21 @@
 // (src/dev/nine-dragon/main.ts), without its camera, player, HUD, viewmodel or post. Everything is added under one
 // Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
+// (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,
+// the Fei Zhua hook, the wall kit), placed through `place` under the root;
+// the instanced ones are handed to the fragment's own culler (world/cull.ts). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
-  BufferGeometry, Color, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
+  BufferGeometry, Color, Float32BufferAttribute, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
   SphereGeometry, Uint32BufferAttribute, Vector3, Vector4, type WebGLRenderer,
 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { Ctx, type Piece } from './ctx';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
 import { Lanterns } from '../look/lanterns';
 import { NeonSigns } from '../look/neonsigns';
 import { buildStreaks, stairStreaks } from '../look/streaks';
-import { buildFacade } from './facade/batch';
+import { buildFacade, nameDraws } from './facade/batch';
 import { facadeUniforms } from '../look/facadeMaterial';
-import { PIECES } from './dressing';
 import { STAIR, WELL, Y0 } from '../layout';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, TOP_Y } from './stairstreet';
 import { loadPaint } from '../look/paint';
@@ -25,27 +25,36 @@ import { SCROLL, loadScroll, scrollMaterial } from '../look/scroll';
 import { installLight } from '../look/light/install';
 import { glowUniforms } from '../look/light/glow';
 import { gradeUniforms } from '../look/light/grade';
-import { acKit } from './props';
 import { Crowd, tintUmbrella } from './crowd';
 import { banyanOut } from './banyan';
 import { buildCanopy } from './canopy';
-import { loadSquareProps } from './props3d';
+import { placeSquareProps } from './squareProps';
 import { SignAtlas, SignBuilder } from '../look/signs';
-import { PANEL_LOD, buildSquare, carvedPanelFar } from './square';
+import { buildSquare } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
 import { WORDS, buildTowers, droneKit, trainKit } from './towers';
 import { Rng, chars } from '../util';
-import { copyBoxNear } from '../../../models/place';
+import { type HandedBatch, type InstancedCuller, copyBoxNear, place } from '../../../models/place';
+import type { ModelDef, Placement } from '../../../models/model';
+import { ndModelContext } from './modelLook';
+import { airConBox, galleryPlant } from '../models/wallKit';
+import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { CABLE, SHAFT, WELL_RECTS, buildWell, gondolaKit, wellSheets } from './well';
 import { merge } from './hero/kitx';
-import { loadGlb } from './hero/glb';
 import { type InstanceLevel, InstanceCuller } from './cull';
-import { PX_PER_M, lodReady, simplifiedCopy } from './lod';
+import { lodReady } from './lod';
+import { loadGlb } from './hero/glb';
 import type { RegisteredModel } from '../../../world/registry';
 import { setting } from '../../../ui/Settings';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
 const CULL_R = 40;
+
+/** the wall kit's model per piece (ctx.put's pieces that are placed: models/wallKit.ts) */
+const WALL_KIT: Readonly<Partial<Record<Piece, ModelDef<object>>>> = { plant: galleryPlant };
+
+/** a placement from a copy's matrix (its translation is where it stands) */
+const at = (m: Matrix4, color?: Color): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m, ...(color === undefined ? {} : { color }) });
 
 const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火天下一家福德正神九龍城重慶小麵纜車站九龍衙門鎮邪祥`))].join('');
 
@@ -110,7 +119,7 @@ export interface NineDragonWorld {
   readonly shared: Shared;
   /** the build's context: its layout records (hooks, the map's floor plan, the crowd) */
   readonly ctx: { readonly hooks: readonly Vector3[] };
-  /** specimens from the GLBs actually used by this fragment, reusing the loaded geometries and material */
+  /** specimens of the crowd's GLBs (the rest of the fragment's models register themselves as they are placed) */
   readonly models: readonly RegisteredModel[];
   /** per frame: time (s) and the camera the frame is drawn from */
   update: (t: number, camera: PerspectiveCamera) => void;
@@ -151,6 +160,13 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   shared.u.uShaft.value.set(SHAFT.x0, SHAFT.z0, SHAFT.x1, SHAFT.z1);
   shared.u.uShaftK.value.y = Y0;
   const ctx = new Ctx(signs);
+  // the models' context (world/modelLook.ts): the look fills in as each phase makes its part
+  const nd = ndModelContext(renderer);
+  // the fragment's instanced models are culled per copy here (world/cull.ts), taken as `place` hands them over and set up
+  // at the end, once the world is whole
+  const culler = new InstanceCuller();
+  const handed: HandedBatch[] = [];
+  const batches: InstancedCuller = { take: (b) => { handed.push(b); } };
   buildSquare(ctx);
   progress(0.2, 'layout: towers');
   await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
@@ -175,6 +191,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const mat = jiehuaMaterial(shared);
   const matA = jiehuaMaterial(shared, { alphaCut: true });
   const paper = new Lanterns(shared);
+  nd.look.mat = mat;
   const tmpP = new Vector3(), tmpQ = new Quaternion(), tmpS = new Vector3();
   for (const m of ctx.lanterns) { m.decompose(tmpP, tmpQ, tmpS); paper.hang(tmpP.clone(), tmpS.x); }
   const emitters: Emitter[] = [...neonSigns.emitters, ...signs.lights, ...paper.emitters, ...ctx.emitters];
@@ -241,25 +258,13 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   for (const m of await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters)) root.add(named(m, 'canopy'));
   phaseDone('canopy', phaseStart);
   phaseStart = performance.now();
-  const squareProps = await loadSquareProps(mat);
-  // (E283, Jake's pick) the distance LODs, handed to the culler below: a coarser copy of a batch's piece for its instances
-  // from a distance — meshoptimizer copies of the sculpts, their error under PX_LOD px where each starts (world/lod.ts),
-  // and the facade dressing's and the balustrade's thin parts dropped where they are ~half a pixel wide
+  // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error
+  // under SCULPT_PX px where each starts, world/lod.ts; the facade dressing's and the balustrade's thin parts dropped where
+  // they are ~half a pixel wide), handed to the culler with their batches
   const canLod = await lodReady();
-  const PX_LOD = 0.7;
-  const lodOf = new Map<InstancedMesh, InstanceLevel[]>();
-  const sculptLods = (im: InstancedMesh, scale: number, from: readonly number[]): void => {
-    if (!canLod) return;
-    lodOf.set(im, from.map((d) => ({ geometry: simplifiedCopy(im.geometry, (d * PX_PER_M * PX_LOD) / scale), from: d })));
-  };
-  for (const m of squareProps) {
-    // the stone lions (~8 k tris each, ~1.4 m): from 10 m and 30 m
-    if (m.name === 'glb:lion') sculptLods(m, 1, [10, 30]);
-    // the balustrade's carved panels
-    if (m.name === 'set:balustrade-panel') lodOf.set(m, [{ geometry: carvedPanelFar(), from: PANEL_LOD }]);
-  }
+  nd.look.canLod = canLod;
+  await placeSquareProps({ ctx: nd.ctx, look: nd.look, culler: batches, root });
   phaseDone('square props', phaseStart);
-  for (const m of squareProps) root.add(m);
   // (a kit with a draw distance, ctx.far(name, m), is shown / hidden by the culler below)
   const farKits: [Mesh, number][] = [];
   const kitMesh = (name: string, g: BufferGeometry, m: typeof mat): void => {
@@ -275,8 +280,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   phaseStart = performance.now();
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.
   // Permanent evidence: docs/audits/nine-dragon-mobile-multidraw.md.
-  const facade = buildFacade(ctx.fd, facadeUniforms(shared), { clutterFar: [55, 85] });
-  for (const [im, levels] of facade.lods) lodOf.set(im, levels);
+  const facade = await buildFacade(ctx.fd, facadeUniforms(shared), { ctx: nd.ctx, look: nd.look, culler: batches }, { clutterFar: [55, 85] });
   phaseDone('facade', phaseStart);
   root.add(named(facade.group, 'facade'));
   const neonMeshes = neonSigns.build();
@@ -302,28 +306,14 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const onStair = emitters.filter((e) => e.at.x > STAIR.x0 - 4 && e.at.x < FAR_X && e.at.z > FACE_N - 6 && e.at.z < FACE_S + 6 && e.at.y > Y0 + 0.3 && e.at.y < TOP_Y + 40);
   for (const m of stairStreaks(shared, onStair, { flights: FLIGHTS, landings: LANDINGS, rise: RISE, run: RUN, z0: STAIR.z0, z1: STAIR.z1 })) root.add(named(m, 'streaks-stair'));
 
-  // the instanced dressing: one InstancedMesh per piece and region
-  const pieceGeo = new Map<Piece, { opaque: BufferGeometry | null; alpha: BufferGeometry | null }>();
+  // the wall kit: one InstancedMesh per piece and region (models/wallKit.ts)
   for (const [key, list] of ctx.inst) {
     const piece = key.slice(0, key.indexOf('@')) as Piece;
-    let geo = pieceGeo.get(piece);
-    if (geo === undefined) {
-      const kits = PIECES[piece]();
-      geo = { opaque: kits.opaque?.build() ?? null, alpha: kits.alpha?.build() ?? null };
-      pieceGeo.set(piece, geo);
-    }
-    for (const [g, m] of [[geo.opaque, mat], [geo.alpha, matA]] as const) {
-      if (g === null) continue;
-      const im = new InstancedMesh(g, m, list.length);
-      list.forEach((it, i) => { im.setMatrixAt(i, it.m); im.setColorAt(i, it.c); });
-      im.computeBoundingSphere();
-      root.add(named(im, `inst:${key}`));
-    }
+    const model = WALL_KIT[piece];
+    if (model === undefined) throw new Error(`nine-dragon: the wall kit's '${piece}' is no model yet (models/wallKit.ts)`);
+    nameDraws(place(model, list.map((it) => at(it.m, it.c)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: `nds-inst-${key}` } }), `inst:${key}`);
   }
-  const acs = new InstancedMesh(acKit().build(), mat, ctx.acs.length);
-  ctx.acs.forEach((m, i) => { acs.setMatrixAt(i, m); });
-  acs.computeBoundingSphere();
-  root.add(named(acs, 'inst:ac'));
+  if (ctx.acs.length > 0) nameDraws(place(airConBox, ctx.acs.map((m) => at(m)), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-inst-ac' } }), 'inst:ac');
 
   // movers: the train, the gondola, the drones (their lights in small neon meshes)
   const neon = neonMaterial(shared, atlas.textures);
@@ -372,71 +362,26 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const [walkD, walkL, sitD, sitL] = await Promise.all([person3('walker', DARK), person3('walker', LIGHT), person3('sitter', DARK), person3('sitter', LIGHT)]);
   phaseStart = performance.now();
   // E306 M0a: each specimen says how it's made (TRELLIS), how many copies the fragment instances, and where the real
-  // copies stand (VIEW IN WORLD flies to the one nearest the spawn, not to the specimen at the origin 125 m below)
-  const instances = (im: InstancedMesh): Matrix4[] => Array.from({ length: im.count }, (_, i) => im.getMatrixAt(i, new Matrix4()));
-  const specimen = (id: string, name: string, category: RegisteredModel['category'], file: string, geometry: BufferGeometry, at: readonly Matrix4[]): RegisteredModel => {
+  // copies stand (VIEW IN WORLD flies to the one nearest the spawn, not to the specimen at the origin 125 m below). The
+  // lion and the Fei Zhua hook are models now (E306 M4: ../models/); the crowd's move next
+  const specimen = (id: string, name: string, category: RegisteredModel['category'], file: string, geometry: BufferGeometry, mats: readonly Matrix4[]): RegisteredModel => {
     const object = new Mesh(geometry, mat);
     object.name = `model:${id}`;
-    return { id, name, category, file, live: false, object: () => object, pipeline: 'trellis', drawnAs: 'instanced', copies: at.length, worldBox: (near) => copyBoxNear(geometry, at, near) };
+    return { id, name, category, file, live: false, object: () => object, pipeline: 'trellis', drawnAs: 'instanced', copies: mats.length, worldBox: (near) => copyBoxNear(geometry, mats, near) };
   };
   const models: RegisteredModel[] = [
     specimen('nds-walker', 'Umbrella walker', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', walkD, ctx.walkers),
     specimen('nds-sitter', 'Mahjong sitter', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', sitD, ctx.sitters),
   ];
-  const lion = squareProps.find((m) => m.name === 'glb:lion');
-  if (lion !== undefined) models.push(specimen('nds-lion', 'Guardian lion', 'props', 'src/chunks/nine-dragon-stack/world/props3d.ts', lion.geometry, instances(lion)));
-  // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks. One instanced
-  // draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring anchors stay.
-  const cast = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('/assets/nine-dragon/lab/grapple/dragon-hook.glb');
-  cast.scene.updateMatrixWorld(true);
-  const castMeshes: Mesh[] = [];
-  cast.scene.traverse((object) => { if (object instanceof Mesh) castMeshes.push(object as Mesh); });
-  const source = castMeshes[0];
-  if (source !== undefined) {
-    const geo = source.geometry.clone();
-    // the cast is quantized (KHR_mesh_quantization: int16-normalised position / normal / tangent, the node's matrix
-    // restoring the scale). Baking that matrix into int16 storage clamped every coordinate to ±1 and flattened the
-    // dragon into a card (E289, Model Explorer): widen the transformed attributes to float first
-    for (const name of ['position', 'normal', 'tangent']) {
-      if (!geo.hasAttribute(name)) continue;
-      const a = geo.getAttribute(name);
-      if (a.array instanceof Float32Array && !a.normalized) continue;
-      const out = new Float32Array(a.count * a.itemSize);
-      for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
-      geo.setAttribute(name, new Float32BufferAttribute(out, a.itemSize));
-    }
-    geo.applyMatrix4(source.matrixWorld);
-    const hookMat = source.material instanceof MeshStandardMaterial ? source.material.clone() : new MeshStandardMaterial({ color: 0xc9a24a });
-    hookMat.color.multiply(new Color(0xffd891));
-    hookMat.metalness = 0.58;
-    hookMat.roughness = 0.38;
+  // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks (models/feiZhuaHook.ts).
+  // One instanced draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring
+  // anchors stay.
+  await loadFeiZhuaHook(nd.look);
+  if (nd.look.hookMat !== null) {
     const mounts = ctx.hookMounts.filter((m) => m.ring.y > Y0 - 23 && m.ring.y < Y0 + 14)
       .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)))
       .slice(0, 3);
-    let hooks: Matrix4[] = [];
-    if (mounts.length > 0) {
-      const placed = new InstancedMesh(geo, hookMat, mounts.length);
-      const ringInSculpt = new Vector3(-0.02, 0.26, 0.73);
-      mounts.forEach(({ ring, out }, i) => {
-        const transform = new Matrix4().makeTranslation(ring.x, ring.y, ring.z)
-          .multiply(new Matrix4().makeRotationY(Math.atan2(out.x, out.z)))
-          .multiply(new Matrix4().makeScale(0.62, 0.62, 0.62))
-          .multiply(new Matrix4().makeTranslation(-ringInSculpt.x, -ringInSculpt.y, -ringInSculpt.z));
-        placed.setMatrixAt(i, transform);
-      });
-      placed.computeBoundingSphere();
-      root.add(named(placed, 'glb:dragon-hook'));
-      hooks = instances(placed);
-      // (E283) the cast dragon (18 k tris at 0.62 scale): coarser copies from 15 m and 40 m
-      sculptLods(placed, 0.62, [15, 40]);
-    }
-    models.push({
-      id: 'nds-dragon-hook', name: 'Fei Zhua dragon hook', category: 'props', file: 'src/chunks/nine-dragon-stack/world/build.ts', live: false,
-      pipeline: 'trellis', drawnAs: 'instanced', copies: hooks.length, worldBox: (near) => copyBoxNear(geo, hooks, near),
-      // (E289) the cast's back is its flat wall plate (model −Z, against the wall in the city): Model Explorer opens on
-      // the sun side, which on this shard is the plate — turn the dragon round to face that first view
-      object: () => { const m = new Mesh(geo, hookMat); m.rotation.y = Math.PI; return m; },
-    });
+    if (mounts.length > 0) nameDraws(place(feiZhuaHook, mounts.map(({ ring, out }) => at(feiZhuaAt(ring, out))), { ctx: nd.ctx, draw: 'instanced', culler: batches, parent: root, piece: { id: 'nds-fei-zhua-hooks' } }), 'glb:dragon-hook');
   }
   // dome B (crowd.ts `Crowd`): per-figure frustum culling + a distance LOD (a ~320-tri far copy past 35 m, none past
   // 130 m); its meshes start empty, so the InstanceCuller below leaves them alone
@@ -461,27 +406,21 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   await light.ready;
   progress(0.95, 'culling');
 
-  // the world-wide instanced batches (the facade dressing, the lanterns, the crowd, the instanced dressing: bounding
-  // spheres past CULL_R, which three's per-object test never drops) are culled per instance against the view; the
-  // facade's small clutter also past 85 m, where its shader has shrunk it into the wall (clutterFar above)
-  const culler = new InstanceCuller();
-  const small = new Set<Object3D>(facade.small);
-  const isBatch = (o: Object3D): o is InstancedMesh => o instanceof InstancedMesh;
-  root.traverse((o) => {
-    // (a batch that culls itself — the crowd, the lanterns' near / far buckets — is never culled as a whole)
-    if (!isBatch(o) || !o.frustumCulled) return;
-    if (o.boundingSphere === null) o.computeBoundingSphere();
-    if ((o.boundingSphere?.radius ?? 0) < CULL_R) return;
-    // (E283, the phone's CPU) the facade's windows are one quad each: packing and re-uploading the ~4 k in view (~0.4 MB,
-    // half of what a re-cull hands WebGL) cost more than drawing all ~10 k — an off-screen quad is clipped and leaves no
-    // pixel. They are drawn whole (they have no far distance, so nothing else changes)
-    if (o.name === 'facade-windows') return;
-    culler.add(o, small.has(o) ? 85 : Number.POSITIVE_INFINITY, lodOf.get(o));
-  });
-  // (E283) a batch with a distance LOD the culler did not take (its instances within CULL_R of each other) is taken now:
-  // the culler deals its instances out to the copies
-  for (const [o, levels] of lodOf) if (!culler.has(o)) culler.add(o, Number.POSITIVE_INFINITY, levels);
-  for (const [base, copy] of culler.lodPairs) base.parent?.add(copy);
+  // the world-wide instanced batches (the facade dressing, the wall kit, the square's props: bounding spheres past CULL_R,
+  // which three's per-object test never drops) are culled per instance against the view; the facade's small clutter also
+  // past 85 m, where its shader has shrunk it into the wall (its `cull.far`). A batch with a distance LOD is taken
+  // whatever its size (the culler deals its instances out to the copies); one without, within CULL_R, three culls whole.
+  // (The crowd and the paper lanterns cull themselves; the facade's windows are drawn whole — E283: packing and
+  // re-uploading the ~4 k one-quad windows in view cost more than drawing all ~10 k.)
+  for (const b of handed) {
+    const base = b.levels[0]?.mesh ?? null;
+    if (base === null || !base.frustumCulled) continue;
+    // (a sculpt's LOD without the simplifier is its full geometry: left out, as before)
+    const lods: InstanceLevel[] = b.levels.slice(1).flatMap((l) => (l.mesh !== null && l.mesh.geometry !== base.geometry ? [{ mesh: l.mesh, from: l.from }] : []));
+    if (base.boundingSphere === null) base.computeBoundingSphere();
+    if ((base.boundingSphere?.radius ?? 0) < CULL_R && lods.length === 0) continue;
+    culler.add(base, b.cull.far ?? Number.POSITIVE_INFINITY, lods);
+  }
   for (const [mesh, far] of farKits) culler.addFar(mesh, far);
   progress(1, 'world ready');
   Reflect.set(window, '__ndPhaseProfile', phaseProfile);

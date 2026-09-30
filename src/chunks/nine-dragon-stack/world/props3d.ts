@@ -8,15 +8,14 @@
 //  - two red lantern trios in the banyan (the red paper glows).
 // Dome B kept its own noodle-stall counter and mahjong tables (richer than the TRELLIS ones at dome B's cameras; the
 // TRELLIS sets also bring stools that would double under the seated players).
-import { type BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Quaternion, type ShaderMaterial, Vector3 } from 'three';
-import { type GlbOpt, loadGlb } from './hero/glb';
-import { clusterLod } from './crowd';
+// (E306 M4) the lion and the sets are models (../models/lion.ts, market.ts, balustradePanel.ts); this file keeps where
+// they stand — the queues the square's builders fill — and squareProps.ts places them.
+import { type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
+import type { GlbOpt } from './hero/glb';
 import { K } from './kit';
 import { BANYAN, GATE, PLAZA, STREET, WELL, Y0 } from '../layout';
 
-const ASSETS = '/assets/nine-dragon/lab/organic';
-
-/** the wet granite of the balustrade, dark to light (the lab's ramp) */
+/** the wet granite of the balustrade, dark to light (the lab's ramp; the lion's own is models/lion.ts's) */
 const STONE_RAMP = [0x2f2f33, 0x45454a, 0x5b5b60, 0x6e6e73, 0x808086, 0x94949a];
 const WOOD_RAMP = [0x2a1d14, 0x3f2b1d, 0x563a26, 0x6e4a30, 0x86603f, 0xa07a55];
 const STEEL_RAMP = [0x3a3d44, 0x585d66, 0x7a808a, 0x9aa1ab, 0xb8bec6, 0xd2d6dc];
@@ -39,6 +38,8 @@ export const GATE_LIONS = {
   scale: 2.4,
 } as const;
 
+/** a prop and where it stands (`off`: not drawn; the pots and lantern trios would each be a model if they came back, their
+ *  red paper glowing: aMisc.x on the red hue class) */
 interface PropSpec { name: string; opt: GlbOpt; glowRed?: number; at: Matrix4[]; off?: boolean; maxTris?: number }
 
 const place = (x: number, y: number, z: number, yaw: number, s = 1): Matrix4 =>
@@ -56,9 +57,9 @@ function lionPosts(run: 'plaza' | 'street', at: number, a0: number, a1: number):
 const queued: Matrix4[] = [];
 
 /**
- * Other domes' lions (dome C's Well-rim balustrade): `placeLion` queues one TRELLIS guardian lion; `loadSquareProps` draws
- * the queue in the same instanced draw as dome B's (no extra call) and empties it, so a rebuilt fragment re-queues.
- * Call it while the world is being built (before `loadSquareProps` runs in build.ts: any world/ builder does).
+ * Other domes' lions (dome C's Well-rim balustrade): `placeLion` queues one TRELLIS guardian lion; squareProps.ts places
+ * the queue with dome B's (one instanced draw, no extra call) and empties it, so a rebuilt fragment re-queues.
+ * Call it while the world is being built (before squareProps.ts runs in build.ts: any world/ builder does).
  * - (x, y, z): the lion's base, i.e. the top of the post it sits on (dome B's balustrade posts: y = Y0 + 1.12);
  * - rotY (radians, about +y): the way it faces — 0 = +z (south), π/2 = +x (east), π = −z (north), −π/2 = −x (west);
  * - scale: 1 = the post-top lion (0.62 m tall, 0.44 m across; ~8 k triangles each).
@@ -72,7 +73,8 @@ const sets = new Map<string, { geo: BufferGeometry; at: Matrix4[] }>();
 
 /**
  * Queue one copy of a procedural set (a Kit + KitX geometry in its own frame) at `m`; `build` runs only for the first
- * copy of `name`. `loadSquareProps` draws every set as ONE InstancedMesh (`set:<name>`, one draw) and empties the queue.
+ * copy of `name` (the booth's cook draws from its builder's stream there). squareProps.ts places every set as its model
+ * (ONE InstancedMesh, `set:<name>`, one draw) with that geometry and empties the queue.
  */
 export function placeSet(name: string, build: () => BufferGeometry, m: Matrix4): void {
   let s = sets.get(name);
@@ -109,44 +111,14 @@ function specs(): PropSpec[] {
   ];
 }
 
-/** red vertices glow: emit (aMisc.x) on the red hue class, so the paper lanterns light up like the procedural ones */
-function glowRed(g: BufferGeometry, emit: number): void {
-  const col = g.getAttribute('color'), misc = g.getAttribute('aMisc');
-  const out = new Float32Array(misc.count * 4);
-  for (let i = 0; i < misc.count; i++) {
-    const r = col.getX(i), gg = col.getY(i), b = col.getZ(i);
-    const red = r > 0.25 && r > gg * 2.2 && r > b * 2.2;
-    out[i * 4] = red ? emit : misc.getX(i);
-    out[i * 4 + 1] = misc.getY(i);
-    out[i * 4 + 2] = misc.getZ(i);
-    out[i * 4 + 3] = misc.getW(i);
-  }
-  g.setAttribute('aMisc', new Float32BufferAttribute(out, 4));
+/** the lions' placements (dome B's posts, then the queue other domes filled), emptying the queue */
+export function takeLions(): Matrix4[] {
+  return specs().find((x) => x.name === 'lion')?.at ?? [];
 }
 
-/** load every prop (a missing GLB is skipped with a warning): one InstancedMesh each, drawn with the Jiehua `mat` */
-export async function loadSquareProps(mat: ShaderMaterial): Promise<InstancedMesh[]> {
-  const out: InstancedMesh[] = [];
-  await Promise.all(specs().map(async (s) => {
-    if (s.at.length === 0 || s.off === true) return;
-    try {
-      const raw = await loadGlb(`${ASSETS}/${s.name}.glb`, s.opt);
-      const g = s.maxTris === undefined ? raw : clusterLod(raw, s.maxTris);
-      if (s.glowRed !== undefined) glowRed(g, s.glowRed);
-      const im = new InstancedMesh(g, mat, s.at.length);
-      im.name = `glb:${s.name}`;
-      s.at.forEach((m, i) => { im.setMatrixAt(i, m); });
-      im.computeBoundingSphere();
-      out.push(im);
-    } catch (e: unknown) { console.warn(`nine-dragon: prop ${s.name} failed to load`, e); }
-  }));
-  for (const [name, s] of sets) {
-    const im = new InstancedMesh(s.geo, mat, s.at.length);
-    im.name = `set:${name}`;
-    s.at.forEach((m, i) => { im.setMatrixAt(i, m); });
-    im.computeBoundingSphere();
-    out.push(im);
-  }
+/** the sets queued so far, by name, in the order they were first placed (built geometry + placements), emptying the queue */
+export function takeSets(): [string, { geo: BufferGeometry; at: Matrix4[] }][] {
+  const out = [...sets];
   sets.clear();
   return out;
 }

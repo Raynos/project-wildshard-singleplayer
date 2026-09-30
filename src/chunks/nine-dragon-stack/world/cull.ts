@@ -25,7 +25,11 @@
 // (E283, Jake's pick: the distance LODs) a batch can carry coarser copies of its piece, each from a distance
 // (`add(mesh, far, lods)`): an instance in view is packed into the copy for its distance from the eye instead of the
 // batch (one draw more per copy in use). The copies share the batch's material and masters.
-import { Box3, type BufferAttribute, type BufferGeometry, Frustum, InstancedBufferAttribute, InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
+//
+// (E306 M4) the batches are models placed through `place` (src/models/place.ts), which hands each part's levels to the
+// fragment (`PlaceOptions.culler`): the batch with every copy written, and a mesh per distance LOD, which `add` takes
+// over as its coarser copies (their own instance buffers, the batch's bounding sphere, packed from the batch's masters).
+import { Box3, type BufferAttribute, Frustum, InstancedBufferAttribute, type InstancedMesh, Matrix4, type Mesh, PerspectiveCamera, Sphere, Vector3 } from 'three';
 
 /** extra field of view per side (degrees) */
 const MARGIN = 7;
@@ -40,8 +44,9 @@ const MOVE = 1;
 
 interface Packed { attr: InstancedBufferAttribute; master: Float32Array; size: number }
 
-/** a distance LOD: a coarser copy of the batch's piece, drawn for the instances `from` m or more from the eye */
-export interface InstanceLevel { geometry: BufferGeometry; from: number }
+/** a distance LOD: a coarser copy of the batch's piece (a mesh with room for every instance, its own buffers), drawn
+ *  for the instances `from` m or more from the eye */
+export interface InstanceLevel { mesh: InstancedMesh; from: number }
 
 /** one draw the batch packs into: the batch itself (level 0) or a coarser copy; its instanced attributes parallel the
  *  batch's masters; the instances its last pack held (master indices, in packing order) and how many (-1 = never) */
@@ -90,15 +95,12 @@ export class InstanceCuller {
   /** the last cull: instances in the batches, instances kept, triangles kept */
   readonly stats = { instances: 0, kept: 0, tris: 0, culls: 0 };
 
-  /** each coarser copy and its batch (add the copy to the batch's parent: the instances are in its space) */
-  get lodPairs(): [InstancedMesh, InstancedMesh][] { return this.list.flatMap((e) => e.outs.slice(1).map((o): [InstancedMesh, InstancedMesh] => [e.mesh, o.mesh])); }
-
   /** is this batch taken over? */
   has(mesh: InstancedMesh): boolean { return this.list.some((e) => e.mesh === mesh); }
 
   /**
    * take over a batch: `far` (m) drops instances whose sphere lies wholly beyond it from the camera; `lods` are coarser
-   * copies of its piece by distance (their meshes: `lodPairs`)
+   * copies of its piece by distance (meshes beside the batch, in the same space)
    */
   add(mesh: InstancedMesh, far = Number.POSITIVE_INFINITY, lods: readonly InstanceLevel[] = []): void {
     const n = mesh.count;
@@ -137,17 +139,18 @@ export class InstanceCuller {
     const outs: Out[] = [{ mesh, from: 0, attrs: attrs.map((a) => a.attr), idx: new Int32Array(n), k: -1 }];
     const names = attrs.map((a) => Object.entries(g.attributes).find(([, v]) => v === a.attr)?.[0] ?? '');
     for (const [li, l] of [...lods].sort((a, b) => a.from - b.from).entries()) {
-      // the copy: the level's geometry with instanced attributes of its own (the batch's layout), the batch's material
+      // the copy: the level's mesh with instanced attributes of its own (the batch's layout), the batch's material
+      const lm = l.mesh;
       const la = attrs.map((a, ai) => {
         const at = new InstancedBufferAttribute(new Float32Array(a.master.length), a.size);
-        l.geometry.setAttribute(names[ai] ?? '', at);
+        lm.geometry.setAttribute(names[ai] ?? '', at);
         return at;
       });
-      const lm = new InstancedMesh(l.geometry, mesh.material, n);
+      lm.material = mesh.material;
       lm.name = `${mesh.name}:lod${li + 1}`;
       lm.renderOrder = mesh.renderOrder;
       lm.frustumCulled = mesh.frustumCulled;
-      if (colors !== null) lm.instanceColor = new InstancedBufferAttribute(new Float32Array(colors.length), 3);
+      if (colors !== null && lm.instanceColor === null) lm.instanceColor = new InstancedBufferAttribute(new Float32Array(colors.length), 3);
       lm.boundingSphere = mesh.boundingSphere?.clone() ?? null;
       lm.count = 0;
       lm.visible = false;

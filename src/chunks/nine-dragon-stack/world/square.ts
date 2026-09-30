@@ -38,7 +38,7 @@ const CARVE: Look = { wash: 0x767880, line: 1, wet: 0.35, surf: SURF.concrete };
  * (−PANEL_W/2 … PANEL_W/2), y up from the panel's foot. One geometry for all ~56 faces, where the per-panel dragon
  * reliefs cost ~190 vertices a panel in the square's kit.
  */
-function carvedPanel(far = false): BufferGeometry {
+export function carvedPanel(far = false): BufferGeometry {
   const k = new Kit(), x = new KitX();
   const hw = PANEL_W / 2, Z = new Vector3(0, 0, 1);
   // the raised frame: rails and stiles standing 4 cm proud

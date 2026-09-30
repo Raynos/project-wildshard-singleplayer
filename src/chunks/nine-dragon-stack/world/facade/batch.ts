@@ -1,49 +1,20 @@
 // Copied from the facade lab (src/dev/nd-lab/facade/batch.ts, round-7-lab-facade) into the clean room.
-// A Dressing → one merged shell mesh, one InstancedMesh per kit piece, and instanced window quads.
+// A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in), the kit's
+// pieces placed as models (../../models/facade.ts: one InstancedMesh per piece), and instanced window quads.
 // E271/E272: facade multi-draw is prohibited on every platform/shard, not just phones.
 // See docs/audits/nine-dragon-mobile-multidraw.md before changing this rendering policy.
-import {
-  type BufferGeometry, Color, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PlaneGeometry, type ShaderMaterial,
-} from 'three';
+import { Color, Group, InstancedBufferAttribute, InstancedMesh, type Matrix4, Mesh, type Object3D, PlaneGeometry, type ShaderMaterial } from 'three';
 import type { Builder } from './geo';
 import type { Dressing } from './grammar';
 import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facadeMaterial';
-import { CAGE_W, CAGE_W0, PAL, PIECES, PIECE_LODS, type PieceId } from './pieces';
-import type { InstanceLevel } from '../cull';
+import { BAKED, DRAWN_AS, PIECES, SMALL, type PieceId } from './pieces';
+import { FACADE_MODELS, type FacadeParams } from '../../models/facade';
+import { type InstancedCuller, type Placed, place } from '../../../../models/place';
+import type { ModelContext, Placement } from '../../../../models/model';
+import type { NdLook } from '../modelLook';
+import { triCount } from '../lod';
 
-/** pieces small enough to shrink into the wall past the clutter distance */
-const SMALL = new Set<PieceId>(['plant', 'planter', 'laundryOut', 'laundryAlong', 'dish']);
-
-/**
- * The facade lane's draw diet (E281: ~28 draws against a cap of 20; multi-draw is prohibited, E271 / E272).
- * DRAWN_AS: ids that share another piece's geometry — the placement is composed with `local` and its colour
- * multiplied by `tint` (the ledges, bay boxes and gallery posts are one unit box; the two cages one cage; the two
- * rooftop shacks one shack whose roof takes the tint). BAKED: the few-and-small pieces (red couplets, shutters, sign
- * boards and boxes, window ACs, the wash on street lines, awnings) are merged into the shell, which is drawn anyway.
- */
-const S = (x: number, y: number, z: number): Matrix4 => new Matrix4().makeScale(x, y, z);
-const DRAWN_AS: Partial<Record<PieceId, { as: PieceId; local: Matrix4; tint: number }>> = {
-  ledge: { as: 'box', local: S(1, 0.1, 0.36), tint: PAL.slab },
-  bayBox: { as: 'box', local: S(1, 1, 0.6), tint: 0xffffff },
-  post: { as: 'box', local: new Matrix4().makeTranslation(0, 0, -0.11).multiply(S(0.22, 1, 0.22)), tint: 0xb8321f },
-  cageS: { as: 'cage', local: S(CAGE_W[0] / CAGE_W0, 1, 1), tint: 0xffffff },
-  cageW: { as: 'cage', local: S(CAGE_W[1] / CAGE_W0, 1, 1), tint: 0xffffff },
-  shackG: { as: 'shack', local: new Matrix4(), tint: PAL.malachite },
-  shackB: { as: 'shack', local: new Matrix4(), tint: PAL.azurite },
-};
-const BAKED = new Set<PieceId>(['couplet', 'shutter', 'signFlat', 'signBox', 'acBox', 'washLine', 'awning']);
 const bakeCache = new Map<PieceId, Builder>();
-
-const geoCache = new Map<PieceId, { g: BufferGeometry; tris: number }>();
-function pieceGeo(id: PieceId): { g: BufferGeometry; tris: number } {
-  let e = geoCache.get(id);
-  if (e === undefined) {
-    const b: Builder = PIECES[id]();
-    e = { g: b.build(), tris: b.triangleCount };
-    geoCache.set(id, e);
-  }
-  return e;
-}
 
 export interface FacadeStats { draws: number; tris: number; instances: number; windows: number; shellTris: number; perPiece: Record<string, [number, number]> }
 
@@ -52,17 +23,37 @@ export interface FacadeOptions {
   clutterFar?: readonly [number, number];
 }
 
-export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = {}): { group: Group; stats: FacadeStats; small: InstancedMesh[]; lods: Map<InstancedMesh, InstanceLevel[]> } {
+/** where the pieces are placed: the fragment's model context and look, and the culler that takes their copies */
+export interface FacadeModels {
+  readonly ctx: ModelContext;
+  readonly look: NdLook;
+  readonly culler: InstancedCuller;
+}
+
+/** the copies of one piece */
+interface Copy { m: Matrix4; c: Color }
+
+/**
+ * Name a placed model's draws as the old hand-rolled batch was named (the budget ruler's lanes, the GPU ruler's groups
+ * and the E283 culler's LOD names read them): the object and its level-0 mesh; returns level 0's triangles per copy.
+ */
+export function nameDraws(placed: Placed, name: string): number {
+  placed.object.name = name;
+  const isBatch = (o: Object3D): o is InstancedMesh => o instanceof InstancedMesh;
+  const base = isBatch(placed.object) ? placed.object : placed.object.children.find(isBatch);
+  if (base === undefined) return 0;
+  base.name = name;
+  return triCount(base.geometry);
+}
+
+export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeModels, opt: FacadeOptions = {}): Promise<{ group: Group; stats: FacadeStats }> {
   const group = new Group();
-  // the SMALL pieces' batches (the engine's culler drops their instances past the clutter distance)
-  const small: InstancedMesh[] = [];
-  // (E283) the pieces' distance LODs (pieces.ts PIECE_LODS), for the culler
-  const lods = new Map<InstancedMesh, InstanceLevel[]>();
   group.name = 'facade';
   const mat = jiehuaMaterial(shared);
   const matSmall = jiehuaMaterial(shared, { shrink: opt.clutterFar ?? [55, 85] });
+  models.look.facade = { mat, small: matSmall };
   // the kit: one instanced draw per drawn geometry; the baked pieces go into the shell first
-  const byPiece = new Map<PieceId, Dressing['pieces']>();
+  const byPiece = new Map<PieceId, Copy[]>();
   const tc = new Color();
   for (const p of d.pieces) {
     if (BAKED.has(p.piece)) {
@@ -73,7 +64,7 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     }
     const alias = DRAWN_AS[p.piece];
     const id = alias?.as ?? p.piece;
-    const q = alias === undefined ? p : { piece: id, m: p.m.clone().multiply(alias.local), c: p.c.clone().multiply(tc.setHex(alias.tint)) };
+    const q: Copy = alias === undefined ? p : { m: p.m.clone().multiply(alias.local), c: p.c.clone().multiply(tc.setHex(alias.tint)) };
     let l = byPiece.get(id);
     if (l === undefined) { l = []; byPiece.set(id, l); }
     l.push(q);
@@ -88,25 +79,27 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     stats.tris += d.shell.triangleCount;
     d.shell.release();
   }
+  // the pieces: one `place` each (a task apart when a piece took long: the phone's ~30 ms tasks)
+  let lastYield = performance.now();
   for (const [id, list] of byPiece) {
-    const { g, tris } = pieceGeo(id);
-    const im = new InstancedMesh(g, SMALL.has(id) ? matSmall : mat, list.length);
-    im.name = `facade-${id}`;
-    if (SMALL.has(id)) small.push(im);
-    const lod = PIECE_LODS[id];
-    if (lod !== undefined) lods.set(im, [{ geometry: lod.far().build(), from: lod.from }]);
-    list.forEach((p, i) => { im.setMatrixAt(i, p.m); im.setColorAt(i, p.c); });
-    im.instanceMatrix.needsUpdate = true;
-    if (im.instanceColor !== null) im.instanceColor.needsUpdate = true;
-    im.computeBoundingSphere();
-    im.computeBoundingBox();
-    group.add(im);
+    const model = FACADE_MODELS[id];
+    if (model === undefined) throw new Error(`facade: no model draws the piece '${id}' (models/facade.ts FACADE_MODELS)`);
+    const placements: Placement<FacadeParams>[] = list.map((p) => ({ x: p.m.elements[12], y: p.m.elements[13], z: p.m.elements[14], matrix: p.m, color: p.c }));
+    const placed = place(model, placements, {
+      ctx: models.ctx, draw: 'instanced', culler: models.culler, parent: group,
+      // the small clutter is not drawn past 85 m, where its program has shrunk it into the wall
+      ...(SMALL.has(id) ? { cull: { far: 85 } } : {}),
+      piece: { id: `nds-facade-${id}`, name: model.name },
+    });
+    const tris = nameDraws(placed, `facade-${id}`);
     stats.draws++;
     stats.instances += list.length;
     stats.tris += tris * list.length;
     stats.perPiece[id] = [list.length, tris * list.length];
+    if (performance.now() - lastYield > 30) { await new Promise<void>((resolve) => { setTimeout(resolve, 0); }); lastYield = performance.now(); }
   }
-  // the windows: one InstancedMesh of unit quads (x ∈ [-0.5, 0.5], y ∈ [0, 1]), interior-mapped
+  // the windows: one InstancedMesh of unit quads (x ∈ [-0.5, 0.5], y ∈ [0, 1]), interior-mapped — the towers' own
+  // windows, part of their fabric (world)
   if (d.windows.length > 0) {
     const q = new PlaneGeometry(1, 1);
     q.translate(0, 0.5, 0);
@@ -130,5 +123,5 @@ export function buildFacade(d: Dressing, shared: Uniforms, opt: FacadeOptions = 
     stats.draws++;
     stats.tris += 2 * n;
   }
-  return { group, stats, small, lods };
+  return { group, stats };
 }

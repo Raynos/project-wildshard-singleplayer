@@ -11,6 +11,9 @@ import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.mo
 /** metres a pixel spans per metre of distance on Jake's phone frame (portrait: 78° of FOV over 1624 buffer px) */
 export const PX_PER_M = (2 * Math.tan((78 / 2) * (Math.PI / 180))) / 1624;
 
+/** a sculpt's LOD error where it starts, in pixels of that frame (E283: the lion's, the Fei Zhua hook's) */
+export const SCULPT_PX = 0.7;
+
 /** meshoptimizer's simplifier, loaded (false where it cannot run: the LODs then keep every level at full detail) */
 export async function lodReady(): Promise<boolean> {
   try {
