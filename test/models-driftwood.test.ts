@@ -14,6 +14,7 @@ import { shipwreck } from '../src/chunks/driftwood-isle/models/shipwreck';
 import { barrel, crate, ropeCoil } from '../src/chunks/driftwood-isle/models/cargo';
 import { driftLog } from '../src/chunks/driftwood-isle/models/driftLog';
 import { reefRock } from '../src/chunks/driftwood-isle/models/reefRock';
+import { ropeBridge, ropeBridgeLayout } from '../src/chunks/driftwood-isle/models/ropeBridge';
 
 /** the world side's sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(['../src/world/*.ts', '../src/main.ts'], { query: '?raw', import: 'default', eager: true });
@@ -67,6 +68,7 @@ describe('Driftwood models (E315 M1)', () => {
       'src/world/Pier.ts': { why: '', draws: {} },
       'src/world/Hut.ts': { why: '', draws: {} },
       'src/world/Lookout.ts': { why: '', draws: {} },
+      'src/world/RopeBridge.ts': { why: '', draws: {} },
       'src/world/Wreck.ts': { why: 'the wreck site\'s weld: the vessel and the cove\'s surroundings in one kit (the AO and the lantern light over all of it), the reef rocks\' smooth mesh, the lantern flames (its models drawnInto them)', draws: { mergeGeometries: 1, Mesh: 3 } },
       'src/world/Shrine.ts': { why: 'the firefly cloud (an effect, not a model)', draws: { Mesh: 1 } },
       'src/world/Boat.ts': { why: 'the mooring lines: world geometry between two placed models', draws: { mergeGeometries: 1, Mesh: 1 } },
@@ -87,7 +89,7 @@ describe('Driftwood models (E315 M1)', () => {
     }
     // and the shard's setup never hand-registers them again
     const main = strip(source('src/main.ts'));
-    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'wreck', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`addBuilt\\(\`?'?${id}|registry\\.add\\(\\{ id: '${id}`));
+    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'wreck', 'bridge', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`addBuilt\\(\`?'?${id}|registry\\.add\\(\\{ id: '${id}`));
   });
 
   it("the hut's layout and its geometry come from one build per site", () => {
@@ -124,5 +126,25 @@ describe('Driftwood models (E315 M1)', () => {
       expect(box.min.y, m.id).toBeGreaterThan(m === shipwreck ? -1.2 : m === reefRock ? -1 : -0.35);
       expect(box.max.y, m.id).toBeGreaterThan(0.1);
     }
+  });
+
+  it('the rope bridge: its group in own space at end a, its chain in the world, its deck posed into the group', () => {
+    const ground = (x: number): number => 5 + x * 0.01, span = { a: [40, 10] as [number, number], b: [52, 22] as [number, number], sag: 0.9 };
+    const params = { span, ground };
+    const lay = ropeBridgeLayout(sky, params);
+    expect(lay.o).toEqual({ x: 40, y: Math.fround(5.4), z: 10 });
+    const placed = place(ropeBridge, [{ ...lay.o, params }], { ctx, draw: 'single', registry: null });
+    expect(placed.object).toBe(lay.mesh); // the world's copy is the group its layout drives
+    expect(placed.object.position.toArray()).toEqual([40, Math.fround(5.4), 10]);
+    placed.object.updateMatrixWorld(true);
+    // the deck's first segment: the chain's rest pose (world) is where its holder draws it
+    const seg = lay.chainSpec().segments[0], holder = lay.chainSpec().owners[0]?.follows;
+    const p = new THREE.Vector3().setFromMatrixPosition(holder?.matrixWorld ?? new THREE.Matrix4());
+    expect(p.distanceTo(new THREE.Vector3(seg?.x, seg?.y, seg?.z))).toBeLessThan(1e-5);
+    // its colliders placed back where the world's were
+    expect(placed.colliders.length).toBe(lay.colliderDescs().length);
+    const w = lay.colliderDescs()[0], c = placed.colliders[0];
+    expect(c?.kind === 'box' && w?.kind === 'box' ? Math.hypot(c.x - w.x, c.y - w.y, c.z - w.z) : 1).toBeLessThan(1e-9);
+    expect(lay.floorHeightAt(46, 16)).toBeGreaterThan(4.5);
   });
 });

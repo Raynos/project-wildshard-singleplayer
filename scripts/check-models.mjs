@@ -48,6 +48,7 @@ export const ON_CONTRACT = [
   // M1, Driftwood (E315): the world side of every model moved so far (their hand-rolled drawing is held by test/models-driftwood.test.ts)
   'src/world/Palms.ts', 'src/world/Bushes.ts', 'src/world/Boulders.ts', 'src/world/Pier.ts', 'src/world/Hut.ts', 'src/world/Shrine.ts',
   'src/world/Boat.ts', 'src/world/Seabed.ts', 'src/world/BlenderIsland.ts', 'src/world/Trailside.ts', 'src/world/Lookout.ts', 'src/world/Wreck.ts',
+  'src/world/RopeBridge.ts',
   'src/world/nalati/painted.ts', 'src/world/nalati/KurganField.ts', 'src/world/nalati/Balbals.ts', 'src/world/nalati/Bridge.ts',
   'src/world/nalati/EagleRock.ts', 'src/world/nalati/Cairn.ts', 'src/world/nalati/Crags.ts', 'src/world/nalati/Stair.ts',
   'src/world/nalati/Bowl.ts',

@@ -362,8 +362,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (trailside) addBuilt('trailside', 'Trailside', 'props', 'src/world/Trailside.ts', trailside.mesh, trailside.colliders, 'wood', undefined, trailside.worldColliderDescs());
     await slice();
     // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
-    const bridge = isOcean ? new RopeBridge(sky, BRIDGE).build() : null;
-    if (bridge) addBuilt('bridge', 'Rope bridge', 'buildings', 'src/world/RopeBridge.ts', bridge.mesh, bridge.colliders, 'planks', (x, z) => bridge.floorHeightAt(x, z), bridge.colliderDescs(), {});
+    // E315 M1: the rope bridge model (src/chunks/driftwood-isle/models/ropeBridge.ts) placed through src/models/place.ts, which registers piece `bridge`
+    const bridge = isOcean ? new RopeBridge(sky, BRIDGE).place(registry) : null;
+    if (bridge) statics.push(...bridge.colliders);
     await slice();
     // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
     const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
