@@ -64,7 +64,7 @@ export const mahjongTableModel = defineModel({
 export interface FigureParams { readonly pose: 'stand' | 'sit' | 'cook'; readonly umbrella: boolean }
 
 export const inkFigure = defineModel<FigureParams>({
-  id: 'nine-dragon-stack/ink-figure', name: 'Brush-drawn figure (procedural)', category: 'creatures', pipeline: 'code', file: FILE,
+  id: 'nine-dragon-stack/ink-figure', name: 'Brush-drawn figure (procedural)', category: 'people', pipeline: 'code', file: FILE,
   defaults: { pose: 'stand', umbrella: false },
   variants: [
     { id: 'stand', label: 'Standing', params: {} }, { id: 'umbrella', label: 'With an umbrella', params: { umbrella: true } },

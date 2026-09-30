@@ -67,7 +67,7 @@ export interface SitterParams { readonly pick: SitterPick }
 const walkerVariant = (pick: WalkerPick, label: string): ModelVariant<WalkerParams> => ({ id: pick, label, params: { pick } });
 
 export const umbrellaWalker = defineModel<WalkerParams>({
-  id: 'nine-dragon-stack/umbrella-walker', name: 'Umbrella walker', category: 'creatures', pipeline: 'trellis', file: FILE, defaults: { pick: 'dark' },
+  id: 'nine-dragon-stack/umbrella-walker', name: 'Umbrella walker', category: 'people', pipeline: 'trellis', file: FILE, defaults: { pick: 'dark' },
   variants: [
     walkerVariant('dark', 'Dark coat · black umbrella'), walkerVariant('light', 'Beige jacket'), walkerVariant('oxblood', 'Oxblood oil-paper umbrella'),
     walkerVariant('paper', 'Ochre oil-paper umbrella'), walkerVariant('blue', 'Dark blue umbrella'),
@@ -77,7 +77,7 @@ export const umbrellaWalker = defineModel<WalkerParams>({
 });
 
 export const mahjongSitter = defineModel<SitterParams>({
-  id: 'nine-dragon-stack/mahjong-sitter', name: 'Mahjong sitter', category: 'creatures', pipeline: 'trellis', file: FILE, defaults: { pick: 'dark' },
+  id: 'nine-dragon-stack/mahjong-sitter', name: 'Mahjong sitter', category: 'people', pipeline: 'trellis', file: FILE, defaults: { pick: 'dark' },
   variants: [{ id: 'dark', label: 'Dark coat', params: { pick: 'dark' } }, { id: 'light', label: 'Beige jacket', params: { pick: 'light' } }],
   build: (ctx, p) => figure(ctx, sitterGeometry(ctx, p.pick)),
   lods: levels<SitterParams>((p) => `sitter-${p.pick}`, (ctx, p) => sitterGeometry(ctx, p.pick)),
