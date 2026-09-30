@@ -9,6 +9,7 @@ import { place } from '../src/models/place';
 import { boat, boatColliders } from '../src/chunks/driftwood-isle/models/boat';
 import { palm } from '../src/chunks/driftwood-isle/models/palm';
 import { hut, hutLayout } from '../src/chunks/driftwood-isle/models/hut';
+import { lookout, lookoutLayout } from '../src/chunks/driftwood-isle/models/lookout';
 
 /** the world side's sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(['../src/world/*.ts', '../src/main.ts'], { query: '?raw', import: 'default', eager: true });
@@ -61,6 +62,7 @@ describe('Driftwood models (E315 M1)', () => {
       'src/world/Boulders.ts': { why: '', draws: {} },
       'src/world/Pier.ts': { why: '', draws: {} },
       'src/world/Hut.ts': { why: '', draws: {} },
+      'src/world/Lookout.ts': { why: '', draws: {} },
       'src/world/Shrine.ts': { why: 'the firefly cloud (an effect, not a model)', draws: { Mesh: 1 } },
       'src/world/Boat.ts': { why: 'the mooring lines: world geometry between two placed models', draws: { mergeGeometries: 1, Mesh: 1 } },
       'src/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 } },
@@ -80,7 +82,7 @@ describe('Driftwood models (E315 M1)', () => {
     }
     // and the shard's setup never hand-registers them again
     const main = strip(source('src/main.ts'));
-    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`addBuilt\\(\`?'?${id}|registry\\.add\\(\\{ id: '${id}`));
+    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`addBuilt\\(\`?'?${id}|registry\\.add\\(\\{ id: '${id}`));
   });
 
   it("the hut's layout and its geometry come from one build per site", () => {
@@ -93,5 +95,18 @@ describe('Driftwood models (E315 M1)', () => {
     expect(hutLayout({ site, ground })).toBe(lay); // the same builder (by its site)
     expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(10, 0); // built where it stands
     expect(placed.colliders.length).toBe(lay.colliderDescs().length);
+  });
+
+  it("the lookout's layout and its geometry come from one build per site", () => {
+    const ground = (): number => 2, site = { x: 40, z: 60, rot: 0.6 }, params = { site, ground, zipTo: { x: 80, z: 20 } };
+    const lay = lookoutLayout(params);
+    expect(lay.platformY).toBeCloseTo(7, 9); // own space: the platform stands 7 m over the ground at its centre
+    expect(lay.floorHeightAt(0, 0)).toBeCloseTo(7, 9);
+    expect(Object.keys(lay.anchors).sort()).toEqual(['beacon', 'shard', 'stairFoot', 'zipTop']);
+    const placed = place(lookout, [{ x: site.x, y: 2, z: site.z, params }], { ctx, draw: 'merged', registry: null });
+    expect(lookoutLayout(params)).toBe(lay); // the same builder (by its site)
+    expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(40, -1); // built where it stands
+    expect(placed.colliders.length).toBe(lay.colliderDescs().length);
+    expect(placed.colliders.find((c) => c.kind === 'treads')).toBeDefined(); // the stair
   });
 });

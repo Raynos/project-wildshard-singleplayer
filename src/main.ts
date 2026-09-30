@@ -320,8 +320,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (hut) statics.push(...hut.colliders);
     await slice();
     // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
-    const lookout = isOcean ? new Lookout(sky, LOOKOUT).build() : null;
-    if (lookout) addBuilt('lookout', 'Lookout tower', 'buildings', 'src/world/Lookout.ts', lookout.group, lookout.colliders, 'planks', (x, z) => lookout.floorHeightAt(x, z), lookout.colliderDescs(), {});
+    // E315 M1: the lookout tower model (src/chunks/driftwood-isle/models/lookout.ts) placed through src/models/place.ts, which registers piece `lookout`
+    const lookout = isOcean ? new Lookout(sky, LOOKOUT).place(registry) : null;
+    if (lookout) statics.push(...lookout.colliders);
     await slice();
     const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
     if (wreck) addBuilt('wreck', 'Shipwreck', 'buildings', 'src/world/Wreck.ts', wreck.group, wreck.colliders, 'planks', (x, z) => wreck.floorHeightAt(x, z), wreck.colliderDescs(), {});
