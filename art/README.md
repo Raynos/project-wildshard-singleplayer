@@ -520,3 +520,16 @@ models in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` rows M3, M
 `board.jpg`: pause ▸ Settings ▸ Debug ▸ Look ▸ Crags, A today | B new crags (the face skin without the stretch, paler
 granite, fused and fractured cliff modules, a hero crag on the crest E of the lookout), iPhone portrait, close up at the
 pass, the lookout's east catwalk, the Ridge from the trail; the GPU ms and the bytes in the footer and the README.
+
+### Loot, the other three shards' Bag (`art/loot/round-3-other-shards/`, 2026-09-30, E314)
+
+This covers the last row of DRIFTWOOD-LOOT: the shared five-tab Bag rolled out to the other three shards. The frames
+are codex edits of live iPhone 16 Pro portrait Bag captures, two frames per variant.
+- `board-1-pine-hollow.jpg`: A leanest (JOURNAL renamed FINDS, and the pack trimmed to Mott's 7 kinds), B Driftwood's
+  full pattern, C the middle (A plus FINISHES on GEAR and trade lines on the pack).
+- `board-2-nalati.jpg`: A MAP · GEAR · FEATS with no pack, B the full five, C no pack with FINDS showing the elites.
+- `board-3-nine-dragon.jpg`: A MAP · GEAR (jian and grapple), B the full five, C with three traversal feats.
+- `board-4-order.jpg`: the recommended order and what each shard takes.
+
+Recommended: Pine C, Nalati A, Nine Dragon A, in that order. The folder's README holds the per-shard audit (the slop
+and the bugs).
