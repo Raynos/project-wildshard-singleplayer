@@ -5,6 +5,9 @@ import { describe, expect, it } from 'vitest';
 import { PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '../src/playgrounds/catalog';
 import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, type CourseHook, type CoursePad } from '../src/playgrounds/grappleCourse';
 import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '../src/playgrounds/horseCourse';
+import { practiceRoom } from '../src/core/practiceRoom';
+import { placesWithDiscovery } from '../src/game/quest/core';
+import { Flags } from '../src/world/interact/flags';
 
 describe('the Explore hub lists each shard its own playgrounds', () => {
   it('Nine Dragon: the grapple course; Nalati: the horse track; Driftwood and Pine Hollow: none (Jake)', () => {
@@ -152,5 +155,20 @@ describe('the horse field (horseCourse.ts) against Mount.ts', () => {
     expect(HORSE_START.x).toBeLessThan(0);
     expect(HORSE_START.z).toBe(OVAL.radius);
     expect(Math.hypot(RIDER_START.x - HORSE_START.x, EYE, RIDER_START.z - HORSE_START.z)).toBeLessThan(3.3);
+  });
+});
+
+describe('a practice room hangs over the shard: its x / z is no place on it', () => {
+  it('no place is discovered (nor its flag saved) from the arena or a playground', () => {
+    const flags = new Flags('chunk://test/e307', false);
+    const toasts: string[] = [];
+    const places = placesWithDiscovery([{ id: 'horse-plains', label: 'HORSE PLAINS', x: 65, z: 36, r: 24 }], flags, (t) => { toasts.push(t); }, () => []);
+    practiceRoom.open = true;
+    places.update(65, 36);
+    expect(flags.has('seen:horse-plains')).toBe(false);
+    practiceRoom.open = false;
+    places.update(65, 36);
+    expect(flags.has('seen:horse-plains')).toBe(true);
+    expect(toasts).toEqual(['Discovered · HORSE PLAINS']);
   });
 });

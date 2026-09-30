@@ -22,6 +22,7 @@ import { QuestState, lineFor, type DialogueEntry, type NpcDef, type QuestDef, ty
 import type { Flags } from '../../world/interact/flags';
 import type { Interactable } from '../../world/Cabin';
 import type { MapPoi } from '../../ui/Map';
+import { practiceRoom } from '../../core/practiceRoom';
 
 /** a quest marker resolved to world coordinates */
 export interface LiveMarker { id: string; label: string; short: string; x: number; z: number }
@@ -133,6 +134,7 @@ export function placesWithDiscovery(pts: PlacePoint[], flags: Flags, toast: (t: 
     points: pts,
     discovered: (id) => flags.has(`seen:${id}`),
     update: (x, z) => {
+      if (practiceRoom.open) return; // the arena / a playground hangs over the shard: its x / z is no place on it (E307)
       for (const p of pts) {
         if (flags.has(`seen:${p.id}`)) continue;
         if ((p.x - x) ** 2 + (p.z - z) ** 2 < p.r * p.r) { flags.set(`seen:${p.id}`); if (p.quiet !== true) toast(`Discovered · ${p.label}`); }

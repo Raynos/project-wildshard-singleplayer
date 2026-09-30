@@ -18,6 +18,7 @@
 import * as THREE from 'three';
 import { PaintKit, pole, v3, blob, poiMaterial } from '../world/nalati/paint';
 import { KOKPAR } from '../chunks/nalatiLayout';
+import { practiceRoom } from '../core/practiceRoom';
 import type { Sky } from '../world/Sky';
 
 /** a point on the field's oval at angle t, scaled by k (1 = its edge) — Bowl.ts buildKokpar's own `onOval` */
@@ -89,7 +90,8 @@ export function buildKokparRound(sky: Sky, floorAt: (x: number, z: number) => nu
       if (cheerT > 0) { cheerT -= dt; if (cheerT <= 0) lie(); }
       const dx = player.x - KOKPAR.x, dz = player.z - KOKPAR.z;
       if (!carrying) {
-        if (cheerT > 0 || mount?.mounted !== true || dx * dx + dz * dz > FIELD_R * FIELD_R) return;
+        // (a practice room hangs over the shard: the horse playground's track passes over the kokpar field, E307)
+        if (cheerT > 0 || mount?.mounted !== true || practiceRoom.open || dx * dx + dz * dz > FIELD_R * FIELD_R) return;
         if (Math.hypot(player.x - goat.position.x, player.z - goat.position.z) < PICK_R) {
           carrying = true; left = ROUND_T; slow = 0; warned = false;
           host.toast('You have the goat! Into a tai-qazan — keep galloping, the riders are on you');
