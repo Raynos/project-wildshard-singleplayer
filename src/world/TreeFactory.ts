@@ -9,7 +9,8 @@ import { loadBakedCards, exportCardTextures } from './BakedCards';
 import { macrotask } from '../boot/plan';
 import { markGpuOnly } from '../core/gpuOnly';
 import { TREE_SPECS, TREE_SPECS_V2, type TreeSpecies } from './placement';
-import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, standIn, treeSetUrls } from './treeSet';
+import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, crownTopUniforms, type CrownTop } from './treeSet';
+import { setting, onSettingChange } from '../ui/Settings';
 import { windUniforms as sharedWind, patchWindField } from './wind';
 import { stateSlot } from '../core/shardState';
 
@@ -152,6 +153,8 @@ export class TreeFactory {
   farMaterial!: TreeMaterial;
   /** each material's dissolve band (`forestFade`): Forest sets them from the tier's LOD distances */
   readonly fade = { cards: noFade(), trunk: noFade(), far: noFade(), twigs: noFade() };
+  /** the species set's "Crowns from above" pick (E322 F-L3): 0 = A today, 1 = B (treeSet.ts patchImpostorCrownTop) */
+  readonly crownTop: CrownTop = crownTopUniforms();
   variants: TreeVariant[] = [];
   /** the per-tree tint reaches the bark too (the runtime pines; the species set's bark carries its own colour) */
   tintBark = true;
@@ -378,7 +381,7 @@ export class TreeFactory {
   }
 
   /** the impostor: albedo + normal atlas on the 2-quad crosses, alpha sharpened by its own derivative, fading in (E94) */
-  private makeFarMaterial(albedo: THREE.Texture, normal: THREE.Texture, color = new THREE.Color(1, 1, 1)): THREE.MeshStandardMaterial {
+  private makeFarMaterial(albedo: THREE.Texture, normal: THREE.Texture, color = new THREE.Color(1, 1, 1), crownTop = false): THREE.MeshStandardMaterial {
     const far = new THREE.MeshStandardMaterial({
       map: albedo, normalMap: normal, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.96, metalness: 0, envMapIntensity: 0.45,
       color, normalScale: new THREE.Vector2(1, 1),
@@ -392,8 +395,9 @@ export class TreeFactory {
         .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
         .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
           reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;`);
+      if (crownTop) patchImpostorCrownTop(shader, this.crownTop);
     };
-    far.customProgramCacheKey = () => 'tree-far';
+    far.customProgramCacheKey = () => (crownTop ? 'tree-far-crown' : 'tree-far');
     return far;
   }
 
@@ -456,8 +460,9 @@ export class TreeFactory {
               #endif
               reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.04;
             }`);
+        patchCardCrownTop(shader, this.crownTop);
       };
-      m.customProgramCacheKey = () => key;
+      m.customProgramCacheKey = () => `${key}-crown`;
       return m;
     };
     this.needleMaterial = needles(this.fade.cards, 'needles-set');
@@ -468,7 +473,9 @@ export class TreeFactory {
     this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: cardAlbedo, alphaTest: 0.45, side: THREE.DoubleSide });
     this.twigDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); };
     this.twigDepth.customProgramCacheKey = () => 'tree-depth';
-    this.farMaterial = this.makeFarMaterial(farAlbedo, farNormal, new THREE.Color(0.92, 0.95, 0.9));
+    this.farMaterial = this.makeFarMaterial(farAlbedo, farNormal, new THREE.Color(0.92, 0.95, 0.9), true);
+    this.crownTop.value = setting('pineCrowns') === 'b' ? 1 : 0;
+    onSettingChange('pineCrowns', (v) => { this.crownTop.value = v === 'b' ? 1 : 0; });
 
     for (const s of TREE_SPECS_V2) {
       const g = geo.get(s.name);

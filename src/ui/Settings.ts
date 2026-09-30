@@ -134,6 +134,9 @@ export const OPTION_VALUES = {
   // E304: Driftwood's faces (Castaway.ts, species/sailor.ts, species/captainMesh.ts) — a reload: B lowpoly (Wendell's and
   // the Drowned Sailor's readable faceted faces, in code) · C hunyuan (B + the Captain's head a Hunyuan3D-2 bust)
   driftwoodFaces: ['current', 'lowpoly', 'hunyuan', 'paint'],
+  // E322 F-L3: Pine Hollow's tree crowns seen from above — A today · B the far impostors' back faces lit the right way up,
+  // the crowns' sky-facing cards sunlit from above (src/world/treeSet.ts) — Debug ▸ Look, live
+  pineCrowns: ['a', 'b'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -153,6 +156,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, nineDragonFaces: DEBUG_ONLY, driftwoodFaces: DEBUG_ONLY,
+  pineCrowns: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
   const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
@@ -170,6 +174,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   nineDragonFaces: option('nineDragonFaces'),
   driftwoodFaces: option('driftwoodFaces'),
+  pineCrowns: option('pineCrowns'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

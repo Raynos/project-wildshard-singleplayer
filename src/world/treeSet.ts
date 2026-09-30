@@ -129,3 +129,59 @@ export function standIn(rgba: [number, number, number, number]): THREE.DataTextu
   t.needsUpdate = true;
   return t;
 }
+
+/**
+ * The species set's "Crowns from above" pick (E322 F-L3, pause ▸ Settings ▸ Debug ▸ Look): `value` 0 =
+ * A (today), 1 = B, live; `tune` = B's strengths (the impostor's normal lean and albedo lift, the cards' lean and lift).
+ */
+export interface CrownTop { value: number; tune: THREE.Vector4 }
+export const crownTopUniforms = (): CrownTop => ({ value: 0, tune: new THREE.Vector4(0.8, 1.0, 0.5, 0.35) });
+
+/** GLSL: the world's up in view space, and how far the view looks down (0 at the horizon → 1 from ~27° down) */
+const CROWN_VIEW = /* glsl */`
+        vec3 crownUp = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
+        float crownDown = smoothstep( 0.0, 0.45, dot( normalize( vViewPosition ), crownUp ) );`;
+
+/**
+ * E322 F-L3 B, the impostor (the far band). (1) Its back face gets the bake's frame: the material keeps the quad's own
+ * normal on both faces (no `normal *= faceDirection`) while three still mirrors the tangent frame there, so a back face
+ * read the atlas's normals upside down and facing away from the eye, and lit as a grazing sky sheen: every crown whose
+ * quad showed its back (about half) read pale blue-grey beside its dark neighbours. The perturbed normal × faceDirection
+ * is the frame three builds for a flipped normal: tangent and up as baked, the out-of-quad axis toward the eye. (2) The
+ * side bake holds no crown top and bakes the crown's occlusion into its albedo, so seen from above the crown lights as a
+ * canopy: its normal leans to the sky and its albedo lifts toward the sunlit top as the view looks down.
+ */
+export function patchImpostorCrownTop(shader: { fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, crown: CrownTop): void {
+  shader.uniforms['uCrownTop'] = crown;
+  shader.uniforms['uCrownTune'] = { value: crown.tune };
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\nuniform float uCrownTop; uniform vec4 uCrownTune;')
+    .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      if ( uCrownTop > 0.5 ) {
+        normal *= faceDirection;${CROWN_VIEW}
+        normal = normalize( mix( normal, crownUp, uCrownTune.x * crownDown ) );
+        diffuseColor.rgb *= 1.0 + uCrownTune.y * crownDown;
+      }`);
+}
+
+/**
+ * E322 F-L3 B, the branch cards (the near and far bands): seen from above, a crown's sky-facing cards (their crown-bent
+ * vertex normal up) shed most of their baked AO, lift and lean to the sky, so a crown's top reads sunlit, as in the look
+ * targets, instead of the dark green of its occluded inside. Weighted by the same view-down ramp as the impostor, so a
+ * crown seen from the ground (looking level or up) is unchanged.
+ */
+export function patchCardCrownTop(shader: { fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, crown: CrownTop, aoLift = 0.75): void {
+  shader.uniforms['uCrownTop'] = crown;
+  shader.uniforms['uCrownTune'] = { value: crown.tune };
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\nuniform float uCrownTop; uniform vec4 uCrownTune;')
+    .replace('#include <emissivemap_fragment>', `
+      float crownLift = 0.0;
+      if ( uCrownTop > 0.5 ) {${CROWN_VIEW}
+        crownLift = crownDown * smoothstep( -0.1, 0.6, dot( nonPerturbedNormal, crownUp ) );
+        normal = normalize( mix( normal, crownUp, uCrownTune.z * crownLift ) );
+        diffuseColor.rgb *= 1.0 + uCrownTune.w * crownLift;
+      }
+      #include <emissivemap_fragment>`)
+    .replace('#include <aomap_fragment>', THREE.ShaderChunk.aomap_fragment.replace('* aoMapIntensity + 1.0', `* aoMapIntensity * ( 1.0 - ${aoLift.toFixed(3)} * crownLift ) + 1.0`));
+}
