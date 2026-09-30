@@ -30,6 +30,12 @@ export interface NpcFigure {
   update: (dt: number, t: number, player: THREE.Vector3) => void;
   /** draw distance: drawn inside 140 m, casting a shadow inside 45 m (`d` = metres from the camera) */
   lod: (d: number) => void;
+  /**
+   * E322 F-M3: walk to (x, y, z) at the rig's walk pace, playing its walk (Debug ▸ NPC rig B: the legs step; A slides),
+   * then face the post's way again; the collider and the talk point go along (a caller that moves a person moves its
+   * prompt). Nothing in the quest moves the people yet: this is the walk, ready for when it does.
+   */
+  walkTo: (x: number, y: number, z: number) => void;
 }
 
 interface Look { coat: string; coatDark: string; shirt: string; legs: string; boots: string; skin: string; hair: string; hat: 'campaign' | 'cap' | 'fur' | 'none'; hatCol: string; beard: 'long' | 'short' | 'none'; apron?: string; lantern: boolean; badge: boolean }
@@ -179,8 +185,27 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
       r.handR.add(flame);
     }
   };
-  const collider: Collider = { x: feet.x, z: feet.z, hw: 0.28, hd: 0.28, rot: 0, yTop: feet.y + 1.8, yBottom: feet.y - 0.3 };
-  const talkPoint = new THREE.Vector3(feet.x, feet.y + 1.6, feet.z);
+  const pos = { x: feet.x, y: feet.y, z: feet.z };   // where they stand: a walk moves it
+  const collider: Collider = { x: pos.x, z: pos.z, hw: 0.28, hd: 0.28, rot: 0, yTop: pos.y + 1.8, yBottom: pos.y - 0.3 };
+  const talkPoint = new THREE.Vector3(pos.x, pos.y + 1.6, pos.z);
+  // the walk (E322 F-M3): from → to, `walkK` easing the clip in and out, `phase` advanced by the distance walked
+  let walk: { from: THREE.Vector3; to: THREE.Vector3; done: number } | null = null, walkK = 0, phase = 0;
+  const stepWalk = (dt: number): number | null => {
+    const speed = rig?.walkSpeed ?? 0.72, cycle = rig?.walkCycle ?? 0.72;
+    walkK += ((walk ? 1 : 0) - walkK) * Math.min(1, dt * 5);
+    if (!walk) return null;
+    const len = walk.from.distanceTo(walk.to);
+    walk.done = Math.min(len, walk.done + speed * walkK * dt);
+    phase = (phase + (speed * walkK * dt) / Math.max(0.01, cycle)) % 1;
+    const k = len > 1e-6 ? walk.done / len : 1;
+    pos.x = walk.from.x + (walk.to.x - walk.from.x) * k; pos.y = walk.from.y + (walk.to.y - walk.from.y) * k; pos.z = walk.from.z + (walk.to.z - walk.from.z) * k;
+    group.position.set(pos.x, pos.y, pos.z);
+    collider.x = pos.x; collider.z = pos.z; collider.yTop = pos.y + 1.8; collider.yBottom = pos.y - 0.3;
+    talkPoint.set(pos.x, pos.y + 1.6, pos.z);
+    const heading = Math.atan2(walk.to.x - walk.from.x, walk.to.z - walk.from.z);
+    if (walk.done >= len) walk = null;
+    return heading;
+  };
   const home = yaw;
   let cur = yaw;
   let lodState = -1;
@@ -191,11 +216,15 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
       if (st === lodState) return;
       lodState = st; group.visible = st > 0; shown.castShadow = st === 2; mesh.castShadow = st === 2;
     },
+    walkTo: (x, y, z) => {
+      walk = { from: new THREE.Vector3(pos.x, pos.y, pos.z), to: new THREE.Vector3(x, y, z), done: 0 };
+    },
     update: (dt, t, player) => {
-      const dx = player.x - feet.x, dz = player.z - feet.z, near = dx * dx + dz * dz < 9 * 9;
-      const want = near ? Math.atan2(dx, dz) : home;
+      const heading = stepWalk(dt);
+      const dx = player.x - pos.x, dz = player.z - pos.z, near = heading === null && dx * dx + dz * dz < 9 * 9;
+      const want = heading ?? (near ? Math.atan2(dx, dz) : home);
       let d = want - cur; d = Math.atan2(Math.sin(d), Math.cos(d));
-      cur += d * Math.min(1, dt * 3);
+      cur += d * Math.min(1, dt * (heading === null ? 3 : 6));
       group.rotation.y = cur;
       if (rig === null) { const r = npcRig(kind, sky); if (r) adopt(r); }
       if (rig !== null) {
@@ -204,10 +233,10 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
         talkT = fig.talking ? talkT + dt : 0;
         const pointing = kind === 'ranger' && fig.talking && talkT % 9 > 5.5 && talkT % 9 < 8;
         pointK += ((pointing ? 1 : 0) - pointK) * Math.min(1, dt * 3);
-        let py = Math.atan2(KINGS_CLEARING.x - feet.x, KINGS_CLEARING.z - feet.z) - cur;
+        let py = Math.atan2(KINGS_CLEARING.x - pos.x, KINGS_CLEARING.z - pos.z) - cur;
         py = Math.max(-1, Math.min(1, Math.atan2(Math.sin(py), Math.cos(py))));
         const look = near ? Math.max(-0.6, Math.min(0.6, Math.atan2(Math.sin(want - cur), Math.cos(want - cur)))) : 0;
-        rig.pose(t, talkK, pointK, py, look);
+        rig.pose(t, talkK, pointK, py, look, walkK, phase);
         return;
       }
       mesh.scale.y = 1 + Math.sin(t * 1.7) * 0.006;

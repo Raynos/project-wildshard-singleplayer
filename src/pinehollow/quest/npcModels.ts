@@ -27,6 +27,7 @@ import type { NpcKind } from '../../chunks/pine-hollow/models/people';
 import { mapSlot } from '../../core/shardState';
 import { MAY_KTX2 } from '../../boot/gpuFiles';
 import { setting } from '../../ui/Settings';
+import { legBones, legPose, legRigOf } from './npcRig';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
@@ -83,6 +84,7 @@ export function loadNpcModel(kind: NpcKind): Promise<Source | null> {
       });
       const hit = found[0] ?? null;
       if (hit !== null) sources.set(kind, hit);
+      if (hit !== null && setting('pineNpcRig') === 'b') legRigOf(kind, hit.geometry);   // E322 F-M3: rig B now, one person a frame, not all three on their first update
       return hit;
     }).catch((e: unknown) => { console.warn(`[pine-hollow] npc model ${kind} failed`, e); return null; });
     loading.set(kind, p);
@@ -198,9 +200,14 @@ export interface NpcRig {
   readonly handR: THREE.Bone;
   /**
    * pose the rig: `talk` 0 … 1 (eased by the caller), `point` 0 … 1 toward `pointYaw` (radians, mesh-local; 0 = ahead),
-   * `look` the head's yaw toward the player (mesh-local)
+   * `look` the head's yaw toward the player (mesh-local); `walk` 0 … 1 blends the walk clip in (the NPC rig B's legs,
+   * npcRig.ts; A has none and ignores it) at `phase` (0 … 1 of its cycle: advance it by distance / `walkCycle`)
    */
-  pose: (t: number, talk: number, point: number, pointYaw: number, look: number) => void;
+  pose: (t: number, talk: number, point: number, pointYaw: number, look: number, walk?: number, phase?: number) => void;
+  /** m/s at which the walk's feet stay planted (the rig without legs: the same pace, sliding) */
+  readonly walkSpeed: number;
+  /** metres travelled per walk cycle */
+  readonly walkCycle: number;
 }
 
 const sharedMats = new Map<NpcKind, THREE.MeshStandardMaterial>();
@@ -208,7 +215,6 @@ const sharedMats = new Map<NpcKind, THREE.MeshStandardMaterial>();
 export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null {
   const src = sources.get(kind);
   if (!src) return null;
-  const b = rigOf(kind, src);
   let mat = sharedMats.get(kind);
   if (!mat) {
     mat = new THREE.MeshStandardMaterial({ map: src.map, normalMap: src.normalMap, normalScale: new THREE.Vector2(1, -1), roughness: 0.85, metalness: 0 });
@@ -217,6 +223,21 @@ export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null {
     sky.setupMaterial(mat);
     sharedMats.set(kind, mat);
   }
+  // E322 F-M3: Debug ▸ Creatures & NPCs ▸ NPC rig — B = legs, a clavicle and a twist bone, the walk clip (npcRig.ts)
+  if (setting('pineNpcRig') === 'b') {
+    const lb = legRigOf(kind, src.geometry), lbones = legBones(lb), pose = legPose(lbones, lb);
+    const lmesh = new THREE.SkinnedMesh(lb.geometry, mat);
+    const lroot = lbones[0];
+    if (lroot) lmesh.add(lroot);
+    lmesh.updateMatrixWorld(true);
+    lmesh.bind(new THREE.Skeleton(lbones));
+    lmesh.castShadow = true; lmesh.receiveShadow = true;
+    return {
+      mesh: lmesh, height: lb.height, lanternAt: lb.lantern, handR: lbones.find((x) => x.name === 'handR') ?? new THREE.Bone(), walkSpeed: lb.walkSpeed, walkCycle: lb.walkCycle,
+      pose: (t, talk, point, pointYaw, look, walk = 0, phase = 0) => { pose({ t, talk, point, pointYaw, look, walk, phase }); },
+    };
+  }
+  const b = rigOf(kind, src);
   const bones = NAMES.map((name) => { const bone = new THREE.Bone(); bone.name = name; return bone; });
   bones.forEach((bone, i) => {
     const pi = PARENT[i] ?? -1, r = b.rest[i] ?? new THREE.Vector3();
@@ -234,7 +255,7 @@ export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null {
   const hips = bn(B.hips), spine = bn(B.spine), chest = bn(B.chest), neck = bn(B.neck), head = bn(B.head);
   const shR = bn(B.shR), elR = bn(B.elR), shL = bn(B.shL), elL = bn(B.elL);
   return {
-    mesh, height: b.height, lanternAt: b.lantern, handR: bn(B.haR),
+    mesh, height: b.height, lanternAt: b.lantern, handR: bn(B.haR), walkSpeed: 0.72 * b.height / 1.8, walkCycle: 0.72 * b.height / 1.8,
     pose: (t, talk, point, pointYaw, look) => {
       const breathe = Math.sin(t * 1.6);
       hips.rotation.set(0, 0, 0.012 * Math.sin(t * 0.35));                     // a slow weight shift
