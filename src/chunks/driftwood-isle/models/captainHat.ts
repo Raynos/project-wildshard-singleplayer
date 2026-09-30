@@ -10,7 +10,7 @@
  * player wears: src/player/Cosmetics.ts hangs it on the player's head socket.
  *
  * Own space: the origin is the centre of the head band (the crown's bottom rim), +Y up, the front point toward +Z.
- * About 0.44 m across the points, 0.16 m tall. No colliders (a pickup is a trigger, not a solid).
+ * About 0.48 m across the points, 0.13 m tall. No colliders (a pickup is a trigger, not a solid).
  */
 import * as THREE from 'three';
 import { LowPolyKit, rock, tris, lowPolyMaterial } from '../../../world/lowpolyKit';
@@ -27,8 +27,8 @@ const STEPS = 36, STATIONS = [0, 0.28, 0.62, 0.86, 1] as const, TRIM = 3;
 /** the brim at angle θ (0 = the front point, turning toward +x) and radial station s: its position in own space */
 function brimPoint(theta: number, s: number): THREE.Vector3 {
   const f = Math.sin(1.5 * theta) ** 2;           // 0 at the three points, 1 midway between them
-  const width = 0.085 + 0.05 * (1 - f);            // the points reach further out
-  const cock = 0.12 + f * 1.3;                     // how steeply the brim is turned up (rad)
+  const width = 0.1 + 0.045 * (1 - f);             // the points reach further out
+  const cock = 0.12 + f * 1.36;                    // how steeply the brim is turned up (rad): the upturns hide most of the crown
   let r = RI, y = 0;
   let prev = 0;
   for (const st of STATIONS) {
@@ -59,8 +59,8 @@ export function captainHatGeometry(): THREE.BufferGeometry {
   kit.add(tris(felt), C.feltB, { jitter: 0.06 });
   kit.add(tris(trim), C.trim, { jitter: 0.08 });
   // the crown: a nine-sided drum a little narrower at the top, a low domed cap, a dark band round its foot
-  kit.add(new THREE.CylinderGeometry(CROWN_R * 0.9, CROWN_R, 0.115, 9, 1, true).translate(0, 0.0525, 0), C.felt, { jitter: 0.05 });
-  kit.add(new THREE.CylinderGeometry(0.052, CROWN_R * 0.9, 0.035, 9, 1).translate(0, 0.1275, 0), C.top, { jitter: 0.05 });
+  kit.add(new THREE.CylinderGeometry(CROWN_R * 0.92, CROWN_R, 0.08, 10, 1, true).translate(0, 0.035, 0), C.felt, { jitter: 0.05 });
+  kit.add(new THREE.CylinderGeometry(0.06, CROWN_R * 0.92, 0.035, 10, 1).translate(0, 0.0925, 0), C.top, { jitter: 0.05 });
   kit.add(new THREE.CylinderGeometry(CROWN_R + 0.003, CROWN_R + 0.004, 0.022, 9, 1, true).translate(0, 0.014, 0), C.band, { jitter: 0.04 });
   // the cockade: a faded red rosette with a brass button on the front-left upturn
   const at = brimPoint(-Math.PI / 3, 0.55), outward = new THREE.Vector3(Math.sin(-Math.PI / 3), 0.35, Math.cos(-Math.PI / 3)).normalize();

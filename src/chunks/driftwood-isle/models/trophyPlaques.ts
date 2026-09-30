@@ -144,8 +144,8 @@ function plaquesGeometry(gap: number): { slots: SlotGeometry; empty: Record<Trop
       empty.bear = rec.mark();
       // the trophy: a hooked claw off the peg, curling over the top and down to the right, its root in a tuft of fur
       // bound with leather
-      const path = arc(x + 0.02, MOUNT_Y + 0.02, Math.PI * 1.12, -0.28, 0.1, 0.082, FRONT + 0.035, 0.03, 12);
-      sweep(kit, path, (t) => 0.036 * (1 - t) ** 0.75, 6, (t) => (t < 0.18 ? C.clawRoot : t > 0.78 ? C.clawTip : C.claw));
+      const path = arc(x + 0.015, MOUNT_Y + 0.01, Math.PI * 1.12, -0.3, 0.118, 0.095, FRONT + 0.04, 0.035, 14);
+      sweep(kit, path, (t) => 0.046 * (1 - t) ** 0.7, 6, (t) => (t < 0.16 ? C.clawRoot : t > 0.72 ? C.clawTip : C.claw));
       const root = path[0];
       if (root !== undefined) {
         kit.add(rock(0.042, 0, kit.rng, 0.8, 0.3).translate(root.x - 0.006, root.y - 0.012, root.z - 0.008), C.fur, { jitter: 0.1 });

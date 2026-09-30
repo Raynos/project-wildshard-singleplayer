@@ -32,9 +32,14 @@ const SWAY_BOTTOM = -0.95, SWAY_W = 0.45;
 
 const C = {
   cord: '#b99d6c', wood: '#bcaa8f', woodB: '#a8967a', woodEnd: '#8f7d64',
-  // sea glass, weighted toward the common beach colours (aqua, seafoam, bottle green, frosted white), a rare cobalt and amber
-  glass: ['#8fd9cf', '#8fd9cf', '#a8e6c1', '#a8e6c1', '#76c79a', '#d6ece4', '#9fd4e6', '#5f8fd6', '#dca55e'],
 };
+/** each piece's colour, in the order they are found: mostly the common beach colours (aqua, seafoam, bottle green,
+ *  frosted white), one cobalt and one amber; every strand ends on a big bright piece */
+const GLASS = [
+  '#62dccd', '#8ff0b8', '#d4f3ea', '#55c585', '#5fe6d8',   // centre
+  '#8ff0b8', '#4c82e6', '#62dccd', '#d4f3ea', '#55c585',   // left
+  '#62dccd', '#55c585', '#e8a24a', '#8ff0b8', '#9fe9f5',   // right
+];
 
 /** the chime: one mesh; `setCount(n)` shows the first n pieces */
 export class SeaGlassChime extends THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
@@ -81,14 +86,14 @@ function chimeGeometry(): SlotGeometry {
     let y = BAR_Y - s.gap * 0.72;
     for (let k = 0; k < PER_STRAND; k++) {
       const last = k === PER_STRAND - 1;
-      const r = last ? 0.05 : rng.range(0.028, 0.038);
+      const r = last ? 0.066 : rng.range(0.04, 0.052);
       const hx = s.x + rng.range(-0.006, 0.006);
       const cy = y - r;
       // the glass: a flat, frosted, rounded-off chip (a squashed faceted pebble turned to face ±z), a little taller than wide
       const chip = rock(r, 0, rng, 0.42, 0.26);
       chip.rotateX(Math.PI / 2).rotateZ(rng.range(-0.5, 0.5)).scale(0.9, last ? 1.35 : 1.18, 1).translate(hx, cy, rng.range(-0.004, 0.004));
       kit.add(rope([top, v(hx, cy, 0)], 0.0035, 3), C.cord, { jitter: 0.02, sway });
-      kit.add(chip, rng.pick(C.glass), { jitter: 0.1, sway });
+      kit.add(chip, GLASS[si * PER_STRAND + k] ?? '#62dccd', { jitter: 0.08, sway });
       rec.mark();
       top = v(hx, cy - r * 0.9, 0);
       y = cy - r - s.gap * 0.5;
