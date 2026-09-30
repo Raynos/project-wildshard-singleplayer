@@ -1,12 +1,12 @@
 """
-build_island.py — the Blender island, spawn cove first (DRIFTWOOD-REMASTER X2, E52). Run by scripts/blender/run.sh:
+build_island.py — the Blender island, spawn cove first (DRIFTWOOD-REMASTER X2, E52). Run by scripts/blender/build.sh driftwood-isle/island (pnpm blender:island):
 
-    blender -b --factory-startup -P scripts/blender/build_island.py -- <cache dir> <out dir> [--quick]
+    blender -b --factory-startup -P scripts/blender/driftwood-isle/build_island.py -- <cache dir> <out dir> [--quick]
 
-Input (<cache>, written by scripts/blender/export-scene.mjs from the game's own code): the area grid (height, the game's
+Input (<cache>, written by scripts/blender/lib/export-scene.mjs from the game's own code): the area grid (height, the game's
 ground colour, slope, trail distance), the whole chunk's coarse heights, the layout specs and the kept structures.
 
-What it builds, all from code (scripts/blender/assets.py):
+What it builds, all from code (scripts/blender/driftwood-isle/assets.py):
 - the terrain of the area on a grid twice as fine as the game's, on exactly the heights the player walks, with a
   planar lightmap UV;
 - prototypes: 8 palms, faceted rocks (icosphere + noise + plane cuts), ferns, hibiscus, bushes, flowers, grass tufts,
@@ -290,7 +290,7 @@ def proto(name, part, kind):
     return len(PROTOS) - 1
 
 
-REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 MODELS = f'{REPO}/public/assets/models'
 
 

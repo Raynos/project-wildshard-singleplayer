@@ -1,4 +1,4 @@
-// Pine Hollow's half of scripts/blender/export-scene.mjs (PINE-HOLLOW-REMASTER PH-0.3; the Blender build itself is wave 2,
+// Pine Hollow's half of scripts/blender/lib/export-scene.mjs (PINE-HOLLOW-REMASTER PH-0.3; the Blender build itself is wave 2,
 // PH-U17). The shard is photoreal PBR, so the area grid's colour is the splat-weighted mean albedo of its four Poly Haven
 // ground layers × the def's groundTints (linear), and the real weights go beside it in splat.bin (u8 × 4 per area vertex,
 // same order as area.bin) so a Blender material can blend the actual textures.
@@ -23,7 +23,7 @@ let splat = new Uint8Array(0);
 export function groundColor({ hf, def, area }) {
   const layers = def.assets.groundLayers.map((name, i) => {
     const a = LAYER_ALBEDO[name];
-    if (!a) throw new Error(`pine-hollow.mjs: no albedo for ground layer ${name}`);
+    if (!a) throw new Error(`pine-hollow/export.mjs: no albedo for ground layer ${name}`);
     const t = def.assets.groundTints[i];
     return [a[0] * t[0], a[1] * t[1], a[2] * t[2]];
   });

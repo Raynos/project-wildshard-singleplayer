@@ -5,7 +5,7 @@
 // to author a shard's area on the SAME ground the player walks:
 //
 //   <cache>/scene.json       the area, the sea level (null on a dry shard), the chunk, then the shard's own layout specs
-//                             (scripts/blender/shards/<slug>.mjs: Driftwood's palms / boulders / bushes / trailside / pier,
+//                             (scripts/blender/<slug>/export.mjs: Driftwood's palms / boulders / bushes / trailside / pier,
 //                             Pine Hollow's trees / cabins / pond / trails)
 //   <cache>/area.bin          f32 grid over the area at STEP m: height · r · g · b (the shard's ground colour, linear) · slope ·
 //                             trail distance  (6 floats per vertex, row-major iz·nx + ix, x = x0 + ix·STEP, z = z0 + iz·STEP)
@@ -20,14 +20,14 @@
 // exactly the surface Player.groundAt() walks, so the Blender terrain never floats or sinks against collision. The area
 // is the shard's entry in src/world/blenderArea.ts.
 //
-//   node --import ./scripts/bake-loader.mjs scripts/blender/export-scene.mjs [--chunk <slug>] [cacheDir]
+//   node --import ./scripts/bake-loader.mjs scripts/blender/lib/export-scene.mjs [--chunk <slug>] [cacheDir]
 //   (--chunk defaults to driftwood-isle; cacheDir to ~/.cache/wildshard-blender/<slug>)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
-const ROOT = resolve(import.meta.dirname, '../..');
+const ROOT = resolve(import.meta.dirname, '../../..');
 const args = process.argv.slice(2);
 const ci = args.indexOf('--chunk');
 const SLUG = ci !== -1 ? args[ci + 1] : 'driftwood-isle';
@@ -38,8 +38,8 @@ mkdirSync(CACHE, { recursive: true });
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/?tier=desktop') });
 
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
-const shardModule = resolve(ROOT, `scripts/blender/shards/${SLUG}.mjs`);
-if (!existsSync(shardModule)) throw new Error(`export-scene: no scripts/blender/shards/${SLUG}.mjs (the shard's ground colour + layout)`);
+const shardModule = resolve(ROOT, `scripts/blender/${SLUG}/export.mjs`);
+if (!existsSync(shardModule)) throw new Error(`export-scene: no scripts/blender/${SLUG}/export.mjs (the shard's ground colour + layout)`);
 const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES, ROAD_LENGTH } = await imp('src/core/config.ts');
 const registry = await imp('src/chunks/registry.ts');
 if (!registry.findChunk(SLUG)) throw new Error(`export-scene: unknown shard "${SLUG}"`);

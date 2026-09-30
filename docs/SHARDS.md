@@ -87,7 +87,7 @@ look of its own.
 the weapons, `Animal` / `AnimalManager` / the species registry (`entities/species/`), `Elite` / `Boss` and their bars, the
 creature rig bake, the interactables kit (`world/interact/`), the quest core (`game/quest/quest.ts`, `QuestUI.ts`), the
 Compendium, Progress + achievements, Explore World (`explore/`), the HUD and the title deck (`ui/`), the per-shard LUT.
-The pipelines take the shard as an argument: `scripts/blender/run.sh <slug>`, `fit-lut.py --shard`,
+The pipelines take the shard as an argument: `scripts/blender/build.sh <slug>/<target>` (`scripts/blender/<slug>/`), `fit-lut.py --shard`,
 `scripts/horizon-matte/`, `scripts/img2mesh/`.
 
 ## Adding a fourth shard

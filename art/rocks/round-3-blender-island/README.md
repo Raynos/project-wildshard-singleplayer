@@ -19,7 +19,7 @@ Captures are iPhone 390×844 @3×, `touch&tier=phone&mute=1`, on Metal, with the
 
 ## What changed (`src/world/BlenderIsland.ts`, `src/main.ts`)
 
-The island's `placements.bin` has three kinds of rock (scripts/blender/build_island.py):
+The island's `placements.bin` has three kinds of rock (scripts/blender/driftwood-isle/build_island.py):
 
 - **15 boulders** (`rock0–3`, `rockb0–2`). They stand on the spots of the game's own shore boulders, one per
   `Boulders.scatterShore` rock in the area, and the game's boulders keep their colliders. In rockKit's look they are

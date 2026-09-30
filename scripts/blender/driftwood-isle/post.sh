@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# island-post.sh — build.sh's post step for driftwood-isle/island (DRIFTWOOD-REMASTER X2, E52): the two lightmaps as WebP,
+# post.sh — build.sh's post step for driftwood-isle/island (DRIFTWOOD-REMASTER X2, E52): the two lightmaps as WebP,
 # desktop and phone (half size). Linear data in 8-bit WebP: Blender writes the WebP, this only resizes. build.sh has
 # already meshopt'd island.glb and copied placements.bin + island.json. Env from build.sh: BUILD, BLENDER.
 set -euo pipefail

@@ -6,16 +6,16 @@
  "targets": {
   "driftwood-isle/island": {
    "about": "Driftwood's spawn cove: terrain tiles, ~60-72 prototypes, 16.7 k placements, Cycles AO + bounce lightmaps (DRIFTWOOD-REMASTER X2, E52)",
-   "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/export-scene.mjs --chunk driftwood-isle $CACHE"],
-   "script": "scripts/blender/build_island.py",
+   "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/lib/export-scene.mjs --chunk driftwood-isle $CACHE"],
+   "script": "scripts/blender/driftwood-isle/build_island.py",
    "args": ["$CACHE", "$BUILD"],
-   "sources": ["scripts/blender/assets.py", "scripts/blender/export-scene.mjs", "scripts/blender/shards/driftwood-isle.mjs", "scripts/blender/island-post.sh"],
+   "sources": ["scripts/blender/driftwood-isle/assets.py", "scripts/blender/driftwood-isle/export.mjs", "scripts/blender/driftwood-isle/post.sh", "scripts/blender/lib/export-scene.mjs"],
    "inputs": ["public/assets/baked/driftwood-isle/terrain.bin", "public/assets/models/driftwood-hero/", "public/assets/models/driftwood-cc0/"],
    "lock": true,
    "build": ["island.glb", "placements.bin", "island.json", "lm-ao.png", "lm-bounce.png"],
    "meshopt": [["island.glb", "public/assets/models/driftwood-blender/island.glb"]],
    "copy": [["placements.bin", "public/assets/models/driftwood-blender/placements.bin"], ["island.json", "public/assets/models/driftwood-blender/island.json"]],
-   "post": "scripts/blender/island-post.sh",
+   "post": "scripts/blender/driftwood-isle/post.sh",
    "outputs": [
     "public/assets/models/driftwood-blender/island.glb", "public/assets/models/driftwood-blender/placements.bin", "public/assets/models/driftwood-blender/island.json",
     "public/assets/models/driftwood-blender/lm-ao.webp", "public/assets/models/driftwood-blender/lm-ao.phone.webp",
@@ -25,9 +25,9 @@
   },
   "pine-hollow/area-export": {
    "about": "Pine Hollow's half of the island export (PH-0.3): area.bin, splat.bin, scene.json in the cache. Its Blender build is PINE-HOLLOW-REMASTER wave 2 (PH-U17), so it writes nothing to the repo",
-   "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/export-scene.mjs --chunk pine-hollow $CACHE"],
+   "pre": ["node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/lib/export-scene.mjs --chunk pine-hollow $CACHE"],
    "script": null,
-   "sources": ["scripts/blender/export-scene.mjs", "scripts/blender/shards/pine-hollow.mjs"],
+   "sources": ["scripts/blender/pine-hollow/export.mjs", "scripts/blender/lib/export-scene.mjs"],
    "inputs": ["public/assets/baked/pine-hollow/terrain.bin"],
    "lock": false,
    "outputs": [],

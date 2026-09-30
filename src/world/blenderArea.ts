@@ -1,6 +1,6 @@
 /**
  * The part of each shard the Blender-built terrain covers (DRIFTWOOD-REMASTER X2, E52; per shard since
- * PINE-HOLLOW-REMASTER PH-0.3). Shared by the Blender pipeline (`scripts/blender/export-scene.mjs --chunk <slug>`) and
+ * PINE-HOLLOW-REMASTER PH-0.3). Shared by the Blender pipeline (`scripts/blender/lib/export-scene.mjs --chunk <slug>`) and
  * the game (src/world/BlenderIsland.ts), so both clip at exactly the same lines.
  *
  * - Driftwood Isle (`area`, the one BlenderIsland.ts builds): the spawn cove, the crescent beach, the plank stair and the
@@ -46,7 +46,7 @@ export function blenderAreaFor(slug: string): BlenderArea | null {
 /** a shard's build folder name when it is not `<slug>-blender` (Driftwood's predates the per-shard pipeline) */
 const MODEL_DIRS: Readonly<Partial<Record<string, string>>> = { 'driftwood-isle': 'driftwood-blender' };
 
-/** where `pnpm blender:island --chunk <slug>` puts a shard's build (a public URL, trailing slash; scripts/blender/run.sh) */
+/** where a shard's Blender island build lands (a public URL, trailing slash; scripts/blender/build.sh <slug>/island, targets.json) */
 export function blenderModelsBase(slug: string): string { return `/assets/models/${MODEL_DIRS[slug] ?? `${slug}-blender`}/`; }
 
 /** Driftwood Isle's area (x −110.8 … 110.8, z −214.7 … −20.6) — the one BlenderIsland.ts builds */
