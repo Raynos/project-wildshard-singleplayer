@@ -521,11 +521,13 @@ the registry and the census identical; parity green on 4 shards × 2 tiers.
    S7 (the burst); arena 22 m round the pool (`mem.arena`); asleep until `used:altar`.
 2. `CAPTAIN_DEF: BossDef` carries exactly today's fight frame and no Boss.ts extra:
    `{ id: 'boss.captain', name: 'Captain Brine', arena: { at: 'shrine.pool', r: 22 }, wake: { flag: 'used:altar' },
-   intro: null, seal: null, checkpoint: false, bar: 'quest', phases: [0.66, 0.33], persist: { deadFlag:
+   intro: null, seal: null, checkpoint: false, bar: 'boss', phases: [0.66, 0.33], persist: { deadFlag:
    'dead:captain' }, reward: null, capExempt: true }`.
-   - `bar: 'quest'`: the encounter widget renders `QuestUI.BossBar` (`ws-quest-boss`, name, pips, fill) instead of
-     the Boss runtime's `ui/BossBar.ts`; it shows while the player is inside the arena and the captain is up
-     (`Finale.ts:77-81`, moved verbatim into the widget's `visible` rule).
+   - `bar: 'boss'` (**decision 91: the shared BossBar**). The encounter widget renders the Boss runtime's
+     `ui/BossBar.ts` with his name, title and phase pips. `QuestUI.BossBar` (`ws-quest-boss`) is deleted once nothing
+     else uses it. The bar shows while the player is inside the arena and the captain is up (`Finale.ts:77-81`,
+     moved verbatim into the widget's `visible` rule). This is the one intended look change in S4.2, and it goes on
+     the look board: his bar before and after, on the iPhone portrait.
    - `checkpoint: false`: `death.checkpoint` is not answered (a death in his fight is a normal death at the last
      place, as `main.ts:1195` never asks him today).
    - `intro: null`, `seal: null`: no intro caption, no arena wall (the Boss runtime's defaults are off for him).
@@ -543,8 +545,8 @@ S4.2 commit):
   scripted to stand 3 m from the pool facing it, dodge on a fixed schedule, and strike with the wooden sword every
   0.9 s until the captain dies.
 - Recorded per fixed step: the captain's state, `mem.phase`, hp, position (4 decimals), `mem.rise`; every strike
-  (id, frame, damage dealt after the pipeline, the player's health after); the boss bar's DOM (`visible`, name, pips,
-  fill width to 0.1 %); the sink / burst frames and the bubble ring positions; the kill frame, `dead:captain`,
+  (id, frame, damage dealt after the pipeline, the player's health after); the boss bar's state (`visible`, name, phase, fill fraction to 0.1 %: the *data*, since the bar's DOM changes by
+  decision 91); the sink / burst frames and the bubble ring positions; the kill frame, `dead:captain`,
   the 25-coin burst and the hat drop.
 - The baseline is recorded on HEAD before S4.2 (F2's harness, the same script); the gate compares frame for frame.
   **Allowed differences: none.** A strike landing one frame early or late fails the step (the captain's strikes run
@@ -777,8 +779,7 @@ scripted walk, the HUD slots, the save keys.
 4. **Shard-declared tier knobs.** 01 §13.3 lets the kit declare knob schemas; Driftwood's seven are shard-only. This
    spec lets a shard declare knobs (`ctx.tiers.knobs`). Confirm the verb, and that 10-sweeps X7 step 1 then only
    checks they are gone from the engine table.
-5. **The Captain's bar.** "His fight unchanged" keeps `QuestUI.BossBar` (a different look from `ui/BossBar.ts`) via
-   `bar: 'quest'`. Confirm keeping two bar looks, or put "one boss bar" on the M4 board as a look item.
+5. **The Captain's bar.** Resolved, decision 91: the shared BossBar, a look-board item at S4.2.
 6. **`boss.attempt` for the Captain** (D2) is a visible-to-analytics change; confirm it counts as a fix, not a
    difference to avoid.
 7. **`rockKit.ts`** is Driftwood-only today, but X5's "one geometry kit" lists it as an engine input. This spec moves

@@ -69,6 +69,6 @@ Questions that were Jake's to decide went to him and are numbered decisions in
 | 6 | Park Driftwood's island audio in `legacyIsland.ts` from S3.5 to S4.3? | Yes; S4.3 moves it into Driftwood's folder and deletes the park | 07 S3.5, 08 S4.3 |
 | 7 | `WaterBody` early for the sea in S4.1? | Yes: S4.1 builds the interface and the sea on it; X5 converts the other bodies | 01 §17 |
 | 8 | Can a shard declare its own tier knobs? | Yes: `ctx.tiers.knobs(schema)` | 01 §7 |
-| 9 | The Captain's boss bar keeps its own look (two bar looks)? | Asked Jake (a look call) — decision 91 | E357 #91 |
+| 9 | The Captain's boss bar keeps its own look (two bar looks)? | Jake, decision 91: **the shared BossBar**; a small Driftwood look change, on the look board in S4.2 | 08 S4.2, 12 §6 |
 | 10 | `rockKit.ts`: Driftwood or engine until X5? | Wherever 04's import analysis puts it by the rule of two (kit if `GroundCover` serves another shard, otherwise Driftwood). X5 lifts its generic primitives into the engine geometry toolkit | 04, 10 X5 |
 | 11 | The native shell's `ws:ready` DOM event | It stays (it's the native shell's contract), dispatched once on reaching `title`; the probe also exposes `ready` | 01 §5 |
