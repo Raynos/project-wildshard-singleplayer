@@ -79,6 +79,8 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   weapon: 'sword',
   ocean: OCEAN,
   explore: true,
+  // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
+  roster: async () => (await import('./driftwood-isle/roster')).ROSTER,
   // the maps draw the island's built world (E130): the sand paths, then the pieces' footprints from the registry (main.ts
   // registers them under these ids) — palms as crowns, the decks as planks, the hut / tower / wreck / zipline as timber, the
   // shrine as stone, the sea cave's vault as rock
