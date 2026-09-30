@@ -13,10 +13,8 @@ import { Quaternion, Vector3 } from 'three';
 import type { ShardSword } from '../../ChunkDef';
 import type { SwordArms } from '../../../player/Sword';
 import type { Move } from '../../../player/SwordMoves';
+import { vmScale } from '../../../player/rigArms';
 import { type MoveName, NineDragonArms } from './fpArms';
-
-/** the viewmodel's vertical field (degrees): the clips' canonical camera */
-const VM_FOV = 70;
 
 /** the engine's moves → the rig's clips (the sabre's passes never reach this sword) */
 const CLIP: Readonly<Record<Move['name'] | 'charge', MoveName>> = {
@@ -42,7 +40,7 @@ export async function jianArms(): Promise<ShardSword> {
     update: (dt, s) => {
       const cam = s.camera, r = s.renderer;
       // the viewmodel's projection
-      k = Math.tan((cam.fov * Math.PI) / 360) / Math.tan((VM_FOV * Math.PI) / 360);
+      k = vmScale(cam.fov);
       rig.root.scale.set(k, k, 1);
       rig.root.position.set(0, 0, 0);
       // the ink widths and the halo are in buffer pixels
