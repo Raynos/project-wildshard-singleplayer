@@ -1,6 +1,6 @@
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
- * crab claws, coconuts and the drowned sailor's doubloon). Counts
+ * crab claws and coconuts — the drowned sailor and captain fade, nothing to harvest, E318). Counts
  * only, 12 slots, one slot per item kind; persisted per shard ('ws.inventory.v1'). Weapons and ammo are not
  * here — the menu's Inventory tab reads those live from Weapons.
  *
@@ -10,7 +10,7 @@
 import type { IconId } from '../ui/icons';
 
 export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
-  | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope'
+  | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon'
   // Pine Hollow's elite + boss trophies (PH-C2 / PH-C3, src/pinehollow/); 'warden-longbow' is the King's drop as a flag
   // until the longbow itself (Nalati's Bow.ts) is ported
   | 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown' | 'amber-heartwood' | 'warden-longbow'
@@ -39,8 +39,6 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'monkey-fur': { label: 'Monkey fur', icon: 'hide' },
   'silver-fur': { label: 'Silver fur', icon: 'hide' },
   'doubloon': { label: 'Salt-crusted doubloon', icon: 'coin' },
-  'sea-glass': { label: 'Sea glass', icon: 'seaglass' },
-  'old-rope': { label: 'Old rope', icon: 'rope' },
   // Nalati Grasslands — boss trophies (src/nalati/kurganBoss.ts)
   'gold-plaque': { label: "Golden King's plaque", icon: 'coin' },
   // Nalati — named-elite trophies (src/nalati/elites.ts)
@@ -76,7 +74,6 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
     case 'bear': return ['bear-pelt', 'bear-claw'];
     case 'crab': return variant === 'big' ? ['crab-meat', 'crab-claw', 'crab-shell'] : ['crab-meat', 'crab-claw']; // only the big one's shell is worth keeping
     case 'monkey': return variant === 'elder' ? ['coconut', 'silver-fur'] : ['coconut', 'monkey-fur']; // every monkey was carrying one
-    case 'sailor': return ['doubloon', 'old-rope']; // the drowned sailor's pockets (no sea glass since E314: the 15 beach pieces are the one count)
     // Nalati Grasslands (B15) — the named elites' trophies come from src/nalati/elites.ts, not a harvest
     case 'wolf': return variant === 'alpha' ? ['wolf-pelt', 'wolf-fang', 'wolf-fang'] : ['wolf-pelt', 'wolf-fang'];
     case 'horse': return ['horsehair'];                      // a wild horse's tail (the camp's saddled horses can't die)

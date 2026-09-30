@@ -11,7 +11,7 @@
  *              slot, the COSMETICS group (captain's hat, sailcloth cape: dim until owned, tap to wear / take off) and the
  *              PURSE. Absent on the other shards.
  *   renderFinds(panel, view)
- *     view: counters (SEA GLASS n/15 · PLACES n/11 · GLYPH SHARDS n/3), the next-charm line, sticker sections (TROPHIES,
+ *     view: counters (SEA GLASS n/15 · PLACES n/9 · GLYPH SHARDS n/3), the next-charm line, sticker sections (TROPHIES,
  *           TREASURES: found bright, missing dashed "???"), and the 15 sea glass chips. Driftwood only today.
  */
 import { icon, type IconId } from './icons';

@@ -29,7 +29,7 @@ const GLASS: [number, number][] = [
 const COLORS = ['#7df0d0', '#8fd8ff', '#b7f59a', '#9fb8ff', '#f0f7a0'];
 
 const glass: PickupDef[] = GLASS.map(([x, z], i) => ({
-  kind: 'pickup', id: `glass-${i + 1}`, look: 'seaglass', item: 'sea-glass', label: 'Sea glass', touch: true,
+  kind: 'pickup', id: `glass-${i + 1}`, look: 'seaglass', label: 'Sea glass', touch: true, // a flag only, no pack item (E318 row 13: FINDS is the one count)
   color: COLORS[i % COLORS.length] ?? '#7df0d0', at: { poi: 'world', x, z }, sets: [`${SEA_GLASS_FLAG}${i + 1}`],
 }));
 export const SEA_GLASS_COUNT = GLASS.length;

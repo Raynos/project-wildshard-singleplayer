@@ -48,13 +48,13 @@ describe('harvestOf', () => {
     expect(harvestOf('monkey')).toEqual(['coconut', 'monkey-fur']);
   });
 
-  it('sailor: the drowned sailor\'s pockets', () => {
-    expect(harvestOf('sailor', 'sailor')).toEqual(['doubloon', 'old-rope']);
-    expect(harvestOf('sailor')).toEqual(['doubloon', 'old-rope']);
+  it('the drowned (sailor / captain) are not harvested: they fade, nothing to take (E318 row 17 — no [E] Harvest on them)', () => {
+    expect(harvestOf('sailor', 'sailor')).toEqual([]);
+    expect(harvestOf('captain')).toEqual([]);
   });
 
-  it('the Driftwood Isle enemies (crab / monkey / sailor): every variant yields at least one item', () => {
-    for (const kind of ['crab', 'monkey', 'sailor']) {
+  it('the Driftwood Isle game (crab / monkey): every variant yields at least one item', () => {
+    for (const kind of ['crab', 'monkey']) {
       for (const v of speciesDef(kind).variants) expect(harvestOf(kind, v.id).length, `${kind}/${v.id}`).toBeGreaterThan(0);
     }
   });
@@ -70,7 +70,7 @@ describe('harvestOf', () => {
   });
 
   it('every registered variant yields only real, distinct items', () => {
-    for (const kind of ['deer', 'boar', 'elk', 'bear', 'crab', 'monkey', 'sailor']) {
+    for (const kind of ['deer', 'boar', 'elk', 'bear', 'crab', 'monkey']) {
       for (const v of speciesDef(kind).variants) {
         const got = harvestOf(kind, v.id);
         for (const id of got) expect(ITEMS, `${kind}/${v.id} → ${id}`).toHaveProperty(id);

@@ -1110,6 +1110,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     carcass = undefined;
     if (!nearest) for (const a of animals.animals) {
       if (a.alive || harvested.has(a) || a.position.distanceTo(player.position) >= 2.6) continue;
+      if (harvestOf(a.kind, a.variant).length === 0) continue; // nothing to take (the drowned sailor / captain fade): no [E] Harvest (E318 row 17)
       if (physics && !lineOfSight(physics, game.camera.position, carcassAt.copy(a.position).setY(a.position.y + 0.4), 0.6)) continue; // not through a wall (animals aren't physics yet: their body blocks nothing)
       carcass = a; break;
     }
