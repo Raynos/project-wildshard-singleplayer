@@ -3,7 +3,7 @@
  * counts are tested (test/loot.test.ts).
  *   sea glass:    the 15 beach pieces' flags (`glass:1…15`, src/world/interact/driftwood.ts) — ONLY those: the pack's
  *                 "Sea glass" items (the old sailor drop) never count, so the number can't drift (the audit's double count)
- *   places:       `seen:<id>` for the 11 named places (src/game/quest/Places.ts)
+ *   places:       `seen:<id>` for the 9 named places (src/game/quest/Places.ts)
  *   glyph shards: `shard:lookout` / `shard:wreck` / `shard:cave`
  *   trophies:     Owned 'bear-claw' · 'boar-tusk' · 'captain-hat' (stage 3 hands them out)
  *   treasures:    the reef's pearl necklace, `found:reef-treasure`

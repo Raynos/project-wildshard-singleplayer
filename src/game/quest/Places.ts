@@ -10,6 +10,8 @@ import { placesWithDiscovery, type Places } from './core';
 
 export interface PlaceDef { id: string; label: string; at: Place; r: number }
 
+/** The nine places (E318, Jake: the N and W jetties stay — "we need these landings for the shardfile requirements" — but
+ *  they lead to empty beach, so they are not places: no map pin, no gull guide there, not on the complete card) */
 export const DRIFTWOOD_PLACES: PlaceDef[] = [
   { id: 'pier', label: 'THE PIER', at: { poi: 'world', x: 0, z: -215 }, r: 40 },
   { id: 'hut', label: 'WENDELL\'S HUT', at: { poi: 'hut', x: 0, z: -2 }, r: 26 },
@@ -20,8 +22,6 @@ export const DRIFTWOOD_PLACES: PlaceDef[] = [
   { id: 'wreck', label: 'WRECK COVE', at: { poi: 'wreck', x: 0, z: 0 }, r: 30 },
   { id: 'cave', label: 'SEA CAVE', at: { poi: 'cave', x: 0, z: -4 }, r: 16 },
   { id: 'shrine', label: 'RING SHRINE', at: { poi: 'shrine', x: 0, z: 0 }, r: 26 },
-  { id: 'north', label: 'NORTH LANDING', at: { poi: 'world', x: 0, z: 196 }, r: 30 },
-  { id: 'west', label: 'WEST LANDING', at: { poi: 'world', x: -170, z: 0 }, r: 30 },
 ];
 
 export type { Places } from './core';
