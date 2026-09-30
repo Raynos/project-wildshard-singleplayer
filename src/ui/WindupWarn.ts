@@ -14,6 +14,7 @@ import './styles/combat.css';
  *   const warn = new WindupWarn();
  *   animals.onWindup = (a, dur) => warn.start(a, dur);   // the manager's wind-up hook
  *   game.onUpdate((dt) => warn.update(dt, camera, player.position, player.yaw, animals.isThreat));
+ *   warn.dispose();                                        // the shard's world torn down
  *
  * The edge spot is the attacker's bearing from where you face (ahead = the top edge, behind = the bottom, like
  * HurtArc), so one straight behind you is not mirrored by the projection; the on-screen test is the camera's own.
@@ -37,6 +38,7 @@ export class WindupWarn<T extends Warned = Warned> {
   private readonly slots: Slot<T>[] = [];
   /** the layer's size (px): the screen less the safe areas (combat.css), kept by a ResizeObserver */
   private w = innerWidth; private h = innerHeight;
+  private readonly resize: ResizeObserver;
 
   constructor() {
     this.layer = document.createElement('div');
@@ -51,8 +53,16 @@ export class WindupWarn<T extends Warned = Warned> {
     if (hud) hud.prepend(this.layer); else document.body.append(this.layer);
     const layer = this.layer;
     const measure = (): void => { this.w = layer.clientWidth || innerWidth; this.h = layer.clientHeight || innerHeight; };
-    new ResizeObserver(measure).observe(layer);
+    this.resize = new ResizeObserver(measure);
+    this.resize.observe(layer);
     measure();
+  }
+
+  /** the shard's world is torn down (main.ts, the shard host's dispose): the observer off, the layer out of `#hud` */
+  dispose(): void {
+    this.resize.disconnect();
+    for (const s of this.slots) s.who = null;
+    this.layer.remove();
   }
 
   /** an attack's wind-up began (`dur` s of wind-up): track it until `live` says it is over */

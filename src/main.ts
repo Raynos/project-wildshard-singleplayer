@@ -1245,6 +1245,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     },
     dispose: () => {
       loot.dispose(); // E314: the coin chip leaves #hud, the purse's last write
+      windupWarn?.dispose(); // E323: its ResizeObserver off, its marks out of #hud
       game.dispose();
       world.physics.dispose();
       audio.evict();

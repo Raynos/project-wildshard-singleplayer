@@ -4,6 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, RING, BACKOFF_PAST, type ReengageIn } from '../src/entities/fightRules';
 import { CHUNKS } from '../src/chunks/registry';
 import { DRIFTWOOD_ISLE } from '../src/chunks/driftwood-isle';
+import * as THREE from 'three';
+import { clearBody } from '../src/entities/AnimalManager';
+import { loadRapier } from '../src/physics/rapier';
+import { Physics } from '../src/physics/Physics';
+import { CharacterMotor } from '../src/physics/CharacterMotor';
+import { groups } from '../src/physics/groups';
+import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 describe('AttackTokens (E297: at most 2 attackers)', () => {
   it('hands out at most `max` tokens; a third attacker waits', () => {
@@ -126,5 +133,60 @@ describe('ChunkDef.fightRules (E297: Driftwood only)', () => {
   it('Driftwood lets 2 attack at once; no other shard has the rules', () => {
     expect(DRIFTWOOD_ISLE.fightRules?.maxAttackers).toBe(2);
     for (const c of CHUNKS) if (c.slug !== DRIFTWOOD_ISLE.slug) expect(c.fightRules, c.slug).toBeUndefined();
+  });
+});
+
+// E323 (audit of E297): the body clearance moves an animal only through its physics motor (src/physics/ owns
+// collision): a wall behind it stops the push, and one with no motor (a ridden horse, no physics) is not moved at all.
+describe('clearBody (E297 / E323: no body swallows the camera, pushed only through physics)', () => {
+  const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());
+  const BODY_R = 0.5;
+  /** a bear-sized stand-in facing +z: the body 1.2 m long, the head ahead of it */
+  const animal = (motor: CharacterMotor | null) => {
+    const position = new THREE.Vector3(0, 0.02, 0);
+    return {
+      position, yaw: 0, scale: 1, motor,
+      dims: { bodyRadius: BODY_R, headRadius: 0.3 },
+      mesh: { position: position.clone() },
+      bodyCapsule: (a: THREE.Vector3, b: THREE.Vector3) => { a.set(position.x, 0.8, position.z - 0.6); b.set(position.x, 0.8, position.z + 0.6); },
+      headWorld: (out: THREE.Vector3) => out.set(position.x, 1, position.z + 1),
+    };
+  };
+  const player = new THREE.Vector3(0.3, 0, 0); // 0.3 m off the body's axis: inside it
+  const world = async (wallFace: number | null) => {
+    const ph = new Physics(await rapier());
+    ph.world.createCollider(ph.R.ColliderDesc.cuboid(20, 0.5, 20).setTranslation(0, -0.5, 0).setCollisionGroups(groups('WORLD')));
+    if (wallFace !== null) ph.world.createCollider(ph.R.ColliderDesc.cuboid(0.25, 2, 5).setTranslation(wallFace - 0.25, 2, 0).setCollisionGroups(groups('WORLD')));
+    const motor = new CharacterMotor(ph, { radius: BODY_R, height: 1.3, step: 0.3, maxClimbDeg: 45, snap: 0.3, group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'] });
+    ph.step();
+    return motor;
+  };
+  const clear = BODY_R + 0.38 + 0.3; // its radius + CLEAR_PLAYER
+
+  it('in the open, the body is moved straight out to its clearance, the drawn mesh with it', async () => {
+    const a = animal(await world(null));
+    expect(clearBody(a, player)).toBe(true);
+    expect(a.position.x).toBeCloseTo(player.x - clear, 1);
+    expect(a.position.z).toBeCloseTo(0, 3);
+    expect(a.position.y).toBe(0.02);
+    expect(a.mesh.position.x).toBeCloseTo(a.position.x, 6);
+    // cleared: a second call has at most the motor's skin gap left to close
+    const x1 = a.position.x;
+    clearBody(a, player);
+    expect(Math.abs(a.position.x - x1)).toBeLessThan(0.05);
+  });
+
+  it('a wall behind it stops the push (the player\'s own knock-back does the rest)', async () => {
+    const a = animal(await world(-0.8));
+    clearBody(a, player);
+    expect(a.position.x).toBeLessThan(0);                       // it moved out some…
+    expect(a.position.x - BODY_R).toBeGreaterThanOrEqual(-0.8 - 0.02); // …but its capsule never entered the wall
+  });
+
+  it('no motor, no move: nothing is pushed blind', () => {
+    const a = animal(null);
+    expect(clearBody(a, player)).toBe(false);
+    expect(a.position.x).toBe(0);
+    expect(a.mesh.position.x).toBe(0);
   });
 });
