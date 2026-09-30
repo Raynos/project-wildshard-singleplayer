@@ -1,5 +1,5 @@
 // E322 F-M3: the Pine Hollow people's rig B (src/pinehollow/quest/npcRig.ts), measured on every file it rigs — the three
-// people × the three face variants (E304: current, hunyuan, hunyuanref) × desktop / phone. A check the rig says it passes
+// people (E343: the one face each, Hunyuan3D-2's own paint) × desktop / phone. A check the rig says it passes
 // is evaluated at sampled times, never assumed (the img2-character rule): the weights, the legs' split, the walk's planted
 // feet, the arm raise at the shoulder.
 import { describe, expect, it } from 'vitest';
@@ -11,8 +11,8 @@ import { footPlan, legBones, legPose, LEG_BONE_NAMES, rigLegs, WALK, type LegBui
 import type { NpcKind } from '../src/chunks/pine-hollow/models/people';
 
 const DIR = new URL('../public/assets/pine-hollow/npcs/', import.meta.url);
-/** every file the rig loads: npcModels.ts npcModelUrl / npcFileUrl — the people × the face variants × the tiers */
-const FILES = ['', 'faces-hunyuan/', 'faces-hunyuanref/'].flatMap((d) => ['ranger', 'trader', 'miller'].flatMap((k) => [`${d}${k}.glb`, `${d}${k}.phone.glb`]));
+/** every file the rig loads: npcModels.ts npcModelUrl — the people × the tiers (E343: one face file each, no variants) */
+const FILES = ['ranger', 'trader', 'miller'].flatMap((k) => [`${k}.glb`, `${k}.phone.glb`]);
 
 async function geometryOf(file: string): Promise<THREE.BufferGeometry> {
   await MeshoptDecoder.ready;
@@ -45,7 +45,7 @@ function skinned(b: LegBuilt): { mesh: THREE.SkinnedMesh; bones: THREE.Bone[]; p
 }
 
 describe('Pine Hollow NPC rig B (E322 F-M3)', () => {
-  it('rigs every person file (3 people × 3 faces × 2 tiers)', () => { expect(FILES.length).toBe(18); });
+  it('rigs every person file (3 people × 2 tiers, one face each since E343)', () => { expect(FILES.length).toBe(6); });
 
   for (const file of FILES) {
     describe(file, () => {
