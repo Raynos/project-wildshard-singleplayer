@@ -447,8 +447,15 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     placeCabins({ cabins, sky, registry });
     const _dp = new THREE.Vector3();
     for (const d of cabins.doorPieces()) {
+      // E322: the doorway check only holds a door OFF (after a swing, until the player steps clear); a door that is already
+      // solid stays solid when the player walks up to it — the check used to switch a shut door off, so it could be walked through
+      let on = true;
       registry.add({ id: d.id, name: 'Cabin door', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', follows: d.pivot, colliders: d.colliders,
-        active: () => !d.swinging() && d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4 });
+        active: () => {
+          if (d.swinging()) on = false;
+          else if (!on) on = d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4;
+          return on;
+        } });
     }
     // PH-B3: the fire lookout + zipline, the footbridge, the standing stones, waystones, dam, canoe, board and cave mouth
     const landmarks = chunk.slug === 'pine-hollow' ? await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn); }, trees: forest.trees }) : null;
