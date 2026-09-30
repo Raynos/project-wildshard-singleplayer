@@ -4,7 +4,7 @@
 // the model in the Model Explorer, or a video spinning five models … in a little 10-second clip".
 //
 //   node scripts/model-spin.mjs --url=<served build> --shard=<slug> --models=<id,id,…|first:5> --out=<file.mp4>
-//                               [--seconds=10] [--size=402x874] [--turns=1] [--fps=30] [--keep]
+//                               [--seconds=10] [--size=402x874] [--turns=1] [--fps=30] [--keep] [--debug=<key=value,…>]
 //   node scripts/model-spin.mjs --url=<served build> --shard=<slug> --list      # the catalog's ids + names, in its order
 //
 //   scripts/browser-lane.sh node scripts/model-spin.mjs --url=https://wildshard-singleplayer.vercel.app \
@@ -32,6 +32,7 @@
 // Headless Chromium on Metal, muted, one page, closed at the end. Run it inside scripts/browser-lane.sh (≤ 3 game
 // browsers on this Mac).
 import { execFileSync } from 'node:child_process';
+import { debugSettings } from './debug-settings.mjs';
 import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve as resolvePath } from 'node:path';
@@ -57,6 +58,8 @@ const SECONDS = Number(flag('seconds', '10'));
 const TURNS = Number(flag('turns', '1'));
 const FPS = Number(flag('fps', '30'));
 const KEEP = has('keep');
+/** --debug=key=value,key=value: pause ▸ Settings ▸ Debug options set before the load (a face variant, E339) */
+const DEBUG = Object.fromEntries(flag('debug', '').split(',').filter((kv) => kv.includes('=')).map((kv) => kv.split('=')));
 const [VW = 0, VH = 0] = flag('size', '402x874').split('x').map(Number);
 if (BASE === '' || SHARD === '') usage('--url=<served build> and --shard=<slug> are required');
 if (!LIST && (MODELS === '' || OUT === '')) usage('--models=<id,id,…|first:N> and --out=<file.mp4> are required (or --list)');
@@ -85,6 +88,7 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 const work = mkdtempSync(join(tmpdir(), 'model-spin-'));
 try {
   const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  if (Object.keys(DEBUG).length > 0) await debugSettings(ctx, DEBUG);
   const page = await ctx.newPage();
   await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
   const errors = [];
