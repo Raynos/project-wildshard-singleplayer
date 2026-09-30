@@ -1,7 +1,6 @@
 /**
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
- *   registerDriftwoodModels(handles)          // Driftwood's setup (main.ts, at boot): the batch models + tap targets
  *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins, the pond, a pine (its props are models: E315 M2)
  *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present
  *   measure(object)                           // tris / draw calls
@@ -12,8 +11,6 @@
  * no AI — it stands on the turntable and plays what it is told (clips, variants, X8).
  */
 import * as THREE from 'three';
-import type { PalmSpec } from '../world/Palms';
-import { Bushes } from '../world/Bushes';
 import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
 import { speciesDef } from '../entities/species/registry';
@@ -24,7 +21,6 @@ import type { DrawnAs, Pipeline } from '../world/registry';
 import { creatureHull } from '../entities/glbCreatures';
 import { pineHull } from '../entities/pineCreatures';
 import { HULL_PIPELINE, SPECIES_PIPELINE } from '../models/provenance';
-import { withTier } from './tiers';
 import { registerModel, registerPick, registeredModels, type ModelCategory, type RegisteredModel } from './registry';
 
 export type Category = ModelCategory;
@@ -50,36 +46,11 @@ export interface CatalogEntry extends Omit<RegisteredModel, 'worldBox'> {
   tick?: (dt: number, t: number) => void;
 }
 
-// ── Driftwood's models (registered by the shard's setup — Explore reads the registry, never this function) ──
-// The built pieces (hut, lookout, wreck, shrine, pier, a jetty, the boat, the rope bridge, the cove) are models already:
-// main.ts registers each once in the world registry with `model` (src/world/registry.ts). The shore boulder is a model
-// on the contract (src/models/, E306 M0b): place() registers it, and the palm (E315 M1). What is left here is what the
-// world doesn't build one by one yet: a bush out of its batch, and the taps on that batch mesh (M1 moves it onto the contract).
+// ── Driftwood's models are on the model contract (E306 / E315 M1, src/models/): `place` registers each one, its copies
+// and its tap targets, so the shard's setup registers nothing here.
 
 /** a built batch: its mesh, and how many copies it holds */
 type Meshed = { mesh: THREE.Object3D; count?: number } | null | undefined;
-
-export interface DriftwoodModels {
-  sky: Sky;
-  palms?: Meshed; bushes?: Meshed;
-  palmSpecs?: readonly PalmSpec[];
-}
-
-export function registerDriftwoodModels(h: DriftwoodModels): void {
-
-  // one of a batch: built alone, once, the first time it is viewed; `buildAt` rebuilds it as another tier would
-  const fresh = (id: string, name: string, category: Category, file: string, copies: number | undefined, build: () => THREE.Object3D): void => {
-    let o: THREE.Object3D | null = null;
-    registerModel({ id, name, category, file, live: false, object: () => (o ??= build()), buildAt: (tier) => withTier(tier, build), pipeline: 'code', drawnAs: 'merged', ...(copies === undefined ? {} : { copies }) });
-  };
-  const specs = h.palmSpecs ?? [];
-  const beach = specs[3] ?? { x: 20, z: -170 };
-  fresh('bush', 'Hibiscus bush', 'nature', 'src/world/Bushes.ts', h.bushes?.count, () => new Bushes(h.sky).build([{ x: beach.x - 6, z: beach.z, r: 1.3, flowers: true }]).mesh);
-
-  // a tap on the merged bushes selects the one under the finger
-  const around = (p: THREE.Vector3, r: number, hgt: number): THREE.Box3 => new THREE.Box3(new THREE.Vector3(p.x - r, p.y - 0.2, p.z - r), new THREE.Vector3(p.x + r, p.y + hgt, p.z + r));
-  if (h.bushes) registerPick({ object: h.bushes.mesh, entry: 'bush', boxAt: (pt) => around(new THREE.Vector3(pt.x, pt.y - 1, pt.z), 1.4, 1.8) });
-}
 
 // ── Pine Hollow's models (E66): the three log cabins, the pond, one Scots pine out of the forest (its boulders, stumps and
 // logs are models on the contract, E315 M2: src/chunks/pine-hollow/models/) ──

@@ -1,25 +1,31 @@
 /**
- * Bushes — Driftwood Isle's hibiscus shrubs: the leaf clump (bushKit.ts, the user's E116 pick), a quarter of them in
- * flower. One flat-shaded vertex-coloured mesh on the shared lowPolyMaterial, no colliders (you walk through them).
+ * Bushes — where Driftwood Isle's hibiscus shrubs stand (E306 / E315 M1: the bush itself is the model
+ * src/chunks/driftwood-isle/models/hibiscusBush.ts, the user's E116 leaf clump; this is the world side). A quarter of
+ * them are in flower. `place()` merges them into one flat-shaded vertex-coloured mesh on the shared lowPolyMaterial
+ * through src/models/place.ts — one registry piece, `bushes`, with no colliders (you walk through them).
  *
- *   const bushes = new Bushes(sky).build(Bushes.scatterIsland(seed));
+ *   const bushes = new Bushes(sky).place(Bushes.scatterIsland(seed), registry);   // the game (main.ts)
+ *   const bushes = new Bushes(sky).build(Bushes.scatterIsland(seed));             // a dev page: no registry
  *   scene.add(bushes.mesh);
  */
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, ROAD_WIDTH } from '../core/config';
 import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import type { Sky } from './Sky';
+import type { WorldRegistry } from './registry';
 import { TIER_CONFIG } from '../core/tier';
-import { swayDepthMaterial } from './wind';
-import { lowPolyMaterial } from './lowpolyKit';
-import { bushParts } from './bushKit';
+import { hibiscusBush, type HibiscusBushParams } from '../chunks/driftwood-isle/models/hibiscusBush';
+import { modelContext, type Placement } from '../models/model';
+import { place } from '../models/place';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
+const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
+
 export class Bushes {
+  /** every bush, merged into one mesh (an empty mesh when nothing was placed) */
   mesh!: THREE.Mesh;
   count = 0;
   /** what was built (the board's in-world camera finds a patch from these) */
@@ -51,19 +57,23 @@ export class Bushes {
     return out;
   }
 
-  build(specs: BushSpec[]): this {
+  /** each spec as a placement of the bush: on the ground, its sway's phase from where it stands */
+  static placements(specs: readonly BushSpec[]): Placement<HibiscusBushParams>[] {
+    return specs.map((b) => ({ x: b.x, y: heightAt(b.x, b.z), z: b.z, params: { r: b.r, flowers: b.flowers, phase: (b.x + b.z) * 0.37 } }));
+  }
+
+  /** the game's: placed and registered (piece `bushes`, the catalog's Hibiscus bush) */
+  place(specs: BushSpec[], registry: WorldRegistry): this { return this.draw(specs, registry); }
+
+  /** a dev page's: the same bushes, not registered */
+  build(specs: BushSpec[]): this { return this.draw(specs, null); }
+
+  private draw(specs: BushSpec[], registry: WorldRegistry | null): this {
     this.specs.push(...specs);
-    const rng = new Rng(0x5ea1 ^ 0xb5 ^ 0xe116);
-    const parts: THREE.BufferGeometry[] = [];
-    for (const b of specs) { parts.push(...bushParts(b, heightAt(b.x, b.z), rng)); this.count++; }
-    // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
-    if (parts.length === 0) console.warn('[bushes] nothing placed — %d candidates rejected', specs.length);
-    const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
-    for (const p of parts) p.dispose();
-    geo.computeBoundingSphere();
-    this.mesh = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
-    this.mesh.castShadow = TIER_CONFIG.bushShadows; this.mesh.receiveShadow = true;
-    this.mesh.customDepthMaterial = swayDepthMaterial();
+    const placed = place(hibiscusBush, Bushes.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' } });
+    // (an empty scatter — a stale terrain, a def with no land — places nothing: an empty mesh stands in, as it always did)
+    this.mesh = isMesh(placed.object) ? placed.object : new THREE.Mesh();
+    this.count = placed.copies;
     return this;
   }
 }

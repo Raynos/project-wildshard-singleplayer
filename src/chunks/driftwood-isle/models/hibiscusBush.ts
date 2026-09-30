@@ -1,25 +1,27 @@
 /**
- * bushKit — Driftwood Isle's hibiscus bush, the LEAF CLUMP the user picked (E116, 2026-09-25): a dark welded core
- * wrapped in 50 (phone) / 90 broad folded leaves (6 tris each) fanning up and out, the palms' frond language at bush
- * scale; flat-shaded on the shared lowPolyMaterial (no program of its own); dark inside → sunlit tips. ~350 tris a bush
- * on the phone.
+ * The hibiscus bush (E306 / E315 M1: a model on the contract, src/models/model.ts; it was src/world/bushKit.ts) —
+ * Driftwood Isle's LEAF CLUMP the user picked (E116, 2026-09-25): a dark welded core wrapped in 50 (phone) / 90 broad
+ * folded leaves (6 tris each) fanning up and out, the palms' frond language at bush scale; flat-shaded on the shared
+ * lowPolyMaterial (no program of its own); dark inside → sunlit tips. ~350 tris a bush on the phone.
  *
  *   Every flowering bush (the scatter's 28 %) wears 4–7 five-petal hibiscus (18 tris: rounded cupped petals, dark
  *   throat, yellow stamen; red mostly, deep red / pink / coral per bush) and 2–3 closed buds, facing out and up.
  *
- *   const parts = bushParts(spec, groundY, rng);             // non-indexed world-space parts: position, color, normal, aSway
- *   new THREE.Mesh(mergeGeometries(parts), lowPolyMaterial(sky));   // plus swayDepthMaterial() for its shadow
- *
- * Every part carries `aSway` (the M5 wind, wind.ts) rising from the ground to the crown.
+ * Built in its own space, its base at the origin: one non-indexed part (position, color, flat normals, aSway). Every
+ * copy has its own shape from the placement group's rng stream (the old Bushes.build loop's, so the move is exact);
+ * `aSway` (the M5 wind, wind.ts) rises from the ground to the crown, its phase set by the world from where the bush
+ * stands (src/world/Bushes.ts). No colliders: you walk through bushes.
  */
 import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '../core/rng';
-import { TIER_CONFIG } from '../core/tier';
-import { swayByHeight } from './wind';
+import type { Rng } from '../../../core/rng';
+import { TIER_CONFIG } from '../../../core/tier';
+import { swayByHeight, swayDepthMaterial } from '../../../world/wind';
+import { lowPolyMaterial } from '../../../world/lowpolyKit';
+import { defineModel } from '../../../models/model';
 
-/** the bush as the scatter describes it: centre, radius (0.7–1.5 m), whether it is in flower */
-export interface BushShape { x: number; z: number; r: number; flowers: boolean }
+/** one bush: its radius (0.7–1.5 m), whether it is in flower, and its sway's phase (the world's: from where it stands) */
+export interface HibiscusBushParams { readonly r: number; readonly flowers: boolean; readonly phase: number }
 
 const col = (h: string): THREE.Color => new THREE.Color(h);
 const LEAF = { deep: col('#2a5a24'), dark: col('#377a2e'), mid: col('#52a03a'), light: col('#7cc04a'), tip: col('#aad85c'), core: col('#1f3f1c') };
@@ -112,7 +114,7 @@ function bloomSpots(n: number, rng: Rng, shell: (d: THREE.Vector3) => number, cy
   return out;
 }
 
-function blooms(t: TriList, b: BushShape, rng: Rng, shell: (d: THREE.Vector3) => number, cy: number, out: number): void {
+function blooms(t: TriList, b: HibiscusBushParams, rng: Rng, shell: (d: THREE.Vector3) => number, cy: number, out: number): void {
   if (!b.flowers) return;
   const petal = PETALS[rng.next() < 0.62 ? 0 : rng.int(1, PETALS.length - 1)] ?? PETALS[0];
   if (!petal) return;
@@ -124,10 +126,9 @@ function blooms(t: TriList, b: BushShape, rng: Rng, shell: (d: THREE.Vector3) =>
   });
 }
 
-/** place a local-space part (bush base at the origin) at the bush and give it the wind */
-function place(g: THREE.BufferGeometry, b: BushShape, y: number): THREE.BufferGeometry {
-  g.translate(b.x, y, b.z);
-  swayByHeight(g, 0.28, y, y + b.r * 1.2, (b.x + b.z) * 0.37);
+/** give a part (bush base at the origin) the wind: the weight rises from the ground to 1.2 radii up */
+function windy(g: THREE.BufferGeometry, b: HibiscusBushParams): THREE.BufferGeometry {
+  swayByHeight(g, 0.28, 0, b.r * 1.2, b.phase);
   return g;
 }
 
@@ -147,7 +148,7 @@ function core(t: TriList, rng: Rng, rx: number, ry: number, cy: number): void {
 
 // ── the leaf clump ───────────────────────────────────────────────────────────────────────────────
 
-function leafClump(b: BushShape, y: number, rng: Rng): THREE.BufferGeometry[] {
+function leafClump(b: HibiscusBushParams, rng: Rng): THREE.BufferGeometry {
   const r = b.r, t = new TriList();
   const cy = r * 0.4, rx = r * 0.6, ry = r * 0.46;
   core(t, rng, rx * 0.92, ry * 0.92, cy);
@@ -178,14 +179,23 @@ function leafClump(b: BushShape, y: number, rng: Rng): THREE.BufferGeometry[] {
     t.tri(L2, T, M, midC, tipC, midC); t.tri(M, T, R2, midC, tipC, midC);
   }
   blooms(t, b, rng, shell, cy, 1.55);
-  return [place(t.geometry(), b, y)];
+  const g = windy(t.geometry(), b);
+  g.computeVertexNormals(); // flat per-face normals (the E112 shadow flip reads them)
+  return g;
 }
 
-// ── entry point ───────────────────────────────────────────────────────────────────────────────────
+// ── the model ─────────────────────────────────────────────────────────────────────────────────────
 
-/** one bush as world-space non-indexed parts (position, color, normal, aSway), ready to merge */
-export function bushParts(b: BushShape, groundY: number, rng: Rng): THREE.BufferGeometry[] {
-  const parts = leafClump(b, groundY, rng);
-  for (const g of parts) g.computeVertexNormals(); // flat per-face normals (the E112 shadow flip reads them)
-  return parts;
-}
+export const hibiscusBush = defineModel<HibiscusBushParams>({
+  id: 'driftwood-isle/hibiscus-bush', name: 'Hibiscus bush', category: 'nature', pipeline: 'code',
+  file: 'src/chunks/driftwood-isle/models/hibiscusBush.ts',
+  defaults: { r: 1.3, flowers: true, phase: 0 },
+  variants: [
+    { id: 'flowering', label: 'In flower', params: {} },
+    { id: 'leaf', label: 'Leaf only', params: { flowers: false } },
+    { id: 'small', label: 'Small', params: { r: 0.8 } },
+  ],
+  seed: 0x5ea1 ^ 0xb5 ^ 0xe116,
+  // the shared kit material (no program of its own) and the swaying shadow pass; the shadows are the tier's call
+  build: (ctx, p, rng) => [{ geometry: leafClump(p, rng), material: lowPolyMaterial(ctx.sky), castShadow: TIER_CONFIG.bushShadows, receiveShadow: true, customDepthMaterial: swayDepthMaterial() }],
+});

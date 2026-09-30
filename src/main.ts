@@ -101,7 +101,7 @@ import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
-import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
+import { registerPineHollowModels } from './explore/catalog';
 import { registerTrainingDummyModel } from './practice/catalog';
 import { TrainingArena } from './practice/TrainingArena';
 import { loadPlayground } from './playgrounds/load';
@@ -333,8 +333,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     jetties.forEach((j, i) => { addBuilt(`jetty-${i}`, 'Jetty', 'buildings', 'src/world/Pier.ts', j.group, j.colliders, 'planks', (x, z) => j.floorHeightAt(x, z), j.colliderDescs(), i === 0 ? { id: 'jetty' } : undefined); });
     await slice();
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
-    const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, undefined, AVOID)) : null;
-    if (bushes) game.scene.add(bushes.mesh);
+    // E315 M1: the hibiscus bush model (src/chunks/driftwood-isle/models/hibiscusBush.ts) placed through src/models/place.ts, which registers piece `bushes`
+    const bushes = isOcean ? new Bushes(sky).place(Bushes.scatterIsland(chunk.seed, undefined, AVOID), registry) : null;
     await slice();
     // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
     const gulls = pier && boat && rocks && sea ? new Gulls(sky).build({
@@ -473,9 +473,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (ride) interactables.push(ride.interactable);
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
-  // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
-  if (isOcean) registerDriftwoodModels({ sky, palms, bushes, palmSpecs });
-  else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
+  // the shard's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built);
+  // Driftwood's are on the model contract (E315 M1: `place` registers them)
+  if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
   registerTrainingDummyModel(game.renderer); // the same three shared prop variants in every shard's Model Explorer
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
