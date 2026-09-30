@@ -604,7 +604,7 @@ export interface AnimService { load(rig: RigRef): Promise<RigInstance>; machine(
 | Weather | `Weather`: states, schedule, feeds fog / wind / audio / wetness, `ask('weather.damage')` | the rain curtain in the kit (Nalati + Pine share it); puddles stay per shard (two techniques); lightning is Nalati's | the two stacks (1,334 + 888 lines) |
 | Water | `WaterBody` interface (level, surface height at x/z, `inside`, swim, reflect hook) — **built in S4.1** for the sea (≈15 engine lines read `chunk.ocean` today); X5 converts the other bodies | Ocean, pond, stream and beaver pool are shard or kit by the rule of two | 6 bodies, `main.ts:297`'s slug branch |
 | Fog | the patch order (§13.2) and the density API | the shard's `FogModel` | 4 implicit writers |
-| Placement | `models/place.ts` (kept), scatter primitives with the same random draw order | the scatter rules | `scatterIsland` ×3 etc. |
+| Placement | `models/place.ts` (kept), scatter primitives with the same random draw order | the scatter rules | the separate scatter rules: `Bushes.scatterIsland`, `Palms.scatterIsland`, `Boulders.scatterShore`, `Seabed.scatterLagoon`, Nalati's `planDressing`, Pine's `placement.ts` |
 | Wind | `WindField` in `#engine/world/wind` (one field: direction, gusts, per-position sample) that grass, trees, bows' drift and cloth read | per-shard wind data (`manifest.wind`: Nalati's steppe wind parameters, Driftwood / Pine's today's `world/wind.ts` values) | `world/wind.ts` + Nalati's `steppeWind.ts` (the Bow family reads `app.world.wind`, no longer Nalati's file) |
 | Culling | `models/cull.ts` (kept) + a culler interface | Nine Dragon's `InstanceCuller` plugs in; Nalati's `DressLayer` merges | 3 cullers |
 
@@ -781,7 +781,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | Rule | Checks | Starts at |
 |---|---|---|
 | `wildshard/layer` | import direction; no shard ↔ shard; the public index only; `src/engine/**` word list (slugs, shard / creature / weapon names, Bag, coin, loot, compendium, feat) | today's counts, per file |
-| `wildshard/no-shard-branch` | `slug ===`, `style ===`, `isOcean`, `nalatiNow()`, `isPine`, `isNine`, `painterly ?`, etc. outside `src/shards/` | 269 |
+| `wildshard/no-shard-branch` | outside `src/shards/`, any of: `slug ===` / `slug !==`; `style ===` / `style !==`; `isOcean`; `sea ?`; `chunk.ocean`; `nalatiNow()`; `isNalati`; `isPine`; `isNine`; `painterly ?` / `painterly &&`; `LOOK_V2`; `isStylized(`; `isPaintedAir(`; `isPainterlyGrass(`; a shard slug string literal (`'driftwood-isle'`, `'nalati-grasslands'`, `'pine-hollow'`, `'nine-dragon-stack'`). F4 writes this list as `SHARD_BRANCH` in `lint/wildshard-plugin.js` | 269 |
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside `#engine/saves` | 36 keys / 28 files |
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |
