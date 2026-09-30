@@ -59,7 +59,7 @@ import { pineModels } from '../../chunks/pine-hollow/world/context';
 import { StagLead } from './stagLead';
 import { NightThralls, isThrall } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
-import { buildTokenShelf } from './tokenShelf';
+import { placeTokenShelf } from './tokenShelf';
 import { markUnload } from '../../boot/lastEnd';
 
 export interface PineQuestHost {
@@ -155,11 +155,10 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   // ── the counters, the toasts ──
   const chip = new CountChip();
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
-  // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (one merged mesh, tokenShelf.ts)
+  // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (a model: tokenShelf.ts places it)
   const rangerRoot = h.cabins?.roots[0];
-  const shelf = rangerRoot ? buildTokenShelf(sky) : null;
-  if (shelf && rangerRoot) {
-    rangerRoot.add(shelf.mesh);
+  const shelf = rangerRoot ? placeTokenShelf(sky, rangerRoot, h.registry) : null;
+  if (shelf) {
     shelf.setShown(tokenCount() === TOKEN_NAMES.length);
     game.onUpdate(() => { shelf.update(game.camera); }, 'quest.shelf');
   }

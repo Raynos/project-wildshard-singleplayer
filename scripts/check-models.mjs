@@ -9,7 +9,7 @@
  *   4. a shard importing another shard's models (`src/chunks/<a>/**` → `chunks/<b>/models/`)
  *   5. `src/models/` importing a shard (`chunks/…`): the contract stays shard-agnostic
  *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again
- *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4) drawing or registering a thing by hand outside its models/
+ *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4; Pine Hollow, M2) drawing or registering a thing by hand outside its models/
  *      folder — only the files it declares world may, each with its reason and its counts
  * REPORTS (never fails) what has not moved onto the contract yet, per area: registrations by hand (`addBuilt`,
  * `registerModel`, `registerSolid`, a registry `add` with an `object`, a `model:` flag) and hand-rolled drawing
@@ -62,6 +62,17 @@ export const DONE = {
     'src/chunks/nine-dragon-stack/world/hero/kitx.ts': { why: 'the kits\' curved-piece builder merges a region\'s geometry (world)', counts: { mergeGeometries: 1 } },
     'src/chunks/nine-dragon-stack/vm/geo.ts': { why: 'the first-person arms and the jian are Gear (M5)', counts: { mergeGeometries: 1 } },
   },
+  'pine-hollow': {
+    'src/world/PineCrags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
+    'src/world/PineLandmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
+    'src/world/Cabin.ts': { why: "the homestead draws its building and prop models (placed drawnInto, src/chunks/pine-hollow/world/cabins.ts): its log kit merges each building per material and the cabins' cores across them, its props are instanced across the buildings, a specimen's for the Explorer", counts: { InstancedMesh: 3, mergeGeometries: 9 } },
+    'src/world/PineStreams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
+    'src/world/Undergrowth.ts': { why: "the forest floor's field draws its six kinds' copies (models placed drawnInto: src/chunks/pine-hollow/world/drawnModels.ts)", counts: { InstancedMesh: 1 } },
+    'src/pinehollow/kingModel.ts': { why: 'the Antler King is a creature (M5: the species list)', counts: { mergeGeometries: 2 } },
+    'src/pinehollow/life/wildlifeMesh.ts': { why: 'the birds and the hare are creatures (M5)', counts: { InstancedMesh: 1 } },
+    'src/pinehollow/life/skinKnife.ts': { why: 'the skinning knife is Gear (M5)', counts: { mergeGeometries: 1 } },
+    'src/pinehollow/quest/npcFigure.ts': { why: "the ranger, the trader and the miller are People (M5)", counts: { mergeGeometries: 1 } },
+  },
 };
 
 /** a file's hand registrations and hand-rolled draws (comments stripped): the report's counters */
@@ -80,6 +91,8 @@ function countsOf(code) {
 
 const SHARD_MODELS = /^src\/chunks\/([^/]+)\/models\//;
 const SHARD_FILE = /^src\/chunks\/([^/]+)\//;
+/** Pine Hollow's world side in src/world (only Pine Hollow builds these: its homestead, its forest floor, its props' scatter) */
+const PINE_WORLD = /^src\/world\/(Cabin|Undergrowth|Props)\.ts$/;
 /** Driftwood's world side in src/world (only Driftwood builds these; its report counts them apart from the shared code) */
 const DRIFTWOOD_WORLD = /^src\/world\/(Palms|Bushes|Boulders|Pier|Hut|Shrine|Boat|Seabed|BlenderIsland|blenderArea|coverTint|Trailside|Lookout|Wreck|Cove|RopeBridge|Gulls|GroundCover|driftwood)\.ts$/;
 
@@ -88,7 +101,7 @@ export function areaOf(file) {
   const m = SHARD_FILE.exec(file);
   if (m) return m[1];
   if (/^src\/(nalati|world\/nalati)\//.test(file)) return 'nalati-grasslands';
-  if (/^src\/(pinehollow\/|world\/Pine)/.test(file)) return 'pine-hollow';
+  if (/^src\/(pinehollow\/|world\/Pine)/.test(file) || PINE_WORLD.test(file)) return 'pine-hollow';
   if (DRIFTWOOD_WORLD.test(file)) return 'driftwood-isle';
   if (file.startsWith('src/models/')) return 'models (contract)';
   return 'shared / driftwood (src/world, main.ts, …)';
