@@ -10,8 +10,8 @@
  * E306 / E315 M3: a POI places models (src/chunks/nalati-grasslands/models/: the kerb stones, the balbals, the bridge,
  * the watchtower, the kokpar's goals and riders …) through a NalatiSet (./painted.ts) and registers itself — one
  * `place` per model, its colliders and floor with it — and the models of a place are a set (`SETS`: the Kurgan field,
- * the Kokpar field, the Spring and Summer camps …). The POIs not moved yet (the road fences) are still one piece each
- * through `ENTRY`.
+ * the Kokpar field, the Spring and Summer camps …). Every POI with a thing in it registers itself; one without (the
+ * glacier's snout, the terrain's) is world, and is not registered.
  *
  * NALATI-MERGE P1: every collider is in the world registry (src/world/registry.ts) — boxes (with their material),
  * decks / floors as slabs, stairs as treads, rocks as hulls; a floor function is placement only. Nothing goes into
@@ -39,18 +39,12 @@ import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
 import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import type { Sky } from '../Sky';
-import { activeRegistry, type PieceCategory, type Pipeline, type WorldRegistry } from '../registry';
-import { boxDescs, registerSolid, type Box } from './solid';
+import { activeRegistry, type WorldRegistry } from '../registry';
+import type { Box } from './solid';
 import type { Ground, PoiCtx, PoiPiece } from './types';
 import { modelContext, type ModelContext } from '../../models/model';
 import type { Placed } from '../../models/place';
 import { placeSet } from '../../models/sets';
-
-/** each POI not yet on the model contract: its entry in the registry (and Explore's catalog when `model`, with how it's
- *  made: E306 M0a). M3 moves each onto models (src/chunks/nalati-grasslands/models/) + a set (`SETS`), and its row goes */
-const ENTRY: Record<string, { name: string; category: PieceCategory; file: string; model: boolean; pipeline?: Pipeline | readonly Pipeline[] }> = {
-  roads: { name: 'Road fences', category: 'props', file: 'src/world/nalati/RoadFurniture.ts', model: false },
-};
 
 /** the places on the model contract (E306 / E315 M3): the models the named POIs placed are one set each (M7 explores them) */
 const SETS: readonly { id: string; name: string; file: string; pois: readonly string[] }[] = [
@@ -139,14 +133,8 @@ export class NalatiPOIs {
     const placed = new Map<string, readonly Placed[]>();
     for (const p of this.pieces) {
       if (p.register) { placed.set(p.name, p.register({ registry, ctx: this.models })); yield p.name; continue; }
-      const e = ENTRY[p.name];
-      const colliders = [...boxDescs(p.colliders), ...(p.descs ?? [])];
-      if (colliders.length === 0 && e?.model !== true) continue;
-      registerSolid(registry, {
-        id: `nalati-${p.name}`, name: e?.name ?? p.name, category: e?.category ?? 'props', file: e?.file ?? 'src/world/nalati/index.ts',
-        object: p.object, colliders, surface: p.surface, ...(p.floor ? { floor: p.floor } : {}), ...(e?.model === true ? { model: e.pipeline === undefined ? {} : { pipeline: e.pipeline } } : {}),
-      });
-      yield p.name;
+      // world (the glacier's snout): nothing to register — a POI that collides places models
+      if (p.colliders.some((b) => b.ghost !== true) || (p.descs?.length ?? 0) > 0) throw new Error(`NalatiPOIs: '${p.name}' collides but places no models`);
     }
     for (const s of SETS) {
       const members = s.pois.flatMap((n) => placed.get(n) ?? []);

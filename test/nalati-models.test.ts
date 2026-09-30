@@ -21,6 +21,9 @@ import { checkModels, ON_CONTRACT } from '../scripts/check-models.mjs';
 import { yurt } from '../src/chunks/nalati-grasslands/models/yurt';
 import { barrel, corral } from '../src/chunks/nalati-grasslands/models/campProps';
 import { kazan, firewood } from '../src/chunks/nalati-grasslands/models/campGenerated';
+import { fence, fenceRun, addFence } from '../src/chunks/nalati-grasslands/models/fence';
+import { signpost, boardSpots } from '../src/chunks/nalati-grasslands/models/signpost';
+import type { Box } from '../src/world/nalati/solid';
 
 // a stand-in sky: the painterly material asks it for its sun and to prepare the material (no renderer in a test)
 const lights: THREE.DirectionalLight[] = [];
@@ -182,5 +185,36 @@ describe('the camps (E306 / E315 second pass)', () => {
 
   it('the camps are on the contract (check-models rule 6)', () => {
     expect(ON_CONTRACT).toEqual(expect.arrayContaining(['src/world/nalati/NomadCamp.ts', 'src/world/nalati/SummerCamp.ts']));
+  });
+});
+
+describe('the roads (E306 / E315 second pass)', () => {
+  it('a fence run stands at its first point; its points are relative, and it paints what addFence painted', () => {
+    const pts: [number, number][] = [[5.8, 244], [5.6, 232], [6.0, 221]];
+    const old = new PaintKit(0x70ad), boxes: Box[] = [];
+    addFence(old, ground, pts, boxes);
+    const want = old.finishTextured({ ground }, 'rock');
+    const kit = new PaintKit(0x70ad);
+    const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: new Smoke() });
+    const r = fenceRun(pts);
+    expect(r.at).toEqual({ x: 5.8, z: 244 });
+    const made = set.paint(fence, { x: r.at.x, y: ground(r.at.x, r.at.z), z: r.at.z, yaw: 0 }, r.params);
+    expect(made.boxes).toEqual(boxes); // one box per straight segment, the same floats
+    const got = kit.finishTextured({ ground }, 'rock');
+    expect(Array.from(got?.getAttribute('position').array ?? [])).toEqual(Array.from(want?.getAttribute('position').array ?? []));
+  });
+
+  it('a signpost hangs its boards where the lettering expects them, and collides as its post', () => {
+    const kit = new PaintKit(3);
+    const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: new Smoke() });
+    const boards = [{ text: 'NOMAD CAMP', dir: 0 }, { text: 'KUNES BRIDGE', dir: Math.PI }];
+    const made = set.paint(signpost, { x: 2, y: ground(2, 3), z: 3, yaw: 0 }, { boards });
+    expect(made.boxes?.length).toBe(1);
+    const spots = boardSpots(2, 3, ground(2, 3), boards);
+    expect(spots.map((s) => Math.round(s.p.z * 100) / 100)).toEqual([3.78, 2.23]); // 0.775 m out from the post, either way
+  });
+
+  it('the roads are on the contract, and NalatiPOIs registers nothing by hand', () => {
+    expect(ON_CONTRACT).toEqual(expect.arrayContaining(['src/world/nalati/RoadFurniture.ts', 'src/world/nalati/index.ts']));
   });
 });

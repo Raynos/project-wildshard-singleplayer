@@ -17,7 +17,7 @@ import type { Sky } from '../../Sky';
 import type { Collider } from '../../../player/Player';
 import type { ColliderDesc } from '../../registry';
 import { prism } from '../solid';
-import { addFence } from '../props';
+import { addFence } from '../../../chunks/nalati-grasslands/models/fence';
 import { campClutterSpots, type DressPlan } from './place';
 
 const C = {

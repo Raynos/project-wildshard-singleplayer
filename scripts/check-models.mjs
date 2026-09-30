@@ -48,12 +48,13 @@ function sources(dir = join(ROOT, 'src')) {
 /**
  * 6. Files already moved onto the contract never register a built thing by hand again (a `registerSolid` /
  *    `registerModel`, a registry `add` with an `object`, a `model:` flag): they place models. Each wave adds its files
- *    (M3, Nalati: every place but the road fences; the camps joined in the second pass; E315).
+ *    (M3, Nalati: every place; the camps and the roads joined in the second pass, with NalatiPOIs itself; E315).
  */
 export const ON_CONTRACT = [
   'src/world/nalati/painted.ts', 'src/world/nalati/KurganField.ts', 'src/world/nalati/Balbals.ts', 'src/world/nalati/Bridge.ts',
   'src/world/nalati/EagleRock.ts', 'src/world/nalati/Cairn.ts', 'src/world/nalati/Crags.ts', 'src/world/nalati/Stair.ts',
-  'src/world/nalati/Bowl.ts', 'src/world/nalati/NomadCamp.ts', 'src/world/nalati/SummerCamp.ts',
+  'src/world/nalati/Bowl.ts', 'src/world/nalati/NomadCamp.ts', 'src/world/nalati/SummerCamp.ts', 'src/world/nalati/RoadFurniture.ts',
+  'src/world/nalati/index.ts',
 ];
 
 /**

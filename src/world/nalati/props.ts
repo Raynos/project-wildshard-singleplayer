@@ -1,12 +1,11 @@
 /**
  * The Nalati props' shared look (B5): the camp palette (`PC`), the weathered timber grain the fences, racks and rails are
- * painted with (`GRAIN` / `WOOD`), the syrmak felt-rug painter, and the split-rail fence run. The camps' props are
- * models now (E306 / E315: src/chunks/nalati-grasslands/models/campProps.ts, campGenerated.ts, yurt.ts).
+ * painted with (`GRAIN` / `WOOD`) and the syrmak felt-rug painter. The camps' props and the fences are models now
+ * (E306 / E315: src/chunks/nalati-grasslands/models/campProps.ts, campGenerated.ts, yurt.ts, fence.ts).
  */
 import * as THREE from 'three';
-import { type PaintKit, type PaintOpts, v3, woodPainter, woodPole } from './paint';
+import { type PaintOpts, woodPainter } from './paint';
 import { TEX_MEAN } from '../nalatiTextures';
-import type { Collider } from '../../player/Player';
 
 export const PC = {
   wood: new THREE.Color('#8b5e36'),
@@ -26,8 +25,6 @@ export const PC = {
   stoneDark: new THREE.Color('#6c6a66'),
   hay: new THREE.Color('#cfae5c'),
 };
-
-type Ground = (x: number, z: number) => number;
 
 /**
  * The weathered timber of the fences, racks and rails (E302, NALATI-FINISH B9: they read as untextured purple-grey
@@ -74,40 +71,3 @@ export function rugPainter(w: number, h: number, pal: number): (p: THREE.Vector3
     return P.field;
   };
 }
-
-// ── fences ───────────────────────────────────────────────────────────────────────────────────────────
-
-/**
- * A split-rail fence along a polyline (posts every ~2.4 m, two rails, the rails sag slightly). One collider per
- * straight segment. Posts follow the ground.
- */
-export function addFence(kit: PaintKit, ground: Ground, pts: [number, number][], colliders: Collider[], o: { h?: number; spacing?: number } = {}): void {
-  const h = o.h ?? 1.15, sp = o.spacing ?? 2.4, rng = kit.rng;
-  for (let i = 0; i + 1 < pts.length; i++) {
-    const p = pts[i], q = pts[i + 1];
-    if (!p || !q) continue;
-    const len = Math.hypot(q[0] - p[0], q[1] - p[1]), n = Math.max(1, Math.round(len / sp));
-    const posts: THREE.Vector3[] = [];
-    for (let k = 0; k <= n; k++) {
-      if (k === 0 && i > 0) { const last = posts[posts.length - 1]; if (last) posts.push(last); continue; }
-      const t = k / n, x = p[0] + (q[0] - p[0]) * t + rng.range(-0.05, 0.05), z = p[1] + (q[1] - p[1]) * t + rng.range(-0.05, 0.05);
-      const y = ground(x, z);
-      const lean = rng.range(-0.05, 0.05);
-      kit.add(woodPole(v3(x, y - 0.3, z), v3(x + lean, y + h + rng.range(-0.05, 0.08), z + lean * 0.5), 0.075, 0.06, 7, 3), GRAIN, { ...WOOD, jitter: 0.1, foot: 0.7, brush: 0.14 });
-      posts.push(v3(x, y, z));
-    }
-    for (let k = 0; k + 1 < posts.length; k++) {
-      const a = posts[k], b = posts[k + 1];
-      if (!a || !b) continue;
-      for (const ry of [h * 0.45, h * 0.88]) {
-        const mid = v3((a.x + b.x) / 2, (a.y + b.y) / 2 + ry - 0.05, (a.z + b.z) / 2);
-        kit.add(woodPole(v3(a.x, a.y + ry, a.z), mid, 0.05, 0.05, 6, 2), GRAIN, { ...WOOD, jitter: 0.1, brush: 0.14 });
-        kit.add(woodPole(mid, v3(b.x, b.y + ry, b.z), 0.05, 0.05, 6, 2), GRAIN, { ...WOOD, jitter: 0.1, brush: 0.14 });
-      }
-    }
-    const cx = (p[0] + q[0]) / 2, cz = (p[1] + q[1]) / 2, yaw = Math.atan2(q[0] - p[0], q[1] - p[1]);
-    const gy = ground(cx, cz);
-    colliders.push({ x: cx, z: cz, hw: 0.12, hd: len / 2, rot: -yaw, yBottom: gy - 1.5, yTop: gy + h });
-  }
-}
-
