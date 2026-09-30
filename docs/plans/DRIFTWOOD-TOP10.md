@@ -1,6 +1,6 @@
 # Plan: Driftwood top 10 (E126)
 
-**State:** `in progress` 2026-09-30 — done and live: rows 1–11; row 12 (E334) live in `9e9d6eb-munv6l8c`. Jake's look review of row 12 (2026-09-30): re-pose the off hand (relaxed, not pointing) and keep the sleeves above the water while swimming — being applied. Also open: the physical-iPhone memory reading (phone not connected).
+**State:** `in progress` 2026-09-30 — done and live: rows 1–11; row 12 (E334) live in `9e9d6eb-munv6l8c`, Jake's look review applied (`276494be`: relaxed off hand, swim sleeves; awaiting deploy; sheet `progress/296-e334-e314-look-review.jpg`). Open: the physical-iPhone memory reading for row 12 (phone not connected).
 
 ## Read this first
 
