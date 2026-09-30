@@ -8,8 +8,8 @@
  * Its params are the cable's two ends in the world: `top` = the deck's outer edge (on the floor), `bottom` = the landing
  * (on the floor); the deck turns to face down the line. Its own space: the origin is `top`. The ride (src/world/Zipline.ts)
  * builds the rig and the trolley from `ziplineGeometry` where the zipline stands, draws them itself (the trolley runs
- * the wire) and places this model `drawnInto` its group; the Explorer's specimen is a 40 m run from the origin with the
- * trolley parked at the top.
+ * the wire) and places this model `drawnInto` its group; the Explorer's specimen is a short run from the origin with
+ * the trolley parked at the top.
  */
 import * as THREE from 'three';
 import { LowPolyKit, log, beam, plank, rope, rock, lowPolyMaterial } from '../../../world/lowpolyKit';
@@ -104,8 +104,8 @@ export interface ZiplineParams {
 export const zipline = defineModel<ZiplineParams>({
   id: 'driftwood-isle/zipline', name: 'Zipline', category: 'buildings', pipeline: 'code',
   file: 'src/chunks/driftwood-isle/models/zipline.ts', surface: 'planks',
-  // a 40 m run down a 14 m drop from the origin
-  defaults: { top: { x: 0, y: 0, z: 0 }, bottom: { x: 38, y: -14, z: 8 } },
+  // a short run (14 m down a 5 m drop) from the origin, so the turntable frames the deck, the A-frame and the landing
+  defaults: { top: { x: 0, y: 0, z: 0 }, bottom: { x: 13, y: -5, z: 3 } },
   build: (ctx, p) => {
     const lay = new ZiplineLayout({ top: V(p.top.x, p.top.y, p.top.z), bottom: V(p.bottom.x, p.bottom.y, p.bottom.z) });
     const { rig, trolley } = ziplineGeometry(lay);
