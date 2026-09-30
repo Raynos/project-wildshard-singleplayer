@@ -361,9 +361,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
     if (seabed) { game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish); }
     await slice();
-    // coconut palms (one draw call, fronds sway in update)
+    // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
     const palmSpecs = isOcean ? Palms.scatterIsland(chunk.seed, undefined, AVOID) : [];
-    const palms = isOcean ? new Palms(sky).build(palmSpecs) : null;
     await slice();
     // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
     const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
@@ -372,7 +371,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
     }
     await slice();
-    if (palms) addBuilt('palms', 'Coconut palms', 'nature', 'src/world/Palms.ts', palms.mesh, palms.colliders, 'wood', undefined, palms.colliderDescs());
+    // E315 M1: the palm model (src/chunks/driftwood-isle/models/palm.ts) placed through src/models/place.ts, which registers piece `palms`
+    const palms = isOcean ? new Palms(sky).place(palmSpecs, registry) : null;
+    if (palms) statics.push(...palms.colliders);
     // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
     const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
     if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer())); tintTerrain(world.terrain.mesh); } // E156: the ground wears the cover

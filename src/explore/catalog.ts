@@ -12,7 +12,7 @@
  * no AI — it stands on the turntable and plays what it is told (clips, variants, X8).
  */
 import * as THREE from 'three';
-import { Palms, type PalmSpec } from '../world/Palms';
+import type { PalmSpec } from '../world/Palms';
 import { Bushes } from '../world/Bushes';
 import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
@@ -53,8 +53,8 @@ export interface CatalogEntry extends Omit<RegisteredModel, 'worldBox'> {
 // ── Driftwood's models (registered by the shard's setup — Explore reads the registry, never this function) ──
 // The built pieces (hut, lookout, wreck, shrine, pier, a jetty, the boat, the rope bridge, the cove) are models already:
 // main.ts registers each once in the world registry with `model` (src/world/registry.ts). The shore boulder is a model
-// on the contract (src/models/, E306 M0b): place() registers it. What is left here is what the world doesn't build one
-// by one yet: a palm, a bush out of their batches, and the taps on those batch meshes (M1 moves them onto the contract).
+// on the contract (src/models/, E306 M0b): place() registers it, and the palm (E315 M1). What is left here is what the
+// world doesn't build one by one yet: a bush out of its batch, and the taps on that batch mesh (M1 moves it onto the contract).
 
 /** a built batch: its mesh, and how many copies it holds */
 type Meshed = { mesh: THREE.Object3D; count?: number } | null | undefined;
@@ -73,21 +73,11 @@ export function registerDriftwoodModels(h: DriftwoodModels): void {
     registerModel({ id, name, category, file, live: false, object: () => (o ??= build()), buildAt: (tier) => withTier(tier, build), pipeline: 'code', drawnAs: 'merged', ...(copies === undefined ? {} : { copies }) });
   };
   const specs = h.palmSpecs ?? [];
-  const palm = specs.find((p) => p.h > 7) ?? specs[0];
-  if (palm) fresh('palm', 'Coconut palm', 'nature', 'src/world/Palms.ts', h.palms?.count, () => new Palms(h.sky).build([{ ...palm, lean: Math.min(palm.lean, 0.2) }]).mesh);
   const beach = specs[3] ?? { x: 20, z: -170 };
   fresh('bush', 'Hibiscus bush', 'nature', 'src/world/Bushes.ts', h.bushes?.count, () => new Bushes(h.sky).build([{ x: beach.x - 6, z: beach.z, r: 1.3, flowers: true }]).mesh);
 
-  // a tap on the merged palms / bushes selects the one under the finger
+  // a tap on the merged bushes selects the one under the finger
   const around = (p: THREE.Vector3, r: number, hgt: number): THREE.Box3 => new THREE.Box3(new THREE.Vector3(p.x - r, p.y - 0.2, p.z - r), new THREE.Vector3(p.x + r, p.y + hgt, p.z + r));
-  if (h.palms) registerPick({
-    object: h.palms.mesh, entry: 'palm',
-    boxAt: (pt) => {
-      let best = specs[0], bd = Infinity;
-      for (const s of specs) { const d = (s.x - pt.x) ** 2 + (s.z - pt.z) ** 2; if (d < bd) { bd = d; best = s; } }
-      return best ? around(new THREE.Vector3(best.x, pt.y - best.h * 0.9, best.z), 2.4, best.h + 1.6) : around(pt, 2, 8);
-    },
-  });
   if (h.bushes) registerPick({ object: h.bushes.mesh, entry: 'bush', boxAt: (pt) => around(new THREE.Vector3(pt.x, pt.y - 1, pt.z), 1.4, 1.8) });
 }
 
