@@ -101,7 +101,9 @@ void main() {
   vec2 ctr = (rc + 0.2 + 0.6 * vec2(h12(rc + 1.0), h12(rc + 2.0))) * 1.1;
   vec2 dv = p - ctr;
   float rr = length(dv);
-  float ring = exp(-pow((rr - rp * 0.3) / 0.03, 2.0)) * (1.0 - rp);
+  // (E337) squared by hand: pow() of a negative base is NaN under HLSL / D3D (Chrome on Windows)
+  float rz = (rr - rp * 0.3) / 0.03;
+  float ring = exp(-rz * rz) * (1.0 - rp);
   vec2 tilt = wob * uK.z + (dv / max(rr, 1e-3)) * ring * uK.w;
   vec3 nW = normalize(vec3(tilt.x, 1.0, tilt.y));
   vec3 nV = normalize(mat3(uView) * nW);

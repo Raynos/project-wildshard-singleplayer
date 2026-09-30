@@ -247,3 +247,20 @@ tens of metres) saves little: at 25–45 m ±0.05, at 15–30 m 0.08 / ~0 / 0.01
 0.10. It is a default-off row, **Stone & wall detail** (`ndShaderDetail`: full / near only / none); stills
 `e283-streaks/detail-near-only.jpg`, `detail-none.jpg`. The detail's cost sits in the near pixels (the square's floor, the
 balustrade): an LOD by distance cannot halve it without removing it where it reads.
+
+## E337: the black sky on desktop Chrome
+
+Jake's desktop Chrome showed a black region where the sky should be, behind the paifang and between the towers, bounded
+exactly by the tower silhouettes. Not reproducible on this Mac (Metal, and ANGLE's OpenGL backend: the sky draws). The
+cause: pass 5's far skyline in the sky shader squared a signed value with `pow(x, 2.0)`. `pow()` of a negative base is
+undefined in GLSL; Apple's GPUs return x², but HLSL / D3D (Chrome on Windows, through ANGLE) computes it as
+`exp2(y · log2(x))` = NaN, so every sky pixel below a skyline layer's base went NaN, and the composite clamps NaN to
+black. Emulating D3D's `pow` on the sky program here (`#define pow(a, b) exp2((b) * log2(a))`) turns the same pixels to
+garbage on HEAD and leaves them correct with the fix (`e337/desktop-before-after.jpg`, third row: C1·1 and the spawn,
+HEAD | fix).
+
+The fix squares by hand (`bz * bz`); the same pattern in the desktop reflection pass (`render/reflect.ts`, the drizzle
+rings) is fixed too. And the sky's depth is pulled just inside the far plane (z = 0.99999 w, not w): since pass 5 it
+draws after the world's opaques with a depth test, and at exactly z = w a driver whose z / w rounds a hair over 1.0 would
+fail the test on every sky pixel. Both are pixel-identical here: `e337/desktop-before-after.jpg` (rows 1–2: the four
+mockup cameras on desktop, before | after) and `e337/phone-before-after.jpg` (the phone frame, before | after).

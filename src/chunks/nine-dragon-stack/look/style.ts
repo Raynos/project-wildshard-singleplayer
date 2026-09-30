@@ -1107,7 +1107,11 @@ varying vec3 vDir;
 void main() {
   vDir = position;
   vec4 p = projectionMatrix * viewMatrix * vec4(position + uCam, 1.0);
-  gl_Position = p.xyww;
+  // (E337) just inside the far plane, not on it: the sky draws after the world's opaques with a depth test (render.ts). At
+  // z = w exactly its depth is 1.0 only where the GPU's z / w rounds to exactly 1; a driver that lands a hair over the
+  // cleared 1.0 fails the test on every sky pixel — a black sky between the towers (Jake's desktop Chrome). 0.99999
+  // still sits behind anything nearer than ~10 km
+  gl_Position = vec4(p.xy, p.w * 0.99999, p.w);
 }
 `;
 const FS_SKY = /* glsl */ `
@@ -1183,7 +1187,9 @@ vec3 skyline(vec3 d, vec3 col) {
     layerC += winC * win * uSkyline.z * (0.4 + 0.14 * fl);
     col = mix(col, layerC, cov * op);
     // the band of silk the layer stands in
-    float band = exp(-pow((el - base + 0.015) / (0.045 * uSkyline.y), 2.0));
+    // (E337) squared by hand: pow() of a negative base is undefined in GLSL (NaN on some drivers)
+    float bz = (el - base + 0.015) / (0.045 * uSkyline.y);
+    float band = exp(-bz * bz);
     col = mix(col, mistC, band * 0.4 * uSkyline.x);
   }
   return col;
