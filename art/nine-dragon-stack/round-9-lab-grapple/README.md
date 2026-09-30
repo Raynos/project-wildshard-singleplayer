@@ -25,7 +25,7 @@ between strata. Lab P8 "viewmodel" owns the jian, the hands and the resting arms
 
 | Piece | How | File |
 |---|---|---|
-| **Gauntlet** (hero) | **Blender, headless.** A carbon bracer with two leather straps and brass buckles, and wide riveted brass cuffs at the wrist and elbow. On top, a brass housing: two plates with a panel gap, a carbon skirt, 23 domed dragon scales and two rivet rows. The barrel has bands, a carbon sleeve and a flared muzzle collar with 3 talon guides. Also: a capacitor (a glow core in a brass cage with end caps), a conduit, and 3 status LEDs in bezels. The **spool** on the inner side has spoked flanges and glowing filament windings. The filament guide eyelet sits above it. Bevel + harden → weighted normals. **Cycles AO baked into the vertex colours** (the arm with the claw docked; the claw alone). 41.7 k tris. | `blender/fei_zhua.py` |
+| **Gauntlet** (hero) | **Blender, headless.** A carbon bracer with two leather straps and brass buckles, and wide riveted brass cuffs at the wrist and elbow. On top, a brass housing: two plates with a panel gap, a carbon skirt, 23 domed dragon scales and two rivet rows. The barrel has bands, a carbon sleeve and a flared muzzle collar with 3 talon guides. Also: a capacitor (a glow core in a brass cage with end caps), a conduit, and 3 status LEDs in bezels. The **spool** on the inner side has spoked flanges and glowing filament windings. The filament guide eyelet sits above it. Bevel + harden → weighted normals. **Cycles AO baked into the vertex colours** (the arm with the claw docked; the claw alone). 41.7 k tris. | `scripts/blender/nine-dragon-stack/lab/fei_zhua.py` (was `blender/fei_zhua.py`) |
 | **Claw** | Blender. A brass hub with a band, a faceted steel nose spike, 3 clevis knuckles, and a glowing rear eyelet where the line ties on. **One talon** (link arm, rib, piston, joint, and a curved raptor blade with a lens section, sharp edge inward) is cloned at 90 / 210 / 330°. Hinge angles: fold 2°, armed 34°, open 64°, grip 20°. | same |
 | Fist, sleeve | Blender stand-ins (P8 owns them): a gloved fist; an indigo sleeve with folds and two braided red silk cords, their pitch irregular. | same |
 | **Dragon-head ornament** on the launcher | The dragon hook's TRELLIS casting with its plate and ring clipped off, 7.8 cm long, on the barrel's saddle (comp-B paints one there). | `feizhua.ts setOrnament` |
@@ -134,8 +134,8 @@ click.
 ## Integration into `src/dev/nine-dragon/` (the lead's)
 
 1. **Copy** `vm-material.ts`, `feizhua.ts`, `hook.ts`, `line.ts`, `fx.ts` and `sequence.ts`. `sequence.ts` is the
-   reference choreography: the game drives the same `Frame` fields from input. `blender/fei_zhua.py` goes to
-   `scripts/blender/weapons/`.
+   reference choreography: the game drives the same `Frame` fields from input. `blender/fei_zhua.py` went to
+   `scripts/blender/nine-dragon-stack/lab/` (M10, E315; build it with `scripts/blender/build.sh nine-dragon-stack/fei-zhua`).
    - Move the GLBs to `public/assets/nine-dragon/`.
    - Don't take `world/`, `well.ts` or `main.ts`: they are this lab's set. The clean room has the real Well.
 2. **Viewmodel.** `FeiZhua.load(url, vmUniforms(silk, engraveTexture()))`, then `fz.setOrnament(hook.raw)` once the

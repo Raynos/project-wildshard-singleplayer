@@ -107,7 +107,7 @@
   },
   "nine-dragon-stack/fei-zhua": {
    "about": "Lab only: the Fei Zhua wrist grapple, modelled + AO-baked (lab P9, E169). Loaded only by the dev lab page (src/dev/nd-lab/grapple/)",
-   "script": "src/dev/nd-lab/grapple/blender/fei_zhua.py",
+   "script": "scripts/blender/nine-dragon-stack/lab/fei_zhua.py",
    "args": ["$BUILD"],
    "sources": [],
    "lock": true,

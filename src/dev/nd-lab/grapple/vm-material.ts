@@ -1,5 +1,5 @@
 // Lab P9 "grapple" (E169): the Fei Zhua's hero program. One ShaderMaterial for every part of the Blender model
-// (blender/fei_zhua.py), driven by the data the bake wrote into COLOR_0 (renamed aData on load):
+// (scripts/blender/nine-dragon-stack/lab/fei_zhua.py), driven by the data the bake wrote into COLOR_0 (renamed aData on load):
 //   r = Cycles AO · g = convexity (0.5 flat, > 0.5 a bevel = edge wear, < 0.5 a crease = grime) · b = class / 16 ·
 //   a = emit group / 8.
 // It is a painted-realistic metal, not the P4 toon bands (Jake's picked target, round-8 target-2, paints the gauntlet's

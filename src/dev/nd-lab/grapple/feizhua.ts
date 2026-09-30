@@ -1,4 +1,4 @@
-// Lab P9 "grapple" (E169): the Fei Zhua rig. Loads blender/fei_zhua.py's model (public/assets/nine-dragon/lab/grapple/
+// Lab P9 "grapple" (E169): the Fei Zhua rig. Loads scripts/blender/nine-dragon-stack/lab/fei_zhua.py's model (public/assets/nine-dragon/lab/grapple/
 // fei-zhua.glb, meshopt) and builds:
 //  - the viewmodel arm (its own scene, drawn after the world in the near depth slice): the static parts merged into ONE
 //    body + ONE ink hull, the spinning spool, and the docked claw (hub + three talons on their hinges);

@@ -1,6 +1,11 @@
 """fei_zhua.py — lab P9 "grapple" (E169): the Fei Zhua 飛爪 wrist grapple, modelled + AO-baked in Blender, headless.
 
-    /opt/homebrew/bin/blender -b --factory-startup -P src/dev/nd-lab/grapple/blender/fei_zhua.py -- <out dir> [--samples=96]
+    bash scripts/blender/build.sh nine-dragon-stack/fei-zhua          (Blender, the model lock, meshopt, the copy)
+    /opt/homebrew/bin/blender -b --factory-startup -P scripts/blender/nine-dragon-stack/lab/fei_zhua.py -- <out dir> [--samples=96]
+
+LAB ONLY. Its GLB, public/assets/nine-dragon/lab/grapple/fei-zhua.glb, is loaded only by the dev lab page
+(dev/nd-lab-grapple.html → src/dev/nd-lab/grapple/main.ts, feizhua.ts). The game's own first-person Fei Zhua is part of
+fp-rig.glb (scripts/blender/nine-dragon-stack/viewmodel/). Moved here from src/dev/nd-lab/grapple/blender/ (M10, E315).
 
 Writes <out>/fei-zhua.glb (float streams; run meshopt after). Built in Blender's frame — +Y forward (the forearm toward the
 muzzle), +Z up (the back of the forearm), +X the inner side (toward the screen centre for a left arm) — and written in
@@ -730,7 +735,7 @@ def write_glb(path, parts):
         stats[name] = {'tris': int(len(I) // 3), 'verts': int(P.shape[0])}
     align()
     doc = {
-        'asset': {'version': '2.0', 'generator': 'wildshard src/dev/nd-lab/grapple/blender/fei_zhua.py'},
+        'asset': {'version': '2.0', 'generator': 'wildshard scripts/blender/nine-dragon-stack/lab/fei_zhua.py'},
         'scene': 0, 'scenes': [{'nodes': list(range(len(nodes)))}],
         'nodes': nodes, 'meshes': meshes, 'accessors': accessors, 'bufferViews': views,
         'buffers': [{'byteLength': len(blob)}],
