@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p api",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "test": "vitest run",
+    "test": "node scripts/check-model-sources.mjs && vitest run",
     "test:gpu-boot": "bash scripts/test-nine-gpu-boot.sh",
     "preview": "vite preview",
     "assets": "node scripts/fetch-assets.mjs && node scripts/tex-tiers.mjs",

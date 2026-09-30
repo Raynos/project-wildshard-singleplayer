@@ -14,3 +14,5 @@
 *.ogg   binary -delta
 *.wav   binary -delta
 *.woff2 binary -delta
+*.blend binary -delta
+*.blend1 binary -delta

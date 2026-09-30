@@ -7,15 +7,27 @@ set -uo pipefail
 
 LIMIT=512000
 bad=""
+blends=""
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   case "$f" in
+    *.blend | *.blend[0-9]*) blends="$blends  $f"$'\n'; continue ;;
     progress/*.png | progress/*.jpg | progress/*.jpeg | progress/*.webp) ;;
     *) continue ;;
   esac
   size="$(git cat-file -s ":$f" 2>/dev/null || echo 0)"
   if [ "$size" -gt "$LIMIT" ]; then bad="$bad  $f ($((size / 1024)) KB)"$'\n'; fi
 done < <(git diff --cached --name-only --diff-filter=AM)
+
+# a .blend is never committed (M10, E315): the Blender script is the source and its exported GLB is what we commit
+if [ -n "$blends" ]; then
+  cat >&2 <<EOF
+BLOCKED by .githooks/pre-commit: a .blend is never committed. The Blender script is the source; commit the GLB it
+exports. Build with scripts/blender/build.sh (--save-blend puts an inspection copy in ~/.cache/wildshard-blender/).
+$blends
+EOF
+  exit 1
+fi
 
 if [ -n "$bad" ]; then
   cat >&2 <<EOF

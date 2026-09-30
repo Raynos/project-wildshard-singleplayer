@@ -30,3 +30,8 @@ __pycache__/
 /progress/bench/shot-*.png
 /progress/texmem/*.json
 /progress/scorecard/*/
+
+# Blender: the script is the source and the exported GLB is committed; a .blend never is (M10, E315). Inspection
+# copies go to ~/.cache/wildshard-blender/ (scripts/blender/build.sh --save-blend); .githooks/pre-commit refuses one.
+*.blend
+*.blend[0-9]*
