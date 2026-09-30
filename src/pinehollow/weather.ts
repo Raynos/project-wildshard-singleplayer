@@ -15,8 +15,12 @@
  *     the AI: AnimalManager's own wander logic walks stragglers back to it) and back out after; in the dawn fog a fog bank
  *     closes round the Ghost Stag (the quest's pale lead, or the elite when it is near) — `weatherUniforms.fogBlob`
  *
- * Flags: `?weather=live|clear|fog|rain` (Settings ▸ Debug ▸ Weather; clear = the look before the weather); a held phase
- * starts halfway in. Dev: `window.__pineWeather`.
+ * The mode: pause ▸ Settings ▸ Debug ▸ Sky & weather ▸ Weather (live | clear | fog | rain; clear = the look before the
+ * weather; capture scripts set it with debugSettings); a held phase starts halfway in. Dev: `window.__pineWeather`.
+ *
+ * A scripted room can take the air over: `weatherHold.k` (0 … 1) stands the weather's fog down where the eye is — the
+ * Antler King's sealed clearing sets it, so the fight's own fog (×26 on the clock's density) is the whole fog in there.
+ * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
@@ -34,6 +38,9 @@ import { OLD_GROWTH } from '../chunks/pineHollowLayout';
 import { setting, onSettingChange } from '../ui/Settings';
 import { TIER } from '../core/tier';
 import { SEED } from '../core/config';
+
+/** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/pinehollow/antlerKing.ts) */
+export const weatherHold = { k: 0 };
 
 export interface PineWeatherHost {
   game: Game;
@@ -152,11 +159,12 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
     if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
     weather.update(dt, pine.phase);
     const eye = h.viewer();
-    const fog = weather.fog, og = oldGrowthAt(eye.x, eye.z);
+    const stay = 1 - THREE.MathUtils.clamp(weatherHold.k, 0, 1); // a sealed boss room's own fog wins (F-L7)
+    const fog = weather.fog * stay, haze = weather.rain * stay, og = oldGrowthAt(eye.x, eye.z);
     // the sky: the deck, and the fog's densities (dawn fog, the rain's haze on top of the clock's own, the old-growth thickest)
     pine.mod.overcast = weather.overcast;
-    pine.mod.fogDist = 1 + fog * (2 + 26 * og) + 0.4 * weather.rain;
-    pine.mod.fogHeight = 1 + fog * (1.2 + 1.5 * og) + 0.6 * weather.rain;
+    pine.mod.fogDist = 1 + fog * (2 + 26 * og) + 0.4 * haze;
+    pine.mod.fogHeight = 1 + fog * (1.2 + 1.5 * og) + 0.6 * haze;
     pine.mod.mist = fog;
     // the fog's floor: from −14 m (a thin haze on the hills) up to the bowl's floor (≈ 0 m; the pond −3, the creek −5), and
     // steeper, so it lies in the lows: × 3 in the pond's basin, × 6 down the creek, a quarter of it on the old-growth's swell

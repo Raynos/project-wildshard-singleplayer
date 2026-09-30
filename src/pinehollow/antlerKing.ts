@@ -9,6 +9,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { Impacts } from '../fx/Impacts';
 import { heightAt } from '../world/Heightfield';
 import { fogUniforms } from '../world/Atmosphere';
+import { weatherHold } from './weather';
 import { PINE_PHASES } from '../world/PineDayNight';
 import { KINGS_CLEARING } from '../chunks/pineHollowLayout';
 import type { Interactable } from '../world/Cabin';
@@ -304,6 +305,7 @@ export class AntlerKingFight implements BossScript {
     // the seal: the fog wall + the thick air come in over ~2 s, and go the same way
     this.sealK = THREE.MathUtils.clamp(this.sealK + (this.sealed ? dt / 2 : -dt / 2.5), 0, 1);
     this.wall.alpha = 0.92 * this.sealK;
+    weatherHold.k = this.sealK; // the weather's fog stands down in the sealed clearing: the fight's own air is the fog (E322 F-L7)
     this.darkK = THREE.MathUtils.clamp(this.darkK + ((this.phase === 2 && !this.won && this.sealed) ? dt / 2.5 : -dt / 2), 0, 1);
     this.wall.update(t, this.ctx.game.scene.fog instanceof THREE.Fog ? this.ctx.game.scene.fog.color : null);
     this.puffs.update(dt, t);
