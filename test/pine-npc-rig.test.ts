@@ -147,6 +147,33 @@ describe('Pine Hollow NPC rig B (E322 F-M3)', () => {
         expect(r[Math.floor(0.99 * (r.length - 1))]).toBeLessThan(2.5);
         expect(r[r.length - 1]).toBeLessThan(15);
       });
+      // E350 F-X3: the generator webbed each hanging forearm (and Hale's lantern) to the coat; his point pulled the web into
+      // a grey sheet (92–137 triangles past 0.3 m and 2.5×, the worst edge 1.4 m). rigLegs splits it at the seam
+      // (npcRig.ts splitWebs): no triangle joins a forearm to the body, and nothing anywhere on the mesh spans the air
+      it('the webs are split: no triangle joins a forearm to the body; Hale\'s point stretches nothing past 0.3 m and 2.5×', async () => {
+        const { b } = await ready;
+        const { mesh, pose } = skinned(b);
+        const g = b.geometry, P = g.getAttribute('position'), idx = g.getIndex(), si = g.getAttribute('skinIndex'), sw = g.getAttribute('skinWeight');
+        const fore = new Set(['twistR', 'elbowR', 'handR', 'twistL', 'elbowL', 'handL'].map(bone)), body = new Set(['hips', 'spine', 'chest', 'thighR', 'shinR', 'footR', 'thighL', 'shinL', 'footL'].map(bone));
+        const share = (i: number, s: Set<number>): number => { let w = 0; for (let k = 0; k < 4; k++) if (s.has(si.getComponent(i, k))) w += sw.getComponent(i, k); return w; };
+        expect(b.webs.split + b.webs.coatOnly).toBeGreaterThan(50);
+        pose({ t: 1.3, talk: 1, point: 1, pointYaw: 0.6, look: 0, walk: 0, phase: 0 });
+        mesh.updateMatrixWorld(true);
+        const posed = Array.from({ length: P.count }, (_, i) => mesh.applyBoneTransform(i, new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i))));
+        const rest = (i: number): THREE.Vector3 => new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i));
+        let joined = 0, stretched = 0;
+        for (let f = 0; f < (idx?.count ?? 0); f += 3) {
+          const t = [idx?.getX(f) ?? 0, idx?.getX(f + 1) ?? 0, idx?.getX(f + 2) ?? 0];
+          if (t.some((i) => share(i, fore) >= 0.5) && t.some((i) => share(i, body) >= 0.5 && share(i, fore) < 0.05)) joined++;
+          for (let e = 0; e < 3; e++) {
+            const a = t[e] ?? 0, c = t[(e + 1) % 3] ?? 0, r0 = rest(a).distanceTo(rest(c)), r1 = (posed[a] ?? new THREE.Vector3()).distanceTo(posed[c] ?? new THREE.Vector3());
+            if (r1 > 0.3 && r1 > 2.5 * r0) { stretched++; break; }
+          }
+        }
+        expect(joined).toBe(0);
+        // Hale is the one who points: none; the miller's desktop file keeps one sliver on his (never raised) right elbow
+        expect(stretched).toBeLessThanOrEqual(kindOf(file) === 'ranger' ? 0 : 2);
+      });
       it('idle is the bind (A\'s hang): no edge round the shoulders moves past 1.6×', async () => {
         const { b } = await ready;
         const r = shoulderEdges(b, { t: 1.3, talk: 0, point: 0, pointYaw: 0, look: 0, walk: 0, phase: 0 });

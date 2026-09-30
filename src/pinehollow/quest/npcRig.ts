@@ -27,6 +27,9 @@
  *             torso's counter-twist and the arms' counter-swing. The root travels at `walkSpeed`; `walkCycle` metres of
  *             travel = one cycle of `phase`. Measured (test/pine-npc-rig.test.ts): the planted ball's slide ≤ 0.01 H.
  *
+ * E350 F-X3, the webs: the generator fused each hanging forearm (and Hale's lantern) to the coat; rigLegs splits those
+ * triangles at the seam (`splitWebs`), so Hale's point no longer drags a grey sheet from his sleeve to his coat.
+ *
  * Also: the ranger's lantern is found under his right hand (|x − hand.x| < 0.08 H), not by "anything left of the torso"
  * as in A, which also caught the outside of his right shin.
  */
@@ -65,6 +68,8 @@ export interface LegBuilt {
   walkSpeed: number;
   /** metres of travel per walk cycle */
   walkCycle: number;
+  /** E350 F-X3: the arm-to-coat web triangles split into a sleeve copy and a coat copy (`split`), the long ones kept on the coat only */
+  webs: { split: number; coatOnly: number };
 }
 
 /**
@@ -154,6 +159,92 @@ function diffuse(g: THREE.BufferGeometry, dense: Float32Array, zone: (i: number)
     const k = Math.max(0, 1 - fixed) / blurred;
     channels.forEach((ch, c) => { dense[o + ch] = (cur[r * C + c] ?? 0) * k; });
   }
+}
+
+const FORE_R = [J.twR, J.elR, J.haR] as const, FORE_L = [J.twL, J.elL, J.haL] as const;
+const BODY = [J.hips, J.spine, J.chest, J.thR, J.knR, J.ftR, J.thL, J.knL, J.ftL] as const;
+
+/**
+ * E350 F-X3: split the webs. The generator fused each hanging forearm (and Hale's lantern, under his right hand) to the
+ * coat beside it: triangles with one corner on the forearm chain (twist · elbow · hand) and another on the body (hips ·
+ * spine · chest · legs). A raise (Hale's point) pulled them into a grey sheet 0.4–1.3 m long from the sleeve to the coat.
+ *
+ * A thin web (every edge under WEB_SPLIT, the sleeve against the coat: 6–14 cm) is split in two at the seam: one copy rides
+ * the arm (its other corners duplicated with the weights of the forearm vertex nearest each), one stays on the coat (its
+ * other corners duplicated with the nearest body vertex's). In the hang both copies lie exactly where the web was, so standing looks as it did; raised,
+ * the sleeve keeps its side of the seam and the coat keeps its own — nothing spans the air, and neither side opens a hole.
+ * A long web (an edge past WEB_SPLIT: the lantern's, strung 0.2–0.4 m to the coat and the shin) keeps only its coat copy
+ * — an arm copy would hang off the lantern as a fin, and dropping it opened a notch in the coat's side — so standing still
+ * draws every triangle it drew, and a raise takes nothing with the lantern. Triangles within 0.14 H of a shoulder are the
+ * armpit's crease, which the girdle blend (`diffuse`) carries: they stay. Returns the triangles split and kept coat-only.
+ * Measured (scripts/e350-hale-web.mjs, test/pine-npc-rig.test.ts): Hale's point had 92–137 triangles stretched past
+ * 0.3 m and 2.5× (worst edge 1.4 m); now none, on both tiers.
+ */
+const WEB_SPLIT = 0.2;
+function splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, shoulders: readonly THREE.Vector3[], H: number): { split: number; coatOnly: number } {
+  const idx = g.getIndex();
+  if (!idx) return { split: 0, coatOnly: 0 };
+  const P = g.getAttribute('position'), n = P.count;
+  const share = (i: number, set: readonly number[]): number => { let s = 0; for (let k = 0; k < 4; k++) if (set.includes(si[i * 4 + k] ?? -1)) s += sw[i * 4 + k] ?? 0; return s; };
+  // 1 the right forearm, 2 the left, 3 the body, 0 neither (the shoulders, the neck, the head); `fs` the forearm share
+  const cls = new Uint8Array(n), fs = new Float32Array(n), bs = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const r = share(i, FORE_R), l = share(i, FORE_L);
+    fs[i] = Math.max(r, l); bs[i] = share(i, BODY);
+    cls[i] = r >= 0.5 ? 1 : l >= 0.5 ? 2 : (bs[i] ?? 0) >= 0.5 && r < 0.05 && l < 0.05 ? 3 : 0;
+  }
+  const at = (i: number): THREE.Vector3 => new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i));
+  const near = (i: number): boolean => shoulders.some((s) => at(i).distanceTo(s) < 0.14 * H);
+  const out: number[] = [];
+  // duplicated corners: (vertex, the corner whose weights it takes) → the new vertex
+  const dup = new Map<string, number>(), from: number[] = [], weightsOf: number[] = [];
+  // the nearest vertex of class `c` (brute force: a few hundred corners over ≤ 15 k vertices, once per person)
+  const nearest = new Map<string, number>();
+  const nearestOf = (v: number, c: number): number => {
+    const k = `${v}:${c}`, hit = nearest.get(k);
+    if (hit !== undefined) return hit;
+    const x = P.getX(v), y = P.getY(v), z = P.getZ(v);
+    let best = v, bd = Infinity;
+    for (let i = 0; i < n; i++) { if (cls[i] !== c) continue; const d = (P.getX(i) - x) ** 2 + (P.getY(i) - y) ** 2 + (P.getZ(i) - z) ** 2; if (d < bd) { bd = d; best = i; } }
+    nearest.set(k, best);
+    return best;
+  };
+  const twin = (v: number, src: number): number => {
+    const k = `${v}:${src}`;
+    let d = dup.get(k);
+    if (d === undefined) { d = n + from.length; dup.set(k, d); from.push(v); weightsOf.push(src); }
+    return d;
+  };
+  let split = 0, coatOnly = 0;
+  for (let f = 0; f + 2 < idx.count; f += 3) {
+    const t = [idx.getX(f), idx.getX(f + 1), idx.getX(f + 2)];
+    const fore = t.some((i) => cls[i] === 1 || cls[i] === 2), body = t.some((i) => cls[i] === 3);
+    if (!fore || !body || t.every(near)) { out.push(...t); continue; }
+    let long = 0;
+    for (let e = 0; e < 3; e++) long = Math.max(long, at(t[e] ?? 0).distanceTo(at(t[(e + 1) % 3] ?? 0)));
+    // the arm's corner (the most forearm) and the body's (the most body): each copy takes one's weights for the other side
+    const arm = t.map((i) => cls[i] ?? 0).find((c) => c === 1 || c === 2) ?? 1;
+    // the coat's copy: every corner not on the body takes the nearest body vertex's weights (the coat right there)
+    const coat = t.map((i) => (cls[i] === 3 ? i : twin(i, nearestOf(i, 3))));
+    if (long > WEB_SPLIT * (H / 1.8)) { out.push(...coat); coatOnly++; continue; }
+    // the sleeve's copy: every corner not on this forearm takes the nearest forearm vertex's weights
+    out.push(...t.map((i) => (cls[i] === arm ? i : twin(i, nearestOf(i, arm)))), ...coat);
+    split++;
+  }
+  if (split === 0 && coatOnly === 0) return { split, coatOnly };
+  if (from.length > 0) {
+    // every attribute grows by the twins: their own vertex's position / normal / uv, the source corner's skin
+    for (const name of Object.keys(g.attributes)) {
+      const a = g.getAttribute(name), k = a.itemSize, m = n + from.length;
+      const skin = name === 'skinIndex' || name === 'skinWeight';
+      const arr = name === 'skinIndex' ? new Uint16Array(m * k) : new Float32Array(m * k);
+      for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) arr[i * k + j] = a.getComponent(i, j);
+      from.forEach((v, q) => { const s = skin ? weightsOf[q] ?? v : v; for (let j = 0; j < k; j++) arr[(n + q) * k + j] = a.getComponent(s, j); });
+      g.setAttribute(name, new THREE.BufferAttribute(arr, k));
+    }
+  }
+  g.setIndex(out);
+  return { split, coatOnly };
 }
 
 /** place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node */
@@ -347,10 +438,11 @@ export function rigLegs(kind: NpcKind, source: THREE.BufferGeometry): LegBuilt {
   }
   g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+  const webs = splitWebs(g, si, sw, [sR, sL], H);
   g.computeBoundingSphere();
   if (g.boundingSphere) g.boundingSphere.radius += 0.5;
   const walkSpeed = (WALK.stride * H) / (WALK.stance * WALK.cycle);
-  return { geometry: g, rest, height: H, y0, lantern, ball: [legR.ball, legL.ball], walkSpeed, walkCycle: walkSpeed * WALK.cycle };
+  return { geometry: g, rest, height: H, y0, lantern, ball: [legR.ball, legL.ball], walkSpeed, walkCycle: walkSpeed * WALK.cycle, webs };
 }
 
 const built = new Map<NpcKind, LegBuilt>();
