@@ -11,9 +11,9 @@ try {
     const context = await browser.newContext({ viewport: { width: 402, height: 654 }, deviceScaleFactor: 2,
       isMobile: true, hasTouch: true, serviceWorkers: 'block', userAgent: profile.userAgent });
     try {
-      // The retired stored Auto setting must be ignored on every platform. Preserve the lantern content during this regression check.
+      // The retired stored Auto setting must be ignored on every platform.
       await context.addInitScript(() => {
-        localStorage.setItem('ws.settings.v1', JSON.stringify({ nineFacade: 'auto', nineLanterns: 'on' }));
+        localStorage.setItem('ws.settings.v1', JSON.stringify({ nineFacade: 'auto' }));
       });
       await context.route('**/api/errors', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
       await context.route(/https:\/\/[^/]+\.ingest\.[^/]+\/api\//, (route) => route.fulfill({ status: 200, body: '{}' }));

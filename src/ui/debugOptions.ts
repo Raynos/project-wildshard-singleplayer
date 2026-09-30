@@ -189,7 +189,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('sheepRaids', 'creatures', 'Wolf raids on the flock', ON_OFF, { when: nalati, note: 'B1 / N13 · every 6–9 min the pack raids the camp\'s sheep while you are near; a mounted shepherd rides out with a whip' }),
 
   // ── Performance ──
-  opt('nineLanterns', 'perf', 'Paper lantern geometry', ON_OFF, { reload: true, when: (c) => c.chunk.slug === 'nine-dragon-stack', note: 'E265 · isolate lantern geometry and shaders; baked light remains' }),
   opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),
   opt('loadProfile', 'perf', 'Load profiling', [['off', 'Off'], ['on', 'On']], { reload: true, note: 'load-perf · logs every shader program the load builds (window.__perfload)' }),
 

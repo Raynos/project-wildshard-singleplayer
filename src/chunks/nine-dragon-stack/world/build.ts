@@ -56,7 +56,6 @@ import { CABLE, SHAFT, WELL_RECTS, buildWell, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { type InstanceLevel, InstanceCuller } from './cull';
 import { lodReady } from './lod';
-import { setting } from '../../../ui/Settings';
 
 /** an instanced batch whose bounding sphere is wider than this (m) is culled per instance */
 const CULL_R = 40;
@@ -317,10 +316,8 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   registerInKit(nd.ctx, ctx.inKit, hawkerStallModel, meshOfKit);
   registerInKit(nd.ctx, ctx.inKit, lotusFinial, meshOfKit);
   registerInKit(nd.ctx, ctx.inKit, laundryLineModel, meshOfKit);
-  if (setting('nineLanterns') === 'on') {
-    const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
-    lanterns.object.name = 'lanterns';
-  }
+  const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
+  lanterns.object.name = 'lanterns';
   progress(0.56, 'facade batches');
   phaseStart = performance.now();
   // E271/E272: facade instancing on every platform; multi-draw was removed after physical iOS memory kills.

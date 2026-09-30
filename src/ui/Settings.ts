@@ -143,7 +143,6 @@ export const OPTION_VALUES = {
   // NINE-DRAGON-STACK P0-5c: the prototype shards (registry.ts PROTOTYPES) in the title deck as EXPERIMENTAL cards, in
   // place of their COMING SOON teasers — Debug ▸ Developer tools only, a reload (the deck is built once); off by default
   prototypes: ['off', 'on'],
-  nineLanterns: ['on', 'off'],
   // NALATI-FINISH B1 (N13, E302): the riding feel — Debug ▸ Creatures & NPCs, all live. The look behind the ears (±140°, the
   // research's 120–150°; 170 = the old free look), the horse keeping to the road when you let go of the stick, the rhythm spur
   // (GALLOP tapped in time with the stride), the skid stop (reins pulled back at a canter+), the horse panicking (a wolf's
@@ -173,7 +172,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
-  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY, nineLanterns: DEBUG_ONLY,
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, prototypes: DEBUG_ONLY,
   rideLook: DEBUG_ONLY, rideRoad: DEBUG_ONLY, rideSpur: DEBUG_ONLY, rideSkid: DEBUG_ONLY, ridePanic: DEBUG_ONLY, rideReins: DEBUG_ONLY, sheepRaids: DEBUG_ONLY,
@@ -196,7 +195,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   dwShadows: option('dwShadows'),
   prototypes: option('prototypes'),
-  nineLanterns: option('nineLanterns'),
   rideLook: option('rideLook'), rideRoad: option('rideRoad'), rideSpur: option('rideSpur'), rideSkid: option('rideSkid'),
   ridePanic: option('ridePanic'), rideReins: option('rideReins'), sheepRaids: option('sheepRaids'),
 };
