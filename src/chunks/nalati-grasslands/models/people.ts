@@ -59,6 +59,12 @@ export const campPeople: ModelDef<CampPersonParams> = defineModel<CampPersonPara
       rig.mesh.add(b.root);
       for (const o of standIn) { o.removeFromParent(); (o as Partial<THREE.Mesh>).geometry?.dispose(); }   // (its material is the camp's shared one)
       group.add(rig.mesh);
+      // its bounds from the posed bones (three caches a skinned mesh's box; taken before its first frame, every vertex sat
+      // on the origin and the turntable framed the figure's feet)
+      group.updateMatrixWorld(true);
+      rig.mesh.skeleton.update();
+      rig.mesh.computeBoundingBox();
+      rig.mesh.computeBoundingSphere();
       if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: ID } }));
       return rig;
     }).catch((e: unknown) => { console.warn('[nalati] camp people model failed: the procedural figure stays', e); });

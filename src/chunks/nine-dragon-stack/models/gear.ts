@@ -36,6 +36,9 @@ function standStill(rig: NineDragonArms, renderer: THREE.WebGLRenderer | null): 
     rig.resize(bw, bh, pr);
   };
   if (renderer) fit(renderer);
+  // the ink trail is an effect of a swing, not the arms: its empty strip (every vertex at the eye) would stretch the card's
+  // bounds to the camera's origin and shrink the arms on the turntable
+  rig.trail.mesh.removeFromParent();
   rig.root.traverse((o) => {
     o.userData['treatAsOpaque'] = true;
     if (o instanceof THREE.Mesh) o.onBeforeRender = (r) => { fit(r); };
