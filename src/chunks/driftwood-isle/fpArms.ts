@@ -10,10 +10,11 @@
 // swimming hands — sharing the geometry. Driftwood's toon look: flat facets, vertex colour, no textures, lit like the
 // island (sky.setupMaterial: the CSM shadows and the fog). ~9.5 k triangles of arms + ~0.8 k of sword, two draws + the
 // engine's trail.
-import { MeshStandardMaterial, type PerspectiveCamera, Quaternion, Vector3 } from 'three';
+import { MeshStandardMaterial, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
 import type { ShardSword } from '../ChunkDef';
 import type { Sky } from '../../world/Sky';
 import { RigArms, swordArmsOf, vmScale } from '../../player/rigArms';
+import { attachFogUniforms } from '../../world/Atmosphere';
 import type { SwimArms } from '../../player/Hands';
 
 export const FP_ARMS_URL = '/assets/models/driftwood-fp/fp-arms.glb';
@@ -21,13 +22,17 @@ export const FP_ARMS_URL = '/assets/models/driftwood-fp/fp-arms.glb';
 /** the framing, in canonical rig units: Nine Dragon's rest holds the fist at the frame's right edge; the castaway board
  *  (2 A) has it a little in from it and low, the blade's tip below-right of the crosshair (E129's height) */
 const OFFSET = new Vector3(-0.03, -0.012, 0);
+/** …and on the screen (rigArms VmFrame): board 2 A holds the pair smaller than Nine Dragon's rest — the sword hand low
+ *  right of centre, the off hand low left, the blade's tip below-right of the crosshair */
+const FRAME = { size: 0.6, pitch: -0.2, yaw: 0, roll: 0 };
 
-/** the toon material: flat facets, the vertex colours; `metal` reads a per-vertex metalness (the iron blade and guard) */
+/** the toon material: flat facets, the vertex colours; `metal` reads a per-vertex metalness (the iron blade and guard; 0.6 at most, the code-built iron sword's) */
 function toonMaterial(sky: Sky, name: string, metal: boolean): MeshStandardMaterial {
-  const m = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: metal ? 0.55 : 0.85, metalness: metal ? 1 : 0, envMapIntensity: 0.6 });
+  const m = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: metal ? 0.6 : 0.85, metalness: metal ? 0.6 : 0, envMapIntensity: 0.6 });
   m.name = name;
   if (metal) {
     m.onBeforeCompile = (sh) => {
+    attachFogUniforms(sh); // an own hook replaces Material.prototype's, which binds the fog + toon uniforms (Atmosphere.ts): unbound, the ramp fog reads 0 → the whole mesh the fog's colour
       sh.vertexShader = sh.vertexShader
         .replace('#include <common>', '#include <common>\nattribute float _metal;\nvarying float vMetal;')
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvMetal = _metal;');
@@ -47,6 +52,7 @@ function swimMaterial(sky: Sky, water: { n: { value: Vector3 }; d: { value: numb
   const m = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, envMapIntensity: 0.6 });
   m.name = 'driftwood-fp-swim';
   m.onBeforeCompile = (sh) => {
+    attachFogUniforms(sh); // an own hook replaces Material.prototype's, which binds the fog + toon uniforms (Atmosphere.ts): unbound, the ramp fog reads 0 → the whole mesh the fog's colour
     sh.uniforms['uWaterN'] = water.n;
     sh.uniforms['uWaterD'] = water.d;
     sh.vertexShader = sh.vertexShader
@@ -116,8 +122,18 @@ export async function castawayArms(): Promise<ShardSword> {
     dress(rig, mats);
   };
   return {
-    arms: swordArmsOf(wood, { offset: OFFSET, setup: setup(wood) }),
-    ironArms: swordArmsOf(iron, { offset: OFFSET, setup: setup(iron) }),
+    arms: swordArmsOf(wood, { offset: OFFSET, frame: FRAME, setup: setup(wood) }),
+    ironArms: swordArmsOf(iron, { offset: OFFSET, frame: { ...FRAME }, setup: setup(iron) }),
     swim: swimArms(swim),
   };
+}
+
+/** the Model Explorer's card (driftwood-isle/models/gear.ts): the castaway arms at rest holding `kind`, on their own
+ *  skeleton clone of the one parse (the held rigs' geometry), in camera space as held — the eye at the origin, −Z forward */
+export async function castawaySpecimen(sky: Sky, kind: 'wood' | 'iron'): Promise<Object3D> {
+  const rig = await RigArms.load(FP_ARMS_URL);
+  rig.weapon(kind);
+  dress(rig, { arms: toonMaterial(sky, 'driftwood-fp-arms', false), wood: toonMaterial(sky, 'driftwood-fp-wood', false), iron: toonMaterial(sky, 'driftwood-fp-iron', true) });
+  rig.update(0.4, { speed: 0, lookVel: new Vector2() });
+  return rig.root;
 }

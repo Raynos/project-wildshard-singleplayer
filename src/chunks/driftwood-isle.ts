@@ -97,6 +97,16 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   thumbnail, heroPortrait, heroLandscape,
   style: 'lowpoly',
   weapon: 'sword',
+  // the castaway's skinned arms (E334, Jake's board-2 A / board-3 A): the wooden and the iron sword on the same hands, and
+  // the same arms swimming (driftwood-isle/fpArms.ts); the engine's code-built sword and white gloves if the rig does not load
+  sword: async () => {
+    try {
+      return await (await import('./driftwood-isle/fpArms')).castawayArms();
+    } catch (error) {
+      console.warn('driftwood-isle: the castaway arms did not load, the code-built sword stands in', error);
+      return {};
+    }
+  },
   ocean: OCEAN,
   explore: true,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear

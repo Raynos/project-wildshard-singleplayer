@@ -242,9 +242,17 @@ const CLIP: Readonly<Record<Move['name'] | 'charge', string>> = {
  * A RigArms as the engine Sword's animated rig: the moves → the clips, the viewmodel's projection (vmScale), a framing
  * offset in canonical rig units, the blade for the hit sweep and the engine's own trail (`engineTrail`), and `setup` —
  * the shard's materials, made once the Sword hands over the sky.
+ *
+ * `frame` places the whole rig on the screen without re-authoring a clip: `size` shrinks it about the view's centre (its
+ * camera-space x and y; the arms still run out of the frame, they reach back to the shoulders), then `pitch` / `yaw` /
+ * `roll` (rad) turn it about the eye — a turn about the eye moves the picture, it does not change it. The object is
+ * kept on `root.userData.vmFrame` and read every frame (a capture script can tune it live).
  */
-export function swordArmsOf(rig: RigArms, opts: { offset?: Vector3; setup?: (sky: Sky) => void }): SwordArms {
+export interface VmFrame { size: number; pitch: number; yaw: number; roll: number }
+export function swordArmsOf(rig: RigArms, opts: { offset?: Vector3; frame?: Partial<VmFrame>; setup?: (sky: Sky) => void }): SwordArms {
   const off = opts.offset ?? new Vector3();
+  const frame: VmFrame = { size: 1, pitch: 0, yaw: 0, roll: 0, ...opts.frame };
+  rig.root.userData['vmFrame'] = frame;
   let k = 1;
   return {
     root: rig.root,
@@ -252,9 +260,16 @@ export function swordArmsOf(rig: RigArms, opts: { offset?: Vector3; setup?: (sky
     play: (move) => { rig.play(CLIP[move]); },
     update: (dt, s) => {
       k = vmScale(s.camera.fov);
-      rig.root.scale.set(k, k, 1);
-      rig.root.position.set(off.x * k, off.y * k, off.z);
+      const ks = k * frame.size;
+      rig.root.scale.set(ks, ks, 1);
+      rig.root.position.set(off.x * ks, off.y * ks, off.z);
       rig.update(dt, { speed: s.speed, walkPhase: s.walkPhase, lookVel: s.lookVel });
+      // put away (a weapon swap, the talk's stow, E129): the Sword drops the holder 0.45 m, which leaves the tip of a blade
+      // held this high in the frame; tipping the rig down about the eye as well takes it all out
+      rig.root.rotation.x += frame.pitch - (s.holster ?? 0) * 0.5;
+      rig.root.rotation.y += frame.yaw;
+      rig.root.rotation.z += frame.roll;
+      rig.root.position.applyEuler(rig.root.rotation);
     },
     blade: (base, tip) => {
       rig.blade(base, tip);

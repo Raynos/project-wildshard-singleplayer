@@ -110,8 +110,9 @@ export interface SwordArms {
   /** a swing starting (the engine's move name), or the heavy's charge */
   play: (move: Move['name'] | 'charge') => void;
   /** per frame, before the hit sweep: dt (world-scaled), the walk (0..1 and its phase), the look's velocity (rad/s),
-   *  the camera it is drawn from and the drawing buffer */
-  update: (dt: number, s: { speed: number; walkPhase: number; lookVel: THREE.Vector2; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer }) => void;
+   *  the camera it is drawn from, the drawing buffer, and the holster / stow drop (0 held … 1 away; the Sword already drops
+   *  the rig's holder by it — a rig that reaches higher up the frame tips itself further, Driftwood's castaway arms) */
+  update: (dt: number, s: { speed: number; walkPhase: number; lookVel: THREE.Vector2; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer; holster?: number }) => void;
   /** the blade this frame, camera space: its base (grip end) and its tip */
   blade: (base: THREE.Vector3, tip: THREE.Vector3) => void;
   /** Optional independent left-arm channel for a shard traversal tool. */
@@ -971,7 +972,7 @@ export class Sword implements Weapon {
       this.armsLook.set(dt > 0 ? dYaw / dt : 0, dt > 0 ? dPitch / dt : 0);
       const h = sstep(0, 1, this.holster);
       this.armsHolder.position.set(0, -h * 0.45, h * 0.1);
-      this.arms.update(dt, { speed: p.speedFactor, walkPhase: p.bobTime, lookVel: this.armsLook, camera: cam, renderer: this.game.renderer });
+      this.arms.update(dt, { speed: p.speedFactor, walkPhase: p.bobTime, lookVel: this.armsLook, camera: cam, renderer: this.game.renderer, holster: h });
     }
 
     // base pose: rest, or the swing, blended toward the charge / sprint poses
