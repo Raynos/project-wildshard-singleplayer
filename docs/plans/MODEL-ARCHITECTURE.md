@@ -190,9 +190,9 @@ board.
 |---|---|---|---|
 | M0a | Explorer facts: count, drawnAs, pipeline badge, explicit category, `worldView` on a real copy | S | done `aceae33a` (board `art/models-audit/round-2-m0/m0-before-after.jpg`) |
 | M0b | `defineModel` / `place()` contract + Driftwood shore boulder (or the training dummy) | S–M | done `aceae33a`: every shard's scene, shaders and colliders identical before / after |
-| M1 | Driftwood models | M | in flight (E315) |
+| M1 | Driftwood models | M | first pass done `1d179e28` … `d4423e13`: 19 → 42 cards (pier, sailboat, hut, shrine, palms, bushes, rocks, the cove's 13 Blender / TRELLIS families, the reef, the trail), all `place()`, scene / shaders / colliders identical, walk 0 stuck; board `art/models-audit/round-4-m1-driftwood/`. Left (other sessions were in them): Lookout, Cove (E310), Wreck, Gulls, the rope bridge, zipline, ground cover, interactables; Castaway / Captain → M5 |
 | M2 | Pine Hollow models | M | in flight (E315) |
-| M3 | Nalati models + Sets | M–L | in flight (E315) |
+| M3 | Nalati models + Sets | M–L | first pass done `649007cb` … `878267db`: 17 models (kerbs ×332, balbals, watchtower, Kunes bridge, Eagle Rock, Wind Cairn, kokpar posts / goals / horses / riders, herds, snow lotus) and 5 Sets (kurgan field, crags, watchtower hill, kokpar field, snow-lotus meadow); identical scene / colliders / navmesh; board `art/models-audit/round-6-m3-nalati/`. `place()` gained `drawnInto`. Left (other sessions were in them): the camps + yurt + camp props, road fences, dressing, the four rock systems, the camp people, the shard module |
 | M4 | Nine Dragon models | M | in flight (E315) |
 | M5 | Creatures from the species list; Gear | S | approved; after M0 |
 | M6 | Delete the old paths; archive | S | approved; last |
