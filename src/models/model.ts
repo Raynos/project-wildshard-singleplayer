@@ -81,11 +81,15 @@ export interface ModelContext {
   once: <T>(key: string, make: () => T) => T;
 }
 
-/** A context for one shard (its sky, and the renderer when there is one). */
-export function modelContext(sky: Sky, renderer: THREE.WebGLRenderer | null = null): ModelContext {
+/**
+ * A context for one shard (its sky, and the renderer when there is one). A structure shard has no engine Sky (Nine
+ * Dragon, E306 M4): pass null — its models take their look from `once`, and reading `sky` throws.
+ */
+export function modelContext(sky: Sky | null, renderer: THREE.WebGLRenderer | null = null): ModelContext {
   const memo = new Map<string, unknown>();
   return {
-    sky, renderer,
+    get sky(): Sky { if (sky === null) throw new Error('modelContext: this shard has no Sky (its models take their look from `once`)'); return sky; },
+    renderer,
     once: <T>(key: string, make: () => T): T => {
       if (memo.has(key)) return memo.get(key) as T;
       const v = make();
@@ -148,6 +152,8 @@ export interface ModelDef<P extends object> {
   readonly colliders?: (params: P, ctx: ModelContext) => readonly ColliderSpec[];
   /** a rigged model's clips (the Explorer's clip row; M5 puts the species here) */
   readonly rig?: { readonly clips: readonly string[] };
+  /** the Explorer's specimen turned about +Y by this (radians), so its first view is its face (the Fei Zhua hook's back is its wall plate) */
+  readonly specimenYaw?: number;
 }
 
 /** What every defined model says about itself, whatever its params (the catalog and the contract test read these). */
@@ -189,8 +195,8 @@ export interface Placement<P extends object> {
   readonly params?: Partial<P>;
   /** a `variants` id */
   readonly variant?: string;
-  /** instanced / batched: a per-copy tint (0xrrggbb) */
-  readonly color?: number;
+  /** instanced / batched: a per-copy tint (0xrrggbb, or a Color taken as it is: linear floats, nothing rounded) */
+  readonly color?: number | THREE.Color;
 }
 
 /** A copy's params: the defaults, then its variant's, then its own. */

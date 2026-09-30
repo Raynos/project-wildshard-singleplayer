@@ -76,6 +76,31 @@ export interface PlaceOptions {
    * colliders, boxes, count and the model's catalog entry. `draw` still says how they are drawn (the card's fact).
    */
   readonly drawnInto?: DrawnInto;
+  /** instanced: the shard's own per-copy culler takes the copies instead of `cullPlaced` (see `InstancedCuller`) */
+  readonly culler?: InstancedCuller;
+  /** draw under this object (a shard's root group) instead of the scene root; the registry's piece is the same object */
+  readonly parent?: THREE.Object3D;
+}
+
+/**
+ * A shard's own per-copy culler for instanced copies (E306 M4: Nine Dragon's E283 batch culler, its crowd's figure LODs
+ * and its paper lanterns' buckets keep the culling their draws were tuned with). `place` draws each part as a hand-rolled
+ * InstancedMesh was — every copy written into level 0 (its own buffers, its bounding sphere computed), each LOD level a
+ * mesh of its own with room for every copy (count 0, hidden) — and hands the part's levels to `take`. The shard culls
+ * them in its own frame hook; `cullPlaced` never touches them.
+ */
+export interface InstancedCuller {
+  take: (batch: HandedBatch) => void;
+}
+
+/** one part of one variant of a `place` call, handed to an `InstancedCuller` */
+export interface HandedBatch {
+  /** level 0 (every copy), then the model's LODs nearest first; `mesh: null`: nothing is drawn from `from` on */
+  readonly levels: readonly { readonly mesh: THREE.InstancedMesh | null; readonly from: number }[];
+  /** the copies' poses, in level 0's instance order */
+  readonly poses: readonly THREE.Matrix4[];
+  /** the call's `cull` options (its `far` …) */
+  readonly cull: CullOptions;
 }
 
 /**
@@ -161,6 +186,16 @@ function meshOf(part: ModelPart, geometry: THREE.BufferGeometry = part.geometry)
   if (part.customDepthMaterial) m.customDepthMaterial = part.customDepthMaterial;
   if (part.renderOrder !== undefined) m.renderOrder = part.renderOrder;
   return m;
+}
+
+/** a part as a one-copy InstancedMesh at its own origin (the instanced program variant the world draws it with) */
+function instanceOf(part: ModelPart): THREE.InstancedMesh {
+  const im = new THREE.InstancedMesh(part.geometry, part.material, 1);
+  im.castShadow = part.castShadow ?? false;
+  im.receiveShadow = part.receiveShadow ?? false;
+  if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
+  if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
+  return im;
 }
 
 /** the one object when there is one, else a group of them */
@@ -416,6 +451,54 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
   return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull, cullWith };
 }
 
+// ── instanced, culled by the shard (`PlaceOptions.culler`): per part, level 0 with every copy, each LOD its own mesh ──
+
+function drawHanded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions, culler: InstancedCuller): Drawn {
+  const { keys, of } = variantKeys(pls);
+  const from = levelsOf(def), n = pls.length;
+  const colliders: ColliderDesc[] = [];
+  const boxes = new Float32Array(n * 6);
+  const tinted = pls.some((pl) => pl.color !== undefined);
+  const tint = new THREE.Color();
+  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
+  poses.forEach((pose, i) => {
+    const p = params[i], parts = built[of[i] ?? 0]?.[0] ?? [];
+    if (p === undefined) return;
+    writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
+    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders, o.ctx);
+  });
+  const objects: THREE.Object3D[] = [];
+  const cull = o.cull ?? {};
+  built.forEach((lvls, v) => {
+    const mine: number[] = [];
+    for (let i = 0; i < n; i++) if (of[i] === v) mine.push(i);
+    const at = mine.map((i) => poses[i]?.matrix ?? new THREE.Matrix4());
+    (lvls[0] ?? []).forEach((_, k) => {
+      const levels = lvls.map((parts, l) => {
+        const part = parts[k];
+        if (part === undefined || mine.length === 0) return { mesh: null, from: from[l] ?? 0 };
+        const im = new THREE.InstancedMesh(part.geometry, part.material, mine.length);
+        im.castShadow = part.castShadow ?? false; im.receiveShadow = part.receiveShadow ?? false;
+        if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
+        if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
+        im.name = `${def.id}:${keys[v] ?? 'base'}:${l}`;
+        if (l === 0) {
+          at.forEach((m, j) => { im.setMatrixAt(j, m); });
+          if (tinted) mine.forEach((i, j) => { im.setColorAt(j, tint.set(pls[i]?.color ?? 0xffffff)); });
+          im.computeBoundingSphere();
+        } else {
+          if (tinted) im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(mine.length * 3), 3);
+          im.count = 0; im.visible = false;
+        }
+        objects.push(im);
+        return { mesh: im, from: from[l] ?? 0 };
+      });
+      culler.take({ levels, poses: at, cull });
+    });
+  });
+  return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull: null };
+}
+
 // ── batched: one BatchedMesh per material (WEBGL_multi_draw; never facade geometry — E271 / E272) ──
 
 function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
@@ -526,7 +609,11 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   specimen.name = `model:${def.id}`;
   const build = (variant?: string): THREE.Object3D => {
     const built = def.build(o.ctx, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
-    return Array.isArray(built) ? wrap((built as readonly ModelPart[]).map((x) => meshOf(x)), def.id) : built as THREE.Object3D;
+    // (a model its shard culls draws with its in-world program, which may need instancing: the specimen is one instance)
+    const one = (x: ModelPart): THREE.Mesh => (o.culler === undefined ? meshOf(x) : instanceOf(x));
+    const obj = Array.isArray(built) ? wrap((built as readonly ModelPart[]).map(one), def.id) : built as THREE.Object3D;
+    if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
+    return obj;
   };
   const rebuild = (variant?: string): void => {
     specimen.clear();
@@ -598,7 +685,7 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   const params = placements.map((pl) => paramsOf(def, pl.variant, pl.params));
   const drawn = o.drawnInto !== undefined ? drawnElsewhere(def, poses, params, o, o.drawnInto)
     : o.draw === 'merged' ? drawMerged(def, placements, poses, params, o)
-    : o.draw === 'instanced' ? drawInstanced(def, placements, poses, params, o)
+    : o.draw === 'instanced' ? (o.culler ? drawHanded(def, placements, poses, params, o, o.culler) : drawInstanced(def, placements, poses, params, o))
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, o)
         : drawSingle(def, placements, poses, params, o);
   const { boxes } = drawn;
@@ -622,7 +709,7 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   if (view !== undefined && cullWith) view.onViewChange(cullWith); // the shard's view drives it (never per frame here)
   else if (drawn.cull) cullers.push(drawn.cull);
   const registry = o.registry === undefined ? activeRegistry() : o.registry;
-  if (registry === null) return placed;
+  if (registry === null) { o.parent?.add(drawn.object); return placed; }
   let rec = records.get(def.id);
   const first = rec === undefined;
   if (!rec) { rec = { groups: [] }; records.set(def.id, rec); }
@@ -639,6 +726,8 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
     ...(pc.active === undefined ? {} : { active: pc.active }),
     ...(first ? { model: modelEntry(def, o, rec, drawn.drawnAs) } : {}),
   });
+  // (the registry's scene listener added it to the scene: under the shard's own group instead)
+  o.parent?.add(drawn.object);
   // a tap on any copy selects the model, boxed on the copy under the finger
   registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()) });
   if (split !== undefined && drawn.colliders.length > every) {
