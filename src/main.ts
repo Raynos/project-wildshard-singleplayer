@@ -292,9 +292,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const ocean = isOcean ? new Ocean(sky).build() : null;
     if (ocean) game.scene.add(ocean.group);
     // the south entry road is a wooden pier over the water; the player spawns on its deck
-    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).build() : null;
+    // E315 M1: the pier model (src/chunks/driftwood-isle/models/pier.ts) placed through src/models/place.ts, which registers piece `pier`
+    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).place(registry, 'pier') : null;
     if (pier) {
-      addBuilt('pier', 'Pier', 'buildings', 'src/world/Pier.ts', pier.group, pier.colliders, 'planks', (x, z) => pier.floorHeightAt(x, z), pier.colliderDescs(), {});
+      statics.push(...pier.colliders);
       const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
     }
     // the little sailboat you arrived in, moored to the pier's sea-end bollards; you can drop into it
@@ -328,9 +329,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
     if (shrine) addBuilt('shrine', 'Ring shrine', 'buildings', 'src/world/Shrine.ts', shrine.group, shrine.colliders, 'stone', (x, z) => shrine.floorHeightAt(x, z), shrine.colliderDescs(), {});
     await slice();
-    const jetties: ReturnType<Pier['build']>[] = [];
-    if (sea) for (const j of JETTIES) { jetties.push(new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()); await slice(); }
-    jetties.forEach((j, i) => { addBuilt(`jetty-${i}`, 'Jetty', 'buildings', 'src/world/Pier.ts', j.group, j.colliders, 'planks', (x, z) => j.floorHeightAt(x, z), j.colliderDescs(), i === 0 ? { id: 'jetty' } : undefined); });
+    // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
+    const jetties: Pier[] = [];
+    if (sea) for (const [i, j] of JETTIES.entries()) { const jetty = new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice(); }
     await slice();
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
     // E315 M1: the hibiscus bush model (src/chunks/driftwood-isle/models/hibiscusBush.ts) placed through src/models/place.ts, which registers piece `bushes`
