@@ -1,6 +1,6 @@
 // Small props, all ruled: people (brush-dark coats), mahjong tables, stools, scooters, the dragon hooks (the only gold in
 // reach, reserved for the grapple), laundry, pipes; plus the instanced lantern and air-con kit pieces.
-import { Vector3 } from 'three';
+import { Box3, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
 import { METAL, type Rng } from '../util';
@@ -174,8 +174,22 @@ export function dragonHook(k: Kit, ctx: HookSink, base: Vector3, out: Vector3, r
 }
 
 const CLOTHES = [0xeceae2, 0x6f9ccf, 0xc23b22, 0xd9a441, 0xe8dfc9, 0x2e5fa3, 0x7fbf9a, 0xeceae2, 0x8a6a3a] as const;
-/** a laundry line: a sagging wire with shirts and sheets pegged on */
-export function laundry(k: Kit, rng: Rng, a: Vector3, b: Vector3): void {
+/** which laundry the laundry line model's copy is (../models/laundry.ts): strung between gallery posts (`laundry`), along
+ *  a lower-Well front (well-lower-life.ts `laundryLine`), a pole out from a wall (`laundryPole`) */
+export type LaundryKind = 'gallery' | 'lower' | 'pole';
+
+/**
+ * Record a laundry line drawn into `k` from its vertex `v0` on, strung from `a` to `b` — a copy of the laundry line model
+ * (../models/laundry.ts): at `a`, turned so its own +x runs toward `b`
+ */
+export function hungLine(ctx: Ctx, k: Kit, v0: number, a: Vector3, b: Vector3, kind: LaundryKind): void {
+  const dx = b.x - a.x, dz = b.z - a.z;
+  ctx.inKit.push({ model: 'nine-dragon-stack/laundry-line', kit: k, at: { x: a.x, y: a.y, z: a.z, yaw: Math.atan2(-dz, dx), variant: kind, params: { kind, span: Math.hypot(dx, dz), rise: b.y - a.y } }, box: k.boundsFrom(v0, new Box3()) });
+}
+
+/** a laundry line: a sagging wire with shirts and sheets pegged on (recorded as a laundry line model's copy with `ctx`) */
+export function laundry(k: Kit, rng: Rng, a: Vector3, b: Vector3, ctx?: Ctx): void {
+  const v0 = k.vertexCount;
   const n = 6;
   const sag = a.distanceTo(b) * 0.06;
   const at = (t: number): Vector3 => a.clone().lerp(b, t).add(new Vector3(0, -sag * 4 * t * (1 - t), 0));
@@ -189,5 +203,6 @@ export function laundry(k: Kit, rng: Rng, a: Vector3, b: Vector3): void {
     k.quad(p.clone().add(new Vector3(0, -h, 0)), d, up, w, h, { wash: rng.pick(CLOTHES), kind: K.cloth, row: rng.chance(0.3) ? 1 : 0, col: 0.12, line: 0.7, accent: true });
     t += (w + rng.range(0.1, 0.3)) / a.distanceTo(b);
   }
+  if (ctx !== undefined) hungLine(ctx, k, v0, a, b, 'gallery');
 }
 

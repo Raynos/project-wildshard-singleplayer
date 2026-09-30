@@ -357,7 +357,7 @@ export function galleryWall(ctx: Ctx, W: GalleryWall, K2: GalleryKits): GalleryP
         }
         if (lifeNear && rng.chance(0.55) && L > 3) {
           const a0 = rng.range(st.u0 + 0.3, st.u1 - 2.6);
-          laundry(k, rng, world(a0, y + 2.3, d - 0.3), world(a0 + rng.range(1.8, 3.2), y + 2.25, d - 0.3));
+          laundry(k, rng, world(a0, y + 2.3, d - 0.3), world(a0 + rng.range(1.8, 3.2), y + 2.25, d - 0.3), ctx);
         }
         if (lifeNear) for (let i = 0; i < rng.int(0, 2); i++) ctx.put('plant', world(rng.range(st.u0 + 0.4, st.u1 - 0.4), y, d - 0.35), n.clone().negate(), new Vector3(1, rng.range(0.9, 1.3), 1));
         if (rng.chance(0.45)) {

@@ -20,6 +20,7 @@ import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { NEONS, WORDS } from './towers';
+import { hungLine } from './props';
 import { Y0 } from '../layout';
 import { Rng } from '../util';
 import { FLOOR_H, type GalleryKits, type GalleryProfile } from './well-galleries';
@@ -123,21 +124,34 @@ function kitCage(k: Kit, P: GalleryProfile, uu: number, y: number, d: number): v
   k.boxAxes(P.world(uu, y + 0.95, d + 0.28), P.u, UP, P.wall.n, 0.52, 0.95, 0.28, { wash: 0x3a3d44, kind: K.bars, row: 1, col: 0.1, line: 1 }, { bottom: null, sides: 1 | 2 | 4, top: { wash: 0x565a61, line: 1 } });
 }
 
-/** a laundry pole out from the wall with a few things pegged on (18 tris) */
-function kitPole(k: Kit, rng: Rng, P: GalleryProfile, uu: number, y: number, d: number, len: number): void {
+/** a laundry pole out from the wall with a few things pegged on (18 tris): a laundry line model's copy (../models/laundry.ts) */
+function kitPole(ctx: Ctx, k: Kit, rng: Rng, P: GalleryProfile, uu: number, y: number, d: number, len: number): void {
   const a = P.world(uu, y, d), b = P.world(uu, y + 0.05, d + len);
+  const v0 = k.vertexCount;
+  laundryPole(k, rng, a, b, P.wall.n);
+  hungLine(ctx, k, v0, a, b, 'pole');
+}
+
+/** a pole from a (on the wall) to b, things pegged on across `n` (the wall's normal) */
+export function laundryPole(k: Kit, rng: Rng, a: Vector3, b: Vector3, n: Vector3): void {
   k.beam(a, b, 0.035, 0.035, { wash: 0x8a7a55, line: 0.6 });
   for (let t = 0.2; t < 0.9; t += rng.range(0.25, 0.4)) {
     const p = a.clone().lerp(b, t);
     const h = rng.range(0.45, 0.9);
-    k.quad(p.clone().add(new Vector3(0, -h, 0)), P.wall.n, UP, rng.range(0.3, 0.5), h, { wash: rng.pick(CLOTHES), kind: K.cloth, row: rng.chance(0.3) ? 1 : 0, col: 0.1, line: 0.6, accent: true });
+    k.quad(p.clone().add(new Vector3(0, -h, 0)), n, UP, rng.range(0.3, 0.5), h, { wash: rng.pick(CLOTHES), kind: K.cloth, row: rng.chance(0.3) ? 1 : 0, col: 0.1, line: 0.6, accent: true });
   }
 }
 
-/** a laundry line strung along a front from a to b (a wire and 3–5 pieces) */
-function kitLine(k: Kit, rng: Rng, a: Vector3, b: Vector3): void {
+/** a laundry line strung along a front from a to b (a wire and 3–5 pieces): a laundry line model's copy */
+function kitLine(ctx: Ctx, k: Kit, rng: Rng, a: Vector3, b: Vector3): void {
+  const v0 = k.vertexCount;
+  if (laundryLine(k, rng, a, b)) hungLine(ctx, k, v0, a, b, 'lower');
+}
+
+/** the lower Well's laundry line from a to b; false (nothing drawn) when shorter than 0.8 m */
+export function laundryLine(k: Kit, rng: Rng, a: Vector3, b: Vector3): boolean {
   const L = a.distanceTo(b);
-  if (L < 0.8) return;
+  if (L < 0.8) return false;
   const sag = (t: number): Vector3 => a.clone().lerp(b, t).add(new Vector3(0, -L * 0.24 * t * (1 - t), 0));
   for (let i = 0; i < 3; i++) k.beam(sag(i / 3), sag((i + 1) / 3), 0.015, 0.015, { wash: 0x2a2c31, line: 0.4 });
   const d = new Vector3().subVectors(b, a).setY(0).normalize();
@@ -146,6 +160,7 @@ function kitLine(k: Kit, rng: Rng, a: Vector3, b: Vector3): void {
     k.quad(sag(t).add(new Vector3(0, -h, 0)), d, UP, w, h, { wash: rng.pick(CLOTHES), kind: K.cloth, row: rng.chance(0.3) ? 1 : 0, col: 0.12, line: 0.7, accent: true });
     t += (w + rng.range(0.1, 0.35)) / L;
   }
+  return true;
 }
 
 /** a water tank on its stand (~40 tris) */
@@ -260,7 +275,7 @@ function block(ctx: Ctx, k: Kit, rng: Rng, P: GalleryProfile, ua: number, ub: nu
     const yT = top + 0.16;
     redRail(k, P.world(ua + 0.1, yT, d1 - 0.05), P.world(ub - 0.1, yT, d1 - 0.05));
     for (let i = rng.int(0, 2); i > 0; i--) figure(k, rng, P.world(rng.range(ua + 0.5, ub - 0.5), yT, rng.range(d0 + 0.5, d1 - 0.5)), rng.chance(0.6) ? n : u);
-    if (rng.chance(0.5)) kitLine(k, rng, P.world(ua + 0.3, yT + 1.8, (d0 + d1) / 2), P.world(ub - 0.3, yT + 1.75, (d0 + d1) / 2 + rng.range(-0.4, 0.4)));
+    if (rng.chance(0.5)) kitLine(ctx, k, rng, P.world(ua + 0.3, yT + 1.8, (d0 + d1) / 2), P.world(ub - 0.3, yT + 1.75, (d0 + d1) / 2 + rng.range(-0.4, 0.4)));
   }
   // green hanging down its face from the parapet
   if (rng.chance(0.35)) {
@@ -320,7 +335,7 @@ function veranda(ctx: Ctx, k: Kit, rng: Rng, P: GalleryProfile, ua: number, ub: 
     k.beam(P.world(uu, y + 1.0, d1 - 0.06), P.world(uu, y + 2.4, d1 - 0.06), 0.05, 0.05, RED_POST);
     litLantern(ctx, k, P.world(uu, y + 2.4, d1 + 0.1), 0.8, glow);
   }
-  if (D > 1.6 && rng.chance(0.4)) kitLine(k, rng, P.world(ua + 0.2, y + 2.1, d1 - 0.25), P.world(Math.min(ub - 0.2, ua + rng.range(2, 3.2)), y + 2.05, d1 - 0.25));
+  if (D > 1.6 && rng.chance(0.4)) kitLine(ctx, k, rng, P.world(ua + 0.2, y + 2.1, d1 - 0.25), P.world(Math.min(ub - 0.2, ua + rng.range(2, 3.2)), y + 2.05, d1 - 0.25));
 }
 
 /** a neon blade sign hung out from a front on a bracket, facing along the canyon toward the rim */
@@ -392,7 +407,7 @@ export function dressLower(ctx: Ctx, P: GalleryProfile, K2: GalleryKits, O: Lowe
           const r = rng.next();
           if (r < 0.3) kitCage(k, P, uu, y + 0.3, 0.01);
           else if (r < 0.5) kitAC(k, P, uu, y + 1.1, 0.01);
-          else if (r < 0.65 && O.life > 0.5) kitPole(k, rng, P, uu, y + 2.1, 0.01, 1.6);
+          else if (r < 0.65 && O.life > 0.5) kitPole(ctx, k, rng, P, uu, y + 2.1, 0.01, 1.6);
           lowWin(ctx, rng, P.world(uu, y + 0.8, 0.01), u, n, 1.0, 1.35, P.wall.wash, false, 0.6);
         }
         return;
@@ -455,7 +470,7 @@ export function dressLower(ctx: Ctx, P: GalleryProfile, K2: GalleryKits, O: Lowe
         }
         if (!street && L > 3 && rng.chance(0.28 * dens)) {
           const a0 = rng.range(st.u0 + 0.3, st.u1 - 2.6);
-          kitLine(k, rng, P.world(a0, y + 2.25, d - 0.3), P.world(a0 + rng.range(1.8, 3.0), y + 2.2, d - 0.3));
+          kitLine(ctx, k, rng, P.world(a0, y + 2.25, d - 0.3), P.world(a0 + rng.range(1.8, 3.0), y + 2.2, d - 0.3));
         }
         if (rng.chance(0.35 * dens)) kitPlant(k, P.world(rng.range(st.u0 + 0.4, st.u1 - 0.4), y, d - 0.35), rng.range(1.0, 1.5));
         if (rng.chance(0.2 * dens)) kitAC(k, P, rng.range(st.u0 + 0.6, st.u1 - 0.6), y - 1.2, Math.max(0.3, d - 0.9));
