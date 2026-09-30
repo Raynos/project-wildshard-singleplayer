@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Purse } from '../src/game/loot/Purse';
 import { Owned } from '../src/game/loot/Owned';
+import { Bounty, bountyKey } from '../src/game/loot/Bounty';
 import { COIN_VALUES, MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from '../src/game/loot/coins';
 import { driftwoodFinds, nextCharmAt } from '../src/game/loot/finds';
 import { DRIFTWOOD_ISLE } from '../src/chunks/driftwood-isle';
@@ -152,5 +153,34 @@ describe('FINDS', () => {
     expect(nextCharmAt(5)).toBe(10);
     expect(nextCharmAt(14)).toBe(15);
     expect(nextCharmAt(15)).toBeNull();
+  });
+});
+
+describe('Bounty (each enemy pays once)', () => {
+  const boar = (herd: number) => ({ kind: 'boar', herd, alive: true });
+  const island = [boar(0), boar(0), boar(0), boar(1), { kind: 'sailor', herd: -1, alive: true }, { kind: 'crab', herd: 5, alive: false }];
+
+  it('keys by herd slot, lone enemies by kind; counts the living starting population', () => {
+    expect(bountyKey(boar(2))).toBe('boar:2');
+    expect(bountyKey({ kind: 'captain', herd: -1 })).toBe('captain');
+    expect([...Bounty.census(island)]).toEqual([['boar:0', 3], ['boar:1', 1], ['sailor', 1]]);
+  });
+
+  it("a herd pays for its starting count of deaths; a respawn's kill pays nothing, across a reload", () => {
+    const b = new Bounty(DRIFT, Bounty.census(island));
+    expect([b.claim(boar(0)), b.claim(boar(0)), b.claim(boar(0))]).toEqual([true, true, true]);
+    expect(b.claim(boar(0))).toBe(false); // the replacement Ecology brought back
+    expect(b.claim(boar(1))).toBe(true);
+    const reloaded = new Bounty(DRIFT, Bounty.census(island));
+    expect(reloaded.claim(boar(0))).toBe(false);
+    expect(reloaded.claim(boar(1))).toBe(false);
+    expect(new Bounty(PINE, Bounty.census(island)).claim(boar(0))).toBe(true);
+  });
+
+  it('the sailor (every night) and the captain (not in the census: he rises at the finale) pay once', () => {
+    const b = new Bounty(DRIFT, Bounty.census(island));
+    const sailor = { kind: 'sailor', herd: -1 }, captain = { kind: 'captain', herd: -1 };
+    expect([b.claim(sailor), b.claim(sailor)]).toEqual([true, false]);
+    expect([b.claim(captain), b.claim(captain)]).toEqual([true, false]);
   });
 });

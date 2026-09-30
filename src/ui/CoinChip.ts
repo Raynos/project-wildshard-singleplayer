@@ -1,8 +1,10 @@
 /**
  * CoinChip — the purse on the HUD (E314 L1, board 1 A): a small "◉ 23" chip under VITALS in the base HUD's language
- * (navy glass, a cyan hairline, the display numerals), and the "+n" that pops over a kill. On touch it is a row of the
- * top-left status column (src/ui/hudSlots.ts, after VITALS and the ammo strip); with a mouse it sits over the VITALS
- * panel, bottom-left. Styled by src/ui/styles/loot.css (prefix ws-loot-). Only built on a shard with coins.
+ * (navy glass, a cyan hairline, the display numerals), and the "+n" that pops over a kill. It has its own anchored spot,
+ * never a row of the status column: VITALS hide at full health (E319) and the chip must not jump or vanish with them. On
+ * touch it sits in the touch layer (src/ui/hudSlots.ts onLayer) at VITALS' second-row slot, left under PAUSE; with a
+ * mouse, over the VITALS panel, bottom-left. Styled by src/ui/styles/loot.css (prefix ws-loot-). Only built on a shard
+ * with coins.
  *
  *   const chip = new CoinChip(purse.coins);
  *   chip.set(n)                  // the total (bumps when it grows)
@@ -12,8 +14,6 @@
 import './styles/loot.css';
 import { hudSlots } from './hudSlots';
 
-/** the status column's order: after VITALS (0) and the ammo strip (1) — a shard with coins has no steed row (2) */
-const PURSE_ROW = 2;
 const POPS = 4;
 const COIN_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f2c44d"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#9c6a12" stroke-width="1.8"/><circle cx="12" cy="12" r="2.2" fill="#9c6a12"/></svg>';
 
@@ -37,10 +37,10 @@ export class CoinChip {
       hud.append(p); this.pops.push(p);
     }
     this.set(coins, false);
-    // docked in #hud (a mouse device: over the VITALS panel, bottom-left); when the touch layer mounts, the status column
-    // takes it (hudSlots appends it there — now, or on mount) and loot.css styles it as a row
+    // docked in #hud (a mouse device: over the VITALS panel, bottom-left); when the touch layer mounts it moves into the
+    // layer (now, or on mount), anchored under PAUSE at VITALS' second-row slot (loot.css)
     hud.append(this.root);
-    hudSlots.statusRow(this.root, PURSE_ROW, false);
+    hudSlots.onLayer((layer) => { layer.append(this.root); });
   }
 
   set(coins: number, bump = true): void {

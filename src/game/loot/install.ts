@@ -4,7 +4,7 @@
  * whose ChunkDef says `loot: { coins: true }` (Driftwood) gets:
  *   - the purse (Purse.ts) and its HUD chip under VITALS (src/ui/CoinChip.ts);
  *   - the kill → coins burst (coins.ts values, CoinBurst.ts): chained onto `animals.onKill`, so call this AFTER main.ts
- *     assigns its own onKill;
+ *     assigns its own onKill; each enemy pays once, a respawn's kill pays nothing (Bounty.ts);
  *   - the Bag's loot: GEAR's sharpening pips / health / charm / cosmetics / purse, and the FINDS tab (finds.ts), read
  *     from the adventure's flags.
  * Other shards: GEAR shows their weapons and skins only, no FINDS tab, no coins (Jake: FINDS elsewhere is a later review).
@@ -12,7 +12,8 @@
  *   const owned = new Owned(chunk.id);  // early: owned.has('iron-sword') = the sword taken on an earlier visit
  *   const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });
  *   loot.dispose()                      // the shard is evicted
- *   window.__loot = { purse, owned, grant(id), coins(n) }   // dev console / captures: grant an item, add coins
+ *   window.__loot = { purse, owned, bounty, fullClear, grant(id), coins(n) }   // dev console / captures: grant an item,
+ *                                       // add coins; fullClear = the coins for killing every enemy once
  */
 import * as THREE from 'three';
 import type { Audio } from '../../audio/Audio';
@@ -25,15 +26,17 @@ import { coinsFor, coinsOn, type LootGate } from './coins';
 import { driftwoodFinds, nextCharmAt, seaGlassFound, type FlagReader } from './finds';
 import { isCosmetic, isOwnedId, OWNED, type Owned, type OwnedId } from './Owned';
 import { Purse } from './Purse';
+import { Bounty } from './Bounty';
 
-export interface LootHost<A extends { kind: string; position: THREE.Vector3 }> {
+export interface LootAnimal { kind: string; position: THREE.Vector3; herd: number; alive: boolean }
+export interface LootHost<A extends LootAnimal> {
   /** the shard's Owned store (main.ts builds it early: the iron sword's pickup writes to it) */
   owned: Owned;
   chunk: LootGate & { id: string };
   game: { scene: THREE.Scene; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   player: { position: THREE.Vector3 };
   camera: THREE.Camera;
-  animals: { onKill?: ((a: A) => void) | undefined };
+  animals: { animals: readonly A[]; onKill?: ((a: A) => void) | undefined };
   audio: Audio;
   menu: GameMenu;
   /** the adventure's saved flags (Driftwood) — FINDS reads them; null on a shard with no adventure */
@@ -49,7 +52,7 @@ export interface Loot {
 const MAX_HEALTH = 100;
 const _v = new THREE.Vector3();
 
-export function installLoot<A extends { kind: string; position: THREE.Vector3 }>(h: LootHost<A>): Loot {
+export function installLoot<A extends LootAnimal>(h: LootHost<A>): Loot {
   const owned = h.owned;
   if (!coinsOn(h.chunk)) return { purse: null, dispose: () => undefined };
 
@@ -66,13 +69,19 @@ export function installLoot<A extends { kind: string; position: THREE.Vector3 }>
   window.addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', onHidden);
   const sfx = new IslandSfx(h.audio);
+  // each enemy pays once (Jake, 2026-09-30): a respawn's kill pays nothing (Bounty.ts); the census is the island as it starts
+  const census = Bounty.census(h.animals.animals);
+  const bounty = new Bounty(h.chunk.id, census);
+  let fullClear = 0;
+  for (const [k, n] of census) fullClear += n * coinsFor(h.chunk, k.split(':')[0] ?? k);
+  for (const lone of ['sailor', 'captain']) if (!census.has(lone)) fullClear += coinsFor(h.chunk, lone); // they rise later
 
   const prevKill = h.animals.onKill;
   h.animals.onKill = (a) => {
     prevKill?.(a);
     if (!live) return;
     const n = coinsFor(h.chunk, a.kind);
-    if (n <= 0) return;
+    if (n <= 0 || !bounty.claim(a)) return;
     burst.spawn(a.position, n, (share) => { purse.add(share, false); }, () => { purse.flush(); sfx.interact('chime', undefined, { gain: 0.55 }); });
     _v.set(a.position.x, a.position.y + 1.5, a.position.z).project(h.camera);
     if (_v.z < 1 && Math.abs(_v.x) < 1.1 && Math.abs(_v.y) < 1.1) chip.pop((_v.x + 1) * 0.5 * window.innerWidth, (1 - _v.y) * 0.5 * window.innerHeight, n);
@@ -100,7 +109,7 @@ export function installLoot<A extends { kind: string; position: THREE.Vector3 }>
   owned.onChange(refresh); purse.onChange(refresh);
 
   // dev console / capture scripts (not a URL switch): grant an item, add coins
-  const dev = { purse, owned, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); } };
+  const dev = { purse, owned, bounty, fullClear, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); } };
   Object.assign(window, { __loot: dev });
   return {
     purse,
