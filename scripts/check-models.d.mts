@@ -6,6 +6,8 @@ export const ON_CONTRACT: readonly string[];
 export const NAMED_PLACES: Readonly<Record<string, readonly { file: string; list: string; labels?: boolean; optional?: boolean }[]>>;
 /** the shards whose every named place must have its set */
 export const PLACES_ENFORCED: readonly string[];
+/** registry `.add({ … })` calls giving the piece an `object` (a balanced scan of each literal) */
+export function addsWithObject(code: string): number;
 export function checkModels(files?: Readonly<Record<string, string>>): {
   violations: string[];
   report: Record<string, Record<string, number>>;

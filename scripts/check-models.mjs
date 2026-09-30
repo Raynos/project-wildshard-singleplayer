@@ -8,7 +8,8 @@
  *   3. a model id not prefixed by its folder: `<slug>/…` in a shard's models, `shared/…` in src/models/
  *   4. a shard importing another shard's models (`src/chunks/<a>/**` → `chunks/<b>/models/`)
  *   5. `src/models/` importing a shard (`chunks/…`): the contract stays shard-agnostic
- *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again
+ *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again (a registry `.add({ … })` with
+ *      an `object`, found by a balanced scan of the literal: `addsWithObject`)
  *   7. a shard whose wave is done (`DONE`: Nine Dragon, M4; Pine Hollow, M2; Driftwood, M1) drawing or registering a thing by hand outside its models/
  *      folder — only the files it declares world may, each with its reason and its counts
  *   8. a species rig with no model (E315 M5): every kind a file registers (`registerSpecies({ … kind: '<kind>'` or a string
@@ -85,13 +86,33 @@ export const DONE = {
   },
 };
 
+/**
+ * How many registry `.add({ … })` calls in `code` (comments stripped) give the piece an `object` — the key `object:` or
+ * the shorthand `object` at the literal's TOP level, however deeply the rest of it nests (E323: a `[^}]*` regex stopped
+ * at the first nested `}`, so `.add({ colliders: [{ … }], object })` escaped rules 6 and 7).
+ */
+export function addsWithObject(code) {
+  let n = 0;
+  for (const m of code.matchAll(/\.add\(\s*\{/g)) {
+    let depth = 0;
+    for (let i = m.index + m[0].length - 1; i < code.length; i++) {
+      const c = code[i];
+      if (c === "'" || c === '"' || c === '`') { const q = c; for (i++; i < code.length && code[i] !== q; i++) if (code[i] === '\\') i++; continue; }
+      if (c === '{' || c === '[' || c === '(') { depth++; continue; }
+      if (c === '}' || c === ']' || c === ')') { if (--depth === 0) break; continue; }
+      if (depth === 1 && c === 'o' && /[\s,{]/.test(code[i - 1] ?? '') && /^object\s*[:,}]/.test(code.slice(i, i + 16))) { n++; break; }
+    }
+  }
+  return n;
+}
+
 /** a file's hand registrations and hand-rolled draws (comments stripped): the report's counters */
 function countsOf(code) {
   return {
     addBuilt: (code.match(/\baddBuilt\(/g) ?? []).length - (/const addBuilt\s*=/.test(code) ? 1 : 0),
     registerModel: (code.match(/\bregisterModel\(/g) ?? []).length - (/export function registerModel/.test(code) ? 1 : 0),
     registerSolid: (code.match(/\bregisterSolid\(/g) ?? []).length - (/export function registerSolid/.test(code) ? 1 : 0),
-    'registry add with object': (code.match(/\.add\(\{[^}]*?\bobject:/g) ?? []).length,
+    'registry add with object': addsWithObject(code),
     'model flag': (code.match(/\bmodel:\s*(?:\{|true)/g) ?? []).length,
     InstancedMesh: (code.match(/new (?:THREE\.)?InstancedMesh\(/g) ?? []).length,
     BatchedMesh: (code.match(/new (?:THREE\.)?BatchedMesh\(/g) ?? []).length,
@@ -229,7 +250,7 @@ export function checkModels(files) {
       if (inShared && /(?:^|\/)chunks\//.test(spec)) violations.push(`${file}: src/models/ imports a shard (${spec})`);
     }
     if (inShared || inShardModels) continue;
-    if (ON_CONTRACT.includes(file) && /\bregisterSolid\(|\bregisterModel\(|\.add\(\{[^}]*?\bobject:|\bmodel:\s*(?:\{|true)/.test(code)) {
+    if (ON_CONTRACT.includes(file) && (/\bregisterSolid\(|\bregisterModel\(|\bmodel:\s*(?:\{|true)/.test(code) || addsWithObject(code) > 0)) {
       violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
     }
     const area = areaOf(file);
