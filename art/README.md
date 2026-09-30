@@ -446,6 +446,16 @@ contract (src/models/). Each shard's catalog before / after (every card now says
 they are drawn), the shore boulder's card (the first model on `place()`), and Nine Dragon's VIEW IN WORLD (before: the
 origin under the square; after: a real lion). Plan: `docs/plans/MODEL-ARCHITECTURE.md`.
 
+### Driftwood models, M1 (`art/models-audit/round-4-m1-driftwood/`, 2026-09-29, E315)
+
+`m1-before-after.jpg`: live phone-tier captures (390×844 @3×) of clean exports before M1 and after it. Top: Driftwood's
+Model Explorer catalog before (19 cards: the pier and a jetty apart, the palm and bush specimens registered by hand, the
+Blender spawn cove with no card at all). Middle: the catalog after, all 42 cards (the pier ×4, the hut, the shrine, the
+sailboat, the coconut palm ×204, the hibiscus bush ×170, the small rock ×400, the cove's 16 prototype families — grass
+tuft ×4,996, cove fern ×1,779 … —, the coral clump, seaweed bed, reef starfish, reef fish, the fence post, signpost and
+plank step). Bottom: turntables. `m1-driftwood-spin.mp4`: a 12 s spin of five of them (coconut palm, pier, Ring
+shrine, cove palm, coral clump) in the real explorer. Plan: `docs/plans/MODEL-ARCHITECTURE.md` row M1.
+
 ### Nalati models + sets, M3 (`art/models-audit/round-6-m3-nalati/`, 2026-09-29, E315)
 
 `m3-nalati-before-after.jpg`: live phone-tier captures (390×844 @3×) of clean exports before (280c442f) and after the M3
