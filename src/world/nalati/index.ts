@@ -10,8 +10,8 @@
  * E306 / E315 M3: a POI places models (src/chunks/nalati-grasslands/models/: the kerb stones, the balbals, the bridge,
  * the watchtower, the kokpar's goals and riders …) through a NalatiSet (./painted.ts) and registers itself — one
  * `place` per model, its colliders and floor with it — and the models of a place are a set (`SETS`: the Kurgan field,
- * the Kokpar field …). The POIs not moved yet (the camps, the road fences: other lanes are in those files) are still one
- * piece each through `ENTRY`.
+ * the Kokpar field, the Spring and Summer camps …). The POIs not moved yet (the road fences) are still one piece each
+ * through `ENTRY`.
  *
  * NALATI-MERGE P1: every collider is in the world registry (src/world/registry.ts) — boxes (with their material),
  * decks / floors as slabs, stairs as treads, rocks as hulls; a floor function is placement only. Nothing goes into
@@ -49,13 +49,13 @@ import { placeSet } from '../../models/sets';
 /** each POI not yet on the model contract: its entry in the registry (and Explore's catalog when `model`, with how it's
  *  made: E306 M0a). M3 moves each onto models (src/chunks/nalati-grasslands/models/) + a set (`SETS`), and its row goes */
 const ENTRY: Record<string, { name: string; category: PieceCategory; file: string; model: boolean; pipeline?: Pipeline | readonly Pipeline[] }> = {
-  camp: { name: 'Spring camp', category: 'buildings', file: 'src/world/nalati/NomadCamp.ts', model: true, pipeline: ['code', 'trellis'] },
   roads: { name: 'Road fences', category: 'props', file: 'src/world/nalati/RoadFurniture.ts', model: false },
-  summerCamp: { name: 'Summer camp', category: 'buildings', file: 'src/world/nalati/SummerCamp.ts', model: true, pipeline: ['code', 'trellis'] },
 };
 
 /** the places on the model contract (E306 / E315 M3): the models the named POIs placed are one set each (M7 explores them) */
 const SETS: readonly { id: string; name: string; file: string; pois: readonly string[] }[] = [
+  { id: 'nalati-grasslands/spring-camp', name: 'Spring camp', file: 'src/world/nalati/NomadCamp.ts', pois: ['camp'] },
+  { id: 'nalati-grasslands/summer-camp', name: 'Summer camp', file: 'src/world/nalati/SummerCamp.ts', pois: ['summerCamp'] },
   { id: 'nalati-grasslands/kurgan-field', name: 'Kurgan field', file: 'src/world/nalati/KurganField.ts', pois: ['kurgans', 'balbals'] },
   { id: 'nalati-grasslands/crags', name: "The Crags: Aqbars' ledges and cave", file: 'src/world/nalati/Crags.ts', pois: ['crags'] },
   { id: 'nalati-grasslands/watchtower-hill', name: 'Watchtower hill', file: 'src/world/nalati/Bowl.ts', pois: ['watchtower'] },

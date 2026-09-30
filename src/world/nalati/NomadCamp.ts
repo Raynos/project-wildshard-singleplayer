@@ -6,24 +6,29 @@
  * and laid at two doors; an iron stove and a kazan on a tripod, both smoking; a cart, barrels, chests, a woodpile,
  * a saddle rack, a water trough and a hay pile.
  *
- *   const camp = buildNomadCamp(ctx);      // PoiPiece: object, colliders (boxes, wood), descs (the yurts' felt), tris
+ *   const camp = buildNomadCamp(ctx);      // PoiPiece: the camp registers itself (`register`: one `place` per model)
  *
- * One merged mesh; the ribbons / pennants go into `ctx.flutter`, the plumes into `ctx.smoke`. The kazan, chests, woodpile,
- * churns, ground saddles and the eagle are the generated GLB models (modelProps.ts: their colliders and the fire's centre
- * are pushed here, synchronously), one InstancedMesh per model, added when they have loaded.
+ * E306 / E315 second pass: the camp places models (src/chunks/nalati-grasslands/models/: yurt.ts, campProps.ts,
+ * campGenerated.ts) through a NalatiSet (./painted.ts), in the old builder's order — the code models painted into the
+ * camp's one mesh (+ its felt and timber layers), the generated GLBs (kazan, chests, woodpile, churns, ground saddles,
+ * the eagle) one InstancedMesh per model, added when they have loaded — and NalatiPOIs names them the Spring camp set.
+ * The ribbons / pennants go into `ctx.flutter`, the plumes into `ctx.smoke`; the trodden earth of the yard is a decal
+ * draped over the terrain (./Yard.ts: world, welded to the ground).
  * Terrain request: a flat pad r 30 at (95, 205) (the valley floor, ≈ −8).
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, blob, woodPole } from './paint';
-import { addYurt, yurtSolid } from './Yurt';
-import { PC, GRAIN, WOOD, addBarrel, addStove, addCart, addSaddleRack, addGroundRug, addRugRack, addCarvedPost, addRugLine, addChoppingBlock, addMilkCans } from './props';
+import { PaintKit, v3 } from './paint';
+import { NalatiSet } from './painted';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import { CAMP, CORRAL, HITCHING_RAIL } from './layout';
-import { ModelSink } from './glbPaint';
-import { addKazanModel, addChestModel, addWoodpileModel, addChurnModel, addGroundSaddleModel, addEagleModel } from './modelProps';
-import type { ColliderDesc } from '../registry';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
+import { yurt } from '../../chunks/nalati-grasslands/models/yurt';
+import {
+  ribbonPole, eaglePerch, EAGLE_PERCH_H, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack,
+  corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans,
+} from '../../chunks/nalati-grasslands/models/campProps';
+import { kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../../chunks/nalati-grasslands/models/campGenerated';
 
 /** the yurts: angle round the yard (deg, 0 = +x/west, 90 = +z/north), distance, radius, flue, palette */
 const YURTS: { a: number; d: number; r: number; flue: boolean; pal: number; old?: boolean; base: 'lattice' | 'reed' | 'felt' }[] = [
@@ -35,16 +40,13 @@ const YURTS: { a: number; d: number; r: number; flue: boolean; pal: number; old?
   { a: -92, d: 13.5, r: 3.2, flue: false, pal: 2, base: 'lattice' },
 ];
 
-const RIBBONS = ['#c8321e', '#2f5fae', '#e8b632', '#3f8f4a', '#f4efe4', '#e0772c', '#7a3f8c'];
-
 export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
-  const { sky, ground, flutter, smoke } = ctx;
+  const { sky, ground, smoke } = ctx;
   const kit = new PaintKit(0x7a17);
+  const set = new NalatiSet(kit, ctx);
   const rng = kit.rng;
-  const colliders: Box[] = [];
-  const descs: ColliderDesc[] = [];
   const cx = CAMP.x, cz = CAMP.z;
-  const sink = new ModelSink();
+  const on = (x: number, z: number, yaw = 0) => ({ x, y: ground(x, z), z, yaw });
 
   // ── yurts ──
   const doors: { x: number; z: number; rot: number; r: number }[] = [];
@@ -58,152 +60,83 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     let gy = Infinity;
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     gy = Math.min(gy, ground(x, z));
-    const spec = { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base };
-    const top = addYurt(kit, spec, colliders);
-    descs.push(...yurtSolid(spec, top.height));
-    if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
-    // a red pennant on a short pole at the crown of every other yurt
-    if (y.pal !== 2) {
-      const pc = top.crown.clone();
-      const pb = pc.clone().add(v3(0, 0.05, 0)), pt = pc.clone().add(v3(0, 1.4, 0));
-      kit.add(pole(pb, pt, 0.03, 0.022, 5), PC.woodDark);
-      flutter.flag(pt.clone().add(v3(0, -0.04, 0)), 0.34, 0.75, y.pal === 0 ? '#c9361f' : '#d9772a', { taper: 1, droop: 0.15 });
-    }
+    // a pennant at the crown of every other yurt
+    set.paint(yurt, { x, y: gy, z, yaw: rot }, { r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base, pennant: y.pal !== 2 });
     doors.push({ x, z, rot, r: y.r });
   }
 
-  // ── ribbon pole in the yard: striped pole, a trident finial, seven streamers ──
+  // ── the ribbon pole in the yard; the eagle perch, the eagle facing the road (east) ──
+  set.paint(ribbonPole, on(cx + 1.5, cz - 0.5), {});
   {
-    const x = cx + 1.5, z = cz - 0.5, y = ground(x, z), H = 6.6;
-    kit.add(new THREE.CylinderGeometry(0.075, 0.1, H, 10, 12).translate(0, H / 2, 0), (p) => (Math.floor((p.y * 3 + Math.atan2(p.x, p.z) / Math.PI) % 2) === 0 ? PC.red : PC.cream), { matrix: M(x, y - 0.2, z) });
-    kit.add(new THREE.SphereGeometry(0.12, 10, 8).translate(0, H - 0.15, 0), PC.gold, { matrix: M(x, y - 0.2, z) });
-    for (const sx of [-1, 0, 1]) {
-      kit.add(new THREE.ConeGeometry(0.045, 0.5, 6).translate(sx * 0.16, H + 0.25 + (sx === 0 ? 0.12 : 0), 0), PC.gold, { matrix: M(x, y - 0.2, z) });
-    }
-    kit.add(new THREE.BoxGeometry(0.4, 0.05, 0.05).translate(0, H + 0.02, 0), PC.gold, { matrix: M(x, y - 0.2, z) });
-    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; kit.add(blob(0.2, rng, 1, 0.6), PC.stone, { matrix: M(x + Math.cos(a) * 0.55, y, z + Math.sin(a) * 0.55, a) }); }
-    RIBBONS.forEach((c, i) => {
-      const a = (i / RIBBONS.length) * Math.PI * 2;
-      flutter.streamer(v3(x + Math.cos(a) * 0.08, y - 0.2 + H - 0.25 - i * 0.06, z + Math.sin(a) * 0.08), rng.range(2.4, 3.6), 0.13, c, { droop: 0.5, taper: 0.3 });
-    });
-    colliders.push({ x, z, hw: 0.7, hd: 0.7, rot: 0, yBottom: y - 1, yTop: y + H });
+    const at = on(cx - 9, cz + 1.5);
+    set.paint(eaglePerch, at, {});
+    set.instance(perchedEagle, { x: at.x + 0.05, y: at.y + EAGLE_PERCH_H + 0.12, z: at.z, rot: Math.PI / 2 + 0.35 }, {});
   }
 
-  // ── eagle perch: a lashed tripod with a T-bar, the eagle facing the road ──
+  // ── cooking: the stove and the kazan in the yard, smoking; the woodpile; a low bench by the kazan ──
+  set.paint(stove, on(cx + 4.5, cz - 5.5, 0.4), {});
   {
-    const x = cx - 9, z = cz + 1.5, y = ground(x, z), H = 2.55;
-    for (let i = 0; i < 3; i++) {
-      const a = (i / 3) * Math.PI * 2 + 0.3;
-      kit.add(woodPole(v3(x + Math.cos(a) * 0.95, y - 0.2, z + Math.sin(a) * 0.95), v3(x - Math.cos(a) * 0.1, y + H + 0.1, z - Math.sin(a) * 0.1), 0.055, 0.04, 7, 3), GRAIN, { ...WOOD, brush: 0.14 });
+    const x = cx - 3.2, z = cz - 6.2, y = ground(x, z);
+    set.instance(kazan, { x, y, z, rot: 0.4 }, {});
+    smoke.emitter(v3(x, y + 0.9, z), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
+  }
+  {
+    // two birch stacks side by side along the pile; the pile's one box
+    const x = cx + 8.5, z = cz - 3, yaw = 0.9, cs = Math.cos(yaw), sn = Math.sin(yaw);
+    const pile: Box = { x, z, hw: 0.8, hd: 0.85, rot: -yaw, yBottom: ground(x, z) - 1, yTop: ground(x, z) + 0.85 };
+    for (const [k, [o, dy]] of ([[-0.45, 0.2], [0.45, -0.15]] as const).entries()) {
+      const px = x + o * cs, pz = z - o * sn;
+      set.instance(firewood, { x: px, y: ground(px, pz), z: pz, rot: yaw }, k === 0 ? { dy, pile } : { dy });
     }
-    kit.add(new THREE.CylinderGeometry(0.075, 0.075, 0.22, 8).translate(x, y + H - 0.25, z), PC.leather);          // lashing
-    kit.add(pole(v3(x - 0.5, y + H + 0.08, z), v3(x + 0.5, y + H + 0.08, z), 0.045, 0.045, 7), PC.wood);             // T-bar
-    kit.add(new THREE.CylinderGeometry(0.05, 0.05, 0.36, 8).rotateZ(Math.PI / 2).translate(x + 0.05, y + H + 0.08, z), PC.red); // leather wrap
-    addEagleModel(sink, v3(x + 0.05, y + H + 0.12, z), Math.PI / 2 + 0.35);                                        // looking east, toward the road
-    // jesses: a cord from the leg to the bar end
-    kit.add(pole(v3(x + 0.1, y + H + 0.14, z), v3(x + 0.48, y + H + 0.02, z), 0.01, 0.01, 3), PC.leather);
-    kit.add(pole(v3(x + 0.48, y + H + 0.08, z), v3(x + 0.52, y + H - 0.6, z + 0.02), 0.01, 0.01, 3), PC.leather);
-    colliders.push({ x, z, hw: 0.9, hd: 0.9, rot: 0, yBottom: y - 1, yTop: y + H + 0.5 });
   }
-
-  // ── cooking: the stove and the kazan in the yard, smoking ──
-  smoke.emitter(addStove(kit, ground, cx + 4.5, cz - 5.5, 0.4, colliders), { puffs: 36, rise: 6.5, size: [0.55, 3.8], life: 8 });
-  smoke.emitter(addKazanModel(sink, ground, cx - 3.2, cz - 6.2, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
-  addWoodpileModel(sink, ground, cx + 8.5, cz - 3, 0.9, colliders);
-  // low wooden bench by the kazan
-  {
-    const x = cx - 3.2, z = cz - 9.0, y = ground(x, z), m = M(x, y, z, 0.1);
-    kit.add(new THREE.BoxGeometry(1.8, 0.07, 0.36).translate(0, 0.42, 0), PC.woodLight, { matrix: m, flat: true });
-    for (const bx of [-0.75, 0.75]) kit.add(new THREE.BoxGeometry(0.08, 0.42, 0.3).translate(bx, 0.21, 0), PC.wood, { matrix: m, flat: true });
-    colliders.push({ x, z, hw: 0.9, hd: 0.2, rot: -0.1, yBottom: y - 1, yTop: y + 0.46 });
-  }
+  set.paint(campBench, on(cx - 3.2, cz - 9.0, 0.1), {});
 
   // ── rugs: a rack of drying felts, two rugs laid out at doors ──
-  addRugRack(kit, ground, cx + 6.5, cz + 4.5, -0.5, colliders, [0, 1, 2]);
+  set.paint(rugRack, on(cx + 6.5, cz + 4.5, -0.5), { pals: [0, 1, 2] });
   for (const k of [1, 3]) {
     const d = doors[k];
     if (!d) continue;
     const fx = -Math.sin(d.rot), fz = -Math.cos(d.rot), rx = d.x + fx * (d.r + 1.4), rz = d.z + fz * (d.r + 1.4);
-    addGroundRug(kit, ground, rx, rz, d.rot, 1.5, 2.2, k);
+    set.paint(feltRug, on(rx, rz, d.rot), { w: 1.5, h: 2.2, pal: k });
   }
 
   // ── props round the yard ──
-  addCart(kit, ground, cx - 11, cz - 11, 2.3, colliders);
-  for (const [bx, bz] of [[cx + 6.8, cz - 1.2], [cx + 6.3, cz - 0.3], [cx - 1.5, cz + 10.5]] as const) addBarrel(kit, ground, bx, bz, colliders, rng.range(0.9, 1.05));
-  for (const [hx, hz, hyaw] of [[cx + 0.6, cz + 9.4, 0.2], [cx - 9.5, cz - 4.5, 1.8]] as const) addChestModel(sink, ground, hx, hz, hyaw, colliders);
+  set.paint(cart, on(cx - 11, cz - 11, 2.3), {});
+  for (const [bx, bz] of [[cx + 6.8, cz - 1.2], [cx + 6.3, cz - 0.3], [cx - 1.5, cz + 10.5]] as const) set.paint(barrel, on(bx, bz), { s: rng.range(0.9, 1.05) });
+  for (const [hx, hz, hyaw] of [[cx + 0.6, cz + 9.4, 0.2], [cx - 9.5, cz - 4.5, 1.8]] as const) set.instance(chest, { x: hx, y: ground(hx, hz), z: hz, rot: hyaw }, {});
 
-  // ── hitching rail (road side, runs north–south) + trough + saddle rack ──
+  // ── the hitching rail (road side, runs north–south) + the water trough + the saddle rack ──
   {
     const { x, z, length: L, height: H } = HITCHING_RAIL;
-    for (const t of [-0.5, 0, 0.5]) addCarvedPost(kit, ground, x, z + t * L, H, Math.PI / 2);
-    const y0 = ground(x, z - L / 2), y1 = ground(x, z + L / 2);
-    kit.add(pole(v3(x, y0 + H, z - L / 2 - 0.25), v3(x, y1 + H, z + L / 2 + 0.25), 0.075, 0.07, 8), PC.woodLight);
-    for (const t of [-0.3, 0.28]) {
-      const pz = z + t * L, py = ground(x, pz) + H;
-      kit.add(new THREE.TorusGeometry(0.09, 0.018, 4, 10).rotateY(Math.PI / 2).translate(x, py - 0.02, pz), PC.leather);
-      kit.add(pole(v3(x - 0.02, py - 0.08, pz), v3(x - 0.12, py - 0.55, pz + 0.05), 0.012, 0.012, 3), PC.leather);
-    }
-    colliders.push({ x, z, hw: 0.15, hd: L / 2 + 0.3, rot: 0, yBottom: Math.min(y0, y1) - 1, yTop: Math.max(y0, y1) + H + 0.1 });
-    // water trough: a hollowed half-log on two chocks
-    const tx = x + 1.3, tz = z - L / 2 - 1.2, ty = ground(tx, tz);
-    kit.add(new THREE.CylinderGeometry(0.32, 0.32, 2.4, 12, 1, false, Math.PI / 2, Math.PI).rotateZ(Math.PI / 2).rotateY(Math.PI / 2).translate(0, 0.42, 0), PC.wood, { matrix: M(tx, ty, tz) });
-    kit.add(new THREE.BoxGeometry(0.5, 0.02, 2.3).translate(0, 0.36, 0), new THREE.Color('#6f9fb8'), { matrix: M(tx, ty, tz), flat: true });
-    for (const s of [-0.8, 0.8]) kit.add(new THREE.BoxGeometry(0.7, 0.2, 0.2).translate(0, 0.1, s), PC.wood, { matrix: M(tx, ty, tz), flat: true });
-    colliders.push({ x: tx, z: tz, hw: 0.35, hd: 1.2, rot: 0, yBottom: ty - 1, yTop: ty + 0.45 });
-    addSaddleRack(kit, ground, x + 2.2, z + L / 2 + 1.4, 0.3, colliders);
+    set.paint(hitchingRail, on(x, z), { length: L, height: H });
+    set.paint(waterTrough, on(x + 1.3, z - L / 2 - 1.2), {});
+    set.paint(saddleRack, on(x + 2.2, z + L / 2 + 1.4, 0.3), {});
   }
 
-  // ── corral: round pole fence, gate open toward the yard (east, −x) ──
+  // ── the corral: round pole fence, gate open toward the yard (east, −x); a hay pile and a feed trough inside ──
   {
     const { x, z, r } = CORRAL;
-    const n = 26, gate = Math.PI;                        // gate direction: −x
-    const posts: THREE.Vector3[] = [];
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2;
-      const px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r;
-      posts.push(v3(px, ground(px, pz), pz));
-    }
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2, p = posts[i];
-      if (!p) continue;
-      const da = Math.abs(((a - gate + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI);
-      const big = da < 0.3;
-      kit.add(woodPole(v3(p.x, p.y - 0.4, p.z), v3(p.x + rng.range(-0.04, 0.04), p.y + (big ? 1.75 : 1.45), p.z + rng.range(-0.04, 0.04)), big ? 0.12 : 0.085, big ? 0.1 : 0.07, 7, 3), GRAIN, { ...WOOD, foot: 0.7, jitter: 0.1, brush: 0.14 });
-      const q = posts[(i + 1) % n];
-      const am = ((i + 0.5) / n) * Math.PI * 2;
-      const dm = Math.abs(((am - gate + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI);
-      if (!q || dm < 0.2) continue;                     // the gate gap
-      for (const ry of [0.62, 1.2]) kit.add(woodPole(v3(p.x, p.y + ry, p.z), v3(q.x, q.y + ry - 0.03, q.z), 0.055, 0.055, 7, 4), GRAIN, { ...WOOD, jitter: 0.12, brush: 0.14 });
-      const mx = (p.x + q.x) / 2, mz = (p.z + q.z) / 2, len = Math.hypot(q.x - p.x, q.z - p.z);
-      const yaw = Math.atan2(q.x - p.x, q.z - p.z), gy = Math.min(p.y, q.y);
-      colliders.push({ x: mx, z: mz, hw: 0.1, hd: len / 2 + 0.05, rot: -yaw, yBottom: gy - 1, yTop: gy + 1.3 });
-    }
-    // the gate panel swung open against the fence outside
-    {
-      const gx = x + Math.cos(gate + 0.12) * r, gz = z + Math.sin(gate + 0.12) * r, gy = ground(gx, gz);
-      const m = M(gx - 1.1, gy, gz + 0.9, 0.5);
-      // split rails and posts (they were sharp flat boxes that read as untextured purple-grey — E302 B9)
-      for (const ry of [0.4, 0.8, 1.2]) kit.add(woodPole(v3(0, ry, -1.1), v3(0, ry, 1.1), 0.045, 0.04, 6, 4), GRAIN, { ...WOOD, matrix: m, brush: 0.14 });
-      for (const s of [-1.05, 1.05]) kit.add(woodPole(v3(0, 0, s), v3(0, 1.36, s), 0.055, 0.05, 7, 3), GRAIN, { ...WOOD, matrix: m, brush: 0.14, foot: 0.75 });
-      kit.add(woodPole(v3(0, 0.38, -1.02), v3(0, 1.22, 1.02), 0.035, 0.035, 6, 4), GRAIN, { ...WOOD, matrix: m, brush: 0.14 });
-    }
-    // hay pile + a feed trough inside
-    const hx = x + 3, hz = z + 2, hy = ground(hx, hz);
-    kit.add(new THREE.SphereGeometry(1.3, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.6, 1.3), PC.hay, { matrix: M(hx, hy - 0.05, hz, 0.4), brush: 0.14 });
-    colliders.push({ x: hx, z: hz, hw: 1.1, hd: 1.5, rot: -0.4, yBottom: hy - 1, yTop: hy + 0.7, surface: 'grass' });
-    const fx = x - 2.5, fz = z + 5, fy = ground(fx, fz);
-    kit.add(new THREE.BoxGeometry(0.6, 0.35, 1.8).translate(0, 0.35, 0), PC.woodDark, { matrix: M(fx, fy, fz, 0.9), flat: true });
-    kit.add(new THREE.BoxGeometry(0.5, 0.05, 1.7).translate(0, 0.51, 0), PC.hay, { matrix: M(fx, fy, fz, 0.9), flat: true });
+    set.paint(corral, on(x, z), { r, posts: 26 });
+    set.paint(hayPile, on(x + 3, z + 2, 0.4), {});
+    set.paint(feedTrough, on(x - 2.5, z + 5, 0.9), {});
   }
 
-  // the kumis corner by the big yurt: two churns
-  addChurnModel(sink, ground, cx + 3.6, cz + 10.2, colliders);
+  // the kumis corner by the big yurt: a churn by the yurt, a bigger one 1.1 m east of it
+  {
+    const x = cx + 3.6, z = cz + 10.2;
+    set.instance(kumisChurn, { x, y: ground(x, z), z, rot: 0.6, scale: 1 }, { hw: 0.28, h: 1.1 });
+    const sx = x + 1.1, sz = z + 0.2;
+    set.instance(kumisChurn, { x: sx, y: ground(sx, sz), z: sz, rot: 2.4, scale: 1.15 }, { hw: 0.34, h: 1.25 });
+  }
 
   // ── yard set pieces: rugs on a line, the chopping block, saddles set down by the rail, the milk cans ──
-  addRugLine(kit, ground, cx - 7, cz + 6, cx - 2.6, cz + 8.6, [1, 3, 0], colliders);
-  addChoppingBlock(kit, ground, cx + 9.5, cz - 5.5, colliders);
-  for (const [sx, sz, syaw] of [[HITCHING_RAIL.x + 2.8, HITCHING_RAIL.z - 2.2, 1.9], [HITCHING_RAIL.x + 3.2, HITCHING_RAIL.z + 1.2, 0.6]] as const) addGroundSaddleModel(sink, ground, sx, sz, syaw);
-  addMilkCans(kit, ground, cx + 5.2, cz + 8.4, colliders);
+  {
+    const ax = cx - 7, az = cz + 6, bx = cx - 2.6, bz = cz + 8.6;
+    set.paint(rugLine, on(ax, az), { dx: bx - ax, dz: bz - az, pals: [1, 3, 0] });
+  }
+  set.paint(choppingBlock, on(cx + 9.5, cz - 5.5), {});
+  for (const [sx, sz, syaw] of [[HITCHING_RAIL.x + 2.8, HITCHING_RAIL.z - 2.2, 1.9], [HITCHING_RAIL.x + 3.2, HITCHING_RAIL.z + 1.2, 0.6]] as const) set.instance(groundSaddle, { x: sx, y: ground(sx, sz), z: sz, rot: syaw }, {});
+  set.paint(milkCans, on(cx + 5.2, cz + 8.4), {});
 
   const group = new THREE.Group();
   group.name = 'nalati-camp';
@@ -225,7 +158,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   if (felt) { felt.name = 'nalati-camp-felt'; group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
   const wood = kit.texturedMesh(sky, 'rock', { ground });   // the corral, the gate, the racks and the perch (props.ts GRAIN)
   if (wood) { wood.name = 'nalati-camp-wood'; group.add(wood); tris += wood.geometry.getAttribute('position').count / 3; }
-  tris += sink.tris();
-  void sink.flush(group, sky);
-  return { name: 'camp', object: group, colliders, surface: 'wood', descs, tris };
+  tris += set.tris();
+  set.flush(group, sky);
+  // every model's tap target is the whole camp (its felt and timber layers too): a tap picks the copy under the finger
+  return { name: 'camp', object: group, colliders: set.boxes, surface: 'wood', tris, register: (o) => set.register({ ...o, object: group, group }) };
 }

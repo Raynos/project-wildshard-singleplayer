@@ -3,76 +3,54 @@
  * three yurts round a small hearth, a kazan smoking over it, a tether line on two posts for the horses, a drying
  * board of kurt (curd balls), felts airing on the grass, a cart and a ribbon post.
  *
- *   const summer = buildSummerCamp(ctx);   // PoiPiece
+ *   const summer = buildSummerCamp(ctx);   // PoiPiece: the camp registers itself (`register`: one `place` per model)
+ *
+ * E306 / E315 second pass: the camp places models (src/chunks/nalati-grasslands/models/: yurt.ts, campProps.ts,
+ * campGenerated.ts) through a NalatiSet (./painted.ts), in the old builder's order, like the spring camp
+ * (./NomadCamp.ts); NalatiPOIs names them the Summer camp set. The yard's trodden earth is a decal (world).
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, woodPole } from './paint';
-import { addYurt, yurtSolid } from './Yurt';
-import { PC, GRAIN, WOOD, addCart, addGroundRug, addBarrel } from './props';
+import { PaintKit, v3 } from './paint';
+import { NalatiSet } from './painted';
 import { SUMMER_CAMP } from './layout';
-import { ModelSink } from './glbPaint';
-import { addKazanModel, addChestModel } from './modelProps';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
-import type { ColliderDesc } from '../registry';
-import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
+import { yurt } from '../../chunks/nalati-grasslands/models/yurt';
+import { cart, barrel, feltRug, tetherLine, kurtBoard, ribbonPost } from '../../chunks/nalati-grasslands/models/campProps';
+import { kazan, chest } from '../../chunks/nalati-grasslands/models/campGenerated';
 
 export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
-  const { sky, ground, flutter, smoke } = ctx;
+  const { sky, ground, smoke } = ctx;
   const kit = new PaintKit(0x5a33);
+  const set = new NalatiSet(kit, ctx);
   const rng = kit.rng;
-  const colliders: Box[] = [];
-  const descs: ColliderDesc[] = [];
   const cx = SUMMER_CAMP.x, cz = SUMMER_CAMP.z;
-  const sink = new ModelSink(); // the GLB kazan / chest (modelProps.ts), like the spring camp
+  const on = (x: number, z: number, yaw = 0) => ({ x, y: ground(x, z), z, yaw });
   const Y = [{ a: 70, d: 9, r: 2.9, flue: true, pal: 1 }, { a: 175, d: 9.5, r: 2.6, flue: false, pal: 0 }, { a: -60, d: 9, r: 2.7, flue: true, pal: 2, old: true }];
   for (const y of Y) {
     const a = (y.a * Math.PI) / 180, x = cx + Math.cos(a) * y.d, z = cz + Math.sin(a) * y.d;
     const rot = Math.atan2(-(cx - x), -(cz - z)) + rng.range(-0.25, 0.25);
     let gy = ground(x, z);
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
-    const spec = { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false };
-    const top = addYurt(kit, spec, colliders);
-    descs.push(...yurtSolid(spec, top.height));
-    if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
+    set.paint(yurt, { x, y: gy, z, yaw: rot }, { r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: 'lattice', pennant: false });
   }
-  smoke.emitter(addKazanModel(sink, ground, cx + 1, cz - 1, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
-  addCart(kit, ground, cx - 7, cz + 7.5, 0.6, colliders);
-  addChestModel(sink, ground, cx + 3.5, cz + 3.5, 2.2, colliders);
-  addBarrel(kit, ground, cx - 3.2, cz - 4.6, colliders);
-  addGroundRug(kit, ground, cx - 1.5, cz + 4.2, 0.3, 1.4, 2.0, 3);
-  addGroundRug(kit, ground, cx + 4.8, cz - 3.2, 1.2, 1.2, 1.8, 2);
-  // tether line: two posts, a rope between them (the horses will be tied here)
+  {
+    const x = cx + 1, z = cz - 1, y = ground(x, z);
+    set.instance(kazan, { x, y, z, rot: 0.4 }, {});
+    smoke.emitter(v3(x, y + 0.9, z), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
+  }
+  set.paint(cart, on(cx - 7, cz + 7.5, 0.6), {});
+  set.instance(chest, { x: cx + 3.5, y: ground(cx + 3.5, cz + 3.5), z: cz + 3.5, rot: 2.2 }, {});
+  set.paint(barrel, on(cx - 3.2, cz - 4.6), { s: 1 });
+  set.paint(feltRug, on(cx - 1.5, cz + 4.2, 0.3), { w: 1.4, h: 2.0, pal: 3 });
+  set.paint(feltRug, on(cx + 4.8, cz - 3.2, 1.2), { w: 1.2, h: 1.8, pal: 2 });
+  // the tether line: two posts, a rope between them (the horses will be tied here)
   {
     const ax = cx - 12, az = cz - 3, bx = cx - 12, bz = cz + 5;
-    const ay = ground(ax, az), by = ground(bx, bz);
-    kit.add(woodPole(v3(ax, ay - 0.4, az), v3(ax, ay + 1.3, az), 0.09, 0.08, 7, 3), GRAIN, { ...WOOD, foot: 0.7, brush: 0.14 });
-    kit.add(woodPole(v3(bx, by - 0.4, bz), v3(bx, by + 1.3, bz), 0.09, 0.08, 7, 3), GRAIN, { ...WOOD, foot: 0.7, brush: 0.14 });
-    const n = 8;
-    for (let i = 0; i < n; i++) {
-      const t0 = i / n, t1 = (i + 1) / n;
-      const p = v3(ax, ay + 1.2, az).lerp(v3(bx, by + 1.2, bz), t0); p.y -= Math.sin(Math.PI * t0) * 0.25;
-      const q = v3(ax, ay + 1.2, az).lerp(v3(bx, by + 1.2, bz), t1); q.y -= Math.sin(Math.PI * t1) * 0.25;
-      kit.add(pole(p, q, 0.02, 0.02, 4), PC.leather);
-    }
-    colliders.push({ x: ax, z: az, hw: 0.12, hd: 0.12, rot: 0, yBottom: ay - 1, yTop: ay + 1.3 });
-    colliders.push({ x: bx, z: bz, hw: 0.12, hd: 0.12, rot: 0, yBottom: by - 1, yTop: by + 1.3 });
+    set.paint(tetherLine, on(ax, az), { dx: bx - ax, dz: bz - az });
   }
-  // kurt drying board on trestles: rows of white curd balls
-  {
-    const x = cx + 6.5, z = cz + 2.5, y = ground(x, z), m = M(x, y, z, 0.7);
-    kit.add(new THREE.BoxGeometry(2.0, 0.05, 0.8).translate(0, 0.85, 0), PC.woodLight, { matrix: m, flat: true });
-    for (const sx of [-0.8, 0.8]) for (const sz of [-0.3, 0.3]) kit.add(new THREE.CylinderGeometry(0.03, 0.03, 0.85, 5).translate(sx, 0.42, sz), PC.woodGrey, { matrix: m });
-    for (let i = 0; i < 9; i++) for (let j = 0; j < 3; j++) kit.add(new THREE.SphereGeometry(0.055, 6, 5).translate(-0.8 + i * 0.2, 0.9, -0.25 + j * 0.25), new THREE.Color('#f3efe2'), { matrix: m, brush: 0.03 });
-    colliders.push({ x, z, hw: 1.0, hd: 0.4, rot: -0.7, yBottom: y - 1, yTop: y + 0.95 });
-  }
-  // a ribbon post by the hearth
-  {
-    const x = cx - 2.5, z = cz + 1.2, y = ground(x, z);
-    kit.add(woodPole(v3(x, y - 0.3, z), v3(x, y + 3.6, z), 0.06, 0.045, 7, 3), GRAIN, { ...WOOD, brush: 0.14 });
-    for (const [i, c] of ['#c8321e', '#f4efe4', '#2f5fae'].entries()) flutter.streamer(v3(x, y + 3.5 - i * 0.12, z), rng.range(1.6, 2.3), 0.1, c);
-    colliders.push({ x, z, hw: 0.1, hd: 0.1, rot: 0, yBottom: y - 1, yTop: y + 3.6 });
-  }
+  set.paint(kurtBoard, on(cx + 6.5, cz + 2.5, 0.7), {});
+  set.paint(ribbonPost, on(cx - 2.5, cz + 1.2), {});
   const group = new THREE.Group();
   group.name = 'nalati-summer-camp';
   {
@@ -87,7 +65,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   if (felt) { group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
   const wood = kit.texturedMesh(sky, 'rock', { ground });   // the posts (props.ts GRAIN)
   if (wood) { wood.name = 'nalati-summer-wood'; group.add(wood); tris += wood.geometry.getAttribute('position').count / 3; }
-  tris += sink.tris();
-  void sink.flush(group, sky);
-  return { name: 'summerCamp', object: group, colliders, surface: 'wood', descs, tris };
+  tris += set.tris();
+  set.flush(group, sky);
+  return { name: 'summerCamp', object: group, colliders: set.boxes, surface: 'wood', tris, register: (o) => set.register({ ...o, object: group, group }) };
 }

@@ -18,6 +18,9 @@ import { fieldstone } from '../src/chunks/nalati-grasslands/models/fieldstone';
 import { kurganEntrance } from '../src/chunks/nalati-grasslands/models/kurganEntrance';
 import { balbal } from '../src/chunks/nalati-grasslands/models/balbal';
 import { checkModels, ON_CONTRACT } from '../scripts/check-models.mjs';
+import { yurt } from '../src/chunks/nalati-grasslands/models/yurt';
+import { barrel, corral } from '../src/chunks/nalati-grasslands/models/campProps';
+import { kazan, firewood } from '../src/chunks/nalati-grasslands/models/campGenerated';
 
 // a stand-in sky: the painterly material asks it for its sun and to prepare the material (no renderer in a test)
 const lights: THREE.DirectionalLight[] = [];
@@ -140,5 +143,44 @@ describe('Nalati models (E306 / E315 M3)', () => {
     expect(reg.pieces[0]?.object).toBeUndefined();
     expect(reg.pieces[0]?.anchor?.toArray()).toEqual([4, 1, 0]);
     expect(placed.copyBox(0, new THREE.Box3()).max.x).toBe(5);
+  });
+});
+
+describe('the camps (E306 / E315 second pass)', () => {
+  it('a camp places its yurts, props and generated props; each model is one piece with the colliders its copies made', () => {
+    const kit = new PaintKit(0x7a17);
+    const flutter = new Flutter(), smoke = new Smoke();
+    const set = new NalatiSet(kit, { ground, flutter, smoke });
+    set.paint(yurt, { x: 0, y: ground(0, 0), z: 0, yaw: 0.3 }, { r: 3, flue: true, palette: 0, old: false, base: 'lattice', pennant: true });
+    set.paint(barrel, { x: 6, y: ground(6, 0), z: 0, yaw: 0 }, { s: 1 });
+    set.instance(kazan, { x: 3, y: ground(3, 4), z: 4, rot: 0.4 }, {});
+    set.instance(firewood, { x: -4, y: ground(-4, 2), z: 2, rot: 0.9 }, { dy: 0.2, pile: { x: -4, z: 2, hw: 0.8, hd: 0.85, rot: -0.9, yBottom: -1, yTop: 1 } });
+    set.instance(firewood, { x: -3, y: ground(-3, 2), z: 2, rot: 0.9 }, { dy: -0.15 });
+    // the pennant's cloth and the flue's plume are the shard's, not the kit's
+    expect(flutter.count).toBeGreaterThan(0);
+    // the data boxes: the yurt's two crossed squares (ghosts), the barrel's, the kazan's, the pile's — in order
+    expect(set.boxes.map((b) => b.ghost === true)).toEqual([true, true, false, false, false]);
+    const reg = new WorldRegistry();
+    const group = new THREE.Group();
+    const placed = set.register({ ctx, registry: reg, object: group, group });
+    expect(placed.map((p) => [p.model, p.copies, p.drawnAs])).toEqual([[yurt.id, 1, 'merged'], [barrel.id, 1, 'merged'], [kazan.id, 1, 'instanced'], [firewood.id, 2, 'instanced']]);
+    // the yurt collides as its felt wall and roof (the ghosts stay data), the barrel and the kazan as a box, the pile once
+    expect(reg.pieces.map((p) => [p.id, p.colliders?.map((c) => `${c.kind}:${c.surface ?? p.surface ?? '-'}`)])).toEqual([
+      [yurt.id, ['hull:felt', 'hull:felt']], [barrel.id, ['box:wood']], [kazan.id, ['box:wood']], [firewood.id, ['box:wood']],
+    ]);
+    expect(reg.models().find((m) => m.id === yurt.id)?.variants?.map((v) => v.id)).toEqual(['lattice', 'reed', 'felt']);
+    const s = placeSet({ id: 'nalati-grasslands/spring-camp', name: 'Spring camp', file: 'src/world/nalati/NomadCamp.ts', members: placed, registry: reg });
+    expect(s.members.map((m) => m.model)).toEqual([yurt.id, barrel.id, kazan.id, firewood.id]);
+  });
+
+  it('the corral is one model: a box per rail span, the gate gap open', () => {
+    const kit = new PaintKit(1);
+    const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: new Smoke() });
+    const made = set.paint(corral, { x: 0, y: 0, z: 0, yaw: 0 }, { r: 9, posts: 26 });
+    expect(made.boxes?.length).toBe(24); // 26 spans, the two either side of the gate left open
+  });
+
+  it('the camps are on the contract (check-models rule 6)', () => {
+    expect(ON_CONTRACT).toEqual(expect.arrayContaining(['src/world/nalati/NomadCamp.ts', 'src/world/nalati/SummerCamp.ts']));
   });
 });
