@@ -168,14 +168,14 @@ async function shardColliders(def) {
  */
 async function nalatiColliders(forest, { out, cuts, counts, add, setGroup }) {
   const { WorldRegistry } = await src('world/registry.ts');
-  const { registerChunked } = await src('world/nalati/solid.ts');
+  const { modelContext } = await src('models/model.ts');
   const [{ buildOutcrops }, { buildCragRock }, { NalatiPOIs }, { NalatiDressing }] = await Promise.all(
     ['nalati/outcrops.ts', 'nalati/cragRock.ts', 'world/nalati/index.ts', 'world/nalati/dressing/index.ts'].map((m) => src(m)));
-  const reg = new WorldRegistry(), none = () => Promise.resolve();
+  const reg = new WorldRegistry(), none = () => Promise.resolve(), ctx = modelContext(sky);
   const outcrops = buildOutcrops(sky);
-  await registerChunked(reg, { id: 'nalati-outcrops', name: 'Granite outcrops', category: 'nature', file: 'src/nalati/outcrops.ts', colliders: outcrops.descs, surface: 'rock' }, 200, none);
+  await outcrops.register(reg, ctx, none);   // its rocks as models (E315), drawnInto the mesh
   const crags = buildCragRock(sky);
-  await registerChunked(reg, { id: 'nalati-crag-rock', name: 'Crag rock', category: 'nature', file: 'src/nalati/cragRock.ts', colliders: crags.descs, surface: 'rock' }, 150, none);
+  await crags.register(reg, ctx, none);
   const pois = new NalatiPOIs(sky).build();
   pois.addTo(new THREE.Group(), {}, reg);
   const grid = forest.grid;

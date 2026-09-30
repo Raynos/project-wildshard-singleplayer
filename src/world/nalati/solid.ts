@@ -1,7 +1,8 @@
 /**
  * Nalati's static collision as world-registry data (NALATI-MERGE P1, AGENTS.md "Physics"): the POI, rock and dressing
- * builders emit `ColliderDesc`s beside the geometry they draw, and `registerSolid` puts each builder in the one world
- * registry (drawn, collides, and — with `model` — in Explore's catalog). Nothing here imports Rapier.
+ * builders emit `ColliderDesc`s beside the geometry they draw, and each model placed carries its copies' into the one
+ * world registry (E306 / E315: src/models/place.ts; Nalati's `NalatiSet`, src/world/nalati/painted.ts). Nothing here
+ * imports Rapier.
  *
  *   boxes.push({ x, z, hw, hd, rot, yBottom, yTop, surface: 'stone' });    // a P2-era box, now with what it is made of
  *   descs.push(slab(x, z, top, 0.3, hx, hz, yaw, 'planks'));                // a deck / floor as real geometry
@@ -14,7 +15,7 @@
 import * as THREE from 'three';
 import type { Collider } from '../../player/Player';
 import type { Material } from '../../physics/surface';
-import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory, type WorldRegistry } from '../registry';
+import { boxDesc, type ColliderDesc } from '../registry';
 
 /** a legacy box (Player.ts `Collider`: yaw −rot, yBottom → yTop) with its material; `ghost`: data only, not solid */
 export type Box = Collider & { surface?: Material; ghost?: true };
@@ -96,54 +97,6 @@ export function supportHull(g: THREE.BufferGeometry, m: THREE.Matrix4 | null, su
   let k = 0;
   for (const i of picked) { out[k++] = (pts[i] ?? 0) - cx; out[k++] = (pts[i + 1] ?? 0) - cy; out[k++] = (pts[i + 2] ?? 0) - cz; }
   return { kind: 'hull', x: cx, y: cy, z: cz, points: out, surface };
-}
-
-
-/** one Nalati builder into the world registry */
-export interface Solid {
-  id: string;
-  name: string;
-  category: PieceCategory;
-  /** the source module an agent edits for it */
-  file: string;
-  /** already in the scene (a child of its builder's group): the registry is handed it for Explore only */
-  object?: THREE.Object3D;
-  colliders: ColliderDesc[];
-  surface: Material;
-  /** its floor as a function — placement and footsteps only; the player walks on `colliders` */
-  floor?: (x: number, z: number) => number | undefined;
-  model?: ModelEntry;
-}
-
-/**
- * Register a builder: its colliders become Rapier colliders (src/physics/pieces.ts), its floor is real geometry
- * (`solidFloor`), and with `model` it is in Explore's catalog. The object is NOT handed to the registry as the piece's
- * `object` (the scene listener would re-parent it out of its builder's group): Explore gets it through `model.object`.
- */
-export function registerSolid(registry: WorldRegistry, s: Solid): void {
-  const object = s.object;
-  const model: ModelEntry | undefined = s.model ? { ...s.model, ...(object && !s.model.object ? { object: () => object } : {}) } : undefined;
-  registry.add({
-    id: s.id, name: s.name, category: s.category, file: s.file, colliders: s.colliders, surface: s.surface, solidFloor: true,
-    ...(s.floor ? { floor: s.floor } : {}), ...(model ? { model } : {}),
-    ...(object ? { anchor: new THREE.Box3().setFromObject(object).getCenter(new THREE.Vector3()) } : {}),
-  });
-}
-
-/**
- * Register many colliders as several pieces, `per` colliders each and a task apart (the phone's 30 ms per-task collider
- * budget — Pine Hollow's props do the same): `id-0`, `id-1` … The first carries the object / model / floor.
- */
-export async function registerChunked(registry: WorldRegistry, s: Solid, per: number, yieldTask: () => Promise<void>): Promise<void> {
-  const all = s.colliders;
-  for (let i = 0, k = 0; i < all.length || k === 0; i += per, k++) {
-    const first = k === 0;
-    registerSolid(registry, {
-      id: `${s.id}-${k}`, name: s.name, category: s.category, file: s.file, surface: s.surface, colliders: all.slice(i, i + per),
-      ...(first && s.object ? { object: s.object } : {}), ...(first && s.model ? { model: s.model } : {}), ...(first && s.floor ? { floor: s.floor } : {}),
-    });
-    await yieldTask();
-  }
 }
 
 /** a shape's hull candidates in its own space (its support points), once per geometry — then `hullAt` per copy */

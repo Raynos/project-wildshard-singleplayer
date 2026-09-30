@@ -52,7 +52,7 @@ import { NalatiSkinLocker, NalatiSkinPainter } from '../player/nalatiSkins';
 import { HITCHING_RAIL } from '../world/nalati/layout';
 import { heightAt } from '../world/Heightfield';
 import { activeRegistry } from '../world/registry';
-import { registerChunked } from '../world/nalati/solid';
+import { modelContext } from '../models/model';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
 
@@ -141,14 +141,18 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
   const outcrops = buildOutcrops(sky);
   game.scene.add(outcrops.mesh);
-  // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `player.colliders`)
-  await registerChunked(activeRegistry(), { id: 'nalati-outcrops', name: 'Granite outcrops', category: 'nature', file: 'src/nalati/outcrops.ts', colliders: outcrops.descs, surface: 'rock' }, 200, macrotask);
+  // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `player.colliders`) —
+  // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
+  const rockCtx = modelContext(sky);
+  await outcrops.register(activeRegistry(), rockCtx, macrotask);
+  await macrotask();
   groups['outcrops'] = outcrops.mesh;
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
   const crags = buildCragRock(sky);
   game.scene.add(crags.group);
-  await registerChunked(activeRegistry(), { id: 'nalati-crag-rock', name: 'Crag rock', category: 'nature', file: 'src/nalati/cragRock.ts', colliders: crags.descs, surface: 'rock' }, 150, macrotask);
+  await crags.register(activeRegistry(), rockCtx, macrotask);   // the crag rock model (fins, ribs, towers), drawnInto its quadrants
+  await macrotask();
   groups['crags'] = crags.group;
 
   // ── grass + wind (grass agent, B1): the blade rings are Grass.ts → look/grass.ts (main.ts builds it); the Wind object goes here ──

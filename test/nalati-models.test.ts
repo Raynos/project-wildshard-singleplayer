@@ -27,6 +27,8 @@ import type { Box } from '../src/world/nalati/solid';
 import { stump, fallenLog } from '../src/chunks/nalati-grasslands/models/dressingProps';
 import { boulder } from '../src/chunks/nalati-grasslands/models/dressing';
 import { Rng } from '../src/core/rng';
+import { graniteOutcrop, roundedBoulder } from '../src/chunks/nalati-grasslands/models/outcrop';
+import { cragRock, finGeometry } from '../src/chunks/nalati-grasslands/models/cragRock';
 
 // a stand-in sky: the painterly material asks it for its sun and to prepare the material (no renderer in a test)
 const lights: THREE.DirectionalLight[] = [];
@@ -250,6 +252,18 @@ describe('the dressing (E306 / E315 second pass)', () => {
     expect([placed.copies, placed.drawnAs, placed.object]).toEqual([3, 'instanced', layer]);
     expect(reg.models().find((m) => m.id === boulder.id)).toMatchObject({ pipeline: ['hunyuan', 'code'], category: 'nature', copies: 3 });
     expect(reg.pieces[0]?.colliders).toHaveLength(1);
+  });
+
+  it('the escarpment\'s rocks and the crag rock are models: a big one collides as the hull of what it draws', () => {
+    const kit = new PaintKit(0x0c7);
+    const set = new NalatiSet(kit, { ground, flutter: new Flutter(), smoke: new Smoke() });
+    const block = set.paint(graniteOutcrop, { x: 0, y: 0, z: 0, yaw: 0.4 }, { w: 4, h: 1.5, d: 2, rough: 0.22, pitch: 0.1, roll: 0, tint: 'warm', lichen: 0.55, solid: true });
+    const pebble = set.paint(roundedBoulder, { x: 3, y: 0, z: 0, yaw: 0 }, { r: 0.6, look: 'bank', coolOdds: 0.5, solid: false });
+    expect([block.descs?.map((d) => d.kind), pebble.descs]).toEqual([['hull'], []]);
+    // the crag pieces draw their shape's choices from the placer's stream: the same stream, the same rock
+    const a = finGeometry(new Rng(9), 10, 5, 14), b = finGeometry(new Rng(9), 10, 5, 14);
+    expect(Array.from(a.getAttribute('position').array)).toEqual(Array.from(b.getAttribute('position').array));
+    expect(cragRock.variants?.map((v) => v.id)).toEqual(['fin', 'rib', 'tower']);
   });
 
   it('the dressing is on the contract', () => {

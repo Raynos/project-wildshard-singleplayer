@@ -11,9 +11,6 @@ import { EAGLE_ROCK } from './layout';
 import type { PoiCtx, PoiPiece } from './types';
 import { eagleRock } from '../../chunks/nalati-grasslands/models/eagleRock';
 
-/** (the granite block moved to ./granite.ts; src/nalati/outcrops.ts still reads it from here) */
-export { graniteBlock } from './granite';
-
 export function buildEagleRock(ctx: PoiCtx): PoiPiece {
   const { sky, ground } = ctx;
   const kit = new PaintKit(0xea61);

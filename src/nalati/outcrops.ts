@@ -9,39 +9,43 @@
  * kept where the ground is steep, clustered by a noise field, kept off the roads, the river, the stream and the POI
  * clearings. One merged mesh on the shared painterly POI material — one draw call (+ its shadow).
  *
- *   const rocks = buildOutcrops(sky);   scene.add(rocks.mesh);   registry.add({ …, colliders: rocks.descs, surface: 'rock' });
+ *   const rocks = buildOutcrops(sky);   scene.add(rocks.mesh);   await rocks.register(registry, ctx, yieldTask);
  *   (NALATI-MERGE P1: every big block and bank boulder as the hull of what it draws; `colliders` = their old boxes, data only)
+ *
+ * E306 / E315 second pass: every rock is a model — the granite outcrop and the rounded boulder
+ * (src/chunks/nalati-grasslands/models/outcrop.ts) — painted into the one mesh through a NalatiSet in the old order
+ * (the placement draws here, the rock's shape there, from the one stream: bit-identical) and placed `drawnInto` it.
  */
-import * as THREE from 'three';
-import { PaintKit, M, blob } from '../world/nalati/paint';
-import { graniteBlock } from '../world/nalati/EagleRock';
+import { PaintKit } from '../world/nalati/paint';
+import { NalatiSet } from '../world/nalati/painted';
+import { Flutter } from '../world/nalati/Flutter';
+import { Smoke } from '../world/nalati/Smoke';
 import { inPoiClearing } from '../world/nalati/clearings';
 import { heightAt, normalAt, trailDistance } from '../world/Heightfield';
 import { Noise2D } from '../core/noise';
 import { riverMask, rimZAt, RIVER, RIM_Z, outcropAt, BROOK, edgeBermAt } from '../chunks/nalati-grasslands';
 import { CHUNK_HALF } from '../core/config';
+import type * as THREE from 'three';
 import type { Collider } from '../player/Player';
-import type { ColliderDesc } from '../world/registry';
-import { supportHull } from '../world/nalati/solid';
+import type { ColliderDesc, WorldRegistry } from '../world/registry';
+import type { ModelContext } from '../models/model';
 import type { Sky } from '../world/Sky';
+import { graniteOutcrop, roundedBoulder, type RockTint } from '../chunks/nalati-grasslands/models/outcrop';
 
-const C = {
-  granite: new THREE.Color('#948d82'),
-  warm: new THREE.Color('#a39179'),
-  cool: new THREE.Color('#7f8189'),
-  lichen: new THREE.Color('#b3a35a'),
-  moss: new THREE.Color('#5f7433'),
-  snow: new THREE.Color('#eef2f7'),
-};
-
-export interface Outcrops { mesh: THREE.Mesh; colliders: Collider[]; descs: ColliderDesc[]; count: number; triangles: number }
+export interface Outcrops {
+  mesh: THREE.Mesh; colliders: Collider[]; descs: ColliderDesc[]; count: number; triangles: number;
+  /** its rocks into the world registry (their hulls 150 a task: the phone's per-task collider budget) */
+  register: (registry: WorldRegistry, ctx: ModelContext, yieldTask: () => Promise<void>) => Promise<void>;
+}
 
 export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
   const kit = new PaintKit(seed);
   const rng = kit.rng;
+  const set = new NalatiSet(kit, { ground: heightAt, flutter: new Flutter(), smoke: new Smoke() });
   const cluster = new Noise2D(seed + 11);
   const colliders: Collider[] = [];
   const descs: ColliderDesc[] = [];
+  const hulls = (m: { readonly descs?: readonly ColliderDesc[] }): void => { descs.push(...(m.descs ?? [])); };
   let count = 0;
   const step = 8;
   for (let gx = -244; gx <= 244; gx += step) for (let gz = RIM_Z - 10; gz <= 160; gz += step) {
@@ -65,23 +69,15 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     const yaw = downYaw + Math.PI / 2 + rng.range(-0.35, 0.35);
     const tilt = Math.min(0.5, Math.acos(Math.min(1, ny)) * 0.55);
     const y = y0 - h * 0.32;
-    const tint = rng.next() < 0.5 ? C.granite : rng.next() < 0.5 ? C.warm : C.cool;
-    const block = graniteBlock(w, h, d, rng.int(1, 1e6), 0.22), bm = M(x, y, z, yaw, 1, 1, 1, tilt * Math.cos(yaw - downYaw), tilt * Math.sin(yaw - downYaw));
-    if (h > 1.1) descs.push(supportHull(block, bm, 'rock'));
-    kit.add(block, tint, {
-      matrix: bm,
-      top: { color: C.lichen, threshold: 0.55, amount: 0.55 }, brush: 0.14, foot: 0.72,
-    });
+    const tint: RockTint = rng.next() < 0.5 ? 'granite' : rng.next() < 0.5 ? 'warm' : 'cool';
+    hulls(set.paint(graniteOutcrop, { x, y, z, yaw }, { w, h, d, rough: 0.22, pitch: tilt * Math.cos(yaw - downYaw), roll: tilt * Math.sin(yaw - downYaw), tint, lichen: 0.55, solid: h > 1.1 }));
     // one or two rounded stones leaning on it, downhill
     const extra = rng.int(0, 2);
     for (let k = 0; k < extra; k++) {
       const r = size * rng.range(0.35, 0.6);
       const ox = x + Math.sin(downYaw) * (d * 0.5 + r * 0.6) + rng.range(-w * 0.4, w * 0.4);
       const oz = z + Math.cos(downYaw) * (d * 0.5 + r * 0.6) + rng.range(-w * 0.4, w * 0.4);
-      kit.add(blob(r, rng, 1, 0.72, 0.2), tint, {
-        matrix: M(ox, heightAt(ox, oz) - r * 0.25, oz, rng.range(0, 6.28)),
-        top: { color: C.moss, threshold: 0.7, amount: 0.4 }, brush: 0.12, foot: 0.75,
-      });
+      set.paint(roundedBoulder, { x: ox, y: heightAt(ox, oz) - r * 0.25, z: oz, yaw: 0 }, { r, look: 'lean', tint, solid: false });
     }
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
@@ -98,11 +94,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     const w = size * rng.range(1.6, 2.8), h = size * rng.range(0.9, 1.5), d = size * rng.range(1.0, 1.5);
     const downYaw = Math.atan2(nx, nz), yaw = downYaw + Math.PI / 2 + rng.range(-0.25, 0.25);
     const y = heightAt(x, z) - h * 0.3;
-    const block = graniteBlock(w, h, d, rng.int(1, 1e6), 0.24), bm = M(x, y, z, yaw, 1, 1, 1, 0.12, 0);
-    if (h > 1.1) descs.push(supportHull(block, bm, 'rock'));
-    kit.add(block, rng.next() < 0.5 ? C.granite : C.warm, {
-      matrix: bm, top: { color: C.lichen, threshold: 0.55, amount: 0.5 }, brush: 0.14, foot: 0.72,
-    });
+    hulls(set.paint(graniteOutcrop, { x, y, z, yaw }, { w, h, d, rough: 0.24, pitch: 0.12, roll: 0, draw: 2, lichen: 0.5, solid: h > 1.1 }));
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
   }
@@ -113,7 +105,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     const u = rng.range(-0.9, 0.9), bx = x + rng.range(-3, 3), bz = RIVER.z(bx) + u * RIVER.half(bx);
     if (heightAt(bx, bz) > RIVER.level - 0.3) continue; // only where there is water over the bed
     const r = rng.range(0.5, 1.2);
-    kit.add(blob(r, rng, 1, 0.65, 0.16), C.cool, { matrix: M(bx, heightAt(bx, bz) + r * 0.2, bz, rng.range(0, 6.28)), brush: 0.1, foot: 0.6 });
+    set.paint(roundedBoulder, { x: bx, y: heightAt(bx, bz) + r * 0.2, z: bz, yaw: 0 }, { r, look: 'channel', tint: 'cool', solid: false });
     count++;
   }
   // the river banks: rounded boulders along both edges of the gravel corridor and a few out on the bars
@@ -126,10 +118,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
       const n = rng.int(1, 3);
       for (let k = 0; k < n; k++) {
         const r = rng.range(0.45, 1.3), ox = bx + rng.range(-2, 2), oz = bz + rng.range(-1.5, 1.5);
-        kit.add(blob(r, rng, 1, 0.7, 0.18), rng.next() < 0.5 ? C.cool : C.granite, {
-          matrix: M(ox, Math.max(heightAt(ox, oz), RIVER.level - 0.4) - r * 0.3, oz, rng.range(0, 6.28)),
-          top: { color: C.moss, threshold: 0.75, amount: 0.3 }, brush: 0.1, foot: 0.7,
-        });
+        set.paint(roundedBoulder, { x: ox, y: Math.max(heightAt(ox, oz), RIVER.level - 0.4) - r * 0.3, z: oz, yaw: 0 }, { r, look: 'bank', coolOdds: 0.5, solid: false });
       }
       count++;
     }
@@ -145,18 +134,14 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
       if (rng.next() < 0.45) {
         const r = rng.range(0.3, 0.75), u = rng.range(-0.9, 0.9);
         const bx = px - tz * u, bz = pz + tx * u;
-        kit.add(blob(r, rng, 1, 0.62, 0.2), C.cool, { matrix: M(bx, heightAt(bx, bz) - r * 0.15, bz, rng.range(0, 6.28)), brush: 0.1, foot: 0.55 });
+        set.paint(roundedBoulder, { x: bx, y: heightAt(bx, bz) - r * 0.15, z: bz, yaw: 0 }, { r, look: 'bed', tint: 'cool', solid: false });
         count++;
       }
       for (const side of [-1, 1]) {
         if (rng.next() > 0.6) continue;
         const r = rng.range(0.45, 1.35), o = side * rng.range(1.9, 4.8);
         const bx = px - tz * o + rng.range(-0.8, 0.8), bz = pz + tx * o + rng.range(-0.8, 0.8);
-        const stone = blob(r, rng, 1, 0.7, 0.22), tone = rng.next() < 0.6 ? C.cool : C.granite, sm = M(bx, heightAt(bx, bz) - r * 0.3, bz, rng.range(0, 6.28));
-        if (r > 1.0) descs.push(supportHull(stone, sm, 'rock'));
-        kit.add(stone, tone, {
-          matrix: sm, top: { color: C.snow, threshold: 0.75, amount: 0.25 }, brush: 0.12, foot: 0.65,
-        });
+        hulls(set.paint(roundedBoulder, { x: bx, y: heightAt(bx, bz) - r * 0.3, z: bz, yaw: 0 }, { r, look: 'streambank', coolOdds: 0.6, solid: r > 1.0 }));
         if (r > 1.0) colliders.push({ x: bx, z: bz, hw: r * 0.7, hd: r * 0.7, rot: 0, yBottom: heightAt(bx, bz) - 1, yTop: heightAt(bx, bz) + r * 0.5 });
         count++;
       }
@@ -178,11 +163,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
       const downYaw = Math.atan2(nx, nz), yaw = downYaw + Math.PI / 2 + rng.range(-0.5, 0.5);
       const tilt = Math.min(0.45, Math.acos(Math.min(1, ny)) * 0.5);
       const y = heightAt(x, z) - h * 0.3;
-      const block = graniteBlock(w, h, dd, rng.int(1, 1e6), 0.24);
-      const bm = M(x, y, z, yaw, 1, 1, 1, tilt * Math.cos(yaw - downYaw), tilt * Math.sin(yaw - downYaw));
-      descs.push(supportHull(block, bm, 'rock'));
-      const tint = rng.next() < 0.5 ? C.granite : rng.next() < 0.5 ? C.warm : C.cool;
-      kit.add(block, tint, { matrix: bm, top: { color: C.lichen, threshold: 0.55, amount: 0.5 }, brush: 0.14, foot: 0.72 });
+      hulls(set.paint(graniteOutcrop, { x, y, z, yaw }, { w, h, d: dd, rough: 0.24, pitch: tilt * Math.cos(yaw - downYaw), roll: tilt * Math.sin(yaw - downYaw), draw: 3, lichen: 0.5, solid: true }));
       colliders.push({ x, z, hw: w * 0.42, hd: dd * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
       count++;
     }
@@ -190,5 +171,11 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
   const triangles = Math.round(kit.triangleCount);
   const mesh = kit.mesh(sky, { ground: heightAt, ao: false, aoH: 0.8, aoMin: 0.6 });
   mesh.name = 'nalati-outcrops';
-  return { mesh, colliders, descs, count, triangles };
+  return {
+    mesh, colliders, descs, count, triangles,
+    register: async (registry, ctx, yieldTask) => {
+      const placed = set.register({ ctx, registry, object: mesh, split: { every: 200, yieldTask } });
+      for (const p of placed) await p.registered;
+    },
+  };
 }
