@@ -22,9 +22,9 @@ import { activeRegistry, type ColliderDesc, type DrawnAs, type ModelEntry, type 
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
-import { BatchedCull, CellCull, InstancedCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
+import { BatchedCull, CellCull, InstancedCull, SetCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
 
-export type { CullOptions } from './cull';
+export type { CullOptions, CullView } from './cull';
 
 /** how the copies are drawn (see ./model.ts step 3) */
 export type Draw = 'single' | 'merged' | 'instanced' | 'batched';
@@ -41,6 +41,12 @@ export interface PieceOptions {
   /** a moving placement: the colliders ride this object (Piece.follows; then they are in its local frame) */
   readonly follows?: THREE.Object3D;
   readonly active?: () => boolean;
+  /**
+   * Register the colliders `every` at a time, a `yieldTask` apart (the phone's ~30 ms per-task collider budget): the
+   * first piece carries the object and the first `every`; `<id>-2`, `<id>-3` … the rest. `Placed.registered` settles when
+   * the last is in.
+   */
+  readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
 }
 
 export interface PlaceOptions {
@@ -53,6 +59,14 @@ export interface PlaceOptions {
   /** default: the running shard's registry; null: build only (a dev page) */
   readonly registry?: WorldRegistry | null;
   readonly piece?: PieceOptions;
+  /** batched: three's per-draw sort of the batch's instances (default three's: on) */
+  readonly sortObjects?: boolean;
+  /**
+   * batched: add the copies to this BatchedMesh (sized by its owner) instead of a new one, when their material is its
+   * material — models and the world's own geometry in one draw (Pine Hollow's crags, their face skin and the cave).
+   * Always batched: there is no instanced fallback for a shared batch.
+   */
+  readonly batch?: THREE.BatchedMesh;
 }
 
 /** what a `place` call built */
@@ -70,6 +84,8 @@ export interface Placed {
   copyBox: (i: number, target: THREE.Box3) => THREE.Box3;
   /** the copy nearest p (-1 when there are none) */
   nearest: (p: THREE.Vector3) => number;
+  /** settles once every piece is registered (at once, unless `piece.split`) */
+  readonly registered: Promise<void>;
 }
 
 /** what one drawing path hands back */
@@ -80,6 +96,8 @@ interface Drawn {
   /** world boxes, 6 floats per copy (min xyz, max xyz) */
   boxes: Float32Array;
   cull: ((camera: THREE.Camera) => void) | null;
+  /** the same with a view handed in (`CullOptions.view`) */
+  cullWith?: ((frustum: THREE.Frustum, eye: THREE.Vector3) => void) | null;
 }
 
 // ── the shard's placed models (E155: every resident shard has its own) ──
@@ -151,6 +169,32 @@ function geometryBox(geos: readonly THREE.BufferGeometry[], target: THREE.Box3):
   return target;
 }
 
+/** the parts' own bounding sphere (their union) */
+function ownSphere(parts: readonly ModelPart[], target: THREE.Sphere): THREE.Sphere {
+  target.makeEmpty();
+  for (const p of parts) { if (p.geometry.boundingSphere === null) p.geometry.computeBoundingSphere(); if (p.geometry.boundingSphere) target.union(p.geometry.boundingSphere); }
+  return target;
+}
+
+/** `cull.bounds: 'sphere'`: each copy's parts' own bounding sphere, posed (x, y, z, r per copy) */
+function posedSpheres(copyParts: (i: number) => readonly ModelPart[], poses: readonly Pose[]): Float32Array {
+  const out = new Float32Array(poses.length * 4);
+  poses.forEach((pose, i) => {
+    ownSphere(copyParts(i), _sphere);
+    _v.copy(_sphere.center).applyMatrix4(pose.matrix);
+    out.set([_v.x, _v.y, _v.z, _sphere.radius * pose.scale], i * 4);
+  });
+  return out;
+}
+
+/** `cull.from: 'origin'`: each copy's placement point (x, y, z per copy); null: the bounds' centres */
+function originsOf(pls: readonly Placement<object>[], o: PlaceOptions): Float32Array | null {
+  if (o.cull?.from !== 'origin') return null;
+  const out = new Float32Array(pls.length * 3);
+  pls.forEach((pl, i) => { out.set([pl.x, pl.y, pl.z], i * 3); });
+  return out;
+}
+
 /** spheres (x, y, z, r per copy) around the world boxes: what the cullers test */
 function spheresOf(boxes: Float32Array): Float32Array {
   const n = boxes.length / 6, out = new Float32Array(n * 4);
@@ -164,8 +208,8 @@ function spheresOf(boxes: Float32Array): Float32Array {
 }
 
 /** a copy's colliders: the model's own-space ones at its pose (`drawn-hull` from what it draws) */
-function collideCopy<P extends object>(def: ModelDef<P>, params: P, pose: Pose, world: readonly THREE.BufferGeometry[] | null, own: readonly THREE.BufferGeometry[], out: ColliderDesc[]): void {
-  for (const spec of def.colliders?.(params) ?? []) {
+function collideCopy<P extends object>(def: ModelDef<P>, params: P, pose: Pose, world: readonly THREE.BufferGeometry[] | null, own: readonly THREE.BufferGeometry[], out: ColliderDesc[], ctx: ModelContext): void {
+  for (const spec of def.colliders?.(params, ctx) ?? []) {
     if (spec.kind === 'drawn-hull') {
       const h = world ? drawnHullWorld(world, pose) : drawnHullOwn(own, pose);
       out.push(spec.surface === undefined ? h : { ...h, surface: spec.surface });
@@ -202,7 +246,7 @@ function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<
     if (pose === undefined || p === undefined) return;
     const parts = partsOf(def.build(o.ctx, p, rng), def.id, 'merged');
     const posed = parts.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; });
-    collideCopy(def, p, pose, posed, posed, colliders);
+    collideCopy(def, p, pose, posed, posed, colliders, o.ctx);
     writeBox(boxes, i, geometryBox(posed, _box));
     const key = cellOf(pl);
     let cell = cells.get(key);
@@ -255,12 +299,12 @@ function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<
     centres.push(cell.centre.x / cell.n, cell.centre.y / cell.n, cell.centre.z / cell.n);
   }
   if (drawnMeshes === 0) console.warn(`[models] ${def.id}: nothing placed — %d placements`, pls.length);
-  let cull: ((camera: THREE.Camera) => void) | null = null;
+  let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
   if (levels > 1 || o.cull?.far !== undefined) {
     const c = new CellCull(cellLevels, Float32Array.from(centres), levelsOf(def), o.cull ?? {});
-    cull = (camera) => { c.update(camera); };
+    cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
-  return { object: wrap(objects, def.id), drawnAs: 'merged', colliders, boxes, cull };
+  return { object: wrap(objects, def.id), drawnAs: 'merged', colliders, boxes, cull, cullWith };
 }
 
 // ── instanced: one InstancedMesh per part, per variant, per LOD level ──
@@ -278,7 +322,9 @@ function variantKeys<P extends object>(pls: readonly Placement<P>[]): { keys: (s
 function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
-  const culls = o.cull !== undefined || levels > 1;
+  // 'set': every copy written once per level, the levels shown / hidden whole (SetCull); else per copy when anything culls
+  const setMode = o.cull?.lodBy === 'set';
+  const culls = !setMode && (o.cull !== undefined || levels > 1);
   const colliders: ColliderDesc[] = [];
   const boxes = new Float32Array(n * 6);
   const matrices = new Float32Array(n * 16);
@@ -294,9 +340,10 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
     pose.matrix.toArray(matrices, i * 16);
     if (colors) { tint.set(pl.color ?? 0xffffff); colors.set([tint.r, tint.g, tint.b], i * 3); }
     writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
-    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders);
+    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders, o.ctx);
   });
   const objects: THREE.Object3D[] = [];
+  const byLevel: THREE.Object3D[][] = Array.from({ length: levels }, () => []);
   const sinks: (InstancedSink | null)[] = [];
   built.forEach((lvls, v) => {
     const cap = perVariant[v] ?? 0;
@@ -316,6 +363,7 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
         im.name = `${def.id}:${keys[v] ?? 'base'}:${l}`;
         return im;
       });
+      byLevel[l]?.push(...meshes);
       if (!culls) {
         // every copy of this variant, written once; three culls the set as a whole (as a hand-rolled InstancedMesh)
         let c = 0;
@@ -331,19 +379,23 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
       sinks.push({ matrix, color, meshes });
     }
   });
-  let cull: ((camera: THREE.Camera) => void) | null = null;
-  if (culls) {
-    const c = new InstancedCull(sinks, levels, of, matrices, colors, spheresOf(boxes), levelsOf(def), o.cull ?? {});
-    cull = (camera) => { c.update(camera); };
+  let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
+  const bounds = (): Float32Array => (o.cull?.bounds === 'sphere' ? posedSpheres((i) => built[of[i] ?? 0]?.[0] ?? [], poses) : spheresOf(boxes));
+  if (setMode) {
+    const c = new SetCull(byLevel, n, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o));
+    cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
+  } else if (culls) {
+    const c = new InstancedCull(sinks, levels, of, matrices, colors, bounds(), levelsOf(def), o.cull ?? {}, originsOf(pls, o));
+    cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
-  return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull };
+  return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull, cullWith };
 }
 
 // ── batched: one BatchedMesh per material (WEBGL_multi_draw; never facade geometry — E271 / E272) ──
 
 function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
   const renderer = o.ctx.renderer;
-  if (renderer === null || !renderer.extensions.has('WEBGL_multi_draw')) return drawInstanced(def, pls, poses, params, o);
+  if (o.batch === undefined && (renderer === null || !renderer.extensions.has('WEBGL_multi_draw'))) return drawInstanced(def, pls, poses, params, o);
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
   const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
@@ -354,13 +406,18 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
     if (e) e.geos.push({ v, l, g: part.geometry }); else byMat.set(part.material, { part, geos: [{ v, l, g: part.geometry }] });
   } }); });
   const count = (g: THREE.BufferGeometry): number => g.getAttribute('position').count;
+  const shared = o.batch;
   const batches = [...byMat.values()].map(({ part, geos }) => {
     const verts = geos.reduce((s, x) => s + count(x.g), 0), idx = geos.reduce((s, x) => s + (x.g.index?.count ?? 0), 0);
-    const bm = new THREE.BatchedMesh(n, verts, idx, part.material);
-    bm.castShadow = part.castShadow ?? false; bm.receiveShadow = part.receiveShadow ?? false;
-    if (part.customDepthMaterial) bm.customDepthMaterial = part.customDepthMaterial;
-    bm.perObjectFrustumCulled = true;
-    bm.name = `${def.id}:batch`;
+    const own = shared === undefined || shared.material !== part.material;
+    const bm = own ? new THREE.BatchedMesh(n, verts, idx, part.material) : shared;
+    if (own) {
+      bm.castShadow = part.castShadow ?? false; bm.receiveShadow = part.receiveShadow ?? false;
+      if (part.customDepthMaterial) bm.customDepthMaterial = part.customDepthMaterial;
+      bm.perObjectFrustumCulled = true;
+      if (o.sortObjects !== undefined) bm.sortObjects = o.sortObjects;
+      bm.name = `${def.id}:batch`;
+    }
     /** geometry id per (variant, level) */
     const ids = new Int32Array(keys.length * levels).fill(-1);
     for (const x of geos) ids[x.v * levels + x.l] = bm.addGeometry(x.g);
@@ -376,7 +433,7 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
     const pose = poses[i], p = params[i], v = of[i] ?? 0, parts = built[v]?.[0] ?? [];
     if (pose === undefined || p === undefined) return;
     writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
-    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders);
+    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders, o.ctx);
     for (const { bm, ids } of batches) {
       const geometry = ids.slice(v * levels, v * levels + levels);
       const first = geometry.find((g) => g >= 0);
@@ -389,12 +446,13 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
     }
   });
   start[n] = slots.length;
-  let cull: ((camera: THREE.Camera) => void) | null = null;
+  let cull: ((camera: THREE.Camera) => void) | null = null, cullWith: Drawn['cullWith'] = null;
   if (o.cull !== undefined || levels > 1) {
-    const c = new BatchedCull(slots, start, spheresOf(boxes), levelsOf(def), o.cull ?? {});
-    cull = (camera) => { c.update(camera); };
+    const bounds = o.cull?.bounds === 'sphere' ? posedSpheres((i) => built[of[i] ?? 0]?.[0] ?? [], poses) : spheresOf(boxes);
+    const c = new BatchedCull(slots, start, bounds, levelsOf(def), o.cull ?? {}, originsOf(pls, o));
+    cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
-  return { object: wrap(batches.map((b) => b.bm), def.id), drawnAs: 'batched', colliders, boxes, cull };
+  return { object: wrap(batches.map((b) => b.bm), def.id), drawnAs: 'batched', colliders, boxes, cull, cullWith };
 }
 
 // ── single: one object per copy (THREE.LOD when the model has LODs) ──
@@ -429,7 +487,7 @@ function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<
     pose.matrix.decompose(obj.position, obj.quaternion, obj.scale);
     obj.updateMatrixWorld(true);
     writeBox(boxes, i, _box.setFromObject(obj));
-    collideCopy(def, p, pose, null, own, colliders);
+    collideCopy(def, p, pose, null, own, colliders, o.ctx);
     return obj;
   });
   const skinned = copies.some((c) => c.getObjectsByProperty('isSkinnedMesh', true).length > 0);
@@ -492,7 +550,9 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, o)
         : drawSingle(def, placements, poses, params, o);
   const { boxes } = drawn;
+  let registered: Promise<void> = Promise.resolve();
   const placed: Placed = {
+    get registered(): Promise<void> { return registered; },
     model: def.id, object: drawn.object, colliders: drawn.colliders, copies: placements.length, drawnAs: drawn.drawnAs,
     cull: drawn.cull ?? ((): void => undefined),
     copyBox: (i, target) => {
@@ -506,7 +566,9 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
       return bi;
     },
   };
-  if (drawn.cull) cullers.push(drawn.cull);
+  const view = o.cull?.view, cullWith = drawn.cullWith;
+  if (view !== undefined && cullWith) view.onViewChange(cullWith); // the shard's view drives it (never per frame here)
+  else if (drawn.cull) cullers.push(drawn.cull);
   const registry = o.registry === undefined ? activeRegistry() : o.registry;
   if (registry === null) return placed;
   let rec = records.get(def.id);
@@ -514,9 +576,11 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   if (!rec) { rec = { groups: [] }; records.set(def.id, rec); }
   rec.groups.push(placed);
   const pc = o.piece ?? {};
+  const pieceId = pc.id ?? (first ? def.id : `${def.id}#${rec.groups.length}`), split = pc.split;
+  const every = split === undefined ? drawn.colliders.length : Math.max(1, split.every);
   registry.add({
-    id: pc.id ?? (first ? def.id : `${def.id}#${rec.groups.length}`), name: pc.name ?? def.name, category: def.category, file: def.file,
-    object: drawn.object, colliders: [...drawn.colliders],
+    id: pieceId, name: pc.name ?? def.name, category: def.category, file: def.file,
+    object: drawn.object, colliders: drawn.colliders.slice(0, every),
     ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
     ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows }),
     ...(pc.active === undefined ? {} : { active: pc.active }),
@@ -524,5 +588,15 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   });
   // a tap on any copy selects the model, boxed on the copy under the finger
   registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()) });
+  if (split !== undefined && drawn.colliders.length > every) {
+    // the rest of the colliders, a task per `every` (collider-only pieces: the object and the catalog entry are on the first)
+    registered = (async (): Promise<void> => {
+      for (let at = every, k = 2; at < drawn.colliders.length; at += every, k++) {
+        await split.yieldTask();
+        registry.add({ id: `${pieceId}-${k}`, name: pc.name ?? def.name, category: def.category, file: def.file, colliders: drawn.colliders.slice(at, at + every),
+          ...(def.surface === undefined ? {} : { surface: def.surface }) });
+      }
+    })();
+  }
   return placed;
 }

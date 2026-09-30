@@ -46,7 +46,11 @@
  *       single     one object per copy (THREE.LOD when it has lods) — unique buildings, rigged things
  *     `cull: { far, keepNear, minAngular }` turns on per-copy culling (instanced / batched: only the copies in view
  *     and range are drawn; merged cells: whole cells); LODs switch per copy (per cell when merged). A shard with
- *     culled or LOD'd placements calls `cullPlaced(camera)` once a frame after the camera is posed.
+ *     culled or LOD'd placements calls `cullPlaced(camera)` once a frame after the camera is posed. What an old
+ *     hand-rolled culler did differently is data too (./cull.ts): `view` (the shard's own view drives it: Pine Hollow's
+ *     forest frustum), `frustum: false`, `flat`, `from: 'origin'`, `radiusBias`, `step`, `lodBy: 'set'`,
+ *     `bounds: 'sphere'`. `batch` shares one BatchedMesh with the world's own geometry; `piece.split` registers the
+ *     colliders a task apart.
  *     `piece: { id, name, … }` keeps the old registry id so saves, tests and footprints don't move.
  *  4. Delete the old registration (`addBuilt`, `registry.add({ … model })`, `registerModel`, an ENTRY row) and the old
  *     drawing code. `place` registers ONE registry piece per call (drawn object + world-space colliders + floor) and
@@ -140,7 +144,8 @@ export interface ModelDef<P extends object> {
   readonly seed?: number;
   readonly build: (ctx: ModelContext, params: P, rng: Rng) => ModelBuild;
   readonly lods?: readonly ModelLod<P>[];
-  readonly colliders?: (params: P) => readonly ColliderSpec[];
+  /** own-space colliders per copy; `ctx` reaches what the shard loaded (a GLB's hull points) */
+  readonly colliders?: (params: P, ctx: ModelContext) => readonly ColliderSpec[];
   /** a rigged model's clips (the Explorer's clip row; M5 puts the species here) */
   readonly rig?: { readonly clips: readonly string[] };
 }

@@ -119,6 +119,95 @@ describe('the model contract', () => {
     expect((single.object as THREE.LOD).levels.map((l) => l.distance)).toEqual([0, 40]);
   });
 
+  it('M2 knobs: a set LOD switches every copy together (one draw per level; three culls each level whole)', () => {
+    const mat = new THREE.MeshBasicMaterial();
+    const stone = defineModel({
+      id: 'shared/test-set-stone', name: 'Stone', category: 'nature', pipeline: 'trellis', file: 'test/models-contract.test.ts', defaults: {},
+      build: () => [{ geometry: new THREE.IcosahedronGeometry(1, 2), material: mat, castShadow: true }],
+      lods: [{ from: 60, build: () => [{ geometry: new THREE.IcosahedronGeometry(1, 0), material: mat }] }],
+    });
+    const pls = [{ x: 0, y: 0, z: -30 }, { x: 0, y: 0, z: -90 }, { x: 40, y: 0, z: -95 }];
+    const placed = place(stone, pls, { ctx, draw: 'instanced', cull: { lodBy: 'set', flat: true, from: 'origin', far: 200 }, registry: null });
+    const [near, far] = placed.object.children.filter((c): c is THREE.InstancedMesh => c instanceof THREE.InstancedMesh);
+    expect(near?.count).toBe(3); expect(far?.count).toBe(3); // every copy in each level, written once
+    expect(near?.frustumCulled).toBe(true);
+    expect([near?.visible, far?.visible]).toEqual([true, false]); // as built: the full model
+    const cam = new THREE.PerspectiveCamera(60, 1, 0.1, 500);
+    cam.position.set(0, 50, 20); cam.lookAt(0, 0, -30); cam.updateMatrixWorld(); // 50 m up: on the ground the nearest is 50 m off
+    placed.cull(cam);
+    expect([near?.visible, far?.visible]).toEqual([true, false]);
+    cam.position.set(0, 1, 40); cam.updateMatrixWorld(); // 70 m: the whole set at its far level
+    placed.cull(cam);
+    expect([near?.visible, far?.visible]).toEqual([false, true]);
+    cam.position.set(0, 1, 250); cam.updateMatrixWorld(); // past `far`: nothing
+    placed.cull(cam);
+    expect([near?.visible, far?.visible]).toEqual([false, false]);
+  });
+
+  it('M2 knobs: a handed-in view drives the copies; a shared batch, range-only culling, a radius bias and a step', () => {
+    const mat = new THREE.MeshBasicMaterial();
+    const crag = defineModel({
+      id: 'shared/test-crag', name: 'Crag', category: 'nature', pipeline: 'blender', file: 'test/models-contract.test.ts', defaults: {},
+      build: () => [{ geometry: new THREE.BoxGeometry(8, 8, 8), material: mat }],
+      lods: [{ from: 50, build: () => [{ geometry: new THREE.BoxGeometry(8, 8, 8, 1, 1, 1), material: mat }] }],
+    });
+    const shared = new THREE.BatchedMesh(8, 4000, 8000, mat);
+    shared.sortObjects = false;
+    const pls = [{ x: 0, y: 0, z: -40 }, { x: 0, y: 0, z: 40 }];
+    const placed = place(crag, pls, { ctx, draw: 'batched', batch: shared, cull: { frustum: false, radiusBias: 0.5, step: 1, bounds: 'sphere' }, registry: null });
+    expect(placed.drawnAs).toBe('batched');
+    expect(placed.object).toBe(shared); // no BatchedMesh of its own, no instanced fallback without a renderer
+    expect(shared.instanceCount).toBe(2);
+    const cam = new THREE.PerspectiveCamera(60, 1, 0.1, 500);
+    cam.position.set(0, 0, 0); cam.lookAt(0, 0, -1); cam.updateMatrixWorld();
+    placed.cull(cam);
+    // range only: the copy behind the camera is still shown; 40 m less half its radius (≈3.5 m) is inside the 50 m detail
+    expect([shared.getVisibleAt(0), shared.getVisibleAt(1)]).toEqual([true, true]);
+    const ids = [shared.getGeometryIdAt(0), shared.getGeometryIdAt(1)];
+    expect(ids[0]).toBe(ids[1]);
+    cam.position.set(0, 0, -0.5); cam.updateMatrixWorld(); // a half-metre move: under the step, nothing re-chosen
+    placed.cull(cam);
+    cam.position.set(0, 0, -14); cam.updateMatrixWorld(); // the +z copy is now 54 m − 3.5 m ≈ 50.5 m off: its far level
+    placed.cull(cam);
+    expect(shared.getGeometryIdAt(1)).not.toBe(ids[1]);
+    expect(shared.getGeometryIdAt(0)).toBe(ids[0]);
+    // a view handed in: the copies follow it, never cullPlaced
+    const view: { tell: ((f: THREE.Frustum, e: THREE.Vector3) => void) | null } = { tell: null };
+    const mat2 = new THREE.MeshBasicMaterial();
+    const fern = defineModel({
+      id: 'shared/test-view-fern', name: 'Fern', category: 'nature', pipeline: 'code', file: 'test/models-contract.test.ts', defaults: {},
+      build: () => [{ geometry: new THREE.ConeGeometry(0.5, 1, 6), material: mat2 }],
+    });
+    const ferns = place(fern, [{ x: 0, y: 0, z: -5 }, { x: 0, y: 0, z: -80 }], { ctx, draw: 'instanced', cull: { far: 50, keepNear: 0, view: { onViewChange: (fn) => { view.tell = fn; } } }, registry: null });
+    const im = ferns.object as THREE.InstancedMesh;
+    cam.position.set(0, 0, 0); cam.updateMatrixWorld();
+    cullPlaced(cam);
+    expect(im.count).toBe(0); // the camera does not drive it
+    const f = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    expect(view.tell).not.toBeNull();
+    view.tell?.(f, new THREE.Vector3(0, 0, 0));
+    expect(im.count).toBe(1); // −80 is past `far`
+  });
+
+  it('M2 knobs: colliders registered a task apart (piece.split); own-space colliders read the shard context', async () => {
+    const reg = new WorldRegistry();
+    const mat = new THREE.MeshBasicMaterial();
+    const post = defineModel<{ h: number }>({
+      id: 'shared/test-split-post', name: 'Post', category: 'props', pipeline: 'code', file: 'test/models-contract.test.ts', defaults: { h: 2 },
+      build: () => [{ geometry: new THREE.BoxGeometry(0.2, 2, 0.2), material: mat }],
+      colliders: (p, c) => [{ kind: 'box', x: 0, y: c.once('test-split-lift', () => 1), z: 0, hx: 0.1, hy: p.h / 2, hz: 0.1 }],
+    });
+    let ticks = 0;
+    const pls = Array.from({ length: 5 }, (_, i) => ({ x: i * 3, y: 0, z: 0 }));
+    const placed = place(post, pls, { ctx, draw: 'instanced', registry: reg, piece: { id: 'posts', split: { every: 2, yieldTask: () => { ticks++; return Promise.resolve(); } } } });
+    expect(reg.pieces.map((p) => p.id)).toEqual(['posts']);
+    expect(reg.pieces[0]?.colliders).toHaveLength(2);
+    await placed.registered;
+    expect(reg.pieces.map((p) => [p.id, p.colliders?.length, Boolean(p.object)])).toEqual([['posts', 2, true], ['posts-2', 2, false], ['posts-3', 1, false]]);
+    expect(ticks).toBe(2);
+    expect(reg.pieces[1]?.colliders?.[0]).toMatchObject({ kind: 'box', y: 1 });
+  });
+
   it('registers one piece per place call and one catalog entry per model, copies summed; sets group placements', () => {
     const reg = new WorldRegistry();
     const mat = new THREE.MeshBasicMaterial();
