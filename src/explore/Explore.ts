@@ -37,6 +37,7 @@ import { SetExplorer } from './SetExplorer';
 import { catalogEntries, type CatalogEntry } from './catalog';
 import { registeredPicks } from './registry';
 import { Select, type SelectTarget } from './Select';
+import { boxEntry, firstView, physicsClear, viewCandidates } from './viewPoint';
 import { MiniMap } from './MiniMap';
 import { Compare, hasCompareTargets } from './Compare';
 import practiceDriftwood from './img/practice-driftwood-isle.webp';
@@ -122,6 +123,14 @@ function homeView(world: World): { pos: THREE.Vector3; look: THREE.Vector3 } {
   return { pos: new THREE.Vector3(s.x - fx * 12 - fz * 12, ground + up, s.z - fz * 12 + fx * 12), look: new THREE.Vector3(s.x + fx * 150, ground + 4, s.z + fz * 150) };
 }
 const SPEEDS = [['Slow', 4], ['Normal', 12], ['Fast', 40]] as const;
+/** VIEW IN WORLD's first eye (E342): the colliders and copy boxes are tried at most this long, ms, then the old framing stands */
+const VIEW_BUDGET_MS = 40;
+/** VIEW IN WORLD's landed search (E342): at most this many other eyes, one tap's pick a frame (Nine Dragon: ~25 ms each) */
+const VIEW_TRIES = 24;
+/** VIEW IN WORLD in flight (E342): the copy it frames, the eyes it may use, the one it is flying to; `checked` once it hopped */
+interface Landing { entry: CatalogEntry; eyes: THREE.Vector3[]; at: number; look: THREE.Vector3; box: THREE.Box3; checked: boolean }
+/** the landed view's search (E342): the eyes left to try, and where the camera landed (moved by hand: the search stops) */
+interface ViewSearch { l: Landing; queue: number[]; from: THREE.Vector3 }
 const PARK = new THREE.Vector3(0, -600, -CHUNK_HALF * 12); // where the player waits: out of every animal's senses
 
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
@@ -269,17 +278,60 @@ export class Explore {
     if (on && centre) { this.cam.focus(centre, this.host.world.game.camera.position.distanceTo(centre)); this.toast(this.fly ? 'Orbiting · one finger turns around it' : 'Orbiting · Alt-drag turns around it'); }
   }
 
-  /** VIEW IN WORLD: the World Explorer flies to the model (a real copy of it, E306), three-quarter view, a little above */
+  /**
+   * VIEW IN WORLD: the World Explorer flies to the model (a real copy of it, E306) and looks at it. The eye (E342,
+   * viewPoint.ts) is the old three-quarter view, a little above, wherever that is clear, else the first clear one round
+   * the copy: no collider at the eye or on the line to the copy, no other drawn-into copy's box in front. Once it lands, a
+   * tap's own pick checks the view as drawn (Nine Dragon's facade shells have no colliders, a bush none either): when the
+   * centre would pick something else, the other eyes are tried, one pick a frame, and it hops to the first that picks it.
+   */
   viewInWorld(e: CatalogEntry): void {
     const box = e.worldBox?.() ?? new THREE.Box3().setFromObject(e.object());
-    const r = Math.max(3, box.getBoundingSphere(new THREE.Sphere()).radius);
     const look = box.getCenter(new THREE.Vector3());
-    const from = look.clone().add(new THREE.Vector3(Math.sin(0.7) * r * 2.2, r * 0.9, Math.cos(0.7) * r * 2.2));
-    this.setMode('world');
-    this.flyTo(from, look);
-    this.landing = e;
+    this.setMode('world'); // first: the Model Explorer puts the world back (its isolation hid what may stand in the way)
+    const eyes = viewCandidates(box);
+    const at = Math.max(0, firstView(eyes, (eye) => this.clearView(eye, look, box), VIEW_BUDGET_MS));
+    this.flyTo(eyes[at] ?? look, look);
+    this.landing = { entry: e, eyes, at, look, box, checked: false };
+    this.search = null;
   }
-  private landing: CatalogEntry | null = null;
+  private landing: Landing | null = null;
+  private search: ViewSearch | null = null;
+
+  /** an eye VIEW IN WORLD may use (E342): above the ground, outside the copy's box, no collider and no other copy in the way */
+  private clearView(eye: THREE.Vector3, look: THREE.Vector3, box: THREE.Box3): boolean {
+    if (eye.y < heightAt(eye.x, eye.z) + this.cam.clearance) return false;
+    const entry = boxEntry(eye, look, box);
+    if (!Number.isFinite(entry) || entry < 0.5) return false;
+    if (!physicsClear(this.host.world.physics, eye, look, box)) return false;
+    return this.select?.copyInTheWay(eye, look, entry - 0.05) !== true;
+  }
+
+  /** VIEW IN WORLD has landed: the model selected — unless, as drawn, a tap at the centre picks something else (E342) */
+  private land(l: Landing): void {
+    this.landing = null;
+    const here = l.eyes[l.at];
+    if (l.checked || here === undefined || this.select?.picksFrom(here, l.look, l.entry.id) !== false) { this.select?.selectEntry(l.entry); return; }
+    // the other eyes, the clear ones first, each tried with a tap's pick on a frame of its own (searchView)
+    const clear: number[] = [], rest: number[] = [];
+    l.eyes.forEach((eye, i) => { if (i !== l.at) (this.clearView(eye, l.look, l.box) ? clear : rest).push(i); });
+    this.search = { l, queue: [...clear, ...rest].slice(0, VIEW_TRIES), from: here.clone() };
+  }
+
+  /** one eye of the landed view's search a frame (E342): the first whose centre picks the model is flown to */
+  private searchView(): void {
+    const s = this.search;
+    if (!s) return;
+    const i = s.queue.shift(), eye = i === undefined ? undefined : s.l.eyes[i];
+    // none picks it, or the camera was flown off by hand: the model selected where the camera is
+    if (i === undefined || eye === undefined || this.host.world.game.camera.position.distanceToSquared(s.from) > 0.25) {
+      this.search = null; this.select?.selectEntry(s.l.entry); return;
+    }
+    if (this.select?.picksFrom(eye, s.l.look, s.l.entry.id) !== true) return;
+    this.search = null;
+    this.flyTo(eye, s.l.look, 0.6);
+    this.landing = { ...s.l, at: i, checked: true };
+  }
 
   /** a set (E315 M7): the Set Explorer, framed on it */
   openSet(id: string): void { this.setMode('sets', { set: id }); }
@@ -400,7 +452,7 @@ export class Explore {
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.classList.toggle('on', b.dataset['m'] === mode); });
     this.cam.enabled = mode === 'world' && !this.held && this.compare?.isOpen !== true;
     if (this.fly) this.fly.enabled = mode === 'world' && this.compare?.isOpen !== true;
-    if (mode !== 'world') { this.cam.move.set(0, 0, 0); this.map?.close(); this.compare?.close(); }
+    if (mode !== 'world') { this.cam.move.set(0, 0, 0); this.map?.close(); this.compare?.close(); this.search = null; }
     // entering the world from the hub or the Model Explorer (whose camera was orbiting something else) starts at home;
     // VIEW IN WORLD / the map fly from there, a `cam` link (open) overrides it
     if (mode === 'world' && prev !== 'world') { const h = homeView(this.host.world); this.cam.placeAt(h.pos, h.look); }
@@ -508,8 +560,8 @@ export class Explore {
         camera.position.y += Math.sin(Math.PI * k) * f.from.distanceTo(f.to) * 0.18; // a little arc over whatever is between
         const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, f.look, camera.up));
         camera.quaternion.slerpQuaternions(f.fromQ, q, k);
-        if (f.t >= 1) { this.flight = null; this.cam.placeAt(f.to, f.look); if (this.landing) { this.select?.selectEntry(this.landing); this.landing = null; } }
-      } else this.cam.update(dt);
+        if (f.t >= 1) { this.flight = null; this.cam.placeAt(f.to, f.look); if (this.landing) this.land(this.landing); }
+      } else { this.cam.update(dt); this.searchView(); }
       this.select?.update();
       this.map?.update();
     }

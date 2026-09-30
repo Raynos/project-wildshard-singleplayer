@@ -535,3 +535,11 @@ are codex edits of live iPhone 16 Pro portrait Bag captures, two frames per vari
 Recommended: Pine C, Nalati A, Nine Dragon A, in that order. The folder's README holds the per-shard audit (the slop
 and the bugs).
 - `pine-hollow/round-25-e322-king-rig/` — E322 F-M1: the Antler King's own upright rig (Debug ▸ Antler King rig A/B): the codex ref, the Hunyuan hull, the rig gate's freeze, `board.jpg` (A/B idle · charge · rearing strike, by day).
+
+### VIEW IN WORLD's eye, before / after (`art/models-audit/round-12-view-in-world/`, 2026-09-30, E342)
+
+`e342-before-after.jpg`: Nine Dragon, iPhone portrait (402 × 874, phone tier), real builds: the World Explorer frame each
+card's VIEW IN WORLD lands on, and what a tap at its centre selects: the earth-god shrine, the paifang, a roll shutter
+and the noodle stall. Before (HEAD 24c8e415), the camera stood in the stack, a metre from a wall or a pipe (6 / 20 taps
+picked their own model). After, the eye is the old framing where it is clear, else the first clear one round the copy,
+checked on landing with a tap's own pick (19 / 20). `scripts/explore-view-taps.mjs` measures all four shards.

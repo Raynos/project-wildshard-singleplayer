@@ -3,6 +3,7 @@
  * test/select-pick.test.ts runs it.
  *
  *   const hit = pickTarget(raycaster, targets);   // { target, point, box } | null
+ *   copyInTheWay(ray, far, look, targets)         // VIEW IN WORLD (E342): another copy between the eye and the one it frames
  *
  * Each object is raycast once per tap, however many targets share it (a Nine Dragon kit carries seven models' copies:
  * it was raycast seven times). The nearest surface hit is what the finger touched. On that object a target with `claim`
@@ -66,6 +67,22 @@ export function pickTarget(ray: THREE.Raycaster, targets: readonly SelectTarget[
     } else plain ??= { target: t, point, box: t.boxAt ? t.boxAt(point) : new THREE.Box3().setFromObject(t.object) };
   }
   return claimed ?? plain ?? throughCopy(ray, byObject, near.d);
+}
+
+/**
+ * VIEW IN WORLD's eye (E342): does a drawn-into copy stand between `ray.origin` and the copy it frames — one whose box the
+ * ray enters before `far` (the framed copy's own box), or the one the eye stands in? A box holding `look` (the framed copy,
+ * a stall it stands in) doesn't count. Every copy counts, drawn this frame or culled: the view is chosen before the flight.
+ */
+export function copyInTheWay(ray: THREE.Ray, far: number, look: THREE.Vector3, targets: readonly SelectTarget[]): boolean {
+  for (const t of targets) {
+    if (!t.boxHit || !t.claim) continue;
+    const at = t.claim(ray.origin);
+    if (at && !at.containsPoint(look)) return true;
+    const h = t.boxHit(ray, far);
+    if (h && !h.box.containsPoint(look)) return true;
+  }
+  return false;
 }
 
 /** the copy box the ray enters first, in front of `far` (the surface it hit), among the claiming targets shown */

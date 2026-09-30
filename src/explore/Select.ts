@@ -7,6 +7,7 @@
  *   const sel = new Select(explore, world, targets);   // targets: what a tap can hit (catalog entries, batched meshes, animals)
  *   sel.pick(clientX, clientY)   // from TouchFly.onTap or a desktop left click
  *   sel.selectEntry(entry)       // VIEW IN WORLD lands with the model selected
+ *   sel.copyInTheWay(eye, look, far) / sel.picksFrom(eye, look, entry)   // VIEW IN WORLD's eye test (E342, viewPoint.ts)
  *   sel.update()                 // every frame: the tag and the card follow the box on screen
  */
 import * as THREE from 'three';
@@ -14,7 +15,7 @@ import type { World } from '../core/bootstrap';
 import type { ContextValue } from '../ui/review';
 import { measure, type CatalogEntry } from './catalog';
 import type { Explore } from './Explore';
-import { pickTarget, type SelectTarget } from './pick';
+import { copyInTheWay, pickTarget, type SelectTarget } from './pick';
 
 export type { SelectTarget } from './pick';
 
@@ -22,6 +23,8 @@ const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = 
 
 export class Select {
   private readonly ray = new THREE.Raycaster();
+  /** VIEW IN WORLD's eye test (a tap's own `ray` is left alone) */
+  private readonly probe = new THREE.Raycaster();
   private readonly ndc = new THREE.Vector2();
   private readonly helper: THREE.Box3Helper;
   private readonly box = new THREE.Box3();
@@ -73,6 +76,20 @@ export class Select {
     if (!entry) { this.clear(); return; }
     this.box.copy(best.box);
     this.show(entry, best.target.label?.(best.point) ?? entry.name);
+  }
+
+  /** VIEW IN WORLD (E342): a drawn-into copy stands between `eye` and `look`, short of `far` metres (see pick.ts) */
+  copyInTheWay(eye: THREE.Vector3, look: THREE.Vector3, far: number): boolean {
+    this.probe.ray.origin.copy(eye);
+    this.probe.ray.direction.subVectors(look, eye).normalize();
+    return copyInTheWay(this.probe.ray, far, look, this.targets);
+  }
+
+  /** VIEW IN WORLD (E342): would a tap at the centre of a view from `eye` looking at `look` select `entry`? (as drawn now) */
+  picksFrom(eye: THREE.Vector3, look: THREE.Vector3, entry: string): boolean {
+    this.probe.set(eye, this.tmp.subVectors(look, eye).normalize());
+    this.probe.far = 600;
+    return pickTarget(this.probe, this.targets)?.target.entry === entry;
   }
 
   /** select a catalog entry directly (VIEW IN WORLD): boxed on the real copy it flew to (E306), else its own object */
