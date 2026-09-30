@@ -1,14 +1,21 @@
 // E315 M2 (docs/plans/MODEL-ARCHITECTURE.md): Pine Hollow's models on the contract — the hollow log's own-space
 // colliders land where the old world-space builder put them; the `until` detail set of a single-drawn building drops
-// with distance (the old landmark LOD, as data); a single copy's LOD follows the game camera only.
+// with distance (the old landmark LOD, as data); and M8: the migrated Pine Hollow files never register a thing by hand
+// again, and draw by hand only what they declare world.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import type { Sky } from '../src/world/Sky';
 import { WorldRegistry } from '../src/world/registry';
-import { defineModel, modelContext } from '../src/models/model';
+import { defineModel, definedModels, modelContext } from '../src/models/model';
 import { cullPlaced, place } from '../src/models/place';
 import { placeCollider, poseOf } from '../src/models/colliders';
 import { hollowLog } from '../src/chunks/pine-hollow/models/hollowLog';
+import { forestTree } from '../src/chunks/pine-hollow/models/forestTree';
+import { mossyBoulder } from '../src/chunks/pine-hollow/models/mossyBoulder';
+
+/** the migrated files' sources and the shard's setup, as text (the M8 check below) */
+const SOURCES = import.meta.glob<string>(['../src/world/*.ts', '../src/main.ts', '../src/chunks/pine-hollow/world/*.ts', '../src/pinehollow/quest/*.ts'], { query: '?raw', import: 'default', eager: true });
+const source = (file: string): string => { const s = SOURCES[`../${file}`]; if (s === undefined) throw new Error(`no source ${file}`); return s; };
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ }, csm: { lightDirection: new THREE.Vector3(0, -1, 0) } } as Sky;
 const ctx = modelContext(sky);
@@ -91,5 +98,41 @@ describe('Pine Hollow models (E315 M2)', () => {
     cam.position.set(0, 1, -90); cam.updateMatrixWorld();
     cullPlaced(cam);
     expect(lod.levels.map((l) => l.object.visible)).toEqual([true, false]);
+  });
+
+  it('every Pine Hollow model says how it is made, and the tree family carries its 14 species variants', () => {
+    const pine = definedModels().filter((m) => m.id.startsWith('pine-hollow/'));
+    expect(pine.map((m) => m.id)).toEqual(expect.arrayContaining(['pine-hollow/hollow-log', 'pine-hollow/forest-tree', 'pine-hollow/mossy-boulder']));
+    for (const m of pine) expect(['code', 'blender', 'trellis', 'hunyuan', 'cc0']).toContain(m.pipeline);
+    expect(forestTree.variants?.map((v) => v.id)).toHaveLength(14);
+    expect(mossyBoulder.variants).toHaveLength(6);
+  });
+
+  it('M8: the Pine Hollow files on the contract never register a thing by hand, and draw by hand only what they declare world', () => {
+    /** each migrated world-side file: what it may still draw itself, and why (a file that grows one more fails) */
+    const WORLD: Record<string, { why: string; draws: Partial<Record<'mergeGeometries' | 'InstancedMesh' | 'BatchedMesh' | 'Mesh', number>>; registers?: number }> = {
+      'src/chunks/pine-hollow/world/props.ts': { why: '', draws: {} },
+      'src/chunks/pine-hollow/world/drawnModels.ts': { why: '', draws: {} },
+      'src/chunks/pine-hollow/world/timber.ts': { why: "the timber kit's glass pane (merged per building: the models' own parts)", draws: { Mesh: 1 } },
+      'src/pinehollow/quest/hollowLog.ts': { why: '', draws: {} },
+      'src/world/PineCrags.ts': { why: 'the ONE batch the models are placed into, sized for the face skin and the cave (world); the cave\'s light shaft and drips (effects)', draws: { BatchedMesh: 1, Mesh: 2 } },
+      'src/world/PineLandmarks.ts': { why: "the waystones' glow (an effect); its lights group is added as world, without colliders", draws: { Mesh: 1 }, registers: 1 },
+    };
+    const strip = (s: string): string => s.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, '');
+    const count = (s: string, re: RegExp): number => (s.match(re) ?? []).length;
+    for (const [file, w] of Object.entries(WORLD)) {
+      const code = strip(source(file));
+      expect(count(code, /\bregisterModel\(|\bregisterSolid\(|\.add\(\{[^}]*?\bobject:|\bmodel:\s*(?:\{|true)|\baddBuilt\(/g), `${file} registers by hand`).toBeLessThanOrEqual(w.registers ?? 0);
+      const got = {
+        mergeGeometries: count(code, /\bmergeGeometries\(/g), InstancedMesh: count(code, /new (?:THREE\.)?InstancedMesh\(/g),
+        BatchedMesh: count(code, /new (?:THREE\.)?BatchedMesh\(/g), Mesh: count(code, /new (?:THREE\.)?(?:Mesh|Points|LineSegments)\(/g),
+      };
+      for (const [k, n] of Object.entries(got)) expect(n, `${file}: ${k} (declared world: ${w.why || 'nothing'})`).toBeLessThanOrEqual(w.draws[k as keyof typeof got] ?? 0);
+    }
+    // the quest places the hollow log (a model): it never registers it by hand again
+    expect(strip(source('src/pinehollow/quest/index.ts'))).not.toMatch(/registry\.add\(\{ id: 'hollow-log'/);
+    // and the shard's setup never hand-registers the migrated pieces again
+    const main = strip(source('src/main.ts'));
+    for (const id of ['props', 'props-rocks-2', 'props-wood', 'pine-landmark-props', 'pine-crags-', 'hollow-log']) expect(main, id).not.toMatch(new RegExp(`registry\\.add\\(\\{ id: '${id}`));
   });
 });

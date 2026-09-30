@@ -54,6 +54,8 @@ export class Undergrowth {
   moss!: THREE.InstancedMesh;
   reeds!: THREE.InstancedMesh;
   counts = { ferns: 0, shrubs: 0, litter: 0, stones: 0, moss: 0, reeds: 0 };
+  /** where every copy of every kind stands (E315 M2: each kind is a model the field draws; its card counts these) */
+  layout: UnderPlacements = { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] };
 
   constructor(private sky: Sky, private forest: Forest) {}
 
@@ -93,6 +95,7 @@ export class Undergrowth {
     yield;
 
     const place = yield* this.placements();
+    this.layout = place;
     this.ferns = this.makeInstanced(buildFernGeometry(), fernMat, place.ferns, true, fernTex, 0.35);
     this.shrubs = this.makeInstanced(buildShrubGeometry(), shrubMat, place.shrubs, true, shrubTex, 0.25);
     this.litter = this.makeInstanced(buildLitterGeometry(1.4), litterMat, place.litter, false);

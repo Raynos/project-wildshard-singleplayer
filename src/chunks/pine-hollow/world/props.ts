@@ -61,11 +61,11 @@ export class Props {
     // P3: rocks and stumps as hulls, logs as capsules — the rocks' hulls in two pieces a task apart, the wood in a third
     // (the phone's 30 ms per-task collider budget)
     const boulders = place(mossyBoulder, rocks, { ctx, draw: 'batched', sortObjects: false, cull, registry,
-      piece: { id: 'props', name: 'Mossy boulders', split: { every: Math.max(1, Math.ceil(solid / 2)), yieldTask } } });
+      piece: { id: 'props', split: { every: Math.max(1, Math.ceil(solid / 2)), yieldTask } } });
     await boulders.registered;
     await yieldTask();
-    const stumps = place(treeStump, this.stumps(), { ctx, draw: 'instanced', cull, registry, piece: { id: 'props-stumps', name: 'Tree stumps' } });
-    const logs = place(fallenLog, this.logs(fallenLogSize(ctx)), { ctx, draw: 'instanced', cull, registry, piece: { id: 'props-wood', name: 'Fallen logs' } });
+    const stumps = place(treeStump, this.stumps(), { ctx, draw: 'instanced', cull, registry, piece: { id: 'props-stumps' } });
+    const logs = place(fallenLog, this.logs(fallenLogSize(ctx)), { ctx, draw: 'instanced', cull, registry, piece: { id: 'props-wood' } });
     this.placed.push(boulders, stumps, logs);
     if (registry === null) this.group.add(boulders.object, stumps.object, logs.object);
     return this.group;

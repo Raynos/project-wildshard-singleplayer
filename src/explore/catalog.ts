@@ -1,7 +1,7 @@
 /**
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
- *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins, the pond, a pine (its props are models: E315 M2)
+ *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins (everything else there is a model: E315 M2)
  *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present
  *   measure(object)                           // tris / draw calls
  *
@@ -15,13 +15,12 @@ import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
 import { speciesDef } from '../entities/species/registry';
 import type { Sky } from '../world/Sky';
-import type { Forest, TreeInstance } from '../world/Forest';
 import { heightAt } from '../world/Heightfield';
 import type { DrawnAs, Pipeline } from '../world/registry';
 import { creatureHull } from '../entities/glbCreatures';
 import { pineHull } from '../entities/pineCreatures';
 import { HULL_PIPELINE, SPECIES_PIPELINE } from '../models/provenance';
-import { registerModel, registerPick, registeredModels, type ModelCategory, type RegisteredModel } from './registry';
+import { registerModel, registeredModels, type ModelCategory, type RegisteredModel } from './registry';
 
 export type Category = ModelCategory;
 export const CATEGORIES: readonly { id: Category | 'all'; label: string }[] = [
@@ -49,19 +48,11 @@ export interface CatalogEntry extends Omit<RegisteredModel, 'worldBox'> {
 // ── Driftwood's models are on the model contract (E306 / E315 M1, src/models/): `place` registers each one, its copies
 // and its tap targets, so the shard's setup registers nothing here.
 
-/** a built batch: its mesh, and how many copies it holds */
-type Meshed = { mesh: THREE.Object3D; count?: number } | null | undefined;
-
-// ── Pine Hollow's models (E66): the three log cabins, the pond, one Scots pine out of the forest (its boulders, stumps and
-// logs are models on the contract, E315 M2: src/chunks/pine-hollow/models/) ──
+// ── Pine Hollow's cabins (E66): the three log cabins, until their models land (E315 M2 placed everything else there: its
+// props, TRELLIS props, crags, landmarks, trees and forest floor are models in src/chunks/pine-hollow/models/) ──
 
 export interface PineHollowModels {
-  sky: Sky;
   cabins?: { roots: readonly THREE.Object3D[] } | null;
-  water?: Meshed;
-  forest?: Forest | null;
-  /** where the fresh ones are built (they stand on the terrain there; the studio floor follows them) */
-  at: { x: number; z: number };
 }
 
 const CABIN_NAMES = ['Log cabin · hollow', 'Log cabin · east', 'Log cabin · ridge'] as const;
@@ -71,53 +62,6 @@ export function registerPineHollowModels(h: PineHollowModels): void {
   (h.cabins?.roots ?? []).forEach((root, i) => {
     registerModel({ id: `cabin-${i + 1}`, name: CABIN_NAMES[i] ?? `Log cabin ${i + 1}`, category: 'buildings', file: 'src/world/Cabin.ts', live: true, object: () => root, pipeline: 'code', drawnAs: 'merged', copies: 1 });
   });
-  const pond = h.water?.mesh;
-  if (pond) registerModel({ id: 'pond', name: 'Still pond', category: 'nature', file: 'src/world/Water.ts', live: true, object: () => pond, pipeline: 'code', drawnAs: 'single', copies: 1 });
-
-  const fresh = (id: string, name: string, file: string, facts: { pipeline: Pipeline; drawnAs: DrawnAs; copies: number }, build: () => THREE.Object3D): void => {
-    let o: THREE.Object3D | null = null;
-    registerModel({ id, name, category: 'nature', file, live: false, object: () => (o ??= build()), ...facts });
-  };
-  const { forest } = h;
-  if (forest && forest.factory.variants.length > 0) {
-    // the Blender tree set's Scots pines (a variant with no species is the runtime pine, drawn the same way)
-    const isPine = (v: number): boolean => { const s = forest.factory.variants[v]?.species; return s === undefined || s === 'pine'; };
-    const pines = forest.trees.filter((t) => isPine(t.variant)).length;
-    fresh('pine', 'Scots pine', 'src/world/TreeFactory.ts', { pipeline: 'blender', drawnAs: forest.path, copies: pines }, () => pineSpecimen(forest, h.at.x, h.at.z));
-  }
-
-  // a tap on the forest selects the tree under the finger
-  const around = (x: number, y: number, z: number, r: number, hgt: number): THREE.Box3 => new THREE.Box3(new THREE.Vector3(x - r, y - 0.2, z - r), new THREE.Vector3(x + r, y + hgt, z + r));
-  if (forest) registerPick({
-    object: forest.group, entry: 'pine',
-    boxAt: (pt) => {
-      let best: TreeInstance | undefined, bd = Infinity;
-      for (const t of forest.nearby(pt.x, pt.z, 10)) { const d = (t.x - pt.x) ** 2 + (t.z - pt.z) ** 2; if (d < bd) { bd = d; best = t; } }
-      return best ? around(best.x, best.y, best.z, Math.max(2, best.height * 0.16), best.height) : around(pt.x, pt.y - 10, pt.z, 3, 14);
-    },
-  });
-}
-
-/**
- * the tallest pine variant on its own: the forest's own geometry and materials, full detail (cards + twigs + trunk),
- * standing exactly on the nearest real tree of that variant — so VIEW IN WORLD lands on a pine that is there
- */
-function pineSpecimen(forest: Forest, x: number, z: number): THREE.Object3D {
-  const f = forest.factory;
-  let vi = 0;
-  const pine = (c: { species?: string | undefined }) => c.species === undefined || c.species === 'pine'; // the species set: the tallest Scots pine
-  f.variants.forEach((c, i) => { if (pine(c) && (!pine(f.variants[vi] ?? {}) || c.height > (f.variants[vi]?.height ?? 0))) vi = i; });
-  const v = f.variants[vi];
-  const g = new THREE.Group();
-  if (!v) return g;
-  let real: TreeInstance | undefined, bd = Infinity;
-  for (const t of forest.trees) { const d = (t.x - x) ** 2 + (t.z - z) ** 2; if (t.variant === vi && d < bd) { bd = d; real = t; } }
-  const crown = new THREE.Mesh(v.cardsHi, f.needleMaterial), twigs = new THREE.Mesh(v.twigs, f.twigMaterial);
-  crown.customDepthMaterial = f.needleDepth; twigs.customDepthMaterial = f.twigDepth;
-  for (const m of [new THREE.Mesh(v.trunk, f.barkMaterial), crown, twigs]) { m.castShadow = true; m.receiveShadow = true; g.add(m); }
-  if (real) { g.position.set(real.x, real.y, real.z); g.rotation.y = real.rot; g.scale.setScalar(real.scale); }
-  else g.position.set(x, heightAt(x, z), z);
-  return g;
 }
 
 // ── the catalog Explore shows: every registered model + a creature per species on the shard ──
