@@ -10,6 +10,10 @@ import { boat, boatColliders } from '../src/chunks/driftwood-isle/models/boat';
 import { palm } from '../src/chunks/driftwood-isle/models/palm';
 import { hut, hutLayout } from '../src/chunks/driftwood-isle/models/hut';
 import { lookout, lookoutLayout } from '../src/chunks/driftwood-isle/models/lookout';
+import { shipwreck } from '../src/chunks/driftwood-isle/models/shipwreck';
+import { barrel, crate, ropeCoil } from '../src/chunks/driftwood-isle/models/cargo';
+import { driftLog } from '../src/chunks/driftwood-isle/models/driftLog';
+import { reefRock } from '../src/chunks/driftwood-isle/models/reefRock';
 
 /** the world side's sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(['../src/world/*.ts', '../src/main.ts'], { query: '?raw', import: 'default', eager: true });
@@ -63,6 +67,7 @@ describe('Driftwood models (E315 M1)', () => {
       'src/world/Pier.ts': { why: '', draws: {} },
       'src/world/Hut.ts': { why: '', draws: {} },
       'src/world/Lookout.ts': { why: '', draws: {} },
+      'src/world/Wreck.ts': { why: 'the wreck site\'s weld: the vessel and the cove\'s surroundings in one kit (the AO and the lantern light over all of it), the reef rocks\' smooth mesh, the lantern flames (its models drawnInto them)', draws: { mergeGeometries: 1, Mesh: 3 } },
       'src/world/Shrine.ts': { why: 'the firefly cloud (an effect, not a model)', draws: { Mesh: 1 } },
       'src/world/Boat.ts': { why: 'the mooring lines: world geometry between two placed models', draws: { mergeGeometries: 1, Mesh: 1 } },
       'src/world/Seabed.ts': { why: 'the reef weld: every coral / seaweed / starfish copy in one mesh (drawnInto)', draws: { mergeGeometries: 1, Mesh: 1 } },
@@ -82,7 +87,7 @@ describe('Driftwood models (E315 M1)', () => {
     }
     // and the shard's setup never hand-registers them again
     const main = strip(source('src/main.ts'));
-    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`addBuilt\\(\`?'?${id}|registry\\.add\\(\\{ id: '${id}`));
+    for (const id of ['palms', 'pier', 'jetty-', 'hut', 'lookout', 'wreck', 'shrine', 'boat', 'rocks', 'bushes']) expect(main, id).not.toMatch(new RegExp(`addBuilt\\(\`?'?${id}|registry\\.add\\(\\{ id: '${id}`));
   });
 
   it("the hut's layout and its geometry come from one build per site", () => {
@@ -108,5 +113,16 @@ describe('Driftwood models (E315 M1)', () => {
     expect(new THREE.Box3().setFromObject(placed.object).getCenter(new THREE.Vector3()).x).toBeCloseTo(40, -1); // built where it stands
     expect(placed.colliders.length).toBe(lay.colliderDescs().length);
     expect(placed.colliders.find((c) => c.kind === 'treads')).toBeDefined(); // the stair
+  });
+
+  it("the Wreck cove's models build their specimens in their own space, on the ground at the origin", () => {
+    for (const m of [shipwreck, barrel, crate, ropeCoil, driftLog, reefRock] as const) {
+      const placed = place(m as typeof barrel, [{ x: 0, y: 0, z: 0 }], { ctx, draw: 'merged', registry: null });
+      const box = new THREE.Box3().setFromObject(placed.object), c = box.getCenter(new THREE.Vector3());
+      expect(Math.hypot(c.x, c.z), m.id).toBeLessThan(m === shipwreck ? 4 : 0.6); // centred on the origin
+      // standing on it (the wreck's keel just under, a reef rock sunk to its waist: its origin is its centre)
+      expect(box.min.y, m.id).toBeGreaterThan(m === shipwreck ? -1.2 : m === reefRock ? -1 : -0.35);
+      expect(box.max.y, m.id).toBeGreaterThan(0.1);
+    }
   });
 });

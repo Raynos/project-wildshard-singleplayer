@@ -324,8 +324,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const lookout = isOcean ? new Lookout(sky, LOOKOUT).place(registry) : null;
     if (lookout) statics.push(...lookout.colliders);
     await slice();
-    const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
-    if (wreck) addBuilt('wreck', 'Shipwreck', 'buildings', 'src/world/Wreck.ts', wreck.group, wreck.colliders, 'planks', (x, z) => wreck.floorHeightAt(x, z), wreck.colliderDescs(), {});
+    // E315 M1: the shipwreck model (src/chunks/driftwood-isle/models/shipwreck.ts) with the cove's cargo, drift logs and reef
+    // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
+    const wreck = isOcean ? new Wreck(sky, WRECK).place(registry) : null;
+    if (wreck) { game.scene.add(wreck.group); statics.push(...wreck.colliders); }
     await slice();
     // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
     // E315 M1: the ring shrine model (src/chunks/driftwood-isle/models/shrine.ts) placed through src/models/place.ts, which registers piece `shrine`
