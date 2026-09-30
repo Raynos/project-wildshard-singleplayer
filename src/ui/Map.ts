@@ -15,6 +15,7 @@
  *   fullMap.setPois(() => MapPoi[])        // a shard's own points of interest (Driftwood: its places with discovery + the
  *                                          // quest's markers, src/game/quest/Places.ts); unset = the cabins / pond as before
  *   fullMap.setPois(src, { tally: true })  // + "PLACES n / N" (found / all places) in the frame's bottom-left corner (E309 A)
+ *   (the minimap's marks, Minimap.setMarks — Driftwood's sea chart — are drawn here too: small ringed beads, no label)
  *   fullMap.setQuest(() => MapQuest|null)  // the quest in full — title, objective, sub-steps — for the MAP tab's card (E51)
  *   fullMap.setZones(MapZone[])            // the shard's zone names under the pins (Pine Hollow, PH-C9)
  *   fullMap.setFeatures({ trees, roofs })  // the shard's real trees + extra roofs on the ground layer (Minimap.setFeatures)
@@ -215,6 +216,18 @@ export class FullMap {
       ...(hasPond() ? [{ x: POND.x, z: POND.z, label: 'THE POND', kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
     ];
     const tally = this.tally ? this.layTally(list, ox, oy + side) : null;
+    // the minimap's marks (Driftwood's sea chart: every unfound sea glass piece, E314) — under the pins, no labels, not
+    // tallied; a bead in the piece's colour inside a white ring (a quest marker is a cyan diamond, a place a white dot)
+    const marks = this.minimap.marks;
+    if (marks.length > 0) {
+      const mr = Math.max(3.5 * this.dpr, fs * 0.3);
+      for (const m of marks) {
+        ctx.beginPath(); ctx.arc(sx(m.x), sz(m.z), mr, 0, Math.PI * 2);
+        ctx.fillStyle = m.color; ctx.fill();
+        ctx.lineWidth = 3 * this.dpr; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.stroke();
+        ctx.lineWidth = 1.2 * this.dpr; ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.stroke();
+      }
+    }
     this.drawPois(list, sx, sz, fs, { x: px, y: py, r: r * 2.2 }, tally);
     if (tally) this.drawTally(tally);
 

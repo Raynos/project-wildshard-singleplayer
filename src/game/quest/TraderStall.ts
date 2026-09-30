@@ -4,22 +4,41 @@
  * across the path from Wendell and his campfire, behind her counter of goods; the counter faces down the path, so you
  * see what is for sale from the campfire. Both are placed models (registered: colliders, the Model Explorer).
  *
- *   installTrader(adventure, world)   // Adventure.ts, after the spine
+ *   const stall = installTrader(adventure, world)   // Adventure.ts, after the spine → adventure.trader
+ *   stall.shop = { open, isOpen, close }            // the loot (src/game/loot/install.ts) hands her the shop screen
  *
- * No shop yet: no prompt, no dialogue (the shop screen is E314's next piece). `stall.trader` is the NPC it will talk to.
+ * Her prompt (E314 stage 2): "Trade with Maren" in front of the counter (the touch USE band) once a shop is attached; it
+ * opens the shop screen (src/ui/ShopPanel.ts). Walking off the counter closes it. Wendell stays the quest giver; she only
+ * trades, so she has no dialogue.
  */
+import * as THREE from 'three';
 import { modelContext } from '../../models/model';
+import type { Interactable } from '../../world/Cabin';
 import { place } from '../../models/place';
 import { trader, tradeCounter, traderOf } from '../../chunks/driftwood-isle/models/trader';
 import type { Trader } from '../../entities/npc/Trader';
 import type { Adventure, AdventureWorld, AdvAnimal } from './Adventure';
 
-export interface TraderStall { trader: Trader }
+/** her island name (the prompt, the shop's title and line) */
+export const TRADER_NAME = 'Maren';
+
+export interface TraderShop { open: () => void; close: () => void; readonly isOpen: boolean }
+export interface TraderStall {
+  trader: Trader;
+  /** the counter's front, where the prompt sits (the player stands here to trade) */
+  readonly at: THREE.Vector3;
+  /** the shop screen; null = no prompt (a shard or build without the shop) */
+  shop: TraderShop | null;
+}
 
 /** hut local frame (the door faces −z; the pier path comes up from −z): her feet, turned toward the path and the fire */
 const FEET = { x: -3.3, z: -7.8, yaw: Math.PI - 0.5 };
 /** metres from her feet to the counter's centre, straight ahead of her */
 const COUNTER_AHEAD = 0.72;
+/** metres from her feet to where you stand to trade (across the counter), and the prompt's reach from there */
+const TRADE_AHEAD = 1.9, TRADE_R = 2.8;
+/** the view's tilt while the shop is open (rad, down): her head at ~30 % of a portrait screen, over the sheet */
+const SHOP_PITCH = -0.32;
 
 export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): TraderStall | null {
   const feet = adv.place({ poi: 'hut', x: FEET.x, z: FEET.z, yaw: FEET.yaw });
@@ -33,6 +52,30 @@ export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   const t = traderOf(npc.object);
   if (t === null) return null;
   t.companions.push(counter.object);
-  w.game.onUpdate((dt, time) => { t.update(dt, time, w.player.position); });
-  return { trader: t };
+  const ax = feet.x + fx * TRADE_AHEAD, az = feet.z + fz * TRADE_AHEAD;
+  const at = new THREE.Vector3(ax, adv.floorAt(ax, az) + 1.35, az);
+  const stall: TraderStall = { trader: t, at, shop: null };
+  let pitchBefore = 0, wasOpen = false;
+  const prompt: Interactable = {
+    position: at,
+    get radius() { return stall.shop === null || stall.shop.isOpen ? 0 : TRADE_R; },
+    label: `Trade with ${TRADER_NAME}`,
+    onInteract: () => {
+      if (!stall.shop || stall.shop.isOpen) return;
+      // face her and look down a little, so she and her counter sit in the gap above the shop's sheet (board 5 C);
+      // the view's tilt comes back when the shop closes
+      const p = w.player.position, her = t.position;
+      w.player.yaw = Math.atan2(-(her.x - p.x), -(her.z - p.z));
+      pitchBefore = w.player.pitch; w.player.pitch = SHOP_PITCH;
+      stall.shop.open(); t.offer(); wasOpen = true;
+    },
+  };
+  w.prompts.push(prompt);
+  w.game.onUpdate((dt, time) => {
+    t.update(dt, time, w.player.position);
+    // walking off the counter closes the shop (as a talk closes, core.ts NpcTalk)
+    if (stall.shop?.isOpen === true && w.player.position.distanceTo(at) > TRADE_R + 2.5) stall.shop.close();
+    if (wasOpen && stall.shop?.isOpen !== true) { wasOpen = false; w.player.pitch = pitchBefore; }
+  });
+  return stall;
 }

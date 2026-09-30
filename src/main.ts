@@ -593,7 +593,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       if (f !== undefined && Math.abs(f - p.y) < 0.3) { safe.x = p.x; safe.y = f; safe.z = p.z; safe.set = true; since = 0; }
     }, 'bounds');
   }
-  let kills = 0, health = 100, lastHurt = 0, swimHold = false;
+  let kills = 0, health = 100, maxHealth = 100, lastHurt = 0, swimHold = false; // maxHealth: 100, Driftwood's sturdy hearts raise it (E314, installLoot)
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/ui/Menu.ts) ──
   const progress = new Progress(getActiveChunk().id);     // shard achievements → titles (src/game/achievements.ts)
@@ -769,7 +769,20 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (chunk.slug === 'pine-hollow') placePineHollowSets(registry); // E315 M12: every named place is a Set (after the quest has placed its props)
   // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
   // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
-  const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });
+  let shopHold = 0;
+  const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null,
+    // stage 2: the trader's shop and what it sells — sharper swords, a bigger heart (topped up by what it adds), the sea chart's marks
+    trader: adventure?.trader ?? null, minimap, toast: (t) => { hud.toast(t); },
+    swords: [crossbow, ironSword].filter((w): w is Sword => w instanceof Sword),
+    setMaxHealth: (m) => { const was = maxHealth; maxHealth = m; health = Math.max(0, Math.min(m, health + Math.max(0, m - was))); },
+    hold: (on) => { // the shop screen releases the lock and the sword like Pine Hollow's slate; its close takes them back
+      window.clearTimeout(shopHold);
+      weapons.stowed = on;
+      if (on) { hud.holdPause = true; weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
+      weapons.setEnabled(!player.swimming);
+      hud.onResume?.();
+      shopHold = window.setTimeout(() => { hud.holdPause = false; if (!nolock && !touchUi() && !document.pointerLockElement && hud.entered && !menu.isOpen) hud.setPaused(true); }, 450);
+    } });
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
@@ -846,7 +859,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   };
   // Nalati's boss fights (src/nalati/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
   nalatiNow()?.bindPlay({
-    kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
+    kit: nalatiKit, health01: () => health / maxHealth, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
     hurt: (dmg) => { killer = { cause: 'Thrown from the saddle' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); }, // a throw / a bolt (Mount, Taming)
   }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
   // Nalati's weather (src/nalati/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
@@ -1131,13 +1144,13 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     }
 
     // slow health regen; death → respawn at the gate
-    if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
+    if (health < maxHealth && performance.now() - lastHurt > 6000) health = Math.min(maxHealth, health + dt * 4);
     // death → the fade + card name the killer and where you come back (die, E295); only a weapon with ammo is topped up.
     // A death in a boss fight is handled there (back at the phase checkpoint): Nalati's King / Titan, Pine Hollow's Antler King
     deathFade.update(dt);
-    if (deathFade.active) health = 100; // nothing else (a fall, lightning) kills you twice under the fade
+    if (deathFade.active) health = maxHealth; // nothing else (a fall, lightning) kills you twice under the fade
     if (health <= 0) {
-      health = 100; audio.death(); hud.damageFlash();
+      health = maxHealth; audio.death(); hud.damageFlash();
       if (ride?.mounted === true) ride.mount.dismount();
       if (pineFights?.onPlayerDeath() !== true && nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) die(killer);
       if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
@@ -1156,7 +1169,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
-      health, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
+      health, maxHealth, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
       prompt, speed: player.speedFactor, ads: weapons.state.ads,
     });
     mark('hud');

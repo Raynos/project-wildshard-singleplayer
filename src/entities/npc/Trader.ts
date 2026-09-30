@@ -18,7 +18,8 @@
  *   - she turns to face you (E129) inside FACE_R: the figure eases round at no more than TURN_MAX rad/s, the head
  *     leading it, and eases back to her counter when you walk off; while you stand there she opens a hand toward her
  *     goods now and then ("take a look").
- * There is no shop yet (E314's shop screen comes later): she has no prompt and no dialogue.
+ * Her shop (E314 stage 2) is src/game/quest/TraderStall.ts's prompt + src/ui/ShopPanel.ts; `offer()` plays the "take a
+ * look" gesture on demand (the shop opening, a sale).
  *
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
@@ -169,6 +170,8 @@ export class Trader {
   get position(): THREE.Vector3 { return this.group.position; }
 
   private start(g: Gesture): void { this.gesture = g; this.gT = 0; }
+  /** open a hand toward her goods now (the shop opened, a sale: E314 stage 2) */
+  offer(): void { this.start('offer'); this.offerT = 5; }
 
   update(dt: number, t: number, player: THREE.Vector3): void {
     const gp = this.group.position;

@@ -236,6 +236,7 @@ export class GameMenu {
     this.practice = active;
     this.root.classList.toggle('practice', active);
     this.subtitle.textContent = active ? room : getActiveChunk().displayName;
+    this.mapMeta.textContent = active ? room : getActiveChunk().displayName; // E314: the MAP tab over a room's own map names the room
     this.exitBtn.innerHTML = active ? 'Exit <span class="ws-gmenu-nowrap">to Explore</span>' : 'Exit <span class="ws-gmenu-nowrap">to main</span>';
     this.exitBtn.setAttribute('aria-label', active ? 'Exit to Explore' : 'Exit to main menu');
     if (active && this._tab === 'map' && this.noMap) this.select('settings'); else this.syncTabs();

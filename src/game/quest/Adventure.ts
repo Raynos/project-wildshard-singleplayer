@@ -28,7 +28,7 @@ import { ITEMS, type ItemId } from '../Inventory';
 import type { Audio } from '../../audio/Audio';
 import { IslandSfx } from '../../audio/IslandSfx';
 import { installSpine, type Spine } from './Spine';
-import { installTrader } from './TraderStall';
+import { installTrader, type TraderStall } from './TraderStall';
 import { installFeats, type ProgressSink } from './Feats';
 import { installPlaces, type Places } from './Places';
 import { installGullGuide } from './gullGuide';
@@ -101,6 +101,8 @@ export interface Adventure {
   complete: Complete | null;
   /** the lookout → cove zipline (A7) */
   zipline: Zipline | null;
+  /** the trader at Wendell's hut (E314): the loot hands her the shop screen (src/game/loot/install.ts) */
+  trader: TraderStall | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
   /** register a computed anchor (`<poi>.<name>`) that placements and quest markers can name */
@@ -187,9 +189,9 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
     }
   }
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
   adventure.spine = installSpine(adventure, w);
-  installTrader(adventure, w);   // E314: the trader and her counter of goods at the hut, beside Wendell (no shop yet)
+  adventure.trader = installTrader(adventure, w);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
   if (w.progress) installFeats(adventure, w, w.progress);
   if (w.ironDrop) {
     const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)

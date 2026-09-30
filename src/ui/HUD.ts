@@ -42,6 +42,8 @@ export interface HUDState {
   /** bolts carried; undefined = no ammo on this weapon (melee) → the ammo readouts are hidden */
   bolts?: number | undefined; loaded: boolean; reloading: boolean; reloadProgress?: number | undefined;
   health: number; pos: { x: number; z: number }; yaw: number; kills: number;
+  /** the health bar's full mark (default 100; Driftwood's sturdy hearts raise it to 120 / 140, E314 stage 2) */
+  maxHealth?: number | undefined;
   prompt?: string | undefined; speed?: number | undefined; ads?: boolean | undefined; maxBolts?: number | undefined;
   /** generic ammo strip (Weapons.ts): `reserve` rounds beyond the magazine (hidden when 0), `ammoLabel` "Bolts" / "Rounds",
    *  `weaponName` tag ("CROSSBOW" / "AR-15"), `segments` bars over the magazine on the touch strip (4 crossbow, 6 rifle) */
@@ -121,7 +123,7 @@ export class HUD {
    *  frame's HUD writes — a forced layout per frame (E142 aggro-perf) */
   private bandW = -1;
   private feed!: HTMLElement; private toasts!: ToastStack; private toastBox!: HTMLElement;
-  private healthVal!: HTMLElement; private healthBar!: HTMLElement; private healthPanel!: HTMLElement;
+  private healthVal!: HTMLElement; private healthBar!: HTMLElement; private healthPanel!: HTMLElement; private healthMax!: HTMLElement;
   /** E319: when health last reached full (performance.now; -Infinity = full since the start, null = hurt) and the VITALS
    *  visibility as last painted — they start hidden, the player spawns at full health */
   private hpFullAt: number | null = Number.NEGATIVE_INFINITY; private hpShown: 'show' | 'fade' | 'gone' = 'gone';
@@ -209,7 +211,7 @@ export class HUD {
     // health
     const health = el('div', 'ws-glass ws-game-health');
     health.innerHTML = `<div class="ws-game-hrow"><span class="ws-label">Vitals</span><span class="ws-game-hval"><span class="v">100</span><small>/ 100</small></span></div><div class="ws-bar"><i style="width:100%"></i><u style="left:25%"></u><u style="left:50%"></u><u style="left:75%"></u></div>`;
-    this.healthVal = q(health, '.v'); this.healthBar = q(health, '.ws-bar i');
+    this.healthVal = q(health, '.v'); this.healthBar = q(health, '.ws-bar i'); this.healthMax = q(health, '.ws-game-hval small');
     this.healthPanel = health; health.classList.add('hp-fade', 'hp-gone'); // E319: hidden at full health (setState)
     r.append(health);
 
@@ -294,17 +296,19 @@ export class HUD {
       this.compassStrip.style.transform = `translateX(${-(deg + 360) * this.ppd}px)`;
     }
     this.updateMarkers(s, deg);
-    if (s.health !== L.health) {
+    const maxHp = s.maxHealth ?? 100;
+    if (s.health !== L.health || maxHp !== L.maxHealth) {
+      if (maxHp !== L.maxHealth) { L.maxHealth = maxHp; this.healthMax.textContent = `/ ${maxHp}`; }
       L.health = s.health;
-      const h = Math.max(0, Math.min(100, s.health));
+      const h = Math.max(0, Math.min(maxHp, s.health)), pct = (h / maxHp) * 100;
       this.healthVal.textContent = String(Math.round(h));
-      this.healthBar.style.width = `${h}%`;
-      this.healthBar.classList.toggle('low', h <= 30);
+      this.healthBar.style.width = `${pct}%`;
+      this.healthBar.classList.toggle('low', pct <= 30);
       this.syncBar('health');
     }
     // E319: VITALS only while hurt — full → VITALS_HIDE_MS → a fade → gone; a hit shows them the same frame
     const now = performance.now();
-    if (s.health < 100) this.hpFullAt = null; else this.hpFullAt ??= now;
+    if (s.health < maxHp) this.hpFullAt = null; else this.hpFullAt ??= now;
     const fullFor = this.hpFullAt === null ? -1 : now - this.hpFullAt;
     const hp = fullFor < VITALS_HIDE_MS ? 'show' : fullFor < VITALS_HIDE_MS + VITALS_FADE_MS ? 'fade' : 'gone';
     if (hp !== this.hpShown) { this.hpShown = hp; this.paintVitals(); }
@@ -370,10 +374,10 @@ export class HUD {
     const b = this.bar, L = this.last;
     if (!b) return;
     if (what === 'health') {
-      const h = Math.max(0, Math.min(100, L.health ?? 100));
+      const max = L.maxHealth ?? 100, h = Math.max(0, Math.min(max, L.health ?? max)), pct = (h / max) * 100;
       b.hval.textContent = String(Math.round(h));
-      b.hbar.style.width = `${h}%`;
-      b.hbar.classList.toggle('low', h <= 30);
+      b.hbar.style.width = `${pct}%`;
+      b.hbar.classList.toggle('low', pct <= 30);
     } else if (what === 'bolts') {
       const max = L.maxBolts ?? this.opts.maxBolts ?? 30, n = L.bolts ?? max;
       b.bcount.textContent = String(n);

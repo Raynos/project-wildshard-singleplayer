@@ -19,10 +19,21 @@ const GRAVITY = 13;
 const ARC_TIME = 0.42;           // s of free arc before the magnet takes over
 const MAGNET_ACCEL = 60;         // m/s² toward the chest
 const MAGNET_MAX = 22;           // m/s
-const CATCH_R = 1.0;             // m from the hip: counted — before it can fill the lens
+const CATCH_R = 1.2;             // m from the hip: counted — before it can fill the lens
 const MAX_LIFE = 2.6;            // s: counted anyway
 const CHEST_Y = 0.75;            // m over the player's feet: the hip, under the view, so the coins sweep in low
-const SHRINK_R = 2.6;            // m: inside this a coin shrinks toward 35 % (a 13 cm coin a hand from the lens is a wall of gold)
+// E314 stage 2 (Jake: the coins still read big in the last 1–2 m): inside SHRINK_R of the eye a coin shrinks on an
+// ease-in curve to MIN_SCALE at NEAR_EYE, so the last two metres show a small coin (≈ 4 cm at 2 m) dropping under the view
+const SHRINK_R = 4.5;            // m from the eye: the shrink starts
+const NEAR_EYE = 1.0;            // m from the eye: fully shrunk (a coin is counted at CATCH_R from the hip, about here)
+const MIN_SCALE = 0.12;          // of SCALE
+
+/** a coin's size factor at `near` metres from the eye: 1 past SHRINK_R, easing in to MIN_SCALE at NEAR_EYE */
+export function nearScale(near: number): number {
+  if (near >= SHRINK_R) return 1;
+  const f = Math.max(0, (near - NEAR_EYE) / (SHRINK_R - NEAR_EYE));
+  return MIN_SCALE + (1 - MIN_SCALE) * f ** 1.6;
+}
 
 interface Coin {
   live: boolean;
@@ -104,7 +115,7 @@ export class CoinBurst {
       c.spin += c.spinRate * dt;
       _q.setFromEuler(_e.set(0.35, c.spin, 0));
       const near = Math.hypot(tx - c.pos.x, ey - c.pos.y, tz - c.pos.z);
-      _s.setScalar(SCALE * (near >= SHRINK_R ? 1 : 0.35 + 0.65 * (near / SHRINK_R)));
+      _s.setScalar(SCALE * nearScale(near));
       _m.compose(c.pos, _q, _s);
       this.mesh.setMatrixAt(n++, _m);
     }

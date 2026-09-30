@@ -8,10 +8,11 @@
  *   trophies:     Owned 'bear-claw' · 'boar-tusk' · 'captain-hat' (stage 3 hands them out)
  *   treasures:    the reef's pearl necklace, `found:reef-treasure`
  *   next charm:   every 5 pieces (5 → I, 10 → II, 15 → III)
+ * And the sea chart's marks (E314 stage 2, `seaChartMarks`): every beach piece not found yet, where it lies, in its colour.
  */
 import type { FindsView } from '../../ui/bag';
 import { DRIFTWOOD_PLACES } from '../quest/Places';
-import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../../world/interact/driftwood';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../../world/interact/driftwood';
 import type { OwnedId } from './Owned';
 
 export interface FlagReader { has: (flag: string) => boolean }
@@ -53,4 +54,16 @@ export function driftwoodFinds(flags: FlagReader, owned: OwnedReader): FindsView
     ],
     glass: glass.map((found, i) => ({ found, color: GLASS_COLORS[i % GLASS_COLORS.length] ?? '#7df0d0' })),
   };
+}
+
+/** the sea chart (E314 stage 2): the beach sea glass not found yet — world x / z and the piece's colour (a found one is gone) */
+export function seaChartMarks(flags: FlagReader): { x: number; z: number; color: string }[] {
+  const out: { x: number; z: number; color: string }[] = [];
+  for (const r of DRIFTWOOD_INTERACT.rows) {
+    if (r.kind !== 'pickup' || r.look !== 'seaglass' || r.at.poi !== 'world') continue;
+    const f = r.sets?.[0];
+    if (f === undefined || flags.has(f)) continue;
+    out.push({ x: r.at.x, z: r.at.z, color: r.color ?? '#7df0d0' });
+  }
+  return out;
 }

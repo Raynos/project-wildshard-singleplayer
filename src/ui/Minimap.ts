@@ -17,6 +17,8 @@
  *   3. animal dots — yellow = passive (deer), red = can turn on you (boar, bear: `aggressive`, else the
  *      species registry's flag); a red dot that is charging / stalking / alert (or, without a public state,
  *      wounded) pulses;
+ *   3b. marks (`setMarks`): small glass-coloured diamonds a shard asks for — Driftwood's sea chart (E314 stage 2): every
+ *      unfound beach sea glass piece; the full map draws the same list;
  *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks and "N" are CSS. (The heading readout under the circle is
  *      gone, E51: the arrow already says where you face.)
  *
@@ -46,6 +48,10 @@ import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { activeClock } from '../world/WorldClock';
 import { scopesInstalled } from '../core/shardScope';
 import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
+
+/** a point the map marks with a small diamond (Minimap.setMarks) */
+export interface MapMark { x: number; z: number; color: string }
+const NO_MARKS: readonly MapMark[] = [];
 
 export interface MinimapAnimal {
   kind: string;
@@ -263,6 +269,12 @@ export class Minimap {
   /** the room whose map is up (the full map draws it too), or null on the shard */
   get room(): RoomMap | null { return this.roomMap; }
 
+  /** small diamonds at world points, read every frame (Driftwood's sea chart: the unfound sea glass, E314); null clears.
+   *  The full map (src/ui/Map.ts) draws the same list. Not drawn over a practice room's map. */
+  setMarks(source: (() => readonly MapMark[]) | null): void { this.markSource = source; }
+  get marks(): readonly MapMark[] { return this.roomMap !== null ? NO_MARKS : this.markSource?.() ?? NO_MARKS; }
+  private markSource: (() => readonly MapMark[]) | null = null;
+
   /** has the player been near (x, z)? — the fog-of-war coverage (a place on the full map is named once explored, else "?") */
   explored(x: number, z: number): boolean {
     const px = Math.floor((CHUNK_HALF - x) * COVER_PPM), pz = Math.floor((CHUNK_HALF - z) * COVER_PPM);
@@ -359,6 +371,20 @@ export class Minimap {
         ctx.beginPath(); ctx.arc(sx, sy, r + 2.2 * this.dpr, 0, Math.PI * 2);
         ctx.strokeStyle = a.rarity === 'legendary' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)'; ctx.stroke();
         ctx.strokeStyle = DOT_OUTLINE;
+      }
+    }
+
+    // 3b. marks (the sea chart's sea glass): a small diamond in the piece's colour, dark-outlined
+    const marks = this.marks;
+    if (marks.length > 0) {
+      const mr = 3.2 * this.dpr;
+      ctx.lineWidth = 1.2 * this.dpr; ctx.strokeStyle = DOT_OUTLINE;
+      for (const m of marks) {
+        const dx = m.x - pos.x, dz = m.z - pos.z;
+        if (dx * dx + dz * dz > VIEW_RADIUS * VIEW_RADIUS) continue;
+        const sx = c - dx * k, sy = c - dz * k;
+        ctx.beginPath(); ctx.moveTo(sx, sy - mr); ctx.lineTo(sx + mr, sy); ctx.lineTo(sx, sy + mr); ctx.lineTo(sx - mr, sy); ctx.closePath();
+        ctx.fillStyle = m.color; ctx.fill(); ctx.stroke();
       }
     }
 
