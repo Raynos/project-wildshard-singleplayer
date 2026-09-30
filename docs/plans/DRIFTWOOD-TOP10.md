@@ -1,6 +1,6 @@
 # Plan: Driftwood top 10 (E126)
 
-**State:** `in progress` 2026-09-30 — done and live: rows 1–4 (E294–E297), 6, 7, 8, 9a, 9b's gulls B + map A (E309, `7c442d35`, live `402a153-munn9ug3`; the sea glass count moved into DRIFTWOOD-LOOT's FINDS tab), 10 incl. T1 banner B + T2 rocks B (E310, `c12dae6f`, live `402a153-munn9ug3`). Open: row 5 (E308) — picked 2026-09-30 (hints A, crab A, start B), being built. Last row after it: the slop sweep (`DRIFTWOOD-SLOP.md`) folds in here once Jake ticks what to delete.
+**State:** `in progress` 2026-09-30 — done and live: rows 1–4, 6, 7, 8, 9, 10. Built, awaiting deploy: row 5 (E308, `b96e9d39`). Open: row 11, the slop cuts Jake picked row by row in `DRIFTWOOD-SLOP.md` (E318), being built.
 
 ## Read this first
 
@@ -29,6 +29,7 @@ It overlaps FINISH-LINE's D-rows. This file is the working list for Driftwood; F
 | 8 | **Wendell and the sword.** Wendell turns to face you. The sword rests lower and is put away while you talk | E129 | **done**: commit `4d3fc77`, live in `683c765-mugv1zua` | sheet `progress/239-e129-wendell-sword-before-after.jpg`. **The user should check the sword height on the phone** (a taste call: tell us if it's too low or too high) |
 | 9 | **An ending, and reasons to keep playing.** (a) A "Driftwood complete" screen after the reward view, with **Keep exploring** as the main button, plus "Next shard: Nalati" and "Title screen". (b) Reasons to wander: gulls fly toward places you haven't found, sea glass is counted on the map, and the map marks found and unfound places | E132 | (a) **done**: pick A, commit `81a8c05`, live `81a8c05-mugw0flt`; (b) **done**: gulls B + map A (E309, `7c442d35`, live `402a153-munn9ug3`); the sea glass count moved to DRIFTWOOD-LOOT's FINDS tab | board `art/quest/round-2-complete-screen/board.jpg`, sheet `progress/245-e132-complete-screen.jpg`. The card is the shard-agnostic `ShardComplete`, fed by `quest/Complete.ts`. Time played is new (`Progress.playS`). Total defeats are left out: no clean counter |
 | 10 | **Phone visual bugs.** Animals in Explore World, foam rings, blue gully faces and the horizon seam are done (E125). Phone shadows are done (E128): E123 had already sharpened them, and E128 smoothed the saw-toothed edges (near-cascade filter radius 0.6 → 1.2, no frame-time cost). The style items T1–T6: T3 logs (E149), T5 waterfall (E150) and T6 sea (E151) were already done and kept; T4 closed with no change; Jake picked T1 banner B (swallowtail) and T2 rocks B (lifted, warmer) on 2026-09-29, done (E310, `c12dae6f`, live `402a153-munn9ug3`) | E125, E128 | **done**: E125 `03c583b-muggdq8j`, E128 `bf95ae9-mugvan3i` | sheet `progress/240-e128-phone-shadows-before-after.jpg`; T1–T6 need a board when the user wants them |
+| 11 | **The slop sweep.** Every placeholder, dead or half-built thing in the shard, picked row by row by Jake (`docs/plans/DRIFTWOOD-SLOP.md`, boards `art/driftwood-audit/round-4-slop-sweep/`) | E318 | **in flight** 2026-09-30: all 38 rows picked; the cuts are being built | Jake: "the more we can delete and simplify, the better" |
 
 ## Related, running alongside (not in the ten)
 

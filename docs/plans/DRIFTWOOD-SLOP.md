@@ -1,6 +1,6 @@
 # Plan: Driftwood slop sweep (E318)
 
-**State:** `draft` 2026-09-30 — Jake is picking row by row (board 1 done, below); boards 2–4 for the rows board 1 didn't show are being made. Nothing cut yet. Folds into DRIFTWOOD-TOP10 as its last row once every row is picked.
+**State:** `in progress` 2026-09-30 — every row picked by Jake (below); the cuts are being built as DRIFTWOOD-TOP10's last row (E318).
 
 ## Read this first
 
@@ -89,5 +89,24 @@ Board 1 (2026-09-30):
 | 24 decided Debug rows (shadows A/B/D, ground-cover A/Bs) | **cut** |
 
 Also decided in DRIFTWOOD-LOOT: 13 (sea glass counted once, FINDS), 16 (doubloons become the kill currency), 22 (iron sword
-saved), 33 (brown bear kept as the trophy fight). Still to pick, on boards 2–4: 11, 13–15, 17–21, 23, 25–29.
+saved), 33 (brown bear kept as the trophy fight).
+
+Boards 2–4 (2026-09-30):
+
+| Row | Pick |
+|---|---|
+| 11 joke titles | **keep** |
+| 13 sea glass pack item | **cut** (FINDS is the one count; the sailor stops dropping it) |
+| 14 hit-tick on quest beats | **use the island's interact chime** |
+| 15 pearl necklace | **keep** (FINDS shows it, E314) |
+| 17 harvest on the captain / faded bodies | **cut** |
+| 18 sword names | **one name everywhere** ("Wooden sword" / "Iron sword" on the hotbar too) |
+| 19 dev text on the shard card + map | **cut to a player blurb** |
+| 20 two title screens | **one only** (Jake: "lol wtf why do we have two title screens, one only please") |
+| 21 blank signposts | **letter them** with place names |
+| 23 samples never played | **play the real samples** |
+| 25–26 decided / stale Debug rows | **cut** |
+| 27–29 dead code (AR-15 on sword shards, Pine Hollow config, onZone) | **cut** |
+
+Docs rows 30–32 are the plan agent's housekeeping.
 
