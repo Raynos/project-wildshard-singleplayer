@@ -571,3 +571,13 @@ from the side the turntable opens on, the washes dry), and a flat piece drawn fr
 laundry line) opens facing its face on a smaller disc, fitted over its sway (the shutter showed its blank back, the sign
 stood on a disc wider than it). `framing-nine-dragon-before.jpg` / `framing-nine-dragon-after.jpg`: every Nine Dragon
 model's first frame (57), the same two builds.
+
+### Migration leftovers E348 / E344 (`art/models-audit/round-14-leftovers/`, 2026-09-30)
+
+Evidence, not picks (real builds, iPhone 16 Pro portrait, phone tier). `e348-new-cards.jpg` (E348, `e1c6bf49`): the nine
+Model Explorer cards the M5 leftovers became, each a separate build by the builder its live system draws with — the
+hoverboard and the swimming hands (shared), the training dummy (its arena lineup now placements of the model, × 3), and
+Nalati's butterfly, raptor, reins and arrow and Pine Hollow's crossbow bolt and longbow arrow. `e344-cove-colliders.jpg`
+(E344, `3ce5a3ab`): Driftwood's Blender cove in the collider debug view before (the 200 island.json boxes on the P2
+bridge, orange) / after (on their models: crag plates cyan, cove palms green, broad-frond palms yellow), the same camera,
+and the navmesh over the same view (a byte-identical bake).
