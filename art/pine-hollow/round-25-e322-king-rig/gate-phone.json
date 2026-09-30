@@ -1,0 +1,193 @@
+{
+ "file": "public/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb",
+ "tier": "phone",
+ "vertices": 23347,
+ "triangles": 13093,
+ "joints": 22,
+ "H": 3.599,
+ "clips": [
+  "idle",
+  "walk",
+  "charge",
+  "strike",
+  "hit",
+  "sweep",
+  "roar",
+  "brace",
+  "die"
+ ],
+ "checks": {
+  "G1 binding reaches node": {
+   "status": "pass",
+   "maxSampledBindingDelta": 5.204229698242688e-8,
+   "samplesPerClip": 24,
+   "clipsThatDoNotMove": []
+  },
+  "G2 deformation finite": {
+   "status": "pass",
+   "componentsSkinned": 15128856,
+   "nonFiniteCount": 0,
+   "verticesPerFrame": 23347
+  },
+  "G3 bind restore": {
+   "status": "pass",
+   "maxBindRestoreDelta": 0
+  },
+  "G4 weights normalised": {
+   "status": "pass",
+   "maxError": 0,
+   "criterion": "|1 - sum(w)| <= 2e-7 every vertex"
+  },
+  "G5 indices in range": {
+   "status": "pass",
+   "maxSkinIndex": 21,
+   "joints": 22
+  },
+  "G6 every visible mesh bound": {
+   "status": "pass",
+   "visibleMeshCount": 1,
+   "visibleSkinnedMeshCount": 1,
+   "note": "the GLB; in the game the lanterns and the ribcage are children of the head / chest bones (dressAntlerKing)"
+  },
+  "G7 medial/lateral": {
+   "status": "pass",
+   "leftAnchors": 8,
+   "minLeftX": 0.359,
+   "rightAnchors": 8,
+   "maxRightX": -0.366
+  },
+  "G8 foot contact": {
+   "status": "pass",
+   "worstSlideOverH": 0,
+   "perClip": {
+    "idle": 0,
+    "walk": 0,
+    "charge": 0,
+    "strike": 0,
+    "hit": 0,
+    "sweep": 0,
+    "roar": 0,
+    "brace": 0,
+    "die": 0
+   },
+   "criterion": "footSlide <= 0.01H in stance"
+  },
+  "G9 no joint scale": {
+   "status": "pass",
+   "scaleDelta": 0
+  },
+  "G10 skin integrity sweep": {
+   "status": "pass",
+   "seamSplitMax": 0,
+   "seeThroughOverBaselinePx": 0,
+   "worstAt": "",
+   "baselineSeeThroughPx": [
+    0,
+    0,
+    0
+   ],
+   "edgeStretchMax": 1.988,
+   "stretchAt": "charge@0.79"
+  },
+  "G11 mesh parity": {
+   "status": "pass",
+   "freeze": "art/pine-hollow/round-25-e322-king-rig/freeze-phone.json",
+   "identical": {
+    "position": true,
+    "normal": true,
+    "uv": true,
+    "index": true
+   }
+  },
+  "G12 rig reference": {
+   "status": "pass",
+   "jointsMatchKingBones": true,
+   "bonesPosedNotInSkin": [],
+   "maxInverseBindVsJointError": 9.536743172944284e-8
+  }
+ },
+ "clipDetail": {
+  "idle": {
+   "samples": 24,
+   "maxJointTurnDeg": 6.9,
+   "maxVertexMove": 0.148,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.1,
+   "seeThroughOverBaseline": 0
+  },
+  "walk": {
+   "samples": 24,
+   "maxJointTurnDeg": 68.3,
+   "maxVertexMove": 0.581,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.9,
+   "seeThroughOverBaseline": 0
+  },
+  "charge": {
+   "samples": 24,
+   "maxJointTurnDeg": 78.1,
+   "maxVertexMove": 1.192,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.99,
+   "seeThroughOverBaseline": 0
+  },
+  "strike": {
+   "samples": 24,
+   "maxJointTurnDeg": 41.3,
+   "maxVertexMove": 2.676,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.66,
+   "seeThroughOverBaseline": 0
+  },
+  "hit": {
+   "samples": 24,
+   "maxJointTurnDeg": 43.4,
+   "maxVertexMove": 0.992,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.64,
+   "seeThroughOverBaseline": 0
+  },
+  "sweep": {
+   "samples": 24,
+   "maxJointTurnDeg": 24.8,
+   "maxVertexMove": 1.442,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.55,
+   "seeThroughOverBaseline": 0
+  },
+  "roar": {
+   "samples": 24,
+   "maxJointTurnDeg": 41.3,
+   "maxVertexMove": 2.676,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.66,
+   "seeThroughOverBaseline": 0
+  },
+  "brace": {
+   "samples": 24,
+   "maxJointTurnDeg": 62.2,
+   "maxVertexMove": 1.127,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.47,
+   "seeThroughOverBaseline": 0
+  },
+  "die": {
+   "samples": 24,
+   "maxJointTurnDeg": 83.1,
+   "maxVertexMove": 1.208,
+   "footSlideInStance": 0,
+   "footSlideOverH": 0,
+   "edgeStretch": 1.95,
+   "seeThroughOverBaseline": 0
+  }
+ },
+ "ok": true
+}

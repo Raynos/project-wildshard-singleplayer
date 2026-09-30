@@ -134,6 +134,9 @@ export const OPTION_VALUES = {
   // E322 F-M2: Pine Hollow's bears — A today · B fixed (the generator's stub-tail flap pressed away, the coats measured onto
   // real brown-bear tones, src/entities/bearFix.ts) — a reload (the rigs load once)
   pineBearFix: ['a', 'b'],
+  // E322 F-M1: the Antler King — A today (the Bark Warden hull on the elk's bones) · B his own upright rig (a raised chest,
+  // forelimbs that rear and strike: src/pinehollow/kingRig.ts) — a reload (the rig loads once)
+  pineKingRig: ['a', 'b'],
   pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/audio/Music.ts) — a reload
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/player/AimAssist.ts) — live
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
@@ -179,6 +182,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   pineBirdFix: DEBUG_ONLY,
   pineNpcRig: DEBUG_ONLY,
   pineBearFix: DEBUG_ONLY,
+  pineKingRig: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, nalatiFaces: DEBUG_ONLY, pineFaces: DEBUG_ONLY, nineDragonFaces: DEBUG_ONLY, driftwoodFaces: DEBUG_ONLY,
   pineTrample: DEBUG_ONLY, pineRainFx: DEBUG_ONLY,
 };
@@ -199,6 +203,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   pineBirdFix: option('pineBirdFix'),
   pineNpcRig: option('pineNpcRig'),
   pineBearFix: option('pineBearFix'),
+  pineKingRig: option('pineKingRig'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
   nalatiFaces: option('nalatiFaces'), pineFaces: option('pineFaces'),
   nineDragonFaces: option('nineDragonFaces'),

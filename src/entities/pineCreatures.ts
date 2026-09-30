@@ -20,7 +20,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { getActiveChunk } from '../chunks/registry';
-import { pineCreatureRigUrl, PINE_CREATURE_RIGS, type PineRigName } from './pineCreatureRigs';
+import { pineCreatureRigUrl, PINE_CREATURE_RIGS, KING_OWN_RIG, type PineRigName } from './pineCreatureRigs';
 import { variantDef, type BoneDef, type VariantDef } from './species/registry';
 import { pineCoatAtlas, type CoatSpec } from './pineCoats';
 import { DEER_PALETTE } from './species/deer';
@@ -49,6 +49,12 @@ export function bearFixOn(): boolean {
 }
 const isBear = (n: PineRigName): n is 'bear-black' | 'bear-brown' => n === 'bear-black' || n === 'bear-brown';
 
+/** E322 F-M1: Debug ▸ Creatures & NPCs ▸ Antler King rig = B — the King on his own upright rig (kingRig.ts), not the elk's.
+ *  A reload: his species is registered and his rig loaded once */
+export function kingOwnRigOn(): boolean {
+  return getActiveChunk().slug === 'pine-hollow' && setting('pineKingRig') === 'b';
+}
+
 /** (kind:variant) → its hull; a variant missing here stays procedural */
 const HULL: Readonly<Record<string, PineRigName>> = {
   'deer:hind': 'deer-hind', 'deer:white-hind': 'deer-hind', 'deer:piebald': 'deer-hind',
@@ -60,6 +66,11 @@ const HULL: Readonly<Record<string, PineRigName>> = {
   'bear:brown': 'bear-brown', 'bear:brown-old': 'bear-brown',
   // the Antler King (PH-M3, board B2 pick A "the Bark Warden"): his own hull on the elk's bones (src/pinehollow/antlerKing.ts)
   'antler-king:warden': 'antler-king',
+};
+/** the hull for (kind, variant) — the King's is his own rig's with Debug ▸ Antler King rig = B */
+const hullFor = (kind: string, variant: string): PineRigName | null => {
+  const h = HULL[`${kind}:${variant}`] ?? null;
+  return h === 'antler-king' && kingOwnRigOn() ? KING_OWN_RIG : h;
 };
 
 /** per hull: the species palette, the variant it was generated as, and the [dark, body, light] coat keys (pineCoats.ts) */
@@ -73,12 +84,13 @@ const COATS: Readonly<Record<PineRigName, CoatSpec>> = {
   'bear-brown': { palette: BEAR_PALETTE, source: ['bear', 'brown'], keys: ['dark', 'base', 'tip'] },
   // the King wears his hull's own bark: its source is his one variant, so the coat is never recoloured
   'antler-king': { palette: ELK_PALETTE, source: ['antler-king', 'warden'], keys: ['neck', 'body', 'rump'] },
+  'antler-king-rig': { palette: ELK_PALETTE, source: ['antler-king', 'warden'], keys: ['neck', 'body', 'rump'] },
 };
 
 /** the hull for (kind, variant) when the generated creatures are on, else null */
 export function pineHull(kind: string, variant: string): PineRigName | null {
   if (!pineCreaturesOn()) return null;
-  return HULL[`${kind}:${variant}`] ?? null;
+  return hullFor(kind, variant);
 }
 
 export interface PineRig {
@@ -159,7 +171,8 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
 /** every Pine Hollow rig, loaded (failures are logged: those species stay procedural) */
 export async function preloadPineCreatures(): Promise<void> {
   if (!pineCreaturesOn()) return;
-  await Promise.all(PINE_CREATURE_RIGS.map((n) => loadPineRig(n).catch((e: unknown) => { console.warn(`[pine-hollow] creature rig ${n} failed`, e); })));
+  const rigs = kingOwnRigOn() ? [...PINE_CREATURE_RIGS.filter((n) => n !== 'antler-king'), KING_OWN_RIG] : PINE_CREATURE_RIGS;
+  await Promise.all(rigs.map((n) => loadPineRig(n).catch((e: unknown) => { console.warn(`[pine-hollow] creature rig ${n} failed`, e); })));
 }
 
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions are the rig's) */

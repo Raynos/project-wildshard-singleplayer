@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Animal } from '../../../entities/Animal';
-import type { VariantDef } from '../../../entities/species/registry';
+import type { AnimalSpecies, SpeciesDef, VariantDef } from '../../../entities/species/registry';
+import { skinPlain, type Paint } from '../../../entities/species/loft';
+import { KING_BONES, animateKing } from '../../../pinehollow/kingRig';
 import type { Sky } from '../../../world/Sky';
 import { defineModel, type ModelDef } from '../../../models/model';
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '../../../models/creature';
@@ -54,6 +56,9 @@ const RIB_AT: [number, number, number] = [0, -0.22, 0.6];
 const RIB_R = 0.36;
 /** on the Bark Warden hull: in its chest cavity (body-bone local) */
 const RIB_AT_HULL: [number, number, number] = [0, -0.22, 0.6];
+/** E322 F-M1, his own upright rig: in the barrel chest's front, under the hump (chest-bone local; the hull's chest front is
+ *  at z 1.37–1.43 between 1.6 and 1.75 m, the chest joint at (0, 2.1, 0.735)) */
+const RIB_AT_OWN: [number, number, number] = [0, -0.45, 0.47];
 
 const AMBER = new THREE.Color(1.0, 0.56, 0.16);
 
@@ -173,12 +178,14 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     head.add(skull); own.push(skull);
   }
   const cage = new THREE.Group();
-  const rib = hull ? RIB_AT_HULL : RIB_AT;
+  // his own rig (a chest bone, no elk neck): the ribcage rides the chest, which rears and recoils with him
+  const chest = a.mesh.getObjectByName('neck1') === undefined ? a.mesh.getObjectByName('chest') : undefined;
+  const rib = chest ? RIB_AT_OWN : hull ? RIB_AT_HULL : RIB_AT;
   cage.position.set(rib[0], rib[1], rib[2]);
   const ribs = new THREE.Mesh(kit.ribGeo, kit.ribMat), core = new THREE.Mesh(kit.coreGeo, kit.coreMat);
   ribs.castShadow = false; core.castShadow = false;
   cage.add(core, ribs);
-  body.add(cage); own.push(cage);
+  (chest ?? body).add(cage); own.push(cage);
   let glow = 1;
   const scale = a.scale;
   return {
@@ -197,6 +204,40 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     makeLantern: () => { const l = makeLantern(); l.scale.setScalar(scale); return l; },
     dispose: () => { for (const o of own) o.removeFromParent(); },
   };
+}
+
+// ─────────────── his own rig (E322 F-M1) ───────────────
+
+/** the stand-in paint of the own rig's placeholder parts (only seen if its hull fails to load) */
+const BARK: Paint = (out) => { out.setRGB(0.12, 0.1, 0.075); };
+
+/** the placeholder body the factory merges before the hull replaces it: a box on the body, one on the head */
+function buildOwnRig(): AnimalSpecies {
+  const bones = KING_BONES.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] as [number, number, number] }));
+  const at = (n: string): [number, number, number] => bones.find((b) => b.name === n)?.pos ?? [0, 0, 0];
+  const bi = (n: string): number => Math.max(0, bones.findIndex((b) => b.name === n));
+  const torso = new THREE.BoxGeometry(1.3, 1.2, 2.2); torso.translate(at('body')[0], at('body')[1], at('body')[2]);
+  const skull = new THREE.BoxGeometry(0.4, 0.4, 0.6); skull.translate(at('head')[0], at('head')[1], at('head')[2] + 0.3);
+  const eye = new THREE.SphereGeometry(0.04, 8, 6); eye.translate(0.14, at('head')[1], at('head')[2] + 0.35);
+  return {
+    bones, furParts: [skinPlain(torso, bi('body'), 'body', BARK)], hardParts: [skinPlain(skull, bi('head'), 'head', BARK)], eyeParts: [skinPlain(eye, bi('head'), 'eye', BARK)],
+    // the hitbox path (src/physics/creatures.ts) reads these: the body capsule along the body bone (it rears with him),
+    // ×2.6 → a 5.2 m barrel of radius 1.7 m at 4.8 m; the head ball on the skull joint; the motor capsule 0.9 m wide
+    dims: {
+      bodyY: 1.85, bodyHalfLen: 1.0, bodyRadius: 0.65, headRadius: 0.36, legLen: 1.85, halfWidth: 0.8,
+      feet: [[0.65, 1.25], [-0.66, 1.25], [0.57, -1.42], [-0.6, -1.42]],
+    },
+  };
+}
+
+/**
+ * The King's species on his own rig (Debug ▸ Antler King rig = B): `base` (the fight's elk-derived King: his coat, sounds,
+ * AI hook and damage rule) as a custom rig — KING_BONES and kingRig.ts's poses instead of the elk's bones and gaits. The
+ * hull (`antler-king-rig[.phone].rigged.glb`) replaces the placeholder through pineCreatures.ts like every Pine Hollow hull.
+ */
+export function kingOwnSpecies(base: SpeciesDef): SpeciesDef {
+  // (the elk's postPose / gait knobs are the quadruped path's: a custom rig never runs them)
+  return { ...base, rig: 'custom', animate: animateKing, build: () => buildOwnRig() };
 }
 
 // ─────────────── the model (E306 / E315 M5) ───────────────

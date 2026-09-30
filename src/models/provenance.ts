@@ -13,7 +13,7 @@ export const HULL_PIPELINE: Readonly<Record<string, Pipeline>> = {
   collie: 'hunyuan', 'ghost-horse': 'hunyuan', 'golden-king': 'hunyuan',
   // Pine Hollow (art/pine-hollow/round-9-creature-refs/)
   'deer-hind': 'trellis', 'deer-stag': 'hunyuan', boar: 'hunyuan', 'elk-cow': 'hunyuan', 'elk-bull': 'hunyuan',
-  'bear-black': 'hunyuan', 'bear-brown': 'hunyuan', 'antler-king': 'hunyuan',
+  'bear-black': 'hunyuan', 'bear-brown': 'hunyuan', 'antler-king': 'hunyuan', 'antler-king-rig': 'hunyuan',
 };
 
 /** species whose mesh is a generated GLB of its own, not a hull on the shared rigs (Driftwood's Drowned Captain) */

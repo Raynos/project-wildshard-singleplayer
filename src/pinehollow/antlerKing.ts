@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Animal } from '../entities/Animal';
-import { registerSpecies, speciesDef, variantDef, hasSpecies } from '../entities/species/registry';
+import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '../entities/species/registry';
 import { Boss, type BossDef, type BossScript, type BossState } from '../game/Boss';
 import { GroundTell } from '../game/Elite';
 import { BossBar } from '../ui/BossBar';
@@ -15,7 +15,9 @@ import { KINGS_CLEARING } from '../chunks/pineHollowLayout';
 import type { Interactable } from '../world/Cabin';
 import type { Music } from '../audio/Music';
 import { FogWall, Puffs, flameCard } from './fxKit';
-import { KING_VARIANT, dressAntlerKing, makeKingKit, type KingKit, type KingLook } from '../chunks/pine-hollow/models/antlerKing';
+import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../chunks/pine-hollow/models/antlerKing';
+import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from './kingRig';
+import { kingOwnRigOn } from '../entities/pineCreatures';
 import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { KING_PHASE_AT, burnTick, headingTo, inArc, ringCatches, wallPush } from './combatMath';
 import type { FxMaterial } from '../world/fx';
@@ -49,6 +51,10 @@ import { shardSlot } from '../core/shardState';
  *
  *   STAND-IN MODEL: src/chunks/pine-hollow/models/antlerKing.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
  *   factory PH-M3's Bark Warden replaces. The King is its own kind, 'antler-king' (the journal's page answers to it).
+ *   HIS OWN RIG (E322 F-M1, Debug ▸ Antler King rig = B): the same species as a custom rig (kingOwnSpecies, kingRig.ts) —
+ *   each move names itself in `mem.act` before its wind-up: the sweep → the antler sweep, the stomp → the rearing strike
+ *   (up on the hind legs, the slam at the wind-up's end, when the root ring goes out), the bells → the roar (reared, no
+ *   slam), a lane's tell → the brace; the lane itself → the charge gallop (his speed), a bolt → the hit recoil.
  *
  * Dev: `?boss=antler-king` (night forced, you at the N gap, 26 m out; `&from=<m>`), `&bossPhase=2|3` (that checkpoint),
  * `&bossGod=1` (nothing hurts you). `window.__antlerKing`.
@@ -66,19 +72,25 @@ const PHASES: BossDef['phases'] = [
 
 let kingDamage: ((a: Animal, p: THREE.Vector3) => number) | null = null;
 
-/** the King's species: the elk rig re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark) */
+/** the King's species: the elk rig re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark); with
+ *  Debug ▸ Antler King rig = B the same species on his own upright rig (E322 F-M1) */
 function registerKing(): void {
   if (hasSpecies(KING_KIND)) return;
   const elk = speciesDef('elk');
-  registerSpecies({
+  const ownRig = kingOwnRigOn();
+  const def: SpeciesDef = {
     ...elk, kind: KING_KIND, label: 'The Antler King', variants: [KING_VARIANT], aggressive: true, blood: false,
     walkSpeed: 2.2, chargeSpeed: 13,
     sounds: { call: 'elk_bugle', hurt: 'bear_hurt', callEvery: [600, 900] },
     eyeGlow: [1.0, 0.55, 0.15], eyeGlowIntensity: 2.5,
     think: () => { /* the fight's update drives him (AntlerKingFight) */ },
     damageMul: (a, p) => kingDamage?.(a, p) ?? 1,
-  });
+  };
+  registerSpecies(ownRig ? kingOwnSpecies(def) : def);
 }
+
+/** the move the King's own rig plays for the attack about to start (kingRig.ts ACT_*; the elk rig ignores it) */
+const act = (k: Animal, move: number): void => { k.mem['act'] = move; };
 
 /** a thrall of `kind`: the creature lane's 'thrall' variant when it exists, else a moss-tinted stand-in */
 function thrallVariant(kind: 'elk' | 'boar'): { variant: string; tinted: boolean } {
@@ -341,9 +353,9 @@ export class AntlerKingFight implements BossScript {
     switch (this.mode) {
       case 'stalk': {
         k.setMotion(yaw, d > 9 ? (this.phase === 1 ? 2.8 : 2.3) : 0, 1.4);
-        if (this.phase >= 1 && this.callCd <= 0 && this.aliveThralls() < 3) { this.setMode('call'); k.startAttack(1.6); this.ctx.shot('king_bells', k.position); break; }
-        if (d < 10 && this.sweepCd <= 0) { this.setMode('sweep'); k.startAttack(0.9); break; }
-        if (this.stompCd <= 0 && this.modeT > 1) { this.setMode('stomp'); k.startAttack(1.0); }
+        if (this.phase >= 1 && this.callCd <= 0 && this.aliveThralls() < 3) { this.setMode('call'); act(k, ACT_ROAR); k.startAttack(1.6); this.ctx.shot('king_bells', k.position); break; }
+        if (d < 10 && this.sweepCd <= 0) { this.setMode('sweep'); act(k, ACT_SWEEP); k.startAttack(0.9); break; }
+        if (this.stompCd <= 0 && this.modeT > 1) { this.setMode('stomp'); act(k, ACT_STRIKE); k.startAttack(1.0); }
         break;
       }
       case 'sweep': {
@@ -389,8 +401,8 @@ export class AntlerKingFight implements BossScript {
           break;
         }
         k.setMotion(yaw, d > 18 ? 2.4 : 0, 1.6);
-        if (this.stompCd <= 0 && d < 14) { this.setMode('stomp'); k.startAttack(1.0); break; }
-        if (this.modeT > 1.2) { this.lane.start(k, p.x, p.z, 1.1); voice(this.ctx.animals, 'bear_roar', k.position); }
+        if (this.stompCd <= 0 && d < 14) { this.setMode('stomp'); act(k, ACT_STRIKE); k.startAttack(1.0); break; }
+        if (this.modeT > 1.2) { act(k, ACT_BRACE); this.lane.start(k, p.x, p.z, 1.1); voice(this.ctx.animals, 'bear_roar', k.position); }
         break;
       }
       default: this.setMode(this.phase === 2 ? 'stalk3' : 'stalk');

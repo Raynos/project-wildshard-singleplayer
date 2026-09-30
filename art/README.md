@@ -534,3 +534,4 @@ are codex edits of live iPhone 16 Pro portrait Bag captures, two frames per vari
 
 Recommended: Pine C, Nalati A, Nine Dragon A, in that order. The folder's README holds the per-shard audit (the slop
 and the bugs).
+- `pine-hollow/round-25-e322-king-rig/` — E322 F-M1: the Antler King's own upright rig (Debug ▸ Antler King rig A/B): the codex ref, the Hunyuan hull, the rig gate's freeze, `board.jpg` (A/B idle · charge · rearing strike, by day).

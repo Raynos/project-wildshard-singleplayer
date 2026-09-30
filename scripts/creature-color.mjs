@@ -47,14 +47,17 @@ const CHUNKS = {
     hulls: {
       'deer-hind': { k: 0.85 }, 'deer-stag': { k: 0.85 }, boar: { k: 0.85 },
       'elk-cow': { k: 0.85 }, 'elk-bull': { k: 0.85 }, 'bear-black': { k: 0.8, lift: 2 }, 'bear-brown': { k: 0.85 }, 'antler-king': { k: 0.8 },
+      // E322 F-M1: the Antler King's own upright hull (its own round and staging folder: the codex ref's backdrop sheet
+      // stripped from the post by the scratch strip step, art/pine-hollow/round-25-e322-king-rig/README.md)
+      'antler-king-rig': { k: 0.8, src: 'art/pine-hollow/round-25-e322-king-rig', post: '~/ml/img2mesh/out/pine-hollow-king-rig-clean' },
     },
   },
 };
 const CFG = CHUNKS[CHUNK];
 if (!CFG) throw new Error(`creature-color: no table for chunk '${CHUNK}'`);
 const POST = tilde(flag('post', CFG.post));
-const OUT = resolvePath(ROOT, CFG.src);
-mkdirSync(OUT, { recursive: true });
+const OUT0 = resolvePath(ROOT, CFG.src);
+mkdirSync(OUT0, { recursive: true });
 const TMP = flag('tmp', join('/tmp', `creature-color-${CHUNK}`));
 mkdirSync(TMP, { recursive: true });
 
@@ -224,7 +227,9 @@ await MeshoptDecoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
 for (const [name, knobs] of Object.entries(CFG.hulls)) {
   if (only.length > 0 && !only.includes(name)) continue;
-  const doc = await io.read(join(POST, name, `${name}.glb`));
+  // a hull may keep its own round (`src`) and staging folder (`post`)
+  const OUT = knobs.src ? resolvePath(ROOT, knobs.src) : OUT0, POSTH = knobs.post ? tilde(knobs.post) : POST;
+  const doc = await io.read(join(POSTH, name, `${name}.glb`));
   const mat = doc.getRoot().listMaterials()[0];
   const tex = mat?.getBaseColorTexture() ?? doc.getRoot().listTextures()[0];
   const img = tex?.getImage(); if (!tex || !img) throw new Error(`${name}: no base colour texture`);
