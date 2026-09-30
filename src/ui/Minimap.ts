@@ -447,6 +447,7 @@ export class Minimap {
       return out;
     }
     const F = getActiveChunk().forest, density = new Noise2D(SEED + 5);
+    if (!F) { this.crowns = []; return this.crowns; } // a treeless shard (no ChunkDef.forest): no crowns
     const rng = new Rng(SEED + 4242);
     const cell = 5, half = CHUNK_HALF - 6;
     const cabinR = 12;
@@ -489,7 +490,7 @@ export class Minimap {
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
     const painted = chunk.style === 'painterly';   // Nalati: its own palette (nalatiGround), its names, no pines / cabins
     const bareGround = chunk.map?.ground ?? null;  // a structure-first shard: a flat void under its built world (ChunkMapDef.ground)
-    const spruce = painted ? chunk.forest.mask : undefined;
+    const spruce = painted ? chunk.forest?.mask : undefined;
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const wx = CHUNK_HALF - u0 - i * step, wz = CHUNK_HALF - v0 - j * step;
@@ -512,7 +513,7 @@ export class Minimap {
         if (depth > 0) { mix(SEA_SHALLOW, SEA_DEEP, smoothstep(0, ocean.deepDepth, depth), col); sh = 1; }
         else { mix(SAND, GRASS_HI, smoothstep(1.5, 8, -depth), col); mix(col, ROCK, smoothstep(0.14, 0.4, slope), col); }
       } else {
-        const grove = smoothstep(F.clearings[0], F.clearings[1], density.fbm(wx * F.densityFreq, wz * F.densityFreq, 3));
+        const grove = F ? smoothstep(F.clearings[0], F.clearings[1], density.fbm(wx * F.densityFreq, wz * F.densityFreq, 3)) : 0;
         mix(GRASS_LO, GRASS_HI, alt, col);
         mix(col, FLOOR, grove * 0.8, col);
         mix(col, ROCK, smoothstep(0.14, 0.4, slope), col);

@@ -212,6 +212,7 @@ export class Sky {
   private async setupHDRI(): Promise<THREE.Color> {
     const { sky: S } = getActiveChunk();
     const hdriName = S.hdri;
+    if (hdriName === undefined) throw new Error('Sky: the HDRI rig needs ChunkDef.sky.hdri');
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
     // the HDR itself: the gain-mapped JPEG + PNG pair (~0.3 MB, BakedSky.ts) when the build has it, else the 4–5 MB .hdr
     const pair = bakedSkyUrls(hdriName);

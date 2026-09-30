@@ -196,6 +196,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
   const terrain: ChunkTerrain = {
     heightAt, normalAt, trailDistance, cabinMask, pondMask, waterLevel, ...(spec.streamAt ? { streamAt: spec.streamAt } : {}),
     splatAt: (x, z) => {
+      if (!spec.splat) return [1, 0, 0, 0]; // no splat ground (TerrainSpec.splat omitted)
       const [a, b, c, d] = spec.splat(x, z, terrain, noise);
       const s = a + b + c + d;
       return [a / s, b / s, c / s, d / s];

@@ -5,8 +5,8 @@
  *   game.onUpdate((dt) => amb.update(dt, game.camera));   // listener + the surf emitter every frame, the zone mix at 10 Hz
  *   amb.setUnderwater(true | false)                       // Player.onSubmerge / onSurface (next to audio.setUnderwater)
  *   amb.night = 0 … 1                                     // the day / night clock (src/world/DayNight.ts, when it lands)
- *   amb.onZone = (zone) => …                              // the dominant zone changed ('sea' | 'beach' | 'palms' | 'jungle' |
- *                                                         //   'cove' | 'lookout' | 'hold' | 'cave' | 'shrine') — a hook for the music (E5)
+ *   amb.zone                                              // the dominant zone ('sea' | 'beach' | 'palms' | 'jungle' | 'cove' |
+ *                                                         //   'lookout' | 'hold' | 'cave' | 'shrine'; E318: its never-wired onZone hook is gone)
  *   amb.diag                                              // the live mix: every bed's level and every reverb send (logging / tests)
  *
  * The beds (all built once, on the first update after the first gesture; nothing is created per frame):
@@ -69,7 +69,6 @@ interface Bed { gain: GainNode; level: number }
 export class IslandAmbience {
   /** 0 = day … 1 = night (the clock drives it) */
   night = 0;
-  onZone?: (zone: Zone) => void;
   zone: Zone = 'beach';
   /** the live mix, refreshed at 10 Hz (no allocation: the same object) */
   readonly diag = {
@@ -372,10 +371,10 @@ export class IslandAmbience {
     }
     D.surf = surf * dry; D.lap = lap; D.breeze = breeze; D.palms = palms; D.wind = wind; D.jungle = jungle; D.night = night; D.cove = coveW;
     D.waterfall = Math.hypot(x - this.fall.x, z - this.fall.z); D.lookout = Math.min(1, lookout); D.occlusion = occl; D.hold = hold; D.cave = cave; D.shrine = shrine; D.underwater = uw;
-    // the dominant zone (a music hook)
+    // the dominant zone
     const zone: Zone = uw ? 'sea' : hold > 0.5 ? 'hold' : cave > 0.5 ? 'cave' : shrine > 0.5 ? 'shrine' : lookout > 0.5 ? 'lookout'
       : jungle > 0.5 ? 'jungle' : coveW > 0.5 ? 'cove' : ground < o.sea ? 'sea' : palms > 0.5 ? 'palms' : 'beach';
-    if (zone !== this.zone) { this.zone = zone; this.onZone?.(zone); }
+    this.zone = zone;
   }
   /** the listener's right vector on the ground: (−forward.z, forward.x) */
   private rightX(): number { return -this.audio.ctx.listener.forwardZ.value; }

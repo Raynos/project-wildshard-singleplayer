@@ -15,6 +15,8 @@ export function activeGrade(def: ChunkDef): { grade: ChunkGrade; look: ChunkLook
 
 /** the ground layers the terrain loads, with the boreal set (canopy litter, moss, tiling breakup) when the shard has one */
 export function groundSet(def: ChunkDef): { layers: readonly string[]; tints: readonly RGB[]; boreal: { normalK: readonly number[]; trailDust: readonly number[]; grassTint: readonly number[] } | null } {
-  const b = def.assets.boreal;
-  return { layers: def.assets.groundLayers, tints: def.assets.groundTints, boreal: b ? { normalK: b.normalK, trailDust: b.trailDust, grassTint: b.grassTint } : null };
+  const a = def.assets;
+  if (!a) return { layers: [], tints: [], boreal: null }; // no PBR ground (Driftwood)
+  const b = a.boreal;
+  return { layers: a.groundLayers, tints: a.groundTints, boreal: b ? { normalK: b.normalK, trailDust: b.trailDust, grassTint: b.grassTint } : null };
 }

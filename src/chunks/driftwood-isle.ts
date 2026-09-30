@@ -204,33 +204,11 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
       PIER_PATH_BED, ...PATHS.slice(1),
     ],
     cabinSites: [],
-    /** Unused by the low-poly terrain (it colours by height and slope), kept sane for the splat contract: [sand, grass, rock, trail]. */
-    splat(x, z, t) {
-      const [, ny] = t.normalAt(x, z, 1.0);
-      const slope = 1 - ny;
-      const h = t.heightAt(x, z);
-      const rock = clamp(smoothstep(0.2, 0.4, slope), 0, 1);
-      const grass = clamp(smoothstep(2.5, 5, h), 0, 1) * (1 - rock);
-      const sand = Math.max(0, 1 - rock - grass);
-      return [sand, grass, rock, 0];
-    },
+    // no `splat`: the low-poly terrain colours by height and slope (E318: the borrowed splat, PBR assets, pine bark, forest
+    // block and HDRI name the Pine Hollow path would read are gone — ChunkDef makes them optional)
   }),
 
-  // the low-poly style loads none of these; they are what the engine's PBR path would use
-  assets: {
-    groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
-    groundTints: [[0.95, 0.88, 0.7], [0.6, 0.85, 0.45], [0.7, 0.7, 0.72], [0.9, 0.84, 0.66]],
-    slabRock: 'rock_ground',
-  },
-  trees: { factory: 'none', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees' }, // no forest trees (palms are their own builder, src/world/Palms.ts)
-  forest: {
-    spacing: 9,
-    densityFreq: 0.01,
-    clearings: [-0.3, 0.4],
-    maxSlope: 0.7,
-    tintHue: 0.28, tintHueJitter: [-0.03, 0.03], tintSat: [0.5, 0.7], tintLight: [0.5, 0.62],
-    largeVariantChance: 0.1,
-  },
+  trees: { factory: 'none', noun: 'trees' }, // no forest trees (palms are their own builder, src/world/Palms.ts)
   // ── island fauna (loot-agent): no forest here, so every plan asks for the open (`canopy: false`); the placer treats a
   // treeless shard as all clearing and keeps animals above the water line. Trails are only the four jetties' sandbars,
   // hence the wide band. Anchors: boar sounders on the south beach by the pier, the west back-beach palms and the north
@@ -263,7 +241,6 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     boar: { sightRange: 42, sightRangeGraze: 26, sightCone: 1.22, hearWalk: 18, hearSprint: 34, noticeRate: 0.65, impactAlert: 28 },
   },
   sky: {
-    hdri: 'kloofendal_48d_partly_cloudy_puresky', // unused: the sky is the stylized dome (Sky.setupStylized)
     sunColor: [1.0, 0.97, 0.9],
     sunIntensity: 2.7,
     envIntensity: 0.7,

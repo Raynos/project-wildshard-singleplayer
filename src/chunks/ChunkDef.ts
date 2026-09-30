@@ -149,9 +149,10 @@ export interface TerrainSpec {
   /**
    * Ground-layer blend for `ChunkAssets.groundLayers` — [layer0, layer1, layer2, layer3], any
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,
-   * trail distance and the masks.
+   * trail distance and the masks. Omitted (a shard with no splat ground: Driftwood colours by height and slope, E318):
+   * all layer 0.
    */
-  splat: (x: number, z: number, t: ChunkTerrain, noise: TerrainNoise) => [number, number, number, number];
+  splat?: (x: number, z: number, t: ChunkTerrain, noise: TerrainNoise) => [number, number, number, number];
 }
 
 /** Texture / model ids under `public/assets/` (see `scripts/fetch-assets.mjs`). */
@@ -180,10 +181,10 @@ export interface ChunkTrees {
    * (collision / culling hooks still work). `'spruce'` → `src/world/Spruce.ts` (painterly Tian Shan spruce, no textures).
    */
   factory: 'pine' | 'spruce' | 'none';
-  /** PBR set for the trunks */
-  bark: string;
-  /** folder under `public/assets/tex/` holding `twig_rgba.png`, `twig_nor_gl.jpg`, `twig_arm.jpg` */
-  twigAtlas: string;
+  /** PBR set for the trunks (the `'pine'` factory's; omitted by a shard without pines) */
+  bark?: string;
+  /** folder under `public/assets/tex/` holding `twig_rgba.png`, `twig_nor_gl.jpg`, `twig_arm.jpg` (the `'pine'` factory's) */
+  twigAtlas?: string;
   /** what the HUD calls them, plural ("pines", "birches") */
   noun: string;
   /**
@@ -261,8 +262,9 @@ export interface HerdPlan {
 
 /** Lighting rig (`src/world/Sky.ts`). */
 export interface ChunkSky {
-  /** file stem under `public/assets/hdri/` (without `_2k.hdr`); the sun is found from its brightest pixel */
-  hdri: string;
+  /** file stem under `public/assets/hdri/` (without `_2k.hdr`); the sun is found from its brightest pixel. The HDRI rig's
+   *  (Pine Hollow); omitted by a stylized or painted sky, which downloads none (E318) */
+  hdri?: string;
   sunColor: RGB;
   sunIntensity: number;
   envIntensity: number;
@@ -531,9 +533,11 @@ export interface ChunkDef {
   heroLandscape: string;
 
   terrain: ChunkTerrain;
-  assets: ChunkAssets;
+  /** the PBR ground's texture sets; omitted by a shard that loads none (the low-poly Driftwood, E318) */
+  assets?: ChunkAssets;
   trees: ChunkTrees;
-  forest: ChunkForest;
+  /** the forest's placement; omitted by a treeless shard (Driftwood, E318) */
+  forest?: ChunkForest;
   fauna: HerdPlan[];
   /**
    * Per-shard overrides of a species' hunting-loop numbers (`HuntTuning`, src/entities/AnimalManager.ts), merged over

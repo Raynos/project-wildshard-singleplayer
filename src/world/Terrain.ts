@@ -599,7 +599,9 @@ export class Terrain {
 
   /** The chunk is a floating shard: rock walls from the surface down to -CHUNK_DEPTH. */
   private async buildSlab() {
-    const rock = await loadPBR(getActiveChunk().assets.slabRock);
+    const assets = getActiveChunk().assets;
+    if (!assets) throw new Error('Terrain: a slab needs ChunkDef.assets.slabRock');
+    const rock = await loadPBR(assets.slabRock);
     const mat = pbrMaterial(rock, { color: new THREE.Color(0.55, 0.52, 0.5), side: THREE.FrontSide });
     const depth = CHUNK_DEPTH.toFixed(1);
     mat.onBeforeCompile = (shader) => {

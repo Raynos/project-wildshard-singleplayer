@@ -31,7 +31,7 @@ import { installCrashFlag } from './crashFlag';
 
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {
-  pine: (renderer: THREE.WebGLRenderer, def: ChunkDef, _sky: Sky) => new TreeFactory(renderer, { bark: def.trees.bark, twigAtlas: def.trees.twigAtlas, set: treeSetOf(def.trees, (u) => u in PUBLIC_BYTES) }).build(),
+  pine: (renderer: THREE.WebGLRenderer, def: ChunkDef, _sky: Sky) => new TreeFactory(renderer, { ...(def.trees.bark !== undefined ? { bark: def.trees.bark } : {}), ...(def.trees.twigAtlas !== undefined ? { twigAtlas: def.trees.twigAtlas } : {}), set: treeSetOf(def.trees, (u) => u in PUBLIC_BYTES) }).build(),
   spruce: (renderer: THREE.WebGLRenderer, _def: ChunkDef, sky: Sky) => new SpruceFactory(renderer, sky).build(), // Nalati: painterly Tian Shan spruce (src/world/Spruce.ts)
   none: (renderer: THREE.WebGLRenderer, _def: ChunkDef, _sky: Sky) => new TreeFactory(renderer).buildEmpty(),
 } as const;
@@ -82,7 +82,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
     const t = await new Terrain().build();
     t.group.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m) sky.setupMaterial(m); });
     game.scene.add(t.group);
-    p.detail(`${TERRAIN_RES}² heightfield · ${def.assets.groundLayers.length} splat layers`);
+    p.detail(`${TERRAIN_RES}² heightfield${def.assets ? ` · ${def.assets.groundLayers.length} splat layers` : ''}`);
     return t;
   });
   const factory = await step('cards', () => TREE_FACTORIES[def.trees.factory](game.renderer, def, sky));

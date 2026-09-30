@@ -47,16 +47,19 @@ const painterlyBoot = (): string[] => [
   ...CREATURE_RIGS.map(creatureRigUrl),
 ].filter((f) => phoneUrl(f) in PUBLIC_BYTES || f in PUBLIC_BYTES);
 
+/** the pine twig atlas's three files (none without one) */
+const twigFiles = (atlas: string | undefined): string[] => (atlas === undefined ? [] : ['twig_rgba.png', 'twig_nor_gl.jpg', 'twig_arm.jpg'].map((f) => `/assets/tex/${atlas}/${f}`));
+
 /** `tex`: the textures' mode the files are for — this page's (texMode()), or the other one (the background download's lists) */
 export function chunkFiles(def: ChunkDef, tex: TexMode = texMode()): ChunkFiles {
   const baked = bakedTerrainUrl(def.slug); // scripts/bake-chunk.mjs output, when the build has one
   // the splat layers are a texture array (loadPBRArray: KTX2 twins baked unflipped, gpuLayerUrl); the slab's rock a plain set
-  const terrain = uniq([...(baked ? [baked] : []), ...groundSet(def).layers.flatMap(pbr).map((u) => gpuLayerUrl(u, tex)), ...pbr(def.assets.slabRock)]);
+  const terrain = uniq([...(baked ? [baked] : []), ...groundSet(def).layers.flatMap(pbr).map((u) => gpuLayerUrl(u, tex)), ...(def.assets ? pbr(def.assets.slabRock) : [])]);
   const cards = bakedCardUrls(def.slug); // scripts/bake-cards.mjs output, when the build has it
   const set = treeSetOf(def.trees, (u) => u in PUBLIC_BYTES); // PH-B4: the Blender species set
   const trees = set
     ? uniq([...treeSetFiles(set), ...BARK_LAYERS.flatMap(pbr).map((u) => gpuLayerUrl(u, tex))])
-    : uniq([...(cards ? Object.values(cards) : []), ...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);
+    : uniq([...(cards ? Object.values(cards) : []), ...(def.trees.bark !== undefined ? pbr(def.trees.bark) : []), ...twigFiles(def.trees.twigAtlas)]);
   // the cabins' sets — pine_bark too (Cabin.ts loadPBR): with images it is the bark layers' own files (counted in trees),
   // with KTX2 it is not (a plain set is Y-flipped, an array layer is not: two files) — compared as the files downloaded
   const layered = new Set([...terrain, ...trees].map((u) => gpuUrl(u, tex)));
@@ -67,9 +70,11 @@ export function chunkFiles(def: ChunkDef, tex: TexMode = texMode()): ChunkFiles 
   ].map((u) => gpuUrl(u, tex))).filter((f) => !layered.has(f)); // pine_bark, rock_ground: counted where first loaded
   const props = uniq([...lod('rock_moss_set_01'), ...lod('tree_stump_01'), ...lod('dead_tree_trunk')]);
   const skyJson = `/assets/baked/${def.slug}/sky.json`;
-  const pair = bakedSkyUrls(def.sky.hdri); // the gain-mapped JPEG + PNG in place of the .hdr (src/world/BakedSky.ts)
-  // a painted sky (Nalati) and the low-poly shard's stylized dome (Driftwood: its only sky since E136) download nothing
-  const sky = def.sky.painted || def.style === 'lowpoly' ? [] : [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${def.sky.hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : []),
+  const hdri = def.sky.hdri;
+  const pair = hdri !== undefined ? bakedSkyUrls(hdri) : null; // the gain-mapped JPEG + PNG in place of the .hdr (src/world/BakedSky.ts)
+  // a painted sky (Nalati), the low-poly shard's stylized dome (Driftwood: its only sky since E136) and a sky without an
+  // HDRI download nothing
+  const sky = def.sky.painted || def.style === 'lowpoly' || hdri === undefined ? [] : [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : []),
     // PH-P3: Pine Hollow's clock blends seven sky keys over a day — all of them at the bar, not fetched as the hours turn (E44)
     ...(def.slug === 'pine-hollow' ? pineSkyKeyUrls().filter((f) => f in PUBLIC_BYTES) : [])];
   // per shard: only what its boot really reads, so DOWNLOAD's declared total is honest (it was Driftwood's ~2 MB against

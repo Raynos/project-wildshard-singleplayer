@@ -85,6 +85,7 @@ export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstan
   const grid = new TreeGrid();
   if (variants.length === 0) return { trees, grid };
   const F = getActiveChunk().forest;
+  if (!F) return { trees, grid }; // no ChunkDef.forest: no forest to place
   const rng = new Rng(SEED + 99);
   const density = new Noise2D(SEED + 5);
   const cell = F.spacing; // metres between candidates → ~3400 candidates at 8.5, thinned by density
@@ -223,8 +224,8 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
   const ferns: Placement[] = [], shrubs: Placement[] = [], litter: Placement[] = [], stones: Placement[] = [], moss: Placement[] = [], reeds: Placement[] = [];
   const half = CHUNK_HALF - 8;
   const wl = waterLevel();
-  const bare = getActiveChunk().forest.density;
-  const us = getActiveChunk().forest.understory;
+  const bare = getActiveChunk().forest?.density;
+  const us = getActiveChunk().forest?.understory;
   const fernK = us?.ferns ?? 1, shrubK = us?.shrubs ?? 1, fernCanopy = us?.fernCanopy === true;
   /** the tests: pure, no rng — so a candidate's outcome is the one bit the log keeps */
   const accepts = (kind: Kind, x: number, z: number): boolean => {

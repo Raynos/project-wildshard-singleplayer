@@ -72,12 +72,13 @@ const params = new URLSearchParams(location.search);
 const wanted = chunkSlugFromUrl();
 const real = findChunk(wanted);
 const isNalati = real?.slug === 'nalati-grasslands';
-if (real && isNalati && real.trees.factory !== 'spruce') {
+const realForest = real?.forest;
+if (real && realForest && isNalati && real.trees.factory !== 'spruce') {
   // the real shard before its def switches to spruce: plant them here the way the def should
   real.trees = { ...real.trees, factory: 'spruce', noun: 'spruces' };
   real.treeCount = 1600;
   real.forest = {
-    ...real.forest, spacing: 4.2,
+    ...realForest, spacing: 4.2,
     tintHue: 0.3, tintHueJitter: [-0.06, 0.06], tintSat: [0.05, 0.25], tintLight: [0.8, 0.95],
     mask: spruceMask({ gullies: NALATI_GULLIES, normalAt: real.terrain.normalAt, seed: real.seed }),
   };
