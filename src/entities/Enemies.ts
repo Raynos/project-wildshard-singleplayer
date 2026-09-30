@@ -47,7 +47,12 @@ export interface EnemiesOpts {
   spawn?: { x: number; z: number };
   /** monkey troops to place (default 3) */
   troops?: number;
+  /** E308: where the lone practice crab lives — one small reef crab on the path at the pier's foot, the first enemy a new
+   *  player meets; it comes back PRACTICE_BACK s after it dies, once you are PRACTICE_AWAY m off */
+  practice?: { x: number; z: number };
 }
+
+const PRACTICE_BACK = 45, PRACTICE_AWAY = 30;
 
 const COCONUTS = 16, COCONUT_R = 0.13, G = 9.81, REST_T = 4, MAX_AGE = 16;
 /** a knock this hard (m/s of velocity change) in flight is the landing */
@@ -90,6 +95,9 @@ export class Enemies {
   private dAttr!: THREE.BufferAttribute;
   private dNext = 0; private dActive = 0;
   private sailors: { a: Animal; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
+  /** the practice crab now (E308; a new one after each death, see PRACTICE_BACK), and s since it died */
+  practiceCrab: Animal | null = null;
+  private practiceDead = 0;
   private playerPos = new THREE.Vector3();
 
   constructor(private readonly animals: AnimalManager, private readonly opts: EnemiesOpts) { this.group.name = 'enemies'; }
@@ -131,6 +139,7 @@ export class Enemies {
       this.group.add(this.drops);
     }
     this.placeCrabs();
+    this.placePracticeCrab();
     this.placeMonkeys();
     this.placeSailor();
     opts.scene.add(this.group);
@@ -155,6 +164,27 @@ export class Enemies {
       }
       this.placed.crabGroups++;
     }
+  }
+
+  /** the lone small crab on the path at the pier's foot (E308): a herd of one, so no big crab's death scatters it */
+  private placePracticeCrab(): void {
+    const at = this.opts.practice;
+    if (at === undefined) return;
+    const herd = this.animals.addHerd('crab', at.x, at.z);
+    const a = this.animals.spawn('crab', at.x, at.z, 0, 'small'); // yaw 0: faces −z, down the path toward the pier
+    a.herd = herd; this.animals.herds[herd]?.members.push(a);
+    this.practiceCrab = a; this.practiceDead = 0;
+    this.placed.crabs++;
+  }
+
+  /** a dead practice crab comes back PRACTICE_BACK s on, while you are PRACTICE_AWAY m off: its shell fades, a new one is placed */
+  private tickPractice(dt: number, playerPos: THREE.Vector3): void {
+    const c = this.practiceCrab, at = this.opts.practice;
+    if (c === null || at === undefined || c.alive) return;
+    this.practiceDead += dt;
+    if (this.practiceDead < PRACTICE_BACK || Math.hypot(playerPos.x - at.x, playerPos.z - at.z) < PRACTICE_AWAY) return;
+    if (!c.hidden) { c.fadeOut(); return; } // a crab leaves no carcass of its own (no corpseFade): the old shell goes first
+    this.placePracticeCrab();
   }
 
   private placeMonkeys(): void {
@@ -259,6 +289,7 @@ export class Enemies {
 
   update(dt: number, t: number, playerPos: THREE.Vector3): void {
     this.playerPos.copy(playerPos);
+    this.tickPractice(dt, playerPos);
     // ── coconuts: their bodies fly, bounce, roll and float in the physics world; this reads them ──
     const bodies = activeBodies();
     let dirty = false;

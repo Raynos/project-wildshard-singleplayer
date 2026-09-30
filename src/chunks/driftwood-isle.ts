@@ -36,13 +36,20 @@ export const JETTIES = [
 ];
 /** the sand paths between the POIs (also `trails[4..]`): [pier → hut], [hut → lookout], [fork → wreck], [hut → shrine] */
 export const PATHS: [number, number][][] = [
-  [[0, -188], [-8, -172], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
+  // E308: it starts where the built pier's landing steps down onto the sand (z ≈ −152, not on the deck over the lagoon)
+  // and runs the fenced corridor off it (Trailside's landing fences) to the plateau ramp's foot. The maps draw this line;
+  // the terrain's bed keeps PIER_PATH_BED below
+  [[0, -152], [-8, -145], [-18, -143], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
   // hut → lookout: over the rope bridge end to end (BRIDGE.a → .b), then up the headland ramp's diagonal with its plank
   // steps and fence (Trailside), not beside them over the crags (PHYSICS.md P9: the old line climbed 2–3 m a metre)
   [[-20, -68], [-8, -50], [14, -24], [17, 8], [15, 12], [16, 14], [32, 30], [34, 32], [46, 46], [86, 86], [90, 90]],
   [[17, 8], [60, 0], [100, -2], [140, 4]],
   [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-96, 96]],
 ];
+/** the pier → hut path's sand bed as the terrain carves it (`trails`), the line it had before E308: the Blender spawn cove
+ *  is baked from these heights (blenderArea.ts), so re-cutting the bed along PATHS[0] would lift or sink the cove's
+ *  ground by up to 0.35 m at the pier's foot until the cove is re-baked */
+const PIER_PATH_BED: [number, number][] = [[0, -188], [-8, -172], [-30, -142], [-30, -104], [-24, -80], [-20, -68]];
 /** the island disc: centre and nominal shoreline radius (the shoreline is noise-warped ±30 m) */
 export const ISLAND = { x: 0, z: 12, r: 188 };
 /** the hut's plateau: a flat-topped crag in the south-centre; the hut stands at its middle */
@@ -62,8 +69,19 @@ export const BRIDGE = { a: [16, 14] as [number, number], b: [32, 30] as [number,
 /** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
 export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 
-/** on the pier deck, 15 m in (past the HUD's 14 m boundary warning), facing north up the pier */
-const SPAWN = { x: 0, z: -CHUNK_HALF + 15, yaw: Math.PI };
+/** E308 (Jake's pick B, art/onboarding/round-1-first-minutes/board-3-start-length.jpg): half way down the pier (it runs
+ *  ~100 m, sea end z −250 → the landing on the sand z ≈ −152), facing north up it, so the first frame is still the island
+ *  from the sea: 38 s walking / 22 s sprinting to Wendell, was 49 / 27 from 15 m in */
+const SPAWN = { x: 0, z: -194, yaw: Math.PI };
+/** the sailboat you arrived in, moored alongside the pier's west side by the spawn (it was at the sea end, 9 m behind the
+ *  old spawn; E308, Jake: "move the boat to halfway down the pier too") — bow out to sea, its bow line on the pennant's piling */
+export const BOAT_MOOR = { x: -4.2, z: SPAWN.z - 9 };
+/** metres from the pier's sea end to the piling that flies the pennant (E111; E308 moved it from the sea-end bollard to
+ *  half way down, just past the boat's bow — Jake: "also the flag on the pier also halfway down") */
+export const PIER_PENNANT_AT = 43.2;
+/** the practice crab (E308, Jake's pick A, board-2-practice-target.jpg): one lone small reef crab on the sand path at the
+ *  pier's foot, where the landing's fenced corridor turns for the plateau ramp — the first enemy a new player meets */
+export const PRACTICE_CRAB = { x: -7, z: -143 };
 
 export const DRIFTWOOD_ISLE: ChunkDef = {
   id: 'chunk://local/driftwood-isle',
@@ -181,7 +199,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
       [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],
       [[-CHUNK_HALF, 0], [-CHUNK_HALF + ROAD_LENGTH, 0]],
       [[CHUNK_HALF, 0], [CHUNK_HALF - ROAD_LENGTH, 0]],
-      ...PATHS,
+      PIER_PATH_BED, ...PATHS.slice(1),
     ],
     cabinSites: [],
     /** Unused by the low-poly terrain (it colours by height and slope), kept sane for the splat contract: [sand, grass, rock, trail]. */
@@ -217,7 +235,9 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   // grove; a brown bear in the south-east jungle grove below the plateau (E294: off the Wreck Cove sand and the wreck path,
   // ~70 m from every quest path, past its 45 m sight), a black bear in the NW jungle under the shrine; a few deer on the plateau.
   fauna: [
-    { kind: 'boar', count: 4, anchor: { x: 45, z: -150, rMin: 5, rMax: 25 }, canopy: false, trailBand: [8, 600] },
+    // E308: the south-beach sounder sits back from the pier's foot (was 45, −150: three boars within 45 m of the landing
+    // met a new player before the practice crab did)
+    { kind: 'boar', count: 4, anchor: { x: 66, z: -132, rMin: 5, rMax: 20 }, canopy: false, trailBand: [8, 600] },
     { kind: 'boar', count: 3, anchor: { x: -140, z: -30, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
     { kind: 'boar', count: 4, anchor: { x: 30, z: 150, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
     { kind: 'bear', count: 1, variants: ['brown'], anchor: { x: 56, z: -84, rMin: 4, rMax: 16 }, canopy: false, trailBand: [8, 600] },

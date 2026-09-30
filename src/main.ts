@@ -16,7 +16,8 @@ import { Palms } from './world/Palms';
 import { GroundCover } from './world/GroundCover';
 import { tintTerrain } from './world/coverTint';
 import { area as islandArea } from './world/blenderArea';
-import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from './chunks/driftwood-isle';
+import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR, PIER_PENNANT_AT, PRACTICE_CRAB } from './chunks/driftwood-isle';
+import { installFirstMinutes } from './chunks/driftwood-isle/firstMinutes';
 import { RopeBridge } from './world/RopeBridge';
 import { Seabed } from './world/Seabed';
 import { Cove } from './world/Cove';
@@ -78,6 +79,7 @@ import { Combat, aimReadout } from './ui/Combat';
 import { HurtArc, deathCause, respawnWhere, type Killer } from './ui/HurtArc';
 import { WindupWarn } from './ui/WindupWarn';
 import { DeathFade } from './ui/DeathFade';
+import { FirstHints } from './ui/FirstHints';
 import { LastPlace, placeName } from './game/LastPlace';
 import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from './player/AimTargets';
 import { pastRidden, riding } from './player/riding';
@@ -296,15 +298,15 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (ocean) game.scene.add(ocean.group);
     // the south entry road is a wooden pier over the water; the player spawns on its deck
     // E315 M1: the pier model (src/chunks/driftwood-isle/models/pier.ts) placed through src/models/place.ts, which registers piece `pier`
-    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).place(registry, 'pier') : null;
+    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT }).place(registry, 'pier') : null;
     if (pier) {
       statics.push(...pier.colliders);
       const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
     }
-    // the little sailboat you arrived in, moored to the pier's sea-end bollards; you can drop into it
+    // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
     // E315 M1: the sailboat model (src/chunks/driftwood-isle/models/boat.ts) placed through src/models/place.ts, which registers
     // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
-    const boat = pier && sea ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).place(registry) : null;
+    const boat = pier && sea ? new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry) : null;
     if (boat) {
       statics.push(...boat.colliders);
       if (boat.ropes) game.scene.add(boat.ropes);
@@ -483,8 +485,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const wildlife = nalatiNow()?.attachAnimals(animals) ?? null; // Nalati's wolves / horses / sheep over the AnimalManager (src/nalati/index.ts)
   const ride = nalatiNow()?.ride ?? null; // Nalati's riding + taming (src/nalati/ride.ts): ONE prompt, always the nearest horse action
   if (ride) interactables.push(ride.interactable);
-  // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
-  const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
+  // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold,
+  // and (E308) the lone practice crab on the path at the pier's foot
+  const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [], ...(chunk.slug === 'driftwood-isle' ? { practice: PRACTICE_CRAB } : {}) }).build() : null;
   // the shard's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built);
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
   // E315 M2: Pine Hollow's trees and forest-floor kinds are models the world draws (placed drawnInto)
@@ -904,11 +907,22 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     music.sting('death');
     player.carried = true; weapons.setEnabled(false); // frozen: the fixed step leaves the body alone, no swing / shot
     deathFade.play(deathCause(by), respawnWhere(chunk, stand !== null && stand.id !== 'pier' ? placeName(stand.label) : null), {
-      dark: () => { if (stand !== null) player.spawn(stand.x, stand.z, stand.yaw, stand.y); else toSpawn(); },
+      dark: () => { if (stand !== null && stand.id !== 'pier') player.spawn(stand.x, stand.z, stand.yaw, stand.y); else toSpawn(); }, // the pier IS the spawn (E308: half way down it, facing the island)
       done: () => { player.carried = false; weapons.setEnabled(!player.swimming); },
     });
   };
   hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
+  // ── first-time control hints (E308, src/ui/FirstHints.ts: every shard's one system; after main's onJump / onDodge, which
+  // it chains): a label + pulsing ring on the touch control the first time it matters. Driftwood feeds its six triggers
+  // (src/chunks/driftwood-isle/firstMinutes.ts); another shard shows none until it feeds its own ──
+  const firstHints = new FirstHints(player, { touch: touchControls.active, paused: () => !hud.entered || hud.paused || deathFade.active || away() || world.freeCamera || world.tour.active });
+  const promptEl = document.querySelector<HTMLElement>('#hud .ws-game-prompt');
+  const firstMinutes = chunk.slug === 'driftwood-isle' ? installFirstMinutes({
+    hints: firstHints, animals: () => animals.animals, player,
+    onWindup: (fn) => { const prev = animals.onWindup; animals.onWindup = (a, dur) => { prev?.(a, dur); fn(a); }; },
+    prompt: () => (promptEl?.classList.contains('show') === true ? promptEl.textContent : ''),
+  }) : null;
+  game.onUpdate((dt) => { firstMinutes?.(dt); firstHints.update(dt); }, 'first hints');
 
   // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
   // covers the canvas) until ENTER WORLD; "Exit to main menu" freezes it again — no reload, no

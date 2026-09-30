@@ -322,32 +322,32 @@
    "name": "boat",
    "start": {
     "x": 0.3,
-    "z": -238.5,
+    "z": -196.5,
     "yaw": 0.187,
     "y": 2.0
    },
    "waypoints": [
     {
      "x": -0.8,
-     "z": -244.3
+     "z": -202.3
     },
     {
      "x": -1.9,
-     "z": -244.3
+     "z": -202.3
     },
     {
      "x": -3.4,
-     "z": -244.3
+     "z": -202.3
     },
     {
      "x": -5.0,
-     "z": -244.3
+     "z": -202.3
     }
    ],
    "expect": {
     "y": 1.12
    },
-   "notes": "off the pier deck between the pilings, 0.88 m down over the gunwale onto the boat floor"
+   "notes": "off the pier deck between the pilings, 0.88 m down over the gunwale onto the boat floor (E308: the boat is moored half way down the pier, z -203)"
   }
  ],
  "pine-hollow": [

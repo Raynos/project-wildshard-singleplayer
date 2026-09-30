@@ -43,6 +43,9 @@ export interface PierParams {
   readonly landing: PierLanding | null;
   /** the pennant's downwind direction, own xz (unit) */
   readonly pennantDir: readonly [number, number];
+  /** where the pennant flies, metres from the sea end: on the −X piling nearest it (E308: half way down the south pier, by
+   *  the spawn and the boat); absent = on the sea-end bollard (E111) */
+  readonly pennantAt?: number;
 }
 
 const C = {
@@ -292,15 +295,18 @@ function deckGeometry(p: PierParams, rng: Rng): { deck: THREE.BufferGeometry; cl
       add(put(new THREE.CylinderGeometry(0.29, 0.29, 0.12, 8), length - 0.4, across, top + 0.03), C.postTop, 0.05);
       for (let r = 0; r < 6; r++) add(put(new THREE.CylinderGeometry(0.36, 0.36, 0.1, 8), length - 0.4, across, top - 0.25 - r * 0.11), r % 2 ? C.ropeDark : C.rope, 0.04);
     }
-    // a pennant on the sea-end bollard, so the pier end reads from the beach (E111): a taller pole with a brass finial
-    // and two rope ties at the hoist; the cloth itself is its own swaying part (pennantGeometry)
-    const px = -(width / 2 + 0.25), top = deckY + 1.35, poleH = 2.75;
-    add(put(new THREE.CylinderGeometry(0.045, 0.055, poleH, 6), 0.35, px, top + poleH / 2), C.post, 0.04);
-    add(put(new THREE.CylinderGeometry(0.07, 0.07, 0.05, 6), 0.35, px, top + poleH + 0.02), C.postTop, 0.04);
-    add(put(new THREE.OctahedronGeometry(0.085, 0).scale(1, 1.5, 1), 0.35, px, top + poleH + 0.16), C.brass, 0.1);
+    // a pennant, so the pier reads from the beach (E111): a taller pole with a brass finial and two rope ties at the
+    // hoist; the cloth itself is its own swaying part (pennantGeometry). On the sea-end bollard, or (E308, `pennantAt`) on
+    // the −X piling nearest that point — its pole a little taller, so the flag flies at the same height
+    const station = p.pennantAt === undefined ? null : 1.2 + 3 * Math.max(0, Math.min(Math.floor((rampFrom - 1.3) / 3), Math.round((p.pennantAt - 1.2) / 3)));
+    const pa = station ?? 0.35, px = station === null ? -(width / 2 + 0.25) : -(width / 2 + 0.1), top = station === null ? deckY + 1.35 : postTop;
+    const poleH = 2.75 + (deckY + 1.35 - top);
+    add(put(new THREE.CylinderGeometry(0.045, 0.055, poleH, 6), pa, px, top + poleH / 2), C.post, 0.04);
+    add(put(new THREE.CylinderGeometry(0.07, 0.07, 0.05, 6), pa, px, top + poleH + 0.02), C.postTop, 0.04);
+    add(put(new THREE.OctahedronGeometry(0.085, 0).scale(1, 1.5, 1), pa, px, top + poleH + 0.16), C.brass, 0.1);
     const hoistTop = top + poleH - 0.12;
-    for (const y of [hoistTop - 0.03, hoistTop - PENNANT.hoist + 0.03]) add(put(new THREE.CylinderGeometry(0.075, 0.075, 0.06, 6), 0.35, px, y), C.rope, 0.04);
-    cloth = pennantGeometry(px, 0.35, hoistTop, p.pennantDir, rng);
+    for (const y of [hoistTop - 0.03, hoistTop - PENNANT.hoist + 0.03]) add(put(new THREE.CylinderGeometry(0.075, 0.075, 0.06, 6), pa, px, y), C.rope, 0.04);
+    cloth = pennantGeometry(px, pa, hoistTop, p.pennantDir, rng);
   }
   // ── the sea end: a low kick board so the deck reads as an end, not a cut ──
   add(put(new THREE.BoxGeometry(width + 0.3, 0.22, 0.14), 0.02, 0, deckY + 0.05), C.plankDark, 0.05);

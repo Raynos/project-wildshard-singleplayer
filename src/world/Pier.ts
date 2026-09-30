@@ -39,6 +39,8 @@ export interface PierSpec {
   pileDepth?: number;
   /** run on past `length` over the shallows to the first dry sand, and step down onto it (the south pier, E43) */
   landing?: boolean;
+  /** with a landing: the pennant flies from the piling this many metres from the sea end (E308), not the sea-end bollard */
+  pennantAt?: number;
 }
 
 export class Pier {
@@ -89,7 +91,7 @@ export class Pier {
     // the pennant streams downwind: the world's wind turned into the pier's frame
     const [wx, wz] = PENNANT_WIND, c = Math.cos(yaw), s = Math.sin(yaw);
     const pennantDir: [number, number] = yaw === 0 ? [wx, wz] : [wx * c - wz * s, wx * s + wz * c];
-    this.params = { length, width, pileDepth: this.spec.pileDepth ?? 8, landing, pennantDir };
+    this.params = { length, width, pileDepth: this.spec.pileDepth ?? 8, landing, pennantDir, ...(this.spec.pennantAt === undefined ? {} : { pennantAt: this.spec.pennantAt }) };
     const pl: Placement<PierParams> = { x: this.spec.x, y: deckY, z: this.spec.z, ...(yaw === 0 ? {} : { yaw }), params: this.params };
     const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'merged', registry,
       piece: { id, floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
@@ -105,15 +107,22 @@ export class Pier {
     return this;
   }
 
-  /** [bollard, piling] on the side of (x, z) for a boat moored alongside — bow line and stern line */
-  mooringsFor(x: number, z: number, sternZ = z + 3): { x: number; z: number }[] {
+  /** [bow post, stern piling] on the side of (x, z) for a boat moored alongside — bow line and stern line. The bow line
+   *  goes to the sea-end bollard when the bow is by it, else (E308: the boat half way down the pier) to the piling nearest
+   *  the bow */
+  mooringsFor(x: number, z: number, sternZ = z + 3, bowZ = z - 3): { x: number; z: number }[] {
     const side = (x - this.spec.x) * this.cos - (z - this.spec.z) * this.sin < 0 ? -1 : 1;
     const onSide = (p: { x: number; z: number }): boolean => Math.sign((p.x - this.spec.x) * this.cos - (p.z - this.spec.z) * this.sin) === side;
+    const nearest = (at: number, of: readonly { x: number; z: number }[]): { x: number; z: number } | undefined => {
+      let pick: { x: number; z: number } | undefined, best = Infinity;
+      for (const p of of) { if (!onSide(p)) continue; const d = Math.hypot(p.x - x, p.z - at); if (d < best) { best = d; pick = p; } }
+      return pick;
+    };
     const bollard = this.bollards.find(onSide) ?? this.bollards[0];
-    let post = this.posts[0], best = Infinity;
-    for (const p of this.posts) { if (!onSide(p)) continue; const d = Math.hypot(p.x - x, p.z - sternZ); if (d < best) { best = d; post = p; } }
-    if (!bollard || !post) throw new Error('Pier.mooringsFor(): build() first');
-    return [bollard, post];
+    const post = nearest(sternZ, this.posts);
+    const bow = bollard !== undefined && Math.hypot(bollard.x - x, bollard.z - bowZ) < 6 ? bollard : nearest(bowZ, this.posts) ?? bollard;
+    if (!bow || !post) throw new Error('Pier.mooringsFor(): build() first');
+    return [bow, post];
   }
 
   /**

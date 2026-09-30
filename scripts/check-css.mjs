@@ -55,6 +55,7 @@ const FILES = [
   { file: join(STYLES, 'pinehollow.css'), prefix: 'ws-ph-', strict: true }, // Pine Hollow's hamlet screens + the collectibles counter (src/pinehollow/quest/ui.ts)
   { file: join(STYLES, 'debug.css'), prefix: 'ws-dbg-', strict: true }, // pause ▸ Settings ▸ Debug's groups (src/ui/DebugMenu.ts, the registry src/ui/debugOptions.ts; E162)
   { file: join(STYLES, 'playgrounds.css'), prefix: 'ws-pg-', strict: true }, // the feature playgrounds' run chip (src/playgrounds/hud.ts, E307)
+  { file: join(STYLES, 'hints.css'), prefix: 'ws-hint-', strict: true }, // first-time control hints on the touch controls (src/ui/FirstHints.ts, E308)
   { file: join(STYLES, 'loot.css'), prefix: 'ws-loot-', strict: true }, // the purse on the HUD: the coin chip + the "+n" pop (src/ui/CoinChip.ts, E314)
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
   { file: join(ROOT, 'src/ui/loading.css'), prefix: 'ws-load-', strict: false },
