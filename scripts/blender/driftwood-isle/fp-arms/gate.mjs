@@ -21,7 +21,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 
 const args = process.argv.slice(2);
 const file = args.find((a) => !a.startsWith('--'));
-const opt = Object.fromEntries(args.filter((a) => a.startsWith('--')).map((a) => { const [k, v] = a.slice(2).split('='); return [k, v ?? 'true']; }));
+const opt = Object.fromEntries(args.filter((a) => a.startsWith('--')).map((a) => { const i = a.indexOf('='); return i === -1 ? [a.slice(2), 'true'] : [a.slice(2, i), a.slice(i + 1)]; }));
 if (file === undefined) throw new Error('usage: gate.mjs <fp-arms.glb> [--json=…] [--ply=<dir> --poses=clip@t,…]');
 
 const buf = readFileSync(file);
@@ -190,11 +190,12 @@ put('G7 medial/lateral', null, { note: 'not applicable: a first-person pair of a
 put('G8 foot contact', null, { note: 'not applicable: no feet' });
 
 // PLY dumps for the Blender preview
-if (opt.ply !== undefined) {
+if ('ply' in opt) {
   mkdirSync(opt.ply, { recursive: true });
-  for (const spec of (opt.poses ?? 'rest@0').split(',')) {
-    const [clipName, t, sword] = spec.split('@');
-    pose(clipName, Number(t ?? 0));
+  for (const spec of ('poses' in opt ? opt.poses : 'rest@0').split(',')) {
+    const parts = spec.split('@');
+    const clipName = parts[0], t = parts.length > 1 ? parts[1] : '0', sword = parts.length > 2 ? parts[2] : null;
+    pose(clipName, Number(t));
     const s = skinned();
     const tri = [], cols = [];
     for (let i = 0; i < n; i++) { tri.push(s[i * 3], s[i * 3 + 1], s[i * 3 + 2]); cols.push(C.getX(i), C.getY(i), C.getZ(i)); }
@@ -216,7 +217,7 @@ if (opt.ply !== undefined) {
 }
 const fails = Object.entries(report.checks).filter(([, c]) => c.pass === false).map(([k]) => k);
 report.verdict = fails.length === 0 ? 'pass' : `fail: ${fails.join(', ')}`;
-if (opt.json !== undefined) writeFileSync(opt.json, JSON.stringify(report, null, 1));
+if ('json' in opt) writeFileSync(opt.json, JSON.stringify(report, null, 1));
 for (const [k, c] of Object.entries(report.checks)) console.log(`${c.pass === null ? 'n/a ' : c.pass ? 'PASS' : 'FAIL'}  ${k}  ${JSON.stringify(Object.fromEntries(Object.entries(c).filter(([x]) => x !== 'pass' && x !== 'perClip'))).slice(0, 260)}`);
 console.log(`verdict: ${report.verdict}`);
 process.exitCode = fails.length === 0 ? 0 : 1;

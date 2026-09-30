@@ -26,10 +26,11 @@ import { MeshoptEncoder } from 'meshoptimizer';
 import { rigIO, SRC, bindSkeleton, ARM } from './skeleton.mjs';
 import { armConst, buildBones, measure, twoBone, LEFT_HAND, RIGHT_HAND } from '../../../../src/chunks/nine-dragon-stack/vm/rig.ts';
 
-const [partsPath, outPath] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const positional = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 /** --raw: no meshopt (build.sh meshopts the build into public/, as every Blender target) */
 const RAW = process.argv.includes('--raw');
-if (partsPath === undefined || outPath === undefined) throw new Error('usage: bake.mjs <parts.json> <out.glb>');
+if (positional.length < 2) throw new Error('usage: bake.mjs <parts.json> <out.glb> [--raw]');
+const partsPath = positional[0], outPath = positional[1];
 const P = JSON.parse(readFileSync(partsPath, 'utf8'));
 const io = await rigIO();
 const doc = await io.read(SRC);

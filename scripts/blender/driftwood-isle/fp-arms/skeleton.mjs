@@ -41,8 +41,8 @@ export function bindSkeleton(doc) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  if (process.argv.length < 3) throw new Error('usage: skeleton.mjs <out.json>');
   const outPath = process.argv[2];
-  if (outPath === undefined) throw new Error('usage: skeleton.mjs <out.json>');
   const doc = await (await rigIO()).read(SRC);
   const bones = bindSkeleton(doc);
   const clips = doc.getRoot().listAnimations().map((a) => a.getName());
