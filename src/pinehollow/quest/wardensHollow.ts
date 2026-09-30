@@ -16,7 +16,7 @@
  *   king    the Antler King — HIS FIGHT STAYS OPEN-WORLD (antlerKing.ts: any night, in the clearing); the quest only
  *           counts his death (`dead:king`, raised on the kill whenever it happens)
  *   dawn    on his death (or the moment the quest reaches this beat after an early kill) the clock runs to dawn, every
- *           lantern on the shard is lit, the dawn sting plays, the reward: the caption, amber heartwood, the title
+ *           lantern on the shard is lit, the dawn sting plays, the reward: the caption, amber resin, the title
  */
 import type { NpcDef, QuestDef } from '../../game/quest/quest';
 

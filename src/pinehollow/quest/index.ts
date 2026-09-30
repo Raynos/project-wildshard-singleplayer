@@ -49,7 +49,7 @@ import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type
 import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, SECRET_FLAGS, type Spot } from './table';
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../../chunks/pine-hollow/models/people';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
-import type { Trade, TradeItem } from './trades';
+import type { Room, Trade, TradeItem } from './trades';
 import { BoardPanel, TradePanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
 import { hollowLogFloor, hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
@@ -69,7 +69,7 @@ export interface PineQuestHost {
   inventory: Inventory; progress: Progress; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
   weapons: { setEnabled: (on: boolean) => void; visible: boolean };
   /** the crossbow's bolts, and the loadout's special ammo (PH-C11: pitch / broadhead bolts, cartridges, arrows) */
-  crossbow: { addBolts: (n: number) => void; addAmmo?: (kind: 'pitch' | 'broadhead' | 'cartridge' | 'arrow', n: number) => void };
+  crossbow: { addBolts: (n: number) => void; addAmmo?: (kind: 'pitch' | 'broadhead' | 'cartridge' | 'arrow', n: number) => void; /** can the kit hold n more? (E314 C: no trade into a full quiver) */ room?: Room };
   menu: { isOpen: boolean; close: (silent?: boolean) => void };
   interactables: Interactable[];
   registry: WorldRegistry;
@@ -314,14 +314,13 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   // ── the trader's slate ──
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const pack = { count: (id: TradeItem): number => inventory.count(id) };
-  const trade = new TradePanel(pack, (s) => s in SKINS && h.skins.has(s as keyof typeof SKINS));
+  const trade = new TradePanel(pack, (s) => s in SKINS && h.skins.has(s as keyof typeof SKINS), (k, n) => h.crossbow.room?.(k, n) ?? true);
   trade.onTrade = (t: Trade) => {
     for (const g of t.give) inventory.take(g.item, g.n);
     const got = t.get;
     if ('bolts' in got) h.crossbow.addBolts(got.bolts);
     else if ('ammo' in got) h.crossbow.addAmmo?.(got.ammo, got.n);
-    else if ('skin' in got) { const s = SKINS[got.skin]; h.skins.own(s.id); h.wearSkin(s); }
-    else inventory.add(got.item, got.n);
+    else { const s = SKINS[got.skin]; h.skins.own(s.id); h.wearSkin(s); } // nothing Mott gives goes in the pack (E314 C)
     sfx?.bark('trader', traderVoice);
     kitSfx.interact('chime');
     hud.toast(`Traded · ${t.label}`);
@@ -468,8 +467,8 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     if (at(5)) { reward.show(true); objective.root.classList.add('ws-quest-hide'); }
     if (at(12)) {
       reward.show(false); objective.root.classList.remove('ws-quest-hide');
-      inventory.add('amber-heartwood', 2);
-      hud.toast("Hale's thanks · 2 amber heartwood — and the Warden's bow is yours to keep");
+      inventory.add('amber-resin', 4); // was 2 amber heartwood, which nothing used (E314 C)
+      hud.toast("Hale's thanks · 4 amber resin — and the Warden's bow is yours to keep");
       flags.set('seen:dawn');
       dawnT = -1;
     }

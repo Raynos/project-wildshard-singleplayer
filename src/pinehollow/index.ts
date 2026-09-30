@@ -86,7 +86,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     sound: (name, at) => { voice(animals, name, at); },
     shot: (name, at) => { sfx?.shot(name, { at }); },
     toast: (s) => { h.hud.toast(s); }, feed: (s) => { h.hud.killFeed(s); },
-    addItem: (id) => { h.inventory.add(id); },
+    addItem: (id, n) => { h.inventory.add(id, n); },
     ownSkin: (id) => { const s = SKINS[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
     dusk: () => sky.pine?.dusk ?? 0, night: () => sky.pine?.night ?? 0,

@@ -47,7 +47,7 @@ import { shardSlot } from '../core/shardState';
  *   Checkpoints per phase (Boss.ts): die and you are back at the stones' N gap, bolts refilled, the King at the start of
  *   the phase you reached. The reward (the gold legendary orb, once): THE WARDEN'S LONGBOW — the bow itself (PH-C11,
  *   src/player/Longbow.ts, adapted from Nalati's Bow.ts) joins the kit, with the WARDEN crossbow skin and the
- *   'warden-longbow' pack flag that keeps it across sessions; a re-fight pays the trophy (Amber heartwood). Music: Music.ts's Pine Hollow boss slot (setPineScene('boss') / setBossPhase).
+ *   Owned 'warden-longbow' that keeps it across sessions (E314 C, src/pinehollow/loadout.ts); a re-fight pays 3 amber resin. Music: Music.ts's Pine Hollow boss slot (setPineScene('boss') / setBossPhase).
  *
  *   STAND-IN MODEL: src/chunks/pine-hollow/models/antlerKing.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
  *   factory PH-M3's Bark Warden replaces. The King is its own kind, 'antler-king' (the journal's page answers to it).
@@ -608,8 +608,9 @@ export class AntlerKing {
       reward: {
         tier: 'LEGENDARY', name: "THE WARDEN'S LONGBOW", flavour: 'his bow, and his amber for your crossbow', prompt: "Take the Warden's Longbow",
         model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'),
-        grant: () => { ctx.addItem('warden-longbow'); ctx.ownSkin('warden'); ctx.longbow?.grant(); },
-        trophy: () => { ctx.addItem('amber-heartwood'); },
+        // the bow is kept by the loadout (Owned 'warden-longbow'), never by a pack slot (E314 C: a full pack lost it for good)
+        grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); },
+        trophy: () => { ctx.addItem('amber-resin', 3); }, // a re-fight's prize (was amber heartwood, which nothing used)
       },
     };
     const pl = ctx.player;

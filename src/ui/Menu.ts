@@ -22,13 +22,14 @@
  * E314 (Jake's picks, docs/plans/DRIFTWOOD-LOOT.md): the BAG is five icon tabs on every shard — MAP · GEAR (the paper doll:
  * the weapons and skins that used to head the Inventory, and the shard's loot) · FINDS (Driftwood's sticker book, hidden
  * where a shard has none) · PACK (the Inventory's junk grid) · FEATS (Achievements); Pine Hollow's JOURNAL sits before
- * FEATS. The panels are src/ui/bag.ts.
+ * FEATS. The panels are src/ui/bag.ts. Pine Hollow (E314 C): its hunter's journal is its FINDS (`setFinds`, from
+ * src/ui/compendium/install.ts), GEAR's skins row is FINISHES, and each PACK item says what Mott gives for it (`pack`).
  */
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
 import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
-import type { Inventory } from '../game/Inventory';
+import type { Inventory, ItemId } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { completeEntry } from './ShardComplete';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getSfxSet, onSfxSet, type SettingKey, type NumberKey } from './Settings';
@@ -72,11 +73,19 @@ export interface GameMenuOptions {
   kit: () => KitEntry[];
   /** hold a weapon from the GEAR tab */
   onEquip?: (id: string) => void;
-  /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — GEAR's SKINS row, tap to wear / take off */
+  /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — GEAR's SKINS row, tap to wear / take off;
+   *  Pine Hollow's finishes (src/pinehollow/finishes.ts) */
   skins?: () => SkinRow[];
   onWearSkin?: (id: string) => void;
+  /** the skins row's heading (default SKINS; Pine Hollow: FINISHES) */
+  skinsTitle?: string;
+  /** a shard whose pack is a trade stock (Pine Hollow, E314 C): the line over the grid, and one line per item */
+  pack?: PackTrade;
 }
-export interface SkinRow { id: string; name: string; blurb: string; worn: boolean }
+/** `locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel) */
+export interface SkinRow { id: string; name: string; blurb: string; worn: boolean; locked?: boolean; icon?: IconId }
+/** Pine Hollow's PACK: "Everything here trades at Mott's stall", and under each item what Mott gives for it */
+export interface PackTrade { note: string; hint: string; gearHint?: string; line: (id: ItemId) => string | null }
 /** a shard's loot in the BAG (src/game/loot/install.ts, Driftwood): GEAR's extras, the FINDS tab, wearing a cosmetic */
 export interface BagLoot { gear: () => GearLoot | null; finds: (() => FindsView) | null; wear: (id: string) => void }
 
@@ -210,7 +219,7 @@ export class GameMenu {
       if (on) shown++;
     }
     this.tabBar.classList.toggle('review', shown >= 5);
-    this.tabBar.classList.toggle('four', shown === 4); // BAG with Pine Hollow's JOURNAL: ACHIEVEMENTS must fit a phone
+    this.tabBar.classList.toggle('four', shown === 4); // a BAG without FINDS (Nalati, Nine Dragon): ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
     this.tabBar.classList.toggle('icons', group === 'bag');
     this.title.textContent = this.practice && group === 'pause' ? 'Practice' : TITLE[group];
@@ -280,24 +289,11 @@ export class GameMenu {
     if (!silent) this.onClose?.();
   }
   toggle(tab: MenuTab): void { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
-  /**
-   * A tab in `group`'s bar that runs `onPick` instead of showing a panel — the Compendium's JOURNAL, a tab in the BAG menu
-   * after Map · Inventory, before Achievements (Jake, 2026-09-25: the header button was "the dumbest place"; pick A).
-   */
-  addActionTab(label: string, group: MenuGroup, onPick: () => void, tabIcon: IconId | undefined = group === 'bag' ? 'book' : undefined): HTMLButtonElement {
-    const b = el('ws-gmenu-tab', tabHtml(label, tabIcon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['group'] = group;
-    b.addEventListener('click', onPick);
-    const before = this.tabBar.querySelector('[data-tab="achievements"]');
-    if (before) before.before(b); else this.tabBar.append(b);
-    this.syncTabs();
-    return b;
-  }
-
   select(tab: MenuTab): void {
     this._tab = tab;
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
-    this.hint.textContent = HINTS[tab];
+    this.hint.textContent = this.hintFor(tab);
     this.syncTabs();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
     if (tab === 'gear') this.renderGear();
@@ -316,7 +312,22 @@ export class GameMenu {
 
   /** a shard's loot (Driftwood, src/game/loot/install.ts): GEAR's coins / hearts / charms / cosmetics and the FINDS tab */
   private loot: BagLoot | null = null;
-  private get hasFinds(): boolean { return this.loot !== null && this.loot.finds !== null; }
+  /** a shard's FINDS without loot: Pine Hollow's hunter's journal (src/ui/compendium/install.ts, E314 C) */
+  private finds: (() => FindsView) | null = null;
+  private get findsView(): (() => FindsView) | null { return this.loot?.finds ?? this.finds; }
+  private get hasFinds(): boolean { return this.findsView !== null; }
+  setFinds(finds: (() => FindsView) | null): void {
+    this.finds = finds;
+    if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs();
+    if (this._open) this.refresh();
+  }
+  /** the hint line: a shard's own for GEAR / FINDS / PACK where it has one (Pine Hollow, E314 C) */
+  private hintFor(tab: MenuTab): string {
+    if (tab === 'finds') return this.findsView?.().hint ?? HINTS.finds;
+    if (tab === 'inventory') return this.opts.pack?.hint ?? HINTS.inventory;
+    if (tab === 'gear') return this.opts.pack?.gearHint ?? HINTS.gear;
+    return HINTS[tab];
+  }
   setLoot(loot: BagLoot | null): void {
     this.loot = loot;
     if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs();
@@ -339,7 +350,7 @@ export class GameMenu {
   // ── GEAR (E314, board 6 C): the paper doll — every shard's weapons and skins, the shard's loot where it has one ──
   private renderGear(): void {
     renderGear(this.panels.gear, {
-      weapons: this.opts.kit(), skins: this.opts.skins?.() ?? [], loot: this.loot?.gear() ?? null,
+      weapons: this.opts.kit(), skins: this.opts.skins?.() ?? [], loot: this.loot?.gear() ?? null, ...(this.opts.skinsTitle !== undefined ? { skinsTitle: this.opts.skinsTitle } : {}),
       onEquip: (id) => { this.opts.onEquip?.(id); this.renderGear(); },
       onWearSkin: (id) => { this.opts.onWearSkin?.(id); this.renderGear(); },
       onWear: (id) => { this.loot?.wear(id); this.renderGear(); },
@@ -348,7 +359,7 @@ export class GameMenu {
 
   // ── FINDS (E314, board 7 B): the sticker book — only on a shard with finds ──
   private renderFinds(): void {
-    const f = this.loot?.finds;
+    const f = this.findsView;
     if (f) renderFinds(this.panels.finds, f()); else this.panels.finds.replaceChildren();
   }
 
@@ -357,12 +368,15 @@ export class GameMenu {
     const p = this.panels.inventory; p.replaceChildren();
     const items = this.opts.inventory.items;
     const slots = this.opts.inventory.slots;
+    const trade = this.opts.pack;
     p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${slots}`));
+    if (trade) p.append(el('ws-gmenu-packnote', esc(trade.note)));
     const grid = el('ws-gmenu-grid');
     for (let i = 0; i < slots; i++) {
       const it = items[i];
+      const line = it && trade ? trade.line(it.id) : null; // Pine Hollow: what Mott gives for it (E314 C)
       grid.append(it
-        ? el('ws-gmenu-slot', `<i class="ws-gmenu-sicon">${icon(it.icon)}</i><b class="ws-gmenu-count">×${it.count}</b><span class="ws-gmenu-sname">${esc(it.label)}</span>`)
+        ? el('ws-gmenu-slot', `<i class="ws-gmenu-sicon">${icon(it.icon)}</i><b class="ws-gmenu-count">×${it.count}</b><span class="ws-gmenu-sname">${esc(it.label)}</span>${line !== null ? `<span class="ws-gmenu-sline">${esc(line)}</span>` : ''}`)
         : el('ws-gmenu-slot empty'));
     }
     p.append(grid);

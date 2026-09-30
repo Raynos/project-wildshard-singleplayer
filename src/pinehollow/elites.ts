@@ -140,7 +140,8 @@ abstract class PineElite implements EliteScript {
   despawn(): void { this.clearTells(); if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
   reset(): void { this.p2 = false; this.clearTells(); this.setMode('home'); }
   enterPhase2(): void { this.p2 = true; }
-  trophy(): void { this.clearTells(); this.env.addItem(this.who.trophy); this.env.feed(`${this.def.drop.trophyName} — ${this.def.name}`); }
+  // the trophy is the kill feed's line and the journal's wall (TAKEN), not a pack item: Mott has no use for it (E314 C)
+  trophy(): void { this.clearTells(); this.env.feed(`${this.def.drop.trophyName} — ${this.def.name}`); }
   dropModel(): THREE.Object3D { return this.env.skinModel(this.def.drop.skin as SkinId); }
   tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
     const a = this.animal;

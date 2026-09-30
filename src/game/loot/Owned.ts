@@ -34,6 +34,9 @@ export const OWNED = {
   'bear-claw': { kind: 'trophy', label: 'Bear claw' },
   'boar-tusk': { kind: 'trophy', label: 'Boar tusk' },
   'iron-sword': { kind: 'gear', label: 'Iron sword' },        // taken from the wreck's rack: kept between sessions
+  // Pine Hollow (E314 C, src/pinehollow/loadout.ts): kept here, never in a pack slot a full pack could refuse
+  'warden-longbow': { kind: 'gear', label: "The Warden's Longbow" }, // the Antler King's reward
+  'lever-rifle': { kind: 'gear', label: 'Lever-action' },      // the ranger's cabin's rifle
 } as const satisfies Record<string, { kind: OwnedKind; label: string }>;
 export type OwnedId = keyof typeof OWNED;
 export type CosmeticId = { [K in OwnedId]: (typeof OWNED)[K]['kind'] extends 'cosmetic' ? K : never }[OwnedId];

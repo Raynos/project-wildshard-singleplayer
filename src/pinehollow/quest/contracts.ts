@@ -8,7 +8,7 @@
  *   elite    "Take Old Blackpaw"           the named elite (kind + variant, the identity elites.ts keeps)
  *   thrall   "Cull 3 thralls"              the King's moss-grown elk / boar (they roam the old-growth at night, PH-C7)
  * A contract that is filled is CLAIMED at the board: it pays (a lodge ribbon or more — the trophy the trader takes —
- * bolts, heartwood; the third claim ever also pays the Hollow Ash crossbow finish, PH-U16 "contracts pay in trophies and
+ * bolts, amber resin; never an item Mott has no use for, E314 C; the third claim ever also pays the Hollow Ash crossbow finish, PH-U16 "contracts pay in trophies and
  * skins") and the slot draws the next. TEARING ONE DOWN draws a fresh one in its slot and resets the streak (the
  * "Lodge Regular" achievement counts claims in a row).
  *
@@ -21,7 +21,7 @@
  */
 
 export type ContractKind = 'species' | 'rarity' | 'elite' | 'thrall';
-export type RewardItem = 'lodge-ribbon' | 'amber-heartwood' | 'amber-resin';
+export type RewardItem = 'lodge-ribbon' | 'amber-resin';
 export interface Reward { items: { id: RewardItem; n: number }[]; bolts: number; skin?: 'hollow-ash' }
 export interface Contract {
   /** the draw number (unique, increasing) */
@@ -93,7 +93,7 @@ export function contractFor(serial: number, kind: ContractKind, target: string):
   }
   if (kind === 'elite') {
     const e = ELITE_TARGETS[target];
-    return e ? { serial, kind, target, need: 1, have: 0, title: 'A name on the board', goal: `Take ${e.name}`, reward: { items: [{ id: 'lodge-ribbon', n: 3 }, { id: 'amber-heartwood', n: 1 }], bolts: 0 } } : null;
+    return e ? { serial, kind, target, need: 1, have: 0, title: 'A name on the board', goal: `Take ${e.name}`, reward: { items: [{ id: 'lodge-ribbon', n: 3 }, { id: 'amber-resin', n: 4 }], bolts: 0 } } : null;
   }
   if (target === 'thrall') return { serial, kind, target, need: 3, have: 0, title: 'Cull the moss-grown', goal: 'Put down 3 thralls', reward: { items: [{ id: 'lodge-ribbon', n: 2 }, { id: 'amber-resin', n: 3 }], bolts: 0 } };
   return null;

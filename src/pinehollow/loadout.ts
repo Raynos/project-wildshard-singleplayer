@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
 import type { Weapons } from '../player/Weapons';
-import { fixIBL, VIEWMODEL_GROUP, PLAIN_BOLT, worldHit, type BoltMod, type Crossbow } from '../player/Crossbow';
+import { fixIBL, MAX_BOLTS, VIEWMODEL_GROUP, PLAIN_BOLT, worldHit, type BoltMod, type Crossbow } from '../player/Crossbow';
 import type { LeverRifle } from '../player/LeverRifle';
-import type { Longbow } from '../player/Longbow';
+import { QUIVER_MAX, type Longbow } from '../player/Longbow';
 import type { Inventory } from '../game/Inventory';
 import type { HUD } from '../ui/HUD';
 import type { Audio } from '../audio/Audio';
 import type { PineHollowSfx, PhShot } from '../audio/PineHollowSfx';
-import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, Quiver, boltDamage, boltFlight, type AmmoKind, type BoltKind } from './ammo';
+import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, boltFlight, type AmmoKind, type BoltKind } from './ammo';
+import type { Owned } from '../game/loot/Owned';
 
 /**
  * Pine Hollow's LOADOUT (PINE-HOLLOW-REMASTER PH-C11; ranged only, PH-U15): the crossbow (the hero), the lever-action
@@ -23,7 +24,11 @@ import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, Quiver, boltDamage, boltFlight, type
  *   · THE LEVER-ACTION'S SOUNDS — Pine Hollow's generated set (PineHollowSfx): the shot + its echo off the ridge, the
  *     lever's cycle, the hammer on an empty chamber (`leverDry`), a cartridge thumbed through the gate (`leverRoundIn`);
  *     Audio.ts's AR-15 shot / latch click until the set decodes.
- *   · THE LONGBOW — owned once the King falls (`grantLongbow`; the pack's 'warden-longbow' flag re-grants it on load);
+ *   · THE LONGBOW — owned once the King falls (`grantLongbow`; Owned 'warden-longbow' re-grants it on load — E314 C: it
+ *     rode in a pack slot, and a full pack lost the bow for good; an old save's pack flag moves across once);
+ *   · KEPT (E314 C) — the lever-action once taken (Owned 'lever-rifle'), the rifle's spare cartridges and the arrows are
+ *     saved with the special bolts; iron bolts are not (they refill to 30 on every death and every load). `room(kind, n)`
+ *     says whether a trade's ammunition fits, so Mott never sells bolts into a full quiver;
  *     its draw creak (`longbowDraw`), its loose (`longbowLoose`; Audio.crossbowFire until the set decodes).
  *   · STONE — a bolt, an arrow or a round landing on rock / stone plays `boltImpact-rock` (the crack + the ricochet).
  *   · FEEL — nothing here: the combat feel (feel.ts: hit-stop, kick, trauma, debris) hooks `Weapons.onHit / onImpact`,
@@ -37,7 +42,7 @@ import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, Quiver, boltDamage, boltFlight, type
 
 export interface PineLoadoutHost {
   scene: THREE.Scene; sky: Sky; weapons: Weapons; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Longbow;
-  inventory: Inventory; hud: HUD; audio: Audio; params: URLSearchParams;
+  inventory: Inventory; owned: Owned; hud: HUD; audio: Audio; params: URLSearchParams;
 }
 
 export interface PineLoadout {
@@ -48,6 +53,10 @@ export interface PineLoadout {
   selectBolt: (kind: BoltKind) => void;
   cycleBolt: () => void;
   grantLongbow: () => void;
+  /** can the kit hold `n` more of `kind`? (a trade's check) */
+  room: (kind: AmmoKind, n: number) => boolean;
+  /** the lever-action is kept (the cabin's pickup need not be there) */
+  readonly hasRifle: boolean;
   onPlayerDeath: () => void;
   useSfx: (sfx: PineHollowSfx) => void;
   useRain: (rain: () => number) => void;
@@ -72,11 +81,23 @@ function stony(p: { x: number; y: number; z: number }): boolean {
   return false;
 }
 
+/** the kept weapons on load: the Longbow and the lever-action live in Owned (E314 C); an old save's pack flag
+ *  ('warden-longbow' in a pack slot, dropped by the pack that no longer keeps it) moves across first */
+export function restoreKept(inventory: Pick<Inventory, 'had'>, owned: Pick<Owned, 'grant' | 'has'>): { bow: boolean; rifle: boolean } {
+  if (inventory.had('warden-longbow')) owned.grant('warden-longbow');
+  return { bow: owned.has('warden-longbow'), rifle: owned.has('lever-rifle') };
+}
+
 export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
-  const { weapons, crossbow, rifle, longbow, hud, audio, inventory, params } = h;
-  let saved: Partial<Record<BoltKind, number>> = {};
-  try { saved = JSON.parse(localStorage.getItem(STORE) ?? '{}') as Partial<Record<BoltKind, number>>; } catch { /* defaults */ }
+  const { weapons, crossbow, rifle, longbow, hud, audio, inventory, owned, params } = h;
+  let saved: Partial<Record<BoltKind | 'rounds' | 'arrows', number>> = {};
+  try { saved = JSON.parse(localStorage.getItem(STORE) ?? '{}') as typeof saved; } catch { /* defaults */ }
   const quiver = new Quiver({ pitch: saved.pitch ?? 0, broadhead: saved.broadhead ?? 0 });
+  const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.round(v)) : null);
+  const rounds = num(saved.rounds), arrows = num(saved.arrows);
+  if (rounds !== null) rifle.state.reserve = rounds;
+  if (arrows !== null) longbow.state.bolts = Math.min(QUIVER_MAX, arrows);
+  const kept = { rounds: rifle.state.reserve, arrows: longbow.state.bolts };
   let sfx: PineHollowSfx | null = null;
   let rain: () => number = () => 0;
   let dirty = false, saveT = 0;
@@ -106,7 +127,8 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const markDirty = (): void => { dirty = true; };
   const save = (): void => {
     if (crossbow) quiver.stash(live());
-    try { localStorage.setItem(STORE, JSON.stringify({ pitch: quiver.counts.pitch, broadhead: quiver.counts.broadhead })); } catch { /* not persisted */ }
+    kept.rounds = rifle.state.reserve; kept.arrows = longbow.state.bolts;
+    try { localStorage.setItem(STORE, JSON.stringify({ pitch: quiver.counts.pitch, broadhead: quiver.counts.broadhead, rounds: kept.rounds, arrows: kept.arrows })); } catch { /* not persisted */ }
     dirty = false;
   };
 
@@ -128,6 +150,8 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     markDirty();
   };
   const count = (kind: AmmoKind): number => kind === 'cartridge' ? rifle.state.reserve + rifle.state.ammo : kind === 'arrow' ? longbow.state.bolts : quiver.count(kind, live());
+  const CAP: Record<AmmoKind, number> = { iron: MAX_BOLTS, pitch: POUCH_MAX, broadhead: POUCH_MAX, arrow: QUIVER_MAX, cartridge: Infinity };
+  const room = (kind: AmmoKind, n: number): boolean => count(kind) + n <= CAP[kind];
 
   // ── input: B cycles the bolt kind while the crossbow is held; the touch ammo strip, tapped, does the same ──
   document.addEventListener('keydown', (e) => {
@@ -166,13 +190,16 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   longbow.onDrawStart = () => { shot('longbowDraw', 0.8); };
   longbow.onRecover = (ok) => { hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); };
 
-  // ── the longbow: the King's reward, kept by the pack's flag ──
+  // ── the longbow: the King's reward, and the lever-action: kept in Owned, never in a pack slot (E314 C) ──
+  const keep = restoreKept(inventory, owned);
+  if (keep.bow) weapons.unlock('bow');
+  if (keep.rifle) weapons.unlock('rifle');
   const grantLongbow = (): void => {
+    owned.grant('warden-longbow');
     weapons.unlock('bow');
     weapons.select('bow');
     hud.toast("The Warden's Longbow · hold FIRE to draw, let go at full draw");
   };
-  if (inventory.count('warden-longbow') > 0) weapons.unlock('bow');
 
   // ── dev ──
   const want = params.get('weapon');
@@ -184,8 +211,9 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
 
   applyBolt();
   const api: PineLoadout = {
-    addAmmo, count, selectBolt, cycleBolt, grantLongbow,
+    addAmmo, count, selectBolt, cycleBolt, grantLongbow, room,
     get bolt() { return quiver.selected; },
+    get hasRifle() { return owned.has('lever-rifle'); },
     onPlayerDeath: () => { if (quiver.selected !== 'iron') selectBolt('iron', true); },
     useSfx: (s) => { sfx = s; s.prewarm(['leverShot', 'leverEcho', 'leverCycle', 'leverDry', 'leverRoundIn', 'longbowDraw', 'longbowLoose', 'boltImpact-rock']); },
     useRain: (r) => { rain = r; },
@@ -198,8 +226,14 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
         selectBolt('iron', true); hud.toast(`${BOLT_NAME[was]} spent · iron bolts loaded`);
       }
       applyBolt();
+      // the lever-action once taken (the cabin's pickup, a rifle finish's drop) is kept
+      if (weapons.has('rifle') && !owned.has('lever-rifle')) owned.grant('lever-rifle');
       saveT += dt;
-      if (weapons.current.id === 'crossbow' && saveT > 2) { saveT = 0; if (dirty || quiver.selected !== 'iron') save(); }
+      if (saveT > 2) {
+        saveT = 0;
+        const ammoMoved = rifle.state.reserve !== kept.rounds || longbow.state.bolts !== kept.arrows;
+        if (ammoMoved || (weapons.current.id === 'crossbow' && (dirty || quiver.selected !== 'iron'))) save();
+      }
     },
   };
   Object.assign(window, { __loadout: api, __lever: rifle, __longbow: longbow }); // dev: `__lever.freezeCycle = 0.45`, `__longbow.freezeDraw = 1`

@@ -104,7 +104,7 @@ describe('Inventory', () => {
   });
 
   it('fires onChange on every add', () => {
-    const inv = new Inventory(PINE);
+    const inv = new Inventory(DRIFT);
     const fn = vi.fn<() => void>();
     inv.onChange = fn;
     inv.add('antlers'); inv.add('antlers');
@@ -121,11 +121,11 @@ describe('Inventory', () => {
   });
 
   it('holds one slot per kind, at most its shard\'s slots', () => {
-    const inv = new Inventory(PINE);
+    const inv = new Inventory(DRIFT);
     for (const id of ALL_ITEMS) inv.add(id);
-    expect(inv.slots).toBe(PINE_PACK_SLOTS);
-    expect(inv.items.length).toBe(Math.min(ALL_ITEMS.length, PINE_PACK_SLOTS));
-    expect(new Inventory('chunk://local/driftwood-isle').slots).toBe(PACK_SLOTS);
+    expect(inv.slots).toBe(PACK_SLOTS);
+    expect(inv.items.length).toBe(Math.min(ALL_ITEMS.length, PACK_SLOTS));
+    expect(new Inventory(PINE).slots).toBe(PINE_PACK_SLOTS);
     // once full, a kind already in the pack still stacks
     const first = inv.items[0];
     if (first === undefined) throw new Error('pack is empty');
@@ -155,14 +155,14 @@ describe('Inventory', () => {
     localStorage.setItem(STORE, '{not json');
     const inv = new Inventory(PINE);
     expect(inv.items).toEqual([]);
-    inv.add('elk-meat');
+    inv.add('venison');
     expect(inv.total).toBe(1);
   });
 
   it('keeps working in memory when storage throws on write (iOS private mode)', () => {
     vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
     const inv = new Inventory(PINE);
-    inv.add('bear-claw', 2);
+    inv.add('bear-pelt', 2);
     expect(inv.total).toBe(2);
   });
 

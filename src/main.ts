@@ -54,7 +54,9 @@ import { WeaponStrip } from './ui/WeaponStrip';
 import { hudSlots } from './ui/hudSlots';
 import { Weapons, type WeaponId } from './player/Weapons';
 import { WeaponPickup } from './player/WeaponPickup';
-import { SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef } from './player/Skins';
+import { SkinLocker, applySkin, clearSkin, crossbowDisplayModel, skinFor, type SkinDef } from './player/Skins';
+import { finishPick, pineFinishes } from './pinehollow/finishes';
+import { mottLine } from './pinehollow/quest/trades';
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { LockOn } from './ui/LockOn';
@@ -69,7 +71,7 @@ import { FullMap } from './ui/Map';
 import { BagButton } from './ui/BagButton';
 import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
-import { Inventory, harvestOf, ITEMS } from './game/Inventory';
+import { Inventory, ITEMS, isPineItem, type ItemId } from './game/Inventory';
 import { Owned } from './game/loot/Owned';
 import { practiceRoom } from './core/practiceRoom';
 import { installLoot } from './game/loot/install';
@@ -610,11 +612,17 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
   const skins = new SkinLocker();                          // legendary skins owned / worn (persisted; wired below)
   const owned = new Owned(getActiveChunk().id);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
+  // Pine Hollow's GEAR ▸ FINISHES (E314 C, src/pinehollow/finishes.ts): wear / take off — set once the weapons' models exist (below)
+  let pineFinish: ((id: string) => void) | null = null;
   const menu = new GameMenu({
     fullMap, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
-    skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id) => { nalatiNow()?.skins.toggle(id); }, // Nalati's wearable skins (B15)
+    ...(isPine
+      ? { skins: () => pineFinishes(skins), onWearSkin: (id: string) => { pineFinish?.(id); }, skinsTitle: 'Finishes',
+        // E314 C: the pack is Mott's trade stock — each item says what he gives for it
+        pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id: ItemId) => (isPineItem(id) ? mottLine(id) : null) } }
+      : { skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id: string) => { nalatiNow()?.skins.toggle(id); } }), // Nalati's wearable skins (B15)
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
@@ -743,6 +751,12 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const skinDrops: WeaponPickup[] = [];
   const weaponModel = (w: 'crossbow' | 'rifle') => (w === 'rifle' ? rifle?.model ?? null : crossbow instanceof Crossbow ? crossbow.model : null);
   const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) applySkin(m, skin, sky); skins.wear(skin.weapon, skin.id); };
+  if (isPine) pineFinish = (id) => {
+    const pick = finishPick(skins, id);
+    if (!pick) return;
+    if (pick.act === 'wear') { wearSkin(pick.skin); return; }
+    const m = weaponModel(pick.skin.weapon); if (m) clearSkin(m); skins.wear(pick.skin.weapon, null); // taken off: the plain weapon
+  };
   const spawnSkinDrop = (skin: SkinDef, at: THREE.Vector3) => {
     const item = skin.weapon === 'rifle' ? rifle?.displayModel() ?? null : crossbow instanceof Crossbow ? crossbowDisplayModel(crossbow, sky) : null;
     if (!item) return;
@@ -763,7 +777,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   };
   // Pine Hollow's fights (src/pinehollow/): PH-C3 the four named elites, PH-C2 the Antler King, PH-F1 the ranged kit's feel
   // PH-C11 the loadout: special bolts / cartridges / arrows, the lever gun's + the bow's sounds, the Longbow's grant
-  const pineLoadout = rifle instanceof LeverRifle && longbow ? installPineLoadout({ scene: game.scene, sky, weapons, crossbow: crossbow instanceof Crossbow ? crossbow : null, rifle, longbow, inventory, hud, audio, params }) : null;
+  const pineLoadout = rifle instanceof LeverRifle && longbow ? installPineLoadout({ scene: game.scene, sky, weapons, crossbow: crossbow instanceof Crossbow ? crossbow : null, rifle, longbow, inventory, owned, hud, audio, params }) : null;
+  if (pineLoadout?.hasRifle === true) rifleDrop?.dispose(); // E314 C: the lever-action is kept once taken — no second one in the cabin
   const pineFights = chunk.slug === 'pine-hollow' && rifle !== null ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params,
     longbow: longbow && pineLoadout ? { displayModel: () => longbow.displayModel(), grant: () => { pineLoadout.grantLongbow(); } } : null, ironFirst: () => { pineLoadout?.onPlayerDeath(); } }) : null;
   animals.onKill = (a) => {
@@ -775,7 +790,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
   const compendium = installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
   // Pine Hollow's adventure (src/pinehollow/quest/): PH-C1 the lantern quest, PH-C6 the hamlet, PH-C7 the night, PH-C8 collectibles; chains onKill
-  const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); } } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
+  const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); }, room: (k, n) => pineLoadout.room(k, n) } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
   if (chunk.slug === 'pine-hollow') placePineHollowSets(registry); // E315 M12: every named place is a Set (after the quest has placed its props)
   // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
   // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
@@ -1072,10 +1087,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (nearest) nearest.onInteract();
     else if (carcass && pineLife?.busy !== true) {
       harvested.add(carcass);
-      const drops = harvestOf(carcass.kind, carcass.variant);
+      const drops = inventory.harvest(carcass.kind, carcass.variant); // Pine Hollow: only what Mott takes (E314 C)
       const give = (): void => {
-        for (const id of drops) inventory.add(id);
-        hud.toast(`${drops.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`);
+        const got = drops.filter((id) => inventory.add(id)); // the toast names only what went in
+        hud.toast(`${got.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`);
         audio.hitMarker();
       };
       if (pineLife) pineLife.harvest(carcass, give); // PH-F2: the skinning beat, then the drops; the carcass stays for the ravens
@@ -1145,7 +1160,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     carcass = undefined;
     if (!nearest) for (const a of animals.animals) {
       if (a.alive || harvested.has(a) || a.position.distanceTo(player.position) >= 2.6) continue;
-      if (harvestOf(a.kind, a.variant).length === 0) continue; // nothing to take (the drowned sailor / captain fade): no [E] Harvest (E318 row 17)
+      if (inventory.harvest(a.kind, a.variant).length === 0) continue; // nothing to take (Pine Hollow's elk: E314 C) (the drowned sailor / captain fade): no [E] Harvest (E318 row 17)
       if (physics && !lineOfSight(physics, game.camera.position, carcassAt.copy(a.position).setY(a.position.y + 0.4), 0.6)) continue; // not through a wall (animals aren't physics yet: their body blocks nothing)
       carcass = a; break;
     }

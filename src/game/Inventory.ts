@@ -4,7 +4,14 @@
  * only, 12 slots, one slot per item kind; persisted per shard ('ws.inventory.v1'). Weapons and ammo are not
  * here — the menu's Inventory tab reads those live from Weapons.
  *
+ * Pine Hollow's pack (E314, Jake's pick C, art/loot/round-3-other-shards/) holds only the 7 kinds Mott trades for
+ * (PINE_PACK_KINDS): everything else a Pine kill or reward used to hand out (boar / elk meat, elk hide, bear claw,
+ * antlers, amber heartwood, the elites' trophies) never enters it, and an old save's copies are dropped on load. With
+ * one slot per kept kind the pack can never be full; the unlocks that used to ride in it ('warden-longbow') live in
+ * Owned (src/game/loot/Owned.ts) — `had(id)` lets the loadout move an old save's flag across.
+ *
  *   inventory.add('venison', 1);   inventory.items → [{ id, count }] in the order first picked up
+ *   inventory.harvest('elk', 'bull')   → what this shard's pack takes from that carcass (Pine Hollow: nothing)
  *   inventory.onChange = () => menu.refresh();
  */
 import type { IconId } from '../ui/icons';
@@ -85,21 +92,41 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
 }
 
 export const PACK_SLOTS = 12;
-/** Pine Hollow's pack: its harvest, the elites' trophies, resin and ribbons fill more than 12 kinds (PH-C6) */
-export const PINE_PACK_SLOTS = 18;
+/** Pine Hollow's pack: only what Mott the trader takes (src/pinehollow/quest/trades.ts; E314 pick C) — nothing else drops there */
+export const PINE_PACK_KINDS = ['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon'] as const satisfies readonly ItemId[];
+export type PineItem = (typeof PINE_PACK_KINDS)[number];
+/** one slot per kept kind: Pine Hollow's pack can never be full */
+export const PINE_PACK_SLOTS = PINE_PACK_KINDS.length;
+const PINE_KEEPS: ReadonlySet<ItemId> = new Set<ItemId>(PINE_PACK_KINDS);
+export const isPineItem = (id: ItemId): id is PineItem => PINE_KEEPS.has(id);
+const isPineChunk = (chunkId: string): boolean => chunkId.endsWith('/pine-hollow');
 const STORE = 'ws.inventory.v1';
 
 export class Inventory {
   private counts: Partial<Record<ItemId, number>>;
   private order: ItemId[];
+  /** kinds an older save held that this shard's pack no longer keeps (read once by the loadout's migration) */
+  private legacy = new Set<ItemId>();
   onChange?: () => void;
 
   constructor(readonly chunkId: string) {
     let saved: { counts?: Partial<Record<ItemId, number>>; order?: ItemId[] } = {};
     try { saved = (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, typeof saved>)[chunkId] ?? {}; } catch { /* defaults */ }
     this.counts = saved.counts ?? {};
-    this.order = (saved.order ?? []).filter((id) => id in ITEMS);
+    this.order = [];
+    for (const id of saved.order ?? []) {
+      if (!(id in ITEMS)) continue;
+      if (this.keeps(id)) this.order.push(id);
+      else { if ((this.counts[id] ?? 0) > 0) this.legacy.add(id); delete this.counts[id]; }
+    }
   }
+
+  /** does this shard's pack take `id` at all? (Pine Hollow: only PINE_PACK_KINDS) */
+  keeps(id: ItemId): boolean { return !isPineChunk(this.chunkId) || PINE_KEEPS.has(id); }
+  /** what this shard's pack takes from a carcass: harvestOf, less the kinds it does not keep (empty = no [E] Harvest) */
+  harvest(kind: string, variant?: string): ItemId[] { return harvestOf(kind, variant).filter((id) => this.keeps(id)); }
+  /** did the save this pack loaded hold `id`, a kind the pack no longer keeps? ('warden-longbow' → Owned) */
+  had(id: ItemId): boolean { return this.legacy.has(id); }
 
   private save() {
     try {
@@ -109,14 +136,16 @@ export class Inventory {
     } catch { /* not persisted this session */ }
   }
 
-  add(id: ItemId, n = 1): void {
-    if (!(id in ITEMS)) return;
-    if (!this.order.includes(id)) { if (this.order.length >= this.slots) return; this.order.push(id); }
+  /** false, and nothing added, for a kind this shard does not keep or a new kind with every slot taken */
+  add(id: ItemId, n = 1): boolean {
+    if (!(id in ITEMS) || !this.keeps(id)) return false;
+    if (!this.order.includes(id)) { if (this.order.length >= this.slots) return false; this.order.push(id); }
     this.counts[id] = (this.counts[id] ?? 0) + n;
     this.save(); this.onChange?.();
+    return true;
   }
   /** this shard's pack size */
-  get slots(): number { return this.chunkId.endsWith('/pine-hollow') ? PINE_PACK_SLOTS : PACK_SLOTS; }
+  get slots(): number { return isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS; }
   /** how many of `id` the pack holds */
   count(id: ItemId): number { return this.counts[id] ?? 0; }
   /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */

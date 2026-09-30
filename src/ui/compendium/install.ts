@@ -4,7 +4,7 @@
  *
  *   installCompendium({ chunkId, game, camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
  *
- * Ways in: the key N (desktop; J is the lock-on's), the BAG menu's JOURNAL tab, the HUD's journal disc (touch,
+ * Ways in: the key N (desktop; J is the lock-on's), the BAG menu's FINDS tab (the journal's stickers, E314 C), the HUD's journal disc (touch,
  * under PAUSE), and EXAMINE on a trophy-wall slot (opens on that entry). Hooks (tracker.ts): an animal within 120 m →
  * discovered; in view within 70 m with a clear line → seen; AnimalManager.onKill → taken (+ its weight); a POI's radius
  * → visited. While the book is open the pointer lock and the weapons are released (like the review composer); closing
@@ -18,6 +18,7 @@ import { hudSlots } from '../hudSlots';
 import { CompendiumState } from './state';
 import { CompendiumTracker } from './tracker';
 import { Journal } from './Journal';
+import { compendiumFinds } from './finds';
 import { TrophyWall } from '../../world/TrophyWall';
 import { activePhysics } from '../../physics/active';
 import { lineOfSight } from '../../physics/query';
@@ -62,7 +63,7 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   disc.type = 'button'; disc.className = 'ws-cmp-disc';
   disc.innerHTML = `${GLYPH_BOOK}Journal`;
   hudSlots.pill(disc, () => { if (hud.entered) journal.open(); });
-  menu.addActionTab('Journal', 'bag', () => { journal.open(); }); // a BAG tab: Map · Inventory · Journal · Achievements
+  menu.setFinds(() => compendiumFinds(state, (id) => { journal.open(id); })); // the BAG's FINDS tab is the journal (E314 C: JOURNAL became FINDS)
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyN' || e.repeat || !hud.entered || menu.isOpen || journal.isOpen) return;
     e.preventDefault(); journal.open();

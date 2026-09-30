@@ -31,7 +31,7 @@ export interface PineCtx {
   shot: (name: PhShot, at: THREE.Vector3) => void;
   toast: (text: string) => void;
   feed: (text: string) => void;
-  addItem: (id: ItemId) => void;
+  addItem: (id: ItemId, n?: number) => void;
   ownSkin: (id: SkinId) => void;
   skinModel: (id: SkinId) => THREE.Object3D;
   /** the Warden's Longbow (PH-C11, src/player/Longbow.ts): its orb model and its grant (the kit's 'bow'); null = not on this shard */

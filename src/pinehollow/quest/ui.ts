@@ -11,17 +11,17 @@
  */
 import '../../ui/styles/pinehollow.css';
 import { isFilled, type Board, type Contract } from './contracts';
-import { TRADES, tradeState, type Pack, type Trade } from './trades';
+import { TRADES, tradeState, type Pack, type Room, type Trade } from './trades';
 
 const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.body;
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement, text?: string): HTMLElementTagNameMap[K] => {
   const e = document.createElement(tag); e.className = cls; if (text !== undefined) e.textContent = text; parent?.append(e); return e;
 };
 const ITEM_NAMES: Record<string, string> = {
-  'lodge-ribbon': 'lodge ribbon', 'amber-heartwood': 'amber heartwood', 'amber-resin': 'amber resin', 'deer-hide': 'deer hide',
-  'boar-hide': 'boar hide', 'boar-tusk': 'boar tusk', antlers: 'antlers', 'elk-hide': 'elk hide', 'bear-pelt': 'bear pelt', 'bear-claw': 'bear claw', venison: 'venison',
+  'lodge-ribbon': 'lodge ribbon', 'amber-resin': 'amber resin', 'deer-hide': 'deer hide',
+  'boar-hide': 'boar hide', 'boar-tusk': 'boar tusk', 'bear-pelt': 'bear pelt', venison: 'venison',
 };
-const itemName = (id: string, n: number): string => { const w = ITEM_NAMES[id] ?? id; return n === 1 ? w : w.endsWith('s') || w.endsWith('heartwood') || w.endsWith('venison') || w.endsWith('resin') ? w : `${w}s`; };
+const itemName = (id: string, n: number): string => { const w = ITEM_NAMES[id] ?? id; return n === 1 ? w : w.endsWith('s') || w.endsWith('venison') || w.endsWith('resin') ? w : `${w}s`; };
 
 /** what a contract pays, as the notice says it */
 export function rewardLine(c: Contract): string {
@@ -107,11 +107,11 @@ export class BoardPanel extends Panel {
 
 export class TradePanel extends Panel {
   onTrade?: (t: Trade) => void;
-  constructor(private readonly pack: Pack, private readonly owns: (skin: string) => boolean) { super('ws-ph-trade', 'Swaps', "Mott's stall · no coin"); }
+  constructor(private readonly pack: Pack, private readonly owns: (skin: string) => boolean, private readonly room: Room = () => true) { super('ws-ph-trade', 'Swaps', "Mott's stall · no coin"); }
   render(): void {
     this.body.replaceChildren();
     for (const t of TRADES) {
-      const st = tradeState(t, this.pack, this.owns);
+      const st = tradeState(t, this.pack, this.owns, this.room);
       const row = el('div', `ws-ph-swap${st.ok ? ' ok' : ''}${st.owned ? ' owned' : ''}`, this.body);
       const text = el('div', 'ws-ph-swap-text', row);
       el('div', 'ws-ph-swap-label', text, t.label);
@@ -121,9 +121,9 @@ export class TradePanel extends Panel {
         const have = this.pack.count(g.item);
         el('span', have >= g.n ? 'have' : 'short', give, `${g.n} ${itemName(g.item, g.n)} (${have})`);
       }
-      const btn = el('button', 'ws-ph-swap-btn', row, st.owned ? 'Owned' : 'Trade');
+      const btn = el('button', 'ws-ph-swap-btn', row, st.owned ? 'Owned' : st.full ? 'Full' : 'Trade');
       btn.type = 'button'; btn.disabled = !st.ok;
-      btn.addEventListener('click', (e) => { e.stopPropagation(); if (tradeState(t, this.pack, this.owns).ok) { this.onTrade?.(t); this.render(); } });
+      btn.addEventListener('click', (e) => { e.stopPropagation(); if (tradeState(t, this.pack, this.owns, this.room).ok) { this.onTrade?.(t); this.render(); } });
     }
   }
 }
