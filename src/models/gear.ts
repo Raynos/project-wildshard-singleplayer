@@ -2,7 +2,7 @@
  * The gear several shards' players hold (E306 / E315 M5, category `gear`), and what every shard's gear cards share.
  *
  *   shared/iron-sword  the iron sword (src/player/Sword.ts `blade: 'iron'`): the wreck's loot on Driftwood, the second sword
- *                      on Nine Dragon.
+ *                      (Nine Dragon's kit dropped it, E314 A: nothing there unlocks it).
  *
  * A weapon's viewmodel keeps its own render queue, depth clear, layers and materials; its card is the Explorer's specimen.
  * The specimen is a SEPARATE build by the weapon's own builder (`buildSword`, a shard's `buildRifleParts`: the functions the viewmodel

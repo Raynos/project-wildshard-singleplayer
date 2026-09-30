@@ -9,7 +9,9 @@ export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | '
   // the Bag's tabs and its GEAR / FINDS slots (E314)
   | 'map' | 'pack' | 'star' | 'book' | 'heart' | 'hat' | 'cape' | 'charm' | 'necklace' | 'glyph' | 'pin' | 'purse' | 'talon'
   // Nalati's named elites, FINDS stickers (E314 C): Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq
-  | 'leopard' | 'wolf' | 'eagle' | 'rider' | 'horse';
+  | 'leopard' | 'wolf' | 'eagle' | 'rider' | 'horse'
+  // Nine Dragon's Fei Zhua on GEAR (E314 A)
+  | 'grapple';
 
 const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="currentColor" stroke="none" ${extra}>${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -250,6 +252,12 @@ const PURSE = `
   <path d="M20 16 L44 16 L40 24 L24 24 Z"/>
   <path d="M24 24 C8 30 6 58 32 58 C58 58 56 30 40 24 Z"/>
   <path d="M22 20 L42 20" stroke="#0b1520" stroke-width="2" opacity="0.5"/>`;
+/* the Fei Zhua (Nine Dragon, E314 A): a gauntlet's cuff, the claw hub, three hooked talons fanned up-right, a line trailing */
+const GRAPPLE = `
+  <path d="M4 56 L16 42 L24 50 L12 62 Z"/>
+  <path fill-rule="evenodd" d="${circle(28, 38, 9)} ${circle(28, 38, 3.5)}"/>
+  <path d="M26 30 C24 18 30 8 42 4 C37 12 35 20 34 30 Z M34 34 C42 26 52 22 62 24 C54 28 47 33 40 40 Z M34 44 C44 44 52 50 56 60 C49 54 42 52 32 48 Z"/>
+  <path d="M20 46 C14 40 8 38 2 40" ${S} stroke-width="2"/>`;
 
 const GLYPHS: Record<IconId, string> = {
   deer: DEER, elk: ELK, boar: BOAR, bear: BEAR,
@@ -260,7 +268,7 @@ const GLYPHS: Record<IconId, string> = {
   crossbow: CROSSBOW, sword: SWORD, rifle: RIFLE, lever: LEVER, longbow: LONGBOW,
   laurel: LAUREL, lock: LOCK, check: CHECK, poi: POI, you: YOU,
   map: MAP, pack: PACK, star: STAR, book: BOOK, heart: HEART, hat: HAT, cape: CAPE, charm: CHARM, necklace: NECKLACE, glyph: GLYPH, pin: PIN, purse: PURSE, talon: TALON,
-  leopard: LEOPARD, wolf: WOLF, eagle: EAGLE, rider: RIDER, horse: HORSE,
+  leopard: LEOPARD, wolf: WOLF, eagle: EAGLE, rider: RIDER, horse: HORSE, grapple: GRAPPLE,
 };
 
 export function icon(id: IconId): string {

@@ -37,6 +37,7 @@ import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import { installAdventure } from './game/quest/Adventure';
 import { installNalatiAdventure, CAPTIONED_EVENTS } from './nalati/adventure';
 import { kitName as nalatiKitName, nalatiFinds, skinRows as nalatiSkinRows } from './nalati/bag';
+import { FEI_ZHUA, NINE_WEAPON_NAME } from './chunks/nine-dragon-stack/bag';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { HorizonMatte } from './world/HorizonMatte';
@@ -541,9 +542,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   await macrotask();
   // Pine Hollow's third weapon: the Warden's Longbow, the Antler King's reward (PH-C11, Longbow.ts; locked until his orb)
   const longbow = isPine ? new Longbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock }) : null;
-  // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
-  const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
-  const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : [], nalatiKit?.options ?? (isOcean ? { baseName: 'Wooden sword' } : undefined)); // Driftwood's sword is "Wooden sword" everywhere — Bag, touch ring, hotbar (E318 row 18); held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
+  // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken. Not on Nine
+  // Dragon (E314 A): nothing there can unlock it, so its kit is the Neon Jian alone (NINE_WEAPON_NAME)
+  const isNine = chunk.slug === 'nine-dragon-stack';
+  const ironSword = chunk.weapon === 'sword' && !isNine ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
+  const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : [], nalatiKit?.options ?? (isOcean ? { baseName: 'Wooden sword' } : isNine ? { baseName: NINE_WEAPON_NAME } : undefined)); // Driftwood's sword is "Wooden sword" everywhere, Nine Dragon's the Neon Jian (E314 A) — Bag, touch ring, hotbar (E318 row 18); held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
@@ -619,6 +622,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     fullMap, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; const nl = nalatiNow(); return { id: w.id, name: nl ? nalatiKitName(w.id, w.name, { golden: nl.boss.golden?.applied === true, naizagai: nl.titan.naizagai?.applied === true }) : (w.id === 'crossbow' ? 'Hunting crossbow' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
+    ...(isNine ? { tools: () => [FEI_ZHUA] } : {}), // Nine Dragon's GEAR: the Fei Zhua grapple beside the jian (E314 A)
     ...(isPine
       ? { skins: () => pineFinishes(skins), onWearSkin: (id: string) => { pineFinish?.(id); }, skinsTitle: 'Finishes',
         // E314 C: the pack is Mott's trade stock — each item says what he gives for it

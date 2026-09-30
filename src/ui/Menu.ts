@@ -26,6 +26,8 @@
  * src/ui/compendium/install.ts), GEAR's skins row is FINISHES, and each PACK item says what Mott gives for it (`pack`).
  * Nalati (E314 C, src/nalati/bag.ts): MAP · GEAR · FINDS · FEATS — no PACK (its Inventory has 0 slots), GEAR's SKINS row
  * lists every skin (the locked ones dim), FINDS is the elites and their prizes plus the places (`setFinds`).
+ * Nine Dragon (E314 A, src/chunks/nine-dragon-stack/bag.ts): MAP · GEAR — no PACK (0 slots) and no FEATS (0 achievements);
+ * GEAR names the Neon Jian and shows the Fei Zhua grapple as a card (`tools`). Which tabs a shard gets: bag.ts `bagTabs`.
  */
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
@@ -43,7 +45,7 @@ import { isDev, onDev } from '../core/devMode';
 import { devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
 import { buildDebugMenu, type DebugMenu } from './DebugMenu';
-import { renderFinds, renderGear, type FindsView, type GearLoot } from './bag';
+import { bagTabs, renderFinds, renderGear, type FindsView, type GearLoot, type GearTool } from './bag';
 
 export type MenuTab = 'map' | 'gear' | 'finds' | 'inventory' | 'achievements' | 'settings' | 'feedback';
 /** the BAG's tabs are icon tabs, one short word each (E314, Jake's pick board 8 A): MAP · GEAR · FINDS · PACK · FEATS on
@@ -83,6 +85,8 @@ export interface GameMenuOptions {
   skinsTitle?: string;
   /** a shard whose pack is a trade stock (Pine Hollow, E314 C): the line over the grid, and one line per item */
   pack?: PackTrade;
+  /** GEAR's cards for gear that is not a weapon (Nine Dragon's Fei Zhua grapple, E314 A) */
+  tools?: () => GearTool[];
 }
 /** `locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel) */
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean; locked?: boolean; icon?: IconId }
@@ -212,11 +216,13 @@ export class GameMenu {
   /** which tabs show: FEEDBACK only while the review inbox is unlocked; only the open group's (one tab = no bar) */
   private syncTabs(): void {
     const review = reviewUnlocked(), group = GROUP[this._tab];
+    const bag = bagTabs({ finds: this.hasFinds, pack: this.hasPack, feats: this.hasFeats }); // E314: the tabs this shard fills
     let shown = 0;
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
       const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
-      const on = (id !== 'feedback' || review) && (id !== 'finds' || this.hasFinds) && (id !== 'inventory' || this.hasPack) && g === group && !(id === 'map' && this.noMap);
+      const inBag = id === undefined || GROUP[id] !== 'bag' || bag.includes(id);
+      const on = (id !== 'feedback' || review) && inBag && g === group && !(id === 'map' && this.noMap);
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
@@ -264,7 +270,7 @@ export class GameMenu {
   get tab(): MenuTab { return this._tab; }
 
   open(tab: MenuTab = this._tab): void {
-    const selected = this.noMap && tab === 'map' ? 'settings' : tab === 'inventory' && !this.hasPack ? 'gear' : tab;
+    const selected = this.noMap && tab === 'map' ? 'settings' : this.land(tab);
     this.select(selected);
     if (this._open) return;
     this._open = true;
@@ -291,8 +297,12 @@ export class GameMenu {
     if (!silent) this.onClose?.();
   }
   toggle(tab: MenuTab): void { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
+  /** a BAG tab this shard doesn't have lands on GEAR: no pack (Nalati, Nine Dragon) — I / PACK; no feats (Nine Dragon) */
+  private land(want: MenuTab): MenuTab {
+    return (want === 'inventory' && !this.hasPack) || (want === 'achievements' && !this.hasFeats) ? 'gear' : want;
+  }
   select(want: MenuTab): void {
-    const tab = want === 'inventory' && !this.hasPack ? 'gear' : want; // no pack (Nalati, E314 C): I / PACK land on GEAR
+    const tab = this.land(want);
     this._tab = tab;
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
@@ -321,6 +331,8 @@ export class GameMenu {
   private get hasFinds(): boolean { return this.findsView !== null; }
   /** a shard with no pack (Nalati, E314 C: `inventory.slots` 0) has no PACK tab */
   private get hasPack(): boolean { return this.opts.inventory.slots > 0; }
+  /** a shard with no achievements (Nine Dragon, E314 A) has no FEATS tab */
+  private get hasFeats(): boolean { return this.opts.progress.rows.length > 0; }
   setFinds(finds: (() => FindsView) | null): void {
     this.finds = finds;
     if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs();
@@ -356,6 +368,7 @@ export class GameMenu {
   private renderGear(): void {
     renderGear(this.panels.gear, {
       weapons: this.opts.kit(), skins: this.opts.skins?.() ?? [], loot: this.loot?.gear() ?? null, ...(this.opts.skinsTitle !== undefined ? { skinsTitle: this.opts.skinsTitle } : {}),
+      tools: this.opts.tools?.() ?? [],
       onEquip: (id) => { this.opts.onEquip?.(id); this.renderGear(); },
       onWearSkin: (id) => { this.opts.onWearSkin?.(id); this.renderGear(); },
       onWear: (id) => { this.loot?.wear(id); this.renderGear(); },

@@ -11,6 +11,8 @@
  *     loot:    Driftwood's (src/game/loot/install.ts): sharpening pips on the swords, HEALTH + its heart pips, the charm
  *              slot, the COSMETICS group (captain's hat, sailcloth cape: dim until owned, tap to wear / take off) and the
  *              PURSE. Absent on the other shards.
+ *     tools:   gear that is not a weapon (no HOLD): Nine Dragon's Fei Zhua grapple (src/chunks/nine-dragon-stack/bag.ts,
+ *              E314 A), on the figure's carried side
  *   renderFinds(panel, view)
  *     view: counters (SEA GLASS n/15 · PLACES n/9 · GLYPH SHARDS n/3), the next-charm line, sticker sections (TROPHIES,
  *           TREASURES: found bright, missing dashed "???"), and the 15 sea glass chips — Driftwood's (src/game/loot/finds.ts).
@@ -20,7 +22,22 @@
  *           skin or the horse, the title — shown found or not), then the 17 PLACES.
  */
 import { icon, type IconId } from './icons';
-import type { KitEntry, SkinRow } from './Menu';
+import type { KitEntry, MenuTab, SkinRow } from './Menu';
+
+/** what a shard's Bag has to show: FINDS (a sticker book), PACK (`inventory.slots` > 0), FEATS (any achievements) */
+export interface BagHas { finds: boolean; pack: boolean; feats: boolean }
+/** the BAG's tabs on a shard (E314): MAP · GEAR always; FINDS · PACK · FEATS only where the shard has something for them.
+ *  Driftwood all five, Pine Hollow all five (its journal is its FINDS), Nalati no PACK, Nine Dragon MAP · GEAR (pick A) */
+export function bagTabs(has: BagHas): MenuTab[] {
+  const tabs: MenuTab[] = ['map', 'gear'];
+  if (has.finds) tabs.push('finds');
+  if (has.pack) tabs.push('inventory');
+  if (has.feats) tabs.push('achievements');
+  return tabs;
+}
+
+/** a GEAR card that is not a weapon, shown and not held (Nine Dragon's Fei Zhua grapple): its name, what it is, its use */
+export interface GearTool { id: string; name: string; kind: string; how: string; icon: IconId }
 
 /** a shard's loot on GEAR (Driftwood); every part optional */
 export interface GearLoot {
@@ -75,6 +92,8 @@ export interface GearOpts {
   /** the skins row's heading: SKINS (Nalati), FINISHES (Pine Hollow) */
   skinsTitle?: string;
   loot: GearLoot | null;
+  /** gear that is not a weapon (Nine Dragon's grapple): a card on the carried side, no HOLD */
+  tools?: GearTool[];
   onEquip: (id: string) => void;
   onWearSkin: (id: string) => void;
   onWear: (id: string) => void;
@@ -116,6 +135,7 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
   }
   // left: the weapons you carry (tap to hold); right: the charm at the chest, the held weapon at the hand
   for (const w of carried) left.append(weaponSlot(w, 'l'));
+  for (const t of o.tools ?? []) left.append(slot('l', 'tool', t.icon, t.name, `<span class="ws-gmenu-kitsub">${esc(t.kind)}</span><span class="ws-gmenu-kitsub">${esc(t.how)}</span>`));
   if (loot?.charms) {
     const c = loot.charms;
     right.append(c.owned > 0

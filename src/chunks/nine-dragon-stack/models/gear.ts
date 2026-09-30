@@ -1,11 +1,11 @@
 /**
  * Nine Dragon Stack's gear (E306 / E315 M5, `gear`): what the fragment's player holds — the first-person arms with the Neon
  * Jian in the right hand and the Fei Zhua gauntlet on the left (vm/fpArms.ts, swung by the engine's Sword through
- * vm/arms.ts) and the iron sword (the kit's second sword; shared, src/models/gear.ts). No rifle slot on a sword shard (E333).
+ * vm/arms.ts). That is the whole kit: no rifle slot on a sword shard (E333), no iron sword (E314 A: nothing here unlocks it).
  */
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '../../../models/model';
-import { ironSword, loadingSpecimen } from '../../../models/gear';
+import { loadingSpecimen } from '../../../models/gear';
 import { live, type RosterEntry } from '../../../models/live';
 import { NineDragonArms } from '../vm/fpArms';
 
@@ -60,8 +60,7 @@ export const fpArms: ModelDef<object> = defineModel<object>({
   build: (ctx) => loadingSpecimen(fpArms.id, [0.9, 0.6, 0.9], async () => standStill(await NineDragonArms.load(), ctx.renderer)),
 });
 
-/** the fragment's kit (src/main.ts, `weapon: 'sword'`): the jian arms (1), the iron sword (2); no rifle slot (E333) */
+/** the fragment's kit (src/main.ts, `weapon: 'sword'`): the jian arms alone — no rifle slot (E333), no iron sword (E314 A) */
 export const GEAR: readonly RosterEntry[] = [
   live(fpArms, { copies: 1 }),
-  live(ironSword, { copies: 1 }),
 ];

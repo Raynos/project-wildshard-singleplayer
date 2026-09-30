@@ -7,7 +7,7 @@
  * Nalati has no pack at all (E314, Jake's pick C, art/loot/round-3-other-shards/board-2-nalati.jpg): its 12 kinds (wolf
  * pelt / fang, horsehair, balbal shard, grave dust, marmot fur, the 5 elites' trophies, the Golden King's plaque) were
  * never read by anything, so they are gone — an old save's copies are dropped on load (an id not in ITEMS), `slots` is 0
- * there and the Bag shows no PACK tab (src/ui/Menu.ts).
+ * there and the Bag shows no PACK tab (src/ui/Menu.ts). Nine Dragon Stack neither (E314 A): nothing can ever enter it.
  *
  * Pine Hollow's pack (E314, Jake's pick C, art/loot/round-3-other-shards/) holds only the 7 kinds Mott trades for
  * (PINE_PACK_KINDS): everything else a Pine kill or reward used to hand out (boar / elk meat, elk hide, bear claw,
@@ -84,8 +84,8 @@ export const PINE_PACK_SLOTS = PINE_PACK_KINDS.length;
 const PINE_KEEPS: ReadonlySet<ItemId> = new Set<ItemId>(PINE_PACK_KINDS);
 export const isPineItem = (id: ItemId): id is PineItem => PINE_KEEPS.has(id);
 const isPineChunk = (chunkId: string): boolean => chunkId.endsWith('/pine-hollow');
-/** Nalati: no pack (E314 C) — nothing enters it, the Bag has no PACK tab */
-const isNalatiChunk = (chunkId: string): boolean => chunkId.endsWith('/nalati-grasslands');
+/** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
+const isNoPackChunk = (chunkId: string): boolean => chunkId.endsWith('/nalati-grasslands') || chunkId.endsWith('/nine-dragon-stack');
 const STORE = 'ws.inventory.v1';
 
 export class Inventory {
@@ -107,8 +107,8 @@ export class Inventory {
     }
   }
 
-  /** does this shard's pack take `id` at all? (Pine Hollow: only PINE_PACK_KINDS; Nalati: nothing) */
-  keeps(id: ItemId): boolean { return !isNalatiChunk(this.chunkId) && (!isPineChunk(this.chunkId) || PINE_KEEPS.has(id)); }
+  /** does this shard's pack take `id` at all? (Pine Hollow: only PINE_PACK_KINDS; Nalati, Nine Dragon: nothing) */
+  keeps(id: ItemId): boolean { return !isNoPackChunk(this.chunkId) && (!isPineChunk(this.chunkId) || PINE_KEEPS.has(id)); }
   /** what this shard's pack takes from a carcass: harvestOf, less the kinds it does not keep (empty = no [E] Harvest) */
   harvest(kind: string, variant?: string): ItemId[] { return harvestOf(kind, variant).filter((id) => this.keeps(id)); }
   /** did the save this pack loaded hold `id`, a kind the pack no longer keeps? ('warden-longbow' → Owned) */
@@ -130,8 +130,8 @@ export class Inventory {
     this.save(); this.onChange?.();
     return true;
   }
-  /** this shard's pack size (0: no pack, no PACK tab — Nalati) */
-  get slots(): number { return isNalatiChunk(this.chunkId) ? 0 : isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS; }
+  /** this shard's pack size (0: no pack, no PACK tab — Nalati, Nine Dragon) */
+  get slots(): number { return isNoPackChunk(this.chunkId) ? 0 : isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS; }
   /** how many of `id` the pack holds */
   count(id: ItemId): number { return this.counts[id] ?? 0; }
   /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */
