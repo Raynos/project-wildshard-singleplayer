@@ -5,7 +5,7 @@
  * pause ▸ Settings ▸ Debug (src/ui/DebugMenu.ts) renders it: one collapsible section per group, only the rows that apply to
  * the shard you are in, a filter box on top. There are no URL switches (AGENTS.md "No URL switches, ever").
  *
- *   opt('pineTrample', 'cover', 'Grass trample', [['off', 'A · Off'], ['on', 'B · On']], { when: pineHollow, note: 'E322 …' })
+ *   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, note: 'birds, hares …' })
  *   action('clearDownloads', 'loading', 'Downloads', 'Clear', () => …, { note: 'E172 …' })   // a button row, not a pick
  *   DEBUG_READOUTS        → a live readout under a row, by row id (E172: Shards in memory's; both menus show it)
  *   DEBUG_ROWS            → every row, in menu order within its group
@@ -33,7 +33,6 @@ export interface DebugGroup { id: DebugGroupId; label: string; note?: string }
  *  shadows and post go in Look; water in Look too). A group with no row fails test/debug-options.test.ts. */
 export const DEBUG_GROUPS: readonly DebugGroup[] = [
   { id: 'look', label: 'Look' },
-  { id: 'cover', label: 'Ground cover & foliage' },
   { id: 'sky', label: 'Sky & weather' },
   { id: 'audio', label: 'Audio' },
   { id: 'combat', label: 'Combat & weapons' },
@@ -131,10 +130,6 @@ const SFX_TEXT: Record<SfxSet, string> = { best: 'Generated', synth: 'Synth' };
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
-
-  // ── Ground cover & foliage (Driftwood's four decided E156 rows went in E318: tint, slope reach, far blend and far
-  // stand-ins are on for good) ──
-  opt('pineTrample', 'cover', 'Grass trample', [['off', 'A · Off'], ['on', 'B · On']], { when: pineHollow, note: 'E322 F-L4 · the grass parts round you and the animals and stays flattened a while (Nalati\'s trample)' }),
 
   // ── Sky & weather ──
   // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's PineDayNight

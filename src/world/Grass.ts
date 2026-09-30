@@ -14,9 +14,7 @@ import { groundSet } from './lookFlags';
 import { GrassV2 } from '../nalati/look/grass';
 import { stateSlot } from '../core/shardState';
 import { trample, TRAMPLE_GLSL } from './GrassTrample';
-import { pineTrample } from './pineTrample';
 import { practiceRoom } from '../core/practiceRoom';
-import { setting, onSettingChange } from '../ui/Settings';
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -46,10 +44,10 @@ import { setting, onSettingChange } from '../ui/Settings';
  * Public: `group`, `mesh`, `flowers`, `material`, `update(dt, playerPos)`, `radius`,
  *         `params` = { budget, windStrength } (live tunables).
  *
- * Pine Hollow's trample (E322 F-L4, Debug ▸ Ground cover & foliage ▸ Grass trample, live; off = the grass before): the
- * carpet and the flowers bend round Nalati's trample map + live movers (GrassTrample.ts `trampleBend`) — the player and
- * the animals (AnimalManager, while `pineTrample.on`) part it and leave it flattened a while. Only Pine Hollow's programs
- * carry the code (their own cache keys); Driftwood's carpet is the same shader as before.
+ * Pine Hollow's trample (E322 F-L4, Jake picked it; the Debug row is gone): the carpet and the flowers bend round
+ * Nalati's trample map + live movers (GrassTrample.ts `trampleBend`) — the player and the animals (AnimalManager, on Pine
+ * Hollow) part it and leave it flattened a while. Only Pine Hollow's programs carry the code (their own cache keys);
+ * Driftwood's carpet is the same shader as before.
  *
  * On the painterly shard (Nalati) `build()` builds the GPU blade rings instead (`GrassV2`, src/nalati/look/grass.ts,
  * exposed as `v2`; `mesh` / `material` / `flowers` stay unset) and `update()` forwards to it — the Pine Hollow /
@@ -70,14 +68,12 @@ const grassUniforms = {
   uFade: { value: FADE },
   uSunDir: { value: new THREE.Vector3(0, 1, 0) },
   uSunColor: { value: new THREE.Color(1, 0.93, 0.8) },
-  /** E322 F-L4: 1 = Pine Hollow's trample bends the blades (the Grass trample row) */
-  uTrampleOn: { value: 0 },
 };
 
 /** E322 F-L4: the trample, after the wind (inside its block: `im`, `ipos`, `s2`, `fade` in scope) — the blade lies over by
  *  the bend's angle (≤ 1.35 rad) the way it points, the top dropping as it goes */
 const TRAMPLE_APPLY = /* glsl */`
-            if ( uTrampleOn > 0.5 ) {
+            {
               vec2 tb = trampleBend( ipos.xz );
               float tl = length( tb );
               if ( tl > 1e-3 ) {
@@ -122,7 +118,7 @@ export class Grass {
   private zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
   private meshColor!: THREE.InstancedBufferAttribute;
   private flowerColor!: THREE.InstancedBufferAttribute;
-  /** E322 F-L4: Pine Hollow's carpet carries the trample code (the row switches it live) */
+  /** E322 F-L4: Pine Hollow's carpet carries the trample */
   private trampleAble = false;
   private lastPX = Number.NaN;
   private lastPZ = Number.NaN;
@@ -133,10 +129,6 @@ export class Grass {
     if (getActiveChunk().style === 'painterly') { this.v2 = new GrassV2(this.sky, this.forest).build(); this.group.add(this.v2.group); return this; } // Nalati: the GPU blade rings (src/nalati/look/grass.ts)
     const geo = buildClumpGeometry();
     this.trampleAble = getActiveChunk().slug === 'pine-hollow';
-    if (this.trampleAble) {
-      this.setTrample(setting('pineTrample') === 'on');
-      onSettingChange('pineTrample', (v) => { this.setTrample(v === 'on'); });
-    }
     this.material = this.buildMaterial();
     this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * K);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -183,7 +175,7 @@ export class Grass {
         .replace('#include <common>', /* glsl */`#include <common>
           uniform float uWindStrength; uniform float uGrassWind; uniform float uRadius; uniform float uFade;
           attribute float quadId;
-          varying float vH;${withTrample ? `\n${TRAMPLE_GLSL}\nuniform float uTrampleOn;` : ''}`)
+          varying float vH;${withTrample ? `\n${TRAMPLE_GLSL}` : ''}`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
@@ -253,10 +245,10 @@ export class Grass {
       patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
       shader.uniforms['uGrassWind'] = grassUniforms.uGrassWind;
-      if (withTrample) Object.assign(shader.uniforms, trample.uniforms, { uTrampleOn: grassUniforms.uTrampleOn });
+      if (withTrample) Object.assign(shader.uniforms, trample.uniforms);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
-          uniform float uWindStrength; uniform float uGrassWind;${withTrample ? `\n${TRAMPLE_GLSL}\nuniform float uTrampleOn;` : ''}`)
+          uniform float uWindStrength; uniform float uGrassWind;${withTrample ? `\n${TRAMPLE_GLSL}` : ''}`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
@@ -323,19 +315,11 @@ export class Grass {
     if (this.queue.length > 0) this.flush(this.queue.length > 300 ? Infinity : this.params.budget);
   }
 
-  /** E322 F-L4: Pine Hollow's trample on / off (the Grass trample row; live) */
-  setTrample(on: boolean): void {
-    if (!this.trampleAble) return;
-    pineTrample.on = on;
-    grassUniforms.uTrampleOn.value = on ? 1 : 0;
-  }
-
   /** E322 F-L4: the player parts the grass and leaves a trail (the animals push from AnimalManager); the map advances */
   private trampleStep(dt: number, playerPos: THREE.Vector3): void {
     const vx = Number.isNaN(this.lastPX) || dt <= 0 ? 0 : (playerPos.x - this.lastPX) / dt;
     const vz = Number.isNaN(this.lastPZ) || dt <= 0 ? 0 : (playerPos.z - this.lastPZ) / dt;
     this.lastPX = playerPos.x; this.lastPZ = playerPos.z;
-    if (!pineTrample.on) return;
     if (vx * vx + vz * vz < 900 && !practiceRoom.open) trample.push(playerPos.x, playerPos.z, 0.55, 1, vx, vz); // E321: not from a room
     trample.update(dt, playerPos);
   }

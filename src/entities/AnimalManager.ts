@@ -21,7 +21,6 @@ import { frameCost } from '../core/frameCost';
 import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
 import { trample } from '../world/GrassTrample';
-import { pineTrample } from '../world/pineTrample';
 import { AttackTokens, reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 
 /**
@@ -436,6 +435,8 @@ export class AnimalManager {
   private readonly melee = meleeShard(getActiveChunk()); // Driftwood's swords, Nalati's sabre / spear
   /** E297: the shard's fight rules (Driftwood), null = the old fights (see the header) */
   private readonly rules = getActiveChunk().fightRules ?? null;
+  /** E322 F-L4: Pine Hollow's animals part the grass (Nalati's Wildlife feeds the same map its own way) */
+  private readonly trampling = getActiveChunk().slug === 'pine-hollow';
   /** E297: the attack tokens — at most `rules.maxAttackers` attacking at once */
   readonly tokens = new AttackTokens<Animal>(this.rules?.maxAttackers ?? 0);
   /** a token holder still attacking: a charger while it charges, a self-thinking species while its strike runs */
@@ -679,7 +680,7 @@ export class AnimalManager {
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
     this.clock += dt;
-    if (pineTrample.on && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's Grass trample row
+    if (this.trampling && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's grass trample
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
     this.bodiesFor()?.sync(this.animals, playerPos);
     // AI at 10 Hz, staggered across animals so the cost is flat
