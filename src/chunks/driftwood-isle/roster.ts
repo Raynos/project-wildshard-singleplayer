@@ -9,6 +9,10 @@ import { bear, boar, deer } from '../../models/creatures';
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './models/creatures';
 import { castaway } from './models/people';
 import { GEAR } from './models/gear';
+import { seaGlassChime } from './models/seaGlassChime';
+import { trophyPlaques } from './models/trophyPlaques';
+import { captainHat } from './models/captainHat';
+import { sailclothCape } from './models/sailclothCape';
 
 export const ROSTER: readonly RosterEntry[] = [
   // the fauna (driftwood-isle.ts `fauna`), faceted low-poly in code here
@@ -21,4 +25,8 @@ export const ROSTER: readonly RosterEntry[] = [
   live(castaway, { copies: 1, drawnAs: 'single' }),
   // the gear its player holds (the kit: the wooden sword, the iron sword found on the wreck, the AR-15 lent in the arena)
   ...GEAR,
+  // the loot (E314, DRIFTWOOD-LOOT): the hut's chime and trophy plaques, the captain's hat and the sailcloth cape — built
+  // for review, not placed or worn yet (stage 2 / 3 wires them)
+  live(seaGlassChime, { copies: 0, drawnAs: 'single' }), live(trophyPlaques, { copies: 0, drawnAs: 'single' }),
+  live(captainHat, { copies: 0, drawnAs: 'single' }), live(sailclothCape, { copies: 0, drawnAs: 'single' }),
 ];

@@ -5,7 +5,7 @@
  *
  *   icon('deer')  → '<svg …>…</svg>'
  */
-export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'lever' | 'longbow' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
+export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'whetstone' | 'chart' | 'bearclaw' | 'boartusk' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'lever' | 'longbow' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
 
 const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="currentColor" stroke="none" ${extra}>${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -93,6 +93,26 @@ const ROPE = `
   <path d="M28 32 A4 4 0 0 1 36 32 A8 8 0 0 1 20 32 A12 12 0 0 1 44 32 A16 16 0 0 1 12 32 A20 20 0 0 1 52 32 C52 42 56 50 60 56" ${S} stroke-width="4.2"/>
   <path d="M58 54 L62 60 M60 52 L64 57" ${S} stroke-width="1.8"/>`;
 
+/* Driftwood loot (E314): the shop's whetstone and sea chart, FINDS' bear claw and boar tusk trophies (the heart, hat,
+   cape and necklace are the Bag's, below) */
+const WHETSTONE = `
+  <path fill-rule="evenodd" transform="rotate(-24 32 36)" d="M11 29 H53 Q58 29 58 34 V39 Q58 44 53 44 H11 Q6 44 6 39 V34 Q6 29 11 29 Z M12 35.5 H52 V37.5 H12 Z"/>
+  <path d="M24 25 L20 17 M31 22 L32 13 M38 20 L44 13" ${S} stroke-width="2.6"/>`;
+
+const CHART = `
+  <path fill-rule="evenodd" d="M7 14 C17 10 25 18 33 14 C41 10 49 14 57 12 V50 C49 54 41 48 33 52 C25 56 17 50 7 52 Z
+    ${circle(15, 42, 2.3)} ${circle(22, 36, 2.3)} ${circle(29, 33, 2.3)} ${circle(36, 29, 2.3)}
+    M41 19 L44 16 L47 19 L50 16 L53 19 L50 22 L53 25 L50 28 L47 25 L44 28 L41 25 L44 22 Z"/>`;
+
+const BEARCLAW = `
+  <path d="M20 54 C15 38 19 21 31 11 C39 5 51 5 57 9 C47 11 39 17 35 27 C31 37 31 46 33 54 Z"/>
+  <path d="M13 61 C11 53 16 47 25 47 C34 47 39 53 37 61 Z"/>`;
+
+const BOARTUSK = `
+  <path fill-rule="evenodd" d="M16 54 C11 37 19 18 35 10 C41 7 49 8 53 12 C43 14 31 24 27 38 C25 46 22 52 16 54 Z
+    M13 43.5 L26 46.5 L25.5 49 L13.2 46.2 Z M14.5 37.5 L27.5 40.5 L27.2 43 L14 40.2 Z"/>
+  <path d="M16 54 C10 60 4 54 8 48" ${S} stroke-width="2.2"/>`;
+
 const BOLT = `
   <path d="M8 56 L52 12" ${S} stroke-width="3.5"/>
   <path d="M52 12 L58 6 L54 16 Z"/>
@@ -153,6 +173,7 @@ const GLYPHS: Record<IconId, string> = {
   ghost: DEER, ironhide: BOAR,
   meat: MEAT, hide: HIDE, tusk: TUSK, antlers: ANTLERS, bolt: BOLT,
   claw: CLAW, shell: SHELL, coconut: COCONUT, coin: COIN, seaglass: SEAGLASS, rope: ROPE,
+  whetstone: WHETSTONE, chart: CHART, bearclaw: BEARCLAW, boartusk: BOARTUSK,
   crossbow: CROSSBOW, sword: SWORD, rifle: RIFLE, lever: LEVER, longbow: LONGBOW,
   laurel: LAUREL, lock: LOCK, check: CHECK, poi: POI, you: YOU,
 };
