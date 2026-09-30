@@ -28,6 +28,7 @@ import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults
 import { frameCost } from './frameCost';
 import { recordNineGpuCheckpoint, traceNineBootPasses } from '../boot/nineGpuTrace';
 import { nineExploreEntryPending, recordNineExploreFrame, recordNineBootCheckpoint } from '../boot/nineBootTrace';
+import { cullPlaced } from '../models/place';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -651,6 +652,7 @@ export class Game {
         // planet + sun disc travel with the camera so they stay "infinitely" far
         sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
         this.shardRender?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ChunkDef.ShardRender)
+        cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/models/place.ts; nothing when none cull)
         composer.render(realDt);
         if (nineExploreEntryPending() && !this.renderer.getContext().isContextLost()) recordNineExploreFrame();
       } catch (e) { this.fault(this.renderSystem, e); return; }

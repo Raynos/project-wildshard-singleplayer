@@ -34,24 +34,24 @@ import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
 import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import type { Sky } from '../Sky';
-import { activeRegistry, type PieceCategory, type WorldRegistry } from '../registry';
+import { activeRegistry, type PieceCategory, type Pipeline, type WorldRegistry } from '../registry';
 import { boxDescs, registerSolid, type Box } from './solid';
 import type { Ground, PoiCtx, PoiPiece } from './types';
 
-/** each POI's entry in the registry (and Explore's catalog when `model`) */
-const ENTRY: Record<string, { name: string; category: PieceCategory; file: string; model: boolean }> = {
-  camp: { name: 'Spring camp', category: 'buildings', file: 'src/world/nalati/NomadCamp.ts', model: true },
+/** each POI's entry in the registry (and Explore's catalog when `model`, with how it's made: E306 M0a; M3 splits them into models + sets) */
+const ENTRY: Record<string, { name: string; category: PieceCategory; file: string; model: boolean; pipeline?: Pipeline | readonly Pipeline[] }> = {
+  camp: { name: 'Spring camp', category: 'buildings', file: 'src/world/nalati/NomadCamp.ts', model: true, pipeline: ['code', 'trellis'] },
   bridge: { name: 'Kunes bridge', category: 'buildings', file: 'src/world/nalati/Bridge.ts', model: true },
   roads: { name: 'Road fences', category: 'props', file: 'src/world/nalati/RoadFurniture.ts', model: false },
-  summerCamp: { name: 'Summer camp', category: 'buildings', file: 'src/world/nalati/SummerCamp.ts', model: true },
+  summerCamp: { name: 'Summer camp', category: 'buildings', file: 'src/world/nalati/SummerCamp.ts', model: true, pipeline: ['code', 'trellis'] },
   kurgans: { name: 'Kurgan field', category: 'buildings', file: 'src/world/nalati/KurganField.ts', model: true },
-  balbals: { name: 'Balbals', category: 'buildings', file: 'src/world/nalati/Balbals.ts', model: true },
+  balbals: { name: 'Balbals', category: 'buildings', file: 'src/world/nalati/Balbals.ts', model: true, pipeline: 'trellis' },
   eagleRock: { name: 'Eagle Rock', category: 'nature', file: 'src/world/nalati/EagleRock.ts', model: true },
   cairn: { name: 'Wind Cairn', category: 'buildings', file: 'src/world/nalati/Cairn.ts', model: true },
   crags: { name: 'Crag ledges + the leopard cave', category: 'nature', file: 'src/world/nalati/Crags.ts', model: true },
-  watchtower: { name: 'Watchtower', category: 'buildings', file: 'src/world/nalati/Bowl.ts', model: true },
-  kokpar: { name: 'Kokpar field', category: 'props', file: 'src/world/nalati/Bowl.ts', model: true },
-  snowLotus: { name: 'Snow lotus', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true },
+  watchtower: { name: 'Watchtower', category: 'buildings', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: ['hunyuan', 'code'] },
+  kokpar: { name: 'Kokpar field', category: 'props', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: ['code', 'hunyuan'] },
+  snowLotus: { name: 'Snow lotus', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true, pipeline: 'trellis' },
   glacier: { name: 'Glacier', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true },
 };
 
@@ -131,7 +131,7 @@ export class NalatiPOIs {
       if (colliders.length === 0 && e?.model !== true) continue;
       registerSolid(registry, {
         id: `nalati-${p.name}`, name: e?.name ?? p.name, category: e?.category ?? 'props', file: e?.file ?? 'src/world/nalati/index.ts',
-        object: p.object, colliders, surface: p.surface, ...(p.floor ? { floor: p.floor } : {}), ...(e?.model === true ? { model: {} } : {}),
+        object: p.object, colliders, surface: p.surface, ...(p.floor ? { floor: p.floor } : {}), ...(e?.model === true ? { model: e.pipeline === undefined ? {} : { pipeline: e.pipeline } } : {}),
       });
       yield p.name;
     }

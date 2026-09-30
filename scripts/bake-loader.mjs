@@ -3,15 +3,18 @@
 // image imports (`import thumb from './thumbs/x.jpg'`) become a module whose default export is the path.
 //   node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs
 import { registerHooks } from 'node:module';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const IMAGE = /\.(jpe?g|png|webp|svg|hdr)$/i;
 registerHooks({
   resolve(specifier, context, next) {
     if (IMAGE.test(specifier)) return { url: new URL(specifier, context.parentURL).href, shortCircuit: true, format: 'module' };
-    // `./bytes.generated` has a dot but no real extension: resolve anything that is not a file as it stands
-    if (specifier.startsWith('.') && context.parentURL?.startsWith('file:') && !existsSync(fileURLToPath(new URL(specifier, context.parentURL)))) {
+    // `./bytes.generated` has a dot but no real extension: resolve anything that is not a file as it stands. A folder
+    // with a `.ts` of the same name beside it is the file, as in Vite and tsc (E306: `src/chunks/driftwood-isle.ts` and
+    // its models in `src/chunks/driftwood-isle/models/`)
+    const at = specifier.startsWith('.') && context.parentURL?.startsWith('file:') ? fileURLToPath(new URL(specifier, context.parentURL)) : null;
+    if (at !== null && (!existsSync(at) || (statSync(at).isDirectory() && existsSync(`${at}.ts`)))) {
       const base = new URL(specifier, context.parentURL);
       for (const ext of ['.ts', '/index.ts']) { const u = new URL(base.href + ext); if (existsSync(fileURLToPath(u))) return { url: u.href, shortCircuit: true }; }
     }

@@ -309,8 +309,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     await slice();
     // faceted shore boulders along the beach
     const rockSpecs = isOcean ? Boulders.scatterShore(chunk.seed) : [];
-    const rocks = isOcean ? new Boulders(sky).build(rockSpecs) : null;
-    if (rocks) addBuilt('rocks', 'Shore boulders', 'nature', 'src/world/Boulders.ts', rocks.mesh, rocks.colliders, 'rock', undefined, rocks.colliderDescs());
+    // E306 M0b: a model (src/chunks/driftwood-isle/models/shoreBoulder.ts) placed through src/models/place.ts, which registers piece `rocks`
+    const rocks = isOcean ? new Boulders(sky).place(rockSpecs, registry) : null;
+    if (rocks) statics.push(...rocks.colliders);
     await slice();
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
     const hut = isOcean ? new Hut(sky, HUT).build() : null;

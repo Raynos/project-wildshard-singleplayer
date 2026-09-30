@@ -20,6 +20,7 @@ import type { Explore, ExplorePane } from './Explore';
 import { BUDGET, CURRENT_TIER, TIERS } from './tiers';
 import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/Animal';
+import type { DrawnAs, Pipeline } from '../world/registry';
 import { activeClock, type LightPreset, type WorldClock } from '../world/WorldClock';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
@@ -36,6 +37,13 @@ const GAIT: Record<Clip, number> = { idle: 0, walk: 1.3, trot: 3.2, charge: 7, h
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 /** 86 tris · 5.3k tris */
 const trisLabel = (n: number): string => (n < 1000 ? `${n} tris` : `${(n / 1000).toFixed(1)}k tris`);
+/** the card's badge words (E306: how each model is made) */
+const PIPELINE_LABEL: Readonly<Record<Pipeline, string>> = { code: 'CODE', blender: 'BLENDER', trellis: 'TRELLIS', hunyuan: 'HUNYUAN', cc0: 'CC0' };
+const DRAWN_LABEL: Readonly<Record<DrawnAs, string>> = { single: 'single', merged: 'merged', instanced: 'instanced', batched: 'batched', skinned: 'skinned' };
+/** CODE · × 110 merged */
+const factsLabel = (e: CatalogEntry): string => `${e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')} · × ${e.copies.toLocaleString()} ${DRAWN_LABEL[e.drawnAs]}`;
+/** one copy's triangles (a live instanced object measures every instance) */
+const perCopy = (e: CatalogEntry, tris: number): number => (e.live && e.drawnAs === 'instanced' && e.copies > 1 ? Math.round(tris / e.copies) : tris);
 /** the turntable's shadow map, every tier: one model in the map, so 2048 is cheap */
 const STUDIO_SHADOW_MAP = 2048;
 
@@ -102,7 +110,7 @@ export class ModelExplorer implements ExplorePane {
       </div>
       <div class="ws-x-sheet">
         <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-step"><button class="ws-x-prev" type="button" aria-label="Previous model">‹</button><button class="ws-x-next" type="button" aria-label="Next model">›</button></span><span class="ws-x-file"></span></div>
-        <div class="ws-x-stats"><span><i>Tris</i><b data-s="tris"></b></span><span><i>Draw calls</i><b data-s="calls"></b></span><span><i>Build</i><b data-s="build"></b></span></div>
+        <div class="ws-x-stats"><span><i>Tris</i><b data-s="tris"></b></span><span><i>Draw calls</i><b data-s="calls"></b></span><span><i>Build</i><b data-s="build"></b></span><span><i>Made with</i><b data-s="made"></b></span><span><i>Copies</i><b data-s="copies"></b></span><span><i>Drawn as</i><b data-s="drawn"></b></span></div>
         <div class="ws-x-budget"><span></span><div class="ws-x-budget-bar"><i></i></div></div>
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
@@ -124,8 +132,9 @@ export class ModelExplorer implements ExplorePane {
       this.setView(this.view, false);
       const measured = measure(model);
       const set = (key: string, value: string): void => { const node = this.sheet.querySelector<HTMLElement>(`.ws-x-stats b[data-s="${key}"]`); if (node) node.textContent = value; };
-      set('tris', measured.tris.toLocaleString()); set('calls', String(measured.calls));
-      this.budget(measured.tris, measured.calls);
+      const each = perCopy(entry, measured.tris);
+      set('tris', each.toLocaleString()); set('calls', String(measured.calls));
+      this.budget(each, measured.calls, entry.copies);
     });
     // index.html swallows touchmove outside [data-scroll]: without the mark the catalog can't scroll on a phone (E109)
     for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants, .ws-x-clips')) s.dataset['scroll'] = '';
@@ -244,7 +253,8 @@ export class ModelExplorer implements ExplorePane {
     box.replaceChildren();
     for (const e of this.entries) {
       if (this.filter !== 'all' && e.category !== this.filter) continue;
-      const card = html('button', 'ws-x-model', `<span class="ws-x-model-thumb"></span><b>${e.name}</b><small>${e.live ? trisLabel(measure(e.object()).tris) : 'built on view'}</small>`);
+      const tris = e.live ? `${trisLabel(perCopy(e, measure(e.object()).tris))}${e.copies > 1 ? ' each' : ''}` : 'built on view';
+      const card = html('button', 'ws-x-model', `<span class="ws-x-model-thumb"></span><b>${e.name}</b><small>${factsLabel(e)}</small><small>${tris}</small>`);
       (card as HTMLButtonElement).type = 'button';
       const thumb = this.thumbs.get(e.id);
       if (thumb) card.querySelector('.ws-x-model-thumb')?.append(thumb);
@@ -282,8 +292,10 @@ export class ModelExplorer implements ExplorePane {
     const step = q('.ws-x-step'); // E181: nothing to step to in a one-model filter, or in a lineup
     if (step) step.hidden = this.lineup !== null || this.shown().length < 2;
     const set = (k: string, v: string): void => { const el = q(`.ws-x-stats b[data-s="${k}"]`); if (el) el.textContent = v; };
-    set('tris', m.tris.toLocaleString()); set('calls', String(m.calls)); set('build', e.live ? 'at boot' : `${e.buildMs.toFixed(1)} ms`);
-    this.budget(m.tris, m.calls);
+    const each = perCopy(e, m.tris);
+    set('tris', each.toLocaleString()); set('calls', String(m.calls)); set('build', e.live ? 'at boot' : `${e.buildMs.toFixed(1)} ms`);
+    set('made', e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')); set('copies', `× ${e.copies.toLocaleString()}`); set('drawn', DRAWN_LABEL[e.drawnAs]);
+    this.budget(each, m.calls, e.copies);
     this.placeVariantControls();
   }
 
@@ -302,7 +314,11 @@ export class ModelExplorer implements ExplorePane {
   private isolate(o: THREE.Object3D): void {
     const { scene } = this.world.game;
     const keep = new Set<THREE.Object3D>([this.studio]);
-    if (this.savedBackground === undefined) { this.savedBackground = scene.background; scene.background = studioBackdrop(); }
+    if (this.savedBackground === undefined) {
+      this.savedBackground = scene.background; scene.background = studioBackdrop();
+      // the studio is indoors: a shard's weather drawn in its post (Nine Dragon's drizzle) stops while a model is on show (E306)
+      document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: true }));
+    }
     // every level from the model up to the scene: its siblings go (one cabin out of the homestead group, one jetty
     // out of the pier), the lights stay
     for (let node: THREE.Object3D = o; node.parent; node = node.parent) {
@@ -323,7 +339,10 @@ export class ModelExplorer implements ExplorePane {
     for (const [c, v] of this.hidden) c.visible = v;
     this.hidden.clear();
     this.studio.visible = false;
-    if (this.savedBackground !== undefined) { this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined; }
+    if (this.savedBackground !== undefined) {
+      this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined;
+      document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: false }));
+    }
   }
 
   /** the turntable's shadow (E115): the shard's cascade spans 80 m at 1024 px on a phone, so a 6 m model got a hand's
@@ -373,12 +392,16 @@ export class ModelExplorer implements ExplorePane {
     this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = 0.3; this.idle = 0;
   }
 
-  /** this model's share of the phone frame budget (≤ 2.0 M tris, ≤ 150 calls — project/archive/2026-09-22-play-perf.md) */
-  private budget(tris: number, calls: number): void {
-    const b = BUDGET.phone, share = tris / b.tris;
+  /**
+   * this model's share of the phone frame budget (≤ 2.0 M tris, ≤ 150 calls — project/archive/2026-09-22-play-perf.md):
+   * one copy's, and all its copies' if every one were in the frame (E306)
+   */
+  private budget(tris: number, calls: number, copies = 1): void {
+    const b = BUDGET.phone, share = tris / b.tris, all = share * copies;
+    const pct = (x: number): string => (x * 100).toFixed(x < 0.01 ? 2 : 1);
     const bar = this.sheet.querySelector<HTMLElement>('.ws-x-budget i'), text = this.sheet.querySelector('.ws-x-budget span');
-    if (bar) bar.style.width = `${Math.min(100, Math.max(1.5, share * 100))}%`;
-    if (text) text.textContent = `Phone budget · ${(share * 100).toFixed(share < 0.01 ? 2 : 1)} % of ${b.tris / 1e6} M tris · ${calls} / ${b.calls} calls · on ${CURRENT_TIER}`;
+    if (bar) bar.style.width = `${Math.min(100, Math.max(1.5, all * 100))}%`;
+    if (text) text.textContent = `Phone budget · ${pct(share)} %${copies > 1 ? ` each · ${pct(all)} % for all ${copies.toLocaleString()}` : ''} of ${b.tris / 1e6} M tris · ${calls} / ${b.calls} calls · on ${CURRENT_TIER}`;
   }
 
   private setView(v: View, mark = true): void {
@@ -505,7 +528,7 @@ export class ModelExplorer implements ExplorePane {
     const lineup = { group, labels, ruler, marks, base };
     const entry: CatalogEntry = {
       id: 'lineup', name: 'Creature lineup', category: 'creatures', file: 'src/entities/species/', live: false, buildMs: 0,
-      object: () => group,
+      pipeline: ['code'], copies: rows.length, drawnAs: 'skinned', object: () => group,
       tick: (dt, t) => { for (const r of rows) r.a.update(dt, t, true); },
     };
     this.openModel(entry); // (openModel closes whatever was open first — the lineup is only registered after it)
@@ -724,8 +747,8 @@ export class ModelExplorer implements ExplorePane {
     cam.position.copy(pos); cam.quaternion.copy(quat);
     const slot = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] .ws-x-model-thumb`);
     if (slot && !slot.firstChild) slot.append(c);
-    const small = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] small`);
-    if (small && !e.live) small.textContent = trisLabel(measure(o).tris);
+    const small = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] small:last-of-type`); // (the first is how it's made)
+    if (small && !e.live) small.textContent = `${trisLabel(measure(o).tris)}${e.copies > 1 ? ' each' : ''}`;
   }
 }
 

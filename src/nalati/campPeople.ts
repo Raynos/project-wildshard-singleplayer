@@ -281,7 +281,7 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
   const place = (p: Live): void => { p.anchor?.position.copy(p.feet); p.anchor?.updateMatrixWorld(true); };
   place(fig.child);
   if (registry) {
-    registry.add({ id: 'nalati-camp-people', name: 'Camp people', category: 'creatures', file: 'src/nalati/campPeople.ts', object: group, colliders: still, surface: 'flesh', model: { category: 'creatures' } });
+    registry.add({ id: 'nalati-camp-people', name: 'Camp people', category: 'creatures', file: 'src/nalati/campPeople.ts', object: group, colliders: still, surface: 'flesh', model: { category: 'creatures', pipeline: 'hunyuan', drawnAs: 'skinned', copies: ids.length } });
     registry.add({ id: 'nalati-camp-child', name: 'Camp child', category: 'creatures', file: 'src/nalati/campPeople.ts', colliders: [capsule(fig.child, true)], surface: 'flesh', follows: childAnchor });
   }
 

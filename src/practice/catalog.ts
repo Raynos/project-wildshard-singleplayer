@@ -34,7 +34,7 @@ export function registerTrainingDummyModel(renderer: THREE.WebGLRenderer): void 
     void fetchVariant(id);
   };
   registerModel({
-    id: 'training-dummy', name: 'Training dummy', category: 'props', file: 'public/assets/practice/dummies/', live: false,
+    id: 'training-dummy', name: 'Training dummy', category: 'props', file: 'public/assets/practice/dummies/', live: false, pipeline: 'trellis', drawnAs: 'skinned',
     object: () => { if (group.children.length === 0) rebuild('wood'); return group; },
     variants: DUMMY_VARIANTS.map((v) => ({ id: v.id, label: v.label })), rebuild, worldView: false,
   });

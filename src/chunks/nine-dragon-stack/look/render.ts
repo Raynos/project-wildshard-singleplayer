@@ -71,6 +71,12 @@ export function createRender(): ShardRender {
     handle.jiehua.blendMode.opacity.value = active ? 0 : 1;
   };
   document.addEventListener('ws:practice-active', onPractice); // the enclosed arena has no outdoor drizzle / city grade
+  // the Model Explorer's studio (E306): no drizzle across the turntable or its thumbnails; the grade stays (it is the look)
+  const onStudio = (event: Event): void => {
+    if (handle === null) return;
+    handle.jiehua.u.uRain.value.x = (event as CustomEvent<boolean>).detail ? 0 : BLEED.rain;
+  };
+  document.addEventListener('ws:studio-active', onStudio);
   const glow = glowUniforms();
   const grade = gradeUniforms();
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
@@ -182,6 +188,7 @@ export function createRender(): ShardRender {
     },
     dispose(): void {
       document.removeEventListener('ws:practice-active', onPractice);
+      document.removeEventListener('ws:studio-active', onStudio);
       if (handle?.halos) { handle.halos.mesh.removeFromParent(); handle.halos.mesh.geometry.dispose(); handle.halos.mesh.material.dispose(); }
       if (handle !== null && Reflect.get(window, '__ndRender') === handle) Reflect.deleteProperty(window, '__ndRender');
       handle = null;

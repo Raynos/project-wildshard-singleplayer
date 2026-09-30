@@ -6,6 +6,10 @@
  * catalog, and `models()` / `picks` are what src/explore/registry.ts serves. One list: a built thing is registered once
  * and is drawn, collides and is explorable from that one `add`.
  *
+ * E306 / E315 (docs/plans/MODEL-ARCHITECTURE.md): models move onto the model contract, src/models/model.ts. There
+ * `place(model, placements, …)` makes the `add` — one piece per call, and the model's one catalog entry — and `sets`
+ * holds the named groups of placements. A hand-written `model` on a piece is the old way; M6 removes it.
+ *
  * `ColliderDesc` is engine-neutral data: builders emit it beside the geometry they draw and never import Rapier.
  */
 import type * as THREE from 'three';
@@ -40,8 +44,36 @@ export type PieceCategory = 'buildings' | 'nature' | 'props' | 'creatures' | 'gr
 /** Explore's catalog tabs */
 export type ModelCategory = 'buildings' | 'nature' | 'creatures' | 'props';
 
+/** Every piece category's catalog tab, spelled out (E306: a `props` piece used to land under Buildings) */
+export const MODEL_CATEGORY: Readonly<Record<PieceCategory, ModelCategory>> = { buildings: 'buildings', nature: 'nature', props: 'props', creatures: 'creatures', ground: 'nature' };
+
+/**
+ * How a model is made (E306): the Model Explorer card's badge. `code` is procedural three.js; `blender` a Blender
+ * script's GLB; `trellis` / `hunyuan` the image-to-3D generators (scripts/img2mesh/); `cc0` a downloaded CC0 file.
+ */
+export type Pipeline = 'code' | 'blender' | 'trellis' | 'hunyuan' | 'cc0';
+
+/**
+ * How a model's copies are drawn (E306): `single` one object per copy; `merged` the copies welded into one mesh
+ * (per cell); `instanced` one InstancedMesh per part; `batched` one BatchedMesh per material (multi-draw); `skinned` a
+ * rig (bones).
+ */
+export type DrawnAs = 'single' | 'merged' | 'instanced' | 'batched' | 'skinned';
+
+/** The facts a catalog card shows about a model (E306 M0a); each is optional and read from the object when absent. */
+export interface ModelFacts {
+  /** how it's made (a camp built in code and dressed with TRELLIS props lists both) */
+  pipeline?: Pipeline | readonly Pipeline[];
+  /** how many copies this shard draws */
+  copies?: number;
+  /** how they're drawn */
+  drawnAs?: DrawnAs;
+  /** VIEW IN WORLD: the world box of the real copy nearest `near` (default: the catalog object's own box) */
+  worldBox?: (near: THREE.Vector3) => THREE.Box3 | null;
+}
+
 /** A piece as a model in Explore's catalog (every field defaults from the piece). */
-export interface ModelEntry {
+export interface ModelEntry extends ModelFacts {
   /** the catalog id, when it differs from the piece's (one catalog entry for all the jetties) */
   id?: string;
   category?: ModelCategory;
@@ -59,7 +91,7 @@ export interface ModelEntry {
 }
 
 /** a model in Explore's catalog, as it reads it (`WorldRegistry.models()`) */
-export interface RegisteredModel {
+export interface RegisteredModel extends ModelFacts {
   id: string;
   name: string;
   category: ModelCategory;
@@ -72,6 +104,21 @@ export interface RegisteredModel {
   variants?: readonly { id: string; label: string }[];
   rebuild?: (variant?: string) => void;
   worldView?: boolean;
+}
+
+/**
+ * A set (E306 / E315 M7): a named group of placements — a camp, a market square, a kurgan field — explorable as one
+ * thing between single models and the whole world. It owns no geometry: its members are placed models.
+ */
+export interface RegisteredSet {
+  id: string;
+  name: string;
+  /** the module that composes it */
+  file: string;
+  /** each member model (its catalog id) and how many copies of it the set places */
+  members: readonly { model: string; copies: number }[];
+  /** where it stands, world space */
+  bounds: THREE.Box3;
 }
 
 /** a tap target that is not a registered model's own object: a batch mesh (one palm out of all of them) */
@@ -119,6 +166,8 @@ export class WorldRegistry {
   readonly pieces: Piece[] = [];
   /** Explore's tap targets on batch meshes */
   readonly picks: RegisteredPick[] = [];
+  /** the sets placed on this shard (E306 M7: explored between single models and the world) */
+  readonly sets: RegisteredSet[] = [];
   private readonly listeners: ((p: Piece) => void)[] = [];
 
   /** Register a built thing: every listener sees it now; later listeners see it on subscribe. */
@@ -142,8 +191,11 @@ export class WorldRegistry {
     for (const p of this.pieces) {
       const m = p.model, object = m?.object ?? (p.object ? ((o: THREE.Object3D) => () => o)(p.object) : undefined);
       if (!m || !object) continue;
-      const id = m.id ?? p.id, category = m.category ?? (p.category === 'nature' || p.category === 'creatures' ? p.category : 'buildings');
-      const e: RegisteredModel = { id, name: p.name, category, file: p.file, live: m.live ?? true, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}) };
+      const id = m.id ?? p.id, category = m.category ?? MODEL_CATEGORY[p.category];
+      const e: RegisteredModel = {
+        id, name: p.name, category, file: p.file, live: m.live ?? true, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
+        ...(m.pipeline === undefined ? {} : { pipeline: m.pipeline }), ...(m.copies === undefined ? {} : { copies: m.copies }), ...(m.drawnAs === undefined ? {} : { drawnAs: m.drawnAs }), ...(m.worldBox === undefined ? {} : { worldBox: m.worldBox }),
+      };
       const i = at.get(id);
       if (i === undefined) { at.set(id, out.length); out.push(e); } else out[i] = e;
     }
@@ -151,6 +203,12 @@ export class WorldRegistry {
   }
 
   addPick(p: RegisteredPick): void { this.picks.push(p); }
+
+  /** Register a set; a later one with the same id replaces it in place. */
+  addSet(s: RegisteredSet): void {
+    const i = this.sets.findIndex((x) => x.id === s.id);
+    if (i === -1) this.sets.push(s); else this.sets[i] = s;
+  }
 
   /** The highest piece floor at (x, z), for placement; undefined off every piece. */
   floorAt(x: number, z: number): number | undefined {

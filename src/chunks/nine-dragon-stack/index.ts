@@ -52,7 +52,12 @@ export const NINE_DRAGON_WORLD = {
     // the geometry and Jiehua material are the same objects the fragment already loaded, so this adds no asset fetch.
     for (const model of world.models) ctx.registry.add({
       id: `model:${model.id}`, name: model.name, category: model.category, file: model.file,
-      model: { id: model.id, category: model.category, live: false, object: model.object },
+      // E306 M0a: how it's made, its copies, and VIEW IN WORLD on the real copy nearest the spawn
+      model: {
+        id: model.id, category: model.category, live: false, object: model.object,
+        ...(model.pipeline === undefined ? {} : { pipeline: model.pipeline }), ...(model.copies === undefined ? {} : { copies: model.copies }),
+        ...(model.drawnAs === undefined ? {} : { drawnAs: model.drawnAs }), ...(model.worldBox === undefined ? {} : { worldBox: model.worldBox }),
+      },
     });
     ctx.onUpdate((_dt, t) => { world.update(t, ctx.camera); });
   },

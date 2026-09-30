@@ -1,0 +1,528 @@
+/**
+ * `place(model, placements, options)` — the world composes models (E306 / E315; the guide is ./model.ts). One call:
+ * builds the copies the way `draw` says (merged / instanced / batched / single, with the model's LODs and per-copy
+ * culling), carries the model's own-space colliders to every placement, registers ONE registry piece (what is drawn,
+ * the world-space colliders, a floor) and the model's ONE catalog entry for the shard (copies summed over every
+ * `place` of it, a tap target on its copies, VIEW IN WORLD on the real copy nearest the spawn).
+ *
+ *   const ctx = modelContext(sky, renderer);
+ *   const rocks = place(shoreBoulder, placements, { ctx, draw: 'merged', piece: { id: 'rocks', name: 'Shore boulders', solidFloor: true } });
+ *   const ferns = place(fern, placements, { ctx, draw: 'instanced', cull: { far: 60, keepNear: 12 } });
+ *   game.onRender(() => cullPlaced(camera));   // once a frame, after the camera is posed, if anything culls or has LODs
+ *
+ * Cost: every path draws what the hand-rolled code drew (merged = one draw per material per cell; instanced = one per
+ * part per variant per LOD level in view; batched = one per material; single = one per part per copy) and its cullers
+ * allocate nothing per frame (./cull.ts).
+ */
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { Rng } from '../core/rng';
+import { shardSlot } from '../core/shardState';
+import { activeRegistry, type ColliderDesc, type DrawnAs, type ModelEntry, type WorldRegistry } from '../world/registry';
+import { withTier } from '../explore/tiers';
+import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
+import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
+import { BatchedCull, CellCull, InstancedCull, type BatchedSlot, type CullOptions, type InstancedSink } from './cull';
+
+export type { CullOptions } from './cull';
+
+/** how the copies are drawn (see ./model.ts step 3) */
+export type Draw = 'single' | 'merged' | 'instanced' | 'batched';
+
+/** the registry piece a `place` call adds (defaults: the model's id and name; no floor) */
+export interface PieceOptions {
+  /** keep the old builder's piece id when migrating (saves, tests, footprints key on it) */
+  readonly id?: string;
+  readonly name?: string;
+  /** placement / footsteps floor function, world space (see Piece.floor) */
+  readonly floor?: (x: number, z: number) => number | undefined;
+  /** the floor is real geometry in the colliders (Piece.solidFloor) */
+  readonly solidFloor?: boolean;
+  /** a moving placement: the colliders ride this object (Piece.follows; then they are in its local frame) */
+  readonly follows?: THREE.Object3D;
+  readonly active?: () => boolean;
+}
+
+export interface PlaceOptions {
+  readonly ctx: ModelContext;
+  readonly draw: Draw;
+  /** merged: split the copies into square cells of this many metres, one mesh per cell and material (culled per cell) */
+  readonly cell?: number;
+  /** per-copy culling (instanced / batched; merged: per cell). Without it, instanced copies are culled as one set */
+  readonly cull?: CullOptions;
+  /** default: the running shard's registry; null: build only (a dev page) */
+  readonly registry?: WorldRegistry | null;
+  readonly piece?: PieceOptions;
+}
+
+/** what a `place` call built */
+export interface Placed {
+  readonly model: string;
+  /** everything it draws: the one mesh when there is one, else a group */
+  readonly object: THREE.Object3D;
+  /** its colliders, world space, in placement order */
+  readonly colliders: readonly ColliderDesc[];
+  readonly copies: number;
+  readonly drawnAs: DrawnAs;
+  /** per-copy culling / LOD for this view (a no-op when nothing culls); cheap when the camera hasn't moved */
+  cull: (camera: THREE.Camera) => void;
+  /** copy i's world box */
+  copyBox: (i: number, target: THREE.Box3) => THREE.Box3;
+  /** the copy nearest p (-1 when there are none) */
+  nearest: (p: THREE.Vector3) => number;
+}
+
+/** what one drawing path hands back */
+interface Drawn {
+  object: THREE.Object3D;
+  drawnAs: DrawnAs;
+  colliders: ColliderDesc[];
+  /** world boxes, 6 floats per copy (min xyz, max xyz) */
+  boxes: Float32Array;
+  cull: ((camera: THREE.Camera) => void) | null;
+}
+
+// ── the shard's placed models (E155: every resident shard has its own) ──
+
+interface ModelRecord { readonly groups: Placed[] }
+let records = new Map<string, ModelRecord>();
+let cullers: ((camera: THREE.Camera) => void)[] = [];
+shardSlot<Map<string, ModelRecord>>('models.placed', () => records, (v) => { records = v; }, () => new Map());
+shardSlot<((camera: THREE.Camera) => void)[]>('models.cullers', () => cullers, (v) => { cullers = v; }, () => []);
+
+/** Per-copy culling and LODs of everything this shard placed — once a frame, after the camera is posed. */
+export function cullPlaced(camera: THREE.Camera): void {
+  for (let i = 0; i < cullers.length; i++) cullers[i]?.(camera);
+}
+
+/** how many copies of a model this shard has placed (0 when none) */
+export function placedCopies(id: string): number {
+  let n = 0;
+  for (const g of records.get(id)?.groups ?? []) n += g.copies;
+  return n;
+}
+
+// ── helpers ──
+
+const _box = new THREE.Box3(), _v = new THREE.Vector3(), _sphere = new THREE.Sphere();
+
+function partsOf(built: readonly ModelPart[] | THREE.Object3D, id: string, draw: Draw): readonly ModelPart[] {
+  if (Array.isArray(built)) return built as readonly ModelPart[];
+  throw new Error(`place: '${id}' builds a whole object, which only draw: 'single' can place (asked for '${draw}')`);
+}
+
+function meshOf(part: ModelPart, geometry: THREE.BufferGeometry = part.geometry): THREE.Mesh {
+  const m = new THREE.Mesh(geometry, part.material);
+  m.castShadow = part.castShadow ?? false;
+  m.receiveShadow = part.receiveShadow ?? false;
+  if (part.customDepthMaterial) m.customDepthMaterial = part.customDepthMaterial;
+  if (part.renderOrder !== undefined) m.renderOrder = part.renderOrder;
+  return m;
+}
+
+/** the one object when there is one, else a group of them */
+function wrap(objects: readonly THREE.Object3D[], name: string): THREE.Object3D {
+  const only = objects.length === 1 ? objects[0] : undefined;
+  if (only !== undefined) { only.name ||= name; return only; }
+  const g = new THREE.Group();
+  g.name = name;
+  if (objects.length > 0) g.add(...objects);
+  return g;
+}
+
+/** a box of the parts' own-space geometry (union) */
+function ownBox(parts: readonly ModelPart[], target: THREE.Box3): THREE.Box3 {
+  target.makeEmpty();
+  for (const p of parts) { if (p.geometry.boundingBox === null) p.geometry.computeBoundingBox(); if (p.geometry.boundingBox) target.union(p.geometry.boundingBox); }
+  return target;
+}
+
+function writeBox(boxes: Float32Array, i: number, b: THREE.Box3): void {
+  boxes.set([b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z], i * 6);
+}
+
+/** world box of posed geometry (a merged copy, before the merge) */
+function geometryBox(geos: readonly THREE.BufferGeometry[], target: THREE.Box3): THREE.Box3 {
+  target.makeEmpty();
+  for (const g of geos) {
+    const p = g.getAttribute('position');
+    for (let i = 0; i < p.count; i++) target.expandByPoint(_v.set(p.getX(i), p.getY(i), p.getZ(i)));
+  }
+  return target;
+}
+
+/** spheres (x, y, z, r per copy) around the world boxes: what the cullers test */
+function spheresOf(boxes: Float32Array): Float32Array {
+  const n = boxes.length / 6, out = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) {
+    _box.min.set(boxes[i * 6] ?? 0, boxes[i * 6 + 1] ?? 0, boxes[i * 6 + 2] ?? 0);
+    _box.max.set(boxes[i * 6 + 3] ?? 0, boxes[i * 6 + 4] ?? 0, boxes[i * 6 + 5] ?? 0);
+    _box.getBoundingSphere(_sphere);
+    out.set([_sphere.center.x, _sphere.center.y, _sphere.center.z, _sphere.radius], i * 4);
+  }
+  return out;
+}
+
+/** a copy's colliders: the model's own-space ones at its pose (`drawn-hull` from what it draws) */
+function collideCopy<P extends object>(def: ModelDef<P>, params: P, pose: Pose, world: readonly THREE.BufferGeometry[] | null, own: readonly THREE.BufferGeometry[], out: ColliderDesc[]): void {
+  for (const spec of def.colliders?.(params) ?? []) {
+    if (spec.kind === 'drawn-hull') {
+      const h = world ? drawnHullWorld(world, pose) : drawnHullOwn(own, pose);
+      out.push(spec.surface === undefined ? h : { ...h, surface: spec.surface });
+    } else out.push(placeCollider(spec, pose));
+  }
+}
+
+/** level start distances: 0 for the model's own parts, then each LOD's `from` */
+const levelsOf = <P extends object>(def: ModelDef<P>): number[] => [0, ...(def.lods ?? []).map((l) => l.from)];
+
+/** the parts of every level for one set of params (each LOD level draws from its own rng stream, never the copies') */
+function levelParts<P extends object>(def: ModelDef<P>, o: PlaceOptions, params: P, rng: Rng): (readonly ModelPart[])[] {
+  const out: (readonly ModelPart[])[] = [partsOf(def.build(o.ctx, params, rng), def.id, o.draw)];
+  (def.lods ?? []).forEach((lod, l) => { out.push(lod.build(o.ctx, params, new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)))); });
+  return out;
+}
+
+// ── merged: every copy welded into one mesh per material (per cell, per LOD level) ──
+
+function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+  const rng = new Rng(seedOf(def));
+  const lodRngs = (def.lods ?? []).map((_, l) => new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)));
+  const levels = levelsOf(def).length;
+  const colliders: ColliderDesc[] = [];
+  const boxes = new Float32Array(pls.length * 6);
+  /** cell key → per level → material → { part (flags), geometries } */
+  const cells = new Map<string, { centre: THREE.Vector3; n: number; levels: Map<THREE.Material, { part: ModelPart; geos: THREE.BufferGeometry[] }>[] }>();
+  const cellOf = (pl: Placement<P>): string => (o.cell === undefined ? '' : `${Math.floor(pl.x / o.cell)},${Math.floor(pl.z / o.cell)}`);
+  // a merged copy's geometry is posed in place: one a builder hands out twice (a shared GLB) is copied first
+  const seen = new WeakSet<THREE.BufferGeometry>();
+  const own = (g: THREE.BufferGeometry): THREE.BufferGeometry => { if (seen.has(g)) return g.clone(); seen.add(g); return g; };
+  pls.forEach((pl, i) => {
+    const pose = poses[i], p = params[i];
+    if (pose === undefined || p === undefined) return;
+    const parts = partsOf(def.build(o.ctx, p, rng), def.id, 'merged');
+    const posed = parts.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; });
+    collideCopy(def, p, pose, posed, posed, colliders);
+    writeBox(boxes, i, geometryBox(posed, _box));
+    const key = cellOf(pl);
+    let cell = cells.get(key);
+    if (!cell) { cell = { centre: new THREE.Vector3(), n: 0, levels: Array.from({ length: levels }, () => new Map<THREE.Material, { part: ModelPart; geos: THREE.BufferGeometry[] }>()) }; cells.set(key, cell); }
+    cell.centre.add(_v.set(pl.x, pl.y, pl.z)); cell.n++;
+    const here = cell;
+    const add = (l: number, list: readonly ModelPart[], geos: readonly THREE.BufferGeometry[]): void => {
+      const byMat = here.levels[l];
+      if (!byMat) return;
+      list.forEach((part, k) => {
+        const g = geos[k];
+        if (!g) return;
+        const slot = byMat.get(part.material);
+        if (slot) slot.geos.push(g); else byMat.set(part.material, { part, geos: [g] });
+      });
+    };
+    add(0, parts, posed);
+    (def.lods ?? []).forEach((lod, l) => {
+      const lr = lodRngs[l];
+      if (!lr) return;
+      const lp = lod.build(o.ctx, p, lr);
+      add(l + 1, lp, lp.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; }));
+    });
+  });
+  const objects: THREE.Object3D[] = [];
+  const cellLevels: (THREE.Object3D | null)[][] = [];
+  const centres: number[] = [];
+  let drawnMeshes = 0;
+  for (const cell of cells.values()) {
+    const perLevel: THREE.Mesh[][] = [];
+    for (const byMat of cell.levels) {
+      const meshes: THREE.Mesh[] = [];
+      for (const { part, geos } of byMat.values()) {
+        const geo = mergeGeometries(geos, false);
+        geo.computeBoundingSphere();
+        const mesh = meshOf(part, geo);
+        mesh.name = def.id;
+        meshes.push(mesh);
+      }
+      drawnMeshes += meshes.length;
+      perLevel.push(meshes);
+    }
+    if (levels === 1) { objects.push(...(perLevel[0] ?? [])); continue; }
+    const holder = new THREE.Group();
+    holder.name = `${def.id}:cell`;
+    const lvls = perLevel.map((meshes, l) => (meshes.length === 0 ? null : wrap(meshes, `${def.id}:lod${l}`)));
+    for (const lvl of lvls) if (lvl) holder.add(lvl);
+    objects.push(holder);
+    cellLevels.push(lvls);
+    centres.push(cell.centre.x / cell.n, cell.centre.y / cell.n, cell.centre.z / cell.n);
+  }
+  if (drawnMeshes === 0) console.warn(`[models] ${def.id}: nothing placed — %d placements`, pls.length);
+  let cull: ((camera: THREE.Camera) => void) | null = null;
+  if (levels > 1 || o.cull?.far !== undefined) {
+    const c = new CellCull(cellLevels, Float32Array.from(centres), levelsOf(def), o.cull ?? {});
+    cull = (camera) => { c.update(camera); };
+  }
+  return { object: wrap(objects, def.id), drawnAs: 'merged', colliders, boxes, cull };
+}
+
+// ── instanced: one InstancedMesh per part, per variant, per LOD level ──
+
+function variantKeys<P extends object>(pls: readonly Placement<P>[]): { keys: (string | undefined)[]; of: Uint16Array } {
+  const keys: (string | undefined)[] = [], of = new Uint16Array(pls.length);
+  pls.forEach((pl, i) => {
+    let k = keys.indexOf(pl.variant);
+    if (k === -1) { k = keys.length; keys.push(pl.variant); }
+    of[i] = k;
+  });
+  return { keys, of };
+}
+
+function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+  const { keys, of } = variantKeys(pls);
+  const levels = levelsOf(def).length, n = pls.length;
+  const culls = o.cull !== undefined || levels > 1;
+  const colliders: ColliderDesc[] = [];
+  const boxes = new Float32Array(n * 6);
+  const matrices = new Float32Array(n * 16);
+  const tinted = pls.some((pl) => pl.color !== undefined);
+  const colors = tinted ? new Float32Array(n * 3) : null;
+  const tint = new THREE.Color();
+  // every variant's parts, built once (instanced copies share their variant's shape)
+  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
+  const perVariant = keys.map((_, v) => of.reduce((c, x) => c + (x === v ? 1 : 0), 0));
+  pls.forEach((pl, i) => {
+    const pose = poses[i], p = params[i], parts = built[of[i] ?? 0]?.[0] ?? [];
+    if (pose === undefined || p === undefined) return;
+    pose.matrix.toArray(matrices, i * 16);
+    if (colors) { tint.set(pl.color ?? 0xffffff); colors.set([tint.r, tint.g, tint.b], i * 3); }
+    writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
+    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders);
+  });
+  const objects: THREE.Object3D[] = [];
+  const sinks: (InstancedSink | null)[] = [];
+  built.forEach((lvls, v) => {
+    const cap = perVariant[v] ?? 0;
+    for (let l = 0; l < levels; l++) {
+      const parts = lvls[l] ?? [];
+      if (parts.length === 0 || cap === 0) { sinks.push(null); continue; }
+      const matrix = new THREE.InstancedBufferAttribute(new Float32Array(cap * 16), 16);
+      const color = colors ? new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3) : null;
+      if (culls) { matrix.setUsage(THREE.DynamicDrawUsage); color?.setUsage(THREE.DynamicDrawUsage); }
+      const meshes = parts.map((part) => {
+        const im = new THREE.InstancedMesh(part.geometry, part.material, cap);
+        im.instanceMatrix = matrix;
+        if (color) im.instanceColor = color;
+        im.castShadow = part.castShadow ?? false; im.receiveShadow = part.receiveShadow ?? false;
+        if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
+        if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
+        im.name = `${def.id}:${keys[v] ?? 'base'}:${l}`;
+        return im;
+      });
+      if (!culls) {
+        // every copy of this variant, written once; three culls the set as a whole (as a hand-rolled InstancedMesh)
+        let c = 0;
+        for (let i = 0; i < n; i++) {
+          if (of[i] !== v) continue;
+          (matrix.array as Float32Array).set(matrices.subarray(i * 16, i * 16 + 16), c * 16);
+          if (color && colors) (color.array as Float32Array).set(colors.subarray(i * 3, i * 3 + 3), c * 3);
+          c++;
+        }
+        for (const im of meshes) { im.count = c; im.computeBoundingSphere(); }
+      } else for (const im of meshes) { im.count = 0; im.visible = false; im.frustumCulled = false; }
+      objects.push(...meshes);
+      sinks.push({ matrix, color, meshes });
+    }
+  });
+  let cull: ((camera: THREE.Camera) => void) | null = null;
+  if (culls) {
+    const c = new InstancedCull(sinks, levels, of, matrices, colors, spheresOf(boxes), levelsOf(def), o.cull ?? {});
+    cull = (camera) => { c.update(camera); };
+  }
+  return { object: wrap(objects, def.id), drawnAs: 'instanced', colliders, boxes, cull };
+}
+
+// ── batched: one BatchedMesh per material (WEBGL_multi_draw; never facade geometry — E271 / E272) ──
+
+function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+  const renderer = o.ctx.renderer;
+  if (renderer === null || !renderer.extensions.has('WEBGL_multi_draw')) return drawInstanced(def, pls, poses, params, o);
+  const { keys, of } = variantKeys(pls);
+  const levels = levelsOf(def).length, n = pls.length;
+  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
+  // one batch per material: every (variant, level) part with that material is one of its geometries
+  const byMat = new Map<THREE.Material, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry }[] }>();
+  built.forEach((lvls, v) => { lvls.forEach((parts, l) => { for (const part of parts) {
+    const e = byMat.get(part.material);
+    if (e) e.geos.push({ v, l, g: part.geometry }); else byMat.set(part.material, { part, geos: [{ v, l, g: part.geometry }] });
+  } }); });
+  const count = (g: THREE.BufferGeometry): number => g.getAttribute('position').count;
+  const batches = [...byMat.values()].map(({ part, geos }) => {
+    const verts = geos.reduce((s, x) => s + count(x.g), 0), idx = geos.reduce((s, x) => s + (x.g.index?.count ?? 0), 0);
+    const bm = new THREE.BatchedMesh(n, verts, idx, part.material);
+    bm.castShadow = part.castShadow ?? false; bm.receiveShadow = part.receiveShadow ?? false;
+    if (part.customDepthMaterial) bm.customDepthMaterial = part.customDepthMaterial;
+    bm.perObjectFrustumCulled = true;
+    bm.name = `${def.id}:batch`;
+    /** geometry id per (variant, level) */
+    const ids = new Int32Array(keys.length * levels).fill(-1);
+    for (const x of geos) ids[x.v * levels + x.l] = bm.addGeometry(x.g);
+    return { bm, ids };
+  });
+  const colliders: ColliderDesc[] = [];
+  const boxes = new Float32Array(n * 6);
+  const slots: BatchedSlot[] = [];
+  const start = new Uint32Array(n + 1);
+  const tint = new THREE.Color();
+  pls.forEach((pl, i) => {
+    start[i] = slots.length;
+    const pose = poses[i], p = params[i], v = of[i] ?? 0, parts = built[v]?.[0] ?? [];
+    if (pose === undefined || p === undefined) return;
+    writeBox(boxes, i, ownBox(parts, _box).applyMatrix4(pose.matrix));
+    collideCopy(def, p, pose, null, parts.map((x) => x.geometry), colliders);
+    for (const { bm, ids } of batches) {
+      const geometry = ids.slice(v * levels, v * levels + levels);
+      const first = geometry.find((g) => g >= 0);
+      if (first === undefined) continue;
+      const instance = bm.addInstance(first);
+      bm.setMatrixAt(instance, pose.matrix);
+      if (pl.color !== undefined) bm.setColorAt(instance, tint.set(pl.color));
+      if ((geometry[0] ?? -1) < 0) bm.setVisibleAt(instance, false);
+      slots.push({ mesh: bm, instance, geometry });
+    }
+  });
+  start[n] = slots.length;
+  let cull: ((camera: THREE.Camera) => void) | null = null;
+  if (o.cull !== undefined || levels > 1) {
+    const c = new BatchedCull(slots, start, spheresOf(boxes), levelsOf(def), o.cull ?? {});
+    cull = (camera) => { c.update(camera); };
+  }
+  return { object: wrap(batches.map((b) => b.bm), def.id), drawnAs: 'batched', colliders, boxes, cull };
+}
+
+// ── single: one object per copy (THREE.LOD when the model has LODs) ──
+
+function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+  const rng = new Rng(seedOf(def));
+  const colliders: ColliderDesc[] = [];
+  const boxes = new Float32Array(pls.length * 6);
+  const copies = poses.map((pose, i) => {
+    const p = params[i];
+    if (p === undefined) return new THREE.Group();
+    const built = def.build(o.ctx, p, rng);
+    const own: THREE.BufferGeometry[] = [];
+    let obj: THREE.Object3D;
+    if (Array.isArray(built)) {
+      const parts = built as readonly ModelPart[];
+      own.push(...parts.map((x) => x.geometry));
+      obj = wrap(parts.map((x) => meshOf(x)), def.id);
+    } else {
+      obj = built as THREE.Object3D;
+      obj.traverse((c) => { const m = c as Partial<THREE.Mesh>; if (m.isMesh === true && m.geometry) own.push(m.geometry); });
+    }
+    if ((def.lods ?? []).length > 0) {
+      const lod = new THREE.LOD();
+      lod.addLevel(obj, 0);
+      (def.lods ?? []).forEach((l, k) => {
+        const lp = l.build(o.ctx, p, new Rng(seedOf(def) ^ Math.imul(k + 1, 0x9e3779b9)));
+        lod.addLevel(lp.length === 0 ? new THREE.Object3D() : wrap(lp.map((x) => meshOf(x)), `${def.id}:lod${k + 1}`), l.from);
+      });
+      obj = lod;
+    }
+    pose.matrix.decompose(obj.position, obj.quaternion, obj.scale);
+    obj.updateMatrixWorld(true);
+    writeBox(boxes, i, _box.setFromObject(obj));
+    collideCopy(def, p, pose, null, own, colliders);
+    return obj;
+  });
+  const skinned = copies.some((c) => c.getObjectsByProperty('isSkinnedMesh', true).length > 0);
+  return { object: wrap(copies, def.id), drawnAs: skinned ? 'skinned' : 'single', colliders, boxes, cull: null };
+}
+
+// ── the catalog entry: a specimen in own space, its variants, its facts ──
+
+function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: ModelRecord, drawnAs: DrawnAs): ModelEntry {
+  const specimen = new THREE.Group();
+  specimen.name = `model:${def.id}`;
+  const build = (variant?: string): THREE.Object3D => {
+    const built = def.build(o.ctx, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
+    return Array.isArray(built) ? wrap((built as readonly ModelPart[]).map((x) => meshOf(x)), def.id) : built as THREE.Object3D;
+  };
+  const rebuild = (variant?: string): void => {
+    specimen.clear();
+    specimen.add(build(variant));
+    if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: def.id } }));
+  };
+  const entry: ModelEntry = {
+    id: def.id, category: def.category, live: false, pipeline: def.pipeline, drawnAs,
+    object: () => { if (specimen.children.length === 0) specimen.add(build()); return specimen; },
+    buildAt: (tier) => withTier(tier, () => build()),
+    get copies(): number { let c = 0; for (const g of rec.groups) c += g.copies; return c; },
+    worldBox: (near) => {
+      let best: Placed | null = null, bi = -1, bd = Number.POSITIVE_INFINITY;
+      for (const g of rec.groups) {
+        const i = g.nearest(near);
+        if (i < 0) continue;
+        const d = g.copyBox(i, _box).getCenter(_v).distanceToSquared(near);
+        if (d < bd) { bd = d; best = g; bi = i; }
+      }
+      return best ? best.copyBox(bi, new THREE.Box3()) : null;
+    },
+  };
+  if (def.variants && def.variants.length > 0) { entry.variants = def.variants.map((v) => ({ id: v.id, label: v.label })); entry.rebuild = rebuild; }
+  return entry;
+}
+
+/**
+ * The world box of the copy nearest `near` among a geometry's instance matrices: VIEW IN WORLD for a shard's own
+ * instanced copies that are not on `place` yet (Nine Dragon's GLB specimens until M4).
+ */
+export function copyBoxNear(geometry: THREE.BufferGeometry, matrices: readonly THREE.Matrix4[], near: THREE.Vector3): THREE.Box3 | null {
+  if (geometry.boundingBox === null) geometry.computeBoundingBox();
+  let best: THREE.Matrix4 | undefined, bd = Number.POSITIVE_INFINITY;
+  for (const m of matrices) { const d = _v.setFromMatrixPosition(m).distanceToSquared(near); if (d < bd) { bd = d; best = m; } }
+  return best !== undefined && geometry.boundingBox ? geometry.boundingBox.clone().applyMatrix4(best) : null;
+}
+
+// ── place ──
+
+/** Place copies of a model (see the file header and ./model.ts's migration guide). */
+export function place<P extends object>(def: ModelDef<P>, placements: readonly Placement<P>[], o: PlaceOptions): Placed {
+  const poses = placements.map((pl) => poseOf(pl));
+  const params = placements.map((pl) => paramsOf(def, pl.variant, pl.params));
+  const drawn = o.draw === 'merged' ? drawMerged(def, placements, poses, params, o)
+    : o.draw === 'instanced' ? drawInstanced(def, placements, poses, params, o)
+      : o.draw === 'batched' ? drawBatched(def, placements, poses, params, o)
+        : drawSingle(def, placements, poses, params, o);
+  const { boxes } = drawn;
+  const placed: Placed = {
+    model: def.id, object: drawn.object, colliders: drawn.colliders, copies: placements.length, drawnAs: drawn.drawnAs,
+    cull: drawn.cull ?? ((): void => undefined),
+    copyBox: (i, target) => {
+      target.min.set(boxes[i * 6] ?? 0, boxes[i * 6 + 1] ?? 0, boxes[i * 6 + 2] ?? 0);
+      target.max.set(boxes[i * 6 + 3] ?? 0, boxes[i * 6 + 4] ?? 0, boxes[i * 6 + 5] ?? 0);
+      return target;
+    },
+    nearest: (p) => {
+      let bi = -1, bd = Number.POSITIVE_INFINITY;
+      placements.forEach((pl, i) => { const d = (pl.x - p.x) ** 2 + (pl.y - p.y) ** 2 + (pl.z - p.z) ** 2; if (d < bd) { bd = d; bi = i; } });
+      return bi;
+    },
+  };
+  if (drawn.cull) cullers.push(drawn.cull);
+  const registry = o.registry === undefined ? activeRegistry() : o.registry;
+  if (registry === null) return placed;
+  let rec = records.get(def.id);
+  const first = rec === undefined;
+  if (!rec) { rec = { groups: [] }; records.set(def.id, rec); }
+  rec.groups.push(placed);
+  const pc = o.piece ?? {};
+  registry.add({
+    id: pc.id ?? (first ? def.id : `${def.id}#${rec.groups.length}`), name: pc.name ?? def.name, category: def.category, file: def.file,
+    object: drawn.object, colliders: [...drawn.colliders],
+    ...(def.surface === undefined ? {} : { surface: def.surface }), ...(pc.floor === undefined ? {} : { floor: pc.floor }),
+    ...(pc.solidFloor === undefined ? {} : { solidFloor: pc.solidFloor }), ...(pc.follows === undefined ? {} : { follows: pc.follows }),
+    ...(pc.active === undefined ? {} : { active: pc.active }),
+    ...(first ? { model: modelEntry(def, o, rec, drawn.drawnAs) } : {}),
+  });
+  // a tap on any copy selects the model, boxed on the copy under the finger
+  registry.addPick({ object: drawn.object, entry: def.id, boxAt: (pt) => placed.copyBox(Math.max(0, placed.nearest(pt)), new THREE.Box3()) });
+  return placed;
+}

@@ -86,8 +86,10 @@ export class Select {
     this.show(entry, best.t.label?.(best.point) ?? entry.name);
   }
 
-  /** select a catalog entry directly (VIEW IN WORLD) */
+  /** select a catalog entry directly (VIEW IN WORLD): boxed on the real copy it flew to (E306), else its own object */
   selectEntry(e: CatalogEntry): void {
+    const copy = e.worldBox?.();
+    if (copy) { this.box.copy(copy); this.show(e, e.name); return; }
     const o = e.object();
     if (!o.parent) return;
     this.box.setFromObject(o);

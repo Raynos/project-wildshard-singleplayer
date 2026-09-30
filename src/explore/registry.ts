@@ -18,7 +18,11 @@ export type { ModelCategory, RegisteredModel, RegisteredPick } from '../world/re
 export function registerModel(m: RegisteredModel): void {
   activeRegistry().add({
     id: `model:${m.id}`, name: m.name, category: m.category, file: m.file,
-    model: { id: m.id, category: m.category, live: m.live, object: m.object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}) },
+    model: {
+      id: m.id, category: m.category, live: m.live, object: m.object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
+      // E306 M0a: the card's facts
+      ...(m.pipeline === undefined ? {} : { pipeline: m.pipeline }), ...(m.copies === undefined ? {} : { copies: m.copies }), ...(m.drawnAs === undefined ? {} : { drawnAs: m.drawnAs }), ...(m.worldBox === undefined ? {} : { worldBox: m.worldBox }),
+    },
   });
 }
 export function registerPick(p: RegisteredPick): void { activeRegistry().addPick(p); }

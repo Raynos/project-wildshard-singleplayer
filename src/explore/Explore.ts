@@ -241,10 +241,9 @@ export class Explore {
     if (on && centre) { this.cam.focus(centre, this.host.world.game.camera.position.distanceTo(centre)); this.toast(this.fly ? 'Orbiting · one finger turns around it' : 'Orbiting · Alt-drag turns around it'); }
   }
 
-  /** VIEW IN WORLD: the World Explorer flies to the model, three-quarter view, a little above */
+  /** VIEW IN WORLD: the World Explorer flies to the model (a real copy of it, E306), three-quarter view, a little above */
   viewInWorld(e: CatalogEntry): void {
-    const o = e.object();
-    const box = new THREE.Box3().setFromObject(o);
+    const box = e.worldBox?.() ?? new THREE.Box3().setFromObject(e.object());
     const r = Math.max(3, box.getBoundingSphere(new THREE.Sphere()).radius);
     const look = box.getCenter(new THREE.Vector3());
     const from = look.clone().add(new THREE.Vector3(Math.sin(0.7) * r * 2.2, r * 0.9, Math.cos(0.7) * r * 2.2));

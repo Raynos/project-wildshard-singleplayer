@@ -1,28 +1,32 @@
 /**
- * Boulders — Driftwood Isle's shore boulders: rockKit rocks (smooth painted, E114) sunk into the
- * ground, all in one mesh. Placement is the caller's (a list of
- * `{ x, z, r, rot? }`); `scatterShore()` is the beach rule: rocks along the water line and a few
- * out in the surf, away from the pier corridor.
+ * Boulders — where Driftwood Isle's shore boulders stand (E306 M0b: the rock itself is the model
+ * src/chunks/driftwood-isle/models/shoreBoulder.ts; this is the world side). `scatterShore()` is the beach rule:
+ * rocks along the water line and a few out in the surf, away from the pier corridor. `placements()` turns the specs
+ * into the model's placements (yawed, leaned with the slope, half sunk), and `place()` draws them merged into one
+ * mesh through src/models/place.ts — one registry piece, `rocks`, with each big rock's hull.
  *
- *   const rocks = new Boulders(sky).build(Boulders.scatterShore(seed));
+ *   const rocks = new Boulders(sky).place(Boulders.scatterShore(seed), registry);   // the game (main.ts)
+ *   const rocks = new Boulders(sky).build(Boulders.scatterShore(seed));             // a dev page: no registry
  *   scene.add(rocks.mesh); player.colliders.push(...rocks.colliders);
  */
-import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type * as THREE from 'three';
 import { CHUNK_HALF, ROAD_WIDTH } from '../core/config';
 import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
-import type { ColliderDesc } from './registry';
-import { TIER_CONFIG } from '../core/tier';
+import type { ColliderDesc, WorldRegistry } from './registry';
 import { WRECK } from '../chunks/driftwood-isle';
-import { rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
+import { shoreBoulder, type ShoreBoulderParams } from '../chunks/driftwood-isle/models/shoreBoulder';
+import { modelContext, type Placement } from '../models/model';
+import { place, type Placed } from '../models/place';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 
 export class Boulders {
-  mesh!: THREE.Mesh;
+  /** every rock, merged into one mesh */
+  mesh!: THREE.Object3D;
+  /** the legacy boxes (r > 0.9 m): the melee sweep and the ocean's foam rings */
   colliders: Collider[] = [];
   count = 0;
   /** PHYSICS P4: a convex hull of each colliding rock's drawn vertices (see colliderDescs) */
@@ -61,41 +65,29 @@ export class Boulders {
     return out.filter((b) => Math.hypot(b.x - WRECK.x, b.z - WRECK.z) > 16 + b.r);
   }
 
-  build(specs: BoulderSpec[]): this {
-    const parts: THREE.BufferGeometry[] = [];
-    const rng = new Rng(0x5ea1 ^ 0x70c5);
-    for (const b of specs) {
-      const g = rockGeometry(b.r, rng, { squash: b.squash ?? 0.7, palette: SHORE_ROCK, moss: rng.range(0.25, 0.85), ground: -0.35 * b.r * (b.squash ?? 0.7) });
-      this.place(g, b, parts);
-    }
-    // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
-    if (parts.length === 0) console.warn('[boulders] nothing placed — %d candidates rejected', specs.length);
-    const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
-    geo.computeBoundingSphere();
-    this.mesh = new THREE.Mesh(geo, rockMaterial(this.sky));
-    this.mesh.castShadow = TIER_CONFIG.boulderShadows; this.mesh.receiveShadow = true;
+  /** each spec as a placement of the shore boulder: yawed, leaned with the slope, sunk to a third of its height */
+  static placements(specs: readonly BoulderSpec[]): Placement<ShoreBoulderParams>[] {
+    return specs.map((b) => {
+      const y = heightAt(b.x, b.z);
+      const [nx, , nz] = normalAt(b.x, b.z, 1.5);
+      return { x: b.x, y: y + b.r * (b.squash ?? 0.7) * 0.35, z: b.z, yaw: b.rot ?? 0, leanX: nz * 0.6, leanZ: -nx * 0.6, params: { r: b.r, squash: b.squash ?? 0.7 } };
+    });
+  }
+
+  /** the game's: placed and registered (piece `rocks`, the catalog's Shore boulder) */
+  place(specs: BoulderSpec[], registry: WorldRegistry): this { return this.draw(specs, registry); }
+
+  /** a dev page's: the same rocks, not registered */
+  build(specs: BoulderSpec[]): this { return this.draw(specs, null); }
+
+  private draw(specs: BoulderSpec[], registry: WorldRegistry | null): this {
+    const placed: Placed = place(shoreBoulder, Boulders.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'rocks', solidFloor: true } });
+    this.mesh = placed.object;
+    this.hulls = [...placed.colliders];
+    this.count = placed.copies;
+    // the legacy box of every rock that collides (r > 0.9 m), on the ground under it
+    for (const b of specs) if (b.r > 0.9) this.colliders.push({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: heightAt(b.x, b.z) + b.r * 1.2, yBottom: heightAt(b.x, b.z) - 2 });
     return this;
-  }
-
-  /** a rockKit rock (centred, non-indexed, painted) posed on its spot: yawed, leaned with the slope, half sunk */
-  private place(g: THREE.BufferGeometry, b: BoulderSpec, parts: THREE.BufferGeometry[]): void {
-    g.rotateY(b.rot ?? 0);
-    const y = heightAt(b.x, b.z);
-    const [nx, , nz] = normalAt(b.x, b.z, 1.5);
-    g.rotateX(nz * 0.6); g.rotateZ(-nx * 0.6);
-    g.translate(b.x, y + b.r * (b.squash ?? 0.7) * 0.35, b.z);
-    parts.push(g);
-    this.collide(b, y, g.getAttribute('position'));
-    this.count++;
-  }
-
-  /** a rock over 0.9 m collides: the legacy box, and a hull of the vertices it draws (relative to its centre) */
-  private collide(b: BoulderSpec, y: number, p: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): void {
-    if (b.r <= 0.9) return;
-    this.colliders.push({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: y + b.r * 1.2, yBottom: y - 2 });
-    const cy = y + b.r * (b.squash ?? 0.7) * 0.35, pts = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) { pts[i * 3] = p.getX(i) - b.x; pts[i * 3 + 1] = p.getY(i) - cy; pts[i * 3 + 2] = p.getZ(i) - b.z; }
-    this.hulls.push({ kind: 'hull', x: b.x, y: cy, z: b.z, points: pts });
   }
 
   /**

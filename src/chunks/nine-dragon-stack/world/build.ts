@@ -35,6 +35,7 @@ import { PANEL_LOD, buildSquare, carvedPanelFar } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
 import { WORDS, buildTowers, droneKit, trainKit } from './towers';
 import { Rng, chars } from '../util';
+import { copyBoxNear } from '../../../models/place';
 import { CABLE, SHAFT, WELL_RECTS, buildWell, gondolaKit, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { loadGlb } from './hero/glb';
@@ -370,17 +371,20 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const person3 = (name: string, ramp: readonly number[]): Promise<BufferGeometry> => loadGlb(`/assets/nine-dragon/lab/${name}.glb`, { kind: 0, line: 0, ao: 0.6, ramp, hues: HUES });
   const [walkD, walkL, sitD, sitL] = await Promise.all([person3('walker', DARK), person3('walker', LIGHT), person3('sitter', DARK), person3('sitter', LIGHT)]);
   phaseStart = performance.now();
-  const specimen = (id: string, name: string, category: RegisteredModel['category'], file: string, geometry: BufferGeometry): RegisteredModel => {
+  // E306 M0a: each specimen says how it's made (TRELLIS), how many copies the fragment instances, and where the real
+  // copies stand (VIEW IN WORLD flies to the one nearest the spawn, not to the specimen at the origin 125 m below)
+  const instances = (im: InstancedMesh): Matrix4[] => Array.from({ length: im.count }, (_, i) => im.getMatrixAt(i, new Matrix4()));
+  const specimen = (id: string, name: string, category: RegisteredModel['category'], file: string, geometry: BufferGeometry, at: readonly Matrix4[]): RegisteredModel => {
     const object = new Mesh(geometry, mat);
     object.name = `model:${id}`;
-    return { id, name, category, file, live: false, object: () => object };
+    return { id, name, category, file, live: false, object: () => object, pipeline: 'trellis', drawnAs: 'instanced', copies: at.length, worldBox: (near) => copyBoxNear(geometry, at, near) };
   };
   const models: RegisteredModel[] = [
-    specimen('nds-walker', 'Umbrella walker', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', walkD),
-    specimen('nds-sitter', 'Mahjong sitter', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', sitD),
+    specimen('nds-walker', 'Umbrella walker', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', walkD, ctx.walkers),
+    specimen('nds-sitter', 'Mahjong sitter', 'creatures', 'src/chunks/nine-dragon-stack/world/crowd.ts', sitD, ctx.sitters),
   ];
   const lion = squareProps.find((m) => m.name === 'glb:lion');
-  if (lion !== undefined) models.push(specimen('nds-lion', 'Guardian lion', 'buildings', 'src/chunks/nine-dragon-stack/world/props3d.ts', lion.geometry));
+  if (lion !== undefined) models.push(specimen('nds-lion', 'Guardian lion', 'props', 'src/chunks/nine-dragon-stack/world/props3d.ts', lion.geometry, instances(lion)));
   // The lab's 18k-triangle cast-brass dragon has a production placement at three close Well hooks. One instanced
   // draw keeps it within the phone budget; the underlying procedural brackets and collision-free ring anchors stay.
   const cast = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('/assets/nine-dragon/lab/grapple/dragon-hook.glb');
@@ -409,6 +413,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
     const mounts = ctx.hookMounts.filter((m) => m.ring.y > Y0 - 23 && m.ring.y < Y0 + 14)
       .sort((a, b) => a.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)) - b.ring.distanceToSquared(new Vector3(-16, Y0 - 2, -24)))
       .slice(0, 3);
+    let hooks: Matrix4[] = [];
     if (mounts.length > 0) {
       const placed = new InstancedMesh(geo, hookMat, mounts.length);
       const ringInSculpt = new Vector3(-0.02, 0.26, 0.73);
@@ -421,11 +426,13 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
       });
       placed.computeBoundingSphere();
       root.add(named(placed, 'glb:dragon-hook'));
+      hooks = instances(placed);
       // (E283) the cast dragon (18 k tris at 0.62 scale): coarser copies from 15 m and 40 m
       sculptLods(placed, 0.62, [15, 40]);
     }
     models.push({
-      id: 'nds-dragon-hook', name: 'Fei Zhua dragon hook', category: 'buildings', file: 'src/chunks/nine-dragon-stack/world/build.ts', live: false,
+      id: 'nds-dragon-hook', name: 'Fei Zhua dragon hook', category: 'props', file: 'src/chunks/nine-dragon-stack/world/build.ts', live: false,
+      pipeline: 'trellis', drawnAs: 'instanced', copies: hooks.length, worldBox: (near) => copyBoxNear(geo, hooks, near),
       // (E289) the cast's back is its flat wall plate (model −Z, against the wall in the city): Model Explorer opens on
       // the sun side, which on this shard is the plate — turn the dragon round to face that first view
       object: () => { const m = new Mesh(geo, hookMat); m.rotation.y = Math.PI; return m; },
