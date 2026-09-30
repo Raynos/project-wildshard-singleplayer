@@ -3,6 +3,16 @@
 Read this fully before writing code. Several agents work in parallel **in the same checkout on
 `main`** (no worktrees, no branches). Stay inside the files assigned to you.
 
+**Your limits (AGENTS.md "Subagents are short-lived", E352):**
+- One job. Stop at **400k context or 90 min**, whichever comes first.
+- Never wait more than ~4 min on anything (a browser lane, the model lock, a capture, CI). Report the command as queued
+  instead of waiting.
+- No subagents of your own.
+- Before you end, append a `## Handoff (<date> <time>)` to your ask file (`docs/tasks/asks/<ID>.md`) with **Done**
+  (commits + what is verified), **Next** (the exact command; "queued: …" if it has to wait), **Owns** (your files),
+  **Learned** (gotchas) and **Done when**. If your brief says "continue from the Handoff", read the last one first and
+  trust it.
+
 ## What we are building
 
 A first-person, AAA-looking (PS5 / Skyrim SE / Conan Exiles quality bar) playtest of one

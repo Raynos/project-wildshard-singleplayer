@@ -40,6 +40,18 @@ the whole context is written to cache again at full price.
     turns while it waits, and its 1 h cache is still warm, even for a 30 min queue.
   - No `until …; do sleep …; done` loops longer than 4 min anywhere.
 - Resumed agents count against the cap.
+- **Every stop leaves a handoff in the ask file** (Jake, E352). A subagent stops when it hits a cap, before a long
+  wait, or when it is done with work left over. Before it ends, it appends (never rewrites) a `## Handoff (<date>
+  <time>)` section to its `docs/tasks/asks/<ID>.md`:
+  - **Done:** the commits (SHA and one line each), and what is verified (a screenshot path, a measurement).
+  - **Next:** the exact next command or step. If the next step is queued: "queued: <command>".
+  - **Owns:** the files the job edits, so the next agent stays inside them.
+  - **Learned:** gotchas that cost time (a flag, a trap, a wrong turn), so the next agent doesn't repeat them.
+  - **Done when:** the finish line, in one line.
+
+  The main agent then runs any queued command in the background. When it exits, the main agent spawns a **fresh**
+  subagent whose brief says: "read the last Handoff in docs/tasks/asks/<ID>.md, then continue". Resuming the old
+  subagent re-caches its whole context (≈ $2 at 400k); a fresh one starts at ≈ 50k.
 
 ## North and South America only: no licence caveats, ever (Jake, 2026-09-29)
 
