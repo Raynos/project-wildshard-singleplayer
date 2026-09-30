@@ -57,6 +57,10 @@ A cold load in the Simulator's Safari takes about 1–2 minutes. Keep `mute=1` o
 - Web Inspector / WebKit memory: `ios_webkit_debug_proxy -s unix:$(xcrun simctl getenv "$U" RWI_LISTEN_SOCKET) -c null:9221,:9232-9240`,
   then `curl -s http://127.0.0.1:9232/json` lists the pages and their `webSocketDebuggerUrl`. Stop the proxy when done.
 - Native app: `scripts/native-ios.sh` builds and installs it. Run it inside `scripts/sim-lane.sh run …`.
+- Nine Dragon memory, before / after (E264): `node scripts/nine-sim-memory.mjs --rev=HEAD --rev=<older>` serves each rev
+  and runs the lane itself. For each build it measures loading, 60 s of play and 60 s of World Explorer flight on a cold
+  Safari, with the kernel's WebContent footprint and Web Inspector's total. It prints the table. It compares builds; it
+  does not measure the phone.
 
 ## 4. Always finish
 

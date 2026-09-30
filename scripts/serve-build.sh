@@ -2,9 +2,10 @@
 # serve-build.sh — build the game and serve that build: the ONLY way to run it locally (E317, Jake 2026-09-29: "Vite dev
 # sucks. No one should be using Vite dev … a combination of vite build and vite start"). No `vite` dev servers.
 #
-#   scripts/serve-build.sh [--head] [--port <n>] [--hours <h>] [--name <label>]
+#   scripts/serve-build.sh [--head | --rev <rev>] [--port <n>] [--hours <h>] [--name <label>]
 #        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
 #        --head   build a clean `git archive HEAD` export instead of the working tree (nobody's WIP in it)
+#        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
 #        --hours  the server is reaped after this long (default 4; `scripts/browser-lane.sh reap`)
 #   scripts/serve-build.sh list                  the servers this script started, their age and expiry
 #   scripts/serve-build.sh stop <port|all-mine>  stop one (all-mine: every server started from this shell's session dir)
@@ -43,10 +44,11 @@ case "${1:-}" in
     exit 0;;
 esac
 
-HEAD_ONLY=0; PORT=""; HOURS=4; NAME="build"
+HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"
 while [ $# -gt 0 ]; do
   case "$1" in
     --head) HEAD_ONLY=1; shift;;
+    --rev) HEAD_ONLY=1; REV="$2"; shift 2;;
     --port) PORT="$2"; shift 2;;
     --hours) HOURS="$2"; shift 2;;
     --name) NAME="$2"; shift 2;;
@@ -91,11 +93,13 @@ OUT="$BASE/$stamp/dist"
 SRC="$REPO"
 if [ $HEAD_ONLY -eq 1 ]; then
   SRC="$BASE/$stamp/src"; mkdir -p "$SRC"
-  git -C "$REPO" archive HEAD | tar -x -C "$SRC"
+  git -C "$REPO" archive "$REV" | tar -x -C "$SRC" || { echo "serve-build.sh: cannot export $REV" >&2; exit 1; }
+  # an export has no .git: hand vite.config.ts the commit, so the build id in version.json names it
+  export VERCEL_GIT_COMMIT_SHA="$(git -C "$REPO" rev-parse "$REV")"
   ln -s "$REPO/node_modules" "$SRC/node_modules"
 fi
 mkdir -p "$BASE/$stamp"
-echo "serve-build: building $( [ $HEAD_ONLY -eq 1 ] && echo "HEAD $(git -C "$REPO" rev-parse --short HEAD)" || echo "the working tree" ) → $OUT" >&2
+echo "serve-build: building $( [ $HEAD_ONLY -eq 1 ] && echo "$REV $(git -C "$REPO" rev-parse --short "$REV")" || echo "the working tree" ) → $OUT" >&2
 # the repo's own config, with public/ left out of the copy (it is symlinked below)
 CFG="$BASE/$stamp/vite.serve.mjs"
 cat > "$CFG" <<JS
