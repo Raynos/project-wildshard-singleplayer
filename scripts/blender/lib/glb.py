@@ -43,7 +43,7 @@ def write_glb(path, meshes, extras=None):
     while len(blob) % 4:
         blob.append(0)
     doc = {
-        'asset': {'version': '2.0', 'generator': 'wildshard scripts/blender/trees'},
+        'asset': {'version': '2.0', 'generator': 'wildshard scripts/blender/lib/glb.py'},
         'scene': 0, 'scenes': [{'nodes': list(range(len(nodes)))}],
         'nodes': nodes, 'meshes': gmeshes, 'accessors': accessors, 'bufferViews': views,
         'buffers': [{'byteLength': len(blob)}],

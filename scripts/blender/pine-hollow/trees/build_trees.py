@@ -1,8 +1,8 @@
 """
 build_trees.py — Pine Hollow's photoreal tree species (PINE-HOLLOW-REMASTER PH-B4), built in Blender 5.2, headless.
 
-  blender -b --factory-startup -P scripts/blender/trees/build_trees.py -- <build dir> [--quick] [--only=bark,cards,trees,lineup]
-  (scripts/blender/trees/run.sh runs it, then compresses and copies into public/)
+  blender -b --factory-startup -P scripts/blender/pine-hollow/trees/build_trees.py -- <build dir> [--quick] [--only=bark,cards,trees,lineup]
+  (scripts/blender/build.sh pine-hollow/trees runs it, then compresses and copies into public/: post.sh)
 
 Steps (each writes into <build dir>):
   bark      the bark sets the trunks tile: fir (the Poly Haven fir_tree_01 scan's bark), the giants' metasequoia (redwood
@@ -29,11 +29,12 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(1, os.path.join(HERE, '..', '..', 'lib'))  # glb.py, the minimal glTF writer
 import barkgen  # noqa: E402
 import treegen as TG  # noqa: E402
 from glb import write_glb  # noqa: E402
 
-REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
+REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..', '..'))
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 OUT = os.path.abspath(argv[0] if argv and not argv[0].startswith('--') else os.path.expanduser('~/.cache/wildshard-blender/trees/build'))
 QUICK = '--quick' in argv

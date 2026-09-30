@@ -1,7 +1,7 @@
 """
-build_crags.py — PH-B2's granite kit for the Ridge (PINE-HOLLOW-REMASTER PH-B2). Run by scripts/blender/crags/run.sh:
+build_crags.py — PH-B2's granite kit for the Ridge (PINE-HOLLOW-REMASTER PH-B2). Run by scripts/blender/build.sh pine-hollow/crags (targets.json):
 
-    blender -b --factory-startup -P scripts/blender/crags/build_crags.py -- <out dir> [--preview]
+    blender -b --factory-startup -P scripts/blender/pine-hollow/crags/build_crags.py -- <out dir> [--preview]
 
 Builds, all from code (rocklib.py), a kit of jointed granite modules the game places over the heightfield
 (src/world/PineCrags.ts): three cliff bands (columns split by vertical joints, sheeted into ledges, fallen blocks at the

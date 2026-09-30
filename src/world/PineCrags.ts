@@ -2,7 +2,7 @@
  * PineCrags — the Ridge's granite and the Den's bear cave (PINE-HOLLOW-REMASTER PH-B2).
  *
  * The Ridge's face was the heightfield with a rock splat: smooth grey slopes. Now a kit of jointed granite built in
- * Blender (scripts/blender/crags/build_crags.py → public/assets/models/pine-hollow-crags/crags.glb: cliff bands, a
+ * Blender (scripts/blender/pine-hollow/crags/build_crags.py → public/assets/models/pine-hollow-crags/crags.glb: cliff bands, a
  * buttress, an exfoliation slab, two tors, three boulders, two scree patches, each a LOD0 + LOD1 with Cycles vertex AO)
  * is placed over it by `placeCrags` (pure, seeded — the navmesh bake runs the same code): cliff modules on every steep
  * face of the Ridge, the pass and the Den's walls, fronts turned down the slope and sunk into it; tors along the crest;

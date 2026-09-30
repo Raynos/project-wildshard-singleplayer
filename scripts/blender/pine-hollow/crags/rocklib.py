@@ -1,5 +1,5 @@
 """
-rocklib.py — granite from code for PH-B2 (scripts/blender/crags/build_crags.py): convex jointed blocks with weathered
+rocklib.py — granite from code for PH-B2 (scripts/blender/pine-hollow/crags/build_crags.py): convex jointed blocks with weathered
 edges, the cliff / buttress / tor / boulder / scree modules built from them, and the mesh plumbing (bmesh ↔ objects,
 decimation, the Cycles vertex AO bake). Blender space throughout: Z up, a module's FRONT (the face that looks down the
 slope in the game, its local +Z) is Blender −Y, its base at z = 0.

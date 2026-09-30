@@ -165,7 +165,7 @@ Read `docs/design/blender-practice.md` first.
 - Take `lockf -k ~/projects/localai/.model.lock` for Cycles bakes or anything over a minute.
 - Build into `~/.cache/wildshard-blender/<target>/`, then `pnpm exec gltf-transform meshopt <in> <out> --level medium`,
   then copy into `public/`.
-- Existing builders to copy from: `scripts/blender/trees/`, `crags/`, `weapons/`.
+- Existing builders to copy from: `scripts/blender/pine-hollow/{trees,crags,weapons}/`; add a `scripts/blender/targets.json` row and build with `scripts/blender/build.sh` (never commit a `.blend`).
 
 ### CC0
 

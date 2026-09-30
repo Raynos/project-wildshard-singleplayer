@@ -1,7 +1,7 @@
 """
-build_cave.py — the Den's bear cave for PH-B2 (PINE-HOLLOW-REMASTER). Run by scripts/blender/crags/run.sh:
+build_cave.py — the Den's bear cave for PH-B2 (PINE-HOLLOW-REMASTER). Run by scripts/blender/build.sh pine-hollow/cave (targets.json):
 
-    blender -b --factory-startup -P scripts/blender/crags/build_cave.py -- <cave-in.json> <out dir> [--preview]
+    blender -b --factory-startup -P scripts/blender/pine-hollow/crags/build_cave.py -- <cave-in.json> <out dir> [--preview]
 
 Input (export-cave.mjs): the baked heights on a 1 m grid in the cave's frame (lx across, lz into the rock from the mouth
 at BEAR_CAVE, y the world height) and the hero arch's pose there.

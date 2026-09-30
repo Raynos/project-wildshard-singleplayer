@@ -1,6 +1,6 @@
 """skinning_knife.py — Pine Hollow's first-person skinning knife in a gloved right hand, modelled + baked in Blender, headless.
 
-    blender -b --factory-startup -P scripts/blender/weapons/skinning_knife.py -- <build dir> [--lod=hi,lo] [--bake=2048]
+    blender -b --factory-startup -P scripts/blender/pine-hollow/weapons/skinning_knife.py -- <build dir> [--lod=hi,lo] [--bake=2048]
             [--samples=48] [--preview] [--no-bake] [--wood=<walnut diffuse.jpg>]
 
 The same pipeline as lever_rifle.py (read that first): built in Blender's frame — +Y forward (the blade), +Z up (the
@@ -22,7 +22,7 @@ albedo (sRGB), normal (OpenGL tangent space), ARM (AO · roughness · metalness)
 'lo' ≤ 1.8 k tris / 512² (phone), each baked on its own UVs.
 
 Writes <build>/<lod>/skinning-knife.glb (float streams, WebP textures, EXT_texture_webp) + stats.json + the sidecar
-skinning-knife.json + PNG bakes + preview renders + sheet.jpg (with --preview); run-knife.sh meshopt-compresses + copies.
+skinning-knife.json + PNG bakes + preview renders + sheet.jpg (with --preview); scripts/blender/build.sh pine-hollow/skinning-knife meshopt-compresses + copies (knife-post.sh writes the sidecar).
 """
 import bpy
 import bmesh
@@ -1101,7 +1101,7 @@ def write_glb(path, meshes, textures, materials):
         images.append({'bufferView': view(data), 'mimeType': mime})
     align()
     doc = {
-        'asset': {'version': '2.0', 'generator': 'wildshard scripts/blender/weapons/skinning_knife.py'},
+        'asset': {'version': '2.0', 'generator': 'wildshard scripts/blender/pine-hollow/weapons/skinning_knife.py'},
         'extensionsUsed': ['EXT_texture_webp'], 'extensionsRequired': ['EXT_texture_webp'],
         'scene': 0, 'scenes': [{'nodes': list(range(len(nodes)))}],
         'nodes': nodes, 'meshes': gmeshes, 'accessors': accessors, 'bufferViews': views,

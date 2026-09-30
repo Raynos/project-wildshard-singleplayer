@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// export-cave.mjs — the bear cave's inputs for scripts/blender/crags/build_cave.py (PH-B2): the baked Pine Hollow heights
+// export-cave.mjs — the bear cave's inputs for scripts/blender/pine-hollow/crags/build_cave.py (PH-B2): the baked Pine Hollow heights
 // on a 1 m grid in the cave's own frame (lx across, lz into the rock, from the mouth at BEAR_CAVE; src/world/PineCrags.ts
 // `caveWorld`), and the hero arch's pose there (src/world/PineLandmarks.ts places it: 1.2 m inside the mouth, turned to
-// face out, ×1.4, sunk 0.45 m). Run by scripts/blender/crags/run.sh:
+// face out, ×1.4, sunk 0.45 m). Run by scripts/blender/build.sh pine-hollow/cave (its pre step):
 //
-//   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/blender/crags/export-cave.mjs <out.json>
+//   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/blender/pine-hollow/crags/export-cave.mjs <out.json>
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const ROOT = resolve(import.meta.dirname, '../../..');
+const ROOT = resolve(import.meta.dirname, '../../../..');
 const OUT = process.argv[2] ?? resolve(ROOT, 'cave-in.json');
 const noop = () => undefined;
 Object.assign(globalThis, { window: { addEventListener: noop, location: new URL('http://localhost/'), setTimeout, clearTimeout }, location: new URL('http://localhost/'), document: { createElement: () => ({ getContext: () => null, style: {} }) } });

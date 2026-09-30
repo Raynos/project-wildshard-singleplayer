@@ -9,7 +9,7 @@ export const PINE_HERO_DIR = '/assets/models/pine-hollow-hero';
 export const PINE_HERO_IDS = ['stone-a', 'stone-b', 'stone-c', 'waystone', 'contract-board', 'cave-arch', 'beaver-dam', 'canoe'] as const;
 export type PineHeroId = (typeof PINE_HERO_IDS)[number];
 export const pineHeroUrl = (id: string): string => `${PINE_HERO_DIR}/${id}/${id}.glb`;
-/** PH-B2's files (src/world/PineCrags.ts, built by scripts/blender/crags/): the Ridge's granite kit, the bear cave and its data,
+/** PH-B2's files (src/world/PineCrags.ts, built by scripts/blender/pine-hollow/crags/): the Ridge's granite kit, the bear cave and its data,
  *  and the granite's Poly Haven set (CC0 `mossy_rock`; its grit is the terrain's own `rock_ground`) */
 export const PINE_CRAG_DIR = '/assets/models/pine-hollow-crags';
 export const PINE_CRAG_URLS: readonly string[] = [`${PINE_CRAG_DIR}/crags.glb`, `${PINE_CRAG_DIR}/cave.glb`, `${PINE_CRAG_DIR}/cave.json`,

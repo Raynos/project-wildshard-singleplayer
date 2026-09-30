@@ -43,11 +43,11 @@ look of its own.
 
 - **Look:** Poly Haven PBR sets on a splat terrain with the boreal ground shader; the Blender-built species set (the hero
   Scots pine, fir, the old-growth giants, birch, snags, saplings — `world/treeSpecies.ts`, `world/treeSet.ts`,
-  `scripts/blender/trees/`) baked into the card + impostor LOD; one shared wind (`world/wind.ts`); a full day from seven
+  `scripts/blender/pine-hollow/trees/`) baked into the card + impostor LOD; one shared wind (`world/wind.ts`); a full day from seven
   pure-sky keys blended on a dome that re-lights the IBL (`world/PineDayNight.ts`, `pineSkyKeys.ts`); dawn ground fog
   and rain showers (`world/PineWeather.ts`, `PineWeatherFX.ts`); the pond, creek and waterfall on one water program
   (`world/waterSurface.ts`, `PineStreams.ts`); the painted far country at infinity (`world/Horizon.ts`); the Ridge's
-  granite skin, its crag kit and the bear cave (`world/PineCrags.ts`, `scripts/blender/crags/`); the learned LUT
+  granite skin, its crag kit and the bear cave (`world/PineCrags.ts`, `scripts/blender/pine-hollow/crags/`); the learned LUT
   (`public/assets/lut/pine-hollow.bin`).
 - **World:** the three cabins (`world/Cabin.ts`); the mill hamlet, the fire lookout + zipline, the footbridge, the
   standing stones, the waystones, the dam and the canoe (`world/PineLandmarks.ts`; the image-to-3D hero props in

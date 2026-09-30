@@ -1,7 +1,7 @@
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish, on PH-F2's beat): a gloved right hand holding a
  * drop-point skinning knife at the lower right of the view, in the lever-action's style — a Blender model
- * (scripts/blender/weapons/skinning_knife.py → `public/assets/pine-hollow/weapons/skinning-knife[.phone].glb`, ONE mesh,
+ * (scripts/blender/pine-hollow/weapons/skinning_knife.py → `public/assets/pine-hollow/weapons/skinning-knife[.phone].glb`, ONE mesh,
  * one baked atlas: albedo / normal / ARM) on the viewmodels' shared lit program (Crossbow.viewmodelMaterial: no program of
  * its own, lit with the scene: the sun, the CSM shadows, the fog). Debug ▸ Skinning knife = Stand-in — or a failed load — draws a procedural
  * stand-in (a steel blade, a walnut handle, a leather fist) on the same program.

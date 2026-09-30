@@ -1,6 +1,6 @@
 /**
- * PH-B4 (Jake's PH-U17): the Blender-built photoreal species set, as the forest loads it. scripts/blender/trees/ builds it
- * (treegen.py the geometry, build_trees.py the Cycles bakes, run.sh the compression) into `public/assets/models/<set>/`:
+ * PH-B4 (Jake's PH-U17): the Blender-built photoreal species set, as the forest loads it. scripts/blender/pine-hollow/trees/ builds it
+ * (treegen.py the geometry, build_trees.py the Cycles bakes, post.sh the compression) into `public/assets/models/<set>/`:
  *
  *   trees.glb                     per variant (TREE_SPECS_V2 order, meshes `<name>__<part>` (three's GLTFLoader strips a '.')): trunk / trunkLo (bark),
  *                                 hi / lo / twigs (branch cards), far (the 2-quad impostor cross) — meshopt

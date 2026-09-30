@@ -1,4 +1,4 @@
-// PH-B4: the Blender species set (scripts/blender/trees/) and the game's placement agree, stay in budget, and plant by zone.
+// PH-B4: the Blender species set (scripts/blender/pine-hollow/trees/) and the game's placement agree, stay in budget, and plant by zone.
 import { describe, expect, it } from 'vitest';
 import { setActiveChunk, getActiveChunk } from '../src/chunks/registry';
 import { placeForest, plantSpecs, treeSetOf, TREE_SPECS, TREE_SPECS_V2 } from '../src/world/placement';

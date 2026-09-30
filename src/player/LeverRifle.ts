@@ -25,7 +25,7 @@ import { MAY_KTX2 } from '../boot/gpuFiles';
  *   rifle.onCycle = () => sfx.shot('leverCycle')     // the lever thrown (after every shot, and to chamber after a reload)
  *   rifle.onRoundIn = () => …                        // one cartridge thumbed through the loading gate
  *
- * The model (PH-C11 remaster) is modelled + baked in Blender (scripts/blender/weapons/: lever_rifle.py, run.sh) and loaded
+ * The model (PH-C11 remaster) is modelled + baked in Blender (scripts/blender/pine-hollow/weapons/lever_rifle.py, built by scripts/blender/build.sh) and loaded
  * from `LEVER_MODEL_URL` (meshopt, WebP atlases; the phone tier's `.phone.glb` through tierUrl — ≈ 8 k tris + 1024²
  * atlases desktop, ≈ 4 k + 512² phone): a colour-case-hardened receiver (the bolt in its top channel, the loading gate on
  * the right), the hammer + spur, a round tapered barrel with a crowned muzzle over the magazine tube, the forend band and
@@ -131,7 +131,7 @@ export function feedRound(a: ActionState): ActionState {
 
 // ───────────────────────────── the Blender model ─────────────────────────────
 
-/** scripts/blender/weapons/run.sh's output; the phone tier gets `lever-rifle.phone.glb` (tierUrl, the loaders' URL modifier) */
+/** scripts/blender/build.sh pine-hollow/lever-rifle's output; the phone tier gets `lever-rifle.phone.glb` (tierUrl, the loaders' URL modifier) */
 export const LEVER_MODEL_URL = '/assets/pine-hollow/weapons/lever-rifle.glb';
 /** the GLB's meshes: the static steel, the forend, the stock (hidden sighted), the lever + hammer (each about its pivot), the bolt */
 const MODEL_PARTS = ['steel', 'forend', 'stock', 'lever', 'hammer', 'bolt'] as const;

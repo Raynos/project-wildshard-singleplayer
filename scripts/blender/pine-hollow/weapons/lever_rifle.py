@@ -1,6 +1,6 @@
 """lever_rifle.py — Pine Hollow's lever-action carbine (PINE-HOLLOW-REMASTER PH-C11), modelled + baked in Blender, headless.
 
-    blender -b --factory-startup -P scripts/blender/weapons/lever_rifle.py -- <build dir> [--lod=hi,lo] [--bake=2048]
+    blender -b --factory-startup -P scripts/blender/pine-hollow/weapons/lever_rifle.py -- <build dir> [--lod=hi,lo] [--bake=2048]
             [--samples=64] [--preview] [--no-bake] [--wood=<walnut diffuse.jpg>]
 
 A Winchester-1894-style carbine in the game's model space (src/player/LeverRifle.ts): the bore on the axis, the muzzle
@@ -23,7 +23,7 @@ with worn edges and a plum patina elsewhere, a Poly Haven CC0 walnut (walnut_ven
 assembled gun. LOD 'hi' (desktop, 1024² atlases) and 'lo' (phone, 512²) are built and baked separately (their own UVs).
 
 Writes <build>/<lod>/lever-rifle.glb (float streams, WebP textures, EXT_texture_webp) + the PNG bakes + preview renders;
-run.sh meshopt-compresses and copies into public/assets/pine-hollow/weapons/.
+scripts/blender/build.sh pine-hollow/lever-rifle meshopt-compresses and copies into public/assets/pine-hollow/weapons/.
 """
 import bpy
 import bmesh
@@ -902,7 +902,7 @@ def write_glb(path, meshes, textures, materials):
         images.append({'bufferView': view(data), 'mimeType': mime})
     align()
     doc = {
-        'asset': {'version': '2.0', 'generator': 'wildshard scripts/blender/weapons/lever_rifle.py'},
+        'asset': {'version': '2.0', 'generator': 'wildshard scripts/blender/pine-hollow/weapons/lever_rifle.py'},
         'extensionsUsed': ['EXT_texture_webp'], 'extensionsRequired': ['EXT_texture_webp'],
         'scene': 0, 'scenes': [{'nodes': list(range(len(nodes)))}],
         'nodes': nodes, 'meshes': gmeshes, 'accessors': accessors, 'bufferViews': views,

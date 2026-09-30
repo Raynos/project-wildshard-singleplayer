@@ -7,7 +7,7 @@ export type SpeciesWeights = Partial<Record<TreeSpecies, number>>;
 export const TREE_SPECIES: readonly TreeSpecies[] = ['pine', 'fir', 'giant', 'birch', 'snag', 'sapling'];
 
 /**
- * The variants of the Blender set (scripts/blender/trees/treegen.py SPECS, the same order: the GLB's meshes are named by
+ * The variants of the Blender set (scripts/blender/pine-hollow/trees/treegen.py SPECS, the same order: the GLB's meshes are named by
  * `name`; test/tree-species.test.ts holds the two together through the set's trees.json). `collider` scales the trunk
  * capsule over the trunk radius (the giants' buttresses stand out past it; the twin birch's two stems).
  */
