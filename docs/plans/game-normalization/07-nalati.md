@@ -95,7 +95,7 @@ shards' audio and runs parity on all four.
 | `src/world/painterly.ts` | 325 | `shard:look/painterly.ts` | S3.2 | The painterly material; engine readers (`Terrain.ts:10`, `DayClock.ts`) are gone after S3.2 |
 | `src/world/PainterlySky.ts` | 273 | deleted | S3.2 | `buildPainterlyClouds` is built by `Sky.ts:450-458` and then hidden by `look/index.ts:48` (`sky.clouds.visible = false`); Nalati's backdrop (the panorama dome) replaces it. Nine Dragon's hidden build goes at X5 (05 §2.4) — see §6.2 step 5 |
 | `src/world/nalatiTextures.ts` | 132 | `shard:look/textures.ts` | S3.1 | `boot/manifest.ts:16, 38-46` → `manifest.boot.files` |
-| `src/world/Spruce.ts` (266), `spruceMask.ts` (79, unimported) | 345 | `shard:world/spruce.ts`; `spruceMask.ts` deleted | S3.1 | `bootstrap.ts:35` `spruce:` factory → `manifest.trees.factory` thunk (as Pine's, 06 §6.1 step 3). `spruceMask.ts` has no importer in `src/` (question Q8) |
+| `src/world/Spruce.ts` (266), `spruceMask.ts` (79, unimported) | 345 | `shard:world/spruce.ts`; `spruceMask.ts` deleted at F7 | S3.1 (Spruce); F7 (spruceMask) | `bootstrap.ts:35` `spruce:` factory → `manifest.trees.factory` thunk (as Pine's, 06 §6.1 step 3). `spruceMask.ts`'s only importer was `src/dev/nalati-spruce.ts`, so it is on F7's one dead list (02 F7 step 3; 13-lead-resolutions still-open 07#8) and is gone before F6 |
 | `src/world/steppeWind.ts` | 157 | merged into the engine `WindField` (`#engine/world/wind`, with `world/wind.ts`); its parameters become `manifest.wind` data | S3.1 | Read by `Sky.ts:8` and the **kit** Bow family (`Bow.ts:8, 687` `this.arrows.wind = worldWind`). The Bow family reads `app.world.wind`, one field per page fed by the running shard's `manifest.wind` (01 §17; 13-lead-resolutions 07/08#3). A shard whose manifest sets no gusts gives the arrows still air, today's `bow.wind = null` path |
 | `src/world/GrassField.ts` | 201 | `src/kit/looks/grassField.ts` | F6 | `GrassTrample.ts:2` (kit, Pine + Nalati, 06 §1.3) imports `grassBaseHeightAt`; a kit file cannot import a shard, so the field it reads moves with it |
 | `src/world/Weather.ts` (`SteppeStorm` since S2.4) | 349 | `shard:world/storm.ts` | S3.1 | Nalati's storm profile + lightning; `ask('weather.damage')` answered there (06 §6.4 B) |
@@ -167,7 +167,7 @@ The 18 lines holding a `nalatiNow()` call (20 calls) are marked **N1–N18**; `w
 |---|---|---|---|
 | `Game.ts:17, 207` | `installAtmosphere(getActiveChunk().style === 'painterly')` | the painted air (aerial perspective, cloud shadows) instead of the default fog maths | `ShardRender.fog = { install: installPaintedAir, order: 300 }` (01 §13.1, §13.2): the engine calls `installAtmosphere()` with no argument and then the shard's fog install. `painted` / `isPaintedAir()` (`Atmosphere.ts:69-86, 164, 174, 238, 248`) move to `shard:look/air.ts`; `patchCloudShadows` (`Sky.ts:135`) is called by that install |
 | `Game.ts:18, 208` | `if (getActiveChunk().style === 'painterly') installLookV2Fog()` | the panorama-coloured fog | the same `fog.install` (after the painted air, as today) |
-| `Game.ts:274` | `if (getActiveChunk().style === 'painterly') { this._composer = buildLookV2Chain(this.renderer, this.scene, this.camera); return; }` | Nalati's own composer (MSAA → one grade, bloom on desktop) | `ShardRender.compose` returns `{ replace: buildLookV2Chain(ctx.renderer, ctx.scene, ctx.camera) }`: a composition may replace the engine chain whole. `game.post` stays null as today (question Q2) |
+| `Game.ts:274` | `if (getActiveChunk().style === 'painterly') { this._composer = buildLookV2Chain(this.renderer, this.scene, this.camera); return; }` | Nalati's own composer (MSAA → one grade, bloom on desktop) | `ShardRender.mode: 'replace'`, and `compose` returns `{ chain: lookV2Passes(c) }`, the whole chain in order (01 §13.1; 13-lead-resolutions still-open 08#2). `game.post` stays null as today (question Q2; §6.2 step 2) |
 | `Terrain.ts:11-13, 188, 248-420` | `if (getActiveChunk().style === 'painterly') return this.buildPainterly()` | the painted terrain, its geometry and slab | `ShardRender.terrainPainter` (01 §13.1): `buildPainterly`, `buildPainterlyGeometry`, `buildPainterlySlab` and the `zone` attribute move to `shard:look/terrainPainter.ts` with `groundColor` / `surfaceAt` (§1.1). `Terrain.build()` calls `render.terrainPainter?.build(this)` before its default path |
 | `Grass.ts:14, 99-100, 129` | `if (getActiveChunk().style === 'painterly') { this.v2 = new GrassV2(this.sky, this.forest).build(); …` | the GPU blade rings instead of the carpet | `ShardRender.grass` (`GrassDriver`): Nalati's plugin builds `GrassV2` in `shard.world` itself; the engine's `grass` step is gone (06 §6.1 step 2 took Pine's carpet) |
 | `Sky.ts:7, 8, 218-221, 346, 405-410, 450-464, 548, 623` | `const painted = S.painted ?? null` / `if (getActiveChunk().sky.painted && isPaintedAir())` / `halo.scale.setScalar(getActiveChunk().sky.painted ? 250 : 420)` / `if (getActiveChunk().sky.painted) { this.giantUniforms.uHazeAmt.value = 0.22` | the painted gradient sky texture, the painterly clouds (built, then hidden by `look/index.ts:48`), the tighter sun halo, the far planet | `ShardRender.backdrop` (Nalati's `SkyDomeV2` + `skyRig.ts`, §6.2): `paintSky` (`Sky.ts:753`) runs from the backdrop's `environment()` hook (the IBL still needs the painted texture); the halo scale and the planet uniforms are backdrop options. `buildPainterlyClouds` is not built at all (the dome replaces it): `PainterlySky.ts` is deleted |
@@ -233,8 +233,8 @@ The 18 lines holding a `nalatiNow()` call (20 calls) are marked **N1–N18**; `w
 
 `src/shards/nalati-grasslands/manifest.ts`, node-safe. Values are today's (`nalati-grasslands.ts:582-661`,
 `steps.ts:86-100`, `titleDeck.ts:50`). Every `ChunkDef` field is carried over under 01 §6's names
-(13-lead-resolutions 05/06#1, 07/08#1). **Q1** marks this spec's additions that 01 §6 still lacks; §10 Q1 keeps them
-open.
+(13-lead-resolutions 05/06#1, 07/08#1). **Q1** marks this spec's sub-fields; each is a declared manifest field (01 §6
+"Declared sub-fields"; 13-lead-resolutions still-open 07#1).
 
 ```ts
 import { defineShard } from '#game';
@@ -263,7 +263,7 @@ export default defineShard({
   seed: SEED,                                                              // 01 §6 — 0x4a1a
   treeCount: 1400,                                                         // carried as data
   style: 'painterly',
-  kitLook: 'painterly',                                                    // Q1 (open, 05 Q1): creatures, swim hands, the catalog
+  kitLook: 'painterly',                                                    // Q1, declared (01 §6): creatures, swim hands, the catalog
   uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests', 'trample'],
   ground: { terrain: TERRAIN },                                            // pondMask = river + brook, waterLevel = RIVER.level (the def's :472)
   assets: {                                                                // carried as data — unused by the painted terrain; kept for the PBR contract (nalati-grasslands.ts:611-616)
@@ -308,7 +308,7 @@ export default defineShard({
   dayCycle: () => import('./look/dayKeys').then((m) => m.NALATI_DAY),      // S2.4: DEFAULT_SCHEDULE + elevation keys; Debug ▸ Clock speed
   weather: () => import('./world/storm').then((m) => m.STEPPE_STORM),      // S2.4 profile; the SteppeStorm class
   render: () => import('./look/render').then((m) => m.shardRender()),      // S3.2
-  tiers: {},                                                               // no engine knob overridden: the look reads the tier itself (bake.ts, grade.ts)
+  tiers: { phone: { msaa: 2 }, desktop: { msaa: 4 } },                    // grade.ts:118-120's MSAA as the engine composer's `msaa` knob (§6.2 step 2); the rest of the look reads the tier itself (bake.ts)
   budgets: {
     phone: { fps: 30, lanes: 'default' },
     desktop: { fps: 60, lanes: 'default' },
@@ -535,7 +535,7 @@ the count of §2.1 + §2.3 + §2.5; parity green on 4 shards × 2 tiers.
 ```ts
 export const shardRender = (): ShardRender => ({
   mode: 'replace',                                                                   // 01 §13.1: this compose builds the whole chain
-  compose: (c) => buildLookV2Chain(c.renderer, c.scene, c.camera),                   // Game.ts:274
+  compose: (c) => ({ chain: lookV2Passes(c) }),                                      // Game.ts:274; 'replace' → { chain: Pass[] } (01 §13.1)
   fog: { order: 300, install: () => { installPaintedAir(); installLookV2Fog(); } },  // Game.ts:207-208, Atmosphere.ts:164
   terrainPainter: NALATI_TERRAIN_PAINTER,                                           // Terrain.ts:248-420 + groundColor / surfaceAt
   backdrop: NALATI_BACKDROP,                                                         // SkyDomeV2 + skyRig.ts + paintSky
@@ -550,9 +550,16 @@ export const shardRender = (): ShardRender => ({
    is the order they install in today: the program sources stay byte-identical (the parity `programs` check).
    `Atmosphere.ts:287`'s `shardSlot('atmosphere', …)` loses `painted` (F11 retired `shardSlot`; if a line survives, it
    is deleted here).
-2. **Composer.** With `mode: 'replace'` (01 §13.1; 13-lead-resolutions 07/08#2) `compose` builds the whole chain.
-   `buildComposer` uses it and returns,
-   as `Game.ts:274` does; the engine's chain is not built, `game.post` stays null (the day rig leaves it alone, as today).
+2. **Composer.** With `mode: 'replace'` (01 §13.1; 13-lead-resolutions 07/08#2, still-open 08#2) `compose` returns
+   `{ chain: Pass[] }`, the whole chain in order. `buildLookV2Chain` (`nalati/look/grade.ts:117`) becomes
+   `lookV2Passes(c)`, which returns today's passes in today's order: `new RenderPass(c.scene, c.camera)`, then one
+   `EffectPass(c.camera, bloom, grade)` on desktop or `EffectPass(c.camera, grade)` on phone, with the same bloom
+   numbers. The engine's `buildComposer` adds exactly those passes to its one composer, which it already builds with
+   `frameBufferType: HalfFloatType` (`Game.ts:277`), and does not build its own chain. The composer's `multisampling`
+   comes from a new engine tier knob `msaa` (engine default 0, as `Game.ts:277` today): Nalati's manifest sets
+   `tiers.phone.msaa: 2` and `tiers.desktop.msaa: 4`. The engine clamps it to `renderer.capabilities.maxSamples` and
+   uses 0 when the tier's `smaa` is `'off'`, which is exactly `grade.ts:119-120`. `game.post` stays null (the day rig
+   leaves it alone, as today).
 3. **Terrain.** `TerrainPainter { build(t: TerrainHost): Promise<THREE.Group> }`: `buildPainterly`,
    `buildPainterlyGeometry`, `buildPainterlySlab` move with `loadNalatiTextures`, `applyTerrainSurface`, `zoneWeights`
    and `painterlyMaterial` (`Terrain.ts:10-13`). `Terrain.build()` calls `render.terrainPainter?.build(this)` and uses
@@ -617,11 +624,14 @@ Steps: the rows; `nalatiKit.ts` and `shard:loadout/legacyKit.ts` (§6.1 step 4) 
 - Saves: `tulpar`, `horseNames`, `skins` are SaveStore keys, scope shard (F10 renamed them; this row only moves the
   definitions into `shard:ride/saves.ts` and `shard:loadout/saves.ts`).
 
-**C. Stealth** (a shard mechanism). The engine motor crouches on the `crouch` action (C toggles, Ctrl holds: the
-engine keys; 01 §10), asking `ask('player.crouch', { held, toggled }) → boolean` first. Nalati's stealth answers:
-the crouch is allowed only in long grass, on foot, not swimming, not mounted, not in a practice room, and it keeps
-today's toggle latch (`stealth.ts:164-180`, moved verbatim onto the answer). Other shards have no answerer: the motor
-crouches while `held` (today's raw-key behaviour, identical). The `stealth` context (pushed on foot on Nalati) adds no
+**C. Stealth** (a shard mechanism). The engine owns the `crouch` action (C and Ctrl: the engine keys; 01 §10). Each
+frame the motor asks `ask('player.crouch', { want }) → { allowed, toggle }` (01 §10; 13-lead-resolutions still-open
+07#9), where `want` is the action's state this frame (`input.held('crouch')`, plus `pressed` for a latch). With no
+answerer the default answer is `{ allowed: true, toggle: false }`: the motor crouches while the key is held, which is
+today's raw-key behaviour on every other shard, identical. Nalati's stealth answers: `allowed` only in long grass, on
+foot, not swimming, not mounted, not in a practice room; `toggle: true`, so a press latches the crouch and the next
+press releases it, as today's latch (`stealth.ts:164-180`, moved verbatim onto the answer). The motor keeps the latch
+state and drops it the moment an answer says `allowed: false` (leaving the grass stands the player up, as today). The `stealth` context (pushed on foot on Nalati) adds no
 action; it owns the CROUCH disc at `up0` and the stealth / grass status rows. `stealth.ts`'s three raw listeners go
 (`wildshard/no-raw-input` −3), as do Mount's (−1) and Taming's (−2).
 
@@ -809,7 +819,7 @@ beds and score slots, the HUD slots, the save keys.
 | Step | Detail |
 |---|---|
 | Gate | `gpu-gate` green on HEAD; parity green on 4 shards; `pnpm test` green with the ratchets lower than at M2 (`no-shard-branch`, `no-raw-input` −6 + the X-less ones, `no-raw-save`, `no-raw-random-time`) |
-| Pin | HEAD into `deploy/pin`, `gh workflow run deploy`, `version.json` confirmed, the build id in E357 |
+| Pin | After Jake's go: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M3 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1: ~10.2k lines from engine folders, 9.5k from `src/nalati`, 5.8k from `src/world/nalati`), lines deleted (`wireNalati` + its wrappers, `PainterlySky.ts`, `nalatiKit.ts`, `riding.ts`, the Nalati halves of `Audio.ts` / `Music.ts` / `Stems.ts`), the ratchets before / after, Nalati's derived budgets and ceilings, the engine audio's shape (one voice pool, one ambience class, one routing) |
 | Boards | **Creatures** (Nalati's wall fixes, the tick rates on packs and herds, strike sampling, the B3 test output) and the **audio** check (a one-line table: every shard's audio fingerprint identical; no listening page, nothing new was generated). iPhone portrait, clips ≤ 10 s |
 | Jake plays | Nalati on the pinned build: the camp, a ride to the bowl, a taming break, a crouch-stalk in the long grass, a wolf pack, the Golden King if he wants, a storm |
@@ -818,17 +828,17 @@ beds and score slots, the HUD slots, the save keys.
 
 ## 10. Questions for the lead
 
-Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (07 / 08 table unless named) unless marked open; the
-body above follows each answer.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (the 07 / 08 table unless named, and the still-open
+table); none is open, and the body above follows each answer.
 
 1. **Manifest fields not in 01 §6; a URL-param reader.** **Resolved → 13-lead-resolutions 07/08#1:** every carried-over
    `ChunkDef` field is on the manifest (`map` → `minimap`, `hud` kept as is, so the day badge is `hud.dayBadge`);
-   `app.params` is the only URL-param reader (the `harness` allowlist: `?ride=`, `?time=`, `?clock=`). **Still open,
-   sent to the lead:** this spec's sub-fields that 01 §6's types don't declare yet — `loadout.held`, `loadout.loans`,
+   `app.params` is the only URL-param reader (the `harness` allowlist: `?ride=`, `?time=`, `?clock=`). This spec's
+   sub-fields: **Resolved → 13-lead-resolutions still-open 07#1:** `loadout.held`, `loadout.loans`,
    `loadout.grants[].replaces`, `minimap.palette` / `markers`, `audio.alertOnlyHostile`, `ground.paths: 'plugin'`,
-   `bag.skinsTitle`, and `kitLook` (05 Q1).
-2. **`ShardRender` chain replacement.** **Resolved → 13-lead-resolutions 07/08#2:** `mode: 'replace'` (01 §13.1); the
-   shard's `compose` builds the whole chain (S3.2 step 2).
+   `bag.skinsTitle` and `kitLook` are declared manifest fields (01 §6 "Declared sub-fields"). §3 follows.
+2. **`ShardRender` chain replacement.** **Resolved → 13-lead-resolutions 07/08#2 and still-open 08#2:** `mode:
+   'replace'` (01 §13.1); the shard's `compose` returns `{ chain: Pass[] }`, the whole chain in order (S3.2 step 2).
 3. **The world wind.** **Resolved → 13-lead-resolutions 07/08#3:** one `WindField` (`app.world.wind`, 01 §17) with
    per-shard `manifest.wind` data; `steppeWind.ts` and `world/wind.ts` merge into it (§1.4, §3, §4).
 4. **The horse.** **Resolved → 13-lead-resolutions 07/08#4 and 09#5:** Nalati; 01 §21 and 09 §5.2 follow.
@@ -839,9 +849,12 @@ body above follows each answer.
 7. **The camp people's rig differences.** **Resolved → 13-lead-resolutions 05/06#14:** the camp people join `#kit/npc`
    in S3.3, so the lead grows the kit rig there (per-person breathing phase, the elder's pipe prop as row fields);
    the kit stays locked to content agents only.
-8. **`src/world/spruceMask.ts`** (79 lines) has no importer. **Open (not in 13), sent to the lead:** this spec deletes
-   it in S3.1.
-9. **Crouch semantics** (`ask('player.crouch')` for Nalati's toggle and grass gate). **Open (not in 13), sent to the
-   lead:** 01 §10 names only the `crouch` action; this spec adds the ask.
+8. **`src/world/spruceMask.ts`** (79 lines) has no importer. **Resolved → 13-lead-resolutions still-open 07#8:** it goes
+   in F7's one dead list (02 F7 step 3), not S3.1; §1.4 follows.
+9. **Crouch semantics** (`ask('player.crouch')` for Nalati's toggle and grass gate). **Resolved → 13-lead-resolutions
+   still-open 07#9:** `ask('player.crouch', { want }) → { allowed, toggle }` (01 §10). The engine owns the `crouch`
+   action, and Nalati's stealth answers the ask; with no answerer the motor crouches while held (§6.3 C).
 10. **`creatureLook` registry** (`ctx.rows.creatureLook`, a shard registering its style's creature material factory;
-    Driftwood's toon path registers from Driftwood at S4.2). **Open (not in 13), sent to the lead.**
+    Driftwood's toon path registers from Driftwood at S4.2). **Resolved → 13-lead-resolutions still-open 07#10:**
+    `ctx.rows.creatureLook(kitLook, factory)` (01 §7, §19): a kit species asks the registry for its material by the
+    running manifest's `kitLook`. Nalati registers `'painterly'` in S3.1 (§4), Driftwood `'toon'` in S4.2 (08 §1).

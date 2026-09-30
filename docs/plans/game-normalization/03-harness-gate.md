@@ -20,6 +20,8 @@ from S1.6 on, the **budgets**.
 |---|---|---|---|---|
 | `m5` | Jake's M5 Max, the lead's run, headless Chromium `channel: 'chromium'` + `--use-angle=metal`, in `scripts/browser-lane.sh` | phone (every commit); desktop (before each milestone and nightly) | before every commit (§10); nightly (§14) | the lead's commit (the plan's rule: harness green → commit) |
 | `gh-macos15` | GitHub-hosted `macos-15` runner (M1 VM, 3 vCPU, 7 GB, paravirtual Metal) | phone | every push to main (§11) | the `gpu-gate` status; the deploy pin needs it green (§13) |
+| `gh-ubuntu` | GitHub-hosted `ubuntu-latest` (a case-sensitive disk) | — (no browser) | every push to main: the `asset-case` job (§11.6) | the `gpu-gate` status (it is one of the jobs the aggregate reads) |
+| `sim` | the iOS Simulator on Jake's M5 (`scripts/sim-lane.sh`, iOS Safari) | phone | nightly (§14.1) | nothing: a memory regression check that turns `gpu-perf` red, never phone evidence |
 
 Baselines are per lane (pixels, programs and GPU bytes differ between a paravirtual M1 and an M5 Max; ci-gpu-options §3).
 Timing (ms, fps) is never a gate on either lane: it is recorded as information and gated only by the nightly `gpu-perf`
@@ -69,7 +71,9 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b] [--tiers=
 | `walkLeg(leg)` | F2 | runs one route leg with the autopilot and resolves with its §2.3 record |
 | `combat` | F2 | `{ equip(id), target(kind, near), hold(animal, on), hits, kills }`: §5.1 |
 | `arena()` | F2 | `hud.enterArenaNow()` (the practice room, for Nine Dragon's dummies) |
+| `state()` | F2 | the gameplay snapshot the pause → resume step compares (§5.6): `{ appState, clockNow, player: { pos, yaw, pitch, vel, health }, weapon: { id, state, ammo }, creatures: [{ id, kind, pos, hp, brain }] (sorted by id), quest }`; positions rounded to 1 mm. Plus `onResume(fn)`: a one-shot callback the resume path calls (`tap.resume`, 02 F2 step 2) before the loop runs its next frame |
 | `saves` | F2 | `{ read, written }`, filled by the init script's `Storage` wrapper |
+| `nav` | F3.2 | `{ randomPoint(near, min, max), path(a, b) }` over the engine's navmesh query (`src/physics/navmesh.ts` today) with the harness seed, for the soak bot (§14.2); `null` on a shard with no baked navmesh (Nine Dragon) |
 | `app` | F8 | a read-only view of the `App`: state, systems by phase, clock, RNG seed, census |
 | `leak()` | F8 | §5.5 |
 | `budgets()` | S1.6 | §2.5 |
@@ -146,6 +150,7 @@ drawn frames, then takes one JPEG (q 80, CSS scale).
 | `combat.hitsToKill` | per step | B | floor 1 hit (damage rolls use the seeded `Math.random`, but the number of draws before the swing depends on AI timing) |
 | `combat.kills` | the kinds reported by `tap.kill` during both steps, in order | A | — |
 | `combat.loot` | `{ written: string[] }`: the storage keys written in the 2 s after each kill | A (after the rename map) | — |
+| `pauseResume` | `{ before, after, diff: string[] }`: `probe.state()` right before the pause and right after the resume (§5.6); `diff` lists the paths that differ | D: `diff` must be `[]` | — |
 
 ### 2.4 `leak` (from F8)
 
@@ -158,11 +163,17 @@ See §5.5 for the procedure. Every field is a count; **class D: after-unload mus
 | `bodies`, `colliders` | Rapier `world.bodies.len()`, `world.colliders.len()` |
 | `listeners` | `{ window, document, canvas, other }`: the init script wraps `EventTarget.prototype.addEventListener / removeEventListener` and keeps a net count per target kind (a listener added with `{ once: true }` counts until it fires; a listener with an `AbortSignal` is subtracted on abort) |
 | `timers` | `{ timeouts, intervals, raf }`: the init script wraps `setTimeout / clearTimeout / setInterval / clearInterval / requestAnimationFrame / cancelAnimationFrame` and counts pending ids (a timeout that fired is not pending) |
-| `audio` | `app.audio.census()`: live voices, beds and buses (F8 adds `census()` to today's `Audio.ts`: `activeVoices`, playing beds, connected buses) |
+| `audio` | `app.audio.census()`: live voices, beds and buses (F8 adds `census()` to today's `Audio.ts`: `activeVoices`, playing beds, connected buses; from S3.5 the `AudioService` registry answers the same call, 01 §15) |
 | `systems` | the app's system count per phase |
 | `events` | the event bus's listener and answerer count |
 | `dom` | `{ hud: #hud descendants, body: document.body.children.length }` |
 | `sceneObjects` | Object3D count from one `scene.traverse` |
+
+This instrumentation is the spec for the leak test's listener and audio counts (13-lead-resolutions C9, 03 Q5). The
+harness's own wrappers count from outside the page; the probe also exposes the shard scope's `census` (01 §4: listeners,
+timers, bodies, audio nodes the scope owns) and the audio census from the `AudioService` registry, and the report prints
+both side by side. The verdict is the harness's count (B1 = B0); a scope census that disagrees with it is printed as a
+note, never a verdict.
 
 ### 2.5 `budgets` (from S1.6)
 
@@ -229,7 +240,9 @@ and an enclosed or edge space:
 | `nine-dragon-stack` | `stair-street`, `crossing-gate-bridge`, `escape-square-balustrade` |
 
 If the F3.2 probe run (02 F3.2 step 1) shows a shard's 3 gate legs take more than 60 s on the runner, the lead swaps
-the longest for a shorter leg of the same kind and records the swap in E357; the full route still runs nightly.
+the longest for a shorter leg of the same kind and records the swap in E357; the full route still runs nightly. Three
+legs per shard on the runner is the lead's accepted answer (13-lead-resolutions C9, 03 Q4): it keeps a job under 12
+minutes (§10), and the full route runs nightly (§14) and before each milestone.
 
 **`--full`** walks every leg, then every trail (`physics-baseline.mjs --trails`: each path of `TRAILS` end to end, both
 ways, a waypoint every 3 m). It runs nightly (§14), for F11's and F12's done-when, and before each milestone.
@@ -275,8 +288,9 @@ so no loot. A context starts with empty storage (a fresh context per shard × ti
 
 ### 5.4 Order inside one shard × tier run
 
-boot fingerprint → poses → walk → combat (swing, then shot) → leak test (from F8). The leak test is last so it unloads a
-world that has run every other step (projectiles, particles, sounds, the arena).
+boot fingerprint → poses → walk → combat (swing, then shot) → pause → resume (§5.6) → leak test (from F8). The leak
+test is last so it unloads a world that has run every other step (projectiles, particles, sounds, the arena, the pause
+menu).
 
 ### 5.5 The leak test (from F8; 01 §4, decision 60)
 
@@ -290,6 +304,24 @@ world that has run every other step (projectiles, particles, sounds, the arena).
    the first 5 registration stack traces the init script kept for entries still alive.
 5. The page is closed after the leak test (the next shard × tier gets a fresh context), so a failed unload never
    pollutes another run.
+
+### 5.6 Pause → resume → state identical (FINISH-LINE S1; 13-lead-resolutions G19)
+
+FINISH-LINE S1's golden path included a pause and a resume; it joins the scripted run here, on both lanes and both
+tiers, from F2.
+1. After the shot step, the harness pauses through real input: on the phone tier a touch tap on the PAUSE disc, on the
+   desktop tier `page.keyboard.press('Escape')`. It waits until the pause menu is shown (today `#menu` visible; from
+   X2 the `menu` layer on top) and, from F8, `app.state === 'paused'`.
+2. `before = probe.state()` (§2.0).
+3. It waits 2 s of wall time with the menu open. Nothing may move: today the frame gate (`src/main.ts:1067`) runs no
+   frame while the menu is up, and from F8 the game clock excludes paused time (01 §2).
+4. It arms `probe.onResume(fn)`, then taps or clicks the menu's RESUME button. The resume path calls the callback
+   before the loop's next frame, and `after = probe.state()` is taken there.
+5. `pauseResume.diff` lists every path where `after` differs from `before` (exact, after the 1 mm rounding). Pass
+   (class D): the list is empty. A red report prints each differing path with both values.
+Nine Dragon runs it in the practice arena (its combat steps end there), and the other shards in the world. If today's
+game fails the step when F2 records its baselines, that is a found bug (decision 4): it joins GAME-NORMALIZATION §7 and
+is fixed in F2, with a test, before the baselines are recorded.
 
 ## 6. Seeding and pins
 
@@ -373,7 +405,10 @@ on the runner):
 | `audio-drop` | one Driftwood ambience file removed from the boot's declared audio list | driftwood-isle | `boot.audio.requests` | F2 |
 | `hud-hide` | the LOCK disc is never mounted (`src/player/TouchControls.ts`) | all (phone) | `boot.hud` | F2 |
 | `save-rename` | `ws.purse.v1` → `ws.purse.v9` (`src/game/loot/Purse.ts:16`) | driftwood-isle | `combat.loot`, `boot.saves` | F2 |
+| `pause-drift` | the frame gate ignores the pause menu (`src/main.ts:1067`: the `hud.entered` term dropped), so the world keeps running under the menu | driftwood-isle, pine-hollow, nalati-grasslands | `pauseResume` | F2 |
 | `metal-off` | the gate job launches Chromium with `--use-angle=swiftshader` (a workflow input, not a patch) | all | exit 3, status `error` | F3.2 |
+| `asset-case` | one boot-declared asset URL's case changed (`/assets/music/…` → `/assets/Music/…` in Driftwood's declared audio list); the file on disk unchanged | — (the `asset-case` job) | the job fails naming the URL (§11.6) | F3.2 |
+| `soak-leak` | one 1 MiB `DataTexture` uploaded every 10 s and never disposed (a system added in the shard's scope) | all (nightly soak only) | the soak's `gpuBytes` growth (§14.2) | F3.2 |
 | `leak-geometry` | the shard scope skips disposing one geometry on unload | all | `leak.geometries` | F8 |
 | `render-throw` | Nine Dragon's `render` thunk throws | nine-dragon-stack | `boot.errors` (the error screen, 02 F9) | F9 |
 | `budget-over` | 200 extra draws at Nine Dragon's `spawn-rail` pose | nine-dragon-stack | `budgets` | S1.6 |
@@ -386,12 +421,13 @@ F2 (m5), of F3.2 (runner), and again after F6, F8, F9 and S1.6 (each adds its pl
 
 | Run | Budget | How it holds |
 |---|---|---|
-| The lead's per-commit run: m5, phone, 4 shards (5 from Z1) | ≤ 6 min wall | 2 shards in parallel (2 browser-lane slots), each ≤ 2.5 min: boot ≈ 11 s (TP audit §6), fingerprint 2 s, 3 poses × (3 s settle + 5 s sample) = 24 s, 3 gate legs ≈ 45 s, combat ≤ 40 s, leak 5 s, build ≈ 15 s once |
+| The lead's per-commit run: m5, phone, 4 shards (5 from Z1) | ≤ 6 min wall | 2 shards in parallel (2 browser-lane slots), each ≤ 2.5 min: boot ≈ 11 s (TP audit §6), fingerprint 2 s, 3 poses × (3 s settle + 5 s sample) = 24 s, 3 gate legs ≈ 45 s, combat ≤ 40 s, pause → resume ≈ 5 s, leak 5 s, build ≈ 15 s once |
 | The lead's pre-milestone run: m5, phone + desktop, `--full` | ≤ 45 min | full routes and trails dominate; runs once per milestone and nightly |
 | Recording (3 runs) | ≤ 3× the matching compare run | only on the four re-record cases |
 | One gate job on `macos-15` | ≤ 12 min (timeout 20) | setup ≈ 4 min (sparse checkout with `public/`, pnpm install from cache, Playwright Chromium from cache, `vite build`), harness for one shard ≈ 2× the M5's 2.5 min. Unmeasured until the F3.2 probe run (ci-gpu-options: "the 3.5 min M5 budget could become 8–12 min"); if a shard's job exceeds 12 min, its matrix entry splits into `part: fingerprint+poses` and `part: walk+combat+leak` |
 | The whole gate (matrix of 4, then 5) | ≤ 15 min wall | jobs in parallel (5 macOS jobs at once on the Free plan) |
-| Nightly `gpu-perf` | ≤ 90 min | §14 |
+| The `asset-case` job on `ubuntu-latest` | ≤ 5 min (timeout 10) | install from cache ≈ 1.5 min, `vite build` ≈ 1 min, the check < 30 s (§11.6) |
+| Nightly `gpu-perf` | ≤ 4 h, 04:00 → 08:00 | the parity `--full` run ≤ 90 min; the GPU rulers + scorecard ≤ 30 min; the Simulator memory run ≤ 30 min (§14.1); the soak 4 × (20 min + boot) ≈ 90 min (§14.2) |
 
 ## 11. The per-push gate on GitHub `macos-15`
 
@@ -473,15 +509,47 @@ jobs:
           name: ${{ inputs.record && 'parity-baselines-gh-macos15' || format('parity-{0}', matrix.shard) }}
           path: parity-out
           retention-days: 14
+  asset-case:                    # §11.6: Linux, case-sensitive disk (ci-gpu-options §6.2; 13-lead-resolutions G15)
+    if: ${{ !inputs.record }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SHA: ${{ inputs.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Apply plant
+        if: inputs.plant != ''
+        run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
+      - run: pnpm exec vite build
+      - run: node scripts/check-asset-case.mjs dist --out=asset-case.json
+      - name: Status
+        if: always() && inputs.plant == ''
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: node scripts/gpu-gate/status.mjs shard "$SHA" asset-case "${{ job.status }}" asset-case.json
   gate:
-    needs: shard
+    needs: [shard, asset-case]
     if: always() && !inputs.record && inputs.plant == ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with: { sparse-checkout: scripts/gpu-gate, sparse-checkout-cone-mode: true }
       - env: { GH_TOKEN: '${{ github.token }}' }
-        run: node scripts/gpu-gate/status.mjs gate "${{ inputs.sha || github.sha }}" "${{ needs.shard.result }}" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: node scripts/gpu-gate/status.mjs gate "${{ inputs.sha || github.sha }}" "${{ needs.shard.result }},${{ needs.asset-case.result }}" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 ```
 
 With `record: true`, the matrix jobs upload baselines instead of comparing and post no status. With `plant`, no status
@@ -502,9 +570,10 @@ job's status is then `error` (infrastructure), not `failure`. The renderer strin
 `scripts/gpu-gate/status.mjs` posts through `gh api repos/Raynos/project-wildshard-singleplayer/statuses/<sha>`:
 - per shard: context `gpu-gate/<slug>`, state `success` / `failure` / `error`, description ≤ 140 characters from
   `report.md`'s first red field (`walk.stuck 1 at lookout-climb wp4`) or `green (retried: <field>)`;
-- the aggregate: context **`gpu-gate`**, state `success` only if every matrix job succeeded, `error` if any job
-  exited 3 or timed out, else `failure`; description `4/4 shards green` or `red: nalati-grasslands, pine-hollow`;
-  `target_url` = the run.
+- the `asset-case` job: context `gpu-gate/asset-case`, description `n URLs checked` or the first wrong-case URL;
+- the aggregate: context **`gpu-gate`**, state `success` only if every matrix job and the `asset-case` job succeeded
+  (`status.mjs gate` reads the comma-joined results), `error` if any job exited 3 or timed out, else `failure`;
+  description `4/4 shards green · assets ok` or `red: nalati-grasslands, asset-case`; `target_url` = the run.
 
 Only `gpu-gate` is read by the deploy (§13); the per-shard contexts are for people.
 
@@ -519,6 +588,22 @@ green `gpu-gate` (§13.2). To gate a superseded commit on purpose: `gh workflow 
 
 `timeout-minutes: 20` per job (§10); `parity.mjs --timeout=240` s per page load (scorecard's default). A job that times
 out posts `error` via the aggregate (its per-shard step runs with `if: always()`).
+
+### 11.6 The asset-URL case check on Linux (ci-gpu-options §6.2; 13-lead-resolutions G15)
+
+macOS disks ignore case, so a URL `/assets/Music/x.mp3` for the file `public/assets/music/x.mp3` works on every Mac lane
+and 404s on Vercel. `scripts/check-asset-case.mjs <dist>` runs on `ubuntu-latest`, whose disk is case-sensitive:
+1. It collects every asset URL the build references: every `"/assets/…"` string literal (and `assets/…` relative to
+   the page) in `dist/**/*.{js,css,html,json,webmanifest}`, which covers the generated file lists
+   (`bytes.generated.ts`, `gpu.generated.ts`, the packs' `/assets/packs/<slug>.<tier>-<hash>.bin` rows) as they land
+   in the bundle, and the service worker's precache list. `?v=` and `#…` are stripped; a URL built at runtime from a template (a `${tier}`
+   part) is expanded over the values the source declares next to it (the tiers, the shard slugs from the registry).
+2. For each URL it checks, segment by segment, that the path exists in `dist/` with exactly that spelling
+   (`fs.readdirSync` of each parent and an exact `includes`, so it never relies on the disk's case rules).
+3. It writes `{ checked, missing: [{ url, from, closest }] }` to `--out`, where `closest` is a case-insensitive match
+   if one exists (the "wrong case" verdict) and `from` is the referencing file. It exits 1 on any `missing` entry.
+
+A plant (`asset-case`, §9) proves it goes red. After the plan (§16) the job stays on every push.
 
 ## 12. Flake policy (MW3)
 
@@ -607,12 +692,15 @@ After the existing sparse `actions/checkout` of main:
   bootstrap gui/$(id -u)`. It needs no new token (13-lead-resolutions 02/03#8): the poller posts with the Mac's
   existing `gh` login (`gh api repos/Raynos/project-wildshard-singleplayer/statuses/<sha> -f state=… -f
   context=gpu-perf -f description=…`), and `install.sh` refuses to load the agent while `gh auth status` fails.
-- **`scripts/gpu-perf/nightly.sh`**, in order, under `caffeinate -i`:
+- **`scripts/gpu-perf/nightly.sh [--plant=<id>]`**, in order, under `caffeinate -i`. `--plant` (a one-off, by hand)
+  applies `test/parity/plants/<id>.patch` to the exported tree, runs only the parts the plant's `Shards` column names,
+  prints the verdict, writes the report under `~/.wildshard/gpu-perf/plant-<id>-<date>.md` and posts no status (a
+  plant never marks a real commit, as in the gate):
   1. `git --git-dir=<mirror> fetch origin main`; pick the newest of the last 30 commits whose `gpu-gate` is `success`;
      stop if `~/.wildshard/gpu-perf/<sha7>.json` exists.
   2. `git archive <sha>` into `~/.cache/wildshard-gpu-perf/tree-<sha7>/`; `pnpm install --frozen-lockfile
-     --prefer-offline --config.enable-global-virtual-store=false`; `scripts/serve-build.sh --hours 2 --name gpu-perf`
-     from that tree (a registered preview the reaper knows).
+     --prefer-offline --config.enable-global-virtual-store=false`; `scripts/serve-build.sh --hours 5 --name gpu-perf`
+     from that tree (a registered preview the reaper knows; the whole nightly is ≤ 4 h, §10).
   3. Inside `scripts/browser-lane.sh --max 90`:
      - `node scripts/parity.mjs --url=<u> --lane=m5 --tiers=phone,desktop --full --ms` (every route leg and trail,
        both tiers, compared with the m5 baselines);
@@ -623,29 +711,75 @@ After the existing sparse `actions/checkout` of main:
      - `node scripts/scorecard.mjs --url=<u> --tag=nightly-<date>-<sha7> --no-switch --compare=baseline` (load bytes and
        time on shaped Fast 4G, heap, GL-API GPU bytes; `--no-switch` because the resident host is gone after F11);
      - from F8, the harness's leak test on every shard, both tiers (already inside the parity run).
-  4. Writes `~/.wildshard/gpu-perf/<date>-<sha7>.md` and `.json` (every number, the flake tally of §12, each budget with
-     its formula) and posts context **`gpu-perf`** on `<sha>`: `success` when every check passed, `failure` otherwise,
-     description ≤ 140 characters, e.g. `M5 GPU worst nine/well-edge 1.42 ms (1.6) · GPU 373 MB · parity 0 red · 4G
-     Driftwood 24.1 s`. It never blocks a deploy.
-  5. `scripts/serve-build.sh stop <port>`, closes every browser, deletes the tree.
+  4. **The Simulator memory run** (§14.1), inside `scripts/sim-lane.sh run --max 40 wildshard-iphone …`.
+  5. **The soak bot** (§14.2): one `scripts/browser-lane.sh --max 30 node scripts/soak.mjs --url=<u> --shard=<slug>`
+     per shard, one after another (never two soak pages at once).
+  6. Writes `~/.wildshard/gpu-perf/<date>-<sha7>.md` and `.json` (every number, the flake tally of §12, each budget with
+     its formula, the Simulator memory table, the soak table) and posts context **`gpu-perf`** on `<sha>`: `success`
+     when every check passed, `failure` otherwise, description ≤ 140 characters, e.g. `M5 GPU worst nine/well-edge
+     1.42 ms (1.6) · GPU 373 MB · parity 0 red · sim 0.71/1.0 GB · soak ok`. It never blocks a deploy.
+  7. `scripts/serve-build.sh stop <port>`, closes every browser, deletes the tree.
 - `.claude/hooks/session-brief.sh` prints the newest report's first line, so the lead sees the night's numbers at
   session start.
+- **This report replaces FINISH-LINE S7's committed `latest.md` table** (13-lead-resolutions G19): the budget numbers
+  per shard live in the gate's per-run report artifact (`parity-<shard>` → `report.md`, §2.5, §15) and in this nightly
+  report, not in a committed file (GAME-NORMALIZATION §8).
+
+### 14.1 The Simulator memory run (decision 31 "nightly = Simulator"; 13-lead-resolutions G2)
+
+`scripts/sim-memory.mjs` is `scripts/nine-sim-memory.mjs` (E264) generalised to every shard at F3.2: `--url=<u>
+--shards=<every registry shard> --runs=1 --play=60 --fly=60`. For each shard, on a cold Safari in the booted Simulator
+(`sim-lane.sh run`, one device machine-wide, shut down after), it measures three phases: **loading** (the arrival on
+the title, then `?chunk=<slug>&mute=1`, until the loading screen is gone), **play** (60 s at the spawn, turning one
+full circle), and **explorer** (pause ▸ EXIT TO MAIN ▸ EXPLORE WORLD ▸ World explorer, 60 s of flight). Each phase
+records the game tab's **WebContent physical-footprint high-water** (the kernel meter of `scripts/sim-mem-phases.py`,
+reset at each phase start) and Web Inspector's total.
+- **Against:** loading ≤ 1.8 GB, play and explorer ≤ 1.0 GB (decimal; decision 31, 01 §13.4).
+- **Verdict:** red when a phase is over its limit, or when it is more than 10 % above the previous night's reading for
+  the same shard and phase (a regression on the same machine). The table goes into the report.
+- **What it is not.** The Simulator runs on the Mac's memory and GPU and read ~0.75 GB where the phone read 1.054
+  (the ios-simulator skill; E271 / E272). Under the limits proves nothing about the phone; the physical iPhone reading
+  at each milestone stays the memory evidence (§15, 12 §8).
+
+### 14.2 The soak bot (MW19; 13-lead-resolutions G13)
+
+`scripts/soak.mjs --url=<u> --shard=<slug> [--minutes=20]` runs one shard for 20 minutes, headless on the M5 (full
+Chromium, ANGLE Metal, `--mute-audio`, phone tier, `window.__wildshardHarness` seeded as §6):
+- **The wanderer.** From the spawn it picks a seeded random point 30–80 m away on the shard's baked navmesh
+  (`public/assets/baked/<slug>/navmesh.bin`, through the probe's `nav.randomPoint(near, min, max)` and `nav.path(a,
+  b)` over the engine's navmesh query), follows the path's corners with the walk autopilot (`scripts/parity/walk.mjs`),
+  and repeats. Nine Dragon has no baked navmesh, so it walks the legs of `scripts/physics-route.json` in a seeded order.
+  Every 60 s it attacks the nearest creature (or practice dummy) within 15 m through real input (§5.1); every 5 minutes
+  it pauses for 5 s and resumes.
+- **Stuck state:** less than 0.3 m of progress in 5 s. It is recorded with its position and a screenshot, then the
+  wanderer teleports to its next target.
+- **Samples, every 30 s:** JS heap after a forced GC (CDP `HeapProfiler.collectGarbage`, then `JSHeapUsedSize`), GPU
+  bytes (the §2.1 GL-API accounting), `renderer.info.memory`, the scene's Object3D count, the fps median of the last 30 s,
+  and every page error.
+- **Verdict (red on any):** a page error; a stuck state; GPU-byte growth over minutes 5–20 above 8 MiB (the
+  least-squares slope × 15 min); heap growth over minutes 5–20 above 10 % of the minute-5 value; geometries or textures
+  at minute 20 above the minute-5 count × 1.05. **The fps trend** (the median of the last 5 minutes against the first
+  5) is reported, not a verdict.
+- **Proof:** the `soak-leak` plant (§9: 1 MiB uploaded every 10 s, never freed, ≈ 90 MiB over the window) must turn the
+  soak red on the GPU-byte growth (02 F3.2 done-when).
 
 ## 15. The budget check in the gate (summary)
 
 Which numbers: per pose and tier, draws, triangles, programs, GPU MB (derived by `src/engine/render/budgets.ts` from the
 manifest inputs and `budgets/calibration.json` or `budgets/provisional.json`; ceilings from `lint/ratchet.json`
 `"budgets"`). Where checked: the per-push gate (counts, both lanes) from S1.6. Where not: frame ms and GPU ms (nightly
-on the M5, `gpu-perf`), CPU ms per system and download bytes (nightly scorecard), memory (the iPhone, decision 31).
+on the M5, `gpu-perf`), CPU ms per system and download bytes (nightly scorecard), memory (the iPhone, decision 31; the
+nightly Simulator run of §14.1 checks the same limits as a regression check, never as phone evidence).
 The report prints each number with its formula and inputs, so a re-calibration moves numbers without code edits
 (budget-design §3).
 
 ## 16. What the permanent per-push gate keeps after the plan (Z4)
 
 - `gpu-gate.yml` on every push to main, 5 jobs (the 4 shards + `_template`), phone tier, everything in §2: the boot
-  fingerprint, the poses, the gate walk, swing + shot + kill + loot, the leak test and the budgets; the Metal check;
-  the flake policy and quarantine rules of §12.
-- The nightly `gpu-perf` on Jake's Mac, unchanged (desktop, full routes and trails, GPU ms, scorecard).
+  fingerprint, the poses, the gate walk, swing + shot + kill + loot, pause → resume, the leak test and the budgets; the
+  Metal check; the Linux `asset-case` job (§11.6); the flake policy and quarantine rules of §12.
+- The nightly `gpu-perf` on Jake's Mac, unchanged (desktop, full routes and trails, GPU ms, scorecard, the Simulator
+  memory run, the soak bot).
 - **The deploy pin switches to `mode: "newest-green"`** (`deploy-pin.mjs mode newest-green`): the hourly deploy ships
   the newest main commit whose `gpu-gate` is green (ci-gpu-options §6), and the milestone-only rule ends with the lock.
 - **The baseline rule changes** (§8 becomes): content work is normal again, so a commit that changes a shard's look,
@@ -657,8 +791,9 @@ The report prints each number with its formula and inputs, so a re-calibration m
 
 ## Questions for the lead
 
-Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (02/03 table) unless marked open; the body above follows
-each answer.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (the 02/03 table and C9); none is open, and the body
+above follows each answer. The gaps 13 closed in this file: the Simulator memory run and the soak bot (§14.1, §14.2;
+G2, G13), the Linux asset-case job (§11.6; G15) and the pause → resume step (§5.6; G19).
 
 1. **Loot has no common observable today.** **Resolved → 13-lead-resolutions 02/03#7:** loot is checked as the save keys
    written after a kill (§5.3), until `#game`'s loot rows exist (S4.3).
@@ -668,11 +803,12 @@ each answer.
 3. **Which tiers the per-push gate runs.** **Resolved → 13-lead-resolutions 02/03#7:** the runner covers the phone
    tier; the desktop tier runs in the nightly on Jake's Mac (§14) and in the lead's pre-milestone run (§10).
 4. **The gate walk is 3 legs per shard** (§4), not the full route, to keep a job under 12 minutes; the full route and
-   trails run nightly and at F11 / F12 / milestones. **Open (not in 13), sent to the lead:** this spec keeps 3 legs
-   on the runner.
+   trails run nightly and at F11 / F12 / milestones. **Resolved → 13-lead-resolutions C9 (03 Q4):** accepted; §4
+   follows.
 5. **The leak test's listener and audio counts** (01 §4) don't exist in today's code. §2.4 instruments listeners and
    timers in the harness init script and asks F8 for `app.audio.census()` over today's `Audio.ts` (voices, beds,
-   buses) until S3.5's engine. **Open (not in 13), sent to the lead.**
+   buses) until S3.5's engine. **Resolved → 13-lead-resolutions C9 (03 Q5):** accepted; the probe also exposes the
+   scope census and the `AudioService` registry's counts, and §2.4's instrumentation is the spec (§2.4 follows).
 6. **The native OTA channel follows the pin.** **Resolved → 13-lead-resolutions 02/03#8:** yes, the pin covers
    `ota-promote.yml` (§13.3).
 7. **The M0 pin.** **Resolved → 13-lead-resolutions 02/03#8:** the first pin is the build live when F3.1 lands

@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + Jake's decisions 1–91 with the revisions 12′, 28′, 55′, 90′, §9). Every spec in [game-normalization/](game-normalization/) is written (00–12), the lead's answers to every spec question are in 13, and a consistency pass aligned 02, 03 and 05–12 with 01 and 13. Not `ready` until the clean-room council (Codex GPT 6.1 Sol + 2 Claude seats) finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
+**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + Jake's decisions 1–91 with the revisions 12′, 28′, 55′, 90′, §9). Every spec in [game-normalization/](game-normalization/) is written (00–12), 13 answers every spec question and every traceability gap (G1–G21), and the gap closure applied 13's last four tables to the index, 00, 02, 03, 05–08, 10 and 12 (new row X9; X3 chunk check + iOS 27 re-test, X7 tier selection, X8 flag hygiene, the nightly Simulator memory run + soak bot, the Linux asset-case job). No spec question is open. Next: the clean-room council (Codex GPT 6.1 Sol + 2 Claude seats) until it finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
 
 ## Specs (the executable detail) and the definition of ready
 
@@ -15,7 +15,7 @@ This file is the index. The executable detail lives in [game-normalization/](gam
 | [04-move-map](game-normalization/04-move-map.md) | Every file → its layer and destination |
 | [05-nine-dragon](game-normalization/05-nine-dragon.md) · [06-pine-hollow](game-normalization/06-pine-hollow.md) · [07-nalati](game-normalization/07-nalati.md) · [08-driftwood](game-normalization/08-driftwood.md) | Each shard's migration: every gate line → its replacement, the full manifest, the plugin, the milestone |
 | [09-combat-ai](game-normalization/09-combat-ai.md) | Every weapon's profile (today's values), effects, the damage pipeline, events, species, brains, bosses |
-| [10-sweeps](game-normalization/10-sweeps.md) | X1–X8 |
+| [10-sweeps](game-normalization/10-sweeps.md) | X1–X9 |
 | [11-finish](game-normalization/11-finish.md) | Z1–Z4: the template shard, docs, shard 5, the archive |
 | [12-process](game-normalization/12-process.md) | The council, the lock, deploys, lanes, commits, boards, risks, estimate |
 | [13-lead-resolutions](game-normalization/13-lead-resolutions.md) | The lead's answer to every question the spec writers raised, and where each is applied |
@@ -146,7 +146,9 @@ export default defineShard({
 
 **Loading:**
 - The manifests are static, and each shard's code is **one lazy chunk**.
-- Chunks stay few and big: three.js, engine + game + kit, then one per shard (Vite 8 `codeSplitting.groups`).
+- Chunks stay few and big: three.js, engine + game + kit, then one per shard (Vite 8 `codeSplitting.groups`). X3
+  writes that config and a build check that no shard plugin module is in the main chunk (read from Vite's manifest),
+  and re-tests E188's import retry on iOS 27 in the Simulator.
 - The service worker still downloads every shard's code at install, so any shard boots offline (decision 29).
 - Switching shards stays a page reload for now.
 - A plugin that throws while loading shows a full-screen error with the stack, reported to Sentry (decision 69).
@@ -228,7 +230,9 @@ export default defineShard({
 - **Budgets are derived, not guessed** ([budget-design](../design/engine-fit-v2/budget-design.md)).
   - **Frame budget:** the phone targets 30 fps sustained *hot* (33.3 ms ÷ 1.3 = 25.6 ms), split CPU / GPU. It is
     60-ready: fps is an input to the formula.
-  - **Desktop:** 60 fps on a mid gaming PC (RTX 3060 class); laptops below it get the phone tier.
+  - **Desktop:** 60 fps on a mid gaming PC (RTX 3060 class); laptops below it get the phone tier. X7 picks the tier at
+    first boot (a renderer-string table, else a 2 s GPU micro-benchmark, cached in a `device` save key) and derives the
+    desktop budgets from the M5 calibration × a documented M5 : 3060 ratio.
   - **Memory:** 1.8 GB loading (justified by the phone's kill limit) and 1.0 GB in world (kept; the E271 rule).
   - **Calibration:** a scene in Debug ▸ Developer tools measures unit costs on the hot phone and the M5.
   - **The manifest holds the inputs, and every number is recomputed.**
@@ -238,9 +242,11 @@ export default defineShard({
   - **Every push:** GitHub's free `macos-15` runner, one job per shard, Chromium with ANGLE Metal (it fails at once if
     the renderer isn't Metal).
   - **What it checks:** the boot fingerprint, counts against budgets, a walk (0 stuck), a swing and a shot to a kill
-    and loot, poses against runner-recorded baselines, and the leak test.
-  - **Nightly:** Jake's Mac posts a `gpu-perf` status (frame ms, GPU bytes, the full scorecard) from a launchd
-    poller, never a runner.
+    and loot, a pause → resume with the state identical, poses against runner-recorded baselines, and the leak test.
+    A Linux job checks that every asset URL's case matches its file (macOS disks ignore case).
+  - **Nightly:** Jake's Mac posts a `gpu-perf` status from a launchd poller, never a runner: frame ms, GPU bytes, the
+    full scorecard, a Simulator memory run (each shard's WebContent footprint against 1.8 / 1.0 GB, a regression
+    check) and a 20-minute soak bot per shard (stuck states, errors, heap and GPU-byte growth, fps trend).
   - **The iPhone** stays the only memory and stability evidence.
 
 ### 2.7 Also in the engine and game layer (decisions 74–80, 84)
@@ -251,15 +257,17 @@ export default defineShard({
 - **Capture mode**: the engine clock runs fixed-step for trailers, board clips and the harness's poses.
 - **Across shards** (`#game`): coins stay per shard; items are self-contained, with a `travels` flag (default off);
   progress, compendium and feats are per shard plus a read-only Wildshard summary on the title deck; abilities are
-  per shard.
+  per shard. X9 builds the `travels` flag, the summary and the travel type.
 - **Accessibility**: none in this plan (84).
 
 ### 2.8 Doors left open (built for, not built)
 
 - **Multiplayer:** simulation state (health, effects, AI, quest steps, saves) stays apart from visuals and input, and
-  gameplay randomness goes through the seeded RNG. No netcode.
+  gameplay randomness goes through the seeded RNG. The `wildshard/sim-no-render` lint rule (F4) and the node-only actor
+  tests (F5) enforce it. No netcode.
 - **Seamless travel between shards:** resource ownership (§2.2), and each shard keeps its own origin plus its map
-  position. The travel verb lives in `#game`.
+  position. The travel verb lives in `#game`: X9 builds its type and hand-off with today's page reload as the one
+  implementation.
 - **Other games:** the engine is extractable (no Wildshard words, lint-enforced).
 - **Other authors:** shards come from Jake, agents, or PRs to the public repo. The API may change as long as every
   in-repo shard moves with it.
@@ -290,7 +298,7 @@ export default defineShard({
 
 ## 4. Rows
 
-Estimate: ~24–33 agent-days, ~3–5 weeks of wall clock, the council included (12-process §9). Each shard phase pulls in the engine systems it is the first to
+Estimate: ~25–34 agent-days, ~3–5 weeks of wall clock, the council included (12-process §9). Each shard phase pulls in the engine systems it is the first to
 need; the X rows collect what is left.
 
 ### F — Foundations (before the first shard)
@@ -304,15 +312,15 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 | **F0** | Declare the lock: an AGENTS.md note and a session-brief line. The overlapping plans' State lines point here; ENGINE-FIT is archived as folded in | Every live plan agrees on who owns what | S |
 | **F3.1** | **The deploy pin** (decision 32; runs right after F0, before the first `src/` change). `.github/deploy-pin.json` + `scripts/deploy-pin.mjs`; `deploy.yml` and `ota-promote.yml` ship only the pinned release (the first pin is the build live when F3.1 lands), and the pin moves at a milestone | The hourly deploy doesn't move production or the OTA channel between milestones | S |
 | **F1** | **Tooling before any move** (TP1–TP3). An alias spike: `#engine/#game/#kit/#shards` as package.json subpath imports, proven against tsc, Vite 8, vitest, oxlint, `bake-loader.mjs` and the URL-param lint. `check-paths.mjs` in `pnpm test`. Non-empty asserts on every `import.meta.glob` test | A baker and a lint key both resolve through `#engine/…`; a moved file can't make a test pass vacuously | S |
-| **F2** | **Parity harness v1** (TP4, TP5, MW1). A typed probe `window.__wildshard`, plus `scripts/parity.mjs` built from scorecard, physics-baseline, nalati-boot-check, bench-load and test-facade-instancing. For 4 shards × phone / desktop it records: a boot fingerprint (systems in phase order, registry, scene census, programs, draws, triangles, audio beds, HUD slots, save keys), 3 poses, and a scripted walk + swing + shot to a kill and loot. Baselines come from today's HEAD. Nine Dragon joins | Green twice on unchanged HEAD; red on a planted one-line change | M |
-| **F3.2** | **The GPU gate** (TP6, ci-gpu-options; runs after F2). `macos-15` jobs, one per shard, phone tier, Metal-or-fail, posting a `gpu-gate` status. A nightly `gpu-perf` launchd poller on Jake's Mac (desktop tier, timing, GPU bytes) posts with the Mac's `gh` login | A broken shard turns the status red | M |
-| **F4** | **Ratchets** (MW2). `wildshard/layer` (the arrows in §2.1, no shard ↔ shard, public API only), shard-name branches outside `src/shards/`, raw `localStorage`, `Math.random` / `performance.now` outside the RNG and clock. Counts live in `lint/ratchet.json` and may only go down | Adding a branch or a raw save fails lint | S |
-| **F5** | **Actor tests** (TP15, MW4): a fake `Game`, the first contract tests, the coverage ratchet on `src/engine/` | Strike timing, a sword combo and a save round-trip run in node | M |
-| **F7** | **Delete the dead** (TP13, TP16; runs **before** F6): `src/dev/` and `dev/*.html` (6,553 lines in `src/dev`, incl. the nd-lab's 4,771), Nine Dragon's unimported `look/post.ts`, `meleeGeo.ts`'s dead half, `chunks/_template.ts`, the 7 images under `src/explore/img/` nothing shows. Scripts (decision 88): one-offs of finished asks go, and any script not run in the last 5 days goes, unless package.json, a hook, CI, a skill or a doc references it; live ones are ported to the probe | ≥ 5,200 dead lines gone; `check-paths` green | S |
-| **F6** | **The big move** (TP7–TP12), by a codemod from one mapping table (04's reviewed `move-map.json`, its only input): `git mv`, imports, globs, script strings, `targets.json`. <br>• Engine folders go to `src/engine/`. <br>• `src/game/` and `src/kit/` are created. <br>• `src/chunks/<slug>` becomes `src/shards/<slug>/` (defs → `manifest.ts`, `ChunkDef` → `ShardManifest`). <br>• `src/nalati`, `src/pinehollow` and the ~100 single-shard files in engine folders (~42k lines) go to their shard; the 5 files 2+ shards already use go to the kit (the viewmodel arm rig and `rigArms`, particles, the grass trample and field); weapon families, species and weather FX wait for their rows (04 §1.3). <br>• `src/main.ts` stays at the root as the composition root (01 §0). <br>• 34 tests go to `test/shards/<slug>/`, generated files to `src/engine/boot/`. <br>• `public/assets` is **not** moved (it would re-download for every player) | Every layer rule has a ratchet count; parity green; bakers bake the same bytes | L |
-| **F8** | **The spine** (EI1, EI2, EI17, EI20). App systems with ordering and run conditions, app states, the typed event bus (`emit` / `ask`), typed services, the per-shard scope with resource ownership + the leak test, the seeded RNG and game clock | Phase-list fingerprint identical; load → unload returns to baseline | L |
+| **F2** | **Parity harness v1** (TP4, TP5, MW1). A typed probe `window.__wildshard`, plus `scripts/parity.mjs` built from scorecard, physics-baseline, nalati-boot-check, bench-load and test-facade-instancing. For 4 shards × phone / desktop it records: a boot fingerprint (systems in phase order, registry, scene census, programs, draws, triangles, audio beds, HUD slots, save keys), 3 poses, and a scripted walk + swing + shot to a kill and loot, then a pause → resume whose gameplay state must be identical (FINISH-LINE S1). Baselines come from today's HEAD. Nine Dragon joins | Green twice on unchanged HEAD; red on a planted one-line change | M |
+| **F3.2** | **The GPU gate** (TP6, ci-gpu-options; runs after F2). `macos-15` jobs, one per shard, phone tier, Metal-or-fail, plus a Linux `asset-case` job (every asset URL's case matches its file), posting a `gpu-gate` status. A nightly `gpu-perf` launchd poller on Jake's Mac (desktop tier, timing, GPU bytes, the Simulator memory run, the soak bot) posts with the Mac's `gh` login | A broken shard or a wrong-case asset URL turns the status red; the soak catches a planted leak | M |
+| **F4** | **Ratchets** (MW2). `wildshard/layer` (the arrows in §2.1, no shard ↔ shard, public API only), shard-name branches outside `src/shards/`, raw `localStorage`, `Math.random` / `performance.now` outside the RNG and clock, and `wildshard/sim-no-render` (simulation modules import no renderer or DOM, decision 56). Counts live in `lint/ratchet.json` and may only go down | Adding a branch or a raw save fails lint | S |
+| **F5** | **Actor tests** (TP15, MW4): a fake `Game`, the first contract tests (in node: no DOM, no WebGL), the coverage ratchet on `src/engine/` | Strike timing, a sword combo and a save round-trip run in node | M |
+| **F7** | **Delete the dead** (TP13, TP16; runs **before** F6), in one reviewed list: `src/dev/` and `dev/*.html` (6,553 lines in `src/dev`, incl. the nd-lab's 4,771), Nine Dragon's unimported `look/post.ts` and `world/hero/paifang.ts`, `world/spruceMask.ts`, `meleeGeo.ts`'s dead half, `chunks/_template.ts`, the 7 images under `src/explore/img/` nothing shows; `world/interact/validate.ts` is reviewed there and kept (two tests import it). Scripts (decision 88): one-offs of finished asks go, and any script not run in the last 5 days goes, unless package.json, a hook, CI, a skill or a doc references it; live ones are ported to the probe | ≥ 5,200 dead lines gone; `check-paths` green | S |
+| **F6** | **The big move** (TP7–TP12), by a codemod from one mapping table (04's reviewed `move-map.json`, its only input): `git mv`, imports, globs, script strings, `targets.json`. <br>• Engine folders go to `src/engine/`. <br>• `src/game/` and `src/kit/` are created. <br>• `src/chunks/<slug>` becomes `src/shards/<slug>/` (defs → `manifest.ts`, `ChunkDef` → `ShardManifest`). <br>• `src/nalati`, `src/pinehollow` and the ~100 single-shard files in engine folders (~42k lines) go to their shard; the 5 files 2+ shards already use go to the kit (the viewmodel arm rig and `rigArms`, particles, the grass trample and field); weapon families, species and weather FX wait for their rows (04 §1.3). <br>• The composition root stays at `src/`'s root, outside the layers (01 §0): `src/main.ts`, and `src/boot/entry.ts` → `src/entry.ts` (`index.html` loads `/src/entry.ts`). <br>• 34 tests go to `test/shards/<slug>/`, generated files to `src/engine/boot/`. <br>• `public/assets` is **not** moved (it would re-download for every player) | Every layer rule has a ratchet count; parity green; bakers bake the same bytes | L |
+| **F8** | **The spine** (EI1, EI2, EI17, EI20). App systems with ordering and run conditions, app states, the typed event bus (`emit` / `ask`), typed services, the per-shard scope with resource ownership + the leak test, the seeded RNG and game clock. The one RNG deletes Nine Dragon's `util.ts` `Rng` and `world/facade/rng.ts` (RNG ×3 → 1) | Phase-list fingerprint identical; load → unload returns to baseline; one `class Rng` in `src/` | L |
 | **F9** | **The shard registry** (EI8, TP8, MW20): a generated `shards.generated.ts` (manifests + lazy `load`), the `ShardManifest` type with `api` version, the full-screen error on a failed load | The title deck and the bakers read the registry; no hand-kept shard list | M |
-| **F10** | **SaveStore** (EI19, MW7, MW15): one namespaced, versioned store with a migration chain and four scopes (`global`, `shard`, `device`, `session`). Today's saves are reset (Jake: fine). `storage.persist()` on home-screen launch; export / import in Settings | 0 raw `localStorage` outside the store | M |
+| **F10** | **SaveStore** (EI19, MW7, MW15): one namespaced, versioned store with a migration chain and four scopes (`global`, `shard`, `device`, `session`). Today's saves are reset (Jake: fine); the 3 pre-boot keys survive (`ws.dev` a `device` key, the two resume keys `session`). A save that fails its schema is set aside, defaulted and reported, never a crash. `storage.persist()` on home-screen launch; export / import in Settings | 0 raw `localStorage` outside the store | M |
 | **F11** | **Retire the old machinery**: the resident host (EI6: ShardHost's park / activate / evict, the 76 `shardSlot`s) and `player.colliders` + `src/physics/bridge.ts` (PHYSICS-POLISH F3). The `addEventListener` patch stays (396 listeners rely on it for teardown). The `wildshard/no-global-listener-patch` ratchet counts it, and X1 / X2 remove it | One collision path; walk + trails 0 stuck | M |
 | **F12** | **Rapier 0.21** (decisions 45, 89: +~413 KB gz on a cold load, accepted) | Walk + trails 0 stuck; nav bake `--check` green; one physical-iPhone load reading from Jake | S |
 
@@ -334,7 +342,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 |---|---|---|
 | S2.1 | The manifest and plugin. The 7 `install*` calls, `fieldModels`, streams, the hamlet, landmarks and Sets move into the plugin. The Pine tier override (`PINE_HOLLOW_PHONE`, deleted here) and the `pine-hollow` gates go | M |
 | S2.2 | **The ranged families** in the kit, each weapon keeping its feel: Bow (Bow, Longbow as a profile), Crossbow (+ bolt mods), Firearm (Rifle; Pine's LeverRifle a subclass in Pine's folder). Projectiles, DropArc, ADS and brass become engine blocks | L |
-| S2.3 | **The AI runtime**: HFSM + StrikeSpec + the aggression director, the boss runtime (Antler King), one elite runtime (Pine's and Nalati's bases merged), night thralls, the weighted spawn and loot tables. Fix inline: `canReach` everywhere (Pine's boar, bear, elites and bosses stop hitting through walls) | L |
+| S2.3 | **The AI runtime**: HFSM + StrikeSpec + the aggression director, the boss runtime (Antler King), one elite runtime (Pine's and Nalati's bases merged), night thralls, the weighted spawn and loot tables. The **AI debug overlay** (Debug ▸ Developer tools: per-creature HFSM state, utility scores, tick band, pinned flag). `BOSS_NAMES` becomes a content registry fed by boss rows, and `TargetHit` moves to the engine combat types (EI23). Fix inline: `canReach` everywhere (Pine's boar, bear, elites and bosses stop hitting through walls) | L |
 | S2.4 | **Weather and the day cycle** as engine mechanisms: three clocks → `DayCycle` + keyframes, two weather stacks → `Weather` + the rain curtain in the kit (puddles stay per shard, lightning is Nalati's). Driftwood's and Nalati's clocks and Nalati's storm move onto it here too (one implementation, parity identical on all three) | L |
 | S2.5 | **The quest runtime** (Pine's quest on `quest/core`), the **starter effects** in the kit, and `#kit/npc` seeded from Pine's `npcRig` | M |
 | S2.6 | **The tick-rate scheduler** with decision 85's three bands (20 Hz / 10 Hz / paused), interrupts, pinned bosses / elites / quest actors and strikes on the body clock. Every shard's creatures switch here, Driftwood's far boars and bears included | M |
@@ -358,7 +366,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 | S4.1 | The manifest and plugin. The ~15 `isOcean ?` builders become the shard's world build; BlenderIsland, the iron-sword pickup. The `WaterBody` interface is built here for the sea (X5 converts the other bodies) | L |
 | S4.2 | Enemies (crab, monkey, sailor) on the AI runtime; the **Drowned Captain on the boss runtime**, his fight unchanged, on the shared BossBar (decision 91, look board). The big crab hits for 14 (decision 86) | M |
 | S4.3 | Adventure, keepsakes, first minutes, the shrine hum, the island SFX and ambience; the toon look as a `ShardRender`. The Castaway and the Trader join `#kit/npc`; the `legacyIsland.ts` park is deleted | M |
-| S4.4 | **`main.ts` → the composition root (≤ 20 lines) + `engine/boot.ts` (≤ 150 lines)** (EI7, 01 §0). 0 shard branches in engine / game / kit (the ratchet reaches 0) | M |
+| S4.4 | **`main.ts` → the composition root (≤ 20 lines, beside `src/entry.ts`) + `engine/boot.ts` (≤ 150 lines)** (EI7, 01 §0). 0 shard branches in engine / game / kit (the ratchet reaches 0) | M |
 | **M4** | Gate green; summary; the board; Jake plays. Driftwood reopens | — |
 
 ### X — Sweeps (any a shard phase didn't already pull in)
@@ -367,12 +375,13 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 |---|---|---|
 | X1 | **Input**: every action and context, key rebinding, buffer + coyote, TouchControls drawn from the top context, reserved verb slots (EI9–EI12). The hoverboard moves to `#kit/tools/` as a Tool. With X2 it moves the last listeners onto scopes, so the `addEventListener` patch is deleted. The **input / HUD board** (a late roof jump, a dodge pressed mid-swing, the verb slots) | L |
 | X2 | **UI layers**, HUD slot bands and registered Bag tabs (EI13–EI16) | M |
-| X3 | **Boot and assets from the manifest** (EI3, EI4, TP9, MW13, MW17): staged steps, per-shard asset lists (fixes Explore's offline preload on 3 shards), DEPLOYMENT_ASSET_TRIM T3 and the unused-assets KTX2 fix (TP17). Nine Dragon already joined the boot packs in S1.1 | M |
+| X3 | **Boot and assets from the manifest** (EI3, EI4, TP9, MW13, MW17): staged steps, per-shard asset lists (fixes Explore's offline preload on 3 shards), DEPLOYMENT_ASSET_TRIM T3 and the unused-assets KTX2 fix (TP17). **The chunk layout** (decision 2, EF10): Vite 8 `codeSplitting.groups` (three · engine + game + kit · one chunk per shard), a build check in the pre-push gate that no `src/shards/**` plugin module is in the main chunk (read from Vite's manifest), the shard chunk through E188's `retried()`, and an E188 import-retry re-test on iOS 27 in the Simulator (sim-lane). Nine Dragon already joined the boot packs in S1.1 | M |
 | X4 | **The animation engine layer**: rig loader, clip naming, the animation state machine, the rig contract | M |
 | X5 | **World and look leftovers**: <br>• the sky rig + backdrop (delete the painterly sky and cloud dome built then hidden on 2 shards); <br>• the fog-patch registry; <br>• the other water bodies onto the `WaterBody` interface S4.1 built; <br>• one geometry kit and one AO baker; <br>• one LUT loader; <br>• one particle pool (7 → 1); <br>• one RNG (3 → 1); <br>• helpers (`lin` ×6, smoothstep ×15, pan-from-yaw ×8, loop-at-offset ×5); <br>• one skin locker (3 → 1) | L |
 | X6 | **WebGPU containment**: the renderer type only in `engine/render`; the 87 `onBeforeCompile` sites through one shader-patch registry; one precompile | M |
-| X7 | **Tiers as data and budgets per manifest** (EI24, EI25). It deletes any shard-named knob S2.1 left | M |
-| X8 | **Session health** (MW10): how the last session ended, context losses, fps per shard → a crash-free-session rate per build in the session brief | S |
+| X7 | **Tiers as data and budgets per manifest** (EI24, EI25). It deletes any shard-named knob S2.1 left. **Tier selection** (decision 36): the desktop tier only for a GPU at or above RTX 3060 class (a renderer-string table, else a 2 s GPU micro-benchmark at first boot, cached as a `device` save key); below it, the phone tier. Desktop budgets = the M5 calibration × a documented M5 : 3060 ratio, re-derived if a 3060-class reading is ever taken | M |
+| X8 | **Session health** (MW10): how the last session ended, context losses, fps per shard → a crash-free-session rate per build in the session brief. Analytics, capture, strings. **Flag hygiene** (MW16): every Debug row gets an ask id and a review-by date, a test lists the overdue rows (the session brief prints them), and a count ratchet caps the rows | S |
+| X9 | **The game-layer extras** (decisions 59, 75, 76): the `travels` flag on item rows (default off); the read-only Wildshard summary on the title deck, built from the per-shard saves (a `global` key; its look on the Look board); the travel type (`TravelRequest` / `TravelHandoff`) with the page reload as its one implementation, replacing `requestShard`. With tests | M |
 
 ### Z — The finish line
 
@@ -391,13 +400,13 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 | Creatures | M2 / M3 | `canReach` (Pine charges stop going through walls), the Storm Titan's hit cap, the three tick bands (decision 85) at M2, the starter effects tuned; at M4 the big crab at 14 and the crab / monkey / sailor bands |
 | Input / HUD | X1 | Buffer + coyote (before / after clips), the reserved verb slots, the rebinding screen |
 | Audio | M1 | Nine Dragon's ambience, score and SFX (a listening page) |
-| Look | M4 (+ any) | The Drowned Captain on the shared BossBar (decision 91, S4.2); otherwise only a pose that differs beyond noise (nothing else is expected to) |
+| Look | M4, X9 (+ any) | The Drowned Captain on the shared BossBar (decision 91, S4.2); the title deck's Wildshard summary strip, A / B (X9, decision 76); otherwise only a pose that differs beyond noise (nothing else is expected to) |
 
 ## 6. Done when
 
 - **Structure:** four layers with the lint ratchet at 0: no shard names, no upward imports, no shard ↔ shard imports,
   no deep imports.
-- **Wiring:** `src/main.ts` (the composition root) ≤ 20 lines, `engine/boot.ts` ≤ 150 lines, and every shard is a manifest + plugin.
+- **Wiring:** the composition root is `src/entry.ts` + `src/main.ts` (≤ 20 lines), `engine/boot.ts` ≤ 150 lines, and every shard is a manifest + plugin.
 - **Duplicates:** every group in the audit has one implementation.
 - **Weapons:** every weapon keeps its own behaviour.
 - **Gate:** green on `macos-15` for the 4 shards + the template, including the leak test and the budgets.
@@ -420,14 +429,29 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 
 - **ENGINE-FIT:** folded in and archived. Its E1–E3 were built earlier (PHYSICS). E4 input actions = X1 / F8. E5 shard
   modules = this plan. Its libraries were re-judged in [engine-fit](../design/engine-fit-v2/engine-fit.md).
-- **FINISH-LINE:** S1 (the gate) = F2 / F3 / Z4. S3 = this plan. S5 = X1. S6 (tests where the bugs are) = F5. S7
-  (budgets that run) = S1.6 / X7. FINISH-LINE stays live for its other rows.
+- **FINISH-LINE:** S1 (the gate) = F2 / F3 / Z4; its pause-and-resume joins the harness's scripted run (pause →
+  resume → state identical, 03 §5.6), and its desktop tier runs in the nightly on Jake's Mac (13-lead-resolutions
+  02/03#7). S3 = this plan. S5 = X1. S6 (tests where the bugs are) = F5. S7 (budgets that run) = S1.6 / X7; its
+  committed `latest.md` table is **replaced** by the gate's budget report artifact (`report.md` per shard, 03 §2.5,
+  §15) and the nightly `gpu-perf` report (03 §14), not kept as a committed file. FINISH-LINE stays live for its other
+  rows.
 - **PHYSICS-POLISH:** F3 = F11. F7 goes with `src/dev`. F1, F2, F4, F5 and F6 stay there.
 - **ANIMATION-REMASTER:** the engine layer = X4. The art (A3–A7) stays there and builds on the rig contract afterwards.
 - **DEPLOYMENT_ASSET_TRIM:** T3 = X3. T2, T4 and T5 stay there.
 - **NINE-DRAGON-STACK:** paused until M1, then re-planned for the new engine.
-- **After this plan** (not in it): auto-rollback (MW21), the heat governor (MW8), gamepad, a per-shard `public/assets/`
-  re-layout (TP18).
+- **After this plan** (not in it; each becomes an ask at Z4, 13-lead-resolutions G13 / G14):
+  - auto-rollback (MW21), the heat governor (MW8), gamepad, a per-shard `public/assets/` re-layout (TP18);
+  - **MW12:** KTX2 on the phone for Nine Dragon (closing E248's image fallback, which this plan keeps as
+    `tiers.phone.textures: 'img'`); it needs physical-iPhone evidence (AGENTS.md's E271 rule);
+  - **MW22:** record / replay of input over the seeded RNG and the fixed step (the door F8 opens: seeded streams,
+    capture mode);
+  - from engine-fit: navcat's **crowd** module for herds and thralls (EF6); **pooled projectiles and a far crowd**
+    as structure-of-arrays pools (EF3; X5 builds only the one `ParticlePool`); a kit **worker pool** for procedural
+    generation (EF9: Pine's 150 ms long task); yuka-style **steering** behaviours (EF7);
+  - the "borrow later" libraries: **three-mesh-bvh** for Explore's picking and tools (gameplay collision stays
+    Rapier) and the **Needle Inspector** for dev (engine-fit §3).
+- **Out, with the reason:** **MW14** (measure the Rapier wasm high-water across shard switches) is moot: switching is a
+  page reload (decision 21), so the wasm heap never outlives its shard.
 
 ## 9. Jake's decisions (E357, 2026-09-30)
 

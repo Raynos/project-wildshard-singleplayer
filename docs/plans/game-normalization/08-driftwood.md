@@ -65,10 +65,10 @@ adventure / audio half and S4.4 are the lead's (they touch `main.ts`, which one 
 | `src/world/driftwood.ts` (83, `addDriftLog`) | 83 | `shard:look/driftLog.ts` | S4.1 | Driftwood's log painter |
 | `src/world/interact/driftwood.ts` | 84 | `shard:quest/interact.ts` | S4.3 | The interactables table (data) |
 | `src/world/interact/Interactables.ts` (753), `flags.ts` (76), `models.ts` (290), `types.ts` (146) | — | `src/engine/world/interact/` | F6 | 2+ shards (Pine's quest, Nalati's adventure). `flags.ts`'s `ws.flags.v1` is SaveStore key `flags` (shard) since F10 |
-| `src/world/interact/validate.ts` | 67 | F7's liveness rule (no importer in `src/`) | F7 | Question Q8 |
+| `src/world/interact/validate.ts` | 67 | `src/engine/world/interact/validate.ts` (kept) | F7 check; F6 move | On F7's one dead list for review (02 F7 step 3; 13-lead-resolutions still-open 08#8). The review keeps it: `test/interact.test.ts:5` and `test/pine-quest.test.ts:6` import `validateTable`, the pure validator of Driftwood's and Pine's interactable tables, so it is live and follows 04's row (engine, rule F) |
 | `src/entities/Enemies.ts` | 374 | `shard:creatures/enemies.ts` | S4.2 | The crab sites, monkey troops, coconuts, the sailor, the practice crab: spawn tables + the coconut projectile (§6.2) |
 | `src/entities/species/crab.ts` (307), `monkey.ts` (366), `sailor.ts` (371), `captain.ts` (332), `captainMesh.ts` (142) | 1,518 | `shard:species/…` | S4.2 | One shard each |
-| `src/entities/lowpoly.ts` | 263 | `shard:look/lowpolyCreatures.ts`, registered with `ctx.rows.creatureLook('toon', …)` (open: 07 §10 Q10) | S4.2 | `AnimalFactory.ts:305-354`'s `lowPoly` path is Driftwood's look of the kit boar / bear (07 Q10). `deer.ts`, `elk.ts`, `boar.ts`, `bear.ts` import it for their low-poly builders: those builder functions move with it and the species rows reference them by the look id |
+| `src/entities/lowpoly.ts` | 263 | `shard:look/lowpolyCreatures.ts`, registered with `ctx.rows.creatureLook('toon', …)` (01 §7, §19; 13-lead-resolutions still-open 07#10) | S4.2 | `AnimalFactory.ts:305-354`'s `lowPoly` path is Driftwood's look of the kit boar / bear, chosen by `manifest.kitLook: 'toon'`. `deer.ts`, `elk.ts`, `boar.ts`, `bear.ts` import it for their low-poly builders: those builder functions move with it and the species rows reference them by the look id |
 | `src/entities/fightRules.ts` | 128 | `src/engine/ai/director.ts` (S2.3) | S2.3 | The director is engine (09 §5.5); `ChunkDef.fightRules` → `manifest.fight.attackers: 2` |
 | `src/entities/npc/Castaway.ts` (314), `Trader.ts` (261) | 575 | rows on `#kit/npc/npcRig.ts` in `shard:quest/people.ts` | S4.3 | The lead: *NPC rigs merge into `#kit/npc`*. §6.3 D |
 | `src/world/faceHeads.ts` | 60 | `#kit/npc/faceHeads.ts` | S4.3 | Imported by `Castaway.ts` and `sailor.ts`; the face rig is an NPC-rig piece (Pine's rig can use it) |
@@ -161,7 +161,7 @@ adventure / audio half and S4.4 are the lead's (they touch `main.ts`, which one 
 |---|---|---|---|
 | `Game.ts:348-350` | `const dwPhone = getActiveChunk().style === 'lowpoly' && TIER === 'phone'` / `const fxaa = (dwPhone \|\| R?.aa === 'fxaa')` / `const raysOn = !dwPhone` | FXAA instead of SMAA, no god rays, on Driftwood's phone (E189) | `manifest.tiers.phone: { aa: 'fxaa', godRays: false }` through the tier resolution (05 §2.2): `R?.aa` already exists; `godRays` is a new tier knob (engine default true) |
 | `Game.ts:372` | `const lut = this.sky.lut && getActiveChunk().style !== 'lowpoly' ? new LUT3DEffect(` | the haze chain's LUT only off the toon shard | unchanged behaviour: the LUT in the haze chain is read only by the shards that take the haze chain; the condition becomes `!render.cleanChain` (below) |
-| `Game.ts:391` | `const colour = chain(getActiveChunk().style === 'lowpoly')` | the clean L5 chain (no volumetrics, grain, fringe; faint rays 0.12; bloom smoothing 0.08; vignette 0.35) | Driftwood's `'extend'` `compose` takes the engine's `chain(clean)` (01 §13.1: `chain` is handed to an 'extend' compose) instead of the default haze chain; the two chains stay engine post blocks |
+| `Game.ts:391` | `const colour = chain(getActiveChunk().style === 'lowpoly')` | the clean L5 chain (no volumetrics, grain, fringe; faint rays 0.12; bloom smoothing 0.08; vignette 0.35) | Driftwood's `'extend'` `compose` returns `{ chain: c.engineChain('clean') }` (01 §13.1; 13-lead-resolutions C6) instead of the default `'cinematic'` chain; the two chains stay engine post blocks |
 | `Game.ts:283, 356` + `tier.ts:132-134` | `const slices = R?.slices ?? phonePictureCuts()` / `return TIER === 'phone' && (tierShard === 'pine-hollow' \|\| tierShard === 'driftwood-isle')` | the depth slices and off-screen god rays on Driftwood's phone | `manifest.tiers.phone: { slices: true, skipRaysOffscreen: true }`; `phonePictureCuts()` and `tierShard` are deleted (Pine's half went at S2.1) |
 | `tier.ts:59-61` (+ the desktop row) | `oceanCell: 4.0, palmCount: 120, palmFrondSegs: 4, bushCount: 170, bushDetail: 0, bushShadows: false, boulderShadows: true` | the 7 Driftwood-named knobs | Driftwood's own tier knobs, declared by the shard (`ctx.tiers.knobs(DRIFTWOOD_KNOBS)`, 01 §13.3 "the kit declares knob schemas for its families" — here the shard) with today's phone and desktop values; the engine table loses them (10-sweeps X7 step 1 then finds them gone) |
 | `Sky.ts:17, 99-100, 103` | `const toon = style === 'lowpoly', stylizedSky = toon;` / `if (toon) installStylize();` / `stylizedSky ? await this.setupStylized()` | the toon lighting patch, the stylized dome | `ShardRender.backdrop` (Driftwood's `StylizedSky` backdrop) + `ShardRender.lighting: { install: installStylize }` (Q2), called at the same point in `Sky.build()` (before anything compiles) |
@@ -237,7 +237,7 @@ export default defineShard({
   seed: SEED,                                                             // 01 §6 — 0x5ea1
   treeCount: 0,                                                           // carried as data
   style: 'toon',                                                          // today 'lowpoly' (data only, never branched on)
-  kitLook: 'toon',                                                        // Q1 (open, 05 Q1; today's 'lowpoly' path): faceted creatures, the castaway's swim arms, the catalog
+  kitLook: 'toon',                                                        // Q1, declared (01 §6; today's 'lowpoly' path): faceted creatures, the castaway's swim arms, the catalog
   uses: ['dayCycle', 'bosses', 'quests'],                               // the director is on because `fight.attackers` is finite; loot by `loot.coins`
   ground: { terrain: TERRAIN },                                           // buildTerrain(SEED, { oceanLevel: 0.8, landscape, graded, trails, cabinSites: [] })
   water: { sea: () => import('./world/ocean').then((m) => m.OCEAN_BODY) },   // Q1 — the WaterBody (level 0.8, shallow / deep colours, deepDepth 6)
@@ -513,8 +513,9 @@ the registry and the census identical; parity green on 4 shards × 2 tiers.
    with `cover.checked`.
 4. **Randomness**: `Enemies.ts:284-288, 361` → `'cosmetic'`; the monkey's coconut cooldown 2.5–4 s → `'ai'`;
    `Ecology.ts:33, 82, 84` → `'spawn'`; `keepsakes.ts:166` → `'loot'`; `CoinBurst.ts:80-89` → `'cosmetic'`.
-5. **Ticks**: the crab, monkey and sailor brains `tick: 'ai'` (20 Hz near / 5 Hz past 60 m / paused past 160 m); the
-   captain `'always'` while awake (09 §5.7).
+5. **Ticks**: the crab, monkey and sailor brains `tick: 'ai'`, decision 85's bands (near 0–60 m: brain 20 Hz, body
+   every frame; mid 60–160 m: brain 10 Hz, body every 2nd frame; far: paused); the captain is pinned while awake
+   (09 §5.7).
 
 **B. The Drowned Captain on `EncounterService.boss`, his fight unchanged.**
 1. `class DrownedCaptain extends BossBrain` (`shard:combat/captain.ts`) from `captain.ts:227-312`: states hide · rise
@@ -540,6 +541,13 @@ the registry and the census identical; parity green on 4 shards × 2 tiers.
 3. `Finale.ts` keeps the reward view (the eased camera to the ring, golden hour, the caption, `seen:reward`, the
    complete card hand-off) in `shard:quest/finale.ts`; its `w.sky.dayNight.phase` writes (`:85, 97`) → `dayCycle.set()`
    eased as today (06 §6.4 C's porch pattern).
+4. **`boss.attempt` for the Captain: a fix** (D2, §7; 13-lead-resolutions still-open 08#6). Once he is on
+   `EncounterService.boss`, the runtime emits `boss.attempt` for him as for every boss: once per wake, with `{ boss:
+   'boss.captain', shard: 'driftwood-isle', outcome }` (`outcome` = `'won'` on his kill, `'lost'` on a player death
+   inside the arena, `'left'` when the player leaves the arena while he is up). The X8 analytics sink (01 §23) batches
+   it with the other bosses'. It is a bug fixed inline (decision 4), since today his fights never reach analytics.
+   Parity: the `captain` block records the event's frame and payload; it is new, so its baseline field is recorded in
+   the S4.2 commit under the found-bug rule (03 §8 case 4).
 
 **How parity proves the fight unchanged** (the harness block `captain`, run on Driftwood × phone / desktop on every
 S4.2 commit):
@@ -564,8 +572,10 @@ S4.2 commit):
 
 **Tests:** the strike table S1–S7 (with the big crab at 14), `test/ai/spawn-tables.test.ts` (seeded: the same crabs,
 troops and sailors at the same spots as `Enemies.build`), `boss-phases`, `test/shards/driftwood-isle/captain.test.ts`
-(the def's flags; the bar visibility rule), `test/ai/practice-crab.test.ts` (dies → back at 45 s only when 30 m off).
-**Done when:** the harness's `captain` block is identical; the scripted swing + kill on the practice crab identical;
+(the def's flags; the bar visibility rule), `test/ai/practice-crab.test.ts` (dies → back at 45 s only when 30 m off), `test/shards/driftwood-isle/captain-attempt.test.ts`
+(a wake then a kill emits one `boss.attempt` with `outcome: 'won'`; a death in the arena emits `'lost'`; a second wake
+emits a second event).
+**Done when:** the harness's `captain` block is identical (plus the new `boss.attempt` field); the scripted swing + kill on the practice crab identical;
 a big crab's snap deals 14 (the expected diff); `grep -rn "enemyWorld\|onCharge\|onWindup" src/shards/driftwood-isle` is empty.
 
 ### 6.3 S4.3 — adventure, keepsakes, first minutes, shrine hum, island audio; the toon look as a `ShardRender`
@@ -591,7 +601,7 @@ a big crab's snap deals 14 (the expected diff); `grep -rn "enemyWorld\|onCharge\
 ```ts
 export const shardRender = (): ShardRender => ({
   mode: 'extend',                                           // 01 §13.1 (the default): the engine chain, as today
-  compose: (c) => c.chain(true),                            // Game.ts:391: the engine's `chain(clean)` (E88: no volumetrics, grain, fringe; faint rays); how a compose returns it inside `ShardComposition` is open (§10 Q2)
+  compose: (c) => ({ chain: c.engineChain('clean') }),      // Game.ts:391: the engine's clean chain (E88: no volumetrics, grain, fringe; faint rays) in the `chain` slot of today's five (01 §13.1; 13-lead-resolutions C6, still-open 08#2)
   lighting: { install: installStylize },                    // Sky.ts:100 (before anything compiles)
   fog: { order: 200, install: installRampFog, uniforms: toonUniforms },   // stylize.ts:209, Atmosphere.ts:175-176
   fogControl: { suspend, resume },                          // 01 §13.1: the Explore map switches the ramp haze off (explore/MiniMap.ts:163-191)
@@ -657,7 +667,7 @@ goes. Every destination is an engine / game module with a system id; `boot.ts` o
 | 150-157 | `animalPositions` (the compass's reused buffer) | `src/engine/ui/hudSync.ts` | part of `engine.ui.hud` |
 | 159, 1331-1336 | `installErrorModal()`, `main().catch(…)` | `src/engine/boot.ts` (kept, 5 lines) | — |
 | 161-176, 1301-1330 | `shell`, `hostRef`, `SHARD_CAP`, ShardHost, the `park` / `activate` / `dispose` handles | retired at F11 (EI6); `dispose` → `scope.dispose()` | — |
-| 178-201 | `main()`: the PWA `?chunk` strip, `consumeTitleArrival`, `setAliveSource` | `src/engine/boot/entry.ts` (the strip, the arrival) + `#game/shard/select.ts` (the selected manifest) | stage `engine` |
+| 178-201 | `main()`: the PWA `?chunk` strip, `consumeTitleArrival`, `setAliveSource` | `src/engine/boot/arrival.ts` (the strip, the arrival; the page entry itself is `src/entry.ts`, the composition root, 01 §0) + `#game/shard/select.ts` (the selected manifest) | stage `engine` |
 | 207-234 | the boot plan, bytes, prefetch, pack streaming, the SW wait | `src/engine/boot/plan.ts` (exists) driven by `src/engine/boot/stages.ts` | stage `engine` / `shard.data` |
 | 235-257 | extras barrier, deferred audio, menu / audio preload, texture worker, lever preload, fieldModels | gone by S1.1 / S2.1 / S2.2 (manifest boot data, row preloads) | — |
 | 258-280 | the fragile GPU boot guard | `src/engine/boot/guard.ts` (S1.1) | stage `finish` |
@@ -687,7 +697,7 @@ goes. Every destination is an engine / game module with a system id; `boot.ts` o
 | 1061-1084 | frame gate, menu-first, arrival modes, `?explore=`, the first-gesture audio unlock | `#game/session/menuWorld.ts` + `src/engine/audio/unlock.ts` | run conditions (`when: inState('play', 'explore')`) replace `frameGate` |
 | 1086-1104 | the E interaction + harvest | `#game/interact/install.ts`: the nearest-interactable pick, the `use` action (X1: the `KeyE` listener → `input.consume('use')`), harvest via `ask('harvest.begin')` (S2.1) | `game.interact.pick` |
 | 1106-1223 | the `'main'` updater's 32 hand-ordered calls | each call is a system with an id in today's order (below) | — |
-| 1225-1233 | `?at=` pose, the reload param | `src/engine/boot/entry.ts` | stage `finish` |
+| 1225-1233 | `?at=` pose, the reload param | `src/engine/boot/arrival.ts` | stage `finish` |
 | 1235-1300 | composer, precompile, first frame, audio decode, GPU recovery, title idle prime, `ws:ready`, shard prefetch, `__world` | `src/engine/boot/stages.ts` (`finish`), `src/engine/render/precompile.ts`, `src/engine/boot/recovery.ts`, `app.events.emit('app.ready')` (replaces the `ws:ready` DOM event; the native shell's watchdog listens to the probe's `ready` flag), `window.__wildshard` | stage `finish` |
 
 **The `'main'` updater** (`main.ts:1110-1223`), split into systems in today's order (phase `update`, each `after` the
@@ -717,7 +727,9 @@ It names no shard, reads no `style`, no `slug` except to select the manifest.
 engine code or identifiers; comments included), and the `getActiveChunk()` count in `src/engine/**` (01 §5: `app.shard`
 lives in `#game`). `src/chunks/ChunkDef.ts` is gone (F6 renamed it); `src/main.ts` stays as the **composition root**
 (01 §0; 13-lead-resolutions 04#12): ≤ 20 lines that import `#engine`, `#game` and the generated shard registry, select
-the manifest and hand it to `src/engine/boot.ts` (the engine may not import `#game`); the page entry is unchanged;
+the manifest and hand it to `src/engine/boot.ts` (the engine may not import `#game`); the page entry, `src/entry.ts`
+(F6 moved it there from `src/boot/entry.ts`; `index.html` loads `/src/entry.ts`; 13-lead-resolutions C6), is the
+composition root's other half and is unchanged here;
 `Game.onInput / onFixed / onUpdate / onLate` (the thin wrappers, 01 §1) are deleted.
 
 **Tests:** `test/engine/boot.test.ts` (the fake Game boots the template-shaped stub manifest through every stage in
@@ -732,7 +744,7 @@ rules above; parity green on 4 shards × 2 tiers (the systems list renamed by 03
 |---|---|---|---|---|
 | D1 (09 B6, Q8) | The big crab's `chargeDamage 14` is dead data: its snap deals 10 | `crab.ts:266, 301` | the snap reads the variant's damage: big 14 (the lead, toward the data) (S4.2) | strike table S1: small 10, big 14 |
 | §7.4 | Explore's art and code are preloaded offline only when `def.ocean` | `boot/extras.ts:57, 118, 149` | the manifest's `boot.explore` (S4.1 reads it; X3 checks every shard) | the offline-boot harness test on 4 shards (X3) |
-| D2 | The Captain's bar and fight live outside the boss runtime, so the boss analytics event (`boss.attempt`, decision 79) would never fire for him | `game/quest/Finale.ts` | the encounter service (S4.2) | `boss.attempt` emitted once per wake |
+| D2 | The Captain's bar and fight live outside the boss runtime, so the boss analytics event (`boss.attempt`, decision 79) would never fire for him | `game/quest/Finale.ts` | the encounter service (S4.2 B step 4; a fix, 13-lead-resolutions still-open 08#6) | `captain-attempt.test.ts`: `boss.attempt` emitted once per wake, with its outcome |
 | D3 | The coin burst, the keepsake drop angle and Ecology's respawn draws use `Math.random()` | `CoinBurst.ts:80-89`, `keepsakes.ts:166`, `Ecology.ts:33, 82, 84` | the seeded streams (S4.2) | seeded kills burst the same coins at the same spots twice |
 | D4 | The default shard when no `?chunk=` is a string literal in `gpuFiles.ts:42` (a second hand-kept list) | `boot/gpuFiles.ts:42` | the registry's first manifest by `order` (S4.1) | the registry test |
 
@@ -751,7 +763,7 @@ scripted walk, the HUD slots, the save keys.
 | Difference | Row | Where it is shown |
 |---|---|---|
 | A big crab's snap deals 14, not 10 | S4.2 (D1) | the creatures board (one clip: a big crab's snap, the health bar before / after) |
-| Crab, monkey, sailor brains think at 20 Hz near / 5 Hz past 60 m / paused past 160 m | S4.2 | the creatures board (a monkey troop at 40 / 100 / 200 m) — if M2 already showed Driftwood's boars (06 Q7), only the new species |
+| Crab, monkey, sailor brains think in decision 85's bands (20 Hz near, 10 Hz from 60 m, paused past 160 m) | S4.2 | the creatures board (a monkey troop at 40 / 100 / 200 m) — if M2 already showed Driftwood's boars (06 Q7), only the new species |
 | `boss.attempt` fires for the Captain | S4.2 (D2) | M4 summary |
 | Driftwood's boot audio lists move to its own set folder (same bytes) | S4.3 | M4 summary |
 | `main.ts` gone; systems renamed | S4.4 | M4 summary (the id map) |
@@ -761,7 +773,7 @@ scripted walk, the HUD slots, the save keys.
 | Step | Detail |
 |---|---|
 | Gate | `gpu-gate` green on HEAD; parity green on 4 shards; `pnpm test` green; `lint/ratchet.json`'s shard-branch, engine-word and `getActiveChunk` counts at 0 |
-| Pin | HEAD into `deploy/pin`, `gh workflow run deploy`, `version.json` confirmed, the build id in E357 |
+| Pin | After Jake's go: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M4 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1: ~12k lines from engine folders), what was deleted (`main.ts` 1,336 → `boot.ts` ≤ 150, `ChunkDef.ts`, `DayNight.ts`, `stylize.ts` / `StylizedSky.ts` out of the engine, the adventure registry, `legacyIsland.ts`), the ratchets before / after since F4, Driftwood's derived budgets and ceilings (the pier pose's 868 desktop draws as a ceiling, budget-design §6.4) |
 | Boards | **Creatures** (the big crab at 14; the crab / monkey / sailor tick bands) and **Look** (the Drowned Captain on the shared BossBar, decision 91). iPhone portrait, clips ≤ 10 s. No weapons or audio board (nothing else changes) |
 | Jake plays | Driftwood on the pinned build: the pier, the practice crab, the hut, the wreck's iron sword, a monkey troop, a big crab, the shrine, the Drowned Captain, the reward at golden hour |
@@ -770,32 +782,38 @@ scripted walk, the HUD slots, the save keys.
 
 ## 10. Questions for the lead
 
-Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (07 / 08 table unless named) unless marked open; the
-body above follows each answer.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (the 07 / 08 table unless named, the still-open table
+and C6); none is open, and the body above follows each answer.
 
 1. **Manifest fields not in 01 §6.** **Resolved → 13-lead-resolutions 07/08#1** for the carried-over `ChunkDef` fields:
    `loot.coins`, `bodyShadow`, `horizon`, `faunaTuning` (this spec's `speciesTuning` is renamed back), `minimap` (was
-   `mapDraw`), `spawns`; `ocean` → the sea's `WaterBody` row. **Still open, sent to the lead:** this spec's additions
-   01 §6 doesn't declare — `water.sea` (the field that holds the sea's `WaterBody` row), `spawn.floor`,
+   `mapDraw`), `spawns`; `ocean` → the sea's `WaterBody` row. This spec's sub-fields: **Resolved →
+   13-lead-resolutions still-open 08#1:** `water.sea` (the field that holds the sea's `WaterBody` row), `spawn.floor`,
    `respawn.spawnPlace`, `horizon.kind`, `world.blenderArea` / `blenderModels`, `loadout.viewmodel`, `swimArms`,
-   `next`, `spawnTables`, `fight.quietPromptInFight`, and `kitLook` (05 Q1).
+   `next`, `spawnTables`, `fight.quietPromptInFight` and `kitLook` are declared manifest fields (01 §6 "Declared
+   sub-fields"). §3 follows.
 2. **`ShardRender` fields.** **Resolved → 13-lead-resolutions 07/08#2:** `mode`, `lighting`, `shadows`, `fogControl`
-   (`suspend` / `resume`) and `backdrop.apply` are on 01 §13.1; §6.3 B uses them. `chain` is the engine post chain
-   handed to an `'extend'` compose, so Driftwood's compose takes `chain(clean)`. **Open, sent to the lead:** how a
-   compose returns the chain inside `ShardComposition` (01 §13.1 keeps "today's five pass slots").
+   (`suspend` / `resume`) and `backdrop.apply` are on 01 §13.1; §6.3 B uses them. How a compose returns the chain:
+   **Resolved → 13-lead-resolutions still-open 08#2 and C6:** `ShardComposition` is today's five pass slots for
+   `'extend'` or `{ chain: Pass[] }` for `'replace'`; an `'extend'` compose gets the engine chain from
+   `c.engineChain('clean' | 'cinematic')` and puts it in its `chain` slot, so Driftwood's compose returns
+   `{ chain: c.engineChain('clean') }` (§6.3 B).
 3. **`WaterBody` in S4.1.** **Resolved → 13-lead-resolutions 07/08#7:** S4.1 builds the interface and the sea on it
    (`sea`, `surfaceAt`, `inside`, `level`); X5 converts the other bodies and adds `reflect`.
 4. **Shard-declared tier knobs.** **Resolved → 13-lead-resolutions 07/08#8:** `ctx.tiers.knobs(schema)` (01 §7);
    10-sweeps X7 then only checks that no shard-named knob is left in the engine table.
 5. **The Captain's bar.** **Resolved → 13-lead-resolutions 07/08#9** (Jake, decision 91): the shared BossBar, a small
    Driftwood look change on the look board at S4.2.
-6. **`boss.attempt` for the Captain** (D2) is visible to analytics (01 §23's first set names `boss.attempt`). **Open
-   (not in 13), sent to the lead:** this spec counts it as a fix.
+6. **`boss.attempt` for the Captain** (D2) is visible to analytics (01 §23's first set names `boss.attempt`).
+   **Resolved → 13-lead-resolutions still-open 08#6:** a fix; once he is on the encounter runtime his attempts reach
+   analytics like every boss's (S4.2 B step 4, §7 D2).
 7. **`rockKit.ts`.** **Resolved → 13-lead-resolutions 07/08#10:** it goes where 04's import analysis puts it: 04 keeps
    it in the engine (`src/engine/world/rockKit.ts`, rule F); X5 folds its generic primitives into the engine geometry
    toolkit (§1.2).
-8. **`src/world/interact/validate.ts`** (67 lines) has no importer in `src/`. **Open (not in 13), sent to the lead:**
-   F7's dead list or a test helper.
+8. **`src/world/interact/validate.ts`** (67 lines) has no importer in `src/`. **Resolved → 13-lead-resolutions
+   still-open 08#8:** it goes on F7's one list (02 F7 step 3), which reviews every dead-code candidate in one row. That
+   review finds two test importers (`test/interact.test.ts`, `test/pine-quest.test.ts`), so the file is a live test
+   helper and is kept at 04's engine path (§1.2).
 9. **Scheduler reach at M4.** **Resolved → 13-lead-resolutions 05/06#15:** S2.6 already switched Driftwood's boars and
    bears (shown at M2); M4's board shows the crab / monkey / sailor bands, which join the runtime at S4.2.
 10. **The native shell's `ws:ready`.** **Resolved → 13-lead-resolutions 07/08#11:** `ws:ready` stays (the native

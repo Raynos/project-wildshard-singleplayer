@@ -182,7 +182,8 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
 **Steps.**
 1. **The probe (src, read-only).** New `src/core/probe.ts` (→ `src/engine/debug/probe.ts` in F6):
    `installProbe(handle, deps)` sets `window.__wildshard = { version: 1, world, shard, boot, fingerprint(),
-   pose(), walkLeg(), combat, arena(), saves }` exactly as 03 §2 defines each member, and keeps
+   pose(), walkLeg(), combat, arena(), state(), onResume(), saves }` exactly as 03 §2 defines each member (`state()` /
+   `onResume()` serve the pause → resume step, 03 §5.6; F3.2 adds `nav` for the soak bot, 03 §14.2), and keeps
    `window.__world = world` (the same object). `world` is today's handle (`src/main.ts:1296`, all its keys);
    `shard = { slug, …handles }`: each shard-named key of that handle sits at `shard.<name>`, the place
    `ctx.debug.expose(name, value)` writes from S1.1 on (01 §7). The keys: Driftwood `ocean, pier,
@@ -199,7 +200,9 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      `Animal.applyDamage` (`src/entities/Animal.ts`) calls `tap.hit?.(this.kind, amount)`, and the TrainingTarget damage
      method (`src/practice/TrainingArena.ts`, the method that calls `this.motion.hit(…)` at line 125) calls
      `tap.hit?.('training-dummy', amount)`. `AnimalManager`'s kill path calls `tap.kill?.(a.kind)` where it calls
-     `onKill`. The probe sets the functions only when `window.__wildshardHarness` exists (03 §6).
+     `onKill`. A third tap, `resume: (() => void) | null`, is called by the pause menu's resume handler
+     (`src/ui/Menu.ts`) right before it clears the pause, so `probe.onResume` reads the state before the next frame
+     (03 §5.6). The probe sets the functions only when `window.__wildshardHarness` exists (03 §6).
    - `src/entities/AnimalManager.ts`: an animal with `harnessHold === true` skips its think / motor update (the harness
      holds one target still, 03 §5). Nothing sets it except the probe.
 3. `src/main.ts`: move the `const handle = {…}` line (1296) and `debug.__world = handle` (1298) above
@@ -277,13 +280,16 @@ timing and GPU bytes. Neither is a self-hosted runner (the repo is public).
    Driftwood phone tier with full Chromium and logs the renderer string, the time to `ws:ready`, peak RSS
    (`/usr/bin/time -l`) and the boot fingerprint. Run it once; record the numbers in E357. This sets the job timeout
    (03 §11.5). The workflow file is deleted after F3.2 lands.
-2. `.github/workflows/gpu-gate.yml` exactly as 03 §11.
+2. `.github/workflows/gpu-gate.yml` exactly as 03 §11, including the Linux `asset-case` job and
+   `scripts/check-asset-case.mjs` (03 §11.6; 13-lead-resolutions G15).
 3. Port `scripts/test-facade-instancing.mjs` to launch with `channel: 'chromium'` (its `chromium.launch` at line 8 uses
    the headless shell, which falls back to SwiftShader on the runner). `pnpm test:gpu-boot` keeps calling it unchanged.
 4. **Runner baselines.** Dispatch `gpu-gate.yml` with `record: true` on the F2 baseline SHA; download the artifact
    (`gh run download <run> -n parity-baselines-gh-macos15`); commit `test/parity/baselines/gh-macos15/**`.
 5. **Nightly.** `scripts/gpu-perf/nightly.sh`, `scripts/gpu-perf/com.wildshard.gpu-perf.plist`,
-   `scripts/gpu-perf/install.sh` (03 §14). The lead runs `install.sh` once on Jake's Mac.
+   `scripts/gpu-perf/install.sh` (03 §14), with the Simulator memory run (`scripts/sim-memory.mjs`, 03 §14.1;
+   13-lead-resolutions G2) and the soak bot (`scripts/soak.mjs`, 03 §14.2; G13, MW19). The lead runs `install.sh`
+   once on Jake's Mac.
 6. **Proof** (03 §9) on the runner lane: dispatch twice with no plant (green, green), then once per plant (each red).
 
 **Done when.**
@@ -294,7 +300,10 @@ timing and GPU bytes. Neither is a self-hosted runner (the repo is public).
   commit pushed after F3.2 that was not superseded (03 §11.4).
 - The hourly deploy does not move production between milestones (F3.1's check, repeated after F3.2).
 - `launchctl print gui/$(id -u)/com.wildshard.gpu-perf` shows the job loaded, and its first run posts a `gpu-perf`
-  status on the newest gpu-green SHA.
+  status on the newest gpu-green SHA, with the Simulator memory table and the soak table in its report.
+- `gh workflow run gpu-gate -f plant=asset-case` fails the `asset-case` job naming the wrong-case URL (03 §11.6), and
+  a one-off `scripts/gpu-perf/nightly.sh --plant=soak-leak` reports `failure` naming the GPU-byte growth (03 §14.2; a
+  plant run posts no status); both results are recorded in E357.
 
 **Risks and rollback.** The M1 VM boots a shard slower than the 8-minute job budget: split that shard's job in two
 (03 §11.5). The macOS queue stalls: pushes stay ungated (no status), deploys don't move (they're pinned), and the lead's
@@ -319,8 +328,8 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
    `error`; `lint/ratchet.mjs` runs it on `src`), so the main `pnpm lint` stays at zero warnings while the counts are
    above 0:
    - `wildshard/layer`: a file's layer is its path — `src/engine/**` engine, `src/game/**` game, `src/kit/**` kit,
-     `src/shards/<slug>/**` shard `<slug>`, anything else under `src/` **unlayered** (ignored by this rule; every file is
-     layered after F6). Reports: an import that points up the arrow (engine → game / kit / shard, game → kit / shard,
+     `src/shards/<slug>/**` shard `<slug>`, anything else under `src/` **unlayered** (ignored by this rule; after F6 the
+     only unlayered files are the composition root `src/entry.ts` and `src/main.ts`, 01 §0). Reports: an import that points up the arrow (engine → game / kit / shard, game → kit / shard,
      kit → shard); shard → another shard; a `#engine/…`, `#game/…` or `#kit/…` deep specifier from a different layer
      (01 §0 public API); in `src/engine/**`, any identifier, string literal or comment word matching the word list
      `lint/engine-words.json` (the 4 slugs, `shard`, `Shard`, `bag`, `Bag`, `coin`, `loot`, `compendium`, `feat`,
@@ -349,7 +358,20 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
      `keydown keyup keypress pointerdown pointerup pointermove pointercancel mousedown mouseup mousemove wheel
      contextmenu touchstart touchmove touchend touchcancel` outside `src/core/input/**` (→ `src/engine/input/**`).
    - `wildshard/no-renderer-type` (counted now, driven to 0 in X6): the identifier `WebGLRenderer` outside
-     `src/engine/render/**` (before F6: outside `src/core/Game.ts` and `src/core/bootstrap.ts`).
+     `src/engine/render/**` (before F6: outside `src/core/Game.ts` and `src/core/bootstrap.ts`). Its start count is the
+     rule's own count at F4, not the audit's "52 files" grep (13-lead-resolutions C9, 02 Q15).
+   - `wildshard/sim-no-render` (01 §0 "Simulation apart from visuals", §24; decision 56; 13-lead-resolutions G12): in
+     `src/engine/{combat,ai,saves,quests,effects}/**`, (a) an import from `three` of anything but the math types
+     `Vector3`, `Quaternion`, `Matrix4`, `Box3`, `Ray` (type-only imports included); (b) an import of a module under
+     `src/engine/{render,ui,fx,anim}/**`; (c) a read of the DOM globals `document`, `HTMLElement`,
+     `HTMLCanvasElement`, `requestAnimationFrame` (the storage APIs `localStorage`, `sessionStorage` and
+     `navigator.storage` stay allowed: `saves` is their one home, `wildshard/no-raw-save`). The files that draw a block (01 §18's `viewmodel`, the projectile tracer,
+     `brass`, the slash trail) sit in `src/engine/combat/view/**`, which the rule skips: the block's state and rules
+     live beside it in `src/engine/combat/blocks/**` and import no renderer. Today none of the five folders exists, so
+     the rule's own count at F4 is 0 and every simulation module is born under it: the rows that create them (S1.2 /
+     S1.3 `combat` and `effects`, S2.3 `ai`, S2.5 `quests`, F10 `saves`) cannot add a count, because a file with a
+     count and no ratchet entry fails (step 2). `Boss.ts` and `Elite.ts` (04: final `src/engine/ai/`) are split by
+     S2.3 into the runtime (`src/engine/ai/`) and their arena and seal visuals (`src/engine/fx/encounter/`).
 2. **`lint/ratchet.mjs`** (`pnpm lint:ratchet`): runs `oxlint -c .oxlintrc.ratchet.json -f json src`, counts reports
    per rule per file, compares with `lint/ratchet.json` (`{ "<rule>": { "<file>": <count> }, "allow": {…} }`):
    a count above its entry, or any count for a file with no entry, exits 1 and prints file, rule, was, now.
@@ -361,10 +383,12 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
    commit `lint/ratchet.json`. Reference points from the audits (the rule's own count is what gets recorded): shard
    branches 269 in 70 files; raw storage 149 occurrences in 46 files; `Math.random` 250 and `performance.now` 229
    occurrences (without `src/dev`); raw input listeners 179 in 47 files; `WebGLRenderer` in 52 files; `layer` 0 (no
-   layered files yet).
+   layered files yet); `sim-no-render` 0 (no simulation folder yet).
 
 **Tests added.** `test/lint-ratchet.test.ts`: runs each rule on fixtures in `test/fixtures/lint/` (one allowed and one
-reported case per rule clause above) through `oxlint -c .oxlintrc.ratchet.json -f json`; and runs `ratchet.mjs`
+reported case per rule clause above; for `sim-no-render`: `import { Vector3 } from 'three'` in
+`src/engine/ai/x.ts` allowed, `import { Mesh } from 'three'` there reported, the same `Mesh` import in
+`src/engine/combat/view/x.ts` allowed) through `oxlint -c .oxlintrc.ratchet.json -f json`; and runs `ratchet.mjs`
 against a temp ratchet file to prove a rise exits 1, a fall with `--update` lowers, and a new file with a count exits 1.
 
 **Done when.**
@@ -421,6 +445,13 @@ folders that may only go up (decision 68).
    scripts/coverage-ratchet.mjs"`. `.github/workflows/deploy.yml` gains a step `pnpm run test:coverage` after `Test` on
    the push / PR path. It is not in the pre-push gate (too slow for every push; CI enforces it).
 
+5. **The proof of decision 56's split** (01 §0 "Simulation apart from visuals"; 13-lead-resolutions G12).
+   `vitest.config.ts` sets `environment: 'node'` for `test/actor/**` and `test/engine/**`: no DOM, no WebGL. Only
+   `sword-combo.test.ts` opts into happy-dom, because today's `Sword` builds its viewmodel at construction. From S1.2
+   on, every contract test of a module under `src/engine/{combat,ai,saves,quests,effects}/**` runs in `node` (the
+   fake `Game` of step 2, no renderer). With F4's `wildshard/sim-no-render` rule, that is the proof that gameplay
+   state runs with no renderer, the door decision 56 keeps open for netcode.
+
 **Tests added.** The four files in step 3 plus `test/coverage-ratchet.test.ts` (a drop exits 1, a rise with
 `--update` raises).
 
@@ -471,6 +502,25 @@ script reads the typed probe instead of `window.__world`.
    `models.webp`, `world.webp` (`extras.ts`'s ART glob preloads them; no code displays them) and
    `mockups/{lookout,shrine,spawn,wreck}.jpg` (no `Compare.ts` pair names them). The three preloaded ones leave the
    boot's preload list: `test/parity/renames/F7.json` lists them as removed (the only fingerprint change F7 makes).
+   **The shard specs' dead files join this one list** (13-lead-resolutions still-open 05#7 / 07#8 / 08#8), so every
+   dead-code deletion is in this one reviewed row:
+   - `src/chunks/nine-dragon-stack/world/hero/paifang.ts` (267 lines; 05 §1.1): imported by nothing in `src/`,
+     `test/` or `scripts/` (a clean-room copy that `world/gate.ts` superseded). Reword the comment at `world/gate.ts:2`
+     to "grown from the hero lab's paifang (deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/world/hero/paifang.ts)".
+   - `src/world/spruceMask.ts` (79 lines; 07 §1.3): its only importer is `src/dev/nalati-spruce.ts`, deleted in step 1.
+     Reword the comments at `src/world/Spruce.ts:14` and `src/chunks/ChunkDef.ts:263` so they no longer name it (the
+     forest mask stays a manifest function; Nalati's is `loneSpruceMask` / `edgeSpruceMask`).
+   - `src/world/interact/validate.ts` (67 lines; 08 §1.1) is **checked and kept, not deleted**: `grep -rn
+     "interact/validate" test` shows `test/interact.test.ts:5` and `test/pine-quest.test.ts:6` import `validateTable`,
+     which validates Driftwood's and Pine Hollow's interactable tables and has its own "catches a broken table"
+     cases. It is a live, pure (no three, no DOM) engine validator, so it follows 04's row
+     (`src/engine/world/interact/validate.ts`, rule F). The F7 commit message records this verdict beside the list.
+   - The step reruns `grep -rn "<file stem>" src test scripts` for each file on the day, and deletes a file only when
+     the grep shows no importer (comments excepted).
+   The reviewed move map (`docs/plans/game-normalization/move-map.json`) gets the same form for every file F7 deletes
+   that `src/chunks/_template.ts`'s row already has (`"f6": null, "final": null, "layer": "deleted", "row": "F7"`):
+   the 7 images, `paifang.ts` and `spruceMask.ts`. The rows are rewritten in the F7 commit, so F6's classifier check
+   (F6 step 1) finds no row for a file that is gone.
 4. **Scripts: liveness by decision 88** (which revises 46; 13-lead-resolutions 02/03#3). Commit
    `scripts/normalize/liveness.mjs`, which computes, for every entry of `scripts/` (top-level files and folders), whether
    it is **live**. An entry is live when it is **referenced** (the first two bullets, or the last) or when it was
@@ -519,7 +569,10 @@ live; a script run under `lockf -k` is live; a `.d.mts` beside a live `.mjs` is 
 - The parity run (03 §10) is green: the fingerprint is identical under `test/parity/renames/F7.json` (the three
   preloaded images are the only change; nothing else deleted was reachable at runtime).
 - `git diff --stat <before>..<after> -- src dev` shows ≥ 5,200 deleted lines (src/dev 6,553 + post.ts 372 + meleeGeo
-  57 + _template 146).
+  57 + _template 146 + paifang 267 + spruceMask 79).
+- `test -e src/chunks/nine-dragon-stack/world/hero/paifang.ts || test -e src/world/spruceMask.ts` fails (both gone),
+  `test/interact.test.ts` and `test/pine-quest.test.ts` still pass (`validate.ts` kept), and `move-map.json` has a
+  `deleted` / `F7` row for every file F7 deleted.
 
 **Risks and rollback.** A script some agent still runs by hand is deleted: it is in git history
 (`git show <sha>^:scripts/<name>`). Rollback: `git revert` of the deletion commit.
@@ -596,6 +649,7 @@ ratchet count; parity green; the bakers bake the same bytes.
       | `src/{audio,boot,core,entities,explore,fx,models,native,physics,player,playgrounds,practice,shard,telemetry,ui,world}/**` | `src/engine/<same>/**` |
       | `src/pwa/sw.js` | `src/engine/pwa/sw.js` |
       | `src/main.ts` | `src/main.ts`, unchanged: the **composition root**, outside the layers (01 §0; 13-lead-resolutions 04#12). S4.4 cuts it to ≤ 20 lines and moves the generic boot into `src/engine/boot.ts` (≤ 150) |
+      | `src/boot/entry.ts` | `src/entry.ts`: the page's module entry, the composition root's other half, outside the layers (01 §0; 13-lead-resolutions C6). An exception to the `src/boot/**` → `src/engine/boot/**` row above; moved as is (its `retried()` helper moves into the engine later, at 10 X3 step 9) |
       | `src/meshopt-simplifier.d.ts`, `src/n8ao.d.ts` | `src/engine/types/` |
       | `src/chunks/ChunkDef.ts` | `src/game/shard/manifest.ts` (step 4) |
       | `src/chunks/registry.ts` | `src/game/shard/registry.ts` (replaced by F9's generated registry) |
@@ -609,7 +663,11 @@ ratchet count; parity green; the bakers bake the same bytes.
    The reviewed map's rows are `{ "from", "to", "final", "layer", "rule", "row", "why" }` (04 §0). The check also exits
    1 on any destination collision (two sources, one target, case-insensitive) or any `src/` file left unmapped. The map
    was committed with 04, before the move; the lead re-runs the check on the day F6 executes (a file added since 04's
-   tree gets a row by 04 §1's rules first).
+   tree gets a row by 04 §1's rules first). **One amendment before the move** (13-lead-resolutions C6): the committed
+   map still sends `src/boot/entry.ts` to `src/engine/boot/entry.ts` (its file row and its `index.html` line-137
+   rewrite). The lead's map commit changes both to `src/entry.ts` (`"layer": "root"`, `"rule": "C6"`), and
+   `classify.mjs`'s rule 6 gains the same one-line exception, so check and map agree. F7 already rewrote the rows of
+   the files it deleted (F7 step 3).
 2. **The codemod** `scripts/normalize/move.mjs docs/plans/game-normalization/move-map.json`, idempotent (a second run changes nothing):
    1. `git mv` every row, creating each destination folder first (`mkdir -p`).
    2. Rewrite imports in `src/**` and `test/**`: an import between two files of the same layer folder stays relative
@@ -619,8 +677,9 @@ ratchet count; parity green; the bakers bake the same bytes.
    4. Rewrite path strings with the map: every file `check-paths` scans (scripts, `vite.config.ts`, `vite/**`,
       `.oxlintrc.json`, `scripts/blender/targets.json` `sources` / `feeds`, `scripts/check-models.mjs`'s folder rules and
       81 allowlisted paths, `bake-chunk.mjs`'s `shared` + `EXTRA_DEPS`, `bake-textures.mjs` `SOURCES`, `bake-cards.mjs`
-      `inputs`), `index.html` (`/src/boot/entry.ts` → `/src/engine/boot/entry.ts`), `vite.config.ts`'s native plugin
-      strings (`/src/boot/entry.ts`, `/src/native/boot.ts`, `/src/boot/sw.ts`, `/src/ui/Update.ts`) and its generated
+      `inputs`), `index.html` (`/src/boot/entry.ts` → `/src/entry.ts`: `index.html` loads `/src/entry.ts`, 01 §0),
+      `vite.config.ts`'s native plugin strings (`/src/boot/entry.ts` → `/src/entry.ts`, `/src/native/boot.ts`,
+      `/src/boot/sw.ts`, `/src/ui/Update.ts`) and its generated
       outputs (`src/boot/*.generated.ts` → `src/engine/boot/`), `writeArtModule`'s folders (`src/chunks/thumbs` →
       every `src/shards/*/thumbs`), `.oxlintrc.json`'s ignore `src/boot/bytes.generated.ts`, `lint/ratchet.json` keys,
       `test/coverage-ratchet.json` scope.
@@ -724,7 +783,8 @@ with its old value (the old values are inlined as fixtures in the test file, tak
 - `node scripts/normalize/classify.mjs --check` exits 0 (the re-derived map equals the reviewed one, no unmapped `src/`
   file, no collision) and `node scripts/normalize/move.mjs docs/plans/game-normalization/move-map.json` run a second
   time changes nothing (`git status` clean).
-- `find src -maxdepth 1 -mindepth 1 | sort` prints exactly `src/engine src/game src/kit src/main.ts src/shards`.
+- `find src -maxdepth 1 -mindepth 1 | sort` prints exactly `src/engine src/entry.ts src/game src/kit src/main.ts
+  src/shards`, and `grep -n "/src/entry.ts" index.html` prints the module script line.
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `node scripts/check-css.mjs`, `pnpm exec vite build` exit 0;
   `lint/ratchet.json` has a count for every layer violation and `pnpm lint:ratchet` exits 0.
 - **Bakers bake the same bytes:** after `pnpm exec vite build` on the moved tree, `git status --porcelain public/assets
@@ -761,8 +821,26 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
    (today's `Rng` class, 16 lines, extended to 01 §2's `Rng` and `RngService`): streams `gameplay`, `ai`, `loot`,
    `spawn`, `cosmetic`, each seeded with `fnv1a32(seed + ':' + stream)`. The seed is `window.__wildshardHarness.seed` when
    present (03 §6), else the manifest's `seed` XOR a per-page `crypto.getRandomValues` value (live play stays
-   unrepeatable, as today). No call site moves in F8; the `wildshard/no-raw-random-time` ratchet drives the migration
-   in the S rows.
+   unrepeatable, as today). No `Math.random` call site moves in F8; the `wildshard/no-raw-random-time` ratchet drives
+   that migration in the S rows.
+   **The one RNG** (13-lead-resolutions G18; audit N-G "RNG ×3"). F8 lands one `Rng` class and deletes the other two
+   copies in the same commit:
+   - The class in `src/engine/core/rng.ts` (mulberry32, as all three are today) is the superset of the three copies'
+     methods: `next`, `range(a, b)`, `int(a, b)` (the signature all three share; 01 §2's `int(n)` is read as it),
+     `pick`, `chance(p)` (from Nine Dragon's `util.ts`), `weighted(pairs)` and `fork(salt: number)` (from
+     `world/facade/rng.ts`), beside 01 §2's `fork(stream: string)` for the `RngService` streams. `pick` on an empty
+     list yields `undefined` (the core copy's rule, which 81 importers rely on). Nine Dragon's copy threw there; its
+     deterministic builds never pass an empty list, and the parity boot, which builds every tower, proves it.
+   - A static `Rng.scrambled(seed)` = `new Rng((seed * 2654435761) >>> 0)` is the facade copy's constructor. The facade
+     grammar (`world/facade/grammar.ts`, its one importer) calls it, so every tower keeps its layout.
+   - Deleted: `src/shards/nine-dragon-stack/world/facade/rng.ts` (34 lines) and the `Rng` class in
+     `src/shards/nine-dragon-stack/util.ts` (lines 4-23; the palette exports `INK`, `SILK`, `SUTRA`, `METAL`, `MIN`,
+     `NEON`, `WALL` and the helpers stay). Their importers (the 25 Nine Dragon files that import `Rng` from `util.ts`,
+     and `grammar.ts`) import `Rng` from `#engine`.
+   - A test (`test/engine/rng.test.ts`, below) pins that `new Rng(s)` gives the old core sequence and that
+     `Rng.scrambled(s)` gives the old facade sequence for 1,000 draws of 3 seeds each. The parity boot fingerprint
+     (`scene.named`, `registry`, `render.programKeys`) is identical on Nine Dragon, with no rename map.
+     `grep -rn "class Rng" src` prints one line. X5's RNG item is then only that check (10 X5).
 2. **Systems.** `src/engine/app/app.ts` + `systems.ts`: `App.addSystem(spec, scope)` of 01 §1, the topological sort
    (ties keep registration order), cycle → a boot error naming the ids. `Game.onInput / onFixed / onUpdate / onLate`
    become thin wrappers that call `addSystem` with `id` = the label given, else a generated id from the rename rule
@@ -810,7 +888,8 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
 **Tests added.** `test/engine/systems.test.ts` (sort, ties, cycle error), `test/engine/states.test.ts`,
 `test/engine/events.test.ts` (queue per phase, flush order, 1,000-per-frame fault, `ask` chaining),
 `test/engine/scope.test.ts` (dispose order, idempotent, census counts, a scope that owns a geometry disposes it),
-`test/engine/rng.test.ts` (same seed → same sequence per stream, streams independent, `fork`),
+`test/engine/rng.test.ts` (same seed → same sequence per stream, streams independent, `fork`; the old core and
+facade sequences reproduced, step 1),
 `test/engine/clock.test.ts` (capture mode advances exactly `1/fps`). F5's `loop.test.ts` passes unchanged.
 
 **Done when.**
@@ -818,6 +897,8 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
 - The leak test (03 §5.5) is green for all 4 shards: load → unload returns every counted field to the baseline.
 - `pnpm test` exits 0 with the new tests; the ratchets for `no-hook-chain`, `no-active-singleton` and `no-active-chunk`
   are recorded.
+- `grep -rn "class Rng" src` prints one line (`src/engine/core/rng.ts`), and Nine Dragon's boot fingerprint is
+  identical with no rename map (step 1).
 
 **Risks and rollback.** The leak test finds a real leak today's evict path never freed: that is a found bug, fixed
 inline with a test (decision 4). Topological sort reorders a system: the rename-mapped fingerprint catches it; fix by
@@ -905,11 +986,25 @@ the side effect moves behind a function (TP8's rule). Rollback: `git revert`.
    with the key's valibot schema, runs `migrate` from the stored `v` to the current `version` in order, and on a stored
    `v` newer than the build knows keeps the data untouched and serves `initial()` read-only for that key (01 §9
    "never downgrades"). Unknown keys in a document are kept on write.
+   **A save that fails its schema** (01 §9; 13-lead-resolutions G16; aaa §2.9 "backed up and defaulted, never a boot
+   crash"), in every scope:
+   - a key whose stored `data` fails its valibot schema (after migration): the store copies the raw stored entry to
+     `<key>.corrupt.<ISO time>` in the same document, writes `initial()` to the key, and calls
+     `reportError({ kind: 'save-schema', scope, key, version, issue })` (`src/engine/core/errorReport.ts`: the
+     `/api/errors` queue and Sentry; `issue` = the first valibot issue's path and message). It never throws; the game
+     carries on with `initial()`.
+   - a whole document that is not JSON or has no `keys` object: the raw string moves to the storage key
+     `<document key>.corrupt.<ISO time>` (e.g. `wildshard.save.v2.pine-hollow.corrupt.2026-10-02T09:14:03Z`), a fresh
+     `{ keys: {} }` document replaces it, and the same report is sent with `key: '*'`.
+   - at most 3 aside copies are kept per key or document; a fourth drops the oldest.
+   - the aside copies of the `global` and `shard` documents are listed by `app.saves.corrupt()`
+     (`{ scope, key, at, bytes }[]`), which step 8's Settings save screen shows with an export button per copy.
 3. **The `device` and `session` scopes** (01 §9; 13-lead-resolutions 02/03#2). A `device` key lives in the
    localStorage document `wildshard.save.v2.device` (same `{ keys }` shape): machine-local bookkeeping and
-   diagnostics, **never** exported, **never** mirrored to native, **never** reset by the store; a schema failure falls
-   back to `initial()`. A `session` key lives in the sessionStorage document `wildshard.save.v2.session`: per-tab
-   state, never exported.
+   diagnostics, **never** exported, **never** mirrored to native, **never** reset by the store; a schema failure is
+   handled as in step 2 (aside, `initial()`, report), but its aside copies are not listed in Settings (device keys are
+   never exported). A `session` key lives in the sessionStorage document `wildshard.save.v2.session`: per-tab
+   state, never exported; a schema failure falls back to `initial()` and is reported the same way.
 4. **The reset** (`src/engine/saves/legacy.ts`): on the first boot of a build with the v2 store, if
    `wildshard.save.v2.global` does not exist, delete every key in the legacy list (the "old key" column of the table
    below, prefixes expanded by enumerating `localStorage` / `sessionStorage`), then create the global document with
@@ -919,12 +1014,13 @@ the side effect moves behind a function (TP8's rule). Rollback: `git revert`.
 5. **Port every user** by the table below; delete `src/game/loot/store.ts` (`readShard` / `writeShard`) and the
    `legacyShardId` helper (F6 row 1). `ws.elites.v1` becomes shard-scoped, which fixes bug §7.6 (Nalati and Pine
    shared one store), with a test.
-6. **`index.html`** (not linted, read before the bundle): a tiny pre-boot reader (01 §9) for its three keys. Line 75
-   reads `ws.dev` → the `device` key `devMode`:
+6. **`index.html`** (not linted, read before the bundle): a tiny pre-boot reader (01 §9; 13-lead-resolutions C3) for
+   its three keys, each in a `try` so a missing or unparseable document reads as "absent". Line 75 reads `ws.dev` →
+   the **`device`** key `devMode`:
    `JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.devMode?.data === true`; lines 111 / 114
-   read `wsResumeShot` / `wsResumeBrand` → the keys `resume.shot` / `resume.brand` of the sessionStorage document
-   `wildshard.save.v2.session`. (01 §9 calls all three pre-boot keys `device` keys; the two resume keys are per-tab
-   today and stay `session` so a reload's screenshot never shows on a later cold start. Sent to the lead.)
+   read `wsResumeShot` / `wsResumeBrand` → the **`session`** keys `resume.shot` / `resume.brand` of the sessionStorage
+   document `wildshard.save.v2.session` (per tab, as today, so an old reload screenshot never shows on a later cold
+   start). None of the three is ever reset by step 4.
 7. **Persistence.** `app.saves.persist()` runs once per page when `matchMedia('(display-mode: standalone)').matches ||
    navigator.standalone === true`, stores the result in the `device` key `storage.persisted`; Settings ▸ Debug ▸
    Loading & memory gets a read-only row `storage` showing `persisted` and `navigator.storage.estimate()`
@@ -932,8 +1028,10 @@ the side effect moves behind a function (TP8's rule). Rollback: `git revert`.
 8. **Export / import.** pause ▸ Settings gets a `SAVE` section with `EXPORT` (downloads
    `wildshard-save-<date>.json` = `exportAll()`: `{ format: 'wildshard.save', version: 2, build, exported, docs:
    { global, <slug>… } }`) and `IMPORT` (a file picker; `importAll(json)` validates each key, migrates older versions,
-   keeps newer ones untouched, and shows the `ImportReport`: imported keys, skipped keys with reasons). Strings from the
-   engine string table (01 §0).
+   keeps newer ones untouched, and shows the `ImportReport`: imported keys, skipped keys with reasons). Below them, a
+   `SET ASIDE` list shows `app.saves.corrupt()` (step 2: scope, key, time, size), each with `EXPORT` (downloads
+   `wildshard-corrupt-<key>-<time>.json` with the raw value); the list is hidden when empty. Strings from the engine
+   string table (01 §0).
 9. **Scripts.** `scripts/debug-settings.mjs` writes the pick into the v2 global document's `settings` key (not
    `ws.settings.v1`); the scorecard init script (`scorecard.mjs:164`, `:620`), `test-facade-instancing.mjs:16` and every
    other live script that writes a `ws.` key (`grep -rln "ws\.[a-z]" scripts`) use `debugSettings()` or a new
@@ -997,7 +1095,12 @@ per the move map.
 
 **Tests added.** `test/engine/saves.test.ts`: round-trip per scope; migration chain 1 → 2 → 3 on a fixture key; a
 newer stored version stays untouched and read-only; unknown keys kept; the reset deletes the legacy list and never
-`ws.ota.*`; `exportAll` → `importAll` round-trip; a corrupt document falls back to `initial()` without throwing.
+`ws.ota.*`; `exportAll` → `importAll` round-trip; a key failing its schema is moved to `<key>.corrupt.<time>`, reset
+to `initial()` and reported once (a stubbed `reportError` sees scope, key, version and the first issue), with no throw;
+an unparseable document is moved aside whole and replaced; a fourth aside copy drops the oldest; `corrupt()` lists
+`global` / `shard` copies and not `device` ones. `test/preboot-keys.test.ts` (happy-dom) runs `index.html`'s pre-boot
+reader against a device document with `devMode` true, a session document with `resume.shot`, and a garbage document
+(reads as absent, no throw).
 `test/fixtures/saves/v2-global.json`, `v2-driftwood-isle.json` (the fixture corpus starts here; every later version
 bump adds one, 01 §9). `test/elites-per-shard.test.ts` (bug §7.6). F5's `saves-roundtrip.test.ts` is replaced by the
 store's contract test.
@@ -1133,7 +1236,7 @@ controller's behaviour at steps: the walk and trails runs are the check. Rollbac
 ## Questions for the lead
 
 Every question below is answered in [13-lead-resolutions.md](13-lead-resolutions.md) and the body of this file follows
-the answer; the two still open are marked and sent to the lead.
+the answer; none is open.
 
 1. **ChunkDef fields with no home in 01 §6** (`seed`, `biome`, `loot`, `bodyShadow`, `look`, `hud`, `horizon`, `ocean`,
    `fauna` / `faunaTuning`, `weapon`, `map`). **Resolved → 13-lead-resolutions 02/03#1 and 05/06#1:** every field is
@@ -1144,10 +1247,9 @@ the answer; the two still open are marked and sent to the lead.
 3. **The `style` values.** **Resolved → 13-lead-resolutions 02/03#1:** F6 maps `lowpoly` → `toon`; Nine Dragon becomes
    `'jiehua'` in S1.1 (05 §3). The F6 table (row 30) and F4's `no-shard-branch` literal list follow.
 4. **Machine-local and per-tab keys; the 3 pre-boot keys.** **Resolved → 13-lead-resolutions 02/03#2:** the scopes
-   `device` and `session` replace this spec's `LocalRecord` / `SessionRecord` (F10 step 3 and the key table).
-   **Open, sent to the lead:** 01 §9 makes all 3 pre-boot keys `device` keys, but `wsResumeShot` / `wsResumeBrand` are
-   per-tab sessionStorage today; F10 step 6 keeps them `session` keys (a `device` resume shot would show on a later
-   cold start).
+   `device` and `session` replace this spec's `LocalRecord` / `SessionRecord` (F10 step 3 and the key table). The
+   pre-boot keys: **Resolved → 13-lead-resolutions C3:** `ws.dev` → a `device` key; `wsResumeShot`, `wsResumeBrand` →
+   `session` keys (per tab, as today). F10 step 6 follows.
 5. **`src/native/**` and `ws.ota.*`.** **Resolved → 13-lead-resolutions 02/03#2:** `ws.ota.*` is never reset. F4 keeps
    `src/native/**` outside `no-raw-save` (the Capacitor mirror needs raw access).
 6. **Decision 46's 14-day clause kept almost every script.** **Resolved → 13-lead-resolutions 02/03#3** (Jake,
@@ -1171,6 +1273,6 @@ the answer; the two still open are marked and sent to the lead.
 13. **Nine Dragon outside `CHUNKS`.** **Resolved → 13-lead-resolutions 02/03#5:** Nine Dragon becomes a full shard in
     S1.1 (boot packs, prefetch, the every-shard tests). F2 adds it to the harness only.
 14. **Rapier 0.21's +413 KB.** **Resolved → 13-lead-resolutions 02/03#8** (Jake, decision 89: accepted). F12 follows.
-15. **`wildshard/no-renderer-type` before F6.** **Open (not in 13), sent to the lead:** F4 allows `Game.ts` and
-    `bootstrap.ts` until F6 re-keys the rule to `src/engine/render/**`; the recorded start count is the rule's own
-    (01 §24 says "52 files").
+15. **`wildshard/no-renderer-type` before F6.** **Resolved → 13-lead-resolutions C9 (02 Q15):** accepted. The rule
+    allows `Game.ts` and `bootstrap.ts` until F6 re-keys it to `src/engine/render/**`, and its start count is the
+    rule's own at F4 (01 §24; F4 step 1).

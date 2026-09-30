@@ -62,11 +62,13 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 
 ## 3. Deploys: milestones only (decisions 32, 53)
 
-- **At F3, production is pinned** to the build live that day (`version.json` at F3). `deploy.yml` deploys only the SHA
-  in `deploy/pin` (see 03-harness-gate); main keeps moving.
-- **At each milestone** (M1–M4, then Z3's shard 5 and the archive), the lead:
+- **At F3.1, production is pinned** to the build live that day (`version.json` when F3.1 lands; milestone `M0`,
+  `gate: "grandfathered"`). `deploy.yml` and `ota-promote.yml` deploy only the SHA in **`.github/deploy-pin.json`**
+  (03-harness-gate §13; 13-lead-resolutions G7); main keeps moving.
+- **At each milestone** (M1–M4, then Z3's shard 5 and the archive), the lead (03 §13.4):
   1. checks the gate is green on HEAD;
-  2. writes HEAD's SHA to `deploy/pin` (a commit);
+  2. after Jake's go, runs `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M<n> --go "<where Jake said go>"`,
+     which refuses a SHA without a green `gpu-gate`, and commits `.github/deploy-pin.json` alone;
   3. runs `gh workflow run deploy`;
   4. confirms `version.json` reports it;
   5. records the build id in `docs/tasks/asks/E357.md`.
@@ -77,8 +79,8 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 ## 4. Lanes and subagents (decision 34, E352)
 
 - **The lead** (the top-level session) builds in row order and owns the spine files. Those are everything under
-  `src/engine/app/`, `src/engine/boot/`, `src/game/shard/`, the index files, `lint/`, `scripts/parity.mjs` and
-  `deploy.yml`.
+  `src/engine/app/`, `src/engine/boot/`, `src/game/shard/`, the composition root (`src/entry.ts`, `src/main.ts`), the index
+  files, `lint/`, `scripts/parity.mjs`, `.github/deploy-pin.json` and `deploy.yml`.
 - **Up to 3 subagents at once,** each one job, on disjoint files:
   - Good jobs: a weapon family, the audio engine, one shard's file move, one X5 item, one spec rewrite.
   - Never a spine file, and never two subagents on one shard folder.
@@ -118,7 +120,7 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 | Creatures | M2, M3, M4 | 09-combat-ai § boards; decision 85's tick bands (M2); starter effects; the big crab at 14 and the crab / monkey / sailor bands (M4) | Same |
 | Input / HUD | X1 | 10-sweeps X1 | Same |
 | Audio | M1 | Nine Dragon's ambience, score and SFX | A listening page (Artifact, MP3s, per [[artifact-audio-pages]]) |
-| Look | M4, and whenever a pose differs beyond noise | the Drowned Captain on the shared BossBar (decision 91, S4.2; 13-lead-resolutions 07/08#9); the pose triptych (before / after / diff) | Board |
+| Look | M4, X9, and whenever a pose differs beyond noise | the Drowned Captain on the shared BossBar (decision 91, S4.2; 13-lead-resolutions 07/08#9, G21); the title deck's read-only Wildshard summary strip, A / B (X9, decision 76; 13-lead-resolutions G10); the pose triptych (before / after / diff) | Board |
 
 - A board goes to Jake with SendUserFile + AskUserQuestion. One recommended option per item.
 - An OK re-baselines exactly the boarded items in the harness (`scripts/parity.mjs --accept <item ids>`, with the item
@@ -141,7 +143,7 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 |---|---|---|---|
 | The big move (F6) breaks the bakers silently | F6 | F1's alias spike, `check-paths`, the non-empty glob asserts, bake byte-identity in parity | Revert F6, fix the tool, redo |
 | The harness is non-deterministic (flaky) | F2 | green twice on unchanged HEAD before anything moves; re-run once, quarantine with an owner | A flaky check blocks nothing only while quarantined, max 3 days, then fixed or deleted |
-| iPhone memory regression (the E271 class) | any render change | budgets + GPU bytes in the nightly perf; the physical iPhone reading at each milestone that touched render or memory | Revert to the last milestone pin; no render optimisation ships without iPhone evidence (AGENTS.md) |
+| iPhone memory regression (the E271 class) | any render change | budgets + GPU bytes in the nightly perf; the nightly Simulator memory run and soak bot (03 §14.1–§14.2: regression checks, not phone evidence); the physical iPhone reading at each milestone that touched render or memory | Revert to the last milestone pin; no render optimisation ships without iPhone evidence (AGENTS.md) |
 | Rapier 0.21 changes walks | F12 | walk + trails 0 stuck, nav bake `--check`, an iPhone load reading | Stay on 0.20 (pin) and file an ask; the engine hides Rapier, so it's one module |
 | `macos-15` runner changes (image, Chromium) | F3.2 | image label and Chromium version pinned; baselines recorded on the runner | Re-baseline in one commit with a board only if pixels moved |
 | A profile can't express a weapon's old behaviour | S1–S3 | parity trajectory / timing tests per weapon | The family gains the field (a bug in the family, decision 12′), never the weapon converges |
@@ -159,9 +161,10 @@ Each scenario is walked through the plan. A step the plan doesn't answer unambig
 | S2 | Pine Hollow | 4–5 | S1 (families, pipeline, scope) |
 | S3 | Nalati | 3–4 | S2 (AI runtime, weather, elites) |
 | S4 | Driftwood | 3–4 | S3 (audio engine) |
-| X | X1–X8 | 4–5 (parts pulled earlier) | S1–S4 |
+| X | X1–X9 | 5–6 (parts pulled earlier) | S1–S4 |
 | Z | Z1–Z4 | 2–4 (Z3 may loop) | X |
-| **Total** | | **~24–33 agent-days, ~3–5 weeks of wall clock** | |
+| **Total** | | **~25–34 agent-days, ~3–5 weeks of wall clock** | |
 
 The earlier "2–4 weeks" estimate is revised up. Since then the plan gained the council, S1.5's audio, X8, the harness
-detail and the Z3 loop.
+detail and the Z3 loop, and then the gap closure (13-lead-resolutions G1–G21): X9, the chunk check and iOS 27 re-test
+(X3), tier selection (X7), flag hygiene (X8), and the nightly's Simulator memory run and soak bot (F3.2, 03 §14).

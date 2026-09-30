@@ -166,7 +166,8 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 
 `src/shards/pine-hollow/manifest.ts`, node-safe. Function values are the functions `pine-hollow.ts` defines today,
 moved verbatim to `world/terrain.ts` (§1.1). Every `ChunkDef` field is carried over under 01 §6's names
-(13-lead-resolutions 05/06#1). **Q1** marks this spec's additions that 01 §6 still lacks; question Q1 keeps them open.
+(13-lead-resolutions 05/06#1). **Q1** marks this spec's sub-fields; each is a declared manifest field
+(13-lead-resolutions still-open 05#1: "all are declared manifest fields", 01 §6 "Declared sub-fields"; §10 Q1 lists them).
 
 ```ts
 import { defineShard } from '#game';
@@ -194,7 +195,7 @@ export default defineShard({
   seed: 1337,                                                             // 01 §6
   treeCount: 2600,                                                        // carried as data (the forest's cap)
   style: 'pbr',
-  kitLook: 'pbr',                                                         // Q1 (open, 05 Q1)
+  kitLook: 'pbr',                                                         // Q1, declared (01 §6): the look shared kit pieces render in
   uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests', 'trample', 'compendium'],
   ground: { terrain: TERRAIN },                                           // pine-hollow.ts:117-161 (buildTerrain(1337, { landscape, trails, cabinSites, pond, pondFill, graded, streamAt, finish, splat }))
   pondClip: inBeaverPool,                                                 // carried as data — pine-hollow.ts:332
@@ -234,7 +235,7 @@ export default defineShard({
   horizon: { matte: {                                                     // carried as data — HorizonMatte.ts:55-57
     day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,
     phone: { day: '/assets/horizon/pine-hollow-day-phone.webp', night: '/assets/horizon/pine-hollow-night-phone.webp' } } },
-  world: { blenderArea: { x0: 87, x1: 168, z0: 66, z1: 148 } },           // Q1 (open) — blenderArea.ts:32
+  world: { blenderArea: { x0: 87, x1: 168, z0: 66, z1: 148 } },           // Q1, declared (01 §6) — blenderArea.ts:32
   wind: WORLD_WIND,                                                       // 01 §17: today's world/wind.ts values (sway, gusts) as data for the engine WindField
   dayCycle: () => import('./look/dayKeys').then((m) => m.PINE_DAY),       // S2.4: 24-min cycle, day = [0, 20/24), keys by phase (§6.4)
   weather: () => import('./world/weatherProfile').then((m) => m.PINE_WEATHER),   // S2.4
@@ -398,7 +399,7 @@ export default class PineHollowPlugin extends ShardPlugin {
 | Bag fragments, item / feat / compendium rows | `ctx.bag` finishes and pack lines; `ctx.rows.item / feat / compendium` | F9, #game Bag | S2.1 |
 | `ScoreSource` for a style-bound score | Pine's source over the base style bank + its own set | S1.5 | S2.1 |
 | Ranged families: Bow, Crossbow, Firearm; projectile, drop arc, ADS, brass blocks; AmmoRows | 09-combat-ai | S1.2 contracts | S2.2 |
-| AI runtime: HFSM, StrikeSpec, utility picks, the aggression director, `canReach` everywhere, the boss runtime, one elite runtime, weighted spawn / loot tables | 09-combat-ai | S1.3 pipeline | S2.3 |
+| AI runtime: HFSM, StrikeSpec, utility picks, the aggression director, `canReach` everywhere, the boss runtime, one elite runtime, weighted spawn / loot tables, the AI debug overlay, boss display names from rows (`BOSS_NAMES` gone), `TargetHit` in the engine combat types | 09-combat-ai; §6.3 steps 7–9 | S1.3 pipeline | S2.3 |
 | `DayCycle`, `Weather`, the kit rain curtain, the sky backdrop slot | §6.4 | S1.1 render service | S2.4 |
 | The quest runtime on `quest/core`, the kit starter effects, `#kit/npc` | 09-combat-ai (effects), §6.5 | S1.3 effects core | S2.5 |
 | The scheduler | 01 §12 | F8 | S2.6 |
@@ -472,9 +473,41 @@ pickup and the Longbow grant work in the scripted run.
    `when` tags (`night`, the King's call).
 6. **Damage in**: `ctx.hurt` / `ctx.stun` (`pinehollow/index.ts:85-86`) → `combat.hit` with `creature.*` / `boss.*`
    tags; the stun is an effect (`effect.stun` from the kit starter set, same 0 … n seconds as `stunT`).
+7. **`BOSS_NAMES` → a content registry fed by boss rows** (EI23; 13-lead-resolutions G17). Today `src/ui/Combat.ts:40`
+   exports a mutable `Map` that Pine (`pinehollow/index.ts:121`, the King) and the practice arena
+   (`practice/TrainingArena.ts:24`, the dummy) write into, and the head bar / aim readout (`Combat.ts:44, 194`) read.
+   S2.3 deletes the map:
+   - every `BossDef` row carries `name` (a string-table key) and `showHeadBar: false`, and the encounter runtime
+     registers it with `app.rows` when the row is added (`ctx.rows.encounter(ANTLER_KING)`);
+   - the engine's practice dummy is a row too (`#engine/practice`: `{ kind: 'training-dummy', name, showHeadBar: true }`);
+   - the readout asks `app.rows.displayName(kind)` and skips a head bar where the row says `showHeadBar: false`.
+   Nalati's Kurgan Boss and Storm Titan and Driftwood's Captain join the same way in S3.4 / S4.2. `grep -rn
+   "BOSS_NAMES" src` prints nothing after S2.3.
+8. **`TargetHit` → the engine combat types** (EI23; G17). `TargetHit`, `TargetAnimal` and `Targets`
+   (`player/Crossbow.ts:48-63` today, imported by 13 files across the engine, the families and Nalati) move to
+   `src/engine/combat/types.ts`, exported from `#engine`. The kit Crossbow family (S2.2) keeps no copy and re-exports
+   nothing; every importer is rewritten to `#engine` in the S2.3 commit. Pure types, so `sim-no-render` (F4) holds.
+9. **The AI debug overlay** (aaa AA10 "a brain debug overlay"; 13-lead-resolutions G16). A Debug row `aiOverlay` under
+   **Developer tools** (`src/engine/ai/debugOverlay.ts`, the drawing in `src/engine/fx/aiOverlay.ts`; `opt('aiOverlay',
+   'Developer tools', 'AI overlay', ['off', 'on'], { note: 'E357 S2.3: per-creature brain state' })`). When on, every
+   live creature within 60 m shows a world-anchored label (`hud.pin`, 01 §11) with its HFSM state path
+   (`fight/strike.charge`), the top three utility scores of its last pick, its tick band (`near` / `mid` / `far`; before
+   S2.6 every creature reads `10 Hz`), and `pinned` when it is a boss, an elite or a quest actor. It reads the `ai.state`
+   events (09 §4.1) and the brain's last pick. It costs nothing when off (no system is added) and is never on in the
+   harness.
+10. **Simulation apart from visuals** (02 F4 `wildshard/sim-no-render`; decision 56). `Boss.ts` and `Elite.ts` reach
+    their final `src/engine/ai/` home here (04) as the runtime only; their arena, seal and fog-hold visuals go to
+    `src/engine/fx/encounter/`, driven by the runtime's events. The rule's count for `src/engine/ai/**` stays 0.
+
+**Tests:** `test/engine/ai-overlay.test.ts` (node: a fake brain's transitions and picks produce the label text; off
+adds no system); `test/engine/display-names.test.ts` (a boss row's name reaches the readout; a dummy row shows a head
+bar, a boss row doesn't).
 
 **Done when:** `test/strike-table.test.ts` rows for Pine are green unchanged; the harness's scripted elite and King
-encounters play the same phase changes at the same health; a boar charge at a cabin wall does not land (the new test).
+encounters play the same phase changes at the same health; a boar charge at a cabin wall does not land (the new test);
+`grep -rn "BOSS_NAMES" src` prints nothing, and `grep -rn "interface TargetHit\|interface Targets\b\|interface
+TargetAnimal" src` prints only `src/engine/combat/types.ts`;
+the Debug ▸ Developer tools ▸ AI overlay row shows the labels on Pine (a portrait screenshot recorded in E357).
 
 ### 6.4 S2.4 — Weather and the day cycle as engine mechanisms
 
@@ -637,7 +670,7 @@ slots, the save keys (renamed by F10, then identical).
 | Step | Detail |
 |---|---|
 | Gate | `gpu-gate` green on HEAD; parity green on 4 shards; `pnpm test` green with the ratchets lower than at M1 |
-| Pin | HEAD into `deploy/pin`, `gh workflow run deploy`, `version.json` confirmed, the build id in E357 |
+| Pin | After Jake's go: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M2 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1), lines deleted (Longbow's fork, `feel.ts`, `WorldClock.ts`, the Pine branches of §2), ratchets before / after, Pine's derived budgets and ceilings (desktop: 8.3 M tris and 1,377 GPU MB as ceilings, budget-design §6.4), the scheduler's CPU saving at the lookout pose |
 | Boards | **Creatures** (the wall fixes, the tick rates, the starter effects) and the **weapons** board's ranged additions. iPhone portrait, clips ≤ 10 s |
 | Jake plays | Pine Hollow on the pinned build: a hunt with the crossbow, the lever-action from cabin 1, an elite, a rain shower (Debug ▸ Weather ▸ Rain), the dawn fog, the Antler King if he wants |
@@ -646,14 +679,16 @@ slots, the save keys (renamed by F10, then identical).
 
 ## 10. Questions for the lead
 
-Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (05 / 06 table) unless marked open; the body above follows
-each answer.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (the 05 / 06 table, the still-open table and G16 / G17);
+none is open, and the body above follows each answer.
 
 1. **Manifest fields not in 01 §6.** **Resolved → 13-lead-resolutions 05/06#1** for the `ChunkDef` fields: `treeCount`,
    `assets`, `trees`, `forest`, `pondClip`, `look`, `horizon`, `pois`, `spawns` (was `fauna`) are carried as data;
-   `dayCycle` / `weather` are 01 §6's data for the opt-in mechanisms. **Still open, sent to the lead:** the sub-fields
-   01 §6's types don't declare yet — `world.blenderArea`, `atmosphere.edgeHaze` / `wetSurfaces`, `loadout.grants` /
-   `ammo`, `bag.pack.keeps`, `boot.bytes` / `lateReads` / `bakedUnread`, and `kitLook` (05 Q1).
+   `dayCycle` / `weather` are 01 §6's data for the opt-in mechanisms. This spec's sub-fields: **Resolved →
+   13-lead-resolutions still-open 05#1** ("all are declared manifest fields"): `kitLook` and `world.blenderArea` are on
+   01 §6's declared list by name; by the same answer `atmosphere.edgeHaze` / `wetSurfaces`, `loadout.grants[].by` /
+   `loadout.ammo`, `bag.pack.keeps` and `boot.bytes` / `lateReads` / `bakedUnread` are declared fields too, typed in
+   `#game/shard/manifest.ts` at the row that first uses each (S2.1, S2.2). §3 follows.
 2. **Who deletes `PINE_HOLLOW_PHONE`.** **Resolved → 13-lead-resolutions 05/06#10:** S2.1 deletes it (with
    `pinePhoneCuts` and `applyShardTier`); X7 deletes whatever shard-named knobs are left.
 3. **Weather FX in the kit.** **Resolved → 13-lead-resolutions 05/06#11:** only the rain curtain goes to

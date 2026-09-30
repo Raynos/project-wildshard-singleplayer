@@ -32,7 +32,7 @@ already did the move; the S1 row then restructures the file in place.
 | `def.ts` (153) | `shard:manifest.ts` (data) + `shard:plugin.ts` (new, the code) | F6 rename; S1.1 split | The hook fields leave the manifest (§3). `FILES` / `TEX` (`def.ts:26-37`) become `boot.files` |
 | `index.ts` (57) | `shard:world/install.ts` | S1.1 | `NINE_DRAGON_WORLD.build` becomes `installWorld(ctx, rt)`, called by the plugin in the `shard.world` stage. The module-level `current`, `camera`, `grappleGuardOpen` (`index.ts:13-15`) move into one `NdRuntime` object the plugin creates and disposes with `ctx.scope` (§4). `nineDragonWorld()` / `cullNineDragonWorld()` / `setGrappleGuardOpen()` read it. `ctx.registry.add` → `ctx.piece`; `ctx.onUpdate` → `ctx.system` |
 | `bag.ts` (17) | folded into `shard:manifest.ts` (`loadout`, `bag`) and `shard:strings.ts` | S1.1 (names), S1.4 (Fei Zhua gear card) | `NINE_WEAPON_NAME` → the jian's loadout row name `strings['weapon.jian']`; `FEI_ZHUA` → the Fei Zhua Tool's `BagEntrySpec` (01 §18: the Equipment base carries the Bag entry). File deleted at S1.4 |
-| `layout.ts` (50), `places.ts` (11), `roster.ts` (10), `util.ts` (47), `mockupCameras.ts` (51) | same names under `shard:` | F6 | `util.ts`'s `Rng` merges into the one RNG at X5 (10-sweeps). `mockupCameras.ts` and `places.ts` are read by scripts and `check-models.mjs:217` (their paths are rewritten by F6's mapping table). `mockupCameras.ts` also feeds the harness's poses (§8) |
+| `layout.ts` (50), `places.ts` (11), `roster.ts` (10), `util.ts` (47), `mockupCameras.ts` (51) | same names under `shard:` | F6 | `util.ts`'s `Rng` class is deleted at F8, which lands the one RNG (02 F8 step 1; 13-lead-resolutions G18); its palette exports stay. `mockupCameras.ts` and `places.ts` are read by scripts and `check-models.mjs:217` (their paths are rewritten by F6's mapping table). `mockupCameras.ts` also feeds the harness's poses (§8) |
 | `grapple/Traversal.ts` (589) | `shard:grapple/FeiZhua.ts` | S1.4 | `installFeiZhua(ctx)` becomes `class FeiZhua extends Tool` (01 §18). The three hand-chained hooks (`lock.onTryToggle` :364, `player.onJumpRequest` :385, `player.traversalStep` :406) become the `grapple` input context and the `player.traversal` ask (§6.4). The `ws:practice-active` listener (:363) becomes `ctx.on('practice.active')`. The chip and ◇ marks appended to `#hud` (:258-274) become HUD widgets (§6.4) |
 | `grapple/course.ts` (48), `grapple/line.ts` (220) | same names under `shard:grapple/` | F6 | `setGrappleCourse` / `playgroundCourse` stay (the playground and the Tool are in the same shard now) |
 | `grapple/fx.ts` (201) | `shard:grapple/fx.ts` | F6; X5 | Its point pool (`fx.ts:55`) merges into the engine's one particle pool at X5 (10-sweeps) |
@@ -46,9 +46,9 @@ already did the move; the S1 row then restructures the file in place.
 | `vm/arms.ts` (64), `vm/cloth.ts` (421), `vm/fpArms.ts` (488), `vm/geo.ts` (289), `vm/jian.ts` (253) | same names under `shard:vm/` | F6; S1.2 edits | The jian's viewmodel. `jianArms()` becomes the jian profile's `viewmodel` factory (§6.2). `Math.random()` in `fpArms.ts:291` (the trail seed) → `app.rng.stream('cosmetic').next()` |
 | `vm/rig.ts` (310) | `src/kit/viewmodel/armRig.ts` | F6 | Rule of two: `scripts/blender/driftwood-isle/fp-arms/bake.mjs:27` builds Driftwood's arms from it |
 | `vm/trail.ts` (197) | `shard:vm/trail.ts` | F6; X5 | The slash-trail geometry merges into the engine's one trail block at X5; the shader stays here |
-| `world/hero/paifang.ts` (267) | deleted | S1.1 | Unimported by `src/`, `test/` and `scripts/` at `3f83fd2e` (a clean-room copy superseded by `world/gate.ts`). Not on F7's list: question Q7 |
+| `world/hero/paifang.ts` (267) | deleted | F7 | Unimported by `src/`, `test/` and `scripts/` at `3f83fd2e` (a clean-room copy superseded by `world/gate.ts`). On F7's one dead list (02 F7 step 3; 13-lead-resolutions still-open 05#7), so it is gone before F6 moves anything |
 | `world/cull.ts` (308) | `shard:world/cull.ts` | F6; X5 | Its `InstanceCuller` implements the engine culler interface at X5 (01 §17 *Culling*). The per-camera cull still runs from `render.frame` (the camera final) |
-| `world/facade/rng.ts` (34) | `shard:world/facade/rng.ts` | F6; X5 | One RNG at X5. The facade grammar's draw order must stay identical (the facades are generated from it) |
+| `world/facade/rng.ts` (34) | deleted | F8 | The one RNG lands at F8 (02 F8 step 1; 13-lead-resolutions G18): `grammar.ts` builds `Rng.scrambled(seed)` from `#engine`, the facade copy's seed scramble, so the draw order and every tower stay identical (a test pins the old sequence) |
 | `world/build.ts` (501) | `shard:world/build.ts` | F6; S1.1 edits | Its 18 `performance.now()` calls are build-phase profiling and task yields → `app.clock.real`; `progress` keeps its signature (it is `ctx.progress`) |
 | every other `world/**` file: `banyan` (374), `canopy` (543), `colliders` (97), `crowd` (277), `ctx` (119), `dressing` (126), `facade/batch` (149), `facade/geo` (297), `facade/grammar` (895), `facade/pieces` (465), `facades` (233), `gate` (570), `hero/figures` (194), `hero/glb` (196), `hero/kitx` (246), `hero/vm-material` (370), `hero/weapon-parts` (283), `inKit` (57), `jian` (129), `kit` (301), `lod` (67), `modelLook` (65), `props` (208), `props3d` (133), `sets` (53), `square` (444), `squareProps` (58), `stairstreet-upper` (1,048), `stairstreet` (917), `stalls` (629), `towers` (433), `well-bridges` (692), `well-galleries` (457), `well-lower-deep` (191), `well-lower-life` (517), `well-lower` (101), `well-mid` (346), `well-plan` (222), `well-rim` (196), `well` (58), `words` (9) | same names under `shard:world/` | F6 | Content. `facade/batch.ts:105,121` task-yield timers → `app.clock.real`. The facade stays instanced (the E271 rule; `test-facade-instancing.mjs` stays in the gate) |
 
@@ -171,7 +171,8 @@ or a plugin verb named in the same row.
 `src/shards/nine-dragon-stack/manifest.ts`. Node-safe: it imports only `layout.ts` (constants), the flat terrain
 (`./terrain.ts`: `def.ts:52-62` moved as is), the thumbnail URLs and lazy thunks. Every value is today's (source in the
 comment). Every `ChunkDef` field is carried over under 01 §6's names (13-lead-resolutions 05/06#1). Fields marked **Q1**
-are this spec's additions that 01 §6 still lacks (`kitLook`, `bag.pack`, `dev.poses`): question Q1 keeps them open.
+are this spec's sub-fields (`kitLook`, `bag.pack`, `dev.poses`); all three are declared manifest fields in 01 §6 "Declared
+sub-fields" (13-lead-resolutions still-open 05#1).
 
 ```ts
 import { defineShard } from '#game';
@@ -218,7 +219,7 @@ export default defineShard({
   },
   seed: 0x9d2a,                                                           // def.ts:23 (Rng / Noise2D seeds derive from it)
   style: 'jiehua',                                                        // data only (01 §6)
-  kitLook: 'pbr',                                                         // Q1 (open) — the look the shared kit pieces use (creatures, Model Explorer catalog, swimming hands); today `style ?? 'pbr'` resolves to 'pbr' for this shard
+  kitLook: 'pbr',                                                         // Q1, declared (01 §6) — the look the shared kit pieces use (creatures, Model Explorer catalog, swimming hands); replaces today's `style ?? 'pbr'`, which resolves to 'pbr' for this shard
   uses: ['bounds', 'grapple'],                                            // 'grapple' = the Tool's context; no weather, dayCycle, elites, bosses, quests, loot coins
   ground: { terrain: TERRAIN, structures: true },                         // def.ts:149 `structures` + the flat terrain (01 §6: "Nine Dragon has both"); the terrain is `heightAt()` for placement only: nothing draws or collides with it
   spawn: { x: 0.95, z: 7.5, yaw: -12 * (Math.PI / 180), y: Y0 },          // def.ts:98
@@ -258,7 +259,7 @@ export default defineShard({
     start: ['weapon.jian'],
     pickups: [],
   },
-  bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },                     // `tabs` 01 §6; `pack` Q1 (open) — E314 pick A (bag.ts:1-10); Inventory.ts:88
+  bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },                     // `tabs` 01 §6; `pack.slots` Q1, declared (01 §6) — E314 pick A (bag.ts:1-10); Inventory.ts:88
   species: [],                                                            // def.ts:75 fauna: []
   encounters: [],
   audio: {                                                                // S1.5 (decision 44 / 71)
@@ -285,7 +286,7 @@ export default defineShard({
       { id: 'stair', label: 'Stair street', model: 'nine-stair', target: 'art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg' },
     ],
   },
-  dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },   // Q1 — the harness's and the budget check's four poses
+  dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },   // Q1, declared (01 §6) — the harness's and the budget check's four poses
   load: () => import('./plugin'),
 });
 ```
@@ -399,7 +400,8 @@ export default class NineDragonPlugin extends ShardPlugin {
      `boot/entry.ts:36`, `boot/lastEnd.ts`, `core/GpuRecovery.ts:44`, `boot/precompile.ts:30`, `ui/ErrorModal.ts`,
      `ui/StartTitle.ts`, `explore/Explore.ts`, `explore/Compare.ts`, `game/Inventory.ts:88`, `ui/HurtArc.ts:91`.
    - `main.ts:217` → `manifest.name`.
-7. **Delete** `world/hero/paifang.ts` (§1.1).
+7. **(Nothing to delete here.)** `world/hero/paifang.ts` went at F7 with the other dead files (02 F7 step 3;
+   13-lead-resolutions still-open 05#7); S1.1 only confirms `test -e src/shards/nine-dragon-stack/world/hero` fails.
 7b. **A full shard** (13-lead-resolutions 02/03#5; this moved out of X3). Nine Dragon joins everything the other three
    shards get: `playable()` in `src/game/shard/registry.ts` becomes `status !== 'hidden'` (so `experimental` counts),
    which puts Nine Dragon into `bake-packs.mjs` (its phone and desktop packs from `boot.files`), `shardPrefetch.ts`,
@@ -661,8 +663,8 @@ Anything else that differs is a bug in the step: the commit is reverted (12-proc
 | Step | Detail |
 |---|---|
 | Gate | `gpu-gate` green on HEAD for the 4 shards (the template shard joins at Z1); parity green; `pnpm test` green incl. the ratchets |
-| Pin | HEAD's SHA into `deploy/pin`, `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3) |
-| Summary | What moved (§1, file and line counts), the lines deleted (`look/post.ts`, `hero/paifang.ts`, the ND branches in §2), the ratchet counts before / after (`wildshard/no-shard-branch`, `no-raw-input` for the Fei Zhua hooks, `no-raw-save` for `ws.nineBoot`), Nine Dragon's derived budgets and ceilings, the audio byte change |
+| Pin | After Jake's go: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M1 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), then `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3, 03 §13.4) |
+| Summary | What moved (§1, file and line counts), the lines deleted (`look/post.ts` and `hero/paifang.ts` at F7, `util.ts`'s `Rng` and `facade/rng.ts` at F8, the ND branches in §2), the ratchet counts before / after (`wildshard/no-shard-branch`, `no-raw-input` for the Fei Zhua hooks, `no-raw-save` for `ws.nineBoot`), Nine Dragon's derived budgets and ceilings, the audio byte change |
 | Boards | **Weapons** (the Spear / Naizagai wall fixes; any spot a Melee profile could not match: none expected for the jian) and **Audio** (the listening page). iPhone portrait, clips ≤ 10 s |
 | Jake plays | Nine Dragon on the pinned build: the square, the Well rim, a grapple across, the stair-street, the grapple playground; he listens in the market and at the Well; he runs RUN CALIBRATION once (S1.6) |
 | Decision asked | AskUserQuestion with the summary + boards: "Nine Dragon M1: go?" (recommended: yes), plus the audio keeps / re-rolls |
@@ -670,16 +672,16 @@ Anything else that differs is a bug in the step: the commit is reverted (12-proc
 
 ## 10. Questions for the lead
 
-Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (05 / 06 table) unless marked open; the body above follows
-each answer.
+Answered in [13-lead-resolutions.md](13-lead-resolutions.md) (the 05 / 06 table and the still-open table); none is
+open, and the body above follows each answer.
 
 1. **Manifest fields not in 01 §6.** **Resolved → 13-lead-resolutions 05/06#1** for every `ChunkDef` field: `map` →
    `minimap`, world placement is `placement`, `gridCoords` → `label`, `biome` stays `biome` (the deck's card line),
    `fov` → `camera.portraitFov`; `seed`, `horizon`, `bag.tabs` are on 01 §6. The flat datum is gone: Nine Dragon keeps
-   its flat `ground.terrain` beside `structures` (01 §6). **Still open, sent to the lead:** `kitLook` (the style the
-   shared kit pieces use: creatures, the swimming hands, the Model Explorer catalog; today `style ?? 'pbr'` at
-   `main.ts:505`, `Explore.ts:269`, `AnimalManager.ts:459`, `Hands.ts`), `bag.pack.slots` and `dev.poses` are not on
-   01 §6.
+   its flat `ground.terrain` beside `structures` (01 §6). This spec's sub-fields: **Resolved → 13-lead-resolutions
+   still-open 05#1:** `kitLook` (`'toon' | 'painterly' | 'pbr'`, defaulting to `style` when the kit supports it, else
+   `'pbr'`; it replaces `style ?? 'pbr'` at `main.ts:505`, `Explore.ts:269`, `AnimalManager.ts:459` and `Hands.ts`),
+   `bag.pack.slots` and `dev.poses` are declared manifest fields (01 §6 "Declared sub-fields"). §3 follows.
 2. **Boot flags.** **Resolved → 13-lead-resolutions 05/06#2:** `boot.barrier` (all tiers), `boot.phone.deferExtras`,
    `boot.phone.fragile`, `boot.phone.trace`, `boot.cullBeforeFirstDraw`; `warmTurns` and `textures` are tier knobs.
 3. **World-anchored HUD pins.** **Resolved → 13-lead-resolutions 05/06#3:** `hud.pin(at, el, scope)` (01 §11). S1.4
@@ -690,8 +692,8 @@ each answer.
    `window.__wildshard.shard[name]` (01 §7).
 6. **Audio slice timing.** **Resolved → 13-lead-resolutions 05/06#6:** S1.5 builds score sources, ambience beds and
    cue maps; S3.5 continues from it (the voice engine, ambience zones, merged SFX routing, the `Audio.ts` split).
-7. **`world/hero/paifang.ts`** (267 lines) is unimported. **Open (not in 13), sent to the lead:** this spec deletes it
-   in S1.1 (§1.1, S1.1 step 7) rather than adding it to F7's list.
+7. **`world/hero/paifang.ts`** (267 lines) is unimported. **Resolved → 13-lead-resolutions still-open 05#7:** it goes
+   in F7's one dead list (02 F7 step 3), not S1.1; §1.1 and S1.1 step 7 follow.
 8. **Nine Dragon's load cap.** **Resolved → 13-lead-resolutions 05/06#7:** its F2 baseline, rounded up to the next
    second, shown on the M1 summary for Jake to confirm (S1.6).
 9. **Budget file names.** **Resolved → 13-lead-resolutions 05/06#8:** 01 wins: `budgets/calibration.json`,

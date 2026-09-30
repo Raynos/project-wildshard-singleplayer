@@ -2,13 +2,14 @@
 
 Jake (E357): the plan *"needs to cover everything we've spoken about"*. This file traces each thing that was said,
 decided, audited or researched to the row and spec section that carries it, or says why it is out and where it went.
-Council seat B (12 §1) checks this file first. §7 lists what could not be traced or what conflicts.
+Council seat B (12 §1) checks this file first. §7 lists the gaps and conflicts the first trace found, and where each
+is now covered (all 21 are resolved).
 
 **How to read it**
 - **IDX** = [GAME-NORMALIZATION.md](../GAME-NORMALIZATION.md), the index. **01…13** = the files in this folder. A `§`
   is a heading of that file (`01 §12` = "12. Scheduler", `02 §F7` = "F7 — Delete the dead", `10 X1`, `11 Z3`,
   `05 §6.5` = "6.5 S1.5 …"). Line numbers are never used: the files are still being edited.
-- **Rows** are the plan's rows (F0–F12, S1.1–S4.4, M1–M4, X1–X8, Z1–Z4).
+- **Rows** are the plan's rows (F0–F12, S1.1–S4.4, M1–M4, X1–X9, Z1–Z4).
 - **Status:**
   - `covered`: I read the cited section, and it does what the row says.
   - `partial`: part of it is carried, and the rest is a Gap (§7, `G<n>`).
@@ -17,9 +18,11 @@ Council seat B (12 §1) checks this file first. §7 lists what could not be trac
   - `conflict`: two specs disagree, or a spec contradicts a decision (§7 has the detail).
   - `gap`: neither in the plan nor dispositioned as out (§7).
   - `honoured` (the "don't copy" rows only): the plan does not copy it; the cited section shows how.
-- **Snapshot.** Traced against commit `b9e9670f`, plus the consistency pass's uncommitted edits to the index, 02,
-  03, 05, 06 and 07 as they stood on 2026-09-30 evening. If a later pass changes a cited section, the council
-  re-checks that row instead of trusting it.
+- **Snapshot.** First traced against commit `b9e9670f` plus the consistency pass (committed in `0ca31c48`). Every row
+  was then re-checked after the gap closure, which applied 13-lead-resolutions' last four tables (04, the still-open
+  spec questions, G1–G21, C1–C10) to the index, 02, 03, 05–08, 10 and 12 on 2026-09-30. Every `02` / `03` / `05`–`08`
+  section cited below exists under that name. If a later pass changes a cited section, the council re-checks that row
+  instead of trusting it.
 
 ## 1. Jake's aims
 
@@ -33,7 +36,7 @@ E127 (2026-09-25) is five sentences (A1–A5). E357 (2026-09-30) is Jake's conte
 | A4 | "I don't want 100s of if statements" | 01 §24 `wildshard/no-shard-branch` (starts at 269); 02 §F4 (the ratchet from day one); 08 §6.4 S4.4 (0 in engine / game / kit); IDX §6 | covered |
 | A5 | "pure refactor and removing duplicate code and normalizing the shards to share one core game thing" | IDX §3 refactor bar (identical under the harness: 02 §F2, 03); 12 §5 (a red result is reverted). Jake's own later decisions add features on top: 9, 38–40, 44, 47, 55′, 78–80 | covered. The extras are his decisions, and each one ships on a board or a milestone |
 | C1 | A base, flexible engine with interfaces; anyone (Jake included) can add a 5th, 6th or 7th shard | 01 (the whole contract); 11 Z1–Z3 (template, docs, a fresh agent builds shard 5 with zero engine edits); decision 51 | covered |
-| C2 | A shard is a directory that implements an interface, like a plugin. It is "almost dynamically loaded", but static for performance, baking and optimization | 01 §6 (node-safe manifest the bakers read), §7 (lazy `load()`, generated registry); 02 §F9 | partial: the chunk layout isn't specced (G1) |
+| C2 | A shard is a directory that implements an interface, like a plugin. It is "almost dynamically loaded", but static for performance, baking and optimization | 01 §6 (node-safe manifest the bakers read), §7 (lazy `load()`, generated registry); 02 §F9; 10 X3 steps 7–10 (the chunk layout, the main-chunk check, the iOS 27 retry re-test) | covered (G1 resolved) |
 | C3 | Code the shards share that isn't engine goes into a shared library | 01 §0 layers, §21 `#kit`; 04 §1.2 rules; 13 (04 #9: 5 files go to the kit at F6) | covered |
 | C4 | No shard `if` in `main.ts`; the base game boots straight into whatever makes sense | 13 (04 #12: `main.ts` is the composition root, ≤ 20 lines); 08 §6.4 S4.4 (`engine/boot.ts` ≤ 150, ratchet 0); 08 §7 D4 (the default shard comes from the registry order) | covered |
 | C5 | Move as much as possible into the shared baseline, and everything shard-specific into its shard directory | 02 §F6 + 04 (all 906 `src/` files mapped: layer + destination); S1.1 / S2.1 / S3.1 / S4.1 inventories (05–08 §1) | covered |
@@ -48,7 +51,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | # | Decision (short) | Covered by (row · spec §) | Status |
 |---|---|---|---|
 | 1 | Layout: `src/engine/` + `src/kit/` + `src/shards/<slug>/` | 01 §0 Layers, Aliases; IDX §2.1; F6 (02 §F6, 04 §1) | covered |
-| 2 | Lazy per shard: defs static, each shard's code one lazy import, prefetched and cached offline | 01 §7 load order (`manifest.load()` prefetched in parallel), §8 (SW precache); F9 (02 §F9); IDX §2.2 Loading | partial (G1: no step builds or checks the chunk layout) |
+| 2 | Lazy per shard: defs static, each shard's code one lazy import, prefetched and cached offline | 01 §7 load order (`manifest.load()` prefetched in parallel), §8 (SW precache); F9 (02 §F9); IDX §2.2 Loading; 10 X3 steps 7–10 (`codeSplitting.groups`, `check-chunks.mjs` in the pre-push gate, the shard chunk through `retried()`, the iOS 27 re-test) | covered (G1 resolved) |
 | 3 | Rule of two; mechanism vs content | IDX §2.1 layer rules; 01 §0, §21; 04 §1.2 | covered |
 | 4 | Small differences may merge (before/after board); found bugs fixed inline | IDX §3, §7; 12 §6; 03 §8; each shard spec §7; 09 §3.4 | covered |
 | 5 | Boundary = mechanism vs content; melee + ranged combat is engine | 01 §18 (`#engine/combat`: Equipment, Weapon, Tool, the public blocks, GAS-lite, pipeline); the families are kit by 25 | covered |
@@ -79,12 +82,12 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 28′ | Gate on free GitHub `macos-15` every push (one job per shard, Metal-or-fail, runner baselines); timing + GPU bytes nightly on Jake's Mac via launchd | F3.2 (02 §F3.2); 03 §0, §11, §14 | covered (G8, since resolved) |
 | 29 | All shards' code downloads up front (SW); lazy only saves parse and memory | 01 §8 rules; IDX §2.2 | covered |
 | 30 | Over budget fails the gate; numbers are derived, not magic | 01 §13.4; 05 §6.6 (S1.6); 10 X7; 03 §15 | covered |
-| 31 | Only Jake's iPhone 17 Pro; keep 1.8 / 1.0 GB; nightly = Simulator; physical readings manual | 01 §13.4 (limits); 02 §F12, §F10 (manual iPhone readings); 12 §8 | partial (G2: no nightly Simulator lane) |
-| 32 | Deploys at shard milestones only; production on a frozen release | F3.1 (02 §F3.1); 03 §13; 12 §3 | covered (G7: the pin's file name disagrees) |
+| 31 | Only Jake's iPhone 17 Pro; keep 1.8 / 1.0 GB; nightly = Simulator; physical readings manual | 01 §13.4 (limits); 02 §F12, §F10 (manual iPhone readings); 03 §14.1 (the nightly Simulator memory run, `sim-lane.sh`, WebContent footprint against 1.8 / 1.0 GB); 12 §8 | covered (G2 resolved) |
+| 32 | Deploys at shard milestones only; production on a frozen release | F3.1 (02 §F3.1); 03 §13; 12 §3; 05–08 §9 (every milestone moves `.github/deploy-pin.json` with `deploy-pin.mjs set`) | covered (G7 resolved: one pin file everywhere) |
 | 33 | The lock: nothing else until the plan is archived | F0 (02 §F0); 12 §2 | covered |
 | 34 | Lead + short subagents (E352 caps) | 12 §4 | covered |
 | 35 | 30 fps on the hot phone now, 60-ready; desktop 60 | 01 §13.4; 10 X7; budget-design §2 | covered |
-| 36 | Min desktop = RTX 3060 class at 60; laptops below get the phone tier | 01 §13.4 (stated) | partial (G3: nothing implements or checks it) |
+| 36 | Min desktop = RTX 3060 class at 60; laptops below get the phone tier | 01 §13.4 (stated); 10 X7 step 5 (tier selection: renderer-string table, else a 2 s GPU micro-benchmark, cached as a `device` key), step 6 (desktop budgets = M5 calibration × the documented M5 : 3060 ratio; the nightly's projected 3060 frame) | covered (G3 resolved) |
 | 37 | Keep 1.0 GB in world | 01 §13.4 | covered (a rule; the evidence is the manual iPhone reading, 31) |
 | 38 | Input: context stack + key rebinding; no gamepad now | 01 §10; 10 X1 steps 1–5 | covered |
 | 39 | Touch: context relabels and reserved verb slots | 01 §11 (`relabel`, `verb`); 10 X1 steps 3–4 | covered |
@@ -102,13 +105,13 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 51 | A fresh agent builds a small real 5th shard; every engine edit becomes a public-API fix first | 11 Z3 | covered |
 | 52 | Each shard folder reopens at its milestone; engine + kit locked until the end | 02 §F0; 12 §2 | covered |
 | 53 | Hotfixes land on main and ship with the next milestone | 12 §3; 02 §F0 step 1 | covered |
-| 54 | Mechanisms are opt-in through the manifest (`uses`); the template lists all of them | 01 §6 `uses`; 11 Z1 | covered (G11: the `Mechanism` list is never defined in one place) |
+| 54 | Mechanisms are opt-in through the manifest (`uses`); the template lists all of them | 01 §6 `uses` and the closed `Mechanism` list (15 names); 11 Z1 | covered (G11 resolved in 01 §6) |
 | 55 | Effects: only what the game uses today | — | superseded by 55′ |
 | 55′ | Plus a starter set (poison, burn, bleed, slow, stun) as kit rows with cues + HUD icons, tuned on the creatures board | 01 §18, §21; 09 §2.2, §2.4; S2.5 (IDX, 06 §6.5) | covered |
-| 56 | Multiplayer maybe: simulation state apart from visuals + input; gameplay randomness seeded | 01 §2 (seeded streams, "a netcode layer could replay it"); IDX §2.8 | partial (G12) |
+| 56 | Multiplayer maybe: simulation state apart from visuals + input; gameplay randomness seeded | 01 §0 "Simulation apart from visuals", §2 (seeded streams), §24 `wildshard/sim-no-render`; 02 §F4 step 1 (the rule, count 0 from day one), §F5 step 5 (actor tests in node: the proof); IDX §2.8 | covered (G12 resolved) |
 | 57 | Shards by Jake, agents and PRs; the public API is documented and linted, and may change with every in-repo shard | 01 §7 (`api` version rule), §24; 11 Z2 | covered |
 | 58 | Extractable, not extracted: the engine never imports kit, shards or Wildshard words | 01 §0 Extractable engine, §24 word list; F4 | covered |
-| 59 | Seamless travel someday: what does it mean now? | answered by 60 and 61; 01 §20 Travel (the type + a page-reload implementation) | covered by 60 / 61 (G10: the travel type has no row) |
+| 59 | Seamless travel someday: what does it mean now? | answered by 60 and 61; 01 §20 Travel (the type + a page-reload implementation); 10 X9 step 2 (`TravelRequest` / `TravelHandoff`, `travel()` replaces `requestShard`) | covered (G10 resolved) |
 | 60 | Own every resource; unload frees all; a load → unload → baseline leak test | 01 §4; 02 §F8 step 6; 03 §2.4, §5.5 | covered |
 | 61 | Own origin + a map position | 01 §6 `placement` | covered |
 | 62 | A thin `src/game/` layer | 01 §20; 04 (the `#game` rows); 13 (04 #11) | covered |
@@ -124,11 +127,11 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 72 | The template is grey-box | 11 Z1 Look | covered |
 | 73 | The fresh agent proposes 3 portrait mockups; Jake picks; it ships behind Experimental | 11 Z3 steps 2–3 | covered |
 | 74 | Coins per shard | 01 §9 Scopes, §20 | covered |
-| 75 | Items self-contained, travel-ready: a `travels` flag (default off) | 01 §20 | partial (G10: no row adds it) |
-| 76 | Progress per shard + a read-only Wildshard summary on the title deck | 01 §9, §20; feats per shard in 06 §1.3 (S2.1), 07 §1.4 (S3.1) | partial (G10: no row builds the summary) |
+| 75 | Items self-contained, travel-ready: a `travels` flag (default off) | 01 §20; 10 X9 step 1 (every item row carries it, `false`) | covered (G10 resolved) |
+| 76 | Progress per shard + a read-only Wildshard summary on the title deck | 01 §9, §20; feats per shard in 06 §1.3 (S2.1), 07 §1.4 (S3.1); 10 X9 step 3 (the `global` key `summary`, built from the per-shard saves; the title-deck strip on the Look board) | covered (G10 resolved) |
 | 77 | Abilities per shard (`uses` + tools; rule of two) | 01 §6 `uses`, §18 Tool | covered |
 | 78 | String tables, English only (engine + one per shard) | 01 §0 Strings; 10 X8 step 4; each shard's `strings.ts` (e.g. 05 §4) | covered |
-| 79 | Analytics from the event bus (`death.cause`, `quest.step`, `weapon.used`, `shard.time`) | 01 §23; 10 X8 step 2; 08 §7 D2 (`boss.attempt`) | covered |
+| 79 | Analytics from the event bus (`death.cause`, `quest.step`, `weapon.used`, `shard.time`) | 01 §23; 10 X8 step 2; 08 §6.2 (B step 4) and §7 D2 (`boss.attempt` for the Captain, a fix) | covered |
 | 80 | A capture mode on the engine clock | 01 §2; 02 §F8 step 1; 10 X8 step 3; 03 §6 | covered |
 | — | "Go?" → keep grilling first | IDX State `draft`; 12 §1 (ready only after the council) | covered |
 | — | Accessibility (unanswered at first) | answered by 84 | covered by 84 |
@@ -144,7 +147,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 89 | Rapier 0.21 anyway (+~413 KB gz accepted) | 02 §F12 risks; 13 (02/03 #8); IDX F12 | covered |
 | 90 | Codex model GPT 6 Sol | — | superseded by 90′ |
 | 90′ | Codex back on GPT 6.1 Sol (CLI ≥ 0.159.2) | 12 §1 seat A | covered |
-| 91 | The Drowned Captain gets the shared BossBar (look board, S4.2) | 08 §6.2 (S4.2); IDX S4.2, §5 Look | covered (G21: 12 §6's Look row doesn't name it) |
+| 91 | The Drowned Captain gets the shared BossBar (look board, S4.2) | 08 §6.2 (S4.2); IDX S4.2, §5 Look; 12 §6 Look row | covered (G21 resolved) |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 
@@ -184,11 +187,11 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | N-E | Elite script base ×2 | S2.3 (one elite runtime); 07 §6.4 (S3.4) | covered |
 | N-T | Slash trail ×2 | 10 X5 Slash trail | covered |
 | N-U | LUT loader ×2 | 10 X5 LUT loader | covered |
-| N-G | RNG ×3 | F8 step 1 (02 §F8); 01 §2; 10 X5 RNG | partial (G18: no step deletes the other two) |
+| N-G | RNG ×3 | 02 §F8 step 1 (the one `Rng` class; Nine Dragon's `util.ts` `Rng` and `world/facade/rng.ts` deleted, the old sequences pinned by a test); 01 §2; 10 X5 RNG (a re-check only) | covered (G18 resolved) |
 | X-1 | Dead: Nine Dragon lab copies (`src/dev/nd-lab/`) and all of `src/dev/` + `dev/*.html` | F7 (02 §F7 step 1) | covered |
 | X-2 | Dead: Nine Dragon `look/post.ts` | F7 step 3 | covered |
 | X-3 | Dead: `meleeGeo.ts`'s dead half | F7 step 3; 10 X5 | covered |
-| X-4 | Dead, found later: `chunks/_template.ts`, 7 unreferenced images, `world/hero/paifang.ts`, `spruceMask.ts`, `interact/validate.ts` | F7 step 3 (`_template.ts`); 13 (04 #7, the images at F7); 05 §6.1 step 7 (paifang, S1.1); 07 §1.3 (spruceMask, S3.1) | partial (G20: `validate.ts` has no owner) |
+| X-4 | Dead, found later: `chunks/_template.ts`, 7 unreferenced images, `world/hero/paifang.ts`, `spruceMask.ts`, `interact/validate.ts` | 02 §F7 step 3, the one reviewed dead list (13, 04 #7 and still-open 05#7 / 07#8 / 08#8): `_template.ts`, the 7 images, `paifang.ts` and `spruceMask.ts` are deleted there (05 §1.1, 07 §1.4 point to it); `validate.ts` is reviewed there and kept, because `test/interact.test.ts` and `test/pine-quest.test.ts` import it (08 §1.2, §10 Q8) | covered (G20 resolved) |
 
 ### 3.3 The audit's measures (audit §3) and gaps in the old plan (audit §2)
 
@@ -208,7 +211,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | G-c | Old plan: a second plugin concept (`ShardModule`) beside `ChunkDef`'s lazy hooks | 01 §6: the manifest grows from `ChunkDef` (all 48 fields mapped, 02 §F6) | covered |
 | G-d | Old plan: branch count unenforced | F4 (a ratchet from day one) | covered |
 | G-e | Old plan: moving the Captain onto `Boss` changed his feel | S4.2 (08 §6.2: frame-for-frame `captain` harness block) | covered |
-| G-f | "Almost dynamic loading" needs Jake's call again | decisions 2 and 29 | partial (G1) |
+| G-f | "Almost dynamic loading" needs Jake's call again | decisions 2 and 29; 10 X3 steps 7–10 (the layout and its check) | covered (G1 resolved) |
 
 ### 3.4 Bugs (audit §5, the combat audit, and the shard specs)
 
@@ -236,7 +239,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 07 N3 | Painterly clouds built then hidden | S3.2 | covered |
 | 07 N4 | Nalati SFX live in the shared set | S3.5 (Nalati's own set folder) | covered |
 | 07 N5 | Six `Math.random()` rolls in bosses / elites / night enemies | S3.4 (`ai` stream) | covered |
-| 08 D2 | The Captain is outside the boss runtime (no `boss.attempt`) | S4.2 | covered (G20: 08 §10 Q6 unanswered) |
+| 08 D2 | The Captain is outside the boss runtime (no `boss.attempt`) | S4.2 (08 §6.2 B step 4, §7 D2: a fix, 13 still-open 08#6; `captain-attempt.test.ts`) | covered (G20 resolved) |
 | 08 D3 | Coin burst, keepsake angle, Ecology respawn use `Math.random()` | S4.2 (seeded streams) | covered |
 | 08 D4 | Default shard is a literal in `gpuFiles.ts:42` | S4.1 (the registry's first manifest by `order`) | covered |
 | 06 (quest) | Pine's porch fast-forward writes the sky phase every frame | S2.4 (06 §6.4) | covered |
@@ -258,7 +261,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | EI9 | `engine/input`: actions, bindings, context stack, dev overlay | S1.4 (05 §6.4); 10 X1 steps 1, 7 | covered |
 | EI10 | Move every consumer onto actions; delete `inputAllowed()` ×7 and the fake `KeyE` | 10 X1 steps 1–2 | covered |
 | EI11 | `TouchControls` draws the top context's discs; `touchHint` → `grapple` context (announce over herdr) | 10 X1 step 3; 01 §11 (the herdr notice is moot under the lock) | covered |
-| EI12 | Engine-owned crouch action | 01 §10; 10 X1 step 1 (stealth.ts) | covered |
+| EI12 | Engine-owned crouch action | 01 §10 (`ask('player.crouch', { want }) → { allowed, toggle }`); 07 §6.3 C (Nalati's stealth answers it); 10 X1 step 1 (stealth.ts) | covered |
 | EI13 | `engine/ui/layers` for the ~10 overlays | 01 §11; 10 X2 step 1 | covered |
 | EI14 | `app.ui.slot` numbered bands; `ui.mount`; a lint rule | 10 X2 step 3 (`wildshard/no-raw-hud`) | covered |
 | EI15 | Registered Bag tabs + item fragments | 01 §11, §20; 10 X2 step 4 | covered |
@@ -269,7 +272,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | EI20 | Typed event bus replaces `ws:*`, hand chains, hook assignments | 01 §3; F8 step 4; 09 §4 | covered |
 | EI21 | Explore → `engine/explore`; art from the manifest, compare pairs from the manifest | 01 §22; 04 (`Compare.ts` → `manifest.explore.compare`, 05 §2.4) | covered |
 | EI22 | Playgrounds registered by shards / kit | 01 §7 (`ctx.playground`), §22; S1.4 (grapple), 07 §1.4 (horse) | covered |
-| EI23 | Practice arena + models → engine; `BOSS_NAMES` → a content registry; `TargetHit` → engine combat types | 01 §22; F6 (04: `practice/*` → engine) | partial (G17) |
+| EI23 | Practice arena + models → engine; `BOSS_NAMES` → a content registry; `TargetHit` → engine combat types | 01 §22; F6 (04: `practice/*` → engine); S2.3 (06 §6.3 step 7: boss display names from rows; step 8: `TargetHit` / `Targets` / `TargetAnimal` in `src/engine/combat/types.ts`); IDX S2.3 | covered (G17 resolved) |
 | EI24 | Tier as data; delete `PINE_HOLLOW_PHONE`, `*Cuts()`, `Game.ts:290` | 01 §13.3; S1.1, S2.1; 10 X7 step 1 | covered |
 | EI25 | Budgets in the manifest, read by the gate | 01 §6, §13.4; 10 X7; 03 §15 | covered |
 
@@ -308,20 +311,20 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | MW6 | Update-LOD scheduler (near / mid / far, paused) | 01 §12; S2.6 (06 §6.6) | covered |
 | MW7 | One `SaveStore`: namespaces, versions, migrations, unknown fields kept, a fixture corpus | 01 §9; F10 steps 2 + tests | covered |
 | MW8 | Thermal governor | IDX §8 "After this plan"; decision 47 | out (after, Jake's decision) |
-| MW9 | Tethered-iPhone nightly + buy a min-spec iPhone | decision 31 (only Jake's iPhone; nightly = Simulator; physical readings manual) | out (by 31), but the Simulator nightly it implies is missing (G2) |
+| MW9 | Tethered-iPhone nightly + buy a min-spec iPhone | decision 31 (only Jake's iPhone; nightly = Simulator; physical readings manual); the Simulator nightly it implies is 03 §14.1 | out (by 31); the Simulator lane covered (G2 resolved) |
 | MW10 | Session health per build | 10 X8 step 1; 01 §23 | covered |
 | MW11 | Budgets from a min-spec device | decisions 31 and 37 keep 1.8 / 1.0 GB; budget-design §6.5 derives 1.8 from the 17 Pro's limit | out (by 31 / 37) |
-| MW12 | KTX2 on phone for every shard (close E248's Nine Dragon fallback) | not in the plan: 05 §2.3 keeps the fallback as `tiers.phone.textures: 'img'` | gap (G13) |
-| MW13 | Per-shard bundle manifest; a build check that `main-*.js` holds no shard code | 01 §8; 10 X3 (declared assets) | partial (G1: no bundle check) |
-| MW14 | Measure the Rapier wasm high-water across shard switches | moot by decision 21 (a switch is a page reload), but the plan doesn't say so | gap (G13) |
+| MW12 | KTX2 on phone for every shard (close E248's Nine Dragon fallback) | 05 §2.3 keeps the fallback as `tiers.phone.textures: 'img'`; IDX §8 "After this plan" lists MW12 as an ask (it needs physical-iPhone evidence) | out (after, an ask; G13 resolved) |
+| MW13 | Per-shard bundle manifest; a build check that `main-*.js` holds no shard code | 01 §8; 10 X3 (declared assets), steps 7–8 (`codeSplitting.groups`, `check-chunks.mjs` over Vite's manifest) | covered (G1 resolved) |
+| MW14 | Measure the Rapier wasm high-water across shard switches | IDX §8 "Out, with the reason": moot by decision 21 (a switch is a page reload, so the heap never outlives its shard) | out (G13 resolved) |
 | MW15 | `storage.persist()`, `estimate()` readout, save export / import | F10 steps 7–8 | covered |
-| MW16 | Flag hygiene: ask id + review-by date per Debug row, an overdue list | not in the plan | gap (G13) |
+| MW16 | Flag hygiene: ask id + review-by date per Debug row, an overdue list | 10 X8 step 5 (required `ask` + `reviewBy`, the overdue list in the test output and the session brief, the `debugRows` count ratchet) | covered (G13 resolved) |
 | MW17 | Asset audit per shard plugin | 10 X3 step 3 | covered |
 | MW18 | Renderer portability rule (shader code only through the engine) | 01 §13.2; 10 X6 | covered |
-| MW19 | Soak bot (navmesh wanderer, 20–30 min nightly) | not in the plan (03 §14's nightly has no soak) | gap (G13) |
+| MW19 | Soak bot (navmesh wanderer, 20–30 min nightly) | 03 §14.2 (20 min per shard on the Mac: stuck states, errors, heap and GPU-byte growth, fps trend; the `soak-leak` plant must turn it red); 02 §F3.2 step 5 | covered (G13 resolved) |
 | MW20 | Engine API version + template shard | 01 §6 `api`, §7; F9; 11 Z1 | covered |
 | MW21 | Health-based auto-rollback | IDX §8; 11 Z4 | out (after, decision 47) |
-| MW22 | Record / replay over the seeded RNG and fixed step | the door is open (01 §2 seeded streams, capture mode) but it isn't listed as "after" | gap (G13) |
+| MW22 | Record / replay over the seeded RNG and fixed step | the door is open (01 §2 seeded streams, capture mode); IDX §8 "After this plan" lists it as an ask | out (after, an ask; G13 resolved) |
 
 ## 5. The rest of the research
 
@@ -333,14 +336,14 @@ The file has no numbered top 10. EF1–EF10 are its verdict (5 points) and the �
 |---|---|---|---|
 | EF1 | No engine switch; three.js + Rapier stay | IDX §8; the whole plan builds on them | covered |
 | EF2 | Borrow Bevy's App / Plugin / Schedule / State / Resource / Event shape; own it | 01 §1–§5, §7; F8 | covered |
-| EF3 | Entities stay classes; structure-of-arrays pools only for projectiles, particles and the far crowd | 01 §0, §18–§19 (classes); 10 X5 (one `ParticlePool`) | partial (G14: no projectile / far-crowd pool) |
+| EF3 | Entities stay classes; structure-of-arrays pools only for projectiles, particles and the far crowd | 01 §0, §18–§19 (classes); 10 X5 (one `ParticlePool`); IDX §8 "After this plan" (pooled projectiles and a far crowd, an ask) | covered for particles; the other pools out (after; G14 resolved) |
 | EF4 | Adopt valibot, at trust boundaries only | F10 step 1; 01 §9 | covered |
 | EF5 | Keep the Rapier 0.20.0 pin until a phone measurement pays for 0.21 | Jake overrode it: decisions 45 and 89 → F12 | conflict, resolved by Jake (0.21, +413 KB accepted) |
-| EF6 | Keep navcat and adopt its crowd module for herds and thralls | not in the plan | gap (G14) |
-| EF7 | Own a typed FSM (skip xstate); borrow yuka's steering pattern; no behaviour-tree library | 01 §19 (`Hfsm`, owned) | covered (steering: G14) |
+| EF6 | Keep navcat and adopt its crowd module for herds and thralls | navcat stays (today's baked navmesh and its query, `src/physics/navmesh.ts`); the crowd module is in IDX §8 "After this plan" as an ask | out (after; G14 resolved) |
+| EF7 | Own a typed FSM (skip xstate); borrow yuka's steering pattern; no behaviour-tree library | 01 §19 (`Hfsm`, owned); steering behaviours in IDX §8 "After this plan" | covered; steering out (after; G14 resolved) |
 | EF8 | WebGPU containment: the renderer type in `engine/render`, one shader-patch registry, post behind `ShardRender`, one `precompile()`, no TSL | 01 §13.1–§13.2; 10 X6 | covered |
-| EF9 | No OffscreenCanvas; a kit worker pool for procedural generation (Pine's 150 ms long task); physics stays on the main thread | 01 §14 (main thread); the worker pool isn't in the plan | partial (G14) |
-| EF10 | Build: one lazy chunk per shard started at entry through `retried()`; few big chunks (`codeSplitting.groups`); subpath imports; `wildshard/layer` + slug counter; folders, not packages; re-test E188's retry on iOS 27 | F1 (aliases); F4 (lint); 01 §0 (folders); 01 §7 (lazy load); IDX §2.2 | partial (G1: chunk groups, the "main holds no shard" check and the iOS 27 retest have no step) |
+| EF9 | No OffscreenCanvas; a kit worker pool for procedural generation (Pine's 150 ms long task); physics stays on the main thread | 01 §14 (main thread); the worker pool in IDX §8 "After this plan" as an ask | covered; the worker pool out (after; G14 resolved) |
+| EF10 | Build: one lazy chunk per shard started at entry through `retried()`; few big chunks (`codeSplitting.groups`); subpath imports; `wildshard/layer` + slug counter; folders, not packages; re-test E188's retry on iOS 27 | F1 (aliases); F4 (lint); 01 §0 (folders); 01 §7 (lazy load); IDX §2.2; 10 X3 steps 7–10 (chunk groups, the main-chunk check, the shard chunk through `retried()`, the iOS 27 re-test) | covered (G1 resolved) |
 
 ### 5.2 aaa-architecture.md: the patterns (AA) and the "don't copy" list (DC)
 
@@ -357,9 +360,9 @@ The file has no numbered top 12. AA1–AA12 are the patterns its one-paragraph a
 | AA7 | Queued messages + synchronous observers; tags with parent matching; event-queue cautions | 01 §3 (`emit` queued per phase, bounded at 1,000 per frame; `ask` synchronous; `hasTag`) | covered |
 | AA8 | Type objects with parents; param tables as typed TS rows | 01 §0; 09 §1.4 (profiles with parents), §2.2, §5.2 | covered (ids are dot-case by decision 70, not `kind:name`) |
 | AA9 | GAS-lite: attributes, effects (3 durations, add / multiply, stacking), moves as data (windup / active / recovery / cancel), attack rows, one pipeline, cues | 01 §18; 09 §2–§3 | covered |
-| AA10 | AI: species rows, HFSM + utility pick + interrupts, group brains, boss = row + HP phases + goal stack, encounters, spawn director on weighted tables, aggression tokens; a brain debug overlay | 01 §12 (interrupts), §19; 09 §5 | partial (G16: no row builds the debug overlay) |
+| AA10 | AI: species rows, HFSM + utility pick + interrupts, group brains, boss = row + HP phases + goal stack, encounters, spawn director on weighted tables, aggression tokens; a brain debug overlay | 01 §12 (interrupts), §19; 09 §5; S2.3 (06 §6.3 step 9: the AI debug overlay under Debug ▸ Developer tools; IDX S2.3) | covered (G16 resolved) |
 | AA11 | Input contexts (Enhanced Input), four UI layers (CommonUI), HUD slots, inventory fragments | 01 §10–§11; 10 X1, X2 | covered |
-| AA12 | Versioned saves with migrations recorded in the save; contract tests (ids, `uses`, save keys, cue maps); layer lint | 01 §9; F10; F5; 01 §6 `defineShard`; 08 §6.3 (CueMap covers every cue) | partial (G16: a save that fails its schema has no stated behaviour) |
+| AA12 | Versioned saves with migrations recorded in the save; contract tests (ids, `uses`, save keys, cue maps); layer lint | 01 §9 (a save failing its schema: set aside, defaulted, reported, never a crash); 02 §F10 step 2 + tests; F5; 01 §6 `defineShard`; 08 §6.3 (CueMap covers every cue) | covered (G16 resolved) |
 | DC1 | Don't copy full GAS (prediction, replication, magnitude kinds, AbilityTask trees) | 01 §18 keeps add / mul / override modifiers, 3 kinds, tags, cues. Nothing else | honoured |
 | DC2 | Don't copy runtime plugin install / uninstall states | 01 §7: one generated static registry + lazy import; a switch is a page reload (21). `unload` exists only as scope disposal for the leak test | honoured |
 | DC3 | Don't copy reflection-based component injection | 01 §7: a fixed verb list | honoured |
@@ -378,7 +381,7 @@ The file has no numbered top 12. AA1–AA12 are the patterns its one-paragraph a
 | BD1 | Target: 30 fps on the hot phone; 60 as a goal column; desktop 60 | 01 §13.4; decision 35 | covered |
 | BD2 | Derivation: unit costs → frame budget → CPU / GPU lanes → M5 ruler | 01 §13.4; 05 §6.6 step 4 (`budgets.ts`); 10 X7 step 2 | covered |
 | BD3 | Calibration scene: 8 sweeps, one tap from Debug, posts to the inbox; M5 headless twin; Low Power Mode flagged | 05 §6.6 (S1.6) steps 1–3, 7 | covered |
-| BD4 | What gates where: counts per push; GPU ms on the M5; memory nightly on the Simulator | 03 §15 | partial (G2: no Simulator memory nightly) |
+| BD4 | What gates where: counts per push; GPU ms on the M5; memory nightly on the Simulator | 03 §15; 03 §14.1 (the Simulator memory run) | covered (G2 resolved) |
 | BD5 | Provisional numbers; delete the three unrelated phone draw budgets; bytes derived from Jake's time caps | 10 X7 step 2; 01 §13.4 (download MB); 13 (05/06 #7: Nine Dragon's load cap) | covered |
 | BD6 | GPU MB stays a ratchet until a jetsam reading names the limit | 01 §13.4 rollout; 03 §15 | covered |
 | BD7 | Rollout: a shard over a P number keeps its current worst as a ceiling; one calibration by Jake; a shard still over gets cut rows | 01 §13.4; 05 §6.6 step 5; 10 X7 step 3 | covered (the cut-rows rule is AGENTS.md's perf-cut rule) |
@@ -391,7 +394,7 @@ The file has no numbered top 12. AA1–AA12 are the patterns its one-paragraph a
 | CG1 | Blocking gate on `macos-15`, full Chromium (`channel: 'chromium'`), renderer assert, phone tier, counts, one job per shard, one pending run | F3.2; 03 §11.1–§11.4 | covered |
 | CG2 | Pin the image label; re-baseline on an image bump | 03 §8; 12 §8 risk row | covered |
 | CG3 | Deploy the newest gpu-green SHA | replaced by the pin during the plan (32); back after it (03 §16) | covered |
-| CG4 | Linux lane: node gates + a case-sensitive asset-URL check; SwiftShader only as a fallback | node gates exist in `deploy.yml`; the case check isn't in the plan (04 guards only case-only renames) | partial (G15) |
+| CG4 | Linux lane: node gates + a case-sensitive asset-URL check; SwiftShader only as a fallback | node gates exist in `deploy.yml`; 03 §11.6 (the `asset-case` job on `ubuntu-latest`, part of `gpu-gate`, with the `asset-case` plant); 02 §F3.2 step 2 | covered (G15 resolved) |
 | CG5 | Nightly on Jake's M5 through launchd, never a runner; a `gpu-perf` status | 03 §14 | covered |
 | CG6 | Memory and stability truth stays the iPhone | 03 §15; 12 §8 | covered |
 | CG7 | First step: a free `workflow_dispatch` probe on `macos-15` | 02 §F3.2 step 1 (`gpu-probe.yml`) | covered |
@@ -421,18 +424,18 @@ The file has no numbered top 12. AA1–AA12 are the patterns its one-paragraph a
 | ENGINE-FIT E3 | Shared `CharacterMotor` | built by PHYSICS; kept (01 §14) | covered (built) |
 | ENGINE-FIT E4 | Input actions + contexts | S1.4 + X1 (01 §10); gamepad left out by 38 | covered |
 | ENGINE-FIT E5 | Shard module interface | the whole plan: 01 §6–§7, F9, S1.1 / S2.1 / S3.1 / S4.1, S4.4 | covered |
-| ENGINE-FIT L-a | three-mesh-bvh | engine-fit §3: "borrow later, tools only"; gameplay collision stays Rapier | out (no ask holds the "later": G14) |
-| ENGINE-FIT L-b | Needle Inspector | engine-fit §3: "borrow later, dev only" | out (no ask: G14) |
-| ENGINE-FIT L-c | ECS for crowds | engine-fit §3: skip whole-game ECS; SoA pools; koota only if a crowd library is ever needed | out (the SoA pools: G14) |
+| ENGINE-FIT L-a | three-mesh-bvh | engine-fit §3: "borrow later, tools only"; gameplay collision stays Rapier; IDX §8 "After this plan" (for Explore, an ask at Z4) | out (after; G14 resolved) |
+| ENGINE-FIT L-b | Needle Inspector | engine-fit §3: "borrow later, dev only"; IDX §8 "After this plan" | out (after; G14 resolved) |
+| ENGINE-FIT L-c | ECS for crowds | engine-fit §3: skip whole-game ECS; SoA pools; koota only if a crowd library is ever needed; IDX §8 "After this plan" (the SoA pools) | out (after; G14 resolved) |
 | ENGINE-FIT L-d | three.quarks | engine-fit §3: skip now; X5 builds one `ParticlePool` first | out |
 | ENGINE-FIT L-e | @three.ez/instanced-mesh | engine-fit §3: skip (E271 evidence rule) | out |
 | ENGINE-FIT L-f | gltf-progressive | engine-fit §3: skip | out |
 | ENGINE-FIT (plan) | archived as folded in | 02 §F0 step 3 | covered |
-| FINISH-LINE S1 | A golden-path play test gates every deploy (desktop + touch; walk, swing, shot, pause + resume, p95, screenshot) | F2, F3.2, Z4 (03 §16) | partial (G19: pause / resume and per-push desktop aren't in the gate; p95 is information only, by 28′) |
+| FINISH-LINE S1 | A golden-path play test gates every deploy (desktop + touch; walk, swing, shot, pause + resume, p95, screenshot) | F2, F3.2, Z4 (03 §16); pause → resume → state identical in the scripted run (03 §5.6, both tiers); the desktop tier in the nightly and the lead's pre-milestone run (13, 02/03 #7); p95 information only (28′); IDX §8 | covered (G19 resolved) |
 | FINISH-LINE S3 | Shard modules (ENGINE-FIT E5) | this plan | covered |
 | FINISH-LINE S5 | Input actions: contexts, buffer, coyote, rebinding, gamepad | X1; gamepad after the plan (38; 11 Z4) | covered (gamepad out) |
 | FINISH-LINE S6 | Tests where the bugs are (boss, elite, quest, weather, AI, weapon timing) | F5; 09 §1.8, §3.6, §5.8; 06 §6.4 tests | covered |
-| FINISH-LINE S7 | Budgets that run (nightly `bench:ci`, committed `latest.md`) | S1.6, X7; 03 §14 (the nightly report) | partial (G19: the committed table is dropped without saying so) |
+| FINISH-LINE S7 | Budgets that run (nightly `bench:ci`, committed `latest.md`) | S1.6, X7; 03 §14 (the nightly report); IDX §8 and 03 §14: the committed `latest.md` is replaced by the gate's budget report artifact | covered (G19 resolved) |
 | FINISH-LINE (plan) | stays live, S1 / S3 / S5 / S6 / S7 marked moved | 02 §F0 step 3 (`blocked`, a live state) | covered |
 | PHYSICS-POLISH F3 | Retire `player.colliders` | F11 step 1 (every user mapped) | covered |
 | PHYSICS-POLISH F7 | Dev scenes on the registry | goes with `src/dev` (F7) | covered (by deletion) |
@@ -445,67 +448,89 @@ The file has no numbered top 12. AA1–AA12 are the patterns its one-paragraph a
 
 ## 7. Gaps (findings for the lead)
 
-Each gap names what is missing and where it should go.
+Each gap names what was missing, and the row that now covers it. **All 21 are resolved:** 13-lead-resolutions answers
+each one ("From 00-traceability §7 (gaps)"), and the gap closure applied those answers to the index, 02, 03, 05–08, 10
+and 12. The rows above point at the same homes. Nothing in this section is open.
 
-**Missing work (no row or step carries it)**
-- **G1: the chunk layout (decision 2, MW13, EF10, audit G-f).** Only IDX §2.2 says "three.js, engine + game + kit,
-  then one per shard (Vite 8 `codeSplitting.groups`)". No step in 02 / 05–08 / 10 writes that Vite config, checks that
-  `main-*.js` holds no shard code after each shard phase, or re-tests E188's `retried()` import on iOS 27. Proposed
-  home: F9 (the config + a build check), plus a bundle assertion at each milestone's done-when.
-- **G2: the nightly Simulator memory lane (decision 31, budget-design §5).** Jake said "nightly = Simulator". 03 §14's
-  nightly is M5 Chromium only, and 03 §15 puts memory on the iPhone alone. No step runs the WebContent footprint
-  check against 1.8 / 1.0 GB on the Simulator (`sim-lane.sh`) each night.
-- **G3: decision 36.** Nothing implements "laptops below an RTX 3060 get the phone tier" (the tier detection) or says
-  how desktop 60 fps is verified.
-- **G10: decisions 75, 76, 59.** The `travels` flag on item rows, the read-only Wildshard summary on the title deck (a
-  new UI), and the travel verb type exist only in 01 §20. No row builds or tests them.
-- **G13: MW rows with no disposition.** MW12 (KTX2 on the Nine Dragon phone: the plan keeps `textures: 'img'`), MW14
-  (moot by decision 21, but unstated), MW16 (flag hygiene), MW19 (soak bot), MW22 (record / replay: the door is open
-  but it isn't listed "after"). Each needs "in (row)" or "after (ask)".
-- **G14: engine-fit rows with no disposition.** The navcat crowd module, SoA pools for projectiles and the far crowd,
-  the kit worker pool for procedural generation, yuka's steering pattern. The "borrow later" libraries
-  (three-mesh-bvh, Needle Inspector) have no ask in Z4's leftover list.
-- **G15: ci-gpu-options §6.2.** No Linux case-sensitive asset-URL check. The macOS runner can't catch it.
-- **G16: two aaa items.** The brain debug overlay (only an `ai.state` event in 09 §4.1 names it). What a SaveStore key
-  does when its stored data fails the valibot schema: aaa §2.9 says "backed up and defaulted, never a boot crash", and
-  02 §F10 step 2 is silent.
-- **G17: EI23.** `BOSS_NAMES` → a content registry, and `TargetHit` → the engine combat types: no row owns either.
-- **G18: the RNG merge.** 10 X5 says "at F8", and 01 §2 says X5. F8 step 1 extends `core/rng.ts`, but no step deletes
-  Nine Dragon's `util.ts` `Rng` or `world/facade/rng.ts`.
-- **G19: FINISH-LINE S1 and S7.** The harness has no pause-and-resume step, and per-push covers the phone tier only.
-  S7's committed `latest.md` table is replaced by the nightly report without saying so.
+**Missing work (no row or step carried it)**
+- **G1: the chunk layout (decision 2, MW13, EF10, audit G-f).** Only IDX §2.2 named "three.js, engine + game + kit,
+  then one per shard (Vite 8 `codeSplitting.groups`)". **Resolved → 10 X3 steps 7–10:** the `codeSplitting.groups`
+  config with each manifest's closure in the engine chunk; `scripts/check-chunks.mjs` (Vite's manifest +
+  `chunk-modules.json`) in the pre-push gate and CI, failing on any shard plugin module in the main chunk set; the
+  shard chunk through `retried()`; the E188 re-test on iOS 27 in the Simulator (`ios-retry-check.mjs`, sim-lane).
+  Rows: decision 2, C2, G-f, MW13, EF10.
+- **G2: the nightly Simulator memory lane (decision 31, budget-design §5).** **Resolved → 03 §14.1:** each night
+  `scripts/sim-memory.mjs` boots every shard in iOS Safari through `sim-lane.sh` and records the WebContent footprint
+  (loading, play, Explorer) against 1.8 / 1.0 GB, red over a limit or on a > 10 % night-over-night rise; a
+  regression check, never phone evidence. Rows: decision 31, MW9, BD4.
+- **G3: decision 36.** **Resolved → 10 X7 steps 5–6:** `tierSelect.ts` (harness `tier` → mobile UA → the cached
+  `device` key `render.tierPick` → the renderer-string table at RTX 3060's 12.7 TFLOPS → a 2 s GPU micro-benchmark
+  against `desktopFloor`); desktop budgets from the M5 calibration × a documented `k3060` in budget-design, and the
+  nightly's projected 3060 frame per desktop pose. Row: decision 36.
+- **G10: decisions 75, 76, 59.** **Resolved → a new row X9 (IDX §4 X; 10 X9):** the `travels` flag on every item row
+  (default `false`), the travel type (`TravelRequest` / `TravelHandoff`) with the page reload as its one
+  implementation (replacing `requestShard`), and the read-only Wildshard summary on the title deck (a `global` key
+  built from the per-shard saves; its look on the Look board), with tests. Rows: decisions 59, 75, 76.
+- **G13: MW rows with no disposition.** **Resolved:** MW12 → an after ask (IDX §8); MW14 → out, moot because a switch
+  is a page reload (IDX §8 "Out, with the reason"); MW16 → 10 X8 step 5 (ask id + review-by date per Debug row, the
+  overdue list, a count ratchet); MW19 → 03 §14.2 (the soak bot, 20 min per shard, a planted leak caught); MW22 → an
+  after ask (IDX §8).
+- **G14: engine-fit rows with no disposition.** **Resolved → IDX §8 "After this plan":** the navcat crowd module,
+  pooled projectiles and a far crowd, a kit worker pool, steering, and the "borrow later" libraries (three-mesh-bvh
+  for Explore, the Needle Inspector), each an ask at Z4. Rows: EF3, EF6, EF7, EF9, L-a, L-b, L-c.
+- **G15: ci-gpu-options §6.2.** **Resolved → 03 §11.6:** the Linux `asset-case` job in `gpu-gate.yml`
+  (`scripts/check-asset-case.mjs` on `ubuntu-latest`, part of the aggregate status, proved by the `asset-case` plant);
+  02 §F3.2 step 2. Row: CG4.
+- **G16: two aaa items.** **Resolved:** the AI debug overlay → S2.3 (06 §6.3 step 9; IDX S2.3); a save failing its
+  schema → 01 §9 and 02 §F10 step 2 (set aside to `<key>.corrupt.<time>`, reset to `initial()`, reported, never a
+  crash; listed in Settings). Rows: AA10, AA12.
+- **G17: EI23.** **Resolved → S2.3 (06 §6.3 steps 7–8; IDX S2.3):** boss display names come from the boss rows (a
+  content registry; `BOSS_NAMES` deleted), and `TargetHit` / `Targets` / `TargetAnimal` move to
+  `src/engine/combat/types.ts`. Row: EI23.
+- **G18: the RNG merge.** **Resolved → 02 §F8 step 1:** F8 lands the one `Rng` class and deletes Nine Dragon's
+  `util.ts` `Rng` and `world/facade/rng.ts` (`Rng.scrambled` keeps the facade's sequence, pinned by a test); 10 X5's
+  RNG item is only a re-check; 05 §1.1 follows. Row: N-G. (01 §2's last line still says "(X5)"; F8 is the row.)
+- **G19: FINISH-LINE S1 and S7.** **Resolved:** the pause → resume → state identical step joins the scripted run
+  (03 §5.6, both tiers); the desktop tier runs nightly (13, 02/03 #7); S7's committed `latest.md` is replaced by the
+  gate's budget report artifact and the nightly report, said in IDX §8 and 03 §14. Rows: FINISH-LINE S1, S7.
 
-**Conflicts (specs disagree with a decision or with each other)**
-- **G6: 01 contradicts itself.** §19 "Where things go" says "boar, bear and horse go to `#kit/species/`", while §21
-  and 13 keep the horse in Nalati. §17's Weather row puts "rain, snow, puddles, lightning" FX in the kit, while §21
-  and 13 (05/06 #11) keep only the rain curtain.
-- **G7: the deploy pin's file.** It is `.github/deploy-pin.json` in 02 §F3.1, 03 §13 and the index, but `deploy/pin` in
-  12 §3 and 05–08 §9. 12 §3 also says "At F3", where the others say F3.1.
-- **G21 (nit):** 12 §6's Look row doesn't name the Captain's BossBar (decision 91). The index §5 does. X5's
-  pan-from-yaw count (×6) is behind the 8 copies 07 / 08 found.
+**Conflicts (specs disagreed with a decision or with each other)**
+- **G6: 01 contradicted itself** on the horse and the weather FX. **Resolved in 01 §17, §19** (the horse stays in
+  Nalati; the kit gets only the rain curtain).
+- **G7: the deploy pin's file.** **Resolved:** `.github/deploy-pin.json` everywhere. 12 §3 and 05–08 §9 now move it
+  with `deploy-pin.mjs set`, and 12 §3 says F3.1. Row: decision 32.
+- **G21 (nit).** **Resolved:** 12 §6's Look row names the Captain's shared BossBar (decision 91); 10 X5's pan-from-yaw
+  count is 8 (01 §15). Row: decision 91.
 
-**Resolved while this file was written.** The consistency pass fixed these four in its uncommitted edits, which I read
-on 2026-09-30. Re-check them once it commits.
-- **G4: decision 88.** 02 §F7 step 4 applied decision 46 (a 14-day run window). It now applies 88: a 5-day window,
-  finished asks' one-offs go, and a `--dry-run` list comes first.
-- **G5: decision 85.** 06 §6.6 (S2.6) specced 30 / 15 Hz. It now has 20 / 10 / paused, brain / body clocks,
-  interrupts and pins.
-- **G8: the nightly's token.** 03 §14 needed a Keychain token. It now uses the Mac's `gh` login, like 13 (02/03 #8).
-- **G9: the listener-patch ratchet's name.** 02 §F11 called it `implicit-capture`. It is now
-  `wildshard/no-global-listener-patch`, like 01 §24.
+**Resolved while this file was written** (by the consistency pass, committed in `0ca31c48`; re-checked after the gap
+closure)
+- **G4: decision 88.** 02 §F7 step 4 applies 88: a 5-day window, finished asks' one-offs go, a `--dry-run` list first.
+- **G5: decision 85.** 06 §6.6 (S2.6) has 20 / 10 / paused, brain / body clocks, interrupts and pins; 08 §6.2 A step 5
+  now names the same bands.
+- **G8: the nightly's token.** 03 §14 uses the Mac's `gh` login, like 13 (02/03 #8).
+- **G9: the listener-patch ratchet's name.** 02 §F11 says `wildshard/no-global-listener-patch`, like 01 §24.
 
 **Ambiguities**
-- **G11: decision 54's `Mechanism` union is never defined in one place.** 01 §6 ends it with "…". The manifests use
-  `bounds`, `grapple`, `trample`, `compendium` besides the five that Z1 lists. `grapple` is a Nine Dragon context, not
-  an engine mechanism. Z1's "every mechanism" therefore has no fixed list to prove.
-- **G12: decision 56.** "Simulation state apart from visuals and input" has no rule, lint or test beyond the seeded
-  RNG. It is only prose in IDX §2.8.
-- **G20: spec questions 13 doesn't answer.** 07 §10 Q7 (the camp people's rig differences), Q9 (crouch semantics
-  across shards), Q10 (the `creatureLook` registry). 08 §10 Q2's `chain: 'clean' | 'haze'` (13 added the other
-  `ShardRender` fields, not this one), Q6 (`boss.attempt` for the Captain as a fix), Q8 (`interact/validate.ts`: dead
-  code or a test helper). 05 §3 also still marks `kitLook`, `bag.pack` and `dev.poses` as open Q1 manifest fields
-  that 01 §6 lacks.
+- **G11: decision 54's `Mechanism` union.** **Resolved in 01 §6:** a closed list of 15 names (engine and game); a
+  shard's own verbs (riding, stealth, the grapple) are not on it. Row: decision 54.
+- **G12: decision 56.** **Resolved:** 01 §0 and §24 state the rule, `wildshard/sim-no-render` enforces it from F4 (02
+  §F4 step 1: count 0, every simulation module born under it), and the node-only actor tests are the proof (02 §F5
+  step 5). Row: decision 56.
+- **G20: spec questions 13 didn't answer.** **Resolved → 13-lead-resolutions "Still-open spec questions":** 07 Q7 (the
+  camp rig, 05/06 #14), Q9 (`ask('player.crouch', { want }) → { allowed, toggle }`, 07 §6.3 C), Q10
+  (`ctx.rows.creatureLook`); 08 Q2 (`{ chain: c.engineChain('clean') }`, C6), Q6 (`boss.attempt`, a fix: 08 §6.2 B
+  step 4), Q8 (`validate.ts` reviewed on F7's one list and kept: two tests import it); 05 / 06 / 07 / 08 Q1 (every
+  sub-field a declared manifest field). Every spec's "Questions for the lead" now reads resolved. Rows: X-4, 08 D2.
 
-**Counts.** Table 1: 13 rows (12 covered, 1 partial). Table 2: 98 rows (91 decisions, 4 revisions, 3 unnumbered).
-Table 3: 21 + 11 + 15 + 26 = 73 rows. Table 4: 25 + 18 + 22 = 65 rows. Table 5: 10 + 22 + 8 + 7 + 11 = 58 rows.
-Table 6: 26 rows. Gaps: 21 (G1–G21), 4 of them resolved while this was written (G4, G5, G8, G9).
+**Left for the lead outside this file's reach** (the gap closure edited only the index, 00, 02, 03, 05–08, 10 and 12):
+01 §2 still says the RNGs merge "(X5)" (F8 does it); 01 §6's declared sub-field list does not yet name Pine's
+`atmosphere.edgeHaze` / `wetSurfaces`, `loadout.grants[].by`, `loadout.ammo`, `bag.pack.keeps`, `boot.bytes` /
+`lateReads` / `bakedUnread` (06 §10 Q1 declares them by 13's rule); 01 §24's `sim-no-render` globs need 02 §F4's
+`src/engine/combat/view/**` carve-out for the drawing blocks; 01 §13.3 gains the engine tier knob `msaa` (07 §6.2
+step 2); `move-map.json` needs F6's `src/entry.ts` amendment (02 §F6 step 1); 09 §10 Q1 / Q2 / Q11 still say "open" for
+items 13 C4 / C5 answered.
+
+**Counts.** Table 1: 13 rows (13 covered). Table 2: 98 rows (91 decisions, 4 revisions, 3 unnumbered). Table 3: 21 +
+11 + 15 + 26 = 73 rows. Table 4: 25 + 18 + 22 = 65 rows. Table 5: 10 + 22 + 8 + 7 + 11 = 58 rows. Table 6: 26 rows.
+Gaps: 21 (G1–G21), all resolved (G4, G5, G8, G9 while this was written; the other 17 by 13 and the gap closure). No row
+is `partial`, `gap` or an unresolved `conflict`.

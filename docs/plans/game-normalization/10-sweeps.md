@@ -1,6 +1,6 @@
-# GAME-NORMALIZATION v2 · 10 — The sweeps (X1–X8)
+# GAME-NORMALIZATION v2 · 10 — The sweeps (X1–X9)
 
-The X rows collect the engine work that no single shard phase owns. A shard phase may pull a part earlier when it
+The X rows collect the engine and game-layer work that no single shard phase owns. A shard phase may pull a part earlier when it
 needs it. For example, S1.4 builds the input service and the `grapple` context, so X1 starts from there.
 
 Each row lists:
@@ -174,10 +174,54 @@ branches in `src/engine/boot/` and adds the checks.
 5. **TP17:** `unused-assets` counts `gpu.generated.ts` as a reference, so the 171 MB of shipped KTX2 is no longer
    called "dev-only".
 6. (Nine Dragon already joined the boot packs, the prefetch and the every-shard tests in S1.1.)
+7. **The chunk layout** (decision 2, MW13, EF10; 13-lead-resolutions G1). X3 runs after S4.4, when every shard is a
+   plugin, so the layout can be checked for real:
+   - `vite.config.ts` sets `build.manifest: true` and `build.rolldownOptions.output.codeSplitting.groups` (Vite 8 is
+     Rolldown; `manualChunks` is deprecated, engine-fit §5), in priority order: `three` (`test` =
+     `/node_modules[\\/]three[\\/]/`, priority 30); `engine` (`src/engine/**`, `src/game/**`, `src/kit/**`,
+     `src/main.ts`, and every shard's manifest closure, priority 20); one group `shard-<slug>` per shard (`src/shards/<slug>/**`
+     outside its manifest closure, priority 10). The shard groups are generated from the `src/shards/*/` folders,
+     so a new shard gets its chunk with no config edit.
+   - **The manifest closure.** A shard's `manifest.ts` and the node-safe modules it imports statically (Nalati's
+     `world/terrain.ts`, Pine's `boot/files.ts` …) are data the registry, the title deck and the bakers read at
+     startup, so they belong in the `engine` chunk. `scripts/gen-shards.mjs` (F9) also writes
+     `src/game/shard/manifest-closure.generated.json` (per slug, the module ids of the manifest's static import
+     closure, found with the TypeScript compiler API as `classify.mjs` does); `--check` covers it.
+   - **Which modules land where.** A small Vite plugin, `vite/chunkReport.ts`, writes
+     `dist/.vite/chunk-modules.json` (`{ <chunk file>: { name, moduleIds, gzBytes } }`) in `generateBundle`, next to
+     Vite's `dist/.vite/manifest.json`.
+8. **The build check** `scripts/check-chunks.mjs dist` (`pnpm check:chunks`). From Vite's manifest it builds the
+   **main chunk set** (what a cold boot fetches before any shard's plugin): the entry chunk (`src/entry.ts`,
+   `isEntry`), the chunks of `three` and `src/main.ts` (which the entry imports dynamically, E188), and every chunk
+   those reach through static `imports`. With `chunk-modules.json` it fails (exit 1, naming the module and the chunk) when:
+   - a `src/shards/**` module outside its manifest closure is in the main chunk set;
+   - a shard's non-closure modules are spread over more than its one `shard-<slug>` chunk;
+   - a `shard-<slug>` chunk holds another shard's module.
+   It prints the chunk table (name, gz KB, module count), and the lead records it in E357 at X3. It runs in
+   `scripts/vercel-tree-gate.sh` after `vite build` (the pre-push gate) and in `deploy.yml`'s web build step, so every
+   push from X3 on is checked.
+9. **The shard chunk goes through the E188 retry.** `retried()` moves from `src/entry.ts` (the composition root, where
+   F6 left it) to `src/engine/boot/retry.ts`, a leaf module with no imports. `src/entry.ts` imports it back by that deep
+   path (`#engine/boot/retry`, never the `#engine` index, so the entry's first task stays as small as today; the
+   composition root is outside the layer rule, F4). The staged boot
+   wraps `manifest.load()` and the `render()` import in it too (01 §7 load order), so a shard chunk dropped
+   mid-download on LTE gets the same two retries (0.8 s, 2.5 s) as `three` and `main` do today.
+10. **The E188 re-test on iOS 27** (EF10: iOS 27's module loader was rewritten). `scripts/ios-retry-check.mjs` serves the
+    X3 build (`scripts/serve-build.sh`) behind a local proxy that cuts the connection mid-body on the **first**
+    request for the `three`, `engine` and `shard-pine-hollow` chunks. Inside `scripts/sim-lane.sh run --max 15
+    wildshard-iphone …` (the iOS 27 runtime), it opens `http://127.0.0.1:<proxy>/?chunk=pine-hollow&skipintro=1&mute=1`
+    in Safari. It reads the page through Web Inspector (`ios_webkit_debug_proxy`, as `scripts/nine-sim-memory.mjs`
+    does). Pass: the proxy logs a second, complete request for each of the three files, and
+    `typeof window.__wildshard.boot === 'object'` (the world was reached) within 120 s. The result is recorded in E357.
+    If WebKit no longer re-fetches a failed module URL, that is a found bug: it is fixed inline (the retry imports a
+    fresh URL), and this check is its test.
 
 **Tests**
 - The asset audit.
 - A node test that every manifest's `boot.files(tier)` resolves.
+- `test/check-chunks.test.ts`: `check-chunks.mjs` on fixture `manifest.json` / `chunk-modules.json` pairs. A shard
+  plugin module in the main chunk set fails; a manifest-closure module there passes; a shard split over two chunks
+  fails.
 - The harness's boot fingerprint (the list of packs fetched per shard × tier) is identical, except the Explore precache
   gain on 3 shards (expected, a bug fix).
 
@@ -186,6 +230,9 @@ branches in `src/engine/boot/` and adds the checks.
 - The asset audit is green.
 - The Explore offline preload works on 4 shards (an offline boot test in the harness: service worker installed, then
   network off, then Explore opens).
+- `pnpm check:chunks` exits 0 on the X3 build, with the JS chunks `three`, `engine`, one `shard-<slug>` per shard,
+  plus the ones Rolldown keeps apart (Rapier's bindings, workers) listed by name in E357.
+- `scripts/ios-retry-check.mjs` passes on iOS 27, and its result is recorded in E357.
 
 ## X4 — The animation engine layer (decision 64; ANIMATION-REMASTER's mechanism half)
 
@@ -222,8 +269,8 @@ Each item is its own commit, with parity green:
 | **LUT loader** | `world/lut.ts:28` and Nine Dragon `look/light/grade.ts:43` | one loader in `#engine/render` |
 | **Particle pools** | 7: `nightFx.ts:19`, `fx/Impacts.ts:51`, `Crossbow.ts:408` (`Puffs`), `Sword.ts:336` (`Stars`), `AnimalManager.ts:298` (`BloodFX`), `Enemies.ts:138`, Nine Dragon `grapple/fx.ts:55`; plus a second `Puffs` in `pinehollow/fxKit.ts:17` | one `ParticlePool` in `#engine/fx`; each pool's parameters are data |
 | **Telegraphs** | balbal `Wedge` (`balbalWarriors.ts:42`) beside `GroundTell` | `GroundTell` gains `'wedge'` |
-| **RNG** | 3 | 1 (01 §2), at F8 |
-| **Helpers** | `lin()` ×6, `smoothstep` ×~15, `sstep` ×5, pan-from-yaw ×8 (07 §1 counted 8; 01 §15 says ×6), loop-at-offset ×5, `compassDir` ×2 | one each, in `#engine/math` and `#engine/audio/util` |
+| **RNG** | 3 | done at F8: 02 F8 step 1 lands the one `Rng` and deletes Nine Dragon's `util.ts` `Rng` and `world/facade/rng.ts` (13-lead-resolutions G18). X5 only re-checks that `grep -rn "class Rng" src` prints one line |
+| **Helpers** | `lin()` ×6, `smoothstep` ×~15, `sstep` ×5, pan-from-yaw ×8 (01 §15; 13-lead-resolutions C8, G21), loop-at-offset ×5, `compassDir` ×2 | one each, in `#engine/math` and `#engine/audio/util` |
 | **Skin lockers** | `SkinLocker` (`Skins.ts:283`), `NalatiSkinLocker` (`nalatiSkins.ts:45`), Pine `finishes.ts` | one cosmetics service in `#game` + per-shard skin rows |
 | **Slash trail** | `Sword.ts:702-797` and Nine Dragon `vm/trail.ts` (197) | one trail block in `#engine/combat/blocks`; the shader stays per shard |
 | **Dead code** | `meleeGeo.ts:157-213` | deleted at F7 |
@@ -266,18 +313,56 @@ also gets a byte-identical vertex-colour test on one model per baker.
 3. **The gate reads the derived numbers** (03-harness-gate). The rollout ceilings live in `lint/ratchet.json` under
    `budgets.<slug>.<tier>`.
 4. **The in-game budget readout** (Debug ▸ Performance) shows derived versus measured per pose.
+5. **Tier selection** (decision 36: "a mid gaming PC (RTX 3060 class) at 60 fps; laptops below it fall back to the
+   phone tier"; 13-lead-resolutions G3). `src/engine/render/tierSelect.ts` replaces `core/tier.ts`'s
+   `AUTO_TIER = mobileUA ? 'phone' : 'desktop'`. It runs once at boot, before the renderer is configured (F9 already
+   moved the `TIER` read behind a function), and the first rule that applies wins:
+   1. the harness param `tier` (already on the `harness` allowlist; the test, capture and bench scripts keep using it);
+   2. a phone or tablet user agent (today's `mobileUA`): `phone`, with no benchmark;
+   3. the `device` save key `render.tierPick` = `{ v: 1, renderer, tier, via: 'table' | 'bench', score, at }`: its
+      `tier`, when `renderer` equals this device's `UNMASKED_RENDERER_WEBGL` string (a new GPU or driver re-picks);
+   4. **the renderer-string table** `src/engine/render/gpuClasses.ts`: rows of `{ match: RegExp, tflops, source }` for
+      the GPU families a renderer string names (NVIDIA GeForce GTX / RTX, AMD Radeon RX and the integrated Radeons,
+      Intel UHD / Iris Xe / Arc, Apple M1–M5 by variant), each with its published FP32 throughput and the page it came
+      from. A match with `tflops ≥` the RTX 3060's 12.7 gives `desktop`; below it gives `phone`;
+   5. **no row matches** (a masked or generic string, such as Safari's "Apple GPU"): the **2 s GPU micro-benchmark**
+      runs on the loading screen at first boot. It draws a fixed fill-bound shader (the `fill` sweep of S1.6's
+      calibration scene) into an offscreen 1280 × 720 target in a loop for 2 s, fenced with `gl.finish()`. The score
+      is full-target passes per second. `score ≥ desktopFloor` gives `desktop`, else `phone`. `desktopFloor` = the
+      M5's score in `budgets/calibration.json` × `k3060` (step 6).
+   The pick is written to `render.tierPick`, a `device` key (never exported, never reset, 01 §9), so the benchmark runs
+   once per device. Debug ▸ Performance gets a read-only row `tier pick` (tier, `via`, the table row or the score) and a
+   `RE-PICK` action that deletes the key and reloads. There is no URL switch.
+6. **Desktop budgets and how desktop 60 fps is verified** (decision 36; budget-design §2). X7 adds a section "Desktop:
+   the M5 : 3060 ratio" to [budget-design](../../design/engine-fit-v2/budget-design.md). It documents `k3060` = the RTX
+   3060's throughput ÷ the M5 Max's, from cited public sources: the FP32 figures and one cross-platform GPU benchmark
+   that lists both chips. `src/engine/render/budgets.ts` derives the desktop row from the M5 calibration (S1.6's
+   headless M5 twin) × `k3060`: the desktop capacity per frame at 60 fps is the M5's measured capacity × `k3060`.
+   The nightly (03 §14) then reports a **projected 3060 frame** for each desktop pose (the M5's measured desktop
+   frame ms ÷ `k3060`) against 16.7 ms. That projection is how "desktop 60 on a 3060" is checked while no 3060 is on
+   hand. When a 3060-class reading is ever taken (the calibration scene run on such a PC adds an `rtx3060` device entry
+   to `budgets/calibration.json`), it replaces `k3060` for the desktop row, and the numbers re-derive with no code
+   edit.
 
 **Tests**
 - Node: the formula (a fixture calibration gives known numbers), every manifest's inputs are complete.
+- Node, `test/engine/tier-select.test.ts`: a mobile user agent gives `phone` and never runs the benchmark; a cached
+  pick with the same renderer string skips both table and benchmark; a changed renderer string re-picks; one fixture
+  string per table family gives its class; an unmatched string runs the (stubbed) benchmark, and scores just above and
+  just below `desktopFloor` give `desktop` / `phone`; `?tier=` still wins. The desktop derivation with a fixture `k3060`
+  gives known numbers.
 - Gate: the budget check per shard × tier.
 
 **Done when**
 - No tier knob is named after a shard.
 - Every shard has derived budgets.
 - The gate enforces them.
-- The budget-design doc's "provisional" labels are replaced by calibrated numbers.
+- The budget-design doc's "provisional" labels are replaced by calibrated numbers, and its "Desktop: the M5 : 3060
+  ratio" section cites its sources.
+- `core/tier.ts`'s `AUTO_TIER` is gone; the tier comes from `tierSelect.ts`, and the Debug row shows the pick.
+- The nightly report prints the projected 3060 frame for every desktop pose.
 
-## X8 — Session health, analytics, capture, strings (decisions 47, 78–80)
+## X8 — Session health, analytics, capture, strings, flag hygiene (decisions 47, 78–80; MW10, MW16)
 
 **Steps**
 1. **Session health.**
@@ -295,14 +380,111 @@ also gets a byte-identical vertex-colour test on one model per baker.
 4. **Strings.** Every player-facing string still inline in `src/engine/**` moves to `#engine/strings`. Shards moved
    theirs during their phase. A lint rule (`wildshard/no-inline-ui-string`: string literals passed to `toast`,
    `textContent`, `innerText` or a label field) ratchets to 0.
+5. **Flag hygiene** (MW16; 13-lead-resolutions G13). Debug rows are "inventory with a carrying cost" (mobile-web-practice
+   MW16), so each one gets an owner and a date:
+   - Every row of `DEBUG_ROWS` (`src/engine/ui/debugOptions.ts` after F6) and every row a plugin adds through
+     `ctx.debugRow` gains two **required** fields: `ask: 'E<n>'` (the ask that owns it) and `reviewBy: 'YYYY-MM-DD'`
+     (at most 90 days after the row lands). The row type makes both required, so a row without them fails `tsc`.
+     `note` keeps its one line.
+   - **Backfill** in the X8 commit: each existing row's `ask` is the ask id its `note` already names (AGENTS.md's
+     recipe), and its `reviewBy` = the X8 date + 90 days.
+   - `test/debug-flag-hygiene.test.ts` fails on a row with an `ask` that has no `docs/tasks/asks/<id>.md` (or legacy
+     `ASKS.md` row), or a `reviewBy` more than 90 days after today (so no row can park itself far out). It **lists** the overdue rows
+     (`reviewBy` before today) in its output and in `.cache/debug-overdue.txt`, but an overdue row never fails it (a
+     date must never block a push).
+   - `.claude/hooks/session-brief.sh` prints the overdue list (row key, ask, `reviewBy`), so the lead sees it at every
+     session start. Overdue means "Jake picks a winner, or the date moves with a reason in the ask".
+   - **A count ratchet:** `lint/ratchet.json` gains `"debugRows": { "max": <the row count at X8>, "raisedBy": [] }`.
+     A row above `max` fails `pnpm test`, unless the same commit raises `max` and appends the new row's ask id to
+     `raisedBy`. So every new row is a deliberate, reviewed rise, and a deleted row lowers `max` (`pnpm lint:ratchet
+     --update`).
+   - AGENTS.md's "No URL switches" recipe (step 2, the `opt(…)` row) gains the two fields in the same commit.
 
 **Tests**
 - Node: the session classifier on fixture heartbeats; the sink's batching; the string tables' completeness (every key
-  used exists).
+  used exists); the flag-hygiene test above on a fixture registry (an unknown ask fails, a `reviewBy` 91 days out
+  fails, an overdue row is listed and passes, a row over `max` without a `raisedBy` entry fails).
 - The harness asserts that the analytics requests fire (mocked `api/`).
 
 **Done when**
-- The session brief shows the crash-free rate.
+- The session brief shows the crash-free rate and the overdue Debug rows.
 - The analytics digest shows at least one day of data.
 - Capture uses the engine clock.
 - `wildshard/no-inline-ui-string` = 0.
+- Every Debug row has an `ask` and a `reviewBy`, and `lint/ratchet.json` holds the `debugRows` ceiling.
+
+## X9 — The game-layer extras: travel-ready items, the Wildshard summary, the travel type (decisions 59, 75, 76; 13-lead-resolutions G10)
+
+**Starting point.**
+- F10's `SaveStore` holds one document per shard plus `global`; `progress` (with each shard's earned feats) is a
+  `shard` key, and 01 §9 makes the Wildshard summary a `global` key.
+- The shards register their items and feats as rows (`ctx.rows.item`, `ctx.rows.feat`: S2.1, S3.1, S4.3).
+- `src/game/travel/switch.ts` (F6; kept by F11) is today's page-reload shard switch: `requestShard(slug, { enter |
+  explore | arena })`, with the arena arrival in the `session` key `shardArrival.arena` (F10's name for
+  `ws.shardArrival.arena`).
+- 01 §20 names the three parts. No earlier row builds them.
+
+**Steps**
+1. **The `travels` flag** (decision 75). The item row type in `#game` (`ItemRow`, `src/game/bag/items.ts`, the rows
+   `ctx.rows.item` takes; today's `ITEMS` entries in `game/Inventory.ts:33` are its first rows) gains
+   `travels?: boolean`. `ctx.rows.item` stores it as `false` when it is absent, so every registered row has it. No row
+   sets it `true` in this plan: the flag is the door, not a feature. No Bag UI changes.
+2. **The travel type and its page-reload implementation** (decision 59; 01 §20). `src/game/travel/travel.ts`
+   replaces `switch.ts`:
+   ```ts
+   export interface TravelRequest { to: ShardSlug; mode: 'enter' | 'explore' | 'arena'; arrive?: SpawnPose }
+   export interface TravelHandoff {
+     v: 1; from: ShardSlug | null; to: ShardSlug; mode: TravelRequest['mode'];
+     arrive: SpawnPose | null;                                   // null = the manifest's spawn
+     carry: readonly { id: ItemId; count: number }[];            // only rows with travels: true (none today)
+     at: number;                                                 // Date.now() when written
+   }
+   export function travel(req: TravelRequest): void;            // the only implementation today: a page reload
+   ```
+   - `travel()` builds the hand-off (`from` = `app.shard?.slug ?? null`; `carry` = the running shard's inventory lines
+     whose row has `travels: true`, removed from that shard's inventory in the same write). It stores it in the
+     `session` key `travel.handoff` (per tab, 01 §9), calls `setTitleArrival` as today, and navigates exactly as
+     `requestShard` does today: the same URL built from the `chunk` harness param, with the same params stripped.
+   - On the next boot, `#game`'s `shard.data` stage reads `travel.handoff` and deletes it at once. A hand-off whose
+     `to` isn't the booting shard, or that is more than 60 s old, is dropped. `mode` does what today's
+     `consumeArenaArrival` and the title arrival do; `arrive` replaces the manifest `spawn` for this boot; `carry` is
+     added to the arriving shard's inventory through the Bag (`#game`), per shard (decisions 74, 77).
+   - The callers move to `travel()`: the title deck's ENTER / EXPLORE / practice buttons (`src/ui/HUD.ts` today) and
+     the shard-complete card's next-shard button (`game/quest/Complete.ts`, reading `manifest.next`). `requestShard`,
+     `consumeArenaArrival` and the `shardArrival.arena` key are deleted; `test/parity/renames/X9.json` maps
+     `session:shardArrival.arena` → `session:travel.handoff` for the `saves` field.
+3. **The read-only Wildshard summary** (decision 76: "completion per shard on the title deck, total feats").
+   `src/game/summary.ts` keeps the `global` key `summary` = `{ v: 1, shards: { <slug>: { earned, total, playS, at } } }`:
+   - When a shard loads, and whenever a feat is earned, `#game` writes that shard's line: `earned` = its earned feat
+     count from its `progress` key; `total` = the number of feat rows the plugin registered; `playS` = `progress`'s time
+     played.
+   - **Built from the per-shard saves:** when `summary` is missing (the first boot after X9, or after an import), the
+     title deck rebuilds `earned` and `playS` for every shard by reading that shard's `progress` key read-only
+     (`SaveSlot.read(slug)`: its document only, never its code), with `total` unknown until the shard is next played.
+     A shard document that fails its schema reads as "not visited" (F10's aside rule), and the summary never throws.
+   - **The UI:** a read-only strip on the title deck (`src/game/titleDeck.ts`) under the cards: one line per shard in
+     deck order, "<name> · <earned> / <total> FEATS" (or "<earned> FEATS" while `total` is unknown, "NOT VISITED" when
+     the shard has no document), and the total "WILDSHARD · <Σ earned> FEATS". It has no buttons, and its strings come
+     from `#game`'s string table. It stays hidden while every shard is "not visited".
+   - **Its look is Jake's pick:** before it ships, two variants (A / B, iPhone portrait, a mockup from a live capture
+     of the title deck) go on the **Look** board (12 §6). The picked one is built; the other is not.
+
+**Tests**
+- Node:
+  - every row `ctx.rows.item` registers has `travels === false` unless set;
+  - the hand-off round trip: `travel()` writes it; a fake next boot of the target reads it and deletes it; a stale or
+    wrong-slug hand-off is dropped; an inventory line whose row `travels` is carried, and one whose row doesn't is not;
+  - `buildSummary` on fixture documents (two shards played, one never visited) gives the known lines and Σ; a missing
+    `summary` key is rebuilt from the `progress` keys; a corrupt shard document reads as "not visited" with no throw.
+- Harness: title → enter on every shard, the Explore arrival and Nine Dragon's practice arrival are identical under
+  `test/parity/renames/X9.json`. The title deck's DOM hash is re-baselined once, on the Look board's OK.
+
+**Board:** Look (the summary strip, A / B).
+
+**Done when**
+- `grep -rn "requestShard\|consumeArenaArrival\|shardArrival" src` prints nothing; every shard switch goes through
+  `travel()`.
+- Every registered item row has `travels` (all `false`).
+- The title deck shows the picked summary strip, and the `summary` key is `global` (exported and imported with the
+  save).
+- Parity is green, with X9's rename map.
