@@ -5,6 +5,7 @@ import { Owned } from '../src/game/loot/Owned';
 import { Bounty, bountyKey } from '../src/game/loot/Bounty';
 import { COIN_VALUES, MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from '../src/game/loot/coins';
 import { driftwoodFinds, nextCharmAt } from '../src/game/loot/finds';
+import { DRIFTWOOD_PLACES } from '../src/game/quest/Places';
 import { DRIFTWOOD_ISLE } from '../src/chunks/driftwood-isle';
 import { CHUNKS, PROTOTYPES } from '../src/chunks/registry';
 
@@ -133,7 +134,7 @@ describe('FINDS', () => {
     const v = driftwoodFinds(flags(['glass:1', 'glass:7', 'glass:15', 'glass:16', 'seen:pier', 'seen:hut', 'shard:cave']), noOwned);
     expect(v.counters).toEqual([
       { label: 'Sea glass', n: 3, of: 15 },
-      { label: 'Places', n: 2, of: 11 },
+      { label: 'Places', n: 2, of: DRIFTWOOD_PLACES.length }, // 9 since E318 (the N / W landings are not places)
       { label: 'Glyph shards', n: 1, of: 3 },
     ]);
     expect(v.glass).toHaveLength(15);
