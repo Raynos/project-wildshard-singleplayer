@@ -14,3 +14,7 @@
 #hud.practice-active .ws-touch .ws-touch-hover,
 #hud.practice-active .ws-touch .ws-ride-horse,
 #hud.practice-active .ws-touch .ws-cmp-disc { display: none !important; }
+/* E321: and a feature playground's (src/playgrounds/): the board (the room turns it off every frame) and the HORSE whistle
+   (it calls your steppe horse from 3 km under the field) — its DISMOUNT face stays: it gets you off the track horse */
+#hud.playground-active .ws-touch .ws-touch-hover,
+#hud.playground-active .ws-touch .ws-ride-horse:not(.ws-ride-dismount) { display: none !important; }

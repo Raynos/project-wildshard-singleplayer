@@ -18,6 +18,7 @@ import { meleeShard } from '../chunks/ChunkDef';
 import { TIER_CONFIG } from '../core/tier';
 import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
+import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
 import { AttackTokens, reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 
@@ -409,6 +410,9 @@ export class AnimalManager {
   debug = false;
   /** dev: animals ignore the player (no alert / flee) */
   calm = false;
+  /** the player is not among them: `calm`, or a practice room is up (the arena, a playground — 1–3 km over the shard at the
+   *  same x / z: no pack hunts, no horse bolts, no boar charges from under it; E321) */
+  private get unaware(): boolean { return this.calm || practiceRoom.open; }
   /** the shard's pieces for the self-thinking enemy species (see the header; Enemies.ts fills it) */
   enemyWorld: EnemyWorld = {};
   /** a place a herd animal's wander walks to instead of a random point (within r m of it), or null for the usual wander —
@@ -753,7 +757,7 @@ export class AnimalManager {
       const c = this.thinkCtx;
       const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
       c.dt = dt; c.t = performance.now() * 0.001; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
-      c.calm = this.calm; c.herd = herd !== null ? herd.members : null; c.world = this.enemyWorld;
+      c.calm = this.unaware; c.herd = herd !== null ? herd.members : null; c.world = this.enemyWorld;
       c.hurt = (damage) => { if (!this.melee || (this.facing(a, player, HURT_ARC) && this.canReach(a, player))) this.onCharge?.(a, damage); }; // melee shards: only in front of it, never through a wall (E296)
       c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
       a.sampleTerrain();
@@ -779,7 +783,7 @@ export class AnimalManager {
     const wary = br.wary > 0 ? T.waryBoost : 1;
     const pSpeed = sprinting ? 7.2 : this.playerSpeed;
     let rate = 0;
-    if (!this.calm && dPlayer > 0.01) {
+    if (!this.unaware && dPlayer > 0.01) {
       const grazing = a.state === 'graze';
       const sight = (grazing ? T.sightRangeGraze : T.sightRange) * wary;
       if (dPlayer < sight) {
@@ -797,7 +801,7 @@ export class AnimalManager {
     }
     br.sensed = rate > 0;
     br.awareness = br.sensed ? Math.min(1, br.awareness + rate * dt) : Math.max(0, br.awareness - T.forgetRate * dt);
-    const panic = !this.calm && dPlayer < T.panicDist * (boar ? M.chargeDist : 1);   // for chargers this is the charge trigger
+    const panic = !this.unaware && dPlayer < T.panicDist * (boar ? M.chargeDist : 1);   // for chargers this is the charge trigger
 
     // ambient calls
     br.callT -= dt;
@@ -872,7 +876,7 @@ export class AnimalManager {
         // hunters only: walk the player down, huffing, and charge once inside panicDist (again after rechargeCd)
         const st = T.stalk;
         if (st === undefined) throw new Error(`AnimalManager: ${a.kind} is stalking without HuntTuning.stalk`);
-        if (this.calm || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; br.backoff = 0; this.enter(a, br, 'wander'); break; }
+        if (this.unaware || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; br.backoff = 0; this.enter(a, br, 'wander'); break; }
         if (this.rules !== null) { if (this.circle(a, br, player, dPlayer, st.speed * M.speed, dt)) break; }
         else {
           if (panic && br.chargeCd <= 0) { this.enter(a, br, 'charge'); break; }
@@ -1132,7 +1136,7 @@ export class AnimalManager {
    * short start, within impactAlert m their heads come up. `strength` scales both radii (1 = a bolt).
    */
   disturb(point: THREE.Vector3, strength = 1): void {
-    if (this.calm) return;
+    if (this.unaware) return;
     for (const a of this.animals) {
       if (!a.alive) continue;
       const T = this.tuningFor(a);

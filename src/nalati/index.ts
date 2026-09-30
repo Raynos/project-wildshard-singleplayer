@@ -52,6 +52,7 @@ import { NalatiSkinLocker, NalatiSkinPainter } from '../player/nalatiSkins';
 import { HITCHING_RAIL } from '../world/nalati/layout';
 import { heightAt } from '../world/Heightfield';
 import { activeRegistry } from '../world/registry';
+import { practiceRoom } from '../core/practiceRoom';
 import { modelContext } from '../models/model';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
@@ -195,6 +196,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.phase, storm: () => weather.weather.stormActive });
   updates.push((dt, t) => {
     if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
+    if (practiceRoom.open) { elites.bar?.hide(); return; }   // a practice room over the steppe: no banner, no bar, no lair found from 3 km up (E321)
     elites.update(dt, t);
     for (const s of elites.scripts) if (s.animal !== null) s.animal.mem['noHeadBar'] = 1;   // the elite's own bar, not the combat one
   });
@@ -332,7 +334,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const night = wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
   elites.ghosts = night.riders;   // B12: Qara Batyr rides B11's captain rig at the head of a line
   titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
-  updates.push((dt, t) => { night.update(dt, t); });
+  updates.push((dt, t) => { if (!practiceRoom.open) night.update(dt, t); });   // no night riders shooting up at a practice room (E321)
   {
     const attach = nalati.attachAnimals, bind = nalati.bindPlay, sheepT = nalati.sheepTarget;
     nalati.attachAnimals = (animals) => { const w = attach(animals); night.attach(animals); return w; };   // night.attach never throws (it logs)

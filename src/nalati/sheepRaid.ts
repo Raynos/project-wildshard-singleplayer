@@ -10,6 +10,7 @@ import { painterlyMaterial } from '../world/painterly';
 import { inChunk } from '../world/Heightfield';
 import { TIER } from '../core/tier';
 import { setting } from '../ui/Settings';
+import { practiceRoom } from '../core/practiceRoom';
 
 /**
  * Wolves raiding the flock, and the mounted shepherd who rides out to defend it (NALATI-FINISH B1, N13 — the archived
@@ -160,7 +161,8 @@ export class SheepRaid {
   start(force = false, playerPos?: THREE.Vector3): boolean {
     const f = this.flock;
     if (f === null || this.raiding || f.alive < MIN_FLOCK) return false;
-    if (!force && (playerPos === undefined || Math.hypot(playerPos.x - f.cx, playerPos.z - f.cz) > WATCH)) return false;
+    // a practice room over the pasture (a playground, the arena: the same x / z, 1–3 km up) is not watching it (E321 / E328)
+    if (!force && (practiceRoom.open || playerPos === undefined || Math.hypot(playerPos.x - f.cx, playerPos.z - f.cz) > WATCH)) return false;
     const pack = this.raidPack(f);
     const lead = pack?.alpha?.alive === true ? pack.alpha : pack?.members.find((w) => w.alive) ?? null;
     if (pack === null || lead === null) return false;

@@ -6,6 +6,7 @@ import { grassHeightAt } from '../world/GrassTrample';
 import { grassBaseHeightAt } from '../world/GrassField';
 import '../ui/styles/stealth.css';
 import { ROW, hudSlots } from '../ui/hudSlots';
+import { practiceRoom } from '../core/practiceRoom';
 
 /**
  * Nalati crouch + grass stealth (plan row B9; docs/design/nalati/stealth-and-storms.md "Grass stealth",
@@ -23,7 +24,7 @@ import { ROW, hudSlots } from '../ui/hudSlots';
  * you take flattens it to 15 % for ~20 s, so the trampled height hid the disc from anyone who walked in (E287). Touch: a CROUCH disc fades in in the base HUD's slot over
  * JUMP (hudSlots `up0`; the first time per session with a pulse ring + a TALL GRASS chip) and is a TOGGLE. Desktop: C toggles, Ctrl holds —
  * both gated to long grass like the disc. Jumping (stand + jump in one), sprinting, leaving the grass, the hoverboard,
- * swimming and mounting all stand you up. Driven through `player.keys` ('KeyC' = crouched: Player's own crouch — eye
+ * swimming, mounting and a practice room (the arena, a playground, 3 km over the grass: `practiceRoom.open`, E321) all stand you up. Driven through `player.keys` ('KeyC' = crouched: Player's own crouch — eye
  * 1.03 m, 2.2 m/s), so Player.ts needs no change and Pine Hollow / Driftwood never see any of this.
  *
  * DETECTION: the creatures own their senses (Pack / Herd via wildEnv.playerVisibility — grass cover at you and along the
@@ -162,7 +163,8 @@ export class Stealth {
   // ── the crouch: long grass, the toggle, what stands you up ──
   private crouchStep(dt: number): void {
     const p = this.player, k = p.keys;
-    const blocked = p.hover || p.swimming || this.isMounted();
+    // a practice room (the arena, a playground: 3 km over the steppe) has no grass — the grass under its x / z is not yours (E321)
+    const blocked = p.hover || p.swimming || this.isMounted() || practiceRoom.open;
     // your own footprint doesn't count: the grass round you as it stands (E287)
     const long = !blocked && grassBaseHeightAt(p.position.x, p.position.z) >= LONG_GRASS;
     if (long) { this.onT += dt; this.offT = 0; } else { this.offT += dt; this.onT = 0; }
@@ -218,7 +220,7 @@ export class Stealth {
     }
     this.threat = clamp01(level);
     this.threatX = tx; this.threatZ = tz;
-    const context = this.inLongGrass || crouched;
+    const context = !practiceRoom.open && (this.inLongGrass || crouched);   // no eye pip in a practice room (E321)
     this.state = !context ? 'none' : level >= 1 ? 'detected' : noticed ? 'noticed' : crouched && this.cover >= HIDDEN_COVER && quiet ? 'hidden' : 'visible';
     this.render(dt);
   }
