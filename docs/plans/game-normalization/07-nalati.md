@@ -17,9 +17,12 @@ the shard side and every engine line that branches on Nalati.
 
 [05-nine-dragon.md](05-nine-dragon.md) §0 applies unchanged: line references are at `3f83fd2e` (no `src/` change up to
 `0b6aa045`), every row carries a **grep key** that survives F6's moves, paths after F6 are written
-`src/engine/…` / `src/kit/…`, and `shard:x` here means `src/shards/nalati-grasslands/x`. Every commit runs
-`node scripts/parity.mjs --shards <changed> --tier phone,desktop` (all four shards on any engine edit), `pnpm test`,
-a pathspec commit `E357 S3.<n>: …` and `scripts/push-main.sh` (12-process §5).
+`src/engine/…` / `src/kit/…`, and `shard:x` here means `src/shards/nalati-grasslands/x`. Every commit (12-process §5,
+R1-10): a pathspec commit `E357 S3.<n>: …`; on it, `node scripts/parity.mjs --export=HEAD --shards=<changed>
+--tiers=phone` green against the lane's baselines (all four shards on any engine edit) and `pnpm test` green; before
+every push, `node scripts/parity.mjs --export=HEAD --shards=all --tiers=phone,desktop` green, then
+`scripts/push-main.sh`. A subagent runs only the per-commit phone lane for its shard (< 4 min); anything longer is
+"queued: <command>" for the lead.
 
 **At S3 start** S1 and S2 are done. That means these exist and are used here without being rebuilt:
 - the plugin verbs, the staged boot, tier resolution, `bootTrace`, `ctx.debug.expose` (05 §5);
@@ -65,7 +68,7 @@ shards' audio and runs parity on all four.
 
 | Files (lines) | Destination | When | Why / what changes |
 |---|---|---|---|
-| `index.ts` (427) | `shard:plugin.ts` (the install order, §4) + `shard:runtime.ts` (`NalatiRuntime`: the fields of today's `Nalati` interface `:66-127`) | S3.1 | `wireNalati` is deleted; its body becomes `install(ctx)` in the same order. The `updates` array (`:124`, 14 pushes) becomes 14 systems (§4). The hand-chained wrappers of `attachAnimals` (`:343`, `:375`), `bindPlay` (`:332`, `:344`, `:381`, `:406`), `sheepTarget` (`:345`), `onImpact` (`:386`) and `onShot` (`:333`) disappear: each part subscribes to events itself. `new URLSearchParams(location.search).get('ride')` (`:384`) → `ctx.app.params.get('ride')` (harness param, `lint/url-params.json` has `ride`) |
+| `index.ts` (427) | `shard:plugin.ts` (the install order, §4) + `shard:runtime.ts` (`NalatiRuntime`: the fields of today's `Nalati` interface `:66-127`) | S3.1 | `wireNalati` is deleted; its body becomes the plugin's `world` / `kit` / `play` hooks (R1-24) in the same order. The `updates` array (`:124`, 14 pushes) becomes 14 systems (§4). The hand-chained wrappers of `attachAnimals` (`:343`, `:375`), `bindPlay` (`:332`, `:344`, `:381`, `:406`), `sheepTarget` (`:345`), `onImpact` (`:386`) and `onShot` (`:333`) disappear: each part subscribes to events itself. `new URLSearchParams(location.search).get('ride')` (`:384`) → `ctx.app.params.get('ride')` (harness param, `lint/url-params.json` has `ride`) |
 | `ride.ts` (178) | `shard:ride/ride.ts` | S3.3 | Riding + taming wiring. `ctx.animals.onCharge?.(a, d)` (`:76`) → `combat.hit({ source: 'env.ride', tags: ['env.ride'], amount: d, cause: 'Thrown from the saddle' })` (09 §3.3 *Ride*) |
 | `stealth.ts` (270) | `shard:stealth/stealth.ts` | S3.3 | Stops writing `player.keys` (`:164-180`): answers `ask('player.crouch')` (§6.3 C). Its `document` / `window` key listeners (`:136-141`) go (the `crouch` action). `hudSlots.disc` / `statusRow` (`:123-133`) → `ctx.hud.disc` / `ctx.hud.widget` (band from `ROW.stealth`, `ROW.grass`). `player.preUpdate` chaining (`:143-144`) → a system `shard.nalati.stealth.crouch` in `input`, `before: ['engine.player.input']`. `Object.assign(window, { __stealth })` (`:145`) → `ctx.debug.expose('nalati.stealth', …)` |
 | `sound.ts` (222) | `shard:audio/sound.ts` | S3.5 | The kit voices `fire(id)` / `impact(…)` (`:164-178`) become Nalati's CueMap entries; the creature calls and hooves stay here as the shard's voice table; `bind(audio, music)` becomes plugin wiring; `window.__nalatiSound` (`:220`) → `ctx.debug.expose('nalati.sound')` |
@@ -130,7 +133,7 @@ The 18 lines holding a `nalatiNow()` call (20 calls) are marked **N1–N18**; `w
 
 | # | Line(s) | Grep key | Today | Replaced by |
 |---|---|---|---|---|
-| — | 127, 286, 473 | `import { wireNalati, type Nalati }` / `let nalati: Nalati \| null = null` / `if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; }` | builds the whole Nalati world inside the `props` step, then lays the paths | `plugin.install` in `level.world` (§4), which ends with `ctx.app.world.addPaths()` (the engine verb `addPaths` in `main.ts:416-418`, moved to `src/engine/world/paths.ts` at S3.1; its registry piece id `paths` unchanged). The step key `props` still receives the progress (`ctx.progress`) |
+| — | 127, 286, 473 | `import { wireNalati, type Nalati }` / `let nalati: Nalati \| null = null` / `if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; }` | builds the whole Nalati world inside the `props` step, then lays the paths | `plugin.world(ctx)` in `level.world` (§4, R1-24), which ends with `ctx.app.world.addPaths()` (the engine verb `addPaths` in `main.ts:416-418`, moved to `src/engine/world/paths.ts` at S3.1; its registry piece id `paths` unchanged). The step key `props` still receives the progress (`ctx.progress`) |
 | N1 | 495 | `const wildlife = nalatiNow()?.attachAnimals(animals) ?? null` | Wildlife over the AnimalManager after the `animals` step | the plugin's `level.play` stage: `rt.wildlife = new Wildlife(ctx.app.creatures, …)` (§4; the creature service exists in `level.play`, 01 §8) |
 | N2 | 496-497 | `const ride = nalatiNow()?.ride ?? null` / `if (ride) interactables.push(ride.interactable)` | riding + the one horse prompt | `shard:ride/ride.ts` built in `level.play`; its interactable registered with `ctx.piece`'s interactable list (the registry's interactables, 01 §7 `piece`) |
 | N3 | 510-513 | `const nalatiClock = nalatiNow()?.weather.clock` / `dayClockClock(nalatiClock, params.has('time') ? 'live' : setting('time'))` | Nalati's clock behind `WorldClock` | gone at S2.4 (06 §6.4 A): `app.world.dayCycle`. S3.1 deletes the line if S2.4 left it |
@@ -209,7 +212,7 @@ The 18 lines holding a `nalatiNow()` call (20 calls) are marked **N1–N18**; `w
 |---|---|---|---|
 | `ui/debugOptions.ts:69, 138, 158, 160-161` | `const nalati: When = (c) => c.chunk.slug === 'nalati-grasslands'` / `opt('clockSpeed'` / `opt('balbals'` / `opt('ghosts'` | Nalati's Debug rows; `creatures` shown on Pine or Nalati | engine row `clockSpeed` shown when `uses` has `dayCycle` (it drives `DayCycle.scale`, every clock's); shard rows `balbals`, `ghosts` through `ctx.debugRow` (group `creatures`); `creatures` shown when a species row has a procedural fallback (06 §2.2) |
 | `ui/Settings.ts:126-132` | `balbals: ['auto', 'wake', 'off']` / `ghosts:` / `clockSpeed:` | the option keys | `clockSpeed` stays an engine key; `balbals`, `ghosts` are declared by the shard (06 Q4) |
-| `ui/hudSlots.ts:28, 40` | `export const ROW = { vitals: 0, ammo: 1, steed: 2, stealth: 3, grass: 4, pill: 10 }` | Nalati's rows in the base | S3.3 registers `steed`, `stealth`, `grass` as widgets at today's order numbers 2 / 3 / 4 with `ctx.hud.widget('status', el, n, scope)`; the `ROW` constant loses the three names; X2 turns the numbers into bands |
+| `ui/hudSlots.ts:28, 40` | `export const ROW = { vitals: 0, ammo: 1, steed: 2, stealth: 3, grass: 4, pill: 10 }` | Nalati's rows in the base | S3.3 registers `steed`, `stealth`, `grass` as widgets at today's order numbers 2 / 3 / 4 with `ctx.hud.widget('status', el, n)` (the context supplies the scope, R1-25); the `ROW` constant loses the three names; X2 turns the numbers into bands |
 | `ui/Combat.ts:7, 171-172, 194` | `import { riding, pastRidden } from '../player/riding'` / `a === riding.horse` | the floats skip the ridden horse | `app.player.mountedOn` (§1.4 Mount row) |
 | `ui/HurtArc.ts:76, 90` | `wolf: 'Torn down by', kokbori: …, horse: 'Trampled by', argymaq: 'Trampled by'` / `if (def.slug === 'nalati-grasslands') return 'respawning on the north road'` | Nalati's death card verbs and respawn text | the species rows' `killVerb` string; `strings['respawn.default'] = 'respawning on the north road'` (the shard string table, 05 B4's mechanism) |
 | `ui/titleDeck.ts:24-26, 50` | `{ slug: 'nalati-grasslands', name: 'Nalati Grasslands', label: 'Alpine steppe', badge: 'Early access'` | the card | the generated registry (F9): `manifest.status: 'earlyAccess'` gives the badge |
@@ -264,7 +267,8 @@ export default defineShard({
   treeCount: 1400,                                                         // carried as data
   style: 'painterly',
   kitLook: 'painterly',                                                    // Q1, declared (01 §6): creatures, swim hands, the catalog
-  uses: ['weather', 'dayCycle', 'elites', 'bosses', 'quests', 'trample'],
+  uses: ['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice',
+    'loot', 'feats'],                                                     // R1-02: exactly what it runs today (swim: the Kunes; loot: the elites' and bosses' drops, 09 §5.6); no coins, no compendium (Pine's only), no pack (0 slots). The grass trample is a kit look piece; riding and stealth are its own verbs (§6.3)
   ground: { terrain: TERRAIN },                                            // pondMask = river + brook, waterLevel = RIVER.level (the def's :472)
   assets: {                                                                // carried as data — unused by the painted terrain; kept for the PBR contract (nalati-grasslands.ts:611-616)
     groundLayers: ['leafy_grass', 'stony_dirt_path', 'rock_ground', 'forest_ground_04'],
@@ -309,7 +313,7 @@ export default defineShard({
   weather: () => import('./world/storm').then((m) => m.STEPPE_STORM),      // S2.4 profile; the SteppeStorm class
   render: () => import('./look/render').then((m) => m.shardRender()),      // S3.2
   tiers: { phone: { msaa: 2 }, desktop: { msaa: 4 } },                    // grade.ts:118-120's MSAA as the engine composer's `msaa` knob (§6.2 step 2); the rest of the look reads the tier itself (bake.ts)
-  budgets: {
+  budgets: {                                                               // inputs only; S3.5 derives the numbers, its F2-baseline ceilings until then (R1-14)
     phone: { fps: 30, lanes: 'default' },
     desktop: { fps: 60, lanes: 'default' },
     load: { coldPlay4G: 35.5 },                                            // budget-design §6.6
@@ -352,7 +356,7 @@ export default defineShard({
     cues: () => import('./audio/cues').then((m) => m.CUES),
     alertOnlyHostile: true,                                                // Q1 — main.ts:1108, 1122
   },
-  input: ['ride', 'ride.break', 'stealth'],                                // S3.3
+  input: ['ride.foot', 'ride', 'ride.break', 'stealth'],                   // S3.3 (`ride.foot`: R1-30)
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),   // :599
   boot: {
     steps: {                                                               // steps.ts:86-100
@@ -396,11 +400,13 @@ Fields that disappear: `id`, `displayName`, `gridCoords`, `biome` (→ `label`),
 in the same sequence:
 
 ```ts
-export default class NalatiPlugin extends ShardPlugin {
-  async install(ctx: ShardContext): Promise<void> {
+export default class NalatiPlugin extends ShardPlugin {    // staged hooks, each awaited in its boot stage (R1-24); every ctx verb is bound to ctx.scope (R1-25)
+  private rt: NalatiRuntime | null = null;                  // made in world(); kit() and play() run after it, in stage order
+  private runtime(): NalatiRuntime { if (this.rt === null) throw new Error('nalati-grasslands: world() has not run'); return this.rt; }
+  async world(ctx: ShardContext): Promise<void> {           // ── level.world: main.ts's grass step first (it ran before props), then wireNalati :127-216 in order ──
     ctx.strings(STRINGS);                                     // 'respawn.default', the toasts of index.ts:258-262, weapon / tool names
     const rt = new NalatiRuntime(ctx.scope);                  // shard:runtime.ts — replaces the Nalati interface
-    // ── level.world: main.ts's grass step first (it ran before props), then wireNalati :127-216 in order ──
+    this.rt = rt;
     // the wind: no call — the engine's WindField (app.world.wind) reads manifest.wind (01 §17); the Bow family and the grass read it
     rt.grass = buildGrass(ctx);                               // GrassV2 (Grass.ts:129 today; progress into the `grass` key)
     installPainterly(ctx);                                    // syncPainterlySun, setPainterlyLook, system shard.nalati.painterly (:127-134)
@@ -414,16 +420,20 @@ export default class NalatiPlugin extends ShardPlugin {
     rt.elites = installElites(ctx, rt);                       // lairs (:198-205)
     rt.boss = installKurgan(ctx, rt);                         // the dungeon + doors (:211-216)
     ctx.app.world.addPaths();                                 // main.ts:473 — after the decks registered (NALATI-MERGE P1)
-    // ── level.kit ──
+  }
+  kit(ctx: ShardContext): void {                            // ── level.kit ──
     ctx.rows.weapon(BOW_ROW); ctx.rows.weapon(SABRE_ROW); ctx.rows.weapon(SPEAR_ROW); ctx.rows.weapon(RIFLE_ROW);
     ctx.rows.weapon(GOLDEN_BOW_ROW); ctx.rows.weapon(NAIZAGAI_ROW);                        // S3.3 (granted by replace)
     ctx.rows.ammo(ARROW_ROWS); ctx.rows.species(NALATI_SPECIES); ctx.rows.encounter(NALATI_ELITES);
     ctx.rows.encounter(GOLDEN_KING); ctx.rows.encounter(STORM_TITAN); ctx.rows.spawn(NALATI_SPAWNS);
+    ctx.rows.speciesLook(NALATI_LOOKS);                       // R1-27: the SpeciesRows are simulation only (the eagle's `locomotion: 'fly'`: the engine's flying body); rigs and meshes are SpeciesLooks, registered apart
     ctx.rows.item(NALATI_ITEMS); ctx.rows.feat(NALATI_FEATS); ctx.rows.creatureLook('painterly', painterlyAnimalMaterial);
-    // ── level.play (main.ts :495-497, :752, :901-929, then index.ts's wrappers, in order) ──
+  }
+  play(ctx: ShardContext): void {                           // ── level.play (main.ts :495-497, :752, :901-929, then index.ts's wrappers, in order) ──
+    const rt = this.runtime();
     rt.wildlife = installWildlife(ctx, rt);                   // attachAnimals (:311-316), wildEnv, braceKills, toasts (:216-306)
     installNight(ctx, rt);                                    // nightEnemies (:338-346): balbals at dusk, ghost riders at night
-    rt.ride = installRide(ctx, rt);                           // wireRide + Mount + Taming + Reins + RideHUD (:365-392); contexts ride, ride.break
+    rt.ride = installRide(ctx, rt);                           // wireRide + Mount + Taming + Reins + RideHUD (:365-392); contexts ride.foot, ride, ride.break (§6.3 B)
     rt.stealth = installStealth(ctx, rt);                     // Stealth (:309, :324-327); context stealth
     rt.skins = installSkins(ctx, rt);                         // NalatiSkinPainter (:407-424) + the Bag's SKINS
     installEncounters(ctx, rt);                               // boss(GOLDEN_KING), boss(STORM_TITAN), elite × 5 (main.ts:908-926)
@@ -461,7 +471,7 @@ export default class NalatiPlugin extends ShardPlugin {
 | Events listened | `weapon.fired` (stealth reveal, wildlife `lastShotT`), `weapon.impact` (herd disturb, stallion TRUST), `actor.died` (quest clues, feats), `player.died` (dismount), `player.respawned` (quiver / javelins refill), `practice.active`, `app.ready` | — | `main.ts:694, 704, 1194-1197`, `adventure.ts:222`, `index.ts:398-402` |
 | Asks answered | `combat.targets.ray` × 3 (sheep, night riders, the heart), `combat.aimTargets`, `player.crouch`, `player.stepSurface`, `feat.toast`, `weather.damage`, `death.checkpoint` (via the boss runtime), `damage.modify` (the species rules: balbal, ghost rider, horse, 09 §5.4) | — | `index.ts:330`, `main.ts:1150, 898, 686`, `stealth.ts:164-180` |
 | Pieces | every id today: the POI pieces (`NalatiPOIs.place`), the rock models, the dressing, the dungeon pieces (`nalati-kurgan-seal` …), the camp people (`nalati-camp-child` …), the balbal statues, the paths | `level.world` / `level.play` | `index.ts:150-181`, `KurganDungeon.ts:808`, `campPeople.ts:291`, `Balbals.ts:43` |
-| Input contexts | `stealth`, `ride`, `ride.break` | §6.3 | `stealth.ts:136-141`, `Mount.ts:209-212`, `Taming.ts:88-89` |
+| Input contexts | `stealth`, `ride.foot`, `ride`, `ride.break` | §6.3 | `stealth.ts:136-141`, `Mount.ts:209-212`, `Taming.ts:88-89` |
 | HUD | the stealth row + grass meter + CROUCH disc (`ROW.stealth` / `ROW.grass`, spot `up0`), the steed row + GALLOP / HORSE / LEAN L / LEAN R / OFFER discs (`ROW.steed`, spots `r0`, `edge-l`, `lean-l`, `lean-r`, `aim`), the elite bar, the boss bar (engine encounter widgets), the weather chip (`ws:weather`) | `ctx.hud.widget` / `ctx.hud.disc` | `stealth.ts:123-133`, `RideHUD.ts:96-108` |
 | Bag | SKINS (rows + wear), FINDS (the elites, their prizes, the places) | `ctx.bag` | `main.ts:630, 753` |
 | Debug rows | `balbals`, `ghosts` (group Creatures & NPCs) | `ctx.debugRow` | `debugOptions.ts:160-161` |
@@ -501,7 +511,7 @@ export default class NalatiPlugin extends ShardPlugin {
    sheepTarget → night → titan; onImpact → ride; onShot → stealth first): the event listeners register in that order,
    and `order` values keep it where two listeners of one event exist.
 3. **World build in `level.world`.** The engine's `props` step no longer branches: `main.ts:473` is deleted; the
-   engine calls `plugin.install` in `level.world` (S1.1's stage) and the plugin reports progress into the `props`,
+   engine awaits `plugin.world(ctx)` in `level.world` (S1.1's stage, R1-24) and the plugin reports progress into the `props`,
    `edge` and `grass` keys through `ctx.progress` (the loading bar's labels and weights are identical). `addPaths`
    moves to `src/engine/world/paths.ts` and is called by the plugin after its decks; for the other shards the engine
    calls it after `level.world` unless the manifest says `ground.paths: 'plugin'` (Nalati's value, Q1).
@@ -613,11 +623,12 @@ Steps: the rows; `nalatiKit.ts` and `shard:loadout/legacyKit.ts` (§6.1 step 4) 
 
 | Context | Pushed / popped | Actions (keyboard · touch) | Replaces |
 |---|---|---|---|
-| `ride` | pushed by `Mount.mount()`, popped by `dismount()` | `move` (steer), `ride.gallop` (Shift · GALLOP disc at `r0`), `ride.whistle` (X · reserved `verb.1` from X1), `use` (dismount E · the prompt), `ride.horseTab` (the HORSE disc at `edge-l`) | `Mount.ts:209-212` keydown X / Shift; `RideHUD.ts:96-100` discs |
-| `ride.break` | pushed while Taming breaks a stallion, over `ride` | `lean.left` / `lean.right` (A / D · LEAN L / LEAN R at `lean-l` / `lean-r`), `ride.offer` (G · OFFER at `aim`, reserved `verb.2` from X1); `blocks: ['attack', 'aim', 'swap']` | `Taming.ts:88-89` keydown / keyup G; `RideHUD.ts:101-103`; `ride.taming.onBreaking` (`main.ts:928`: weapons hidden and off) → `app.equipment.stowed` while the context is on top |
+| `ride.foot` (R1-30) | pushed in `level.play` and never popped; it sits under `ride` (contexts are additive, R1-29), so today's on-foot verbs stay callable on foot | `ride.whistle` (X · the HORSE disc at `edge-l`, shown on foot once a horse is bonded; reserved `verb.1` from X1): whistles the bonded horse, a no-op in the saddle as `Mount.whistle()` is today; `ride.offer` (G held · the OFFER disc at `aim`, held; reserved `verb.2` from X1): live and shown only on foot while `Taming.view.offer` is true (a peaceful taming approach: within 12 m, ALERT < 33), adding TRUST as today | `Mount.ts:209-212` keydown X (bound whatever the mount state); `RideHUD.ts:96-100` (HORSE on foot), `:103`, `:196-201` (OFFER's visibility); `Taming.ts:88-89` keydown / keyup G, `:147-150`, `:165` |
+| `ride` | pushed by `Mount.mount()`, popped by `dismount()` | `move` (steer), `ride.gallop` (Shift · GALLOP disc at `r0`), `use` (dismount E · the prompt), `ride.horseTab` (the HORSE disc at `edge-l` reads DISMOUNT in the saddle, not while breaking; the higher context's relabel wins per disc spot, R1-29) | `Mount.ts:209-212` keydown Shift; `RideHUD.ts:96-100` discs |
+| `ride.break` | pushed while Taming breaks a stallion, over `ride` | `lean.left` / `lean.right` (A / D · LEAN L / LEAN R at `lean-l` / `lean-r`); `blocks: ['attack', 'aim', 'swap']`. OFFER is not here: today it shows only on foot (`RideHUD.ts:196`) | `RideHUD.ts:101-102`; `ride.taming.onBreaking` (`main.ts:928`: weapons hidden and off) → `app.equipment.stowed` while the context is on top |
 
 - The touch discs keep their spots (`r0`, `edge-l`, `lean-l`, `lean-r`, `aim`) through `ctx.hud.disc` until X1 moves
-  whistle and offer to `verb.1` / `verb.2` (10-sweeps X1 step 4). The context declares `touch.verbs: { 'verb.1':
+  whistle and offer to `verb.1` / `verb.2` (10-sweeps X1 step 4). `ride.foot` declares `touch.verbs: { 'verb.1':
   'ride.whistle', 'verb.2': 'ride.offer' }` now, so X1 needs no Nalati edit.
 - `riding.ts` is deleted: `Mount` sets `app.player.mountedOn = horse` on mount and `null` on dismount; the creature
   raycast (`creatures.raycast`) skips it (today's `pastRidden`), `Combat.ts:194` reads it.
@@ -628,10 +639,16 @@ Steps: the rows; `nalatiKit.ts` and `shard:loadout/legacyKit.ts` (§6.1 step 4) 
 frame the motor asks `ask('player.crouch', { want }) → { allowed, toggle }` (01 §10; 13-lead-resolutions still-open
 07#9), where `want` is the action's state this frame (`input.held('crouch')`, plus `pressed` for a latch). With no
 answerer the default answer is `{ allowed: true, toggle: false }`: the motor crouches while the key is held, which is
-today's raw-key behaviour on every other shard, identical. Nalati's stealth answers: `allowed` only in long grass, on
-foot, not swimming, not mounted, not in a practice room; `toggle: true`, so a press latches the crouch and the next
-press releases it, as today's latch (`stealth.ts:164-180`, moved verbatim onto the answer). The motor keeps the latch
-state and drops it the moment an answer says `allowed: false` (leaving the grass stands the player up, as today). The `stealth` context (pushed on foot on Nalati) adds no
+today's raw-key behaviour on every other shard, identical. Nalati's stealth answers with today's predicate, moved
+verbatim onto the answer (`stealth.ts:164-180`; R1-30): `allowed` when not blocked (not on the hoverboard, not
+swimming, not mounted, not in a practice room) **and** either in long grass (today's `IN_AFTER` / `OUT_AFTER`
+hysteresis) or `crouchHere()`, which is true during a taming approach (`Taming.view.trust !== null`,
+`nalati/index.ts:297`), long grass or not. `want` names the binding pressed (01 §10's `want` carries it): **C and the
+touch CROUCH disc latch** (Nalati answers `toggle: true`: a press latches the crouch and the next press releases it)
+and **Ctrl stays a held crouch** (`toggle: false`: crouched only while Ctrl is held and `allowed`, today's
+`ctrlDown`). The motor keeps the latch state and drops it the moment an answer says `allowed: false` (leaving the
+grass stands the player up, as today) **or the player sprints or jumps** (today's reset, `stealth.ts:175-176`; a full
+stick push on the phone is not a sprint while crouched). The `stealth` context (pushed on foot on Nalati) adds no
 action; it owns the CROUCH disc at `up0` and the stealth / grass status rows. `stealth.ts`'s three raw listeners go
 (`wildshard/no-raw-input` −3), as do Mount's (−1) and Taming's (−2).
 
@@ -646,12 +663,15 @@ differs from Pine's rig (a per-person breathing phase, the elder's pipe), it is 
 Nalati branch. Parity: each person's pose at the three harness times identical (the NPC pose check of 03-harness-gate).
 
 **Tests:** `weapon-profiles` (Nalati rows), the `replace` test (golden bow, Naizagai keep the quiver),
-`test/shards/nalati-grasslands/ride.test.ts` (mount pushes `ride`; a stallion break pushes `ride.break`, stows the
-weapon, `ride.offer` on G; dismount pops both; `mountedOn` set and cleared), `stealth.test.ts` (crouch in long grass
-latches; out of grass it does not; mounted stands up), `test/engine/input-context.test.ts` gains the `blocks` case.
+`test/shards/nalati-grasslands/ride.test.ts` (`ride.foot` is on from `level.play`: X and the HORSE disc whistle a
+bonded horse on foot, OFFER works on G / the disc only on foot during a peaceful approach; mount pushes `ride` and
+HORSE reads DISMOUNT; a stallion break pushes `ride.break` and stows the weapon; dismount pops both; `mountedOn` set
+and cleared; R1-30), `stealth.test.ts` (C / the disc latch in long grass; out of grass they do not; a taming
+approach crouches without long grass; Ctrl crouches only while held; leaving the grass, a sprint and a jump each drop
+the latch; mounted stands up; R1-30), `test/engine/input-context.test.ts` gains the `blocks` case.
 **Done when:** `grep -rn "nalatiKit\|riding\.\|pastRidden\|player\.keys" src` outside `src/shards/nalati-grasslands/`
-finds only the engine's own `Player` key set; the harness's mount → gallop → dismount run, a taming break and a crouch
-in the grass are identical; `no-raw-input` fell by 6.
+finds only the engine's own `Player` key set; the harness's mount → gallop → dismount run, a whistle on foot, an
+OFFER during a taming approach, a taming break and a crouch in the grass are identical; `no-raw-input` fell by 6.
 
 ### 6.4 S3.4 — bosses and elites on the encounter runtime
 
@@ -684,8 +704,9 @@ in the grass are identical; `no-raw-input` fell by 6.
    · charge · wheel · lead · beaten · ridden, S18), the flock (`Flock.ts`) as `GroupBrain` subclasses in
    `shard:creatures/`; marmots (`fx` tick). `sheepRaid.ts:59, 236` → `'ai'`. The pack policy reads the director
    (09 §5.5).
-6. **Tick classes**: every Nalati brain declares `tick: 'ai'` (20 Hz near / 5 Hz from 60 m / paused from 160 m);
-   engaged elites and bosses `'always'` while engaged or in an arena (09 §5.7).
+6. **Tick classes**: every Nalati brain declares `tick: 'ai'`, decision 85's bands (R1-30): near 0–60 m brain 20 Hz +
+   body every frame; mid 60–160 m brain 10 Hz + body every 2nd frame; far 160 m+ paused; engaged elites and bosses
+   `'always'` while engaged or in an arena (09 §5.7).
 
 **Tests:** `test/ai/boss-phases.test.ts` (both bosses enter their phases at the listed fractions; `death.checkpoint`
 true inside the kurgan and the arena), the strike table S10–S28, `test/combat/damage-pipeline.test.ts` B3,
@@ -769,6 +790,11 @@ the manifest's `ScoreSource`; Nalati's `SetScore` gets its scene from `shard:aud
 ambience's `onZone`, `night` from the day cycle, `storm` from `SteppeStorm`, `boss: 'king'` from the King's fight).
 `Stems.ts` `SlotName` / `SLOTS` / `STEPPE_SLOTS` become each source's own list.
 
+**G. Nalati's derived budgets** (R1-14; M3 is Nalati's milestone). The gate derives Nalati's per-pose numbers from
+the budget formula (S1.6) at its three harness poses; until this row Nalati's check used its F2-baseline ceilings. A
+pose over its derived number keeps its current worst as a ceiling in `lint/ratchet.json` (may only go down), with the
+derived number printed as its target.
+
 **Tests:** `test/engine/audio/voices.test.ts` (a generated and a sampled voice through one `play`; `at` pans with
 `panFromYaw`), `ambience.test.ts` (Nalati's zone weights and bed gains at 12 fixed points equal `SteppeAmbience`'s;
 Pine's at its 9 zones equal `ForestAmbience`'s), `cue-map.test.ts` (every `cue.*` the engine emits is mapped or
@@ -777,7 +803,7 @@ files byte for byte).
 **Done when:** `grep -rn "steppe\|nalati\|Steppe\|NALATI\|'forest'\|ForestAmbience" src/engine/audio` is empty
 (Driftwood's `legacyIsland.ts` is the only shard-named leftover, deleted at S4.3); the harness's audio fingerprint
 (beds, score slots, voices played in the scripted walk + swing + shot) is identical on Nalati, Pine and Nine Dragon;
-the mixer has one voice engine.
+the mixer has one voice engine; the gate prints Nalati's derived numbers and enforces its ceilings (R1-14).
 
 ## 7. (f) Bugs fixed inline in this phase (each with a test)
 
@@ -795,7 +821,8 @@ the mixer has one voice engine.
 
 ## 8. (g) Parity expectations
 
-**Identical** (`scripts/parity.mjs --shards nalati-grasslands --tier phone,desktop`; all four on engine edits): the
+**Identical** (`scripts/parity.mjs --export=HEAD --shards=nalati-grasslands --tiers=phone` on every commit,
+`--tiers=phone,desktop` before a push; all four on engine edits; R1-10): the
 systems list (new ids per 03's id map), the registry (sorted), the scene census except N3, programs except N3,
 draws and triangles at the three harness poses at pinned `time` and `weather` (`?time=` and `?weather=` are harness
 params), the walk and `--trails` routes (0 stuck, the Nalati legs of `physics-route.json`), a shot to a kill with the
@@ -803,13 +830,15 @@ bow, a sabre kill, a javelin kill, the mount → gallop → dismount run, a tami
 and Titan scripted runs, the elites' scripted encounters, the quest beats (`?quest=`, `?questflags=`), the audio
 beds and score slots, the HUD slots, the save keys.
 
-**Expected to differ:**
+**Expected to differ.** Each row is a pending item from the commit that makes it (05 §8, R1-13): listed in
+`reviews/pending.json` with its expected fingerprint delta, recorded with `parity --accept <ids>`, shown yellow by the
+gate, and OK'd by Jake (re-baselined) or reverted before the pin moves.
 
 | Difference | Row | Where it is shown |
 |---|---|---|
 | Elite / King / night-enemy strikes no longer land through walls | S3.4 | the creatures board (Nalati clips) |
 | The painterly clouds mesh and program gone (never drawn) | S3.2 | M3 summary (census, programs −1, build ms) |
-| Nalati brains think at 20 Hz near / 5 Hz past 60 m / paused past 160 m (S2.6's rates reach Nalati's own brains now) | S3.4 | the creatures board (a pack at 40 / 100 / 200 m) |
+| Nalati brains think at 20 Hz near / 10 Hz from 60 m (body every 2nd frame) / paused past 160 m (decision 85, R1-30; S2.6's rates reach Nalati's own brains now) | S3.4 | the creatures board (a pack at 40 / 100 / 200 m) |
 | Strikes sampled on the fixed step, not the brain tick (hits up to one tick earlier) | S3.4 | the creatures board (09 §7 "strike sampling") |
 | Pine's and Driftwood's boot audio lists lose the Nalati entries they never decoded | S3.5 | M3 summary (bytes) |
 | B3: none visible (Nalati sets no cap) | S3.4 | the test output on the board |
@@ -818,13 +847,15 @@ beds and score slots, the HUD slots, the save keys.
 
 | Step | Detail |
 |---|---|
-| Gate | `gpu-gate` green on HEAD; parity green on 4 shards; `pnpm test` green with the ratchets lower than at M2 (`no-shard-branch`, `no-raw-input` −6 + the X-less ones, `no-raw-save`, `no-raw-random-time`) |
-| Pin | After Jake's go: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M3 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
+| Flow | As M1 (05 §9, R1-15): gate green on HEAD → boards to Jake → Jake OKs the board items (or they are fixed / reverted) → the pin moves to HEAD → deploy → Jake plays it live → **Jake's go starts S4**. The go is not a ship gate |
+| Gate | `gpu-gate` green on HEAD: Nine Dragon's, Pine Hollow's and Nalati's budget checks on their derived budgets (S1.6, S2.6, S3.5), Driftwood's on its F2-baseline ceilings (R1-14); parity green on 4 shards; `pnpm test` green with the ratchets lower than at M2 (`no-shard-branch`, `no-raw-input` −6 + the X-less ones, `no-raw-save`, `no-raw-random-time`) |
+| Pin | After Jake OKs the board items, with no item left in `reviews/pending.json` (R1-13, R1-15): `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M3 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1: ~10.2k lines from engine folders, 9.5k from `src/nalati`, 5.8k from `src/world/nalati`), lines deleted (`wireNalati` + its wrappers, `PainterlySky.ts`, `nalatiKit.ts`, `riding.ts`, the Nalati halves of `Audio.ts` / `Music.ts` / `Stems.ts`), the ratchets before / after, Nalati's derived budgets and ceilings, the engine audio's shape (one voice pool, one ambience class, one routing) |
-| Boards | **Creatures** (Nalati's wall fixes, the tick rates on packs and herds, strike sampling, the B3 test output) and the **audio** check (a one-line table: every shard's audio fingerprint identical; no listening page, nothing new was generated). iPhone portrait, clips ≤ 10 s |
-| Jake plays | Nalati on the pinned build: the camp, a ride to the bowl, a taming break, a crouch-stalk in the long grass, a wolf pack, the Golden King if he wants, a storm |
-| Decision asked | AskUserQuestion: "Nalati M3: go?" (recommended: yes), with the summary and the board |
-| Reopening | On Jake's go: `src/shards/nalati-grasslands/` (+ `test/shards/nalati-grasslands/`, `art/nalati-grasslands/`, `public/assets/nalati/`, `public/assets/music/nalati/`, `public/assets/sfx/nalati-grasslands/`) reopens to content agents (12-process §2) |
+| Boards | **Creatures** (Nalati's wall fixes, the tick rates on packs and herds, strike sampling, the B3 test output) and the **audio** check (a one-line table: every shard's audio fingerprint identical; no listening page, nothing new was generated). iPhone portrait, clips ≤ 10 s, from the harness's capture of HEAD (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is fixed / reverted (R1-13) |
+| Jake plays | Nalati **live** on the pinned build, after the deploy (R1-15): the camp, a ride to the bowl, a taming break, a crouch-stalk in the long grass, a wolf pack, the Golden King if he wants, a storm. To play before the pin moves: a Vercel preview deployment of the candidate (`vercel deploy --prebuilt`, which keeps `/api`), not `release-url.sh` (R1-15) |
+| Decision asked | Two AskUserQuestions (R1-15): the summary + board first (each item OK / fix / revert), whose OKs move the pin; then, after he has played it live, "Nalati M3: go?" (recommended: yes) |
+| Rollback | If the pinned M3 build breaks on Jake's phone: `node scripts/deploy-pin.mjs rollback <sha>` to a SHA in the pin history (M2 or earlier), with no gate check; M0 is past F10, so it can't read the v2 saves (accepted, decision 13; stated on the rollback) (R1-16) |
+| Reopening | On Jake's go, `src/shards/nalati-grasslands/` reopens to content agents (12-process §2). `scripts/check-lock.mjs`, the `commit-msg` hook F0 builds (R1-09), passes a commit without the `E357-Lead: yes` trailer only when every path is on Nalati's allowlist: `src/shards/nalati-grasslands/**`, `test/shards/nalati-grasslands/**`, `art/nalati-grasslands/**`, the asset folders its manifest declares (`public/assets/nalati/**`, `public/assets/music/nalati/**`, `public/assets/sfx/nalati-grasslands/**`), `scripts/blender/nalati-grasslands/**`, `docs/tasks/asks/**`; generated files are built, not committed (R1-11). From then on Nalati's lane owns its baselines: a content commit re-records them in the same commit (`parity --rebaseline nalati-grasslands`), and every other shard must stay identical, the cross-shard proof (R1-12) |
 
 ## 10. Questions for the lead
 

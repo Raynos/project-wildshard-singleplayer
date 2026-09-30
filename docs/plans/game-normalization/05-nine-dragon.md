@@ -17,8 +17,8 @@ of engine code that branches on it today.
 | **Line references** | `file:line` refers to the tree at `3f83fd2e` (no `src/` change since `a9904a84`). F1–F12 run first and move files (F6) and lines (F8, F10, F11). Every row therefore also gives a **grep key**: a short quoted fragment of the code that is still unique after the move |
 | **Paths after F6** | F6's codemod has moved `src/chunks/nine-dragon-stack/` to `src/shards/nine-dragon-stack/` (`#shards/nine-dragon-stack`), engine folders to `src/engine/…`, and generated files to `src/engine/boot/`. `src/main.ts` keeps its path until S4.4. A path written `shard:x` means `src/shards/nine-dragon-stack/x` |
 | **At S1 start** | F0–F12 are done: the spine (App, systems, states, events, scope, services, seeded RNG, game clock: F8), the generated registry with `ShardManifest` and `ShardPlugin` (F9), SaveStore (F10), the resident host retired (F11), Rapier 0.21 (F12), the parity harness with Nine Dragon in it (F2) and the GPU gate (F3). F6 renamed `def.ts` to `manifest.ts` mechanically: at S1 start it still carries the old hook fields (`sword`, `structures`, `traversal`, `fov`, `bounds`, `map`, …) under the transitional type 02-foundations F6 defines. S1.1 removes them |
-| **Order inside S1** | S1.1 → S1.4 → S1.2 → S1.3 → S1.6. S1.5 runs beside them: its model jobs queue on the machine-wide model lock and are run by the lead in the background (12-process §4). S1.4 comes before S1.2 because the Fei Zhua's LOCK / JUMP wiring is the first input context, and S1.2's Weapon contract then builds on the input service |
-| **Every commit** | 12-process §5: `node scripts/parity.mjs --shards <changed> --tier phone,desktop` green, `pnpm test` green, pathspec commit `E357 S1.<n>: …`, `scripts/push-main.sh`. Parity runs **all four shards** on any commit that edits an engine file, because an engine edit can move another shard |
+| **Order inside S1** | S1.1 → S1.2 → S1.3 → S1.4 → S1.6 (R1-23). S1.2 (Equipment / Weapon + the Melee family) and S1.3 (the pipeline, cues, effects core) come before S1.4 (the Tool contract, the Fei Zhua), which builds on both; 09 §6 has the same order. S1.5 runs beside them: its model jobs queue on the machine-wide model lock and are run by the lead in the background (12-process §4) |
+| **Every commit** | 12-process §5 (R1-10): a pathspec commit `E357 S1.<n>: …`; on it, `node scripts/parity.mjs --export=HEAD --shards=<changed> --tiers=phone` green against the lane's baselines and `pnpm test` green. A subagent runs only this phone lane for its shard (< 4 min); anything longer is "queued: <command>" for the lead. Before every push, `node scripts/parity.mjs --export=HEAD --shards=all --tiers=phone,desktop` green, then `scripts/push-main.sh`. `<changed>` is **all four shards** on any commit that edits an engine file, because an engine edit can move another shard |
 
 ## 1. Inventory (a): every file of Nine Dragon's code today and where it goes
 
@@ -31,7 +31,7 @@ already did the move; the S1 row then restructures the file in place.
 |---|---|---|---|
 | `def.ts` (153) | `shard:manifest.ts` (data) + `shard:plugin.ts` (new, the code) | F6 rename; S1.1 split | The hook fields leave the manifest (§3). `FILES` / `TEX` (`def.ts:26-37`) become `boot.files` |
 | `index.ts` (57) | `shard:world/install.ts` | S1.1 | `NINE_DRAGON_WORLD.build` becomes `installWorld(ctx, rt)`, called by the plugin in the `level.world` stage. The module-level `current`, `camera`, `grappleGuardOpen` (`index.ts:13-15`) move into one `NdRuntime` object the plugin creates and disposes with `ctx.scope` (§4). `nineDragonWorld()` / `cullNineDragonWorld()` / `setGrappleGuardOpen()` read it. `ctx.registry.add` → `ctx.piece`; `ctx.onUpdate` → `ctx.system` |
-| `bag.ts` (17) | folded into `shard:manifest.ts` (`loadout`, `bag`) and `shard:strings.ts` | S1.1 (names), S1.4 (Fei Zhua gear card) | `NINE_WEAPON_NAME` → the jian's loadout row name `strings['weapon.jian']`; `FEI_ZHUA` → the Fei Zhua Tool's `BagEntrySpec` (01 §18: the Equipment base carries the Bag entry). File deleted at S1.4 |
+| `bag.ts` (17) | folded into `shard:manifest.ts` (`loadout`, `bag`) and `shard:strings.ts` | S1.1 (names), S1.4 (Fei Zhua gear card) | `NINE_WEAPON_NAME` → the jian's loadout row name `strings['weapon.jian']`; `FEI_ZHUA` → the Fei Zhua Tool's `meta` (01 §18, R1-26: `EquipmentMeta`; `#game`'s Bag builds the GEAR card from it). File deleted at S1.4 |
 | `layout.ts` (50), `places.ts` (11), `roster.ts` (10), `util.ts` (47), `mockupCameras.ts` (51) | same names under `shard:` | F6 | `util.ts`'s `Rng` class is deleted at F8, which lands the one RNG (02 F8 step 1; 13-lead-resolutions G18); its palette exports stay. `mockupCameras.ts` and `places.ts` are read by scripts and `check-models.mjs:217` (their paths are rewritten by F6's mapping table). `mockupCameras.ts` also feeds the harness's poses (§8) |
 | `grapple/Traversal.ts` (589) | `shard:grapple/FeiZhua.ts` | S1.4 | `installFeiZhua(ctx)` becomes `class FeiZhua extends Tool` (01 §18). The three hand-chained hooks (`lock.onTryToggle` :364, `player.onJumpRequest` :385, `player.traversalStep` :406) become the `grapple` input context and the `player.traversal` ask (§6.4). The `ws:practice-active` listener (:363) becomes `ctx.on('practice.active')`. The chip and ◇ marks appended to `#hud` (:258-274) become HUD widgets (§6.4) |
 | `grapple/course.ts` (48), `grapple/line.ts` (220) | same names under `shard:grapple/` | F6 | `setGrappleCourse` / `playgroundCourse` stay (the playground and the Tool are in the same shard now) |
@@ -74,7 +74,7 @@ already did the move; the S1 row then restructures the file in place.
 | `scripts/nine-dragon-{domes,gpu,grapple-touch}.mjs`, `nine-sim-memory.mjs`, `test-nine-{crash-reports,gpu-boot,native-startup}.mjs`, `test-nine-gpu-boot.sh`, `e314-nine-bag-capture.mjs`, `playground-grapple.mjs` | — | kept or deleted by F7's liveness rule; the live ones are ported to `window.__wildshard` by F7. `test-nine-gpu-boot.sh` is `pnpm test:gpu-boot` (live): it is renamed `test-gpu-boot.sh` at S1.1 and reads `boot.phone.fragile` from the manifest instead of assuming the shard | F7, S1.1 |
 | `test/nd-specimen-light.test.ts`, `test/nine-dragon-models.test.ts` | — | `test/shards/nine-dragon-stack/` | F6 (TP11) |
 | `test/nine-boot-trace.test.ts`, `test/nine-gpu-trace.test.ts` | — | `test/engine/boot-trace.test.ts`, `test/engine/gpu-trace.test.ts`, rewritten for the generic names; one case boots a fixture manifest with `boot.phone.trace` on and one with it off (no record written) | S1.1 |
-| `test/bag-tabs.test.ts:11-12` (imports `FEI_ZHUA`, `NINE_ROSTER`) | 2 | reads the Fei Zhua's Bag entry from the Tool row and the roster from the manifest's `roster` thunk | S1.4 |
+| `test/bag-tabs.test.ts:11-12` (imports `FEI_ZHUA`, `NINE_ROSTER`) | 2 | reads the Fei Zhua's GEAR card built from the Tool row's `meta` (R1-26) and the roster from the manifest's `roster` thunk | S1.4 |
 | `test/models-rosters.test.ts:8` | 1 | reads every manifest from `shards.generated.ts` | F9 |
 
 ## 2. (b) Every engine line that branches on or wires Nine Dragon, and what replaces it
@@ -89,12 +89,12 @@ or a plugin verb named in the same row.
 | 40 | `import { FEI_ZHUA, NINE_WEAPON_NAME }` | the Bag's gear card and the jian's name | deleted: the Tool row (S1.4) and the jian row's name (S1.2) |
 | 146 | `import { beginNineExploreEntry, recordNineBootCheckpoint` | boot trace | the generic `bootTrace` (`#engine/boot`), called unconditionally; it records only while a trace is running |
 | 217 | `resumeScreen().brand(getActiveChunk().slug.split('-')…` | the RESUMING screen's shard name from the slug | `manifest.name` (a latent bug: it spells "Nine Dragon Stack" right only by luck of the slug; kept identical) |
-| 241-242 | `const extrasBarrier = pack === null && getActiveChunk().slug === 'nine-dragon-stack'` | the audio / art extras wait for every per-file world fetch | `manifest.boot.barrier: true` (both tiers: today the condition holds on desktop too, because no shard has a desktop pack; question Q2) |
+| 241-242 | `const extrasBarrier = pack === null && getActiveChunk().slug === 'nine-dragon-stack'` | the audio / art extras wait for every per-file world fetch | `manifest.boot.barrier: true` (both tiers: today the condition holds on desktop too, because no shard has a desktop pack; question Q2). Once S1.1 step 7b gives Nine Dragon its packs, the flag means **the extras pack finishes before the first frame, on every tier** (R1-38) |
 | 247-250 | `const deferExtras = getActiveChunk().slug === 'nine-dragon-stack' && TIER === 'phone'` | the menu art and audio decode later on the phone | `manifest.boot.phone.deferExtras: true` (01 §8) |
 | 251 | `startViewmodelTextures((getActiveChunk().weapon ?? 'crossbow') === 'crossbow')` | the crossbow / rifle texture worker starts only on a crossbow shard | the loadout: the worker starts when a loadout row's family declares `preload.textures` (09-combat-ai). Nine Dragon's jian declares none: identical |
 | 258-275, 1234-1239, 1261, 1264 | `const fragileBoot = TIER === 'phone' && slug === 'nine-dragon-stack'` | the phone GPU-boot guard: context-loss listener, `failGpuBoot`, the shader / first-frame checks, the recovery host's `fragileBoot` | the engine's boot guard in the `finish` stage, on when `manifest.boot.phone.fragile: true`. The error text `Nine Dragon GPU boot failed: ${reason}` (:269) becomes `${manifest.name} GPU boot failed: ${reason}` (identical for this shard) |
 | 266-267, 1334 | `markNineBootContextLost()` / `markNineBootHandledError()` | the trace's end state | `bootTrace.markContextLost()` / `markHandledError()` |
-| 284-285, 418, 431, 444, 475-480 | `const built = chunk.structures` | a structure-first shard: no paths, no carpet, no cabins; its world built in the `props` step | the manifest's `ground: { structures: true }` (01 §6) tells the engine to skip terrain colliders and the terrain draw; the grass / cabins / props / paths builders are **no longer engine steps** at all after S2.1 / S3.1 / S4.1 (each shard builds its own world in `level.world`). For S1, `built !== undefined` becomes `manifest.ground.structures === true` in the four remaining places, and the ND branch at :475-480 is deleted: Nine Dragon's world is built by `plugin.install` in the `level.world` stage (§4) |
+| 284-285, 418, 431, 444, 475-480 | `const built = chunk.structures` | a structure-first shard: no paths, no carpet, no cabins; its world built in the `props` step | the manifest's `ground: { structures: true }` (01 §6) tells the engine to skip terrain colliders and the terrain draw; the grass / cabins / props / paths builders are **no longer engine steps** at all after S2.1 / S3.1 / S4.1 (each shard builds its own world in `level.world`). For S1, `built !== undefined` becomes `manifest.ground.structures === true` in the four remaining places, and the ND branch at :475-480 is deleted: Nine Dragon's world is built by `plugin.world(ctx)` in the `level.world` stage (§4, R1-24) |
 | 505 | `listShardModels({ roster: chunk.roster, style: chunk.style ?? 'pbr'` | the Model Explorer's live roster | `manifest.roster` (unchanged thunk) and `manifest.kitLook` (question Q1) in place of `style ?? 'pbr'` |
 | 517 | `chunk.sword?.() ?? null` in the `weapon` step | the shard's own sword viewmodel | deleted: the loadout's rows build their own viewmodels in the `level.kit` stage (S1.2) |
 | 531-534 | `chunk.weapon === 'sword' ? new Sword(…, { …ownSword, …(chunk.fov ? { portraitFov: chunk.fov.portrait } : {}) })` | the base weapon | the equipment service from `manifest.loadout` (S1.2). The portrait FOV leaves the weapon: `manifest.camera.portraitFov: 78` (combat-ai-audit M8; question Q1) |
@@ -103,7 +103,7 @@ or a plugin verb named in the same row.
 | 556-565 | `await chunk.traversal?.({ game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys, …touchHint` | installs the Fei Zhua on LOCK / JUMP | deleted: the Fei Zhua is a Tool row in the loadout (S1.4); its context, relabels and ask answers are registered by the Tool's `install` through the plugin verbs |
 | 587-588 | `const mood = chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine'` | Nine Dragon plays **Pine Hollow's theme** | `manifest.audio.score` (S1.5): the music engine plays the shard's `ScoreSource`. Bug §7 B1 |
 | 595-611 | `if (chunk.bounds !== undefined)` … `'bounds'` | the soft respawn inside the fragment's box | the engine system `engine.world.bounds` (phase `update`, `when: inState('play')`), on when `manifest.bounds` is set. Same code, moved |
-| 625 | `...(isNine ? { tools: () => [FEI_ZHUA] } : {})` | the Bag's GEAR card for the grapple | deleted: the Equipment base registers every loaded Tool's `BagEntrySpec` with the Bag (S1.4) |
+| 625 | `...(isNine ? { tools: () => [FEI_ZHUA] } : {})` | the Bag's GEAR card for the grapple | deleted: `#game`'s Bag builds a GEAR card from every loaded Tool's `meta` (R1-26; S1.4) |
 | 691-692 | `if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy` / `const meleeHeld = () => chunk.weapon === 'sword'` | sword sounds | the cue map: `cue.swing`, `cue.swing.heavy`, `cue.hit.<surface>`, `cue.clang.<surface>` (S1.5 maps them for Nine Dragon; 09-combat-ai lists every cue) |
 | 694, 703 | `else if (!isOcean) audio.swordSwing()` / `audio.swordHit(surface, pan, gain)` | the synth sword sounds on every non-ocean sword shard | Nine Dragon's cue map (S1.5) |
 | 836-837 | `if (meleeShard(chunk) \|\| pineFights !== null) hurtArc.hit(…)` | the hurt arc on melee shards | the damage pipeline's `damage.dealt` subscriber (S1.3), on every shard |
@@ -220,7 +220,7 @@ export default defineShard({
   seed: 0x9d2a,                                                           // def.ts:23 (Rng / Noise2D seeds derive from it)
   style: 'jiehua',                                                        // data only (01 §6)
   kitLook: 'pbr',                                                         // Q1, declared (01 §6) — the look the shared kit pieces use (creatures, Model Explorer catalog, swimming hands); replaces today's `style ?? 'pbr'`, which resolves to 'pbr' for this shard
-  uses: ['bounds', 'grapple'],                                            // 'grapple' = the Tool's context; no weather, dayCycle, elites, bosses, quests, loot coins
+  uses: ['hover', 'explore', 'practice'],                                 // R1-02: exactly what it runs today (the hoverboard, Explore, the practice dummies). No water (swim), creatures (spawns, elites, bosses), weather, dayCycle, quests, coins, loot, compendium, feats (0 achievements) or pack (0 slots). The grapple is its own Tool (§6.4) and `bounds` is data (below): neither is a mechanism
   ground: { terrain: TERRAIN, structures: true },                         // def.ts:149 `structures` + the flat terrain (01 §6: "Nine Dragon has both"); the terrain is `heightAt()` for placement only: nothing draws or collides with it
   spawn: { x: 0.95, z: 7.5, yaw: -12 * (Math.PI / 180), y: Y0 },          // def.ts:98
   bounds: { x0: WELL.x0 - 8, x1: STAIR.x1 + 20, z0: STREET.z0 + 100, z1: PLAZA.z1 + 8, floor: Y0 - 100 },   // def.ts:148
@@ -247,7 +247,7 @@ export default defineShard({
   tiers: {
     phone: { ao: false, aa: 'fxaa', warmTurns: 0, textures: 'img' },      // Game.ts:290; render.ts:109; Game.ts:502; gpuFiles.ts:66
   },
-  budgets: {                                                              // inputs only (01 §13.4); S1.6 fills the derived numbers
+  budgets: {                                                              // inputs only (01 §13.4); S1.6 fills the derived numbers, its F2-baseline ceilings until then (R1-14)
     phone: { fps: 30, lanes: 'default' },
     desktop: { fps: 60, lanes: 'default' },
     load: { coldPlay4G: null },                                           // no time cap exists for this shard: S1.6 sets it (question Q8)
@@ -303,7 +303,7 @@ F10's SaveStore scopes keys by slug), `displayName` (→ `name`), `gridCoords` (
 
 ```ts
 import { ShardPlugin, type ShardContext } from '#game';
-import { NdRuntime } from './runtime';          // the one object holding what index.ts's module lets held
+import { NdRuntime, ndRuntime } from './runtime';   // the one object holding what index.ts's module lets held
 import { installWorld } from './world/install';
 import { FEI_ZHUA_ROW } from './grapple/FeiZhua';
 import { JIAN_ROW } from './vm/jianRow';
@@ -311,16 +311,18 @@ import { STRINGS } from './strings';
 import { GRAPPLE_CONTEXT } from './grapple/context';
 import { installAmbience } from './audio/ambience';
 
-export default class NineDragonPlugin extends ShardPlugin {
-  async install(ctx: ShardContext): Promise<void> {
+export default class NineDragonPlugin extends ShardPlugin {   // staged hooks, each awaited in its boot stage (R1-24); every ctx verb is bound to ctx.scope (R1-25)
+  async world(ctx: ShardContext): Promise<void> {           // level.world
     ctx.strings(STRINGS);                                   // 'weapon.jian': 'Neon Jian', 'tool.fei-zhua': 'Fei Zhua', 'respawn.default', toasts
-    const rt = new NdRuntime(ctx.scope);                    // disposed with the scope; render.ts / FeiZhua read it through ndRuntime()
-    // level.world stage
+    const rt = new NdRuntime(ctx.scope);                    // disposed with the scope; render.ts / FeiZhua / play() read it through ndRuntime()
     await installWorld(ctx, rt);                            // world/build.ts + the 4 fabric pieces + the per-frame system
-    // level.kit stage
-    ctx.rows.weapon(JIAN_ROW);                              // S1.2: Melee family profile + the skinned-arms viewmodel
+  }
+  kit(ctx: ShardContext): void {                            // level.kit: after the engine's equipment service exists
+    ctx.rows.weapon(JIAN_ROW);                              // S1.2: Melee family profile + the skinned-arms viewmodel; its `meta` feeds the Bag (R1-26)
     ctx.rows.tool(FEI_ZHUA_ROW);                            // S1.4: class FeiZhua extends Tool
-    // level.play stage
+  }
+  play(ctx: ShardContext): void {                           // level.play: after the engine's loadout and play wiring
+    const rt = ndRuntime();                                 // made in world(); throws if world() has not run
     ctx.inputContext(GRAPPLE_CONTEXT);                      // S1.4
     ctx.playground({ id: 'grapple', title: 'Grapple playground', blurb: 'Fei Zhua parkour · dev course · timer',
       icon: CLAW_SVG, load: () => import('./playground/GrapplePlayground') });   // S1.4, from playgrounds/catalog.ts:29
@@ -345,7 +347,7 @@ export default class NineDragonPlugin extends ShardPlugin {
 | Pieces (models) | every `nds-*` model piece | `level.world` | `world/build.ts` through `src/models/place.ts` | Unchanged: `place` registers through `app.registry`, owned by `ctx.scope` |
 | Input context | `grapple` | pushed by the Fei Zhua | `Traversal.ts:346` `touchHint` | S1.4 |
 | HUD | the dragon-hook chip, 8 ◇ marks | `ctx.hud.pin` (01 §11) | `Traversal.ts:260-274` | S1.4 |
-| Bag | the Fei Zhua gear card | via the Tool's `bag` entry | `main.ts:625` | S1.4 |
+| Bag | the Fei Zhua gear card | built by `#game`'s Bag from the Tool's `meta` (R1-26) | `main.ts:625` | S1.4 |
 | Debug rows | none | — | `debugOptions.ts` has no Nine Dragon row | — |
 | Debug handle | `nd.render` | — | `render.ts:180` `window.__ndRender` | `ctx.debug.expose` (01 §7) |
 | Playground | `grapple` | — | `playgrounds/catalog.ts:29` | S1.4 |
@@ -355,8 +357,8 @@ export default class NineDragonPlugin extends ShardPlugin {
 
 | System | What S1 needs of it (and no more) | Must exist first | Built in |
 |---|---|---|---|
-| Plugin verbs (01 §7) | `system`, `on`, `answer`, `rows.weapon`, `rows.tool`, `inputContext`, `hud.widget` / `hud.relabel` / `hud.pin`, `debug.expose`, `bag` via the Equipment base, `piece`, `playground`, `strings`, `progress` | F8 (App, scope, events), F9 (registry, `ShardContext` type) | S1.1 wires `system`, `on`, `piece`, `strings`, `progress`; S1.4 `inputContext`, `hud`, `playground`, `rows.tool`; S1.2 `rows.weapon` |
-| Boot stages (01 §8) | `level.data` reads `boot.*`; `level.world` calls `install` up to the world build; `boot.barrier`, `boot.phone.deferExtras`, `boot.phone.fragile`, `boot.phone.trace`, `boot.cullBeforeFirstDraw`, `boot.files` for this shard; the others keep the old path until their phase | F8 (states), F9 | S1.1 |
+| Plugin verbs (01 §7) | `system`, `on`, `answer`, `rows.weapon`, `rows.tool`, `inputContext`, `hud.widget` / `hud.relabel` / `hud.pin`, `debug.expose`, the Bag's entries from `Equipment.meta` (R1-26), `piece`, `playground`, `strings`, `progress`; every verb bound to the context's scope (R1-25) | F8 (App, scope, events), F9 (registry, `ShardContext` type) | S1.1 wires `system`, `on`, `piece`, `strings`, `progress`; S1.4 `inputContext`, `hud`, `playground`, `rows.tool`; S1.2 `rows.weapon` |
+| Boot stages (01 §8) | `level.data` reads `boot.*`; `level.world` awaits `plugin.world(ctx)`, `level.kit` `plugin.kit(ctx)`, `level.play` `plugin.play(ctx)`, with the engine's work in between (R1-24); `boot.barrier`, `boot.phone.deferExtras`, `boot.phone.fragile`, `boot.phone.trace`, `boot.cullBeforeFirstDraw`, `boot.files` for this shard; the others keep the old path until their phase | F8 (states), F9 | S1.1 |
 | `bootTrace` / `gpuTrace` (generic) | §1.2 | F10 (SaveStore global key) | S1.1 |
 | Render service tier resolution | one source (01 §13.3): engine default → kit schema default → `manifest.tiers[tier]`, for `ao`, `aa`, `slices`, `warmTurns`, `textures`; `LookStrategy` carries no tier knobs (its old `ao` / `aa` / `slices` move to `manifest.tiers`) | F8 services | S1.1 (the rest of tiers-as-data is X7) |
 | Debug expose | `ctx.debug.expose(name, value)` → `window.__wildshard.shard[name]` (01 §7, owned by the shard scope) | F8 | S1.1 |
@@ -375,7 +377,8 @@ export default class NineDragonPlugin extends ShardPlugin {
    the manifest in node (no DOM), checks every `boot.files()` path is in `PUBLIC_BYTES`, and checks the values of §3
    against a frozen copy of today's `def.ts` values (spawn, bounds, sky, atmosphere, grade, map draw).
 2. **Runtime object.** Create `shard:runtime.ts` (`NdRuntime`: `world`, `camera`, `guardOpen`, `cull(camera)`,
-   `specimenLight(on)`), created in `install`, released by `ctx.scope.onDispose`. `ndRuntime()` throws before install.
+   `specimenLight(on)`), created in the plugin's `world()` hook (R1-24), released by `ctx.scope.onDispose`.
+   `ndRuntime()` throws before `world()` has run.
    `index.ts`'s three exported functions become methods on it; `look/render.ts:9`, `Traversal.ts:19`,
    `look/specimenLight.ts` import `ndRuntime` instead.
 3. **World build.** `index.ts` → `world/install.ts`. `buildNineDragonWorld(ctx.app.render.renderer, ctx.progress)`;
@@ -408,10 +411,12 @@ export default class NineDragonPlugin extends ShardPlugin {
    `bake-ktx2.mjs`, `unused-assets.mjs` and every test that loops over the playable shards (`models-rosters`,
    `manifests-node-safe`, the parity shard list). Its boot now reads its pack instead of per-file fetches: a
    parity-visible change, recorded in `test/parity/renames/S1.1.json` (the boot's fetch list) and shown on the M1
-   summary.
+   summary. `boot.barrier: true` keeps its meaning with the pack: the extras pack finishes before the first frame, on
+   every tier (R1-38).
 8. **Tests.** `test/engine/boot-trace.test.ts` (on / off by manifest flag), `test/shards/nine-dragon-stack/plugin.test.ts`
-   (installs the plugin on the fake Game with a stub world build: 4 pieces added with today's ids; `shard.nd.world` in
-   `update` after `engine.player.update`; scope dispose removes all four pieces, the system and the three listeners),
+   (runs the plugin's `world` → `kit` → `play` hooks in stage order on the fake Game with a stub world build: 4 pieces
+   added with today's ids; `shard.nd.world` in `update` after `engine.player.update`; a throw in each hook disposes the
+   scope (R1-24); scope dispose removes all four pieces, the system and the three listeners),
    `test/engine/render-tiers.test.ts` (precedence, 01 §13.3: engine default → kit schema default → `manifest.tiers[tier]`;
    the Nine Dragon phone resolves `ao: false`, desktop `ao: true`).
 
@@ -423,7 +428,8 @@ in §2 went down by the lines listed there; parity green on 4 shards × 2 tiers.
 
 The engine and kit side is 09-combat-ai. For this shard:
 1. `shard:vm/jianRow.ts` exports `JIAN_ROW`: `{ id: 'weapon.jian', parent: 'weapon.sword', family: 'melee', name:
-   'weapon.jian', damage: 12, viewmodel: () => loadJianViewmodel(), bag: { … } }` (decision 19: 12, now a real field).
+   'weapon.jian', damage: 12, viewmodel: () => loadJianViewmodel(), meta: { name: 'weapon.jian', … } }`
+   (decision 19: 12, now a real field; `meta` is the `EquipmentMeta` `#game`'s Bag reads, R1-26).
    `loadJianViewmodel` is `def.ts:105-112` as is: `jianArms()`, and on a throw the static `jianSword()` with the same
    `console.warn`. Moves and framing come from `jianArms()` (`vm/arms.ts:39`) as today.
 2. The weapon's portrait FOV no longer passes through `Sword` options: the camera reads `manifest.camera.portraitFov`
@@ -457,8 +463,10 @@ the kill frame).
 1. **`class FeiZhua extends Tool`** in `shard:grapple/FeiZhua.ts`, `slot: 'offhand'`, `actions: ['lock', 'jump']`,
    built from `Traversal.ts` with every constant unchanged (`MIN_RANGE 2.5`, `MAX_RANGE 38`, `ZIP_SPEED 22`,
    `FIRE_TIME 0.27`, `BITE_TIME 0.10`, `REEL_TIME 0.48`, `WIN_X 0.52`, `WIN_Y 0.68`, `SCAN_PER_FRAME 2`,
-   `LANDING_STALE 1.2`, `MARKS 8`, `BODY 1.95`, `RIM_WALL Y0 + 3.2`). Its Bag entry is `bag.ts:17`'s
-   (`{ id: 'fei-zhua', name: 'Fei Zhua', kind: 'Grapple', how: 'Lock a hook, then jump', icon: 'grapple' }`).
+   `LANDING_STALE 1.2`, `MARKS 8`, `BODY 1.95`, `RIM_WALL Y0 + 3.2`). Its `meta` (R1-26) carries `bag.ts:17`'s
+   entry (`{ id: 'fei-zhua', name: 'Fei Zhua', kind: 'Grapple', how: 'Lock a hook, then jump', icon: 'grapple' }`) as
+   `{ name: 'tool.fei-zhua', icon: 'grapple', blurb: 'Lock a hook, then jump', category: 'Grapple' }`; `#game`'s Bag
+   builds the same GEAR card (id `fei-zhua`) from it.
    `enabled()` (`main.ts:563`: `hud.entered && !world.freeCamera && !world.tour.active`) becomes
    `when: inState('play', 'practice', 'playground')` plus `!app.world.freeCamera` (the tour is a capture state).
 2. **Input.** The hand-chained hooks become:
@@ -551,13 +559,17 @@ cd ~/ml/music/sfx/MOSS-TTS/moss_soundeffect_v2 && ~/projects/localai/bin/img2mes
 # 3. SFX, take 2 (Stable Audio 3 Medium)
 cd ~/ml/music/sfx/stable-audio-3 && ~/projects/localai/bin/img2mesh/run-locked.sh $SP/nd-sa3.log \
   env HF_HUB_OFFLINE=1 uv run python $REPO/scripts/music/gen/gen_sfx.py --model medium --jobs sfx-nd-jobs.json --seeds 1,2,3 --out $SP/nd-sfx-raw
-# 4. rank the SFX (CLAP) into a stage, then ship the better take per family into the shard's own set
-~/ml/music/analysis/.venv/bin/python scripts/music/gen/sfx_build.py $SP/nd-sfx-raw --jobs sfx-nd-jobs.json --stage $SP/nd-stage --tag nd
+# 4. rank the SFX (CLAP, a model load: under the lock, R1-22) into a stage, then ship the better take per family into the shard's own set
+~/projects/localai/bin/img2mesh/run-locked.sh $SP/nd-sfx-rank.log \
+  ~/ml/music/analysis/.venv/bin/python scripts/music/gen/sfx_build.py $SP/nd-sfx-raw --jobs sfx-nd-jobs.json --stage $SP/nd-stage --tag nd
 ~/ml/music/analysis/.venv/bin/python scripts/music/gen/sfx_merge.py --jobs sfx-nd-jobs.json --stage $SP/nd-stage --raw $SP/nd-sfx-raw --tag nd
 # 5. rank + build the score (stems, loops, -18 LUFS, AAC) into public/assets/music/nine-dragon-stack/
-~/ml/music/analysis/.venv/bin/python scripts/music/gen/own_score.py analyze $SP/nd-score-raw --set nine-dragon-stack
+#    analyze (CLAP + htdemucs) and build (htdemucs) load models: under the lock (R1-22); rank and sfx_merge load none
+~/projects/localai/bin/img2mesh/run-locked.sh $SP/nd-score-analyze.log \
+  ~/ml/music/analysis/.venv/bin/python scripts/music/gen/own_score.py analyze $SP/nd-score-raw --set nine-dragon-stack
 ~/ml/music/analysis/.venv/bin/python scripts/music/gen/own_score.py rank $SP/nd-score-raw --set nine-dragon-stack
-~/ml/music/analysis/.venv/bin/python scripts/music/gen/own_score.py build $SP/nd-score-raw --set nine-dragon-stack
+~/projects/localai/bin/img2mesh/run-locked.sh $SP/nd-score-build.log \
+  ~/ml/music/analysis/.venv/bin/python scripts/music/gen/own_score.py build $SP/nd-score-raw --set nine-dragon-stack
 ```
 
 Script edits this needs (S1.5, before step 1; each checked by re-running Pine Hollow's and Nalati's existing
@@ -623,7 +635,9 @@ the score source `score.nd` (the fingerprint diff is the expected one, §8); no 
    `budgets/calibration/iphone17pro-<ios>-<date>.json` and points `budgets/calibration.json` at it.
 
 **Done when:** the scene runs to its JSON on the M5 headless and in the harness; the formula test is green; the gate
-prints Nine Dragon's derived numbers and enforces its ceilings.
+prints Nine Dragon's derived numbers and enforces its ceilings. Pine Hollow, Nalati and Driftwood have no derived
+budgets yet and are not red for it: their checks use their F2-baseline ceilings until S2.6, S3.5 and S4.4 derive
+theirs (R1-14).
 
 ## 7. (f) Bugs fixed inline in this phase (each with a test)
 
@@ -638,15 +652,18 @@ prints Nine Dragon's derived numbers and enforces its ceilings.
 
 ## 8. (g) Parity expectations
 
-**Identical under the harness** (`scripts/parity.mjs --shards nine-dragon-stack --tier phone,desktop`, and the other
-three shards on every engine edit): the systems list in phase order (new ids only where 03-harness-gate's id map says
+**Identical under the harness** (`scripts/parity.mjs --export=HEAD --shards=nine-dragon-stack --tiers=phone` on every
+commit, `--tiers=phone,desktop` before a push, and the other three shards on every engine edit; R1-10): the systems list in phase order (new ids only where 03-harness-gate's id map says
 so), the registry pieces (ids, categories, surfaces, collider counts), the scene census, programs, draws and
 triangles at the four `dev.poses` and the three harness poses, the 19 Nine Dragon legs of `physics-route.json` (0
 stuck), a swing to a kill on the practice dummy, the grapple playground run, the two fragment zips, the HUD slots,
 the save keys, the facade instancing check (`test-facade-instancing.mjs`), and the phone GPU-boot fault panel
 (`test:gpu-boot`'s four faults).
 
-**Expected to differ**, each on the named board or the M1 summary:
+**Expected to differ**, each on the named board or the M1 summary. Each row is a **pending item** from the commit that
+makes it (R1-13): that commit adds it to `reviews/pending.json` with its expected fingerprint delta and records it with
+`parity --accept <ids>`; the gate shows it yellow (allowed), and the pin can't move while it is pending. Jake's OK
+re-baselines it; otherwise it is reverted.
 
 | Difference | Why | Where it is shown |
 |---|---|---|
@@ -662,13 +679,16 @@ Anything else that differs is a bug in the step: the commit is reverted (12-proc
 
 | Step | Detail |
 |---|---|
-| Gate | `gpu-gate` green on HEAD for the 4 shards (the template shard joins at Z1); parity green; `pnpm test` green incl. the ratchets |
-| Pin | After Jake's go: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M1 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), then `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3, 03 §13.4) |
+| Flow | Gate green on HEAD → boards to Jake → Jake OKs the board items (or they are fixed / reverted) → the pin moves to HEAD → deploy → Jake plays it live → **Jake's go starts S2**. The go is not a ship gate (R1-15) |
+| Gate | `gpu-gate` green on HEAD for the 4 shards (the template shard joins at Z1): Nine Dragon's budget check on its derived budgets (S1.6), Pine Hollow's, Nalati's and Driftwood's on their F2-baseline ceilings (R1-14); parity green; `pnpm test` green incl. the ratchets |
+| Pin | After Jake OKs the board items, with no item left in `reviews/pending.json` (R1-13, R1-15): `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M1 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), then `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1, file and line counts), the lines deleted (`look/post.ts` and `hero/paifang.ts` at F7, `util.ts`'s `Rng` and `facade/rng.ts` at F8, the ND branches in §2), the ratchet counts before / after (`wildshard/no-shard-branch`, `no-raw-input` for the Fei Zhua hooks, `no-raw-save` for `ws.nineBoot`), Nine Dragon's derived budgets and ceilings, the audio byte change |
-| Boards | **Weapons** (the Spear / Naizagai wall fixes; any spot a Melee profile could not match: none expected for the jian) and **Audio** (the listening page). iPhone portrait, clips ≤ 10 s |
-| Jake plays | Nine Dragon on the pinned build: the square, the Well rim, a grapple across, the stair-street, the grapple playground; he listens in the market and at the Well; he runs RUN CALIBRATION once (S1.6) |
-| Decision asked | AskUserQuestion with the summary + boards: "Nine Dragon M1: go?" (recommended: yes), plus the audio keeps / re-rolls |
-| Reopening | On Jake's go: `src/shards/nine-dragon-stack/` (and its `test/shards/…`, `art/nine-dragon-stack/`, `public/assets/nine-dragon/`) reopens to content agents under `scripts/check-lock.mjs` (12-process §2); the plan's State line names it; NINE-DRAGON-STACK is re-planned for the new engine (decision 66) as a new draft under `docs/plans/` |
+| Boards | **Weapons** (the Spear / Naizagai wall fixes; any spot a Melee profile could not match: none expected for the jian) and **Audio** (the listening page). iPhone portrait, clips ≤ 10 s; clips and images come from the harness's capture of HEAD (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is fixed / reverted (R1-13) |
+| Jake plays | Nine Dragon **live** on the pinned build, after the deploy (R1-15): the square, the Well rim, a grapple across, the stair-street, the grapple playground; he listens in the market and at the Well; he runs RUN CALIBRATION once (S1.6). If he wants to play before the pin moves, the lead deploys the candidate as a Vercel **preview** deployment (`vercel deploy --prebuilt`, which keeps `/api`), not `release-url.sh` (R1-15) |
+| Milestone checks | Jake-dependent evidence that left the row done-whens (R1-50), taken on the pinned M1 build and recorded in E357: **F10**, on the physical iPhone home-screen app Debug ▸ Loading & memory ▸ storage shows `persisted: true`; **F12**, one physical-iPhone load reading each of Nine Dragon and Pine Hollow (both reach play, no WebContent crash), which Jake gives in chat through an AskUserQuestion with the reading template (R1-17). F11 and S1 did not wait for them |
+| Decision asked | Two AskUserQuestions (R1-15): first the summary + boards (each board item OK / fix / revert, plus the audio keeps / re-rolls), whose OKs move the pin; then, after he has played it live, "Nine Dragon M1: go?" (recommended: yes) |
+| Rollback | If the pinned M1 build breaks on Jake's phone: `node scripts/deploy-pin.mjs rollback <sha>` to a SHA in the pin history (M0 included, recorded as trusted at F3.1), with no gate check. A rollback to M0 is past F10, so that build can't read the v2 saves; this is accepted (the saves reset is OK'd, decision 13) and stated on the rollback (R1-16) |
+| Reopening | On Jake's go, `src/shards/nine-dragon-stack/` reopens to content agents (12-process §2); the plan's State line names it. The lock check is `scripts/check-lock.mjs`, the `commit-msg` hook F0 builds (R1-09): a commit without the lead's `E357-Lead: yes` trailer passes only when every path is on the shard's allowlist: `src/shards/nine-dragon-stack/**`, `test/shards/nine-dragon-stack/**`, `art/nine-dragon-stack/**`, the asset folders its manifest declares (`public/assets/nine-dragon/**`, `public/assets/gpu/nine-dragon/**`, `public/assets/music/nine-dragon-stack/**`, `public/assets/sfx/nine-dragon-stack/**`), `scripts/blender/nine-dragon-stack/**` and `docs/tasks/asks/**`. Generated files are built, not committed (R1-11). From then on the shard's lane owns its baselines: a content commit re-records Nine Dragon's baselines in the same commit (`parity --rebaseline nine-dragon-stack`), and every other shard must stay identical, the cross-shard proof (R1-12). NINE-DRAGON-STACK is re-planned for the new engine (decision 66) as a new draft under `docs/plans/`, a lead commit (`docs/plans/` is not on the allowlist) |
 
 ## 10. Questions for the lead
 
@@ -685,7 +705,7 @@ open, and the body above follows each answer.
 2. **Boot flags.** **Resolved → 13-lead-resolutions 05/06#2:** `boot.barrier` (all tiers), `boot.phone.deferExtras`,
    `boot.phone.fragile`, `boot.phone.trace`, `boot.cullBeforeFirstDraw`; `warmTurns` and `textures` are tier knobs.
 3. **World-anchored HUD pins.** **Resolved → 13-lead-resolutions 05/06#3:** `hud.pin(at, el, scope)` (01 §11). S1.4
-   step 4 and §4 use it.
+   step 4 and §4 use it as `ctx.hud.pin(at, el)`: the context supplies the scope (R1-25).
 4. **Tier precedence.** **Resolved → 13-lead-resolutions 05/06#4:** one source, engine default → kit schema default →
    `manifest.tiers[tier]`; `LookStrategy`'s old `slices` / `ao` / `aa` move to `manifest.tiers` (§3, §5, S1.1 step 8).
 5. **Debug handles.** **Resolved → 13-lead-resolutions 05/06#5:** `ctx.debug.expose(name, value)` →

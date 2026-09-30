@@ -18,8 +18,12 @@ line that branches on Driftwood, plus `main.ts`'s last lines.
 
 [05-nine-dragon.md](05-nine-dragon.md) §0 applies unchanged: line references are at `3f83fd2e` (no `src/` change up to
 `0b6aa045`), every row has a **grep key**, paths after F6 are `src/engine/…` / `src/game/…` / `src/kit/…`, and
-`shard:x` means `src/shards/driftwood-isle/x`. `src/main.ts` keeps its path until S4.4. Every commit: parity on the
-changed shards (all four on an engine edit), `pnpm test`, pathspec commit `E357 S4.<n>: …`, `scripts/push-main.sh`.
+`shard:x` means `src/shards/driftwood-isle/x`. `src/main.ts` keeps its path until S4.4. Every commit (12-process §5,
+R1-10): a pathspec commit `E357 S4.<n>: …`; on it, `node scripts/parity.mjs --export=HEAD --shards=<changed>
+--tiers=phone` green against the lane's baselines (all four shards on an engine edit) and `pnpm test` green; before
+every push, `node scripts/parity.mjs --export=HEAD --shards=all --tiers=phone,desktop` green, then
+`scripts/push-main.sh`. A subagent runs only the per-commit phone lane for its shard (< 4 min); anything longer is
+"queued: <command>" for the lead.
 
 **At S4 start** S1–S3 are done: the plugin verbs, staged boot, tier resolution, the combat core and all five weapon
 families, player health in the engine, the input service with the `grapple`, `crossbow.bolts`, `ride`, `ride.break`
@@ -68,7 +72,7 @@ adventure / audio half and S4.4 are the lead's (they touch `main.ts`, which one 
 | `src/world/interact/validate.ts` | 67 | `src/engine/world/interact/validate.ts` (kept) | F7 check; F6 move | On F7's one dead list for review (02 F7 step 3; 13-lead-resolutions still-open 08#8). The review keeps it: `test/interact.test.ts:5` and `test/pine-quest.test.ts:6` import `validateTable`, the pure validator of Driftwood's and Pine's interactable tables, so it is live and follows 04's row (engine, rule F) |
 | `src/entities/Enemies.ts` | 374 | `shard:creatures/enemies.ts` | S4.2 | The crab sites, monkey troops, coconuts, the sailor, the practice crab: spawn tables + the coconut projectile (§6.2) |
 | `src/entities/species/crab.ts` (307), `monkey.ts` (366), `sailor.ts` (371), `captain.ts` (332), `captainMesh.ts` (142) | 1,518 | `shard:species/…` | S4.2 | One shard each |
-| `src/entities/lowpoly.ts` | 263 | `shard:look/lowpolyCreatures.ts`, registered with `ctx.rows.creatureLook('toon', …)` (01 §7, §19; 13-lead-resolutions still-open 07#10) | S4.2 | `AnimalFactory.ts:305-354`'s `lowPoly` path is Driftwood's look of the kit boar / bear, chosen by `manifest.kitLook: 'toon'`. `deer.ts`, `elk.ts`, `boar.ts`, `bear.ts` import it for their low-poly builders: those builder functions move with it and the species rows reference them by the look id |
+| `src/entities/lowpoly.ts` | 263 | `shard:look/lowpolyCreatures.ts`, registered with `ctx.rows.creatureLook('toon', …)` (01 §7, §19; 13-lead-resolutions still-open 07#10) | S4.2 | `AnimalFactory.ts:305-354`'s `lowPoly` path is Driftwood's look of the kit boar / bear, chosen by `manifest.kitLook: 'toon'`. `deer.ts`, `elk.ts`, `boar.ts`, `bear.ts` import it for their low-poly builders: those builder functions move with it and the species' `SpeciesLook` rows (rig + mesh, registered apart from the simulation `SpeciesRow`s, R1-27) reference them by the look id |
 | `src/entities/fightRules.ts` | 128 | `src/engine/ai/director.ts` (S2.3) | S2.3 | The director is engine (09 §5.5); `ChunkDef.fightRules` → `manifest.fight.attackers: 2` |
 | `src/entities/npc/Castaway.ts` (314), `Trader.ts` (261) | 575 | rows on `#kit/npc/npcRig.ts` in `shard:quest/people.ts` | S4.3 | The lead: *NPC rigs merge into `#kit/npc`*. §6.3 D |
 | `src/world/faceHeads.ts` | 60 | `#kit/npc/faceHeads.ts` | S4.3 | Imported by `Castaway.ts` and `sailor.ts`; the face rig is an NPC-rig piece (Pine's rig can use it) |
@@ -238,7 +242,8 @@ export default defineShard({
   treeCount: 0,                                                           // carried as data
   style: 'toon',                                                          // today 'lowpoly' (data only, never branched on)
   kitLook: 'toon',                                                        // Q1, declared (01 §6; today's 'lowpoly' path): faceted creatures, the castaway's swim arms, the catalog
-  uses: ['dayCycle', 'bosses', 'quests'],                               // the director is on because `fight.attackers` is finite; loot by `loot.coins`
+  uses: ['dayCycle', 'bosses', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice',
+    'coins', 'loot', 'feats', 'bag.pack'],                                // R1-02: exactly what it runs today (swim: the sea; coins + loot: E314's purse, coin burst, shop and trophies, 09 §5.6, with `loot.coins` below as their data; bag.pack: 12 slots); no weather, no elites, no compendium. The director is on because `fight.attackers` is finite
   ground: { terrain: TERRAIN },                                           // buildTerrain(SEED, { oceanLevel: 0.8, landscape, graded, trails, cabinSites: [] })
   water: { sea: () => import('./world/ocean').then((m) => m.OCEAN_BODY) },   // Q1 — the WaterBody (level 0.8, shallow / deep colours, deepDepth 6)
   wind: WORLD_WIND,                                                       // 01 §17: today's world/wind.ts values (sway, gusts) as data for the engine WindField
@@ -282,7 +287,7 @@ export default defineShard({
     },
     desktop: { oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true },   // tier.ts desktop row
   },
-  budgets: {
+  budgets: {                                                              // inputs only; S4.4 derives the numbers, its F2-baseline ceilings until then (R1-14)
     phone: { fps: 30, lanes: 'default' },
     desktop: { fps: 60, lanes: 'default' },
     load: { coldPlay4G: 30 },                                             // budget-design §6.6
@@ -368,12 +373,14 @@ disappear: `id`,
 system and scene object is added in the same sequence:
 
 ```ts
-export default class DriftwoodPlugin extends ShardPlugin {
-  async install(ctx: ShardContext): Promise<void> {
+export default class DriftwoodPlugin extends ShardPlugin {  // staged hooks, each awaited in its boot stage (R1-24); every ctx verb is bound to ctx.scope (R1-25)
+  private rt: DriftwoodRuntime | null = null;               // made in world(); kit() and play() run after it, in stage order
+  private runtime(): DriftwoodRuntime { if (this.rt === null) throw new Error('driftwood-isle: world() has not run'); return this.rt; }
+  async world(ctx: ShardContext): Promise<void> {           // ── level.world (main.ts:289-427's Driftwood parts, in order; progress into the `edge` key) ──
     ctx.strings(STRINGS);                                     // 'respawn.default', the toasts, weapon names, the quest's lines
     const rt = new DriftwoodRuntime(ctx.scope);
+    this.rt = rt;
     ctx.tiers.knobs(DRIFTWOOD_KNOBS);                         // oceanCell, palmCount, … (tier.ts:59-61)
-    // ── level.world (main.ts:289-427's Driftwood parts, in order; progress into the `edge` key) ──
     rt.ocean = buildOcean(ctx);                               // :299 — registers the sea WaterBody
     rt.pier = placePier(ctx);                                 // :303
     rt.boat = placeBoat(ctx, rt);                             // :309
@@ -392,12 +399,16 @@ export default class DriftwoodPlugin extends ShardPlugin {
     rt.ocean.foamAround(rt.seaColliders());                   // :396
     rt.bridgeDeck = buildBridgeDeck(ctx, rt);                 // :411-412
     rt.island = await installBlenderIsland(ctx, rt);          // :421-427 (null on a load error: the procedural cove stays)
-    // ── level.kit ──
-    ctx.rows.weapon(SWORD_ROW); ctx.rows.weapon(IRON_SWORD_ROW);                            // child rows of the kit's, the castaway arms
+  }
+  kit(ctx: ShardContext): void {                            // ── level.kit ──
+    ctx.rows.weapon(SWORD_ROW); ctx.rows.weapon(IRON_SWORD_ROW);                            // child rows of the kit's, the castaway arms; `meta` feeds the Bag (R1-26)
     ctx.rows.species(DRIFTWOOD_SPECIES); ctx.rows.creatureLook('toon', LOWPOLY_LOOK);     // S4.2
+    ctx.rows.speciesLook(DRIFTWOOD_LOOKS);                    // R1-27: the SpeciesRows are simulation only; the crab / monkey / sailor / captain rigs and meshes are SpeciesLooks, registered apart
     ctx.rows.encounter(CAPTAIN); ctx.rows.spawn(DRIFTWOOD_SPAWNS); ctx.rows.loot(DRIFTWOOD_LOOT);
     ctx.rows.item(DRIFTWOOD_ITEMS); ctx.rows.feat(DRIFTWOOD_FEATS); ctx.rows.shop(DRIFTWOOD_SHOP);
-    // ── level.play (main.ts:500-987's Driftwood calls, in order) ──
+  }
+  play(ctx: ShardContext): void {                           // ── level.play (main.ts:500-987's Driftwood calls, in order) ──
+    const rt = this.runtime();
     installEnemies(ctx, rt);                                  // :500 — the spawn tables start (S4.2)
     installAudio(ctx, rt);                                    // :590 shrine hum, :684 island voices, :844 surfaces, :863 ambience, :930 gulls
     placeIronSwordPickup(ctx, rt);                            // :730-740
@@ -474,7 +485,7 @@ export default class DriftwoodPlugin extends ShardPlugin {
    `explore/MiniMap.ts:115, 220, 238, 251, 258`, `explore/diorama.ts:153`, `main.ts:962`. `waterLevel()`
    (`Heightfield`) stays for the flat level (Pine's pond, Nalati's river).
 5. **The loadout.** Rows `weapon.sword` (parent kit `SWORD_WOOD`, name "Wooden sword", viewmodel `castawayArms`) and
-   `weapon.sword-iron` (parent kit `SWORD_IRON`, name "Iron sword", `pickup: { at: 'wreck.deck', model: () =>
+   `weapon.sword-iron` (parent kit `SWORD_IRON`, name "Iron sword"; each name is the row's `meta.name`, R1-26, `pickup: { at: 'wreck.deck', model: () =>
    import('./loadout/ironSword'), prompt: 'loadout.iron.take', toast: 'loadout.iron.got' }`, owned id `iron-sword`).
    The castaway's `ironArms` and `swim` (`main.ts:530`) are the rig's parts the rows and `Hands` read.
 6. **Tier knobs**: `ctx.tiers.knobs(DRIFTWOOD_KNOBS)` with the seven knobs' schemas; `Palms`, `Bushes`, `Boulders`,
@@ -498,8 +509,10 @@ the registry and the census identical; parity green on 4 shards × 2 tiers.
 **A. Species and spawns.**
 1. **Rows** (09 §5.2, §5.3): `creature.crab` (25; big 70), `creature.monkey` (30; elder 45), `creature.sailor` (60),
    `creature.captain` (320) in `shard:species/`, with their brains as `CreatureBrain` subclasses keeping every state of
-   `crab.ts:213`, `monkey.ts:232`, `sailor.ts:275`, `captain.ts:227`. Strikes S1–S7 as `StrikeSpec` rows. The kit boar
-   and bear take Driftwood's child rows (`ISLAND_BOARS`, `faunaTuning.boar`) and the low-poly look.
+   `crab.ts:213`, `monkey.ts:232`, `sailor.ts:275`, `captain.ts:227`. Strikes S1–S7 as `StrikeSpec` rows. Each is a
+   `SpeciesRow` (simulation) plus a `SpeciesLook` (rig + mesh from the species files and `captainMesh.ts`), registered
+   apart (R1-27). The kit boar and bear take Driftwood's child rows (`ISLAND_BOARS`, `faunaTuning.boar`) and the
+   low-poly look (their `SpeciesLook` for `kitLook: 'toon'`).
 2. **The big crab hits for 14** (the lead's answer to 09 Q8, a found bug fixed toward the data). Today the snap always
    deals `SNAP_DAMAGE` 10 (`crab.ts:214, 266`) and the big variant's `mods: { chargeDamage: 14 }` (`crab.ts:301`) is
    never read. `strike.crab.snap`'s `damage` reads the variant's `chargeDamage` (small 10 from the species default
@@ -515,7 +528,10 @@ the registry and the census identical; parity green on 4 shards × 2 tiers.
    `Ecology.ts:33, 82, 84` → `'spawn'`; `keepsakes.ts:166` → `'loot'`; `CoinBurst.ts:80-89` → `'cosmetic'`.
 5. **Ticks**: the crab, monkey and sailor brains `tick: 'ai'`, decision 85's bands (near 0–60 m: brain 20 Hz, body
    every frame; mid 60–160 m: brain 10 Hz, body every 2nd frame; far: paused); the captain is pinned while awake
-   (09 §5.7).
+   (09 §5.7). **These self-thinking species (crab, monkey, sailor, the Captain) join the runtime here and get
+   body-clock strikes now (R1-32).** Today their strikes are checked inside the 10 Hz `think`
+   (`AnimalManager.ts:686-699, 777-782`; the captain's cuts at `captain.ts:275-285`), so a strike's frames may move by
+   up to 100 ms: the one allowed difference of S4.2's parity, a boarded M4 item with a clip.
 
 **B. The Drowned Captain on `EncounterService.boss`, his fight unchanged.**
 1. `class DrownedCaptain extends BossBrain` (`shard:combat/captain.ts`) from `captain.ts:227-312`: states hide · rise
@@ -559,8 +575,11 @@ S4.2 commit):
   decision 91); the sink / burst frames and the bubble ring positions; the kill frame, `dead:captain`,
   the 25-coin burst and the hat drop.
 - The baseline is recorded on HEAD before S4.2 (F2's harness, the same script); the gate compares frame for frame.
-  **Allowed differences: none.** A strike landing one frame early or late fails the step (the captain's strikes run
-  on the fixed step already today, `captain.ts:268-276`, so the `StrikeRunner` must reproduce the same frame).
+  **The one allowed difference is the strike-timing shift (R1-32):** his strikes are checked in the 10 Hz `think`
+  today (`captain.ts:275-285`, called from `AnimalManager.ts:686-699, 777-782`) and on the body clock from S4.2, so a
+  strike's frames (wind-up, cut, the burst, and what follows from them) may move by up to 100 ms. "His fight
+  unchanged" means **rules, moves, phases and damage**: the same states, strikes and phase changes in the same order,
+  the same damage per hit and the same kill and rewards. The shift is a boarded M4 item with a clip (§8, §9).
 - The node tests: `test/ai/strike-table.test.ts` rows S5–S7 (every number), `test/ai/boss-phases.test.ts` (phases at
   .66 / .33; `death.checkpoint` unanswered for the captain), `test/combat/damage-pipeline.test.ts` (his 24 passes the
   cap of 20 because `capExempt`).
@@ -575,7 +594,7 @@ troops and sailors at the same spots as `Enemies.build`), `boss-phases`, `test/s
 (the def's flags; the bar visibility rule), `test/ai/practice-crab.test.ts` (dies → back at 45 s only when 30 m off), `test/shards/driftwood-isle/captain-attempt.test.ts`
 (a wake then a kill emits one `boss.attempt` with `outcome: 'won'`; a death in the arena emits `'lost'`; a second wake
 emits a second event).
-**Done when:** the harness's `captain` block is identical (plus the new `boss.attempt` field); the scripted swing + kill on the practice crab identical;
+**Done when:** the harness's `captain` block is identical except the ≤ 100 ms strike-timing shift (R1-32; plus the new `boss.attempt` field); the scripted swing + kill on the practice crab identical;
 a big crab's snap deals 14 (the expected diff); `grep -rn "enemyWorld\|onCharge\|onWindup" src/shards/driftwood-isle` is empty.
 
 ### 6.3 S4.3 — adventure, keepsakes, first minutes, shrine hum, island audio; the toon look as a `LookStrategy`
@@ -672,7 +691,7 @@ goes. Every destination is an engine / game module with a system id; `boot.ts` o
 | 235-257 | extras barrier, deferred audio, menu / audio preload, texture worker, lever preload, fieldModels | gone by S1.1 / S2.1 / S2.2 (manifest boot data, row preloads) | — |
 | 258-280 | the fragile GPU boot guard | `src/engine/boot/guard.ts` (S1.1) | stage `finish` |
 | 283-289 | `painterly`, `built`, `nolock`, `viewer` | `viewer` → `app.scene.viewer`; `nolock` → `app.params`; the rest gone | — |
-| 289-408 | the `edge` step: `Boundary`, `Horizon`, the matte (the rest left at S2.1 / S3.1 / S4.1) | `src/engine/world/edge.ts` | stage `level.world` (before `install`) |
+| 289-408 | the `edge` step: `Boundary`, `Horizon`, the matte (the rest left at S2.1 / S3.1 / S4.1) | `src/engine/world/edge.ts` | stage `level.world` (before `plugin.world`, R1-24) |
 | 409-427 | bridge chain, `addPaths`, the Blender island | Driftwood (S4.1); `addPaths` → `src/engine/world/paths.ts` (S3.1) | — |
 | 429-488 | the `grass` / `cabins` / `props` steps | gone (S2.1 / S3.1 / S1.1 moved each shard's) | — |
 | 490-493 | the `animals` step | `src/engine/ai/creatures.ts` (the creature service's build) | stage `level.play` |
@@ -716,7 +735,7 @@ the minimap, the full map, `hud.setState`). The frame-cost marks (`mark('world' 
 
 **`src/engine/boot.ts`** (≤ 150 lines; `scripts/check-paths.mjs` gains a line-count check): installs the error screen,
 creates the `App`, takes the selected shard from `src/main.ts` (which reads the generated registry), runs the stages `engine` → `level.data` →
-`level.world` → `level.kit` → `level.play` → `finish` (01 §8) with the plugin's `install` inside them, sets
+`level.world` → `level.kit` → `level.play` → `finish` (01 §8) with the plugin's `world` / `kit` / `play` hooks inside them (R1-24), sets
 `app.setState('title' | 'play' | 'explore')` from the arrival, and on any throw shows the full-screen error (decision 69).
 It names no shard, reads no `style`, no `slug` except to select the manifest.
 
@@ -732,11 +751,17 @@ the manifest and hand it to `src/engine/boot.ts` (the engine may not import `#ga
 composition root's other half and is unchanged here;
 `Game.onInput / onFixed / onUpdate / onLate` (the thin wrappers, 01 §1) are deleted.
 
+**Driftwood's derived budgets** (R1-14; M4 is Driftwood's milestone). The gate derives Driftwood's per-pose numbers
+from the budget formula (S1.6) at its three harness poses; until this row Driftwood's check used its F2-baseline
+ceilings. A pose over its derived number keeps its current worst as a ceiling in `lint/ratchet.json` (may only go
+down), with the derived number printed as its target (the pier pose's 868 desktop draws, budget-design §6.4).
+
 **Tests:** `test/engine/boot.test.ts` (the fake Game boots the template-shaped stub manifest through every stage in
-order; a throwing `install` shows the error screen and disposes the scope), `test/engine/systems-order.test.ts` (the
+order; a throwing hook, in each stage, shows the error screen and disposes the scope; R1-24), `test/engine/systems-order.test.ts` (the
 `'main'` split: the phase list equals the F2 fingerprint's order for each shard).
 **Done when:** `wc -l src/engine/boot.ts` ≤ 150; `wc -l src/main.ts` ≤ 20; `pnpm lint:ratchet` shows 0 for the
-rules above; parity green on 4 shards × 2 tiers (the systems list renamed by 03's id map, otherwise identical).
+rules above; parity green on 4 shards × 2 tiers (the systems list renamed by 03's id map, otherwise identical); the gate prints
+Driftwood's derived numbers and enforces its ceilings (R1-14).
 
 ## 7. (f) Bugs fixed inline in this phase (each with a test)
 
@@ -750,18 +775,22 @@ rules above; parity green on 4 shards × 2 tiers (the systems list renamed by 03
 
 ## 8. (g) Parity expectations
 
-**Identical** (`scripts/parity.mjs --shards driftwood-isle --tier phone,desktop`; all four on engine edits): the
+**Identical** (`scripts/parity.mjs --export=HEAD --shards=driftwood-isle --tiers=phone` on every commit,
+`--tiers=phone,desktop` before a push; all four on engine edits; R1-10): the
 systems list (renamed per 03's id map), the registry (sorted), the scene census, programs (byte-identical: the toon
 patch and the ramp fog install in the same order), draws and triangles at the three harness poses at pinned `time`,
 the walk and `--trails` routes (0 stuck, the Driftwood legs), a swing to a kill with the wooden and the iron sword,
-the iron sword pickup, the practice crab, the **`captain` block frame for frame**, the quest run to `seen:reward`,
+the iron sword pickup, the practice crab, the **`captain` block frame for frame** except the strike-timing shift (R1-32), the quest run to `seen:reward`,
 the sea-glass collection, a shop purchase, the first-minutes hints, the audio beds, score slots and voices of the
 scripted walk, the HUD slots, the save keys.
 
-**Expected to differ:**
+**Expected to differ.** Each row is a pending item from the commit that makes it (05 §8, R1-13): listed in
+`reviews/pending.json` with its expected fingerprint delta, recorded with `parity --accept <ids>`, shown yellow by the
+gate, and OK'd by Jake (re-baselined) or reverted before the pin moves.
 
 | Difference | Row | Where it is shown |
 |---|---|---|
+| Crab, monkey, sailor and Captain strikes on the body clock: a strike's frames up to 100 ms earlier or later (rules, moves, phases and damage unchanged) | S4.2 (R1-32) | the creatures board (a clip: the Captain's first and second cuts, before / after) |
 | A big crab's snap deals 14, not 10 | S4.2 (D1) | the creatures board (one clip: a big crab's snap, the health bar before / after) |
 | Crab, monkey, sailor brains think in decision 85's bands (20 Hz near, 10 Hz from 60 m, paused past 160 m) | S4.2 | the creatures board (a monkey troop at 40 / 100 / 200 m) — if M2 already showed Driftwood's boars (06 Q7), only the new species |
 | `boss.attempt` fires for the Captain | S4.2 (D2) | M4 summary |
@@ -772,13 +801,15 @@ scripted walk, the HUD slots, the save keys.
 
 | Step | Detail |
 |---|---|
-| Gate | `gpu-gate` green on HEAD; parity green on 4 shards; `pnpm test` green; `lint/ratchet.json`'s shard-branch, engine-word and `getActiveChunk` counts at 0 |
-| Pin | After Jake's go: `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M4 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
+| Flow | As M1 (05 §9, R1-15): gate green on HEAD → boards to Jake → Jake OKs the board items (or they are fixed / reverted) → the pin moves to HEAD → deploy → Jake plays it live → **Jake's go starts the X rows**. The go is not a ship gate |
+| Gate | `gpu-gate` green on HEAD, every shard's budget check on its derived budgets (S1.6, S2.6, S3.5, S4.4; R1-14); parity green on 4 shards; `pnpm test` green; `lint/ratchet.json`'s shard-branch, engine-word and `getActiveChunk` counts at 0 |
+| Pin | After Jake OKs the board items, with no item left in `reviews/pending.json` (R1-13, R1-15): `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M4 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1: ~12k lines from engine folders), what was deleted (`main.ts` 1,336 → `boot.ts` ≤ 150, `ChunkDef.ts`, `DayNight.ts`, `stylize.ts` / `StylizedSky.ts` out of the engine, the adventure registry, `legacyIsland.ts`), the ratchets before / after since F4, Driftwood's derived budgets and ceilings (the pier pose's 868 desktop draws as a ceiling, budget-design §6.4) |
-| Boards | **Creatures** (the big crab at 14; the crab / monkey / sailor tick bands) and **Look** (the Drowned Captain on the shared BossBar, decision 91). iPhone portrait, clips ≤ 10 s. No weapons or audio board (nothing else changes) |
-| Jake plays | Driftwood on the pinned build: the pier, the practice crab, the hut, the wreck's iron sword, a monkey troop, a big crab, the shrine, the Drowned Captain, the reward at golden hour |
-| Decision asked | AskUserQuestion: "Driftwood M4: go?" (recommended: yes), with the summary and the board |
-| Reopening | On Jake's go: `src/shards/driftwood-isle/` (+ `test/shards/driftwood-isle/`, `art/driftwood-isle/`, `public/assets/driftwood-*`, `public/assets/sfx/driftwood-isle/`, `scripts/blender/driftwood-isle/`) reopens to content agents; the engine, game and kit stay locked until the plan is archived (Z4) |
+| Boards | **Creatures** (the big crab at 14; the crab / monkey / sailor tick bands; the strike-timing shift, with a clip of the Captain's cuts before / after, R1-32) and **Look** (the Drowned Captain on the shared BossBar, decision 91). iPhone portrait, clips ≤ 10 s, from the harness's capture of HEAD (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is fixed / reverted (R1-13). No weapons or audio board (nothing else changes) |
+| Jake plays | Driftwood **live** on the pinned build, after the deploy (R1-15): the pier, the practice crab, the hut, the wreck's iron sword, a monkey troop, a big crab, the shrine, the Drowned Captain, the reward at golden hour. To play before the pin moves: a Vercel preview deployment of the candidate (`vercel deploy --prebuilt`, which keeps `/api`), not `release-url.sh` (R1-15) |
+| Decision asked | Two AskUserQuestions (R1-15): the summary + boards first (each item OK / fix / revert), whose OKs move the pin; then, after he has played it live, "Driftwood M4: go?" (recommended: yes) |
+| Rollback | If the pinned M4 build breaks on Jake's phone: `node scripts/deploy-pin.mjs rollback <sha>` to a SHA in the pin history (M3 or earlier), with no gate check; M0 is past F10, so it can't read the v2 saves (accepted, decision 13; stated on the rollback) (R1-16) |
+| Reopening | On Jake's go, `src/shards/driftwood-isle/` reopens to content agents; the engine, game and kit stay locked until the plan is archived (Z4). `scripts/check-lock.mjs`, the `commit-msg` hook F0 builds (R1-09), passes a commit without the `E357-Lead: yes` trailer only when every path is on Driftwood's allowlist: `src/shards/driftwood-isle/**`, `test/shards/driftwood-isle/**`, `art/driftwood-isle/**`, the asset folders its manifest declares (`public/assets/driftwood-*`, `public/assets/sfx/driftwood-isle/**`), `scripts/blender/driftwood-isle/**`, `docs/tasks/asks/**`; generated files are built, not committed (R1-11). From then on Driftwood's lane owns its baselines: a content commit re-records them in the same commit (`parity --rebaseline driftwood-isle`), and every other shard must stay identical, the cross-shard proof (R1-12) |
 
 ## 10. Questions for the lead
 
