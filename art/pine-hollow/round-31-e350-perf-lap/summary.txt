@@ -1,0 +1,20 @@
+WILDSHARD PERF LAP · build f2ee9fa-muo5s1p7
+2026-09-30 09:05 · pine-hollow · 6/6 spots · 1m06s
+phone · dpr 3 · render 2.00× · 804×1362 · cap 30 fps · WebKit
+rAF 60 Hz · Low Power Mode: no
+gpu~ p50 start 0.0 → end 0.0 ms (thermal drift +0.0)
+spot    fps50 fps5 @33ms >50 >100 gpu50 gpu95 calls tris
+gate     30.0 29.9  100%   0    0   0.0   0.2    88 905k
+cabin    30.0 29.9  100%   0    0   0.0   0.1   123 1.2M
+pond     30.0 28.7  100%   0    0   0.0   1.5   110 1.1M
+hamlet   30.0 28.7  100%   0    0   0.0   1.5   133 1.3M
+lookout  30.0 28.8  100%   0    0   0.0   1.4    96 980k
+king     30.0 29.2  100%   1    0   0.0   0.9   104 1.1M
+ALL      30.0 28.9  100%   1    0   0.0   1.3   110 1.1M
+worst frame per spot:
+ gate    34ms render 2ms
+ cabin   34ms render 2ms
+ pond    35ms gpu~ 2ms
+ hamlet  35ms render 2ms
+ lookout 35ms render 2ms
+ king    100ms gpu~ 67ms

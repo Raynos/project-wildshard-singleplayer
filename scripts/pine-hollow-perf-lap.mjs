@@ -35,13 +35,37 @@ try {
   await sleep(10000);
   const build = await page.evaluate(() => fetch('/version.json').then((r) => r.json()).catch(() => null));
   console.log('build', JSON.stringify(build));
-  const saves = () => page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter((k) => !k.startsWith('ws.perf')).sort().map((k) => [k, localStorage.getItem(k)])));
   const pos = () => page.evaluate(() => { const p = window.__world.player; return { x: p.position.x, y: p.position.y, z: p.position.z, yaw: p.yaw }; });
   const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) < 0.5 && Math.abs(a.yaw - b.yaw) < 1e-3;
-  const diff = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => a[k] !== b[k]);
+  // the JSON paths that differ (a save's value is JSON: name what changed inside it, not only the key). A save written
+  // for the first time holds its defaults: missing and empty ('', 0, false, [], {}) read the same
+  const empty = (v) => v === undefined || v === null || v === '' || v === 0 || v === false || (typeof v === 'object' && Object.keys(v).length === 0);
+  const paths = (a, b, at, out) => {
+    if (a === b || (empty(a) && empty(b))) return out;
+    if ((a === undefined || a === null) && typeof b === 'object') return paths({}, b, at, out);
+    if ((b === undefined || b === null) && typeof a === 'object') return paths(a, {}, at, out);
+    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) { out.push(`${at}: ${JSON.stringify(a ?? null).slice(0, 60)} → ${JSON.stringify(b ?? null).slice(0, 60)}`); return out; }
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) paths(a[key], b[key], `${at}.${key}`, out);
+    return out;
+  };
+  const parse = (s) => { try { return JSON.parse(s); } catch { return s; } };
+  const diff = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap((key) => paths(parse(a[key] ?? 'null'), parse(b[key] ?? 'null'), key, []));
+
+  // the saves at the lap's first and last tick, in the page (a boar the journal spots at the spawn a second before the
+  // tap is not the lap's); play time (`playS`) runs on through a lap like any time in the world
+  await page.evaluate(() => {
+    const snap = () => Object.fromEntries(Object.keys(localStorage).filter((k) => !k.startsWith('ws.perf')).sort().map((k) => [k, localStorage.getItem(k)]));
+    const run = window.__perfLapRun, start = run.start.bind(run), done = run.onDone;
+    window.__lapSaves = {};
+    run.start = (rec) => { window.__lapSaves = { before: snap() }; return start(rec); };
+    run.onDone = (t) => { window.__lapSaves.after = snap(); done?.(t); };
+  });
+  const lapSaves = () => page.evaluate(() => window.__lapSaves);
+  const own = (d) => d.filter((line) => !/\.playS: /.test(line));
+  const list = (d) => (d.length > 0 ? d.join(' | ') : 'none');
 
   // ── the lap: pill → PERF LAP ──
-  const before = await saves(), p0 = await pos();
+  const p0 = await pos();
   await page.locator('.ws-perf').click();
   await page.locator('.ws-perf-lap').click();
   // where it stands at each spot (the lookout's catwalk must hold the player)
@@ -62,8 +86,10 @@ try {
   console.log(`\n${text}\n`);
   for (const s of seen) console.log(`  at ${s.id}: ${s.x.toFixed(1)}, ${s.y.toFixed(1)}, ${s.z.toFixed(1)}`);
   check(text.includes('6/6 spots') && !text.includes('CANCELLED'), 'the lap ran all six spots');
-  const after = await saves(), p1 = await pos();
-  check(diff(before, after).length === 0, `no save changed (${diff(before, after).join(', ') || 'none'})`);
+  const p1 = await pos(), ls = await lapSaves();
+  const lapDiff = diff(ls.before, ls.after);
+  console.log(`saves the lap changed: ${list(lapDiff)}`);
+  check(own(lapDiff).length === 0, `no save changed (play time aside) (${list(own(lapDiff))})`);
   check(near(p0, p1), `the player is back (${JSON.stringify(p0)} → ${JSON.stringify(p1)})`);
   if (SHOT) {
     await page.evaluate(() => { document.querySelector('.ws-perf-lap-out')?.scrollIntoView({ block: 'start' }); });
@@ -74,7 +100,7 @@ try {
 
   // ── a key cancels ──
   await page.evaluate(() => { window.__perfLap = undefined; });
-  const b2 = await saves(), p2 = await pos();
+  const p2 = await pos();
   await page.locator('.ws-perf-lap').click();
   await sleep(6000);
   await page.keyboard.press('KeyW');
@@ -83,7 +109,8 @@ try {
   const p3 = await pos();
   check(cancelled.includes('CANCELLED: touch / key'), 'a key press cancels the lap');
   check(near(p2, p3), 'the cancelled lap puts the player back');
-  check(diff(b2, await saves()).length === 0, 'the cancelled lap changed no save');
+  const ls2 = await lapSaves();
+  check(own(diff(ls2.before, ls2.after)).length === 0, `the cancelled lap changed no save (${list(own(diff(ls2.before, ls2.after)))})`);
 
   // ── a fight refuses it ──
   const refused = await page.evaluate(() => {
