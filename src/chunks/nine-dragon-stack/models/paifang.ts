@@ -12,8 +12,7 @@ import { defineModel, type ModelContext, type ModelPart, type ModelVariant } fro
 import { type GateSpec, buildGate } from '../world/gate';
 import { Kit } from '../world/kit';
 import { KitX, merge } from '../world/hero/kitx';
-import { SignBuilder } from '../look/signs';
-import { ndLook, need } from '../world/modelLook';
+import { NoSigns, ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/chunks/nine-dragon-stack/models/paifang.ts';
 
@@ -24,14 +23,6 @@ export const PAIFANG: Readonly<Record<'square' | 'stair' | 'well', Omit<GateSpec
   stair: { posts: [-5.6, -3.1, 3.1, 5.6], s: 1.3, plaque: '九龍', couplets: null, neonEaves: null, lions: false, paint: 'cinnabar' },
   well: { posts: [-5.4, -2.3, 2.3, 5.4], s: 1.05, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false },
 };
-
-/** the signs a specimen's gate would hang (the plaque, the couplets, eave neon): counted, not drawn — they are signs */
-class NoSigns extends SignBuilder {
-  skipped = 0;
-  override place(): { w: number; h: number } { this.skipped++; return { w: 0, h: 0 }; }
-  override tube(): void { this.skipped++; }
-  override light(): void { this.skipped++; }
-}
 
 export interface PaifangParams { readonly kind: keyof typeof PAIFANG }
 

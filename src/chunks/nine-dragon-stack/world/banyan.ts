@@ -10,7 +10,7 @@
 //   shaded bellies darker, the gongbi leaf pattern K.leaf), the greens darkened to the targets' night foliage;
 // - the planter: dark wet granite with carved panels, a moulded rim, soil; the shrine: a red lacquer cabinet under a
 //   little tiled hip roof, a gold-lit niche, candles, a censer with incense smoke, oranges on a plate, paper couplets.
-import { Color, Vector3 } from 'three';
+import { Box3, Color, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from './kit';
@@ -277,8 +277,9 @@ export function buildBanyanTree(k: Kit, x: KitX, B: BanyanSpec): BanyanPlan {
   return { lumps, hangs };
 }
 
-/** the earth-god shrine (土地公) at the planter's front: a red lacquer cabinet under a tiled roof, candles, a censer */
-function shrine(ctx: Ctx, k: Kit, x: KitX, sx: number, y: number, sz: number): void {
+/** the earth-god shrine (土地公) at the planter's front: a red lacquer cabinet under a tiled roof, candles, a censer
+ *  (the earth-god shrine model, ../models/banyan.ts: its own space is (sx, y, sz) = the origin) */
+export function shrine(ctx: Ctx, k: Kit, x: KitX, sx: number, y: number, sz: number): void {
   const RED: Look = { wash: 0x8a2419, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
   // the stone base and the altar table
   k.box(sx, y, sz, 1.5, 0.5, 0.95, { wash: 0x5a5b60, kind: K.panel, line: 1, wet: 0.3 });
@@ -327,6 +328,20 @@ function shrine(ctx: Ctx, k: Kit, x: KitX, sx: number, y: number, sz: number): v
 }
 
 
+/** the 九龍城 stele: a dark granite slab on a tortoise-back plinth (the stele model, ../models/banyan.ts) */
+export function kowloonStele(ctx: Ctx, k: Kit, tx: number, y: number, tz: number): void {
+  k.box(tx, y, tz, 1.0, 0.35, 0.7, { wash: 0x55565b, line: 1, wet: 0.3 });
+  k.box(tx, y + 0.35, tz, 0.78, 2.9, 0.42, { wash: 0x4a4b50, kind: K.panel, line: 1, wet: 0.25 });
+  k.box(tx, y + 3.25, tz, 0.92, 0.22, 0.5, { wash: 0x55565b, line: 1 });
+  ctx.signs.place({ at: new Vector3(tx, y + 1.85, tz + 0.22), normal: new Vector3(0, 0, 1), size: 0.5, spec: { text: '九龍城', color: '#d8c9a0', vertical: true, style: 'paper', ink: '#3a3b40' }, gain: 1.0 }, null);
+}
+
+/** the tree's shape (its planter's radius, its seed, height and spread; the organic lab's cards dress its canopy) */
+export const BANYAN_TREE = { r: BANYAN.r, seed: 7, height: 14, spread: 8.6, leaves: false } as const;
+/** where the shrine and the stele stand off the tree's centre (x, z) */
+export const SHRINE_AT = [-3.2, 2.2] as const;
+export const STELE_AT = [-3.7, -1.1] as const;
+
 /** the banyan, its planter, the earth-god shrine and the 九龍城 stele */
 /** the tree's plan, for main.ts: the canopy's lumps, dressed by canopy.ts `buildCanopy` (the organic lab's cards) */
 export const banyanOut: { plan: BanyanPlan | null } = { plan: null };
@@ -338,16 +353,22 @@ export function buildBanyan(ctx: Ctx, rng: Rng): void {
   const { x, z, r } = BANYAN;
   const y = Y0;
   // no K.leaf lumps: the organic lab's painted leaf cards dress the plan (canopy.ts, wired in main.ts)
-  banyanOut.plan = buildBanyanTree(k, kx, { x, y, z, r, seed: 7, height: 14, spread: 8.6, leaves: false });
+  // (each piece is a model drawn into the kit, ../models/banyan.ts: the world records where it stands)
+  const drawn = (v0: number, w0: number): Box3 => kx.boundsFrom(w0, k.boundsFrom(v0, new Box3()));
+  let v0 = k.vertexCount, w0 = kx.vertexCount;
+  banyanOut.plan = buildBanyanTree(k, kx, { x, y, z, ...BANYAN_TREE });
+  ctx.inKit.push({ model: 'nine-dragon-stack/banyan', kit: k, at: { x, y, z }, box: drawn(v0, w0) });
   for (let i = 0; i < 7; i++) ctx.lantern(x + rng.range(-4.5, 4.5), y + rng.range(6.2, 8.4), z + rng.range(-3, 3.5), 0.8);
   for (const h of banyanOut.plan.hangs) ctx.lantern(h.x, h.y, h.z, 0.72);
   // the shrine stands at the planter's south-west, clear of the stall's back, facing the square
-  shrine(ctx, k, kx, x - 3.2, y, z + 2.2);
+  const sx = x + SHRINE_AT[0], sz = z + SHRINE_AT[1];
+  v0 = k.vertexCount; w0 = kx.vertexCount;
+  shrine(ctx, k, kx, sx, y, sz);
+  ctx.inKit.push({ model: 'nine-dragon-stack/earth-god-shrine', kit: k, at: { x: sx, y, z: sz }, box: drawn(v0, w0) });
   // the 九龍城 stele: a dark granite slab on a tortoise-back plinth
-  const tx = x - 3.7, tz = z - 1.1;
-  k.box(tx, y, tz, 1.0, 0.35, 0.7, { wash: 0x55565b, line: 1, wet: 0.3 });
-  k.box(tx, y + 0.35, tz, 0.78, 2.9, 0.42, { wash: 0x4a4b50, kind: K.panel, line: 1, wet: 0.25 });
-  k.box(tx, y + 3.25, tz, 0.92, 0.22, 0.5, { wash: 0x55565b, line: 1 });
-  ctx.signs.place({ at: new Vector3(tx, y + 1.85, tz + 0.22), normal: new Vector3(0, 0, 1), size: 0.5, spec: { text: '九龍城', color: '#d8c9a0', vertical: true, style: 'paper', ink: '#3a3b40' }, gain: 1.0 }, null);
+  const tx = x + STELE_AT[0], tz = z + STELE_AT[1];
+  v0 = k.vertexCount; w0 = kx.vertexCount;
+  kowloonStele(ctx, k, tx, y, tz);
+  ctx.inKit.push({ model: 'nine-dragon-stack/kowloon-stele', kit: k, at: { x: tx, y, z: tz }, box: drawn(v0, w0) });
   ctx.map.push({ x0: x - r, z0: z - r, x1: x + r, z1: z + r, kind: 'green' });
 }

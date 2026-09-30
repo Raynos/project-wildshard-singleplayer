@@ -123,7 +123,8 @@ export const NINE_DRAGON_STACK: ChunkDef = {
       { ids: ['nds-fronts'], look: 'rock' },
       { ids: ['nds-floors'], look: 'stone' },
       { ids: ['nds-edges'], look: 'rock' },
-      { ids: ['nds-props'], look: 'timber' },
+      // (and the props that collide as models: their pieces are registered as they are placed, world/inKit.ts)
+      { ids: ['nds-props', 'nds-banyan@*', 'nds-earth-god-shrine@*', 'nds-kowloon-stele@*'], look: 'timber' },
       { ids: ['nds-crossings'], look: 'planks' },
     ],
   },

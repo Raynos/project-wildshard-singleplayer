@@ -502,6 +502,18 @@ async function loadAtlas(url: string): Promise<Texture> {
 }
 
 /**
+ * The canopy's geometry over a plan's lumps: the painted cards and the darker core under them — the world's crown and
+ * the banyan model's (../models/banyan.ts, built over the tree's plan in its own space). The budget round: 2.6 cards per
+ * m² (the lab's 3.6) and a lat 4 × lon 7 core (the lab's phone levers).
+ */
+export function canopyGeometries(lumps: readonly Lump[]): { cards: BufferGeometry; core: BufferGeometry } {
+  const rng = new Rng(97);
+  const cards = cardGeometry(lumps, rng, { ...CARDS, perM2: 2.6 });
+  const core = shellGeometry(lumps, rng, { ...CORE, lat: 4, lon: 7 });
+  return { cards, core };
+}
+
+/**
  * Dome B: dress the banyan's lumps with the painted cards (alpha to coverage, then the depth-equal pass that writes the
  * lumps' plateau depth into the colour target's alpha for the post's ink) over a darker core. Returns the meshes to add
  * (none when the atlas fails: the tree then stands bare, which shows at once). Spill is baked like the kits'.
@@ -516,10 +528,7 @@ export async function buildCanopy(shared: Shared, lumps: readonly Lump[], emitte
     fu.uLeaf.value = DOME_B_LEAVES.map((h) => new Color(h));
     fu.uWash.value.x = 0.18;
     fu.uLeafInk.value.w = 0.15; // the sky rim: from above every card edge caught it and the crown went pale
-    const rng = new Rng(97);
-    // the budget round: 2.6 cards per m² (the lab's 3.6) and a lat 4 × lon 7 core (the lab's phone levers)
-    const gCards = cardGeometry(lumps, rng, { ...CARDS, perM2: 2.6 });
-    const gCore = shellGeometry(lumps, rng, { ...CORE, lat: 4, lon: 7 });
+    const { cards: gCards, core: gCore } = canopyGeometries(lumps);
     await bakeSpill([gCards, gCore], emitters);
     const cards = new Mesh(gCards, foliageMaterial(shared, 'cards', fu, atlas));
     const cardsDepth = new Mesh(gCards, foliageMaterial(shared, 'cards-depth', fu, atlas));

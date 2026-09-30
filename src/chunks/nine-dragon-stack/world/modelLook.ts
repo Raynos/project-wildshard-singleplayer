@@ -5,7 +5,7 @@
 // opaque sort keys on — is unchanged), and places the models; the Model Explorer's specimens read the same look later.
 import type { BufferGeometry, Material, ShaderMaterial, WebGLRenderer } from 'three';
 import { modelContext, type ModelContext } from '../../../models/model';
-import type { SignAtlas } from '../look/signs';
+import { type SignAtlas, SignBuilder } from '../look/signs';
 
 export interface NdLook {
   /** the Jiehua kit program (build.ts `mat`): the kits, the square's props and sets, the crowd, the dressing, the movers */
@@ -24,13 +24,27 @@ export interface NdLook {
   readonly geo: Map<string, BufferGeometry>;
   /** the Fei Zhua cast's brass (from its GLB's own material) */
   hookMat: Material | null;
+  /** the banyan's painted canopy programs (world/canopy.ts `buildCanopy`: its core, its cards, the cards' depth pass;
+   *  null while unbuilt, or when the leaf atlas failed and the tree stands bare) */
+  canopy: { readonly core: Material; readonly cards: Material; readonly depth: Material } | null;
+}
+
+/**
+ * The signs a specimen's builder would hang (a plaque, couplets, menu strips, eave neon): counted, not drawn — signs are
+ * their own models, drawn by the fragment's sign builder. A model built alone in its own space hands its builder one.
+ */
+export class NoSigns extends SignBuilder {
+  skipped = 0;
+  override place(): { w: number; h: number } { this.skipped++; return { w: 0, h: 0 }; }
+  override tube(): void { this.skipped++; }
+  override light(): void { this.skipped++; }
 }
 
 const KEY = 'nine-dragon-stack:look';
 
 /** the fragment's model context and its (still empty) look */
 export function ndModelContext(renderer: WebGLRenderer | null): { ctx: ModelContext; look: NdLook } {
-  const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null };
+  const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null };
   const ctx = modelContext(null, renderer);
   ctx.once(KEY, () => look);
   return { ctx, look };

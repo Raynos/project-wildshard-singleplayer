@@ -15,6 +15,7 @@ import { Ctx, type Piece } from './ctx';
 import { Kit } from './kit';
 import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../models/inKit';
 import { paifang } from '../models/paifang';
+import { banyan, earthGodShrine, kowloonSteleModel } from '../models/banyan';
 import { registerInKit } from './inKit';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { GlyphAtlas } from '../look/glyphs';
@@ -266,7 +267,11 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   await bakeSpill(kitGeos.map(([, g]) => g), emitters);
   phaseDone('neon spill', phaseStart);
   phaseStart = performance.now();
-  for (const m of await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters)) root.add(named(m, 'canopy'));
+  const crown = await buildCanopy(shared, banyanOut.plan?.lumps ?? [], emitters);
+  for (const m of crown) root.add(named(m, 'canopy'));
+  // (the banyan model's specimen wears the same crown, models/banyan.ts)
+  const [core, cards, depth] = crown.map((m) => (Array.isArray(m.material) ? undefined : m.material));
+  if (core !== undefined && cards !== undefined && depth !== undefined) nd.look.canopy = { core, cards, depth };
   phaseDone('canopy', phaseStart);
   phaseStart = performance.now();
   // (E283, Jake's pick) the distance LODs are the models' own (models/: meshoptimizer copies of the sculpts, their error
@@ -291,7 +296,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   // the models drawn into the kits (models/inKit.ts: the brass dragon hooks, stools, scooters, mahjong tables and
   // brush-drawn figures) registered on their kits' meshes
   const meshOfKit = (k: Kit): Mesh | undefined => kitMeshes.get(kitName.get(k) ?? '');
-  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id, paifang.id]);
+  const IN_KIT = new Set([brassDragonHook.id, drumStool.id, parkedScooter.id, mahjongTableModel.id, inkFigure.id, paifang.id, banyan.id, earthGodShrine.id, kowloonSteleModel.id]);
   const inKit = ctx.inKit.filter((c) => !IN_KIT.has(c.model));
   if (inKit.length > 0) throw new Error(`nine-dragon: '${inKit[0]?.model}' is drawn into a kit but is no model here (world/build.ts)`);
   registerInKit(nd.ctx, ctx.inKit, brassDragonHook, meshOfKit);
@@ -300,6 +305,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   registerInKit(nd.ctx, ctx.inKit, mahjongTableModel, meshOfKit);
   registerInKit(nd.ctx, ctx.inKit, inkFigure, meshOfKit);
   registerInKit(nd.ctx, ctx.inKit, paifang, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, banyan, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, earthGodShrine, meshOfKit);
+  registerInKit(nd.ctx, ctx.inKit, kowloonSteleModel, meshOfKit);
   if (setting('nineLanterns') === 'on') {
     const lanterns = place(paperLantern, paper.placements(), { ctx: nd.ctx, draw: 'instanced', culler: paper, parent: root, piece: { id: 'nds-lanterns' } });
     lanterns.object.name = 'lanterns';

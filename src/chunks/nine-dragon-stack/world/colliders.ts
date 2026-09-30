@@ -4,9 +4,10 @@
 // of the fragment are walls: the building fronts (40 m), the balustrades over the Well (with an invisible parapet 12 m
 // up so nobody vaults into the shaft), the street's and the stair's far ends. What still gets out (a grapple gone wrong)
 // the def's `bounds` catches: a soft respawn on the last floor stood on. The props you would walk into — the gate's
-// posts, the banyan's planter, the stalls — are boxes of their footprints.
+// posts, the stalls — are boxes of their footprints; the models' own colliders (the banyan's planter, the shrine, the
+// stele: ../models/) come with their copies (src/models/place.ts).
 import type { ColliderDesc } from '../../../world/registry';
-import { BANYAN, GATE, HAWKER, PLAZA, STAIR, STALL, STREET, WELL, Y0 } from '../layout';
+import { GATE, HAWKER, PLAZA, STAIR, STALL, STREET, WELL, Y0 } from '../layout';
 import { stairColliders, stairFloor } from './stairstreet';
 import { stairUpperColliders } from './stairstreet-upper';
 import { marketColliders } from './stalls';
@@ -80,15 +81,7 @@ export function fragmentColliders(): FragmentColliders {
   for (const px of GATE.posts) out.push(span(px - 0.45, Y0, GATE.z - 0.45, px + 0.45, Y0 + 7, GATE.z + 0.45, 'wood'));
   // the stair-street landings' planters (dome C2's)
   out.push(...stairUpperColliders());
-  // the banyan's round planter as an octagonal prism
-  const pts: number[] = [];
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2, r = BANYAN.r + 0.3;
-    pts.push(Math.cos(a) * r, 0, Math.sin(a) * r, Math.cos(a) * r, 1.0, Math.sin(a) * r);
-  }
-  out.push({ kind: 'hull', x: BANYAN.x, y: Y0, z: BANYAN.z, points: new Float32Array(pts), surface: 'stone' });
-  out.push(span(BANYAN.x - 4.2, Y0, BANYAN.z + 1.6, BANYAN.x - 2.2, Y0 + 1.8, BANYAN.z + 2.9));         // the earth-god shrine
-  out.push(span(BANYAN.x - 4.3, Y0, BANYAN.z - 1.6, BANYAN.x - 3.1, Y0 + 2.2, BANYAN.z - 0.6));         // the 九龍城 stele
+  // (the banyan's planter, the earth-god shrine and the 九龍城 stele collide as their models: models/banyan.ts)
   out.push(span(STALL.x0, Y0, STALL.z0, STALL.x1, Y0 + 3.2, STALL.z1 + 0.6, 'wood'));                    // the noodle stall
   out.push(span(HAWKER.x0, Y0, HAWKER.z0, HAWKER.x1, Y0 + 2.4, HAWKER.z1, 'wood'));                      // the hawker stall
   out.push(...marketColliders());                                                                         // E281: the east market's booths
