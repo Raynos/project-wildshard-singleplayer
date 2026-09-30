@@ -1,5 +1,5 @@
 /**
- * Driftwood's keepsakes (E314 stage 3, docs/plans/DRIFTWOOD-LOOT.md — Jake's picks 2026-09-30): what the beach and the
+ * Driftwood's keepsakes (E314 stage 3, project/archive/2026-09-30-driftwood-loot.md — Jake's picks 2026-09-30): what the beach and the
  * chosen fights give you to keep, hung in Wendell's hut, and what each one does. One call from main.ts on Driftwood.
  *
  *   - The sea glass chime (board 3 C): a wind chime hung under the eave over the hut's door (above the door opening's

@@ -2,7 +2,7 @@
 
 Jake's pick (2026-09-30, `art/loot/round-1-loop/board-9-shopkeeper.jpg`): the shop is **a second NPC, a trader at
 Wendell's hut** (Wendell stays the quest giver), dressed as board 9 A's travelling trader; her goods on **a small counter
-in front of her** (board 2 A). Plan: `docs/plans/DRIFTWOOD-LOOT.md` ▸ Jake's picks. No shop logic yet (the shop screen,
+in front of her** (board 2 A). Plan: `project/archive/2026-09-30-driftwood-loot.md` ▸ Jake's picks. No shop logic yet (the shop screen,
 board 5 C, comes after the coins and the Bag).
 
 Pipeline: **CODE** (the low-poly kit, `src/world/lowpolyKit.ts`) — the same builder, material and proportions as Wendell

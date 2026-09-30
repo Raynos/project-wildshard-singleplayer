@@ -1,5 +1,5 @@
 /**
- * Owned — what a shard's player has for good (E314, docs/plans/DRIFTWOOD-LOOT.md): the trader's upgrades and cosmetics
+ * Owned — what a shard's player has for good (E314, project/archive/2026-09-30-driftwood-loot.md): the trader's upgrades and cosmetics
  * (stage 2 writes them), the sea glass charms and the trophies (stage 3), the found iron sword (stage 1), and which
  * cosmetics are worn. Saved per shard in localStorage ('ws.owned.v1': { owned: id[], worn: id[] }). The Bag's GEAR and
  * FINDS tabs read it; nothing here applies an effect (the fights read `has()` when their stage lands).

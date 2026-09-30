@@ -1,6 +1,6 @@
 # Loot props, round 2: the small models (E314, 2026-09-30)
 
-The models [DRIFTWOOD-LOOT](../../../docs/plans/DRIFTWOOD-LOOT.md) "Jake's picks, 2026-09-30" needs: the sea glass chime
+The models [DRIFTWOOD-LOOT](../../../project/archive/2026-09-30-driftwood-loot.md) "Jake's picks, 2026-09-30" needs: the sea glass chime
 (board 3 C), the trophy plaques (board 4 A), the captain's hat worn (board 4 C) and the sailcloth cape (the shop's look-only
 good). All four are **code** models on Driftwood's toon kit (`LowPolyKit`: flat-shaded vertex colour, the island's one
 shared material), one draw each, listed in the Model Explorer (Driftwood's roster) and not yet placed or worn.

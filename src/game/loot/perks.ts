@@ -1,5 +1,5 @@
 /**
- * What the things you own DO (E314, docs/plans/DRIFTWOOD-LOOT.md): one place that turns the Owned store into numbers, so
+ * What the things you own DO (E314, project/archive/2026-09-30-driftwood-loot.md): one place that turns the Owned store into numbers, so
  * the fight code reads a number and never an item id. Pure (no DOM, no three), tested in test/keepsakes.test.ts.
  *
  *   (max health — the trader's hearts and sea glass charm I's +10 — is shop.ts's `maxHealthOf`, stage 2's)

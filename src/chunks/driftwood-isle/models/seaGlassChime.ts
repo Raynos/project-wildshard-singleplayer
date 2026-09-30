@@ -1,5 +1,5 @@
 /**
- * The sea glass wind chime (E314, docs/plans/DRIFTWOOD-LOOT.md, Jake's pick board 3 C): a bleached driftwood bar hung
+ * The sea glass wind chime (E314, project/archive/2026-09-30-driftwood-loot.md, Jake's pick board 3 C): a bleached driftwood bar hung
  * from a cord in the doorway of Wendell's hut, with three strands of sea glass under it that grow as you find pieces on
  * the beach — the centre strand fills first (1–5), then the left (6–10), then the right (11–15). The bottom piece of
  * each strand is a big one, so each milestone (5 / 10 / 15) ends on a piece you notice.

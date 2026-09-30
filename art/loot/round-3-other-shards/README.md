@@ -1,6 +1,6 @@
 # Loot, round 3: the other three shards' Bag (E314, 2026-09-30)
 
-The last row of [DRIFTWOOD-LOOT](../../../docs/plans/DRIFTWOOD-LOOT.md), "the other three shards' Bag review with Jake".
+The last row of [DRIFTWOOD-LOOT](../../../project/archive/2026-09-30-driftwood-loot.md), "the other three shards' Bag review with Jake".
 Jake (2026-09-30) said that any change to the shared UI, the five tabs, has to reach the other three shards. He also
 said "the more we can delete and simplify, the better". Driftwood's Bag is MAP · GEAR · FINDS · PACK · FEATS.
 

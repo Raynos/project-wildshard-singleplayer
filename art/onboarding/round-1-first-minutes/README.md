@@ -1,6 +1,6 @@
 # The first three minutes: decision boards (E308, 2026-09-29)
 
-Row 5 of `docs/plans/DRIFTWOOD-TOP10.md`: control hints the first time each control matters, a practice target on the
+Row 5 of `project/archive/2026-09-30-driftwood-top10.md`: control hints the first time each control matters, a practice target on the
 sand path, a shorter walk down the pier. Every frame is an iPhone 16 Pro portrait capture (402×874 @3×) of the live
 build `9cf4138-mun8njsr`, touch + phone tier, muted, clock parked at the morning phase a new game starts on. The crab,
 the dummy and Wendell were moved into place in the running game (`window.__world`), nothing was committed to `src/`.

@@ -1,6 +1,6 @@
 # Loot loop, round 1: the in-world moments (E314, 2026-09-29)
 
-Decision boards for [DRIFTWOOD-LOOT](../../../docs/plans/DRIFTWOOD-LOOT.md) L1–L4, the moments you see in the world.
+Decision boards for [DRIFTWOOD-LOOT](../../../project/archive/2026-09-30-driftwood-loot.md) L1–L4, the moments you see in the world.
 (The menu screens, Wendell's shop menu and the Bag GEAR / COLLECTION tabs, are a separate set of boards.)
 
 Every frame is a live iPhone 16 Pro portrait capture of production (agent-browser, `touch · tier=phone · mute ·

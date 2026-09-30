@@ -1,5 +1,5 @@
 /**
- * The sailcloth cape (E314, docs/plans/DRIFTWOOD-LOOT.md: a shop good, look only, and a GEAR cosmetic): a short cape cut
+ * The sailcloth cape (E314, project/archive/2026-09-30-driftwood-loot.md: a shop good, look only, and a GEAR cosmetic): a short cape cut
  * from an old sail — weathered canvas panels with a darker seam between them, a stitched-on patch, a faded red stripe
  * above a ragged hem — tied at the throat with a length of rope. It wraps round the shoulders and falls open and
  * flatter to the knees, with soft pleats that deepen toward the hem.

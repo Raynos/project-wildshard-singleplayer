@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — every row built: Driftwood stages 1–3 (live `24c8e41-munz58y9`) + Jake's look review (`276494be`), Pine Hollow C (`708926b3`), Nalati C (`e14cba31`), Nine Dragon A (`018179cc`); the last four await a release (GitHub's hourly schedule keeps skipping and workflow dispatch returned HTTP 500 at 12:1x — retrying). Finishes and archives once they're live.
+**State:** `archived` 2026-09-30 (finished 2026-09-30) — every row built and live: Driftwood's loot (coins capped per enemy, the five-tab Bag with GEAR / FINDS, Maren's shop, the chime + charms, trophies, the captain's hat, the body shadow) and Jake's look review, plus the Bag on Pine Hollow (C), Nalati (C) and Nine Dragon (A); live in `9eda772-muo2raeq`. No leftovers.
 
 ## Why
 

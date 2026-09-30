@@ -1,5 +1,5 @@
 /**
- * The trophy plaques (E314, docs/plans/DRIFTWOOD-LOOT.md, Jake's pick board 4 A): two shield-shaped wooden plaques for
+ * The trophy plaques (E314, project/archive/2026-09-30-driftwood-loot.md, Jake's pick board 4 A): two shield-shaped wooden plaques for
  * the back wall of Wendell's hut — the bear's plaque holds a hooked bear claw, the boar's a curved ivory tusk. An empty
  * plaque reads as "a fight is still out there": a bare mounting peg and the beast's print burnt into the wood (a bear's
  * paw, a boar's cloven hoof) where its trophy will hang. The Drowned Captain's hat is worn, not hung (board 4 C).

@@ -1,6 +1,6 @@
 /**
  * installLoot — the shard's loot wired into the running game in one call from main.ts (E314 stage 1,
- * docs/plans/DRIFTWOOD-LOOT.md). main.ts builds the shard's Owned store first (the iron sword is kept there); a shard
+ * project/archive/2026-09-30-driftwood-loot.md). main.ts builds the shard's Owned store first (the iron sword is kept there); a shard
  * whose ChunkDef says `loot: { coins: true }` (Driftwood) gets:
  *   - the purse (Purse.ts) and its HUD chip under VITALS (src/ui/CoinChip.ts);
  *   - the kill → coins burst (coins.ts values, CoinBurst.ts): chained onto `animals.onKill`, so call this AFTER main.ts

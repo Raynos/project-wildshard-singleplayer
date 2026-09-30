@@ -19,7 +19,7 @@
  * feedback. Inventory to map / inventory / trophies"; shipped: "I think we can ship that"): it shows one GROUP of tabs at
  * a time — PAUSE: Settings (+ Feedback), titled PAUSED; BAG (the minimap's corner button, src/ui/BagButton.ts; the minimap
  * tap and M too): Map · Inventory · Achievements, titled BAG. (The old one-menu-with-every-tab, `?bagbtn=0`, went in E162.)
- * E314 (Jake's picks, docs/plans/DRIFTWOOD-LOOT.md): the BAG is five icon tabs on every shard — MAP · GEAR (the paper doll:
+ * E314 (Jake's picks, project/archive/2026-09-30-driftwood-loot.md): the BAG is five icon tabs on every shard — MAP · GEAR (the paper doll:
  * the weapons and skins that used to head the Inventory, and the shard's loot) · FINDS (Driftwood's sticker book, hidden
  * where a shard has none) · PACK (the Inventory's junk grid) · FEATS (Achievements); Pine Hollow's JOURNAL sits before
  * FEATS. The panels are src/ui/bag.ts. Pine Hollow (E314 C): its hunter's journal is its FINDS (`setFinds`, from

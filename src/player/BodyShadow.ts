@@ -1,6 +1,6 @@
 /**
  * The player's body shadow (E314 stage 3, Jake 2026-09-30: "a simple body shadow — an invisible low-poly castaway that only
- * casts a shadow"; docs/plans/DRIFTWOOD-LOOT.md). The game is first person with no body, so the sand under you was empty.
+ * casts a shadow"; project/archive/2026-09-30-driftwood-loot.md). The game is first person with no body, so the sand under you was empty.
  * Now a plain low-poly figure (legs, hips, torso, arms, neck, head: ~330 triangles) stands on your feet, turns with the
  * camera and walks — its legs and arms swing with the distance you cover (one morph target, played −1 … +1 so one pose
  * mirrors the other) and it bobs a little with each step. It draws nothing to the screen: its material writes no colour and

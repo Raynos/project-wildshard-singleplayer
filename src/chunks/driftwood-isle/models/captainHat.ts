@@ -1,5 +1,5 @@
 /**
- * The Drowned Captain's hat (E314, docs/plans/DRIFTWOOD-LOOT.md: the captain's trophy, worn — board 4 C — and a GEAR
+ * The Drowned Captain's hat (E314, project/archive/2026-09-30-driftwood-loot.md: the captain's trophy, worn — board 4 C — and a GEAR
  * cosmetic): a black felt tricorne with a gold-braided brim, a faded red cockade on the front-left, and a strand of kelp
  * still hanging off its right-hand corner from the wreck. The brim is one sheet turned up steeply between its three
  * points (front, back-left, back-right) and nearly flat at them, so its silhouette — and its shadow — reads as a

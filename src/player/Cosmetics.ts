@@ -1,5 +1,5 @@
 /**
- * Worn cosmetics (E314, docs/plans/DRIFTWOOD-LOOT.md: the Drowned Captain's hat and the sailcloth cape, GEAR cosmetics
+ * Worn cosmetics (E314, project/archive/2026-09-30-driftwood-loot.md: the Drowned Captain's hat and the sailcloth cape, GEAR cosmetics
  * worn or taken off from the Bag). The game is first person and the player has no body mesh, so a worn thing shows
  * where a body would: in the player's SHADOW on the sand (board 4 C). `Wardrobe` hangs each worn model on its socket
  * on a root that follows the player's feet and yaw; in the default `shadow` mode its meshes draw nothing to the screen

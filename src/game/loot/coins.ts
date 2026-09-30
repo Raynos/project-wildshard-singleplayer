@@ -1,7 +1,7 @@
 /**
  * What a kill is worth in doubloons (E314 L1, Jake's pick board 1 A): coins come only from kills, and only on a shard
  * whose ChunkDef says `loot: { coins: true }` (Driftwood today). First-guess values, tuned after a playthrough (a run
- * earns ~60–100; the trader's goods cost 15–50, docs/plans/DRIFTWOOD-LOOT.md). No deer: Jake cut them from Driftwood
+ * earns ~60–100; the trader's goods cost 15–50, project/archive/2026-09-30-driftwood-loot.md). No deer: Jake cut them from Driftwood
  * (their removal is a later pass), so they pay nothing meanwhile.
  *
  *   coinsFor(chunk, a.kind)   → 0 on a shard without coins, or a creature that pays nothing

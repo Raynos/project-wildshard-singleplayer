@@ -1,5 +1,5 @@
 /**
- * The trader's goods (E314 stage 2, docs/plans/DRIFTWOOD-LOOT.md — Jake's picks 2026-09-30): six permanent things, each
+ * The trader's goods (E314 stage 2, project/archive/2026-09-30-driftwood-loot.md — Jake's picks 2026-09-30): six permanent things, each
  * bought once, BUY only (no selling), in the order the shop card flips through them. Pure: the shop screen
  * (src/ui/ShopPanel.ts) renders `goodState`, `buyGood` spends the purse and grants the Owned id, and the effects read
  * Owned through `swordMul` / `maxHealthOf` (src/game/loot/install.ts wires them into the swords and main.ts's health).

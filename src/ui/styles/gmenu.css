@@ -209,7 +209,7 @@
 .ws-gmenu .ws-gmenu-debugslot { flex: none; display: flex; flex-direction: column; margin-top: 4px; } /* the title's Settings ▸ Debug: the registry under the Developer switch (BootSettings.ts, E172) */
 .ws-gmenu .ws-gmenu-debugslot[hidden] { display: none; }
 
-/* ── the BAG (E314, docs/plans/DRIFTWOOD-LOOT.md): five icon tabs, one short word each (board 8 A) — MAP · GEAR · FINDS ·
+/* ── the BAG (E314, project/archive/2026-09-30-driftwood-loot.md): five icon tabs, one short word each (board 8 A) — MAP · GEAR · FINDS ·
    PACK · FEATS (+ Pine Hollow's JOURNAL); the panels are src/ui/bag.ts ── */
 .ws-gmenu .ws-gmenu-tabs.icons .ws-gmenu-tab { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 2px 9px; font-size: 9px; letter-spacing: 0.16em; }
 .ws-gmenu .ws-gmenu-tabs.icons .ws-gmenu-tab[hidden] { display: none; } /* PAUSE's tabs stay hidden in the BAG */

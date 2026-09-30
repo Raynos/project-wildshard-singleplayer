@@ -555,7 +555,7 @@ export interface ChunkDef {
   maxHitDamage?: number;
   /** enemy kinds that hit past `maxHitDamage` (Jake, 2026-09-30: Driftwood's Drowned Captain, the final boss, swings for his full 24) */
   hitCapExempt?: readonly string[];
-  /** the shard's loot rules (E314, docs/plans/DRIFTWOOD-LOOT.md; src/game/loot/): `coins` = kills burst doubloons into a
+  /** the shard's loot rules (E314, project/archive/2026-09-30-driftwood-loot.md; src/game/loot/): `coins` = kills burst doubloons into a
    *  saved purse, shown by a coin chip under VITALS (src/game/loot/coins.ts has the values). Omitted = no coins */
   loot?: { coins?: boolean };
   /** E314 stage 3: the player's body shadow (src/player/BodyShadow.ts) — an invisible low-poly castaway on your feet whose
