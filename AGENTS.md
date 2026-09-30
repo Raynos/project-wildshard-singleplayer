@@ -10,6 +10,23 @@
   start — relay them first. `docs/tasks/ASKS.md` is the legacy table (history up to 2026-09-22): don't
   add rows there; a legacy row that is still open moves to its own file under the same id.
 
+## Subagents are short-lived: max 250k context, max 45 min (Jake, E352, 2026-09-30)
+
+Subagents were 92 % of the plan usage that burned a whole weekly limit in 12 hours (E352). Since 09-22 the subagents
+that ran over 2 h cost 73 % of all subagent spend, and each one ended at a median 600k context. Every call re-reads the
+whole context. A subagent's prompt cache lives **5 minutes** (a main session's lives 1 h), so after any longer wait
+the whole context is written to cache again at full price.
+- **One job per subagent, then it reports and ends.** Brief it with a job it can finish inside the caps.
+- **Max context 250k tokens, max wall clock 45 min.** Put both in the brief: "stop at 250k context or 45 min, whichever
+  comes first. Commit what is done and report what is left." The parent starts a **fresh** subagent for what is left.
+- **Never recycle a subagent.** Don't SendMessage a finished subagent a new job: its context only grows and its cache is
+  cold. Spawn a new one with a short brief.
+- **No forks.** A fork starts with the parent's whole context. Spawn a general-purpose agent with a written brief.
+- **No long waits inside a subagent.** A wait over 5 min (an `until grep …` poll, the browser-lane or model-lock queue, a
+  long script) throws the cache away. Queue-heavy work (model batches, captures) belongs to the parent, or keep each
+  wait under 4 min.
+- The live-subagent cap stays at 3, forks and resumed agents included.
+
 ## North and South America only: no licence caveats, ever (Jake, 2026-09-29)
 
 The game ships in North and South America only. **Never raise a territory licence caveat with Jake**: no EU / UK /
