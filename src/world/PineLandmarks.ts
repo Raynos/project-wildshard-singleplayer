@@ -8,9 +8,11 @@
  *   · the ZIPLINE: the steel cable (a sagging chord) from the launch gantry to the LANDING platform in the Hollow (4, 20),
  *     a 3 m deck on log posts with a stair down; `zipTop` / `zipBottom` are the ride's anchors (the ride is a later row);
  *   · the CREEK FOOTBRIDGE on the E road: two log stringers, split-plank deck, log trestles in the gully, a log handrail;
- *   · image-to-3D hero props (TRELLIS.2, PBR kept; public/assets/models/pine-hollow-hero/): the King's 7 standing
- *     stones, the 3 waystone lanterns (pond shore, ridge by the lookout, the den's cave mouth), the beaver dam on the
- *     sill, the canoe on the pond shore, the lodge's contract board, and the bear cave's rock arch with a dark mouth.
+ *   · image-to-3D hero props (TRELLIS.2, PBR kept; public/assets/models/pine-hollow-hero/), models on the contract
+ *     (E315 M2, src/chunks/pine-hollow/models/): the King's 7 standing stones, the 3 waystone lanterns (pond shore, ridge
+ *     by the lookout, the den's cave mouth), the beaver dam on the sill, the canoe on the pond shore, the lodge's
+ *     contract board, and the bear cave's rock arch (opened into the cave). Placed here, each type a set: LOD0 until
+ *     the nearest copy is past its distance, then LOD1, gone past the props' range (`place`'s `lodBy: 'set'`).
  *
  * The timber pieces build with the cabins' own kit and materials (Cabin.ts: `cabinMats`, `logGeo`, `finishParts`): one
  * merged mesh per material per landmark, two position-only shadow proxies, no new programs. Each prop type is ONE
@@ -21,8 +23,6 @@
  *   lm.setLit('pond', true);                                                  // the quest relights a waystone
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { heightAt } from './Heightfield';
 import { cabinMats, finishParts, logGeo, boxUV, makeGlowTexture, type Mats, type MatKey, type ExtraBuilding, type Cabins } from './Cabin';
 import {
@@ -34,7 +34,17 @@ import { TIER_CONFIG } from '../core/tier';
 import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import { macrotask } from '../boot/plan';
-import { PINE_HERO_IDS, pineHeroUrl, type PineHeroId } from './pineHero';
+import { PINE_HERO_IDS, type PineHeroId } from './pineHero';
+import { place, type CullOptions, type Placed } from '../models/place';
+import type { ModelDef, Placement } from '../models/model';
+import { pineModels } from '../chunks/pine-hollow/world/context';
+import { HERO_FRONT, heroLod0, loadPineHero } from '../chunks/pine-hollow/world/hero';
+import { STONE_KINDS, standingStone } from '../chunks/pine-hollow/models/standingStone';
+import { waystone } from '../chunks/pine-hollow/models/waystone';
+import { beaverDam } from '../chunks/pine-hollow/models/beaverDam';
+import { canoe } from '../chunks/pine-hollow/models/canoe';
+import { contractBoard } from '../chunks/pine-hollow/models/contractBoard';
+import { caveArch, openCaveArch } from '../chunks/pine-hollow/models/caveArch';
 import { PineCrags, placeCrags } from './PineCrags';
 
 type V3 = THREE.Vector3;
@@ -505,107 +515,8 @@ function buildBridge(t: Timber, half: number): void {
 /** every prop the landmarks can place (src/world/pineHero.ts lists the ones built so far: the rest are skipped) */
 type HeroId = PineHeroId;
 interface Place { x: number; y: number; z: number; yaw: number; scale: number; pitch?: number; roll?: number }
-/**
- * the turn that brings each generation's front (the face the reference showed: the carved glyphs, the lantern's arm, the
- * board's notices, the arch's mouth) to local +Z — TRELLIS keeps the reference camera's side, but not always the same way
- * round (read off render_still.py turntables of every build)
- */
-const FRONT: Record<HeroId, number> = { 'stone-a': Math.PI, 'stone-b': 0, 'stone-c': 0, waystone: 0, 'beaver-dam': 0, canoe: 0, 'contract-board': 0, 'cave-arch': 0 };
-interface HeroLod { geometry: THREE.BufferGeometry; material: THREE.Material; box: THREE.Box3 }
-
-const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-/** the meshopt build quantizes (normalized int16 positions under a scaled node): back to float before a matrix is baked in,
- *  or `applyMatrix4` clamps every position to the unit box */
-function dequantize(g: THREE.BufferGeometry): THREE.BufferGeometry {
-  for (const name of Object.keys(g.attributes)) {
-    const a = g.getAttribute(name);
-    if (a.array instanceof Float32Array && !a.normalized && !('isInterleavedBufferAttribute' in a)) continue;
-    const f = new Float32Array(a.count * a.itemSize);
-    for (let i = 0; i < a.count; i++) for (let k = 0; k < a.itemSize; k++) f[i * a.itemSize + k] = a.getComponent(i, k);
-    g.setAttribute(name, new THREE.BufferAttribute(f, a.itemSize));
-  }
-  return g;
-}
-async function loadHero(id: string, sky: Sky): Promise<HeroLod | null> {
-  try {
-    const g = await gltf.loadAsync(pineHeroUrl(id));
-    let found: HeroLod | null = null;
-    g.scene.updateMatrixWorld(true);
-    g.scene.traverse((o) => {
-      if (found !== null || !('isMesh' in o)) return;
-      const mesh = o as THREE.Mesh;
-      const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-      if (!material) return;
-      const geometry = dequantize(mesh.geometry.clone()).applyMatrix4(mesh.matrixWorld);
-      geometry.computeBoundingBox();
-      if (material instanceof THREE.MeshStandardMaterial) {
-        for (const t of [material.map, material.normalMap]) if (t) t.anisotropy = 4;
-        material.envMapIntensity = 0.8;
-      }
-      sky.setupMaterial(material);
-      found = { geometry, material, box: geometry.boundingBox ?? new THREE.Box3() };
-    });
-    return found;
-  } catch (e: unknown) {
-    console.warn(`[landmarks] ${id} did not load`, e);
-    return null;
-  }
-}
-
 const placeMatrix = (p: Place): THREE.Matrix4 => new THREE.Matrix4().compose(
   V(p.x, p.y, p.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(p.pitch ?? 0, p.yaw, p.roll ?? 0, 'YXZ')), V(p.scale, p.scale, p.scale));
-
-/** one prop type: an InstancedMesh per LOD, LOD1 beyond `lodDist` from the nearest instance, gone past `far` */
-class HeroSet {
-  readonly lod0: THREE.InstancedMesh;
-  readonly lod1: THREE.InstancedMesh | null;
-  private on = -1;
-  constructor(readonly places: Place[], l0: HeroLod, l1: HeroLod | null, private lodDist: number, private far: number, shadows: boolean) {
-    const mk = (l: HeroLod): THREE.InstancedMesh => {
-      const im = new THREE.InstancedMesh(l.geometry, l.material, places.length);
-      places.forEach((p, i) => { im.setMatrixAt(i, placeMatrix(p)); });
-      im.instanceMatrix.needsUpdate = true;
-      im.computeBoundingSphere();
-      im.castShadow = shadows; im.receiveShadow = true;
-      return im;
-    };
-    this.lod0 = mk(l0);
-    this.lod0.castShadow = shadows;
-    // the decimated LOD1's own base-centre pivot can land off LOD0's (a lopsided stone): line its bounds up with LOD0's
-    if (l1) {
-      const c0 = l0.box.getCenter(new THREE.Vector3()), c1 = l1.box.getCenter(new THREE.Vector3());
-      l1.geometry.translate(c0.x - c1.x, 0, c0.z - c1.z);
-      l1.box.translate(V(c0.x - c1.x, 0, c0.z - c1.z));
-    }
-    this.lod1 = l1 ? mk(l1) : null;
-    if (this.lod1) { this.lod1.visible = false; this.lod1.castShadow = false; } // past lodDist its shadow is a few pixels
-  }
-  update(cam: V3): void {
-    let d2 = Infinity;
-    for (const p of this.places) d2 = Math.min(d2, (p.x - cam.x) ** 2 + (p.z - cam.z) ** 2);
-    const d = Math.sqrt(d2);
-    const state = d > this.far ? 2 : d > this.lodDist && this.lod1 ? 1 : 0;
-    if (state === this.on) return;
-    this.on = state;
-    this.lod0.visible = state === 0;
-    if (this.lod1) this.lod1.visible = state === 1;
-  }
-}
-
-/** a convex hull collider per placed instance, from the prop's (LOD1) vertices */
-function hullDescs(l: HeroLod, places: Place[], surface: 'stone' | 'wood' | 'rock', maxPts = 180): ColliderDesc[] {
-  const pos = l.geometry.getAttribute('position');
-  const step = Math.max(1, Math.floor(pos.count / maxPts));
-  const out: ColliderDesc[] = [];
-  const v = new THREE.Vector3();
-  for (const p of places) {
-    const m = placeMatrix(p), pts = new Float32Array(Math.ceil(pos.count / step) * 3);
-    let k = 0;
-    for (let i = 0; i < pos.count; i += step) { v.fromBufferAttribute(pos, i).applyMatrix4(m); pts[k++] = v.x - p.x; pts[k++] = v.y - p.y; pts[k++] = v.z - p.z; }
-    out.push({ kind: 'hull', x: p.x, y: p.y, z: p.z, points: pts.subarray(0, k), surface });
-  }
-  return out;
-}
 
 // the sites: layout coordinates → placements (the props' own orientation is fixed in their build: front toward −Z…
 // TRELLIS faces the reference's camera down +Z; `front` turns that face toward the given yaw)
@@ -642,25 +553,6 @@ export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw:
   };
 }
 
-/** drop the arch mesh's triangles that close the passage (its baked 'dark mouth'): a new index on its geometry */
-function hollowArch(im: THREE.InstancedMesh, m: THREE.Matrix4, floorY: number): void {
-  const g = im.geometry, pos = g.getAttribute('position'), idx = g.getIndex();
-  const tri = idx ? idx.count / 3 : pos.count / 3, at = (k: number): number => (idx ? idx.getX(k) : k);
-  const c = Math.cos(BEAR_CAVE.rot), s = Math.sin(BEAR_CAVE.rot), v = new THREE.Vector3(), keep: number[] = [];
-  for (let t = 0; t < tri; t++) {
-    let lxs = 0, lzs = 0, ys = 0;
-    for (let k = 0; k < 3; k++) {
-      v.fromBufferAttribute(pos, at(t * 3 + k)).applyMatrix4(m);
-      const dx = v.x - BEAR_CAVE.x, dz = v.z - BEAR_CAVE.z;
-      lxs += dx * c - dz * s; lzs += dx * s + dz * c; ys += v.y;
-    }
-    const lx = lxs / 3, lz = lzs / 3, y = ys / 3 - floorY;
-    if (Math.abs(lx) < 2.6 && y > -0.3 && y < 4.8 && lz > -0.6) continue;
-    keep.push(at(t * 3), at(t * 3 + 1), at(t * 3 + 2));
-  }
-  g.setIndex(keep);
-}
-
 // ───────────────────────────── the whole set ─────────────────────────────
 
 export interface PineLandmarksHandle {
@@ -681,9 +573,9 @@ export class PineLandmarks implements PineLandmarksHandle {
   readonly propColliders: ColliderDesc[] = [];
   private floors: Floor[] = [];
   private timbers: { t: Timber; pad: number; detailOn: boolean; farOn: boolean }[] = [];
-  private sets: HeroSet[] = [];
   private lit: Record<WaystoneId, boolean> = { pond: true, ridge: true, den: true };
-  private canoe: HeroSet | null = null;
+  /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
+  private canoe: { place: Place; placed: Placed } | null = null;
   private glow: THREE.Points | null = null;
   private glowMat: THREE.PointsMaterial | null = null;
   private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
@@ -693,8 +585,11 @@ export class PineLandmarks implements PineLandmarksHandle {
 
   constructor(private sky: Sky) { this.group.name = 'pine-landmarks'; }
 
-  /** `trees`: the forest's trunks (the crags step round them; the navmesh bake passes the same list) */
-  async build(cabins: Cabins | null, trees: readonly { x: number; z: number }[] = []): Promise<this> {
+  /**
+   * `trees`: the forest's trunks (the crags step round them; the navmesh bake passes the same list). `registry`: where the
+   * placed models register (null: the bake — they are only built, and drawn under `group`)
+   */
+  async build(cabins: Cabins | null, trees: readonly { x: number; z: number }[] = [], registry: WorldRegistry | null = null): Promise<this> {
     const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
     const mats = await cabinMats(this.sky);
     // the timber landmarks, one task each
@@ -715,7 +610,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     this.addTimber(bridge, mats, bf.half);
     await macrotask();
     this.crags = await crags;
-    await this.buildProps(cabins);
+    await this.buildProps(cabins, registry);
     await macrotask();
     if (this.crags) {
       // PH-B2: the kit over the Ridge, and the cave behind the arch
@@ -733,22 +628,20 @@ export class PineLandmarks implements PineLandmarksHandle {
     this.timbers.push({ t, pad, detailOn: true, farOn: false });
   }
 
-  private async buildProps(cabins: Cabins | null): Promise<void> {
-    const ids: readonly HeroId[] = PINE_HERO_IDS;
-    const loaded = await Promise.all(ids.flatMap((id) => [loadHero(id, this.sky), loadHero(`${id}-lod1`, this.sky)]));
-    const lod = (id: HeroId): [HeroLod | null, HeroLod | null] => { const i = ids.indexOf(id); return i === -1 ? [null, null] : [loaded[i * 2] ?? null, loaded[i * 2 + 1] ?? null]; };
+  private async buildProps(cabins: Cabins | null, registry: WorldRegistry | null): Promise<void> {
+    const ctx = pineModels(this.sky);
+    await Promise.all(PINE_HERO_IDS.map((id) => loadPineHero(ctx, id)));
     // the props' own draw distance: the forest props' (phone 220 m), capped at 260 m on desktop — a 3 m stone is a few
-    // pixels there, and desktop's 700 m kept every set (and its shadows) drawn from anywhere on the slab
-    const far = Math.min(TIER_CONFIG.propsFar, 260);
-    const add = (id: HeroId, places: Place[], lodDist: number, shadows: boolean, surface: 'stone' | 'wood' | 'rock', collide = true): HeroSet | null => {
-      const [l0, l1] = lod(id);
-      if (!l0 || places.length === 0) return null;
-      const turned = places.map((p) => ({ ...p, yaw: p.yaw + FRONT[id] }));
-      const set = new HeroSet(turned, l0, l1, lodDist, far, shadows);
-      this.group.add(set.lod0); if (set.lod1) this.group.add(set.lod1);
-      this.sets.push(set);
-      if (collide) this.propColliders.push(...hullDescs(l1 ?? l0, turned, surface));
-      return set;
+    // pixels there, and desktop's 700 m kept every set (and its shadows) drawn from anywhere on the slab. Each type is a
+    // set: its LOD from the nearest copy on the ground (E315 M2: the models' `lods`, `place`'s `lodBy: 'set'`)
+    const cull: CullOptions = { lodBy: 'set', flat: true, from: 'origin', far: Math.min(TIER_CONFIG.propsFar, 260) };
+    const add = <P extends object>(model: ModelDef<P>, id: HeroId, places: Place[], extra: Pick<Placement<P>, 'variant' | 'params'> = {}): { places: Place[]; placed: Placed } | null => {
+      if (!heroLod0(ctx, id) || places.length === 0) return null;
+      const turned = places.map((p) => ({ ...p, yaw: p.yaw + HERO_FRONT[id] }));
+      const placed = place(model, turned.map((p): Placement<P> => ({ x: p.x, y: p.y, z: p.z, matrix: placeMatrix(p), ...extra })), { ctx, draw: 'instanced', cull, registry });
+      this.propColliders.push(...placed.colliders);
+      if (registry === null) this.group.add(placed.object);
+      return { places: turned, placed };
     };
     const rng = new Rng(SEED + 907);
 
@@ -762,7 +655,7 @@ export class PineLandmarks implements PineLandmarksHandle {
       list.push({ x, y: ground(x, z) - 0.5, z, yaw: faceYaw(x, z, KINGS_CLEARING.x, KINGS_CLEARING.z) + rng.range(-0.25, 0.25), scale: rng.range(1.35, 1.6), pitch: rng.range(-0.06, 0.06), roll: rng.range(-0.07, 0.07) });
       byKind.set(k, list);
     });
-    for (const [k, list] of byKind) add(k, list, 60, true, 'stone');
+    for (const [k, list] of byKind) { const kind = STONE_KINDS.find((x) => x === k); if (kind) add(standingStone, k, list, { variant: kind }); }
 
     // the waystones
     const ws = waystoneSites();
@@ -771,62 +664,39 @@ export class PineLandmarks implements PineLandmarksHandle {
       const onDeck = this.floorHeightAt(s.x, s.z);
       return { x: s.x, y: (onDeck ?? ground(s.x, s.z)) - 0.15, z: s.z, yaw: s.yaw, scale: 1 };
     });
-    const waySet = add('waystone', wsPlaces, 45, true, 'stone');
-    if (waySet) this.lanterns(waySet, cabins);
+    const waySet = add(waystone, 'waystone', wsPlaces);
+    const wayGeo = heroLod0(ctx, 'waystone')?.geometry;
+    if (waySet && wayGeo) this.lanterns(waySet.places, wayGeo, cabins);
 
     // the beaver dam across the creek on the pond's sill, the canoe drawn up on the W shore facing the islet
     const d0 = CREEK[BEAVER_DAM.at - 1], d1 = CREEK[BEAVER_DAM.at + 1];
     // the dam's length is the model's X: turned so its Z runs with the flow, it lies across the creek; sunk so it stands
     // ~1.3 m over the pond's water line at the sill
     const flow = d0 && d1 ? Math.atan2(d1[0] - d0[0], d1[1] - d0[1]) : 0;
-    add('beaver-dam', [{ x: BEAVER_DAM.x, y: ground(BEAVER_DAM.x, BEAVER_DAM.z) - 0.45, z: BEAVER_DAM.z, yaw: flow, scale: 1 }], 50, true, 'wood');
+    add(beaverDam, 'beaver-dam', [{ x: BEAVER_DAM.x, y: ground(BEAVER_DAM.x, BEAVER_DAM.z) - 0.45, z: BEAVER_DAM.z, yaw: flow, scale: 1 }]);
     const cx = CANOE_SITE.x, cz = CANOE_SITE.z;                     // its bow (local +Z) out toward the islet (−X), its stern up the bank
     const bowH = Math.max(ground(cx - 2.3, cz), POND.level), sternH = Math.max(ground(cx + 2.3, cz), POND.level);
-    this.canoe = add('canoe', [{ x: cx, y: (bowH + sternH) / 2 - 0.05, z: cz, yaw: -Math.PI / 2, scale: 1, pitch: Math.atan2(sternH - bowH, 4.6) * 0.85 }], 40, true, 'wood');
+    const drawnUp = add(canoe, 'canoe', [{ x: cx, y: (bowH + sternH) / 2 - 0.05, z: cz, yaw: -Math.PI / 2, scale: 1, pitch: Math.atan2(sternH - bowH, 4.6) * 0.85 }]);
+    const canoePlace = drawnUp?.places[0];
+    this.canoe = drawnUp && canoePlace ? { place: canoePlace, placed: drawnUp.placed } : null;
 
     // the lodge's contract board, beside its porch steps, facing the way in
     const B = contractBoardSite();
-    add('contract-board', [{ x: B.x, y: ground(B.x, B.z) - 0.1, z: B.z, yaw: B.yaw, scale: 1 }], 40, true, 'wood');
+    add(contractBoard, 'contract-board', [{ x: B.x, y: ground(B.x, B.z) - 0.1, z: B.z, yaw: B.yaw, scale: 1 }]);
 
-    // the bear cave's mouth: the rock arch set into the den wall, a dark plane just inside its opening
+    // the bear cave's mouth: the rock arch set into the den wall; the jambs and lintel collide (the model's boxes). Its
+    // mouth was generated shut: with the cave built (PH-B2) it is opened into the cave's passage, else it stays shut
     const cyaw = BEAR_CAVE.rot, cfx = -Math.sin(cyaw), cfz = -Math.cos(cyaw);
-    const ax = BEAR_CAVE.x - cfx * 1.2, az = BEAR_CAVE.z - cfz * 1.2;
-    const arch = add('cave-arch', [{ x: ax, y: ground(BEAR_CAVE.x, BEAR_CAVE.z) - 0.45, z: az, yaw: cyaw + Math.PI, scale: 1.4 }], 70, true, 'rock', false);
-    const hollow = (this.crags?.caveMetaData ?? null) !== null; // PH-B2: the cave is built — the arch is its way in
-    const [archL0, archL1] = lod('cave-arch');
-    const archLod = archL1 ?? archL0;
-    if (arch && archLod) {
-      const b = archLod.box, w = b.max.x - b.min.x, h = b.max.y - b.min.y, d = b.max.z - b.min.z;
-      const p = arch.places[0];
-      if (p) {
-        // the rock round the opening: two jambs and a lintel; before the cave (PH-B2) a back wall and a dark plane closed it
-        const place = (lx: number, ly: number, lz: number): V3 => V(lx, ly, lz).applyMatrix4(placeMatrix(p));
-        const qy = p.yaw, k = p.scale;
-        for (const s of [-1, 1]) { const c = place(s * w * 0.36, h * 0.5, 0); this.propColliders.push({ kind: 'box', x: c.x, y: c.y, z: c.z, hx: w * 0.14 * k, hy: h * 0.5 * k, hz: d * 0.45 * k, yaw: qy, surface: 'rock' }); }
-        const lt = place(0, h * 0.86, 0); this.propColliders.push({ kind: 'box', x: lt.x, y: lt.y, z: lt.z, hx: w * 0.5 * k, hy: h * 0.14 * k, hz: d * 0.45 * k, yaw: qy, surface: 'rock' });
-        if (hollow) {
-          // the TRELLIS arch was generated with its mouth closed: hollow it — every triangle inside the passage's section
-          // (cave frame: |lx| < 2.6, from the floor to 4.8 m up, from 0.6 m inside its lip back) goes, the jambs and lintel stay
-          const floorY = ground(BEAR_CAVE.x, BEAR_CAVE.z);
-          for (const im of [arch.lod0, arch.lod1]) if (im) hollowArch(im, placeMatrix(p), floorY);
-          return;
-        }
-        const back = place(0, h * 0.4, -d * 0.1); this.propColliders.push({ kind: 'box', x: back.x, y: back.y, z: back.z, hx: w * 0.24 * k, hy: h * 0.4 * k, hz: 0.3 * k, yaw: qy, surface: 'rock' });
-        const darkMat = new THREE.MeshStandardMaterial({ color: 0x040404, roughness: 1, metalness: 0 }); // the chinking's program
-        this.sky.setupMaterial(darkMat);
-        const dark = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.5, h * 0.72), darkMat);
-        const dp = place(0, h * 0.36, d * 0.05);
-        dark.position.copy(dp); dark.rotation.y = qy; dark.scale.setScalar(k);
-        dark.name = 'bear-cave-dark';
-        this.group.add(dark);
-      }
-    }
+    const arch: Place = { x: BEAR_CAVE.x - cfx * 1.2, y: ground(BEAR_CAVE.x, BEAR_CAVE.z) - 0.45, z: BEAR_CAVE.z - cfz * 1.2, yaw: cyaw + Math.PI, scale: 1.4 };
+    const hollow = (this.crags?.caveMetaData ?? null) !== null;
+    if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx, placeMatrix({ ...arch, yaw: arch.yaw + HERO_FRONT['cave-arch'] }), ground(BEAR_CAVE.x, BEAR_CAVE.z));
+    add(caveArch, 'cave-arch', [arch], hollow ? {} : { variant: 'closed' });
   }
 
   /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */
-  private lanterns(set: HeroSet, cabins: Cabins | null): void {
+  private lanterns(places: readonly Place[], geo: THREE.BufferGeometry, cabins: Cabins | null): void {
     // the lantern hangs off the bracket: the model's vertex cloud furthest from the post, in the top half
-    const geo = set.lod0.geometry, pos = geo.getAttribute('position');
+    const pos = geo.getAttribute('position');
     geo.computeBoundingBox();
     const bb = geo.boundingBox ?? new THREE.Box3();
     const h = bb.max.y - bb.min.y;
@@ -842,10 +712,10 @@ export class PineLandmarks implements PineLandmarksHandle {
       if (v.y > bb.min.y + h * 0.45 && Math.hypot(v.x - px, v.z - pz) > far * 0.7) { lamp.add(v); ln++; }
     }
     if (ln === 0) lamp.set(px, bb.min.y + h * 0.7, pz); else lamp.divideScalar(ln);
-    const glowPos = new Float32Array(set.places.length * 3);
+    const glowPos = new Float32Array(places.length * 3);
     const anchors = {} as Record<WaystoneId, THREE.Object3D>;
     const ids: WaystoneId[] = ['pond', 'ridge', 'den'];
-    set.places.forEach((p, i) => {
+    places.forEach((p, i) => {
       const w = lamp.clone().applyMatrix4(placeMatrix(p));
       glowPos.set([w.x, w.y, w.z], i * 3);
       const id = ids[i];
@@ -865,10 +735,10 @@ export class PineLandmarks implements PineLandmarksHandle {
 
   /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
   setCanoeAway(away: boolean): void {
-    const set = this.canoe, p = set?.places[0];
-    if (!set || !p) return;
-    const m = away ? new THREE.Matrix4().makeScale(0, 0, 0) : placeMatrix(p);
-    for (const im of [set.lod0, set.lod1]) if (im) { im.setMatrixAt(0, m); im.instanceMatrix.needsUpdate = true; }
+    const c = this.canoe;
+    if (!c) return;
+    const m = away ? new THREE.Matrix4().makeScale(0, 0, 0) : placeMatrix(c.place);
+    c.placed.object.traverse((o) => { if (o instanceof THREE.InstancedMesh) { o.setMatrixAt(0, m); o.instanceMatrix.needsUpdate = true; } });
   }
 
   setLit(id: WaystoneId, on: boolean): void {
@@ -898,7 +768,6 @@ export class PineLandmarks implements PineLandmarksHandle {
       if (on !== e.detailOn) { e.detailOn = on; for (const o of e.t.detail) o.visible = on; }
       if (farOff !== e.farOn) { e.farOn = farOff; for (const o of e.t.far) o.visible = !farOff; }
     }
-    for (const s of this.sets) s.update(this.tmp);
     this.crags?.update(t);
     // the lanterns on the clock (PH-L3): a banked ember by day, full flame at night, a slow flicker
     const lamps = this.sky.lamps;
@@ -917,11 +786,9 @@ export class PineLandmarks implements PineLandmarksHandle {
  * buildings are not here: `new Cabins(sky, pineHamletBuildings())` builds them with the cabins.
  */
 export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void) => void; trees?: readonly { x: number; z: number }[] }): Promise<PineLandmarks> {
-  const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees);
+  const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees, h.registry); // the hero props register themselves (models: E315 M2)
   h.registry.add({ id: 'pine-landmarks', name: 'Fire lookout, zipline, footbridge', category: 'buildings', file: 'src/world/PineLandmarks.ts', object: lm.group,
     colliders: lm.timberColliders, surface: 'wood', floor: (x, z) => lm.floorHeightAt(x, z), solidFloor: true });
-  await macrotask();
-  h.registry.add({ id: 'pine-landmark-props', name: 'Standing stones, waystones, dam, canoe, cave', category: 'props', file: 'src/world/PineLandmarks.ts', colliders: lm.propColliders, surface: 'stone' });
   // PH-B2: the crags' hulls a task per ~90 (the phone's per-task collider budget), then the cave's shell + the ground over it
   const crags = lm.crags;
   if (crags) {
