@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — Driftwood's stages 1–3 are live (`24c8e41-munz58y9`). Last row, Jake picked 2026-09-30: Pine Hollow **C**, Nalati **C**, Nine Dragon **A**, built in that order — Pine Hollow in flight (driftwood-top10 plan agent, coordinated with each shard's own session). Jake's stage-3 look review (2026-09-30): the chime over the doorway, larger; the night glow soft with a halo; the body shadow no longer shades the first-person arms — being applied.
+**State:** `in progress` 2026-09-30 — Driftwood's stages 1–3 are live (`24c8e41-munz58y9`). Last row, Jake picked 2026-09-30: Pine Hollow **C**, Nalati **C**, Nine Dragon **A**, built in that order — Pine Hollow C built (`708926b3`, awaiting deploy; sheet `progress/295-e314-pine-bag-c.jpg`), Nalati C in flight, Nine Dragon A next (driftwood-top10 plan agent, coordinated with each shard's own session). Jake's stage-3 look review (2026-09-30): the chime over the doorway, larger; the night glow soft with a halo; the body shadow no longer shades the first-person arms — being applied.
 
 ## Why
 
