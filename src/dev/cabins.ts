@@ -4,7 +4,7 @@
 // Press E (or call __world.interact()) to use the nearest door.
 import { bootstrap } from '../core/bootstrap';
 import { Cabins } from '../world/Cabin';
-import { Props } from '../world/Props';
+import { Props } from '../chunks/pine-hollow/world/props';
 import { heightAt } from '../world/Heightfield';
 
 const world = await bootstrap();
@@ -13,7 +13,7 @@ const { group, colliders, interactables } = await cabins.build();
 world.game.scene.add(group);
 world.player.colliders.push(...colliders);
 
-const props = new Props(world.sky, world.forest);
+const props = new Props(world.sky, world.forest, world.game.renderer);
 world.game.scene.add(await props.build());
 world.player.colliders.push(...props.colliders);
 console.log('props', JSON.stringify(props.counts), 'colliders', world.player.colliders.length);

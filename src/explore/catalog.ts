@@ -2,7 +2,7 @@
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
  *   registerDriftwoodModels(handles)          // Driftwood's setup (main.ts, at boot): the batch models + tap targets
- *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins, the pond, a pine, a boulder / stump / log
+ *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins, the pond, a pine (its props are models: E315 M2)
  *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present
  *   measure(object)                           // tris / draw calls
  *
@@ -19,7 +19,6 @@ import { Animal } from '../entities/Animal';
 import { speciesDef } from '../entities/species/registry';
 import type { Sky } from '../world/Sky';
 import type { Forest, TreeInstance } from '../world/Forest';
-import type { Props, PropKind } from '../world/Props';
 import { heightAt } from '../world/Heightfield';
 import type { DrawnAs, Pipeline } from '../world/registry';
 import { creatureHull } from '../entities/glbCreatures';
@@ -92,14 +91,14 @@ export function registerDriftwoodModels(h: DriftwoodModels): void {
   if (h.bushes) registerPick({ object: h.bushes.mesh, entry: 'bush', boxAt: (pt) => around(new THREE.Vector3(pt.x, pt.y - 1, pt.z), 1.4, 1.8) });
 }
 
-// ── Pine Hollow's models (E66): the three log cabins, the pond, one Scots pine out of the forest, one of each prop ──
+// ── Pine Hollow's models (E66): the three log cabins, the pond, one Scots pine out of the forest (its boulders, stumps and
+// logs are models on the contract, E315 M2: src/chunks/pine-hollow/models/) ──
 
 export interface PineHollowModels {
   sky: Sky;
   cabins?: { roots: readonly THREE.Object3D[] } | null;
   water?: Meshed;
   forest?: Forest | null;
-  props?: Props | null;
   /** where the fresh ones are built (they stand on the terrain there; the studio floor follows them) */
   at: { x: number; z: number };
 }
@@ -118,30 +117,15 @@ export function registerPineHollowModels(h: PineHollowModels): void {
     let o: THREE.Object3D | null = null;
     registerModel({ id, name, category: 'nature', file, live: false, object: () => (o ??= build()), ...facts });
   };
-  const { forest, props } = h;
+  const { forest } = h;
   if (forest && forest.factory.variants.length > 0) {
     // the Blender tree set's Scots pines (a variant with no species is the runtime pine, drawn the same way)
     const isPine = (v: number): boolean => { const s = forest.factory.variants[v]?.species; return s === undefined || s === 'pine'; };
     const pines = forest.trees.filter((t) => isPine(t.variant)).length;
     fresh('pine', 'Scots pine', 'src/world/TreeFactory.ts', { pipeline: 'blender', drawnAs: forest.path, copies: pines }, () => pineSpecimen(forest, h.at.x, h.at.z));
   }
-  const part = (kind: PropKind, id: string, name: string): void => {
-    const parts = props?.parts[kind];
-    // the Poly Haven photoscans: the rocks share one BatchedMesh (or instanced without multi-draw), stumps and logs are instanced
-    let copies = 0, drawnAs: DrawnAs = 'instanced';
-    for (const m of props?.meshes ?? []) {
-      if (m.kind !== kind) continue;
-      const o = m.mesh as Partial<THREE.InstancedMesh & THREE.BatchedMesh>;
-      if (o.isBatchedMesh === true) { drawnAs = 'batched'; copies += o.instanceCount ?? 0; }
-      else if (o.isInstancedMesh === true) copies = Math.max(copies, o.instanceMatrix?.count ?? 0);
-    }
-    if (parts && parts.length > 0) fresh(id, name, 'src/world/Props.ts', { pipeline: 'cc0', drawnAs, copies }, () => propSpecimen(kind, parts, h.at.x, h.at.z));
-  };
-  part('rock', 'boulder', 'Mossy boulder');
-  part('stump', 'stump', 'Tree stump');
-  part('log', 'log', 'Fallen log');
 
-  // a tap on the forest / the props selects the one under the finger
+  // a tap on the forest selects the tree under the finger
   const around = (x: number, y: number, z: number, r: number, hgt: number): THREE.Box3 => new THREE.Box3(new THREE.Vector3(x - r, y - 0.2, z - r), new THREE.Vector3(x + r, y + hgt, z + r));
   if (forest) registerPick({
     object: forest.group, entry: 'pine',
@@ -151,8 +135,6 @@ export function registerPineHollowModels(h: PineHollowModels): void {
       return best ? around(best.x, best.y, best.z, Math.max(2, best.height * 0.16), best.height) : around(pt.x, pt.y - 10, pt.z, 3, 14);
     },
   });
-  const ids: Record<PropKind, string> = { rock: 'boulder', stump: 'stump', log: 'log' };
-  for (const m of props?.meshes ?? []) registerPick({ object: m.mesh, entry: ids[m.kind], boxAt: (pt) => around(pt.x, pt.y - (m.kind === 'rock' ? 1.2 : 0.6), pt.z, m.kind === 'log' ? 2.6 : 1.2, m.kind === 'rock' ? 2 : 1) });
 }
 
 /**
@@ -175,29 +157,6 @@ function pineSpecimen(forest: Forest, x: number, z: number): THREE.Object3D {
   if (real) { g.position.set(real.x, real.y, real.z); g.rotation.y = real.rot; g.scale.setScalar(real.scale); }
   else g.position.set(x, heightAt(x, z), z);
   return g;
-}
-
-/** one prop on its own: the largest part of the set (the boulders are six shapes), standing on its base */
-function propSpecimen(kind: PropKind, parts: NonNullable<Props['parts'][PropKind]>, x: number, z: number): THREE.Object3D {
-  const g = new THREE.Group();
-  const pick = kind === 'rock' ? [...parts].sort((a, b) => volume(b.geometry) - volume(a.geometry)).slice(0, 1) : parts;
-  for (const p of pick) {
-    const m = new THREE.Mesh(p.geometry, p.material);
-    m.applyMatrix4(p.matrix);
-    m.castShadow = true; m.receiveShadow = true;
-    g.add(m);
-  }
-  const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3());
-  for (const m of g.children) m.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
-  g.position.set(x, heightAt(x, z), z);
-  if (kind === 'log') g.scale.setScalar(1.4);
-  return g;
-}
-
-function volume(geo: THREE.BufferGeometry): number {
-  geo.computeBoundingBox();
-  const s = geo.boundingBox?.getSize(new THREE.Vector3());
-  return s ? s.x * s.y * s.z : 0;
 }
 
 // ── the catalog Explore shows: every registered model + a creature per species on the shard ──

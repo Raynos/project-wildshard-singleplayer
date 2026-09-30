@@ -42,7 +42,7 @@ import { Undergrowth } from './world/Undergrowth';
 import { Particles } from './world/Particles';
 import { Cabins } from './world/Cabin';
 import { installPineLandmarks, pineHamletBuildings } from './world/PineLandmarks';
-import { Props } from './world/Props';
+import { Props } from './chunks/pine-hollow/world/props';
 import { AnimalManager } from './entities/AnimalManager';
 import { Crossbow, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit } from './player/Crossbow';
 import { Rifle } from './player/Rifle';
@@ -453,17 +453,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
         onUpdate: (fn) => { game.onUpdate(fn, 'structures'); }, progress: (f, detail) => { p.set(Math.round(f * 100), 100, detail); } });
       return null;
     }
-    const propsBuilt = new Props(sky, forest);
-    const object = await propsBuilt.build();
-    // P3: rocks and stumps as hulls, logs as capsules — three pieces a task apart (the phone's 30 ms per-task collider budget)
-    const descs = propsBuilt.colliderDescs();
-    const rock = descs.filter((d) => d.surface === 'rock'), wood = descs.filter((d) => d.surface !== 'rock');
+    // E315 M2: the boulders, stumps and logs are models (src/chunks/pine-hollow/models/); the scatter places and registers
+    // them — rocks and stumps as hulls, logs as capsules, the pieces a task apart (the phone's 30 ms per-task collider budget)
+    const propsBuilt = new Props(sky, forest, game.renderer);
+    await propsBuilt.build(registry, macrotask);
     statics.push(...propsBuilt.colliders);
-    registry.add({ id: 'props', name: 'Props', category: 'props', file: 'src/world/Props.ts', object, surface: 'rock', colliders: rock.slice(0, Math.ceil(rock.length / 2)) });
-    await macrotask();
-    registry.add({ id: 'props-rocks-2', name: 'Props', category: 'props', file: 'src/world/Props.ts', surface: 'rock', colliders: rock.slice(Math.ceil(rock.length / 2)) });
-    await macrotask();
-    registry.add({ id: 'props-wood', name: 'Stumps and logs', category: 'props', file: 'src/world/Props.ts', surface: 'wood', colliders: wood });
     return propsBuilt;
   });
 
@@ -480,7 +474,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
   // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
   if (isOcean) registerDriftwoodModels({ sky, palms, bushes, palmSpecs });
-  else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
+  else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
   registerTrainingDummyModel(game.renderer); // the same three shared prop variants in every shard's Model Explorer
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
