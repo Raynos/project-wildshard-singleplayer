@@ -137,9 +137,6 @@ export const OPTION_VALUES = {
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
   ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
   clockSpeed: ['1', '10', '60'],                       // Nalati's day clock speed — live                                  // the learned LUT (src/world/lut.ts); off = the captures scripts/fit-lut.py fits from — a reload
-  // E174: Driftwood's phone shadow maps (src/world/shadowVariants.ts; debugOptions.ts 'look') — a Today · b Depth only ·
-  // c 16-bit depth · d Lean; live. Default c (the user's pick, 2026-09-25)
-  dwShadows: ['a', 'b', 'c', 'd'],
   // E304: Pine Hollow's faces (src/pinehollow/quest/npcModels.ts npcFileUrl) — Debug ▸ Creatures & NPCs, a reload; current
   // stays the default until Jake picks: B hunyuan (a Hunyuan3D-2 head from a codex portrait) · C hunyuanref (from the
   // model's own reference crop) — progress/e304-faces/pine-hollow-board.jpg
@@ -177,7 +174,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, pineFaces: DEBUG_ONLY,
   rideLook: DEBUG_ONLY, rideRoad: DEBUG_ONLY, rideSpur: DEBUG_ONLY, rideSkid: DEBUG_ONLY, ridePanic: DEBUG_ONLY, rideReins: DEBUG_ONLY, sheepRaids: DEBUG_ONLY,
-  dwShadows: { def: 'c', params: [], url: () => null }, // E174: the user picked C (16-bit depth, −120 MB of Driftwood's phone shadow maps)
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
   const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
@@ -194,7 +190,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
-  dwShadows: option('dwShadows'),
   pineFaces: option('pineFaces'),
   rideLook: option('rideLook'), rideRoad: option('rideRoad'), rideSpur: option('rideSpur'), rideSkid: option('rideSkid'),
   ridePanic: option('ridePanic'), rideReins: option('rideReins'), sheepRaids: option('sheepRaids'),

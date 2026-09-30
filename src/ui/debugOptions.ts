@@ -21,8 +21,7 @@ import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { shardMemory } from '../shard/switch';
 import { lastEndLine, markUnload } from '../boot/lastEnd';
 import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
-import { MOBILE_DEVICE, TIER } from '../core/tier';
-import { PHONE_RIG_MAPS, SHADOW_VARIANTS, VARIANT_SPECS, shadowBytes } from '../world/shadowVariants';
+import { MOBILE_DEVICE } from '../core/tier';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: ChunkDef; weapons: ReadonlySet<string> }
@@ -36,14 +35,14 @@ export const DEBUG_GROUPS: readonly DebugGroup[] = [
   { id: 'look', label: 'Look' },
   {
     id: 'cover', label: 'Ground cover & foliage',
-    note: 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Foliage range 500 m: every plant in view to 500 m (full plants near, their stand-ins far). Foliage range and Far stand-ins reload the page.',
+    note: 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Far stand-ins reloads the page.',
   },
   { id: 'sky', label: 'Sky & weather' },
   { id: 'audio', label: 'Audio' },
   { id: 'combat', label: 'Combat & weapons' },
   { id: 'creatures', label: 'Creatures & NPCs' },
   { id: 'perf', label: 'Performance' },
-  { id: 'loading', label: 'Loading & memory', note: 'Renderer, quality and render scale: Exit to main menu ▸ Settings.' },
+  { id: 'loading', label: 'Loading & memory' },
   { id: 'tools', label: 'Developer tools' },
 ];
 
@@ -143,15 +142,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('coverBlend', 'cover', 'Far colour blend', ON_OFF, { when: driftwood, note: 'E117 / E156 · far plants fade into the ground' }),
   opt('coverFar', 'cover', 'Far stand-ins', [['on', 'On'], ['off', 'Off'], ['far', 'Far']], { reload: true, when: driftwood, note: 'E156 · the far stand-in meshes' }),
 
-  // ── Look: Driftwood's phone shadow maps (E174; src/world/shadowVariants.ts), live. Each choice says its MB ──
-  {
-    ...opt('dwShadows', 'look', 'Shadows (Driftwood phone)', SHADOW_VARIANTS.map((v) => [v, VARIANT_SPECS[v].name] as const), {
-      when: (c) => driftwood(c) && TIER === 'phone',
-      note: 'E174 · A today · B no colour buffer (same pixels) · C + 16-bit depth · D + far cascade and fade ghosts at 1024²',
-    }),
-    choices: () => SHADOW_VARIANTS.map((v) => ({ v, text: `${v.toUpperCase()} · ${VARIANT_SPECS[v].name} · ${String(Math.round(shadowBytes(v, PHONE_RIG_MAPS.size, PHONE_RIG_MAPS.cascades, PHONE_RIG_MAPS.ghosts) / (1 << 20)))} MB` })),
-  },
-
   // ── Sky & weather ──
   // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's PineDayNight
   opt('time', 'sky', 'Time of day', TIMES, { when: (c) => c.chunk.style === 'lowpoly' || c.chunk.style === 'painterly' || pineHollow(c), note: 'E55 · hold the day clock at one time' }),
@@ -199,11 +189,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
     choices: () => [{ v: 'auto', text: `Auto · now ${texMode() === 'ktx2' ? 'KTX2' : 'Images'}` }, { v: 'ktx2', text: 'KTX2' }, { v: 'img', text: 'Images' }],
   },
   opt('prefetch', 'loading', 'Download in background', ON_OFF, { note: 'E158 · the other shards\' files, once this one is playable' }),
-  {
-    id: 'shardResidency', group: 'loading', label: 'Shard residency', choices: () => [{ v: 'one', text: 'One per page' }],
-    get: () => 'one', set: () => undefined, on: () => undefined, reload: false, when: always,
-    note: 'E216 · changing shards reloads the page so the previous world is released',
-  },
   opt('bootPack', 'loading', 'Boot pack', ON_OFF, { reload: true, note: 'boot files as one pack; off = one by one (the KTX2 record run)' }),
   clearDownloadsRow,
 
@@ -224,4 +209,4 @@ function memoryReadout(): string {
   return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
 }
 /** E172: a few live lines under a row (by row id), re-read while the row can be seen — in both menus */
-export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { shardResidency: memoryReadout };
+export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { tex: memoryReadout }; // E318: under GPU textures (the one-choice Shard residency row it sat under is gone)

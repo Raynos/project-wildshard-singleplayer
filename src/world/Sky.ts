@@ -20,7 +20,6 @@ import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade
 import { patchPointLightSkip } from './pointLightSkip';
 import { StylizedSky } from './StylizedSky';
 import { DayNight, type DayClock } from './DayNight';
-import { onSettingChange, setting } from '../ui/Settings';
 import { ShadowMaps } from './shadowVariants';
 import { PineDayNight, pineSunAt, type PinePost } from './PineDayNight';
 import { horizonLight } from './Horizon';
@@ -138,13 +137,10 @@ export class Sky {
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
     this.texelBias = this.stylized !== null && rig.phone;
     this.farEveryOther = this.texelBias && this.csm.lights.length > 1;
-    // E174: the phone rig's shadow maps, pause ▸ Settings ▸ Debug ▸ Shadows (Driftwood phone), live; 'a' = today (three's own)
+    // E174: the phone rig's shadow maps are depth only at 16 bits (Jake's pick C; shadowVariants.ts): 40 MB, not three's 160
     if (this.stylized && rig.phone) {
-      const maps = new ShadowMaps(this.renderer, this.csm, this.camera, this.shadowFade?.ghosts ?? [], rig.size);
-      const fade = this.shadowFade;
-      maps.onGhostScale = (k) => { if (fade) fade.biasScale = k; };
-      maps.apply(setting('dwShadows'));
-      onSettingChange('dwShadows', (v) => { maps.apply(v); });
+      const maps = new ShadowMaps(this.renderer, this.csm, this.shadowFade?.ghosts ?? [], rig.size);
+      maps.apply();
       this.shadowMaps = maps;
     }
     if (filter) {
@@ -278,7 +274,7 @@ export class Sky {
    * back empty. Render it again — the stylized dome through refreshEnvironment, the HDR shard from its background texture.
    */
   rebuildEnvironment(): void {
-    this.shadowMaps?.apply(this.shadowMaps.variant, true); // E174: the restored context gave the maps back uninitialised
+    this.shadowMaps?.apply(true); // E174: the restored context gave the maps back uninitialised
     if (this.pine) { this.pine.rebuild(); return; }
     if (this.stylized) { this.pmrem = null; this.envRT = null; this.refreshEnvironment(); return; } // a fresh generator: the old one's targets belong to the lost context
     const hdr = this.scene.background;
@@ -387,7 +383,6 @@ export class Sky {
     const far = this.csm.lights[this.csm.lights.length - 1];
     if (this.farEveryOther && far) far.shadow.autoUpdate = true; // the boot's warm-up draws every cascade
     this.csm.update();
-    this.shadowMaps?.snap();
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.warm();
   }
@@ -398,7 +393,6 @@ export class Sky {
     const want = this.keyShadowWant;
     if (want !== null && want.angleTo(this.csm.lightDirection) > KEY_SHADOW_STEP) this.csm.lightDirection.copy(want); // a big jump (a Time of day pick, the sun ↔ moon swap) moves at once
     this.csm.update();
-    this.shadowMaps?.snap(); // E174: a cascade smaller than the CSM's size on its own texel grid
     if (this.texelBias) this.fitNormalBias();
     this.shadowFade?.update(dt); // after the CSM and its bias: each ghost copies its cascade's square
     if (this.farEveryOther) {
