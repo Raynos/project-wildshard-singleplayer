@@ -27,7 +27,7 @@ import * as THREE from 'three';
 import { beginNineExploreEntry, endNineExploreEntry } from '../boot/nineBootTrace';
 import '../ui/styles/explore.css';
 import { FreeCam } from './FreeCam';
-import { TouchFly } from './TouchFly';
+import { TouchFly, holdButton } from './TouchFly';
 import { heightAt } from '../world/Heightfield';
 import { CHUNK_HALF } from '../core/config';
 import { reviewUnlocked, unlockReview, type ContextValue } from '../ui/review';
@@ -236,16 +236,15 @@ export class Explore {
         else this.setMode(asMode(b.dataset['m']));
       });
     });
+    // a tap on it while flying (another finger holds the stick) comes through TouchFly's MultiTouchTaps (E329)
     this.speedBtn.addEventListener('click', () => { this.setSpeed((this.speed + 1) % SPEEDS.length); });
     note.addEventListener('click', () => { void this.note(); });
-    const hold = (sel: string, v: number): void => {
+    // ▲ / ▼: each held by its own fingers beside the stick and a look drag (E329, TouchFly.ts holdButton); both held = level
+    const rise = { up: false, down: false };
+    for (const [sel, key] of [['.ws-x-up', 'up'], ['.ws-x-down', 'down']] as const) {
       const b = this.flyEl.querySelector<HTMLElement>(sel);
-      if (!b) return;
-      b.addEventListener('pointerdown', (e) => { e.preventDefault(); this.cam.move.y = v; b.classList.add('on'); });
-      const up = (): void => { if (this.cam.move.y === v) this.cam.move.y = 0; b.classList.remove('on'); };
-      b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
-    };
-    hold('.ws-x-up', 1); hold('.ws-x-down', -1);
+      if (b) holdButton(b, (on) => { rise[key] = on; this.cam.move.y = (rise.up ? 1 : 0) - (rise.down ? 1 : 0); });
+    }
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); });
     if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
