@@ -1,6 +1,6 @@
 # Pine Hollow — follow-ups after the remaster merge
 
-**State:** `in progress` 2026-09-30 — E322 built all 14 rows Jake picked (live `9eda772-muo2raeq`). Now E350 (claude session 341ca5a3 / herdr wildshard-9): the E322 leftovers F-X1 (crags.glb dead bytes), F-X2 (King fight distances), F-X3 (Hale's forearm mesh), F-X4 (no rain in practice rooms), and F-J1 automated as a one-tap PERF lap (Jake picked "Automate it"). Not picked: the big lifts (F-B1, F-0.2, F-B5, F-B6), F-L1, F-M4, F-M8, F-A1, F-U1, F-P1–P4, F-P6, the GPU levers F-G1–G13.
+**State:** `blocked` 2026-09-30 — E322 built all 14 rows of Jake's first pick; E350 built the leftovers F-X1–X4 and automated F-J1 as a one-tap PERF lap (fps pill ▸ PERF LAP ▸ COPY; ships next deploy). Waits on Jake: his PERF LAP text (F-J1), and a pick among the rows not built — the new leftovers F-X5–X8, the big lifts (F-B1, F-0.2, F-B5, F-B6), F-L1, F-M4, F-M8, F-A1, F-U1, F-P1–P4, F-P6, the GPU levers F-G1–G13.
 Each row names where it came from (the remaster lane that left it) so the next agent can read the evidence.
 
 ## Moved out of the remaster to finish it sooner (PH-U32)
@@ -51,10 +51,14 @@ Each row names where it came from (the remaster lane that left it) so the next a
 
 | # | Row | From |
 |---|---|---|
-| F-X1 | `crags.glb` still carries A's five replaced big modules (~215 KB dead bytes in the boot pack): trim `build_crags.py` | E322 F-L2 collapse |
-| F-X2 | The Antler King's fight distances (sweep radius, lane width) were tuned for the elk-rig King, not his bigger upright frame | E322 F-M1 |
-| F-X3 | Hale's raised forearm stretches a grey sheet: 75 triangles join his elbow / twist bones to the spine (a mesh repair) | E322 F-M3, E341 |
-| F-X4 | The existing rain still falls inside practice rooms (camera-local, no `practiceRoom` check) | E322 F-L5 |
+| F-X1 | **done `c4ea3405` (E350)** — `crags.glb` still carries A's five replaced big modules (~215 KB dead bytes in the boot pack): trim `build_crags.py` | E322 F-L2 collapse |
+| F-X2 | **done `95049fb1` (E350): the sweep / stomp / lane measured on his own body; 3 hitboxes** — The Antler King's fight distances (sweep radius, lane width) were tuned for the elk-rig King, not his bigger upright frame | E322 F-M1 |
+| F-X3 | **done `b88770e0` (E350): the forearm webs split at load; 0 stretched tris in the point** — Hale's raised forearm stretches a grey sheet: 75 triangles join his elbow / twist bones to the spine (a mesh repair) | E322 F-M3, E341 |
+| F-X4 | **done `1882798c` (E350)** — The existing rain still falls inside practice rooms (camera-local, no `practiceRoom` check) | E322 F-L5 |
+| F-X5 | The King: a lane charge 3.5 m off his line grazes without hurting (phase III); rays that visibly hit the ribcage side-on mostly don't register (0 / 5); a player under his belly isn't caught by the stomp ring | E350 F-X2 (`art/pine-hollow/round-32-e350-king-fight/`) |
+| F-X6 | Hale's point: jagged torn coat edges along the raised arm and a dark flap where the lantern hung — a real mesh repair (Blender) on the shipped heads | E350 F-X3 (`art/pine-hollow/round-33-e350-hale-arm/`) |
+| F-X7 | Pine Hollow's NPC KTX2 copies (`public/assets/gpu/pine-hollow/npcs/`) predate the new faces (c2c32013): KTX2 pages load the old heads — a `bake-ktx2` run (wildshard-11 told) | E322 / E350 |
+| F-X8 | The PERF lap holds the elites and the King, so their update cost isn't in its reading | E350 F-J1 |
 
 ## Sound, UI, perf
 
