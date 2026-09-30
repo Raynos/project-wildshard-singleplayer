@@ -201,7 +201,8 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
     const lx = from.x + (cave.x - from.x) * 0.47, lz = from.z + (cave.z - from.z) * 0.47;
     const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }).build();
     // the launch deck collides as real geometry (PHYSICS P4); without a registry (dev scenes) it's a floor function
-    if (w.registry) w.registry.add({ id: 'zipline', name: 'Zipline', category: 'buildings', file: 'src/world/Zipline.ts', object: zip.group, colliders: zip.colliderDescs(), surface: 'planks', floor: (x, z) => zip.floorHeightAt(x, z), solidFloor: true });
+    // E315 M1: the zipline model (src/chunks/driftwood-isle/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
+    if (w.registry) { zip.place(w.registry); w.game.scene.add(zip.group); }
     else { w.game.scene.add(zip.group); w.player.platforms.push((x, z) => zip.floorHeightAt(x, z)); }
     w.prompts.push(zip.prompt);
     zip.onRide = (on) => {

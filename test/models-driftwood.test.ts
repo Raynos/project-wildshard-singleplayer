@@ -69,6 +69,7 @@ describe('Driftwood models (E315 M1)', () => {
       'src/world/Hut.ts': { why: '', draws: {} },
       'src/world/Lookout.ts': { why: '', draws: {} },
       'src/world/RopeBridge.ts': { why: '', draws: {} },
+      'src/world/Zipline.ts': { why: 'the ride: its rig and its trolley, which runs the wire (the zipline model drawnInto them)', draws: { Mesh: 2 } },
       'src/world/Wreck.ts': { why: 'the wreck site\'s weld: the vessel and the cove\'s surroundings in one kit (the AO and the lantern light over all of it), the reef rocks\' smooth mesh, the lantern flames (its models drawnInto them)', draws: { mergeGeometries: 1, Mesh: 3 } },
       'src/world/Shrine.ts': { why: 'the firefly cloud (an effect, not a model)', draws: { Mesh: 1 } },
       'src/world/Boat.ts': { why: 'the mooring lines: world geometry between two placed models', draws: { mergeGeometries: 1, Mesh: 1 } },
