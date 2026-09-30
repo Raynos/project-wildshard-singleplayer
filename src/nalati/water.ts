@@ -50,14 +50,22 @@ void main() {
   vec3 V = cameraPosition - vW; float dist = length(V); V /= dist;
   float d = max(vDepth, 0.0);
   // a glacial river: pale, milky, silvery — a little teal in the deep channels, never neon
-  vec3 col = mix(uShallow, uDeep, smoothstep(0.15, 1.5, d));
+  vec3 col = mix(uShallow * vec3(0.8, 0.9, 0.92), uDeep, smoothstep(0.1, 1.1, d));
+  // (E302, NALATI-FINISH B9: the Kunes read as flat grey / white strips) painted body: slow pools and runs (a darker,
+  // bluer channel, a lighter jade run), a wet dark rim along the gravel, the sky broken into strokes across the flow
+  float pool = vnoise(vW.xz * vec2(0.035, 0.07) + vec2(-uTime * 0.02, 0.0));
+  col = mix(col, uDeep * vec3(0.8, 0.92, 1.05), smoothstep(0.5, 0.85, pool) * 0.7 * (1.0 - isFall));
+  col = mix(col, uShallow * vec3(0.92, 1.08, 0.96), smoothstep(0.35, 0.1, pool) * 0.35 * (1.0 - isFall));
+  col *= mix(0.84, 1.06, vnoise(vW.xz * vec2(0.12, 0.3) + 3.0));
   // the sky it reflects at grazing angles (the pale horizon) and a warm glint toward the sun
   // (up close only: far off, a grazing sheen turns every braid into a bright line at eye level — there the water
   // settles to its own deep colour and the aerial haze takes it)
   float near = 1.0 - smoothstep(50.0, 180.0, dist);
   float fres = pow(1.0 - clamp(V.y, 0.0, 1.0), 3.0);
-  col = mix(col, uSky * 0.92, fres * 0.6 * near);
-  col = mix(col, mix(mix(uDeep, uShallow, 0.35), uSky * 0.62, uFarPale), (1.0 - near) * 0.7);
+  float strokes = smoothstep(0.35, 0.75, vnoise(vec2(vW.x * 0.45 - uTime * 0.5, vW.z * 2.2)) * 0.7 + vnoise(vec2(vW.x * 1.3, vW.z * 5.0 + uTime * 0.3)) * 0.3);
+  col = mix(col, uSky * 0.92, fres * (0.1 + 0.3 * strokes) * near);
+  col *= mix(0.8, 1.08, strokes);   // the painted ripple strokes run across the whole body, not just the sheen
+  col = mix(col, mix(mix(uDeep, uShallow, 0.35), uSky * 0.62, uFarPale * 0.55), (1.0 - near) * 0.6);
   vec3 R = reflect(-V, vec3(0.0, 1.0, 0.0));
   col += uSunCol * pow(max(dot(R, uSunDir), 0.0), 60.0) * 0.6 * near;
   // white water: world-space dashes stretched along the flow (+x on the river), racing downstream; thick over the shoals
@@ -66,10 +74,13 @@ void main() {
   vec2 q = vec2(vFlow * 260.0 - uTime * 0.35, vAcross * 9.0);
   float streak = smoothstep(0.62, 0.9, vnoise(q * vec2(0.18, 1.0)) * 0.7 + vnoise(q * vec2(0.5, 2.3) + 7.0) * 0.3);
   float riffle = 1.0 - smoothstep(0.08, 0.55, d);
-  float foam = clamp(streak * (0.35 + 0.65 * riffle) + riffle * (0.35 + 0.65 * white) * 0.85 + white * 0.3, 0.0, 1.0);
+  float foam = clamp(streak * (0.25 + 0.35 * riffle) + riffle * white * 0.35 + white * 0.2, 0.0, 1.0);
   foam *= 1.0 - 0.75 * smoothstep(60.0, 200.0, dist);  // far off the foam melts into the sheen, no white line at eye level
   foam = max(foam, isPool * (0.55 + 0.45 * white));
-  col = mix(col, uFoam, foam * 0.75);
+  col = mix(col, uFoam, foam * 0.7);
+  // the wet rim where the water thins over the gravel: darker, a touch green (not a white line)
+  float rim = (1.0 - smoothstep(0.02, 0.32, d)) * (1.0 - isFall) * (1.0 - isPool) * (1.0 - isBrook * 0.5);
+  col = mix(col, mix(uDeep, vec3(0.2, 0.26, 0.22), 0.45), rim * 0.65);
   // rain: a fine field of rings flickering on the surface
   float drop = step(0.93, h21(floor(vW.xz * 2.5) + floor(uTime * 6.0))) * uRain;
   col = mix(col, uFoam * 0.9, drop * 0.5);
@@ -185,6 +196,16 @@ export class NalatiWater {
     }
     const last = BROOK[BROOK.length - 1];
     if (last) pts.push(new THREE.Vector2(last[0], last[1] - 2)); // to the lip of the fall
+    // the melt comes out at the foot of the glacier's wall, not up it: the head of the polyline lies on the steep face
+    // (the draped ribbon climbed it as a pale strip — E302, NALATI-FINISH B2), so it starts where the bed's grade over the
+    // next ~9 m eases under 1 : 4, and fades in over its first few metres
+    let head = 0;
+    for (let i = 0; i + 3 < pts.length; i++) {
+      const a = pts[i], b = pts[i + 3];
+      if (!a || !b) continue;
+      if ((heightAt(a.x, a.y) - heightAt(b.x, b.y)) / Math.max(1, a.distanceTo(b)) < 0.25) { head = i; break; }
+    }
+    pts.splice(0, head);
     const pos: number[] = [], depth: number[] = [], flow: number[] = [], across: number[] = [], fall: number[] = [], idx: number[] = [];
     const half = 1.3;
     for (let i = 0; i < pts.length; i++) {
@@ -198,7 +219,8 @@ export class NalatiWater {
       for (const u of [-1, 0, 1]) {
         const x = p.x + sx * half * u, z = p.y + sz * half * u;
         const y = Math.min(yBed + 0.45, heightAt(x, z) + 0.18);
-        pos.push(x, y, z); depth.push(u === 0 ? 0.5 : 0.04); flow.push(i / pts.length * 0.35); across.push(u); fall.push(1);
+        const fadeIn = Math.min(1, i / 3);
+        pos.push(x, y, z); depth.push(u === 0 ? 0.5 * fadeIn : 0.04 * fadeIn); flow.push(i / pts.length * 0.35); across.push(u); fall.push(1);
       }
     }
     for (let i = 0; i < pts.length - 1; i++) for (let j = 0; j < 2; j++) {
