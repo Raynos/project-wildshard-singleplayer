@@ -67,6 +67,9 @@ import { CoverGrid, COVER_SEEN_GLSL, coverTintUniform, coverSample, coverJitter,
 import type { BlenderArea } from './blenderArea';
 import { setting, onSettingChange } from '../ui/Settings';
 import type { Sky } from './Sky';
+import { driftLog, driftLogBox } from '../chunks/driftwood-isle/models/driftLog';
+import { modelContext } from '../models/model';
+import { place } from '../models/place';
 
 export interface GroundCoverOpts {
   sea: number;
@@ -503,6 +506,7 @@ export class GroundCover {
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
     const kit = new LowPolyKit(SEED ^ 0x6c08), rng = kit.rng, sea = this.opts.sea;
+    const logs: { a: THREE.Vector3; b: THREE.Vector3; r: number; tone: number }[] = [];
     for (let a = 0; a < Math.PI * 2; a += 9 / 200) {
       const dx = Math.cos(a), dz = Math.sin(a);
       // march outward from inland to the first sand below the dune crest (~1.6 m over the sea)
@@ -518,6 +522,7 @@ export class GroundCover {
         const hx = Math.cos(yaw) * len / 2, hz = Math.sin(yaw) * len / 2;
         const A = new THREE.Vector3(x - hx, heightAt(x - hx, z - hz) + rad * 0.7 + k * 0.2, z - hz), B = new THREE.Vector3(x + hx, heightAt(x + hx, z + hz) + rad * 0.7 + k * 0.2, z + hz);
         addDriftLog(kit, A, B, rad, rad * 0.7, { sides: 6, twist: rng.range(0, 1), tone: k + Math.floor(a * 10), wobble: 0.02 });
+        logs.push({ a: A, b: B, r: rad, tone: k + Math.floor(a * 10) });
         if (rng.next() < 0.5) { const m = A.clone().lerp(B, rng.range(0.3, 0.7)); kit.add(log(m, m.clone().add(new THREE.Vector3(rng.range(-0.3, 0.3), rng.range(0.25, 0.5), rng.range(-0.3, 0.3))), rad * 0.4, rad * 0.25, 5), DRIFT.stub); }
       }
     }
@@ -526,6 +531,15 @@ export class GroundCover {
     mesh.name = 'ground-cover-driftwood';
     mesh.castShadow = true; mesh.receiveShadow = true;
     this.group.add(mesh);
+    // E315 M1: each is the drift log model (src/chunks/driftwood-isle/models/driftLog.ts), placed drawnInto this mesh
+    const boxes: number[] = [], box = new THREE.Box3();
+    const pls = logs.map((l) => {
+      driftLogBox(l.a, l.b, l.r, box);
+      boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
+      const d = l.b.clone().sub(l.a);
+      return { x: (l.a.x + l.b.x) / 2, y: (l.a.y + l.b.y) / 2, z: (l.a.z + l.b.z) / 2, yaw: Math.atan2(-d.z, d.x), params: { len: d.length(), r0: l.r, r1: l.r * 0.7, tone: ((l.tone % 3) + 3) % 3 } };
+    });
+    if (pls.length > 0) place(driftLog, pls, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(boxes) }, piece: { id: 'cover-drift-logs' } });
   }
 
   /** a cell's candidates per kind: [x, y, z, yaw, scale, r, g, b, ground r, g, b] × n — generated once, then cached */
