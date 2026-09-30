@@ -60,3 +60,19 @@ GitHub Actions runs the checks and `vercel build`, then uploads the output with
 `vercel deploy --prebuilt`. The workflow needs `VERCEL_ORG_ID`,
 `VERCEL_PROJECT_ID`, and a team-scoped `VERCEL_BUILD_TOKEN` for Vercel CLI
 pull, build, and prebuilt upload in Actions.
+
+## Claude plan usage (E352)
+
+Agents run on two Claude Max 20x accounts, and a busy night can use up a weekly limit (E352: subagents were 92 % of
+it). Every hour at :17, cron runs `~/.claude/usage-log.sh` (source: `~/projects/dotfiles/claude/usage-log.sh`). It
+appends one JSON line to `~/.claude/usage-log/<ISO week>.jsonl` and never rewrites the file. Each line records:
+- the account Claude Code is logged in as (`active_email`), so `/login` swaps show up;
+- for every Claude account OpenUsage tracks: weekly %, 5-hour %, Fable % and when each resets.
+
+The data comes from `openusage claude` (OpenUsage.app's 5-minute cache). History starts 2026-09-30; before that there
+are only the session logs (`docs/tasks/asks/E352.md`). The hourly burn-down for this week:
+
+    jq -r '[.at, .active_email, (.accounts[] | "\(.name): wk \(.weekly_used)% 5h \(.session_used)%")] | join("  ")' \
+      ~/.claude/usage-log/$(date -u +%G-W%V).jsonl
+
+The subagent rules that keep usage down are in `AGENTS.md` → "Subagents are short-lived".

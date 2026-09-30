@@ -59,8 +59,11 @@ Screenshot it and compare with the note's jpg. Cannot reproduce it? Say so in th
 | sound, music | `src/audio/**` |
 | perf, load | `src/core/**`, `src/boot/**` (LOAD-PERF / PLAY-PERF are archived; open a new ask) |
 
-Small and clear: fix it yourself (commit rules and gates are in AGENTS.md). Bigger: brief a subagent with the note's
-words, the jpg path, the repro URL, the owning files, and "prove it with a screenshot at the repro URL".
+Fix it yourself, one note after another (commit rules and gates are in AGENTS.md). Only a big note with disjoint files
+goes to a subagent (AGENTS.md "Subagents are short-lived": ≤3 live, ≤250k context, ≤45 min). Brief it with:
+- the note's words, the jpg path, the repro URL and the owning files;
+- "prove it with a screenshot at the repro URL";
+- "stop at 250k context or 45 min: commit, report what is left".
 
 ## 5. Close the loop
 

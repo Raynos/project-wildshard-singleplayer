@@ -14,6 +14,12 @@
           { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash-safety.sh\"" },
           { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-browser-lane.sh\"" }
         ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-subagents.sh\"" }
+        ]
       }
     ],
     "Stop": [

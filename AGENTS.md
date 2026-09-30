@@ -16,16 +16,29 @@ Subagents were 92 % of the plan usage that burned a whole weekly limit in 12 hou
 that ran over 2 h cost 73 % of all subagent spend, and each one ended at a median 600k context. Every call re-reads the
 whole context. A subagent's prompt cache lives **5 minutes** (a main session's lives 1 h), so after any longer wait
 the whole context is written to cache again at full price.
+- **The main agent builds by default.** Work through a plan's rows yourself, one after another. A main session keeps its
+  cache for an hour, so its waits are cheap. Spawn a subagent only for:
+  - a read-heavy search that returns a conclusion (`Explore`: 8 cost $21 in E352); or
+  - a job that is truly independent, owns disjoint files and fits inside the caps below.
+
+  "Several rows are open" is not a reason to parallelise.
+- **At most 3 live subagents per main session, no forks, no subagent spawning subagents.** Enforced by
+  `.claude/hooks/guard-subagents.sh` (PreToolUse `Agent`). It counts a subagent as live until its transcript ends on
+  `end_turn`. When it blocks, wait for a result, or do the job yourself. Escape (rare): `SKIP_SUBAGENT_CAP=1`.
 - **One job per subagent, then it reports and ends.** Brief it with a job it can finish inside the caps.
 - **Max context 250k tokens, max wall clock 45 min.** Put both in the brief: "stop at 250k context or 45 min, whichever
   comes first. Commit what is done and report what is left." The parent starts a **fresh** subagent for what is left.
 - **Never recycle a subagent.** Don't SendMessage a finished subagent a new job: its context only grows and its cache is
   cold. Spawn a new one with a short brief.
 - **No forks.** A fork starts with the parent's whole context. Spawn a general-purpose agent with a written brief.
-- **No long waits inside a subagent.** A wait over 5 min (an `until grep …` poll, the browser-lane or model-lock queue, a
-  long script) throws the cache away. Queue-heavy work (model batches, captures) belongs to the parent, or keep each
-  wait under 4 min.
-- The live-subagent cap stays at 3, forks and resumed agents included.
+- **Long waits belong to the main agent, never a subagent.** A subagent that waits over 5 min throws its cache away (an
+  `until grep …` poll, the browser-lane or model-lock queue, a long script). Those waits cost $809 in 16 h in E352.
+  - A subagent whose next step has to queue longer than ~4 min (a model batch, a capture, a CI or deploy run) doesn't
+    wait. It commits what is done, reports "queued: <exact command>" and ends.
+  - The main agent runs that command with `run_in_background` and gets a notification when it exits. It spends no
+    turns while it waits, and its 1 h cache is still warm, even for a 30 min queue.
+  - No `until …; do sleep …; done` loops longer than 4 min anywhere.
+- Resumed agents count against the cap.
 
 ## North and South America only: no licence caveats, ever (Jake, 2026-09-29)
 
