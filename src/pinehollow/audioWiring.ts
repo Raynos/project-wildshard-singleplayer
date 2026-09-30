@@ -90,9 +90,9 @@ export function installPineAudio(h: PineAudioHost): void {
     if (!/^(Open|Close) door$/.test(it.label)) continue;
     const use = it.onInteract;
     it.onInteract = () => {
-      const opening = it.label.startsWith('Open');
+      const before = it.label, opening = before.startsWith('Open');
       use();
-      amb.sfx.shot(opening ? 'doorOpen' : 'doorClose', { at: it.position });
+      if (it.label !== before) amb.sfx.shot(opening ? 'doorOpen' : 'doorClose', { at: it.position }); // a barred door (the mill's, E322) didn't move
     };
   }
 

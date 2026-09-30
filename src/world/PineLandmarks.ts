@@ -91,8 +91,8 @@ export function pineHamletBuildings(): ExtraBuilding[] {
     { // the watermill: its stones inside, the wheel wing on stilts out over the creek, the wheel past its end
       id: 'watermill', x: s.mill.x, z: s.mill.z, rot: kitRot(s.mill.rot),
       spec: {
-        // its door is shut for now (0 draws: the miller's errand, PH-C6, is what opens the mill again)
-        W: 6, L: 8, rows: 12, pitch: 0.72, doorZ: -1.4, door: 'fixed', chimney: 'zneg', noChimney: true, porchDepth: 1.6, interior: 'mill', plinthDrop: 1.8,
+        // a swinging door, barred until the miller's errand is done (E322 F-M7: src/pinehollow/quest/index.ts gates its prompt)
+        W: 6, L: 8, rows: 12, pitch: 0.72, doorZ: -1.4, chimney: 'zneg', noChimney: true, porchDepth: 1.6, interior: 'mill', plinthDrop: 1.8,
         windows: [{ wall: 'front', at: 1.8 }, { wall: 'zpos', at: 0.6 }, { wall: 'zneg', at: -0.8 }],
         wing: { W: 3.6, L: 11, rows: 8, pitch: 0.5, r: 3.0, axleY: -3.3 },
       },

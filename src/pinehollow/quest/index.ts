@@ -240,6 +240,31 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   };
   const syncWheel = (): void => { if (h.cabins) h.cabins.wheelSpeed = flags.has('errand:done') ? 0.55 : 0; };
   syncWheel();
+  // the mill's door (E322 F-M7): a cabin door like the others (Cabin.ts swings it, its kinematic piece follows the pivot),
+  // barred until the race is clear — shut, it collides; pressed before `errand:done` it only rattles
+  const millDoor = ((): Interactable | null => {
+    const mill = h.cabins?.buildings.find((b) => b.id === 'watermill');
+    const piece = mill ? h.cabins?.doorPieces().find((d) => d.id === `cabin-${mill.index + 1}-door`) : undefined;
+    if (!piece) return null;
+    const hinge = piece.pivot.getWorldPosition(new THREE.Vector3());
+    let best: Interactable | null = null, bestD = 1.5; // the prompt stands ~0.7 m from its hinge; the next door is metres off
+    for (const it of h.cabins?.interactables ?? []) {
+      const d = Math.hypot(it.position.x - hinge.x, it.position.z - hinge.z);
+      if (d < bestD && /^(Open|Close) door$/.test(it.label)) { best = it; bestD = d; }
+    }
+    return best;
+  })();
+  if (millDoor) {
+    const swing = millDoor.onInteract;
+    millDoor.onInteract = () => {
+      if (!flags.has('errand:done')) {
+        hud.toast(flags.has('errand:asked') ? 'Barred from inside. Brandt keeps the mill shut until the race is clear' : 'The mill door is barred from inside');
+        kitSfx.interact('locked', millDoor.position);
+        return;
+      }
+      swing();
+    };
+  }
   const night = (): number => sky.pine?.night ?? 0;
   const thralls = new NightThralls({
     animals, scene: game.scene, night,
