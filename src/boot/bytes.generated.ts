@@ -22,7 +22,7 @@ export const PUBLIC_BYTES = {
   "/assets/baked/pine-hollow/card-normal.jpg": 589258,
   "/assets/baked/pine-hollow/card-normal.phone.webp": 71346,
   "/assets/baked/pine-hollow/cards.json": 184,
-  "/assets/baked/pine-hollow/navmesh.bin": 170843,
+  "/assets/baked/pine-hollow/navmesh.bin": 171474,
   "/assets/baked/pine-hollow/navmesh.json": 353,
   "/assets/baked/pine-hollow/sky.json": 252,
   "/assets/baked/pine-hollow/terrain.bin": 537975,
