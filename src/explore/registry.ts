@@ -6,13 +6,13 @@
  *
  *   registerModel({ …, live: false, object: () => buildOne(), buildAt: (tier) => … });   // one of a batch, built on view
  *   registerPick({ object: palms.mesh, entry: 'palm', boxAt: (hit) => boxOfThePalmAt(hit) }); // a tap on a batch mesh
- *   registeredModels() / registeredPicks()
+ *   registeredModels() / registeredPicks() / registeredSets()
  *
  * Creatures are not registered: Explore builds one per species the shard's AnimalManager actually has.
  */
-import { activeRegistry, type RegisteredModel, type RegisteredPick } from '../world/registry';
+import { activeRegistry, type RegisteredModel, type RegisteredPick, type RegisteredSet } from '../world/registry';
 
-export type { ModelCategory, RegisteredModel, RegisteredPick } from '../world/registry';
+export type { ModelCategory, RegisteredModel, RegisteredPick, RegisteredSet } from '../world/registry';
 
 /** a model that is not a built piece of the world (one out of a batch, built alone on view): a model-only piece */
 export function registerModel(m: RegisteredModel): void {
@@ -28,3 +28,5 @@ export function registerModel(m: RegisteredModel): void {
 export function registerPick(p: RegisteredPick): void { activeRegistry().addPick(p); }
 export function registeredModels(): readonly RegisteredModel[] { return activeRegistry().models(); }
 export function registeredPicks(): readonly RegisteredPick[] { return activeRegistry().picks; }
+/** the shard's sets (E306 M7: `placeSet`, src/models/sets.ts) — the Sets explorer's list, a model card's PART OF */
+export function registeredSets(): readonly RegisteredSet[] { return activeRegistry().sets; }

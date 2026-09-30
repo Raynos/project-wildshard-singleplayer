@@ -119,6 +119,18 @@ export interface RegisteredSet {
   members: readonly { model: string; copies: number }[];
   /** where it stands, world space */
   bounds: THREE.Box3;
+  /** what draws it: each member `place` call as it was made (the Sets explorer frames, outlines and measures the set by these) */
+  placed?: readonly SetPlacement[];
+}
+
+/** one `place` call in a set, as Explore reads it (a `Placed`, src/models/place.ts) */
+export interface SetPlacement {
+  readonly model: string;
+  /** what draws its copies (shared by several members when they are drawn into one kit) */
+  readonly object: THREE.Object3D;
+  readonly copies: number;
+  /** copy i's world box */
+  copyBox: (i: number, target: THREE.Box3) => THREE.Box3;
 }
 
 /** a tap target that is not a registered model's own object: a batch mesh (one palm out of all of them) */

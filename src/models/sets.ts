@@ -29,7 +29,7 @@ export function placeSet(o: SetOptions): RegisteredSet {
     copies.set(m.model, (copies.get(m.model) ?? 0) + m.copies);
     for (let i = 0; i < m.copies; i++) bounds.union(m.copyBox(i, b));
   }
-  const set: RegisteredSet = { id: o.id, name: o.name, file: o.file, members: [...copies].map(([model, n]) => ({ model, copies: n })), bounds };
+  const set: RegisteredSet = { id: o.id, name: o.name, file: o.file, members: [...copies].map(([model, n]) => ({ model, copies: n })), bounds, placed: o.members };
   (o.registry ?? activeRegistry()).addSet(set);
   return set;
 }

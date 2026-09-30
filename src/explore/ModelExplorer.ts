@@ -9,7 +9,8 @@
  * Catalog: a filterable grid; every card's thumbnail is rendered through the game's own composer, one per two frames
  * (so thumbnails show the real look, AO and grade included). Turntable: drag = orbit (idle → it slowly turns), wheel /
  * pinch = zoom; SOLID · WIREFRAME · FACETS · PAINT; DAWN · NOON · DUSK · NIGHT pin the day/night clock; the sheet shows
- * the source file, triangles, draw calls; VIEW IN WORLD hands the model to the World Explorer.
+ * the source file, triangles, draw calls; PART OF names the sets it is in (each opens in the Set Explorer, E315 M7);
+ * VIEW IN WORLD hands the model to the World Explorer.
  */
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
@@ -22,6 +23,8 @@ import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/Animal';
 import type { DrawnAs, Pipeline } from '../world/registry';
 import { activeClock, type LightPreset, type WorldClock } from '../world/WorldClock';
+import { registeredSets } from './registry';
+import { setsOf } from './setView';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
@@ -111,6 +114,7 @@ export class ModelExplorer implements ExplorePane {
       <div class="ws-x-sheet">
         <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-step"><button class="ws-x-prev" type="button" aria-label="Previous model">‹</button><button class="ws-x-next" type="button" aria-label="Next model">›</button></span><span class="ws-x-file"></span></div>
         <div class="ws-x-stats"><span><i>Tris</i><b data-s="tris"></b></span><span><i>Draw calls</i><b data-s="calls"></b></span><span><i>Build</i><b data-s="build"></b></span><span><i>Made with</i><b data-s="made"></b></span><span><i>Copies</i><b data-s="copies"></b></span><span><i>Drawn as</i><b data-s="drawn"></b></span></div>
+        <div class="ws-x-partof" hidden><i>Part of</i><span></span></div>
         <div class="ws-x-budget"><span></span><div class="ws-x-budget-bar"><i></i></div></div>
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
@@ -289,6 +293,7 @@ export class ModelExplorer implements ExplorePane {
     if (file) file.textContent = e.file;
     const worldAction = this.sheet.querySelector<HTMLButtonElement>('.ws-x-inworld');
     if (worldAction) worldAction.hidden = e.worldView === false;
+    this.renderPartOf(e);
     const step = q('.ws-x-step'); // E181: nothing to step to in a one-model filter, or in a lineup
     if (step) step.hidden = this.lineup !== null || this.shown().length < 2;
     const set = (k: string, v: string): void => { const el = q(`.ws-x-stats b[data-s="${k}"]`); if (el) el.textContent = v; };
@@ -297,6 +302,21 @@ export class ModelExplorer implements ExplorePane {
     set('made', e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')); set('copies', `× ${e.copies.toLocaleString()}`); set('drawn', DRAWN_LABEL[e.drawnAs]);
     this.budget(each, m.calls, e.copies);
     this.placeVariantControls();
+  }
+
+  /** PART OF (E315 M7): the sets this model is a member of — each opens in the Set Explorer */
+  private renderPartOf(e: CatalogEntry): void {
+    const row = this.sheet.querySelector<HTMLElement>('.ws-x-partof'), box = row?.querySelector('span');
+    if (!row || !box) return;
+    const sets = this.lineup === null ? setsOf(e.id, registeredSets()) : [];
+    row.hidden = sets.length === 0;
+    box.replaceChildren(...sets.map((s) => {
+      const b = html('button', '', s.name);
+      (b as HTMLButtonElement).type = 'button';
+      b.dataset['set'] = s.id;
+      b.addEventListener('click', () => { this.explore.openSet(s.id); });
+      return b;
+    }));
   }
 
   private closeModel(): void {

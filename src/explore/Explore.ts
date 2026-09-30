@@ -3,20 +3,23 @@
  * loaded shard. A lazy chunk (main.ts `import('./explore/Explore')`), styled by src/ui/styles/explore.css (prefix ws-x-).
  *
  *   const x = new Explore(host);
- *   x.open('hub' | 'world' | 'model', { cam?: [x, y, z, yaw, pitch], model?: id })
+ *   x.open('hub' | 'model' | 'sets' | 'world', { cam?: [x, y, z, yaw, pitch], model?: id })
  *   x.back()                  // ✕ / Esc: one step back — turntable → catalog → hub → the title (E182)
  *   x.close()                 // out of Explore altogether → host.onExit() (back to the title)
  *   x.context()               // the feedback note's context while exploring (camera pose, mode, model …)
  *   x.toast('Note sent') / x.hold(true)   // the review composer is up: input off, frame frozen by main.ts
  *
  * Modes:
- *   hub    — a scrolling list (E307): the shared cards first (MODEL EXPLORER, WORLD EXPLORER, the developer-only PRACTICE
+ *   hub    — a scrolling list (E307): the shared cards first (MODEL EXPLORER, SET EXPLORER, WORLD EXPLORER, the developer-only PRACTICE
  *            ARENA), then the shard's own feature playgrounds (src/playgrounds/catalog.ts; developer-only too): Nine
  *            Dragon's grapple course, Nalati's horse track — none on Driftwood Isle or Pine Hollow
  *   world  — god mode in the real scene: FreeCam (desktop: RMB look, WASD, Q/E, Shift, wheel, F) or TouchFly (phone:
  *            FLY stick, drag to spin, pinch, ▲▼); the player is parked far away (bootstrap `freeCamera`), so the
  *            animals run their ambient AI and nothing notices the camera (D6)
  *   model  — the Model Explorer (src/explore/ModelExplorer.ts)
+ *   sets   — the Set Explorer (src/explore/SetExplorer.ts; E306 / E315 M7): the shard's sets — groups of placed models —
+ *            each framed where it stands, between single models and the whole world. The tabs read in that order:
+ *            MODELS · SETS · WORLD (keys 1 · 2 · 3). A member opens its model card; ✕ from there comes back to the set
  * ✎ everywhere: the frame + a note → the review inbox (D5: fire and forget); sending needs the review password (D3),
  * which ✎ asks for once if this device has none.
  */
@@ -30,6 +33,7 @@ import { CHUNK_HALF } from '../core/config';
 import { reviewUnlocked, unlockReview, type ContextValue } from '../ui/review';
 import type { World } from '../core/bootstrap';
 import { ModelExplorer } from './ModelExplorer';
+import { SetExplorer } from './SetExplorer';
 import { catalogEntries, type CatalogEntry } from './catalog';
 import { registeredPicks } from './registry';
 import { Select, type SelectTarget } from './Select';
@@ -55,8 +59,12 @@ const PRACTICE_ART: Record<string, string> = { 'driftwood-isle': practiceDriftwo
 /** the World card: the shard from the god-mode camera; the Models card: six of the catalog's own thumbnails (E293) */
 const WORLD_ART: Record<string, string> = { 'driftwood-isle': worldDriftwood, 'pine-hollow': worldPine, 'nalati-grasslands': worldNalati, 'nine-dragon-stack': worldNine };
 const MODELS_ART: Record<string, string> = { 'driftwood-isle': modelsDriftwood, 'pine-hollow': modelsPine, 'nalati-grasslands': modelsNalati, 'nine-dragon-stack': modelsNine };
+/** the Sets card: one of the shard's sets from the Set Explorer's own aerial (E315 M7); none yet → the World card's art */
+const SETS_ART: Record<string, string> = {};
 
-export type ExploreMode = 'hub' | 'world' | 'model';
+export type ExploreMode = 'hub' | 'world' | 'model' | 'sets';
+/** a tab's / a card's `data-m` as a mode (anything else: the World Explorer) */
+const asMode = (m: string | undefined): ExploreMode => (m === 'model' || m === 'sets' ? m : 'world');
 
 export interface ExploreHost {
   world: World;
@@ -160,13 +168,14 @@ export class Explore {
     this.root = html('div', 'ws-x');
     const top = html('div', 'ws-x-top', `
       <div class="ws-x-brand"><span>Project <b>Wildshard</b></span><i>Explore</i></div>
-      <div class="ws-x-tabs"><button type="button" data-m="model">Models</button><button type="button" data-m="world">World</button></div>
+      <div class="ws-x-tabs"><button type="button" data-m="model">Models</button><button type="button" data-m="sets">Sets</button><button type="button" data-m="world">World</button></div>
       <button class="ws-x-close" type="button" aria-label="Back to the title">✕</button>`);
     this.closeBtn = top.querySelector<HTMLElement>('.ws-x-close') ?? top;
     this.tabs = top.querySelector<HTMLElement>('.ws-x-tabs') ?? top;
     this.readout = html('div', 'ws-x-readout');
     const shard = host.world.chunk;
     const worldArt = WORLD_ART[shard.slug] ?? shard.heroLandscape, modelsArt = MODELS_ART[shard.slug] ?? shard.thumbnail; // a shard with none yet shows its picker art
+    const setsArt = SETS_ART[shard.slug] ?? worldArt; // E315 M7: one of the shard's sets from the air
     // the Practice card is this shard's own arena: the room takes each shard's grade and weapon (E292)
     const practiceArt = PRACTICE_ART[shard.slug] ?? practiceDriftwood;
     // E307: the shard's own feature playgrounds under the shared cards (placeholder art: the verb's glyph on a dev tile)
@@ -176,6 +185,7 @@ export class Explore {
     this.hubEl = html('div', 'ws-x-hub', `<div class="ws-x-hub-list">
       <div class="ws-x-hub-heading">Choose an explorer</div>
       <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${modelsArt}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="sets"><span class="ws-x-card-art ws-x-sets-art" style="background-image:url('${setsArt}')"></span><span class="ws-x-card-text"><b>Set explorer</b><small>Camps, squares, fields: groups of models where they stand</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.displayName} in god mode</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="practice" data-dev><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>
       ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-shard" data-dev>${shard.displayName} · playgrounds</div>${pgCards}` : ''}</div>`);
@@ -199,13 +209,13 @@ export class Explore {
     document.body.append(this.root);
 
     this.closeBtn.addEventListener('click', () => { this.back(); }); // E182 (Jake: "the X button kicks you back out to level select")
-    this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.addEventListener('click', () => { this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world'); }); });
+    this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.addEventListener('click', () => { this.setMode(asMode(b.dataset['m'])); }); });
     this.hubEl.querySelectorAll<HTMLElement>('.ws-x-card').forEach((b) => {
       b.addEventListener('click', () => {
         const pg = asPlaygroundId(b.dataset['pg']);
         if (pg !== null) this.startPlayground(pg);
         else if (b.dataset['m'] === 'practice') this.startPractice();
-        else this.setMode(b.dataset['m'] === 'model' ? 'model' : 'world');
+        else this.setMode(asMode(b.dataset['m']));
       });
     });
     this.speedBtn.addEventListener('click', () => { this.setSpeed((this.speed + 1) % SPEEDS.length); });
@@ -229,6 +239,7 @@ export class Explore {
       this.select = new Select(this, host.world, selectTargets(entries, host.creatures ?? []), entries);
       this.onTap = (x, y) => { this.select?.pick(x, y); };
     } else this.addPane('model', new EmptyModels(this, chunk.displayName));
+    this.addPane('sets', new SetExplorer(this, host.world, entries));
   }
 
   private select: Select | null = null;
@@ -252,6 +263,23 @@ export class Explore {
     this.landing = e;
   }
   private landing: CatalogEntry | null = null;
+
+  /** a set (E315 M7): the Set Explorer, framed on it */
+  openSet(id: string): void { this.setMode('sets', { set: id }); }
+
+  /** a set's member row: its model card — and ✕ / Esc on that card come back to the set */
+  openModelFromSet(model: string, set: string): void {
+    this.setMode('model', { model });
+    this.returnToSet = set;
+  }
+  private returnToSet: string | null = null;
+
+  /** a set's VIEW IN WORLD: free flight from where the set's view stands, looking at it */
+  viewSetInWorld(from: THREE.Vector3, look: THREE.Vector3, name: string): void {
+    this.setMode('world');
+    this.cam.placeAt(from, look);
+    this.toast(`${name} · free flight`);
+  }
 
   /** a smooth camera flight (god mode stays god mode: controls come back on arrival) */
   flyTo(to: THREE.Vector3, look: THREE.Vector3, seconds = 1.1): void {
@@ -299,6 +327,8 @@ export class Explore {
   back(): void {
     if (this.compare?.isOpen === true) { this.compare.close(); this.syncBack(); return; }
     if (this.map?.isOpen === true) { this.map.close(); this.syncBack(); return; }
+    const set = this.returnToSet;
+    if (this.mode === 'model' && set !== null) { this.setMode('sets', { set }); return; } // a member's card goes back to its set
     if (this.panes.get(this.mode)?.back?.() === true) { this.syncBack(); return; }
     if (this.mode === 'hub') { this.close(); return; }
     this.setMode('hub');
@@ -347,6 +377,7 @@ export class Explore {
   setMode(mode: ExploreMode, opts: Record<string, string> = {}): void {
     beginNineExploreEntry(mode);
     const prev = this.mode;
+    this.returnToSet = null; // (openModelFromSet sets it again after)
     this.mode = mode;
     this.root.dataset['mode'] = mode;
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.classList.toggle('on', b.dataset['m'] === mode); });
@@ -435,7 +466,8 @@ export class Explore {
     else if (e.code === 'Escape' && !this.held) this.back(); // E182: Esc and ✕ are the same one step back
     else if (e.code === 'KeyM' && this.mode === 'world') this.map?.toggle();
     else if (e.code === 'Digit1') this.setMode('model');
-    else if (e.code === 'Digit2') this.setMode('world');
+    else if (e.code === 'Digit2') this.setMode('sets');
+    else if (e.code === 'Digit3') this.setMode('world');
   };
 
   private update(dt: number): void {
