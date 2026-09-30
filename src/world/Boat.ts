@@ -23,7 +23,7 @@ import { lowPolyMaterial } from './lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from './registry';
 import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat, boatColliders } from '../chunks/driftwood-isle/models/boat';
 import { modelContext } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export interface BoatSpec {
   x: number; z: number;
@@ -39,6 +39,8 @@ const ROPE = new THREE.Color('#d2bd85');
 export class Boat {
   /** the placed boat (the hull with its gear, the sail): posed on the swell every frame */
   group!: THREE.Object3D;
+  /** its `place` (the Pier landing set's member, M12) */
+  placed: Placed | null = null;
   colliders: Collider[] = [];
   private t = 0;
   private floorY: number;
@@ -56,6 +58,7 @@ export class Boat {
     const placed = place(boat, [{ x: this.spec.x, y: this.spec.waterY, z: this.spec.z, ...(heading === 0 ? {} : { yaw: heading }) }], { ctx: modelContext(this.sky), draw: 'single', registry,
       piece: { id: 'boat', follows: 'copy', floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     this.group = placed.object;
+    this.placed = placed;
     const mat = lowPolyMaterial(this.sky);
 
     // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)

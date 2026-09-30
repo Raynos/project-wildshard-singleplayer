@@ -23,7 +23,7 @@ import { heightAt, waterLevel } from './Heightfield';
 import type { ColliderDesc, WorldRegistry } from './registry';
 import { PENNANT_WIND, pier, pierBoxes, pierDeckAt, pierPosts, type PierParams } from '../chunks/driftwood-isle/models/pier';
 import { modelContext, type Placement } from '../models/model';
-import { place } from '../models/place';
+import { place, type Placed } from '../models/place';
 
 export interface PierSpec {
   x: number; z: number;
@@ -46,6 +46,8 @@ export interface PierSpec {
 export class Pier {
   /** what it draws: the deck's one mesh (+ the pennant's, on the south pier) */
   group!: THREE.Object3D;
+  /** its `place` (the Pier landing set's member, M12) */
+  placed: Placed | null = null;
   /** the legacy boxes of the posts and bollards: the ocean's foam rings and the melee sweep */
   colliders: Collider[] = [];
   /** the two tall mooring posts at the sea end, world xz */
@@ -96,6 +98,7 @@ export class Pier {
     const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'merged', registry,
       piece: { id, floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     this.group = placed.object;
+    this.placed = placed;
     this.descs = [...placed.colliders];
     const { posts, bollards } = pierPosts(this.params);
     for (const [along, across] of posts) { const [x, z] = this.toWorld(along, across); this.posts.push({ x, z }); }

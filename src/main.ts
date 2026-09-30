@@ -720,7 +720,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // E315 M12: Driftwood's named places are Sets — what each place's radius holds (src/chunks/driftwood-isle/world/places.ts)
   if (adventure !== null && isOcean) {
     const d = dressing;
-    placeDriftwoodPlaces(adventure.place, [d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
+    placeDriftwoodPlaces(adventure.place, [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
       ...(d.trailside?.placed ?? []), ...(d.seabed?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []),
       adventure.zipline?.placed, ...adventure.kit.placed], { wreck: [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])] });
   }

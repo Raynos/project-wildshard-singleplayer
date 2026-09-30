@@ -6,7 +6,8 @@
  * place's welded ground (the terrain, the Blender cove's tiles) stays world.
  *
  * The Wreck cove is the wreck site as it was built (the shipwreck, its cargo, drift logs and reef rocks, the cove's reef
- * rocks), not a radius. The pier's set is the Pier landing (main.ts, M7). `pending` names what a place has that is
+ * rocks), not a radius. The pier's is the Pier landing: the pier, the boat moored at it and what stands within its
+ * radius. `pending` names what a place has that is
  * not on the model contract yet (another lane holds its file). The north and west landings leave the list (E318).
  *
  *   placeDriftwoodPlaces(adventure.place, [hut.placed, lookout.placed, …], { wreck: [...wreck.placed, ...cove.placed] });   // main.ts, after the adventure
@@ -30,8 +31,9 @@ interface PlaceSet {
   readonly pending?: readonly string[];
 }
 
-/** the places' sets (the pier's is the Pier landing, registered with the pier in main.ts) */
+/** the places' sets */
 const SETS: readonly PlaceSet[] = [
+  { id: 'driftwood-isle/pier-landing', name: 'Pier landing', place: 'driftwood-isle/pier' },
   { id: 'driftwood-isle/wendells-hut', name: "Wendell's hut", place: 'driftwood-isle/hut' },
   { id: 'driftwood-isle/vista-point', name: 'Vista point', place: 'driftwood-isle/vista' },
   { id: 'driftwood-isle/rope-bridge-gully', name: 'The rope bridge', place: 'driftwood-isle/bridge' },
