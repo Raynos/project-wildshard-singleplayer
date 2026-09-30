@@ -10,7 +10,7 @@ row: a decision number in [E357](../../tasks/asks/E357.md), or a research row (E
 | Rule | Detail | Decision |
 |---|---|---|
 | **Layers** | `src/engine/` → `src/game/` → `src/kit/` → `src/shards/<slug>/`. Imports only point down the arrow; no shard imports another shard | 1, 5, 48, 62 |
-| **Composition root** | `src/main.ts` stays at the root permanently. It is the one file that imports `#engine`, `#game` and the generated shard registry and starts the app, and it is outside the layer rules (the engine may not import `#game`, so the entry can't live in the engine). It is ≤ 20 lines at S4.4, with the generic boot in `engine/boot.ts` (≤ 150). `index.html` keeps loading `/src/main.ts` | 13 (04 #12) |
+| **Composition root** | Two files at `src/`'s root, outside the layer rules (the engine may not import `#game`, so the entry can't live in the engine):<br>• `src/entry.ts` (moved from `src/boot/entry.ts` at F6) is the page's module entry. `index.html` loads `/src/entry.ts`. It keeps today's retrying dynamic imports (E188) and the title-only fast path; its `nineBootTrace` import becomes the engine's generic boot trace, switched on by `manifest.boot.phone.trace`.<br>• `src/main.ts` imports `#engine`, `#game` and the generated shard registry and starts the app: ≤ 20 lines at S4.4, with the generic boot in `engine/boot.ts` (≤ 150) | 13 (04 #12, lead #6) |
 | **Aliases** | Package.json subpath imports `#engine/*`, `#game/*`, `#kit/*`, `#shards/*`. Relative imports only inside one layer folder (a shard's own files use `./`) | engine-fit #9, TP1 |
 | **Public API** | Each layer has one `index.ts` that is its public API. Kit and shards import `#engine` / `#game` / `#kit` **index only**; a deep path like `#engine/combat/pipeline` is a lint error. The engine's own internals may import each other freely | 26 |
 | **Extractable engine** | `src/engine/**` contains no Wildshard word: no shard slug, no "shard", Bag, coin, loot, compendium, feat, doubloon, or shard / creature / weapon names. `wildshard/layer` checks this against a word list (§24) | 58 |
@@ -207,6 +207,7 @@ export interface ShardManifest {
   label: string; seed: number; biome: string;   // today's ChunkDef.gridCoords (label), seed, biome
   minimap: ChunkMapDef;                     // today's ChunkDef.map (the minimap / full-map drawing data), renamed
   camera?: { portraitFov?: number };        // today's ChunkDef.fov
+  wind?: WindSpec;                          // the WindField's per-shard data (§17): Nalati's steppe wind, today's world/wind.ts values
   bag: { tabs: readonly BagTabId[] };      // E314's per-shard tab picks (X2)
   hud?: ChunkHud;                           // today's ChunkDef.hud, as is (data the HUD reads)
   style: 'toon' | 'painterly' | 'pbr' | 'jiehua' | 'greybox';   // data only, never branched on; F6 maps today's 'lowpoly' → 'toon'
@@ -267,8 +268,8 @@ export const defineShard: (m: ShardManifest) => ShardManifest;      // identity 
   - `ChunkDef.map` becomes `minimap` (the name `map` is gone, to avoid a clash with world placement);
   - `gridCoords` becomes `label`;
   - `fov` becomes `camera.portraitFov`.
-  F6 leaves today's hook fields (`sword`, `fieldModels`, `traversal`, `structures` builder, `render`) on the
-  manifest. Each shard's phase moves them into its plugin (S1.1 / S2.1 / S3.1 / S4.1), and the type then drops them.
+  F6 leaves today's hook fields (`sword`, `fieldModels`, `traversal`, the `structures` builder, `render`) on the
+  manifest. (`fov` is data, not a hook: it becomes `camera.portraitFov` at F6.) Each shard's phase moves them into its plugin (S1.1 / S2.1 / S3.1 / S4.1), and the type then drops them.
 
 ## 7. The shard plugin and the registry
 
@@ -371,8 +372,9 @@ export interface SaveSlot<T> { read(shard?: string): T; write(v: T, shard?: stri
   in F10), and the store starts empty. Never reset:
   - `device` and `session` keys;
   - the native OTA keys `ws.ota.*`;
-  - the 3 keys `index.html` reads before the game code loads (they become `device` keys, read by a tiny pre-boot
-    reader in `index.html`). From then on every shape change bumps `version` and adds a migration. A node test loads a
+  - the 3 keys `index.html` reads before the game code loads. `ws.dev` becomes a `device` key; `wsResumeShot` and
+    `wsResumeBrand` stay `session` keys, per tab as today, so an old reload screenshot never shows on a later cold
+    start. A tiny pre-boot reader in `index.html` reads them through the store's key format. From then on every shape change bumps `version` and adds a migration. A node test loads a
   fixture save of every past version.
 - **A save that fails its schema** (hand-edited, corrupt, or from a bug): the store moves the raw value aside to
   `<key>.corrupt.<ISO time>` in the same scope, resets the key to `initial()`, reports to Sentry (key, version,
@@ -498,7 +500,8 @@ export interface ShardRender {
   lighting?: LightingRig;          // the shard's light setup (Driftwood's toon lighting, Pine's PBR sun) applied to the SkyRig
   shadows?: ShadowRig;             // CSM / single-map settings as data
   fogControl?: { suspend(): void; resume(): void };  // fog off while a playground or practice room is up
-  // `backdrop.apply(skyRig)` installs the backdrop; `chain` is the engine post chain handed to an 'extend' compose
+  // `backdrop.apply(skyRig)` installs the backdrop. An 'extend' compose gets the engine chain from its context,
+  // `c.engineChain('clean' | 'cinematic')` (today's Game.ts `chain(clean)`), and returns the five slots around it
   frame?: (dt: number, t: number) => void; dispose?: () => void;
   fog?: FogModel;                 // the shard's fog patch (replaces Game.ts:207-208 and Atmosphere's `painted`)
   backdrop?: SkyBackdrop;         // its sky backdrop / panorama (replaces Sky.ts's three setup paths' shard parts)
@@ -574,7 +577,7 @@ export interface AudioService {
 - The three SFX routings (`main.ts:691-706` and `:850`, `nalati/sound.ts`, Pine's `loadout.ts` / `audioWiring.ts`)
   become one.
 - `Audio.ts` (1,597 lines) splits into the engine mixer and the shards' voice tables.
-- The helpers (pan-from-yaw ×6, loop-at-offset ×5, smoothstep ×15) become one module each.
+- The helpers (pan-from-yaw ×8, loop-at-offset ×5, smoothstep ×15) become one module each.
 - Nine Dragon gets its own ambience and score (S1.5), and its accidental forest / pine fallback goes.
 - Credits: "Music: MiniMax-Music3" and "Powered by Stability AI" stay, as licence conditions.
 
@@ -662,7 +665,11 @@ export interface DamageRequest {             // the superset every path fills (0
   source: Actor | 'env'; sourceTags: readonly Tag[]; target: Actor; amount: number;
   point: THREE.Vector3; dir: THREE.Vector3; surface?: SurfaceId; weaponId?: string; moveId?: string;
   headshot?: boolean; stagger?: number; knockback?: number; throughWalls?: boolean;
+  from?: THREE.Vector3; distance?: number; scale?: number;   // the attacker's position, the hit distance, a charge / draw scale
+  cause?: string; toast?: string;   // the death card's cause line and the hit toast, as string-table keys
 }
+// A rule the DamageRuleDef data form can't express (09's R0b, R1, R3, R6, R7) registers as a plain answerer:
+// events.answer('damage.modify', fn, scope, { order }). DamageRuleDef is the data form of the simple ones.
 ```
 
 - **Effects on day one:**
@@ -671,8 +678,8 @@ export interface DamageRequest {             // the superset every path fills (0
   - plus the kit's starter set (55′): `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`,
     each with a cue and an icon, tuned on the creatures board.
 - **The damage pipeline** (20). One `combat.hit(req)` for every source:
-  1. Build a `DamageRequest` (`source`, `tags`, `amount`, `point`, `dir`, `target`).
-  2. **Occlusion** (`lineOfSight`; on by default, off only with the tag `through.walls`).
+  1. Build a `DamageRequest` (the type below: `source`, `sourceTags`, `target`, `amount`, `point`, `dir`, …).
+  2. **Occlusion** (`lineOfSight`; on by default, off only when `throughWalls: true`).
   3. `ask('damage.modify')`: the dodge guard, hit caps, stealth, parry, effects' modifiers.
   4. Apply to attributes.
   5. `emit('damage.dealt')`; on death, `emit('actor.died')`.
@@ -702,6 +709,7 @@ export interface StrikeSpec {                // replaces the 24 hand-rolled wind
   id: string; shape: StrikeShape;
   windup: number; active: number; recover: number; cooldown: number;
   range: number; damage: number; tags: readonly Tag[]; telegraph?: GroundTellSpec; weight: UtilityCurve;
+  motion?: { speed?: number; delay?: number; track?: 'none' | 'lead' | 'follow' };   // a lane charge's speed, a ring's growth speed, a point strike's delay
 }
 export abstract class CreatureBrain {        // a hierarchical state machine: idle → alert → fight → flee, with sub-states
   protected hfsm: Hfsm; abstract pickStrike(ctx: BrainCtx): StrikeSpec | null;   // default: utility-weighted
@@ -777,7 +785,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside `#engine/saves` | 36 keys / 28 files |
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |
-| `wildshard/no-renderer-type` | `WebGLRenderer` named outside `src/engine/render/**` | 52 files |
+| `wildshard/no-renderer-type` | `WebGLRenderer` named outside `src/engine/render/**` (before F6: outside `Game.ts` and `bootstrap.ts`; F6 re-keys it) | the rule's own count at F4 (the audit's "52 files" was a grep, not the rule) |
 | `wildshard/sim-no-render` | `src/engine/{combat,ai,saves,quests,effects}/**` importing three beyond its math types, or any render / DOM module (decision 56) | today's count at F4 |
 | `wildshard/no-active-chunk` | `getActiveChunk()` calls outside `#game/shard` (each becomes `app.shard` or manifest data, file by file from F8 on) | 136 calls / 42 files |
 | `wildshard/no-global-listener-patch` | teardown through `shardScope`'s `addEventListener` patch (kept until X1 / X2 move the 396 listeners onto scopes) | 396 |

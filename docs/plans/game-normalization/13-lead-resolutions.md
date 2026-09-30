@@ -123,3 +123,18 @@ Questions that were Jake's to decide went to him and are numbered decisions in
 | G19 | FINISH-LINE S1's pause-and-resume joins the harness's scripted run (pause → resume → state identical). S7's committed `latest.md` table is replaced by the gate's budget report artifact; the index says so | 03, index §8 |
 | G20 | See the table above | — |
 | G21 | 12 §6's Look row names the Captain's shared BossBar; X5's pan-from-yaw count is 8 | 12 §6, 10 X5 |
+
+## From the consistency pass ("for the lead")
+
+| # | Item | Resolution | Applied in |
+|---|---|---|---|
+| C1 | 01 §17's Weather row said the kit gets rain, snow, puddles and lightning | Fixed: the rain curtain only | 01 §17 |
+| C2 | 01 §6: `fov` listed as a hook and as `camera.portraitFov`; no `wind` field | `fov` is data → `camera.portraitFov` at F6; `wind?: WindSpec` added | 01 §6 |
+| C3 | The 3 pre-boot keys | `ws.dev` → `device`; `wsResumeShot`, `wsResumeBrand` → `session` (per tab, as today) | 01 §9, 02 F10 |
+| C4 | `DamageRequest`: the text used `tags` / a `through.walls` tag; fields missing | The text uses the type (`sourceTags`, `throughWalls`); `from`, `distance`, `scale`, `cause`, `toast` added | 01 §18 |
+| C5 | Rules `DamageRuleDef` can't express; strike motion | Such rules register as plain `answer('damage.modify', fn, { order })`, and `DamageRuleDef` is the data form of the simple ones. `StrikeSpec.motion { speed, delay, track }` added | 01 §18, §19 |
+| C6 | `index.html` loads `/src/boot/entry.ts`; how an extend-mode compose gets the clean chain | The composition root is **`src/entry.ts` + `src/main.ts`** (01 §0); `c.engineChain('clean' \| 'cinematic')` | 01 §0, §13.1, 02 F6 |
+| C7 | `kitLook`, `bag.pack`, `dev.poses`, the shard sub-fields | Declared (01 §6 "Declared sub-fields") | 01 §6 |
+| C8 | Pan-from-yaw count | 8 | 01 §15, 10 X5 |
+| C9 | Unanswered: 02 Q15, 03 Q4, 03 Q5 (and 05 Q7, 07 Q8–Q10, 08 Q6 / Q8, answered above) | **02 Q15:** accepted. The rule allows `Game.ts` and `bootstrap.ts` until F6 re-keys it, and its start count is the rule's own at F4. **03 Q4:** accepted. The gate walks 3 legs per shard (a job stays under 12 min), and the full route runs nightly. **03 Q5:** accepted. The probe instruments listener counts through the scope census and audio node counts through the `AudioService` registry; §2.4's instrumentation is the spec | 01 §24, 03 |
+| C10 | F7's script-deletion count under decision 88 | Computed at F7 time with `liveness.mjs --dry-run`; the list is recorded in E357 before anything is deleted (as 02 F7 says). It is an execution step, not a plan gap | 02 F7 |
