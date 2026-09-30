@@ -33,3 +33,18 @@ each one (one run per frame). 8 D is the live capture, unedited. Boards 6 and 7 
 
 Re-rolled: every shop frame once (5 A-BUY, 5 A-SELL, 5 C, 5 D: the header said "BAG", now "WENDELL'S COUNTER"), 7 D
 once ("WHO LIT THE FJRE?" was garbled).
+
+## The shopkeeper (board 9)
+
+Jake's keep list of 2026-09-29: "Wendell is the quest giver. Any shop should be a second NPC. Don't allow for the selling
+of junk. Coins are just earned from killing." So the shop of boards 2 and 5 needs its own keeper and its own spot. Each
+frame is a live iPhone 16 Pro portrait capture of production at that spot (agent-browser, `touch · tier=phone · mute ·
+weapon=sword`, placed with `at=`, nearby boars moved off so none is in shot), edited by codex `image_gen` (one run per
+frame, a crop of Wendell passed as the style reference for the keeper). Each shows the keeper, the goods (whetstone,
+heart charm, board fin, captain's hat) and a "TRADE" chip.
+
+| File | Question | Variants | Recommended |
+|---|---|---|---|
+| `board-9-shopkeeper.jpg` | Who runs the shop on Driftwood, and where? (L2) | A a travelling trader who lives on the sailboat moored at the pier's end, her goods on deck under a striped sailcloth awning · B an old fisher (sou'wester, white beard) with a stall on the sand at the pier's foot, by the signpost · C a salvager (bandana, goggles) in a lean-to at Wreck Cove, selling what came off the wreck · D a merchant parrot on a perch by Wendell's hut steps, the goods on a little shelf | A: it reuses the boat that is already there and gives the pier a purpose. It is the first thing you pass, and Wendell's "the boat's still at the pier" becomes true |
+
+No re-rolls: all four frames came back with the HUD intact and the text readable.
