@@ -60,10 +60,10 @@ Screenshot it and compare with the note's jpg. Cannot reproduce it? Say so in th
 | perf, load | `src/core/**`, `src/boot/**` (LOAD-PERF / PLAY-PERF are archived; open a new ask) |
 
 Fix it yourself, one note after another (commit rules and gates are in AGENTS.md). Only a big note with disjoint files
-goes to a subagent (AGENTS.md "Subagents are short-lived": ≤3 live, ≤250k context, ≤45 min). Brief it with:
+goes to a subagent (AGENTS.md "Subagents are short-lived": ≤3 live, ≤400k context, ≤90 min). Brief it with:
 - the note's words, the jpg path, the repro URL and the owning files;
 - "prove it with a screenshot at the repro URL";
-- "stop at 250k context or 45 min: commit, report what is left".
+- "stop at 400k context or 90 min: commit, report what is left".
 
 ## 5. Close the loop
 

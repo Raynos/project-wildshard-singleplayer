@@ -10,7 +10,7 @@
   start — relay them first. `docs/tasks/ASKS.md` is the legacy table (history up to 2026-09-22): don't
   add rows there; a legacy row that is still open moves to its own file under the same id.
 
-## Subagents are short-lived: max 250k context, max 45 min (Jake, E352, 2026-09-30)
+## Subagents are short-lived: max 400k context, max 90 min (Jake, E352, 2026-09-30)
 
 Subagents were 92 % of the plan usage that burned a whole weekly limit in 12 hours (E352). Since 09-22 the subagents
 that ran over 2 h cost 73 % of all subagent spend, and each one ended at a median 600k context. Every call re-reads the
@@ -26,8 +26,9 @@ the whole context is written to cache again at full price.
   `.claude/hooks/guard-subagents.sh` (PreToolUse `Agent`). It counts a subagent as live until its transcript ends on
   `end_turn`. When it blocks, wait for a result, or do the job yourself. Escape (rare): `SKIP_SUBAGENT_CAP=1`.
 - **One job per subagent, then it reports and ends.** Brief it with a job it can finish inside the caps.
-- **Max context 250k tokens, max wall clock 45 min.** Put both in the brief: "stop at 250k context or 45 min, whichever
-  comes first. Commit what is done and report what is left." The parent starts a **fresh** subagent for what is left.
+- **Max context 400k tokens, max wall clock 90 min.** These caps cut off the >2 h, 600k+ tail (73 % of subagent spend)
+  without chopping normal jobs in half. Put both in the brief: "stop at 400k context or 90 min, whichever comes first.
+  Commit what is done and report what is left." The parent starts a **fresh** subagent for what is left.
 - **Never recycle a subagent.** Don't SendMessage a finished subagent a new job: its context only grows and its cache is
   cold. Spawn a new one with a short brief.
 - **No forks.** A fork starts with the parent's whole context. Spawn a general-purpose agent with a written brief.
