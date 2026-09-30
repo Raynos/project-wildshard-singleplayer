@@ -1,5 +1,5 @@
 /**
- * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu/round-2-tabs/menu-tab-*.png), plus FEEDBACK once
+ * The in-game MENU — one overlay: the BAG (MAP · GEAR · FINDS · PACK · FEATS, E314) and PAUSE (SETTINGS), plus FEEDBACK once
  * a reviewer has unlocked the review inbox in Settings → REVIEW (src/ui/review.ts; the tab's composer is the lazy Feedback.ts).
  * Replaces the old pause box and the stand-alone full-map screen: tapping the minimap (or M) opens it on
  * the Map tab, the pause button / Esc opens it on Settings (the switches live there; RESUME and EXIT TO MAIN are the
@@ -11,12 +11,18 @@
  *   menu.open('map') / menu.close() / menu.isOpen / menu.tab
  *   menu.onExit = () => hud.exitToMenu();     // the PAUSE header's EXIT TO MAIN (E178)
  *   menu.refresh()                            // re-render the data tabs (kills, harvests, unlocks)
+ *   menu.openBag()                            // the BAG on GEAR (the minimap corner's bag button)
+ *   menu.setLoot({ gear, finds, wear })       // a shard's loot (src/game/loot/install.ts): GEAR's extras + the FINDS tab
  *   menu.onFeedbackTab = (panel) => …          // the FEEDBACK tab was selected: mount the composer into `panel`
  *
  * Two menus in one overlay (E124, the user: "two menu buttons, inventory and pause. Pause takes you to settings and
  * feedback. Inventory to map / inventory / trophies"; shipped: "I think we can ship that"): it shows one GROUP of tabs at
  * a time — PAUSE: Settings (+ Feedback), titled PAUSED; BAG (the minimap's corner button, src/ui/BagButton.ts; the minimap
  * tap and M too): Map · Inventory · Achievements, titled BAG. (The old one-menu-with-every-tab, `?bagbtn=0`, went in E162.)
+ * E314 (Jake's picks, docs/plans/DRIFTWOOD-LOOT.md): the BAG is five icon tabs on every shard — MAP · GEAR (the paper doll:
+ * the weapons and skins that used to head the Inventory, and the shard's loot) · FINDS (Driftwood's sticker book, hidden
+ * where a shard has none) · PACK (the Inventory's junk grid) · FEATS (Achievements); Pine Hollow's JOURNAL sits before
+ * FEATS. The panels are src/ui/bag.ts.
  */
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
@@ -35,24 +41,28 @@ import { isDev, onDev } from '../core/devMode';
 import { bindDevToggle, devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
 import { buildDebugMenu, type DebugMenu } from './DebugMenu';
+import { renderFinds, renderGear, type FindsView, type GearLoot } from './bag';
 
-export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings' | 'feedback';
-const TABS: { id: MenuTab; label: string }[] = [
-  { id: 'map', label: 'Map' }, { id: 'inventory', label: 'Inventory' }, { id: 'achievements', label: 'Achievements' }, { id: 'settings', label: 'Settings' },
+export type MenuTab = 'map' | 'gear' | 'finds' | 'inventory' | 'achievements' | 'settings' | 'feedback';
+/** the BAG's tabs are icon tabs, one short word each (E314, Jake's pick board 8 A): MAP · GEAR · FINDS · PACK · FEATS on
+ *  every shard (FINDS only where the shard has finds: Driftwood today; `inventory` is PACK, `achievements` FEATS) */
+const TABS: { id: MenuTab; label: string; icon?: IconId }[] = [
+  { id: 'map', label: 'Map', icon: 'map' }, { id: 'gear', label: 'Gear', icon: 'sword' }, { id: 'finds', label: 'Finds', icon: 'seaglass' },
+  { id: 'inventory', label: 'Pack', icon: 'pack' }, { id: 'achievements', label: 'Feats', icon: 'star' }, { id: 'settings', label: 'Settings' },
   { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
 /** the two menus (E124): which one a tab lives in */
 export type MenuGroup = 'pause' | 'bag';
-const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
+const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', gear: 'bag', finds: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
 const TITLE: Record<MenuGroup, string> = { pause: 'Paused', bag: 'Bag' };
 /** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
 const KEY_TAB: Partial<Record<string, MenuTab>> = { KeyM: 'map', KeyI: 'inventory' };
 /** what a Settings row's "applies when" reads: the weapons you hold now and the shard */
 interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; chunk: ChunkDef }
 type When = (c: SettingsCtx) => boolean;
-const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it · a skin to wear it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
+const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', gear: 'Tap a weapon to hold it', finds: 'Found = bright · missing = dashed', inventory: 'What the hunt leaves you', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
 
-/** the weapons as the Inventory tab shows them — read live from Weapons (src/player/Weapons.ts) */
+/** the weapons as the GEAR tab shows them — read live from Weapons (src/player/Weapons.ts) */
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId }
 
 export interface GameMenuOptions {
@@ -61,16 +71,20 @@ export interface GameMenuOptions {
   inventory: Inventory;
   /** the unlocked weapons, held one first */
   kit: () => KitEntry[];
-  /** hold a weapon from the Inventory tab */
+  /** hold a weapon from the GEAR tab */
   onEquip?: (id: string) => void;
-  /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — listed under the weapons, tap to wear / take off */
+  /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — GEAR's SKINS row, tap to wear / take off */
   skins?: () => SkinRow[];
   onWearSkin?: (id: string) => void;
 }
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean }
+/** a shard's loot in the BAG (src/game/loot/install.ts, Driftwood): GEAR's extras, the FINDS tab, wearing a cosmetic */
+export interface BagLoot { gear: () => GearLoot | null; finds: (() => FindsView) | null; wear: (id: string) => void }
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+/** a tab's face: the BAG's are an icon over one short word (E314 board 8 A); PAUSE's stay words */
+const tabHtml = (label: string, ic?: IconId): string => (ic ? `<i class="ws-gmenu-ticon">${icon(ic)}</i><span class="ws-gmenu-tword">${esc(label)}</span>` : esc(label));
 
 export class GameMenu {
   readonly root: HTMLElement;
@@ -119,13 +133,13 @@ export class GameMenu {
     bindDevToggle(this.sheet.querySelector<HTMLElement>('.ws-gmenu-dev') ?? el('ws-gmenu-dev')); // E140: developer mode from the header
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
-      const b = el('ws-gmenu-tab', esc(t.label), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
+      const b = el('ws-gmenu-tab', tabHtml(t.label, t.icon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
       b.addEventListener('click', () => this.select(t.id));
       this.tabBar.append(b);
     }
     this.sheet.append(this.tabBar);
     const body = el('ws-gmenu-body');
-    this.panels = { map: el('ws-gmenu-panel map'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll'), feedback: el('ws-gmenu-panel scroll') };
+    this.panels = { map: el('ws-gmenu-panel map'), gear: el('ws-gmenu-panel scroll'), finds: el('ws-gmenu-panel scroll'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll'), feedback: el('ws-gmenu-panel scroll') };
     for (const p of Object.values(this.panels)) { if (p.classList.contains('scroll')) p.dataset['scroll'] = ''; body.append(p); } // index.html swallows touchmove outside [data-scroll]
     this.sheet.append(body);
     this.hint = el('ws-gmenu-hint');
@@ -193,13 +207,14 @@ export class GameMenu {
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
       const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
-      const on = (id !== 'feedback' || review) && g === group && !(this.practice && id === 'map');
+      const on = (id !== 'feedback' || review) && (id !== 'finds' || this.hasFinds) && g === group && !(this.practice && id === 'map');
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
     this.tabBar.classList.toggle('review', shown >= 5);
     this.tabBar.classList.toggle('four', shown === 4); // BAG with Pine Hollow's JOURNAL: ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
+    this.tabBar.classList.toggle('icons', group === 'bag');
     this.title.textContent = this.practice && group === 'pause' ? 'Practice' : TITLE[group];
     // E178: the PAUSE menu leaves to the title from its header; the BAG only closes
     const pause = group === 'pause';
@@ -266,8 +281,8 @@ export class GameMenu {
    * A tab in `group`'s bar that runs `onPick` instead of showing a panel — the Compendium's JOURNAL, a tab in the BAG menu
    * after Map · Inventory, before Achievements (Jake, 2026-09-25: the header button was "the dumbest place"; pick A).
    */
-  addActionTab(label: string, group: MenuGroup, onPick: () => void): HTMLButtonElement {
-    const b = el('ws-gmenu-tab', esc(label), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['group'] = group;
+  addActionTab(label: string, group: MenuGroup, onPick: () => void, tabIcon: IconId | undefined = group === 'bag' ? 'book' : undefined): HTMLButtonElement {
+    const b = el('ws-gmenu-tab', tabHtml(label, tabIcon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['group'] = group;
     b.addEventListener('click', onPick);
     const before = this.tabBar.querySelector('[data-tab="achievements"]');
     if (before) before.before(b); else this.tabBar.append(b);
@@ -282,6 +297,8 @@ export class GameMenu {
     this.hint.textContent = HINTS[tab];
     this.syncTabs();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
+    if (tab === 'gear') this.renderGear();
+    if (tab === 'finds') this.renderFinds();
     if (tab === 'inventory') this.renderInventory();
     if (tab === 'achievements') this.renderAchievements();
     if (tab === 'settings') this.applies();
@@ -289,7 +306,19 @@ export class GameMenu {
   }
 
   /** re-render the data tabs */
-  refresh(): void { this.renderInventory(); this.renderAchievements(); this.syncZoom(); }
+  refresh(): void { this.renderGear(); this.renderFinds(); this.renderInventory(); this.renderAchievements(); this.syncZoom(); }
+
+  /** the BAG's home: GEAR (the minimap corner's bag button) */
+  openBag(): void { this.open('gear'); }
+
+  /** a shard's loot (Driftwood, src/game/loot/install.ts): GEAR's coins / hearts / charms / cosmetics and the FINDS tab */
+  private loot: BagLoot | null = null;
+  private get hasFinds(): boolean { return this.loot !== null && this.loot.finds !== null; }
+  setLoot(loot: BagLoot | null): void {
+    this.loot = loot;
+    if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs();
+    if (this._open) this.refresh();
+  }
 
   /** the quest card over the map: chapter title, the full objective, its sub-steps (the HUD shows only the short chip, E51) */
   private renderQuest(): void {
@@ -304,40 +333,25 @@ export class GameMenu {
     for (const b of this.zoomChips) b.classList.toggle('active', Math.abs(Number(b.dataset['z']) - z) < 0.01);
   }
 
-  // ── INVENTORY ──
+  // ── GEAR (E314, board 6 C): the paper doll — every shard's weapons and skins, the shard's loot where it has one ──
+  private renderGear(): void {
+    renderGear(this.panels.gear, {
+      weapons: this.opts.kit(), skins: this.opts.skins?.() ?? [], loot: this.loot?.gear() ?? null,
+      onEquip: (id) => { this.opts.onEquip?.(id); this.renderGear(); },
+      onWearSkin: (id) => { this.opts.onWearSkin?.(id); this.renderGear(); },
+      onWear: (id) => { this.loot?.wear(id); this.renderGear(); },
+    });
+  }
+
+  // ── FINDS (E314, board 7 B): the sticker book — only on a shard with finds ──
+  private renderFinds(): void {
+    const f = this.loot?.finds;
+    if (f) renderFinds(this.panels.finds, f()); else this.panels.finds.replaceChildren();
+  }
+
+  // ── PACK (the Inventory): the junk the hunt leaves you, as before; its weapon cards moved to GEAR (E314) ──
   private renderInventory() {
     const p = this.panels.inventory; p.replaceChildren();
-    p.append(el('ws-gmenu-label', 'Equipped'));
-    for (const w of this.opts.kit()) {
-      const pct = w.magazine ? Math.round((w.ammo / w.magazine) * 100) : 0;
-      const card = el(`ws-gmenu-weapon${w.equipped ? ' equipped' : ''}`, `
-        <i class="ws-gmenu-wicon">${icon(w.icon)}</i>
-        <div class="ws-gmenu-wbody">
-          <div class="ws-gmenu-wname">${esc(w.name)}</div>
-          ${w.ammoLabel ? `<div class="ws-gmenu-wammo">${esc(w.ammoLabel)} · ${w.ammo} / ${w.magazine}${w.reserve ? ` + ${w.reserve}` : ''}</div>
-          <div class="ws-bar"><i style="width:${pct}%"></i></div>` : '<div class="ws-gmenu-wammo">Melee</div>'}
-        </div>
-        <span class="ws-gmenu-chip">${w.equipped ? 'Equipped' : 'Hold'}</span>`, 'button');
-      (card as HTMLButtonElement).type = 'button';
-      card.addEventListener('click', () => { if (!w.equipped) { this.opts.onEquip?.(w.id); this.renderInventory(); } });
-      p.append(card);
-    }
-    const skins = this.opts.skins?.() ?? [];
-    if (skins.length > 0) {
-      p.append(el('ws-gmenu-label', 'Skins'));
-      for (const s of skins) {
-        const card = el(`ws-gmenu-weapon${s.worn ? ' equipped' : ''}`, `
-          <i class="ws-gmenu-wicon">${icon('laurel')}</i>
-          <div class="ws-gmenu-wbody">
-            <div class="ws-gmenu-wname">${esc(s.name)}</div>
-            <div class="ws-gmenu-wammo">${esc(s.blurb)}</div>
-          </div>
-          <span class="ws-gmenu-chip">${s.worn ? 'Worn' : 'Wear'}</span>`, 'button');
-        (card as HTMLButtonElement).type = 'button';
-        card.addEventListener('click', () => { this.opts.onWearSkin?.(s.id); this.renderInventory(); });
-        p.append(card);
-      }
-    }
     const items = this.opts.inventory.items;
     const slots = this.opts.inventory.slots;
     p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${slots}`));

@@ -211,3 +211,76 @@
 .ws-gmenu .ws-gmenu-chip.exp { display: inline-block; margin-left: 8px; font-style: normal; font-size: 7.5px; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.6); vertical-align: 1px; }
 .ws-gmenu .ws-gmenu-debugslot { flex: none; display: flex; flex-direction: column; margin-top: 4px; } /* the title's Settings ▸ Debug: the registry under the Developer switch (BootSettings.ts, E172) */
 .ws-gmenu .ws-gmenu-debugslot[hidden] { display: none; }
+
+/* ── the BAG (E314, docs/plans/DRIFTWOOD-LOOT.md): five icon tabs, one short word each (board 8 A) — MAP · GEAR · FINDS ·
+   PACK · FEATS (+ Pine Hollow's JOURNAL); the panels are src/ui/bag.ts ── */
+.ws-gmenu .ws-gmenu-tabs.icons .ws-gmenu-tab { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 2px 9px; font-size: 9px; letter-spacing: 0.16em; }
+.ws-gmenu .ws-gmenu-tabs.icons .ws-gmenu-tab[hidden] { display: none; } /* PAUSE's tabs stay hidden in the BAG */
+.ws-gmenu .ws-gmenu-ticon { display: block; width: 20px; height: 20px; opacity: 0.75; }
+.ws-gmenu .ws-gmenu-tab.active .ws-gmenu-ticon { opacity: 1; color: var(--ws-cyan); filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.6)); }
+.ws-gmenu .ws-gmenu-tword { display: block; line-height: 1; white-space: nowrap; }
+.ws-gmenu .ws-gmenu-tab.active .ws-gmenu-tword { color: var(--ws-cyan); }
+
+/* GEAR (board 6 C): the paper doll — the kit laid out round a figure; the held weapon at its hand, the carried ones on
+   the left, health over the head, the charm at the chest; cosmetics, skins and the purse below */
+.ws-gmenu .ws-gmenu-doll { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(96px, 1.05fr) minmax(0, 1fr); grid-template-areas: 'l fig r'; column-gap: 8px; align-items: stretch; margin: 2px 0 6px; }
+.ws-gmenu .ws-gmenu-doll.head { grid-template-areas: '. top .' 'l fig r'; row-gap: 6px; }
+.ws-gmenu .ws-gmenu-dollfig { grid-area: fig; display: flex; align-items: flex-start; justify-content: center; min-height: 270px; }
+.ws-gmenu .ws-gmenu-dollcol { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.ws-gmenu .ws-gmenu-dollcol.l { grid-area: l; }
+.ws-gmenu .ws-gmenu-dollcol.r { grid-area: r; justify-content: space-between; padding: 36px 0 26px; }
+.ws-gmenu .ws-gmenu-dollcol.r:has(> :only-child) { justify-content: flex-end; }
+.ws-gmenu .ws-gmenu-figure { width: 100%; max-width: 132px; height: auto; overflow: visible; }
+.ws-gmenu .ws-gmenu-fig-body { fill: rgba(143, 227, 255, 0.07); stroke: var(--ws-cyan); stroke-width: 1.3; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.35)); }
+.ws-gmenu .ws-gmenu-fig-line { fill: none; stroke: rgba(143, 227, 255, 0.45); stroke-width: 0.9; stroke-linecap: round; stroke-linejoin: round; }
+.ws-gmenu .ws-gmenu-fig-cape, .ws-gmenu .ws-gmenu-fig-hat { display: none; fill: rgba(232, 214, 176, 0.2); stroke: rgb(232, 214, 176); stroke-width: 1.2; stroke-linejoin: round; }
+.ws-gmenu .ws-gmenu-figure.cape .ws-gmenu-fig-cape, .ws-gmenu .ws-gmenu-figure.hat .ws-gmenu-fig-hat { display: inline; }
+.ws-gmenu .ws-gmenu-kit { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 10px 6px 9px; appearance: none; -webkit-appearance: none; text-align: center; background: rgba(143, 227, 255, 0.04); border: 1px solid rgba(143, 227, 255, 0.26); color: var(--ws-text); font-family: var(--ws-mono); cursor: default; -webkit-tap-highlight-color: transparent; }
+.ws-gmenu .ws-gmenu-kit::before { content: ''; position: absolute; left: -1px; top: -1px; width: 9px; height: 9px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.7; }
+.ws-gmenu .ws-gmenu-kit.weapon, .ws-gmenu .ws-gmenu-kit.cosmetic { cursor: pointer; }
+.ws-gmenu .ws-gmenu-kit.weapon:active, .ws-gmenu .ws-gmenu-kit.cosmetic:active { background: rgba(143, 227, 255, 0.16); }
+.ws-gmenu .ws-gmenu-kit.held { border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.1); box-shadow: 0 0 14px rgba(143, 227, 255, 0.18), inset 0 0 18px rgba(143, 227, 255, 0.06); }
+.ws-gmenu .ws-gmenu-kit.locked { border-style: dashed; border-color: rgba(143, 227, 255, 0.24); background: none; opacity: 0.55; }
+.ws-gmenu .ws-gmenu-kit.locked::before { display: none; }
+.ws-gmenu .ws-gmenu-kit.top { grid-area: top; }
+/* the hairline from a slot to the figure */
+.ws-gmenu .ws-gmenu-kit.l::after, .ws-gmenu .ws-gmenu-kit.r::after { content: ''; position: absolute; top: 50%; width: 10px; height: 1px; background: rgba(143, 227, 255, 0.45); }
+.ws-gmenu .ws-gmenu-kit.l::after { right: -10px; }
+.ws-gmenu .ws-gmenu-kit.r::after { left: -10px; }
+.ws-gmenu .ws-gmenu-kiticon { display: block; width: 40px; height: 34px; color: #e0cfae; }
+.ws-gmenu .ws-gmenu-kit.held .ws-gmenu-kiticon { color: #fff; }
+.ws-gmenu .ws-gmenu-kit.health .ws-gmenu-kiticon { width: 30px; height: 26px; color: #f1e3c6; }
+.ws-gmenu .ws-gmenu-kit.charm .ws-gmenu-kiticon { color: #6fe0c8; }
+.ws-gmenu .ws-gmenu-kit.locked .ws-gmenu-kiticon { color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-kitname { font-family: var(--ws-display); font-weight: 700; font-size: 12px; line-height: 1.15; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-kitsub { font-size: 7.5px; line-height: 1.4; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-kit .ws-gmenu-chip { margin-top: 2px; font-size: 7.5px; padding: 2px 7px; opacity: 0.65; }
+.ws-gmenu .ws-gmenu-kit.held .ws-gmenu-chip { opacity: 1; background: rgba(143, 227, 255, 0.14); }
+.ws-gmenu .ws-gmenu-pips { display: flex; gap: 4px; }
+.ws-gmenu .ws-gmenu-pips i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ws-cyan-dim); }
+.ws-gmenu .ws-gmenu-pips i.on { background: var(--ws-cyan); border-color: var(--ws-cyan); box-shadow: 0 0 6px rgba(143, 227, 255, 0.7); }
+.ws-gmenu .ws-gmenu-kitrow { flex: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 4px; }
+.ws-gmenu .ws-gmenu-kit.cosmetic:disabled { cursor: default; }
+.ws-gmenu .ws-gmenu-purse { flex: none; display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 9px 14px; border: 1px solid rgba(242, 196, 77, 0.45); background: rgba(242, 196, 77, 0.06); }
+.ws-gmenu .ws-gmenu-purse .ws-gmenu-kiticon { width: 26px; height: 26px; color: #f2c44d; }
+.ws-gmenu .ws-gmenu-purse .ws-gmenu-kitname { flex: 1; text-align: left; }
+.ws-gmenu .ws-gmenu-pursenum { font-family: var(--ws-display); font-weight: 700; font-size: 22px; line-height: 1; color: #ffe39a; font-variant-numeric: tabular-nums; }
+
+/* FINDS (board 7 B): the sticker book — found = bright, missing = a dashed "???"; the counter strip; the 15 sea glass chips */
+.ws-gmenu .ws-gmenu-counters { flex: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid rgba(143, 227, 255, 0.3); background: rgba(143, 227, 255, 0.04); }
+.ws-gmenu .ws-gmenu-counter { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 9px 4px; border-right: 1px solid rgba(143, 227, 255, 0.16); }
+.ws-gmenu .ws-gmenu-counter:last-child { border-right: 0; }
+.ws-gmenu .ws-gmenu-counter span { font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-text-dim); white-space: nowrap; }
+.ws-gmenu .ws-gmenu-counter b { font-family: var(--ws-display); font-weight: 700; font-size: 17px; line-height: 1; letter-spacing: 0.08em; color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-counter.full b { color: #fff; text-shadow: 0 0 8px rgba(143, 227, 255, 0.7); }
+.ws-gmenu .ws-gmenu-nextcharm { flex: none; margin: 9px 0 2px; text-align: center; font-size: 8.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-stickers { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ws-gmenu .ws-gmenu-sticker { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; aspect-ratio: 1 / 1.05; padding: 8px 4px; border: 1px dashed rgba(143, 227, 255, 0.3); color: rgba(143, 227, 255, 0.35); }
+.ws-gmenu .ws-gmenu-sticker span { font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-stickicon { width: 52%; height: 50%; }
+.ws-gmenu .ws-gmenu-sticker:not(.found) .ws-gmenu-stickicon { opacity: 0.45; }
+.ws-gmenu .ws-gmenu-sticker.found { border-style: solid; border-color: rgba(143, 227, 255, 0.45); background: rgba(143, 227, 255, 0.06); color: #efe0c2; }
+.ws-gmenu .ws-gmenu-sticker.found span { color: #fff; }
+.ws-gmenu .ws-gmenu-glass { flex: none; display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 3px; margin-bottom: 6px; }
+.ws-gmenu .ws-gmenu-glasschip { display: block; aspect-ratio: 0.8; color: rgba(143, 227, 255, 0.22); }
+.ws-gmenu .ws-gmenu-glasschip.found { filter: drop-shadow(0 0 4px currentcolor); }

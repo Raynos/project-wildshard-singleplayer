@@ -538,6 +538,9 @@ export interface ChunkDef {
   faunaTuning?: Partial<Record<FaunaKind, Partial<HuntTuning>>>;
   /** the most one enemy hit may take off the player's 100 health (`hitDamage`; E294: Driftwood 20); omitted = uncapped */
   maxHitDamage?: number;
+  /** the shard's loot rules (E314, docs/plans/DRIFTWOOD-LOOT.md; src/game/loot/): `coins` = kills burst doubloons into a
+   *  saved purse, shown by a coin chip under VITALS (src/game/loot/coins.ts has the values). Omitted = no coins */
+  loot?: { coins?: boolean };
   /**
    * E297: one set of fight rules for every enemy (src/entities/fightRules.ts) — at most `maxAttackers` attack at once (the
    * rest hold back on a ring), engaged boars / bears circle back and charge again instead of fleeing, an amber edge chevron

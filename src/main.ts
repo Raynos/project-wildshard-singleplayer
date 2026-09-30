@@ -68,6 +68,8 @@ import { BagButton } from './ui/BagButton';
 import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
+import { Owned } from './game/loot/Owned';
+import { installLoot } from './game/loot/install';
 import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { dayClockClock, dayNightClock, setActiveClock } from './world/WorldClock';
 import { DayNight } from './world/DayNight';
@@ -595,6 +597,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const progress = new Progress(getActiveChunk().id);     // shard achievements → titles (src/game/achievements.ts)
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
   const skins = new SkinLocker();                          // legendary skins owned / worn (persisted; wired below)
+  const owned = new Owned(getActiveChunk().id);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   const menu = new GameMenu({
     fullMap, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
@@ -604,8 +607,8 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
   fullMap.bindMinimap(() => { if (hud.entered) menu.open(away() ? 'settings' : 'map'); });
-  // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts)
-  new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
+  // E124: the BAG button squaring out the minimap's top-right corner (src/ui/BagButton.ts) — opens on GEAR (E314)
+  new BagButton(minimap.root, () => { if (hud.entered) menu.openBag(); });
   // M / I / Esc are the menu's own keys (src/ui/Menu.ts, gated by the HUD: E130)
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
 
@@ -701,9 +704,11 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const drop = new IronSwordPickup({ scene: game.scene, sky, position: ironSwordSite(wreck, heightAt) });
     interactables.push(drop.interactable);
     drop.onNear = (inside) => audio.pickupHum(inside);
-    drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); music.sting('pickup'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
+    drop.onPickup = () => { owned.grant('iron-sword'); weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); music.sting('pickup'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
     return drop;
   })();
+  // E314: the iron sword is kept between sessions — taken once, it is yours (and held) on every later visit
+  if (ironSword && owned.has('iron-sword')) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
   const adventure = installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, stowWeapon: (on) => { weapons.stowed = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params, gulls });
@@ -748,6 +753,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const compendium = installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
   // Pine Hollow's adventure (src/pinehollow/quest/): PH-C1 the lantern quest, PH-C6 the hamlet, PH-C7 the night, PH-C8 collectibles; chains onKill
   const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); } } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
+  // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
+  // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
+  installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null });
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it

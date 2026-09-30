@@ -49,8 +49,8 @@ describe('harvestOf', () => {
   });
 
   it('sailor: the drowned sailor\'s pockets', () => {
-    expect(harvestOf('sailor', 'sailor')).toEqual(['doubloon', 'sea-glass', 'old-rope']);
-    expect(harvestOf('sailor')).toEqual(['doubloon', 'sea-glass', 'old-rope']);
+    expect(harvestOf('sailor', 'sailor')).toEqual(['doubloon', 'old-rope']);
+    expect(harvestOf('sailor')).toEqual(['doubloon', 'old-rope']);
   });
 
   it('the Driftwood Isle enemies (crab / monkey / sailor): every variant yields at least one item', () => {

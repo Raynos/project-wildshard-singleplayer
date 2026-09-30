@@ -76,7 +76,7 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
     case 'bear': return ['bear-pelt', 'bear-claw'];
     case 'crab': return variant === 'big' ? ['crab-meat', 'crab-claw', 'crab-shell'] : ['crab-meat', 'crab-claw']; // only the big one's shell is worth keeping
     case 'monkey': return variant === 'elder' ? ['coconut', 'silver-fur'] : ['coconut', 'monkey-fur']; // every monkey was carrying one
-    case 'sailor': return ['doubloon', 'sea-glass', 'old-rope']; // the drowned sailor's pockets
+    case 'sailor': return ['doubloon', 'old-rope']; // the drowned sailor's pockets (no sea glass since E314: the 15 beach pieces are the one count)
     // Nalati Grasslands (B15) — the named elites' trophies come from src/nalati/elites.ts, not a harvest
     case 'wolf': return variant === 'alpha' ? ['wolf-pelt', 'wolf-fang', 'wolf-fang'] : ['wolf-pelt', 'wolf-fang'];
     case 'horse': return ['horsehair'];                      // a wild horse's tail (the camp's saddled horses can't die)

@@ -5,7 +5,9 @@
  *
  *   icon('deer')  → '<svg …>…</svg>'
  */
-export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'whetstone' | 'chart' | 'bearclaw' | 'boartusk' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'lever' | 'longbow' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
+export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'whetstone' | 'chart' | 'bearclaw' | 'boartusk' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'lever' | 'longbow' | 'laurel' | 'lock' | 'check' | 'poi' | 'you'
+  // the Bag's tabs and its GEAR / FINDS slots (E314)
+  | 'map' | 'pack' | 'star' | 'book' | 'heart' | 'hat' | 'cape' | 'charm' | 'necklace' | 'glyph' | 'pin' | 'purse' | 'talon';
 
 const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="currentColor" stroke="none" ${extra}>${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -168,6 +170,49 @@ const CHECK = `<path d="M12 34 L26 48 L54 18" ${S} stroke-width="7"/>`;
 const POI = `<circle cx="32" cy="32" r="12"/>`;
 const YOU = `<path d="M32 8 L50 52 L32 42 L14 52 Z"/>`;
 
+/* ── the Bag (E314): tab icons, GEAR's slots, FINDS' stickers ── */
+const MAP = `
+  <path d="M6 14 L22 8 L42 14 L58 8 L58 50 L42 56 L22 50 L6 56 Z" ${S} stroke-width="3.6"/>
+  <path d="M22 8 L22 50 M42 14 L42 56" ${S} stroke-width="3"/>`;
+const PACK = `
+  <path d="M22 18 C22 8 42 8 42 18" ${S} stroke-width="4"/>
+  <path d="M12 26 C12 20 16 18 22 18 L42 18 C48 18 52 20 52 26 L54 54 C54 57 52 58 49 58 L15 58 C12 58 10 57 10 54 Z"/>
+  <rect x="20" y="34" width="24" height="12" rx="2" fill="#0b1520" opacity="0.55"/>`;
+const STAR = `<path d="M32 5 L39.5 23 L59 24.5 L44 37 L48.5 56 L32 45.5 L15.5 56 L20 37 L5 24.5 L24.5 23 Z"/>`;
+const BOOK = `
+  <path d="M8 14 C16 10 26 10 31 16 L31 56 C26 50 16 50 8 54 Z M56 14 C48 10 38 10 33 16 L33 56 C38 50 48 50 56 54 Z"/>`;
+const HEART = `<path d="M32 56 C20 46 6 36 6 22 C6 12 14 6 22 6 C27 6 30 9 32 13 C34 9 37 6 42 6 C50 6 58 12 58 22 C58 36 44 46 32 56 Z"/>`;
+/* the Drowned Captain's tricorn */
+const HAT = `
+  <path d="M4 38 C12 30 20 18 32 18 C44 18 52 30 60 38 C50 44 42 40 32 44 C22 40 14 44 4 38 Z"/>
+  <path d="M22 22 C24 10 40 10 42 22 Z"/>
+  <path d="M28 30 L36 36 M36 30 L28 36" stroke="#0b1520" stroke-width="2.4" stroke-linecap="round" fill="none" opacity="0.7"/>`;
+/* a sailcloth cape on its clasp */
+const CAPE = `
+  <path d="M18 10 L46 10 L52 28 L58 56 C48 60 40 54 32 58 C24 54 16 60 6 56 L12 28 Z"/>
+  <path d="M24 12 L22 54 M32 12 L32 56 M40 12 L42 54" stroke="#0b1520" stroke-width="1.6" fill="none" opacity="0.45"/>
+  <circle cx="32" cy="12" r="4"/>`;
+/* a sea glass pendant on its cord */
+const CHARM = `
+  <path d="M20 6 L32 26 L44 6" ${S} stroke-width="2.4"/>
+  <path d="M32 24 L44 32 L42 50 L32 60 L22 50 L20 32 Z"/>
+  <path d="M26 34 L32 30 L30 44 Z" fill="#fff" opacity="0.35"/>`;
+const NECKLACE = `
+  ${[[12, 14], [11, 24], [14, 33], [19, 41], [25, 47], [39, 47], [45, 41], [50, 33], [53, 24], [52, 14]].map(([x, y]) => `<circle cx="${x ?? 0}" cy="${y ?? 0}" r="4.2"/>`).join('')}
+  <circle cx="32" cy="52" r="7"/>`;
+const GLYPH = `
+  <path d="M32 4 L40 26 L34 60 L28 60 L24 26 Z"/>
+  <path d="M14 22 L22 34 L24 56 L18 56 L10 36 Z M50 22 L54 36 L46 56 L40 56 L42 34 Z"/>`;
+/* a bear's claws: three curved talons on a pad */
+const TALON = `
+  <path d="M10 50 C8 34 14 18 26 8 C24 20 22 32 22 50 Z M26 52 C26 34 30 18 40 8 C38 22 36 36 36 52 Z M40 52 C42 36 48 24 58 16 C54 28 50 40 50 54 Z"/>
+  <path d="M6 50 C18 46 42 46 54 52 C50 60 14 62 6 50 Z"/>`;
+const PIN = `<path fill-rule="evenodd" d="M32 60 C22 46 12 36 12 24 C12 12 21 4 32 4 C43 4 52 12 52 24 C52 36 42 46 32 60 Z ${circle(32, 24, 8)}"/>`;
+const PURSE = `
+  <path d="M20 16 L44 16 L40 24 L24 24 Z"/>
+  <path d="M24 24 C8 30 6 58 32 58 C58 58 56 30 40 24 Z"/>
+  <path d="M22 20 L42 20" stroke="#0b1520" stroke-width="2" opacity="0.5"/>`;
+
 const GLYPHS: Record<IconId, string> = {
   deer: DEER, elk: ELK, boar: BOAR, bear: BEAR,
   ghost: DEER, ironhide: BOAR,
@@ -176,6 +221,7 @@ const GLYPHS: Record<IconId, string> = {
   whetstone: WHETSTONE, chart: CHART, bearclaw: BEARCLAW, boartusk: BOARTUSK,
   crossbow: CROSSBOW, sword: SWORD, rifle: RIFLE, lever: LEVER, longbow: LONGBOW,
   laurel: LAUREL, lock: LOCK, check: CHECK, poi: POI, you: YOU,
+  map: MAP, pack: PACK, star: STAR, book: BOOK, heart: HEART, hat: HAT, cape: CAPE, charm: CHARM, necklace: NECKLACE, glyph: GLYPH, pin: PIN, purse: PURSE, talon: TALON,
 };
 
 export function icon(id: IconId): string {

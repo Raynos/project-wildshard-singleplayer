@@ -1,0 +1,124 @@
+/**
+ * CoinBurst — a kill's doubloons in the world (E314 L1, board 1 A): the coins burst out of the body in a short arc,
+ * hang a beat, then fly to you (a magnet) and are counted on arrival. One InstancedMesh for every coin in flight (the
+ * interactables kit's faceted gold `coinModel`, unlit so it reads in the jungle shade); a fixed pool, no allocation per
+ * frame, one draw call. A coin that can't reach you (you teleported, a cut-scene) lands anyway after `MAX_LIFE`.
+ *
+ *   const burst = new CoinBurst(scene);
+ *   burst.spawn(a.position, 5, (n) => purse.add(n), () => sfx.interact('chime'));  // 5 coins' worth: each coin carries its share
+ *   game.onUpdate((dt) => burst.update(dt, player.position));                      // the target is the player's chest
+ *   burst.dispose()
+ */
+import * as THREE from 'three';
+import { coinModel } from '../../world/interact/models';
+import { burstCount, coinShare } from './coins';
+
+const POOL = 48;                 // coins in flight at once (a captain = 12; a crab melee = a few)
+const SCALE = 2.6;               // coinModel is a 7 cm coin: in flight it has to read at 6 m on a phone
+const GRAVITY = 13;
+const ARC_TIME = 0.42;           // s of free arc before the magnet takes over
+const MAGNET_ACCEL = 60;         // m/s² toward the chest
+const MAGNET_MAX = 22;           // m/s
+const CATCH_R = 0.55;            // m from the chest: counted
+const MAX_LIFE = 2.6;            // s: counted anyway
+const CHEST_Y = 1.1;             // m over the player's feet
+
+interface Coin {
+  live: boolean;
+  age: number;
+  pos: THREE.Vector3;
+  vel: THREE.Vector3;
+  spin: number;
+  spinRate: number;
+  value: number;
+  burst: Burst;
+}
+interface Burst { left: number; onCoin: (n: number) => void; onDone: (() => void) | undefined }
+
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(SCALE, SCALE, SCALE), _e = new THREE.Euler();
+const _to = new THREE.Vector3();
+
+export class CoinBurst {
+  readonly mesh: THREE.InstancedMesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>;
+  private coins: Coin[] = [];
+  private live = 0;
+
+  constructor(private scene: THREE.Scene) {
+    const geo = coinModel(0xc01);
+    const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true, color: new THREE.Color(1.25, 1.12, 0.8) });
+    mat.name = 'loot-coin';
+    this.mesh = new THREE.InstancedMesh(geo, mat, POOL);
+    this.mesh.name = 'loot-coins';
+    this.mesh.frustumCulled = false; // the coins move; the mesh's own sphere is stale
+    this.mesh.count = 0;
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    for (let i = 0; i < POOL; i++) {
+      this.coins.push({ live: false, age: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), spin: 0, spinRate: 0, value: 0, burst: { left: 0, onCoin: () => undefined, onDone: undefined } });
+    }
+    scene.add(this.mesh);
+  }
+
+  get inFlight(): number { return this.live; }
+
+  /** `total` coins' worth out of `at` (a body's feet); `onCoin(share)` as each lands, `onDone()` after the last */
+  spawn(at: THREE.Vector3, total: number, onCoin: (n: number) => void, onDone?: () => void): void {
+    const count = burstCount(total);
+    if (count <= 0) return;
+    const burst: Burst = { left: 0, onCoin, onDone };
+    const turn = Math.random() * Math.PI * 2;
+    for (let i = 0; i < count; i++) {
+      const c = this.coins.find((k) => !k.live);
+      const share = coinShare(total, count, i);
+      if (!c) { onCoin(share); continue; } // the pool is full: count it at once
+      const a = turn + (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.6, out = 1.4 + Math.random() * 1.4;
+      c.live = true; c.age = 0; c.value = share; c.burst = burst;
+      c.pos.set(at.x, at.y + 0.7, at.z);
+      c.vel.set(Math.cos(a) * out, 4.2 + Math.random() * 1.6, Math.sin(a) * out);
+      c.spin = Math.random() * Math.PI * 2; c.spinRate = 9 + Math.random() * 6;
+      burst.left++; this.live++;
+    }
+    if (burst.left === 0) onDone?.();
+  }
+
+  update(dt: number, player: THREE.Vector3): void {
+    if (this.live === 0) { this.mesh.count = 0; return; }
+    const tx = player.x, ty = player.y + CHEST_Y, tz = player.z;
+    let n = 0;
+    for (const c of this.coins) {
+      if (!c.live) continue;
+      c.age += dt;
+      if (c.age < ARC_TIME) {
+        c.vel.y -= GRAVITY * dt;
+      } else {
+        _to.set(tx - c.pos.x, ty - c.pos.y, tz - c.pos.z);
+        const d = _to.length();
+        if (d < CATCH_R || c.age > MAX_LIFE) { this.land(c); continue; }
+        _to.multiplyScalar(1 / d);
+        c.vel.multiplyScalar(Math.max(0, 1 - 5 * dt)).addScaledVector(_to, MAGNET_ACCEL * dt);
+        const sp = c.vel.length();
+        if (sp > MAGNET_MAX) c.vel.multiplyScalar(MAGNET_MAX / sp);
+        if (sp * dt > d) { this.land(c); continue; } // it would overshoot this frame
+      }
+      c.pos.addScaledVector(c.vel, dt);
+      c.spin += c.spinRate * dt;
+      _q.setFromEuler(_e.set(0.35, c.spin, 0));
+      _m.compose(c.pos, _q, _s);
+      this.mesh.setMatrixAt(n++, _m);
+    }
+    this.mesh.count = n;
+    if (n > 0) this.mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  private land(c: Coin): void {
+    c.live = false; this.live--;
+    c.burst.onCoin(c.value);
+    if (--c.burst.left === 0) c.burst.onDone?.();
+  }
+
+  dispose(): void {
+    this.scene.remove(this.mesh);
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
+    this.mesh.dispose();
+  }
+}
