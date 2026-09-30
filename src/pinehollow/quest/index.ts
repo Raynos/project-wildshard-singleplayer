@@ -249,11 +249,15 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   const syncWheel = (): void => { if (h.cabins) h.cabins.wheelSpeed = flags.has('errand:done') ? 0.55 : 0; };
   syncWheel();
   // the mill's door (E322 F-M7): a cabin door like the others (Cabin.ts swings it, its kinematic piece follows the pivot),
-  // barred until the race is clear — shut, it collides; pressed before `errand:done` it only rattles
+  // barred until the race is clear — pressed before `errand:done` it only rattles. The cabin door's own piece lets go of the
+  // player within 1.4 m of its hinge (main.ts: a swing never pins anyone), so while barred a second piece holds the shut
+  // leaf solid: the same slab, following the same pivot, on until the errand is done
   const millDoor = ((): Interactable | null => {
     const mill = h.cabins?.buildings.find((b) => b.id === 'watermill');
     const piece = mill ? h.cabins?.doorPieces().find((d) => d.id === `cabin-${mill.index + 1}-door`) : undefined;
     if (!piece) return null;
+    h.registry.add({ id: `${piece.id}-bar`, name: 'Mill door bar', category: 'buildings', file: 'src/pinehollow/quest/index.ts', surface: 'wood',
+      follows: piece.pivot, colliders: piece.colliders, active: () => !flags.has('errand:done') });
     const hinge = piece.pivot.getWorldPosition(new THREE.Vector3());
     let best: Interactable | null = null, bestD = 1.5; // the prompt stands ~0.7 m from its hinge; the next door is metres off
     for (const it of h.cabins?.interactables ?? []) {
