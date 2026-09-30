@@ -315,8 +315,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (rocks) statics.push(...rocks.colliders);
     await slice();
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-    const hut = isOcean ? new Hut(sky, HUT).build() : null;
-    if (hut) addBuilt('hut', 'Hut', 'buildings', 'src/world/Hut.ts', hut.group, hut.colliders, 'planks', (x, z) => hut.floorHeightAt(x, z), hut.colliderDescs(), {});
+    // E315 M1: the hut model (src/chunks/driftwood-isle/models/hut.ts) placed through src/models/place.ts, which registers piece `hut`
+    const hut = isOcean ? new Hut(sky, HUT).place(registry) : null;
+    if (hut) statics.push(...hut.colliders);
     await slice();
     // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
     const lookout = isOcean ? new Lookout(sky, LOOKOUT).build() : null;
