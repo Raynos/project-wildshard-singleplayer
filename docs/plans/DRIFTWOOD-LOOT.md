@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `draft` 2026-09-30 — Jake kept all five pieces (AskUserQuestion, 2026-09-29) with changes: the shop is a **second NPC** (Wendell stays the quest giver), **no selling junk**, coins only from kills. Junk + INVENTORY tab stay. Open: the per-board letter picks (`art/loot/round-1-loop/`) and a shopkeeper board; nothing built yet.
+**State:** `draft` 2026-09-30 — every pick is in (table below, Jake 2026-09-29/30); waits on Jake's go to build.
 
 ## Why
 
@@ -62,3 +62,18 @@ quest giver. Any shop should be a second NPC. Don't allow for the selling of jun
 - L2: the shop moves off Wendell to a **new shopkeeper NPC** (who and where: a board). No SELL side.
 - L3 / L4: kept. Who strings the charms and where trophies hang follows the shopkeeper pick.
 - L5: MAP · GEAR · COLLECTION · INVENTORY (junk, unchanged in role) · ACHIEVEMENTS, the tab-bar board decides the look.
+
+## Jake's picks, 2026-09-30 (boards in `art/loot/round-1-loop/`)
+
+| Piece | Pick | What gets built |
+|---|---|---|
+| Coins (board 1) | **A** | Kills burst doubloons that fly to you, a "+n" pops, the total sits in a coin chip under the health bar. Coins only from kills. |
+| Shopkeeper (board 9) | **a trader at Wendell's hut** (not the boat) | A second NPC beside Wendell; Wendell stays the quest giver. |
+| Shop goods | Whetstone I (+25 % sword damage, 15) · Whetstone II (+50 %, 40) · Sturdy Heart I (max health 120, 25) · Sturdy Heart II (140, 50) · Sea chart (unfound sea glass on the map, 20) · Sailcloth cape (look only, 20) | Each bought once. **No hoverboard fin. No selling.** Prices are a first guess (a playthrough earns ~60–100). |
+| Shop screen (board 5) | **C** | One good per card, flipped with ‹ ›, a big BUY button. Buy only. |
+| Sea glass charm (board 3) | **C** | A wind chime of sea glass in the hut's doorway that grows every 5 pieces (5 → +10 max health, 10 → faster dodge recharge, 15 → the sword glows at night). |
+| Trophies (board 4) | **A + C** | The bear claw and the boar tusk on plaques on the hut wall; the captain's hat is worn by the player. |
+| Bag tabs (board 8) | **A** | Five icon tabs, one short word each: MAP · GEAR · FINDS · PACK · FEATS. |
+| GEAR (board 6) | **C** | A paper doll: the kit laid out round a silhouette (swords + sharpening, hearts, hat, cape, charms, coins). |
+| FINDS / collection (board 7) | **B** | A sticker book: found bright, missing dashed; 15 sea glass chips; places, glyph shards, trophies, treasures. |
+| PACK (inventory) | kept | The junk pack, as today (no sale). |
