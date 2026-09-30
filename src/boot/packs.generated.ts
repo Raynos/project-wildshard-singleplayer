@@ -9,7 +9,7 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
   "driftwood-isle": {
     "phone": pack([
       {
-        url: "/assets/packs/driftwood-isle.phone-184f64ed.bin",
+        url: "/assets/packs/driftwood-isle.phone-e13e9824.bin",
         bytes: 548788,
         files: [
           ["/assets/baked/driftwood-isle/tex/clouds.phone.webp",0,16988,"image/webp"],
@@ -22,8 +22,8 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
   "pine-hollow": {
     "phone": pack([
       {
-        url: "/assets/packs/pine-hollow.phone-b6230b66.bin",
-        bytes: 2698881,
+        url: "/assets/packs/pine-hollow.phone-f2064fec.bin",
+        bytes: 2698890,
         files: [
           ["/assets/hdri/qwantani_sunset_puresky_2k.sky.jpg",0,225154,"image/jpeg"],
           ["/assets/hdri/qwantani_sunset_puresky_2k.gain.png",225154,66377,"image/png"],
@@ -44,7 +44,7 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
           ["/assets/hdri/qwantani_moon_noon_puresky_2k.key.gain.png",2133158,2288,"image/png"],
           ["/assets/baked/pine-hollow/tex/clouds.phone.webp",2135446,16988,"image/webp"],
           ["/assets/baked/pine-hollow/tex/planet.phone.webp",2152434,8472,"image/webp"],
-          ["/assets/baked/pine-hollow/terrain.bin",2160906,537975,"application/octet-stream"],
+          ["/assets/baked/pine-hollow/terrain.bin",2160906,537984,"application/octet-stream"],
         ],
       },
       {
@@ -185,8 +185,8 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
         ],
       },
       {
-        url: "/assets/packs/pine-hollow.phone-d940a69d.bin",
-        bytes: 2243060,
+        url: "/assets/packs/pine-hollow.phone-4dc0ed60.bin",
+        bytes: 2282432,
         files: [
           ["/assets/pine-hollow/creatures/deer-stag.phone.rigged.glb",0,225444,"model/gltf-binary"],
           ["/assets/pine-hollow/creatures/boar.phone.rigged.glb",225444,277216,"model/gltf-binary"],
@@ -230,8 +230,8 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
         ],
       },
       {
-        url: "/assets/packs/nalati-grasslands.phone-3f16903c.bin",
-        bytes: 2436368,
+        url: "/assets/packs/nalati-grasslands.phone-3f41c26b.bin",
+        bytes: 2454148,
         files: [
           ["/assets/nalati/models/kokpar-rider.phone.glb",0,170376,"model/gltf-binary"],
           ["/assets/nalati/models/horse-wild.far.glb",170376,6012,"model/gltf-binary"],
@@ -244,7 +244,7 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
           ["/assets/nalati/models/eagle.phone.rigged.glb",1471392,183352,"model/gltf-binary"],
           ["/assets/nalati/models/collie.phone.rigged.glb",1654744,268216,"model/gltf-binary"],
           ["/assets/nalati/models/ghost-horse.phone.rigged.glb",1922960,309572,"model/gltf-binary"],
-          ["/assets/nalati/models/golden-king.phone.rigged.glb",2232532,203836,"model/gltf-binary"],
+          ["/assets/nalati/models/golden-king.phone.rigged.glb",2232532,221616,"model/gltf-binary"],
         ],
       },
     ]),
