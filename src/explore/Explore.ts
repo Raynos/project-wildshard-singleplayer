@@ -510,10 +510,12 @@ export class Explore {
 function selectTargets(entries: readonly CatalogEntry[], creatures: NonNullable<ExploreHost['creatures']>): SelectTarget[] {
   const out: SelectTarget[] = entries.filter((e) => e.live).map((e) => ({ object: e.object(), entry: e.id }));
   for (const p of registeredPicks()) out.push({ object: p.object, entry: p.entry, ...(p.boxAt ? { boxAt: p.boxAt } : {}) });
-  const ids = new Set(entries.map((e) => e.id));
+  const bySpecies = new Map<string, string>(); // a live animal opens its species' card (E315 M5: the shard's roster model)
+  for (const e of entries) if (e.species !== undefined) bySpecies.set(e.species, e.id);
   for (const a of creatures) {
-    if (!ids.has(a.kind)) continue;
-    out.push({ object: a.mesh, entry: a.kind, boxAt: () => new THREE.Box3(new THREE.Vector3(a.position.x - 0.9 * a.scale, a.position.y - 0.2, a.position.z - 0.9 * a.scale), new THREE.Vector3(a.position.x + 0.9 * a.scale, a.position.y + 1.6 * a.scale, a.position.z + 0.9 * a.scale)) });
+    const entry = bySpecies.get(a.kind);
+    if (entry === undefined) continue;
+    out.push({ object: a.mesh, entry, boxAt: () => new THREE.Box3(new THREE.Vector3(a.position.x - 0.9 * a.scale, a.position.y - 0.2, a.position.z - 0.9 * a.scale), new THREE.Vector3(a.position.x + 0.9 * a.scale, a.position.y + 1.6 * a.scale, a.position.z + 0.9 * a.scale)) });
   }
   return out;
 }

@@ -43,8 +43,8 @@ const trisLabel = (n: number): string => (n < 1000 ? `${n} tris` : `${(n / 1000)
 /** the card's badge words (E306: how each model is made) */
 const PIPELINE_LABEL: Readonly<Record<Pipeline, string>> = { code: 'CODE', blender: 'BLENDER', trellis: 'TRELLIS', hunyuan: 'HUNYUAN', cc0: 'CC0' };
 const DRAWN_LABEL: Readonly<Record<DrawnAs, string>> = { single: 'single', merged: 'merged', instanced: 'instanced', batched: 'batched', skinned: 'skinned' };
-/** CODE · × 110 merged */
-const factsLabel = (e: CatalogEntry): string => `${e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')} · × ${e.copies.toLocaleString()} ${DRAWN_LABEL[e.drawnAs]}`;
+/** CODE · × 110 merged — SHARED first for a model several shards use (src/models/: the dummy, the deer; E315 M5) */
+const factsLabel = (e: CatalogEntry): string => `${e.shared === true ? 'SHARED · ' : ''}${e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')} · × ${e.copies.toLocaleString()} ${DRAWN_LABEL[e.drawnAs]}`;
 /** one copy's triangles (a live instanced object measures every instance) */
 const perCopy = (e: CatalogEntry, tris: number): number => (e.live && e.drawnAs === 'instanced' && e.copies > 1 ? Math.round(tris / e.copies) : tris);
 /** the turntable's shadow map, every tier: one model in the map, so 2048 is cheap */
@@ -102,7 +102,7 @@ export class ModelExplorer implements ExplorePane {
 
   constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: CatalogEntry[]) {
     this.el = html('div', 'ws-x-models');
-    const chips = CATEGORIES.map((c) => `<button type="button" data-f="${c.id}">${c.label}</button>`).join('');
+    const chips = CATEGORIES.filter((c) => c.id === 'all' || entries.some((e) => e.category === c.id)).map((c) => `<button type="button" data-f="${c.id}">${c.label}</button>`).join(''); // only the tabs this shard has
     this.grid = html('div', 'ws-x-catalog', `<div class="ws-x-filter">${chips}<button type="button" class="ws-x-lineup">Lineup</button></div><div class="ws-x-grid"></div>`);
     this.sheet = html('div', 'ws-x-turntable', `
       <div class="ws-x-views">${VIEWS.map(([v, l]) => `<button type="button" data-v="${v}">${l}</button>`).join('')}</div>
@@ -299,7 +299,7 @@ export class ModelExplorer implements ExplorePane {
     const set = (k: string, v: string): void => { const el = q(`.ws-x-stats b[data-s="${k}"]`); if (el) el.textContent = v; };
     const each = perCopy(e, m.tris);
     set('tris', each.toLocaleString()); set('calls', String(m.calls)); set('build', e.live ? 'at boot' : `${e.buildMs.toFixed(1)} ms`);
-    set('made', e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')); set('copies', `× ${e.copies.toLocaleString()}`); set('drawn', DRAWN_LABEL[e.drawnAs]);
+    set('made', `${e.pipeline.map((p) => PIPELINE_LABEL[p]).join(' + ')}${e.shared === true ? ' · shared' : ''}`); set('copies', `× ${e.copies.toLocaleString()}`); set('drawn', DRAWN_LABEL[e.drawnAs]);
     this.budget(each, m.calls, e.copies);
     this.placeVariantControls();
   }

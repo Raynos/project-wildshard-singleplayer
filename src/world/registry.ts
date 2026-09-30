@@ -39,13 +39,13 @@ export type ColliderDesc =
    */
   | { kind: 'treads'; from: Vec3; to: Vec3; width: number; count: number; surface?: Material };
 
-export type PieceCategory = 'buildings' | 'nature' | 'props' | 'creatures' | 'ground';
+export type PieceCategory = 'buildings' | 'nature' | 'props' | 'creatures' | 'people' | 'gear' | 'ground';
 
-/** Explore's catalog tabs */
-export type ModelCategory = 'buildings' | 'nature' | 'creatures' | 'props';
+/** Explore's catalog tabs (E315 M5: People — the crowd, camp people, NPCs — apart from Creatures; Gear, what the player holds) */
+export type ModelCategory = 'buildings' | 'nature' | 'creatures' | 'people' | 'gear' | 'props';
 
 /** Every piece category's catalog tab, spelled out (E306: a `props` piece used to land under Buildings) */
-export const MODEL_CATEGORY: Readonly<Record<PieceCategory, ModelCategory>> = { buildings: 'buildings', nature: 'nature', props: 'props', creatures: 'creatures', ground: 'nature' };
+export const MODEL_CATEGORY: Readonly<Record<PieceCategory, ModelCategory>> = { buildings: 'buildings', nature: 'nature', props: 'props', creatures: 'creatures', people: 'people', gear: 'gear', ground: 'nature' };
 
 /**
  * How a model is made (E306): the Model Explorer card's badge. `code` is procedural three.js; `blender` a Blender
@@ -70,6 +70,11 @@ export interface ModelFacts {
   drawnAs?: DrawnAs;
   /** VIEW IN WORLD: the world box of the real copy nearest `near` (default: the catalog object's own box) */
   worldBox?: (near: THREE.Vector3) => THREE.Box3 | null;
+  /**
+   * A creature on the species rigs (src/entities/species/, E315 M5): the AnimalManager kind the Model Explorer stands up
+   * on its turntable as an Animal, so its clip row plays the species' own gaits (idle · walk · trot · charge · hit · die)
+   */
+  species?: string;
 }
 
 /** A piece as a model in Explore's catalog (every field defaults from the piece). */
@@ -207,6 +212,7 @@ export class WorldRegistry {
       const e: RegisteredModel = {
         id, name: p.name, category, file: p.file, live: m.live ?? true, object, ...(m.buildAt ? { buildAt: m.buildAt } : {}), ...(m.variants ? { variants: m.variants } : {}), ...(m.rebuild ? { rebuild: m.rebuild } : {}), ...(m.worldView === false ? { worldView: false } : {}),
         ...(m.pipeline === undefined ? {} : { pipeline: m.pipeline }), ...(m.copies === undefined ? {} : { copies: m.copies }), ...(m.drawnAs === undefined ? {} : { drawnAs: m.drawnAs }), ...(m.worldBox === undefined ? {} : { worldBox: m.worldBox }),
+        ...(m.species === undefined ? {} : { species: m.species }),
       };
       const i = at.get(id);
       if (i === undefined) { at.set(id, out.length); out.push(e); } else out[i] = e;

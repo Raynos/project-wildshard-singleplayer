@@ -62,6 +62,14 @@
  *     than the hand-rolled code it replaces, and nothing allocated per frame.
  *
  * Groups of placements that read as one place — a camp, a square — are registered with `placeSet` (./sets.ts).
+ *
+ * ── Live models (M5: creatures, people, gear, dummies) ──────────────────────────────────────────────────────────
+ * A model whose copies a live system makes — the creatures the AnimalManager spawns, the people a quest stands up, the
+ * gear the player holds — is defined the same way (a rigged one builds a whole Object3D; `rig.species` names its species
+ * rig) but never placed: the shard lists its roster with `listModel` (./live.ts), one catalog entry per model, whether or
+ * not a copy is alive, and the live system keeps drawing and animating the copies exactly as before. Species used by
+ * several shards are `shared/…` models in src/models/creatures/ (the deer, the boar, the bear); gear is category `gear`
+ * (a weapon's viewmodel keeps its own queue and depth clear: the model is its catalog specimen and its source of truth).
  */
 import type * as THREE from 'three';
 import type { ColliderDesc, ModelCategory, Pipeline } from '../world/registry';
@@ -150,8 +158,12 @@ export interface ModelDef<P extends object> {
   readonly lods?: readonly ModelLod<P>[];
   /** own-space colliders per copy; `ctx` reaches what the shard loaded (a GLB's hull points) */
   readonly colliders?: (params: P, ctx: ModelContext) => readonly ColliderSpec[];
-  /** a rigged model's clips (the Explorer's clip row; M5 puts the species here) */
-  readonly rig?: { readonly clips: readonly string[] };
+  /**
+   * a rigged model's clips (the Explorer's clip row). `species`: the AnimalManager kind of a creature on the species rigs
+   * (src/entities/species/, E315 M5) — its copies are spawned and posed by the species' code, never placed; the shard lists
+   * it (`listModel`, ./live.ts) and the Explorer stands it up as an Animal of that kind
+   */
+  readonly rig?: { readonly clips: readonly string[]; readonly species?: string };
   /** the Explorer's specimen turned about +Y by this (radians), so its first view is its face (the Fei Zhua hook's back is its wall plate) */
   readonly specimenYaw?: number;
 }

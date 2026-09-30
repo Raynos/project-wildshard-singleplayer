@@ -103,7 +103,7 @@ import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
 import { placeDrawnModels } from './chunks/pine-hollow/world/drawnModels';
 import { placeCabins } from './chunks/pine-hollow/world/cabins';
-import { registerTrainingDummyModel } from './practice/catalog';
+import { listShardModels } from './models/roster';
 import { TrainingArena } from './practice/TrainingArena';
 import { loadPlayground } from './playgrounds/load';
 import type { Playground } from './playgrounds/Playground';
@@ -484,7 +484,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
   // E315 M2: Pine Hollow's trees and forest-floor kinds are models the world draws (placed drawnInto)
   if (chunk.slug === 'pine-hollow') placeDrawnModels({ sky, renderer: game.renderer, forest, under, registry });
-  registerTrainingDummyModel(game.renderer); // the same three shared prop variants in every shard's Model Explorer
+  void listShardModels({ roster: chunk.roster, style: chunk.style ?? 'pbr', sky, renderer: game.renderer, animals: () => animals.animals, registry }); // every shard's live models in its Model Explorer (E315 M5): the shared training dummy, its creatures (its species list, alive now or not), people and gear
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   // the day clock behind one interface (src/world/WorldClock.ts, NALATI-MERGE F8): Driftwood's DayNight or Nalati's DayClock —

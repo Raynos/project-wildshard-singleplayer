@@ -34,6 +34,7 @@ import type { Player } from '../player/Player';
 import type { LockOnSystem } from '../player/LockOnTarget';
 import type { Game } from '../core/Game';
 import type { Physics } from '../physics/Physics';
+import type { RosterEntry } from '../models/live';
 
 /** a shard's own sword (ChunkDef.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig
  *  (`arms`) swung by the engine's own moves */
@@ -595,6 +596,13 @@ export interface ChunkDef {
   /** `weapon: 'sword'`: the shard's own sword for the engine's Sword — its viewmodel (`rig`), and optionally its moves (the
    *  rest pose) and portrait framing; a lazy loader, so the def stays node-safe. Omitted = the wooden sword */
   sword?: () => Promise<ShardSword>;
+  /**
+   * The shard's live models (E306 / E315 M5, src/models/live.ts): its creature roster — every species it can spawn, alive
+   * now or not (its bosses, its flocks) — its people and the gear its player holds, listed in its Model Explorer at boot
+   * (src/models/roster.ts). A lazy loader, so the def stays node-safe: `roster: async () => (await import('./<slug>/roster')).ROSTER`.
+   * Omitted = the models its world places, and a card per species of the animals alive when Explore opens.
+   */
+  roster?: () => Promise<readonly RosterEntry[]>;
   /** An optional shard traversal verb installed on the shared LOCK and JUMP controls. */
   traversal?: (ctx: ShardTraversalContext) => Promise<void> | void;
   /** the first person's field of view: `portrait` = the sword's hip FOV base on a portrait screen before Hor+ (degrees;
