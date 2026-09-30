@@ -1,6 +1,6 @@
 # Plan: Driftwood loot and inventory, redesigned (E314)
 
-**State:** `in progress` 2026-09-30 — built: stage 1 (live), the trader + props, **stage 2** (`8a56799b`, awaiting deploy: Maren's counter, screen C, six goods = 90 coins of a 92-coin full clear, whetstones 12→15→18 / 28→42, hearts 120 / 140, the sea chart beads on both maps, the cape in GEAR; sheet `progress/293-e314-shop-stage2.jpg`). In flight: stage 3 (chime + charms, trophies, the hat drop, the body shadow: wiring + in-game check). Last row after it: the other three shards' Bag review with Jake.
+**State:** `in progress` 2026-09-30 — built: stages 1–3 (stage 1 live; stage 2 `8a56799b`, stage 3 `4b211dc9`, awaiting deploy; sheets `progress/293-e314-shop-stage2.jpg`, `progress/294-e314-keepsakes-stage3.jpg`). Open, all Jake's: his look review of three stage-3 calls (the chime hangs by the window, not over the doorway; the night glow is solid aqua; a low sun behind you shades the held sword), and the last row — the other three shards' Bag review (boards being prepared).
 
 ## Why
 
