@@ -83,6 +83,12 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
   - Non-commercial or research-only means it is not for the game. **Territory limits don't matter**: the game ships in
     North and South America only (see the rule at the top), so never raise a territory licence caveat.
   - Then fetch it with `fetch-repo.sh`, add a `MODELS.md` row, and write down its speed and memory in a localai doc.
+- **Blender models: the script is the source, the GLB is committed, a `.blend` never is** (M10, E315;
+  [why](docs/design/blender-practice.md)). A Blender model is a headless `bpy` script in `scripts/blender/<shard>/` with a
+  row in `scripts/blender/targets.json`. Build it with `bash scripts/blender/build.sh <target>` (Blender 5.2.1,
+  `--python-exit-code 1`, the model lock) and commit the GLB. `--check` rebuilds and compares with the committed GLB;
+  `--save-blend` puts an inspection `.blend` in `~/.cache/wildshard-blender/`. `scripts/check-model-sources.mjs` (in
+  `pnpm test`) refuses a Blender GLB with no script, an orphan script and a tracked `.blend`.
 
 ## Plans (`docs/plans/`) and their state
 
