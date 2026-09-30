@@ -53,7 +53,7 @@
    "feeds": ["src/world/treeSet.ts", "src/world/TreeFactory.ts"]
   },
   "pine-hollow/crags": {
-   "about": "The Ridge's granite crag kit, 12 modules (PH-B2)",
+   "about": "The Ridge's granite crag kit: the tors, boulders and scree, 7 modules (PH-B2; E350 F-X1 dropped the five big modules crags-b.glb replaces)",
    "script": "scripts/blender/pine-hollow/crags/build_crags.py",
    "args": ["$BUILD"],
    "sources": ["scripts/blender/pine-hollow/crags/rocklib.py"],

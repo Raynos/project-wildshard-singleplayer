@@ -11,15 +11,18 @@ import kitBJson from '../public/assets/models/pine-hollow-crags/crags-b.json?raw
 
 setActiveChunk('pine-hollow');
 interface KitMeta { modules: Record<string, { lod0: number; lod1: number; min: number[]; max: number[] }> }
-const kit = JSON.parse(kitJson) as KitMeta;
+const kitB = JSON.parse(kitBJson) as KitMeta;
+/** the kit as the game merges it (PineCrags.load): crags-b.glb's cliff bands, buttress, slab and hero over crags.glb's tors,
+ * boulders and scree (E350 F-X1: crags.glb no longer carries the big modules) */
+const kit: KitMeta = { modules: { ...(JSON.parse(kitJson) as KitMeta).modules, ...kitB.modules } };
 const cave = JSON.parse(caveJson) as CaveMeta;
 
-/** crags.json's boxes are Blender's (z up, −y the front): the game's frame is (x, z, −y) */
+/** crags.json's and crags-b.json's boxes are Blender's (z up, −y the front): the game's frame is (x, z, −y) */
 function sizes(): Record<CragId, CragSize> {
   const out = {} as Record<CragId, CragSize>;
   for (const id of CRAG_IDS) {
     const m = kit.modules[id];
-    if (!m) throw new Error(`crags.json has no ${id}`);
+    if (!m) throw new Error(`neither crags.json nor crags-b.json has ${id}`);
     const [x0 = 0, y0 = 0] = m.min, [x1 = 0, y1 = 0, z1 = 0] = m.max;
     out[id] = { hw: Math.max(-x0, x1), hd: Math.max(-y0, y1), h: z1 };
   }
@@ -62,7 +65,6 @@ describe('the granite kit', () => {
 });
 
 describe('the crags Jake picked (E322 F-L2 B)', () => {
-  const kitB = JSON.parse(kitBJson) as KitMeta;
   const hb = kitB.modules[CRAG_HERO];
   const hero: CragSize | undefined = hb ? { hw: Math.max(-(hb.min[0] ?? 0), hb.max[0] ?? 0), hd: Math.max(-(hb.min[1] ?? 0), hb.max[1] ?? 0), h: hb.max[2] ?? 0 } : undefined;
   const b = placeCrags({ sizes: { ...sizes(), ...(hero ? { hero } : {}) } });

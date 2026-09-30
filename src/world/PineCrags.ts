@@ -62,7 +62,7 @@ const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the 
  * paler granite (F-L1).
  */
 
-/** the kit's modules (crags.glb nodes `<id>` and `<id>-lod1`) */
+/** the kit's modules (nodes `<id>` and `<id>-lod1`: the cliff bands, buttress and slab in crags-b.glb, the rest in crags.glb) */
 export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
 /** crags-b.glb's own module: the lookout's hero crag */
 export const CRAG_HERO = 'hero';
@@ -655,9 +655,10 @@ export class PineCrags {
   static async load(sky: Sky | null): Promise<PineCrags | null> {
     try {
       const [kit, kitB, caveGeo, caveMeta, tex] = await Promise.all([
+        // the kit is two files: crags.glb the tors, boulders and scree; crags-b.glb (E322 F-L2) the fused, weathered cliff
+        // bands, buttress and slab and the hero crag (E350 F-X1 dropped A's big modules from crags.glb, so both are required)
         loadNodes(`${CRAG_DIR}/crags.glb`),
-        // E322 F-L2: the fused, weathered big modules and the hero crag, over the kit's cliff bands, buttress and slab
-        loadNodes(`${CRAG_DIR}/crags-b.glb`).catch((e: unknown) => { console.warn('[crags] no crags-b.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
+        loadNodes(`${CRAG_DIR}/crags-b.glb`),
         loadNodes(`${CRAG_DIR}/cave.glb`).catch((e: unknown) => { console.warn('[crags] no cave.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
         fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
         sky ? Promise.all([loadPBR('mossy_rock'), loadPBR('rock_ground')]) : Promise.resolve(null),

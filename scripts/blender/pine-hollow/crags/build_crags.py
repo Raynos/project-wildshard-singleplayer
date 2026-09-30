@@ -4,8 +4,9 @@ build_crags.py — PH-B2's granite kit for the Ridge (PINE-HOLLOW-REMASTER PH-B2
     blender -b --factory-startup -P scripts/blender/pine-hollow/crags/build_crags.py -- <out dir> [--preview]
 
 Builds, all from code (rocklib.py), a kit of jointed granite modules the game places over the heightfield
-(src/world/PineCrags.ts): three cliff bands (columns split by vertical joints, sheeted into ledges, fallen blocks at the
-foot), a buttress, an exfoliation slab, two tors for the crest, three boulders and two scree patches for the talus. Each
+(src/world/PineCrags.ts): two tors for the crest, three boulders and two scree patches for the talus. The big modules (three
+cliff bands, a buttress, an exfoliation slab) are build_crags_b.py's (crags-b.glb, E322 F-L2); E350 F-X1 dropped A's
+from this kit. Each
 module has a LOD0 and a LOD1 (collapse-decimated) and Cycles vertex AO (4 m, on a ground plane) in its colour's R.
 
 Vertex data (the game's crag material reads it): COLOR_0 = (AO, sun reach, wet, rock) — for the kit (AO, 1, 0, 1);
@@ -46,24 +47,21 @@ for ob in list(bpy.data.objects):
 if scene.world is None:
     scene.world = bpy.data.worlds.new('world')
 
-# id, builder, (LOD0 tris, LOD1 tris), seed
+# id, builder, (LOD0 tris, LOD1 tris), seed, bake slot (the module's patch of ground: E350 F-X1 dropped the five big
+# modules crags-b.glb replaces — the cliff bands, the buttress and the slab, slots 0–4 — and kept the rest in their slots,
+# so they bake as before)
 KIT = [
-    ('cliff-a', lambda r: R.cliff(r, 14, 11, 7), (3400, 760), 11),
-    ('cliff-b', lambda r: R.cliff(r, 11, 8, 6, tiers=(1, 2)), (2600, 600), 23),
-    ('cliff-c', lambda r: R.cliff(r, 16, 13.5, 8, tiers=(2, 3), step=1.2, foot=3), (3800, 820), 37),
-    ('buttress', lambda r: R.buttress(r, 14, 6), (2600, 560), 41),
-    ('slab', lambda r: R.slab(r, 9, 10), (2000, 460), 53),
-    ('tor-a', lambda r: R.tor(r, 7.5), (2200, 480), 61),
-    ('tor-b', lambda r: R.tor(r, 5), (1600, 380), 67),
-    ('boulder-a', lambda r: R.boulder(r, 2.2), (420, 100), 71),
-    ('boulder-b', lambda r: R.boulder(r, 1.4), (320, 80), 73),
-    ('boulder-c', lambda r: R.boulder(r, 3.4), (520, 120), 79),
-    ('scree-a', lambda r: R.scree(r, 6.5, 4.5, 38), (1500, 300), 83),
-    ('scree-b', lambda r: R.scree(r, 4.5, 3.2, 24, big=0.55), (950, 200), 89),
+    ('tor-a', lambda r: R.tor(r, 7.5), (2200, 480), 61, 5),
+    ('tor-b', lambda r: R.tor(r, 5), (1600, 380), 67, 6),
+    ('boulder-a', lambda r: R.boulder(r, 2.2), (420, 100), 71, 7),
+    ('boulder-b', lambda r: R.boulder(r, 1.4), (320, 80), 73, 8),
+    ('boulder-c', lambda r: R.boulder(r, 3.4), (520, 120), 79, 9),
+    ('scree-a', lambda r: R.scree(r, 6.5, 4.5, 38), (1500, 300), 83, 10),
+    ('scree-b', lambda r: R.scree(r, 4.5, 3.2, 24, big=0.55), (950, 200), 89, 11),
 ]
 
 objs, meta = [], {}
-for k, (kid, build, (t0, t1), seed) in enumerate(KIT):
+for kid, build, (t0, t1), seed, k in KIT:
     rng = random.Random(seed)
     bm = build(rng)
     ob = R.bm_to_object(bm, kid, scene)
@@ -135,7 +133,7 @@ def preview():
     scene.cycles.samples = 32
     scene.view_settings.view_transform = 'Standard'
     tiles = []
-    for k, (kid, *_r) in enumerate(KIT):
+    for kid, *_r, k in KIT:
         ob = bpy.data.objects[kid]
         c = Vector(((k % 4) * 60.0, (k // 4) * 60.0, 0))
         mx = meta[kid]['max']; mn = meta[kid]['min']
