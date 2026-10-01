@@ -14,18 +14,18 @@ import { tap, ambientTick } from '#engine/core/harnessTap';
  *   crackling, felt flaps) round the yurts;
  * - **Sky Grassland** (the golden bowl): a strong open wind, far-off herds (a neigh, a snort) and marmots whistling;
  * - **Snow Lotus Valley** (the snow ring): a cold thin wind, meltwater round the glacier and its stream, eagles far up.
- * Crickets replace the larks at night everywhere below the snow; the storm's rain and gale (Audio.stormSink) ride over all of
+ * Crickets replace the larks at night everywhere below the snow; the storm's rain and gale (SteppeVoices.stormSink) ride over all of
  * it; inside the kurgan (`out` 0) it is all gone.
  *
- * The beds are the one generated set's Nalati beds (sfx.json `beds`, decoded on the steppe only — preload.ts STEPPE_LOOPS):
+ * The beds are Nalati's own set's beds (public/assets/sfx/nalati-grasslands, decoded by audio/files.ts — STEPPE_LOOPS below):
  * each is one looping AudioBufferSourceNode through its own gain (+ a panner for the river / camp / meltwater, turned toward
  * the source) into `audio.ambient`, started the first time its level rises and stopped after 8 s of silence. With no bed
  * decoded (Settings ▸ Sound effects = Synth, or a failed decode) Audio's synth steppe bed plays as before and only the far
  * calls come from here; a set switch is picked up on the next mix (the beds restart on the new buffers).
  */
 import { Vector3 } from 'three';
-import type { Audio, SteppeLoop, SampleLoop } from '#engine/audio/Audio';
-import { STEPPE_LOOPS } from '#engine/audio/preload';
+import type { Audio, SampleLoop } from '#engine/audio/Audio';
+import { steppeVoices } from './synth';
 import type { SteppeZone } from './SteppeScore';
 
 export type { SteppeZone } from './SteppeScore';
@@ -45,6 +45,9 @@ export interface SteppePlace {
 const TAU = 0.35;         // setTargetAtTime: ~1 s to 95 % (the mix changes at 4 Hz, walking pace)
 const SILENT_S = 8;       // a bed silent this long stops its source
 const ZONE_HOLD_S = 3;    // a zone must lead this long before onZone fires (no flapping on a line)
+/** Nalati's sampled beds (NALATI-MERGE A1 / A4) */
+export type SteppeLoop = 'steppe-wind' | 'steppe-larks' | 'steppe-night' | 'river' | 'meltwater' | 'camp' | 'highwind' | 'coldwind' | 'rain' | 'stormwind';
+export const STEPPE_LOOPS: readonly SteppeLoop[] = ['steppe-wind', 'steppe-larks', 'steppe-night', 'river', 'meltwater', 'camp', 'highwind', 'coldwind', 'rain', 'stormwind'];
 const PANNED: ReadonlySet<SteppeLoop> = new Set<SteppeLoop>(['river', 'camp', 'meltwater']);
 const ZONES: readonly SteppeZone[] = ['grass', 'sky', 'snow'];
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x));
@@ -54,7 +57,7 @@ const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);
 export class SteppeAmbience {
   onZone?: ((zone: SteppeZone) => void) | undefined;
   zone: SteppeZone = 'grass';
-  /** the storm (Audio.stormSink): rain and gale, 0..1 */
+  /** the storm (SteppeVoices.stormSink): rain and gale, 0..1 */
   storm = { rain: 0, wind: 0 };
   readonly diag: Record<SteppeLoop, number> & { valley: number; bowl: number; snow: number; sampled: number; calls: number } = {
     'steppe-wind': 0, 'steppe-larks': 0, 'steppe-night': 0, river: 0, meltwater: 0, camp: 0, highwind: 0, coldwind: 0, rain: 0, stormwind: 0,
@@ -68,7 +71,7 @@ export class SteppeAmbience {
 
   constructor(private readonly audio: Audio) {
     this.zones = new AmbienceZones(audio, () => app.rng.stream('cosmetic').next());
-    audio.stormSink = (rain, wind) => {
+    steppeVoices(audio).stormSink = (rain, wind) => {
       if (!this.sampled('rain') && !this.sampled('stormwind')) return false;
       this.storm.rain = rain; this.storm.wind = wind;
       return true;
@@ -109,7 +112,7 @@ export class SteppeAmbience {
       this.diag[k] = Math.round(lv * 1000) / 1000;
     }
     this.diag.valley = valley; this.diag.bowl = bowl; this.diag.snow = snow; this.diag.sampled = any;
-    this.audio.sampledSteppe(any > 0);
+    steppeVoices(this.audio).sampledSteppe(any > 0);
     const pans: Partial<Record<SteppeLoop, number>> = { river: p.pan.river, camp: p.pan.camp, meltwater: p.pan.melt };
     const t = this.audio.ctx.currentTime;
     for (const k of PANNED) { const b = this.zones.beds.get(k), v = pans[k] ?? 0; b?.pan?.pan.setTargetAtTime(Math.max(-1, Math.min(1, v)), t, TAU); }
@@ -165,7 +168,8 @@ export class SteppeAmbience {
 
   dispose(): void {
     this.zones.dispose();
-    this.audio.stormSink = undefined;
-    this.audio.sampledSteppe(false);
+    const voices = steppeVoices(this.audio);
+    voices.stormSink = undefined;
+    voices.sampledSteppe(false);
   }
 }

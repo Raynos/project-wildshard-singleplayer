@@ -23,6 +23,7 @@ import * as THREE from 'three';
 import { heightAt, wind, TIER, setting, onSettingChange, type Game, type Sky, type Player, type BoxSpec as Collider, type DayCycle, type Forest, type Audio, type HUD } from '#engine';
 import type { ShardContext, ShardManifest } from '#game';
 import { SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type DayPhase } from '../look/skyRig';
+import { steppeVoices } from '../audio/synth';
 import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer } from './Weather';
 import { WeatherFX } from './WeatherFX';
 import { waterOf } from '../water';
@@ -217,7 +218,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   weather.onTelegraph((s) => {
     fx.telegraph(s);
     const d = Math.hypot(s.x - player.position.x, s.z - player.position.z);
-    if (d < 160) hooks.audio?.lightningCrackle(panOf(s.x, s.z), Math.max(0.15, 1 - d / 160));
+    if (d < 160 && hooks.audio) steppeVoices(hooks.audio).lightningCrackle(panOf(s.x, s.z), Math.max(0.15, 1 - d / 160));
   });
   weather.onStrike((s) => {
     fx.bolt(s);
@@ -226,7 +227,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   weather.onFlash((dist, bearing) => {
     fx.inCloudFlash(bearing);
     const p = player.position;
-    hooks.audio?.thunder(dist, panOf(p.x + Math.cos(bearing) * 100, p.z + Math.sin(bearing) * 100));
+    if (hooks.audio) steppeVoices(hooks.audio).thunder(dist, panOf(p.x + Math.cos(bearing) * 100, p.z + Math.sin(bearing) * 100));
   });
   weather.onPlayerHit((dmg) => hooks.hurt?.(game.app.events.ask('weather.damage', dmg), 'Struck by lightning — get low in a storm'));
 
@@ -294,7 +295,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       if (audioT <= 0 && hooks.audio) {
         audioT = 0.25;
         const windLevel = smooth(6, 22, wind.speed);
-        hooks.audio.setStorm(indoors ? 0 : weather.rain, indoors || weather.state === 'clear' ? 0 : windLevel);
+        steppeVoices(hooks.audio).setStorm(indoors ? 0 : weather.rain, indoors || weather.state === 'clear' ? 0 : windLevel);
       }
     },
   };

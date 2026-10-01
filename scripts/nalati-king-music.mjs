@@ -89,7 +89,8 @@ try {
       out[f] = set ? set.bufs.map((b) => { const x = b.getChannelData(0); let pk = 0, s = 0; for (const v of x) { pk = Math.max(pk, Math.abs(v)); s += v * v; } return { duration: Number(b.duration.toFixed(3)), peak: Number(pk.toFixed(3)), rms: Number(Math.sqrt(s / x.length).toFixed(4)) }; }) : 'synth (no file)';
     }
     const before = { ...a.counts };
-    a.spearThrust(); a.javelinImpact('flesh');
+    const v = window.__nalatiSound.voices; // the steppe weapons' voices (src/shards/nalati-grasslands/audio/synth.ts)
+    v.spearThrust(); v.javelinImpact('flesh');
     out.fired = { spearThrust: (a.counts.spearThrust ?? 0) - (before.spearThrust ?? 0), 'javelinImpact:flesh': (a.counts['javelinImpact:flesh'] ?? 0) - (before['javelinImpact:flesh'] ?? 0) };
     return out;
   });

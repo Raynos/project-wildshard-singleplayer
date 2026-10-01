@@ -14,7 +14,7 @@
 // AudioBufferSourceNode takes any buffer and plays it at buffer.sampleRate / context.sampleRate (AudioBufferSourceNode.cpp),
 // so a 44.1 kHz live context still plays these 48 kHz buffers at pitch. The context is made at 48 kHz because every file is
 // 48 kHz AAC: decodeAudioData resamples to its context's rate, and at the files' own rate it resamples nothing.
-import type { AmbientBed, LoopName, SampleLoop, SteppeLoop } from './Audio';
+import type { AmbientBed, LoopName, SampleLoop } from './Audio';
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
@@ -61,12 +61,8 @@ export function trackBusy<T>(kind: AudioKind, work: Promise<T>): Promise<T> {
 export interface SfxBank { set: string; credit: string | undefined; loops: Map<LoopName, SampleLoop>; shots: Map<string, { bufs: AudioBuffer[]; gain: number }> }
 /** a sample's level before sfx.json's own `gain` (beds sit under the synth bed's ~0.1 winds; hums near the synth hum's 0.11) */
 const LOOP_GAIN: Record<LoopName, number> = {
-  forest: 0.5, island: 0.5, underwater: 0.5, pickup: 0.35, shrine: 0.6, steppe: 0.5,
-  // Nalati's zoned beds (SteppeAmbience mixes them on top of this)
-  'steppe-wind': 1, 'steppe-larks': 1, 'steppe-night': 1, river: 1, meltwater: 1, camp: 1, highwind: 1, coldwind: 1, rain: 1, stormwind: 1,
+  forest: 0.5, island: 0.5, underwater: 0.5, pickup: 0.35, shrine: 0.6,
 };
-/** Nalati's sampled beds (NALATI-MERGE A1 / A4) — decoded on the steppe only */
-export const STEPPE_LOOPS: readonly SteppeLoop[] = ['steppe-wind', 'steppe-larks', 'steppe-night', 'river', 'meltwater', 'camp', 'highwind', 'coldwind', 'rain', 'stormwind'];
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const TABLE: Readonly<Record<string, number>> = PUBLIC_BYTES;
@@ -94,8 +90,6 @@ function sfxJobs(set: string, bed: AmbientBed): Job[] {
   // Pine Hollow (the 'forest' bed) has none of Driftwood's own sounds (DRIFTWOOD_SOUNDS: its creatures, the gulls, the shrine's hum)
   const drift = bed === 'forest';
   loop(bed, beds[bed]); loop('underwater', beds['underwater']); loop('pickup', hums['pickup']); if (!drift) loop('shrine', hums['shrine']);
-  // a sound tagged `shard: 'nalati'` (NALATI-MERGE A1: the one set carries Nalati's sounds) is decoded only on the steppe
-  if (bed === 'steppe') for (const k of STEPPE_LOOPS) loop(k, beds[k]);
   for (const [family, v] of Object.entries(shots)) {
     if (drift && DRIFTWOOD_SOUNDS.oneshots.includes(family)) continue;
     const files = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
