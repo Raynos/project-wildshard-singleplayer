@@ -320,5 +320,26 @@
     "rule": "shard-sandbox",
     "code": "const KEY = 'balbals'; setting(KEY);",
     "count": 0
+  },
+  {
+    "id": "retry-public-index",
+    "file": "src/game/retry-public.ts",
+    "rule": "layer",
+    "code": "import { retried } from '#engine/retry';",
+    "count": 0
+  },
+  {
+    "id": "retry-deep-refused",
+    "file": "src/game/retry-deep.ts",
+    "rule": "layer",
+    "code": "import { retried } from '#engine/boot/retry';",
+    "count": 1
+  },
+  {
+    "id": "retry-index-lookalike-refused",
+    "file": "src/game/retry-lookalike.ts",
+    "rule": "layer",
+    "code": "import { retried } from '#engine/retry/private';",
+    "count": 1
   }
 ]

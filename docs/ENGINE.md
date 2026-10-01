@@ -16,6 +16,7 @@ shard. One section per § of [01-architecture](plans/game-normalization/01-archi
 | Import | File | What it is |
 |---|---|---|
 | `#engine` | `src/engine/index.ts` | The engine: app, scopes, events, saves, input, UI, render, physics, audio, combat, AI |
+| `#engine/retry` | `src/engine/retry.ts` | Pre-entry-safe retry policy; exports only `retried`, without App or Three |
 | `#engine/data` | `src/engine/data.ts` | The node-safe slice of the engine, for manifests and offline tools (B31) |
 | `#game` | `src/game/index.ts` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
 | `#kit` | `src/kit/index.ts` | Shared content, used by 2+ shards: weapon families, boar and bear, starter effects, NPC rig, hoverboard |
@@ -429,9 +430,13 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ## 8. Boot (staged load)
 
+### Pre-entry safe
+
+`#engine/retry` is the public bootstrap index. It exports only `retried` from the import-free retry leaf. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Other runtime loaders can use the same function through `#engine`.
+
 `retried(load)` retries a rejected async module download after 800 ms and 2500 ms, then preserves the final
 rejection. The entry (including composition-root imports), shard plugin loader and level look loader share this policy. It is an import-free leaf at
-`#engine/boot/retry` for the pre-engine entry, and is public through `#engine` for game and shard loaders.
+`#engine/retry` for the pre-engine entry, and is public through `#engine` for game and shard loaders.
 
 | Stage | The engine does | You fill |
 |---|---|---|
@@ -1386,6 +1391,12 @@ sections above describe what to use; this list is the complete inventory.
 - `./level/data`: `TerrainNoise`, `Vec2`
 - `./world/water/body`: `swellBody`, `basinBody`, `WaterBody`
 - `./world/water/view`: `surfaceReflect`, `WaterView`
+
+### `#engine/retry` (`src/engine/retry.ts`)
+
+1 exports, grouped by the module they come from.
+
+- `./boot/retry`: `retried`
 
 ### `#game` (`src/game/index.ts`)
 

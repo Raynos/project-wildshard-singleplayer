@@ -5,6 +5,7 @@
   "type": "module",
   "imports": {
     "#engine": "./src/engine/index.ts",
+    "#engine/retry": "./src/engine/retry.ts",
     "#engine/*.jpg": "./src/engine/*.jpg",
     "#engine/*.webp": "./src/engine/*.webp",
     "#engine/*.css": "./src/engine/*.css",

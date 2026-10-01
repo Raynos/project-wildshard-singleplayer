@@ -316,7 +316,7 @@ const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', 
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
     if (!target) return;
-    const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/engine\/data(?:\.[jt]s)?$/u.test(targetPath));
+    const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/engine\/(?:data|retry)(?:\.[jt]s)?$/u.test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
     } else if (own.name !== target.name && ['engine', 'game', 'kit'].includes(target.name) && !publicPath) {

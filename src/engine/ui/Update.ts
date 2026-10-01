@@ -19,7 +19,7 @@ import { isDev, onDev } from '../core/devMode';
 import { markUnload } from '../boot/lastEnd';
 
 
-// The update pill exists before a shard is selected; keep App and Three out of the entry graph.
+// The update pill exists before content is selected; keep App and Three out of the entry graph.
 const scope = new Scope('ui.Update');
 
 declare const __BUILD_ID__: string;

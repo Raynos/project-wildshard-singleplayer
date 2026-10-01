@@ -19,7 +19,7 @@ import { guardBoot } from '#engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '#engine/boot/bootTrace';
 import { setting } from '#engine/ui/Settings';
 import { Scope } from '#engine/app/scope';
-import { retried } from '#engine/boot/retry';
+import { retried } from '#engine/retry';
 
 const entryScope = new Scope('entry');
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });

@@ -17,6 +17,7 @@ const END = '<!-- exports:end -->';
 const INDEXES: readonly (readonly [string, string])[] = [
   ['#engine', 'src/engine/index.ts'],
   ['#engine/data', 'src/engine/data.ts'],
+  ['#engine/retry', 'src/engine/retry.ts'],
   ['#game', 'src/game/index.ts'],
   ['#kit', 'src/kit/index.ts'],
 ];
