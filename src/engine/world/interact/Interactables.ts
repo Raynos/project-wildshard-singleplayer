@@ -556,6 +556,12 @@ export class Interactables {
     const d = lv.def, y = lv.position.y;
     const h = d.kind === 'door' ? d.h : d.kind === 'chest' ? 0.7 : d.kind === 'barrel' ? 1 : 1.2;
     c.x = lv.position.x; c.z = lv.position.z; c.yTop = y + h; c.yBottom = y - 0.5;
+    if (lv.piece) {
+      const desc = lv.def.kind === 'barrel' ? boxInFrame(c, lv.object) : boxDesc(c, 'wood');
+      const previous = lv.piece.colliders?.[0];
+      if (previous?.kind !== 'box' || previous.x !== desc.x || previous.y !== desc.y || previous.z !== desc.z ||
+        previous.hx !== desc.hx || previous.hy !== desc.hy || previous.hz !== desc.hz) lv.piece.colliders = [desc];
+    }
   }
 
   private promptRadius(lv: Live): number {

@@ -55,9 +55,11 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
   if (follows) {
     follows.updateWorldMatrix(true, false);
     follows.matrixWorld.decompose(_p, _q, _s);
+    if (piece.followRotation === false) _q.identity();
     body = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(_p.x, _p.y, _p.z).setRotation({ x: _q.x, y: _q.y, z: _q.z, w: _q.w }));
   }
-  for (const raw of piece.colliders ?? []) {
+  let colliderData = piece.colliders;
+  const create = (): void => { for (const raw of piece.colliders ?? []) {
     for (const d of raw.kind === 'treads' ? treadBoxes(raw) : [raw]) {
       const desc = rapierDesc(physics, d);
       if (desc === null) continue; // a degenerate hull: nothing to collide with
@@ -69,10 +71,18 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
       tagCollider(c, material, piece);
       out.push(c);
     }
-  }
+  } };
+  create();
   const b = body, active = piece.active;
   let on = true;
   const sync = () => {
+    // A puzzle may resize its box when its state changes. Replacing the descriptors
+    // rebuilds that piece without a second collision list or per-frame serialization.
+    if (piece.colliders !== colliderData) {
+      for (const c of out) world.removeCollider(c, true);
+      out.length = 0; colliderData = piece.colliders; create();
+      for (const c of out) c.setEnabled(on);
+    }
     if (active) {
       const want = active();
       if (want !== on) { on = want; for (const c of out) c.setEnabled(want); }
@@ -80,6 +90,7 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
     if (!b || !follows) return;
     follows.updateWorldMatrix(true, false);
     follows.matrixWorld.decompose(_p, _q, _s);
+    if (piece.followRotation === false) _q.identity();
     b.setNextKinematicTranslation({ x: _p.x, y: _p.y, z: _p.z });
     b.setNextKinematicRotation({ x: _q.x, y: _q.y, z: _q.z, w: _q.w });
   };

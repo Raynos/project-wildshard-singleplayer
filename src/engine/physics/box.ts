@@ -6,11 +6,12 @@ import type { Material } from './surface';
 export interface BoxSpec { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
 /** Keep a world-space box in place when attaching it to a moving object's local frame. */
-export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = 'wood'): ColliderDesc {
+export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = 'wood', followRotation = true): Extract<ColliderDesc, { kind: 'box' }> {
   object.updateWorldMatrix(true, false);
   const d = boxDesc(box, surface);
-  const centre = object.worldToLocal(new Vector3(box.x, (box.yTop + box.yBottom) / 2, box.z));
-  const inverse = object.getWorldQuaternion(new Quaternion()).invert();
+  const worldCentre = new Vector3(box.x, (box.yTop + box.yBottom) / 2, box.z);
+  const centre = followRotation ? object.worldToLocal(worldCentre) : worldCentre.sub(object.getWorldPosition(new Vector3()));
+  const inverse = followRotation ? object.getWorldQuaternion(new Quaternion()).invert() : new Quaternion();
   const rotation = inverse.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -box.rot));
   return { ...d, x: centre.x, y: centre.y, z: centre.z, rot: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w } };
 }

@@ -13,7 +13,9 @@ type Resource = BufferGeometry | Material | Texture | WebGLRenderTarget | Instan
  */
 export class UploadOwnership {
   private readonly live = new Set<Resource>();
-  constructor(private readonly level: Scope, private readonly assets: AssetService) {}
+  private readonly level: Scope;
+  private readonly assets: AssetService;
+  constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   resources(): ReadonlySet<object> { return this.live; }
   observe(value: unknown): void {
     if (this.level.disposed || !(value instanceof BufferGeometry || value instanceof Material || value instanceof Texture ||

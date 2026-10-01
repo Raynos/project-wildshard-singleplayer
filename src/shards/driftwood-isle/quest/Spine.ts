@@ -48,7 +48,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
   const castaway = new Castaway(w.sky, feet, fire).build();
   w.game.scene.add(castaway.group);
-  (w.registry ?? app.registry).add({ id: 'npc-castaway', name: 'Wendell', category: 'people', file: 'src/shards/driftwood-isle/quest/Spine.ts', colliders: [boxInFrame(castaway.collider, castaway.group)], follows: castaway.group });
+  (w.registry ?? app.registry).add({ id: 'npc-castaway', name: 'Wendell', category: 'people', file: 'src/shards/driftwood-isle/quest/Spine.ts', colliders: [boxInFrame(castaway.collider, castaway.group, 'wood', false)], follows: castaway.group, followRotation: false });
   castaway.group.updateMatrixWorld(true);
   const talkAt = castaway.headWorld(new THREE.Vector3());
   let waved = false, stowed = false;

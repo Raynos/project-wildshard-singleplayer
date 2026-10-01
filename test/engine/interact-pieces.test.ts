@@ -29,14 +29,18 @@ it('registers a following fallback barrel, a static lever and a door that releas
   const box = barrel?.colliders?.[0];
   if (box?.kind !== 'box') throw new Error('Expected barrel box');
   expect(box.x).toBeCloseTo(0); expect(box.z).toBeCloseTo(0); expect(box).toMatchObject({ y: 0.25, hy: 0.75 });
-  expect(lever?.colliders?.[0]).toMatchObject({ x: 4, z: 4, y: 1.95 });
+  // The legacy refresh changes the lever from its authored 0.4 m to a 1.2 m state box.
+  expect(lever?.colliders?.[0]).toMatchObject({ x: 4, z: 4, y: 2.35 });
+  const leverBox = lever?.colliders?.[0];
+  if (leverBox?.kind !== 'box') throw new Error('Expected lever box');
+  expect(leverBox.hy).toBeCloseTo(0.85);
   expect(door?.active?.()).toBe(true); flags.set('open:door'); kit.update(0.1, 0.1);
   expect(door?.active?.()).toBe(false); kit.dispose(); expect(lever?.active?.()).toBe(false);
 });
 it('keeps NPC world boxes aligned at registration and when their figure moves', () => {
   const object = new Object3D(); object.position.set(12, 4, -9); object.rotation.y = 1.2;
   const desc = boxInFrame({ x: 12, z: -9, hw: 0.28, hd: 0.28, rot: 0, yBottom: 3.7, yTop: 5.8 }, object);
-  if (desc.kind !== 'box' || !desc.rot) throw new Error('Expected oriented box');
+  if (!desc.rot) throw new Error('Expected oriented box');
   expect(object.localToWorld(new Vector3(desc.x, desc.y, desc.z)).toArray()).toEqual([12, 4.75, -9]);
   const worldRotation = object.getWorldQuaternion(new Quaternion()).multiply(new Quaternion(desc.rot.x, desc.rot.y, desc.rot.z, desc.rot.w));
   expect(worldRotation.angleTo(new Quaternion())).toBeCloseTo(0);

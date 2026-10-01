@@ -92,6 +92,10 @@ const PORT = Number(flag('port', '4176'));
 const SETTLE_MS = Number(flag('settle', '4000'));
 const TIMEOUT_MS = Number(flag('timeout', '240')) * 1000;
 const ONLY = flag('shard', '');
+// Focused before/after repro: keep the authored route and controller unchanged.
+const ONLY_LEG = flag('leg', '');
+const REPEAT = Number(flag('repeat', '1'));
+if (!Number.isInteger(REPEAT) || REPEAT < 1 || REPEAT > 10) throw new Error('--repeat must be 1…10');
 const VIDEO = has('video');
 // --trails: instead of the fixed route, walk every path of the shard (its TRAILS after the entry roads) end to end,
 // both ways, a waypoint every 3 m — the stricter 0.35 m / 40° controller must not get stuck on a path players use
@@ -230,7 +234,9 @@ if (MODE.includes('walk')) {
     }
     console.error(`> walk ${shard} (${legs.length} legs)`);
     try {
-      for (const leg of legs) {
+      const selected = legs.filter((routeLeg) => !ONLY_LEG || routeLeg.name === ONLY_LEG);
+      if (ONLY_LEG && selected.length === 0) throw new Error(`Unknown leg ${ONLY_LEG} in ${shard}`);
+      for (const leg of selected.flatMap((routeLeg) => Array.from({ length: REPEAT }, () => routeLeg))) {
         const r = await page.evaluate(async (legIn) => {
           const w = window.__wildshard?.world, p = w.player;
           p.keys.clear();

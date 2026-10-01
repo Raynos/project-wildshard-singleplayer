@@ -64,7 +64,6 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 - [bench-asset-deploy.mjs](./bench-asset-deploy.mjs)
 - [bench-load.mjs](./bench-load.mjs)
-- [bench-shard-switch.mjs](./bench-shard-switch.mjs)
 - [gpu-texmem.mjs](./gpu-texmem.mjs)
 - [ios-memory-watchdog.py](./ios-memory-watchdog.py)
 - [nine-dragon-gpu.mjs](./nine-dragon-gpu.mjs)
@@ -119,7 +118,6 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 ## One-off asks
 
-- [e155-shard-switch.mjs](./e155-shard-switch.mjs)
 - [e172-clear-downloads.mjs](./e172-clear-downloads.mjs)
 - [e226-compare-load.mjs](./e226-compare-load.mjs)
 - [e314-nine-bag-capture.mjs](./e314-nine-bag-capture.mjs)
@@ -137,11 +135,16 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [explore-view-taps.mjs](./explore-view-taps.mjs)
 - [fetch-assets.mjs](./fetch-assets.mjs)
 - [fit-lut.py](./fit-lut.py)
+- [gen-shards.d.mts](./gen-shards.d.mts)
+- [gen-shards.mjs](./gen-shards.mjs)
+- [gen.mjs](./gen.mjs)
 - [inbox-pull.mjs](./inbox-pull.mjs)
 - [iphone-mem-reading.sh](./iphone-mem-reading.sh)
 - [king-rig-gate.mjs](./king-rig-gate.mjs)
 - [ktx2-ab.mjs](./ktx2-ab.mjs)
 - [ktx2-b-check.mjs](./ktx2-b-check.mjs)
+- [ktx2-tables.d.mts](./ktx2-tables.d.mts)
+- [ktx2-tables.mjs](./ktx2-tables.mjs)
 - [load-mem-probe.mjs](./load-mem-probe.mjs)
 - [model-spin.mjs](./model-spin.mjs)
 - [nalati-camp9.mjs](./nalati-camp9.mjs)
@@ -175,6 +178,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [popin-fly.mjs](./popin-fly.mjs)
 - [progress-video.sh](./progress-video.sh)
 - [release-url.sh](./release-url.sh)
+- [shards.d.mts](./shards.d.mts)
+- [shards.mjs](./shards.mjs)
 - [sim-mem-phases.py](./sim-mem-phases.py)
 - [stutter-run.mjs](./stutter-run.mjs)
 - [texmem-probe.mjs](./texmem-probe.mjs)

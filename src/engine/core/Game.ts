@@ -91,33 +91,6 @@ function skipRaysOffscreen(rays: GodRaysEffect, camera: THREE.Camera, disc: THRE
   };
 }
 
-/**
- * E179: dispose the full-screen render targets a post chain owns (what a parked shard can give back) and return their
- * bytes — a walk of the composer's own objects (its buffers, its passes and their effects) a few levels deep, never into
- * the scene, a material or a texture. Targets under 1/4 MPx are kept (the luminance adaptation's 256² carries state from
- * frame to frame; the rest are not worth it). `allocated`: is it on the GPU now (only those count).
- */
-function releaseComposerTargets(composer: object, allocated: (rt: unknown) => boolean): number {
-  const seen = new Set<object>();
-  let bytes = 0;
-  const visit = (o: unknown, depth: number): void => {
-    if (typeof o !== 'object' || o === null || seen.has(o) || depth > 5) return;
-    seen.add(o);
-    if (o instanceof THREE.WebGLRenderTarget) {
-      const px = o.width * o.height;
-      if (px < 262_144) return;
-      const tex: unknown = Reflect.get(o, 'texture'), type: unknown = tex instanceof THREE.Texture ? tex.type : undefined, bpp = type === THREE.HalfFloatType ? 8 : type === THREE.FloatType ? 16 : 4;
-      if (allocated(o)) bytes += px * bpp * Math.max(1, o.samples) + (o.depthBuffer ? px * 4 : 0);
-      o.dispose(); // three sets it up again at its next use
-      return;
-    }
-    if (o instanceof THREE.Object3D || o instanceof THREE.Material || o instanceof THREE.BufferGeometry || o instanceof THREE.Texture || o instanceof THREE.WebGLRenderer || o instanceof Node || ArrayBuffer.isView(o)) return;
-    for (const v of Array.isArray(o) ? o : Object.values(o)) visit(v, depth + 1);
-  };
-  visit(composer, 0);
-  return bytes;
-}
-
 export class Game {
   readonly app = app;
   renderer: THREE.WebGLRenderer;
@@ -743,7 +716,6 @@ export class Game {
     const loop = (now?: number) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
       if (this.dead) return; // a core system died (faults.ts): the fatal modal is up, nothing more to draw
-      if (this.stopped) return; // parked (stop()): the chain ends here; resume() starts a new one
       schedule(loop);
       lastRun = performance.now();
       const cap = frameCapFps();
@@ -799,76 +771,14 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
-    this.kickLoop = () => { if (!this.dead && !this.stopped && performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
-    this.primeFrame = () => { if (!this.dead && !this.stopped) forceFrame = true; };
-    this.restart = () => { lastRun = performance.now(); forceFrame = false; this.clock.getDelta(); requestAnimationFrame(loop); };
+    this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
+    this.primeFrame = () => { if (!this.dead) forceFrame = true; };
     setLoopState('running');
     loop();
   }
 
-  /** the loop is parked (stop): no tick, no draw, no animation frame asked for */
-  private stopped = false;
-  private restart: (() => void) | null = null;
-  /** true between stop() and resume() */
-  get isStopped(): boolean { return this.stopped; }
-  /**
-   * Park the loop (SHARD-CACHE, E155: another shard is playing): the running chain ends at its next frame and nothing
-   * ticks or draws until resume(). The world stays built, its GPU resources resident.
-   */
-  stop(): void { this.stopped = true; }
-  /** Start the parked loop again; the first frame's dt is sane (the clock is read, not accumulated over the park). */
-  resume(): void {
-    if (!this.stopped) return;
-    this.stopped = false;
-    this.resize(); // the window may have changed while it was parked (its resize listener was quiet) — and releaseTargets shrank the canvas
-    // the shadow maps releaseTargets let go: three makes each again at its next draw, but a light that draws on request
-    // only (shadowFade's settled ghosts) must be asked once
-    for (const ask of this.releasedShadows) ask();
-    this.releasedShadows = [];
-    this.renderer.shadowMap.needsUpdate = true;
-    this.restart?.();
-  }
-
-  /** each released shadow map's "draw me once" (resume() asks) */
-  private releasedShadows: (() => void)[] = [];
-  /**
-   * E179: a parked shard gives back the GPU memory it only needs to draw (call after stop()): the canvas's drawing buffer
-   * (shrunk to a pixel), the post chain's full-screen render targets and the shadow maps — ~50–65 MB a shard on a 3×
-   * iPhone at render scale 2 (measured at 390×844 @3×: the composer's live targets 37–45 MB, the drawing buffer 10.5 MB,
-   * the shadow maps 2–8 MB; a Driftwood's five 2048² phone shadow maps alone ~170 MB). Each comes back by itself: resume()
-   * sizes the canvas again, and three re-creates a disposed render target or a null shadow map at the next draw that uses
-   * it. Only per-frame targets: the composer's (its buffers, its effects' targets under 1/4 MPx are
-   * kept — the luminance adaptation's 256² carries state from frame to frame), never a scene's own (a water reflection,
-   * a baked environment). Returns the bytes let go (an estimate).
-   */
-  releaseTargets(): number {
-    if (!this.stopped || this.renderer.getContext().isContextLost()) return 0;
-    let bytes = 0;
-    const r = this.renderer, canvas = r.domElement;
-    bytes += canvas.width * canvas.height * 8; // colour + depth
-    r.setSize(1, 1, false); // the drawing buffer: the canvas is out of the page while parked anyway
-    const allocated = (rt: unknown): boolean => { const p = r.properties.get(rt); return typeof p === 'object' && p !== null && Reflect.get(p, '__webglFramebuffer') !== undefined; };
-    if (this._composer !== null) bytes += releaseComposerTargets(this._composer, allocated);
-    this.scene.traverse((o) => {
-      if (!(o instanceof THREE.Light)) return;
-      const shadow: unknown = Reflect.get(o, 'shadow');
-      if (!(shadow instanceof THREE.LightShadow) || shadow.map === null) return;
-      if (allocated(shadow.map)) bytes += shadow.map.width * shadow.map.height * 8; // its depth texture + its colour
-      shadow.map.dispose(); shadow.map = null;
-      this.releasedShadows.push(() => { shadow.needsUpdate = true; });
-    });
-    return bytes;
-  }
-
-  /**
-   * Evict (SHARD-CACHE M4): stop for good and give back the GPU. The scene's geometries, the composer's targets and the
-   * renderer are disposed, then the WebGL context itself is dropped — the browser frees every texture, buffer and
-   * program of it at once. Materials and textures are NOT disposed one by one: a module cache (a pickup's orb texture, a
-   * shared depth material) can be in a resident shard's scene too, and a `dispose` event reaches every renderer that
-   * uploaded it — that shard would drop its copy (and its program) and stall re-making them. The Game is unusable after.
-   */
+  /** Stop the page engine and release its renderer and scopes. */
   dispose(): void {
-    this.stopped = true;
     this.dead = true;
     this.levelScope.dispose();
     this.engineScope.dispose();

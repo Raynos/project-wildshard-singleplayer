@@ -354,7 +354,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     const y = floorAt(feet.x, feet.z);
     const fig = makeNpcFigure(kind, sky, { x: feet.x, y, z: feet.z }, yaw);
     game.scene.add(fig.group);
-    h.registry.add({ id: `npc-${kind}`, name: def.name, category: 'people', file: 'src/shards/pine-hollow/quest/index.ts', colliders: [boxInFrame(fig.collider, fig.group)], follows: fig.group });
+    h.registry.add({ id: `npc-${kind}`, name: def.name, category: 'people', file: 'src/shards/pine-hollow/quest/index.ts', colliders: [boxInFrame(fig.collider, fig.group, 'wood', false)], follows: fig.group, followRotation: false });
     const talk = (): void => {
       if (dialogue.isOpen) { dialogue.advance(); return; }
       const entry = lineFor(def, flags);

@@ -2,6 +2,8 @@
 // the piece and its material; a box desc from a legacy Collider sits where the old box did; treads are solid steps
 // no taller than their rise, so the character motor climbs them.
 import { describe, expect, it } from 'vitest';
+import { Object3D } from 'three';
+import { boxInFrame } from '#engine/physics/box';
 import { loadRapier } from '#engine/physics/rapier';
 import { Physics } from '#engine/physics/Physics';
 import { addPiece, treadBoxes } from '#engine/physics/pieces';
@@ -26,6 +28,36 @@ describe('world registry', () => {
 });
 
 describe('pieces → Rapier', () => {
+  it('keeps NPC collision boxes axis aligned while the figure turns and follows its translation', async () => {
+    const ph = new Physics(await rapier()), figure = new Object3D();
+    figure.position.set(4, 2, 1); figure.rotation.y = 1;
+    const piece: Piece = { id: 'npc', name: 'NPC', category: 'people', file: 'x.ts', follows: figure, followRotation: false,
+      colliders: [boxInFrame({ x: 4, z: 1, hw: 0.28, hd: 0.28, rot: 0, yTop: 3.8, yBottom: 1.7 }, figure, 'wood', false)] };
+    const added = addPiece(ph, piece);
+    figure.rotation.y = 2; figure.position.x = 5; added.sync(); ph.step();
+    const c = added.colliders[0]; if (!c) throw new Error('Expected NPC box');
+    expect(c.translation().x).toBeCloseTo(5); expect(c.translation().y).toBeCloseTo(2.75);
+    expect(c.rotation()).toMatchObject({ x: 0, y: 0, z: 0, w: 1 });
+    ph.dispose();
+  });
+  it('rebuilds state box dimensions without adding colliders and keeps hidden pieces disabled', async () => {
+    const ph = new Physics(await rapier());
+    let active = true;
+    const piece: Piece = { id: 'lever', name: 'Lever', category: 'props', file: 'x.ts', active: () => active,
+      colliders: [boxDesc({ x: 4, z: 1, hw: 0.22, hd: 0.18, rot: 0, yTop: 0.4, yBottom: -0.5 })] };
+    const added = addPiece(ph, piece);
+    active = false; added.sync();
+    piece.colliders = [boxDesc({ x: 4, z: 1, hw: 0.22, hd: 0.18, rot: 0, yTop: 1.2, yBottom: -0.5 })];
+    added.sync();
+    expect(ph.world.colliders.len()).toBe(1); expect(added.colliders[0]?.isEnabled()).toBe(false);
+    active = true; added.sync(); ph.step();
+    let hit = false;
+    ph.world.intersectionsWithPoint({ x: 4, y: 1, z: 1 }, () => { hit = true; return false; });
+    const collider = added.colliders[0];
+    if (!collider) throw new Error('Expected rebuilt collider');
+    expect(hit).toBe(true); expect(tagOf(collider)).toEqual({ owner: piece, material: 'wood' });
+    ph.dispose();
+  });
   it('a legacy box becomes a cuboid in the same place, tagged with its piece and material', async () => {
     const R = await rapier();
     const ph = new Physics(R);
