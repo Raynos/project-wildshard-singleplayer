@@ -85,6 +85,6 @@ export function installEcology<A extends AdvAnimal>(w: AdventureWorld<A>, isLand
       a.herd = e.herd;
       if (e.herd >= 0) w.animals.herds?.[e.herd]?.members.push(a);
     }
-  });
+  }, 'shard.driftwood-isle.installEcology');
   return q;
 }

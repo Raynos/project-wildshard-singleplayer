@@ -65,7 +65,7 @@ export function nearestUnfound(points: readonly PlacePoint[], discovered: (id: s
 
 /** what installGullGuide needs of the world (structural: main.ts's Gulls, Player, HUD) */
 export interface GuideWorld {
-  game: { onUpdate: (fn: (dt: number, t: number) => void) => void };
+  game: { onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number };
   hud: { entered?: boolean; paused?: boolean };
   gulls: { guide: (player: THREE.Vector3, yaw: number, tx: number, tz: number) => boolean };
@@ -84,6 +84,6 @@ export function installGullGuide(w: GuideWorld, places: { points: readonly Place
     const target = places.points[i];
     if (target === undefined) { clock.cooldown = GUIDE.cooldown; return; }   // every place found: check again rarely, never fly
     if (w.gulls.guide(p, w.player.yaw, target.x, target.z)) guided(clock); else failed(clock);
-  });
+  }, 'shard.driftwood-isle.installGullGuide');
   return clock;
 }

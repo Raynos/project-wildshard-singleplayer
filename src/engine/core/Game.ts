@@ -1,4 +1,6 @@
 import { app } from '../app/runtime';
+import { Scope } from '../app/scope';
+import type { Phase } from '../app/systems';
 import * as THREE from 'three';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
@@ -124,21 +126,26 @@ export class Game {
   clock = new THREE.Clock();
   // Frame phases (PHYSICS P2 / ENGINE-FIT E2): input → fixed steps (pre → step → post, × 0‥3) → update (`onUpdate`) → late → render.
   // Every entry is a GameSystem (src/engine/core/faults.ts, E133): called inside its own try/catch, switched off if it keeps throwing.
-  private updaters: GameSystem<(dt: number, t: number) => void>[] = [];
-  private inputs: GameSystem<(dt: number) => void>[] = [];
-  private fixed: Record<FixedPhase, GameSystem<(dt: number) => void>[]> = { pre: [], step: [], post: [] };
-  private lates: GameSystem<(dt: number) => void>[] = [];
+  readonly engineScope = app.engineScope.child('game');
+  readonly levelScope = new Scope('level');
+  registrationScope = this.engineScope;
+  private readonly fixed: Record<FixedPhase, Phase> = { pre: 'fixed.pre', step: 'fixed.step', post: 'fixed.post' };
+  private readonly faultSystems = new Map<string, GameSystem<(dt: number, t: number) => void>>();
+  private anonymous = 0;
   /** E357 F2: list order is the execution order; observation never registers a system. */
   systemLabels(): Record<'input' | 'fixed.pre' | 'fixed.step' | 'fixed.post' | 'update' | 'late', string[]> {
+    const phases = this.app.systemsByPhase();
     return {
-      input: this.inputs.map((s) => s.label),
-      'fixed.pre': this.fixed.pre.map((s) => s.label),
-      'fixed.step': this.fixed.step.map((s) => s.label),
-      'fixed.post': this.fixed.post.map((s) => s.label),
-      update: this.updaters.map((s) => s.label),
-      late: this.lates.map((s) => s.label),
+      input: phases.input.map((s) => s.id),
+      'fixed.pre': phases['fixed.pre'].map((s) => s.id),
+      'fixed.step': phases['fixed.step'].map((s) => s.id),
+      'fixed.post': phases['fixed.post'].map((s) => s.id),
+      update: phases.update.map((s) => s.id),
+      late: phases.late.map((s) => s.id),
     };
   }
+  /** The bootstrap boundary: everything registered next belongs to the level. */
+  beginLevelSystems(): void { this.registrationScope = this.levelScope; this.app.levelScope = this.levelScope; }
   /** the sky + the draw: core (a throw there that repeats is fatal, faults.ts) */
   private readonly renderSystem = makeSystem(null, 'render', true, 'render');
   /** frames drawn since start() (the fault streak counts in these) */
@@ -424,19 +431,25 @@ export class Game {
    * marks one the game cannot run without — if it keeps throwing the loop stops and the fatal modal goes up, where any
    * other system is just switched off (src/engine/core/faults.ts).
    */
-  onUpdate(fn: (dt: number, t: number) => void, label?: string, core = false): void { this.updaters.push(makeSystem(fn, label, core, `update#${this.updaters.length}`)); }
+  private register(phase: Phase, fn: (dt: number, t: number) => void, label?: string, core = false, scope = this.registrationScope): void {
+    const id = label === 'main' ? 'main.frame' : label ?? `engine.core.callback.${String(this.anonymous++)}`;
+    this.app.addSystem({ id, phase, run: fn, core }, scope);
+    this.faultSystems.set(id, makeSystem(fn, id, core, id));
+    scope.onDispose(() => { this.faultSystems.delete(id); });
+  }
+  onUpdate(fn: (dt: number, t: number) => void, label?: string, core = false): void { this.register('update', fn, label, core); }
   /** E357 F2: a temporary harness observer of simulation frames, removed when its walk finishes. */
   watchFrames(fn: (dt: number) => void): () => void {
-    const system = makeSystem(fn, 'harness.walk', false, 'harness.walk');
-    this.updaters.push(system);
-    return () => { const i = this.updaters.indexOf(system); if (i !== -1) this.updaters.splice(i, 1); };
+    const scope = this.levelScope.child('observer');
+    this.register('update', fn, 'harness.walk', false, scope);
+    return () => { scope.dispose(); };
   }
   /** First in the frame: read controls into intents the fixed steps consume (the player's move, a queued jump). */
-  onInput(fn: (dt: number) => void, label?: string, core = false): void { this.inputs.push(makeSystem(fn, label, core, `input#${this.inputs.length}`)); }
+  onInput(fn: (dt: number) => void, label?: string, core = false): void { this.register('input', fn, label, core); }
   /** Once per fixed step (dt = FIXED_STEP), in phase order. */
-  onFixed(phase: FixedPhase, fn: (dt: number) => void, label?: string, core = false): void { this.fixed[phase].push(makeSystem(fn, label, core, `fixed.${phase}#${this.fixed[phase].length}`)); }
+  onFixed(phase: FixedPhase, fn: (dt: number) => void, label?: string, core = false): void { this.register(this.fixed[phase], fn, label, core); }
   /** After every updater: things that pose from this frame's final state (the camera from the interpolated player). */
-  onLate(fn: (dt: number) => void, label?: string, core = false): void { this.lates.push(makeSystem(fn, label, core, `late#${this.lates.length}`)); }
+  onLate(fn: (dt: number) => void, label?: string, core = false): void { this.register('late', fn, label, core); }
 
   /** a system threw (one try/catch per call, below): count it, report it; a core system that keeps failing stops the loop */
   private fault(s: GameSystem<unknown>, e: unknown): void {
@@ -445,12 +458,15 @@ export class Game {
   /** (a method, not the field: the loop's early-out narrows `this.dead` to false for the rest of the frame) */
   private isDead(): boolean { return this.dead; }
   /** one fixed phase, each system guarded */
-  private runPhase(list: readonly GameSystem<(dt: number) => void>[]): void {
+  private runPhase(phase: Phase, dt = FIXED_STEP, t = this.clock.elapsedTime): void {
     const on = frameCost.on; // the dev fps panel's timing rows (src/engine/core/frameCost.ts): one boolean read while it is closed
-    for (const s of list) {
+    for (const spec of this.app.systemsByPhase()[phase]) {
+      if (spec.when && !spec.when(this.app)) continue;
+      let s = this.faultSystems.get(spec.id);
+      if (!s) { s = makeSystem(spec.run, spec.id, spec.core ?? false, spec.id); this.faultSystems.set(spec.id, s); }
       if (!s.on) continue;
       const t0 = on ? performance.now() : 0;
-      try { s.fn(FIXED_STEP); } catch (e) { this.fault(s, e); }
+      try { spec.run(dt, t); } catch (e) { this.fault(s, e); }
       if (on) frameCost.system(s.label, performance.now() - t0);
     }
   }
@@ -652,25 +668,10 @@ export class Game {
       const on = frameCost.on;
       if (on) frameCost.begin();
       // each system in its own try/catch (faults.ts): one that throws is counted, reported and, if it keeps at it, switched off
-      for (const s of this.inputs) {
-        if (!s.on) continue;
-        const t0 = on ? performance.now() : 0;
-        try { s.fn(dt); } catch (e) { this.fault(s, e); }
-        if (on) frameCost.system(s.label, performance.now() - t0);
-      }
+      this.runPhase('input', dt, t);
       this.runFixed(dt);
-      for (const s of this.updaters) {
-        if (!s.on) continue;
-        const t0 = on ? performance.now() : 0;
-        try { s.fn(dt, t); } catch (e) { this.fault(s, e); }
-        if (on) frameCost.system(s.label, performance.now() - t0);
-      }
-      for (const s of this.lates) {
-        if (!s.on) continue;
-        const t0 = on ? performance.now() : 0;
-        try { s.fn(dt); } catch (e) { this.fault(s, e); }
-        if (on) frameCost.system(s.label, performance.now() - t0);
-      }
+      this.runPhase('update', dt, t);
+      this.runPhase('late', dt, t);
       if (this.isDead()) return; // a core system died in this frame's steps
       const renderAt = performance.now();
       try {
@@ -763,6 +764,8 @@ export class Game {
   dispose(): void {
     this.stopped = true;
     this.dead = true;
+    this.levelScope.dispose();
+    this.engineScope.dispose();
     this.scene.traverse((o) => { (o as Partial<THREE.Mesh>).geometry?.dispose(); });
     try { this._composer?.dispose(); } catch (e) { console.warn('[shard] the composer did not dispose', e); }
     try { this.shardRender?.dispose?.(); } catch (e) { console.warn('[shard] the render strategy did not dispose', e); }

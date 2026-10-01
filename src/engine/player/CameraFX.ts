@@ -30,7 +30,7 @@ export class CameraFX {
   private static byGame = new WeakMap<Game, CameraFX>();
   static for(game: Game): CameraFX {
     let fx = CameraFX.byGame.get(game);
-    if (fx === undefined) { fx = new CameraFX(game.camera); CameraFX.byGame.set(game, fx); const f = fx; game.onUpdate((_dt, t) => { f.update(t); }); }
+    if (fx === undefined) { fx = new CameraFX(game.camera); CameraFX.byGame.set(game, fx); const f = fx; game.onUpdate((_dt, t) => { f.update(t); }, 'engine.player.for'); }
     return fx;
   }
 

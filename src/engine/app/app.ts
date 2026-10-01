@@ -2,7 +2,7 @@ import { RngService } from '../core/rng';
 import { Events } from '../events/events';
 import { GameClock } from '../core/clock';
 import type { AssetService } from './assets';
-import type { Scope } from './scope';
+import { Scope } from './scope';
 import { PHASES, sortSystems, type AppState, type Phase, type SystemSpec } from './systems';
 
 interface StateHook { state: AppState; run: () => void }
@@ -16,6 +16,9 @@ export class App {
   private transitioning = false;
   private transitions: AppState[] = [];
   readonly events: Events;
+  readonly engineScope = new Scope('engine');
+  levelScope: Scope | null = null;
+  private sorted: SystemsByPhase | null = null;
   readonly clock = new GameClock();
   readonly rng = new RngService();
   assets?: AssetService;
@@ -57,15 +60,18 @@ export class App {
     const system = { ...spec, ...(spec.before ? { before: [...spec.before] } : {}),
       ...(spec.after ? { after: [...spec.after] } : {}) };
     this.systems.set(system.id, system);
-    try { this.systemsByPhase(); } catch (error) { this.systems.delete(system.id); throw error; }
-    scope.onDispose(() => { this.systems.delete(system.id); });
+    this.sorted = null;
+    try { this.systemsByPhase(); } catch (error) { this.systems.delete(system.id); this.sorted = null; throw error; }
+    scope.onDispose(() => { this.systems.delete(system.id); this.sorted = null; });
   }
   systemsByPhase(): SystemsByPhase {
+    if (this.sorted) return this.sorted;
     const all = [...this.systems.values()];
     const result: Record<Phase, readonly SystemSpec[]> = {
       input: [], 'fixed.pre': [], 'fixed.step': [], 'fixed.post': [], update: [], late: [], render: [],
     };
     for (const phase of PHASES) result[phase] = sortSystems(all.filter((system) => system.phase === phase));
+    this.sorted = result;
     return result;
   }
 }

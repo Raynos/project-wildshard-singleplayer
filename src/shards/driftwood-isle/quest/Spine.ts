@@ -93,6 +93,6 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     if (talk.talking !== stowed) { stowed = talk.talking; w.stowWeapon?.(stowed); }
     if (!waved && !flags.has('talked:castaway') && pp.distanceToSquared(castaway.position) < 16 * 16) { waved = true; castaway.wave(); }
     chip.update(t, w.player);
-  });
+  }, 'shard.driftwood-isle.installSpine');
   return { quest, castaway, dialogue, objective, markers };
 }

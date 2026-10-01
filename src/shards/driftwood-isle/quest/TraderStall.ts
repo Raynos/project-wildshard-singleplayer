@@ -76,6 +76,6 @@ export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureW
     // walking off the counter closes the shop (as a talk closes, core.ts NpcTalk)
     if (stall.shop?.isOpen === true && w.player.position.distanceTo(at) > TRADE_R + 2.5) stall.shop.close();
     if (wasOpen && stall.shop?.isOpen !== true) { wasOpen = false; w.player.pitch = pitchBefore; }
-  });
+  }, 'shard.driftwood-isle.installTrader');
   return stall;
 }

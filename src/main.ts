@@ -397,7 +397,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (palms) statics.push(...palms.colliders);
     // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
     const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
-    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer())); tintTerrain(world.terrain.mesh); } // E156: the ground wears the cover
+    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'main.1'); tintTerrain(world.terrain.mesh); } // E156: the ground wears the cover
     ocean?.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
@@ -406,7 +406,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     const matte = sea ? new HorizonMatte(sky, sea.level).build() : null;
     if (matte?.mesh) {
       game.scene.add(matte.mesh);
-      game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); });
+      game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); }, 'main.2');
       document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
     }
     return { boundary, water, streams, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover, trailside };
@@ -414,7 +414,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
   const bridgeDeck = bridge ? new RopeChain(world.physics, bridge.chainSpec()) : null;
-  if (bridgeDeck) game.onFixed('post', () => { bridgeDeck.capture(); });
+  if (bridgeDeck) game.onFixed('post', () => { bridgeDeck.capture(); }, 'main.3');
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
   // registered, none where a deck carries the path (a board there pokes up through the bridge's planks); Nalati's decks
   // register in its props step (NALATI-MERGE P1), so its paths are laid after that
@@ -429,7 +429,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       replace: [bushes?.mesh ?? null], cover: dressing.cover?.group ?? null,
     })).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; })
     : null;
-  if (blenderIsland) { game.onUpdate(() => { blenderIsland.update(sky); }); dressing.cover?.excludeArea(islandArea); } // E156: the cove dresses its own area
+  if (blenderIsland) { game.onUpdate(() => { blenderIsland.update(sky); }, 'main.4'); dressing.cover?.excludeArea(islandArea); } // E156: the cove dresses its own area
 
   const carpet = await step('grass', async () => {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
@@ -467,7 +467,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
         } });
     }
     // PH-B3: the fire lookout + zipline, the footbridge, the standing stones, waystones, dam, canoe, board and cave mouth
-    const landmarks = chunk.slug === 'pine-hollow' ? await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn); }, trees: forest.trees }) : null;
+    const landmarks = chunk.slug === 'pine-hollow' ? await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn, 'main.5'); }, trees: forest.trees }) : null;
     // PH-B2: the bear cave — the slope runs through its first metres: the drawn ground is punched there (its hood covers the
     // gap) and the physics ground pushed under its floor (its shell and the ground over it are colliders of their own)
     if (landmarks?.crags) { cutTerrain(world.physics, landmarks.crags.terrainCuts()); world.terrain.punch(landmarks.crags.holeTest()); }
@@ -635,7 +635,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       : { skins: () => { const nl = nalatiNow(); return nl ? nalatiSkinRows(nl.skins) : []; }, onWearSkin: (id: string) => { nalatiNow()?.skins.toggle(id); } }), // Nalati's wearable skins (B15): every one, the locked ones dim (E314 C)
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
-  game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
+  game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }, 'main.6'); // E132: this shard's time played (the complete card shows it), in the world only
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); }); // in a practice room: its own map (E321)
   // E124: the BAG button squaring out the minimap's top-right corner (src/game/bag/BagButton.ts) — opens on GEAR (E314)
   new BagButton(minimap.root, () => { if (hud.entered) menu.openBag(); });

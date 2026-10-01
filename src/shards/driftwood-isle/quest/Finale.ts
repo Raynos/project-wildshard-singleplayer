@@ -105,7 +105,7 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
         }
       }
     }
-  });
+  }, 'shard.driftwood-isle.installFinale');
   return { captain: () => captain, rewardAt };
 }
 

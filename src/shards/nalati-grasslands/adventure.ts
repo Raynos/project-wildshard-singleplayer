@@ -49,7 +49,7 @@ export interface NalatiBosses {
 }
 
 export interface NalatiAdventureWorld<A extends { kind: string } = { kind: string }> {
-  game: { scene: THREE.Scene; onUpdate: (fn: (dt: number, t: number) => void) => void };
+  game: { scene: THREE.Scene; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   sky: Sky;
   player: { position: THREE.Vector3; yaw: number };
   chunk: { slug: string };
@@ -245,7 +245,7 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
     kokpar.update(dt, pp, w.ride?.mount ?? null);
     chip.update(t, w.player);
     if (t - slowT > 0.5) { slowT = t; poll(t); places.update(pp.x, pp.z); }
-  });
+  }, 'shard.nalati-grasslands.installNalatiAdventure');
 
   const adventure: NalatiAdventure = { flags, line, people, kokpar, places, dialogue, chip, markers };
   Object.assign(window, { __nalatiQuest: { ...adventure, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } } });

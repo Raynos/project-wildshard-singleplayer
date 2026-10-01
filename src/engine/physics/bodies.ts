@@ -202,8 +202,8 @@ export class Bodies {
   /** run in the game's fixed phases; `alpha` comes from its clock from now on */
   attach(game: FixedClock): this {
     this.clock = game;
-    game.onFixed('pre', (dt) => { this.pre(dt); }, 'physics.bodies');
-    game.onFixed('post', (dt) => { this.post(dt); }, 'physics.bodies');
+    game.onFixed('pre', (dt) => { this.pre(dt); }, 'physics.bodies.pre');
+    game.onFixed('post', (dt) => { this.post(dt); }, 'physics.bodies.post');
     return this;
   }
 

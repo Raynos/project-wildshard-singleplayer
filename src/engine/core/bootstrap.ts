@@ -145,5 +145,6 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   }, 'player.update');
   installCrashFlag(game, params); // ?crash=system|fatal|window|boot — dev builds / unlocked reviewers only (E133)
   (window as unknown as { __hf: unknown }).__hf = Heightfield;
+  game.beginLevelSystems();
   return world;
 }

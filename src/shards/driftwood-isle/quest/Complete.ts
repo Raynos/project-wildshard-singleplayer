@@ -151,7 +151,7 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
     if (!flags.has(QUEST_DONE) || flags.has(SEEN_COMPLETE) || w.player.carried || card.isOpen || hostileNear()) return;
     offered = true;
     w.hud.toast(`${shardName} complete · open the menu to see your island`);
-  });
+  }, 'shard.driftwood-isle.installComplete');
 
   return {
     showAfterReward: () => { if (flags.has(SEEN_COMPLETE)) return false; open(); return true; },

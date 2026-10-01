@@ -30,7 +30,7 @@ import type { Interactable } from '#engine/world/Cabin';
 
 export interface CompendiumHost {
   chunkId: string;
-  game: { onUpdate: (fn: (dt: number, t: number) => void) => void };
+  game: { onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   camera: THREE.Camera;
   hud: HUD;
   menu: GameMenu;
@@ -123,6 +123,6 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
     eye.forward.x = -e[8]; eye.forward.y = -e[9]; eye.forward.z = -e[10];
     if (!perfLap.active) tracker.update(dt, eye, host.animals.animals); // E350 F-J1: the PERF LAP's spots are not seen / heard of
     wall?.update(cam);
-  });
+  }, 'engine.compendium.installCompendium');
   return { state, journal, wall };
 }

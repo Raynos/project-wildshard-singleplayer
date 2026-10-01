@@ -54,7 +54,7 @@ function anchorsOf(m: object | null | undefined): Record<string, Anchor> | undef
 export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number; aggressive?: boolean }
 
 export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
-  game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void) => void };
+  game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   sky: Sky;
   player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
   chunk: { slug: string };
@@ -152,7 +152,7 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
 
   const kit = new Interactables({ scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts }).build(DRIFTWOOD_INTERACT);
   kit.onEvent = (e) => onInteract(e);
-  w.game.onUpdate((dt, t) => kit.update(dt, t));
+  w.game.onUpdate((dt, t) => kit.update(dt, t), 'engine.quest.installDriftwoodAdventure');
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
   const sfx = new IslandSfx(w.audio);
@@ -217,7 +217,7 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
       if (!on) { flags.set('used:zipline'); sfx.interact('plate', zip.b); }
       else sfx.interact('lever', zip.a);
     };
-    w.game.onUpdate((dt) => { zip.update(dt, w.player); });
+    w.game.onUpdate((dt) => { zip.update(dt, w.player); }, 'engine.quest.installDriftwoodAdventure.2');
     adventure.zipline = zip;
     adventure.setAnchor('lookout.zipline', { x: lx, z: lz });
   }
@@ -241,10 +241,10 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
       bt += dt * (0.8 + Math.hypot(w.player.velocity.x, w.player.velocity.z) * 0.25);
       w.game.camera.rotation.z += Math.sin(bt * 1.7) * 0.018 * sway;
       w.game.camera.position.y += Math.sin(bt * 3.4) * 0.025 * sway;
-    });
+    }, 'engine.quest.installDriftwoodAdventure.3');
   }
   let placeT = 0;
-  w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } });
+  w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } }, 'engine.quest.installDriftwoodAdventure.4');
   Object.assign(window, { __adventure: adventure });
   return adventure;
 }

@@ -262,7 +262,7 @@ export class Explore {
       if (b) holdButton(b, (on) => { rise[key] = on; this.cam.move.y = (rise.up ? 1 : 0) - (rise.down ? 1 : 0); });
     }
     document.addEventListener('keydown', this.onKey);
-    game.onUpdate((dt) => { this.update(dt); });
+    game.onUpdate((dt) => { this.update(dt); }, 'engine.explore.constructor');
     if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
     if (hasCompareTargets(host.world.chunk.slug)) this.compare = new Compare(this, host.world);
     const { chunk } = host.world;

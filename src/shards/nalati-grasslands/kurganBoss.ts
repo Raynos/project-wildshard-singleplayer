@@ -690,7 +690,7 @@ export class KurganBoss {
     window.addEventListener('pointerdown', () => { this.skipTouch = true; });
     window.addEventListener('pointerup', () => { this.skipTouch = false; });
     window.addEventListener('pointercancel', () => { this.skipTouch = false; });
-    game.onUpdate((dt) => this.golden?.update(dt));
+    game.onUpdate((dt) => this.golden?.update(dt), 'shard.nalati-grasslands.bind');
     // dev: `?boss=golden-king` — start at the chamber door; `&bossPhase=2|3` at that checkpoint
     if (play.params.get('boss') === 'golden-king') {
       const ph = Number(play.params.get('bossPhase') ?? '1');
