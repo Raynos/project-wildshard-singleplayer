@@ -2,7 +2,7 @@
  * Ocean v2 — the faceted, stylized sea of an open-water shard (`ShardManifest.ocean`, Driftwood Isle; DRIFTWOOD-REMASTER
  * W1 + W2 + W3).
  *
- *   const ocean = new Ocean(sky).build();   // reads getActiveChunk().ocean
+ *   const ocean = new Ocean(sky).build();   // reads the manifest's OCEAN
  *   scene.add(ocean.group);                 // ocean.mesh is the surface
  *   ocean.foamAround(its registry piece);     // foam rings wherever a collider box pierces the surface (piles, rocks, hulls)
  *   game.onUpdate((dt) => ocean.update(dt));
@@ -27,7 +27,7 @@ import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '#engine/core/config';
 import { heightAt, inChunk } from '#engine/world/Heightfield';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { getActiveChunk } from '#game/shard/registry';
+import { OCEAN } from '../manifest';
 import type { Sky } from '#engine/world/Sky';
 import { islandKnobs } from '../tiers';
 import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock } from '#engine/world/waves';
@@ -52,8 +52,7 @@ export class Ocean {
   constructor(private sky: Sky) {}
 
   build(): this {
-    const def = getActiveChunk().ocean;
-    if (!def) throw new Error('Ocean.build(): the active chunk has no `ocean`');
+    const def = OCEAN;
     this.level = def.level;
     toonUniforms.uSeaLevel.value = def.level; // the caustics under it (look/toon.ts, W4)
 

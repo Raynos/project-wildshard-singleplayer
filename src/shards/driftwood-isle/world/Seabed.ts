@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, ROAD_WIDTH } from '#engine/core/config';
 import { heightAt, normalAt, inChunk } from '#engine/world/Heightfield';
-import { getActiveChunk } from '#game/shard/registry';
+import { OCEAN } from '../manifest';
 import { Rng } from '#engine/core/rng';
 import { Noise2D } from '#engine/core/noise';
 import type { Sky } from '#engine/world/Sky';
@@ -50,7 +50,7 @@ export class Seabed {
    *  noise-clustered reefs, seaweed in beds, a starfish here and there. `avoid` clears the wreck / anything else on the sand. */
   static scatterLagoon(seed: number, count = 360, avoid: { x: number; z: number; r: number }[] = []): SeabedLayout {
     const rng = new Rng(seed ^ 0x5eab), reef = new Noise2D(seed + 51), bed = new Noise2D(seed + 52);
-    const level = getActiveChunk().ocean?.level ?? 0;
+    const level = OCEAN.level;
     const items: SeabedSpec[] = [];
     let tries = 0;
     const ok = (x: number, z: number, minD: number) => {

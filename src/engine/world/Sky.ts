@@ -6,8 +6,8 @@ import { loadHDR } from '../core/assets';
 import { fogUniforms, isUnderwater } from './Atmosphere';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
-import { getActiveChunk } from '#game/shard/registry';
-import type { ChunkSky } from '#game/shard/manifest';
+import type { SkySpec } from '../level/data';
+import type { LevelSpec } from '../level/spec';
 import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
@@ -53,8 +53,8 @@ export function shadowRig(phoneSplits: boolean): ShadowRig {
 export const PLANET_DIST = 1700;
 
 /** public/assets/baked/<slug>/sky.json — the HDR's sun direction and horizon colour, scanned at build time (scripts/bake-sky.mjs). */
-async function loadBakedSky(hdri: string): Promise<{ sunDir: [number, number, number]; horizon: [number, number, number] } | null> {
-  const url = `/assets/baked/${getActiveChunk().slug}/sky.json`;
+async function loadBakedSky(levelId: string, hdri: string): Promise<{ sunDir: [number, number, number]; horizon: [number, number, number] } | null> {
+  const url = `/assets/baked/${levelId}/sky.json`;
   if (!(url in PUBLIC_BYTES) || new URLSearchParams(location.search).has('nobake')) return null;
   try {
     const j = await (await fetch(url)).json() as { hdri: string; sunDir: [number, number, number]; horizon: [number, number, number] };
@@ -69,7 +69,8 @@ async function loadBakedSky(hdri: string): Promise<{ sunDir: [number, number, nu
  */
 export class Sky {
   sunDir = new THREE.Vector3(0.3, 0.6, 0.4).normalize();
-  sunColor = new THREE.Color(...getActiveChunk().sky.sunColor);
+  /** the level's sun colour (SkySpec.sunColor), set by build() */
+  sunColor = new THREE.Color();
   csm!: CSM;
   sunDisc!: THREE.Mesh;
   planet = new THREE.Group();
@@ -77,6 +78,8 @@ export class Sky {
   /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clocks */
   hemi!: THREE.HemisphereLight;
   private materials = new Set<THREE.Material>();
+  /** the level this sky lights (handed to build()) */
+  private level!: LevelSpec;
 
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
 
@@ -91,7 +94,9 @@ export class Sky {
    */
   async build(look: Pick<LookStrategy, 'lighting' | 'shadows' | 'backdrop' | 'sky'> | null, backdropData: Pick<SkyBackdropContext, 'level' | 'tier' | 'look'>): Promise<this> {
     this.dressing = look?.sky ?? null;
-    const { sky: S, atmosphere: A } = getActiveChunk();
+    this.level = backdropData.level;
+    const { sky: S, atmosphere: A } = this.level;
+    this.sunColor.set(...S.sunColor);
     look?.lighting?.install(); // a level's light model (patched into three's chunks before anything compiles)
     const shadows = look?.shadows ?? null;
     const backdropFactory = look?.backdrop;
@@ -128,7 +133,7 @@ export class Sky {
       this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
-    if (getActiveChunk().tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
+    if (this.level.tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     // a low sun (golden hour, dawn) grazes flat decks: a shadow style may take more normal bias, or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = shadows?.normalBias ?? 0.05; l.shadow.radius = shadows?.radius ?? 2; }
     this.texelBias = shadows?.texelBias === 'phone' && rig.phone;
@@ -174,7 +179,7 @@ export class Sky {
 
   /** the default rig (no backdrop): the HDRI is the background and the IBL; returns the fog colour. */
   private async setupHDRI(): Promise<THREE.Color> {
-    const { sky: S } = getActiveChunk();
+    const { sky: S, id } = this.level;
     const hdriName = S.hdri;
     if (hdriName === undefined) throw new Error('Sky: the HDRI rig needs ShardManifest.sky.hdri');
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
@@ -186,7 +191,7 @@ export class Sky {
     const painted = S.painted ?? null;
     const loadSky = painted ? Promise.resolve(paintSky(painted, this.sunDir))
       : pair ? loadSkyPair(pair).catch((e: unknown) => { console.warn(`[sky] gain-mapped pair not used (${String(e)}); loading the .hdr`); return loadHDR(hdrUrl); }) : loadHDR(hdrUrl);
-    const [hdr, , baked, lut] = await Promise.all([loadSky, preloadBakedTextures(), painted ? Promise.resolve(null) : loadBakedSky(hdriName), loadLUT(getActiveChunk().slug)]);
+    const [hdr, , baked, lut] = await Promise.all([loadSky, preloadBakedTextures(), painted ? Promise.resolve(null) : loadBakedSky(id, hdriName), loadLUT(id)]);
     this.lut = lut; // the shard's learned LUT (lut.ts): no file, no fetch, no pass
     if (!S.sun) { if (baked) this.sunDir.fromArray(baked.sunDir).normalize(); else this.findSun(hdr); }
     hdr.mapping = THREE.EquirectangularReflectionMapping;
@@ -378,9 +383,9 @@ export class Sky {
       if (!dressing.clouds) return;
     }
     // a painted sky (Nalati) gets big painted cumulus: larger cells, crisper edges, bright sunlit tops over soft blue-grey bellies
-    const big = getActiveChunk().sky.painted ? 1.0 : 0.0;
+    const big = this.level.sky.painted ? 1.0 : 0.0;
     this.cloudUniforms.uSunDir.value.copy(this.sunDir);
-    this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
+    this.cloudUniforms.uSunColor.value.set(...this.level.sky.cloudSunColor);
     const mat = new THREE.ShaderMaterial({
       uniforms: { ...this.cloudUniforms, tClouds: { value: tex }, uBig: { value: big } },
       transparent: true, depthWrite: false, side: THREE.BackSide,
@@ -462,7 +467,7 @@ export class Sky {
     grad.addColorStop(0, 'rgba(255,240,210,0.9)'); grad.addColorStop(0.12, 'rgba(255,210,150,0.55)'); grad.addColorStop(0.4, 'rgba(255,170,90,0.12)'); grad.addColorStop(1, 'rgba(255,140,60,0)');
     g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, toneMapped: false }));
-    halo.scale.setScalar(getActiveChunk().sky.painted ? 250 : 420); // a painted sun: a tighter glow (the mockups keep the sky blue right up to it)
+    halo.scale.setScalar(this.level.sky.painted ? 250 : 420); // a painted sun: a tighter glow (the mockups keep the sky blue right up to it)
     halo.scale.z = 1;
     // the practice room (src/engine/practice/TrainingArena.ts) is a closed box: there its ceiling must hide the glow (E285)
     document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) halo.material.depthTest = e.detail === true; });
@@ -485,7 +490,7 @@ export class Sky {
   }
 
   private buildPlanet() {
-    const P = getActiveChunk().sky.planet;
+    const P = this.level.sky.planet;
     if (P) { this.buildGasGiant(P); return; }
     // A gas giant with rings sits low over the east horizon — the world's signature skyline.
     const dir = this.planetDir;
@@ -526,7 +531,7 @@ export class Sky {
    * limb darkening and sky-haze at the limb so it sits *in* the sky like the mockups — and the ring
    * an annulus whose shader hides the part behind the body and darkens the body's shadow on it.
    */
-  private buildGasGiant(P: NonNullable<ChunkSky['planet']>) {
+  private buildGasGiant(P: NonNullable<SkySpec['planet']>) {
     const d2r = Math.PI / 180;
     const az = P.azimuth * d2r, el = P.elevation * d2r;
     this.planetDir.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
@@ -537,7 +542,7 @@ export class Sky {
     this.giantUniforms.uSunDir.value.copy(this.sunDir);
     this.giantUniforms.uHaze.value.copy(haze);
     this.giantUniforms.uRadius.value = R;
-    if (getActiveChunk().sky.painted) { this.giantUniforms.uHazeAmt.value = 0.22; this.giantUniforms.uGain.value = 1.5; this.giantUniforms.uFar.value = 1; }
+    if (this.level.sky.painted) { this.giantUniforms.uHazeAmt.value = 0.22; this.giantUniforms.uGain.value = 1.5; this.giantUniforms.uFar.value = 1; }
     this.giantUniforms.uCrisp.value = 0; // a backdrop may set 1 (a crisp, opaque disc) when it binds
 
     const body = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 32), new THREE.ShaderMaterial({
@@ -667,7 +672,7 @@ function compassDir(azimuth: number, elevation: number): THREE.Vector3 {
  * sun, the ground colour below the skyline. It is the background and the PMREM environment, so it replaces the
  * HDRI entirely (~2 ms to paint, nothing to download).
  */
-function paintSky(P: NonNullable<ChunkSky['painted']>, sun: THREE.Vector3): THREE.DataTexture {
+function paintSky(P: NonNullable<SkySpec['painted']>, sun: THREE.Vector3): THREE.DataTexture {
   const W = 512, H = 256;
   const data = new Uint16Array(W * H * 4);
   const [zr, zg, zb] = P.zenith, [hr, hg, hb] = P.horizon, [gr, gg, gb] = P.ground, [wr, wg, wb] = P.glow;

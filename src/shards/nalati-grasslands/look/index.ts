@@ -28,7 +28,6 @@ import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
 import { setModelShade } from '../world/glbPaint';
 import { applyCloudSeaV2 } from './cloudSea';
 import type { Forest } from '#engine/world/forest/Forest';
-import { getActiveChunk } from '#game/shard/registry';
 
 export interface LookV2Ctx {
   game: Game; sky: Sky; weather: NalatiWeather;
@@ -55,7 +54,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   if (sea) applyCloudSeaV2(sea, grassV2Uniforms.uSunView);
   const rigDome = weather.rig.dome;
   const u = dome.uniforms;
-  const cheat = new LightCheat(sky, getActiveChunk().grade.saturation);
+  const cheat = new LightCheat(sky, game.level.grade.saturation);
   // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
   const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture());
   for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
