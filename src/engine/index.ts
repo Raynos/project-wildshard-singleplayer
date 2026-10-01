@@ -80,7 +80,7 @@ export { Weather, type WeatherProfile, type WeatherNumbers } from './world/weath
 
 export { InputService, type Action } from './input/InputService';
 export type { EquipmentHost } from './combat/view/EquipmentHost';
-export type { TouchRelabel, DiscSpot } from './ui/hudSlots';
+export { hudSlots, type TouchRelabel, type DiscSpot } from './ui/hudSlots';
 
 // Ranged family mechanisms and visual ports (E357 S2.2).
 export type { ImpactSurface } from './combat/Weapon';
