@@ -5,7 +5,7 @@ import type { Material } from './surface';
 /** A box specified in world space, rotated by −rot about +Y. */
 export interface BoxSpec { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
-/** Keep a world-space box in place when attaching it to a moving object's local frame. */
+/** Keep a world box aligned in its following frame; translate-only following uses the world's axes. */
 export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = 'wood', followRotation = true): Extract<ColliderDesc, { kind: 'box' }> {
   object.updateWorldMatrix(true, false);
   const d = boxDesc(box, surface);

@@ -192,7 +192,7 @@ export interface Piece {
   follows?: THREE.Object3D;
   /** Translate with the object while keeping the collider's authored world orientation (standing NPC boxes). */
   followRotation?: boolean;
-  /** a following piece that collides only while this says so (a door mid-swing is let through, never pins anyone) */
+  /** Collide only while this says so (a door mid-swing is let through, never pins anyone). */
   active?: () => boolean;
   /** the model's catalog entry (`models()`), set only by `place` / `listModel` (src/engine/models/): check-models rule 6 fails any other */
   model?: ModelEntry;
