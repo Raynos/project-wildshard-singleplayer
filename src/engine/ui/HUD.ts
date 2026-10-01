@@ -8,7 +8,8 @@ import { travel } from '#game';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
-import { isDev } from '../core/devMode';
+import { isDev, onDev } from '../core/devMode';
+import { mountDeveloperBanner } from './developerBanner';
 import { buildTitleDeck, titleCards, type TitleDeck } from '#game/titleDeck';
 import { ToastStack } from './ToastStack';
 import { ROW, hudSlots } from './hudSlots';
@@ -57,7 +58,7 @@ export interface HUDState {
   /** nearest animal for the compass paw: `bearing` in compass degrees (0 = north = +Z, 90 = east = −X) — see `bearingTo` */
   nearest?: { bearing: number; distance: number; kind: string } | undefined;
 }
-export interface HUDOptions { pointerLock?: boolean; weaponUi: WeaponUi; maxBolts: number }
+export interface HUDOptions { pointerLock?: boolean; weaponUi: WeaponUi; maxBolts: number; developerBanner?: string }
 /** the `ws:weather` event's detail — sent on change only (src/shards/nalati-grasslands/weather.ts) */
 export interface WeatherHUD {
   /** the chip under the minimap: `title` "STORM IN 0:45" / "STORM 2:10", `sub` "WIND 22 m/s"; null hides it */
@@ -171,6 +172,14 @@ export class HUD {
     this.root.id = 'hud';
     this.build();
     this.mountBar();
+    this.scope.onDispose(onDev(() => {
+      if (!this.intro || !this.onEnter) return;
+      const selected = this.deck?.cards[this.deck.index]?.slug;
+      this.intro.remove(); this.deck?.dispose();
+      this.showIntro(this.onEnter);
+      const index = this.deck?.cards.map((card): string => card.slug).indexOf(selected ?? '') ?? -1;
+      if (index !== -1) this.deck?.select(index, false);
+    }));
     this.scope.listen(document, 'pointerlockchange', () => {
       if (!this.opts.pointerLock || !this.entered || this.holdPause || (app.ui.blocking && app.ui.top !== 'gameMenu')) return;
       const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
@@ -189,6 +198,7 @@ export class HUD {
 
   private build(): void {
     const r = this.root;
+    mountDeveloperBanner(r, this.scope, this.opts.developerBanner);
     // (the desktop chunk panel — chunk:// id, grid, pos, "local build" — is gone: E140, the user's verdict on dead item 1)
 
     // compass: a slim band; the strip sits at the band's centre and slides by the heading (see setState)

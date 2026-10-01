@@ -22,7 +22,7 @@ const saved = (): boolean => { try { return savedStorage.getItem(KEY) === '1'; }
 
 let on = saved();
 
-const mirror = (): void => { document.documentElement.toggleAttribute('data-dev', on); };
+const mirror = (): void => { if (typeof document !== 'undefined') document.documentElement.toggleAttribute('data-dev', on); };
 mirror();
 
 export function isDev(): boolean { return on; }

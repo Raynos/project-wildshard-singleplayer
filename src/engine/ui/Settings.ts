@@ -122,7 +122,6 @@ export const OPTION_VALUES = {
   tex: ['auto', 'ktx2', 'img'],
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
-  showHiddenShards: ['off', 'on'],
   calibrate: ['off', 'run'],                          // E357 S1.6 one-shot empty capture state; consumed at entry
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/engine/boot/perflog.ts) — a reload
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/engine/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
@@ -148,7 +147,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
-  showHiddenShards: DEBUG_ONLY,
   calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY,
   creatures: DEBUG_ONLY,
@@ -165,7 +163,6 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   weather: option('weather'), fps: option('fps'),
   prefetch: option('prefetch'),
   tex: option('tex'),
-  showHiddenShards: option('showHiddenShards'),
   calibrate: option('calibrate'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'),
   creatures: option('creatures'),

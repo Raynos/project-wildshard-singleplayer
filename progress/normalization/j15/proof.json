@@ -1,0 +1,46 @@
+{
+  "runtimeCandidate": "0e7825e29532243b867ee344ffd6605b95477b53",
+  "captureBuild": "b-muq140bv",
+  "captureSource": "private HEAD export e0a462fe + J15 runtime files",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "tier": "phone",
+    "touch": true
+  },
+  "workflow": "Title Settings Developer on, close Settings, choose final template dot, Enter world; wait for carousel animation and loading overlay to finish",
+  "banner": {
+    "text": "DEVELOPER ONLY \u00b7 TEMPLATE",
+    "top": 122,
+    "bottom": 145.6875,
+    "minimapBottom": 118.96875
+  },
+  "bootErrors": {
+    "pine-hollow.phone": [],
+    "nalati-grasslands.phone": [],
+    "far-reach.phone": [],
+    "driftwood-isle.phone": [],
+    "nine-dragon-stack.phone": [],
+    "sunscar-dunes.phone": [],
+    "_template.phone": []
+  },
+  "parity": "red; boot errors all green; template HUD/device-save reads intentionally differ; other pose/GPU baselines reported to lead",
+  "browserErrors": [],
+  "checkedParent": "7501007f4f64d22751e9215bbe20db69dea8bf1b",
+  "checks": {
+    "typecheck": "pass",
+    "wholeTreeOxlint": "pass",
+    "fullVitest": {
+      "files": 321,
+      "tests": 2306,
+      "status": "pass"
+    },
+    "focusedVitest": {
+      "files": 4,
+      "tests": 19,
+      "status": "pass"
+    },
+    "checkCss": "pass (existing non-blocking warnings)",
+    "servedViteBuild": "pass"
+  }
+}

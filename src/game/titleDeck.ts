@@ -1,4 +1,4 @@
-import { listenDom, app, setting } from '#engine';
+import { listenDom, app, isDev } from '#engine';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -23,7 +23,7 @@ import './summary.css';
 
 export { travel } from './travel/travel';
 
-export type TitleBadge = 'Early access' | 'Experimental';
+export type TitleBadge = 'Early access' | 'Experimental' | 'Developer only';
 
 /** one shard card. The standalone title art fields are swapped alongside the manifests: src/engine/boot/extras.ts points them at their in-memory copies */
 export interface TitleCard {
@@ -37,15 +37,18 @@ export interface TitleCard {
   heroLandscape: string;
 }
 
-/** Cards are derived at each opening so Debug's hidden-shard pick and preloaded art stay current. */
-export function titleCards(showHidden = setting('showHiddenShards') === 'on'): readonly TitleCard[] {
-  return SHARDS.filter((m) => showHidden || m.status !== 'hidden').map((m): TitleCard => {
+/** Developer mode reveals hidden levels after every player-facing card. */
+export function titleCards(showHidden = isDev()): readonly TitleCard[] {
+  const visible = SHARDS.filter((m) => m.status !== 'hidden');
+  const manifests = showHidden ? [...visible, ...SHARDS.filter((m) => m.status === 'hidden')] : visible;
+  return manifests.map((m): TitleCard => {
     const card: TitleCard = {
     slug: m.slug, name: m.name, label: m.biome,
     thumbnail: m.card.thumb, heroPortrait: m.card.portrait, heroLandscape: m.card.landscape,
     };
     if (m.status === 'earlyAccess') card.badge = 'Early access';
     if (m.status === 'experimental') card.badge = 'Experimental';
+    if (m.status === 'hidden') card.badge = 'Developer only';
     return card;
   });
 }
@@ -103,7 +106,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
         const active = i === activeIndex;
         return `
         <button class="ws-menu-card${active ? ' active' : ''}" type="button" data-i="${i}">
-          <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag${active ? ' ok' : ''}">${active ? 'Loaded' : 'Load'}</i>${c.badge ? `<i class="ws-menu-card-exp${c.badge === 'Early access' ? ' ws-menu-card-ea' : ''}">${c.badge}</i>` : ''}</span>
+          <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag${active ? ' ok' : ''}">${active ? 'Loaded' : 'Load'}</i>${c.badge ? `<i class="ws-menu-card-exp${c.badge === 'Early access' ? ' ws-menu-card-ea' : ''}">${c.badge === 'Developer only' ? GAME_STRINGS.developer.ribbon : c.badge}</i>` : ''}</span>
           <b>${c.name}</b><small>${c.label}</small>
         </button>`;
       }).join('')}</div></div>

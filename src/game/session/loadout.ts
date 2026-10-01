@@ -1,4 +1,5 @@
 import { weaponInputContext, type TrainingArena as Arena, type Weapon, type DiscSpot, type Targets } from '#engine';
+import { GAME_STRINGS } from '../strings';
 import type { worldStage } from './world';
 
 async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
@@ -51,7 +52,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   authoredKit.install?.(weapons);
   await macrotask();
-  const hud = withOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine }));
+  const hud = withOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine, ...(chunk.status === 'hidden' ? { developerBanner: GAME_STRINGS.developer.banner(chunk.slug.replace(/^_/, '')) } : {}) }));
   const shellHud = new Set(document.querySelectorAll('#hud *'));
   game.hudBaseline = shellHud.size;
   game.hudRetained = shellHud;

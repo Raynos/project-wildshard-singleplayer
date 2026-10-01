@@ -555,6 +555,7 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 |---|---|
 | `UiLayers`, `UiLayer`, `UiView`, `UiHandle` | `app.ui`: layers `'hud' · 'gameMenu' · 'menu' · 'modal' · 'error'`. Pushing a view gives it the one Escape / back handler and the pointer lock; z-order comes from the layer |
 | `uiScope`, `mountUi` | a UI scope and mount helper for engine-side views |
+| `isDev`, `setDev`, `onDev` | the saved Developer switch, its current state and live subscription (unsubscribe returned). The game reveals hidden title cards through this switch. |
 | `hudSlots`, `HudBand`, `DiscSpot`, `TouchRelabel` | the one shared HUD. Bands `'band.1'` … `'band.6'`; disc spots `'r0' · 'r1' · 'r2' · 'r3' · 'aim' · 'up0' · 'lean-l' · 'lean-r' · 'edge-r' · 'edge-l' · 'lock' · 'jump'` |
 | `HudVerbs`, `VerbSlotOpts` | the scoped verbs on `ctx.hud` |
 | `TabRegistry`, `TabId`, `TabSpec`, `TabFragment` | the Bag / menu tab registry the game builds on |
@@ -1159,8 +1160,9 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-677 exports, grouped by the module they come from.
+680 exports, grouped by the module they come from.
 
+- `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
 - `./world/terrainField`: `buildTerrain`
 - `./world/bounds`: `installBounds`
