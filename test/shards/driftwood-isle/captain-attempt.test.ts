@@ -11,6 +11,11 @@ describe('Captain terminal attempts', () => {
     f.events.flush('fixed.post'); expect(attempts).toEqual([{ boss: 'boss.captain', level: 'driftwood-isle', outcome: 'won' }]);
     f.scope.dispose();
   });
+  it('a death before the altar cannot prevent the first wake', () => {
+    const f = captainFixture(); expect(f.boss.onPlayerDeath()).toBe(false);
+    f.flags.add('used:altar'); f.boss.update(1 / 60, 0); expect(f.actor.mem['awake']).toBe(1);
+    f.scope.dispose();
+  });
   it('death is lost and returns false; only returning to the arena opens another attempt', () => {
     const f = captainFixture(), attempts: string[] = [];
     f.events.on('boss.attempt', ({ outcome }) => { attempts.push(outcome); }, f.scope);

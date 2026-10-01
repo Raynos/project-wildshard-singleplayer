@@ -60,7 +60,7 @@ export class DrownedCaptain extends BossBrain {
   override disarm(): void { this.finish('left'); this.ui.hideBar(); this.state = 'dormant'; }
   /** No checkpoint, retry card, invulnerability beat, health clamp or arena seal for this fight. */
   override onPlayerDeath(): boolean {
-    if (this.script.inArena(this.ports.player.position)) { this.finish('lost'); this.waitForReturn = true; this.ui.hideBar(); this.state = 'dormant'; }
+    if (this.attempt && this.script.inArena(this.ports.player.position)) { this.finish('lost'); this.waitForReturn = true; this.ui.hideBar(); this.state = 'dormant'; }
     return false;
   }
   override update(dt: number, _t: number): void {

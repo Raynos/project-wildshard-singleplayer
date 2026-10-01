@@ -17,9 +17,10 @@ export function registerLootTable(row: LootTableRow, scope?: Scope): void {
   scope?.onDispose(() => { const i = entries.indexOf(entry); if (i !== -1) entries.splice(i, 1); });
 }
 export function getLootTable(id: string): LootTableRow | undefined {
-  const active = app.levelScope;
-  return entries.slice().reverse().find((entry) => (entry.row.id === id || entry.row.domain === id) && (entry.scope === undefined ||
-    (active !== null && entry.scope.belongsTo(active))))?.row;
+  const active = app.levelScope, ordered = entries.slice().reverse();
+  const matches = (entry: Entry): boolean => entry.row.id === id || entry.row.domain === id;
+  return (active === null ? undefined : ordered.find((entry) => matches(entry) && entry.scope?.belongsTo(active) === true))?.row
+    ?? ordered.find((entry) => matches(entry) && entry.scope === undefined)?.row;
 }
 export function rollLoot(id: string, context: LootContext, next: () => number): TableDrop<string>[] {
   const row = getLootTable(id);

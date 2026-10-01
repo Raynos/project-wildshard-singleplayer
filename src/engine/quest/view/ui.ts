@@ -156,7 +156,6 @@ export class DialogueBox {
   }
 }
 
-/** the boss's health across the top of the screen: name, phase pips, a draining bar (quest encounter) */
 export class RewardCaption {
   readonly root = el('div', 'ws-quest-reward');
   constructor(kicker: string, title: string, sub: string) {

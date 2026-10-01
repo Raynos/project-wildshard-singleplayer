@@ -1,7 +1,7 @@
 import type { ShardContext } from '#game';
 import type { AnimalManager } from '#engine';
 import { DRIFTWOOD_SPECIES, DRIFTWOOD_LOOKS } from '../species/install';
-import { installDriftwoodLootTables } from '../loot/tables';
+import { installDriftwoodLootTables, DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '../loot/tables';
 import { driftwoodWorld } from '../world/build';
 import { PRACTICE_CRAB } from '../manifest';
 import { ISLAND_BOAR, ISLAND_BEAR } from './species';
@@ -13,6 +13,7 @@ export function installDriftwoodCreatures(ctx: ShardContext): void {
   ctx.rows.species([...DRIFTWOOD_SPECIES, ISLAND_BOAR, ISLAND_BEAR]);
   ctx.rows.speciesLook(DRIFTWOOD_LOOKS);
   ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);
+  ctx.rows.lootTable([DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES]);
   installDriftwoodLootTables(ctx.scope);
   const shell = ctx.game.runtime;
   if (shell === undefined) throw new Error('Driftwood creatures require the world host');
