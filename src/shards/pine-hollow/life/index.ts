@@ -55,7 +55,7 @@ import { TrunkProbe } from './trunks';
 import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
-import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
+import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 import { pineOption } from '../debug/options';
 
 export interface PineLifeHost {
@@ -302,11 +302,13 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     r.gy = y;
     flyTo(r, x, y + RAVEN_STAND, z, 7, 1.5, () => { r.mode = 'ground'; r.timer = rng.range(1.5, 4); r.peck = 0; r.pose.pitch = 0.12; r.pose.roll = 0; r.pose.b1 = 0; });
   };
+  const departureEnds = new WeakMap<Bird, number>();
   const flyOff = (r: Bird): void => {
     const p = player.position, dx = r.pose.x - p.x, dz = r.pose.z - p.z, d = Math.hypot(dx, dz) || 1;
     const ang = Math.atan2(dz / d, dx / d) + rng.range(-0.6, 0.6);
     if (r.mode === 'ground') { r.pose.b1 = 0; r.burst = 6; flap(r); }
     flyTo(r, r.pose.x + Math.cos(ang) * 140, r.pose.y + rng.range(35, 50), r.pose.z + Math.sin(ang) * 140, 11, 4, null);
+    departureEnds.set(r, now() + r.dur);
   };
   const dim = (c: Carcass): void => {
     // the hide is off: the body dims a little (its own fur material only; a shared one is never touched)
@@ -600,6 +602,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       if (hidden && inView(x, z, 0.2) && r < 90) continue;
       if (!groundOk(x, z)) continue;
       hr.x = x; hr.z = z; hr.yaw = rng.range(0, TAU); hr.mode = 'graze'; hr.timer = rng.range(1, 4); hr.t = 1; hr.dur = 1; hr.sit = 0;
+      hr.pose.x = x; hr.pose.y = heightAt(x, z); hr.pose.z = z; hr.pose.yaw = hr.yaw;
       return true;
     }
     return false;
@@ -617,14 +620,20 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     }
     hr.fx = hr.x; hr.fz = hr.z; hr.tx = tx; hr.tz = tz; hr.t = 0; hr.dur = dur; hr.h = height;
   };
+  // Re-seating is the ambient population's placement/visibility work, even when its brain is held.
+  const prepareHare = (hr: Hare, dt: number): boolean => {
+    const pp = player.position;
+    const d = Math.hypot(hr.x - pp.x, hr.z - pp.z);
+    if (!hareMayDraw(d, inView(hr.x, hr.z, 0.3))) {
+      hr.retry -= dt;
+      if (hr.retry > 0) return false;
+      if (!seatHare(hr, 45, 85, true)) { hr.retry = 2; hr.x = 1e5; hr.z = 1e5; return false; }
+    }
+    return true;
+  };
   const updateHare = (hr: Hare, dt: number): void => {
     const pp = player.position, p = hr.pose;
     const d = Math.hypot(hr.x - pp.x, hr.z - pp.z);
-    if (d > 130 || (d > 95 && !inView(hr.x, hr.z, 0.3))) {
-      hr.retry -= dt;
-      if (hr.retry > 0) return;
-      if (!seatHare(hr, 45, 85, true)) { hr.retry = 2; hr.x = 1e5; hr.z = 1e5; return; }
-    }
     const scare = player.sprinting ? 20 : player.crouching ? 7 : 12;
     if (hr.mode !== 'flee' && d < scare) { hr.mode = 'flee'; hr.fleeLeft = rng.range(28, 45); hr.zig = 0; hr.yaw = Math.atan2(hr.x - pp.x, hr.z - pp.z); hr.t = hr.dur; }
     else if (hr.mode === 'graze' && d < scare + 10) { hr.mode = 'alert'; hr.timer = rng.range(2, 5); }
@@ -733,6 +742,14 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     const night = sky.dayNight?.night ?? 0, t = now();
     const ambientDt = scheduler.systemDt(ambient, dt);
     if (ambientDt > 0) { updateCarcasses(t, ambientDt); updateCrumbs(night); }
+    // Departure/placement is visibility work: a held brain must not retain a finished fly-off forever.
+    if (wood.mode === 'perch' && Math.hypot(wood.pose.x - player.position.x, wood.pose.z - player.position.z) > 110) {
+      wood.pose.b2 = 0; wood.pose.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30;
+    }
+    for (const subject of [...ravens, owl, wood, ...guides]) {
+      const end = departureEnds.get(subject);
+      if (subject.mode === 'fly' && subject.after === null && end !== undefined && now() >= end) { off(subject); departureEnds.delete(subject); }
+    }
     for (const r of ravens) {
       if (r.mode === 'off') { scheduler.forget(r); continue; }
       const tickDt = scheduler.takeBrainDtAt('fx', r, r.pose);
@@ -752,8 +769,14 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       if (flying(j)) wild.add(j.pose);
     }
     for (const hr of hares) {
+      if (!prepareHare(hr, dt)) { scheduler.forget(hr); continue; }
       const tickDt = scheduler.takeBrainDtAt('fx', hr, hr.x === 1e5 ? player.position : { x: hr.x, y: hr.pose.y, z: hr.z });
-      if (tickDt > 0) updateHare(hr, tickDt); else if (hr.x !== 1e5) wild.add(hr.pose);
+      if (tickDt > 0) updateHare(hr, tickDt);
+      else if (hr.x !== 1e5) {
+        const distance = Math.hypot(hr.x - player.position.x, hr.z - player.position.z);
+        // The fx clock may hold the brain; it must not make a previously culled hare drawable.
+        if (hareMayDraw(distance, inView(hr.x, hr.z, 0.3))) wild.add(hr.pose);
+      }
     }
     wild.commit();
     perfMs = perfMs * 0.95 + (performance.now() - t0) * 0.05;

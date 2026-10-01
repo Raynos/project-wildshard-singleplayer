@@ -6,6 +6,11 @@
 
 export interface PlaceSpot { id: string; x: number; z: number; r: number }
 
+/** A held hare keeps the same distance/view eligibility as one whose brain ticks. */
+export function hareMayDraw(distance: number, inView: boolean): boolean {
+  return distance <= 130 && (distance <= 95 || inView);
+}
+
 /**
  * The breadcrumb's target: the nearest place the journal has not seen yet (stood in), between `min` and `max` metres
  * from (px, pz), and not one you are standing inside. null = nowhere left to point at (or none in reach).

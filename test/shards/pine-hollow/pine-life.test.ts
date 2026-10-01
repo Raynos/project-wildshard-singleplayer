@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, ravenCount, ravenDelay } from '#shards/pine-hollow/life/lifeMath';
+import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay } from '#shards/pine-hollow/life/lifeMath';
 import { trunkSpine } from '#shards/pine-hollow/life/trunks';
 
 describe('Pine Hollow life (PH-M5 / F2)', () => {
+  it('an fx-held hare retains the original view and distance culling boundaries', () => {
+    expect(hareMayDraw(95, false)).toBe(true);
+    expect(hareMayDraw(95.01, false)).toBe(false);
+    expect(hareMayDraw(121, false)).toBe(false);
+    expect(hareMayDraw(121, true)).toBe(true);
+    expect(hareMayDraw(130, true)).toBe(true);
+    expect(hareMayDraw(130.01, true)).toBe(false);
+  });
   const places = [
     { id: 'pond', x: 0, z: 100, r: 20 },
     { id: 'ridge', x: 0, z: -60, r: 15 },
