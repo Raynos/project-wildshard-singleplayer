@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { readJson } from './serve.mjs';
 import { array, object } from './value.mjs';
+import { within } from './timeout.mjs';
 
 export const TOUCH={move:'.ws-touch-zone.move',look:'.ws-touch-zone.look',dodge:'.ws-touch-disc.dodge',use:'.ws-touch-use',pause:'.ws-touch-pause',attack:'.ws-touch-attack'};
 /** Dispatch actual touch pointers through the controls' existing handlers.
@@ -46,7 +47,8 @@ export async function walk(page,opts) {
     if(!opts.full && object(v).gate!==true)continue;
     const raw=/** @type {unknown} */ (v);
     const route=/** @type {import('../types/wildshard-probe.d.ts').WalkLeg} */ (raw);
-    legs.push(await page.evaluate((leg)=>window.__wildshard.walkLeg(leg),route));
+    console.error(`parity: ${opts.shard}.${opts.tier} walk ${route.name}`);
+    legs.push(await within(page.evaluate((leg)=>window.__wildshard.walkLeg(leg),route),240000,`walk ${route.name}`));
   }
   if(opts.full) {
     const trails=await page.evaluate(()=> {

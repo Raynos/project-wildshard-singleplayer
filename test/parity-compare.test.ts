@@ -61,4 +61,31 @@ describe('parity comparison', () => {
     expect(rows(fixture,n,{quarantine:[q],now:'2026-09-30'}).verdict).toBe('green');
     expect(rows(fixture,n,{quarantine:[q],now:'2026-10-04'}).verdict).toBe('red');
   });
+  it('keeps vector bands independent per axis and compares filled vectors to expected values',()=>{
+    const b=clone();b['spread']={...b['spread'] as RecordValue,'poses.gate.pos':[0.1,0,0.2]};
+    const n=clone();n['poses']=[{name:'gate',calls:100,tris:10000,pos:[0.2,1.01,0.4],ssim:1}];
+    expect(rows(b,n).rows.find((r)=>r.field==='poses.gate.pos')?.verdict).toBe('red');
+    n['poses']=[{name:'gate',calls:100,tris:10000,pos:[10.2,1,0.4],ssim:1}];
+    expect(rows(b,n,{pending:[{id:'P2',shard:'pine-hollow',fields:['poses.gate.pos'],expect:{'phone/poses.gate.pos':[10,1,0]}}]}).verdict).toBe('pending');
+  });
+  it('fails on an added event sound and survives a changed informational time',()=>{
+    const n=clone();n['walk']={...n['walk'] as RecordValue,sounds:{event:{step:5,extra:1},ambient:['forest.thrall']}};
+    expect(rows(fixture,n).rows.find((r)=>r.field==='walk.sounds.event')?.verdict).toBe('red');
+    const clean=clone();clean['boot']={...clean['boot'] as RecordValue,playMs:90000};
+    expect(rows(fixture,clean).verdict).toBe('green');
+  });
+  it('uses the recorded image band around a filled pending image value',()=>{
+    const n=clone();n['poses']=[{name:'gate',calls:100,tris:10000,pos:[0,1,0],ssim:0.885}];
+    const pending: RecordValue[]=[{id:'P3',shard:'pine-hollow',fields:['poses.gate.ssim'],expect:{'phone/poses.gate.ssim':0.9}}];
+    expect(rows(fixture,n,{pending}).verdict).toBe('pending');
+    n['poses']=[{name:'gate',calls:100,tris:10000,pos:[0,1,0],ssim:0.86}];
+    expect(rows(fixture,n,{pending}).verdict).toBe('red');
+  });
+  it('holds kill limits, pause state, leak census and budgets without a baseline',()=>{
+    const n=clone();n['combat']={shot:{hits:1,hitWithinS:1,hitLimit:20,killed:false,killWithinS:null,killLimit:20}};
+    n['pauseResume']={diff:['player.vel'],appStates:['paused','play']};
+    n['leak']={before:{geometries:1},after:{geometries:2}};
+    n['budgets']={gate:{derived:{draws:99},ceiling:null}};
+    expect(rows({},n).rows.filter((r)=>r.verdict==='red').map((r)=>r.field)).toEqual(['combat.shot','pauseResume','leak.geometries','budgets.gate.draws']);
+  });
 });

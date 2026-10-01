@@ -43,6 +43,16 @@ export function floorFor(field, baseline) {
 }
 /** @param {string} p */
 function measured(p) { return /^(boot\.(render\.(programs|memory\.)|gpuBytes\.)|poses\.[^.]+\.(pos|calls$|tris$)|walk\.legs\.[^.]+\.(end|maxY$)|combat\.hitsToKill)/.test(p); }
+/** @param {Value|undefined} expected @param {Value|undefined} actual @param {Value|undefined} noise @param {string} field */
+function numericBand(expected,actual,noise,field) {
+  const width=/** @param {number} v @param {number} spread */(v,spread)=>spread===0?0:2*spread+floorFor(field,v);
+  if(Array.isArray(expected)) {
+    const widths=expected.map((v,i)=>width(number(v),number(Array.isArray(noise)?noise[i]:noise??0)));
+    return {pass:Array.isArray(actual)&&expected.length===actual.length&&expected.every((v,i)=>Number.isFinite(number(actual[i]))&&Math.abs(number(actual[i])-number(v))<=widths[i]),band:`± ${JSON.stringify(widths)}`};
+  }
+  const band=width(number(expected),number(noise??0));
+  return {pass:typeof actual==='number'&&Number.isFinite(actual)&&Math.abs(actual-number(expected))<=band,band:`± ${band}`};
+}
 /** @param {string} p */
 function info(p) { return /^(harness$|sha$|recorded$|browser$|spread|selfMin|verdict|boot\.(sha|build|browser|playMs|stepMs|heapMB)|poses\.[^.]+\.(fps|frameP|cpuP|frames|creatureBoxes|boxes|shot)|walk\.legs\.[^.]+\.(seconds|trace)|leak\.scope)/.test(p); }
 /** @param {RecordValue} value */
@@ -75,6 +85,7 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
   const shard = string(get(current, 'boot.shard')), tier = string(get(current, 'boot.tier')), lane = string(get(current, 'boot.lane'));
   /** @param {string} field @param {Value|undefined} before @param {Value|undefined} now @param {string} cls @param {boolean} pass @param {string} band */
   function emit(field, before, now, cls, pass, band) {
+    if(cls!=='D' && (options.ignore??[]).some((p)=>matches(p,field)))return;
     let verdict = pass ? 'green' : 'red';
     if (cls === 'C') verdict = 'info';
     else if (cls !== 'D') {
@@ -82,7 +93,7 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
       if (pending) {
         const expect = object(pending.expect)[`${tier}/${field}`];
         if (lane !== 'm5' || pending.expect === null || expect === undefined) verdict = 'pending';
-        else { const width = measured(field) ? number(spreads[field]) > 0 ? 2 * number(spreads[field]) + floorFor(field, number(before)) : 0 : 0; verdict = typeof now === 'number' && typeof expect === 'number' && measured(field) ? Math.abs(now - expect) <= width ? 'pending' : 'red' : equal(now, expect) ? 'pending' : 'red'; }
+        else { const imageBand=/^poses\.[^.]+\.ssim$/.test(field)?1-Math.min(0.99,number(selfMin[field.split('.')[1]??'']??1)-0.01):null;const inside=imageBand!==null?typeof now==='number'&&Math.abs(now-number(expect))<=imageBand:measured(field)?numericBand(expect,now,spreads[field],field).pass:equal(now,expect);verdict=inside?'pending':'red'; }
       } else if (before === undefined) verdict = 'new';
       if (options.lanePending) verdict = 'lane-pending';
       if ((options.quarantine ?? []).some((e) => string(e.id) === `${shard}/${tier}/${field}`)) verdict = 'quarantined';
@@ -135,9 +146,8 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
       emit(path, a, b, 'B', number(b) >= limit, `≥ ${limit}`); continue;
     }
     if (measured(path) && (typeof a === 'number' || Array.isArray(a))) {
-      const spread = number(spreads[path] ?? 0), width = spread === 0 ? 0 : 2 * spread + floorFor(path, number(a));
-      const pass = Array.isArray(a) ? Array.isArray(b) && a.length === b.length && a.every((v, i) => Math.abs(number(v) - number(b[i])) <= width) : typeof b === 'number' && Number.isFinite(b) && Math.abs(b - a) <= width;
-      emit(path, a, b, 'B', pass, `± ${width}`);
+      const band=numericBand(a,b,spreads[path],path);
+      emit(path, a, b, 'B', band.pass, band.band);
     } else emit(path, a, b, 'A', equal(a, b), 'exact');
   }
   return {verdict: rows.some((r) => r.verdict === 'red') ? 'red' : rows.some((r) => r.verdict === 'lane-pending') ? 'lane-pending' : rows.some((r) => r.verdict === 'pending') ? 'pending' : 'green', rows};

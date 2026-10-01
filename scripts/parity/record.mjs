@@ -13,7 +13,7 @@ export async function aggregate(page,runs,meta) {
     if(typeof v==='number') {const values=records.map((r)=>number(get(r,path)));if(values.every(Number.isFinite)){set(base,path,percentile(values));spread[path]=Math.max(...values)-Math.min(...values);}}
     else if(Array.isArray(v) && v.every((x)=>typeof x==='number')) {
       const vectors=records.map((r)=>array(get(r,path))),ranges=v.map((_,i)=>{const values=vectors.map((vec)=>number(vec[i]));return Math.max(...values)-Math.min(...values);});
-      set(base,path,v.map((_,i)=>percentile(vectors.map((vec)=>number(vec[i])))));spread[path]=Math.max(...ranges);
+      set(base,path,v.map((_,i)=>percentile(vectors.map((vec)=>number(vec[i])))));spread[path]=ranges;
     }
     else if(path.endsWith('.ambient'))set(base,path,array(v).filter((id)=>records.every((r)=>array(get(r,path)).includes(id))));
   }

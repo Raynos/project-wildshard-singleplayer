@@ -49,7 +49,7 @@ export async function combat(page,opts) {
 export async function pauseResume(page,tier) {
   const returnState=await page.evaluate(()=>window.__wildshard.state().appState);
   await (tier==='phone'?touch(page,TOUCH.pause):page.keyboard.press('Escape'));
-  await page.locator('#menu').waitFor({state:'visible'});
+  await page.locator('.ws-gmenu.show').waitFor({state:'visible'});
   const before=await page.evaluate(()=>window.__wildshard.state());await page.waitForTimeout(2000);
   // Arm before input, but never await the callback before clicking RESUME.
   await page.evaluate(()=>{const w=/** @type {Window & {__parityResumed?:unknown}} */ (window);w.__parityResumed=null;window.__wildshard.onResume(()=>{w.__parityResumed=window.__wildshard.state();});});

@@ -13,6 +13,7 @@ import { walk } from './parity/walk.mjs';
 import { combat, pauseResume } from './parity/combat.mjs';
 import { aggregate, imageScore, writeBaseline } from './parity/record.mjs';
 import { array, flatten, get, object, set, string } from './parity/value.mjs';
+import { within } from './parity/timeout.mjs';
 
 /** @typedef {import('./parity/value.mjs').RecordValue} RecordValue */
 const ROOT=resolve(import.meta.dirname,'..');
@@ -35,11 +36,10 @@ function parse(argv) {
 /** @param {string} sha @param {string} shard */
 function lanePending(sha,shard) {
   const lock=object(gitJson(`${sha}:.github/lock.json`));
-  if(!array(lock.reopened).some((v)=>string(v)===shard))return false;
+  if(!Object.hasOwn(object(lock.reopened),shard))return false;
   const base=execFileSync('git',['log','-1','--format=%H',sha,'--',`test/parity/baselines/m5/${shard}.*`],{cwd:ROOT,encoding:'utf8'}).trim() || execFileSync('git',['log','-1','--format=%H',sha,'--','.github/lock.json'],{cwd:ROOT,encoding:'utf8'}).trim();
   if(!base)return false;
-  const allow=array(object(lock.allowlist)[shard]).map(string).filter((p)=>!p.startsWith('docs/')&&!p.startsWith('art/')&&!p.startsWith('test/parity/baselines/'));
-  const paths=allow.length > 0?allow:[`src/shards/${shard}`,`public/assets/baked/${shard}`,`test/shards/${shard}`];
+  const paths=[`src/shards/${shard}`,`test/shards/${shard}`,`scripts/blender/${shard}`,`public/assets/${shard}`,`public/assets/gpu/${shard}`,`public/assets/baked/${shard}`,`public/assets/gpu/baked/${shard}`,`public/assets/music/${shard}`,`public/assets/sfx/${shard}`,`public/assets/horizon/${shard}-*`,`public/assets/gpu/horizon/${shard}-*`,`public/assets/lut/${shard}.bin`,`public/assets/title/${shard}-portrait.jpg`,...array(object(lock.reopened)[shard]).map(string).filter((p)=>!p.startsWith('docs/')&&!p.startsWith('art/')&&!p.startsWith('test/parity/baselines/'))].map((p)=>`:(glob)${p.endsWith('**')||p.includes('*')||p.includes('.')?p:`${p}/**`}`);
   const log=execFileSync('git',['log','--format=%B%x00',`${base}..${sha}`,'--',...paths],{cwd:ROOT,encoding:'utf8'});
   return log.split('\0').some((m)=>m.trim() && !/^E357-Lead: yes$/m.test(m));
 }
@@ -53,6 +53,7 @@ function report(reports,sha,out,ms) {
 }
 /** @param {import('playwright').Browser} browser @param {string} url @param {{shard:string,tier:string,lane:string,sha:string,root:string,out:string,timeout:number,full:boolean,only:string|undefined,offline:boolean}} opts */
 async function capture(browser,url,opts) {
+  console.error(`parity: ${opts.shard}.${opts.tier} boot`);
   const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:opts.offline?'allow':'block'}:{viewport:{width:1600,height:900},deviceScaleFactor:1,serviceWorkers:opts.offline?'allow':'block'});
   try {
     await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version()});await debugSettings(context,{time:'midday',weather:'clear'});
@@ -60,7 +61,7 @@ async function capture(browser,url,opts) {
     /** @type {string[]} */const errors=[];page.on('pageerror',(e)=>{if(relevantError(e.message))errors.push(e.message);});page.on('console',(m)=>{if(m.type()==='error'&&relevantError(m.text()))errors.push(m.text());});
     const params=new URLSearchParams({chunk:opts.shard,tier:opts.tier,skipintro:'1',nolock:'1',mute:'1',weather:'clear',...opts.tier==='phone'?{touch:'1'}:{},...opts.offline?{}:{sw:'0'}});
     if(opts.offline){
-      const title=new URL(url);await page.goto(title.toString());await page.waitForFunction(async()=>Boolean(navigator.serviceWorker.controller)&&(await caches.keys()).length>0);await page.waitForTimeout(3000);await context.setOffline(true);await page.reload();await page.locator('.ws-intro-enter').waitFor({state:'visible'});
+      const title=new URL(url);title.searchParams.set('chunk',opts.shard);title.searchParams.set('tier',opts.tier);if(opts.tier==='phone')title.searchParams.set('touch','1');await page.goto(title.toString());await page.waitForFunction(()=>Boolean(window.__wildshard)&&!document.querySelector('.ws-load'));await page.waitForFunction(async()=>Boolean(navigator.serviceWorker.controller)&&(await navigator.serviceWorker.ready).active?.state==='activated');await context.setOffline(true);await page.reload();await page.locator('.ws-menu-play').waitFor({state:'visible'});
     }
     await page.goto(`${url}/?${params}`);
     await page.waitForFunction(()=>Boolean(window.__wildshard) || Boolean(window.__wildshardHarness?.errors?.length),undefined,{timeout:opts.timeout*1000}).catch((/** @type {unknown} */ e)=> {if(errors.length === 0)throw e;});
@@ -70,10 +71,14 @@ async function capture(browser,url,opts) {
     /** @type {RecordValue} */const result={boot:object(boot)};
     if(errors.length > 0)return result;
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
-    if(opts.offline){await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.waitForFunction(()=>Boolean(document.querySelector('.ws-explore')));result.offline={title:true,play:true,explore:true};return result;}
-    if(opts.only!=='walk+combat+leak')result.poses=await poses(page,opts);
+    if(opts.offline){await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};return result;}
+    if(opts.only!=='walk+combat+leak'){console.error(`parity: ${opts.shard}.${opts.tier} poses`);result.poses=await within(poses(page,opts),opts.timeout*1000,'poses');}
+    writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
     if(opts.only!=='fingerprint+poses') {
-      result.walk=object(await walk(page,opts));result.combat=await combat(page,opts);result.pauseResume=object(await pauseResume(page,opts.tier));
+      console.error(`parity: ${opts.shard}.${opts.tier} walk`);result.walk=object(await within(walk(page,opts),opts.timeout*1000*(opts.full?10:1),'walk'));
+      writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
+      console.error(`parity: ${opts.shard}.${opts.tier} combat`);result.combat=await within(combat(page,opts),opts.timeout*1000,'combat');
+      console.error(`parity: ${opts.shard}.${opts.tier} pause/resume`);result.pauseResume=object(await within(pauseResume(page,opts.tier),opts.timeout*1000,'pause/resume'));
       const optional=await page.evaluate(async()=>{const p=/** @type {typeof window.__wildshard & {leak?:()=>Promise<unknown>,budgets?:()=>unknown}} */(window.__wildshard);return {leak:p.leak?await p.leak():null,budgets:p.budgets?.()??null};});
       if(optional.leak)result.leak=object(optional.leak);if(optional.budgets)result.budgets=object(optional.budgets);
     }
@@ -153,14 +158,15 @@ async function main(opts) {
       const baselineNormalized=normalize(baseline);let currentNormalized=normalize(current);
       /** @param {RecordValue} row */
       const scorePoses=async(row)=>{for(const [name,p]of Object.entries(object(row.poses))){const golden=join(root,`test/parity/baselines/${lane}/${shard}.${tier}.${name}.jpg`);if(existsSync(golden)){const score=await imageScore(scorePage,golden,string(object(p).shot),[.../** @type {number[][]} */(array(get(baselineNormalized,`poses.${name}.boxes`))),.../** @type {number[][]} */(array(object(p).boxes))]);object(p).ssim=score.ssim??0;if((score.ssim??0)<0.99&&score.diffBase64)writeFileSync(join(out,`${shard}.${tier}.${name}.diff.png`),Buffer.from(score.diffBase64,'base64'));}}};
-      if(!isRecord)await scorePoses(currentNormalized);
+      if(!isRecord || opts.accept)await scorePoses(currentNormalized);
       let checked=compare(isRecord&&!opts.accept?{}:baseline,currentNormalized,options);
       if(isRecord&&!opts.accept)for(const r of rawRuns){const consistency=compare(current,normalize(r),{...options,ignore:[...ignore,...Object.keys(flatten(current)).filter((p)=>p.endsWith('.ssim'))]});if(consistency.verdict==='red')checked=consistency;}
+      if(isRecord&&opts.accept)for(const r of rawRuns){const normalized=normalize(r);await scorePoses(normalized);const consistency=compare(baseline,normalized,options);if(consistency.verdict==='red')checked=consistency;}
       if(!isRecord&&checked.verdict==='red'&&retry){const firstRed=checked.rows.filter((r)=>r.verdict==='red').map((r)=>r.field),dir=join(out,'retry');mkdirSync(dir,{recursive:true});const again=normalize(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline)}));await scorePoses(again);const retried=compare(baseline,again,options);checked=retried;currentNormalized=again;if(retried.verdict!=='red')currentNormalized.flaked=firstRed;}
       currentNormalized.verdict=checked.verdict;currentNormalized.fields=checked.rows.map((r)=>object(r));reports.push(currentNormalized);
       for(const [name,p] of Object.entries(object(currentNormalized.poses)))if(existsSync(string(object(p).shot)))copyFileSync(string(object(p).shot),join(out,`${shard}.${tier}.${name}.jpg`));
       writeFileSync(join(out,`${shard}.${tier}.json`),`${JSON.stringify(currentNormalized,null,2)}\n`);report(reports,sha,out,Boolean(opts.ms));
-      if(isRecord){let next=current;if(opts.accept){next=structuredClone(baselineNormalized);for(const field of fields){for(const [path,value] of Object.entries(flatten(current)))if(matches(field,path)&&value!==undefined)set(next,path,value);}next.spread=current.spread;next.selfMin=current.selfMin;next.sha=sha;next.recorded=new Date().toISOString();}writes.push({shard,tier,baseline:next,fields:opts.accept?fields:undefined});}
+      if(isRecord){let next=current;if(opts.accept){next=structuredClone(baselineNormalized);for(const field of fields){for(const [path,value] of Object.entries(flatten(current)))if(matches(field,path)&&value!==undefined)set(next,path,value);for(const [path,value] of Object.entries(object(current.spread)))if(matches(field,path)&&value!==undefined)object(next.spread)[path]=value;for(const [pose,value]of Object.entries(object(current.selfMin)))if(matches(field,`poses.${pose}.ssim`)&&value!==undefined)object(next.selfMin)[pose]=value;}for(const [pose,value]of Object.entries(object(next.poses)))if(fields.some((field)=>matches(field,`poses.${pose}.ssim`))) {object(value).shot=get(current,`poses.${pose}.shot`);object(value).boxes=get(current,`poses.${pose}.boxes`);}next.sha=sha;next.recorded=new Date().toISOString();}writes.push({shard,tier,baseline:next,fields:opts.accept?fields:undefined});}
       if(opts['pending-fill'])for(const entry of selected.filter((p)=>p.shard===shard)){if(array(entry.fields).every((p)=>string(p).startsWith('memory.')))continue;const expect=object(entry.expect);for(const field of array(entry.fields).map(string))for(const [path,val]of Object.entries(flatten(currentNormalized)))if(matches(field,path)&&val!==undefined)expect[`${tier}/${path}`]=val;entry.expect=expect;}
     }
     await scoreContext.close();
