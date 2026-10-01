@@ -215,8 +215,10 @@ export class WeldBatch extends THREE.Mesh {
  * the batch is hidden (Explore's isolation hides the root's siblings, the batch among them).
  */
 export class WeldView extends THREE.Mesh {
-  constructor(geometry: THREE.BufferGeometry, material: THREE.Material | THREE.Material[], private readonly batch: WeldBatch) {
+  private readonly batch: WeldBatch;
+  constructor(geometry: THREE.BufferGeometry, material: THREE.Material | THREE.Material[], batch: WeldBatch) {
     super(geometry, material);
+    this.batch = batch;
   }
   /** the renderer's own test for this copy's part (the batch's culling asks it) */
   inFrustum(frustum: THREE.Frustum | THREE.FrustumArray): boolean { return super.intersectsFrustum(frustum); }
