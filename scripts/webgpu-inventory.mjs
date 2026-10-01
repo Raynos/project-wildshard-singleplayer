@@ -90,7 +90,13 @@ if (process.argv[1] === import.meta.filename) {
   const want = render(), path = join(ROOT, DOC);
   if (process.argv.includes('--check')) {
     const have = existsSync(path) ? readFileSync(path, 'utf8') : '';
-    if (have !== want) { console.error(`${DOC} is stale: run node scripts/webgpu-inventory.mjs`); process.exitCode = 1; }
+    if (have !== want) {
+      // print the differing lines so a CI-only staleness (a file the runner sees and the Mac doesn't) names itself
+      const a = new Set(have.split('\n')), b = new Set(want.split('\n'));
+      for (const line of b) if (!a.has(line)) console.error(`+ ${line}`);
+      for (const line of a) if (!b.has(line)) console.error(`- ${line}`);
+      console.error(`${DOC} is stale: run node scripts/webgpu-inventory.mjs`); process.exitCode = 1;
+    }
     else console.log(`${relative(ROOT, path)} is current`);
   } else { writeFileSync(path, want); console.log(`wrote ${DOC}`); }
 }
