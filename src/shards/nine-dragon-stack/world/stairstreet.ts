@@ -26,7 +26,8 @@ import { buildGuardProcedural } from './hero/weapon-parts';
 import { K, Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { PLAZA, STAIR, Y0 } from '../layout';
-import { MIN, NEON, Rng } from '../util';
+import { MIN, NEON } from '../util';
+import { Rng } from '#engine';
 
 // ── the plan: three flights of 20 steps, two 4 m landings, the top landing ──
 

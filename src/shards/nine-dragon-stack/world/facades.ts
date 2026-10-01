@@ -1,3 +1,4 @@
+import type { Rng } from '#engine';
 // The Kowloon wall generator: a wall plane filled with bays of stacked blocks at random setbacks, each ruled with its
 // windows, then dressed with balconies, window cages, air-con boxes, pipes and laundry. Used for the towers around the
 // square and for the four walls of the Yamen Well, top to bottom.
@@ -7,7 +8,7 @@ import { E, K, type Look } from './kit';
 import { hipRoof } from './square';
 import { Y0 } from '../layout';
 import { SIGN_WORDS } from './words';
-import { NEON, WALL, chars, type Rng } from '../util';
+import { NEON, WALL, chars } from '../util';
 
 const AWNINGS = [0xc23b22, 0x2e5fa3, 0x2f8a6a, 0xd9a441, 0xe8dfc9, 0x8a3a6a, 0xc23b22] as const;
 const SIGNCOLS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, 0xff7a2a] as const;

@@ -8,3 +8,4 @@ export { Events, EVENT_FLUSH_LIMIT, type ListenerOptions } from './events/events
 export type { EventMap, AskMap, TagMap, Tag, FaultEvent, AskInput, AskOutput } from './events/maps';
 export { hasTag } from './events/tags';
 export { GameClock } from './core/clock';
+export { Rng, RngService, fnv1a32, pageSeed, type RngStream } from './core/rng';

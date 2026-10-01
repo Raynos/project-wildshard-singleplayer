@@ -1,3 +1,5 @@
+import { app } from '#engine/app/runtime';
+import { pageSeed } from '#engine';
 import { legacyShardId, meleeShard, hitDamage } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
 import { tap } from '#engine/core/harnessTap';
@@ -178,6 +180,7 @@ const TITLE_IDLE_MS = 1200;
 const SHARD_CAP = 1;
 
 async function main() {
+  app.rng.seed(pageSeed(getActiveChunk().seed, window.__wildshardHarness?.seed));
   const selected = getActiveChunk().slug;
   // Consume the title's one-shot intent before building. A WebContent crash cannot replay it.
   bootArrival = consumeTitleArrival(selected);

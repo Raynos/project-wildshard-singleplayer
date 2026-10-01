@@ -25,7 +25,8 @@ import { dragonHook } from './props';
 import { hipRoof } from './square';
 import { WORDS } from './towers';
 import { stand } from './well-galleries';
-import { NEON, Rng, clamp } from '../util';
+import { NEON, clamp } from '../util';
+import { Rng } from '#engine';
 
 export type BridgeKind = 'stone' | 'timber' | 'steel' | 'covered' | 'gate';
 

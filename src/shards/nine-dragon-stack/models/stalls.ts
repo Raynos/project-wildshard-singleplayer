@@ -19,7 +19,7 @@ import { Ctx } from '../world/ctx';
 import { merge } from '../world/hero/kitx';
 import { NoSigns, ndLook, need } from '../world/modelLook';
 import { type StallRect, centred, hawkerStall, noodleStall } from '../world/stalls';
-import { Rng } from '../util';
+import { Rng } from '#engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/stalls.ts';
 

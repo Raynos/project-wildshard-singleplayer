@@ -13,7 +13,7 @@ import { SURF } from '../look/paint';
 import { laundry, stool } from './props';
 import { NEONS, WORDS } from './towers';
 import { Y0 } from '../layout';
-import { Rng } from '../util';
+import { Rng } from '#engine';
 
 export const FLOOR_H = 3;
 const UP = new Vector3(0, 1, 0);

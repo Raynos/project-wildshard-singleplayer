@@ -24,7 +24,7 @@ import {
 } from 'three';
 import { type Emitter, bakeSpill } from '../look/emitters';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from '../look/style';
-import { Rng } from '../util';
+import { Rng } from '#engine';
 import { phoneUrl } from '#engine/boot/bytes';
 import { ktx2Texture } from '#engine/core/ktx2';
 

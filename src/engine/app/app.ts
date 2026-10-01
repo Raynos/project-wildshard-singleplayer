@@ -1,5 +1,6 @@
+import { RngService } from '../core/rng';
 import { Events } from '../events/events';
-import type { GameClock } from '../core/clock';
+import { GameClock } from '../core/clock';
 import type { AssetService } from './assets';
 import type { Scope } from './scope';
 import { PHASES, sortSystems, type AppState, type Phase, type SystemSpec } from './systems';
@@ -15,7 +16,8 @@ export class App {
   private transitioning = false;
   private transitions: AppState[] = [];
   readonly events: Events;
-  clock?: GameClock;
+  readonly clock = new GameClock();
+  readonly rng = new RngService();
   assets?: AssetService;
 
   constructor(events = new Events()) { this.events = events; }

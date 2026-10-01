@@ -16,7 +16,7 @@
 import { Color, Matrix4, Vector3, Vector4 } from 'three';
 import { Builder, E, K, type Look } from './geo';
 import { BALCONY_W, CAGE_W, PAL, type PieceId } from './pieces';
-import { Rng } from './rng';
+import { Rng } from '#engine';
 
 export interface TowerSpec {
   /** footprint centre (world) */
@@ -128,7 +128,7 @@ class Emit {
   lattice = false;
   /** E281 round 2: the near-face clutter's own stream (a fork per face: the grammar's rolls are untouched, so no wall
    *  re-rolls and no sign slot moves) */
-  rx: Rng = new Rng(1);
+  rx: Rng = Rng.scrambled(1);
   /** when set, windows draw their states from it instead of the tower's stream (the clutter's hung rooms) */
   winR: Rng | null = null;
   /** no sign slots from this tower (DressOptions.signs) */
@@ -185,7 +185,7 @@ class Emit {
  * merged shell geometry. Faces not in `tower.faces` get a painted shell (floors + a lit-window pattern, no pieces).
  */
 export function dressTower(t: TowerSpec, seed: number, opt: DressOptions = {}, out: Dressing = new Dressing()): Dressing {
-  const rng = new Rng(seed);
+  const rng = Rng.scrambled(seed);
   const fh = opt.floorH ?? 3;
   const bayW = opt.bayW ?? 4;
   const dens = opt.density ?? 1;
@@ -861,7 +861,7 @@ function roofClutter(em: Emit, x0: number, x1: number, z0: number, z1: number, y
  * bundle of cables, a laundry line with the wash on it, or a string of red lanterns. a / b are the two anchor points.
  */
 export function spanStreet(d: Dressing, a: Vector3, b: Vector3, seed: number): void {
-  const rng = new Rng(seed);
+  const rng = Rng.scrambled(seed);
   const kind = rng.weighted<'cables' | 'laundry' | 'lanterns'>([['cables', 0.62], ['laundry', 0.16], ['lanterns', 0.22]]);
   const dropM = a.distanceTo(b) * rng.range(0.04, 0.09);
   const side = new Vector3().subVectors(b, a).cross(up).normalize();

@@ -22,10 +22,12 @@ export class GameClock {
     this.captureFps = fps;
   }
 
+  delta(dtSeconds: number): number { return this.captureFps === null ? dtSeconds : 1 / this.captureFps; }
+
   /** Returns the unscaled frame delta; real time is deterministic in capture mode too. */
   tick(dtSeconds: number): number {
     if (!Number.isFinite(dtSeconds) || dtSeconds < 0) throw new RangeError('Frame delta must be finite and nonnegative');
-    const delta = this.captureFps === null ? dtSeconds : 1 / this.captureFps;
+    const delta = this.delta(dtSeconds);
     this.frames++;
     this.wall += delta;
     if (!this.paused) this.elapsed += delta * this.scale;

@@ -27,7 +27,8 @@ import { FACE_N, FACE_S, FAR_X, FLIGHTS, type Hole, LANDINGS, RISE, RUN, SQ_BACK
 import { SURF } from '../look/paint';
 import { SignBuilder, type SignPlace } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
-import { MIN, NEON, Rng } from '../util';
+import { MIN, NEON } from '../util';
+import { Rng } from '#engine';
 
 // ── looks ──
 const STEP_TOP: Look = { wash: 0x51545a, kind: K.flag, wet: 1, line: 1.8 };

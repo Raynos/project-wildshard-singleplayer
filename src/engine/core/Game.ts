@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
@@ -113,6 +114,7 @@ function releaseComposerTargets(composer: object, allocated: (rt: unknown) => bo
 }
 
 export class Game {
+  readonly app = app;
   renderer: THREE.WebGLRenderer;
   scene = new THREE.Scene();
   camera: THREE.PerspectiveCamera;
@@ -634,11 +636,14 @@ export class Game {
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
       forceFrame = false;
       this.renderer.info.reset();
-      const realDt = Math.min(0.1, this.clock.getDelta());
-      const t = this.clock.elapsedTime;
+      const liveDt = Math.min(0.1, this.clock.getDelta());
+      const realDt = this.app.clock.delta(liveDt);
+      const t = this.app.clock.mode === 'capture' ? this.app.clock.real + realDt : this.clock.elapsedTime;
       // world time scale (hit-stop): updaters see the scaled step, realDt stays in worldTime for particles / camera
       let scale = 1;
       if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = HIT_STOP_SCALE; }
+      this.app.clock.timeScale = scale;
+      this.app.clock.tick(liveDt);
       worldTime.scale = scale; worldTime.realDt = realDt;
       const dt = realDt * scale;
       this._frameTime += dt;

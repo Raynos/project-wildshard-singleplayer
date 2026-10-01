@@ -13,7 +13,7 @@ import { defineModel, type ModelContext, type ModelPart } from '#engine/models/m
 import type { ColliderDesc } from '#engine/world/registry';
 import { BOOTH, PAV, boothSet, parasolSet, pavilionSet } from '../world/stalls';
 import { ndLook, need } from '../world/modelLook';
-import { Rng } from '../util';
+import { Rng } from '#engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/market.ts';
 

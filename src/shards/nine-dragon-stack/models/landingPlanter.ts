@@ -10,7 +10,7 @@ import { defineModel } from '#engine/models/model';
 import { Kit } from '../world/kit';
 import { PLANTER, landingPlanter } from '../world/stairstreet-upper';
 import { ndLook, need } from '../world/modelLook';
-import { Rng } from '../util';
+import { Rng } from '#engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/landingPlanter.ts';
 

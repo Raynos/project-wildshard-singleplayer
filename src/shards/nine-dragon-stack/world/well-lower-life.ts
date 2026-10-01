@@ -22,7 +22,7 @@ import { SURF } from '../look/paint';
 import { NEONS, WORDS } from './towers';
 import { hungLine } from './props';
 import { Y0 } from '../layout';
-import { Rng } from '../util';
+import { Rng } from '#engine';
 import { FLOOR_H, type GalleryKits, type GalleryProfile } from './well-galleries';
 
 const UP = new Vector3(0, 1, 0);

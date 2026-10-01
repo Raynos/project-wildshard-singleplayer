@@ -19,7 +19,8 @@ import { Y0 } from '../layout';
 import { FLAG, PAINT_GLSL, paintUniforms } from './paint';
 // the baked light volume (lab P6): warm pools from every lantern, shop, lamp, sign and lit window
 import { LIGHTVOL_GLSL, lightVolUniforms } from './light/lightvol';
-import { METAL, Rng, SUTRA } from '../util';
+import { METAL, SUTRA } from '../util';
+import { Rng } from '#engine';
 
 const c = (hex: number): Color => new Color(hex);
 

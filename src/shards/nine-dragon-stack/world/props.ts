@@ -1,9 +1,10 @@
+import type { Rng } from '#engine';
 // Small props, all ruled: people (brush-dark coats), mahjong tables, stools, scooters, the dragon hooks (the only gold in
 // reach, reserved for the grapple), laundry, pipes; plus the instanced lantern and air-con kit pieces.
 import { Box3, Vector3 } from 'three';
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
-import { METAL, type Rng } from '../util';
+import { METAL } from '../util';
 
 const rot = (ox: number, oz: number, r: number): [number, number] => [ox * Math.cos(r) + oz * Math.sin(r), -ox * Math.sin(r) + oz * Math.cos(r)];
 
