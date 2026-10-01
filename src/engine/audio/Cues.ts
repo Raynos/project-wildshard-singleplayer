@@ -92,7 +92,7 @@ export class CuePlayer {
       if (!ended) source.stop();
       source.disconnect(); gain.disconnect(); pan.disconnect();
     });
-    source.addEventListener('ended', () => { ended = true; forget(); source.disconnect(); gain.disconnect(); pan.disconnect(); }, { once: true });
+    this.scope.listen(source, 'ended', () => { ended = true; forget(); source.disconnect(); gain.disconnect(); pan.disconnect(); }, { once: true });
     source.start(ctx.currentTime, clip.offset, clip.duration);
     return true;
   }

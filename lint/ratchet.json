@@ -1,6 +1,7 @@
 {
   "allow": {
     "wildshard/no-raw-random-time": {
+      "src/engine/audio/SetScore.ts": "performance.now measures decode elapsed cost only; never gameplay state.",
       "src/engine/boot/bootTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/gpuTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/plan.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",

@@ -1,5 +1,4 @@
-import type { CuePlayer, CueMap, CueOpts } from '#engine/audio/Cues';
-import { tap } from '#engine/core/harnessTap';
+import { tap, type CuePlayer, type CueMap, type CueOpts } from '#engine';
 
 /** The cue map is content: the engine knows only the generic method cue, never an instrument or weapon name. */
 export function ndCueMap(player: CuePlayer, random: () => number): CueMap {

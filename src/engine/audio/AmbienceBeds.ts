@@ -27,7 +27,7 @@ export class AmbienceBeds {
   private readonly weights: (pos: Vector3) => ZoneWeights;
   private readonly fade: number;
   private readonly random: () => number;
-  constructor(audio: AudioMixer, scope: Scope, beds: readonly BedDef[], weights: (pos: Vector3) => ZoneWeights, fade = 3, random: () => number = Math.random) {
+  constructor(audio: AudioMixer, scope: Scope, beds: readonly BedDef[], weights: (pos: Vector3) => ZoneWeights, fade: number, random: () => number) {
     this.audio = audio; this.scope = scope; this.beds = beds; this.weights = weights; this.fade = Math.max(0.05, fade); this.random = random;
     scope.onDispose(() => { this.voices.clear(); });
   }

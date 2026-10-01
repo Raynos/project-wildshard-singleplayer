@@ -31,3 +31,15 @@ export type { Player } from './player/Player';
 export { SaveStore, type SaveKeyDef, type SaveSlot, type SaveScope, type ImportReport, type CorruptSave } from './saves/store';
 export { saves, persistHomeScreen } from './saves/runtime';
 export { jsonSlot, jsonSchema, jsonRecord, saveStorage } from './saves/slots';
+
+// Audio content ports: source selection, profile decoding and scoped playback.
+export { SetScore, scoreFiles, decodeScore, type ScoreSource } from './audio/SetScore';
+export { musicManifest, decodeStyle, shipped } from './audio/Stems';
+export { CuePlayer, cueFiles, decodeCueSet, type CueMap, type CueOpts } from './audio/Cues';
+export { AmbienceBeds, PositionalLoops, type ZoneWeights } from './audio/AmbienceBeds';
+export type { LevelAudioProfile } from './audio/levelAudio';
+export type { MusicState } from './audio/Music';
+export { cachedBytes, decodeBytes } from './audio/preload';
+export { MUSIC_STYLES, getMusicStyle, type MusicStyle } from './ui/Settings';
+export { tap } from './core/harnessTap';
+export { castRay } from './physics/query';

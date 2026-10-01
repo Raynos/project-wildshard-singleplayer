@@ -48,7 +48,7 @@ function fake(): { audio: AudioMixer; nodes: Node[]; bus: Node } {
   }, createBufferSource: () => {
     const n = node();
     return { ...wiring(n), buffer: n.buffer, loop: n.loop, loopStart: n.loopStart, loopEnd: n.loopEnd,
-      start: (...args: number[]) => { n.start(...args); }, stop: () => { n.stop(); }, addEventListener: n.addEventListener.bind(n) } as AudioBufferSourceNode;
+      start: (...args: number[]) => { n.start(...args); }, stop: () => { n.stop(); }, addEventListener: n.addEventListener.bind(n), removeEventListener: n.removeEventListener.bind(n) } as AudioBufferSourceNode;
   } } as BaseAudioContext;
   return { audio: { ready: false, ctx, bus: () => gain(bus) }, nodes, bus };
 }
