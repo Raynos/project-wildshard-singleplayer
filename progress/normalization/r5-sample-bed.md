@@ -52,6 +52,11 @@ node scripts/parity.mjs --export=f6f2b8ed31815667186f776dae4dad015cbc00d1 --lane
 The exact source diff and regression test were handed to sol-x1b, who owns
 InputService and TouchControls. The test covers unlock before interaction, once,
 no unlock from programmatic movement/dodge, and disposal of unused callbacks.
-Its final integrated runtime must pass whole-tree oxlint, full vitest, and all
-four phone boots before publication; that integration is tracked in E357's R5
-handoff.
+The final integration passed whole-tree oxlint, full vitest, and all four phone
+boots before publication; its source landed in df3989476a82869c3e14b9c0127259ecec3d2d88.
+
+Additional verification: the minimal fixed runtime restores start1 on both phone walks with native RAF (`/private/tmp/e357-sol-r8/use-gesture-raf`), as well as the accelerated clock. All four phone boots on f6f2b8ed have empty boot.errors and three poses each (`four-boot`). Its clean exported source plus the regression test passes TypeScript, whole-tree oxlint and all 292 vitest files / 2099 tests. The focused test is red on fc and green (2/2) on the fixed export.
+
+The integrated X1 candidate `4aab9324924887ff7e2d213137aac2ba40e377aa` also boots all four phone shards cleanly (holder evidence: `/private/tmp/e357-sol-x1b/actions-boot`); its two phone sound captures (`/private/tmp/e357-sol-r8/integrated`) restore start1 and have walk/combat event maps identical to the minimal fixed runtime on both Pine and Driftwood. The initial integrated suite had a debug-flag inventory timeout; the fresh full run passed without any test changes. sol-x1b published the gated integration as df3989476a82869c3e14b9c0127259ecec3d2d88.
+
+Final published source verification: `df3989476a82869c3e14b9c0127259ecec3d2d88`, exact-SHA two-phone capture `/private/tmp/e357-sol-r8/landed`, empty boot.errors on Pine and Driftwood; both walk start counts are 1. Both walk/combat event maps exactly equal the isolated causal fix. Final pre-publication candidate5356fb80 has identical src/test bytes, whole-tree types/oxlint green, full vitest297 files/2145 tests, and all4 phone boots empty errors with3 poses each (holder logs: actions-types2.log, actions-lint2.log, actions-tests2.log, actions-boot2). R5 is complete; the aggregate parity compare remains red for unrelated normalization differences. No baseline or pin was modified; production publication belongs to the lead.
