@@ -41,3 +41,5 @@ export type { GearLoot, CosmeticSlot, FindsView } from './bag/bag';
 
 export { installLoot, type ScopedLootHost, type ScopedLoot, type LootPresentation, type LootShop } from './loot/runtime';
 export { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './loot/deaths';
+
+export { ShopPanel, type ShopGood, type ShopState, type ShopOpts } from './loot/ui/ShopPanel';
