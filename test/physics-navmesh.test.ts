@@ -122,7 +122,7 @@ describe('navmesh (P6b)', () => {
     }
   });
 
-  it('costs well under the budget per query (wander, flee and charge lengths; a cross-map search is capped)', async () => {
+  it('bounds median query cost over five runs (wander, flee, charge and capped cross-map searches)', { timeout: 30_000 }, async () => {
     for (const [name, url] of [['driftwood-isle', driftwoodNav], ['pine-hollow', pineNav]] as const) {
       const { nav } = await load(url);
       const { mesh } = nav.layerFor(0.5);
@@ -132,21 +132,28 @@ describe('navmesh (P6b)', () => {
       const out: THREE.Vector3[] = [];
       // warm up first (JIT + the query's lazily built tables), so the mean measures steady-state queries
       for (const s of starts.slice(0, 30)) nav.findPath(s, { x: s.x + 10, y: s.y, z: s.z }, 0.5, out);
-      nav.resetStats();
-      let paths = 0;
-      for (const s of starts) {
-        const a = rand() * Math.PI * 2, d = 5 + rand() * 25; // 5–25 m: wander targets, a flee leg, a charge
-        if (nav.findPath(s, { x: s.x + Math.cos(a) * d, y: s.y, z: s.z + Math.sin(a) * d }, 0.5, out) !== null) paths++;
+      // Repeat the same seeded workload: different targets must not hide a slow run. Five batches remove isolated
+      // scheduler pauses; the 4x bound applies to both this shared Mac and CI. Physical-phone budgets stay in gpu-perf.
+      const targets = starts.map((s) => {
+        const a = rand() * Math.PI * 2, d = 5 + rand() * 25;
+        return { from: s, to: { x: s.x + Math.cos(a) * d, y: s.y, z: s.z + Math.sin(a) * d } };
+      });
+      const means: number[] = [], crossMap: number[] = [], far = starts.slice(0, 20);
+      for (let run = 0; run < 5; run++) {
+        nav.resetStats(); let paths = 0;
+        for (const { from, to } of targets) if (nav.findPath(from, to, 0.5, out) !== null) paths++;
+        means.push(nav.stats.ms / nav.stats.queries);
+        expect(paths).toBeGreaterThan(starts.length * 0.9);
+        const t0 = performance.now();
+        for (const s of far) nav.findPath(s, { x: -s.x, y: s.y, z: -s.z }, 0.5, out);
+        crossMap.push((performance.now() - t0) / far.length);
       }
-      const mean = nav.stats.ms / nav.stats.queries;
-      // the worst case: a goal across the shard, cut off at MAX_SEARCH_NODES
-      const far = starts.slice(0, 20), t0 = performance.now();
-      for (const s of far) nav.findPath(s, { x: -s.x, y: s.y, z: -s.z }, 0.5, out);
-      const worst = (performance.now() - t0) / far.length;
-      console.info(`[navmesh] ${name}: ${paths}/${starts.length} short paths, mean ${mean.toFixed(3)} ms; cross-map ${worst.toFixed(3)} ms`);
-      expect(paths).toBeGreaterThan(starts.length * 0.9);
-      expect(mean).toBeLessThan(0.3 * TIME_SLACK); // desktop node; the phone is ~4x — a few queries per 10 Hz think, not per frame
-      expect(worst).toBeLessThan(5 * TIME_SLACK);
+      const median = (samples: readonly number[]): number => [...samples].sort((a, b) => a - b)[2] ?? Infinity;
+      const mean = median(means), worst = median(crossMap);
+      console.info(`[navmesh] ${name}: median of 5 x ${starts.length} short paths ${mean.toFixed(3)} ms; capped cross-map ${worst.toFixed(3)} ms`);
+      expect(mean).toBeLessThan(1.2); // 4x the 0.3 ms Node reference; still catches multi-fold query regressions
+      expect(worst).toBeLessThan(20); // 4x the 5 ms capped-search reference
+
     }
   });
 });
