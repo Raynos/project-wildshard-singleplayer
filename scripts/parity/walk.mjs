@@ -55,40 +55,55 @@ export async function touchLeg(page) {
 }
 /** @param {import('playwright').Page} page @param {import('../types/wildshard-probe.d.ts').WalkLeg} route */
 function walkRoute(page,route) {
-  return within(page.evaluate(async(leg)=>{
+  return page.evaluate(async(leg)=>{
     const g=window.__wildshard.world.game,watch=g.watchFrames.bind(g);
     // pose() awaits a raw rAF. Keep simulation held until the autopilot observer is actually registered.
     g.watchFrames=(fn)=>{const stop=watch(fn);window.__parity.free=true;return stop;};
     try{return await window.__wildshard.walkLeg(leg);}finally{window.__parity.free=false;g.watchFrames=watch;}
-  },route),240000,`walk ${route.name}`);
+  },route);
 }
-/** @param {import('playwright').Page} page @param {{shard:string,tier:string,full:boolean,root:string}} opts */
+
+/** Bound every walk step separately: a slow runner may finish several legs in more than one step's budget.
+ * A stalled leg, frame barrier or touch interaction still fails, with the step named in the log.
+ * @template T @param {()=>Promise<T>} run @param {number} milliseconds @param {string} phase */
+export async function walkStep(run,milliseconds,phase) {
+  const started=performance.now();
+  console.error(`parity: ${phase}`);
+  const result=await within(run(),milliseconds,phase);
+  console.error(`parity: ${phase} finished in ${((performance.now()-started)/1000).toFixed(1)}s`);
+  return result;
+}
+
+/** @param {import('playwright').Page} page @param {{shard:string,tier:string,full:boolean,root:string,timeout:number}} opts */
 export async function walk(page,opts) {
-  await page.evaluate(()=>window.__wildshard.sounds());
+  const milliseconds=opts.timeout*1000, prefix=`${opts.shard}.${opts.tier} walk`;
+  await walkStep(()=>page.evaluate(()=>window.__wildshard.sounds()),milliseconds,`${prefix} reset sounds`);
   const routes=object(readJson(join(opts.root,'scripts/physics-route.json'))), legs=[];
   for(const v of array(routes[opts.shard])) {
     if(!opts.full && object(v).gate!==true)continue;
     const raw=/** @type {unknown} */ (v);
     const route=/** @type {import('../types/wildshard-probe.d.ts').WalkLeg} */ (raw);
-    console.error(`parity: ${opts.shard}.${opts.tier} walk ${route.name}`);
-    // An escape attempt must start on its own floor, never on the preceding bridge.
-    if(route.inside)await poseAt(page,route.start);
-    legs.push(await walkRoute(page,route));
-    // Finish a door's queued fade before the next leg teleports away (Nalati's dromos).
-    await advance(page,15);
+    legs.push(await walkStep(async()=>{
+      // An escape attempt must start on its own floor, never on the preceding bridge.
+      if(route.inside)await poseAt(page,route.start);
+      const result=await walkRoute(page,route);
+      // Finish a door's queued fade before the next leg teleports away (Nalati's dromos).
+      await advance(page,15);
+      return result;
+    },milliseconds,`${prefix} ${route.name}`));
   }
   if(opts.full) {
-    const trails=await page.evaluate(()=> {
+    const trails=await walkStep(()=>page.evaluate(()=> {
       const w=/** @type {Window & {__hf?:{TRAILS:{x:number,z:number}[][]}}} */ (window);
       return w.__hf?.TRAILS.slice(4) ?? [];
-    });
+    }),milliseconds,`${prefix} read trails`);
     for(const [i,path] of trails.entries())for(const reverse of [false,true]) {
-      const waypoints=[];const pts=reverse?[...path].reverse():path;
+      /** @type {{x:number,z:number}[]} */const waypoints=[];const pts=reverse?[...path].reverse():path;
       for(let n=1;n<pts.length;n++){const a=pts[n-1],b=pts[n];const count=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/3));for(let k=1;k<=count;k++)waypoints.push({x:a.x+(b.x-a.x)*k/count,z:a.z+(b.z-a.z)*k/count});}
-      if(pts.length>0)legs.push(await walkRoute(page,{name:`trail-${i}-${reverse?'back':'forward'}`,start:{...pts[0],yaw:0},waypoints,timeout:240}));
+      if(pts.length>0){const name=`trail-${i}-${reverse?'back':'forward'}`;legs.push(await walkStep(()=>walkRoute(page,{name,start:{...pts[0],yaw:0},waypoints,timeout:240}),milliseconds,`${prefix} ${name}`));}
     }
   }
-  const touchResult=opts.tier==='phone' ? await touchLeg(page) : undefined;
-  const sounds=await page.evaluate(()=>window.__wildshard.sounds());
+  const touchResult=opts.tier==='phone' ? await walkStep(()=>touchLeg(page),milliseconds,`${prefix} touch`) : undefined;
+  const sounds=await walkStep(()=>page.evaluate(()=>window.__wildshard.sounds()),milliseconds,`${prefix} read sounds`);
   return {legs,stuck:legs.reduce((sum,l)=>sum+l.stuck.length,0),sounds,...touchResult?{touch:touchResult}:{}};
 }

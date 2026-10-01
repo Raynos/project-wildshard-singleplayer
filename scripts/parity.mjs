@@ -9,6 +9,7 @@ import { installInit } from './parity/init.mjs';
 import { cachedTree, exportTree, readJson, serve } from './parity/serve.mjs';
 import { evictBuildCache } from './parity/cache.mjs';
 import { compare, matches, normalize } from './parity/compare.mjs';
+import { compareOffline, failureReasons } from './parity/offline.mjs';
 import { assertMetal, relevantError } from './parity/fingerprint.mjs';
 import { poses } from './parity/poses.mjs';
 import { walk } from './parity/walk.mjs';
@@ -62,6 +63,7 @@ function report(reports,sha,out,ms) {
 }
 /** @param {import('playwright').Browser} browser @param {string} url @param {{shard:string,tier:string,lane:string,sha:string,root:string,out:string,timeout:number,full:boolean,only:string|undefined,offline:boolean,fast?:boolean,accelerated?:boolean,telemetryFixture?:boolean}} opts */
 export async function capture(browser,url,opts) {
+  let offlineStep='install';
   const phaseStart=performance.now(),phases=/** @type {Record<string,number>} */({});let phase=phaseStart;
   const mark=(/** @type {string} */ name)=>{const now=performance.now();phases[name]=now-phase;phase=now;};
   console.error(`parity: ${opts.shard}.${opts.tier} boot`);
@@ -79,7 +81,7 @@ export async function capture(browser,url,opts) {
     /** @type {string[]} */const errors=[];page.on('pageerror',(e)=>{if(relevantError(e.message))errors.push(e.message);});page.on('console',(m)=>{if(m.type()==='error'&&relevantError(m.text()))errors.push(m.text());});
     const params=new URLSearchParams({chunk:opts.shard,tier:opts.tier,skipintro:'1',nolock:'1',mute:'1',weather:'clear',...opts.tier==='phone'?{touch:'1'}:{},...opts.offline?{}:{sw:'0'}});
     if(opts.offline){
-      const title=new URL(url);title.searchParams.set('chunk',opts.shard);title.searchParams.set('tier',opts.tier);if(opts.tier==='phone')title.searchParams.set('touch','1');await page.goto(title.toString());await page.waitForFunction(()=>Boolean(window.__wildshard)&&!document.querySelector('.ws-load'));await page.waitForFunction(async()=>Boolean(navigator.serviceWorker.controller)&&(await navigator.serviceWorker.ready).active?.state==='activated');await context.setOffline(true);await page.reload();await page.locator('.ws-menu-play').waitFor({state:'visible'});
+      const title=new URL(url);title.searchParams.set('chunk',opts.shard);title.searchParams.set('tier',opts.tier);if(opts.tier==='phone')title.searchParams.set('touch','1');await page.goto(title.toString());await page.waitForFunction(()=>Boolean(window.__wildshard)&&!document.querySelector('.ws-load'));await page.waitForFunction(async()=>Boolean(navigator.serviceWorker.controller)&&(await navigator.serviceWorker.ready).active?.state==='activated');await context.setOffline(true);offlineStep='title';await page.reload();await page.locator('.ws-menu-play').waitFor({state:'visible'});offlineStep='play';
     }
     await page.goto(`${url}/?${params}`);
     await page.waitForFunction(()=>Boolean(window.__wildshard) || Boolean(window.__wildshardHarness?.errors?.length) || Boolean(document.querySelector('.ws-load-error')),undefined,{timeout:opts.timeout*1000}).catch((/** @type {unknown} */ e)=> {if(errors.length === 0)throw e;});
@@ -92,7 +94,7 @@ export async function capture(browser,url,opts) {
     if(errors.length > 0)return result;
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
     mark('bootMs');
-    if(opts.offline){await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};return result;}
+    if(opts.offline){offlineStep='explore';await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};object(result.boot).errors=[...new Set([...boot.errors,...errors])];return result;}
     if(opts.only!=='walk+combat+leak'){console.error(`parity: ${opts.shard}.${opts.tier} poses`);result.poses=await within(poses(page,opts),opts.timeout*1000,'poses');mark('posesMs');}
     const hasBudgets=await page.evaluate(()=>Object.hasOwn(window.__wildshard,'budgets'));
     const extra=opts.only==='walk+combat+leak'||!hasBudgets?{}:await budgetViews(page, Array.isArray(result.poses) && result.poses.length === 0);
@@ -100,7 +102,7 @@ export async function capture(browser,url,opts) {
     for(const [name,observed] of Object.entries(extra))object(object(result.budgets)[name]).observed=object(observed);
     writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
     if(opts.only!=='fingerprint+poses') {
-      console.error(`parity: ${opts.shard}.${opts.tier} walk`);result.walk=object(await within(walk(page,opts),opts.timeout*1000*(opts.full?10:1),'walk'));mark('walkMs');
+      console.error(`parity: ${opts.shard}.${opts.tier} walk`);result.walk=object(await walk(page,opts));mark('walkMs');
       writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
       console.error(`parity: ${opts.shard}.${opts.tier} combat`);result.combat=await within(combat(page,opts),opts.timeout*1000,'combat');mark('combatMs');
       console.error(`parity: ${opts.shard}.${opts.tier} pause/resume`);result.pauseResume=object(await within(pauseResume(page,opts.tier),opts.timeout*1000,'pause/resume'));mark('pauseResumeMs');
@@ -109,6 +111,9 @@ export async function capture(browser,url,opts) {
     const session=await context.newCDPSession(page);await session.send('Performance.enable');const metrics=await session.send('Performance.getMetrics');object(result.boot).heapMB=(metrics.metrics.find((m)=>m.name==='JSHeapUsedSize')?.value??0)/2**20;await session.detach();
     object(result.boot).errors=[...new Set([...boot.errors,...errors])];
     return result;
+  } catch(error) {
+    if(opts.offline)throw new Error(`offline: ${opts.shard}.${opts.tier} ${offlineStep}: ${error instanceof Error?error.message:String(error)}`,{cause:error});
+    throw error;
   } finally {await context.close();phases.totalMs=performance.now()-phaseStart;writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.phases.json`),JSON.stringify(phases,null,2));}
 }
 
@@ -236,11 +241,12 @@ async function main(opts) {
       const baselineNormalized=normalize(baseline);let currentNormalized=normalize(current);
       /** @param {RecordValue} row */
       const scorePoses=async(row)=>{for(const [name,p]of Object.entries(object(row.poses))){const golden=join(fixtureRoot,`test/parity/baselines/${lane}/${shard}.${tier}.${name}.jpg`);if(existsSync(golden)){const score=await imageScore(scorePage,golden,string(object(p).shot),[.../** @type {number[][]} */(array(get(baselineNormalized,`poses.${name}.boxes`))),.../** @type {number[][]} */(array(object(p).boxes))]);object(p).ssim=score.ssim??0;if((score.ssim??0)<0.99&&score.diffBase64)writeFileSync(join(out,`${shard}.${tier}.${name}.diff.png`),Buffer.from(score.diffBase64,'base64'));}}};
-      if(!isRecord || opts.accept)await scorePoses(currentNormalized);
-      let checked=compare(isRecord&&!opts.accept?{}:baseline,currentNormalized,options);
+      if(!opts.offline && (!isRecord || opts.accept))await scorePoses(currentNormalized);
+      let checked=opts.offline?compareOffline(currentNormalized):compare(isRecord&&!opts.accept?{}:baseline,currentNormalized,options);
       if(isRecord&&!opts.accept)for(const r of rawRuns){const consistency=compare(current,normalize(r),{...options,renames:[],ignore:[...ignore,...Object.keys(flatten(current)).filter((p)=>p.endsWith('.ssim'))]});if(consistency.verdict==='red')checked=consistency;}
       if(isRecord&&opts.accept)for(const r of rawRuns){const normalized=normalize(r);await scorePoses(normalized);const consistency=compare(baseline,normalized,options);if(consistency.verdict==='red')checked=consistency;}
-      if(!isRecord&&checked.verdict==='red'&&retry){const firstRed=checked.rows.filter((r)=>r.verdict==='red').map((r)=>r.field),dir=join(out,'retry');mkdirSync(dir,{recursive:true});const again=normalize(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline),fast:Boolean(opts.fast),accelerated}));if(again.leak&&['pine-hollow','nalati-grasslands'].includes(shard)){const weather=await weatherLeak(browser,url,{shard,tier,lane,sha,timeout,accelerated});object(again.leak).weather=object(weather);}await scorePoses(again);const retried=compare(baseline,again,options);checked=retried;currentNormalized=again;if(retried.verdict!=='red')currentNormalized.flaked=firstRed;}
+      if(!isRecord&&checked.verdict==='red'&&retry){const firstRed=checked.rows.filter((r)=>r.verdict==='red').map((r)=>r.field),dir=join(out,'retry');mkdirSync(dir,{recursive:true});const again=normalize(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline),fast:Boolean(opts.fast),accelerated}));if(again.leak&&['pine-hollow','nalati-grasslands'].includes(shard)){const weather=await weatherLeak(browser,url,{shard,tier,lane,sha,timeout,accelerated});object(again.leak).weather=object(weather);}if(!opts.offline)await scorePoses(again);const retried=opts.offline?compareOffline(again):compare(baseline,again,options);checked=retried;currentNormalized=again;if(retried.verdict!=='red')currentNormalized.flaked=firstRed;}
+      for(const reason of failureReasons(checked))console.error(`parity: ${shard}.${tier}${opts.offline?' offline':''} red: ${reason}`);
       currentNormalized.verdict=checked.verdict;currentNormalized.fields=checked.rows.map((r)=>object(r));reports.push(currentNormalized);
       for(const [name,p] of Object.entries(object(currentNormalized.poses)))if(existsSync(string(object(p).shot)))copyFileSync(string(object(p).shot),join(out,`${shard}.${tier}.${name}.jpg`));
       writeFileSync(join(out,`${shard}.${tier}.json`),`${JSON.stringify(currentNormalized,null,2)}\n`);report(reports,sha,out,Boolean(opts.ms));
@@ -258,7 +264,7 @@ async function main(opts) {
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)try {process.exitCode=await main(parse(process.argv.slice(2)));}catch(e){
-  const msg=e instanceof Error?e.message:String(e),exitCode=msg.startsWith('usage:')?2:3;
+  const msg=e instanceof Error?e.message:String(e),exitCode=msg.startsWith('usage:')?2:msg.startsWith('offline:')?1:3;
   console.error(msg);process.exitCode=exitCode;
-  if(exitCode===3){const opts=parse(process.argv.slice(2)),sha=opts.export??'unknown',out=resolve(opts.out??join(ROOT,'progress/parity',sha.slice(0,7)));mkdirSync(out,{recursive:true});writeFileSync(join(out,'report.json'),`${JSON.stringify({exitCode,reason:msg})}\n`);writeFileSync(join(out,'report.md'),`# Parity infrastructure\n\ninfrastructure: ${msg}\n`);}
+  if(exitCode===3 || msg.startsWith('offline:')){const opts=parse(process.argv.slice(2)),sha=opts.export??'unknown',out=resolve(opts.out??join(ROOT,'progress/parity',sha.slice(0,7)));mkdirSync(out,{recursive:true});writeFileSync(join(out,'report.json'),`${JSON.stringify({exitCode,reason:msg})}\n`);writeFileSync(join(out,'report.md'),`# Parity ${exitCode===3?'infrastructure':'offline failure'}\n\n${msg}\n`);}
 }
