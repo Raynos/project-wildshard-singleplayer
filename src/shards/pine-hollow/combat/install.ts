@@ -1,13 +1,13 @@
-import { app } from '#engine/app/runtime';
+import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight } from '#engine';
 import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
+
+
+
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
-import type { EquipmentService,Weapon } from '#engine';
-import { Crossbow, MAX_BOLTS } from '#kit/weapons/crossbow/Crossbow';
+
+import { Crossbow, MAX_BOLTS } from '#kit';
 import { SKINS, applySkin, crossbowDisplayModel, type SkinDef, type SkinId, type SkinLocker } from '#engine/player/Skins';
 import { CameraFX } from '#engine/player/CameraFX';
 import type { Inventory } from '#game/Inventory';
@@ -24,7 +24,7 @@ import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { AntlerKing, KING_KIND } from './antlerKing';
 import { BOSS_NAMES } from '#engine/ui/Combat';
 import { activePhysics } from '#engine/physics/active';
-import { lineOfSight } from '#engine/physics/query';
+
 import { perfLap } from '#engine/core/perfLap';
 import { registerPineLap } from '../dev/perfLap';
 

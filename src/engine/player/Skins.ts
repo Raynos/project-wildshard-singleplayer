@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { saves } from '../saves/runtime';
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
-import { fixIBL, isMesh, VIEWMODEL_GROUP, type Crossbow } from './Crossbow';
+import { fixIBL, isMesh, VIEWMODEL_GROUP } from '#engine/combat/view/ranged';
 
 const skinSave = saves.define({ key: 'skins', scope: 'shard', version: 1, schema: v.object({ owned: v.array(v.string()), worn: v.record(v.string(), v.string()) }), initial: () => ({ owned: [] as string[], worn: {} as Record<string, string> }) });
 
@@ -210,7 +210,7 @@ export function clearSkin(root: THREE.Object3D): void {
 /** A world-space copy of the crossbow for a floor drop: the viewmodel's meshes with plain render flags, no depth
  *  clearer, no hands, no pose / 1.35× scale, unit materials shared (a skin clones what it changes). ~0.85 m long, bow forward (−Z).
  *  Any crossbow model will do: the Model Explorer's card passes a fresh `buildCrossbow` (src/shards/pine-hollow/models/gear.ts). */
-export function crossbowDisplayModel(crossbow: Pick<Crossbow, 'model'>, sky: Sky): THREE.Group {
+export function crossbowDisplayModel(crossbow: { readonly model: THREE.Group }, sky: Sky): THREE.Group {
   const g = crossbow.model.clone(true); // children keep their local poses (the string legs as they sit at rest); geometry is shared
   g.position.set(0, 0, 0); g.quaternion.identity(); g.scale.setScalar(1); // the viewmodel's 1.35× and camera pose stay behind
   const drop: THREE.Object3D[] = [];

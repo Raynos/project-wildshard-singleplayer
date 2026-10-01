@@ -3,7 +3,7 @@ import { BOLT_LABEL, BROADHEAD_DEER, POUCH_MAX, Quiver, boltDamage, boltFlight }
 import { TRADES } from '#shards/pine-hollow/quest/trades';
 import { ITEMS } from '#game/Inventory';
 import { TUBE_MAX, cycleAction, feedRound, leverOpen } from '#shards/pine-hollow/weapons/LeverRifle';
-import { BowDraw, DRAW_TIME } from '#engine/player/bowDraw';
+import { BowDraw, DRAW_TIME } from '#kit/weapons/bow/draw';
 
 // PINE-HOLLOW-REMASTER PH-C11: the loadout's pure rules — special bolts, the lever gun's tube, the trader's ammo swaps
 describe('special bolts (ammo.ts)', () => {

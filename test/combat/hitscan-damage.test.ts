@@ -1,7 +1,9 @@
+import { AR15 } from '#kit/weapons/firearm/profiles';
+import { LEVER_PROFILE, LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
 import type * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Rifle } from '#engine/player/Rifle';
-import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
+import { Rifle } from '#kit/weapons/firearm/Rifle';
+
 import { app } from '#engine/app/runtime';
 import { setSetting } from '#engine/ui/Settings';
 import { setActivePhysics } from '#engine/physics/active';
@@ -23,7 +25,7 @@ describe('AR-15 and lever hitscan keep distinct damage, seeded spread and ranges
         const roll = damageFor(headshot, distance); app.rng.seed(11); target.animal.damageFor = damageFor;
         let requestedRange = 0; const directions: number[][] = [];
         const weapon = legacyActor(prototype, {
-          game: world.game.asGame(), player: world.player, adsBlend: 0, bloom: 0,
+          profile: name === 'lever' ? LEVER_PROFILE : AR15, game: world.game.asGame(), player: world.player, adsBlend: 0, bloom: 0,
           targets: { raycast: (_origin: THREE.Vector3, dir: THREE.Vector3, max: number) => {
             requestedRange = max; directions.push(dir.toArray()); return { animal: target.animal, point, distance, headshot };
           } }, onHit: undefined, onImpact: undefined, puffs: { emit: () => undefined },

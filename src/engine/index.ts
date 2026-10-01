@@ -66,7 +66,7 @@ export { viewmodel, type DrawingBuffer, type LookSpring, type LookLag } from './
 export type { Game } from './core/Game';
 export type { Sky } from './world/Sky';
 export type { Forest } from './world/forest/Forest';
-export type { Targets, TargetAnimal, TargetHit } from './combat/view/targets';
+export type { Targets, TargetAnimal, TargetHit } from './combat/types';
 export type { Move, Key, Trail, SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from './combat/view/melee';
 export { BladeGlow } from './player/bladeGlow';
 export { dodgeFx, dodgeEnv } from './player/dodge';
@@ -82,3 +82,22 @@ export { Weather, type WeatherProfile, type WeatherNumbers } from './world/weath
 export { InputService, type Action } from './input/InputService';
 export type { EquipmentHost } from './combat/view/EquipmentHost';
 export type { TouchRelabel, DiscSpot } from './ui/hudSlots';
+
+// Ranged family mechanisms and visual ports (E357 S2.2).
+export type { ImpactSurface } from './combat/Weapon';
+export { Projectiles, projectileFlightStep, type ProjectileKind, type ProjectileWorld, type ShotOpts, type WindField } from './combat/view/projectile';
+export { DropArc } from './combat/view/DropArc';
+export { ads as blendAds } from './combat/blocks/ads';
+export { brassFloor, stepBrass, type BrassCase } from './combat/view/brass';
+export { hitscan, type HitscanProfile, type HitscanResult } from './combat/view/hitscan';
+export { HitLine, makeFlashTexture } from './combat/view/firearmFx';
+export { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, fovForAspect as rangedFovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, clamp01, sstep, startViewmodelTextures, viewmodelTexturesReady, type TexSet, type CrossbowWorld, type CrossbowOptions, type RangedWorld, type RangedOptions } from './combat/view/ranged';
+export { getSetting, getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
+export { LightPool } from './fx/LightPool';
+export { painterlyMaterial, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from './world/painterly';
+export { gloveFist, riderArm, placeArm, forearm } from './player/nalatiArms';
+export { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, withHunterPalette, blendGrip, gripPose, type HandHold } from './player/hunterHands';
+export { wind } from './world/steppeWind';
+export { WIND_DIR, windGustAt } from './world/wind';
+export { sticksIn } from './physics/query';
+export { SHADOW_LAYER } from './core/shadowLayer';

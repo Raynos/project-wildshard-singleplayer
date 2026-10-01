@@ -8,10 +8,11 @@ import * as THREE from 'three';
 import { defineModel, type ModelDef } from '#engine/models/model';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '#engine/models/gear';
 import { live, type RosterEntry } from '#engine/models/live';
-import { buildBolt, buildCrossbow, isMesh, MAX_BOLTS, whiteColors } from '#engine/player/Crossbow';
+import { buildBolt, buildCrossbow, MAX_BOLTS } from '#kit';
+import { isMesh, whiteColors } from '#engine';
 import { crossbowDisplayModel } from '#engine/player/Skins';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
-import { arrowMaterial, buildArrowGeometry, longbowSpecimen, QUIVER_MAX } from '#engine/player/Longbow';
+import { arrowMaterial, buildArrowGeometry, longbowSpecimen, QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';
 import { skinningKnife } from './skinningKnife';
 
 const FILE = 'src/shards/pine-hollow/models/gear.ts';

@@ -24,7 +24,7 @@ import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
 import { SWIM_SPEED, STROKE_PERIOD, type Player } from './Player';
 import { getActiveChunk } from '#game/shard/registry';
-import { isMesh, viewmodelMaterial, whiteColors } from './Crossbow';
+import { isMesh, viewmodelMaterial, whiteColors } from '#engine/combat/view/ranged';
 import { Rng } from '../core/rng';
 
 /** the gloves' look: smooth (`pbr`, every shard but a low-poly one) or faceted (`lowpoly`) */

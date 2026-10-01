@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { windUniforms } from './TreeFactory';
+import { windStrength } from './wind';
 
 /**
  * The one wind of the world (Nalati: grass, arrows, clouds, flags, smoke, trees, storms).
@@ -118,7 +118,7 @@ export class Wind {
     u.uWindTravel.value = this.travel;
     u.uWindTime.value = this.time;
     // bridge: trees / undergrowth / Pine-Hollow-style grass sway with the same strength
-    windUniforms.uWindStrength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
+    windStrength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
   }
 
   /** gust field 0..1 at (x, z) — identical to WIND_GLSL `windGust` */

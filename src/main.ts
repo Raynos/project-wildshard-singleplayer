@@ -1,12 +1,12 @@
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import { equipmentEntry, toolEntries } from '#game/bag/equipment';
-import { SWORD_WOOD, SWORD_IRON, type MeleeProfile } from '#kit';
+import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, Crossbow, Rifle } from '#kit';
 import { CROSSBOW, LONGBOW, LEVER } from '#shards/pine-hollow/weapons/equipment';
 import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
-import { app } from '#engine/app/runtime';
-import { EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot } from '#engine';
+import { app, EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot, CHUNK_HALF, ROAD_LENGTH, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit, getNumber, onNumber, onSettingChange, setting, floorBelow, lineOfSight } from '#engine';
+
 import { shardContext, toLevelSpec, type ShardContext, type GameServices } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, type ShardManifest } from '#game/shard/manifest';
@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { bootstrap } from '#engine/core/bootstrap';
 import { installGpuRecovery, RELOAD_PARAM } from '#engine/core/GpuRecovery';
 import { setPoseProvider } from '#engine/ui/ReloadPrompt';
-import { CHUNK_HALF, ROAD_LENGTH } from '#engine/core/config';
+
 import { hasPond, heightAt, normalAt, trailDistance, CABIN_SITES, TRAILS } from '#engine/world/Heightfield';
 import { Boundary } from '#engine/world/Boundary';
 import { Water } from '#shards/pine-hollow/world/pond';
@@ -60,10 +60,12 @@ import { Cabins } from '#engine/world/Cabin';
 import { installPineLandmarks, pineHamletBuildings } from '#shards/pine-hollow/world/landmarks';
 import { Props } from '#shards/pine-hollow/world/props';
 import { AnimalManager } from '#engine/entities/AnimalManager';
-import { Crossbow, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit } from '#engine/player/Crossbow';
-import { Rifle } from '#engine/player/Rifle';
+
+
+
+
 import { LeverRifle, preloadLeverModel } from '#shards/pine-hollow/weapons/LeverRifle';
-import { Longbow } from '#engine/player/Longbow';
+import { Longbow } from '#shards/pine-hollow/weapons/Longbow';
 import { WeaponStrip } from '#engine/ui/WeaponStrip';
 import { hudSlots } from '#engine/ui/hudSlots';
 import { WeaponPickup } from '#engine/player/WeaponPickup';
@@ -94,7 +96,7 @@ import { DRIFTWOOD_EFFECTS, bindDriftwoodEffects } from '#shards/driftwood-isle/
 import { sharedCombatCues } from '#kit/audio/combatCues';
 import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
 import { installBodyShadow } from '#engine/player/BodyShadow';
-import { getNumber, onNumber, onSettingChange, setting } from '#engine/ui/Settings';
+
 import { KeepAlive } from '#engine/core/KeepAlive';
 import { Combat, aimReadout } from '#engine/ui/Combat';
 import { HurtArc, deathCause, respawnWhere } from '#engine/ui/HurtArc';
@@ -148,7 +150,7 @@ import { RopeChain } from '#engine/physics/ropeChain';
 import { pathRampDescs } from '#engine/physics/paths';
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import { activePhysics } from '#engine/physics/active';
-import { floorBelow, lineOfSight } from '#engine/physics/query';
+
 import { pickInteractable, setSight } from '#engine/world/interact/Interactables';
 import { installCompendium } from '#game/compendium/install';
 import { installPineCombat } from '#shards/pine-hollow/combat/install';

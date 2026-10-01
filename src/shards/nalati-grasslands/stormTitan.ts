@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Player } from '#engine/player/Player';
+import { type Game, type Player, type TargetAnimal, type TargetHit, wind } from '#engine';
+
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Wildlife } from '#engine/entities/Wildlife';
 import type { Interactable } from '#engine/world/Cabin';
-import type { TargetAnimal, TargetHit } from '#engine/player/Crossbow';
+
 import type { AimTarget } from '#engine/player/AimTargets';
 import type { Sabre } from './weapons/Sabre';
 import type { NalatiWeather } from './weather';
@@ -16,7 +16,7 @@ import { BossBar } from '#engine/ui/BossBar';
 import { GroundTell } from '#game/Elite';
 import { fxMaterial, FX, type FxMaterial } from './world/KurganDungeon';
 import { heightAt, normalAt } from '#engine/world/Heightfield';
-import { wind } from '#engine/world/steppeWind';
+
 import { wildEnv } from '#engine/entities/wildEnv';
 import { setEliteDamage } from '#engine/entities/eliteBrain';
 import { CAIRN } from './manifest';

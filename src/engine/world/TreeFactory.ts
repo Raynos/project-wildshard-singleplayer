@@ -10,7 +10,7 @@ import { macrotask } from '../boot/plan';
 import { markGpuOnly } from '../core/gpuOnly';
 import { TREE_SPECS, TREE_SPECS_V2, type TreeSpecies } from './forest/placement';
 import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, crownTopUniforms, type CrownTop } from './forest/treeSet';
-import { windUniforms as sharedWind, patchWindField } from './wind';
+import { windUniforms as sharedWind, patchWindField, windStrength } from './wind';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -45,7 +45,7 @@ export interface TreeFactoryOptions { bark?: string; twigAtlas?: string; set?: s
 
 /** `uTime` IS wind.ts's clock (PH-L6, one wind: Forest.update advances it with updateWind); `uWindStrength` scales the
  * forest's sway (pines, grass, undergrowth) */
-export const windUniforms = { uTime: sharedWind.uWindTime, uWindStrength: { value: 1.0 } };
+export const windUniforms = { uTime: sharedWind.uWindTime, uWindStrength: windStrength };
 
 /**
  * The forest's LOD fades (E94): Forest writes the viewer (its LOD centre) here every frame and sets each material's band.

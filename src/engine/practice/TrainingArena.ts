@@ -7,7 +7,7 @@ import { practiceFps } from '../core/tier';
 import type { Physics } from '../physics/Physics';
 import { addTrainingTarget, trainingTargetRaycast, type TrainingTargetBodies } from '../physics/trainingTargets';
 import type { Player } from '../player/Player';
-import type { TargetAnimal, TargetHit } from '../player/Crossbow';
+import type { TargetAnimal, TargetHit } from '#engine/combat/types';
 import type { EquipmentService } from '../combat/EquipmentService';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { BOSS_NAMES } from '../ui/Combat';

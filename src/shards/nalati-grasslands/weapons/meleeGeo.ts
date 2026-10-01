@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Sky } from '#engine/world/Sky';
-import { painterlyMaterial } from '#engine/world/painterly';
-import { viewmodelMaterial } from '#engine/player/Crossbow';
+import { type Sky, painterlyMaterial, viewmodelMaterial } from '#engine';
+
+
 
 /**
  * meleeGeo — the smooth, vertex-painted geometry kit the Nalati melee viewmodels are built from (Sabre.ts, Spear.ts):

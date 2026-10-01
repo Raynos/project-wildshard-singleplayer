@@ -1,23 +1,22 @@
-import { Weapon, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
-import { app, gameplayRandom } from '../app/runtime';
+import { type EquipContext, HitLine, makeFlashTexture, hitscan, brassFloor, stepBrass, blendAds, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, type TexSet, type Targets, type CrossbowWorld, type CrossbowOptions, type Sky } from '#engine';
+
+import { Firearm } from './Firearm';
+import { AR15, type FirearmProfile } from './profiles';
+
+
+
+
+
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { heightAt } from '../world/Heightfield';
-import { activePhysics } from '../physics/active';
-import { floorBelow } from '../physics/query';
-import { getSetting } from '../ui/Settings';
-import { LightPool } from '../fx/LightPool';
-import {
-  Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01,
-  TRACER_RED, TRACER_ORDER, isMesh, worldHit, impactSurfaceOf, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
-} from './Crossbow';
 
-import type { Sky } from '../world/Sky';
+
+
+
+
 
 export interface RifleOptions extends CrossbowOptions {
+  profile?: FirearmProfile;
   /**
    * Take the muzzle-flash light from the scene's LightPool at boot (default). A shard where the rifle can't be found
    * (Driftwood: no cabin, no AR-15 pickup) passes false: its flash is the quads only and every lit program there keeps
@@ -53,75 +52,15 @@ export interface RifleOptions extends CrossbowOptions {
  */
 
 const MAGAZINE = 30, RESERVE_START = 90;
-const FIRE_INTERVAL = 0.09;   // s: semi-auto rate cap
-const RELOAD_TIME = 1.6;      // s
-const AUTO_RELOAD_DELAY = 0.35; // s after the empty click before the auto reload starts
-const DAMAGE_SCALE = 0.55;    // × the bolt's damageFor: many light hits vs one heavy bolt
-const HITSCAN_RANGE = 300;    // m
-const KICK_PITCH = THREE.MathUtils.degToRad(0.35);
-const SPREAD_ADS = 0.12, SPREAD_HIP = 1.1, BLOOM_PER_SHOT = 0.35, BLOOM_MAX = 1.6; // degrees
 const FLASH_FRAMES = 2, FLASH_LIGHT_TIME = 0.05, FLASH_LIGHT = 30;
-const BRASS_COUNT = 3, BRASS_LIFE = 1.4;
-const TRACER_COUNT = 3, TRACER_TIME = 0.09, TRACER_WIDTH = 3;
-const ADS_BLEND_TIME = 0.16, ADS_MOTION = 0.3, ADS_NEAR_MARGIN = 0.03;
+const TRACER_TIME = 0.09;
+const ADS_MOTION = 0.3, ADS_NEAR_MARGIN = 0.03;
 /** sight line height over the bore (m): the front post tip and the rear aperture centre both sit here */
 const SIGHT_Y = 0.064;
 const REAR_Z = 0.10, FRONT_Z = -0.455, MUZZLE_Z = -0.645, PORT = new THREE.Vector3(0.03, 0.008, 0.0);
 const SIGHT_CYAN = 0x8fe3ff;
 
 // ───────────────────────────── textures ─────────────────────────────
-
-/** muzzle flash sprite: a hot white core, orange petals, alpha in the luminance (additive) */
-export function makeFlashTexture(): THREE.CanvasTexture {
-  const S = 128, cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
-  const ctx = cvs.getContext('2d');
-  if (ctx === null) throw new Error('makeFlashTexture: no 2d canvas context');
-  ctx.clearRect(0, 0, S, S);
-  const c = S / 2;
-  // petals
-  for (let k = 0; k < 7; k++) {
-    const a = (k / 7) * Math.PI * 2 + 0.3, len = S * (0.32 + (k % 3) * 0.08), w = S * 0.07;
-    ctx.save(); ctx.translate(c, c); ctx.rotate(a);
-    const g = ctx.createLinearGradient(0, 0, len, 0);
-    g.addColorStop(0, 'rgba(255,220,150,0.9)'); g.addColorStop(0.5, 'rgba(255,150,60,0.55)'); g.addColorStop(1, 'rgba(255,90,20,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, -w); ctx.quadraticCurveTo(len * 0.6, -w * 0.4, len, 0); ctx.quadraticCurveTo(len * 0.6, w * 0.4, 0, w); ctx.closePath(); ctx.fill();
-    ctx.restore();
-  }
-  const core = ctx.createRadialGradient(c, c, 0, c, c, S * 0.3);
-  core.addColorStop(0, 'rgba(255,255,240,1)'); core.addColorStop(0.35, 'rgba(255,230,170,0.9)'); core.addColorStop(1, 'rgba(255,140,50,0)');
-  ctx.fillStyle = core; ctx.fillRect(0, 0, S, S);
-  const t = new THREE.CanvasTexture(cvs); t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-
-// ───────────────────────────── hitscan tracer ─────────────────────────────
-
-/** one straight red line, muzzle → impact, alive TRACER_TIME s */
-export class HitLine {
-  readonly line: LineSegments2; readonly mat: LineMaterial;
-  private geo: LineSegmentsGeometry; private buf = new Float32Array(6);
-  t0 = -1;
-  constructor(scene: THREE.Scene) {
-    this.geo = new LineSegmentsGeometry(); this.geo.setPositions(this.buf);
-    this.mat = new LineMaterial({ linewidth: TRACER_WIDTH, transparent: true, opacity: 1, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
-    this.mat.color = TRACER_RED.clone();
-    this.line = new LineSegments2(this.geo, this.mat);
-    this.line.frustumCulled = false; this.line.renderOrder = TRACER_ORDER; this.line.visible = false;
-    scene.add(this.line);
-  }
-  show(a: THREE.Vector3, b: THREE.Vector3, t: number): void {
-    this.buf[0] = a.x; this.buf[1] = a.y; this.buf[2] = a.z; this.buf[3] = b.x; this.buf[4] = b.y; this.buf[5] = b.z;
-    this.geo.setPositions(this.buf);
-    this.mat.opacity = 1; this.line.visible = true; this.t0 = t;
-  }
-  update(t: number, res: THREE.Vector2, life: number): void {
-    if (this.t0 < 0) return;
-    this.mat.resolution.copy(res);
-    const a = 1 - (t - this.t0) / life;
-    if (a <= 0) { this.t0 = -1; this.line.visible = false; return; }
-    this.mat.opacity = a;
-  }
-}
 
 interface Brass { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number; down: boolean; /** where it lands (PHYSICS P7: ray-landed at the eject) */ floor: number }
 
@@ -220,7 +159,8 @@ export function buildRifleParts(sky: Sky): RifleParts {
   return { alu: meshA, poly: meshP, steel: meshS, handle, bolt, mag, magRest, glowRing, glow, aluMat, polyMat, steelMat, brassMat };
 }
 
-export class Rifle extends Weapon {
+export class Rifle extends Firearm {
+  readonly profile: FirearmProfile;
   readonly state: WeaponState & { ammo: number } = { ammo: MAGAZINE, magazine: MAGAZINE, reserve: RESERVE_START, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
@@ -248,7 +188,7 @@ export class Rifle extends Weapon {
   private puffs = new Puffs();
 
   // animation state
-  private cooldown = 0; private sinceEmpty = 99; private reloadT = 0;
+  private cooldown = 0; private reloadT = 0;
   private recoil = 0; private kickPending = 0; private kickApplied = 0; private bloom = 0;
   private mouseAds = false; private fov = FOV_HIP;
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
@@ -264,6 +204,7 @@ export class Rifle extends Weapon {
 
   constructor(world: CrossbowWorld, targets: Targets | undefined, opts: RifleOptions) {
     super(opts.row);
+    this.profile = opts.profile ?? AR15;
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     // the muzzle light is a pooled scene light (B7), taken now, at boot: in the viewmodel it came and went with the
     // model's visibility, and every change of the scene's light count recompiled every lit program in view (taking the
@@ -278,24 +219,33 @@ export class Rifle extends Weapon {
     cam.add(this.model);
     if (!cam.parent) this.game.scene.add(cam);
     this.game.scene.add(this.puffs.points);
-    this.bindInput();
+
   }
 
   // ── input ──
   override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
-  private bindInput(): void {
-    document.addEventListener('mousedown', (e) => {
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    this.bindInput(ctx);
+    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
+  }
+  private bindInput(ctx: EquipContext): void {
+    ctx.scope.listen(document, 'mousedown', (event) => {
+      if (!(event instanceof MouseEvent)) return;
+      const e = event;
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
       if (e.button === 2) this.mouseAds = !this.mouseAds; // toggle, not hold: a trackpad can't hold a two-finger click and still look around
     });
-    document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    document.addEventListener('keydown', (e) => {
+    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
+    ctx.scope.listen(document, 'keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      const e = event;
       if (!this.inputAllowed() || e.repeat) return;
       if (e.code === 'KeyF') this.tryFire();
       if (e.code === 'KeyR') this.reload();
     });
-    window.addEventListener('blur', () => { this.mouseAds = false; });
+    ctx.scope.listen(window, 'blur', () => { this.mouseAds = false; });
   }
 
   override setActive(on: boolean): void {
@@ -311,11 +261,7 @@ export class Rifle extends Weapon {
   }
 
   /** Pull the trigger: one round if the mag has one, else a dry click and (after a beat) a reload. */
-  tryFire(): void {
-    if (this.state.reloading || this.cooldown > 0) return;
-    if (this.state.ammo <= 0) { this.onDry?.(); this.sinceEmpty = 0; if (this.state.reserve > 0) this.reload(); return; }
-    this.fire();
-  }
+  protected override actionReady(): boolean { return this.cooldown <= 0; }
 
   override reload(): void {
     if (this.state.reloading || this.state.ammo >= MAGAZINE || this.state.reserve <= 0) return;
@@ -325,18 +271,19 @@ export class Rifle extends Weapon {
 
   addRounds(n: number): void { this.state.reserve += n; }
 
-  private fire(): void {
+  protected override fire(): void {
     const s = this.state;
     s.ammo--; s.loaded = s.ammo > 0;
-    this.cooldown = FIRE_INTERVAL;
-    this.recoil = 1; this.kickPending = KICK_PITCH;
+    this.cooldown = this.profile.interval;
+    this.recoil = 1; this.kickPending = this.profile.kick;
     this.flashFrames = FLASH_FRAMES; this.flashLightT = FLASH_LIGHT_TIME;
-    for (const q of this.flashQuads) { q.rotation.z = Math.random() * Math.PI * 2; q.scale.setScalar(0.8 + Math.random() * 0.5); }
+    for (const q of this.flashQuads) { q.rotation.z = app.rng.stream('cosmetic').next() * Math.PI * 2; q.scale.setScalar(0.8 + app.rng.stream('cosmetic').next() * 0.5); }
     this.flash.visible = true; this.flashLight.intensity = FLASH_LIGHT; this.placeFlashLight();
     this.onFire?.(); // before the hit resolves: Combat registers the aimed shot, the damage float then closes it
     this.hitscan();
     this.ejectBrass();
-    this.bloom = Math.min(BLOOM_MAX, this.bloom + BLOOM_PER_SHOT);
+    this.bloom = Math.min(this.profile.bloomMax, this.bloom + this.profile.bloomShot);
+    this.onShot();
   }
 
   /** The aim line is the camera forward, hip or sighted (the crosshair / the ring's centre). */
@@ -348,24 +295,10 @@ export class Rifle extends Weapon {
   }
 
   private hitscan(): void {
-    this.aimRay(_o, _d);
-    const a = sstep(0, 1, this.adsBlend);
-    const spread = THREE.MathUtils.degToRad(SPREAD_ADS + (1 - a) * SPREAD_HIP + this.bloom * (1 - a * 0.7));
-    _v1.set(gameplayRandom() - 0.5, gameplayRandom() - 0.5, gameplayRandom() - 0.5).cross(_d).normalize();
-    _d.addScaledVector(_v1, Math.tan(spread * gameplayRandom())).normalize();
-    // the world (terrain, trunks, rocks, structures — the physics world's first hit on the ray), then the animals short
-    // of it: the nearer wins, so a wall in front of a deer takes the round
-    let dist = HITSCAN_RANGE, surface: ImpactSurface | null = null;
-    const wall = worldHit(_o, _v2.copy(_o).addScaledVector(_d, HITSCAN_RANGE), 0);
-    if (wall) { dist = wall.distance; surface = impactSurfaceOf(wall.material); }
-    const hit = this.targets?.raycast(_o, _d, dist) ?? null;
-    if (hit) { dist = hit.distance; surface = 'flesh'; }
-    const point = _v2.copy(_o).addScaledVector(_d, dist);
-    if (surface === 'flesh' && hit) {
-      point.copy(hit.point);
-      const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.distance) * DAMAGE_SCALE, hit.point, _d);
-      this.onHit?.(hit.animal.kind, hit.headshot, killed);
-    }
+    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.adsBlend, this.bloom, this.player.speedFactor);
+    const { point, direction, surface, hit, killed } = result;
+    if (hit) this.onHit?.(hit.animal.kind, hit.headshot, killed);
+    _d.copy(direction);
     if (getSetting('tracers')) {
       const tr = this.tracers.reduce((acc, x) => (x.t0 < acc.t0 ? x : acc));
       this.model.updateMatrixWorld();
@@ -429,13 +362,13 @@ export class Rifle extends Weapon {
 
   private buildEffects() {
     const caseGeo = new THREE.CylinderGeometry(0.0047, 0.0047, 0.045, 8); caseGeo.rotateX(Math.PI / 2); whiteColors(caseGeo); // brassMat reads vertex colours
-    for (let i = 0; i < BRASS_COUNT; i++) {
+    for (let i = 0; i < this.profile.brass.count; i++) {
       const mesh = new THREE.Mesh(caseGeo, this.brassMat);
       mesh.visible = false; mesh.frustumCulled = false;
       this.game.scene.add(mesh);
       this.brass.push({ mesh, vel: new THREE.Vector3(), spin: new THREE.Vector3(), life: 0, down: false, floor: 0 });
     }
-    for (let i = 0; i < TRACER_COUNT; i++) this.tracers.push(new HitLine(this.game.scene));
+    for (let i = 0; i < this.profile.tracer.count; i++) this.tracers.push(new HitLine(this.game.scene));
   }
 
   private ejectBrass() {
@@ -446,25 +379,14 @@ export class Rifle extends Weapon {
     _v1.set(1, 0, 0).applyQuaternion(cam.quaternion); // camera right
     _v2.set(0, 1, 0).applyQuaternion(cam.quaternion);
     cam.getWorldDirection(_v3);
-    b.vel.copy(_v1).multiplyScalar(2.2 + Math.random() * 0.8).addScaledVector(_v2, 1.6 + Math.random() * 0.6).addScaledVector(_v3, -0.4 + Math.random() * 0.3);
-    b.spin.set((Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30);
+    b.vel.copy(_v1).multiplyScalar(2.2 + app.rng.stream('cosmetic').next() * 0.8).addScaledVector(_v2, 1.6 + app.rng.stream('cosmetic').next() * 0.6).addScaledVector(_v3, -0.4 + app.rng.stream('cosmetic').next() * 0.3);
+    b.spin.set((app.rng.stream('cosmetic').next() - 0.5) * 30, (app.rng.stream('cosmetic').next() - 0.5) * 30, (app.rng.stream('cosmetic').next() - 0.5) * 30);
     b.mesh.quaternion.copy(cam.quaternion).multiply(_q.setFromAxisAngle(_v1.set(0, 1, 0), Math.PI / 2));
-    b.life = BRASS_LIFE; b.down = false; b.mesh.visible = true;
+    b.life = this.profile.brass.life; b.down = false; b.mesh.visible = true;
     b.floor = brassFloor(b.mesh.position, b.vel) + 0.005;
   }
 
-  private stepBrass(dt: number) {
-    for (const b of this.brass) {
-      if (b.life <= 0) continue;
-      b.life -= dt;
-      if (b.life <= 0) { b.mesh.visible = false; continue; }
-      if (b.down) continue;
-      b.vel.y -= 9.8 * dt;
-      b.mesh.position.addScaledVector(b.vel, dt);
-      b.mesh.rotation.x += b.spin.x * dt; b.mesh.rotation.y += b.spin.y * dt; b.mesh.rotation.z += b.spin.z * dt;
-      if (b.mesh.position.y < b.floor) { b.mesh.position.y = b.floor; b.down = true; b.mesh.rotation.set(0, Math.random() * Math.PI, Math.PI / 2 + (Math.random() - 0.5) * 0.3); }
-    }
-  }
+  private stepBrass(dt: number): void { stepBrass(this.brass, dt); }
 
   /** Shouldered pose: rotation 0, sight line on the eye, rear aperture at near + margin. Depends on the scale only. */
   private solveAds(scale: number) {
@@ -486,10 +408,10 @@ export class Rifle extends Weapon {
     this.bloom = Math.max(0, this.bloom - dt * 2.4);
 
     // auto reload: the mag ran dry on a trigger pull
-    if (!s.reloading && s.ammo <= 0 && s.reserve > 0 && this.sinceEmpty > AUTO_RELOAD_DELAY && this.active && this.enabled) this.reload();
+    if (!s.reloading && s.ammo <= 0 && s.reserve > 0 && this.sinceEmpty > this.profile.autoReload && this.active && this.enabled) this.reload();
     if (s.reloading) {
       this.reloadT += dt;
-      const pr = Math.min(1, this.reloadT / RELOAD_TIME);
+      const pr = Math.min(1, this.reloadT / this.profile.reload);
       s.reloadProgress = pr;
       if (pr >= 1) {
         const take = Math.min(MAGAZINE - s.ammo, s.reserve);
@@ -516,7 +438,7 @@ export class Rifle extends Weapon {
     // ADS + FOV (only the held weapon owns the camera FOV)
     if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle
     s.ads = (this.mouseAds || this.adsHeld) && this.enabled && !s.reloading && !p.sprinting;
-    { const step = dt / ADS_BLEND_TIME; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((s.ads ? 1 : 0) - this.adsBlend, -step, step)); }
+    this.adsBlend = blendAds(this.adsBlend, s.ads, dt, this.profile.ads.blend);
     const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
     if (this.active && Math.abs(targetFov - this.fov) > 0.01) {
       this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums();
@@ -524,7 +446,7 @@ export class Rifle extends Weapon {
 
     // recoil + camera kick (up on fire, recovered over ~0.2 s)
     this.recoil *= Math.exp(-dt * 14);
-    if (this.kickPending > 0) { const a = Math.min(this.kickPending, KICK_PITCH * dt * 60); p.pitch += a; this.kickApplied += a; this.kickPending -= a; }
+    if (this.kickPending > 0) { const a = Math.min(this.kickPending, this.profile.kick * dt * 60); p.pitch += a; this.kickApplied += a; this.kickPending -= a; }
     else if (this.kickApplied > 0) { const r = this.kickApplied * Math.min(1, dt * 9); p.pitch -= r; this.kickApplied -= r; }
 
     // look lag (spring, substepped — see Crossbow.ts)
@@ -591,16 +513,3 @@ export class Rifle extends Weapon {
   }
 }
 
-/**
- * The floor a case ejected at `p` with velocity `v` lands on (PHYSICS P7 — brass stays visual, never a body): the world
- * surface under the eject point says how far it falls, which says where it comes down; a second ray there gives that
- * spot's floor (the pier deck, not the sand under it; the sand, past the deck's edge). No world (node): the terrain.
- */
-export function brassFloor(p: THREE.Vector3, v: THREE.Vector3): number {
-  const physics = activePhysics();
-  if (physics === null) return heightAt(p.x, p.z);
-  const f0 = floorBelow(physics, p.x, p.z, p.y, 8) ?? heightAt(p.x, p.z);
-  const t = (v.y + Math.sqrt(v.y * v.y + 2 * 9.8 * Math.max(0, p.y - f0))) / 9.8;
-  const x = p.x + v.x * t, z = p.z + v.z * t;
-  return floorBelow(physics, x, z, p.y, 8) ?? heightAt(x, z);
-}

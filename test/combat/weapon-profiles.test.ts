@@ -1,10 +1,15 @@
+import { BOW } from '#kit/weapons/bow/profiles';
+import { LONGBOW } from '#shards/pine-hollow/weapons/longbowProfile';
+import { CROSSBOW_PROFILE } from '#kit/weapons/crossbow/profiles';
+import { AR15 } from '#kit/weapons/firearm/profiles';
+import { LEVER_PROFILE } from '#shards/pine-hollow/weapons/LeverRifle';
 import { SWORD_WOOD, SWORD_IRON } from '#kit';
 import { JIAN_ROW } from '#shards/nine-dragon-stack/vm/jianRow';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { arrowKind as bowArrow } from '#engine/player/Bow';
-import { arrowKind as longbowArrow } from '#engine/player/Longbow';
-import * as draw from '#engine/player/bowDraw';
+import { arrowKind as bowArrow } from '#kit/weapons/bow/index';
+import { arrowKind as longbowArrow } from '#shards/pine-hollow/weapons/Longbow';
+import * as draw from '#kit/weapons/bow/draw';
 import { boltFlight, boltDamage } from '#shards/pine-hollow/loadout/ammo';
 import { legacyConstants } from '../fake/legacySource';
 import { fakeWorld } from '../fake/world';
@@ -19,20 +24,8 @@ const profiles: readonly [string, Record<string, unknown>][] = [
     BRACE_CONE: rad(30), BRACE_MIN_SPEED: 4, LANCE_REACH: 2.5, LANCE_CONE: rad(15), LANCE_MIN_SPEED: 8,
     WINDUP: 0.4, THROW_T: 0.14, THROW_RECOVER: 0.45, JAV_SPEED: 28, JAV_GRAVITY: 9.8, JAV_DAMAGE: 55, JAV_HEAD: 2,
     JAV_POOL: 5, PICKUP_R: 1.6, JAV_SURVIVE: 0.9, JAV_RADIUS: 0.03, ARC_POINTS: 32, ARC_SHOW_AFTER: 0.12, FOV_HIP: 72 }],
-  ['src/engine/player/Bow.ts', { QUIVER_MAX: 24, SWAY_MAX: rad(1.5), ARC_MAX: 56, ARC_SPACING: 0.8, ARC_SKIP: 0.5, ARC_BLEND: 11, ARC_CYAN: 0x8fe3ff, ARC_FROM: 0.25, SPEED_BASE: 30, SPEED_DRAW: 28, DAMAGE_SCALE: 1.2,
-    AIM_ZOOM: 2, AIM_VM_ZOOM: 0.85, AIM_SWAY: 0.5, AIM_SPREAD: 0.5, AIM_IN: 10, ARROW_LEN: 0.8, VM_SCALE: 0.72 }],
-  ['src/engine/player/Longbow.ts', { QUIVER_MAX: 20, SWAY_MAX: rad(1.4), ARC_MAX: 56, ARC_SPACING: 0.8, ARC_SKIP: 0.5, ARC_BLEND: 11, ARC_AMBER: 0xffc070, ARC_FROM: 0.25, SPEED_BASE: 32, SPEED_DRAW: 30, DAMAGE_SCALE: 1.35,
-    AIM_ZOOM: 1.6, AIM_VM_ZOOM: 0.85, AIM_SWAY: 0.5, AIM_SPREAD: 0.5, AIM_IN: 10, ARROW_LEN: 0.76, VM_SCALE: 0.72 }],
-  ['src/engine/player/Crossbow.ts', { MAX_BOLTS: 30, BOLT_SPEED: 62, BOLT_DRAG: 0.012, GRAVITY: 9.8,
-    RELOAD_DURATION: 1.35, AUTO_RELOAD_DELAY: 1.4, FIRE_COOLDOWN: 0.3, MAX_FLYING: 8, MAX_STUCK: 200, STUCK_BURY: 0.08,
-    BOLT_RADIUS: 0.03, MAX_TRACERS: 8, TRACER_POINTS: 2048, TRACER_LIFE: 6, TRACER_FADE: 1.5, TRACER_WIDTH: 8,
-    FOV_HIP: 72, FOV_ADS: 58, KICK_PITCH: rad(0.8), ADS_EYE_ABOVE_RAIL: 0.056 }],
-  ['src/engine/player/Rifle.ts', { MAGAZINE: 30, RESERVE_START: 90, FIRE_INTERVAL: 0.09, RELOAD_TIME: 1.6, AUTO_RELOAD_DELAY: 0.35,
-    DAMAGE_SCALE: 0.55, HITSCAN_RANGE: 300, KICK_PITCH: rad(0.35), BRASS_COUNT: 3, BRASS_LIFE: 1.4, TRACER_COUNT: 3,
-    TRACER_TIME: 0.09, TRACER_WIDTH: 3, SIGHT_Y: 0.064, REAR_Z: 0.1, FRONT_Z: -0.455, MUZZLE_Z: -0.645 }],
   ['src/shards/pine-hollow/weapons/LeverRifle.ts', { TUBE_MAX: 6, RESERVE_START: 21, CYCLE_DELAY: 0.12, LEVER_TIME: 0.56,
-    ROUND_TIME: 0.4, RELOAD_IN: 0.22, RELOAD_OUT: 0.2, AUTO_RELOAD_DELAY: 0.35, DAMAGE_SCALE: 1.5,
-    HITSCAN_RANGE: 320, KICK_PITCH: rad(1.25), BRASS_COUNT: 4, BRASS_LIFE: 1.8, TRACER_COUNT: 2, TRACER_TIME: 0.09,
+    ROUND_TIME: 0.4, RELOAD_IN: 0.22, RELOAD_OUT: 0.2, AUTO_RELOAD_DELAY: 0.35, KICK_PITCH: rad(1.25), BRASS_COUNT: 4, BRASS_LIFE: 1.8, TRACER_COUNT: 2, TRACER_TIME: 0.09,
     SIGHT_Y: 0.045, REAR_Z: -0.13, FRONT_Z: -0.512, MUZZLE_Z: -0.535 }],
   ['src/shards/nalati-grasslands/weapons/GoldenBow.ts', { STREAK_PTS: 48, SPEED_BASE: 30, SPEED_DRAW: 28, SUN_DRAW: 0.95 }],
   ['src/shards/nalati-grasslands/weapons/Naizagai.ts', { CRESCENT_RANGE: 15, CRESCENT_DMG: 40, CRESCENT_T: 0.32, ARC_R: 6,
@@ -58,6 +51,21 @@ describe('weapon tuning parity (09 §1.4)', () => {
     expect(SWORD_WOOD.feel).toEqual({ lag: { gain: 0.5, clampYaw: 0.12, clampPitch: 0.1, k: 220, c: 20, posYaw: 0.25, posPitch: 0.2 },
       bob: { x: 0.018, y: 0.014, rz: 0.02, rx: 0.012 }, sway: { ax: 0.003, fx: 0.7, ay: 0.0025, fy: 1.1 }, fovHip: 72 });
     expect(SWORD_IRON.parent).toBe(SWORD_WOOD.id); expect(JIAN_ROW.parent).toBe(SWORD_WOOD.id);
+  });
+  it('public ranged profiles preserve every distinct tuning value', () => {
+    expect(BOW).toMatchObject({ family: 'bow', quiver: 24, swayMax: rad(1.5), speedBase: 30, speedDraw: 28, damageScale: 1.2,
+      aimZoom: 2, aimVmZoom: 0.85, aimSway: 0.5, aimSpread: 0.5, aimIn: 10, arcFrom: 0.25, arcColour: 0x8fe3ff, vmScale: 0.72, arrowLength: 0.8 });
+    expect(LONGBOW).toMatchObject({ ...BOW, parent: 'weapon.bow', quiver: 20, swayMax: rad(1.4), speedBase: 32, speedDraw: 30, damageScale: 1.35,
+      aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false, autoShot: true, inspectZ: -1.4,
+      inspectHidesArms: true, transparentParts: true, poses: LONGBOW.poses, arrowX: -0.017, arrowY: 0.052, arrowLength: 0.76, build: LONGBOW.build, arrow: LONGBOW.arrow, wind: LONGBOW.wind });
+    expect(CROSSBOW_PROFILE).toEqual({ family: 'crossbow', quiver: 30, speed: 62, gravity: 9.8, drag: 0.012, radius: 0.03, bury: 0.08,
+      reload: 1.35, autoReload: 1.4, cooldown: 0.3, kick: rad(0.8), adsBlend: 0.18, adsMotion: 0.3, maxFlying: 8, maxStuck: 200 });
+    expect(AR15).toMatchObject({ family: 'firearm', action: 'semi', magazine: 30, reserve: 90, interval: 0.09, reload: 1.6, autoReload: 0.35,
+      damageScale: 0.55, range: 300, kick: rad(0.35), spreadAds: 0.12, spreadHip: 1.1, spreadRadius: 'linear', bloomShot: 0.35, bloomMax: 1.6,
+      brass: { count: 3, life: 1.4 }, tracer: { count: 3, life: 0.09, width: 3 }, ads: { blend: 0.16, motion: 0.3, nearMargin: 0.03, sightY: 0.064, rearZ: 0.1, frontZ: -0.455, muzzleZ: -0.645 } });
+    expect(LEVER_PROFILE).toMatchObject({ family: 'firearm', action: 'lever', magazine: 7, reserve: 21, damageScale: 1.5, range: 320, kick: rad(1.25),
+      spreadAds: 0.06, spreadHip: 0.9, spreadRadius: 'sqrt', movingSpread: 0.5, movingAimReduction: 0.6, brass: { count: 4, life: 1.8 }, tracer: { count: 2, life: 0.09, width: 3 },
+      ads: { blend: 0.17, motion: 0.3, nearMargin: 0.03, sightY: 0.045, rearZ: -0.13, frontZ: -0.512, muzzleZ: -0.535 } });
   });
   it('BowDraw preserves draw, fatigue and early renock timing', () => {
     expect([draw.DRAW_TIME, draw.LETDOWN_TIME, draw.RENOCK_TIME, draw.RN_EARLY, draw.HOLD_STEADY, draw.HOLD_TIRE, draw.TIRED_TIME])

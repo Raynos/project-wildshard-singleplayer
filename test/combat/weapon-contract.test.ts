@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { Sword } from '#kit/weapons/melee/SweptMelee';
-import { Crossbow } from '#engine/player/Crossbow';
-import { Bow } from '#engine/player/Bow';
-import { Longbow } from '#engine/player/Longbow';
-import { Rifle } from '#engine/player/Rifle';
+import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
+import { Bow } from '#kit/weapons/bow/index';
+import { Longbow } from '#shards/pine-hollow/weapons/Longbow';
+import { Rifle } from '#kit/weapons/firearm/Rifle';
 import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
 import { Sabre } from '#shards/nalati-grasslands/weapons/Sabre';
 import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';

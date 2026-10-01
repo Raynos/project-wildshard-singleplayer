@@ -1,14 +1,17 @@
+import { AR15 } from '#kit/weapons/firearm/profiles';
+import { LEVER_PROFILE, LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
 import { Thrown } from '#kit';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { damageFor } from '#engine/entities/Animal';
 import { speciesDef } from '#engine/entities/species/registry';
 import { balbalCombat } from '#engine/entities/species/balbal';
-import { Projectiles } from '#engine/player/Projectiles';
-import { Crossbow, type TargetHit } from '#engine/player/Crossbow';
-import { Bow } from '#engine/player/Bow';
-import { Rifle } from '#engine/player/Rifle';
-import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
+import { Projectiles } from '#engine/combat/view/projectile';
+import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
+import type { TargetHit } from '#engine/combat/view/targets';
+import { Bow } from '#kit/weapons/bow/index';
+import { Rifle } from '#kit/weapons/firearm/Rifle';
+
 import { Spear, JAVELIN, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
 import { GoldenBow } from '#shards/nalati-grasslands/weapons/GoldenBow';
 import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
@@ -58,7 +61,7 @@ function dealt(source: Source, rule: Rule, headshot: boolean, distance: number, 
     const golden = legacyActor(GoldenBow.prototype, { streakT: 0, pending: [{ t: 0, target: target.animal, point, dir: new THREE.Vector3(0, 0, -1), dmg: 37 }] });
     golden.update(1 / 60);
   } else {
-    const weapon = legacyActor(source === 'rifle' ? Rifle.prototype : LeverRifle.prototype, { game: f.game.asGame(), player: f.player,
+    const weapon = legacyActor(source === 'rifle' ? Rifle.prototype : LeverRifle.prototype, { profile: source === 'rifle' ? AR15 : LEVER_PROFILE, game: f.game.asGame(), player: f.player,
       adsBlend: 0, bloom: 0, targets: { raycast }, onHit: undefined, onImpact: undefined, puffs: { emit: noop } });
     invokeLegacy(weapon, 'hitscan');
   }

@@ -1,26 +1,24 @@
-import type { Targets } from '../combat/view/targets';
-import type { EquipmentRow } from '../combat/Equipment';
-import { Weapon, quiverState, type ImpactSurface } from '#engine/combat/Weapon';
-import { app, gameplayRandom } from '../app/runtime';
+import { type EquipContext, Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, rangedFovForAspect as fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, clamp01, sstep, type CrossbowWorld, type CrossbowOptions, type Targets, Weapon, quiverState, type ImpactSurface, app, gameplayRandom, type Game, type Sky, type Player, sticksIn, CHUNK_HALF, getSetting, BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '#engine';
+import { CROSSBOW_PROFILE, type CrossbowProfile } from './profiles';
+
+
+
+
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import type { Game } from '../core/Game';
-import type { Sky } from '../world/Sky';
-import type { Player } from './Player';
-import type { Forest } from '../world/forest/Forest';
-import { activePhysics } from '../physics/active';
-import { castSegment, sweepBall, sticksIn, type Hit } from '../physics/query';
-import type { Material } from '../physics/surface';
-import { CHUNK_HALF } from '../core/config';
-import { getSetting } from '../ui/Settings';
-import { makePixels, clamp01, sstep, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from './viewmodelTextures';
-// oxlint-disable-next-line import/default -- a Vite `?worker&inline` import: its default export is the worker constructor (typed by vite/client), which oxlint's resolver cannot see
-import TexturesWorker from './viewmodelTextures.worker?worker&inline';
 
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from './hunterHands';
+
+
+
+
+
+
+
+
+
 
 /**
  * Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,
@@ -49,49 +47,11 @@ import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, typ
  * Animals are reached only through the `Targets` interface below (no import of the animal module).
  */
 
-export type { TargetAnimal, TargetHit, Targets } from '../combat/view/targets';
-export type { ImpactSurface } from '../combat/Weapon';
-/** The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. */
-export function impactSurfaceOf(m: Material): ImpactSurface {
-  return m === 'flesh' ? 'flesh' : m === 'wood' || m === 'planks' ? 'wood' : 'ground';
-}
-interface Vec3 { x: number; y: number; z: number }
-/**
- * The first world surface a bolt's step (`radius` > 0: a ball swept a → b) or a shot (`radius` 0: the ray a → b) meets,
- * looking through the invisible chunk-edge walls so nothing stops in mid-air; `distance` is from `a`. Null when the
- * way is clear — and when there is no physics world (before boot, node tests): then nothing in the world is hit.
- */
-const _aimEnd = new THREE.Vector3();
-/** The Object3D a hit collider moves with: a registered piece that `follows` one (the boat, a cabin door), else null. */
-function movingOwner(owner: unknown): THREE.Object3D | null {
-  if (typeof owner !== 'object' || owner === null || !('follows' in owner)) return null;
-  const f = (owner as { follows?: unknown }).follows;
-  return f instanceof THREE.Object3D ? f : null;
-}
 
-export function worldHit(a: Vec3, b: Vec3, radius: number): Hit | null {
-  const physics = activePhysics();
-  if (!physics) return null;
-  let from = a, skip: Hit['collider'] | undefined, travelled = 0;
-  for (let pass = 0; pass < 4; pass++) {
-    const hit = radius > 0 ? sweepBall(physics, from, b, radius, undefined, skip) : castSegment(physics, from, b, undefined, skip);
-    if (hit?.material !== 'edge') { if (hit) hit.distance += travelled; return hit; }
-    travelled += hit.distance; from = hit.point; skip = hit.collider;
-  }
-  return null;
-}
-export interface CrossbowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-export interface CrossbowOptions { row: EquipmentRow; allowUnlocked?: boolean }
-
-
-
+export type { ImpactSurface } from '#engine';
 export const MAX_BOLTS = 30;
-const BOLT_SPEED = 62;
 const BOLT_DRAG = 0.012;
 const GRAVITY = 9.8;
-const RELOAD_DURATION = 1.35;
-const AUTO_RELOAD_DELAY = 1.4;
-const FIRE_COOLDOWN = 0.3;
 const MAX_FLYING = 8;
 /** Stuck bolts are PERMANENT (target practice): no lifetime — only the cap evicts, oldest first. */
 const MAX_STUCK = 200;
@@ -112,23 +72,15 @@ const GLANCE_KEEP = 0.2, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9, GLANCE_LIFT = 0.0
 const MAX_TRACERS = 8, TRACER_POINTS = 2048, TRACER_LIFE = 6, TRACER_FADE = 1.5, TRACER_WIDTH = 8;
 /** markers + the flying glow are scaled with distance (never below 1×) so they stay ~25 px on screen at any range */
 const TRACER_PX = 0.32;
-export const TRACER_ORDER = 1200; // after the viewmodel (1000) so the trail's first metre shows over the weapon
+ // after the viewmodel (1000) so the trail's first metre shows over the weapon
 /** ADS is true iron sights, not a zoom: the FOV stays put and the weapon is brought up to the eye instead. */
-export const FOV_HIP = 72, FOV_ADS = 58; // ADS zooms 1.3× (tan 36° / 1.3 → 29.1° half-angle); the pose solve re-runs per FOV so the sight stays centred
-/** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the
- *  horizontal view to ~37°; widen it (Hor+ via the geometric mean of the aspect) so 72° hip → ~94° at 9:19.5. */
-export function fovForAspect(base: number, aspect: number): number {
-  if (aspect >= 1) return base;
-  return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
-}
-const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
 /** Iron sights: the camera looks straight down the bolt axis (model rotation 0, cheek on the stock) and the pose is
  *  SOLVED from the geometry + the camera's FOV/aspect, not tuned: the loaded bolt's tip is put at ADS_TIP_NDC (a hair
  *  below centre, the approved mockup) and the model is slid toward the eye until the nut/string reaches
  *  ADS_NUT_NDC_Y (just inside the bottom edge) or the near plane stops it — that fixes the eye height above the rail
  *  (~5 cm) and the depth, and the limb span falls out (≈ ±0.5 landscape, edge to edge on a 94° portrait). */
 const ADS_EYE_ABOVE_RAIL = 0.056; // m — cheek on the stock: the eye is this far above the rail, looking straight down the bolt
-const ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
+const ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0;
 // damage numbers live in the damage model (src/engine/entities/Animal.ts damageFor)
 /** Rear PEEP sight (mockup art/ads-aim/round-1/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
  *  behind the nut is inside the near plane when sighted), placed on the eye→tip line so that at full ADS its centre
@@ -146,141 +98,7 @@ export function boltFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number
 
 // ───────────────────────────── procedural textures ─────────────────────────────
 
-export { makeNoise, clamp01, sstep, type Noise } from './viewmodelTextures';
 
-export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repeat = 1): THREE.DataTexture {
-  const t = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
-  t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(repeat, repeat);
-  t.generateMipmaps = true;
-  t.minFilter = THREE.LinearMipmapLinearFilter;
-  t.magFilter = THREE.LinearFilter;
-  t.anisotropy = 8;
-  t.needsUpdate = true;
-  return t;
-}
-
-export interface TexSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
-
-/*
- * The crossbow's and the rifle's texture sets (walnut, steel, leather, cord, bolt atlas; anodised aluminium, polymer,
- * steel) are drawn by viewmodelTextures.ts — ~470 ms of main thread at 4× CPU when drawn here, the longest task of
- * the load. `startViewmodelTextures()` (main.ts, at the head of the boot) hands them to a worker, which draws them
- * while the world builds; the weapon step awaits `viewmodelTexturesReady()` and the constructors below find the
- * pixels waiting. Same functions, same bytes. No worker (or a set it could not draw) → drawn here, as before.
- */
-const pixelCache = new Map<SetName, Pixels>();
-let texturesReady: Promise<void> = Promise.resolve();
-const WORKER_TIMEOUT_MS = 20000;
-
-/** Start drawing the viewmodels' texture sets in a worker (the crossbow's only when the shard hands one out). */
-export function startViewmodelTextures(withCrossbow: boolean): void {
-  // E155: a shard built later in the same page (or rebuilt) reuses what an earlier build's worker drew
-  const sets = (withCrossbow ? [...CROSSBOW_SETS, ...RIFLE_SETS] : [...RIFLE_SETS]).filter((n) => !pixelCache.has(n));
-  if (sets.length === 0) { texturesReady = Promise.resolve(); return; }
-  let worker: Worker;
-  try { worker = new TexturesWorker(); } catch { return; } // no workers: drawn on the main thread
-  texturesReady = new Promise<void>((resolve) => {
-    let left = sets.length;
-    const timer = { id: 0 };
-    const finish = () => { worker.terminate(); clearTimeout(timer.id); resolve(); };
-    timer.id = window.setTimeout(finish, WORKER_TIMEOUT_MS); // never hold the boot on it
-    worker.onmessage = (e: MessageEvent<{ name: SetName; px?: Pixels; error?: string }>) => {
-      if (e.data.px) pixelCache.set(e.data.name, e.data.px);
-      else console.warn(`[viewmodel textures] ${e.data.name} drawn on the main thread: ${e.data.error ?? '?'}`);
-      if (--left === 0) finish();
-    };
-    worker.onerror = (e) => { e.preventDefault(); console.warn(`[viewmodel textures] worker failed: ${e.message}`); finish(); };
-    worker.postMessage({ sets }, []);
-  });
-}
-/** Resolves when the worker has delivered every set it was asked for (or gave up); awaited by the weapon step. */
-export function viewmodelTexturesReady(): Promise<void> { return texturesReady; }
-
-const mainCanvas2d = (w: number, h: number): Ctx2D => {
-  const cvs = document.createElement('canvas'); cvs.width = w; cvs.height = h;
-  const ctx = cvs.getContext('2d');
-  if (ctx === null) throw new Error('viewmodel textures: no 2d canvas context');
-  return ctx;
-};
-function takePixels(name: SetName): Pixels {
-  const px = pixelCache.get(name);
-  if (px) { pixelCache.delete(name); return px; } // each set is wrapped once (its buffers become the DataTextures')
-  return makePixels(name, mainCanvas2d);
-}
-/** A viewmodel texture set as DataTextures (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8). */
-export function viewmodelTexSet(name: Exclude<SetName, 'cord'>): TexSet {
-  const p = takePixels(name);
-  if (p.arm === null) throw new Error(`viewmodel textures: ${name} has no ARM plane`);
-  return { map: dataTexture(p.col, p.w, p.h, true), normalMap: dataTexture(p.nrm, p.w, p.h, false), armMap: dataTexture(p.arm, p.w, p.h, false) };
-}
-
-/** Twisted hemp cord: diagonal stripes for both colour and bump. */
-function makeCord(): { map: THREE.Texture; normalMap: THREE.Texture } {
-  const p = takePixels('cord');
-  const map = dataTexture(p.col, p.w, p.h, true); map.repeat.set(1, 14);
-  const normalMap = dataTexture(p.nrm, p.w, p.h, false); normalMap.repeat.set(1, 14);
-  return { map, normalMap };
-}
-
-/** Bolt atlas: bottom half iron shaft, top-left steel head, top-right feather vane (alpha). */
-function makeBoltAtlas(): TexSet {
-  const t = viewmodelTexSet('bolt');
-  t.map.wrapS = t.map.wrapT = THREE.ClampToEdgeWrapping; t.map.premultiplyAlpha = false;
-  return t;
-}
-
-/**
- * three r186 ships a stale `examples/jsm/csm/CSMShader.js`: its replacement `lights_fragment_begin`
- * chunk lacks the `#ifdef STANDARD` block that fills `material.dfg` / `multiScatteringCompensation`,
- * so every CSM-patched material gets zero IBL specular (metals render black). Until Sky.ts patches
- * the chunk globally, materials here re-insert that block ahead of the include.
- */
-const DFG_FIX = /* glsl */`
-#ifdef STANDARD
-{
-  float dotNVms_fix = saturate( dot( normal, ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition ) ) );
-  material.dfg = texture2D( dfgLUT, vec2( material.roughness, dotNVms_fix ) ).rg;
-  float EssMs_fix = material.dfg.x + material.dfg.y;
-  material.multiScatteringCompensation = 1.0 + material.specularColorBlended * ( 1.0 / EssMs_fix - 1.0 );
-}
-#endif
-#include <lights_fragment_begin>`;
-export function fixIBL(mat: THREE.Material, name: string): void {
-  // oxlint-disable-next-line typescript/unbound-method -- the previous hook is deliberately captured and re-invoked with `.call(this)` below
-  const prev = mat.onBeforeCompile;
-  mat.onBeforeCompile = function onBeforeCompile(shader, renderer) {
-    prev.call(this, shader, renderer);
-    shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', DFG_FIX);
-  };
-  mat.customProgramCacheKey = () => `${name}|dfgfix`;
-}
-/** fixIBL's cache group for every viewmodel material (crossbow, rifle, swim hands, their skins): all of them apply
- *  the same patch, so one group lets identical shaders share a program. */
-export const VIEWMODEL_GROUP = 'viewmodel';
-let vmFillers: { white: THREE.DataTexture; arm: THREE.DataTexture; flatNormal: THREE.DataTexture } | null = null;
-/**
- * The viewmodels' shared lit material — one program for the crossbow (bar the anisotropic prod), the rifle and the
- * pbr swim hands: MeshPhysical + vertex colours + all five map slots, the dfg fix and the sky's CSM. Physical at its
- * defaults (ior 1.5, specularIntensity 1) is exactly Standard's F0 0.04 / F90 1. Slots left out get 1×1 fillers
- * (white albedo, white ARM = ao · roughness · metalness × 1, flat normal) so colour / roughness / metalness read as
- * set. The meshes need a colour attribute: `whiteColors` where they have no wear colours. Each program saved is
- * ~150 ms of cold Metal compile on the iPhone.
- */
-export function viewmodelMaterial(sky: Sky, name: string, params: THREE.MeshPhysicalMaterialParameters): THREE.MeshPhysicalMaterial {
-  vmFillers ??= {
-    white: dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, true),
-    arm: dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, false),
-    flatNormal: dataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1, false),
-  };
-  const f = vmFillers;
-  const m = new THREE.MeshPhysicalMaterial({ map: f.white, normalMap: f.flatNormal, aoMap: f.arm, roughnessMap: f.arm, metalnessMap: f.arm, vertexColors: true, ...params });
-  m.name = name; fixIBL(m, VIEWMODEL_GROUP); sky.setupMaterial(m);
-  return m;
-}
-/** `Mesh` type guard for `Object3D.traverse` callbacks (three sets `isMesh` on every Mesh) */
-export function isMesh(o: THREE.Object3D): o is THREE.Mesh { return 'isMesh' in o; }
 
 // ───────────────────────────── geometry helpers ─────────────────────────────
 
@@ -332,48 +150,6 @@ function bandGeometry(w: number, h: number, len: number, thick: number, bevel = 
   return g;
 }
 
-export function box(w: number, h: number, d: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
-  const g = new THREE.BoxGeometry(w, h, d);
-  if (rx || ry || rz) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, ry, rz)));
-  g.translate(x, y, z);
-  return g;
-}
-export function cyl(rTop: number, rBot: number, len: number, seg: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
-  const g = new THREE.CylinderGeometry(rTop, rBot, len, seg);
-  if (rx || ry || rz) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, ry, rz)));
-  g.translate(x, y, z);
-  return g;
-}
-function remapUV(g: THREE.BufferGeometry, u0: number, v0: number, su: number, sv: number) {
-  const uv = g.getAttribute('uv') as THREE.BufferAttribute;
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, u0 + uv.getX(i) * su, v0 + uv.getY(i) * sv);
-  return g;
-}
-/** Lighten vertex colour on bevel/edge vertices (normals off-axis) → worn, handled edges. */
-export function edgeWear(g: THREE.BufferGeometry, amount = 0.28): void {
-  const n = g.getAttribute('normal'), count = n.count;
-  const colors = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), az = Math.abs(n.getZ(i));
-    const m = Math.max(ax, ay, az);
-    const w = clamp01((0.97 - m) / 0.35); // 1 on 45° bevels, 0 on flat faces
-    const c = 1 + w * amount;
-    colors[i * 3] = c; colors[i * 3 + 1] = c; colors[i * 3 + 2] = c;
-  }
-  g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-}
-/** An all-white (×1) vertex-colour attribute where a geometry has none, so it can share a vertex-coloured program. */
-export function whiteColors(g: THREE.BufferGeometry): void {
-  if (g.hasAttribute('color')) return;
-  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
-}
-export function stripExtra(geo: THREE.BufferGeometry): THREE.BufferGeometry { // non-indexed, only position/normal/uv, so merge works
-  const g = geo.index ? geo.toNonIndexed() : geo;
-  for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
-  return g;
-}
-
-/** Bolt geometry along -Z (tip at -Z). Length 0.36. Single material via atlas UVs. */
 function buildBoltGeometry(): THREE.BufferGeometry {
   const L = 0.36, r = 0.0045;
   const parts: THREE.BufferGeometry[] = [];
@@ -402,88 +178,7 @@ function buildBoltGeometry(): THREE.BufferGeometry {
 
 // ───────────────────────────── impact particles ─────────────────────────────
 
-const PUFF_COUNT = 6, PUFF_PARTICLES = 14, MAX_PARTICLES = PUFF_COUNT * PUFF_PARTICLES;
-
-export class Puffs {
-  points: THREE.Points;
-  private pos: Float32Array; private vel = new Float32Array(MAX_PARTICLES * 3);
-  private life = new Float32Array(MAX_PARTICLES); private maxLife = new Float32Array(MAX_PARTICLES);
-  private size: Float32Array; private alpha: Float32Array; private col: Float32Array;
-  private posAttr: THREE.BufferAttribute; private alphaAttr: THREE.BufferAttribute; private sizeAttr: THREE.BufferAttribute; private colAttr: THREE.BufferAttribute;
-  private cursor = 0;
-  private mat: THREE.ShaderMaterial;
-  private uScale: THREE.IUniform<number> = { value: 400 };
-  private tmpSize = new THREE.Vector2();
-  private rnd = () => Math.random();
-
-  constructor() {
-    const g = new THREE.BufferGeometry();
-    this.pos = new Float32Array(MAX_PARTICLES * 3); this.size = new Float32Array(MAX_PARTICLES); this.alpha = new Float32Array(MAX_PARTICLES); this.col = new Float32Array(MAX_PARTICLES * 3);
-    g.setAttribute('position', (this.posAttr = new THREE.BufferAttribute(this.pos, 3)));
-    g.setAttribute('aSize', (this.sizeAttr = new THREE.BufferAttribute(this.size, 1)));
-    g.setAttribute('aAlpha', (this.alphaAttr = new THREE.BufferAttribute(this.alpha, 1)));
-    g.setAttribute('aColor', (this.colAttr = new THREE.BufferAttribute(this.col, 3)));
-    this.posAttr.setUsage(THREE.DynamicDrawUsage); this.alphaAttr.setUsage(THREE.DynamicDrawUsage); this.sizeAttr.setUsage(THREE.DynamicDrawUsage);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    this.mat = new THREE.ShaderMaterial({
-      uniforms: { uScale: this.uScale },
-      vertexShader: `attribute float aSize; attribute float aAlpha; attribute vec3 aColor; varying float vA; varying vec3 vC; uniform float uScale;
-        void main(){ vA = aAlpha; vC = aColor; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = aSize * uScale / max(0.05,-mv.z); gl_Position = projectionMatrix * mv; }`,
-      fragmentShader: `varying float vA; varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d,d)*4.0; if (r > 1.0 || vA <= 0.001) discard; float a = (1.0 - r) * (1.0 - r) * vA; gl_FragColor = vec4(vC, a); }`,
-      transparent: true, depthWrite: false,
-    });
-    this.points = new THREE.Points(g, this.mat);
-    this.points.frustumCulled = false;
-    this.points.renderOrder = 10;
-  }
-
-  private tmpN = new THREE.Vector3();
-  emit(point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface): void {
-    const n = this.tmpN.copy(dir).negate();
-    const cr = surface === 'flesh' ? 0.32 : surface === 'wood' ? 0.58 : 0.42;
-    const cg = surface === 'flesh' ? 0.05 : surface === 'wood' ? 0.44 : 0.36;
-    const cb = surface === 'flesh' ? 0.04 : surface === 'wood' ? 0.28 : 0.26;
-    for (let k = 0; k < PUFF_PARTICLES; k++) {
-      const i = this.cursor; this.cursor = (this.cursor + 1) % MAX_PARTICLES;
-      const sp = surface === 'flesh' ? 1.6 : 1.1;
-      this.pos[i * 3] = point.x; this.pos[i * 3 + 1] = point.y; this.pos[i * 3 + 2] = point.z;
-      this.vel[i * 3] = (n.x + (this.rnd() - 0.5) * 1.4) * sp * (0.4 + this.rnd());
-      this.vel[i * 3 + 1] = (n.y + (this.rnd() - 0.5) * 1.4 + 0.4) * sp * (0.4 + this.rnd());
-      this.vel[i * 3 + 2] = (n.z + (this.rnd() - 0.5) * 1.4) * sp * (0.4 + this.rnd());
-      this.maxLife[i] = this.life[i] = 0.35 + this.rnd() * 0.4;
-      this.size[i] = (surface === 'ground' ? 0.05 : 0.025) + this.rnd() * 0.03;
-      const v = 0.8 + this.rnd() * 0.4;
-      this.col[i * 3] = cr * v; this.col[i * 3 + 1] = cg * v; this.col[i * 3 + 2] = cb * v;
-      this.alpha[i] = 1;
-    }
-    this.colAttr.needsUpdate = true;
-  }
-
-  update(dt: number, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera): void {
-    renderer.getDrawingBufferSize(this.tmpSize);
-    this.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
-    let any = false;
-    const pos = this.pos, vel = this.vel;
-    for (let i = 0; i < MAX_PARTICLES; i++) {
-      const life0 = this.life[i] ?? 0;
-      if (life0 <= 0) continue;
-      any = true;
-      const life = life0 - dt; this.life[i] = life;
-      const g = life > 0 ? life / (this.maxLife[i] ?? 1) : 0;
-      const j = i * 3;
-      const vx = (vel[j] ?? 0) * 0.94, vy = ((vel[j + 1] ?? 0) - 3.5 * dt) * 0.94, vz = (vel[j + 2] ?? 0) * 0.94;
-      vel[j] = vx; vel[j + 1] = vy; vel[j + 2] = vz;
-      pos[j] = (pos[j] ?? 0) + vx * dt; pos[j + 1] = (pos[j + 1] ?? 0) + vy * dt; pos[j + 2] = (pos[j + 2] ?? 0) + vz * dt;
-      this.alpha[i] = g * 0.85;
-      this.size[i] = (this.size[i] ?? 0) + dt * 0.06;
-    }
-    if (any) { this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true; }
-  }
-}
-
-// ───────────────────────────── debug tracers ─────────────────────────────
-
-export const TRACER_RED = new THREE.Color(1.0, 0.0, 0.0); // pure red; anything brighter the AgX tone map washes to salmon
+ // pure red; anything brighter the AgX tone map washes to salmon
 /** shared: the glow on flying bolts, impact-marker spheres, stuck-bolt nock dots (never fades) */
 const glowMat = new THREE.MeshBasicMaterial({ color: TRACER_RED, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
 const boltGlowGeo = new THREE.SphereGeometry(0.035, 12, 8);   // 7 cm on the flying bolt
@@ -577,6 +272,7 @@ interface Stuck { mesh: THREE.Mesh }
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
+const _aimEnd = new THREE.Vector3();
 const NEG_Z = new THREE.Vector3(0, 0, -1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
 
 /**
@@ -765,6 +461,7 @@ export function buildCrossbow(sky: Sky, into: { readonly model: THREE.Group; rea
 }
 
 export class Crossbow extends Weapon {
+  readonly profile: CrossbowProfile;
   state = quiverState({ bolts: MAX_BOLTS, loaded: true, reloading: false, reloadProgress: 0, ads: false }, MAX_BOLTS);
   enabled = true;
   allowUnlocked = false;
@@ -836,8 +533,9 @@ export class Crossbow extends Weapon {
   private time = 0;
   private spawnPos = new THREE.Vector3();
 
-  constructor(world: CrossbowWorld, targets: Targets | undefined, opts: CrossbowOptions) {
+  constructor(world: CrossbowWorld, targets: Targets | undefined, opts: CrossbowOptions & { profile?: CrossbowProfile }) {
     super(opts.row);
+    this.profile = opts.profile ?? CROSSBOW_PROFILE;
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -848,7 +546,7 @@ export class Crossbow extends Weapon {
     cam.add(this.model);
     if (!cam.parent) this.game.scene.add(cam);
     this.game.scene.add(this.puffs.points);
-    this.bindInput();
+
     this.buildHands();
   }
 
@@ -864,19 +562,28 @@ export class Crossbow extends Weapon {
 
   // ── input ──
   override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
-  private bindInput(): void {
-    document.addEventListener('mousedown', (e) => {
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    this.bindInput(ctx);
+    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
+  }
+  private bindInput(ctx: EquipContext): void {
+    ctx.scope.listen(document, 'mousedown', (event) => {
+      if (!(event instanceof MouseEvent)) return;
+      const e = event;
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
       if (e.button === 2) this.mouseAds = !this.mouseAds; // toggle, not hold: a trackpad can't hold a two-finger click and still look around
     });
-    document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    document.addEventListener('keydown', (e) => {
+    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
+    ctx.scope.listen(document, 'keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      const e = event;
       if (!this.inputAllowed() || e.repeat) return;
       if (e.code === 'KeyF') this.tryFire();
       if (e.code === 'KeyR') this.reload();
     });
-    window.addEventListener('blur', () => { this.mouseAds = false; });
+    ctx.scope.listen(window, 'blur', () => { this.mouseAds = false; });
   }
 
   /** Pull the trigger. Fires if loaded, else starts a reload (and reports a dry click). */
@@ -890,9 +597,9 @@ export class Crossbow extends Weapon {
     if (!this.state.loaded || this.state.reloading) return;
     this.state.loaded = false;
     this.state.bolts = Math.max(0, this.state.bolts - 1);
-    this.cooldown = FIRE_COOLDOWN; this.sinceFire = 0;
+    this.cooldown = this.profile.cooldown; this.sinceFire = 0;
     this.drawTarget = 0; this.drawVel = -40; // string snaps forward
-    this.recoil = 1; this.kickPending = KICK_PITCH;
+    this.recoil = 1; this.kickPending = this.profile.kick;
     this.spawnBolt();
     this.onFire?.();
   }
@@ -987,7 +694,7 @@ export class Crossbow extends Weapon {
     cam.getWorldDirection(_v2).multiplyScalar(0.35).add(cam.position);
     this.spawnPos.lerp(_v2, 0.8);
     b.pos.copy(this.spawnPos).lerp(this.tipWorld(_v2), a);
-    b.vel.copy(_dir).multiplyScalar(BOLT_SPEED);
+    b.vel.copy(_dir).multiplyScalar(this.profile.speed);
     b.active = true; b.age = 0; b.roll = 0; b.glanced = false;
     b.mod = this.boltMod; b.mesh.material = b.mod.material ?? this.boltMat;
     b.mesh.visible = true;
@@ -1037,10 +744,10 @@ export class Crossbow extends Weapon {
     this.sinceFire += dt;
 
     // auto reload
-    if (!this.state.loaded && !this.state.reloading && this.state.bolts > 0 && this.sinceFire > AUTO_RELOAD_DELAY) this.reload();
+    if (!this.state.loaded && !this.state.reloading && this.state.bolts > 0 && this.sinceFire > this.profile.autoReload) this.reload();
     if (this.state.reloading) {
       this.reloadT += dt / this.reloadScale;
-      const pr = Math.min(1, this.reloadT / RELOAD_DURATION);
+      const pr = Math.min(1, this.reloadT / this.profile.reload);
       this.state.reloadProgress = pr;
       this.drawTarget = sstep(0.18, 0.78, pr);
       if (pr >= 1) { this.state.reloading = false; this.state.loaded = true; this.drawTarget = 1; this.onReloadEnd?.(); }
@@ -1064,7 +771,7 @@ export class Crossbow extends Weapon {
     // ADS + FOV
     if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle
     this.state.ads = (this.mouseAds || this.adsHeld) && this.enabled && !this.state.reloading && !p.sprinting;
-    { const step = dt / ADS_BLEND_TIME; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((this.state.ads ? 1 : 0) - this.adsBlend, -step, step)); }
+    { const step = dt / this.profile.adsBlend; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((this.state.ads ? 1 : 0) - this.adsBlend, -step, step)); }
     const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
     if (Math.abs(targetFov - this.fov) > 0.01) {
       this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums();
@@ -1072,7 +779,7 @@ export class Crossbow extends Weapon {
 
     // recoil + camera kick (kick up on fire, recover smoothly)
     this.recoil *= Math.exp(-dt * 9);
-    if (this.kickPending > 0) { const a = Math.min(this.kickPending, KICK_PITCH * dt * 40); p.pitch += a; this.kickApplied += a; this.kickPending -= a; }
+    if (this.kickPending > 0) { const a = Math.min(this.kickPending, this.profile.kick * dt * 40); p.pitch += a; this.kickApplied += a; this.kickPending -= a; }
     else if (this.kickApplied > 0) { const r = this.kickApplied * Math.min(1, dt * 6); p.pitch -= r; this.kickApplied -= r; }
 
     // look lag (spring)
@@ -1098,7 +805,7 @@ export class Crossbow extends Weapon {
     // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
     const port = portrait, scale = 1.35 * (1 - port * 0.55);
     // shared motion: breathing / idle sway, walk bob (counter-phase to the camera bob → the weapon feels heavy),
-    // look lag (spring), recoil. The hip takes it in full, the sights ~30 % (ADS_MOTION) so the tip stays on the aim line.
+    // look lag (spring), recoil. The hip takes it in full, the sights ~30 % (this.profile.adsMotion) so the tip stays on the aim line.
     const swX = Math.sin(t * 0.7) * 0.0025, swY = Math.sin(t * 1.1) * 0.002, swRz = Math.sin(t * 0.5) * 0.006;
     const sf = p.speedFactor;
     const bobX = Math.cos(p.bobTime) * 0.016 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.012 * sf, bobRz = Math.cos(p.bobTime) * 0.02 * sf, bobRx = Math.sin(p.bobTime * 2) * 0.01 * sf;
@@ -1118,7 +825,7 @@ export class Crossbow extends Weapon {
     // iron sights: cheek on the stock, looking straight down the bolt — pose solved from the geometry (solveAds);
     // recoil kicks the muzzle up but barely back, the nut is already a hair in front of the near plane
     if (a > 0) {
-      const ads = this.solveAds(cam, scale), m = ADS_MOTION;
+      const ads = this.solveAds(cam, scale), m = this.profile.adsMotion;
       const ax = ads.px + (swX + bobX + lagX) * m, ay = ads.py + (swY + bobY + lagY) * m + rc * 0.01, az = ads.pz + rc * 0.015;
       const arx = ads.rx + (bobRx + lagRx) * m + rc * 0.1, ary = lagRy * m, arz = (swRz + bobRz) * m + rc * -0.02;
       px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; rx += (arx - rx) * a; ry += (ary - ry) * a; rz += (arz - rz) * a;
@@ -1223,7 +930,8 @@ export class Crossbow extends Weapon {
         const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)) * b.mod.damage(hit.animal.kind), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
         const frame = hit.animal.stuckFrame?.(hit.point) ?? null; // a practice dummy keeps the bolt, on the bone it hit
-        this.stopBolt(b, hit.point, _dir, 'flesh', frame !== null, STUCK_BURY, false, frame);
+        const attached = frame instanceof THREE.Object3D ? frame : null;
+        this.stopBolt(b, hit.point, _dir, 'flesh', attached !== null, STUCK_BURY, false, attached);
         return true;
       }
     }
@@ -1297,3 +1005,11 @@ export class Crossbow extends Weapon {
   get inFlight(): number { let n = 0; for (const b of this.bolts) if (b.active) n++; return n; }
   get stuckCount(): number { return this.stuck.length; }
 }
+
+/** The Object3D a hit collider moves with: a registered piece that `follows` one (the boat, a cabin door), else null. */
+function movingOwner(owner: unknown): THREE.Object3D | null {
+  if (typeof owner !== 'object' || owner === null || !('follows' in owner)) return null;
+  const f = (owner as { follows?: unknown }).follows;
+  return f instanceof THREE.Object3D ? f : null;
+}
+

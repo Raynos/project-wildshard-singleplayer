@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
+import type { Game, Sky, Player } from '#engine';
+
+
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 import type { ThinkCtx } from '#engine/entities/species/registry';
-import type { Bow } from '#engine/player/Bow';
+import type { Bow } from '#kit';
 import type { Interactable } from '#engine/world/Cabin';
 import type { KurganEntrance } from './world/KurganField';
 import { GOLDEN_KING, goldenKingBrain } from '#engine/entities/species/goldenKing';

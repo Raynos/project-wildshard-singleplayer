@@ -10,6 +10,7 @@
  */
 import * as THREE from 'three';
 
+export const windStrength = { value: 1.0 };
 export const windUniforms = { uWindTime: { value: 0 }, uGust: { value: 0.5 } };
 /** 0 … 1 wind the weather adds (Pine Hollow's rain, PH-L10: src/shards/pine-hollow/world/weather.ts); 0 = the wind exactly as before */
 export const windBoost = { value: 0 };

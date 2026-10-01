@@ -1,46 +1,16 @@
 import * as THREE from 'three';
-import type { Game } from '../core/Game';
-import type { Sky } from '../world/Sky';
-import type { Player } from './Player';
-import type { Forest } from '../world/forest/Forest';
-import { heightAt } from '../world/Heightfield';
-import { CHUNK_HALF } from '../core/config';
-import { Puffs, impactSurfaceOf, worldHit, type ImpactSurface, type TargetAnimal, type TargetHit, type Targets } from './Crossbow';
-import { floorBelow, sticksIn } from '../physics/query';
-import { activePhysics } from '../physics/active';
-import { gameplayRandom } from '../app/runtime';
+import type { Game } from '#engine/core/Game';
+import type { Sky } from '#engine/world/Sky';
+import type { Player } from '#engine/player/Player';
+import type { Forest } from '#engine/world/forest/Forest';
+import { terrainHeight as heightAt } from '#engine/world/terrainHeight';
+import { CHUNK_HALF } from '#engine/core/config';
+import { Puffs, impactSurfaceOf, worldHit, type ImpactSurface } from '#engine/combat/view/ranged';
+import type { TargetAnimal, TargetHit, Targets, TargetFrame } from '#engine/combat/types';
+import { floorBelow, sticksIn } from '#engine/physics/query';
+import { app, gameplayRandom } from '#engine/app/runtime';
 
-/**
- * Projectiles — Nalati's shared flight model for thrown / loosed things (the bow's arrows today, the spear slot's
- * javelins if the melee rig wants them). It is a SEPARATE module from the crossbow's bolt code on purpose: the
- * crossbow (Pine Hollow) keeps its own flight, stuck-bolt and tracer code byte-for-byte, and nothing here is
- * imported by it. What it borrows from Crossbow.ts is read-only: the `Targets` interface and the impact `Puffs`.
- *
- *   const arrows = new Projectiles({ game, sky, player, forest }, targets, ARROW);   // one pool per kind
- *   arrows.wind = wind;                                  // optional: src/world/Wind.ts's `wind` (m/s in XZ, see WindField)
- *   arrows.launch(origin, velocity, { damageScale: 1.2 });
- *   arrows.update(dt, t);                                // every frame (the Bow calls it from its own update)
- *   arrows.predict(origin, velocity, pts, 64, 1.4)       // the drop-arc preview: the SAME integrator + the same world query
- *   arrows.onHit / onImpact / onRecover                  // hooks
- *   arrows.canRecover = () => quiver < max;              // walk-over pickup of stuck ones (only while it says yes)
- *
- * Flight (per kind): gravity, quadratic-ish drag (`v *= 1 − drag·h·|v|·0.1`, the crossbow's form), and a wind
- * coupling that pushes the projectile SIDEWAYS toward the wind: a = coupling × (wind − v)⊥v̂ (combat.md: 0.25 /s for
- * arrows → 0.75 m drift at 60 m in a 6 m/s breeze). Four substeps a frame; each substep sweeps a small ball through the
- * physics world (NALATI-MERGE P2: `worldHit` — src/engine/physics/query.ts's sweepBall, the crossbow's call: terrain, trunks,
- * rocks, yurts, fences, decks, every registered piece) and asks the animals (`targets.raycast`) short of that wall. By
- * the wall's material it sticks (wood, planks, felt, earth, ground, grass) or glances off (stone, rock, metal): a short
- * skip with most of its speed gone, then it lies where it lands.
- *
- * Stuck projectiles (terrain, trunks, colliders, animals) are ONE InstancedMesh with the flying ones — a single draw
- * call for every arrow in the shard (no shadow pass: they are 9 mm thick). An arrow in a LIVE animal rides with it
- * (offset kept in the animal's yaw frame); when the animal dies the arrow drops into the ground beside the carcass.
- * A stuck arrow within reach of the player's feet is recovered: `recover` of them survive (+1 via `onRecover(true)`),
- * the rest break (`onRecover(false)`) and just vanish. Only the cap evicts un-recovered ones, oldest first.
- *
- * Geometry convention: the projectile's TIP is at the origin and the shaft runs along +Z (flight is −Z), so a stuck
- * instance is simply placed at `hit + dir × bury`.
- */
+
 
 /** the wind the projectiles drift in: metres / second in XZ at a world point (y is ignored). `src/world/Wind.ts`'s
  *  `wind` fits as it is (`vecAt`, gusts included) — one wind object, so grass, clouds and arrows agree. */
@@ -70,8 +40,7 @@ export interface ProjectileKind {
   hitsAnimals?: boolean;
   /** false = no impact dust puff (the owner draws its own) — default true */
   puffs?: boolean;
-  /** an ENEMY projectile: it hits the player's body (a vertical capsule from the feet, this radius / height) and calls
-   *  `onPlayerHit` — the ghost riders' arrows (src/shards/nalati-grasslands/ghostRiders.ts) */
+  
   hurtsPlayer?: { radius: number; height: number };
   /** the ball swept through the world each substep (m; default 0.02 — a broadhead) */
   radius?: number;
@@ -79,7 +48,7 @@ export interface ProjectileKind {
 
 export interface ProjectileWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface ShotOpts {
-  /** × the animal's own `damageFor(headshot, distance)` (the crossbow's 32–40 body model) */
+  
   damageScale: number;
   /** optional extra multiplier decided at the hit (the sneak shot from HIDDEN, a Parthian stagger …) */
   onHitScale?: ((hit: TargetHit) => number) | undefined;
@@ -91,14 +60,14 @@ interface Stuck {
   /** riding a live animal: offset + direction in its yaw frame */
   animal: TargetAnimal | null; local: THREE.Vector3; localDir: THREE.Vector3;
   /** riding a part of the target instead (a practice dummy's bone, TargetAnimal.stuckFrame): local is in its frame */
-  frame: THREE.Object3D | null;
+  frame: TargetFrame | null;
   /** reachable from the ground (not 4 m up a trunk) */
   recoverable: boolean;
 }
 
 /** the ball an arrow sweeps through the world (the broadhead) */
 const ARROW_RADIUS = 0.02;
-/** a glance (Crossbow.ts's numbers): lift off the surface, the speed kept along it, the bounce off it, the most it keeps */
+
 const GLANCE_LIFT = 0.03, GLANCE_KEEP = 0.35, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9;
 const RECOVER_R = 1.25; // m, horizontal reach from the feet
 const RECOVER_UP = 2.1; // m, highest point of a stuck arrow's midpoint the player can pull out
@@ -176,7 +145,7 @@ export class Projectiles {
     let f = this.flying.find((x) => !x.active);
     f ??= this.flying.reduce((a, x) => (x.age > a.age ? x : a));
     f.pos.copy(origin); f.origin.copy(origin); f.vel.copy(velocity);
-    f.active = true; f.age = 0; f.roll = Math.random() * Math.PI * 2; f.glanced = false;
+    f.active = true; f.age = 0; f.roll = app.rng.stream('cosmetic').next() * Math.PI * 2; f.glanced = false;
     f.scale = opts.damageScale; f.hitScale = opts.onHitScale;
     this.writeFlying(f);
   }
@@ -441,7 +410,7 @@ export class Projectiles {
 
 /** the top of the world under (x, z) from just above y (terrain, a deck, a rock); the terrain when there is no physics */
 function floorUnder(x: number, y: number, z: number): number {
-  const ph = activePhysics();
+  const ph = app.physics;
   return (ph ? floorBelow(ph, x, z, y + 0.3, 60) : undefined) ?? heightAt(x, z);
 }
 

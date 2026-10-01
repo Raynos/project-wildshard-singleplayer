@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
+import { type Game, resolveHitStop, type EquipmentService, worldHit } from '#engine';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import { resolveHitStop, type EquipmentService } from '#engine';
-import { worldHit } from '#engine/player/Crossbow';
+
+
 import { CameraFX } from '#engine/player/CameraFX';
 import { Impacts, type ImpactKind } from '#engine/fx/Impacts';
 import { GroundTell } from '#game/Elite';

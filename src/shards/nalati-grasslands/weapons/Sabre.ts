@@ -1,11 +1,11 @@
 import { SABRE } from './equipment';
 import * as THREE from 'three';
 import { Sword, SWORD_WOOD, type MeleeProfile, type SwordWorld, type SwordRig, type SwordMoveSet } from '#kit';
-import type { Targets } from '#engine/player/Crossbow';
+import { type Targets, forearm } from '#engine';
 import { key, type Move } from '#kit/weapons/melee/moves';
 import { getAimTargets } from '#engine/player/AimTargets';
 import { tube, blob, xf, merge, lin, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
-import { forearm } from '#engine/player/nalatiArms';
+
 
 /**
  * Sabre — the Nalati kylysh (ASKS N6, plan row B3; design docs/design/nalati/combat.md § D; mockup

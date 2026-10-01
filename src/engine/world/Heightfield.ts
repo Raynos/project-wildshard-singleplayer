@@ -1,3 +1,4 @@
+import { setTerrainHeight } from './terrainHeight';
 import { terrainFor, type ChunkTerrain, type PondDef } from '#game/shard/manifest';
 // The chunk's terrain shape. Pure functions so the same field drives the mesh,
 // player collision, tree placement and grass.
@@ -15,6 +16,7 @@ let T: ChunkTerrain = terrainFor(getActiveChunk());
 
 /** surface height, metres */
 export let heightAt: ChunkTerrain['heightAt'] = T.heightAt;
+setTerrainHeight(heightAt);
 /** unit surface normal by central differences */
 export let normalAt: ChunkTerrain['normalAt'] = T.normalAt;
 /** splat weights for the four ground layers of the active chunk */
@@ -40,7 +42,7 @@ export function hasPond(): boolean { return T.pond !== null; }
 
 onActiveChunkChange((def) => {
   T = terrainFor(def);
-  heightAt = T.heightAt; normalAt = T.normalAt; splatAt = T.splatAt;
+  heightAt = T.heightAt; setTerrainHeight(heightAt); normalAt = T.normalAt; splatAt = T.splatAt;
   trailDistance = T.trailDistance; cabinMask = T.cabinMask; pondMask = T.pondMask; waterLevel = T.waterLevel; streamAt = T.streamAt ?? noStream;
   TRAILS = T.trails; CABIN_SITES = T.cabinSites; POND = T.pond ?? NO_POND;
 });

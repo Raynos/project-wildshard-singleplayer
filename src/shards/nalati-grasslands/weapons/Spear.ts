@@ -1,21 +1,22 @@
 import { Melee, SWORD_WOOD, Thrown, type ThrownProfile, type MeleeProfile } from '#kit';
 import { SPEAR } from './equipment';
-import { quiverState, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
-import { gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext } from '#engine';
+import { quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial } from '#engine';
+
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { Forest } from '#engine/world/forest/Forest';
-import { impactSurfaceOf, worldHit, type Targets, type ImpactSurface, type TargetAnimal, type TargetHit } from '#engine/player/Crossbow';
-import { floorBelow, sticksIn } from '#engine/physics/query';
+
+
+
+
+
+
+
 import { activePhysics } from '#engine/physics/active';
 
 import { heightAt } from '#engine/world/Heightfield';
 import { getAimTargets, targetRadius, type AimTarget } from '#engine/player/AimTargets';
 import { tube, blob, xf, merge, lin, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
-import { gloveFist, riderArm, placeArm } from '#engine/player/nalatiArms';
-import { painterlyMaterial } from '#engine/world/painterly';
+
+
 
 /**
  * Spear — the Nalati spear + javelins (ASKS N6, plan row B3; design docs/design/nalati/combat.md § B; mockups

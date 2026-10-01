@@ -1,12 +1,12 @@
 import type * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { Forest } from '#engine/world/forest/Forest';
+import type { Game, Sky, Player, Forest, TargetHit } from '#engine';
+
+
+
 import type { DayCycle } from '#engine/world/dayCycle';
 import type { Balbals } from './world/Balbals';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { TargetHit } from '#engine/combat/view/targets';
+
 import type { NalatiKit } from './weapons/nalatiKit';
 import { wildEnv } from '#engine/entities/wildEnv';
 import { BalbalWarriors } from './balbalWarriors';

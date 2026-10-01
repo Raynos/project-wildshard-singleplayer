@@ -1,11 +1,12 @@
-import { saves, CombatCues, type EquipmentService } from '#engine';
+import { saves, CombatCues, type EquipmentService, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit } from '#engine';
 import { pineCombatCues } from '../audio/combatCues';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
-import { fixIBL, MAX_BOLTS, VIEWMODEL_GROUP, PLAIN_BOLT, worldHit, type BoltMod, type Crossbow } from '#engine/player/Crossbow';
+
+
+import { MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow } from '#kit';
 import type { LeverRifle } from '../weapons/LeverRifle';
-import { QUIVER_MAX, type Longbow } from '#engine/player/Longbow';
+import { QUIVER_MAX, type Longbow } from '#shards/pine-hollow/weapons/Longbow';
 import type { Inventory } from '#game/Inventory';
 import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';

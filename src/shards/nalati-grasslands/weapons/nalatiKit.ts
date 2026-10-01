@@ -1,14 +1,14 @@
 import { Naizagai, type NaizagaiPower } from './Naizagai';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { Forest } from '#engine/world/forest/Forest';
-import type { Targets } from '#engine/player/Crossbow';
-import type { Weapon, WeaponId, EquipmentService } from '#engine';
+import type { Game, Sky, Player, Forest, Targets, Weapon, WeaponId, EquipmentService } from '#engine';
+
+
+
+
+
 import { Sabre, type MountState } from './Sabre';
 import { Spear } from './Spear';
 import { BOW } from './equipment';
-import { Bow } from '#engine/player/Bow';
+import { Bow } from '#kit';
 
 /**
  * nalatiKit — the Nalati Grasslands weapon set (plan row B3; decision: 3 slots — bow · sabre · spear, javelins thrown from

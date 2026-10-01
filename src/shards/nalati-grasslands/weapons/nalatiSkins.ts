@@ -3,7 +3,7 @@ import { saves, EffectService, type EffectTarget } from '#engine';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
-import type { Bow } from '#engine/player/Bow';
+import type { Bow } from '#kit';
 import type { Sabre } from './Sabre';
 import { horseBones } from '#engine/entities/species/horse';
 import { riding } from '#engine/player/riding';

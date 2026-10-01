@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { projectileFlightStep, type ProjectileKind } from '#engine/player/Projectiles';
-import { boltFlightStep } from '#engine/player/Crossbow';
+import { projectileFlightStep, type ProjectileKind } from '#engine/combat/view/projectile';
+import { boltFlightStep } from '#kit/weapons/crossbow/Crossbow';
 import { javelinFlightStep } from '#shards/nalati-grasslands/weapons/Spear';
-import { arrowKind as bowArrow } from '#engine/player/Bow';
-import { arrowKind as longbowArrow } from '#engine/player/Longbow';
+import { arrowKind as bowArrow } from '#kit/weapons/bow/index';
+import { arrowKind as longbowArrow } from '#shards/pine-hollow/weapons/Longbow';
 import { boltFlight, BOLT_KINDS } from '#shards/pine-hollow/loadout/ammo';
 import { FakeGame } from '../fake/FakeGame';
 import { fakeWorld } from '../fake/world';

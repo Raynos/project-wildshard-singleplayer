@@ -1,21 +1,24 @@
+import { type EquipContext, hitscan, stepBrass, brassFloor, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions, type Targets, makeFlashTexture, HitLine, type Sky, SHADOW_LAYER, BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '#engine';
+import { Firearm, AR15, type FirearmProfile } from '#kit';
+
+
+
 import { LEVER } from './equipment';
-import { Weapon, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
-import { gameplayRandom, app } from '#engine';
+
+
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { getSetting } from '#engine/ui/Settings';
-import { LightPool } from '#engine/fx/LightPool';
-import {
-  Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01,
-  isMesh, worldHit, impactSurfaceOf, fixIBL, VIEWMODEL_GROUP, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
-} from '#engine/player/Crossbow';
-import { makeFlashTexture, HitLine, brassFloor } from '#engine/player/Rifle';
 
-import type { Sky } from '#engine/world/Sky';
-import { SHADOW_LAYER } from '#engine/core/shadowLayer';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '#engine/player/hunterHands';
+
+
+
+
+
+
+
+
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11): a 1900s backwoods lever-action carbine in the
@@ -72,10 +75,7 @@ const LEVER_TIME = 0.56;      // s for the full throw (open + close)
 const ROUND_TIME = 0.4;       // s per cartridge through the gate
 const RELOAD_IN = 0.22, RELOAD_OUT = 0.2; // s to roll into / out of the loading pose
 const AUTO_RELOAD_DELAY = 0.35;
-const DAMAGE_SCALE = 1.5;     // × the bolt's damageFor
-const HITSCAN_RANGE = 320;
 const KICK_PITCH = THREE.MathUtils.degToRad(1.25);
-const SPREAD_ADS = 0.06, SPREAD_HIP = 0.9; // degrees
 const FLASH_FRAMES = 2, FLASH_LIGHT_TIME = 0.06, FLASH_LIGHT = 34;
 const BRASS_COUNT = 4, BRASS_LIFE = 1.8;
 const TRACER_COUNT = 2, TRACER_TIME = 0.09;
@@ -266,7 +266,15 @@ export function leverSpecimen(sky: Sky, model: LeverModel | null): THREE.Group {
   return g;
 }
 
-export class LeverRifle extends Weapon {
+export const LEVER_PROFILE: FirearmProfile = {
+  ...AR15, action: 'lever', magazine: 7, reserve: 21, interval: 0.68, reload: 0.4,
+  damageScale: 1.5, range: 320, kick: 1.25 * (Math.PI / 180), spreadAds: 0.06, spreadHip: 0.9,
+  spreadRadius: 'sqrt', bloomShot: 0, bloomMax: 0, movingSpread: 0.5, movingAimReduction: 0.6,
+  brass: { count: 4, life: 1.8 }, tracer: { count: 2, life: 0.09, width: 3 },
+  ads: { blend: 0.17, motion: 0.3, nearMargin: 0.03, sightY: 0.045, rearZ: -0.13, frontZ: -0.512, muzzleZ: -0.535 },
+};
+export class LeverRifle extends Firearm {
+  readonly profile = LEVER_PROFILE;
   readonly state: WeaponState & { ammo: number } = { ammo: MAGAZINE, magazine: MAGAZINE, reserve: RESERVE_START, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
@@ -296,7 +304,6 @@ export class LeverRifle extends Weapon {
   freezeCycle: number | null = null;
   /** dev: > 0 = the rifle held out side-on for inspection, turned `inspectYaw` rad (π/2: the right side, the gate) */
   inspect = 0; inspectYaw = Math.PI / 2;
-  private sinceEmpty = 99;
 
   // parts
   private readonly stock: THREE.Mesh;
@@ -402,7 +409,7 @@ export class LeverRifle extends Weapon {
     cam.add(this.model);
     if (!cam.parent) this.game.scene.add(cam);
     this.game.scene.add(this.puffs.points);
-    this.bindInput();
+
     this.syncState();
     this.buildHands();
   }
@@ -442,19 +449,28 @@ export class LeverRifle extends Weapon {
 
   // ── input ──
   override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
-  private bindInput(): void {
-    document.addEventListener('mousedown', (e) => {
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    this.bindInput(ctx);
+    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
+  }
+  private bindInput(ctx: EquipContext): void {
+    ctx.scope.listen(document, 'mousedown', (event) => {
+      if (!(event instanceof MouseEvent)) return;
+      const e = event;
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
       if (e.button === 2) this.mouseAds = !this.mouseAds;
     });
-    document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    document.addEventListener('keydown', (e) => {
+    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
+    ctx.scope.listen(document, 'keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      const e = event;
       if (!this.inputAllowed() || e.repeat) return;
       if (e.code === 'KeyF') this.tryFire();
       if (e.code === 'KeyR') this.reload();
     });
-    window.addEventListener('blur', () => { this.mouseAds = false; });
+    ctx.scope.listen(window, 'blur', () => { this.mouseAds = false; });
   }
 
   override setActive(on: boolean): void {
@@ -476,16 +492,11 @@ export class LeverRifle extends Weapon {
   get cycleU(): number { return this.freezeCycle ?? (this.phase === 'cycle' ? clamp01(this.phaseT / LEVER_TIME) : 0); }
 
   /** Pull the trigger: fire the chambered round; mid-reload, stop after the round in hand; empty → the dry click + a reload. */
-  tryFire(): void {
-    if (this.phase === 'reload') { if (this.fed > 0 || this.tube > 0 || this.chambered) this.stopAfter = true; return; }
-    if (this.phase !== 'idle') return;
-    if (!this.chambered) {
-      this.onDry?.(); this.sinceEmpty = 0;
-      if (this.tube > 0) this.startCycle(); else if (this.state.reserve > 0) this.reload();
-      return;
-    }
-    this.fire();
-  }
+  protected override reloadingAction(): boolean { return this.phase === 'reload'; }
+  protected override actionReady(): boolean { return this.phase === 'idle'; }
+  protected override roundReady(): boolean { return this.chambered; }
+  protected override onTriggerWhileReloading(): void { if (this.fed > 0 || this.tube > 0 || this.chambered) this.stopAfter = true; }
+  protected override onEmptyTrigger(): void { if (this.tube > 0) this.startCycle(); else if (this.state.reserve > 0) this.reload(); }
 
   override reload(): void {
     if (this.phase !== 'idle' || this.tube >= TUBE_MAX || this.state.reserve <= 0) return;
@@ -499,12 +510,12 @@ export class LeverRifle extends Weapon {
   addRounds(n: number): void { this.state.reserve += n; }
   override addBolts(n: number): void { this.addRounds(n); }
 
-  private fire(): void {
+  protected override fire(): void {
     this.chambered = false; this.caseInChamber = true; this.hammerCocked = false;
     this.phase = 'beat'; this.phaseT = 0;
     this.recoil = 1; this.kickPending = KICK_PITCH;
     this.flashFrames = FLASH_FRAMES; this.flashLightT = FLASH_LIGHT_TIME;
-    for (const q of this.flashQuads) { q.rotation.z = Math.random() * Math.PI * 2; q.scale.setScalar(0.8 + Math.random() * 0.5); }
+    for (const q of this.flashQuads) { q.rotation.z = app.rng.stream('cosmetic').next() * Math.PI * 2; q.scale.setScalar(0.8 + app.rng.stream('cosmetic').next() * 0.5); }
     this.flash.visible = true; this.flashLight.intensity = FLASH_LIGHT; this.placeFlashLight();
     this.syncState();
     this.onFire?.();
@@ -530,22 +541,10 @@ export class LeverRifle extends Weapon {
   }
 
   private hitscan(): void {
-    this.aimRay(_o, _d);
-    const a = sstep(0, 1, this.adsBlend);
-    const spread = THREE.MathUtils.degToRad(SPREAD_ADS + (1 - a) * SPREAD_HIP + this.player.speedFactor * 0.5 * (1 - a * 0.6));
-    _v1.set(gameplayRandom() - 0.5, gameplayRandom() - 0.5, gameplayRandom() - 0.5).cross(_d).normalize();
-    _d.addScaledVector(_v1, Math.tan(spread * Math.sqrt(gameplayRandom()))).normalize();
-    let dist = HITSCAN_RANGE, surface: ImpactSurface | null = null;
-    const wall = worldHit(_o, _v2.copy(_o).addScaledVector(_d, HITSCAN_RANGE), 0);
-    if (wall) { dist = wall.distance; surface = impactSurfaceOf(wall.material); }
-    const hit = this.targets?.raycast(_o, _d, dist) ?? null;
-    if (hit) { dist = hit.distance; surface = 'flesh'; }
-    const point = _v2.copy(_o).addScaledVector(_d, dist);
-    if (surface === 'flesh' && hit) {
-      point.copy(hit.point);
-      const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.distance) * DAMAGE_SCALE, hit.point, _d);
-      this.onHit?.(hit.animal.kind, hit.headshot, killed);
-    }
+    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.adsBlend, 0, this.player.speedFactor);
+    const { point, direction, surface, hit, killed } = result;
+    if (hit) this.onHit?.(hit.animal.kind, hit.headshot, killed);
+    _d.copy(direction);
     if (getSetting('tracers')) {
       const tr = this.tracers.reduce((acc, x) => (x.t0 < acc.t0 ? x : acc));
       this.model.updateMatrixWorld();
@@ -608,24 +607,13 @@ export class LeverRifle extends Weapon {
     this.model.localToWorld(b.mesh.position.copy(PORT));
     _v1.set(1, 0, 0).applyQuaternion(cam.quaternion); _v2.set(0, 1, 0).applyQuaternion(cam.quaternion); cam.getWorldDirection(_v3);
     // Winchester top eject: up and a little right and back, spinning end over end
-    b.vel.copy(_v2).multiplyScalar(2.6 + Math.random() * 0.6).addScaledVector(_v1, 0.8 + Math.random() * 0.5).addScaledVector(_v3, -0.6 + Math.random() * 0.2);
-    b.spin.set(18 + Math.random() * 12, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8);
+    b.vel.copy(_v2).multiplyScalar(2.6 + app.rng.stream('cosmetic').next() * 0.6).addScaledVector(_v1, 0.8 + app.rng.stream('cosmetic').next() * 0.5).addScaledVector(_v3, -0.6 + app.rng.stream('cosmetic').next() * 0.2);
+    b.spin.set(18 + app.rng.stream('cosmetic').next() * 12, (app.rng.stream('cosmetic').next() - 0.5) * 8, (app.rng.stream('cosmetic').next() - 0.5) * 8);
     b.mesh.quaternion.copy(cam.quaternion).multiply(_q.setFromAxisAngle(_v1.set(1, 0, 0), -Math.PI / 2));
     b.life = BRASS_LIFE; b.down = false; b.mesh.visible = true;
     b.floor = brassFloor(b.mesh.position, b.vel) + 0.006;
   }
-  private stepBrass(dt: number): void {
-    for (const b of this.brass) {
-      if (b.life <= 0) continue;
-      b.life -= dt;
-      if (b.life <= 0) { b.mesh.visible = false; continue; }
-      if (b.down) continue;
-      b.vel.y -= 9.8 * dt;
-      b.mesh.position.addScaledVector(b.vel, dt);
-      b.mesh.rotation.x += b.spin.x * dt; b.mesh.rotation.y += b.spin.y * dt; b.mesh.rotation.z += b.spin.z * dt;
-      if (b.mesh.position.y < b.floor) { b.mesh.position.y = b.floor; b.down = true; b.mesh.rotation.set(0, Math.random() * Math.PI, Math.PI / 2 + (Math.random() - 0.5) * 0.3); }
-    }
-  }
+  private stepBrass(dt: number): void { stepBrass(this.brass, dt); }
 
   /** Sighted: rotation 0, the eye on the comb on the sight line — the bead in the notch on the crosshair. */
   private solveAds(scale: number): LeverRifle['adsPose'] {

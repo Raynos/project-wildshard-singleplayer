@@ -1,8 +1,8 @@
-import { EffectService, sourceMultiplier, type EffectTarget } from '#engine';
+import { EffectService, sourceMultiplier, type EffectTarget, type Player, type TargetHit } from '#engine';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
-import type { Player } from '#engine/player/Player';
+
 import type { Wildlife } from '#engine/entities/Wildlife';
-import type { TargetHit } from '#engine/player/Crossbow';
+
 import type { NalatiKit } from './weapons/nalatiKit';
 import { grassHeightAt } from '#kit/looks/trample';
 import { grassBaseHeightAt } from '#kit/looks/grassField';

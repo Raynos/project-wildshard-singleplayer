@@ -1,19 +1,19 @@
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { Forest } from '#engine/world/forest/Forest';
+import { type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting } from '#engine';
+
+
+
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { DayCycle } from '#engine/world/dayCycle';
-import type { TargetAnimal, TargetHit } from '#engine/combat/view/targets';
+
 import { heightAt } from '#engine/world/Heightfield';
 import { HORSE_SPEED } from '#engine/entities/species/horse';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '#engine/entities/species/ghostRider';
-import { Projectiles, type ProjectileKind } from '#engine/combat/view/projectile';
+
 import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
 import { BOWL } from './layout';
-import { setting } from '#engine/ui/Settings';
+
 
 /**
  * Ghost riders — the night half of row B11 (project/archive/2026-09-23-nalati.md; elites-and-bosses.md E5; mockups

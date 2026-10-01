@@ -9,14 +9,14 @@
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '#engine/models/model';
 import * as THREE from 'three';
 import { live, type RosterEntry } from '#engine/models/live';
-import { arrowMaterial, bowSpecimen, buildArrowGeometry, QUIVER_MAX, type BowStyle } from '#engine/player/Bow';
+import { arrowMaterial, bowSpecimen, buildArrowGeometry, QUIVER_MAX, type BowStyle, buildRifleParts } from '#kit';
 import { buildSabre } from '../weapons/Sabre';
 import { buildJavelin, buildSpear, type SpearParts } from '../weapons/Spear';
 import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
 import { goldenBowModel } from '../weapons/GoldenBow';
 import { naizagaiModel } from '../weapons/Naizagai';
-import { buildRifleParts } from '#engine/player/Rifle';
-import { whiteColors } from '#engine/player/Crossbow';
+
+import { whiteColors } from '#engine';
 
 const FILE = 'src/shards/nalati-grasslands/models/gear.ts';
 

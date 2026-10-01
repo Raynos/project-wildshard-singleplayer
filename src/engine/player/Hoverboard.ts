@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 import type { Player } from './Player';
-import { isMesh } from './Crossbow';
+import { isMesh } from '#engine/combat/view/ranged';
 
 const CYAN = 0x8fe3ff;
 const LEN = 0.9, WID = 0.28, THICK = 0.032;

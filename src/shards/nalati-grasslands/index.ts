@@ -15,13 +15,13 @@
  * Each section below is one system; its owner fills it in. Keep main.ts untouched — add here.
  */
 import { Color, Vector3, type Object3D } from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { Forest } from '#engine/world/forest/Forest';
+import { type Game, type Sky, type Player, type Forest, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms, wind, type ImpactSurface, type TargetAnimal, type TargetHit } from '#engine';
+
+
+
 import type { ShardManifest } from '#game/shard/manifest';
-import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from '#engine/world/painterly';
-import { wind } from '#engine/world/steppeWind';
+
+
 import { windUniforms } from '#engine/world/TreeFactory';
 import { NalatiWater } from './water';
 import { buildOutcrops } from './outcrops';
@@ -38,7 +38,8 @@ import { wildEnv } from '#engine/entities/wildEnv';
 import { isLunging } from '#engine/entities/Pack';
 import { trample, grassHeightAt } from '#kit/looks/trample';
 import { grassBaseHeightAt } from '#kit/looks/grassField';
-import type { ImpactSurface, TargetAnimal, TargetHit } from '#engine/player/Crossbow';
+
+
 import type { NalatiKit } from './weapons/nalatiKit';
 import { nalatiWetAt } from './wet';
 import { wireNightEnemies } from './nightEnemies';

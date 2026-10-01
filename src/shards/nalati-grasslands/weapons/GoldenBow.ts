@@ -1,10 +1,10 @@
-import { sourceMultiplier } from '#engine';
+import { sourceMultiplier, isMesh, type Sky, painterlyMaterial } from '#engine';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from './effects';
 import * as THREE from 'three';
-import type { Bow } from '#engine/player/Bow';
-import { isMesh } from '#engine/player/Crossbow';
-import type { Sky } from '#engine/world/Sky';
-import { painterlyMaterial } from '#engine/world/painterly';
+import type { Bow } from '#kit';
+
+
+
 import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
 
 /**

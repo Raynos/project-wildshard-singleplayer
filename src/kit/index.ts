@@ -11,3 +11,14 @@ export { key, COMBO, HEAVY, REST, CHARGE, SPRINT } from './weapons/melee/moves';
 export type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from '#engine';
 
 export { Thrown, type ThrownProfile } from './weapons/thrown/Thrown';
+
+export { Bow, type BowWorld, type BowOptions } from './weapons/bow/family';
+export { BOW } from './weapons/bow/profiles';
+export type { BowProfile, BowStyle, BowView, GripPose } from './weapons/bow/profile';
+export { ARROW_LEN, POSE, VM_SHADE, buildArrowGeometry, arrowKind, arrowMaterial, bowSpecimen } from './weapons/bow/recurve';
+export { QUIVER_MAX, AIM_ZOOM, AIM_VM_ZOOM, AIM_SWAY, AIM_SPREAD, AIM_IN } from './weapons/bow/index';
+export { Crossbow, PLAIN_BOLT, MAX_BOLTS, buildCrossbow, buildBolt, boltFlightStep, type BoltMod } from './weapons/crossbow/Crossbow';
+export { CROSSBOW_PROFILE, type CrossbowProfile } from './weapons/crossbow/profiles';
+export { Firearm } from './weapons/firearm/Firearm';
+export { AR15, type FirearmProfile } from './weapons/firearm/profiles';
+export { Rifle, buildRifleParts, type RifleParts, type RifleOptions } from './weapons/firearm/Rifle';

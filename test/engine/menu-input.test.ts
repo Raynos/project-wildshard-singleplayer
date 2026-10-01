@@ -2,7 +2,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { app } from '#engine';
 import { containMenuInput } from '#engine/input/menuInput';
-import { Crossbow } from '#engine/player/Crossbow';
+import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
 
 afterEach(() => { document.body.replaceChildren(); app.setState('boot'); });
 it('contains a resume tap and compatibility mouse events while allowing its target click to resume', () => {

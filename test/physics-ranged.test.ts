@@ -8,7 +8,7 @@ import { groups } from '#engine/physics/groups';
 import { tagCollider, clearTags, type Material } from '#engine/physics/surface';
 import { setActivePhysics } from '#engine/physics/active';
 import { sticksIn } from '#engine/physics/query';
-import { worldHit, impactSurfaceOf } from '#engine/player/Crossbow';
+import { worldHit, impactSurfaceOf } from '#engine/combat/view/ranged';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());
