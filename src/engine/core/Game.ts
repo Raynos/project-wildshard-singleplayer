@@ -524,7 +524,7 @@ export class Game {
    */
   private register(phase: Phase, fn: (dt: number, t: number) => void, label?: string, core = false, scope = this.registrationScope): void {
     const id = label === 'main' ? 'main.frame' : label ?? `engine.core.callback.${String(this.anonymous++)}`;
-    this.app.addSystem({ id, phase, run: fn, core }, scope);
+    this.app.addSystem({ id, phase, run: fn, core, ...(phase === 'update' && id !== 'main.frame' ? { before: ['main.frame'] } : {}) }, scope);
     this.faultSystems.set(id, makeSystem(fn, id, core, id));
     scope.onDispose(() => { this.faultSystems.delete(id); });
   }
