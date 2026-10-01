@@ -1,3 +1,4 @@
+import { pineScore } from '../audio/score';
 import { AntlerKingGoals } from './KingGoals';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';
@@ -609,12 +610,12 @@ export class AntlerKing {
   }
 
   private music(e: 'intro' | 'phase' | 'victory' | 'death' | 'pickup'): void {
-    const m = this.host.music;
+    const m = pineScore(this.host.music);
     if (e === 'intro') { m.setPineScene('boss'); m.setBossPhase(1); m.combat(1); }
     else if (e === 'phase') { const ph = this.fight.phase + 1; m.setBossPhase(ph === 3 ? 3 : ph === 2 ? 2 : 1); }
-    else if (e === 'victory') { m.setPineScene(this.night() ? 'night' : 'day'); m.sting('chunk'); }
-    else if (e === 'death') { m.setPineScene(this.night() ? 'night' : 'day'); m.sting('death'); }
-    else m.sting('pickup');
+    else if (e === 'victory') { m.setPineScene(this.night() ? 'night' : 'day'); m.playSting('chunk'); }
+    else if (e === 'death') { m.setPineScene(this.night() ? 'night' : 'day'); m.playSting('death'); }
+    else m.playSting('pickup');
   }
 
   private night(): boolean { return this.forcedNight || this.host.ctx.night() > 0.5; }

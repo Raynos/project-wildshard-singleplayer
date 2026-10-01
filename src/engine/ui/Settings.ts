@@ -129,7 +129,6 @@ export const OPTION_VALUES = {
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/engine/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
   learnedLut: ['on', 'off'],
   creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
-  pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/engine/audio/Music.ts) — a reload
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/engine/player/AimAssist.ts) — live
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
   ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
@@ -154,7 +153,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   titleSummary: DEBUG_ONLY,
   calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY,
-  creatures: DEBUG_ONLY, pineScore: DEBUG_ONLY,
+  creatures: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
@@ -172,7 +171,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   titleSummary: option('titleSummary'),
   calibrate: option('calibrate'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'),
-  creatures: option('creatures'), pineScore: option('pineScore'),
+  creatures: option('creatures'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];

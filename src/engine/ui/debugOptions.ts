@@ -174,7 +174,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
     set: (s) => { const v = SFX_SETS.find((x) => x === s); if (v) setSfxSet(v); }, on: (fn) => { onSfxSet(() => { fn(); }); },
   },
 
-  opt('pineScore', 'audio', engineString('s_918768bace32'), [['auto', engineString('s_0286249762f7')], ['night', engineString('s_4e9f8db8242b')], ['boss', engineString('s_443a0cc2d825')], ['boss-2', engineString('s_45a017f102bd')], ['boss-3', engineString('s_67cf3acd63ca')], ['dawn', engineString('s_0dfd8feb99c0')]], { reload: true, when: pineHollow, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_26f707b2620f') }),
 
   // ── Combat & weapons ──
   opt('aimRing', 'combat', engineString('s_4039d9694edd'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_7bfebc644d49') }),

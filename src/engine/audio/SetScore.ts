@@ -1,5 +1,5 @@
 import { MUSIC_MANIFESTS } from '../boot/audio.generated';
-import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting } from './Stems';
+import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting, type BossPhase } from './Stems';
 import type { MusicState } from './Music';
 
 export type AudioRead = (url: string) => Promise<ArrayBuffer>;
@@ -7,6 +7,12 @@ export type AudioDecode = (bytes: ArrayBuffer) => Promise<AudioBuffer>;
 export interface ScoreBank { slots: Map<string, SlotAudio>; stings: Map<StemSting, AudioBuffer> }
 export interface ScoreSource {
   readonly slots: readonly string[];
+  readonly minFade?: number;
+  readonly phase?: BossPhase;
+  readonly sceneName?: string;
+  readonly failures?: Iterable<string>;
+  sting?: (name: StemSting) => AudioBuffer | undefined | Promise<AudioBuffer | undefined>;
+  onDeck?: (slot: string) => void;
   target: (state: MusicState) => string | undefined;
   want: (playing: string | undefined) => SlotAudio | undefined;
   readonly pending: boolean;

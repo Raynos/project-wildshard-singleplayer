@@ -1,3 +1,4 @@
+import { pineScore, pineScorePick } from './score';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
 import type { Music } from '#engine/audio/Music';
@@ -9,7 +10,6 @@ import { audioLog } from '#engine/audio/audioLog';
 import {
   BEAR_CAVE, CREEK, HAMLET_SITES, LOOKOUT, OLD_GROWTH, RIDGE, RIDGE_STREAM, WATERFALL, ridgeFootZ, type XZ,
 } from '../layout';
-import { setting } from '#engine/ui/Settings';
 
 /**
  * Pine Hollow's sound, hooked to its gameplay (PINE-HOLLOW-REMASTER A-rows, the audio-wiring lane). The sound lane made
@@ -96,7 +96,8 @@ export function installPineAudio(h: PineAudioHost): void {
     };
   }
 
-  const pinned = setting('pineScore') !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
+  const score = pineScore(music);
+  const pinned = pineScorePick() !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
   const prev = new WeakMap<Animal, Animal['state']>();
   let night = false, slowT = 0, snortAt = -99, elite = false, eliteT = 0;
   game.onUpdate((dt, t) => {
@@ -110,7 +111,7 @@ export function installPineAudio(h: PineAudioHost): void {
       const was = night;
       night = night ? dn.night > NIGHT_OFF : dn.night > NIGHT_ON;
       if (night !== was) audioLog('wire', night ? 'clock:night' : 'clock:day', true, dn.night.toFixed(2));
-      if (!pinned && music.pineScene !== 'boss') music.setPineScene(night ? 'night' : 'day');
+      if (!pinned && score.sceneName !== 'boss') score.setPineScene(night ? 'night' : 'day');
     }
     // an engaged elite: combat, refreshed each second (Music.combat decays to alert 8 s after the last one)
     const on = h.eliteEngaged();
