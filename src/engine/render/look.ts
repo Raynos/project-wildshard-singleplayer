@@ -1,4 +1,4 @@
-import type { Color, DirectionalLight, Fog, HemisphereLight, Mesh, Sprite, Vector3, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, Object3D, Sprite, Vector3, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
 import type { GradeEffect } from '../core/Grade';
@@ -10,7 +10,6 @@ import type { LevelContext } from '../level/context';
 import type { Tier } from '../core/tier';
 import type { LevelSpec } from '../level/spec';
 import type { VolumetricsEffect } from '../core/Volumetrics';
-import type { Group, Object3D } from 'three';
 import type { Terrain } from '../world/Terrain';
 import type { Forest } from '../world/forest/Forest';
 
@@ -50,7 +49,7 @@ export interface LookComposeContext extends LookReplaceContext {
   fx: EngineEffects;
 }
 
-/** a `mode: 'replace'` composition: the whole chain, in order (01 §13.1; Nalati's painterly composer) */
+/** a `mode: 'replace'` composition: the whole chain, in order (01 §13.1: a level's own composer) */
 export interface LookChain { chain: Pass[] }
 
 export interface LookComposition {
@@ -67,17 +66,17 @@ export interface LookComposition {
 }
 
 /**
- * A shard's fog patch (01 §13.2's ordered `fog_fragment` slots: engine fog 100, stylize 200, a shard's fog 300). The
+ * A level's fog patch (01 §13.2's ordered `fog_fragment` slots: engine fog 100, stylize 200, a level's fog 300). The
  * engine runs `install()` once, after its own `installAtmosphere()` and before the sky builds or anything compiles.
  */
 export interface FogModel { order: number; install: () => void }
 
-/** a shard's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) */
+/** a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) */
 export interface TerrainPainter { build: (t: Terrain) => Promise<void> }
 
 /** what a `GrassDriver` builds: its group goes in the scene, `update` runs every frame from the engine's Grass */
 export interface GrassLayer { group: Group | Object3D; update: (dt: number, playerPos: Vector3) => void }
-/** a shard's own grass in place of the engine's carpet (Grass.build) */
+/** a level's own grass in place of the engine's carpet (Grass.build) */
 export interface GrassDriver { build: (sky: Sky, forest: Forest) => GrassLayer }
 
 interface LookParts {
@@ -94,13 +93,13 @@ interface LookParts {
   grass?: GrassDriver;
 }
 
-/** 'extend' (the default): the shard's passes go in slots around the engine's chain */
+/** 'extend' (the default): the level's passes go in slots around the engine's chain */
 export interface ExtendLook extends LookParts {
   mode?: 'extend';
   compose: (c: LookComposeContext) => LookComposition;
 }
 
-/** 'replace': the shard's compose builds the whole chain; the engine adds exactly its passes to its one composer */
+/** 'replace': the level's compose builds the whole chain; the engine adds exactly its passes to its one composer */
 export interface ReplaceLook extends LookParts {
   mode: 'replace';
   compose: (c: LookReplaceContext) => LookChain;
