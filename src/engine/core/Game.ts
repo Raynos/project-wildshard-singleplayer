@@ -227,6 +227,8 @@ export class Game {
   get sky(): Sky { if (this._sky === null) throw new Error('Game.sky read before buildSky()'); return this._sky; }
 
   constructor(public canvas: HTMLCanvasElement, context: WebGL2RenderingContext) {
+    this.app.scene = this.scene;
+    this.app.render = this;
     installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
     if (getActiveChunk().style === 'painterly') installLookV2Fog(); // Nalati: the fog coloured from the panorama (src/shards/nalati-grasslands/look/fog.ts)
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
@@ -463,6 +465,7 @@ export class Game {
     if (this.app.state === 'paused') return;
     const on = frameCost.on; // the dev fps panel's timing rows (src/engine/core/frameCost.ts): one boolean read while it is closed
     for (const spec of this.app.systemsByPhase()[phase]) {
+      if (!this.app.scheduler.runs(spec)) continue;
       if (spec.when && !spec.when(this.app)) continue;
       let s = this.faultSystems.get(spec.id);
       if (!s) { s = makeSystem(spec.run, spec.id, spec.core ?? false, spec.id); this.faultSystems.set(spec.id, s); }

@@ -432,5 +432,26 @@
     "rule": "no-hook-chain",
     "code": "const unsubscribe = events.on('fault', handler, scope); const value = target.health;",
     "count": 0
+  },
+  {
+    "id": "active-service-reads",
+    "file": "src/fixtures/f8/active.ts",
+    "rule": "no-active-singleton",
+    "code": "activePhysics(); activeRegistry(); app.physics; app.registry;",
+    "count": 2
+  },
+  {
+    "id": "active-chunk-engine",
+    "file": "src/engine/fixtures/f8-current.ts",
+    "rule": "no-active-chunk",
+    "code": "getActiveChunk(); app.level;",
+    "count": 1
+  },
+  {
+    "id": "active-chunk-game-owner",
+    "file": "src/game/shard/f8-current.ts",
+    "rule": "no-active-chunk",
+    "code": "getActiveChunk();",
+    "count": 0
   }
 ]

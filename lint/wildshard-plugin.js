@@ -437,6 +437,14 @@ const noHookChain = rule('Hook chains migrate to typed events (E357)', (context)
     if (value?.type === 'MemberExpression' && /^on[A-Z]/u.test(propName(value) ?? stringOf(value.property) ?? '')) report(context, node, 'Use typed events instead of saving a prior onFoo hook');
   },
 }));
+const ACTIVE_SERVICES = new Set(['activeRegistry', 'activePhysics', 'activeBodies', 'activeClock', 'activeNavmesh', 'activeGrade', 'getAimTargets']);
+const noActiveSingleton = rule('Active service reads migrate to the app (E357)', (context) => ({
+  CallExpression(node) { if (ACTIVE_SERVICES.has(calleeName(node.callee))) report(context, node, 'Read the typed app service instead of an active singleton'); },
+}));
+const noActiveChunk = rule('Current content data belongs in the game layer (E357)', (context) => {
+  if (pathOf(context).startsWith('src/game/shard/')) return {};
+  return { CallExpression(node) { if (calleeName(node.callee) === 'getActiveChunk') report(context, node, 'Read explicit level data or the game content service'); } };
+});
 
 const plugin = {
   meta: { name: 'wildshard' },
@@ -445,6 +453,7 @@ const plugin = {
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
     'no-renderer-type': noRendererType, 'sim-no-render': simNoRender,
     'no-hook-chain': noHookChain,
+    'no-active-singleton': noActiveSingleton, 'no-active-chunk': noActiveChunk,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

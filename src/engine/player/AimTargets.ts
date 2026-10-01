@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 /**
  * AimTargets — the live list of things the touch aim assist (AimAssist.ts) may help you onto.
  *
@@ -27,10 +28,10 @@ export interface AimTarget {
   lockRange?: number;
 }
 
-let targets: readonly AimTarget[] = [];
 
-export function setAimTargets(list: readonly AimTarget[]): void { targets = list; }
-export function getAimTargets(): readonly AimTarget[] { return targets; }
+
+export function setAimTargets(list: readonly AimTarget[]): void { app.aimTargets = list; }
+export function getAimTargets(): readonly AimTarget[] { return app.aimTargets; }
 
 /**
  * The sword's melee lock (Sword.ts writes it every frame it is held): `target` = the animal a swing would lunge onto right
@@ -59,6 +60,6 @@ export const lockOn: {
 } = { state: 'off', target: null, candidate: null, offYaw: 0, offPitch: 0, r0: 0, left: null, right: null, leftDist: 0, rightDist: 0 };
 
 // E155 (src/engine/core/shardState.ts): the running shard's targets and lock state
-shardSlot('aim.targets', () => targets, (v) => { targets = v; });
+shardSlot('aim.targets', () => app.aimTargets, (v) => { app.aimTargets = v; });
 stateSlot('aim.meleeLock', meleeLock);
 stateSlot('aim.lockOn', lockOn);

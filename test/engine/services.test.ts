@@ -1,0 +1,28 @@
+import { afterEach, expect, it } from 'vitest';
+import { App, app } from '#engine';
+import { activeRegistry, WorldRegistry } from '#engine/world/registry';
+import { activePhysics, setActivePhysics } from '#engine/physics/active';
+import { activeBodies, setActiveBodies } from '#engine/physics/bodies';
+import { activeNavmesh, setActiveNavmesh } from '#engine/physics/navmesh';
+import { activeClock, setActiveClock } from '#engine/world/WorldClock';
+import { activeGrade } from '#engine/world/lookFlags';
+import { getActiveChunk } from '#game/shard/registry';
+
+afterEach(() => { app.registryValue = null; setActivePhysics(null); setActiveBodies(null); setActiveNavmesh('', null); setActiveClock(null); });
+it('legacy getters delegate to the same typed app services, including lazy registry creation', () => {
+  const registry = new WorldRegistry(); app.registryValue = registry;
+  expect(activeRegistry()).toBe(app.registry); expect(activeRegistry()).toBe(registry);
+  app.registryValue = null;
+  expect(activeRegistry()).toBe(app.registry); expect(app.registry).not.toBe(registry);
+  setActivePhysics(null); setActiveBodies(null); setActiveNavmesh('', null); setActiveClock(null);
+  expect(activePhysics()).toBe(app.physics); expect(activeBodies()).toBe(app.bodies);
+  expect(activeNavmesh()).toBe(app.navmesh); expect(activeClock()).toBe(app.dayCycle);
+  const def = getActiveChunk(); expect(activeGrade(def)).toEqual(app.gradeFor(def));
+});
+it('fails on saves before F10 and schedules every rate class on each frame', () => {
+  const isolated = new App();
+  expect(() => isolated.saves.read()).toThrow('F10'); expect(() => isolated.saves.write()).toThrow('F10');
+  for (const tick of ['ai', 'far', 'frame']) expect(isolated.scheduler.runs({ id: tick, phase: 'update', tick, run: () => undefined })).toBe(true);
+  isolated.debug.expose('test', 1);
+  expect(isolated.debug.snapshot()).toEqual({ test: 1 });
+});

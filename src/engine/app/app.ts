@@ -1,4 +1,13 @@
 import { RngService } from '../core/rng';
+import type { Scene } from 'three';
+import type { Game } from '../core/Game';
+import type { Physics } from '../physics/Physics';
+import type { Bodies } from '../physics/bodies';
+import type { Navmesh } from '../physics/navmesh';
+import type { WorldClock } from '../world/WorldClock';
+import type { WorldRegistry } from '../world/registry';
+import type { AimTarget } from '../player/AimTargets';
+import { AppDebug, EveryFrameScheduler, PendingSaves, resolveGrade } from './services';
 import { Events } from '../events/events';
 import { GameClock } from '../core/clock';
 import type { AssetService } from './assets';
@@ -23,6 +32,26 @@ export class App {
   readonly clock = new GameClock();
   readonly rng = new RngService();
   assets?: AssetService;
+  scene: Scene | null = null;
+  render: Game | null = null;
+  physics: Physics | null = null;
+  bodies: Bodies | null = null;
+  navmesh: Navmesh | null = null;
+  navmeshId: string | null = null;
+  dayCycle: WorldClock | null = null;
+  aimTargets: readonly AimTarget[] = [];
+  registryValue: WorldRegistry | null = null;
+  registryFactory: (() => WorldRegistry) | null = null;
+  get registry(): WorldRegistry {
+    if (this.registryValue) return this.registryValue;
+    if (!this.registryFactory) throw new Error('Registry service is not installed');
+    this.registryValue = this.registryFactory();
+    return this.registryValue;
+  }
+  readonly gradeFor = resolveGrade;
+  readonly saves = new PendingSaves();
+  readonly debug = new AppDebug();
+  readonly scheduler = new EveryFrameScheduler();
 
   constructor(events = new Events()) { this.events = events; }
   get state(): AppState { return this.currentState; }

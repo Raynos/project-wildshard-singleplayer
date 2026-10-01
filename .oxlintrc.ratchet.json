@@ -13,6 +13,8 @@
     "wildshard/no-raw-input": "error",
     "wildshard/no-renderer-type": "error",
     "wildshard/sim-no-render": "error",
-    "wildshard/no-hook-chain": "error"
+    "wildshard/no-hook-chain": "error",
+    "wildshard/no-active-singleton": "error",
+    "wildshard/no-active-chunk": "error"
   }
 }

@@ -3,13 +3,12 @@
  * the `physics` step has built the world. Null before that and in node tests that build their own.
  */
 import type { Physics } from './Physics';
+import { app } from '../app/runtime';
 import { shardSlot } from '../core/shardState';
 
-let current: Physics | null = null;
+export function setActivePhysics(p: Physics | null): void { app.physics = p; }
 
-export function setActivePhysics(p: Physics | null): void { current = p; }
-
-export function activePhysics(): Physics | null { return current; }
+export function activePhysics(): Physics | null { return app.physics; }
 
 // E155 (src/engine/core/shardState.ts): the running shard's world
-shardSlot('physics.active', () => current, (v) => { current = v; });
+shardSlot('physics.active', () => app.physics, (v) => { app.physics = v; });

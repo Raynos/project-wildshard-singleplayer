@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 /**
  * The shard's navmesh (project/archive/2026-09-23-physics.md P6b): where a creature can walk, baked offline per shard by
  * scripts/bake-navmesh.mjs (navcat's recast port over the baked terrain + every static builder's ColliderDescs, the water
@@ -217,13 +218,13 @@ export function parseNavmesh(buf: ArrayBuffer): Navmesh | null {
   }
 }
 
-let active: { slug: string; navmesh: Navmesh } | null = null;
+
 
 /** The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. */
-export function activeNavmesh(): Navmesh | null { return active?.navmesh ?? null; }
+export function activeNavmesh(): Navmesh | null { return app.navmesh; }
 
 /** Set (or clear) the active navmesh — node tests, or a shard switch. */
-export function setActiveNavmesh(slug: string, navmesh: Navmesh | null): void { active = navmesh ? { slug, navmesh } : null; }
+export function setActiveNavmesh(slug: string, navmesh: Navmesh | null): void { app.navmesh = navmesh; app.navmeshId = navmesh ? slug : null; }
 
 /**
  * Fetch and parse `slug`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so
@@ -231,7 +232,7 @@ export function setActiveNavmesh(slug: string, navmesh: Navmesh | null): void { 
  * build has none or it doesn't parse: the creatures then steer as they did before the navmesh.
  */
 export async function loadNavmesh(slug: string): Promise<Navmesh | null> {
-  if (active?.slug === slug) return active.navmesh;
+  if (app.navmeshId === slug) return app.navmesh;
   const url = navmeshUrl(slug);
   if (url === null) return null;
   try {
@@ -248,4 +249,4 @@ export async function loadNavmesh(slug: string): Promise<Navmesh | null> {
 }
 
 // E155 (src/engine/core/shardState.ts): the running shard's navmesh
-shardSlot('physics.navmesh', () => active, (v) => { active = v; });
+shardSlot('physics.navmesh', () => ({ id: app.navmeshId, mesh: app.navmesh }), (v) => { app.navmeshId = v.id; app.navmesh = v.mesh; });
