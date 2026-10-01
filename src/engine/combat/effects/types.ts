@@ -8,13 +8,15 @@ export interface EffectTarget { readonly attributes: AttributeSet; effectTags?: 
 export interface EffectDef {
   id: EffectId; tags: readonly CombatTag[];
   kind: 'instant' | 'timed' | 'permanent'; duration?: number; period?: number;
+  /** Damage per periodic tick; the content binding routes this through combat.hit. */
+  tickDamage?: number;
   modifiers: readonly { attr: string; op: 'add' | 'mul' | 'override'; value: number }[];
   stacking: 'none' | 'refresh' | { max: number };
   cue?: CueId; icon?: string; blockedBy?: readonly CombatTag[]; grants?: readonly CombatTag[];
   /** Exclusive cosmetics and upgrades replace their predecessor without multiplying both. */
   group?: string; removes?: readonly EffectId[];
 }
-export interface ActiveEffect { readonly def: EffectDef; stacks: number; remaining: number; elapsed: number; source: Actor | undefined }
+export interface ActiveEffect { readonly def: EffectDef; stacks: number; remaining: number; elapsed: number; source: Actor | undefined; sourceTags: readonly CombatTag[] }
 export interface SourceMulDef {
   id: string;
   when: { sourceTags?: readonly CombatTag[]; targetTags?: readonly CombatTag[]; weaponTags?: readonly CombatTag[]; targetState?: readonly CombatTag[] };

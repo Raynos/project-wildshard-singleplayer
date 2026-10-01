@@ -19,6 +19,10 @@ export class EffectService {
   private readonly events: Events | undefined;
   private readonly tick: ((target: EffectTarget, effect: ActiveEffect) => void) | undefined;
   private disposed = false;
+  private readonly tickListeners = new Set<(target: EffectTarget, effect: ActiveEffect) => void>();
+  onTick(fn: (target: EffectTarget, effect: ActiveEffect) => void, scope: Scope): void {
+    this.tickListeners.add(fn); scope.onDispose(() => { this.tickListeners.delete(fn); });
+  }
   constructor(defs: readonly EffectDef[], scope?: Scope, events?: Events, tick?: (target: EffectTarget, effect: ActiveEffect) => void) {
     this.events = events; this.tick = tick;
     for (const def of defs) {
@@ -58,11 +62,13 @@ export class EffectService {
     if (this.disposed) return;
     const state = this.state(target); state.bases[attr] = value; this.recompute(target, state);
   }
-  apply(target: EffectTarget, id: EffectId, source?: Actor): void {
+  apply(target: EffectTarget, id: EffectId, source?: Actor, options: { duration?: number; sourceTags?: readonly CombatTag[] } = {}): void {
     if (this.disposed) return;
     const def = this.definitions.get(id);
     if (def === undefined) throw new Error(`Unknown effect ${id}`);
     if (def.blockedBy?.some((tag) => this.has(target, tag))) return;
+    const duration = options.duration ?? def.duration ?? 0;
+    if (def.kind === 'timed' && (!Number.isFinite(duration) || duration <= 0)) throw new Error(`Invalid duration for ${id}`);
     const state = this.state(target);
     for (const remove of def.removes ?? []) this.remove(target, remove);
     if (def.group !== undefined) for (const active of state.active.values()) {
@@ -80,11 +86,11 @@ export class EffectService {
     const current = state.active.get(id);
     if (current !== undefined) {
       if (typeof def.stacking === 'object') current.stacks = Math.min(def.stacking.max, current.stacks + 1);
-      if (def.kind === 'timed') current.remaining = Math.max(current.remaining, def.duration ?? 0);
-      current.source = source;
+      if (def.kind === 'timed') current.remaining = Math.max(current.remaining, duration);
+      current.source = source; current.sourceTags = options.sourceTags ?? [];
     } else {
       for (const mod of def.modifiers) if (!Object.hasOwn(state.bases, mod.attr)) state.bases[mod.attr] = target.attributes[mod.attr] ?? 0;
-      state.active.set(id, { def, stacks: 1, remaining: def.kind === 'permanent' ? Infinity : def.duration ?? 0, elapsed: 0, source });
+      state.active.set(id, { def, stacks: 1, remaining: def.kind === 'permanent' ? Infinity : duration, elapsed: 0, source, sourceTags: options.sourceTags ?? [] });
     }
     this.recompute(target, state); this.events?.emit('effect.applied', { target, id });
   }
@@ -93,7 +99,7 @@ export class EffectService {
     if (this.disposed) return;
     const want = new Set(grants.map((grant) => grant.id));
     const state = this.state(target);
-    for (const id of state.active.keys()) if (!want.has(id)) this.remove(target, id);
+    for (const [id, effect] of state.active) if (effect.def.kind === 'permanent' && !want.has(id)) this.remove(target, id);
     for (const grant of grants) {
       const current = state.active.get(grant.id);
       if (current === undefined) this.apply(target, grant.id);
@@ -122,7 +128,7 @@ export class EffectService {
       const span = Math.min(dt, effect.remaining);
       effect.remaining = Math.max(0, effect.remaining - dt); effect.elapsed += span;
       const period = effect.def.period;
-      if (period !== undefined) while (effect.elapsed >= period) { effect.elapsed -= period; this.tick?.(target, effect); }
+      if (period !== undefined) while (effect.elapsed >= period) { effect.elapsed -= period; this.tick?.(target, effect); for (const fn of this.tickListeners) fn(target, effect); }
       if (effect.remaining <= 1e-12) this.remove(target, effect.def.id);
     }
   }
