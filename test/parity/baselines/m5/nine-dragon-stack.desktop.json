@@ -35,7 +35,12 @@
     ],
     "systems": {
       "input": [
-        "player.input"
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "shard.nd.feizhua.input",
+        "engine.lockon.input",
+        "engine.player.input"
       ],
       "fixed.pre": [
         "physics.bodies.pre",
@@ -56,6 +61,11 @@
         "world.impacts",
         "engine.player.for",
         "training-arena",
+        "engine.effects",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
         "fei-zhua",
         "hud.perf",
         "engine.world.bounds",
@@ -66,7 +76,11 @@
         "engine.player.regen",
         "engine.player.hud"
       ],
-      "late": []
+      "late": [
+        "engine.input.trace",
+        "engine.input.edges",
+        "engine.hud.pins"
+      ]
     },
     "appStates": [
       "boot",
@@ -1415,7 +1429,7 @@
     },
     "scene": {
       "totals": {
-        "mesh": 224,
+        "mesh": 223,
         "instanced": 71,
         "instances": 18225,
         "skinned": 10,
@@ -1789,18 +1803,18 @@
       ]
     },
     "render": {
-      "programs": 82,
-      "programKeys": "9fa561891375d5d5ac36f63a8c4ea3916fef8de012898b0f2440c33bdbd7896e",
+      "programs": 81,
+      "programKeys": "722b819beeb9f4b009d15dd3fd716a3ea040b5a633c8166f0fd4ad4a2b027fab",
       "memory": {
         "geometries": 140,
-        "textures": 80
+        "textures": 79
       }
     },
     "gpuBytes": {
-      "textures": 442123495,
+      "textures": 440725395,
       "renderbuffers": 8772864,
       "buffers": 152561084,
-      "total": 603457443
+      "total": 602059343
     },
     "audio": {
       "requests": [
@@ -3052,8 +3066,11 @@
     "saves": {
       "read": [
         "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
         "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
         "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
         "session:wildshard.save.v2.session"
       ],
       "written": [
@@ -11274,11 +11291,11 @@
         "name": "escape-square-balustrade",
         "stuck": [],
         "end": {
-          "x": 0.498,
-          "y": 126.138,
-          "z": -7.405
+          "x": 0.5,
+          "y": 126.582,
+          "z": -7.469
         },
-        "maxY": 127.147,
+        "maxY": 127.329,
         "out": 0,
         "seconds": 6.69910000038147,
         "trace": [
@@ -16101,8 +16118,13 @@
     "sounds": {
       "event": {
         "nd.step.stone": 89,
-        "jump": 8,
-        "land": 9
+        "jump": 9,
+        "land": 5,
+        "nd": {
+          "step": {
+            "stone": 83
+          }
+        }
       },
       "ambient": [
         "nd.audio.tick",
@@ -16136,7 +16158,16 @@
         "swordSwing": 1,
         "nd.jian.swing": 1,
         "hitMarker": 1,
-        "swordHit:flesh": 1
+        "swordHit:flesh": 1,
+        "nd": {
+          "jian": {
+            "swing": 1
+          },
+          "step": {
+            "metal": 2
+          }
+        },
+        "footstep:metal": 1
       },
       "ambient": [
         "nd.audio.tick"
@@ -19667,7 +19698,8 @@
     "leak.gpu.total.programs": 0,
     "leak.gpu.retained.geometries": 0,
     "leak.gpu.retained.textures": 0,
-    "leak.gpu.retained.programs": 0
+    "leak.gpu.retained.programs": 0,
+    "combat.sounds.event.footstep:metal": 0
   },
   "selfMin": {
     "spawn-rail": 1,
@@ -19675,7 +19707,7 @@
     "stair-street": 1
   },
   "harness": 2,
-  "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
-  "recorded": "2026-10-01T11:03:54.264Z",
+  "sha": "c598fab85471ff5eccb970edd4f13b3f6bdc3514",
+  "recorded": "2026-10-01T19:03:25.870Z",
   "browser": "153.0.8010.12"
 }

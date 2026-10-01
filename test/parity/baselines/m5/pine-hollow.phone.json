@@ -35,7 +35,11 @@
     ],
     "systems": {
       "input": [
-        "player.input"
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
       ],
       "fixed.pre": [
         "physics.bodies.pre",
@@ -50,13 +54,19 @@
       ],
       "update": [
         "player.update",
-        "main.5",
+        "pine.landmarks",
         "training-arena",
         "hud.perf",
+        "engine.effects",
         "main.6",
+        "engine.effects.debug",
         "engine.player.for",
         "world.impacts",
         "elites",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
         "engine.compendium.installCompendium",
         "quest.kit",
         "quest.pool",
@@ -64,14 +74,19 @@
         "quest",
         "hud.combat",
         "audio",
-        "world.weather",
+        "shard.pine.weather.state",
+        "shard.pine.weather",
         "world.life",
         "first hints",
         "main.frame",
         "engine.player.regen",
         "engine.player.hud"
       ],
-      "late": []
+      "late": [
+        "engine.input.trace",
+        "engine.input.edges",
+        "engine.hud.pins"
+      ]
     },
     "appStates": [
       "boot",
@@ -3875,6 +3890,11 @@
         "shown": false
       },
       {
+        "cls": "ws-touch-disc ws-touch-verb",
+        "spot": "",
+        "shown": true
+      },
+      {
         "cls": "ws-touch-hover",
         "spot": "",
         "shown": true
@@ -3963,7 +3983,10 @@
     "saves": {
       "read": [
         "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
         "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
         "local:wildshard.save.v2.pine-hollow",
         "session:wildshard.save.v2.session"
       ],
@@ -27671,7 +27694,16 @@
         "forest.bed:ridge": 1,
         "forest.bed:creek": 1,
         "dodge": 1,
-        "audio.startSampleBed": 1
+        "audio.startSampleBed": 1,
+        "forest": {
+          "bed:cabin": 1,
+          "bed:ridge": 1,
+          "bed:creek": 1
+        },
+        "audio": {
+          "startSampleBed": 1
+        },
+        "voices:ui-glyph": 1
       },
       "ambient": [
         "forest.thrall",
@@ -27719,8 +27751,7 @@
     "loot": {
       "written": [
         "local:wildshard.save.v2.global",
-        "local:wildshard.save.v2.pine-hollow",
-        "session:wildshard.save.v2.session"
+        "local:wildshard.save.v2.pine-hollow"
       ]
     },
     "sounds": {
@@ -27740,7 +27771,6 @@
       },
       "ambient": [
         "forest.thrall",
-        "pineLife.drum",
         "pineLife.woodpecker"
       ]
     }
@@ -53135,15 +53165,16 @@
     "leak.weather.gpu.total.programs": 0,
     "leak.weather.gpu.retained.geometries": 0,
     "leak.weather.gpu.retained.textures": 0,
-    "leak.weather.gpu.retained.programs": 0
+    "leak.weather.gpu.retained.programs": 0,
+    "walk.sounds.event.voices:ui-glyph": 0
   },
   "selfMin": {
     "gate": 1,
-    "cabin": 0.99999992278879,
+    "cabin": 1,
     "pond": 0.9996786056842188
   },
   "harness": 2,
-  "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
-  "recorded": "2026-10-01T11:06:20.993Z",
+  "sha": "c598fab85471ff5eccb970edd4f13b3f6bdc3514",
+  "recorded": "2026-10-01T19:03:26.737Z",
   "browser": "153.0.8010.12"
 }

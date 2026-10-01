@@ -35,7 +35,11 @@
     ],
     "systems": {
       "input": [
-        "player.input"
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
       ],
       "fixed.pre": [
         "physics.bodies.pre",
@@ -50,13 +54,19 @@
       ],
       "update": [
         "player.update",
-        "main.5",
+        "pine.landmarks",
         "training-arena",
         "hud.perf",
+        "engine.effects",
         "main.6",
+        "engine.effects.debug",
         "engine.player.for",
         "world.impacts",
         "elites",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
         "engine.compendium.installCompendium",
         "quest.kit",
         "quest.pool",
@@ -64,14 +74,19 @@
         "quest",
         "hud.combat",
         "audio",
-        "world.weather",
+        "shard.pine.weather.state",
+        "shard.pine.weather",
         "world.life",
         "first hints",
         "main.frame",
         "engine.player.regen",
         "engine.player.hud"
       ],
-      "late": []
+      "late": [
+        "engine.input.trace",
+        "engine.input.edges",
+        "engine.hud.pins"
+      ]
     },
     "appStates": [
       "boot",
@@ -3873,7 +3888,10 @@
     "saves": {
       "read": [
         "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
         "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
         "local:wildshard.save.v2.pine-hollow",
         "session:wildshard.save.v2.session"
       ],
@@ -4599,9 +4617,9 @@
           463
         ],
         [
-          385,
+          386,
           380,
-          444,
+          446,
           474
         ],
         [
@@ -4611,9 +4629,9 @@
           448
         ],
         [
-          871,
+          872,
           393,
-          905,
+          906,
           461
         ]
       ],
@@ -4960,10 +4978,10 @@
           449
         ],
         [
-          885,
+          886,
           386,
-          941,
-          475
+          942,
+          476
         ]
       ],
       "shot": "/Users/raynos/projects/games/wildshard-singleplayer/test/parity/baselines/m5/pine-hollow.desktop.cabin.jpg",
@@ -28053,7 +28071,12 @@
         "pineSfx:bark-ranger-1": 1,
         "footstep:planks": 1,
         "forest.bed:ridge": 1,
-        "forest.bed:creek": 1
+        "forest.bed:creek": 1,
+        "forest": {
+          "bed:cabin": 1,
+          "bed:ridge": 1,
+          "bed:creek": 1
+        }
       },
       "ambient": [
         "forest.thrall",
@@ -28094,8 +28117,8 @@
     ],
     "loot": {
       "written": [
-        "local:wildshard.save.v2.pine-hollow",
-        "session:wildshard.save.v2.session"
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.pine-hollow"
       ]
     },
     "sounds": {
@@ -54970,7 +54993,7 @@
     "pond": 0.9999661714286837
   },
   "harness": 2,
-  "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
-  "recorded": "2026-10-01T11:12:01.368Z",
+  "sha": "c598fab85471ff5eccb970edd4f13b3f6bdc3514",
+  "recorded": "2026-10-01T19:03:29.138Z",
   "browser": "153.0.8010.12"
 }
