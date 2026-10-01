@@ -1,4 +1,4 @@
-import { type Game, app, heightAt } from '#engine';
+import { type Game, app, heightAt, ParticlePool, pointScale } from '#engine';
 
 import * as THREE from 'three';
 
@@ -6,8 +6,8 @@ import * as THREE from 'three';
 export type FxRenderer = Pick<Game['renderer'], 'getDrawingBufferSize'>;
 
 /**
- * Night FX — the particle systems the dusk and night enemies share (row B11): one pooled `THREE.Points` each, one draw
- * call, no per-frame allocation.
+ * Night FX — the particle systems the dusk and night enemies share (row B11): one pooled `THREE.Points` each (the one
+ * `ParticlePool`, E357 X5), one draw call, no per-frame allocation.
  *
  *   const fx = new NightParticles(scene, 'debris')   // soil clumps, stone chips, dust — normal blending, lit by `light`
  *   const fx = new NightParticles(scene, 'mist')     // cyan ghost mist, embers — additive, self-lit
@@ -24,31 +24,15 @@ export class NightParticles {
   readonly points: THREE.Points;
   /** 0..1, the debris' light (the painterly world dims at dusk; unlit points would glow otherwise) */
   light = 1;
-  private readonly pos = new Float32Array(MAX * 3);
-  private readonly vel = new Float32Array(MAX * 3);
-  private readonly life = new Float32Array(MAX);
+  private readonly pool: ParticlePool<'aSize' | 'aAlpha' | 'aColor'>;
   private readonly maxLife = new Float32Array(MAX);
-  private readonly size = new Float32Array(MAX);
   private readonly size0 = new Float32Array(MAX);
-  private readonly alpha = new Float32Array(MAX);
-  private readonly col = new Float32Array(MAX * 3);
   private readonly flags = new Uint8Array(MAX);
-  private readonly posAttr: THREE.BufferAttribute; private readonly alphaAttr: THREE.BufferAttribute;
-  private readonly sizeAttr: THREE.BufferAttribute; private readonly colAttr: THREE.BufferAttribute;
   private readonly uScale: THREE.IUniform<number> = { value: 400 };
   private readonly uLight: THREE.IUniform<number> = { value: 1 };
-  private readonly tmpSize = new THREE.Vector2();
-  private cursor = 0;
   private live = 0;
 
   constructor(scene: THREE.Scene, readonly mode: 'debris' | 'mist') {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', (this.posAttr = new THREE.BufferAttribute(this.pos, 3)));
-    g.setAttribute('aSize', (this.sizeAttr = new THREE.BufferAttribute(this.size, 1)));
-    g.setAttribute('aAlpha', (this.alphaAttr = new THREE.BufferAttribute(this.alpha, 1)));
-    g.setAttribute('aColor', (this.colAttr = new THREE.BufferAttribute(this.col, 3)));
-    for (const a of [this.posAttr, this.sizeAttr, this.alphaAttr, this.colAttr]) a.setUsage(THREE.DynamicDrawUsage);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     const mist = mode === 'mist';
     const mat = new THREE.ShaderMaterial({
       uniforms: { uScale: this.uScale, uLight: this.uLight },
@@ -62,23 +46,26 @@ export class NightParticles {
       blending: mist ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
     mat.name = `night-${mode}`;
-    this.points = new THREE.Points(g, mat);
-    this.points.frustumCulled = false;
-    this.points.renderOrder = mist ? 12 : 11;
+    this.pool = new ParticlePool({
+      capacity: MAX, material: mat, renderOrder: mist ? 12 : 11,
+      attributes: { aSize: { itemSize: 1, dynamic: true }, aAlpha: { itemSize: 1, dynamic: true }, aColor: { itemSize: 3, dynamic: true } },
+    });
+    this.points = this.pool.points;
     this.points.name = `night-${mode}`;
     scene.add(this.points);
   }
 
   emit(x: number, y: number, z: number, vx: number, vy: number, vz: number, life: number, size: number, r: number, g: number, b: number, flags = 0): void {
-    const i = this.cursor; this.cursor = (this.cursor + 1) % MAX;
+    const { pool } = this, { pos, vel } = pool, { aSize, aAlpha, aColor } = pool.data;
+    const i = pool.claim();
     const j = i * 3;
-    this.pos[j] = x; this.pos[j + 1] = y; this.pos[j + 2] = z;
-    this.vel[j] = vx; this.vel[j + 1] = vy; this.vel[j + 2] = vz;
-    this.life[i] = life; this.maxLife[i] = life;
-    this.size[i] = size; this.size0[i] = size;
-    this.col[j] = r; this.col[j + 1] = g; this.col[j + 2] = b;
-    this.alpha[i] = 1; this.flags[i] = flags;
-    this.colAttr.needsUpdate = true;
+    pos[j] = x; pos[j + 1] = y; pos[j + 2] = z;
+    vel[j] = vx; vel[j + 1] = vy; vel[j + 2] = vz;
+    pool.life[i] = life; this.maxLife[i] = life;
+    aSize[i] = size; this.size0[i] = size;
+    aColor[j] = r; aColor[j + 1] = g; aColor[j + 2] = b;
+    aAlpha[i] = 1; this.flags[i] = flags;
+    pool.attr.aColor.needsUpdate = true;
     this.live = MAX;
   }
 
@@ -95,15 +82,14 @@ export class NightParticles {
   update(dt: number, renderer: FxRenderer, camera: THREE.PerspectiveCamera): void {
     this.uLight.value = this.light;
     if (this.live <= 0) return;
-    renderer.getDrawingBufferSize(this.tmpSize);
-    this.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    this.uScale.value = pointScale(renderer, camera);
     let any = 0;
-    const P = this.pos, V = this.vel;
+    const { pool } = this, P = pool.pos, V = pool.vel, L = pool.life, { aSize, aAlpha } = pool.data;
     for (let i = 0; i < MAX; i++) {
-      const l0 = this.life[i] ?? 0;
+      const l0 = L[i] ?? 0;
       if (l0 <= 0) continue;
       any++;
-      const l = l0 - dt; this.life[i] = l;
+      const l = l0 - dt; L[i] = l;
       const j = i * 3, f = this.flags[i] ?? 0;
       let vx = V[j] ?? 0, vy = V[j + 1] ?? 0, vz = V[j + 2] ?? 0;
       if (f & FLAG_GRAVITY) vy -= 9.8 * dt;
@@ -119,10 +105,10 @@ export class NightParticles {
       V[j] = vx; V[j + 1] = vy; V[j + 2] = vz;
       P[j] = x; P[j + 1] = y; P[j + 2] = z;
       const k = l > 0 ? l / (this.maxLife[i] ?? 1) : 0;
-      this.alpha[i] = this.mode === 'mist' ? Math.min(1, k * 2.2) * Math.min(1, (1 - k) * 6 + 0.2) : Math.min(1, k * 4);
-      if (f & FLAG_GROW) this.size[i] = (this.size0[i] ?? 0) * (1 + (1 - k) * 2.2);
+      aAlpha[i] = this.mode === 'mist' ? Math.min(1, k * 2.2) * Math.min(1, (1 - k) * 6 + 0.2) : Math.min(1, k * 4);
+      if (f & FLAG_GROW) aSize[i] = (this.size0[i] ?? 0) * (1 + (1 - k) * 2.2);
     }
     this.live = any;
-    this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true;
+    pool.posAttr.needsUpdate = true; pool.attr.aAlpha.needsUpdate = true; pool.attr.aSize.needsUpdate = true;
   }
 }

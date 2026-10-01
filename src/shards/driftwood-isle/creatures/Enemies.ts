@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { app, heightAt, terrainWaterLevel as waterLevel, Rng, SEED, worldTime, groups, waveHeight,
+import { app, heightAt, terrainWaterLevel as waterLevel, Rng, SEED, worldTime, groups, waveHeight, ParticlePool,
   type Sky, type AnimalManager, type Animal, type Body, type BodySpec, type Scope } from '#engine';
 import type { PalmSpec } from '../world/Palms';
 import { WRECK } from '../manifest';
@@ -84,14 +84,10 @@ export class Enemies {
   private cAge = new Float32Array(COCONUTS);
   private cThrower: (Animal | null)[] = [];
   private cNext = 0;
-  private dropPoints: THREE.Points | null = null;
-  private get drops(): THREE.Points { if (this.dropPoints === null) throw new Error('Enemies not built'); return this.dropPoints; }
-  private dPos = new Float32Array(DROPS * 3);
-  private dVel = new Float32Array(DROPS * 3);
-  private dLife = new Float32Array(DROPS);
-  private dropAttribute: THREE.BufferAttribute | null = null;
-  private get dAttr(): THREE.BufferAttribute { if (this.dropAttribute === null) throw new Error('Enemies not built'); return this.dropAttribute; }
-  private dNext = 0; private dActive = 0;
+  /** the splash droplets (E357 X5: on the one ParticlePool) */
+  private dropPool: ParticlePool | null = null;
+  private get drops(): ParticlePool { if (this.dropPool === null) throw new Error('Enemies not built'); return this.dropPool; }
+  private dActive = 0;
   private sailors: { a: Animal; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
   /** the practice crab now (E308; a new one after each death, see PRACTICE_BACK), and s since it died */
   practiceCrab: Animal | null = null;
@@ -118,8 +114,8 @@ export class Enemies {
     if (this.opts.scope === undefined) {
       this.coconutMesh?.geometry.dispose();
       const mat = this.coconutMesh?.material; if (Array.isArray(mat)) mat.forEach((m) => { m.dispose(); }); else mat?.dispose();
-      this.dropPoints?.geometry.dispose();
-      const material = this.dropPoints?.material; if (material instanceof THREE.PointsMaterial) { material.map?.dispose(); material.dispose(); }
+      this.dropPool?.points.geometry.dispose();
+      const material = this.dropPool?.points.material; if (material instanceof THREE.PointsMaterial) { material.map?.dispose(); material.dispose(); }
     }
   }
 
@@ -153,15 +149,11 @@ export class Enemies {
     }
     // ── droplets ──
     {
-      const g = new THREE.BufferGeometry();
-      this.dropAttribute = new THREE.BufferAttribute(this.dPos, 3); this.dAttr.setUsage(THREE.DynamicDrawUsage);
-      g.setAttribute('position', this.dAttr);
-      g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
       const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.75, 0.95, 1.0), size: 0.05, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false, map: dropTexture(), alphaTest: 0.3 });
-      opts.scope?.own(g); opts.scope?.own(mat); if (mat.map !== null) opts.scope?.own(mat.map);
-      this.dropPoints = new THREE.Points(g, mat); this.drops.frustumCulled = false; this.drops.renderOrder = 5;
-      for (let i = 0; i < DROPS; i++) this.dPos[i * 3 + 1] = -1000;
-      this.group.add(this.drops);
+      // PointsMaterial draws every slot: the free ones wait far below
+      this.dropPool = new ParticlePool({ capacity: DROPS, material: mat, renderOrder: 5, attributes: {}, parkY: -1000 });
+      opts.scope?.own(this.drops.points.geometry); opts.scope?.own(mat); if (mat.map !== null) opts.scope?.own(mat.map);
+      this.group.add(this.drops.points);
     }
     this.placeCrabs();
     this.placePracticeCrab();
@@ -303,13 +295,14 @@ export class Enemies {
   /** a burst of water droplets at `at` (strength 1 = the sailor surfacing) */
   splash(at: THREE.Vector3, strength = 1): void {
     const n = Math.round(60 * strength);
+    const { pos, vel, life } = this.drops;
     for (let i = 0; i < n; i++) {
-      const k = this.dNext; this.dNext = (this.dNext + 1) % DROPS;
+      const k = this.drops.claim();
       const ang = app.rng.stream('cosmetic').next() * Math.PI * 2, r = app.rng.stream('cosmetic').next() * 0.5;
-      this.dPos[k * 3] = at.x + Math.cos(ang) * r; this.dPos[k * 3 + 1] = at.y + 0.2 + app.rng.stream('cosmetic').next() * 1.4 * strength; this.dPos[k * 3 + 2] = at.z + Math.sin(ang) * r;
+      pos[k * 3] = at.x + Math.cos(ang) * r; pos[k * 3 + 1] = at.y + 0.2 + app.rng.stream('cosmetic').next() * 1.4 * strength; pos[k * 3 + 2] = at.z + Math.sin(ang) * r;
       const s = 0.6 + app.rng.stream('cosmetic').next() * 2.2;
-      this.dVel[k * 3] = Math.cos(ang) * s; this.dVel[k * 3 + 1] = 1.2 + app.rng.stream('cosmetic').next() * 2.5; this.dVel[k * 3 + 2] = Math.sin(ang) * s;
-      this.dLife[k] = 0.5 + app.rng.stream('cosmetic').next() * 0.6;
+      vel[k * 3] = Math.cos(ang) * s; vel[k * 3 + 1] = 1.2 + app.rng.stream('cosmetic').next() * 2.5; vel[k * 3 + 2] = Math.sin(ang) * s;
+      life[k] = 0.5 + app.rng.stream('cosmetic').next() * 0.6;
     }
     this.dActive = Math.min(DROPS, this.dActive + n);
   }
@@ -362,7 +355,7 @@ export class Enemies {
     if (this.dActive) {
       const rdt = worldTime.realDt || dt; // droplets keep falling through a hit-stop
       let alive = 0;
-      const life = this.dLife, pos = this.dPos, vel = this.dVel;
+      const { life, pos, vel } = this.drops;
       for (let k = 0; k < DROPS; k++) {
         const l0 = life[k] ?? 0;
         if (l0 <= 0) continue;
@@ -374,7 +367,7 @@ export class Enemies {
         pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * rdt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * rdt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * rdt;
       }
       this.dActive = alive;
-      this.dAttr.needsUpdate = true;
+      this.drops.posAttr.needsUpdate = true;
     }
     // ── the sailor's light: at the skull while it is up; a burst of droplets and lights-out when it dies ──
     for (const s of this.sailors) {
