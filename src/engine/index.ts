@@ -24,6 +24,7 @@ export { resolveTierKnobs, needsTerrainCollider, type LevelSpec, type BootSpec, 
 export { LevelRegistrations } from './level/registrations';
 export type { LevelContext, LevelHooks, LevelAdapters, EngineRows, ContentRow, ContentRowMap, InputContextDef, HudVerbs, HudBand, VerbSlotOpts, DebugRowSpec, PlaygroundSpec, StringTable, TierKnobSchema } from './level/context';
 export type { LookStrategy, LookComposeContext, LookComposition } from './render/look';
+export { patchShader, takeForeignHook, setInheritedPatch, setProgramKey, hasProgramKey, PATCH_ORDER, type ShaderSource, type ShaderPatchFn, type ShaderPatchKey, type ShaderPatchOptions } from './render/shaderPatches';
 
 export { boxInFrame, type BoxSpec } from './physics/box';
 export type { Player } from './player/Player';
