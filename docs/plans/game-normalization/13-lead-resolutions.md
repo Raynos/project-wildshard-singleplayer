@@ -372,3 +372,16 @@ One Codex seat checked only that R4-01…R4-18 landed everywhere and contradict 
 | K5-8 | `nightly.sh --memory-only` skipped the mirror's fetch | It refreshes the mirror, checks the SHA is there, and step 2 archives from the mirror (R4-15) |
 | K5-9 | R3-F6 still had the Simulator home-screen persistence reading | Marked superseded by R4-17 |
 | K5-10 | The Captain's swing guard blocked every phase-I swing (`SINK_EVERY[1] = 0`) | `SINK_EVERY[phase] === 0 \|\| mem.subT + SWING_HIT_S ≤ SINK_EVERY[phase] − 0.12`, inside the hittable window (R4-18) |
+
+## Build log (the autonomous build, decisions 101–109): picks, deviations, board items taken
+
+Every gap the plan didn't cover, every deviation a builder made, and every board item the lead took on Jake's behalf
+(decision 102), with its revert path. Jake reviews this table.
+
+| # | Row | Pick / deviation | Why | Revert path |
+|---|---|---|---|---|
+| B1 | F0 step 4 | herdr notices to other agents skipped | Jake: "no one else is working in this repository"; waking 5 idle sessions costs a cold-cache turn each | — |
+| B2 | F0 | `check-lock.mjs`'s line-scoped JSON files compared parsed before / after, `art/README.md` as a line multiset (not `git diff -U0` hunks) | the same scope, testable as a pure function | — |
+| B3 | F1–F5 | the lead pre-landed every `package.json` change (a26bad51) with stub `check-paths` / `bake-check` / `coverage-ratchet`, and F1's alias spike (5b7d6093) | parallel builders never edit one shared file | the rows replace the stubs |
+| B4 | F2 step 2 | `registry.pieceList()` (read-only) instead of `pieces()` | `pieces` is already a public array (Minimap, tests) | rename at F8 if wanted |
+| B5 | F0 / 105 | subagent cap 20 and browser lane 8 while `.github/lock.json` is locked (`guard-subagents.sh`, `browser-lane.sh`) | decision 105 | the archive commit sets `locked: false` |
