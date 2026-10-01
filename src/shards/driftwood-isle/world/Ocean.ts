@@ -29,7 +29,7 @@ import { heightAt, inChunk } from '#engine/world/Heightfield';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { getActiveChunk } from '#game/shard/registry';
 import type { Sky } from '#engine/world/Sky';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { islandKnobs } from '../tiers';
 import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock } from '#engine/world/waves';
 import { toonUniforms } from '#engine/world/stylize';
 import { HORIZON_RADIUS } from '#engine/world/HorizonMatte';
@@ -57,7 +57,7 @@ export class Ocean {
     toonUniforms.uSeaLevel.value = def.level; // the caustics under it (stylize.ts, W4)
 
     // ── grid coordinates: fine over the chunk, coarsening outward to the horizon ──
-    const fine = TIER_CONFIG.oceanCell, inner = CHUNK_HALF + 30, far = 4200; // 2.75 m desktop / 4 m phone (57 k → 30 k verts)
+    const fine = islandKnobs().oceanCell, inner = CHUNK_HALF + 30, far = 4200; // 2.75 m desktop / 4 m phone (57 k → 30 k verts)
     const half: number[] = [];
     for (let v = 0; v <= inner + 1e-6; v += fine) half.push(v);
     let v = half[half.length - 1] ?? 0, step = fine;

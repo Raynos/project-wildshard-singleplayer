@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '#engine/core/rng';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { islandKnobs } from '../tiers';
 import { swayByHeight, swayDepthMaterial } from '#engine/world/wind';
 import { lowPolyMaterial } from '#engine/world/lowpolyKit';
 import { defineModel } from '#engine/models/model';
@@ -134,7 +134,7 @@ function windy(g: THREE.BufferGeometry, b: HibiscusBushParams): THREE.BufferGeom
 
 /** a dark welded core (no gaps to see through), squashed to (rx, ry, rz) around (0, cy, 0) */
 function core(t: TriList, rng: Rng, rx: number, ry: number, cy: number): void {
-  const g = mergeVertices(new THREE.IcosahedronGeometry(1, TIER_CONFIG.bushDetail > 0 ? 1 : 0).deleteAttribute('normal').deleteAttribute('uv'));
+  const g = mergeVertices(new THREE.IcosahedronGeometry(1, islandKnobs().bushDetail > 0 ? 1 : 0).deleteAttribute('normal').deleteAttribute('uv'));
   const p = g.getAttribute('position');
   for (let i = 0; i < p.count; i++) { const k = 1 + rng.range(-0.12, 0.12); p.setXYZ(i, p.getX(i) * rx * k, p.getY(i) * ry * k + cy, p.getZ(i) * rx * k); }
   const ni = g.toNonIndexed(), q = ni.getAttribute('position');
@@ -152,7 +152,7 @@ function leafClump(b: HibiscusBushParams, rng: Rng): THREE.BufferGeometry {
   const r = b.r, t = new TriList();
   const cy = r * 0.4, rx = r * 0.6, ry = r * 0.46;
   core(t, rng, rx * 0.92, ry * 0.92, cy);
-  const n = TIER_CONFIG.bushDetail > 0 ? 90 : 50;
+  const n = islandKnobs().bushDetail > 0 ? 90 : 50;
   const lump = dirNoise(rng, 4, 2.5);
   const shell = (d: THREE.Vector3): number => { const e = 1 / Math.sqrt((d.x * d.x + d.z * d.z) / (rx * rx) + (d.y * d.y) / (ry * ry)); return e * (1 + lump(d) * 0.12); };
   const golden = Math.PI * (3 - Math.sqrt(5)), a0 = rng.range(0, Math.PI * 2);
@@ -197,5 +197,5 @@ export const hibiscusBush = defineModel<HibiscusBushParams>({
   ],
   seed: 0x5ea1 ^ 0xb5 ^ 0xe116,
   // the shared kit material (no program of its own) and the swaying shadow pass; the shadows are the tier's call
-  build: (ctx, p, rng) => [{ geometry: leafClump(p, rng), material: lowPolyMaterial(ctx.sky), castShadow: TIER_CONFIG.bushShadows, receiveShadow: true, customDepthMaterial: swayDepthMaterial() }],
+  build: (ctx, p, rng) => [{ geometry: leafClump(p, rng), material: lowPolyMaterial(ctx.sky), castShadow: islandKnobs().bushShadows, receiveShadow: true, customDepthMaterial: swayDepthMaterial() }],
 });

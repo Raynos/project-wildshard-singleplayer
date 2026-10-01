@@ -17,7 +17,7 @@ import { Noise2D } from '#engine/core/noise';
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { islandKnobs } from '../tiers';
 import { windUniforms, updateWind } from '#engine/world/wind';
 import { palm, type PalmParams } from '../models/palm';
 import { modelContext, type Placement } from '#engine/models/model';
@@ -41,7 +41,7 @@ export class Palms {
   constructor(private sky: Sky) {}
 
   /** Island rule: behind the beach and on the plateau top, denser in groves, never on steep rock, clear of the hut and piers. */
-  static scatterIsland(seed: number, count = Math.round(TIER_CONFIG.palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
+  static scatterIsland(seed: number, count = Math.round(islandKnobs().palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
     const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
     const wl = waterLevel();
     const out: PalmSpec[] = [];

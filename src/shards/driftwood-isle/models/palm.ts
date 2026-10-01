@@ -9,7 +9,7 @@
  */
 import * as THREE from 'three';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { islandKnobs } from '../tiers';
 import { windUniforms } from '#engine/world/wind';
 import type { ColliderDesc } from '#engine/world/registry';
 import type { Rng } from '#engine/core/rng';
@@ -79,7 +79,7 @@ function palmGeometry(p: PalmParams, rng: Rng): THREE.BufferGeometry {
     const upper = f >= n, fi = upper ? f - n + 0.5 : f, nn = upper ? n2 : n;
     const ang = (fi / nn) * Math.PI * 2 + p.rot + rng.range(-0.15, 0.15);
     const tilt = upper ? rng.range(-0.45, -0.2) : rng.range(-0.1, 0.35);   // the young fronds stand up, some old ones droop low
-    const L = upper ? rng.range(2.2, 3.0) : rng.range(3.2, 4.3), fs = TIER_CONFIG.palmFrondSegs; // 6 desktop / 4 phone segments per frond
+    const L = upper ? rng.range(2.2, 3.0) : rng.range(3.2, 4.3), fs = islandKnobs().palmFrondSegs; // 6 desktop / 4 phone segments per frond
     const dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
     const side = new THREE.Vector3(-Math.sin(ang), 0, Math.cos(ang));
     const shade = rng.next();

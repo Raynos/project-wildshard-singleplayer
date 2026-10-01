@@ -20,7 +20,7 @@ import { GradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '#game/shard/registry';
-import { TIER, TIER_CONFIG, frameCapFps, phonePictureCuts, type Tier } from './tier';
+import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';
 import { chunkShadowCasters } from '../world/shadowChunks';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
@@ -368,7 +368,7 @@ export class Game {
   private renderKnobs(): TierKnobs {
     const kit: TierKnobs = {};
     for (const schema of this.app.levelRegistrations.knobSchemas()) Object.assign(kit, schema.defaults);
-    return resolveTierKnobs({ ao: TIER_CONFIG.ao, slices: phonePictureCuts(), warmTurns: WARM_TURNS }, kit, this.level.tiers, TIER);
+    return resolveTierKnobs({ ao: TIER_CONFIG.ao, slices: false, warmTurns: WARM_TURNS }, kit, this.level.tiers, TIER);
   }
 
   /**
@@ -394,7 +394,7 @@ export class Game {
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
     // depth needs no mid-pass copy (worldDepth.ts)
     const level = getActiveChunk(), knobs = this.renderKnobs();
-    const slices = knobs.slices ?? phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
+    const slices = knobs.slices ?? false; // E142 / E189: a level's tier knob (its phone tier's `slices`)
     this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
@@ -467,7 +467,7 @@ export class Game {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
         exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
       });
-      if (knobs.skipRaysOffscreen ?? phonePictureCuts()) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc); // the disc off screen = no rays to draw (E142, E189)
+      if (knobs.skipRaysOffscreen === true) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc); // the disc off screen = no rays to draw (E142, E189)
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
       const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });

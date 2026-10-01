@@ -1,5 +1,4 @@
 import type { TierKnobs } from '../level/spec';
-import { CHUNK_ID } from './config';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
@@ -60,9 +59,6 @@ export const TIER_TABLE = {
     // 3 full-res SMAA passes are the dearest part of the chain and DPR 1.0 is upscaled ×3 on the screen anyway;
     // volumetrics march at half res into their own target; god rays at a quarter
     godRaysSamples: 24, godRaysScale: 0.25, volumetricSteps: 8, volumetricScale: 0.5, smaa: 'low' as 'off' | 'low' | 'high', bloomLevels: 4, // SMAA low back on: at DPR 1.0 the viewmodel's edges stair-step without it
-    // Driftwood Isle (low-poly): ocean grid cell over the chunk (m), scatter counts, and which scatters cast shadows
-    // (a merged mesh is drawn whole into the shadow map — 80 k bush triangles twice was the phone's 30 fps)
-    oceanCell: 4.0, palmCount: 120, palmFrondSegs: 4, bushCount: 170, bushDetail: 0, bushShadows: false, boulderShadows: true,
   },
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
@@ -87,7 +83,6 @@ export const TIER_TABLE = {
     // (the walls hide it); in the open a 1 m item is ~8 px at 90 m, and the orb stays a beacon to 200 m
     pickupItemDist: 90, pickupOrbDist: 200,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
-    oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,
   },
 };
 
@@ -99,11 +94,6 @@ let buildingAs: Tier | null = null;
 export function buildTier(): Tier { return buildingAs ?? TIER; }
 /** @internal — explore/tiers.ts `withTier` only */
 export function _buildAs(tier: Tier | null): void { buildingAs = tier; }
-
-/** Driftwood keeps its legacy picture policy until S4.1; other levels declare tier knobs. */
-export function phonePictureCuts(): boolean {
-  return TIER === 'phone' && CHUNK_ID === 'driftwood-isle';
-}
 
 /**
  * The player's graphics prefs — the menu's Settings ▸ Graphics rows (src/engine/ui/Menu.ts), read once at boot, so a

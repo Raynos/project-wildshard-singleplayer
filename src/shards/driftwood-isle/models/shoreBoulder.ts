@@ -6,7 +6,7 @@
  * 0.9 m collides as the convex hull of what it draws; the small ones stay walk-through.
  */
 import { rockGeometry, rockMaterial, SHORE_ROCK } from '../world/rockKit';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { islandKnobs } from '../tiers';
 import { defineModel } from '#engine/models/model';
 
 export interface ShoreBoulderParams {
@@ -29,7 +29,7 @@ export const shoreBoulder = defineModel<ShoreBoulderParams>({
   // the order the old loop drew in: the moss first, then the rock's own shape
   build: (ctx, p, rng) => [{
     geometry: rockGeometry(p.r, rng, { squash: p.squash, palette: SHORE_ROCK, moss: rng.range(0.25, 0.85), ground: -0.35 * p.r * p.squash }),
-    material: rockMaterial(ctx.sky), castShadow: TIER_CONFIG.boulderShadows, receiveShadow: true,
+    material: rockMaterial(ctx.sky), castShadow: islandKnobs().boulderShadows, receiveShadow: true,
   }],
   colliders: (p) => (p.r > 0.9 ? [{ kind: 'drawn-hull' }] : []),
 });

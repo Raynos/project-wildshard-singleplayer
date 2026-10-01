@@ -106,6 +106,9 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   boot: { files: () => [], lateReads }, // no props of its own (today's ocean rule); the island's late reads (./boot/lateReads.ts)
   load: () => import('./plugin'), // E357 S4.1: the world build (./world/build.ts); the rest still runs in main.ts until S4.2–S4.4
   order: 1,
+  // the phone's picture cuts (E189): the viewmodels in near depth slices, no god-ray pass while the sun is off screen;
+  // the island's own scatter knobs are ./tiers.ts
+  tiers: { phone: { slices: true, skipRaysOffscreen: true } },
   status: 'live',
   placement: { grid: [-1, 6], size: [500, 500, 500] },
   slug: 'driftwood-isle',

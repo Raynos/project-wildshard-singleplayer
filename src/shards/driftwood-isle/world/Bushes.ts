@@ -15,7 +15,7 @@ import { Rng } from '#engine/core/rng';
 import { Noise2D } from '#engine/core/noise';
 import type { Sky } from '#engine/world/Sky';
 import type { WorldRegistry } from '#engine/world/registry';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { islandKnobs } from '../tiers';
 import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
 import { modelContext, type Placement } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
@@ -35,7 +35,7 @@ export class Bushes {
 
   constructor(private sky: Sky) {}
 
-  static scatterIsland(seed: number, count = TIER_CONFIG.bushCount, avoid: { x: number; z: number; r: number }[] = []): BushSpec[] {
+  static scatterIsland(seed: number, count = islandKnobs().bushCount, avoid: { x: number; z: number; r: number }[] = []): BushSpec[] {
     const rng = new Rng(seed ^ 0xb054), clump = new Noise2D(seed + 33);
     const wl = waterLevel();
     const out: BushSpec[] = [];
