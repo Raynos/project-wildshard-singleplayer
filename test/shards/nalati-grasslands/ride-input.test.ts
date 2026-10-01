@@ -2,6 +2,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { App, Scope, type LevelContext, type InputContextDef } from '#engine';
 import * as THREE from 'three';
+import { BindingTable } from '#engine/input/bindingTable';
+import { INPUT_CONTEXTS } from '#game/inputContexts';
+import { KEY_BINDINGS } from '#game/keyBindings';
 import { installRide } from '#shards/nalati-grasslands/ride/input';
 import type { Ride } from '#shards/nalati-grasslands/ride/ride';
 import { Mount } from '#shards/nalati-grasslands/ride/Mount';
@@ -11,9 +14,16 @@ import { legacyDouble } from '../../fake/FakeGame';
 import { damageTarget } from '../../fake/legacyActor';
 import { fakeWorld } from '../../fake/world';
 
-function fixture() {
+function fixture(savedMovement = false) {
   const app = new App(), scope = new Scope('ride-test');
   app.input.install(scope);
+  if (savedMovement) {
+    const foot = INPUT_CONTEXTS.find((def) => def.id === 'onFoot');
+    if (foot === undefined) throw new Error('Missing on-foot controls');
+    app.input.register(foot, scope); app.input.bindings.describe(KEY_BINDINGS, scope);
+    app.input.bindings.assign('onFoot', 'move.left', ['KeyO', 'KeyU']);
+    app.input.bindings.assign('onFoot', 'move.right', ['KeyP']);
+  }
   const whistle = vi.fn<() => null>(() => null), gallop = vi.fn<() => void>();
   const mount = legacyDouble<Mount>({ input: null, equipment: null, breaking: false, onMountChange: undefined,
     whistle, gallopTap: gallop, dismount: () => { mount.onMountChange?.(null); } });
@@ -67,4 +77,29 @@ describe('scoped riding controls', () => {
     expect(f.scope.census.listeners).toBe(census.listeners); expect(f.scope.census.disposers).toBe(census.disposers);
     f.scope.dispose(); f.app.engineScope.dispose();
   });
+});
+
+it('leans with saved and live movement rebinds, secondary keys, swaps and reset', () => {
+  const f = fixture(true), table = new BindingTable(f.app.input.bindings);
+  try {
+    const left = table.rows().find((row) => row.def.id === 'left');
+    const right = table.rows().find((row) => row.def.id === 'right');
+    if (left === undefined || right === undefined) throw new Error('Missing movement rows');
+    f.taming.onBreaking?.(true);
+    f.key('keydown', 'KeyO'); expect(f.app.input.held('lean.left')).toBe(true); f.key('keyup', 'KeyO');
+    f.key('keydown', 'KeyU'); expect(f.app.input.held('lean.left')).toBe(true); f.key('keyup', 'KeyU');
+    f.key('keydown', 'KeyP'); expect(f.app.input.held('lean.right')).toBe(true); f.key('keyup', 'KeyP');
+    f.key('keydown', 'KeyA'); expect(f.app.input.held('lean.left')).toBe(false); f.key('keyup', 'KeyA');
+    expect(table.assign(left, 0, 'KeyK')).toBeUndefined();
+    f.key('keydown', 'KeyK'); expect(f.app.input.held('lean.left')).toBe(true); f.key('keyup', 'KeyK');
+    f.key('keydown', 'KeyO'); expect(f.app.input.held('lean.left')).toBe(false); f.key('keyup', 'KeyO');
+    expect(table.assign(left, 0, 'KeyP', true)).toBeUndefined();
+    f.key('keydown', 'KeyP'); expect(f.app.input.held('lean.left')).toBe(true); expect(f.app.input.held('lean.right')).toBe(false); f.key('keyup', 'KeyP');
+    f.key('keydown', 'KeyK'); expect(f.app.input.held('lean.right')).toBe(true); f.key('keyup', 'KeyK');
+    expect(table.assign(left, 1, undefined)).toBeUndefined();
+    f.key('keydown', 'KeyU'); expect(f.app.input.held('lean.left')).toBe(false); f.key('keyup', 'KeyU');
+    table.reset();
+    f.key('keydown', 'KeyA'); expect(f.app.input.held('lean.left')).toBe(true); f.key('keyup', 'KeyA');
+    f.key('keydown', 'ArrowRight'); expect(f.app.input.held('lean.right')).toBe(true); f.key('keyup', 'ArrowRight');
+  } finally { f.scope.dispose(); f.app.engineScope.dispose(); }
 });

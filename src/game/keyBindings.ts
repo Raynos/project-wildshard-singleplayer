@@ -13,7 +13,7 @@ export const KEY_BINDINGS: Table = {
   ],
   rows: [
     row('foot', 'forward', 'Move forward', ['move.forward']), row('foot', 'back', 'Move back', ['move.back']),
-    row('foot', 'left', 'Move left', ['move.left']), row('foot', 'right', 'Move right', ['move.right']),
+    row('foot', 'left', 'Move left', ['move.left', 'lean.left']), row('foot', 'right', 'Move right', ['move.right', 'lean.right']),
     row('foot', 'jump', 'Jump', ['jump']), row('foot', 'sprint', 'Sprint', ['sprint']), row('foot', 'crouch', 'Crouch', ['crouch']),
     row('foot', 'dodge', 'Dodge', ['dodge']), row('foot', 'use', 'Interact', ['use']), row('foot', 'hover', 'Hoverboard', ['hover']),
     // swimming blocks jump and sprint (inputContexts swim.blocks), so Space and Shift serve both
