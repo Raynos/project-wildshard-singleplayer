@@ -11,27 +11,18 @@ import { persistHomeScreen } from '#engine/saves/runtime';
  * gone mid-boot. src/engine/boot/stuck.ts watches the promise so that never leaves a frozen loader (E144).
  *
  * E188: a network gone mid-boot is the common one. main is ~1.1 MB gzipped, and on LTE a hand-over drops it mid-file;
- * WebKit reports that as "Importing a module script failed" and, unlike Chromium, fetches the file again on the next
- * import() of the same URL. Two more tries, a beat apart, make a dropped connection a slower boot instead of the
- * stuck card. A module that fetched fine but threw is not run twice: the engine keeps it errored and rethrows at once.
+ * WebKit reports that as "Importing a module script failed". The callback is tried twice more, a beat apart, but
+ * iOS26.5 keeps a failed module URL errored (L7 Simulator proof): SW network retries must finish the body before
+ * WebKit sees it. A module that fetched fine but threw is not run twice: the engine keeps it errored and rethrows at once.
  */
 import { guardBoot } from '#engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '#engine/boot/bootTrace';
 import { setting } from '#engine/ui/Settings';
 import { Scope } from '#engine/app/scope';
+import { retried } from '#engine/boot/retry';
 
 const entryScope = new Scope('entry');
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => { entryScope.timeout(ms, resolve); });
-
-/** `load()`, and again after 0.8 s and 2.5 s if it rejects: the last try's rejection is the one stuck.ts sees */
-async function retried<T>(load: () => Promise<T>): Promise<T> {
-  for (const wait of [800, 2500]) {
-    try { return await load(); } catch { await sleep(wait); }
-  }
-  return load();
-}
-
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 startPageServices();
 persistHomeScreen();
@@ -53,7 +44,7 @@ const titleOnly = rescueBoot || search.size === 0 || (search.size === 1 && searc
 export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('#engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? retried(() => import('#engine/ui/StartTitle')) : (async () => {
   const { initializeTier } = await retried(() => import('#engine/core/tier'));
   await initializeTier();
-  await retried(() => import('three'));
+  await retried(() => import('three')); 
   await task();
   return retried(() => import('./main'));
 })();
@@ -62,12 +53,12 @@ guardBoot(entered);
 /** Composition root: select authored content and inject reusable kit recipes. */
 export async function start(): Promise<void> {
   const [{ game }, kit, { loadBootRuntime }, { sharedCombatCues }] = await Promise.all([
-    import('#game'), import('#kit'), import('#engine'), import('#kit/audio/combatCues'),
+    retried(() => import('#game')), retried(() => import('#kit')), retried(() => import('#engine')), retried(() => import('#kit/audio/combatCues')),
   ]);
   const manifest = game.shard;
   kit.installKitSpecies();
-  const engine = await loadBootRuntime();
-  const { startSession } = await import('#game/session/session');
+  const engine = await retried(loadBootRuntime);
+  const { startSession } = await retried(() => import('#game/session/session'));
   await startSession(manifest, engine, {
     items: kit.KIT_ITEMS,
     tools: [kit.HOVERBOARD_TOOL],

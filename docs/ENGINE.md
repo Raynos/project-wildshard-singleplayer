@@ -429,6 +429,10 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ## 8. Boot (staged load)
 
+`retried(load)` retries a rejected async module download after 800 ms and 2500 ms, then preserves the final
+rejection. The entry (including composition-root imports), shard plugin loader and level look loader share this policy. It is an import-free leaf at
+`#engine/boot/retry` for the pre-engine entry, and is public through `#engine` for game and shard loaders.
+
 | Stage | The engine does | You fill |
 |---|---|---|
 | `engine` | renderer, physics, sky rig, audio unlock, input, UI shell, saves | — |
@@ -1167,7 +1171,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-681 exports, grouped by the module they come from.
+683 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1191,6 +1195,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./app/cachedAssets`: `retainCachedResources`
 - `./boot/gpuFiles`: `Ktx2Table`
 - `./core/errorReport`: `LoadFailure`
+- `./boot/retry`: `retried`
 - `./level/load`: `LevelLoadError`, `LevelDriver`, `LevelStage`
 - `./level/spec`: `resolveTierKnobs`, `needsTerrainCollider`, `LevelSpec`, `BootSpec`, `LoadoutSpec`, `EngineMechanism`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
 - `./level/registrations`: `LevelRegistrations`
@@ -1215,7 +1220,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./combat/EquipmentService`: `EquipmentService`
 - `./input/equipmentInput`: `EquipmentInput`
 - `./ui/icons`: `IconId`, `icon`
-- `./ui/Menu`: `KitEntry`, `GameMenu`, `GameMenuOptions`
+- `./ui/Menu`: `KitEntry`, `SkinRow`, `GameMenu`, `GameMenuOptions`
 - `./combat/pipeline`: `CombatPipeline`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
 - `./combat/health`: `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
 - `./combat/effects/EffectService`: `EffectService`

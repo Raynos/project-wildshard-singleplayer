@@ -1,7 +1,7 @@
-import { app } from '../app/runtime';
-import { uiScope } from './ownership';
+import { Scope } from '../app/scope';
 
-const scope = uiScope('RotateGate', app.engineScope);
+// This page-lifetime gate runs before dynamic engine imports and their download retries.
+const scope = new Scope('ui.RotateGate');
 
 /**
  * Rotate gate (E38): Wildshard is portrait-only on phones. The page itself is index.html's `.ws-rotate`, shown by a

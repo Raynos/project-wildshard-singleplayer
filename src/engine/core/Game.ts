@@ -13,6 +13,7 @@ import {
   type Effect, type Pass,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
+import { retried } from '../boot/retry';
 import type { EngineChainKind, EngineEffects, LookComposition, LookStrategy, ReplaceLook } from '../render/look';
 import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec';
 import { installAtmosphere } from '../world/Atmosphere';
@@ -337,7 +338,8 @@ export class Game {
 
   async buildSky(): Promise<Sky> {
     this.levelId = this.level.id;
-    const render = this.level.look?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
+    const loadLook = this.level.look;
+    const render = loadLook === undefined ? null : retried(loadLook); // the render code downloads while the sky builds; buildComposer reads both
     this.lookStrategy = await render;
     const fog = this.lookStrategy?.fog; // after installAtmosphere (the constructor), before the sky or anything compiles (01 §13.2: its slot)
     if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install, this.level.id);

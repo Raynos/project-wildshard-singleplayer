@@ -1,5 +1,5 @@
-import { app } from '../app/runtime';
-import { uiScope, mountUi } from './ownership';
+import { Scope } from '../app/scope';
+import { hudSlots } from './hudSlots';
 import { engineString } from '#engine/strings';
 /**
  * Build pill on the title screen: shows the running build and reloads on tap.
@@ -19,7 +19,8 @@ import { isDev, onDev } from '../core/devMode';
 import { markUnload } from '../boot/lastEnd';
 
 
-const scope = uiScope('Update', app.engineScope);
+// The update pill exists before a shard is selected; keep App and Three out of the entry graph.
+const scope = new Scope('ui.Update');
 
 declare const __BUILD_ID__: string;
 
@@ -30,7 +31,7 @@ const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
 el.innerHTML = engineString('s_85c05389552b');
-mountUi(el, scope, document.body);
+hudSlots.widget('band.1', el, 0, scope, document.body);
 
 let busy = false;
 const reload = async (): Promise<void> => {

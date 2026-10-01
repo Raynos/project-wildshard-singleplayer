@@ -22,6 +22,7 @@ export { ambientTick } from './core/harnessTap';
 export { retainCachedResources } from './app/cachedAssets';
 export type { Ktx2Table } from './boot/gpuFiles';
 export type { LoadFailure } from './core/errorReport';
+export { retried } from './boot/retry';
 export { LevelLoadError, type LevelDriver, type LevelStage } from './level/load';
 export { resolveTierKnobs, needsTerrainCollider, type LevelSpec, type BootSpec, type LoadoutSpec, type EngineMechanism, type TierKnobMap, type TierKnobs, type TierOverrides } from './level/spec';
 export { LevelRegistrations } from './level/registrations';

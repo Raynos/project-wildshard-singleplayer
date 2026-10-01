@@ -1,6 +1,6 @@
 import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
-import type { BootRuntime, LevelContext, LevelSequence, SkinDef } from '#engine';
+import { retried, type BootRuntime, type LevelContext, type LevelSequence, type SkinDef } from '#engine';
 import { toLevelSpec, shardContext, setShardSwitcher, type ShardManifest, type GameServices, type ShardContext } from '../index';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage } from '../shard/load';
 import type { KitPorts, BuiltWorld, SessionState, StagedBoot, SessionContext } from './context';
@@ -60,14 +60,15 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: B
     runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null },
     progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
   const sequence = sessionStages({ engine, kit, manifest, slug: manifest.slug, stage, session, boot });
-  if (manifest.load === undefined) {
+  const loadPlugin = manifest.load;
+  if (loadPlugin === undefined) {
     let next = await sequence.next();
     while (!next.done) next = await sequence.next();
     return next.value;
   }
   const scope = engine.currentOwner();
   if (scope === null) throw new Error('Plugin boot needs a level scope');
-  const { default: Plugin } = await stage('manifest.load', manifest.load);
+  const { default: Plugin } = await stage('manifest.load', () => retried(loadPlugin));
   const plugin = new Plugin();
   const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), bag: {
     tab: (spec) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin tabs require the play host'); return menu.addTab(spec); },
