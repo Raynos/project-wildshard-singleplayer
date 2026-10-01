@@ -11,7 +11,7 @@ import {
   type Effect, type Pass,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
-import type { EngineEffects, LookComposition, LookStrategy, ReplaceLook } from '../render/look';
+import type { EngineChainKind, EngineEffects, LookComposition, LookStrategy, ReplaceLook } from '../render/look';
 import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec';
 import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
@@ -89,6 +89,9 @@ function skipRaysOffscreen(rays: GodRaysEffect, camera: THREE.Camera, disc: THRE
     cleared = true;
   };
 }
+
+/** one engine colour chain, built (Game.buildComposer): its effects, in order, and by name */
+interface BuiltChain { clean: boolean; order: Effect[]; fx: Omit<EngineEffects, 'order'> }
 
 export class Game {
   readonly app = app;
@@ -343,15 +346,22 @@ export class Game {
   }
 
   /**
-   * The colour chain's pass: the engine's `order` — or, with a shard render strategy, the order it composes from the
-   * engine's effects (and its own), asked here, once, when every effect is built (ShardManifest.LookStrategy.compose).
+   * The colour chain's pass: the engine's cinematic chain — or, with a shard render strategy, the order it composes from
+   * the engine's chain (`c.engineChain('clean' | 'cinematic')`, built on its first ask) and its own effects, asked here,
+   * once (ShardManifest.LookStrategy.compose).
    */
-  private colourPass(composer: EffectComposer, order: Effect[], fx: Omit<EngineEffects, 'order'>): EffectPass {
+  private colourPass(composer: EffectComposer, engineChain: (kind: EngineChainKind) => BuiltChain): EffectPass {
     const R = this.lookStrategy;
-    if (R === null || R.mode === 'replace') return new EffectPass(this.camera, ...order); // a 'replace' look never reaches the engine chain (replaceComposer)
+    if (R === null || R.mode === 'replace') return new EffectPass(this.camera, ...engineChain('cinematic').order); // a 'replace' look never reaches the engine chain (replaceComposer)
     const scope = this.levelScope.child('look');
-    this.composition = R.compose({ app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER, fx: { ...fx, order } });
-    return new EffectPass(this.camera, ...(this.composition.chain ?? order));
+    const asked: { built: BuiltChain | null } = { built: null };
+    const pick = (kind: EngineChainKind): BuiltChain => (asked.built = engineChain(kind));
+    this.composition = R.compose({
+      app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER,
+      get fx(): EngineEffects { const b = asked.built ?? pick('cinematic'); return { ...b.fx, order: b.order }; },
+      engineChain: (kind) => pick(kind).order,
+    });
+    return new EffectPass(this.camera, ...(this.composition.chain ?? (asked.built ?? pick('cinematic')).order));
   }
 
   /** the strategy's passes into their slots around the engine's (ShardManifest.LookComposition): scene → AO → colour → SMAA */
@@ -393,7 +403,7 @@ export class Game {
     // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts)
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
     // depth needs no mid-pass copy (worldDepth.ts)
-    const level = getActiveChunk(), knobs = this.renderKnobs();
+    const knobs = this.renderKnobs();
     const slices = knobs.slices ?? false; // E142 / E189: a level's tier knob (its phone tier's `slices`)
     this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
@@ -455,14 +465,13 @@ export class Game {
     if (A.volumetric) vol.setMedium(A.volumetric);
     this.volumetrics = vol;
     // the colour chain, built by a factory: an Effect belongs to one EffectPass, so each chain gets its own instances
-    // E189 (Jake's picks from the before / after boards, progress/282–283, 2026-09-26: "no regression"): Driftwood's phone
-    // frame runs one FXAA pass on the graded frame instead of SMAA's three, and leaves out its faint (12 %) god rays. The
-    // warm iPhone's grass frame was 48 ms with the post chain and 17 without; desktop keeps SMAA and the rays
-    const dwPhone = level.style === 'toon' && TIER === 'phone';
-    const aa = knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : dwPhone ? 'fxaa' : 'smaa');
+    // the tier knobs `aa` and `godRays` (E189, Jake's picks from the before / after boards, progress/282–283, 2026-09-26:
+    // "no regression"): a level's phone frame may run one FXAA pass on the graded frame instead of SMAA's three, and leave
+    // out the god rays (the warm iPhone's grass frame was 48 ms with the post chain and 17 without)
+    const aa = knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : 'smaa');
     const fxaa = aa === 'fxaa' ? new FXAAEffect() : null;
-    const raysOn = !dwPhone;
-    const chain = (clean: boolean): EffectPass => {
+    const raysOn = knobs.godRays ?? true;
+    const chain = (clean: boolean): BuiltChain => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
         exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
@@ -482,12 +491,11 @@ export class Game {
         grain.blendMode.opacity.value = 0.12;
         this.sky.attachPost({ vol, rays: godRays, hueSat: grade }); // Pine Hollow's clock (PH-L2) turns the shafts, the rays and the saturation with the hour; a fixed sky ignores it
         // a PBR shard's learned LUT (lut.ts, per shard — PINE-HOLLOW PH-L4) ends its grade, before the grain; no file = no
-        // LUT, the chain as before. The low-poly shard's `?post=cinematic` A/B stays the pre-LUT chain.
-        const lut = this.sky.lut && getActiveChunk().style !== 'toon' ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
+        // LUT, the chain as before
+        const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
         // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
-        const order: Effect[] = lut ? [vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, lut, grain]
-          : [vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain];
-        return this.colourPass(composer, order, { ao: aoPass, vol, godRays, bloom, chroma, vignette, tone, saturation: grade, contrast, grade: split, lut, grain });
+        const order: Effect[] = [vol, ...(raysOn ? [godRays] : []), bloom, chroma, vignette, tone, grade, contrast, split, ...(lut ? [lut] : []), grain];
+        return { clean, order, fx: { ao: aoPass, vol, godRays, bloom, chroma, vignette, tone, saturation: grade, contrast, grade: split, lut, grain } };
       }
       // the stylized look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
       // contrast — the colour-ramp fog does the aerial perspective; the god rays stay faint, the vignette light
@@ -498,11 +506,16 @@ export class Game {
       // user locked it in (E85); only Debug ▸ Look ▸ Learned LUT Off (the fit's own captures) builds without it
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
       const order: Effect[] = [...(raysOn ? [godRays] : []), bloom, vignette, tone, grade, contrast, split, ...(lut ? [lut] : [])];
-      return this.colourPass(composer, order, { ao: aoPass, vol, godRays, bloom, chroma: null, vignette, tone, saturation: grade, contrast, grade: split, lut, grain: null });
+      return { clean, order, fx: { ao: aoPass, vol, godRays, bloom, chroma: null, vignette, tone, saturation: grade, contrast, grade: split, lut, grain: null } };
     };
-    // the low-poly shard runs the clean L5 chain (E88, the user's Look Lab pick); every other shard keeps the original
-    // haze + grain + fringe chain
-    const colour = chain(getActiveChunk().style === 'toon');
+    // the level look picks the chain (a compose may ask the clean L5 chain, E88, the user's Look Lab pick); every other
+    // level keeps the original haze + grain + fringe chain. One chain is built: its effects belong to one pass
+    let built: BuiltChain | null = null;
+    const colour = this.colourPass(composer, (kind) => {
+      built ??= chain(kind === 'clean');
+      if (built.clean !== (kind === 'clean')) throw new Error(`[look] the engine chain is already built '${built.clean ? 'clean' : 'cinematic'}'; a compose asks one kind`);
+      return built;
+    });
     composer.addPass(colour);
     this.placeShardPasses(composer, colour); // a shard's own passes around the engine's (none without a render strategy)
     // FXAA reads its pass's input image, so it gets a pass of its own on the graded frame (EffectPass orders effects by kind)

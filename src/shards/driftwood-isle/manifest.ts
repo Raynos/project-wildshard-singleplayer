@@ -107,9 +107,12 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   boot: { files: () => [], sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
   load: () => import('./plugin'), // E357 S4.1: the world build (./world/build.ts); the rest still runs in main.ts until S4.2–S4.4
   order: 1,
-  // the phone's picture cuts (E189): the viewmodels in near depth slices, no god-ray pass while the sun is off screen;
-  // the island's own scatter knobs are ./tiers.ts
-  tiers: { phone: { slices: true, skipRaysOffscreen: true } },
+  // the phone's picture cuts (E189): the viewmodels in near depth slices, no god-ray pass while the sun is off screen,
+  // one FXAA pass instead of SMAA's three and no god rays at all (Jake's picks, "no regression"); the island's own
+  // scatter knobs are ./tiers.ts
+  tiers: { phone: { slices: true, skipRaysOffscreen: true, aa: 'fxaa', godRays: false } },
+  // the toon look (look/render.ts, E357 S4.3): the engine's clean chain
+  render: async () => (await import('./look/render')).shardRender(),
   status: 'live',
   placement: { grid: [-1, 6], size: [500, 500, 500] },
   slug: 'driftwood-isle',

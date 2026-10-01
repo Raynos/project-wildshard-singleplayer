@@ -45,8 +45,15 @@ export interface LookReplaceContext {
   tier: Tier;
 }
 
+/** the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's
+ *  learned LUT) and 'clean' (E88, the L5 pick: no volumetrics, grain or fringe; faint rays, the LUT last) */
+export type EngineChainKind = 'clean' | 'cinematic';
+
 export interface LookComposeContext extends LookReplaceContext {
+  /** the engine chain's effects: the 'cinematic' chain's unless the compose asked `engineChain('clean')` first */
   fx: EngineEffects;
+  /** the engine's colour chain, in order, for the composition's `chain` slot (01 §13.1, 13 C6); one kind per level */
+  engineChain: (kind: EngineChainKind) => Effect[];
 }
 
 /** a `mode: 'replace'` composition: the whole chain, in order (01 §13.1: a level's own composer) */
