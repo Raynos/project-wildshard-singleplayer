@@ -9,32 +9,26 @@ import { TIER_CONFIG } from '../../core/tier';
 
 export type { TreeInstance } from './placement';
 
-const LOD_DIST = TIER_CONFIG.treeHiDist;   // metres: beyond this, the low-card geometry
-const FAR_DIST = TIER_CONFIG.treeLoDist;   // metres: beyond this, the 2-quad baked impostor
-const TWIG_DIST = TIER_CONFIG.treeTwigDist; // metres: within this, individual twig quads are drawn on the branches
 /**
  * The LOD bands dissolve instead of popping (E94): over the last FAR_FADE metres before FAR_DIST a tree is drawn as both
  * its lo cards + trunk and its impostor, dithered against each other (TreeFactory `forestFade`); the twigs dissolve out
  * over the last TWIG_FADE metres before TWIG_DIST (and so do their shadows).
  */
 const FAR_FADE = 12, TWIG_FADE = 6;
-const KEEP_NEAR = Math.max(45, TIER_CONFIG.shadowFar * 0.5); // metres: trees this close are never frustum-culled (their shadows reach into view)
 /**
  * Metres: out to here a tree outside the view is still kept when its SHADOW can fall into the view (E94). Pine Hollow's
  * sun is 7° up, so a 25 m pine throws a 200 m shadow: turning round made the phone's culled trees 45–80 m behind you
  * drop their shadows into and out of the frame. The shadow is tested as three spheres along the sun's run on the ground.
  * The cascade's reach, capped at 110 m: phone 80 m; desktop 110 m = its KEEP_NEAR, i.e. unchanged.
  */
-const SHADOW_KEEP = Math.min(TIER_CONFIG.shadowFar, 110);
 const CULL_FOV_PAD = 24;                    // degrees added to the camera FOV for the cull frustum
-const KEEP2 = KEEP_NEAR * KEEP_NEAR, SHADOW_KEEP2 = SHADOW_KEEP * SHADOW_KEEP;
 
 /**
  * The forest's LOD bands, for a tree model the shard places (E315 second pass: Pine Hollow's forest tree): near cards +
  * twigs to `hi`, lo cards to `far`, the impostor from `far` (dissolving in over the `fade` metres before it), the twigs
  * only within `twig` — the same distances the dissolve shaders are set to below.
  */
-export const FOREST_BANDS = { hi: LOD_DIST, far: FAR_DIST, twig: TWIG_DIST, fade: FAR_FADE } as const;
+export const FOREST_BANDS = { get hi() { return TIER_CONFIG.treeHiDist; }, get far() { return TIER_CONFIG.treeLoDist; }, get twig() { return TIER_CONFIG.treeTwigDist; }, fade: FAR_FADE } as const;
 
 /**
  * A tree's trunk as the capsule it collides as (PHYSICS P3): its centre `y` above the tree's foot, half its straight
@@ -58,6 +52,11 @@ export function trunkCapsule(t: { readonly height: number; readonly r: number })
  * bands (`FOREST_BANDS` on the model's LODs), the batches and their buffers. `drawItself` is the forest's own drawing.
  */
 export class Forest {
+  private readonly hiDist = TIER_CONFIG.treeHiDist;
+  private readonly farDist = TIER_CONFIG.treeLoDist;
+  private readonly twigDist = TIER_CONFIG.treeTwigDist;
+  private readonly keepNear = Math.max(45, TIER_CONFIG.shadowFar * 0.5);
+  private readonly shadowKeep = Math.min(TIER_CONFIG.shadowFar, 110);
   group = new THREE.Group();
   trees: TreeInstance[] = [];
   private hi: THREE.InstancedMesh[] = [];
@@ -102,8 +101,8 @@ export class Forest {
     this.drawnBy = o.drawnBy ?? 'self';
     this.place();
     const F = this.factory.fade;
-    F.cards.value.set(FAR_DIST - FAR_FADE, FAR_DIST, 1); F.trunk.value.set(FAR_DIST - FAR_FADE, FAR_DIST, 1);
-    F.far.value.set(FAR_DIST - FAR_FADE, FAR_DIST, -1); F.twigs.value.set(TWIG_DIST - TWIG_FADE, TWIG_DIST, 1);
+    F.cards.value.set(this.farDist - FAR_FADE, this.farDist, 1); F.trunk.value.set(this.farDist - FAR_FADE, this.farDist, 1);
+    F.far.value.set(this.farDist - FAR_FADE, this.farDist, -1); F.twigs.value.set(this.twigDist - TWIG_FADE, this.twigDist, 1);
     this.canopyMap = this.buildCanopyMap();
     this.sky.setupMaterial(this.factory.barkMaterial);
     this.sky.setupMaterial(this.factory.needleMaterial);
@@ -247,21 +246,21 @@ export class Forest {
   private tmpS = new THREE.Vector3();
 
   /**
-   * Tree i, at ground distance² d2 from the viewer, is drawn from the view as it last changed: near (KEEP_NEAR), in the
-   * padded frustum, or — within SHADOW_KEEP — casting its shadow into it. The tree model's culler asks this
+   * Tree i, at ground distance² d2 from the viewer, is drawn from the view as it last changed: near (this.keepNear), in the
+   * padded frustum, or — within this.shadowKeep — casting its shadow into it. The tree model's culler asks this
    * (`CullOptions.test`) when the forest hands it the view.
    */
   readonly keeps = (i: number, d2: number): boolean => {
     const t = this.trees[i];
-    return t !== undefined && (d2 <= KEEP2 || this.seen(t, d2 <= SHADOW_KEEP2));
+    return t !== undefined && (d2 <= (this.keepNear * this.keepNear) || this.seen(t, d2 <= (this.shadowKeep * this.shadowKeep)));
   };
 
-  /** in the padded view frustum — or, within SHADOW_KEEP (`shadows`), casting its shadow into it */
+  /** in the padded view frustum — or, within this.shadowKeep (`shadows`), casting its shadow into it */
   private seen(t: TreeInstance, shadows: boolean): boolean {
     this.sphere.center.set(t.x, t.y + t.height * 0.5, t.z); this.sphere.radius = t.height * 0.6;
     if (this.frustum.intersectsSphere(this.sphere)) return true;
     if (!shadows || this.shadowRun <= 0) return false;
-    const L = Math.min(t.height * this.shadowRun, SHADOW_KEEP); // the shadow's length on flat ground (the cascade crops the rest)
+    const L = Math.min(t.height * this.shadowRun, this.shadowKeep); // the shadow's length on flat ground (the cascade crops the rest)
     this.sphere.radius = L / 6 + t.height * 0.2;
     for (let k = 1; k <= 5; k += 2) {
       this.sphere.center.set(t.x + this.shadowDir.x * L * k / 6, t.y + 1, t.z + this.shadowDir.y * L * k / 6);
@@ -289,7 +288,7 @@ export class Forest {
     this.projView.multiplyMatrices(cc.projectionMatrix, cam.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.projView);
 
-    const hiD2 = LOD_DIST * LOD_DIST, farD2 = FAR_DIST * FAR_DIST, twD2 = TWIG_DIST * TWIG_DIST, keepD2 = KEEP_NEAR * KEEP_NEAR, shadowD2 = SHADOW_KEEP * SHADOW_KEEP;
+    const hiD2 = this.hiDist * this.hiDist, farD2 = this.farDist * this.farDist, twD2 = this.twigDist * this.twigDist, keepD2 = this.keepNear * this.keepNear, shadowD2 = this.shadowKeep * this.shadowKeep;
     { // the sun (Driftwood's moves with its clock); below the horizon nothing casts
       const s = this.sky.sunDir, flat = Math.hypot(s.x, s.z);
       this.shadowRun = s.y > 0.01 && flat > 1e-4 ? flat / s.y : 0;
@@ -298,7 +297,7 @@ export class Forest {
     // a model draws the trees: it culls them from this view, through `keeps`
     if (!this.drawing) { for (const fn of this.viewListeners) fn(this.frustum, viewer); return; }
     // the impostor from the start of the fade band (a 1.5 m move refills the buckets: the band is wider than that)
-    const bandD2 = (FAR_DIST - FAR_FADE) * (FAR_DIST - FAR_FADE);
+    const bandD2 = (this.farDist - FAR_FADE) * (this.farDist - FAR_FADE);
     if (this.batched) {
       const B = this.batched;
       for (let i = 0; i < this.trees.length; i++) {

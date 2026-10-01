@@ -11,3 +11,6 @@ export { progressSave, inventorySave, purseSave, ownedSave, bountySave, compendi
 export type { OwnedId } from './loot/Owned';
 
 export type { ItemId } from './Inventory';
+
+export type { ShardRuntime } from './shard/runtime';
+export { installCompendium } from './compendium/install';

@@ -702,7 +702,6 @@ const ORIGINAL = [
       "heroLandscape": "/src/chunks/thumbs/pine-hollow-landscape.jpg",
       "explore": true,
       "roster": "@function",
-      "fieldModels": "@function",
       "pois": [
         {
           "id": "gate",
@@ -3439,13 +3438,14 @@ function originalArt(value: unknown): unknown {
 }
 
 function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
-  const { uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, placement: _placement, explore, ...kept } = m;
+  const { uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
   const old = {
     ...kept, id: `chunk://local/${m.slug}`, displayName: name, gridCoords: label,
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),
     terrain: ground.terrain, fauna: spawns,
     ...(minimap === undefined ? {} : { map: minimap }),
     ...(ground.structures === undefined ? {} : { structures: ground.structures === true ? { files: m.boot?.files('phone'), build: () => undefined } : ground.structures }),
+    ...(m.render === undefined || !('render' in fixture) ? {} : { render: m.render }),
     ...(camera === undefined ? {} : { fov: { portrait: camera.portraitFov } }),
     ...(fight?.maxHitDamage === undefined ? {} : { maxHitDamage: fight.maxHitDamage }),
     ...(fight?.capExempt === undefined ? {} : { hitCapExempt: fight.capExempt }),

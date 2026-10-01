@@ -1,3 +1,4 @@
+import type { EffectDef } from '../combat/effects/types';
 import type { Action } from '../input/InputService';
 import type { Group, Vector3 } from 'three';
 import type { App } from '../app/app';
@@ -15,7 +16,7 @@ export interface ContentRow { id: string }
 /** Subsystems refine their registration contracts here as their row implementations land. */
 export interface ContentRowMap {
   weapon: ContentRow; tool: ContentRow; ammo: ContentRow; species: ContentRow; speciesLook: ContentRow;
-  effect: ContentRow; damageRule: ContentRow; encounter: EncounterDefinition; spawnTable: ContentRow;
+  effect: EffectDef; damageRule: ContentRow; encounter: EncounterDefinition; spawnTable: ContentRow;
 }
 export type RowVerb<T> = (row: T | readonly T[]) => void;
 export type EngineRows = { [K in keyof ContentRowMap]: RowVerb<ContentRowMap[K]> } & {

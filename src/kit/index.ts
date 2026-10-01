@@ -26,3 +26,6 @@ export { rainCurtain, type RainProgram, type RainCurtainSpec } from './weather/r
 export { fogGLSL } from './looks/fogProgram';
 
 export { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, withHunterPalette, blendGrip, gripPose, type HandHold } from './viewmodel/hunterHands';
+
+export { loadParticles } from './lookApi';
+export type { Particles } from './looks/particles';

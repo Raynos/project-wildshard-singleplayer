@@ -122,7 +122,6 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const pineElites = makePineElites(ctx, elites);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
-  app.encounters.register({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false }, game.levelScope);
   const king = new AntlerKing({
     ctx, interactables: h.interactables, params, music: h.music,
     refill: () => { h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },

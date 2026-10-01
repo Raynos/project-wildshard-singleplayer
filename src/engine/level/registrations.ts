@@ -30,7 +30,7 @@ export class LevelRegistrations {
     }
   }
   get<K extends keyof ContentRowMap>(kind: K, id: string): ContentRowMap[K] | undefined {
-    return this.rows.get(kind)?.get(id);
+    return this.rows.get(kind)?.get(id) as ContentRowMap[K] | undefined;
   }
   list<K extends keyof ContentRowMap>(kind: K): readonly ContentRowMap[K][] {
     return [...(this.rows.get(kind)?.values() ?? [])] as ContentRowMap[K][];

@@ -1,3 +1,4 @@
+import type { ShardRuntime } from './runtime';
 import type { ContentRow, EngineRows, LevelContext } from '#engine';
 import type { ShardManifest } from './manifest';
 
@@ -8,6 +9,7 @@ export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: Bag
 export interface GameRowMap { item: ContentRow; lootTable: ContentRow; skin: ContentRow; feat: ContentRow; shop: ContentRow; compendium: ContentRow; places: ContentRow }
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };
 export interface GameServices {
+  readonly runtime?: ShardRuntime;
   readonly shard: ShardManifest;
   readonly rows: Map<keyof GameRowMap, Map<string, ContentRow>>;
   readonly bag: {

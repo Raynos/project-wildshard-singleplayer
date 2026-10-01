@@ -20,9 +20,10 @@ import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
 import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
 export const PINE_HOLLOW: ShardManifest = {
-  render: async () => (await import('./look/render')).shardRender(),
   uses: ['dayCycle', 'weather'],
+  render: async () => (await import('./look/render')).shardRender(),
   api: 1,
+  load: () => import('./plugin'),
   boot: { files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD },
   kitLook: 'pbr',
   assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
@@ -44,7 +45,6 @@ export const PINE_HOLLOW: ShardManifest = {
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the forest's trees and the forest floor's kinds drawn as its models (E315 M2), once core has built the fields (E349)
-  fieldModels: async () => (await import('./world/drawnModels')).placeDrawnModels,
   pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),
 
   ground: { terrain: TERRAIN },
