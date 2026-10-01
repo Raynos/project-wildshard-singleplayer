@@ -282,7 +282,7 @@ async function main() {
   const count = Number(flag('runs', '1'));
   const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting') };
   if (!Number.isInteger(count) || count < 1 || !Number.isFinite(opts.play) || opts.play <= 0 || !Number.isFinite(opts.fly) || opts.fly <= 0) throw new Error('invalid run count/duration');
-  if (shards.some((shard) => !/^[a-z0-9-]+$/.test(shard))) throw new Error('invalid shard');
+  if (shards.some((shard) => !/^_?[a-z0-9-]+$/.test(shard))) throw new Error('invalid shard');
   const previous = flag('previous', '') ? JSON.parse(readFileSync(flag('previous', ''), 'utf8')).memory ?? [] : [];
   const pending = flag('pending', '') ? JSON.parse(readFileSync(flag('pending', ''), 'utf8')) : [];
   const plan = { opts, runs: [] };

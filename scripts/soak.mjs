@@ -13,7 +13,7 @@ const root = resolve(new URL('..', import.meta.url).pathname);
 const shard = flag('shard', '');
 const minutes = Number(flag('minutes', '20'));
 const out = resolve(flag('out', join(root, 'progress/soak', `${shard}-${Date.now()}`)));
-if (!/^[a-z0-9-]+$/.test(shard) || !Number.isFinite(minutes) || minutes < 20) throw new Error('--shard and --minutes >= 20 required for the growth window');
+if (!/^_?[a-z0-9-]+$/.test(shard) || !Number.isFinite(minutes) || minutes < 20) throw new Error('--shard and --minutes >= 20 required for the growth window');
 mkdirSync(out, { recursive: true });
 const errors = [], stuck = [], samples = [];
 const browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--use-angle=metal', '--mute-audio'] });
