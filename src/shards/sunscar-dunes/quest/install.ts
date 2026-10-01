@@ -4,15 +4,16 @@ import * as v from 'valibot';
 import { Scene, type Vector3 } from 'three';
 import { STRINGS } from '../strings';
 
-const SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
-export const REACH_RADIUS = 9;
+/** The fire stays lit across visits (a shard-scoped save); the reward pays once. */
+const SIGNAL = { key: 'sunscar-dunes.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
 
-/** "The signal fire": reach the tower on the far crest, then light the brazier on its deck. Five coins, once. */
-export function installQuest(ctx: ShardContext, player: Vector3, tower: Vector3, onCoin?: (share: number) => void): { quest: QuestState; flags: Flags; lit: () => boolean } {
-  const flags = new Flags(ctx.manifest.slug), signal = ctx.app.saves.define(SIGNAL);
-  const quest = new QuestState({ id: 'sunscar.quest', title: STRINGS.quest, completeFlag: 'sunscar.complete', steps: [
-    { id: 'reach', objective: STRINGS.reach, done: { all: ['sunscar.tower'] } },
-    { id: 'kindle', objective: STRINGS.kindle, done: { all: ['sunscar.fire'] } },
+export interface DuneQuest { quest: QuestState; flags: Flags; lightFire: () => void; wasLit: boolean }
+
+/** One step, "Light the signal fire": the brazier interact sets the flag; completion pays five coins at the fire. */
+export function installQuest(ctx: ShardContext, firePoint: Vector3, player: Vector3, onCoin?: (share: number) => void): DuneQuest {
+  const flags = new Flags(ctx.manifest.slug), signal = ctx.app.saves.define(SIGNAL), wasLit = signal.read(ctx.manifest.slug);
+  const quest = new QuestState({ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: 'sunscar.signal.done', steps: [
+    { id: 'fire', objective: STRINGS.light, done: { all: ['sunscar.fire'] } },
   ] }, flags, ctx.app.events, ctx.scope);
   const purse = shardSave(purseSave, ctx.manifest.slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
@@ -21,8 +22,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, tower: Vector3,
   quest.onComplete = () => {
     if (signal.read(ctx.manifest.slug)) return;
     signal.write(true, ctx.manifest.slug);
-    burst.spawn(player, 5, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
+    burst.spawn(firePoint, 5, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
   };
-  ctx.system({ id: 'sunscar.quest', phase: 'update', run: () => { if (Math.hypot(player.x - tower.x, player.z - tower.z) < REACH_RADIUS) flags.set('sunscar.tower'); } });
-  return { quest, flags, lit: () => signal.read(ctx.manifest.slug) };
+  return { quest, flags, wasLit, lightFire: () => { flags.set('sunscar.fire'); } };
 }

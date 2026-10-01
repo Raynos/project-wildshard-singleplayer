@@ -1,13 +1,12 @@
-/** Every coordinate in Signal Dunes (metres; π yaw faces +Z, the compass north). */
-export const SPAWN = { x: -45, z: -160, yaw: Math.atan2(-70, -145) };
-export const TOWER = { x: 25, z: -15, yaw: 0.35 };
-/** The tower's deck height above its pad, the stair's run and where the fire sits on the deck. */
-export const DECK = { height: 5.4, half: 1.7, stairRun: 6.4, stairWidth: 1.2 };
-export const RAY_HOME = { x: 0, z: -95 };
-export const TRAIL: [number, number][][] = [[[SPAWN.x, SPAWN.z], [-30, -120], [0, -70], [TOWER.x, TOWER.z - 9]]];
-/** Capture poses for the board (eye height above the feet is 1.6 m). */
-export const POSES = {
-  spawn: { x: SPAWN.x, z: SPAWN.z, yaw: SPAWN.yaw, pitch: 0.02 },
-  ray: { x: -20, z: -110, yaw: Math.PI, pitch: 0.25 },
-  tower: { x: 18, z: -36, yaw: Math.PI * 1.1, pitch: 0.12 },
-};
+/** Every Signal Dunes coordinate, in metres (origin at the slab centre; the player faces −Z at yaw 0). */
+export const SPAWN = { x: 0, z: 46, yaw: 0 };
+/** The wooden signal tower on the far crest; its stair climbs the south face to the deck. */
+export const TOWER = { x: 8, z: -78, deck: 6, half: 2.2 };
+/** The brazier on the deck: the quest's interact point. */
+export const FIRE = { x: TOWER.x, z: TOWER.z - 0.6 };
+/** Where the dune ray circles before it notices the player. */
+export const RAY_HOME = { x: -6, z: 4, radius: 22 };
+/** The one road: spawn crest → the tower's foot (a new shard's trail starts in the spawn area). */
+export const TRAIL: [number, number][][] = [[[SPAWN.x, SPAWN.z], [4, 0], [7, -40], [TOWER.x, TOWER.z + 12]]];
+/** The slab's soft-respawn box. */
+export const BOUNDS = { x0: -240, x1: 240, z0: -240, z1: 240, floor: -20 };

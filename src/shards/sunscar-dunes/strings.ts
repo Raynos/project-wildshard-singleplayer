@@ -1,10 +1,9 @@
 export const STRINGS = {
-  name: 'Signal Dunes', biome: 'Dusk dune sea', label: '(+5, +0)',
-  blurb: 'Dark orange dunes just after sunset, a dune ray gliding over the crests. Crack the bullwhip and light the signal fire on the far tower.',
-  whip: 'Bullwhip', whipBlurb: 'A braided leather bullwhip: a fast, long crack. Hold ATTACK and let go for a double crack that knocks a target back.',
-  ray: 'Dune ray', rayNote: 'A wide gliding ray that circles the crests at dusk, rears up and swoops at whoever walks the sand. Crack it as it comes in low.',
-  tower: 'Signal tower', towerStair: 'Signal tower stair', fire: 'Signal fire', dunes: 'Dune sea', trail: 'Crest path',
-  light: 'Light the signal fire', lit: 'Signal fire lit',
-  quest: 'The signal fire', reach: 'Reach the signal tower', kindle: 'Light the signal fire', reward: 'Signal lit: 5 coins',
-  whipModel: 'Braided bullwhip', rayModel: 'Dune ray', towerModel: 'Signal tower',
+  name: 'Signal Dunes', biome: 'Dusk dune sea',
+  blurb: 'Orange dunes just after sunset. Crack the bullwhip, drive off the dune ray, light the signal fire on the far crest.',
+  whip: 'Bullwhip', whipBlurb: 'Braided leather. A long, narrow crack; hold ATTACK and let go for a double crack that lands twice.',
+  ray: 'Dune ray', rayBlurb: 'A great gliding ray that circles the dusk and swoops at anything on the crests.',
+  tower: 'Signal tower', towerBlurb: 'Weathered timber, a stair, and an iron brazier on the deck.',
+  quest: 'The signal fire', light: 'Light the signal fire', lit: 'Signal fire lit',
+  reward: 'Signal lit: 5 coins', trail: 'Crest road',
 } as const;

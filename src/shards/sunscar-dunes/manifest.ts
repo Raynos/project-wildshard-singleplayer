@@ -1,50 +1,60 @@
 import { buildTerrain } from '#engine/data';
 import type { ShardManifest } from '#game';
 import { STRINGS } from './strings';
-import { SPAWN, TRAIL, POSES } from './layout';
+import { BOUNDS, SPAWN, TRAIL, TOWER } from './layout';
 import { BUDGETS } from './budgets';
-import { EXPLORE } from './explore/art';
-import { DUNES_CARD, DUNES_PORTRAIT } from './thumbs/card';
+import { DUSK_CARD, DUSK_WIDE, EXPLORE } from './explore/art';
 import { bootFiles, bootSources } from './boot/files';
-import { duneHeight } from './world/dunes';
+import { duneHeight, sandColor } from './world/dunes';
 
-const SEED = 6363;
+const SEED = 6113;
 const TERRAIN = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
-const pose = (p: { x: number; z: number; yaw: number; pitch: number }, frame: string): { eye: readonly [number, number, number]; feet: readonly [number, number, number]; yaw: number; pitch: number; mockup: string; frame: string } => {
-  const y = TERRAIN.heightAt(p.x, p.z);
-  return { eye: [p.x, y + 1.6, p.z], feet: [p.x, y, p.z], yaw: p.yaw, pitch: p.pitch, mockup: 'art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg', frame };
-};
+const ground = (x: number, z: number): number => TERRAIN.heightAt(x, z);
+/** Capture poses: eye in world metres, yaw / pitch in degrees (0 faces −Z, +90 faces +X). */
+const stand = (x: number, z: number, yaw: number, pitch: number, frame: string) =>
+  ({ eye: [x, ground(x, z) + 1.6, z] as const, feet: [x, ground(x, z), z] as const, yaw, pitch, mockup: 'art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg', frame });
 
-export const SUNSCAR_DUNES: ShardManifest = {
-  budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 5, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: SEED,
-  biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [5, 0], size: [500, 200, 500] },
-  card: { thumb: DUNES_CARD, portrait: DUNES_PORTRAIT, landscape: DUNES_CARD },
-  style: 'duskDunes', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
+export const SIGNAL_DUNES: ShardManifest = {
+  budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 50, status: 'experimental', name: STRINGS.name, label: '(+3, −1)', seed: SEED,
+  biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [3, -1], size: [500, 500, 500] },
+  card: { thumb: DUSK_WIDE, portrait: DUSK_CARD, landscape: DUSK_WIDE },
+  style: 'signalDusk', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
   ground: { paths: 'plugin', terrain: TERRAIN },
-  spawn: { x: SPAWN.x, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -248, x1: 248, z0: -248, z1: 248, floor: -20 },
-  sky: { sunColor: [1, 0.52, 0.28], sunIntensity: 1.6, envIntensity: 0.35, bgIntensity: 1, fogSunColor: [1, 0.5, 0.3], cloudSunColor: [1, 0.55, 0.35],
-    hemiSky: 0x66588a, hemiGround: 0x8a4a2a, hemiIntensity: 0.9, sun: { azimuth: 318, elevation: 5 } },
-  atmosphere: { fogHeight: 0, fogHeightFalloff: 0.05, fogHeightDensity: 0.002, fogDistDensity: 0.0032, volumetricSunColor: [1, 0.5, 0.3] },
-  grade: { saturation: 0.08, brightness: 0, contrast: 0.08, bloomIntensity: 0.35, bloomThreshold: 0.85, shadowTint: [0.86, 0.92, 1.12], highTint: [1.08, 1, 0.9],
-    lift: [0, 0, 0.012], gain: [1, 1, 1], gamma: 1 },
+  groundColor: (_x, _z, h, _slope, _terrain, out) => { sandColor(h, out); return out; },
+  spawn: { x: SPAWN.x, y: ground(SPAWN.x, SPAWN.z) + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: BOUNDS,
+  // Just after sunset: the key light is the low orange afterglow from the west, the fill a cool indigo sky.
+  sky: { sunColor: [1, 0.55, 0.3], sunIntensity: 1.1, envIntensity: 0.35, bgIntensity: 1, fogSunColor: [0.9, 0.45, 0.3], cloudSunColor: [0.9, 0.5, 0.35],
+    hemiSky: 0x6a64a8, hemiGround: 0x8a4a2c, hemiIntensity: 1.5, sun: { azimuth: 265, elevation: 4 } },
+  atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.55, 0.3] },
+  grade: { saturation: 0.05, brightness: 0, contrast: 0.04, bloomIntensity: 0.25, bloomThreshold: 0.9, shadowTint: [0.85, 0.9, 1.1], highTint: [1.06, 1, 0.92], lift: [0, 0, 0.01], gain: [1, 1, 1], gamma: 1 },
+  // Low, warm far dunes instead of the default ridges; no cloud floor and no drawn edge dressing on a dune sea.
   horizon: { cloudSea: false, rings: [
-    { r: 820, base: -2, color: [0.07, 0.035, 0.025], top: [0.2, 0.09, 0.05], snowLine: 2, haze: 0.45, floor: -30,
-      bands: [{ azimuth: 10, spread: 40, height: 22, rough: 0.05 }, { azimuth: 95, spread: 55, height: 15, rough: 0.08 }, { azimuth: 200, spread: 60, height: 20, rough: 0.05 }, { azimuth: 300, spread: 45, height: 12, rough: 0.06 }] },
-    { r: 1300, base: -4, color: [0.09, 0.05, 0.05], top: [0.2, 0.11, 0.1], snowLine: 2, haze: 0.7, floor: -30,
-      bands: [{ azimuth: 340, spread: 70, height: 35, rough: 0.1 }, { azimuth: 150, spread: 80, height: 28, rough: 0.1 }] },
+    { r: 620, base: -6, color: [0.2, 0.1, 0.08], top: [0.36, 0.17, 0.1], snowLine: 2, haze: 0.55, floor: -30,
+      bands: [{ azimuth: 0, spread: 70, height: 14, rough: 0.05 }, { azimuth: 140, spread: 60, height: 10, rough: 0.05 }, { azimuth: 250, spread: 80, height: 16, rough: 0.05 }] },
+    { r: 900, base: -8, color: [0.16, 0.09, 0.12], top: [0.3, 0.15, 0.14], snowLine: 2, haze: 0.75, floor: -30,
+      bands: [{ azimuth: 60, spread: 90, height: 22, rough: 0.1 }, { azimuth: 300, spread: 70, height: 26, rough: 0.1 }] },
   ] },
-  render: async () => (await import('./look/render')).dunesLook(),
-  uses: ['quests', 'spawns', 'hover', 'explore', 'coins', 'loot'],
+  boundary: { visible: false },
+  render: async () => (await import('./look/render')).duskLook(),
+  uses: ['quests', 'hover', 'coins', 'loot'],
   loadout: { weapons: ['weapon.sunscar-whip'], tools: ['tool.hoverboard'], start: ['weapon.sunscar-whip', 'tool.hoverboard'], held: 'weapon.sunscar-whip' },
   species: ['duneRay'], spawns: [], fight: { attackers: 1, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
+  loot: { coins: true },
+  // No AO or god rays: grazing dusk light on smooth sand bands under screen-space AO.
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
-  hud: { bands: [] }, loot: { coins: true },
-  audio: { bed: 'forest', ambience: 'kit.ambience.forest', score: 'sunscar.silent', cues: async () => (await import('./audio/cues')).CUES,
+  // No ambience bed (ENGINE §15). `preload` is still required at boot (round-3 API gap): the kit's shared profile,
+  // which carries the weapon voices the whip's cues play; its forest bed is never installed.
+  audio: { ambience: 'none', score: 'sunscar.silent', cues: async () => (await import('./audio/cues')).CUES,
     preload: async () => (await import('#kit')).createForestAudio() },
   boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
-  dev: { poses: () => Promise.resolve({ spawn: pose(POSES.spawn, 'spawn'), ray: pose(POSES.ray, 'ray'), tower: pose(POSES.tower, 'tower') }) },
+  dev: { poses: () => Promise.resolve({
+    spawn: stand(SPAWN.x, SPAWN.z, 0, 2, 'Spawn: the crest, the signal tower far off'),
+    weapon: stand(SPAWN.x, SPAWN.z, 0, -6, 'The bullwhip mid-crack'),
+    creature: stand(-4, 18, 0, 12, 'The dune ray against the dusk'),
+    quest: stand(TOWER.x - 3, TOWER.z + 16, 8, 10, 'The signal tower and its fire'),
+  }) },
   explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
 };
 // oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.
-export default SUNSCAR_DUNES;
+export default SIGNAL_DUNES;

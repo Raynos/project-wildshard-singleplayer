@@ -1,57 +1,50 @@
 # Signal Dunes (`sunscar-dunes`)
 
-The fifth shard (E363, E357 Z3 round 2): realistic dark orange dunes just after sunset, a deep orange and indigo sky
-with the first stars, a braided leather bullwhip, a dune ray gliding over the crests, and one quest: light the signal
-fire on the wooden tower on the far crest. Jake's pick: **C · Signal Dunes** (`docs/tasks/asks/E363.md`, mockup
-`art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg`). Built from `docs/SHARDS.md`, the template and
-`docs/ENGINE.md` alone.
+The fifth shard (E363, E357 Z3): realistic dark-orange dunes just after sunset, a braided leather bullwhip, a dune ray
+gliding against the dusk, and one quest step: light the signal fire on the wooden tower on the far crest. Jake's pick:
+**C · Signal Dunes** (`art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg`). Built from `docs/SHARDS.md`, the
+template and `docs/ENGINE.md` alone (round 3 rebuild, Z3R brief).
 
 ## What it declares
 
 | Field | Value |
 |---|---|
-| `status`, `order` | `experimental`, 5 |
-| `style`, `kitLook` | `duskDunes`, `pbr` |
-| `uses` | `quests`, `spawns`, `hover`, `explore`, `coins`, `loot` |
-| `ground` | a 500 m dune sea from `buildTerrain` (`world/dunes.ts`): warped transverse dunes, a swell, the spawn crest and the tower crest with a level pad; sand laid down toward the four entry roads. Every face is under 40° (the contract test walks it) |
-| `horizon` | two low dune rings in dusk browns, no cloud sea (no grey ridges) |
-| `loadout` | the custom bullwhip (held) and the kit hoverboard |
-| `species` | `duneRay` (a flyer with its own brain) |
-| `hud` | the baseline HUD only: the whip is ATTACK (hold = double crack), the objective pill carries the quest, a pin names the tower |
-| `assets` | none: everything is built in code; the cards are inline SVG |
-| saves | one shard key, `sunscar.signal` (the fire is lit; the reward is paid once) |
+| `status`, `order` | `experimental`, 50 |
+| `style`, `kitLook` | `signalDusk` (a label), `pbr` |
+| `uses` | `quests`, `hover`, `coins`, `loot` |
+| `ground` | a 500 m dune sea from `world/dunes.ts` (`buildTerrain`), one trail from the spawn crest to the tower |
+| `horizon`, `boundary` | two low far-dune rings, no cloud sea; no drawn edge dressing |
+| `loadout` | the custom bullwhip (held), the kit hoverboard |
+| `species` | `duneRay` (a flyer) |
+| `audio` | `ambience: 'none'`, a silent score, the whip's cues on kit voices |
+| `dev.poses` | spawn, weapon, creature, quest (degrees) |
+| `assets` | none: every model is code, the card is a bundled SVG |
+| saves | one shard key, `sunscar-dunes.signal` (the fire stays lit, the reward pays once) |
 
 ## Its custom code, and why
 
 | File | What |
 |---|---|
-| `weapons/Bullwhip.ts` | a custom weapon (`extends Weapon`, `blocks.viewmodel` + `blocks.melee`): a 6.5 m crack in a 0.9 m lane; hold ATTACK and let go for a 7.5 m double crack with stagger and knockback. Nothing in the kit cracks at that reach |
-| `weapons/whipModel.ts` | the camera-space whip: a gloved fist, a braided handle, a 26-segment instanced lash that coils at rest and lays out on a crack |
-| `species/duneRay.ts` | the dune ray: a `flight` species, a `CreatureBrain` (circle → rear → swoop → climb) on `ctx.flight.steer`, one `sphere` strike, a skinned manta built from one sphere, flapping wing bones |
-| `world/tower.ts`, `world/build.ts` | the signal tower: braced legs, a deck with rails, a mast and cross, a 16-tread stair (a `treads` collider), the iron brazier and its fire; one registry piece |
-| `quest/install.ts` | "The signal fire": reach the tower, light the brazier (an `Interactable` on the deck), five coins once |
-| `look/render.ts`, `look/sky.ts` | an `extend` look: the clean engine chain, a dusk clock held at 18.9 h, a dome with the orange band, indigo and stars, a low warm key light from the north-west, the dune mesh carried out to the far dunes, and wind ripples patched into the sand material |
-| `audio/cues.ts` | the whip's cue ids, played on kit voices for now |
+| `look/render.ts`, `look/sky.ts` | an `extend` look: a camera-centred dusk dome (orange band, violet, indigo, first stars), dusk distance fog and a rippled-sand terrain painter, all through `patchShader`; a held low orange key light |
+| `world/dunes.ts` | the transverse-dune height function (lee faces under ~30°, flattened toward the slab edge) and the sand colour |
+| `world/tower.ts`, `world/build.ts` | the signal tower: legs, X-braces, deck, rail, mast, a stair (`treads`), the brazier and its fire; one registry piece and the brazier interactable |
+| `weapons/Bullwhip.ts`, `weapons/whipModel.ts` | the custom weapon (rung 3): a 7 m narrow crack; hold ATTACK and let go (or Heavy) for a double crack at 8 m that lands twice. The lash snaps out to the crosshair in the viewmodel |
+| `species/duneRay.ts` | the dune ray: `flight` (15 m over the ground), a brain that circles, dives, skims the player with a `sphere` strike, hangs low (the whip's window) and climbs away; a custom five-bone rig (body, head, two wings, tail) |
+| `quest/install.ts` | the one-step quest "Light the signal fire", five coins at the fire |
+| `audio/cues.ts` | the whip's cues on kit voices until its own crack is generated |
 
 ## Budgets
 
-Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms), the template's lanes with AI and animation for one flyer. See
-`budgets.ts`.
+The template's inputs, with AI / animation for one flyer and world for the dune mesh (`budgets.ts`). The recorded
+`ceilings` (`budgetCeilings.ts`) are the lead's measured data.
 
 ## Look
 
-Dusk just after sunset: a narrow orange band under violet and indigo, faint stars, dark orange sand lit by a raking
-warm key, cool blue-violet in the hollows (the hemisphere light), dusky haze on the far rings. No glass, crystals,
-mirrors or glowing magic. Board: `art/sunscar-dunes/round-3-rebuild/`.
-
-## Tests
-
-`test/shards/sunscar-dunes/contract.test.ts` boots it headless through every stage, lights the fire and checks the
-reward, walks every dune face for slope, and checks the whip's lane and hold-release. `manifest.test.ts` keeps the
-manifest node-safe.
+Dusk held at 19:00: no day cycle, no weather. Sand albedo by height, wind ripples near the camera, indigo hemisphere
+fill, an orange afterglow key from the north-west. Board: `art/sunscar-dunes/round-4-rebuild/`.
 
 ## Open asks
 
-- E363: a generated whip crack and a dusk wind bed (MOSS + Stable Audio), a dusk score (MiniMax); the cues use kit
-  voices and the score is silent today.
-- E363: a portrait title card painted from a capture (the cards are inline SVG).
+- E363: Jake's look at the round-4 board.
+- Leftovers: the whip crack, a wind bed and a dusk score generated locally (MOSS + Stable Audio, MiniMax); a painted
+  portrait card; the dune ray does not respawn after it dies.

@@ -1,14 +1,10 @@
 import { defineModel } from '#engine';
-import { Group, Mesh, MeshStandardMaterial } from 'three';
-import { WhipModel } from '../weapons/whipModel';
+import { buildWhip } from '../weapons/whipModel';
 import { buildTower } from '../world/tower';
-import { rayBody, rayTail } from '../species/duneRay';
+import { TOWER } from '../layout';
 import { STRINGS } from '../strings';
 
-const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
-export const whipModel = defineModel({ id: 'sunscar-dunes/whip', name: STRINGS.whipModel, category: 'gear', pipeline: 'code', file: FILE, defaults: {},
-  build: () => { const model = new WhipModel(); model.pose(0, 0); return model.root; } });
-export const towerModel = defineModel({ id: 'sunscar-dunes/tower', name: STRINGS.towerModel, category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
-  build: () => { const built = buildTower(); built.fire.visible = true; built.light.intensity = 0; return built.tower; } });
-export const rayModel = defineModel({ id: 'sunscar-dunes/duneRay', name: STRINGS.rayModel, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
-  build: () => { const group = new Group(), skin = new MeshStandardMaterial({ vertexColors: true, roughness: 0.8 }); group.add(new Mesh(rayBody(), skin), new Mesh(rayTail(), skin)); return group; } });
+export const whipModel = defineModel({ id: 'sunscar-dunes/bullwhip', name: STRINGS.whip, category: 'gear',
+  pipeline: 'code', file: 'src/shards/sunscar-dunes/weapons/whipModel.ts', defaults: {}, build: () => buildWhip().model });
+export const towerModel = defineModel({ id: 'sunscar-dunes/signal-tower', name: STRINGS.tower, category: 'buildings',
+  pipeline: 'code', file: 'src/shards/sunscar-dunes/world/tower.ts', defaults: {}, build: () => buildTower(TOWER.deck, TOWER.half, 0).group });

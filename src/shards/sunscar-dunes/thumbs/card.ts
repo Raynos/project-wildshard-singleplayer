@@ -1,2 +1,2 @@
-/** No asset fetch: the title cards are the inline dusk-dune illustration. */
-export { DUNES_CARD, DUNES_PORTRAIT } from '../explore/art';
+/** No asset fetch: the title card is the bundled dusk illustration. */
+export { DUSK_CARD, DUSK_WIDE } from '../explore/art';
