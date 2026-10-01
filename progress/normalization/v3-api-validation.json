@@ -1,0 +1,79 @@
+{
+  "scopeSource": "484905affbf166556e8ef14583ca789842fe0e82",
+  "gateStampSource": "f9225d4ef074cf49d8cf5c92b46b7833d292cca3",
+  "apiSource": "8267861cc9563010a6d285a9f9c3c0771c9827c0",
+  "gate": {
+    "verdict": "green",
+    "log": "/private/tmp/e357-sol-v3/api-gate-merged.log",
+    "steps": [
+      "check-css",
+      "gen",
+      "gen-check",
+      "typecheck",
+      "typecheck-api",
+      "typecheck-scripts",
+      "oxlint",
+      "ratchet",
+      "liveness",
+      "vitest",
+      "vite-build"
+    ],
+    "stamp": ".git/vercel-gate/8267861cc9563010a6d285a9f9c3c0771c9827c0"
+  },
+  "phoneBoot": {
+    "pine-hollow.phone": {
+      "sha": "8267861cc9563010a6d285a9f9c3c0771c9827c0",
+      "errors": [],
+      "poses": [
+        "gate",
+        "cabin",
+        "pond"
+      ],
+      "capture": "/private/tmp/e357-sol-v3/api-boot-merged/pine-hollow.phone.json"
+    },
+    "nalati-grasslands.phone": {
+      "sha": "8267861cc9563010a6d285a9f9c3c0771c9827c0",
+      "errors": [],
+      "poses": [
+        "camp",
+        "bridge",
+        "plains"
+      ],
+      "capture": "/private/tmp/e357-sol-v3/api-boot-merged/nalati-grasslands.phone.json"
+    },
+    "driftwood-isle.phone": {
+      "sha": "8267861cc9563010a6d285a9f9c3c0771c9827c0",
+      "errors": [],
+      "poses": [
+        "pier",
+        "beach",
+        "wreck"
+      ],
+      "capture": "/private/tmp/e357-sol-v3/api-boot-merged/driftwood-isle.phone.json"
+    },
+    "nine-dragon-stack.phone": {
+      "sha": "8267861cc9563010a6d285a9f9c3c0771c9827c0",
+      "errors": [],
+      "poses": [
+        "spawn-rail",
+        "well-edge",
+        "stair-street"
+      ],
+      "capture": "/private/tmp/e357-sol-v3/api-boot-merged/nine-dragon-stack.phone.json"
+    }
+  },
+  "decisions": [
+    "Existing public ShardRuntime.buildEquipment/install constructs custom weapons/tools; metadata rows are not factories.",
+    "EngineMechanism projects the ten spec names; manifest accepts legacy pack/water/creatures tags without projecting them as engine policy.",
+    "Safe hidden save namespaces use a generic optional leading underscore; the engine contains no template slug branch.",
+    "Global template Debug action is one per App, engine-scope-owned, never saved or replayed.",
+    "Silent score uses music.out.gain; does not mute Audio.master or write Settings.",
+    "Forest synth bed is a no-asset shared two-band wind profile; mixer owns sources, scope disconnects outputs."
+  ],
+  "limitations": [
+    "Template fifth-shard boot and contract belong to Z1; V3 checked the four existing shards.",
+    "Explicit-owner bridge/removal of legacy capture remains pending X1 continuation.",
+    "Shared WT engine/index.ts and kit/index.ts conflict with stale WIP; V3 publication left them unchanged.",
+    "Historical parity fingerprint/pose verdicts are not accepted or rebaselined by V3."
+  ]
+}
