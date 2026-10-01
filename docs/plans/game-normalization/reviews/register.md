@@ -199,6 +199,38 @@ One row per finding, across every round (decision 92). The ID stays the same for
 | C3-13 | 3 | C | nit | 02 F0 step 5 (line-scoped `bake-ktx2.cache.json`, R2-F2) | A cache entry for an image-less GLB is `"<hash>": "none"`, with no URL, so "entries whose URL lies under the slug's folders" can't attribute it. A lan | fixed where free (R3-N) | cad69e37 · f3b80830 · 71c38fd1 · 784cdd21 · round-3 close |
 | C3-14 | 3 | C | nit | 02 F0 step 5 tests | `test/check-lock.test.ts` covers `targets.json` and `art/README.md` but not the two KTX2 line-scoped files R2-F2 added | fixed where free (R3-N) | cad69e37 · f3b80830 · 71c38fd1 · 784cdd21 · round-3 close |
 | C3-15 | 3 | C | nit | 03 §14.1 verdict (R1-53) | "More than 10 % above the previous night" has no path for an intended increase under the caps (a lane's new hero model), so "fix or revert the cause"  | fixed where free (R3-N) | cad69e37 · f3b80830 · 71c38fd1 · 784cdd21 · round-3 close |
+| A4-1 | 4 | A | must | `03-harness-gate.md:1061–1065`, §14.1 intended memory increase; §1 `--pending-fill` / `--… | The newly permitted memory board item cannot be filled or accepted by the commands that the plan requires. | fixed (R4-14) | d815aaf1 |
+| A4-2 | 4 | A | must | `05-nine-dragon.md:702`, M1 “Jake plays” checklist | M1 still instructs Jake to run phone calibration, violating decision 99 and the revised S1.6 recipe. | fixed (R4-01) | d815aaf1 |
+| A4-3 | 4 | A | should | `13-lead-resolutions.md:324`, R3-F6 baker deviation, versus `02-foundations.md:245–253`,… | The frozen accepted resolution and the executable baker recipe specify different GPU bakers and different check schedules. | fixed (R4-03) | d815aaf1 |
+| B4-1 | 4 | B | must | 05 §9 M1 "Jake plays" (`05:702`); 03 §2.5 (`03:262-263`); index §2.6 (`GAME-NORMALIZATION… | Decision 99 is still violated in four places. | fixed (R4-01) | d815aaf1 |
+| B4-2 | 4 | B | must | 04 §7.5 "Bakers" row (`04:1680`, "the F6 done-when, made exact"); 04 Q5 (`04:1750`); 04 §… | 04 still prescribes the R1-20-era digest re-stamp at F6. | fixed (R4-02) | d815aaf1 |
+| B4-3 | 4 | B | should | 13 R3-F6 bullet 1 (the ledger) vs 02 F1 step 7 (`02:245-251`) | The ledger names the wrong GPU bakers and the wrong check, against the code and against 02. | fixed (R4-03) | d815aaf1 |
+| B4-4 | 4 | B | should | 06 §2.1 row `51-54, 251-252, …` (`06:99`) and §8 (`06:693`); 13 R3-03's "01 §8" | R3-03 landed half, and its replacement claim is false. | fixed (R4-06) | d815aaf1 |
+| B4-5 | 4 | B | should | 06 §2.1 row `59-61, 619-630, 754-795` (`06:100`); the plugin recipe (`06:364-372`); §4 Ba… | Pine's finishes still have two paths. | fixed (R4-07) | d815aaf1 |
+| B4-6 | 4 | B | should | 01 §6 `ShardManifest` (`01:288-321`) and its "Declared sub-fields" (`01:326-346`), cited… | `assetGlobs` and `ktx2` are in no manifest type. | fixed (R4-11) | d815aaf1 |
+| B4-7 | 4 | B | should | 02 F0 step 5 (`02:86-90`), 11 Z3 step 0, 13 R3-06: the default asset globs for a new shard | The defaults miss the folders the repo's own tools write for a shard, so Z3's KTX2 commit is refused. | fixed (R4-09) | d815aaf1 |
+| B4-8 | 4 | B | should | 03 §1 lane-pending (`03:59-71`), §8 "How" (`03:491-492`) and case 6 (`03:553-556`) | The lane-pending predicate can stick on after the lane's bootstrap-artifact commit. | fixed (R4-10) | d815aaf1 |
+| B4-9 | 4 | B | should | 03 §14.1 "An intended increase" (C3-15 / R3-N); 12 §8 | The intended-increase path can't be executed as written. | fixed (R4-14) | d815aaf1 |
+| B4-10 | 4 | B | should | 07 N6 (`07:142`) | "For each of Nalati's four skins (09 E13)" drops one Bag row. | fixed (R4-08) | d815aaf1 |
+| B4-11 | 4 | B | should | 02 F10 "Milestone check" (`02:1460-1463`); 05 §9 Milestone checks (`05:703`); 13 R3-F6 bu… | The Simulator home-screen check has no method. | fixed (R4-17) | d815aaf1 |
+| B4-12 | 4 | B | nit | index §9 (`GAME-NORMALIZATION.md:465`), 12 §1 item 1 (`12:12`), 00 counts (`00:540`) | The decision range says "1–98", but E357 has 99 (`E357.md:473`), and the index State line already says "1–99" (B3-11 again) | nit, fixed (R4-N) | d815aaf1 |
+| B4-13 | 4 | B | nit | 04 §2 rows `04:356` (facade `rng.ts`), `04:1123` (`steppeWind.ts`) | The JSON now has `rule: "DEL"` / `"MERGE"`, `layer: "deleted"`. | nit, fixed (R4-N) | d815aaf1 |
+| B4-14 | 4 | B | nit | 01 `LoadoutSpec` comment (`01:222`) vs 07 / 06 `loadout` | "`weapons`: everything this level's kit can hold". | nit, fixed (R4-16) | d815aaf1 |
+| B4-15 | 4 | B | nit | 02 F2 step 2 (`02:346-347`) | "the island birds (`IslandAmbience.ts:251, 270`)": `:251` is the generic `later()` timer helper, which other timers also use (the swell automation, `:252-253`). | nit, fixed (R4-12) | d815aaf1 |
+| C4-1 | 4 | C | must | 03 §13.2 `set` row; 03 §14 step 1, §14.1; 12 §3 steps 4–5; 05:703, 06:706, 07:876, 08:853… | The plan's only memory gate never has to read the build it pins. | fixed (R4-15) | d815aaf1 |
+| C4-2 | 4 | C | must | 02 F1 step 7 (R3-07), F1 / F6 / F9 done-when; 13 R3-07 | The bakers' outputs aren't byte-reproducible, so "bake in full and compare bytes" fails as written. | fixed (R4-04) | d815aaf1 |
+| C4-3 | 4 | C | must | 05 §9 "Jake plays" (05:702); 03 §2.5 (03:262); 00 BD7 (00:395); 05 S1.6 steps 3–4 | M1 still asks Jake to run the calibration that decision 99 removed. | fixed (R4-01) | d815aaf1 |
+| C4-4 | 4 | C | should | 03 §1 Lane-pending (03:59-73), §8 case 6 (03:550-558), §11.1 shard job checkout (03:680-6… | Lane-pending can stick on after the lane's own bootstrap-artifact commit. | fixed (R4-10) | d815aaf1 |
+| C4-5 | 4 | C | should | 02 F2 step 2 "Two kinds of sound" (02:340-352), tests (02:400-405); 03 §2.3 `walk.sounds`… | The ambient set is still non-deterministic, and the schedulers it was meant to guard can go unseen. | fixed (R4-12) | d815aaf1 |
+| C4-6 | 4 | C | should | 08 S4.2 B "How parity proves the fight unchanged" (08:594-601, 08:618-622; R3-15) | C3-5 is closed at a window's opening edge only. Its closing edge, the sink, still moves by up to 6 frames, so the "exact" swings-per-window rule can't hold. | fixed (R4-18) | d815aaf1 |
+| C4-7 | 4 | C | should | 03 §8 pending steps 4–5 (03:513-523), §13.4 step 3; 12 §3 step 3, §5.5; 05:681, 06:684, 0… | A board item Jake asks to *fix* has no path back to an OK, and a reverted entry can leave a case-4 change red. | fixed (R4-13) | d815aaf1 |
+| C4-8 | 4 | C | should | 03 §14.1 "An intended increase" (03:1061-1066; C3-15 / R3-N); 02 F0 step 5 allowlist; 03… | The intended-increase path fails for its own example. | fixed (R4-14) | d815aaf1 |
+| C4-9 | 4 | C | should | 02 F1 step 7 (R3-07: "a stale bake can't be committed"); battery 25 | Re-baking cards or textures leaves their phone copies and KTX2 stale, and nothing checks them. | fixed (R4-05) | d815aaf1 |
+| C4-10 | 4 | C | should | 02 F0 step 5 (02:84-90), 11 Z3 step 0 (11:67-72); 13 R3-06 | Z3's default globs refuse the KTX2 of the new shard's own horizon and baked textures, so the run stops on a false "API gap" and restarts. | fixed (R4-09) | d815aaf1 |
+| C4-11 | 4 | C | should | 13 R3-F6 bullet 1 vs 02 F1 step 7 (02:245-252) | The ledger and the spec disagree on which bakers are GPU-only and when they are checked. | fixed (R4-03) | d815aaf1 |
+| C4-12 | 4 | C | nit | 12 §1 item 1 ("1–98"); index §9 ("1–98") | E357 has decision 99 (no phone calibration), which 05 S1.6, 00 and R3-F4 cite, but the frozen ledger's range stops at 98 | nit, fixed (R4-N) | d815aaf1 |
+| C4-13 | 4 | C | nit | 13 R3-F6 bullet 2 vs 03 §9 (03:612-617) | R3-F6 calls `flag` "the Debug row a `flag` plant flips"; 03 §9 makes it the plant's launch argument (`metal-off`: `--angle=swiftshader`), which is right: no Debug row tu… | nit, fixed (R4-03) | d815aaf1 |
+| C4-14 | 4 | C | nit | 02 F1 step 7 (`bake-check` in `pnpm test`); 03 §10 budgets; 12 §5 step 1 | Every Mac `pnpm test` (every commit, every subagent) now runs a `vite build`, a preview, three headless game boots (cards on Pine, textures on Pine and Driftwood, each u… | nit, fixed (R4-04) | d815aaf1 |
 
 ## Round summary
 
@@ -206,4 +238,5 @@ One row per finding, across every round (decision 92). The ID stays the same for
 |---|---|---|---|---|---|---|---|---|
 | 1 | A (Codex) · B · C | 35 | 36 | 71 accepted (55 resolutions R1-01…R1-55 + 11 follow-ups) | 71 | 0 (9 nits logged) | 0 / 20 | no |
 | 2 | A (Codex) · B · C | 17 | 29 | ~40 unique (36 resolutions R2-01…R2-36 + 5 follow-ups) | 46 | 0 (11 nits logged) | 9 / 23 | no |
-| 3 | A (Codex) · B · C | 7 | 15 | ~17 unique (16 resolutions R3-01…R3-16) | pending | 0 (16 nits, fixed where free) | 16 / 26 | no |
+| 3 | A (Codex) · B · C | 7 | 15 | ~17 unique (16 resolutions R3-01…R3-16) | 22 | 0 (16 nits, fixed where free) | 16 / 26 | no |
+| 4 | A (Codex) · B · C | 7 | 18 | ~18 unique (18 resolutions R4-01…R4-18; did not fall) | 25 | 0 (7 nits, fixed) | 17 / 29 (16 / 26 on 1–26; A 24 / 26, C 18 / 29) | no |
