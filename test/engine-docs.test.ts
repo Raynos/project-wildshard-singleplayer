@@ -82,7 +82,10 @@ function listed(block: string, alias: string): Set<string> {
   return found;
 }
 
-describe('docs/ENGINE.md (E357 Z2)', () => {
+// The pre-push gate builds the Vercel tree, which drops docs/ (.vercelignore); CI's `pnpm test` runs on the
+// full checkout, so these run there. A missing docs/ENGINE.md in a full checkout still fails ENGINE.md's own test.
+const DOCS = existsSync(resolve(ROOT, 'docs'));
+describe.skipIf(!DOCS)('docs/ENGINE.md (E357 Z2)', () => {
   const indexes = allIndexes();
   if (env['ENGINE_DOC_WRITE'] === '1') {
     const doc = read(ENGINE_DOC);
@@ -114,7 +117,7 @@ describe('docs/ENGINE.md (E357 Z2)', () => {
   });
 });
 
-describe('docs/SHARDS.md and the shard READMEs (E357 Z2, E362 AG22)', () => {
+describe.skipIf(!DOCS)('docs/SHARDS.md and the shard READMEs (E357 Z2, E362 AG22)', () => {
   const layout = JSON.parse(read('lint/shard-layout.json')) as { requiredFiles: string[]; allowedFiles: string[]; folders: string[] };
   const shards = read(SHARDS_DOC);
 
