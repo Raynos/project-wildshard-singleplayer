@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the real dependency outside the symlinked clean-export tree in this Node test.
 import { createRequire } from 'node:module';
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture } from 'three';
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture, DirectionalLight, WebGLRenderTarget, Bone, Skeleton, SkinnedMesh } from 'three';
 import { App, Scope, AssetService } from '#engine';
 import { SceneOwnership } from '#engine/app/sceneOwnership';
 import { ShardScope, enterScope, installScopes, withScopeOwner } from '#engine/core/shardScope';
@@ -71,6 +71,9 @@ describe('level unload keeps the engine usable', () => {
     const abort = new AbortController(); document.addEventListener('aborted', removed, { signal: abort.signal });
     abort.abort(); expect(level.census.listeners).toBe(3);
     another.removeEventListener('click', removed); expect(level.census.listeners).toBe(2);
+    // Removing a non-last registration must not silently discard its neighbor's disposal record.
+    document.removeEventListener('ownership-test', removed); expect(level.census.listeners).toBe(1);
+    document.addEventListener('ownership-test', removed); expect(level.census.listeners).toBe(2);
     button.click(); expect(removed).toHaveBeenCalledOnce();
     level.dispose();
     document.dispatchEvent(new Event('ownership-test')); button.click(); window.dispatchEvent(new Event('ownership-test'));
@@ -80,5 +83,20 @@ describe('level unload keeps the engine usable', () => {
     expect(window.setTimeout(removed, 1)).toBe(0); expect(window.setInterval(removed, 1)).toBe(0);
     document.dispatchEvent(new Event('ownership-test')); expect(removed).toHaveBeenCalledOnce();
     engine.dispose(); enterScope(null);
+  });
+
+  it('retains shadow targets allocated after engine bootstrap and frees level skeleton textures', () => {
+    const scene = new Scene(), light = new DirectionalLight(), level = new Scope('level'), assets = new AssetService();
+    scene.add(light);
+    const ownership = new SceneOwnership(scene, level, assets);
+    ownership.retain(scene);
+    light.shadow.map = new WebGLRenderTarget();
+    const engineDispose = vi.fn<() => void>(); light.shadow.map.addEventListener('dispose', engineDispose);
+    const skeleton = new Skeleton([new Bone()]); skeleton.computeBoneTexture();
+    const boneDispose = vi.fn<() => void>(); skeleton.boneTexture?.addEventListener('dispose', boneDispose);
+    const mesh = new SkinnedMesh(new BoxGeometry(), new MeshBasicMaterial()); mesh.skeleton = skeleton; scene.add(mesh);
+    ownership.retainContainer(null); ownership.capture(); level.dispose();
+    expect(assets.isAcquired(light.shadow.map)).toBe(true); expect(engineDispose).not.toHaveBeenCalled();
+    expect(boneDispose).toHaveBeenCalledOnce(); expect(scene.children).toEqual([light]);
   });
 });

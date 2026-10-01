@@ -322,6 +322,16 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap; // r186 removed PCFSoft: it renders PCF anyway, and the type is in every program's cache key
     setAnisotropy(this.renderer);
+    // Three keeps its generated shadow materials in WebGLShadowMap's renderer cache, outside the scene graph.
+    const draw = this.renderer.renderBufferDirect.bind(this.renderer);
+    this.renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
+      if ((material instanceof THREE.MeshDepthMaterial || material instanceof THREE.MeshDistanceMaterial) &&
+        material !== object.customDepthMaterial && material !== object.customDistanceMaterial) {
+        const key = `renderer:shadow:${material.uuid}`;
+        if (!app.assets.has(key)) app.assets.register(key, material, { retain: true });
+      }
+      draw(camera, scene, geometry, material, object, group);
+    };
     // shadow-only casters (shadowLayer.ts): the shadow pass tests layers against the view camera, so the view camera sees
     // SHADOW_LAYER while — and only while — the shadow maps draw. Before this the cabins' depth proxies (PLAY-PERF lever
     // 12, 46868b5) were never drawn: the cabins cast no wall / roof shadow at all.

@@ -30,7 +30,7 @@ export function sceneResources(root: Object3D): Set<Disposable3> {
   const resources = new Set<Disposable3>();
   root.traverse((node) => {
     if (node instanceof InstancedMesh || node instanceof BatchedMesh) resources.add(node);
-    for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background']) {
+    for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
       for (const resource of containerResources(Reflect.get(node, key))) resources.add(resource);
     }
   });
@@ -46,7 +46,13 @@ export class SceneOwnership {
     root.traverse((node) => { this.engineNodes.add(node); });
     for (const resource of sceneResources(root)) this.acquire(resource);
   }
-  retainContainer(container: unknown): void { for (const resource of containerResources(container, this.engineNodes)) this.acquire(resource); }
+  retainContainer(container: unknown): void {
+    for (const resource of containerResources(container, this.engineNodes)) this.acquire(resource);
+    // Shadow targets and bone textures are allocated lazily after the engine nodes were first retained.
+    for (const node of this.engineNodes) for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
+      for (const resource of containerResources(Reflect.get(node, key))) this.acquire(resource);
+    }
+  }
   retainedNodeCount(): number {
     let count = 0; this.scene.traverse((node) => { if (this.engineNodes.has(node)) count++; }); return count;
   }

@@ -193,7 +193,7 @@ function scopeTarget(target: EventTarget): void {
       if (scope !== undefined && fn !== undefined) {
         remove(type, fn, options); byScope.delete(scope);
         const at = scope.regs.findIndex((r) => r.fn === fn);
-        if (at !== -1) { scope.regs[at]?.forget(); scope.regs.splice(at, 1); }
+        if (at !== -1) scope.regs[at]?.forget(); // cleanup already removes its record; a second splice loses the next listener.
         return;
       }
     }

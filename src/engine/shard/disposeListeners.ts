@@ -19,12 +19,15 @@
  */
 import * as THREE from 'three';
 import { currentScope, type ShardScope } from '../core/shardScope';
+import { app } from '../app/runtime';
 
 type Listener = (event: unknown) => void;
 /** object → its `dispose` listeners that a shard added, and which shard */
 const owned = new WeakMap<object, Map<Listener, ShardScope>>();
 /** per shard: the objects it hung a listener on (weakly) */
 const targets = new WeakMap<ShardScope, WeakRef<object>[]>();
+/** Keep detached uploads alive until freed; weak diagnostics alone lose the only handle that can dispose an orphan. */
+const allocations = new WeakMap<object, Map<ShardScope, () => void>>();
 let installed = false;
 /** EventDispatcher's own removeEventListener, before the patch */
 let removeOriginal: ((target: object, type: string, listener: Listener) => void) | null = null;
@@ -55,6 +58,14 @@ export function trackDisposeListeners(): void {
     if (!m) { m = new Map(); owned.set(this, m); }
     if (m.has(listener)) return;
     m.set(listener, scope);
+    let captures = allocations.get(this);
+    if (!captures) { captures = new Map(); allocations.set(this, captures); }
+    if (!captures.has(scope)) {
+      captures.set(scope, scope.resources.capture('resources', () => {
+        const dispose: unknown = Reflect.get(this, 'dispose');
+        if (!app.assets.isAcquired(this) && typeof dispose === 'function') Reflect.apply(dispose, this, []);
+      }));
+    }
     if (window.__wildshardHarness && !Reflect.has(this, '__f8Allocation')) Reflect.set(this, '__f8Allocation', new Error('GPU allocation').stack);
     let list = targets.get(scope);
     if (!list) { list = []; targets.set(scope, list); }
@@ -62,7 +73,13 @@ export function trackDisposeListeners(): void {
   }
   function recordingRemove(this: object, type: string, listener: Listener): void {
     removeFn(this, type, listener);
-    if (type === 'dispose') owned.get(this)?.delete(listener);
+    if (type === 'dispose') {
+      const scope = owned.get(this)?.get(listener);
+      owned.get(this)?.delete(listener);
+      if (scope && ![...(owned.get(this)?.values() ?? [])].includes(scope)) {
+        allocations.get(this)?.get(scope)?.(); allocations.get(this)?.delete(scope);
+      }
+    }
   }
   Object.defineProperty(proto, 'addEventListener', { configurable: true, writable: true, value: recordingAdd });
   Object.defineProperty(proto, 'removeEventListener', { configurable: true, writable: true, value: recordingRemove });
