@@ -1,5 +1,4 @@
-import { app } from '#engine';
-import { AmbienceZones, type ZoneVoice } from '#engine/audio/ambience';
+import { app, AmbienceZones, type ZoneVoice } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience

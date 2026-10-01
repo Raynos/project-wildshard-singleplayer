@@ -1,6 +1,6 @@
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
-import { panFromYaw } from './util';
+import { panFromYaw, audioRandom } from './util';
 import type { Scope } from '../app/scope';
 /**
  * Voices — the procedural sound bank (src/engine/audio/gen.ts) as AudioBuffers, and a one-node-chain player for them.
@@ -32,7 +32,7 @@ export const FAMILIES: Record<string, Family> = {
   whoosh: fam(4, (sr, s) => whoosh(sr, s)),
   'whoosh-heavy': fam(3, (sr, s) => whoosh(sr, s, true)),
   ...Object.fromEntries(MATERIALS.map((m) => [`impact-${m}`, fam(4, (sr, s) => impact(m, sr, s))])),
-  // driftwood, S4.3: vocal, windup and impact-shell ownership moves with its audio.
+  // S4.3 content table: vocal, windup and impact-shell ownership moves with its audio.
   ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, fam(3, (sr, s) => vocal(e, sr, s), e === 'sailor' || e === 'boar')])),
   'windup-boar': fam(2, (sr, s) => windup('boar', sr, s)),
   'windup-crab': fam(2, (sr, s) => windup('crab', sr, s)),
@@ -96,7 +96,7 @@ export class VoicePool {
   }
   private family(id: string): Family | undefined { const entry = this.tables.get(id); return entry && 'gen' in entry ? entry : FAMILIES[id]; }
   /** Sample selection and generated rendering share the same source, roll-off and output chain. Content owns its tap. */
-  sample(clips: readonly SampleVoice[], o: SamplePlay = {}, policy: SamplePolicy = {}, random: () => number = Math.random, scope?: Scope): AudioBufferSourceNode | undefined {
+  sample(clips: readonly SampleVoice[], o: SamplePlay = {}, policy: SamplePolicy = {}, random: () => number = audioRandom, scope?: Scope): AudioBufferSourceNode | undefined {
     if (!this.host.ready || scope?.disposed) return undefined;
     const clip = clips[Math.floor(random() * clips.length)];
     if (!clip) return undefined;
@@ -186,14 +186,14 @@ export class VoicePool {
     let dist = 0;
     if (o.at) { const dx = o.at.x - this.lx, dy = o.at.y - this.ly, dz = o.at.z - this.lz; dist = Math.sqrt(dx * dx + dy * dy + dz * dz); if (dist > 150) return undefined; }
     const prev = this.last.get(name) ?? -1;
-    let v = Math.floor(Math.random() * f.n); if (f.n > 1 && v === prev) v = (v + 1) % f.n;
+    let v = Math.floor(audioRandom() * f.n); if (f.n > 1 && v === prev) v = (v + 1) % f.n;
     this.last.set(name, v);
     const buf = this.variant(name, v);
     if (!buf) return undefined;
     const c = this.host.ctx, t = c.currentTime + (o.delay ?? 0);
     tap.sound?.(`voices:${name}`);
     const src = ownAudioSource(c.createBufferSource()); src.buffer = buf;
-    src.playbackRate.value = (o.rate ?? 1) * (1 + (Math.random() * 2 - 1) * (o.jitter ?? 0.05));
+    src.playbackRate.value = (o.rate ?? 1) * (1 + (audioRandom() * 2 - 1) * (o.jitter ?? 0.05));
     const g = c.createGain(); g.gain.value = o.gain ?? 1;
     src.connect(g);
     let node: AudioNode = g, pan = o.pan ?? 0;

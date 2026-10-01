@@ -164,3 +164,8 @@ export { boarPaintLow, bearPaintLow, crestSpikes } from './entities/lowpoly';
 export { fxMaterial, annulus, FX, type FxMaterial, type FxMode } from './fx/groundFx';
 
 export type { TreeFactory } from './world/TreeFactory';
+
+// Audio graph mechanisms are content-independent and safe at the public data boundary.
+export { AmbienceZones, type ZoneVoice } from './audio/ambience';
+export { panFromYaw, loopAt } from './audio/util';
+export type { VoicePool, VoiceTable, SampleVoice, SamplePolicy } from './audio/Voices';

@@ -1,5 +1,4 @@
-import { app } from '#engine';
-import { AmbienceZones } from '#engine/audio/ambience';
+import { app, AmbienceZones } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
