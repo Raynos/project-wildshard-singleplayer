@@ -5,6 +5,7 @@
  * The binary is fetched from /assets/physics/rapier.wasm (vite/rapier.ts copies it there from the package) and
  * compiled with `instantiateStreaming`, so compilation overlaps the download and runs off the main thread. `loadRapier()`
  * is called at the very start of boot and awaited by the `physics` step, by which time it has usually finished.
+ * Rapier 0.21 keeps the root-level bindings/binary and the same wasm-bindgen import namespace.
  * SIMD build only: the iOS app targets 17 and the web build needs Safari ≥ 16.4.
  */
 import RAPIER from '@dimforge/rapier3d-simd';

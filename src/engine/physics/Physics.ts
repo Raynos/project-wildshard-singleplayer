@@ -4,7 +4,8 @@
  * `Game` owns the clock (the frame phases, ENGINE-FIT E2): its fixed loop runs `pre → step → post` at 60 Hz, fed the
  * loop's scaled dt, so hit-stop slows the world with everything else and a skipped frame (menu, rotate gate) steps
  * nothing. `step()` is registered in the `step` slot; colliders that move are placed in `pre`, and characters move
- * against the stepped world in `post`.
+ * against the stepped world in `post`. Rapier 0.21's World owns its empty SoftBodySet and supplies it to the
+ * changed low-level step/remove/debug APIs; gameplay uses only these World wrappers.
  */
 import type { World } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';

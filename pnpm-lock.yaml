@@ -27,8 +27,8 @@ importers:
         specifier: 8.51.21
         version: 8.51.21(@capacitor/core@8.5.2)
       '@dimforge/rapier3d-simd':
-        specifier: 0.20.0
-        version: 0.20.0
+        specifier: 0.21.0
+        version: 0.21.0
       '@fontsource/jetbrains-mono':
         specifier: 5.3.0
         version: 5.3.0
@@ -179,8 +179,8 @@ packages:
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
 
-  '@dimforge/rapier3d-simd@0.20.0':
-    resolution: {integrity: sha512-0Gx0GVp0PlTibBoiiPqfaflV0L0e/5Lk9M6DwxqCmLp/Ii8UBwZ+opgdT7/6ah/AvIHipwoyC7JlqAzLob723Q==}
+  '@dimforge/rapier3d-simd@0.21.0':
+    resolution: {integrity: sha512-3Z42VCMavxfsJYxSX95E9ytubSbC8QmBVVd5wKHLPVIkUy94A7xIpdfe14VuUEnjE5e8YYYKPDgAtDU59agYmA==}
 
   '@donmccurdy/caporal@0.0.10':
     resolution: {integrity: sha512-VdaJjOqYFYcDTM5We2x8cL+B+U9UFQvq0iW2ypqEGX31SDf2oYFjEg7INEJorBwJJnFNXV8jXoYGzJyLeYl1EQ==}
@@ -2127,7 +2127,7 @@ snapshots:
 
   '@dimforge/rapier3d-compat@0.12.0': {}
 
-  '@dimforge/rapier3d-simd@0.20.0': {}
+  '@dimforge/rapier3d-simd@0.21.0': {}
 
   '@donmccurdy/caporal@0.0.10':
     dependencies:

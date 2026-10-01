@@ -1,7 +1,7 @@
 /**
  * Rapier's WASM, loaded by the game rather than by the bundler (project/archive/2026-09-23-physics.md §Architecture, Loading).
  *
- * `@dimforge/rapier3d-simd` is a wasm-bindgen `bundler` build: its `rapier_wasm3d.js` does
+ * `@dimforge/rapier3d-simd` 0.21 is still a wasm-bindgen `bundler` build: its `rapier_wasm3d.js` does
  * `import * as wasm from "./rapier_wasm3d_bg.wasm"` (the Wasm ESM-integration proposal), which Vite does not support.
  * So that one module is aliased to src/engine/physics/rapierBindings.ts — the same class wrappers without the wasm import —
  * and src/engine/physics/rapier.ts instantiates the binary itself (streamed from /assets/physics/, where the boot plan counts
@@ -29,8 +29,8 @@ export const rapierAlias = [
 ];
 
 /**
- * `vite preview` sends the 2.2 MB binary as is, while Vercel's CDN brotli-compresses `application/wasm` (its
- * documented allowlist) to ~537 KB. The bench measures the preview, so the preview answers the way production does.
+ * `vite preview` sends the 3.29 MB binary as is, while Vercel's CDN brotli-compresses `application/wasm` (its
+ * documented allowlist) to ~836 KB. The bench measures the preview, so the preview answers the way production does.
  */
 export function rapierPreviewPlugin(): Plugin {
   let br: Buffer | null = null;
