@@ -492,3 +492,8 @@ The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90�
 | J8 | Title deck summary: the selected shard's name + feats and the Wildshard total only (not a list of every shard); updates as the carousel changes shard; A's style. Phone screenshots for Jake | wave 1 Q5 (typed) | sol-title | **built** 6c352b12 (Jake: looks good) |
 | J9 | Desktop Settings + key bindings redesign (a desktop layout, better defaults); mockups A/B/C → Jake's pick → build. iPhone keeps no key bindings | wave 2 Q2 (typed) | mockups: Opus | open |
 | R9 | The Drowned Captain's model looks completely different in the pinned live build vs main: find the commit and whether it is an approved art change or a regression | wave 2 Q3 (Jake) | sol-r9b | open |
+| J10 | Desktop Settings + key bindings, layout A (two panes: categories left; a two-column Action / Key / Alt table grouped On foot · Swimming · Combat · Riding · Menus; conflict prompt; Reset to defaults) with the new defaults (Dodge V + Alt, Ctrl-crouch removed, arrow keys as alt move, Bag I + Tab); touch keeps none | wave 3 Q3 | Opus | open |
+| J11 | Crouch only on Nalati (its stealth); disabled elsewhere, desktop included | wave 3 Q4a | sol-j11 | open |
+| J12 | Drop the Pine longbow auto-shot (F) | wave 3 Q4d | sol-j11 | open |
+| J13 | A touch RELOAD button for part-empty magazines: mockups of placement → Jake's pick → build | wave 3 Q4b | mockups: Opus | open |
+| J14 | Spear: BRACE and JUMP both on touch: mockup → Jake's pick → build | wave 3 Q4c | mockups: Opus | open |

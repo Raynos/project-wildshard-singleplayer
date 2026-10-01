@@ -1,6 +1,6 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — 1 row open (P3: Q1 coyote + dodge clips being re-captured); 10 answered 2026-10-01, waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
+**State:** `blocked` 2026-10-01 — open: J13 reload-button mockups, J14 spear brace+jump mockups (Jake to pick); 10 answered 2026-10-01, waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
 
 A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
@@ -62,4 +62,14 @@ The pop-up answers can be typed over by a builder's herdr message (that is how t
 - **Q2 key bindings:** iPhone with none is right; the desktop version is "just a mobile layout on desktop" — redesign the key bindings screen (and the desktop Settings menu) in a desktop layout with better defaults. Build row J9: mockups A/B/C first (a wave), then build Jake's pick.
 - **Q3 Captain's shared boss bar: looks great** — keep. Jake: "I don't know why the art style of the Drowned Captain changed completely in the two screenshots" — investigated as R9.
 - **Q4 big crab hits for 14: fine** — keep.
+
+## Wave 3 answers (2026-10-01, typed in chat)
+
+- **Q1 coyote (pier → boat): looks great** — keep 100 ms.
+- **Q2 dodge buffer:** "choose whatever you think is best" → keep (lead's call).
+- **Q3 desktop key bindings: A** (two panes + table) with the proposed default changes → J10.
+- **Q4a:** disable crouch outside Nalati, on desktop too → J11.
+- **Q4b:** "we need a reload button" for a part-empty magazine → mockups of where it goes first → J13.
+- **Q4c:** show a mockup of BRACE + JUMP both available while holding the spear → J14.
+- **Q4d:** drop the Pine longbow auto-shot (F) → J12.
 
