@@ -1,5 +1,12 @@
 [
   {
+    "id": "render-throw",
+    "kind": "patch",
+    "shards": ["nine-dragon-stack"],
+    "patch": "render-throw.patch",
+    "expect": ["boot.errors"]
+  },
+  {
     "id": "boot-throw",
     "kind": "patch",
     "shards": [

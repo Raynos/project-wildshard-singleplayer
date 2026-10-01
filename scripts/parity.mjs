@@ -66,7 +66,9 @@ async function capture(browser,url,opts) {
       const title=new URL(url);title.searchParams.set('chunk',opts.shard);title.searchParams.set('tier',opts.tier);if(opts.tier==='phone')title.searchParams.set('touch','1');await page.goto(title.toString());await page.waitForFunction(()=>Boolean(window.__wildshard)&&!document.querySelector('.ws-load'));await page.waitForFunction(async()=>Boolean(navigator.serviceWorker.controller)&&(await navigator.serviceWorker.ready).active?.state==='activated');await context.setOffline(true);await page.reload();await page.locator('.ws-menu-play').waitFor({state:'visible'});
     }
     await page.goto(`${url}/?${params}`);
-    await page.waitForFunction(()=>Boolean(window.__wildshard) || Boolean(window.__wildshardHarness?.errors?.length),undefined,{timeout:opts.timeout*1000}).catch((/** @type {unknown} */ e)=> {if(errors.length === 0)throw e;});
+    await page.waitForFunction(()=>Boolean(window.__wildshard) || Boolean(window.__wildshardHarness?.errors?.length) || Boolean(document.querySelector('.ws-load-error')),undefined,{timeout:opts.timeout*1000}).catch((/** @type {unknown} */ e)=> {if(errors.length === 0)throw e;});
+    const loadFailure=await page.evaluate(()=>document.querySelector('.ws-load-error')?.textContent ?? '');
+    if(loadFailure){errors.push(loadFailure);await page.screenshot({path:join(opts.out,`${opts.shard}.${opts.tier}.load-error.jpg`),type:'jpeg',quality:86});}
     const boot=await page.evaluate(()=>Object.hasOwn(window,'__wildshard') ? window.__wildshard.boot : undefined).catch(()=>undefined);
     if(!boot)return {boot:{shard:opts.shard,tier:opts.tier,lane:opts.lane,errors:errors.length > 0?errors:['boot did not install probe'],renderer:'ANGLE (Apple, ANGLE Metal Renderer',scene:{totals:{batched:0}}}};
     boot.errors=[...new Set([...boot.errors,...errors])];
