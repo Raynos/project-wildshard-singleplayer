@@ -1,13 +1,4 @@
-import './species/horse';
-import './species/wolf';
-import './species/sheep';
-import './species/sheepdog';
-import './species/balbal';
-import './species/goldenKing';
-import './species/leopard';
-import './species/eagle';
-import './species/ghostRider';
-import './species/kokbori';
+import { NALATI_SPECIES, NALATI_LOOKS } from './species/rows';
 import { NALATI_FEATS } from './feats';
 import { TERRAIN } from './world/terrain';
 import { renderFinds, ShardPlugin, type ShardContext, type ShardRuntime } from '#game';
@@ -57,6 +48,8 @@ export class NalatiPlugin extends ShardPlugin {
   override kit(ctx: ShardContext): void {
     const shell = host(ctx), world = shell.world;
     if (world === null) throw new Error('Nalati equipment requires a world');
+    ctx.rows.species(NALATI_SPECIES);
+    ctx.rows.speciesLook(NALATI_LOOKS);
     ctx.rows.feat(NALATI_FEATS);
     ctx.rows.weapon([BOW, SABRE, SPEAR, AR15]);
     shell.buildEquipment = (targets, nolock) => {
