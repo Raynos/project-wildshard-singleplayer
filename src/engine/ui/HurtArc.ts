@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 import './styles/combat.css';
 import type { DeathCause } from '../combat/pipeline';
@@ -85,11 +86,11 @@ const VERB: Record<string, string> = {
  * where this shard puts you back (the death card's second line): `place` = the last named place you reached (E295,
  * src/game/LastPlace.ts `placeName`) when the shard has places and you have reached one; else the shard's spawn
  */
-export function respawnWhere(def: { slug: string; ocean?: unknown }, place?: string | null, defaultText?: string): string {
+export function respawnWhere(_def: object, place?: string | null, defaultText?: string): string {
   if (place !== undefined && place !== null && place !== '') return engineString('s_cf847cd1dbbf', [place]);
   if (defaultText !== undefined) return defaultText;
-  if (def.ocean !== undefined) return engineString('s_0a48508bd9b7');
-  if (def.slug === 'nalati-grasslands') return engineString('s_05db9c8d15dd');
+  const registered = app.levelRegistrations.findText('respawn.default', app.levelScope ?? undefined);
+  if (registered !== undefined) return registered;
   return engineString('s_d67d227883b6');
 }
 

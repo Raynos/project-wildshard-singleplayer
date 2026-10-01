@@ -2,7 +2,7 @@ import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
 // src/engine/audio/Stems.ts — the MiniMax-Music3 stem player behind src/engine/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
 //
-//   public/assets/music/<style>/music.json   { style, model, credit, slots: { <slot>: { calm, tension, bpm, beatsPerBar,
+//   public/assets/music/<genre>/music.json   { genre, model, credit, slots: { <slot>: { calm, tension, bpm, beatsPerBar,
 //                                            loopStart, loopEnd, duration }, title: { full, … } }, stings: { pickup, death, chunk } }
 //
 // A *deck* is one slot playing: the calm stem (melody / harmony + soft bass) always, the tension stem (drums + bass, the same
@@ -11,14 +11,14 @@ import { tap } from '../core/harnessTap';
 // bar k starts at t0 + loopStart + k · bar. Every gain move (tension, crossfades) lands on that grid.
 //
 // Nothing here fetches: the manifests are compiled into the bundle (src/engine/boot/audio.generated.ts) and the files are read by the
-// caller — the boot's counted fetch at the loading bar, or Cache Storage for a style switch (project/archive/2026-09-23-preload-offline.md).
-// `decodeStyle` decodes one style's slots + stings; a slot whose file is missing or will not decode is left out, and Music
+// caller — the boot's counted fetch at the loading bar, or Cache Storage for a genre switch (project/archive/2026-09-23-preload-offline.md).
+// `decodeStyle` decodes one genre's slots + stings; a slot whose file is missing or will not decode is left out, and Music
 // keeps the synth for it.
 //
-// A level's own set (`stems.py --set <set>`): public/assets/music/<set>-<style>/music.json — the same manifest; a boss slot
-// carries `layers` (bass, drums) and `phases` (each boss phase's layer gains). `decodeStyle(style, slots, …, set)` reads it.
+// A level's own set (`stems.py --set <set>`): public/assets/music/<set>-<genre>/music.json — the same manifest; a boss slot
+// carries `layers` (bass, drums) and `phases` (each boss phase's layer gains). `decodeStyle(genre, slots, …, set)` reads it.
 // A deck of the boss plays its layers at the current phase's gains (Deck.setPhase), moved on the bar like the tension stem.
-import type { MusicStyle } from '../ui/Settings';
+import type { MusicStyle as MusicGenre } from '../ui/Settings';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { MUSIC_MANIFESTS } from '../boot/audio.generated';
 
@@ -29,7 +29,7 @@ export const shipped = (path: string): boolean => path in PUBLIC_BYTES;
 /** Score-source slot names are content data, including sets registered by a level. */
 export type SlotName = string;
 export type StemSting = 'pickup' | 'death' | 'chunk' | 'dawn';
-/** a music set: 'base' = the style's own folder (`<style>/`), any other id = a level's set folder (`<set>-<style>/`) */
+/** a music set: 'base' = the genre's own folder (`<genre>/`), any other id = a level's set folder (`<set>-<genre>/`) */
 export type MusicSet = string;
 export type BossPhase = 1 | 2 | 3;
 export interface SlotSpec {
@@ -40,7 +40,7 @@ export interface SlotSpec {
   phases: Partial<Record<BossPhase, number[]>>;
   bpm: number; beatsPerBar: number; loopStart: number; loopEnd: number; duration: number;
 }
-export interface MusicManifest { style: string; credit: string; slots: Partial<Record<string, SlotSpec>>; stings: Partial<Record<StemSting, string>> }
+export interface MusicManifest { genre: string; credit: string; slots: Partial<Record<string, SlotSpec>>; stings: Partial<Record<StemSting, string>> }
 
 const STINGS: StemSting[] = ['pickup', 'death', 'chunk', 'dawn'];
 const PHASES: BossPhase[] = [1, 2, 3];
@@ -64,15 +64,16 @@ export function parseManifest(raw: unknown): MusicManifest | undefined {
   for (const [k, value] of Object.entries(raw['slots'])) { const s = parseSlot(value); if (s && str(k) !== undefined) slots[k] = s; }
   const st = raw['stings'];
   if (isObj(st)) for (const k of STINGS) { const f = str(st[k]); if (f !== undefined) stings[k] = f; }
-  return { style: str(raw['style']) ?? '', credit: str(raw['credit']) ?? 'Music: MiniMax-Music3', slots, stings };
+  return { genre: str(raw['style']) ?? '', credit: str(raw['credit']) ?? 'Music: MiniMax-Music3', slots, stings };
 }
 
 /** a decoded slot: its spec and the stems (tension absent for the title cut; layers only on the boss) */
-export interface SlotAudio { style: MusicStyle; slot: SlotName; spec: SlotSpec; calm: AudioBuffer; tension: AudioBuffer | undefined; layers: AudioBuffer[] }
+export interface SlotAudio { genre: MusicGenre; slot: SlotName; spec: SlotSpec; calm: AudioBuffer; tension: AudioBuffer | undefined; layers: AudioBuffer[] }
 
-/** one style, decoded: the slots this shard can play and the stings, plus what each file cost */
-export interface StyleBank {
-  style: MusicStyle;
+/** one genre, decoded: the slots this shard can play and the stings, plus what each file cost */
+export type StyleBank = GenreBank;
+export interface GenreBank {
+  genre: MusicGenre;
   set: MusicSet;
   slots: Map<SlotName, SlotAudio>;
   stings: Map<StemSting, AudioBuffer>;
@@ -80,39 +81,39 @@ export interface StyleBank {
   log: { file: string; bytes: number; ms: number }[];
 }
 
-/** the folder a set of `style` lives in: public/assets/music/<style>/ or public/assets/music/<set>-<style>/ */
-export const musicSetDir = (style: MusicStyle, set: MusicSet = 'base'): string => (set === 'base' ? style : `${set}-${style}`);
-/** this build's manifest for `style` (compiled in from public/assets/music/<dir>/music.json), or undefined */
-export function musicManifest(style: MusicStyle, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[musicSetDir(style, set)]); }
+/** the folder a set of `genre` lives in: public/assets/music/<genre>/ or public/assets/music/<set>-<genre>/ */
+export const musicSetDir = (genre: MusicGenre, set: MusicSet = 'base'): string => (set === 'base' ? genre : `${set}-${genre}`);
+/** this build's manifest for `genre` (compiled in from public/assets/music/<dir>/music.json), or undefined */
+export function musicManifest(genre: MusicGenre, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[musicSetDir(genre, set)]); }
 /** every file of a set (URLs) — a level fetches its own set into the offline cache while the player is in */
-export function setFiles(style: MusicStyle, set: MusicSet): string[] {
-  const m = musicManifest(style, set);
+export function setFiles(genre: MusicGenre, set: MusicSet): string[] {
+  const m = musicManifest(genre, set);
   if (!m) return [];
   const files: string[] = [];
   for (const sp of Object.values(m.slots)) if (sp) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension]), ...sp.layers);
   for (const f of Object.values(m.stings)) files.push(f);
-  return [...new Set(files.map((f) => `/assets/music/${musicSetDir(style, set)}/${f}`))].filter(shipped);
+  return [...new Set(files.map((f) => `/assets/music/${musicSetDir(genre, set)}/${f}`))].filter(shipped);
 }
 
-/** the files `decodeStyle(style, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads */
-export function styleFiles(style: MusicStyle, slots: readonly SlotName[]): string[] {
-  const m = musicManifest(style);
+/** the files `decodeStyle(genre, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads */
+export function styleFiles(genre: MusicGenre, slots: readonly SlotName[]): string[] {
+  const m = musicManifest(genre);
   if (!m) return [];
   const files: string[] = [];
   for (const k of slots) { const sp = m.slots[k]; if (sp) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension])); }
   for (const k of STINGS) { const f = m.stings[k]; if (f !== undefined) files.push(f); }
-  return [...new Set(files.map((f) => `/assets/music/${style}/${f}`))].filter(shipped);
+  return [...new Set(files.map((f) => `/assets/music/${genre}/${f}`))].filter(shipped);
 }
 
 /**
- * Decode `slots` + every sting of `style`. `read` hands over a file's bytes (by URL), `decode` turns them into an AudioBuffer
- * (an OfflineAudioContext's — no live context needed). Rejects only when the build has no manifest for the style.
+ * Decode `slots` + every sting of `genre`. `read` hands over a file's bytes (by URL), `decode` turns them into an AudioBuffer
+ * (an OfflineAudioContext's — no live context needed). Rejects only when the build has no manifest for the genre.
  */
-export async function decodeStyle(style: MusicStyle, slots: readonly SlotName[], read: (url: string) => Promise<ArrayBuffer>, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>, onFile?: () => void, set: MusicSet = 'base', stings: readonly StemSting[] = STINGS): Promise<StyleBank> {
-  const m = musicManifest(style, set);
-  if (!m) throw new Error(`no music.json for '${musicSetDir(style, set)}' in this build`);
-  const base = `/assets/music/${musicSetDir(style, set)}/`;
-  const bank: StyleBank = { style, set, slots: new Map(), stings: new Map(), log: [] };
+export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[], read: (url: string) => Promise<ArrayBuffer>, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>, onFile?: () => void, set: MusicSet = 'base', stings: readonly StemSting[] = STINGS): Promise<StyleBank> {
+  const m = musicManifest(genre, set);
+  if (!m) throw new Error(`no music.json for '${musicSetDir(genre, set)}' in this build`);
+  const base = `/assets/music/${musicSetDir(genre, set)}/`;
+  const bank: StyleBank = { genre, set, slots: new Map(), stings: new Map(), log: [] };
   const one = async (file: string): Promise<AudioBuffer> => {
     const t = performance.now(), url = `${base}${file}`;
     try {
@@ -134,8 +135,8 @@ export async function decodeStyle(style: MusicStyle, slots: readonly SlotName[],
         // stems of one recording: a stem of another length would drift off the calm one — drop it rather than play it wrong
         const aligned = (b: AudioBuffer | undefined): b is AudioBuffer => b !== undefined && Math.abs(b.duration - calm.duration) < 0.05;
         if (!layers.every(aligned)) throw new Error(`${slot}: a layer's length differs from the base`);
-        bank.slots.set(slot, { style, slot, spec, calm, tension: aligned(tension) ? tension : undefined, layers });
-      } catch (err: unknown) { console.info(`[music] ${style}/${slot}: ${err instanceof Error ? err.message : String(err)} — the synth plays it`); }
+        bank.slots.set(slot, { genre, slot, spec, calm, tension: aligned(tension) ? tension : undefined, layers });
+      } catch (err: unknown) { console.info(`[music] ${genre}/${slot}: ${err instanceof Error ? err.message : String(err)} — the synth plays it`); }
     }),
     ...stings.map(async (k) => {
       const f = m.stings[k];
@@ -199,7 +200,7 @@ export class Deck {
     this._phase = phase;
   }
   get slot(): SlotName { return this.audio.slot; }
-  get style(): MusicStyle { return this.audio.style; }
+  get genre(): MusicGenre { return this.audio.genre; }
   get level(): number { return this.tension; }
 
   /** the first bar line at or after `t` — bars run from loopStart in file time, and the loop is whole bars, so the grid never breaks */

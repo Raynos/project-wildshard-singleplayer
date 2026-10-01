@@ -558,7 +558,7 @@ export class Player {
           const climbing = this.climbTo !== null;
           // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
           const sea = app.world.water.sea;
-          const bob = sea ? sea.surfaceAt(this.position.x, this.position.z) - sea.level : Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
+          const bob = sea !== null ? sea.surfaceAt(this.position.x, this.position.z) - sea.level : Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
           const floatY = ws - FLOAT_DEPTH + bob;
           if (climbing) this.diving = false;
           if (!climbing && (this.diving || this.diveHeld)) {

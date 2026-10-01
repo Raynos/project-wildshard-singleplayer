@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { deathLine, respawnWhere } from '#engine/ui/HurtArc';
 
 const FOREST = respawnWhere({ slug: 'pine-hollow' });
-const ISLAND = respawnWhere({ slug: 'driftwood-isle', ocean: { level: 0 } });
-const NALATI = respawnWhere({ slug: 'nalati-grasslands' });
+const ISLAND = respawnWhere({}, null, 'washed back to the pier');
+const NALATI = respawnWhere({}, null, 'respawning on the north road');
 
 describe('deathLine (the death toast, B2)', () => {
   it('names the killer and the shard\'s respawn point', () => {

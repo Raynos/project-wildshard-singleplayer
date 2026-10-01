@@ -38,12 +38,12 @@ import { CHUNK_HALF, CHUNK_SIZE, SEED } from '../core/config';
 import { heightAt, trailDistance, TRAILS, CABIN_SITES, POND, hasPond, pondMask, waterLevel, streamAt } from '../world/Heightfield';
 import { Noise2D, smoothstep } from '../core/noise';
 import { Rng } from '../core/rng';
-import { getActiveChunk, onActiveChunkChange } from '#game/shard/registry';
+import { activeLevel, onLevelChange } from '../level/selection';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
 import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { app } from '../app/runtime';
-import { scopesInstalled } from '../app/legacyCapture';
+import { scopesInstalled, onScopeDispose } from '../app/legacyCapture';
 import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
 
 /** a point the map marks with a small diamond (Minimap.setMarks) */
@@ -91,7 +91,7 @@ export interface MinimapPalette {
 
 /** the active shard's named places: its palette's (ChunkMapDef.palette), else the cabins + the pond */
 export function mapPois(): MapPoi[] {
-  const own = getActiveChunk().minimap?.palette?.pois;
+  const own = activeLevel().minimap.palette?.pois;
   if (own) return own();
   const out: MapPoi[] = CABIN_SITES.map((c, i) => ({ x: c.x, z: c.z, label: engineString('s_a5912d0f68ef', [i + 1]), color: '#8fe3ff' }));
   if (hasPond()) out.push({ x: POND.x, z: POND.z, label: engineString('s_5dddbb894d63'), color: '#6fb8e8' });
@@ -121,7 +121,6 @@ const ROOF = '#74523a', ROOF_RIDGE = '#9a7a58', ROOF_SHADOW = 'rgba(0, 0, 0, 0.4
 const LOOK: Record<MapPoly['look'], [string, string]> = { planks: ['#c9a46c', '#5e4630'], timber: ['#8e5d38', '#3a2716'], stone: ['#ddd6c4', '#5f5a50'], rock: ['#8f8a7e', '#403c36'] };
 const PATH_EDGE = 'rgba(112, 90, 58, 0.6)', PATH = '#e4cd96', PALM = '#3d7a3c', PALM_SHADOW = 'rgba(10, 30, 16, 0.4)';
 const VOID = '#0b1016';
-const OPEN_SEA = 'rgb(22, 74, 128)';                                        // an ocean shard past the drawn map: the deep-sea colour (SEA_DEEP)
 const DOT_PASSIVE = '#ffe066', DOT_AGGRESSIVE = '#ff5a4a', DOT_OUTLINE = 'rgba(6, 10, 18, 0.9)';
 const ARROW = '#ffffff';
 
@@ -177,9 +176,9 @@ export class Minimap {
     this.layerDirty = true;
     // a dev page swapping its chunk in place: a new map. In the game several shards are resident (E155) and a change is a
     // switch between them — this map's shard, its drawn layer and its explored fog stay as they are
-    onActiveChunkChange(() => { if (scopesInstalled()) return; this.layerDirty = true; this.clearCoverage(); });
+    onScopeDispose(onLevelChange(() => { if (scopesInstalled()) return; this.layerDirty = true; this.clearCoverage(); }));
     // a piece the map draws that lands after the layer was drawn (the zipline, with the adventure) → paint again
-    activeRegistry().onAdd((p) => { if (this.shapes !== null && mapWants(getActiveChunk().minimap, p.id)) this.layerDirty = true; });
+    activeRegistry().onAdd((p) => { if (this.shapes !== null && mapWants(activeLevel().minimap, p.id)) this.layerDirty = true; });
 
     if (typeof ResizeObserver !== 'undefined') {
       this.ro = new ResizeObserver(() => this.fit());
@@ -280,7 +279,7 @@ export class Minimap {
     const ctx = this.ctx;
     ctx.save();
     ctx.beginPath(); ctx.arc(c, c, c, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = getActiveChunk().ocean ? OPEN_SEA : VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
+    ctx.fillStyle = activeLevel().minimap.outside ?? VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
 
     // 1. terrain, the player centred, north up (layer u = (HALF − x) · ppm so east (−X) is screen right)
     const lr = VIEW_RADIUS * LAYER_PPM;
@@ -420,7 +419,7 @@ export class Minimap {
       this.crowns = out;
       return out;
     }
-    const F = getActiveChunk().forest, density = new Noise2D(SEED + 5);
+    const F = activeLevel().forest, density = new Noise2D(SEED + 5);
     if (!F) { this.crowns = []; return this.crowns; } // a treeless shard (no ShardManifest.forest): no crowns
     const rng = new Rng(SEED + 4242);
     const cell = 5, half = CHUNK_HALF - 6;
@@ -458,13 +457,13 @@ export class Minimap {
     const [hMin, hMax] = this.heightRange();
     const img = new ImageData(N, N), data = img.data, col: RGB = [0, 0, 0];
     const lx = -0.55, ly = 0.65, lz = -0.52; // light from the upper-left of the map (north-west), fairly low
-    const chunk = getActiveChunk();
-    const F = chunk.forest;
-    const ocean = chunk.ocean ?? null; // open-water shard: sea by depth, sand where the floor breaks the surface, no forest
+    const level = activeLevel();
+    const F = level.forest;
+    const ocean = level.minimap.openWater ?? null; // open-water shard: sea by depth, sand where the floor breaks the surface, no forest
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
-    const palette = chunk.minimap?.palette ?? null;   // a level's own map look: its ground colours, its overlay, no pines / cabins
-    const bareGround = chunk.minimap?.ground ?? null;  // a structure-first shard: a flat void under its built world (ChunkMapDef.ground)
-    const forestMask = palette ? chunk.forest?.mask : undefined;
+    const palette = level.minimap.palette ?? null;   // a level's own map look: its ground colours, its overlay, no pines / cabins
+    const bareGround = level.minimap.ground ?? null;  // a structure-first shard: a flat void under its built world (ChunkMapDef.ground)
+    const forestMask = palette ? level.forest?.mask : undefined;
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const wx = CHUNK_HALF - u0 - i * step, wz = CHUNK_HALF - v0 - j * step;
@@ -558,8 +557,7 @@ export class Minimap {
   /** ShardManifest.map over the square: the sand paths, the palms' crowns, then each look's footprints — outlined as one
    *  silhouette (every outline first, then every fill), a soft shadow under them like the cabin roofs */
   private paintBuilt(ctx: CanvasRenderingContext2D, toU: (x: number) => number, toV: (z: number) => number, ppm: number, px: number, k: number): void {
-    const def = getActiveChunk().minimap;
-    if (!def) return;
+    const def = activeLevel().minimap;
     this.shapes ??= mapShapes(def, activeRegistry().pieces);
     const { polys, dots } = this.shapes;
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';

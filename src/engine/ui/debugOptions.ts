@@ -16,7 +16,7 @@ import { app } from '../app/runtime';
  * A row reads a saved option (src/engine/ui/Settings.ts OPTION_VALUES / OPTION_SPECS with `params: []`): the game reads it with
  * `setting(key)` (at load for a `reload` row) and `onSettingChange(key, fn)` (a live row).
  */
-import type { ShardManifest } from '#game/shard/manifest';
+import type { LevelSpec } from '../level/spec';
 import { jsonSlot } from '../saves/slots';
 import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
@@ -28,7 +28,7 @@ import { MOBILE_DEVICE } from '../core/tier';
 import type { DebugRowSpec } from '../level/context';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
-export interface DebugCtx { chunk: ShardManifest; weapons: ReadonlySet<string> }
+export interface DebugCtx { chunk: LevelSpec; weapons: ReadonlySet<string> }
 type When = (c: DebugCtx) => boolean;
 
 export type DebugGroupId = 'look' | 'cover' | 'sky' | 'audio' | 'combat' | 'creatures' | 'perf' | 'loading' | 'tools';
@@ -72,8 +72,8 @@ export interface DebugRow {
 
 const authoredRows = new Set<DebugRow>();
 /** A level owns its debug choices and their inverse; menus resolve the live catalog when opened. */
-export function registerLevelDebugRow(spec: DebugRowSpec, slug: string): () => void {
-  const saved = jsonSlot(`debug.plugin.${slug}.${spec.id}`, 'device');
+export function registerLevelDebugRow(spec: DebugRowSpec, levelId: string): () => void {
+  const saved = jsonSlot(`debug.plugin.${levelId}.${spec.id}`, 'device');
   const value = saved.read();
   let current = typeof value === 'string' && spec.choices.some((choice) => choice.value === value) ? value : spec.initial;
   let live = true;
@@ -83,14 +83,14 @@ export function registerLevelDebugRow(spec: DebugRowSpec, slug: string): () => v
     set: (next) => {
       if (!live || !spec.choices.some((choice) => choice.value === next)) return;
       current = next; saved.write(next); spec.change(next); for (const listener of listeners) listener();
-    }, on: (listener) => { if (live) listeners.add(listener); }, when: (ctx) => ctx.chunk.slug === slug };
+    }, on: (listener) => { if (live) listeners.add(listener); }, when: (ctx) => ctx.chunk.id === levelId };
   authoredRows.add(row);
   if (current !== spec.initial) spec.change(current);
   return () => { live = false; authoredRows.delete(row); listeners.clear(); };
 }
 
-// ── the shards ──
-const nalati: When = (c) => c.chunk.slug === 'nalati-grasslands';
+// Authored levels opt into each core option independently.
+const supports = (id: string): When => (c) => c.chunk.debugOptions?.includes(id) === true;
 const always: When = () => true;
 
 interface RowOpts { reload?: boolean; when?: When; note: string; ask: `E${number}`; reviewBy: string }
@@ -158,9 +158,9 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Sky & weather ──
   // Authored clocks and weather opt in through level mechanisms.
-  opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { when: (c) => c.chunk.uses?.includes('dayCycle') === true, ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
-  opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { when: (c) => c.chunk.uses?.includes('weather') === true, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
-  opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
+  opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { when: (c) => c.chunk.mechanisms.includes('dayCycle'), ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
+  opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { when: (c) => c.chunk.mechanisms.includes('weather'), ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
+  opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { when: supports('clockSpeed'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
 
   // ── Audio: the score's source and the sound effects (Settings musicStyle / sfxSet) ──
   {
@@ -180,8 +180,8 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Creatures & NPCs ──
   opt('creatures', 'creatures', engineString('s_9915bdfb4d7c'), [['models', engineString('s_d17d2d78d76e')], ['proc', engineString('s_2e3e91ffbdca')]], { reload: true, when: () => app.species.hasProceduralFallback(), ask: 'E136', reviewBy: '2026-12-30', note: engineString('s_193b70a278ba') }),
-  opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
-  opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
+  opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: supports('balbals'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
+  opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: supports('ghosts'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
 
   // ── Performance ──
   opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),

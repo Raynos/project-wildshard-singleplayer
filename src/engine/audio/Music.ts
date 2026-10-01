@@ -23,20 +23,20 @@ import { tap, ambientTick } from '../core/harnessTap';
 // OfflineAudioContext — the trailer render and the live playback are one code path.
 //
 // v3 (project/archive/2026-09-23-music.md rows 7–8): a STEM PLAYER beside the synth (src/engine/audio/Stems.ts). Settings 'musicStyle' picks
-// piano / orchestral / folk (MiniMax-Music3 stems in public/assets/music/<style>/) or synth. Every style's files are downloaded
-// at the loading bar and the selected style's title + this shard's slot + stings are decoded there (project/archive/2026-09-23-preload-offline.md;
-// `useBank`), so play() starts the stems at once; the synth plays for a style / slot the build lacks or that failed to decode.
+// piano / orchestral / folk (MiniMax-Music3 stems in public/assets/music/<genre>/) or synth. Every genre's files are downloaded
+// at the loading bar and the selected genre's title + this shard's slot + stings are decoded there (project/archive/2026-09-23-preload-offline.md;
+// `useBank`), so play() starts the stems at once; the synth plays for a genre / slot the build lacks or that failed to decode.
 // Slots: menu → 'title' (main.ts starts the music on the title screen's first gesture), Pine Hollow → 'pine', Driftwood → 'island';
 // ENTER WORLD / exit-to-menu crossfade between them over a bar. calm / alert / combat drive the tension stem's gain (0 / 0.5 / 1)
-// on the deck's bar grid. Underwater is the same low-pass (the stems run through the engine's bus). A slot or style change
-// crossfades over at least a bar; one style is resident at a time (a style switch decodes the new one from the offline cache —
+// on the deck's bar grid. Underwater is the same low-pass (the stems run through the engine's bus). A slot or genre change
+// crossfades over at least a bar; one genre is resident at a time (a genre switch decodes the new one from the offline cache —
 // Cache Storage, never the network — while the old one plays on, then crossfades on a bar and drops the old buffers; the menu
 // shows a spinner only past 300 ms, src/engine/audio/preload.ts). `music.duck(k)` scales the whole bus
 // (the Driftwood shrine's −3 dB, src/shards/driftwood-isle/audio/shrineHum.ts).
 //
 import type { Audio } from './Audio';
 import { asShell, shell } from '../app/legacyCapture';
-import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
+import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle as MusicGenre } from '../ui/Settings';
 import { Deck, decodeStyle, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
 import { audioLog } from './audioLog';
@@ -492,17 +492,17 @@ export class Music {
   private playing: ArrangementName | undefined;
   private combatTimer = 0;
   // ── v3: the stems ──
-  private _style: MusicStyle = getMusicStyle();
-  /** the resident style: decoded at the loading bar (useBank), or from the offline cache after a menu switch */
+  private _genre: MusicGenre = getMusicStyle();
+  /** the resident genre: decoded at the loading bar (useBank), or from the offline cache after a menu switch */
   private bank: StyleBank | undefined;
-  /** the style being decoded for a switch (the old one plays on meanwhile) */
-  private decoding: MusicStyle | undefined;
+  /** the genre being decoded for a switch (the old one plays on meanwhile) */
+  private decoding: MusicGenre | undefined;
   private deck: Deck | undefined;
   /** the synth sequencer is scheduling (its timer runs); `synthGen` voids a pending stop when it is restarted mid-fade */
   private synthOn = false;
   private synthGen = 0;
-  /** styles that failed to decode this session — the synth plays them; picking a style again retries */
-  private failed = new Set<MusicStyle>();
+  /** styles that failed to decode this session — the synth plays them; picking a genre again retries */
+  private failed = new Set<MusicGenre>();
   private _duck = 1;
   private source: ScoreSource | undefined;
   private sourceId: string | undefined;
@@ -510,7 +510,7 @@ export class Music {
   constructor(private audio: Audio) {
     this._volume = getNumber('music');
     onNumber('music', (v) => { this._volume = v; if (this.rig) this.rig.out.gain.setTargetAtTime(v, this.rig.ctx.currentTime, 0.05); });
-    onMusicStyle((v) => { this._style = v; this.failed.clear(); if (!this.rig || !this.playing) this.prepare(v); this.sync(); });
+    onMusicStyle((v) => { this._genre = v; this.failed.clear(); if (!this.rig || !this.playing) this.prepare(v); this.sync(); });
   }
 
   private build(): NonNullable<Music['rig']> {
@@ -544,11 +544,11 @@ export class Music {
   get volume(): number { return this._volume; }
   set volume(v: number) { setNumber('music', v); }
   get isPlaying(): boolean { return this.playing !== undefined; }
-  get style(): MusicStyle { return this._style; }
+  get genre(): MusicGenre { return this._genre; }
   /** diagnostics (dev / headless checks): what is sounding, the tension stem's live gain, what was fetched and how long it took */
-  get stems(): { style: MusicStyle; source: 'synth' | 'stems'; slot: SlotName | undefined; tension: number | undefined; synthOn: boolean; synthMix: number | undefined; duck: number | undefined; loads: { file: string; bytes: number; ms: number }[]; failed: string[]; scene: string; phase: BossPhase; layers: number[] } {
+  get stems(): { style: MusicGenre; source: 'synth' | 'stems'; slot: SlotName | undefined; tension: number | undefined; synthOn: boolean; synthMix: number | undefined; duck: number | undefined; loads: { file: string; bytes: number; ms: number }[]; failed: string[]; scene: string; phase: BossPhase; layers: number[] } {
     return {
-      style: this._style, source: this.deck ? 'stems' : 'synth', slot: this.deck?.slot, tension: this.deck?.tensionGain?.gain.value,
+      style: this._genre, source: this.deck ? 'stems' : 'synth', slot: this.deck?.slot, tension: this.deck?.tensionGain?.gain.value,
       synthOn: this.synthOn, synthMix: this.rig?.engine.synthMix.gain.value, duck: this.rig?.duckGain.gain.value,
       loads: this.bank ? [...this.bank.log] : [], failed: [...this.failed, ...(this.source?.failures ?? [])],
       scene: this.source?.sceneName ?? 'day', phase: this.source?.phase ?? 1, layers: this.deck ? this.deck.layerGains.map((g) => g.gain.value) : [],
@@ -573,15 +573,15 @@ export class Music {
     return this.source;
   }
 
-  /** the stems the loading bar decoded (src/engine/boot/extras.ts) — the selected style's title + this shard's slot + stings */
+  /** the stems the loading bar decoded (src/engine/boot/extras.ts) — the selected genre's title + this shard's slot + stings */
   useBank(bank: StyleBank): void {
-    if (bank.style !== this._style) return; // the style changed while the bar ran: prepare() decodes that one
-    // E155: another shard's bar decoded its own slot of the same style: add it to the resident bank (the title and the first
+    if (bank.genre !== this._genre) return; // the genre changed while the bar ran: prepare() decodes that one
+    // E155: another shard's bar decoded its own slot of the same genre: add it to the resident bank (the title and the first
     // shard's slot stay decoded), so switching back never waits on a decode. E264: a slot or sting already resident keeps its
     // first copy (the one the deck plays): a second decode of the same file was the replacement, and the deck held the old
     // buffers on while the bank held the new ones (Nine Dragon's two stems, 35 MB of PCM, twice)
     const old = this.bank;
-    this.bank = old?.style === bank.style && old.set === bank.set ? { ...bank, slots: new Map([...bank.slots, ...old.slots]), stings: new Map([...bank.stings, ...old.stings]), log: [...old.log, ...bank.log] } : bank;
+    this.bank = old?.genre === bank.genre && old.set === bank.set ? { ...bank, slots: new Map([...bank.slots, ...old.slots]), stings: new Map([...bank.stings, ...old.stings]), log: [...old.log, ...bank.log] } : bank;
     this.sync();
   }
 
@@ -600,7 +600,7 @@ export class Music {
   private stemsReady(): boolean {
     // Pine Hollow's night / boss live in their own set: the base bank must hold the theme they fall back to
     const b = this.bank, slot = this.source ? this.baseSlot() : this.wantSlot();
-    return this._style !== 'synth' && b !== undefined && b.style === this._style && slot !== null && b.slots.has(slot);
+    return this._genre !== 'synth' && b !== undefined && b.genre === this._genre && slot !== null && b.slots.has(slot);
   }
   private pump() {
     const spb = this.engine.currentSpb();
@@ -649,47 +649,47 @@ export class Music {
   }
   private tension(): number { return TENSION[this.state.mode]; }
 
-  /** bring what plays in line with the style + state: hand over to / from the synth, switch decks, move the tension stem */
+  /** bring what plays in line with the genre + state: hand over to / from the synth, switch decks, move the tension stem */
   private sync(): void {
     if (!this.rig || !this.playing) return;
-    const now = this.rig.ctx.currentTime, style = this._style;
-    if (style === 'synth' || this.failed.has(style) || this.wantSlot() === null) { this.toSynth(now); return; }
-    this.deck?.setTension(this.tension(), now); // a deck of another slot / style plays on (at the right level) until the new one is in
+    const now = this.rig.ctx.currentTime, genre = this._genre;
+    if (genre === 'synth' || this.failed.has(genre) || this.wantSlot() === null) { this.toSynth(now); return; }
+    this.deck?.setTension(this.tension(), now); // a deck of another slot / genre plays on (at the right level) until the new one is in
     const source = this.state.mode !== 'menu' ? this.scoreSource() : undefined;
     if (source) {
       const playing = this.deck && source.slots.includes(this.deck.slot) ? this.deck.slot : undefined;
       const a = source.want(playing);
       if (a === undefined) { if (!source.pending || !this.deck) this.toSynth(now); return; }
-      if (this.deck?.slot === a.slot && this.deck.style === a.style) { this.deck.setPhase(source.phase ?? 1, now); return; }
+      if (this.deck?.slot === a.slot && this.deck.genre === a.genre) { this.deck.setPhase(source.phase ?? 1, now); return; }
       this.startDeck(a, playing === undefined ? 0 : source.minFade ?? 6);
       return;
     }
     const bank = this.bank;
-    if (bank?.style !== style) { this.prepare(style); if (!this.deck && !this.synthOn) this.startSynth(now + 0.05, 1); return; }
+    if (bank?.genre !== genre) { this.prepare(genre); if (!this.deck && !this.synthOn) this.startSynth(now + 0.05, 1); return; }
     const slot = this.wantSlot();
     if (slot === null) { this.toSynth(now); return; }
-    if (this.deck?.slot === slot && this.deck.style === style) return;
+    if (this.deck?.slot === slot && this.deck.genre === genre) return;
     const a = bank.slots.get(slot);
-    if (a === undefined) { this.toSynth(now); return; } // this style has no such slot in the build (or it failed to decode)
+    if (a === undefined) { this.toSynth(now); return; } // this genre has no such slot in the build (or it failed to decode)
     this.startDeck(a);
   }
-  /** decode `style` from the offline cache (a menu switch; the bar already downloaded every style) — the old style plays on */
-  private prepare(style: MusicStyle): void {
-    if (style === 'synth' || this.bank?.style === style || this.decoding === style || this.failed.has(style)) return;
-    this.decoding = style;
-    void this.decodeFor(style);
+  /** decode `genre` from the offline cache (a menu switch; the bar already downloaded every genre) — the old genre plays on */
+  private prepare(genre: MusicGenre): void {
+    if (genre === 'synth' || this.bank?.genre === genre || this.decoding === genre || this.failed.has(genre)) return;
+    this.decoding = genre;
+    void this.decodeFor(genre);
   }
-  private async decodeFor(style: MusicStyle): Promise<void> {
+  private async decodeFor(genre: MusicGenre): Promise<void> {
     let bank: StyleBank;
-    try { bank = await trackBusy('music', decodeStyle(style, ['title'], cachedBytes, decodeBytes)); }
+    try { bank = await trackBusy('music', decodeStyle(genre, ['title'], cachedBytes, decodeBytes)); }
     catch (err: unknown) {
-      this.failed.add(style);
-      console.info(`[music] ${style}: ${err instanceof Error ? err.message : String(err)} — the synth plays on`);
+      this.failed.add(genre);
+      console.info(`[music] ${genre}: ${err instanceof Error ? err.message : String(err)} — the synth plays on`);
       this.sync();
       return;
-    } finally { if (this.decoding === style) this.decoding = undefined; }
-    if (this._style !== style) return; // picked something else meanwhile
-    this.bank = bank; // the previous style's buffers go with it (a fading deck holds its own until it ends)
+    } finally { if (this.decoding === genre) this.decoding = undefined; }
+    if (this._genre !== genre) return; // picked something else meanwhile
+    this.bank = bank; // the previous genre's buffers go with it (a fading deck holds its own until it ends)
     this.sync();
   }
 
@@ -708,7 +708,7 @@ export class Music {
       t = now + 0.05; fade = 1; // from silence (play() with the stems already decoded)
     }
     this.deck = new Deck(this.rig.ctx, a, this.rig.stemBus, t, fade, this.tension(), this.source?.phase ?? 1);
-    audioLog('music', `deck:${a.slot}`, true, a.style);
+    audioLog('music', `deck:${a.slot}`, true, a.genre);
     this.stopSynth(t, fade);
     this.source?.onDeck?.(a.slot);
   }
@@ -760,7 +760,7 @@ export class Music {
     this.combatTimer = shell.setTimeout(() => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); }, 8000);
   }
 
-  /** the style's sting file while its stems play, else the synth sting; the death sting ducks the stems like the synth (a bar down, 6 s out, a bar back) */
+  /** the genre's sting file while its stems play, else the synth sting; the death sting ducks the stems like the synth (a bar down, 6 s out, a bar back) */
   sting(name: StingName): void {
     tap.sound?.(`music.sting:${name}`);
     audioLog('music', `sting:${name}`, this.rig !== undefined);
@@ -768,7 +768,7 @@ export class Music {
     const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02, deck = this.deck;
     if (name === 'dawn') { this.dawn(); return; }
     const source = this.scoreSource();
-    const buf = deck && source?.slots.includes(deck.slot) ? source.stings.get(name) : deck && this.bank?.style === deck.style ? this.bank.stings.get(name) : undefined;
+    const buf = deck && source?.slots.includes(deck.slot) ? source.stings.get(name) : deck && this.bank?.genre === deck.genre ? this.bank.stings.get(name) : undefined;
     if (buf) { const src = ownAudioSource(ctx.createBufferSource()); src.buffer = buf; src.connect(engine.stingBus); src.start(t); }
     else engine.sting(name, t);
     if (name === 'death' && deck) {
@@ -778,16 +778,16 @@ export class Music {
   }
 
   /** the quest's reward sting (PH-A1): the dawn take's resolve over the score, which dips under it (a beat down, back over 2 bars
-   *  after); the synth's discovery chord when the style is synth or the file is not in the build / will not decode */
+   *  after); the synth's discovery chord when the genre is synth or the file is not in the build / will not decode */
   private dawn(): void {
-    const style = this._style;
+    const genre = this._genre;
     if (!this.rig) return;
-    if (style === 'synth' || !this.deck) { this.rig.engine.sting('dawn', this.rig.ctx.currentTime + 0.02); return; }
+    if (genre === 'synth' || !this.deck) { this.rig.engine.sting('dawn', this.rig.ctx.currentTime + 0.02); return; }
     void (async () => {
       const buf = await this.source?.sting?.('dawn');
       if (!this.rig) return;
       const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02;
-      audioLog('music', 'sting:dawn-take', buf !== undefined, buf ? style : 'synth chord');
+      audioLog('music', 'sting:dawn-take', buf !== undefined, buf ? genre : 'synth chord');
       if (!buf) { engine.sting('dawn', t); return; }
       const src = ownAudioSource(ctx.createBufferSource()); src.buffer = buf; src.connect(engine.stingBus); src.start(t);
       const d = this.deck, beat = d ? d.bar / 4 : 0.5, g = stemBus.gain;

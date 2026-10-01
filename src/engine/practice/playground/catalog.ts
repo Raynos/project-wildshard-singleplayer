@@ -13,7 +13,7 @@ export type PlaygroundId = string;
 export interface PlaygroundCard {
   id: PlaygroundId;
   /** the shard whose feature it is: listed on that shard only */
-  shard: string;
+  levelId: string;
   title: string;
   /** the card's one line */
   blurb: string;
@@ -24,17 +24,17 @@ export interface PlaygroundCard {
 
 export const PLAYGROUND_CARDS: readonly PlaygroundCard[] = [];
 const registered = new Map<string, { card: PlaygroundCard; spec: PlaygroundSpec }>();
-export function registerPlayground(shard: string, spec: PlaygroundSpec): () => void {
+export function registerPlayground(levelId: string, spec: PlaygroundSpec): () => void {
   if (registered.has(spec.id)) throw new Error(`Duplicate playground: ${spec.id}`);
-  registered.set(spec.id, { card: { ...spec, shard }, spec });
+  registered.set(spec.id, { card: { ...spec, levelId }, spec });
   return () => { registered.delete(spec.id); };
 }
 export function registeredPlayground(id: string): PlaygroundSpec | undefined { return registered.get(id)?.spec; }
 function cards(): readonly PlaygroundCard[] { return [...PLAYGROUND_CARDS, ...[...registered.values()].map((entry) => entry.card)]; }
 
 /** the playgrounds the hub lists on `slug` (none on Driftwood Isle and Pine Hollow) */
-export function playgroundsFor(slug: string): PlaygroundCard[] {
-  return cards().filter((c) => c.shard === slug);
+export function playgroundsFor(levelId: string): PlaygroundCard[] {
+  return cards().filter((c) => c.levelId === levelId);
 }
 
 export function playgroundCard(id: PlaygroundId): PlaygroundCard | undefined {

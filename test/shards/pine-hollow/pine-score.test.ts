@@ -5,10 +5,10 @@ import { PineScore } from '#shards/pine-hollow/audio/score';
 const pcm = new Float32Array(48000);
 const buffer: AudioBuffer = { duration: 1, length: 48000, numberOfChannels: 1, sampleRate: 48000,
   getChannelData: () => pcm, copyFromChannel: (dest) => { dest.set(pcm.subarray(0, dest.length)); }, copyToChannel: (source) => { pcm.set(source); } };
-const theme: SlotAudio = { style: 'piano', slot: 'pine', spec: { calm: 'theme.m4a', tension: undefined, layers: [], phases: {}, bpm: 96, beatsPerBar: 4, loopStart: 0, loopEnd: 1, duration: 1 }, calm: buffer, tension: undefined, layers: [] };
+const theme: SlotAudio = { genre: 'piano', slot: 'pine', spec: { calm: 'theme.m4a', tension: undefined, layers: [], phases: {}, bpm: 96, beatsPerBar: 4, loopStart: 0, loopEnd: 1, duration: 1 }, calm: buffer, tension: undefined, layers: [] };
 function host() {
   const state: MusicState = { mode: 'calm', intensity: 0, underwater: false };
-  return { style: 'piano' as const, state, refreshScore: vi.fn(), combat: vi.fn(), sting: vi.fn() };
+  return { genre: 'piano' as const, state, refreshScore: vi.fn(), combat: vi.fn(), sting: vi.fn() };
 }
 
 describe('Pine score policy', () => {

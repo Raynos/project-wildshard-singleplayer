@@ -20,7 +20,7 @@ import { saveStorage } from '#engine/saves/slots';
  */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';
 import { isDev, onDev } from '../core/devMode';
 import { runPerfProbe, probeLines, probeReport, probeSamples } from './perfProbe';
@@ -205,7 +205,7 @@ export class Perf {
     const where = pos instanceof THREE.Vector3 ? `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}` : '?';
     return [
       `WILDSHARD PROBE · ${new Date().toISOString()} · build ${build}`,
-      `shard ${getActiveChunk().slug} · tier ${TIER} · canvas ${String(cv.width)}×${String(cv.height)} · dpr ${String(devicePixelRatio)} · screen ${String(screen.width)}×${String(screen.height)} · ${String(navigator.hardwareConcurrency)} cores`,
+      `shard ${activeLevel().id} · tier ${TIER} · canvas ${String(cv.width)}×${String(cv.height)} · dpr ${String(devicePixelRatio)} · screen ${String(screen.width)}×${String(screen.height)} · ${String(navigator.hardwareConcurrency)} cores`,
       `ua ${navigator.userAgent}`,
       `player at ${where} · calls ${String(g.lastFrame.calls)} · tris ${String(g.lastFrame.triangles)} · programs ${String(info.programs?.length ?? 0)} · textures ${String(info.memory.textures)} · geometries ${String(info.memory.geometries)}`,
       `settings ${settings}`,

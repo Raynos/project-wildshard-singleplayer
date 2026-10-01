@@ -100,8 +100,8 @@ describe('the death card words (E295)', () => {
   it('the card says where you come back: the place, else the shard spawn', () => {
     const island = { slug: 'driftwood-isle', ocean: { level: 0 } };
     expect(respawnWhere(island, 'Wreck Cove')).toBe('respawning at Wreck Cove');
-    expect(respawnWhere(island, null)).toBe('washed back to the pier');
-    expect(respawnWhere(island)).toBe('washed back to the pier');
+    expect(respawnWhere(island, null, 'washed back to the pier')).toBe('washed back to the pier');
+    expect(respawnWhere(island, null, 'washed back to the pier')).toBe('washed back to the pier');
     expect(respawnWhere({ slug: 'pine-hollow' }, null)).toBe('respawning at the south gate');
   });
 

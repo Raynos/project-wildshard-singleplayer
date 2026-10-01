@@ -1,3 +1,4 @@
+import type { HorizonStrips } from '../world/HorizonMatte';
 import type { ByteKey } from '../boot/steps';
 import type { TexMode } from '../boot/gpuFiles';
 import type { ChunkFiles } from '../boot/bytes';
@@ -61,7 +62,7 @@ export interface LevelSpec {
   boot: BootSpec; audio: AudioSpec; loadout: LoadoutSpec;
   species: readonly string[]; spawns: readonly HerdPlan[]; spawnTables?: readonly string[];
   faunaTuning?: Partial<Record<string, Partial<HuntTuning>>>;
-  trees?: TreeSpec; forest?: ForestSpec; horizon?: HorizonSpec;
+  trees?: TreeSpec; forest?: ForestSpec; horizon?: HorizonSpec; horizonStrips?: HorizonStrips;
   minimap: MinimapSpec; hud?: HudSpec; pois?: readonly PoiSpec[];
   groundColor?: (x: number, z: number, h: number, slope: number, terrain: TerrainField, out: RGB) => RGB;
   surfaceAt?: (x: number, z: number, h: number, slope: number) => [number, number, number];

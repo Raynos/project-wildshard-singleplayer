@@ -1,6 +1,6 @@
 import { loadAudio, type Audio, type Music, type MusicState, type ScoreSource, type Scope, type SlotAudio, type StyleBank, type StemSting, type MusicStyle } from '#engine';
 
-/** The base style bank's island slot in play; Music owns its common title slot on the menu. */
+/** The base genre bank's island slot in play; Music owns its common title slot on the menu. */
 export class DriftwoodScore implements ScoreSource {
   readonly base = 'island';
   readonly synthLead = 'marimba';
@@ -11,7 +11,7 @@ export class DriftwoodScore implements ScoreSource {
   readonly sceneName = 'day';
   private bank: StyleBank | undefined;
   private decoding: MusicStyle | undefined;
-  constructor(private readonly music: Pick<Music, 'style' | 'refreshScore'>, private readonly scope: Scope) {}
+  constructor(private readonly music: Pick<Music, 'genre' | 'refreshScore'>, private readonly scope: Scope) {}
   get pending(): boolean { return this.decoding !== undefined; }
   target(_state: MusicState): string { return this.base; }
   useBank(bank: Parameters<ScoreSource['useBank']>[0]): void {
@@ -19,22 +19,22 @@ export class DriftwoodScore implements ScoreSource {
   }
   useStyleBank(bank: StyleBank): void { this.bank = bank; this.stings.clear(); this.useBank(bank); }
   want(_playing: string | undefined): SlotAudio | undefined {
-    const style = this.music.style;
-    if (style === 'synth' || this.scope.disposed) return undefined;
-    if (this.bank?.style === style) return this.bank.slots.get(this.base);
-    if (this.decoding === style || this.failures.has(style)) return undefined;
-    this.decoding = style;
-    void this.prepare(style);
+    const genre = this.music.genre;
+    if (genre === 'synth' || this.scope.disposed) return undefined;
+    if (this.bank?.genre === genre) return this.bank.slots.get(this.base);
+    if (this.decoding === genre || this.failures.has(genre)) return undefined;
+    this.decoding = genre;
+    void this.prepare(genre);
     return undefined;
   }
-  private async prepare(style: MusicStyle): Promise<void> {
+  private async prepare(genre: MusicStyle): Promise<void> {
     try {
       const ports = await loadAudio();
-      const bank = await ports.decodeStyle(style, ['title', this.base], ports.cachedBytes, ports.decodeBytes);
-      if (!this.scope.disposed && this.music.style === style) this.useStyleBank(bank);
-    } catch { this.failures.add(style); }
+      const bank = await ports.decodeStyle(genre, ['title', this.base], ports.cachedBytes, ports.decodeBytes);
+      if (!this.scope.disposed && this.music.genre === genre) this.useStyleBank(bank);
+    } catch { this.failures.add(genre); }
     finally {
-      if (this.decoding === style) this.decoding = undefined;
+      if (this.decoding === genre) this.decoding = undefined;
       if (!this.scope.disposed) this.music.refreshScore();
     }
   }

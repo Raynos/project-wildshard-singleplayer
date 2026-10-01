@@ -34,8 +34,8 @@ import { containMenuInput } from '../input/menuInput';
  * A shard with no inventory slots or achievements gets MAP · GEAR;
  * GEAR names the Neon Jian and shows the Fei Zhua grapple as a card (`tools`). Which tabs a shard gets: bag.ts `bagTabs`.
  */
-import { getActiveChunk } from '#game/shard/registry';
-import type { ShardManifest } from '#game/shard/manifest';
+import { activeLevel } from '../level/selection';
+import type { LevelSpec } from '../level/spec';
 import type { FullMap } from './Map';
 import type { Progress } from '#game/Progress';
 import type { Inventory, ItemId } from '#game/Inventory';
@@ -67,7 +67,7 @@ const TITLE: Record<MenuGroup, string> = { pause: engineString('s_e159b06187d3')
 /** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
 const KEY_TAB: Partial<Record<string, MenuTab>> = { KeyM: 'map', KeyI: 'inventory' };
 /** what a Settings row's "applies when" reads: the weapons you hold now and the shard */
-interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; tracers: boolean; huntersEye: boolean; chunk: ShardManifest }
+interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; tracers: boolean; huntersEye: boolean; chunk: LevelSpec }
 type When = (c: SettingsCtx) => boolean;
 const HINTS: Record<MenuTab, string> = { map: engineString('s_90238ffb7476'), gear: engineString('s_d6a37d4c0ef4'), finds: engineString('s_77fb830f183c'), inventory: engineString('s_f60c27a1ad27'), achievements: engineString('s_b86de6f1d8e0'), settings: engineString('s_de1b7705e971'), feedback: engineString('s_1806a5739ce4') };
 
@@ -75,6 +75,8 @@ const HINTS: Record<MenuTab, string> = { map: engineString('s_90238ffb7476'), ge
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId; melee: boolean; tracers: boolean; huntersEye: boolean }
 
 export interface GameMenuOptions {
+  /** The game supplies its presentation title when constructing this level menu. */
+  levelName?: string;
   fullMap: FullMap;
   progress: Progress;
   inventory: Inventory;
@@ -134,7 +136,7 @@ export class GameMenu {
   private gated: { el: HTMLElement; when: When }[] = [];
 
   constructor(private opts: GameMenuOptions) {
-    const def = getActiveChunk();
+    const levelName = this.opts.levelName ?? '';
     this.root = el('ws-gmenu');
     this.root.inert = true; // closed until open()
     this.sheet = el('ws-gmenu-sheet ws-glass');
@@ -142,7 +144,7 @@ export class GameMenu {
     // have to scroll back to top"): the header bar is the menu's one row of actions, pinned above the tabs and the panel.
     // The left button goes back to play in both menus (RESUME / CLOSE); EXIT TO MAIN, the pause menu's only, sits on the
     // right, so a thumb that dismisses the BAG at the top-left never lands on the exit in the PAUSE menu
-    this.sheet.innerHTML = engineString('s_1856a8fac1fd', [esc(def.name)]);
+    this.sheet.innerHTML = engineString('s_1856a8fac1fd', [esc(levelName)]);
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
       const b = el('ws-gmenu-tab', tabHtml(t.label, t.icon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
@@ -160,7 +162,7 @@ export class GameMenu {
     document.body.append(this.root);
 
     // ── MAP: the FullMap canvas lives inside this panel (Map.ts embedded mode) ──
-    this.mapMeta = el('ws-gmenu-mapmeta', esc(def.name)); // E318: the shard's name, no chunk size
+    this.mapMeta = el('ws-gmenu-mapmeta', esc(levelName)); // E318: the shard's name, no chunk size
     this.mapQuest = el('ws-gmenu-mapquest');
     const frame = el('ws-gmenu-mapframe');
     opts.fullMap.mount(frame);
@@ -252,8 +254,8 @@ export class GameMenu {
   setPractice(active: boolean, room = 'Training arena'): void {
     this.practice = active;
     this.root.classList.toggle('practice', active);
-    this.subtitle.textContent = active ? room : getActiveChunk().name;
-    this.mapMeta.textContent = active ? room : getActiveChunk().name; // E314: the MAP tab over a room's own map names the room
+    this.subtitle.textContent = active ? room : (this.opts.levelName ?? '');
+    this.mapMeta.textContent = active ? room : (this.opts.levelName ?? ''); // E314: the MAP tab over a room's own map names the room
     this.exitBtn.innerHTML = active ? engineString('s_36c97383811d') : engineString('s_2c5e5026f627');
     this.exitBtn.setAttribute('aria-label', active ? engineString('s_084735ce4470') : engineString('s_83b2c11883e2'));
     if (active && this._tab === 'map' && this.noMap) this.select('settings'); else this.syncTabs();
@@ -420,7 +422,7 @@ export class GameMenu {
   private renderAchievements() {
     const pr = this.opts.progress, p = this.panels.achievements; p.replaceChildren();
     const rows = pr.rows, n = rows.length, e = pr.earnedCount;
-    const def = getActiveChunk();
+    const levelName = this.opts.levelName ?? '';
     // the shard's "complete" card (E132, src/game/complete/ShardComplete.ts), once its quest is done: a row on top that reopens it
     const done = completeEntry();
     if (done) {
@@ -429,7 +431,7 @@ export class GameMenu {
       row.addEventListener('click', () => { this.close(true); done.open(); });   // silent: the card resumes play itself
       p.append(row);
     }
-    p.append(el('ws-gmenu-label', engineString('s_19898a95936f', [esc(def.name), e, n])));
+    p.append(el('ws-gmenu-label', engineString('s_19898a95936f', [esc(levelName), e, n])));
     p.append(el('ws-bar ws-gmenu-total', engineString('s_3ac582ba7063', [n ? (e / n) * 100 : 0])));
     p.append(el('ws-gmenu-label', engineString('s_e2d6dc448c63')));
     const t = pr.title;
@@ -546,7 +548,7 @@ export class GameMenu {
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
   private applies(): void {
     this.savePanel?.refresh();
-    const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.melee), tracers: kit.some((k) => k.tracers), huntersEye: kit.some((k) => k.huntersEye), chunk: getActiveChunk() };
+    const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.melee), tracers: kit.some((k) => k.tracers), huntersEye: kit.some((k) => k.huntersEye), chunk: activeLevel() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
     this.debug?.applies(c);
   }

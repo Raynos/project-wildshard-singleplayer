@@ -11,7 +11,7 @@ export function pineScorePick(): (typeof PINE_SCORE_PICKS)[number] {
 }
 const sources = new WeakMap<Music, PineScore>();
 
-/** Scene, style, phase and reward policy for the existing Pine recordings. */
+/** Scene, genre, phase and reward policy for the existing Pine recordings. */
 export class PineScore implements ScoreSource {
   readonly base = 'pine';
   readonly slots = ['pine', 'night', 'boss'];
@@ -21,12 +21,12 @@ export class PineScore implements ScoreSource {
   sceneName: PineScene = 'day';
   phase: BossPhase = 1;
   private theme: SlotAudio | undefined;
-  private extra: { style: MusicStyle; slot: SlotAudio | undefined; dawn: AudioBuffer | undefined } | undefined;
+  private extra: { genre: MusicStyle; slot: SlotAudio | undefined; dawn: AudioBuffer | undefined } | undefined;
   private decoding = new Set<string>();
   private dawnWanted = false;
   private scope: Scope | undefined;
-  private style: MusicStyle | undefined;
-  constructor(private readonly music: Pick<Music, 'style' | 'state' | 'refreshScore' | 'combat' | 'sting'>) {
+  private genre: MusicStyle | undefined;
+  constructor(private readonly music: Pick<Music, 'genre' | 'state' | 'refreshScore' | 'combat' | 'sting'>) {
     const pin = pineScorePick(), match = pin === 'auto' ? null : /^(night|boss|dawn)(?:-([123]))?$/.exec(pin);
     if (match) {
       if (match[1] === 'night' || match[1] === 'boss') this.sceneName = match[1];
@@ -42,45 +42,45 @@ export class PineScore implements ScoreSource {
   }
   useStyleBank(bank: StyleBank): void { this.useBank(bank); }
   want(_playing: string | undefined): SlotAudio | undefined {
-    const style = this.music.style, want = this.target(this.music.state);
-    if (style !== this.style) { this.style = style; this.failures.clear(); }
-    if (style === 'synth') return undefined;
+    const genre = this.music.genre, want = this.target(this.music.state);
+    if (genre !== this.genre) { this.genre = genre; this.failures.clear(); }
+    if (genre === 'synth') return undefined;
     if (want !== 'pine') {
-      const slot = this.extra?.style === style ? this.extra.slot : undefined;
+      const slot = this.extra?.genre === genre ? this.extra.slot : undefined;
       if (slot?.slot === want) return slot;
-      this.prepare(style, want === 'boss' ? 'boss' : 'night');
+      this.prepare(genre, want === 'boss' ? 'boss' : 'night');
     }
-    if (this.theme?.style === style) return this.theme;
-    this.prepare(style, 'pine');
+    if (this.theme?.genre === genre) return this.theme;
+    this.prepare(genre, 'pine');
     return undefined;
   }
-  private prepare(style: MusicStyle, slot: 'pine' | 'night' | 'boss'): void {
-    const key = `${style}/${slot}`;
+  private prepare(genre: MusicStyle, slot: 'pine' | 'night' | 'boss'): void {
+    const key = `${genre}/${slot}`;
     if (this.decoding.has(key) || this.failures.has(key) || this.scope?.disposed) return;
     this.decoding.add(key);
     void (async () => {
       let bank: StyleBank | undefined;
       try {
         const ports = await loadAudio();
-        bank = await ports.decodeStyle(style, [slot], ports.cachedBytes, ports.decodeBytes, undefined, slot === 'pine' ? 'base' : 'pine-hollow', slot === 'pine' ? undefined : ['dawn']);
+        bank = await ports.decodeStyle(genre, [slot], ports.cachedBytes, ports.decodeBytes, undefined, slot === 'pine' ? 'base' : 'pine-hollow', slot === 'pine' ? undefined : ['dawn']);
       } catch (error) { console.info(`[music] pine-hollow ${key}: ${error instanceof Error ? error.message : String(error)} — the theme plays`); }
       finally { this.decoding.delete(key); }
       const audio = bank?.slots.get(slot);
       if (!audio) { this.failures.add(key); return; }
-      if (this.music.style !== style || this.scope?.disposed) return;
+      if (this.music.genre !== genre || this.scope?.disposed) return;
       if (slot === 'pine' && bank) this.useStyleBank(bank);
-      else this.extra = { style, slot: audio, dawn: bank?.stings.get('dawn') ?? (this.extra?.style === style ? this.extra.dawn : undefined) };
+      else this.extra = { genre, slot: audio, dawn: bank?.stings.get('dawn') ?? (this.extra?.genre === genre ? this.extra.dawn : undefined) };
       this.music.refreshScore();
     })();
   }
   async sting(name: StemSting): Promise<AudioBuffer | undefined> {
     if (name !== 'dawn') return this.stings.get(name);
-    const style = this.music.style;
-    if (this.extra?.style === style && this.extra.dawn) return this.extra.dawn;
+    const genre = this.music.genre;
+    if (this.extra?.genre === genre && this.extra.dawn) return this.extra.dawn;
     try {
-      const ports = await loadAudio(), bank = await ports.decodeStyle(style, [], ports.cachedBytes, ports.decodeBytes, undefined, 'pine-hollow', ['dawn']);
+      const ports = await loadAudio(), bank = await ports.decodeStyle(genre, [], ports.cachedBytes, ports.decodeBytes, undefined, 'pine-hollow', ['dawn']);
       const buffer = bank.stings.get('dawn');
-      if (buffer && this.music.style === style && !this.scope?.disposed) this.extra = { style, slot: this.extra?.style === style ? this.extra.slot : undefined, dawn: buffer };
+      if (buffer && this.music.genre === genre && !this.scope?.disposed) this.extra = { genre, slot: this.extra?.genre === genre ? this.extra.slot : undefined, dawn: buffer };
       return buffer;
     } catch { return undefined; }
   }

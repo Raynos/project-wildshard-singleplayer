@@ -2,7 +2,7 @@ import { engineString } from '#engine/strings';
 import type { WeaponUi } from '../combat/Equipment';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { travel } from '#game';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
@@ -495,11 +495,13 @@ export class HUD {
   showIntro(onEnter: () => void, _stats?: IntroStats): void {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
-    const active = getActiveChunk().slug;
+    const active = activeLevel().id;
+    const cards = titleCards();
+    const own = cards[cards.map((card): string => card.slug).indexOf(active)];
     const deck = buildTitleDeck({
-      cards: titleCards(), active,
-      onEnter: (c) => { if (c.slug === active) this.enter(); else travel({ to: c.slug, mode: 'enter' }); },
-      onExplore: (c) => { if (c.slug !== active) { travel({ to: c.slug, mode: 'explore' }); return; } this.leaveForExplore(); },
+      cards, active,
+      onEnter: (c) => { if (c === own) this.enter(); else travel({ to: c.slug, mode: 'enter' }); },
+      onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } this.leaveForExplore(); },
       onSettings: () => { openBootSettings(); }, // E55: the reload-to-apply picks
     });
     this.root.append(deck.root);
@@ -541,7 +543,7 @@ export class HUD {
   enterNow(): void {
     if (this.intro) {
       // the deck was parked on the card the player left for: its own card back first, so the fade-out shows this shard's art
-      const d = this.deck, own = d ? d.cards.findIndex((c) => c.slug === getActiveChunk().slug) : -1;
+      const d = this.deck, own = d ? d.cards.map((c): string => c.slug).indexOf(activeLevel().id) : -1;
       if (d && own !== -1 && own !== d.index) d.select(own, false);
       this.enter();
       return;

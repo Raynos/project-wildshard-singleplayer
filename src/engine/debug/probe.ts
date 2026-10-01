@@ -245,7 +245,7 @@ function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerpr
     physics: counts, scene: { totals, named },
     render: { programs: programs.length, programKeys: compiledProgramHash(programs, (shader) => gl.getShaderSource(shader)), memory: { ...game.renderer.info.memory } },
     gpuBytes: pins?.gpuBytes?.() ?? { textures: 0, renderbuffers: 0, buffers: 0, total: 0 },
-    audio: { requests: [...new Set(pins?.audioRequests)].map((url) => url.replace(/\?v=[^&]*$/, '')).sort(), state: { style: music.style, set: audio.samples.set, mood: music.state.mode } },
+    audio: { requests: [...new Set(pins?.audioRequests)].map((url) => url.replace(/\?v=[^&]*$/, '')).sort(), state: { style: music.genre, set: audio.samples.set, mood: music.state.mode } },
     hud, saves: { read: [...new Set(saves.read)].sort(), written: [...new Set(saves.written)].sort() },
     playMs: performance.now(), stepMs: { ...deps.bootSteps }, heapMB: pins?.heapMB?.() ?? 0,
   };

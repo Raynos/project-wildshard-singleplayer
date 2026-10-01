@@ -65,7 +65,7 @@ describe('real Pine lane strikes at the body clock', () => {
     const actual = { width: spec.shape.width, speed: spec.motion?.speed, overshoot: spec.motion?.overshoot, dmg: spec.damage, skid: spec.recover, reach: spec.range };
     expect(spec.windup).toBe(tell);
     expect(actual).toEqual(options);
-    const f = fakeWorld(), factory = new AnimalFactory(f.sky, { style: 'toon' }), model = factory.model('boar', 'sow');
+    const f = fakeWorld(), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } }), model = factory.model('boar', 'sow');
     const a = new Animal(factory.instantiate(model, 0.5), model, 0.5), player = new THREE.Vector3(0, 0, 4);
     const lane = new LaneCharge(f.game.scene, 0xff4400, options), hits: { frame: number; damage: number }[] = [];
     let frame = 0; lane.start(a, player.x, player.z, tell);

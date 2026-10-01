@@ -56,7 +56,7 @@ export async function decodeScore(set: ScoreSet, slots: readonly string[], read:
         if (spec.loopEnd > calm.duration + 0.05) throw new Error(`${slot}: loopEnd ${spec.loopEnd} past the file (${calm.duration.toFixed(2)} s)`);
         const aligned = (b: AudioBuffer | undefined): b is AudioBuffer => b !== undefined && Math.abs(b.duration - calm.duration) < 0.05;
         if (!layers.every(aligned)) throw new Error(`${slot}: a layer's length differs from the base`);
-        bank.slots.set(slot, { style: 'folk', slot, spec, calm, tension: aligned(tension) ? tension : undefined, layers });
+        bank.slots.set(slot, { genre: 'folk', slot, spec, calm, tension: aligned(tension) ? tension : undefined, layers });
       } catch (error) { console.info(`[music] ${set.manifestKey}/${slot}: ${error instanceof Error ? error.message : String(error)} — the synth or another slot plays`); }
     }),
     ...(withStings ? STINGS : []).map(async (key) => {

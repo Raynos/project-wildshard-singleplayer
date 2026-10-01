@@ -10,7 +10,7 @@ export function creature(kind: string, variant: string, world: EnemyWorld = {}):
   animal: Animal; ctx: ThinkCtx; hits: { frame: number; damage: number }[]; sounds: string[];
   starts: { frame: number; duration: number }[]; states: string[]; readonly frame: number; advance: (n: number) => void;
 } {
-  const f = fakeWorld(), factory = new AnimalFactory(f.sky, { style: 'toon' });
+  const f = fakeWorld(), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
   const model = factory.model(kind, variant), animal = new Animal(factory.instantiate(model, 0.5), model, 0.5);
   animal.place(0, 0, 0);
   const hits: { frame: number; damage: number }[] = [], sounds: string[] = [], states: string[] = [];

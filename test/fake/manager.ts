@@ -18,7 +18,7 @@ class LegacyClock extends TickScheduler {
 
 /** Real manager without the canvas-only blood presentation. The caller owns active-shard/physics cleanup. */
 export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWorld> & { manager: AnimalManager; advance: (n: number) => void } {
-  const f = fakeWorld(), m = new AnimalManager(f.game.scene, f.sky, f.forest, { style: 'toon' });
+  const f = fakeWorld(), m = new AnimalManager(f.game.scene, f.sky, f.forest, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
   Reflect.set(m, 'blood', { update: (): void => undefined, burst: (): void => undefined });
   if (legacyClock) {
     const scheduler = new LegacyClock(), prev = f.player.position.clone();

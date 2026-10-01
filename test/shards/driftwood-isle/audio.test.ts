@@ -97,10 +97,10 @@ describe("Driftwood's island audio on the engine mixer", () => {
   });
 
   it('owns the island score slot in play and uses the selected style bank without starting an audio device', () => {
-    const scope = new Scope('score'), score = new DriftwoodScore({ style: 'folk', refreshScore: () => undefined }, scope);
+    const scope = new Scope('score'), score = new DriftwoodScore({ genre: 'folk', refreshScore: () => undefined }, scope);
     expect(score.base).toBe('island');
     expect(score.target({ mode: 'calm', intensity: 0, underwater: false })).toBe('island');
-    score.useStyleBank({ style: 'folk', set: 'base', slots: new Map(), stings: new Map(), log: [] });
+    score.useStyleBank({ genre: 'folk', set: 'base', slots: new Map(), stings: new Map(), log: [] });
     expect(score.want(undefined)).toBeUndefined();
     expect(score.pending).toBe(false);
     scope.dispose(); score.dispose();

@@ -14,7 +14,7 @@ import { engineString } from '#engine/strings';
 import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
 import { asShell } from '../app/legacyCapture';
 import { isDev, onDev } from '../core/devMode';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { askReload } from './ReloadPrompt';
 import { devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
@@ -46,7 +46,7 @@ export function openBootSettings(): void {
   root = r;
   // re-read which Debug rows apply to the selected level, and their choices
   // (GPU textures' "Auto · now …"), for the one behind it now. No weapons in hand on the title
-  debug?.applies({ chunk: getActiveChunk(), weapons: new Set() });
+  debug?.applies({ chunk: activeLevel(), weapons: new Set() });
   asShell(() => { window.clearInterval(memTimer); memTimer = window.setInterval(() => { debug?.paint(); }, 2000); }); // the readouts, while open only
   r.classList.add('show');
   r.inert = false;

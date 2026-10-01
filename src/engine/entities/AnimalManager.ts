@@ -20,8 +20,8 @@ import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, ty
 import { Animal, damageFor } from './Animal';
 import { attachShadowCaster } from './animalShadow';
 import { FarHerd, type FarMember } from './farHerd';
-import { getActiveChunk } from '#game/shard/registry';
-import { meleeShard } from '#game/shard/manifest';
+import { activeLevel } from '../level/selection';
+import type { CreatureRenderSpec } from '../level/spec';
 import { TIER, TIER_CONFIG } from '../core/tier';
 import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
@@ -446,11 +446,11 @@ export class AnimalManager {
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
-  private readonly melee = meleeShard(getActiveChunk()); // Driftwood's swords, Nalati's sabre / spear
+  private readonly melee = activeLevel().fight.telegraphed === true; // Driftwood's swords, Nalati's sabre / spear
   /** E297: the shard's fight rules (Driftwood), null = the old fights (see the header) */
   private readonly rules = (() => {
-    const fight = getActiveChunk().fight;
-    return fight?.attackers === undefined || !Number.isFinite(fight.attackers) ? null : fight;
+    const fight = activeLevel().fight;
+    return fight.attackers === undefined || !Number.isFinite(fight.attackers) ? null : fight;
   })();
   /** E322 F-L4: Pine Hollow's animals part the grass (Nalati's Wildlife feeds the same map its own way) */
   /** E297: the attack tokens — at most `rules.maxAttackers` attacking at once */
@@ -471,10 +471,10 @@ export class AnimalManager {
   private readonly pbr: boolean;
 
   /** `opts.style` forces the render style (dev harness); production reads `ShardManifest.style` ('pbr' | 'lowpoly') */
-  constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined } = {}) {
-    const style = opts.style ?? getActiveChunk().style;
-    this.factory = new AnimalFactory(sky, { style });
-    this.pbr = style === 'pbr';
+  constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
+    const style = opts.style ?? activeLevel().creatureStyle ?? 'pbr';
+    this.factory = new AnimalFactory(sky, { style, render: opts.render ?? activeLevel().creatures });
+    this.pbr = this.factory.render.furRim;
     this.group.name = 'animals';
     // Legacy authored species keep their brain/strike callback until S3.4 / S4.2 migrates it.
     this.scheduler.configure(app.render?.level.tiers?.[TIER]?.ticks);
@@ -567,7 +567,7 @@ export class AnimalManager {
     const rng = this.rng;
     // herd placement comes from the shard: each HerdPlan asks for a clearing (or canopy) in a band of
     // distances off the trails, optionally in a ring around an anchor (a trail, a cabin…).
-    const { spawns: plan, spawn } = getActiveChunk();
+    const { spawns: plan, spawn } = activeLevel();
     const centres: [number, number][] = [];
     for (const h of plan) {
       let cx = 0, cz = 0, ok = false;
@@ -617,7 +617,7 @@ export class AnimalManager {
     if (cached !== undefined) return cached;
     const sp = speciesDef(a.kind);
     const base = sp.tuning ?? (sp.aggressive ? BOAR_TUNING : DEER_TUNING);
-    const over = getActiveChunk().faunaTuning?.[a.kind];
+    const over = activeLevel().faunaTuning?.[a.kind];
     let t = over !== undefined ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ShardManifest.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
     // E297 fight rules: a charger without a stalk (the boar) gets one — it comes for you instead of bolting
     if (this.rules !== null && sp.aggressive === true && sp.think === undefined && t.stalk === undefined) t = { ...t, stalk: { ...RULES_STALK, roar: sp.sounds?.call ?? 'boar_grunt' } };

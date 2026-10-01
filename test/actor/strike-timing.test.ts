@@ -22,7 +22,7 @@ beforeEach(() => { restoreRandom = seedRandom(); setActiveChunk('driftwood-isle'
 afterEach(() => { restoreRandom(); setActiveChunk(originalChunk); });
 
 function boar(): Animal {
-  const world = fakeWorld(), factory = new AnimalFactory(world.sky, { style: 'toon' });
+  const world = fakeWorld(), factory = new AnimalFactory(world.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
   const model = factory.model('boar', 'sow');
   const a = new Animal(factory.instantiate(model, 0.5), model, 0.5);
   a.place(0, 0, 0);
@@ -68,7 +68,7 @@ describe('strike timing at 60 fixed steps per second', () => {
   });
 
   it('AnimalManager boar charge waits for its 0.55s windup, hits once, then enters recovery', () => {
-    const world = fakeWorld(), manager = new AnimalManager(world.game.scene, world.sky, world.forest, { style: 'toon' });
+    const world = fakeWorld(), manager = new AnimalManager(world.game.scene, world.sky, world.forest, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
     // BloodFX is a private visual-only dependency whose constructor requires a canvas. No DOM in this contract.
     Reflect.set(manager, 'blood', { update: (): void => undefined, burst: (): void => undefined });
     const a = manager.spawn('boar', 0, 0, 0, 'sow');

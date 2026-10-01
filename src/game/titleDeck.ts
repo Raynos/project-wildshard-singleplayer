@@ -90,6 +90,7 @@ function hintFor(card: TitleCard, active: boolean): string {
 
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const { cards } = opts;
+  const activeIndex = cards.map((card): string => card.slug).indexOf(opts.active ?? '');
   const root = document.createElement('div');
   root.className = 'ws-menu';
   root.innerHTML = `
@@ -98,7 +99,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
       <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${EYE}</span><span class="ws-menu-explore-text"><b>Explore world</b><small>Fly · inspect</small></span></button></div>
     <div class="ws-menu-deck">
       <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => {
-        const active = c.slug === opts.active;
+        const active = i === activeIndex;
         return `
         <button class="ws-menu-card${active ? ' active' : ''}" type="button" data-i="${i}">
           <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag${active ? ' ok' : ''}">${active ? 'Loaded' : 'Load'}</i>${c.badge ? `<i class="ws-menu-card-exp${c.badge === 'Early access' ? ' ws-menu-card-ea' : ''}">${c.badge}</i>` : ''}</span>
@@ -147,7 +148,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const dots = Array.from(root.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
   const portrait = (): boolean => innerWidth < innerHeight;
   const heroUrl = (c: TitleCard): string => (portrait() ? c.heroPortrait : c.heroLandscape);
-  let index = Math.max(0, cards.findIndex((c) => c.slug === opts.active));
+  let index = Math.max(0, activeIndex);
 
   // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
   const place = (i: number, extra = 0, animate = true): void => {
@@ -163,7 +164,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
     hero.style.backgroundImage = `url('${heroUrl(c)}')`;
     hero.classList.add('show');
-    hint.textContent = hintFor(c, c.slug === opts.active);
+    hint.textContent = hintFor(c, index === activeIndex);
   };
   const select = (raw: number, smooth = true): void => {
     const i = Math.max(0, Math.min(cards.length - 1, raw));

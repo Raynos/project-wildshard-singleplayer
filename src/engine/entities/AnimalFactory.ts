@@ -1,5 +1,6 @@
 import { bindRig } from '../anim/rig';
-import type { ChunkStyle } from '#game/shard/manifest';
+import type { CreatureRenderSpec } from '../level/spec';
+import { selectedLevel } from '../level/selection';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
@@ -88,12 +89,14 @@ export type KnownAnimalKind = 'deer' | 'boar';
 export type AnimalVariant = string;
 
 /** 'pbr' Pine Hollow (fur texture + shells) · 'toon' Driftwood (faceted) · 'painterly' Nalati (smooth, vertex colour, ONE draw) */
-export type AnimalStyle = ChunkStyle;
+export type AnimalStyle = string;
+export const DEFAULT_CREATURE_RENDER: CreatureRenderSpec = { lowPoly: false, waitForModels: true, furRim: true, tintRange: 0.2, oneMaterial: false };
 
 export interface AnimalModel {
   kind: AnimalKind;
   variant: string;
   style: AnimalStyle;
+  render: CreatureRenderSpec;
   species: SpeciesDef;
   variantDef: VariantDef;
   geometry: THREE.BufferGeometry;
@@ -287,14 +290,16 @@ export class AnimalFactory {
   }
 
   readonly style: AnimalStyle;
+  readonly render: CreatureRenderSpec;
   /** resolves once the generated hulls this factory may use have loaded (Pine Hollow's rigs; at once elsewhere): a model
    *  made before it is the procedural one for good, so AnimalManager.buildAsync waits for it before the first herd */
   readonly ready: Promise<void>;
 
-  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) {
+  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
     this.style = opts.style ?? 'pbr';
-    this.ready = this.style === 'pbr' ? Promise.all(app.species.preloads().map((preload) => preload())).then(() => undefined) : Promise.resolve();
-    if (this.style !== 'pbr') for (const preload of app.species.preloads()) void preload().catch(() => undefined);
+    this.render = opts.render ?? selectedLevel()?.creatures ?? DEFAULT_CREATURE_RENDER;
+    this.ready = this.render.waitForModels ? Promise.all(app.species.preloads().map((preload) => preload())).then(() => undefined) : Promise.resolve();
+    if (!this.render.waitForModels) for (const preload of app.species.preloads()) void preload().catch(() => undefined);
   }
 
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
@@ -304,7 +309,7 @@ export class AnimalFactory {
     const key = `${kind}:${v.id}`;
     let m = this.models.get(key);
     if (m !== undefined) return m;
-    const lowPoly = this.style === 'toon';
+    const lowPoly = this.render.lowPoly;
     setLowPoly(lowPoly);
     const sp = species.build(v, new Rng(hashSeed(key)));
     setLowPoly(false);
@@ -332,7 +337,7 @@ export class AnimalFactory {
       // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
       const hull = look.skin?.(v, sp.bones, eyes) ?? null;
       if (hull) { geometry.dispose(); geometry = hull.geometry; }
-      m = { kind, variant: v.id, style: this.style, species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
+      m = { kind, variant: v.id, style: this.style, render: this.render, species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
       this.models.set(key, m);
       if (look.hasSkin?.(v) === true && !hull) {
         this.pendingRigs.set(key, []);
@@ -353,7 +358,7 @@ export class AnimalFactory {
         if (sp.selfLight !== undefined && sp.selfLight > 0) { lp.fur.emissiveMap = sp.map; lp.fur.emissive.setRGB(1, 1, 1); lp.fur.emissiveIntensity = sp.selfLight; }
       }
       this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
-      m = { kind, variant: v.id, style: 'toon', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
+      m = { kind, variant: v.id, style: 'toon', render: this.render, species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
       this.models.set(key, m);
       return m;
     }
@@ -379,7 +384,7 @@ export class AnimalFactory {
       const rim = col3(style.rim);
       this.patchFur(fur, rim, undefined, -1, hull.thrall);
       this.sky.setupMaterial(fur);
-      m = { kind, variant: v.id, style: 'pbr', species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { thrall: hull.thrall } };
+      m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { thrall: hull.thrall } };
       this.models.set(key, m);
       return m;
     }
@@ -411,7 +416,7 @@ export class AnimalFactory {
       this.sky.setupMaterial(sm);
       shells.push(sm);
     }
-    m = { kind, variant: v.id, style: 'pbr', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye, shells, rim };
+    m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye, shells, rim };
     this.models.set(key, m);
     return m;
   }
@@ -506,7 +511,7 @@ export class AnimalFactory {
    * colours. null where a batch would not draw the rig's pixels: low-poly rigs and thralls (their shader reads the colour).
    */
   farMaterial(model: AnimalModel): THREE.Material | null {
-    if (model.style !== 'pbr' || model.rim === undefined || model.hull?.thrall === true) return null;
+    if (!model.render.furRim || model.rim === undefined || model.hull?.thrall === true) return null;
     const fur = model.fur.clone();
     if (!(fur instanceof THREE.MeshPhysicalMaterial)) return null;
     this.patchFur(fur, model.rim, undefined, -1, false);
@@ -539,16 +544,16 @@ export class AnimalFactory {
     const fur = app.species.look(model.kind)?.material?.(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) ?? model.fur.clone();
     if (model.map) fur.map = model.map;
     if (model.doubleSided === true) fur.side = THREE.DoubleSide;
-    if (model.style === 'pbr' && model.rim !== undefined) {
+    if (model.render.furRim && model.rim !== undefined) {
       this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim, undefined, -1, model.hull?.thrall ?? false);   // clone() does not carry onBeforeCompile
     }
-    if (model.style === 'toon' && model.geometry.hasAttribute('aGlow') && fur instanceof THREE.MeshStandardMaterial) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
-    const v = (tint - 0.5) * (model.style === 'toon' ? 0.3 : 0.2);
+    if (model.render.lowPoly && model.geometry.hasAttribute('aGlow') && fur instanceof THREE.MeshStandardMaterial) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
+    const v = (tint - 0.5) * model.render.tintRange;
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
     this.sky.setupMaterial(fur);
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
     // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
-    const mesh = new THREE.SkinnedMesh(model.geometry, model.style === 'toon' || model.hull !== undefined ? [fur] : [fur, model.hard, model.eye]);
+    const mesh = new THREE.SkinnedMesh(model.geometry, model.render.oneMaterial || model.hull !== undefined ? [fur] : [fur, model.hard, model.eye]);
     this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur });
     const root = bones['body'];
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);

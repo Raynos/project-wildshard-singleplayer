@@ -498,6 +498,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   game.levelScope.onDispose(bindTravelInventory({ shard: chunk.slug, inventory, rows: boot.items }));
   const skins = new SkinLocker(chunk.slug, boot.skins);                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
+    levelName: chunk.name,
     fullMap, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = skins.wearing(w.id); return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
     onEquip: (id) => weapons.select(id as WeaponId),
@@ -961,7 +962,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     await step('audio', (p) => deferredAudio.wait(p));
     // The synth bridges the short delay. This empty bank prevents Music.prepare() from decoding the
     // same selected style again if the player taps before the deferred decode finishes.
-    music.useBank({ style: deferredAudio.style, set: 'base', slots: new Map(), stings: new Map(), log: [] });
+    music.useBank({ genre: deferredAudio.style, set: 'base', slots: new Map(), stings: new Map(), log: [] });
   } else {
     const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk, audioProfile)).wait(p));
     if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
