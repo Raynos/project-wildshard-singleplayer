@@ -5,10 +5,10 @@
  * see what is for sale from the campfire. Both are placed models (registered: colliders, the Model Explorer).
  *
  *   const stall = installTrader(adventure, world)   // Adventure.ts, after the spine → adventure.trader
- *   stall.shop = { open, isOpen, close }            // the loot (src/game/loot/install.ts) hands her the shop screen
+ *   stall.shop = { open, isOpen, close }            // the loot (src/game/loot/runtime.ts) hands her the shop screen
  *
  * Her prompt (E314 stage 2): "Trade with Maren" in front of the counter (the touch USE band) once a shop is attached; it
- * opens the shop screen (src/shards/driftwood-isle/loot/ShopPanel.ts). Walking off the counter closes it. Wendell stays the quest giver; she only
+ * opens the shop screen (src/game/loot/ui/ShopPanel.ts). Walking off the counter closes it. Wendell stays the quest giver; she only
  * trades, so she has no dialogue.
  */
 import * as THREE from 'three';

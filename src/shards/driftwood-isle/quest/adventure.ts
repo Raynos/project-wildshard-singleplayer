@@ -80,7 +80,7 @@ export interface Adventure {
   complete: Complete | null;
   /** the lookout → cove zipline (A7) */
   zipline: Zipline | null;
-  /** the trader at Wendell's hut (E314): the loot hands her the shop screen (src/game/loot/install.ts) */
+  /** the trader at Wendell's hut (E314): the loot hands her the shop screen (src/game/loot/runtime.ts) */
   trader: TraderStall | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;

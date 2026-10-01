@@ -14,11 +14,7 @@ import { driftwoodLoadoutRows, installDriftwoodLoadout, clearDriftwoodDrop } fro
 
 type WorldBuilder = (world: World, viewer: () => Vector3) => Promise<DriftwoodWorld>;
 
-/**
- * Driftwood Isle's plugin (E357 S4.1, 08 §4). The sea is the manifest's `ground.water` (registered at level.data); `world` builds the island in
- * main.ts's old `edge` order (./world/build.ts); the creatures (S4.2), the adventure, keepsakes, audio and look (S4.3)
- * still run in main.ts and read the built world through `driftwoodWorld(runtime)` until they move here.
- */
+/** Driftwood owns its world, creatures, loadout, adventure and audio through scoped hooks. */
 export class DriftwoodPlugin extends ShardPlugin {
   private readonly build: WorldBuilder;
   private adventure: Adventure | null = null;
@@ -36,6 +32,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     const built = await this.build(world, shell.viewer);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     keepDriftwoodWorld(shell, built);
+    ctx.debug.expose('driftwood', shell);
     shell.hooks.places = () => this.adventure?.places?.points ?? [];
     islandSystems<NonNullable<DriftwoodWorld['bridgeDeck']>>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
   }
