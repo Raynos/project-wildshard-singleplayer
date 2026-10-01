@@ -3,8 +3,8 @@ import { SWORD } from '#kit';
 // S1.2: these contracts move from Sword's viewmodel-owning class to the renderer-free Melee family.
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Sword, type SwordArms } from '#engine/player/Sword';
-import { COMBO, type Move } from '#engine/player/SwordMoves';
+import { Sword, type SwordArms } from '#kit/weapons/melee/SweptMelee';
+import { COMBO, type Move } from '#kit/weapons/melee/moves';
 import { setAimTargets } from '#engine/player/AimTargets';
 import type { TargetAnimal, Targets } from '#engine/player/Crossbow';
 import { setActivePhysics } from '#engine/physics/active';

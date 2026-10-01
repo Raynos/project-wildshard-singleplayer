@@ -4,7 +4,7 @@ export type { EquipmentRow } from './equipmentTypes';
 export { ShardPlugin } from './shard/plugin';
 export { shardContext, type ShardContext, type GameServices, type GameRows, type GameRowMap, type BagVerbs } from './shard/context';
 export { toLevelSpec } from './shard/spec';
-export type { ShardManifest } from './shard/manifest';
+export type { ShardManifest, ShardSword } from './shard/manifest';
 
 export { progressSave, inventorySave, purseSave, ownedSave, bountySave, compendiumSave, bossesSave, elitesSave, saveSlug, shardSave } from './saves';
 

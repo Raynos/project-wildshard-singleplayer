@@ -19,8 +19,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Sky } from '#engine/world/Sky';
-import type { SwordArms } from '#engine/player/Sword';
-import type { Move } from '#engine/player/SwordMoves';
+import type { SwordArms } from '#kit/weapons/melee/SweptMelee';
+import type { Move } from '#kit/weapons/melee/moves';
 
 /** the viewmodel's vertical field (degrees): the clips' canonical camera */
 export const VM_FOV = 70;

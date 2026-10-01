@@ -1,3 +1,4 @@
+import { JIAN_ROW } from './vm/jianRow';
 import exploreWorld from './explore/world-nine-dragon-stack.webp';
 import exploreModels from './explore/models-nine-dragon-stack.webp';
 import exploreSets from './explore/sets-nine-dragon-stack.webp';
@@ -119,14 +120,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   camera: { portraitFov: 78 },
   // the Neon Jian and the Fei Zhua on lab P8's skinned arms, swung by the engine's own moves (vm/arms.ts); the static
   // model (world/jian.ts) if the rig does not load
-  sword: async () => {
-    try {
-      return await (await import('./vm/arms')).jianArms();
-    } catch (error) {
-      console.warn('nine-dragon-stack: the arms rig did not load, the static jian stands in', error);
-      return (await import('./world/jian')).jianSword();
-    }
-  },
+  sword: JIAN_ROW.viewmodel,
   traversal: async (ctx) => { (await import('./grapple/FeiZhua')).installFeiZhua(ctx); },
   horizon: { rings: [], cloudSea: false },
   // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World

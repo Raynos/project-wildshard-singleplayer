@@ -1,5 +1,6 @@
+import { Melee, SWORD_WOOD, type MeleeProfile } from '#kit';
 import { SPEAR } from './equipment';
-import { Weapon, quiverState, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
+import { quiverState, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
 import { gameplayRandom, app } from '#engine';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
@@ -37,7 +38,7 @@ import { painterlyMaterial } from '#engine/world/painterly';
  * closing faster than 4 m/s — takes 60 + 8 × its speed and a heavy stagger (which ends a charge: Animal.stagger), once
  * per BRACE_REHIT s. A charge from outside the cone hits you as normal. Held at most BRACE_MAX s, then BRACE_COOLDOWN.
  *
- * JAVELINS (3 carried, `maxJavelins` → 5 with the camp upgrade) — the touch THROW disc (the left disc, where AIM sits:
+ * JAVELINS (3 carried) — the touch THROW disc (the left disc, where AIM sits:
  * `adsHeld`, held): press = the spear drops to the left hand and a javelin comes up cocked by the right ear (WINDUP s to
  * full) with a dotted throw arc; release = throw (a release before full throws the moment it is). Desktop: a quick RMB
  * TAP (< 0.25 s) throws. Flight: 28 m/s (+ `mount` velocity), full gravity, 55 body × 2 head, heavy stagger; it sticks in
@@ -209,7 +210,20 @@ const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion(), _vArm = n
 /** where the sleeves run back to (camera space): the elbows, just off the bottom corners of the frame */
 const L_ELBOW = new THREE.Vector3(-0.3, -0.62, 0.05), R_ELBOW = new THREE.Vector3(0.36, -0.6, 0.08);
 
-export class Spear extends Weapon {
+export const SPEAR_PROFILE: MeleeProfile & {
+  thrust: { damage: number; stagger: number; windup: number; activeEnd: number; total: number; fan: typeof THRUST_FAN };
+  brace: { set: number; max: number; cooldown: number; rehit: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number; feetOffset: number };
+  lance: { reach: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number };
+} = {
+  ...SWORD_WOOD, ...SPEAR, parent: SWORD_WOOD.id, damage: THRUST_DAMAGE, reach: REACH,
+  thrust: { damage: THRUST_DAMAGE, stagger: THRUST_STAGGER, windup: T_WIND, activeEnd: T_ACTIVE_END, total: T_TOTAL, fan: THRUST_FAN },
+  brace: { set: BRACE_SET, max: BRACE_MAX, cooldown: BRACE_COOLDOWN, rehit: BRACE_REHIT, cone: BRACE_CONE, minSpeed: BRACE_MIN_SPEED, baseDamage: 60, speedDamage: 8, feetOffset: 0.6 },
+  lance: { reach: LANCE_REACH, cone: LANCE_CONE, minSpeed: LANCE_MIN_SPEED, baseDamage: 40, speedDamage: 6 },
+  feel: { lag: { gain: 0.4, clampYaw: 0.1, clampPitch: 0.08, k: 200, c: 20, posYaw: 0, posPitch: 0 },
+    bob: { x: 0.016, y: 0.013, rx: 0.01, rz: 0.014 }, sway: { ax: 0.002, fx: 0.7, ay: 0.002, fy: 1.1 }, fovHip: FOV_HIP },
+};
+
+export class Spear extends Melee {
   override readonly reach = REACH;
   readonly state: WeaponState = quiverState({ bolts: 3, loaded: true, reloading: false, reloadProgress: 0, ads: false }, 3);
   enabled = true;
@@ -222,7 +236,7 @@ export class Spear extends Weapon {
   holster = 0;
   /** the riding row's hook (B7): horse speed / heading while mounted, null on foot */
   mount: MountState | null = null;
-  /** javelins carried now / at most (3; the camp upgrade makes it 5) */
+  /** Three javelins carried; the throw shares this weapon slot. */
   javelins = 3;
   maxJavelins = 3;
   /** × the javelin's damage on a hit (the sneak shot from HIDDEN ×2 — src/shards/nalati-grasslands/stealth.ts); undefined = 1 */
@@ -266,7 +280,7 @@ export class Spear extends Weapon {
   private prevPos = new Map<object, THREE.Vector3>();
 
   constructor(w: SpearWorld, targets?: Targets, opts: SpearOptions = {}) {
-    super(SPEAR);
+    super(SPEAR_PROFILE);
     this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -548,9 +562,11 @@ export class Spear extends Weapon {
       _dir.subVectors(_v1, cam.position); const len = _dir.length(); _dir.multiplyScalar(1 / Math.max(len, 1e-4));
       const hit = this.targets?.raycast(cam.position, _dir, len + 1) ?? null;
       if (hit === null || !this.same(hit.animal, a)) continue;
-      this.rehit.set(a, t);
       const dmg = Math.round(lance ? 40 + 6 * speed : 60 + 8 * speed);
-      const killed = hit.animal.applyDamage(dmg, hit.point, _dir);
+      const result = this.contact(hit.animal, dmg, hit.point, _dir, cam.position, lance ? 'move.lance' : 'move.brace');
+      if (!result) continue;
+      this.rehit.set(a, t);
+      const killed = result.killed;
       if (!killed) hit.animal.stagger?.(_v2.set(dx, 0, dz).normalize(), 1);
       this.jolt = 1.4;
       this.onHit?.(hit.animal.kind, false, killed);
@@ -570,7 +586,9 @@ export class Spear extends Weapon {
       _dir.set(0, 0, -1).applyQuaternion(_q);
       const hit = this.targets.raycast(cam.position, _dir, REACH);
       if (!hit || !hit.animal.alive) continue;
-      const killed = hit.animal.applyDamage(THRUST_DAMAGE, hit.point, _fwd);
+      const result = this.contact(hit.animal, THRUST_DAMAGE, hit.point, _fwd, cam.position, 'move.thrust');
+      if (!result) continue;
+      const killed = result.killed;
       if (!killed) hit.animal.stagger?.(_v2.set(_fwd.x, 0, _fwd.z).normalize(), THRUST_STAGGER);
       this.hitDone = true; this.jolt = 1;
       this.onHit?.(hit.animal.kind, false, killed);

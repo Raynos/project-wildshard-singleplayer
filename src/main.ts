@@ -1,5 +1,5 @@
 import { equipmentEntry } from '#game/bag/equipment';
-import { WOODEN_SWORD, IRON_SWORD } from '#kit';
+import { SWORD_WOOD, SWORD_IRON } from '#kit';
 import { JIAN } from '#shards/nine-dragon-stack/weapons/jian';
 import { CROSSBOW, LONGBOW, LEVER } from '#shards/pine-hollow/weapons/equipment';
 import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
@@ -44,7 +44,7 @@ import { Bushes } from '#shards/driftwood-isle/world/Bushes';
 import { Gulls } from '#shards/driftwood-isle/world/Gulls';
 import { Trailside } from '#shards/driftwood-isle/world/Trailside';
 import { Hands } from '#engine/player/Hands';
-import { Sword, swordEvents } from '#engine/player/Sword';
+import { Sword, swordEvents } from '#kit/weapons/melee/SweptMelee';
 import { CameraFX } from '#engine/player/CameraFX';
 import { buildNalatiKit } from '#shards/nalati-grasslands/weapons/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from '#shards/driftwood-isle/weapons/IronSword';
@@ -629,7 +629,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Driftwood's castaway rig (E334) also carries the iron sword's arms and the swimming hands: those go to their own owners
   const { ironArms, swim: swimArms, ...ownSword } = shardSword ?? {};
   const crossbow: Weapon = nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
-    ? new Sword({ game, sky, player, forest }, targets, { row: chunk.slug === 'nine-dragon-stack' ? JIAN : WOODEN_SWORD, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
+    ? new Sword({ game, sky, player, forest }, targets, { row: chunk.slug === 'nine-dragon-stack' ? JIAN : SWORD_WOOD, profile: chunk.slug === 'nine-dragon-stack' ? JIAN : SWORD_WOOD, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
     : new Crossbow({ game, sky, player, forest }, targets, { row: CROSSBOW, allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
   // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 on Nalati
@@ -644,7 +644,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken. Not on Nine
   // Dragon (E314 A): nothing there can unlock it, so its kit is the Neon Jian alone (NINE_WEAPON_NAME)
   const isNine = chunk.slug === 'nine-dragon-stack';
-  const ironSword = chunk.weapon === 'sword' && !isNine ? new Sword({ game, sky, player, forest }, targets, { row: IRON_SWORD, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
+  const ironSword = chunk.weapon === 'sword' && !isNine ? new Sword({ game, sky, player, forest }, targets, { row: SWORD_IRON, profile: SWORD_IRON, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
   const weapons = new EquipmentService(crossbow, { scope: game.levelScope, ...(nalatiKit ? { order: ['bow', 'sabre', 'spear'] } : {}) });
   for (const w of [...(rifle ? [rifle] : []), ...(nalatiKit?.extras ?? []), ...(ironSword ? [ironSword] : []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
   app.registerEquipment(weapons, game.levelScope);

@@ -11,8 +11,8 @@
 // walls.
 import { Quaternion, Vector3 } from 'three';
 import type { ShardSword } from '#game/shard/manifest';
-import type { SwordArms } from '#engine/player/Sword';
-import type { Move } from '#engine/player/SwordMoves';
+import type { SwordArms } from '#kit/weapons/melee/SweptMelee';
+import type { Move } from '#kit/weapons/melee/moves';
 import { vmScale } from '#kit/viewmodel/rigArms';
 import { type MoveName, NineDragonArms } from './fpArms';
 

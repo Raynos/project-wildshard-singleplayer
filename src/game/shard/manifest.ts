@@ -26,7 +26,7 @@ import type { WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import type { Forest } from '#engine/world/forest/Forest';
 import type { Undergrowth } from '#shards/pine-hollow/world/undergrowth';
-import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '#engine/player/Sword';
+import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '#engine/combat/view/melee';
 import type { SwimArms } from '#engine/player/Hands';
 import type { Player } from '#engine/player/Player';
 import type { LockOnSystem } from '#engine/player/LockOnTarget';

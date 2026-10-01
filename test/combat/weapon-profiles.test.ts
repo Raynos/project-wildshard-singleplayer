@@ -1,3 +1,5 @@
+import { SWORD_WOOD, SWORD_IRON } from '#kit';
+import { JIAN_ROW } from '#shards/nine-dragon-stack/vm/jianRow';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { arrowKind as bowArrow } from '#engine/player/Bow';
@@ -10,10 +12,6 @@ import { fakeWorld } from '../fake/world';
 // Spec 09 §1.4. Private constants are read through an AST adapter until the profile rows become public.
 const rad = THREE.MathUtils.degToRad;
 const profiles: readonly [string, Record<string, unknown>][] = [
-  ['src/engine/player/Sword.ts', { DAMAGE_WOOD: 12, DAMAGE_IRON: 28, REACH: 2.2, COOLDOWN: 0.08, COMBO_GAP: 0.6, CHAIN_LAG: 0.02,
-    HEAVY_CHARGE: 0.45, CHARGE_BLEND: 0.16, LUNGE_RANGE: 4, LUNGE_RANGE_HEAVY: 5, LUNGE_CONE: rad(25), LUNGE_STOP: 1.1,
-    LUNGE_SPEED: 22, TRAIL_SAMPLES: 20, TRAIL_SUB: 3, SWEEP_K: 5, SWEEP_EXT: [0.12, 0.24, 0.36, 0.48], SWEEP_STEP: 0.09,
-    DODGE_LAG_KICK: 2.2, DODGE_LAG_K: 160, DODGE_LAG_C: 14, ARM_FOLLOW: 0.45, FOV_HIP: 72 }],
   ['src/shards/nalati-grasslands/weapons/Sabre.ts', { DAMAGE: 24, SPEED: 0.9, MOUNT_REACH: 2.8, MOUNT_COOLDOWN: 0.7,
     PASS_SENSE: 6, CHAIN_WINDOW: 3, CHAIN_STEP: 0.1, CHAIN_MAX: 1.4, BLADE_L: 0.62, CURVE: 0.12 }],
   ['src/shards/nalati-grasslands/weapons/Spear.ts', { REACH: 3.2, THRUST_DAMAGE: 30, THRUST_STAGGER: 0.5, T_WIND: 0.12,
@@ -48,6 +46,18 @@ describe('weapon tuning parity (09 §1.4)', () => {
       if (typeof value === 'number') expect(actual[name], `${file}:${name}`).toBeCloseTo(value, 14);
       else expect(actual[name], `${file}:${name}`).toEqual(value);
     }
+  });
+  it('the public Melee profiles preserve sword defaults and explicit iron/jian damage', () => {
+    expect([SWORD_WOOD.damage, SWORD_IRON.damage, JIAN_ROW.damage]).toEqual([12, 28, 12]);
+    expect([SWORD_WOOD.reach, SWORD_WOOD.cooldown, SWORD_WOOD.comboGap, SWORD_WOOD.chainLag, SWORD_WOOD.heavyCharge, SWORD_WOOD.chargeBlend])
+      .toEqual([2.2, 0.08, 0.6, 0.02, 0.45, 0.16]);
+    expect(SWORD_WOOD.lunge).toEqual({ range: 4, heavyRange: 5, cone: rad(25), stop: 1.1, speed: 22, minTime: 0.08, maxTime: 0.15 });
+    expect(SWORD_WOOD.sweep).toEqual({ rays: 5, extensions: [0.12, 0.24, 0.36, 0.48], step: 0.09, maxSamples: 6, maxHits: 8 });
+    expect(SWORD_WOOD.trail).toEqual({ samples: 20, subdivisions: 3 });
+    expect(SWORD_WOOD.dodgeKick).toEqual({ kick: 2.2, k: 160, c: 14 }); expect(SWORD_WOOD.armFollow).toBe(0.45);
+    expect(SWORD_WOOD.feel).toEqual({ lag: { gain: 0.5, clampYaw: 0.12, clampPitch: 0.1, k: 220, c: 20, posYaw: 0.25, posPitch: 0.2 },
+      bob: { x: 0.018, y: 0.014, rz: 0.02, rx: 0.012 }, sway: { ax: 0.003, fx: 0.7, ay: 0.0025, fy: 1.1 }, fovHip: 72 });
+    expect(SWORD_IRON.parent).toBe(SWORD_WOOD.id); expect(JIAN_ROW.parent).toBe(SWORD_WOOD.id);
   });
   it('BowDraw preserves draw, fatigue and early renock timing', () => {
     expect([draw.DRAW_TIME, draw.LETDOWN_TIME, draw.RENOCK_TIME, draw.RN_EARLY, draw.HOLD_STEADY, draw.HOLD_TIRE, draw.TIRED_TIME])

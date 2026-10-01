@@ -1,3 +1,4 @@
+import type { Key, Move } from '#engine';
 import * as THREE from 'three';
 
 /**
@@ -16,32 +17,7 @@ import * as THREE from 'three';
  * swing chains here), `total` (back at rest). The hit test is the blade itself, swept through the active window (Sword.ts).
  */
 
-export interface Key { t: number; pos: THREE.Vector3; q: THREE.Quaternion }
-export interface Trail {
-  /** blade fraction the ribbon's inner edge rides at (0 = the guard, 1 = the tip): lower = a wider ribbon */
-  from: number;
-  /** ribbon colour, peak alpha at the tip, alpha at the inner edge (0 = feathered to nothing), s a sample lives */
-  color: THREE.Color; alpha: number; inner: number; life: number;
-}
-export interface Move {
-  name: 'slash' | 'backhand' | 'finisher' | 'heavy' | 'pass-left' | 'pass-right';
-  keys: [Key, Key, Key];
-  windup: number; slashEnd: number; total: number;
-  /** × the blade's base damage (wood 12) */
-  damage: number;
-  /** stagger strength handed to Animal.stagger (0 light … 1 heavy) */
-  stagger: number;
-  /** the blow's sideways component in the strike direction: +1 = the sweep travels right → left across the forward, -1 the other way, 0 straight down */
-  sweep: number;
-  /** camera kick as the blade comes through (CameraFX, C3): peak pitch / roll in degrees (+ roll = the view tips left),
-   *  an optional FOV punch; half of it again on the first contact */
-  kick: { pitch: number; roll: number; fov?: number };
-  /** s of world hit-stop on the swing's first contact (Game.hitStop, C2): combo 60 ms, finisher 90, heavy 140 */
-  hitStop: number;
-  /** hit-test reach in m from the eye; omitted = the weapon's (Sword REACH 2.2) — the sabre's mounted pass reaches 2.8 */
-  reach?: number;
-  trail: Trail;
-}
+export type { Key, Trail, Move } from '#engine';
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const _q2 = new THREE.Quaternion();

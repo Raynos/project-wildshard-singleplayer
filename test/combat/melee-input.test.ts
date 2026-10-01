@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SWORD } from '#kit';
-import { Sword, type SwordArms } from '#engine/player/Sword';
+import { Sword, type SwordArms } from '#kit/weapons/melee/SweptMelee';
 import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '#shards/nalati-grasslands/weapons/Sabre';
 import { setAimTargets } from '#engine/player/AimTargets';
 import { activePhysics, setActivePhysics } from '#engine/physics/active';

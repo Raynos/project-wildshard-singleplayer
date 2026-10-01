@@ -43,7 +43,8 @@ export class CameraFX {
   private addX = 0; private addY = 0; private addZ = 0;
   private lastX = Number.NaN; private lastY = Number.NaN; private lastZ = Number.NaN;
 
-  private constructor(private readonly camera: THREE.PerspectiveCamera) {}
+  private readonly camera: THREE.PerspectiveCamera;
+  private constructor(camera: THREE.PerspectiveCamera) { this.camera = camera; }
 
   /** a spring impulse peaking at ~`pitchDeg` (+ = look up) and `rollDeg` (+ = roll counter-clockwise, the view tips left) */
   kick(pitchDeg: number, rollDeg: number): void { this.pitchV += pitchDeg * DEG * KICK_V; this.rollV += rollDeg * DEG * KICK_V; }

@@ -1,3 +1,4 @@
+import { dodgeFx, dodgeEnv } from './dodge';
 import * as THREE from 'three';
 import { heightAt, pondMask, waterLevel, streamAt } from '../world/Heightfield';
 import { getActiveChunk } from '#game/shard/registry';
@@ -62,19 +63,7 @@ const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
 // ── dash (on foot): the DODGE (Left Alt / the DODGE disc) and the sword's lunge (Sword.ts) — a short fixed-velocity burst ──
 const DODGE_DIST = 3;                 // m …
 const DODGE_TIME = 0.25;              // … over this long (12 m/s), toward the move input; no input = a backstep
-/** the running dodge, for the viewmodel (Sword.ts) and the screen FX (SpeedLines.ts): `t` ms since it started (-1 = none),
- *  `side` −1 left … +1 right, `back` a backstep (no input) */
-export const dodgeFx: { t: number; side: number; back: boolean; id: number } = { t: -1, side: 0, back: false, id: 0 };
-/** the shared envelope (DODGE-FEEL "Shared timeline"): load 0–40 ms, burst to 120, hold to 250, then an underdamped spring
- *  (ζ ≈ 0.55, ω ≈ 13 rad/s) that overshoots ~12 % at ~390 ms and settles by ~500 */
-export function dodgeEnv(ms: number): number {
-  if (ms < 0) return 0;
-  if (ms < 40) return 0.25 * (ms / 40) ** 2;
-  if (ms < 120) { const u = (ms - 40) / 80; return 0.25 + 0.75 * (1 - (1 - u) ** 3); }
-  if (ms < 250) return 1 - 0.15 * ((ms - 120) / 130);
-  const r = (ms - 250) / 1000;
-  return 0.85 * Math.exp(-7.15 * r) * Math.cos(10.86 * r);
-}
+export { dodgeFx, dodgeEnv } from './dodge';
 const DODGE_FX_END = 700;              // ms: every dodge curve has settled
 const DODGE_COOLDOWN = 0.8;           // s from one dodge's start to the next (E59: 0.6 → 0.8, shown as a sweep on the DODGE disc)
 const DASH_PROBE = 0.5;               // m ahead of the feet: deep water there (no deck under it) ends a dash — it never carries you off a pier

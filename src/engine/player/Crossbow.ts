@@ -1,3 +1,4 @@
+import type { Targets } from '../combat/view/targets';
 import type { EquipmentRow } from '../combat/Equipment';
 import { Weapon, quiverState, type ImpactSurface } from '#engine/combat/Weapon';
 import { app, gameplayRandom } from '../app/runtime';
@@ -48,22 +49,7 @@ import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, typ
  * Animals are reached only through the `Targets` interface below (no import of the animal module).
  */
 
-export interface TargetAnimal {
-  applyDamage: (amount: number, point: THREE.Vector3, dir: THREE.Vector3) => boolean;
-  /** the damage model's number for a bolt: headshot ×2.5, body 32–40 with distance falloff (src/engine/entities/Animal.ts) */
-  damageFor: (headshot: boolean, dist: number) => number;
-  /** species id (`Animal.kind`, any registered species — 'deer', 'boar', variants …) */
-  kind: string;
-  position: THREE.Vector3;
-  alive: boolean;
-  /** a melee / javelin blow's knock-back (Animal.stagger: 0 light … 1 heavy, breaks a running charge); absent on targets without one */
-  stagger?: (dir: THREE.Vector3, strength: number) => void;
-  /** the part a bolt / arrow stuck at `point` rides (a practice dummy's bone, E289); absent = it rides the target's
-   *  position and yaw (Projectiles) or, for the crossbow, does not stick */
-  stuckFrame?: (point: THREE.Vector3) => THREE.Object3D | null;
-}
-export interface TargetHit { animal: TargetAnimal; point: THREE.Vector3; distance: number; headshot: boolean }
-export interface Targets { raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => TargetHit | null }
+export type { TargetAnimal, TargetHit, Targets } from '../combat/view/targets';
 export type { ImpactSurface } from '../combat/Weapon';
 /** The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. */
 export function impactSurfaceOf(m: Material): ImpactSurface {

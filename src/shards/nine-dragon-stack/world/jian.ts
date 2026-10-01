@@ -9,7 +9,7 @@
 // The jian's parts are built with the guard at y 0 (blade up to TIP_Y, grip down to −0.39): they are lifted by GRIP_MID.
 import { type BufferGeometry, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
 import type { ShardSword } from '#game/shard/manifest';
-import { CHARGE, COMBO, HEAVY, SPRINT, key } from '#engine/player/SwordMoves';
+import { CHARGE, COMBO, HEAVY, SPRINT, key } from '#kit/weapons/melee/moves';
 import { Kit } from './kit';
 import { KitX, merge } from './hero/kitx';
 import { glbBox, guardMatrix, loadGlb } from './hero/glb';

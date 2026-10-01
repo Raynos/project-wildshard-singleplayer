@@ -4,7 +4,7 @@ import { WOODEN_SWORD, IRON_SWORD } from '#kit';
 import { JIAN } from '#shards/nine-dragon-stack/weapons/jian';
 import { SABRE, SPEAR, BOW, AR15 } from '#shards/nalati-grasslands/weapons/equipment';
 import { CROSSBOW, LONGBOW, LEVER } from '#shards/pine-hollow/weapons/equipment';
-import { Sword } from '#engine/player/Sword';
+import { Sword } from '#kit/weapons/melee/SweptMelee';
 import { Bow } from '#engine/player/Bow';
 import { Crossbow } from '#engine/player/Crossbow';
 import { Longbow } from '#engine/player/Longbow';

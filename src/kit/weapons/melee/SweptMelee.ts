@@ -1,22 +1,10 @@
-import type { EquipmentRow } from '#engine/combat/Equipment';
-import { Weapon, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
-import { app } from '../app/runtime';
+import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect } from '#engine';
+import { Melee, type MeleeProfile } from './Melee';
+import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';
-import { BladeGlow } from './bladeGlow';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Game } from '../core/Game';
-import type { Sky } from '../world/Sky';
-import { dodgeFx, dodgeEnv, type Player } from './Player';
-import type { Forest } from '../world/forest/Forest';
-import type { Targets, TargetHit } from './Crossbow';
 
-import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move, type Key } from './SwordMoves';
-import { getAimTargets, lockOn, meleeLock, targetRadius, type AimTarget } from './AimTargets';
-import { bladeBlocked, bladeContact, type Clang } from './MeleeSweep';
-import { activePhysics } from '../physics/active';
-import { worldTime } from '../core/time';
-import { CameraFX } from './CameraFX';
-import { Impacts } from '../fx/Impacts';
+import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move } from './moves';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ShardManifest.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -75,8 +63,6 @@ import { Impacts } from '../fx/Impacts';
  * parents the viewmodel to `game.camera` (added to the scene if not yet), renders after a depth clear at 999/1000.
  */
 
-export interface SwordWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-
 /**
  * The combat events of whichever sword is in hand — both rigs (wooden, iron) publish here, so main.ts wires the island's
  * sound layers (IslandSfx, S3) once instead of per rig:
@@ -91,50 +77,9 @@ export const swordEvents: {
   onStrike?: ((kind: string, point: THREE.Vector3, strength: number, killed: boolean) => void) | undefined;
   onClang?: ((point: THREE.Vector3, strength: number, clang: Clang) => void) | undefined;
 } = {};
-/** a replacement viewmodel (the Nalati sabre, Sabre.ts): sword model space as buildSword's; `tipX` = the tip's sideways
- *  offset for a curved blade (the trail ribbon and the glint follow the curve); the material is already set up for the sky */
-export interface SwordRig {
-  sword: THREE.BufferGeometry; arms: THREE.BufferGeometry; tipY: number; baseY: number; tipX?: number; material: THREE.Material;
-  /** more meshes riding the sword rig with their own material (the sabre's steel + gold: meleeGeo.steelMaterial) */
-  extras?: { geometry: THREE.BufferGeometry; material: THREE.Material }[];
-  /** the off hand, held still in camera space (Nine Dragon Stack's Fei Zhua gauntlet on the left): drawn with the viewmodel,
-   *  not swung with the sword */
-  left?: { geometry: THREE.BufferGeometry; material: THREE.Material; pos: THREE.Vector3; q: THREE.Quaternion };
-}
-/**
- * An animated first-person rig in place of the rigid viewmodel (Nine Dragon Stack's skinned arms, lab P8): its clips are
- * timed to the engine's moves, so the Sword keeps its clock, input, lunge, hit-stop and damage and only tells the rig
- * which clip to play; the hit sweep follows the rig's blade. Everything under `root` is drawn in the viewmodel's queue.
- */
-export interface SwordArms {
-  /** camera space (the Sword parents it to its viewmodel group) */
-  readonly root: THREE.Object3D;
-  /** a swing starting (the engine's move name), or the heavy's charge */
-  play: (move: Move['name'] | 'charge') => void;
-  /** per frame, before the hit sweep: dt (world-scaled), the walk (0..1 and its phase), the look's velocity (rad/s),
-   *  the camera it is drawn from, the drawing buffer, and the holster / stow drop (0 held … 1 away; the Sword already drops
-   *  the rig's holder by it — a rig that reaches higher up the frame tips itself further, Driftwood's castaway arms) */
-  update: (dt: number, s: { speed: number; walkPhase: number; lookVel: THREE.Vector2; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer; holster?: number }) => void;
-  /** the blade this frame, camera space: its base (grip end) and its tip */
-  blade: (base: THREE.Vector3, tip: THREE.Vector3) => void;
-  /** Optional independent left-arm channel for a shard traversal tool. */
-  playLeft?: (name: 'grapple_aim' | 'grapple_fire' | 'grapple_hold' | 'idle') => void;
-  setClawVisible?: (visible: boolean) => void;
-  /** the rig's materials, made once the Sword hands over the sky (CSM shadows + fog: sky.setupMaterial) — before it is drawn */
-  setup?: (sky: Sky) => void;
-  /** true: the rig draws no trail of its own, so the Sword's ribbon and the heavy's tip glint follow its blade (Driftwood's
-   *  castaway arms, E334); Nine Dragon's rig draws its own */
-  engineTrail?: boolean;
-  /** E314 charm III on the rig's own blade (Driftwood's castaway arms: its two edges lit sea-glass aqua, the blade's own
-   *  colour kept; the Sword's halo, bladeGlow.ts, rides round it): the level 0…1 (breathing) each frame, 0 = off */
-  glow?: (level: number) => void;
-}
-/** the portrait framing (Sword.framing): shrink, extra drop / slide (m, camera space), the blade tipped forward and turned (rad) */
-export interface SwordFraming { shrink: number; dx: number; dy: number; tilt: number; yaw: number }
-/** the poses + moves a rig swings (default: SwordMoves.ts's REST / CHARGE / SPRINT / COMBO / HEAVY) */
-export interface SwordMoveSet { rest: Key; charge: Key; sprint: Key; combo: Move[]; heavy: Move }
 export interface SwordOptions {
   row: EquipmentRow;
+  profile?: MeleeProfile;
   allowUnlocked?: boolean; blade?: 'wood' | 'iron';
   /** a custom viewmodel + moves + numbers (the sabre); omitted = the wooden / iron sword exactly as before */
   rig?: SwordRig; moves?: SwordMoveSet; damage?: number; reach?: number;
@@ -148,36 +93,8 @@ export interface SwordOptions {
   arms?: SwordArms;
 }
 
-const DAMAGE_WOOD = 12, DAMAGE_IRON = 28;
-export const REACH = 2.2;            // m from the eye
-const COOLDOWN = 0.08;               // s after a swing ends before a FRESH tap swings again (queued combo swings chain directly)
-const COMBO_GAP = 0.6;               // s after a swing ends within which the next tap continues the combo
-const CHAIN_LAG = 0.02;              // s after the active window closes that the queued swing takes over
-export const HEAVY_CHARGE = 0.45;    // s of holding before the heavy is ready
-const CHARGE_BLEND = 0.16;           // s to raise the blade into the charge pose
-const LUNGE_RANGE = 4;               // m, feet to the animal's body edge: a light swing lunges this far …
-const LUNGE_RANGE_HEAVY = 5;         // … the heavy this far
-const LUNGE_CONE = 25 * Math.PI / 180; // rad either side of the view (horizontal)
-const LUNGE_STOP = 1.1;              // m short of the body edge where the lunge stops (inside REACH from the eye)
-const LUNGE_SPEED = 22;              // m/s …
-const LUNGE_MIN_T = 0.08, LUNGE_MAX_T = 0.15; // … clamped to this duration
-const TRAIL_SAMPLES = 20;
-const TRAIL_SUB = 3;                 // Catmull-Rom subdivisions per gap between two trail samples
-const HIT_MAX = 8;                   // animals one swing can strike
-const SWEEP_K = 5;                   // rays along the blade, grip → tip …
-const SWEEP_EXT = [0.12, 0.24, 0.36, 0.48] as const; // … each continued this far (rad) BELOW the blade, pitched down in camera space
-const SWEEP_STEP = 0.09;             // rad: the largest blade move between two sweep sub-samples (~5°)
-const SWEEP_SUB_MAX = 6;
-// E63 dodge feel on the blade (project/archive/2026-09-29-dodge-feel.md): the dodge flings it against the dodge on a lateral spring (k 160, c 14:
-// −9 cm at ~95 ms, a small overshoot ~390 ms)
-const DODGE_LAG_KICK = 2.2, DODGE_LAG_K = 160, DODGE_LAG_C = 14;
-const ARM_FOLLOW = 0.45;             // the forearms take this much of the sword's rotation away from rest (a cheap elbow)
-const FOV_HIP = 72;
-/** three's fov is vertical: a fixed 72° on a portrait phone collapses the horizontal view, so widen it (Hor+, same as Crossbow.ts) */
-function fovForAspect(base: number, aspect: number) {
-  if (aspect >= 1) return base;
-  return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
-}
+export const REACH = SWORD_WOOD.reach;
+export const HEAVY_CHARGE = SWORD_WOOD.heavyCharge;
 const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
 const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
@@ -365,12 +282,12 @@ class Stars {
     for (let k = 0; k < n; k++) {
       const i = this.cursor; this.cursor = (this.cursor + 1) % STAR_COUNT;
       this.pos[i * 3] = point.x; this.pos[i * 3 + 1] = point.y; this.pos[i * 3 + 2] = point.z;
-      const sp = 1.2 + Math.random() * 1.6;
-      this.vel[i * 3] = (-dir.x * 0.6 + (Math.random() - 0.5) * 1.6) * sp; this.vel[i * 3 + 1] = (0.5 + Math.random() * 0.9) * sp; this.vel[i * 3 + 2] = (-dir.z * 0.6 + (Math.random() - 0.5) * 1.6) * sp;
-      this.life[i] = 0.3 + Math.random() * 0.2; this.alpha[i] = 1; this.size[i] = 0.05 + Math.random() * 0.05;
+      const sp = 1.2 + app.rng.stream('cosmetic').next() * 1.6;
+      this.vel[i * 3] = (-dir.x * 0.6 + (app.rng.stream('cosmetic').next() - 0.5) * 1.6) * sp; this.vel[i * 3 + 1] = (0.5 + app.rng.stream('cosmetic').next() * 0.9) * sp; this.vel[i * 3 + 2] = (-dir.z * 0.6 + (app.rng.stream('cosmetic').next() - 0.5) * 1.6) * sp;
+      this.life[i] = 0.3 + app.rng.stream('cosmetic').next() * 0.2; this.alpha[i] = 1; this.size[i] = 0.05 + app.rng.stream('cosmetic').next() * 0.05;
     }
   }
-  update(dt: number, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
+  update(dt: number, renderer: DrawingBuffer, camera: THREE.PerspectiveCamera) {
     renderer.getDrawingBufferSize(this.tmpSize);
     this.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
     let any = false;
@@ -427,7 +344,7 @@ class Glint {
   }
 }
 
-export class Sword extends Weapon {
+export class Sword extends Melee {
   override readonly reach: number;
   private portraitPullX: number;
   private portraitFov: number;
@@ -437,9 +354,11 @@ export class Sword extends Weapon {
   /** the heavy's charge held externally (the touch HEAVY disc, or dev `?ads=1`); OR'ed with the right mouse button. On = charging, off = release. */
   adsHeld = false;
   /** base damage per light hit: wooden 12, iron 28 (the finisher ×1.33, the heavy ×2) */
-  damage: number;
+  get damage(): number { return this.attributes['damage'] ?? this.profile.damage; }
+  set damage(value: number) { this.attributes['damage'] = value; }
   /** E314 the bear claw: the heavy's damage × this (src/shards/driftwood-isle/loot/perks.ts; 1 = as built) */
-  heavyMult = 1;
+  get heavyMult(): number { return this.attributes['heavyDamageMul'] ?? 1; }
+  set heavyMult(value: number) { this.attributes['heavyDamageMul'] = value; }
   /** E314 sea glass charm III: 0…1, the sea-glass glow round the blade (src/engine/player/bladeGlow.ts); 0 = none, no draw */
   bladeGlow = 0;
   private glow: BladeGlow | null = null;
@@ -488,19 +407,23 @@ export class Sword extends Weapon {
   private mouseHeld = false; private heldPrev = false;
   private charging = false; private chargeT = 0; private releaseQueued = false; private chargePending = false;
   private chargeBlend = 0; private sprintBlend = 0;
-  private fov = FOV_HIP; private baseFov = 0;
+  private lookBlock = viewmodel(this.profile.feel.lag);
+  private lookSpring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
+  private lookDelta = new THREE.Vector2();
+  private aimBlock: ReturnType<typeof aimRay>;
+  private fov = this.profile.feel.fovHip; private baseFov = 0;
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
   private posePos = new THREE.Vector3(); private poseQ = new THREE.Quaternion(); private poseInit = false;
   // lunge
   private active = false; private lungeTarget: AimTarget | null = null;
   // blade sweep (C1): what this swing has struck, and last frame's blade (camera-space unit dirs from the eye, grip + tip)
-  private struck: (TargetHit['animal'] | null)[] = Array.from({ length: HIT_MAX }, () => null); private struckN = 0;
+  private struck: (TargetHit['animal'] | null)[] = Array.from({ length: this.profile.sweep.maxHits }, () => null); private struckN = 0;
   private sweepGrip = new THREE.Vector3(); private sweepTip = new THREE.Vector3(); private sweepHave = false;
 
   // trail
   private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial; private trailPos!: Float32Array; private trailAlpha!: Float32Array;
   private trailPosAttr!: THREE.BufferAttribute; private trailAlphaAttr!: THREE.BufferAttribute;
-  private trailT = new Float32Array(TRAIL_SAMPLES).fill(-1); private trailHead = 0; private trailN = 0;
+  private trailT = new Float32Array(this.profile.trail.samples).fill(-1); private trailHead = 0; private trailN = 0;
   private trailStyle = SLASH.trail;
   private trailColor: THREE.IUniform<THREE.Color> = { value: new THREE.Color(1, 1, 1) };
   private trailInner: THREE.IUniform<number> = { value: 0 };
@@ -509,16 +432,22 @@ export class Sword extends Weapon {
   private time = 0;
 
   constructor(world: SwordWorld, targets: Targets | undefined, opts: SwordOptions) {
-    super(opts.row);
+    const profile = opts.profile ?? (opts.blade === 'iron' ? SWORD_IRON : SWORD_WOOD);
+    super({ ...profile, ...opts.row });
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
+    this.aimBlock = aimRay(this.game.camera);
+    this.blocks.aim = this.aimBlock; this.blocks.vm = this.lookBlock;
     this.allowUnlocked = opts.allowUnlocked ?? false;
-    this.damage = opts.damage ?? (opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD);
-    this.reach = opts.reach ?? REACH;
-    this.portraitPullX = opts.portraitPullX ?? 0.32;
-    this.portraitFov = opts.portraitFov ?? FOV_HIP;
+    this.damage = opts.damage ?? profile.damage;
+    this.reach = opts.reach ?? profile.reach;
+    this.portraitPullX = opts.portraitPullX ?? profile.portraitPullX;
+    this.portraitFov = opts.portraitFov ?? profile.feel.fovHip;
     if (opts.framing) this.framing = { ...this.framing, ...opts.framing };
-    if (opts.moves) { this.mv = opts.moves; this.basePos.copy(opts.moves.rest.pos); this.baseQ.copy(opts.moves.rest.q); }
+    this.swingScale = profile.swingScale;
+    this.framing = { ...profile.framing };
+    const moves = opts.moves ?? profile.moves;
+    if (moves) { this.mv = moves; this.basePos.copy(moves.rest.pos); this.baseQ.copy(moves.rest.q); }
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.impacts = Impacts.for(this.game); // contact debris (C4), in the scene from boot so its program is precompiled
     this.iron = opts.blade === 'iron';
@@ -531,28 +460,36 @@ export class Sword extends Weapon {
     if (!cam.parent) this.game.scene.add(cam);
     this.game.scene.add(this.stars.points);
     this.model.add(this.glint.mesh);
-    this.bindInput();
+
   }
 
   // ── input ──
   override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
-  private bindInput(): void {
-    document.addEventListener('mousedown', (e) => {
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    this.bindInput(ctx);
+  }
+  private bindInput(ctx: EquipContext): void {
+    ctx.scope.listen(document, 'mousedown', (event) => {
+      if (!(event instanceof MouseEvent)) return;
+      const e = event;
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
       if (e.button === 2) this.mouseHeld = !this.mouseHeld; // toggle, not hold (trackpad), like the touch HEAVY latch
     });
-    document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    document.addEventListener('keydown', (e) => {
+    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
+    ctx.scope.listen(document, 'keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      const e = event;
       if (!this.inputAllowed() || e.repeat) return;
       if (e.code === 'KeyF') this.tryFire();
     });
-    window.addEventListener('blur', () => { this.mouseHeld = false; });
+    ctx.scope.listen(window, 'blur', () => { this.mouseHeld = false; });
   }
 
   /**
    * A light swing (LMB / F / touch tap). Idle → the next combo swing (1 again if the last swing ended more than
-   * COMBO_GAP s ago, or the combo is spent). Mid-swing → queues the next combo swing (one deep; not off the heavy).
+   * this.profile.comboGap s ago, or the combo is spent). Mid-swing → queues the next combo swing (one deep; not off the heavy).
    * Ignored while charging the heavy.
    */
   tryFire(): void {
@@ -562,7 +499,7 @@ export class Sword extends Weapon {
       return;
     }
     if (this.cooldown > 0) return;
-    if (this.comboIdx >= this.mv.combo.length || this.time - this.lastSwingEnd > COMBO_GAP) this.comboIdx = 0;
+    if (this.comboIdx >= this.mv.combo.length || this.time - this.lastSwingEnd > this.profile.comboGap) this.comboIdx = 0;
     const next = this.mv.combo[this.comboIdx++];
     if (next !== undefined) this.startSwing(next);
   }
@@ -581,19 +518,20 @@ export class Sword extends Weapon {
     this.trailN = 0; this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
     // lunge onto the locked animal (a chained combo swing re-locks, so a fleeing target is chased swing by swing)
-    const lock = lunge ? this.findLunge(move === this.mv.heavy ? LUNGE_RANGE_HEAVY : LUNGE_RANGE) : null;
+    const lock = lunge ? this.findLunge(move === this.mv.heavy ? this.profile.lunge.heavyRange : this.profile.lunge.range) : null;
     this.lungeTarget = lock;
     if (lock) {
-      const p = this.player.position, go = Math.hypot(lock.position.x - p.x, lock.position.z - p.z) - targetRadius(lock) - LUNGE_STOP;
-      this.player.dashTo(lock.position.x, lock.position.z, targetRadius(lock) + LUNGE_STOP, THREE.MathUtils.clamp(go / LUNGE_SPEED, LUNGE_MIN_T, LUNGE_MAX_T));
+      const p = this.player.position, go = Math.hypot(lock.position.x - p.x, lock.position.z - p.z) - targetRadius(lock) - this.profile.lunge.stop;
+      this.player.dashTo(lock.position.x, lock.position.z, targetRadius(lock) + this.profile.lunge.stop, THREE.MathUtils.clamp(go / this.profile.lunge.speed, this.profile.lunge.minTime, this.profile.lunge.maxTime));
     }
     this.arms?.play(move.name);
+    this.onSwingStart(move);
     this.onFire?.();
     const heavy = move === this.mv.heavy;
     if (heavy) this.onHeavy?.();
     swordEvents.onSwing?.(heavy ? 1 : move === FINISHER ? 0.85 : 0.7, heavy, move.sweep > 0 ? -1 : 1);
   }
-  /** the animal a swing would lunge onto: alive, within `range` m (feet → body edge), inside ±LUNGE_CONE of the view, near the
+  /** the animal a swing would lunge onto: alive, within `range` m (feet → body edge), inside ±this.profile.lunge.cone of the view, near the
    *  feet's height — the smallest angle wins, distance breaking near-ties */
   private findLunge(range: number): AimTarget | null {
     const p = this.player.position, yaw = this.player.yaw;
@@ -605,13 +543,13 @@ export class Sword extends Weapon {
     }
     const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
     let best: AimTarget | null = null, bestScore = Infinity;
-    for (const t of getAimTargets()) {
+    for (const t of app.aimTargets) {
       if (!t.alive || t.hidden || Math.abs(t.position.y - p.y) > 2) continue;
       const dx = t.position.x - p.x, dz = t.position.z - p.z, d = Math.hypot(dx, dz);
       if (d < 0.01 || d - targetRadius(t) > range) continue;
       const angle = Math.acos(THREE.MathUtils.clamp((dx * fx + dz * fz) / d, -1, 1));
-      if (angle > LUNGE_CONE) continue;
-      const score = angle / LUNGE_CONE + 0.3 * d / range;
+      if (angle > this.profile.lunge.cone) continue;
+      const score = angle / this.profile.lunge.cone + 0.3 * d / range;
       if (score < bestScore) { bestScore = score; best = t; }
     }
     return best;
@@ -623,7 +561,7 @@ export class Sword extends Weapon {
   override addBolts(_n: number): void { /* melee */ }
   override reload(): void { /* melee */ }
   /** the aim line: the camera forward from the eye (what the crosshair shows) */
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return this.aimBlock.solve(origin, dir); }
   /** shown + held (true) or holstered (false: hidden, input off) */
   override setActive(on: boolean): void {
     this.model.visible = on;
@@ -638,9 +576,9 @@ export class Sword extends Weapon {
   /** true while the heavy is being charged (RMB / HEAVY disc toggled on) */
   get chargingHeavy(): boolean { return this.charging; }
   /** 0..1 heavy charge (1 = ready to release) */
-  override get charge(): number { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
+  override get charge(): number { return this.charging ? clamp01(this.chargeT / this.profile.heavyCharge) : 0; }
   /** which light swing the next tap throws (1..3) */
-  get comboStep(): number { return this.comboIdx >= this.mv.combo.length || (this.move === null && this.time - this.lastSwingEnd > COMBO_GAP) ? 1 : this.comboIdx + 1; }
+  get comboStep(): number { return this.comboIdx >= this.mv.combo.length || (this.move === null && this.time - this.lastSwingEnd > this.profile.comboGap) ? 1 : this.comboIdx + 1; }
 
   // ── viewmodel ──
   private buildViewmodel(blade: 'wood' | 'iron', custom?: SwordRig): void {
@@ -676,8 +614,8 @@ export class Sword extends Weapon {
   }
 
   /**
-   * the arc trail (C4): a ribbon of the last TRAIL_SAMPLES blade positions (the outer part of the blade, per move), each
-   * gap between two samples subdivided TRAIL_SUB times along a Catmull-Rom curve so a fast slash reads as a smooth arc,
+   * the arc trail (C4): a ribbon of the last this.profile.trail.samples blade positions (the outer part of the blade, per move), each
+   * gap between two samples subdivided this.profile.trail.subdivisions times along a Catmull-Rom curve so a fast slash reads as a smooth arc,
    * not a polyline; additive, one draw call. Alpha by age per vertex; across the ribbon (`aEdge` 0 inner → 1 tip) the
    * fragment feathers the inner edge to the move's `inner` alpha and lays a bright core line along the tip.
    */
@@ -698,7 +636,7 @@ export class Sword extends Weapon {
 
   private buildTrail(): void {
     const g = new THREE.BufferGeometry();
-    const quads = (TRAIL_SAMPLES - 1) * TRAIL_SUB;
+    const quads = (this.profile.trail.samples - 1) * this.profile.trail.subdivisions;
     this.trailPos = new Float32Array(quads * 6 * 3); this.trailAlpha = new Float32Array(quads * 6);
     const edge = new Float32Array(quads * 6);
     for (let q = 0; q < quads; q++) { edge[q * 6] = 0; edge[q * 6 + 1] = 1; edge[q * 6 + 2] = 1; edge[q * 6 + 3] = 0; edge[q * 6 + 4] = 1; edge[q * 6 + 5] = 0; }
@@ -721,7 +659,7 @@ export class Sword extends Weapon {
     this.trail.frustumCulled = false; this.trail.renderOrder = 1001; this.trail.visible = false;
     this.model.add(this.trail); // camera space, like the rig — the ribbon is the sword's own motion, not the world's
   }
-  private trailA = new Float32Array(TRAIL_SAMPLES * 3); private trailB = new Float32Array(TRAIL_SAMPLES * 3);
+  private trailA = new Float32Array(this.profile.trail.samples * 3); private trailB = new Float32Array(this.profile.trail.samples * 3);
   private trailSample(): void {
     // the ribbon spans the blade from the move's `from` fraction to the tip, in the model's (camera) space
     const from = this.trailStyle.from;
@@ -735,16 +673,16 @@ export class Sword extends Weapon {
       _v2.set(this.tipX, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
     }
     if (this.trailN > 0) { // skip a sample the tip has not moved for (hit-stop): no zero-width quads
-      const l = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
+      const l = (this.trailHead - 1 + this.profile.trail.samples) % this.profile.trail.samples;
       if (_v2.distanceToSquared(_v3.set(this.trailB[l * 3] ?? 0, this.trailB[l * 3 + 1] ?? 0, this.trailB[l * 3 + 2] ?? 0)) < 1e-4) return;
     }
-    const i = this.trailHead; this.trailHead = (this.trailHead + 1) % TRAIL_SAMPLES; this.trailN = Math.min(TRAIL_SAMPLES, this.trailN + 1);
+    const i = this.trailHead; this.trailHead = (this.trailHead + 1) % this.profile.trail.samples; this.trailN = Math.min(this.profile.trail.samples, this.trailN + 1);
     this.trailA[i * 3] = _v1.x; this.trailA[i * 3 + 1] = _v1.y; this.trailA[i * 3 + 2] = _v1.z;
     this.trailB[i * 3] = _v2.x; this.trailB[i * 3 + 1] = _v2.y; this.trailB[i * 3 + 2] = _v2.z;
     this.trailT[i] = this.time;
   }
   /** ring slot of the k-th oldest live sample, clamped into [0, n) (the curve's end tangents repeat the end points) */
-  private trailIdx(k: number, n: number): number { const c = k < 0 ? 0 : k >= n ? n - 1 : k; return (this.trailHead - n + c + TRAIL_SAMPLES) % TRAIL_SAMPLES; }
+  private trailIdx(k: number, n: number): number { const c = k < 0 ? 0 : k >= n ? n - 1 : k; return (this.trailHead - n + c + this.profile.trail.samples) % this.profile.trail.samples; }
   /** Catmull-Rom through ring samples k-1 … k+2 of `src` at u ∈ [0, 1] → out */
   private trailCurve(src: Float32Array, k: number, n: number, u: number, out: THREE.Vector3): THREE.Vector3 {
     const i0 = this.trailIdx(k - 1, n) * 3, i1 = this.trailIdx(k, n) * 3, i2 = this.trailIdx(k + 1, n) * 3, i3 = this.trailIdx(k + 2, n) * 3;
@@ -757,7 +695,7 @@ export class Sword extends Weapon {
     );
   }
   private trailRebuild(): void {
-    // walk the ring oldest → newest; each gap is TRAIL_SUB quads on the curve; alpha fades with age (the edge fade is in the shader)
+    // walk the ring oldest → newest; each gap is this.profile.trail.subdivisions quads on the curve; alpha fades with age (the edge fade is in the shader)
     let live = 0, q = 0;
     const P = this.trailPos, A = this.trailAlpha, n = this.trailN, st = this.trailStyle;
     const life = st.life * this.swingScale, outer = st.alpha;
@@ -767,8 +705,8 @@ export class Sword extends Weapon {
       const g0 = clamp01(1 - (this.time - t0) / life), g1 = clamp01(1 - (this.time - t1) / life);
       if (g0 <= 0 && g1 <= 0) continue;
       live++;
-      for (let sub = 0; sub < TRAIL_SUB; sub++) {
-        const u0 = sub / TRAIL_SUB, u1 = (sub + 1) / TRAIL_SUB;
+      for (let sub = 0; sub < this.profile.trail.subdivisions; sub++) {
+        const u0 = sub / this.profile.trail.subdivisions, u1 = (sub + 1) / this.profile.trail.subdivisions;
         const aa = (g0 + (g1 - g0) * u0) * outer, ab = (g0 + (g1 - g0) * u1) * outer;
         this.trailCurve(this.trailA, k, n, u0, _ta0); this.trailCurve(this.trailB, k, n, u0, _tb0);
         this.trailCurve(this.trailA, k, n, u1, _ta1); this.trailCurve(this.trailB, k, n, u1, _tb1);
@@ -796,18 +734,18 @@ export class Sword extends Weapon {
     this.bladeDirs(_g1, _t1);
     if (active && !this.clanged) this.clangTest(move);
     if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach()) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
-    const cam = this.game.camera, physics = activePhysics();
+    const cam = this.game.camera, physics = app.physics;
     const ang = Math.max(this.sweepGrip.angleTo(_g1), this.sweepTip.angleTo(_t1));
-    const subs = Math.min(SWEEP_SUB_MAX, Math.max(1, Math.ceil(ang / SWEEP_STEP)));
-    for (let s = 1; s <= subs && this.struckN < HIT_MAX; s++) {
+    const subs = Math.min(this.profile.sweep.maxSamples, Math.max(1, Math.ceil(ang / this.profile.sweep.step)));
+    for (let s = 1; s <= subs && this.struckN < this.profile.sweep.maxHits; s++) {
       const f = s / subs;
       _g0.copy(this.sweepGrip).lerp(_g1, f).normalize(); _t0.copy(this.sweepTip).lerp(_t1, f).normalize();
-      for (let k = 0; k < SWEEP_K * (1 + SWEEP_EXT.length); k++) {
-        const j = k % SWEEP_K, ext = (k - j) / SWEEP_K;
-        _b.copy(_g0).lerp(_t0, j / (SWEEP_K - 1)).normalize();
+      for (let k = 0; k < this.profile.sweep.rays * (1 + this.profile.sweep.extensions.length); k++) {
+        const j = k % this.profile.sweep.rays, ext = (k - j) / this.profile.sweep.rays;
+        _b.copy(_g0).lerp(_t0, j / (this.profile.sweep.rays - 1)).normalize();
         if (ext === 0) _dir.copy(_b);
         else { // under the blade: the blade point's dir pitched further down about the camera's right axis
-          const a = SWEEP_EXT[ext - 1] ?? 0, c = Math.cos(a), sn = Math.sin(a);
+          const a = this.profile.sweep.extensions[ext - 1] ?? 0, c = Math.cos(a), sn = Math.sin(a);
           _dir.set(_b.x, _b.y * c + _b.z * sn, -_b.y * sn + _b.z * c);
         }
         _dir.applyQuaternion(cam.quaternion);
@@ -816,7 +754,7 @@ export class Sword extends Weapon {
         if (bladeBlocked(physics, cam.position, hit.point, this.player.motor.collider)) continue;
         this.struck[this.struckN++] = hit.animal;
         this.strike(move, hit);
-        if (this.struckN >= HIT_MAX) break;
+        if (this.struckN >= this.profile.sweep.maxHits) break;
       }
     }
     this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1);
@@ -828,7 +766,7 @@ export class Sword extends Weapon {
   private clangTest(move: Move): void {
     const cam = this.game.camera;
     _dir.copy(_t1).applyQuaternion(cam.quaternion);
-    const contact = bladeContact(activePhysics(), cam.position, _dir, (move.reach ?? this.reach) * 0.9, this.player.motor.collider);
+    const contact = bladeContact(app.physics, cam.position, _dir, (move.reach ?? this.reach) * 0.9, this.player.motor.collider);
     if (contact === null) return;
     this.clanged = true;
     const { hit, clang } = contact;
@@ -846,7 +784,7 @@ export class Sword extends Weapon {
   /** a live animal's body is within REACH (+ its radius, + a metre of slack) of the eye */
   private anyInReach(): boolean {
     const e = this.game.camera.position;
-    for (const t of getAimTargets()) {
+    for (const t of app.aimTargets) {
       if (!t.alive || t.hidden) continue;
       const r = this.reach + 0.6 + targetRadius(t) + 1; // + 0.6: a move may reach further than the rig (the sabre's pass)
       if (t.position.distanceToSquared(e) < r * r) return true;
@@ -864,11 +802,13 @@ export class Sword extends Weapon {
     const dmg = Math.round(this.damage * move.damage * (move === this.mv.heavy ? this.heavyMult : 1));
     const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
     const animal = hit.animal;
-    const killed = animal.applyDamage(dmg, point, _v1);
-    (animal as unknown as { hitFlash?: (strength: number) => void }).hitFlash?.(move === this.mv.heavy ? 1 : 0.8); // the white hit flash (C5, Animal.ts)
+    const result = this.contact(hit.animal, dmg, point, _v1, cam.position, `move.${move.name}`, true);
+    if (!result) return;
+    const killed = result.killed;
+    animal.hitFlash?.(move === this.mv.heavy ? 1 : 0.8); // the white hit flash (C5, Animal.ts)
     // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
     _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
-    if (!killed) (animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
+    if (!killed) animal.stagger?.(_push, move.stagger);
     // hit-stop (C2): the first contact of a swing stops the WORLD (Game.hitStop — the swing, the target, the player) for the
     // move's 60 / 90 / 140 ms; the stars, trail fade and camera kick run on worldTime.realDt through it
     if (!this.hitDone) { this.hitDone = true; this.game.hitStop(move.hitStop * this.swingScale); this.jolt = move === this.mv.heavy ? 1.6 : 1; this.fx.kick(move.kick.pitch * 0.5, move.kick.roll * 0.5); }
@@ -884,6 +824,7 @@ export class Sword extends Weapon {
     this.onHit?.(animal.kind, false, killed);
     this.onImpact?.('flesh', point);
     this.onMoveHit?.(move, killed);
+    this.afterMoveHit(move, hit, killed);
   }
 
   /** evaluate a move at `t` s into it → position + quaternion (camera space, scale 1): from-pose → cocked → mid → follow-through → REST */
@@ -906,7 +847,7 @@ export class Sword extends Weapon {
 
     // FOV (Hor+ on portrait; the sword never zooms) + the dodge / lunge kick while in hand (Player.fovKick — transient, so
     // the shadow cascades are only refit for a base change, not every kicked frame)
-    const baseFov = fovForAspect(cam.aspect < 1 ? this.portraitFov : FOV_HIP, cam.aspect);
+    const baseFov = fovForAspect(cam.aspect < 1 ? this.portraitFov : this.profile.feel.fovHip, cam.aspect);
     const targetFov = baseFov + (this.model.visible ? p.fovKick + this.fx.fovOffset : 0);
     if (Math.abs(targetFov - this.fov) > 0.01) {
       const refit = Math.abs(baseFov - this.baseFov) > 0.01; this.baseFov = baseFov;
@@ -918,20 +859,20 @@ export class Sword extends Weapon {
     if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle
     const held = (this.mouseHeld || this.adsHeld) && this.enabled;
     if (held && !this.heldPrev) { if (this.move) this.chargePending = true; else this.beginCharge(); }
-    if (!held && this.heldPrev) { this.chargePending = false; if (this.charging) { if (this.chargeT >= HEAVY_CHARGE) this.releaseHeavy(); else this.releaseQueued = true; } }
+    if (!held && this.heldPrev) { this.chargePending = false; if (this.charging) { if (this.chargeT >= this.profile.heavyCharge) this.releaseHeavy(); else this.releaseQueued = true; } }
     this.heldPrev = held;
     if (this.charging) {
       this.chargeT += dt;
-      if (this.releaseQueued && this.chargeT >= HEAVY_CHARGE) this.releaseHeavy();
+      if (this.releaseQueued && this.chargeT >= this.profile.heavyCharge) this.releaseHeavy();
     } else if (this.chargePending && !this.move) this.beginCharge();
 
     // swing clock (a hit-stop slows it with the whole world: dt is scaled, Game.hitStop); a queued combo swing chains the moment the active window closes
     let move = this.move;
     if (move) {
       this.swingT += dt / this.swingScale;
-      const next = this.queued && this.swingT >= move.slashEnd + CHAIN_LAG && this.comboIdx < this.mv.combo.length ? this.mv.combo[this.comboIdx++] : undefined;
+      const next = this.queued && this.swingT >= move.slashEnd + this.profile.chainLag && this.comboIdx < this.mv.combo.length ? this.mv.combo[this.comboIdx++] : undefined;
       if (next !== undefined) { this.startSwing(next); move = this.move; }
-      else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = COOLDOWN; }
+      else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = this.profile.cooldown; }
     }
     const active = move !== null && this.swingT >= move.windup && this.swingT <= move.slashEnd;
     // the camera leans along the swing as the blade comes through (C3), the heavy punches the FOV in
@@ -943,7 +884,7 @@ export class Sword extends Weapon {
     if (inHand) {
       if (!move) this.lungeTarget = null;
       else if (this.lungeTarget && !this.lungeTarget.alive) this.lungeTarget = null;
-      meleeLock.target = this.lungeTarget ?? (this.enabled ? this.findLunge(this.charging ? LUNGE_RANGE_HEAVY : LUNGE_RANGE) : null);
+      meleeLock.target = this.lungeTarget ?? (this.enabled ? this.findLunge(this.charging ? this.profile.lunge.heavyRange : this.profile.lunge.range) : null);
       meleeLock.lunging = this.lungeTarget !== null && this.player.dashing;
       this.player.swinging = move !== null;
     } else if (this.active) { meleeLock.target = null; meleeLock.lunging = false; this.player.swinging = false; this.lungeTarget = null; }
@@ -952,20 +893,18 @@ export class Sword extends Weapon {
 
     // charge pose blend (the blade rises over the shoulder), sprint
     this.state.ads = this.charging;
-    { const step = dt / CHARGE_BLEND; this.chargeBlend = clamp01(this.chargeBlend + THREE.MathUtils.clamp((this.charging ? 1 : 0) - this.chargeBlend, -step, step)); }
+    { const step = dt / this.profile.chargeBlend; this.chargeBlend = clamp01(this.chargeBlend + THREE.MathUtils.clamp((this.charging ? 1 : 0) - this.chargeBlend, -step, step)); }
     this.sprintBlend += ((p.sprinting && !move && !this.charging ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
 
     // look lag (spring, substepped like the crossbow)
     let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
     this.lastYaw = p.yaw; this.lastPitch = p.pitch;
     if (Math.abs(dYaw) > 1) dYaw = 0; if (Math.abs(dPitch) > 1) dPitch = 0;
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw - dYaw * 0.5, -0.12, 0.12);
-    this.lagPitch = THREE.MathUtils.clamp(this.lagPitch - dPitch * 0.5, -0.1, 0.1);
-    for (let rem = dt; rem > 0; rem -= 1 / 120) {
-      const h = Math.min(rem, 1 / 120);
-      this.lagYawVel += (-this.lagYaw * 220 - this.lagYawVel * 20) * h; this.lagYaw += this.lagYawVel * h;
-      this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
-    }
+    this.lookSpring.yaw = this.lagYaw; this.lookSpring.pitch = this.lagPitch;
+    this.lookSpring.yawVelocity = this.lagYawVel; this.lookSpring.pitchVelocity = this.lagPitchVel;
+    this.lookBlock.step(this.lookSpring, this.lookDelta.set(dYaw, dPitch), dt);
+    this.lagYaw = this.lookSpring.yaw; this.lagPitch = this.lookSpring.pitch;
+    this.lagYawVel = this.lookSpring.yawVelocity; this.lagPitchVel = this.lookSpring.pitchVelocity;
 
     // an animated rig: its clips run on the same (world-scaled) clock, before the hit sweep reads its blade
     if (this.arms) {
@@ -992,14 +931,14 @@ export class Sword extends Weapon {
 
     // idle sway / walk bob (counter-phase to the camera bob) / look lag / hit jolt — full at the hip, 30 % in the charge
     const m = 1 - c * 0.7, sf = p.speedFactor;
-    const swX = Math.sin(t * 0.7) * 0.003, swY = Math.sin(t * 1.1) * 0.0025;
-    const bobX = Math.cos(p.bobTime) * 0.018 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.014 * sf;
-    pos.x += (swX + bobX + this.lagYaw * 0.25) * m; pos.y += (swY + bobY + this.lagPitch * 0.2) * m; pos.z += this.jolt * 0.05;
-    _e.set((Math.sin(p.bobTime * 2) * 0.012 * sf + this.lagPitch + this.jolt * 0.08) * m, this.lagYaw * m, (Math.sin(t * 0.5) * 0.008 + Math.cos(p.bobTime) * 0.02 * sf) * m, 'YXZ');
+    const swX = Math.sin(t * this.profile.feel.sway.fx) * this.profile.feel.sway.ax, swY = Math.sin(t * this.profile.feel.sway.fy) * this.profile.feel.sway.ay;
+    const bobX = Math.cos(p.bobTime) * this.profile.feel.bob.x * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * this.profile.feel.bob.y * sf;
+    pos.x += (swX + bobX + this.lagYaw * this.profile.feel.lag.posYaw) * m; pos.y += (swY + bobY + this.lagPitch * this.profile.feel.lag.posPitch) * m; pos.z += this.jolt * 0.05;
+    _e.set((Math.sin(p.bobTime * 2) * this.profile.feel.bob.rx * sf + this.lagPitch + this.jolt * 0.08) * m, this.lagYaw * m, (Math.sin(t * 0.5) * 0.008 + Math.cos(p.bobTime) * this.profile.feel.bob.rz * sf) * m, 'YXZ');
     q.premultiply(_q2.setFromEuler(_e));
     // the dodge (E63): the blade is flung against the dodge and whips back; a backstep pulls it straight back
-    if (dodgeFx.id !== this.dodgeSeen) { this.dodgeSeen = dodgeFx.id; if (!dodgeFx.back) this.dodgeLagV = -DODGE_LAG_KICK * dodgeFx.side; }
-    { const h = Math.min(dt, 1 / 30); this.dodgeLagV += (-DODGE_LAG_K * this.dodgeLagX - DODGE_LAG_C * this.dodgeLagV) * h; this.dodgeLagX += this.dodgeLagV * h; }
+    if (dodgeFx.id !== this.dodgeSeen) { this.dodgeSeen = dodgeFx.id; if (!dodgeFx.back) this.dodgeLagV = -this.profile.dodgeKick.kick * dodgeFx.side; }
+    { const h = Math.min(dt, 1 / 30); this.dodgeLagV += (-this.profile.dodgeKick.k * this.dodgeLagX - this.profile.dodgeKick.c * this.dodgeLagV) * h; this.dodgeLagX += this.dodgeLagV * h; }
     if (Math.abs(this.dodgeLagX) > 1e-4) {
       pos.x += this.dodgeLagX; pos.y -= 0.35 * Math.abs(this.dodgeLagX);
       q.premultiply(_q2.setFromEuler(_e.set(0, 1.2 * this.dodgeLagX, 3.5 * this.dodgeLagX, 'YXZ')));
@@ -1009,6 +948,7 @@ export class Sword extends Weapon {
     // portrait phone: the wider FOV + narrow frame put the hands mid-screen — hold the sword lower, further out, smaller,
     // and (0.6, the mockup art/driftwood-fp-sword-wooden.png) short and low-right: the whole pose drops and slides right and
     // the blade tips forward about the hands, so at rest its tip sits below-right of the crosshair instead of on it
+    this.poseExtra(pos, q, dt);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const fr = this.framing;
     const scale = 1 - portrait * fr.shrink;
@@ -1023,14 +963,14 @@ export class Sword extends Weapon {
     this.rig.position.copy(this.posePos); this.rig.quaternion.copy(this.poseQ);
     // forearms: pinned to the hands, but only part of the way round with the sword (the wrists bend, the elbows stay put)
     this.armRig.position.copy(this.posePos);
-    this.armRig.quaternion.copy(this.mv.rest.q).slerp(this.poseQ, ARM_FOLLOW);
+    this.armRig.quaternion.copy(this.mv.rest.q).slerp(this.poseQ, this.profile.armFollow);
 
     // trail: sample through the slash, then fade (an animated rig draws its own, unless it asks for the engine's)
     const ownTrail = this.arms !== null && this.arms.engineTrail !== true;
     if (active && !ownTrail) this.trailSample();
     if (this.trailN > 0) {
       this.trailRebuild();
-      const newest = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
+      const newest = (this.trailHead - 1 + this.profile.trail.samples) % this.profile.trail.samples;
       if (t - (this.trailT[newest] ?? t) > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
     }
     // the heavy's tip glint: on through the chop's active window, then winks out
@@ -1053,3 +993,5 @@ export class Sword extends Weapon {
     this.stars.update(worldTime.realDt, this.game.renderer, cam); // particles keep flying through a hit-stop
   }
 }
+
+export type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from '#engine';

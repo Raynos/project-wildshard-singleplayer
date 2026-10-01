@@ -1,8 +1,8 @@
 import { SABRE } from './equipment';
 import * as THREE from 'three';
-import { Sword, type SwordWorld, type SwordRig, type SwordMoveSet } from '#engine/player/Sword';
+import { Sword, SWORD_WOOD, type MeleeProfile, type SwordWorld, type SwordRig, type SwordMoveSet } from '#kit';
 import type { Targets } from '#engine/player/Crossbow';
-import { key, type Move } from '#engine/player/SwordMoves';
+import { key, type Move } from '#kit/weapons/melee/moves';
 import { getAimTargets } from '#engine/player/AimTargets';
 import { tube, blob, xf, merge, lin, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 import { forearm } from '#engine/player/nalatiArms';
@@ -196,6 +196,14 @@ export const SABRE_MOVES: SwordMoveSet = { rest: SABRE_REST, charge: SABRE_CHARG
 
 // ───────────────────────────── the weapon ─────────────────────────────
 
+export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown: number; sense: number; chainWindow: number; chainStep: number; chainMax: number; speedDivisor: number; behind: number }; blade: { length: number; curve: number } } = {
+  ...SWORD_WOOD, ...SABRE, parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
+  moves: SABRE_MOVES, portraitPullX: 0.85,
+  mounted: { reach: MOUNT_REACH, cooldown: MOUNT_COOLDOWN, sense: PASS_SENSE, chainWindow: CHAIN_WINDOW,
+    chainStep: CHAIN_STEP, chainMax: CHAIN_MAX, speedDivisor: 12, behind: -2 },
+  blade: { length: BLADE_L, curve: CURVE },
+};
+
 export interface SabreOptions { allowUnlocked?: boolean }
 /** the B7 riding hook: the horse's ground speed (m/s) and heading (rad, the player's yaw convention) */
 export interface MountState { speed: number; yaw: number }
@@ -210,7 +218,7 @@ export class Sabre extends Sword {
 
   constructor(world: SwordWorld, targets?: Targets, opts: SabreOptions = {}) {
     const rig = buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky));
-    super(world, targets, { row: SABRE, allowUnlocked: opts.allowUnlocked ?? false, rig, moves: SABRE_MOVES, damage: DAMAGE, portraitPullX: 0.85 }); // portrait: the hand clear of the CROUCH / DODGE discs
+    super(world, targets, { row: SABRE_PROFILE, profile: SABRE_PROFILE, allowUnlocked: opts.allowUnlocked ?? false, rig, moves: SABRE_MOVES, damage: DAMAGE, portraitPullX: 0.85 }); // portrait: the hand clear of the CROUCH / DODGE discs
     this.swingScale = SPEED;
     this.onMoveHit = (move) => {
       if (move !== PASS_LEFT && move !== PASS_RIGHT) return;

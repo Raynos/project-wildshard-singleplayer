@@ -1,3 +1,5 @@
+import { app } from '#engine';
+import { meleeActor } from '#kit';
 import * as THREE from 'three';
 import type { Sabre } from './Sabre';
 import type { Player } from '#engine/player/Player';
@@ -192,7 +194,8 @@ export class Naizagai {
           if (!this.hittable(a) || Math.hypot(a.position.x - this.callAt.x, a.position.z - this.callAt.z) > CALL_R + 0.6 * a.scale) continue;
           _d.set(a.position.x - this.callAt.x, 0.5, a.position.z - this.callAt.z).normalize();
           a.headWorld(_v);
-          a.applyDamage(dmg, _v, _d);
+          app.combat.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.naizagai', 'dmg.aoe'],
+            target: a.combatActor(), amount: dmg, point: _v, dir: _d, from: this.callAt, throughWalls: true, weaponId: 'weapon.naizagai', moveId: 'move.calldown' });
         }
       }
     }
@@ -227,7 +230,9 @@ export class Naizagai {
     const dmg = Math.round(CRESCENT_DMG * this.mul());
     const hitA = best;
     hitA.headWorld(_v);
-    hitA.applyDamage(dmg, _v, _d);
+    const first = app.combat.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.naizagai', 'dmg.melee'],
+      target: meleeActor(hitA), amount: dmg, point: _v, dir: _d, from: this.deps.camera.position, weaponId: 'weapon.naizagai', moveId: 'move.crescent' });
+    if (!first) return;
     // the arcs: to the nearest other creature within 6 m, then (in a storm) on from that one
     const arcs = this.deps.storm() ? 2 : 1;
     let from: Animal = hitA;
@@ -241,10 +246,13 @@ export class Naizagai {
       }
       if (next === null) break;
       from.headWorld(_o); next.headWorld(_v);
+      _w.subVectors(_v, _o).normalize();
+      const result = app.combat.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.naizagai', 'dmg.melee'],
+        target: meleeActor(next), amount: dmg, point: _v, dir: _w, from: _o, weaponId: 'weapon.naizagai', moveId: 'move.crescent.arc' });
+      if (!result) break;
       const arc = this.arcs[i];
       if (arc) { arc.set(_o, _v, 0.45, 0.09); arc.alpha = 1; this.arcT = 0.35; }
       _w.subVectors(_v, _o).normalize();
-      next.applyDamage(dmg, _v, _w);
       done.add(next); from = next;
     }
   }

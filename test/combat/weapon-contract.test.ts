@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Sword } from '#engine/player/Sword';
+import { Sword } from '#kit/weapons/melee/SweptMelee';
 import { Crossbow } from '#engine/player/Crossbow';
 import { Bow } from '#engine/player/Bow';
 import { Longbow } from '#engine/player/Longbow';

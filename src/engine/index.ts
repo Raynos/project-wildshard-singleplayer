@@ -58,3 +58,20 @@ export { PlayerHealth, type PlayerHealthPorts } from './combat/health';
 export { EffectService } from './combat/effects/EffectService';
 export { sourceMultiplier, matchesTag, type AttributeSet, type EffectDef, type EffectTarget, type EffectId, type ActiveEffect, type SourceMulDef, type CueId } from './combat/effects/types';
 export { CombatCues, audioCueMap, resolveHitStop, type CombatCueMap, type CombatCueOpts, type HitStopProfile } from './combat/cues';
+
+// Public weapon-family building blocks and visual ports (E357 C4).
+export { melee, aimRay, fovForAspect } from './combat/blocks/melee';
+export { viewmodel, type DrawingBuffer, type LookSpring, type LookLag } from './render/viewmodelFeel';
+export type { Game } from './core/Game';
+export type { Sky } from './world/Sky';
+export type { Forest } from './world/forest/Forest';
+export type { Targets, TargetAnimal, TargetHit } from './combat/view/targets';
+export type { Move, Key, Trail, SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from './combat/view/melee';
+export { BladeGlow } from './player/bladeGlow';
+export { dodgeFx, dodgeEnv } from './player/dodge';
+export { getAimTargets, lockOn, meleeLock, targetRadius, type AimTarget } from './player/AimTargets';
+export { bladeBlocked, bladeContact, type Clang } from './player/MeleeSweep';
+export { worldTime } from './core/time';
+export { CameraFX } from './player/CameraFX';
+export { Impacts } from './fx/Impacts';
+export { defineModel, type ModelContext, type ModelPart } from './models/model';
