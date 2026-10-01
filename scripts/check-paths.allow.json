@@ -93,5 +93,10 @@
     "path": "src/engine/types/",
     "file": "scripts/normalize/classify.mjs",
     "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
+  },
+  {
+    "path": "test/parity/baselines",
+    "file": "scripts/parity/record.mjs",
+    "why": "Output directory created recursively by writeBaseline; the first recording creates it, so it need not exist beforehand."
   }
 ]
