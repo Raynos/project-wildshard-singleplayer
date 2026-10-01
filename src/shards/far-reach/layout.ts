@@ -1,34 +1,48 @@
-/** Every coordinate in Sky Reach. Islands are discs: centre, walkable top height, radius. North is −z. */
-export type IsleId = 'sunrest' | 'mill' | 'fernhold' | 'roost' | 'tern';
-export interface Isle { id: IsleId; x: number; z: number; top: number; r: number; depth: number }
-export const SUNREST: Isle = { id: 'sunrest', x: 0, z: 0, top: 20, r: 13, depth: 22 };
-export const MILL: Isle = { id: 'mill', x: 0, z: -46, top: 23, r: 12, depth: 20 };
-export const FERNHOLD: Isle = { id: 'fernhold', x: -41, z: 8, top: 19, r: 10, depth: 17 };
-export const ROOST: Isle = { id: 'roost', x: 43, z: -8, top: 20, r: 10, depth: 18 };
-export const TERN: Isle = { id: 'tern', x: 9, z: 45, top: 17, r: 9, depth: 15 };
-export const ISLES: readonly Isle[] = [SUNREST, MILL, FERNHOLD, ROOST, TERN];
+/** Every coordinate of Sky Reach. Island tops are flat at `TOP`; the void below them is the cloud sea. */
+export const TOP = 30;
+/** the player soft-respawns below this; creatures die below `KILL_Y` (manifest `world.killY`) */
+export const FLOOR = 14;
+export const KILL_Y = 10;
 
-/** Rope bridges are walked; hover bridges carry only a board rider; the fallen bridge is raised by the quest. */
-export interface Span { id: string; from: Isle; to: Isle; width: number }
-export const ROPE: readonly Span[] = [{ id: 'rope.fernhold', from: SUNREST, to: FERNHOLD, width: 2.4 }];
-export const HOVER: readonly Span[] = [{ id: 'hover.roost', from: SUNREST, to: ROOST, width: 3.2 }, { id: 'hover.tern', from: SUNREST, to: TERN, width: 3.2 }];
-export const FALLEN: Span = { id: 'rope.mill', from: SUNREST, to: MILL, width: 2.4 };
+export interface Island { id: string; x: number; z: number; r: number; depth: number }
+export const SUNREST: Island = { id: 'sunrest', x: 0, z: 0, r: 20, depth: 24 };
+export const WINDMILL: Island = { id: 'windmill', x: 0, z: -60, r: 15, depth: 20 };
+export const ROOST: Island = { id: 'roost', x: 56, z: -18, r: 13, depth: 17 };
+export const GULL: Island = { id: 'gull', x: -48, z: 14, r: 10, depth: 14 };
+export const ISLANDS: readonly Island[] = [SUNREST, WINDMILL, ROOST, GULL];
 
-export const WINCH = { x: -3.2, z: -10.2 };
-export const WINDMILL = { x: 1.5, z: -48 };
-/** The drift ray circles above the gap between Sunrest and the roost, at an absolute height. */
-export const RAY = { x: 20, z: -16, radius: 18, altitude: 34 };
-export const SPAWN = { x: 0, z: 5, yaw: 0 };
-/** The one trail: from the spawn to the winch at the fallen bridge (B83: a trail starts in the spawn area). */
-export const TRAIL: [number, number][][] = [[[SPAWN.x, SPAWN.z], [0, -4], [WINCH.x, WINCH.z]]];
-/** The cloud sea's surface; the terrain datum hides just under it; creatures die below KILL_Y; the player soft-respawns below FLOOR_Y. */
-export const CLOUD_Y = 0;
-export const DATUM_Y = -8;
-export const KILL_Y = -40;
-export const FLOOR_Y = 6;
-export const BOUNDS = { x0: -140, x1: 140, z0: -140, z1: 140 };
-/** Far scenery islands (no collision): x, z, top, radius. */
-export const FAR_ISLES: readonly [number, number, number, number][] = [
-  [-150, -170, 40, 22], [120, -210, 55, 30], [230, -40, 30, 18], [-240, 20, 46, 26], [-120, 210, 25, 16], [160, 180, 38, 24],
-  [40, -300, 70, 36], [-60, -120, 8, 8], [95, 70, 6, 6], [-300, -150, 60, 34], [300, 140, 52, 28], [-20, 260, 42, 20],
+export const onIsland = (x: number, z: number): boolean => ISLANDS.some((i) => Math.hypot(x - i.x, z - i.z) < i.r);
+
+/** how a bridge is built: `rope` walks, `hover` carries only a board rider, `fallen` is the quest's bridge */
+export type BridgeKind = 'rope' | 'hover' | 'fallen';
+export interface Bridge { id: string; kind: BridgeKind; from: Island; to: Island; width: number }
+export const BRIDGES: readonly Bridge[] = [
+  { id: 'far.bridge.gull', kind: 'rope', from: SUNREST, to: GULL, width: 2.4 },
+  { id: 'far.hover.roost', kind: 'hover', from: SUNREST, to: ROOST, width: 3 },
+  { id: 'far.hover.mill', kind: 'hover', from: ROOST, to: WINDMILL, width: 3 },
+  { id: 'far.bridge.mill', kind: 'fallen', from: SUNREST, to: WINDMILL, width: 2.6 },
 ];
+/**
+ * A rope deck overlaps each rim by `ROPE_OVERLAP` so a walker steps straight on. A hover deck starts `HOVER_GAP`
+ * clear of the rim (Jake's rule): on foot you step into the gap and fall; the board floats over it.
+ */
+export const ROPE_OVERLAP = 1.2;
+export const HOVER_GAP = 0.8;
+
+/** the end points of a bridge deck, at deck height */
+export function bridgeEnds(b: Bridge): { ax: number; az: number; bx: number; bz: number; yaw: number; length: number } {
+  const dx = b.to.x - b.from.x, dz = b.to.z - b.from.z, d = Math.hypot(dx, dz), ux = dx / d, uz = dz / d;
+  const inset = b.kind === 'hover' ? -HOVER_GAP : ROPE_OVERLAP;
+  const ax = b.from.x + ux * (b.from.r - inset), az = b.from.z + uz * (b.from.r - inset);
+  const bx = b.to.x - ux * (b.to.r - inset), bz = b.to.z - uz * (b.to.r - inset);
+  return { ax, az, bx, bz, yaw: Math.atan2(ux, uz), length: Math.hypot(bx - ax, bz - az) };
+}
+
+export const SPAWN = { x: 0, z: 9, yaw: 0 };
+/** the winch on Sunrest's north rim, beside the fallen bridge's anchor */
+export const WINCH = { x: 3.2, z: -16.5 };
+export const MILL = { x: 0, z: -63 };
+/** the drift ray circles Sunrest at this radius and height */
+export const RAY = { x: 0, z: -10, radius: 26, altitude: TOP + 13 };
+/** a walking trail on the spawn island (new shards declare their own roads) */
+export const TRAIL: [number, number][][] = [[[0, 9], [0, -2], [2, -14]]];

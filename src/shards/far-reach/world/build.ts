@@ -1,136 +1,157 @@
-import type { ColliderDesc, Interactable } from '#engine';
+import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
-import { DoubleSide, Group, Mesh, MeshStandardMaterial, Vector3, type BufferGeometry } from 'three';
-import { FALLEN, FAR_ISLES, HOVER, ISLES, ROPE, WINCH, WINDMILL, type Isle } from '../layout';
+import { BoxGeometry, Color, ConeGeometry, CylinderGeometry, DodecahedronGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial,
+  Object3D, Quaternion, Vector3 } from 'three';
+import { BRIDGES, ISLANDS, MILL, SPAWN, TOP, WINCH, bridgeEnds, type Bridge } from '../layout';
 import { STRINGS } from '../strings';
-import { box, Facets, seeded, type V3 } from './facets';
-import { boulder, island, tuft, type IslandShape } from './islands';
-import { frameBox, hoverEdges, hoverRungs, pylons, ropeBridge, ropeColliders, spanFrame } from './bridges';
+import { islandCollider, islandMesh } from './islands';
 import { ownPrimitives } from './resources';
 
 const FILE = 'src/shards/far-reach/world/build.ts';
-const lowPoly = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
-const mesh = (g: BufferGeometry, m: MeshStandardMaterial): Mesh => { const out = new Mesh(g, m); out.castShadow = true; out.receiveShadow = true; return out; };
+const flat = (color: number, extra: Partial<{ emissive: number; transparent: boolean; opacity: number }> = {}): MeshStandardMaterial =>
+  new MeshStandardMaterial({ color, flatShading: true, roughness: 0.9, ...extra });
 
+/** What the plugin drives after the world is built. */
 export interface SkyWorld {
-  /** the fallen bridge: 0 = hanging, 1 = up (it collides only when up) */
-  bridge: { hinge: Group; raised: number; target: number };
-  sails: Group;
-  winch: Interactable; winchAt: Vector3; drum: Group;
-  hover: { glass: MeshStandardMaterial; edge: MeshStandardMaterial; crystal: MeshStandardMaterial };
-  shapes: ReadonlyMap<string, IslandShape>;
+  /** 0 = hanging under Sunrest's rim, 1 = raised; the fallen bridge collides only at 1 */
+  bridge: { lift: number; pivot: Object3D };
+  /** the glowing hover decks (brighter while the player rides the board) */
+  hoverGlow: MeshStandardMaterial;
+  blades: Object3D;
+  winch: Interactable;
+  winchAt: Vector3;
 }
 
-/** The hull collider of an island's walkable top: its rim polygon as a 3 m slab under the top. */
-function topHull(shape: IslandShape): ColliderDesc {
-  const points: number[] = [];
-  for (const [x, z] of shape.rim) points.push(x - shape.cx, 0, z - shape.cz, x - shape.cx, -3, z - shape.cz);
-  return { kind: 'hull', x: shape.cx, y: shape.top, z: shape.cz, points: new Float32Array(points), surface: 'grass' };
+function deckCollider(b: Bridge, top: number): ColliderDesc[] {
+  const e = bridgeEnds(b), cx = (e.ax + e.bx) / 2, cz = (e.az + e.bz) / 2, side = new Vector3(Math.cos(e.yaw), 0, -Math.sin(e.yaw));
+  const deck: ColliderDesc = { kind: 'box', x: cx, y: top - 0.15, z: cz, hx: b.width / 2, hy: 0.15, hz: e.length / 2, yaw: e.yaw, surface: b.kind === 'hover' ? 'metal' : 'planks' };
+  if (b.kind === 'hover') return [deck];
+  const rails = [-1, 1].map((s): ColliderDesc => ({ kind: 'box', x: cx + side.x * s * (b.width / 2 + 0.05), y: top + 0.55, z: cz + side.z * s * (b.width / 2 + 0.05),
+    hx: 0.05, hy: 0.55, hz: e.length / 2, yaw: e.yaw, surface: 'wood' }));
+  return [deck, ...rails];
 }
 
-function dress(f: Facets, isle: Isle, seed: number, clear: (x: number, z: number) => boolean): void {
-  const random = seeded(seed);
-  for (let i = 0; i < Math.round(isle.r * 0.5); i++) {
-    const a = random() * Math.PI * 2, d = isle.r * (0.35 + random() * 0.5), x = isle.x + Math.sin(a) * d, z = isle.z + Math.cos(a) * d;
-    if (clear(x, z)) boulder(f, x, isle.top, z, 0.35 + random() * 0.7, seed + i);
+/** A plank deck with rope rails along local +Z from (0, 0, 0). */
+function ropeDeck(length: number, width: number): Group {
+  const deck = new Group(), count = Math.max(2, Math.floor(length / 0.55));
+  const planks = new InstancedMesh(new BoxGeometry(width, 0.14, 0.46), flat(0x8a6446), count), m = new Matrix4();
+  for (let i = 0; i < count; i++) planks.setMatrixAt(i, m.makeTranslation(0, -0.07, (i + 0.5) * (length / count)));
+  planks.castShadow = true; planks.receiveShadow = true; deck.add(planks);
+  for (const s of [-1, 1]) {
+    const rope = new Mesh(new CylinderGeometry(0.035, 0.035, length, 4), flat(0xc9b08a));
+    rope.rotation.x = Math.PI / 2; rope.position.set(s * width / 2, 1.0, length / 2); deck.add(rope);
+    for (const z of [0, length]) { const post = new Mesh(new BoxGeometry(0.18, 1.3, 0.18), flat(0x5a3f33)); post.position.set(s * width / 2, 0.55, z); deck.add(post); }
   }
-  for (let i = 0; i < isle.r * 4; i++) {
-    const a = random() * Math.PI * 2, d = isle.r * Math.sqrt(random()) * 0.9;
-    tuft(f, isle.x + Math.sin(a) * d, isle.top + 0.05, isle.z + Math.cos(a) * d, 0.35 + random() * 0.4, random() * 3);
-  }
+  return deck;
 }
 
-function windmill(ctx: ShardContext, top: number): Group {
-  const f = new Facets(0.05), at = { applyTo: (p: [number, number, number]): V3 => p }, sides = 6, x = WINDMILL.x, z = WINDMILL.z;
-  for (let i = 0; i < sides; i++) {
-    const a0 = (i / sides) * Math.PI * 2, a1 = ((i + 1) / sides) * Math.PI * 2, r0 = 2.4, r1 = 1.6, h = 8;
-    const c = i % 2 ? [0.86, 0.82, 0.74] as const : [0.8, 0.75, 0.68] as const;
-    f.quad([x + Math.sin(a0) * r0, top, z + Math.cos(a0) * r0], [x + Math.sin(a1) * r0, top, z + Math.cos(a1) * r0],
-      [x + Math.sin(a1) * r1, top + h, z + Math.cos(a1) * r1], [x + Math.sin(a0) * r1, top + h, z + Math.cos(a0) * r1], c);
-    f.tri([x + Math.sin(a0) * 1.9, top + h, z + Math.cos(a0) * 1.9], [x + Math.sin(a1) * 1.9, top + h, z + Math.cos(a1) * 1.9], [x, top + h + 2.6, z], [0.36, 0.22, 0.17]);
+/** Floating glass panels with gaps: they read as a deck only a board can ride. */
+function hoverDeck(length: number, width: number, glow: MeshStandardMaterial): Group {
+  const deck = new Group(), count = Math.max(2, Math.floor(length / 1.8));
+  const panels = new InstancedMesh(new BoxGeometry(width, 0.08, 1.5), glow, count), m = new Matrix4();
+  for (let i = 0; i < count; i++) panels.setMatrixAt(i, m.makeTranslation(0, -0.04, (i + 0.5) * (length / count)));
+  deck.add(panels);
+  for (const z of [0, length]) for (const s of [-1, 1]) {
+    const rune = new Mesh(new CylinderGeometry(0.12, 0.22, 1.6, 5), flat(0x40506a, { emissive: 0x2c8fb0 }));
+    rune.position.set(s * (width / 2 + 0.2), 0.6, z); deck.add(rune);
   }
-  box(f, at, [x, top + 1.1, z + 2.15], 0.55, 1.1, 0.12, [0.25, 0.17, 0.12]);
-  box(f, at, [x, top + 5.2, z + 1.85], 0.4, 0.45, 0.1, [0.2, 0.18, 0.2]);
-  const tower = mesh(f.geometry(), lowPoly());
-  ctx.root.add(tower);
-  ctx.piece({ id: 'far.windmill', name: STRINGS.windmill, category: 'buildings', file: FILE, object: tower, surface: 'stone',
-    colliders: [{ kind: 'capsule', x, y: top + 4, z, halfHeight: 3, radius: 2.3, surface: 'stone' }] });
-  // the sails turn on a hub facing south (+z)
-  const sails = new Group(), s = new Facets(0.04); sails.position.set(x, top + 7.4, z + 2.2);
-  for (let k = 0; k < 4; k++) {
-    const a = (k / 4) * Math.PI * 2 + 0.4, m = { applyTo: ([px, py, pz]: [number, number, number]): V3 => [px * Math.cos(a) - py * Math.sin(a), px * Math.sin(a) + py * Math.cos(a), pz] };
-    box(s, m, [0, 3.4, 0], 0.09, 3.4, 0.08, [0.3, 0.2, 0.14]);
-    box(s, m, [0.55, 3.9, -0.02], 0.45, 2.6, 0.02, [0.92, 0.86, 0.74], [0.75, 0.68, 0.58]);
-  }
-  box(s, { applyTo: (p) => p }, [0, 0, 0], 0.3, 0.3, 0.3, [0.25, 0.17, 0.12]);
-  const blades = mesh(s.geometry(), new MeshStandardMaterial({ vertexColors: true, flatShading: true, side: DoubleSide, roughness: 0.9 }));
-  sails.add(blades); ctx.root.add(sails);
-  ctx.piece({ id: 'far.windmill.sails', name: STRINGS.sails, category: 'buildings', file: FILE, object: sails });
-  return sails;
+  return deck;
 }
 
-export function buildWorld(ctx: ShardContext, farCount: number): SkyWorld {
-  const shapes = new Map<string, IslandShape>(), isles = new Facets(0.07, seeded(77));
-  ISLES.forEach((isle, i) => { shapes.set(isle.id, island(isles, isle.x, isle.z, isle.top, isle.r, isle.depth, 101 + i * 31)); });
-  const nearWindmill = (x: number, z: number): boolean => Math.hypot(x - WINDMILL.x, z - WINDMILL.z) > 4.5 && Math.hypot(x - WINCH.x, z - WINCH.z) > 2.5;
-  ISLES.forEach((isle, i) => { dress(isles, isle, 500 + i * 17, nearWindmill); });
-  const land = mesh(isles.geometry(), lowPoly()); ctx.root.add(land);
-  for (const isle of ISLES) {
-    const shape = shapes.get(isle.id); if (!shape) continue;
-    ctx.piece({ id: `far.isle.${isle.id}`, name: STRINGS[isle.id], category: 'ground', file: FILE, ...(isle.id === 'sunrest' ? { object: land } : {}),
-      anchor: new Vector3(isle.x, isle.top, isle.z), colliders: [topHull(shape)], surface: 'grass' });
+function scatter(ctx: ShardContext): void {
+  const random = ctx.app.rng.stream('cosmetic'), m = new Matrix4(), q = new Quaternion(), s = new Vector3(), p = new Vector3();
+  const keepClear: [number, number, number][] = [[SPAWN.x, SPAWN.z, 5], [WINCH.x, WINCH.z, 4], [MILL.x, MILL.z, 6]];
+  for (const b of BRIDGES) { const e = bridgeEnds(b); keepClear.push([e.ax, e.az, 4], [e.bx, e.bz, 4]); }
+  const spots: [number, number, number][] = [];
+  for (const island of ISLANDS) {
+    const want = Math.round(island.r * 0.7);
+    for (let tries = 0; spots.filter(([x, z]) => Math.hypot(x - island.x, z - island.z) < island.r).length < want && tries < 200; tries++) {
+      const a = random.range(0, Math.PI * 2), r = Math.sqrt(random.next()) * island.r * 0.82, x = island.x + Math.sin(a) * r, z = island.z + Math.cos(a) * r;
+      if (keepClear.some(([cx, cz, cr]) => Math.hypot(x - cx, z - cz) < cr) || spots.some(([sx, sz]) => Math.hypot(x - sx, z - sz) < 2.6)) continue;
+      spots.push([x, z, random.range(0.75, 1.35)]);
+    }
   }
-  // far scenery: the same islands, smaller detail, no collision; the phone draws fewer
-  const far = new Facets(0.07, seeded(9));
-  FAR_ISLES.slice(0, farCount).forEach(([x, z, top, r], i) => { island(far, x, z, top, r, r * 1.7, 900 + i * 13, 9); });
-  const farMesh = new Mesh(far.geometry(), lowPoly()); ctx.root.add(farMesh);
-  ctx.piece({ id: 'far.far-isles', name: STRINGS.far, category: 'nature', file: FILE, object: farMesh });
+  const crowns = new InstancedMesh(new ConeGeometry(1.3, 3.4, 5), flat(0x45602f), spots.length);
+  const trunks = new InstancedMesh(new CylinderGeometry(0.16, 0.24, 1.2, 5), flat(0x4a342c), spots.length);
+  const colliders: ColliderDesc[] = [];
+  const tint = new Color();
+  spots.forEach(([x, z, k], i) => {
+    q.setFromAxisAngle(new Vector3(0, 1, 0), random.range(0, Math.PI));
+    crowns.setMatrixAt(i, m.compose(p.set(x, TOP + 1.2 * k + 1.7 * k, z), q, s.set(k, k, k)));
+    crowns.setColorAt(i, tint.setHSL(0.24 + random.range(-0.03, 0.03), 0.35, 0.24 + random.range(-0.04, 0.04)));
+    trunks.setMatrixAt(i, m.compose(p.set(x, TOP + 0.6 * k, z), q, s.set(k, k, k)));
+    colliders.push({ kind: 'capsule', x, y: TOP + 1.2, z, halfHeight: 0.8, radius: 0.3, surface: 'wood' });
+  });
+  for (const mesh of [crowns, trunks]) { mesh.castShadow = true; mesh.receiveShadow = true; }
+  const trees = new Group(); trees.add(crowns, trunks); ctx.root.add(trees);
+  ctx.piece({ id: 'far.trees', name: STRINGS.trees, category: 'nature', file: FILE, object: trees, colliders, surface: 'wood' });
+  const rocks = new InstancedMesh(new DodecahedronGeometry(0.9, 0), flat(0x7a6470), 14);
+  for (let i = 0; i < 14; i++) {
+    const island = ISLANDS[i % ISLANDS.length]; if (!island) continue;
+    const a = random.range(0, Math.PI * 2), r = island.r * random.range(0.55, 0.85), k = random.range(0.5, 1.3);
+    q.setFromAxisAngle(new Vector3(0, 1, 0), random.range(0, 3));
+    rocks.setMatrixAt(i, m.compose(p.set(island.x + Math.sin(a) * r, TOP + 0.2 * k, island.z + Math.cos(a) * r), q, s.set(k * 1.4, k * 0.7, k)));
+  }
+  rocks.castShadow = true; ctx.root.add(rocks);
+  ctx.piece({ id: 'far.rocks', name: STRINGS.island, category: 'nature', file: FILE, object: rocks });
+}
 
-  // rope bridges, walked
-  const wood = lowPoly();
-  for (const span of ROPE) {
-    const frame = spanFrame(span, shapes, 'rope'), g = new Group(); g.position.copy(frame.origin); g.quaternion.copy(frame.quat);
-    g.add(mesh(ropeBridge(span.width, frame.length).geometry(), wood)); ctx.root.add(g);
-    ctx.piece({ id: `far.${span.id}`, name: STRINGS.rope, category: 'buildings', file: FILE, object: g, colliders: ropeColliders(frame, span.width), surface: 'planks' });
+function windmill(ctx: ShardContext): Object3D {
+  const mill = new Group(); mill.position.set(MILL.x, TOP, MILL.z);
+  const tower = new Mesh(new CylinderGeometry(1.9, 3, 11, 8), flat(0x5e4b50)); tower.position.y = 5.5;
+  const cap = new Mesh(new ConeGeometry(3, 3.2, 8), flat(0x3a2b31)); cap.position.y = 12.6;
+  const door = new Mesh(new BoxGeometry(1.3, 2.2, 0.3), flat(0x2b1f24)); door.position.set(0, 1.1, 2.75);
+  const blades = new Group(); blades.position.set(0, 10, 2.6);
+  for (let i = 0; i < 4; i++) {
+    const arm = new Group(); arm.rotation.z = (i * Math.PI) / 2;
+    const spar = new Mesh(new BoxGeometry(0.22, 8, 0.14), flat(0x3b2a2a)); spar.position.y = 4;
+    const sail = new Mesh(new BoxGeometry(1.5, 5.8, 0.05), flat(0xd9c7b8)); sail.position.set(0.85, 4.8, -0.05);
+    arm.add(spar, sail); blades.add(arm);
   }
-  // hover bridges: glass that carries only a board rider (Jake's rule, E364); on foot you drop straight through
-  const glass = new MeshStandardMaterial({ color: 0xbfe8ff, emissive: 0x5fb8e8, emissiveIntensity: 0.25, transparent: true, opacity: 0.42, roughness: 0.15, metalness: 0.1, depthWrite: false, side: DoubleSide });
-  const edge = new MeshStandardMaterial({ vertexColors: true, emissive: 0xffc070, emissiveIntensity: 0.6, flatShading: true });
-  const crystal = new MeshStandardMaterial({ vertexColors: true, emissive: 0x8fe3ff, emissiveIntensity: 0.8, flatShading: true });
-  const onBoard = (): boolean => ctx.app.player?.mode === 'board';
-  for (const span of HOVER) {
-    const frame = spanFrame(span, shapes, 'hover'), g = new Group(); g.position.copy(frame.origin); g.quaternion.copy(frame.quat);
-    const pane = new Facets(0); box(pane, { applyTo: (p) => p }, [0, -0.06, frame.length / 2], span.width / 2, 0.06, frame.length / 2, [1, 1, 1]);
-    const deck = new Mesh(pane.geometry(), glass); deck.renderOrder = 2; g.add(deck);
-    g.add(mesh(hoverRungs(span.width, frame.length).geometry(), edge), mesh(hoverEdges(span.width, frame.length).geometry(), edge));
-    const { posts, crystals } = pylons(frame, span.width, span.from, span.to);
-    const ends = new Group(); ends.add(mesh(posts.geometry(), lowPoly()), new Mesh(crystals.geometry(), crystal));
-    ctx.root.add(g, ends);
-    ctx.piece({ id: `far.${span.id}`, name: STRINGS.hover, category: 'buildings', file: FILE, object: g, surface: 'stone',
-      colliders: [frameBox(frame, [0, -0.08, frame.length / 2], span.width / 2, 0.08, frame.length / 2, 'stone')], active: onBoard });
-    ctx.piece({ id: `far.${span.id}.pylons`, name: STRINGS.hover, category: 'props', file: FILE, object: ends });
+  const hub = new Mesh(new CylinderGeometry(0.45, 0.45, 0.8, 6), flat(0x3b2a2a)); hub.rotation.x = Math.PI / 2; blades.add(hub);
+  mill.add(tower, cap, door, blades); ctx.root.add(mill);
+  ctx.piece({ id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, object: mill,
+    colliders: [{ kind: 'box', x: MILL.x, y: TOP + 5.5, z: MILL.z, hx: 2.5, hy: 5.5, hz: 2.5, surface: 'stone' }], surface: 'stone' });
+  return blades;
+}
+
+function winchPost(ctx: ShardContext): Vector3 {
+  const winch = new Group(); winch.position.set(WINCH.x, TOP, WINCH.z);
+  for (const s of [-1, 1]) { const post = new Mesh(new BoxGeometry(0.25, 1.3, 0.25), flat(0x5a3f33)); post.position.set(s * 0.7, 0.65, 0); winch.add(post); }
+  const drum = new Mesh(new CylinderGeometry(0.35, 0.35, 1.2, 8), flat(0x8a6446)); drum.rotation.z = Math.PI / 2; drum.position.y = 1.05;
+  const crank = new Mesh(new BoxGeometry(0.1, 0.6, 0.1), flat(0x2f2f36)); crank.position.set(0.9, 1.25, 0);
+  winch.add(drum, crank); ctx.root.add(winch);
+  ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: winch,
+    colliders: [boxDesc({ x: WINCH.x, z: WINCH.z, hw: 0.85, hd: 0.3, rot: 0, yBottom: TOP, yTop: TOP + 1.3 }, 'wood')], surface: 'wood' });
+  return new Vector3(WINCH.x, TOP + 1.4, WINCH.z);
+}
+
+/**
+ * Builds Sky Reach: four islands (hull tops), the rope bridge, two hover bridges, the fallen bridge, trees, rocks, the
+ * windmill and the winch. Every thing is a registry piece; a hover deck's collider is `active` only while the player
+ * rides the board, and the fallen bridge's only once it is raised.
+ */
+export function buildWorld(ctx: ShardContext, onWinch: () => void): SkyWorld {
+  const random = ctx.app.rng.stream('cosmetic'), rock = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95 });
+  for (const island of ISLANDS) {
+    const mesh = islandMesh(island, random, rock); ctx.root.add(mesh);
+    ctx.piece({ id: `far.island.${island.id}`, name: STRINGS.island, category: 'ground', file: FILE, object: mesh, colliders: [islandCollider(island)], surface: 'grass' });
   }
-  // the fallen bridge hangs from Sunrest's north rim until the winch raises it
-  const frame = spanFrame(FALLEN, shapes, 'rope'), mount = new Group(), hinge = new Group();
-  mount.position.copy(frame.origin); mount.quaternion.copy(frame.quat); mount.add(hinge);
-  hinge.add(mesh(ropeBridge(FALLEN.width, frame.length).geometry(), wood)); hinge.rotation.x = 1.35; ctx.root.add(mount);
-  const bridge = { hinge, raised: 0, target: 0 };
-  ctx.piece({ id: `far.${FALLEN.id}`, name: STRINGS.fallen, category: 'buildings', file: FILE, object: mount, colliders: ropeColliders(frame, FALLEN.width), surface: 'planks',
-    active: () => bridge.raised >= 1 });
-  // the winch: two posts and a drum on Sunrest, by the hinge
-  const top = ISLES[0]?.top ?? 20, w = new Facets(0.05), at = { applyTo: (p: [number, number, number]): V3 => p };
-  for (const s of [-1, 1]) box(w, at, [WINCH.x + s * 0.7, top + 0.6, WINCH.z], 0.12, 0.6, 0.12, [0.3, 0.2, 0.14]);
-  const winchBase = mesh(w.geometry(), lowPoly()), drum = new Group(), d = new Facets(0.05);
-  box(d, at, [0, 0, 0], 0.6, 0.28, 0.28, [0.55, 0.38, 0.22]); box(d, at, [0.75, 0.3, 0], 0.05, 0.35, 0.05, [0.25, 0.25, 0.27]);
-  drum.add(mesh(d.geometry(), lowPoly())); drum.position.set(WINCH.x, top + 1.05, WINCH.z);
-  ctx.root.add(winchBase, drum);
-  ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: winchBase,
-    colliders: [{ kind: 'box', x: WINCH.x, y: top + 0.6, z: WINCH.z, hx: 0.85, hy: 0.6, hz: 0.2, surface: 'planks' }] });
-  ctx.piece({ id: 'far.winch.drum', name: STRINGS.winch, category: 'props', file: FILE, object: drum });
-  const winchAt = new Vector3(WINCH.x, top + 1.1, WINCH.z);
-  const winch: Interactable = { label: STRINGS.raise, position: winchAt, radius: 3,
-    onInteract: () => { if (bridge.target === 0) { bridge.target = 1; winch.label = STRINGS.raising; } } };
-  const sails = windmill(ctx, ISLES[1]?.top ?? 23);
+  const hoverGlow = flat(0x9fe8ff, { emissive: 0x3fb8e0, transparent: true, opacity: 0.6 });
+  const bridge = { lift: 0, pivot: new Object3D() };
+  for (const b of BRIDGES) {
+    const e = bridgeEnds(b), root = new Group(); root.position.set(e.ax, TOP, e.az); root.rotation.y = e.yaw;
+    const isHover = b.kind === 'hover', isFallen = b.kind === 'fallen';
+    const deck = isHover ? hoverDeck(e.length, b.width, hoverGlow) : ropeDeck(e.length, b.width);
+    if (isFallen) { bridge.pivot = deck; deck.rotation.x = 1.35; }
+    root.add(deck); ctx.root.add(root);
+    ctx.piece({ id: b.id, name: isHover ? STRINGS.hoverBridge : isFallen ? STRINGS.fallenBridge : STRINGS.ropeBridge, category: 'buildings', file: FILE, object: root,
+      colliders: deckCollider(b, TOP), surface: isHover ? 'metal' : 'planks',
+      ...(isHover ? { active: () => ctx.app.player?.mode === 'board' } : isFallen ? { active: () => bridge.lift >= 1 } : {}) });
+  }
+  scatter(ctx);
+  const blades = windmill(ctx), winchAt = winchPost(ctx);
+  const winch: Interactable = { label: STRINGS.winchUse, position: winchAt, radius: 3.5, onInteract: onWinch };
   ownPrimitives(ctx.root, ctx.scope);
-  return { bridge, sails, winch, winchAt, drum, hover: { glass, edge, crystal }, shapes };
+  return { bridge, hoverGlow, blades, winch, winchAt };
 }
