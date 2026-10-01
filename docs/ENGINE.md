@@ -113,6 +113,7 @@ const random = ctx.app.rng.stream('cosmetic');   // prop scatter: may stay unsee
 | Event | When |
 |---|---|
 | `app.state` | `{ prev, next }` on every state change |
+| `player.mode` | `{ prev, next }` movement modes; sampled once per player-health update, only on change |
 | `level.loaded`, `level.unloaded` | `{ id }` |
 | `damage.dealt` | `DamageDealt { req, dealt, killed }` after the pipeline applies a hit |
 | `actor.died` | `{ actor, req }` |
@@ -239,6 +240,11 @@ export function ownPrimitives(root: Object3D, scope: Scope): void {
 | `registerDayCycle(clock, scope)`, `registerTrample(field, scope)` | hand a clock or trample field to the engine for this level |
 
 Not built as separate services yet (01 §5 names them): `app.params`, `app.strings`, `app.tiers`, `app.budgets`,
+`app.player?.mode` is the immediate movement mode (`PlayerMode`): `'foot' | 'board' | 'swim' | 'ride'`.
+Riding takes precedence over board, then swimming; wading and falling on foot stay `'foot'`. Use it in a piece's
+`active()` callback to gate a collider. Subscribe to `player.mode` through your scope for change notifications;
+the update-phase event reports the final mode for that frame, so intermediate changes within the frame are coalesced.
+
 `app.analytics`, `app.explore`, `app.practice`. Their APIs are the exports in §13, §22 and §23.
 
 `window.__wildshard` is the typed probe built from these services. The engine dispatches `ws:ready` once on reaching
@@ -1112,7 +1118,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-674 exports, grouped by the module they come from.
+675 exports, grouped by the module they come from.
 
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
 - `./world/terrainField`: `buildTerrain`
@@ -1161,7 +1167,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./ui/icons`: `IconId`, `icon`
 - `./ui/Menu`: `KitEntry`, `GameMenu`, `GameMenuOptions`
 - `./combat/pipeline`: `CombatPipeline`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `HealthAttributes`, `StringKey`
-- `./combat/health`: `PlayerHealth`, `PlayerHealthPorts`
+- `./combat/health`: `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
 - `./combat/effects/EffectService`: `EffectService`
 - `./combat/effects/types`: `sourceMultiplier`, `matchesTag`, `AttributeSet`, `EffectDef`, `EffectTarget`, `EffectId`, `ActiveEffect`, `SourceMulDef`, `CueId`
 - `./combat/cues`: `CombatCues`, `audioCueMap`, `resolveHitStop`, `CombatCueMap`, `CombatCueOpts`, `HitStopProfile`

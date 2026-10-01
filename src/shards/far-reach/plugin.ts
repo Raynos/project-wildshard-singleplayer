@@ -22,7 +22,7 @@ const GUST_ICON = '<svg viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 14h
 /** Sky Reach (E364 B): islands, rope and hover bridges, the war fan, the drift ray, and the fallen-bridge quest. */
 export class FarReachPlugin extends ShardPlugin {
   readonly player = new Vector3(); fan: WarFan | null = null; quest: QuestState | null = null; flags: Flags | null = null; sky: SkyWorld | null = null;
-  manta: Animal | null = null; ray: MantaBrain | null = null; hovering = false; fell = 0;
+  manta: Animal | null = null; ray: MantaBrain | null = null; fell = 0;
   /** Where each walking creature last stood on an island: a walker that strays over the void is put back (only a GUST throws one off). */
   readonly safe = new Map<Animal, Vector3>();
   /** Bodies a GUST threw: they slide until the push dies, and fall off an edge into the clouds. */
@@ -32,8 +32,8 @@ export class FarReachPlugin extends ShardPlugin {
     this.sky = buildSkyWorld(ctx, () => this.isHovering(ctx), () => undefined);
     ctx.game.runtime?.interactables.push(this.sky.winch);
   }
-  /** The hover bridges' gate: is the player riding the hoverboard? (API gap: read off the player port, see E364.) */
-  isHovering(ctx: ShardContext): boolean { return ctx.game.runtime?.world?.player.hover ?? this.hovering; }
+  /** The collider gate reads the immediate mode, including before the update event. */
+  isHovering(ctx: ShardContext): boolean { return ctx.app.player?.mode === 'board'; }
   override kit(ctx: ShardContext): void {
     ctx.rows.weapon(FAN_ROW);
     ctx.rows.species([{ ...BOAR, variants: [...BOAR.variants, { id: 'cliff', label: STRINGS.boar, weight: 0, rarity: 'common', scale: [0.9, 0.9], hp: 50 }] }, SKY_MANTA]);

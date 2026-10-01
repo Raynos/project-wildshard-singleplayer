@@ -3,9 +3,16 @@ import type { Events } from '../events/events';
 import type { Scope } from '../app/scope';
 import type { Actor, CombatTag, DamageRequest, DeathCause, HealthAttributes } from './pipeline';
 
+export type PlayerMode = 'foot' | 'board' | 'swim' | 'ride';
+
+declare module '../events/maps' {
+  interface EventMap { 'player.mode': { prev: PlayerMode; next: PlayerMode } }
+}
+
 export interface PlayerHealthPorts {
   now: () => number; dodging: () => boolean; dodgeGuard: () => boolean;
   position: () => Vector3;
+  mode?: () => PlayerMode;
 }
 /** Health is level-owned. A fall deliberately leaves the six-second regeneration clock unchanged. */
 export class PlayerHealth implements Actor {
@@ -18,8 +25,11 @@ export class PlayerHealth implements Actor {
   private lifecycle: { fading: () => boolean; updateFade: (dt: number) => void } | null = null;
   bindLifecycle(ports: NonNullable<PlayerHealth['lifecycle']>): void { this.lifecycle = ports; }
   private readonly events: Events;
+  private previousMode: PlayerMode;
+  /** Immediate motor state; the change event is sampled during update. */
+  get mode(): PlayerMode { return this.ports.mode?.() ?? 'foot'; }
   private readonly ports: PlayerHealthPorts;
-  constructor(events: Events, ports: PlayerHealthPorts) { this.events = events; this.ports = ports; }
+  constructor(events: Events, ports: PlayerHealthPorts) { this.events = events; this.ports = ports; this.previousMode = this.mode; }
   get alive(): boolean { return this.attributes.health > 0; }
   get state(): readonly CombatTag[] {
     return [...this.effectTags, ...(this.lifecycle?.fading() === true ? ['state.death-fade' as const] : []),
@@ -38,6 +48,8 @@ export class PlayerHealth implements Actor {
     return this.attributes.health <= 0;
   }
   update(dt: number): void {
+    const next = this.mode;
+    if (next !== this.previousMode) { this.events.emit('player.mode', { prev: this.previousMode, next }); this.previousMode = next; }
     const a = this.attributes;
     if (a.health < a.maxHealth && this.ports.now() - this.lastHurt > 6000) a.health = Math.min(a.maxHealth, a.health + dt * 4);
     this.lifecycle?.updateFade(dt);

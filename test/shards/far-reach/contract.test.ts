@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { App, WorldRegistry, TabRegistry, type Actor, type LevelDriver } from '#engine';
+import { App, PlayerHealth, WorldRegistry, TabRegistry, type Actor, type LevelDriver } from '#engine';
 import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '#game';
 import { Vector3 } from 'three';
 import manifest from '#shards/far-reach/manifest';
@@ -44,11 +44,15 @@ describe('far-reach (Sky Reach) plugin contract', () => {
     await app.unloadLevel(); expect(active.size).toBe(0); expect(app.registry.pieces).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
   });
   it('hover bridges collide only while riding the hoverboard; rope bridges always', async () => {
-    const { app, plugin } = await boot();
+    const { app } = await boot();
+    let mode: 'foot' | 'board' | 'ride' = 'foot';
+    const scope = app.levelScope; if (scope === null) throw new Error('Missing level scope');
+    app.registerPlayer(new PlayerHealth(app.events, { now: () => 0, position: () => new Vector3(), dodging: () => false, dodgeGuard: () => false, mode: () => mode }), scope);
     const hover = app.registry.pieces.find((p) => p.id === 'farReach.hover.roost'), rope = app.registry.pieces.find((p) => p.id === 'farReach.rope.fern');
     expect(hover?.active?.()).toBe(false); expect(rope?.active).toBeUndefined();
-    plugin.hovering = true; expect(hover?.active?.()).toBe(true);
-    plugin.hovering = false; expect(hover?.active?.()).toBe(false);
+    mode = 'board'; expect(hover?.active?.()).toBe(true);
+    mode = 'ride'; expect(hover?.active?.()).toBe(false);
+    mode = 'foot'; expect(hover?.active?.()).toBe(false);
     await app.unloadLevel();
   });
   it('the roost and the lantern rock are reachable only by a hover bridge, over a void', () => {
