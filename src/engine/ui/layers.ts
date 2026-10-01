@@ -6,6 +6,8 @@ export interface UiView {
   back: () => void;
   /** Preserve an existing widget's order within its layer. */
   order?: number;
+  /** An embedded view inherits its ancestor's input ownership; it only registers placement/lifetime. */
+  embedded?: boolean;
 }
 export interface UiHandle { readonly active: boolean; readonly top: boolean; dispose: () => void }
 interface Entry { layer: UiLayer; view: UiView; handle: UiHandle; resident: Scope | null; forget: () => void }
@@ -25,19 +27,20 @@ export class UiLayers {
     return this.entries.filter((entry) => entry.resident === null || entry.resident === owner)
       .sort((a, b) => PRIORITY[a.layer] - PRIORITY[b.layer]);
   }
-  get top(): UiLayer { return this.visible().at(-1)?.layer ?? 'hud'; }
+  private input(): Entry[] { return this.visible().filter((entry) => entry.view.embedded !== true); }
+  get top(): UiLayer { return this.input().at(-1)?.layer ?? 'hud'; }
   get blocking(): boolean { return this.top !== 'hud'; }
-  isTop(handle: UiHandle): boolean { return this.visible().at(-1)?.handle === handle; }
+  isTop(handle: UiHandle): boolean { return this.input().at(-1)?.handle === handle; }
   push(layer: UiLayer, view: UiView, scope: Scope): UiHandle {
     let active = !scope.disposed;
-    const isTop = (): boolean => this.visible().at(-1)?.view === view;
+    const isTop = (): boolean => this.input().at(-1)?.view === view;
     const handle: UiHandle = {
       get active() { return active; },
       get top() { return active && isTop(); },
       dispose: () => {
         if (!active) return;
         active = false;
-        this.closedAt = this.now();
+        if (view.embedded !== true) this.closedAt = this.now();
         const at = this.entries.findIndex((entry) => entry.handle === handle);
         if (at !== -1) { const [entry] = this.entries.splice(at, 1); entry?.forget(); }
         this.refresh();
@@ -47,20 +50,20 @@ export class UiLayers {
     const owner = this.owner?.();
     const entry: Entry = { layer, view, handle, resident: owner && scope.belongsTo(owner) ? owner : null,
       forget: () => { /* Assigned below. */ } };
-    if (view.order !== undefined) view.root.style.zIndex = `calc(var(--ws-layer-${layer}) + ${view.order})`;
+    view.root.style.zIndex = `calc(var(--ws-layer-${layer}) + ${view.order ?? 0})`;
     this.entries.push(entry);
     entry.forget = scope.capture('disposers', handle.dispose);
     this.refresh();
     return handle;
   }
   back(): boolean {
-    const entry = this.visible().at(-1);
+    const entry = this.input().at(-1);
     if (entry === undefined) return false;
     entry.view.back();
     return true;
   }
   refresh(): void {
-    const visible = this.visible(), top = visible.at(-1);
+    const visible = this.input(), top = visible.at(-1);
     for (const entry of visible) entry.view.root.inert = entry !== top;
     this.changed?.();
   }

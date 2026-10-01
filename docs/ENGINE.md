@@ -553,12 +553,12 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 
 | Export | What it is |
 |---|---|
-| `UiLayers`, `UiLayer`, `UiView`, `UiHandle` | `app.ui`: layers `'hud' · 'gameMenu' · 'menu' · 'modal' · 'error'`. Pushing a view gives it the one Escape / back handler and the pointer lock; z-order comes from the layer |
+| `UiLayers`, `UiLayer`, `UiView`, `UiHandle` | `app.ui`: layers `'hud' · 'gameMenu' · 'menu' · 'modal' · 'error'`. Pushing a view gives it the one Escape / back handler and the pointer lock; z-order comes from the layer. `UiView.embedded` registers nested map/Debug placement and lifetime without blocking, receiving back, or inerting its ancestor menu |
 | `uiScope`, `mountUi` | a UI scope and mount helper for engine-side views |
 | `isDev`, `setDev`, `onDev` | the saved Developer switch, its current state and live subscription (unsubscribe returned). The game reveals hidden title cards through this switch. |
 | `hudSlots`, `HudBand`, `DiscSpot`, `TouchRelabel` | the one shared HUD. Bands `'band.1'` … `'band.6'`; disc spots `'r0' · 'r1' · 'r2' · 'r3' · 'aim' · 'up0' · 'lean-l' · 'lean-r' · 'edge-r' · 'edge-l' · 'lock' · 'jump'` |
 | `HudVerbs`, `VerbSlotOpts` | the scoped verbs on `ctx.hud` |
-| `TabRegistry`, `TabId`, `TabSpec`, `TabFragment` | the Bag / menu tab registry the game builds on |
+| `TabRegistry`, `TabId`, `TabSpec`, `TabFragment` | the Bag / menu tab registry the game builds on; game-owned GEAR / FINDS / PACK / FEATS renderers register TabSpecs and ordered fragments. Menu options carry Settings capabilities rather than Bag kit / skins / tools / pack data |
 | `IconId`, `icon` | the icon set |
 | `BossBar`, `EliteBar` | the shared encounter bars (decision 91: one boss bar look) |
 | `HUD`, `GameMenu`, `GameMenuOptions`, `FullMap`, `FullMapPoi`, `MapQuest`, `MapMark`, `MapPoi`, `MapOverlay`, `MinimapPalette`, `FirstHints`, `Feedback`, `KitEntry` | **ports**: the legacy HUD, menu and map types `runtime.play` hands over |

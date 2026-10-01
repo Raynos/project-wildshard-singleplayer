@@ -1,3 +1,5 @@
+import { app } from '../app/runtime';
+import type { UiHandle } from './layers';
 import { uiScope } from './ownership';
 import type { Scope } from '../app/scope';
 import { engineString } from '#engine/strings';
@@ -33,6 +35,7 @@ const saveOpen = (s: ReadonlySet<string>): void => { try { savedStorage.setItem(
 const make = (cls: string, text = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (text) e.textContent = text; return e; };
 
 export interface DebugMenu {
+  readonly layer: UiHandle;
   applies: (c: DebugCtx) => void;
   /** re-read the readouts that can be seen (E172) */
   paint: () => void;
@@ -108,6 +111,7 @@ function renderRow(r: DebugRow, onPick: (id: string) => void, scope: Scope): Ren
 
 export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) => void; scope?: Scope } = {}): DebugMenu {
   const scope = opts.scope?.child('debug') ?? uiScope('debug');
+  const layer = app.ui.push('menu', { root: card, embedded: true, order: 0, back: () => undefined }, scope);
   const onPick = opts.onPick ?? ((): void => undefined);
   const open = loadOpen();
   const byId = new Map<string, HTMLElement>();
@@ -177,6 +181,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
   scope.listen(filter, 'input', repaint);
   repaint();
   return {
+    layer,
     applies: (c) => { ctx = c; for (const s of sections) for (const r of s.rows) r.r.rebuild(); repaint(); paintAll(); },
     paint: paintAll,
     row: (id) => byId.get(id),

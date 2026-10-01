@@ -1,3 +1,6 @@
+import { app } from '../app/runtime';
+import type { UiHandle } from './layers';
+import type { Scope } from '../app/scope';
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 /**
@@ -59,7 +62,9 @@ export class FullMap {
   private ctx: CanvasRenderingContext2D;
   private fog = document.createElement('canvas');
   private fc = ctx2d(this.fog);
-  private open = false;
+  private layer: UiHandle | null = null;
+  private openScope: Scope | null = null;
+  private get open(): boolean { return this.layer?.active === true; }
   // view: world point at the frame centre + zoom
   private cx = 0; private cz = 0; private _zoom = 1;
   private pointers = new Map<number, { x: number; y: number }>();
@@ -99,7 +104,7 @@ export class FullMap {
     const m = this.minimap.root;
     m.style.pointerEvents = 'auto';
     m.style.cursor = 'pointer';
-    m.style.zIndex = 'calc(var(--ws-layer-hud) + 6)'; // above the phone's full-screen touch layer (.ws-touch, z-index 5), which would otherwise eat the tap
+    app.ui.push('hud', { root: m, embedded: true, order: 6, back: () => undefined }, this.scope); // above the touch layer, with no overlay input owner
     this.scope.listen(m, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); });
     this.scope.listen(m, 'pointerup', (e) => { e.stopPropagation(); onTap(); });
   }
@@ -125,14 +130,15 @@ export class FullMap {
   setZoom(z: number): void { const r = this.canvas.getBoundingClientRect(); this.zoomTo(z, { x: r.left + r.width / 2, y: r.top + r.height / 2 }); }
   show(): void {
     if (this.open) return;
-    this.open = true;
+    this.openScope = this.scope.child('open');
+    this.layer = app.ui.push('gameMenu', { root: this.root, embedded: true, order: 0, back: () => { this.hide(); } }, this.openScope);
     this.root.style.display = 'block';
     this.cx = 0; this.cz = 0; this._zoom = 1;
     this.fit();
     this.onToggle?.(true);
     this.onZoom?.(1);
   }
-  hide(): void { if (!this.open) return; this.open = false; this.root.style.display = 'none'; this.pointers.clear(); this.onToggle?.(false); }
+  hide(): void { if (!this.open) return; this.layer?.dispose(); this.layer = null; this.openScope?.dispose(); this.openScope = null; this.root.style.display = 'none'; this.pointers.clear(); this.onToggle?.(false); }
 
   private dpr = 1;
   /** size the canvas to its frame (call after the frame resizes) */
