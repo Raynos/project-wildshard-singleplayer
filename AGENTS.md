@@ -171,6 +171,15 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 - Moving a plan: fix the links to it in docs and code comments; `docs/tasks/ASKS.md` rows keep the
   old path (they are history).
 
+## Council rounds (Jake, E361, 2026-10-01)
+
+When Jake says "do N council rounds on X", it means the protocol in [docs/process/COUNCIL.md](docs/process/COUNCIL.md):
+- Each round has three fresh reviewer seats: Codex `codex exec`, plus two Claude subagents.
+- The council keeps a frozen ledger, one bar for what counts as a finding, one register of findings, a review surface
+  that shrinks each round, and a scenario battery that only grows.
+- **Four rounds at most, always.** Never loop "until two rounds come back clean": two clean rounds may end a council
+  early, but never extend it. After the last round, open items go to Jake as decisions, one recommended answer each.
+
 ## Version control
 
 - Commit early and often with small commits, and `scripts/push-main.sh` after every commit —
