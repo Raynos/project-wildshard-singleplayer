@@ -1,8 +1,8 @@
 # Shards — Driftwood Isle, Pine Hollow, Nalati Grasslands (and how to add a fourth)
 
 The demo runs one Wildshard *chunk* (we call an authored chunk a **shard**) at a time. Every shard is a 500 m × 500 m
-floating slab with its own biome, built by the same engine from a `ChunkDef` (`src/chunks/ChunkDef.ts`) and listed in
-`CHUNKS` (`src/chunks/registry.ts`). Shards are picked on the title deck (or with `?chunk=<slug>`), and the page reloads
+floating slab with its own biome, built by the same engine from a `ChunkDef` (`src/game/shard/manifest.ts`) and listed in
+`CHUNKS` (`src/game/shard/registry.ts`). Shards are picked on the title deck (or with `?chunk=<slug>`), and the page reloads
 to switch — chunks are not adjacent or streamed.
 
 **The deck order is `CHUNKS`' order:** Driftwood Isle first (the default, `DEFAULT_CHUNK`; the user's rule PH-U19), then
@@ -19,7 +19,7 @@ look of its own.
 
 | | Driftwood Isle | Pine Hollow | Nalati Grasslands |
 |---|---|---|---|
-| Def | `src/chunks/driftwood-isle.ts` | `src/chunks/pine-hollow.ts` + `pineHollowLayout.ts` | `src/chunks/nalati-grasslands.ts` + `nalatiLayout.ts` |
+| Def | `src/shards/driftwood-isle/manifest.ts` | `src/shards/pine-hollow/manifest.ts` + `pineHollowLayout.ts` | `src/shards/nalati-grasslands/manifest.ts` + `nalatiLayout.ts` |
 | What | A small island in a bright ocean: the pier, a sailboat, the hut, a ring shrine, the wreck in the cove | A boreal pine forest round a sheltered hollow: the ranger's cabin, a still pond under a granite ridge, the old-growth, the mill hamlet | A high Tian Shan steppe: the braided Kunes, the nomad camp, the golden bowl of the Sky Grassland, Snow Lotus Valley in the snow ring |
 | Style | **Faceted low-poly toon** (`style: 'lowpoly'`) | **Photoreal PBR** (`style` omitted = `'pbr'`) | **Painterly** (`style: 'painterly'`) |
 | Deck | first, the default | second (graduated) | third (EARLY ACCESS) |
@@ -53,7 +53,7 @@ look of its own.
   standing stones, the waystones, the dam and the canoe (`world/PineLandmarks.ts`; the image-to-3D hero props in
   `public/assets/models/pine-hollow-hero/`).
 - **Systems:** the ranger's lantern quest *The Warden's Hollow*, the lodge's rotating contracts, the trader and the
-  miller, amber resin / carved tokens / secrets, the night thralls (`src/pinehollow/quest/`); the Antler King
+  miller, amber resin / carved tokens / secrets, the night thralls (`src/shards/pine-hollow/quest/`); the Antler King
   (`pinehollow/antlerKing.ts`, `kingModel.ts`, on the engine's `game/Boss.ts`) and four elites (`pinehollow/elites.ts`,
   `game/Elite.ts`); generated, rig-baked creatures in PBR coats with rarity and legendaries (`entities/pineCreatures.ts`,
   `pineCoats.ts`, `pineCreatureRigs.ts`); the small life — ravens, the owl, a woodpecker, hares (`pinehollow/life/`);
@@ -63,14 +63,14 @@ look of its own.
 - **Sound:** theme 1 (pine calm / tension) + calm-night, the King's three stems and the dawn sting; zoned beds and
   interior reverb (`audio/ForestAmbience.ts`); the generated one-shot sprite and the NPC barks (`audio/PineHollowSfx.ts`,
   `public/assets/sfx/pine-hollow/`).
-- **Code:** `src/chunks/pine-hollow.ts` + `pineHollowLayout.ts` (every site), `src/pinehollow/` (installed from
+- **Code:** `src/shards/pine-hollow/manifest.ts` + `pineHollowLayout.ts` (every site), `src/pinehollow/` (installed from
   `main.ts`), the `Pine*` modules in `src/world/`. Captures: `scripts/pine-hollow-views.mjs` (the 9-angle anchors),
   `scripts/pine-hollow-perf.mjs` (the phone / desktop ruler).
 
 ### Nalati Grasslands — painterly
 
 - **Look:** every mesh on the painterly shading (`world/painterly.ts`); a painted panorama sky + a day clock, a cloud sea,
-  fog, the grade and the zone tints (`src/nalati/look/`); its own spruce factory (`trees.factory: 'spruce'`); three zones,
+  fog, the grade and the zone tints (`src/shards/nalati-grasslands/look/`); its own spruce factory (`trees.factory: 'spruce'`); three zones,
   each in its own colour (the green valley, the golden bowl, the snow ring).
 - **Systems:** its own kit — bow, sabre, spear (`player/nalatiKit.ts`) — and riding (`nalati/ride.ts`); the quest core
   with three chapters (`game/quest/nalati.ts`, `nalati/adventure.ts`); two bosses, the Golden King in his kurgan
@@ -78,7 +78,7 @@ look of its own.
   storm (`src/nalati/`); generated creature hulls rig-baked to the species' skeletons (`entities/creatureRigBake.ts`,
   `public/assets/nalati/models/`).
 - **Sound:** the Kazakh score and Nalati's sound set (`nalati/sound.ts`).
-- **Code:** `src/nalati/`, `src/world/nalati/`, `src/ui/NalatiHUD.ts`, `src/dev/nalati-*.ts`. (On main since v0.3.0;
+- **Code:** `src/nalati/`, `src/shards/nalati-grasslands/world/`, `src/ui/NalatiHUD.ts`, `src/dev/nalati-*.ts`. (On main since v0.3.0;
   the Pine Hollow branch picks it up when it merges main in.)
 
 ## What the shards share (the engine)
@@ -98,11 +98,11 @@ The pipelines take the shard as an argument: `scripts/blender/build.sh <slug>/<t
    explain each one; the table below says what each drives). Keep every coordinate in a `<slug>Layout.ts` beside it.
 3. Art for the deck: a 640×360 `src/chunks/thumbs/<slug>.jpg` (no crossbow in frame) + the portrait and landscape hero
    backdrops. Until it is authored it can sit in the deck as a teaser (`src/chunks/placeholders.ts`).
-4. Add the export to `CHUNKS` in `src/chunks/registry.ts` — **after** the three (Driftwood stays first) — with
+4. Add the export to `CHUNKS` in `src/game/shard/registry.ts` — **after** the three (Driftwood stays first) — with
    `experimental: true` or `earlyAccess: true` until it graduates.
 5. Bake it: `scripts/bake-chunk.mjs` (the terrain, fingerprinted), `scripts/bake-navmesh.mjs <slug>`, then the byte and
    pack tables (`scripts/bake-packs.mjs`).
-6. Its own nouns on the loading screen: a `SHARD_STEPS` entry in `src/boot/steps.ts` (each step names what it really
+6. Its own nouns on the loading screen: a `SHARD_STEPS` entry in `src/engine/boot/steps.ts` (each step names what it really
    builds there; `test/boot-plan.test.ts`).
 7. Its game layer: an adventure (`ADVENTURES` in `game/quest/Adventure.ts`, or a `src/<shard>/` installer called from
    `main.ts` as Pine Hollow and Nalati do), an achievements table (`TABLES` in `game/achievements.ts`), a compendium
@@ -116,7 +116,7 @@ creatures, dressing or a new style are engine work (below).
 
 ## What is fixed by the Wildshard fundamentals
 
-These live in `src/core/config.ts` and `src/chunks/terrain.ts` and are **not** per shard:
+These live in `src/engine/core/config.ts` and `src/engine/world/terrainField.ts` and are **not** per shard:
 
 | Rule | Where it is enforced |
 |---|---|
@@ -126,7 +126,7 @@ These live in `src/core/config.ts` and `src/chunks/terrain.ts` and are **not** p
 | Each road reaches ≥ 50 m into the chunk (we use 60) | `ROAD_LENGTH` |
 | Roads are level with no-man's-land (y = 0) at the boundary and ramp up inside | `buildTerrain().heightAt` |
 | Terrain mesh resolution 256² | `TERRAIN_RES` |
-| Boundary wall / no-man's-land warning at the edges | `src/world/Boundary.ts`, HUD |
+| Boundary wall / no-man's-land warning at the edges | `src/engine/world/Boundary.ts`, HUD |
 
 `buildTerrain()` applies the road levelling on top of *any* landscape you write, so a shard cannot
 break the contract by accident — but keep the first segment of the four entry trails exactly as in
@@ -141,7 +141,7 @@ the template so the dirt texture and prop placement follow the road.
 | `treeCount` | `Forest` places at most this many trees | `TREE_COUNT` live binding |
 | `biome`, `blurb`, `thumbnail`, `heroPortrait`, `heroLandscape` | the title deck (the blurb is the card's tooltip: one pitch in the house voice) | |
 | `experimental`, `earlyAccess` | the deck's EXPERIMENTAL band / EARLY ACCESS tag | dropped when the shard graduates |
-| `terrain` | `heightAt/normalAt/splatAt/trailDistance/cabinMask/pondMask/waterLevel`, `TRAILS`, `CABIN_SITES`, `POND` re-exported by `src/world/Heightfield.ts` | built by `buildTerrain(seed, spec)` |
+| `terrain` | `heightAt/normalAt/splatAt/trailDistance/cabinMask/pondMask/waterLevel`, `TRAILS`, `CABIN_SITES`, `POND` re-exported by `src/engine/world/Heightfield.ts` | built by `buildTerrain(seed, spec)` |
 | `terrain` spec → `landscape(x, z, noise)` | raw height before roads/pads/trails/pond | use the seeded `noise.n` / `noise.n2` |
 | `terrain` spec → `trails` | trail beds, dirt splat, prop placement (`Props`), tree exclusion, animal placement | polylines in metres |
 | `terrain` spec → `cabinSites` | `Cabins` builds one log cabin per site on a flattened pad | exactly what `Cabin.ts` expects: `{x, z, rot}` |
@@ -150,11 +150,11 @@ the template so the dirt texture and prop placement follow the road.
 | `assets.groundLayers` | the four PBR sets blended by `splat` (DataArrayTexture) | ids under `public/assets/tex/` |
 | `assets.groundTints` | per-layer albedo multiplier in the terrain shader | linear RGB |
 | `assets.slabRock` | PBR set for the slab walls | |
-| `trees.factory`, `trees.set` | which tree builder `bootstrap()` uses (`TREE_FACTORIES`), and the Blender species set it plants | `'pine'` (Pine Hollow; `set: 'pine-hollow-trees'`), `'spruce'` (Nalati) or `'none'` (no `Forest` trees: Driftwood's palms are their own builder, `src/world/Palms.ts`) |
+| `trees.factory`, `trees.set` | which tree builder `bootstrap()` uses (`TREE_FACTORIES`), and the Blender species set it plants | `'pine'` (Pine Hollow; `set: 'pine-hollow-trees'`), `'spruce'` (Nalati) or `'none'` (no `Forest` trees: Driftwood's palms are their own builder, `src/shards/driftwood-isle/world/Palms.ts`) |
 | `trees.bark`, `trees.twigAtlas` | trunk PBR set, twig atlas folder for the baked branch cards | |
 | `trees.noun` | "2,600 pines" on the title screen | |
 | `forest.*` | candidate spacing, clearing noise, slope limit, foliage HSL tint, big-variant share | see `Forest.place()` |
-| `fauna[]` | `AnimalManager` herd plans: kind, count, optional anchor ring, canopy vs clearing, trail band, `variants` | `kind` is any registered species (`src/entities/species/`: deer, boar, elk, bear, crab, monkey, sailor, captain); `FaunaKind` is `'deer' \| 'boar'` widened to any string, checked against the registry by `test/chunks.test.ts` |
+| `fauna[]` | `AnimalManager` herd plans: kind, count, optional anchor ring, canopy vs clearing, trail band, `variants` | `kind` is any registered species (`src/engine/entities/species/`: deer, boar, elk, bear, crab, monkey, sailor, captain); `FaunaKind` is `'deer' \| 'boar'` widened to any string, checked against the registry by `test/chunks.test.ts` |
 | `sky.hdri` | HDRI for IBL + background; the sun direction is its brightest pixel | stems in `public/assets/hdri/` |
 | `sky.sunColor/sunIntensity/envIntensity/bgIntensity` | CSM sun, environment and background strength | |
 | `sky.fogSunColor`, `sky.cloudSunColor`, `sky.hemi*` | fog in-scatter tint, cloud layer tint, hemisphere fill | |
@@ -164,7 +164,7 @@ the template so the dirt texture and prop placement follow the road.
 | `spawn` | where the player stands on enter and respawn; `?x= ?z= ?yaw=` override | |
 | `style` | `'pbr'` (default: textured splat terrain, PBR slab — Pine Hollow), `'lowpoly'` (Driftwood Isle: no textures at all — `Terrain.ts` builds flat-shaded, vertex-coloured facets by height/slope) or `'painterly'` (Nalati) | every lit thing in a lowpoly shard is `MeshStandardMaterial({ flatShading, vertexColors })` on non-indexed geometry |
 | `weapon` | `'crossbow'` (default) or `'sword'` — the first-person weapon main.ts hands the player | |
-| `ocean` | open water over the whole shard: `level` (sea surface, m), `shallowColor` / `deepColor` (linear RGB albedo — keep them dark, the midday sun + sky here add up to ~3×), `deepDepth` (m below the surface at which the water is fully deep) | `src/world/Ocean.ts` (faceted, animated, depth-coloured, foam band) replaces `Water`; `Boundary` / `Horizon` sit on the surface and draw islets instead of ridges; pass `oceanLevel: ocean.level` to `buildTerrain` so `waterLevel()` agrees |
+| `ocean` | open water over the whole shard: `level` (sea surface, m), `shallowColor` / `deepColor` (linear RGB albedo — keep them dark, the midday sun + sky here add up to ~3×), `deepDepth` (m below the surface at which the water is fully deep) | `src/shards/driftwood-isle/world/Ocean.ts` (faceted, animated, depth-coloured, foam band) replaces `Water`; `Boundary` / `Horizon` sit on the surface and draw islets instead of ridges; pass `oceanLevel: ocean.level` to `buildTerrain` so `waterLevel()` agrees |
 | `terrain` spec → `oceanLevel` | `waterLevel()` for an open-water shard (no pond dish) | the entry roads are still forced to y = 0, so a level a little above 0 makes them submerged sandbars under the piers |
 
 ## Tuning tips
@@ -186,23 +186,23 @@ the template so the dirt texture and prop placement follow the road.
 
 - **A new style** — `style` picks the terrain and material path (`'pbr'`, `'lowpoly'`, `'painterly'`); a fourth look is a
   new branch in `Terrain.ts` / `Sky.ts` and its own shading module, the way `stylize.ts` and `painterly.ts` are.
-- **New trees** — `trees.factory` picks a builder in `TREE_FACTORIES` (`src/core/bootstrap.ts`): `'pine'` (the baked
+- **New trees** — `trees.factory` picks a builder in `TREE_FACTORIES` (`src/engine/core/bootstrap.ts`): `'pine'` (the baked
   card + impostor LOD; with `trees.set` it plants a Blender species set, `world/treeSet.ts`), `'spruce'` (Nalati) or
   `'none'` (Driftwood's palms are their own builder, `world/Palms.ts`).
-- **A new animal** — one file in `src/entities/species/<kind>.ts` ending in `registerSpecies({...})` (the contract is
-  `src/entities/species/registry.ts`); a def names it by `kind` in `fauna[]`. Generated hulls go through the rig bake.
+- **A new animal** — one file in `src/engine/entities/species/<kind>.ts` ending in `registerSpecies({...})` (the contract is
+  `src/engine/entities/species/registry.ts`); a def names it by `kind` in `fauna[]`. Generated hulls go through the rig bake.
 - **Grass, undergrowth, props, particles** (`Grass.ts`, `Undergrowth.ts`, `Props.ts`, `Particles.ts`) use the shard's
   seed, terrain and pond, but their *content* is forest dressing; Driftwood and Nalati build their own
   (Nalati: `world/nalati/dressing/`).
 - **The cabins** are the same log cabins on every non-ocean PBR shard (a def chooses only where, `cabinSites`); Pine
   Hollow adds the hamlet's buildings on the same kit.
-- **The attract-mode camera path** (`src/core/Tour.ts`) follows Pine Hollow's trails.
+- **The attract-mode camera path** (`src/engine/core/Tour.ts`) follows Pine Hollow's trails.
 - **A shard's code as one module** (`ShardModule { build, look, quest, audio, fauna, loadSteps }`, ENGINE-FIT E5) is not
   built yet: each shard still branches in `main.ts` (moved to PINE-HOLLOW-FOLLOWUPS by PH-U32, archived `project/archive/2026-09-30-pine-hollow-followups.md`).
 
 ## Driftwood Isle — the low-poly pieces
 
-The second shard (`src/chunks/driftwood-isle.ts`, `style: 'lowpoly'`, `ocean`) is built from
+The second shard (`src/shards/driftwood-isle/manifest.ts`, `style: 'lowpoly'`, `ocean`) is built from
 flat-shaded vertex-coloured modules, each one mesh, each exposing `colliders` for
 `player.colliders` and (where you can stand on it) `floorHeightAt(x, z)` for `player.platforms`.
 `src/dev/driftwood.ts` is the reference wiring; main.ts mirrors it under `if (chunk.ocean)`.

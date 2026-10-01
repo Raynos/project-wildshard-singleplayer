@@ -3,7 +3,7 @@
 // .claude/skills/mockup-to-model ▸ 4 and scripts/blender/driftwood-isle/fp-arms/gate.mjs run them). Loads a rigged GLB
 // (public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb), builds the skeleton the way the game does
 // (the joints at their GLB positions, `updateMatrixWorld(true)` then `new THREE.Skeleton` computing the inverses), poses
-// every clip of src/pinehollow/kingRig.ts at sampled times through the SAME functions the game's animate
+// every clip of src/shards/pine-hollow/combat/kingRig.ts at sampled times through the SAME functions the game's animate
 // calls (clipPose → applyKingPose), skins the mesh on the CPU (three's applyBoneTransform) and measures. An unmeasured
 // check is never a pass: each check reports its numbers, and an absent input is `unevaluated`.
 //
@@ -33,7 +33,7 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import * as THREE from 'three';
-import { KING_BONES, KING_LIMBS, KING_CLIP_NAMES, KING_GAITS, kingRest, clipPose, applyKingPose, newPose } from '../src/pinehollow/kingRig.ts';
+import { KING_BONES, KING_LIMBS, KING_CLIP_NAMES, KING_GAITS, kingRest, clipPose, applyKingPose, newPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);

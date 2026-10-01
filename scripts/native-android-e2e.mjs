@@ -85,7 +85,7 @@ async function tapEl(page, selector) {
   adb('shell', 'input', 'tap', String(Math.round(r.x * r.dpr)), String(Math.round(r.y * r.dpr)));
 }
 
-/** the uncaught-exception modal (src/ui/ErrorModal.ts) is on screen — any step that shows it fails */
+/** the uncaught-exception modal (src/engine/ui/ErrorModal.ts) is on screen — any step that shows it fails */
 const errorShown = (page) => page.evaluate(() => { const e = document.querySelector('#wserr'); return e !== null && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0; });
 const menuOpen = (page) => page.evaluate(() => { const m = document.querySelector('.ws-gmenu'); return m !== null && getComputedStyle(m).pointerEvents !== 'none' && getComputedStyle(m).opacity !== '0'; });
 const launch = () => adb('shell', 'am', 'start', '-W', '-n', `${PKG}/.MainActivity`);
@@ -111,7 +111,7 @@ try {
   // the title's buttons exist under the loading panel, so "booted" = the panel (.ws-load) is gone and ENTER WORLD is laid out
   const title = await waitFor(() => page.evaluate(() => document.querySelector('.ws-load') === null && (document.querySelector('.ws-menu-enter')?.getBoundingClientRect().width ?? 0) > 0), 600_000, 2000);
   const webgl2 = await page.evaluate(() => document.createElement('canvas').getContext('webgl2') !== null);
-  // after the boot the updater asks its channel for a newer bundle (src/native/ota.ts) — expected, and it fails offline
+  // after the boot the updater asks its channel for a newer bundle (src/engine/native/ota.ts) — expected, and it fails offline
   const requests = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => e.name).filter((n) => !n.startsWith('https://localhost')));
   const otaChecks = requests.filter((n) => n.startsWith('https://wildshard-updates.vercel.app/'));
   const external = requests.filter((n) => !otaChecks.includes(n));

@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ProgressView } from '../src/boot/plan';
+import type { ProgressView } from '#engine/boot/plan';
 
 const capture = vi.hoisted(() => vi.fn());
 const inbox = vi.hoisted(() => vi.fn());
-vi.mock('../src/telemetry/browserErrors', () => ({ deliverBrowserError: capture }));
-vi.mock('../src/telemetry/bootInbox', () => ({ reportBootInterruption: inbox }));
+vi.mock('#engine/telemetry/browserErrors', () => ({ deliverBrowserError: capture }));
+vi.mock('#engine/telemetry/bootInbox', () => ({ reportBootInterruption: inbox }));
 
 const listeners = new Map<string, (event: { persisted?: boolean }) => void>();
-const boot = () => { vi.resetModules(); return import('../src/boot/nineBootTrace'); };
+const boot = () => { vi.resetModules(); return import('#engine/boot/nineBootTrace'); };
 const progress = (step: ProgressView['step'], setup: number, done = false): ProgressView => ({
   download: 1, setup, done, error: null, step, label: step, detail: '', bytes: null,
   bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, doneCount: 0, rows: [],

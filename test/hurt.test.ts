@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deathLine, respawnWhere } from '../src/ui/HurtArc';
+import { deathLine, respawnWhere } from '#engine/ui/HurtArc';
 
 const FOREST = respawnWhere({ slug: 'pine-hollow' });
 const ISLAND = respawnWhere({ slug: 'driftwood-isle', ocean: { level: 0 } });

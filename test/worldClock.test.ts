@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DayClock } from '../src/world/DayClock';
-import { dayClockClock, phaseOfHour } from '../src/world/WorldClock';
+import { DayClock } from '#engine/world/DayClock';
+import { dayClockClock, phaseOfHour } from '#engine/world/WorldClock';
 
 describe('WorldClock over DayClock (NALATI-MERGE F8)', () => {
   it('Settings ▸ Time of day parks the clock at a pick and "live" lets it run on', () => {

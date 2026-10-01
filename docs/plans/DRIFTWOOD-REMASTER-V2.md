@@ -27,7 +27,7 @@ sheets), X3 batch 3 + board, E55 settings, X5 stage-1 parity, 0.5 hero re-captur
 | V-M2 | The wreck hero asset: a manual Blender pass on the 7.7 k-tri TRELLIS shell (solid planks, ≤ 3 k LOD0 + ≤ 1 k LOD1) | asset-agent | open |
 | V-M3 | Gull breadcrumb flights toward the unvisited POIs (`gulls.breadcrumb`) | model-agent | open |
 | V-P1 | Perf: the four Driftwood poses re-measured after V-B1 / V-G1; the iPhone meter ≥ 55 fps in each shard (PLAY-PERF's finish line) | PLAY-PERF owner + the user's phone | open (after V-B1; V-G1 is dropped) |
-| V-X1 | Loading screen honesty: Driftwood's steps named for Driftwood (no "HDRI → PMREM", "Pine branch cards", "Cabins", "Crossbow"), the code bundle counted in DOWNLOAD | LOAD-PERF owner | **half**: the step names are done (PH-0.4 `cfe423f2`, SHARD_STEPS); the code bundle in DOWNLOAD not found on main (`src/boot/bytes.ts` counts assets and bundled art only) |
+| V-X1 | Loading screen honesty: Driftwood's steps named for Driftwood (no "HDRI → PMREM", "Pine branch cards", "Cabins", "Crossbow"), the code bundle counted in DOWNLOAD | LOAD-PERF owner | **half**: the step names are done (PH-0.4 `cfe423f2`, SHARD_STEPS); the code bundle in DOWNLOAD not found on main (`src/engine/boot/bytes.ts` counts assets and bundled art only) |
 
 ## Decisions carried over
 

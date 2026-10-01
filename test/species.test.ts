@@ -1,8 +1,8 @@
-// src/entities/species/* — the registry contract every huntable species file must satisfy, and the seeded variant roll.
+// src/engine/entities/species/* — the registry contract every huntable species file must satisfy, and the seeded variant roll.
 import { describe, expect, it } from 'vitest';
 import { loadSpecies } from './species';
-import { RARITY_ORDER, hasSpecies, rollVariant, speciesDef, speciesKinds, variantDef, variantMods, type SpeciesDef } from '../src/entities/species/registry';
-import { Rng } from '../src/core/rng';
+import { RARITY_ORDER, hasSpecies, rollVariant, speciesDef, speciesKinds, variantDef, variantMods, type SpeciesDef } from '#engine/entities/species/registry';
+import { Rng } from '#engine/core/rng';
 
 loadSpecies();
 const ALL = (): SpeciesDef[] => speciesKinds().map(speciesDef);

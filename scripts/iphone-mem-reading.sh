@@ -10,7 +10,7 @@
 #
 # Runs, each written to progress/b8/phone-<run>-<time>.jsonl and summarised on stdout:
 #   1. pine→nalati (href)     the E263 flow exactly: Pine Hollow loaded, then Nalati by an assigned navigation
-#   2. pine→nalati (replace)  the same through the game's own shard switch (src/shard/switch.ts: location.replace, B8)
+#   2. pine→nalati (replace)  the same through the game's own shard switch (src/game/travel/switch.ts: location.replace, B8)
 #   3. nalati fps             Nalati re-loaded, the world entered, renderer frames / wall time per 10 s for --fps seconds
 #                             (the thermal fall-off after 1–2 min shows in the later windows)
 set -euo pipefail

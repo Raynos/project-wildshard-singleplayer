@@ -11,7 +11,7 @@ TRAINING_DUMMY_SCALE = 1.8 / 2.65. `--stage normalize` stops after orienting and
 Cleanup: weld, drop crumbs, delete the inner shells the narrow-band remesh leaves inside every closed part (they are
 invisible and would double the triangle count), then decimate to the phone budget (--faces, 45k by default).
 
-The skeleton, by the exact names src/practice/TrainingDummy.ts reads (DUMMY_BONE_NAMES):
+The skeleton, by the exact names src/engine/practice/TrainingDummy.ts reads (DUMMY_BONE_NAMES):
   Root (the post foot, at the origin)
     Pelvis > Spine > Chest > Neck > Head
                      Chest > {Left,Right}Shoulder > ...UpperArm > ...ForeArm > ...Hand

@@ -4,7 +4,7 @@ treegen.py — Pine Hollow's tree species as plain geometry (PINE-HOLLOW-REMASTE
 Pure numpy, no bpy: build_trees.py turns these into Blender objects (for the Cycles impostor bake and the lineup) and into
 the GLB the game loads. Game space: metres, +Y up, the tree's root at the origin.
 
-Every variant has five parts, one per slot of the game's forest LOD (src/world/Forest.ts):
+Every variant has five parts, one per slot of the game's forest LOD (src/engine/world/forest/Forest.ts):
   trunk    bark: the trunk + the limbs (hi, within the tier's treeHiDist)
   trunkLo  bark: the trunk + the big limbs, fewer sides (lo, out to treeLoDist)
   hi       branch cards: needle / leaf sprays, bent (2 segments) — the crown up close
@@ -26,7 +26,7 @@ import numpy as np
 UP = np.array([0.0, 1.0, 0.0])
 PAD = 3.0 / 2048.0
 
-# bark array layers (src/world/TreeFactory.ts BARK_LAYERS — same order)
+# bark array layers (src/engine/world/TreeFactory.ts BARK_LAYERS — same order)
 BARK_PINE, BARK_FIR, BARK_GIANT, BARK_BIRCH, BARK_SNAG = 0, 1, 2, 3, 4
 # card atlas cells
 CELL_PINE, CELL_FIR, CELL_BIRCH, CELL_DEAD = 0, 1, 2, 3
@@ -709,7 +709,7 @@ def pine_sapling(name, height, r0, seed):
 
 
 # ------------------------------------------------------------------------------------------------ the set
-# (name, species, height m, trunk radius m, builder) — the game's placement (src/world/placement.ts TREE_SPECS_V2) plants
+# (name, species, height m, trunk radius m, builder) — the game's placement (src/engine/world/forest/placement.ts TREE_SPECS_V2) plants
 # by these heights / radii in this order; build_trees.py writes them to trees.json and test/tree-species.test.ts checks.
 SPECS = [
     ('pine-a', 'pine', 22.0, 0.42, lambda: scots_pine('pine-a', 22.0, 0.42, 11)),

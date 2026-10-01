@@ -1,11 +1,11 @@
-// E347: place()'s weld (src/models/weld.ts), the merge across several models Pine Hollow's homestead is drawn with — a
+// E347: place()'s weld (src/engine/models/weld.ts), the merge across several models Pine Hollow's homestead is drawn with — a
 // unit merged per material, band and key with its depth proxied per band, the always-drawn meshes welded across the
 // copies (one batch, a view per copy), the bands culled by distance and the hosted copies following their unit (WeldCull).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { UnitParts, WeldBatch, WeldView, nearProxy, weldAcross, type WeldPart } from '../src/models/weld';
-import { WeldCull } from '../src/models/cull';
-import { SHADOW_LAYER } from '../src/core/shadowLayer';
+import { UnitParts, WeldBatch, WeldView, nearProxy, weldAcross, type WeldPart } from '#engine/models/weld';
+import { WeldCull } from '#engine/models/cull';
+import { SHADOW_LAYER } from '#engine/core/shadowLayer';
 
 const box = (x: number): THREE.BufferGeometry => new THREE.BoxGeometry(1, 1, 1).translate(x, 0, 0).toNonIndexed();
 const count = (m: THREE.Mesh): number => m.geometry.getAttribute('position').count;

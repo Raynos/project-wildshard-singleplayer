@@ -1,7 +1,7 @@
 # B15 handoff — Nalati items, achievements + titles, skins, map (melee agent, 2026-09-23)
 
 **Status (2026-09-23, Phase C): ✅ done** — everything under "Left" below was built in `984fe3d` (tame + Titan
-achievements, wearable elite skins in `src/player/nalatiSkins.ts` + the Inventory tab, the Nalati map / minimap with
+achievements, wearable elite skins in `src/shards/nalati-grasslands/weapons/nalatiSkins.ts` + the Inventory tab, the Nalati map / minimap with
 the layout-v2 POI names from `NALATI_MAP`, hidden wolves off the minimap / aim assist). `pnpm test` green (183). The
 sections below are the history of the handoff.
 
@@ -22,22 +22,22 @@ Stopped on the user's WRAP UP (token usage). Plan row: `project/archive/2026-09-
 
 ## Left (nothing started)
 
-1. **Achievements still missing:** tame any horse / TULPAR (needs a `record('tame', …)` call from `src/game/Taming.ts`,
+1. **Achievements still missing:** tame any horse / TULPAR (needs a `record('tame', …)` call from `src/shards/nalati-grasslands/ride/Taming.ts`,
    like elites.ts does for Argymaq); the Storm Titan (B14, kind/variant from its boss module); maybe "sneak-shot kill"
    (stealth: `nalati.stealth.state === 'hidden'` at the kill).
 2. **Wearable elite skins.** The elites own them (`NalatiElites.skins`, ids `irbis-sabre`, `sky-wolf-bow`,
    `storm-wing-arrows`, `night-rider-mount`, `argymaq`; defs in `ELITE_DEFS[*].drop`), nothing wears them.
-   Plan: a small `src/player/nalatiSkins.ts` (not Skins.ts — that one is crossbow/rifle material-name tables) that
+   Plan: a small `src/shards/nalati-grasslands/weapons/nalatiSkins.ts` (not Skins.ts — that one is crossbow/rifle material-name tables) that
    recolours the painterly viewmodels by vertex-colour tint / material uniform: sabre (`Sabre` rig — the steel extras
    material from `meleeGeo.steelMaterial` + the painterly one), bow (see `GoldenBow.recolour` for the pattern),
    arrows (Projectiles' instanced mesh colour), the mount (Mount.ts horse material). Then the menu Inventory tab
-   (`src/ui/Menu.ts renderInventory`, `kit()` in main.ts) lists owned skins per weapon with a WEAR toggle, persisted
+   (`src/engine/ui/Menu.ts renderInventory`, `kit()` in main.ts) lists owned skins per weapon with a WEAR toggle, persisted
    like `SkinLocker`.
-3. **Map / minimap for Nalati** (`src/ui/Minimap.ts`, `src/ui/Map.ts`): painterly ground colours (sample
-   `terrainSurface` / the grass height for gold-green, the river from `src/nalati/wet.ts` / the chunk def's RIVER),
+3. **Map / minimap for Nalati** (`src/engine/ui/Minimap.ts`, `src/engine/ui/Map.ts`): painterly ground colours (sample
+   `terrainSurface` / the grass height for gold-green, the river from `src/shards/nalati-grasslands/wet.ts` / the chunk def's RIVER),
    and POI labels from map-01: NOMAD CAMP, KUNES RIVER, BRIDGE, SPRUCE FOREST, SKY GRASSLAND, KURGAN FIELD, BALBAL
    CIRCLE, HORSE PLAINS, SHEEP PASTURE, THE CRAGS, EAGLE ROCK (coordinates: `docs/design/nalati/geography-and-map.md`
-   §3 and `src/world/nalati/layout.ts`). Elite skulls already exist.
+   §3 and `src/shards/nalati-grasslands/world/layout.ts`). Elite skulls already exist.
 4. **Cheap stealth extras (from B9):** wolves with `mem.hidden === 1` (Pack.ts: in grass ≥ 0.8 m, > 10 m away) off the
    minimap (Minimap.update's animal loop) and out of aim assist (AimAssist target filter); tracks (a wolf crossing a
    fresh trample gets +0.3 awareness — `trample.amountAt` in Pack's senses).

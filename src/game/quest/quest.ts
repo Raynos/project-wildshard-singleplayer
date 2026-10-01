@@ -1,6 +1,6 @@
 /**
  * Quests — the data schema and the pure state machine (A1). A quest is a list of steps; each step is DONE when its
- * condition over the shard's flags holds (src/world/interact/flags.ts); the CURRENT step is the first step not done.
+ * condition over the shard's flags holds (src/engine/world/interact/flags.ts); the CURRENT step is the first step not done.
  * No step has code: the objective text, the counter, the map markers and the dialogue are all data, so a chunk's
  * quest can be shipped as validated config (sources/wildshard/FUNDAMENTALS.md).
  *
@@ -12,8 +12,8 @@
  *   q.onStep = (step, prev) => …   // fires when the current step changes (a flag moved it on)
  *   lineFor(DIALOGUE.castaway, flags) → the first dialogue entry whose `when` holds
  */
-import { test, type Flags } from '../../world/interact/flags';
-import type { Cond, Place } from '../../world/interact/types';
+import { test, type Flags } from '#engine/world/interact/flags';
+import type { Cond, Place } from '#engine/world/interact/types';
 
 export interface QuestMarker {
   id: string;

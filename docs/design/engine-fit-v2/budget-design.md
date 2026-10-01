@@ -10,7 +10,7 @@ first calibration run replaces its inputs. Nothing here was run: no browser, no 
 
 | Number | Where | Origin | Verdict |
 |---|---|---|---|
-| Phone ≤ 110 draws / 1.6 M tris | `src/ui/Perf.ts:36` (`1751b4ed`, Nalati polish 4) | none recorded | a meter threshold, not a budget |
+| Phone ≤ 110 draws / 1.6 M tris | `src/engine/ui/Perf.ts:36` (`1751b4ed`, Nalati polish 4) | none recorded | a meter threshold, not a budget |
 | Phone ≤ 150 draws / 2.0 M, iPhone ≥ 55 fps | [PLAY-PERF](../../../project/archive/2026-09-22-play-perf.md) §0 | set before measuring. The phone then read **30 fps at 179 / 1.9 M** (DPR 1.25) | the best phone data point we have; never re-derived after DPR 2 (E70) |
 | Nine Dragon ≤ **180 draws / 2.3 M per pose** | NINE-DRAGON-STACK §6.4, [budget.md](../../../art/nine-dragon-stack/budget.md) (`f3e7e849`) | **bottom-up**: each lane capped near its measured ex18 value, lanes summed to ~2.0 M / 175, plus ~0.3 M / 5 of headroom. No device term anywhere | it does not predict the phone: E283 read **16 fps at 121 draws / 1.1 M**, well inside the gate. The cost was per pixel (streak cards, the Jiehua program), which counts cannot see |
 | M5 GPU ruler ≤ 1.5 ms per pose | [E283](../../tasks/asks/E283.md) | the only derived one: phone ≈ 6× the M5 cool, ~10× hot; 15 ms hot + ~8 ms CPU fits 33 ms | right method; §3 reproduces it |

@@ -119,7 +119,7 @@ try {
     if (first && ids.length < Number(first[1])) console.log(`model-spin: the catalog has only ${ids.length} models`);
     const seg = SECONDS / ids.length;
 
-    if (!(await page.evaluate(() => typeof window.__wildshard?.world?.game?.captureFrame === 'function'))) die('this build has no game.captureFrame (src/core/Game.ts) to copy its frames with');
+    if (!(await page.evaluate(() => typeof window.__wildshard?.world?.game?.captureFrame === 'function'))) die('this build has no game.captureFrame (src/engine/core/Game.ts) to copy its frames with');
 
     // ── in-page helpers: select a card, the turntable drive, the recorder ──
     await page.evaluate(() => {

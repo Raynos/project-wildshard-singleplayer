@@ -1,8 +1,8 @@
 // PH-B4: the Blender species set (scripts/blender/pine-hollow/trees/) and the game's placement agree, stay in budget, and plant by zone.
 import { describe, expect, it } from 'vitest';
-import { setActiveChunk, getActiveChunk } from '../src/chunks/registry';
-import { placeForest, plantSpecs, treeSetOf, TREE_SPECS, TREE_SPECS_V2 } from '../src/world/placement';
-import { KINGS_CLEARING, OLD_GROWTH } from '../src/chunks/pineHollowLayout';
+import { setActiveChunk, getActiveChunk } from '#game/shard/registry';
+import { placeForest, plantSpecs, treeSetOf, TREE_SPECS, TREE_SPECS_V2 } from '#engine/world/forest/placement';
+import { KINGS_CLEARING, OLD_GROWTH } from '#shards/pine-hollow/layout';
 import setJson from '../public/assets/models/pine-hollow-trees/trees.json?raw';
 
 interface SetMeta { variants: { name: string; species: string; height: number; trunk: number; tris: Record<string, number> }[] }

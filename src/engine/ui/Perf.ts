@@ -1,0 +1,278 @@
+/**
+ * Frame meter, top-right — after trials-gauntlet-demo's `src/ui/perf.ts`: fps and frame ms p50 / p95
+ * from the game's ring of frame times, draw calls and triangles from renderer.info, the tier and DPR.
+ * Repainted at most twice a second and written to the DOM only when the text changed, so the meter
+ * costs the phone nothing. `?perf=0` hides it.
+ *
+ * Phones (E47, Jake: "a compact FPS counter next to the pause button … '59 fps 17 ms' … when you tap it it can expand to
+ * show calls and tris … on top of the mini map"): perf.css turns the meter into a small glass pill on PAUSE's row showing
+ * only fps + p50 ms; it is a button, and a tap opens `.ws-perf-panel` over the minimap (p50 / p95, draw calls, triangles,
+ * tier · DPR, GL losses). It stays up until the pill is tapped again (a toggle — E142). The pill cancels its own touch events (no
+ * double-tap zoom, no callout / selection on iOS) and toggles on pointerup, so it never starts a look drag. Desktop keeps
+ * the one-line readout, click-through as before.
+ * Developer mode only (E140, the user's 3a; src/engine/core/devMode.ts): players never see it; the Settings ▸ Developer switch
+ * shows / hides it live. `?perf=0` hides it even in developer mode, `?perf=1` shows it (with the budget check) without it.
+ * `?perf=1` adds the budget check: the worst draw calls / triangles of the last ~10 s against the tier's budget
+ * (phone ≤ 110 calls, ≤ 1.6 M triangles — project/archive/2026-09-23-nalati.md, the phone-tier handoff; desktop shows the maxima only),
+ * `OK` / `OVER` on the meter (red when over), and `window.__perfBudget` for scripted checks.
+ */
+import * as THREE from 'three';
+import type { Game } from '../core/Game';
+import { getActiveChunk } from '#game/shard/registry';
+import { TIER } from '../core/tier';
+import { isDev, onDev } from '../core/devMode';
+import { runPerfProbe, probeLines, probeReport, probeSamples } from './perfProbe';
+import { PerfHud, type Counts } from './perfHud';
+import { PerfLap } from './perfLap';
+import './perf.css';
+
+declare const __BUILD_ID__: string; // vite.config.ts define
+/** the last probe's full report (E189: COPY), kept across a reload */
+const PROBE_KEY = 'ws.perf.probe';
+
+const PAINT_MS = 500;
+/** the open panel's timing / counts block (src/engine/ui/perfHud.ts): ≤ 4 repaints a second */
+const STATS_MS = 250;
+const BUDGET = TIER === 'phone' ? { calls: 110, tris: 1.6e6 } : null;
+const WINDOW = 20; // paints (~10 s)
+export interface PerfBudget { maxCalls: number; maxTris: number; calls: number; tris: number; over: boolean }
+const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
+
+export class Perf {
+  readonly root: HTMLElement;
+  private lastPaint = 0;
+  private lastText = '';
+  private sorted = new Float32Array(120);
+  private readonly budgetOn = new URLSearchParams(location.search).get('perf') === '1';
+  private readonly recent: { calls: number; tris: number }[] = [];
+  readonly budget: PerfBudget = { maxCalls: 0, maxTris: 0, calls: BUDGET?.calls ?? Infinity, tris: BUDGET?.tris ?? Infinity, over: false };
+  private panel: HTMLElement;
+  private live: { box: HTMLElement; fps: HTMLElement; ms: HTMLElement };
+  private rows: { p50: HTMLElement; p95: HTMLElement; calls: HTMLElement; tris: HTMLElement; tier: HTMLElement; gl: HTMLElement };
+
+  constructor(private game: Game) {
+    const root = this.root = document.createElement('button');
+    root.className = 'ws-perf';
+    root.setAttribute('type', 'button');
+    root.setAttribute('aria-label', 'Frame meter — tap for details');
+    root.innerHTML = '<b>—</b><span class="ws-perf-ms"></span><span class="ws-perf-long"></span>';
+    const panel = this.panel = document.createElement('div');
+    panel.className = 'ws-perf-panel';
+    panel.innerHTML = '<div class="ws-perf-head"><i>Frame meter</i><span class="ws-perf-live"><b>—</b><span></span></span><button type="button" class="ws-perf-btn ws-perf-close" aria-label="Close the frame meter">CLOSE ✕</button></div><div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><pre class="ws-perf-stats"></pre><canvas class="ws-perf-spark" width="240" height="30"></canvas><div class="ws-perf-row"><i>Record</i><span><button type="button" class="ws-perf-btn ws-perf-rec">REC 30 S</button> <button type="button" class="ws-perf-btn ws-perf-copy">COPY</button></span></div><pre class="ws-perf-rec-out"></pre><div class="ws-perf-row"><i>Lap</i><span><button type="button" class="ws-perf-btn ws-perf-lap">PERF LAP</button> <button type="button" class="ws-perf-btn ws-perf-lap-copy">COPY</button></span></div><pre class="ws-perf-rec-out ws-perf-lap-out"></pre><div class="ws-perf-row ws-perf-abrow"><i>A/B off</i><span class="ws-perf-abs"></span></div><div class="ws-perf-row"><i>Probe</i><span><button type="button" class="ws-perf-probe">RUN PROBE</button> <button type="button" class="ws-perf-btn ws-perf-probe-copy">COPY</button></span></div><pre class="ws-perf-probe-out"></pre>';
+    const row = (r: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(`[data-r="${r}"]`); if (e === null) throw new Error(`Perf: missing row ${r}`); return e; };
+    this.rows = { p50: row('p50'), p95: row('p95'), calls: row('calls'), tris: row('tris'), tier: row('tier'), gl: row('gl') };
+    // the open panel covers the pill on phones: its header carries a live copy (fps + ms, the same slow / bad colours)
+    const livePill = panel.querySelector<HTMLElement>('.ws-perf-live');
+    const liveFps = livePill?.querySelector<HTMLElement>('b'), liveMs = livePill?.querySelector<HTMLElement>('span');
+    if (livePill === null || liveFps === null || liveFps === undefined || liveMs === null || liveMs === undefined) throw new Error('Perf: missing live pill');
+    this.live = { box: livePill, fps: liveFps, ms: liveMs };
+    document.body.append(root, panel);
+    // the pill is a button on phones: toggle on the lift; cancel its touches (iOS double-tap zoom / callout / selection)
+    // and never let them reach the look layer. The panel closes on a tap on it or anywhere else (not cancelled, so a
+    // look drag that starts outside still looks).
+    const cancel = (e: Event): void => { e.stopPropagation(); if (e.cancelable) e.preventDefault(); };
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) root.addEventListener(t, cancel, { passive: false });
+    for (const t of ['pointerdown', 'dragstart', 'contextmenu'] as const) root.addEventListener(t, cancel);
+    root.addEventListener('pointerup', (e) => { cancel(e); this.open(!panel.classList.contains('open')); });
+    for (const n of [root, ...root.querySelectorAll('*'), panel, ...panel.querySelectorAll('*')]) n.setAttribute('draggable', 'false');
+    // E142: the on-device probe (src/engine/ui/perfProbe.ts) — RUN PROBE in the panel, or `?probe=1` 15 s after the world is entered
+    const probe = panel.querySelector<HTMLButtonElement>('.ws-perf-probe'), probeOut = panel.querySelector<HTMLElement>('.ws-perf-probe-out');
+    if (probe === null || probeOut === null) throw new Error('Perf: missing probe row');
+    this.probeOut = probeOut;
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) probe.addEventListener(t, cancel, { passive: false });
+    probe.addEventListener('pointerdown', cancel);
+    probe.addEventListener('pointerup', (e) => { cancel(e); void this.runProbe(); });
+    // E189 (Jake: "you need a copy button after running this probe … lots and lots of data"): the whole report to the clipboard
+    const probeCopy = panel.querySelector<HTMLButtonElement>('.ws-perf-probe-copy');
+    if (probeCopy === null) throw new Error('Perf: missing probe copy');
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) probeCopy.addEventListener(t, cancel, { passive: false });
+    probeCopy.addEventListener('pointerdown', cancel);
+    probeCopy.addEventListener('pointerup', (e) => {
+      cancel(e);
+      let text = this.probeText;
+      if (text === '') { try { text = localStorage.getItem(PROBE_KEY) ?? ''; } catch { /* storage blocked */ } }
+      if (text === '') { probeCopy.textContent = 'RUN FIRST'; setTimeout(() => { probeCopy.textContent = 'COPY'; }, 1500); return; }
+      const done = (ok: boolean): void => { probeCopy.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { probeCopy.textContent = 'COPY'; }, 1500); };
+      // no clipboard API (an http page, an old WebKit): the report goes in the panel, selected for a manual copy
+      const fallback = (): void => { probeOut.textContent = text; const r = document.createRange(); r.selectNodeContents(probeOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
+      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
+      void copy();
+    });
+    // the open panel covers the pill on phones, so it carries its own CLOSE (sticky at the top while it scrolls)
+    const close = panel.querySelector<HTMLButtonElement>('.ws-perf-close');
+    if (close === null) throw new Error('Perf: missing close button');
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) close.addEventListener(t, cancel, { passive: false });
+    close.addEventListener('pointerdown', cancel);
+    close.addEventListener('pointerup', (e) => { cancel(e); this.open(false); });
+    // E142 aggro-perf: the timing / counts block, the sparkline, REC 30 S + COPY (src/engine/ui/perfHud.ts)
+    const q = (sel: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(sel); if (e === null) throw new Error(`Perf: missing ${sel}`); return e; };
+    const recBtn = q('.ws-perf-rec'), copyBtn = q('.ws-perf-copy'), recOut = q('.ws-perf-rec-out'), spark = q('.ws-perf-spark');
+    if (!(spark instanceof HTMLCanvasElement)) throw new Error('Perf: the sparkline is not a canvas');
+    this.recBtn = recBtn;
+    this.hud = new PerfHud(game, q('.ws-perf-stats'), spark, [root, panel]);
+    this.hud.mountSwitches(q('.ws-perf-abs'), cancel); // E142: take one suspect out mid-fight, read gpu~
+    if (this.hud.lastRecText !== '') recOut.textContent = `last recording (COPY):\n${this.hud.lastRecText.split('\n').slice(0, 4).join('\n')}`;
+    this.hud.onRecDone = (text) => { recOut.textContent = text; recBtn.textContent = 'REC 30 S'; console.info(`[perf rec]\n${text}`); };
+    for (const b of [recBtn, copyBtn]) {
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, cancel, { passive: false });
+      b.addEventListener('pointerdown', cancel);
+    }
+    recBtn.addEventListener('pointerup', (e) => { cancel(e); if (!this.hud.recording && !this.lap.running) { this.hud.startRec(); recOut.textContent = 'recording 30 s — play on (fight, sprint); the panel can stay open or closed'; } });
+    copyBtn.addEventListener('pointerup', (e) => {
+      cancel(e);
+      const text = this.hud.lastRecText !== '' ? this.hud.lastRecText : q('.ws-perf-stats').textContent;
+      const done = (ok: boolean): void => { copyBtn.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { copyBtn.textContent = 'COPY'; }, 1500); };
+      const fallback = (): void => { recOut.textContent = text; const r = document.createRange(); r.selectNodeContents(recOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
+      // (no clipboard API — an http page, an old WebKit — throws in here too: the text is selected for a manual copy)
+      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
+      void copy();
+    });
+    // E350 F-J1: PERF LAP — the six spots, one slow turn at each, the summary to COPY (src/engine/ui/perfLap.ts). The panel closes
+    // while it runs (the reading is the frame as played, the pill up); a line at the top says where it is; a tap cancels
+    const lapBtn = q('.ws-perf-lap'), lapCopy = q('.ws-perf-lap-copy'), lapOut = q('.ws-perf-lap-out');
+    const lapStatus = document.createElement('div');
+    lapStatus.className = 'ws-perf-lap-status'; lapStatus.hidden = true;
+    document.body.append(lapStatus);
+    this.lap = new PerfLap(game);
+    if (this.lap.lastText !== '') lapOut.textContent = `last lap (COPY):\n${this.lap.lastText.split('\n').slice(0, 2).join('\n')}`;
+    this.lap.onStatus = (text) => { lapStatus.hidden = text === null; if (text !== null) lapStatus.textContent = text; };
+    this.lap.onDone = (text) => { lapOut.textContent = text; this.open(true); };
+    for (const b of [lapBtn, lapCopy]) {
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, cancel, { passive: false });
+      b.addEventListener('pointerdown', cancel);
+    }
+    lapBtn.addEventListener('pointerup', (e) => {
+      cancel(e);
+      this.open(false);
+      const why = this.lap.start(this.hud.recording);
+      if (why !== null) { lapOut.textContent = why; this.open(true); }
+    });
+    lapCopy.addEventListener('pointerup', (e) => {
+      cancel(e);
+      const text = this.lap.lastText;
+      if (text === '') { lapCopy.textContent = 'RUN FIRST'; setTimeout(() => { lapCopy.textContent = 'COPY'; }, 1500); return; }
+      const done = (ok: boolean): void => { lapCopy.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { lapCopy.textContent = 'COPY'; }, 1500); };
+      const fallback = (): void => { lapOut.textContent = text; const r = document.createRange(); r.selectNodeContents(lapOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
+      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
+      void copy();
+    });
+    Object.assign(window, { __perfLapRun: this.lap });
+    // a toggle (E142, Jake: "detail mode on, move around a lot and keep looking at it — it shouldn't just fade away"): only a
+    // tap on the pill closes the panel; moving, looking and shooting leave it up
+    const param = new URLSearchParams(location.search).get('perf');
+    const hide = (): boolean => (param === '0' ? true : param === '1' ? false : !isDev());
+    this.userHidden = hide(); this.root.hidden = this.userHidden;
+    onDev(() => { this.userHidden = hide(); if (this.active) this.setActive(true); });
+    if (this.budgetOn) Object.assign(window, { __perfBudget: this.budget });
+    Object.assign(window, { __perfHud: this.hud });
+    game.onUpdate(() => this.update(performance.now()), 'hud.perf');
+    // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
+    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = 'world paused'; (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = 'paused'; this.root.classList.remove('slow', 'bad'); this.mirror(); } }, 500);
+  }
+
+  /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
+  setActive(on: boolean): void { if (!on) this.lap.cancel('the menu opened'); this.active = on; this.root.hidden = on ? this.userHidden : true; if (!on || this.userHidden) this.open(false); }
+  private readonly probeOut: HTMLElement;
+  /** the last probe's full report (COPY) */
+  private probeText = '';
+  /** run the on-device probe; its table stays in the panel (and the console, `window.__perfProbe`) */
+  private async runProbe(): Promise<void> {
+    const out = this.probeOut, g = this.game;
+    this.panel.classList.add('probed');
+    const header = this.probeHeader(); // before the rows switch things off: the frame as played
+    const rows = await runPerfProbe(g, (line) => { out.textContent = line; });
+    if (rows.length === 0) return;
+    const head = `${g.renderer.domElement.width}×${g.renderer.domElement.height} · ${TIER} · ${Math.round(devicePixelRatio)}× screen`;
+    const lines = probeLines(rows, head);
+    out.textContent = lines.join('\n');
+    console.info(`[probe]\n${lines.join('\n')}`);
+    this.probeText = probeReport(rows, probeSamples, header);
+    try { localStorage.setItem(PROBE_KEY, this.probeText); } catch { /* not kept past this load */ }
+    Object.assign(window, { __perfProbe: rows });
+    this.open(true);
+  }
+  /** the report's header: what ran, on what, where (E189) */
+  private probeHeader(): string[] {
+    const g = this.game, r = g.renderer, cv = r.domElement, info = r.info, w: unknown = '__wildshard' in window ? window.__wildshard.world : null;
+    let build = ''; try { build = __BUILD_ID__; } catch { /* a dev page */ }
+    let settings = ''; try { settings = localStorage.getItem('ws.settings.v1') ?? ''; } catch { /* storage blocked */ }
+    const pl: unknown = typeof w === 'object' && w !== null ? Reflect.get(w, 'player') : null;
+    const pos: unknown = typeof pl === 'object' && pl !== null ? Reflect.get(pl, 'position') : null;
+    const where = pos instanceof THREE.Vector3 ? `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}` : '?';
+    return [
+      `WILDSHARD PROBE · ${new Date().toISOString()} · build ${build}`,
+      `shard ${getActiveChunk().slug} · tier ${TIER} · canvas ${String(cv.width)}×${String(cv.height)} · dpr ${String(devicePixelRatio)} · screen ${String(screen.width)}×${String(screen.height)} · ${String(navigator.hardwareConcurrency)} cores`,
+      `ua ${navigator.userAgent}`,
+      `player at ${where} · calls ${String(g.lastFrame.calls)} · tris ${String(g.lastFrame.triangles)} · programs ${String(info.programs?.length ?? 0)} · textures ${String(info.memory.textures)} · geometries ${String(info.memory.geometries)}`,
+      `settings ${settings}`,
+    ];
+  }
+  private active = true; // until the menu first hides it (main.ts)
+  /** the details panel over the minimap (phones) */
+  private open(on: boolean): void { const show = on && this.root.hidden === false; this.panel.classList.toggle('open', show); this.root.classList.toggle('open', show); this.hud.setOpen(show); }
+  private readonly hud: PerfHud;
+  private readonly lap: PerfLap;
+  private readonly recBtn: HTMLElement;
+  private lastStats = 0;
+  /** main.ts: the game's counts for the panel (animals, the elite, Rapier …) — read ≤ 4× a second while it is open */
+  addCounts(fn: () => Counts): void { this.hud.addCounts(fn); }
+  private userHidden = false;
+
+  private update(now: number) {
+    this.hud.tick(now);
+    this.lap.tick(now);
+    if ((this.panel.classList.contains('open') || this.hud.recording) && now - this.lastStats >= STATS_MS) {
+      this.lastStats = now;
+      this.hud.paint();
+      if (this.hud.recording) this.recBtn.textContent = 'REC…';
+    }
+    if (now - this.lastPaint < PAINT_MS) return;
+    this.lastPaint = now;
+    const g = this.game;
+    this.sorted.set(g.frameMs); this.sorted.sort();
+    const n = this.sorted.findIndex((v) => v > 0); // unfilled slots are 0 and sort first
+    const valid = n === -1 ? 0 : this.sorted.length - n;
+    if (valid < 10) return;
+    const q = (p: number): number => this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))] ?? 0;
+    const p50 = q(0.5), p95 = q(0.95);
+    const r = g.lastFrame;
+    const gl = g.gl.events ? ` · gl lost ×${g.gl.events}${g.gl.restoredAt > g.gl.lostAt ? ` restored ${Math.round(g.gl.restoredAt - g.gl.lostAt)} ms` : ''}` : '';
+    let check = '';
+    if (this.budgetOn) {
+      this.recent.push({ calls: r.calls, tris: r.triangles });
+      if (this.recent.length > WINDOW) this.recent.shift();
+      const b = this.budget;
+      b.maxCalls = Math.max(...this.recent.map((x) => x.calls)); b.maxTris = Math.max(...this.recent.map((x) => x.tris));
+      b.over = b.maxCalls > b.calls || b.maxTris > b.tris;
+      check = ` · max ${b.maxCalls}c / ${k(b.maxTris)}${BUDGET ? ` ${b.over ? 'OVER' : 'OK'} (≤${BUDGET.calls}c / ${k(BUDGET.tris)})` : ''}`;
+    }
+    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${check}`;
+    if (text === this.lastText) return;
+    this.lastText = text;
+    const [fps = '', rest = ''] = text.split('|');
+    (this.root.firstElementChild as HTMLElement).textContent = fps;
+    (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = rest;
+    // phones: the pill shows fps + p50 ms; the panel carries the draw calls / triangles the phone-tier budget is measured in
+    // (project/archive/2026-09-22-play-perf.md), the p95, the tier and DPR
+    (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = `${Math.round(p50)} ms${check}`; // ?perf=1: OK / OVER the phone budget
+    const R = this.rows;
+    R.p50.textContent = `${p50.toFixed(1)} ms`;
+    R.p95.textContent = `${p95.toFixed(1)} ms`;
+    R.calls.textContent = String(r.calls);
+    R.tris.textContent = k(r.triangles);
+    R.tier.textContent = `${TIER} · ${g.renderer.getPixelRatio().toFixed(2)}×`;
+    R.gl.textContent = gl === '' ? 'ok' : gl.replace(/^ · /, '');
+    this.root.classList.toggle('slow', p50 > 20);   // under 50 fps
+    this.root.classList.toggle('bad', p50 > 33.4 || (this.budgetOn && this.budget.over));  // under 30 fps (or over the draw budget)
+    this.mirror();
+  }
+
+  /** copy the pill into the panel header's live pill */
+  private mirror(): void {
+    const L = this.live;
+    L.fps.textContent = (this.root.firstElementChild as HTMLElement).textContent;
+    L.ms.textContent = (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent;
+    L.box.classList.toggle('slow', this.root.classList.contains('slow'));
+    L.box.classList.toggle('bad', this.root.classList.contains('bad'));
+  }
+}

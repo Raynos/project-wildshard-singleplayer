@@ -1,8 +1,8 @@
-// src/entities/animalMatrices.ts (E142 aggro-perf): the animals' group skips a still, far animal's world-matrix pass —
+// src/engine/entities/animalMatrices.ts (E142 aggro-perf): the animals' group skips a still, far animal's world-matrix pass —
 // and every matrix it keeps must be exactly what three's own pass would have computed.
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { AnimalGroup } from '../src/entities/animalMatrices';
+import { AnimalGroup } from '#engine/entities/animalMatrices';
 
 interface Fake { mesh: THREE.Object3D; poseFrozen: boolean; lastHitT: number; bones: THREE.Bone[] }
 

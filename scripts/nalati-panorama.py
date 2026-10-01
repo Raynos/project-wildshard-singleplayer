@@ -16,7 +16,7 @@ Two things happen before the encode:
 
 Desktop keeps the native 5530 px (no upscale), the phone gets 4096 px. Both sRGB WebP.
 
-It also writes src/nalati/look/panoramaData.ts (generated — don't edit): the painted horizon row, the ridge line (the
+It also writes src/shards/nalati-grasslands/look/panoramaData.ts (generated — don't edit): the painted horizon row, the ridge line (the
 sky / land boundary per azimuth, so night can fade the painted *sky* into the stars and keep the ranges) and the
 fog LUT (the painted haze just above the horizon, per azimuth, blurred — the 3D fog fades into exactly this colour).
 The ridge is a hand-read envelope every 10° (RIDGE_ENV, rows of the peaks) refined per column: from the envelope down,
@@ -126,7 +126,7 @@ export const PANO_RIDGE_V = [{fmt(1 - ridge / H)}];
 /** the fog LUT: per azimuth (256 samples), the painted haze just above the horizon, sRGB 0..1 (r, g, b interleaved) */
 export const PANO_FOG_SRGB = [{fmt((lut / 255).reshape(-1))}];
 """
-    p = os.path.join(ROOT, 'src/nalati/look/panoramaData.ts')
+    p = os.path.join(ROOT, 'src/shards/nalati-grasslands/look/panoramaData.ts')
     os.makedirs(os.path.dirname(p), exist_ok=True)
     open(p, 'w').write(ts)
     print(p, len(ts) // 1024, 'KB')

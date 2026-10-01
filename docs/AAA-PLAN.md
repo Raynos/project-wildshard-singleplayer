@@ -27,7 +27,7 @@ Execution order (each step screenshot-verified against the matching mockup):
 | # | Item | State |
 |---|------|-------|
 | 1 | Golden-hour light | done — `qwantani_sunset_puresky`, warm CSM sun, needle translucency, bark rim gradient |
-| 2 | Volumetrics | done — depth-aware ray-marched height fog with sun in-scatter + screen-space shadowing (`src/core/Volumetrics.ts`), god rays + corona, valley mist sprites |
+| 2 | Volumetrics | done — depth-aware ray-marched height fog with sun in-scatter + screen-space shadowing (`src/engine/core/Volumetrics.ts`), god rays + corona, valley mist sprites |
 | 3 | Forest floor density | done — ~50k grass clumps, 6k ferns, moss, litter, stones, flowers, reeds |
 | 4 | Scots-pine trunks / crowns | done — bark height gradient, three-card fans with drooping tips, near-field photoscan twig quads (< 38 m), shaded undersides |
 | 5 | Beyond the chunk | done — three ridge rings with snow caps, cloud sea below the slab, cloud dome |

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { readyWebGLContext } from '../src/core/webglStartup';
+import { readyWebGLContext } from '#engine/core/webglStartup';
 
 afterEach(() => { vi.useRealTimers(); });
 

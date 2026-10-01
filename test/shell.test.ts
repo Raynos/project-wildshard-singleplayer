@@ -1,8 +1,8 @@
-// src/boot/shell.ts: index.html paints the loading panel from its first bytes and src/ui/Loading.ts adopts it
+// src/engine/boot/shell.ts: index.html paints the loading panel from its first bytes and src/engine/ui/Loading.ts adopts it
 // by its data-el hooks — the two copies of the markup must not drift apart.
 import { describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
-import { LOAD_SHELL_HTML } from '../src/boot/shell';
+import { LOAD_SHELL_HTML } from '#engine/boot/shell';
 
 const FONT_FILES = import.meta.glob('../public/fonts/*.woff2');
 expect(Object.keys(FONT_FILES).length).toBeGreaterThan(0);

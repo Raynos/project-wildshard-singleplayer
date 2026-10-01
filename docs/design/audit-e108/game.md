@@ -122,7 +122,7 @@ Every repro link starts with `https://wildshard-singleplayer.vercel.app/?mute=1&
    - Shot: `deep-nalati-grasslands-poi-eagle-rock.jpg`
 6. **MED: Nalati's wolves take you from 100 to 4 health in ~8 s,** with little warning.
    - Repro: `x=-95&z=54`
-7. **LOW: Driftwood's floating cyan rectangle (E36).** It is most likely the Boundary's entry-road "no-man's land" gate (`src/world/Boundary.ts`), seen across the sea.
+7. **LOW: Driftwood's floating cyan rectangle (E36).** It is most likely the Boundary's entry-road "no-man's land" gate (`src/engine/world/Boundary.ts`), seen across the sea.
    - Shot: `driftwood-bug-floating-glass-rect-crop.jpg`
 8. **LOW: Pine Hollow's branch cards block the view at eye level, and its red hit markers look like placeholders.**
 9. **LOW: The Debug and Review sections show in Settings.**

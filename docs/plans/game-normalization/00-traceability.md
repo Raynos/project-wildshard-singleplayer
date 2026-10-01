@@ -209,7 +209,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | X-1 | Dead: Nine Dragon lab copies (`src/dev/nd-lab/`) and all of `src/dev/` + `dev/*.html` | F7 (02 §F7 step 1) | covered |
 | X-2 | Dead: Nine Dragon `look/post.ts` | F7 step 3 | covered |
 | X-3 | Dead: `meleeGeo.ts`'s dead half | F7 step 3; 10 X5 | covered |
-| X-4 | Dead, found later: `chunks/_template.ts`, 7 unreferenced images, `world/hero/paifang.ts`, `spruceMask.ts`, `interact/validate.ts` | 02 §F7 step 3, the one reviewed dead list (13, 04 #7 and still-open 05#7 / 07#8 / 08#8): `_template.ts`, the 7 images, `paifang.ts` and `spruceMask.ts` are deleted there (05 §1.1, 07 §1.4 point to it); `validate.ts` is reviewed there and kept, because `test/interact.test.ts` and `test/pine-quest.test.ts` import it (08 §1.2, §10 Q8) | covered (G20 resolved) |
+| X-4 | Dead, found later: `chunks/_template.ts`, 7 unreferenced images, `world/hero/paifang.ts`, `spruceMask.ts`, `interact/validate.ts` | 02 §F7 step 3, the one reviewed dead list (13, 04 #7 and still-open 05#7 / 07#8 / 08#8): `_template.ts`, the 7 images, `paifang.ts` and `spruceMask.ts` are deleted there (05 §1.1, 07 §1.4 point to it); `validate.ts` is reviewed there and kept, because `test/interact.test.ts` and `test/shards/pine-hollow/pine-quest.test.ts` import it (08 §1.2, §10 Q8) | covered (G20 resolved) |
 
 ### 3.3 The audit's measures (audit §3) and gaps in the old plan (audit §2)
 
@@ -357,7 +357,7 @@ The file has no numbered top 10. EF1–EF10 are its verdict (5 points) and the �
 | EF3 | Entities stay classes; structure-of-arrays pools only for projectiles, particles and the far crowd | 01 §0, §18–§19 (classes); 10 X5 (one `ParticlePool`); IDX §8 "After this plan" (pooled projectiles and a far crowd, an ask) | covered for particles; the other pools out (after; G14 resolved) |
 | EF4 | Adopt valibot, at trust boundaries only | F10 step 1; 01 §9 | covered |
 | EF5 | Keep the Rapier 0.20.0 pin until a phone measurement pays for 0.21 | Jake overrode it: decisions 45 and 89 → F12 | conflict, resolved by Jake (0.21, +413 KB accepted) |
-| EF6 | Keep navcat and adopt its crowd module for herds and thralls | navcat stays (today's baked navmesh and its query, `src/physics/navmesh.ts`); the crowd module is in IDX §8 "After this plan" as an ask | out (after; G14 resolved) |
+| EF6 | Keep navcat and adopt its crowd module for herds and thralls | navcat stays (today's baked navmesh and its query, `src/engine/physics/navmesh.ts`); the crowd module is in IDX §8 "After this plan" as an ask | out (after; G14 resolved) |
 | EF7 | Own a typed FSM (skip xstate); borrow yuka's steering pattern; no behaviour-tree library | 01 §19 (`Hfsm`, owned); steering behaviours in IDX §8 "After this plan" | covered; steering out (after; G14 resolved) |
 | EF8 | WebGPU containment: the renderer type in `engine/render`, one shader-patch registry, post behind `ShardRender` (now `LookStrategy`, R1-01), one `precompile()`, no TSL | 01 §13.1–§13.2; 10 X6 | covered |
 | EF9 | No OffscreenCanvas; a kit worker pool for procedural generation (Pine's 150 ms long task); physics stays on the main thread | 01 §14 (main thread); the worker pool in IDX §8 "After this plan" as an ask | covered; the worker pool out (after; G14 resolved) |

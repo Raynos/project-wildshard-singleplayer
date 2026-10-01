@@ -7,10 +7,10 @@
  *   achievementsFor('chunk://local/pine-hollow')   → AchievementDef[] (empty for a shard without a table)
  *
  * A kill matches an achievement when the species matches and, if the achievement names one, the variant
- * matches too (`ghost` = the Ghost stag, `ironhide` = Old Ironhide — the legendaries from src/entities/species/).
+ * matches too (`ghost` = the Ghost stag, `ironhide` = Old Ironhide — the legendaries from src/engine/entities/species/).
  * Progress / earned state / the worn title live in src/game/Progress.ts.
  */
-import type { IconId } from '../ui/icons';
+import type { IconId } from '#engine/ui/icons';
 
 export interface AchievementDef {
   /** unique within the shard, persisted */
@@ -59,15 +59,15 @@ const PINE_HOLLOW: AchievementDef[] = [
 const NALATI: AchievementDef[] = [
   { id: 'storm-titan', name: 'Weather Report', goal: 'Defeat Jel Ata, the Storm Titan', count: 1, event: 'storm-titan', title: 'Partly Cloudy', icon: 'laurel' },
   { id: 'golden-king', name: 'Kurgan Robber', goal: 'Defeat the Golden King', count: 1, kind: 'golden-king', variant: 'king', title: 'Grave Robber (Licensed)', icon: 'laurel' },
-  // the named elites (B12, src/nalati/elites.ts) — joke titles, the user's decision
+  // the named elites (B12, src/shards/nalati-grasslands/elites.ts) — joke titles, the user's decision
   { id: 'aqbars', name: 'Irbis', goal: 'Kill Aqbars the Pale', count: 1, kind: 'leopard', variant: 'aqbars', title: 'Crazy Cat Person', icon: 'laurel' },
   { id: 'kokbori', name: 'Leader of the Pack', goal: 'Kill Kokbori', count: 1, kind: 'kokbori', title: 'Good Boy Denier', icon: 'laurel' },
   { id: 'qyran', name: 'Clipped', goal: 'Kill Qyran the Storm-Wing', count: 1, kind: 'eagle', variant: 'qyran', title: 'Birdwatcher (Aggressive)', icon: 'laurel' },
   { id: 'qara-batyr', name: 'Ride the Night', goal: 'Unhorse Qara Batyr', count: 1, kind: 'ghost-rider', variant: 'captain', title: 'Night Shift', icon: 'ghost' },
   { id: 'argymaq', name: 'Unbroken, Until Now', goal: 'Tame Argymaq', count: 1, event: 'argymaq', title: 'Horse Whisperer (Shouting)', icon: 'laurel' },
-  // the tame (B8, src/game/Taming.ts → main.ts's onBonded): any wild stallion broken in five rounds
+  // the tame (B8, src/shards/nalati-grasslands/ride/Taming.ts → main.ts's onBonded): any wild stallion broken in five rounds
   { id: 'tame', name: 'Horse Sense', goal: 'Break a wild stallion and bond him', count: 1, event: 'tame', title: 'Stable Genius', icon: 'laurel' },
-  // the quest line (NALATI-MERGE Q3–Q5, src/nalati/adventure.ts): a kokpar round won, each chapter finished
+  // the quest line (NALATI-MERGE Q3–Q5, src/shards/nalati-grasslands/adventure.ts): a kokpar round won, each chapter finished
   { id: 'kokpar', name: 'Goat Rodeo', goal: 'Win a round of kokpar', count: 1, event: 'kokpar', title: 'Varsity Goat Carrier', icon: 'laurel' },
   { id: 'tulpar', name: 'Tulpar', goal: 'Finish chapter 1: TULPAR', count: 1, event: 'tulpar', title: 'Formerly On Foot', icon: 'laurel' },
   { id: 'chapter-king', name: 'The Golden King', goal: 'Finish chapter 2: THE GOLDEN KING', count: 1, event: 'chapter-king', title: 'Honorary Balbal', icon: 'laurel' },

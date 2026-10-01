@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { consumeTitleArrival, setTitleArrival } from '../src/boot/titleArrival';
+import { consumeTitleArrival, setTitleArrival } from '#engine/boot/titleArrival';
 import { MemoryStorage } from './setup';
 
 describe('title arrival across a fresh PWA document', () => {

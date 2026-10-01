@@ -2,13 +2,13 @@
 // the piece and its material; a box desc from a legacy Collider sits where the old box did; treads are solid steps
 // no taller than their rise, so the character motor climbs them.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { addPiece, treadBoxes } from '../src/physics/pieces';
-import { tagOf } from '../src/physics/surface';
-import { CharacterMotor } from '../src/physics/CharacterMotor';
-import { groups } from '../src/physics/groups';
-import { WorldRegistry, boxDesc, type Piece } from '../src/world/registry';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { addPiece, treadBoxes } from '#engine/physics/pieces';
+import { tagOf } from '#engine/physics/surface';
+import { CharacterMotor } from '#engine/physics/CharacterMotor';
+import { groups } from '#engine/physics/groups';
+import { WorldRegistry, boxDesc, type Piece } from '#engine/world/registry';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());
@@ -29,7 +29,7 @@ describe('pieces → Rapier', () => {
   it('a legacy box becomes a cuboid in the same place, tagged with its piece and material', async () => {
     const R = await rapier();
     const ph = new Physics(R);
-    const piece: Piece = { id: 'hut', name: 'Hut', category: 'buildings', file: 'src/world/Hut.ts', surface: 'planks',
+    const piece: Piece = { id: 'hut', name: 'Hut', category: 'buildings', file: 'src/shards/driftwood-isle/world/Hut.ts', surface: 'planks',
       colliders: [boxDesc({ x: 4, z: 1, hw: 2, hd: 0.2, rot: 0.7, yTop: 3, yBottom: 0 })] };
     const cs = addPiece(ph, piece).colliders;
     ph.step();

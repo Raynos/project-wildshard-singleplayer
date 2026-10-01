@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // pine-hollow-sound-gaps.mjs — the sound-gaps lane's evidence (PINE-HOLLOW-REMASTER A-rows): ONE muted headless browser
 // (--mute-audio, &mute=1, audio.muted) drives Pine Hollow through every new sound's trigger and reads `window.__audioLog`
-// (src/audio/audioLog.ts) after each:
+// (src/engine/audio/audioLog.ts) after each:
 //   the lever gun dry (leverDry) and loading through the gate (leverRoundIn) · the Warden's Longbow loose (longbowLoose) ·
 //   a bolt on a boulder (boltImpact-rock, through Weapons.onImpact with a point on a Props rock hull) · a woodpecker by day
 //   (woodpecker_drum / woodpecker_call, flushed) · the ravens' breadcrumbs (raven_caw / raven_pair) · ravens to a kill

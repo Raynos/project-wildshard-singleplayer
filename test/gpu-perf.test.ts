@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { createProbeNav } from '../src/core/probe';
+import { createProbeNav } from '#engine/debug/probe';
 import { memoryVerdict, parseMemoryRun, soakVerdict, flakedFields, type SoakSample } from '../scripts/gpu-perf/report.mjs';
 
 describe('nightly memory gate', () => {

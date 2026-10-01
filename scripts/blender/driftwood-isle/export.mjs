@@ -8,7 +8,7 @@
 //                                                                    structures go to ctx.addObject / ctx.tryBuild
 
 export async function groundColor({ THREE, imp, hf, def }) {
-  const { lowPolyGroundColor } = await imp('src/world/Terrain.ts');
+  const { lowPolyGroundColor } = await imp('src/engine/world/Terrain.ts');
   const wl = def.ocean.level;
   const pathC = new THREE.Color('#d6bd84');
   const ss = THREE.MathUtils.smoothstep;
@@ -22,15 +22,15 @@ export async function groundColor({ THREE, imp, hf, def }) {
 }
 
 export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF, ROAD_LENGTH }) {
-  const island = await imp('src/chunks/driftwood-isle.ts');
+  const island = await imp('src/shards/driftwood-isle/manifest.ts');
   const wl = def.ocean.level;
   // ── layout specs (desktop tier, as the bake's reference) ──
-  const { Palms } = await imp('src/world/Palms.ts');
-  const { Boulders } = await imp('src/world/Boulders.ts');
-  const { Bushes } = await imp('src/world/Bushes.ts');
-  const { Trailside } = await imp('src/world/Trailside.ts');
-  const { Pier } = await imp('src/world/Pier.ts');
-  const { Hut } = await imp('src/world/Hut.ts');
+  const { Palms } = await imp('src/shards/driftwood-isle/world/Palms.ts');
+  const { Boulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
+  const { Bushes } = await imp('src/shards/driftwood-isle/world/Bushes.ts');
+  const { Trailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
+  const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
+  const { Hut } = await imp('src/shards/driftwood-isle/world/Hut.ts');
   const { HUT, LOOKOUT, SHRINE, WRECK } = island;
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
   const palms = Palms.scatterIsland(def.seed, undefined, AVOID);

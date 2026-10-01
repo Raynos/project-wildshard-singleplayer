@@ -2,7 +2,7 @@
 faces … remaster the faces with Blender or Trellis or … Hunyuan 3D").
 
 Why the faces are bad: a whole-body generation spends texels by surface area, so the head gets ~5 % of the atlas, and the
-game packs each figure into a 256² cell on the phone (src/nalati/campPeopleModels.ts): the face ends up ~15 texels wide.
+game packs each figure into a 256² cell on the phone (src/shards/nalati-grasslands/campPeopleModels.ts): the face ends up ~15 texels wide.
 Every variant here therefore re-UVs the figure with the HEAD PRIORITISED (xatlas on a copy whose head is scaled up
 `--head-scale` times, so its charts get that squared share of the atlas) and re-bakes, and then:
 

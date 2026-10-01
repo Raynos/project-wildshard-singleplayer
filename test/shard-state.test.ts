@@ -1,8 +1,8 @@
-// src/core/shardState.ts (SHARD-CACHE M3, E155): each resident shard's module state is captured when it parks, reset
+// src/engine/core/shardState.ts (SHARD-CACHE M3, E155): each resident shard's module state is captured when it parks, reset
 // before another shard builds and restored when it plays again.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { captureShardState, listSlot, resetShardState, restoreShardState, setSlot, shardSlot, stateSlot } from '../src/core/shardState';
+import { captureShardState, listSlot, resetShardState, restoreShardState, setSlot, shardSlot, stateSlot } from '#engine/core/shardState';
 
 describe('shard state slots', () => {
   it('a module variable: capture → reset → restore, and a fresh container for a new shard', () => {

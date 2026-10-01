@@ -2,14 +2,14 @@
 // bake-navmesh.mjs — every shard's navmesh, baked offline (project/archive/2026-09-23-physics.md P6b).
 //
 // Builds the shard's walkable world in Node exactly as the game builds it — the baked terrain grid (terrain.bin, with the
-// sea cave's terrain cut) and the static builders' ColliderDescs (the ones src/main.ts / src/core/bootstrap.ts register:
+// sea cave's terrain cut) and the static builders' ColliderDescs (the ones src/main.ts / src/engine/core/bootstrap.ts register:
 // forest trunks, path walkways, and per shard the pier / jetties / hut / lookout / wreck / shrine / trailside / bridge /
 // cove / palms / shore rocks, or the cabins (+ Pine Hollow's hamlet and landmarks) and props) — triangulates it, and runs navcat's recast pipeline over it for
 // each agent class in the shard's layers. Terrain under the water (the sea, the pond: `wetTest`) is left out, so it is
 // not walkable. Moving pieces (the boat, the cabin doors) and the hand-made interactable boxes are not in it: the
 // character motor still resolves every final move.
 //
-// Output: public/assets/baked/<slug>/navmesh.bin (format below; src/physics/navmesh.ts reads it) + navmesh.json (the
+// Output: public/assets/baked/<slug>/navmesh.bin (format below; src/engine/physics/navmesh.ts reads it) + navmesh.json (the
 // output hash and stats). Every run bakes in memory and writes only differing bytes. Offline: run it after a builder / terrain change and commit the output.
 //
 //   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs [--check] [slug…]
@@ -34,8 +34,8 @@ const Q = 100; // vertex quantisation: 1 cm
 const NEI_EXT = 248; // a one-byte neighbour ≥ this is a portal: 0x8000 | (byte − NEI_EXT)
 
 /**
- * The agent classes per shard: a creature paths on the smallest layer whose radius covers its own (src/physics/navmesh.ts;
- * the largest when none does). Motor capsule radii (src/physics/creatures.ts: min(bodyRadius, bodyHalfLen) × scale): crab
+ * The agent classes per shard: a creature paths on the smallest layer whose radius covers its own (src/engine/physics/navmesh.ts;
+ * the largest when none does). Motor capsule radii (src/engine/physics/creatures.ts: min(bodyRadius, bodyHalfLen) × scale): crab
  * 0.22, monkey 0.16, sailor 0.26, captain 0.3, deer / boar 0.33, bear 0.36, elk 0.52. The erosion is whole voxels
  * (cellSize 0.25): round(radius / cellSize) — 0.3 erodes 0.25 m, 0.5 erodes 0.5 m; the motor absorbs the rest. Climb and slope are the motor's (step 0.3 m, the plan's 40°); height is
  * the clearance a creature needs under a deck or a hold's beams. Pine Hollow's herds are all big: one layer — a second
@@ -88,15 +88,15 @@ const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 const THREE = await import('three');
 const { ConvexHull } = await import('three/examples/jsm/math/ConvexHull.js');
 const { generateTiledNavMesh } = await import('navcat/blocks');
-const registry = await src('chunks/registry.ts');
-const HF = await src('world/Heightfield.ts');
-const BT = await src('world/BakedTerrain.ts');
-const { CHUNK_HALF, ROAD_LENGTH, TERRAIN_RES, CHUNK_SIZE } = await src('core/config.ts');
-const { terrainGrid } = await src('physics/terrain.ts');
-const { treadBoxes } = await src('physics/pieces.ts');
-const { pathRampDescs } = await src('physics/paths.ts');
-const { placeForest, plantSpecs } = await src('world/placement.ts');
-const { Forest } = await src('world/Forest.ts');
+const registry = await src('game/shard/registry.ts');
+const HF = await src('engine/world/Heightfield.ts');
+const BT = await src('engine/world/BakedTerrain.ts');
+const { CHUNK_HALF, ROAD_LENGTH, TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
+const { terrainGrid } = await src('engine/physics/terrain.ts');
+const { treadBoxes } = await src('engine/physics/pieces.ts');
+const { pathRampDescs } = await src('engine/physics/paths.ts');
+const { placeForest, plantSpecs } = await src('engine/world/forest/placement.ts');
+const { Forest } = await src('engine/world/forest/Forest.ts');
 
 const sky = new Proxy({ setupMaterial: noop, csm: { lights: [] }, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
   { get: (t, k) => k in t ? t[k] : typeof k === 'string' && k.endsWith('Color') ? new THREE.Color(1, 1, 1) : typeof k === 'string' && k.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
@@ -117,9 +117,9 @@ async function shardColliders(def) {
   group = 'builders';
   if (sea) {
     // main.ts's `edge` step (the boat rides the swell: a moving piece, not in the bake)
-    const DI = await src('chunks/driftwood-isle.ts');
+    const DI = await src('shards/driftwood-isle/manifest.ts');
     const [{ Pier }, { Boulders }, { Hut }, { Lookout }, { Wreck }, { Shrine }, { Trailside }, { RopeBridge }, { Cove }, { Palms }] = await Promise.all(
-      ['Pier', 'Boulders', 'Hut', 'Lookout', 'Wreck', 'Shrine', 'Trailside', 'RopeBridge', 'Cove', 'Palms'].map((m) => src(`world/${m}.ts`)));
+      [src('shards/driftwood-isle/world/Pier.ts'), src('shards/driftwood-isle/world/Boulders.ts'), src('shards/driftwood-isle/world/Hut.ts'), src('shards/driftwood-isle/world/Lookout.ts'), src('shards/driftwood-isle/world/Wreck.ts'), src('shards/driftwood-isle/world/Shrine.ts'), src('shards/driftwood-isle/world/Trailside.ts'), src('shards/driftwood-isle/world/RopeBridge.ts'), src('shards/driftwood-isle/world/Cove.ts'), src('shards/driftwood-isle/world/Palms.ts')]);
     add(new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).build().colliderDescs());
     add(new Boulders(sky).build(Boulders.scatterShore(def.seed)).colliderDescs());
     add(new Hut(sky, DI.HUT).build().colliderDescs());
@@ -137,7 +137,7 @@ async function shardColliders(def) {
     add(new Palms(sky).build(Palms.scatterIsland(def.seed, undefined, AVOID)).colliderDescs());
   } else {
     // main.ts's `cabins` and `props` steps (the doors swing: moving pieces, not in the bake)
-    const [{ Cabins }, { Props }, { PineLandmarks, pineHamletBuildings }] = await Promise.all([src('world/Cabin.ts'), src('chunks/pine-hollow/world/props.ts'), src('world/PineLandmarks.ts')]);
+    const [{ Cabins }, { Props }, { PineLandmarks, pineHamletBuildings }] = await Promise.all([src('engine/world/Cabin.ts'), src('shards/pine-hollow/world/props.ts'), src('shards/pine-hollow/world/landmarks.ts')]);
     const pine = def.slug === 'pine-hollow';
     const cabins = new Cabins(sky, pine ? pineHamletBuildings() : []); // + the mill hamlet (PH-B3)
     await cabins.build();
@@ -158,17 +158,17 @@ async function shardColliders(def) {
 }
 
 /**
- * Nalati (NALATI-MERGE P3): src/nalati/index.ts's static world as it registers it — the granite outcrops, the crag rock,
- * every POI (src/world/nalati: the camp, the bridge's deck + ramps, the fences, the summer camp, the kurgans, Eagle Rock,
+ * Nalati (NALATI-MERGE P3): src/shards/nalati-grasslands/index.ts's static world as it registers it — the granite outcrops, the crag rock,
+ * every POI (src/shards/nalati-grasslands/world: the camp, the bridge's deck + ramps, the fences, the summer camp, the kurgans, Eagle Rock,
  * the cairn, the crags + the cave porch, the watchtower …) and the dressing (boulders, logs, the camp clutter) — into a
  * registry of its own, read back piece by piece; then main.ts's paths, laid where no deck carries them. Moving pieces
  * (the balbals, `follows`) and the kurgan dungeon (a sealed room at y 140 the boss walks by itself) are not in it.
  */
 async function nalatiColliders(forest, { out, cuts, counts, add, setGroup }) {
-  const { WorldRegistry } = await src('world/registry.ts');
-  const { modelContext } = await src('models/model.ts');
+  const { WorldRegistry } = await src('engine/world/registry.ts');
+  const { modelContext } = await src('engine/models/model.ts');
   const [{ buildOutcrops }, { buildCragRock }, { NalatiPOIs }, { NalatiDressing }] = await Promise.all(
-    ['nalati/outcrops.ts', 'nalati/cragRock.ts', 'world/nalati/index.ts', 'world/nalati/dressing/index.ts'].map((m) => src(m)));
+    ['shards/nalati-grasslands/outcrops.ts', 'shards/nalati-grasslands/cragRock.ts', 'shards/nalati-grasslands/world/index.ts', 'shards/nalati-grasslands/world/dressing/index.ts'].map((m) => src(m)));
   const reg = new WorldRegistry(), none = () => Promise.resolve(), ctx = modelContext(sky);
   const outcrops = buildOutcrops(sky);
   await outcrops.register(reg, ctx, none);   // its rocks as models (E315), drawnInto the mesh
@@ -272,7 +272,7 @@ function addDesc(soup, d) {
 }
 
 /**
- * Where the ground is under water: the sea (an ocean shard) or the pond — inside the square src/world/Water.ts draws
+ * Where the ground is under water: the sea (an ocean shard) or the pond — inside the square src/shards/pine-hollow/world/pond.ts draws
  * (2r + 30 m across) and below its surface; 0.25 m of margin, as AnimalManager's `isDry`. (A pond shard's valleys lower
  * than the pond elsewhere are dry land: no water is drawn there, though `isDry` still calls them wet.)
  */
@@ -281,9 +281,9 @@ async function wetTest(def) {
   if (def.ocean) return (_x, _z, y) => y <= wl;
   if (def.style === 'painterly') {
     // Nalati: the Kunes' whole braided corridor (channels + gravel bars) and the plateau brook's bed — what the animals
-    // call water (src/nalati/wet.ts, AnimalManager.wetAt) — but a road through the corridor's margin (the N road onto
+    // call water (src/shards/nalati-grasslands/wet.ts, AnimalManager.wetAt) — but a road through the corridor's margin (the N road onto
     // the bridge) stays walkable above the water line, or the bridge's ends would stand in a hole
-    const { nalatiWetAt } = await src('nalati/wet.ts');
+    const { nalatiWetAt } = await src('shards/nalati-grasslands/wet.ts');
     return (x, z, y) => y <= wl || (nalatiWetAt(x, z) && HF.trailDistance(x, z) > 3.5);
   }
   if (!HF.hasPond()) return () => false;
@@ -291,7 +291,7 @@ async function wetTest(def) {
   return (x, z, y) => y <= wl && Math.abs(x - P.x) <= half && Math.abs(z - P.z) <= half;
 }
 
-/** The physics ground's triangles (src/physics/terrain.ts: the mesh's vertices, the (x0,z1)–(x1,z0) diagonal), dry ones only. */
+/** The physics ground's triangles (src/engine/physics/terrain.ts: the mesh's vertices, the (x0,z1)–(x1,z0) diagonal), dry ones only. */
 function addTerrain(soup, cuts, wet) {
   const res = TERRAIN_RES, size = CHUNK_SIZE, d = size / (res - 1), half = size / 2;
   const grid = terrainGrid(res, size);

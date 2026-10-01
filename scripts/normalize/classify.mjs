@@ -245,7 +245,12 @@ export function classify(map, root = process.cwd()) {
         importers: (graph.get(current) ?? []).map((site) => ({ file: site.file, line: site.line, owner: layer(destinations.get(site.file) ?? site.file), gate: gatedShard(site) })) });
     }
   }
-  for (const entry of collisions(new Map(map.files.filter((row) => row.f6).map((row) => [row.from, row.f6])), files)) {
+  const mapped = new Map(map.files.filter((row) => row.f6).map((row) => [row.from, row.f6]));
+  // Completed moves occupy their own destination. Validate the abstract map's duplicate/case checks
+  // separately from occupied targets of sources that still exist, so a post-move check is idempotent.
+  const pending = new Map([...mapped].filter(([from]) => files.has(from)));
+  const conflicts = [...collisions(mapped, new Set()), ...collisions(pending, files).filter((entry) => entry.kind === 'occupied destination')];
+  for (const entry of conflicts) {
     findings.push({ from: entry.from, to: entry.to, other: entry.other, kind: `collision: ${entry.kind}` });
   }
   return findings;

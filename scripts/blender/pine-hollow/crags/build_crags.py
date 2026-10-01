@@ -4,7 +4,7 @@ build_crags.py — PH-B2's granite kit for the Ridge (PINE-HOLLOW-REMASTER PH-B2
     blender -b --factory-startup -P scripts/blender/pine-hollow/crags/build_crags.py -- <out dir> [--preview]
 
 Builds, all from code (rocklib.py), a kit of jointed granite modules the game places over the heightfield
-(src/world/PineCrags.ts): two tors for the crest, three boulders and two scree patches for the talus. The big modules (three
+(src/shards/pine-hollow/world/crags.ts): two tors for the crest, three boulders and two scree patches for the talus. The big modules (three
 cliff bands, a buttress, an exfoliation slab) are build_crags_b.py's (crags-b.glb, E322 F-L2); E350 F-X1 dropped A's
 from this kit. Each
 module has a LOD0 and a LOD1 (collapse-decimated) and Cycles vertex AO (4 m, on a ground plane) in its colour's R.

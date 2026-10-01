@@ -1,14 +1,14 @@
-// src/ui/review.ts (unlock, Quick note switch, send + offline queue) and the pure helpers of src/ui/Feedback.ts.
+// src/engine/ui/review.ts (unlock, Quick note switch, send + offline queue) and the pure helpers of src/ui/Feedback.ts.
 // review.ts reads storage once at module init, so each test imports a fresh copy; fetch is stubbed per test.
 import { describe, expect, it, vi } from 'vitest';
-import type * as ReviewModule from '../src/ui/review';
-import { headingDeg, reproUrl } from '../src/ui/Feedback';
+import type * as ReviewModule from '#engine/ui/review';
+import { headingDeg, reproUrl } from '#engine/ui/Feedback';
 
 const KEY = 'ws.review.v1';
 const QUEUE_KEY = 'ws.review.queue.v1';
 function fresh(): Promise<typeof ReviewModule> {
   vi.resetModules();
-  return import('../src/ui/review');
+  return import('#engine/ui/review');
 }
 const reply = (status: number, body: unknown = {}): Response => Response.json(body, { status });
 const bodyOf = (init: RequestInit | undefined): unknown => JSON.parse(typeof init?.body === 'string' ? init.body : 'null');

@@ -1,7 +1,7 @@
 # Handoff — creatures (B4), riding (B7), taming (B8)
 
 **Status (2026-09-23, Phase C): ✅ done** — the glue below is in the shard (`cb56bf5`: the ride section in
-`src/nalati/index.ts`, main's one horse prompt, `extra.mounted`, `elites.bind` taming, holster while bucking); the
+`src/shards/nalati-grasslands/index.ts`, main's one horse prompt, `extra.mounted`, `elites.bind` taming, holster while bucking); the
 one-horse rule (Argymaq replaces Tulpar, `HorseHerd.adoptStallion`); the bow's saddle factors multiply (the Golden Bow's
 bonus survives); `test/progress.test.ts` green; every horse / wolf / leopard / eagle / the flock is now the rigged
 generated hull (NALATI.md A1.5). **Left for Phase D (the user's polish, not built):** sheep raids at dusk + the mounted
@@ -10,21 +10,21 @@ the rider's hands. The sections below are the history of the handoff.
 
 Written 2026-09-23 by the creature / ride agent at wrap-up. The code is all on branch `nalati-grasslands`. Riding and
 taming run fully in the dev harness `dev/nalati-ride.html`, but **they are not wired into the shard yet** (see "Glue
-left to do" — about ten lines in `src/nalati/index.ts` and `src/main.ts`).
+left to do" — about ten lines in `src/shards/nalati-grasslands/index.ts` and `src/main.ts`).
 
 ## Done
 
 | piece | files | state |
 |---|---|---|
-| wolves + pack AI | `src/entities/species/wolf.ts`, `src/entities/Pack.ts` | in the shard (Wildlife). Pack roles are alpha / flankers / lunger / scout; phases are roam → shadow → encircle → lunge → howl regroup → break. A pack may hunt a foal |
-| horses + herd AI | `src/entities/species/horse.ts`, `src/entities/Herd.ts` | in the shard. Lead mare, boids, flight / stampede, stallion guard states. Hooks: `trust`, `alert` / `alertOwned`, `onBeaten`, `leadAway`, `releaseStallion`, `setRidden` |
-| sheep + sheepdog, marmots | `src/entities/Flock.ts`, `species/sheep.ts`, `species/sheepdog.ts`, `src/entities/Marmots.ts` | in the shard |
-| placement + env | `src/entities/Wildlife.ts` (`NALATI_WILDLIFE`, two saddled camp horses at `HITCH_HORSE_SPOTS`), `src/entities/wildEnv.ts` | in the shard |
-| painterly animal style | `AnimalFactory.ts` (`'painterly'`: one draw per animal), `src/entities/painterlyAnimals.ts`, `creatureKit.ts` (tufts, locks, wrapPatch), `loft.ts` `setShapeFn` | in the shard |
-| riding | `src/player/Mount.ts` (+ the `Player.ride` hook in `Player.ts`) | harness only |
-| taming | `src/game/Taming.ts` | harness only |
-| riding / taming HUD | `src/ui/RideHUD.ts` + `src/ui/styles/ride.css` | harness only |
-| wiring helper | `src/nalati/ride.ts` — `wireRide()` builds the Mount, the camp horses as mountables, RideHUD and Taming, plus ONE interactable (`ride.interactable`) that is always the nearest horse action | harness only |
+| wolves + pack AI | `src/engine/entities/species/wolf.ts`, `src/engine/entities/Pack.ts` | in the shard (Wildlife). Pack roles are alpha / flankers / lunger / scout; phases are roam → shadow → encircle → lunge → howl regroup → break. A pack may hunt a foal |
+| horses + herd AI | `src/engine/entities/species/horse.ts`, `src/engine/entities/Herd.ts` | in the shard. Lead mare, boids, flight / stampede, stallion guard states. Hooks: `trust`, `alert` / `alertOwned`, `onBeaten`, `leadAway`, `releaseStallion`, `setRidden` |
+| sheep + sheepdog, marmots | `src/engine/entities/Flock.ts`, `species/sheep.ts`, `species/sheepdog.ts`, `src/engine/entities/Marmots.ts` | in the shard |
+| placement + env | `src/engine/entities/Wildlife.ts` (`NALATI_WILDLIFE`, two saddled camp horses at `HITCH_HORSE_SPOTS`), `src/engine/entities/wildEnv.ts` | in the shard |
+| painterly animal style | `AnimalFactory.ts` (`'painterly'`: one draw per animal), `src/engine/entities/painterlyAnimals.ts`, `creatureKit.ts` (tufts, locks, wrapPatch), `loft.ts` `setShapeFn` | in the shard |
+| riding | `src/shards/nalati-grasslands/ride/Mount.ts` (+ the `Player.ride` hook in `Player.ts`) | harness only |
+| taming | `src/shards/nalati-grasslands/ride/Taming.ts` | harness only |
+| riding / taming HUD | `src/shards/nalati-grasslands/ride/RideHUD.ts` + `src/shards/nalati-grasslands/ride/ride.css` | harness only |
+| wiring helper | `src/shards/nalati-grasslands/ride/ride.ts` — `wireRide()` builds the Mount, the camp horses as mountables, RideHUD and Taming, plus ONE interactable (`ride.interactable`) that is always the nearest horse action | harness only |
 | dev harnesses | `dev/nalati-creatures.html` (`&scene=lineup / pack / herd / flock / crowd / all`), `dev/nalati-ride.html` (`&mount=1`, `&camp=1`, `&herd=1`, `&break=1`, `&gallop=1`, `&touch=1&tier=phone`, `&nohmr=1`) | — |
 
 The riding and taming rules and numbers are in the file headers of `Mount.ts` and `Taming.ts`. They follow the
@@ -48,7 +48,7 @@ design and NALATI.md's decisions:
 
 ## Glue left to do (the integrator's files)
 
-1. **`src/nalati/index.ts`** — add a creatures / riding section:
+1. **`src/shards/nalati-grasslands/index.ts`** — add a creatures / riding section:
    ```ts
    import { wireRide, type Ride } from './ride';
    let ride: Ride | null = null;

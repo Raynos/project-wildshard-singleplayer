@@ -32,7 +32,7 @@ shard 4 should do with it**. The clean room may copy ideas, never imports (LAB-R
   (`resolveDepthBuffer` defaults to true). So `tDepth` ends up holding the viewmodel's depth only, with every world pixel
   at the far plane. The composite's depth silhouette then draws around the jian and the claw, and around nothing in the
   world.
-  - The game hit the same bug: `1305f2d` fixed it, see `src/core/worldDepth.ts` (§3.1). It went unnoticed there for
+  - The game hit the same bug: `1305f2d` fixed it, see `src/engine/core/worldDepth.ts` (§3.1). It went unnoticed there for
     days while other lanes papered over the symptoms.
   - **The best fix is the game's final one, depth slices** (`b688ef1`): don't clear at all. Draw the world at depth
     ≥ 0.3 and the viewmodel in a near slice, via `renderer.getContext().depthRange(0, 0.075)` around its render and
@@ -84,7 +84,7 @@ The full method is in `LOOK-LOOP.md`.
 - **What:**
   - `scripts/palette-delta.py` gives the mean colour per material region, mockup vs game.
   - `scripts/fit-lut.py` warps a 33³ LUT from Lab Reinhard pairs per region, with identity anchors.
-  - The runtime is `src/world/lut.ts` (`LUT3DEffect`, last in the grade).
+  - The runtime is `src/engine/world/lut.ts` (`LUT3DEffect`, last in the grade).
 - **Where:**
   - Driftwood X1 `ec47cbe`.
   - Pine Hollow PH-L4 `c393380` / `bee0c6b`.
@@ -128,7 +128,7 @@ The full method is in `LOOK-LOOP.md`.
   6. baked shadows and contact darkening;
   7. layout from the capture.
 - **What it cost:** 124 calls and 369 k tris on the phone tier, 1.7 ms on the M5. It became Nalati's render path
-  (`src/nalati/look/`).
+  (`src/shards/nalati-grasslands/look/`).
 - **Its best phone setup:** no post chain at all. The grade ran inside every shader, with canvas MSAA ×4 plus
   alpha-to-coverage.
 - **Jake's verdict** after playing it: *"such a cheating asshole lol, so many cardboard cut outs … it only looks good
@@ -180,9 +180,9 @@ The full method is in `LOOK-LOOP.md`.
 - **Recommended, not yet built anywhere:** an inverted hull (backface, pushed along the normal) with a dry-brush strip
   alpha (§4.1 "Enemies").
 - **The nearest existing pieces:**
-  - The rig bake (`src/entities/creatureRigBake.ts`, `scripts/creature-rig-bake.mjs` (deleted in E357 F7: needed the dev labs)): a static hull skinned to a
+  - The rig bake (`src/engine/entities/creatureRigBake.ts`, `scripts/creature-rig-bake.mjs` (deleted in E357 F7: needed the dev labs)): a static hull skinned to a
     procedural skeleton. A hull mesh is exactly what an inverted-hull outline needs.
-  - The Nalati melee kit (`src/player/meleeGeo.ts`): smooth indexed tubes with per-vertex paint, which give clean normals
+  - The Nalati melee kit (`src/shards/nalati-grasslands/weapons/meleeGeo.ts`): smooth indexed tubes with per-vertex paint, which give clean normals
     for the push.
 - **Shard 4:** after the §0 fix, draw the jian and the claw with their own hull. That is the 6–9 px brush weight of the
   line table.
@@ -191,7 +191,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 3.1 The depth clear, done right
 
-- **Where:** `src/core/worldDepth.ts` (`WorldRenderPass`), fix `1305f2d`.
+- **Where:** `src/engine/core/worldDepth.ts` (`WorldRenderPass`), fix `1305f2d`.
 - **What happened:** every viewmodel draws a clearer at renderOrder 999 that calls `clearDepth()`, so the weapon (1000)
   never clips into walls. The post chain read the composer's depth *after* the pass, which held the weapon alone.
   - The AO shaded only the weapon.
@@ -223,7 +223,7 @@ The full method is in `LOOK-LOOP.md`.
   - `Crossbow.viewmodelMaterial` for PBR.
   - The painterly `meleeMaterial` in the transparent queue, for the depth-clear trick.
   - Faceted vertex colours for Driftwood's `Sword.ts` / `Hands.ts`.
-- **Procedural textures** are drawn in a worker (`src/player/viewmodelTextures.ts`): ~290 + 180 ms of main thread moved
+- **Procedural textures** are drawn in a worker (`src/engine/player/viewmodelTextures.ts`): ~290 + 180 ms of main thread moved
   off.
 - **Shard 4:**
   - The jian's neon edge wants its core colour > 1 into the bloom.
@@ -235,7 +235,7 @@ The full method is in `LOOK-LOOP.md`.
 ### 4.1 One program for a whole shard
 
 - **Where:**
-  - `src/world/painterly.ts`: every painterly mesh shares ONE program. The cache key is the constant `'painterly'`,
+  - `src/engine/world/painterly.ts`: every painterly mesh shares ONE program. The cache key is the constant `'painterly'`,
     everything else is a uniform, vertex colours are always on.
   - `114b4b3` gives every plain material the same map slots (89 → 83 programs).
 - **Why:** each extra program is a ~150 ms Metal compile on the iPhone, and a state switch per frame.
@@ -244,7 +244,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 4.2 Toon two-band ramp as one chunk patch
 
-- **What:** Driftwood's `src/world/stylize.ts` patches `lights_physical_pars_fragment` once, so every Standard / Physical
+- **What:** Driftwood's `src/engine/world/stylize.ts` patches `lights_physical_pars_fragment` once, so every Standard / Physical
   material on the shard gets:
   - a two-band sun ramp;
   - coloured (violet-lifted) shade, never black;
@@ -259,7 +259,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 4.3 The lighting cheat
 
-- **What:** Nalati's `src/nalati/look/light.ts` lights objects by a key swung ~40° round and ~15° higher than the painted
+- **What:** Nalati's `src/shards/nalati-grasslands/look/light.ts` lights objects by a key swung ~40° round and ~15° higher than the painted
   sun, so the foreground reads front / side-lit while the sky keeps its sun.
 - **Where:** `0969ba4`.
 - **Shard 4:** there is no sun. The key is the sky screen above.
@@ -268,7 +268,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 4.4 A grade with an exact inverse, so painted or hex colours display as authored
 
-- **What:** Nalati's `src/nalati/look/grade.ts`: one grade function (filmic shoulder, saturation, cool shadow / golden
+- **What:** Nalati's `src/shards/nalati-grasslands/look/grade.ts`: one grade function (filmic shoulder, saturation, cool shadow / golden
   light split, mild S-curve), plus its exact GLSL and CPU inverse (`V2_UNGRADE`). The painted dome and the fog write the
   scene-linear value that the grade maps back onto the painting.
 - **Where:** `f1a7540`.
@@ -295,7 +295,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 4.6 A fixed light pool
 
-- **What:** `src/fx/LightPool.ts`. three bakes the *number* of lights into every lit program, so adding or hiding one
+- **What:** `src/engine/fx/LightPool.ts`. three bakes the *number* of lights into every lit program, so adding or hiding one
   mid-play recompiles everything: a multi-second hitch on iOS. The pool creates its lights at boot and seals on the first
   render. After that it drives intensity only.
 - **Where:** `3b24464` (the rifle's muzzle light: programs 76 → 113 → 76 → 76).
@@ -306,7 +306,7 @@ The full method is in `LOOK-LOOP.md`.
 ### 4.7 Wetness as one uniform
 
 - **What:**
-  - Pine Hollow's `uWet` (`src/world/Atmosphere.ts`): porous up-facing surfaces darken and turn glossy, and metals don't.
+  - Pine Hollow's `uWet` (`src/engine/world/Atmosphere.ts`): porous up-facing surfaces darken and turn glossy, and metals don't.
   - Nalati's `uPWet` (`182301d`) does the painterly version: darker paint plus a sky sheen.
 - **Shard 4:** the clean room's "wet = silk value −25 %" is this. Make it a uniform with an up-facing mask, so stairs,
   balcony tops and awnings wet and walls stay dry.
@@ -315,7 +315,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 5.1 Fog coloured from what is behind it
 
-- **What:** Nalati's `src/nalati/look/fog.ts` looks the fog colour up in a 256×1 LUT over azimuth, taken from the
+- **What:** Nalati's `src/shards/nalati-grasslands/look/fog.ts` looks the fog colour up in a 256×1 LUT over azimuth, taken from the
   painting's band just above the horizon and run back through the grade's inverse. The 3D world dissolves *into* the
   painting, with no step at any angle.
 - **Where:** `d05788b`.
@@ -325,7 +325,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 5.2 Painting only at infinity: the horizon matte
 
-- **What:** `src/world/HorizonMatte.ts` (Driftwood X4 `676c869`, Pine Hollow PH-L5 `4a07926`) is a 360° strip painted by
+- **What:** `src/engine/world/HorizonMatte.ts` (Driftwood X4 `676c869`, Pine Hollow PH-L5 `4a07926`) is a 360° strip painted by
   codex over real in-game captures at six headings.
   - **Chained** (`scripts/horizon-matte/overlap.py`): each segment continues its painted neighbour. Independent edits cut
     a mountain range with a seam.
@@ -359,12 +359,12 @@ The full method is in `LOOK-LOOP.md`.
   - The inner edge is feathered, with a bright core line at the tip.
   - Shard 4: this *is* the 飞白 flying-white ribbon. Swap the feather for a dry-brush strip texture (256×64) scrolling
     along the ribbon, and fade it cyan → ink.
-- **Pooled impacts** (`src/fx/Impacts.ts`): one InstancedMesh of 128 chips, one draw, precompiled at boot.
+- **Pooled impacts** (`src/engine/fx/Impacts.ts`): one InstancedMesh of 128 chips, one draw, precompiled at boot.
   - Shard 4: the 泼墨 ink-splash decals and the cinnabar seal-stamp telegraphs, as a pooled instanced quad set.
 
 ### 5.4 Reflections without a second scene render
 
-- **What:** Pine Hollow's pond (`src/world/waterSurface.ts`, PH-L9) reflects the environment and swaps in an analytic
+- **What:** Pine Hollow's pond (`src/engine/world/waterSurface.ts`, PH-L9) reflects the environment and swaps in an analytic
   **skyline probe**: a 1-D texture, per azimuth, of the tallest occluder's height and distance, intersected per pixel as
   a cylinder. The planar mirror stays only as the "before" (`?pond=planar`).
 - **Shard 4:** the square's wet flagstones could reflect a **skyline probe of the facades** (per azimuth: the roofline
@@ -379,7 +379,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 6.1 Merged kits with baked AO and baked light
 
-- **`src/world/lowpolyKit.ts`:**
+- **`src/engine/world/lowpolyKit.ts`:**
   - One merged, non-indexed mesh per prop or building on one material.
   - `bakeAO`: per-face hemisphere rays through a coarse occupancy grid darken each face toward a cool shade. It takes
     ~5–20 ms per 10 k tris, once at build.
@@ -395,7 +395,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 6.2 Density with no per-instance storage
 
-- **What:** Nalati's grass (`src/nalati/look/grass.ts`) draws each ring as one instanced draw of world-snapped tiles. A
+- **What:** Nalati's grass (`src/shards/nalati-grasslands/look/grass.ts`) draws each ring as one instanced draw of world-snapped tiles. A
   blade's root is `tile origin + cell(gl_InstanceID) × spacing + hash`, and the CPU writes only the visible tiles'
   origins into a small float texture. Flowers are camera-facing SDF heads, with no texture bytes.
 - **Cost:** 5 draws for all grass and flowers; the camp at 97–120 calls on the phone.
@@ -447,7 +447,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 6.5 Rigging generated hulls
 
-- **Where:** `src/entities/creatureRigBake.ts` + `scripts/creature-rig-bake.mjs` (deleted in E357 F7: needed the dev labs). A static image-to-3D hull is skinned to
+- **Where:** `src/engine/entities/creatureRigBake.ts` + `scripts/creature-rig-bake.mjs` (deleted in E357 F7: needed the dev labs). A static image-to-3D hull is skinned to
   a procedural species skeleton (weights transferred from the nearest bones) and written as `.rigged.glb`.
 - **Used for:** Nalati `b14c7cc`; Pine Hollow PH-M1 `49e6bb0` (deer, boar, elk, bear).
 - **Shard 4:** brush-drawn enemies and the square's people. Generate a hull, rig it to a humanoid skeleton, and animate

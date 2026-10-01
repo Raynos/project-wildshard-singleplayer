@@ -2,13 +2,13 @@
 /**
  * `pnpm inbox:pull [--url <site>] [--all]` — download every review note not yet in `.review/inbox/` (or
  * `.review/handled/`) as `<id>.json` + `<id>.jpg`, then print a table (time, category, shard, pose, note).
- * The notes come from the in-game FEEDBACK tab / quick note (src/ui/Feedback.ts) through `api/inbox.ts`.
+ * The notes come from the in-game FEEDBACK tab / quick note (src/engine/ui/Feedback.ts) through `api/inbox.ts`.
  *
  * The password comes from `REVIEW_PASSWORD` in the environment, else from `.env.local` (what `vercel env pull`
  * writes; gitignored). The site defaults to production; `INBOX_URL` or `--url` point it at a preview deployment.
  * `--all` re-downloads entries already handled. The drain-inbox skill (.claude/skills/drain-inbox) reads the output.
  *
- * Client error reports (E133: window.onerror, unhandled rejections, a frame-loop system switched off — src/core/errorReport.ts
+ * Client error reports (E133: window.onerror, unhandled rejections, a frame-loop system switched off — src/engine/core/errorReport.ts
  * → `api/errors.ts`) come down the same way, into the same folder, as category `error` (`note` = "[system] message", the
  * stack under `error`). They have no screenshot. `.review/errors-seen` keeps the newest error id pulled: the session brief
  * (.claude/hooks/session-brief.sh) counts the ones after it.

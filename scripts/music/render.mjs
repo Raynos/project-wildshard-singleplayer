@@ -1,4 +1,4 @@
-// Render the score offline through the real engine (src/audio/Music.ts renderOffline → OfflineAudioContext 48 kHz stereo)
+// Render the score offline through the real engine (src/engine/audio/Music.ts renderOffline → OfflineAudioContext 48 kHz stereo)
 // in headless Chromium, and write WAVs:
 //   node scripts/music/render.mjs                → scripts/trailer/score-30.wav  score-15.wav  theme-loop.wav
 //   node scripts/music/render.mjs theme 40 out.wav [solo layers, e.g. pluck,marimba] [state JSON, e.g. '{"mode":"combat","shard":"island"}']

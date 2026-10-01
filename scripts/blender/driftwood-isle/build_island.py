@@ -19,7 +19,7 @@ Then GLOBAL ILLUMINATION + AO in Cycles (Metal GPU):
   midday reference, strength 1) over the whole scene — palms, rocks, scatter, the pier and the hut all occlude and bounce;
 - prototypes: self + ground-contact AO into the vertex colour's alpha.
 In the game the AO multiplies the (day/night-driven) hemisphere fill, the bounce is added scaled by the live sun, and the
-direct sun stays dynamic (toon ramp + CSM shadows) — see src/world/BlenderIsland.ts.
+direct sun stays dynamic (toon ramp + CSM shadows) — see src/shards/driftwood-isle/world/BlenderIsland.ts.
 
 Output (<out>): island.glb (terrain tiles + prototypes, no materials), placements.bin, island.json, lm-ao.png,
 lm-bounce.png (run.sh converts / compresses them into public/assets/models/driftwood-blender/).

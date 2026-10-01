@@ -26,7 +26,7 @@ WASD move · Shift sprint · Ctrl/C crouch · Space jump · LMB fire · RMB aim 
 ## URL parameters (debug)
 - `?x=&z=&yaw=&pitch=` spawn pose · `&nolock=1` no pointer lock (F fires, R spans) · `&skipintro=1` straight into play
 - `&tour=1` scripted fly-through camera (`window.__wildshard.world.tour.time = s`)
-- Variants and debug aids are not URL params (AGENTS.md "No URL switches, ever"): pause ▸ Settings ▸ Debug, declared in `src/ui/debugOptions.ts`
+- Variants and debug aids are not URL params (AGENTS.md "No URL switches, ever"): pause ▸ Settings ▸ Debug, declared in `src/engine/ui/debugOptions.ts`
 
 ## Capturing progress
 - `scripts/timelapse.sh` → `progress/timelapse.mp4` from every screenshot in `progress/`

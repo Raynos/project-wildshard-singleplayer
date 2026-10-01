@@ -26,7 +26,7 @@ const cases = JSON.parse(readFileSync('test/fixtures/lint/cases.json', 'utf8')) 
 const fixtureRoot = temp();
 for (const item of cases) put(fixtureRoot, item.file, item.code);
 const fixtureBaseline = join(fixtureRoot, 'ratchet.json');
-writeFileSync(fixtureBaseline, JSON.stringify({ allow: { 'wildshard/no-raw-random-time': { 'src/ui/perfHud.ts': 'fixture diagnostic stopwatch' } } }));
+writeFileSync(fixtureBaseline, JSON.stringify({ allow: { 'wildshard/no-raw-random-time': { 'src/engine/ui/perfHud.ts': 'fixture diagnostic stopwatch' } } }));
 const lint = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', resolve('.oxlintrc.ratchet.json'), '-f', 'json', 'src'], {
   cwd: fixtureRoot, encoding: 'utf8', env: { ...env, WILDSHARD_RATCHET_FILE: fixtureBaseline },
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Events, Scope, hasTag, EVENT_FLUSH_LIMIT, type Tag } from '#engine';
+import { Events, Scope, hasTag, EVENT_FLUSH_LIMIT, type Tag } from '#engine/index';
 
 declare module '#engine' {
   interface EventMap { 'test.value': number; 'test.next': number }

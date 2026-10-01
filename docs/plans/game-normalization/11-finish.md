@@ -54,7 +54,7 @@ shard".
 | `src/shards/<slug>/README.md` ×4 (+ template) | What the shard declares; its custom code and why it's custom; its budgets; its look; its open asks | Written at each shard's milestone (M1–M4) |
 
 AGENTS.md: the "No URL switches" section's Settings.ts steps are rewritten (a shard declares its own option keys
-and rows through `ctx.debugRow`, so no shard name lands in `src/ui/Settings.ts`; 13-lead-resolutions 05/06#12). The "Physics" and "Local models"
+and rows through `ctx.debugRow`, so no shard name lands in `src/engine/ui/Settings.ts`; 13-lead-resolutions 05/06#12). The "Physics" and "Local models"
 sections are updated for the new paths (`src/engine/physics/`,
 `#engine/...`), and a short "Engine layers" section links `docs/ENGINE.md`.
 

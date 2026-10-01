@@ -1,8 +1,8 @@
-// src/ui/perfLapSummary.ts — the PERF LAP's summary (E350 F-J1): the text Jake copies off the phone. Pins its rows:
+// src/engine/ui/perfLapSummary.ts — the PERF LAP's summary (E350 F-J1): the text Jake copies off the phone. Pins its rows:
 // fps p50 / p5, the share at the cap's interval, frames over 50 / 100 ms, gpu~ p50 / p95, the worst frame + its cause, and
 // the header (build, tier, dpr, cap, the Low Power Mode hint, elapsed time, the lap's start / end gpu~).
 import { describe, expect, it } from 'vitest';
-import { lapSummary, lowPower, pct, type LapFrame, type LapMeta } from '../src/ui/perfLapSummary';
+import { lapSummary, lowPower, pct, type LapFrame, type LapMeta } from '#engine/ui/perfLapSummary';
 
 const frame = (ms: number, gpu = 2, cause = ''): LapFrame => ({ frame: ms, update: 4, render: 3, gpu, calls: 90, tris: 1_200_000, cause });
 const meta = (o: Partial<LapMeta> = {}): LapMeta => ({

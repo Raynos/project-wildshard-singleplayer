@@ -31,14 +31,14 @@ controller, input, precompile, tier) and **~33 k are content** (models-in-code, 
 
 ## 1. Game loop and update ordering — thin, hand-rolled
 
-- `src/core/Game.ts:208-231`: one rAF loop, **variable timestep only**. `realDt = min(0.1, clock.getDelta())`; hit-stop scales dt
+- `src/engine/core/Game.ts:208-231`: one rAF loop, **variable timestep only**. `realDt = min(0.1, clock.getDelta())`; hit-stop scales dt
   by 0.04 (`Game.ts:217`, `core/time.ts` `worldTime.realDt` for things that must keep moving). `THREE.Clock` (deprecated, oxlint-disabled `Game.ts:27`).
 - `game.onUpdate(fn)` pushes into a flat array (`Game.ts:129`); order = registration order. 49 `onUpdate(` call sites. The real
   order lives in `bootstrap.ts:83` (player → forest) then one giant closure in `main.ts:556-615` calling ~30 `x?.update(dt…)` by hand
   (boundary, water, ocean, boat, palms, gulls, … animals, weapons, drops, HUD, minimap).
 - `frameGate` (`Game.ts:38`, `main.ts:524`) skips whole frames under menus / rotate gate / review composer.
 - Sub-rates are ad hoc: animal AI at **10 Hz staggered** with its own accumulator (`AnimalManager.ts:307,487`); `Player.update`
-  clamps dt to 0.05 (`Player.ts:266`); no fixed physics step anywhere (PHYSICS.md plans a 60 Hz accumulator in `src/physics/Physics.ts`).
+  clamps dt to 0.05 (`Player.ts:266`); no fixed physics step anywhere (PHYSICS.md plans a 60 Hz accumulator in `src/engine/physics/Physics.ts`).
 - No systems/phases (input → sim → late → render), no pause-aware time domains beyond hit-stop, no entity destroy lifecycle
   (34 `dispose()` calls across src; objects are mostly built once for the chunk's life).
 - Quality: small and fine, but ordering bugs are "who registered first". An engine gives phases for free; this is cheap to write yourself.

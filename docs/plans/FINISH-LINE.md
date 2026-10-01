@@ -99,7 +99,7 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 - **Pine Hollow is described as the whole game.** `README.md`, `docs/SUBAGENT-BRIEF.md` and `docs/SHARDS.md` still describe "a pine forest, three cabins, a crossbow".
 - **`docs/RUNNING.md` still says `vercel deploy`.**
 - **`docs/AAA-PLAN.md` claims Pine Hollow runs at 60 fps.**
-- **Ask D38 says day/night is not built.** It is, and it runs by default (`src/world/DayNight.ts`).
+- **Ask D38 says day/night is not built.** It is, and it runs by default (`src/engine/world/DayNight.ts`).
 
 ## Engine verdict (for the record)
 
@@ -114,7 +114,7 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
   | E4 input | still needed → S5 |
   | E5 shard modules | the most important, and skipped → S3 |
 
-- **Adopt:** three-mesh-bvh (melee and camera queries, behind `src/physics/query.ts`), Playwright as a gate (S1), and three's Inspector and the Needle Inspector as dev tools.
+- **Adopt:** three-mesh-bvh (melee and camera queries, behind `src/engine/physics/query.ts`), Playwright as a gate (S1), and three's Inspector and the Needle Inspector as dev tools.
 - **Later:** koota (crowds) and three.quarks (effects).
 - **Avoid:** Howler, and chasing WebGPU for its own sake.
 - Full comparison: `docs/design/audit-e108/engines.md`.

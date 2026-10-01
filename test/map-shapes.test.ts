@@ -1,10 +1,10 @@
-// The built world on the maps (E130, src/ui/mapShapes.ts): a shard's ChunkDef.map picks registered pieces by id (with a
+// The built world on the maps (E130, src/engine/ui/mapShapes.ts): a shard's ShardManifest.map picks registered pieces by id (with a
 // trailing-* prefix), and their colliders become world-XZ footprints — a yawed box's four corners, a hull's outline, a
 // capsule's crown dot — never anything hand-placed.
 import { describe, expect, test } from 'vitest';
-import { mapLook, mapShapes, mapWants } from '../src/ui/mapShapes';
-import type { ChunkMapDef } from '../src/chunks/ChunkDef';
-import type { Piece } from '../src/world/registry';
+import { mapLook, mapShapes, mapWants } from '#engine/ui/mapShapes';
+import type { ChunkMapDef } from '#game/shard/manifest';
+import type { Piece } from '#engine/world/registry';
 
 const def: ChunkMapDef = { pieces: [{ ids: ['hut', 'jetty-*'], look: 'timber' }, { ids: ['palms'], look: 'dot' }] };
 const piece = (id: string, colliders: Piece['colliders']): Piece => ({ id, name: id, category: 'buildings', file: 'x', ...(colliders ? { colliders } : {}) });

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // pine-hollow-audio-wiring.mjs — the audio-wiring lane's evidence (PINE-HOLLOW-REMASTER A-rows): one MUTED headless browser
 // (--mute-audio, &mute=1, audio.muted) drives Pine Hollow through each trigger and reads `window.__audioLog`
-// (src/audio/audioLog.ts) after each: a lever shot, an NPC talk (Hale), rain, a door, day → night, a waystone relight, the
+// (src/engine/audio/audioLog.ts) after each: a lever shot, an NPC talk (Hale), rain, a door, day → night, a waystone relight, the
 // zone spots, a zipline ride; then the Antler King (`?boss=antler-king&bossGod=1`) phases I → III and his fall; then
 // `?quest=dawn` (the dawn sting). Every page request under /assets/music|sfx after the loading bar (window.__wildshard?.world is set
 // once the bar's last step is done) is a lazy fetch — E44 wants none. Last, the same context goes OFFLINE and reloads: the

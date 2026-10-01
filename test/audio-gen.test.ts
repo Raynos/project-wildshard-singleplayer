@@ -1,10 +1,10 @@
-// The procedural sound bank (src/audio/gen.ts) and the footstep surface map (src/audio/Surface.ts), checked offline: every
+// The procedural sound bank (src/engine/audio/gen.ts) and the footstep surface map (src/engine/audio/Surface.ts), checked offline: every
 // sound renders finite, in range and not silent; the surfaces / materials differ where the ear says they should (spectral
 // balance); the reverb rooms decay in their target times; loops are seamless; renders are deterministic.
 import { describe, expect, test } from 'vitest';
-import * as G from '../src/audio/gen';
-import { Biquad, bandEnergy, centroid, rt60 } from '../src/audio/dsp';
-import { SurfaceMap } from '../src/audio/Surface';
+import * as G from '#engine/audio/gen';
+import { Biquad, bandEnergy, centroid, rt60 } from '#engine/audio/dsp';
+import { SurfaceMap } from '#engine/audio/Surface';
 
 const sr = 48000;
 const db = (e: number) => 10 * Math.log10(Math.max(1e-20, e));

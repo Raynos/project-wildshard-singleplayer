@@ -25,7 +25,7 @@ cyan scribble on it is the tester pointing at the thing. Each note has `category
 `fps`, `calls`, `tris`, `build` (git sha + time), `dpr`, `viewport`, `canvas`, `ua`, `url` and **`repro`**.
 
 **Error reports (category `error`, E133)** land in the same folder with no jpg: the game sends them by itself
-(`window.onerror`, unhandled rejections, a frame-loop system switched off, a fatal crash; `src/core/errorReport.ts` →
+(`window.onerror`, unhandled rejections, a frame-loop system switched off, a fatal crash; `src/engine/core/errorReport.ts` →
 `api/errors.ts`), deduped and capped at 10 a session. `note` is `[system] message`; `error` holds `system`, `message`,
 `stack`, `count`, `fatal`, `disabled` (the loop switched that system off) and `sinceBootMs`; `context` has `build`,
 `shard`, `tier`, `touch`, `url`, `pos` / `yaw` / `pitch`, `viewport`, `loop`. One ask per distinct error (same message +

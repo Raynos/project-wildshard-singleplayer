@@ -1,5 +1,5 @@
 // debug-settings.mjs — set pause ▸ Settings ▸ Debug options before the game page loads (E162: the game reads no URL
-// switches; a variant is a saved option, src/ui/Settings.ts OPTION_VALUES, declared in src/ui/debugOptions.ts).
+// switches; a variant is a saved option, src/engine/ui/Settings.ts OPTION_VALUES, declared in src/engine/ui/debugOptions.ts).
 //
 //   import { debugSettings } from './debug-settings.mjs';
 //   const page = await context.newPage();

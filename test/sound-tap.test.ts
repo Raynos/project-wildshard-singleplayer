@@ -4,9 +4,9 @@ import { isArrowFunction, isBlock, isCallExpression, isExpressionStatement, isIf
 
 const sources = import.meta.glob<string>('../src/**/*.ts', { eager: true, query: '?raw', import: 'default' });
 const schedulers: Readonly<Record<string, readonly string[]>> = {
-  Audio: ['scheduleBubble', 'scheduleLark', 'scheduleCricket', 'scheduleCrackle', 'scheduleSurf', 'scheduleGust', 'scheduleBird'],
-  IslandAmbience: ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
-  ForestAmbience: ['scheduleThrall'],
+  'src/engine/audio/Audio.ts': ['scheduleBubble', 'scheduleLark', 'scheduleCricket', 'scheduleCrackle', 'scheduleSurf', 'scheduleGust', 'scheduleBird'],
+  'src/shards/driftwood-isle/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
+  'src/shards/pine-hollow/audio/ambience.ts': ['scheduleThrall'],
 };
 
 describe('every sound source is observed', () => {
@@ -33,7 +33,7 @@ describe('every sound source is observed', () => {
         expect(source.slice(expr.pos, expr.end).trim()).toBe('ambientTick');
       };
       for (const [module, methods] of Object.entries(schedulers)) {
-        const file = `src/audio/${module}.ts`, source = sources[`../${file}`];
+        const file = module, source = sources[`../${file}`];
         const ast = project.program.getSourceFile(file);
         if (!source || !ast) throw new Error(`Missing source ${file}`);
         const found: string[] = [];
@@ -54,7 +54,7 @@ describe('every sound source is observed', () => {
         visit(ast);
         expect(found.sort(), module).toEqual([...methods].sort());
       }
-      const file = 'src/audio/SteppeAmbience.ts', source = sources[`../${file}`], ast = project.program.getSourceFile(file);
+      const file = 'src/shards/nalati-grasslands/audio/SteppeAmbience.ts', source = sources[`../${file}`], ast = project.program.getSourceFile(file);
       if (!source || !ast) throw new Error('Missing steppe countdown source');
       const visit = (node: Node): void => {
         if (isIfStatement(node) && /this\.(herd|marmot|eagle)T <= 0/.test(source.slice(node.expression.pos, node.expression.end))) { checkBody(node.thenStatement, source); countdowns++; }

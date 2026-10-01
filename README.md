@@ -30,7 +30,7 @@ Target look: `art/<subject>/round-<n>/` (mockups from codex/OpenAI image-gen, or
 "Mockups"); gap list: `docs/AAA-PLAN.md`;
 progress photos, `timelapse.mp4` and `progress-video.mp4`: `progress/`.
 
-Physics: Rapier 3D (`src/physics/`). Every shard collides for real: the player and nearby creatures on a character
+Physics: Rapier 3D (`src/engine/physics/`). Every shard collides for real: the player and nearby creatures on a character
 controller, every structure as colliders, projectiles and blades against the world, items as bodies, ragdolls, and a
 navmesh for the herds. How it fits together, and the numbers before and after: `project/archive/2026-09-23-physics.md`, or its archive
 once finished. Working rules: `AGENTS.md` → Physics.

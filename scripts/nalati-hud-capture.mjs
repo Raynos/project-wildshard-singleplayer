@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // nalati-hud-capture.mjs — NALATI-MERGE H2 / H3: the phone HUD (layout D, art/hud/round-12-nalati-merge/D-*.jpg) captured
-// in the real build (since E154 the base HUD every shard shares, src/ui/hudSlots.ts), one scene per frame, plus the live rect of every HUD element (<scene>-rects.json), and a side-by-side
+// in the real build (since E154 the base HUD every shard shares, src/engine/ui/hudSlots.ts), one scene per frame, plus the live rect of every HUD element (<scene>-rects.json), and a side-by-side
 // sheet (engine | mockup) of the scenes that have a mockup.
 //
 //   node scripts/nalati-hud-capture.mjs [--url=http://127.0.0.1:5188] [--out=progress/nalati-merge/h2] [--tag=now]

@@ -89,7 +89,7 @@ Sounds: the loose's twang (`audio.bowTwang`) is wired; the draw creak, the full-
 (`onDrawStart`, `onFullDraw`, `onLetDown`) but no sounds yet. New sounds go through the two-model SFX pipeline (MOSS v2 +
 Stable Audio 3 Medium, the better take ships), which is its own task.
 
-Code: `src/player/bowDraw.ts` (the state machine, unit-tested in `test/bow-draw.test.ts`), `src/player/Bow.ts` (input,
-the AIM zoom and pose, the loose), `src/player/TouchControls.ts` + `src/ui/styles/touch.css` (FIRE = hold to draw with
+Code: `src/engine/player/bowDraw.ts` (the state machine, unit-tested in `test/bow-draw.test.ts`), `src/engine/player/Bow.ts` (input,
+the AIM zoom and pose, the loose), `src/engine/player/TouchControls.ts` + `src/engine/ui/styles/touch.css` (FIRE = hold to draw with
 the ring, "HOLD = DRAW"; AIM stays AIM, a toggle). Evidence: `progress/nalati-merge/h4/sheet.jpg`
 (`scripts/nalati-bow-capture.mjs`).

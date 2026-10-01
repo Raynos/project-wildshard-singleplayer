@@ -21,7 +21,7 @@
 //   --blank-first        navigate the tab to about:blank and wait 3 s before the load (the E263 runs came from another
 //                        shard in the same tab; a blank start is the cleaner reading)
 //   --from=<game url>    load this shard first (to its playable state + settle), then switch to --url the way the game's
-//                        shard switch does (src/shard/switch.ts: a navigation in the same tab) — the E263 flow
+//                        shard switch does (src/game/travel/switch.ts: a navigation in the same tab) — the E263 flow
 //   --nav=href|replace   how that navigation is made (default: what the game's switch does, href)
 //   --setting=k=v        save a pause ▸ Settings value (ws.settings.v1) in the tab before the load, e.g. --setting=tex=img
 //                        (repeatable; the tab must already be on the game's origin — open /version.json first)

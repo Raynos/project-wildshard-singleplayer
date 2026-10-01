@@ -10,7 +10,7 @@ row: a decision number in [E357](../../tasks/asks/E357.md), or a research row (E
 | Rule | Detail | Decision |
 |---|---|---|
 | **Layers** | `src/engine/` → `src/game/` → `src/kit/` → `src/shards/<slug>/`. Imports only point down the arrow; no shard imports another shard | 1, 5, 48, 62 |
-| **Composition root** | Two files at `src/`'s root, outside the layer rules (the engine may not import `#game`, so the entry can't live in the engine):<br>• `src/entry.ts` (moved from `src/boot/entry.ts` at F6) is the page's module entry. `index.html` loads `/src/entry.ts`. It keeps today's retrying dynamic imports (E188) and the title-only fast path; its `nineBootTrace` import becomes the engine's generic boot trace, switched on by `manifest.boot.phone.trace`.<br>• `src/main.ts` imports `#engine`, `#game` and the generated shard registry and starts the app: ≤ 20 lines at S4.4, with the generic boot in `engine/boot.ts` (≤ 150) | 13 (04 #12, lead #6) |
+| **Composition root** | Two files at `src/`'s root, outside the layer rules (the engine may not import `#game`, so the entry can't live in the engine):<br>• `src/entry.ts` (moved from `src/entry.ts` at F6) is the page's module entry. `index.html` loads `/src/entry.ts`. It keeps today's retrying dynamic imports (E188) and the title-only fast path; its `nineBootTrace` import becomes the engine's generic boot trace, switched on by `manifest.boot.phone.trace`.<br>• `src/main.ts` imports `#engine`, `#game` and the generated shard registry and starts the app: ≤ 20 lines at S4.4, with the generic boot in `engine/boot.ts` (≤ 150) | 13 (04 #12, lead #6) |
 | **Aliases** | Package.json subpath imports `#engine/*`, `#game/*`, `#kit/*`, `#shards/*`. Relative imports only inside one layer folder (a shard's own files use `./`) | engine-fit #9, TP1 |
 | **Public API** | Each layer has one `index.ts` that is its public API. Kit and shards import `#engine` / `#game` / `#kit` **index only**; a deep path like `#engine/combat/pipeline` is a lint error. The engine's own internals may import each other freely | 26 |
 | **Extractable engine** | `src/engine/**` contains no Wildshard word: no shard slug, no "shard", Bag, coin, loot, compendium, feat, doubloon, or shard / creature / weapon names. `wildshard/layer` checks this against a word list (§24) | 58 |
@@ -175,7 +175,7 @@ export class Scope {
 export interface App {                      // typed fields; no string-keyed service locator
   readonly clock: GameClock; readonly rng: RngService; readonly events: Events;
   readonly scene: SceneService; readonly render: RenderService; readonly physics: PhysicsService;
-  readonly registry: WorldRegistry;         // today's src/world/registry.ts
+  readonly registry: WorldRegistry;         // today's src/engine/world/registry.ts
   readonly player: PlayerService; readonly equipment: EquipmentService; readonly combat: CombatService;
   readonly effects: EffectService; readonly creatures: CreatureService; readonly encounters: EncounterService;
   readonly input: InputService; readonly ui: UiService; readonly audio: AudioService; readonly anim: AnimService;
@@ -194,7 +194,7 @@ export interface App {                      // typed fields; no string-keyed ser
 - There is one `App` per page. `window.__wildshard` (the typed probe, TP4 / EI18) is built from the services.
   `window.__world` survives as a deprecated alias with **the same key names** until the last live script is ported
   (F7).
-- **`ws:ready`** stays: it is the native shell's contract (`src/native/boot.ts` waits for it). The engine dispatches it
+- **`ws:ready`** stays: it is the native shell's contract (`src/engine/native/boot.ts` waits for it). The engine dispatches it
   once on reaching `title`, and the probe also exposes `ready`.
 - **Replaces:**
   - `buildShard`'s ~160 closure locals;
@@ -657,7 +657,7 @@ export interface ShaderPatches { patch(mat: THREE.Material, id: string, order: n
 
 - Rapier **0.21** (F12). `src/engine/physics/` is still the only code that imports Rapier. The `query.ts` API
   (`castRay`, `castSegment`, `lineOfSight`, `sweepBall`, `floorBelow`) is kept.
-- One collision path: registry pieces. `player.colliders` and `src/physics/bridge.ts` are retired (F11; PHYSICS-POLISH
+- One collision path: registry pieces. `player.colliders` and `src/engine/physics/bridge.ts` are retired (F11; PHYSICS-POLISH
   F3), and the doors, chests, levers and NPC boxes that use them become kinematic registry pieces.
 - The step (0.35 m), climb (40°) and tier caps (phone: 40 awake bodies, 2 ragdolls) are unchanged. Bodies and
   colliders are owned by a scope (§4).

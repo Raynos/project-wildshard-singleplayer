@@ -73,7 +73,7 @@ Each model gets one pipeline, which becomes its card's badge: CODE · BLENDER ·
 
 | Pipeline | Pick it when | Proven on |
 |---|---|---|
-| **Code** (TypeScript builder, runs at load) | The shape is parametric or follows game data (stairs with treads, a pier to the terrain, per-copy lean); flat vertex colour or an analytic material; it must change often; its build fits the 30 ms load slices | Driftwood's hut, pier, wreck, palms (`src/world/lowpolyKit.ts`); Nine Dragon's facade and market (`src/chunks/nine-dragon-stack/world/kit.ts`); Nalati's yurt (`src/world/nalati/Yurt.ts`: Jake picked it over the Hunyuan and the Blender yurt, `609f4242`) |
+| **Code** (TypeScript builder, runs at load) | The shape is parametric or follows game data (stairs with treads, a pier to the terrain, per-copy lean); flat vertex colour or an analytic material; it must change often; its build fits the 30 ms load slices | Driftwood's hut, pier, wreck, palms (`src/engine/world/lowpolyKit.ts`); Nine Dragon's facade and market (`src/shards/nine-dragon-stack/world/kit.ts`); Nalati's yurt (`src/world/nalati/Yurt.ts`: Jake picked it over the Hunyuan and the Blender yurt, `609f4242`) |
 | **TRELLIS.2** (image → mesh, local, MIT) | Organic or sculptural hero props, statues, rocks, plants, creature hulls: things code draws badly | Driftwood hero props, Pine Hollow's 8 hero props, Nalati's 18 models, Nine Dragon's lion and dragon hook, the dummies |
 | **Hunyuan3D-2** (image → mesh, local) | The same jobs. It is ~10× faster, and its masses are often more solid. Run it beside TRELLIS and ship the better take. It is as allowed as TRELLIS: never write a territory caveat | the Drowned Captain, Nalati's horses, King, collie, people; Pine Hollow's creatures and NPCs |
 | **Blender script** (`scripts/blender/`, runs once, ships a GLB) | It needs an offline bake (Cycles AO or bounce, a normal map, atlases, impostors, lightmaps), bevel / boolean / remesh, a UV unwrap, skin weights, or would cost the phone more to build than to download | the Driftwood cove, Pine Hollow's trees, crags, cave, rifle and knife |
@@ -87,20 +87,20 @@ Each model gets one pipeline, which becomes its card's badge: CODE · BLENDER ·
 
 Every model builder, whatever the pipeline:
 - builds in its own space;
-- seeds every random draw (`Rng(seed)` from `src/core/rng.ts`, never `Math.random`);
+- seeds every random draw (`Rng(seed)` from `src/engine/core/rng.ts`, never `Math.random`);
 - gives its colliders in its own space (`ColliderDesc`: box / capsule / ball / hull; `treads` for any stair, rise ≤ 0.35 m,
   tread ≥ 0.36 m; trimesh only for walk-inside shapes; docs: AGENTS.md ▸ Physics);
 - never imports Rapier.
 
 ### Code
 
-- **Where it goes:** a shared model in `src/models/`, a shard's own in `src/chunks/<slug>/models/` (B1; until M0 lands,
+- **Where it goes:** a shared model in `src/engine/models/`, a shard's own in `src/chunks/<slug>/models/` (B1; until M0 lands,
   next to the shard's other builders).
 - **Its kit:** the shard's.
-  - Toon: `LowPolyKit` (`src/world/lowpolyKit.ts`).
-  - Painterly: `PaintKit` (`src/world/nalati/paint.ts`: smooth parts, painted vertex colour, one shared painterly material).
+  - Toon: `LowPolyKit` (`src/engine/world/lowpolyKit.ts`).
+  - Painterly: `PaintKit` (`src/shards/nalati-grasslands/world/paint.ts`: smooth parts, painted vertex colour, one shared painterly material).
   - Jiehua: Nine Dragon's `Kit` / `KitX`.
-  - PBR: the cabin kit in `src/world/Cabin.ts`.
+  - PBR: the cabin kit in `src/engine/world/Cabin.ts`.
   - Merge each model to one mesh on one shared material. Detail costs triangles, not draw calls.
 - **Materials:** go through the shard's material and `sky.setupMaterial(mat)` (docs/SUBAGENT-BRIEF.md), or the shard's
   look breaks.
@@ -177,12 +177,12 @@ Read `docs/design/blender-practice.md` first.
 ## 5. LODs, tiers and weight
 
 - **The phone gets its own copy** when it would download or hold less: `<name>.phone.glb` next to `<name>.glb`.
-  `src/boot/bytes.ts` `tierUrl` / `phoneUrl` pick it; don't write a branch.
+  `src/engine/boot/bytes.ts` `tierUrl` / `phoneUrl` pick it; don't write a branch.
 - **Distance LODs:**
   - a `-lod1` file (the TRELLIS props, a quarter of the triangles);
   - a `.far.glb` (Nalati's herds);
   - a two-card impostor (`~/projects/localai/bin/img2mesh/blender_impostor.py`, the tree set's impostor atlas);
-  - or a runtime simplified copy (`simplifiedCopy` in `src/chunks/nine-dragon-stack/world/lod.ts`, meshoptimizer).
+  - or a runtime simplified copy (`simplifiedCopy` in `src/shards/nine-dragon-stack/world/lod.ts`, meshoptimizer).
   - Fade or dither the switch where it pops.
   - Once M0 lands, the LODs go in the model's `lods`, and `place()` applies them.
 - **Textures:** every GPU texture gets a KTX2 twin (`node scripts/bake-ktx2.mjs`; add new files to
@@ -198,8 +198,8 @@ Read `docs/design/blender-practice.md` first.
 ## 6. Register it
 
 - **Today:** `registry.add({ id, name, category, file, object, colliders, surface, floor?, solidFloor, model })`
-  (`src/world/registry.ts`). One of a batch, built on view, uses `registerModel({ …, live: false, object, buildAt })`
-  (`src/explore/registry.ts`). Never register a built thing twice, and don't push into `player.colliders`.
+  (`src/engine/world/registry.ts`). One of a batch, built on view, uses `registerModel({ …, live: false, object, buildAt })`
+  (`src/engine/explore/registry.ts`). Never register a built thing twice, and don't push into `player.colliders`.
 - **Once M0 lands:** the model is a file that calls `defineModel({ id, name, category, pipeline, file, source?, variants,
   build, lods?, colliders?, rig? })`, and the world places it with `place(model, placements)`. Every `defineModel` is in
   the Model Explorer, and nothing else is. A `pipeline: 'blender'` model names its `source` script.
@@ -242,8 +242,8 @@ Read `docs/design/blender-practice.md` first.
   --models=<id,…> --out=<art path>.mp4`, run inside `scripts/browser-lane.sh` (M9). It turns 1–5 models on the real
   Model Explorer at phone size. Files over 30 MB silently don't arrive.
 - **If it's a taste call,** ship both as a Debug variant:
-  - a key in `OPTION_VALUES` / `OPTION_SPECS` (`src/ui/Settings.ts`);
-  - one `opt(…)` row in `DEBUG_ROWS` (`src/ui/debugOptions.ts`), under its domain's group;
+  - a key in `OPTION_VALUES` / `OPTION_SPECS` (`src/engine/ui/Settings.ts`);
+  - one `opt(…)` row in `DEBUG_ROWS` (`src/engine/ui/debugOptions.ts`), under its domain's group;
   - never a `?param`.
   - When Jake picks, delete the row, the option and the losing model in one commit.
 - **Ask with `AskUserQuestion`,** with a short text summary above it. Don't build further on an unpicked direction.

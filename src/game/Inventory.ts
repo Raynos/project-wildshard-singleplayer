@@ -7,7 +7,7 @@
  * Nalati has no pack at all (E314, Jake's pick C, art/loot/round-3-other-shards/board-2-nalati.jpg): its 12 kinds (wolf
  * pelt / fang, horsehair, balbal shard, grave dust, marmot fur, the 5 elites' trophies, the Golden King's plaque) were
  * never read by anything, so they are gone — an old save's copies are dropped on load (an id not in ITEMS), `slots` is 0
- * there and the Bag shows no PACK tab (src/ui/Menu.ts). Nine Dragon Stack neither (E314 A): nothing can ever enter it.
+ * there and the Bag shows no PACK tab (src/engine/ui/Menu.ts). Nine Dragon Stack neither (E314 A): nothing can ever enter it.
  *
  * Pine Hollow's pack (E314, Jake's pick C, art/loot/round-3-other-shards/) holds only the 7 kinds Mott trades for
  * (PINE_PACK_KINDS): everything else a Pine kill or reward used to hand out (boar / elk meat, elk hide, bear claw,
@@ -19,14 +19,14 @@
  *   inventory.harvest('elk', 'bull')   → what this shard's pack takes from that carcass (Pine Hollow: nothing)
  *   inventory.onChange = () => menu.refresh();
  */
-import type { IconId } from '../ui/icons';
+import type { IconId } from '#engine/ui/icons';
 
 export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
   | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon'
-  // Pine Hollow's elite + boss trophies (PH-C2 / PH-C3, src/pinehollow/); 'warden-longbow' is the King's drop as a flag
+  // Pine Hollow's elite + boss trophies (PH-C2 / PH-C3, src/shards/pine-hollow/); 'warden-longbow' is the King's drop as a flag
   // until the longbow itself (Nalati's Bow.ts) is ported
   | 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown' | 'amber-heartwood' | 'warden-longbow'
-  // Pine Hollow's collectibles and the lodge (PH-C6 / C8, src/pinehollow/quest/): resin is the trader's currency-free swap
+  // Pine Hollow's collectibles and the lodge (PH-C6 / C8, src/shards/pine-hollow/quest/): resin is the trader's currency-free swap
   // good, a ribbon is what a lodge contract pays
   | 'amber-resin' | 'lodge-ribbon';
 
@@ -76,7 +76,7 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
 }
 
 export const PACK_SLOTS = 12;
-/** Pine Hollow's pack: only what Mott the trader takes (src/pinehollow/quest/trades.ts; E314 pick C) — nothing else drops there */
+/** Pine Hollow's pack: only what Mott the trader takes (src/shards/pine-hollow/quest/trades.ts; E314 pick C) — nothing else drops there */
 export const PINE_PACK_KINDS = ['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon'] as const satisfies readonly ItemId[];
 export type PineItem = (typeof PINE_PACK_KINDS)[number];
 /** one slot per kept kind: Pine Hollow's pack can never be full */

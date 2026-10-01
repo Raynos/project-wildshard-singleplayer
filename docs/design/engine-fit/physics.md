@@ -12,7 +12,7 @@ at P9 on the user's word. Order: P0 → P1 → P2 → P4 → P3 → P5 → P6 �
 | Row | Delivers | Deletes |
 |---|---|---|
 | P0 | baseline: bench phone tier, 7 poses, per-updater JS ms, walk clips of a fixed route | — |
-| P1 | `src/physics/` skeleton, streamed WASM, fixed-step loop in `Game.ts`, terrain heightfield, chunk walls, `?physics=debug` | `Player.ts:513` `lim` clamp |
+| P1 | `src/engine/physics/` skeleton, streamed WASM, fixed-step loop in `Game.ts`, terrain heightfield, chunk walls, `?physics=debug` | `Player.ts:513` `lim` clamp |
 | P2 | player on Rapier KCC (`Character.ts`): autostep 0.35 m, 40° slope, snap, dodge/lunge, pushes ITEM/DEBRIS | `groundAt()`, `collide()`, slope constants |
 | P4 | Driftwood static world: pier, **kinematic boat on heave/pitch/roll**, hut, lookout, wreck trimesh, cave trimesh, shrine, palms, trailside, bridge, rocks, interactables' static bodies | every Driftwood `Collider` + `floorHeightAt`, **`player.colliders` / `platforms`**, `Adventure.floorAt`, foam list, SurfaceMap deck floors |
 | P3 | Pine Hollow: 1 770 trunk capsules, 3 cabins, **kinematic hinge doors**, 380 boulder hulls, 70 stumps + 55 logs | Cabin/Props/Boulders/Forest colliders |
@@ -34,11 +34,11 @@ each phase deletes the old code**; both Pine Hollow + Driftwood; "everything col
 | Character controller | Rapier `KinematicCharacterController` capsule in `src/physics/Character.ts`, game feel (hover, swim, double jump, dash) stays game code on top | :122, :127 |
 | Collider authoring per model | **separate** `src/physics/colliders/<structure>.ts` per builder, reading anchors/dimensions the builder exports; primitive → hull → treads → trimesh (cheapest first); bake to `colliders.bin` only if the build busts 100 ms | :119, :140-144, :205 |
 | Fixed timestep | `Physics.ts` 60 Hz accumulator, max 3 substeps, fed the **scaled** dt (hit-stop freezes bodies), render interpolates dynamic bodies | :116, :130 |
-| World / body ownership | `src/physics/` is the only Rapier importer; one `World` per shard, `dispose()` on shard change; collision groups table | :112-118 |
+| World / body ownership | `src/engine/physics/` is the only Rapier importer; one `World` per shard, `dispose()` on shard change; collision groups table | :112-118 |
 | Gameplay object → body | **not specified as a mechanism.** `query.ts` promises an `owner` ("the animal / door / pickup / plate behind the collider", :121) but no handle→owner map, no attach/detach lifecycle, no transform-sync rule. Bodies are bolted per class, phase by phase (player in P2, doors in P3/P5, animals in P6, items in P7, ragdolls in P8) | :121, rows |
 | Navmesh | P6b navcat, baked offline from the P3/P4 colliders | :167 |
 | Ragdolls | P8, capped, frozen when asleep | :169 |
-| Surface/material | `Surface` tag per collider reusing `src/audio/Surface.ts`'s union | :120 |
+| Surface/material | `Surface` tag per collider reusing `src/engine/audio/Surface.ts`'s union | :120 |
 | Update ordering | implicit — "wired into `Game.ts`" (P1). No pre-/post-physics phase named | :161 |
 
 No entity / component layer is planned. The word "component" / "entity" / "registry" does not appear in PHYSICS.md.
@@ -50,7 +50,7 @@ No entity / component layer is planned. The word "component" / "entity" / "regis
 - Uncommitted in the worktree: PHYSICS.md +16 (P0 route findings, "straight through" pick), and two **untracked**
   files: `scripts/physics-baseline.mjs` (241 lines — Playwright P0 ruler: poses + walk autopilot + webm + compare)
   and `scripts/physics-route.json` (445 lines, the walk route). `progress/physics/` does not exist yet.
-- **No `src/physics/`, no Rapier dependency in `package.json`, no Rapier code.** P0 is mid-build; P1–P9 are zero %.
+- **No `src/engine/physics/`, no Rapier dependency in `package.json`, no Rapier code.** P0 is mid-build; P1–P9 are zero %.
 - Useful P0 finding already (uncommitted PHYSICS.md +93-106): today's controller is **frame-rate dependent** (at a
   50 ms frame the wreck-hold and shrine stairs jam); the terrain pokes through the sea-cave floor; shrine causeway lip
   0.61 m. These are arguments *for* a fixed step regardless of the library.
@@ -78,7 +78,7 @@ No entity / component layer is planned. The word "component" / "entity" / "regis
   plans `registerModel({id, name, file, object, anchor})` so "models self-register as their builders build them".
   PHYSICS.md adds a fifth, `src/physics/colliders/<structure>.ts`, one per builder. **Two agents plan two parallel
   per-builder registries over the same ~16–26 builders, and neither mentions the other.**
-- Existing registry-shaped code to build on: `src/chunks/registry.ts` (shards), `world/interact/types.ts:100`
+- Existing registry-shaped code to build on: `src/game/shard/registry.ts` (shards), `world/interact/types.ts:100`
   (`InteractDef` union: a data table of kinds, the nearest thing to components the game has), `Game.onUpdate`
   (`Game.ts:129`, a flat closure list run in registration order, `Game.ts:220`).
 
@@ -87,12 +87,12 @@ No entity / component layer is planned. The word "component" / "entity" / "regis
 One call per built thing, in the builder (or its one call site), feeds every consumer:
 
 ```ts
-world.add({ id: 'hut', name: 'Hut', file: 'src/world/Hut.ts', category: 'buildings',
+world.add({ id: 'hut', name: 'Hut', file: 'src/shards/driftwood-isle/world/Hut.ts', category: 'buildings',
             object: hut.group, anchor, colliders: hut.colliderDescs(), surface: 'planks',
             motion: 'static' | 'kinematic' | 'dynamic', owner?, tick? });
 ```
 
-→ scene.add, physics bodies (`src/physics/` turns the descs into Rapier colliders, keeps handle→owner), the
+→ scene.add, physics bodies (`src/engine/physics/` turns the descs into Rapier colliders, keeps handle→owner), the
 Explore catalog (X10), the minimap POI, the foam ring list, the navmesh bake (`bake-chunk.mjs` already runs builders
 in node, and the P0 work replayed `Player.ts` on the real builders in node), the footstep surface. `main.ts` and the
 6 dev scenes shrink to `world.add(new Hut(sky).build())`. `ColliderDesc` stays engine-neutral data
@@ -163,7 +163,7 @@ and each maps to a plan row:
    navmesh bake and the dev scenes. **Merge it with EXPLORE-WORLD X10's `registerModel`**: same builders, same fields.
    Land it on main *before* P4, so the physics branch rewires one list instead of main.ts + 6 dev scenes + catalog.
 2. **`ColliderDesc`**. Engine-neutral collider data (`box | capsule | ball | hull | treads | trimesh` + `Surface`),
-   emitted by each builder beside its geometry. `src/physics/` is its only Rapier consumer; `bake-chunk.mjs` reads it
+   emitted by each builder beside its geometry. `src/engine/physics/` is its only Rapier consumer; `bake-chunk.mjs` reads it
    in node for the navmesh and the optional `colliders.bin`. This replaces the separate `colliders/<structure>.ts` folder.
 3. **`Body` handle + owner map**. `attachBody(object3d, desc, owner) → handle` and `detach(handle)`, a
    `Map<ColliderHandle, Owner>` with a typed `Owner` union (piece / animal / door / pickup / plate / player), and a sync

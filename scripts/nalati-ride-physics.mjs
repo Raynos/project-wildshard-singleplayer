@@ -52,7 +52,7 @@ try {
   await page.waitForFunction(() => window.__wildshard?.world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(3000);
   await page.evaluate(async () => {
-    const L = await import('/src/world/nalati/layout.ts');
+    const L = await import('/src/shards/nalati-grasslands/world/layout.ts');
     const w = window.__wildshard?.world, hf = window.__hf;
     const t = { L, trace: [], timer: 0 };
     t.input = (x, y, g) => { w.player.touchMove.x = x; w.player.touchMove.y = y; w.ride.mount.touchGallop = g; };
@@ -71,7 +71,7 @@ try {
     });
     t.start = () => { t.trace = []; t.rec = true; t.t0 = t.steps; };
     t.stop = () => { t.rec = false; return t.trace; };
-    t.q = { ...(await import('/src/physics/query.ts')), ...(await import('/src/physics/active.ts')), ...(await import('/src/physics/surface.ts')) };
+    t.q = { ...(await import('/src/engine/physics/query.ts')), ...(await import('/src/engine/physics/active.ts')), ...(await import('/src/engine/physics/surface.ts')) };
     t.place = (x, z, yaw) => {
       const m = w.ride.mount;
       if (!m.mounted) { const h = w.wildlife.campHorses[0]; w.player.position.set(x + 1, hf.heightAt(x, z), z); m.mount(h); }
@@ -278,7 +278,7 @@ try {
   // ── R3: a stampede through the rider on foot · into a rider galloping at it (head-on) · with a rider among it ──
   await leg('herd', async () => {
     await page.evaluate(async () => {
-      const { wildEnv } = await import('/src/entities/wildEnv.ts');
+      const { wildEnv } = await import('/src/engine/entities/wildEnv.ts');
       const rt = window.__rt;
       rt.knocks = 0;
       if (rt.knockHooked !== true) { rt.knockHooked = true; const k = wildEnv.onKnockdown; wildEnv.onKnockdown = (x, z, s) => { rt.knocks++; k?.(x, z, s); }; }

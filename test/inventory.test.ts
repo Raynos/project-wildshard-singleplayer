@@ -1,8 +1,8 @@
 // src/game/Inventory.ts — what a carcass yields, and the per-shard pack.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { ITEMS, Inventory, PACK_SLOTS, PINE_PACK_SLOTS, harvestOf, type ItemId } from '../src/game/Inventory';
-import { speciesDef } from '../src/entities/species/registry';
+import { ITEMS, Inventory, PACK_SLOTS, PINE_PACK_SLOTS, harvestOf, type ItemId } from '#game/Inventory';
+import { speciesDef } from '#engine/entities/species/registry';
 
 const STORE = 'ws.inventory.v1';
 const PINE = 'chunk://local/pine-hollow';

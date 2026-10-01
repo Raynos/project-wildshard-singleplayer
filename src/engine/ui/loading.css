@@ -1,0 +1,80 @@
+/* Loading screen (src/engine/ui/Loading.ts) — every class here is ws-load-*; shared names (ws-glass, ws-wordmark) come from base.css */
+
+/* ── pause overlay ── */
+
+/* play-mode HUD hides while the intro is up */
+
+/* Loading screen facts panel (src/engine/ui/Loading.ts). Base panel/wordmark styles live in hud.css. */
+/* base */
+.ws-load { position: fixed; inset: 0; z-index: 20; font-family: var(--ws-mono); color: var(--ws-text); background: radial-gradient(ellipse at 50% 30%, #0d1a26 0%, #06090f 60%, #030508 100%); display: flex; flex-direction: column; justify-content: space-between; user-select: none; transition: opacity 0.25s ease; }
+.ws-load.hide { opacity: 0; pointer-events: none; }
+.ws-load::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(180deg, rgba(3, 8, 15, 0.62), rgba(3, 8, 15, 0.84) 54%, rgba(3, 8, 15, 0.93)), var(--ws-load-portrait); background-position: center; background-size: cover; pointer-events: none; }
+.ws-load::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(143, 227, 255, 0.025) 0 1px, transparent 1px 3px); pointer-events: none; }
+.ws-load .ws-load-head, .ws-load .ws-load-body, .ws-load .ws-load-foot { position: relative; z-index: 1; }
+.ws-load .ws-load-head { padding: 34px 44px 0; }
+.ws-load .ws-wordmark { font-family: var(--ws-display); font-weight: 700; font-size: 54px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+.ws-load .ws-wordmark b { color: var(--ws-cyan); }
+.ws-load .ws-load-tagline { margin-top: 10px; font-size: 13px; letter-spacing: 0.04em; color: var(--ws-text-dim); }
+.ws-load .ws-load-body { flex: 1; display: flex; align-items: center; justify-content: center; }
+.ws-load .ws-load-panel { width: 560px; padding: 22px 26px 20px; }
+.ws-load .ws-load-title { font-family: var(--ws-display); font-weight: 700; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+.ws-load .ws-load-title b { color: var(--ws-cyan); }
+.ws-load .ws-load-meta { margin: 14px 0 18px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 26px; row-gap: 7px; }
+.ws-load .ws-load-meta div { display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px solid rgba(143, 227, 255, 0.08); padding-bottom: 5px; }
+.ws-load .ws-load-meta span:first-child { color: var(--ws-text-dim); letter-spacing: 0.16em; font-size: 9.5px; text-transform: uppercase; }
+.ws-load .ws-load-bar { height: 4px; background: rgba(143, 227, 255, 0.12); position: relative; overflow: hidden; }
+.ws-load .ws-load-fill { height: 100%; width: 0; background: linear-gradient(90deg, rgba(143, 227, 255, 0.6), var(--ws-cyan)); box-shadow: 0 0 12px rgba(143, 227, 255, 0.6); transition: width 0.1s linear; }
+.ws-load .ws-load-log { margin-top: 12px; font-size: 9.5px; letter-spacing: 0.08em; color: rgba(196, 220, 232, 0.4); min-height: 70px; line-height: 1.6; }
+.ws-load .ws-load-foot { display: flex; justify-content: space-between; padding: 0 44px 26px; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(196, 220, 232, 0.4); }
+
+/* panel */
+.ws-load .ws-load-meta-1 { grid-template-columns: 1fr; margin: 10px 0 8px; }
+.ws-load .ws-load-title { display: flex; align-items: baseline; }
+.ws-load .ws-load-title b { margin-left: 6px; }
+.ws-load .ws-load-clock { margin-left: auto; font-family: var(--ws-mono); font-size: 13px; letter-spacing: 0.08em; color: var(--ws-cyan); font-weight: 400; }
+.ws-load .ws-load-track { margin-top: 12px; }
+.ws-load .ws-load-track-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; }
+.ws-load .ws-load-track-name { width: 78px; color: var(--ws-cyan-dim); flex: none; }
+.ws-load .ws-load-track-fact { flex: 1; color: var(--ws-text-dim); text-transform: none; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-load .ws-load-track-pct { color: #fff; font-family: var(--ws-display); font-size: 18px; letter-spacing: 0.04em; width: 44px; text-align: right; flex: none; }
+.ws-load .ws-load-track-pct::after { content: '%'; font-size: 11px; margin-left: 2px; color: var(--ws-text-dim); }
+.ws-load .ws-load-log { margin-top: 14px; min-height: 96px; }
+.ws-load .ws-load-log div { display: flex; gap: 10px; align-items: baseline; font-size: 9.5px; letter-spacing: 0.08em; line-height: 1.7; color: rgba(196, 220, 232, 0.45); }
+.ws-load .ws-load-log div.on { color: var(--ws-cyan-dim); }
+.ws-load .ws-load-log .ws-load-row-label { flex: none; }
+.ws-load .ws-load-log .ws-load-row-detail { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(196, 220, 232, 0.6); }
+.ws-load .ws-load-log div.on .ws-load-row-detail { color: #fff; }
+.ws-load .ws-load-diagnostics { margin-top: 12px; padding-top: 9px; border-top: 1px solid rgba(143, 227, 255, 0.18); color: var(--ws-cyan-dim); font-size: 10px; line-height: 1.5; white-space: pre-line; font-variant-numeric: tabular-nums; }
+.ws-load .ws-load-log .ws-load-row-ms { flex: none; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+@media (max-width: 600px) {
+  .ws-load .ws-load-track-name { width: 64px; }
+  .ws-load .ws-load-track-fact { font-size: 10px; }
+  .ws-load .ws-load-log { min-height: 0; }
+}
+
+/* phone: the panel fills the width, the head and foot tighten, safe areas respected */
+@media (max-width: 700px) {
+  .ws-load .ws-load-head { padding: calc(44px + env(safe-area-inset-top, 0px)) 16px 0; } /* clears the build pill top-right */
+  .ws-load .ws-wordmark { font-size: 34px; letter-spacing: 0.06em; }
+  .ws-load .ws-load-tagline { font-size: 11px; }
+  .ws-load .ws-load-body { padding: 12px 16px; align-items: flex-start; }
+  .ws-load .ws-load-panel { width: 100%; padding: 16px 14px 14px; }
+  .ws-load .ws-load-title { font-size: 16px; }
+  .ws-load .ws-load-clock { font-size: 12px; }
+  .ws-load .ws-load-meta { grid-template-columns: 1fr; margin: 10px 0 12px; }
+  .ws-load .ws-load-meta div { font-size: 10.5px; }
+  .ws-load .ws-load-foot { padding: 0 16px calc(14px + env(safe-area-inset-bottom, 0px)); font-size: 8.5px; letter-spacing: 0.14em; }
+}
+
+/* players vs developer mode (E140, the user's 4a): players see the shard's name, one bar and a short line; the tracks, the
+   step log, the tier line, the clock, the load diagnostics (E318 row 1) and "Loading chunk ·" show only under <html data-dev> (index.html sets it before this
+   panel paints — src/engine/core/devMode.ts) */
+.ws-load .ws-load-simple { margin-top: 14px; }
+.ws-load .ws-load-line { margin-top: 9px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); font-variant-numeric: tabular-nums; }
+:root:not([data-dev]) .ws-load .ws-load-kicker, :root:not([data-dev]) .ws-load .ws-load-clock, :root:not([data-dev]) .ws-load .ws-load-meta,
+:root:not([data-dev]) .ws-load .ws-load-track, :root:not([data-dev]) .ws-load .ws-load-log,
+:root:not([data-dev]) .ws-load .ws-load-diagnostics { display: none; }
+:root:not([data-dev]) .ws-load .ws-load-title b { margin-left: 0; }
+:root[data-dev] .ws-load .ws-load-simple { display: none; }
+/* the tagline ("A world that does not exist yet…"): developer mode only (E140, dead item 6) */
+:root:not([data-dev]) .ws-load .ws-load-tagline { display: none; }

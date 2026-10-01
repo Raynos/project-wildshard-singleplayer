@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // export-cave.mjs — the bear cave's inputs for scripts/blender/pine-hollow/crags/build_cave.py (PH-B2): the baked Pine Hollow heights
-// on a 1 m grid in the cave's own frame (lx across, lz into the rock, from the mouth at BEAR_CAVE; src/world/PineCrags.ts
-// `caveWorld`), and the hero arch's pose there (src/world/PineLandmarks.ts places it: 1.2 m inside the mouth, turned to
+// on a 1 m grid in the cave's own frame (lx across, lz into the rock, from the mouth at BEAR_CAVE; src/shards/pine-hollow/world/crags.ts
+// `caveWorld`), and the hero arch's pose there (src/shards/pine-hollow/world/landmarks.ts places it: 1.2 m inside the mouth, turned to
 // face out, ×1.4, sunk 0.45 m). Run by scripts/blender/build.sh pine-hollow/cave (its pre step):
 //
 //   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/blender/pine-hollow/crags/export-cave.mjs <out.json>
@@ -15,10 +15,10 @@ const noop = () => undefined;
 Object.assign(globalThis, { window: { addEventListener: noop, location: new URL('http://localhost/'), setTimeout, clearTimeout }, location: new URL('http://localhost/'), document: { createElement: () => ({ getContext: () => null, style: {} }) } });
 Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', maxTouchPoints: 0, hardwareConcurrency: 8 }, configurable: true });
 const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
-const registry = await src('chunks/registry.ts');
-const HF = await src('world/Heightfield.ts');
-const BT = await src('world/BakedTerrain.ts');
-const L = await src('chunks/pineHollowLayout.ts');
+const registry = await src('game/shard/registry.ts');
+const HF = await src('engine/world/Heightfield.ts');
+const BT = await src('engine/world/BakedTerrain.ts');
+const L = await src('shards/pine-hollow/layout.ts');
 registry.setActiveChunk('pine-hollow');
 const buf = readFileSync(resolve(ROOT, 'public/assets/baked/pine-hollow/terrain.bin'));
 HF._installBakedTerrain(BT.bakedSamplers(BT.parseBakedTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))));

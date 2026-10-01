@@ -1,6 +1,6 @@
 /**
  * The adventure's own HUD pieces (kept out of HUD.ts, which the HUD agent owns) — DOM in `#hud`, styled by
- * src/ui/styles/quest.css (prefix ws-quest-):
+ * src/engine/ui/styles/quest.css (prefix ws-quest-):
  *
  *   ObjectiveLine — the quest chip (E51, mockup G art/quest/round-1-compact/G.jpg): ONE slim glass line under the
  *                   minimap, right-aligned to it — ◆ "GLYPH SHARDS 1/3" | "SEA CAVE 230 M" ▲ (the arrow turns with the
@@ -10,7 +10,7 @@
  *                   a line still typing completes first.
  *   RewardCaption — the big centred caption over the golden-hour reward view.
  */
-import '../../ui/styles/quest.css';
+import '#engine/ui/styles/quest.css';
 
 const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.body;
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement): HTMLElementTagNameMap[K] => {

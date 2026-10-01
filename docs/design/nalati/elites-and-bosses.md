@@ -38,7 +38,7 @@ The short rule for the two tiers is: **elites live in the world, bosses own the 
 1. **A proper name and an epithet.** The name is two words at most and the epithet is one line. The bar, the banner, the kill
    feed, the achievement and the map all read the same `EliteDef.name` / `EliteDef.epithet`.
    Pattern: *Name (the X), Epithet*. Examples: "Aqbars the Pale, Irbis of the Crags" and "Kokbori, Mother of the Pack".
-2. **The named bar.** This is an upgrade of the bars `src/ui/Combat.ts` already anchors above animals. It is about 40 % of the
+2. **The named bar.** This is an upgrade of the bars `src/engine/ui/Combat.ts` already anchors above animals. It is about 40 % of the
    screen wide, has a thin antique-gold frame and a gold skull cap, uses a red-orange fill, and has a gold tick at 50 %. The name
    sits above it in gold-white capitals and the epithet below the name in smaller gold capitals. The bar shows from the moment
    the elite is **aware** of you (not only after a hit), and it stays up while you are inside the leash. When the elite is
@@ -503,17 +503,17 @@ The **Antler King** is the design to use when Pine Hollow gets its boss.
 
 | piece | where | reused for |
 |---|---|---|
-| Species registry, `VariantDef` (`label`, `rarity: 'legendary'`, `hp`, `tint`, `fur`, `traits`, `mods`) | `src/entities/species/registry.ts` | an elite is a variant of its species (tint, scale, hp) |
+| Species registry, `VariantDef` (`label`, `rarity: 'legendary'`, `hp`, `tint`, `fur`, `traits`, `mods`) | `src/engine/entities/species/registry.ts` | an elite is a variant of its species (tint, scale, hp) |
 | One legendary alive per kind | `AnimalManager` (`hasLegendary`) | the "one alive" rule, generalised to a placed spawn |
-| Custom `think(animal, ThinkCtx)` + `EnemyWorld` | the crab, monkey and sailor (`src/entities/Enemies.ts`) | every elite's and boss's AI |
+| Custom `think(animal, ThinkCtx)` + `EnemyWorld` | the crab, monkey and sailor (`src/shards/driftwood-isle/creatures/Enemies.ts`) | every elite's and boss's AI |
 | Guard radius, rise-from-hiding intro, drifting back home | `sailor.ts` (`hold.r`, `hold.guardR`) | elite leash / reset, and the King's coffin rise |
-| Skins as uniform-only material overrides, `skinFor(kind, variant)`, `SkinLocker` | `src/player/Skins.ts` | elite drops (sabre, bow, spear, arrow and mount skins) |
-| `WeaponPickup` with a `rare` (purple) orb | `src/player/WeaponPickup.ts` | the elite drop orb (a new gold `legendary` tier for the boss) |
-| Found-weapon unlock (`IronSwordPickup` → `weapons.unlock`) | `src/player/IronSword.ts`, `main.ts` | the Golden Bow |
+| Skins as uniform-only material overrides, `skinFor(kind, variant)`, `SkinLocker` | `src/engine/player/Skins.ts` | elite drops (sabre, bow, spear, arrow and mount skins) |
+| `WeaponPickup` with a `rare` (purple) orb | `src/engine/player/WeaponPickup.ts` | the elite drop orb (a new gold `legendary` tier for the boss) |
+| Found-weapon unlock (`IronSwordPickup` → `weapons.unlock`) | `src/shards/driftwood-isle/weapons/IronSword.ts`, `main.ts` | the Golden Bow |
 | Achievements with a `variant` match plus joke titles | `src/game/achievements.ts`, `src/game/Progress.ts` | elite and boss achievements (a new `NALATI` table) |
-| Head-anchored health bars, floats, MISS | `src/ui/Combat.ts` | the named elite bar is a new *style* of the same pooled bar |
-| White ring for rare / legendary dots | `src/ui/Minimap.ts` | replaced by skulls for elites |
-| `hud.toast`, `hud.killFeed`, `music.sting` | `src/ui/HUD.ts`, `src/audio/Music.ts` | the banner and boss stings |
+| Head-anchored health bars, floats, MISS | `src/engine/ui/Combat.ts` | the named elite bar is a new *style* of the same pooled bar |
+| White ring for rare / legendary dots | `src/engine/ui/Minimap.ts` | replaced by skulls for elites |
+| `hud.toast`, `hud.killFeed`, `music.sting` | `src/engine/ui/HUD.ts`, `src/engine/audio/Music.ts` | the banner and boss stings |
 
 ### New
 

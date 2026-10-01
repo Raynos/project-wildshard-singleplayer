@@ -1081,9 +1081,9 @@ async function startPreview(distDir, port) {
   return p;
 }
 
-/** HEAD every boot pack part the served tree's table names (src/boot/packs.generated.ts); null without a tree */
+/** HEAD every boot pack part the served tree's table names (src/engine/boot/packs.generated.ts); null without a tree */
 async function checkPacks() {
-  const table = SERVE ? join(SERVE, 'src/boot/packs.generated.ts') : '';
+  const table = SERVE ? join(SERVE, 'src/engine/boot/packs.generated.ts') : '';
   if (!table || !existsSync(table)) return null;
   const parts = [...readFileSync(table, 'utf8').matchAll(/url: "(\/assets\/packs\/[^"]+)",\s*bytes: (\d+)/g)].map((m) => [m[1], Number(m[2])]);
   const missing = [];

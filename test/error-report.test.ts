@@ -1,6 +1,6 @@
-// src/core/errorReport.ts (E133): dedupe, the per-session cap, the offline queue. Transport, storage and timers are injected.
+// src/engine/core/errorReport.ts (E133): dedupe, the per-session cap, the offline queue. Transport, storage and timers are injected.
 import { describe, expect, it, vi } from 'vitest';
-import { ErrorReporter, QUEUE_KEY, REPORTS_MAX, SESSION_KEY, keyOf, safeUrl, type ErrorPayload, type ReporterDeps, type SendResult } from '../src/core/errorReport';
+import { ErrorReporter, QUEUE_KEY, REPORTS_MAX, SESSION_KEY, keyOf, safeUrl, type ErrorPayload, type ReporterDeps, type SendResult } from '#engine/core/errorReport';
 import { MemoryStorage } from './setup';
 
 const flush = async (): Promise<void> => { for (let i = 0; i < 10; i++) await Promise.resolve(); };

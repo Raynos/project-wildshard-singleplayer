@@ -39,7 +39,7 @@ describe('check-models after M6: every area is held (E315)', () => {
     expect(addsWithKey("registry.add({ id: 'x', name: 'X', model: entry });", 'model')).toBe(1);
     expect(addsWithKey("registry.add({ id, model });", 'model')).toBe(1);
     expect(addsWithKey("const plate = { label: 'Deer', model: { build: () => g } };", 'model')).toBe(0); // (a Journal plate is no registration)
-    const bad = checkModels({ 'src/world/Palms.ts': "registry.add({ id: 'palm', name: 'Palm', category: 'nature', file: 'x', model: entry });" }).violations;
+    const bad = checkModels({ 'src/shards/driftwood-isle/world/Palms.ts': "registry.add({ id: 'palm', name: 'Palm', category: 'nature', file: 'x', model: entry });" }).violations;
     expect(bad.some((v) => v.includes('registry add with model'))).toBe(true);
   });
 
@@ -52,7 +52,7 @@ describe('check-models after M6: every area is held (E315)', () => {
   });
 
   it('the old registrations fail everywhere (the dev labs and their exemption went in E357 F7)', () => {
-    const bad = checkModels({ 'src/world/Grass.ts': "registerModel({ id: 'x' }); addBuilt('x', mesh);" }).violations;
+    const bad = checkModels({ 'src/engine/world/Grass.ts': "registerModel({ id: 'x' }); addBuilt('x', mesh);" }).violations;
     expect(bad.some((v) => v.includes('registerModel'))).toBe(true);
     expect(bad.some((v) => v.includes('addBuilt'))).toBe(true);
   });

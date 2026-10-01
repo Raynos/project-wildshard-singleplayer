@@ -1,17 +1,17 @@
 import * as THREE from 'three';
-import type { Animal } from '../entities/Animal';
-import { heightAt } from '../world/Heightfield';
-import { fxMaterial, annulus, FX, type FxMaterial } from '../world/nalati/KurganDungeon';
-import { WeaponPickup } from '../player/WeaponPickup';
-import type { Interactable } from '../world/Cabin';
-import type { EliteBar } from '../ui/EliteBar';
+import type { Animal } from '#engine/entities/Animal';
+import { heightAt } from '#engine/world/Heightfield';
+import { fxMaterial, annulus, FX, type FxMaterial } from '#shards/nalati-grasslands/world/KurganDungeon';
+import { WeaponPickup } from '#engine/player/WeaponPickup';
+import type { Interactable } from '#engine/world/Cabin';
+import type { EliteBar } from '#engine/ui/EliteBar';
 
 /**
  * Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites
  * live in the world, bosses own the screen." This is the generic half every shard reuses — each elite's own AI is an
- * `EliteScript` (Nalati's five: src/nalati/elites.ts).
+ * `EliteScript` (Nalati's five: src/shards/nalati-grasslands/elites.ts).
  *
- *   const elites = new Elites(host, bar);            // bar = new EliteBar() (src/ui/EliteBar.ts)
+ *   const elites = new Elites(host, bar);            // bar = new EliteBar() (src/engine/ui/EliteBar.ts)
  *   elites.add(script);                              // one per elite: its EliteDef + its brain
  *   game.onUpdate((dt, t) => elites.update(dt, t));
  *

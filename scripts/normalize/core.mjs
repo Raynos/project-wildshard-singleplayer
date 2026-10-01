@@ -58,7 +58,7 @@ export function rewriteImport(file, destination, specifier, files, moves) {
     return `${relative.startsWith('.') ? relative : `./${relative}`}${suffix}`;
   }
   // Composition roots have no alias; a test of the root must stay relative.
-  return layer(after) === 'root' ? `${relativePath(destination, name)}${suffix}` : `#${name.slice(4)}${suffix}`;
+  return !after.startsWith('src/') || layer(after) === 'root' ? `${relativePath(destination, name)}${suffix}` : `#${name.slice(4)}${suffix}`;
 }
 
 function relativePath(file, target) {

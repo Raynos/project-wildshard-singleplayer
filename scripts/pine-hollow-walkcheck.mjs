@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // pine-hollow-walkcheck.mjs — proves every Pine Hollow POI is reachable on foot from the spawn (PINE-HOLLOW-REMASTER §4,
-// layout v2). Runs the shard's pure terrain (src/chunks/pine-hollow.ts → pineHollowLayout.ts) in Node:
+// layout v2). Runs the shard's pure terrain (src/shards/pine-hollow/manifest.ts → pineHollowLayout.ts) in Node:
 //
 //   · a 1 m grid over the slab (±249 m), the analytic height at every node;
 //   · a node is walkable when its ground's slope (the gradient by central differences, as the character controller
@@ -19,8 +19,8 @@ import { writeFileSync } from 'node:fs';
 
 await import('./bake-loader.mjs'); // lets Node import the game's TypeScript chunk modules
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
-const { PINE_HOLLOW } = await import('../src/chunks/pine-hollow.ts');
-const L = await import('../src/chunks/pineHollowLayout.ts');
+const { PINE_HOLLOW } = await import('../src/shards/pine-hollow/manifest.ts');
+const L = await import('../src/shards/pine-hollow/layout.ts');
 
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
@@ -29,7 +29,7 @@ const REACH = Number(flag('reach', '3'));
 const CABLE_CLEAR = Number(flag('cable-clear', '3'));
 const MAP = flag('map', '');
 
-const t = PINE_HOLLOW.terrain;
+const t = PINE_HOLLOW.ground.terrain;
 const wl = t.waterLevel();
 const HALF = 249, N = HALF * 2 + 1; // nodes at x, z = −249 … +249
 const idx = (ix, iz) => iz * N + ix;

@@ -1,6 +1,6 @@
 /**
  * What a kill is worth in doubloons (E314 L1, Jake's pick board 1 A): coins come only from kills, and only on a shard
- * whose ChunkDef says `loot: { coins: true }` (Driftwood today). First-guess values, tuned after a playthrough (a run
+ * whose ShardManifest says `loot: { coins: true }` (Driftwood today). First-guess values, tuned after a playthrough (a run
  * earns ~60–100; the trader's goods cost 15–50, project/archive/2026-09-30-driftwood-loot.md). No deer: Jake cut them from Driftwood
  * (their removal is a later pass), so they pay nothing meanwhile.
  *
@@ -16,7 +16,7 @@ export const COIN_VALUES: Readonly<Record<string, number>> = {
   captain: 25,
 };
 
-/** the ChunkDef part the coins read (kept structural so tests and node-side code need no full def) */
+/** the ShardManifest part the coins read (kept structural so tests and node-side code need no full def) */
 export interface LootGate { loot?: { coins?: boolean } | undefined }
 
 export const coinsOn = (def: LootGate): boolean => def.loot?.coins === true;

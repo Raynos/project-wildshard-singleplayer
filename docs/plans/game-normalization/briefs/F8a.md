@@ -22,7 +22,7 @@ modules and their tests now**, so the wiring later is short. Nothing in today's 
   - Export the public parts from `src/engine/index.ts` (keep `ENGINE_API`).
 - **No Wildshard words** in `src/engine/**` (01 §0: no shard slug, "shard", Bag, coin, loot, compendium, feat,
   doubloon, or shard / creature / weapon names — not even in comments). Use "level" for what the game calls a shard.
-- **Not in this job:** the RNG (its file collides with F6's move of `src/core/rng.ts`), any edit to `Game.ts`,
+- **Not in this job:** the RNG (its file collides with F6's move of `src/engine/core/rng.ts`), any edit to `Game.ts`,
   `main.ts`, `shardScope.ts` or any existing file except `src/engine/index.ts`.
 - Tests, all in node: `test/engine/systems.test.ts`, `test/engine/states.test.ts`, `test/engine/events.test.ts`,
   `test/engine/scope.test.ts` (the pure parts of 02 F8's list; the fake-Game parts wait for the wiring),

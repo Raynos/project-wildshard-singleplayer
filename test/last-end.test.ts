@@ -1,11 +1,11 @@
 /**
- * E179 (src/boot/lastEnd.ts): the boot says how the previous page in this tab ended — the game navigated on purpose (a
+ * E179 (src/engine/boot/lastEnd.ts): the boot says how the previous page in this tab ended — the game navigated on purpose (a
  * reason written just before), the page died without a pagehide (a stale alive beat: iOS killing it for memory), or a
  * fresh launch — and the Debug readout's "Last reload" line reads it back.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryStorage } from './setup';
-import type * as LastEnd from '../src/boot/lastEnd';
+import type * as LastEnd from '#engine/boot/lastEnd';
 
 type LastEndModule = typeof LastEnd;
 
@@ -15,7 +15,7 @@ const listeners = new Map<string, (e: unknown) => void>();
 /** a fresh page: the module evaluates again (its classification runs at import) */
 function boot(): Promise<LastEndModule> {
   vi.resetModules();
-  return import('../src/boot/lastEnd');
+  return import('#engine/boot/lastEnd');
 }
 
 beforeEach(() => {

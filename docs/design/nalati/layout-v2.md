@@ -16,7 +16,7 @@ the kurgan mounds). **In:** herds in the hundreds, the kokpar field, the ruined 
 ## Coordinates (metres; engine axes: +z north, **+x west**, −x east; slab ±250)
 
 Read from the map (1 px ≈ 0.43 m, centre at px 627 / 640). Every POI module reads these from
-`src/chunks/nalati-grasslands.ts` — no hard-coded positions anywhere else.
+`src/shards/nalati-grasslands/manifest.ts` — no hard-coded positions anywhere else.
 
 | POI | x | z | ground y | notes |
 |---|---|---|---|---|
@@ -65,7 +65,7 @@ Read from the map (1 px ≈ 0.43 m, centre at px 627 / 640). Every POI module re
 | the horizon + painted backdrop re-aimed to the new layout (mountains south / east) | look agent |
 | minimap / full map for the new layout | features agent (B15) |
 
-## As built (2026-09-23, the layout rebuild — `src/chunks/nalatiLayout.ts` is the source of truth)
+## As built (2026-09-23, the layout rebuild — `src/shards/nalati-grasslands/layout.ts` is the source of truth)
 
 Where the build moved a spec coordinate, and why:
 
@@ -91,8 +91,8 @@ The snow ring read as smooth grey-white lumps with boulders pasted on; now (`pro
 | valley walls | the Snow Lotus Valley cut | buttresses / gullies every ~25 m, strata, a scree fan out of each gully; the wall keeps 3 m back from the S road (it runs along the west wall's foot round z −100) and stays a plain climbable slope round the snow lotus clusters |
 | glacier | the tongue's blend | where the ice stands over lower ground its side is a stepped rock wall (not the snout: its ice cliff stays); rock crests flank the trough beyond the bowl's rim; the snow-ring zone reaches over it (`glacierNear`) |
 | ground | `ringGround`, `outcropAt` | one source for splat / vertex colour / surface masks: scree at the feet + over the valley floor (turf in patches), granite on the steep, snow above the line on what holds it (steeper high up, a cap over ~+85), drifts on the floor; the escarpment grassy with rock only where an outcrop breaks through |
-| shading | `src/nalati/terrainSurface.ts` (look v2) | the ring painted per pixel: two-scale triplanar granite with fractures + strata bands, snow blue in the shade |
-| crag rock | `src/nalati/cragRock.ts` | faceted granite fins on the crests, ribs against the steep faces / valley walls, broken towers on the shoulders — 4 merged meshes; the face boulders (Crags.ts, outcrops.ts walls, dressing on steep ring ground) are gone |
+| shading | `src/shards/nalati-grasslands/terrainSurface.ts` (look v2) | the ring painted per pixel: two-scale triplanar granite with fractures + strata bands, snow blue in the shade |
+| crag rock | `src/shards/nalati-grasslands/cragRock.ts` | faceted granite fins on the crests, ribs against the steep faces / valley walls, broken towers on the shoulders — 4 merged meshes; the face boulders (Crags.ts, outcrops.ts walls, dressing on steep ring ground) are gone |
 
 Every POI, the entry roads (y = 0), the valley floor and every snow lotus cluster stay reachable on foot (a 1 m
 flood fill under the 44° walk limit).

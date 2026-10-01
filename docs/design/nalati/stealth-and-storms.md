@@ -87,7 +87,7 @@ can see *why* a spot is good.
 
 ## Living grass — the engine side of stealth (F2)
 
-- **`grassHeightAt(x, z)`** — the grass carpet (`src/world/Grass.ts`) seeds every 4 m cell from a hash of the
+- **`grassHeightAt(x, z)`** — the grass carpet (`src/engine/world/Grass.ts`) seeds every 4 m cell from a hash of the
   cell coordinates and the terrain splat, so the CPU can compute the same height the GPU draws without any
   readback: one function shared by the cell seeder and the senses. Nalati adds a **height field** to the
   grass (short grazed turf 0.15 m near the camp and trails, 0.6 m meadow, 1.1–1.3 m feather-grass
@@ -133,22 +133,22 @@ min of play; never during a boss fight; a dev switch `?weather=storm`.
 
 **Builds on:**
 
-- `windUniforms` (`src/world/TreeFactory.ts`: `uTime`, `uWindStrength`) already drives trees and grass (the
+- `windUniforms` (`src/engine/world/TreeFactory.ts`: `uTime`, `uWindStrength`) already drives trees and grass (the
   gust-front wave in `Grass.ts`'s vertex shader, `params.windStrength`). The storm is **one wind object**
   (plan F2) that owns strength *and direction* (a new `uWindDir`), and that projectiles and the WIND chip read.
-- `src/world/Atmosphere.ts` — `fogUniforms` and the underwater blend (`updateUnderwater`: capture the dry set,
+- `src/engine/world/Atmosphere.ts` — `fogUniforms` and the underwater blend (`updateUnderwater`: capture the dry set,
   smoothstep toward another set). The storm fog is the same move with a third set (dense, slate).
-- `src/core/Grade.ts` — the final colour grade (`shadowTint`, `highTint`, lift / gain / gamma per chunk): the
+- `src/engine/core/Grade.ts` — the final colour grade (`shadowTint`, `highTint`, lift / gain / gamma per chunk): the
   storm lerps it toward a cold slate grade and the "after" toward a saturated wet one.
-- `src/world/Particles.ts` — dust motes as a camera-wrapped `Points` box (mod-wrapped in the vertex shader,
+- `src/kit/looks/particles.ts` — dust motes as a camera-wrapped `Points` box (mod-wrapped in the vertex shader,
   zero CPU). **Rain** is the same trick with streak quads stretched along the wind: 6k streaks on the phone,
   one draw.
-- `src/world/Sky.ts` — sky, sun, the planet, CSM; the storm dims the sun and the planet and swaps the cloud
+- `src/engine/world/Sky.ts` — sky, sun, the planet, CSM; the storm dims the sun and the planet and swaps the cloud
   deck.
 
 **New:**
 
-- `src/world/Weather.ts` — the state machine above; outputs a `WeatherState { phase, t, wind: Vector2, rain,
+- `src/shards/nalati-grasslands/world/Weather.ts` — the state machine above; outputs a `WeatherState { phase, t, wind: Vector2, rain,
   cloud, wet, fog, lightning events }` that every other system reads (no system owns the weather).
 - **Shelf cloud and rain curtains** — painted billboards on the horizon ring (the painterly cloud cards).
 - **Lightning** — a bolt as a branching ribbon mesh (built once per strike, 0.2 s), a scene flash (sun

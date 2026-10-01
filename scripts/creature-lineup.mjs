@@ -50,8 +50,8 @@ try {
   await page.addStyleTag({ content: '#hud,#hud *,.ws-touch,[class*="banner"],[class*="toast"],[class*="prompt"]{display:none!important}' });
   await page.evaluate(async ({ spot, gait, phase }) => {
     const w = window.__wildshard?.world;
-    const { Animal } = await import('/src/entities/Animal.ts');
-    const { heightAt } = await import('/src/world/Heightfield.ts');
+    const { Animal } = await import('/src/engine/entities/Animal.ts');
+    const { heightAt } = await import('/src/engine/world/Heightfield.ts');
     w.animals.group.visible = false;
     const cam = w.game.camera;
     const st = { list: [], pose: { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 }, ready: false };

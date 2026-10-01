@@ -1,13 +1,14 @@
+import { legacyShardId } from '../shard/manifest';
 /**
  * installLoot — the shard's loot wired into the running game in one call from main.ts (E314 stage 1,
  * project/archive/2026-09-30-driftwood-loot.md). main.ts builds the shard's Owned store first (the iron sword is kept there); a shard
- * whose ChunkDef says `loot: { coins: true }` (Driftwood) gets:
- *   - the purse (Purse.ts) and its HUD chip under VITALS (src/ui/CoinChip.ts);
+ * whose ShardManifest says `loot: { coins: true }` (Driftwood) gets:
+ *   - the purse (Purse.ts) and its HUD chip under VITALS (src/game/loot/CoinChip.ts);
  *   - the kill → coins burst (coins.ts values, CoinBurst.ts): chained onto `animals.onKill`, so call this AFTER main.ts
  *     assigns its own onKill; each enemy pays once, a respawn's kill pays nothing (Bounty.ts);
  *   - the Bag's loot: GEAR's sharpening pips / health / charm / cosmetics / purse, and the FINDS tab (finds.ts), read
  *     from the adventure's flags;
- *   - stage 2, the trader's shop (shop.ts goods + prices, src/ui/ShopPanel.ts screen C): her prompt at the counter opens
+ *   - stage 2, the trader's shop (shop.ts goods + prices, src/shards/driftwood-isle/loot/ShopPanel.ts screen C): her prompt at the counter opens
  *     it (TraderStall.ts); a sale spends the purse and grants the Owned id, and the effects follow Owned live — the
  *     whetstones scale every sword's damage (`swords`), the hearts (and the first charm) raise max health
  *     (`setMaxHealth`: main.ts's bar, regen and respawn), the sea chart marks the unfound sea glass on the minimap and
@@ -21,20 +22,20 @@
  *                                       // item, add coins, open the shop; fullClear = the coins for killing every enemy once
  */
 import * as THREE from 'three';
-import type { Audio } from '../../audio/Audio';
-import { IslandSfx } from '../../audio/IslandSfx';
-import { CoinChip } from '../../ui/CoinChip';
-import type { GameMenu } from '../../ui/Menu';
-import type { CosmeticSlot, GearLoot } from '../../ui/bag';
+import type { Audio } from '#engine/audio/Audio';
+import { IslandSfx } from '#engine/audio/IslandSfx';
+import { CoinChip } from './CoinChip';
+import type { GameMenu } from '#engine/ui/Menu';
+import type { CosmeticSlot, GearLoot } from '../bag/bag';
 import { CoinBurst } from './CoinBurst';
 import { coinsFor, coinsOn, type LootGate } from './coins';
-import { driftwoodFinds, nextCharmAt, seaChartMarks, seaGlassFound, type FlagReader } from './finds';
-import { buyGood, goodById, goodState, GOODS, maxHealthOf, swordMul, type Good } from './shop';
-import { ShopPanel } from '../../ui/ShopPanel';
-import type { MapMark } from '../../ui/Minimap';
-import { TRADER_NAME, type TraderStall } from '../quest/TraderStall';
+import { driftwoodFinds, nextCharmAt, seaChartMarks, seaGlassFound, type FlagReader } from '#shards/driftwood-isle/loot/finds';
+import { buyGood, goodById, goodState, GOODS, maxHealthOf, swordMul, type Good } from '#shards/driftwood-isle/loot/shop';
+import { ShopPanel } from '#shards/driftwood-isle/loot/ShopPanel';
+import type { MapMark } from '#engine/ui/Minimap';
+import { TRADER_NAME, type TraderStall } from '#shards/driftwood-isle/quest/TraderStall';
 import { isCosmetic, isOwnedId, OWNED, type Owned, type OwnedId } from './Owned';
-import { practiceRoom } from '../../core/practiceRoom';
+import { practiceRoom } from '#engine/core/practiceRoom';
 import { Purse } from './Purse';
 import { Bounty } from './Bounty';
 
@@ -42,7 +43,7 @@ export interface LootAnimal { kind: string; position: THREE.Vector3; herd: numbe
 export interface LootHost<A extends LootAnimal> {
   /** the shard's Owned store (main.ts builds it early: the iron sword's pickup writes to it) */
   owned: Owned;
-  chunk: LootGate & { id: string };
+  chunk: LootGate & { slug: string };
   game: { scene: THREE.Scene; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   player: { position: THREE.Vector3 };
   camera: THREE.Camera;
@@ -76,7 +77,7 @@ export function installLoot<A extends LootAnimal>(h: LootHost<A>): Loot {
   const owned = h.owned;
   if (!coinsOn(h.chunk)) return { purse: null, dispose: () => undefined };
 
-  const purse = new Purse(h.chunk.id);
+  const purse = new Purse(legacyShardId(h.chunk.slug));
   const chip = new CoinChip(purse.coins);
   purse.onChange((n) => { chip.set(n); });
   const burst = new CoinBurst(h.game.scene);
@@ -91,7 +92,7 @@ export function installLoot<A extends LootAnimal>(h: LootHost<A>): Loot {
   const sfx = new IslandSfx(h.audio);
   // each enemy pays once (Jake, 2026-09-30): a respawn's kill pays nothing (Bounty.ts); the census is the island as it starts
   const census = Bounty.census(h.animals.animals);
-  const bounty = new Bounty(h.chunk.id, census);
+  const bounty = new Bounty(legacyShardId(h.chunk.slug), census);
   let fullClear = 0;
   for (const [k, n] of census) fullClear += n * coinsFor(h.chunk, k.split(':')[0] ?? k);
   for (const lone of ['sailor', 'captain']) if (!census.has(lone)) fullClear += coinsFor(h.chunk, lone); // they rise later

@@ -10,7 +10,7 @@
  *   burst.dispose()
  */
 import * as THREE from 'three';
-import { coinModel } from '../../world/interact/models';
+import { coinModel } from '#engine/world/interact/models';
 import { burstCount, coinShare } from './coins';
 
 const POOL = 48;                 // coins in flight at once (a captain = 12; a crab melee = a few)

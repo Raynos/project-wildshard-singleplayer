@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ line: '', guard: vi.fn(), title: vi.fn(), three: vi.fn(), main: vi.fn() }));
-vi.mock('../src/boot/stuck', () => ({ guardBoot: mocks.guard }));
-vi.mock('../src/boot/nineBootTrace', () => ({ inspectPreviousNineBoot: vi.fn(), previousNineBootLine: () => mocks.line }));
-vi.mock('../src/ui/StartTitle', () => { mocks.title(); return {}; });
+vi.mock('#engine/boot/stuck', () => ({ guardBoot: mocks.guard }));
+vi.mock('#engine/boot/nineBootTrace', () => ({ inspectPreviousNineBoot: vi.fn(), previousNineBootLine: () => mocks.line }));
+vi.mock('#engine/ui/StartTitle', () => { mocks.title(); return {}; });
 vi.mock('three', () => { mocks.three(); return {}; });
 vi.mock('../src/main', () => { mocks.main(); return {}; });
 
@@ -24,7 +24,7 @@ describe('entry after a Nine Dragon page restart', () => {
   it('rescues an abrupt Nine retry to the static title before importing the game', async () => {
     mocks.line = 'Abrupt previous page: Nine Dragon firstFrame 95% (cause unknown)';
     vi.stubGlobal('location', new URL('https://wildshard.example/?chunk=nine-dragon-stack&glreload=1&v=old'));
-    const entry = await import('../src/boot/entry');
+    const entry = await import('../src/entry');
     await entry.entered;
     expect(replaced).toHaveBeenCalledOnce();
     expect(location.href).toBe('https://wildshard.example/');
@@ -37,7 +37,7 @@ describe('entry after a Nine Dragon page restart', () => {
 
   it('loads Nine normally after an intentional title choice', async () => {
     vi.stubGlobal('location', new URL('https://wildshard.example/?chunk=nine-dragon-stack'));
-    const entry = await import('../src/boot/entry');
+    const entry = await import('../src/entry');
     await entry.entered;
     expect(replaced).not.toHaveBeenCalled();
     expect(titleClass.add).not.toHaveBeenCalled();

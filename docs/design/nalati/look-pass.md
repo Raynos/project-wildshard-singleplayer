@@ -98,7 +98,7 @@ surface carries painted high-frequency detail, and their backdrop is a matte-pai
 
 - **Painted textures** (codex image gen in the style-B look, tileable, WebP/KTX2 with a half-res phone tier,
   ≈ 4 MB desktop / ≈ 2 MB phone): meadow ground, dirt path, gravel, granite (triplanar), snow, spruce bark,
-  felt + ornament cloth → `src/world/nalatiTextures.ts`, adopted by terrain, outcrops, yurts and spruce.
+  felt + ornament cloth → `src/shards/nalati-grasslands/look/nalatiTextures.ts`, adopted by terrain, outcrops, yurts and spruce.
 - **A 360° painted matte backdrop** of the real Nalati range and the Sky Grassland rolling away →
   `src/world/PaintedBackdrop.ts` (far plane, one draw call, takes the aerial haze and the day/night/storm tint);
   `Horizon.ts` keeps only the near and mid ridges in front of it.
@@ -129,7 +129,7 @@ most of the gap at 124 calls / 369 k tris on the phone tier. What it found, rank
 7. **Layout from the capture, not the mockup** (the mockups are stretched ~1.44×).
 
 Decision (parent, 2026-09-23): this architecture becomes the Nalati render path — ported by its author (the port
-lead) behind `?look=v2` in `src/nalati/look/`, default once it beats the current look at all 9 camp angles. It
+lead) behind `?look=v2` in `src/shards/nalati-grasslands/look/`, default once it beats the current look at all 9 camp angles. It
 replaces the painterly sky / clouds / PainterlyRange, the current grass look and the far forest; gameplay hooks
 (Wind, trample, grassHeightAt, stealth, weather) stay. Models: the sourced CC0 set (`public/assets/nalati/sourced/`)
 and the local image-to-3D models (`public/assets/nalati/models/`).

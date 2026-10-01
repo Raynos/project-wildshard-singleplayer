@@ -1,10 +1,10 @@
-// E314: worn cosmetics (src/player/Cosmetics.ts). Wearing in shadow mode swaps the meshes' materials for a shadow-only
+// E314: worn cosmetics (src/engine/player/Cosmetics.ts). Wearing in shadow mode swaps the meshes' materials for a shadow-only
 // one; taking the thing off must give it back exactly as it came (materials, shadow flags, pose, parent), so a hat can go
 // on and off from the Bag any number of times.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WEAR_SOCKET, Wardrobe } from '../src/player/Cosmetics';
-import { SHADOW_LAYER } from '../src/core/shadowLayer';
+import { WEAR_SOCKET, Wardrobe } from '#engine/player/Cosmetics';
+import { SHADOW_LAYER } from '#engine/core/shadowLayer';
 
 function hat(): { root: THREE.Group; brim: THREE.Mesh; crown: THREE.Mesh; brimMat: THREE.Material; crownMat: THREE.Material } {
   const brimMat = new THREE.MeshStandardMaterial(), crownMat = new THREE.MeshStandardMaterial();

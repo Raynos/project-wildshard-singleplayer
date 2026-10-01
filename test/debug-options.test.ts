@@ -1,8 +1,8 @@
-// src/ui/debugOptions.ts — the Debug menu's registry (E162): every debug-only option has exactly one row, in a group that
+// src/engine/ui/debugOptions.ts — the Debug menu's registry (E162): every debug-only option has exactly one row, in a group that
 // exists, with choices that are the option's own values.
 import { describe, expect, it } from 'vitest';
-import { DEBUG_GROUPS, DEBUG_ROWS } from '../src/ui/debugOptions';
-import { OPTION_VALUES, BOOT_OPTIONS, settingParams, type OptionKey } from '../src/ui/Settings';
+import { DEBUG_GROUPS, DEBUG_ROWS } from '#engine/ui/debugOptions';
+import { OPTION_VALUES, BOOT_OPTIONS, settingParams, type OptionKey } from '#engine/ui/Settings';
 
 describe('Debug registry', () => {
   it('row ids are unique and every row sits in a declared group', () => {

@@ -21,7 +21,7 @@
     "public/assets/models/driftwood-blender/lm-ao.webp", "public/assets/models/driftwood-blender/lm-ao.phone.webp",
     "public/assets/models/driftwood-blender/lm-bounce.webp", "public/assets/models/driftwood-blender/lm-bounce.phone.webp"
    ],
-   "feeds": ["src/world/BlenderIsland.ts"]
+   "feeds": ["src/shards/driftwood-isle/world/BlenderIsland.ts"]
   },
   "pine-hollow/area-export": {
    "about": "Pine Hollow's half of the island export (PH-0.3): area.bin, splat.bin, scene.json in the cache. Its Blender build is PINE-HOLLOW-REMASTER wave 2 (PH-U17), so it writes nothing to the repo",
@@ -50,7 +50,7 @@
     "public/assets/models/pine-hollow-trees/cards-normal.jpg", "public/assets/models/pine-hollow-trees/cards-arm.jpg", "public/assets/models/pine-hollow-trees/impostor-normal.jpg",
     "public/assets/tex/fir_bark/", "public/assets/tex/metasequoia_bark/", "public/assets/tex/birch_bark/", "public/assets/tex/bark_willow_02/"
    ],
-   "feeds": ["src/world/treeSet.ts", "src/world/TreeFactory.ts"]
+   "feeds": ["src/engine/world/forest/treeSet.ts", "src/engine/world/TreeFactory.ts"]
   },
   "pine-hollow/crags": {
    "about": "The Ridge's granite crag kit: the tors, boulders and scree, 7 modules (PH-B2; E350 F-X1 dropped the five big modules crags-b.glb replaces)",
@@ -62,7 +62,7 @@
    "meshopt": [["crags.glb", "public/assets/models/pine-hollow-crags/crags.glb"]],
    "copy": [["crags.json", "public/assets/models/pine-hollow-crags/crags.json"]],
    "outputs": ["public/assets/models/pine-hollow-crags/crags.glb", "public/assets/models/pine-hollow-crags/crags.json"],
-   "feeds": ["src/world/PineCrags.ts"]
+   "feeds": ["src/shards/pine-hollow/world/crags.ts"]
   },
   "pine-hollow/crags-b": {
    "about": "E322 F-L2 (Jake picked B): the Ridge's big modules fused and weathered (cliff bands, buttress, slab) and the lookout's hero crag, overlaid on crags.glb",
@@ -74,7 +74,7 @@
    "meshopt": [["crags-b.glb", "public/assets/models/pine-hollow-crags/crags-b.glb"]],
    "copy": [["crags-b.json", "public/assets/models/pine-hollow-crags/crags-b.json"]],
    "outputs": ["public/assets/models/pine-hollow-crags/crags-b.glb", "public/assets/models/pine-hollow-crags/crags-b.json"],
-   "feeds": ["src/world/PineCrags.ts"]
+   "feeds": ["src/shards/pine-hollow/world/crags.ts"]
   },
   "pine-hollow/cave": {
    "about": "The Den's bear cave: the interior + the hood over its first metres, fitted to the baked heights round the mouth (PH-B2)",
@@ -88,7 +88,7 @@
    "meshopt": [["cave.glb", "public/assets/models/pine-hollow-crags/cave.glb"]],
    "copy": [["cave.json", "public/assets/models/pine-hollow-crags/cave.json"]],
    "outputs": ["public/assets/models/pine-hollow-crags/cave.glb", "public/assets/models/pine-hollow-crags/cave.json"],
-   "feeds": ["src/world/PineCrags.ts"]
+   "feeds": ["src/shards/pine-hollow/world/crags.ts"]
   },
   "pine-hollow/lever-rifle": {
    "about": "The lever-action carbine, hi (desktop) + lo (phone), each baked on its own UVs (PH-C11)",
@@ -101,7 +101,7 @@
    "build": ["hi/lever-rifle.glb", "lo/lever-rifle.glb"],
    "meshopt": [["hi/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.glb"], ["lo/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"]],
    "outputs": ["public/assets/pine-hollow/weapons/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"],
-   "feeds": ["src/player/LeverRifle.ts"]
+   "feeds": ["src/shards/pine-hollow/weapons/LeverRifle.ts"]
   },
   "pine-hollow/skinning-knife": {
    "about": "The first-person skinning knife in a gloved hand, hi + lo, one mesh, one material, plus its sidecar points",
@@ -115,7 +115,7 @@
    "meshopt": [["hi/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.glb"], ["lo/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb"]],
    "post": "scripts/blender/pine-hollow/weapons/knife-post.sh",
    "outputs": ["public/assets/pine-hollow/weapons/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb", "public/assets/pine-hollow/weapons/skinning-knife.json"],
-   "feeds": ["src/chunks/pine-hollow/models/skinningKnife.ts"]
+   "feeds": ["src/shards/pine-hollow/models/skinningKnife.ts"]
   },
   "nine-dragon-stack/fp-rig": {
    "about": "The Nine Dragon first-person arms: hand, gauntlet and guard parts (Blender), rigged with 16 clips into fp-rig.glb by the viewmodel lab's bake (lab P8 round 13, E169); its rig-bake step ran in the deleted dev lab (E357 F7); a rebuild needs a new bake path",
@@ -130,7 +130,7 @@
     "scripts/blender/nine-dragon-stack/viewmodel/rig/gate_chart.py",
     "scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs"
    ],
-   "inputs": ["src/chunks/nine-dragon-stack/vm/rig.ts"],
+   "inputs": ["src/kit/viewmodel/armRig.ts"],
    "lock": true,
    "outputs": [
     "public/assets/nine-dragon/viewmodel/fp-rig.glb",
@@ -139,7 +139,7 @@
     "public/assets/nine-dragon/viewmodel/fist-l-maps.webp", "public/assets/nine-dragon/viewmodel/fist-l-nrm.webp",
     "public/assets/nine-dragon/viewmodel/gauntlet-maps.webp", "public/assets/nine-dragon/viewmodel/gauntlet-nrm.webp"
    ],
-   "feeds": ["src/chunks/nine-dragon-stack/vm/fpArms.ts"]
+   "feeds": ["src/shards/nine-dragon-stack/vm/fpArms.ts"]
   },
   "driftwood-isle/fp-arms": {
    "about": "Driftwood's first-person castaway arms (E334, board 2 A / 3 A): the arms and both swords modelled round Nine Dragon's round-13 skeleton, which keeps its 16 clips; + 15 finger bones a hand, the swim clips and the skin (bake.mjs), then the rig gate (gate.mjs → gate.json). --preview also writes posed PLYs for preview.py",
@@ -147,12 +147,12 @@
    "script": "scripts/blender/driftwood-isle/fp-arms/arms.py",
    "args": ["$BUILD/bind.json", "$BUILD"],
    "sources": ["scripts/blender/driftwood-isle/fp-arms/skeleton.mjs", "scripts/blender/driftwood-isle/fp-arms/bake.mjs", "scripts/blender/driftwood-isle/fp-arms/gate.mjs", "scripts/blender/driftwood-isle/fp-arms/preview.py"],
-   "inputs": ["public/assets/nine-dragon/viewmodel/fp-rig.glb", "src/chunks/nine-dragon-stack/vm/rig.ts"],
+   "inputs": ["public/assets/nine-dragon/viewmodel/fp-rig.glb", "src/kit/viewmodel/armRig.ts"],
    "lock": false,
    "build": ["fp-arms.raw.glb", "gate.json"],
    "meshopt": [["fp-arms.raw.glb", "public/assets/models/driftwood-fp/fp-arms.glb"]],
    "outputs": ["public/assets/models/driftwood-fp/fp-arms.glb"],
-   "feeds": ["src/chunks/driftwood-isle/fpArms.ts", "src/player/rigArms.ts"]
+   "feeds": ["src/shards/driftwood-isle/fpArms.ts", "src/kit/viewmodel/rigArms.ts"]
   }
  }
 }

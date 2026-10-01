@@ -1,13 +1,13 @@
-// E306 / E315 M7 (project/archive/2026-09-30-model-architecture.md): the Sets explorer's pure parts (src/explore/setView.ts). A set is
+// E306 / E315 M7 (project/archive/2026-09-30-model-architecture.md): the Sets explorer's pure parts (src/engine/explore/setView.ts). A set is
 // framed from the air so its bounds stay on screen from every yaw of the slow orbit, its members read as rows, it is
 // measured by the objects that draw it (each once), and `placeSet` hands the explorer what draws each member.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry, type RegisteredSet } from '../src/world/registry';
-import { defineModel, modelContext } from '../src/models/model';
-import { place } from '../src/models/place';
-import { placeSet } from '../src/models/sets';
-import { bandWindow, boxEdges, copyBoxes, drawnRoots, lensReset, lensShift, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '../src/explore/setView';
+import { WorldRegistry, type RegisteredSet } from '#engine/world/registry';
+import { defineModel, modelContext } from '#engine/models/model';
+import { place } from '#engine/models/place';
+import { placeSet } from '#engine/models/sets';
+import { bandWindow, boxEdges, copyBoxes, drawnRoots, lensReset, lensShift, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '#engine/explore/setView';
 
 const ctx = modelContext(null);
 const mat = new THREE.MeshBasicMaterial();

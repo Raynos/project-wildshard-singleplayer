@@ -7,7 +7,7 @@ atlas); the final look round thinned the loose boulders on the green slopes (`pl
 (4), bigger butterflies / kites (5), a phone measurement of `planDressing`'s boot cost (6). The sections below are the
 history of the handoff.
 
-Owner until now: the dressing agent. Code: `src/world/nalati/dressing/` (+ the Dressing section in `src/nalati/index.ts`).
+Owner until now: the dressing agent. Code: `src/shards/nalati-grasslands/world/dressing/` (+ the Dressing section in `src/shards/nalati-grasslands/index.ts`).
 Commits: `0422a8a`, `e734a51`, `4226eb8`, `ba4e99e`, `e81a609`.
 
 ## What is built (wired into the real shard)
@@ -49,7 +49,7 @@ Commits: `0422a8a`, `e734a51`, `4226eb8`, `ba4e99e`, `e81a609`.
 1. **Grass through rocks:** the grass agent has not adopted `dressingCover`. Suggested: `height *= 1 - dressingCover(x, z)`
    and reseed once the dressing is built.
 2. **Painted granite on the boulders is not done.** The painterly material has no texture or triplanar path, and the
-   blob geometry has no UVs. This needs a triplanar `map` option in `src/world/painterly.ts` (look-director), after which
+   blob geometry has no UVs. This needs a triplanar `map` option in `src/engine/world/painterly.ts` (look-director), after which
    the boulder, slab, stone and ovoo stones can use `rock` from `nalatiTextures.ts`.
 3. **The camp mockups are denser:** more flowers right up to the track edge, and small rocks scattered through the
    meadow near the camp. The camp-ring pass (`campAndBanks`) could be pushed further.

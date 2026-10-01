@@ -199,9 +199,9 @@ rather than a context it was handed, and ~26 debug names leak shard names into t
 | Area | Size | Engine-ready? | Coupling |
 |---|---|---|---|
 | `src/explore` | 16 files, 4,240 lines | **Yes, mostly.** `ExploreHost` takes a `World` plus callbacks, and models come from the one registry | 23 shard-shaped lines: `Explore.ts:66-75` (4 art maps × 4 slugs), `Compare.ts:18-33` (mockups per shard), 6 `chunk.ocean?.level` reads (use `terrain.waterLevel()`) |
-| `src/practice` | 7 files, 1,203 lines | **Yes.** It uses the engine's Weapons, Player, Physics and registry | `BOSS_NAMES` is a side-effect map in `ui/Combat.ts:40`; make it a content registry. `TargetHit` is typed from `Crossbow.ts` |
+| `src/engine/practice` | 7 files, 1,203 lines | **Yes.** It uses the engine's Weapons, Player, Physics and registry | `BOSS_NAMES` is a side-effect map in `ui/Combat.ts:40`; make it a content registry. `TargetHit` is typed from `Crossbow.ts` |
 | `src/playgrounds` | 9 files, 1,083 lines | **No.** Both rooms are shard content in an engine folder | `catalog.ts:29-30` names shards; `load.ts` switches on the id; `GrapplePlayground.ts:17` imports Nine Dragon's course; `PlaygroundHost.ride` is typed with Nalati's `Ride` (`Playground.ts:21,37`) |
-| `src/models` | 18 files, 3,211 lines | **Yes.** `defineModel`, `placeSet`, a lazy `roster` per shard (`ChunkDef.roster`), the registry catalog | Creature styles (`lowpoly`, `painterly`, `pbr`) are the kit's; `swimHands` and `hoverboard` are engine gear |
+| `src/engine/models` | 18 files, 3,211 lines | **Yes.** `defineModel`, `placeSet`, a lazy `roster` per shard (`ChunkDef.roster`), the registry catalog | Creature styles (`lowpoly`, `painterly`, `pbr`) are the kit's; `swimHands` and `hoverboard` are engine gear |
 
 | Row | What | Size |
 |---|---|---|

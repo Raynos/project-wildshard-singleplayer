@@ -47,8 +47,8 @@ The island is lovely. The fights feel random.
 
 ## (d) Bugs, worst first
 
-1. **HIGH: the brown bear.** It spawns at about (126, 10) (`src/chunks/driftwood-isle.ts:207`), right beside the crabs and the wreck. It never gives up, and each hit does 45 damage (`src/entities/species/bear.ts:270`). It kills you in ~4.4 s, and the wooden sword needs ~31 hits to kill it. To see it, spawn at (118, 0) and wait.
-2. **HIGH: boars can't be fought.** They use the prey behaviour: they flee once they notice you, and turn and run after every charge (`src/entities/AnimalManager.ts:644, 675, 727`).
+1. **HIGH: the brown bear.** It spawns at about (126, 10) (`src/shards/driftwood-isle/manifest.ts:207`), right beside the crabs and the wreck. It never gives up, and each hit does 45 damage (`src/engine/entities/species/bear.ts:270`). It kills you in ~4.4 s, and the wooden sword needs ~31 hits to kill it. To see it, spawn at (118, 0) and wait.
+2. **HIGH: boars can't be fought.** They use the prey behaviour: they flee once they notice you, and turn and run after every charge (`src/engine/entities/AnimalManager.ts:644, 675, 727`).
 3. **MED: the wreck hold fight is unreadable.** Hits come from behind beams, the camera sits inside planks, and the prompts overlap each other (`sheet-23-sailor.jpg`).
 4. **MED: pop-ups render under the minimap** (`09-quest-started-hud.jpg`, `15-crabs-tidepool.jpg`).
 5. **MED: map problems.** The "SEA CAVE SHARD" and "WRECK SHARD" labels overlap, and the map shows no buildings or paths (this confirms E105; `18-map-island.jpg`).
@@ -58,7 +58,7 @@ The island is lovely. The fights feel random.
 9. **LOW: M opens the wrong tab.** It opens the menu on whichever tab was last used, not the Map.
 10. **LOW: Wendell and the sword.** Wendell doesn't turn to face you, and the sword covers both him and the dialogue box.
 11. **Out-of-date docs.**
-    - D38 says day/night isn't built. It is, and it runs by default (`src/world/DayNight.ts`).
+    - D38 says day/night isn't built. It is, and it runs by default (`src/engine/world/DayNight.ts`).
     - The 09-18 plan says "no dodge", but dodge exists.
 12. **Checked but not seen.** E36 did not show at its repro spot. E91 and E93 need the real iPhone.
 
@@ -86,7 +86,7 @@ The island is lovely. The fights feel random.
    - Hide Tracer bolts in sword games.
    - Make M always open the Map.
 6. **Get the sword out of the way.**
-   - Lower its resting pose (`src/player/SwordMoves.ts`, REST from `0.27,-0.33` to ~`0.33,-0.42`).
+   - Lower its resting pose (`src/engine/player/SwordMoves.ts`, REST from `0.27,-0.33` to ~`0.33,-0.42`).
    - Put it away during dialogue.
    - Make Wendell turn to face you.
 7. **Reasons to walk between places.**

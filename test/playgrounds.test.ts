@@ -2,12 +2,12 @@
 // every grapple zip is inside the Fei Zhua's reach, lands on its pad (the PAST side of the ring, never short in the pit)
 // and flies clear of every other box; the horse track's bends are wider than a gallop's turn and inside the field.
 import { describe, expect, it } from 'vitest';
-import { PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '../src/playgrounds/catalog';
-import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, type CourseHook, type CoursePad } from '../src/playgrounds/grappleCourse';
-import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '../src/playgrounds/horseCourse';
-import { practiceRoom } from '../src/core/practiceRoom';
-import { placesWithDiscovery } from '../src/game/quest/core';
-import { Flags } from '../src/world/interact/flags';
+import { PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '#engine/practice/playground/catalog';
+import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, type CourseHook, type CoursePad } from '#shards/nine-dragon-stack/playground/grappleCourse';
+import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '#shards/nalati-grasslands/playground/horseCourse';
+import { practiceRoom } from '#engine/core/practiceRoom';
+import { placesWithDiscovery } from '#game/quest/core';
+import { Flags } from '#engine/world/interact/flags';
 
 describe('the Explore hub lists each shard its own playgrounds', () => {
   it('Nine Dragon: the grapple course; Nalati: the horse track; Driftwood and Pine Hollow: none (Jake)', () => {

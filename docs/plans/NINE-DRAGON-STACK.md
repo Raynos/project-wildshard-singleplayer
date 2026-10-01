@@ -110,7 +110,7 @@ the sky screens overhead play a blue-green shanshui scroll. On the left the balu
 galleries falling away through layer after layer of silk mist.
 
 The four hero frames are the round-6 mockups (`art/nine-dragon-stack/round-6-baseline-hud/`), and their cameras live in
-one place: `src/chunks/nine-dragon-stack/mockupCameras.ts` (A the spawn, B the Well's edge, C the stair-street, D down
+one place: `src/shards/nine-dragon-stack/mockupCameras.ts` (A the spawn, B the Well's edge, C the stair-street, D down
 the Well).
 
 ## 3. The design devices

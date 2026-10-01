@@ -14,19 +14,19 @@ files that must never be cached.
 | `/(.*)` | `public, max-age=0, must-revalidate` | Catch-all. Anything not named below is revalidated on every load (one conditional round trip, 304 when unchanged). No COOP/COEP: we do not need cross-origin isolation, and `require-corp` would break the Google Fonts stylesheet `index.html` links. |
 | `/assets/(.*)` | `public, max-age=31536000, immutable` | Vite's emitted bundle: `/assets/<name>-<8 char hash>.{js,css,jpg}`. Content-hashed by filename → safe forever. The service worker also keeps these in `ws-immutable` (see below). |
 | `/assets/baked/(.*)` | `public, max-age=0, must-revalidate` | Build-time bakes (`terrain.bin`, `sky.json`, baked textures / cards) are **regenerated at the same path** by every build, so the `/assets/(.*)` year would let a phone's HTTP cache serve a stale bake past a deploy (the D22 class: stale `terrain.bin` → empty palm merge; the SW side was fixed by `37c27ce` / `5b798c8`). Revalidating costs a 304 per file; the phone tier's boot reads them out of the content-hashed pack (`/assets/packs/<slug>.<tier>-<hash>.bin`, which stays under the immutable rule), so this only touches the desktop tier and non-boot reads. |
-| `/assets/music/(.*).json`, `/assets/sfx/(.*).json` | `public, max-age=0, must-revalidate` | The audio manifests are rewritten in place by `scripts/music` and compiled into the bundle by `vite.config.ts` (`src/boot/audio.generated.ts`) — the game never fetches them; revalidate for anyone else who does. The `.m4a` files next to them are named `<name>-<sha1[:8]>.m4a` (content-addressed), so they stay under the `/assets/(.*)` year (project/archive/2026-09-23-preload-offline.md, E44: they were `must-revalidate` while the manifests were fetched at runtime). The worker keeps them in `ws-static-*`, cache-first. |
+| `/assets/music/(.*).json`, `/assets/sfx/(.*).json` | `public, max-age=0, must-revalidate` | The audio manifests are rewritten in place by `scripts/music` and compiled into the bundle by `vite.config.ts` (`src/engine/boot/audio.generated.ts`) — the game never fetches them; revalidate for anyone else who does. The `.m4a` files next to them are named `<name>-<sha1[:8]>.m4a` (content-addressed), so they stay under the `/assets/(.*)` year (project/archive/2026-09-23-preload-offline.md, E44: they were `must-revalidate` while the manifests were fetched at runtime). The worker keeps them in `ws-static-*`, cache-first. |
 | `/assets/tex/(.*)`, `/assets/models/(.*)`, `/assets/hdri/(.*)` | `public, max-age=2592000` | **Not content-hashed today.** These are the unhashed Poly Haven files copied straight from `public/assets/**` (`forest_ground_04/diffuse-2k.jpg`, `hatchet.gltf` + `.bin`, `*_2k.hdr`), so they must NOT be `immutable`: a re-baked texture at the same path would be pinned for a year. One month is the gauntlet fonts/art rule ("so that it does get garbage collected eventually"): the HTTP cache holds them across a month of launches, the service worker holds them in `ws-static-<assetsHash>` keyed by a hash of `public/assets` so a deploy that changes any of them rolls the cache. When P3.1 content-hashes these paths, move them into the `immutable` rule. |
 | `/basis/(.*)` | `public, max-age=2592000` | Reserved for the KTX2/Basis transcoder (P1). Unhashed, versioned with the static cache like the art. |
 | `/(.*).hdr` → `image/vnd.radiance`, `/(.*).glb` → `model/gltf-binary`, `/(.*).gltf` → `model/gltf+json`, `/(.*).ktx2` → `image/ktx2`, `/(.*).webmanifest` → `application/manifest+json` | `Content-Type` | Vercel's default MIME table serves `.hdr` / `.ktx2` as `application/octet-stream`; the loaders do not care, but Safari's PWA install and the SW's `content-length` byte accounting are happier with real types, and `.webmanifest` must be `application/manifest+json` for the iOS home-screen install. |
 | `/`, `/index.html` | `no-store` | The service worker owns the document (cache-first with a background revalidate). A cached `index.html` in the HTTP cache would pin an old build id and an old entry chunk beneath the worker. |
 | `/sw.js` | `no-store` | `sw.js` is how a new build is discovered: the browser byte-compares it on `reg.update()`. A cached copy is an update the player can never take. |
-| `/version.json` | `no-store` | The title-screen build pill (`src/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
+| `/version.json` | `no-store` | The title-screen build pill (`src/engine/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
 | `/asset-index.json` | `no-store` | The byte table the loading screen sums; regenerated every build. Network-first in the SW with the last copy as the offline fallback. |
 | `/asset-manifest.json` | `no-store` | E160 / E161: every file under `public/assets` (packs included) → its content hash (sha256, first 8 hex). What the build names: the worker reads it on `activate` to keep exactly those entries and drop the rest. Fetched by the worker only, never by the page. |
 | `/manifest.webmanifest` | `no-store` | Small, and the icons/start_url it names must follow the build. Network-first in the SW. |
 | `/clear-cache.json` | `no-store` + `Clear-Site-Data: "cache"` | E172: Debug ▸ Clear downloads fetches it (`?sw=0`, so no worker answers) after unregistering the worker and deleting every cache, so the origin's HTTP cache goes too and the reload is a true first visit. `"cache"` only: `"storage"` would take the saves with it. |
 
-## The service worker's three caches (`src/pwa/sw.js`)
+## The service worker's three caches (`src/engine/pwa/sw.js`)
 
 They expire on three different clocks, which is why there are three:
 
@@ -48,20 +48,20 @@ to the system font stack that `hud.css` declares after Rajdhani / JetBrains Mono
 The user: a bigger download is fine, "but don't invalidate those as much". A deploy now re-downloads only the files whose
 bytes changed:
 
-- **`?v=<hash8>` on every unhashed asset.** `src/boot/versions.generated.ts` (vite.config.ts `writeVersionsModule`) holds
+- **`?v=<hash8>` on every unhashed asset.** `src/engine/boot/versions.generated.ts` (vite.config.ts `writeVersionsModule`) holds
   the content hash of every file under `public/assets` whose name is not already content-addressed
-  (`vite/assetHashes.ts contentNamed`: the packs, `<name>-<hash8>.<ext>`). `versionedUrl` (src/boot/bytes.ts) puts it on
+  (`vite/assetHashes.ts contentNamed`: the packs, `<name>-<hash8>.<ext>`). `versionedUrl` (src/engine/boot/bytes.ts) puts it on
   every fetch after the byte counter and on the loading manager's URLs (Safari's `<img>`-loaded glTF textures). The
   worker answers any `/assets/…?v=` request cache-first: the key names the bytes. Unversioned requests (an `<img>` in the
   DOM, a worker's fetch) keep the old routes.
 - **Boot packs in parts.** `scripts/bake-packs.mjs` cuts each shard's pack into content-addressed parts of 1.5–4 MB at
   path-determined points (Pine Hollow's 18 MB phone boot: 8 parts; Nalati 2; Driftwood 1), so one changed texture costs
-  its part, not the pack. `src/boot/pack.ts` streams them in order, the next one requested at 75 % of the current.
+  its part, not the pack. `src/engine/boot/pack.ts` streams them in order, the next one requested at 75 % of the current.
 - **Measured**: see "Verified" below (E160 rows).
 
 ## The other shards, in the background (E158, 2026-09-25)
 
-`src/boot/shardPrefetch.ts`, started by main.ts once the shard is playable: every file another shard's boot reads on
+`src/engine/boot/shardPrefetch.ts`, started by main.ts once the shard is playable: every file another shard's boot reads on
 this tier (its pack parts + declared files, the same list `test/shard-prefetch.test.ts` holds equal to the boot's own,
 + the few files its world reads undeclared: LUT, horizon, Pine Hollow's rifle / knife / birds / NPCs / chalk, Nalati's
 camp people) is posted one URL at a time to the worker (`PREFETCH`), which skips what it holds and stores the rest
@@ -76,7 +76,7 @@ cache did not keep it.
 
 ## Clear downloads (E172, 2026-09-25)
 
-Debug ▸ Loading & memory ▸ Clear downloads (the E162 registry, in title ▸ Settings and pause ▸ Settings, developer mode; `src/boot/clearDownloads.ts`): stops the
+Debug ▸ Loading & memory ▸ Clear downloads (the E162 registry, in title ▸ Settings and pause ▸ Settings, developer mode; `src/engine/boot/clearDownloads.ts`): stops the
 background download, unregisters the worker, deletes every Cache Storage cache (re-checked until none is left), removes
 the `ws.ktx2set.*` markers, fetches `/clear-cache.json` for the HTTP cache, then reloads to the title with `?chunk=` kept.
 localStorage otherwise stays (saves, settings, developer mode, the review login). `scripts/e172-clear-downloads.mjs`
@@ -87,7 +87,7 @@ Chromium the HTTP cache answered nothing even without Clear-Site-Data (the `--no
 
 ## What the loading screen's DOWNLOAD track can and cannot tell you
 
-DOWNLOAD counts the bytes the boot's fetches deliver (`src/boot/bytes.ts` tees every `/assets/**`
+DOWNLOAD counts the bytes the boot's fetches deliver (`src/engine/boot/bytes.ts` tees every `/assets/**`
 body) **regardless of where they came from** — the worker's cache, the HTTP cache or the network
 all read the same. A wiped or missing cache therefore still shows `30.5 MB / 30.5 MB · 100 %`; the
 tell is the SETUP rows: every step that fetches (sky, terrain, cards, cabins, props) takes seconds

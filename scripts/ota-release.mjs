@@ -21,7 +21,7 @@
  *
  * Checks before signing: the build is a native build (no service worker, has index.html + version.json); the signing
  * key's public half and the channel origin are compiled into the build's JS (else the build could never verify or
- * find its next update); every file name passes the same rule the app enforces (src/native/updates.ts).
+ * find its next update); every file name passes the same rule the app enforces (src/engine/native/updates.ts).
  *
  * --carry-from: an app mid-download of the live release must still find its files after this deploy replaces the
  * site, so the live manifests are fetched, signature-checked and every file they list that this release does not is
@@ -40,7 +40,7 @@ const BUNDLE_ID = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,99}$/;
 const VERSION = /^\d{1,9}\.\d{1,9}\.\d{1,9}$/;
 const PLATFORMS = ['ios', 'android'];
 
-/** The public channel constants, parsed from src/native/ota-config.ts (the one place the app reads them). */
+/** The public channel constants, parsed from src/engine/native/ota-config.ts (the one place the app reads them). */
 export function parseOtaConfig(src) {
   const pick = (re, what) => {
     const m = re.exec(src);
@@ -168,7 +168,7 @@ export function planRelease({ config, inputs, privateKeyPem, bundleId, sequence,
   const privateKey = createPrivateKey(privateKeyPem);
   if (privateKey.asymmetricKeyType !== 'rsa' || (privateKey.asymmetricKeyDetails?.modulusLength ?? 0) < 3072) throw new Error('The OTA signing key must be RSA ≥ 3072 bits');
   const publicKey = createPublicKey(privateKey);
-  if (publicKey.export({ format: 'jwk' }).n !== config.publicN) throw new Error('The signing key does not match OTA_PUBLIC_KEY in src/native/ota-config.ts');
+  if (publicKey.export({ format: 'jwk' }).n !== config.publicN) throw new Error('The signing key does not match OTA_PUBLIC_KEY in src/engine/native/ota-config.ts');
   if (!Number.isSafeInteger(sequence) || sequence < 0 || (sequence === 0 && !placeholder)) throw new Error('--sequence must be a positive integer (0 only with --placeholder)');
   if (!VERSION.test(nativeMin ?? '') || !VERSION.test(nativeMax ?? '')) throw new Error('--native-min / --native-max must be major.minor.patch');
   if (platforms.length === 0 || platforms.some((p) => !PLATFORMS.includes(p))) throw new Error('--platforms must be ios, android or ios,android');
@@ -213,7 +213,7 @@ export function planRelease({ config, inputs, privateKeyPem, bundleId, sequence,
 
 /** The CLI: read dist-native/ + the key, plan, write <out>, carry the live channel along. */
 export async function buildRelease(args) {
-  const config = parseOtaConfig(readFileSync(args.config ?? join(ROOT, 'src/native/ota-config.ts'), 'utf8'));
+  const config = parseOtaConfig(readFileSync(args.config ?? join(ROOT, 'src/engine/native/ota-config.ts'), 'utf8'));
   const source = resolve(args.dist ?? join(ROOT, 'dist-native'));
   if (!args.out) throw new Error('Missing --out');
   const out = resolve(args.out);

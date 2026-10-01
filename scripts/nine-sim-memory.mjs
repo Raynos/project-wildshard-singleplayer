@@ -188,7 +188,7 @@ async function oneRun(udid, run, opts) {
     const samplerDone = new Promise((resolve) => { sampler?.on('exit', resolve); });
     await sleep(1000);
     const { evaluate } = page;
-    // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/boot/titleArrival.ts)
+    // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
     await evaluate(`(() => { const v = JSON.stringify({ slug: 'nine-dragon-stack', mode: 'enter', at: Date.now() }); sessionStorage.setItem('ws.titleArrival', v); localStorage.setItem('ws.titleArrival.once', v);
       const s = JSON.parse(localStorage.getItem('ws.settings.v1') || '{}'); Object.assign(s, ${JSON.stringify(settings)}); localStorage.setItem('ws.settings.v1', JSON.stringify(s)); return 1; })()`);

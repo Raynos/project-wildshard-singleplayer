@@ -56,7 +56,7 @@ const releaseSlot = () => { try { if (readFileSync(slot, 'utf8').trim() === Stri
 process.on('exit', releaseSlot);
 for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { releaseSlot(); process.exit(1); });
 
-const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/chunks/nine-dragon-stack/mockupCameras.ts'));
+const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/shards/nine-dragon-stack/mockupCameras.ts'));
 const cam = (k) => ({ x: MOCKUP_CAMERAS[k].eye[0], z: MOCKUP_CAMERAS[k].eye[2], yaw: MOCKUP_CAMERAS[k].yaw, pitch: MOCKUP_CAMERAS[k].pitch });
 const FLOWS = [
   { name: 'spawn', mockup: 'A', ...cam('A'), pitch: -4 },

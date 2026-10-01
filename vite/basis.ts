@@ -1,5 +1,5 @@
 /**
- * The Basis Universal transcoder three's KTX2Loader runs in its workers (E157, src/core/ktx2.ts): copied from
+ * The Basis Universal transcoder three's KTX2Loader runs in its workers (E157, src/engine/core/ktx2.ts): copied from
  * three/examples/jsm/libs/basis/ to public/basis/r<three revision>/ by every build (gitignored, like Rapier's WASM), so
  * it is served from our own origin and a three upgrade is a new folder — the service worker's cache-first `/basis/**`
  * and the HTTP cache never pair one version's .js with another's .wasm.

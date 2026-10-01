@@ -1,8 +1,8 @@
-// src/core/rng.ts + src/core/noise.ts — every tree, rock, herd and hill in a shard derives from these two, and the
+// src/engine/core/rng.ts + src/engine/core/noise.ts — every tree, rock, herd and hill in a shard derives from these two, and the
 // baked terrain (public/assets/baked/*/terrain.bin) is only valid while they produce the same numbers.
 import { describe, expect, it } from 'vitest';
-import { Rng } from '../src/core/rng';
-import { Noise2D, clamp, lerp, smoothstep } from '../src/core/noise';
+import { Rng } from '#engine/core/rng';
+import { Noise2D, clamp, lerp, smoothstep } from '#engine/core/noise';
 
 const take = (rng: Rng, n: number): number[] => Array.from({ length: n }, () => rng.next());
 

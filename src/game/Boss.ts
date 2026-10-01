@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import type { BossBar } from '../ui/BossBar';
-import type { Player } from '../player/Player';
-import { WeaponPickup } from '../player/WeaponPickup';
-import type { Interactable } from '../world/Cabin';
+import type { BossBar } from '#engine/ui/BossBar';
+import type { Player } from '#engine/player/Player';
+import { WeaponPickup } from '#engine/player/WeaponPickup';
+import type { Interactable } from '#engine/world/Cabin';
 
 /**
  * Boss — the engine's boss system (docs/design/nalati/elites-and-bosses.md §2 "The boss system"; plan NALATI.md row B13).
@@ -10,9 +10,9 @@ import type { Interactable } from '../world/Cabin';
  * phase segments, phase changes that change the room, adds and hazards, a checkpoint per phase, and a legendary reward.
  * This class is the GENERIC half — the state machine, the bar, the cards, the checkpoints, the retry, the reward pickup
  * and the persistence. Everything particular to one fight (what the boss does, what the room does) is a `BossScript`
- * (the Golden King's: src/nalati/kurganBoss.ts). Nalati has two bosses; every later shard reuses this.
+ * (the Golden King's: src/shards/nalati-grasslands/kurganBoss.ts). Nalati has two bosses; every later shard reuses this.
  *
- *   const boss = new Boss(def, script, host, ui);     // ui = new BossBar() (src/ui/BossBar.ts)
+ *   const boss = new Boss(def, script, host, ui);     // ui = new BossBar() (src/engine/ui/BossBar.ts)
  *   boss.arm();                                        // the player is at the door: the next step over the threshold starts it
  *   boss.update(dt, t);                                // every frame
  *   boss.onPlayerDeath() → true when the death happened in this fight (the player is back at the checkpoint; do not

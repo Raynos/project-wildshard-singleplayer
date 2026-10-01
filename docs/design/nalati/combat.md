@@ -148,25 +148,25 @@ golden bow and fire arrows later.
 
 **Builds on:**
 
-- `src/player/Weapon.ts` — the single-weapon contract (`tryFire`, `adsHeld`, `state`, `aimInfo`, `reach`, the
+- `src/engine/player/Weapon.ts` — the single-weapon contract (`tryFire`, `adsHeld`, `state`, `aimInfo`, `reach`, the
   hooks). Bow, sabre, spear and javelin each implement it, so HUD / Combat / TouchControls need no special case.
-- `src/player/Weapons.ts` — the kit manager (holster blend `SWAP_TIME` 0.25 s each way, `select`, `swap`,
+- `src/engine/player/Weapons.ts` — the kit manager (holster blend `SWAP_TIME` 0.25 s each way, `select`, `swap`,
   `available`, `onUnlock`). Extend `WeaponId` with `'bow' | 'sabre' | 'spear' | 'javelin'`, add `previous` for
   the toggle, and a `strip` / `wheel` UI in `TouchControls.ts` that calls `select(id)`. Keys `1`–`4` already map
   to `available[n]`.
-- `src/player/Crossbow.ts` — the projectile half of the bow: bolt pool (`MAX_FLYING` 8), `BOLT_DRAG` flight,
+- `src/engine/player/Crossbow.ts` — the projectile half of the bow: bolt pool (`MAX_FLYING` 8), `BOLT_DRAG` flight,
   stuck-bolt persistence (`MAX_STUCK` 200), impact puffs, tracers, `Targets.raycast`, `damageFor`. The bow is a
   new viewmodel + a draw state on top of this machinery; factor the flight / stuck / impact code out of
   `Crossbow` into a shared `Projectiles.ts` that the bow and the javelin both use (per-projectile speed, drag,
   gravity, wind coupling).
-- `src/player/Sword.ts` + `SwordMoves.ts` — the combo / heavy / trail / fan hit test / hit-stop. The sabre is a
+- `src/engine/player/Sword.ts` + `SwordMoves.ts` — the combo / heavy / trail / fan hit test / hit-stop. The sabre is a
   new blade geometry + slightly faster keys; the spear thrust is a new `Move` (a forward key triple, a narrow
   fan, reach 3.2); the mounted slash is a `Move` chosen left or right at swing time.
-- `src/entities/Animal.ts` `stagger()` / `applyDamage()` / `damageFor()` and `AnimalManager.onCharge` — the
+- `src/engine/entities/Animal.ts` `stagger()` / `applyDamage()` / `damageFor()` and `AnimalManager.onCharge` — the
   brace needs one new hook: the manager tells the weapon a charge is about to connect (`onChargeContact`), the
   spear can cancel it.
-- `src/player/AimAssist.ts` — widened cone and tracking while mounted.
-- `src/player/TouchControls.ts` — discs already swap by context (JUMP → DIVE while swimming); DRAW / THROW /
+- `src/engine/player/AimAssist.ts` — widened cone and tracking while mounted.
+- `src/engine/player/TouchControls.ts` — discs already swap by context (JUMP → DIVE while swimming); DRAW / THROW /
   BRACE / GALLOP / SLASH are the same pattern. DRAW and THROW are *held* discs (like DIVE), not toggles (like
   AIM).
 

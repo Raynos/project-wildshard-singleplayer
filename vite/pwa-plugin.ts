@@ -2,14 +2,14 @@
  * PWA plugin (project/archive/2026-09-22-load-perf.md §P3, docs/design/cache-policy.md). Ported from the `trials:pwa` plugin
  * in game-demos/trials-gauntlet-demo/vite.config.ts.
  *
- * Build: emits `sw.js` from `src/pwa/sw.js` with three stamps baked in.
+ * Build: emits `sw.js` from `src/engine/pwa/sw.js` with three stamps baked in.
  *   __BUILD_ID__  `<BUILD_ID>-<hash of every emitted file + the public/ list>`. A deploy that changes bytes is
  *                 a byte-different worker (the browser installs it, the build pill adopts it); a REBUILD OF THE
  *                 SAME TREE is the same worker. (BUILD_ID alone carries `Date.now()` — on its own it would make
  *                 every rebuild a new cache name, and `activate` would then drop the player's shell each time.)
  *   __ASSET_ID__  a hash of the public/assets (+ basis, fonts) files' CONTENT alone (E160: it was list + sizes), so the
  *                 static cache survives a JS-only deploy, and any byte change to the art names a new one (activate
- *                 then keeps, by content hash, every entry that is still current — src/pwa/sw.js).
+ *                 then keeps, by content hash, every entry that is still current — src/engine/pwa/sw.js).
  *   __BUNDLE__    the emitted `/assets/<name>-<hash>.*` paths: precached at install, and the prune list.
  *   __FONTS__     the self-hosted `/fonts/*.woff2`: precached at install, so an offline launch has its type even though
  *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
@@ -18,7 +18,7 @@
  * what production sends — `immutable` on the hashed bundle, `no-store` on the document/sw.js/version.json.
  *
  * Dev: no service worker by default — a stale worker would serve yesterday's bundle over HMR. `/sw.js` is
- * served (stamped `dev`) only when the page was opened with `?sw=1`; src/boot/sw.ts registers it only then.
+ * served (stamped `dev`) only when the page was opened with `?sw=1`; src/engine/boot/sw.ts registers it only then.
  */
 import type { Plugin } from 'vite';
 import { createHash } from 'node:crypto';
@@ -63,7 +63,7 @@ function vercelHeaders(root: string): { re: RegExp; headers: { key: string; valu
 
 export function pwaPlugin(buildId: string): Plugin {
   let root = process.cwd();
-  const swSource = () => readFileSync(join(root, 'src', 'pwa', 'sw.js'), 'utf8');
+  const swSource = () => readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8');
   const fonts = (): string[] => { const dir = join(root, 'public', 'fonts'); return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.woff2')).sort().map((f) => `/fonts/${f}`) : []; };
   const stamp = (src: string, build: string, assets: string, bundle: string[]) =>
     src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts())));
@@ -95,7 +95,7 @@ export function pwaPlugin(buildId: string): Plugin {
         next();
       });
     },
-    // Dev: only ever hand out a worker to a page that asked for one (`?sw=1`); src/boot/sw.ts unregisters otherwise.
+    // Dev: only ever hand out a worker to a page that asked for one (`?sw=1`); src/engine/boot/sw.ts unregisters otherwise.
     configureServer(server) {
       server.middlewares.use('/sw.js', (req: IncomingMessage, res: ServerResponse) => {
         res.setHeader('Cache-Control', 'no-store');

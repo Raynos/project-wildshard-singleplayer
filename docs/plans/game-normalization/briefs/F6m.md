@@ -10,7 +10,7 @@ evidence files `/private/tmp/e357-f6c-classify.json` and `/private/tmp/e357-f6c/
 - Read `04-move-map.md` §0–§1 (the rules and principles, the layer boundary: mechanism vs content, the rule of two) and
   §7 in full, and `GAME-NORMALIZATION.md` §2.1.
 - **The 15 new files**: add a row each (`rule` per §1.2; files already at their final engine path are identity rows).
-  `src/core/probe.ts` → `src/engine/debug/probe.ts`, `src/core/harnessTap.ts` → `src/engine/core/harnessTap.ts` as
+  `src/engine/debug/probe.ts` → `src/engine/debug/probe.ts`, `src/engine/core/harnessTap.ts` → `src/engine/core/harnessTap.ts` as
   proposed. Re-run `classify.mjs --check` at the end: newer files may appear meanwhile (F7b, F3n): add them too.
 - **The 44 disagreements**: decide each one against the principles. The reviewed map wins unless its row is wrong
   against today's code (a file that moved, an importer added since 0b6aa045, a shard that started using it). When the

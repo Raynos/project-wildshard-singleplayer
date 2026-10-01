@@ -100,6 +100,7 @@ function warnings(file, text, known, importSites, allowed, manual, virtualFiles)
       if (['src/**', 'src/**/*.ts', 'src'].includes(value)) continue;
       const clean = value.replace(/[?#].*$/, '');
       if (known.has(clean) || virtualFiles.has(clean)) continue;
+      if ([...virtualFiles].some((target) => target.startsWith(`${clean}/`))) continue;
       if (value.endsWith('/') && [...virtualFiles].some((target) => target.startsWith(value))) continue;
       if (!value.includes('${') && /[*{?[]/.test(value)
         && [...virtualFiles].some((target) => path.posix.matchesGlob(target, value))) continue;
@@ -228,10 +229,9 @@ export function executeMove(map, row, root, mapPath, dryRun) {
       const movedDoc = ['# Moved paths (E357)', '', '| Before | After F6 | Final |', '|---|---|---|',
         ...[...map.files, ...map.tests].map((entry) => `| ${entry.from} | ${entry.f6 ?? 'deleted by F7'} | ${entry.final ?? 'deleted by its owner'} |`), ''].join('\n');
       writeFileSync(path.join(root, 'docs/MOVED.md'), movedDoc);
-      if (row === 'F6') {
-        execFileSync('node', ['lint/ratchet.mjs', '--add-rule', 'wildshard/layer'], { cwd: root, stdio: 'inherit' });
-      }
-      execFileSync('node', ['lint/ratchet.mjs', '--update'], { cwd: root, stdio: 'inherit' });
+      // F6 step 5 follows the manual literal repairs and manifest conversion. Its owner records the
+      // once-only layer counts then, rather than bootstrapping an incomplete intermediate tree here.
+      if (row !== 'F6') execFileSync('node', ['lint/ratchet.mjs', '--update'], { cwd: root, stdio: 'inherit' });
     }
   }
   return report;

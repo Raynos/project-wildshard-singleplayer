@@ -56,15 +56,15 @@ that is a judgment call (not a folder rule) carries `07` or `08` in the Confirm 
 | **K** | Content that 2+ shards use (the rule of two) | kit | 01 §21 |
 | **GM** | Wildshard's own rules: the manifest type, title deck, Bag, coins, loot, compendium, feats, travel | `src/game/` | 01 §20 |
 | **SPEC** | Placed by name in 01, 02, 05, 06 or 09 | as that spec says | — |
-| **F** | Everything else, by folder: `src/<folder>/**` → `src/engine/<folder>/**`; `src/game/**` keeps its path (it becomes `#game`); `src/*.d.ts` → `E:types/`; `src/pwa/sw.js` → `E:pwa/sw.js` | engine / game | 02 rule 6 |
+| **F** | Everything else, by folder: `src/<folder>/**` → `src/engine/<folder>/**`; `src/game/**` keeps its path (it becomes `#game`); `src/*.d.ts` → `E:types/`; `src/engine/pwa/sw.js` → `E:pwa/sw.js` | engine / game | 02 rule 6 |
 
 ### 1.3 The interim exceptions
 
 | Id | Files | Why they wait | Final move |
 |---|---|---|---|
-| **E1** X-SPECIES | The 21 species files of `src/entities/species/` (all but `registry`, `loft`, `rigs`, which are engine) and the creature stack they import: `Flock`, `Pack`, `Herd`, `Wildlife`, `Marmots`, `wildEnv`, `creatureKit`, `creatureCoats`, `glbCreatures`, `creatureRigs`, `painterlyAnimals`, `lowpoly`, `pineCreatures`, `pineCoats`, `pineCreatureRigs`, `bearFix` (37 files, 9,283 lines) | `AnimalFactory.ts:15` registers every species through an eager `import.meta.glob('./species/*.ts')`. Moving a species out of that folder at F6 would mean rewriting the glob and changing the registration order. The species rows replace the glob with `manifest.species` rows anyway. Kept together, F6 changes no registration and adds no engine → shard edge that the rows would only remove again | S2.3 (kit boar, bear, lowpoly; Pine's deer, elk, thrall and hulls), S3.4 (Nalati), S4.2 (Driftwood) |
+| **E1** X-SPECIES | The 21 species files of `src/engine/entities/species/` (all but `registry`, `loft`, `rigs`, which are engine) and the creature stack they import: `Flock`, `Pack`, `Herd`, `Wildlife`, `Marmots`, `wildEnv`, `creatureKit`, `creatureCoats`, `glbCreatures`, `creatureRigs`, `painterlyAnimals`, `lowpoly`, `pineCreatures`, `pineCoats`, `pineCreatureRigs`, `bearFix` (37 files, 9,283 lines) | `AnimalFactory.ts:15` registers every species through an eager `import.meta.glob('./species/*.ts')`. Moving a species out of that folder at F6 would mean rewriting the glob and changing the registration order. The species rows replace the glob with `manifest.species` rows anyway. Kept together, F6 changes no registration and adds no engine → shard edge that the rows would only remove again | S2.3 (kit boar, bear, lowpoly; Pine's deer, elk, thrall and hulls), S3.4 (Nalati), S4.2 (Driftwood) |
 | **E2** X-WEAPON | `Sword`, `SwordMoves`, `MeleeSweep`, `Weapon`, `Weapons`, `bladeGlow`, `Bow`, `bowDraw`, `Longbow`, `Crossbow`, `Rifle`, `Projectiles`, `hunterHands`, `nalatiArms`, `viewmodelTextures` (+ worker), `world/painterly.ts` | Rebuilt into the Equipment contracts, the families and the blocks (09 §1.3–§1.5, §6). Their final file is the family or the block, not today's file. `painterly.ts` waits because the Bow, Spear, Reins, Terrain and DayClock import it until S2.2 / S3.2 | S1.2 (melee, contracts), S2.2 (ranged), S3.2 (painterly), S4.3 (bladeGlow) |
-| **E3** X-GLOB | `src/explore/img/mockups/*.jpg` (26) | `Compare.ts:10` looks each picture up by a computed key (`./img/mockups/${name}.jpg`), which the codemod can't rewrite. They move with each shard's `manifest.explore.compare` | S1.1, S2.1, S3.1, S4.1 |
+| **E3** X-GLOB | `src/engine/explore/img/mockups/*.jpg` (26) | `Compare.ts:10` looks each picture up by a computed key (`./img/mockups/${name}.jpg`), which the codemod can't rewrite. They move with each shard's `manifest.explore.compare` | S1.1, S2.1, S3.1, S4.1 |
 | **E4** | The engine runtimes inside today's `src/game/`: `Boss.ts`, `Elite.ts`, `quest/core.ts`, `quest/quest.ts`, `quest/QuestUI.ts` | They stay in `#game` at F6 (02 F6 map) and become the boss, elite and quest runtimes | S2.3, S2.5 |
 | **E5** | `boot/nineBootTrace.ts`, `boot/nineGpuTrace.ts` | The file is renamed together with its exports (`recordNine…` → `record…`) | S1.1 |
 | **E6** | The resident host: `shard/ShardHost.ts`, `shard/disposeListeners.ts`, `core/shardState.ts`, `core/shardScope.ts`, `physics/bridge.ts` | Deleted or renamed by F11 (02 F11) | F11 |
@@ -80,7 +80,7 @@ From F6 on, `src/` holds exactly `engine/`, `game/`, `kit/` and `shards/` (02 F6
 | `src/kit/` | `viewmodel/`, `looks/`, `weapons/{melee,bow,crossbow,firearm,thrown}/`, `species/`, `weather/`, `npc/`, `tools/`, `models/`, `audio/`, `interact/`, and `effects/` (new files at S2.5) |
 | `src/shards/nine-dragon-stack/` | 05 §1.1: `manifest.ts plugin.ts` + `grapple/ look/ models/ vm/ world/ playground/ explore/ thumbs/` |
 | `src/shards/pine-hollow/` | 06 §1: `manifest.ts plugin.ts layout.ts roster.ts compendium.ts` + `audio/ combat/ loadout/ weapons/ species/ life/ quest/ look/ world/ models/ dev/ explore/ thumbs/` |
-| `src/shards/nalati-grasslands/` | Today's `src/nalati/**` at the root (02 rule 1), `manifest.ts layout.ts edge.ts quest.ts roster.ts` + `models/ look/ world/` (was `src/world/nalati/`) `ride/ weapons/ species/ creatures/ audio/ playground/ explore/ thumbs/` |
+| `src/shards/nalati-grasslands/` | Today's `src/nalati/**` at the root (02 rule 1), `manifest.ts layout.ts edge.ts quest.ts roster.ts` + `models/ look/ world/` (was `src/shards/nalati-grasslands/world/`) `ride/ weapons/ species/ creatures/ audio/ playground/ explore/ thumbs/` |
 | `src/shards/driftwood-isle/` | `manifest.ts firstMinutes.ts fpArms.ts roster.ts` + `models/ world/ audio/ creatures/ species/ npc/ quest/ loot/ look/ weapons/ explore/ thumbs/` |
 
 ### 1.5 Where this map departs from the other specs
@@ -88,11 +88,11 @@ From F6 on, `src/` holds exactly `engine/`, `game/`, `kit/` and `shards/` (02 F6
 | # | The other spec says | This map | Why |
 |---|---|---|---|
 | 1 | 02 F6: `src/main.ts` → `src/engine/main.ts`. 05 §0: `src/main.ts` keeps its path until S4.4 | **Resolved (13 04#12, R1-03):** `src/main.ts` stays at the root permanently as the composition root (with `src/entry.ts`); the generic boot moves to `src/engine/boot.ts` at S4.4 | `src/` holds the four layer folders plus the two composition-root files |
-| 2 | 02 rule 2: `src/chunks/fauna-layout.ts` → Pine | `E:world/faunaLayout.ts` | 06 §1.1: a placement primitive with no Pine word (M overrides I) |
+| 2 | 02 rule 2: `src/engine/world/faunaLayout.ts` → Pine | `E:world/faunaLayout.ts` | 06 §1.1: a placement primitive with no Pine word (M overrides I) |
 | 3 | 02 Q10: `src/kit/` stays empty at F6 | 5 files enter the kit at F6: `vm/rig.ts` and `rigArms.ts` (05 §1.2), `Particles.ts` and `GrassTrample.ts` (06 §1.3), `GrassField.ts` (the trample reads it) | Whole-file moves with a known home (§1.1 rule 1). Families, species and weather still wait for their rows, for 02's reason |
 | 4 | 02 rule 2 moves the 7 Nalati-only species and `eliteBrain.ts` to Nalati at F6 | They wait (E1); `eliteBrain.ts` merges into the engine `EliteBrain` at S2.3 | The species glob (E1); 09 §5.1 |
 | 5 | 06 §6.4: Nalati's `world/Weather.ts` "stays at its path until S3.1" | `NG:world/Weather.ts` at F6 (02 rule 2); S2.4 restructures it in place | One move (§1.1). S2.4 edits the file wherever it lies |
-| 6 | 02 rule 2: `src/models/slots.ts` → Driftwood | engine | `SlotGeometry` is a mechanism (M) |
+| 6 | 02 rule 2: `src/engine/models/slots.ts` → Driftwood | engine | `SlotGeometry` is a mechanism (M) |
 | 7 | 06 §1.3: `LeverRifle.ts` → `src/kit/weapons/firearm/leverRifle.ts`. 09 §1.5: Pine's `weapons/`, `LeverRifle extends Firearm` there | `PH:weapons/LeverRifle.ts` at F6 | Rule of two (Pine only); 09 is the combat spec (Q3) |
 | 8 | 01 §21, 09 §5.2, plan §2.5: the horse is kit | `NG:species/horse.ts`, with its brain stack in Nalati | Rule of two: 01 §22 moves the horse playground into Nalati, so only Nalati uses the horse (09 Q5 notes the same). A kit horse would pull `Herd` → `Pack` → `wildEnv` and the painterly look (~2k lines of Nalati wildlife AI) into the kit (Q1) |
 | 9 | 06 §1.3: `Grass.ts` → Pine at "S2.1 (after S3.1 takes Nalati's GrassV2 dispatch out)" | `F6 → S3.1` | S3.1 runs after S2.1, and the file can only move once the dispatch is out (Q4) |
@@ -104,7 +104,7 @@ From F6 on, `src/` holds exactly `engine/`, `game/`, `kit/` and `shards/` (02 F6
 ## 2. The complete table: every file under `src/` (906)
 
 Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/`, `src/pinehollow/`,
-`src/world/nalati/`) keep their relative paths unless a row says otherwise. The same rows are in
+`src/shards/nalati-grasslands/world/`) keep their relative paths unless a row says otherwise. The same rows are in
 [move-map.json](move-map.json) `files[]`.
 
 #### `src/ (root)` — 3 files, 1,383 lines
@@ -200,7 +200,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `thumbs/pine-hollow-portrait.jpg` | bin 315 K | `PH:thumbs/pine-hollow-portrait.jpg` | = | PH | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
 | `thumbs/pine-hollow.jpg` | bin 46 K | `PH:thumbs/pine-hollow.jpg` | = | PH | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
 
-#### `src/chunks/driftwood-isle/` — 31 files, 5,491 lines
+#### `src/shards/driftwood-isle/` — 31 files, 5,491 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -236,7 +236,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `roster.ts` | 32 | `DI:roster.ts` | = | DI | T | F6 | Driftwood content (02 rule 1) |  |
 | `world/places.ts` | 81 | `DI:world/places.ts` | = | DI | T | F6 | Driftwood content (02 rule 1) |  |
 
-#### `src/chunks/nalati-grasslands/` — 33 files, 4,033 lines
+#### `src/shards/nalati-grasslands/` — 33 files, 4,033 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -387,7 +387,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `world/well.ts` | 58 | `ND:world/well.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/words.ts` | 9 | `ND:world/words.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 
-#### `src/chunks/pine-hollow/` — 55 files, 5,186 lines
+#### `src/shards/pine-hollow/` — 55 files, 5,186 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -559,7 +559,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `wildEnv.ts` | 101 | `E:entities/wildEnv.ts` | `NG:creatures/wildEnv.ts` | NG | X-SPECIES | F6 → S3.4 | the view the Nalati creature AIs read (its header) | 07 |
 | `Wildlife.ts` | 239 | `E:entities/Wildlife.ts` | `NG:creatures/Wildlife.ts` | NG | X-SPECIES | F6 → S3.4 | Nalati's spawner → spawn tables (09 §5.6) | 07 |
 
-#### `src/entities/species/` — 24 files, 6,082 lines
+#### `src/engine/entities/species/` — 24 files, 6,082 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -661,7 +661,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `world-pine-hollow.webp` | bin 47 K | `PH:explore/world-pine-hollow.webp` | = | PH | T | F6 | hub card art by slug; Explore.ts imports and the ART glob are rewritten (05 §1.2; EI21) |  |
 | `world.webp` | bin 20 K | `E:explore/img/world.webp` | = | engine | F | F6 | generic hub art; referenced only by the ART glob (dead? Q9) |  |
 
-#### `src/fx/` — 2 files, 219 lines
+#### `src/engine/fx/` — 2 files, 219 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -716,7 +716,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `Spine.ts` | 98 | `DI:quest/Spine.ts` | = | DI | N | F6 (+S4.3) | Driftwood's quest spine | 08 |
 | `TraderStall.ts` | 81 | `DI:quest/TraderStall.ts` | = | DI | N | F6 (+S4.3) | the trader's stall at Wendell's hut | 08 |
 
-#### `src/models/` — 18 files, 3,211 lines
+#### `src/engine/models/` — 18 files, 3,211 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -780,7 +780,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `weather.ts` | 307 | `NG:weather.ts` | = | NG | T | F6 | Nalati code (02 rule 1) |  |
 | `wet.ts` | 33 | `NG:wet.ts` | = | NG | T | F6 | Nalati code (02 rule 1) |  |
 
-#### `src/native/` — 6 files, 659 lines
+#### `src/engine/native/` — 6 files, 659 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -791,7 +791,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `saves.ts` | 58 | `E:native/saves.ts` | = | engine | F | F6 |  |  |
 | `updates.ts` | 441 | `E:native/updates.ts` | = | engine | F | F6 |  |  |
 
-#### `src/physics/` — 23 files, 2,451 lines
+#### `src/engine/physics/` — 23 files, 2,451 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -920,7 +920,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `load.ts` | 20 | `E:practice/playground/load.ts` | = | engine | SPEC | F6 (+S1.4, S3.1) | the playground framework (01 §22, EI22) |  |
 | `Playground.ts` | 55 | `E:practice/playground/Playground.ts` | = | engine | SPEC | F6 (+S1.4, S3.1) | the playground framework (01 §22, EI22) |  |
 
-#### `src/practice/` — 8 files, 1,223 lines
+#### `src/engine/practice/` — 8 files, 1,223 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -933,7 +933,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `TrainingDummy.ts` | 168 | `E:practice/TrainingDummy.ts` | = | engine | F | F6 |  |  |
 | `TrainingDummyAssets.ts` | 75 | `E:practice/TrainingDummyAssets.ts` | = | engine | F | F6 |  |  |
 
-#### `src/pwa/` — 1 files, 504 lines
+#### `src/engine/pwa/` — 1 files, 504 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -947,7 +947,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `ShardHost.ts` | 325 | `E:shard/ShardHost.ts` | ✗ | ✗ | F | F6 → F11 | the resident host, deleted (02 F11 step 2) |  |
 | `switch.ts` | 50 | `G:travel/switch.ts` | = | game | GM | F6 | the page-reload shard switch = today's travel implementation (01 §20); the engine word list forbids 'shard' (02 F11 keeps the file) |  |
 
-#### `src/telemetry/` — 2 files, 120 lines
+#### `src/engine/telemetry/` — 2 files, 120 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -1152,7 +1152,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `types.ts` | 146 | `E:world/interact/types.ts` | = | engine | F | F6 |  |  |
 | `validate.ts` | 67 | `E:world/interact/validate.ts` | = | engine | F | F6 |  |  |
 
-#### `src/world/nalati/` — 31 files, 5,762 lines
+#### `src/shards/nalati-grasslands/world/` — 31 files, 5,762 lines
 
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
@@ -1392,7 +1392,7 @@ are outside the layers and the public-API rule).
 | `test/animal-matrices.test.ts` | 87 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/audio-gen.test.ts` | 158 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/backdrop-prefix.test.ts` | 21 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/bag-tabs.test.ts` | 53 | `test/shards/nine-dragon-stack/bag-tabs.test.ts` | = | F6 | subject is Nine Dragon code (02 F6 step 6; 05 §1.2) |
+| `test/shards/nine-dragon-stack/bag-tabs.test.ts` | 53 | `test/shards/nine-dragon-stack/bag-tabs.test.ts` | = | F6 | subject is Nine Dragon code (02 F6 step 6; 05 §1.2) |
 | `test/boot-plan.test.ts` | 220 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/bow-draw.test.ts` | 101 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/chunks.test.ts` | 164 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
@@ -1400,7 +1400,7 @@ are outside the layers and the public-API rule).
 | `test/cosmetics.test.ts` | 81 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/debug-options.test.ts` | 33 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/diorama.test.ts` | 53 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/ecology.test.ts` | 48 | `test/shards/driftwood-isle/ecology.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
+| `test/shards/driftwood-isle/ecology.test.ts` | 48 | `test/shards/driftwood-isle/ecology.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
 | `test/entry-rescue.test.ts` | 48 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/error-report.test.ts` | 110 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/explore-view-point.test.ts` | 114 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
@@ -1408,15 +1408,15 @@ are outside the layers and the public-API rule).
 | `test/facade-no-multidraw.test.ts` | 32 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
 | `test/faults.test.ts` | 117 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/fight-rules.test.ts` | 192 | = | = | F6 | engine / #game subject with Driftwood as fixture: stays; Z1 points it at the template (02 F6 step 6) |
-| `test/guards.test.ts` | 27 | `test/shards/driftwood-isle/guards.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
-| `test/gull-guide.test.ts` | 133 | `test/shards/driftwood-isle/gull-guide.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
+| `test/shards/driftwood-isle/guards.test.ts` | 27 | `test/shards/driftwood-isle/guards.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
+| `test/shards/driftwood-isle/gull-guide.test.ts` | 133 | `test/shards/driftwood-isle/gull-guide.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
 | `test/hit-damage.test.ts` | 78 | = | = | F6 | engine / #game subject with Driftwood as fixture: stays; Z1 points it at the template (02 F6 step 6) |
-| `test/horse-names.test.ts` | 37 | `test/shards/nalati-grasslands/horse-names.test.ts` | = | F6 | subject moves to Nalati at F6 (04 §2: rule 2 / rule 4) |
+| `test/shards/nalati-grasslands/horse-names.test.ts` | 37 | `test/shards/nalati-grasslands/horse-names.test.ts` | = | F6 | subject moves to Nalati at F6 (04 §2: rule 2 / rule 4) |
 | `test/hurt.test.ts` | 28 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/interact-sight.test.ts` | 80 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
 | `test/interact.test.ts` | 144 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
 | `test/inventory.test.ts` | 179 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
-| `test/keepsakes.test.ts` | 39 | `test/shards/driftwood-isle/keepsakes.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
+| `test/shards/driftwood-isle/keepsakes.test.ts` | 39 | `test/shards/driftwood-isle/keepsakes.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
 | `test/ktx2-auto.test.ts` | 156 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/last-end.test.ts` | 86 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/last-place.test.ts` | 113 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
@@ -1425,22 +1425,22 @@ are outside the layers and the public-API rule).
 | `test/map-shapes.test.ts` | 40 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/melee-sweep.test.ts` | 89 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/models-check-rules.test.ts` | 60 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
-| `test/models-contract.test.ts` | 268 | `test/shards/driftwood-isle/models-contract.test.ts` | = | F6 | 02 F6 step 6 (TP audit §3) |
-| `test/models-driftwood.test.ts` | 155 | `test/shards/driftwood-isle/models-driftwood.test.ts` | = | F6 | 02 F6 step 6 (TP audit §3) |
+| `test/shards/driftwood-isle/models-contract.test.ts` | 268 | `test/shards/driftwood-isle/models-contract.test.ts` | = | F6 | 02 F6 step 6 (TP audit §3) |
+| `test/shards/driftwood-isle/models-driftwood.test.ts` | 155 | `test/shards/driftwood-isle/models-driftwood.test.ts` | = | F6 | 02 F6 step 6 (TP audit §3) |
 | `test/models-interact.test.ts` | 27 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/models-live.test.ts` | 110 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/models-pine-hollow.test.ts` | 311 | `test/shards/pine-hollow/models-pine-hollow.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/models-pine-hollow.test.ts` | 311 | `test/shards/pine-hollow/models-pine-hollow.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
 | `test/models-places.test.ts` | 33 | = | = | F6 | spans 2+ shards: stays |
 | `test/models-rosters.test.ts` | 42 | = | = | F6 | spans 2+ shards: stays |
 | `test/models-weld.test.ts` | 111 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/nalati-bag.test.ts` | 136 | `test/shards/nalati-grasslands/nalati-bag.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
-| `test/nalati-models.test.ts` | 300 | `test/shards/nalati-grasslands/nalati-models.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
-| `test/nalati-navmesh.test.ts` | 87 | `test/shards/nalati-grasslands/nalati-navmesh.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
-| `test/nalati-roster.test.ts` | 67 | `test/shards/nalati-grasslands/nalati-roster.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
+| `test/shards/nalati-grasslands/nalati-bag.test.ts` | 136 | `test/shards/nalati-grasslands/nalati-bag.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
+| `test/shards/nalati-grasslands/nalati-models.test.ts` | 300 | `test/shards/nalati-grasslands/nalati-models.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
+| `test/shards/nalati-grasslands/nalati-navmesh.test.ts` | 87 | `test/shards/nalati-grasslands/nalati-navmesh.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
+| `test/shards/nalati-grasslands/nalati-roster.test.ts` | 67 | `test/shards/nalati-grasslands/nalati-roster.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
 | `test/native-updates.test.ts` | 400 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/nd-specimen-light.test.ts` | 31 | `test/shards/nine-dragon-stack/nd-specimen-light.test.ts` | = | F6 | subject is Nine Dragon code (02 F6 step 6; 05 §1.2) |
+| `test/shards/nine-dragon-stack/nd-specimen-light.test.ts` | 31 | `test/shards/nine-dragon-stack/nd-specimen-light.test.ts` | = | F6 | subject is Nine Dragon code (02 F6 step 6; 05 §1.2) |
 | `test/nine-boot-trace.test.ts` | 268 | = | `test/engine/boot-trace.test.ts` | F6 → S1.1 | rewritten as test/engine/boot-trace.test.ts for the generic names (05 §1.2) |
-| `test/nine-dragon-models.test.ts` | 148 | `test/shards/nine-dragon-stack/nine-dragon-models.test.ts` | = | F6 | subject is Nine Dragon code (02 F6 step 6; 05 §1.2) |
+| `test/shards/nine-dragon-stack/nine-dragon-models.test.ts` | 148 | `test/shards/nine-dragon-stack/nine-dragon-models.test.ts` | = | F6 | subject is Nine Dragon code (02 F6 step 6; 05 §1.2) |
 | `test/nine-gpu-trace.test.ts` | 38 | = | `test/engine/gpu-trace.test.ts` | F6 → S1.1 | rewritten as test/engine/gpu-trace.test.ts (05 §1.2) |
 | `test/perf-lap.test.ts` | 53 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/physics-barrel.test.ts` | 247 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
@@ -1455,19 +1455,19 @@ are outside the layers and the public-API rule).
 | `test/physics-ranged.test.ts` | 73 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/physics-ropechain.test.ts` | 86 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
 | `test/physics-terrain.test.ts` | 69 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/pine-audio-wiring.test.ts` | 54 | `test/shards/pine-hollow/pine-audio-wiring.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-bag.test.ts` | 148 | `test/shards/pine-hollow/pine-bag.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-beaver-pool.test.ts` | 86 | `test/shards/pine-hollow/pine-beaver-pool.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-combat.test.ts` | 96 | `test/shards/pine-hollow/pine-combat.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-crags.test.ts` | 138 | `test/shards/pine-hollow/pine-crags.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-day-night.test.ts` | 57 | `test/shards/pine-hollow/pine-day-night.test.ts` | `test/engine/day-cycle.test.ts` | F6 → S2.4 | Pine at F6; becomes test/engine/day-cycle.test.ts with Pine as one fixture (06 §1.3) |
-| `test/pine-hollow-roster.test.ts` | 69 | `test/shards/pine-hollow/pine-hollow-roster.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-life.test.ts` | 49 | `test/shards/pine-hollow/pine-life.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-loadout.test.ts` | 94 | `test/shards/pine-hollow/pine-loadout.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-npc-rig.test.ts` | 185 | `test/shards/pine-hollow/pine-npc-rig.test.ts` | `test/kit/npc-rig.test.ts` | F6 → S2.5 | Pine at F6; its subject npcRig.ts moves to #kit/npc at S2.5 → test/kit/npc-rig.test.ts |
-| `test/pine-quest.test.ts` | 210 | `test/shards/pine-hollow/pine-quest.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-sfx-sprite.test.ts` | 63 | `test/shards/pine-hollow/pine-sfx-sprite.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
-| `test/pine-weather.test.ts` | 76 | `test/shards/pine-hollow/pine-weather.test.ts` | `test/engine/weather.test.ts` | F6 → S2.4 | Pine at F6; becomes test/engine/weather.test.ts with Pine as one fixture (06 §1.3) |
+| `test/shards/pine-hollow/pine-audio-wiring.test.ts` | 54 | `test/shards/pine-hollow/pine-audio-wiring.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-bag.test.ts` | 148 | `test/shards/pine-hollow/pine-bag.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-beaver-pool.test.ts` | 86 | `test/shards/pine-hollow/pine-beaver-pool.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-combat.test.ts` | 96 | `test/shards/pine-hollow/pine-combat.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-crags.test.ts` | 138 | `test/shards/pine-hollow/pine-crags.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-day-night.test.ts` | 57 | `test/shards/pine-hollow/pine-day-night.test.ts` | `test/engine/day-cycle.test.ts` | F6 → S2.4 | Pine at F6; becomes test/engine/day-cycle.test.ts with Pine as one fixture (06 §1.3) |
+| `test/shards/pine-hollow/pine-hollow-roster.test.ts` | 69 | `test/shards/pine-hollow/pine-hollow-roster.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-life.test.ts` | 49 | `test/shards/pine-hollow/pine-life.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-loadout.test.ts` | 94 | `test/shards/pine-hollow/pine-loadout.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-npc-rig.test.ts` | 185 | `test/shards/pine-hollow/pine-npc-rig.test.ts` | `test/kit/npc-rig.test.ts` | F6 → S2.5 | Pine at F6; its subject npcRig.ts moves to #kit/npc at S2.5 → test/kit/npc-rig.test.ts |
+| `test/shards/pine-hollow/pine-quest.test.ts` | 210 | `test/shards/pine-hollow/pine-quest.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-sfx-sprite.test.ts` | 63 | `test/shards/pine-hollow/pine-sfx-sprite.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/pine-weather.test.ts` | 76 | `test/shards/pine-hollow/pine-weather.test.ts` | `test/engine/weather.test.ts` | F6 → S2.4 | Pine at F6; becomes test/engine/weather.test.ts with Pine as one fixture (06 §1.3) |
 | `test/playgrounds.test.ts` | 174 | = | = | F6 | spans 2+ shards: stays |
 | `test/practice-dummy-clips.test.ts` | 77 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/practice-dummy-motion.test.ts` | 99 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
@@ -1475,12 +1475,12 @@ are outside the layers and the public-API rule).
 | `test/practice-lineup.test.ts` | 21 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/precompile-batching.test.ts` | 38 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/progress.test.ts` | 162 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/quest-nalati.test.ts` | 132 | `test/shards/nalati-grasslands/quest-nalati.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
+| `test/shards/nalati-grasslands/quest-nalati.test.ts` | 132 | `test/shards/nalati-grasslands/quest-nalati.test.ts` | = | F6 | subject is Nalati code (02 F6 step 6) |
 | `test/quest.test.ts` | 125 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
 | `test/registry-models.test.ts` | 34 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/resume.test.ts` | 23 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/review.test.ts` | 111 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/ride-assist.test.ts` | 67 | `test/shards/nalati-grasslands/ride-assist.test.ts` | = | F6 | subject moves to Nalati at F6 (04 §2: rule 2 / rule 4) |
+| `test/shards/nalati-grasslands/ride-assist.test.ts` | 67 | `test/shards/nalati-grasslands/ride-assist.test.ts` | = | F6 | subject moves to Nalati at F6 (04 §2: rule 2 / rule 4) |
 | `test/rng-noise.test.ts` | 125 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/room-map.test.ts` | 46 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/select-pick.test.ts` | 135 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
@@ -1492,15 +1492,15 @@ are outside the layers and the public-API rule).
 | `test/shard-state.test.ts` | 74 | = | ✗ | F6 → F11 | shardState.ts is deleted at F11 (02 F11 step 2): the test goes with it |
 | `test/shard-tools.test.ts` | 51 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
 | `test/shell.test.ts` | 26 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/shop.test.ts` | 107 | `test/shards/driftwood-isle/shop.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
+| `test/shards/driftwood-isle/shop.test.ts` | 107 | `test/shards/driftwood-isle/shop.test.ts` | = | F6 | subject moves to Driftwood at F6 (04 §2 src/game/quest, src/game/loot) |
 | `test/species.test.ts` | 105 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/species.ts` | 6 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/steppe-score.test.ts` | 60 | `test/shards/nalati-grasslands/steppe-score.test.ts` | = | F6 | subject moves to Nalati at F6 (04 §2: rule 2 / rule 4) |
+| `test/shards/nalati-grasslands/steppe-score.test.ts` | 60 | `test/shards/nalati-grasslands/steppe-score.test.ts` | = | F6 | subject moves to Nalati at F6 (04 §2: rule 2 / rule 4) |
 | `test/title-arrival.test.ts` | 38 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/title-deck.test.ts` | 27 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
-| `test/token-shelf.test.ts` | 25 | `test/shards/pine-hollow/token-shelf.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
+| `test/shards/pine-hollow/token-shelf.test.ts` | 25 | `test/shards/pine-hollow/token-shelf.test.ts` | = | F6 | subject is Pine code (02 F6 step 6; 06 §1.3) |
 | `test/tree-species.test.ts` | 68 | = | = | F6 | engine / #game subject (a shard file is only a fixture): stays; imports rewritten |
-| `test/weather.test.ts` | 161 | `test/shards/nalati-grasslands/weather.test.ts` | = | F6 | subject is Nalati's storm (world/Weather.ts → NG at F6); S2.4 adds its Nalati fixture to test/engine/weather.test.ts |
+| `test/shards/nalati-grasslands/weather.test.ts` | 161 | `test/shards/nalati-grasslands/weather.test.ts` | = | F6 | subject is Nalati's storm (world/Weather.ts → NG at F6); S2.4 adds its Nalati fixture to test/engine/weather.test.ts |
 | `test/webgl-startup.test.ts` | 79 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/wind.test.ts` | 60 | = | = | F6 | engine / game subject: stays; imports rewritten to #engine / #game / #kit |
 | `test/worldClock.test.ts` | 45 | = | ✗ | F6 → S2.4 | WorldClock.ts is deleted at S2.4; its cases fold into test/engine/day-cycle.test.ts (06 §6.4) |
@@ -1531,7 +1531,7 @@ F6 commit, listed again in §7.3. The 21 scripts that import game modules throug
 
 | File | Paths | Kind | What it needs |
 |---|---|---|---|
-| `.oxlintrc.json` | 4 | string | codemod: `src/pwa/sw.js`, `src/boot/bytes.generated.ts`; `src/**` unchanged; the `src/dev/**` block went at F7; F4 adds per-layer overrides |
+| `.oxlintrc.json` | 4 | string | codemod: `src/engine/pwa/sw.js`, `src/engine/boot/bytes.generated.ts`; `src/**` unchanged; the `src/dev/**` block went at F7; F4 adds per-layer overrides |
 | `index.html` | 14 | string | codemod: 14 literal(s) |
 | `scripts/bake-cards.mjs` | 2 | string | codemod: 2 literal(s) |
 | `scripts/bake-chunk.mjs` | 22 | string | manual: shard discovery `readdirSync('src/chunks')` (:39, :75, :80, :90, :95) → the list of `src/shards/*/manifest.ts` that have `ground.terrain` (02 F6 step 3); `localImports()` resolves siblings next to the manifest; `EXTRA_DEPS` keyed by slug |
@@ -1550,7 +1550,7 @@ F6 commit, listed again in §7.3. The 21 scripts that import game modules throug
 | `scripts/blender/pine-hollow/export.mjs` | 1 | string | codemod: 1 literal(s) |
 | `scripts/blender/targets.json` | 14 | string | codemod: `sources` / `feeds`; the `nine-dragon-stack/fei-zhua` target went at F7 |
 | `scripts/check-css.mjs` | 3 | string | manual: `STYLES = 'src/ui/styles'` + `join(STYLES, '<name>.css')` (:30-60) → a table of full paths (the CSS now lives in engine/ui/styles, game/*, shards/*) |
-| `scripts/check-models.mjs` | 87 | string | codemod: the 83 allowlisted paths; manual (TP10): folder rules 1–5 (`src/models/`, `src/chunks/<slug>/models/`, the `shared/` / `<slug>/` id prefixes) → `src/{engine,kit}/models/` and `src/shards/<slug>/models/`, the `SHARD_MODELS` regex, and the per-shard places table (:214-217) |
+| `scripts/check-models.mjs` | 87 | string | codemod: the 83 allowlisted paths; manual (TP10): folder rules 1–5 (`src/engine/models/`, `src/chunks/<slug>/models/`, the `shared/` / `<slug>/` id prefixes) → `src/{engine,kit}/models/` and `src/shards/<slug>/models/`, the `SHARD_MODELS` regex, and the per-shard places table (:214-217) |
 | `scripts/creature-lineup.mjs` | 2 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
 | `scripts/creature-rig-bake.mjs` | 2 | page-import | deleted in E357 F7: needed the dev labs |
 | `scripts/creature-strip.mjs` | 3 | page-import | deleted in E357 F7: needed the dev labs |
@@ -1597,7 +1597,7 @@ Readers rewritten by the string pass: `scripts/scorecard.mjs`, `scripts/unused-a
 `scripts/bake-packs.mjs`. Also re-keyed by the move: `lint/ratchet.json` (per-file counts), `test/coverage-ratchet.json`
 (its scope), `docs/MOVED.md` (generated: the full old → new table, 02 F6 step 2.5).
 
-**Files that rows before F6 add** (not in today's tree) are mapped the same way: `src/core/probe.ts` (F2) →
+**Files that rows before F6 add** (not in today's tree) are mapped the same way: `src/engine/debug/probe.ts` (F2) →
 `E:debug/probe.ts`; `src/engine/index.ts`, `src/game/index.ts`, `src/kit/index.ts` and `src/engine/aliasFixture.ts`
 (F1) are already in place. The classifier refuses any other unmapped file (§7.1).
 
@@ -1639,7 +1639,7 @@ every row whose `row` ends in `→ S2.3` from `f6` to `final` (§7.6).
 | 5 | **Path strings outside `src/`**: every file `check-paths` scans (`scripts/**/*.{mjs,js,sh,py,json}`, `vite.config.ts`, `vite/**`, `.oxlintrc.json`, `scripts/blender/targets.json` `sources` / `feeds`), `index.html` (10 stylesheet links + 4 scripts), and the `src('…')` helper calls of `bake-navmesh.mjs`, `nalati-reach.mjs`, `export-cave.mjs` (their argument is `src/`-relative) | as step 4; §5 lists every file |
 | 6 | **Comments and living docs**: path mentions in comments under `src/`, `test/`, `scripts/`, and in `AGENTS.md`, `README.md`, `docs/*.md`, `docs/design/**`, `docs/plans/**`, `.claude/skills/**`. History (`docs/tasks/**`, `docs/audits/**`, `project/**`, `progress/**`, `art/**`) is untouched; `docs/MOVED.md` is generated | as step 4 (02 F6 step 2.5) |
 | 7 | **Ratchets**: `lint/ratchet.json` re-keyed to the new paths, then `--add-layer` records every `wildshard/layer` count (02 F6 step 5) | the only time a count may be added |
-| 8 | **Config**: `tsconfig.json` `include` (`src`, `test`: unchanged), `.oxlintrc.json` overrides (`src/pwa/sw.js` → `src/engine/pwa/sw.js`; the ignore of `bytes.generated.ts`), `vite.config.ts` native strings (`/src/boot/entry.ts`, `/src/native/boot.ts`, `/src/boot/sw.ts`, `/src/ui/Update.ts`) and generated outputs, `vite/rapier.ts:26` (`src/physics/rapierBindings.ts`) | as step 4 |
+| 8 | **Config**: `tsconfig.json` `include` (`src`, `test`: unchanged), `.oxlintrc.json` overrides (`src/engine/pwa/sw.js` → `src/engine/pwa/sw.js`; the ignore of `bytes.generated.ts`), `vite.config.ts` native strings (`/src/entry.ts`, `/src/engine/native/boot.ts`, `/src/engine/boot/sw.ts`, `/src/engine/ui/Update.ts`) and generated outputs, `vite/rapier.ts:26` (`src/engine/physics/rapierBindings.ts`) | as step 4 |
 
 ### 7.3 Manual edits (the codemod cannot do these; they go in the same F6 commit)
 
@@ -1649,7 +1649,7 @@ every row whose `row` ends in `→ S2.3` from `f6` to `final` (§7.6).
 | 2 | `scripts/bake-sky.mjs:24, 26` | the same discovery |
 | 3 | `scripts/bake-navmesh.mjs:124` | ``src(`world/${m}.ts`)`` over 10 Driftwood builders → an explicit list of their new paths (`shards/driftwood-isle/world/<Name>.ts`) |
 | 4 | `scripts/check-css.mjs:30-60` | `STYLES = 'src/ui/styles'` + `join(STYLES, '<name>.css')` → a table of full paths: the CSS now lives in `engine/ui/styles/`, `game/{compendium,complete,loot}/`, `shards/{pine-hollow/quest,nalati-grasslands,nalati-grasslands/ride,driftwood-isle/loot}/` |
-| 5 | `scripts/check-models.mjs` (TP10) | folder rules 1–5: `src/models/` → `src/{engine,kit}/models/`; `src/chunks/<slug>/models/` → `src/shards/<slug>/models/`; the `SHARD_MODELS` regex; the places table (:214-217) |
+| 5 | `scripts/check-models.mjs` (TP10) | folder rules 1–5: `src/engine/models/` → `src/{engine,kit}/models/`; `src/chunks/<slug>/models/` → `src/shards/<slug>/models/`; the `SHARD_MODELS` regex; the places table (:214-217) |
 | 6 | `vite.config.ts:118` `writeArtModule` | its folders → `src/shards/*/thumbs`, `src/shards/*/explore`, `src/engine/explore/img` (TP12) |
 | 7 | `src/engine/boot/extras.ts:61` | `ART_BYTES[\`src/${key.slice(3)}\`]` → the key resolved against `src/engine/boot/` (the glob keys now start `../../shards/` or `../explore/`) |
 | 8 | `test/shards/driftwood-isle/models-driftwood.test.ts`, `test/shards/pine-hollow/models-pine-hollow.test.ts` | the source-lookup prefix `../` → `../../../` (§4.1) |

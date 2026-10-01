@@ -48,7 +48,7 @@ describe('target SHA GPU jobs', () => {
   });
   it('reads CHUNKS and PROTOTYPES before F6 without a fixed slug list', () => {
     const { cwd, sha } = repo({
-      'src/chunks/registry.ts': "import { LIVE } from './live';\nimport { PROTO } from './prototype/def';\nexport const CHUNKS: ChunkDef[] = [LIVE];\nexport const PROTOTYPES: ChunkDef[] = [PROTO];",
+      'src/chunks/registry.ts': "import { LIVE } from './live';\nimport { PROTO } from './prototype/def';\nexport const CHUNKS: ShardManifest[] = [LIVE];\nexport const PROTOTYPES: ShardManifest[] = [PROTO];",
       'src/chunks/live.ts': "export const LIVE = { slug: 'live' };", 'src/chunks/prototype/def.ts': "export const PROTO = { slug: 'prototype' };",
     });
     expect(matrix(sha, 'record', { cwd }).map((job) => job.shard)).toEqual(['live', 'prototype']);

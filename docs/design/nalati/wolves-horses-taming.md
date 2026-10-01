@@ -168,19 +168,19 @@ awareness +0.3 to animals within 30 m), kites circling, cranes on the river.
 
 **Builds on:**
 
-- `src/entities/species/registry.ts` + one file per species (`bear.ts`, `boar.ts`, `deer.ts`, …): a species is
+- `src/engine/entities/species/registry.ts` + one file per species (`bear.ts`, `boar.ts`, `deer.ts`, …): a species is
   a single file with `registerSpecies({...})`, dropped in, no case to add. **New files**: `wolf.ts`,
   `horse.ts`, `sheep.ts`, `sheepdog.ts`, `marmot.ts`. The quadruped rig and pose generators in
-  `src/entities/Animal.ts` already have walk / trot / **gallop** gaits, alert look-at, flinch, stagger and death
+  `src/engine/entities/Animal.ts` already have walk / trot / **gallop** gaits, alert look-at, flinch, stagger and death
   — a horse and a wolf are new proportions (`AnimalDims`), fur, tints and variants (`alpha`, `black-stallion`,
   `foal`) on the existing rig.
-- `src/entities/AnimalManager.ts` — the 10 Hz AI tick, the `HuntTuning` awareness loop (sight cone / hearing
+- `src/engine/entities/AnimalManager.ts` — the 10 Hz AI tick, the `HuntTuning` awareness loop (sight cone / hearing
   by player speed / freeze / bolt / flee / herd alert), `herds`, `addHerd`, `onCharge` for damage to the player,
   the bear's `stalk` (the closest thing to a hunter). Horses use the tuning loop almost as-is (deer shape,
   sharper numbers) plus a boids pass in the herd; the stallion and the wolves are **`think` species** — the
   pattern Driftwood's crab / monkey / sailor use (`SpeciesDef.think`, `ThinkCtx`, `animal.mem`,
   `setStrafe`, `startAttack`), which skips the flee loop but keeps hit tests, blood, health bars, onKill.
-- `src/entities/Enemies.ts` — the Driftwood pattern for placing enemy groups and the extra world bits their
+- `src/shards/driftwood-isle/creatures/Enemies.ts` — the Driftwood pattern for placing enemy groups and the extra world bits their
   AIs need. A Nalati `Wildlife.ts` does the same: packs, herds, flocks, the pack / herd shared objects.
 - `Animal.stagger()` and `Animal.variant / rarity / label` — the alpha's name banner is the variant label.
 

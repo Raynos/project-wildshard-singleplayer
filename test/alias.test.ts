@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 // oxlint-disable-next-line import/no-nodejs-modules -- The child must use the same Node executable as vitest.
 import { execPath } from 'node:process';
 import { describe, expect, it } from 'vitest';
-import { ENGINE_API } from '#engine';
-import { GAME_API } from '#game';
-import { KIT_API } from '#kit';
+import { ENGINE_API } from '#engine/index';
+import { GAME_API } from '#game/index';
+import { KIT_API } from '#kit/index';
 import { ALIAS_FIXTURE_PARAM } from '#engine/aliasFixture';
 import aliasArt from '#engine/aliasFixture.webp';
 import { importedConst } from '../lint/wildshard-plugin.js';

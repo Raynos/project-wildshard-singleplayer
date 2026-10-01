@@ -66,11 +66,11 @@ the guides + the DEM + the scenic-area polygon, not surveyed.
 ## 2. The scale problem
 
 Real Nalati, valley to snow crest, is ~17 km; the plateau alone is >20 km wide. A shard is a fixed 500 m × 500 m
-slab (`CHUNK_SIZE`, `src/core/config.ts`; `docs/SHARDS.md`). On foot (4.3 m/s) the slab is a 2-minute walk; at the
+slab (`CHUNK_SIZE`, `src/engine/core/config.ts`; `docs/SHARDS.md`). On foot (4.3 m/s) the slab is a 2-minute walk; at the
 horse's GALLOP (13 m/s, `docs/design/nalati/combat.md`) the long axis is **38 s**, a canter ~60 s. What exists to
-fight it today: `src/world/Horizon.ts` draws three fogged ridge rings at 1.5 / 2.6 / 4.2 km (150 / 330 / 560 m
+fight it today: `src/engine/world/Horizon.ts` draws three fogged ridge rings at 1.5 / 2.6 / 4.2 km (150 / 330 / 560 m
 tall, one noise profile, same all the way round) over a cloud sea 240 m under the surface, all following the camera;
-`src/world/Boundary.ts` draws the cyan edge lines, a 14 m glowing veil ribbon and the road gates.
+`src/engine/world/Boundary.ts` draws the cyan edge lines, a 14 m glowing veil ribbon and the road gates.
 
 ### Options
 
@@ -78,7 +78,7 @@ tall, one noise profile, same all the way round) over a cloud sea 240 m under th
 |---|---|---|---|
 | **A. Painted horizon — the land goes on** | Nalati gets its *own* horizon: a near ring (0.7–1.4 km) of smooth green plateau hills rising out of the cloud sea to slab height, so from the Sky Grassland the grass visibly rolls on past the veil for kilometres; to the **south** the Nalati snow range, big (≈600 m tall at 4.2 km = the ~8° it really subtends from the plateau); to the **north** the valley drops away and the Avral range rises across it; **west** the valley opens flat toward the Ili (the widest, lowest horizon, the sunset side); **east** the valley narrows to a gorge with a hair-thin painted switchback (the Duku road) | engine-local: `Horizon.ts` gains an azimuth envelope + per-sector colour (a `horizon` field in `ChunkDef`, ~60 lines), still 3–4 draws, zero terrain cost | **yes** — the single biggest lever: "vast" is mostly what the eye sees past the edge |
 | **B. Forced perspective + speed** | keep the plateau half **empty** (no trees, no rocks taller than a sheep, no props over 1 m except yurts), long unbroken sight lines; **scale the spruce down** to 12–20 m (real 40–50 m) so a 40 m escarpment reads as a forested mountainside; sheep flocks of 30–60 small bodies and a 12–20 horse herd seen *across* 300 m; heavier aerial perspective inside the slab (haze starts at 150 m, cool blue by 400 m) so the far side reads km away; cloud shadows sweeping across the grass; horse stamina tuned so a crossing is a canter (~60 s), not a gallop | tuning + one tree-scale param; no new systems | **yes**, together with A and D |
-| **C. More or bigger chunks** | a 1–2 km Nalati chunk, or four adjacent shards (valley / escarpment / Sky Grassland / snow pass) streamed side by side | **changes a Wildshard fundamental**: `CHUNK_SIZE` is fixed for every shard (`src/core/config.ts`; `sources/wildshard/FUNDAMENTALS.md` says "chunk size is arbitrary but let's say 500 m × 500 m × 200 m"); chunks are dropped into the world grid by the server — "you don't choose where it gets popped in" — so four Nalati shards would not even be neighbours; `docs/SHARDS.md`: chunks are "not adjacent or streamed". Needs streaming, LOD terrain, cross-chunk AI, a 4–16× grass/terrain budget on the phone | **not now** — flag for the user; it is the only way to get real minutes of riding |
+| **C. More or bigger chunks** | a 1–2 km Nalati chunk, or four adjacent shards (valley / escarpment / Sky Grassland / snow pass) streamed side by side | **changes a Wildshard fundamental**: `CHUNK_SIZE` is fixed for every shard (`src/engine/core/config.ts`; `sources/wildshard/FUNDAMENTALS.md` says "chunk size is arbitrary but let's say 500 m × 500 m × 200 m"); chunks are dropped into the world grid by the server — "you don't choose where it gets popped in" — so four Nalati shards would not even be neighbours; `docs/SHARDS.md`: chunks are "not adjacent or streamed". Needs streaming, LOD terrain, cross-chunk AI, a 4–16× grass/terrain budget on the phone | **not now** — flag for the user; it is the only way to get real minutes of riding |
 | **D. Stepped climb (vertical)** | the slab is a *cross-section of the climb*: valley floor at −10 m, a 40 m north-facing spruce escarpment, the Sky Grassland plateau on top at +30–38 m, snow crags +75 m in one corner — so from the plateau you look **down** over the river and **out** over everything, and from the valley the slope + snow fill the sky | terrain function only; stays inside SHARDS.md's "−10..+40 m" tip except the crag corner (off-road) | **yes** — it is how the real place works, and it makes the first minute a reveal |
 
 **Recommendation: A + B + D, keep 500 m.** The slab is a 500 m slice of the real climb — riverbank, spruce
@@ -92,7 +92,7 @@ past the slab edge into the painted plateau and the snow wall. C stays an open q
 Real compression: N–S ~17 km → 500 m (×34); W–E the plateau >20 km → 500 m (×40+); relief 600 m (river → rim)
 → 40 m (×15), so slopes are ~2× steeper than real — needed for the climb to read.
 
-Engine coordinates: origin at the centre, **+z = north, −x = east** (`src/ui/Minimap.ts` convention), ±250 m;
+Engine coordinates: origin at the centre, **+z = north, −x = east** (`src/engine/ui/Minimap.ts` convention), ±250 m;
 y is metres relative to the entry roads (y = 0 at the gates). The roads are forced to y = 0 at the edges
 (`buildTerrain`), so the E/W gates come in up ravines and the S gate through a saddle.
 

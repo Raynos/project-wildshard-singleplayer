@@ -74,8 +74,8 @@ arrows and boxes in them are **design markup**, not HUD; everything cyan is the 
 
 ## What exists today (the ground truth)
 
-Read from `src/player/TouchControls.ts`, `src/ui/styles/touch.css`, `src/player/Player.ts`, `src/player/Weapons.ts`,
-`src/player/Sword.ts`. Layout A "edge docks" (`art/touch-buttons/round-1/buttons-A-edges.png`) on the K1 + P2 HUD.
+Read from `src/engine/player/TouchControls.ts`, `src/engine/ui/styles/touch.css`, `src/engine/player/Player.ts`, `src/engine/player/Weapons.ts`,
+`src/engine/player/Sword.ts`. Layout A "edge docks" (`art/touch-buttons/round-1/buttons-A-edges.png`) on the K1 + P2 HUD.
 
 | control | where | behaviour |
 |---|---|---|

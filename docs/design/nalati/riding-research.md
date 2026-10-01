@@ -361,8 +361,8 @@ in full.
 Built for N17 on 2026-09-24. The user picked the phone scheme "stick steers, camera follows" (up = urge faster through
 walk → trot → canter, GALLOP disc for the sprint, down = slow / rein back, left / right = turn, tighter when slow; the
 camera sits behind the horse's head and follows its turns; a right-thumb drag looks around and drifts back after ~1 s —
-RDR2 / KCD first-person style). Code: `src/player/Mount.ts` (`drive`), `src/entities/species/horse.ts` (`turnLead`),
-`src/ui/RideHUD.ts` + `src/ui/styles/ride.css`. Frames: `progress/nalati-riding/` (`scripts/nalati-ride-capture.mjs`).
+RDR2 / KCD first-person style). Code: `src/shards/nalati-grasslands/ride/Mount.ts` (`drive`), `src/engine/entities/species/horse.ts` (`turnLead`),
+`src/shards/nalati-grasslands/ride/RideHUD.ts` + `src/shards/nalati-grasslands/ride/ride.css`. Frames: `progress/nalati-riding/` (`scripts/nalati-ride-capture.mjs`).
 
 **What we took from the games, and what we didn't**
 

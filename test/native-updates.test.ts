@@ -1,4 +1,4 @@
-// src/native/updates.ts — the signed, per-file OTA controller (docs/plans/NATIVE-APPS.md N-D), against a fake plugin,
+// src/engine/native/updates.ts — the signed, per-file OTA controller (docs/plans/NATIVE-APPS.md N-D), against a fake plugin,
 // plus scripts/ota-release.mjs end to end: what the release script signs, the app verifies.
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { parseOtaConfig, planRelease, signManifest, validName } from '../scripts/ota-release.mjs';
@@ -6,7 +6,7 @@ import {
   OTA_STORAGE_PREFIX, compareVersions, createNativeUpdater, nativeManifest, readUpdateConfig, verifyUpdate,
   type SignedUpdate, type UpdateAdapter, type UpdateBundle, type UpdateConfig, type UpdateHost, type UpdateManifest,
   type UpdateOptions, type UpdateStorage,
-} from '../src/native/updates';
+} from '#engine/native/updates';
 
 const subtle = crypto.subtle;
 const ORIGIN = 'https://updates.example';

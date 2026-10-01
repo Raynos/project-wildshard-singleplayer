@@ -17,7 +17,7 @@ first metres — THE HOOD, the rock over the passage where it runs shallower tha
 heightfield is far overhead) and the cavity is boolean-subtracted from it, so the mesh is closed: the interior and the
 hood's outside in one. Exterior faces deep under the ground are dropped; the chimney is opened just under the surface.
 
-Vertex data (the game's crag material, src/world/PineCrags.ts): COLOR_0 = (sky light, sun reach, wet, rock);
+Vertex data (the game's crag material, src/shards/pine-hollow/world/crags.ts): COLOR_0 = (sky light, sun reach, wet, rock);
 TEXCOORD_0 = (tint brightness, tint id: 0.1 bone, 0.4 straw, 0.8 twig) on the bedding and the bones (rock = 0).
 Sky light = Cycles AO (sky visibility, 25 m, the ground as an occluder except over the mouth and the chimney) diffused a
 little along the surface (the light the walls pass on round the bends).

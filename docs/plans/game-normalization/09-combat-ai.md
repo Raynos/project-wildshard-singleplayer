@@ -30,21 +30,21 @@ S3.3, S3.4, S4.2. Decisions: 4, 5, 10, 11, 12′, 15, 16, 18, 19, 20, 23, 24–2
 
 | # | New id | HUD name today | Shard(s) | File, class line | Lines | Family | Rung | Built where today |
 |---|---|---|---|---|---|---|---|---|
-| W1 | `weapon.sword` | Wooden sword | Driftwood | `src/player/Sword.ts:427` + `SwordMoves.ts` + castaway arms `src/chunks/driftwood-isle/fpArms.ts` | 1,061 + 113 | Melee | 1 profile | `main.ts:533` (`chunk.weapon === 'sword'`), name `main.ts:549` |
-| W2 | `weapon.sword-iron` | Iron sword | Driftwood (found on the wreck) | same class, `{ blade: 'iron' }`; pickup `src/player/IronSword.ts` (`IronSwordPickup`, `ironSwordSite`) | 318 (pickup) | Melee | 1 profile (parent W1) | `main.ts:548`, unlock `main.ts:735–740` |
-| W3 | `weapon.jian` | Neon Jian | Nine Dragon | same class + `ShardSword.arms` from `src/chunks/nine-dragon-stack/vm/arms.ts:30` (fallback `world/jian.ts`) | vm/ 2,606 | Melee | 1 profile (parent W1) | `main.ts:533` with `def.sword` (`nine-dragon-stack/def.ts:105`), `portraitFov` 78 (`def.ts:103`), name `bag.ts:14` |
-| W4 | `weapon.sabre` | Sabre | Nalati | `src/player/Sabre.ts:202` (`extends Sword`) | 258 | Melee | 2 extend | `nalatiKit.ts:42` |
-| W5 | `weapon.naizagai` | Naizagai | Nalati (Storm Titan reward) | `src/player/Naizagai.ts:121` (an upgrade object applied to the sabre, `apply()` :150) | 264 | Melee | 2 extend (`extends Sabre`) | `stormTitan.ts` reward → `nz.apply(kit.sabre)`; name `nalati/bag.ts:56` |
-| W6 | `weapon.spear` | Spear | Nalati | `src/player/Spear.ts:203` (own class) | 758 | Melee (+ owns W7) | 2 extend | `nalatiKit.ts:43` |
+| W1 | `weapon.sword` | Wooden sword | Driftwood | `src/engine/player/Sword.ts:427` + `SwordMoves.ts` + castaway arms `src/shards/driftwood-isle/fpArms.ts` | 1,061 + 113 | Melee | 1 profile | `main.ts:533` (`chunk.weapon === 'sword'`), name `main.ts:549` |
+| W2 | `weapon.sword-iron` | Iron sword | Driftwood (found on the wreck) | same class, `{ blade: 'iron' }`; pickup `src/shards/driftwood-isle/weapons/IronSword.ts` (`IronSwordPickup`, `ironSwordSite`) | 318 (pickup) | Melee | 1 profile (parent W1) | `main.ts:548`, unlock `main.ts:735–740` |
+| W3 | `weapon.jian` | Neon Jian | Nine Dragon | same class + `ShardSword.arms` from `src/shards/nine-dragon-stack/vm/arms.ts:30` (fallback `world/jian.ts`) | vm/ 2,606 | Melee | 1 profile (parent W1) | `main.ts:533` with `def.sword` (`nine-dragon-stack/def.ts:105`), `portraitFov` 78 (`def.ts:103`), name `bag.ts:14` |
+| W4 | `weapon.sabre` | Sabre | Nalati | `src/shards/nalati-grasslands/weapons/Sabre.ts:202` (`extends Sword`) | 258 | Melee | 2 extend | `nalatiKit.ts:42` |
+| W5 | `weapon.naizagai` | Naizagai | Nalati (Storm Titan reward) | `src/shards/nalati-grasslands/weapons/Naizagai.ts:121` (an upgrade object applied to the sabre, `apply()` :150) | 264 | Melee | 2 extend (`extends Sabre`) | `stormTitan.ts` reward → `nz.apply(kit.sabre)`; name `nalati/bag.ts:56` |
+| W6 | `weapon.spear` | Spear | Nalati | `src/shards/nalati-grasslands/weapons/Spear.ts:203` (own class) | 758 | Melee (+ owns W7) | 2 extend | `nalatiKit.ts:43` |
 | W7 | `weapon.javelin` | (the spear's THROW) | Nalati | inside `Spear.ts` (flight :433–520) | — | Thrown | 1 profile, composed by W6 | — |
-| W8 | `weapon.bow` | Bow | Nalati | `src/player/Bow.ts:577` + `bowDraw.ts` + `Projectiles.ts` | 981 + 100 + 453 | Bow | 1 profile | `nalatiKit.ts:44` |
-| W9 | `weapon.golden-bow` | Golden Bow | Nalati (Golden King reward) | `src/player/GoldenBow.ts:47` (an upgrade object applied to the bow) | 233 | Bow | 2 extend (`extends Bow`) | `kurganBoss.ts:672` grant → `golden.apply(play.bow)`; name `nalati/bag.ts:55` |
-| W10 | `weapon.longbow` | Warden's longbow | Pine (Antler King reward) | `src/player/Longbow.ts:454` (a fork of Bow) | 792 | Bow | 1 profile (parent W8's family default) | `main.ts:544`, extra slot id `'bow'` `main.ts:549` |
-| W11 | `weapon.crossbow` | Hunting crossbow | Pine (default) | `src/player/Crossbow.ts:768` | 1,307 | Crossbow | 1 profile | `main.ts:534` |
-| W12 | `weapon.rifle` | AR-15 | Nalati (locked; practice loan) | `src/player/Rifle.ts:221` | 613 | Firearm | 1 profile | `main.ts:541` |
-| W13 | `weapon.lever` | Lever-action | Pine (cabin pickup) | `src/player/LeverRifle.ts:268` | 929 | Firearm | 2 extend (`extends Firearm`) | `main.ts:540` |
-| T1 | `tool.fei-zhua` | Fei Zhua | Nine Dragon | `src/chunks/nine-dragon-stack/grapple/Traversal.ts:252` (`installFeiZhua`) + `line.ts`, `fx.ts`, `course.ts` | 589 + 469 | — (Tool) | 3 custom | `def.ts` `traversal` hook → `main.ts:560` `chunk.traversal?.(…)`; Bag card `bag.ts:17` |
-| T2 | `tool.hoverboard` | (HOVER disc, `H`) | every shard | `src/player/Hoverboard.ts` (viewmodel) + `Player.hover` (motor mode) | 137 | — (Tool) | 3 custom (kit) | `Player` constructs it | 
+| W8 | `weapon.bow` | Bow | Nalati | `src/engine/player/Bow.ts:577` + `bowDraw.ts` + `Projectiles.ts` | 981 + 100 + 453 | Bow | 1 profile | `nalatiKit.ts:44` |
+| W9 | `weapon.golden-bow` | Golden Bow | Nalati (Golden King reward) | `src/shards/nalati-grasslands/weapons/GoldenBow.ts:47` (an upgrade object applied to the bow) | 233 | Bow | 2 extend (`extends Bow`) | `kurganBoss.ts:672` grant → `golden.apply(play.bow)`; name `nalati/bag.ts:55` |
+| W10 | `weapon.longbow` | Warden's longbow | Pine (Antler King reward) | `src/engine/player/Longbow.ts:454` (a fork of Bow) | 792 | Bow | 1 profile (parent W8's family default) | `main.ts:544`, extra slot id `'bow'` `main.ts:549` |
+| W11 | `weapon.crossbow` | Hunting crossbow | Pine (default) | `src/engine/player/Crossbow.ts:768` | 1,307 | Crossbow | 1 profile | `main.ts:534` |
+| W12 | `weapon.rifle` | AR-15 | Nalati (locked; practice loan) | `src/engine/player/Rifle.ts:221` | 613 | Firearm | 1 profile | `main.ts:541` |
+| W13 | `weapon.lever` | Lever-action | Pine (cabin pickup) | `src/shards/pine-hollow/weapons/LeverRifle.ts:268` | 929 | Firearm | 2 extend (`extends Firearm`) | `main.ts:540` |
+| T1 | `tool.fei-zhua` | Fei Zhua | Nine Dragon | `src/shards/nine-dragon-stack/grapple/FeiZhua.ts:252` (`installFeiZhua`) + `line.ts`, `fx.ts`, `course.ts` | 589 + 469 | — (Tool) | 3 custom | `def.ts` `traversal` hook → `main.ts:560` `chunk.traversal?.(…)`; Bag card `bag.ts:17` |
+| T2 | `tool.hoverboard` | (HOVER disc, `H`) | every shard | `src/engine/player/Hoverboard.ts` (viewmodel) + `Player.hover` (motor mode) | 137 | — (Tool) | 3 custom (kit) | `Player` constructs it |
 
 Not weapons or tools: lock-on (`LockOnSystem`, `main.ts:550`) is an engine ability every weapon opts into with
 `lockOn: true` (§1.6). Riding (`Mount.ts`, `Reins.ts`, `Taming.ts`) stays a Nalati mechanism (plan §2.4, S3.3); its
@@ -368,18 +368,18 @@ interface WeaponUi {
 
 | File:line today | What it branches on | Becomes |
 |---|---|---|
-| `src/player/TouchControls.ts:99–101, 198–218` | `MELEE`, `SPEAR` sets, `id === 'bow'` | `current.row.ui.touch` |
-| `src/player/LockOnTarget.ts:57, 167` | `LOCK_WEAPONS` | `current.row.ui.lockOn` |
-| `src/ui/WeaponStrip.ts:24–34, 49` | `ICONS`, `NAMES` by id | `row.ui.icon`, `row.ui.name` |
-| `src/ui/Menu.ts:475, 544` | `has('crossbow') \|\| has('rifle')`; `icon === 'sword'` | `some(w => w.row.ui.tracers)`; `some(w => w.row.ui.melee)` |
-| `src/ui/bag.ts:109–112` | `w.icon === 'sword'` = melee | `row.ui.melee` |
-| `src/ui/HUD.ts:283, 353` | defaults 'Crossbow' / 'Bolts' / 4 | the held weapon's row always passed; defaults deleted |
+| `src/engine/player/TouchControls.ts:99–101, 198–218` | `MELEE`, `SPEAR` sets, `id === 'bow'` | `current.row.ui.touch` |
+| `src/engine/player/LockOnTarget.ts:57, 167` | `LOCK_WEAPONS` | `current.row.ui.lockOn` |
+| `src/engine/ui/WeaponStrip.ts:24–34, 49` | `ICONS`, `NAMES` by id | `row.ui.icon`, `row.ui.name` |
+| `src/engine/ui/Menu.ts:475, 544` | `has('crossbow') \|\| has('rifle')`; `icon === 'sword'` | `some(w => w.row.ui.tracers)`; `some(w => w.row.ui.melee)` |
+| `src/game/bag/bag.ts:109–112` | `w.icon === 'sword'` = melee | `row.ui.melee` |
+| `src/engine/ui/HUD.ts:283, 353` | defaults 'Crossbow' / 'Bolts' / 4 | the held weapon's row always passed; defaults deleted |
 | `src/main.ts:623` | icon / name / ammo label by id + `nalatiKitName` + skins | `row.ui` + the worn cosmetic effect's name suffix |
 | `src/main.ts:692–706` | `meleeHeld()`, `id === 'rifle'` → sounds | cues from the row (§4.3) mapped by the shard's CueMap |
-| `src/nalati/sound.ts:164–178` | `id === 'bow' / 'sabre' / 'spear'` | Nalati's CueMap entries |
-| `src/nalati/bag.ts:55–56` | golden / naizagai names | the replaced weapon's row name |
-| `src/pinehollow/loadout.ts:158–182` | `id === 'crossbow' / 'rifle' / 'bow'` | the ammo selector is the crossbow row's `ammoSelect` action; sounds via Pine's CueMap |
-| `src/nalati/balbalWarriors.ts:188` + `balbal.ts:42, 442` | `sabre` / `spear` model visible | the request's tags (`weapon.spear`) read by the balbal damage rule (§3.3) |
+| `src/shards/nalati-grasslands/sound.ts:164–178` | `id === 'bow' / 'sabre' / 'spear'` | Nalati's CueMap entries |
+| `src/shards/nalati-grasslands/bag.ts:55–56` | golden / naizagai names | the replaced weapon's row name |
+| `src/shards/pine-hollow/loadout/loadout.ts:158–182` | `id === 'crossbow' / 'rifle' / 'bow'` | the ammo selector is the crossbow row's `ammoSelect` action; sounds via Pine's CueMap |
+| `src/shards/nalati-grasslands/balbalWarriors.ts:188` + `balbal.ts:42, 442` | `sabre` / `spear` model visible | the request's tags (`weapon.spear`) read by the balbal damage rule (§3.3) |
 
 ### 1.7 Tools
 

@@ -15,7 +15,7 @@ import { aimAt, bootToTitle, enterPlayground, flags, openHub, phonePage, sleep, 
 
 const { chromium } = await import('playwright');
 /** the course's pads (the room's own frame; the floor is PLAYGROUND_Y, 3000 m, over the shard) */
-const { PADS } = await import('../src/playgrounds/grappleCourse.ts');
+const { PADS } = await import('../src/shards/nine-dragon-stack/playground/grappleCourse.ts');
 const flag = flags();
 const BASE = flag('url', 'http://127.0.0.1:4400');
 const OUT = resolvePath(flag('out', 'progress/e325-playground-cards'));

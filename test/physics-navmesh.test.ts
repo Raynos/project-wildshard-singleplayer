@@ -1,13 +1,13 @@
 // PHYSICS.md P6b: the baked navmesh (scripts/bake-navmesh.mjs → public/assets/baked/<slug>/navmesh.bin, read by
-// src/physics/navmesh.ts). Both shards' files load in node; a path between two points on either side of a building goes
+// src/engine/physics/navmesh.ts). Both shards' files load in node; a path between two points on either side of a building goes
 // round it (the straight line is blocked on the mesh, every leg of the path stays on it); water is not walkable; a wander
 // target is reachable; and the query cost fits the plan's budget (path queries ≤ 0.3 ms per frame on the phone).
 import { describe, expect, it } from 'vitest';
 import { createFindNearestPolyResult, DEFAULT_QUERY_FILTER, findNearestPoly, findRandomPoint, raycast } from 'navcat';
 import type * as THREE from 'three';
-import { parseNavmesh, type Navmesh } from '../src/physics/navmesh';
-import { Rng } from '../src/core/rng';
-import { POND } from '../src/chunks/pineHollowLayout';
+import { parseNavmesh, type Navmesh } from '#engine/physics/navmesh';
+import { Rng } from '#engine/core/rng';
+import { POND } from '#shards/pine-hollow/layout';
 import driftwoodNav from '../public/assets/baked/driftwood-isle/navmesh.bin?inline';
 import pineNav from '../public/assets/baked/pine-hollow/navmesh.bin?inline';
 

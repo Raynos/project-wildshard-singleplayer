@@ -1,9 +1,9 @@
-// E315 M7: the Set Explorer's diorama (src/explore/diorama.ts) — the cut round an opened set: a circle, a vertical cylinder
+// E315 M7: the Set Explorer's diorama (src/engine/explore/diorama.ts) — the cut round an opened set: a circle, a vertical cylinder
 // (Jake's pick, A; the dome and the whole world are gone). The planes keep what is inside and cut what is outside; a thing
 // wholly outside is left out.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { cutPlanes, dioramaVolume, outside } from '../src/explore/diorama';
+import { cutPlanes, dioramaVolume, outside } from '#engine/explore/diorama';
 
 const bounds = new THREE.Box3(new THREE.Vector3(-20, 2, -10), new THREE.Vector3(20, 14, 10)); // a 40 × 20 m set, 12 m tall
 const flat = (): number => 0;

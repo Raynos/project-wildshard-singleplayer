@@ -1,11 +1,11 @@
-// E315 M1 (project/archive/2026-09-30-model-architecture.md): the interactables kit's things are models (src/models/interact.ts) — every
+// E315 M1 (project/archive/2026-09-30-model-architecture.md): the interactables kit's things are models (src/engine/models/interact.ts) — every
 // one builds its specimen at rest on the origin, and the kit places each row's drawnInto its batches.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import type { Sky } from '../src/world/Sky';
-import { modelContext } from '../src/models/model';
-import { place } from '../src/models/place';
-import * as Models from '../src/models/interact';
+import type { Sky } from '#engine/world/Sky';
+import { modelContext } from '#engine/models/model';
+import { place } from '#engine/models/place';
+import * as Models from '#engine/models/interact';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ }, csm: { lightDirection: new THREE.Vector3(0, -1, 0) } } as Sky;
 const ctx = modelContext(sky);

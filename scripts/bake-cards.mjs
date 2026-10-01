@@ -3,7 +3,7 @@
 //
 // TreeFactory.bakeBranchCard needs a GPU (it renders the twig atlas into three render targets), so this
 // runs the game in headless Chromium against a served build with `?bakecards=1`, reads the three planes back
-// (src/world/BakedCards.ts exportCardTextures → window.__cardBake) and writes them under
+// (src/engine/world/BakedCards.ts exportCardTextures → window.__cardBake) and writes them under
 // public/assets/baked/<slug>/card-{albedo.png,normal.jpg,arm.jpg} plus cards.json with a hash of the output planes. Every run bakes in memory; --check writes nothing.
 //
 //   node scripts/bake-cards.mjs [--url http://localhost:5173] [--chunk pine-hollow] [--check]

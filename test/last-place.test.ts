@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { LastPlace, placeAt, placeName, yawToward, type PlaceArea } from '../src/game/LastPlace';
-import { deathCause, deathLine, respawnWhere } from '../src/ui/HurtArc';
-import { DRIFTWOOD_PLACES } from '../src/game/quest/Places';
+import { LastPlace, placeAt, placeName, yawToward, type PlaceArea } from '#game/LastPlace';
+import { deathCause, deathLine, respawnWhere } from '#engine/ui/HurtArc';
+import { DRIFTWOOD_PLACES } from '#shards/driftwood-isle/quest/Places';
 
 const PLACES: PlaceArea[] = [
   { id: 'pier', label: 'THE PIER', x: 0, z: -215, r: 40 },

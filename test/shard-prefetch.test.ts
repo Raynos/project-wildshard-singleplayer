@@ -1,5 +1,5 @@
 /**
- * E158 — the background download of the other shards (src/boot/shardPrefetch.ts). The list it fetches must be the list a
+ * E158 — the background download of the other shards (src/engine/boot/shardPrefetch.ts). The list it fetches must be the list a
  * boot of that shard requests on this tier, or the first switch downloads what the prefetch missed (or the prefetch fills
  * the cache with files no boot reads). main.ts composes a boot's requests from four sources: the shard's pack (packFor),
  * the per-file world reads the pack does not carry (bootFetches), the art + audio queue (extraFetches) and the physics
@@ -12,12 +12,12 @@ async function load(tier: 'phone' | 'desktop') {
   vi.resetModules();
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${tier}`));
   const [{ CHUNKS }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }] = await Promise.all([
-    import('../src/chunks/registry'),
-    import('../src/boot/shardPrefetch'),
-    import('../src/boot/extras'),
-    import('../src/boot/prefetch'),
-    import('../src/boot/pack'),
-    import('../src/boot/bytes'),
+    import('#game/shard/registry'),
+    import('#engine/boot/shardPrefetch'),
+    import('#engine/boot/extras'),
+    import('#engine/boot/prefetch'),
+    import('#engine/boot/pack'),
+    import('#engine/boot/bytes'),
   ]);
   return { CHUNKS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl };
 }
@@ -28,10 +28,18 @@ describe('shardBootRequests: the boot request list of each shard', () => {
       const { CHUNKS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl } = await load(tier);
       for (const def of CHUNKS) {
         const files = bootFiles(def);
+        // The moved art paths keep the phone's existing landscape exclusion and every portrait/thumbnail.
+        for (const card of CHUNKS) {
+          const artPath = (url: string): string => new URL(url, location.href).pathname;
+          expect(files.art).toContain(artPath(card.card.thumb));
+          expect(files.art).toContain(artPath(card.card.portrait));
+          expect(files.art.includes(artPath(card.card.landscape))).toBe(tier === 'desktop' || card.slug === def.slug);
+        }
+        expect(files.art.some((url) => url.includes('/explore/'))).toBe(def.ocean !== undefined);
         const pack = packFor(def);
         const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
         // main.ts: streamPack(pack) · prefetch(bootFetches(...) minus packed) · prefetchAfter(extraFetches(files)) — and the
-        // physics source (Rapier's WASM, the navmesh) fetched by src/physics at boot
+        // physics source (Rapier's WASM, the navmesh) fetched by src/engine/physics at boot
         const boot = new Set([
           ...(pack ? pack.parts.map((part) => part.url) : []),
           ...bootFetches(def, files).filter((p) => !packed.has(p)),
@@ -77,7 +85,7 @@ describe('lateReads and the ?v= URLs (E160)', () => {
   it('names only files the build ships, tier by tier', async () => {
     for (const tier of ['phone', 'desktop'] as const) {
       const { CHUNKS, sp } = await load(tier);
-      const { PUBLIC_BYTES } = await import('../src/boot/bytes.generated');
+      const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
       for (const def of CHUNKS) {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
@@ -87,8 +95,8 @@ describe('lateReads and the ?v= URLs (E160)', () => {
   });
   it('versions every unhashed asset and leaves content-named ones alone', async () => {
     const { versionedUrl } = await load('desktop');
-    const { ASSET_VERSIONS } = await import('../src/boot/versions.generated');
-    const { PUBLIC_BYTES } = await import('../src/boot/bytes.generated');
+    const { ASSET_VERSIONS } = await import('#engine/boot/versions.generated');
+    const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
     for (const p of Object.keys(PUBLIC_BYTES)) {
       const u = versionedUrl(p);
       if (/-[0-9a-f]{8}\.[a-z0-9]+$/.test(p)) expect(u, p).toBe(p);

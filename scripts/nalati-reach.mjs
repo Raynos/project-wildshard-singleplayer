@@ -27,12 +27,12 @@ const ROOT = resolve(import.meta.dirname, '..');
 const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3);
 Object.assign(globalThis, { location: new URL('http://localhost/') });
 const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
-const { parseNavmesh } = await src('physics/navmesh.ts');
+const { parseNavmesh } = await src('engine/physics/navmesh.ts');
 const { createFindNearestPolyResult, DEFAULT_QUERY_FILTER, findNearestPoly, getNodeRefIndex } = await import('navcat');
-const L = await src('chunks/nalatiLayout.ts');
-const registry = await src('chunks/registry.ts');
-const HF = await src('world/Heightfield.ts');
-const BT = await src('world/BakedTerrain.ts');
+const L = await src('shards/nalati-grasslands/layout.ts');
+const registry = await src('game/shard/registry.ts');
+const HF = await src('engine/world/Heightfield.ts');
+const BT = await src('engine/world/BakedTerrain.ts');
 registry.setActiveChunk('nalati-grasslands');
 const read = (p) => { const b = readFileSync(resolve(ROOT, 'public/assets/baked/nalati-grasslands', p)); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); };
 HF._installBakedTerrain(BT.bakedSamplers(BT.parseBakedTerrain(read('terrain.bin'))));
@@ -129,7 +129,7 @@ if (mapFile) {
   const px = Number(arg('px') ?? 0.5);
   const W = Math.round((x1 - x0) / px), H = Math.round((z1 - z0) / px);
   const img = new Uint8Array(W * H * 3);
-  const wet = (await src('nalati/wet.ts')).nalatiWetAt;
+  const wet = (await src('shards/nalati-grasslands/wet.ts')).nalatiWetAt;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const x = x1 - (i + 0.5) * px, z = z1 - (j + 0.5) * px; // +x (west) on the left, north up
     const h = HF.heightAt(x, z), ny = HF.normalAt(x, z)[1], deg = Math.acos(Math.min(1, ny)) * 180 / Math.PI;

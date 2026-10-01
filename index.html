@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <!-- no viewport-fit=cover (E58): an iOS home-screen app drawn under the status bar had WebKit shrink the viewport ~62 px after
-         load and leave a black strip at the bottom; below the status bar the page runs to the bottom edge (src/core/viewport.ts) -->
+         load and leave a black strip at the bottom; below the status bar the page runs to the bottom edge (src/engine/core/viewport.ts) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Project Wildshard — Chunk Playtest</title>
     <meta name="apple-mobile-web-app-title" content="Wildshard" />
@@ -43,16 +43,16 @@
       @font-face{font-family:'Rajdhani';font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/rajdhani-700-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
     </style>
     <!-- UI styles: base first (tokens + shared primitives), then one sheet per screen with its own class prefix (scripts/check-css.mjs) -->
-    <link rel="stylesheet" href="/src/ui/styles/base.css" />
-    <link rel="stylesheet" href="/src/ui/styles/game.css" />
-    <link rel="stylesheet" href="/src/ui/styles/menu.css" />
-    <link rel="stylesheet" href="/src/ui/styles/gmenu.css" />
-    <link rel="stylesheet" href="/src/ui/styles/touch.css" />
-    <link rel="stylesheet" href="/src/ui/styles/update.css" />
-    <link rel="stylesheet" href="/src/ui/styles/feedback.css" />
-    <link rel="stylesheet" href="/src/ui/styles/minimap.css" />
-    <link rel="stylesheet" href="/src/ui/styles/rotate.css" />
-    <link rel="stylesheet" href="/src/ui/styles/resume.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/base.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/game.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/menu.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/gmenu.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/touch.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/update.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/feedback.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/minimap.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/rotate.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/resume.css" />
   </head>
   <body>
     <script>
@@ -70,13 +70,13 @@
       if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {
         document.documentElement.style.setProperty('--ws-load-portrait', 'url("/assets/title/' + loadShard + '-portrait.jpg")');
       }
-      // developer mode (E140, src/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the
+      // developer mode (E140, src/engine/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the
       // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)
       try { if (localStorage.getItem('ws.dev') === '1') document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }
     </script>
     <canvas id="game"></canvas>
     <div id="hud"></div>
-    <!-- the loading panel from the first HTML bytes (src/boot/shell.ts — test/shell.test.ts keeps the two identical); src/ui/Loading.ts adopts it -->
+    <!-- the loading panel from the first HTML bytes (src/engine/boot/shell.ts — test/shell.test.ts keeps the two identical); src/engine/ui/Loading.ts adopts it -->
     <div class="ws-load" data-shell><div class="ws-load-head">
 <div class="ws-wordmark">Project <b>Wildshard</b></div>
 <div class="ws-load-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
@@ -101,8 +101,8 @@
 </div>
 </div>
 <div class="ws-load-foot"><span data-el="foot"></span></div></div>
-    <!-- app-switch resume screen (E61, src/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
-         (?glreload, src/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and
+    <!-- app-switch resume screen (E61, src/engine/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
+         (?glreload, src/engine/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and
          never the first-boot loader above -->
     <div class="ws-resume" aria-hidden="true"><div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-shard"></div><button type="button" class="ws-resume-btn">Reload</button></div></div>
     <script>
@@ -120,7 +120,7 @@
         }
       } catch { /* the first-boot loader shows instead */ }
     </script>
-    <!-- rotate gate (E38): portrait only on phones — a touch device held landscape sees only this (rotate.css, src/ui/RotateGate.ts) -->
+    <!-- rotate gate (E38): portrait only on phones — a touch device held landscape sees only this (rotate.css, src/engine/ui/RotateGate.ts) -->
     <div class="ws-rotate" role="alertdialog" aria-modal="true" aria-label="Rotate to portrait"><div class="ws-rotate-panel">
 <div class="ws-rotate-glyph"><svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">
 <path d="M12.5 40 A34 34 0 0 1 40 12.5" opacity="0.55" /><path d="M35 7.5 L40 12.5 L35 17.5" opacity="0.55" />
@@ -132,9 +132,9 @@
 <div class="ws-rotate-sub">Wildshard is played upright · turn your phone to continue</div>
 </div>
 </div></div>
-    <script type="module" src="/src/boot/sw.ts"></script>
-    <script type="module" src="/src/ui/RotateGate.ts"></script>
-    <script type="module" src="/src/boot/entry.ts"></script>
-    <script type="module" src="/src/ui/Update.ts"></script>
+    <script type="module" src="/src/engine/boot/sw.ts"></script>
+    <script type="module" src="/src/engine/ui/RotateGate.ts"></script>
+    <script type="module" src="/src/entry.ts"></script>
+    <script type="module" src="/src/engine/ui/Update.ts"></script>
   </body>
 </html>

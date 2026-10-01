@@ -41,11 +41,11 @@ adventure / audio half and S4.4 are the lead's (they touch `main.ts`, which one 
 
 ## 1. Inventory (a): every file of Driftwood's code today and where it goes
 
-### 1.1 The def and `src/chunks/driftwood-isle/` (31 files, 5,491 lines)
+### 1.1 The def and `src/shards/driftwood-isle/` (31 files, 5,491 lines)
 
 | Files (lines) | Destination | When | Why / what changes |
 |---|---|---|---|
-| `src/chunks/driftwood-isle.ts` (281) | `shard:manifest.ts` (data, §3) + `shard:layout.ts` (`OCEAN`, `PIER`, `JETTIES`, `PATHS`, `PIER_PATH_BED`, `ISLAND`, `PLATEAU`, `HUT`, `HEADLAND`, `COVE`, `WRECK`, `SHRINE`, `GULLY`, `BRIDGE`, `LOOKOUT`, `SPAWN`, `BOAT_MOOR`, `PIER_PENNANT_AT`, `PRACTICE_CRAB`, `ISLAND_BOARS`: `:18-86`) + `shard:world/terrain.ts` (`TERRAIN` = today's `buildTerrain(SEED, { oceanLevel, landscape, graded, trails, cabinSites })` `:152-241`, moved verbatim) | F6 rename; S4.1 split | The manifest imports `world/terrain.ts` and `layout.ts` (node-safe: the bakers read them today) |
+| `src/shards/driftwood-isle/manifest.ts` (281) | `shard:manifest.ts` (data, §3) + `shard:layout.ts` (`OCEAN`, `PIER`, `JETTIES`, `PATHS`, `PIER_PATH_BED`, `ISLAND`, `PLATEAU`, `HUT`, `HEADLAND`, `COVE`, `WRECK`, `SHRINE`, `GULLY`, `BRIDGE`, `LOOKOUT`, `SPAWN`, `BOAT_MOOR`, `PIER_PENNANT_AT`, `PRACTICE_CRAB`, `ISLAND_BOARS`: `:18-86`) + `shard:world/terrain.ts` (`TERRAIN` = today's `buildTerrain(SEED, { oceanLevel, landscape, graded, trails, cabinSites })` `:152-241`, moved verbatim) | F6 rename; S4.1 split | The manifest imports `world/terrain.ts` and `layout.ts` (node-safe: the bakers read them today) |
 | `firstMinutes.ts` (67) | `shard:onboarding/firstMinutes.ts` | S4.3 | `installFirstMinutes` → `ctx.system('shard.driftwood.firstMinutes')` + `ctx.on('ai.windup', …)` in place of the hand-chained `onWindup` (`main.ts:984`) |
 | `fpArms.ts` (201) | `shard:vm/castawayArms.ts` | S4.1 | The castaway rig: the wooden and iron swords' arms and the swimming hands. `ChunkDef.sword` (`driftwood-isle.ts:98-105`) → the `weapon.sword` / `weapon.sword-iron` rows' `viewmodel` factory in Driftwood's loadout (child rows of the kit's, 09 §1.5) + `level.swimArms` (Q1) |
 | `models/*.ts` (27 files, 4,947 lines: `boat` 285, `captainHat` 108, `cargo` 99, `cove` 106, `creatures` 34, `driftLog` 44, `gear` 38, `hibiscusBush` 201, `hut` 387, `lookout` 395, `palm` 184, `people` 22, `pier` 341, `reef` 237, `reefFish` 33, `reefRock` 33, `ropeBridge` 294, `sailclothCape` 96, `seaGlassChime` 121, `shipwreck` 802, `shoreBoulder` 35, `shrine` 526, `smallRock` 35, `trader` 125, `trailside` 167, `trophyPlaques` 245, `zipline` 117) | same names under `shard:models/` | F6 | Content on the model contract |
@@ -57,38 +57,38 @@ adventure / audio half and S4.4 are the lead's (they touch `main.ts`, which one 
 
 | Today | Lines | Destination | When | Why |
 |---|---|---|---|---|
-| `src/world/Hut.ts` (79), `Pier.ts` (145), `Palms.ts` (105), `Boat.ts` (181), `Boulders.ts` (102), `Bushes.ts` (82), `Lookout.ts` (83), `Wreck.ts` (235), `Shrine.ts` (148), `RopeBridge.ts` (74), `Seabed.ts` (176), `Trailside.ts` (333), `Cove.ts` (481), `Waterfall.ts` (334, imported by `Cove.ts` only), `Gulls.ts` (603), `GroundCover.ts` (830), `coverTint.ts` (165) | 4,136 | `shard:world/…` (same names, lower-case first letter) | S4.1 | Only `main.ts:289-408` builds them (and Driftwood's models / quest import them) |
-| `src/world/Zipline.ts` | 143 | `shard:world/zipline.ts` | S4.3 | Built by `Adventure.ts` only |
-| `src/world/Ocean.ts` (282), `waves.ts` (90) | 372 | `Ocean.ts` → `shard:world/ocean.ts` (a `WaterBody`); `waves.ts` → `src/engine/world/water/waves.ts` | S4.1 | `waveHeight` is read by `Boat.ts`, `Enemies.ts`, `Player.ts:549` (swim bob) through `app.world.water.surfaceAt(x, z)` (§6.1 step 4); the Gerstner function is a generic water primitive |
-| `src/world/BlenderIsland.ts` (618), `blenderArea.ts` (57) | 675 | `shard:world/blenderIsland.ts`; `blenderArea.ts`'s `DRIFTWOOD` entry → `level.blender.area`, `MODEL_DIRS` → `level.blender.models` | S4.1 | `blenderArea.ts:30, 47` (Pine's entry moved at S2.1) |
-| `src/world/HorizonMatte.ts:53` | 1 | `level.horizon.matte` | S4.1 | Data (Pine's moved at S2.1) |
-| `src/world/DayNight.ts` | 242 | the clock is the engine `DayCycle` since S2.4; `KEYS`, the keyframe application (lights, fog, toon uniforms, sky palette, disc, planet, shadow-step crossfade) → `shard:look/dayKeys.ts` + the backdrop's `apply(key)` | S4.3 | 06 §6.4 A: "their keyframe application stays in their current files until … S4.3" |
-| `src/world/StylizedSky.ts` (188), `stylize.ts` (216) | 404 | `shard:look/stylizedSky.ts` (the backdrop), `shard:look/toon.ts` (the toon lighting + ramp fog) | S4.3 | §6.3 B |
-| `src/world/lowpolyKit.ts` | 557 | `src/engine/world/geometry/lowpolyKit.ts` | F6; X5 | Imported by the engine's `interact/Interactables.ts`, `interact/models.ts`, `models/interact.ts`, Pine's `tokenShelf.ts` and Driftwood's builders: 2+ users. X5 merges it into the one geometry kit |
-| `src/world/rockKit.ts` | 352 | `src/engine/world/rockKit.ts` (04: rule F, a geometry primitive with no shard data) | F6 | Used only by Driftwood today (`GroundCover`, `Wreck`, `Cove`, three rock models); 04's import analysis keeps it in the engine (13-lead-resolutions 07/08#10), and X5 folds its generic primitives into the engine geometry toolkit |
-| `src/world/driftwood.ts` (83, `addDriftLog`) | 83 | `shard:look/driftLog.ts` | S4.1 | Driftwood's log painter |
-| `src/world/interact/driftwood.ts` | 84 | `shard:quest/interact.ts` | S4.3 | The interactables table (data) |
-| `src/world/interact/Interactables.ts` (753), `flags.ts` (76), `models.ts` (290), `types.ts` (146) | — | `src/engine/world/interact/` | F6 | 2+ shards (Pine's quest, Nalati's adventure). `flags.ts`'s `ws.flags.v1` is SaveStore key `flags` (shard) since F10 |
-| `src/world/interact/validate.ts` | 67 | `src/engine/world/interact/validate.ts` (kept) | F7 check; F6 move | On F7's one dead list for review (02 F7 step 3; 13-lead-resolutions still-open 08#8). The review keeps it: `test/interact.test.ts:5` and `test/pine-quest.test.ts:6` import `validateTable`, the pure validator of Driftwood's and Pine's interactable tables, so it is live and follows 04's row (engine, rule F) |
-| `src/entities/Enemies.ts` | 374 | `shard:creatures/enemies.ts` | S4.2 | The crab sites, monkey troops, coconuts, the sailor, the practice crab: spawn tables + the coconut projectile (§6.2) |
-| `src/entities/species/crab.ts` (307), `monkey.ts` (366), `sailor.ts` (371), `captain.ts` (332), `captainMesh.ts` (142) | 1,518 | `shard:species/…` | S4.2 | One shard each |
-| `src/entities/lowpoly.ts` | 263 | `shard:look/lowpolyCreatures.ts`, registered with `ctx.rows.creatureLook('toon', …)` (01 §7, §19; 13-lead-resolutions still-open 07#10) | S4.2 | `AnimalFactory.ts:305-354`'s `lowPoly` path is Driftwood's look of the kit boar / bear, chosen by `level.kitLook: 'toon'`. `deer.ts`, `elk.ts`, `boar.ts`, `bear.ts` import it for their low-poly builders: those builder functions move with it and the species' `SpeciesLook` rows (rig + mesh, registered apart from the simulation `SpeciesRow`s, R1-27) reference them by the look id |
-| `src/entities/fightRules.ts` | 128 | `src/engine/ai/director.ts` (S2.3) | S2.3 | The director is engine (09 §5.5); `ChunkDef.fightRules` → `level.fight.attackers: 2` |
-| `src/entities/npc/Castaway.ts` (314), `Trader.ts` (261) | 575 | rows on `#kit/npc/npcRig.ts` in `shard:quest/people.ts` | S4.3 | The lead: *NPC rigs merge into `#kit/npc`*. §6.3 D |
-| `src/world/faceHeads.ts` | 60 | `#kit/npc/faceHeads.ts` | S4.3 | Imported by `Castaway.ts` and `sailor.ts`; the face rig is an NPC-rig piece (Pine's rig can use it) |
-| `src/audio/IslandAmbience.ts` (387), `IslandSfx.ts` (97), `ShrineHum.ts` (91), `Surface.ts` (54) | 629 | `shard:audio/ambience.ts` (an `AmbienceZones` profile), `shard:audio/sfx.ts` (the island voice table), `shard:audio/shrineHum.ts`, `shard:audio/surface.ts` | S4.3 | §6.3 C. `physics/surface.ts` imports `Surface`'s type: the type moves to `src/engine/audio/surface.ts` (`StepSurface` union extended by merging) |
+| `src/shards/driftwood-isle/world/Hut.ts` (79), `Pier.ts` (145), `Palms.ts` (105), `Boat.ts` (181), `Boulders.ts` (102), `Bushes.ts` (82), `Lookout.ts` (83), `Wreck.ts` (235), `Shrine.ts` (148), `RopeBridge.ts` (74), `Seabed.ts` (176), `Trailside.ts` (333), `Cove.ts` (481), `Waterfall.ts` (334, imported by `Cove.ts` only), `Gulls.ts` (603), `GroundCover.ts` (830), `coverTint.ts` (165) | 4,136 | `shard:world/…` (same names, lower-case first letter) | S4.1 | Only `main.ts:289-408` builds them (and Driftwood's models / quest import them) |
+| `src/shards/driftwood-isle/world/Zipline.ts` | 143 | `shard:world/zipline.ts` | S4.3 | Built by `Adventure.ts` only |
+| `src/shards/driftwood-isle/world/Ocean.ts` (282), `waves.ts` (90) | 372 | `Ocean.ts` → `shard:world/ocean.ts` (a `WaterBody`); `waves.ts` → `src/engine/world/water/waves.ts` | S4.1 | `waveHeight` is read by `Boat.ts`, `Enemies.ts`, `Player.ts:549` (swim bob) through `app.world.water.surfaceAt(x, z)` (§6.1 step 4); the Gerstner function is a generic water primitive |
+| `src/shards/driftwood-isle/world/BlenderIsland.ts` (618), `blenderArea.ts` (57) | 675 | `shard:world/blenderIsland.ts`; `blenderArea.ts`'s `DRIFTWOOD` entry → `level.blender.area`, `MODEL_DIRS` → `level.blender.models` | S4.1 | `blenderArea.ts:30, 47` (Pine's entry moved at S2.1) |
+| `src/engine/world/HorizonMatte.ts:53` | 1 | `level.horizon.matte` | S4.1 | Data (Pine's moved at S2.1) |
+| `src/engine/world/DayNight.ts` | 242 | the clock is the engine `DayCycle` since S2.4; `KEYS`, the keyframe application (lights, fog, toon uniforms, sky palette, disc, planet, shadow-step crossfade) → `shard:look/dayKeys.ts` + the backdrop's `apply(key)` | S4.3 | 06 §6.4 A: "their keyframe application stays in their current files until … S4.3" |
+| `src/engine/world/StylizedSky.ts` (188), `stylize.ts` (216) | 404 | `shard:look/stylizedSky.ts` (the backdrop), `shard:look/toon.ts` (the toon lighting + ramp fog) | S4.3 | §6.3 B |
+| `src/engine/world/lowpolyKit.ts` | 557 | `src/engine/world/geometry/lowpolyKit.ts` | F6; X5 | Imported by the engine's `interact/Interactables.ts`, `interact/models.ts`, `models/interact.ts`, Pine's `tokenShelf.ts` and Driftwood's builders: 2+ users. X5 merges it into the one geometry kit |
+| `src/shards/driftwood-isle/world/rockKit.ts` | 352 | `src/engine/world/rockKit.ts` (04: rule F, a geometry primitive with no shard data) | F6 | Used only by Driftwood today (`GroundCover`, `Wreck`, `Cove`, three rock models); 04's import analysis keeps it in the engine (13-lead-resolutions 07/08#10), and X5 folds its generic primitives into the engine geometry toolkit |
+| `src/shards/driftwood-isle/world/driftLogs.ts` (83, `addDriftLog`) | 83 | `shard:look/driftLog.ts` | S4.1 | Driftwood's log painter |
+| `src/shards/driftwood-isle/quest/interactables.ts` | 84 | `shard:quest/interact.ts` | S4.3 | The interactables table (data) |
+| `src/engine/world/interact/Interactables.ts` (753), `flags.ts` (76), `models.ts` (290), `types.ts` (146) | — | `src/engine/world/interact/` | F6 | 2+ shards (Pine's quest, Nalati's adventure). `flags.ts`'s `ws.flags.v1` is SaveStore key `flags` (shard) since F10 |
+| `src/engine/world/interact/validate.ts` | 67 | `src/engine/world/interact/validate.ts` (kept) | F7 check; F6 move | On F7's one dead list for review (02 F7 step 3; 13-lead-resolutions still-open 08#8). The review keeps it: `test/interact.test.ts:5` and `test/shards/pine-hollow/pine-quest.test.ts:6` import `validateTable`, the pure validator of Driftwood's and Pine's interactable tables, so it is live and follows 04's row (engine, rule F) |
+| `src/shards/driftwood-isle/creatures/Enemies.ts` | 374 | `shard:creatures/enemies.ts` | S4.2 | The crab sites, monkey troops, coconuts, the sailor, the practice crab: spawn tables + the coconut projectile (§6.2) |
+| `src/engine/entities/species/crab.ts` (307), `monkey.ts` (366), `sailor.ts` (371), `captain.ts` (332), `captainMesh.ts` (142) | 1,518 | `shard:species/…` | S4.2 | One shard each |
+| `src/engine/entities/lowpoly.ts` | 263 | `shard:look/lowpolyCreatures.ts`, registered with `ctx.rows.creatureLook('toon', …)` (01 §7, §19; 13-lead-resolutions still-open 07#10) | S4.2 | `AnimalFactory.ts:305-354`'s `lowPoly` path is Driftwood's look of the kit boar / bear, chosen by `level.kitLook: 'toon'`. `deer.ts`, `elk.ts`, `boar.ts`, `bear.ts` import it for their low-poly builders: those builder functions move with it and the species' `SpeciesLook` rows (rig + mesh, registered apart from the simulation `SpeciesRow`s, R1-27) reference them by the look id |
+| `src/engine/entities/fightRules.ts` | 128 | `src/engine/ai/director.ts` (S2.3) | S2.3 | The director is engine (09 §5.5); `ChunkDef.fightRules` → `level.fight.attackers: 2` |
+| `src/shards/driftwood-isle/npc/Castaway.ts` (314), `Trader.ts` (261) | 575 | rows on `#kit/npc/npcRig.ts` in `shard:quest/people.ts` | S4.3 | The lead: *NPC rigs merge into `#kit/npc`*. §6.3 D |
+| `src/engine/world/faceHeads.ts` | 60 | `#kit/npc/faceHeads.ts` | S4.3 | Imported by `Castaway.ts` and `sailor.ts`; the face rig is an NPC-rig piece (Pine's rig can use it) |
+| `src/shards/driftwood-isle/audio/ambience.ts` (387), `IslandSfx.ts` (97), `ShrineHum.ts` (91), `Surface.ts` (54) | 629 | `shard:audio/ambience.ts` (an `AmbienceZones` profile), `shard:audio/sfx.ts` (the island voice table), `shard:audio/shrineHum.ts`, `shard:audio/surface.ts` | S4.3 | §6.3 C. `physics/surface.ts` imports `Surface`'s type: the type moves to `src/engine/audio/surface.ts` (`StepSurface` union extended by merging) |
 | `src/engine/audio/legacyIsland.ts` (made by S3.5: the island bed, gulls, the island voice families) | — | deleted; its code → `shard:audio/` | S4.3 | 07 §6.5 A.2, E |
 | `src/game/quest/Adventure.ts` (266), `Spine.ts` (98), `driftwood.ts` (97), `Finale.ts` (112), `Complete.ts` (162), `Ecology.ts` (90), `Feats.ts` (42), `gullGuide.ts` (89), `guards.ts` (15), `Places.ts` (33), `TraderStall.ts` (81) | 1,085 | `shard:quest/adventure.ts`, `spine.ts`, `line.ts`, `finale.ts`, `complete.ts`, `ecology.ts`, `feats.ts`, `gullGuide.ts`, `guards.ts`, `places.ts`, `trader.ts` | S4.3 (Finale's fight half at S4.2) | Driftwood's quest content on the quest runtime. The `ADVENTURES` registry and `installAdventure` / `hasAdventure` (`Adventure.ts:250-266`) are deleted. `Feats.ts`'s `ProgressSink` type (imported by `nalati/adventure.ts`) → `src/engine/quest/types.ts` first |
 | `src/game/quest/QuestUI.ts` (186), `quest.ts` (151), `core.ts` (173) | — | `src/engine/quest/` (S2.5) | S2.5 | 2+ shards |
-| `src/game/loot/keepsakes.ts` (235), `finds.ts` (69), `shop.ts` (73), `coins.ts` (38), `perks.ts` (43) | 458 | `shard:loot/keepsakes.ts`, `finds.ts`, `shop.ts` (the goods and prices), `coins.ts` (the `loot.driftwood.coins` rows, 09 §5.6); `perks.ts` → the effect rows (the boar-tusk dodge guard is `rule.dodge-guard`, the charms E-rows, 09 §2.2) | S4.3 | Driftwood's content |
+| `src/shards/driftwood-isle/loot/keepsakes.ts` (235), `finds.ts` (69), `shop.ts` (73), `coins.ts` (38), `perks.ts` (43) | 458 | `shard:loot/keepsakes.ts`, `finds.ts`, `shop.ts` (the goods and prices), `coins.ts` (the `loot.driftwood.coins` rows, 09 §5.6); `perks.ts` → the effect rows (the boar-tusk dodge guard is `rule.dodge-guard`, the charms E-rows, 09 §2.2) | S4.3 | Driftwood's content |
 | `src/game/loot/install.ts` (196), `Purse.ts` (65), `Owned.ts` (105), `Bounty.ts` (50), `CoinBurst.ts` (138), `store.ts` (21) | 575 | `#game/loot/` (the purse per shard, owned items, bounty, the coin burst and chip: decisions 74, 75); `store.ts` deleted (F10) | S4.3 | Mechanism: any shard with `manifest.loot.coins` gets it. `coinsOn(h.chunk)` (`install.ts:77`) reads the manifest |
 | `src/game/LastPlace.ts` | 69 | `#game/respawn/lastPlace.ts` | S4.4 | Generic (places with points); today only Driftwood feeds it |
-| `src/player/IronSword.ts` | 318 | `shard:loadout/ironSword.ts` (the pickup model and site) | S4.1 | The iron sword row is the kit's (09 §1.5); its pickup on the wreck is Driftwood's |
-| `src/player/BodyShadow.ts` (148), `Cosmetics.ts` (119) | 267 | `#game/cosmetics/bodyShadow.ts`, `cosmetics.ts` | S4.3 | `ChunkDef.bodyShadow` → `manifest.bodyShadow: true`; a game-layer feature any shard may switch on |
-| `src/ui/WindupWarn.ts` (112) | 112 | `src/engine/ai/windupWarn.ts` | S2.3 | On when the director is on (`level.fight.attackers` finite), as `chunk.fightRules !== undefined` today (`main.ts:861`) |
-| `src/ui/ShopPanel.ts` (178), `CoinChip.ts` (67) | 245 | `#game/loot/ui/` | S4.3 | With the loot mechanism |
-| `src/ui/FirstHints.ts` | 243 | `src/engine/ui/firstHints.ts` | S4.4 | Every shard's system; Driftwood feeds its triggers (`firstMinutes`) |
-| `src/physics/ropeChain.ts` | 119 | `src/engine/physics/ropeChain.ts` | F6 | A physics primitive (the only code that imports Rapier stays `src/engine/physics/`); the bridge's chain spec is Driftwood's |
+| `src/shards/driftwood-isle/weapons/IronSword.ts` | 318 | `shard:loadout/ironSword.ts` (the pickup model and site) | S4.1 | The iron sword row is the kit's (09 §1.5); its pickup on the wreck is Driftwood's |
+| `src/engine/player/BodyShadow.ts` (148), `Cosmetics.ts` (119) | 267 | `#game/cosmetics/bodyShadow.ts`, `cosmetics.ts` | S4.3 | `ChunkDef.bodyShadow` → `manifest.bodyShadow: true`; a game-layer feature any shard may switch on |
+| `src/engine/ui/WindupWarn.ts` (112) | 112 | `src/engine/ai/windupWarn.ts` | S2.3 | On when the director is on (`level.fight.attackers` finite), as `chunk.fightRules !== undefined` today (`main.ts:861`) |
+| `src/shards/driftwood-isle/loot/ShopPanel.ts` (178), `CoinChip.ts` (67) | 245 | `#game/loot/ui/` | S4.3 | With the loot mechanism |
+| `src/engine/ui/FirstHints.ts` | 243 | `src/engine/ui/firstHints.ts` | S4.4 | Every shard's system; Driftwood feeds its triggers (`firstMinutes`) |
+| `src/engine/physics/ropeChain.ts` | 119 | `src/engine/physics/ropeChain.ts` | F6 | A physics primitive (the only code that imports Rapier stays `src/engine/physics/`); the bridge's chain spec is Driftwood's |
 | `src/game/achievements.ts:83-100` (`DRIFTWOOD`) | ~17 | `shard:feats.ts`, `ctx.rows.feat` | S4.3 | Feats per shard |
 | `src/game/Inventory.ts:44-…` (Driftwood's item rows) | — | `shard:items.ts`, `ctx.rows.item` | S4.3 | Items self-contained (decision 75) |
 | `src/explore/img/*-driftwood-isle.webp` | — | `shard:explore/` | S4.1 | `level.explore.art` |
@@ -159,7 +159,7 @@ adventure / audio half and S4.4 are the lead's (they touch `main.ts`, which one 
 | 1155-1160 | `ironDrop?.update(dt, t, game.renderer, game.camera, player.position)` / `shrineHum?.update(game.camera)` / `ambience?.update(dt, game.camera)` | the pickup's hover; the hum | the equipment service's pickup system (every row pickup); `shard.driftwood.shrineHum` |
 | 1296 | `const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, …, shrineHum, islandSfx, surfaces, ambience` | `window.__world` for scripts | `ctx.debug.expose('driftwood', rt)`; the `__world` alias keeps the keys until the scripts are ported (01 §5, F7) |
 
-### 2.2 The look: `src/core/Game.ts`, `src/world/*`
+### 2.2 The look: `src/engine/core/Game.ts`, `src/world/*`
 
 | File:line | Grep key | Today | Replaced by (S4.3) |
 |---|---|---|---|
@@ -451,7 +451,7 @@ export default class DriftwoodPlugin extends ShardPlugin {  // staged hooks, eac
 | System | `shard.driftwood.npc` | `update`; `tick: 'npc'` | the castaway and trader idle |
 | Events listened | `actor.died` (Spine's kill hook, Ecology's respawn queue, keepsakes' drops, the sailor's hold key, the captain's end), `ai.windup` (first minutes), `app.ready` (the horizon matte load), `weapon.*` (cue map), `player.died` (last place) | — | `Spine.ts:70`, `Ecology.ts:64`, `keepsakes.ts:183`, `main.ts:984, 404` |
 | Asks answered | `player.stepSurface` (SurfaceMap), `feat.toast` (none: the chime is a cue), `damage.modify` (the crab's front × .5, 09 §5.4) | — | `main.ts:844`, `crab.ts:284-288` |
-| Pieces | every id today: `pier`, `boat`, `rocks`, `hut`, `lookout`, `wreck`, `shrine`, `jetty-0..2`, `bushes`, `trail-*`, `bridge`, `cove`, `palms`, the cover's, the Blender island's, the zipline's, the adventure kit's | `level.world` / `level.play` | `src/models/place.ts` through `app.registry` |
+| Pieces | every id today: `pier`, `boat`, `rocks`, `hut`, `lookout`, `wreck`, `shrine`, `jetty-0..2`, `bushes`, `trail-*`, `bridge`, `cove`, `palms`, the cover's, the Blender island's, the zipline's, the adventure kit's | `level.world` / `level.play` | `src/engine/models/place.ts` through `app.registry` |
 | HUD | the coin chip, the shop panel (`#game`), the quest objective and talk panels (`QuestUI`, engine quest), the Captain's boss bar (the shared BossBar, `bar: 'boss'`, decision 91, §6.2 B), the first-time hints (engine) | — | `install.ts:80`, `Finale.ts:28` |
 | Bag | FINDS (the sticker book), GEAR extras (coins, hearts, charms, cosmetics), PACK | — | `main.ts:804-817`, `finds.ts` |
 | Debug handles | `driftwood` (runtime), `driftwood.adventure`, `driftwood.keepsakes`, `driftwood.loot` (from `#game`), `driftwood.enemies` | `ctx.debug.expose` (01 §7) | `Adventure.ts:246`, `keepsakes.ts:233`, `install.ts:177` |
@@ -794,10 +794,10 @@ It names no shard, reads no `style`, no `slug` except to select the manifest.
 `painterly ?`, `chunk.ocean`, `def.ocean`, `.fightRules`, `.bodyShadow`, `meleeShard(` outside `src/shards/`),
 `wildshard/layer`'s `src/engine/**` word list (no shard slug, no `driftwood` / `nalati` / `pine` / `nine` word in
 engine code or identifiers; comments included), and the `getActiveChunk()` count in `src/engine/**` (01 §5: `game.shard`
-lives in `#game`). `src/chunks/ChunkDef.ts` is gone (F6 renamed it); `src/main.ts` stays as the **composition root**
+lives in `#game`). `src/game/shard/manifest.ts` is gone (F6 renamed it); `src/main.ts` stays as the **composition root**
 (01 §0; 13-lead-resolutions 04#12): ≤ 20 lines that import `#engine`, `#game` and the generated shard registry, select
 the manifest and hand it to `src/engine/boot.ts` (the engine may not import `#game`); the page entry, `src/entry.ts`
-(F6 moved it there from `src/boot/entry.ts`; `index.html` loads `/src/entry.ts`; 13-lead-resolutions C6), is the
+(F6 moved it there from `src/entry.ts`; `index.html` loads `/src/entry.ts`; 13-lead-resolutions C6), is the
 composition root's other half and is unchanged here;
 `Game.onInput / onFixed / onUpdate / onLate` (the thin wrappers, 01 §1) are deleted.
 
@@ -894,12 +894,12 @@ and C6); none is open, and the body above follows each answer.
 7. **`rockKit.ts`.** **Resolved → 13-lead-resolutions 07/08#10:** it goes where 04's import analysis puts it: 04 keeps
    it in the engine (`src/engine/world/rockKit.ts`, rule F); X5 folds its generic primitives into the engine geometry
    toolkit (§1.2).
-8. **`src/world/interact/validate.ts`** (67 lines) has no importer in `src/`. **Resolved → 13-lead-resolutions
+8. **`src/engine/world/interact/validate.ts`** (67 lines) has no importer in `src/`. **Resolved → 13-lead-resolutions
    still-open 08#8:** it goes on F7's one list (02 F7 step 3), which reviews every dead-code candidate in one row. That
-   review finds two test importers (`test/interact.test.ts`, `test/pine-quest.test.ts`), so the file is a live test
+   review finds two test importers (`test/interact.test.ts`, `test/shards/pine-hollow/pine-quest.test.ts`), so the file is a live test
    helper and is kept at 04's engine path (§1.2).
 9. **Scheduler reach at M4.** **Resolved → 13-lead-resolutions 05/06#15:** S2.6 already switched Driftwood's boars and
    bears (shown at M2); M4's board shows the crab / monkey / sailor bands, which join the runtime at S4.2.
 10. **The native shell's `ws:ready`.** **Resolved → 13-lead-resolutions 07/08#11:** `ws:ready` stays (the native
-    shell's contract, `src/native/boot.ts`), dispatched once by the engine on reaching `title`; the probe also exposes
+    shell's contract, `src/engine/native/boot.ts`), dispatched once by the engine on reaching `title`; the probe also exposes
     `ready`. The internal `app.ready` event (§4) is the engine's own signal for shard code such as the horizon matte.

@@ -1,11 +1,11 @@
 // F10 replaces these legacy-store contracts with the engine SaveStore contract.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Progress } from '../../src/game/Progress';
-import { Inventory } from '../../src/game/Inventory';
-import { Purse } from '../../src/game/loot/Purse';
-import { Owned } from '../../src/game/loot/Owned';
-import { Bounty } from '../../src/game/loot/Bounty';
-import { Flags } from '../../src/world/interact/flags';
+import { Progress } from '#game/Progress';
+import { Inventory } from '#game/Inventory';
+import { Purse } from '#game/loot/Purse';
+import { Owned } from '#game/loot/Owned';
+import { Bounty } from '#game/loot/Bounty';
+import { Flags } from '#engine/world/interact/flags';
 import { FakeStorage } from '../fake/fakeStorage';
 
 const DRIFT = 'chunk://local/driftwood-isle', PINE = 'chunk://local/pine-hollow';

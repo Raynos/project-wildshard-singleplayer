@@ -3,10 +3,10 @@
 // `.alive`), and a dummy's colliders are off while its room is closed.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { CreatureBodies, type Creature } from '../src/physics/creatures';
-import { addTrainingTarget, trainingTargetRaycast } from '../src/physics/trainingTargets';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { CreatureBodies, type Creature } from '#engine/physics/creatures';
+import { addTrainingTarget, trainingTargetRaycast } from '#engine/physics/trainingTargets';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

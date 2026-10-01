@@ -28,11 +28,11 @@ better or worse.
 | Topic | Gauntlet | Wildshard | Consequence |
 |---|---|---|---|
 | Bundle size | small | `dist/` **152 MB** (142 MB assets: tex 62, hdri 36, models 28; trailers 10) | Play's base-module download cap is **200 MB compressed**. We fit today, and JPEG/KTX2 do not compress further. P5 (30 → ~10 MB cold bytes) and dropping the trailers from the native build give headroom. If we pass 200 MB, the tex/hdri go into a Play **install-time asset pack**. iOS has no problem at this size. |
-| Service worker | `src/boot/sw.ts` pattern (ported *from* gauntlet) | same, plus `src/ui/Update.ts` polls `/version.json` | The native target compiles out SW registration and the update pill. WKWebView does not run service workers on `capacitor://`, and the pill would poll the bundled file. `__ws_sw.ready` already resolves at once with no SW. |
-| Asset paths | relative | absolute `/assets/...` (`src/core/assets.ts:49`, `bakedTextures.ts:29`) | Fine: Capacitor serves `webDir` at the origin root (`capacitor://localhost/`, `https://localhost/`). |
-| Saves | PBs, ghosts, settings | `localStorage` in `Progress`, `Inventory`, `Skins`, `Settings`, `Menu`, `tier` | The OS can evict WebView localStorage under storage pressure. Built simpler than gauntlet's checksummed slots: `src/native/saves.ts` mirrors every `ws.*` key into `@capacitor/preferences` and restores it at boot (the Android E2E deletes the WebView's storage and gets the save back). |
+| Service worker | `src/engine/boot/sw.ts` pattern (ported *from* gauntlet) | same, plus `src/engine/ui/Update.ts` polls `/version.json` | The native target compiles out SW registration and the update pill. WKWebView does not run service workers on `capacitor://`, and the pill would poll the bundled file. `__ws_sw.ready` already resolves at once with no SW. |
+| Asset paths | relative | absolute `/assets/...` (`src/engine/core/assets.ts:49`, `bakedTextures.ts:29`) | Fine: Capacitor serves `webDir` at the origin root (`capacitor://localhost/`, `https://localhost/`). |
+| Saves | PBs, ghosts, settings | `localStorage` in `Progress`, `Inventory`, `Skins`, `Settings`, `Menu`, `tier` | The OS can evict WebView localStorage under storage pressure. Built simpler than gauntlet's checksummed slots: `src/engine/native/saves.ts` mirrors every `ws.*` key into `@capacitor/preferences` and restores it at boot (the Android E2E deletes the WebView's storage and gets the save back). |
 | Load | one small scene | 142 shader programs, 30 MB cold | Bytes come off local disk, so there is no network cost. Shader compile (L1) is the whole boot. A first native launch should look like today's warm PWA launch. |
-| Input | touch bike controls | touch + aim assist (`src/ui/styles/touch.css`, `AimAssist.ts`) | Check safe areas / home indicator against the HUD. Android Back = pause menu. |
+| Input | touch bike controls | touch + aim assist (`src/engine/ui/styles/touch.css`, `AimAssist.ts`) | Check safe areas / home indicator against the HUD. Android Back = pause menu. |
 | Target | 30-cap on phone | AGENTS.md: 60 FPS | The store build ships the phone tier by default. The PLAY-PERF plan is still the gate for "finished". |
 
 ## Decisions (the user)
@@ -62,12 +62,12 @@ through **TestFlight internal** (no review).
       `server.errorPath` → `native-unavailable.html` (no script, no fonts, no network: "update your WebView").
       `ios/` and `android/` are committed (build outputs, synced web copies and signing material are gitignored).
 - [x] `pnpm build:native` = `vite build --mode native` → `dist-native/` (vite.config.ts `nativePlugin`): the page's
-      service-worker / update-pill / Google-Fonts tags are dropped and `main.ts` is swapped for `src/native/boot.ts`;
+      service-worker / update-pill / Google-Fonts tags are dropped and `main.ts` is swapped for `src/engine/native/boot.ts`;
       no source maps, no trailers. Fonts (Rajdhani, JetBrains Mono) are bundled from `@fontsource`. CI builds it on
       every push (`deploy.yml` "Native web build"): a push that breaks the native target is red; it ships nowhere.
-- [x] `src/native/boot.ts`: saves → OTA → lifecycle → the unchanged game. `src/native/saves.ts` mirrors every
+- [x] `src/engine/native/boot.ts`: saves → OTA → lifecycle → the unchanged game. `src/engine/native/saves.ts` mirrors every
       `ws.*` localStorage key into `@capacitor/preferences` (UserDefaults / SharedPreferences) and restores it at boot;
-      `src/native/lifecycle.ts` turns app backgrounding into `ws:background` (HUD pauses, saves flush) and Android
+      `src/engine/native/lifecycle.ts` turns app backgrounding into `ws:background` (HUD pauses, saves flush) and Android
       Back into a cancelable `ws:back` (HUD closes the menu / pauses; unused Back minimizes). `main.ts` fires
       `ws:ready` at the title (the OTA watchdog's healthy-boot signal).
 - [x] iOS: bundle id `com.jakeverbaten.wildshard-singleplayer`, 1.0.0 (1), iOS 17+, iPhone only, portrait only (was landscape; E38 moved `UISupportedInterfaceOrientations` to Portrait),
@@ -118,13 +118,13 @@ Sizes: Android debug APK 141 MB, release AAB 132 MB (Play's base cap is 200 MB);
 The app always boots its **installed** bundle; nothing on the critical path touches the network. After `ws:ready` it
 fetches a **signed manifest** from its platform channel
 (`https://wildshard-updates.vercel.app/{ios,android}/v1/manifest.json`): RSA-PSS/SHA-256 over the payload, checked
-against the public key pinned in `src/native/ota-config.ts`, bound to platform, native version range, runtime
+against the public key pinned in `src/engine/native/ota-config.ts`, bound to platform, native version range, runtime
 `native-v1`, save schema 1, a monotonic sequence and an expiry. The manifest lists **every file** of the bundle by
 SHA-256 (`/f/<sha256>` on the host); `@capgo/capacitor-updater` (8.51.21, manual self-hosted mode, Capgo's cloud off,
 MPL-2.0) copies each file whose hash matches the installed bundle or its delta cache and downloads only the rest —
 a code-only update is a few MB, not 140. The staged bundle **activates on the next cold launch**, never mid-session;
 a bundle that doesn't reach `ws:ready` within 120 s is rolled back by the plugin's watchdog and blocked in an
-activation ledger (`src/native/updates.ts`, 52 unit tests in `test/native-updates.test.ts`).
+activation ledger (`src/engine/native/updates.ts`, 52 unit tests in `test/native-updates.test.ts`).
 
 - [x] Vercel project **`wildshard-updates`** (`prj_ovNwXLanIg9I1hfcGaRiERffDTkD`), created by name before its first
       deploy; a signed sequence-0 placeholder is live (manifests `no-store`, `/f/*` immutable, CORS `*`). A 152 MB /

@@ -83,7 +83,7 @@ and **desktop** (1600 × 900 at 1×, `?tier=desktop`).
 The JSON keeps each load's requests by file type (`reqByType`) and bytes by type (`byType`), so a request-count
 change can be traced to its files.
 
-**The boot pack check.** Before measuring, every boot pack part the served tree's `src/boot/packs.generated.ts` names
+**The boot pack check.** Before measuring, every boot pack part the served tree's `src/engine/boot/packs.generated.ts` names
 is fetched (HEAD, its own size): a pack bake that failed at build time only warns, and then every part 404s and the boot
 falls back to one request per packed file. The report's head says whether all parts are served.
 
@@ -187,7 +187,7 @@ and they fail `--compare`:
 | re-download after a one-texture change | ≤ 2 MB — **the user is deciding** | 1.42 MiB phone / 1.40 MiB desktop: met, **but only because the phone boot packs are broken on this main** (below) |
 
 **The phone boot packs on main 5486794 (and in production):** `scripts/bake-packs.mjs` cannot load
-`src/core/shardScope.ts` (a TypeScript parameter property, which node's type stripping rejects), so a clean build emits
+`src/engine/core/shardScope.ts` (a TypeScript parameter property, which node's type stripping rejects), so a clean build emits
 no pack parts; the build only warns, every part 404s, and the phone boots one request per packed file. Fixed by 80dfc2c
 (on the scorecard branch). With packs served, the one-texture change re-downloads the pack part that holds the file:
 3.83 MiB on the phone (a 2.6 MiB part + the 1.1 MiB code bundle), which misses the 2 MB rule. The scorecard checks the

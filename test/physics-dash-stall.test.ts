@@ -2,10 +2,10 @@
 // normal straight up, time of impact 0). Player.step ends a dash on any step that moves < 30 % of what it asked for, so
 // ~1 dodge in 6 died mid-air, in the practice arena and on the terrain. The motor retries such a stall flat.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { CharacterMotor } from '../src/physics/CharacterMotor';
-import { groups } from '../src/physics/groups';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { CharacterMotor } from '#engine/physics/CharacterMotor';
+import { groups } from '#engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

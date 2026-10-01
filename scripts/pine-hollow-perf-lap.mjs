@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// pine-hollow-perf-lap.mjs — the PERF LAP (E350 F-J1, src/ui/perfLap.ts) run headless, the way Jake runs it on the phone:
+// pine-hollow-perf-lap.mjs — the PERF LAP (E350 F-J1, src/engine/ui/perfLap.ts) run headless, the way Jake runs it on the phone:
 // phone tier (iPhone 16 Pro, touch), the fps pill → PERF LAP, wait for the summary. Then checks the lap was safe:
 //   - no save changed (every localStorage key but the perf panel's own, before vs after: quest flags, the journal, the
 //     elites' lairs, the boss, the last place …)

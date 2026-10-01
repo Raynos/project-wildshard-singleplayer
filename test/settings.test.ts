@@ -1,11 +1,11 @@
-// src/ui/Settings.ts — reads storage once at module init, so each test imports a fresh copy of the module.
+// src/engine/ui/Settings.ts — reads storage once at module init, so each test imports a fresh copy of the module.
 import { describe, expect, it, vi } from 'vitest';
-import type * as SettingsModule from '../src/ui/Settings';
+import type * as SettingsModule from '#engine/ui/Settings';
 
 const STORE = 'ws.settings.v1';
 function fresh(): Promise<typeof SettingsModule> {
   vi.resetModules();
-  return import('../src/ui/Settings');
+  return import('#engine/ui/Settings');
 }
 
 describe('Settings', () => {

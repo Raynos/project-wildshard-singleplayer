@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // e350-hale-web.mjs — E350 F-X3: the web between a Pine Hollow person's arm and coat, measured on the files the rig loads
-// (public/assets/pine-hollow/npcs/<kind>[.phone].glb, rigged by src/pinehollow/quest/npcRig.ts rigLegs as the game does).
+// (public/assets/pine-hollow/npcs/<kind>[.phone].glb, rigged by src/shards/pine-hollow/quest/npcRig.ts rigLegs as the game does).
 // Poses Hale's point (the clip's own inputs) and reports the edges that stretch: which bones their ends ride, the rest and
 // posed lengths, and how many triangles join the forearm chain (twist · elbow · hand) to the torso (hips · spine · chest).
 //
@@ -10,7 +10,7 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { realpathSync } from 'node:fs';
 import * as THREE from 'three';
-import { rigLegs, legBones, legPose, LEG_BONE_NAMES } from '../src/pinehollow/quest/npcRig.ts';
+import { rigLegs, legBones, legPose, LEG_BONE_NAMES } from '../src/shards/pine-hollow/quest/npcRig.ts';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -67,7 +67,7 @@ for (const file of FILES) {
     if (foreR && torso) bridging++;
     if (mx > 0.3 && mx / Math.max(restAt, 1e-4) > 2.5) {
       stretched++; worst = Math.max(worst, mx);
-      const key = [domName(b, ea), domName(b, ec)].sort().join('-');
+      const key = [domName(b, ea), domName(b, ec)].sort((left, right) => left.localeCompare(right)).join('-');
       pairs[key] = (pairs[key] ?? 0) + 1;
       if (rows.length < 6) rows.push({ rest: Number(restAt.toFixed(3)), posed: Number(mx.toFixed(3)), a: [R[ea * 3], R[ea * 3 + 1], R[ea * 3 + 2]].map((q) => Number(q.toFixed(2))), c: [R[ec * 3], R[ec * 3 + 1], R[ec * 3 + 2]].map((q) => Number(q.toFixed(2))), key });
     }

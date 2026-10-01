@@ -3,16 +3,16 @@
 // sends it home when it is wedged, lost offshore, or past its leash — so the cave puzzle never jams. The last test
 // pushes it across Driftwood's real beach (the baked heightfield) from its start onto the cave's tide plate.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { Bodies, type Body } from '../src/physics/bodies';
-import { CharacterMotor } from '../src/physics/CharacterMotor';
-import { groups } from '../src/physics/groups';
-import { addTerrain } from '../src/physics/terrain';
-import { floorBelow } from '../src/physics/query';
-import { parseBakedTerrain } from '../src/world/BakedTerrain';
-import { BARREL_BODY, BARREL_LOST_T, BARREL_WEDGE_T, BarrelWatch, Live, plateDown, type BarrelEnv } from '../src/world/interact/Interactables';
-import type { BarrelDef } from '../src/world/interact/types';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { Bodies, type Body } from '#engine/physics/bodies';
+import { CharacterMotor } from '#engine/physics/CharacterMotor';
+import { groups } from '#engine/physics/groups';
+import { addTerrain } from '#engine/physics/terrain';
+import { floorBelow } from '#engine/physics/query';
+import { parseBakedTerrain } from '#engine/world/BakedTerrain';
+import { BARREL_BODY, BARREL_LOST_T, BARREL_WEDGE_T, BarrelWatch, Live, plateDown, type BarrelEnv } from '#engine/world/interact/Interactables';
+import type { BarrelDef } from '#engine/world/interact/types';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import driftwoodBake from '../public/assets/baked/driftwood-isle/terrain.bin?inline';
 
@@ -199,7 +199,7 @@ describe('Driftwood\'s cave puzzle, on the real beach', () => {
     addTerrain(ph, g.heights, g.res, g.size);
     ph.world.step();
     const ground = (x: number, z: number): number => floorBelow(ph, x, z, 40, 80) ?? 0;
-    // the anchors (src/world/Cove.ts): the cave mouth at (142, 14.5) facing −z; plateB = local (2.9, −4.6); barrelStart (147.5, 3.5)
+    // the anchors (src/shards/driftwood-isle/world/Cove.ts): the cave mouth at (142, 14.5) facing −z; plateB = local (2.9, −4.6); barrelStart (147.5, 3.5)
     const plate = { position: { x: 144.9, y: ground(144.9, 9.9), z: 9.9 }, yaw: 0 };
     const home = { x: 147.5, y: ground(147.5, 3.5), z: 3.5 };
     const bodies = new Bodies(ph), pl = player(ph);

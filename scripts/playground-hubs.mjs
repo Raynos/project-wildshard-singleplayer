@@ -6,7 +6,7 @@
 // forward 2 s (a real touch drag): the player walked, frames ticked, no page errors. Then, on a short phone (402 × 480, so
 // the list overflows), a real swipe up the hub list must scroll it to its end. Exit 1 on any failure.
 //
-// Expected lists (src/playgrounds/catalog.ts): Driftwood Isle and Pine Hollow — the shared three only; Nine Dragon — + the
+// Expected lists (src/engine/practice/playground/catalog.ts): Driftwood Isle and Pine Hollow — the shared three only; Nine Dragon — + the
 // grapple playground; Nalati — + the horse playground.
 //
 //   scripts/browser-lane.sh node scripts/playground-hubs.mjs --url=http://127.0.0.1:4405 [--out=…] [--only=pine-hollow,…]

@@ -1,6 +1,6 @@
 // pine-hollow-hero-shots.mjs — PH-S1's hero captures (art/hero-images/round-4-pine-hollow-in-engine/README.md): a god camera posed in
 // game.onLate, every DOM layer but the game canvas hidden, the weapon hidden, the clock frozen, DPR 2 (1600×900 → 3200×1800,
-// 1024×1536 → 2048×3072 PNGs). Needs the vite DEV server (it imports /src/world/Heightfield.ts for ground heights).
+// 1024×1536 → 2048×3072 PNGs). Needs the vite DEV server (it imports /src/engine/world/Heightfield.ts for ground heights).
 // A view: { id, query, cam: [x, dy, z], at: [x, dy, z] (dy over the ground there), fov, fovP (portrait), atKing / atKingP
 // (aim at the Antler King's live position + dy), kOff: [dx, dz], spawn: false (keep the player), hideAnimals: <m>,
 // settle: <ms>, burst: <n>, burstGap: <ms>, sizes: 'land' | 'port' | 'land,port', eval: <js> }. Grade + export: see the README.
@@ -34,7 +34,7 @@ try {
     await page.waitForFunction(() => Boolean(window.__wildshard?.world?.animals && window.__wildshard?.world?.game), undefined, { timeout: 300000, polling: 1000 });
     await page.evaluate(async () => {
       const w = window.__wildshard?.world, cam = w.game.camera;
-      window.__hf = await import('/src/world/Heightfield.ts');
+      window.__hf = await import('/src/engine/world/Heightfield.ts');
       try { w.animals.calm = true; } catch { /* */ }
       const st = document.createElement('style'); st.textContent = 'body *{visibility:hidden!important} canvas.__game{visibility:visible!important}';
       w.game.renderer.domElement.classList.add('__game'); document.head.append(st);

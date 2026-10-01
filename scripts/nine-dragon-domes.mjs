@@ -8,7 +8,7 @@
 // Per dome (art/nine-dragon-stack/round-15-eight-domes/<dome>/cameras.json): the nine views on a 2:3 portrait frame at
 // each view's own horizontal FOV (the targets' frame), no HUD and no viewmodel (everything but the canvas hidden) →
 // <out>/<dome>-<n>.jpg and <out>/<dome>-sheet.jpg (three rows of target | engine pairs). Per mockup camera
-// (src/chunks/nine-dragon-stack/mockupCameras.ts): the phone frame (402×874 @3, tier phone, touch) with the HUD and the
+// (src/shards/nine-dragon-stack/mockupCameras.ts): the phone frame (402×874 @3, tier phone, touch) with the HUD and the
 // viewmodel, as played → <out>/mockup-<K>.jpg and <out>/mockups-sheet.jpg (mockup over engine). Every pose also logs its
 // draws / triangles (one composer render), and the run logs the GPU memory the fragment holds (unique geometry bytes,
 // texture bytes at RGBA8 with mips, renderer.info.memory) → <out>/<tag>stats.json.
@@ -57,7 +57,7 @@ const release = () => { try { if (readFileSync(slot, 'utf8').trim() === String(p
 process.on('exit', release);
 for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.exit(1); });
 
-const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/chunks/nine-dragon-stack/mockupCameras.ts'));
+const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/shards/nine-dragon-stack/mockupCameras.ts'));
 const jpg64 = (p) => `data:image/jpeg;base64,${readFileSync(p).toString('base64')}`;
 const save = (p, dataUrl) => { writeFileSync(p, Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64')); };
 

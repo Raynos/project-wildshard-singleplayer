@@ -3,10 +3,10 @@
 // it), and then the body is removed — the pickup lies at that point for good. The cap may cull it mid-flight: then it
 // lands straight below where it was. No body service: it lands where it was put.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { Bodies, Drop } from '../src/physics/bodies';
-import { groups } from '../src/physics/groups';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { Bodies, Drop } from '#engine/physics/bodies';
+import { groups } from '#engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const DT = 1 / 60;

@@ -77,7 +77,7 @@ at F2's baseline.
    The Sword's combo queue (`Sword.ts:481,564`) becomes `input.consume('attack')` inside the Melee family, with the
    same `CHAIN_LAG` 0.02 s. The harness's scripted combo must stay identical.
 7. **A dev overlay** (a Debug row under Developer tools): the live context stack and the last 20 actions.
-8. **The hoverboard becomes a kit Tool** (13-lead-resolutions 09#7; 09 §1.7 T2): `src/player/Hoverboard.ts` (the board
+8. **The hoverboard becomes a kit Tool** (13-lead-resolutions 09#7; 09 §1.7 T2): `src/engine/player/Hoverboard.ts` (the board
    viewmodel) → `src/kit/tools/hoverboard.ts`, `class Hoverboard extends Tool`, slot `tool`, the `hover` action (`H`,
    the HOVER disc), on all 4 shards through each manifest's `loadout.tools`. Its movement mode (`Player.hover`, the
    ride-height spring, `HOVER_TOP`) stays in the engine motor as the `board` context. `Player` no longer constructs it.
@@ -473,7 +473,7 @@ also gets a byte-identical vertex-colour test on one model per baker.
      `to` isn't the booting shard, or that is more than 60 s old, is dropped. `mode` does what today's
      `consumeArenaArrival` and the title arrival do; `arrive` replaces the manifest `spawn` for this boot; `carry` is
      added to the arriving shard's inventory through the Bag (`#game`), per shard (decisions 74, 77).
-   - The callers move to `travel()`: the title deck's ENTER / EXPLORE / practice buttons (`src/ui/HUD.ts` today) and
+   - The callers move to `travel()`: the title deck's ENTER / EXPLORE / practice buttons (`src/engine/ui/HUD.ts` today) and
      the shard-complete card's next-shard button (`game/quest/Complete.ts`, reading `manifest.next`). `requestShard`,
      `consumeArenaArrival` and the `shardArrival.arena` key are deleted; `test/parity/renames/X9.json` maps
      `session:shardArrival.arena` → `session:travel.handoff` for the `saves` field.

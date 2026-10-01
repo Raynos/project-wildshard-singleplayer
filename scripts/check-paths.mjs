@@ -44,7 +44,7 @@ function check(file, text, path, index, folder = ROOT) {
 
 const tooling = globSync(['scripts/**/*.{mjs,js,sh,py,json}', 'vite.config.ts', 'vite/**/*.ts', '.oxlintrc.json'], { cwd: ROOT });
 for (const file of tooling) {
-  if (file === allowFile) continue; // allowances are checked against their named file, not as paths in this JSON
+  if (file === allowFile || file === 'scripts/normalize/move.dry-run.json') continue; // allowances are checked against their named file, not as paths in this JSON
   const text = readFileSync(resolve(ROOT, file), 'utf8');
   const shell = /\.(sh|py)$/.test(file);
   const code = codeOnly(text, shell);

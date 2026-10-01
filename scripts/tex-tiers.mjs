@@ -2,13 +2,13 @@
 // Commit the outputs: Vercel's builder has neither tool, so nothing here runs at build time.
 //
 // 1. Poly Haven sets: for every public/assets/tex/<id>/{diffuse,nor_gl,arm}.jpg wider than 1024 px or heavier than
-//    350 KB, write <kind>_1k.jpg beside it (≤ 1024², q82). The phone tier requests these (src/core/assets.ts texUrl)
+//    350 KB, write <kind>_1k.jpg beside it (≤ 1024², q82). The phone tier requests these (src/engine/core/assets.ts texUrl)
 //    instead of downloading a 2048² file it would shrink anyway.
 // 2. Model textures: Poly Haven ships the glTF props' 1k JPEGs at q99 — three times the bytes of q85 for no
 //    difference anyone can see at 1k. Re-encoded IN PLACE (both tiers) at q85, normal maps with 4:4:4 chroma (their
 //    R and G are independent data, 4:2:0 would smear them). Same for the JPEGs embedded in the `<id>_lod.glb`
 //    props (scripts/simplify-models.mjs copies them in at q99). A file already ≤ q90 is left alone.
-// 3. `.phone.webp` copies, picked by `tierUrl()` (src/boot/bytes.ts) on the phone tier — for fetchImage, and for
+// 3. `.phone.webp` copies, picked by `tierUrl()` (src/engine/boot/bytes.ts) on the phone tier — for fetchImage, and for
 //    three's loaders through DefaultLoadingManager's URL modifier (glTF textures). The boot manifest declares
 //    through the same function, so declared bytes = downloaded bytes. WebP q75 (-sharp_yuv) is ~20–25 % smaller
 //    than the q82 JPEG it replaces AND measures lower error against the source (forest_ground_04: 0.024 vs 0.032); PNG alpha stays lossless (-exact keeps the RGB under transparent
@@ -162,7 +162,7 @@ const isArm = (p) => /(^|[_/-])(arm|rough|roughness|metal|metallic)([_.-]|$)/i.t
 /**
  * [file the other tiers download, best source to encode from, max px] for every image the phone fetches: baked planes (cards, fur, clouds, planet),
  * the twig atlas, every Poly Haven set (encoded from the ORIGINAL map, not the q82 _1k copy — one lossy pass, not
- * two) and the glTF props' textures (through the loaders' URL modifier, src/boot/bytes.ts).
+ * two) and the glTF props' textures (through the loaders' URL modifier, src/engine/boot/bytes.ts).
  */
 function phoneJobs() {
   const jobs = [];

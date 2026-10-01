@@ -1,10 +1,11 @@
+import { legacyShardId } from '../shard/manifest';
 /**
  * installAdventure — the active shard's adventure layer wired into the running game in ONE call from main.ts, looked
  * up in a per-shard registry (`ADVENTURES`, the bottom of this file; PINE-HOLLOW-REMASTER PH-0.3). A shard with no
  * entry gets `null` and nothing is built — Pine Hollow today (its slot is empty until its lantern quest lands).
  *
  * Driftwood Isle's (plan Track A, `installDriftwoodAdventure`): everything it adds is data: the interactables table
- * (src/world/interact/driftwood.ts) built by the kit (src/world/interact/Interactables.ts); state lives in `Flags`
+ * (src/shards/driftwood-isle/quest/interactables.ts) built by the kit (src/engine/world/interact/Interactables.ts); state lives in `Flags`
  * (persisted per shard).
  *
  *   const adventure = installAdventure({ game, sky, player, chunk, prompts: interactables, hud, audio, music,
@@ -13,32 +14,32 @@
  * Dev: `?resetquest` forgets this shard's adventure flags on load; `window.__adventure` = { flags, kit, … }.
  */
 import * as THREE from 'three';
-import type { WorldRegistry } from '../../world/registry';
-import { heightAt } from '../../world/Heightfield';
-import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../../chunks/driftwood-isle';
-import { Cove } from '../../world/Cove';
-import type { Sky } from '../../world/Sky';
-import type { Interactable } from '../../world/Cabin';
-import type { Collider } from '../../player/Player';
-import { Flags } from '../../world/interact/flags';
-import { Interactables, type InteractEvent } from '../../world/interact/Interactables';
-import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../../world/interact/driftwood';
-import type { PoiId, Place } from '../../world/interact/types';
+import type { WorldRegistry } from '#engine/world/registry';
+import { heightAt } from '#engine/world/Heightfield';
+import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '#shards/driftwood-isle/manifest';
+import { Cove } from '#shards/driftwood-isle/world/Cove';
+import type { Sky } from '#engine/world/Sky';
+import type { Interactable } from '#engine/world/Cabin';
+import type { Collider } from '#engine/player/Player';
+import { Flags } from '#engine/world/interact/flags';
+import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '#shards/driftwood-isle/quest/interactables';
+import type { PoiId, Place } from '#engine/world/interact/types';
 import { ITEMS, type ItemId } from '../Inventory';
-import type { Audio } from '../../audio/Audio';
-import { IslandSfx } from '../../audio/IslandSfx';
-import { installSpine, type Spine } from './Spine';
-import { installTrader, type TraderStall } from './TraderStall';
-import { installFeats } from './Feats';
+import type { Audio } from '#engine/audio/Audio';
+import { IslandSfx } from '#engine/audio/IslandSfx';
+import { installSpine, type Spine } from '#shards/driftwood-isle/quest/Spine';
+import { installTrader, type TraderStall } from '#shards/driftwood-isle/quest/TraderStall';
+import { installFeats } from '#shards/driftwood-isle/quest/Feats';
 import type { ProgressSink } from '../Progress';
-import { installPlaces, type Places } from './Places';
-import { installGullGuide } from './gullGuide';
-import { installFinale, type Finale } from './Finale';
-import { installComplete, type Complete, type CompleteProgress } from './Complete';
-import { installEcology, type RespawnQueue } from './Ecology';
-import { Zipline } from '../../world/Zipline';
-import { ironSwordGuard, SWORD_GUARDED } from './guards';
-import type { MapPoi, MapQuest } from '../../ui/Map';
+import { installPlaces, type Places } from '#shards/driftwood-isle/quest/Places';
+import { installGullGuide } from '#shards/driftwood-isle/quest/gullGuide';
+import { installFinale, type Finale } from '#shards/driftwood-isle/quest/Finale';
+import { installComplete, type Complete, type CompleteProgress } from '#shards/driftwood-isle/quest/Complete';
+import { installEcology, type RespawnQueue } from '#shards/driftwood-isle/quest/Ecology';
+import { Zipline } from '#shards/driftwood-isle/world/Zipline';
+import { ironSwordGuard, SWORD_GUARDED } from '#shards/driftwood-isle/quest/guards';
+import type { MapPoi, MapQuest } from '#engine/ui/Map';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
@@ -56,7 +57,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void) => void };
   sky: Sky;
   player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
-  chunk: { slug: string; id: string };
+  chunk: { slug: string };
   /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
   prompts: Interactable[];
   /** the HUD: toasts; the complete card (E132) resumes play through `onResume` (the pause menu's close) and leaves by `exitToMenu` */
@@ -121,7 +122,7 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
 
 /** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
 function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adventure {
-  const flags = new Flags(w.chunk.id);
+  const flags = new Flags(legacyShardId(w.chunk.slug));
   if (w.params?.has('resetquest')) flags.reset();
 
   const floorAt = (x: number, z: number): number => {
@@ -206,7 +207,7 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
     const lx = from.x + (cave.x - from.x) * 0.47, lz = from.z + (cave.z - from.z) * 0.47;
     const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }).build();
     // the launch deck collides as real geometry (PHYSICS P4); without a registry (dev scenes) it's a floor function
-    // E315 M1: the zipline model (src/chunks/driftwood-isle/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
+    // E315 M1: the zipline model (src/shards/driftwood-isle/models/zipline.ts) placed drawnInto the ride's group (piece `zipline`)
     if (w.registry) { zip.place(w.registry); w.game.scene.add(zip.group); }
     else { w.game.scene.add(zip.group); w.player.platforms.push((x, z) => zip.floorHeightAt(x, z)); }
     w.prompts.push(zip.prompt);

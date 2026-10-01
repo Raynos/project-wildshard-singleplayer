@@ -3,11 +3,11 @@
 // walker rides it end to end without falling through.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { CharacterMotor } from '../src/physics/CharacterMotor';
-import { RopeChain } from '../src/physics/ropeChain';
-import type { DeckSegment } from '../src/world/RopeBridge';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { CharacterMotor } from '#engine/physics/CharacterMotor';
+import { RopeChain } from '#engine/physics/ropeChain';
+import type { DeckSegment } from '#shards/driftwood-isle/world/RopeBridge';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

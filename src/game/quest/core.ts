@@ -1,7 +1,7 @@
 /**
  * The shared quest core (NALATI-MERGE Q1): the pieces of Driftwood's adventure layer that are not Driftwood's, so a
  * second shard runs its quest line on the same machinery, look and saves. A shard's install (Driftwood: Adventure.ts
- * + Spine.ts + Places.ts; Nalati: src/nalati/adventure.ts) owns its data and its NPCs and wires these:
+ * + Spine.ts + Places.ts; Nalati: src/shards/nalati-grasslands/adventure.ts) owns its data and its NPCs and wires these:
  *
  *   QuestChip        the quest chip under the minimap (QuestUI.ObjectiveLine, E51): the goal + its counter, and the
  *                    nearest live marker's short name, metres and bearing. `chip.update(t, player)` every frame.
@@ -14,15 +14,15 @@
  *   QuestLine        chained chapters (QuestDefs whose `startWhen` reads the previous one's `completeFlag`): the active
  *                    chapter is the first one not complete; step / complete callbacks for every chapter.
  *
- * Flags (src/world/interact/flags.ts) stay the one store: per shard, `ws.flags.v1`, `?resetquest` clears them.
+ * Flags (src/engine/world/interact/flags.ts) stay the one store: per shard, `ws.flags.v1`, `?resetquest` clears them.
  */
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './QuestUI';
 import { QuestState, lineFor, type DialogueEntry, type NpcDef, type QuestDef, type QuestStep } from './quest';
-import type { Flags } from '../../world/interact/flags';
-import type { Interactable } from '../../world/Cabin';
-import type { MapPoi } from '../../ui/Map';
-import { practiceRoom } from '../../core/practiceRoom';
+import type { Flags } from '#engine/world/interact/flags';
+import type { Interactable } from '#engine/world/Cabin';
+import type { MapPoi } from '#engine/ui/Map';
+import { practiceRoom } from '#engine/core/practiceRoom';
 
 /** a quest marker resolved to world coordinates */
 export interface LiveMarker { id: string; label: string; short: string; x: number; z: number }

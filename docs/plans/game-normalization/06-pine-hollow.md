@@ -23,13 +23,13 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 
 ## 1. Inventory (a): every file of Pine Hollow's code today and where it goes
 
-### 1.1 `src/chunks/pine-hollow.ts`, `pineHollowLayout.ts`, `fauna-layout.ts`, `src/chunks/pine-hollow/`
+### 1.1 `src/shards/pine-hollow/manifest.ts`, `pineHollowLayout.ts`, `fauna-layout.ts`, `src/shards/pine-hollow/`
 
 | Files (lines) | Destination | When | Why / what changes |
 |---|---|---|---|
-| `src/chunks/pine-hollow.ts` (333) | `shard:manifest.ts` (data, §3) + `shard:world/terrain.ts` (the pure functions `smin`, `smax`, `oldGrowthMask`, `ridgeWeight`, `denWallWeight`, `rawLandscape`, `padHeight`, `landscape`, `TRAILS`, `TERRAIN`, `ziplineDistance`, `FOREST_KEEP`, `forestDensity`, `mixW`, the five mixes, `speciesMix`: `:23-216`, moved verbatim) | F6 rename; S2.1 split | The manifest imports `world/terrain.ts`; both stay node-safe (`bake-chunk.mjs` and `bake-navmesh.mjs` import them today) |
-| `src/chunks/pineHollowLayout.ts` (296) | `shard:layout.ts` | F6 | Every coordinate (`+z north, +x WEST`) |
-| `src/chunks/fauna-layout.ts` (122) | `src/engine/world/faunaLayout.ts` | F6 | A placement primitive (grid of cells, one weighted group per cell) with no Pine word; 01 §17 *Placement* |
+| `src/shards/pine-hollow/manifest.ts` (333) | `shard:manifest.ts` (data, §3) + `shard:world/terrain.ts` (the pure functions `smin`, `smax`, `oldGrowthMask`, `ridgeWeight`, `denWallWeight`, `rawLandscape`, `padHeight`, `landscape`, `TRAILS`, `TERRAIN`, `ziplineDistance`, `FOREST_KEEP`, `forestDensity`, `mixW`, the five mixes, `speciesMix`: `:23-216`, moved verbatim) | F6 rename; S2.1 split | The manifest imports `world/terrain.ts`; both stay node-safe (`bake-chunk.mjs` and `bake-navmesh.mjs` import them today) |
+| `src/shards/pine-hollow/layout.ts` (296) | `shard:layout.ts` | F6 | Every coordinate (`+z north, +x WEST`) |
+| `src/engine/world/faunaLayout.ts` (122) | `src/engine/world/faunaLayout.ts` | F6 | A placement primitive (grid of cells, one weighted group per cell) with no Pine word; 01 §17 *Placement* |
 | `roster.ts` (40) | `shard:roster.ts` | F6 | The `roster` thunk |
 | `models/*.ts` (48 files, 5,026 lines: `antlerKing` 275, `beaverDam`, `birds` 64, `canoe`, `caveArch` 81, `contractBoard`, `cragBoulder`, `cragCliff`, `creatures`, `creekFootbridge` 68, `fallenLog` 68, `fern`, `fireLookout` 223, `forestTree` 78, `gear` 103, `hamletShed`, `hatchet`, `hollowLog` 93, `huntingLodge`, `logCabin` 1,544, `millersHouse`, `moss`, `mossyBoulder` 67, `needleLitter`, `pebbles`, `people` 300, `porchLantern`, `reeds`, `scree`, `shrub`, `skinningKnife` 220, `standingStone`, `stoneFirePit`, `tokenShelf` 44, `traderStall`, `treeStump`, `watermill`, `waystone`, `wildlife` 497, `wineBarrel`, `woodenBucket`, `woodenCrate`, `zipCable`, `ziplineLanding` 90) | same names under `shard:models/` | F6 | Content on the model contract. `logCabin.ts` exports `CabinSpec` that `world/Cabin.ts:19, 48` re-exports (moves with `Cabin.ts`, §1.3). `skinningKnife.ts:54` listens for `ws:ready` → `ctx.on('app.ready')` (S2.1) |
 | `world/cabinKit.ts` (37), `cabins.ts` (111), `context.ts` (19), `cragKit.ts` (50), `drawnModels.ts` (66), `hero.ts` (52), `places.ts` (57), `props.ts` (204), `timber.ts` (175), `undergrowthKit.ts` (45) | same names under `shard:world/` | F6; S2.1 wiring | `placeCabins`, `Props`, `placePineHollowSets`, `placeDrawnModels` are called by the plugin's world build instead of `main.ts` |
@@ -56,33 +56,33 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 
 | Today | Lines | Destination | When | Why |
 |---|---|---|---|---|
-| `src/world/PineLandmarks.ts` | 422 | `shard:world/landmarks.ts` | S2.1 | Only Pine builds it (`main.ts:465`) |
-| `src/world/PineCrags.ts` | 1,019 | `shard:world/crags.ts` | S2.1 | Imported by `PineLandmarks` only |
-| `src/world/PineStreams.ts` | 278 | `shard:world/streams.ts` | S2.1 | `main.ts:297`; its water body implements `WaterBody` at X5 |
-| `src/world/BeaverPool.ts` | 196 | `shard:world/beaverPool.ts` | S2.1 | Imported by Pine's quest; `pondClip` (manifest) cuts the pond around it |
-| `src/world/pineHero.ts` | 18 | `shard:world/heroFiles.ts` | S2.1 | File lists for `boot.files` |
-| `src/world/pineSkyKeys.ts` | 39 | `shard:look/skyKeys.ts` | S2.4 | The seven photographic keys of the sky backdrop |
-| `src/world/PineDayNight.ts` | 609 | split: the clock → `src/engine/world/dayCycle.ts` (generic, §6.4); the presets `P` (:84-120) → `shard:look/dayKeys.ts` (keyframe data); the key-blend dome, the stepped IBL refresh and the sky-key residency (:206-609) → `shard:look/skyBackdrop.ts` (Pine's `LookStrategy.backdrop`) | S2.4 | §6.4 |
-| `src/world/PineWeather.ts` | 153 | the state machine → `src/engine/world/weather.ts` (generic `Weather`); `PINE_WEATHER_LEN`, `FIRST_CLEAR`, `SOAK_S`, `DRY_S`, `dawnFogAt` → `shard:world/weatherProfile.ts` | S2.4 | §6.4 |
-| `src/world/PineWeatherFX.ts` | 527 | the rain curtain (`buildRain`, :164-236) → `src/kit/weather/rainCurtain.ts` (shared with Nalati's `WeatherFX.buildRain`); the cover map, puddles, splashes, lens drops (:136-163, :237-527) → `shard:world/weatherFx.ts` | S2.4 | Rule of two: only the curtain is shared (question Q3) |
-| `src/world/Cabin.ts` | 642 | the `Interactable` type and `setSight` users stay engine: `src/engine/world/interact/types.ts`; the `Cabins` class (the homestead) → `shard:world/homestead.ts` | S2.1 | `Cabins` is built only on Pine (`main.ts:444-445`); `Interactable` is imported by 30 files on every shard |
-| `src/world/TrophyWall.ts` | 315 | `shard:world/trophyWall.ts` | S2.1 | Built by the compendium install for Pine's compendium only |
-| `src/world/pointLightSkip.ts` | 31 | `src/engine/render/pointLightSkip.ts`, on by the tier knob `pointLightSkip` | S2.1 | `Sky.ts:134` slug gate |
-| `src/audio/ForestAmbience.ts` | 288 | `shard:audio/ambience.ts` | S2.1 | Built only on Pine (`main.ts:863`); becomes an `AmbienceBeds` profile at S3.5 |
-| `src/audio/PineHollowSfx.ts` | 291 | `shard:audio/sfx.ts` | S2.1 | Pine's voice engine; merged with `Voices.ts` into the engine voice pool at S3.5 (01 §15) |
-| `src/entities/pineCreatures.ts` (361), `pineCoats.ts` (533), `pineCreatureRigs.ts` (17), `bearFix.ts` (112) | 1,023 | `shard:species/hulls.ts`, `coats.ts`, `rigs.ts`, `bearFix.ts` | S2.3 | The Pine look of its species (the TRELLIS hulls and coats). `pineCreatureRigs.ts` is also read by `boot/manifest.ts:24` → `boot.files` |
-| `src/player/Crossbow.ts` (1,307), `LeverRifle.ts` (929), `Longbow.ts` (792), `hunterHands.ts` (435) | 3,463 | `src/kit/weapons/crossbow/`, `bow/` (Longbow as a Bow profile), `src/kit/viewmodel/hunterHands.ts`; `LeverRifle.ts` → `shard:weapons/LeverRifle.ts` at F6 (`class LeverRifle extends Firearm`, rule of two: only Pine uses it; 13-lead-resolutions 04#3) | S2.2 | Families live in the kit (01 §18); 09-combat-ai has every field |
-| `src/player/Skins.ts` | 299 | `SkinLocker` → `#game/cosmetics` (X5 "one skin locker"); `SKINS` (the seven legendary finishes) → `shard:loadout/skins.ts` | S2.2 | The legendary skins are Pine's (`main.ts:793`, E318 row 4 / E333) |
-| `src/ui/compendium/shards/pine-hollow.ts` | 145 | `shard:compendium.ts`, registered with `ctx.rows.compendium(…)` | S2.1 | `compendium/install.ts:14, 48` |
+| `src/shards/pine-hollow/world/landmarks.ts` | 422 | `shard:world/landmarks.ts` | S2.1 | Only Pine builds it (`main.ts:465`) |
+| `src/shards/pine-hollow/world/crags.ts` | 1,019 | `shard:world/crags.ts` | S2.1 | Imported by `PineLandmarks` only |
+| `src/shards/pine-hollow/world/streams.ts` | 278 | `shard:world/streams.ts` | S2.1 | `main.ts:297`; its water body implements `WaterBody` at X5 |
+| `src/shards/pine-hollow/world/beaverPool.ts` | 196 | `shard:world/beaverPool.ts` | S2.1 | Imported by Pine's quest; `pondClip` (manifest) cuts the pond around it |
+| `src/shards/pine-hollow/world/heroFiles.ts` | 18 | `shard:world/heroFiles.ts` | S2.1 | File lists for `boot.files` |
+| `src/shards/pine-hollow/look/skyKeys.ts` | 39 | `shard:look/skyKeys.ts` | S2.4 | The seven photographic keys of the sky backdrop |
+| `src/shards/pine-hollow/look/PineDayNight.ts` | 609 | split: the clock → `src/engine/world/dayCycle.ts` (generic, §6.4); the presets `P` (:84-120) → `shard:look/dayKeys.ts` (keyframe data); the key-blend dome, the stepped IBL refresh and the sky-key residency (:206-609) → `shard:look/skyBackdrop.ts` (Pine's `LookStrategy.backdrop`) | S2.4 | §6.4 |
+| `src/shards/pine-hollow/world/PineWeather.ts` | 153 | the state machine → `src/engine/world/weather.ts` (generic `Weather`); `PINE_WEATHER_LEN`, `FIRST_CLEAR`, `SOAK_S`, `DRY_S`, `dawnFogAt` → `shard:world/weatherProfile.ts` | S2.4 | §6.4 |
+| `src/shards/pine-hollow/world/PineWeatherFX.ts` | 527 | the rain curtain (`buildRain`, :164-236) → `src/kit/weather/rainCurtain.ts` (shared with Nalati's `WeatherFX.buildRain`); the cover map, puddles, splashes, lens drops (:136-163, :237-527) → `shard:world/weatherFx.ts` | S2.4 | Rule of two: only the curtain is shared (question Q3) |
+| `src/engine/world/Cabin.ts` | 642 | the `Interactable` type and `setSight` users stay engine: `src/engine/world/interact/types.ts`; the `Cabins` class (the homestead) → `shard:world/homestead.ts` | S2.1 | `Cabins` is built only on Pine (`main.ts:444-445`); `Interactable` is imported by 30 files on every shard |
+| `src/shards/pine-hollow/world/trophyWall.ts` | 315 | `shard:world/trophyWall.ts` | S2.1 | Built by the compendium install for Pine's compendium only |
+| `src/engine/world/pointLightSkip.ts` | 31 | `src/engine/render/pointLightSkip.ts`, on by the tier knob `pointLightSkip` | S2.1 | `Sky.ts:134` slug gate |
+| `src/shards/pine-hollow/audio/ambience.ts` | 288 | `shard:audio/ambience.ts` | S2.1 | Built only on Pine (`main.ts:863`); becomes an `AmbienceBeds` profile at S3.5 |
+| `src/shards/pine-hollow/audio/sfx.ts` | 291 | `shard:audio/sfx.ts` | S2.1 | Pine's voice engine; merged with `Voices.ts` into the engine voice pool at S3.5 (01 §15) |
+| `src/engine/entities/pineCreatures.ts` (361), `pineCoats.ts` (533), `pineCreatureRigs.ts` (17), `bearFix.ts` (112) | 1,023 | `shard:species/hulls.ts`, `coats.ts`, `rigs.ts`, `bearFix.ts` | S2.3 | The Pine look of its species (the TRELLIS hulls and coats). `pineCreatureRigs.ts` is also read by `boot/manifest.ts:24` → `boot.files` |
+| `src/engine/player/Crossbow.ts` (1,307), `LeverRifle.ts` (929), `Longbow.ts` (792), `hunterHands.ts` (435) | 3,463 | `src/kit/weapons/crossbow/`, `bow/` (Longbow as a Bow profile), `src/kit/viewmodel/hunterHands.ts`; `LeverRifle.ts` → `shard:weapons/LeverRifle.ts` at F6 (`class LeverRifle extends Firearm`, rule of two: only Pine uses it; 13-lead-resolutions 04#3) | S2.2 | Families live in the kit (01 §18); 09-combat-ai has every field |
+| `src/engine/player/Skins.ts` | 299 | `SkinLocker` → `#game/cosmetics` (X5 "one skin locker"); `SKINS` (the seven legendary finishes) → `shard:loadout/skins.ts` | S2.2 | The legendary skins are Pine's (`main.ts:793`, E318 row 4 / E333) |
+| `src/shards/pine-hollow/compendium.ts` | 145 | `shard:compendium.ts`, registered with `ctx.rows.compendium(…)` | S2.1 | `compendium/install.ts:14, 48` |
 | `src/game/achievements.ts:35-97` (the `PINE_HOLLOW` list), `:98` | ~63 | `shard:feats.ts`, `ctx.rows.feat(…)` | S2.1 | #game feats per shard (decision 76) |
 | `src/game/Inventory.ts:12-29, 52, 79-86, 110-134` (`PINE_PACK_KINDS`, `PINE_PACK_SLOTS`, `isPineItem`, `isPineChunk`, Pine's item rows) | ~30 | Pine's item rows → `shard:items.ts`; the pack rule → `manifest.bag.pack` | S2.1 | E314 pick C |
-| `src/core/perfLap.ts` (36), `src/ui/perfLap.ts` (197) | 233 | `src/engine/debug/perfLap.ts` (the panel's lap runner, no route of its own) | S2.1 | The route is Pine's (`shard:dev/perfLap.ts`) |
-| `src/world/blenderArea.ts:32` (`'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }`) | 1 | `level.blender.area` | S2.1 | Data |
-| `src/world/HorizonMatte.ts:55-57` (the Pine strips) | 3 | `level.horizon.matte` | S2.1 | Data |
-| `src/world/TreeFactory.ts` (768) | 768 | `shard:world/treeFactory.ts` | S2.1 | `trees.factory: 'pine'` is Pine's only (Nalati: `spruce`, the others `none`); the template's comment (`_template.ts:98`) is the template's to change at Z1 |
-| `src/world/Grass.ts` (the non-painterly carpet, 614 in all), `Undergrowth.ts` (539) | 1,153 | `shard:world/grass.ts`, `undergrowth.ts` | S2.1 (`Undergrowth.ts`); `Grass.ts` at S3.1, once S3.1 takes Nalati's `GrassV2` dispatch out (`Grass.ts:129`; 13-lead-resolutions 04#4) | Only Pine draws the carpet and the undergrowth |
-| `src/world/Particles.ts` (423), `src/world/GrassTrample.ts` | — | `src/kit/looks/particles.ts`, `src/kit/looks/trample.ts` | F6 | Pine + Nalati (rule of two; 01 §21 names the trample) |
-| `src/world/Forest.ts` (351), `placement.ts` (323), `treeSpecies.ts`, `treeSet.ts` | — | `src/engine/world/forest/` | F6 | Placement + drawing of any forest (Pine, Nalati); the species names are data the shard's set declares |
+| `src/engine/core/perfLap.ts` (36), `src/engine/ui/perfLap.ts` (197) | 233 | `src/engine/debug/perfLap.ts` (the panel's lap runner, no route of its own) | S2.1 | The route is Pine's (`shard:dev/perfLap.ts`) |
+| `src/engine/world/blenderArea.ts:32` (`'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }`) | 1 | `level.blender.area` | S2.1 | Data |
+| `src/engine/world/HorizonMatte.ts:55-57` (the Pine strips) | 3 | `level.horizon.matte` | S2.1 | Data |
+| `src/engine/world/TreeFactory.ts` (768) | 768 | `shard:world/treeFactory.ts` | S2.1 | `trees.factory: 'pine'` is Pine's only (Nalati: `spruce`, the others `none`); the template's comment (`_template.ts:98`) is the template's to change at Z1 |
+| `src/engine/world/Grass.ts` (the non-painterly carpet, 614 in all), `Undergrowth.ts` (539) | 1,153 | `shard:world/grass.ts`, `undergrowth.ts` | S2.1 (`Undergrowth.ts`); `Grass.ts` at S3.1, once S3.1 takes Nalati's `GrassV2` dispatch out (`Grass.ts:129`; 13-lead-resolutions 04#4) | Only Pine draws the carpet and the undergrowth |
+| `src/kit/looks/particles.ts` (423), `src/kit/looks/trample.ts` | — | `src/kit/looks/particles.ts`, `src/kit/looks/trample.ts` | F6 | Pine + Nalati (rule of two; 01 §21 names the trample) |
+| `src/engine/world/forest/Forest.ts` (351), `placement.ts` (323), `treeSpecies.ts`, `treeSet.ts` | — | `src/engine/world/forest/` | F6 | Placement + drawing of any forest (Pine, Nalati); the species names are data the shard's set declares |
 | `scripts/pine-hollow-*.mjs` (17 files), `e314-pine-bag-capture.mjs` | — | F7's liveness rule; `pine-hollow-perf-lap.mjs` is live (a harness block) and is ported to the probe | F7 | — |
 | `test/pine-*.test.ts` (13), `token-shelf.test.ts`, `models-pine-hollow.test.ts` | — | `test/shards/pine-hollow/` (TP11); `pine-day-night.test.ts` and `pine-weather.test.ts` become `test/engine/day-cycle.test.ts` + `test/engine/weather.test.ts` with Pine's profile as one fixture | F6; S2.4 | — |
 | `public/assets/pine-hollow/**`, `public/assets/models/pine-hollow-*`, `public/assets/gpu/pine-hollow/**`, `public/assets/music/pine-hollow-*`, `public/assets/sfx/pine-hollow/` | — | **not moved** (TP §5) | — | — |
@@ -493,7 +493,7 @@ pickup and the Longbow grant work in the scripted run.
    `when` tags (`night`, the King's call).
 6. **Damage in**: `ctx.hurt` / `ctx.stun` (`pinehollow/index.ts:85-86`) → `combat.hit` with `creature.*` / `boss.*`
    tags; the stun is an effect (`effect.stun` from the kit starter set, same 0 … n seconds as `stunT`).
-7. **`BOSS_NAMES` → a content registry fed by boss rows** (EI23; 13-lead-resolutions G17). Today `src/ui/Combat.ts:40`
+7. **`BOSS_NAMES` → a content registry fed by boss rows** (EI23; 13-lead-resolutions G17). Today `src/engine/ui/Combat.ts:40`
    exports a mutable `Map` that Pine (`pinehollow/index.ts:121`, the King) and the practice arena
    (`practice/TrainingArena.ts:24`, the dummy) write into, and the head bar / aim readout (`Combat.ts:44, 194`) read.
    S2.3 deletes the map:
@@ -595,7 +595,7 @@ export class Weather { constructor(p: WeatherProfile, rng: Rng); update(dt: numb
   rings, the wind boost, the ambience's rain, the herds' shelter, the Ghost Stag's fog bank.
 - The Debug row `weather` (engine, shown when `uses` has `weather`) drives `Weather.setMode`.
 
-**C. Files touched in S2.4:** `src/world/PineDayNight.ts`, `PineWeather.ts`, `PineWeatherFX.ts`,
+**C. Files touched in S2.4:** `src/shards/pine-hollow/look/PineDayNight.ts`, `PineWeather.ts`, `PineWeatherFX.ts`,
 `pinehollow/weather.ts`, `world/Sky.ts` (`setupPine`, `pine`, `attachPost`, `lamps`, update), `core/Game.ts:369`,
 `world/DayNight.ts`, `world/DayClock.ts`, `world/WorldClock.ts`, `world/Weather.ts`, `world/WeatherFX.ts`,
 `nalati/weather.ts` (constructs the engine classes), `world/Particles.ts:106`, `explore/MiniMap.ts:131`,

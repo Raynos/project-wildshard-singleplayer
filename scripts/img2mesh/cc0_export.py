@@ -5,8 +5,8 @@ face's colour snapped to the Driftwood palette, metres, pivot at the base, verte
       --name cc0-crate --out ~/ml/img2mesh/out/driftwood-cc0 --size 0.9 [--fit height|length] [--keep-hue]
 
 Face colour = the material's base colour factor x its base-colour texture at the face centre (Kenney's colormap atlas),
-then snapped to the nearest PALETTE colour in CIELAB (the colours the procedural Driftwood models use: src/world/
-Palms.ts, Pier.ts, Boulders.ts, lowpolyKit.ts), so a kit asset sits in the same world as the hero props.
+then snapped to the nearest PALETTE colour in CIELAB (the colours the procedural Driftwood models use: `src/shards/driftwood-isle/world/Palms.ts`, Pier.ts and Boulders.ts,
+plus `src/engine/world/lowpolyKit.ts`), so a kit asset sits in the same world as the hero props.
 """
 import argparse
 import json

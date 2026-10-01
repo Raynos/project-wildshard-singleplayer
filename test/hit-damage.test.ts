@@ -1,11 +1,11 @@
-// E294: Driftwood caps every enemy hit at 20 of the player's 100 health (ChunkDef.maxHitDamage → hitDamage), so any common
+import { terrainFor, hitDamage } from '#game/shard/manifest';
+// E294: Driftwood caps every enemy hit at 20 of the player's 100 health (ShardManifest.maxHitDamage → hitDamage), so any common
 // enemy needs ~5 hits to kill you; the other shards stay uncapped. And the brown bear lives off the quest paths.
 import { describe, expect, it } from 'vitest';
 import { loadSpecies } from './species';
-import { hitDamage } from '../src/chunks/ChunkDef';
-import { CHUNKS, findChunk } from '../src/chunks/registry';
-import { DRIFTWOOD_ISLE, PATHS, WRECK, SHRINE, HUT, LOOKOUT, OCEAN } from '../src/chunks/driftwood-isle';
-import { speciesDef, variantMods } from '../src/entities/species/registry';
+import { CHUNKS, findChunk } from '#game/shard/registry';
+import { DRIFTWOOD_ISLE, PATHS, WRECK, SHRINE, HUT, LOOKOUT, OCEAN } from '#shards/driftwood-isle/manifest';
+import { speciesDef, variantMods } from '#engine/entities/species/registry';
 
 loadSpecies();
 const HEALTH = 100;
@@ -20,11 +20,11 @@ const hits = (kind: string): { id: string; dmg: number }[] => {
 
 describe('hitDamage (E294)', () => {
   it('caps at the shard maxHitDamage and passes a smaller hit through', () => {
-    expect(hitDamage({ maxHitDamage: 20 }, 45)).toBe(20);
-    expect(hitDamage({ maxHitDamage: 20 }, 14)).toBe(14);
+    expect(hitDamage({ fight: { maxHitDamage: 20 } }, 45)).toBe(20);
+    expect(hitDamage({ fight: { maxHitDamage: 20 } }, 14)).toBe(14);
     expect(hitDamage({}, 45)).toBe(45);
-    expect(hitDamage({ maxHitDamage: 20, hitCapExempt: ['captain'] }, 24, 'captain')).toBe(24);
-    expect(hitDamage({ maxHitDamage: 20, hitCapExempt: ['captain'] }, 45, 'bear')).toBe(20);
+    expect(hitDamage({ fight: { maxHitDamage: 20, capExempt: ['captain'] } }, 24, 'captain')).toBe(24);
+    expect(hitDamage({ fight: { maxHitDamage: 20, capExempt: ['captain'] } }, 45, 'bear')).toBe(20);
   });
 
   it('Driftwood: the Drowned Captain (the final boss) swings past the cap', () => {
@@ -32,7 +32,7 @@ describe('hitDamage (E294)', () => {
   });
 
   it('Driftwood: no enemy hit takes more than 20 % of your health, so every enemy needs at least 5 hits', () => {
-    expect(DRIFTWOOD_ISLE.maxHitDamage).toBe(20);
+    expect(DRIFTWOOD_ISLE.fight?.maxHitDamage).toBe(20);
     for (const kind of DRIFTWOOD_ENEMIES) for (const h of hits(kind)) {
       if (EXEMPT.has(kind)) continue;
       const d = hitDamage(DRIFTWOOD_ISLE, h.dmg, kind);
@@ -48,7 +48,7 @@ describe('hitDamage (E294)', () => {
   });
 
   it('the other shards are not capped (a brown bear still hits Pine Hollow for 45)', () => {
-    for (const c of CHUNKS) if (c.slug !== 'driftwood-isle') expect(c.maxHitDamage, c.slug).toBeUndefined();
+    for (const c of CHUNKS) if (c.slug !== 'driftwood-isle') expect(c.fight?.maxHitDamage, c.slug).toBeUndefined();
     const pine = findChunk('pine-hollow');
     expect(pine).toBeDefined();
     if (pine) expect(hitDamage(pine, 45)).toBe(45);
@@ -56,8 +56,8 @@ describe('hitDamage (E294)', () => {
 });
 
 describe('the brown bear (E294)', () => {
-  const plan = DRIFTWOOD_ISLE.fauna.find((p) => p.kind === 'bear' && p.variants?.includes('brown') === true);
-  const black = DRIFTWOOD_ISLE.fauna.find((p) => p.kind === 'bear' && p.variants?.includes('black') === true);
+  const plan = DRIFTWOOD_ISLE.spawns.find((p) => p.kind === 'bear' && p.variants?.includes('brown') === true);
+  const black = DRIFTWOOD_ISLE.spawns.find((p) => p.kind === 'bear' && p.variants?.includes('black') === true);
   const segDist = (x: number, z: number, [ax, az]: [number, number], [bx, bz]: [number, number]): number => {
     const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
     return Math.hypot(x - (ax + t * dx), z - (az + t * dz));
@@ -73,6 +73,6 @@ describe('the brown bear (E294)', () => {
     expect(pathD - far).toBeGreaterThan(45); // past a bear's 45 m sight range from any sand path
     for (const poi of [WRECK, SHRINE, HUT, LOOKOUT]) expect(Math.hypot(poi.x - a.x, poi.z - a.z) - far).toBeGreaterThan(45);
     expect(Math.hypot(b.x - a.x, b.z - a.z)).toBeGreaterThan(120);
-    expect(DRIFTWOOD_ISLE.terrain.heightAt(a.x, a.z) - OCEAN.level).toBeGreaterThan(3.4); // above the beach berm: grass, not sand
+    expect(terrainFor(DRIFTWOOD_ISLE).heightAt(a.x, a.z) - OCEAN.level).toBeGreaterThan(3.4); // above the beach berm: grass, not sand
   });
 });

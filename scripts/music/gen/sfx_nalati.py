@@ -13,7 +13,7 @@ adds the winner's second take as a variant when that also ranks <= 3. A family n
 Encoding (sfx_build.py's): one-shots mono AAC 64 kb/s trimmed to the sounding part at -18 LUFS; beds stereo AAC 64 kb/s
 (the budget: +~2 MB accepted by the user) at -24 LUFS, looped on the best seam >= 10 s (analyze.loop_seam on a 5 s grid),
 the seam crossfaded (stems.seam) and the loop points re-measured on the decoded file.
-Merged INTO public/assets/sfx/best/ additively: every entry is tagged `shard: 'nalati'` (src/audio/preload.ts decodes it on
+Merged INTO public/assets/sfx/best/ additively: every entry is tagged `shard: 'nalati'` (src/engine/audio/preload.ts decodes it on
 the steppe only); a re-run first removes the previous Nalati files (the provenance rows marked `round: 'nalati'`) and
 nothing else. Writes scripts/music/gen/sfx-nalati.json (every take, every score, the decision per family) and adds the
 rows to sfx-best.json under `nalati`.

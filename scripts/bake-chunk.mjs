@@ -5,7 +5,7 @@
 // in Node and writes public/assets/baked/<slug>/terrain.bin — the height and splat weights at every
 // vertex of the terrain mesh grid (TERRAIN_RES² over CHUNK_SIZE, the exact PlaneGeometry order), so
 // the phone builds the mesh, plants the forest and walks the ground from a lookup instead of ~200 k
-// noise evaluations at launch. src/world/BakedTerrain.ts reads it and swaps Heightfield's bindings.
+// noise evaluations at launch. src/engine/world/BakedTerrain.ts reads it and swaps Heightfield's bindings.
 //
 // Every run bakes in memory and writes only differing output bytes. Source-only edits write nothing.
 //
@@ -14,7 +14,7 @@
 // Format (little-endian): 'WSTR' u32 version=1 · u32 res · f32 size · u32 seed · u32 landscapeHash (0 = unhashed legacy) ·
 //   f32[res²] height · u8[res²·4] splat weights (each row sums to ≈ 255) — vertex i = iz·res + ix at
 //   (x, z) = (−half + ix·d, −half + iz·d), d = size / (res − 1).
-//   Then, for a shard that grows undergrowth, the placement decision log (src/world/placement.ts — the forest
+//   Then, for a shard that grows undergrowth, the placement decision log (src/engine/world/forest/placement.ts — the forest
 //   planted on this grid, then every undergrowth candidate's kept / skipped bit, ~17 KB): 'WSPL' u32 version=1 ·
 //   u32 decisions · u32 kinds · u32[kinds] counts · f64 checksum sum · u8[⌈decisions/8⌉] bits.
 import { readdirSync } from 'node:fs';
@@ -29,16 +29,16 @@ const VERSION = 1;
 // before any game module loads: the settings (and the defs that read them) take the page's query at import
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
 
-const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resolve(ROOT, 'src/core/config.ts')).href);
-const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/chunks/terrain.ts')).href);
+const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resolve(ROOT, 'src/engine/core/config.ts')).href);
+const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/terrainField.ts')).href);
 
-// every chunk module that exports a ChunkDef (has slug + terrain); the registry itself needs `location`
-const chunkFiles = readdirSync(resolve(ROOT, 'src/chunks')).filter((f) => f.endsWith('.ts') && !/^(registry|terrain|ChunkDef|placeholders)\.ts$/.test(f));
+// every chunk module that exports a ShardManifest (has slug + terrain); the registry itself needs `location`
+const chunkFiles = readdirSync(resolve(ROOT, 'src/shards')).sort();
 
-const registry = await import(pathToFileURL(resolve(ROOT, 'src/chunks/registry.ts')).href);
-const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/world/Heightfield.ts')).href);
-const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/world/BakedTerrain.ts')).href);
-const placement = await import(pathToFileURL(resolve(ROOT, 'src/world/placement.ts')).href);
+const registry = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/registry.ts')).href);
+const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/Heightfield.ts')).href);
+const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/BakedTerrain.ts')).href);
+const placement = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/forest/placement.ts')).href);
 
 /** The undergrowth decision log for `def` planted on the grid in `gridBuf` — null for a shard that grows none (main.ts: no forest carpet at sea). */
 function placementSection(def, gridBuf) {
@@ -65,9 +65,9 @@ function placementSection(def, gridBuf) {
 
 const output = byteWriter(check, 'bake-chunk');
 for (const file of chunkFiles) {
-  const mod = await import(pathToFileURL(resolve(ROOT, 'src/chunks', file)).href);
+  const mod = await import(pathToFileURL(resolve(ROOT, 'src/shards', file, 'manifest.ts')).href);
   for (const def of Object.values(mod)) {
-    if (!def || typeof def !== 'object' || typeof def.slug !== 'string' || !def.terrain) continue;
+    if (!def || typeof def !== 'object' || typeof def.slug !== 'string' || !def.ground?.terrain || def.ground.structures) continue;
     const res = TERRAIN_RES;
     const dir = resolve(OUT, def.slug);
     const meta = resolve(dir, 'terrain.json');
@@ -79,7 +79,7 @@ for (const file of chunkFiles) {
     const buf = new ArrayBuffer(header + n * 4 + n * 4);
     const dv = new DataView(buf);
     dv.setUint8(0, 0x57); dv.setUint8(1, 0x53); dv.setUint8(2, 0x54); dv.setUint8(3, 0x52); // 'WSTR'
-    const lhash = landscapeHash(def.terrain, CHUNK_SIZE); // retained header field; staleness is checked by comparing the full bake
+    const lhash = landscapeHash(def.ground.terrain, CHUNK_SIZE); // retained header field; staleness is checked by comparing the full bake
     dv.setUint32(4, VERSION, true); dv.setUint32(8, res, true); dv.setFloat32(12, CHUNK_SIZE, true); dv.setUint32(16, def.seed >>> 0, true); dv.setUint32(20, lhash, true);
     const heights = new Float32Array(buf, header, n);
     const splat = new Uint8Array(buf, header + n * 4, n * 4);
@@ -90,9 +90,9 @@ for (const file of chunkFiles) {
       for (let ix = 0; ix < res; ix++) {
         const x = -CHUNK_HALF + ix * d;
         const i = iz * res + ix;
-        const h = def.terrain.heightAt(x, z);
+        const h = def.ground.terrain.heightAt(x, z);
         heights[i] = h; if (h < min) min = h; if (h > max) max = h;
-        const s = def.terrain.splatAt(x, z);
+        const s = def.ground.terrain.splatAt(x, z);
         // quantise so the four bytes sum to exactly 255 (largest weight absorbs the rounding)
         const q = s.map((w) => Math.round(w * 255));
         const sum = q[0] + q[1] + q[2] + q[3];

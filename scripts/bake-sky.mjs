@@ -21,11 +21,11 @@ const output = byteWriter(check, 'bake-sky');
 const magick = toolVersion('magick', ['-version']);
 if (!magick) console.log('bake-check: sky pair skipped (no magick)');
 
-const chunkFiles = readdirSync(resolve(ROOT, 'src/chunks')).filter((f) => f.endsWith('.ts') && !/^(registry|terrain|ChunkDef|placeholders)\.ts$/.test(f));
+const chunkFiles = readdirSync(resolve(ROOT, 'src/shards')).sort();
 for (const file of chunkFiles) {
-  const mod = await import(pathToFileURL(resolve(ROOT, 'src/chunks', file)).href);
+  const mod = await import(pathToFileURL(resolve(ROOT, 'src/shards', file, 'manifest.ts')).href);
   for (const def of Object.values(mod)) {
-    if (!def || typeof def !== 'object' || typeof def.slug !== 'string' || !def.sky?.hdri) continue;
+    if (!def || typeof def !== 'object' || typeof def.slug !== 'string' || !def.ground?.terrain || def.ground.structures || !def.sky?.hdri) continue;
     const hdrPath = resolve(ROOT, `public/assets/hdri/${def.sky.hdri}_2k.hdr`);
     if (!existsSync(hdrPath)) { console.warn(`bake-sky: ${def.slug}: ${hdrPath} missing`); continue; }
     const hdr = readFileSync(hdrPath);
@@ -71,7 +71,7 @@ for (const file of chunkFiles) {
 output.finish();
 
 /**
- * The HDR as a gain-mapped pair, decoded by src/world/BakedSky.ts (keep GAIN_MAX in step) — what the phone downloads
+ * The HDR as a gain-mapped pair, decoded by src/engine/world/BakedSky.ts (keep GAIN_MAX in step) — what the phone downloads
  * instead of a 4–5 MB uncompressed RGBE file (LOAD-PERF.md §P1.4, ask P5):
  *   <hdri>_2k.sky.jpg   the colour, divided by the pixel's gain so its largest channel is ≤ 1, sRGB-encoded, q95 4:4:4
  *   <hdri>_2k.gain.png  8-bit gain g per pixel, value = colour × 2^(g / 255 × GAIN_MAX); 0 wherever the sky is ≤ 1

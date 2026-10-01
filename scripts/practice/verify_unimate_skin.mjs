@@ -38,9 +38,9 @@ registerHooks({
     return next(url, context);
   },
 });
-const { DummyMotion, DummyPose } = await import('../../src/practice/DummyMotion.ts');
-const { DummyClips } = await import('../../src/practice/DummyClips.ts');
-const { DUMMY_BONE_NAMES } = await import('../../src/practice/TrainingDummy.ts');
+const { DummyMotion, DummyPose } = await import('../../src/engine/practice/DummyMotion.ts');
+const { DummyClips } = await import('../../src/engine/practice/DummyClips.ts');
+const { DUMMY_BONE_NAMES } = await import('../../src/engine/practice/TrainingDummy.ts');
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 await MeshoptDecoder.ready;
 const rawIO = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
@@ -321,7 +321,7 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
 }
 const report = { schema: 1, originalRevision, motionPath, motionSHA256: sha(motionPath),
   method: 'Three.js GLTFLoader with original Meshopt geometry and bind matrices; all vertices and all nondegenerate triangles, 61 samples per clip. Texture pixels substituted in memory only. Clips evaluated through AnimationMixer by bone name. Separate springComparison uses the actual DummyMotion, DummyPose and DummyClips TypeScript classes on four weapon hits at the arena material masses; existing springs alone and the new clips plus springs are sampled over two seconds at 30 Hz.',
-  runtimeSourceSHA256: { dummyMotion: sha('src/practice/DummyMotion.ts'), dummyClips: sha('src/practice/DummyClips.ts') },
+  runtimeSourceSHA256: { dummyMotion: sha('src/engine/practice/DummyMotion.ts'), dummyClips: sha('src/engine/practice/DummyClips.ts') },
   units: 'original GLB model units, before TrainingDummyAssets game scaling',
   limits: { maxBindPositionError: 0.0001, maxWeightSumError: 0.015, maxEdgeStretch: 2, minAreaRatio: 0.05,
     maxKeyframeRotationStepDegrees: 4.01, maxKeyframeAngularSpeedDegreesPerSecond: 120.3,

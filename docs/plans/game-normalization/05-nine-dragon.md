@@ -57,25 +57,25 @@ already did the move; the S1 row then restructures the file in place.
 
 | Today | Lines | Destination | Row |
 |---|---|---|---|
-| `src/boot/nineBootTrace.ts` | 282 | `src/engine/boot/bootTrace.ts`, generic: every `Nine`/`nine` name drops the shard word (`recordNineBootCheckpoint` → `recordBootCheckpoint`, …). It traces a boot only when the manifest says `boot.phone.trace: true` (§3). Its store `ws.nineBoot` (:7) becomes the SaveStore global key `boot.trace` (01 §9), and the record carries the slug it traced | S1.1 |
-| `src/boot/nineGpuTrace.ts` | 42 | `src/engine/boot/gpuTrace.ts` (`recordNineGpuCheckpoint` → `recordGpuCheckpoint`, `traceNineBootPasses` → `traceBootPasses`) | S1.1 |
-| `src/telemetry/bootInbox.ts` | 12-line body | `src/engine/telemetry/bootInbox.ts`; `shard: 'nine-dragon-stack'` (:12) → the traced record's slug | S1.1 |
-| `src/playgrounds/GrapplePlayground.ts` | 272 | `shard:playground/GrapplePlayground.ts`, registered with `ctx.playground` | S1.4 |
-| `src/playgrounds/grappleCourse.ts` | 87 | `shard:playground/grappleCourse.ts` | S1.4 |
-| `src/playgrounds/catalog.ts:29` (the `grapple` card) and the `CLAW` icon (:24) | 2 | the card's data moves into the plugin's `ctx.playground({...})` call; `PlaygroundId` stops being a closed union (EI22) | S1.4 |
-| `src/playgrounds/load.ts:13-15` (`id === 'grapple' ? import('./GrapplePlayground')`) | 3 | the registered playground's `load` thunk | S1.4 |
+| `src/engine/boot/nineBootTrace.ts` | 282 | `src/engine/boot/bootTrace.ts`, generic: every `Nine`/`nine` name drops the shard word (`recordNineBootCheckpoint` → `recordBootCheckpoint`, …). It traces a boot only when the manifest says `boot.phone.trace: true` (§3). Its store `ws.nineBoot` (:7) becomes the SaveStore global key `boot.trace` (01 §9), and the record carries the slug it traced | S1.1 |
+| `src/engine/boot/nineGpuTrace.ts` | 42 | `src/engine/boot/gpuTrace.ts` (`recordNineGpuCheckpoint` → `recordGpuCheckpoint`, `traceNineBootPasses` → `traceBootPasses`) | S1.1 |
+| `src/engine/telemetry/bootInbox.ts` | 12-line body | `src/engine/telemetry/bootInbox.ts`; `shard: 'nine-dragon-stack'` (:12) → the traced record's slug | S1.1 |
+| `src/shards/nine-dragon-stack/playground/GrapplePlayground.ts` | 272 | `shard:playground/GrapplePlayground.ts`, registered with `ctx.playground` | S1.4 |
+| `src/shards/nine-dragon-stack/playground/grappleCourse.ts` | 87 | `shard:playground/grappleCourse.ts` | S1.4 |
+| `src/engine/practice/playground/catalog.ts:29` (the `grapple` card) and the `CLAW` icon (:24) | 2 | the card's data moves into the plugin's `ctx.playground({...})` call; `PlaygroundId` stops being a closed union (EI22) | S1.4 |
+| `src/engine/practice/playground/load.ts:13-15` (`id === 'grapple' ? import('./GrapplePlayground')`) | 3 | the registered playground's `load` thunk | S1.4 |
 | `src/chunks/thumbs/nine-dragon-stack{,-portrait,-landscape}.jpg` | 3 files | `shard:thumbs/` (TP12: the art module reads `src/shards/*/thumbs`) | F6 |
 | `src/explore/img/{practice,world,models,sets}-nine-dragon-stack.webp` | 4 files | `shard:explore/`; named by `level.explore.art` | F6 (move), S1.1 (manifest) |
-| `src/explore/Compare.ts:33-36` (two compare pairs) | 4 | `level.explore.compare` | S1.1 |
-| `src/ui/titleDeck.ts:27-29, 51` | 4 | the deck is built from the generated registry at F9; S1.1 only checks the card equals the manifest (`test/title-deck.test.ts`) | F9 |
+| `src/engine/explore/Compare.ts:33-36` (two compare pairs) | 4 | `level.explore.compare` | S1.1 |
+| `src/game/titleDeck.ts:27-29, 51` | 4 | the deck is built from the generated registry at F9; S1.1 only checks the card equals the manifest (`test/title-deck.test.ts`) | F9 |
 | `src/game/Inventory.ts:88` (`isNoPackChunk`: `/nine-dragon-stack`) | 1 | `manifest.bag.pack.slots: 0` (question Q1) | S1.1 |
-| `src/player/rigArms.ts` | 1 file | `src/kit/viewmodel/rigArms.ts` (rule of two: Nine Dragon `vm/arms.ts`, `vm/fpArms.ts` and Driftwood `fpArms.ts` import it). X4 may lift its player half into `#engine/anim` | F6 |
+| `src/kit/viewmodel/rigArms.ts` | 1 file | `src/kit/viewmodel/rigArms.ts` (rule of two: Nine Dragon `vm/arms.ts`, `vm/fpArms.ts` and Driftwood `fpArms.ts` import it). X4 may lift its player half into `#engine/anim` | F6 |
 | `public/assets/nine-dragon/**` (14 MB incl. `lab/`, `viewmodel/`, `paint/`), `public/assets/gpu/nine-dragon/**` | — | **not moved** (plan F6, TP §5). `lab/` stays: the shipped shard loads it | — |
 | `scripts/nine-dragon-budget.mjs` | — | deleted at S1.6: the gate's budget check (03-harness-gate) covers its four `MOCKUP_CAMERAS` poses with derived numbers | S1.6 |
 | `scripts/nine-dragon-{domes,gpu,grapple-touch}.mjs`, `nine-sim-memory.mjs`, `test-nine-{crash-reports,gpu-boot,native-startup}.mjs`, `test-nine-gpu-boot.sh`, `e314-nine-bag-capture.mjs`, `playground-grapple.mjs` | — | kept or deleted by F7's liveness rule; the live ones are ported to `window.__wildshard` by F7. `test-nine-gpu-boot.sh` is `pnpm test:gpu-boot` (live): it is renamed `test-gpu-boot.sh` at S1.1 and reads `boot.phone.fragile` from the manifest instead of assuming the shard | F7, S1.1 |
-| `test/nd-specimen-light.test.ts`, `test/nine-dragon-models.test.ts` | — | `test/shards/nine-dragon-stack/` | F6 (TP11) |
+| `test/shards/nine-dragon-stack/nd-specimen-light.test.ts`, `test/shards/nine-dragon-stack/nine-dragon-models.test.ts` | — | `test/shards/nine-dragon-stack/` | F6 (TP11) |
 | `test/nine-boot-trace.test.ts`, `test/nine-gpu-trace.test.ts` | — | `test/engine/boot-trace.test.ts`, `test/engine/gpu-trace.test.ts`, rewritten for the generic names; one case boots a fixture manifest with `boot.phone.trace` on and one with it off (no record written) | S1.1 |
-| `test/bag-tabs.test.ts:11-12` (imports `FEI_ZHUA`, `NINE_ROSTER`) | 2 | reads the Fei Zhua's GEAR card built from the Tool row's `meta` (R1-26) and the roster from the manifest's `roster` thunk | S1.4 |
+| `test/shards/nine-dragon-stack/bag-tabs.test.ts:11-12` (imports `FEI_ZHUA`, `NINE_ROSTER`) | 2 | reads the Fei Zhua's GEAR card built from the Tool row's `meta` (R1-26) and the roster from the manifest's `roster` thunk | S1.4 |
 | `test/models-rosters.test.ts:8` | 1 | reads every manifest from `shards.generated.ts` | F9 |
 
 ## 2. (b) Every engine line that branches on or wires Nine Dragon, and what replaces it
@@ -114,7 +114,7 @@ or a plugin verb named in the same row.
 | 1243-1283 | `if (deferredAudio) {` … `deferred Nine Dragon decode` | decode the selected audio after the loader's peak | the `boot.phone.deferExtras` path in `#engine/boot`; the log line names `level.id` (the engine logs the id and never compares it, 01 §5a) |
 | 1296 | `const handle = { ...world, …, crossbow, …, weapons, pineLife, …` | `window.__world` | `window.__wildshard` (F2 / TP4); `__world` stays as the deprecated alias (01 §5). Nine Dragon adds nothing to it |
 
-### 2.2 `src/core/Game.ts`
+### 2.2 `src/engine/core/Game.ts`
 
 | Line(s) | Grep key | Today | Replaced by |
 |---|---|---|---|
@@ -127,7 +127,7 @@ or a plugin verb named in the same row.
 | 532 | `if (phoneNine) traceNineBootPasses(…)` | per-pass trace | `if (bootTrace.active) traceBootPasses(…)` |
 | 657 | `if (nineExploreEntryPending() && …) recordNineExploreFrame()` | Explore entry trace | `bootTrace.exploreEntryPending()` / `recordExploreFrame()` |
 
-### 2.3 `src/core/bootstrap.ts`, `src/boot/*`, `src/core/GpuRecovery.ts`
+### 2.3 `src/engine/core/bootstrap.ts`, `src/boot/*`, `src/engine/core/GpuRecovery.ts`
 
 | File:line | Grep key | Today | Replaced by |
 |---|---|---|---|
@@ -353,7 +353,7 @@ export default class NineDragonPlugin extends ShardPlugin {   // staged hooks, e
 | Ask answered | `player.traversal` | — | `Traversal.ts:406` `player.traversalStep` | S1.4: the Tool owns the motor while a zip runs |
 | Events listened | `practice.active`, `explore.studio`, `explore.turntable` | — | `ws:practice-active` (`Traversal.ts:363`, `render.ts:73`), `ws:studio-active` (`render.ts:94`), `ws:turntable` (`specimenLight.ts:50`) | The emitters (TrainingArena, the playgrounds, ModelExplorer) emit on the bus |
 | Pieces | `nds-floors`, `nds-fronts`, `nds-grapple-guard`, `nds-crossings` | `level.world` | `index.ts:36-53` | Same ids, names, categories, `file`, surfaces, colliders, `floor`, `solidFloor`, `follows`, `active` |
-| Pieces (models) | every `nds-*` model piece | `level.world` | `world/build.ts` through `src/models/place.ts` | Unchanged: `place` registers through `app.registry`, owned by `ctx.scope` |
+| Pieces (models) | every `nds-*` model piece | `level.world` | `world/build.ts` through `src/engine/models/place.ts` | Unchanged: `place` registers through `app.registry`, owned by `ctx.scope` |
 | Input context | `grapple` | pushed by the Fei Zhua | `Traversal.ts:346` `touchHint` | S1.4 |
 | HUD | the dragon-hook chip, 8 ◇ marks | `ctx.hud.pin` (01 §11) | `Traversal.ts:260-274` | S1.4 |
 | Bag | the Fei Zhua gear card | built by `#game`'s Bag from the Tool's `meta` (R1-26) | `main.ts:625` | S1.4 |

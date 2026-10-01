@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # pine_hollow_phone.sh [dir] — after build_props.py: move each <ref>-phone/<ref>-phone.glb (the LOD0 mesh at 512²) to
-# <ref>/<ref>.phone.glb, the phone tier's copy (src/boot/bytes.ts tierUrl swaps it in for the phone), and drop the folder.
+# <ref>/<ref>.phone.glb, the phone tier's copy (src/engine/boot/bytes.ts tierUrl swaps it in for the phone), and drop the folder.
 set -euo pipefail
 D=${1:-public/assets/models/pine-hollow-hero}
 for p in "$D"/*-phone; do

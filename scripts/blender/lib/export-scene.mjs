@@ -40,21 +40,21 @@ if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
 const shardModule = resolve(ROOT, `scripts/blender/${SLUG}/export.mjs`);
 if (!existsSync(shardModule)) throw new Error(`export-scene: no scripts/blender/${SLUG}/export.mjs (the shard's ground colour + layout)`);
-const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES, ROAD_LENGTH } = await imp('src/core/config.ts');
-const registry = await imp('src/chunks/registry.ts');
+const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES, ROAD_LENGTH } = await imp('src/engine/core/config.ts');
+const registry = await imp('src/game/shard/registry.ts');
 if (!registry.findChunk(SLUG)) throw new Error(`export-scene: unknown shard "${SLUG}"`);
 registry.setActiveChunk(SLUG);
-const hf = await imp('src/world/Heightfield.ts');
-const baked = await imp('src/world/BakedTerrain.ts');
+const hf = await imp('src/engine/world/Heightfield.ts');
+const baked = await imp('src/engine/world/BakedTerrain.ts');
 const def = registry.getActiveChunk();
 const grid = baked.parseBakedTerrain(readFileSync(resolve(ROOT, `public/assets/baked/${SLUG}/terrain.bin`)).buffer.slice(0));
 if (!grid) throw new Error('no baked terrain');
 hf._installBakedTerrain(baked.bakedSamplers(grid));
 const THREE = await import('three');
 const shard = await import(pathToFileURL(shardModule).href);
-const { blenderAreaFor, STEP } = await imp('src/world/blenderArea.ts');
+const { blenderAreaFor, STEP } = await imp('src/engine/world/blenderArea.ts');
 const AREA = blenderAreaFor(SLUG);
-if (!AREA) throw new Error(`export-scene: src/world/blenderArea.ts has no area for "${SLUG}"`);
+if (!AREA) throw new Error(`export-scene: src/engine/world/blenderArea.ts has no area for "${SLUG}"`);
 const ctx = { ROOT, CACHE, SLUG, THREE, imp, hf, def, CHUNK_SIZE, CHUNK_HALF, ROAD_LENGTH };
 
 // ── the area grid ──

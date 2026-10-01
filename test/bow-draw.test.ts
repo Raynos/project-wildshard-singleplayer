@@ -1,8 +1,8 @@
-// NALATI-MERGE H4 (the user's ask N18): the Nalati bow's draw state machine (src/player/bowDraw.ts) — hold to draw,
+// NALATI-MERGE H4 (the user's ask N18): the Nalati bow's draw state machine (src/engine/player/bowDraw.ts) — hold to draw,
 // release at full = the loose, release early = a let-down (no arrow), no quick-fire, the long hold tires, a blocked draw
 // is let down and needs a fresh press.
 import { describe, expect, it } from 'vitest';
-import { BowDraw, DRAW_TIME, HOLD_STEADY, HOLD_TIRE, LETDOWN_TIME, RENOCK_TIME, RN_EARLY, type DrawEvent } from '../src/player/bowDraw';
+import { BowDraw, DRAW_TIME, HOLD_STEADY, HOLD_TIRE, LETDOWN_TIME, RENOCK_TIME, RN_EARLY, type DrawEvent } from '#engine/player/bowDraw';
 
 const DT = 1 / 60;
 /** run `s` seconds of frames with the input fixed; every event, in order */

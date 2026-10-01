@@ -13,7 +13,7 @@ What it does (headless, deterministic):
  4. colours every low-poly FACE with the mean of the generated texture under it (4 samples through a BVH onto the
     high mesh), then grades it (--sat, --val) and snaps it to --quant k-means colours: one flat colour per facet;
  5. bakes Cycles ambient occlusion into the vertex colour ALPHA (the convention of scripts/blender/ and
-    src/world/BlenderIsland.ts: RGB = albedo, A = AO);
+    src/shards/driftwood-isle/world/BlenderIsland.ts: RGB = albedo, A = AO);
  6. scales so the largest asset's --fit (height | length) is --size metres (a set keeps its relative sizes), puts the
     pivot at the centre of the lowest 3 % of the mesh (a leaning palm pivots on its trunk foot) at z = 0;
  7. exports <out>/<asset>/<asset>.glb (no textures, COLOR_0 only) + <asset>.json (tris, size, colours).

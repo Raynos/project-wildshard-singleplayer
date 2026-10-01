@@ -2,13 +2,13 @@
 // (`worldHit` in Crossbow.ts), by material: bolts stick in wood / ground, glance off rock; the invisible chunk-edge
 // walls are looked through; no physics world → nothing in the world is hit.
 import { afterEach, describe, expect, it } from 'vitest';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { groups } from '../src/physics/groups';
-import { tagCollider, clearTags, type Material } from '../src/physics/surface';
-import { setActivePhysics } from '../src/physics/active';
-import { sticksIn } from '../src/physics/query';
-import { worldHit, impactSurfaceOf } from '../src/player/Crossbow';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { groups } from '#engine/physics/groups';
+import { tagCollider, clearTags, type Material } from '#engine/physics/surface';
+import { setActivePhysics } from '#engine/physics/active';
+import { sticksIn } from '#engine/physics/query';
+import { worldHit, impactSurfaceOf } from '#engine/player/Crossbow';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

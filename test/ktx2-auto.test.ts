@@ -1,28 +1,28 @@
 /**
- * E157 B — "images on the first visit, KTX2 from the next launch" (src/boot/gpuFiles.ts, src/boot/shardPrefetch.ts).
+ * E157 B — "images on the first visit, KTX2 from the next launch" (src/engine/boot/gpuFiles.ts, src/engine/boot/shardPrefetch.ts).
  * Settings ▸ Debug ▸ GPU textures: Auto loads KTX2 only when the shard's whole KTX2 set for the tier is cached (the marker
  * the background download writes names the set's hash); the explicit picks override. Resolved once per page.
  */
 import { describe, expect, it, vi } from 'vitest';
-import type * as ShardPrefetch from '../src/boot/shardPrefetch';
-import type { ChunkDef } from '../src/chunks/ChunkDef';
+import type * as ShardPrefetch from '#engine/boot/shardPrefetch';
+import type { ShardManifest } from '#game/shard/manifest';
 
 type SP = typeof ShardPrefetch;
 
-async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (sp: SP, CHUNKS: readonly ChunkDef[]) => [string, string] | null } = {}) {
+async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (sp: SP, CHUNKS: readonly ShardManifest[]) => [string, string] | null } = {}) {
   vi.resetModules();
   const chunk = opts.chunk ?? 'pine-hollow';
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${opts.tier ?? 'phone'}&chunk=${chunk}`));
   localStorage.clear();
   if (opts.tex !== undefined) localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: opts.tex }));
   const [{ CHUNKS, PROTOTYPES }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
-    import('../src/chunks/registry'), import('../src/boot/shardPrefetch'), import('../src/boot/gpuFiles'), import('../src/boot/manifest'), import('../src/boot/pack'),
+    import('#game/shard/registry'), import('#engine/boot/shardPrefetch'), import('#engine/boot/gpuFiles'), import('#engine/boot/manifest'), import('#engine/boot/pack'),
   ]);
   const m = opts.marker?.(sp, CHUNKS);
   if (m) localStorage.setItem(m[0], m[1]);
   return { CHUNKS, PROTOTYPES, sp, gf, chunkFiles, packFor, bootParts, def: CHUNKS.find((c) => c.slug === chunk) };
 }
-const current = (sp: SP, CHUNKS: readonly ChunkDef[], slug = 'pine-hollow'): [string, string] | null => {
+const current = (sp: SP, CHUNKS: readonly ShardManifest[], slug = 'pine-hollow'): [string, string] | null => {
   const def = CHUNKS.find((c) => c.slug === slug);
   return def ? [sp.ktx2MarkerKey(slug), sp.setHash(sp.ktx2Set(def))] : null;
 };

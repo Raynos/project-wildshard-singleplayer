@@ -12,7 +12,7 @@
 //
 // Against a `vite preview` of the build. One browser page drives the real title deck: ENTER WORLD, a few seconds in
 // the world, the view turned (a pose of its own), pause → "Exit to main menu", the next shard's card + ENTER WORLD (the
-// deck's switch — src/shard/ShardHost.ts). For every step it records:
+// deck's switch — src/engine/shard/ShardHost.ts). For every step it records:
 //   - that the page never navigated (a window marker set on the first load; document loads counted)
 //   - whether the loading screen appeared (a MutationObserver on <body> for `.ws-load`) — never on a resident return
 //   - the switch's time (the host's own timing) and the time to the first world frame after the click
@@ -42,7 +42,7 @@ const SHEET = flag('sheet', '');
 const TEX = flag('tex', '');
 const DEBUGCARD = argv.includes('--debugcard');
 mkdirSync(OUT, { recursive: true });
-const SLUGS = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands']; // the deck's order (src/chunks/registry.ts CHUNKS)
+const SLUGS = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands']; // the deck's order (src/game/shard/registry.ts CHUNKS)
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const round = (v, k = 1) => Math.round(v * 10 ** k) / 10 ** k;
 

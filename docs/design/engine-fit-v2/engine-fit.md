@@ -91,9 +91,9 @@ Sizes are min + gz from our esbuild bundles of the named entry points (2026-09-3
 
 | Item | Version (date) | Licence | gz | Call | Why |
 |---|---|---|---|---|---|
-| **Rapier** `@dimforge/rapier3d-simd` | 0.20.0 pinned; 0.21.0 (09-25) | Apache-2.0 | wasm 732 KB (0.21: 1,145 KB) | **keep 0.20** | 0.21 = new solver + soft bodies + 56 % more wasm. Upgrade only on an iPhone A/B (load time, physics ms). `src/physics/` stays the only importer |
+| **Rapier** `@dimforge/rapier3d-simd` | 0.20.0 pinned; 0.21.0 (09-25) | Apache-2.0 | wasm 732 KB (0.21: 1,145 KB) | **keep 0.20** | 0.21 = new solver + soft bodies + 56 % more wasm. Upgrade only on an iPhone A/B (load time, physics ms). `src/engine/physics/` stays the only importer |
 | **navcat** | 0.4.1 (05-06) | MIT | ~96 KB (plan figure) | **keep; adopt its crowd module** | Already our navmesh (bake + queries). It ships crowd simulation (steering, avoidance), which serves herds and thralls. **recast-navigation-js** 0.43.1 = skip (wasm, a second navmesh stack) |
-| **three-mesh-bvh** | 0.9.15 (09-09) | MIT | 16 KB (core) | **borrow later, tools only** | Good for Explore picking and bake tools (AO, placement on meshes). Gameplay collision stays in Rapier (AGENTS: `src/physics/` owns collision) |
+| **three-mesh-bvh** | 0.9.15 (09-09) | MIT | 16 KB (core) | **borrow later, tools only** | Good for Explore picking and bake tools (AO, placement on meshes). Gameplay collision stays in Rapier (AGENTS: `src/engine/physics/` owns collision) |
 | **three.quarks** | 0.17.1 (05-21), peer three ≥ 0.182 | MIT | 35 KB | **skip now** | Write one kit `ParticlePool` that merges the 7 pools (D11) first. quarks brings its own shader materials: more to precompile, more to port to WebGPU. Revisit if a shard needs trails or sub-emitters |
 | **@three.ez/instanced-mesh** | 0.3.16 (07-26) | MIT | 17 KB | **skip** | We already have culled instancing and card LODs. A new render path needs iPhone memory evidence (E271) |
 | **@needle-tools/gltf-progressive** | 4.0.0-alpha.3 (09-09) | MIT | 16 KB | **skip** | Alpha, and LOD generation runs on Needle's tooling. gltf-transform + meshopt + KTX2 (in the repo) is the same idea, offline and ours |

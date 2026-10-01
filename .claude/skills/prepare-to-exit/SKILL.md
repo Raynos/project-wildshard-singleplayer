@@ -50,7 +50,7 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
      `git show --stat HEAD` must list only your paths — if it doesn't, stop and say so; never `reset` to fix it
      while other agents may have committed on top.
    - **A shared file with someone else's hunks** (`git diff -- <path>` shows lines you didn't write — typical for
-     `src/main.ts`, `src/audio/Audio.ts`, `src/player/*.ts`, `src/ui/Menu.ts`, `AGENTS.md`, a `docs/plans/*.md`):
+     `src/main.ts`, `src/engine/audio/Audio.ts`, `src/player/*.ts`, `src/engine/ui/Menu.ts`, `AGENTS.md`, a `docs/plans/*.md`):
      a pathspec commit would ship their half-done work inside yours. Either wait for them, or commit only your
      hunks through a private index pinned to a captured base:
      ```

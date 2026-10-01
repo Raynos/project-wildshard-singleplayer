@@ -5,7 +5,7 @@
 // the way scripts/bench-load.mjs does (the worker's own fetches are throttled and counted too). Per mode, in ONE fresh
 // browser context:
 //   1. cold-load one shard (--from, default Driftwood Isle); once playable, sample frame times + long tasks while the background prefetch
-//      (src/boot/shardPrefetch.ts, `window.__ws_prefetch`) runs, and record how long it took and what it stored;
+//      (src/engine/boot/shardPrefetch.ts, `window.__ws_prefetch`) runs, and record how long it took and what it stored;
 //   2. navigate to `?chunk=<slug>` for every other shard and record the bytes that crossed the (emulated) network
 //      until that shard is playable.
 // Modes: `prefetch` (the default boot) and `baseline` (the Debug switch off via the saved settings: the first switch downloads the shard, as before

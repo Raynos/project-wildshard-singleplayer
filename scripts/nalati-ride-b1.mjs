@@ -53,7 +53,7 @@ try {
   await page.waitForFunction(() => window.__wildshard?.world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(4000);
   await page.evaluate(() => {
-    // a build has no /src modules to import: the two roads the legs ride (src/chunks/nalatiLayout.ts N_ROAD_PTS, CAMP_SPUR)
+    // a build has no /src modules to import: the two roads the legs ride (src/shards/nalati-grasslands/layout.ts N_ROAD_PTS, CAMP_SPUR)
     const L = { N_ROAD_PTS: [[0, 250], [0, 190], [0, 156]], CAMP_SPUR: [[0, 214], [40, 218], [62, 215.5], [74, 206.5]] };
     const w = window.__wildshard?.world;
     const t = { L, steps: 0, trace: [], rec: false };

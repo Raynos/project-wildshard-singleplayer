@@ -81,10 +81,10 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
   A/B", not "temporary".
 - **Every variant goes in pause ▸ Settings ▸ Debug, declared once in the registry** (E162, Jake: "we are going to have an
   ungodly amount of toggles and we need to organize them"):
-  1. `src/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
-  2. `src/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note })` row in `DEBUG_ROWS`, under the
+  1. `src/engine/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
+  2. `src/engine/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note })` row in `DEBUG_ROWS`, under the
      group whose domain it is. `when` shows it only on its shard / with its weapon; `reload: true` if the thing is built
-     once; `note` is one line with the ask id. `src/ui/DebugMenu.ts` renders it (collapsible groups, a filter) — no Menu.ts
+     once; `note` is one line with the ask id. `src/engine/ui/DebugMenu.ts` renders it (collapsible groups, a filter) — no Menu.ts
      edit. `test/debug-options.test.ts` fails an option with no row.
   3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
   4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).
@@ -325,8 +325,8 @@ on his laptop.
 
 ## HUD changes are coordinated over herdr (Jake, E332)
 
-Every shard shares one HUD (E154), so HUD work collides between sessions. The HUD files are src/player/TouchControls.ts,
-src/ui/HUD.ts, hudSlots.ts, WeaponStrip.ts, RideHUD.ts, FirstHints.ts, Minimap.ts, Map.ts and src/ui/styles/touch.css /
+Every shard shares one HUD (E154), so HUD work collides between sessions. The HUD files are src/engine/player/TouchControls.ts,
+src/engine/ui/HUD.ts, hudSlots.ts, WeaponStrip.ts, RideHUD.ts, FirstHints.ts, Minimap.ts, Map.ts and src/engine/ui/styles/touch.css /
 game.css / ride.css.
 - **Before** you change what a HUD control is, where it sits or when it shows, tell the other live agents:
   `herdr agent list`, then `herdr agent prompt <name> "[from <you>] HUD change: <what, which files, the ask id>"`
@@ -367,8 +367,8 @@ game.css / ride.css.
 
 ## Physics (Rapier, PHYSICS.md — since the physics merge)
 
-- **`src/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
-  no ray-vs-box maths, no terrain bisection, no push-out loops. Ask `src/physics/query.ts` (`castRay`,
+- **`src/engine/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
+  no ray-vs-box maths, no terrain bisection, no push-out loops. Ask `src/engine/physics/query.ts` (`castRay`,
   `castSegment`, `lineOfSight`, `sweepBall`, `floorBelow`). Code that isn't handed the world gets it from
   `activePhysics()`. `heightAt()` stays for placement and drawing only.
 - **A new static thing collides by registering.** The builder emits `colliderDescs(): ColliderDesc[]` beside the
@@ -377,18 +377,18 @@ game.css / ride.css.
   - `treads` for any stair: rise ≤ 0.35 m and tread depth ≥ 0.36 m, or the capsule rides the edges;
   - trimesh only for walk-inside shapes.
   Then register it with `registry.add({ id, name, category, file, object, colliders, surface, floor?, solidFloor,
-  model? })` (src/world/registry.ts). A moving piece `follows` its Object3D, which puts it on a kinematic body. `model`
+  model? })` (src/engine/world/registry.ts). A moving piece `follows` its Object3D, which puts it on a kinematic body. `model`
   puts it in Explore's catalog: it is the one registry, so never register a built thing a second time for Explore.
   Don't push into `player.colliders`: that list is the legacy bridge for boxes that move (interactables, NPCs, dev
   scenes).
 - **The player walks on colliders.** Step 0.35 m, max climb 40° (the user's picks). A walkable surface needs real
   geometry. A path over a crag is graded into the terrain (`TerrainSpec.graded`, never inside the Blender cove's
-  baked area); a steep one gets a walkway from `src/physics/paths.ts`. After changing a builder's colliders, re-run
+  baked area); a steep one gets a walkway from `src/engine/physics/paths.ts`. After changing a builder's colliders, re-run
   `node scripts/physics-baseline.mjs --no-build --mode=walk` (and `--trails`): 0 stuck is the bar. If structures
   moved, re-bake the navmesh (`node --experimental-transform-types --import ./scripts/bake-loader.mjs
   scripts/bake-navmesh.mjs`; `--check` tells you when it's stale).
 - **Moving things** go in Game's fixed step (`game.onFixed('pre' | 'step' | 'post')`, 60 Hz, hit-stop slows it) and
-  are interpolated with `game.alpha`. Dynamic bodies go through `src/physics/bodies.ts`, which enforces the per-tier
+  are interpolated with `game.alpha`. Dynamic bodies go through `src/engine/physics/bodies.ts`, which enforces the per-tier
   caps (phone 40 awake / 2 ragdolls).
 
 ## Deploy

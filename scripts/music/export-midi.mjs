@@ -1,4 +1,4 @@
-// The score (src/audio/score/wildshard-theme.ts) → a standard MIDI file, one track per layer, for a composer to take further.
+// The score (src/engine/audio/score/wildshard-theme.ts) → a standard MIDI file, one track per layer, for a composer to take further.
 //   node scripts/music/export-midi.mjs [theme|trailer30|trailer15] [out.mid]      default: theme → scripts/music/wildshard-theme.mid
 // drone and pad are derived from the chord track (root D2 + D3 held; the pad's four voices per chord); pulse is a GM drum
 // track on channel 10 (36 kick · 35 four-on-the-floor kick · 38 tap · 42 shaker). Tempo changes per segment; the theme's
@@ -13,7 +13,7 @@ const name = process.argv[2] ?? 'theme';
 const out = resolve(process.argv[3] ?? `${here}/wildshard-${name}.mid`);
 
 // load the TypeScript score through Vite's transform (the dev server is up for the render anyway) — no build step, no deps
-const src = execSync(`curl -s http://localhost:5173/src/audio/score/wildshard-theme.ts`, { cwd: root }).toString();
+const src = execSync(`curl -s http://localhost:5173/src/engine/audio/score/wildshard-theme.ts`, { cwd: root }).toString();
 const mod = await import(`data:text/javascript;base64,${Buffer.from(src.replaceAll(/^import\.meta\.hot.*$/gm, '')).toString('base64')}`);
 const arr = mod.ARRANGEMENTS[name];
 if (!arr) throw new Error(`no arrangement ${name}`);

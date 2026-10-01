@@ -60,7 +60,7 @@ wonderlandengine.com/pricing/.
   quarks (39 KB), bvh (30 KB), n8ao, three-mesh-ui, spark, peerjs, flatbuffers, websocket-ts before game code.
 - **Touch input.** Needle claims touch "out of the box" (pointer events, no virtual stick); ecctrl ships a
   joystick; A-Frame/IWSDK are XR-controller-first; none offers anything our 316-line
-  `src/player/TouchControls.ts` lacks.
+  `src/engine/player/TouchControls.ts` lacks.
 - **ECS / component model.** Needle/Rogue/Hology/PlayCanvas = Unity-style MonoBehaviour components on scene
   objects; A-Frame = DOM-attribute components; IWSDK = real archetype ECS (elics) with systems + signals.
 - **Prefab / scene format.** Needle = glTF + extensions (from Unity/Blender); Rogue/Hology/PlayCanvas/Wonderland =
@@ -82,14 +82,14 @@ Sizes = local esbuild, minified, three external, gzip -9 (`scratchpad/engine-aud
 | Library | Version / date | Licence | min / gz | Maturity | Problem it solves for us |
 |---|---|---|---|---|---|
 | **Rapier `KinematicCharacterController`** (in `@dimforge/rapier3d-simd`) | 0.20.0 (2026-09-19) | Apache-2.0 | already paid (732 KB gz wasm) | high | Autostep, snap-to-ground, slopes, platform carry — already the plan (`PHYSICS.md:122`). Also `three/addons/physics/RapierPhysics.js` as a reference glue. rapier.rs/docs/user_guides/javascript/character_controller |
-| **three-mesh-bvh** | 0.9.15 (2026-09-09); 3.5 k★ | MIT | 96 KB / **30 KB** | very high (used by Needle, Hology, IWSDK) | Fast raycast/shapecast against terrain & props (melee hit, camera collision, foot IK, picking in `src/explore/Select.ts`) without a Rapier round-trip; `computeBoundsTree` on static meshes. github.com/gkjohnson/three-mesh-bvh |
+| **three-mesh-bvh** | 0.9.15 (2026-09-09); 3.5 k★ | MIT | 96 KB / **30 KB** | very high (used by Needle, Hology, IWSDK) | Fast raycast/shapecast against terrain & props (melee hit, camera collision, foot IK, picking in `src/engine/explore/Select.ts`) without a Rapier round-trip; `computeBoundsTree` on static meshes. github.com/gkjohnson/three-mesh-bvh |
 | **navcat** | 0.4.1 (2026-05); 292★ | MIT | ~96 KB (plan's figure) | young, same author as recast-navigation-js | Pure-JS navmesh — already chosen in `PHYSICS.md:167`. Alternative: **recast-navigation-js** 0.43.1 — MIT, core 776 KB min / 230 KB gz (compat, wasm inlined) or wasm 339 KB raw / 131 KB gz + glue; `@recast-navigation/three` 48 KB / 13 KB gz; crowd + tile cache + off-mesh links (Hology uses it). **three-pathfinding** 1.3.0 (2024, 4 KB gz) = too basic. |
-| **yuka** | 0.7.8 (npm 2022; repo pushed 2026-09) | MIT | 121 KB / 32 KB | stable but npm stale | Steering behaviours, FSM/goal-driven AI, perception, fuzzy logic — for `src/entities/AnimalManager.ts` (1070 lines) wander/flee/herd. Borrow the *patterns* (steering + FSM) rather than the whole lib. github.com/Mugen87/yuka |
+| **yuka** | 0.7.8 (npm 2022; repo pushed 2026-09) | MIT | 121 KB / 32 KB | stable but npm stale | Steering behaviours, FSM/goal-driven AI, perception, fuzzy logic — for `src/engine/entities/AnimalManager.ts` (1070 lines) wander/flee/herd. Borrow the *patterns* (steering + FSM) rather than the whole lib. github.com/Mugen87/yuka |
 | **ECS: koota** | 0.6.6 (2026-09-16); pmndrs | ISC | 39 KB / 12 KB | 0.x, active | Trait-based ECS with queries/relations, React optional. |
 | **ECS: bitECS** | 0.4.0 (2025-12) | MPL-2.0 | 16 KB / 6 KB | mature, SoA/typed-array fast | Cache-friendly ECS for many animals/projectiles. MPL = file-level copyleft (fine unmodified). |
 | **ECS: miniplex** | 2.0.0 (2023) | MIT | 16 KB / 4 KB | stable, quiet | Simplest "entities are objects, archetype queries" — lowest migration cost from class-based entities. |
 | **ECS: elics** (IWSDK's) | 3.4.2 (2026-02) | MIT | 21 KB / 7 KB | used in production by Meta | Typed schema ECS + systems + queries. `@lastolivegames/becsy` 0.15.5 (2025-03) is stale. |
-| **three.quarks** | 0.17.1 (2026-05); 1 k★ | MIT | 166 KB / **39 KB** | good (Needle bundles it) | Batched particle systems (emitters, curves, trails, sub-emitters) vs our 385-line `src/world/Particles.ts`; ~one draw call per material batch. Weigh 39 KB gz vs gains. |
+| **three.quarks** | 0.17.1 (2026-05); 1 k★ | MIT | 166 KB / **39 KB** | good (Needle bundles it) | Batched particle systems (emitters, curves, trails, sub-emitters) vs our 385-line `src/kit/looks/particles.ts`; ~one draw call per material batch. Weigh 39 KB gz vs gains. |
 | **nipplejs** | 1.0.4 (2026-05-26) | MIT | 21 KB / 6 KB | mature | Virtual joystick. We already own `TouchControls.ts` (316 lines) — low value. |
 | **postprocessing** (pmndrs) | 6.39.5 | Zlib | tree-shaken | already in use | EffectComposer merging passes into one fullscreen pass — keep. |
 | **@needle-tools/gltf-progressive** | 4.0.0-alpha.3 (2026-09-09) | **MIT**, peer `three >=0.183` | small | Needle-backed | Progressive mesh + texture LODs for glTF (low-res first, upgrade on demand) — directly serves LOAD-PERF. Runs on **vanilla three 0.186**. Needs the matching build-time LOD generation (Needle Cloud / their CLI) — verify offline pipeline before adopting. |
@@ -111,7 +111,7 @@ its `Context`/lifecycle), `@needle-tools/materialx` (PolyForm **Noncommercial**)
 
 1. **Component lifecycle + update scheduler** (Needle/Rogue `awake/start/update/lateUpdate/onDestroy`, R3F v10
    ordered `useFrame` scheduler): one typed `System` interface with an explicit phase order
-   (input → physics step → gameplay → animation → camera → render) instead of ad-hoc calls in `src/core/Game.ts`.
+   (input → physics step → gameplay → animation → camera → render) instead of ad-hoc calls in `src/engine/core/Game.ts`.
 2. **ECS for the crowded parts only** (animals, projectiles, pickups): koota / miniplex / elics — IWSDK shows ECS
    over plain three objects works without owning the renderer.
 3. **Animator state machine** (Needle's Unity Animator, ecctrl's anim states): a small data-driven

@@ -7,9 +7,9 @@
 **Don't switch engines. The chaos isn't coming from the renderer, and no free engine would remove it.** The game is 90.7k lines across 394 files; 246 of them import three.js directly and 39 patch its shaders by hand. Moving to Babylon.js or PlayCanvas would mean rewriting almost everything for months, and what you'd mostly gain is an inspector, an editor and an audio mixer. Godot, Bevy, Wonderland and Cocos fit worse: a bigger download, weaker iPhone Safari support, royalties, or a visual editor that AI agents can't drive well.
 
 The E45 audit was right about the foundation, and three of its five "engine parts" are now built:
-- E1: one world registry (`src/world/registry.ts`)
+- E1: one world registry (`src/engine/world/registry.ts`)
 - E2: frame phases with a fixed 60 Hz step (`Game.onFixed`)
-- E3: one shared character controller (`src/physics/CharacterMotor.ts`)
+- E3: one shared character controller (`src/engine/physics/CharacterMotor.ts`)
 
 What "a lot of pieces, a lot of chaos" actually describes is too many things in flight and too little automatic checking:
 - **Scope:** 3 shards, 12+ weapon files, a horse, taming, bosses, Explore mode.
@@ -49,7 +49,7 @@ Polish comes from four things:
 
 | Library (version, date) | For | Size | Take? |
 |---|---|---|---|
-| **three-mesh-bvh** 0.9.15 (Sep 2026, MIT) | Fast ray and shape tests against meshes: melee arcs, keeping the camera out of walls, foot placement, Explore picking | ~30 KB gz | **Yes**, behind `src/physics/query.ts` so the physics rule still holds |
+| **three-mesh-bvh** 0.9.15 (Sep 2026, MIT) | Fast ray and shape tests against meshes: melee arcs, keeping the camera out of walls, foot placement, Explore picking | ~30 KB gz | **Yes**, behind `src/engine/physics/query.ts` so the physics rule still holds |
 | **three Inspector** (`three/addons/inspector`, since r181) | GPU frame timings, memory, a timeline | dev only | Yes, on the WebGPU path (stats-gl stopped working there in r181) |
 | **Needle Inspector** (Chrome extension + MCP) | Lets agents look at and edit the live scene of any three.js page | dev only | Yes, free |
 | **Playwright** (already installed) | Headless playtests, screenshot comparison with `toHaveScreenshot` | dev only | **Yes, as a CI gate** (R1) |
@@ -101,7 +101,7 @@ Drawn from Celeste's "forgiveness" write-up, the Dead Cells GDC 2019 postmortem,
 - [ ] One art direction per shard, applied everywhere in it.
 
 **Stability**
-- [ ] Runtime errors get reported back to you. Today they only show in a local modal (`src/ui/ErrorModal.ts`).
+- [ ] Runtime errors get reported back to you. Today they only show in a local modal (`src/engine/ui/ErrorModal.ts`).
 - [ ] A playtest must pass before every deploy.
 
 ## (e) Ranked recommendation (S ≈ a day of agent time, M = 2–5 days, L = weeks)

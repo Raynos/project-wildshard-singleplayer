@@ -1,10 +1,10 @@
 // E348 (the E315 M5 leftover): the practice arena's dummies go through the model contract — its lineup is placements of the
 // shared model shared/training-dummy, one copy per armour, each variant one the model defines; the card counts them.
 import { describe, expect, it } from 'vitest';
-import { ARENA_LINEUP } from '../src/practice/lineup';
-import { paramsOf } from '../src/models/model';
-import { trainingDummy } from '../src/models/trainingDummy';
-import { DUMMY_VARIANTS } from '../src/practice/TrainingDummy';
+import { ARENA_LINEUP } from '#engine/practice/lineup';
+import { paramsOf } from '#engine/models/model';
+import { trainingDummy } from '#engine/models/trainingDummy';
+import { DUMMY_VARIANTS } from '#engine/practice/TrainingDummy';
 
 describe("the practice arena's lineup (E348)", () => {
   it('places the shared dummy model: three copies, one per armour, on the room floor', () => {

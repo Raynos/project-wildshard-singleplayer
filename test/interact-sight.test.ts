@@ -2,14 +2,14 @@
 // can SEE through the Rapier world. A wall between eye and target hides it; the target's own box does not.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { ColliderBridge } from '../src/physics/bridge';
-import { groups } from '../src/physics/groups';
-import { tagCollider } from '../src/physics/surface';
-import { canSee, pickInteractable, setSight } from '../src/world/interact/Interactables';
-import type { Interactable } from '../src/world/Cabin';
-import type { Collider } from '../src/player/Player';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { ColliderBridge } from '#engine/physics/bridge';
+import { groups } from '#engine/physics/groups';
+import { tagCollider } from '#engine/physics/surface';
+import { canSee, pickInteractable, setSight } from '#engine/world/interact/Interactables';
+import type { Interactable } from '#engine/world/Cabin';
+import type { Collider } from '#engine/player/Player';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

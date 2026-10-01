@@ -133,7 +133,7 @@ Questions that were Jake's to decide went to him and are numbered decisions in
 | C3 | The 3 pre-boot keys | `ws.dev` → `device`; `wsResumeShot`, `wsResumeBrand` → `session` (per tab, as today) | 01 §9, 02 F10 |
 | C4 | `DamageRequest`: the text used `tags` / a `through.walls` tag; fields missing | The text uses the type (`sourceTags`, `throughWalls`); `from`, `distance`, `scale`, `cause`, `toast` added | 01 §18 |
 | C5 | Rules `DamageRuleDef` can't express; strike motion | Such rules register as plain `answer('damage.modify', fn, { order })`, and `DamageRuleDef` is the data form of the simple ones. `StrikeSpec.motion { speed, delay, track }` added | 01 §18, §19 |
-| C6 | `index.html` loads `/src/boot/entry.ts`; how an extend-mode compose gets the clean chain | The composition root is **`src/entry.ts` + `src/main.ts`** (01 §0); `c.engineChain('clean' \| 'cinematic')` | 01 §0, §13.1, 02 F6 |
+| C6 | `index.html` loads `/src/entry.ts`; how an extend-mode compose gets the clean chain | The composition root is **`src/entry.ts` + `src/main.ts`** (01 §0); `c.engineChain('clean' \| 'cinematic')` | 01 §0, §13.1, 02 F6 |
 | C7 | `kitLook`, `bag.pack`, `dev.poses`, the shard sub-fields | Declared (01 §6 "Declared sub-fields") | 01 §6 |
 | C8 | Pan-from-yaw count | 8 | 01 §15, 10 X5 |
 | C9 | Unanswered: 02 Q15, 03 Q4, 03 Q5 (and 05 Q7, 07 Q8–Q10, 08 Q6 / Q8, answered above) | **02 Q15:** accepted. The rule allows `Game.ts` and `bootstrap.ts` until F6 re-keys it, and its start count is the rule's own at F4. **03 Q4:** accepted. The gate walks 3 legs per shard (a job stays under 12 min), and the full route runs nightly. **03 Q5:** accepted. The probe instruments listener counts through the scope census and audio node counts through the `AudioService` registry; §2.4's instrumentation is the spec | 01 §24, 03 |
@@ -143,14 +143,14 @@ Questions that were Jake's to decide went to him and are numbered decisions in
 
 | # | Item | Resolution | Applied in |
 |---|---|---|---|
-| K1 | `src/world/interact/validate.ts` isn't dead: `test/interact.test.ts` and `test/pine-quest.test.ts` import it (it validates the Driftwood and Pine interactable tables) | **Corrects 08#8 / G20:** kept. F7 lists it as reviewed-and-kept. It moves with the interact code (F6), not to the dead list | 02 F7, 08 |
+| K1 | `src/engine/world/interact/validate.ts` isn't dead: `test/interact.test.ts` and `test/shards/pine-hollow/pine-quest.test.ts` import it (it validates the Driftwood and Pine interactable tables) | **Corrects 08#8 / G20:** kept. F7 lists it as reviewed-and-kept. It moves with the interact code (F6), not to the dead list | 02 F7, 08 |
 | K2 | The drawing half of the combat blocks (viewmodel, slash trail, brass) would break `sim-no-render` | **Accepted:** `src/engine/combat/view/**` is exempt; their state and rules stay in the checked folders | 01 §24, 02 F4 |
 | K3 | `Boss.ts` / `Elite.ts` split at S2.3 (runtime vs UI) | **Accepted** | index S2.3, 06 |
 | K4 | An engine `msaa` tier knob so Nalati's composer becomes `{ chain }` | **Accepted** (01 §13.3) | 01 §13.3, 07 S3.2 |
 | K5 | `retried()` (the E188 import retry) moves to `#engine/boot/retry` at X3; the shard chunk load is wrapped in it | **Accepted** | 10 X3 |
 | K6 | 08's crab / monkey / sailor bands said 5 Hz past 60 m, against decision 85 | **Accepted fix:** 10 Hz mid band | 08 |
 | K7 | 01 §2's RNG merge said X5 | **Fixed:** F8 | 01 §2 |
-| K8 | `move-map.json` mapped `src/boot/entry.ts` into the engine | **Fixed:** → `src/entry.ts` (the composition root), in the file map and in the `index.html` / `vite.config.ts` rewrites | move-map.json |
+| K8 | `move-map.json` mapped `src/entry.ts` into the engine | **Fixed:** → `src/entry.ts` (the composition root), in the file map and in the `index.html` / `vite.config.ts` rewrites | move-map.json |
 
 ## Council round 1 (reviews/round-1-seat-{A,B,C}.md → reviews/register.md)
 

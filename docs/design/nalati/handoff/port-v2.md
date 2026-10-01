@@ -1,14 +1,14 @@
 # Handoff: the Nalati look-v2 port (port lead, 2026-09-23)
 
 **Status (2026-09-23, Phase C): ✅ done** — steps 1–7 built, v2 is the Nalati default (`?look=v1` = the old path);
-the near-field painted grass cards are in (`src/nalati/look/grass.ts`); the final look round tuned the valley grass
+the near-field painted grass cards are in (`src/shards/nalati-grasslands/look/grass.ts`); the final look round tuned the valley grass
 (lush green, not lime), the snow ring's snow and the glacier (progress/nalati-final/01–03). Phone tier measured at
 52–76 calls / 0.77–1.05 M tris at the spawn, rim, plateau, Eagle Rock, kokpar and camp poses. The sections below are
 the history of the handoff.
 
 The clean-room prototype (`dev/nalati-cleanroom/`, PLAN.md there — removed from the tree before the merge onto main; in history at `247572c`, live at https://nalati-cleanroom.vercel.app) is the reference. This note covers what was ported
 into the shard, what is left in order, the user's hard rules, and how to test. **Status (2026-09-23, the look agent):
-steps 1–7 built — v2 is the Nalati default; `?look=v1` brings the old path back. Code in `src/nalati/look/`
+steps 1–7 built — v2 is the Nalati default; `?look=v1` brings the old path back. Code in `src/shards/nalati-grasslands/look/`
 (index.ts lists the one-line hooks). See "Built" below; the steps further down are the original plan, kept as the spec.**
 
 ## Built (look agent, 2026-09-23)
@@ -33,7 +33,7 @@ layout v2 (`docs/design/nalati/layout-v2.md`) wait on the new landscape.
 Measured headless (390×844 @1.5, Metal) with `?perf=1` and a per-object draw probe; budget **≤ ~110 calls, ≤ 1.6 M
 triangles** at every pose (the real-phone 30 fps target can't be measured here). The frame meter's `?perf=1` adds the
 check: the worst calls / triangles of the last ~10 s vs that budget, `OK` / `OVER` (red when over), and
-`window.__perfBudget` for scripts (src/ui/Perf.ts).
+`window.__perfBudget` for scripts (src/engine/ui/Perf.ts).
 
 | setting (phone) | value | where |
 |---|---|---|
@@ -54,7 +54,7 @@ check: the worst calls / triangles of the last ~10 s vs that budget, `OK` / `OVE
 | Titan fight, phase 3 looking N over the fire | 115 · 1.75 | 94 · 1.40 |
 
 Left for the owners: the sheep flock still casts its whole InstancedMesh into the shadow map (~0.1 M tris a frame,
-`src/entities/Flock.ts`); ~6 draws a frame are `Points` particle layers that could merge.
+`src/engine/entities/Flock.ts`); ~6 draws a frame are `Points` particle layers that could merge.
 
 ## The user's hard rules (2026-09-23, after playing the prototype — these override the prototype)
 
@@ -90,7 +90,7 @@ grass is not bad … the port lead better not copy over any of those shortcuts �
 
 ## What is left, in order (each step behind `?look=v2`, measured, pathspec-committed)
 
-Put the new files under `src/nalati/look/`. Each hook into a shared file should be one line, and each one should be
+Put the new files under `src/shards/nalati-grasslands/look/`. Each hook into a shared file should be one line, and each one should be
 named in that step's commit message.
 
 1. **Sky dome (rule 2).** A full sphere (BackSide, depthWrite off, renderOrder lowest, follows the camera, radius
@@ -134,7 +134,7 @@ named in that step's commit message.
    `wind.uniforms`) + `trampleBend` (TRAMPLE_GLSL + `trample.uniforms`). The new grass must call
    `wind.update` / `trample.push` / `trample.update` each frame, as `GrassPainterly.update` does, so stealth, wolves
    and `grassHeightAt` keep working unchanged. Shader SDF flowers (buttercup / daisy / lupine / edelweiss) in patches
-   from `flowerKindAt`. **Near-field (0–3 m): the painted GRASS_CARDS** (`src/world/nalatiTextures.ts`) as crossed quads
+   from `flowerKindAt`. **Near-field (0–3 m): the painted GRASS_CARDS** (`src/shards/nalati-grasslands/look/nalatiTextures.ts`) as crossed quads
    with alpha-to-coverage. These are grass *clumps* on the ground, which rule 1 allows (they're vegetation texture, not
    stand-ins for objects), but check them in the orbit strip. The hook is in `Grass.build()`
    (`if (LOOK_V2) → the v2 grass`). Budget on phone: ≤ 60 grass draws, ≤ 400k submitted tris; collapse blades

@@ -5,7 +5,7 @@ from its mockup loop's frames.
   python3 scripts/fit-lut.py [--shard <slug>] [--regions <json>] <mockup dir> '<pre-LUT captures>/{n}.png' [out.bin] [pred dir]
   python3 scripts/fit-lut.py art/driftwood-isle/round-4-remaster '<pre-LUT captures>/{n}.png' public/assets/lut/driftwood-isle.bin
 
---shard defaults to driftwood-isle; out.bin to public/assets/lut/<shard>.bin (src/world/lut.ts loads it for that shard;
+--shard defaults to driftwood-isle; out.bin to public/assets/lut/<shard>.bin (src/engine/world/lut.ts loads it for that shard;
 a shard with no file gets no LUT pass); the regions to scripts/palette-regions/<shard>.json; the predicted frames go to
 /tmp unless a pred dir is given.
 
@@ -22,7 +22,7 @@ recompositions), so the fit is per material, not per pixel:
    display sRGB) shrunk toward zero where the pairs are sparse (λ), then the displacement field is smoothed
    (3D Gaussian, σ = 1 node) and the move capped at 0.22 — a smooth, non-posterizing warp;
 4. it prints the predicted per-region ΔE00 after applying the LUT to the captures, then writes the table as RGBA8
-   (index (b·33 + g)·33 + r) for src/world/lut.ts.
+   (index (b·33 + g)·33 + r) for src/engine/world/lut.ts.
 """
 import importlib.util
 from pathlib import Path

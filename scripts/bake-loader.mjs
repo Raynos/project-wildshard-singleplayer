@@ -14,8 +14,8 @@ registerHooks({
     if (specifier.startsWith('#')) return next(specifier, context);
     if (IMAGE.test(specifier)) return { url: new URL(specifier, context.parentURL).href, shortCircuit: true, format: 'module' };
     // `./bytes.generated` has a dot but no real extension: resolve anything that is not a file as it stands. A folder
-    // with a `.ts` of the same name beside it is the file, as in Vite and tsc (E306: `src/chunks/driftwood-isle.ts` and
-    // its models in `src/chunks/driftwood-isle/models/`)
+    // with a `.ts` of the same name beside it is the file, as in Vite and tsc (E306: `src/shards/driftwood-isle/manifest.ts` and
+    // its models in `src/shards/driftwood-isle/models/`)
     const at = specifier.startsWith('.') && context.parentURL?.startsWith('file:') ? fileURLToPath(new URL(specifier, context.parentURL)) : null;
     if (at !== null && (!existsSync(at) || (statSync(at).isDirectory() && existsSync(`${at}.ts`)))) {
       const base = new URL(specifier, context.parentURL);

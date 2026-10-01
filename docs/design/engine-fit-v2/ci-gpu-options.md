@@ -56,7 +56,7 @@ Mac VM is. **Not worth it** while the free Mac runner exists.
   CPU; a heavy shard boot is minutes, and it burns ~3 cores per page (E25). A real-time 10 s walk at 2 fps runs the
   fixed step into its catch-up clamp, so stuck / hit results differ from a real GPU unless the harness steps the tick.
 - **Determinism:** draw calls, triangles and registry are CPU-side and repeat if sampled at a settled barrier with a forced
-  tier. Programs and GPU bytes do **not** carry across renderers: KTX2 picks ASTC / ETC2 / BC by extension (src/core/ktx2.ts),
+  tier. Programs and GPU bytes do **not** carry across renderers: KTX2 picks ASTC / ETC2 / BC by extension (src/engine/core/ktx2.ts),
   and capability limits change code paths (Babylon #18948, 2026-09: `MAX_TEXTURE_SIZE` differences changed a seeded
   particle stream). Screenshots are stable run to run on one Chromium + SwiftShader build but never match Metal.
   Baselines are per lane, and the Chromium version is pinned via the Playwright lockfile.

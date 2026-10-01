@@ -1,17 +1,17 @@
 // S1.3/S2.3: fixed-step windup/contact/recovery contracts move to the engine strike blocks.
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { LaneCharge } from '../../src/pinehollow/ctx';
-import { AnimalManager } from '../../src/entities/AnimalManager';
-import { Animal } from '../../src/entities/Animal';
-import { AnimalFactory } from '../../src/entities/AnimalFactory';
-import { getActiveChunk, setActiveChunk } from '../../src/chunks/registry';
-import type * as Heightfield from '../../src/world/Heightfield';
+import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
+import { AnimalManager } from '#engine/entities/AnimalManager';
+import { Animal } from '#engine/entities/Animal';
+import { AnimalFactory } from '#engine/entities/AnimalFactory';
+import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
+import type * as Heightfield from '#engine/world/Heightfield';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
 
 // Flat arena fixture: timing must not depend on today's shard terrain or baked geometry.
-vi.mock('../../src/world/Heightfield', async (original) => {
+vi.mock('#engine/world/Heightfield', async (original) => {
   const actual = await original<typeof Heightfield>();
   return { ...actual, heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null };
 });
@@ -22,7 +22,7 @@ beforeEach(() => { restoreRandom = seedRandom(); setActiveChunk('driftwood-isle'
 afterEach(() => { restoreRandom(); setActiveChunk(originalChunk); });
 
 function boar(): Animal {
-  const world = fakeWorld(), factory = new AnimalFactory(world.sky, { style: 'lowpoly' });
+  const world = fakeWorld(), factory = new AnimalFactory(world.sky, { style: 'toon' });
   const model = factory.model('boar', 'sow');
   const a = new Animal(factory.instantiate(model, 0.5), model, 0.5);
   a.place(0, 0, 0);
@@ -68,7 +68,7 @@ describe('strike timing at 60 fixed steps per second', () => {
   });
 
   it('AnimalManager boar charge waits for its 0.55s windup, hits once, then enters recovery', () => {
-    const world = fakeWorld(), manager = new AnimalManager(world.game.scene, world.sky, world.forest, { style: 'lowpoly' });
+    const world = fakeWorld(), manager = new AnimalManager(world.game.scene, world.sky, world.forest, { style: 'toon' });
     // BloodFX is a private visual-only dependency whose constructor requires a canvas. No DOM in this contract.
     Reflect.set(manager, 'blood', { update: (): void => undefined, burst: (): void => undefined });
     const a = manager.spawn('boar', 0, 0, 0, 'sow');

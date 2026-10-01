@@ -1,10 +1,10 @@
-// src/ui/Resume.ts: index.html paints the app-switch resume screen from its first bytes on a GPU-recovery reload (E61) and
+// src/engine/ui/Resume.ts: index.html paints the app-switch resume screen from its first bytes on a GPU-recovery reload (E61) and
 // the module adopts it — the two copies of the markup must not drift apart, and the inline script must key on the same
 // URL flag and still key as GpuRecovery / Resume write.
 import { describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
-import { BRAND_KEY, RESUME_HTML, SHOT_KEY } from '../src/ui/Resume';
-import { RELOAD_PARAM } from '../src/core/GpuRecovery';
+import { BRAND_KEY, RESUME_HTML, SHOT_KEY } from '#engine/ui/Resume';
+import { RELOAD_PARAM } from '#engine/core/GpuRecovery';
 
 describe('resume screen', () => {
   it('index.html carries RESUME_HTML verbatim inside .ws-resume', () => {
@@ -18,6 +18,6 @@ describe('resume screen', () => {
   });
 
   it('links its stylesheet from the head (styled before any bundle runs)', () => {
-    expect(html).toContain('<link rel="stylesheet" href="/src/ui/styles/resume.css" />');
+    expect(html).toContain('<link rel="stylesheet" href="/src/engine/ui/styles/resume.css" />');
   });
 });

@@ -8,7 +8,7 @@
  * `contentNamed(path)`: a file whose NAME already carries its content hash — the boot packs
  * (`/assets/packs/<slug>.<tier>-<hash8>.bin`), the audio (`<name>-<sha1[:8]>.m4a`), and any later `<name>-<hash8>.<ext>`
  * (E157's KTX2). Such a URL is content-addressed as it stands: it gets no `?v=`, and the worker keeps it while the build
- * names it. The same rule lives in src/pwa/sw.js (CONTENT_NAMED_RE) — keep the two in step.
+ * names it. The same rule lives in src/engine/pwa/sw.js (CONTENT_NAMED_RE) — keep the two in step.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';

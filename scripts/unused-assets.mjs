@@ -2,7 +2,7 @@
 // unused-assets.mjs — E161 ("cull and GC stale / unused stuff"): every file under public/ that no build path references.
 //
 // A file is USED when any of these reach it:
-//   1. a shard's boot, per tier (phone, desktop): src/boot/manifest.ts `chunkFiles` for every shard — the packs are cut
+//   1. a shard's boot, per tier (phone, desktop): src/engine/boot/manifest.ts `chunkFiles` for every shard — the packs are cut
 //      from these same files (scripts/bake-packs.mjs) — plus Rapier's WASM and the navmesh;
 //   2. the audio manifests: every file a public/assets/music/*/music.json or sfx/*/sfx.json names (+ the manifests);
 //   3. a used .gltf's own buffers / images;
@@ -34,8 +34,8 @@ const collect = argv.find((a) => a.startsWith('--collect='))?.slice(10);
 if (collect) {
   globalThis.location = { search: `?tier=${collect}`, href: 'http://audit.invalid/', pathname: '/' };
   const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
-  const { CHUNKS } = await imp('src/chunks/registry.ts');
-  const { chunkFiles } = await imp('src/boot/manifest.ts');
+  const { CHUNKS } = await imp('src/game/shard/registry.ts');
+  const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
   const out = new Set();
   for (const def of CHUNKS) for (const list of Object.values(chunkFiles(def))) for (const f of list) out.add(f);
   process.stdout.write(JSON.stringify([...out]));

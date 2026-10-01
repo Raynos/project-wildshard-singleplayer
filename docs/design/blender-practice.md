@@ -24,13 +24,13 @@ first-person arms (details below).
 
 | Model | Builder | Output (shipped) | Loaded by | Model lock | Saves a `.blend` |
 |---|---|---|---|---|---|
-| Driftwood spawn cove: terrain tiles + ~60–72 prototypes, 16.7 k placements, AO + bounce lightmaps | `scripts/blender/build_island.py` (713 lines) + `assets.py` (385), fed by `export-scene.mjs` + `shards/driftwood-isle.mjs` (the game's own heights, colours and layout, run in Node); `pnpm blender:island` → `run.sh` | `public/assets/models/driftwood-blender/` (2.5 MB: `island.glb`, `placements.bin`, `island.json`, 4 lightmap WebPs) | `src/world/BlenderIsland.ts` | **no** | no |
-| Pine Hollow tree set: 14 variants × 5 LOD parts, card + impostor atlases, 4 bark sets | `scripts/blender/trees/{treegen,build_trees,barkgen,glb}.py` + `run.sh` | `public/assets/models/pine-hollow-trees/` (4.4 MB) + `public/assets/tex/{fir_bark,…}/` | `src/world/treeSet.ts`, `TreeFactory.ts` | yes | no |
-| Pine Hollow crag kit (12 modules) | `scripts/blender/crags/{build_crags,rocklib}.py` + `run.sh kit` | `pine-hollow-crags/crags.glb` (348 KB) | `src/world/PineCrags.ts` | yes | no |
-| Pine Hollow bear cave | `scripts/blender/crags/build_cave.py`, fed by `export-cave.mjs` (the baked heights round the mouth) | `pine-hollow-crags/cave.glb` (373 KB) | `src/world/PineCrags.ts` | yes | no |
-| Lever rifle (hi / lo) | `scripts/blender/weapons/lever_rifle.py` (1,091 lines) + `run.sh` | `public/assets/pine-hollow/weapons/lever-rifle{,.phone}.glb` | `src/player/LeverRifle.ts` | yes | yes, into the build cache |
-| Skinning knife in a gloved hand (hi / lo) | `scripts/blender/weapons/skinning_knife.py` (1,358) + `run-knife.sh` | `skinning-knife{,.phone}.glb` + `.json` | `src/chunks/pine-hollow/models/skinningKnife.ts` | yes | yes, into the build cache |
-| **Nine Dragon first-person arms**: hand, gauntlet, jian guard, rigged into `fp-rig.glb` with 16 clips | **not at HEAD.** `src/dev/nd-lab/viewmodel/blender/{hand,hand_lib,hand_model,hand_parts,gauntlet,gauntlet_geo,gauntlet_maps,gauntlet_parts,gauntlet_preview,guard}.py` (4,110 lines) were deleted with the lab in `7a339ed2`; they exist only in history (`7a339ed2^`). The rig bake that turns the parts into `fp-rig.glb` (`bake.ts`, `moves.ts` with the clips, `rigbake.mjs` (deleted in E357 F7: needed the dev labs), `riggate.mjs` (deleted in E357 F7: needed the dev labs), `gate_chart.py`) was **never committed**, and is not under `~/projects`, `~/.claude/jobs` or the scratch folders | `public/assets/nine-dragon/viewmodel/fp-rig.glb` (2.4 MB) + 16 map WebPs (5.5 MB folder) | `src/chunks/nine-dragon-stack/vm/fpArms.ts` | — | — |
+| Driftwood spawn cove: terrain tiles + ~60–72 prototypes, 16.7 k placements, AO + bounce lightmaps | `scripts/blender/build_island.py` (713 lines) + `assets.py` (385), fed by `export-scene.mjs` + `shards/driftwood-isle.mjs` (the game's own heights, colours and layout, run in Node); `pnpm blender:island` → `run.sh` | `public/assets/models/driftwood-blender/` (2.5 MB: `island.glb`, `placements.bin`, `island.json`, 4 lightmap WebPs) | `src/shards/driftwood-isle/world/BlenderIsland.ts` | **no** | no |
+| Pine Hollow tree set: 14 variants × 5 LOD parts, card + impostor atlases, 4 bark sets | `scripts/blender/trees/{treegen,build_trees,barkgen,glb}.py` + `run.sh` | `public/assets/models/pine-hollow-trees/` (4.4 MB) + `public/assets/tex/{fir_bark,…}/` | `src/engine/world/forest/treeSet.ts`, `TreeFactory.ts` | yes | no |
+| Pine Hollow crag kit (12 modules) | `scripts/blender/crags/{build_crags,rocklib}.py` + `run.sh kit` | `pine-hollow-crags/crags.glb` (348 KB) | `src/shards/pine-hollow/world/crags.ts` | yes | no |
+| Pine Hollow bear cave | `scripts/blender/crags/build_cave.py`, fed by `export-cave.mjs` (the baked heights round the mouth) | `pine-hollow-crags/cave.glb` (373 KB) | `src/shards/pine-hollow/world/crags.ts` | yes | no |
+| Lever rifle (hi / lo) | `scripts/blender/weapons/lever_rifle.py` (1,091 lines) + `run.sh` | `public/assets/pine-hollow/weapons/lever-rifle{,.phone}.glb` | `src/shards/pine-hollow/weapons/LeverRifle.ts` | yes | yes, into the build cache |
+| Skinning knife in a gloved hand (hi / lo) | `scripts/blender/weapons/skinning_knife.py` (1,358) + `run-knife.sh` | `skinning-knife{,.phone}.glb` + `.json` | `src/shards/pine-hollow/models/skinningKnife.ts` | yes | yes, into the build cache |
+| **Nine Dragon first-person arms**: hand, gauntlet, jian guard, rigged into `fp-rig.glb` with 16 clips | **not at HEAD.** `src/dev/nd-lab/viewmodel/blender/{hand,hand_lib,hand_model,hand_parts,gauntlet,gauntlet_geo,gauntlet_maps,gauntlet_parts,gauntlet_preview,guard}.py` (4,110 lines) were deleted with the lab in `7a339ed2`; they exist only in history (`7a339ed2^`). The rig bake that turns the parts into `fp-rig.glb` (`bake.ts`, `moves.ts` with the clips, `rigbake.mjs` (deleted in E357 F7: needed the dev labs), `riggate.mjs` (deleted in E357 F7: needed the dev labs), `gate_chart.py`) was **never committed**, and is not under `~/projects`, `~/.claude/jobs` or the scratch folders | `public/assets/nine-dragon/viewmodel/fp-rig.glb` (2.4 MB) + 16 map WebPs (5.5 MB folder) | `src/shards/nine-dragon-stack/vm/fpArms.ts` | — | — |
 | *Lab only:* Fei Zhua grapple | `src/dev/nd-lab/grapple/blender/fei_zhua.py` (844) | `public/assets/nine-dragon/lab/grapple/fei-zhua.glb` (402 KB), shipped but loaded only by the dev lab page | `src/dev/nd-lab/grapple/feizhua.ts` | no | no |
 | *Orphan:* Nalati yurt | `scripts/blender/nalati_yurt.py` (330) | none: Jake picked the procedural yurt and `609f4242` removed the GLB and its loader | — | — | — |
 
@@ -106,7 +106,7 @@ Jake's phone.
 
 ## 3. Where the files live (B1)
 
-B1 puts a model's **module** under `src/models/` (shared) or `src/chunks/<slug>/models/` (one shard). The module is the
+B1 puts a model's **module** under `src/engine/models/` (shared) or `src/chunks/<slug>/models/` (one shard). The module is the
 TypeScript the game imports: its `defineModel` loads the GLB and owns variants, LODs and colliders. The **builder** that
 made the GLB is a build tool, and it stays out of `src/`:
 
@@ -184,7 +184,7 @@ Downloaded inputs are fetched by URL into the cache (Poly Haven), so they need n
   - `--save-blend` writes `<target>.blend` into the cache for a person or agent to open (the rifle, knife and dummy already
     do this).
 - **The KTX2 twins and byte tables** follow as today: `scripts/bake-ktx2.mjs` for textures; the vite build regenerates
-  `src/boot/bytes.generated.ts` and `versions.generated.ts`.
+  `src/engine/boot/bytes.generated.ts` and `versions.generated.ts`.
 
 ---
 

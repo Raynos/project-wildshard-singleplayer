@@ -148,11 +148,11 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
 | `walkLeg(leg)` | F2 | runs one route leg with the autopilot and resolves with its §2.3 record |
 | `combat` | F2 | `{ equip(id), target(kind, near), hold(animal, on), hits, kills }`: §5.1 |
 | `arena()` | F2 | `hud.enterArenaNow()` (the practice room, for Nine Dragon's dummies) |
-| `state()` | F2 | the gameplay snapshot the pause → resume step compares (§5.6): `{ appState, clockNow, player: { pos, yaw, pitch, vel, health }, weapon: { id, state, ammo }, creatures: [{ id, kind, pos, hp, brain }] (sorted by id), quest }`; positions rounded to 1 mm. Plus `onResume(fn)`: a one-shot callback fired by `tap.resumed`, after every resume handler has run (after `hud.onResume`, `src/ui/HUD.ts:472`) and before the loop runs its next frame (02 F2 step 2; R2-13) |
+| `state()` | F2 | the gameplay snapshot the pause → resume step compares (§5.6): `{ appState, clockNow, player: { pos, yaw, pitch, vel, health }, weapon: { id, state, ammo }, creatures: [{ id, kind, pos, hp, brain }] (sorted by id), quest }`; positions rounded to 1 mm. Plus `onResume(fn)`: a one-shot callback fired by `tap.resumed`, after every resume handler has run (after `hud.onResume`, `src/engine/ui/HUD.ts:472`) and before the loop runs its next frame (02 F2 step 2; R2-13) |
 | `saves` | F2 | `{ read, written }`, filled by the init script's `Storage` wrapper |
 | `sounds()` | F2 | the sound-play log since the last call, as `{ event: { <sound id>: count }, ambient: <sound id>[] sorted }`, then cleared. Its one source for the whole plan is `tap.sound`, which every sound-play path calls (`Audio.ts`'s cue methods and private schedulers and the 9 modules that play sound outside it, 02 F2 step 2), and from S1.5 the `AudioService` too, with the same ids and kinds: a call with `kind: 'ambient'` (a scheduler's tick, `ambientTick`) goes into `ambient`, every other call into `event`, except an event call made inside an `ambientTick` body, which is dropped (02 F2 step 2; K5-6) (§2.3; R1-45, R2-26, R3-13) |
 | `used()` | F2 | the labels `tap.use` received since the last call (the one use dispatch, `src/main.ts:1093`; 02 F2 step 2), then cleared: the touch leg's `used` read (§4; B3-10) |
-| `nav` | F3.2 | `{ randomPoint(near, min, max), path(a, b) }` over the engine's navmesh query (`src/physics/navmesh.ts` today) with the harness seed, for the soak bot (§14.2); `null` on a shard with no baked navmesh (Nine Dragon) |
+| `nav` | F3.2 | `{ randomPoint(near, min, max), path(a, b) }` over the engine's navmesh query (`src/engine/physics/navmesh.ts` today) with the harness seed, for the soak bot (§14.2); `null` on a shard with no baked navmesh (Nine Dragon) |
 | `app` | F8 | a read-only view of the `App`: state, systems by phase, clock, RNG seed, census |
 | `leak()` | F8 | §5.5 |
 | `budgets()` | S1.6 | §2.5 |
@@ -287,7 +287,7 @@ per system are not checked here (they need a shaped network and the calibrated `
 
 Driftwood, Pine Hollow and Nalati reuse scorecard's 3 poses (`scripts/scorecard.mjs:56-60`, taken from
 `physics-baseline.mjs`'s `POSES`). Nine Dragon uses mockup cameras A, B, C from
-`src/chunks/nine-dragon-stack/mockupCameras.ts` (→ `src/shards/nine-dragon-stack/mockupCameras.ts` in F6; the file is
+`src/shards/nine-dragon-stack/mockupCameras.ts` (→ `src/shards/nine-dragon-stack/mockupCameras.ts` in F6; the file is
 self-contained and node-importable): `feet` is the pose, engine `yaw = −yaw° × π / 180`, `pitch = pitch° × π / 180`.
 Camera D is a free camera (no feet) and is not a pose.
 
@@ -339,10 +339,10 @@ dodge starts (the dodge cooldown goes above 0); (4) it teleports next to the sha
 (`'n/a'` on a shard with none) and taps USE: the interaction fires. The record `walk.touch` = `{ moved, yawDelta,
 dodged, used }` is class D (`moved ≥ 2`, `yawDelta ≠ 0`, `dodged`, and `used` unless `'n/a'`). Its two reads, from
 verified source lines (B3-10; R2-F5): `dodged` = `player.dodgeCooldown > 0` right after the tap (the getter at
-`src/player/Player.ts:212`, which the DODGE disc's sweep reads); `used` = `probe.used()` holds the interactable's
+`src/engine/player/Player.ts:212`, which the DODGE disc's sweep reads); `used` = `probe.used()` holds the interactable's
 label after the tap (`tap.use` at the one use dispatch, `src/main.ts:1093`, which the USE disc reaches through its
-`KeyE`, `src/player/TouchControls.ts:398`; 02 F2 step 2). The disc selectors are read from
-`src/player/TouchControls.ts` into `scripts/parity/walk.mjs` as constants.
+`KeyE`, `src/engine/player/TouchControls.ts:398`; 02 F2 step 2). The disc selectors are read from
+`src/engine/player/TouchControls.ts` into `scripts/parity/walk.mjs` as constants.
 
 **`--full`** walks every leg, then every trail (`physics-baseline.mjs --trails`: each path of `TRAILS` end to end, both
 ways, a waypoint every 3 m). It runs nightly (§14), for F11's and F12's done-when, and before each milestone. The
@@ -361,7 +361,7 @@ fields (`stuck`, `out`) and reports `end` / `maxY` as information (R1-43).
 - The harness teleports the player to the stand-off distance on the line from the target to the player's current
   position, faces the target's bounding-sphere centre (yaw and pitch), then **attacks through real input**: on the
   phone tier a `pointerdown` then `pointerup` with `pointerType: 'touch'` on `.ws-touch-attack` (the ATTACK disc,
-  `src/player/TouchControls.ts:163`; touch-down fires `weapons.tryFire()`); on the desktop tier `page.mouse.down()` /
+  `src/engine/player/TouchControls.ts:163`; touch-down fires `weapons.tryFire()`); on the desktop tier `page.mouse.down()` /
   `up()` on the canvas centre. Presses repeat every 600 ms (melee) or on reload-ready (ranged: the probe exposes
   `weapons.current.state`) until the step's limit. The move pad, look drag, DODGE and USE are driven by the touch leg
   (§4; R1-46).
@@ -372,7 +372,7 @@ fields (`stuck`, `out`) and reports `end` / `maxY` as information (R1-43).
 
 | Shard | Step | Weapon | Target | Stand-off | Pass (class D) |
 |---|---|---|---|---|---|
-| `driftwood-isle` | swing | wooden sword (`sword`, the base) | the practice crab (E308, spawned at `PRACTICE_CRAB` = (−7, −143), `src/chunks/driftwood-isle.ts:84`) | 1.8 m | ≥ 1 hit within 3 s; killed within 15 s |
+| `driftwood-isle` | swing | wooden sword (`sword`, the base) | the practice crab (E308, spawned at `PRACTICE_CRAB` = (−7, −143), `src/shards/driftwood-isle/manifest.ts:84`) | 1.8 m | ≥ 1 hit within 3 s; killed within 15 s |
 | | shot | — Driftwood's loadout has no ranged weapon (no rifle on the sword shards, E333; R1-34) | — | — | recorded as `'n/a'` |
 | `pine-hollow` | swing | — Pine Hollow's loadout has no melee weapon (crossbow, lever rifle, longbow) | — | — | recorded as `'n/a'` |
 | | shot | crossbow (the base) | the nearest `boar` to (0, −200) | 12 m | killed within 20 s |
@@ -418,7 +418,7 @@ menu).
    for listeners and timers, the first 5 registration stack traces the init script kept for entries still alive.
 5. **With weather (R1-48).** Nalati and Pine Hollow run the leak test a second time per tier, in a fresh context with
    their weather active: Nalati with `?weather=storm` (the `harness` allowlist's `weather` param, which forces a storm
-   phase, `src/nalati/weather.ts:211`), Pine Hollow with the setting `weather: 'rain'` through `debugSettings`. That
+   phase, `src/shards/nalati-grasslands/weather.ts:211`), Pine Hollow with the setting `weather: 'rain'` through `debugSettings`. That
    run is boot → 30 s at the spawn → leak test, so the rain, lightning and storm resources are unloaded under test.
 6. The page is closed after the leak test (the next shard × tier gets a fresh context), so a failed unload never
    pollutes another run.
@@ -434,7 +434,7 @@ tiers, from F2.
 3. It waits 2 s of wall time with the menu open. Nothing may move: today the frame gate (`src/main.ts:1067`) runs no
    frame while the menu is up, and from F8 the game clock excludes paused time (01 §2).
 4. It arms `probe.onResume(fn)`, then taps or clicks the menu's RESUME button. The callback fires on `tap.resumed`
-   (R2-13): at the end of HUD's menu-close wrapper (`src/ui/HUD.ts:472`), after `Menu.close()` has cleared the menu
+   (R2-13): at the end of HUD's menu-close wrapper (`src/engine/ui/HUD.ts:472`), after `Menu.close()` has cleared the menu
    and after `hud.onResume` (= `enter`, `src/main.ts:1014`) has run, so every resume handler has run and the loop has
    not run its next frame (02 F2 step 2). `after = probe.state()` is taken there.
 5. `pauseResume.diff` lists every path where `after` differs from `before` (exact, after the 1 mm rounding), with
@@ -599,17 +599,17 @@ is `linux`, and every other plant is a `patch`.
 
 | Plant `id` | The one change (a patch file) | Shards | Expected red fields | From |
 |---|---|---|---|---|
-| `boot-throw` | `throw new Error('plant')` at the start of Pine Hollow's props step (`src/chunks/pine-hollow/world/props.ts`, the `build` method) | pine-hollow (the others must stay green) | `boot.errors` | F2 |
-| `system-rename` | the label `'physics.movers'` → `'physics.mover'` (`src/core/bootstrap.ts:138`) | all | `boot.systems` | F2 |
+| `boot-throw` | `throw new Error('plant')` at the start of Pine Hollow's props step (`src/shards/pine-hollow/world/props.ts`, the `build` method) | pine-hollow (the others must stay green) | `boot.errors` | F2 |
+| `system-rename` | the label `'physics.movers'` → `'physics.mover'` (`src/engine/core/bootstrap.ts:138`) | all | `boot.systems` | F2 |
 | `registry-drop` | Driftwood's jetty loop starts at index 1 (`src/main.ts:345`): `jetty-0` is never registered | driftwood-isle | `boot.registry`, `boot.physics` | F2 |
 | `census-drop` | Nine Dragon's lantern group (`scene.getObjectByName('lanterns')`) is not added to the scene | nine-dragon-stack | `boot.scene.named`, `boot.scene.totals` | F2 |
-| `look-fog` | Nalati's `atmosphere` fog density × 1.2 (`src/chunks/nalati-grasslands.ts`) | nalati-grasslands | `poses.*.ssim` (at least one pose) | F2 |
+| `look-fog` | Nalati's `atmosphere` fog density × 1.2 (`src/shards/nalati-grasslands/manifest.ts`) | nalati-grasslands | `poses.*.ssim` (at least one pose) | F2 |
 | `draw-add` | 20 extra 1 m boxes (each its own mesh) added beside Pine Hollow's gate at (2, −203) | pine-hollow | `poses.gate.calls`, `boot.scene.totals` | F2 |
-| `step-height` | the character controller's step 0.35 → 0.20 m (`src/physics/`, the autostep setting) | nine-dragon-stack, pine-hollow | `walk.stuck` | F2 |
+| `step-height` | the character controller's step 0.35 → 0.20 m (`src/engine/physics/`, the autostep setting) | nine-dragon-stack, pine-hollow | `walk.stuck` | F2 |
 | `sword-nohit` | the sword's damage application returns before `applyDamage` | driftwood-isle, nine-dragon-stack | `combat.swing` | F2 |
 | `crossbow-weak` | the crossbow's damage × 0.05 | pine-hollow | `combat.shot` (not killed within 20 s) | F2 |
 | `audio-drop` | one Driftwood ambience file removed from the boot's declared audio list | driftwood-isle | `boot.audio.requests` | F2 |
-| `hud-hide` | the LOCK disc is never mounted (`src/player/TouchControls.ts`) | all (phone) | `boot.hud` | F2 |
+| `hud-hide` | the LOCK disc is never mounted (`src/engine/player/TouchControls.ts`) | all (phone) | `boot.hud` | F2 |
 | `save-rename` | `ws.purse.v1` → `ws.purse.v9` (`src/game/loot/Purse.ts:16`) | driftwood-isle | `combat.loot`, `boot.saves` | F2 |
 | `pause-drift` | the resume path no longer gives back the player's state at the pause, which a correct build has restored before `tap.resumed` fires: the resume handler (`hud.onResume` = `enter`, `src/main.ts:1014`) first sets `player.velocity` to (0, 2, 0) m/s. `tap.resumed` fires after that handler (§5.6 step 4), so the snapshot sees the write and the diff shows `player.vel`; the frame gate (`src/main.ts:1067`) is untouched (R1-42, R2-13) | driftwood-isle, pine-hollow, nalati-grasslands | `pauseResume` (`player.vel`) | F2 |
 | `metal-off` | Chromium launched with `--use-angle=swiftshader` (a `flag` plant: its launch argument, no patch; the gate's `angle` input does the same) | all | exit 3, status `error` | F3.2 |

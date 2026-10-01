@@ -23,15 +23,15 @@ review, nothing built. The player-facing side (HUD, audio, quests, the remaster'
    gallop and STEED drains, but the horse moves **2 cm**. The camera stays at on-foot eye height (1.66–1.71 m over the
    ground; the saddle eye is 2.3 m × the horse's scale). There are two causes, both confirmed in the page:
    - **The rider's own capsule blocks the horse.** The ridden horse is within 45 m of the player, so P6 gives it a
-     creature `CharacterMotor`. That motor is blocked by `PLAYER` (`src/physics/creatures.ts:91`). Meanwhile the
+     creature `CharacterMotor`. That motor is blocked by `PLAYER` (`src/engine/physics/creatures.ts:91`). Meanwhile the
      player's capsule stays enabled, standing at the horse's feet: bootstrap's `post` slot calls
-     `setBodyEnabled(on)` and `player.step(dt)` whatever `player.ride` is (`src/core/bootstrap.ts:135`). With the
+     `setBodyEnabled(on)` and `player.step(dt)` whatever `player.ride` is (`src/engine/core/bootstrap.ts:135`). With the
      player's body switched off while mounted, the same probe gallops 30 m in 3.5 s (13 m/s).
    - **The frame phases undo the saddle camera.** `Mount.drive` runs from `Player.input()` (`Player.ts:349`, the
      render-rate input phase). `Player.step()` then still runs in the fixed step with stale intents, and
      `Player.update()` re-poses the camera from the feet at 1.7 m (`bootstrap.ts:138`). So every one of Mount's
      camera effects is overwritten: the saddle eye, the gait bob, the lean, the mount swing, the bucking shake.
-2. **Your arrows hit your own horse.** `pastRidden()` (`src/player/riding.ts`) hides the horse by setting
+2. **Your arrows hit your own horse.** `pastRidden()` (`src/engine/player/riding.ts`) hides the horse by setting
    `animal.hidden` for the length of one ray. Since P6, `AnimalManager.raycast` casts against Rapier hitboxes
    (`AnimalManager.ts:970`), and those are only switched on or off in `CreatureBodies.sync()`, never during the call.
    So the bow's ray and the arrows' ray hit the horse under you: the aim readout shows **"HORSE · 1 M"**
@@ -50,17 +50,17 @@ a physics that freezes the horse. Fix 3 is an S fallback (see D6).
 
 | Feature | Main has | Nalati today (verified) | Work | Size |
 |---|---|---|---|---|
-| Rapier world, fixed 60 Hz step, player on the KCC | Every shard, `src/physics/*`, frame phases on `Game` | Inherited: the player walks on the heightfield with step 0.35 m and climb 40° | None. Decide the climb limit (D2): **27 % of Nalati's land is over 40°** (Driftwood 8 %) | — |
+| Rapier world, fixed 60 Hz step, player on the KCC | Every shard, `src/engine/physics/*`, frame phases on `Game` | Inherited: the player walks on the heightfield with step 0.35 m and climb 40° | None. Decide the climb limit (D2): **27 % of Nalati's land is over 40°** (Driftwood 8 %) | — |
 | Static colliders via the world registry (`registry.add` + `ColliderDesc`) | Every Driftwood and Pine Hollow builder; one `add` = drawn + collides + in Explore | **None registered.** 1 834 hand-made boxes pushed into `player.colliders`, mirrored by the legacy P2 `ColliderBridge` as cuboids, all tagged `wood`; 13 floor functions in `player.platforms` (the bridge deck, Eagle Rock, the kurgans, the crag ledges, the dungeon floor); registry = `forest` (32 trunks) + `paths` (111 walkway boards) | Every Nalati builder emits `colliderDescs()` and registers a piece, with floors as real geometry and stairs as treads | **L** |
 | Horse on its own motor (E3 / P10 / E72) | Designed for it (`CharacterMotor`, "the Nalati horse in P10") | Hand-rolled `Mount.collide` / `groundAt` / `obstacleAhead` over `player.colliders` + `forest.nearby` + `player.platforms`, driven at render rate; plus the three breakages above | Hotfix (S) now, then the horse on a motor in the fixed step (M) | **S + M** |
-| Weapons on physics queries (P5) | Crossbow, rifle and sword on `sweepBall` / `castSegment` / `lineOfSight`; the material picks stick / glance / clang | Sabre ✓ (it extends `Sword`, so it uses `MeleeSweep`). **Bow arrows, javelins, Naizagai** hand-roll trunk cylinders, OBB boxes and a terrain bisect (`Projectiles.ts:27–30, 344–392`, `Spear.ts:406–487`, `Naizagai.ts:256`): the code P5 deleted from the crossbow | Port `Projectiles` + `Spear` to `src/physics/query.ts` | **M** |
+| Weapons on physics queries (P5) | Crossbow, rifle and sword on `sweepBall` / `castSegment` / `lineOfSight`; the material picks stick / glance / clang | Sabre ✓ (it extends `Sword`, so it uses `MeleeSweep`). **Bow arrows, javelins, Naizagai** hand-roll trunk cylinders, OBB boxes and a terrain bisect (`Projectiles.ts:27–30, 344–392`, `Spear.ts:406–487`, `Naizagai.ts:256`): the code P5 deleted from the crossbow | Port `Projectiles` + `Spear` to `src/engine/physics/query.ts` | **M** |
 | Creature hitboxes, near-creature motors, ragdolls (P6, P8) | Every AnimalManager creature | Inherited. Probe: a wolf and a horse both ragdoll. Hitboxes work, apart from the ridden horse. **The sheep flock (`Flock.ts`), the kokpar riders and the far herds are not in physics**: sheep are hit by `raycastSheep`, their own ray | Sheep hitboxes if they stay targets; decide the stampede (D8) | S |
 | Navmesh (P6b) | Baked per shard (`public/assets/baked/<slug>/navmesh.bin`) | **None.** `navmeshUrl('nalati-grasslands')` is null, so AnimalManager falls back to the old `steer`. `bake-navmesh.mjs` has no Nalati branch: it would bake Pine Hollow's cabins and props | A Nalati branch in the bake (POIs, dressing, crags), layers for wolf / leopard and horse | **M** |
 | Items as bodies, drops settle (P7) | `Bodies`, `Drop`, `floorBelow` | Inherited, but `floorBelow` finds no Nalati deck (they're floor functions), so blood and drops fall to the terrain under the bridge / Eagle Rock / the floating dungeon (y 140) | Comes with the registry work | — |
 | World Explorer + Model Explorer | Driftwood + Pine Hollow (`ChunkDef.explore`, `pois`, registered models) | **Off.** No `explore`, no `pois`, no registered models. Opened by hand: the catalog is 5 creatures in the **PBR fur style** (`Explore.ts:148` maps anything not `lowpoly` to `pbr`), no buildings, no nature, no map | `explore: true` + `pois` + register the POIs with `model` + the style fix + light presets on the Nalati clock | **M** |
 | Model pipeline | `lowpolyKit` + builders emitting descs; the Blender cove bake; img2mesh (TRELLIS / Hunyuan) → `driftwood_post` → GLB; CC0 kit | Generated GLBs → painterly material (`glbPaint.ts`), rigged hulls baked onto the species' skeletons (`nalati-rig-bake.mjs` (deleted in E357 F7: needed the dev labs)); **no colliders from any model**; the phone copy picked by the `TIER` const | Adopt the registry / collider / tier conventions, not the Blender bake (D5) | M (inside the L above) |
 | WebGPU path (X5, opt-in) | Driftwood-first TSL ports | **Black screen** (above) | Fall back to WebGL on Nalati (S), or port the painterly materials (L) | S / L |
-| Boot packs, preload-offline (E44), SW | Every declared file counted and cached; nothing after the bar | Pack ✓ (2.7 MB phone). **6 rigged creature GLBs (4.1 MB desktop + phone) are fetched during boot but not declared** (`manifest.ts:30`). The SW's `STATIC_RE` (`src/pwa/sw.js:71`) doesn't match `/assets/nalati/`, so all 26 MB of it goes **network-first**, not cache-first. Vercel marks `/assets/nalati/*` as `immutable` for a year, though the files are unhashed | Declare the rigs; add `nalati` to `STATIC_RE` and a 30-day `vercel.json` rule | **S** |
+| Boot packs, preload-offline (E44), SW | Every declared file counted and cached; nothing after the bar | Pack ✓ (2.7 MB phone). **6 rigged creature GLBs (4.1 MB desktop + phone) are fetched during boot but not declared** (`manifest.ts:30`). The SW's `STATIC_RE` (`src/engine/pwa/sw.js:71`) doesn't match `/assets/nalati/`, so all 26 MB of it goes **network-first**, not cache-first. Vercel marks `/assets/nalati/*` as `immutable` for a year, though the files are unhashed | Declare the rigs; add `nalati` to `STATIC_RE` and a 30-day `vercel.json` rule | **S** |
 | Perf budgets / bench | `bench.budget.json`, `pnpm bench:ci`, `physics-baseline.mjs` poses + walk route per shard | Nalati was measured before the merge (phone 52–95 calls, 0.77–1.4 M tris); **no bench / physics-baseline run with physics**; no Nalati route in `physics-route.json` | Add Nalati to `physics-baseline` (poses + walk + ride legs) and bench it | S–M |
 | GPU recovery / resume (E54, E61, E96, E98) | Generic; `markGpuOnly` for runtime bakes | Works (the reload path). `PainterlyRange` (`:100`) and look v2's shadow / contact bake (`nalati/look/bake.ts`) render into targets once and don't `markGpuOnly`, so an in-place restore brings them back empty. The resume `?at=` drops "mounted" / "inside the kurgan" | `markGpuOnly` or re-bake in `rebuild`; resume state (the other review) | S |
 | Settings (E55) | Main-menu boot options + pause live options | Renderer / tier / touch apply. **Time of day drives only Driftwood's `DayNight`** (`main.ts:338`); Nalati runs its own `DayClock`. Nalati's look flags (`?look=v1`, `?backdrop=0`, `?models=0`, `?creatures=`) stay URL-only | Wire Time of day to `DayClock` (S); decide the one clock (D7) | S |
@@ -75,7 +75,7 @@ a physics that freezes the horse. Fix 3 is an S fallback (see D6).
 
 ### What main has
 
-`src/physics/` is the only code that imports Rapier (AGENTS.md "Physics"). The parts:
+`src/engine/physics/` is the only code that imports Rapier (AGENTS.md "Physics"). The parts:
 
 - `Physics.ts` / `rapier.ts`: the world. The WASM is a declared boot file, compiled in the `physics` SETUP step.
 - `terrain.ts`: a heightfield at the mesh vertices, 4 edge walls, and `cutTerrain` for caves.
@@ -136,8 +136,8 @@ Driftwood ended with 1 793 colliders built in ~15 ms at 4× CPU, spread across t
   **1 834** hand-made boxes and `player.platforms` holds **13** floor functions. The registry has two pieces: `forest`
   (32 spruce capsules) and `paths` (111 boards). `physics.step()` costs 0.007 ms when nothing is awake.
 - Who pushes boxes and floors the old way:
-  - `src/nalati/index.ts:140,147` (outcrops, crag rock);
-  - `src/world/nalati/index.ts:95–96`, for every POI: camp + yurts, bridge, road furniture, summer camp, kurgan field,
+  - `src/shards/nalati-grasslands/index.ts:140,147` (outcrops, crag rock);
+  - `src/shards/nalati-grasslands/world/index.ts:95–96`, for every POI: camp + yurts, bridge, road furniture, summer camp, kurgan field,
     balbals, Eagle Rock, cairn, crags, watchtower / kokpar / far herds / snow lotus / glacier (`Bowl.ts`);
   - `dressing/index.ts:173` (boulders, logs, camp clutter, as boxes: `dressing/place.ts:258,538,577`);
   - `kurganBoss.ts:634–635` (the dungeon's walls + its floor function).
@@ -184,8 +184,8 @@ Driftwood ended with 1 793 colliders built in ~15 ms at 4× CPU, spread across t
 
 ## 2. Riding, taming and mounted combat on the physics
 
-- Riding lives in `src/player/Mount.ts` (driven from `Player.input` through `player.ride`), `src/nalati/ride.ts` (the
-  one prompt, the dev `?ride=`), `src/game/Taming.ts` (the bucking rounds own the horse), `src/player/riding.ts`
+- Riding lives in `src/shards/nalati-grasslands/ride/Mount.ts` (driven from `Player.input` through `player.ride`), `src/shards/nalati-grasslands/ride/ride.ts` (the
+  one prompt, the dev `?ride=`), `src/shards/nalati-grasslands/ride/Taming.ts` (the bucking rounds own the horse), `src/engine/player/riding.ts`
   (`riding.horse`, `pastRidden`), and `nalatiKit.setMount` (the sabre pass, the couched spear, the bow's mounted draw).
 - **What breaks with main's engine:** the three breakages at the top (P-1). Also:
   - The horse's capsule is `min(bodyRadius, bodyHalfLen) × scale`, upright (`creatures.ts:89`): a thin post under a
@@ -220,7 +220,7 @@ Driftwood ended with 1 793 colliders built in ~15 ms at 4× CPU, spread across t
   **drawn in the PBR fur style**.
 - **What Nalati needs** (M):
   1. `explore: true` + `pois` in `nalati-grasslands.ts`. The pins exist already as `mapPois()`'s Nalati list
-     (`src/ui/Minimap.ts:81`); lift it into the def.
+     (`src/engine/ui/Minimap.ts:81`); lift it into the def.
   2. The POI builders register with `model` as part of P-3 (camp, yurt, bridge, summer camp, the great kurgan, a
      balbal, Eagle Rock, the cairn, the watchtower, the glacier snout, the dungeon). Batch models (a boulder, a spruce,
      a snow lotus, the kokpar rider, a far-herd horse) go through `registerModel` with `buildAt`.
@@ -353,7 +353,7 @@ it (that is also the "riding with the stampede" Phase D wish).
 **D9. ENGINE-FIT E5 (a shard module) with this merge?**
 (a) Yes: Nalati becomes `src/shards/nalati` with `{config, buildWorld(registry), species, pois, hooks}`, and main.ts
 loses its 38 shard branches. · (b) No: keep `wireNalati`, but put all the new registry / collider work inside
-`src/nalati` and `src/world/nalati` so main.ts stays untouched. · (c) Do E5 after both merges settle.
+`src/nalati` and `src/shards/nalati-grasslands/world` so main.ts stays untouched. · (c) Do E5 after both merges settle.
 **Recommend (b) now, (c) later.** E5 is 1–2 days of refactor across three shards, and it would collide with the riding
 and HUD work in flight.
 

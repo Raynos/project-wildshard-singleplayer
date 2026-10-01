@@ -8,7 +8,7 @@ A's kit (build_crags.py) builds each cliff band from convex blocks stacked in co
 close the modules read as stacked blocks. Here the same blocks (rocklib, the same builders) are warped (the columns bend,
 the top outline goes ragged), welded into ONE watertight mass by a voxel remesh, and weathered along their normals
 (rocklib.weather: vertical joint cracks from a stretched Voronoi, sheeting ledges on the steep faces, a lumpy fractal),
-then decimated to A's budgets. `hero` is new: a ~26 m granite prow for the fire lookout's view (src/world/PineCrags.ts
+then decimated to A's budgets. `hero` is new: a ~26 m granite prow for the fire lookout's view (src/shards/pine-hollow/world/crags.ts
 places it on the crest NE of the tower).
 
 Same contract as A (the game's crag material reads it): a node per module per LOD (`<id>`, `<id>-lod1`), COLOR_0 =

@@ -5,9 +5,9 @@
 // (Non-facade batching elsewhere — the Pine Hollow forest and crags — is allowed by the audit and not checked here.)
 import { describe, expect, it } from 'vitest';
 
-const SOURCES = import.meta.glob<string>('../src/chunks/nine-dragon-stack/**/*.ts', { query: '?raw', import: 'default', eager: true });
+const SOURCES = import.meta.glob<string>(["../src/shards/nine-dragon-stack/**/*.ts","../src/kit/viewmodel/armRig.ts"], { query: '?raw', import: 'default', eager: true });
 expect(Object.keys(SOURCES).length).toBeGreaterThan(0);
-const FACADE = '../src/chunks/nine-dragon-stack/world/facade/batch.ts';
+const FACADE = '../src/shards/nine-dragon-stack/world/facade/batch.ts';
 const BANNED = /BatchedMesh|WEBGL_multi_draw|multiDraw|draw\s*:\s*['"`]batched['"`]|drawBatched/;
 
 /** The code only: block and line comments stripped, so a comment that names the ban does not trip it. */

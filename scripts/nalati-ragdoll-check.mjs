@@ -3,7 +3,7 @@
 //
 // One muted headless page per tier (phone, desktop) on Nalati. Walks the player up to the horse herd, then kills three
 // horses and two wolves in the same frame (a killing hit each, from the player's side) and reads back, per victim,
-// whether its death is a ragdoll (src/physics/ragdoll.ts: quadruped / rigid / upright) or the keyframed collapse (past
+// whether its death is a ragdoll (src/engine/physics/ragdoll.ts: quadruped / rigid / upright) or the keyframed collapse (past
 // the cap: phone 2 live, desktop 6), the live-ragdoll count, and the world's awake dynamic bodies (bodies.ts cap: phone
 // 40) — then again once the first ragdolls have frozen into corpses (the cap frees up). Writes <out>/ragdolls.json and
 // a JPEG of the corpses.

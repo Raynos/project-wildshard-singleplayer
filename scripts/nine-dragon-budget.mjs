@@ -6,7 +6,7 @@
 //
 // The phone frame (402×874 @3, tier phone, the shard's portrait FOV) from the eight domes' 72 cameras
 // (art/nine-dragon-stack/round-15-eight-domes/<dome>/cameras.json) and the four mockup cameras
-// (src/chunks/nine-dragon-stack/mockupCameras.ts), each posed with a free camera from a late hook (the viewmodel on, as
+// (src/shards/nine-dragon-stack/mockupCameras.ts), each posed with a free camera from a late hook (the viewmodel on, as
 // in play). Pass 1: every pose, the draws / triangles of one composer frame. Pass 2 (skipped with --totals), at each
 // dome's own view (5), the mockup cameras and the three worst poses: each top-level child of the fragment rendered alone
 // through the whole composer (its extra passes count), minus the empty frame, split into the budget's lanes — by the
@@ -27,7 +27,7 @@ for (const d of DOMES) {
   const cams = JSON.parse(readFileSync(`${ART}/${d}/cameras.json`, 'utf8'));
   for (const v of cams.views) views.push({ id: `${d.slice(0, 2)}·${v.n} ${v.name}`, dome: d, n: v.n, eye: v.eye, look: v.look, kind: v.kind });
 }
-const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/chunks/nine-dragon-stack/mockupCameras.ts'));
+const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/shards/nine-dragon-stack/mockupCameras.ts'));
 for (const [k, c] of Object.entries(MOCKUP_CAMERAS)) {
   const y = (c.yaw * Math.PI) / 180, p = (c.pitch * Math.PI) / 180;
   const look = [c.eye[0] + Math.sin(y) * Math.cos(p) * 20, c.eye[1] + Math.sin(p) * 20, c.eye[2] - Math.cos(y) * Math.cos(p) * 20];

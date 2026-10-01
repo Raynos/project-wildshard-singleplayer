@@ -7,8 +7,8 @@ Repo: `/Users/raynos/projects/games/wildshard-nalati-grasslands`, branch `nalati
 - **69 commits** `main..HEAD` (2026-09-22 → 09-23, two days); main is 90 commits ahead of the merge base (`614f447`).
 - **Committed:** `git diff --stat <mb> HEAD -- src` = **124 files, +21 053 / −175**. 77 new src files.
 - **Uncommitted WIP in the worktree** (the whole riding / taming / elites / night-enemy wave): 36 untracked src files =
-  **5 328 lines** (`src/player/Mount.ts` 409, `src/game/Taming.ts` 273, `src/nalati/ride.ts` 87, `src/ui/RideHUD.ts` 211,
-  `src/nalati/ghostRiders.ts` 412, `src/nalati/elites.ts` 829, `src/game/Elite.ts`, `src/nalati/stealth.ts` 247,
+  **5 328 lines** (`src/shards/nalati-grasslands/ride/Mount.ts` 409, `src/shards/nalati-grasslands/ride/Taming.ts` 273, `src/shards/nalati-grasslands/ride/ride.ts` 87, `src/shards/nalati-grasslands/ride/RideHUD.ts` 211,
+  `src/shards/nalati-grasslands/ghostRiders.ts` 412, `src/shards/nalati-grasslands/elites.ts` 829, `src/game/Elite.ts`, `src/shards/nalati-grasslands/stealth.ts` 247,
   species `ghostRider / balbal / eagle / leopard / kokbori`, `PaintedBackdrop.ts`, `PainterlyRange.ts`, `nalatiTextures.ts`)
   plus 26 modified tracked files (+720 / −364). **Horse riding (B7) and taming (B8) exist only as uncommitted WIP.**
 - No deploys: the plan forbids pushing from the worktree (`docs/plans/NALATI.md` "Deploy — none from this worktree"); a
@@ -19,11 +19,11 @@ Repo: `/Users/raynos/projects/games/wildshard-nalati-grasslands`, branch `nalati
 Biggest committed files: `player/Bow.ts` 942, `world/nalati/KurganDungeon.ts` 927, `nalati/kurganBoss.ts` 795,
 `player/Spear.ts` 727, `world/WeatherFX.ts` 678, `entities/species/horse.ts` 573, `world/nalati/dressing/place.ts` 543,
 `world/DayNight.ts` 533, `world/GrassPainterly.ts` 531, `entities/Herd.ts` 505, `chunks/nalati-grasslands.ts` 450,
-`entities/Pack.ts` 427, `entities/Flock.ts` 411. World POIs + dressing: 20 files / 5 561 lines under `src/world/nalati/`.
+`entities/Pack.ts` 427, `entities/Flock.ts` 411. World POIs + dressing: 20 files / 5 561 lines under `src/shards/nalati-grasslands/world/`.
 
 ## 2. Engine-ish systems Nalati had to build or bend (no physics engine anywhere)
 
-### Mounts / riding — `src/player/Mount.ts` (409, uncommitted)
+### Mounts / riding — `src/shards/nalati-grasslands/ride/Mount.ts` (409, uncommitted)
 - **Hijack pattern, not a vehicle abstraction.** `Player.ride: { drive(dt) } | null` (`Player.ts:148`); `Player.update`
   early-returns into `ride.drive(dt)` (`Player.ts:272`). Mount then writes `player.position / velocity / onGround /
   sprinting / crouching / speedFactor` directly and owns the camera (`Mount.ts:206–323`).
@@ -60,7 +60,7 @@ Biggest committed files: `player/Bow.ts` 942, `world/nalati/KurganDungeon.ts` 92
   player look / crouch / mounted, `onEvent`, `onKnockdown`) wired imperatively in `nalati/index.ts:185–230`.
 - Sheep = one InstancedMesh with vertex-shader legs (`Flock.ts`), a good perf pattern no engine gives for free.
 
-### Ghost riders — `src/nalati/ghostRiders.ts` 412 (uncommitted)
+### Ghost riders — `src/shards/nalati-grasslands/ghostRiders.ts` 412 (uncommitted)
 - Horse `Animal` + a separate rider mesh glued on, driven by `steerLine` (`:348`) in a circle 34 m out; own arrow pool
   (`Projectiles` with `hurtsPlayer`), own fresnel material. Spawn / hold / dissolve API hand-built for the elite system.
   Same no-collider steering; `heightAt` only.
@@ -111,7 +111,7 @@ Biggest committed files: `player/Bow.ts` 942, `world/nalati/KurganDungeon.ts` 92
 
 ## 3. Shard abstraction — how forked is it?
 
-- **There is a data abstraction but no behaviour abstraction.** `ChunkDef` (309 lines, `src/chunks/ChunkDef.ts`) covers
+- **There is a data abstraction but no behaviour abstraction.** `ChunkDef` (309 lines, `src/game/shard/manifest.ts`) covers
   terrain function, splat, trees, fauna list, sky / fog / grade numbers, `style`, `weapon`, `ocean?`, `horizon?`. A
   `_template.ts` + `registry.ts` makes a *terrain-and-lighting* shard a copy-and-fill job.
 - Everything else is **identity checks on three different signals**:

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // e350-king-measure.mjs — E350 F-X2: measure the Antler King's own hull (antler-king-rig[.phone].rigged.glb) in the poses
-// the fight uses, through the SAME clip functions the game animates him with (src/pinehollow/kingRig.ts clipPose →
+// the fight uses, through the SAME clip functions the game animates him with (src/shards/pine-hollow/combat/kingRig.ts clipPose →
 // applyKingPose, skinned on the CPU as scripts/king-rig-gate.mjs does). World metres = model units × KING_SCALE (2.6).
 //
 //   node --import ./scripts/bake-loader.mjs scripts/e350-king-measure.mjs [--tier=desktop|phone] [--json=<out.json>]
 //
-// What it reports (the numbers src/pinehollow/antlerKing.ts's distances are set from):
+// What it reports (the numbers src/shards/pine-hollow/combat/antlerKing.ts's distances are set from):
 //   rest     the bounding box, the joints, the torso's extent round the body capsule's axis (the body bone's z)
 //   sweep    over the swing, the rack's farthest horizontal reach from his origin and the arc it covers
 //   strike   the forehooves' horizontal distance from his origin at the slam (contact) and his top reach reared
@@ -17,7 +17,7 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { realpathSync, writeFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { kingRest, clipPose, applyKingPose, newPose } from '../src/pinehollow/kingRig.ts';
+import { kingRest, clipPose, applyKingPose, newPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);

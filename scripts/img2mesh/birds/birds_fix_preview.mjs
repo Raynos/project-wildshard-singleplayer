@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// birds_fix_preview.mjs — E322 F-M5: run src/pinehollow/life/birdFix.ts (Debug ▸ Bird fix = B) on birds.glb in Node and
+// birds_fix_preview.mjs — E322 F-M5: run src/shards/pine-hollow/life/birdFix.ts (Debug ▸ Bird fix = B) on birds.glb in Node and
 // write GLBs to render: the owl's flying body inflated, the perched woodpecker clinging — both in the frame the game
 // shows them in (the owl as flown; the woodpecker in its perch's world frame: +y up, the bark the plane z = 0.05).
 //
@@ -8,7 +8,7 @@
 // Writes <out>/birds-A.glb (today, same frames) and <out>/birds-B.glb (fixed); render them with birds_fix_render.py.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import * as THREE from 'three';
-import { inflateBody, clingPose } from '../../../src/pinehollow/life/birdFix.ts';
+import { inflateBody, clingPose } from '../../../src/shards/pine-hollow/life/birdFix.ts';
 
 const [src, sidePath, out] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });

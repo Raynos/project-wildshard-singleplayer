@@ -4,14 +4,14 @@
 // copy's box in front.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { loadRapier } from '../src/physics/rapier';
-import { Physics } from '../src/physics/Physics';
-import { groups } from '../src/physics/groups';
-import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from '../src/explore/viewPoint';
-import { copyInTheWay, type SelectTarget } from '../src/explore/pick';
-import { WorldRegistry, type RegisteredPick } from '../src/world/registry';
-import { defineModel, modelContext } from '../src/models/model';
-import { place } from '../src/models/place';
+import { loadRapier } from '#engine/physics/rapier';
+import { Physics } from '#engine/physics/Physics';
+import { groups } from '#engine/physics/groups';
+import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from '#engine/explore/viewPoint';
+import { copyInTheWay, type SelectTarget } from '#engine/explore/pick';
+import { WorldRegistry, type RegisteredPick } from '#engine/world/registry';
+import { defineModel, modelContext } from '#engine/models/model';
+import { place } from '#engine/models/place';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

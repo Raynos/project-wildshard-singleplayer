@@ -2,13 +2,13 @@
 // state machine (unknown → discovered → seen → taken, forward only), its per-shard save, and the tracker's hooks.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { hasSpecies, speciesDef } from '../src/entities/species/registry';
-import { PINE_HOLLOW_POIS } from '../src/chunks/pineHollowLayout';
-import { PINE_HOLLOW_COMPENDIUM } from '../src/ui/compendium/shards/pine-hollow';
-import { compendiumFor, registerCompendium } from '../src/ui/compendium/registry';
-import { COMPENDIUM_STORE, CompendiumState } from '../src/ui/compendium/state';
-import { CompendiumTracker, HEAR, SPOT, type TrackedAnimal } from '../src/ui/compendium/tracker';
-import type { ShardCompendium } from '../src/ui/compendium/types';
+import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
+import { PINE_HOLLOW_POIS } from '#shards/pine-hollow/layout';
+import { PINE_HOLLOW_COMPENDIUM } from '#shards/pine-hollow/compendium';
+import { compendiumFor, registerCompendium } from '#game/compendium/registry';
+import { COMPENDIUM_STORE, CompendiumState } from '#game/compendium/state';
+import { CompendiumTracker, HEAR, SPOT, type TrackedAnimal } from '#game/compendium/tracker';
+import type { ShardCompendium } from '#game/compendium/types';
 
 loadSpecies();
 const PH = PINE_HOLLOW_COMPENDIUM;

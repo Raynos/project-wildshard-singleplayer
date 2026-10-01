@@ -3,8 +3,8 @@
  *
  * `@dimforge/rapier3d-simd` is a wasm-bindgen `bundler` build: its `rapier_wasm3d.js` does
  * `import * as wasm from "./rapier_wasm3d_bg.wasm"` (the Wasm ESM-integration proposal), which Vite does not support.
- * So that one module is aliased to src/physics/rapierBindings.ts — the same class wrappers without the wasm import —
- * and src/physics/rapier.ts instantiates the binary itself (streamed from /assets/physics/, where the boot plan counts
+ * So that one module is aliased to src/engine/physics/rapierBindings.ts — the same class wrappers without the wasm import —
+ * and src/engine/physics/rapier.ts instantiates the binary itself (streamed from /assets/physics/, where the boot plan counts
  * its bytes and the service worker caches it like every other asset) and hands it to the wrappers.
  *
  * `copyRapierWasm()` puts the package's binary at public/assets/physics/rapier.wasm before the byte table is written
@@ -23,7 +23,7 @@ const TARGET = `${TARGET_DIR}/rapier.wasm`;
 
 /** Aliases for vite.config.ts and vitest.config.ts: the package's wasm-importing module → the plain bindings. */
 export const rapierAlias = [
-  { find: /^\.\/rapier_wasm3d(\.js)?$/, replacement: `${ROOT}src/physics/rapierBindings.ts` },
+  { find: /^\.\/rapier_wasm3d(\.js)?$/, replacement: `${ROOT}src/engine/physics/rapierBindings.ts` },
   // the package declares only `module`; node-side resolution (vitest) wants a file
   { find: /^@dimforge\/rapier3d-simd$/, replacement: `${ROOT}node_modules/@dimforge/rapier3d-simd/rapier.js` },
 ];

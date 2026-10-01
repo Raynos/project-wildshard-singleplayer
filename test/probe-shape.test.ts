@@ -1,22 +1,22 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { installProbe, programHash, type ProbeWorld, type WildshardProbe } from '../src/core/probe';
+import { installProbe, programHash, type ProbeWorld, type WildshardProbe } from '#engine/debug/probe';
 import type { WildshardProbe as ScriptProbe } from '../scripts/types/wildshard-probe';
-import type { Game } from '../src/core/Game';
-import type { Player } from '../src/player/Player';
-import type { Physics } from '../src/physics/Physics';
+import type { Game } from '#engine/core/Game';
+import type { Player } from '#engine/player/Player';
+import type { Physics } from '#engine/physics/Physics';
 import type { World as RapierWorld, RigidBodySet, ColliderSet } from '@dimforge/rapier3d-simd';
-import type { ChunkDef } from '../src/chunks/ChunkDef';
-import type { Audio } from '../src/audio/Audio';
-import type { Music } from '../src/audio/Music';
-import type { HUD } from '../src/ui/HUD';
-import type { Animal } from '../src/entities/Animal';
-import type { AnimalManager } from '../src/entities/AnimalManager';
-import type { Weapons, KitWeapon } from '../src/player/Weapons';
-import type { TrainingArena } from '../src/practice/TrainingArena';
-import { WorldRegistry } from '../src/world/registry';
-import { ambientTick, tap } from '../src/core/harnessTap';
+import type { ShardManifest } from '#game/shard/manifest';
+import type { Audio } from '#engine/audio/Audio';
+import type { Music } from '#engine/audio/Music';
+import type { HUD } from '#engine/ui/HUD';
+import type { Animal } from '#engine/entities/Animal';
+import type { AnimalManager } from '#engine/entities/AnimalManager';
+import type { Weapons, KitWeapon } from '#engine/player/Weapons';
+import type { TrainingArena } from '#engine/practice/TrainingArena';
+import { WorldRegistry } from '#engine/world/registry';
+import { ambientTick, tap } from '#engine/core/harnessTap';
 
 function fake<T extends object>(fields: Partial<T>): T {
   return new Proxy(fields, { get: (target, key) => {
@@ -43,7 +43,7 @@ function fixture(): ProbeWorld {
   const arena = fake<TrainingArena>({ targets: [], isActive: false });
   const registry = new WorldRegistry(); registry.add({ id: 'deck', name: 'Deck', category: 'buildings', file: 'fixture', surface: 'stone', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1 }] });
   return fake<ProbeWorld>({ game, player, physics, hud, animals, weapons, arena, registry,
-    chunk: fake<ChunkDef>({ slug: 'driftwood-isle', spawn: { x: 0, z: 0, yaw: 0 } }),
+    chunk: fake<ShardManifest>({ slug: 'driftwood-isle', spawn: { x: 0, z: 0, yaw: 0 } }),
     audio: fake<Audio>({ samples: { set: 'best', loops: [], oneshots: [], sampleBed: false, underSample: false } }), music: fake<Music>({ style: 'synth', state: { shard: 'island', mode: 'menu', intensity: 0, underwater: false } }), ocean: 'ocean-handle', pier: null, jetties: [], boat: null, hut: null, lookout: null, wreck: null, shrine: null, bushes: null, gulls: null, bridge: null, bridgeDeck: null, cove: null, enemies: null, shrineHum: null, islandSfx: null,
   });
 }

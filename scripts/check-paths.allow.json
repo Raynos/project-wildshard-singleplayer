@@ -505,133 +505,13 @@
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
-    "path": "src/core/rng",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/world/registry",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/world/Sky",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/world/rockKit",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/model",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/place",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/colliders",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/sets",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/chunks/driftwood-isle/models/shoreBoulder",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
     "path": "src/world/Foo.ts",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/chunks/pine-hollow/world/x.ts",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/chunks/pine-hollow/models/helper.ts",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/chunks/pine-hollow/models/stone.ts",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/leak.ts",
-    "file": "test/models-contract.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/world/registry",
-    "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/world/Sky",
-    "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/model",
-    "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/live",
-    "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/place",
-    "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/models/creature",
-    "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/entities/AnimalFactory",
-    "file": "test/models-live.test.ts",
+    "file": "test/shards/driftwood-isle/models-contract.test.ts",
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
     "path": "src/entities/species/newt.ts",
     "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/chunks/test-shard/models/newt.ts",
-    "file": "test/models-live.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/game/quest/Places",
-    "file": "test/models-places.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/game/quest/nalati",
-    "file": "test/models-places.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/chunks/pineHollowLayout",
-    "file": "test/models-places.test.ts",
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
@@ -948,5 +828,385 @@
     "path": "shared (src/world, src/player, src/entities, …)",
     "file": "scripts/check-models.mjs",
     "why": "E357 F6m: human-readable report area label, not three repository paths; the actual model folder rules remain manual F6 edits."
+  },
+  {
+    "path": "src/kit/models/",
+    "file": "scripts/check-models.mjs",
+    "why": "Model-folder rule also permits future rule-of-two kit models; no kit model has moved yet at F6."
+  },
+  {
+    "path": "src/models/glb.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/models/hull.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/models/slots.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/chunks/fauna-layout.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/fx.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/physics/paths.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/physics/ropeChain.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/boot/nineBootTrace.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/boot/nineGpuTrace.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/core/perfLap.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/ui/perfLap.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/entities/eliteBrain.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/entities/fightRules.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/entities/species/loft.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/entities/species/registry.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/entities/species/rigs.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/HorizonMatte.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/blenderArea.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/pointLightSkip.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/core/probe.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/core/harnessTap.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/BakedCards.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/faceHeads.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/physics/heightPatch.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/audio/ForestAmbience.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/entities/npc/Castaway.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/entities/npc/Trader.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/loot/finds.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/loot/keepsakes.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/loot/shop.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/Complete.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/Ecology.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/Feats.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/Finale.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/Places.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/Spine.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/TraderStall.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/driftwood.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/guards.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/game/quest/gullGuide.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/player/IronSword.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/player/LeverRifle.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/ui/ShopPanel.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/ui/compendium/shards/pine-hollow.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/ui/styles/shop.css",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/BlenderIsland.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Cove.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Gulls.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Palms.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/PineCrags.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Spruce.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/TrophyWall.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Undergrowth.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Water.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Waterfall.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/Zipline.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/coverTint.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/driftwood.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/interact/driftwood.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/nalati/KurganDungeon.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/nalati/glbPaint.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/nalati/layout.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/world/nalati/paint.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/boot/entry.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/shards/test-shard/models/newt.ts",
+    "file": "test/models-live.test.ts",
+    "why": "Synthetic model-check fixture; not a shipping module."
+  },
+  {
+    "path": "src/shards/pine-hollow/world/x.ts",
+    "file": "test/shards/driftwood-isle/models-contract.test.ts",
+    "why": "Synthetic cross-shard model import violation fixture."
+  },
+  {
+    "path": "src/shards/pine-hollow/models/helper.ts",
+    "file": "test/shards/driftwood-isle/models-contract.test.ts",
+    "why": "Synthetic model-folder violation fixture."
+  },
+  {
+    "path": "src/shards/pine-hollow/models/stone.ts",
+    "file": "test/shards/driftwood-isle/models-contract.test.ts",
+    "why": "Synthetic wrong model id fixture."
+  },
+  {
+    "path": "src/engine/models/leak.ts",
+    "file": "test/shards/driftwood-isle/models-contract.test.ts",
+    "why": "Synthetic engine-to-shard model import fixture."
+  },
+  {
+    "path": "src/shards/${slug}/thumbs",
+    "file": "vite.config.ts",
+    "why": "Computed path from discovered shard folders; each owns its title images."
+  },
+  {
+    "path": "src/shards/${slug}/explore",
+    "file": "vite.config.ts",
+    "why": "Computed path from discovered shard folders; each owns its Explore images."
+  },
+  {
+    "path": "src/chunks/thumbs/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/nalati/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/pinehollow/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/chunks/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
   }
 ]
