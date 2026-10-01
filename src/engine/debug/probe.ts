@@ -13,7 +13,7 @@ import { activeNavmesh, type Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';
 import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
-import { currentScope, levelRegistrations, asShell } from '../core/shardScope';
+import { currentScope, levelRegistrations, retainedRegistrations, asShell } from '../core/shardScope';
 import type { ScopeCensus } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 
@@ -35,7 +35,7 @@ export interface LeakCensus {
   geometries: number; textures: number; programs: number; bodies: number; colliders: number;
   listeners: ResourceCounts['listeners']; timers: ResourceCounts['timers'];
   audio: { activeVoices: number; beds: number; buses: number };
-  systems: Record<string, number>; events: { listeners: number; answerers: number };
+  systems: { input: number; fixed: { pre: number; step: number; post: number }; update: number; late: number; render: number }; events: { listeners: number; answerers: number };
   dom: { hud: number; body: number }; sceneObjects: number;
 }
 export interface LeakResult { before: LeakCensus; after: LeakCensus; scope: ScopeCensus; stacks: ResourceCounts['stacks']; retained: ReturnType<World['game']['app']['assets']['retained']> }
@@ -271,19 +271,19 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
   }
   const requireHarness = (): void => { if (!pins) throw new Error('Wildshard probe control requires __wildshardHarness'); };
   const { game } = world, app = game.app;
-  const raw = pins?.resources?.(), owned = levelRegistrations();
+  const raw = pins?.resources?.(), owned = levelRegistrations(), retainedAtBoot = retainedRegistrations();
   const retainedListeners = { window: 0, document: 0, canvas: 0, other: 0 }, retainedTimers = { timeouts: 0, intervals: 0, raf: 1 };
   if (raw) {
-    for (const key of Object.keys(retainedListeners) as (keyof typeof retainedListeners)[]) retainedListeners[key] = raw.listeners[key] - owned.listeners[key];
-    retainedTimers.timeouts = raw.timers.timeouts - owned.timers.timeouts;
-    retainedTimers.intervals = raw.timers.intervals - owned.timers.intervals;
+    for (const key of Object.keys(retainedListeners) as (keyof typeof retainedListeners)[]) retainedListeners[key] = raw.listeners[key] - owned.listeners[key] - retainedAtBoot.listeners[key];
+    retainedTimers.timeouts = raw.timers.timeouts - owned.timers.timeouts - retainedAtBoot.timers.timeouts;
+    retainedTimers.intervals = raw.timers.intervals - owned.timers.intervals - retainedAtBoot.timers.intervals;
   }
   const legacy = currentScope();
-  const bodyBaseline = document.body.children.length - [...(legacy?.nodeOwners.values() ?? [])].filter((owner) => owner === game.levelScope).length;
+  const bodyBaseline = document.body.children.length - [...(legacy?.nodeOwners ?? [])].filter(([node, owner]) => node.parentNode === document.body && owner.belongsTo(game.levelScope)).length;
   const baseline: LeakCensus = {
     geometries: 0, textures: 0, programs: 0, bodies: 0, colliders: 0,
     listeners: { window: 0, document: 0, canvas: 0, other: 0 }, timers: { timeouts: 0, intervals: 0, raf: 0 },
-    audio: { activeVoices: 0, beds: 0, buses: 0 }, systems: Object.fromEntries(Object.keys(app.systemsByPhase()).map((phase) => [phase, 0])),
+    audio: { activeVoices: 0, beds: 0, buses: 0 }, systems: { input: 0, fixed: { pre: 0, step: 0, post: 0 }, update: 0, late: 0, render: 0 },
     events: { listeners: 0, answerers: 0 }, dom: { hud: 0, body: 0 }, sceneObjects: 0,
   };
   const retainedPhysics = { bodies: world.physics.world.bodies.len() - game.levelScope.census.bodies,
@@ -295,16 +295,19 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     const resources = pins?.resources?.();
     if (!resources) throw new Error('Leak census requires independent harness resource counters');
     const gpu = game.retainedGpuCounts(), listeners = { ...resources.listeners }, timers = { ...resources.timers };
-    for (const key of Object.keys(listeners) as (keyof typeof listeners)[]) listeners[key] -= retainedListeners[key];
-    for (const key of Object.keys(timers) as (keyof typeof timers)[]) timers[key] -= retainedTimers[key];
+    const retainedNow = retainedRegistrations();
+    for (const key of Object.keys(listeners) as (keyof typeof listeners)[]) listeners[key] -= retainedListeners[key] + retainedNow.listeners[key];
+    for (const key of Object.keys(timers) as (keyof typeof timers)[]) timers[key] -= retainedTimers[key] + retainedNow.timers[key];
     let objects = 0; game.scene.traverse(() => { objects++; });
     const audio = world.audio.census();
+    const phases = app.systemsByPhase(), phaseCount = (phase: Phase): number => phases[phase].filter((s) => !engineSystemIds.has(s.id)).length;
     return { geometries: game.renderer.info.memory.geometries - gpu.geometries, textures: game.renderer.info.memory.textures - gpu.textures,
       programs: (game.renderer.info.programs?.length ?? 0) - gpu.programs,
       bodies: world.physics.world.bodies.len() - retainedPhysics.bodies, colliders: world.physics.world.colliders.len() - retainedPhysics.colliders,
       listeners, timers, audio: { ...audio, buses: 0 },
-      systems: Object.fromEntries(Object.entries(app.systemsByPhase()).map(([phase, systems]) => [phase, systems.filter((s) => !engineSystemIds.has(s.id)).length])),
-      events: app.events.census(), dom: { hud: document.querySelectorAll('#hud *').length - game.hudBaseline, body: document.body.children.length - bodyBaseline },
+      systems: { input: phaseCount('input'), fixed: { pre: phaseCount('fixed.pre'), step: phaseCount('fixed.step'), post: phaseCount('fixed.post') },
+        update: phaseCount('update'), late: phaseCount('late'), render: phaseCount('render') },
+      events: app.events.census(), dom: { hud: document.querySelectorAll('#hud *').length - game.retainedHudCount(), body: document.body.children.length - bodyBaseline },
       sceneObjects: objects - game.retainedSceneObjects() };
   };
   const mesh = activeNavmesh(), query = mesh ? createProbeNav(mesh, pins?.seed ?? 0x2545f491) : null;

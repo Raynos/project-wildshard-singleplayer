@@ -18,6 +18,9 @@ describe('level unload keeps the engine usable', () => {
     const scene = new Scene(), rig = new Mesh(new BoxGeometry(), new MeshBasicMaterial()); scene.add(rig);
     const assets = new AssetService(), ownership = new SceneOwnership(scene, level, assets);
     ownership.retain(scene);
+    const quadGeometry = new BoxGeometry(), quadMaterial = new MeshBasicMaterial(), quad = new Mesh(quadGeometry, quadMaterial);
+    const quadDispose = vi.fn<() => void>(); quadGeometry.addEventListener('dispose', quadDispose);
+    ownership.retainContainer({ screen: quad, scene });
     const geometry = new BoxGeometry(), shared = new Texture(), dispose = vi.fn<() => void>();
     shared.addEventListener('dispose', dispose); assets.register(`scene:${shared.uuid}`, shared, { retain: true });
     const root = new Group(), mesh = new Mesh(geometry, new MeshBasicMaterial({ map: shared })); root.add(mesh); scene.add(root);
@@ -36,6 +39,7 @@ describe('level unload keeps the engine usable', () => {
     expect(body.isValid()).toBe(false); expect(player.isValid()).toBe(true);
     expect(physics.world.bodies.len()).toBe(1); expect(physics.world.colliders.len()).toBe(1);
     expect(scene.children).toEqual([rig]); expect(freed).toHaveBeenCalledOnce(); expect(dispose).not.toHaveBeenCalled();
+    expect(quadDispose).not.toHaveBeenCalled(); expect(assets.isAcquired(quadGeometry)).toBe(true);
     for (const system of app.systemsByPhase().update) system.run(1 / 60, 0);
     expect(render).toHaveBeenCalledOnce(); expect(levelFrame).not.toHaveBeenCalled();
     const next = new Scope('next'); app.addSystem({ id: 'level.frame', phase: 'update', run: levelFrame }, next);
@@ -61,6 +65,9 @@ describe('level unload keeps the engine usable', () => {
     document.dispatchEvent(new Event('ownership-test')); button.click(); window.dispatchEvent(new Event('ownership-test'));
     expect(removed).toHaveBeenCalledOnce(); expect(retained).toHaveBeenCalledOnce(); expect(button.isConnected).toBe(false);
     expect(Object.values(level.census).every((n) => n === 0)).toBe(true);
+    document.addEventListener('ownership-test', removed);
+    expect(window.setTimeout(removed, 1)).toBe(0); expect(window.setInterval(removed, 1)).toBe(0);
+    document.dispatchEvent(new Event('ownership-test')); expect(removed).toHaveBeenCalledOnce();
     engine.dispose(); enterScope(null);
   });
 });

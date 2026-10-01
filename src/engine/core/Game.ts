@@ -134,12 +134,20 @@ export class Game {
   private ownership: SceneOwnership | null = null;
   readonly leakBaseline = new Scope('baseline').census;
   hudBaseline = 0;
+  hudRetained: ReadonlySet<Element> = new Set();
+  retainedHudCount(): number {
+    const legacy = currentScope();
+    return [...document.querySelectorAll('#hud *')].filter((node) => {
+      const owner = legacy?.nodeOwners.get(node);
+      return this.hudRetained.has(node) || (owner !== undefined && !owner.belongsTo(this.levelScope));
+    }).length;
+  }
   /** Snapshot the engine rig before any level geometry is built. */
   retainEngineScene(): void {
     this.ownership = new SceneOwnership(this.scene, this.levelScope, this.app.assets);
     this.ownership.retain(this.scene);
   }
-  captureLevelResources(): void { this.ownership?.capture(); }
+  captureLevelResources(): void { this.ownership?.retainContainer(this._composer); this.ownership?.capture(); }
   retainKitResources(): void {
     this.ownership?.retain(this.camera);
     this.ownership?.retainContainer(this._composer);

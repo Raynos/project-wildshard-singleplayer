@@ -560,7 +560,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const hud = withScopeOwner(game.engineScope, () => new HUD({ pointerLock: !nolock }));
   const shellHud = new Set(document.querySelectorAll('#hud *'));
   game.hudBaseline = shellHud.size;
-  game.levelScope.onDispose(() => { for (const node of document.querySelectorAll('#hud *')) if (!shellHud.has(node)) node.remove(); });
+  game.hudRetained = shellHud;
   arena = new TrainingArena(game, registry, world.physics, { x: chunk.spawn.x, z: chunk.spawn.z });
   // E307: the open feature playground (src/playgrounds/: Nine Dragon's grapple course, Nalati's horse track), entered from the
   // Explore hub like the arena. `away()`: the player is in a practice room, not the shard (no bounds, no map, no last place)

@@ -54,6 +54,7 @@ const SHELL = '.ws-load, .ws-resume, .ws-rotate, .ws-update, .ws-reload, #wserr,
 let current: ShardScope | null = null;
 let observer: MutationObserver | null = null;
 let installed = false;
+const engineTimers = new Map<number, 'timeouts' | 'intervals'>();
 let clearIntervalNow: (id: number) => void = (id) => { clearInterval(id); };
 type AddFn = (type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) => void;
 type RemoveFn = (type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions) => void;
@@ -73,10 +74,19 @@ export function currentScope(): ShardScope | null { return current; }
 export function levelRegistrations(): { listeners: { window: number; document: number; canvas: number; other: number }; timers: { timeouts: number; intervals: number; raf: number } } {
   const listeners = { window: 0, document: 0, canvas: 0, other: 0 }, timers = { timeouts: 0, intervals: 0, raf: 0 };
   if (!current) return { listeners, timers };
-  for (const reg of current.regs) if (reg.owner === current.resources) {
+  for (const reg of current.regs) if (reg.owner.belongsTo(current.resources)) {
     listeners[reg.target === window ? 'window' : reg.target === document ? 'document' : reg.target instanceof HTMLCanvasElement ? 'canvas' : 'other']++;
   }
-  for (const entry of current.timerOwners.values()) if (entry.scope === current.resources) timers[entry.kind]++;
+  for (const entry of current.timerOwners.values()) if (entry.scope.belongsTo(current.resources)) timers[entry.kind]++;
+  return { listeners, timers };
+}
+export function retainedRegistrations(): ReturnType<typeof levelRegistrations> {
+  const listeners = { window: 0, document: 0, canvas: 0, other: 0 }, timers = { timeouts: 0, intervals: 0, raf: 0 };
+  if (current) {
+    for (const reg of current.regs) if (!reg.owner.belongsTo(current.resources)) listeners[reg.target === window ? 'window' : reg.target === document ? 'document' : reg.target instanceof HTMLCanvasElement ? 'canvas' : 'other']++;
+    for (const entry of current.timerOwners.values()) if (!entry.scope.belongsTo(current.resources)) timers[entry.kind]++;
+  }
+  for (const kind of engineTimers.values()) timers[kind]++;
   return { listeners, timers };
 }
 export function withScopeOwner<T>(owner: Scope, fn: () => T): T {
@@ -129,6 +139,7 @@ function scopeTarget(target: EventTarget): void {
   const scopedAdd: AddFn = (type, listener, options) => {
     const scope = current;
     if (scope === null || listener === null) { add(type, listener, options); return; }
+    if (scope.owner.disposed || (typeof options === 'object' && options.signal?.aborted)) return;
     const key = keyOf(type, options);
     let byKey = wrappers.get(listener);
     if (!byKey) { byKey = new Map(); wrappers.set(listener, byKey); }
@@ -187,15 +198,19 @@ function take(records: readonly MutationRecord[]): void {
   let late = false;
   for (const r of records) {
     if (s) for (const n of r.addedNodes) {
-      if (!(n instanceof Element) || n.parentNode !== document.body || n.matches(SHELL)) continue;
+      if (!(n instanceof Element) || !n.isConnected || n.closest(SHELL)) continue;
       s.nodes.set(n, null);
       s.nodeOwners.set(n, s.owner);
+      for (const child of n.querySelectorAll('*')) s.nodeOwners.set(child, s.owner);
       const node = n;
-      s.owner.capture('nodes', () => { s.nodes.get(node)?.remove(); node.remove(); s.nodes.delete(node); s.nodeOwners.delete(node); });
+      s.owner.capture('nodes', () => {
+        s.nodes.get(node)?.remove(); node.remove(); s.nodes.delete(node); s.nodeOwners.delete(node);
+        for (const child of node.querySelectorAll('*')) s.nodeOwners.delete(child);
+      });
       late ||= !s.active; // a parked shard's timer put it there: out of the page with the rest of it
     }
     for (const n of r.removedNodes) {
-      if (!(n instanceof Element) || n.parentNode === document.body) continue;
+      if (!(n instanceof Element) || n.isConnected) continue;
       // a shard's own element taken out by its own code (Explore's viewer closing): no longer one to swap
       if (s?.nodes.get(n) === null) s.nodes.delete(n);
     }
@@ -235,6 +250,7 @@ export function installScopes(): void {
   const scopedSet = (handler: TimerHandler, timeout?: number, ...args: unknown[]): number => {
     const s = current;
     const resourceOwner = s?.owner;
+    if (resourceOwner?.disposed) return 0;
     const id = s === null || typeof handler !== 'function' ? setIv(handler, timeout, ...args) : setIv(() => {
       if (!resourceOwner || resourceOwner.disposed) return;
       runAs(s, () => withScopeOwner(resourceOwner, () => { Reflect.apply(handler, window, args); }));
@@ -244,9 +260,11 @@ export function installScopes(): void {
       s.timerOwners.set(id, { scope: resourceOwner, kind: 'intervals' });
       intervalCaptures.set(id, resourceOwner.capture('timers', () => { clearIv(id); s.intervals.delete(id); s.timerOwners.delete(id); owner.delete(id); intervalCaptures.delete(id); }));
     }
+    if (!s) engineTimers.set(id, 'intervals');
     return id;
   };
   const scopedClear = (id?: number): void => {
+    if (id !== undefined) engineTimers.delete(id);
     if (id !== undefined) { intervalCaptures.get(id)?.(); intervalCaptures.delete(id); owner.get(id)?.intervals.delete(id); owner.get(id)?.timerOwners.delete(id); owner.delete(id); }
     clearIv(id);
   };
@@ -256,8 +274,13 @@ export function installScopes(): void {
   const timeoutCaptures = new Map<number, { scope: ShardScope; forget: () => void }>();
   const scopedTimeout = (handler: TimerHandler, timeout?: number, ...args: unknown[]): number => {
     const s = current;
-    if (s === null || typeof handler !== 'function') return setTo(handler, timeout, ...args);
+    if (typeof handler !== 'function') return setTo(handler, timeout, ...args);
+    if (s === null) {
+      const id = setTo(() => { engineTimers.delete(id); asShell(() => { Reflect.apply(handler, window, args); }); }, timeout);
+      engineTimers.set(id, 'timeouts'); return id;
+    }
     const resourceOwner = s.owner;
+    if (resourceOwner.disposed) return 0;
     // the handler runs as its shard (a timeout chain — the surf scheduling its next swell — stays that shard's)
     const id: number = setTo(() => {
       timeoutCaptures.get(id)?.forget(); timeoutCaptures.delete(id); s.timeouts.delete(id); s.timerOwners.delete(id);
@@ -270,12 +293,13 @@ export function installScopes(): void {
   };
   Object.defineProperty(window, 'setTimeout', { value: scopedTimeout, configurable: true, writable: true });
   Object.defineProperty(window, 'clearTimeout', { value: (id?: number): void => {
+    if (id !== undefined) engineTimers.delete(id);
     if (id !== undefined) { const record = timeoutCaptures.get(id); record?.forget(); record?.scope.timeouts.delete(id); record?.scope.timerOwners.delete(id); timeoutCaptures.delete(id); }
     clearTo(id);
   }, configurable: true, writable: true });
   Object.defineProperty(window, 'clearInterval', { value: scopedClear, configurable: true, writable: true });
   observer = new MutationObserver(take);
-  observer.observe(document.body, { childList: true });
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 /** claim an element that was in the page before the scope existed (index.html's canvas and #hud for the first shard) */
@@ -328,7 +352,11 @@ export function scopesInstalled(): boolean { return installed; }
  */
 const nativeTimeout: (fn: () => void, ms?: number) => number = typeof window === 'undefined' ? (fn, ms) => Number(setTimeout(fn, ms)) : window.setTimeout.bind(window); // Number(): with node's types in the program (vite's Plugin type, test/backdrop-prefix.test.ts) setTimeout returns a Timeout
 export const shell = {
-  setTimeout: (fn: () => void, ms?: number): number => nativeTimeout(fn, ms),
+  setTimeout: (fn: () => void, ms?: number): number => {
+    if (current?.owner.belongsTo(current.resources)) return window.setTimeout(fn, ms);
+    const id = nativeTimeout(() => { engineTimers.delete(id); asShell(fn); }, ms);
+    engineTimers.set(id, 'timeouts'); return id;
+  },
   listen: (target: EventTarget, type: string, fn: EventListener, options?: boolean | AddEventListenerOptions): void => { nativeAdd?.call(target, type, fn, options); },
   unlisten: (target: EventTarget, type: string, fn: EventListener, options?: boolean | EventListenerOptions): void => { nativeRemove?.call(target, type, fn, options); },
 };

@@ -3,7 +3,7 @@ import type { Scope, Disposable3 } from './scope';
 import type { AssetService } from './assets';
 
 /** Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. */
-export function containerResources(container: unknown): Set<Disposable3> {
+export function containerResources(container: unknown, excludeNodes?: ReadonlySet<object>): Set<Disposable3> {
   const resources = new Set<Disposable3>(), visited = new Set<object>();
   const visit = (value: unknown): void => {
     if (typeof value !== 'object' || value === null || visited.has(value) || ArrayBuffer.isView(value)) return;
@@ -12,7 +12,14 @@ export function containerResources(container: unknown): Set<Disposable3> {
       resources.add(value);
       if (value instanceof Texture || value instanceof BufferGeometry) return;
     }
-    if (value instanceof Object3D || Reflect.get(value, 'isWebGLRenderer') === true || (typeof Node !== 'undefined' && value instanceof Node)) return;
+    if (value instanceof Object3D) {
+      if (!excludeNodes || excludeNodes.has(value)) return;
+      value.traverse((node) => {
+        for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow']) visit(Reflect.get(node, key));
+      });
+      return;
+    }
+    if (Reflect.get(value, 'isWebGLRenderer') === true || (typeof Node !== 'undefined' && value instanceof Node)) return;
     if (value instanceof Map || value instanceof Set) { for (const child of value.values()) visit(child); return; }
     for (const child of Object.values(value)) visit(child);
   };
@@ -39,8 +46,10 @@ export class SceneOwnership {
     root.traverse((node) => { this.engineNodes.add(node); });
     for (const resource of sceneResources(root)) this.acquire(resource);
   }
-  retainContainer(container: unknown): void { for (const resource of containerResources(container)) this.acquire(resource); }
-  retainedNodeCount(): number { return this.engineNodes.size; }
+  retainContainer(container: unknown): void { for (const resource of containerResources(container, this.engineNodes)) this.acquire(resource); }
+  retainedNodeCount(): number {
+    let count = 0; this.scene.traverse((node) => { if (this.engineNodes.has(node)) count++; }); return count;
+  }
   private acquire(resource: Disposable3): void {
     if (this.acquired.has(resource)) return;
     const key = `scene:${String(Reflect.get(resource, 'uuid'))}`;
