@@ -3469,6 +3469,7 @@ function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['dat
   }
   if (!('style' in fixture)) delete projected['style'];
   else projected['style'] = m.style === 'toon' ? 'lowpoly' : m.style === 'jiehua' ? 'pbr' : m.style;
+  if (m.weapon === 'custom') projected['weapon'] = fixture.weapon;
   if (!('weapon' in fixture)) delete projected['weapon'];
   return projected;
 }

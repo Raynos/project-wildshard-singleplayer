@@ -1,3 +1,4 @@
+import { Spear } from './weapons/Spear';
 import type { ShardContext, ShardManifest } from '#game';
 import { installRide } from './ride/input';
 import { Color, Vector3, type Object3D } from 'three';
@@ -215,8 +216,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   const BRACE_KILL_REACH = 3.1, BRACE_KILL_COS = Math.cos(32 * Math.PI / 180);
   const _hitDir = new Vector3(), _hitPt = new Vector3();
   const braceKills = (): void => {
-    const kit = play?.kit;
-    if (!kit?.spear.bracing || wildlife === null) return;
+    const spear = plugin.app.equipment?.current;
+    if (!(spear instanceof Spear) || !spear.bracing || wildlife === null) return;
     const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
     for (const w of wildlife.livingWolves) {
       if (!w.alive || !isLunging(w)) continue;
@@ -225,8 +226,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
       _hitDir.set(dx / d, 0, dz / d);
       _hitPt.set(w.position.x, w.position.y + 0.55 * w.scale, w.position.z);
       const killed = w.applyDamage(w.hp + 1, _hitPt, _hitDir);
-      kit.spear.onHit?.(w.kind, false, killed);
-      kit.spear.onImpact?.('flesh', _hitPt);
+      spear.onHit?.(w.kind, false, killed);
+      spear.onImpact?.('flesh', _hitPt);
     }
   };
   // toasts for the herd / pack moments, each at most once in a while
@@ -305,7 +306,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
 
       if (p.kit !== null) stealth.bindKit(p.kit);
       night.bindKit(p.kit);
-      ride.bind(p.hurt ? { kit: p.kit, toast: p.toast, hurt: p.hurt } : { kit: p.kit, toast: p.toast });
+      ride.bind({ toast: p.toast });
       devMode = ctx.params.get('ride');
       painter = new NalatiSkinPainter(nalati.skins, {
         mounted: () => ride?.mount.horse ?? null,
@@ -410,9 +411,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
     return filtered;
   });
   plugin.debug.expose('nalati', nalati);
-  plugin.debug.expose('nalati.boss', boss);
-  plugin.debug.expose('nalati.titan', titan);
-  plugin.debug.expose('nalati.elites', elites);
   plugin.debug.expose('nalati.balbals', night.balbals);
   plugin.debug.expose('nalati.ghosts', night.riders);
   plugin.debug.expose('nalati.dressing', dressing);

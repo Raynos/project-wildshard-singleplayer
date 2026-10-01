@@ -53,7 +53,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
   hud: { dayBadge: true }, // the minimap's sun / moon (E154)
   minimap: { palette: NALATI_MINIMAP }, // the painted map: its ground colours, the spruce + roads, the map-01 places (look/minimap.ts)
-  weapon: 'nalati', // its own kit (src/shards/nalati-grasslands/weapons/nalatiKit.ts: bow · sabre · spear) — no Driftwood sword built (NALATI-MERGE F2)
+  weapon: 'custom', // its own kit (src/shards/nalati-grasslands/weapons/nalatiKit.ts: bow · sabre · spear) — no Driftwood sword built (NALATI-MERGE F2)
   // the rings re-aimed to layout v2 in front of the painted panorama (the far snow range is the painting); the camera's far
   // plane is 2.6 km: every ring stays inside 2.5 km
   horizon: NALATI_HORIZON_V2,

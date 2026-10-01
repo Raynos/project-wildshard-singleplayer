@@ -412,6 +412,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   };
   if (audioProfile) prepareAudio();
   yield 'kit';
+  // Species and their looks must be installed by plugin.kit before animals build (E357 R1).
+  yield 'loadout';
 
   // Driftwood's world, built by its plugin's world hook (src/shards/driftwood-isle/world/build.ts, E357 S4.1); its readers
   // below move into the plugin at S4.2–S4.4 (nothing built off Driftwood)
@@ -445,7 +447,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   app.registerDayCycle(worldClock, game.levelScope);
   if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
-  yield 'loadout';
   // ── player kit: the shard's weapon + the rifle slot where the shard has one (EquipmentService.ts: 1…N / Q, the touch SWAP ring), HUD, audio ──
   const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.sword?.() ?? null])))[1]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ShardManifest.sword); the build below is synchronous
   let arena: TrainingArena | null = null;
