@@ -1,6 +1,6 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — open: P21 (tap-the-ammo-chip reload, three mockups being made), P22 (drop the spear BRACE? Jake leaning yes); waiting on Jake; asked in plain chat while herdr builders are live; must be empty before GAME-NORMALIZATION is archived.
+**State:** `blocked` 2026-10-01 — open: P21 (review wave 7 Q1: tap-the-chip reload A/B/C), P23 (review wave 7 Q2: desktop Settings built + guesses); waiting on Jake; asked in plain chat while herdr builders are live; must be empty before GAME-NORMALIZATION is archived.
 
 A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
@@ -17,13 +17,14 @@ continue on the recommended option, but the row stays open until Jake has answer
 
 | # | What | Options (recommended first) | Where to look | Since |
 |---|---|---|---|---|
-| P21 | **J13 round 2**: tap the ammo chip to reload: three new takes (A chip as a button + reload glyph · B a RELOAD tab under a part-empty chip · C a progress ring on the chip, "TAP" hint) | pick one | next review wave; `art/hud/round-17-reload-chip/` (Opus making them) | 2026-10-01 |
-| P22 | **J14 → drop the spear BRACE?** Jake: "I'm tempted to say the brace feature should go away". Brace = plant the spear (can't move); anything charging at you >4 m/s inside ±30° takes 60 + 8 × speed and a heavy stagger; a lunging wolf dies outright. Dropping it gives JUMP back and leaves dodge as the answer to a charge | drop BRACE (JUMP returns) · keep it (wave 5 A/B/C) | chat 2026-10-01 | 2026-10-01 |
+| P21 | **J13 round 2**: tap the ammo chip to reload: three new takes (A chip as a button + reload glyph · B a RELOAD tab under a part-empty chip · C a progress ring on the chip, "TAP" hint) | B + C's border (rec.) · A · B · C | review wave 7 (https://claude.ai/artifact/NeKCDgiiJh8C6q9TxeVXRo) Q1; `art/hud/round-17-reload-chip/` | 2026-10-01 |
+| P23 | **J10 desktop Settings A, built** (7c48770a): see it, plus the builder's guesses: Video shows the current quality and points to main menu ▸ Settings (those picks apply on reload); "Next weapon" is labelled "Swap weapon" (what Q does), no mouse-wheel row; no row for the spear's Space brace (waits on P22); Nalati's lean A/D while breaking a horse doesn't follow a rebound Move left/right | ship, fix guess 4 (rec.) · change (say what) | review wave 7 (https://claude.ai/artifact/NeKCDgiiJh8C6q9TxeVXRo) Q2; `progress/normalization/j10/` | 2026-10-01 |
 
 ## Answered
 
 | # | What | Jake's answer | Date |
 |---|---|---|---|
+| P22 | **J14 → drop the spear BRACE?** | Drop it ("approved"): JUMP returns with the spear out; built as J14 | 2026-10-01 |
 | P14 | **J13** touch RELOAD | Wave 5 Q1: tap the ammo chip (B's direction), not a new disc and not FIRE's rim; three new chip mockups → P21 | 2026-10-01 |
 | P15 | **J14** jump with the spear out | Wave 5 Q2: asked what BRACE is, leaning to drop it → P22 | 2026-10-01 |
 | P20 | **Z3 shard 6** Sky Reach first look | Wave 6 Q1: no comments: the direction stands; the rebuild goes on from this look (findings S6-1..4 in reviews/shard5-gaps.md) | 2026-10-01 |
