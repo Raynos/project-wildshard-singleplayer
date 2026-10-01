@@ -164,6 +164,7 @@ wait_room() {
 
 case "${1:-}" in
   status) status; exit 0;;
+  capacity) n=$(used); free=$((LANES - n)); [ "$free" -lt 0 ] && free=0; printf '%s %s\n' "$LANES" "$free"; exit 0;;
   reap) reap "${2:-}"; exit 0;;
   free) [ "$(used)" -lt "$LANES" ]; exit $?;;
   wait) wait_room; exit 0;;
@@ -175,7 +176,10 @@ case "${1:-}" in
     slot="$2"; marker="$3"; max="$4"; shift 4
     [ "$(used)" -le "$LANES" ] || exit 75
     : > "$marker"
-    "$@" & child=$!
+    # P1: preserve caller stdin for a lane-held browser server (bash otherwise gives an async child /dev/null).
+    exec 9<&0
+    "$@" <&9 & child=$!
+    exec 9<&-
     ( sleep $((max * 60))
       if kill -0 "$child" 2>/dev/null; then
         echo "browser-lane: killed after ${max} min (--max)" >&2; log "slot $slot: killed $* after ${max} min"
@@ -183,7 +187,8 @@ case "${1:-}" in
       fi ) 2>/dev/null & timer=$!
     trap 'kill_tree "$child"' INT TERM
     wait "$child"; rc=$?
-    kill "$timer" 2>/dev/null; pkill -P "$timer" 2>/dev/null
+    # Kill the timeout sleep before its parent, so it cannot be orphaned while holding caller pipes open.
+    pkill -P "$timer" 2>/dev/null; kill "$timer" 2>/dev/null
     exit $rc;;
 esac
 
