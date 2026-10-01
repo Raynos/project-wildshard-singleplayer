@@ -37,9 +37,6 @@
         "loot/",
         "onboarding/",
         "tiers.ts"
-      ],
-      "missing": [
-        "README.md"
       ]
     },
     "nalati-grasslands": {
@@ -65,9 +62,6 @@
         "water.ts",
         "weather.ts",
         "wet.ts"
-      ],
-      "missing": [
-        "README.md"
       ]
     },
     "nine-dragon-stack": {
@@ -80,9 +74,6 @@
         "tier.ts",
         "util.ts",
         "vm/"
-      ],
-      "missing": [
-        "README.md"
       ]
     },
     "pine-hollow": {
@@ -94,9 +85,6 @@
         "feats.ts",
         "items.ts",
         "life/"
-      ],
-      "missing": [
-        "README.md"
       ]
     }
   }
