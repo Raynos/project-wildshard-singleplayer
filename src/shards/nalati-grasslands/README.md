@@ -40,6 +40,8 @@ Layout debt (grandfathered): about 20 loose top-level files (`adventure.ts`, `ba
 `quest.ts`, `runtime.ts`, `sound.ts`, `stealth.ts`, `stealth.css`, `weather.ts`, `wet.ts` …) and `ride/`. They move into
 the canonical folders at the shard's milestone.
 
+2026-10-01 (Jake, E357 J14 / P22): spear BRACE removed. On foot its touch row is THROW · LOCK (with a target) · DODGE · JUMP; desktop RMB tap throws, RMB hold does nothing, and Space jumps. Thrusts, javelins, the mounted lance and enemy charges keep their tuning. Dodge answers charges.
+
 ## Budgets
 
 Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). Cold play on 4G within 35.5 s. F2 ceilings for the poses `camp`,

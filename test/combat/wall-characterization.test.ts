@@ -106,16 +106,15 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([]);
     setActivePhysics(null); invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([30]);
   });
-  it.each([false, true])('B1 lance%s / brace rejects cover and preserves clear-path damage', (lance) => {
+  it('B1 lance rejects cover and preserves clear-path damage', () => {
     wall(); const f = fakeWorld(), a = target(); setAimTargets([a.animal]);
-    const prev = a.animal.position.clone(); if (!lance) prev.z -= 0.1;
+    const prev = a.animal.position.clone();
     const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, profile: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast },
-      mount: lance ? { yaw: 0, speed: 8 } : null, prevPos: new Map([[a.animal, prev]]), rehit: new Map(), onHit: undefined, onImpact: undefined });
-    invokeLegacy(spear, 'contacts', 1 / 60, 1, lance);
+      mount: { yaw: 0, speed: 8 }, prevPos: new Map([[a.animal, prev]]), rehit: new Map(), onHit: undefined, onImpact: undefined });
+    invokeLegacy(spear, 'contacts', 1 / 60, 1);
     expect(a.dealt).toEqual([]);
-    setActivePhysics(null); spear.mount = lance ? { yaw: 0, speed: 8 } : null;
-    if (!lance) prev.z -= 0.1;
-    invokeLegacy(spear, 'contacts', 1 / 60, 1, lance); expect(a.dealt).toEqual([lance ? 88 : 108]);
+    setActivePhysics(null); spear.mount = { yaw: 0, speed: 8 };
+    invokeLegacy(spear, 'contacts', 1 / 60, 1); expect(a.dealt).toEqual([88]);
   });
   it('B2 Naizagai rejects a crag and preserves40 to a creature10m out in the open', () => {
     wall(); const f = fakeWorld(), a = target(); a.animal.position.z = a.body.z = a.head.z = -10;

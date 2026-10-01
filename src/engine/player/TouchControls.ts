@@ -100,7 +100,6 @@ const SPRINT_AT = 0.85;
 const LOOK_RATE = 0.0095;
 const HOLD_PX = 12;           // an ATTACK touch that travels less than this …
 const HOLD_MS = 250;          // … and is still down after this starts the heavy charge (melee only)
-/** Nalati's spear (Spear.ts): THROW (held, a javelin) takes AIM's spot and BRACE (held) takes JUMP's (combat-B mockup) */
 const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera turn (≈ 60 % of the bearing over a 0.15 s lunge)
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
 const LOCK_LINGER = 0.8;       // s — E319: LOCK stays up this long after the last lockable target leaves its reach
@@ -135,7 +134,7 @@ export class TouchControls {
   private cdShown = -1; // the DODGE disc's cooldown sweep (--cd) as last painted
   private lockShown = ''; private orbitShown = 0; // the lock-on state / the lit ORBIT arc as last painted (E50)
   private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
-  private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
+  private wasSpear = false; // THROW replaces AIM while the spear is held
   private wasLockable = false; // the LOCK disc shows while a weapon that locks is held (LOCK_WEAPONS: the swords, Nalati's sabre + spear)
   private lockLinger = 0; private lockIdle = false; // E319: s left before LOCK hides with nothing to lock / `.lock-idle` as last painted
   private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
@@ -379,9 +378,8 @@ export class TouchControls {
     this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
     hover.classList.toggle('on', this.player.hover);
     btn('.jump', () => { app.input.press('jump'); });
-    // the spear (Nalati): THROW = hold to wind a javelin up, release to throw; BRACE = hold to plant the spear (Spear.ts)
+    // the spear (Nalati): THROW = hold to wind a javelin up, release to throw
     btn('.throw', () => { if (this.weapons.enabled) this.weapons.adsHeld = true; }, () => { this.weapons.adsHeld = false; });
-    btn('.brace', () => { if (this.weapons.enabled) this.weapons.altHeld = true; }, () => { this.weapons.altHeld = false; });
     // DIVE replaces JUMP while swimming: a held control (down = held), released on up / cancel / leave
     btn('.dive', () => { this.player.touchDive = true; }, () => { this.player.touchDive = false; });
     const prevSwim = this.player.onSwimChange;

@@ -22,10 +22,10 @@ Round-1 versions (content reference, other art styles): `art/nalati-grasslands/r
 
 | | Bow (composite recurve) | Sabre (kylysh) | Spear | Javelin |
 |---|---|---|---|---|
-| role | the main weapon; long range, on foot and mounted | melee, and the mounted pass | reach melee + the anti-charge brace | a heavy ranged hit at short range |
-| touch primary | hold **DRAW** disc (left) to draw, release to loose; a TAP on the LOOK pad = snap shot | tap LOOK pad = combo swing; hold **SLASH**/AIM disc = heavy | tap LOOK pad = thrust; hold **BRACE** disc (right) | hold **THROW** disc (left) to wind up, release to throw |
-| desktop | hold LMB draw, release loose; RMB = steady (1.3× zoom) | LMB combo, RMB heavy (Sword.ts) | LMB thrust, hold RMB brace | hold LMB wind-up, release throw |
-| damage (body / head) | 40–48 at full draw, ×2.5 head | 24 / 24 / 32 combo, 48 heavy | 30 thrust; brace 60 + 8 × charge speed | 55, ×2 head |
+| role | the main weapon; long range, on foot and mounted | melee, and the mounted pass | reach melee + mounted lance | a heavy ranged hit at short range |
+| touch primary | hold **DRAW** disc (left) to draw, release to loose; a TAP on the LOOK pad = snap shot | tap LOOK pad = combo swing; hold **SLASH**/AIM disc = heavy | tap LOOK pad = thrust; **JUMP** disc (right) | hold **THROW** disc (left) to wind up, release to throw |
+| desktop | hold LMB draw, release loose; RMB = steady (1.3× zoom) | LMB combo, RMB heavy (Sword.ts) | LMB thrust, Space jump; quick RMB tap throws | hold LMB wind-up, release throw |
+| damage (body / head) | 40–48 at full draw, ×2.5 head | 24 / 24 / 32 combo, 48 heavy | 30 thrust | 55, ×2 head |
 | ammo | quiver 24, arrows recoverable | — | — | 3 carried (5 with the camp upgrade), recoverable |
 | mounted | yes (the whole of A) | yes (single wide pass slash) | couched lance at canter+ | yes, horse speed added |
 
@@ -99,12 +99,7 @@ The fantasy is the Kazakh / Scythian horse archer: gallop past, loose, keep runn
 - **Thrust**: tap the LOOK pad → 0.35 s thrust (0.12 s wind-up, 0.1 s active), reach **3.2 m** (a metre more
   than the sabre — the spear keeps a wolf at bay), damage 30, light stagger (0.5). A narrow fan
   (yaw ±0.1 rad) — it's a point, not an edge.
-- **BRACE** (`combat-B`, right disc — replaces JUMP while the spear is held; RMB on desktop): hold to plant the
-  butt (0.25 s to set), the player stops moving but can still turn at half rate. Anything that runs onto the
-  point — enters 3.2 m inside ±30° of your facing at > 4 m/s — takes **60 + 8 × its speed** (a charging boar at
-  7.5 m/s takes 120: dead; a lunging wolf at 9.5 m/s takes 136) and its charge ends; the player takes nothing.
-  Brace held max 4 s, then 1 s cooldown. A charge from outside the ±30° cone hits you as normal — facing is the
-  skill. The faint cyan BRACE ring at the point is lit only while set.
+- **2026-10-01 — BRACE dropped (Jake, E357 J14 / P22).** The spear keeps JUMP on touch and Space on desktop. Quick RMB tap still throws; RMB hold has no action. The cyan ring, planted pose, movement lock and automatic lunging-wolf kill are removed. Wolves and boars keep their charges: dodge them.
 - **Couched lance** (mounted, spear held, canter or faster): the spear levels automatically; a target inside
   2.5 m ahead ±15° takes 40 + 6 × v. No input — you aim the horse.
 - **Javelins** (`combat-B2`): hold THROW (the left disc when the spear or javelin slot is held) to wind up —
@@ -134,7 +129,7 @@ Contextual discs change with the held weapon, so the two discs are always the tw
 |---|---|---|---|
 | bow | DRAW (hold) | JUMP (CROUCH in tall grass) | GALLOP |
 | sabre | HEAVY (hold) | JUMP | GALLOP (SLASH on the LOOK tap) |
-| spear | THROW (a javelin) | BRACE | GALLOP |
+| spear | THROW (a javelin) | JUMP | GALLOP |
 | javelin | THROW | JUMP | GALLOP |
 
 Desktop: `1`–`4` select, `Q` last weapon, mouse wheel cycles, hold `Tab` opens the same wheel.
@@ -162,12 +157,10 @@ golden bow and fire arrows later.
 - `src/engine/player/Sword.ts` + `SwordMoves.ts` — the combo / heavy / trail / fan hit test / hit-stop. The sabre is a
   new blade geometry + slightly faster keys; the spear thrust is a new `Move` (a forward key triple, a narrow
   fan, reach 3.2); the mounted slash is a `Move` chosen left or right at swing time.
-- `src/engine/entities/Animal.ts` `stagger()` / `applyDamage()` / `damageFor()` and `AnimalManager.onCharge` — the
-  brace needs one new hook: the manager tells the weapon a charge is about to connect (`onChargeContact`), the
-  spear can cancel it.
+- `src/engine/entities/Animal.ts` `stagger()` / `applyDamage()` / `damageFor()` retain the ordinary thrust and mounted-lance contacts.
 - `src/engine/player/AimAssist.ts` — widened cone and tracking while mounted.
 - `src/engine/player/TouchControls.ts` — discs already swap by context (JUMP → DIVE while swimming); DRAW / THROW /
-  BRACE / GALLOP / SLASH are the same pattern. DRAW and THROW are *held* discs (like DIVE), not toggles (like
+  GALLOP / SLASH are the same pattern. DRAW and THROW are *held* discs (like DIVE), not toggles (like
   AIM).
 
 **New:**
@@ -175,7 +168,7 @@ golden bow and fire arrows later.
 - `Bow.ts` (viewmodel: composite recurve, string that bends with `p`, nocked arrow; hold-draw-release; the arc
   preview) and `Javelin.ts`, sharing a new `Projectiles.ts` extracted from `Crossbow.ts`.
 - `Sabre.ts` = `Sword` with the kylysh blade (or `Sword` gains `{ blade: 'sabre' }` like `'iron'`); `Spear.ts`
-  (thrust + brace + couched lance).
+  (thrust + javelins + couched lance).
 - Mounted combat: every weapon reads `player.mount` (speed, heading) — arrow / javelin inherit velocity, the
   sabre switches to the pass slash, the spear to the lance. The mount itself is in
   `wolves-horses-taming.md` (F1).

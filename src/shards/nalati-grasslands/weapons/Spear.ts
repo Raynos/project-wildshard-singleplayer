@@ -33,12 +33,6 @@ import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, hel
  * THRUST — LMB / F / a LOOK tap (`tryFire`): 0.35 s (0.12 wind-up, 0.1 active), reach 3.2 m (a metre past the sabre), a
  * narrow fan (yaw ±0.1 rad), 30 damage, light stagger (0.5). No lunge: the spear keeps a wolf at arm's length.
  *
- * BRACE — the touch BRACE disc (replaces JUMP while the spear is held: `altHeld`), or HOLD RMB on desktop (past 0.25 s):
- * the butt is planted in BRACE_SET s; while set the player cannot walk (`player.moveScale` 0) and a faint cyan ring
- * lights at the point. Anything that runs onto the point — its body within REACH of the eye, inside ±30° of the view,
- * closing faster than 4 m/s — takes 60 + 8 × its speed and a heavy stagger (which ends a charge: Animal.stagger), once
- * per BRACE_REHIT s. A charge from outside the cone hits you as normal. Held at most BRACE_MAX s, then BRACE_COOLDOWN.
- *
  * JAVELINS (3 carried) — the touch THROW disc (the left disc, where AIM sits:
  * `adsHeld`, held): press = the spear drops to the left hand and a javelin comes up cocked by the right ear (WINDUP s to
  * full) with a dotted throw arc; release = throw (a release before full throws the moment it is). Desktop: a quick RMB
@@ -50,7 +44,7 @@ import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, hel
  * spear levels by itself; an animal inside 2.5 m ahead ±15° of the horse's heading takes 40 + 6 × v (once per 1.2 s).
  *
  * Implements `Weapon` (+ the kit hooks `holster`, `reload`, `aimRay`, `altHeld`, `ammoLabel`, `segments`,
- * `magazine`). Events: onFire on every thrust and throw · onThrow on a throw (after onFire) · onBrace(on) · onHit ·
+ * `magazine`). Events: onFire on every thrust and throw · onThrow on a throw (after onFire) · onHit ·
  * onImpact · onDry (THROW with none left) · onPickup (a javelin recovered).
  */
 
@@ -62,8 +56,8 @@ export const REACH = 3.2;
 const THRUST_DAMAGE = 30, THRUST_STAGGER = 0.5;
 const T_WIND = 0.12, T_ACTIVE_END = 0.22, T_TOTAL = 0.35;
 const THRUST_FAN = { yaws: [0, -0.05, 0.05, -0.1, 0.1], pitches: [0, -0.15, -0.3, -0.5, -0.7] };
-const BRACE_SET = 0.25, BRACE_MAX = 4, BRACE_COOLDOWN = 1, BRACE_REHIT = 1.2;
-const BRACE_CONE = 30 * Math.PI / 180, BRACE_MIN_SPEED = 4;
+const RMB_TAP_MAX = 0.25; // quick desktop tap throws; a held RMB has no action
+const LANCE_REHIT = 1.2;
 const LANCE_REACH = 2.5, LANCE_CONE = 15 * Math.PI / 180, LANCE_MIN_SPEED = 8;
 const WINDUP = 0.4, THROW_T = 0.14, THROW_RECOVER = 0.45;
 const JAV_SPEED = 28, JAV_GRAVITY = 9.8, JAV_DAMAGE = 55, JAV_HEAD = 2;
@@ -184,7 +178,6 @@ function pose(px: number, py: number, pz: number, dx: number, dy: number, dz: nu
 const REST = pose(0.2, -0.25, -0.36, -0.13, 0.05, -0.99, -1.2);       // two hands, low right, the head just under the frame centre
 const COCK = pose(0.23, -0.27, -0.22, -0.12, 0.05, -0.99, -1.2);      // thrust wind-up: drawn back
 const JAB = pose(0.13, -0.21, -0.95, -0.04, 0.03, -1, -1.2);          // thrust at full extension
-const BRACED = pose(0.2, -0.46, -0.36, -0.05, 0.3, -0.95, 0.3);      // butt planted, the point at a charging boar's chest
 const LEFT_LOW = pose(-0.3, -0.52, -0.38, 0.2, 0.42, -0.88, -0.5);   // throwing: the spear in the left hand, low left (combat-B2)
 const SPRINT = pose(0.26, -0.4, -0.3, -0.35, 0.42, -0.84, 0.6);
 const LANCE = pose(0.16, -0.3, -0.5, -0.02, 0.02, -1, 0.3);          // couched: level, dead ahead
@@ -216,14 +209,12 @@ export const JAVELIN: ThrownProfile = {
 
 export const SPEAR_PROFILE: MeleeProfile & {
   thrust: { damage: number; stagger: number; windup: number; activeEnd: number; total: number; fan: typeof THRUST_FAN };
-  brace: { set: number; max: number; cooldown: number; rehit: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number; feetOffset: number };
   lance: { reach: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number };
 } = {
   ...SWORD_WOOD, ...SPEAR, parent: SWORD_WOOD.id, damage: THRUST_DAMAGE, reach: REACH,
   hitStop: { body: 0, head: 0, kill: 0 },
-  cues: { fire: 'cue.spear.thrust', reload: 'cue.reload', impact: 'cue.javelin.hit', hit: 'cue.javelin.hit', charge: { throw: 'cue.javelin.throw', 'brace-on': 'cue.spear.brace', recover: 'cue.javelin.pickup' } },
+  cues: { fire: 'cue.spear.thrust', reload: 'cue.reload', impact: 'cue.javelin.hit', hit: 'cue.javelin.hit', charge: { throw: 'cue.javelin.throw', recover: 'cue.javelin.pickup' } },
   thrust: { damage: THRUST_DAMAGE, stagger: THRUST_STAGGER, windup: T_WIND, activeEnd: T_ACTIVE_END, total: T_TOTAL, fan: THRUST_FAN },
-  brace: { set: BRACE_SET, max: BRACE_MAX, cooldown: BRACE_COOLDOWN, rehit: BRACE_REHIT, cone: BRACE_CONE, minSpeed: BRACE_MIN_SPEED, baseDamage: 60, speedDamage: 8, feetOffset: 0.6 },
   lance: { reach: LANCE_REACH, cone: LANCE_CONE, minSpeed: LANCE_MIN_SPEED, baseDamage: 40, speedDamage: 6 },
   feel: { lag: { gain: 0.4, clampYaw: 0.1, clampPitch: 0.08, k: 200, c: 20, posYaw: 0.25, posPitch: 0.2 },
     bob: { x: 0.016, y: 0.013, rx: 0.01, rz: 0.015 }, sway: { ax: 0.003, fx: 0.7, ay: 0.0025, fy: 1.1 }, fovHip: FOV_HIP },
@@ -236,7 +227,6 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   allowUnlocked = false;
   /** the touch THROW disc (held): press = wind up, release = throw */
   adsHeld = false;
-  /** the touch BRACE disc (held) */
 
   /** 0..1 weapon-swap blend (the kit drives it): 1 = dropped out of the frame */
   holster = 0;
@@ -256,7 +246,6 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   inspect = 0;
 
   onThrow?: () => void;
-  onBrace?: (on: boolean) => void;
   onPickup?: (n: number) => void;
 
   readonly model = new THREE.Group();
@@ -266,15 +255,13 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   private heldJav!: THREE.Group;
   private leftArm!: THREE.Mesh; private rightArm!: THREE.Mesh;
   private leftWrist = new THREE.Vector3(); private rightWrist = new THREE.Vector3();
-  private ring!: THREE.Mesh; private ringMat!: THREE.MeshBasicMaterial;
   private arc!: THREE.Points; private arcPos = new Float32Array(this.thrown.profile.arcPoints * 3); private arcAttr!: THREE.BufferAttribute; private arcMat!: THREE.PointsMaterial;
   private world!: THREE.InstancedMesh;
   private javs: Jav[] = [];
   private time = 0;
   // thrust
   private thrustT = -1; private hitDone = false; private queued = false;
-  // brace
-  private braceT = 0; private braceHeldT = 0; private braceCd = 0; private braced = false; private rehit = new Map<object, number>();
+  private rehit = new Map<object, number>();
   private rmbDown = false; private rmbT = 0;
   // throw
   private windT = -1; private throwT = -1; private releaseQueued = false; private throwPrev = false; private threw = false;
@@ -283,7 +270,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   // look lag / sway
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
   private fov = this.profile.feel.fovHip; private baseFov = 0; private jolt = 0; private sprintBlend = 0;
-  private braceBlend = 0; private throwBlend = 0; private inHand = false; private aimFrame = 0;
+  private throwBlend = 0; private inHand = false; private aimFrame = 0;
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
   private prevPos = new Map<object, THREE.Vector3>();
 
@@ -304,7 +291,6 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   // ── kit surface ──
   override get segments(): number { return this.maxJavelins; }
   get magazine(): number { return this.maxJavelins; }
-  get bracing(): boolean { return this.braced; }
   get winding(): boolean { return this.windT >= 0; }
   get thrusting(): boolean { return this.thrustT >= 0; }
   /** javelins in flight or stuck in the world (dev / HUD) */
@@ -325,13 +311,13 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
     app.input.bind('aim', () => { this.rmbDown = true; this.rmbT = 0; }, ctx.scope, allowed);
-    app.input.bindRelease('aim', () => { if (!this.rmbDown) return; this.rmbDown = false; if (allowed() && this.rmbT < this.profile.brace.set) this.requestThrow(); }, ctx.scope);
+    app.input.bindRelease('aim', () => { if (!this.rmbDown) return; this.rmbDown = false; if (allowed() && this.rmbT < RMB_TAP_MAX) this.requestThrow(); }, ctx.scope);
     app.input.onReset(() => { this.rmbDown = false; }, ctx.scope);
   }
 
-  /** a thrust (LMB / F / LOOK tap); mid-thrust queues one; ignored while bracing or throwing */
+  /** a thrust (LMB / F / LOOK tap); mid-thrust queues one; ignored while throwing */
   tryFire(): void {
-    if (!this.enabled || this.braced || this.windT >= 0 || this.throwT >= 0) return;
+    if (!this.enabled || this.windT >= 0 || this.throwT >= 0) return;
     if (this.thrustT >= 0) { if (this.thrustT > this.profile.thrust.windup) this.queued = true; return; }
     this.thrustT = 0; this.hitDone = false; this.queued = false;
     this.onFire?.();
@@ -342,7 +328,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     this.releaseQueued = true;
   }
   private beginWind(): boolean {
-    if (!this.enabled || this.throwT >= 0 || this.braced) return false;
+    if (!this.enabled || this.throwT >= 0) return false;
     if (this.javelins <= 0) { this.onDry?.(); return false; }
     this.thrustT = -1; this.queued = false;
     this.windT = 0; this.chargeEvent('throw', 0); this.releaseQueued = false;
@@ -383,11 +369,6 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     this.heldJav.position.set(0, 0.1, 0); // the right hand grips it just behind the balance point
     this.handRig.add(this.heldJav);
     this.model.add(this.spearRig, this.handRig);
-    // the BRACE ring: a faint cyan hoop round the point, lit only while set (combat-B)
-    this.ringMat = new THREE.MeshBasicMaterial({ color: 0x8fe3ff, transparent: true, opacity: 0, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false });
-    this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.0035, 6, 48, Math.PI * 1.55), this.ringMat);
-    this.ring.renderOrder = 1001; this.ring.frustumCulled = false; this.ring.visible = false;
-    this.model.add(this.ring);
     // depth clear so the viewmodel never clips into the world (Sword.ts / Crossbow.ts: 999 in the transparent queue)
     const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
     clearer.renderOrder = 999; clearer.frustumCulled = false;
@@ -542,10 +523,10 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     this.arcAttr.needsUpdate = true;
   }
 
-  // ── brace / lance contact: anything closing on the point ──
-  private contacts(dt: number, t: number, lance: boolean): void {
+  // ── couched lance contact: anything closing on the point ──
+  private contacts(dt: number, t: number): void {
     const p = this.player.position, cam = this.game.camera;
-    const heading = lance && this.mount !== null ? this.mount.yaw : this.player.yaw;
+    const heading = this.mount !== null ? this.mount.yaw : this.player.yaw;
     const fx = -Math.sin(heading), fz = -Math.cos(heading);
     for (const a of getAimTargets()) {
       let prev = this.prevPos.get(a);
@@ -556,22 +537,22 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
       const dx = a.position.x - p.x, dz = a.position.z - p.z, d = Math.hypot(dx, dz);
       if (d < 0.01) continue;
       const edge = d - targetRadius(a);
-      const reach = lance ? this.profile.lance.reach : this.profile.reach - this.profile.brace.feetOffset; // the brace: the point is ~2.6 m out from the feet
+      const reach = this.profile.lance.reach;
       if (edge > reach || Math.abs(a.position.y - p.y) > 2) continue;
       const ang = Math.acos(THREE.MathUtils.clamp((dx * fx + dz * fz) / d, -1, 1));
-      if (ang > (lance ? this.profile.lance.cone : this.profile.brace.cone)) continue;
+      if (ang > this.profile.lance.cone) continue;
       const closing = -(vx * dx + vz * dz) / d;               // its speed toward you
-      const speed = lance ? (this.mount?.speed ?? 0) + Math.max(0, closing) : closing;
-      if (speed < (lance ? this.profile.lance.minSpeed : this.profile.brace.minSpeed)) continue;
+      const speed = (this.mount?.speed ?? 0) + Math.max(0, closing);
+      if (speed < this.profile.lance.minSpeed) continue;
       const last = this.rehit.get(a) ?? -1e9;
-      if (t - last < this.profile.brace.rehit) continue;
+      if (t - last < LANCE_REHIT) continue;
       // confirm through the real hit volumes (Targets): a ray from the eye to its body
       _v1.set(a.position.x, a.position.y + (a.dims?.bodyY ?? 0.6) * (a.scale ?? 1), a.position.z);
       _dir.subVectors(_v1, cam.position); const len = _dir.length(); _dir.multiplyScalar(1 / Math.max(len, 1e-4));
       const hit = this.targets?.raycast(cam.position, _dir, len + 1) ?? null;
       if (hit === null || !this.same(hit.animal, a)) continue;
-      const dmg = Math.round(lance ? this.profile.lance.baseDamage + this.profile.lance.speedDamage * speed : this.profile.brace.baseDamage + this.profile.brace.speedDamage * speed);
-      const result = this.contact(hit.animal, dmg, hit.point, _dir, cam.position, lance ? 'move.lance' : 'move.brace');
+      const dmg = Math.round(this.profile.lance.baseDamage + this.profile.lance.speedDamage * speed);
+      const result = this.contact(hit.animal, dmg, hit.point, _dir, cam.position, 'move.lance');
       if (!result) continue;
       this.rehit.set(a, t);
       const killed = result.killed;
@@ -612,13 +593,11 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     const inHand = this.model.visible;
     if (!inHand || !this.enabled) {
       // holstered / paused: drop every held state
-      if (this.braced) { this.braced = false; this.onBrace?.(false); this.chargeEvent('brace-off'); }
-      this.braceT = 0; this.braceHeldT = 0; this.rmbDown = false;
+      this.rmbDown = false;
       if (this.windT >= 0 && !inHand) { this.windT = -1; this.releaseQueued = false; }
       if (!inHand) { this.thrustT = -1; this.queued = false; }
     }
     if (inHand !== this.inHand) { this.inHand = inHand; if (!inHand) { p.moveScale = 1; p.swinging = false; } }
-    this.braceCd = Math.max(0, this.braceCd - dt);
 
     if (inHand) {
       // FOV (Hor+ on portrait) + the dodge kick
@@ -631,22 +610,9 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
       }
     }
 
-    // ── inputs: RMB hold → brace, the BRACE disc → brace; the THROW disc edges → wind / throw ──
+    // ── inputs: quick RMB tap throws; the THROW disc edges wind / throw ──
     if (this.rmbDown) this.rmbT += dt;
-    const wantBrace = this.enabled && inHand && this.mount === null && (this.altHeld || (this.rmbDown && this.rmbT >= this.profile.brace.set)) && this.windT < 0 && this.throwT < 0;
-    if (wantBrace && this.braceCd <= 0) {
-      if (this.thrustT >= 0 && this.thrustT < this.profile.thrust.activeEnd) { /* let the jab land first */ }
-      else {
-        this.thrustT = -1; this.queued = false;
-        this.braceHeldT += dt;
-        if (!this.braced && this.braceHeldT >= this.profile.brace.set) { this.braced = true; this.braceT = 0; this.onBrace?.(true); this.chargeEvent('brace-on'); }
-      }
-    } else {
-      if (this.braced) { this.braced = false; this.onBrace?.(false); this.chargeEvent('brace-off'); if (this.braceT >= this.profile.brace.max) this.braceCd = this.profile.brace.cooldown; }
-      this.braceHeldT = 0;
-    }
-    if (this.braced) { this.braceT += dt; if (this.braceT >= this.profile.brace.max) { this.braced = false; this.onBrace?.(false); this.chargeEvent('brace-off'); this.braceCd = this.profile.brace.cooldown; } }
-    p.moveScale = inHand && (this.braced || this.braceHeldT > 0) ? 0 : 1;
+    p.moveScale = 1;
 
     const throwHeld = this.adsHeld && this.enabled && inHand;
     if (throwHeld && !this.throwPrev) this.beginWind();
@@ -670,22 +636,20 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     }
     if (inHand) p.swinging = this.thrustT >= 0;
 
-    // ── contacts: brace (set) or the couched lance (mounted, canter+) ──
+    // ── contacts: the couched lance (mounted, canter+) ──
     const lance = this.mount !== null && this.mount.speed >= this.profile.lance.minSpeed && this.windT < 0 && this.throwT < 0;
-    if (inHand && (this.braced || lance)) this.contacts(dt, t, lance);
+    if (inHand && lance) this.contacts(dt, t);
     else if (this.prevPos.size > 0) this.prevPos.clear();
 
     this.flyJavelins(dt);
-    this.state.bolts = this.javelins; this.state.loaded = this.javelins > 0; this.state.ads = this.braced || this.windT >= 0;
+    this.state.bolts = this.javelins; this.state.loaded = this.javelins > 0; this.state.ads = this.windT >= 0;
 
     // ── pose ──
     this.jolt *= Math.exp(-dt * 14);
-    const k = 1 - Math.exp(-dt * 14);
-    this.braceBlend += ((this.braced || this.braceHeldT > 0 ? 1 : 0) - this.braceBlend) * k;
     const throwing = this.windT >= 0 || this.throwT >= 0;
     this.throwBlend += ((throwing ? 1 : 0) - this.throwBlend) * (1 - Math.exp(-dt * (throwing ? 16 : 8)));
     this.lanceBlend += ((lance ? 1 : 0) - this.lanceBlend) * (1 - Math.exp(-dt * 6));
-    this.sprintBlend += ((p.sprinting && this.thrustT < 0 && !throwing && !this.braced ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
+    this.sprintBlend += ((p.sprinting && this.thrustT < 0 && !throwing ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
 
     // look lag (spring, substepped)
     let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
@@ -697,7 +661,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     this.lagYaw = this.lookState.yaw; this.lagPitch = this.lookState.pitch;
     this.lagYawVel = this.lookState.yawVelocity; this.lagPitchVel = this.lookState.pitchVelocity;
 
-    // the spear: rest → thrust (cock, jab, recover) → brace / lance / left-low while throwing
+    // the spear: rest → thrust (cock, jab, recover) → lance / left-low while throwing
     const sp = _v1, sq = _q;
     sp.copy(REST.pos); sq.copy(REST.q);
     if (this.thrustT >= 0) {
@@ -706,8 +670,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
       else if (tt < this.profile.thrust.activeEnd) { const f = 1 - (1 - (tt - this.profile.thrust.windup) / (this.profile.thrust.activeEnd - this.profile.thrust.windup)) ** 3; sp.copy(COCK.pos).lerp(JAB.pos, f); sq.copy(COCK.q).slerp(JAB.q, f); }
       else { const f = sstep(0, 1, (tt - this.profile.thrust.activeEnd) / (this.profile.thrust.total - this.profile.thrust.activeEnd)); sp.copy(JAB.pos).lerp(REST.pos, f); sq.copy(JAB.q).slerp(REST.q, f); }
     }
-    const bb = sstep(0, 1, this.braceBlend), lb = sstep(0, 1, this.lanceBlend), tb = sstep(0, 1, this.throwBlend), sb = this.sprintBlend;
-    if (bb > 0) { sp.lerp(BRACED.pos, bb); sq.slerp(BRACED.q, bb); }
+    const lb = sstep(0, 1, this.lanceBlend), tb = sstep(0, 1, this.throwBlend), sb = this.sprintBlend;
     if (lb > 0) { sp.lerp(LANCE.pos, lb); sq.slerp(LANCE.q, lb); }
     if (sb > 0) { sp.lerp(SPRINT.pos, sb); sq.slerp(SPRINT.q, sb); }
     // the right hand: on the shaft (the spear's own grip transform) unless throwing
@@ -729,7 +692,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     this.heldJav.visible = (this.windT >= 0 || (this.throwT >= 0 && !this.threw)) && this.javelins > 0;
 
     // sway / bob / look lag / jolt, the portrait layout, the holster drop — applied to both rigs alike
-    const sf = p.speedFactor, m = 1 - bb * 0.7;
+    const sf = p.speedFactor, m = 1;
     const swX = Math.sin(t * this.profile.feel.sway.fx) * this.profile.feel.sway.ax, swY = Math.sin(t * this.profile.feel.sway.fy) * this.profile.feel.sway.ay;
     const bobX = Math.cos(p.bobTime) * this.profile.feel.bob.x * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * this.profile.feel.bob.y * sf;
     _e.set((Math.sin(p.bobTime * 2) * this.profile.feel.bob.rx * sf + this.lagPitch + this.jolt * 0.05) * m, this.lagYaw * m, (Math.sin(t * 0.5) * 0.006 + Math.cos(p.bobTime) * this.profile.feel.bob.rz * sf) * m, 'YXZ');
@@ -755,16 +718,6 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
       arm.scale.setScalar(scale);
     }
 
-    // the brace ring: round the point while set, a slow turn
-    const ringOn = this.braced && inHand;
-    this.ringMat.opacity += ((ringOn ? 0.75 : 0) - this.ringMat.opacity) * (1 - Math.exp(-dt * 12));
-    this.ring.visible = this.ringMat.opacity > 0.01;
-    if (this.ring.visible) {
-      this.spearRig.updateMatrix();
-      this.ring.position.set(0, 0.88, 0).applyMatrix4(this.spearRig.matrix);
-      this.ring.quaternion.copy(this.spearRig.quaternion).multiply(_q.setFromAxisAngle(_v3.set(1, 0, 0), Math.PI / 2)).multiply(_q2.setFromAxisAngle(_v3.set(0, 0, 1), t * 1.4));
-      this.ring.scale.setScalar(scale * (1 + 0.06 * Math.sin(t * 5)));
-    }
     // the dotted throw arc while winding up
     const arcAlpha = this.showArc && inHand && this.windT >= this.thrown.profile.arcAfter ? sstep(this.thrown.profile.arcAfter, this.thrown.profile.windup, this.windT) : 0;
     this.drawArc(arcAlpha);

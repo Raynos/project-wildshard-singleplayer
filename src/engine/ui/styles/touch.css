@@ -213,17 +213,14 @@
 .ws-touch-use { position: absolute; left: 12px; right: 12px; height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .ws-touch-use.show { display: flex; }
 .ws-touch-use.down { background: rgba(143, 227, 255, 0.34); }
-/* ─── Nalati (B3, art/nalati-grasslands/round-2/1-combat/): the spear's THROW + BRACE discs and the 3-slot weapon strip ─── */
-/* the spear held (.spear, TouchControls polls weapons.current): THROW (held — wind a javelin up, release to throw) takes the
-   row's 4th slot, BRACE (held — plant the spear) takes JUMP's (combat-B-spear-brace.png; the E119 row below) */
-.ws-touch-disc.throw, .ws-touch-disc.brace { display: none; }
+/* The spear keeps JUMP; its held THROW disc takes the fourth slot. */
+.ws-touch-disc.throw { display: none; }
 .ws-touch.spear .ws-touch-disc.aim { display: none; }
 /* the spear's ATTACK is its thrust: it reads ATTACK (no heavy: a hold is THROW's), not FIRE */
 .ws-touch.spear .ws-touch-attack svg.melee, .ws-touch.spear .ws-touch-attack span.melee { display: block; }
 .ws-touch.spear:not(.melee) .ws-touch-attack .ranged { display: none; }
-.ws-touch.spear .ws-touch-disc.jump { display: none; } /* BRACE has JUMP's slot */
-.ws-touch.spear .ws-touch-disc.throw, .ws-touch.spear:not(.swimming) .ws-touch-disc.brace { display: flex; }
-.ws-touch-disc.throw svg, .ws-touch-disc.brace svg { width: 42%; height: 42%; }
+.ws-touch.spear .ws-touch-disc.throw { display: flex; }
+.ws-touch-disc.throw svg { width: 42%; height: 42%; }
 /* Nalati's bow held (.bow, NALATI-MERGE H4 / N18): FIRE is hold-to-draw — "HOLD = DRAW" under FIRE, the ring fills with
    the draw (weapons.current.charge, Bow.ts) while .on and glows at full (.ready); lifting early lets the arrow down
    (.letdown: a dim shake). AIM stays AIM: the zoom toggle, lit .on */
@@ -249,14 +246,14 @@
 .ws-touch-strip.desk .ws-touch-slot-ammo { right: 6px; top: 5px; bottom: auto; font-size: 12px; }
 .ws-touch-slot-ammo.empty { color: var(--ws-red); }
 /* ── E119 (the user, 2026-09-24): LOCK · DODGE · JUMP in ONE row above the LOOK pad, right-aligned, instead of the
-   diagonal cluster; HOVER stays where it is. Each slot's stand-ins follow it (DIVE / BRACE → JUMP's, SURFACE → DODGE's);
+   diagonal cluster; HOVER stays where it is. Each slot's stand-ins follow it (DIVE → JUMP's, SURFACE → DODGE's);
    AIM / THROW take LOCK's slot when there is no LOCK (the bow / crossbow), else a 4th slot to its left (the spear).
    E154 (the user: "normalize the HUD across all three shards"): every shard, Nalati included — its layout D arc is gone.
    A shard's own discs (src/engine/ui/hudSlots.ts) take the same slots by name: `.at-r0` JUMP's … `.at-r3` the 4th, `.at-aim`
    wherever AIM is, `.at-up0` over JUMP (the USE band moves up while one shows), `.at-lean-l / -r` the two edges just
    above the bar, `.at-edge-r` a tab on the right edge. Hidden until the owner adds `.show`. ── */
 .ws-touch { --row: calc(var(--bar) + 10px); --rslot: calc(var(--disc) + 8px); --r0: calc(100% - var(--disc) / 2 - 10px); }
-.ws-touch-disc.jump, .ws-touch-disc.dive, .ws-touch-disc.brace, .ws-touch-disc.at-r0 { left: var(--r0); bottom: var(--row); }
+.ws-touch-disc.jump, .ws-touch-disc.dive, .ws-touch-disc.at-r0 { left: var(--r0); bottom: var(--row); }
 .ws-touch-disc.dodge, .ws-touch-disc.surface, .ws-touch-disc.at-r1 { left: calc(var(--r0) - var(--rslot)); bottom: var(--row); }
 .ws-touch-disc.lock, .ws-touch-disc.at-r2 { left: calc(var(--r0) - var(--rslot) * 2); bottom: var(--row); }
 .ws-touch-disc.at-r3 { left: calc(var(--r0) - var(--rslot) * 3); bottom: var(--row); }

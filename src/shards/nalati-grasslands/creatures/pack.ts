@@ -40,7 +40,7 @@ import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from '.
  * rings and lunges at it as at a foal, and the bite kills it. A crack of the mounted shepherd's whip breaks the pack
  * (`scare`).
  *
- * For other rows: `isLunging(wolf)` (a braced spear kills a dashing wolf — B3), `wolf.mem.hidden` (1 = still in grass
+ * For other rows: `wolf.mem.hidden` (1 = still in grass
  * ≥ 0.8 m and > 10 m away: off the minimap and out of aim assist — B9 / HUD), `pack.phase`, `pack.awareness`,
  * `pack.scare(x, z)`, `Pack.all` (every live pack).
  */

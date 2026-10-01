@@ -1,7 +1,5 @@
 import { Wildlife, type SheepHit } from './creatures/wildlife';
 import { wildEnv } from './creatures/env';
-import { isLunging } from './creatures/pack';
-import { Spear } from './weapons/Spear';
 import type { ShardContext, ShardManifest } from '#game';
 import { installRide } from './ride/input';
 import { Color, Vector3, type Object3D } from 'three';
@@ -70,7 +68,7 @@ export interface Nalati {
    *  its dog, marmots, the camp's saddled horses. main.ts calls `attachAnimals(animals)` right after its animals step. */
   attachAnimals: (animals: AnimalManager) => Wildlife;
   wildlife: Wildlife | null;
-  /** main.ts once the kit + HUD exist: the braced spear stops a lunging wolf, knock-downs, howl / stampede toasts */
+  /** main.ts once the kit + HUD exist: knock-downs, howl / stampede toasts */
   bindPlay: (play: NalatiPlay) => void;
   /** weapons.onFire: a shot reveals you for a second (the stealth model) */
   onShot: () => void;
@@ -214,25 +212,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
   const extra = { mounted: false, health01: 1 };
   let ride: Ride | null = null;   // riding + taming (B7 / B8) — wired in the riding section below
-  // the braced spear kills a lunging wolf outright (combat.md): checked a little outside the spear's own contact reach, so
-  // it lands before a glancing brace hit could stagger the wolf out of its lunge
-  const BRACE_KILL_REACH = 3.1, BRACE_KILL_COS = Math.cos(32 * Math.PI / 180);
-  const _hitDir = new Vector3(), _hitPt = new Vector3();
-  const braceKills = (): void => {
-    const spear = plugin.app.equipment?.current;
-    if (!(spear instanceof Spear) || !spear.bracing || wildlife === null) return;
-    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
-    for (const w of wildlife.livingWolves) {
-      if (!w.alive || !isLunging(w)) continue;
-      const dx = w.position.x - player.position.x, dz = w.position.z - player.position.z, d = Math.hypot(dx, dz);
-      if (d < 1e-3 || d - 0.6 * w.scale > BRACE_KILL_REACH || (dx * fx + dz * fz) / d < BRACE_KILL_COS) continue;
-      _hitDir.set(dx / d, 0, dz / d);
-      _hitPt.set(w.position.x, w.position.y + 0.55 * w.scale, w.position.z);
-      const killed = w.applyDamage(w.hp + 1, _hitPt, _hitDir);
-      spear.onHit?.(w.kind, false, killed);
-      spear.onImpact?.('flesh', _hitPt);
-    }
-  };
   // toasts for the herd / pack moments, each at most once in a while
   const lastToast = new Map<string, number>();
   const toastOnce = (key: string, text: string, every: number): void => {
@@ -264,7 +243,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
     extra.mounted = ride?.mounted ?? false;   // B9: mounting stands you up; the packs get two tokens; a gallop stampedes the herd
     wildEnv.wind.x = wind.dirX; wildEnv.wind.z = wind.dirZ; wildEnv.wind.strength = Math.min(1, wind.speed / 10);
     wildlife.update(dt, t, wildPlayer, extra);
-    braceKills();
   });
 
   // the flock as a weapon target: one reused TargetAnimal for "the sheep on this ray"
