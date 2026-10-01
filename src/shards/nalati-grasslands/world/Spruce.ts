@@ -1,3 +1,4 @@
+import type { LookReplaceContext } from '#engine';
 /**
  * Spruce — a Tian Shan spruce (Picea schrenkiana) for Nalati's gullies, in the painterly style (style B).
  *
@@ -236,7 +237,7 @@ export class SpruceFactory extends TreeFactory {
   /** tris per LOD, per variant (the order of `variants`) */
   lodTris: SpruceLodTris[] = [];
 
-  constructor(renderer: THREE.WebGLRenderer, private readonly sky: Sky) { super(renderer); }
+  constructor(renderer: LookReplaceContext['renderer'], private readonly sky: Sky) { super(renderer); }
 
   override build(): Promise<this> {
     // the shared painterly material (one program, four uniform sets). Spruce is stiff: ~0.35 m of sway at the top of
@@ -266,4 +267,4 @@ export class SpruceFactory extends TreeFactory {
 }
 
 /** Deferred authored tree factory, built by the engine cards step. */
-export function spruceFactory(renderer: THREE.WebGLRenderer, sky: Sky): Promise<TreeFactory> { return new SpruceFactory(renderer, sky).build(); }
+export function spruceFactory(renderer: LookReplaceContext['renderer'], sky: Sky): Promise<TreeFactory> { return new SpruceFactory(renderer, sky).build(); }

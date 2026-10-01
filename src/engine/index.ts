@@ -174,7 +174,7 @@ export type { VoicePool, VoiceTable, SampleVoice, SamplePolicy } from './audio/V
 export type { LookReplaceContext, LookChain, FogModel, TerrainPainter, PainterField, GrassDriver, GrassLayer, ExtendLook, ReplaceLook } from './render/look';
 export { addFogUniforms, paintedAir } from './world/Atmosphere';
 export { CHUNK_SIZE, CHUNK_DEPTH, TERRAIN_RES } from './core/config';
-export { Noise2D } from './core/noise';
+export { Noise2D, smoothstep, clamp, lerp } from './core/noise';
 export type { Terrain } from './world/Terrain';
 
 export { loadTexture, loadPBRArray } from './core/assets';

@@ -1,4 +1,4 @@
-import type { WebGLRenderer } from 'three';
+import type { LookReplaceContext } from '../render/look';
 import type { Sky } from '../world/Sky';
 import type { TreeFactory } from '../world/TreeFactory';
 import type { Noise2D } from '../core/noise';
@@ -41,7 +41,7 @@ export interface LevelAssets {
   boreal?: { normalK: [number, number, number, number]; trailDust: [number, number, number, number]; grassTint: RGB };
 }
 export interface TreeSpec {
-  factory: string | (() => Promise<(renderer: WebGLRenderer, sky: Sky) => Promise<TreeFactory>>);
+  factory: string | (() => Promise<(renderer: LookReplaceContext['renderer'], sky: Sky) => Promise<TreeFactory>>);
   bark?: string;
   twigAtlas?: string;
   noun: string;
