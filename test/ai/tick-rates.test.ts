@@ -4,6 +4,10 @@ import type * as Heightfield from '#engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { manager } from '../fake/manager';
 import { pinBrain } from '#engine/ai/inspect';
+import { Flock } from '#engine/entities/Flock';
+import { Marmots } from '#engine/entities/Marmots';
+import { app } from '#engine/app/runtime';
+import { Scope } from '#engine/app/scope';
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
@@ -37,5 +41,41 @@ describe('distance-banded creature clocks', () => {
     const f = manager(), a = f.manager.spawn('crab', 0, 0, 2, 'small'); a.harnessHold = true; a.startAttack(1);
     const think = vi.fn(); Reflect.set(f.manager, 'think', think);
     f.advance(120); expect(think).not.toHaveBeenCalled(); expect(a.attackPhase).toBe(0);
+  });
+  it('public app pins and interrupts reach the manager clock immediately', () => {
+    const f = manager(), a = f.manager.spawn('boar', 0, 200, 0, 'boar'), scope = new Scope('quest');
+    const think = vi.fn(), body = vi.fn(); Reflect.set(f.manager, 'think', think); Reflect.set(a, 'update', body);
+    app.scheduler.pin(a, scope); f.advance(60);
+    expect(think).toHaveBeenCalledTimes(20); expect(body).toHaveBeenCalledTimes(60);
+    scope.dispose(); f.advance(1); app.scheduler.interrupt(a, 'target.dodge');
+    expect(think).toHaveBeenCalledTimes(21); expect(think.mock.lastCall?.[1]).toBe(0);
+    expect(body).toHaveBeenCalledTimes(60);
+  });
+  it('advances a charge wind-up on body frames between decision ticks', () => {
+    const f = manager(), a = f.manager.spawn('boar', 0, 5, 0, 'boar');
+    const brains: unknown = Reflect.get(f.manager, 'brains'); if (!(brains instanceof Map)) throw new Error('brains moved');
+    const brain: unknown = brains.get(a); if (typeof brain !== 'object' || brain === null) throw new Error('missing brain');
+    Object.assign(brain, { windup: 0.04, timer: 10 }); a.state = 'charge'; a.startAttack(0.04);
+    const think = vi.fn(); Reflect.set(f.manager, 'think', think);
+    f.advance(1); expect(think).not.toHaveBeenCalled(); expect(Reflect.get(brain, 'windup')).toBeCloseTo(0.04 - 1 / 60);
+    f.advance(2); expect(think).toHaveBeenCalledTimes(1); expect(Reflect.get(brain, 'windup')).toBe(0);
+  });
+  it.each([[20, 40, 120], [100, 20, 60], [200, 0, 0]])('a sheep flock at %dm uses %i decisions and %i body frames', (distance, brains, bodies) => {
+    const f = manager(), flock = new Flock(f.sky, { x: 0, z: distance, count: 3, seed: 357 });
+    const think = vi.fn(), draw = vi.fn(); Reflect.set(flock, 'think', think); Reflect.set(flock, 'writeInstances', draw);
+    for (let frame = 0; frame < 120; frame++) flock.update(1 / 60, frame / 60, f.player.position, 0, []);
+    expect(think).toHaveBeenCalledTimes(brains); expect(draw).toHaveBeenCalledTimes(bodies);
+  });
+  it('marmots pause beyond 120m and retain active timer time at 30Hz', () => {
+    const f = manager(), marmots = new Marmots(f.sky, 357).build([{ x: 0, z: 0 }]);
+    const list: unknown = Reflect.get(marmots, 'list'); if (!Array.isArray(list)) throw new Error('marmots moved');
+    const m: unknown = list[0]; if (typeof m !== 'object' || m === null) throw new Error('marmot missing');
+    Object.assign(m, { state: 3, t: 100, x: 0, z: 0 });
+    f.player.position.z = 200;
+    for (let frame = 0; frame < 60; frame++) marmots.update(1 / 60, f.player.position, 0, true);
+    expect(Reflect.get(m, 't')).toBe(100);
+    f.player.position.z = 30;
+    for (let frame = 0; frame < 60; frame++) marmots.update(1 / 60, f.player.position, 0, true);
+    expect(Reflect.get(m, 't')).toBeCloseTo(99);
   });
 });

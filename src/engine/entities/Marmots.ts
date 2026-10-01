@@ -5,6 +5,7 @@ import { heightAt, inChunk, normalAt } from '../world/Heightfield';
 import { Rng } from '../core/rng';
 import { loft, S, mix, sstep, srgb, type Paint } from './species/loft';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
+import { TickScheduler } from '../app/scheduler';
 
 /**
  * Marmots — the steppe's ambient sentries (docs/design/nalati/wolves-horses-taming.md "Sheep (ambient life)"): small
@@ -70,7 +71,7 @@ export class Marmots {
   onWhistle?: ((x: number, z: number) => void) | undefined;
   private list: Marmot[] = [];
   private rng: Rng;
-  private acc = 0;
+  private readonly scheduler = new TickScheduler();
 
   constructor(private readonly sky: Sky, seed: number) { this.rng = new Rng(seed ^ 0x6a2b); }
 
@@ -97,15 +98,15 @@ export class Marmots {
   }
 
   update(dt: number, player: THREE.Vector3, playerSpeed: number, crouched: boolean): void {
-    this.acc += dt;
-    const think = this.acc >= 0.1;
-    if (think) this.acc = 0;
+    this.scheduler.beginFrame(dt, player);
     const rng = this.rng;
     let whistled = false;
     for (const m of this.list) {
+      const tickDt = this.scheduler.takeBrainDtAt('fx', m, { x: m.x, y: heightAt(m.x, m.z), z: m.z });
+      if (tickDt === 0) continue;
       const d = Math.hypot(player.x - m.x, player.z - m.z);
-      if (think) {
-        m.t -= 0.1;
+      {
+        m.t -= tickDt;
         const seeR = crouched ? 22 : playerSpeed > 5 ? 45 : 35;
         if ((m.state === 0 || m.state === 1) && d < seeR && (m.state === 1 || d < seeR * 0.6)) {
           // spotted: a sentry whistles once for the colony; everyone bolts for the burrow
@@ -123,12 +124,12 @@ export class Marmots {
       const tx = run || m.state === 3 ? m.bx : m.tx, tz = run || m.state === 3 ? m.bz : m.tz;
       const dx = tx - m.x, dz = tz - m.z, dd = Math.hypot(dx, dz);
       if (dd > 0.05 && m.state !== 1) {
-        const sp = Math.min(dd, (run ? 3.5 : 0.35) * dt);
+        const sp = Math.min(dd, (run ? 3.5 : 0.35) * tickDt);
         m.x += (dx / dd) * sp; m.z += (dz / dd) * sp;
         m.yaw = Math.atan2(dx, dz);
       }
-      m.stand += ((m.state === 1 ? 1 : 0) - m.stand) * Math.min(1, dt * 6);
-      m.sink += ((m.state === 3 ? 1 : 0) - m.sink) * Math.min(1, dt * 5);
+      m.stand += ((m.state === 1 ? 1 : 0) - m.stand) * Math.min(1, tickDt * 6);
+      m.sink += ((m.state === 3 ? 1 : 0) - m.sink) * Math.min(1, tickDt * 5);
     }
     if (whistled) for (const m of this.list) if (m.state === 0 || m.state === 1) { m.state = 2; m.t = 3; }
     this.write();

@@ -6,9 +6,10 @@ export interface TickActor { readonly position: TickPoint }
 export interface TickBand { upTo: number; brainHz: number | 'paused'; body: 'frame' | 'half' | 'paused' }
 export interface TickRate { bands: readonly TickBand[] }
 export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.sight' | 'ally.died';
-interface Clock { elapsed: number; credit: number; frame: number; dt: number; last: number }
+interface Clock { elapsed: number; credit: number; frame: number; dt: number; last: number; due: boolean }
 interface Subject { brain: Clock; body: Clock; interrupt: number }
-const clock = (): Clock => ({ elapsed: 0, credit: 0, frame: -1, dt: 0, last: 0 });
+const clock = (): Clock => ({ elapsed: 0, credit: 0, frame: -1, dt: 0, last: 0, due: false });
+interface Policy { pins: WeakMap<object, number>; interrupts: WeakMap<object, number>; wakes: WeakMap<object, () => void> }
 const AI: TickRate = { bands: [
   { upTo: 60, brainHz: 20, body: 'frame' },
   { upTo: 160, brainHz: 10, body: 'half' },
@@ -16,22 +17,31 @@ const AI: TickRate = { bands: [
 ] };
 const ALWAYS: TickRate = { bands: [{ upTo: Infinity, brainHz: Infinity, body: 'frame' }] };
 const ORIGIN: TickPoint = { x: 0, y: 0, z: 0 };
+const DEFAULTS: readonly (readonly [string, TickRate])[] = [
+  ['always', ALWAYS], ['ai', AI], ['npc', AI],
+  ['fx', { bands: [{ upTo: 120, brainHz: 30, body: 'frame' }, { upTo: Infinity, brainHz: 'paused', body: 'paused' }] }],
+  ['weather', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] }],
+];
 
 /** Clocks belong to subjects, not rate classes. Paused time is discarded, never replayed on return. */
 export class TickScheduler {
-  private readonly rates = new Map<TickRateId, TickRate>([
-    ['always', ALWAYS], ['ai', AI], ['npc', AI],
-    ['fx', { bands: [{ upTo: 120, brainHz: 30, body: 'frame' }, { upTo: Infinity, brainHz: 'paused', body: 'paused' }] }],
-    ['weather', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] }],
-  ]);
+  private readonly rates = new Map<TickRateId, TickRate>(DEFAULTS);
   private subjects = new WeakMap<object, Map<TickRateId, Subject>>();
-  private pins = new WeakMap<object, number>();
-  private interrupts = new WeakMap<object, number>();
+  private readonly policy: Policy;
   private time = 0;
   private frame = 0;
   private frameDt = 0;
   private player: TickPoint = ORIGIN;
+  constructor(parent?: TickScheduler) {
+    this.policy = parent?.policy ?? { pins: new WeakMap(), interrupts: new WeakMap(), wakes: new WeakMap() };
+  }
   get frameHz(): number { return this.frameDt > 0 ? 1 / this.frameDt : 60; }
+  configure(overrides: Readonly<Record<string, TickRate>> = {}): void {
+    this.rates.clear();
+    for (const [id, rate] of DEFAULTS) this.rates.set(id, rate);
+    for (const [id, rate] of Object.entries(overrides)) this.rate(id, rate);
+    this.subjects = new WeakMap();
+  }
   beginFrame(dt: number, player: TickPoint = this.player): void {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Scheduler dt must be finite and nonnegative');
     this.time += dt; this.frameDt = dt; this.frame++; this.player = player;
@@ -47,16 +57,21 @@ export class TickScheduler {
   }
   pin(actor: object, scope: Scope): void {
     if (scope.disposed) return;
-    this.pins.set(actor, (this.pins.get(actor) ?? 0) + 1);
-    scope.onDispose(() => { const count = (this.pins.get(actor) ?? 1) - 1; if (count === 0) this.pins.delete(actor); else this.pins.set(actor, count); });
+    this.policy.pins.set(actor, (this.policy.pins.get(actor) ?? 0) + 1);
+    scope.onDispose(() => { const count = (this.policy.pins.get(actor) ?? 1) - 1; if (count === 0) this.policy.pins.delete(actor); else this.policy.pins.set(actor, count); });
   }
-  interrupt(actor: object, _why: InterruptReason): void { this.interrupts.set(actor, (this.interrupts.get(actor) ?? 0) + 1); }
-  forget(actor: object): void { this.subjects.delete(actor); this.interrupts.delete(actor); }
-  reset(): void { this.subjects = new WeakMap(); this.interrupts = new WeakMap(); this.pins = new WeakMap(); }
-  private band(id: TickRateId, actor: TickActor): TickBand {
+  pinned(actor: object): boolean { return this.policy.pins.has(actor); }
+  onInterrupt(actor: object, wake: () => void): void { this.policy.wakes.set(actor, wake); }
+  interrupt(actor: object, _why: InterruptReason): void {
+    this.policy.interrupts.set(actor, (this.policy.interrupts.get(actor) ?? 0) + 1);
+    this.policy.wakes.get(actor)?.();
+  }
+  forget(actor: object): void { this.subjects.delete(actor); }
+  reset(): void { this.subjects = new WeakMap(); }
+  private band(id: TickRateId, actor: TickActor, subject: object = actor): TickBand {
     const rate = this.rates.get(id);
     if (!rate) throw new Error(`Unknown tick rate: ${id}`);
-    const distance = this.pins.has(actor) ? 0 : Math.hypot(actor.position.x - this.player.x, actor.position.y - this.player.y, actor.position.z - this.player.z);
+    const distance = this.pinned(subject) ? 0 : Math.hypot(actor.position.x - this.player.x, actor.position.y - this.player.y, actor.position.z - this.player.z);
     const band = rate.bands.find((entry) => distance < entry.upTo);
     if (!band) throw new Error(`Uncovered tick distance: ${id}`);
     return band;
@@ -73,9 +88,9 @@ export class TickScheduler {
     }
     return row;
   }
-  private due(id: TickRateId, actor: TickActor, body: boolean): number {
-    const row = this.subject(id, actor), state = body ? row.body : row.brain, band = this.band(id, actor);
-    const interrupt = this.interrupts.get(actor) ?? 0;
+  private due(id: TickRateId, actor: TickActor, body: boolean, subject: object = actor): number {
+    const row = this.subject(id, subject), state = body ? row.body : row.brain, band = this.band(id, actor, subject);
+    const interrupt = this.policy.interrupts.get(subject) ?? 0;
     const urgent = !body && interrupt !== row.interrupt;
     if (state.frame === this.frame && !urgent) return state.dt;
     const step = this.time - state.last;
@@ -84,10 +99,10 @@ export class TickScheduler {
     // An interrupt wakes decisions only, without catching up the time spent far away.
     if (paused) { state.elapsed = 0; state.credit = 0; }
     else { state.elapsed += step; state.credit += step; }
-    state.frame = this.frame; state.dt = 0;
+    state.frame = this.frame; state.dt = 0; state.due = false;
     if (!body) row.interrupt = interrupt;
     if (urgent || (!paused && (body ? band.body === 'frame' || this.frame % 2 === 0 : band.brainHz !== 'paused' && state.credit + 1e-9 >= 1 / band.brainHz))) {
-      state.dt = state.elapsed || (urgent ? this.frameDt : 0); state.elapsed = 0;
+      state.due = urgent || state.elapsed > 0; state.dt = state.elapsed; state.elapsed = 0;
       state.credit = urgent || body || band.brainHz === 'paused' || band.brainHz === Infinity ? 0
         : Math.max(0, state.credit - Math.floor((state.credit + 1e-9) * band.brainHz) / band.brainHz);
     }
@@ -95,11 +110,15 @@ export class TickScheduler {
   }
   brainDt(id: TickRateId, actor: TickActor): number { return this.due(id, actor, false); }
   takeBrainDt(id: TickRateId, actor: TickActor): number {
-    const dt = this.brainDt(id, actor); this.subject(id, actor).brain.dt = 0; return dt;
+    const dt = this.brainDt(id, actor), state = this.subject(id, actor).brain; state.dt = 0; state.due = false; return dt;
+  }
+  /** Instanced ambient rows have stable identities but store their position beside the row. */
+  takeBrainDtAt(id: TickRateId, subject: object, point: TickPoint): number {
+    const dt = this.due(id, { position: point }, false, subject), state = this.subject(id, subject).brain; state.dt = 0; state.due = false; return dt;
   }
   bodyDt(id: TickRateId, actor: TickActor): number { return this.due(id, actor, true); }
-  brainDue(id: TickRateId, actor: TickActor): boolean { return this.brainDt(id, actor) > 0; }
-  bodyDue(id: TickRateId, actor: TickActor): boolean { return this.bodyDt(id, actor) > 0; }
+  brainDue(id: TickRateId, actor: TickActor): boolean { this.brainDt(id, actor); return this.subject(id, actor).brain.due; }
+  bodyDue(id: TickRateId, actor: TickActor): boolean { this.bodyDt(id, actor); return this.subject(id, actor).body.due; }
   /** A system without an actor is located at the player; creature systems schedule their own subjects. */
   systemDt(system: SystemSpec, dt: number): number {
     if (!system.tick || system.tick === 'always') return dt;
@@ -112,6 +131,4 @@ export class TickScheduler {
     state.credit = hz === Infinity ? 0 : Math.max(0, state.credit - Math.floor((state.credit + 1e-9) * hz) / hz);
     const elapsed = state.elapsed; state.elapsed = 0; return elapsed;
   }
-  /** Compatibility for callers checking unthrottled systems; timed systems use systemDt. */
-  runs(system: SystemSpec): boolean { return system.tick === undefined || system.tick === 'always'; }
 }

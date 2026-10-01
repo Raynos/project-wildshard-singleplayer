@@ -41,10 +41,21 @@ describe('per-subject tick scheduler', () => {
     for (const distance of [20, 100, 200]) {
       const scheduler = new TickScheduler(), actor = actorAt(distance);
       scheduler.beginFrame(1 / 60, player); expect(scheduler.takeBrainDt('ai', actor)).toBe(0);
-      scheduler.interrupt(actor, why); expect(scheduler.takeBrainDt('ai', actor)).toBeGreaterThan(0);
+      scheduler.interrupt(actor, why); expect(scheduler.brainDue('ai', actor)).toBe(true);
+      expect(scheduler.takeBrainDt('ai', actor)).toBeCloseTo(distance === 200 ? 0 : 1 / 60);
+      expect(scheduler.brainDue('ai', actor)).toBe(false);
       expect(scheduler.takeBrainDt('ai', actor)).toBe(0);
       if (distance === 200) expect(scheduler.bodyDue('ai', actor)).toBe(false);
     }
+  });
+  it('shares pins and immediate wakes between application and local clocks without double-counting time', () => {
+    const app = new TickScheduler(), local = new TickScheduler(app), actor = actorAt(200), scope = new Scope('quest');
+    app.pin(actor, scope); local.beginFrame(0.025, player);
+    const ticks: number[] = [];
+    local.onInterrupt(actor, () => { ticks.push(local.takeBrainDt('ai', actor)); });
+    app.interrupt(actor, 'hit'); app.interrupt(actor, 'target.attack');
+    expect(ticks).toEqual([0.025, 0]); expect(local.bodyDt('ai', actor)).toBe(0.025);
+    scope.dispose(); local.beginFrame(0.1, player); expect(local.bodyDue('ai', actor)).toBe(false);
   });
   it('pins retain the near cadence at any distance and release by owner scope', () => {
     const scheduler = new TickScheduler(), actor = actorAt(1000), a = new Scope('boss'), b = new Scope('quest');
@@ -75,5 +86,18 @@ describe('per-subject tick scheduler', () => {
     scheduler.rate('slow', { bands: [{ upTo: Infinity, brainHz: 5, body: 'frame' }] });
     scheduler.beginFrame(0.1, player); expect(scheduler.brainDue('slow', actor)).toBe(false);
     scheduler.forget(actor); scheduler.beginFrame(0.1, player); expect(scheduler.brainDue('slow', actor)).toBe(false);
+  });
+  it('tier overrides are explicit and cannot leak into the next level', () => {
+    const scheduler = new TickScheduler(), actor = actorAt(10);
+    scheduler.configure({ ai: { bands: [{ upTo: Infinity, brainHz: 5, body: 'frame' }] } });
+    scheduler.beginFrame(0.05, player); expect(scheduler.brainHz('ai', actor)).toBe(5); expect(scheduler.brainDue('ai', actor)).toBe(false);
+    scheduler.configure(); scheduler.beginFrame(0.05, player);
+    expect(scheduler.brainHz('ai', actor)).toBe(20); expect(scheduler.brainDue('ai', actor)).toBe(true);
+  });
+  it('instanced FX rows retain identity while their pose storage changes', () => {
+    const scheduler = new TickScheduler(), row = {};
+    scheduler.beginFrame(1 / 60, player); expect(scheduler.takeBrainDtAt('fx', row, { x: 1, y: 0, z: 0 })).toBe(0);
+    scheduler.beginFrame(1 / 60, player); expect(scheduler.takeBrainDtAt('fx', row, { x: 2, y: 0, z: 0 })).toBeCloseTo(1 / 30);
+    scheduler.beginFrame(1 / 30, player); expect(scheduler.takeBrainDtAt('fx', row, { x: 200, y: 0, z: 0 })).toBe(0);
   });
 });

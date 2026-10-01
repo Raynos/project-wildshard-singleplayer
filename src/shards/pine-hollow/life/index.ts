@@ -1,4 +1,4 @@
-import { app, ownAudioSource, type EquipmentService } from '#engine';
+import { app, ownAudioSource, TickScheduler, type EquipmentService } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
@@ -576,12 +576,11 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     if (lead && n > 0) { ravenVoiceT = 0; caw(lead, n > 1); } // croaking as they pass over: look up
     return target;
   };
-  const updateCrumbs = (dt: number, night: number): void => {
+  const updateCrumbs = (night: number): void => {
     if (now() >= crumbNextT) {
       crumbNextT = now() + rng.range(90, 150);
       if (night < 0.5 && !h.inCombat()) crumbs();
     }
-    for (const j of guides) if (j.mode === 'fly') stepFly(j, dt);
   };
 
   // ── the hares ──
@@ -719,18 +718,39 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
 
   // ── the frame ──
   let perfMs = 0;
+  const scheduler = new TickScheduler();
+  const ambient = { id: 'shard.pine.life', phase: 'update' as const, tick: 'fx', run: (): void => undefined };
   game.onUpdate((dt) => {
     const t0 = performance.now();
+    scheduler.beginFrame(dt, player.position);
     wild.begin();
     updateBeat(dt);
     cam.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
     const night = sky.dayNight?.night ?? 0, t = now();
-    updateCarcasses(t, dt);
-    for (const r of ravens) { if (r.mode === 'off') continue; updateRaven(r, dt); if (flying(r)) wild.add(r.pose); }
-    updateOwl(dt, night); if (owl.mode !== 'off') wild.add(owl.pose);
-    updateWood(dt, night); if (wood.mode !== 'off') wild.add(wood.pose);
-    updateCrumbs(dt, night); for (const j of guides) if (j.mode !== 'off') wild.add(j.pose);
-    for (const hr of hares) updateHare(hr, dt);
+    const ambientDt = scheduler.systemDt(ambient, dt);
+    if (ambientDt > 0) { updateCarcasses(t, ambientDt); updateCrumbs(night); }
+    for (const r of ravens) {
+      if (r.mode === 'off') { scheduler.forget(r); continue; }
+      const tickDt = scheduler.takeBrainDtAt('fx', r, r.pose);
+      if (tickDt > 0) updateRaven(r, tickDt);
+      if (flying(r)) wild.add(r.pose);
+    }
+    const owlDt = scheduler.takeBrainDtAt('fx', owl, owl.mode === 'off' ? player.position : owl.pose);
+    if (owlDt > 0) updateOwl(owlDt, night);
+    if (owl.mode !== 'off') wild.add(owl.pose);
+    const woodDt = scheduler.takeBrainDtAt('fx', wood, wood.mode === 'off' ? player.position : wood.pose);
+    if (woodDt > 0) updateWood(woodDt, night);
+    if (wood.mode !== 'off') wild.add(wood.pose);
+    for (const j of guides) {
+      if (j.mode === 'off') { scheduler.forget(j); continue; }
+      const tickDt = scheduler.takeBrainDtAt('fx', j, j.pose);
+      if (tickDt > 0 && j.mode === 'fly') stepFly(j, tickDt);
+      if (flying(j)) wild.add(j.pose);
+    }
+    for (const hr of hares) {
+      const tickDt = scheduler.takeBrainDtAt('fx', hr, hr.x === 1e5 ? player.position : { x: hr.x, y: hr.pose.y, z: hr.z });
+      if (tickDt > 0) updateHare(hr, tickDt); else if (hr.x !== 1e5) wild.add(hr.pose);
+    }
     wild.commit();
     perfMs = perfMs * 0.95 + (performance.now() - t0) * 0.05;
   }, 'world.life');

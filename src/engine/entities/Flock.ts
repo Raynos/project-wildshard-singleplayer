@@ -12,6 +12,7 @@ import { modelsOn } from '#shards/nalati-grasslands/world/glbPaint';
 import { TIER } from '../core/tier';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 import { wildEnv, angDiff } from './wildEnv';
+import { TickScheduler } from '../app/scheduler';
 
 /**
  * Flock — the camp's sheep (docs/design/nalati/wolves-horses-taming.md "Sheep"): 20–60 fat-tailed sheep as ONE
@@ -71,7 +72,8 @@ export class Flock {
   private bleatT = 2;
   private anim!: THREE.InstancedBufferAttribute;
   private rng: Rng;
-  private thinkAcc = 0;
+  private readonly scheduler = new TickScheduler();
+  private readonly tickActor = { position: new THREE.Vector3() };
   private uTime = { value: 0 };
   /** living sheep */
   alive: number;
@@ -210,31 +212,35 @@ export class Flock {
   scare(x: number, z: number, secs: number): void { this.panic = Math.max(this.panic, secs); this.panicX = x; this.panicZ = z; }
 
   update(dt: number, t: number, player: THREE.Vector3, playerSpeed: number, wolves: readonly Animal[]): void {
+    this.scheduler.beginFrame(dt, player);
+    this.tickActor.position.set(this.cx, heightAt(this.cx, this.cz), this.cz);
+    const brainDt = this.scheduler.takeBrainDt('ai', this.tickActor);
+    if (brainDt > 0) this.think(brainDt, player, playerSpeed, wolves);
+    const bodyDt = this.scheduler.bodyDt('ai', this.tickActor);
+    if (bodyDt === 0) return;
     this.uTime.value = t;
-    this.thinkAcc += dt;
-    if (this.thinkAcc >= 0.1) { this.think(this.thinkAcc, player, playerSpeed, wolves); this.thinkAcc = 0; }
     const near = Math.hypot(player.x - this.cx, player.z - this.cz) < 160;
     for (let i = 0; i < this.n; i++) {
-      if (this.dead[i] === 1) { this.deadT[i] = Math.min(1, (this.deadT[i] ?? 0) + dt / 0.7); continue; }
+      if (this.dead[i] === 1) { this.deadT[i] = Math.min(1, (this.deadT[i] ?? 0) + bodyDt / 0.7); continue; }
       // steer + speed
       const dy = angDiff(this.dyaw[i] ?? 0, this.yaw[i] ?? 0);
       const turn = (this.spd[i] ?? 0) > 2 ? 3.5 : 1.6;
-      this.yaw[i] = (this.yaw[i] ?? 0) + THREE.MathUtils.clamp(dy, -turn * dt, turn * dt);
-      const sp = (this.spd[i] ?? 0) + THREE.MathUtils.clamp((this.dspd[i] ?? 0) - (this.spd[i] ?? 0), -6 * dt, 4 * dt);
+      this.yaw[i] = (this.yaw[i] ?? 0) + THREE.MathUtils.clamp(dy, -turn * bodyDt, turn * bodyDt);
+      const sp = (this.spd[i] ?? 0) + THREE.MathUtils.clamp((this.dspd[i] ?? 0) - (this.spd[i] ?? 0), -6 * bodyDt, 4 * bodyDt);
       this.spd[i] = sp;
       if (sp > 0.01) {
-        const nx = (this.px[i] ?? 0) + Math.sin(this.yaw[i] ?? 0) * sp * dt, nz = (this.pz[i] ?? 0) + Math.cos(this.yaw[i] ?? 0) * sp * dt;
+        const nx = (this.px[i] ?? 0) + Math.sin(this.yaw[i] ?? 0) * sp * bodyDt, nz = (this.pz[i] ?? 0) + Math.cos(this.yaw[i] ?? 0) * sp * bodyDt;
         // the shard's water (the river corridor, the brook): stop at the edge and turn for home
         if (wildEnv.wetAt?.(nx + Math.sin(this.yaw[i] ?? 0) * 0.8, nz + Math.cos(this.yaw[i] ?? 0) * 0.8) === true) {
           this.dyaw[i] = Math.atan2(this.homeX - nx, this.homeZ - nz); this.spd[i] = 0; continue;
         }
         this.px[i] = nx;
         this.pz[i] = nz;
-        this.phase[i] = ((this.phase[i] ?? 0) + (dt * sp) / (0.42 + 0.12 * sp)) % 1;
+        this.phase[i] = ((this.phase[i] ?? 0) + (bodyDt * sp) / (0.42 + 0.12 * sp)) % 1;
         if (near) this.py[i] = heightAt(this.px[i] ?? 0, this.pz[i] ?? 0);
       }
       const gTarget = sp < 0.2 && this.panic <= 0 && (this.shuffle[i] ?? 0) > 0.5 ? 1 : 0;
-      this.graze[i] = (this.graze[i] ?? 0) + (gTarget - (this.graze[i] ?? 0)) * Math.min(1, dt * 2.5);
+      this.graze[i] = (this.graze[i] ?? 0) + (gTarget - (this.graze[i] ?? 0)) * Math.min(1, bodyDt * 2.5);
     }
     this.writeInstances();
   }

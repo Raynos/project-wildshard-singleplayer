@@ -8,11 +8,12 @@ import type { InputContextDef } from './context';
 import type { LevelAudioProfile } from '../audio/levelAudio';
 import type { AtmosphereSpec, ExploreSpec, ForestSpec, GradeSpec, GradeLook, HerdPlan, HorizonSpec, HudSpec, LevelAssets, MinimapSpec, PoiSpec, RGB, SkySpec, SpawnPose, TerrainField, TreeSpec } from './data';
 import type { BudgetInputs } from '../render/budgets';
+import type { TickRate } from '../app/scheduler';
 
 export type EngineMechanism = 'hover' | 'explore' | 'practice' | 'water' | 'creatures' | 'weather' | 'dayCycle';
 export interface FightRules { maxHitDamage?: number; capExempt?: readonly string[]; attackers?: number }
 export interface Bounds { x0: number; x1: number; z0: number; z1: number; floor: number }
-export interface TierKnobs { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number }
+export interface TierKnobs { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
 export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
 export type { BudgetInputs } from '../render/budgets';
 export interface AudioSpec { ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }

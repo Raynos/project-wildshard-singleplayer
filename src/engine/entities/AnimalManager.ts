@@ -22,7 +22,7 @@ import { attachShadowCaster } from './animalShadow';
 import { FarHerd, type FarMember } from './farHerd';
 import { getActiveChunk } from '#game/shard/registry';
 import { meleeShard } from '#game/shard/manifest';
-import { TIER_CONFIG } from '../core/tier';
+import { TIER, TIER_CONFIG } from '../core/tier';
 import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
 import { practiceRoom } from '../core/practiceRoom';
@@ -434,7 +434,7 @@ export class AnimalManager {
   wanderGoal: ((a: Animal) => { x: number; z: number; r: number } | null) | null = null;
   private brains = new Map<Animal, Brain>();
   private rng = new Rng(SEED + 31);
-  readonly scheduler = new TickScheduler();
+  readonly scheduler = new TickScheduler(app.scheduler);
   private readonly visibility = new WeakMap<Animal, boolean>();
   private dodgeId = dodgeFx.id;
   private playerSprinting = false;
@@ -477,10 +477,11 @@ export class AnimalManager {
     this.pbr = style === 'pbr';
     this.group.name = 'animals';
     // Legacy authored species keep their brain/strike callback until S3.4 / S4.2 migrates it.
+    this.scheduler.configure(getActiveChunk().tiers?.[TIER]?.ticks);
     this.scheduler.rate('legacy', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] });
     const scope = app.levelScope;
     if (scope) {
-      app.events.on('weapon.fired', () => { this.interruptTargets('target.attack'); }, scope);
+      app.events.on('weapon.fired', () => { if (app.levelScope === scope) this.interruptTargets('target.attack'); }, scope);
       scope.onDispose(() => { this.scheduler.reset(); });
     }
   }
@@ -650,7 +651,12 @@ export class AnimalManager {
     a.onStaggered = this.staggered;
     inspectTick(a, () => {
       const rate = this.tickRate(a);
-      return { brainHz: rate === 'always' ? this.scheduler.frameHz : this.scheduler.brainHz(rate, a), pinned: rate === 'always' };
+      return { brainHz: rate === 'always' ? this.scheduler.frameHz : this.scheduler.brainHz(rate, a), pinned: rate === 'always' || this.scheduler.pinned(a) };
+    });
+    this.scheduler.onInterrupt(a, () => {
+      if (a.hidden || a.harnessHold || !a.alive || speciesDef(a.kind).think !== undefined) return;
+      const dt = this.scheduler.takeBrainDt(this.tickRate(a), a);
+      this.think(a, dt, this.playerPos, this.playerSprinting);
     });
     if (model.shells.length > 0) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
     a.prepareMaterial = (m) => this.sky.setupMaterial(m);
@@ -725,7 +731,8 @@ export class AnimalManager {
       if (this.rules !== null) this.tokens.sweep(this.stillAttacking); // E297: the tokens of attacks that are over go back
       const t0 = frameCost.on ? performance.now() : 0;
       if (this.dodgeId !== dodgeFx.id) { this.dodgeId = dodgeFx.id; this.interruptTargets('target.dodge'); }
-      for (const a of this.animals) if (!a.harnessHold && !a.hidden) {
+      for (const a of this.animals) {
+        if (a.harnessHold || a.hidden) { this.scheduler.forget(a); continue; }
         const rate = this.tickRate(a);
         if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
           const seen = this.canReach(a, playerPos);
@@ -810,8 +817,6 @@ export class AnimalManager {
   interrupt(a: Animal, why: InterruptReason): void {
     if (a.hidden || a.harnessHold || !a.alive || speciesDef(a.kind).think !== undefined) return;
     this.scheduler.interrupt(a, why);
-    const dt = this.scheduler.takeBrainDt(this.tickRate(a), a);
-    if (dt > 0) this.think(a, dt, this.playerPos, this.playerSprinting);
   }
   private interruptTargets(why: InterruptReason): void {
     for (const a of this.animals) if (a.aggressive || this.brains.get(a)?.sensed) this.interrupt(a, why);
