@@ -1,0 +1,10 @@
+{
+  "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (after Z4).",
+  "mode": "pinned",
+  "sha": "dcd6a29a7109a3357a811c55af3a22446ce0b9c6",
+  "milestone": "M0",
+  "gate": "grandfathered",
+  "go": "E357 decision 32: production stays on the pre-normalization build",
+  "set": "2026-10-01T03:17:41Z",
+  "by": "E357 lead"
+}

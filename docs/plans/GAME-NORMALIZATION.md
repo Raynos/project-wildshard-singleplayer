@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `in progress` 2026-09-30 — **F0 (the lock) landing; next F3.1 (the deploy pin), then F1 → F2.** Jake's go (decision 101): the lead (session wildshard-9) builds the whole plan autonomously with no milestone stops (102), the pin moving by itself at each milestone (103), parity in batches by the lead only (104), many short Opus subagents + Codex GPT 6.1 Sol panes over herdr, round-robin by weekly usage left, visuals → Opus, engine / TS → Sol (105, 107, 109), and two new shards at Z3 (106: desert + whip, and one of the agent's choice). Milestones 0/4; lines deleted 0.
+**State:** `in progress` 2026-09-30 — **F0 done (3ae8256e); F3.1 (the deploy pin, M0 = dcd6a29) landing; next F1 → F2.** Jake's go (decision 101): the lead (session wildshard-9) builds the whole plan autonomously with no milestone stops (102), the pin moving by itself at each milestone (103), parity in batches by the lead only (104), many short Opus subagents + Codex GPT 6.1 Sol panes over herdr, round-robin by weekly usage left, visuals → Opus, engine / TS → Sol (105, 107, 109), and two new shards at Z3 (106: desert + whip, and one of the agent's choice). Milestones 0/4; lines deleted 0.
 
 ## Specs (the executable detail) and the definition of ready
 

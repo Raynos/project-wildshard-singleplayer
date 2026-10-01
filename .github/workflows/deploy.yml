@@ -1,5 +1,6 @@
 # Pushes and pull requests run the gates. Production deploys hourly or on manual dispatch.
-# The hourly run checks /version.json first and skips when HEAD is already live.
+# A release ships the SHA in .github/deploy-pin.json (GAME-NORMALIZATION F3.1), not main's head; the hourly run
+# checks /version.json first and skips when the pin is already live.
 # GitHub builds the Vercel artifact; Vercel only uploads the prebuilt output.
 # Secrets: VERCEL_BUILD_TOKEN (team-scoped CLI token for pull/build/deploy),
 # VERCEL_ORG_ID and VERCEL_PROJECT_ID.
@@ -29,6 +30,7 @@ concurrency:
 
 permissions:
   contents: read
+  statuses: read # the deploy pin's gate check (scripts/deploy-pin.mjs check-gate)
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -52,12 +54,34 @@ jobs:
             !/docs/
           sparse-checkout-cone-mode: false
 
+      # The deploy pin (GAME-NORMALIZATION F3.1, plan spec 03 §13.3): a release ships .github/deploy-pin.json's SHA, never
+      # main's head. main's own pin scripts run from $RUNNER_TEMP (the pinned tree may predate them).
+      - name: Read the deploy pin
+        id: pin
+        if: env.DEPLOY == 'true'
+        run: |
+          cp scripts/deploy-pin.mjs scripts/deploy-version.mjs "$RUNNER_TEMP/"
+          node "$RUNNER_TEMP/deploy-pin.mjs" read
+
+      - name: Gate check (a required pin needs gpu-gate = success)
+        if: env.DEPLOY == 'true' && steps.pin.outputs.gate == 'required'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node "$RUNNER_TEMP/deploy-pin.mjs" check-gate "${{ steps.pin.outputs.sha }}"
+
+      - name: Check out the pin
+        if: env.DEPLOY == 'true'
+        run: |
+          git fetch --no-tags --filter=blob:none origin "${{ steps.pin.outputs.sha }}"
+          git checkout --detach "${{ steps.pin.outputs.sha }}"
+
       - name: Check live commit
         id: live
         if: env.DEPLOY == 'true'
         env:
           DEPLOY_FORCE: ${{ inputs.force }}
-        run: node scripts/deploy-version.mjs check
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
+        run: node "$RUNNER_TEMP/deploy-version.mjs" check
 
       - name: Require deployment credentials
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
@@ -126,14 +150,17 @@ jobs:
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: |
           url=$(vercel deploy --prebuilt --prod --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
-          echo "deployed $url for $GITHUB_SHA"
-          echo "### Deployed \`$GITHUB_SHA\` to $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "deployed $url for $DEPLOY_SHA (the pin)"
+          echo "### Deployed \`$DEPLOY_SHA\` (the deploy pin) to $url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify production
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true'
+        env:
+          DEPLOY_SHA: ${{ steps.pin.outputs.sha }}
         run: |
-          node scripts/deploy-version.mjs verify
+          node "$RUNNER_TEMP/deploy-version.mjs" verify
           code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'x-review-password: invalid' https://wildshard-singleplayer.vercel.app/api/inbox)
           test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }

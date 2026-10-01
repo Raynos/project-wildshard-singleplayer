@@ -77,6 +77,24 @@ jobs:
             !/docs/
           sparse-checkout-cone-mode: false
 
+      # The deploy pin (GAME-NORMALIZATION F3.1, plan spec 03 §13.3): a promote ships the pinned build, never main's head.
+      - name: Read the deploy pin
+        id: pin
+        run: |
+          cp scripts/deploy-pin.mjs "$RUNNER_TEMP/"
+          node "$RUNNER_TEMP/deploy-pin.mjs" read
+
+      - name: Gate check (a required pin needs gpu-gate = success)
+        if: steps.pin.outputs.gate == 'required'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node "$RUNNER_TEMP/deploy-pin.mjs" check-gate "${{ steps.pin.outputs.sha }}"
+
+      - name: Check out the pin
+        run: |
+          git fetch --no-tags --filter=blob:none origin "${{ steps.pin.outputs.sha }}"
+          git checkout --detach "${{ steps.pin.outputs.sha }}"
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10

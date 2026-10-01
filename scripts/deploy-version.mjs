@@ -4,7 +4,9 @@ import { appendFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const versionUrl = 'https://wildshard-singleplayer.vercel.app/version.json';
-const sha = (process.env.GITHUB_SHA ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()).slice(0, 7);
+// DEPLOY_SHA (the deploy pin, GAME-NORMALIZATION F3.1) wins: a workflow cannot override GITHUB_SHA.
+const set = (v) => (v === undefined || v === '' ? undefined : v); // an unset workflow output arrives as ''
+const sha = (set(process.env.DEPLOY_SHA) ?? set(process.env.GITHUB_SHA) ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()).slice(0, 7);
 
 export function matchesCommit(build, commit = sha) {
   return typeof build === 'string' && build.startsWith(`${commit}-`);
