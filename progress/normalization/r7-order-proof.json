@@ -5,12 +5,23 @@
   "control": "ba9d664c888047f0b37e1185658cacc18198cdfd",
   "captures": {
     "candidate": "/private/tmp/e357-sol-r7/final-parity",
-    "control": "/private/tmp/e357-sol-r7/parent-parity"
+    "control": "/private/tmp/e357-sol-r7/control-full"
+  },
+  "comparePolicy": {
+    "lanePending": false,
+    "pending": [],
+    "quarantine": [],
+    "renames": [],
+    "ambientInfo": [
+      "steppe.herd",
+      "steppe.eagle",
+      "forest.thrall"
+    ]
   },
   "notes": [
-    "One capture per shard/tier, accelerated clock, Metal. No accept/record, baseline rewrite, rename changes or ID changes.",
+    "One full-route capture per shard/tier for both control and candidate: poses then walk/combat/leak, accelerated clock, Metal. No accept/record, baseline rewrite, rename changes or ID changes. This corrects the earlier proof that improperly used lanePending and unequal capture routes.",
     "Survivor sequences apply existing 1:1 rename maps, then remove ids absent on the other side. Added systems retain B46 island-before-main.world constraints.",
-    "Behavior uses existing parity bands; stochastic ambient sound inventories and diagnostic leak stacks are informational. Walk durations retain existing floating-point tolerance.",
+    "Unmasked control comparison: no lanePending, pending, quarantine or rename options. Only the three existing ambient-info IDs and diagnostic traces are informational; event sound multisets and other ambient scheduler inventories are checked. Walk durations use existing floating-point tolerance.",
     "Clean projected export (85b816e5 + R7): tsc and whole oxlint pass; full vitest --testTimeout=30000: 294 files / 2138 tests pass. Default-timeout inventory and concurrent-browser navmesh timing failures retained in /private/tmp/e357-sol-r7 logs."
   ],
   "rows": [
@@ -292,37 +303,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.seconds",
@@ -337,27 +348,27 @@
         {
           "field": "walk.legs.lookout.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.seconds",
@@ -372,27 +383,27 @@
         {
           "field": "walk.legs.cave.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.seconds",
@@ -407,37 +418,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot2",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.swing",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     },
@@ -714,37 +725,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.pier.seconds",
@@ -759,27 +770,27 @@
         {
           "field": "walk.legs.lookout.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout.seconds",
@@ -794,27 +805,27 @@
         {
           "field": "walk.legs.cave.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cave.seconds",
@@ -829,37 +840,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot2",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.swing",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     },
@@ -1263,37 +1274,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.seconds",
@@ -1308,27 +1319,27 @@
         {
           "field": "walk.legs.great-kurgan-door.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.seconds",
@@ -1343,27 +1354,27 @@
         {
           "field": "walk.legs.leopard-cave.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.seconds",
@@ -1378,37 +1389,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot2",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.swing",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.shot",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     },
@@ -1807,37 +1818,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.road-camp.seconds",
@@ -1852,27 +1863,27 @@
         {
           "field": "walk.legs.great-kurgan-door.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.great-kurgan-door.seconds",
@@ -1887,27 +1898,27 @@
         {
           "field": "walk.legs.leopard-cave.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.leopard-cave.seconds",
@@ -1922,37 +1933,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot2",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.swing",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.shot",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     },
@@ -2195,37 +2206,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.seconds",
@@ -2240,27 +2251,27 @@
         {
           "field": "walk.legs.crossing-gate-bridge.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.seconds",
@@ -2275,27 +2286,27 @@
         {
           "field": "walk.legs.escape-square-balustrade.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.seconds",
@@ -2310,37 +2321,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot2",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.swing",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     },
@@ -2578,37 +2589,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.stair-street.seconds",
@@ -2623,27 +2634,27 @@
         {
           "field": "walk.legs.crossing-gate-bridge.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.crossing-gate-bridge.seconds",
@@ -2658,27 +2669,27 @@
         {
           "field": "walk.legs.escape-square-balustrade.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.escape-square-balustrade.seconds",
@@ -2693,37 +2704,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.shot2",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.swing",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     },
@@ -3131,37 +3142,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.seconds",
@@ -3176,27 +3187,27 @@
         {
           "field": "walk.legs.lookout-climb.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.seconds",
@@ -3211,27 +3222,27 @@
         {
           "field": "walk.legs.creek-bridge.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.seconds",
@@ -3246,37 +3257,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.swing",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.shot",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.shot2",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     },
@@ -3679,37 +3690,37 @@
         {
           "field": "walk.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.event",
           "band": "exact multiset",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.cabin-porch.seconds",
@@ -3724,27 +3735,27 @@
         {
           "field": "walk.legs.lookout-climb.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.lookout-climb.seconds",
@@ -3759,27 +3770,27 @@
         {
           "field": "walk.legs.creek-bridge.name",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.end.x",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.end.y",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.end.z",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.maxY",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "walk.legs.creek-bridge.seconds",
@@ -3794,37 +3805,37 @@
         {
           "field": "walk.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.swing",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.shot",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.hitsToKill.shot2",
           "band": "\u00b1 0",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.kills",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.loot.written",
           "band": "exact",
-          "verdict": "lane-pending"
+          "verdict": "green"
         },
         {
           "field": "combat.sounds.ambient",
           "band": "no baseline scheduler missing",
-          "verdict": "lane-pending"
+          "verdict": "green"
         }
       ]
     }
@@ -3844,5 +3855,13 @@
       "errors": [],
       "captures": "/private/tmp/e357-sol-r7/landing-boot"
     }
+  },
+  "correctedProof": {
+    "at": "2026-10-01 16:59 UTC",
+    "supersedes": "2e7df645 behavior verdicts (lanePending masking)",
+    "comparedRows": 652,
+    "greenRows": 604,
+    "infoRows": 48,
+    "redRows": 0
   }
 }
