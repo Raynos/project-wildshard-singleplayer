@@ -1,0 +1,65 @@
+{
+  "base": "/private/tmp/e357-sol-s42/base2/captain-db0c53fd914a338c13381fdb1811e6b6625b27dc.json",
+  "baseSha": "db0c53fd914a338c13381fdb1811e6b6625b27dc",
+  "brokenSha": "56ba935d8255cf7b59f7c875c4141187d2a9ab15",
+  "culprit": "bf1f86d8705b0202e9c01abd15eefca060661bdc",
+  "runs": [
+    {
+      "label": "authored-exact",
+      "sha": "4526d23e8ece5a7592da6045fc2981a03b2f8cd7",
+      "raw": "/private/tmp/e357-r3/authored-exact/captain-4526d23e8ece5a7592da6045fc2981a03b2f8cd7.json",
+      "traceRows": 1800,
+      "inputs": 33,
+      "damageEvents": 24,
+      "firstHitEventFrame": 96,
+      "killTraceFrame": 1665,
+      "terminalAttempt": {
+        "frame": 1666,
+        "boss": "boss.captain",
+        "level": "driftwood-isle",
+        "outcome": "won"
+      },
+      "result": "exact"
+    },
+    {
+      "label": "final-1",
+      "sha": "ab800ffb7ce3e6b065ddd1870a1e70bc65bacbf4",
+      "raw": "/private/tmp/e357-r3/final-1/captain-ab800ffb7ce3e6b065ddd1870a1e70bc65bacbf4.json",
+      "traceRows": 1800,
+      "inputs": 33,
+      "damageEvents": 24,
+      "firstHitEventFrame": 96,
+      "killTraceFrame": 1665,
+      "terminalAttempt": {
+        "frame": 1667,
+        "boss": "boss.captain",
+        "level": "driftwood-isle",
+        "outcome": "won"
+      },
+      "result": "exact"
+    },
+    {
+      "label": "final-2",
+      "sha": "ab800ffb7ce3e6b065ddd1870a1e70bc65bacbf4",
+      "raw": "/private/tmp/e357-r3/final-2/captain-ab800ffb7ce3e6b065ddd1870a1e70bc65bacbf4.json",
+      "traceRows": 1800,
+      "inputs": 33,
+      "damageEvents": 24,
+      "firstHitEventFrame": 96,
+      "killTraceFrame": 1665,
+      "terminalAttempt": {
+        "frame": 1667,
+        "boss": "boss.captain",
+        "level": "driftwood-isle",
+        "outcome": "won"
+      },
+      "result": "exact"
+    }
+  ],
+  "bisection": {
+    "good": "9cdb9352dedd95f70a12289d3a8a3c78459fec5b",
+    "firstBuildableBad": "f3cafd961bc7b694e4d4539b90cb719a7192e1a8",
+    "cause": "bf1f86d8 introduced Captain tick:ai and repeated pinBrain plus unsampled body contact. Earlier immediate boundary exports fail gen/build because of incomplete unrelated Nalati moves."
+  },
+  "approvedDifference": "Only one new boss.attempt won event; final frame1667 after f03880ae restored adventure update order. All baseline events and trace rows match without normalization."
+}

@@ -1,4 +1,4 @@
-import { CreatureBrain, pinBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp } from '#engine';
+import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp } from '#engine';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
 import { captainMeshFor, captainMeshLoaded } from './captainMesh';
@@ -240,7 +240,6 @@ function decideCaptain(a: Animal, c: ThinkCtx): void {
     m.poolX = set['poolX'] ?? a.position.x; m.poolZ = set['poolZ'] ?? a.position.z; m.arena = set['arena'] ?? 22; m.awake = set['awake'] ?? 0; m.phase = 1;
     a.state = 'hide'; a.yOffset = UNDER;
   }
-  if (m.awake) pinBrain(a);
   const phase = captainPhase(a.hp, a.maxHp); m.phase = phase;
   const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, d = Math.hypot(dx, dz);
   const toPlayer = Math.atan2(dx, dz);
@@ -320,7 +319,7 @@ export const CAPTAIN: SpeciesRow = {
   variants: [
     { id: 'captain', label: engineString('s_b9afc02e9fda'), weight: 100, rarity: 'uncommon', scale: [1.35, 1.35], hp: 320 },
   ],
-  tick: 'ai',
+  // The authored fight keeps its 10 Hz decision windows; contact is applied by the body step.
   act: actCaptain,
   think: thinkCaptain,
 };
@@ -342,13 +341,18 @@ function strikeCaptain(a: Animal, c: ThinkCtx): void {
 }
 const STATES = ['hide', 'rise', 'fight', 'attack', 'sink', 'under'] as const;
 export class CaptainBrain extends CreatureBrain<typeof STATES[number]> {
+  private strikeStep = false;
   constructor(actor: Animal) { super(actor, STATES); }
   override think(ctx: ThinkCtx): void {
     decideCaptain(this.actor, ctx);
+    this.strikeStep = true;
     const state = STATES[this.actor.mem['st'] ?? 0];
     if (state !== undefined) this.transition(state);
   }
-  override act(ctx: ThinkCtx): void { strikeCaptain(this.actor, ctx); }
+  override act(ctx: ThinkCtx): void {
+    if (!this.strikeStep) return;
+    this.strikeStep = false; strikeCaptain(this.actor, ctx);
+  }
 }
 const brains = new WeakMap<Animal, CaptainBrain>();
 function brain(a: Animal): CaptainBrain {
