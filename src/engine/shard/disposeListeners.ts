@@ -55,6 +55,7 @@ export function trackDisposeListeners(): void {
     if (!m) { m = new Map(); owned.set(this, m); }
     if (m.has(listener)) return;
     m.set(listener, scope);
+    if (window.__wildshardHarness && !Reflect.has(this, '__f8Allocation')) Reflect.set(this, '__f8Allocation', new Error('GPU allocation').stack);
     let list = targets.get(scope);
     if (!list) { list = []; targets.set(scope, list); }
     list.push(new WeakRef(this));

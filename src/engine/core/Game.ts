@@ -174,6 +174,21 @@ export class Game {
     }
     return { geometries, textures: textures.size, programs: programs.size };
   }
+  gpuResourceDiagnostics(): object {
+    const allocated = currentScope(), retained = new Set<object>(this.app.assets.retainedResources());
+    const live = allocated ? disposeListenerResources(allocated) : new Set<object>();
+    const read = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
+    return { total: { ...this.renderer.info.memory, programs: this.renderer.info.programs?.length ?? 0 },
+      retained: this.retainedGpuCounts(), resources: [...live].map((resource) => {
+        const props: unknown = this.renderer.properties.get(resource);
+        const compiled = read(props, 'programs'), source = read(resource, 'source'), image = read(source, 'data');
+        return { type: resource.constructor.name, uuid: read(resource, 'uuid'), name: read(resource, 'name'),
+          retained: retained.has(resource), texture: read(props, '__webglTexture') !== undefined,
+          programs: compiled instanceof Map ? [...compiled.values()].map((p: unknown) => read(p, 'id')) : [],
+          source: read(source, 'uuid'), image: { width: read(image, 'width'), height: read(image, 'height'), src: read(image, 'src') },
+          allocation: read(resource, '__f8Allocation') };
+      }) };
+  }
   unloadLevel(): void {
     if (this.levelScope.disposed) return;
     this.captureLevelResources();

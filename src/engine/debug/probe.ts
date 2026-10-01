@@ -38,7 +38,7 @@ export interface LeakCensus {
   systems: { input: number; fixed: { pre: number; step: number; post: number }; update: number; late: number; render: number }; events: { listeners: number; answerers: number };
   dom: { hud: number; body: number }; sceneObjects: number;
 }
-export interface LeakResult { before: LeakCensus; after: LeakCensus; scope: ScopeCensus; stacks: ResourceCounts['stacks']; retained: ReturnType<World['game']['app']['assets']['retained']> }
+export interface LeakResult { before: LeakCensus; after: LeakCensus; scope: ScopeCensus; stacks: ResourceCounts['stacks']; retained: ReturnType<World['game']['app']['assets']['retained']>; gpu: object }
 export interface HarnessPins {
   seed: number;
   capture: number | null;
@@ -348,7 +348,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       app.unloadLevel();
       await asShell(() => new Promise<void>((resolve) => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); }));
       return { before: structuredClone(baseline), after: census(), scope: game.levelScope.census,
-        stacks: pins.resources().stacks, retained: app.assets.retained() };
+        stacks: pins.resources().stacks, retained: app.assets.retained(), gpu: game.gpuResourceDiagnostics() };
     },
     walkLeg: async (leg) => {
       requireHarness();
