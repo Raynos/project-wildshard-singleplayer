@@ -23,6 +23,7 @@ import type { Sky } from './Sky';
 import { patchSway, swayByHeight } from './wind';
 import { attachFogUniforms } from './Atmosphere';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { voxelAO, aoTint, hemisphere } from './voxelAO';
 
 export type ColorLike = THREE.Color | string;
 
@@ -370,98 +371,30 @@ export interface AOOptions {
 }
 
 // 14 hemisphere directions in a +Z-up tangent frame (cosine-ish spread, fixed so bakes are deterministic)
-const HEMI: [number, number, number][] = (() => {
-  const out: [number, number, number][] = [];
-  const rings: [number, number][] = [[0.95, 1], [0.72, 5], [0.38, 8]];
-  for (const [cz, n] of rings) {
-    const s = Math.sqrt(1 - cz * cz);
-    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + cz * 1.7; out.push([Math.cos(a) * s, Math.sin(a) * s, cz]); }
-  }
-  return out;
-})();
+const HEMI = hemisphere([[0.95, 1], [0.72, 5], [0.38, 8]], 1.7);
 
 /**
- * Darken each face of a non-indexed, vertex-coloured geometry by how enclosed it is. Works in the
- * geometry's own coordinate space (world for placed props, local for creatures).
+ * Darken each face of a non-indexed, vertex-coloured geometry by how enclosed it is (the one `voxelAO`, per face). Works
+ * in the geometry's own coordinate space (world for placed props, local for creatures).
  */
 export function bakeAO(geo: THREE.BufferGeometry, o: AOOptions = {}): void {
   if (!geo.hasAttribute('color') || geo.index !== null) return;
-  const pos = geo.getAttribute('position');
-  const col = geo.getAttribute('color');
   geo.computeBoundingBox();
   const bb = geo.boundingBox;
   if (bb === null) return;
   const ext = new THREE.Vector3().subVectors(bb.max, bb.min);
   const cell = o.cell ?? Math.max(0.12, Math.max(ext.x, ext.y, ext.z) / 72);
-  const pad = 2;
-  const ox = bb.min.x - pad * cell, oy = bb.min.y - pad * cell, oz = bb.min.z - pad * cell;
-  const nx = Math.ceil(ext.x / cell) + pad * 2 + 1, ny = Math.ceil(ext.y / cell) + pad * 2 + 1, nz = Math.ceil(ext.z / cell) + pad * 2 + 1;
-  const grid = new Uint8Array(nx * ny * nz);
-  const idx = (ix: number, iy: number, iz: number) => (iz * ny + iy) * nx + ix;
-
-  // rasterise triangles: barycentric samples at ≤ 0.7 cell spacing
-  const fc = pos.count / 3;
-  for (let f = 0; f < fc; f++) {
-    const i = f * 3;
-    const ax = pos.getX(i), ay = pos.getY(i), az = pos.getZ(i);
-    const bx = pos.getX(i + 1) - ax, by = pos.getY(i + 1) - ay, bz = pos.getZ(i + 1) - az;
-    const cx = pos.getX(i + 2) - ax, cy = pos.getY(i + 2) - ay, cz = pos.getZ(i + 2) - az;
-    const e = Math.max(Math.hypot(bx, by, bz), Math.hypot(cx, cy, cz), Math.hypot(cx - bx, cy - by, cz - bz));
-    const n = Math.min(400, Math.max(1, Math.ceil(e / (cell * 0.7))));
-    for (let u = 0; u <= n; u++) for (let v = 0; u + v <= n; v++) {
-      const s = u / n, t = v / n;
-      const ix = Math.floor((ax + bx * s + cx * t - ox) / cell), iy = Math.floor((ay + by * s + cy * t - oy) / cell), iz = Math.floor((az + bz * s + cz * t - oz) / cell);
-      grid[idx(ix, iy, iz)] = 1;
-    }
-  }
-  // ground: a column cache of cell indices below the terrain (or a constant floor)
-  let groundCell: Int32Array | null = null;
-  if (o.ground || o.floorY !== undefined) {
-    groundCell = new Int32Array(nx * nz);
-    for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
-      const gy = o.ground ? o.ground(ox + (ix + 0.5) * cell, oz + (iz + 0.5) * cell) : (o.floorY ?? 0);
-      groundCell[iz * nx + ix] = Math.floor((gy - oy) / cell);
-    }
-  }
-  const solid = (ix: number, iy: number, iz: number): boolean => {
-    if (ix < 0 || iz < 0 || ix >= nx || iz >= nz) return false;
-    if (groundCell !== null && iy <= (groundCell[iz * nx + ix] ?? -1)) return true;
-    if (iy < 0 || iy >= ny) return false;
-    return grid[idx(ix, iy, iz)] === 1;
-  };
-
+  const { ground, floorY } = o;
   const dist = o.dist ?? cell * 6;
-  const steps = Math.max(3, Math.round(dist / cell));
-  const strength = o.strength ?? 0.62, downDark = o.downDark ?? 0.18;
   const tint = new THREE.Color().copy(asColor(o.tint ?? '#4a4466'));
   if (!geo.hasAttribute('normal')) geo.computeVertexNormals();
-  const nrm = geo.getAttribute('normal');
-  const N =new THREE.Vector3(), T = new THREE.Vector3(), B = new THREE.Vector3();
-  for (let f = 0; f < fc; f++) {
-    const i = f * 3;
-    N.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i));
-    if (N.lengthSq() < 0.5) continue;
-    T.set(Math.abs(N.y) < 0.9 ? 0 : 1, Math.abs(N.y) < 0.9 ? 1 : 0, 0).cross(N).normalize(); B.crossVectors(N, T);
-    // start one cell off the face so the face's own cell doesn't occlude it
-    const px = (pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3 + N.x * cell * 1.05;
-    const py = (pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3 + N.y * cell * 1.05;
-    const pz = (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3 + N.z * cell * 1.05;
-    let occ = 0, wsum = 0;
-    for (const [hx, hy, hz] of HEMI) {
-      const dx = T.x * hx + B.x * hy + N.x * hz, dy = T.y * hx + B.y * hy + N.y * hz, dz = T.z * hx + B.z * hy + N.z * hz;
-      const w = hz; wsum += w;
-      for (let s = 0; s < steps; s++) {
-        const d = (s + 0.5) * cell;
-        if (solid(Math.floor((px + dx * d - ox) / cell), Math.floor((py + dy * d - oy) / cell), Math.floor((pz + dz * d - oz) / cell))) { occ += w * (1 - (s / steps) * 0.5); break; }
-      }
-    }
-    const a = Math.min(1, (occ / wsum) * strength + Math.max(0, -N.y) * downDark);
-    for (let k = 0; k < 3; k++) {
-      const v = i + k;
-      col.setXYZ(v, col.getX(v) * (1 - a) + col.getX(v) * tint.r * a, col.getY(v) * (1 - a) + col.getY(v) * tint.g * a, col.getZ(v) * (1 - a) + col.getZ(v) * tint.b * a);
-    }
-  }
-  col.needsUpdate = true;
+  const k = voxelAO(geo, {
+    box: bb, cell, pad: 2, spacing: 0.7, maxSamples: 400, indexed: false,
+    ...(ground ? { ground: { columns: ground } } : floorY !== undefined ? { ground: { columns: () => floorY } } : {}),
+    sample: 'face', offset: 1.05, hemi: HEMI, steps: Math.max(3, Math.round(dist / cell)), stepLen: cell, falloff: 0.5,
+    strength: o.strength ?? 0.62, downDark: o.downDark ?? 0.18,
+  });
+  aoTint(geo.getAttribute('color'), k, tint);
 }
 
 // ── baked point light ─────────────────────────────────────────────────────────────────────────────

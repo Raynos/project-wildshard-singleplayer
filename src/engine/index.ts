@@ -95,6 +95,7 @@ export { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, fovForAspect as ran
 export { getSetting, getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 export { LightPool } from './fx/LightPool';
 export { ParticlePool, pointScale, type ParticlePoolSpec, type ParticleAttr } from './fx/ParticlePool';
+export { voxelAO, aoTint, hemisphere, type VoxelAOParams, type HemiRing, type HemiDir } from './world/voxelAO';
 export { painterlyMaterial, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from './world/painterly';
 export { ARM_PAL, gloveFist, riderArm, placeArm, forearm } from './player/nalatiArms';
 export { wind } from './world/steppeWind';

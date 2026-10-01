@@ -22,6 +22,7 @@ import { Noise2D, smoothstep } from '#engine/core/noise';
 import { painterlyMaterial } from '#engine/world/painterly';
 import { loadNalatiTexture, type NalatiTexName } from '../look/nalatiTextures';
 import type { Sky } from '#engine/world/Sky';
+import { voxelAO, aoTint, hemisphere } from '#engine';
 
 export type ColorLike = THREE.Color | string | number;
 /** per-face colour from the face centroid + normal, both in the part's LOCAL space (before `matrix`) */
@@ -314,19 +315,12 @@ export interface AOOpts {
 }
 
 // 9 fixed hemisphere directions (z-up tangent frame), cosine-ish spread — deterministic bakes
-const HEMI: [number, number, number][] = (() => {
-  const out: [number, number, number][] = [];
-  for (const [cz, n] of [[0.94, 1], [0.66, 3], [0.3, 5]] as const) {
-    const sz = Math.sqrt(1 - cz * cz);
-    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + cz * 2.1; out.push([Math.cos(a) * sz, Math.sin(a) * sz, cz]); }
-  }
-  return out;
-})();
+const HEMI = hemisphere([[0.94, 1], [0.66, 3], [0.3, 5]], 2.1);
 
-/** darken a merged, non-indexed, vertex-coloured geometry by how enclosed each vertex position is (smooth: per position) */
+/** darken a merged, non-indexed, vertex-coloured geometry by how enclosed each vertex position is (smooth: per position;
+ *  the one `voxelAO`, welded) */
 export function bakeSmoothAO(geo: THREE.BufferGeometry, o: AOOpts = {}): void {
   if (!geo.hasAttribute('color') || !geo.hasAttribute('normal')) return;
-  const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
   geo.computeBoundingBox();
   const bb = geo.boundingBox;
   if (bb === null) return;
@@ -334,74 +328,13 @@ export function bakeSmoothAO(geo: THREE.BufferGeometry, o: AOOpts = {}): void {
   let cell = o.cell ?? Math.min(0.8, Math.max(0.15, Math.max(ext.x, ext.y, ext.z) / 140));
   const cellsFor = (c: number) => (Math.ceil(ext.x / c) + 5) * (Math.ceil(ext.y / c) + 5) * (Math.ceil(ext.z / c) + 5);
   while (cellsFor(cell) > 6e6) cell *= 1.25;
-  const pad = 2;
-  const ox = bb.min.x - pad * cell, oy = bb.min.y - pad * cell, oz = bb.min.z - pad * cell;
-  const nx = Math.ceil(ext.x / cell) + pad * 2 + 1, ny = Math.ceil(ext.y / cell) + pad * 2 + 1, nz = Math.ceil(ext.z / cell) + pad * 2 + 1;
-  const grid = new Uint8Array(nx * ny * nz);
-  const fc = pos.count / 3;
-  for (let f = 0; f < fc; f++) {
-    const i = f * 3;
-    const ax = pos.getX(i), ay = pos.getY(i), az = pos.getZ(i);
-    const bx = pos.getX(i + 1) - ax, by = pos.getY(i + 1) - ay, bz = pos.getZ(i + 1) - az;
-    const cx = pos.getX(i + 2) - ax, cy = pos.getY(i + 2) - ay, cz = pos.getZ(i + 2) - az;
-    const e = Math.max(Math.hypot(bx, by, bz), Math.hypot(cx, cy, cz), Math.hypot(cx - bx, cy - by, cz - bz));
-    const n = Math.min(64, Math.max(1, Math.ceil(e / (cell * 0.9))));
-    for (let u = 0; u <= n; u++) for (let v = 0; u + v <= n; v++) {
-      const s = u / n, t = v / n;
-      const gx = Math.floor((ax + bx * s + cx * t - ox) / cell), gy = Math.floor((ay + by * s + cy * t - oy) / cell), gz = Math.floor((az + bz * s + cz * t - oz) / cell);
-      grid[(gz * ny + gy) * nx + gx] = 1;
-    }
-  }
-  let groundCell: Int32Array | null = null;
-  if (o.ground) {
-    groundCell = new Int32Array(nx * nz);
-    for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) groundCell[iz * nx + ix] = Math.floor((o.ground(ox + (ix + 0.5) * cell, oz + (iz + 0.5) * cell) - oy) / cell);
-  }
-  const solid = (ix: number, iy: number, iz: number): boolean => {
-    if (ix < 0 || iz < 0 || ix >= nx || iz >= nz) return false;
-    if (groundCell !== null && iy <= (groundCell[iz * nx + ix] ?? -1e9)) return true;
-    if (iy < 0 || iy >= ny) return false;
-    return grid[(iz * ny + iy) * nx + ix] === 1;
-  };
-  // distinct positions → averaged normal → one AO value each
-  const key = (i: number) => (Math.round(pos.getX(i) * 200) * 73856093) ^ (Math.round(pos.getY(i) * 200) * 19349663) ^ (Math.round(pos.getZ(i) * 200) * 83492791);
-  const slot = new Map<number, number>();
-  const which = new Int32Array(pos.count);
-  const acc: number[] = [];
-  for (let i = 0; i < pos.count; i++) {
-    const k = key(i);
-    let j = slot.get(k);
-    if (j === undefined) { j = acc.length / 6; slot.set(k, j); acc.push(pos.getX(i), pos.getY(i), pos.getZ(i), 0, 0, 0); }
-    which[i] = j;
-    acc[j * 6 + 3] = (acc[j * 6 + 3] ?? 0) + nrm.getX(i); acc[j * 6 + 4] = (acc[j * 6 + 4] ?? 0) + nrm.getY(i); acc[j * 6 + 5] = (acc[j * 6 + 5] ?? 0) + nrm.getZ(i);
-  }
-  const nU = acc.length / 6, ao = new Float32Array(nU);
-  const dist = o.dist ?? cell * 6, steps = Math.max(3, Math.round(dist / cell));
-  const N = new THREE.Vector3(), T = new THREE.Vector3(), Bv = new THREE.Vector3();
-  for (let j = 0; j < nU; j++) {
-    N.set(acc[j * 6 + 3] ?? 0, acc[j * 6 + 4] ?? 1, acc[j * 6 + 5] ?? 0);
-    if (N.lengthSq() < 1e-6) continue;
-    N.normalize();
-    T.set(Math.abs(N.y) < 0.9 ? 0 : 1, Math.abs(N.y) < 0.9 ? 1 : 0, 0).cross(N).normalize(); Bv.crossVectors(N, T);
-    const px = (acc[j * 6] ?? 0) + N.x * cell * 1.1, py = (acc[j * 6 + 1] ?? 0) + N.y * cell * 1.1, pz = (acc[j * 6 + 2] ?? 0) + N.z * cell * 1.1;
-    let occ = 0, wsum = 0;
-    for (const [hx, hy, hz] of HEMI) {
-      const dx = T.x * hx + Bv.x * hy + N.x * hz, dy = T.y * hx + Bv.y * hy + N.y * hz, dz = T.z * hx + Bv.z * hy + N.z * hz;
-      wsum += hz;
-      for (let s = 0; s < steps; s++) {
-        const d = (s + 0.5) * cell;
-        if (solid(Math.floor((px + dx * d - ox) / cell), Math.floor((py + dy * d - oy) / cell), Math.floor((pz + dz * d - oz) / cell))) { occ += hz * (1 - (s / steps) * 0.6); break; }
-      }
-    }
-    ao[j] = occ / wsum;
-  }
-  const strength = o.strength ?? 0.6, tint = SHADE_TINT;
-  for (let i = 0; i < pos.count; i++) {
-    const a = Math.min(1, (ao[which[i] ?? 0] ?? 0) * strength);
-    const r = col.getX(i), g = col.getY(i), b = col.getZ(i);
-    col.setXYZ(i, r * (1 - a) + r * tint.r * 0.55 * a, g * (1 - a) + g * tint.g * 0.55 * a, b * (1 - a) + b * tint.b * 0.55 * a);
-  }
-  col.needsUpdate = true;
+  const dist = o.dist ?? cell * 6;
+  const k = voxelAO(geo, {
+    box: bb, cell, pad: 2, spacing: 0.9, maxSamples: 64, indexed: false, ...(o.ground ? { ground: { columns: o.ground } } : {}),
+    sample: 'weld', offset: 1.1, hemi: HEMI, steps: Math.max(3, Math.round(dist / cell)), stepLen: cell, falloff: 0.6,
+    strength: o.strength ?? 0.6, downDark: 0,
+  });
+  aoTint(geo.getAttribute('color'), k, SHADE_TINT, 0.55);
 }
 
 /**

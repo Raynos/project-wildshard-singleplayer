@@ -31,6 +31,7 @@ import { TIER } from '#engine/core/tier';
 import { painterlyMaterial, painterlyKnobs } from '#engine/world/painterly';
 import type { Sky } from '#engine/world/Sky';
 import { setting } from '#engine/ui/Settings';
+import { voxelAO, hemisphere } from '#engine';
 
 export type NalatiModelName =
   | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
@@ -152,79 +153,32 @@ function applyShade(geo: THREE.BufferGeometry): void {
 }
 
 // 14 hemisphere directions (+z up in a tangent frame; lowpolyKit's set, so the two bakes weigh alike)
-const HEMI: readonly (readonly [number, number, number])[] = (() => {
-  const out: [number, number, number][] = [];
-  for (const [cz, n] of [[0.95, 1], [0.72, 5], [0.38, 8]] as const) {
-    const sn = Math.sqrt(1 - cz * cz);
-    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + cz * 1.7; out.push([Math.cos(a) * sn, Math.sin(a) * sn, cz]); }
-  }
-  return out;
-})();
+const HEMI = hemisphere([[0.95, 1], [0.72, 5], [0.38, 8]], 1.7);
 /** a warm umber, not the kit's violet: the painted world's shade is already cool, the crevices should read as earth */
 const AO_TINT = new THREE.Color('#5b4636');
 const AO_STRENGTH = 0.7, AO_DOWN = 0.22;
 
 /**
- * lowpolyKit's voxel AO, per vertex for a smooth indexed mesh in its own space (the ground is the plane under its
- * bounding box): the triangles are rasterised into an occupancy grid, each vertex marches
- * 14 hemisphere rays from just off its surface, and the occluded fraction (+ a little for facing down) pulls its
- * colour toward AO_TINT. ~5–40 ms per model, once.
+ * The one `voxelAO`, per vertex, for a smooth indexed mesh in its own space (the ground is the plane under its bounding
+ * box): the triangles are rasterised into an occupancy grid, each vertex marches 14 hemisphere rays from just off its
+ * surface, and the occluded fraction (+ a little for facing down) pulls its colour toward AO_TINT. ~5–40 ms per model, once.
+ * Exported for the byte-identity test (test/engine/voxel-ao.test.ts).
  */
-function bakeVertexAO(geo: THREE.BufferGeometry, plain: Float32Array): Float32Array {
+export function bakeVertexAO(geo: THREE.BufferGeometry, plain: Float32Array): Float32Array {
   const out = plain.slice();
-  const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal');
   if (!geo.boundingBox) geo.computeBoundingBox();
   const box = geo.boundingBox ?? new THREE.Box3();
-  const y0 = box.min.y;   // the ground: the model's base (0 for a GLB as loaded; a fitted clone's own bottom)
-  const ext = new THREE.Vector3(box.max.x - box.min.x, box.max.y - y0, box.max.z - box.min.z);
+  const ext = new THREE.Vector3(box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z);
   const cell = Math.max(0.03, Math.max(ext.x, ext.y, ext.z) / 64);
-  const pad = 3;
-  const ox = box.min.x - pad * cell, oy = y0 - pad * cell, oz = box.min.z - pad * cell;
-  const nx = Math.ceil(ext.x / cell) + pad * 2 + 1, ny = Math.ceil(ext.y / cell) + pad * 2 + 1, nz = Math.ceil(ext.z / cell) + pad * 2 + 1;
-  const grid = new Uint8Array(nx * ny * nz);
-  const cellOf = (x: number, y: number, z: number): number => {
-    const ix = Math.floor((x - ox) / cell), iy = Math.floor((y - oy) / cell), iz = Math.floor((z - oz) / cell);
-    return ix < 0 || iy < 0 || iz < 0 || ix >= nx || iy >= ny || iz >= nz ? -1 : (iz * ny + iy) * nx + ix;
-  };
-  const index = geo.getIndex();
-  const tri = index ? index.count / 3 : pos.count / 3;
-  const vi = (t: number, k: number): number => (index ? index.getX(t * 3 + k) : t * 3 + k);
-  for (let t = 0; t < tri; t++) {
-    const a = vi(t, 0), b = vi(t, 1), c = vi(t, 2);
-    const ax = pos.getX(a), ay = pos.getY(a), az = pos.getZ(a);
-    const bx = pos.getX(b) - ax, by = pos.getY(b) - ay, bz = pos.getZ(b) - az;
-    const cx = pos.getX(c) - ax, cy = pos.getY(c) - ay, cz = pos.getZ(c) - az;
-    const e = Math.max(Math.hypot(bx, by, bz), Math.hypot(cx, cy, cz), Math.hypot(cx - bx, cy - by, cz - bz));
-    const n = Math.min(200, Math.max(1, Math.ceil(e / (cell * 0.7))));
-    for (let u = 0; u <= n; u++) for (let v = 0; u + v <= n; v++) {
-      const s = u / n, w = v / n;
-      const k = cellOf(ax + bx * s + cx * w, ay + by * s + cy * w, az + bz * s + cz * w);
-      if (k >= 0) grid[k] = 1;
-    }
-  }
-  const solid = (x: number, y: number, z: number): boolean => {
-    if (y < y0) return true;                                  // the ground the model stands on
-    const k = cellOf(x, y, z);
-    return k >= 0 && grid[k] === 1;
-  };
   const steps = 10, dist = cell * 10;
-  const N = new THREE.Vector3(), T = new THREE.Vector3(), B = new THREE.Vector3();
-  for (let i = 0; i < pos.count; i++) {
-    N.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i));
-    if (N.lengthSq() < 0.5) continue;
-    N.normalize();
-    T.set(Math.abs(N.y) < 0.9 ? 0 : 1, Math.abs(N.y) < 0.9 ? 1 : 0, 0).cross(N).normalize(); B.crossVectors(N, T);
-    const px = pos.getX(i) + N.x * cell * 1.5, py = pos.getY(i) + N.y * cell * 1.5, pz = pos.getZ(i) + N.z * cell * 1.5;
-    let occ = 0, wsum = 0;
-    for (const [hx, hy, hz] of HEMI) {
-      const dx = T.x * hx + B.x * hy + N.x * hz, dy = T.y * hx + B.y * hy + N.y * hz, dz = T.z * hx + B.z * hy + N.z * hz;
-      wsum += hz;
-      for (let st = 0; st < steps; st++) {
-        const d = (st + 0.5) * (dist / steps);
-        if (solid(px + dx * d, py + dy * d, pz + dz * d)) { occ += hz * (1 - (st / steps) * 0.5); break; }
-      }
-    }
-    const k = Math.min(1, (occ / wsum) * AO_STRENGTH + Math.max(0, -N.y) * AO_DOWN);
+  const ks = voxelAO(geo, {
+    box, cell, pad: 3, spacing: 0.7, maxSamples: 200, indexed: true,
+    ground: { below: box.min.y },   // the ground the model stands on: its base (0 for a GLB as loaded; a fitted clone's own bottom)
+    sample: 'vertex', offset: 1.5, hemi: HEMI, steps, stepLen: dist / steps, falloff: 0.5, strength: AO_STRENGTH, downDark: AO_DOWN,
+  });
+  for (let i = 0; i < ks.length; i++) {
+    const k = ks[i] ?? Number.NaN;
+    if (Number.isNaN(k)) continue;
     out[i * 3] = (plain[i * 3] ?? 1) * (1 - k + AO_TINT.r * k);
     out[i * 3 + 1] = (plain[i * 3 + 1] ?? 1) * (1 - k + AO_TINT.g * k);
     out[i * 3 + 2] = (plain[i * 3 + 2] ?? 1) * (1 - k + AO_TINT.b * k);
