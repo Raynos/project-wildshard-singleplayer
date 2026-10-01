@@ -22,6 +22,16 @@ function deer(x: number, z: number): Creature {
 }
 
 describe('creature hitboxes vs other HITBOX colliders', () => {
+  it('skips the mounted creature per ray without hiding it or disabling its colliders', async () => {
+    const physics = new Physics(await rapier()), bodies = new CreatureBodies(physics);
+    const mount = deer(0, 0), target = deer(0, -6);
+    bodies.sync([mount, target], new THREE.Vector3(0, 0, 10)); physics.step();
+    const origin = new THREE.Vector3(0, 0.9, 4), dir = new THREE.Vector3(0, 0, -1);
+    expect(bodies.cast(origin, dir, 20)?.creature).toBe(mount);
+    expect(bodies.cast(origin, dir, 20, mount)?.creature).toBe(target);
+    expect(mount.hidden).toBe(false); expect(bodies.cast(origin, dir, 20)?.creature).toBe(mount);
+    physics.dispose();
+  });
   it('cast() skips a practice dummy and answers with the animal behind it, never an undefined creature', async () => {
     const R = await rapier();
     const physics = new Physics(R);

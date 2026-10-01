@@ -100,7 +100,7 @@ export class RideHUD {
   /** the phone's discs and STEED row, through the base HUD's slots */
   private buildTouch(): RideHUD['t'] {
     const disc = (opts: DiscOpts): HTMLButtonElement => this.ctx ? this.ctx.hud.disc(opts) : hudSlots.disc(opts);
-    const gallop = disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { if (this.ctx) { this.ctx.app.input.setHeld('ride.gallop', true); this.ctx.app.input.press('ride.gallop.tap'); } else { this.mount.touchGallop = true; this.mount.gallopTap(); } }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', false); else this.mount.touchGallop = false; } });
+    const gallop = disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', true); else { this.mount.touchGallop = true; this.mount.gallopTap(); } }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', false); else this.mount.touchGallop = false; } });
     // HORSE ⇄ DISMOUNT (N17): one tab on the left edge over HOVER (E319, Jake: HORSE right and HOVER left "makes no sense")
     // — on foot it whistles your horse (shown only once one is bonded), in the saddle it reads DISMOUNT and gets you off
     // (the full-width USE band's DISMOUNT hides, syncUse)

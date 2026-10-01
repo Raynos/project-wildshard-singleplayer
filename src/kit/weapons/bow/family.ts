@@ -206,7 +206,7 @@ export class Bow extends Weapon {
     this.p = 0;
     this.releasePos.copy(this.handPos);
     this.recoil = 1;
-    this.onFire?.(); this.onLoose?.(p); this.onArrowLoose(p, this.spawnPos, this.launchVel);
+    this.onFire?.(); this.chargeEvent('loose', p); this.onLoose?.(p); this.onArrowLoose(p, this.spawnPos, this.launchVel);
   }
 
   /** the arrow's start (on the aim line, just in front of the eye, where the nocked arrow's tip is) and velocity */
@@ -286,7 +286,7 @@ export class Bow extends Weapon {
     if (blocked) this.autoShot = false;
     const ev = this.draw.step(dt, held, blocked, this.drawSpeedScale * this.mountDraw);
     if (ev === 'start') { this.chargeEvent('draw'); this.onDrawStart?.(); }
-    else if (ev === 'full') this.onFullDraw?.();
+    else if (ev === 'full') { this.chargeEvent('draw', 1); this.onFullDraw?.(); }
     else if (ev === 'letdown' || ev === 'tired') { this.chargeEvent('letdown'); this.onLetDown?.(); }
     this.p = this.freezeDraw ?? this.draw.p;
     if (ev === 'loose') this.loose();

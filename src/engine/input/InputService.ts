@@ -5,7 +5,7 @@ import type { DiscSpot, TouchRelabel } from '../ui/hudSlots';
 
 export type Action = EquipmentAction | 'crouch' | 'crouch.hold' | 'sprint' | 'use'
   | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
-  | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.gallop.tap' | 'ride.horseTab' | 'lean.left' | 'lean.right';
+  | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
 interface Context { def: InputContextDef; scope: Scope }
 /** Additive contexts and a shared press buffer. Consuming a press removes it for every later system. */
 export class InputService {
