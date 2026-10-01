@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import type { WeaponId, EquipmentService } from '../combat/EquipmentService';
 
 /**
@@ -62,7 +63,7 @@ export class WeaponStrip {
       this.el = document.createElement('button');
       this.el.className = 'ws-touch-swap';
       this.el.setAttribute('type', 'button');
-      this.el.innerHTML = `<svg class="ws-touch-swap-arrows" viewBox="0 0 56 56">${RING_ARROWS}</svg><svg class="ws-touch-swap-icon" viewBox="0 0 24 24"></svg><b class="ws-touch-swap-ammo"></b><span class="ws-touch-swap-dots"></span>`;
+      this.el.innerHTML = engineString('s_1191865a535c', [RING_ARROWS]);
       this.ringIcon = this.el.querySelector('.ws-touch-swap-icon');
       this.ringAmmo = this.el.querySelector('.ws-touch-swap-ammo');
       this.dots = this.el.querySelector('.ws-touch-swap-dots');
@@ -115,7 +116,7 @@ export class WeaponStrip {
     list.forEach((k, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ws-touch-slot';
-      b.innerHTML = `<i class="ws-touch-slot-key">${i + 1}</i><svg viewBox="0 0 24 24">${k.row.ui.swapIcon}</svg><span class="ws-touch-slot-name">${k.row.ui.swapName ?? k.row.ui.name}</span><b class="ws-touch-slot-ammo"></b>`;
+      b.innerHTML = engineString('s_c54323633e60', [i + 1, k.row.ui.swapIcon, k.row.ui.swapName ?? k.row.ui.name]);
       const ammo = b.querySelector<HTMLElement>('.ws-touch-slot-ammo');
       if (ammo === null) return;
       b.addEventListener('pointerdown', (e) => {
@@ -205,13 +206,13 @@ export class WeaponStrip {
       label.style.transform = `translate(${(Math.cos(mid) * r).toFixed(1)}px, ${(Math.sin(mid) * r).toFixed(1)}px)`;
       const ammo = this.weapons.get(k.id).state.ammo;
       const count = ammo === undefined ? '' : ` <b class="${ammo === 0 ? 'empty' : ''}">${ammo}</b>`;
-      label.innerHTML = `<svg viewBox="0 0 24 24">${k.row.ui.swapIcon}</svg><span>${k.row.ui.swapName ?? k.row.ui.name}${count}</span>`;
+      label.innerHTML = engineString('s_1fe41cba9ec7', [k.row.ui.swapIcon, k.row.ui.swapName ?? k.row.ui.name, count]);
       pie.append(label);
       this.wedges.push({ id: k.id, el: path, label });
     });
     const hub = document.createElement('div');
     hub.className = 'ws-touch-pie-hub';
-    hub.innerHTML = `<svg viewBox="0 0 24 24">${SWAP_ICON}</svg>`;
+    hub.innerHTML = engineString('s_3aaadf6760b9', [SWAP_ICON]);
     pie.append(hub);
     this.pick = null;
     pie.classList.add('open');

@@ -30,6 +30,8 @@ async function boot(): Promise<void> {
   if (ota === null) return; // a staged bundle is being activated: the WebView reloads into it
   if (ota) { const session = ota; document.addEventListener('ws:ready', () => { void session.ready(); }, { once: true }); }
   try { await installLifecycle(); } catch (error) { console.warn('[native] lifecycle hooks off', error); }
+  const { startPageServices } = await import('../../pageServices');
+  startPageServices();
   const { initializeTier } = await import('../core/tier');
   initializeTier();
   await import('../../main');

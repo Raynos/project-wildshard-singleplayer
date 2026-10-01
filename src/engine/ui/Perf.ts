@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * Frame meter, top-right — after trials-gauntlet-demo's `src/ui/perf.ts`: fps and frame ms p50 / p95
@@ -57,11 +58,11 @@ export class Perf {
     const root = this.root = document.createElement('button');
     root.className = 'ws-perf';
     root.setAttribute('type', 'button');
-    root.setAttribute('aria-label', 'Frame meter — tap for details');
-    root.innerHTML = '<b>—</b><span class="ws-perf-ms"></span><span class="ws-perf-long"></span>';
+    root.setAttribute('aria-label', engineString('s_35e2fdf884d2'));
+    root.innerHTML = engineString('s_241e06199e3e');
     const panel = this.panel = document.createElement('div');
     panel.className = 'ws-perf-panel';
-    panel.innerHTML = '<div class="ws-perf-head"><i>Frame meter</i><span class="ws-perf-live"><b>—</b><span></span></span><button type="button" class="ws-perf-btn ws-perf-close" aria-label="Close the frame meter">CLOSE ✕</button></div><div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><pre class="ws-perf-stats"></pre><canvas class="ws-perf-spark" width="240" height="30"></canvas><div class="ws-perf-row"><i>Record</i><span><button type="button" class="ws-perf-btn ws-perf-rec">REC 30 S</button> <button type="button" class="ws-perf-btn ws-perf-copy">COPY</button></span></div><pre class="ws-perf-rec-out"></pre><div class="ws-perf-row"><i>Lap</i><span><button type="button" class="ws-perf-btn ws-perf-lap">PERF LAP</button> <button type="button" class="ws-perf-btn ws-perf-lap-copy">COPY</button></span></div><pre class="ws-perf-rec-out ws-perf-lap-out"></pre><div class="ws-perf-row ws-perf-abrow"><i>A/B off</i><span class="ws-perf-abs"></span></div><div class="ws-perf-row"><i>Probe</i><span><button type="button" class="ws-perf-probe">RUN PROBE</button> <button type="button" class="ws-perf-btn ws-perf-probe-copy">COPY</button></span></div><pre class="ws-perf-probe-out"></pre>';
+    panel.innerHTML = engineString('s_83cf0416a0bd');
     const row = (r: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(`[data-r="${r}"]`); if (e === null) throw new Error(`Perf: missing row ${r}`); return e; };
     this.rows = { p50: row('p50'), p95: row('p95'), calls: row('calls'), tris: row('tris'), tier: row('tier'), gl: row('gl') };
     // the open panel covers the pill on phones: its header carries a live copy (fps + ms, the same slow / bad colours)
@@ -94,8 +95,8 @@ export class Perf {
       cancel(e);
       let text = this.probeText;
       if (text === '') { try { text = savedStorage.getItem(PROBE_KEY) ?? ''; } catch { /* storage blocked */ } }
-      if (text === '') { probeCopy.textContent = 'RUN FIRST'; setTimeout(() => { probeCopy.textContent = 'COPY'; }, 1500); return; }
-      const done = (ok: boolean): void => { probeCopy.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { probeCopy.textContent = 'COPY'; }, 1500); };
+      if (text === '') { probeCopy.textContent = engineString('s_7acd554c3676'); setTimeout(() => { probeCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); return; }
+      const done = (ok: boolean): void => { probeCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); setTimeout(() => { probeCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); };
       // no clipboard API (an http page, an old WebKit): the report goes in the panel, selected for a manual copy
       const fallback = (): void => { probeOut.textContent = text; const r = document.createRange(); r.selectNodeContents(probeOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
       const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
@@ -114,17 +115,17 @@ export class Perf {
     this.recBtn = recBtn;
     this.hud = new PerfHud(game, q('.ws-perf-stats'), spark, [root, panel]);
     this.hud.mountSwitches(q('.ws-perf-abs'), cancel); // E142: take one suspect out mid-fight, read gpu~
-    if (this.hud.lastRecText !== '') recOut.textContent = `last recording (COPY):\n${this.hud.lastRecText.split('\n').slice(0, 4).join('\n')}`;
-    this.hud.onRecDone = (text) => { recOut.textContent = text; recBtn.textContent = 'REC 30 S'; console.info(`[perf rec]\n${text}`); };
+    if (this.hud.lastRecText !== '') recOut.textContent = engineString('s_1567ae2c94b8', [this.hud.lastRecText.split('\n').slice(0, 4).join('\n')]);
+    this.hud.onRecDone = (text) => { recOut.textContent = text; recBtn.textContent = engineString('s_df9d72a2dfbf'); console.info(`[perf rec]\n${text}`); };
     for (const b of [recBtn, copyBtn]) {
       for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, cancel, { passive: false });
       b.addEventListener('pointerdown', cancel);
     }
-    recBtn.addEventListener('pointerup', (e) => { cancel(e); if (!this.hud.recording && !this.lap.running) { this.hud.startRec(); recOut.textContent = 'recording 30 s — play on (fight, sprint); the panel can stay open or closed'; } });
+    recBtn.addEventListener('pointerup', (e) => { cancel(e); if (!this.hud.recording && !this.lap.running) { this.hud.startRec(); recOut.textContent = engineString('s_309443a755a0'); } });
     copyBtn.addEventListener('pointerup', (e) => {
       cancel(e);
       const text = this.hud.lastRecText !== '' ? this.hud.lastRecText : q('.ws-perf-stats').textContent;
-      const done = (ok: boolean): void => { copyBtn.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { copyBtn.textContent = 'COPY'; }, 1500); };
+      const done = (ok: boolean): void => { copyBtn.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); setTimeout(() => { copyBtn.textContent = engineString('s_dc26bc50abf8'); }, 1500); };
       const fallback = (): void => { recOut.textContent = text; const r = document.createRange(); r.selectNodeContents(recOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
       // (no clipboard API — an http page, an old WebKit — throws in here too: the text is selected for a manual copy)
       const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
@@ -137,7 +138,7 @@ export class Perf {
     lapStatus.className = 'ws-perf-lap-status'; lapStatus.hidden = true;
     document.body.append(lapStatus);
     this.lap = new PerfLap(game);
-    if (this.lap.lastText !== '') lapOut.textContent = `last lap (COPY):\n${this.lap.lastText.split('\n').slice(0, 2).join('\n')}`;
+    if (this.lap.lastText !== '') lapOut.textContent = engineString('s_f4bfc750414c', [this.lap.lastText.split('\n').slice(0, 2).join('\n')]);
     this.lap.onStatus = (text) => { lapStatus.hidden = text === null; if (text !== null) lapStatus.textContent = text; };
     this.lap.onDone = (text) => { lapOut.textContent = text; this.open(true); };
     for (const b of [lapBtn, lapCopy]) {
@@ -153,8 +154,8 @@ export class Perf {
     lapCopy.addEventListener('pointerup', (e) => {
       cancel(e);
       const text = this.lap.lastText;
-      if (text === '') { lapCopy.textContent = 'RUN FIRST'; setTimeout(() => { lapCopy.textContent = 'COPY'; }, 1500); return; }
-      const done = (ok: boolean): void => { lapCopy.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { lapCopy.textContent = 'COPY'; }, 1500); };
+      if (text === '') { lapCopy.textContent = engineString('s_7acd554c3676'); setTimeout(() => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); return; }
+      const done = (ok: boolean): void => { lapCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); setTimeout(() => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); };
       const fallback = (): void => { lapOut.textContent = text; const r = document.createRange(); r.selectNodeContents(lapOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
       const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
       void copy();
@@ -170,7 +171,7 @@ export class Perf {
     Object.assign(window, { __perfHud: this.hud });
     game.onUpdate(() => this.update(performance.now()), 'hud.perf');
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
-    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = 'world paused'; (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = 'paused'; this.root.classList.remove('slow', 'bad'); this.mirror(); } }, 500);
+    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = engineString('s_bda050585a00'); (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = engineString('s_ebe595da4637'); (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_a7a9dc5bcf71'); this.root.classList.remove('slow', 'bad'); this.mirror(); } }, 500);
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
@@ -227,7 +228,7 @@ export class Perf {
     if ((this.panel.classList.contains('open') || this.hud.recording) && now - this.lastStats >= STATS_MS) {
       this.lastStats = now;
       this.hud.paint();
-      if (this.hud.recording) this.recBtn.textContent = 'REC…';
+      if (this.hud.recording) this.recBtn.textContent = engineString('s_a9470d9be8b3');
     }
     if (now - this.lastPaint < PAINT_MS) return;
     this.lastPaint = now;
@@ -257,14 +258,14 @@ export class Perf {
     (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = rest;
     // phones: the pill shows fps + p50 ms; the panel carries the draw calls / triangles the phone-tier budget is measured in
     // (project/archive/2026-09-22-play-perf.md), the p95, the tier and DPR
-    (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = `${Math.round(p50)} ms${check}`; // ?perf=1: OK / OVER the phone budget
+    (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_73113562217f', [Math.round(p50), check]); // ?perf=1: OK / OVER the phone budget
     const R = this.rows;
-    R.p50.textContent = `${p50.toFixed(1)} ms`;
-    R.p95.textContent = `${p95.toFixed(1)} ms`;
+    R.p50.textContent = engineString('s_f3813306296c', [p50.toFixed(1)]);
+    R.p95.textContent = engineString('s_f3813306296c', [p95.toFixed(1)]);
     R.calls.textContent = String(r.calls);
     R.tris.textContent = k(r.triangles);
-    R.tier.textContent = `${TIER} · ${g.renderer.getPixelRatio().toFixed(2)}×`;
-    R.gl.textContent = gl === '' ? 'ok' : gl.replace(/^ · /, '');
+    R.tier.textContent = engineString('s_6f8a92998046', [TIER, g.renderer.getPixelRatio().toFixed(2)]);
+    R.gl.textContent = gl === '' ? engineString('s_2689367b205c') : gl.replace(/^ · /, '');
     this.root.classList.toggle('slow', p50 > 20);   // under 50 fps
     this.root.classList.toggle('bad', p50 > 33.4 || (this.budgetOn && this.budget.over));  // under 30 fps (or over the draw budget)
     this.mirror();

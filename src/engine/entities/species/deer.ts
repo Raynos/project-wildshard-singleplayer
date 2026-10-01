@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
@@ -264,7 +265,7 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
 
 registerSpecies({
   kind: 'deer',
-  label: 'Deer',
+  label: engineString('s_ba8af0f48026'),
   fur: {
     texSeed: 101, tex: { contrast: 0.8, grizzle: 0.15, normalStrength: 1.6, bristle: 0, strandLen: 24, root: 0.14 },
     roughness: 0.82, sheen: 0.3, sheenColor: [0.45, 0.36, 0.26], envMapIntensity: 0.6, rim: [1.0, 0.72, 0.42], shellLen: 0.05, shag: 0.005,
@@ -275,14 +276,14 @@ registerSpecies({
   pose: { grazeNeck: 1, gallopTail: 1 },
   // weights sum to 96: hind 48 % · stag 31 % · white 8.3 % · big stag 8.3 % · piebald 3.1 % · ghost 1.0 %
   variants: [
-    { id: 'hind', label: 'Hind', weight: 46, rarity: 'common', scale: [0.9, 1.05] },
-    { id: 'stag', label: 'Stag', weight: 30, rarity: 'common', scale: [1.0, 1.1], traits: { antlers: 1 } },
-    { id: 'white-hind', label: 'White hind', weight: 4, rarity: 'uncommon', scale: [0.9, 1.05], tint: WHITE_TINT },
-    { id: 'white-stag', label: 'White stag', weight: 4, rarity: 'uncommon', scale: [1.0, 1.1], tint: WHITE_TINT, traits: { antlers: 1 } },
-    { id: 'big-stag', label: 'Great stag', weight: 8, rarity: 'uncommon', scale: [1.2, 1.3], hp: 90, traits: { antlers: 1, antlerScale: 1.25 } },
-    { id: 'piebald', label: 'Piebald hind', weight: 3, rarity: 'rare', scale: [0.95, 1.1], traits: { piebald: 1 } },
+    { id: 'hind', label: engineString('s_ee788727f152'), weight: 46, rarity: 'common', scale: [0.9, 1.05] },
+    { id: 'stag', label: engineString('s_9e8bf892355c'), weight: 30, rarity: 'common', scale: [1.0, 1.1], traits: { antlers: 1 } },
+    { id: 'white-hind', label: engineString('s_9219da18f930'), weight: 4, rarity: 'uncommon', scale: [0.9, 1.05], tint: WHITE_TINT },
+    { id: 'white-stag', label: engineString('s_cc044ec88aaf'), weight: 4, rarity: 'uncommon', scale: [1.0, 1.1], tint: WHITE_TINT, traits: { antlers: 1 } },
+    { id: 'big-stag', label: engineString('s_dc02acd9bf01'), weight: 8, rarity: 'uncommon', scale: [1.2, 1.3], hp: 90, traits: { antlers: 1, antlerScale: 1.25 } },
+    { id: 'piebald', label: engineString('s_02227b08df83'), weight: 3, rarity: 'rare', scale: [0.95, 1.1], traits: { piebald: 1 } },
     {
-      id: 'ghost', label: 'Ghost stag', weight: 1, rarity: 'legendary', scale: [1.35, 1.35], hp: 130,
+      id: 'ghost', label: engineString('s_5892c4468cb7'), weight: 1, rarity: 'legendary', scale: [1.35, 1.35], hp: 130,
       tint: GHOST_TINT, traits: { antlers: 1, antlerScale: 1.35 },
       // pale-cyan backlit rim + a faint self-glow so it reads at dusk; flees faster than anything you can sprint after
       fur: { rim: [0.55, 0.92, 1.0], emissive: [0.30, 0.62, 0.75], emissiveIntensity: 0.16, sheenColor: [0.6, 0.8, 0.9] },

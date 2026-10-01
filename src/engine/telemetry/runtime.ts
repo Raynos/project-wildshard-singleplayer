@@ -10,9 +10,14 @@ let analytics: AnalyticsSink | null = null;
 let bound: App | null = null;
 let scope: Scope | null = null;
 let level = '';
-const send = (body: object): void => { const endpoint = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/telemetry' : '/api/telemetry'; void fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true }).catch(() => undefined); };
+const send = (body: object): void => {
+  // Capture/parity previews do not host API functions; their observations must stay deterministic.
+  if (typeof window === 'undefined' || window.__wildshardHarness !== undefined) return;
+  const endpoint = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/telemetry' : '/api/telemetry';
+  void fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true }).catch(() => undefined);
+};
 export function startTelemetry(): void {
-  if (health !== null) return;
+  if (health !== null || typeof window === 'undefined' || typeof document === 'undefined') return;
   const build = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '';
   health = new SessionHealth(saves, build, send);
   analytics = new AnalyticsSink(build, health.install, send);

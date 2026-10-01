@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * The boot's safety net under the game's own error handling (E144). src/engine/ui/ErrorModal.ts is armed by src/main.ts, so a
@@ -139,7 +140,7 @@ function show(tag: string, line: string, small: string, button: boolean): void {
     card ??= document.createElement('div');
     card.id = 'wsstuck';
     card.setAttribute('role', 'alert');
-    card.innerHTML = '<p class="t"></p><p class="l"></p><button type="button">Reload</button><p class="m"></p>';
+    card.innerHTML = engineString('s_268a2fe13de0');
     const [tagEl, lineEl, msgEl] = [card.querySelector('.t'), card.querySelector('.l'), card.querySelector('.m')];
     if (tagEl) tagEl.textContent = tag;
     if (lineEl) lineEl.textContent = line;
@@ -147,7 +148,7 @@ function show(tag: string, line: string, small: string, button: boolean): void {
     const btn = card.querySelector('button');
     if (btn) {
       btn.hidden = !button;
-      btn.onclick = () => { btn.disabled = true; btn.textContent = 'Reloading…'; void recover(); };
+      btn.onclick = () => { btn.disabled = true; btn.textContent = engineString('s_ea456dcf3d90'); void recover(); };
     }
     if (!card.isConnected) document.body.append(card);
   } catch { /* the net must never throw */ }

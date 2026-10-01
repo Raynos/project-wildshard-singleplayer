@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The interactables kit's models (E306 / E315 M1, second pass: models on the contract, ./model.ts) — every thing a quest
  * table puts in the world for you to open, pull, press, light or pick up: the sea chest (banded chest, iron strongbox,
@@ -35,8 +36,8 @@ export const seaChest = defineModel<ChestParams>({
   id: 'shared/sea-chest', name: 'Sea chest', category: 'props', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: { look: 'chest', locked: false },
   variants: [
-    { id: 'chest', label: 'Chest', params: {} }, { id: 'strongbox', label: 'Strongbox', params: { look: 'strongbox', locked: true } },
-    { id: 'treasure', label: 'Treasure', params: { look: 'treasure' } },
+    { id: 'chest', label: engineString('s_378d83808237'), params: {} }, { id: 'strongbox', label: engineString('s_3c30154b1459'), params: { look: 'strongbox', locked: true } },
+    { id: 'treasure', label: engineString('s_fbbbf4992fa5'), params: { look: 'treasure' } },
   ],
   build: (ctx, p) => {
     const D = Mdl.CHEST_DIMS[p.look];
@@ -67,8 +68,8 @@ export const door = defineModel<DoorParams>({
   id: 'shared/door', name: 'Door', category: 'props', pipeline: 'code', file: FILE, surface: 'wood',
   defaults: { look: 'plank', w: 1.1, h: 2 },
   variants: [
-    { id: 'plank', label: 'Plank', params: {} }, { id: 'grate', label: 'Grate', params: { look: 'grate', w: 1.4, h: 1.9 } },
-    { id: 'sluice', label: 'Sluice', params: { look: 'sluice', w: 2.5, h: 2.2 } },
+    { id: 'plank', label: engineString('s_74c0ca2fe102'), params: {} }, { id: 'grate', label: engineString('s_7d97d378b629'), params: { look: 'grate', w: 1.4, h: 1.9 } },
+    { id: 'sluice', label: engineString('s_2860f86bbbbc'), params: { look: 'sluice', w: 2.5, h: 2.2 } },
   ],
   // closed: a plank door's panel hangs from its hinge edge, a grate / sluice leaf stands in its frame
   build: (ctx, p) => [lit(ctx, Mdl.doorFrame(p.look, p.w, p.h, SEED)), lit(ctx, Mdl.doorPanel(p.look, p.w, p.h, SEED + 1), p.look === 'plank' ? at(-p.w / 2, 0, 0) : undefined)],

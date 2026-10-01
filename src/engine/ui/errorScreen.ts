@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import type { LoadFailure } from '../core/errorReport';
 import { asShell, shell } from '../app/legacyCapture';
 
@@ -11,9 +12,9 @@ export function showLoadFailure(failure: LoadFailure): HTMLElement {
     root.setAttribute('role', 'alert');
     root.style.cssText = 'position:fixed;inset:0;z-index:2147483647;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));background:#0d1b26;color:#e8f5fa;font:16px/1.5 monospace;overflow:auto';
     const heading = document.createElement('h1');
-    heading.textContent = `${failure.name} could not load`;
+    heading.textContent = engineString('s_114476f37bae', [failure.name]);
     const context = document.createElement('p');
-    context.textContent = `BUILD ${failure.build} · STAGE ${failure.stage}`;
+    context.textContent = engineString('s_ac1d8f02f8f2', [failure.build, failure.stage]);
     const message = document.createElement('p');
     message.textContent = failure.message;
     const stack = document.createElement('pre');
@@ -21,7 +22,7 @@ export function showLoadFailure(failure: LoadFailure): HTMLElement {
     stack.textContent = failure.stack;
     const reload = document.createElement('button');
     reload.type = 'button';
-    reload.textContent = 'RELOAD';
+    reload.textContent = engineString('s_8229c4ee6826');
     reload.style.cssText = 'align-self:flex-start;padding:14px 28px;border:1px solid #8fe3ff;color:#e8f5fa;background:#0d1b26;font:inherit;cursor:pointer';
     shell.listen(reload, 'click', () => { location.reload(); });
     root.append(heading, context, message, stack, reload);

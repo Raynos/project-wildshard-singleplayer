@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import { registerSpecies, speciesDef, type ThinkCtx } from './registry';
 import { NO_FUR } from './rigs';
@@ -104,7 +105,7 @@ export function ghostRiderPoints(a: Animal, chest: THREE.Vector3, head: THREE.Ve
 const horse = speciesDef('horse');
 registerSpecies({
   kind: GHOST_RIDER,
-  label: 'Ghost rider',
+  label: engineString('s_1ccc05aa1f07'),
   fur: NO_FUR,
   aggressive: true,
   walkSpeed: HORSE_SPEED.canter,
@@ -115,8 +116,8 @@ registerSpecies({
   ...(horse.gait ? { gait: horse.gait } : {}),
   ...(horse.postPose ? { postPose: horse.postPose } : {}),
   variants: [
-    { id: 'rider', label: 'Ghost rider', weight: 1, rarity: 'rare', scale: [1.0, 1.04], hp: 70, traits: { tack: 1, mane: 1.8 } },
-    { id: 'captain', label: 'Qara Batyr', weight: 0, rarity: 'legendary', scale: [1.12, 1.12], hp: 800, traits: { tack: 1, mane: 2.2, stallion: 1 } },
+    { id: 'rider', label: engineString('s_1ccc05aa1f07'), weight: 1, rarity: 'rare', scale: [1.0, 1.04], hp: 70, traits: { tack: 1, mane: 1.8 } },
+    { id: 'captain', label: engineString('s_d77473617820'), weight: 0, rarity: 'legendary', scale: [1.12, 1.12], hp: 800, traits: { tack: 1, mane: 2.2, stallion: 1 } },
   ],
   build: (v, rng) => horse.build(v, rng),
   think: thinkGhost,

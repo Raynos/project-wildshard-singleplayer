@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import './styles/combat.css';
 import type { DeathCause } from '../combat/pipeline';
 
@@ -72,10 +73,10 @@ export class HurtArc {
 
 /** how each killer kills you (species id → verb); anything else is "Killed by …" */
 const VERB: Record<string, string> = {
-  boar: 'Gored by', bear: 'Mauled by', crab: 'Snapped up by', monkey: 'Mobbed by', sailor: 'Cut down by', deer: 'Trampled by', elk: 'Trampled by',
+  boar: engineString('s_b8bb72b389c6'), bear: engineString('s_718fb4623544'), crab: engineString('s_956fa4b74e45'), monkey: engineString('s_319c954d854d'), sailor: engineString('s_b094e02f85c1'), deer: engineString('s_c9935dea3812'), elk: engineString('s_c9935dea3812'),
   // Nalati (NALATI-MERGE F3)
-  wolf: 'Torn down by', kokbori: 'Torn down by', leopard: 'Mauled by', eagle: 'Stooped on by', horse: 'Trampled by', argymaq: 'Trampled by',
-  'ghost-rider': 'Ridden down by', 'golden-king': 'Cut down by', 'storm-titan': 'Struck down by',
+  wolf: engineString('s_3bd02f4425eb'), kokbori: engineString('s_3bd02f4425eb'), leopard: engineString('s_718fb4623544'), eagle: engineString('s_f742d59286ca'), horse: engineString('s_c9935dea3812'), argymaq: engineString('s_c9935dea3812'),
+  'ghost-rider': engineString('s_016a199d3336'), 'golden-king': engineString('s_b094e02f85c1'), 'storm-titan': engineString('s_38db1f761409'),
 };
 
 /** who (or what) hurt you last: an animal (`Animal.kind` / `Animal.label`), or a cause with no attacker ("Struck by lightning") */
@@ -85,11 +86,11 @@ const VERB: Record<string, string> = {
  * src/game/LastPlace.ts `placeName`) when the shard has places and you have reached one; else the shard's spawn
  */
 export function respawnWhere(def: { slug: string; ocean?: unknown }, place?: string | null, defaultText?: string): string {
-  if (place !== undefined && place !== null && place !== '') return `respawning at ${place}`;
+  if (place !== undefined && place !== null && place !== '') return engineString('s_cf847cd1dbbf', [place]);
   if (defaultText !== undefined) return defaultText;
-  if (def.ocean !== undefined) return 'washed back to the pier';
-  if (def.slug === 'nalati-grasslands') return 'respawning on the north road';
-  return 'respawning at the south gate';
+  if (def.ocean !== undefined) return engineString('s_0a48508bd9b7');
+  if (def.slug === 'nalati-grasslands') return engineString('s_05db9c8d15dd');
+  return engineString('s_d67d227883b6');
 }
 
 /**
@@ -99,14 +100,14 @@ export function respawnWhere(def: { slug: string; ocean?: unknown }, place?: str
  * you, null for a fall; `where` = `respawnWhere(chunk)`.
  */
 export function deathLine(killer: DeathCause | null, where: string): string {
-  return `${deathCause(killer)} — ${where}`;
+  return engineString('s_79281b1ee9cf', [deathCause(killer), where]);
 }
 
 /** the death card's headline (E295): who or what killed you — "Mauled by a brown bear", "Fell too far" */
 export function deathCause(killer: DeathCause | null): string {
-  if (killer === null) return 'Fell too far';
+  if (killer === null) return engineString('s_7c584bc86c44');
   if (killer.text !== undefined) return killer.text;
   const name = killer.label.trim() === '' ? killer.kind : killer.label.toLowerCase();
-  const article = /^(the |a |an )/.test(name) ? '' : /^[aeiou]/.test(name) ? 'an ' : 'a ';
-  return `${VERB[killer.kind] ?? 'Killed by'} ${article}${name}`;
+  const article = /^(the |a |an )/.test(name) ? '' : /^[aeiou]/.test(name) ? engineString('s_97e38d38d90f') : engineString('s_6583dcd6056f');
+  return engineString('s_599cb23bbfef', [VERB[killer.kind] ?? engineString('s_d82be891089d'), article, name]);
 }

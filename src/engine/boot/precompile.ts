@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
  *
@@ -98,7 +99,7 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
   for (let i = 0; i < clones.length; i += per) {
     const root = new THREE.Group();
     for (const c of clones.slice(i, i + per)) root.add(c);
-    jobs.push({ label: `materials ${i}`, root, target: scene, rt });
+    jobs.push({ label: engineString('s_4bdf150dd0ed', [i]), root, target: scene, rt });
   }
   return { jobs, materials: mats.size };
 }
@@ -151,7 +152,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
   for (let i = 0; i < clones.length; i += per) {
     const root = new THREE.Group();
     for (const c of clones.slice(i, i + per)) root.add(c);
-    jobs.push({ label: `shadow depth ${i}`, root, target: scene, rt, fogOff: true });
+    jobs.push({ label: engineString('s_2a96df75489f', [i]), root, target: scene, rt, fogOff: true });
   }
   return jobs;
 }
@@ -173,7 +174,7 @@ export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
   mat.toneMapped = THREE.ColorManagement.getTransfer(bg.colorSpace) !== THREE.SRGBTransfer;
   const geo = new THREE.BoxGeometry(1, 1, 1); geo.deleteAttribute('normal'); geo.deleteAttribute('uv');
   const root = new THREE.Group(); root.add(new THREE.Mesh(geo, mat));
-  return { label: 'sky background', root, target: scene, rt };
+  return { label: engineString('s_ff7f862b819f'), root, target: scene, rt };
 }
 
 /**
@@ -210,8 +211,8 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   const empty = new THREE.Scene();
   const groups = { buffer: new THREE.Group(), screen: new THREE.Group() };
   for (const [m, toScreen] of found) (toScreen ? groups.screen : groups.buffer).add(new THREE.Mesh(tri, m));
-  if (groups.buffer.children.length > 0) jobs.push({ label: 'post chain', root: groups.buffer, target: empty, rt });
-  if (groups.screen.children.length > 0) jobs.push({ label: 'post → screen', root: groups.screen, target: empty, rt: null });
+  if (groups.buffer.children.length > 0) jobs.push({ label: engineString('s_178612197e2b'), root: groups.buffer, target: empty, rt });
+  if (groups.screen.children.length > 0) jobs.push({ label: engineString('s_9070659b32c3'), root: groups.screen, target: empty, rt: null });
   return jobs;
 }
 

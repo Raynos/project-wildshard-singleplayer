@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The DEBUG menu's registry (E162, Jake 2026-09-25: "we are going to have an ungodly amount of toggles and we need to
  * organize them"). Every variant, taste toggle and developer aid the game has is declared here ONCE — its group, label,
@@ -34,14 +35,14 @@ export interface DebugGroup { id: DebugGroupId; label: string; note?: string }
 /** the groups, in menu order. Never add a group without need: put a new row in the group whose domain it is (lighting,
  *  shadows and post go in Look; water in Look too). A group with no row fails test/debug-options.test.ts. */
 export const DEBUG_GROUPS: readonly DebugGroup[] = [
-  { id: 'look', label: 'Look' },
-  { id: 'sky', label: 'Sky & weather' },
-  { id: 'audio', label: 'Audio' },
-  { id: 'combat', label: 'Combat & weapons' },
-  { id: 'creatures', label: 'Creatures & NPCs' },
-  { id: 'perf', label: 'Performance' },
-  { id: 'loading', label: 'Loading & memory' },
-  { id: 'tools', label: 'Developer tools' },
+  { id: 'look', label: engineString('s_a0de5719f595') },
+  { id: 'sky', label: engineString('s_5672356bb3b5') },
+  { id: 'audio', label: engineString('s_bc1b88907d3b') },
+  { id: 'combat', label: engineString('s_6cb4be24e5ce') },
+  { id: 'creatures', label: engineString('s_c57f1e7056cf') },
+  { id: 'perf', label: engineString('s_442aded87a55') },
+  { id: 'loading', label: engineString('s_f6d2705a823f') },
+  { id: 'tools', label: engineString('s_96f0c06bbcb7') },
 ];
 
 export interface DebugChoice { v: string; text: string }
@@ -130,15 +131,15 @@ export const TITLE_SKIPPERS = ['skipintro', 'tour', 'explore', 'cam', 'model', '
 
 /** E172 (the user: "I need a button to nuke the cache so i can test it"): every downloaded file gone, the saves kept
  *  (src/engine/boot/clearDownloads.ts), then a reload to the title like a fresh launch — the running shard's ?chunk= stays */
-const CLEAR_IDLE = 'Deletes the downloaded game files (every cache and the service worker) so the next load is a first visit. Keeps saves, settings and the review login.';
-const clearDownloadsRow = action('clearDownloads', 'loading', 'Clear downloads', 'Clear downloads', async (say) => {
+const CLEAR_IDLE = engineString('s_e94f3b418bf5');
+const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);
   const r = await clearDownloads();
   const freed = freedBytes(r);
   say(freed === null ? 'Cleared · reloading' : `Freed ${mbText(freed)} · reloading`,
     `${mbText(freed)} of downloads · ${r.caches} caches and ${r.workers} worker${r.workers === 1 ? '' : 's'} removed${r.httpCache ? ', HTTP cache cleared' : ''}. Reloading as a first visit.`);
   window.setTimeout(() => { markUnload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); }, 1500);
-}, { ask: 'E172', reviewBy: '2026-12-30', note: 'E172 · the next load is a true cold load (bytes as a first visit)' }, {
+}, { ask: 'E172', reviewBy: '2026-12-30', note: engineString('s_510ecf1f03f4') }, {
   confirm: async () => { const used = await storageUsed(); return used === null ? 'Tap again to clear' : `Tap again to clear ~${mbText(used)}`; },
   status: () => {
     const last = lastClear(); // this page is the reload the last clear made: say what it freed
@@ -147,66 +148,66 @@ const clearDownloadsRow = action('clearDownloads', 'loading', 'Clear downloads',
 });
 const TIMES = [['live', 'Live'], ['midday', 'Midday'], ['golden', 'Golden'], ['sunset', 'Sunset'], ['night', 'Night']] as const;
 
-const MUSIC_TEXT: Record<MusicStyle, string> = { piano: 'Piano', orchestral: 'Orchestral', folk: 'Folk', synth: 'Synth' };
-const SFX_TEXT: Record<SfxSet, string> = { best: 'Generated', synth: 'Synth' };
+const MUSIC_TEXT: Record<MusicStyle, string> = { piano: engineString('s_fa2bd181d8ba'), orchestral: engineString('s_573a2359591b'), folk: engineString('s_d3cafa5850d7'), synth: engineString('s_3cedb71562fd') };
+const SFX_TEXT: Record<SfxSet, string> = { best: engineString('s_827ec8d9f99d'), synth: engineString('s_3cedb71562fd') };
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
-  opt('titleSummary', 'look', 'Title progress summary', [['a', 'A · ledger'], ['b', 'B · split ledger']], { ask: 'E357', reviewBy: '2026-12-30', note: 'E357 X9 · title-deck Wildshard summary; Look board A / B' }),
-  opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, ask: 'E85', reviewBy: '2026-12-30', note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
+  opt('titleSummary', 'look', engineString('s_e22bd8b282b1'), [['a', engineString('s_f7410da598bb')], ['b', engineString('s_60777ae3459c')]], { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a997d7f9a192') }),
+  opt('learnedLut', 'look', engineString('s_567ce8e61d83'), ON_OFF, { reload: true, ask: 'E85', reviewBy: '2026-12-30', note: engineString('s_e028d004f425') }),
 
   // ── Sky & weather ──
   // Authored clocks and weather opt in through level mechanisms.
-  opt('time', 'sky', 'Time of day', TIMES, { when: (c) => c.chunk.uses?.includes('dayCycle') === true, ask: 'E55', reviewBy: '2026-12-30', note: 'E55 · hold the day clock at one time' }),
-  opt('weather', 'sky', 'Weather', [['live', 'Live'], ['clear', 'Clear'], ['fog', 'Fog'], ['rain', 'Rain']], { when: (c) => c.chunk.uses?.includes('weather') === true, ask: 'E357', reviewBy: '2026-12-30', note: 'E357 S2.4 · live = authored weather; clear = dry; fog / rain hold a phase' }),
-  opt('clockSpeed', 'sky', 'Clock speed', [['1', '1×'], ['10', '10×'], ['60', '60×']], { when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: 'Nalati\'s day clock (was ?timescale)' }),
+  opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { when: (c) => c.chunk.uses?.includes('dayCycle') === true, ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
+  opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { when: (c) => c.chunk.uses?.includes('weather') === true, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
+  opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
 
   // ── Audio: the score's source and the sound effects (Settings musicStyle / sfxSet) ──
   {
-    id: 'musicStyle', group: 'audio', label: 'Music style', reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: 'music v3 · the MiniMax-Music3 scores or the v1 synth',
+    id: 'musicStyle', group: 'audio', label: engineString('s_f89d28d8c13f'), reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_e34042b9174c'),
     choices: () => MUSIC_STYLES.map((v) => ({ v, text: MUSIC_TEXT[v] })), get: getMusicStyle,
     set: (s) => { const v = MUSIC_STYLES.find((x) => x === s); if (v) setMusicStyle(v); }, on: (fn) => { onMusicStyle(() => { fn(); }); },
   },
   {
-    id: 'sfxSet', group: 'audio', label: 'Sound effects', reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: 'the generated set (MOSS v2 + Stable Audio 3) or all synth',
+    id: 'sfxSet', group: 'audio', label: engineString('s_a7180005e20c'), reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_fd46c9f22595'),
     choices: () => SFX_SETS.map((v) => ({ v, text: SFX_TEXT[v] })), get: getSfxSet,
     set: (s) => { const v = SFX_SETS.find((x) => x === s); if (v) setSfxSet(v); }, on: (fn) => { onSfxSet(() => { fn(); }); },
   },
 
-  opt('pineScore', 'audio', 'Pine Hollow score', [['auto', 'Auto'], ['night', 'Night'], ['boss', 'Boss I'], ['boss-2', 'Boss II'], ['boss-3', 'Boss III'], ['dawn', 'Dawn']], { reload: true, when: pineHollow, ask: 'E5', reviewBy: '2026-12-30', note: 'PH-A1 · hold a scene / boss phase, or the dawn sting (was ?music=pine-*)' }),
+  opt('pineScore', 'audio', engineString('s_918768bace32'), [['auto', engineString('s_0286249762f7')], ['night', engineString('s_4e9f8db8242b')], ['boss', engineString('s_443a0cc2d825')], ['boss-2', engineString('s_45a017f102bd')], ['boss-3', engineString('s_67cf3acd63ca')], ['dawn', engineString('s_0dfd8feb99c0')]], { reload: true, when: pineHollow, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_26f707b2620f') }),
 
   // ── Combat & weapons ──
-  opt('aimRing', 'combat', 'Aim assist ring', [['off', 'Off'], ['on', 'On']], { ask: 'E162', reviewBy: '2026-12-30', note: 'the aim-assist bubble on screen, with its angle and snap (was ?aimdebug)' }),
+  opt('aimRing', 'combat', engineString('s_4039d9694edd'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_7bfebc644d49') }),
 
   // ── Creatures & NPCs ──
-  opt('creatures', 'creatures', 'Creatures', [['models', 'Models'], ['proc', 'Procedural']], { reload: true, when: (c) => pineHollow(c) || nalati(c), ask: 'E136', reviewBy: '2026-12-30', note: 'PH-U11 / E136 · models picked; procedural = what the rig bakes need' }),
-  opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, ask: 'E162', reviewBy: '2026-12-30', note: 'birds, hares, ravens, the skinning beat (was ?life=0)' }),
-  opt('balbals', 'creatures', 'Balbal warriors', [['auto', 'At dusk'], ['wake', 'Wake now'], ['off', 'Never']], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: 'B11 · the statues that wake at night (was ?balbals)' }),
-  opt('ghosts', 'creatures', 'Ghost riders', [['auto', 'At night'], ['line', 'Any hour'], ['off', 'Never']], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: 'B11 · the night riders (was ?ghosts)' }),
+  opt('creatures', 'creatures', engineString('s_9915bdfb4d7c'), [['models', engineString('s_d17d2d78d76e')], ['proc', engineString('s_2e3e91ffbdca')]], { reload: true, when: (c) => pineHollow(c) || nalati(c), ask: 'E136', reviewBy: '2026-12-30', note: engineString('s_193b70a278ba') }),
+  opt('pineLife', 'creatures', engineString('s_f09a14b96ae0'), ON_OFF, { reload: true, when: pineHollow, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_0348fd1901cf') }),
+  opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
+  opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
 
   // ── Performance ──
-  opt('fps', 'perf', 'Frame cap', [['auto', 'Auto'], ['30', '30'], ['60', 'Uncapped']], { when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: 'E193 · desktop only: mobile is locked at 30 · auto = the display\'s rate' }),
-  opt('showHiddenShards', 'tools', 'Hidden shards', ON_OFF, { ask: 'E357', reviewBy: '2026-12-30', note: 'E357 F9 · show hidden manifest cards' }),
-  opt('loadProfile', 'perf', 'Load profiling', [['off', 'Off'], ['on', 'On']], { reload: true, ask: 'E162', reviewBy: '2026-12-30', note: 'load-perf · logs every shader program the load builds (window.__perfload)' }),
+  opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),
+  opt('showHiddenShards', 'tools', engineString('s_22680ca77c43'), ON_OFF, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_51fe3ccebeb9') }),
+  opt('loadProfile', 'perf', engineString('s_50fe86d601b8'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_e7db47a239eb') }),
 
   // ── Loading & memory ──
   {
-    ...opt('tex', 'loading', 'GPU textures', [['auto', 'Auto'], ['ktx2', 'KTX2'], ['img', 'Images']], { reload: true, ask: 'E157', reviewBy: '2026-12-30', note: 'E157 · KTX2 stays compressed on the GPU; auto = images until the set is cached' }),
-    choices: () => [{ v: 'auto', text: `Auto · now ${texMode() === 'ktx2' ? 'KTX2' : 'Images'}` }, { v: 'ktx2', text: 'KTX2' }, { v: 'img', text: 'Images' }],
+    ...opt('tex', 'loading', engineString('s_334a93884d13'), [['auto', engineString('s_0286249762f7')], ['ktx2', engineString('s_66270d61a105')], ['img', engineString('s_be7e2f201293')]], { reload: true, ask: 'E157', reviewBy: '2026-12-30', note: engineString('s_5c0f164512c8') }),
+    choices: () => [{ v: 'auto', text: engineString('s_7dc1f00169b6', [texMode() === 'ktx2' ? engineString('s_66270d61a105') : engineString('s_be7e2f201293')]) }, { v: 'ktx2', text: engineString('s_66270d61a105') }, { v: 'img', text: engineString('s_be7e2f201293') }],
   },
-  opt('prefetch', 'loading', 'Download in background', ON_OFF, { ask: 'E158', reviewBy: '2026-12-30', note: 'E158 · the other shards\' files, once this one is playable' }),
-  opt('bootPack', 'loading', 'Boot pack', ON_OFF, { reload: true, ask: 'E162', reviewBy: '2026-12-30', note: 'boot files as one pack; off = one by one (the KTX2 record run)' }),
-  { id: 'storage', group: 'loading', label: 'Storage', choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, ask: 'E357', reviewBy: '2026-12-30', note: 'E357 F10 · persistent storage and origin usage' },
+  opt('prefetch', 'loading', engineString('s_c3fdc2f75125'), ON_OFF, { ask: 'E158', reviewBy: '2026-12-30', note: engineString('s_33ab8d7cc57e') }),
+  opt('bootPack', 'loading', engineString('s_4cd17de104b7'), ON_OFF, { reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_f72e67795ca9') }),
+  { id: 'storage', group: 'loading', label: engineString('s_a69c4dece144'), choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_281936523768') },
   clearDownloadsRow,
 
   // ── Developer tools ──
-  { ...action('calibrate', 'tools', 'Calibration', 'RUN CALIBRATION', () => { saveSetting('calibrate', 'run'); location.reload(); }, { ask: 'E357', reviewBy: '2026-12-30', note: 'E357 S1.6 · synthetic M5 unit costs; consumes the one-shot setting at entry' }), choices: () => [{ v: 'off', text: 'Idle' }, { v: 'run', text: 'Run' }] },
-  action('budgetReadout', 'perf', 'Calibrated budgets', 'READ BUDGETS', (say) => {
+  { ...action('calibrate', 'tools', engineString('s_252526ecd431'), engineString('s_e6539473d9a0'), () => { saveSetting('calibrate', 'run'); location.reload(); }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_7d857a36f6c1') }), choices: () => [{ v: 'off', text: engineString('s_ab0171ca0494') }, { v: 'run', text: engineString('s_00d60e31a4e6') }] },
+  action('budgetReadout', 'perf', engineString('s_2461f265574b'), engineString('s_eff6d457bfb5'), (say) => {
     if (!Object.hasOwn(window, '__wildshard')) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
     const rows = window.__wildshard.budgets(['current']), current = rows['current'];
     say('READ BUDGETS', current ? `${JSON.stringify(current.derived ?? current.ceiling)} · ${current.formula.assumption}` : 'F2 ceilings and stable M5 calibration are not published yet.');
-  }, { ask: 'E357', reviewBy: '2026-12-30', note: 'E357 S1.6 · derived targets, current enforced ceilings and the phone:M5 assumption' }),
-  opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, ask: 'E162', reviewBy: '2026-12-30', note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
+  }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_2ed7f7dcebc2') }),
+  opt('cragView', 'tools', engineString('s_fb493faddf59'), [['shaded', engineString('s_bb1cf5da5aa8')], ['ao', engineString('s_f78687474218')], ['sun', engineString('s_db18f17fe532')], ['wet', engineString('s_5690f06c3e93')], ['normal', engineString('s_a7248eeb45eb')], ['albedo', engineString('s_74ba87de67ad')]], { when: pineHollow, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_ce1e2c0b6512') }),
 ];
 
 /** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap, the device's
@@ -232,7 +233,7 @@ function storageReadout(): string {
     try { void navigator.storage.estimate().then((value) => { storageEstimate = `${mbText(value.usage ?? null)} / ${mbText(value.quota ?? null)}`; return undefined; }).catch(() => { storageEstimate = 'usage / quota: unavailable'; }); }
     catch { storageEstimate = 'usage / quota: unavailable'; }
   }
-  return `Persisted: ${jsonSlot('storage.persisted', 'device').read() === true ? 'yes' : 'no'} · ${storageEstimate}`;
+  return engineString('s_eb6d1d4e42ba', [jsonSlot('storage.persisted', 'device').read() === true ? engineString('s_8a798890fe93') : engineString('s_9390298f3fb0'), storageEstimate]);
 }
 
 export function levelDebugRows(): readonly DebugRow[] { return [...DEBUG_ROWS, ...authoredRows]; }

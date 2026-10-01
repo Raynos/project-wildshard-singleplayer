@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Minimap — the circular top-down map top-right of the HUD (mockup B, art/minimap/round-1/minimap-k1-B-terrain.png).
  *
@@ -92,8 +93,8 @@ export interface MinimapPalette {
 export function mapPois(): MapPoi[] {
   const own = getActiveChunk().minimap?.palette?.pois;
   if (own) return own();
-  const out: MapPoi[] = CABIN_SITES.map((c, i) => ({ x: c.x, z: c.z, label: `CABIN ${i + 1}`, color: '#8fe3ff' }));
-  if (hasPond()) out.push({ x: POND.x, z: POND.z, label: 'THE POND', color: '#6fb8e8' });
+  const out: MapPoi[] = CABIN_SITES.map((c, i) => ({ x: c.x, z: c.z, label: engineString('s_a5912d0f68ef', [i + 1]), color: '#8fe3ff' }));
+  if (hasPond()) out.push({ x: POND.x, z: POND.z, label: engineString('s_5dddbb894d63'), color: '#6fb8e8' });
   return out;
 }
 
@@ -167,7 +168,7 @@ export class Minimap {
     this.canvas.className = 'ws-minimap-canvas';
     this.nLabel = document.createElement('span');
     this.nLabel.className = 'ws-minimap-n';
-    this.nLabel.textContent = 'N';
+    this.nLabel.textContent = engineString('s_8ce86a6ae65d');
     this.root.append(this.canvas, this.nLabel);
     (parent ?? document.body).append(this.root);
     this.ctx = ctx2d(this.canvas);

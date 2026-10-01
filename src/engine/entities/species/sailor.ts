@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
@@ -353,7 +354,7 @@ function thinkSailor(a: Animal, c: ThinkCtx): void {
 
 registerSpecies({
   kind: 'sailor',
-  label: 'Drowned sailor',
+  label: engineString('s_1ed5511c9838'),
   fur: NO_FUR,
   rig: 'custom',
   aggressive: true,
@@ -363,7 +364,7 @@ registerSpecies({
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
   sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [12, 30] },
   variants: [
-    { id: 'sailor', label: 'Drowned sailor', weight: 100, rarity: 'uncommon', scale: [1.0, 1.05], hp: 60 },
+    { id: 'sailor', label: engineString('s_1ed5511c9838'), weight: 100, rarity: 'uncommon', scale: [1.0, 1.05], hp: 60 },
   ],
   build: buildSailor,
   animate: animateSailor,

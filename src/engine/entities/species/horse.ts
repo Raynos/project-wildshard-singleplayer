@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
@@ -573,7 +574,7 @@ export function horseEye(a: Animal, out: THREE.Vector3): THREE.Vector3 {
 
 registerSpecies({
   kind: 'horse',
-  label: 'Wild horse',
+  label: engineString('s_5b662777562c'),
   fur: NO_FUR,
   aggressive: false,
   walkSpeed: HORSE_SPEED.walk,
@@ -583,20 +584,20 @@ registerSpecies({
   pose: { grazeNeck: 0, gallopTail: 0.55 },
   gait: { trot: 3.0, gallop: 6.4 },
   variants: [
-    { id: 'bay', label: 'Bay mare', weight: 34, rarity: 'common', scale: [0.96, 1.03] },
-    { id: 'chestnut', label: 'Chestnut mare', weight: 24, rarity: 'common', scale: [0.95, 1.02], tint: CHESTNUT, traits: { blaze: 1, socks: 1 } },
-    { id: 'dun', label: 'Dun mare', weight: 14, rarity: 'common', scale: [0.95, 1.02], tint: DUN },
-    { id: 'grey', label: 'Grey mare', weight: 10, rarity: 'uncommon', scale: [0.96, 1.03], tint: GREY, traits: { dapple: 1 } },
-    { id: 'black', label: 'Black mare', weight: 8, rarity: 'uncommon', scale: [0.96, 1.03], tint: BLACK },
-    { id: 'foal-bay', label: 'Foal', weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_BAY, traits: { foal: 1, mane: 0.6 } },
-    { id: 'foal-chestnut', label: 'Foal', weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_CHESTNUT, traits: { foal: 1, mane: 0.6 } },
+    { id: 'bay', label: engineString('s_d8506748df32'), weight: 34, rarity: 'common', scale: [0.96, 1.03] },
+    { id: 'chestnut', label: engineString('s_ebae143256f0'), weight: 24, rarity: 'common', scale: [0.95, 1.02], tint: CHESTNUT, traits: { blaze: 1, socks: 1 } },
+    { id: 'dun', label: engineString('s_f774e4371404'), weight: 14, rarity: 'common', scale: [0.95, 1.02], tint: DUN },
+    { id: 'grey', label: engineString('s_b98ca6c03d96'), weight: 10, rarity: 'uncommon', scale: [0.96, 1.03], tint: GREY, traits: { dapple: 1 } },
+    { id: 'black', label: engineString('s_fafd70f6c9c0'), weight: 8, rarity: 'uncommon', scale: [0.96, 1.03], tint: BLACK },
+    { id: 'foal-bay', label: engineString('s_154390447871'), weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_BAY, traits: { foal: 1, mane: 0.6 } },
+    { id: 'foal-chestnut', label: engineString('s_154390447871'), weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_CHESTNUT, traits: { foal: 1, mane: 0.6 } },
     {
-      id: 'camp-bay', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.0, 1.0], traits: { tack: 1 },
+      id: 'camp-bay', label: engineString('s_b9756aee1a04'), weight: 0, rarity: 'common', scale: [1.0, 1.0], traits: { tack: 1 },
     },
-    { id: 'tulpar', label: 'Tulpar', weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK, traits: { tack: 1, mane: 1.7, stallion: 1 } },
-    { id: 'camp-black', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.02, 1.02], tint: BLACK, traits: { tack: 1, blaze: 1, mane: 1.3 } },
+    { id: 'tulpar', label: engineString('s_58a74ea825dc'), weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK, traits: { tack: 1, mane: 1.7, stallion: 1 } },
+    { id: 'camp-black', label: engineString('s_b9756aee1a04'), weight: 0, rarity: 'common', scale: [1.02, 1.02], tint: BLACK, traits: { tack: 1, blaze: 1, mane: 1.3 } },
     {
-      id: 'stallion', label: 'Black stallion', weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK,
+      id: 'stallion', label: engineString('s_1f0c0753155f'), weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK,
       traits: { mane: 1.7, stallion: 1 }, mods: { chargeDamage: 25 },
     },
   ],

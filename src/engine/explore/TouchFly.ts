@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * TouchFly — the phone's god-mode flight controls for the World Explorer (project/archive/2026-09-23-explore-world.md X2, mockups
  * art/build-world/round-4-god-mode-flight/). Drives the same FreeCam the desktop keys do:
@@ -138,7 +139,7 @@ export class TouchFly {
   constructor(private readonly surface: HTMLElement, private readonly cam: FreeCam, host: HTMLElement) {
     this.stick = document.createElement('div'); this.stick.className = 'ws-x-stick';
     this.knob = document.createElement('i'); this.stick.append(this.knob);
-    const label = document.createElement('b'); label.textContent = 'Fly'; this.stick.append(label);
+    const label = document.createElement('b'); label.textContent = engineString('s_31bbe05d4315'); this.stick.append(label);
     host.append(this.stick);
     this.taps = new MultiTouchTaps(host.closest<HTMLElement>('.ws-x') ?? host);
     this.stick.addEventListener('pointerdown', this.onStickDown);

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /** The three shared practice specimens: one humanoid construction, three core/armor materials. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -8,9 +9,9 @@ export const TRAINING_DUMMY_HEIGHT = 1.8;
 export const TRAINING_DUMMY_SOURCE_HEIGHT = 2.65;
 export const TRAINING_DUMMY_SCALE = TRAINING_DUMMY_HEIGHT / TRAINING_DUMMY_SOURCE_HEIGHT;
 export const DUMMY_VARIANTS: readonly { id: DummyVariant; label: string; full: string }[] = [
-  { id: 'wood', label: 'Wood', full: 'Wood frame · wood armor' },
-  { id: 'straw-cloth', label: 'Straw + cloth', full: 'Straw body · cloth armor' },
-  { id: 'wood-steel', label: 'Wood + steel', full: 'Wood frame · steel armor' },
+  { id: 'wood', label: engineString('s_731140284eac'), full: 'Wood frame · wood armor' },
+  { id: 'straw-cloth', label: engineString('s_689ddfcde9e2'), full: 'Straw body · cloth armor' },
+  { id: 'wood-steel', label: engineString('s_305d2091e911'), full: 'Wood frame · steel armor' },
 ];
 
 /**

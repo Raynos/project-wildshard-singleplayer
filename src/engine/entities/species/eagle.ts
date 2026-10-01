@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
@@ -142,7 +143,7 @@ function animateEagle(c: RigAnimCtx): void {
 
 registerSpecies({
   kind: EAGLE,
-  label: 'Golden eagle',
+  label: engineString('s_c0752fe7f23a'),
   fur: NO_FUR,
   rig: 'custom',
   aggressive: true,
@@ -150,7 +151,7 @@ registerSpecies({
   chargeDamage: 30,
   sounds: { call: 'eagle_cry', hurt: 'eagle_cry', callEvery: [8, 18] }, // its own cry, not Driftwood's monkey (NALATI-MERGE F6)
   variants: [
-    { id: 'qyran', label: 'Qyran the Storm-Wing', weight: 1, rarity: 'legendary', scale: [3, 3], hp: 600 },
+    { id: 'qyran', label: engineString('s_d1761c145199'), weight: 1, rarity: 'legendary', scale: [3, 3], hp: 600 },
   ],
   build: buildEagle,
   animate: animateEagle,

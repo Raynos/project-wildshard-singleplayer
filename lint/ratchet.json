@@ -1053,5 +1053,6 @@
     "raisedBy": [
       "E357"
     ]
-  }
+  },
+  "wildshard/no-inline-ui-string": {}
 }

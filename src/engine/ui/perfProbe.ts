@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The on-device perf probe (E142, the heavy GPU lane): where a real phone's frame goes, measured ON the phone.
  *
@@ -149,7 +150,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
   const phases: Phase[] = [
     { name: 'as played', set: () => undefined },
     { name: 'uncapped', set: () => undefined },
-    { name: 'no HUD blur', set: (on) => { style.textContent = on ? '* { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }' : ''; } },
+    { name: 'no HUD blur', set: (on) => { style.textContent = on ? engineString('s_aaff11a4961f') : ''; } },
     { name: 'no HUD', set: (on) => { if (hud) hud.style.visibility = on ? 'hidden' : ''; } },
     {
       name: 'flat terrain', applies: () => meshesByProgram(game.scene, (k) => k.startsWith('terrain-splat')).length > 0, set: (on) => {

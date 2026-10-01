@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 import './styles/hints.css';
 import type { Player } from '../player/Player';
@@ -47,10 +48,10 @@ export interface FirstHintsOptions {
 }
 
 const HINT_TOUCH: Record<HintControl, string> = {
-  move: 'Drag to move', jump: 'Tap to jump', attack: 'Tap to attack', lock: 'Tap to lock', dodge: 'Tap to dodge', use: 'Tap to use',
+  move: engineString('s_f9408bf8e7a8'), jump: engineString('s_cb601147eb2e'), attack: engineString('s_061a2f9cac0f'), lock: engineString('s_4da52d13f9ab'), dodge: engineString('s_5bffb8c39729'), use: engineString('s_cbd3c26b4566'),
 };
 const HINT_DESK: Record<HintControl, string> = {
-  move: 'W A S D to move', jump: 'Space to jump', attack: 'Click to attack', lock: 'Z to lock', dodge: 'Alt to dodge', use: 'E to use',
+  move: engineString('s_08cd5b7c05ad'), jump: engineString('s_cecbb2c757bc'), attack: engineString('s_dcc07bd2df54'), lock: engineString('s_8bd319b4ee37'), dodge: engineString('s_8cdc7e187f3e'), use: engineString('s_14f307167912'),
 };
 /** the touch control each hint sits on (TouchControls.ts' markup) */
 const ANCHOR: Record<HintControl, string> = {

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { currentScope } from '../app/legacyCapture';
 import type { Scope } from '../app/scope';
 import { app } from '../app/runtime';
@@ -29,7 +30,7 @@ export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
     const label = document.createElement('div'); label.className = 'ws-gmenu-label'; label.textContent = strings.aside; aside.append(label);
     for (const copy of copies) {
       const item = document.createElement('div'); item.className = 'ws-gmenu-note';
-      const text = document.createElement('span'); text.textContent = `${copy.scope} / ${copy.key} · ${copy.at} · ${copy.bytes} B`;
+      const text = document.createElement('span'); text.textContent = engineString('s_6d093aa18a40', [copy.scope, copy.key, copy.at, copy.bytes]);
       item.append(text, button(scope, strings.export, () => { download(`wildshard-corrupt-${copy.key}-${copy.at}.json`, app.saves.exportCorrupt(copy)); })); aside.append(item);
     }
   };

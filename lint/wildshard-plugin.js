@@ -472,6 +472,24 @@ const noGlobalListenerPatch = rule('Legacy global registrations migrate to expli
   } };
 });
 
+const noInlineUiString = rule('Player-facing engine strings belong in the string table (E357 X8)', (context) => {
+  if (!pathOf(context).startsWith('src/engine/')) return {};
+  function check(value) {
+    const node = unwrap(value);
+    if (!node) return;
+    if (node.type === 'Literal' && typeof node.value === 'string' && node.value !== '') report(context, node, 'Use engineString with a typed engine string key');
+    else if (node.type === 'TemplateLiteral') report(context, node, 'Move the template to engine strings and pass its values as arguments');
+    else if (node.type === 'ConditionalExpression') { check(node.consequent); check(node.alternate); }
+    else if (node.type === 'LogicalExpression') check(node.right);
+    else if (node.type === 'BinaryExpression' && node.operator === '+') { check(node.left); check(node.right); }
+  }
+  return {
+    AssignmentExpression(node) { if (['textContent', 'innerText'].includes(propName(node.left) ?? stringOf(node.left?.property))) check(node.right); },
+    Property(node) { if ((node.key?.name ?? stringOf(node.key)) === 'label') check(node.value); },
+    CallExpression(node) { if (calleeName(node.callee) === 'toast') check(node.arguments[0]); },
+  };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
@@ -481,6 +499,7 @@ const plugin = {
     'no-hook-chain': noHookChain,
     'no-active-singleton': noActiveSingleton, 'no-active-chunk': noActiveChunk,
     'no-global-listener-patch': noGlobalListenerPatch,
+    'no-inline-ui-string': noInlineUiString,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

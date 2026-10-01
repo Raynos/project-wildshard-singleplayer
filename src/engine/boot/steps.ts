@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The boot plan's vocabulary — the ONE place the loading screen's steps, labels, weights and
  * byte sources are declared. Ported from game-demos/trials-gauntlet-demo `src/engine/boot/steps.ts`
@@ -62,17 +63,17 @@ interface ShardSteps {
 const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
   'pine-hollow': {
     steps: {
-      sky: { label: 'Sky · dawn to moonlight' },
-      terrain: { label: 'Terrain · boreal ground' },
-      cards: { label: 'Tree species · pine · fir · birch' },
-      forest: { label: 'Forest · pines · old-growth giants' },
-      edge: { label: 'Pond · creek · waterfall · far country' },
-      grass: { label: 'Grass · ferns · bilberry' },
-      cabins: { label: 'Cabins · hamlet · lookout · crags · cave' },
-      props: { label: 'Rocks · logs' },
-      animals: { label: 'Herds · deer · boar · elk · bears' },
-      weapon: { label: 'Crossbow · lever-action · longbow' },
-      audio: { label: 'Audio · score · forest sound' },
+      sky: { label: engineString('s_3c6529f5a000') },
+      terrain: { label: engineString('s_dcf5eeb91b74') },
+      cards: { label: engineString('s_ec28a23a640e') },
+      forest: { label: engineString('s_00cc30d60f47') },
+      edge: { label: engineString('s_5baf0ab3f19d') },
+      grass: { label: engineString('s_ed918043f058') },
+      cabins: { label: engineString('s_4be1a7b1ed2f') },
+      props: { label: engineString('s_00de1db385da') },
+      animals: { label: engineString('s_e7fc1dad792d') },
+      weapon: { label: engineString('s_f862cea32c63') },
+      audio: { label: engineString('s_0ed7016d19bc') },
     },
     bytes: {
       sky: 'sky keys · dawn to moonlight',
@@ -86,16 +87,16 @@ const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
   'nalati-grasslands': {
     steps: {
       renderer: { weight: 0.3 },
-      sky: { label: 'Sky · the painted panorama', weight: 2.5 },
-      terrain: { label: 'Steppe · the bowl · the snow ring', weight: 1.8 },
-      cards: { label: 'Spruce cards', weight: 0.1 },
-      forest: { label: 'Lone spruces', weight: 0.15 },
-      edge: { label: 'Kunes river · cloud sea · horizon', weight: 0.15 },
-      grass: { label: 'Grass rings · painted clumps', weight: 0.5 },
-      cabins: { label: 'Yurts', weight: 0.05 },
-      props: { label: 'Camp · kurgans · herds · the Storm Titan', weight: 8.5 },
-      animals: { label: 'Wolves · horses · sheep', weight: 0.1 },
-      weapon: { label: 'Recurve bow · HUD', weight: 0.05 },
+      sky: { label: engineString('s_824bf8cc8206'), weight: 2.5 },
+      terrain: { label: engineString('s_ec37ccc60713'), weight: 1.8 },
+      cards: { label: engineString('s_be4718ed9a95'), weight: 0.1 },
+      forest: { label: engineString('s_5c68a3a4d072'), weight: 0.15 },
+      edge: { label: engineString('s_73ab479c55af'), weight: 0.15 },
+      grass: { label: engineString('s_9aa213907fc3'), weight: 0.5 },
+      cabins: { label: engineString('s_62e4c7b67184'), weight: 0.05 },
+      props: { label: engineString('s_32d65e5cf8be'), weight: 8.5 },
+      animals: { label: engineString('s_e9d857cdb0ca'), weight: 0.1 },
+      weapon: { label: engineString('s_a50857cdcfcf'), weight: 0.05 },
       shaders: { weight: 2.2 },
       firstFrame: { weight: 0.5 },
     },

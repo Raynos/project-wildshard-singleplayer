@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
@@ -220,7 +221,7 @@ function felidPostPose(c: RigAnimCtx): void {
 
 registerSpecies({
   kind: LEOPARD,
-  label: 'Snow leopard',
+  label: engineString('s_db2b04607d7a'),
   fur: NO_FUR,
   aggressive: true,
   walkSpeed: 1.4,
@@ -230,7 +231,7 @@ registerSpecies({
   pose: { grazeNeck: 0.3, gallopTail: 0.2 },
   gait: { trot: 2.2, gallop: 6 },
   variants: [
-    { id: 'aqbars', label: 'Aqbars the Pale', weight: 1, rarity: 'legendary', scale: [1.5, 1.5], hp: 700 },
+    { id: 'aqbars', label: engineString('s_0328e70c0b4f'), weight: 1, rarity: 'legendary', scale: [1.5, 1.5], hp: 700 },
   ],
   build: buildFelid,
   postPose: felidPostPose,

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Select — tap / click a model in the World Explorer (project/archive/2026-09-23-explore-world.md X4; mockups round-3 p09, round-4 g09 / g13;
  * E67: round-6 midway 04): a cyan box, its size in a tag over the box's top, and a glass card standing beside it —
@@ -121,9 +122,9 @@ export class Select {
     this.helper.visible = true;
     const size = this.box.getSize(this.tmp);
     const b = this.card.querySelector('b'), small = this.card.querySelector('small');
-    this.dim.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} m`;
+    this.dim.textContent = engineString('s_d5977ab9ef6e', [size.x.toFixed(1), size.y.toFixed(1), size.z.toFixed(1)]);
     if (b) b.textContent = label;
-    if (small) small.textContent = `${entry.file} · ${(entry.live ? measure(entry.object()).tris : 0) > 0 ? `${measure(entry.object()).tris.toLocaleString()} tris` : 'open to measure'}`;
+    if (small) small.textContent = engineString('s_276bbc529952', [entry.file, (entry.live ? measure(entry.object()).tris : 0) > 0 ? engineString('s_4c4a9fb609dc', [measure(entry.object()).tris.toLocaleString()]) : engineString('s_3439dca0983f')]);
     this.card.classList.add('show');
     this.dim.classList.add('show');
     this.update();

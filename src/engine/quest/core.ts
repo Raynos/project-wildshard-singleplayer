@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { test, type Flags } from '../world/interact/flags';
 import type { Scope } from '../app/scope';
 import type { Events } from '../events/events';
@@ -114,7 +115,7 @@ export class QuestState {
   chip(): { label: string; count: string } {
     if (!this.started) return { label: this.def.intro?.chip ?? this.def.intro?.objective ?? '', count: '' };
     const s = this.cur;
-    if (!s) return { label: 'Quest complete', count: '' };
+    if (!s) return { label: engineString('s_f316ae64883e'), count: '' };
     const c = this.counter(s);
     const label = s.chip ?? s.objective.replace(/\s*·?\s*\{n\}\s*\/\s*\{of\}/, '');
     return { label, count: c ? `${c.n}/${c.of}` : '' };

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * LockOn — the target frame over enemies (mockups: art/hud/round-7-sword-touch/B-lunge.jpg, art/combat/round-1-lockon/N.jpg):
  *
@@ -34,10 +35,10 @@ export class LockOn {
     const hud = document.getElementById('hud') ?? document.body;
     this.el = document.createElement('div');
     this.el.className = 'ws-game-lock';
-    this.el.innerHTML = '<i></i><i></i><i></i><i></i><b></b>';
+    this.el.innerHTML = engineString('s_5b2adc2f66ea');
     this.cand = document.createElement('div');
     this.cand.className = 'ws-game-lockcand';
-    const edge = (side: 'l' | 'r') => { const e = document.createElement('div'); e.className = `ws-game-lockedge ${side}`; e.innerHTML = `<b>${side === 'l' ? '‹' : '›'}</b><span></span>`; return e; };
+    const edge = (side: 'l' | 'r') => { const e = document.createElement('div'); e.className = `ws-game-lockedge ${side}`; e.innerHTML = engineString('s_8779ab060e33', [side === 'l' ? engineString('s_0685a836e461') : engineString('s_7bb37df5cb36')]); return e; };
     this.edges = { l: edge('l'), r: edge('r') };
     hud.append(this.el, this.cand, this.edges.l, this.edges.r);
   }

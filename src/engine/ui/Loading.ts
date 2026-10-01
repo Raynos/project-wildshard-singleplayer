@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 import { getActiveChunk } from '#game/shard/registry';
 import { formatMB, type ProgressView } from '../boot/plan';
@@ -59,7 +60,7 @@ export class Loading {
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
     this.els.slug.textContent = isDev() ? chunk.slug : chunk.name;
-    this.els.tier.textContent = `${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${nav.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}`;
+    this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
     let attempt = 1;
     try {
@@ -109,11 +110,11 @@ export class Loading {
     // the player's one bar: download and setup, half each (each only grows, so the sum does); 100 only when both are
     const all = (v.download + v.setup) / 2, allW = `${(all * 100).toFixed(1)}%`;
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
-    set(this.els.line, v.done ? 'Ready' : `${v.download < 1 ? 'Downloading' : 'Building the world'} · ${pct(all)}%`);
+    set(this.els.line, v.done ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.download < 1 ? engineString('s_37b345555d7e') : engineString('s_080cd8d3b901'), pct(all)]));
     set(this.els.dlFact, v.bytesTotal > 0
-      ? `${formatMB(v.bytesRead)} / ${formatMB(v.bytesTotal)} · ${v.filesDone} / ${v.filesTotal} files${v.bytes && v.bytes.done < v.bytes.total ? ` · ${v.bytes.label}` : ''}`
-      : 'nothing declared');
-    set(this.els.suFact, `step ${Math.min(v.doneCount + 1, v.rows.length)} / ${v.rows.length} · ${v.label}${v.detail ? ` · ${v.detail}` : ''}`);
+      ? engineString('s_9efb7c208f96', [formatMB(v.bytesRead), formatMB(v.bytesTotal), v.filesDone, v.filesTotal, v.bytes && v.bytes.done < v.bytes.total ? engineString('s_614cafefe4f0', [v.bytes.label]) : ''])
+      : engineString('s_387d49323b0f'));
+    set(this.els.suFact, engineString('s_af18899b96b3', [Math.min(v.doneCount + 1, v.rows.length), v.rows.length, v.label, v.detail ? engineString('s_614cafefe4f0', [v.detail]) : '']));
     this.paintRows();
   }
 
@@ -121,15 +122,15 @@ export class Loading {
     const v = this.view; if (!v) return;
     // every step that has started, newest last; todo steps are not rows (nothing to say about them yet)
     const shown = v.rows.filter((r) => r.state !== 'todo');
-    while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = '<span class="ws-load-row-label"></span><span class="ws-load-row-detail"></span><span class="ws-load-row-ms"></span>'; this.rowsEl.append(d); }
+    while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = engineString('s_a9fadf880555'); this.rowsEl.append(d); }
     shown.forEach((r, i) => {
       const el = this.rowsEl.children[i] as HTMLElement;
       const cls = r.state === 'on' ? 'on' : 'ok';
       if (el.className !== cls) el.className = cls;
-      set(el.children[0] as HTMLElement, `▸ ${r.label}`);
+      set(el.children[0] as HTMLElement, engineString('s_dd0d06d0c0aa', [r.label]));
       set(el.children[1] as HTMLElement, r.detail);
       const ms = r.state === 'on' ? performance.now() - r.t0 : r.ms;
-      set(el.children[2] as HTMLElement, ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${Math.round(ms)} ms`);
+      set(el.children[2] as HTMLElement, ms >= 1000 ? engineString('s_51b784eb9dd6', [(ms / 1000).toFixed(1)]) : engineString('s_f3813306296c', [Math.round(ms)]));
     });
   }
 
@@ -145,7 +146,7 @@ export class Loading {
     if (this.view) this.lastFrameStep = `${this.view.label}${this.view.detail ? `: ${this.view.detail}` : ''}`;
     if (now - this.lastDiagnosticAt > 250) { this.paintDiagnostics(); this.lastDiagnosticAt = now; }
     const s = (now - this.t0) / 1000;
-    set(this.els.clock, `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(1).padStart(4, '0')}`);
+    set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
     // the running step's ms is live: repaint rows so its clock moves without a plan event
     if (this.dirty) this.paintNow();
     else if (this.view && !this.view.done) this.paintRows();
@@ -157,10 +158,10 @@ export class Loading {
   private paintDiagnostics(): void {
     const mem: unknown = Reflect.get(performance, 'memory');
     const heap: unknown = typeof mem === 'object' && mem !== null ? Reflect.get(mem, 'usedJSHeapSize') : undefined;
-    const js = typeof heap === 'number' && Number.isFinite(heap) ? `${Math.round(heap / 1048576)} MiB` : 'unavailable on Safari';
-    const tex = this.textureBytes > 0 ? ` · scene textures ~${Math.round(this.textureBytes / 1048576)} MiB` : '';
-    const pause = this.longestPauseMs >= 100 ? `${(this.longestPauseMs / 1000).toFixed(1)}s` : '<0.1s';
-    set(this.els.diagnostics, `Load ${this.attempt} · JS heap ${js}${tex}\nLongest page pause ${pause}${this.longestPauseAt ? ` at ${this.longestPauseAt}` : ''}\n${lastEndLine()}\nTotal RAM / CPU unavailable in page`);
+    const js = typeof heap === 'number' && Number.isFinite(heap) ? engineString('s_77edeca5d621', [Math.round(heap / 1048576)]) : engineString('s_80ff86e39352');
+    const tex = this.textureBytes > 0 ? engineString('s_d28268aeb36d', [Math.round(this.textureBytes / 1048576)]) : '';
+    const pause = this.longestPauseMs >= 100 ? engineString('s_f72e3c1c062c', [(this.longestPauseMs / 1000).toFixed(1)]) : engineString('s_911a92a8de1f');
+    set(this.els.diagnostics, engineString('s_d6331a58cb42', [this.attempt, js, tex, pause, this.longestPauseAt ? engineString('s_46a39d7c2bfd', [this.longestPauseAt]) : '', lastEndLine()]));
   }
 
   /**

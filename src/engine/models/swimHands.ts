@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The swimming hands (E348, the E315 M5 leftover): a shared model — the white-gloved forearms and mitten hands you see
  * while swimming on a shard without its own arm rig (Nalati's river, Pine Hollow's pond and creek; Driftwood swims in the
@@ -18,7 +19,7 @@ const FWD = new THREE.Vector3(0, 0, -1);
 export const swimHands = defineModel<SwimHandsParams>({
   id: 'shared/swim-hands', name: 'Swimming hands', category: 'gear', pipeline: 'code', file: 'src/engine/models/swimHands.ts', surface: 'flesh',
   defaults: { style: 'pbr' },
-  variants: [{ id: 'smooth', label: 'Smooth', params: { style: 'pbr' } }, { id: 'faceted', label: 'Faceted', params: { style: 'toon' } }],
+  variants: [{ id: 'smooth', label: engineString('s_da5193877772'), params: { style: 'pbr' } }, { id: 'faceted', label: engineString('s_e272f5b4fded'), params: { style: 'toon' } }],
   build: (ctx, p) => {
     const pair = new THREE.Group();
     buildSwimGloves(ctx.sky, p.style).forEach((arm, i) => {

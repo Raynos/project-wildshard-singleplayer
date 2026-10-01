@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
@@ -22,8 +23,8 @@ import { registeredModels, type ModelCategory, type RegisteredModel } from './re
 
 export type Category = ModelCategory;
 export const CATEGORIES: readonly { id: Category | 'all'; label: string }[] = [
-  { id: 'all', label: 'All' }, { id: 'buildings', label: 'Buildings' }, { id: 'nature', label: 'Nature' }, { id: 'creatures', label: 'Creatures' },
-  { id: 'people', label: 'People' }, { id: 'gear', label: 'Gear' }, { id: 'props', label: 'Props' },
+  { id: 'all', label: engineString('s_a52ace420f21') }, { id: 'buildings', label: engineString('s_4e0445c4bd44') }, { id: 'nature', label: engineString('s_c71ce8ccf3b4') }, { id: 'creatures', label: engineString('s_9915bdfb4d7c') },
+  { id: 'people', label: engineString('s_7db20897053b') }, { id: 'gear', label: engineString('s_d6eaec65e742') }, { id: 'props', label: engineString('s_cb7141a20db9') },
 ];
 
 export interface CatalogEntry extends Omit<RegisteredModel, 'worldBox'> {

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The adventure's own HUD pieces (kept out of HUD.ts, which the HUD agent owns) — DOM in `#hud`, styled by
  * src/engine/ui/styles/quest.css (prefix ws-quest-):
@@ -35,7 +36,7 @@ export class ObjectiveLine {
 
   constructor() {
     this.root.prepend(el('i', 'ws-quest-obj-dia'));
-    this.arrow.textContent = '▲';
+    this.arrow.textContent = engineString('s_671fd067cc0e');
     this.sep.style.display = this.nav.style.display = 'none';
     hudRoot().append(this.root);
   }
@@ -149,9 +150,9 @@ export class DialogueBox {
   private render(): void {
     const cur = this.lines[this.i] ?? '';
     this.text.textContent = cur.slice(0, Math.floor(this.shown));
-    this.page.textContent = `${this.i + 1} / ${this.lines.length}`;
+    this.page.textContent = engineString('s_9404497cf77d', [this.i + 1, this.lines.length]);
     const touch = document.getElementById('hud')?.classList.contains('touch') === true;
-    this.next.textContent = `${touch ? '' : '[E] '}${this.i + 1 < this.lines.length ? 'NEXT ▸' : 'CLOSE'}`;
+    this.next.textContent = engineString('s_4ecdc2db1bc2', [touch ? '' : engineString('s_4f911ee89601'), this.i + 1 < this.lines.length ? engineString('s_c93aad5dddf0') : engineString('s_f13a1ed0cf3c')]);
   }
 }
 

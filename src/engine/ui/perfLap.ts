@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * The PERF LAP (E350 F-J1, Jake picked "Automate it": the iPhone reading of Pine Hollow's locked 30 fps at the gate, the
@@ -40,7 +41,7 @@ function frameCause(f: FrameRecord): string {
   f.buckets.forEach((v, i) => { if (v > cms) { cms = v; cause = BUCKETS[i] ?? ''; } });
   if (f.render > cms) { cms = f.render; cause = 'render'; }
   if (f.gpu > cms) { cms = f.gpu; cause = 'gpu~'; }
-  return `${cause} ${cms.toFixed(0)}ms${f.top !== '' && cause !== 'render' && cause !== 'gpu~' ? ` (${f.top} ${f.topMs.toFixed(0)})` : ''}`;
+  return engineString('s_1238155d5b75', [cause, cms.toFixed(0), f.top !== '' && cause !== 'render' && cause !== 'gpu~' ? engineString('s_c8abc4b4ead7', [f.top, f.topMs.toFixed(0)]) : '']);
 }
 
 interface Run {
@@ -71,9 +72,9 @@ export class PerfLap {
 
   /** start the lap; returns why it cannot (shown as a toast), or null when it started */
   start(recording: boolean): string | null {
-    if (this.run !== null) return 'the lap is already running';
+    if (this.run !== null) return engineString('s_89458684f9d5');
     const host = perfLap.host;
-    if (host === null || host.game !== this.game) return 'PERF LAP runs on Pine Hollow';
+    if (host === null || host.game !== this.game) return engineString('s_8d282280dca8');
     const refuse = (why: string): string => { host.toast(why); return why; };
     if (recording) return refuse('PERF LAP: not while REC 30 S is recording');
     const busy = host.busy();
@@ -129,7 +130,7 @@ export class PerfLap {
   cancel(why: string): void {
     const r = this.run;
     if (r === null) return;
-    r.host.toast(`PERF LAP cancelled — ${why}`);
+    r.host.toast(engineString('s_c0b5cc9cfad9', [why]));
     this.finish(why);
   }
 
@@ -196,5 +197,5 @@ export class PerfLap {
 /** local wall time, minutes (the phone's clock: when Jake ran it) */
 function localIso(d: Date): string {
   const p = (n: number): string => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  return engineString('s_86cd35de379d', [d.getFullYear(), p(d.getMonth() + 1), p(d.getDate()), p(d.getHours()), p(d.getMinutes())]);
 }

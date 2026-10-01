@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The reload prompt (E65 Look Lab): a pick that only takes effect on a fresh page (the lighting model, the sky) asks
  * right away — "Needs a reload · Reload now / Later" — instead of leaving a note to go and find an Apply button.
@@ -45,11 +46,11 @@ export function askReload(host: HTMLElement, what: string): void {
   sheet.setAttribute('role', 'alertdialog');
   sheet.setAttribute('aria-live', 'polite');
   const text = document.createElement('p'); text.className = 'ws-reload-text'; text.textContent = line;
-  const go = document.createElement('button'); go.type = 'button'; go.className = 'ws-reload-go'; go.textContent = 'Reload now';
-  const later = document.createElement('button'); later.type = 'button'; later.className = 'ws-reload-later'; later.textContent = 'Later';
+  const go = document.createElement('button'); go.type = 'button'; go.className = 'ws-reload-go'; go.textContent = engineString('s_401ed5e6c7b0');
+  const later = document.createElement('button'); later.type = 'button'; later.className = 'ws-reload-later'; later.textContent = engineString('s_73b6e48a1b55');
   const row = document.createElement('div'); row.className = 'ws-reload-row'; row.append(later, go);
   sheet.append(text, row);
-  go.addEventListener('click', (e) => { e.stopPropagation(); go.disabled = true; go.textContent = 'Reloading…'; reloadWithPicks(); });
+  go.addEventListener('click', (e) => { e.stopPropagation(); go.disabled = true; go.textContent = engineString('s_ea456dcf3d90'); reloadWithPicks(); });
   later.addEventListener('click', (e) => { e.stopPropagation(); sheet.remove(); open = null; });
   host.append(sheet);
   open = sheet;

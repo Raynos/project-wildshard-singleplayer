@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import './styles/boss.css';
 
 /**
@@ -55,7 +56,7 @@ export class BossBar {
     this.cardName = el('div', 'ws-boss-card-name');
     this.cardTitle = el('div', 'ws-boss-card-title');
     inner.append(el('div', 'ws-boss-card-emblem', EMBLEM), el('div', 'ws-boss-card-rule'), this.cardName, this.cardTitle);
-    this.skip = el('div', 'ws-boss-card-skip', '<i></i>HOLD TO SKIP');
+    this.skip = el('div', 'ws-boss-card-skip', engineString('s_65d7ea309809'));
     this.card.append(el('div', 'ws-boss-card-band top'), el('div', 'ws-boss-card-band bottom'), inner, this.skip);
     // ── the retry card ──
     this.retry = el('div', 'ws-boss-retry');
@@ -115,7 +116,7 @@ export class BossBar {
 
   // ── retry / reward ──
   showRetry(title: string, attempt: number): void {
-    this.retryTitle.textContent = title; this.retryAttempt.textContent = `ATTEMPT ${attempt}`;
+    this.retryTitle.textContent = title; this.retryAttempt.textContent = engineString('s_9a4f8918b72f', [attempt]);
     this.retry.classList.add('show'); this.retryTimer = 2.6;
   }
   showReward(tier: string, name: string, flavour: string): void {

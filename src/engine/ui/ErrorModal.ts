@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 import { app } from '../app/runtime';
 /**
@@ -135,41 +136,21 @@ function build(): HTMLElement {
   el.id = 'wserr';
   el.setAttribute('role', 'alertdialog');
   el.setAttribute('aria-modal', 'true');
-  el.innerHTML = `
-    <div class="box">
-      <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bra"></i>
-      <p class="tag">Error</p>
-      <h1>Something broke</h1>
-      <p class="line"></p>
-      <div class="rule"></div>
-      <div class="col">
-        <button class="here go" type="button">Reload here</button>
-        <button class="keep" type="button" hidden>Keep playing</button>
-        <button class="title" type="button">Title screen</button>
-      </div>
-      <p class="sent">Sending report…</p>
-      <details>
-        <summary>Details</summary>
-        <p class="msg"></p>
-        <pre class="stack"></pre>
-        <div class="meta"></div>
-        <button class="copy" type="button">Copy</button> <span class="n"></span>
-      </details>
-    </div>`;
+  el.innerHTML = engineString('s_43c4efa7fd98');
   const here = el.querySelector<HTMLButtonElement>('.here');
   if (!here) throw new Error('ErrorModal: no .here');
   const looped = recentReloads().length >= RELOADS_MAX;
   const pose = currentPose();
-  if (looped) here.textContent = 'Reload at spawn';
-  else if (!pose) here.textContent = 'Reload';
-  here.onclick = () => { here.disabled = true; here.textContent = 'Reloading…'; reloadHere(!looped); };
+  if (looped) here.textContent = engineString('s_078b1e7bbe5e');
+  else if (!pose) here.textContent = engineString('s_bdc090ec61e3');
+  here.onclick = () => { here.disabled = true; here.textContent = engineString('s_ea456dcf3d90'); reloadHere(!looped); };
   q(el, '.title').onclick = () => { toTitle(); };
   q(el, '.keep').onclick = () => { el.remove(); root = null; };
   const copyBtn = q(el, '.copy');
   const copy = async (): Promise<void> => {
     const clip = nav.clipboard; if (!clip) return;
     const text = `${q(el, '.msg').textContent}\n\n${q(el, '.stack').textContent}\n\n${q(el, '.meta').textContent}`;
-    try { await clip.writeText(text); copyBtn.textContent = 'Copied'; } catch { copyBtn.textContent = 'Copy failed'; }
+    try { await clip.writeText(text); copyBtn.textContent = engineString('s_8d525e5f158b'); } catch { copyBtn.textContent = engineString('s_5b50e7a693fe'); }
   };
   copyBtn.onclick = () => { void copy(); };
   return el;
@@ -179,7 +160,7 @@ function setSent(o: ReportOutcome): void {
   if (!root) return;
   const s = root.querySelector<HTMLElement>('.sent');
   if (!s) return;
-  s.textContent = o === 'sent' || o === 'dup' ? 'Report sent ✓' : o === 'queued' ? 'Report saved · sends when you are online' : 'Report not sent';
+  s.textContent = o === 'sent' || o === 'dup' ? engineString('s_de6e9efdb28e') : o === 'queued' ? engineString('s_ce2f127a2459') : engineString('s_0dad33e4803c');
   s.classList.toggle('ok', o === 'sent' || o === 'dup');
 }
 
@@ -194,19 +175,19 @@ function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> 
       const alive = loopState() === 'running';
       const looped = recentReloads().length >= RELOADS_MAX;
       q(root, '.line').textContent = looped
-        ? 'It broke again right after a reload. Your progress is saved: try the spawn, or the title screen.'
+        ? engineString('s_1a66f8e11f0a')
         : alive
-          ? 'The game hit an error. You can keep playing, or reload to be safe. Your progress is saved.'
-          : loopState() === 'boot' ? 'The game failed to start. A reload usually fixes it.' : 'The game hit an error it can’t recover from. Your progress is saved.';
+          ? engineString('s_94fef1ec7b83')
+          : loopState() === 'boot' ? engineString('s_d80080606a96') : engineString('s_da009164dfc2');
       q(root, '.keep').hidden = !alive;
       q(root, '.msg').textContent = message;
-      q(root, '.stack').textContent = stack || '(no stack)';
+      q(root, '.stack').textContent = stack || engineString('s_79b59ea37a9c');
       q(root, '.meta').textContent = meta();
       if (document.pointerLockElement) document.exitPointerLock();
       document.dispatchEvent(new Event('ws:background')); // the world pauses under it (a no-op on the title / the boot)
       if (sent) void sent.then(setSent); else setSent('dropped');
     }
-    q(root, '.n').textContent = count > 1 ? `+${count - 1} more (first: ${firstText.slice(0, 40)}…)` : '';
+    q(root, '.n').textContent = count > 1 ? engineString('s_ffd7f4e8c95a', [count - 1, firstText.slice(0, 40)]) : '';
   } catch { /* the modal must never throw */ }
 }
 
@@ -219,12 +200,12 @@ function showChip(sent: Promise<ReportOutcome>): void {
     const chip = document.createElement('div');
     chip.id = 'wserr-chip';
     chip.setAttribute('role', 'status');
-    chip.textContent = 'A glitch was reported';
+    chip.textContent = engineString('s_f589420f0639');
     const out = (): void => { chip.classList.add('out'); window.setTimeout(() => { chip.remove(); }, 500); };
     chip.addEventListener('click', out);
     mount(chip);
     window.setTimeout(out, CHIP_MS);
-    void (async () => { const o = await sent; if (o === 'sent' || o === 'dup') { const b = document.createElement('b'); b.textContent = ' ✓'; chip.append(b); } })();
+    void (async () => { const o = await sent; if (o === 'sent' || o === 'dup') { const b = document.createElement('b'); b.textContent = engineString('s_456509849d2d'); chip.append(b); } })();
   } catch { /* never throw from here */ }
 }
 

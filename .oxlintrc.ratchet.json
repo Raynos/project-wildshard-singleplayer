@@ -17,6 +17,7 @@
     "wildshard/no-hook-chain": "error",
     "wildshard/no-active-singleton": "error",
     "wildshard/no-active-chunk": "error",
-    "wildshard/no-global-listener-patch": "error"
+    "wildshard/no-global-listener-patch": "error",
+    "wildshard/no-inline-ui-string": "error"
   }
 }

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 /** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
@@ -289,7 +290,7 @@ export class TrainingArena {
     registry.add({ id: 'practice-arena', name: 'HUD + Weapon Explorer arena', category: 'ground', file: 'src/engine/practice/TrainingArena.ts', object: root, colliders, surface: 'metal', floor, solidFloor: false });
     const overlay = document.createElement('div'); overlay.className = 'ws-practice';
     document.getElementById('hud')?.append(overlay); this.overlay = overlay;
-    const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = 'PREPARING TRAINING TARGETS';
+    const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = engineString('s_392e9e34e810');
     overlay.append(preparation); this.preparation = preparation;
     // E348: each copy of the shared dummy model its lineup places, its armour the placement's variant
     this.targets = LINEUP.map((spot, i) => {

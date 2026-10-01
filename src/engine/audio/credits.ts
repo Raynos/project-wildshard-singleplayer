@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 // src/engine/audio/credits.ts — the model credits the licences ask the UI to show (project/archive/2026-09-23-music.md v3): MiniMax-Music3 for the
 // score, and the sound-effect set's own `credit` string (public/assets/sfx/best/sfx.json). The one generated set is the better
 // take per sound of MOSS-SoundEffect v2 (Apache-2.0) and Stable Audio 3 Medium (Stability AI Community licence, which asks
@@ -10,10 +11,10 @@ import type { SfxSet } from '../ui/Settings';
 import { shipped } from './Stems';
 import { onScopeDispose } from '../app/legacyCapture';
 
-export const MUSIC_CREDIT = 'Music: MiniMax-Music3';
-const STABILITY = 'Powered by Stability AI';
+export const MUSIC_CREDIT = engineString('s_7fc7e56bbd7f');
+const STABILITY = engineString('s_ef691a454428');
 const NAMES: Record<Exclude<SfxSet, 'synth'>, string> = {
-  best: 'Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI',
+  best: engineString('s_9c6373f9a730'),
 };
 /** the sets whose licence asks for the Stability line (the merged set carries Stable Audio 3 Medium sounds) */
 const STABILITY_SETS: ReadonlySet<SfxSet> = new Set<SfxSet>(['best']);
@@ -23,7 +24,7 @@ const listeners = new Set<() => void>();
 export function sfxCredit(set: SfxSet): string {
   if (set === 'synth' || !shipped(`/assets/sfx/${set}/sfx.json`)) return ''; // a set this build does not ship plays no model's sounds
   const c = loaded.get(set) ?? NAMES[set];
-  return !STABILITY_SETS.has(set) || c.includes('Stability AI') ? c : `${c} · ${STABILITY}`;
+  return !STABILITY_SETS.has(set) || c.includes('Stability AI') ? c : engineString('s_276bbc529952', [c, STABILITY]);
 }
 export function setSfxCredit(set: SfxSet, credit: string): void {
   if (credit.trim() === '' || loaded.get(set) === credit) return;

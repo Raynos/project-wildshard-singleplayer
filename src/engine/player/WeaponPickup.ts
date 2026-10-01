@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Interactable } from '../world/interact/types';
@@ -244,7 +245,7 @@ export class ItemPickup {
     // the prompt loop measures from the CAMERA (eye height): the interact point sits a little above the item so the
     // radius reads as ground distance, like the door's `FLOOR + 1.0` point
     const radius = opts.radius ?? 1.8;
-    this.interactable = { position: new THREE.Vector3(at.x, at.y + HOVER + 0.5, at.z), radius, label: opts.prompt ?? 'Take item', onInteract: () => this.take() };
+    this.interactable = { position: new THREE.Vector3(at.x, at.y + HOVER + 0.5, at.z), radius, label: opts.prompt ?? engineString('s_81326a54c09c'), onInteract: () => this.take() };
   }
 
   /** the prompt text after "[E]" */

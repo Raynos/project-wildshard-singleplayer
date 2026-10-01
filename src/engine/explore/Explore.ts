@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { app } from '../app/runtime';
 /**
  * Explore World — the viewer (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel opens it over the already
@@ -212,7 +213,7 @@ export class Explore {
       <div class="ws-x-hint">RMB drag look · WASD fly · Q / E down · up · Shift fast · wheel speed · F frame</div>`);
     this.speedBtn = this.flyEl.querySelector<HTMLElement>('.ws-x-speed') ?? this.flyEl;
     const note = html('button', 'ws-x-note', '<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z M14 7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>');
-    note.setAttribute('aria-label', 'Feedback note');
+    note.setAttribute('aria-label', engineString('s_a04a8fb11d48'));
     this.toastEl = html('div', 'ws-x-toast');
     this.root.append(top, this.readout, this.hubEl, this.flyEl, note, this.toastEl);
     document.body.append(this.root);
@@ -257,7 +258,7 @@ export class Explore {
   /** ORBIT on a selection: one finger (phone) / Alt-drag (desktop) turns around it; off = free flight again */
   setOrbit(on: boolean, centre?: THREE.Vector3): void {
     if (this.fly) this.fly.orbiting = on;
-    if (on && centre) { this.cam.focus(centre, this.host.world.game.camera.position.distanceTo(centre)); this.toast(this.fly ? 'Orbiting · one finger turns around it' : 'Orbiting · Alt-drag turns around it'); }
+    if (on && centre) { this.cam.focus(centre, this.host.world.game.camera.position.distanceTo(centre)); this.toast(this.fly ? engineString('s_f3b53c98df2e') : engineString('s_74f6241006aa')); }
   }
 
   /**
@@ -349,7 +350,7 @@ export class Explore {
   viewSetInWorld(from: THREE.Vector3, look: THREE.Vector3, name: string): void {
     this.setMode('world');
     this.cam.placeAt(from, look);
-    this.toast(`${name} · free flight`);
+    this.toast(engineString('s_7e433d55bb7c', [name]));
   }
 
   /** a smooth camera flight (god mode stays god mode: controls come back on arrival) */
@@ -409,8 +410,8 @@ export class Explore {
   /** the ✕ says where the step goes: ‹ while there is somewhere inside Explore to go back to, ✕ when it leaves */
   syncBack(): void {
     const inner = this.mode !== 'hub' || this.map?.isOpen === true || this.compare?.isOpen === true;
-    this.closeBtn.textContent = inner ? '‹' : '✕';
-    this.closeBtn.setAttribute('aria-label', inner ? 'Back' : 'Back to the title');
+    this.closeBtn.textContent = inner ? engineString('s_0685a836e461') : engineString('s_be64f28a8d0a');
+    this.closeBtn.setAttribute('aria-label', inner ? engineString('s_76900f1bfd16') : engineString('s_eac4d36a9469'));
   }
 
   /** Put the parked player back before either leaving to the title or entering practice. */
@@ -478,7 +479,7 @@ export class Explore {
     this.speed = i;
     const s = SPEEDS[i] ?? SPEEDS[1];
     this.cam.moveSpeed = s[1];
-    this.speedBtn.textContent = `Speed · ${s[0]}`;
+    this.speedBtn.textContent = engineString('s_63ff29eeca2a', [s[0]]);
   }
 
   /** the review composer is up (main.ts Feedback host.hold) */
@@ -525,7 +526,7 @@ export class Explore {
     const submit = async (): Promise<void> => {
       const r = await unlockReview(input?.value ?? '');
       if (r === 'ok') { done(); this.host.openFeedback(); return; }
-      if (msg) msg.textContent = r === 'bad' ? 'Wrong password' : 'Offline — try again';
+      if (msg) msg.textContent = r === 'bad' ? engineString('s_2dde10bde49e') : engineString('s_69cf0e392d1e');
     };
     box.addEventListener('submit', (e) => { e.preventDefault(); void submit(); });
     this.root.append(box);
@@ -576,7 +577,7 @@ export class Explore {
       const p = camera.position, hdg = Math.round((((180 - (this.cam.yaw * 180) / Math.PI) % 360) + 360) % 360);
       const alt = p.y - Math.max(heightAt(p.x, p.z), 0);
       const { stats, lastFrame } = this.host.world.game;
-      this.readout.textContent = `ALT ${alt.toFixed(alt < 10 ? 1 : 0)} m · x ${Math.round(p.x)} z ${Math.round(p.z)} · HDG ${String(hdg).padStart(3, '0')}°\n${stats.fps} fps · ${lastFrame.calls} calls · ${(lastFrame.triangles / 1e6).toFixed(2)} M tris`;
+      this.readout.textContent = engineString('s_1db2c8e54849', [alt.toFixed(alt < 10 ? 1 : 0), Math.round(p.x), Math.round(p.z), String(hdg).padStart(3, '0'), stats.fps, lastFrame.calls, (lastFrame.triangles / 1e6).toFixed(2)]);
     }
   }
 }

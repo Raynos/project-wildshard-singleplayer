@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * pause ▸ Settings ▸ Debug and main menu ▸ Settings ▸ Debug (E172: one registry, both menus), rendered from the registry (E162, src/engine/ui/debugOptions.ts): a filter box, then one section per
@@ -62,7 +63,7 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
   b.addEventListener('click', () => {
     const confirm = a.confirm;
     if (confirm === undefined || armed) { window.clearTimeout(disarm); armed = false; b.classList.remove('armed'); run(); return; }
-    b.disabled = true; b.textContent = 'Measuring…';
+    b.disabled = true; b.textContent = engineString('s_a1f421df5e50');
     void confirm().then((text) => {
       b.disabled = false; armed = true; b.classList.add('armed'); b.textContent = text;
       window.clearTimeout(disarm); disarm = window.setTimeout(rest, ARM_MS);
@@ -77,7 +78,7 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
 function renderRow(r: DebugRow, onPick: (id: string) => void): Rendered {
   const row = make('ws-gmenu-row ws-dbg-row');
   const label = make('ws-gmenu-swlabel', r.label, 'span');
-  if (r.reload) label.append(make('ws-dbg-reload', 'reload', 'i'));
+  if (r.reload) label.append(make('ws-dbg-reload', engineString('s_4027f515418b'), 'i'));
   label.append(make('ws-dbg-note', r.note, 'small'));
   if (r.action) return renderAction(r, r.action, row, label, onPick);
   const box = make('ws-gmenu-seg ws-dbg-seg');
@@ -108,13 +109,13 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
   const open = loadOpen();
   const byId = new Map<string, HTMLElement>();
   const filter = document.createElement('input');
-  filter.type = 'search'; filter.className = 'ws-gmenu-input ws-dbg-filter'; filter.placeholder = 'Filter toggles'; filter.autocomplete = 'off'; filter.enterKeyHint = 'done';
+  filter.type = 'search'; filter.className = 'ws-gmenu-input ws-dbg-filter'; filter.placeholder = engineString('s_b16f4cef43e2'); filter.autocomplete = 'off'; filter.enterKeyHint = 'done';
   // the menu listens for M / Esc and the player for WASD on document: typing a filter must not reach them
   filter.addEventListener('keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); });
   filter.addEventListener('keyup', (e) => { e.stopPropagation(); });
   filter.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
   const filterRow = make('ws-dbg-filterrow'); filterRow.append(filter);
-  const empty = make('ws-gmenu-note ws-dbg-empty', 'No toggle matches.'); empty.hidden = true;
+  const empty = make('ws-gmenu-note ws-dbg-empty', engineString('s_6abb96d68c35')); empty.hidden = true;
   card.append(filterRow);
 
   const paintOpen = (s: Section, forced = false): void => {

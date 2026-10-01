@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
 import { lineFor, type DialogueEntry, type NpcDef } from './core';
@@ -121,7 +122,7 @@ export function placesWithDiscovery(pts: PlacePoint[], flags: Flags, toast: (t: 
       if (practiceRoom.open) return; // an arena / playground has no discovery locations (E307)
       for (const p of pts) {
         if (flags.has(`seen:${p.id}`)) continue;
-        if ((p.x - x) ** 2 + (p.z - z) ** 2 < p.r * p.r) { flags.set(`seen:${p.id}`); if (p.quiet !== true) toast(`Discovered · ${p.label}`); }
+        if ((p.x - x) ** 2 + (p.z - z) ** 2 < p.r * p.r) { flags.set(`seen:${p.id}`); if (p.quiet !== true) toast(engineString('s_4a4322f3623e', [p.label])); }
       }
     },
     mapPois: () => {

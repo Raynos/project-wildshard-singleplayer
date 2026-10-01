@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import type { Events } from '../events/events';
 import type { Vector3 } from 'three';
 import { Hfsm } from './hfsm';
@@ -215,7 +216,7 @@ export class BossBrain {
     this.save();
     this.def.reward.trophy?.();
     if (first) this.host.spawnReward();
-    else this.host.toast?.(`${this.def.name} falls again — the gold is already yours`);
+    else this.host.toast?.(engineString('s_100cbeedfcec', [this.def.name]));
   }
 
 }

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The full map — the MAP tab of the in-game menu (src/engine/ui/Menu.ts): tap the minimap or press M.
  *
@@ -212,8 +213,8 @@ export class FullMap {
     const fs = Math.max(11 * this.dpr, side * 0.022 / this._zoom);
     const px = sx(pos.x), py = sz(pos.z), r = Math.max(7 * this.dpr, fs * 0.6);
     const list: Pin[] = this.poiSource ? this.poiSource() : [
-      ...CABIN_SITES.map((c, i): Pin => ({ x: c.x, z: c.z, label: `CABIN ${i + 1}`, kind: 'place', color: '#8fe3ff' })),
-      ...(hasPond() ? [{ x: POND.x, z: POND.z, label: 'THE POND', kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
+      ...CABIN_SITES.map((c, i): Pin => ({ x: c.x, z: c.z, label: engineString('s_a5912d0f68ef', [i + 1]), kind: 'place', color: '#8fe3ff' })),
+      ...(hasPond() ? [{ x: POND.x, z: POND.z, label: engineString('s_5dddbb894d63'), kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
     ];
     const tally = this.tally ? this.layTally(list, ox, oy + side) : null;
     // the minimap's marks (Driftwood's sea chart: every unfound sea glass piece, E314) — under the pins, no labels, not
@@ -244,7 +245,7 @@ export class FullMap {
 
     // N marker at the top edge of the chunk
     ctx.fillStyle = '#8fe3ff'; ctx.font = `700 ${Math.max(12 * this.dpr, fs * 1.3)}px Rajdhani, sans-serif`; ctx.textBaseline = 'bottom';
-    ctx.fillText('N', ox + side / 2, oy - 4 * this.dpr);
+    ctx.fillText(engineString('s_8ce86a6ae65d'), ox + side / 2, oy - 4 * this.dpr);
   }
 
   // ── zoom tiles: the ground at the screen's own resolution, level ℓ = LAYER_PPM · 2^ℓ px/m ──
@@ -298,7 +299,7 @@ export class FullMap {
     ctx.textBaseline = 'top'; ctx.textAlign = 'left';
     const pins = list.map((p) => {
       const r = p.kind === 'quest' ? Math.max(6 * d, fs * 0.55) : p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(10 * d, fs * 0.85);
-      return { p, x: sx(p.x), y: sz(p.z), r, text: p.kind === 'unknown' ? '?' : p.kind === 'quest' ? (p.short ?? p.label) : p.label, glyph: p.kind === 'quest', own: true };
+      return { p, x: sx(p.x), y: sz(p.z), r, text: p.kind === 'unknown' ? engineString('s_8a8de823d5ed') : p.kind === 'quest' ? (p.short ?? p.label) : p.label, glyph: p.kind === 'quest', own: true };
     });
     // two unfound rings that would overlap (the sea cave by the wreck, at 1×) are pushed apart along the line between them
     for (let i = 0; i < pins.length; i++) for (let j = i + 1; j < pins.length; j++) {
@@ -333,7 +334,7 @@ export class FullMap {
         ctx.setLineDash(this.dash); ctx.strokeStyle = CYAN; ctx.lineWidth = 1.6 * d; ctx.stroke(); ctx.setLineDash(NO_DASH);
         ctx.save();
         ctx.font = `700 ${Math.round(m.r * 1.25)}px JetBrains Mono, Menlo, monospace`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = CYAN; ctx.fillText('?', m.x, m.y + m.r * 0.06);
+        ctx.fillStyle = CYAN; ctx.fillText(engineString('s_8a8de823d5ed'), m.x, m.y + m.r * 0.06);
         ctx.restore();
         continue;
       }

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * WaterLine — the cheap water-line effect for swimming: a DOM gradient (no render pass) that tints the bottom of the
  * view as the eye nears the surface, and the UNDERWATER LOOK once it dips under: a teal-blue wash that deepens with
@@ -55,7 +56,7 @@ export class WaterLine {
     const el = this.el = document.createElement('div');
     el.className = 'ws-waterline';
     el.style.background = ABOVE;
-    el.innerHTML = '<i class="caustic"></i><i class="caustic2"></i><i class="vignette"></i><i class="deep"></i>';
+    el.innerHTML = engineString('s_8a0384e5d38d');
     const deep = el.querySelector<HTMLElement>('.deep');
     if (deep === null) throw new Error('WaterLine: .deep layer missing');
     this.deep = deep;

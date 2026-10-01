@@ -1,3 +1,5 @@
+import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
+import { installEngineStrings } from '../src/engine/strings';
 /**
  * Test environment: plain node plus the two browser globals the game's pure modules touch at import time —
  * `localStorage` (Settings / Inventory / Progress / boot timings persist there) and `location` (the chunk registry
@@ -16,6 +18,7 @@ export class MemoryStorage {
   setItem(key: string, value: string): void { this.data.set(key, value); }
 }
 
+installEngineStrings(ENGINE_CONTENT_STRINGS);
 vi.stubGlobal('localStorage', new MemoryStorage());
 vi.stubGlobal('location', new URL('http://localhost:5173/'));
 

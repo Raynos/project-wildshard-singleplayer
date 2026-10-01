@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
@@ -349,7 +350,7 @@ function thinkMonkey(a: Animal, c: ThinkCtx): void {
 
 registerSpecies({
   kind: 'monkey',
-  label: 'Coconut monkey',
+  label: engineString('s_665ecc111ad3'),
   fur: NO_FUR,
   rig: 'custom',
   aggressive: true,
@@ -357,8 +358,8 @@ registerSpecies({
   chargeDamage: BITE_DAMAGE,
   sounds: { call: 'monkey_chatter', hurt: 'monkey_shriek', callEvery: [6, 18] },
   variants: [
-    { id: 'monkey', label: 'Coconut monkey', weight: 85, rarity: 'common', scale: [1.25, 1.4], hp: 30 },
-    { id: 'elder', label: 'Grey elder', weight: 15, rarity: 'uncommon', scale: [1.5, 1.6], hp: 45, tint: { fur: [0.62, 0.58, 0.50], back: [0.40, 0.37, 0.32], belly: [0.85, 0.82, 0.74] } },
+    { id: 'monkey', label: engineString('s_665ecc111ad3'), weight: 85, rarity: 'common', scale: [1.25, 1.4], hp: 30 },
+    { id: 'elder', label: engineString('s_d5584ccb3432'), weight: 15, rarity: 'uncommon', scale: [1.5, 1.6], hp: 45, tint: { fur: [0.62, 0.58, 0.50], back: [0.40, 0.37, 0.32], belly: [0.85, 0.82, 0.74] } },
   ],
   build: buildMonkey,
   animate: animateMonkey,

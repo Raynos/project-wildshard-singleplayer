@@ -15,13 +15,14 @@ const errors = [];
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
     hasTouch: true, isMobile: true, recordVideo: { dir: out, size: { width: 390, height: 844 } } });
+  await context.addInitScript(() => { window.__wildshardHarness = { seed: 0x2545f491, capture: 30 }; });
   const page = await context.newPage();
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'warning' && m.text().includes('dummy')) errors.push(m.text()); });
   const start = Date.now();
   await page.goto(`${served}/?chunk=driftwood-isle&touch&tier=phone&skipintro&nolock&mute`);
   await page.waitForFunction(() => Boolean(window.__wildshard?.world?.arena), undefined, { timeout: 300000 });
-  await page.evaluate(() => window.__wildshard.world.hud.enterArenaNow());
+  await page.evaluate(() => { window.__wildshard.world.game.app.clock.setCapture(30); window.__wildshard.world.hud.enterArenaNow(); });
   await page.waitForFunction(() => window.__wildshard.world.arena.targets.every((t) => t.ready && t.clips?.bones.length === 13), undefined, { timeout: 180000 });
   await page.waitForTimeout(2000);
   const trim = (Date.now() - start) / 1000;
@@ -48,7 +49,7 @@ try {
   }
   await page.waitForTimeout(3000);
   const report = { method: 'Built game, actual HUD arena, scripted simultaneous damage calls; portrait phone tier on Chromium Metal',
-    clips, errors, videoTrimStart: trim };
+    clips, errors, captureFps: 30, seed: 0x2545f491, videoTrimStart: trim };
   writeFileSync(`${out}/runtime.json`, `${JSON.stringify(report, null, 2)  }\n`);
   const video = page.video(); await context.close();
   const raw = await video.path();

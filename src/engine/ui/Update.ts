@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Build pill on the title screen: shows the running build and reloads on tap.
  * Bookmarked as a home-screen PWA on iOS there is no address bar, so this is the only
@@ -23,7 +24,7 @@ const sha = shortBuild(__BUILD_ID__);
 const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
-el.innerHTML = '<span class="ws-update-dot"></span><span data-el="text"></span>';
+el.innerHTML = engineString('s_85c05389552b');
 document.body.append(el);
 
 let busy = false;
@@ -31,7 +32,7 @@ const reload = async (): Promise<void> => {
   if (busy) return;
   busy = true;
   const text = el.querySelector('[data-el="text"]');
-  if (text) text.textContent = 'updating…'; // the tap is acknowledged at once, whatever the hand-over does
+  if (text) text.textContent = engineString('s_41273a4673fc'); // the tap is acknowledged at once, whatever the hand-over does
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/engine/boot/sw.ts).
   const sw = window.__ws_sw;
   if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(undefined, 'build pill tap');
@@ -54,7 +55,7 @@ let newLabel = '';
 const paint = (): void => {
   const text = el.querySelector('[data-el="text"]');
   if (!text || busy) return;
-  text.textContent = !newer ? `${sha} · reload` : isDev() ? `new ${newLabel} · tap to update` : 'New version · tap to update';
+  text.textContent = !newer ? engineString('s_9e4fe13a912d', [sha]) : isDev() ? engineString('s_cdffb5171a9f', [newLabel]) : engineString('s_24d3f7fed5a7');
 };
 const lightUp = (label: string): void => {
   newer = true;
@@ -65,7 +66,7 @@ const lightUp = (label: string): void => {
 };
 paint();
 // the worker found a new build (installed, waiting) — same pill, no toast
-window.addEventListener('ws-sw-waiting', () => { lightUp('build'); });
+window.addEventListener('ws-sw-waiting', () => { lightUp(engineString('s_44575cf5b285')); });
 
 async function check(): Promise<void> {
   if (newer || !navigator.onLine) return; // offline (the PWA plays from its cache): no request that can only fail

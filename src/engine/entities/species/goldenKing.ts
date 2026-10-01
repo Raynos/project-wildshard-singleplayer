@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
@@ -418,7 +419,7 @@ function thinkKing(a: Animal, c: ThinkCtx): void {
 
 registerSpecies({
   kind: GOLDEN_KING,
-  label: 'The Golden King',
+  label: engineString('s_5e6771dbba8c'),
   fur: NO_FUR,
   rig: 'custom',
   aggressive: true,
@@ -428,7 +429,7 @@ registerSpecies({
   eyeGlow: [0.9, 0.55, 0.12], eyeGlowIntensity: 0.18,
   sounds: { call: 'king_call', hurt: 'king_hurt', callEvery: [18, 40] }, // its own voice (NALATI-MERGE A1), not Pine's bear / Driftwood's sailor
   variants: [
-    { id: 'king', label: 'The Golden King', weight: 1, rarity: 'legendary', scale: [1.22, 1.22], hp: 2400 },
+    { id: 'king', label: engineString('s_5e6771dbba8c'), weight: 1, rarity: 'legendary', scale: [1.22, 1.22], hp: 2400 },
   ],
   build: buildKing,
   animate: animateKing,

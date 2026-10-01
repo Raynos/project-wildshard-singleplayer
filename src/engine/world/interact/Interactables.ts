@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Interactables — the runtime of the interactables kit (A2): builds every row of an `InteractTable` (types.ts) into TWO
  * BatchedMeshes for the whole shard (lit parts on the shared `lowPolyMaterial`, glowing parts unlit — 2 draw calls,
@@ -528,7 +529,7 @@ export class Interactables {
       // a latching door whose condition came true stays open
       if (d.kind === 'door' && d.latch === true && d.opensWhen !== undefined && !this.has(`open:${d.id}`) && test(this.host.flags, d.opensWhen)) {
         this.host.flags.set(`open:${d.id}`);
-        this.emit({ type: 'door', def: d, text: d.toast ?? 'Something opened', at: lv.position });
+        this.emit({ type: 'door', def: d, text: d.toast ?? engineString('s_83d237706c2b'), at: lv.position });
       }
     }
   }
@@ -622,12 +623,12 @@ export class Interactables {
         this.emit({ type: 'open', def: d, text: d.toast ?? '', at });
         for (const l of d.loot) {
           if ('item' in l) this.emit({ type: 'loot', def: d, item: l.item, n: l.n ?? 1, at });
-          else if ('key' in l) { F.set(`key:${l.key}`); this.emit({ type: 'loot', def: d, text: `Found ${l.label}`, at }); }
-          else { F.set(l.flag); this.emit({ type: 'loot', def: d, text: `Found ${l.label}`, flag: l.flag, at }); }
+          else if ('key' in l) { F.set(`key:${l.key}`); this.emit({ type: 'loot', def: d, text: engineString('s_f2abdaceed9a', [l.label]), at }); }
+          else { F.set(l.flag); this.emit({ type: 'loot', def: d, text: engineString('s_f2abdaceed9a', [l.label]), flag: l.flag, at }); }
         }
         break;
       }
-      case 'key': F.set(`key:${d.key}`); raise(); this.emit({ type: 'take', def: d, text: d.toast ?? `Took ${d.label}`, at }); break;
+      case 'key': F.set(`key:${d.key}`); raise(); this.emit({ type: 'take', def: d, text: d.toast ?? engineString('s_126d87005647', [d.label]), at }); break;
       case 'pickup': this.take(lv); break;
       case 'door': {
         if (d.look === 'plank' && F.has(`open:${d.id}`)) { F.clear(`open:${d.id}`); this.emit({ type: 'door', def: d, text: '', at }); break; }
@@ -641,7 +642,7 @@ export class Interactables {
         this.emit({ type: 'lever', def: d, text: d.toast ?? '', at });
         break;
       }
-      case 'beacon': raise(); this.emit({ type: 'light', def: d, text: d.toast ?? 'The beacon is lit', at }); break;
+      case 'beacon': raise(); this.emit({ type: 'light', def: d, text: d.toast ?? engineString('s_73269da1371d'), at }); break;
       case 'bench': raise(); this.emit({ type: 'sit', def: d, text: d.toast ?? '', at }); this.onSit?.(lv.position, lv.yaw); break;
       case 'altar': raise(); this.emit({ type: 'use', def: d, text: d.toast ?? '', at }); break;
       case 'plate': case 'barrel': break;
@@ -740,7 +741,7 @@ export class Interactables {
     b.teleport({ x: lv.home.x, y: lv.home.y + BARREL_HALF + 0.01, z: lv.home.z }, lv.rot);
     lv.position.copy(lv.home); lv.dirty = true;
     lv.watch?.clear();
-    if (announce) this.emit({ type: 'barrel-reset', def: d, text: d.toast ?? 'The barrel rolls back to where it was', at: lv.position });
+    if (announce) this.emit({ type: 'barrel-reset', def: d, text: d.toast ?? engineString('s_fa58d2eb0c57'), at: lv.position });
   }
 }
 

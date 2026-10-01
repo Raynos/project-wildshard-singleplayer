@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The gear several shards' players hold (E306 / E315 M5, category `gear`), and what every shard's gear cards share.
  *
@@ -28,7 +29,7 @@ export interface GearSkinParams { readonly skin: SkinId | null }
 /** a skinnable weapon's variants: plain, then every legendary skin made for it (Skins.ts SKINS, by `weapon`) */
 export function skinVariants(kind: WeaponKind, rows: readonly SkinDef[]): readonly ModelVariant<GearSkinParams>[] {
   const skins = rows.filter((s) => s.weapon === kind).map((s) => ({ id: s.id, label: s.name, params: { skin: s.id } }));
-  return [{ id: 'plain', label: 'Plain', params: { skin: null } }, ...skins];
+  return [{ id: 'plain', label: engineString('s_8b854ade2cd0'), params: { skin: null } }, ...skins];
 }
 
 /** dress a specimen in its variant's skin: Skins.applySkin clones the materials the skin changes, for this root alone */

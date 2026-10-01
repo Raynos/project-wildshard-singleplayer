@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Settings ▸ DEVELOPER (E140, the user's 1c): the one visible switch for developer mode (src/engine/core/devMode.ts), in the pause
  * menu's Settings (src/engine/ui/Menu.ts) and the title's (src/engine/ui/BootSettings.ts). Styled by gmenu.css like every other switch.
@@ -8,18 +9,18 @@ import { isDev, onDev, setDev } from '../core/devMode';
 export function devSwitchRows(): HTMLElement[] {
   const label = document.createElement('div');
   label.className = 'ws-gmenu-label';
-  label.textContent = 'Developer';
+  label.textContent = engineString('s_3fb7b39416f1');
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'ws-gmenu-switch';
   b.setAttribute('role', 'switch');
-  b.innerHTML = '<span class="ws-gmenu-swlabel">Developer mode</span><i class="ws-gmenu-pill"></i>';
+  b.innerHTML = engineString('s_008ede743530');
   const sync = (on: boolean): void => { b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); };
   sync(isDev()); onDev(sync);
   b.addEventListener('click', () => { setDev(!isDev()); });
   const note = document.createElement('div');
   note.className = 'ws-gmenu-note';
-  note.textContent = 'Shows the frame meter, the build id, the loading details and the Debug settings.';
+  note.textContent = engineString('s_f427cd6641a5');
   return [label, b, note];
 }
 

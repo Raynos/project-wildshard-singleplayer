@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { buildSavePanel } from './SavePanel';
 import { app } from '../app/runtime';
 import type { AppState } from '../app/systems';
@@ -55,20 +56,20 @@ export type MenuTab = 'map' | 'gear' | 'finds' | 'inventory' | 'achievements' | 
 /** the BAG's tabs are icon tabs, one short word each (E314, Jake's pick board 8 A): MAP · GEAR · FINDS · PACK · FEATS on
  *  every shard (FINDS only where the shard has finds: Driftwood today; `inventory` is PACK, `achievements` FEATS) */
 const TABS: { id: MenuTab; label: string; icon?: IconId }[] = [
-  { id: 'map', label: 'Map', icon: 'map' }, { id: 'gear', label: 'Gear', icon: 'sword' }, { id: 'finds', label: 'Finds', icon: 'seaglass' },
-  { id: 'inventory', label: 'Pack', icon: 'pack' }, { id: 'achievements', label: 'Feats', icon: 'star' }, { id: 'settings', label: 'Settings' },
-  { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
+  { id: 'map', label: engineString('s_be176b0015c4'), icon: 'map' }, { id: 'gear', label: engineString('s_d6eaec65e742'), icon: 'sword' }, { id: 'finds', label: engineString('s_e0c3d922cd87'), icon: 'seaglass' },
+  { id: 'inventory', label: engineString('s_80dc21673e55'), icon: 'pack' }, { id: 'achievements', label: engineString('s_9194ccf56b9c'), icon: 'star' }, { id: 'settings', label: engineString('s_74a883a037bc') },
+  { id: 'feedback', label: engineString('s_aac77df34720') }, // only while the review inbox is unlocked (syncReview)
 ];
 /** the two menus (E124): which one a tab lives in */
 export type MenuGroup = 'pause' | 'bag';
 const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', gear: 'bag', finds: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
-const TITLE: Record<MenuGroup, string> = { pause: 'Paused', bag: 'Bag' };
+const TITLE: Record<MenuGroup, string> = { pause: engineString('s_e159b06187d3'), bag: engineString('s_b053c961f2ac') };
 /** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
 const KEY_TAB: Partial<Record<string, MenuTab>> = { KeyM: 'map', KeyI: 'inventory' };
 /** what a Settings row's "applies when" reads: the weapons you hold now and the shard */
 interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; tracers: boolean; huntersEye: boolean; chunk: ShardManifest }
 type When = (c: SettingsCtx) => boolean;
-const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', gear: 'Tap a weapon to hold it', finds: 'Found = bright · missing = dashed', inventory: 'What the hunt leaves you', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
+const HINTS: Record<MenuTab, string> = { map: engineString('s_90238ffb7476'), gear: engineString('s_d6a37d4c0ef4'), finds: engineString('s_77fb830f183c'), inventory: engineString('s_f60c27a1ad27'), achievements: engineString('s_b86de6f1d8e0'), settings: engineString('s_de1b7705e971'), feedback: engineString('s_1806a5739ce4') };
 
 /** the weapons as the GEAR tab shows them — read live from Weapons (src/engine/player/Weapons.ts) */
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId; melee: boolean; tracers: boolean; huntersEye: boolean }
@@ -141,15 +142,7 @@ export class GameMenu {
     // have to scroll back to top"): the header bar is the menu's one row of actions, pinned above the tabs and the panel.
     // The left button goes back to play in both menus (RESUME / CLOSE); EXIT TO MAIN, the pause menu's only, sits on the
     // right, so a thumb that dismisses the BAG at the top-left never lands on the exit in the PAUSE menu
-    this.sheet.innerHTML = `
-      <div class="ws-gmenu-head ws-gmenu-bar">
-        <button class="ws-gmenu-close" type="button">Resume</button>
-        <div class="ws-gmenu-mid">
-          <div class="ws-gmenu-titlerow"><div class="ws-gmenu-title">Menu</div></div>
-          <div class="ws-gmenu-sub">${esc(def.name)}</div>
-        </div>
-        <button class="ws-gmenu-exit" type="button" aria-label="Exit to main menu">Exit <span class="ws-gmenu-nowrap">to main</span></button>
-      </div>`;
+    this.sheet.innerHTML = engineString('s_1856a8fac1fd', [esc(def.name)]);
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
       const b = el('ws-gmenu-tab', tabHtml(t.label, t.icon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
@@ -174,11 +167,11 @@ export class GameMenu {
     const foot = el('ws-gmenu-mapfoot');
     const zooms = el('ws-gmenu-zooms');
     for (const z of [1, 2, 4]) {
-      const b = el('ws-gmenu-zoom', `${z}×`, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['z'] = String(z);
+      const b = el('ws-gmenu-zoom', engineString('s_03a5f0ef36b4', [z]), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['z'] = String(z);
       b.addEventListener('click', () => { opts.fullMap.setZoom(z); this.syncZoom(); });
       zooms.append(b); this.zoomChips.push(b);
     }
-    foot.append(zooms, el('ws-gmenu-legend', `<span><i class="poi">${icon('poi')}</i>POI</span><span><i class="you">${icon('you')}</i>You</span>`));
+    foot.append(zooms, el('ws-gmenu-legend', engineString('s_dd35e28aa4b1', [icon('poi'), icon('you')])));
     this.panels.map.append(this.mapMeta, this.mapQuest, frame, foot);
     opts.fullMap.onZoom = () => this.syncZoom();
 
@@ -237,10 +230,10 @@ export class GameMenu {
     this.tabBar.classList.toggle('four', shown === 4); // a BAG without FINDS (Nalati, Nine Dragon): ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
     this.tabBar.classList.toggle('icons', group === 'bag');
-    this.title.textContent = this.practice && group === 'pause' ? 'Practice' : TITLE[group];
+    this.title.textContent = this.practice && group === 'pause' ? engineString('s_d3857b12b4ce') : TITLE[group];
     // E178: the PAUSE menu leaves to the title from its header; the BAG only closes
     const pause = group === 'pause';
-    this.closeBtn.textContent = pause ? 'Resume' : 'Close';
+    this.closeBtn.textContent = pause ? engineString('s_d640c7421da0') : engineString('s_7d9eb7acb13e');
     this.exitBtn.hidden = !pause;
     // E176: the build pill shows over the PAUSE menu (not the BAG), so the root says which one is up
     this.root.classList.toggle('pause', pause);
@@ -261,8 +254,8 @@ export class GameMenu {
     this.root.classList.toggle('practice', active);
     this.subtitle.textContent = active ? room : getActiveChunk().name;
     this.mapMeta.textContent = active ? room : getActiveChunk().name; // E314: the MAP tab over a room's own map names the room
-    this.exitBtn.innerHTML = active ? 'Exit <span class="ws-gmenu-nowrap">to Explore</span>' : 'Exit <span class="ws-gmenu-nowrap">to main</span>';
-    this.exitBtn.setAttribute('aria-label', active ? 'Exit to Explore' : 'Exit to main menu');
+    this.exitBtn.innerHTML = active ? engineString('s_36c97383811d') : engineString('s_2c5e5026f627');
+    this.exitBtn.setAttribute('aria-label', active ? engineString('s_084735ce4470') : engineString('s_83b2c11883e2'));
     if (active && this._tab === 'map' && this.noMap) this.select('settings'); else this.syncTabs();
   }
 
@@ -366,7 +359,7 @@ export class GameMenu {
     const q = this.opts.fullMap.quest;
     this.mapQuest.hidden = q === null || q.objective === '';
     if (!q) return;
-    this.mapQuest.innerHTML = `<div class="ws-gmenu-mapquest-title">${esc(q.title)}</div><div class="ws-gmenu-mapquest-obj"><i></i>${esc(q.objective)}</div>${q.hint ? `<div class="ws-gmenu-mapquest-hint">${esc(q.hint)}</div>` : ''}`;
+    this.mapQuest.innerHTML = engineString('s_9b2a687f808a', [esc(q.title), esc(q.objective), q.hint ? engineString('s_ceba3ca94f0b', [esc(q.hint)]) : '']);
   }
 
   private syncZoom() {
@@ -397,14 +390,14 @@ export class GameMenu {
     const items = this.opts.inventory.items;
     const slots = this.opts.inventory.slots;
     const trade = this.opts.pack;
-    p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${slots}`));
+    p.append(el('ws-gmenu-label', engineString('s_94d98347b2ef', [items.length, slots])));
     if (trade) p.append(el('ws-gmenu-packnote', esc(trade.note)));
     const grid = el('ws-gmenu-grid');
     for (let i = 0; i < slots; i++) {
       const it = items[i];
       const line = it && trade ? trade.line(it.id) : null; // Pine Hollow: what Mott gives for it (E314 C)
       grid.append(it
-        ? el('ws-gmenu-slot', `<i class="ws-gmenu-sicon">${icon(it.icon)}</i><b class="ws-gmenu-count">×${it.count}</b><span class="ws-gmenu-sname">${esc(it.label)}</span>${line !== null ? `<span class="ws-gmenu-sline">${esc(line)}</span>` : ''}`)
+        ? el('ws-gmenu-slot', engineString('s_96ae14555109', [icon(it.icon), it.count, esc(it.label), line !== null ? engineString('s_b5f268a201a9', [esc(line)]) : '']))
         : el('ws-gmenu-slot empty'));
     }
     p.append(grid);
@@ -418,33 +411,20 @@ export class GameMenu {
     // the shard's "complete" card (E132, src/game/complete/ShardComplete.ts), once its quest is done: a row on top that reopens it
     const done = completeEntry();
     if (done) {
-      const row = el('ws-gmenu-done', `<i class="ws-gmenu-done-icon">${icon('laurel')}</i><div class="ws-gmenu-abody"><div class="ws-gmenu-aname">${esc(done.label)}</div><div class="ws-gmenu-agoal">${esc(done.sub)}</div></div><span class="ws-gmenu-chip">Open</span>`, 'button');
+      const row = el('ws-gmenu-done', engineString('s_07078891e4d4', [icon('laurel'), esc(done.label), esc(done.sub)]), 'button');
       (row as HTMLButtonElement).type = 'button';
       row.addEventListener('click', () => { this.close(true); done.open(); });   // silent: the card resumes play itself
       p.append(row);
     }
-    p.append(el('ws-gmenu-label', `${esc(def.name)} · ${e} / ${n} earned`));
-    p.append(el('ws-bar ws-gmenu-total', `<i style="width:${n ? (e / n) * 100 : 0}%"></i>`));
-    p.append(el('ws-gmenu-label', 'Your title'));
+    p.append(el('ws-gmenu-label', engineString('s_19898a95936f', [esc(def.name), e, n])));
+    p.append(el('ws-bar ws-gmenu-total', engineString('s_3ac582ba7063', [n ? (e / n) * 100 : 0])));
+    p.append(el('ws-gmenu-label', engineString('s_e2d6dc448c63')));
     const t = pr.title;
-    p.append(el(`ws-gmenu-titlecard${t ? '' : ' none'}`, `
-      <i class="ws-gmenu-laurel">${icon('laurel')}</i>
-      <div><div class="ws-gmenu-titletext">${t ? esc(t.title) : 'No title yet'}</div>
-      <div class="ws-gmenu-titlesub">${t ? 'Shown under your name in multiplayer' : 'Earn one below'}</div></div>`));
-    p.append(el('ws-gmenu-label', 'Shard achievements'));
-    if (!n) p.append(el('ws-gmenu-empty', 'This shard has no achievements yet.'));
+    p.append(el(`ws-gmenu-titlecard${t ? '' : ' none'}`, engineString('s_7eb13d096208', [icon('laurel'), t ? esc(t.title) : engineString('s_7aa430f0081b'), t ? engineString('s_3b833995b06d') : engineString('s_f912f6149076')])));
+    p.append(el('ws-gmenu-label', engineString('s_da4ea1a751fa')));
+    if (!n) p.append(el('ws-gmenu-empty', engineString('s_86170799a9ce')));
     for (const r of rows) {
-      const row = el(`ws-gmenu-ach${r.earned ? ' earned' : ''}${r.active ? ' active' : ''}`, `
-        <i class="ws-gmenu-aicon ${r.def.icon}">${icon(r.def.icon)}</i>
-        <div class="ws-gmenu-abody">
-          <div class="ws-gmenu-aname">${esc(r.def.name)}</div>
-          <div class="ws-gmenu-agoal">${esc(r.def.goal)} · ${r.count} / ${r.def.count}</div>
-          <div class="ws-bar"><i style="width:${(r.count / r.def.count) * 100}%"></i></div>
-        </div>
-        <div class="ws-gmenu-areward">
-          <i class="ws-gmenu-amark">${icon(r.earned ? 'check' : 'lock')}</i>
-          <div><div class="ws-gmenu-atitle">${esc(r.def.title)}</div>${r.active ? '<span class="ws-gmenu-chip">Active</span>' : ''}</div>
-        </div>`, 'button');
+      const row = el(`ws-gmenu-ach${r.earned ? ' earned' : ''}${r.active ? ' active' : ''}`, engineString('s_7f1998be1049', [r.def.icon, icon(r.def.icon), esc(r.def.name), esc(r.def.goal), r.count, r.def.count, (r.count / r.def.count) * 100, icon(r.earned ? 'check' : 'lock'), esc(r.def.title), r.active ? engineString('s_c965a4b3b12e') : '']), 'button');
       (row as HTMLButtonElement).type = 'button';
       row.addEventListener('click', () => { if (r.earned) pr.wear(r.def.id); });
       p.append(row);
@@ -460,14 +440,14 @@ export class GameMenu {
   private buildSettings(): void {
     const panel = this.panels.settings;
     // E178: no full-width RESUME / EXIT TO MAIN MENU on top of the panel any more — they are the header bar's two buttons
-    const p = el('ws-gmenu-card', '<div class="ws-gmenu-cardtitle">Settings</div>');
-    const dbg = foldCard('debug', 'Debug', 'for playtests — goes away when the game ships'); // E177: folded until it is asked for
+    const p = el('ws-gmenu-card', engineString('s_e68f72548349'));
+    const dbg = foldCard('debug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396')); // E177: folded until it is asked for
     // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
     dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; });
     panel.append(p, dbg);
 
     const sw = (key: SettingKey, label: string) => {
-      const b = el('ws-gmenu-switch', `<span class="ws-gmenu-swlabel">${label}</span><i class="ws-gmenu-pill"></i>`, 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
+      const b = el('ws-gmenu-switch', engineString('s_d652c0be6be8', [label]), 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
       const sync = (v: boolean) => { b.classList.toggle('on', v); b.setAttribute('aria-checked', String(v)); };
       sync(getSetting(key)); onSetting(key, sync);
       b.addEventListener('click', () => setSetting(key, !getSetting(key)));
@@ -483,34 +463,34 @@ export class GameMenu {
       card.append(head, ...els);
     };
     const ranged: When = (c) => c.tracers; // the bolts / rounds draw tracers: Nalati's bow draws none (NALATI-MERGE F7)
-    section(p, 'Gameplay', sw('aimAssist', 'Aim assist'),
-      [ranged, sw('tracers', 'Tracer bolts')],
-      [(c) => c.huntersEye, sw('huntersEye', "Hunter's eye")], // the bow's drop arc (Bow.ts): on by default on touch
-      [() => CAN_VIBRATE, sw('haptics', 'Vibration')]); // Android only — iOS Safari has no vibrate (src/engine/ui/haptics.ts)
+    section(p, engineString('s_31bcb8940fff'), sw('aimAssist', engineString('s_714896153134')),
+      [ranged, sw('tracers', engineString('s_702cb41e280a'))],
+      [(c) => c.huntersEye, sw('huntersEye', engineString('s_80f6259cced8'))], // the bow's drop arc (Bow.ts): on by default on touch
+      [() => CAN_VIBRATE, sw('haptics', engineString('s_59e1fd02f6c2'))]); // Android only — iOS Safari has no vibrate (src/engine/ui/haptics.ts)
 
     // controls: the 0.5–2× look multipliers (Settings 'look' / 'swingLook') — read live by TouchControls + Player's mouse look
     const mult = (key: NumberKey, label: string) => {
       const [lo, hi] = NUM_RANGE[key];
-      const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span><b class="ws-gmenu-val"></b>`);
+      const row = el('ws-gmenu-row', engineString('s_b756f4e0f8ff', [label]));
       const val = row.querySelector<HTMLElement>('.ws-gmenu-val');
       const s = document.createElement('input'); s.type = 'range'; s.className = 'ws-gmenu-slider';
       s.min = String(lo * 100); s.max = String(hi * 100); s.step = '5'; s.value = String(Math.round(getNumber(key) * 100));
-      const paint = () => { if (val) val.textContent = `${(Number(s.value) / 100).toFixed(2)}×`; };
+      const paint = () => { if (val) val.textContent = engineString('s_03a5f0ef36b4', [(Number(s.value) / 100).toFixed(2)]); };
       s.addEventListener('input', () => { setNumber(key, Number(s.value) / 100); paint(); });
       s.addEventListener('pointerdown', (e) => e.stopPropagation());
       paint(); row.append(s); return row;
     };
-    section(p, 'Controls', mult('look', 'Look speed'), [(c) => c.melee, mult('swingLook', 'Swing turn speed')]); // a swing's turn: the blades
+    section(p, engineString('s_799c26913574'), mult('look', engineString('s_64e57bf9ef8a')), [(c) => c.melee, mult('swingLook', engineString('s_e532946ea0dd'))]); // a swing's turn: the blades
 
     // audio: master volume (Settings 'volume', 0..1) — main.ts drives the AudioContext gain from it
-    const vol = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Master volume</span>');
+    const vol = el('ws-gmenu-row', engineString('s_31a1802e19b8'));
     const slider = document.createElement('input'); slider.type = 'range'; slider.min = '0'; slider.max = '100'; slider.className = 'ws-gmenu-slider';
     slider.value = String(Math.round(getNumber('volume') * 100));
     slider.addEventListener('input', () => setNumber('volume', Number(slider.value) / 100));
     slider.addEventListener('pointerdown', (e) => e.stopPropagation());
     vol.append(slider);
     // music volume (Settings 'music', 0..1) — src/engine/audio/Music.ts drives its bus from it
-    const mus = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Music</span>');
+    const mus = el('ws-gmenu-row', engineString('s_4db5c63706fd'));
     const mslider = document.createElement('input'); mslider.type = 'range'; mslider.min = '0'; mslider.max = '100'; mslider.className = 'ws-gmenu-slider';
     mslider.value = String(Math.round(getNumber('music') * 100));
     mslider.addEventListener('input', () => setNumber('music', Number(mslider.value) / 100));
@@ -519,7 +499,7 @@ export class GameMenu {
     // music style (Settings 'musicStyle', project/archive/2026-09-23-music.md v3): the MiniMax-Music3 scores or the v1 synth — Music.ts crossfades on a bar;
     // sound effects (Settings 'sfxSet'): the generated set (MOSS-SoundEffect v2 + Stable Audio 3 Medium) or all-synth — Audio.ts swaps them
     const picker = <T extends string>(label: string, options: { v: T; text: string }[], get: () => T, set: (v: T) => void, on: (fn: () => void) => void) => {
-      const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
+      const row = el('ws-gmenu-row', engineString('s_54fa835c7c85', [label]));
       const box = el('ws-gmenu-seg');
       const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
       for (const o of options) {
@@ -535,12 +515,12 @@ export class GameMenu {
     const sfxNote = el('ws-gmenu-note');
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
     paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
-    p.append(el('ws-gmenu-label', 'Audio'), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
+    p.append(el('ws-gmenu-label', engineString('s_bc1b88907d3b')), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
     // lock-on (E50, src/engine/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the
     // lock — the reticle, orbit strafing, the lunge, switching — but never turns the view: the motion-sickness escape)
-    const lockCams: { v: '1' | '0.5' | '0'; text: string }[] = [{ v: '1', text: 'Follow' }, { v: '0.5', text: 'Gentle' }, { v: '0', text: 'Off' }];
-    const lockCam = picker('Lock-on camera', lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
-    p.append(el('ws-gmenu-label', 'Lock-on'), lockCam, sw('autoLock', 'Auto re-lock'), el('ws-gmenu-note', 'LOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.'));
+    const lockCams: { v: '1' | '0.5' | '0'; text: string }[] = [{ v: '1', text: engineString('s_641d1ef657bd') }, { v: '0.5', text: engineString('s_96124817c810') }, { v: '0', text: engineString('s_ca7981b46ecf') }];
+    const lockCam = picker(engineString('s_21ed7056ff10'), lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
+    p.append(el('ws-gmenu-label', engineString('s_fcc34c9149ac')), lockCam, sw('autoLock', engineString('s_c436a89a4252')), el('ws-gmenu-note', engineString('s_c12db72ef23e')));
 
     // DEBUG (E162): every variant, taste toggle and developer aid, grouped — declared once in src/engine/ui/debugOptions.ts and
     // rendered by src/engine/ui/DebugMenu.ts (collapsible groups, only the rows that apply to this shard, a filter). Shards in
@@ -561,18 +541,18 @@ export class GameMenu {
   private buildReview(): HTMLElement {
     const box = el('ws-gmenu-review');
     const render = () => {
-      box.replaceChildren(el('ws-gmenu-label', 'Review'));
+      box.replaceChildren(el('ws-gmenu-label', engineString('s_aff0766a5290')));
       if (!reviewUnlocked()) {
         const row = el('ws-gmenu-row');
-        const input = document.createElement('input'); input.type = 'password'; input.className = 'ws-gmenu-input'; input.placeholder = 'Review password';
+        const input = document.createElement('input'); input.type = 'password'; input.className = 'ws-gmenu-input'; input.placeholder = engineString('s_3aa9d82ecee0');
         input.autocomplete = 'off'; input.enterKeyHint = 'go';
-        const go = el('ws-gmenu-unlock', 'Unlock', 'button') as HTMLButtonElement; go.type = 'button';
-        const note = el('ws-gmenu-note', 'Playtesters: the password turns on in-game notes (F8 / ✎) with a screenshot.');
+        const go = el('ws-gmenu-unlock', engineString('s_4ac709aa58bc'), 'button') as HTMLButtonElement; go.type = 'button';
+        const note = el('ws-gmenu-note', engineString('s_0a5f05def8ad'));
         const tryUnlock = async () => {
-          go.disabled = true; note.textContent = 'Checking…';
+          go.disabled = true; note.textContent = engineString('s_ec963ffc911b');
           const r = await unlockReview(input.value);
           go.disabled = false;
-          note.textContent = r === 'bad' ? 'Wrong password.' : r === 'offline' ? 'Could not reach the inbox — try again online.' : '';
+          note.textContent = r === 'bad' ? engineString('s_08e7aa3eae21') : r === 'offline' ? engineString('s_76856232ac38') : '';
         };
         // the menu listens for M / Esc and the player for WASD on document: typing a password must not reach them
         input.addEventListener('keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); if (e.code === 'Enter') void tryUnlock(); });
@@ -582,14 +562,14 @@ export class GameMenu {
         box.append(row, note);
         return;
       }
-      const sw = el('ws-gmenu-switch', '<span class="ws-gmenu-swlabel">Quick note (F8 / ✎)</span><i class="ws-gmenu-pill"></i>', 'button') as HTMLButtonElement; sw.type = 'button'; sw.setAttribute('role', 'switch');
+      const sw = el('ws-gmenu-switch', engineString('s_e1e76f890568'), 'button') as HTMLButtonElement; sw.type = 'button'; sw.setAttribute('role', 'switch');
       sw.classList.toggle('on', quickNote()); sw.setAttribute('aria-checked', String(quickNote()));
       sw.addEventListener('click', () => setQuickNote(!quickNote()));
-      const lock = el('ws-gmenu-unlock', 'Lock', 'button') as HTMLButtonElement; lock.type = 'button';
+      const lock = el('ws-gmenu-unlock', engineString('s_db44b8db4f05'), 'button') as HTMLButtonElement; lock.type = 'button';
       lock.addEventListener('click', () => lockReview());
-      const row = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Review inbox unlocked</span>');
+      const row = el('ws-gmenu-row', engineString('s_b39f8f67f676'));
       row.append(lock);
-      box.append(sw, row, el('ws-gmenu-note', 'Notes go to the developers with a screenshot and where you stand. FEEDBACK tab above.'));
+      box.append(sw, row, el('ws-gmenu-note', engineString('s_806c6e56a7d8')));
     };
     render(); onReview(render);
     return box;

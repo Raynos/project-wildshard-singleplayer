@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Set Explorer (E306 / E315 M7, project/archive/2026-09-30-model-architecture.md): the Explore pane between single models and the whole
  * world. A set is a named group of placed models — a camp, a market square, a kurgan field (`placeSet`,
@@ -209,7 +210,7 @@ export class SetExplorer implements ExplorePane {
   private renderList(): void {
     const n = this.infos.length;
     const countEl = this.listEl.querySelector('.ws-x-setcount');
-    if (countEl) countEl.textContent = `${n} set${n === 1 ? '' : 's'}`;
+    if (countEl) countEl.textContent = engineString('s_5c34094656f1', [n, n === 1 ? '' : engineString('s_043a718774c5')]);
     this.listEl.querySelectorAll<HTMLElement>('.ws-x-setsort button').forEach((b) => { b.classList.toggle('on', b.dataset['o'] === this.order); });
     this.listEl.classList.toggle('few', n < 4); // (no ordering to choose between a handful)
     this.cards.replaceChildren();
@@ -445,7 +446,7 @@ export class SetExplorer implements ExplorePane {
         const v = measureDrawn(c.drawn), { stats, lastFrame } = this.world.game;
         this.stat('tris', count(v.tris)); this.stat('calls', String(v.calls));
         const f = this.sheet.querySelector('.ws-x-setframe');
-        if (f) f.textContent = `The set's own, in view · whole frame ${count(lastFrame.triangles)} tris · ${lastFrame.calls} calls · ${stats.fps} fps`;
+        if (f) f.textContent = engineString('s_36482b68a86a', [count(lastFrame.triangles), lastFrame.calls, stats.fps]);
       }
       return;
     }

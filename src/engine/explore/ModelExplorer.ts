@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Model Explorer (project/archive/2026-09-23-explore-world.md X3; mockups round-3 p04 catalog, p03 turntable, p17 close-up): the Explore pane that
  * puts one model at a time on a turntable — isolated IN the live scene (same renderer, lights, day/night, post chain),
@@ -561,7 +562,7 @@ export class ModelExplorer implements ExplorePane {
     const pct = (x: number): string => (x * 100).toFixed(x < 0.01 ? 2 : 1);
     const bar = this.sheet.querySelector<HTMLElement>('.ws-x-budget i'), text = this.sheet.querySelector('.ws-x-budget span');
     if (bar) bar.style.width = `${Math.min(100, Math.max(1.5, all * 100))}%`;
-    if (text) text.textContent = `Phone budget · ${pct(share)} %${copies > 1 ? ` each · ${pct(all)} % for all ${copies.toLocaleString()}` : ''} of ${b.tris / 1e6} M tris · ${calls} / ${b.calls} calls · on ${CURRENT_TIER}`;
+    if (text) text.textContent = engineString('s_84b14a244823', [pct(share), copies > 1 ? engineString('s_4f98e74b623b', [pct(all), copies.toLocaleString()]) : '', b.tris / 1e6, calls, b.calls, CURRENT_TIER]);
   }
 
   private setView(v: View, mark = true): void {
@@ -719,7 +720,7 @@ export class ModelExplorer implements ExplorePane {
   private showTiers(e: CatalogEntry): void {
     const o = e.object();
     const build = e.buildAt;
-    if (!build) { this.explore.toast(`${e.name}: one build for every tier`); return; }
+    if (!build) { this.explore.toast(engineString('s_ada8c98a5332', [e.name])); return; }
     let byTier = this.tierBuilds.get(e.id);
     if (!byTier) { byTier = new Map(); this.tierBuilds.set(e.id, byTier); }
     const box = new THREE.Box3().setFromObject(o), size = box.getSize(new THREE.Vector3());
@@ -913,7 +914,7 @@ export class ModelExplorer implements ExplorePane {
     const slot = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] .ws-x-model-thumb`);
     if (slot && !slot.firstChild) slot.append(c);
     const small = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] small:last-of-type`); // (the first is how it's made)
-    if (small && !e.live) small.textContent = `${trisLabel(measure(o).tris)}${e.copies > 1 ? ' each' : ''}`;
+    if (small && !e.live) small.textContent = engineString('s_4ecdc2db1bc2', [trisLabel(measure(o).tris), e.copies > 1 ? engineString('s_1312908d3788') : '']);
   }
 }
 

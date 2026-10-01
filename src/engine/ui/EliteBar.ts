@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import './styles/elite.css';
 import { toastArea } from './ToastStack';
@@ -41,7 +42,7 @@ function easeInOut(x: number): number {
  *  drop-shadow(0 0 4px rgba(255,170,60,.7)) to drop-shadow(0 0 14px rgba(255,200,90,1)) */
 function skullPulse(t: number): string {
   const u = (t / 0.6) % 2, k = easeInOut(u < 1 ? u : 2 - u);
-  return `drop-shadow(0 0 ${(4 + 10 * k).toFixed(1)}px rgba(255, ${Math.round(170 + 30 * k)}, ${Math.round(60 + 30 * k)}, ${(0.7 + 0.3 * k).toFixed(2)}))`;
+  return engineString('s_f38bbfcd335d', [(4 + 10 * k).toFixed(1), Math.round(170 + 30 * k), Math.round(60 + 30 * k), (0.7 + 0.3 * k).toFixed(2)]);
 }
 const _v = new THREE.Vector3();
 
@@ -74,7 +75,7 @@ export class EliteBar {
     this.ban = el('div', 'ws-elite-banner');
     this.banName = el('div', 'ws-elite-banner-name');
     const banText = el('div', 'ws-elite-banner-text');
-    banText.append(el('div', 'ws-elite-banner-kicker', 'NAMED ELITE NEARBY'), this.banName);
+    banText.append(el('div', 'ws-elite-banner-kicker', engineString('s_59729f06918a')), this.banName);
     this.ban.append(el('span', 'ws-elite-skull', SKULL), banText);
     this.chev = el('i', 'ws-elite-chevron');
     this.root.append(this.bar, this.ban, this.chev);
@@ -133,7 +134,7 @@ export class EliteBar {
   banner(name: string, epithet: string): void {
     // name · epithet (layout D on the phone shows the name alone — elite.css hides the epithet span there)
     const n = document.createElement('span'), e = document.createElement('span');
-    n.textContent = name.toUpperCase(); e.className = 'ws-elite-banner-epithet'; e.textContent = ` · ${epithet.toUpperCase()}`;
+    n.textContent = name.toUpperCase(); e.className = 'ws-elite-banner-epithet'; e.textContent = engineString('s_614cafefe4f0', [epithet.toUpperCase()]);
     this.banName.replaceChildren(n, e);
     // another elite's bar already pinned (two lairs close together): the banner drops below it instead of over it
     this.ban.classList.toggle('below', this.mode === 'pinned' && this.bar.classList.contains('show'));

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import { app } from '../app/runtime';
 import type { Game } from '../core/Game';
@@ -134,7 +135,7 @@ export class Combat {
     // this bolt landed on flesh: it is no longer a candidate for MISS
     this.resolveOldest();
     if (!this.project(point)) { a.headWorld(_v); _v.y += 0.3; if (!this.project(_v)) return; }
-    this.float(String(Math.round(amount)), died ? (headshot ? 'HEADSHOT · KILL' : 'KILL') : headshot ? 'HEADSHOT' : '', headshot ? 'head' : '', died);
+    this.float(String(Math.round(amount)), died ? (headshot ? engineString('s_9ca42a3b84d2') : engineString('s_448dd87e3774')) : headshot ? engineString('s_a3de28c1f757') : '', headshot ? 'head' : '', died);
   }
 
   private impact(surface: string, point: THREE.Vector3): void {
@@ -144,7 +145,7 @@ export class Combat {
     if (!p) return;
     // MISS at the impact point if it is on screen, else over the animal we were aiming at
     if (!this.project(point) && (!p.animal || !this.projectAnimal(p.animal))) return;
-    this.float('MISS', '', 'miss', false);
+    this.float(engineString('s_e0a896a85299'), '', 'miss', false);
   }
 
   /** pop the oldest pending aimed shot (the bolts fly in order) */
@@ -170,7 +171,7 @@ export class Combat {
     for (const p of this.pending) {
       if (!p.active || t < p.deadline) continue;
       p.active = false;
-      if (p.animal && p.animal.alive && this.projectAnimal(p.animal)) this.float('MISS', '', 'miss', false);
+      if (p.animal && p.animal.alive && this.projectAnimal(p.animal)) this.float(engineString('s_e0a896a85299'), '', 'miss', false);
     }
 
     this.updateBars();

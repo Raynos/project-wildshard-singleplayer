@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
@@ -289,7 +290,7 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
 
 registerSpecies({
   kind: 'crab',
-  label: 'Reef crab',
+  label: engineString('s_c93f43169fdc'),
   fur: NO_FUR,
   rig: 'custom',
   aggressive: true,
@@ -297,8 +298,8 @@ registerSpecies({
   chargeDamage: SNAP_DAMAGE,
   sounds: { call: 'crab_click', hurt: 'crab_click', callEvery: [8, 25] },
   variants: [
-    { id: 'small', label: 'Reef crab', weight: 75, rarity: 'common', scale: [0.78, 0.95], hp: 25 },
-    { id: 'big', label: 'Big reef crab', weight: 25, rarity: 'uncommon', scale: [1.7, 1.9], hp: 70, traits: { clawScale: 1.25 }, mods: { chargeDamage: 14 } },
+    { id: 'small', label: engineString('s_c93f43169fdc'), weight: 75, rarity: 'common', scale: [0.78, 0.95], hp: 25 },
+    { id: 'big', label: engineString('s_b339c41ffdc1'), weight: 25, rarity: 'uncommon', scale: [1.7, 1.9], hp: 70, traits: { clawScale: 1.25 }, mods: { chargeDamage: 14 } },
   ],
   build: buildCrab,
   animate: animateCrab,

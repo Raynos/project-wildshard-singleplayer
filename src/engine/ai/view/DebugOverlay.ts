@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { Vector3 } from 'three';
 import type { Game } from '../../core/Game';
 import type { LevelContext } from '../../level/context';
@@ -33,7 +34,7 @@ class Labels implements AiDebugView {
       }
       const info = brainInspection(actor, actor.state);
       const picks = info.picks.slice(0, 3).map((pick) => `${pick.id} ${pick.score.toFixed(2)}`).join('\n') || '—';
-      label.textContent = `${actor.kind} · ${info.state}\n${picks}\n${String(info.brainHz)} HZ · ${info.pinned ? 'PINNED' : 'FREE'}`;
+      label.textContent = engineString('s_362ebababd70', [actor.kind, info.state, picks, String(info.brainHz), info.pinned ? engineString('s_feb050500e22') : engineString('s_19f1fa5ec989')]);
       label.style.left = `${String(rect.left + (this.point.x + 1) * 0.5 * rect.width)}px`;
       label.style.top = `${String(rect.top + (1 - this.point.y) * 0.5 * rect.height)}px`;
     }
@@ -55,7 +56,7 @@ export function installAiDebug(ctx: Pick<LevelContext, 'app' | 'scope' | 'debugR
       run: () => { labels.update(); } }, scope);
   };
   ctx.scope.onDispose(() => { stop(); });
-  ctx.debugRow({ ask: 'E357', reviewBy: '2026-12-30', id: 'ai.brains', group: 'tools', label: 'AI brains', initial: 'off',
-    choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], change,
-    note: 'E357 · state, top three utility picks, tick rate and pinned status within 60 m' });
+  ctx.debugRow({ ask: 'E357', reviewBy: '2026-12-30', id: 'ai.brains', group: 'tools', label: engineString('s_4a74d7223bec'), initial: 'off',
+    choices: [{ value: 'off', text: engineString('s_ca7981b46ecf') }, { value: 'on', text: engineString('s_130011756125') }], change,
+    note: engineString('s_2cdb96d9e16c') });
 }

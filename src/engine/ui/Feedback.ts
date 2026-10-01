@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The review inbox's composer (project/archive/2026-09-22-feedback-inbox.md, mockups art/feedback/round-1-inbox/) — loaded lazily on the first
  * F8 / ✎ / FEEDBACK tab, so the boot bundle never carries it. Styled by src/engine/ui/styles/feedback.css (prefix ws-fb-).
@@ -33,7 +34,7 @@ interface Stroke { pts: number[] } // normalised x, y pairs (0..1 of the frame)
 export const SHOT_MAX_W = 1280;
 export const SHOT_MAX_BYTES = 300 * 1024;
 const PEN_PX = 4; // stroke width at 1280 px wide
-const LABEL: Record<Category, string> = { bug: 'Bug', art: 'Art', feel: 'Feel', perf: 'Perf', idea: 'Idea' };
+const LABEL: Record<Category, string> = { bug: engineString('s_703a5028367b'), art: engineString('s_75df3579c730'), feel: engineString('s_cd1e23876319'), perf: engineString('s_10eda87ca497'), idea: engineString('s_b202bcb90ca5') };
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const button = (cls: string, html: string): HTMLButtonElement => { const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.innerHTML = html; return b; };
@@ -51,13 +52,13 @@ export function reproUrl(origin: string, c: Record<string, ContextValue>): strin
     q.set('explore', c['explore']);
     if (Array.isArray(c['cam'])) q.set('cam', c['cam'].map((v) => Number(v.toFixed(2))).join(','));
     if (typeof c['model'] === 'string') q.set('model', c['model']);
-    return `${origin}/?${q.toString()}`;
+    return engineString('s_ba48ed755795', [origin, q.toString()]);
   }
   const pos = c['pos'], yaw = c['yaw'], pitch = c['pitch'];
   if (Array.isArray(pos) && typeof yaw === 'number' && typeof pitch === 'number') q.set('at', [...pos, yaw, pitch].map((v) => Number(v.toFixed(2))).join(','));
   if (typeof c['weapon'] === 'string') q.set('weapon', c['weapon']);
   q.set('skipintro', '');
-  return `${origin}/?${q.toString().replace('skipintro=', 'skipintro')}`;
+  return engineString('s_ba48ed755795', [origin, q.toString().replace('skipintro=', 'skipintro')]);
 }
 
 /** the frame with the pen strokes drawn on it, as a JPEG data URL under SHOT_MAX_BYTES (quality steps down until it fits) */
@@ -173,13 +174,13 @@ export class Feedback {
   private buildBar(root: HTMLElement): void {
     root.append(el('ws-fb-dim'));
     const wrap = el('ws-fb-quick');
-    wrap.append(el('ws-fb-cap', 'Quick note · F8 · Tab for more'));
+    wrap.append(el('ws-fb-cap', engineString('s_b88a944b540e')));
     const bar = el('ws-fb-bar');
-    bar.append(el('ws-fb-cam', '<svg viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3v12H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Frame captured</span>'));
+    bar.append(el('ws-fb-cam', engineString('s_3e64ed0c89f6')));
     const input = document.createElement('input'); input.className = 'ws-fb-input'; input.type = 'text'; input.maxLength = 4000;
-    input.placeholder = 'What looks wrong or feels off?'; input.value = this.text; input.enterKeyHint = 'send';
+    input.placeholder = engineString('s_a3ef944b5384'); input.value = this.text; input.enterKeyHint = 'send';
     input.addEventListener('input', () => { this.text = input.value; });
-    bar.append(input, this.chips(), el('ws-fb-keys', '⏎ Send · Esc'));
+    bar.append(input, this.chips(), el('ws-fb-keys', engineString('s_66aec2a7867c')));
     wrap.append(bar);
     root.append(wrap);
   }
@@ -192,9 +193,9 @@ export class Feedback {
     }
     const sheet = el(mode === 'tab' ? 'ws-fb-body' : 'ws-fb-sheet ws-glass');
     if (mode === 'sheet') {
-      const head = el('ws-fb-head', '<div class="ws-fb-title">Feedback <b>· Note</b></div>');
-      if (!this.host.touch()) head.append(el('ws-fb-key', 'F8'));
-      const x = button('ws-fb-close', '×'); x.setAttribute('aria-label', 'Close'); x.addEventListener('click', () => this.close());
+      const head = el('ws-fb-head', engineString('s_cf9f0a909975'));
+      if (!this.host.touch()) head.append(el('ws-fb-key', engineString('s_a39b6e5111fa')));
+      const x = button('ws-fb-close', engineString('s_8db71ed28b0f')); x.setAttribute('aria-label', engineString('s_7d9eb7acb13e')); x.addEventListener('click', () => this.close());
       head.append(x);
       sheet.append(head);
     }
@@ -202,14 +203,14 @@ export class Feedback {
     const shotBox = el('ws-fb-shot');
     const img = document.createElement('img'); img.alt = 'Screenshot of the frame';
     if (this.shot) img.src = bake(this.shot, this.strokes);
-    const draw = button('ws-fb-draw', '<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z M14 7l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Draw');
+    const draw = button('ws-fb-draw', engineString('s_8a0bfe95dbb7'));
     draw.addEventListener('click', () => this.openPen(img));
     shotBox.append(img, draw);
     const kb = this.shot ? Math.round((bake(this.shot, this.strokes).length * 0.75) / 1024) : 0;
-    sheet.append(shotBox, el('ws-fb-meta', this.shot ? `Screenshot · ${this.shot.width}×${this.shot.height} · ${kb} KB · tap Draw to mark it` : 'No screenshot'));
+    sheet.append(shotBox, el('ws-fb-meta', this.shot ? engineString('s_38b529db98ff', [this.shot.width, this.shot.height, kb]) : engineString('s_197f0e1f610e')));
     sheet.append(this.chips());
     const text = document.createElement('textarea'); text.className = 'ws-fb-text'; text.rows = mode === 'tab' ? 4 : 3; text.maxLength = 4000;
-    text.placeholder = 'What looks wrong or feels off? Enter sends, Shift+Enter is a new line.'; text.value = this.text;
+    text.placeholder = engineString('s_9cffd32a0061'); text.value = this.text;
     text.addEventListener('input', () => { this.text = text.value; });
     if (mode === 'tab') text.addEventListener('keydown', (e) => { if (e.code === 'Enter' && !e.shiftKey) { e.preventDefault(); void this.send(); } });
     sheet.append(text);
@@ -233,12 +234,12 @@ export class Feedback {
       ['Build', buildId().slice(0, 7) || 'dev'],
     ];
     sheet.append(el('ws-fb-ctx', kv.map(([k, v]) => `<span class="ws-fb-kv"><i>${k}</i>${esc(v)}</span>`).join('')));
-    const send = button('ws-fb-send', 'Send note ⏎');
+    const send = button('ws-fb-send', engineString('s_8675c04a5f9a'));
     send.addEventListener('click', () => { void this.send(); });
     sheet.append(send);
     const q = queuedCount();
     const queued = q > 0 ? `<b class="ws-fb-queued">${q} queued · sends when online</b>` : '';
-    if (mode === 'sheet') sheet.append(el('ws-fb-hint', `${this.host.touch() ? 'Tap outside' : 'Esc'} to resume · notes queue offline${queued ? ` · ${queued}` : ''}`));
+    if (mode === 'sheet') sheet.append(el('ws-fb-hint', engineString('s_384de4d44de5', [this.host.touch() ? engineString('s_8ec7777d830b') : engineString('s_52f878edb34f'), queued ? engineString('s_614cafefe4f0', [queued]) : ''])));
     else if (queued) sheet.append(el('ws-fb-hint', queued)); // the menu's own hint line explains the tab
     root.append(sheet);
   }
@@ -251,7 +252,7 @@ export class Feedback {
     const cv = document.createElement('canvas'); cv.className = 'ws-fb-pencanvas';
     const tools = el('ws-fb-tools');
     const tool = (label: string, fn: () => void, cls = ''): HTMLButtonElement => { const b = button(`ws-fb-tool${cls}`, label); b.addEventListener('click', fn); tools.append(b); return b; };
-    pen.append(cv, tools, el('ws-fb-penhint', 'Draw on the frame · what you mark is sent with the note'));
+    pen.append(cv, tools, el('ws-fb-penhint', engineString('s_01300aa1b588')));
     const fit = (): { w: number; h: number } => {
       const k = Math.min(innerWidth / shot.width, innerHeight / shot.height);
       const w = Math.round(shot.width * k), h = Math.round(shot.height * k), dpr = Math.min(2, devicePixelRatio || 1);
@@ -279,10 +280,10 @@ export class Feedback {
     const onResize = (): void => { fit(); paint(); };
     const done = (): void => { removeEventListener('resize', onResize); pen.remove(); thumb.src = bake(shot, this.strokes); };
     addEventListener('resize', onResize);
-    tool('Pen', () => undefined, ' on');
-    tool('Undo', () => { this.strokes.pop(); paint(); });
-    tool('Clear', () => { this.strokes = []; paint(); });
-    tool('Done', done, ' done');
+    tool(engineString('s_a04bd35be167'), () => undefined, ' on');
+    tool(engineString('s_a8283ade3185'), () => { this.strokes.pop(); paint(); });
+    tool(engineString('s_83b12c2216ef'), () => { this.strokes = []; paint(); });
+    tool(engineString('s_11a6767d5674'), done, ' done');
     // on <body>, not inside the composer: the menu's backdrop-filter would make a fixed child fixed to the menu sheet
     for (const t of ['keydown', 'keyup'] as const) pen.addEventListener(t, (e) => { e.stopPropagation(); if (t === 'keydown' && e.code === 'Escape') done(); });
     pen.tabIndex = -1;
@@ -294,7 +295,7 @@ export class Feedback {
   private async send(): Promise<void> {
     const note = this.text.trim();
     if (this.sending) return;
-    if (!note) { this.host.toast('Write a few words first'); this.root?.querySelector<HTMLElement>('.ws-fb-input, .ws-fb-text')?.focus(); return; }
+    if (!note) { this.host.toast(engineString('s_c84eeb6c5352')); this.root?.querySelector<HTMLElement>('.ws-fb-input, .ws-fb-text')?.focus(); return; }
     this.sending = true;
     this.root?.classList.add('sending');
     const context: Record<string, ContextValue> = {
@@ -312,8 +313,8 @@ export class Feedback {
     const r = await sendNote({ note, category: this.category, context, screenshot });
     this.sending = false;
     this.root?.classList.remove('sending');
-    if (r === 'locked') { this.host.toast('Review password no longer works — unlock again in Settings'); return; }
-    this.host.toast(r === 'queued' ? 'Offline · note queued' : `Note sent · ${r.id.slice(-4)}`);
+    if (r === 'locked') { this.host.toast(engineString('s_52f0d7f962de')); return; }
+    this.host.toast(r === 'queued' ? engineString('s_eb1976607513') : engineString('s_d406bda74c94', [r.id.slice(-4)]));
     this.text = '';
     this.strokes = [];
     if (this.mode === 'tab') { const panel = this.root?.parentElement; if (panel) await this.mountTab(panel); }

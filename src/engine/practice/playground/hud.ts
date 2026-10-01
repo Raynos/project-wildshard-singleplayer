@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The playgrounds' one HUD chip (E307): the playground's short name, the run's time and ↺ (back to the start), then the
  * status (READY · RUNNING · a pad, a lap) and the best. On the phone it is a row of the base HUD's top-left status column
@@ -29,7 +30,7 @@ export class PlaygroundChip {
   constructor(name: string, onRestart: () => void) {
     const el = document.createElement('div');
     el.className = 'ws-pg';
-    el.innerHTML = '<div class="ws-pg-row"><b></b><span class="ws-pg-time">00:00.0</span><button type="button" class="ws-pg-restart" aria-label="Back to the start">↺</button></div><span class="ws-pg-status">READY</span><span class="ws-pg-best"></span>';
+    el.innerHTML = engineString('s_718ae7900c13');
     const q = (sel: string): HTMLElement => el.querySelector<HTMLElement>(sel) ?? el;
     q('b').textContent = name;
     this.timeEl = q('.ws-pg-time'); this.bestEl = q('.ws-pg-best'); this.statusEl = q('.ws-pg-status');
@@ -40,7 +41,7 @@ export class PlaygroundChip {
     restart.addEventListener('pointerup', go);
     restart.addEventListener('click', go);
     restart.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
-    if (hudSlots.touch) { el.dataset['slot'] = 'row'; hudSlots.statusRow(el, ROW.content + 3, false); } // after the shard's own rows
+    if (hudSlots.touch) { el.dataset['slot'] = 'row'; hudSlots.statusRow(el, ROW.grass + 1, false); } // after the shard's own rows
     else (document.getElementById('hud') ?? document.body).append(el);
     this.el = el;
   }

@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { registerSpecies } from './registry';
 import type { RGB } from './loft';
 import { NO_FUR } from './rigs';
@@ -21,7 +22,7 @@ const SKY: Record<string, RGB> = {
 
 registerSpecies({
   kind: KOKBORI,
-  label: 'Kokbori',
+  label: engineString('s_1dcfb937c1e2'),
   fur: NO_FUR,
   aggressive: true,
   walkSpeed: 1.8,
@@ -31,7 +32,7 @@ registerSpecies({
   pose: { grazeNeck: 0.5, gallopTail: 0.3 },
   gait: { trot: 1.8, gallop: 5.6 },
   variants: [
-    { id: 'kokbori', label: 'Kokbori, Mother of the Pack', weight: 1, rarity: 'legendary', scale: [2.6, 2.6], hp: 650, tint: SKY, traits: { ruff: 1.45 } },
+    { id: 'kokbori', label: engineString('s_646884575438'), weight: 1, rarity: 'legendary', scale: [2.6, 2.6], hp: 650, tint: SKY, traits: { ruff: 1.45 } },
   ],
   build: buildCanid,
   postPose: canidPostPose,

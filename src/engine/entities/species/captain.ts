@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
@@ -314,7 +315,7 @@ function thinkCaptain(a: Animal, c: ThinkCtx): void {
 
 registerSpecies({
   kind: 'captain',
-  label: 'The Drowned Captain',
+  label: engineString('s_b9afc02e9fda'),
   fur: NO_FUR,
   rig: 'custom',
   aggressive: true,
@@ -324,7 +325,7 @@ registerSpecies({
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,
   sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [8, 20] },
   variants: [
-    { id: 'captain', label: 'The Drowned Captain', weight: 100, rarity: 'uncommon', scale: [1.35, 1.35], hp: 320 },
+    { id: 'captain', label: engineString('s_b9afc02e9fda'), weight: 100, rarity: 'uncommon', scale: [1.35, 1.35], hp: 320 },
   ],
   build: buildCaptain,
   animate: animateCaptain,

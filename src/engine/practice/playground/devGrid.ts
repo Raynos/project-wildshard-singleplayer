@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * The playgrounds' developer look (E307, Jake: "clearly-developer graphics … the Counter-Strike Source maps with developer
  * textures"): flat grey and orange measure tiles, a 1 m grid in a 4 m tile, every box face shaded by its facing so the
@@ -48,7 +49,7 @@ export function devTexture(tone: DevTone): THREE.CanvasTexture {
     g.fillStyle = stamp;
     g.font = '700 22px monospace';
     g.textBaseline = 'top';
-    g.fillText(`${TILE}M`, 10, 10);
+    g.fillText(engineString('s_1149d32581c9', [TILE]), 10, 10);
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;

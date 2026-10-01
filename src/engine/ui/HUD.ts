@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import type { WeaponUi } from '../combat/Equipment';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
@@ -187,7 +188,7 @@ export class HUD {
 
     // compass: a slim band; the strip sits at the band's centre and slides by the heading (see setState)
     const compass = el('div', 'ws-game-compass');
-    compass.innerHTML = '<i class="ws-game-brk tl"></i><i class="ws-game-brk tr"></i><i class="ws-game-brk bl"></i><i class="ws-game-brk br"></i>';
+    compass.innerHTML = engineString('s_cfa898107d6c');
     const band = el('div', 'ws-game-band');
     this.compassStrip = el('div', 'ws-game-strip');
     for (let deg = -360; deg < 720; deg += 15) {
@@ -219,15 +220,14 @@ export class HUD {
 
     // health
     const health = el('div', 'ws-glass ws-game-health');
-    health.innerHTML = `<div class="ws-game-hrow"><span class="ws-label">Vitals</span><span class="ws-game-hval"><span class="v">100</span><small>/ 100</small></span></div><div class="ws-bar"><i style="width:100%"></i><u style="left:25%"></u><u style="left:50%"></u><u style="left:75%"></u></div>`;
+    health.innerHTML = engineString('s_ac30287e22b2');
     this.healthVal = q(health, '.v'); this.healthBar = q(health, '.ws-bar i'); this.healthMax = q(health, '.ws-game-hval small');
     this.healthPanel = health; health.classList.add('hp-fade', 'hp-gone'); // E319: hidden at full health (setState)
     r.append(health);
 
     // ammo
     const ammo = el('div', 'ws-glass ws-game-ammo');
-    ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label"><span class="ws-game-weapon">${this.opts.weaponUi.name}</span><span class="l">${this.opts.weaponUi.ammo?.label ?? ''}</span></span><span class="ws-game-count"><span class="c">${this.opts.maxBolts}</span> <small>/ <span class="m">${this.opts.maxBolts}</span></small><small class="ws-game-reserve"></small></span></div>
-      <div class="ws-game-pips"></div><div class="ws-game-rbar"><i></i></div><div class="ws-game-status"><span class="s">Loaded</span><i></i></div>`;
+    ammo.innerHTML = engineString('s_257c5b64d234', [this.opts.weaponUi.name, this.opts.weaponUi.ammo?.label ?? '', this.opts.maxBolts, this.opts.maxBolts]);
     this.ammoPanel = ammo;
     this.ammoCount = q(ammo, '.ws-game-count'); this.ammoNum = q(this.ammoCount, '.c'); this.ammoStatus = q(ammo, '.ws-game-status'); this.ammoStatusText = q(ammo, '.ws-game-status .s'); this.reloadBar = q(ammo, '.ws-game-rbar i');
     this.ammoLabel = q(ammo, '.ws-label .l'); this.ammoWeapon = q(ammo, '.ws-game-weapon'); this.ammoMax = q(ammo, '.m'); this.ammoReserve = q(ammo, '.ws-game-reserve');
@@ -236,14 +236,14 @@ export class HUD {
     r.append(ammo);
 
     // crosshair
-    this.cross = el('div', 'ws-game-cross', '<i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><u></u><div class="ws-game-x"></div>');
+    this.cross = el('div', 'ws-game-cross', engineString('s_0b94de84aa21'));
     this.killX = q(this.cross, '.ws-game-x');
     r.append(this.cross);
     this.hitRing = el('div', 'ws-game-hitring'); r.append(this.hitRing);
     this.aim = el('div', 'ws-game-aim'); r.append(this.aim);
 
     this.prompt = el('div', 'ws-glass ws-game-prompt'); r.append(this.prompt);
-    this.boundary = el('div', 'ws-game-boundary', '<div class="ws-game-bt">Chunk boundary</div><div class="ws-game-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.append(this.boundary);
+    this.boundary = el('div', 'ws-game-boundary', engineString('s_9029b332a959')); r.append(this.boundary);
     const toasts = el('div', 'ws-game-toasts'); r.append(toasts); this.toasts = new ToastStack(toasts); this.toastBox = toasts;
     this.flash = el('div', 'ws-game-flash'); r.append(this.flash);
 
@@ -262,8 +262,8 @@ export class HUD {
   setWeather(w: WeatherHUD): void {
     if (!this.weather) {
       if (!w.chip && !w.getLow) return;
-      const chip = el('div', 'ws-game-weather', `<i class="ws-game-wicon">${SVG_STORM}</i><div><div class="ws-game-wt"></div><div class="ws-game-ws"></div></div>`);
-      const low = el('div', 'ws-game-getlow', `<i>${SVG_WARN}</i><span>Lightning — get low</span>`);
+      const chip = el('div', 'ws-game-weather', engineString('s_0280c7c593d6', [SVG_STORM]));
+      const low = el('div', 'ws-game-getlow', engineString('s_d6d50babe1cf', [SVG_WARN]));
       this.root.append(chip, low);
       this.weather = { chip, title: q(chip, '.ws-game-wt'), sub: q(chip, '.ws-game-ws'), low, last: '' };
     }
@@ -307,7 +307,7 @@ export class HUD {
     this.updateMarkers(s, deg);
     const maxHp = s.maxHealth ?? 100;
     if (s.health !== L.health || maxHp !== L.maxHealth) {
-      if (maxHp !== L.maxHealth) { L.maxHealth = maxHp; this.healthMax.textContent = `/ ${maxHp}`; }
+      if (maxHp !== L.maxHealth) { L.maxHealth = maxHp; this.healthMax.textContent = engineString('s_9c6a243a6829', [maxHp]); }
       L.health = s.health;
       const h = Math.max(0, Math.min(maxHp, s.health)), pct = (h / maxHp) * 100;
       this.healthVal.textContent = String(Math.round(h));
@@ -336,7 +336,7 @@ export class HUD {
       L.statusKey = statusKey;
       this.ammoStatus.className = `ws-game-status ${statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : ''}`;
       const bow = label === 'Bolts' || label === 'Pitch bolts' || label === 'Broadheads', arrows = label === 'Arrows'; // the crossbow's kinds (Pine Hollow's loadout), the longbow's quiver
-      this.ammoStatusText.textContent = statusKey === 'empty' ? (bow ? 'No bolts' : arrows ? 'No arrows' : reserve > 0 ? 'Empty · R to reload' : 'No rounds') : statusKey === 'reloading' ? (bow ? 'Spanning' : 'Reloading') : statusKey === 'loaded' ? (bow ? 'Loaded' : arrows ? 'Nocked' : 'Ready') : (bow ? 'Spent · R to span' : 'R to reload');
+      this.ammoStatusText.textContent = statusKey === 'empty' ? (bow ? engineString('s_57bb4fd702ce') : arrows ? engineString('s_c3fd1e1d6aed') : reserve > 0 ? engineString('s_350eeb63fef0') : engineString('s_051534c4e5f7')) : statusKey === 'reloading' ? (bow ? engineString('s_9e0902cd9a2b') : engineString('s_a4b350a14964')) : statusKey === 'loaded' ? (bow ? engineString('s_d01476dfee7e') : arrows ? engineString('s_ef2a15f49495') : engineString('s_5fa7aac5375c')) : (bow ? engineString('s_a210214fc7c6') : engineString('s_01d5aca1d51d'));
       this.syncBar('status');
     }
     const rp = s.reloading ? (s.reloadProgress ?? 0) : 0;
@@ -357,9 +357,9 @@ export class HUD {
    *  The base's first two rows of the status column (src/engine/ui/hudSlots.ts; docked whenever the touch layer mounts — never
    *  on a mouse device); the numbers are HUD state, so the HUD owns them. */
   private mountBar(): void {
-    const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
+    const vitals = el('div', 'ws-game-vitals', engineString('s_92890f1e67f6', [SVG_HEART]));
     const L = this.last, segN = L.segments ?? this.opts.weaponUi.ammo?.segments ?? 0, reserve = L.reserve ?? 0;
-    const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny"><span class="ws-game-weapon">${L.weaponName ?? this.opts.weaponUi.name}</span><span class="l">${L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? ''}</span></span><span class="ws-game-segs">${'<i></i>'.repeat(segN)}</span><b class="ws-game-num"><span class="c">${this.opts.maxBolts}</span><small> / <span class="m">${L.maxBolts ?? this.opts.maxBolts}</span></small><small class="ws-game-reserve">${reserve > 0 ? `+ ${reserve}` : ''}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
+    const bolts = el('div', 'ws-game-bolts', engineString('s_adf21edee32f', [L.weaponName ?? this.opts.weaponUi.name, L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
     hudSlots.statusRow(vitals, ROW.vitals, false); hudSlots.statusRow(bolts, ROW.ammo, false);
     if (this.last.noAmmo) bolts.style.display = 'none';
     this.bar = { vitals, hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };

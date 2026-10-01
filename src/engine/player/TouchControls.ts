@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * TouchControls — on-screen first-person controls for coarse-pointer devices (phones, tablets).
  *
@@ -141,24 +142,7 @@ export class TouchControls {
     hud.classList.add('touch');
     const root = document.createElement('div');
     root.className = 'ws-touch';
-    root.innerHTML = `
-      <button class="ws-touch-use" type="button">Use</button>
-      <div class="ws-touch-status"></div>
-      <button class="ws-touch-disc aim" type="button"><i class="ws-touch-charge"></i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
-      <button class="ws-touch-disc lock" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 1.8v4.4M12 17.8v4.4M1.8 12h4.4M17.8 12h4.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="12" r="2.1"/></svg><span>Lock</span></button>
-      <button class="ws-touch-disc dodge" type="button"><i class="ws-touch-cd"></i><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dodge</span></button>
-      <button class="ws-touch-disc throw" type="button"><svg viewBox="0 0 24 24"><path d="M4 20 18.5 5.5M13 5h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20l2.5-5.5L9.5 17.5z"/></svg><span>Throw</span></button>
-      <button class="ws-touch-disc brace" type="button"><svg viewBox="0 0 24 24"><path d="M9 3.5 3.5 5.5v5c0 4 2.4 6.6 5.5 8 3.1-1.4 5.5-4 5.5-8v-5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 21 21 3.5M16 3.5h5v5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Brace</span></button>
-      <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
-      <button class="ws-touch-disc surface" type="button"><svg viewBox="0 0 24 24"><path d="M12 21.5V9M7.5 13.5 12 9l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 5.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Surface</span></button>
-      <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
-      <button class="ws-touch-pause" type="button">Pause</button>
-      <div class="ws-touch-bar">
-        <div class="ws-touch-zone move"><span class="ws-touch-label">Move</span><div class="ws-touch-stick"><i></i></div><u class="ws-touch-orbit"><i></i><i></i></u><b class="ws-touch-sprint">Sprint</b></div>
-        <div class="ws-touch-zone look"><div class="ws-touch-lookpad"><svg viewBox="0 0 24 24"><path d="M12 2.5 15.2 6.5H8.8zM12 21.5 8.8 17.5h6.4zM2.5 12 6.5 8.8v6.4zM21.5 12 17.5 15.2V8.8z"/></svg><svg class="sw" viewBox="0 0 24 24"><path d="M8.5 5.5 3 12l5.5 6.5M15.5 5.5 21 12l-5.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Look</span></div></div>
-      </div>
-      <button class="ws-touch-attack" type="button"><i class="ws-touch-charge"></i><svg class="melee" viewBox="0 0 24 24"><path d="M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 12.2l5.2 5.2M8.4 15.6 4 20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg><svg class="ranged" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="melee">Attack</span><span class="ranged">Fire</span><small class="melee">Hold = heavy</small><small class="draw">Hold = draw</small></button>
-      <button class="ws-touch-hover" type="button"><svg viewBox="0 0 24 24"><path d="M2.5 13.5h19c0 1.7-1.3 2.5-3 2.5H5.5c-1.7 0-3-.8-3-2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 16v2.5M17 16v2.5M6 10.5c1.8-3.2 10.2-3.2 12 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Hover</span></button>`;
+    root.innerHTML = engineString('s_d27c19bf3c27');
     hud.append(root);
     // ── iOS WebKit hardening (E46 — Jake's iPhone): a long press on a button lifted a drag preview of the ATTACK disc (and
     //    fired pointercancel, so the heavy never charged), a quick double tap zoomed, a press selected text. Pointer events
@@ -230,7 +214,7 @@ export class TouchControls {
       if (ls !== this.lockShown) {
         this.lockShown = ls;
         root.classList.toggle('lock-available', ls === 'available'); root.classList.toggle('locked', ls === 'locked');
-        lockLabel.textContent = hintLock.hint?.label ?? (ls === 'locked' ? 'Locked' : 'Lock'); lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' && !riding ? 'Orbit' : 'Move';
+        lockLabel.textContent = hintLock.hint?.label ?? (ls === 'locked' ? engineString('s_a424e33d9093') : engineString('s_db44b8db4f05')); lookLabel.textContent = ls === 'locked' ? engineString('s_39921a740bf2') : engineString('s_a0de5719f595'); moveLabel.textContent = ls === 'locked' && !riding ? engineString('s_29ac7e56b3b4') : engineString('s_6ecc3df6bffd');
       }
       // E319 (Jake: "only LOCK contextual" — DODGE stays): LOCK shows only while pressing it would lock (`available`: a
       // target in LockOnTarget's reach, cone and sight) or while locked, and lingers LOCK_LINGER s after, so a target at
@@ -358,7 +342,7 @@ export class TouchControls {
     btn('.ws-touch-disc.lock', () => { if (this.weapons.enabled) this.lock?.toggle(); });
     if (this.lock) {
       const prevNone = this.lock.onNoTarget;
-      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = 'No target'; setTimeout(() => { if (lockOn.state !== 'locked') lockLabel.textContent = hintLock.hint?.label ?? 'Lock'; }, 700); };
+      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = engineString('s_4b33d955f9a8'); setTimeout(() => { if (lockOn.state !== 'locked') lockLabel.textContent = hintLock.hint?.label ?? engineString('s_db44b8db4f05'); }, 700); };
     }
     // DODGE (Player.dodge, project/archive/2026-09-29-dodge-feel.md — E63's T feel, V deleted in E82). A tap during the cooldown only
     // shakes the disc (.deny) — no dodge is queued (E59)
@@ -399,7 +383,7 @@ export class TouchControls {
       const sync = () => {
         const on = prompt.classList.contains('show');
         use.classList.toggle('show', on);
-        if (on) use.textContent = prompt.textContent.replace(/^[A-Z]\s*/, '').trim() || 'Use';
+        if (on) use.textContent = prompt.textContent.replace(/^[A-Z]\s*/, '').trim() || engineString('s_c36d819e7bc6');
       };
       new MutationObserver(sync).observe(prompt, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
       sync();

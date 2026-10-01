@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * The developer fps panel's on-device perf HUD (E142 aggro-perf; Jake: "Can you add the debug info you need for the game
@@ -267,7 +268,7 @@ export class PerfHud {
 function device(game: Game): string {
   const cv = game.renderer.domElement, cap = frameCapFps();
   const ua = navigator.userAgent, webkit = ua.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(ua);
-  return `dpr ${devicePixelRatio} · ${cv.width}×${cv.height} · ${TIER}\ncap ${cap > 0 ? `${cap} fps` : 'off'} · ${document.visibilityState} · ${webkit || /iPhone|iPad/.test(ua) ? 'WebKit' : 'Blink'} · ${navigator.hardwareConcurrency} cores`;
+  return engineString('s_eca1db0e98e6', [devicePixelRatio, cv.width, cv.height, TIER, cap > 0 ? engineString('s_49bfa9d144a2', [cap]) : engineString('s_b4dc66dde806'), document.visibilityState, webkit || /iPhone|iPad/.test(ua) ? engineString('s_c5228b57a26a') : engineString('s_a37430e22cd0'), navigator.hardwareConcurrency]);
 }
 
 function pct(v: number[], p: number): number { const s = [...v].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(s.length * p))] ?? 0; }

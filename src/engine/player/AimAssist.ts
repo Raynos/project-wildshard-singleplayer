@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * AimAssist — console-style (CoD / GTA pad) aim help for TOUCH play. Mouse users never get it: only TouchControls
  * drives it. Three classic parts, all against alive animals within RANGE m and in front of the camera, all gated by
@@ -192,7 +193,7 @@ export class AimAssist {
     d.style.margin = `${-r}px 0 0 ${-r}px`;
     d.style.left = `${x}px`; d.style.top = `${y}px`;
     d.style.borderColor = this.last.tracking ? '#fff' : this.last.snapping ? '#ffd166' : 'rgba(143,227,255,0.9)';
-    d.textContent = `${best.target.kind ?? 'target'} · ${best.dist.toFixed(0)} m · ${this.last.angleDeg.toFixed(1)}° / ${this.last.coneDeg.toFixed(1)}° · ×${this.scale.toFixed(2)}${this.last.snapping ? ' · snap' : ''}${this.last.tracking ? ' · track' : ''}`;
+    d.textContent = engineString('s_65b23d5a8765', [best.target.kind ?? engineString('s_34a04005bcaf'), best.dist.toFixed(0), this.last.angleDeg.toFixed(1), this.last.coneDeg.toFixed(1), this.scale.toFixed(2), this.last.snapping ? engineString('s_31f76fc754ad') : '', this.last.tracking ? engineString('s_4697e30341e4') : '']);
     d.style.paddingTop = `${r * 2 + 4}px`;
     d.style.textAlign = 'center';
   }

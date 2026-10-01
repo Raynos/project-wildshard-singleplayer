@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 /**
  * Main menu ▸ SETTINGS (E55): the picks that are read once while the page loads — renderer, quality tier, render scale,
  * anti-aliasing, touch controls — with APPLY & RELOAD. The title's SETTINGS link (src/engine/ui/HUD.ts showIntro) opens it.
@@ -28,8 +29,8 @@ const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = doc
 type BootKey = 'tier' | 'touch';
 interface Row<K extends BootKey> { label: string; experimental?: boolean; options: { v: OptionValue<K>; text: string }[] }
 const LABELS: { [K in BootKey]: Row<K> } = {
-  tier: { label: 'Quality', options: [{ v: 'auto', text: `Auto · ${AUTO_TIER}` }, { v: 'phone', text: 'Phone' }, { v: 'desktop', text: 'Desktop' }] },
-  touch: { label: 'Touch controls', options: [{ v: 'auto', text: 'Auto' }, { v: 'on', text: 'Always' }] },
+  tier: { label: engineString('s_1b2c08a8733d'), options: [{ v: 'auto', text: engineString('s_2e7e5df64556', [AUTO_TIER]) }, { v: 'phone', text: engineString('s_63dceb8800b2') }, { v: 'desktop', text: engineString('s_9bd88f2485ac') }] },
+  touch: { label: engineString('s_25a35084fbc3'), options: [{ v: 'auto', text: engineString('s_0286249762f7') }, { v: 'on', text: engineString('s_de9f057a471c') }] },
 };
 const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'touch' ? LABELS[k].label : k);
 /** the render scale / AA picks this page was built with (tier.ts applied them at import) */
@@ -63,35 +64,31 @@ function build(): HTMLElement {
   r.dataset['wsShell'] = ''; // the page's one boot-settings panel: never a resident shard's (src/engine/app/legacyCapture.ts)
   r.inert = true;
   const sheet = el('ws-gmenu-sheet ws-glass');
-  sheet.innerHTML = `
-    <div class="ws-gmenu-head">
-      <div><div class="ws-gmenu-title">Settings</div><div class="ws-gmenu-sub">Main menu · applies on reload</div></div>
-      <button class="ws-gmenu-close" type="button">Close</button>
-    </div>`;
+  sheet.innerHTML = engineString('s_a9be5568aeb1');
   const body = el('ws-gmenu-body');
   const p = el('ws-gmenu-panel scroll active');
   p.dataset['scroll'] = ''; // index.html swallows touchmove outside [data-scroll]
   body.append(p);
-  sheet.append(body, el('ws-gmenu-hint', 'Sound and look speed: pause menu ▸ Settings'));
+  sheet.append(body, el('ws-gmenu-hint', engineString('s_1d538697a99a')));
   r.append(sheet);
   document.body.append(r);
 
   const running = el('ws-gmenu-note');
-  running.textContent = `Running now: ${TIER} quality`;
+  running.textContent = engineString('s_a348737554c0', [TIER]);
   const status = el('ws-gmenu-note');
-  const apply = el('ws-gmenu-btn resume', 'Apply &amp; reload', 'button') as HTMLButtonElement; apply.type = 'button';
+  const apply = el('ws-gmenu-btn resume', engineString('s_aa22d01f58bf'), 'button') as HTMLButtonElement; apply.type = 'button';
   const paints: (() => void)[] = [];
   const repaint = (): void => {
     for (const f of paints) f();
     const pending: string[] = pendingReload().map(optionLabel);
-    if (gfxPrefs.dpr !== BOOT_GFX.dpr) pending.push('Render scale');
-    if (gfxPrefs.aa !== BOOT_GFX.aa) pending.push('Anti-aliasing');
-    status.textContent = pending.length > 0 ? `Reload to apply: ${pending.join(', ')}.` : 'Every pick above is running now.';
+    if (gfxPrefs.dpr !== BOOT_GFX.dpr) pending.push(engineString('s_2dee7435d0fe'));
+    if (gfxPrefs.aa !== BOOT_GFX.aa) pending.push(engineString('s_c77c3af22c64'));
+    status.textContent = pending.length > 0 ? engineString('s_2cbee05c7629', [pending.join(', ')]) : engineString('s_937833a58685');
     apply.classList.toggle('exit', pending.length === 0);
   };
 
   const seg = (label: string, experimental: boolean, options: { v: string; text: string }[], get: () => string, set: (v: string) => void): HTMLElement => {
-    const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}${experimental ? ' <i class="ws-gmenu-chip exp">Experimental</i>' : ''}</span>`);
+    const row = el('ws-gmenu-row', engineString('s_135d0923e690', [label, experimental ? engineString('s_33b99f60d520') : '']));
     const box = el('ws-gmenu-seg');
     for (const o of options) {
       const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
@@ -105,31 +102,31 @@ function build(): HTMLElement {
   const row = <K extends BootKey>(k: K, spec: Row<K>): HTMLElement =>
     seg(spec.label, spec.experimental === true, spec.options, () => savedSetting(k), (v) => { const o = spec.options.find((x) => x.v === v); if (o) { saveSetting(k, o.v); if (o.v !== setting(k)) askReload(document.body, spec.label); } });
 
-  const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: '2', text: '2×' }, { v: 'native', text: 'Native' }, { v: 'auto', text: 'Auto' }];
-  const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
+  const dprOpts = [{ v: '1', text: engineString('s_aa23e5562422') }, { v: '1.25', text: engineString('s_dfbe15a4b4a5') }, { v: '1.5', text: engineString('s_79105e58c657') }, { v: '2', text: engineString('s_d1ce94426019') }, { v: 'native', text: engineString('s_d509e4938852') }, { v: 'auto', text: engineString('s_0286249762f7') }];
+  const aaOpts = [{ v: 'on', text: engineString('s_130011756125') }, { v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'auto', text: engineString('s_0286249762f7') }];
   // E172 (the user: "main menu doesnt even have dev/debug just pause menu"): the pause menu's Debug registry
   // (src/engine/ui/debugOptions.ts → DebugMenu.ts: the same rows, Clear downloads among them), in the same folding card as the
   // pause menu's (E177) and, like it, only in developer mode. The Developer switch itself sits in the open above it
   // (Jake, 2026-09-26: "back in the open") — it is how the card appears at all.
-  const dbg = foldCard('bootdebug', 'Debug', 'for playtests — goes away when the game ships');
+  const dbg = foldCard('bootdebug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396'));
   const registry = el('ws-gmenu-debugslot');
   debug = buildDebugMenu(registry);
   dbg.append(registry);
   dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; if (on) debug?.paint(); });
   p.append(running,
-    el('ws-gmenu-label', 'Graphics'), row('tier', LABELS.tier),
-    seg('Render scale', false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, 'Render scale'); } }),
-    seg('Anti-aliasing', false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
-    el('ws-gmenu-label', 'Controls'), row('touch', LABELS.touch),
+    el('ws-gmenu-label', engineString('s_a874fca87cdd')), row('tier', LABELS.tier),
+    seg(engineString('s_2dee7435d0fe'), false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, engineString('s_2dee7435d0fe')); } }),
+    seg(engineString('s_c77c3af22c64'), false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
+    el('ws-gmenu-label', engineString('s_799c26913574')), row('touch', LABELS.touch),
     ...devSwitchRows(), // developer mode (E140): live, no reload
     dbg);
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));
-  if (overridden.length > 0) p.append(el('ws-gmenu-note', `This load’s address sets ${overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')}; Apply &amp; reload drops it.`));
+  if (overridden.length > 0) p.append(el('ws-gmenu-note', engineString('s_7537bbaf9c47', [overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')])));
   p.append(status, apply);
   // credits (E64 — Jake: "get that music attribution out of here and move it to a dedicated credits page"): the title used to
   // print them under the cards; they live here now, and in the pause menu ▸ Settings ▸ Audio next to the pickers
-  p.append(el('ws-gmenu-label', 'Credits'), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => el('ws-gmenu-note', t)));
+  p.append(el('ws-gmenu-label', engineString('s_2a6b24ad2872')), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => el('ws-gmenu-note', t)));
 
   apply.addEventListener('click', () => {
     const next = settingsReloadUrl(location.href, TITLE_SKIPPERS);

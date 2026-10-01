@@ -1,3 +1,4 @@
+import { engineString } from '#engine/strings';
 import type { DamageRequest } from '../../combat/pipeline';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
@@ -462,7 +463,7 @@ export function onBalbalCrack(a: Animal, hitPoint: THREE.Vector3): boolean {
 
 registerSpecies({
   kind: BALBAL,
-  label: 'Balbal',
+  label: engineString('s_21d824fec935'),
   fur: NO_FUR,
   rig: 'custom',
   aggressive: true,
@@ -471,8 +472,8 @@ registerSpecies({
   sounds: { call: 'bear_growl', hurt: 'crab_click', callEvery: [10, 22] },
   // 2.1 m modelled × 1.18 ≈ 2.5 m; 'capped' wears the pointed cap and the short beard (the statue's variant 1)
   variants: [
-    { id: 'warrior', label: 'Balbal', weight: 2, rarity: 'uncommon', scale: [1.15, 1.22], hp: 220 },
-    { id: 'capped', label: 'Balbal', weight: 1, rarity: 'uncommon', scale: [1.15, 1.22], hp: 220, traits: { cap: true } },
+    { id: 'warrior', label: engineString('s_21d824fec935'), weight: 2, rarity: 'uncommon', scale: [1.15, 1.22], hp: 220 },
+    { id: 'capped', label: engineString('s_21d824fec935'), weight: 1, rarity: 'uncommon', scale: [1.15, 1.22], hp: 220, traits: { cap: true } },
   ],
   build: (v, rng) => { const sp = buildBalbal(v, rng); bindBones = sp.bones; return sp; },
   animate: animateBalbal,
