@@ -209,7 +209,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | M-3 | 48 hand-merged hook assignments, 29 hand chains, 8 `ws:*` events | 01 §3; F8 step 4 (`no-hook-chain` ratchet); 09 §4.3 and each shard spec §4 map every hook | covered |
 | M-4 | 32 hand-ordered updates in the `'main'` updater | 01 §1; F8 step 2 (ids + rename map); S4.4 (split in order) | covered |
 | M-5 | ~160 closure locals in `buildShard` | 01 §5 (typed services) | covered |
-| M-6 | `ShardRender` used only by Nine Dragon; `Game.ts` / `Sky.ts` / `Terrain.ts` / `Grass.ts` / `Atmosphere.ts` branch | 01 §13.1; S1.1, S2.1, S3.2, S4.3 (each shard's `ShardRender`) | covered |
+| M-6 | `ShardRender` (now `LookStrategy`, R1-01) used only by Nine Dragon; `Game.ts` / `Sky.ts` / `Terrain.ts` / `Grass.ts` / `Atmosphere.ts` branch | 01 §13.1; S1.1, S2.1, S3.2, S4.3 (each shard's `ShardRender`) | covered |
 | M-7 | No safety net in CI; `scorecard.mjs` ~70 % of a harness | F2 (02 §F2, 03); F3.2 | covered |
 | M-8 | Determinism: 254 `Math.random`, 242 `performance.now` | F4 `no-raw-random-time`; F8 step 1; 09 §3.5 | covered |
 | M-9 | The freeze never happened | the lock (F0) replaces it | covered |
@@ -348,7 +348,7 @@ The file has no numbered top 10. EF1–EF10 are its verdict (5 points) and the �
 | EF5 | Keep the Rapier 0.20.0 pin until a phone measurement pays for 0.21 | Jake overrode it: decisions 45 and 89 → F12 | conflict, resolved by Jake (0.21, +413 KB accepted) |
 | EF6 | Keep navcat and adopt its crowd module for herds and thralls | navcat stays (today's baked navmesh and its query, `src/physics/navmesh.ts`); the crowd module is in IDX §8 "After this plan" as an ask | out (after; G14 resolved) |
 | EF7 | Own a typed FSM (skip xstate); borrow yuka's steering pattern; no behaviour-tree library | 01 §19 (`Hfsm`, owned); steering behaviours in IDX §8 "After this plan" | covered; steering out (after; G14 resolved) |
-| EF8 | WebGPU containment: the renderer type in `engine/render`, one shader-patch registry, post behind `ShardRender`, one `precompile()`, no TSL | 01 §13.1–§13.2; 10 X6 | covered |
+| EF8 | WebGPU containment: the renderer type in `engine/render`, one shader-patch registry, post behind `ShardRender` (now `LookStrategy`, R1-01), one `precompile()`, no TSL | 01 §13.1–§13.2; 10 X6 | covered |
 | EF9 | No OffscreenCanvas; a kit worker pool for procedural generation (Pine's 150 ms long task); physics stays on the main thread | 01 §14 (main thread); the worker pool in IDX §8 "After this plan" as an ask | covered; the worker pool out (after; G14 resolved) |
 | EF10 | Build: one lazy chunk per shard started at entry through `retried()`; few big chunks (`codeSplitting.groups`); subpath imports; `wildshard/layer` + slug counter; folders, not packages; re-test E188's retry on iOS 27 | F1 (aliases); F4 (lint); 01 §0 (folders); 01 §7 (lazy load); IDX §2.2; 10 X3 steps 7–10 (chunk groups, the main-chunk check, the shard chunk through `retried()`, the iOS 27 re-test) | covered (G1 resolved) |
 
@@ -534,10 +534,9 @@ closure)
 `atmosphere.edgeHaze` / `wetSurfaces`, `loadout.grants[].by`, `loadout.ammo`, `bag.pack.keeps`, `boot.bytes` /
 `lateReads` / `bakedUnread` (06 §10 Q1 declares them by 13's rule); 01 §24's `sim-no-render` globs need 02 §F4's
 `src/engine/combat/view/**` carve-out for the drawing blocks; 01 §13.3 gains the engine tier knob `msaa` (07 §6.2
-step 2); `move-map.json` needs F6's `src/entry.ts` amendment (02 §F6 step 1); 09 §10 Q1 / Q2 / Q11 still say "open" for
-items 13 C4 / C5 answered.
+step 2); `move-map.json` needs F6's `src/entry.ts` amendment (02 §F6 step 1); 09 §8 Q1 / Q2 / Q11 are resolved by 13 C4 / C5.
 
-**Counts.** Table 1: 13 rows (13 covered). Table 2: 98 rows (91 decisions, 4 revisions, 3 unnumbered). Table 3: 21 +
+**Counts.** Table 1: 13 rows (13 covered). Table 2: one row per decision 1–98, plus the revisions 12′, 28′, 55′, 90′ and 3 unnumbered rows. Table 3: 21 +
 11 + 15 + 26 = 73 rows. Table 4: 25 + 18 + 22 = 65 rows. Table 5: 10 + 22 + 8 + 7 + 11 = 58 rows. Table 6: 26 rows.
 Gaps: 21 (G1–G21), all resolved (G4, G5, G8, G9 while this was written; the other 17 by 13 and the gap closure). No row
 is `partial`, `gap` or an unresolved `conflict`.

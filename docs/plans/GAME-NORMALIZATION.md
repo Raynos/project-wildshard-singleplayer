@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `draft` 2026-09-30 — rewritten from scratch by E357 (audit + 8 research/code audits + Jake's decisions 1–91 with the revisions 12′, 28′, 55′, 90′, §9). Every spec in [game-normalization/](game-normalization/) is written (00–12), 13 answers every spec question and every traceability gap (G1–G21), and the gap closure applied 13's last four tables to the index, 00, 02, 03, 05–08, 10 and 12 (new row X9; X3 chunk check + iOS 27 re-test, X7 tier selection, X8 flag hygiene, the nightly Simulator memory run + soak bot, the Linux asset-case job). No spec question is open. Next: the clean-room council (Codex GPT 6.1 Sol + 2 Claude seats) until it finds nothing twice in a row (12-process §1). ENGINE-FIT is folded in. Nothing is built; the lock holds (engine/game/kit until the end, each shard's folder reopens at its milestone).
+**State:** `draft` 2026-09-30 — rewritten from scratch by E357: an audit, 8 research and code audits, and Jake's decisions 1–98 (with the revisions 12′, 28′, 55′, 90′). Every spec in [game-normalization/](game-normalization/) is written (00–13). **The council** (12 §1; decisions 81–83, 92–93, 97) has run 3 of its 4 rounds, with accepted must + should findings falling each round: 71 → ~40 → ~17. The battery passes 16 of 26 scenarios. Round 3's fixes are being applied, then **round 4**, the last; whatever is still open after it goes to Jake as decisions, and the plan becomes `ready` after his answers. Nothing is built. The lock holds: engine / game / kit until the end, and each shard's folder reopens at its milestone.
 
 ## Specs (the executable detail) and the definition of ready
 
@@ -462,7 +462,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 
 ## 9. Jake's decisions (E357, 2026-09-30)
 
-The verbatim table (decisions 1–91 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
+The verbatim table (decisions 1–98 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
 
 | Area | Decisions |
 |---|---|

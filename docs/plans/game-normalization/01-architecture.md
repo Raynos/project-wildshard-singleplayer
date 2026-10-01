@@ -218,13 +218,16 @@ export interface LevelSpec {
   dayCycle?: DayCycleKeyframes; weather?: WeatherSpec;
   // R2-02: every field the engine reads is here, copied by toLevelSpec; engine code never reads a manifest
   loadout: LoadoutSpec;                         // the equipment the kit stage builds (R2-05)
+  // LoadoutSpec = { start: readonly EquipmentId[]; held?: EquipmentId; pickups: readonly { id: EquipmentId; at: string }[];
+  //   loans?: readonly { id: EquipmentId; where: string }[]; grants?: readonly { id: EquipmentId; by: string; replaces?: EquipmentId }[];
+  //   viewmodel?: ViewmodelRef; ammo?: Readonly<Record<string, number>> }   (R3-04)
   species: readonly SpeciesRef[]; spawns: readonly HerdPlan[]; spawnTables?: readonly SpawnTableRef[];
   faunaTuning?: FaunaTuning; trees?: TreeSpec; forest?: ForestSpec; horizon?: HorizonSpec;
-  minimap: MinimapSpec; hud?: HudSpec; pois?: readonly PoiSpec[]; bodyShadow?: boolean;
-  groundColor?: GroundColorFn; surfaceAt?: SurfaceFn; assets?: AssetSpec; explore?: ExploreSpec;
+  minimap: MinimapSpec; hud?: HudSpec; pois?: readonly PoiSpec[];   // (bodyShadow is game data: it stays on the manifest, R3-N)
+  groundColor?: GroundColorFn; surfaceAt?: SurfaceFn; assets?: ChunkAssets; explore?: ExploreSpec;   // ChunkAssets = today's flat shape (R3-09)
   kitLook: 'toon' | 'painterly' | 'pbr'; swimArms?: SwimArmsSpec; roster?: () => Promise<readonly RosterEntry[]>;
   blender?: { area: BlenderArea; models: readonly BlenderModelRef[] };   // was the manifest's world.blenderArea / blenderModels: renamed so it never reads like the level.world stage
-  // AssetSpec = { globs?: readonly string[]; ground?: GroundSets }: globs are the shard's extra asset folders (R2-19); ground sets are optional (Driftwood declares none)
+  // (the lock's extra asset folders are the manifest's own `assetGlobs`, game data read by check-lock, never on LevelSpec: R3-09)
   // not here (game-only, stay on the manifest): name, blurb, card, order, status, bag, label, the game mechanisms
 }
 export interface LevelContext {                 // the engine's verbs, every one bound to ctx.scope (R1-25)
@@ -260,6 +263,12 @@ export interface LevelHooks {                   // each awaited in its stage, wi
   `toLevelSpec(manifest)`, a pure function that a node test runs on every shard. It then calls
   `app.loadLevel(spec, hooks)`, where the hooks wrap the plugin's `world` / `kit` / `play` with a `ShardContext` (the
   `LevelContext` plus the game verbs, §7).
+- **The terrain collider (R3-02):** the engine adds it only when `level.ground.terrain` is set **and**
+  `level.ground.structures` is not, as today's `bootstrap.ts:101` does. A structure-first level's terrain is
+  placement-only: nothing draws or collides with it.
+- **The KTX2 table is optional (R3-08):** `level.assets` carries no table. The manifest's `assets.ktx2?: () =>
+  import('./ktx2.generated')` thunk loads one when a shard has one, and a shard with none (the template, a new shard)
+  boots without it.
 - **The kit stage's contract (R2-05):** rows register only during `level.kit` (inside `hooks.kit`); a registration
   after `level.kit` ends throws. When `hooks.kit` returns, the engine builds the loadout from `level.loadout`
   (resolving each id against the registered rows) and preloads its models before `level.play`. `play` can't add
@@ -362,8 +371,8 @@ export abstract class ShardPlugin {         // staged hooks, each awaited in its
 export interface ShardContext extends LevelContext {   // every verb bound to ctx.scope: no verb takes a scope (R1-25)
   readonly manifest: ShardManifest;
   readonly game: GameServices;              // Bag, coins, loot, compendium, feats (#game)
-  bag: BagVerbs;                            // R2-20: tab(spec: BagTabSpec), fragment(tab: BagTabId, f: BagFragment): bound to the scope
-  rows: EngineRows & GameRows;              // GameRows (R2-20): item(row), lootTable(row), feat(row), shop(row), compendium(row), places(row)
+  bag: BagVerbs;                            // R2-20: tab(spec: BagTabSpec), fragment(tab: BagTabId, f: BagFragment): bound to the scope; the finds are bag.fragment('finds', f) (R3-04)
+  rows: EngineRows & GameRows;              // GameRows (R2-20, R3-04): item(row), lootTable(row), skin(row), feat(row), shop(row), compendium(row), places(row); never rows.spawn / rows.loot
   // debug.expose(name, value) → window.__wildshard.shard[name]; replaces __ndRender, the seven __pine*, __titan …
 }
 // src/game/shard/shards.generated.ts — written by scripts/gen-shards.mjs from src/shards/*/manifest.ts
@@ -889,7 +898,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | Rule | Checks | Starts at |
 |---|---|---|
 | `wildshard/layer` | import direction; no shard ↔ shard; the public index only; `src/engine/**` word list (slugs, shard / creature / weapon names, Bag, coin, loot, compendium, feat) | today's counts, per file |
-| `wildshard/no-shard-branch` | outside `src/shards/`, any of: `slug ===` / `slug !==`; `style ===` / `style !==`; `isOcean`; `sea ?`; `chunk.ocean`; `nalatiNow()`; `isNalati`; `isPine`; `isNine`; `painterly ?` / `painterly &&`; `LOOK_V2`; `isStylized(`; `isPaintedAir(`; `isPainterlyGrass(`; a shard slug string literal (`'driftwood-isle'`, `'nalati-grasslands'`, `'pine-hollow'`, `'nine-dragon-stack'`). **How it matches (AST, R2-17):** (a) the identifiers and calls above; (b) a member read of `.structures`, `.weapon`, `.style` or `.ocean` on a chunk / def / manifest / `LevelSpec` value or on `getActiveChunk()` (a branch on what kind of shard this is); (c) a shard slug string literal as an operand of a comparison or a `switch` case. 02 F4 holds the fixtures for each clause. F4 implements exactly this as `SHARD_BRANCH` in `lint/wildshard-plugin.js` | 269 |
+| `wildshard/no-shard-branch` | outside `src/shards/`, any of: `slug ===` / `slug !==`; `style ===` / `style !==`; `isOcean`; `sea ?`; `chunk.ocean`; `nalatiNow()`; `isNalati`; `isPine`; `isNine`; `painterly ?` / `painterly &&`; `LOOK_V2`; `isStylized(`; `isPaintedAir(`; `isPainterlyGrass(`; a shard slug string literal (`'driftwood-isle'`, `'nalati-grasslands'`, `'pine-hollow'`, `'nine-dragon-stack'`). **How it matches (AST, R2-17):** (a) the identifiers and calls above; (b) a member read of `.structures`, `.weapon`, `.style` or `.ocean` on a chunk / def / manifest value or on `getActiveChunk()` (a branch on what kind of shard this is), but **not** on `level`: a capability read from `LevelSpec` data, such as `level.ground.structures === true`, is allowed (R3-05); (c) a shard slug string literal as an operand of a comparison or a `switch` case. 02 F4 holds the fixtures for each clause. F4 implements exactly this as `SHARD_BRANCH` in `lint/wildshard-plugin.js` | 269 |
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside `#engine/saves` | 36 keys / 28 files |
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |

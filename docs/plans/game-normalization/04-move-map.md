@@ -43,6 +43,9 @@ that is a judgment call (not a folder rule) carries `07` or `08` in the Confirm 
 | Code | Rule | Destination | Source |
 |---|---|---|---|
 | **D** | Dead: deleted before F6 | — (F7) | 02 F7 |
+| **DEL** | Deleted by a later row because something replaces it (`final: null`, `layer: deleted`) | — (that row) | 13 R1-04 |
+| **MERGE** | Merged into another file by a later row, then deleted (`final: null`, `layer: deleted`, `mergedInto`) | — (that row) | 13 R1-04 |
+| **ROOT** | The composition root: `src/entry.ts` and `src/main.ts` stay at `src/`, outside the layers | `src/` | 01 §0, 13 04#12 |
 | **T** | Shard territory by path: `src/chunks/<slug>.ts` → `<slug>/manifest.ts`; `src/chunks/<slug>/**`, `src/nalati/**`, `src/pinehollow/**`, `src/chunks/{nalatiLayout,nalatiEdge,pineHollowLayout}.ts`, `src/chunks/thumbs/<slug>*` → the shard folder (renamed as 05 §1.1 and 06 §1.2 say) | the shard | 02 rule 1 |
 | **X-SPECIES**, **X-WEAPON**, **X-GLOB** | The interim exceptions E1–E3 (§1.3) | interim at F6, final in the named row | this spec |
 | **SPLIT** | A mixed file that a later row splits (§3) | interim at the layer of its largest part | this spec |
