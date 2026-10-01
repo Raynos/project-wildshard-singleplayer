@@ -1,0 +1,57 @@
+{
+  "passed": true,
+  "device": "0204D232-EEF1-4115-87D3-FC273BE9FA64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+  "chunks": [
+    "/assets/three.module-CQzLsTV9.js",
+    "/assets/runtime-Bx-bsHle.js",
+    "/assets/plugin-CWlPgH3z.js"
+  ],
+  "requests": [
+    {
+      "path": "/assets/three.module-CQzLsTV9.js",
+      "attempt": 1,
+      "cut": true,
+      "bytes": 738500
+    },
+    {
+      "path": "/assets/three.module-CQzLsTV9.js",
+      "attempt": 2,
+      "cut": false,
+      "status": 200,
+      "bytes": 738500
+    },
+    {
+      "path": "/assets/runtime-Bx-bsHle.js",
+      "attempt": 1,
+      "cut": true,
+      "bytes": 705679
+    },
+    {
+      "path": "/assets/runtime-Bx-bsHle.js",
+      "attempt": 2,
+      "cut": false,
+      "status": 200,
+      "bytes": 705679
+    },
+    {
+      "path": "/assets/plugin-CWlPgH3z.js",
+      "attempt": 1,
+      "cut": true,
+      "bytes": 362480
+    },
+    {
+      "path": "/assets/plugin-CWlPgH3z.js",
+      "attempt": 2,
+      "cut": false,
+      "status": 200,
+      "bytes": 362480
+    }
+  ],
+  "boot": true,
+  "controlled": true,
+  "failureText": "",
+  "candidate": "108c395a1dffbfba866a74c54a46b085924581a6",
+  "priorPassedCandidate": "d28e8061dddad1a7487de28cc0d4af41ecdf13cc",
+  "probeSha256": "d43096104b241194f010227814f141e0ab6a49dae41ec321ddb7738a8d1e7476"
+}

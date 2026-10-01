@@ -10,7 +10,8 @@ import { pathToFileURL } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 /** Cut a first JS response mid-body, then forward subsequent requests completely. */
-export async function retryProxy(base, paths) {
+export async function retryProxy(base, paths, initiallyArmed = true) {
+  let armed = initiallyArmed;
   const cuts = new Set(paths), attempts = new Map(), log = [];
   const forward = async (req, res) => {
     const path = new URL(req.url ?? '/', base).pathname;
@@ -21,7 +22,7 @@ export async function retryProxy(base, paths) {
       res.statusCode = upstream.status;
       res.setHeader('content-type', upstream.headers.get('content-type') ?? 'application/octet-stream');
       res.setHeader('cache-control', 'no-store'); res.setHeader('content-length', body.length);
-      if (cuts.has(path) && attempt === 1 && upstream.ok && body.length > 1) {
+      if (armed && cuts.has(path) && attempt === 1 && upstream.ok && body.length > 1) {
         log.push({ path, attempt, cut: true, bytes: body.length });
         res.flushHeaders(); res.write(body.subarray(0, Math.max(1, Math.floor(body.length / 2))));
         await sleep(30); res.destroy();
@@ -36,6 +37,7 @@ export async function retryProxy(base, paths) {
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('retry proxy has no port');
   return { url: `http://127.0.0.1:${address.port}/`, log,
+    arm: () => { armed = true; attempts.clear(); log.length = 0; },
     close: () => new Promise((resolve) => { server.closeAllConnections(); server.close(resolve); }) };
 }
 
@@ -55,15 +57,15 @@ function inspector(url) {
     else if (message.method === 'Target.dispatchMessageFromTarget') receive(JSON.parse(message.params.message));
     else receive(message);
   });
-  const evaluate = async (expression) => {
+  const evaluate = async (expression, timeout = 4000) => {
     const id = ++seq;
     const result = new Promise((resolve, reject) => {
       pending.set(id, { done: resolve, reject });
-      const message = { id, method: 'Runtime.evaluate', params: { expression, returnByValue: true } };
+      const message = { id, method: 'Runtime.evaluate', params: { expression, returnByValue: true, awaitPromise: true } };
       if (target) raw({ id: ++seq, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } });
       else raw(message);
     });
-    try { return (await Promise.race([result, sleep(4000).then(() => null)]))?.result?.value; }
+    try { return (await Promise.race([result, sleep(timeout).then(() => null)]))?.result?.value; }
     finally { pending.delete(id); }
   };
   return { opened, evaluate, close: () => ws.close() };
@@ -105,7 +107,8 @@ async function main() {
     }
     if (!dist) throw new Error('--url requires --dist=<served build output>');
     result.chunks = retryChunks(JSON.parse(readFileSync(join(dist, '.vite/chunk-modules.json'), 'utf8')));
-    proxy = await retryProxy(base, result.chunks); result.requests = proxy.log;
+    const controlled = process.argv.includes('--sw-controlled');
+    proxy = await retryProxy(base, result.chunks, !controlled); result.requests = proxy.log;
     spawnSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari']);
     execFileSync('xcrun', ['simctl', 'openurl', udid, `${proxy.url}version.json`]);
     await sleep(4000);
@@ -120,7 +123,32 @@ async function main() {
       await sleep(1000);
     }
     if (!page) throw new Error('Safari retry page missing from Web Inspector');
-    const gameUrl = `${proxy.url}?chunk=pine-hollow&skipintro=1&mute=1&sw=0`;
+    if (controlled) {
+      await page.evaluate(`void (async () => {
+        await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
+        if (!navigator.serviceWorker.controller) await new Promise((resolve, reject) => {
+          navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true });
+          setTimeout(() => reject(new Error('SW did not claim the probe')), 30000);
+        });
+        for (const name of await caches.keys()) {
+          const cache = await caches.open(name);
+          for (const path of ${JSON.stringify(result.chunks)}) await cache.delete(new URL(path, location.origin).href, { ignoreVary: true });
+        }
+        window.__retryControl = navigator.serviceWorker.controller !== null;
+      })().catch(error => { window.__retryControlError = String(error); })`);
+      const controlDeadline = Date.now() + 60000;
+      while (Date.now() < controlDeadline) {
+        result.controlled = await page.evaluate('window.__retryControl === true') === true;
+        if (result.controlled) break;
+        const error = await page.evaluate('window.__retryControlError');
+        if (error) throw new Error(String(error));
+        await sleep(1000);
+      }
+      if (!result.controlled) throw new Error('Probe is not under SW control');
+      proxy.arm();
+    }
+    const gameUrl = `${proxy.url}?chunk=pine-hollow&skipintro=1&mute=1${controlled ? '' : '&sw=0'}`;
     await page.evaluate(`location.href=${JSON.stringify(gameUrl)}`);
     const deadline = Date.now() + 120000;
     while (Date.now() < deadline) {
@@ -129,7 +157,7 @@ async function main() {
       await sleep(1000);
     }
     result.failureText = await page.evaluate("document.body.innerText.slice(-2000)");
-    result.passed = result.boot && result.chunks.every((path) => result.requests.some((row) => row.path === path && row.cut === true) && result.requests.some((row) => row.path === path && row.attempt > 1 && row.cut === false && row.status === 200));
+    result.passed = result.boot && (!controlled || await page.evaluate('navigator.serviceWorker.controller !== null') === true) && result.chunks.every((path) => result.requests.some((row) => row.path === path && row.cut === true) && result.requests.some((row) => row.path === path && row.attempt > 1 && row.cut === false && row.status === 200));
     if (!result.passed) throw new Error('Dropped chunks were not all retried completely, or world boot was not reached within 120 s');
     console.log(`iOS retry passed (${result.runtime}): ${result.chunks.join(', ')}`);
   } catch (error) { result.error = String(error); process.exitCode = 1; console.error(result.error); }

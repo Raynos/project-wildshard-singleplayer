@@ -1,0 +1,23 @@
+{
+  "runtimeCandidate": "d41b9a99c51c4c76311806bb923bb0cee0e6f00e",
+  "vercelTreeGate": "passed (CSS,gen/check,app/API/scripts tsc,whole oxlint,ratchet,liveness,full vitest,build,check-chunks)",
+  "phoneBoots": {
+    "driftwood-isle.phone.raw": {
+      "errors": [],
+      "posesCaptured": 3
+    },
+    "nalati-grasslands.phone.raw": {
+      "errors": [],
+      "posesCaptured": 3
+    },
+    "nine-dragon-stack.phone.raw": {
+      "errors": [],
+      "posesCaptured": 3
+    },
+    "pine-hollow.phone.raw": {
+      "errors": [],
+      "posesCaptured": 3
+    }
+  },
+  "comparison": "full parity comparison queued for lead"
+}

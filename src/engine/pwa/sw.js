@@ -397,6 +397,12 @@ workerScope.listen(self, 'fetch', (event) => {
     event.respondWith(networkFirst(req, SHELL));
     return;
   }
+  // Module imports use destination script, including unversioned entry/helper URLs.
+  // Buffer and retry the network body before WebKit caches a failed module response.
+  if (req.destination === 'script') {
+    event.respondWith(cacheFirst(req, cacheFor(url.pathname)));
+    return;
+  }
   if (url.pathname.startsWith('/assets/') && url.searchParams.has('v')) { // E160: `?v=<content hash>` names its bytes, forever
     event.respondWith(cacheFirst(req, STATIC));
     return;
@@ -447,7 +453,7 @@ async function cacheFirst(req, name) {
   const cache = await caches.open(name);
   const hit = await cache.match(req, MATCH_OPTS);
   if (hit) return hit;
-  if (CODE_RE.test(new URL(req.url).pathname)) return fetchWhole(req, cache);
+  if (req.destination === 'script' || CODE_RE.test(new URL(req.url).pathname)) return fetchWhole(req, cache);
   const res = await fetch(req);
   if (res.ok) cache.put(req, res.clone()).catch(() => undefined);
   return res;
