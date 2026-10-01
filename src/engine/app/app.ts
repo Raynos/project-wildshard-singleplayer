@@ -33,11 +33,18 @@ import type { EffectService } from '../combat/effects/EffectService';
 
 interface StateHook { state: AppState; run: () => void }
 export type SystemsByPhase = Readonly<Record<Phase, readonly SystemSpec[]>>;
+export interface TrampleField {
+  push: (x: number, z: number, radius: number, strength?: number, vx?: number, vz?: number) => void;
+}
 
 class AppWorld {
   private readonly readClock: () => DayCycleClock | null;
-  constructor(readClock: () => DayCycleClock | null) { this.readClock = readClock; }
+  private readonly readTrample: () => TrampleField | null;
+  constructor(readClock: () => DayCycleClock | null, readTrample: () => TrampleField | null) {
+    this.readClock = readClock; this.readTrample = readTrample;
+  }
   get dayCycle(): DayCycleClock | null { return this.readClock(); }
+  get trample(): TrampleField | null { return this.readTrample(); }
   /** the level's water bodies (the sea on an open-water level; src/engine/world/water/body.ts) */
   readonly water = new WaterBodies();
 }
@@ -113,7 +120,12 @@ export class App {
   navmesh: Navmesh | null = null;
   navmeshId: string | null = null;
   private readonly clocks = new WeakMap<Scope, DayCycleClock>();
-  readonly world = new AppWorld(() => this.dayCycle);
+  private readonly trampleFields = new WeakMap<Scope, TrampleField>();
+  readonly world = new AppWorld(() => this.dayCycle, () => this.levelScope === null ? null : this.trampleFields.get(this.levelScope) ?? null);
+  registerTrample(field: TrampleField, scope: Scope): void {
+    this.trampleFields.set(scope, field);
+    scope.onDispose(() => { this.trampleFields.delete(scope); });
+  }
   get dayCycle(): DayCycleClock | null { return this.levelScope === null ? null : this.clocks.get(this.levelScope) ?? null; }
   registerDayCycle(clock: DayCycleClock | null, scope: Scope): void {
     if (clock === null) this.clocks.delete(scope);
