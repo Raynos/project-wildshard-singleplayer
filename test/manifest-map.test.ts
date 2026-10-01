@@ -3438,7 +3438,7 @@ function originalArt(value: unknown): unknown {
 }
 
 function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
-  const { next: _next, blender: _blender, pondLilyExclusions: _pondLilyExclusions, horizonStrips: _horizonStrips, uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
+  const { creatures: _creatures, debugOptions: _debugOptions, next: _next, blender: _blender, pondLilyExclusions: _pondLilyExclusions, horizonStrips: _horizonStrips, uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
   const old = {
     ...kept, id: `chunk://local/${m.slug}`, displayName: name, gridCoords: label,
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),
@@ -3462,8 +3462,8 @@ function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['dat
   // The lazy shard factory replaces the historical selector; authored assets stay exact.
   if (typeof m.trees.factory === 'function') projected['trees'] = { ...m.trees, factory: fixture.trees.factory };
   // Nalati's palette moved from the engine map into its manifest. Other map data stays frozen.
-  if (minimap?.palette !== undefined) {
-    const { palette: _palette, ...map } = minimap;
+  if (minimap !== undefined) {
+    const { palette: _palette, openWater: _openWater, outside: _outside, ...map } = minimap;
     if (Object.keys(map).length === 0 && !('map' in fixture)) delete projected['map'];
     else projected['map'] = map;
   }
@@ -3491,6 +3491,15 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
       expect(typeof m.minimap?.palette?.ground).toBe('function');
       expect(typeof m.minimap?.palette?.overlay).toBe('function');
       expect(typeof m.minimap?.palette?.pois).toBe('function');
+    }
+    // Former engine branches are explicit policy; check them separately from the frozen original schema.
+    const pine = m.slug === 'pine-hollow', island = m.slug === 'driftwood-isle';
+    expect(m.creatures).toEqual({ lowPoly: island, waitForModels: pine, furRim: pine, tintRange: island ? 0.3 : 0.2, oneMaterial: island });
+    expect(m.debugOptions).toEqual(m.slug === 'nalati-grasslands' ? ['clockSpeed', 'balbals', 'ghosts'] : []);
+    expect(m.fight?.telegraphed).toBe(!pine);
+    if (island) {
+      expect(m.minimap?.openWater).toEqual({ level: 0.8, deepDepth: 6 });
+      expect(m.minimap?.outside).toBe('rgb(22,74,128)');
     }
     expect(m.label).toBe(fixture.data.gridCoords);
     expect(formatGrid(m.placement.grid)).toBe(m.label);

@@ -5,6 +5,7 @@ import { BOOT_STEPS } from '#shards/nalati-grasslands/boot/steps';
 import { GPU_FILES } from '#shards/nalati-grasslands/ktx2.generated';
 import { filePolicy } from '#engine/data';
 import before from './manifest-before.json';
+import { COMPARE } from '#shards/nalati-grasslands/explore/compare';
 
 it.each(['phone', 'desktop'] as const)('preserves frozen %s image and KTX2 boot lists', (tier) => {
   for (const tex of ['img', 'ktx2'] as const) { const frozen = before.sources[tier][tex], gpu = filePolicy(tier, tex, GPU_FILES).gpu; expect(bootSources(tier, tex)).toEqual({ ...frozen, props: frozen.props.map(gpu) }); }
@@ -15,6 +16,7 @@ it('preserves authored data and all loading labels and weights', () => {
   const actual = JSON.parse(JSON.stringify(def)) as Record<string, unknown>;
   const old = before.data as Record<string, unknown>;
   for (const [key, value] of Object.entries(old)) {
+    if (key === 'explore') { expect(actual[key]).toEqual({ art: value, compare: COMPARE }); continue; }
     if (key === 'weapon') { expect(actual[key]).toBe('custom'); continue; }
     if (key === 'uses' || key === 'trees' || key === 'ground') continue;
     expect(actual[key], key).toEqual(value);
