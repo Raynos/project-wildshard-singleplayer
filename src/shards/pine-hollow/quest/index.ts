@@ -60,6 +60,7 @@ import { StagLead } from './stagLead';
 import { NightThralls, isThrall } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
+import { PINE_QUEST_CONTENT } from './content';
 import { BeaverPool } from '../world/beaverPool';
 import { perfLap } from '#engine/core/perfLap';
 
@@ -105,7 +106,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   const beatParam = h.params.get('quest');
   const beat: Beat | null = beatParam !== null && isBeat(beatParam) ? beatParam : null;
   if (beat) { flags.reset(); for (const f of beatFlags(beat)) flags.set(f); }
-  const chapter = new QuestLine([WARDENS_HOLLOW], flags, ctx.app.events, ctx.scope);
+  const chapter = new QuestLine(PINE_QUEST_CONTENT.chapters, flags, ctx.app.events, ctx.scope);
   const quest = chapter.chapters[0];
   if (quest === undefined) throw new Error("Pine quest chapter is missing");
 
@@ -170,7 +171,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   game.onUpdate((dt) => { pool.update(dt); }, 'quest.pool');
 
   // ── the counters, the toasts ──
-  const chip = new CountChip();
+  const chip = new CountChip(ctx.scope.child('count'));
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
   // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (a model: tokenShelf.ts places it)
   const rangerRoot = h.cabins?.roots[0];
@@ -297,7 +298,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   // ── the lodge's contract board ──
   const store = { getItem: (_key: string): string => JSON.stringify(lodgeSave.read('pine-hollow')), setItem: (_key: string, raw: string): void => { lodgeSave.write(v.parse(jsonSchema, JSON.parse(raw) as unknown), 'pine-hollow'); } };
   const board: Board = loadBoard(store);
-  const boardUi = new BoardPanel(() => board);
+  const boardUi = new BoardPanel(() => board, ctx.scope.child('board'));
   boardUi.onClaim = (i) => {
     const r = claim(board, i);
     if (!r) return;
@@ -323,7 +324,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   // ── the trader's slate ──
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const pack = { count: (id: TradeItem): number => inventory.count(id) };
-  const trade = new TradePanel(pack, (s) => s in SKINS && h.skins.has(s), (k, n) => h.crossbow.room?.(k, n) ?? true);
+  const trade = new TradePanel(pack, (s) => s in SKINS && h.skins.has(s), (k, n) => h.crossbow.room?.(k, n) ?? true, ctx.scope.child('trade'));
   trade.onTrade = (t: Trade) => {
     for (const g of t.give) inventory.take(g.item, g.n);
     const got = t.get;
@@ -354,7 +355,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   trade.onOpen = onOpen; trade.onClose = onClose;
 
   // ── the people ──
-  const dialogue = new DialogueBox();
+  const dialogue = new DialogueBox(ctx.scope.child('dialogue'));
   interface Person { kind: NpcKind; def: NpcDef; fig: NpcFigure; prompt: Interactable; talk: NpcTalk; barked: boolean; after: (() => void) | undefined }
   const people: Person[] = [];
   const addPerson = (kind: NpcKind, def: NpcDef, feet: { x: number; z: number }, yaw: number, label: string, after?: () => void): Person => {
@@ -581,7 +582,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
     if (quest.current?.id === 'dawn') runDawn();
   };
   const debug = {
-    flags, quest, board, kit, stag, thralls, people,
+    flags, quest, board, kit, stag, thralls, people, content: PINE_QUEST_CONTENT,
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
     zip, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
@@ -595,7 +596,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   Object.assign(window, { __pineQuest: debug });
   ctx.scope.onDispose(() => {
     if (Reflect.get(window, '__pineQuest') === debug) Reflect.deleteProperty(window, '__pineQuest');
-    objective.root.remove(); reward.root.remove(); dialogue.close(false); dialogue.root.remove();
+    objective.root.remove(); reward.root.remove(); dialogue.dispose();
     boardUi.root.remove(); trade.root.remove(); chip.root.remove();
     window.clearTimeout(holdTimer);
   });

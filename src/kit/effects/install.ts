@@ -1,9 +1,11 @@
-import type { LevelContext, EffectService, PlayerHealth, Player } from '#engine';
-import { bindStarterEffects } from './bindings';
+import type { Vector3 } from 'three';
+import type { LevelContext, EffectService, Actor } from '#engine';
+import { bindStarterEffects, type StatusMovement } from './bindings';
 import { starterId, STARTER_CHOICES } from './starter';
 import { StatusIcons } from './view';
 
-export function installStarterEffects(ctx: LevelContext, host: { player: Player; health: PlayerHealth | null; effects: EffectService | null }): void {
+type StarterContext = Pick<LevelContext, 'app' | 'scope' | 'debugRow' | 'system' | 'on'> & { hud: Pick<LevelContext['hud'], 'widget'> };
+export function installStarterEffects(ctx: StarterContext, host: { player: StatusMovement & { position: Vector3 }; health: Actor | null; effects: EffectService | null }): void {
   const { player, health, effects } = host;
   if (health === null || effects === null) throw new Error('Starter effects need player health and effects services');
   bindStarterEffects({ effects, target: health, movement: player, combat: ctx.app.combat, position: () => player.position, scope: ctx.scope });

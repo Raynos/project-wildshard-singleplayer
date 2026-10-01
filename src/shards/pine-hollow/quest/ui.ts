@@ -10,6 +10,7 @@
  * Both panels release the pointer lock and the weapons while open (like the journal) and close on CLOSE / Esc / E.
  */
 import './pinehollow.css';
+import { Scope } from '#engine';
 import { isFilled, type Board, type Contract } from './contracts';
 import { TRADES, tradeState, type Pack, type Room, type Trade } from './trades';
 
@@ -36,7 +37,7 @@ abstract class Panel {
   onOpen?: () => void;
   onClose?: () => void;
   private open_ = false;
-  constructor(cls: string, title: string, kicker: string) {
+  constructor(cls: string, title: string, kicker: string, scope: Scope) {
     this.root = el('div', `ws-ph-panel ${cls}`);
     const frame = el('div', 'ws-ph-frame', this.root);
     const head = el('div', 'ws-ph-head', frame);
@@ -45,13 +46,15 @@ abstract class Panel {
     this.body = el('div', 'ws-ph-body', frame);
     const close = el('button', 'ws-ph-close', this.root, 'Close');
     close.type = 'button';
-    close.addEventListener('click', (e) => { e.stopPropagation(); this.close(); });
-    this.root.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
-    document.addEventListener('keydown', (e) => {
+    scope.listen(close, 'click', (e) => { e.stopPropagation(); this.close(); });
+    scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); });
+    scope.listen(document, 'keydown', (event) => {
+      const e = event as KeyboardEvent;
       if (!this.open_ || e.repeat) return;
       if (e.code === 'Escape' || e.code === 'KeyE') { e.preventDefault(); e.stopPropagation(); this.close(); }
-    }, true);
+    }, { capture: true });
     hudRoot().append(this.root);
+    scope.onDispose(() => { this.open_ = false; this.root.remove(); });
   }
   get isOpen(): boolean { return this.open_; }
   open(): void {
@@ -72,7 +75,7 @@ abstract class Panel {
 export class BoardPanel extends Panel {
   onClaim?: (i: number) => void;
   onReroll?: (i: number) => void;
-  constructor(private readonly board: () => Board) { super('ws-ph-board', 'Contracts', 'The hunting lodge'); }
+  constructor(private readonly board: () => Board, scope = new Scope('quest.board')) { super('ws-ph-board', 'Contracts', 'The hunting lodge', scope); }
   render(): void {
     const b = this.board();
     this.body.replaceChildren();
@@ -107,7 +110,7 @@ export class BoardPanel extends Panel {
 
 export class TradePanel extends Panel {
   onTrade?: (t: Trade) => void;
-  constructor(private readonly pack: Pack, private readonly owns: (skin: string) => boolean, private readonly room: Room = () => true) { super('ws-ph-trade', 'Swaps', "Mott's stall · no coin"); }
+  constructor(private readonly pack: Pack, private readonly owns: (skin: string) => boolean, private readonly room: Room = () => true, scope = new Scope('quest.trade')) { super('ws-ph-trade', 'Swaps', "Mott's stall · no coin", scope); }
   render(): void {
     this.body.replaceChildren();
     for (const t of TRADES) {
@@ -133,7 +136,10 @@ export class CountChip {
   private label = el('span', 'ws-ph-count-label', this.root);
   private n = el('b', 'ws-ph-count-n', this.root);
   private hideT = 0;
-  constructor() { hudRoot().append(this.root); }
+  constructor(scope = new Scope('quest.count')) {
+    hudRoot().append(this.root);
+    scope.onDispose(() => { window.clearTimeout(this.hideT); this.root.remove(); });
+  }
   show(label: string, n: number, of: number): void {
     this.label.textContent = label;
     this.n.textContent = `${n} / ${of}`;

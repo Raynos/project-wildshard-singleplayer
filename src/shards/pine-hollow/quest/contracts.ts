@@ -82,7 +82,7 @@ const pick = <T>(list: readonly T[], r: number): T => {
 };
 
 /** the contract of `kind` on `target` (null for a target the tables do not know) */
-export function contractFor(serial: number, kind: ContractKind, target: string): Contract | null {
+function authorContract(serial: number, kind: ContractKind, target: string): Contract | null {
   if (kind === 'species') {
     const s = SPECIES.find((x) => x.id === target);
     return s ? { serial, kind, target, need: s.need, have: 0, title: s.title, goal: `Take ${s.need} ${s.plural}`, reward: { items: [{ id: 'lodge-ribbon', n: 1 }], bolts: 10 } } : null;
@@ -97,6 +97,25 @@ export function contractFor(serial: number, kind: ContractKind, target: string):
   }
   if (target === 'thrall') return { serial, kind, target, need: 3, have: 0, title: 'Cull the moss-grown', goal: 'Put down 3 thralls', reward: { items: [{ id: 'lodge-ribbon', n: 2 }, { id: 'amber-resin', n: 3 }], bolts: 0 } };
   return null;
+}
+
+/** The board offers authored quest content rows; a draw copies one and starts its counter at zero. */
+export interface ContractRow extends Omit<Contract, 'serial' | 'have'> { id: string }
+export const CONTRACT_ROWS: readonly ContractRow[] = [
+  ...SPECIES.map((row) => ({ kind: 'species' as const, target: row.id })),
+  ...RARITY.map((row) => ({ kind: 'rarity' as const, target: row.id })),
+  ...ELITES.map((target) => ({ kind: 'elite' as const, target })),
+  { kind: 'thrall' as const, target: 'thrall' },
+].map(({ kind, target }) => {
+  const row = authorContract(0, kind, target);
+  if (row === null) throw new Error(`Invalid authored contract ${kind}.${target}`);
+  return { id: `contract.${kind}.${target}`, kind, target, need: row.need, title: row.title, goal: row.goal, reward: row.reward };
+});
+
+export function contractFor(serial: number, kind: ContractKind, target: string): Contract | null {
+  const row = CONTRACT_ROWS.find((offer) => offer.kind === kind && offer.target === target);
+  return row === undefined ? null : { serial, kind, target, have: 0, need: row.need, title: row.title, goal: row.goal,
+    reward: { ...row.reward, items: row.reward.items.map((item) => ({ id: item.id, n: item.n })) } };
 }
 
 /** contract number `serial`, avoiding a (kind, target) already on the board. Serial 0 is always a deer contract (an easy start). */
