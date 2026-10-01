@@ -3,6 +3,7 @@ import type { PerspectiveCamera } from 'three';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
+import { installAudio } from './audio/ambience';
 
 type WorldBuilder = (ctx: ShardContext) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
 
@@ -18,6 +19,7 @@ async function buildWorld(ctx: ShardContext): ReturnType<WorldBuilder> {
 
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
+  override kit(ctx: ShardContext): void { installAudio(ctx); }
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
     super();

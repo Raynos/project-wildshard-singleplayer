@@ -94,7 +94,7 @@ export interface Fingerprint {
     named: { path: string; type: string; n: number }[] };
   render: { programs: number; programKeys: string; memory: { geometries: number; textures: number } };
   gpuBytes: GpuBytes;
-  audio: { requests: string[]; state: { style: string; set: string; mood: string } };
+  audio: { requests: string[]; state: { style: string; set: string; mood: string }; beds?: readonly string[]; score?: string };
   hud: { cls: string; spot: string; shown: boolean }[];
   saves: Saves;
   facade?: { multiDraw: boolean; batches: number; instances: number };
@@ -250,6 +250,8 @@ function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerpr
     hud, saves: { read: [...new Set(saves.read)].sort(), written: [...new Set(saves.written)].sort() },
     playMs: performance.now(), stepMs: { ...deps.bootSteps }, heapMB: pins?.heapMB?.() ?? 0,
   };
+  if (audio.bedIds !== undefined) record.audio.beds = audio.bedIds;
+  if (music.scoreId !== undefined) record.audio.score = music.scoreId;
   const facade = game.scene.getObjectByName('facade');
   if (facade !== undefined) {
     let batches = 0, instances = 0;

@@ -90,6 +90,8 @@ const live: Lanterns[] = [];
 export function updateLanterns(camera: Camera): void { for (const l of live) l.update(camera); }
 /** forget the built sets (the render strategy's dispose) */
 export function clearLanterns(): void { live.length = 0; }
+/** The audio slice uses the same built placements as the visible lanterns. */
+export function lanternAudioPositions(): Vector3[] { return live.flatMap((set) => set.emitters.map((emitter) => emitter.at.clone())); }
 
 const VS_LANTERN = /* glsl */ `
 attribute float aPart;

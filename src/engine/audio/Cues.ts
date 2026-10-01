@@ -1,6 +1,7 @@
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { shipped } from './Stems';
-import type { Audio, SampleLoop } from './Audio';
+import type { SampleLoop } from './Audio';
+import type { AudioMixer } from './levelAudio';
 import type { AudioRead, AudioDecode } from './SetScore';
 import type { Scope } from '../app/scope';
 
@@ -71,10 +72,10 @@ export async function decodeCueSet(key: string, read: AudioRead, decode: AudioDe
 /** Content calls tap.sound with its literal id, then asks this shared positional shot player. */
 export class CuePlayer {
   private bank: CueBank = { loops: new Map(), shots: new Map() };
-  private readonly audio: Audio;
+  private readonly audio: AudioMixer;
   private readonly scope: Scope;
   private readonly random: () => number;
-  constructor(audio: Audio, scope: Scope, random: () => number) { this.audio = audio; this.scope = scope; this.random = random; }
+  constructor(audio: AudioMixer, scope: Scope, random: () => number) { this.audio = audio; this.scope = scope; this.random = random; }
   useBank(bank: CueBank): void { if (!this.scope.disposed) this.bank = bank; }
   loop(id: string): SampleLoop | undefined { return this.bank.loops.get(id); }
   play(family: string, opts: CueOpts = {}): boolean {

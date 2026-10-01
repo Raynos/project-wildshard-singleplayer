@@ -1,9 +1,10 @@
-import type { Audio, SampleLoop } from './Audio';
+import type { SampleLoop } from './Audio';
+import type { AudioMixer } from './levelAudio';
 import type { Scope } from '../app/scope';
 import type { Vector3 } from 'three';
 
 interface LoopVoice { gain: GainNode; pan: StereoPannerNode; stop: () => void }
-function loopVoice(audio: Audio, sample: SampleLoop, scope: Scope, random: () => number): LoopVoice {
+function loopVoice(audio: AudioMixer, sample: SampleLoop, scope: Scope, random: () => number): LoopVoice {
   const ctx = audio.ctx, source = ctx.createBufferSource(), gain = ctx.createGain(), pan = ctx.createStereoPanner();
   source.buffer = sample.buffer; source.loop = true; source.loopStart = sample.loopStart; source.loopEnd = sample.loopEnd;
   gain.gain.value = 0;
@@ -20,13 +21,13 @@ export type ZoneWeights = Readonly<Record<string, number>>;
 /** Zone weights fade N beds through the ambience bus without starting an audio device before a gesture. */
 export class AmbienceBeds {
   private readonly voices = new Map<string, LoopVoice>();
-  private readonly audio: Audio;
+  private readonly audio: AudioMixer;
   private readonly scope: Scope;
   private readonly beds: readonly BedDef[];
   private readonly weights: (pos: Vector3) => ZoneWeights;
   private readonly fade: number;
   private readonly random: () => number;
-  constructor(audio: Audio, scope: Scope, beds: readonly BedDef[], weights: (pos: Vector3) => ZoneWeights, fade = 3, random: () => number = Math.random) {
+  constructor(audio: AudioMixer, scope: Scope, beds: readonly BedDef[], weights: (pos: Vector3) => ZoneWeights, fade = 3, random: () => number = Math.random) {
     this.audio = audio; this.scope = scope; this.beds = beds; this.weights = weights; this.fade = Math.max(0.05, fade); this.random = random;
     scope.onDispose(() => { this.voices.clear(); });
   }
@@ -46,7 +47,7 @@ export class AmbienceBeds {
 /** Select at most max nearest audible loops. Removed voices stop immediately and release their scope handles. */
 export class PositionalLoops {
   private readonly voices = new Map<number, LoopVoice>();
-  private readonly audio: Audio;
+  private readonly audio: AudioMixer;
   private readonly scope: Scope;
   private readonly points: readonly Vector3[];
   private readonly sample: () => SampleLoop | undefined;
@@ -54,7 +55,7 @@ export class PositionalLoops {
   private readonly random: () => number;
   readonly max: number;
   readonly reach: number;
-  constructor(audio: Audio, scope: Scope, points: readonly Vector3[], sample: () => SampleLoop | undefined, started: () => void,
+  constructor(audio: AudioMixer, scope: Scope, points: readonly Vector3[], sample: () => SampleLoop | undefined, started: () => void,
     random: () => number, max = 4, reach = 14) {
     this.audio = audio; this.scope = scope; this.points = points; this.sample = sample; this.started = started;
     this.random = random; this.max = max; this.reach = reach;

@@ -61,6 +61,7 @@ export interface SetScoreOptions<Scene> extends ScoreSet {
   scene: Scene;
   pick: (scene: Scene, state: MusicState | undefined) => readonly string[];
   read: AudioRead; decode: AudioDecode; onReady: () => void;
+  waitForBank?: boolean;
 }
 /** One score set; only the playing and wanted slots retain PCM across scene changes. */
 export class SetScore<Scene> implements ScoreSource {
@@ -72,18 +73,21 @@ export class SetScore<Scene> implements ScoreSource {
   private decoding: string | undefined;
   private state: MusicState | undefined;
   private disposed = false;
+  private waitingBoot: boolean;
   private readonly options: SetScoreOptions<Scene>;
   readonly log: { slot: string; ms: number }[] = [];
   constructor(options: SetScoreOptions<Scene>) {
     this.options = options;
+    this.waitingBoot = options.waitForBank ?? false;
     this.scene = options.scene;
     this.slots = Object.keys(scoreManifest(options)?.slots ?? {});
   }
   get available(): boolean { return this.slots.length > 0; }
   get resident(): string[] { return [...this.residentSlots.keys()]; }
-  get pending(): boolean { return this.decoding !== undefined; }
+  get pending(): boolean { return this.waitingBoot || this.decoding !== undefined; }
   useBank(bank: ScoreBank): void {
     if (this.disposed) return;
+    this.waitingBoot = false;
     for (const [key, value] of bank.slots) this.residentSlots.set(key, value);
     if (bank.stings.size > 0) this.stings = bank.stings;
     this.options.onReady();
@@ -94,6 +98,7 @@ export class SetScore<Scene> implements ScoreSource {
     return this.options.pick(this.scene, state).find((key) => this.slots.includes(key) && !this.failed.has(key));
   }
   want(playing: string | undefined): SlotAudio | undefined {
+    if (this.waitingBoot) return undefined;
     const slot = this.target();
     if (slot === undefined) return undefined;
     for (const key of this.residentSlots.keys()) if (key !== slot && key !== playing) this.residentSlots.delete(key);

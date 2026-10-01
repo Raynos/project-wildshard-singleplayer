@@ -41,6 +41,7 @@ import { decodeSteppe, steppeBootFiles, steppeFiles, type SteppeBank } from '#sh
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { SHARDS, getActiveChunk } from '#game/shard/registry';
 import { TIER } from '../core/tier';
+import type { LevelAudioProfile, LevelAudioBank } from '../audio/levelAudio';
 
 
 /** source path (`../../shards/<slug>/thumbs/x.jpg`, relative to this file) → the bundle's URL for it */
@@ -68,10 +69,10 @@ function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, num
 }
 
 /** this shard's declared files: the boot manifest's sources plus the bundled title / explore art */
-export function bootFiles(def: ShardManifest, tex: TexMode = texMode()): ChunkFiles {
+export function bootFiles(def: ShardManifest, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
-  const audio = audioFiles(def.slug);
+  const audio = profile?.files() ?? audioFiles(def.slug);
   // Nalati's own score (NALATI-MERGE A2): downloaded on the steppe only — no other shard plays it
   if (def.style === 'painterly') audio.music.push(...steppeFiles());
   return { ...chunkFiles(def, tex), art: art.urls, ...audio };
@@ -155,14 +156,14 @@ const decoded_ = new Map<string, Promise<unknown>>();
 /** audio files this page already read to the end once */
 const downloaded = new Set<string>();
 
-export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; steppe: SteppeBank | undefined }
+export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; steppe: SteppeBank | undefined; profile?: LevelAudioBank }
 
 /** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */
-export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
+export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
   const style = getMusicStyle(), set = getSfxSet();
   const slots: SlotName[] = def.ocean ? ['title', 'island'] : ['title', 'pine'];
   const bed: AmbientBed = def.ocean ? 'island' : 'forest';
-  const selected = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed)]);
+  const selected = new Set(profile?.bootFiles(style) ?? [...styleFiles(style, slots), ...sfxFiles(set, bed)]);
   const urls = [...new Set([...files.music, ...files.sfx])];
   const c = counter(urls.length);
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
@@ -201,6 +202,10 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest)
           return Promise.resolve(bytes.slice(0)); // decodeAudioData detaches its argument
         };
         try {
+          if (profile) {
+            const bank = await profile.decode(style, read, oneAtATime);
+            return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, steppe: undefined, profile: bank };
+          }
           const [music, sfx] = await Promise.all([
             decodeStyle(style, slots, read, oneAtATime).catch((error: unknown) => {
               if (style !== 'synth') console.info(`[music] ${style}: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
@@ -216,7 +221,11 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest)
   };
 }
 
-export function startAudioPreload(files: ChunkFiles, def: ShardManifest): Preload<AudioBanks> {
+export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<AudioBanks> {
+  if (profile) {
+    const preload = startDeferredAudioPreload(files, def, profile);
+    return { wait: async (p) => { await preload.wait(p); return preload.decode(); } };
+  }
   const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';
   const style = getMusicStyle(), set = getSfxSet();
   // this shard's slot (another shard built in the page decodes its own — Music.useBank adds it to the resident bank);

@@ -127,6 +127,7 @@ export class Audio {
   stepSurface: (() => StepSurface) | undefined;
   private cueMap: CueMap | undefined;
   private ownBeds: readonly string[] | undefined;
+  private liveBeds: (() => number) | undefined;
   private levelBank: LevelAudioBank | undefined;
   private readonly levelBankFns = new Set<(bank: LevelAudioBank) => void>();
   /** Named mixer buses preserve the existing gains while audio subsystems migrate. */
@@ -138,10 +139,11 @@ export class Audio {
     this.cueMap = map;
     scope.onDispose(() => { if (this.cueMap === map) this.cueMap = undefined; });
   }
-  installBeds(ids: readonly string[], scope: Scope): void {
+  installBeds(ids: readonly string[], scope: Scope, active: () => number = () => 0): void {
     this.ownBeds = ids;
+    this.liveBeds = active;
     if (this.g) this.stopBed();
-    scope.onDispose(() => { this.ownBeds = undefined; this.levelBank = undefined; });
+    scope.onDispose(() => { this.ownBeds = undefined; this.liveBeds = undefined; this.levelBank = undefined; });
   }
   get bedIds(): readonly string[] | undefined { return this.ownBeds; }
   onLevelBank(fn: (bank: LevelAudioBank) => void, scope: Scope): void {
@@ -180,7 +182,7 @@ export class Audio {
   private shots = new Map<string, { bufs: AudioBuffer[]; gain: number }>();
   private sampleBed = false;
   census(): { activeVoices: number; beds: number; buses: number } {
-    return { activeVoices: currentScope()?.resources.census.sounds ?? 0, beds: this.bedNodes.length > 0 ? 1 : 0, buses: this.g ? 8 : 0 };
+    return { activeVoices: currentScope()?.resources.census.sounds ?? 0, beds: this.liveBeds?.() ?? (this.bedNodes.length > 0 ? 1 : 0), buses: this.g ? 8 : 0 };
   }
   unloadLevel(): void {
     this.stopBed();

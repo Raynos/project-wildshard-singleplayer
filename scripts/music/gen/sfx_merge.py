@@ -158,7 +158,12 @@ def merge_set(set_name: str, fams: dict, sets: dict, ranking: dict, src_root: Pa
     if not dry:
         ph_dir.mkdir(parents=True, exist_ok=True)
     best = json.loads((best_dir / "sfx.json").read_text())
-    table_doc = json.loads((HERE / "sfx-best.json").read_text())
+    selected = {f: j for f, j in fams.items() if not only or f in only}
+    touches_best = any(j.get("into", set_name) == "best" for j in selected.values())
+    # Own-only merges must never reserialize the shared manifest or its decision ledger (E357 B18).
+    table_path = HERE / ("sfx-best.json" if touches_best else f"sfx-{tag}-best.json")
+    table_doc = json.loads(table_path.read_text()) if table_path.exists() else {
+        "rule": "lower CLAP rank wins, ties to the higher p; ships only in the top 5", "wins": {}, "families": {}}
     table = table_doc["families"]
     if only:  # a later round: the set stays, these families are replaced in it
         man = json.loads((ph_dir / "sfx.json").read_text())
@@ -226,13 +231,14 @@ def merge_set(set_name: str, fams: dict, sets: dict, ranking: dict, src_root: Pa
         table[fam] = row
     new_keeps = [f for f in keeps if fams[f].get("into") != "best"]
     man["synth_keeps"] = [f for f in man.get("synth_keeps", []) if f not in only] + new_keeps if only else new_keeps
-    best["synth_keeps"] = sorted(set(best.get("synth_keeps", [])) - {f for f in fams if table.get(f, {}).get("winner", "synth") not in ("synth", "kept-round-2")})
+    if touches_best:
+        best["synth_keeps"] = sorted(set(best.get("synth_keeps", [])) - {f for f in fams if table.get(f, {}).get("winner", "synth") not in ("synth", "kept-round-2")})
     writes = {}
-    if not only or any(fams[f].get("into") == "best" for f in only):
+    if touches_best:
         writes[str(best_dir / "sfx.json")] = json.dumps(best, indent=2, ensure_ascii=False) + "\n"
     writes[str(ph_dir / "sfx.json")] = json.dumps(man, indent=2, ensure_ascii=False) + "\n"
     table_doc["wins"] = {k: sum(1 for t in table.values() if t["winner"] == k) for k in ("moss", "sa3-medium", "synth", "kept-round-2")}
-    writes[str(HERE / "sfx-best.json")] = json.dumps(table_doc, indent=2) + "\n"
+    writes[str(table_path)] = json.dumps(table_doc, indent=2) + "\n"
     if dry:
         print(json.dumps(writes, indent=2, ensure_ascii=False))
         return writes

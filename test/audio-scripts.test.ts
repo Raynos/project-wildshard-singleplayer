@@ -41,7 +41,9 @@ describe('audio generation scripts without models', () => {
     expect(object(manifest['beds'])['nd.market']).toBeDefined();
     expect(object(manifest['hums'])['lantern']).toBeDefined();
     expect(manifest['synth_keeps']).toEqual(['skip']);
-    const table = writes['scripts/music/gen/sfx-best.json'];
+    expect(writes['public/assets/sfx/best/sfx.json']).toBeUndefined();
+    expect(writes['scripts/music/gen/sfx-best.json']).toBeUndefined();
+    const table = writes['scripts/music/gen/sfx-nd-best.json'];
     if (typeof table !== 'string') throw new Error('Missing decisions');
     const families = object(object(json(table))['families']);
     expect(object(families['tie'])['winner']).toBe('sa3-medium');
@@ -54,6 +56,12 @@ describe('audio generation scripts without models', () => {
     expect(object(doc['weights'])['instruments']).toBe(0.35);
     expect(Object.keys(object(doc['test']))).toEqual([]);
     expect(fixture('nd-score')).toContain('voice 25% of the energy');
+  });
+
+  it('leaves shared best audio and its ledger byte-identical in real full and partial own-set writes', () => {
+    const output = object(json(fixture('nd-merge-write')));
+    expect(output['unchanged']).toBe(true);
+    expect(object(object(output['table'])['families'])['shot']).toBeDefined();
   });
 
   it('validates all job definitions without importing the model packages', () => {

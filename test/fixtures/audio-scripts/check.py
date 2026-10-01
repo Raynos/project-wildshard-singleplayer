@@ -82,6 +82,9 @@ def merge_fixture(root: Path, here: Path, set_name: str = "pine-hollow", tag: st
             "skip": {"kind": "oneshot", "into": set_name}, "keep": {"kind": "oneshot", "into": "best"},
             "missing": {"kind": "oneshot", "into": set_name}, bed: {"kind": "bed", "into": set_name, "zone": "market", "live": True},
             hum: {"kind": "hum", "into": set_name}, "global": {"kind": "oneshot", "into": "best"}}
+    if tag == "nd":
+        fams.pop("keep")
+        fams.pop("global")
     for job in fams.values():
         job.update(duration=1, desc="fixture", prompt="fixture")
     (here / "sfx-fixture-jobs.json").write_text(json.dumps({"families": fams}))
@@ -146,9 +149,20 @@ def run(case: str) -> str:
             before = {k: v for k, v in before.items() if "__pycache__" not in Path(k).parts}
             assert before == after, "dry rank changed files"
             return out
-        if case in ("pine-merge", "nd-merge"):
+        if case in ("pine-merge", "nd-merge", "nd-merge-write"):
             set_name, tag = ("pine-hollow", "ph") if case == "pine-merge" else ("nine-dragon-stack", "nd")
             fams, sets, ranking, stage = merge_fixture(root, here, set_name, tag)
+            if case == "nd-merge-write":
+                # Encoding is separate; real merge writes exercise the shared-ledger regression without codecs/models.
+                (here / "sfx_sprite.py").write_text("def run(*args, **kwargs): pass\n")
+                shared = [root / "public/assets/sfx/best/sfx.json", here / "sfx-best.json"]
+                frozen = [p.read_bytes() for p in shared]
+                args = [sys.executable, str(here / "sfx_merge.py"), "--jobs", "sfx-fixture-jobs.json", "--stage", str(stage), "--tag", tag]
+                subprocess.run(args, capture_output=True, text=True, check=True)
+                assert frozen == [p.read_bytes() for p in shared], "own merge changed shared set"
+                subprocess.run(args + ["--only", "shot"], capture_output=True, text=True, check=True)
+                assert frozen == [p.read_bytes() for p in shared], "partial own merge changed shared set"
+                return json.dumps({"unchanged": True, "table": json.loads((here / "sfx-nd-best.json").read_text())})
             before = {str(p): p.read_bytes() for p in root.rglob("*") if p.is_file()}
             out = subprocess.run([sys.executable, str(here / "sfx_merge.py"), "--jobs", "sfx-fixture-jobs.json",
                                   "--stage", str(stage), "--tag", tag, "--dry"], capture_output=True, text=True, check=True).stdout

@@ -21,6 +21,7 @@ import { RIM } from '../world/well-plan';
 import { Filament, Rope } from './line';
 import { Flash, Sparks } from './fx';
 import { onGrappleCourse, playgroundCourse, type GrappleCourse } from './course';
+import { grappleCue } from '../audio/cues';
 
 const MIN_RANGE = 2.5;
 const MAX_RANGE = 38;
@@ -322,6 +323,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
   };
   const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
   const release = (): void => {
+    if (phase !== 'idle' && phase !== 'dock') grappleCue('grapple.dock');
     phase = 'idle'; target = null; armedMiss = false; clock = blocked = 0;
     tracer.hide(); hideCues();
     lockHalo.visible = muzzleFlash.mesh.visible = biteFlash.mesh.visible = dockFlash.mesh.visible = sparks.mesh.visible = false;
@@ -388,6 +390,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     if (!ctx.enabled() || (target === null && !armedMiss)) return false;
     if (phase !== 'idle') return true;
     phase = 'fire'; clock = 0; muzzleAge = 0;
+    grappleCue('grapple.fire');
     tipAt();
     if (target === null) {
       ctx.game.camera.getWorldDirection(want);
@@ -414,17 +417,17 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
       if (clock >= FIRE_TIME) {
         clock = 0;
         if (target === null) { phase = 'miss'; ctx.toast('FEI ZHUA MISSED · REELING'); }
-        else { phase = 'bite'; biteAge = 0; ctx.arms?.playLeft?.('grapple_hold'); }
+        else { phase = 'bite'; biteAge = 0; grappleCue('grapple.bite'); ctx.arms?.playLeft?.('grapple_hold'); }
       }
       return true;
     }
-    if (phase === 'miss') { if (clock >= 0.16) { phase = 'reel'; clock = 0; } return false; }
-    if (phase === 'reel') { if (clock >= REEL_TIME) { phase = 'dock'; clock = 0; dockAge = 0; } return false; }
+    if (phase === 'miss') { if (clock >= 0.16) { phase = 'reel'; clock = 0; grappleCue('grapple.reel'); } return false; }
+    if (phase === 'reel') { if (clock >= REEL_TIME) { phase = 'dock'; clock = 0; dockAge = 0; grappleCue('grapple.dock'); } return false; }
     if (phase === 'dock') { if (clock >= 0.12) release(); return false; }
     if (target === null) { release(); return false; }
     if (phase === 'bite') {
       p.velocity.set(0, 0, 0);
-      if (clock >= BITE_TIME) { phase = target.lifts ? 'lift' : 'zip'; clock = 0; p.onGround = false; }
+      if (clock >= BITE_TIME) { phase = target.lifts ? 'lift' : 'zip'; clock = 0; p.onGround = false; grappleCue('grapple.zip'); }
       return true;
     }
     if (phase === 'lift') {
