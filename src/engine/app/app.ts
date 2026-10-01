@@ -9,6 +9,7 @@ import type { Physics } from '../physics/Physics';
 import type { Bodies } from '../physics/bodies';
 import type { Navmesh } from '../physics/navmesh';
 import type { DayCycleClock } from '../world/dayCycle';
+import { WaterBodies } from '../world/water/body';
 import type { WorldRegistry } from '../world/registry';
 import type { AimTarget } from '../player/AimTargets';
 import type { Audio } from '../audio/Audio';
@@ -37,6 +38,8 @@ class AppWorld {
   private readonly readClock: () => DayCycleClock | null;
   constructor(readClock: () => DayCycleClock | null) { this.readClock = readClock; }
   get dayCycle(): DayCycleClock | null { return this.readClock(); }
+  /** the level's water bodies (the sea on an open-water level; src/engine/world/water/body.ts) */
+  readonly water = new WaterBodies();
 }
 
 export class App {
