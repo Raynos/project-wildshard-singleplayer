@@ -89,6 +89,13 @@ export function retainedRegistrations(): ReturnType<typeof levelRegistrations> {
   for (const kind of engineTimers.values()) timers[kind]++;
   return { listeners, timers };
 }
+/** Live timer identities, including shell timers captured outside a level. */
+export function registrationTimerIds(): { timeouts: number[]; intervals: number[] } {
+  const ids = { timeouts: [] as number[], intervals: [] as number[] };
+  for (const [id, kind] of engineTimers) ids[kind].push(id);
+  for (const [id, entry] of current?.timerOwners ?? []) ids[entry.kind].push(id);
+  return ids;
+}
 export function withScopeOwner<T>(owner: Scope, fn: () => T): T {
   const scope = current;
   if (!scope) return fn();

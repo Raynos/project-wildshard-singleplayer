@@ -40,6 +40,6 @@ export function installResources() {
   window.__parityResources=()=>{
     const counts={window:0,document:0,canvas:0,other:0};
     for(const e of listeners)counts[e.target===window?'window':e.target===document?'document':e.target instanceof HTMLCanvasElement?'canvas':'other']++;
-    return {listeners:counts,timers:{timeouts:timeouts.size,intervals:intervals.size,raf:raf.size},stacks:{listeners:[...listeners].slice(0,5).map((e)=>e.stack),timers:[...timeouts.values(),...intervals.values(),...raf.values()].slice(0,5)}};
+    return {listeners:counts,timers:{timeouts:timeouts.size,intervals:intervals.size,raf:raf.size},timerIds:{timeouts:[...timeouts.keys()],intervals:[...intervals.keys()],raf:[...raf.keys()]},stacks:{listeners:[...listeners].slice(0,5).map((e)=>e.stack),timers:[...timeouts.values(),...intervals.values(),...raf.values()].slice(0,5)}};
   };
 }

@@ -13,7 +13,8 @@ import { activeNavmesh, type Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';
 import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
-import { currentScope, levelRegistrations, retainedRegistrations, asShell } from '../core/shardScope';
+import { currentScope, levelRegistrations, retainedRegistrations, registrationTimerIds, asShell } from '../core/shardScope';
+import { ExternalTimerBaseline } from './timerBaseline';
 import type { ScopeCensus } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 
@@ -29,6 +30,7 @@ export interface GpuBytes { textures: number; renderbuffers: number; buffers: nu
 export interface ResourceCounts {
   listeners: { window: number; document: number; canvas: number; other: number };
   timers: { timeouts: number; intervals: number; raf: number };
+  timerIds?: { timeouts: number[]; intervals: number[]; raf: number[] };
   stacks: { listeners: string[]; timers: string[] };
 }
 export interface LeakCensus {
@@ -273,10 +275,9 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
   const { game } = world, app = game.app;
   const raw = pins?.resources?.(), owned = levelRegistrations(), retainedAtBoot = retainedRegistrations();
   const retainedListeners = { window: 0, document: 0, canvas: 0, other: 0 }, retainedTimers = { timeouts: 0, intervals: 0, raf: 1 };
+  const externalTimers = raw?.timerIds ? new ExternalTimerBaseline(raw.timerIds, registrationTimerIds()) : null;
   if (raw) {
     for (const key of Object.keys(retainedListeners) as (keyof typeof retainedListeners)[]) retainedListeners[key] = raw.listeners[key] - owned.listeners[key] - retainedAtBoot.listeners[key];
-    retainedTimers.timeouts = raw.timers.timeouts - owned.timers.timeouts - retainedAtBoot.timers.timeouts;
-    retainedTimers.intervals = raw.timers.intervals - owned.timers.intervals - retainedAtBoot.timers.intervals;
   }
   const legacy = currentScope();
   const bodyBaseline = document.body.children.length - [...(legacy?.nodeOwners ?? [])].filter(([node, owner]) => node.parentNode === document.body && owner.belongsTo(game.levelScope)).length;
@@ -296,6 +297,9 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     if (!resources) throw new Error('Leak census requires independent harness resource counters');
     const gpu = game.retainedGpuCounts(), listeners = { ...resources.listeners }, timers = { ...resources.timers };
     const retainedNow = retainedRegistrations();
+    if (!externalTimers || !resources.timerIds) throw new Error('Leak census requires independent live timer identities');
+    const externalNow = externalTimers.live(resources.timerIds);
+    retainedTimers.timeouts = externalNow.timeouts; retainedTimers.intervals = externalNow.intervals;
     for (const key of Object.keys(listeners) as (keyof typeof listeners)[]) listeners[key] -= retainedListeners[key] + retainedNow.listeners[key];
     for (const key of Object.keys(timers) as (keyof typeof timers)[]) timers[key] -= retainedTimers[key] + retainedNow.timers[key];
     let objects = 0; game.scene.traverse(() => { objects++; });
