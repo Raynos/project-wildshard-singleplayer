@@ -32,7 +32,8 @@ export const SKY_REACH: ShardManifest = {
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
   loot: { coins: true },
-  audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./audio/cues')).CUES },
+  audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./audio/cues')).CUES,
+    preload: async () => (await import('./audio/profile')).skyAudio() },
   boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: [SPAWN.x, TOP + 1.7, SPAWN.z], feet: [SPAWN.x, TOP, SPAWN.z], yaw: 0, pitch: -3, mockup: '', frame: 'Spawn: Sunrest, the windmill isle across the gap' },
