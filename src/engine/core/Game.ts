@@ -453,6 +453,7 @@ export class Game {
 
   /** a system threw (one try/catch per call, below): count it, report it; a core system that keeps failing stops the loop */
   private fault(s: GameSystem<unknown>, e: unknown): void {
+    if (s.label !== 'engine.events') this.app.events.emit('fault', { source: s.label, message: e instanceof Error ? e.message : String(e), error: e });
     if (systemFault(s, e, this.frameNo, performance.now()) === 'fatal' && !this.dead) { this.dead = true; this.app.setState('error'); setLoopState('dead'); }
   }
   /** (a method, not the field: the loop's early-out narrows `this.dead` to false for the rest of the frame) */
@@ -470,6 +471,11 @@ export class Game {
       try { spec.run(dt, t); } catch (e) { this.fault(s, e); }
       if (on) frameCost.system(s.label, performance.now() - t0);
     }
+    this.flushEvents(phase);
+  }
+  private readonly eventSystem = makeSystem(null, 'engine.events', false, 'engine.events');
+  private flushEvents(phase: Phase): void {
+    try { this.app.events.flush(phase); } catch (error) { this.fault(this.eventSystem, error); }
   }
 
   /** Run the fixed steps this frame's (scaled) dt owes: hit-stop slows them with everything else. */
@@ -666,6 +672,7 @@ export class Game {
       const dt = realDt * scale;
       this._frameTime += dt;
       this.frameNo++;
+      this.app.events.beginFrame();
       // the dev fps panel's timing rows (src/engine/core/frameCost.ts): each system timed by its label only while the panel is open
       const on = frameCost.on;
       if (on) frameCost.begin();
@@ -685,6 +692,7 @@ export class Game {
         composer.render(realDt);
         if (nineExploreEntryPending() && !this.renderer.getContext().isContextLost()) recordNineExploreFrame();
       } catch (e) { this.fault(this.renderSystem, e); return; }
+      this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();
       const done = performance.now(), work = done - lastRun;
       this.workMs[this.frameI] = work; this.frameCount++;

@@ -73,6 +73,20 @@ describe('events and asks', () => {
     scope.dispose();
   });
 
+  it('shares the 1,000-event budget across phases of one frame and resets on the next', () => {
+    const events = new Events(), scope = new Scope('test'), value = vi.fn<() => void>(), faults = vi.fn<() => void>();
+    events.on('test.value', value, scope); events.on('fault', faults, scope);
+    events.beginFrame();
+    for (let i = 0; i < 600; i++) events.emit('test.value', i);
+    events.flush('input');
+    for (let i = 0; i < 600; i++) events.emit('test.value', i);
+    events.flush('update');
+    expect(value).toHaveBeenCalledTimes(1000); expect(faults).toHaveBeenCalledTimes(1);
+    events.beginFrame(); events.emit('test.value', 1); events.flush('late');
+    expect(value).toHaveBeenCalledTimes(1001);
+    scope.dispose();
+  });
+
   it('chains asks synchronously by order, returning the initial value without answerers', () => {
     const events = new Events(), scope = new Scope('test');
     expect(events.ask('test.modify', 3)).toBe(3);

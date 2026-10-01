@@ -1270,6 +1270,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (fragileBoot) game.canvas.removeEventListener('webglcontextlost', onBootContextLost);
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
+  app.events.emit('level.loaded', { id: slug });
   app.setState(hud.entered ? 'play' : 'title');
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();

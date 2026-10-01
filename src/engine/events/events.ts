@@ -12,6 +12,10 @@ export class Events {
   private answerers = new Map<keyof AskMap, Listener[]>();
   private queue: QueuedEvent[] = [];
   private flushing = false;
+  private frameCount = 0;
+  private frameBound = false;
+  /** All phase drains share one frame budget; isolated callers retain the standalone drain contract. */
+  beginFrame(): void { this.frameCount = 0; this.frameBound = true; }
 
   emit<K extends keyof EventMap>(name: K, payload: EventMap[K]): void {
     this.queue.push({ name, payload });
@@ -55,7 +59,7 @@ export class Events {
     if (this.flushing) return;
     this.flushing = true;
     try {
-      let count = 0;
+      let count = this.frameBound ? this.frameCount : 0;
       while (this.queue.length > 0) {
         if (count === EVENT_FLUSH_LIMIT) {
           this.queue.length = 0;
@@ -68,7 +72,7 @@ export class Events {
           break;
         }
         const event = this.queue.shift();
-        if (event) { count++; this.dispatch(event); }
+        if (event) { count++; this.frameCount = count; this.dispatch(event); }
       }
     } finally { this.flushing = false; }
   }

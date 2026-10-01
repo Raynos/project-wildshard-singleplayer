@@ -431,12 +431,20 @@ const simNoRender = rule('Simulation stays independent of visuals (E357)', (cont
   };
 });
 
+const noHookChain = rule('Hook chains migrate to typed events (E357)', (context) => ({
+  VariableDeclarator(node) {
+    const value = unwrap(node.init);
+    if (value?.type === 'MemberExpression' && /^on[A-Z]/u.test(propName(value) ?? stringOf(value.property) ?? '')) report(context, node, 'Use typed events instead of saving a prior onFoo hook');
+  },
+}));
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
     'no-url-switch': noUrlSwitch, layer, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
     'no-renderer-type': noRendererType, 'sim-no-render': simNoRender,
+    'no-hook-chain': noHookChain,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export
