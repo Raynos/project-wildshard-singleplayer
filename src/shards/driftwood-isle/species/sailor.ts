@@ -30,13 +30,13 @@ type Side = 'L' | 'R';
 type SailorBones = Record<'body' | 'spine' | 'chest' | 'head' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, THREE.Bone>;
 /** `Animal.mem` as the sailor uses it (numbers only, the registry contract; Enemies.ts reads `rise` / `rising` for the droplets).
  *  The first `think` tick writes every key but `floorS`, which `animate` (it can run first) seeds itself. */
-interface SailorMem extends Record<string, number> {
+type SailorMem = Record<string, number> & {
   init: number; hx: number; hz: number; cd: number; hitT: number; away: number;
   rise: number; rising: number; sinking: number; floor: number; floorS?: number;
   st: number; hit: number;
   /** E297: the side-step round a beam — ±1, and the time left before it tries the other side */
   sd?: number; sdT?: number;
-}
+};
 
 function sailorPaint(v: VariantDef): Paint {
   const P = paletteColors(PALETTE, v.tint);

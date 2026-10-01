@@ -23,7 +23,7 @@ export function budgetChecks(current) {
  * @param {import('playwright').Page} page */
 export function budgetViews(page) {
   return page.evaluate(async () => {
-    const w = window.__wildshard.world, g = w.game, cameras = await w.chunk.dev?.poses();
+    const w = window.__wildshard.world, g = w.game, cameras = await g.level.capturePoses?.();
     /** @type {Record<string, { draws: number, tris: number, programs: number, gpuMB: number }>} */ const result = {};
     if (!cameras) return result;
     const position = g.camera.position.clone(), quaternion = g.camera.quaternion.clone();

@@ -21,7 +21,7 @@ export async function touch(page,selector,opts={}) {
 }
 /** @param {import('playwright').Page} page */
 export async function touchLeg(page) {
-  await poseAt(page,await page.evaluate(()=>window.__wildshard.world.chunk.spawn));
+  await poseAt(page,await page.evaluate(()=>window.__wildshard.world.game.level.spawn));
   const before=await page.evaluate(()=>window.__wildshard.state().player);
   await touch(page,TOUCH.move,{dy:-80,hold:2000});
   const moved=await page.evaluate((b)=>{const p=window.__wildshard.world.player.position;return Math.hypot(p.x-b.pos.x,p.z-b.pos.z);},before);
@@ -33,7 +33,7 @@ export async function touchLeg(page) {
   const nearest=await page.evaluate(()=> {
     const w=window.__wildshard.world;
     const list=/** @type {readonly {label:string,position:{x:number,y:number,z:number}}[]} */ (w.interactables);
-    const spawn=w.chunk.spawn;
+    const spawn=w.game.level.spawn;
     const sorted=[...list].sort((a,b)=>Math.hypot(a.position.x-spawn.x,a.position.z-spawn.z)-Math.hypot(b.position.x-spawn.x,b.position.z-spawn.z));
     return sorted.length>0?sorted[0]:null;
   });

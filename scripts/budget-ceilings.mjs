@@ -40,10 +40,12 @@ for (const [key, ceiling] of Object.entries(measured)) {
 }
 // Owning manifests import these data files; no renderer or cross-shard imports enter the manifests.
 for (const slug of specs.keys()) {
+  /** @type {Record<'phone' | 'desktop', Record<string, Record<string, number>>>} */
   const ceilings = { phone: {}, desktop: {} };
   for (const [key, ceiling] of Object.entries(next)) {
     const [id, tier, pose, metric] = key.split('.');
     if (id !== slug) continue;
+    if ((tier !== 'phone' && tier !== 'desktop') || !pose || !metric) throw new Error(`Invalid budget key ${key}`);
     (ceilings[tier][pose] ??= {})[metric] = ceiling;
   }
   writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '#engine';\n\n/** F2 rollout maxima, lowered after calibration; provenance: budgets/ceiling-sources.json. */\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
